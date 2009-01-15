@@ -38,7 +38,7 @@ and changed Makefile.in nsterm.m nsfns.m nsfont.m nsterm.h configure.in
 Agustín Martín: changed flyspell.el ispell.el fixit.texi
 
 Aidan Kehoe: changed lread.c mm-util.el erc-log.el erc.el gnus-sum.el
-  gnus-util.el latin-ltx.el objects.texi
+  gnus-util.el latin-ltx.el nnfolder.el objects.texi
 
 Ake Stenhoff: co-wrote imenu.el
 and changed cc-mode.el perl-mode.el
@@ -54,7 +54,7 @@ and co-wrote cc-align.el cc-cmds.el cc-defs.el cc-engine.el cc-fonts.el
 and changed cc-mode.texi lread.c programs.texi lisp.el cc-subword.el
   font-lock.el isearch.el search.texi startup.el subr.el text.texi
   INSTALL.CVS add-log.el buffers.texi bytecomp.el cc-fix.el cc-mode-19.el
-  cmdargs.texi display.texi ebrowse.el emacs.texi and 13 other files
+  cmdargs.texi display.texi ebrowse.el emacs.texi and 14 other files
 
 Alan Shutko: changed diary-lib.el calendar.el bindings.el cal-hebrew.el
   easy-mmode.el gnus-sum.el ibuf-ext.el ibuffer.el lunar.el macros.el
@@ -157,8 +157,8 @@ Andreas Politz: changed term.el
 
 Andreas Schwab: changed Makefile.in configure.in files.el lisp.h xdisp.c
   alloc.c coding.c print.c editfns.c fileio.c dired.el fns.c xterm.c
-  keyboard.c process.c eval.c info.el simple.el buffer.c emacs.c
-  minibuf.c and 474 other files
+  keyboard.c process.c eval.c info.el simple.el buffer.c emacs.c window.c
+  and 472 other files
 
 Andreas Seltenreich: changed nnweb.el gnus.texi message.el gnus.el
   nnslashdot.el gnus-util.el mm-url.el mm-uu.el url-http.el xterm.c
@@ -268,7 +268,8 @@ Bill Burton: changed ptx.h sequent-ptx.h
 
 Bill Carpenter: wrote feedmail.el (public domain)
 
-Bill Mann: changed configure.in unexaix.c ibmrs6000.h usg5-4-3.h
+Bill Mann: wrote perl-mode.el
+and changed configure.in unexaix.c ibmrs6000.h usg5-4-3.h
 
 Bill Pringlemeir: changed messcompat.el
 
@@ -284,11 +285,11 @@ Bill Wohler: wrote mh-buffers.el mh-comp.el mh-compat.el mh-e.el
   mh-folder.el mh-funcs.el mh-letter.el mh-mime.el mh-scan.el mh-seq.el
   mh-show.el mh-utils.el mh-xface.el
 and co-wrote mh-junk.el
-and changed mh-customize.el mh-index.el mh-alias.el mh-identity.el
-  mh-pick.el mh-speed.el mh-e.texi MH-E-NEWS mh-init.el mh-acros.el
-  mh-gnus.el mh-loaddefs.el mh-search.el mh-unit.el mh-inc.el
-  mh-xemacs-compat.el mh-print.el Makefile.in image.el mh-tool-bar.el
-  mh-xemacs.el and 88 other files
+and changed mh-customize.el mh-search.el mh-alias.el mh-identity.el
+  mh-speed.el mh-e.texi mh-init.el mh-acros.el mh-gnus.el mh-unit.el
+  mh-inc.el mh-xemacs-compat.el mh-print.el Makefile.in image.el
+  mh-tool-bar.el mh-xemacs.el README display.texi makefile.w32-in
+  mh-pick.el and 86 other files
 
 Bjorn Solberg: changed nnimap.el
 
@@ -300,8 +301,6 @@ Björn Torkelsson: changed gnus-art.el gnus-group.el gnus-srvr.el
   gnus.el mail-source.el nnmail.el
 
 Bjørn Mork: changed gnus-agent.el message.el mml2015.el
-
-Blitz Product Development Corporation: wrote ispell.el
 
 Bob Glickstein: wrote sregex.el
 and changed isearch.el sendmail.el
@@ -333,10 +332,10 @@ Brian Cully: changed ns-emacs.texi
 
 Brian D. Carlstrom: changed gud.el smtpmail.el
 
-Brian Fox: changed Makefile.in configure.in minibuf.c dired.el files.el
-  rmail.el search.c simple.el sysdep.c compile.el forms.texi frame.c
-  info.texi keyboard.c make-dist subr.el systty.h texindex.c xterm.c
-  ymakefile INSTALL and 46 other files
+Brian Fox: changed Makefile.in Makefile configure.in minibuf.c dired.el
+  files.el rmail.el search.c simple.el sysdep.c compile.el forms.texi
+  frame.c info.texi keyboard.c make-dist subr.el systty.h texindex.c
+  xterm.c ymakefile and 46 other files
 
 Brian Marick: co-wrote hideif.el
 
@@ -348,7 +347,7 @@ Brian Palmer: changed erc.el erc-list.el
 Brian Preble: changed abbrev.el apropos.el asm-mode.el awk-mode.el
   bytecomp.el c++-mode.el cal.el calc.el chistory.el cl-indent.el
   compare-w.el compile.el dabbrev.el debug.el diary.el diff.el dired.el
-  doctex.el doctor.el ebuff-menu.el echistory.el and 130 other files
+  doctex.el doctor.el ebuff-menu.el echistory.el and 129 other files
 
 Bruno Haible: co-wrote po.el
 and changed INSTALL emacs.1 epaths.in info.el paths.el
@@ -406,9 +405,9 @@ Chip Coldwell: changed font.c
 
 Chong Yidong: co-wrote longlines.el
 and changed xdisp.c simple.el display.texi files.el cus-edit.el
-  files.texi emacs.texi faces.el keyboard.c xterm.c frames.texi image.c
-  startup.el image-mode.el xfaces.c xfns.c custom.el misc.texi
-  Makefile.in compile.el custom.texi and 442 other files
+  files.texi faces.el emacs.texi keyboard.c xterm.c frames.texi xfaces.c
+  image.c startup.el image-mode.el xfns.c custom.el misc.texi Makefile.in
+  font.c compile.el and 443 other files
 
 Chris Chase: co-wrote idlw-shell.el idlwave.el
 
@@ -478,7 +477,7 @@ and changed calc.el replace.el update-game-score.c calc-ext.el
   calc-misc.el Makefile.in calc-macs.el calc-mode.el calc-graph.el
   gamegrid.el calc-aent.el calc-bin.el calc-embed.el calc-keypd.el
   calc-math.el calc-prog.el calc-units.el calcalg2.el font-core.el
-  info.el calc-alg.el and 77 other files
+  info.el calc-alg.el and 78 other files
 
 Craig Markwardt: changed icalendar.el
 
@@ -517,7 +516,7 @@ and co-wrote hideshow.el
 and changed vc.el vc-hg.el Makefile.in vc-cvs.el vc-git.el xterm.el
   vc-bzr.el configure.in term.el vc-hooks.el sysdep.c vc-svn.el
   diff-mode.el lisp.h term.c emacs.c files.el darwin.h emacsclient.c
-  gnu-linux.h process.c and 750 other files
+  gnu-linux.h process.c and 748 other files
 
 Daniel Brockman: changed cus-start.el format-spec.el ibuffer.el rcirc.el
 
@@ -573,7 +572,7 @@ and co-wrote latin-ltx.el socks.el
 and changed Makefile.in configure.in help.el mule-cmds.el fortran.el
   mule-conf.el xterm.c browse-url.el mule.el coding.c cyrillic.el
   european.el fns.c mule-diag.el simple.el wid-edit.el cus-edit.el
-  cus-start.el files.el keyboard.c byte-opt.el and 758 other files
+  cus-start.el files.el keyboard.c byte-opt.el and 759 other files
 
 Dave Pearson: wrote 5x5.el quickurl.el
 
@@ -589,7 +588,8 @@ David Byers: changed minibuf.c
 
 David Casperson: changed menu-bar.el tex-mode.el
 
-David De La Harpe Golden: changed cus-start.el files.el xterm.c
+David De La Harpe Golden: changed cus-start.el files.el mouse.el x-win.el
+  xterm.c
 
 David Edmondson: changed message.el gnus-cite.el imap.el mm-view.el
   mml2015.el nnfolder.el nnml.el
@@ -611,8 +611,6 @@ and changed info.el bytecomp.el
 
 David Glasser: changed tar-mode.el
 
-David Golden: changed mouse.el x-win.el
-
 David Goodger: co-wrote rst.el
 
 David Hansen: changed dbusbind.c nnrss.el cc-cmds.el dired.el em-dirs.el
@@ -627,9 +625,9 @@ David Hunter: changed config.nt flymake.el ms-w32.h process.c
 David J. Biesack: changed antlr-mode.el
 
 David J. MacKenzie: changed configure.in etags.c Makefile.in fakemail.c
-  movemail.c wakeup.c cvtmail.c qsort.c termcap.c yow.c avoid.el b2m.c
-  config.in digest-doc.c emacsclient.c emacsserver.c emacstool.c
-  etags-vmslib.c fortran.el hexl.c isearch.el and 13 other files
+  movemail.c wakeup.c cvtmail.c qsort.c termcap.c yow.c Makefile avoid.el
+  b2m.c config.in digest-doc.c emacsclient.c emacsserver.c emacstool.c
+  etags-vmslib.c fortran.el hexl.c and 14 other files
 
 David Kastrup: changed greek.el replace.el faq.texi search.c ange-ftp.el
   calc.el help.el keymaps.texi mouse.el subr.el woman.el Makefile.in
@@ -639,10 +637,10 @@ David Kastrup: changed greek.el replace.el faq.texi search.c ange-ftp.el
 David Kågedal: wrote tempo.el
 and changed sendmail.el xmenu.c
 
-David Lawrence: changed loaddefs.el comint.el simple.el files.el
-  c++-mode.el compile.el getdate.y inf-lisp.el shell.el emerge.el
-  tex-mode.el c-mode.el cl.el dired.el emacs.1 emacsserver.c gnus.el
-  history.el lisp-mode.el lisp.el mh-e.el and 79 other files
+David Lawrence: changed comint.el simple.el files.el c++-mode.el
+  compile.el getdate.y inf-lisp.el shell.el emerge.el tex-mode.el
+  c-mode.el cl.el dired.el emacs.1 emacsserver.c gnus.el history.el
+  lisp-mode.el lisp.el mh-e.el rnews.el and 79 other files
 
 David Lord: changed timeclock.el
 
@@ -691,8 +689,6 @@ David Vazquez: changed m4-mode.el
 
 David Z. Maze: changed nnml.el nnrss.el
 
-Davis Herring: changed desktop.el timeclock.el
-
 Deanna Phillips: changed configure.in
 
 Decklin Foster: changed nngateway.el
@@ -733,8 +729,6 @@ Diane Murray: changed erc.el erc-backend.el erc-menu.el erc-button.el
   erc-goodies.el erc-ibuffer.el erc-log.el erc-nicklist.el url-http.el
   erc-dcc.el erc-networks.el and 35 other files
 
-Dick King: wrote uniquify.el
-
 Didier Verna: wrote gnus-diary.el nndiary.el
 and co-wrote nnml.el
 and changed nntp.el message.el gnus-group.el gnus-sum.el gnus-msg.el
@@ -750,7 +744,7 @@ Dmitry Antipov: changed alloc.c keyboard.c buffer.c ccl.c emacs.c
 
 Dominique de Waleffe: changed pcvs-info.el
 
-Don Morrison: wrote dabbrev.el
+Don Morrison: co-wrote dabbrev.el
 
 Don Woods: changed replace.el
 
@@ -762,7 +756,7 @@ Drake Wilson: changed files.el
 
 Drew Adams: changed cus-edit.el mouse.el bindings.el bookmark.el
   custom.el dired.texi etags.el faces.el finder.el frame.el help-fns.el
-  help.el isearch.el msdog.texi pp.el ring.el speedbar.el
+  help.el info.el isearch.el msdog.texi pp.el ring.el speedbar.el
 
 E. Jay Berkenbilt: changed flyspell.el ispell.el window.h
 
@@ -801,10 +795,10 @@ Eli Barzilay: wrote calculator.el
 Eli Tziperman: wrote rmail-spam-filter.el
 
 Eli Zaretskii: wrote rxvt.el tty-colors.el
-and changed msdos.c Makefile.in makefile.w32-in files.el info.el fileio.c
+and changed msdos.c makefile.w32-in Makefile.in files.el info.el fileio.c
   startup.el mainmake.v2 config.bat pc-win.el simple.el frame.c msdos.h
   rmail.el internal.el menu-bar.el process.c w32.c xfaces.c INSTALL
-  emacs.c and 587 other files
+  emacs.c and 586 other files
 
 Elias Oltmanns: changed tls.el gnus-agent.el gnus-int.el gnus-srvr.el
   gnus.el
@@ -821,11 +815,6 @@ Emilio C. Lopes: changed woman.el cmuscheme.el help.el vc.el advice.el
 Emmanuel Briot: wrote ada-prj.el xml.el
 and co-wrote ada-mode.el ada-xref.el
 and changed ada-stmt.el
-
-Enami Tsugutomo: changed frame.c keyboard.c dispnew.c fileio.c process.c
-  xdisp.c add-log.el bytecomp.el configure.in editfns.c emacs.c frame.h
-  gnus-group.el perl-mode.el rmailsum.el simple.el sysdep.c vc.el
-  window.c window.el
 
 Era Eriksson: changed dired.el shell.el
 
@@ -857,8 +846,8 @@ Eric S. Raymond: wrote AT386.el asm-mode.el cookie1.el finder.el gud.el
 and co-wrote make-mode.el
 and changed vc.el vc-hooks.el vc-svn.el vc-cvs.el files.texi vc-bzr.el
   vc-dispatcher.el vc-hg.el vc-sccs.el vc-git.el vc-rcs.el vc-mcvs.el
-  Makefile.in files.el loaddefs.el comint.el simple.el vc-arch.el
-  vc-mtn.el add-log.el cust-print.el and 249 other files
+  Makefile.in files.el comint.el simple.el vc-arch.el vc-mtn.el
+  add-log.el cust-print.el dired.el and 249 other files
 
 Eric Schulte: wrote org-plot.el
 
@@ -997,7 +986,7 @@ Geoff Voelker: wrote ms-w32.h w32-fns.el w32.c w32.h w32heap.c w32heap.h
 and changed makefile.nt w32fns.c fileio.c makefile.def callproc.c
   s/ms-w32.h unexw32.c w32term.h dos-w32.el emacs.bat loadup.el
   w32-win.el emacs.c keyboard.c process.c w32console.c addpm.c cmdproxy.c
-  comint.el files.el ntterm.c and 105 other files
+  comint.el files.el ntterm.c and 104 other files
 
 Georg C. F. Greve: changed pgg-gpg.el
 
@@ -1009,7 +998,7 @@ Gerd Möllmann: wrote authors.el ebrowse.el jit-lock.el rx.el tooltip.el
 and changed xdisp.c xterm.c dispnew.c dispextern.h xfns.c xfaces.c
   window.c keyboard.c lisp.h Makefile.in faces.el alloc.c buffer.c
   startup.el xterm.h fns.c simple.el term.c frame.c xmenu.c emacs.c
-  and 617 other files
+  and 618 other files
 
 Gergely Nagy: changed erc.el
 
@@ -1029,8 +1018,8 @@ Glenn Morris: wrote check-declare.el
 and changed calendar.el Makefile.in diary-lib.el f90.el cal-menu.el
   cal-hebrew.el fortran.el holidays.el cal-islam.el configure.in
   cal-bahai.el calendar.texi cal-china.el appt.el cal-tex.el solar.el
-  cal-x.el startup.el bytecomp.el cal-move.el cal-coptic.el
-  and 746 other files
+  bytecomp.el cal-x.el startup.el cal-move.el cal-coptic.el
+  and 743 other files
 
 Glynn Clements: wrote gamegrid.el snake.el tetris.el
 
@@ -1071,10 +1060,9 @@ Gwern Branwen: changed browse-url.el
 
 Gã¶Ran Uddeborg: changed isc4-1.h
 
-Hallvard B. Furuseth: changed gnus-util.el editfns.c gnus-cache.el
-  gnus-sum.el lread.c messcompat.el nntp.el print.c process.c search.c
-
-Hallvard Furuseth: co-wrote byte-opt.el byte-run.el bytecomp.el
+Hallvard B. Furuseth: co-wrote byte-opt.el byte-run.el bytecomp.el
+and changed gnus-util.el editfns.c gnus-cache.el gnus-sum.el lread.c
+  messcompat.el nntp.el print.c process.c search.c
 
 Han Boetes: changed netbsd.h
 
@@ -1217,7 +1205,7 @@ and changed fns.c window.c xselect.c
 James Cloos: wrote arabic.el
 and changed url-history.el
 
-James R. Larus: wrote mh-e.el
+James R. Larus: co-wrote mh-e.el
 
 James R. Van Zandt: changed sh-script.el
 
@@ -1266,8 +1254,8 @@ Jason Riedy: changed org-table.el org.texi
 Jason Rumney: wrote w32-vars.el
 and changed w32fns.c w32term.c w32font.c makefile.w32-in w32menu.c
   w32-win.el w32term.h w32.c w32uniscribe.c w32-fns.el makefile.nt
-  w32console.c w32bdf.c configure.bat w32proc.c w32select.c font.c
-  keyboard.c w32font.h w32gui.h xdisp.c and 152 other files
+  w32console.c w32bdf.c configure.bat w32proc.c keyboard.c w32select.c
+  font.c w32font.h w32gui.h xdisp.c and 151 other files
 
 Jay Belanger: changed calc.texi calc.el calc-ext.el calc-aent.el
   calc-embed.el calc-lang.el calc-prog.el calc-units.el calc-help.el
@@ -1295,7 +1283,7 @@ Jeff Peck: wrote sun.el
 Jeffrey C Honig: wrote mh-print.el
 and changed mh-e.el mh-comp.el mh-utils.el mh-mime.el mh-customize.el
   mh-funcs.el mh-alias.el mh-seq.el bsdos4.h mh-folder.el mh-junk.el
-  mh-loaddefs.el mh-show.el
+  mh-show.el
 
 Jens Krinke: changed smime.el
 
@@ -1334,7 +1322,7 @@ and co-wrote wyse50.el
 and changed keyboard.c xterm.c xfns.c Makefile.in window.c process.c
   ymakefile dispnew.c xdisp.c sysdep.c configure.in lisp.h keymap.c
   configure make-dist buffer.c frame.c screen.c simple.el alloc.c emacs.c
-  and 388 other files
+  and 389 other files
 
 Jim Kingdon: changed emacsclient.c emacs.tex functions.texinfo hp300bsd.h
   rmail.el
@@ -1382,8 +1370,6 @@ Joe Corneli: changed subr.el
 Joe Edmonds: changed lisp-mode.el
 
 Joe Hildebrand: co-wrote nndb.el
-
-Joe Kelsey: changed skeleton.el
 
 Joe Ramey: changed filelock.c rmailsum.el
 
@@ -1447,10 +1433,10 @@ John Wiegley: wrote align.el cal-bahai.el em-alias.el em-banner.el
   em-basic.el em-cmpl.el em-dirs.el em-glob.el em-hist.el em-ls.el
   em-pred.el em-prompt.el em-rebind.el em-script.el em-smart.el
   em-term.el em-unix.el em-xtra.el erc-identd.el esh-arg.el esh-cmd.el
-  esh-ext.el esh-io.el esh-mode.el esh-module.el esh-opt.el esh-proc.el
-  esh-test.el esh-util.el esh-var.el eshell.el eudcb-mab.el isearchb.el
-  org-attach.el org-mac-message.el pcmpl-cvs.el pcomplete.el remember.el
-  timeclock.el
+  esh-ext.el esh-io.el esh-maint.el esh-mode.el esh-module.el esh-opt.el
+  esh-proc.el esh-test.el esh-util.el esh-var.el eshell.el eudcb-mab.el
+  isearchb.el org-attach.el org-mac-message.el pcmpl-cvs.el pcomplete.el
+  remember.el timeclock.el
 and changed erc-chess.el erc.el iswitchb.el Makefile.in allout.el
   cal-menu.el calendar.el compile.el desktop.el diary-lib.el erc-bbdb.el
   erc-button.el erc-complete.el erc-fill.el erc-ibuffer.el erc-list.el
@@ -1492,7 +1478,7 @@ and changed xterm.c xfns.c keyboard.c screen.c dispnew.c xdisp.c window.c
   process.c alloc.c buffer.h files.el screen.el insdel.c emacs.c
   and 106 other files
 
-Joseph M. Kelsey: changed dir.h fileio.c
+Joseph M. Kelsey: changed dir.h fileio.c skeleton.el
 
 Josh Elsasser: changed configure.in
 
@@ -1514,7 +1500,7 @@ and changed files.el perl-mode.el
 Juanma Barranquero: changed makefile.w32-in subr.el files.el faces.el
   help-fns.el w32fns.c bs.el emacsclient.c org.el server.el simple.el
   desktop.el buffer.c ido.el xdisp.c replace.el window.c eval.c
-  mule-cmds.el vhdl-mode.el xfaces.c and 800 other files
+  mule-cmds.el vhdl-mode.el xfaces.c and 798 other files
 
 Juergen Hoetzel: changed url-handlers.el
 
@@ -1533,8 +1519,8 @@ Jure Cuhalev: changed ispell.el
 Juri Linkov: wrote misearch.el
 and changed info.el isearch.el simple.el replace.el startup.el compile.el
   dired-aux.el faces.el dired.el display.texi grep.el descr-text.el
-  cus-edit.el files.el bindings.el menu-bar.el man.el text.texi edebug.el
-  fill.el ispell.el and 265 other files
+  cus-edit.el files.el menu-bar.el bindings.el man.el text.texi edebug.el
+  fill.el help.el and 269 other files
 
 Justin Bogner: changed fortune.el
 
@@ -1547,10 +1533,10 @@ Jérôme Marant: changed Makefile.in make-dist bindings.el configure.in
 
 K. Shane Hartman: wrote chistory.el echistory.el electric.el emacsbug.el
   helper.el picture.el view.el
-and changed rmail.el loaddefs.el ebuff-menu.el dired.el simple.el
-  add-log.el lisp-mode.el shell.el buff-menu.el buffer.c c-mode.el
-  mail-utils.el mim-mode.el more-mode.el aton.el c++-mode.el cmds.c
-  compile.el files.el gud.el indent.el and 14 other files
+and changed rmail.el ebuff-menu.el dired.el simple.el add-log.el
+  lisp-mode.el shell.el buff-menu.el buffer.c c-mode.el mail-utils.el
+  mim-mode.el more-mode.el aton.el c++-mode.el cmds.c compile.el files.el
+  gud.el indent.el info.el and 13 other files
 
 Kahlil Hodgson: changed timeclock.el
 
@@ -1603,7 +1589,7 @@ Katsuhiro Hermit Endo: changed gnus-group.el gnus-spec.el
 
 Katsumi Yamaoka: wrote canlock.el
 and changed gnus-art.el message.el gnus-sum.el gnus.texi mm-decode.el
-  mm-view.el mm-util.el rfc2047.el gnus-msg.el gnus-group.el mml.el
+  mm-util.el mm-view.el rfc2047.el gnus-msg.el gnus-group.el mml.el
   gnus-start.el gnus-util.el gnus.el nntp.el gnus-agent.el nnrss.el
   mm-uu.el nnmail.el nnheader.el rfc2231.el and 105 other files
 
@@ -1630,7 +1616,7 @@ and changed pgg-gpg.el pgg.el python.el pgg-pgp.el pgg-pgp5.el edebug.el
 Ken Raeburn: changed lisp.h buffer.c alloc.c keyboard.c lread.c minibuf.c
   coding.c Makefile.in editfns.c fileio.c fns.c keymap.c undo.c xdisp.c
   xfns.c xterm.c charset.h fontset.c search.c window.c charset.c
-  and 84 other files
+  and 87 other files
 
 Ken Stevens: wrote ispell.el
 
@@ -1640,7 +1626,7 @@ and co-wrote ps-def.el ps-mule.el ps-print.el ps-samp.el quail.el
 and changed coding.c mule-cmds.el mule.el fontset.c charset.c xterm.c
   fontset.el xdisp.c fileio.c mule-conf.el Makefile.in font.c fns.c
   characters.el ccl.c charset.h mule-diag.el xfaces.c coding.h ftfont.c
-  japanese.el and 368 other files
+  japanese.el and 367 other files
 
 Kenichi Okada: co-wrote sasl-cram.el sasl-digest.el
 
@@ -1668,8 +1654,8 @@ and changed makefile.nt dispnew.c addpm.c config.nt config.w95
   startup.el sysdep.c and 19 other files
 
 Kevin Greiner: wrote legacy-gnus-agent.el
-and changed gnus-agent.el gnus-sum.el gnus-start.el gnus-int.el gnus.el
-  nntp.el gnus-util.el gnus-cus.el gnus-group.el gnus-art.el
+and changed gnus-agent.el gnus-sum.el gnus-start.el gnus-int.el nntp.el
+  gnus.el gnus-util.el gnus-cus.el gnus-group.el gnus-art.el
   gnus-cache.el gnus-range.el gnus-draft.el gnus-srvr.el gnus.texi
   nnagent.el nnheader.el gnus-async.el gnus-registry.el gnus-salt.el
   gnus-uu.el and 3 other files
@@ -1717,12 +1703,7 @@ and changed hanja.el hangul.el hangul3.el hanja-jis.el symbol-ksc.el
 Kobayashi Yasuhiro: changed w32fns.c configure.bat indent.c info.el
   w32term.c w32term.h window.c xfns.c
 
-Kohtala Marko: changed info.el
-
 Konstantin Novitsky: changed python.el
-
-Koseki Yoshinori: wrote iimage.el
-and changed nnmail.el
 
 Kurt B. Kaiser: changed message.el
 
@@ -1757,8 +1738,7 @@ Lars Hansen: changed desktop.el tramp.el info.el mh-e.el dired-x.el
   url-irc.el url-misc.el url-news.el url-privacy.el and 39 other files
 
 Lars Lindberg: wrote msb.el
-and co-wrote imenu.el
-and changed dabbrev.el
+and co-wrote dabbrev.el imenu.el
 
 Lars Magne Ingebrigtsen: wrote compface.el dns.el ecomplete.el
   format-spec.el gnus-agent.el gnus-art.el gnus-async.el gnus-bcklg.el
@@ -1781,6 +1761,8 @@ and changed gnus-xmas.el gnus-cite.el gnus.texi spam-report.el
   mm-uu.el nnrss.el smiley.el assistant.el fns.c gnus-vm.el imap.el
   mail-extr.el message.texi nnimap.el custom.el and 36 other files
 
+Lars Rasmusson: changed ebrowse.c
+
 Lasse Rasinen: changed gnus-start.el
 
 Laurent Martelli: changed mm-decode.el
@@ -1795,8 +1777,8 @@ and changed erc.el erc-match.el erc-nets.el erc-nickserv.el erc-button.el
 Lawrence R. Dodd: co-wrote dired-x.el
 and changed fortran.el ispell.el sendmail.el cmuscheme.el comint.el
   compile.el dired.el find-dired.el gnus.el gud.el inf-lisp.el info.el
-  lisp.el loaddefs.el man.el minibuf.c rcs2log rmail.el simple.el
-  terminal.el text-mode.el and 4 other files
+  lisp.el man.el minibuf.c rcs2log rmail.el simple.el terminal.el
+  text-mode.el tpu-edt.el and 3 other files
 
 Leigh Stoller: changed emacsclient.c server.el
 
@@ -1808,7 +1790,7 @@ Lennart Borgman: changed tutorial.el nxml-mode.el window.el ada-xref.el
 Lennart Staflin: changed dired.el diary-ins.el diary-lib.el tq.el xdisp.c
 
 Leonard H. Tower Jr.: changed rnews.el rnewspost.el emacsbug.el
-  loaddefs.el rmailout.el sendmail.el
+  rmailout.el sendmail.el
 
 Levin Du: changed parse-time.el
 
@@ -1835,11 +1817,6 @@ Lute Kamstra: changed modes.texi generic.el debug.el generic-x.el
   and 290 other files
 
 Lynn Slater: wrote help-macro.el
-
-MCC: wrote xmenu.c
-and changed emacsclient.c etags.c lisp.h movemail.c rmail.el rmailedit.el
-  rmailkwd.el rmailmsc.el rmailout.el rmailsum.el scribe.el server.el
-  sysdep.c unexec.c
 
 Maciek Pasternacki: changed nnrss.el
 
@@ -1893,9 +1870,9 @@ Mark A. Hershberger: changed xml.el nnrss.el mm-url.el cperl-mode.el
   gnus-group.el makefile.w32-in nxml nxml-mode.texi schema
 
 Mark D. Baushke: changed mh-e.el mh-utils.el mh-mime.el mh-comp.el
-  mh-customize.el mh-index.el mh-loaddefs.el mh-identity.el mh-seq.el
-  mh-speed.el mh-funcs.el mh-alias.el etags.c mh-junk.el mh-pick.el
-  mh-tool-bar.el mh-xemacs-compat.el pgg-gpg.el
+  mh-search.el mh-customize.el mh-identity.el mh-seq.el mh-speed.el
+  mh-funcs.el mh-alias.el etags.c mh-junk.el mh-tool-bar.el
+  mh-xemacs-compat.el pgg-gpg.el
 
 Mark Davies: changed Makefile.in amdx86-64.h configure configure.in
   hp800.h netbsd.h ralloc.c sh3el.h sort.el
@@ -1968,9 +1945,9 @@ Martin Neitzel: changed supercite.el
 Martin Pohlack: changed pc-select.el
 
 Martin Rudalics: changed window.el window.c windows.texi frame.c
-  cus-edit.el cus-start.el files.el subr.el add-log.el buffer.c frame.el
+  cus-edit.el cus-start.el files.el frame.el subr.el add-log.el buffer.c
   buffers.texi dired.el font-lock.el help-fns.el wid-edit.el xdisp.c
-  help.el info.el compile.el display.texi and 117 other files
+  find-func.el help.el info.el keyboard.c and 117 other files
 
 Martin Stjernholm: wrote cc-bytecomp.el
 and co-wrote cc-align.el cc-cmds.el cc-compat.el cc-defs.el cc-engine.el
@@ -2038,9 +2015,7 @@ Matthieu Devin: wrote delsel.el
 
 Matthieu Moy: changed gnus-msg.el message.el
 
-Max Froumentin: changed gnus-art.el mml.el
-
-Maxime Edouard Robert Froumentin: changed gnus-art.el
+Maxime Edouard Robert Froumentin: changed gnus-art.el mml.el
 
 Michael Albinus: wrote dbus.el tramp-cmds.el tramp-compat.el
   tramp-fish.el tramp-ftp.el tramp-gw.el tramp-smb.el xesam.el
@@ -2054,13 +2029,11 @@ and changed tramp.texi dbusbind.c dbus.texi trampver.el trampver.texi
 Michael Ben-Gershon: changed acorn.h configure.in riscix1-1.h riscix1-2.h
   unexec.c
 
-Michael Cook: changed gnus-sum.el
-
 Michael D. Ernst: wrote reposition.el
 and changed dired-x.el uniquify.el ispell.el bibtex.el rmail.el dired.el
   simple.el dired-aux.el gud.el rmailsum.el bytecomp.el compare-w.el
   complete.el fill.el shadow.el texnfo-upd.el vc.el allout.el comint.el
-  cust-print.el edebug.el and 29 other files
+  cust-print.el edebug.el and 28 other files
 
 Michael D. Prange: wrote fortran.el
 and changed tex-mode.el
@@ -2099,7 +2072,7 @@ Michael Olson: changed erc.el erc-backend.el erc.texi erc-track.el
 
 Michael Piotrowski: changed gnus-art.el gnus-sum.el ps-print.el
 
-Michael R. Cook: changed gnus-topic.el gnus-art.el gnus-sum.el
+Michael R. Cook: changed gnus-sum.el gnus-topic.el gnus-art.el
 
 Michael R. Mauger: changed sql.el emacsclient.c cua-base.el custom.el
   facemenu.el recentf.el replace.el tramp.el w32fns.c
@@ -2111,9 +2084,8 @@ Michael Schmidt: co-wrote modula2.el (public domain)
 Michael Shields: changed spam.el gnus-art.el gnus-sum.el gnus-cite.el
   Makefile.in gnus-group.el gnus.el intel386.h nndraft.el pgg-def.el
 
-Michael Sperber: changed gnus.texi mail-source.el nnmail.el
-
-Michael Sperber [Mr. Preprocessor]: changed aix3-1.h aix4-2.h
+Michael Sperber: changed aix3-1.h aix4-2.h gnus.texi mail-source.el
+  nnmail.el
 
 Michael Staats: wrote pc-select.el
 
@@ -2133,6 +2105,11 @@ Michaël Cadilhac: changed browse-url.el gnus-sum.el gnus.texi ido.el
 
 Michelangelo Grigni: wrote ffap.el
 and changed gnus-score.el
+
+Microelectronics and Computer Technology Corporation: changed
+  emacsclient.c etags.c lisp.h movemail.c rmail.el rmailedit.el
+  rmailkwd.el rmailmsc.el rmailout.el rmailsum.el scribe.el server.el
+  sysdep.c unexec.c xmenu.c
 
 Mikael Djurfeldt: changed xdisp.c
 
@@ -2165,7 +2142,7 @@ Miles Bader: wrote button.el face-remap.el image-file.el macroexp.el
 and changed comint.el faces.el simple.el editfns.c xfaces.c xdisp.c
   info.el minibuf.c wid-edit.el xterm.c Makefile.in dispextern.h
   display.texi subr.el window.el cus-edit.el diff-mode.el
-  quick-install-emacs xfns.c bytecomp.el help.el and 262 other files
+  quick-install-emacs xfns.c bytecomp.el help.el and 263 other files
 
 Milton Wulei: changed gdb-ui.el
 
@@ -2176,17 +2153,12 @@ Miyashita Hisashi: changed ccl.c coding.c coding.h mule-cmds.el
 
 Miyoshi Masanori: changed mouse.el smtpmail.el xdisp.c
 
-Morioka Tomohiko: co-wrote mm-bodies.el mm-decode.el mm-encode.el
-  mm-util.el rfc2047.el
-and changed rmail.el rmailout.el rmailsum.el fns.c message.el nnheader.el
-  nnmail.el rmailkwd.el smiley.el
-
 Morten Welinder: wrote [many MS-DOS files] arc-mode.el desktop.el
   dosfns.c internal.el msdos.h pc-win.el s-region.el
 and changed msdos.c sed1.inp config.bat keyboard.c sed2.inp fileio.c
   sed3.inp dos-fns.el callproc.c add-log.el alpha.h data.c editfns.c
   emacs.c etags.c files.el info.el lread.c mainmake osf1.h tar-mode.el
-  and 75 other files
+  and 74 other files
 
 Mosur Mohan: changed etags.c
 
@@ -2217,11 +2189,10 @@ Neil Mager: wrote appt.el
 
 Neil W. Van Dyke: wrote webjump.el
 
-Nelson Ferreira: changed gnus-dup.el spam-stat.el
-
 Nelson H. F. Beebe: changed configure.in
 
-Nelson Jose Dos Santos Ferreira: changed nnsoup.el
+Nelson Jose dos Santos Ferreira: changed nnsoup.el gnus-dup.el
+  spam-stat.el
 
 Nevin Kapur: changed nnmail.el gnus-sum.el nnimap.el gnus-group.el
   gnus-registry.el gnus.el nnbabyl.el nnfolder.el nnmbox.el nnmh.el
@@ -2253,10 +2224,10 @@ Nils Ackermann: changed message.el nnmh.el
 
 Noah Friedman: wrote eldoc.el rlogin.el type-break.el
 and co-wrote erc-dcc.el
-and changed rsz-mini.el comint.el emacs-buffer.gdb files.el mailabbrev.el
-  sendmail.el subr.el timer.el yow.el battery.el calc.el coding.c
-  complete.el config.in configure.in copyright.h fns.c gnu-linux.h
-  hpux7.h irix3-3.h lisp-mnt.el and 17 other files
+and changed rsz-mini.el comint.el emacs-buffer.gdb files.el Makefile
+  mailabbrev.el sendmail.el subr.el timer.el yow.el battery.el calc.el
+  coding.c complete.el config.in configure.in copyright.h fns.c
+  gnu-linux.h hpux7.h irix3-3.h and 17 other files
 
 Nobuyoshi Nakada: co-wrote ruby-mode.el
 
@@ -2325,7 +2296,7 @@ and co-wrote cal-dst.el
 and changed editfns.c vc.el Makefile.in configure.in vc-hooks.el data.c
   emacs.c gnus.el calendar.el config.in floatfns.c process.c sysdep.c
   dired.el xterm.c callproc.c fileio.c filelock.c lread.c print.c
-  rmail.el and 290 other files
+  rmail.el and 291 other files
 
 Paul Fisher: changed fns.c
 
@@ -2372,7 +2343,7 @@ and changed message.el menu-bar.el gnus.el gnus-art.el gnus-msg.el
   gnus-group.el gnus-sum.el frame.el gnus-draft.el tool-bar.el
   widget.texi apropos.el easymenu.el facemenu.el faces.el gnus-srvr.el
   gnus-uu.el ispell.el lisp-mode.el makefile.el mouse.el
-  and 28 other files
+  and 29 other files
 
 Per Bothner: wrote term.el
 and changed iso-acc.el process.c sysdep.c
@@ -2420,14 +2391,16 @@ Peter Runestig: changed makefile.w32-in configure.bat dos-w32.el emacs.rc
 Peter S. Galbraith: wrote mh-alias.el mh-identity.el mh-inc.el
   mh-limit.el
 and changed mh-comp.el mh-e.el mh-utils.el mh-mime.el mh-customize.el
-  mh-seq.el mh-init.el mh-loaddefs.el mh-pick.el mh-xemacs-compat.el
+  mh-seq.el mh-init.el mh-search.el mh-xemacs-compat.el
   mh-xemacs-toolbar.el info-look.el mh-compat.el mh-funcs.el .cvsignore
-  alias.pbm alias.xpm cabinet.xpm goto-addr.el highlight.xpm mh-index.el
-  and 12 other files
+  alias.pbm alias.xpm cabinet.xpm goto-addr.el highlight.xpm mh-junk.el
+  mh-xemacs-icons.el and 10 other files
 
 Peter Seibel: changed cl-indent.el lisp-mode.el
 
 Peter Stephenson: wrote vcursor.el
+
+Peter Tury: changed org.texi
 
 Peter Whaite: changed data.c
 
@@ -2469,9 +2442,7 @@ and changed osf1.h alloc.c buffer.c callint.c data.c dispextern.h doc.c
   editfns.c floatfns.c frame.h lisp.h lread.c marker.c mem-limits.h
   print.c puresize.h window.h xdisp.c xterm.h
 
-Raja R Harinath: changed nnml.el
-
-Raja R. Harinath: changed gnus-salt.el
+Raja R. Harinath: changed gnus-salt.el nnml.el
 
 Rajappa Iyer: changed gnus-salt.el
 
@@ -2524,15 +2495,13 @@ and co-wrote vhdl-mode.el
 
 Riccardo Murri: changed vc-bzr.el tls.el
 
-Richard Bielawski: changed modes.texi
-
 Richard Dawe: changed Makefile.in config.in
 
-Richard G Bielawski: changed paren.el
+Richard G. Bielawski: changed modes.texi paren.el
 
 Richard Hoskins: changed message.el
 
-Richard King: wrote filelock.c userlock.el
+Richard King: wrote filelock.c uniquify.el userlock.el
 
 Richard L. Pieri: wrote pop3.el
 
@@ -2545,14 +2514,14 @@ and co-wrote cc-align.el cc-cmds.el cc-defs.el cc-engine.el cc-langs.el
 and changed keyboard.c files.el simple.el xterm.c xdisp.c Makefile.in
   fileio.c rmail.el process.c sysdep.c buffer.c xfns.c window.c
   configure.in subr.el startup.el emacs.c sendmail.el editfns.c info.el
-  dispnew.c and 1344 other files
+  dispnew.c and 1342 other files
 
 Richard Mlynarik: wrote cl-indent.el ebuff-menu.el ehelp.el rfc822.el
   terminal.el yow.el
-and changed files.el loaddefs.el sysdep.c rmail.el info.el keyboard.c
-  bytecomp.el fileio.c simple.el process.c startup.el window.c editfns.c
-  unexec.c xfns.c keymap.c minibuf.c sendmail.el buffer.c dispnew.c
-  emacs.c and 130 other files
+and changed files.el sysdep.c rmail.el info.el keyboard.c bytecomp.el
+  fileio.c simple.el process.c startup.el window.c editfns.c unexec.c
+  xfns.c keymap.c minibuf.c sendmail.el buffer.c dispnew.c emacs.c
+  subr.el and 129 other files
 
 Richard Sharman: wrote hilit-chg.el
 and changed sh-script.el ediff-init.el regexp-opt.el simple.el
@@ -2576,9 +2545,9 @@ Robert Fenk: changed desktop.el
 Robert J. Chassell: wrote makeinfo.el page-ext.el texinfo.el
   texnfo-upd.el
 and changed texinfmt.el emacs-lisp-intro.texi emacs.tex texinfo.tex
-  info.el loaddefs.el texinfo-update.el INSTALL case-table.el cl.texinfo
-  help-fns.el help-mode.el history.el informat.el latin-1.el latin-2.el
-  latin-3.el latin-4.el page.el tex-mode.el texinfo.texinfo vip.texinfo
+  info.el texinfo-update.el INSTALL case-table.el cl.texinfo help-fns.el
+  help-mode.el history.el informat.el latin-1.el latin-2.el latin-3.el
+  latin-4.el page.el tex-mode.el texinfo.texinfo vip.texinfo
 
 Robert Marshall: changed mule-cmds.el
 
@@ -2601,8 +2570,8 @@ Roland McGrath: wrote autoload.el etags.el grep.el map-ynp.el
 and co-wrote compile.el find-dired.el
 and changed add-log.el configure.in files.el Makefile.in vc.el simple.el
   mailabbrev.el buffer.c comint.el upd-copyr.el etags.c menu-bar.el
-  loaddefs.el mem-limits.h ralloc.c fileio.c data.c process.c rlogin.el
-  rmail.el shell.el and 137 other files
+  mem-limits.h ralloc.c fileio.c data.c process.c rlogin.el rmail.el
+  shell.el vm-limit.c and 137 other files
 
 Roland Winkler: wrote proced.el
 and changed bibtex.el process.c appt.el artist.el conf-mode.el
@@ -2616,7 +2585,7 @@ Romain Francoise: changed faq.texi message.el gnus.texi make-dist
   Makefile.in dired-x.el comint.el ibuf-ext.el subr.el compile.el
   gnus-sum.el gnus-uu.el puresize.h replace.el startup.el doclicense.texi
   emacs.c files.texi gnus-fun.el help-fns.el message.texi
-  and 145 other files
+  and 144 other files
 
 Roman Belenov: changed which-func.el
 
@@ -2636,7 +2605,8 @@ Ryan Yeske: wrote rcirc.el
 and changed ffap.el ispell.el rmailsum.el simple.el testcover.el
   webjump.el
 
-Ryo Yoshitake: changed mac.c
+Ryo Yoshitake: changed xterm.c frame.c frame.h mac.c macfns.c w32fns.c
+  xfns.c
 
 Ryszard Kubiak: co-wrote ogonek.el
 
@@ -2655,7 +2625,7 @@ Sam Steingold: wrote gulp.el midnight.el
 and changed cl-indent.el vc.el compile.el vc-cvs.el font-lock.el mouse.el
   ange-ftp.el pcvs.el tex-mode.el add-log.el bindings.el bookmark.el
   debug.el diary-lib.el dired.el files.el inf-lisp.el sgml-mode.el
-  simple.el subr.el window.el and 105 other files
+  simple.el subr.el window.el and 106 other files
 
 Samuel Tardieu: changed smime.el
 
@@ -2669,11 +2639,11 @@ Sascha Wilde: changed pgg-gpg.el pgg.texi pgg.el bubbles.el configure.in
 Satyaki Das: wrote mh-acros.el mh-gnus.el mh-search.el mh-speed.el
   mh-thread.el mh-tool-bar.el
 and co-wrote mh-junk.el
-and changed mh-e.el mh-utils.el mh-seq.el mh-index.el mh-comp.el
-  mh-mime.el mh-customize.el mh-loaddefs.el mh-funcs.el mh-alias.el
-  mh-pick.el mh-unit.el mh-init.el mh-identity.el mh-make.el
-  mh-xemacs-toolbar.el mh-xemacs-compat.el pgg-gpg.el mh-inc.el
-  highlight.xpm mh-func.el and 6 other files
+and changed mh-e.el mh-utils.el mh-seq.el mh-comp.el mh-mime.el
+  mh-customize.el mh-funcs.el mh-alias.el mh-unit.el mh-init.el
+  mh-identity.el mh-make.el mh-xemacs-toolbar.el mh-xemacs-compat.el
+  pgg-gpg.el mh-inc.el highlight.xpm mh-func.el mh-logo.xpm mh-print.el
+  mh-xemacs.el simple.el
 
 Schlumberger Technology Corporation: changed gud.el
 
@@ -2756,8 +2726,9 @@ and changed message.el gnus-sum.el gnus-art.el smtpmail.el pgg-gpg.el
   gnus-msg.el gnus.texi pgg-pgp5.el browse-url.el gnus-int.el gnus.el
   hashcash.el mm-view.el password.el gnus-cache.el and 98 other files
 
-Simon Leinen: changed smtpmail.el Makefile.in cm.c cm.h hpux9.h indent.c
-  process.c sc.texinfo sgml-mode.el term.c xfns.c xmenu.c xterm.c
+Simon Leinen: changed smtpmail.el Makefile Makefile.in cm.c cm.h hpux9.h
+  indent.c process.c sc.texinfo sgml-mode.el term.c xfns.c xmenu.c
+  xterm.c
 
 Simon Marshall: wrote fast-lock.el lazy-lock.el regexp-opt.el
 and co-wrote comint.el shell.el
@@ -2788,9 +2759,9 @@ Stefan Monnier: wrote bibtex-style.el css-mode.el cvs-status.el
   vc-mtn.el
 and co-wrote font-lock.el
 and changed vc.el lisp.h keyboard.c subr.el pcvs.el files.el simple.el
-  keymap.c newcomment.el vc-hooks.el alloc.c xdisp.c Makefile.in
+  vc-hooks.el keymap.c newcomment.el alloc.c xdisp.c Makefile.in
   compile.el tex-mode.el info.el fill.el buffer.c window.c fileio.c
-  vc-cvs.el and 655 other files
+  server.el and 652 other files
 
 Stefan Reichör: changed gnus-agent.el
 
@@ -2822,8 +2793,8 @@ and changed diary-lib.el locate.el octave-inf.el replace.el hexl.el
   advice.el allout.el autoinsert.el avoid.el backquote.el battery.el
   bib-mode.el bruce.el c-mode.el ccl.el and 72 other files
 
-Stephen Gildea: wrote mh-funcs.el refcard.tex
-and co-wrote mh-search.el
+Stephen Gildea: wrote refcard.tex
+and co-wrote mh-funcs.el mh-search.el
 and changed time-stamp.el mh-e.el mh-comp.el mh-utils.el mh-customize.el
   mh-junk.el fileio.c files.el fortran.el mh-e.texi mh-mime.el mwheel.el
   tex-mode.el
@@ -2843,9 +2814,9 @@ Steve Strassman: wrote spook.el
 
 Steve Youngs: changed mh-utils.el mh-xemacs-compat.el mh-customize.el
   mh-e.el mh-comp.el mh-mime.el dns.el gnus-art.el .cvsignore
-  browse-url.el gnus-sum.el gnus-xmas.el mh-seq.el password.el
-  run-at-time.el em-unix.el gmm-utils.el gnus-cite.el gnus-demon.el
-  gnus-ems.el gnus-msg.el and 18 other files
+  browse-url.el gnus-sum.el gnus-xmas.el mh-search.el mh-seq.el
+  password.el run-at-time.el em-unix.el gmm-utils.el gnus-cite.el
+  gnus-demon.el gnus-ems.el and 17 other files
 
 Steven E. Harris: changed nnheader.el
 
@@ -2866,10 +2837,9 @@ Stewart M. Clamen: co-wrote cal-mayan.el cc-align.el cc-cmds.el
   cc-defs.el cc-engine.el cc-langs.el cc-menus.el cc-mode.el cc-styles.el
   cc-vars.el
 
-Stuart D. Herring: changed keymap.c minibuf.c widget.texi
-
-Stuart Herring: changed files.el isearch.el align.el allout.el comint.el
-  edebug.el find-lisp.el sregex.el
+Stuart D. Herring: changed desktop.el files.el isearch.el align.el
+  allout.el comint.el edebug.el find-lisp.el keymap.c minibuf.c sregex.el
+  timeclock.el widget.texi
 
 Sudish Joseph: changed mac-win.el
 
@@ -2958,7 +2928,7 @@ Thomas Deweese: changed x-win.el
 Thomas Dorner: changed ange-ftp.el
 
 Thomas Horsley: changed cxux-crt0.s cxux.h cxux7.h emacs.c nh3000.h
-  nh4000.h sysdep.c xterm.c
+  nh4000.h simple.el sysdep.c xterm.c
 
 Thomas Hühn: changed tutorial.el
 
@@ -2973,7 +2943,8 @@ Thomas Steffen: co-wrote deuglify.el
 
 Thomas W Murphy: changed outline.el
 
-Thomas Wurgler: changed emacs-lock.el
+Thomas Wurgler: wrote emacs-lock.el
+and changed subr.el
 
 Thor Kristoffersen: changed nntp.el
 
@@ -3001,8 +2972,6 @@ Tom Breton: changed autoinsert.el gnus-agent.el lread.c
 
 Tom Hageman: changed etags.c
 
-Tom Horsley: changed simple.el
-
 Tom Houlder: wrote mantemp.el
 
 Tom Perrine: co-wrote modula2.el (public domain)
@@ -3015,16 +2984,16 @@ and changed makefile.el configure.in vc.el blackbox.el buffer.c
   diff-mode.el doc.c easy-mmode.el elp.el emacsclient.c
   and 28 other files
 
-Tom Wurgler: wrote emacs-lock.el
-and changed subr.el
-
 Tomas Abrahamsson: wrote artist.el
 
 Tommi Vainikainen: changed gnus-sum.el message.el
 
-Tomohiko Morioka: changed gnus-sum.el nnfolder.el nnmail.el nnmh.el
-  nnml.el coding.c gnus-art.el gnus-ems.el gnus-mule.el nnheader.el
-  nnspool.el nntp.el
+Tomohiko Morioka: co-wrote mm-bodies.el mm-decode.el mm-encode.el
+  mm-util.el rfc2047.el
+and changed rmail.el nnmail.el rmailout.el gnus-sum.el nnfolder.el
+  nnheader.el nnmh.el nnml.el rmailsum.el coding.c fns.c gnus-art.el
+  gnus-ems.el gnus-mule.el message.el nnspool.el nntp.el rmailkwd.el
+  smiley.el
 
 Tomoji Kagatani: wrote smtpmail.el
 
@@ -3054,7 +3023,10 @@ Tsuchiya Masatoshi: changed gnus-art.el mm-view.el gnus-sum.el
   gnus-cache.el gnus-msg.el gnus.el nndiary.el nnfolder.el nnimap.el
   nnmaildir.el pgg.el rfc2047.el
 
-Tsugutomo Enami: changed nnheader.el regex.c regex.h simple.el
+Tsugutomo Enami: changed frame.c keyboard.c dispnew.c fileio.c process.c
+  simple.el xdisp.c add-log.el bytecomp.el configure.in editfns.c emacs.c
+  frame.h gnus-group.el nnheader.el perl-mode.el regex.c regex.h
+  rmailsum.el sysdep.c vc.el and 3 other files
 
 Tsuyoshi Akiho: changed gnus-sum.el nnrss.el
 
@@ -3132,8 +3104,6 @@ Will Glozer: changed macterm.c
 
 Will Mengarini: wrote repeat.el
 
-William F. Mann: wrote perl-mode.el
-
 William F. Schelter: wrote telnet.el
 
 William M. Perry: wrote url-dav.el url-gw.el url-http.el url-util.el
@@ -3195,17 +3165,16 @@ Yoichi Nakayama: changed browse-url.el finder.el man.el rfc2368.el
 
 Yong Lu: changed charset.c coding.c greek.el
 
-Yoni Rabkin: changed artist.el cmacexp.el ediff.el hilit19.el
-  net-utils.el ps-mode.el simula.el vera-mode.el verilog-mode.el
-  vhdl-mode.el viper.el
-
-Yoni Rabkin Katzenell: changed faces.el files.el whitespace.el
+Yoni Rabkin: changed faces.el artist.el cmacexp.el ediff.el files.el
+  hilit19.el net-utils.el ps-mode.el simula.el vera-mode.el
+  verilog-mode.el vhdl-mode.el viper.el whitespace.el
 
 Yoshiaki Kasahara: changed term.c
 
 Yoshiki Hayashi: changed texinfmt.el nnheader.el
 
-Yoshinori Koseki: changed fontset.el
+Yoshinori Koseki: wrote iimage.el
+and changed fontset.el message.el nnheader.el nnmail.el
 
 Yukihiro Matsumoto: co-wrote ruby-mode.el
 
@@ -3232,8 +3201,6 @@ Zoran Milojevic: changed avoid.el
 İsmail Dönmez: changed url-auth.el xterm.c
 
 Łukasz Demianiuk: changed erc.el
-
-小関 吉則: changed message.el nnheader.el
 
 Local Variables:
 coding: utf-8
