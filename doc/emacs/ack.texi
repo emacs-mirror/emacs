@@ -23,6 +23,8 @@ available in the @file{ChangeLog} files, summarized in the file
 @c and anyone who has made major enhancements in Emacs
 @c that many users would notice and consider important.
 @c Remove things that are no longer distributed.
+@c Note this file is only used ifnottex; otherwise a shorter version in
+@c emacs.texi is used.
 
 @itemize @bullet
 @item
@@ -89,9 +91,11 @@ footnotes in email messages; and @file{gnus-audio.el} and
 
 @item
 Alexander L.@: Belikoff, Sergey Berezin, Sacha Chua, David Edmondson,
-Andreas Fuchs, Mario Lang, Ben Mesander, Lawrence Mitchell, Gergely
-Nagy, Michael Olson, Jorgen Schaefer, Alex Schroeder, and Tom Tromey
-wrote ERC, an advanced Internet Relay Chat client.
+Noah Friedman, Andreas Fuchs, Mario Lang, Ben Mesander, Lawrence
+Mitchell, Gergely Nagy, Michael Olson, Per Persson, Jorgen Schaefer,
+Alex Schroeder, and Tom Tromey wrote ERC, an advanced Internet Relay
+Chat client (for more information, see the file @file{CREDITS} in the
+ERC distribution).
 
 @item
 Scott Bender, Michael Brouwer, Christophe de Dinechin, Carl Edman,
@@ -102,8 +106,8 @@ NeXTstep port of Emacs.
 Anna M.@: Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
 
 @item
-Ray Blaak wrote @file{delphi.el}, a mode for editing Delphi (Object
-Pascal) source code.
+Ray Blaak and Simon South wrote @file{delphi.el}, a mode for editing
+Delphi (Object Pascal) source code.
 
 @item
 Martin Blais, Stefan Merten, and David Goodger wrote @file{rst.el}, a
@@ -113,7 +117,8 @@ mode for editing reStructuredText documents.
 Jim Blandy wrote Emacs 19's input system, brought its configuration and
 build process up to the GNU coding standards, and contributed to the
 frame support and multi-face support.  Jim also wrote @file{tvi970.el},
-terminal support for the TeleVideo 970 terminals.
+terminal support for the TeleVideo 970 terminals; and co-wrote
+@file{wyse50.el} (q.v.@:).
 
 @item
 Per Bothner wrote @file{term.el}, a terminal emulator in an Emacs
@@ -137,7 +142,8 @@ the ``generic mode'' feature.
 
 @item
 Emmanuel Briot wrote @file{xml.el}, an XML parser for Emacs; and
-@file{ada-prj.el}, editing of Ada mode project files.
+@file{ada-prj.el}, editing of Ada mode project files, as well as
+co-authoring @file{ada-mode.el} and @file{ada-xref.el}.
 
 @item
 Kevin Broadey wrote @file{foldout.el}, providing folding extensions to
@@ -166,8 +172,8 @@ Emacs Lisp functions; and @file{trace.el}, a tracing facility for Emacs
 Lisp.
 
 @item
-Chris Chase and Carsten Dominik wrote IDLWAVE mode, for editing
-IDL and WAVE CL.
+Chris Chase, Carsten Dominik, and J.@: D.@: Smith wrote IDLWAVE mode,
+for editing IDL and WAVE CL.
 
 @item
 Bob Chassell wrote @file{texnfo-upd.el}, @file{texinfo.el}, and
@@ -184,8 +190,9 @@ prior to Emacs 23 for Mac OS.
 
 @item
 Chong Yidong was the Emacs co-maintainer for Emacs 23.  He made many
-improvements to the Emacs display engine and wrote @file{longlines.el},
-a minor mode for wrapping long lines.
+improvements to the Emacs display engine; and, together with Kai
+Gro@ss{}johann and Alex Schroeder, wrote @file{longlines.el}, a minor
+mode for wrapping long lines.
 
 @item
 James Clark wrote SGML mode, a mode for editing SGML documents; and
@@ -431,7 +438,7 @@ Jon K Hellan wrote @file{utf7.el}, support for mail-safe transformation
 format of Unicode.
 
 @item
-Markus Heritsch co-wrote Ada mode (@file{ada-mode.el}).
+Markus Heritsch co-wrote Ada mode.
 
 @item
 Karl Heuer wrote the original blessmail script, implemented the
@@ -467,10 +474,11 @@ Emacs: @file{dns.el} for Domain Name Service lookups;
 @file{format-spec.el} for formatting arbitrary format strings;
 @file{netrc.el} for parsing of @file{.netrc} files; and
 @file{time-date.el} for general date and time handling.  Components of
-Gnus have also been written by: Nagy Andras, Kevin Greiner, Kai
-Gro@ss{}johann, Paul Jarc, Sascha L@"{u}decke, David Moore, Raymond Scholz,
-Reiner Steib, Didier Verna, Ilja Weis, Katsumi Yamaoka, Teodor Zlatanov,
-and others.
+Gnus have also been written by: Nagy Andras, David Blacka, Scott Byer,
+Kevin Greiner, Kai Gro@ss{}johann, Joe Hildebrand, Paul Jarc, Sascha
+L@"{u}decke, David Moore, Jim Radford, Benjamin Rutt, Raymond Scholz,
+Thomas Steffen, Reiner Steib, Didier Verna, Ilja Weis, Katsumi Yamaoka,
+Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the Gnus Manual}).
 
 @item
 Andrew Innes contributed extensively to the MS-Windows support.
@@ -608,14 +616,14 @@ He also co-wrote @file{hideif.el} (q.v.@:).
 
 @item
 Vinicius Jose Latorre wrote the Emacs printing facilities, as well as
-@code{ps-print}, a package for pretty-printing Emacs buffers to
-PostScript printers; @file{delim-col.el}, a package to arrange text
-into columns; @file{ebnf2ps.el}, a package that translates EBNF
-grammar to a syntactic chart that can be printed to a PostScript
-printer; and @file{whitespace.el}, a package that detects and cleans
-up excess whitespace in a file.  The previous version of
-@file{whitespace.el}, used prior to Emacs 23, was written by Rajesh
-Vaidheeswarran.
+@code{ps-print} (with Jim Thompson, Jacques Duthen, and Kenichi Handa),
+a package for pretty-printing Emacs buffers to PostScript printers;
+@file{delim-col.el}, a package to arrange text into columns;
+@file{ebnf2ps.el}, a package that translates EBNF grammar to a syntactic
+chart that can be printed to a PostScript printer; and
+@file{whitespace.el}, a package that detects and cleans up excess
+whitespace in a file.  The previous version of @file{whitespace.el},
+used prior to Emacs 23, was written by Rajesh Vaidheeswarran.
 
 @item
 Frederic Lepied wrote @file{expand.el}, which uses the abbrev
@@ -711,12 +719,12 @@ hiding selected code within C @code{#ifdef} clauses.
 @item
 Simon Marshall wrote @file{regexp-opt.el}, which generates a regular
 expression from a list of strings; and the fast-lock and lazy-lock
-font-lock support modes.  He also extended @file{comint.el}, originally
-written by Olin Shivers.
+font-lock support modes.  He also extended @file{comint.el} and
+@file{shell.el}, originally written by Olin Shivers.
 
 @item
-Bengt Martensson, Marc Shapiro, Mike Newton, Aaron Larson, and Stefan
-Schoef, wrote @file{bibtex.el}, a mode for editing Bib@TeX{}
+Bengt Martensson, Dirk Herrmann, Marc Shapiro, Mike Newton, Aaron Larson,
+and Stefan Schoef, wrote @file{bibtex.el}, a mode for editing Bib@TeX{}
 bibliography files.
 
 @item
@@ -866,9 +874,11 @@ Damon Anton Permezel wrote @file{hanoi.el}, an animated demonstration of
 the ``Towers of Hanoi'' puzzle.
 
 @item
-William M.@: Perry wrote @file{mailcap.el}, a MIME media types
-configuration facility; @file{mwheel.el}, a package for supporting
-mouse wheels; @file{socks.el}, a Socks v5 client; and the URL package.
+William M.@: Perry wrote @file{mailcap.el} (with Lars Magne
+Ingebrigtsen), a MIME media types configuration facility;
+@file{mwheel.el}, a package for supporting mouse wheels; co-wrote (with
+Dave Love) @file{socks.el}, a Socks v5 client; and developed the URL
+package.
 
 @item
 Per Persson wrote @file{gnus-vm.el}, the VM interface for Gnus.
@@ -889,7 +899,8 @@ for simultaneous two-column editing.
 Daniel also rewrote @file{apropos.el} (originally written by Joe Wells),
 for finding commands, functions, and variables matching a regular
 expression; and, together with Jim Blandy, co-authored @file{wyse50.el},
-support for Wyse 50 terminals.  He also co-wrote @file{compile.el} (q.v.@:).
+support for Wyse 50 terminals.  He also co-wrote @file{compile.el}
+(q.v.@:) and @file{ada-stmt.el}.
 
 @item
 Richard L.@: Pieri wrote @file{pop3.el}, a Post Office Protocol (RFC
@@ -898,6 +909,10 @@ Richard L.@: Pieri wrote @file{pop3.el}, a Post Office Protocol (RFC
 @item
 Fred Pierresteguy and Paul Reilly made Emacs work with X Toolkit
 widgets.
+
+@item
+Fran@,{c}ois Pinard, Greg McGary, and Bruno Haible wrote @file{po.el},
+support for PO translation files.
 
 @item
 Christian Plaunt wrote @file{soundex.el}, an implementation of the
@@ -942,11 +957,13 @@ which each lisp function loaded into Emacs came.
 @item
 Edward M.@: Reingold wrote the extensive calendar and diary support,
 with contributions from Stewart Clamen (@file{cal-mayan.el}), Nachum
-Dershowitz, Paul Eggert, Steve Fisk (@file{cal-tex.el}), Michael Kifer,
-and Lara Rios.  Andy Oram contributed to its documentation.  Reingold
-also contributed to @file{tex-mode.el}, a mode for editing @TeX{} files,
-as did William F.@: Schelter, Dick King, Stephen Gildea, Michael Prange,
-and Jacob Gore.
+Dershowitz (@file{cal-hebrew.el}), Paul Eggert (@file{cal-dst.el}),
+Steve Fisk (@file{cal-tex.el}), Michael Kifer (@file{cal-x.el}), Lara
+Rios (@file{cal-menu.el}), and Denis B.@: Roegel (@file{solar.el}).
+Andy Oram contributed to its documentation.  Reingold also contributed
+to @file{tex-mode.el}, a mode for editing @TeX{} files, as did William
+F.@: Schelter, Dick King, Stephen Gildea, Michael Prange, and Jacob
+Gore.
 
 @item
 David Reitter wrote @file{mailclient.el} which can send mail via the
@@ -1066,10 +1083,10 @@ recent editing changes.
 
 @item
 Olin Shivers wrote @file{comint.el}, a library for modes running
-interactive command-line- oriented subprocesses; @file{cmuscheme.el},
-for running inferior Scheme processes; @file{inf-lisp.el}, for running
-inferior Lisp process; and @file{shell.el}, for running inferior
-shells.
+interactive command-line-oriented subprocesses, and @file{shell.el}, for
+running inferior shells (both since extended by Simon Marshall);
+@file{cmuscheme.el}, for running inferior Scheme processes;
+@file{inf-lisp.el}, for running inferior Lisp process.
 
 @item
 Espen Skoglund wrote @file{pascal.el}, a mode for editing Pascal code.
@@ -1111,9 +1128,9 @@ Emacs, and has been Emacs maintainer over several non-contiguous
 periods.  In addition to much of the ``core'' Emacs code, he has
 written @file{easymenu.el}, a facility for defining Emacs menus;
 @file{image-mode.el}, support for visiting image files;
-@file{menu-bar.el}, the Emacs menu bar support code; and
+@file{menu-bar.el}, the Emacs menu bar support code;
 @file{paren.el}, a package to make matching parentheses stand out in
-color.
+color; and also co-authored portions of CC mode.
 
 @item
 Sam Steingold wrote @file{gulp.el}, a facility for asking package
@@ -1172,10 +1189,6 @@ words for which it is a prefix.  He also wrote the original dumping
 support.
 
 @item
-Jim Thompson wrote @file{ps-print.el}, which converts
-Emacs text to PostScript.
-
-@item
 Toru Tomabechi contributed to Tibetan support.
 
 @item
@@ -1196,9 +1209,10 @@ Eli Tziperman wrote @file{rmail-spam-filter.el}, a spam filter for RMAIL.
 
 @item
 Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
-Security protocol; @file{sasl-cram.el}, @file{sasl-digest.el}, and
-@file{sasl.el}, support for Simple Authentication and Security Layer (SASL);
-and the EasyPG (and its predecessor PGG) package, for GnuPG and PGP support.
+Security protocol; @file{sasl-cram.el} and @file{sasl-digest.el} (with
+Kenichi Okada), and @file{sasl.el}, support for Simple Authentication
+and Security Layer (SASL); and the EasyPG (and its predecessor PGG)
+package, for GnuPG and PGP support.
 
 @item
 Masanobu Umeda wrote GNUS, a feature-rich reader for Usenet news that
