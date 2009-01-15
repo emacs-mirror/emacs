@@ -251,10 +251,12 @@ telling Microsoft that."
 	  (while cookies
 	    (setq cur (car cookies)
 		  cookies (cdr cookies)
-		  localpart-match (let ((lp (url-cookie-localpart cur)))
-				    (when lp
-				      (concat "^" (regexp-quote lp)))))
-	    (if (and (equal localpart localpart-match)
+		  localpart-match (url-cookie-localpart cur))
+	    (if (and (if (stringp localpart-match)
+			 (string-match (concat "^" (regexp-quote
+						    localpart-match))
+				       localpart)
+		       (equal localpart localpart-match))
 		     (not (url-cookie-expired-p cur)))
 		(setq retval (cons cur retval))))))
     retval))
