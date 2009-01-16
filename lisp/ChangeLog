@@ -1,5 +1,9 @@
 2009-01-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* textmodes/bibtex.el (bibtex-format-entry): Fix previous change.
+
+2009-01-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
 	* textmodes/bibtex.el (bibtex-format-entry): For updating field
 	delimiters, allow fields that are composed of strings and string
 	constants.
