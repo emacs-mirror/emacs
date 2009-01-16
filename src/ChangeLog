@@ -1,3 +1,8 @@
+2009-01-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_make_gc): Don't allocate stipple member for gc_values;
+	it is not even used.
+
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* font.c (Ffont_variation_glyphs): Silence compiler.
