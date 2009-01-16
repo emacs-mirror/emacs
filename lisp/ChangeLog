@@ -1,3 +1,9 @@
+2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el	(flyspell-post-command-hook): Do nothing
+	unless flyspell-mode is enabled.
+	(flyspell-pre-point): Make buffer-local.
+
 2009-01-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry): Fix previous change.
@@ -9,7 +15,7 @@
 	constants.
 	(bibtex-mode): Doc fix.
 
-	2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
+2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el: Protect against declare-function undefined
 	in xemacs.
