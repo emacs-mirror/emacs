@@ -1,3 +1,9 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* org-mouse.el (org-mouse-show-context-menu): Use
+	mouse-menu-major-mode-map, if defined, rather than the obsolete
+	mouse-major-mode-menu.
+
 2008-12-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-remember.el (org-remember-handler): Safer way to get a new
