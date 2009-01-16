@@ -957,59 +957,6 @@ is higher than WINDOW."
 	  (enlarge-window (/ (- (window-height window) (window-height)) 2))
 	(error nil)))))
 
-(defun display-buffer-specially (buffer locus)
-  (cond
-   ((window-minibuffer-p (selected-window))
-    nil)
-   ((eq locus 'this)
-    (condition-case nil
-	(switch-to-buffer buffer)
-      (error nil)))
-   ((memq locus '(below below-split right right-split))
-    (let ((edges (window-edges)))
-      (cond
-       ((and (eq locus 'below)
-	     (let* ((other-window (next-window))
-		   (other-edges (window-edges other-window)))
-	       (and (= (nth 0 edges) (nth 0 other-edges))
-		    (< (nth 3 edges) (nth 3 other-edges))
-		    other-window))))
-       ((and (eq locus 'right)
-	     (let* ((other-window (next-window))
-		   (other-edges (window-edges other-window)))
-	       (and (= (nth 1 edges) (nth 1 other-edges))
-		    (< (nth 2 edges) (nth 2 other-edges))
-		    other-window))))
-       ((and (memq locus '(below below-split))
-	     (let ((split-height-threshold 0))
-	       (and (window--splittable-p (selected-window))
-		    (split-window)))))
-       ((and (memq locus '(right right-split))
-	     (let ((split-width-threshold 0))
-	       (window--splittable-p (selected-window) t)
-	       (split-window nil nil t)))))))
-   ((memq locus '(bottom bottom-split))
-    (let ((edges (window-edges))
-	  (other-edges (window-edges (next-window)))
-	  (window (selected-window))
-	  window-to-display window-to-split)
-      ;; Wrong -- our window must be better than the last we found.
-      (while (or (> (nth 2 other-edges) (nth 2 edges))
-		 (> (nth 3 other-edges) (nth 3 edges)))
-	(setq window (next-window window))
-	(when (> (nth 3 other-edges) (nth 3 edges))
-	  (setq window-to-display window)
-	  (setq window-to-split
-		(and (eq locus 'bottom-split)
-		     (let ((split-height-threshold 0))
-		       (and (window--splittable-p window)
-			    window)))))
-	(setq other-edges (window-edges (next-window window))))
-      (if (eq locus 'bottom)
-	  window-to-display
-	(let ((split-height-threshold 0))
-	  (split-window window-to-split)))))))
-
 (defun window--display-buffer-1 (window)
   "Raise the frame containing WINDOW.
 Do not raise the selected frame.  Return WINDOW."
@@ -1121,9 +1068,6 @@ consider all visible or iconified frames."
 	     (when pars
 	       (funcall special-display-function
 			buffer (if (listp pars) pars))))))
-     ((not (memq not-this-window '(nil t)))
-      (window--display-buffer-2
-       buffer (display-buffer-specially buffer not-this-window)))
      ((or use-pop-up-frames (not frame-to-use))
       ;; We want or need a new frame.
       (window--display-buffer-2
