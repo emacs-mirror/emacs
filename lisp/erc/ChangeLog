@@ -1,5 +1,7 @@
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
+	* erc.el (erc-input-message): Conditionalize previous change for XEmacs.
+
 	* erc-dcc.el (erc-dcc-server): Silence warning about obsolete function
 	behind fboundp test.
 
