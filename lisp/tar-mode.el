@@ -1053,8 +1053,8 @@ for this to be permanent."
                (string-match "/" encoded-new-name
 			     (- (length encoded-new-name) 99))
 	       (< (match-beginning 0) 155))
-      (unless (equal (tar-header-magic descriptor) "ustar\0\0")
-        (tar-alter-one-field tar-magic-offset "ustar\0\0"))
+      (unless (equal (tar-header-magic descriptor) "ustar\0")
+        (tar-alter-one-field tar-magic-offset (concat "ustar\0" "00")))
       (setq prefix (substring encoded-new-name 0 (match-beginning 0)))
       (setq encoded-new-name (substring encoded-new-name (match-end 0))))
 

@@ -1,3 +1,8 @@
+2009-01-16  Kevin Ryde  <user42@zip.com.au>
+
+	* tar-mode.el (tar-rename-entry): Only test the magic string, without
+	its version number, and then set both.
+
 2009-01-16  Richard M Stallman  <rms@gnu.org>
 
 	* textmodes/paragraphs.el (sentence-end): Accept non-break space.
