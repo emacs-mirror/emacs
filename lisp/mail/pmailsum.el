@@ -92,6 +92,8 @@ LABELS should be a string containing the desired labels, separated by commas."
 		     'pmail-message-labels-p
 		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
 
+;; Moved here from pmail (which this file requires) 20090105, creating
+;; a compiler warning. ?
 ;; Return t if the attributes/keywords line of msg number MSG
 ;; contains a match for the regexp LABELS.
 (defun pmail-message-labels-p (msg labels)
@@ -941,7 +943,7 @@ Search, the `unseen' attribute is restored.")
   (define-key pmail-summary-mode-map "n"      'pmail-summary-next-msg)
   (define-key pmail-summary-mode-map "\en"    'pmail-summary-next-all)
   (define-key pmail-summary-mode-map "\e\C-n" 'pmail-summary-next-labeled-message)
-  (define-key pmail-summary-mode-map "o"      'pmail-summary-output-to-babyl-file)
+  (define-key pmail-summary-mode-map "o"      'pmail-summary-output)
   (define-key pmail-summary-mode-map "\C-o"   'pmail-summary-output)
   (define-key pmail-summary-mode-map "p"      'pmail-summary-previous-msg)
   (define-key pmail-summary-mode-map "\ep"    'pmail-summary-previous-all)
@@ -1008,7 +1010,7 @@ Search, the `unseen' attribute is restored.")
   '("Output (inbox)..." . pmail-summary-output))
 
 (define-key pmail-summary-mode-map [menu-bar classify output]
-  '("Output (Pmail)..." . pmail-summary-output-to-babyl-file))
+  '("Output (Pmail)..." . pmail-summary-output))
 
 (define-key pmail-summary-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . pmail-summary-kill-label))
@@ -1624,8 +1626,10 @@ even the header display is currently pruned."
 	(if (< i n)
 	    (pmail-summary-next-msg 1))))))
 
-(defalias 'pmail-summary-output-to-pmail-file
-  'pmail-summary-output-to-babyl-file)
+(defalias 'pmail-summary-output-to-pmail-file 'pmail-summary-output)
+
+(declare-function pmail-output-as-seen "pmailout"
+		  (file-name &optional count noattribute from-gnus))
 
 (defun pmail-summary-output-as-seen (&optional file-name n)
   "Append this message to system-inbox-format mail file named FILE-NAME.
@@ -1643,6 +1647,7 @@ which is updated to the name you use in this command."
    (progn (require 'pmailout)
 	  (list (pmail-output-read-file-name)
 		(prefix-numeric-value current-prefix-arg))))
+  (require 'pmailout) ; for pmail-output-as-seen in non-interactive case
   (let ((i 0) prev-msg)
     (while
 	(and (< i n)
