@@ -1,7 +1,7 @@
 ;;; pmailkwd.el --- part of the "PMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985, 1988, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -53,6 +53,9 @@ Performs completion over known labels when reading."
 Performs completion over known labels when reading."
   (interactive (list (pmail-read-label "Remove label")))
   (pmail-set-label string nil))
+
+;;; These two moved here from pmail (which this file requires)
+;;; 20090105, creating a compiler warning. ?
 
 ;; Last individual label specified to a or k.
 (defvar pmail-last-label nil)
