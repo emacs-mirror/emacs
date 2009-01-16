@@ -1,3 +1,15 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eldoc.el: Remove leading `*' from defcustoms.
+	(eldoc-argument-case, eldoc-echo-area-use-multiline-p)
+	(eldoc-highlight-function-argument): Doc fix - mention effect of
+	eldoc-documentation-function.
+	(eldoc-message-commands-table-size, eldoc-message-commands)
+	(eldoc-current-idle-delay, eldoc-get-fnsym-args-string): Doc fix.
+	(eldoc-documentation-function): Mention effect on user options.
+
+	* emacs-lisp/copyright.el (copyright-update): Doc fix.
+
 2009-01-16  Kevin Ryde  <user42@zip.com.au>
 
 	* tar-mode.el (tar-rename-entry): Only test the magic string, without

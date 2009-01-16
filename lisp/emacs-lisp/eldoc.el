@@ -55,7 +55,7 @@
   :group 'extensions)
 
 (defcustom eldoc-idle-delay 0.50
-  "*Number of seconds of idle time to wait before printing.
+  "Number of seconds of idle time to wait before printing.
 If user input arrives before this interval of time has elapsed after the
 last input, no documentation will be printed.
 
@@ -65,7 +65,7 @@ If this variable is set to 0, no idle time is required."
 
 ;;;###autoload
 (defcustom eldoc-minor-mode-string " ElDoc"
-  "*String to display in mode line when Eldoc Mode is enabled; nil for none."
+  "String to display in mode line when Eldoc Mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
   :group 'eldoc)
 
@@ -73,14 +73,17 @@ If this variable is set to 0, no idle time is required."
   "Case to display argument names of functions, as a symbol.
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
-returns another string is acceptable."
+returns another string is acceptable.
+
+Note that if `eldoc-documentation-function' is non-nil, this variable
+has no effect, unless the function handles it explicitly."
   :type '(radio (function-item upcase)
 		(function-item downcase)
                 function)
   :group 'eldoc)
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
-  "*Allow long eldoc messages to resize echo area display.
+  "Allow long ElDoc messages to resize echo area display.
 If value is t, never attempt to truncate messages; complete symbol name
 and function arglist or 1-line variable documentation will be displayed
 even if echo area must be resized to fit.
@@ -92,7 +95,10 @@ former case.
 
 If value is nil, messages are always truncated to fit in a single line of
 display in the echo area.  Function or variable symbol name may be
-truncated to make more of the arglist or documentation string visible."
+truncated to make more of the arglist or documentation string visible.
+
+Note that if `eldoc-documentation-function' is non-nil, this variable
+has no effect, unless the function handles it explicitly."
   :type '(radio (const :tag "Always" t)
                 (const :tag "Never" nil)
                 (const :tag "Yes, but truncate symbol names if it will\
@@ -101,14 +107,15 @@ truncated to make more of the arglist or documentation string visible."
 
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
-  "Face used for the argument at point in a function's argument list."
+  "Face used for the argument at point in a function's argument list.
+Note that if `eldoc-documentation-function' is non-nil, this face
+has no effect, unless the function handles it explicitly."
   :group 'eldoc)
 
 ;;; No user options below here.
 
 (defvar eldoc-message-commands-table-size 31
-  "This is used by `eldoc-add-command' to initialize `eldoc-message-commands'
-as an obarray.
+  "Used by `eldoc-add-command' to initialize `eldoc-message-commands' obarray.
 It should probably never be necessary to do so, but if you
 choose to increase the number of buckets, you must do so before loading
 this file since the obarray is initialized at load time.
@@ -117,7 +124,7 @@ Remember to keep it a prime number to improve hash performance.")
 (defconst eldoc-message-commands
   (make-vector eldoc-message-commands-table-size 0)
   "Commands after which it is appropriate to print in the echo area.
-Eldoc does not try to print function arglists, etc. after just any command,
+Eldoc does not try to print function arglists, etc., after just any command,
 because some commands print their own messages in the echo area and these
 functions would instantly overwrite them.  But `self-insert-command' as well
 as most motion commands are good candidates.
@@ -132,7 +139,7 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
   2 - 'function if function args, 'variable if variable documentation.")
 (defvar eldoc-last-message nil)
 
-(defvar eldoc-timer nil "eldoc's timer object.")
+(defvar eldoc-timer nil "ElDoc's timer object.")
 
 (defvar eldoc-current-idle-delay eldoc-idle-delay
   "Idle time delay currently in use by timer.
@@ -241,6 +248,11 @@ It should return nil if there's no doc appropriate for the context.
 Typically doc is returned if point is on a function-like name or in its
 arg list.
 
+The result is used as is, so the function must explicitly handle
+the variables `eldoc-argument-case' and `eldoc-echo-area-use-multiline-p',
+and the face `eldoc-highlight-function-argument', if they are to have any
+effect.
+
 This variable is expected to be made buffer-local by modes (other than
 Emacs Lisp mode) that support Eldoc.")
 
@@ -275,7 +287,7 @@ or elsewhere, return a 1-line docstring.  Calls the functions
 `eldoc-highlight-function-argument' to format the result.  The
 former calls `eldoc-argument-case'; the latter gives the
 function name `font-lock-function-name-face', and optionally
-highlights argument number INDEX. "
+highlights argument number INDEX."
   (let (args doc)
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
 	  ((and (eq sym (aref eldoc-last-data 0))
