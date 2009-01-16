@@ -1,3 +1,7 @@
+2009-01-16  Richard M Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (sentence-end): Accept non-break space.
+
 2009-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* buff-menu.el (Buffer-menu-mode): Derive from special-mode.
