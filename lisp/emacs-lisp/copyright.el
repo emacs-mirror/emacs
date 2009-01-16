@@ -190,7 +190,7 @@ When this is `function', only ask when called non-interactively."
 
 ;;;###autoload
 (defun copyright-update (&optional arg interactivep)
-  "Update copyright notice at beginning of buffer to indicate the current year.
+  "Update copyright notice to indicate the current year.
 With prefix ARG, replace the years in the notice rather than adding
 the current year after them.  If necessary, and
 `copyright-current-gpl-version' is set, any copying permissions
