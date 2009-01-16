@@ -198,6 +198,9 @@
 
 ;;; Compatibility code for xemacs and (not too) older emacsen:
 
+(eval-and-compile ;; Protect against declare-function undefined in xemacs
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (declare-function ispell-check-minver "ispell" (v1 v2))
 
 (if (fboundp 'version<=)
@@ -328,7 +331,9 @@ Must be greater than 1."
   :group 'ispell)
 
 (defcustom ispell-program-name
-  (or (locate-file "aspell" exec-path exec-suffixes 'file-executable-p)
+  (or (locate-file "aspell"   exec-path exec-suffixes 'file-executable-p)
+      (locate-file "ispell"   exec-path exec-suffixes 'file-executable-p)
+      (locate-file "hunspell" exec-path exec-suffixes 'file-executable-p)
       "ispell")
   "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
   :type 'string
@@ -911,8 +916,8 @@ Internal use.")
 
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
-  (unless ispell-really-aspell
-    (error "This function only works with aspell"))
+  (unless (and ispell-really-aspell ispell-encoding8-command)
+    (error "This function only works with aspell >= 0.60."))
   (let* ((dictionaries
 	  (split-string
 	   (with-temp-buffer
@@ -932,10 +937,10 @@ Internal use.")
 	(setq found (nconc found (list dict)))))
     (setq ispell-aspell-dictionary-alist found)
     ;; Add a default entry
-    (let* ((english-dict (assoc "en" ispell-dictionary-alist))
+    (let* ((english-dict (assoc "en" ispell-aspell-dictionary-alist))
 	   (default-dict
 	     (cons nil (or (cdr english-dict)
-			   (cdr (car ispell-dictionary-base-alist))))))
+			   '("[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil utf-8)))))
       (push default-dict ispell-aspell-dictionary-alist))))
 
 (defvar ispell-aspell-data-dir nil

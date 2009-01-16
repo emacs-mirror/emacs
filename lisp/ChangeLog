@@ -1,3 +1,11 @@
+2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el: Protect against declare-function undefined
+	in xemacs.
+	(ispell-program-name): Search also for hunspell when setting default.
+	(ispell-find-aspell-dictionaries): Better error message. Use correct
+	dictionary alist for default. Better fallback default dictionary.
+
 2009-01-16  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* international/quail.el (quail-insert-kbd-layout): Delete
