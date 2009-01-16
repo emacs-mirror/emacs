@@ -1,7 +1,7 @@
 ;;; pmailout.el --- "PMAIL" mail reader for Emacs: output message to a file
 
-;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -376,6 +376,9 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
 	    (narrow-to-region (point-min) (1+ (buffer-size)))
 	    (goto-char (point-max))
 	    (insert-buffer-substring tembuf)))))))
+
+;; Called only if pmail-summary-exists, which means pmailsum is loaded.
+(declare-function pmail-update-summary "pmailsum" (&rest ignore))
 
 (defun pmail-output-to-pmail-buffer (tembuf msg)
   "Copy msg in TEMBUF from BEG to END into this Pmail buffer.

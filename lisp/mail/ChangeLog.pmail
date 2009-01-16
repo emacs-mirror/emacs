@@ -1,3 +1,13 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* pmailout.el (pmail-update-summary): Declare.
+
+	* pmailsum.el (pmail-summary-mode-map)
+	(pmail-summary-output-to-pmail-file): Use pmail-summary-output
+	rather than pmail-summary-output-to-babyl-file (renamed 2009-01-05).
+	(pmail-output-as-seen): Declare.
+	(pmail-summary-output): Also require pmailout non-interactively.
+
 2009-01-10  Richard M Stallman  <rms@gnu.org>
 
 	* pmailout.el (pmail-output-to-r-mail-buffer): New function.
