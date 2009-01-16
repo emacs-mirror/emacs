@@ -1,3 +1,8 @@
+2009-01-16  Ulrich Mueller  <ulm@kph.uni-mainz.de>
+
+	* international/quail.el (quail-insert-kbd-layout): Delete
+	superfluous handling of 8-bit code.  (Bug#1418)
+
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eldoc.el: Remove leading `*' from defcustoms.
