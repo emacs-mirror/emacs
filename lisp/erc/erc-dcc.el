@@ -1,7 +1,7 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004, 2006, 2007, 2008, 2009
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1998, 2002, 2003, 2004, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
@@ -377,7 +377,8 @@ created subprocess, or nil."
               (when (fboundp 'set-process-coding-system)
                 (set-process-coding-system process 'binary 'binary))
               (when (fboundp 'set-process-filter-multibyte)
-                (set-process-filter-multibyte process nil))))
+                (with-no-warnings       ; obsolete since 23.1
+                  (set-process-filter-multibyte process nil)))))
         (file-error
          (unless (and (string= "Cannot bind server socket" (cadr err))
                       (string= "address already in use" (caddr err)))

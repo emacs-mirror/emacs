@@ -1,3 +1,8 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* erc-dcc.el (erc-dcc-server): Silence warning about obsolete function
+	behind fboundp test.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-input-message): Replace last-command-char with
