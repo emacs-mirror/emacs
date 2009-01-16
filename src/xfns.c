@@ -2942,14 +2942,10 @@ x_make_gc (f)
   gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
   gc_values.background = f->output_data.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
-  gc_values.stipple
-    = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
-			     FRAME_X_DISPLAY_INFO (f)->root_window,
-			     cursor_bits, 16, 16);
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 (GCForeground | GCBackground
-		  | GCFillStyle /* | GCStipple */ | GCLineWidth),
+		  | GCFillStyle | GCLineWidth),
 		 &gc_values);
 
   /* Reliefs.  */
