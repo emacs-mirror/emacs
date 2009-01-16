@@ -1892,6 +1892,8 @@ Formats current entry according to variable `bibtex-entry-format'."
                               last-comma delimiters unify-case braces
                               strings)
                   bibtex-entry-format))
+        (left-delim-re (regexp-quote (bibtex-field-left-delimiter)))
+        (right-delim-re (regexp-quote (bibtex-field-right-delimiter)))
         bounds crossref-key req-field-list default-field-list field-list
         alt-fields error-field-name)
     (unwind-protect
@@ -1998,13 +2000,22 @@ Formats current entry according to variable `bibtex-entry-format'."
                     ;; update delimiters
                     (when (memq 'delimiters format)
                       (goto-char beg-text)
-                      (when (looking-at "[{\"]")
-                        (delete-char 1)
-                        (insert (bibtex-field-left-delimiter)))
-                      (goto-char (1- (marker-position end-text)))
-                      (when (looking-at "[}\"]")
-                        (delete-char 1)
-                        (insert (bibtex-field-right-delimiter))))
+                      ;; simplified from `bibtex-parse-field-text', as we
+                      ;; already checked that the field format is correct
+                      (while (< (point) end-text)
+                        (if (looking-at bibtex-field-const)
+                            (goto-char (match-end 0))
+                          (let ((boundaries (bibtex-parse-field-string)))
+                            (unless (looking-at right-delim-re)
+                              (delete-char 1)
+                              (insert (bibtex-field-left-delimiter)))
+                            (goto-char (1- (cdr boundaries)))
+                            (if (looking-at left-delim-re)
+                                (forward-char)
+                              (delete-char 1)
+                              (insert (bibtex-field-right-delimiter)))))
+                        (if (looking-at "[ \t\n]*#[ \t\n]*")
+                            (goto-char (match-end 0)))))
 
                     ;; update page dashes
                     (if (and (memq 'page-dashes format)
@@ -2014,7 +2025,9 @@ Formats current entry according to variable `bibtex-entry-format'."
                                      "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
                         (replace-match "\\1-\\2"))
 
-                    ;; remove whitespace at beginning and end of field
+                    ;; Remove whitespace at beginning and end of field.
+                    ;; We do not look at individual parts of the field
+                    ;; as {foo } # bar # { baz} is a fine field.
                     (when (memq 'whitespace format)
                       (goto-char beg-text)
                       (if (looking-at "\\([{\"]\\)[ \t\n]+")
@@ -2932,7 +2945,7 @@ BOUND limits the search."
 
 General information on working with BibTeX mode:
 
-Use commands such as \\[bibtex-Book] to get a template for a specific entry.
+Use commands such as \\<bibtex-mode-map>\\[bibtex-Book] to get a template for a specific entry.
 Then fill in all desired fields using \\[bibtex-next-field] to jump from field
 to field.  After having filled in all desired fields in the entry, clean the
 new entry with the command \\[bibtex-clean-entry].
