@@ -4451,8 +4451,10 @@ where
       {
 	Lisp_Object code;
 	int vs = (i < 16 ? 0xFE00 + i : 0xE0100 + (i - 16));
+	/* Stops GCC whining about limited range of data type.	*/
+	EMACS_INT var = variations[i];
 
-	if (variations[i] > MOST_POSITIVE_FIXNUM)
+	if (var > MOST_POSITIVE_FIXNUM)
 	  code = Fcons (make_number ((variations[i]) >> 16),
 			make_number ((variations[i]) & 0xFFFF));
 	else

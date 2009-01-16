@@ -1,3 +1,7 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (Ffont_variation_glyphs): Silence compiler.
+
 2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sound.c (SOUND_WARNING): Use _snprintf, for MSVC compatibility.
