@@ -109,7 +109,7 @@
 (put-charset-property
  'emacs :long-name "Emacs")
 
-(put-charset-property 'eight-bit :docstring "Raw bytes 0-255")
+(put-charset-property 'eight-bit :docstring "Raw bytes 128-255")
 (put-charset-property 'eight-bit :short-name "Raw bytes")
 
 (define-charset-alias 'ucs 'unicode)
@@ -1218,8 +1218,8 @@
   "Raw text, which means text contains random 8-bit codes.
 Encoding text with this coding system produces the actual byte
 sequence of the text in buffers and strings.  An exception is made for
-eight-bit-control characters.  Each of them is encoded into a single
-byte.
+characters from the `eight-bit' character set.  Each of them is encoded
+into a single byte.
 
 When you visit a file with this coding, the file is read into a
 unibyte buffer as is (except for EOL format), thus each byte of a file
