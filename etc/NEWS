@@ -1714,7 +1714,8 @@ deleting a terminal.
 +++
 **** `environment'
 
-**** `delete-tty'
++++
+**** `delete-terminal'
 
 +++
 **** `suspend-tty'
