@@ -1,5 +1,8 @@
 2009-01-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* elisp.texi (Top): Make @detailmenu be consistent with changes in
+	frames.texi.
+
 	* hooks.texi (Standard Hooks): Document `delete-frame-functions'
 	and `delete-terminal-functions'.
 
