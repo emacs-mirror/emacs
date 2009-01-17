@@ -4,16 +4,21 @@
 	frames.texi.
 
 	* hooks.texi (Standard Hooks): Document `delete-frame-functions'
-	and `delete-terminal-functions'.
+	`delete-terminal-functions', `suspend-tty-functions' and
+	`resume-tty-functions'.
 
 	* frames.texi (Frames): Document `frame-terminal' and
 	`terminal-live-p'.
 	(Multiple Displays): Document `make-frame-on-tty'.
 	(Multiple Terminals): Document `terminal-list', `delete-terminal',
 	`terminal-name', and `get-device-terminal'.
+	(Terminal Parameters): Document `terminal-parameters',
+	`terminal-parameter', and `set-terminal-parameter'.
 
 	* os.texi (System Environment): Document `environment' and
 	`initial-environment'.
+	(Suspending Emacs): Update for multi-tty; document
+	`suspend-tty', `resume-tty', and `controlling-tty-p'.
 
 	* nonascii.texi (Coding System Basics): More accurate description
 	of `raw-text'.
