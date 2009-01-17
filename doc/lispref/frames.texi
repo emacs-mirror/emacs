@@ -1053,17 +1053,48 @@ Here is an example:
 @section Terminal Parameters
 @cindex terminal parameters
 
-  This subsection describes how to read and change the parameter
-values of a terminal.
+  Each terminal has a list of associated parameters.  These
+@dfn{terminal parameters} are mostly a convenient way of storage for
+terminal-local variables, but some terminal parameters have a special
+meaning.
+
+  This section describes functions to read and change the parameter values
+of a terminal.  They all accept as their argument either a terminal or
+a frame; the latter means use that frame's terminal.  An argument of
+@code{nil} means the selected frame's terminal.
 
 @defun terminal-parameters &optional terminal
+This function returns an alist listing all the parameters of
+@var{terminal} and their values.
 @end defun
 
 @defun terminal-parameter terminal parameter
+This function returns the value of the parameter @var{parameter} (a
+symbol) of @var{terminal}.  If @var{terminal} has no setting for
+@var{parameter}, this function returns @code{nil}.
 @end defun
 
 @defun set-terminal-parameter terminal parameter value
+This function sets the parameter @var{parm} of @var{terminal} to the
+specified @var{value}, and returns the previous value of that
+parameter.
 @end defun
+
+Here's a list of a few terminal parameters that have a special
+meaning:
+
+@table @code
+@item background-mode
+The classification of the terminal's background color, either
+@code{light} or @code{dark}.
+@item normal-erase-is-backspace
+Value is either 1 or 0, depending on whether
+@code{normal-erase-is-backspace-mode} is turned on or off on this
+terminal.  @xref{DEL Does Not Delete,,, emacs, The Emacs Manual}.
+@item terminal-initted
+After the terminal is initialized, this is set to the
+terminal-specific initialization function.
+@end table
 
 @node Frame Titles
 @section Frame Titles
@@ -1439,16 +1470,6 @@ Parameters}.
 This happens below the level at which Emacs can exert any control, but
 Emacs does provide events that you can use to keep track of such
 changes.  @xref{Misc Events}.
-
-@defun suspend-frame
-@end defun
-
-@c FIXME: xref to suspend-emacs, and xref there.
-@defun suspend-tty &optional tty
-@end defun
-
-@defun resume-tty &optional tty
-@end defun
 
 @node Raising and Lowering
 @section Raising and Lowering Frames
