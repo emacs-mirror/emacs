@@ -6,9 +6,9 @@
 
 	* international/mule-conf.el (raw-text, eight-bit): Doc fixes.
 
-2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
+2009-01-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* textmodes/flyspell.el	(flyspell-post-command-hook): Do nothing
+	* textmodes/flyspell.el (flyspell-post-command-hook): Do nothing
 	unless flyspell-mode is enabled.
 	(flyspell-pre-point): Make buffer-local.
 
@@ -23,13 +23,13 @@
 	constants.
 	(bibtex-mode): Doc fix.
 
-2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
+2009-01-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el: Protect against declare-function undefined
-	in xemacs.
+	in XEmacs.
 	(ispell-program-name): Search also for hunspell when setting default.
-	(ispell-find-aspell-dictionaries): Better error message. Use correct
-	dictionary alist for default. Better fallback default dictionary.
+	(ispell-find-aspell-dictionaries): Better error message.  Use correct
+	dictionary alist for default.  Better fallback default dictionary.
 
 2009-01-16  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
