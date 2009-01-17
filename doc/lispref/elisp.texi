@@ -938,7 +938,9 @@ Frames
 
 * Creating Frames::	    Creating additional frames.
 * Multiple Displays::       Creating frames on other displays.
+* Multiple Terminals::          Displaying on several different devices.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
+* Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::	    Frames last until explicitly deleted.
 * Finding All Frames::	    How to examine all existing frames.
@@ -961,7 +963,6 @@ Frames
 * Text Terminal Colors::    Defining colors for text-only terminals.
 * Resources::		    Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
-* Multiple Terminals::          Displaying on several different devices.
 
 Frame Parameters
 
@@ -982,12 +983,6 @@ Window Frame Parameters
 * Management Parameters::   Communicating with the window manager.
 * Cursor Parameters::       Controlling the cursor appearance.
 * Color Parameters::        Colors of various parts of the frame.
-
-Multiple Terminals
-
-* Low-level Terminal::      Low-level manipulation of terminal objects.
-* Terminal Parameters::     Parameters common for all frames on terminal.
-* Frames on Other TTY devices:: Creating frames on other terminal devices.
 
 Positions
 
