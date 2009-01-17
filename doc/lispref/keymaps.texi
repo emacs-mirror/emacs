@@ -1517,7 +1517,7 @@ specifies a list of keymaps to search in.  This argument is ignored if
 sequence, to translate certain event sequences into others.
 @code{read-key-sequence} checks every subsequence of the key sequence
 being read, as it is read, against @code{input-decode-map}, then
-@code{function-key-map}, and then against @code{key-translation-map}.
+@code{local-function-key-map}, and then against @code{key-translation-map}.
 
 @defvar input-decode-map
 This variable holds a keymap that describes the character sequences sent
@@ -1549,33 +1549,36 @@ to make entries in @code{input-decode-map} beyond those that can be
 deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
 @end defvar
 
-@defvar function-key-map
+@defvar local-function-key-map
 This variable holds a keymap similar to @code{input-decode-map} except
 that it describes key sequences which should be translated to
 alternative interpretations that are usually preferred.  It applies
 after @code{input-decode-map} and before @code{key-translation-map}.
 
-Entries in @code{function-key-map} are ignored if they conflict with
-bindings made in the minor mode, local, or global keymaps.  I.e.
+Entries in @code{local-function-key-map} are ignored if they conflict
+with bindings made in the minor mode, local, or global keymaps.  I.e.
 the remapping only applies if the original key sequence would
 otherwise not have any binding.
+
+@code{local-function-key-map} inherits from @code{function-key-map},
+but the latter should not be used directly.
 @end defvar
 
 @defvar key-translation-map
 This variable is another keymap used just like @code{input-decode-map}
 to translate input events into other events.  It differs from
 @code{input-decode-map} in that it goes to work after
-@code{function-key-map} is finished rather than before; it receives
-the results of translation by @code{function-key-map}.
+@code{local-function-key-map} is finished rather than before; it
+receives the results of translation by @code{local-function-key-map}.
 
-Just like @code{input-decode-map}, but unlike @code{function-key-map},
-this keymap is applied regardless of whether the input key-sequence
-has a normal binding.  Note however that actual key bindings can have
-an effect on @code{key-translation-map}, even though they are
-overridden by it.  Indeed, actual key bindings override
-@code{function-key-map} and thus may alter the key sequence that
-@code{key-translation-map} receives.  Clearly, it is better to avoid
-this type of situation.
+Just like @code{input-decode-map}, but unlike
+@code{local-function-key-map}, this keymap is applied regardless of
+whether the input key-sequence has a normal binding.  Note however
+that actual key bindings can have an effect on
+@code{key-translation-map}, even though they are overridden by it.
+Indeed, actual key bindings override @code{local-function-key-map} and
+thus may alter the key sequence that @code{key-translation-map}
+receives.  Clearly, it is better to avoid this type of situation.
 
 The intent of @code{key-translation-map} is for users to map one
 character set to another, including ordinary characters normally bound
@@ -1583,11 +1586,10 @@ to @code{self-insert-command}.
 @end defvar
 
 @cindex key translation function
-You can use @code{input-decode-map}, @code{function-key-map}, or
-@code{key-translation-map} for
-more than simple aliases, by using a function, instead of a key
-sequence, as the ``translation'' of a key.  Then this function is called
-to compute the translation of that key.
+You can use @code{input-decode-map}, @code{local-function-key-map}, or
+@code{key-translation-map} for more than simple aliases, by using a
+function, instead of a key sequence, as the ``translation'' of a key.
+Then this function is called to compute the translation of that key.
 
 The key translation function receives one argument, which is the prompt
 that was specified in @code{read-key-sequence}---or @code{nil} if the
@@ -1618,7 +1620,7 @@ to turn the character that follows into a Hyper character:
         symbol
       (cons symbol (cdr e)))))
 
-(define-key function-key-map "\C-ch" 'hyperify)
+(define-key local-function-key-map "\C-ch" 'hyperify)
 @end group
 @end example
 
