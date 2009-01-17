@@ -1,3 +1,12 @@
+2009-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-langs.el (declare-function): Add compatibility stub.
+	(delete-duplicates, mapcan, cl-macroexpand-all): Declare.
+
+	* emacs-lisp/eldoc.el (eldoc-minor-mode-string)
+	(eldoc-message-commands, eldoc-print-current-symbol-info):
+	Doc fix (consistent case of "ElDoc").
+
 2009-01-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry): Simplify previous
