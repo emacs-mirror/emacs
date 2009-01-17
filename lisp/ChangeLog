@@ -1,3 +1,8 @@
+2009-01-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry): Simplify previous
+	change.
+
 2009-01-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-w32.el (find-buffer-file-type-coding-system): If `(car
