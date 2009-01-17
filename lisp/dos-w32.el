@@ -129,9 +129,9 @@ set to the appropriate coding system, and the value of
 `buffer-file-coding-system' will be used when writing the file."
 
   (let ((op (nth 0 command))
-	(target)
 	(binary nil) (text nil)
-	(undecided nil) (undecided-unix nil))
+	(undecided nil) (undecided-unix nil)
+	target target-buf)
     (cond ((eq op 'insert-file-contents)
 	   (setq target (nth 1 command))
 	   ;; If TARGET is a cons cell, it has the form (FILENAME . BUFFER),
@@ -140,7 +140,11 @@ set to the appropriate coding system, and the value of
 	   ;; arguments is used, e.g., in arc-mode.el.)  This function
 	   ;; doesn't care about the contents, it only looks at the file's
 	   ;; name, which is the CAR of the cons cell.
-	   (if (consp target) (setq target (car target)))
+	   (when (consp target)
+	     (setq target-buf
+		   (and (bufferp (cdr target))
+			(buffer-name (cdr target))))
+	     (setq target (car target)))
 	   ;; First check for a file name that indicates
 	   ;; it is truly binary.
 	   (setq binary (find-buffer-file-type target))
@@ -149,7 +153,17 @@ set to the appropriate coding system, and the value of
 		 ((find-buffer-file-type-match target)
 		  (setq text t))
 		 ;; For any other existing file, decide based on contents.
-		 ((file-exists-p target)
+		 ((or
+		   (file-exists-p target)
+		   ;; If TARGET does not exist as a file, replace its
+		   ;; base name with TARGET-BUF and try again.  This
+		   ;; is for jka-compr's sake, which strips the
+		   ;; compression (.gz etc.) extension from the
+		   ;; FILENAME, but leaves it in the BUFFER's name.
+		   (and (stringp target-buf)
+			(file-exists-p
+			 (expand-file-name target-buf
+					   (file-name-directory target)))))
 		  (setq undecided t))
 		 ;; Next check for a non-DOS file system.
 		 ((untranslated-file-p target)
