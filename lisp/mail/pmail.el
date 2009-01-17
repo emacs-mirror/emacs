@@ -50,8 +50,8 @@
   "Buffer that this buffer's contents are temporarily swapped with.
 You should only set this variable in file-visiting buffers,
 because it only affects how to save the buffer in its file.")
-
 (make-variable-buffer-local 'buffer-swapped-with)
+(put 'buffer-swapped-with 'permanent-local t)
 
 (defadvice basic-save-buffer
   (around check-swap activate)
@@ -2352,6 +2352,10 @@ Output a helpful message unless NOMSG is non-nil."
 	  (while (<= i pmail-total-messages)
 	    (aset pmail-msgref-vector i (list i))
 	    (setq i (1+ i))))
+	(let ((i 0))
+	  (while (<= i pmail-total-messages)
+	    (pmail-set-message-deleted-p i (pmail-message-attr-p i ".D"))
+	    (setq i (1+ i))))
 	(message "Counting messages...done")))))
 
 
@@ -2688,7 +2692,7 @@ copy all header fields whose names do not match
   "Automatically move a message into a sub-folder based on criteria.
 Called when a new message is displayed."
   (if (or (zerop pmail-total-messages)
-	  (pmail-message-attr-p pmail-current-message "...F...")
+	  (pmail-message-attr-p pmail-current-message "...F")
 	  (not (string= (buffer-file-name)
 			(expand-file-name pmail-file-name))))
       ;; Do nothing if the message has already been filed or if there
