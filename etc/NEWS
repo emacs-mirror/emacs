@@ -1683,6 +1683,7 @@ type (`tty-type' parameter) to `make-terminal-frame'.
 *** The function `make-frame-on-display' now works during a tty
 session.
 
++++
 *** A new `terminal' data type.
 The functions `get-device-terminal', `terminal-parameters',
 `terminal-parameter', `set-terminal-parameter' use this data type.
@@ -1698,24 +1699,30 @@ which is not used directly any more.
 variable file-local-variables-alist, and before actually applying the
 file-local variables.
 
++++
 **** `suspend-tty-functions' and `resume-tty-functions' are called
 after a tty frame has been suspended or resumed, respectively.  The
 functions are called with the terminal id of the frame being
 suspended/resumed as a parameter.
 
++++
 **** The special hook `delete-terminal-functions' is called before
 deleting a terminal.
 
 *** New functions:
 
++++
 **** `environment'
 
 **** `delete-tty'
 
++++
 **** `suspend-tty'
 
++++
 **** `resume-tty'.
 
++++
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
 ** Redisplay changes
