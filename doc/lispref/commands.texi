@@ -1145,11 +1145,11 @@ Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
 
 Most of the time, it's not useful to distinguish the two.  So normally
-@code{function-key-map} (@pxref{Translation Keymaps}) is set up to map
-@code{tab} into 9.  Thus, a key binding for character code 9 (the
-character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
-symbols in this group.  The function @code{read-char} likewise converts
-these events into characters.
+@code{local-function-key-map} (@pxref{Translation Keymaps}) is set up
+to map @code{tab} into 9.  Thus, a key binding for character code 9
+(the character @kbd{C-i}) also applies to @code{tab}.  Likewise for
+the other symbols in this group.  The function @code{read-char}
+likewise converts these events into characters.
 
 In @acronym{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
@@ -2438,10 +2438,11 @@ the keyboard, and has no effect on mouse events or any other events.
 @end defvar
 
 @defvar keyboard-translate-table
-This variable is the translate table for keyboard characters.  It lets
-you reshuffle the keys on the keyboard without changing any command
-bindings.  Its value is normally a char-table, or else @code{nil}.
-(It can also be a string or vector, but this is considered obsolete.)
+This terminal-local variable is the translate table for keyboard
+characters.  It lets you reshuffle the keys on the keyboard without
+changing any command bindings.  Its value is normally a char-table, or
+else @code{nil}.  (It can also be a string or vector, but this is
+considered obsolete.)
 
 If @code{keyboard-translate-table} is a char-table
 (@pxref{Char-Tables}), then each character read from the keyboard is
