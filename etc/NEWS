@@ -1674,12 +1674,15 @@ $TERM inherited by Emacs you will have to look inside initial-environment.
 for the first frame.  `window-system' is also now a function that
 takes a frame argument.
 
++++
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems are now terminal-local.
 
+---
 *** You can specify a terminal device (`tty' parameter) and a terminal
 type (`tty-type' parameter) to `make-terminal-frame'.
 
+---
 *** The function `make-frame-on-display' now works during a tty
 session.
 
@@ -1688,6 +1691,7 @@ session.
 The functions `get-device-terminal', `terminal-parameters',
 `terminal-parameter', `set-terminal-parameter' use this data type.
 
++++
 *** Function key sequences are now mapped using `local-function-key-map',
 a new variable.  This inherits from the global variable function-key-map,
 which is not used directly any more.
