@@ -292,12 +292,18 @@ Manual}.
 @item redisplay-end-trigger-functions
 @xref{Window Hooks}.
 
+@item resume-tty-functions
+@xref{Suspending Emacs}.
+
 @item scheme-indent-function
 
 @item suspend-hook
 @xref{Suspending Emacs}.
 
 @item suspend-resume-hook
+@xref{Suspending Emacs}.
+
+@item suspend-tty-functions
 @xref{Suspending Emacs}.
 
 @item temp-buffer-setup-hook
