@@ -716,8 +716,9 @@ MS-Windows.
 AT&T System V.
 
 @item windows-nt
-Microsoft windows NT.  The same executable supports Windows 9X, but the
-value of @code{system-type} is @code{windows-nt} in either case.
+Microsoft Windows NT and later.  The same executable supports Windows
+9X, but the value of @code{system-type} is @code{windows-nt} in either
+case.
 
 @end table
 
@@ -820,6 +821,22 @@ process-environment
 If @code{process-environment} contains ``duplicate'' elements that
 specify the same environment variable, the first of these elements
 specifies the variable, and the other ``duplicates'' are ignored.
+@end defvar
+
+@defun environment &optional frame
+This is a convenience function that returns the value of
+@code{process-environment} after removing unset and duplicate
+variables from it.  The optional argument @var{frame}, which should be
+a frame, means return the list of environment variables in effect for
+that frame.  The value this function returns is a copy, so changing it
+will have no effect on the environment variables passed to
+subprocesses.
+@end defun
+
+@defvar initial-environment
+This variable holds the list of environment variables Emacs inherited
+from its parent process.  It is computed during startup, see
+@ref{Startup Summary}.
 @end defvar
 
 @defvar path-separator
