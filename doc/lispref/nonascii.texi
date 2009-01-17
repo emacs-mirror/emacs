@@ -1596,15 +1596,21 @@ display text using a particular encoding such as Latin-1.  Emacs does
 not set @code{last-coding-system-used} for encoding or decoding of
 terminal I/O.
 
-@defun keyboard-coding-system
+@defun keyboard-coding-system &optional terminal
 This function returns the coding system that is in use for decoding
-keyboard input---or @code{nil} if no coding system is to be used.
+keyboard input from @var{terminal}---or @code{nil} if no coding system
+is to be used for that terminal.  If @var{terminal} is omitted or
+@code{nil}, it means the selected frame's terminal.  @xref{Multiple
+Terminals}.
 @end defun
 
-@deffn Command set-keyboard-coding-system coding-system
-This command specifies @var{coding-system} as the coding system to
-use for decoding keyboard input.  If @var{coding-system} is @code{nil},
-that means do not decode keyboard input.
+@deffn Command set-keyboard-coding-system coding-system &optional terminal
+This command specifies @var{coding-system} as the coding system to use
+for decoding keyboard input from @var{terminal}.  If
+@var{coding-system} is @code{nil}, that means do not decode keyboard
+input.  If @var{terminal} is a frame, it means that frame's terminal;
+if it is @code{nil}, that means the currently selected frame's
+terminal.  @xref{Multiple Terminals}.
 @end deffn
 
 @defun terminal-coding-system
