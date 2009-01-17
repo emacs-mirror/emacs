@@ -863,13 +863,23 @@ coding systems} such as @code{latin-1-unix}, @code{latin-1-dos} and
 well.  Most base coding systems have three corresponding variants whose
 names are formed by adding @samp{-unix}, @samp{-dos} and @samp{-mac}.
 
+@vindex raw-text@r{ coding system}
   The coding system @code{raw-text} is special in that it prevents
-character code conversion, and causes the buffer visited with that
-coding system to be a unibyte buffer.  It does not specify the
-end-of-line conversion, allowing that to be determined as usual by the
-data, and has the usual three variants which specify the end-of-line
-conversion.  @code{no-conversion} is equivalent to @code{raw-text-unix}:
-it specifies no conversion of either character codes or end-of-line.
+character code conversion, and causes the buffer visited with this
+coding system to be a unibyte buffer.  For historical reasons, you can
+save both unibyte and multibyte text with this coding system.  When
+you use @code{raw-text} to encode multibyte text, it does perform one
+character code conversion: it converts eight-bit characters to their
+single-byte external representation.  @code{raw-text} does not specify
+the end-of-line conversion, allowing that to be determined as usual by
+the data, and has the usual three variants which specify the
+end-of-line conversion.
+
+@vindex no-conversion@r{ coding system}
+@vindex binary@r{ coding system}
+  @code{no-conversion} (and its alias @code{binary}) is equivalent to
+@code{raw-text-unix}: it specifies no conversion of either character
+codes or end-of-line.
 
 @vindex emacs-internal@r{ coding system}
   The coding system @code{emacs-internal} specifies that the data is
