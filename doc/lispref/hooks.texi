@@ -121,6 +121,13 @@ Hook called after defining each customize option.
 @item deactivate-mark-hook
 @xref{The Mark}.
 
+@item delete-frame-functions
+Functions to call when Emacs deletes a frame.  @xref{Deleting Frames}.
+
+@item delete-terminal-functions
+Functions to call when Emacs deletes a terminal.  @xref{Multiple
+Terminals}.
+
 @item desktop-after-read-hook
 Normal hook run after a successful @code{desktop-read}.  May be used
 to show a buffer list.  @xref{Saving Emacs Sessions,, Saving Emacs
