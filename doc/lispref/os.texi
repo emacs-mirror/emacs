@@ -599,10 +599,10 @@ returns @code{nil} to its caller in Lisp.
 
 This function works only on the controlling terminal of the Emacs
 session; to relinquish control of other tty devices, use
-@code{suspend-tty} (@pxref{Visibility of Frames}).  If the Emacs
-session uses more than one terminal device, you will need to delete
-the frames on all the other devices before suspending Emacs, otherwise
-this function signals an error.
+@code{suspend-tty} (see below).  If the Emacs session uses more than
+one terminal device, you will need to delete the frames on all the
+other devices before suspending Emacs, otherwise this function signals
+an error.
 
 If @var{string} is non-@code{nil}, its characters are sent to be read
 as terminal input by Emacs's superior shell.  The characters in
