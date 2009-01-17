@@ -1,5 +1,17 @@
 2009-01-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* hooks.texi (Standard Hooks): Document `delete-frame-functions'
+	and `delete-terminal-functions'.
+
+	* frames.texi (Frames): Document `frame-terminal' and
+	`terminal-live-p'.
+	(Multiple Displays): Document `make-frame-on-tty'.
+	(Multiple Terminals): Document `terminal-list', `delete-terminal',
+	`terminal-name', and `get-device-terminal'.
+
+	* os.texi (System Environment): Document `environment' and
+	`initial-environment'.
+
 	* nonascii.texi (Coding System Basics): More accurate description
 	of `raw-text'.
 
