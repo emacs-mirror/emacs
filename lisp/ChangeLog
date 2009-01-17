@@ -1,3 +1,7 @@
+2009-01-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-conf.el (raw-text, eight-bit): Doc fixes.
+
 2009-01-16  Agustín Martín <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el	(flyspell-post-command-hook): Do nothing
