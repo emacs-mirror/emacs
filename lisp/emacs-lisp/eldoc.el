@@ -41,7 +41,7 @@
 ;;      (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 ;;      (add-hook 'ielm-mode-hook 'turn-on-eldoc-mode)
 
-;; Major modes for other languages may use Eldoc by defining an
+;; Major modes for other languages may use ElDoc by defining an
 ;; appropriate function as the buffer-local value of
 ;; `eldoc-documentation-function'.
 
@@ -65,7 +65,7 @@ If this variable is set to 0, no idle time is required."
 
 ;;;###autoload
 (defcustom eldoc-minor-mode-string " ElDoc"
-  "String to display in mode line when Eldoc Mode is enabled; nil for none."
+  "String to display in mode line when ElDoc Mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
   :group 'eldoc)
 
@@ -124,19 +124,21 @@ Remember to keep it a prime number to improve hash performance.")
 (defconst eldoc-message-commands
   (make-vector eldoc-message-commands-table-size 0)
   "Commands after which it is appropriate to print in the echo area.
-Eldoc does not try to print function arglists, etc., after just any command,
+ElDoc does not try to print function arglists, etc., after just any command,
 because some commands print their own messages in the echo area and these
 functions would instantly overwrite them.  But `self-insert-command' as well
 as most motion commands are good candidates.
 This variable contains an obarray of symbols; do not manipulate it
 directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 
+;; Not a constant.
 (defconst eldoc-last-data (make-vector 3 nil)
   "Bookkeeping; elements are as follows:
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
   2 - 'function if function args, 'variable if variable documentation.")
+
 (defvar eldoc-last-message nil)
 
 (defvar eldoc-timer nil "ElDoc's timer object.")
@@ -254,7 +256,7 @@ and the face `eldoc-highlight-function-argument', if they are to have any
 effect.
 
 This variable is expected to be made buffer-local by modes (other than
-Emacs Lisp mode) that support Eldoc.")
+Emacs Lisp mode) that support ElDoc.")
 
 (defun eldoc-print-current-symbol-info ()
   (condition-case err
