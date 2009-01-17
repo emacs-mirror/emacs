@@ -1,3 +1,7 @@
+2009-01-17  Peter Tury  <tury.peter@gmail.com>  (tiny change)
+
+	* org.texi (Relative timer): Fix typo.
+
 2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Clocking work time): Fix typo.
