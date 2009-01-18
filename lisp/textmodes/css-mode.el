@@ -92,7 +92,7 @@
        ;; vice-versa).
        (t nil)))
     elems))
-        
+
 
 (defun css-extract-props-and-vals ()
   (with-temp-buffer
@@ -108,7 +108,7 @@
                                                  (progn
                                                    (re-search-forward "[ \t\n]+|[ \t\n]+<a href=\"cascade.html#value-def-inherit\" class=\"noxref\"><span class=\"value-inst-inherit\">inherit</span></a>")
                                                    (match-beginning 0)))))
-              ;; 
+              ;;
               (push (cons prop (css-extract-parse-val-grammar vals-string props))
                     props)))))
       props)))
@@ -313,7 +313,7 @@
             (fill-paragraph justify)
             ;; Don't try filling again.
             t)))
-        
+
        ((and (null (nth 8 ppss))
              (or (nth 1 ppss)
                  (and (ignore-errors
@@ -373,7 +373,7 @@
                         (save-excursion
                           (forward-comment (- (point-max)))
                           ;; FIXME: We should also skip punctuation.
-                          (not (memq (char-before) '(?\; ?\{)))))))))))
+                          (not (or (bobp) (memq (char-before) '(?\; ?\{))))))))))))
 
 (defun css-forward-sexp (n)
   (let ((forward-sexp-function nil))
@@ -457,7 +457,7 @@
              (if (looking-at "\\s(")
                  (css-indent-calculate)
                (css-indent-calculate-virtual))))))))))
-     
+
 
 (defun css-indent-line ()
   "Indent current line according to CSS indentation rules."

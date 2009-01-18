@@ -1,3 +1,8 @@
+2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/css-mode.el (css-backward-sexp): Stop once it reaches
+	the beginning of the buffer.  (Bug#1949)
+
 2009-01-18  Markus Triska  <markus.triska@gmx.at>
 
 	* linum.el (linum-update-window): Use `delq' instead of `delete';
