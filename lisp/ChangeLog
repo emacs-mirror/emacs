@@ -1,3 +1,8 @@
+2009-01-18  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-update-window): Use `delq' instead of `delete';
+	compare strings with `equal-including-properties'.
+
 2009-01-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-langs.el (declare-function): Add compatibility stub.

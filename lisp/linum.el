@@ -146,10 +146,11 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
                     (funcall linum-format line)))
              (visited (catch 'visited
                         (dolist (o (overlays-in (point) (point)))
-                          (when (string= (overlay-get o 'linum-str) str)
+                          (when (equal-including-properties
+				 (overlay-get o 'linum-str) str)
                             (unless (memq o linum-overlays)
                               (push o linum-overlays))
-                            (setq linum-available (delete o linum-available))
+                            (setq linum-available (delq o linum-available))
                             (throw 'visited t))))))
         (setq width (max width (length str)))
         (unless visited
