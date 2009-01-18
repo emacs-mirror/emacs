@@ -1,3 +1,7 @@
+2009-01-18  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-header-line-uses-tabbar-p): Set to nil by default.
+
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* erc.el (erc-input-message): Conditionalize previous change for XEmacs.

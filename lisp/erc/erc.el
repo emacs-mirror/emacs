@@ -5916,7 +5916,7 @@ See `erc-mode-line-format' for which characters are can be used."
   :type '(choice (const :tag "Disabled" nil)
 		 string))
 
-(defcustom erc-header-line-uses-tabbar-p t
+(defcustom erc-header-line-uses-tabbar-p nil
   "Use tabbar mode instead of the header line to display the header."
   :group 'erc-mode-line-and-header
   :type 'boolean)
