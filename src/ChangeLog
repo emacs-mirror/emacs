@@ -1,3 +1,7 @@
+2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callproc.c (Fgetenv_internal): Doc fix.
+
 2009-01-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (x_make_gc): Don't allocate stipple member for gc_values;
