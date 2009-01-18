@@ -2271,7 +2271,7 @@ conv_sockaddr_to_lisp (sa, len)
      sockets in the UNIX domain are inaccessible; getsockname returns
      a zero length name.  */
   if (len < OFFSETOF (struct sockaddr, sa_family) + sizeof (sa->sa_family))
-    return build_string ("");
+    return empty_unibyte_string;
 
   switch (sa->sa_family)
     {

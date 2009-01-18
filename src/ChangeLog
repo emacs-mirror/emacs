@@ -1,5 +1,9 @@
 2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
+	* dbusbind.c (Fdbus_register_signal):
+	* process.c (conv_sockaddr_to_lisp):
+	* w32fns.c (Fw32_battery_status): Use empty_unibyte_string.
+
 	* callproc.c (Fgetenv_internal): Doc fix.
 
 2009-01-16  Chong Yidong  <cyd@stupidchicken.com>
@@ -24,21 +28,19 @@
 2009-01-14  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (x_set_font): Always store a font to the font parameter,
-	never a fontset. (Bug#1562)
+	never a fontset.  (Bug#1562)
 
 2009-01-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (TWO_MORE_BYTES): New macro.
-	(detect_coding_utf_16): Use TWO_MORE_BYTES instead of
-	ONE_MORE_BYTE.
+	(detect_coding_utf_16): Use TWO_MORE_BYTES instead of ONE_MORE_BYTE.
 
 2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_clear_prop): If clearing the family, clear the font
 	width index too.
 
-	* xfaces.c (Finternal_set_lisp_face_attribute): Revert last
-	change.
+	* xfaces.c (Finternal_set_lisp_face_attribute): Revert last change.
 
 2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -82,7 +84,7 @@
 2009-01-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (add_font_entity_to_list): Don't report unknown
-	Windows charset as any unrecognized registry. (Bug#1548)
+	Windows charset as any unrecognized registry.  (Bug#1548)
 	Only report Unicode Plane 2 fonts as unicode-sip.
 
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
@@ -118,7 +120,7 @@
 	(Vx_mode_pointer_shape, Vx_window_horizontal_drag_shape)
 	(Vx_hourglass_pointer_shape, Vx_sensitive_text_pointer_shape):
 	Don't declare.
-	(syms_of_w32fns): Don't define x-pointer-shape variable. (Bug#1485)
+	(syms_of_w32fns): Don't define x-pointer-shape variable.  (Bug#1485)
 	(x_create_tip_frame) [GLYPH_DEBUG]: Enable image debugging code.
 
 2009-01-07  Kenichi Handa  <handa@m17n.org>

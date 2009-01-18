@@ -6594,7 +6594,7 @@ The following %-sequences are provided:
       if (system_status.BatteryFlag & 128)
 	{
 	  battery_status = build_string ("N/A");
-	  battery_status_symbol = build_string ("");
+	  battery_status_symbol = empty_unibyte_string;
 	}
       else if (system_status.BatteryFlag & 8)
 	{
@@ -6616,12 +6616,12 @@ The following %-sequences are provided:
       else if (system_status.BatteryFlag & 1)
 	{
 	  battery_status = build_string ("high");
-	  battery_status_symbol = build_string ("");
+	  battery_status_symbol = empty_unibyte_string;
 	}
       else
 	{
 	  battery_status = build_string ("medium");
-	  battery_status_symbol = build_string ("");
+	  battery_status_symbol = empty_unibyte_string;
 	}
 
       if (system_status.BatteryLifePercent > 100)

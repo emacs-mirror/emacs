@@ -1659,7 +1659,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
       /* When there is no unique name, we mark it with an empty
 	 string.  */
       if (NILP (uname))
-	uname = build_string ("");
+	uname = empty_unibyte_string;
     }
   else
     uname = service;
