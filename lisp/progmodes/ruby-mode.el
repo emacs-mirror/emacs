@@ -1422,11 +1422,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
 (add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
 
 ;;;###autoload
-(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("rbx" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("jruby" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("ruby1.9" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("ruby1.8" . ruby-mode))
+(dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
+  (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
 
 (provide 'ruby-mode)
 
