@@ -353,6 +353,21 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 (defsubst describe-char-padded-string (ch)
   (compose-string (string ch) 0 1 (format "\t%c\t" ch)))
 
+;; Return a nicely formated list of categories; extended category
+;; description is added to the category name as a tooltip
+(defsubst describe-char-categories (category-set)
+  (let ((mnemonics (category-set-mnemonics category-set)))
+    (unless (eq mnemonics "")
+      (list (mapconcat
+	     #'(lambda (x)
+		 (let* ((c (category-docstring x))
+			(doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+				 (propertize (match-string 1 c)
+					     'help-echo (match-string 2 c))
+			       c)))
+		   (format "%c:%s" x doc)))
+	     mnemonics ", ")))))
+
 ;;;###autoload
 (defun describe-char (pos)
   "Describe the character after POS (interactively, the character after point).
@@ -430,11 +445,9 @@ as well as widgets, buttons, overlays, and text properties."
 		  (buffer-string))))
 	    ("category"
 	     ,@(let ((category-set (char-category-set char)))
-		 (if (not category-set)
-		     '("-- none --")
-		   (mapcar #'(lambda (x) (format "%c:%s"
-						 x (category-docstring x)))
-			   (category-set-mnemonics category-set)))))
+		 (if category-set
+		     (describe-char-categories category-set)
+		   '("-- none --"))))
 	    ("to input"
 	     ,@(let ((key-list (and (eq input-method-function
 					'quail-input-method)

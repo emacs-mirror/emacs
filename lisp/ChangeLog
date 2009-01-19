@@ -1,3 +1,8 @@
+2009-01-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char-categories): New defsubst.
+	(describe-char): Use it.
+
 2009-01-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-ipv6-regexp): The regexp shall cover also
