@@ -1,3 +1,8 @@
+2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lookup): Document WIDTH argument of
+	x-list-fonts.
+
 2009-01-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* maps.texi (Standard Keymaps): Rename function-key-map to
