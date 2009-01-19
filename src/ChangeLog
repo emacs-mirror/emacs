@@ -1,5 +1,13 @@
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xfaces.c (Finternal_set_lisp_face_attribute, Fx_list_fonts):
+	Check return value of font_spec_from_name.
+	(Fx_list_fonts): Doc fix.
+
+	* font.c (font_spec_from_name): Return Qnil if font name could not
+	be parsed.
+	(font_parse_name): Treat a `?' character as part of an XLFD.
+
 	* fns.c (Fsubstring): Doc fix.
 
 2009-01-19  Kenichi Handa  <handa@m17n.org>
