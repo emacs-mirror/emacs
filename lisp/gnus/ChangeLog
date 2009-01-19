@@ -1,3 +1,13 @@
+2009-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Update docs to reflect epa-file-enable is to be used
+	now.
+
+2009-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-pathname-coding-system): Default to the `file-name'
+	coding system in XEmacs; add a workaround for XEmacs.
+
 2009-01-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-coding-system-priorities): Protect against nil value

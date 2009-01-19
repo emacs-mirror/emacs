@@ -4312,43 +4312,48 @@ all be @code{utf-8} because of the last element of
 @code{gnus-group-name-charset-group-alist}.
 
 There is one more important variable for non-@acronym{ASCII} group
-names.  @emph{XEmacs users must set this}.  Emacs users necessarily need
-not do:
+names:
 
 @table @code
 @item nnmail-pathname-coding-system
-The value of this variable should be a coding system or @code{nil}
-(which is the default).  The @code{nnml} back end, the @code{nnrss} back
-end, the @acronym{NNTP} marks feature (@pxref{NNTP marks}), the agent,
-and the cache use non-@acronym{ASCII} group names in those files and
-directories.  This variable overrides the value of
-@code{file-name-coding-system} which specifies the coding system used
-when encoding and decoding those file names and directory names.
+@vindex nnmail-pathname-coding-system
+The value of this variable should be a coding system or @code{nil}.  The
+default is @code{nil} in Emacs, or is the aliasee of the coding system
+named @code{file-name} (a certain coding system of which an alias is
+@code{file-name}) in XEmacs.
+
+The @code{nnml} back end, the @code{nnrss} back end, the @acronym{NNTP}
+marks feature (@pxref{NNTP marks}), the agent, and the cache use
+non-@acronym{ASCII} group names in those files and directories.  This
+variable overrides the value of @code{file-name-coding-system} which
+specifies the coding system used when encoding and decoding those file
+names and directory names.
 
 In XEmacs (with the @code{mule} feature), @code{file-name-coding-system}
 is the only means to specify the coding system used to encode and decode
-file names.  Therefore, @emph{you, XEmacs users, have to set it} to the
-coding system that is suitable to encode and decode non-@acronym{ASCII}
-group names.  On the other hand, Emacs uses the value of
+file names.  On the other hand, Emacs uses the value of
 @code{default-file-name-coding-system} if @code{file-name-coding-system}
-is @code{nil}.  Normally the value of
-@code{default-file-name-coding-system} is initialized according to the
-locale, so you will need to do nothing if the value is suitable to
-encode and decode non-@acronym{ASCII} group names.
+is @code{nil} or it is bound to the value of
+@code{nnmail-pathname-coding-system} which is @code{nil}.
+
+Normally the value of @code{default-file-name-coding-system} in Emacs or
+@code{nnmail-pathname-coding-system} in XEmacs is initialized according
+to the locale, so you will need to do nothing if the value is suitable
+to encode and decode non-@acronym{ASCII} group names.
 
 The value of this variable (or @code{default-file-name-coding-system})
 does not necessarily need to be the same value that is determined by
 @code{gnus-group-name-charset-method-alist} and
 @code{gnus-group-name-charset-group-alist}.
 
-If you want to subscribe to the groups spelled in Chinese but
-@code{default-file-name-coding-system} is initialized by default to
-@code{iso-latin-1} for example, that is the most typical case where you
-have to set @code{nnmail-pathname-coding-system} even if you are an
-Emacs user.  The @code{utf-8} coding system is a good candidate for it.
-Otherwise, you may change the locale in your system so that
-@code{default-file-name-coding-system} may be initialized to an
-appropriate value, instead of specifying this variable.
+If @code{default-file-name-coding-system} or this variable is
+initialized by default to @code{iso-latin-1} for example, although you
+want to subscribe to the groups spelled in Chinese, that is the most
+typical case where you have to customize
+@code{nnmail-pathname-coding-system}.  The @code{utf-8} coding system is
+a good candidate for it.  Otherwise, you may change the locale in your
+system so that @code{default-file-name-coding-system} or this variable
+may be initialized to an appropriate value.
 @end table
 
 Note that when you copy or move articles from a non-@acronym{ASCII}
@@ -7312,9 +7317,9 @@ subset of the articles currently in the group.  The effect most limit
 commands have is to remove a few (or many) articles from the summary
 buffer.
 
-All limiting commands work on subsets of the articles already fetched
-from the servers.  None of these commands query the server for
-additional articles.
+Limiting commands work on subsets of the articles already fetched from
+the servers.  These commands don't query the server for additional
+articles.
 
 @table @kbd
 
@@ -7475,18 +7480,6 @@ Mark all excluded unread articles as read
 (@code{gnus-summary-limit-mark-excluded-as-read}).  If given a prefix,
 also mark excluded ticked and dormant articles as read.
 
-@item / N
-@kindex / N (Summary)
-@findex gnus-summary-insert-new-articles
-Insert all new articles in the summary buffer.  It scans for new emails
-if @var{back-end}@code{-get-new-mail} is non-@code{nil}.
-
-@item / o
-@kindex / o (Summary)
-@findex gnus-summary-insert-old-articles
-Insert all old articles in the summary buffer.  If given a numbered
-prefix, fetch this number of articles.
-
 @item / b
 @kindex / b (Summary)
 @findex gnus-summary-limit-to-bodies
@@ -7500,6 +7493,25 @@ requires selecting each article to find the matches.
 @findex gnus-summary-limit-to-headers
 Like the previous command, only limit to headers instead
 (@code{gnus-summary-limit-to-headers}).
+
+@end table
+
+
+The following commands aren't limiting commands, but use the @kbd{/}
+prefix as well.
+
+@table @kbd
+@item / N
+@kindex / N (Summary)
+@findex gnus-summary-insert-new-articles
+Insert all new articles in the summary buffer.  It scans for new emails
+if @var{back-end}@code{-get-new-mail} is non-@code{nil}.
+
+@item / o
+@kindex / o (Summary)
+@findex gnus-summary-insert-old-articles
+Insert all old articles in the summary buffer.  If given a numbered
+prefix, fetch this number of articles.
 
 @end table
 
@@ -17617,10 +17629,8 @@ The @code{nnrss} back end saves the group data file in
 @code{nnrss-directory} (see below) for each @code{nnrss} group.  File
 names containing non-@acronym{ASCII} characters will be encoded by the
 coding system specified with the @code{nnmail-pathname-coding-system}
-variable.  If it is @code{nil}, in Emacs the coding system defaults to
-the value of @code{default-file-name-coding-system}.  If you are using
-XEmacs and want to use non-@acronym{ASCII} group names, you should set
-the value for the @code{nnmail-pathname-coding-system} variable properly.
+variable or other.  Also @xref{Non-ASCII Group Names}, for more
+information.
 
 The @code{nnrss} back end generates @samp{multipart/alternative}
 @acronym{MIME} articles in which each contains a @samp{text/plain} part

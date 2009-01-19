@@ -628,7 +628,14 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   mm-text-coding-system
   "Coding system used in reading inbox")
 
-(defvar nnmail-pathname-coding-system nil
+(defvar nnmail-pathname-coding-system
+  ;; This causes Emacs 22.2 and 22.3 to issue a useless warning.
+  ;;(if (and (featurep 'xemacs) (featurep 'file-coding))
+  (if (featurep 'xemacs)
+      (if (featurep 'file-coding)
+	  ;; Work around a bug in many XEmacs 21.5 betas.
+	  ;; Cf. http://thread.gmane.org/gmane.emacs.gnus.general/68134
+	  (setq file-name-coding-system (coding-system-aliasee 'file-name))))
   "*Coding system for file name.")
 
 (defun nnmail-find-file (file)
