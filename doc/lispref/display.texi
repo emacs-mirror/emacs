@@ -2725,7 +2725,7 @@ nominal heights and widths would suggest.
 @node Font Lookup
 @subsection Looking Up Fonts
 
-@defun x-list-fonts name &optional reference-face frame maximum
+@defun x-list-fonts name &optional reference-face frame maximum width
 This function returns a list of available font names that match
 @var{name}.  @var{name} should be a string containing a font name in
 either the Fontconfig, GTK, or XLFD format (@pxref{Font X,, Font
@@ -2744,6 +2744,11 @@ return.  If it is non-@code{nil}, then the return value is truncated
 after the first @var{maximum} matching fonts.  Specifying a small
 value for @var{maximum} can make this function much faster, in cases
 where many fonts match the pattern.
+
+The optional argument @var{width} specifies a desired font width.  If
+it is non-@code{nil}, the function only returns those fonts whose
+characters are (on average) @var{width} times as wide as
+@var{reference-face}.
 @end defun
 
 @defun x-family-fonts &optional family frame
