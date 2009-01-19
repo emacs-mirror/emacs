@@ -1,6 +1,6 @@
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/ruby-mode.el (name): Autoload other interpreter names.
+	* progmodes/ruby-mode.el: Autoload other interpreter names.
 
 2009-01-19  Juanma Barranquero  <lekktu@gmail.com>
 
