@@ -1816,11 +1816,13 @@ DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 5, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
 the same size as FACE on FRAME.
-PATTERN is a string, perhaps with wildcard characters;
+
+PATTERN should be a string containing a font name in the XLFD,
+Fontconfig, or GTK format.  A font name given in the XLFD format may
+contain wildcard characters:
   the * character matches any substring, and
   the ? character matches any single character.
   PATTERN is case-insensitive.
-FACE is a face name--a symbol.
 
 The return value is a list of strings, suitable as arguments to
 `set-face-font'.
@@ -1892,6 +1894,9 @@ the WIDTH times as wide as FACE on FRAME.  */)
     Lisp_Object args[2], tail;
 
     font_spec = font_spec_from_name (pattern);
+    if (!FONTP (font_spec))
+      signal_error ("Invalid font name", pattern);
+
     if (size)
       {
 	Ffont_put (font_spec, QCsize, make_number (size));
@@ -3252,11 +3257,14 @@ FRAME 0 means change the face on all frames, and change the default
 		{
 		  if (STRINGP (value))
 		    {
-		      int fontset = fs_query_fontset (value, 0);
+		      Lisp_Object name = value;
+		      int fontset = fs_query_fontset (name, 0);
 
 		      if (fontset >= 0)
-			value = fontset_ascii (fontset);
-		      value = font_spec_from_name (value);
+			name = fontset_ascii (fontset);
+		      value = font_spec_from_name (name);
+		      if (!FONTP (value))
+			signal_error ("Invalid font name", name);
 		    }
 		  else
 		    signal_error ("Invalid font or font-spec", value);
