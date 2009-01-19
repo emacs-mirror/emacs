@@ -310,9 +310,10 @@ ftfont_lookup_cache (key, for_face)
 				FC_INDEX, FcTypeInteger, index, NULL);
 	  objset = FcObjectSetBuild (FC_CHARSET, NULL);
 	  fontset = FcFontList (NULL, pat, objset);
-	  xassert (fontset && fontset->nfont > 0);
-	  if (FcPatternGetCharSet (fontset->fonts[0], FC_CHARSET, 0, &charset)
-	      == FcResultMatch)
+	  if (fontset && fontset->nfont > 0
+	      && (FcPatternGetCharSet (fontset->fonts[0], FC_CHARSET, 0,
+				       &charset)
+		  == FcResultMatch))
 	    cache_data->fc_charset = FcCharSetCopy (charset);
 	  else
 	    cache_data->fc_charset = FcCharSetCreate ();
@@ -835,7 +836,7 @@ ftfont_list (frame, spec)
 	      FcPatternAddString (pattern, FC_FAMILY, fam);
 	      FcFontSetDestroy (fontset);
 	      fontset = FcFontList (NULL, pattern, objset);
-	      if (fontset->nfont > 0)
+	      if (fontset && fontset->nfont > 0)
 		break;
 	    }
 	}
