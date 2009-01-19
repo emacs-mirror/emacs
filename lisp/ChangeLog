@@ -1,3 +1,8 @@
+2009-01-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ipv6-regexp): The regexp shall cover also
+	IPv4 mapped IPv6 addresses.
+
 2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/css-mode.el (css-backward-sexp): Stop once it reaches
