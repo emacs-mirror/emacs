@@ -1183,11 +1183,16 @@ Elements of ALIST that are not conses are also shared.  */)
 }
 
 DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
-       doc: /* Return a substring of STRING, starting at index FROM and ending before TO.
-TO may be nil or omitted; then the substring runs to the end of STRING.
-FROM and TO start at 0.  If either is negative, it counts from the end.
+       doc: /* Return a new string whose contents are a substring of STRING.
+The returned string consists of the characters between index FROM
+\(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
+zero-indexed: 0 means the first character of STRING.  Negative values
+are counted from the end of STRING.  If TO is nil, the substring runs
+to the end of STRING.
 
-This function allows vectors as well as strings.  */)
+The STRING argument may also be a vector.  In that case, the return
+value is a new vector that contains the elements between index FROM
+\(inclusive) and index TO (exclusive) of that vector argument.  */)
      (string, from, to)
      Lisp_Object string;
      register Lisp_Object from, to;
