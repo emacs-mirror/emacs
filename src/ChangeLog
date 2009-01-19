@@ -1,3 +1,7 @@
+2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (Fsubstring): Doc fix.
+
 2009-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_lookup_cache): Check the return value of
