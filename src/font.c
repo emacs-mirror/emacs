@@ -1814,7 +1814,7 @@ font_parse_name (name, font)
      char *name;
      Lisp_Object font;
 {
-  if (name[0] == '-' || index (name, '*'))
+  if (name[0] == '-' || index (name, '*') || index (name, '?'))
     return font_parse_xlfd (name, font);
   return font_parse_fcname (name, font);
 }
@@ -3051,15 +3051,21 @@ font_get_spec (font_object)
   return spec;
 }
 
+
+/* Create a new font spec from FONT_NAME, and return it.  If FONT_NAME
+   could not be parsed by font_parse_name, return Qnil.  */
+
 Lisp_Object
 font_spec_from_name (font_name)
      Lisp_Object font_name;
 {
-  Lisp_Object args[2];
+  Lisp_Object spec = Ffont_spec (0, NULL);
 
-  args[0] = QCname;
-  args[1] = font_name;
-  return Ffont_spec (2, args);
+  CHECK_STRING (font_name);
+  if (font_parse_name ((char *) SDATA (font_name), spec) == -1)
+    return Qnil;
+  font_put_extra (spec, QCname, font_name);
+  return spec;
 }
 
 
