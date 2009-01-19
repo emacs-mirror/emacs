@@ -1,3 +1,9 @@
+2009-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_lookup_cache): Check the return value of
+	FcFontList.
+	(ftfont_list): Likewise.
+
 2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dbusbind.c (Fdbus_register_signal):
