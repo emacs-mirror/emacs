@@ -449,36 +449,6 @@ Flymake, flymake, The Flymake Manual}.
 @cindex debuggers
 @cindex GUD library
 @cindex GDB
-
-Emacs provides two separate facilities for using external symbolic
-debuggers, which are programs for testing and debugging other
-programs:
-@itemize @bullet
-@item
-The Grand Unified Debugger (GUD) provides a simple, text-based
-interface for a wide variety of symbolic debuggers, including the GNU
-Debugger (GDB), the Perl debugger, the Python debugger, and the Java
-Debugger.
-
-@item
-The GDB Graphical Interface is an Emacs package that interacts with
-GDB to turn Emacs into a graphical ``integrated development
-environment'', or IDE.
-@end itemize
-
-  In addition, Emacs contains a built-in system for debugging Emacs
-Lisp programs.  @xref{Debugging,, The Lisp Debugger, elisp, the Emacs
-Lisp Reference Manual}, for information on the Emacs Lisp debugger.
-
-@menu
-* GUD::	                     The Grand Unified Debugger.
-* GDB Graphical Interface::  A mode that uses GDB features to implement
-                             a graphical Emacs debugging environment.
-@end menu
-
-@node GUD
-@subsection GUD
-@cindex GUD library
 @cindex DBX
 @cindex SDB
 @cindex XDB
@@ -498,25 +468,36 @@ PDB, or the Java Debugger JDB.
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
+* GDB Graphical Interface::  An enhanced mode that uses GDB features to
+                        implement a graphical debugging environment through
+                        Emacs.
 @end menu
 
 @node Starting GUD
-@subsubsection Starting GUD
+@subsection Starting GUD
 
   There are several commands for starting a debugger under GUD, each
 corresponding to a particular debugger program.
 
 @table @kbd
+@item M-x gdb @key{RET} @var{file} @key{RET}
+@findex gdb
+Run GDB as a subprocess of Emacs.  This uses an IDE-like graphical
+interface; see @ref{GDB Graphical Interface}.  Only GDB works with the
+graphical interface.
+
 @item M-x gud-gdb @key{RET} @var{file} @key{RET}
 @findex gud-gdb
 Run GDB as a subprocess of Emacs.  This command creates a buffer for
 input and output to GDB, and switches to it.  If a GDB buffer already
-exists, it just switches to that buffer.  (To run GDB in an IDE-like
-graphical interface instead, see @ref{GDB Graphical Interface}.)
+exists, it just switches to that buffer.
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
-Run DBX as a subprocess of Emacs.
+Run DBX as a subprocess of Emacs.  Since Emacs does not implement a
+graphical interface for DBX, communication with DBX works by typing
+commands in the GUD interaction buffer.  The same is true for all
+the other supported debuggers.
 
 @item M-x xdb @key{RET} @var{file} @key{RET}
 @findex xdb
@@ -568,7 +549,7 @@ GDB remote debugging feature, for example (@pxref{Remote Debugging,,
 Debugging Remote Programs, gdb, The GNU debugger}).
 
 @node Debugger Operation
-@subsubsection Debugger Operation
+@subsection Debugger Operation
 
 @cindex fringes, and current execution line in GUD
   Generally when you run a debugger with GUD, the debugger uses an Emacs
@@ -615,7 +596,7 @@ interface supports GUD tooltips and assures they will not cause side
 effects.
 
 @node Commands of GUD
-@subsubsection Commands of GUD
+@subsection Commands of GUD
 
   The GUD interaction buffer uses a variant of Shell mode, so the
 Emacs commands of Shell mode are available (@pxref{Shell Mode}).  All
@@ -772,7 +753,7 @@ enter a tab as input to the program you are debugging with GDB.
 Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 
 @node GUD Customization
-@subsubsection GUD Customization
+@subsection GUD Customization
 
 @vindex gdb-mode-hook
 @vindex dbx-mode-hook
