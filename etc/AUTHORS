@@ -1378,7 +1378,7 @@ Joe Reiss: changed gnus-art.el
 Joe Wells: wrote apropos.el mail-extr.el resume.el
 and changed arc-mode.el tex-mode.el
 
-Joel N. Weber Ii: changed comint.el make-dist
+Joel N. Weber II: changed comint.el make-dist
 
 Joel Ray Holveck: changed gnus-sum.el info.el
 
@@ -2331,9 +2331,8 @@ Pavel Janík: changed keyboard.c xterm.c COPYING xdisp.c Makefile.in
   coding.c eval.c fileio.c flyspell.el fns.c indent.c callint.c
   cus-start.el and 700 other files
 
-Pavel Kobiakov: changed flymake.el flymake.texi
-
-Pavel Kobyakov: wrote flymake.el
+Pavel Kobiakov: wrote flymake.el
+and changed flymake.texi
 
 Per Abrahamsen: wrote cpp.el cus-dep.el cus-edit.el cus-face.el
   cus-start.el custom.el double.el gnus-cite.el gnus-cus.el wid-browse.el
@@ -2354,8 +2353,6 @@ and changed vc.el vc-hooks.el diff-mode.el etags.c etags.el forms.el
 
 Per Persson: wrote gnus-vm.el
 and co-wrote erc-dcc.el
-
-Per Starback: changed gnus-start.el
 
 Per Starbäck: changed ispell.el apropos.el bytecomp.el characters.el
   charset.h coding.c dired.el doctor.el emacs.c european.el gnus-start.el
