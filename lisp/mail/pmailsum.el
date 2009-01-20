@@ -92,13 +92,6 @@ LABELS should be a string containing the desired labels, separated by commas."
 		     'pmail-message-labels-p
 		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
 
-;; Moved here from pmail (which this file requires) 20090105, creating
-;; a compiler warning. ?
-;; Return t if the attributes/keywords line of msg number MSG
-;; contains a match for the regexp LABELS.
-(defun pmail-message-labels-p (msg labels)
-  (string-match labels (pmail-get-labels msg)))
-
 ;;;###autoload
 (defun pmail-summary-by-recipients (recipients &optional primary-only)
   "Display a summary of all messages with the given RECIPIENTS.
