@@ -123,7 +123,9 @@ files.")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
     ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
+    ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
+    ("Per Starbäck" "Per Starback")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
@@ -182,6 +184,7 @@ If REALNAME is nil, ignore that author.")
     "Greg McGary"
     "Hans de Graaff"
     "James TD Smith"
+    "Joel N. Weber II"
     "Michael McNamara"
     "Mike McEwan"
     "Nelson Jose dos Santos Ferreira"

@@ -1,3 +1,8 @@
+2009-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
+	Add some entries.
+
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/ruby-mode.el: Autoload other interpreter names.
@@ -49,10 +54,6 @@
 	* textmodes/flyspell.el (flyspell-post-command-hook): Do nothing
 	unless flyspell-mode is enabled.
 	(flyspell-pre-point): Make buffer-local.
-
-2009-01-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
-
-	* textmodes/bibtex.el (bibtex-format-entry): Fix previous change.
 
 2009-01-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
