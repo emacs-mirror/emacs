@@ -54,15 +54,6 @@ Performs completion over known labels when reading."
   (interactive (list (pmail-read-label "Remove label")))
   (pmail-set-label string nil))
 
-;;; These two moved here from pmail (which this file requires)
-;;; 20090105, creating a compiler warning. ?
-
-;; Last individual label specified to a or k.
-(defvar pmail-last-label nil)
-
-;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
-(defvar pmail-last-multi-labels nil)
-
 ;;;###autoload
 (defun pmail-read-label (prompt)
   (let ((result
