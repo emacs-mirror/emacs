@@ -463,6 +463,10 @@ interface, which only runs GDB (@pxref{GDB Graphical Interface}), GUD
 can also run DBX, SDB, XDB, Perl's debugging mode, the Python debugger
 PDB, or the Java Debugger JDB.
 
+  In addition, Emacs contains a built-in system for debugging Emacs
+Lisp programs.  @xref{Debugging,, The Lisp Debugger, elisp, the Emacs
+Lisp Reference Manual}, for information on the Emacs Lisp debugger.
+
 @menu
 * Starting GUD::	How to start a debugger subprocess.
 * Debugger Operation::	Connection between the debugger and source buffers.
