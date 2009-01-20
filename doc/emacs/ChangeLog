@@ -1,3 +1,8 @@
+2009-01-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debuggers): Revert some of 2008-10-31 change  to
+	raise GUD subsections.
+
 2009-01-15  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Another update based mainly on AUTHORS.
