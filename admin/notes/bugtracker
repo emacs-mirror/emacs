@@ -37,7 +37,8 @@ Do NOT send a separate copy to the bug list, since this may generate a
 new report. The only time to send mail to the bug list is to create a
 new report.
 
-Gnus users can add "\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org"
+Gnus users can add "\\(\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
+\\(submit\\|control\\)@emacsbugs\\.donarmstrong\\.com\\)"
 to message-dont-reply-to-names.  RMAIL users can investigate
 rmail-dont-reply-to-names.
 
