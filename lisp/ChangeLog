@@ -1,3 +1,8 @@
+2009-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Improve description of eight-bit
+	char in a unibyte buffer.
+
 2009-01-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases, authors-fixed-case):
