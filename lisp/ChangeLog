@@ -1,3 +1,8 @@
+2009-01-20  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries): Use
+	aspell default dict.
+
 2009-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Improve description of eight-bit

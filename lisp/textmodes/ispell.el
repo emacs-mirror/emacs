@@ -937,10 +937,7 @@ Internal use.")
 	(setq found (nconc found (list dict)))))
     (setq ispell-aspell-dictionary-alist found)
     ;; Add a default entry
-    (let* ((english-dict (assoc "en" ispell-aspell-dictionary-alist))
-	   (default-dict
-	     (cons nil (or (cdr english-dict)
-			   '("[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil utf-8)))))
+    (let ((default-dict '(nil "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-B") nil utf-8)))
       (push default-dict ispell-aspell-dictionary-alist))))
 
 (defvar ispell-aspell-data-dir nil
