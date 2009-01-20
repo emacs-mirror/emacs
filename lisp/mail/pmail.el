@@ -2212,6 +2212,8 @@ This function assumes the Pmail buffer is unswapped."
 Return non-nil if the unseen attribute is set, nil otherwise."
   (pmail-message-attr-p msgnum "......U"))
 
+;; Return t if the attributes/keywords line of msg number MSG
+;; contains a match for the regexp LABELS.
 (defun pmail-message-labels-p (msg labels)
   (string-match labels (pmail-get-labels msg)))
 
