@@ -379,7 +379,9 @@ as well as widgets, buttons, overlays, and text properties."
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
-	 (charset (or (get-text-property pos 'charset) (char-charset char)))
+	 (eight-bit-p (and (not enable-multibyte-characters) (>= char 128)))
+	 (charset (if eight-bit-p 'eight-bit
+		    (or (get-text-property pos 'charset) (char-charset char))))
 	 (composition (find-composition pos nil nil t))
 	 (component-chars nil)
 	 (display-table (or (window-display-table)
@@ -404,9 +406,11 @@ as well as widgets, buttons, overlays, and text properties."
 	      (kill-buffer tmp-buf))))
 	 item-list max-width code)
 
-    (or (setq code (encode-char char charset))
-	(setq charset (char-charset char)
-	      code (encode-char char charset)))
+    (if multibyte-p
+	(or (setq code (encode-char char charset))
+	    (setq charset (char-charset char)
+		  code (encode-char char charset)))
+      (setq code char))
     (setq item-list
 	  `(("character"
 	     ,(format "%s (%d, #o%o, #x%x)"
@@ -444,34 +448,40 @@ as well as widgets, buttons, overlays, and text properties."
 		  (internal-describe-syntax-value syntax)
 		  (buffer-string))))
 	    ("category"
-	     ,@(let ((category-set (char-category-set char)))
-		 (if category-set
-		     (describe-char-categories category-set)
-		   '("-- none --"))))
+	     ,@(if (not eight-bit-p)
+		   (let ((category-set (char-category-set char)))
+		     (if category-set
+			 (describe-char-categories category-set)
+		       '("-- none --")))))
 	    ("to input"
-	     ,@(let ((key-list (and (eq input-method-function
-					'quail-input-method)
-				    (quail-find-key char))))
-		 (if (consp key-list)
-		     (list "type"
-			   (mapconcat #'(lambda (x) (concat "\"" x "\""))
-				      key-list " or ")
-			   "with"
-			   `(insert-text-button
-			     ,current-input-method
-			     'type 'help-input-method
-			     'help-args '(,current-input-method))))))
+	     ,@(if (not eight-bit-p)
+		   (let ((key-list (and (eq input-method-function
+					    'quail-input-method)
+					(quail-find-key char))))
+		     (if (consp key-list)
+			 (list "type"
+			       (mapconcat #'(lambda (x) (concat "\"" x "\""))
+					  key-list " or ")
+			       "with"
+			       `(insert-text-button
+				 ,current-input-method
+				 'type 'help-input-method
+				 'help-args '(,current-input-method)))))))
 	    ("buffer code"
-	     ,(encoded-string-description
-	       (string-as-unibyte (char-to-string char)) nil))
+	     ,(if multibyte-p
+		  (encoded-string-description
+		   (string-as-unibyte (char-to-string char)) nil)
+		(format "#x%02X" char)))
 	    ("file code"
-	     ,@(let* ((coding buffer-file-coding-system)
-		      (encoded (encode-coding-char char coding charset)))
-		 (if encoded
-		     (list (encoded-string-description encoded coding)
-			   (format "(encoded by coding system %S)" coding))
-		   (list "not encodable by coding system"
-			 (symbol-name coding)))))
+	     ,@(if multibyte-p
+		   (let* ((coding buffer-file-coding-system)
+			  (encoded (encode-coding-char char coding charset)))
+		     (if encoded
+			 (list (encoded-string-description encoded coding)
+			       (format "(encoded by coding system %S)" coding))
+		       (list "not encodable by coding system"
+			     (symbol-name coding))))
+		 (list (format "#x%02X" char))))
 	    ("display"
 	     ,(cond
 	       (disp-vector
@@ -529,9 +539,10 @@ as well as widgets, buttons, overlays, and text properties."
 				     `(insert-text-button
 				       ,(symbol-name face)
 				       'type 'help-face 'help-args '(,face))))))
-	    ,@(let ((unicodedata (describe-char-unicode-data char)))
-		(if unicodedata
-		    (cons (list "Unicode data" " ") unicodedata)))))
+	    ,@(if (not eight-bit-p)
+		  (let ((unicodedata (describe-char-unicode-data char)))
+		    (if unicodedata
+			(cons (list "Unicode data" " ") unicodedata))))))
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
@@ -665,25 +676,26 @@ as well as widgets, buttons, overlays, and text properties."
 	    (insert "\nSee the variable `reference-point-alist' for "
 		    "the meaning of the rule.\n")))
 
-	(insert (if (not describe-char-unidata-list)
-                    "\nCharacter code properties are not shown: "
-                  "\nCharacter code properties: "))
-	(insert-text-button
-	 "customize what to show"
-	 'action (lambda (&rest ignore)
-		   (customize-variable
-		    'describe-char-unidata-list)))
-	(insert "\n")
-	(dolist (elt (if (eq describe-char-unidata-list t)
-                         (nreverse (mapcar 'car char-code-property-alist))
-                       describe-char-unidata-list))
-	  (let ((val (get-char-code-property char elt))
-		description)
-	    (when val
-	      (setq description (char-code-property-description elt val))
-	      (insert (if description
-                          (format "  %s: %s (%s)\n" elt val description)
-                        (format "  %s: %s\n" elt val))))))
+	(unless eight-bit-p
+	  (insert (if (not describe-char-unidata-list)
+		      "\nCharacter code properties are not shown: "
+		    "\nCharacter code properties: "))
+	  (insert-text-button
+	   "customize what to show"
+	   'action (lambda (&rest ignore)
+		     (customize-variable
+		      'describe-char-unidata-list)))
+	  (insert "\n")
+	  (dolist (elt (if (eq describe-char-unidata-list t)
+			   (nreverse (mapcar 'car char-code-property-alist))
+			 describe-char-unidata-list))
+	    (let ((val (get-char-code-property char elt))
+		  description)
+	      (when val
+		(setq description (char-code-property-description elt val))
+		(insert (if description
+			    (format "  %s: %s (%s)\n" elt val description)
+			  (format "  %s: %s\n" elt val)))))))
 
         (if text-props-desc (insert text-props-desc))
 	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
