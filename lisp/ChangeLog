@@ -1,7 +1,7 @@
 2009-01-20  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Improve description of eight-bit
-	char in a unibyte buffer.
+	char in a unibyte buffer.  (Bug#1935)
 
 2009-01-20  Glenn Morris  <rgm@gnu.org>
 
@@ -50,7 +50,7 @@
 
 	* dos-w32.el (find-buffer-file-type-coding-system): If `(car
 	TARGET)' does not exist, try again with its basename replaced by
-	`(cdr TARGET)'.  Fixes Bug #1853.
+	`(cdr TARGET)'.  (Related to Bug #1853.)
 
 	* international/mule-conf.el (raw-text, eight-bit): Doc fixes.
 
