@@ -36,21 +36,73 @@ struct itimerspec; /* stop complaints from time.h */
  *
  * I nabbed it from "ML for the Working Programmer", originally from:
  * Stephen K Park & Keith W Miller (1988). Random number generators:
- * good one are to find.  Communications of the ACM, 31:1192-1201.
+ * good ones are hard to find.  Communications of the ACM, 31:1192-1201.
+ *
+ * This is a 'full-period' generator: all values from [1..(mod-1)] 
+ * are returned once, and then the generator cycles round again.
+ * (The value 0 is not part of the cycle and is never returned). That 
+ * means the period = mod-1, ie. 2147483646.
+ *
+ * This "x 16807 mod 2^31-1" generator has been very well studied.  
+ * It is not the 'best' (most random) simple generator, but it is 
+ * free of all vices we might care about for this application, so 
+ * we'll keep it simple and stick with this, thanks.
+ *
+ * There are faster implementations of this generator, summarised 
+ * briefly here:
+ *  - L. Schrage (1979 & 1983) showed how to do all the calculations 
+ *    within 32-bit integers.  See also Numerical recipes in C.
+ *  - David Carta (1990) showed how to also eliminate division.  
  */
 
+static unsigned long seed = 1;
+/* 2^31 - 1 == (1UL<<31) - 1 == 2147483647 */
+#define RND_MOD_2_31_1       2147483647
+#define RND_MOD_2_31_1_FLOAT 2147483647.0
 unsigned long rnd(void)
 {
-  static unsigned long seed = 1;
   double s;
 
   s = seed;
   s *= 16807.0;
-  s = fmod(s, 2147483647.0);  /* 2^31 - 1 */
+  s = fmod(s, RND_MOD_2_31_1_FLOAT);  /* 2^31 - 1 */
   seed = (unsigned long)s;
   return seed;
+  /* Have you modified this code?  Run rnd_verify() please!  RHSK */
 }
 
+/* rnd_verify -- verify that rnd() returns the correct results */
+static void rnd_verify(void)
+{
+  unsigned long orig_seed = seed;
+  unsigned long i;
+
+  /* This test is from:
+   * Stephen K Park & Keith W Miller (1988). Random number generators:
+   * good ones are hard to find.  Communications of the ACM, 31:1192-1201.
+   * Note: The Park-Miller paper uses 1-based indices.
+   */
+  i = 1;
+  seed = 1;
+  for(i = 2; i < 10001; i += 1) {
+    (void)rnd();
+  }
+  Insist(i == 10001);
+  Insist(rnd() == 1043618065);
+
+  /* from Robin Whittle's compendium at 
+   * http://www.firstpr.com.au/dsp/rand31/
+   * Observe wrap-around after 'full-period' (which excludes 0).
+   * Note: uses 0-based indices, ie. rnd_0 = 1, rnd_1 = 16807, ...
+   */
+  i = 2147483645;
+  seed = 1407677000;
+  i += 1;
+  Insist(i == (1UL<<31) - 2 ); /* 'full-period' excludes 0 */
+  Insist(rnd() == 1);  /* wrap-around */
+
+  seed = orig_seed;
+}
 
 /* rnd_addr -- a random address generator
  *
@@ -75,19 +127,42 @@ mps_addr_t rnd_addr(void)
 
 void randomize(int argc, char **argv)
 {
-  int i, k, n;
+  int n;
+  unsigned long seed0;
+  int i;
 
   if (argc > 1) {
-    n = sscanf(argv[1], "%d", &k);
-    die((n == 1) ? MPS_RES_OK : MPS_RES_FAIL, "randomize");
+    n = sscanf(argv[1], "%lu", &seed0);
+    Insist(n == 1);
+    printf("randomize(): resetting initial seed to: %lu.\n", seed0);
+    rnd_verify();  /* good to verify occasionally: slip it in here */
   } else {
-    k = time(NULL) % 32000;
-    printf("Randomizing %d times.\n", k);
+    /* time_t uses an arbitrary encoding, but hopefully the low order */
+    /* 31 bits will have at least one bit changed from run to run. */
+    seed0 = 1 + time(NULL) % (RND_MOD_2_31_1 - 1);
+    printf("randomize(): choosing initial seed: %lu.\n", seed0);
   }
 
-  /* Randomize the random number generator a bit. */
-  for (i = k; i > 0; --i)
-    rnd();
+  Insist(seed0 < RND_MOD_2_31_1);  /* 2^31 - 1 */
+  Insist(seed0 != 0);
+  seed = seed0;
+
+  /* The 'random' seed is taken from time(), which may simply be a 
+   * count of seconds: therefore successive runs may start with 
+   * nearby seeds, possibly differing only by 1.  So the first value
+   * returned by rnd() may differ by only 16807.  It is conceivable 
+   * that some tests might be able to 'spot' this pattern (for 
+   * example: by using the first rnd() value, mod 100M and rounded 
+   * to multiple of 128K, as arena size).
+   * 
+   * So to mix it up a bit, we do a few iterations now.  How many?  
+   * Very roughly, 16807^2 is of the same order as 2^31, so two 
+   * iterations would make the characteristic difference similar to 
+   * the period.  Hey, let's go wild and do 10.
+   */
+  for(i = 0; i < 10; i += 1) {
+    (void)rnd();
+  }
 }
 
 
@@ -146,7 +221,7 @@ void cdie(int res, const char *s)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
