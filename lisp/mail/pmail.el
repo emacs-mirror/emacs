@@ -621,6 +621,12 @@ by substituting the new message number into the existing list.")
 
 ;; `Sticky' default variables.
 
+;; Last individual label specified to a or k.
+(defvar pmail-last-label nil)
+
+;; Last set of values specified to C-M-n, C-M-p, C-M-s or C-M-l.
+(defvar pmail-last-multi-labels nil)
+
 (defvar pmail-last-regexp nil)
 (put 'pmail-last-regexp 'permanent-local t)
 
@@ -2205,6 +2211,9 @@ This function assumes the Pmail buffer is unswapped."
   "Test the unseen attribute for message MSGNUM.
 Return non-nil if the unseen attribute is set, nil otherwise."
   (pmail-message-attr-p msgnum "......U"))
+
+(defun pmail-message-labels-p (msg labels)
+  (string-match labels (pmail-get-labels msg)))
 
 ;;;; *** Pmail Message Selection And Support ***
 

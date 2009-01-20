@@ -1,3 +1,13 @@
+2009-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* pmailkwd.el (pmail-last-label, pmail-last-multi-labels):
+	Move back to pmail.el.
+	* pmail.el (pmail-last-label, pmail-last-multi-labels):
+	Move back here from pmailkwd.el.
+
+	* pmailsum.el (pmail-message-labels-p): Move back to pmail.el.
+	* pmail.el (pmail-message-labels-p): Move back here from pmailsum.el.
+
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* pmailout.el (pmail-update-summary): Declare.
