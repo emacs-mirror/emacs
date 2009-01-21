@@ -37,10 +37,10 @@ struct itimerspec; /* stop complaints from time.h */
  * We use the (Multiplicative) Linear Congruential Generator
  *   Xn = a * Xn-1 mod m
  * with: m = 2147483647 (2^31 - 1, a Mersenne prime), and a = 48271.  
- * This is a 'full-period' generator: all values from [1..(mod-1)], 
- * or 0x00000001 to 0x7ffffffe inclusive, are returned once, and then 
- * the cycle begins again.  (The value 0 is not part of the cycle and 
- * is never returned).  So the period = mod-1, ie. 2147483646.
+ * This is a 'full-period' generator: all values in [1..(mod-1)] 
+ * (ie. 0x00000001 to 0x7ffffffe inclusive) are returned once, and then 
+ * the cycle begins again.  The value 0 is not part of the cycle and 
+ * is never returned.  So the period = mod-1, ie. 2147483646.
  *
  * This generator is extremely simple and has been very well studied.  
  * It is free of major vices we might care about for this application.
@@ -124,8 +124,8 @@ static unsigned long rnd_verify_float(void)
  * depth = how much time to spend verifying
  * 0: very quick -- just verify the next rnd() value
  * 1: quick -- verify the first 10000 calls from seed = 1
- * 2: slow (< 5 minutes) -- run the fast generator for a full cycle
- * 3: very slow (several hours) -- verify a full cycle
+ * 2: slow (~ 1 minute) -- run the fast generator for a full cycle
+ * 3: very slow (several minutes) -- verify a full cycle
  */
 void rnd_verify(int depth)
 {
@@ -146,48 +146,51 @@ void rnd_verify(int depth)
   if(depth >= 1) {
     i = 1;
     seed = 1;
-    seed_verify_schrage = 1;
-    seed_verify_float = 1;
+    seed_verify_schrage = seed;
+    seed_verify_float = seed;
     for(i = 2; i <= 10001; i += 1) {
       r = rnd();
       Insist(rnd_verify_schrage() == r);
       Insist(rnd_verify_float() == r);
     }
-    printf("%lu\n", r);
     /* Insist(r == 1043618065UL); -- correct value for a = 16807 */
     Insist(r == 399268537UL);  /* correct for a = 48271 */
   }
 
   /* 1: observe wrap-around (note: 0-based indexing) */
   if(depth >= 1) {
-    i = 2147483645UL;
+    /* set-up seed value for i = 2147483645 */
     /* seed = 1407677000UL; -- correct value for a = 16807 */
     seed = 1899818559UL;  /* correct for a = 48271 */
-    seed_verify_schrage = 1899818559UL;
-    seed_verify_float = 1899818559UL;
-    i += 1;
-    Insist(i == (1UL<<31) - 2 ); /* 'full-period' excludes 0 */
-    Insist(rnd() == 1);  /* wrap-around */
-    Insist(rnd_verify_schrage() == 1);
-    Insist(rnd_verify_float() == 1);
+    seed_verify_schrage = seed;
+    seed_verify_float = seed;
+    r = rnd();
+    Insist(rnd_verify_schrage() == r);
+    Insist(rnd_verify_float() == r);
+    Insist(r == 1);  /* wrap-around */
   }
 
   /* 2 & 3: Full cycle (3 => verifying each value) */
   if(depth >= 2) {
+    int verify = (depth >= 3);
     unsigned long r1 = 1;
+    
     i = 0;
     seed = 1;
-    seed_verify_schrage = 1;
-    seed_verify_float = 1;
+    seed_verify_schrage = seed;
+    seed_verify_float = seed;
     while(1) {
       i += 1;
       r = rnd();
-      if(depth >= 3) {
+      if(verify) {
         Insist(rnd_verify_schrage() == r);
         Insist(rnd_verify_float() == r);
       }
       if(r == 1) {
-        printf("Wrap at i=%lu, r=%lu, r(i-1)=%lu.\n",
+        printf("Full cycle complete%s:\n",
+               verify ? " (verifying every value)"
+                      : " (fast implementation only)" );
+        printf("Wrapped at i=%lu, r=%lu, r(i-1)=%lu.\n",
                i, r, r1);
         break;
       } else {
@@ -247,13 +250,13 @@ void randomize(int argc, char **argv)
   /* The 'random' seed is taken from time(), which may simply be a 
    * count of seconds: therefore successive runs may start with 
    * nearby seeds, possibly differing only by 1.  So the first value
-   * returned by rnd() may differ by only 16807.  It is conceivable 
+   * returned by rnd() may differ by only 48271.  It is conceivable 
    * that some tests might be able to 'spot' this pattern (for 
    * example: by using the first rnd() value, mod 100M and rounded 
-   * to multiple of 128K, as arena size).
+   * to multiple of 1024K, as arena size in bytes).
    * 
    * So to mix it up a bit, we do a few iterations now.  How many?  
-   * Very roughly, 16807^2 is of the same order as 2^31, so two 
+   * Very roughly, 48271^2 is of the same order as 2^31, so two 
    * iterations would make the characteristic difference similar to 
    * the period.  Hey, let's go wild and do 10.
    */
