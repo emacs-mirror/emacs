@@ -212,6 +212,7 @@ static int ns_window_num =0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
+static BOOL ns_fake_keydown = NO;
 int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
 /*static int debug_lock = 0; */
@@ -302,6 +303,7 @@ void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 /* TODO: get rid of need for these forward declarations */
 static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
+void x_set_frame_alpha (struct frame *f);
 
 /* unused variables needed for compatibility reasons */
 int x_use_underline_position_properties, x_underline_at_descent_line;
@@ -1419,7 +1421,7 @@ ns_get_color (const char *name, NSColor **col)
   /* Direct colors (hex values) */
   if (hex)
     {
-      unsigned long color = 0;
+      unsigned long long color = 0;
       if (sscanf (hex, "%x", &color))
         {
           float f1, f2, f3, f4;
@@ -3986,8 +3988,15 @@ ns_term_shutdown (int sig)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));
 
-  ns_shutdown_properly = YES;
-  [NSApp terminate: NSApp];
+  if (sig == 0 || sig == SIGTERM)
+    {
+      ns_shutdown_properly = YES;
+      [NSApp terminate: NSApp];
+    }
+  else // force a stack trace to happen
+    {
+      abort();
+    }
 }
 
 
@@ -4374,6 +4383,7 @@ extern void update_window_cursor (struct window *w, int on);
 }
 
 
+
 /*****************************************************************************/
 /* Keyboard handling. */
 #define NS_KEYLOG 0
@@ -4390,7 +4400,9 @@ extern void update_window_cursor (struct window *w, int on);
   NSTRACE (keyDown);
 
   /* Rhapsody and OS X give up and down events for the arrow keys */
-  if ([theEvent type] != NSKeyDown)
+  if (ns_fake_keydown == YES)
+    ns_fake_keydown = NO;
+  else if ([theEvent type] != NSKeyDown)
     return;
 
   if (!emacs_event)
@@ -4485,10 +4497,12 @@ extern void update_window_cursor (struct window *w, int on);
         }
 
       if (flags & NSControlKeyMask)
-          emacs_event->modifiers |= parse_solitary_modifier (ns_control_modifier);
+          emacs_event->modifiers |=
+            parse_solitary_modifier (ns_control_modifier);
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
-          emacs_event->modifiers |= parse_solitary_modifier (ns_function_modifier);
+          emacs_event->modifiers |=
+            parse_solitary_modifier (ns_function_modifier);
 
       if (flags & NSAlternateKeyMask) /* default = meta */
         {
@@ -4501,10 +4515,13 @@ extern void update_window_cursor (struct window *w, int on);
                 emacs_event->modifiers = 0;
             }
           else
-              emacs_event->modifiers |= parse_solitary_modifier (ns_alternate_modifier);
+              emacs_event->modifiers |=
+                parse_solitary_modifier (ns_alternate_modifier);
         }
 
-/*fprintf (stderr,"code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",code,fnKeysym,flags,emacs_event->modifiers); */
+  if (NS_KEYLOG)
+    fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
+             code, fnKeysym, flags, emacs_event->modifiers);
 
       /* if it was a function key or had modifiers, pass it directly to emacs */
       if (fnKeysym || (emacs_event->modifiers
@@ -4534,13 +4551,33 @@ extern void update_window_cursor (struct window *w, int on);
   firstTime = NO;
 
   if (NS_KEYLOG && !processingCompose)
-    fprintf (stderr, "Begin compose sequence.\n");
+    fprintf (stderr, "keyDown: Begin compose sequence.\n");
 
   processingCompose = YES;
   [nsEvArray addObject: theEvent];
   [self interpretKeyEvents: nsEvArray];
   [nsEvArray removeObject: theEvent];
 }
+
+
+#ifdef NS_IMPL_COCOA
+/* Needed to pick up Ctrl-tab and possibly other events that OS X has
+   decided not to send key-down for.
+   See http://osdir.com/ml/editors.vim.mac/2007-10/msg00141.html
+   If it matches one of these, send it on to keyDown. */
+-(void)keyUp: (NSEvent *)theEvent
+{
+  int flags = [theEvent modifierFlags];
+  int code = [theEvent keyCode];
+  if (code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
+    {
+      if (NS_KEYLOG)
+        fprintf (stderr, "keyUp: passed test");
+      ns_fake_keydown = YES;
+      [self keyDown: theEvent];
+    }
+}
+#endif
 
 
 /* <NSTextInput> implementation (called through super interpretKeyEvents:]). */
@@ -4553,7 +4590,8 @@ extern void update_window_cursor (struct window *w, int on);
   int len = [(NSString *)aString length];
   int i;
 
-if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
+  if (NS_KEYLOG)
+    NSLog (@"insertText '%@'\tlen = %d", aString, len);
   processingCompose = NO;
 
   if (!emacs_event)
@@ -4654,13 +4692,15 @@ if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
 {
   NSRange rng = workingText != nil
     ? NSMakeRange (0, [workingText length]) : NSMakeRange (NSNotFound, 0);
-if (NS_KEYLOG) NSLog (@"markedRange request");
+  if (NS_KEYLOG)
+    NSLog (@"markedRange request");
   return rng;
 }
 
 - (void)unmarkText
 {
-if (NS_KEYLOG) NSLog (@"unmark (accept) text");
+  if (NS_KEYLOG)
+    NSLog (@"unmark (accept) text");
   [self deleteWorkingText];
   processingCompose = NO;
 }
@@ -4671,7 +4711,8 @@ if (NS_KEYLOG) NSLog (@"unmark (accept) text");
   NSRect rect;
   NSPoint pt;
   struct window *win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
-if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
+  if (NS_KEYLOG)
+    NSLog (@"firstRectForCharRange request");
 
   rect.size.width = theRange.length * FRAME_COLUMN_WIDTH (emacsframe);
   rect.size.height = FRAME_LINE_HEIGHT (emacsframe);
@@ -4694,8 +4735,8 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
-  if (NS_KEYLOG) NSLog (@"Do command by selector: %@",
-                       NSStringFromSelector (aSelector));
+  if (NS_KEYLOG)
+    NSLog (@"doCommandBySelector: %@", NSStringFromSelector (aSelector));
 
   if (aSelector == @selector (deleteBackward:))
     {
@@ -4719,13 +4760,15 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
 
 - (NSRange)selectedRange
 {
-if (NS_KEYLOG) NSLog (@"selectedRange request");
+  if (NS_KEYLOG)
+    NSLog (@"selectedRange request");
   return NSMakeRange (NSNotFound, 0);
 }
 
 - (unsigned int)characterIndexForPoint: (NSPoint)thePoint
 {
-if (NS_KEYLOG) NSLog (@"characterIndexForPoint request");
+  if (NS_KEYLOG)
+    NSLog (@"characterIndexForPoint request");
   return 0;
 }
 
@@ -4733,7 +4776,8 @@ if (NS_KEYLOG) NSLog (@"characterIndexForPoint request");
 {
   static NSAttributedString *str = nil;
   if (str == nil) str = [NSAttributedString new];
-if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
+  if (NS_KEYLOG)
+    NSLog (@"attributedSubstringFromRange request");
   return str;
 }
 
