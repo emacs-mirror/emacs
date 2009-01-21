@@ -1,3 +1,8 @@
+2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi (Preferences Panel): Update description of font setting to
+	reflect that prior frame selection is no longer needed.
+
 2009-01-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Debuggers): Revert some of 2008-10-31 change  to

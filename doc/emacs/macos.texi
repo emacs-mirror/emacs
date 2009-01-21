@@ -146,7 +146,7 @@ To set the default font used by Emacs click the @samp{Default Font...} button
 to being up the Font Panel, then click on a frame.  The font of this frame
 will then be changed when you make a selection in the Font Panel, and this
 will be used as the default for future frames.  If you do not select a frame
-first, the Font Panel will not work.
+first, the frame selected when you activated Preferences will be changed.
 
 @item
 The Color panel, brought up by the @samp{Colors...} button, allows setting of
