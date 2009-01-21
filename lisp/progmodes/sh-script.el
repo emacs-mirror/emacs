@@ -249,7 +249,7 @@ csh		C Shell
 rc		Plan 9 Shell
   es		Extensible Shell
 sh		Bourne Shell
-  ash		? Shell
+  ash		Almquist Shell
   jsh		Bourne Shell with Job Control
     bash	GNU Bourne Again Shell
     ksh88	Korn Shell '88
