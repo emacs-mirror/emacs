@@ -589,7 +589,7 @@ name_is_separator (name)
 }
 
 
-/* parse a wdiget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
+/* parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
    into an accelerator string */
 -(NSString *)parseKeyEquiv: (char *)key
 {
