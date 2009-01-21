@@ -1,3 +1,10 @@
+2009-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Remove some "ignore" entries
+	that are no longer needed.
+	(authors-scan-change-log): Doc fix.
+	(authors-scan-el): Restore let*, foolishly removed 2009-01-11.
+
 2009-01-20  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries): Use

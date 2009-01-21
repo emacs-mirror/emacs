@@ -76,11 +76,15 @@ files.")
     ("Gerd Möllmann" "Gerd Moellmann")
     ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
-    (nil "(afs@hplb.hpl.hp.com)")
+    ;; src/ChangeLog.4, 1994-01-11, since fixed.
+;;;    (nil "(afs@hplb.hpl.hp.com)")
+    ;; lisp/gnus/ChangeLog.1, 1998-01-15.
+    ;; http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/gnus-art.el?rev=4.13
     (nil "<Use-Author-Address-Header@\\[127.1\\]>")
-    (nil "Code Extracted")
-    (nil "\\`FSF")
-    (nil "ISO-2022-JP")
+    (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header
+    (nil "\\`FSF")  ; FIXME what is this for - no effect?
+    ;; lisp/gnus/ChangeLog.1, 1997-10-12, since fixed.
+;;;    (nil "ISO-2022-JP")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Djärv" "Jan D." "Jan Djarv")
     ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
@@ -691,12 +695,13 @@ under the author's canonical name.
 Keys of TABLE are author names.  Values are alists of entries (FILE
 \(ACTION . COUNT) ...).  FILE is one file the author worked on.  The
 rest of the entry is a list of keyword symbols describing what he did
-with the file and the number of each action.
+with the file and the number of each action:
 
 :wrote		means the author wrote the file
+:cowrote	means he wrote the file in collaboration with others
 :changed	means he changed the file COUNT times."
 
-  (let* ((enable-local-variables :safe)
+  (let* ((enable-local-variables :safe)	; for find-file, hence let*
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
@@ -748,10 +753,10 @@ Suggested\\|Trivial\\|Version\\|Originally\\|From:\\|Patch[ \t]+[Bb]y\\)")))
 (defun authors-scan-el (file table)
   "Scan Lisp file FILE for author information.
 TABLE is a hash table to add author information to."
-  (let ((existing-buffer (get-file-buffer file))
-	(enable-local-variables :safe)
-	(enable-local-eval nil)
-	(buffer (find-file-noselect file)))
+  (let* ((existing-buffer (get-file-buffer file))
+	 (enable-local-variables :safe)	; for find-file, hence let*
+	 (enable-local-eval nil)
+	 (buffer (find-file-noselect file)))
     (setq file (file-name-nondirectory file))
     (save-excursion
       (set-buffer buffer)
