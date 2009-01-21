@@ -174,7 +174,7 @@ void rnd_verify(int depth)
 
   /* 2 & 3: Full cycle (3 => verifying each value) */
   if(depth >= 2) {
-    unsigned long r1;
+    unsigned long r1 = 1;
     i = 0;
     seed = 1;
     seed_verify_schrage = 1;
