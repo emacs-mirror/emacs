@@ -1,3 +1,8 @@
+2009-01-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-start): Allow server to shut down when no
+	frames are available in daemon-mode.
+
 2009-01-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term.el (term-previous-matching-input, term-next-matching-input)
