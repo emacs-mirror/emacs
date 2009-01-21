@@ -163,6 +163,7 @@ static EmacsImage *ImageList = nil;
 + allocInitFromFile: (Lisp_Object)file
 {
   EmacsImage *image = ImageList;
+  NSImageRep *imgRep;
   Lisp_Object found;
 
   /* look for an existing image of the same name */
@@ -185,11 +186,17 @@ static EmacsImage *ImageList = nil;
   image = [[EmacsImage alloc] initByReferencingFile:
                      [NSString stringWithUTF8String: SDATA (found)]];
 
-  if ([image bestRepresentationForDevice: nil] == nil)
+  imgRep = [image bestRepresentationForDevice: nil];
+  if (imgRep == nil)
     {
       [image release];
       return nil;
     }
+
+  /* The next two lines cause the DPI of the image to be ignored.
+     This seems to be the behavior users expect. */
+  [image setScalesWhenResized: YES];
+  [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
   [image setName: [NSString stringWithUTF8String: SDATA (file)]];
   [image reference];

@@ -1,11 +1,15 @@
 2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (NSMENUPROFILE): Change #if style.
+
 	* nsterm.m: (x_set_frame_alpha): Add prototype.
 	(ns_fake_keydown, EmacsView-keyUp:): New variable and function to
 	handle Ctrl-tab.  (Bug#1841)
 	(ns_get_color): Use unsigned long long for scanned hex string value.
 	(ns_term_shutdown): Abort on non SIGTERM signals.
+
+	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore DPI.
+	(Bug#1316)
 
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
