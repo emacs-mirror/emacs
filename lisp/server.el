@@ -465,10 +465,16 @@ If a server is already running, the server is not started.
 To force-start a server, do \\[server-force-delete] and then
 \\[server-start]."
   (interactive "P")
-  (when (or
-	 (not server-clients)
-	 (yes-or-no-p
-	  "The current server still has clients; delete them? "))
+  (when (or (not server-clients)
+	    ;; Ask the user before deleting existing clients---except
+	    ;; when we can't get user input, which may happen when
+	    ;; doing emacsclient --eval "(kill-emacs)" in daemon mode.
+	    (if (and (daemonp)
+		     (null (cdr (frame-list)))
+		     (eq (selected-frame) terminal-frame))
+		leave-dead
+	      (yes-or-no-p
+	       "The current server still has clients; delete them? ")))
     (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	   (server-file (expand-file-name server-name server-dir)))
       (when server-process
@@ -979,7 +985,7 @@ The following commands are accepted by the client:
 			     ;; We can't use the Emacs daemon's
 			     ;; terminal frame.
 			     (not (and (daemonp)
-				       (= (length (frame-list)) 1)
+				       (null (cdr (frame-list)))
 				       (eq (selected-frame)
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
