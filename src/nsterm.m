@@ -1610,14 +1610,14 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
       color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
   [temp getRed: &r green: &g blue: &b alpha: &a];
-  color_def->red   = r * 256;
-  color_def->green = g * 256;
-  color_def->blue  = b * 256;
+  color_def->red   = r * 65535;
+  color_def->green = g * 65535;
+  color_def->blue  = b * 65535;
 
   if (!makeIndex)
     color_def->pixel
-      = ARGB_TO_ULONG((int)(a*256),
-		      color_def->red, color_def->green, color_def->blue);
+      = ARGB_TO_ULONG((int)(a*255),
+		      (int)(r*255), (int)(g*255), (int)(b*255));
 
   return 1;
 }

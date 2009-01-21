@@ -453,7 +453,8 @@ static EmacsImage *ImageList = nil;
   else if (onTiger)
     {
       [bmRep setColor:
-               [NSColor colorWithCalibratedRed: r green: g blue: b alpha: a]
+               [NSColor colorWithCalibratedRed: (r/255.0) green: (g/255.0)
+                                          blue: (b/255.0) alpha: (a/255.0)]
                   atX: x y: y];
     }
 }

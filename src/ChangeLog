@@ -18,9 +18,13 @@
 	(EmacsPrefsController-setPanelFromDefaultValues) New function.
 	(EmacsPrefsController-resetToDefaults:): Use it. (Bug#1801)
 	(ns_font_to_xlfd, ns_fontname_to_xlfd): Remove, unused.
+	(ns_defined_color): Fix settings of the XColor variable fields:
+	red,green,blue scale to 2-byte, pixel's parts to 1-byte. (Bug#1663)
 
-	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore DPI.
-	(Bug#1316)
+	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore image
+	DPI. (Bug#1316)
+	(EmacsImage-setPixelAtX:Y:toRed:green:blue:alpha:): Fix color
+	values in onTiger section.
 
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
