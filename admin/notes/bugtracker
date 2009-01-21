@@ -209,3 +209,15 @@ it), it will be rejected.  To make any changes, you must unarchive it first:
 unarchive 123
 
 The bug will be re-archived after the next 28 day period of no activity.
+
+** The web-page with the list of bugs is slow to load
+
+It's a function of the number of displayed bugs.  You can speed things
+up by only looking at the newest 100 bugs:
+
+http://emacsbugs.donarmstrong.com/cgi-bin/pkgreport.cgi?newest=100;package=emacs
+
+The above page is accessible from the "Options" section at the end of
+the "main list of bugs" page. Select bugs "in package" = emacs;
+"newest bugs" = 100.  (I have no idea how you get to that Options
+section without having to go through the bug list page first...)
