@@ -289,8 +289,7 @@ static BOOL inNsSelect = 0;
    methods.  Maybe it should even be a function.  */
 #define EV_TRAILER(e)                                         \
   {                                                           \
-  XSETFRAME (emacs_event->frame_or_window, [NSApp isActive] ? \
-             emacsframe : SELECTED_FRAME ());                 \
+  XSETFRAME (emacs_event->frame_or_window, emacsframe);       \
   if (e) emacs_event->timestamp = EV_TIMESTAMP (e);           \
   n_emacs_events_pending++;                                   \
   kbd_buffer_store_event_hold (emacs_event, q_event_ptr);     \
@@ -6247,7 +6246,6 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /* ==========================================================================
 
    Font-related functions; these used to be in nsfaces.m
-   The XLFD functions (115 lines) are an abomination that should be removed.
 
    ========================================================================== */
 
@@ -6297,76 +6295,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 
 /* XLFD: -foundry-family-weight-slant-swidth-adstyle-pxlsz-ptSz-resx-resy-spc-avgWidth-rgstry-encoding */
-
-static const char *
-ns_font_to_xlfd (NSFont *nsfont)
-/* --------------------------------------------------------------------------
-    Convert an NS font name to an X font name (XLFD).
-    The string returned is temporarily allocated.
-   -------------------------------------------------------------------------- */
-{
-  NSFontManager *mgr = [NSFontManager sharedFontManager];
-  NSString *sname = [nsfont /*familyName*/fontName];
-  char *famName = (char *)[sname UTF8String];
-  char *weightStr = [mgr fontNamed: sname hasTraits: NSBoldFontMask] ?
-      "bold" : "medium";
-  char *slantStr = [mgr fontNamed: sname hasTraits: NSItalicFontMask] ?
-      "i" : "r";
-  int size = [nsfont pointSize];
-  int aWidth = lrint (10.0 * [nsfont widthOfString: @"a"]);
-  const char *xlfd;
-  int i, len;
-
-  /* change '-' to '$' to avoid messing w/XLFD separator */
-  for (len = strlen (famName), i =0; i<len; i++)
-    if (famName[i] == '-')
-      {
-        famName[i] = '\0';
-        break;
-      }
-
-  xlfd = [[NSString stringWithFormat:
-                       @"-apple-%s-%s-%s-normal--%d-%d-75-75-m-%d-iso10646-1",
-                       famName, weightStr, slantStr, size, 10*size, aWidth]
-                  UTF8String];
-/*fprintf (stderr, "converted '%s' to '%s'\n",name,xlfd); */
-  return xlfd;
-}
-
-static const char *
-ns_fontname_to_xlfd (const char *name)
-/* --------------------------------------------------------------------------
-    Convert an NS font name to an X font name (XLFD).
-    Sizes are set to 0.
-    The string returned is temporarily allocated.
-   -------------------------------------------------------------------------- */
-{
-  char famName[180];
-  char *weightStr = strcasestr (name, "bold") ? "bold" : "medium";
-  char *slantStr = strcasestr (name, "italic") || strcasestr (name, "oblique")
-    || strcasestr (name, "synthital") ? "i" : "r";
-  int i, len;
-  const char *xlfd;
-
-  /* change '-' to '$' to avoid messing w/XLFD separator, and ' ' to '_' */
-  bzero (famName, 180);
-  bcopy (name, famName, max (strlen (name), 179));
-  for (len =strlen (famName), i =0; i<len; i++)
-    {
-      if (famName[i] == '-')
-        famName[i] = '$';
-      else if (famName[i] == ' ')
-        famName[i] = '_';
-    }
-
-  xlfd = [[NSString stringWithFormat:
-                           @"-apple-%s-%s-%s-normal--0-0-75-75-m-0-iso10646-1",
-                           famName, weightStr, slantStr]
-                  UTF8String];
-/*fprintf (stderr, "converted '%s' to '%s'\n",name,xlfd); */
-  return xlfd;
-}
-
+/* Note: ns_font_to_xlfd and ns_fontname_to_xlfd no longer needed, removed
+         in 1.43. */
 
 const char *
 ns_xlfd_to_fontname (const char *xlfd)

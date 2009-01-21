@@ -1,3 +1,8 @@
+2009-01-21  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
+
+	* nsterm.m (EV_TRAILER): Always use emacsframe for frame_or_window.
+
+
 2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (NSMENUPROFILE): Change #if style.
@@ -12,6 +17,7 @@
 	(EmacsPrefsController-setDefaultFont:,-setColors:): Raise the frame.
 	(EmacsPrefsController-setPanelFromDefaultValues) New function.
 	(EmacsPrefsController-resetToDefaults:): Use it. (Bug#1801)
+	(ns_font_to_xlfd, ns_fontname_to_xlfd): Remove, unused.
 
 	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore DPI.
 	(Bug#1316)
