@@ -187,7 +187,7 @@ Configuring @value{tramp} for use
 
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
-* External transfer methods::   External transfer methods.
+* External methods::            External methods.
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -365,7 +365,8 @@ For inline transfers, @value{tramp} issues a command like @samp{mimencode -b
 buffer that's used for communication, then decodes that output to
 produce the file contents.
 
-For out-of-band transfers, @value{tramp} issues a command like the following:
+For external transfers, @value{tramp} issues a command like the
+following:
 @example
 rcp user@@host:/path/to/remote/file /tmp/tramp.4711
 @end example
@@ -378,9 +379,9 @@ behind the scenes.  (Unless you have read this section, that is.)  When
 you are finished, you type @kbd{C-x C-s} to save the buffer.
 
 @item
-Again, @value{tramp} transfers the file contents to the remote host either
-inline or out-of-band.  This is the reverse of what happens when reading
-the file.
+Again, @value{tramp} transfers the file contents to the remote host
+either inline or external.  This is the reverse of what happens when
+reading the file.
 @end itemize
 
 I hope this has provided you with a basic overview of what happens
@@ -512,7 +513,7 @@ Method}.
 @menu
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
-* External transfer methods::   External transfer methods.
+* External methods::            External methods.
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -549,34 +550,28 @@ the local machine.  It is only when visiting files that the methods
 differ.
 
 @cindex inline methods
-@cindex external transfer methods
 @cindex external methods
-@cindex out-of-band methods
 @cindex methods, inline
-@cindex methods, external transfer
-@cindex methods, out-of-band
+@cindex methods, external
 Loading or saving a remote file requires that the content of the file
-be transfered between the two machines.  The content of the file can be
-transfered over the same connection used to log in to the remote
-machine or the file can be transfered through another connection using
-a remote copy program such as @command{rcp}, @command{scp} or
-@command{rsync}.  The former are called @dfn{inline methods}, the
-latter are called @dfn{out-of-band methods} or @dfn{external transfer
-methods} (@dfn{external methods} for short).
+be transfered between the two machines.  The content of the file can
+be transfered using one of two methods: the @dfn{inline method} over
+the same connection used to log in to the remote machine, or the
+@dfn{external method} through another connection using a remote copy
+program such as @command{rcp}, @command{scp} or @command{rsync}.
 
-The performance of the external transfer methods is generally better
-than that of the inline methods, at least for large files.  This is
-caused by the need to encode and decode the data when transferring
-inline.
+The performance of the external methods is generally better than that
+of the inline methods, at least for large files.  This is caused by
+the need to encode and decode the data when transferring inline.
 
 The one exception to this rule are the @command{scp} based transfer
 methods.  While these methods do see better performance when actually
 transferring files, the overhead of the cryptographic negotiation at
 startup may drown out the improvement in file transfer times.
 
-External transfer methods should be configured such a way that they
-don't require a password (with @command{ssh-agent}, or such alike).
-Modern @command{scp} implementations offer options to reuse existing
+External methods should be configured such a way that they don't
+require a password (with @command{ssh-agent}, or such alike).  Modern
+@command{scp} implementations offer options to reuse existing
 @command{ssh} connections, see method @command{scpc}.  If it isn't
 possible, you should consider @ref{Password handling}, otherwise you
 will be prompted for a password every copy action.
@@ -771,24 +766,22 @@ maybe somebody can improve the performance.
 @end table
 
 
-@node External transfer methods
-@section External transfer methods
-@cindex methods, external transfer
-@cindex methods, out-of-band
-@cindex external transfer methods
-@cindex out-of-band methods
+@node External methods
+@section External methods
+@cindex methods, external
+@cindex external methods
 
-The external transfer methods operate through multiple channels, using
-the remote shell connection for many actions while delegating file
+The external methods operate through multiple channels, using the
+remote shell connection for many actions while delegating file
 transfers to an external transfer utility.
 
 This saves the overhead of encoding and decoding that multiplexing the
 transfer through the one connection has with the inline methods.
 
-Since external transfer methods need their own overhead opening a new
-channel, all files which are smaller than @var{tramp-copy-size-limit}
-are still transferred with the corresponding inline method.  It should
-provide a fair trade-off between both approaches.
+Since external methods need their own overhead opening a new channel,
+all files which are smaller than @var{tramp-copy-size-limit} are still
+transferred with the corresponding inline method.  It should provide a
+fair trade-off between both approaches.
 
 @table @asis
 @item @option{rcp}  ---  @command{rsh} and @command{rcp}
@@ -1127,11 +1120,11 @@ the machine @samp{localhost}.
 See the documentation for the variable
 @code{tramp-default-method-alist} for more details.
 
-External transfer methods are normally preferable to inline transfer
-methods, giving better performance.
+External methods are normally preferable to inline methods, giving
+better performance.
 
 @xref{Inline methods}.
-@xref{External transfer methods}.
+@xref{External methods}.
 
 Another consideration with the selection of transfer methods is the
 environment you will use them in and, especially when used over the
@@ -1159,9 +1152,9 @@ maximum freedom instead.  However, the reality is that some users would
 like to have some guidance, so here I'll try to give you this guidance
 without bossing you around.  You tell me whether it works @dots{}
 
-My suggestion is to use an inline method.  For large files, out-of-band
-methods might be more efficient, but I guess that most people will want
-to edit mostly small files.
+My suggestion is to use an inline method.  For large files, external
+methods might be more efficient, but I guess that most people will
+want to edit mostly small files.
 
 I guess that these days, most people can access a remote machine by
 using @command{ssh}.  So I suggest that you use the @option{ssh}
@@ -1182,10 +1175,10 @@ shortened syntax for the @samp{root} account, like
 
 People who edit large files may want to consider @option{scpc} instead
 of @option{ssh}, or @option{pscp} instead of @option{plink}.  These
-out-of-band methods are faster than inline methods for large files.
-Note, however, that out-of-band methods suffer from some limitations.
+external methods are faster than inline methods for large files.
+Note, however, that external methods suffer from some limitations.
 Please try first whether you really get a noticeable speed advantage
-from using an out-of-band method!  Maybe even for large files, inline
+from using an external method!  Maybe even for large files, inline
 methods are fast enough.
 
 
@@ -1556,8 +1549,8 @@ machine melancholia port scp login daniel password geheim
 @end example
 
 The port can be any @value{tramp} method (@pxref{Inline methods},
-@pxref{External transfer methods}), to match only this method.  When
-you omit the port, you match all @value{tramp} methods.
+@pxref{External methods}), to match only this method.  When you omit
+the port, you match all @value{tramp} methods.
 
 
 @anchor{password-cache}
@@ -1646,7 +1639,7 @@ function, including @command{ls}, @command{test}, @command{find} and
 
 In addition to these required tools, there are various tools that may be
 required based on the connection method.  See @ref{Inline methods} and
-@ref{External transfer methods} for details on these.
+@ref{External methods} for details on these.
 
 Certain other tools, such as @command{perl} (or @command{perl5}) and
 @command{grep} will be used if they can be found.  When they are
@@ -2162,8 +2155,8 @@ connecting to @code{melancholia} as @code{daniel} and editing
 @file{@trampfn{, daniel, melancholia, .emacs}}.
 
 It is also possible to specify other file transfer methods
-(@pxref{Inline methods}, @pxref{External transfer methods}) as part of
-the filename.
+(@pxref{Inline methods}, @pxref{External methods}) as part of the
+filename.
 @ifset emacs
 This is done by putting the method before the user and host name, as
 in @file{@value{prefix}@var{method}@value{postfixhop}} (Note the
@@ -2600,7 +2593,7 @@ host as well as the time needed to perform the operations there count.
 In order to speed up @value{tramp}, one could either try to avoid some
 of the operations, or one could try to improve their performance.
 
-Use an external transfer method, like @option{scpc}.
+Use an external method, like @option{scpc}.
 
 Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
@@ -3507,13 +3500,9 @@ for @value{emacsothername}.
 @c   shells.
 @c * Explain how tramp.el works in principle: open a shell on a remote
 @c   host and then send commands to it.
-@c * Make terminology "inline" vs "out-of-band" consistent.
-@c   It seems that "external" is also used instead of "out-of-band".
-
-@c * M. Albinus
-@c ** Use `filename' resp. `file name' consistently.
-@c ** Use `host' resp. `machine' consistently.
-@c ** Consistent small or capitalized words especially in menues.
+@c * Use `filename' resp. `file name' consistently.
+@c * Use `host' resp. `machine' consistently.
+@c * Consistent small or capitalized words especially in menues.
 
 @ignore
    arch-tag: f96dd66e-6dd3-4c92-8d77-9c56205ba808
