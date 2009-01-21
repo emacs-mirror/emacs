@@ -1,3 +1,8 @@
+2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (NSMENUPROFILE): Change #if style.
+
+
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute, Fx_list_fonts):
