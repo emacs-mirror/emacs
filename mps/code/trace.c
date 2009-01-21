@@ -1720,7 +1720,7 @@ void TraceQuantum(Trace trace)
 
 Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
 {
-  Trace trace;
+  Trace trace = NULL;
   Res res;
   double finishingTime;
 
