@@ -7,6 +7,7 @@
 	handle Ctrl-tab.  (Bug#1841)
 	(ns_get_color): Use unsigned long long for scanned hex string value.
 	(ns_term_shutdown): Abort on non SIGTERM signals.
+	(EmacsPrefsController-setDefaultFont:,-setColors:): Raise the frame.
 
 	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore DPI.
 	(Bug#1316)

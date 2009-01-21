@@ -6198,7 +6198,8 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 - (IBAction)runHelp: (id)sender
 {
   Feval (Fcons (intern ("info"),
-              Fcons (build_string ("(ns-emacs)Preferences Panel"), Qnil)));
+                Fcons (build_string ("(emacs)Mac / GNUstep Customization"),
+                       Qnil)));
   SET_FRAME_GARBAGED (frame);
   ns_send_appdefined (-1);
 }
@@ -6208,6 +6209,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 {
   Lisp_Object lispFrame;
   XSETFRAME (lispFrame, frame);
+  ns_raise_frame(frame);
   Fns_popup_color_panel (lispFrame);
 }
 
@@ -6216,6 +6218,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 {
   Lisp_Object lispFrame;
   XSETFRAME (lispFrame, frame);
+  ns_raise_frame(frame);
   Fns_popup_font_panel (lispFrame);
 }
 
