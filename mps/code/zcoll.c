@@ -58,8 +58,6 @@
 
 #define testArenaSIZE   ((size_t)16<<20)
 
-/* usually (ArenaAlign / sizeof(Ref)) = 1024 */
-/* so choose 3000 to force 3 segments of guardians */
 #define myrootCOUNT 3000
 
 /* testChain -- generation parameters for the test */
@@ -71,6 +69,23 @@ static mps_gen_param_s testChain[genCOUNT] = {
 /* note: static, so auto-initialised to NULL */
 static void *myroot[myrootCOUNT];
 
+
+/* print_M -- print count of bytes as Mebibytes with decimal fraction 
+ *
+ * Input:   208896
+ * Output:  0m199
+ */
+static void print_M(size_t bytes)
+{
+  size_t M;  /* Mebibytes */
+  double Mfrac;  /* fraction of a Mebibyte, times 1000 */
+
+  M = bytes / (1UL<<20);
+  Mfrac = (double)(bytes % (1UL<<20));
+  Mfrac = (Mfrac / (1UL<<20)) * 1000;
+
+  printf("%1lum%03.f", M, Mfrac);
+}
 
 /* get -- get messages
  *
@@ -90,11 +105,28 @@ static void get(mps_arena_t arena)
     
     switch(type) {
       case mps_message_type_gc_start(): {
-        printf("    Begin Collection\n");
+        printf("    Coll Begin                                     (%s)\n",
+               mps_message_gc_start_why(arena, message));
         break;
       }
       case mps_message_type_gc(): {
-        printf("    End Collection\n");
+        size_t con = mps_message_gc_condemned_size(arena, message);
+        size_t notcon = mps_message_gc_not_condemned_size(arena, message);
+#if 0
+        size_t other = 0;  /* cannot determine; new method reqd */
+#endif
+        size_t live = mps_message_gc_live_size(arena, message);
+        double liveFrac = (double)live / (double)con;
+
+        printf("    Coll End  ");
+        print_M(con);
+        printf("[->");
+        print_M(live);
+        printf("% 3.f%%-live]", liveFrac * 100);
+        printf(" (");
+        print_M(notcon);
+        printf("-not ");
+        printf(")\n");
         break;
       }
       case mps_message_type_finalization(): {
@@ -126,39 +158,59 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 
   while(*script != '\0') {
     switch(*script) {
+      case 'C': {
+        itemsread = sscanf(script, "Collect%n",
+                           &bytesread);
+        if(itemsread != 0) {
+          printf("bad script command %s (full script %s).\n",
+                 script, scriptAll);
+          cdie(FALSE, "unknown script command");
+        }
+        script += bytesread;
+        printf("  Collect\n");
+        mps_arena_collect(arena);
+        break;
+      }
       case 'M': {
-        unsigned makeCount = 0;
+        unsigned keepCount = 0;
         unsigned objCount = 0;
-        unsigned makeTotal = 0;
-        unsigned wastefulness = 0;
-        itemsread = sscanf(script, "Make(objs %u, wastefulness %u)%n",
-                           &makeTotal, &wastefulness, &bytesread);
+        unsigned keepTotal = 0;
+        unsigned keep1in = 0;
+        itemsread = sscanf(script, "Make(keep-1-in %u, keep %u)%n",
+                           &keep1in, &keepTotal, &bytesread);
         if(itemsread != 2) {
           printf("bad script command %s (full script %s).\n",
                  script, scriptAll);
           cdie(FALSE, "unknown script command");
         }
-        printf("makeTotal: %d, wastefulness: %d.\n",
-               makeTotal, wastefulness);
+        printf("keepTotal: %d, keep-1-in: %d.\n",
+               keepTotal, keep1in);
         script += bytesread;
 
         objCount = 0;
-        while(makeCount < makeTotal) {
+        while(keepCount < keepTotal) {
           mps_word_t v;
           die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
           DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
           DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
           objCount++;
-          if(rnd() % wastefulness == 0) {
+          if(rnd() % keep1in == 0) {
             /* keep this one */
-            myroot[makeCount % myrootCOUNT] = (void*)v;
-            makeCount++;
+            myroot[rnd() % myrootCOUNT] = (void*)v;
+            keepCount++;
           }
+          get(arena);
         }
         printf("Made and kept: %d objects (actually created %d objects,"
-               " in accord with wastefulness of %d).\n",
-               makeCount, objCount, wastefulness);
+               " in accord with keep-1-in %d).\n",
+               keepCount, objCount, keep1in);
 
+        break;
+      }
+      case ' ':
+      case ',':
+      case '.': {
+        script++;
         break;
       }
       default: {
@@ -168,10 +220,9 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         return;
       }
     }
-    script++;
+    get(arena);
   }
 
-  get(arena);
 }
 
 
@@ -284,8 +335,8 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   /* The most basic scripts */
-  testscriptA("Make(objs 1500, wastefulness 50)");
-  testscriptA("Make(objs 10000, wastefulness 5)");
+  /* testscriptA("Make(objs 1500, keep-1-in 50)"); */
+  testscriptA("Make(keep-1-in 5, keep 50000), Collect.");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
