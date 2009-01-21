@@ -355,6 +355,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 - (void) showForFrame: (struct frame *)f;
 - (void) setPanelFromValues;
+- (void) setPanelFromDefaultValues;
 - (void) setValuesFromPanel;
 @end
 

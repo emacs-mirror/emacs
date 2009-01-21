@@ -6090,6 +6090,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 }
 
 
+/* If you change this, change setPanelFromDefaultValues too. */
 - (void) setPanelFromValues
 {
   int cursorType
@@ -6116,6 +6117,23 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
   [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
   [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
+#endif
+}
+
+
+/* This and ns_set_default_prefs should be changed together. */
+- (void) setPanelFromDefaultValues
+{
+  [expandSpaceSlider setFloatValue: 0.0];
+  [cursorTypeMatrix selectCellWithTag: 1]; /* filled box */
+  selectItemWithTag (alternateModMenu, meta_modifier);
+  selectItemWithTag (commandModMenu, super_modifier);
+#ifdef NS_IMPL_COCOA
+  selectItemWithTag (controlModMenu, ctrl_modifier);
+  selectItemWithTag (functionModMenu, 0); /* none */
+  [smoothFontsCheck setState: YES];
+  [useQuickdrawCheck setState: NO];
+  [useSysHiliteCheck setState: YES];
 #endif
 }
 
@@ -6190,8 +6208,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (IBAction)resetToDefaults: (id)sender
 {
-  ns_set_default_prefs ();
-  [self setPanelFromValues];
+  [self setPanelFromDefaultValues];
 }
 
 
