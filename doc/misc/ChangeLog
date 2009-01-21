@@ -1,3 +1,10 @@
+2009-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (all): Harmonize usage of "external method",
+	"external transfer method" and "out-of-band method".
+	(Connection types): Precise the differences of inline and external
+	methods.  Written by Adrian Phillips <a.phillips@met.no>.
+
 2009-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Limiting): `/ N' and `/ o' are not really limiting
