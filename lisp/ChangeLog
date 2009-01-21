@@ -1,3 +1,10 @@
+2009-01-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.el (term-previous-matching-input, term-next-matching-input)
+	(term-previous-matching-input-from-input)
+	(term-next-matching-input-from-input, term-backward-matching-input)
+	(term-forward-matching-input): Change argument name to match docstring.
+
 2009-01-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Remove some "ignore" entries

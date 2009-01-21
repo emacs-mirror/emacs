@@ -1708,14 +1708,14 @@ Moves relative to START, or `term-input-ring-index'."
     (when (string-match regexp (ring-ref term-input-ring n))
       n)))
 
-(defun term-previous-matching-input (regexp arg)
+(defun term-previous-matching-input (regexp n)
   "Search backwards through input history for match for REGEXP.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (term-regexp-arg "Previous input matching (regexp): "))
-  (setq arg (term-search-arg arg))
-  (let ((pos (term-previous-matching-input-string-position regexp arg)))
+  (setq n (term-search-arg n))
+  (let ((pos (term-previous-matching-input-string-position regexp n)))
     ;; Has a match been found?
     (if (null pos)
 	(error "Not found")
@@ -1726,15 +1726,15 @@ If N is negative, find the next or Nth next match."
        (process-mark (get-buffer-process (current-buffer))) (point))
       (insert (ring-ref term-input-ring pos)))))
 
-(defun term-next-matching-input (regexp arg)
+(defun term-next-matching-input (regexp n)
   "Search forwards through input history for match for REGEXP.
 \(Later history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (term-regexp-arg "Next input matching (regexp): "))
-  (term-previous-matching-input regexp (- arg)))
+  (term-previous-matching-input regexp (- n)))
 
-(defun term-previous-matching-input-from-input (arg)
+(defun term-previous-matching-input-from-input (n)
   "Search backwards through input history for match for current input.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
@@ -1750,15 +1750,15 @@ If N is negative, search forwards for the -Nth following match."
 	  term-input-ring-index nil))
   (term-previous-matching-input
    (concat "^" (regexp-quote term-matching-input-from-input-string))
-   arg))
+   n))
 
-(defun term-next-matching-input-from-input (arg)
+(defun term-next-matching-input-from-input (n)
   "Search forwards through input history for match for current input.
 \(Following history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, search backwards for the -Nth previous match."
   (interactive "p")
-  (term-previous-matching-input-from-input (- arg)))
+  (term-previous-matching-input-from-input (- n)))
 
 
 (defun term-replace-by-expanded-history (&optional silent)
@@ -2312,15 +2312,15 @@ buffer."
   (interactive)
   (process-send-eof))
 
-(defun term-backward-matching-input (regexp arg)
+(defun term-backward-matching-input (regexp n)
   "Search backward through buffer for match for REGEXP.
 Matches are searched for on lines that match `term-prompt-regexp'.
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (term-regexp-arg "Backward input matching (regexp): "))
   (let* ((re (concat term-prompt-regexp ".*" regexp))
-	 (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
-			      (when (re-search-backward re nil t arg)
+	 (pos (save-excursion (end-of-line (if (> n 0) 0 1))
+			      (when (re-search-backward re nil t n)
 				(point)))))
     (if (null pos)
 	(progn (message "Not found")
@@ -2328,13 +2328,13 @@ If N is negative, find the next or Nth next match."
       (goto-char pos)
       (term-bol nil))))
 
-(defun term-forward-matching-input (regexp arg)
+(defun term-forward-matching-input (regexp n)
   "Search forward through buffer for match for REGEXP.
 Matches are searched for on lines that match `term-prompt-regexp'.
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (term-regexp-arg "Forward input matching (regexp): "))
-  (term-backward-matching-input regexp (- arg)))
+  (term-backward-matching-input regexp (- n)))
 
 
 (defun term-next-prompt (n)
