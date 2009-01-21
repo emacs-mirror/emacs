@@ -1,3 +1,8 @@
+2009-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--insert-strings): Fix up computation of
+	column position which manifested e.g. in proced's signal completion.
+
 2009-01-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-start): Allow server to shut down when no
@@ -19,8 +24,8 @@
 
 2009-01-20  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* textmodes/ispell.el (ispell-find-aspell-dictionaries): Use
-	aspell default dict.
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	Use aspell default dict.
 
 2009-01-20  Kenichi Handa  <handa@m17n.org>
 
@@ -67,8 +72,7 @@
 
 2009-01-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-format-entry): Simplify previous
-	change.
+	* textmodes/bibtex.el (bibtex-format-entry): Simplify previous change.
 
 2009-01-17  Eli Zaretskii  <eliz@gnu.org>
 
@@ -101,8 +105,8 @@
 
 2009-01-16  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
-	* international/quail.el (quail-insert-kbd-layout): Delete
-	superfluous handling of 8-bit code.  (Bug#1418)
+	* international/quail.el (quail-insert-kbd-layout):
+	Delete superfluous handling of 8-bit code.  (Bug#1418)
 
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
@@ -184,8 +188,8 @@
 	(special-display-regexps): Add customization support for
 	function/other-args elements.  Rewrite doc-strings.
 	(special-display-function): Rewrite doc-string.
-	(same-window-buffer-names, same-window-regexps): Minor
-	doc-string fixes.
+	(same-window-buffer-names, same-window-regexps):
+	Minor doc-string fixes.
 	(special-display-p): Minor rewrite.
 
 2009-01-14  Glenn Morris  <rgm@gnu.org>
@@ -303,8 +307,8 @@
 
 	Fix Bug #876:
 
-	* info.el (info-insert-file-contents, Info-insert-dir): Bind
-	inhibit-null-byte-detection to non-nil.
+	* info.el (info-insert-file-contents, Info-insert-dir):
+	Bind inhibit-null-byte-detection to non-nil.
 
 2009-01-10  Martin Rudalics  <rudalics@gmx.at>
 
@@ -314,16 +318,15 @@
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-valid-attribute-values): Use string as value for
-	:family attribute.  Now, font-family-list returns a list of
-	strings.
+	:family attribute.  Now, font-family-list returns a list of strings.
 	(x-font-family-list): Obsolete compatibility version of function
 	from xfaces.c.
 
 2009-01-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (special-display-buffer-names)
-	(special-display-regexps, special-display-function): In
-	doc-strings say "same-window" instead of "same-buffer".
+	(special-display-regexps, special-display-function):
+	In doc-strings say "same-window" instead of "same-buffer".
 
 2009-01-09  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -415,8 +418,8 @@
 
 2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* net/imap.el (imap-enable-exchange-bug-workaround): Explain
-	auto-detection in the doc string.
+	* net/imap.el (imap-enable-exchange-bug-workaround):
+	Explain auto-detection in the doc string.
 
 2009-01-09  Juanma Barranquero  <lekktu@gmail.com>
 

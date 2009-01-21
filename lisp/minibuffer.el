@@ -723,33 +723,37 @@ It also eliminates runs of equal strings."
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
       (dolist (str strings)
-	(unless (equal laststring str)  ; Remove (consecutive) duplicates.
+	(unless (equal laststring str) ; Remove (consecutive) duplicates.
 	  (setq laststring str)
-	  (unless (bolp)
-            (insert " \t")
-            (setq column (+ column colwidth))
-            ;; Leave the space unpropertized so that in the case we're
-            ;; already past the goal column, there is still
-            ;; a space displayed.
-            (set-text-properties (- (point) 1) (point)
-                                 ;; We can't just set tab-width, because
-                                 ;; completion-setup-function will kill all
-                                 ;; local variables :-(
-                                 `(display (space :align-to ,column)))
-	    (when (< wwidth (+ (max colwidth
-				    (if (consp str)
-					(+ (string-width (car str))
-					   (string-width (cadr str)))
-				      (string-width str)))
-			       column))
-	      (delete-char -2) (insert "\n") (setq column 0)))
-	  (if (not (consp str))
-	      (put-text-property (point) (progn (insert str) (point))
-				 'mouse-face 'highlight)
-	    (put-text-property (point) (progn (insert (car str)) (point))
-			       'mouse-face 'highlight)
-	    (put-text-property (point) (progn (insert (cadr str)) (point))
-                               'mouse-face nil)))))))
+          (let ((length (if (consp str)
+                            (+ (string-width (car str))
+                               (string-width (cadr str)))
+                          (string-width str))))
+            (unless (bolp)
+              (if (< wwidth (+ (max colwidth length) column))
+                  ;; No space for `str' at point, move to next line.
+                  (progn (insert "\n") (setq column 0))
+                (insert " \t")
+                ;; Leave the space unpropertized so that in the case we're
+                ;; already past the goal column, there is still
+                ;; a space displayed.
+                (set-text-properties (- (point) 1) (point)
+                                     ;; We can't just set tab-width, because
+                                     ;; completion-setup-function will kill all
+                                     ;; local variables :-(
+                                     `(display (space :align-to ,column)))
+                nil))
+            (if (not (consp str))
+                (put-text-property (point) (progn (insert str) (point))
+                                   'mouse-face 'highlight)
+              (put-text-property (point) (progn (insert (car str)) (point))
+                                 'mouse-face 'highlight)
+              (put-text-property (point) (progn (insert (cadr str)) (point))
+                                 'mouse-face nil))
+            ;; Next column to align to.
+            (setq column (+ column
+                            ;; Round up to a whole number of columns.
+                            (* colwidth (ceiling length colwidth))))))))))
 
 (defvar completion-common-substring nil)
 (make-obsolete-variable 'completion-common-substring nil "23.1")
