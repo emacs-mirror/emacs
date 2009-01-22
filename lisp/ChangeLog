@@ -1,3 +1,11 @@
+2009-01-21  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-mode.el: Add eshell-handle-ansi-color to the default
+	list of output filters.
+	(eshell-mode): Change the default binding of C-a to eshell-bol.  I
+	don't think it's actually bound at all by default in eshell; it
+	just falls back to the default binding of C-a.
+
 2009-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--insert-strings): Fix up computation of
