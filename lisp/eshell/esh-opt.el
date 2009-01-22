@@ -22,6 +22,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (provide 'esh-opt)
 
 (eval-when-compile (require 'esh-ext))
@@ -221,8 +223,6 @@ This assumes that symbols have been intern'd by `eshell-with-options'."
 		(eshell-process-option name (aref switch index) 0 ai options)
 		(setq index (1+ index)))))))))
   args)
-
-;;; Code:
 
 ;; arch-tag: 45c6c2d0-8091-46a1-a205-2f4bafd8230c
 ;;; esh-opt.el ends here

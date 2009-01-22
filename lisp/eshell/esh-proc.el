@@ -22,6 +22,8 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (provide 'esh-proc)
 
 (eval-when-compile
@@ -523,8 +525,6 @@ See the variable `eshell-kill-processes-on-exit'."
   (interactive)
   (eshell-send-input nil nil t)
   (eshell-process-interact 'process-send-eof))
-
-;;; Code:
 
 ;; arch-tag: ac477a3e-ee4d-4b44-8ec6-212010e607bb
 ;;; esh-proc.el ends here

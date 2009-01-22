@@ -55,6 +55,8 @@
 ;;   (+ 1 2) > a > b > c   ; prints number to all three files
 ;;   (+ 1 2) > a | wc      ; prints to 'a', and pipes to 'wc'
 
+;;; Code:
+
 (provide 'esh-io)
 
 (eval-when-compile
@@ -512,8 +514,6 @@ Returns what was actually sent, or nil if nothing was sent."
       (while target
 	(eshell-output-object-to-target object (car target))
 	(setq target (cdr target))))))
-
-;;; Code:
 
 ;; arch-tag: 9ca2080f-d5e0-4b26-aa0b-d59194a905a2
 ;;; esh-io.el ends here
