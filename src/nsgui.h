@@ -60,7 +60,7 @@ typedef struct _XCharStruct
   int descent;
 } XCharStruct;
 
-/* 23: Fake tructure from Xlib.h to represent two-byte characters.  */
+/* Fake tructure from Xlib.h to represent two-byte characters.  */
 #ifndef __OBJC__
 typedef unsigned short unichar;
 #endif
@@ -121,8 +121,8 @@ typedef int Display;
 typedef Lisp_Object XrmDatabase;
 
 
-/* 23: some sort of attempt to normalize rectangle handling.. seems a bit much
-       for what is accomplished */
+/* some sort of attempt to normalize rectangle handling.. seems a bit much
+   for what is accomplished */
 typedef struct {
       int x, y;
       unsigned width, height;

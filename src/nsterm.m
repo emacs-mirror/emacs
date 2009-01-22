@@ -552,7 +552,7 @@ static void
 ns_update_begin (struct frame *f)
 /* --------------------------------------------------------------------------
    Prepare for a grouped sequence of drawing calls
-   23: external (RIF) call; now split w/ and called before update_window_begin
+   external (RIF) call; whole frame, called before update_window_begin
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
@@ -571,7 +571,7 @@ static void
 ns_update_window_begin (struct window *w)
 /* --------------------------------------------------------------------------
    Prepare for a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called after update_begin
+   external (RIF) call; for one window, called after update_begin
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -605,7 +605,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
                       int mouse_face_overwritten_p)
 /* --------------------------------------------------------------------------
    Finished a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called before update_window_end
+   external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (XFRAME (w->frame));
@@ -644,7 +644,7 @@ static void
 ns_update_end (struct frame *f)
 /* --------------------------------------------------------------------------
    Finished a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called after update_window_end
+   external (RIF) call; for whole frame, called after update_window_end
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
@@ -673,7 +673,7 @@ ns_update_end (struct frame *f)
 static void
 ns_flush (struct frame *f)
 /* --------------------------------------------------------------------------
-   23: external (RIF) call
+   external (RIF) call
    NS impl is no-op since currently we flush in ns_update_end and elsewhere
    -------------------------------------------------------------------------- */
 {
@@ -746,7 +746,7 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 #endif
 
-  /*23: clipping */
+  /* clipping */
   if (r)
     {
       [[NSGraphicsContext currentContext] saveGraphicsState];
@@ -789,7 +789,7 @@ ns_unfocus (struct frame *f)
 static void
 ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 /* --------------------------------------------------------------------------
-     23: Internal (but parallels other terms): Focus drawing on given row
+     Internal (but parallels other terms): Focus drawing on given row
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -1376,9 +1376,9 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
-  /* 23: FIXME: emacs seems to downcase everything before passing it here,
-      which we can work around, except for GRAY, since gray##, where ## is
-      decimal between 0 and 99, is also an X11 colorname. */
+  /*  FIXME: emacs seems to downcase everything before passing it here,
+        which we can work around, except for GRAY, since gray##, where ## is
+        decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
@@ -1590,7 +1590,7 @@ int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
                   char makeIndex)
 /* --------------------------------------------------------------------------
-   23:   Return 1 if named color found, and set color_def rgb accordingly.
+         Return 1 if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,
          and set color_def pixel to the resulting index.
          If makeIndex is zero, set color_def pixel to ARGB.
@@ -1985,7 +1985,7 @@ ns_clear_frame (struct frame *f)
 void
 ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 /* --------------------------------------------------------------------------
-   23: External (RIF):  Clear section of frame
+    External (RIF):  Clear section of frame
    -------------------------------------------------------------------------- */
 {
   NSRect r = NSMakeRect (x, y, width, height);
@@ -2038,7 +2038,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 static void
 ns_scroll_run (struct window *w, struct run *run)
 /* --------------------------------------------------------------------------
-   23: External (RIF):  Insert or delete n lines at line vpos
+    External (RIF):  Insert or delete n lines at line vpos
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (w->frame);
@@ -2101,7 +2101,7 @@ ns_scroll_run (struct window *w, struct run *run)
 static void
 ns_after_update_window_line (struct glyph_row *desired_row)
 /* --------------------------------------------------------------------------
-   23: External (RIF): preparatory to fringe update after text was updated
+    External (RIF): preparatory to fringe update after text was updated
    -------------------------------------------------------------------------- */
 {
   struct window *w = updated_window;
@@ -2156,7 +2156,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
                            int x, int y, int width, int height,
                            int shift_by)
 /* --------------------------------------------------------------------------
-   23: External (RIF): copy an area horizontally, don't worry about clearing src
+    External (RIF): copy an area horizontally, don't worry about clearing src
    -------------------------------------------------------------------------- */
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
@@ -2182,7 +2182,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
 static inline void
 ns_compute_glyph_string_overhangs (struct glyph_string *s)
 /* --------------------------------------------------------------------------
-   23:  External (RIF); compute left/right overhang of whole string and set in s
+     External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
   struct face *face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
@@ -2223,7 +2223,7 @@ static void
 ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
                       struct draw_fringe_bitmap_params *p)
 /* --------------------------------------------------------------------------
-   23: External (RIF); fringe-related
+    External (RIF); fringe-related
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -3094,7 +3094,7 @@ ns_read_socket (struct terminal *terminal, int expected,
 /* --------------------------------------------------------------------------
      External (hook): Post an event to ourself and keep reading events until
      we read it back again.  In effect process all events which were waiting.
-   23: Now we have to manage the event buffer ourselves.
+     From 21+ we have to manage the event buffer ourselves.
    -------------------------------------------------------------------------- */
 {
   struct input_event ev;
@@ -3445,17 +3445,10 @@ ns_judge_scroll_bars (struct frame *f)
 }
 
 
-
-/* ==========================================================================
-
-    Miscellaneous, mainly stubbed-out functions added in 23
-
-   ========================================================================== */
-
-
 void
 x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 {
+  /* XXX irrelevant under NS */
 }
 
 
@@ -3614,8 +3607,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
 }
 
 
-/* 23: Needed as new part of display engine; this and next define public
-      functions in this file (well, many of them, anyway). */
+/* This and next define (many of the) public functions in this file. */
 /* x_... are generic versions in xdisp.c that we, and other terms, get away
          with using despite presence in the "system dependent" redisplay
          interface.  In addition, many of the ns_ methods have code that is
@@ -3624,28 +3616,28 @@ extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
   ns_frame_parm_handlers,
-  x_produce_glyphs, /*generic OK */
-  x_write_glyphs, /*generic OK */
-  x_insert_glyphs, /*generic OK */
-  x_clear_end_of_line, /*generic OK */
-  ns_scroll_run, /*23 */
-  ns_after_update_window_line, /*23: added */
-  ns_update_window_begin, /*23: split from update_begin */
-  ns_update_window_end, /*23: split from update_end */
-  x_cursor_to, /*generic OK */
+  x_produce_glyphs,
+  x_write_glyphs,
+  x_insert_glyphs,
+  x_clear_end_of_line,
+  ns_scroll_run,
+  ns_after_update_window_line,
+  ns_update_window_begin,
+  ns_update_window_end,
+  x_cursor_to,
   ns_flush,
   0, /* flush_display_optional */
-  x_clear_window_mouse_face, /*generic OK */
-  x_get_glyph_overhangs, /*23: generic OK */
-  x_fix_overlapping_area, /*generic OK */
-  ns_draw_fringe_bitmap, /*23 */
+  x_clear_window_mouse_face,
+  x_get_glyph_overhangs,
+  x_fix_overlapping_area,
+  ns_draw_fringe_bitmap,
   0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
-  ns_compute_glyph_string_overhangs, /*23 */
-  ns_draw_glyph_string, /*23: interface to nsfont.m */
-  ns_define_frame_cursor, /*23 */
-  ns_clear_frame_area, /*23 */
-  ns_draw_window_cursor, /*23: revamped ns_dumpcursor */
+  ns_compute_glyph_string_overhangs,
+  ns_draw_glyph_string, /* interface to nsfont.m */
+  ns_define_frame_cursor,
+  ns_clear_frame_area,
+  ns_draw_window_cursor,
   ns_draw_vertical_window_border,
   ns_shift_glyphs_for_insert
 };
@@ -3697,21 +3689,21 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->rif = &ns_redisplay_interface;
 
   terminal->clear_frame_hook = ns_clear_frame;
-  terminal->ins_del_lines_hook = 0; /* 23: vestigial? */
-  terminal->delete_glyphs_hook = 0; /* 23: vestigial? */
+  terminal->ins_del_lines_hook = 0; /* XXX vestigial? */
+  terminal->delete_glyphs_hook = 0; /* XXX vestigial? */
   terminal->ring_bell_hook = ns_ring_bell;
   terminal->reset_terminal_modes_hook = ns_reset_terminal_modes;
   terminal->set_terminal_modes_hook = ns_set_terminal_modes;
   terminal->update_begin_hook = ns_update_begin;
   terminal->update_end_hook = ns_update_end;
-  terminal->set_terminal_window_hook = NULL; /* 23: vestigial? */
+  terminal->set_terminal_window_hook = NULL; /* XXX vestigial? */
   terminal->read_socket_hook = ns_read_socket;
   terminal->frame_up_to_date_hook = ns_frame_up_to_date;
   terminal->mouse_position_hook = ns_mouse_position;
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
 
-  terminal->fullscreen_hook = 0; /*XTfullscreen_hook;//23.50 */
+  terminal->fullscreen_hook = 0; /* see XTfullscreen_hook */
 
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
@@ -6432,7 +6424,7 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  /*23: now apparently we need to tell emacs what modifiers there are.. */
+  /* from 23+ we need to tell emacs what modifiers there are.. */
   Qmodifier_value = intern ("modifier-value");
   Qalt = intern ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));

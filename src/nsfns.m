@@ -739,7 +739,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 
-/* 23: toolbar support */
+/* toolbar support */
 void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
@@ -883,7 +883,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-/* 23: added Xism; we stub out (we do implement this in ns-win.el) */
+/* Xism; we stub out (we do implement this in ns-win.el) */
 int
 XParseGeometry (char *string, int *x, int *y,
                 unsigned int *width, unsigned int *height)
@@ -939,8 +939,8 @@ x_set_cursor_type (f, arg, oldval)
 }
 
 
-/* 23: called to set mouse pointer color, but all other terms use it to
-       initialize pointer types (and don't set the color ;) */
+/* called to set mouse pointer color, but all other terms use it to
+   initialize pointer types (and don't set the color ;) */
 static void
 x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -1012,9 +1012,7 @@ x_icon (struct frame *f, Lisp_Object parms)
 }
 
 
-/* 23 Note: commented out ns_... entries are no longer used in 23.
-            commented out x_... entries have not been implemented yet.
-   see frame.c for template, also where all generic OK functions are impl */
+/* Note: see frame.c for template, also where generic functions are impl */
 frame_parm_handler ns_frame_parm_handlers[] =
 {
   x_set_autoraise, /* generic OK */
@@ -2145,14 +2143,15 @@ t.  In case the execution fails, an error is signaled. */)
    ========================================================================== */
 
 
-/* 23: call in image.c */
+/* called from image.c */
 FRAME_PTR
 check_x_frame (Lisp_Object frame)
 {
   return check_ns_frame (frame);
 }
 
-/* 23: added, due to call in frame.c */
+
+/* called from frame.c */
 struct ns_display_info *
 check_x_display_info (Lisp_Object frame)
 {
@@ -2160,7 +2159,6 @@ check_x_display_info (Lisp_Object frame)
 }
 
 
-/* 23: new function; we don't have much in the way of flexibility though */
 void
 x_set_scroll_bar_default_width (f)
      struct frame *f;
@@ -2172,7 +2170,7 @@ x_set_scroll_bar_default_width (f)
 }
 
 
-/* 23: terms now impl this instead of x-get-resource directly */
+/* terms impl this instead of x-get-resource directly */
 const char *
 x_get_string_resource (XrmDatabase rdb, char *name, char *class)
 {

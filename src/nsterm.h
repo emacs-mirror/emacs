@@ -453,7 +453,7 @@ struct nsfont_info
   char bold, ital;  /* convenience flags */
   char synthItal;
   float voffset;  /* mean of ascender/descender offsets */
-  XCharStruct max_bounds; /* 23 */
+  XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */
   unsigned short **glyphs; /* map unicode index to glyph */
@@ -483,38 +483,33 @@ struct ns_display_info
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
 
-  /*/23 */
   struct ns_bitmap_record *bitmaps;
   int bitmaps_size;
   int bitmaps_last;
 
-  /* 23 */
   struct image_cache *image_cache;
 
   struct ns_color_table *color_table;
 
-  /* 23: DPI resolution of this screen */
+  /* DPI resolution of this screen */
   double resx, resy;
 
-  /* 23: Mask of things that cause the mouse to be grabbed */
+  /* Mask of things that cause the mouse to be grabbed */
   int grabbed;
 
-  /* 23 */
   int n_planes;
 
-  /* 23 */
   int color_p;
 
-  /* 23 */
   Window root_window;
 
-  /* 23: Xism */
+  /* Xism */
   XrmDatabase xrdb;
 
-  /* 23: The cursor to use for vertical scroll bars. */
+  /* The cursor to use for vertical scroll bars. */
   Cursor vertical_scroll_bar_cursor;
 
-  /* 23: most mouse face stuff moved in here (and reasonably so) */
+  /* most mouse face stuff moved in here as of 21+ (and reasonably so) */
   int mouse_face_beg_row, mouse_face_beg_col;
   int mouse_face_end_row, mouse_face_end_col;
   int mouse_face_beg_x, mouse_face_beg_y;
@@ -540,8 +535,6 @@ extern struct ns_display_info *x_display_list;
 extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name ();
 
-/* 23: FIXME: these functions (we defined in nsfns) are used in various
-       places, but no prototypes are provided */
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
 FRAME_PTR check_x_frame (Lisp_Object frame);
 
@@ -564,7 +557,7 @@ struct ns_output
   void *toolbar;
 #endif
 
-  /* 23: NSCursors init'ed in initFrameFromEmacs */
+  /* NSCursors init'ed in initFrameFromEmacs */
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
@@ -572,10 +565,10 @@ struct ns_output
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
-  /* 23: NS-specific */
+  /* NS-specific */
   Cursor current_pointer;
 
-  /* 23: lord knows why Emacs needs to know about our Window ids.. */
+  /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
   char explicit_parent;
 
@@ -603,7 +596,7 @@ struct ns_output
   struct ns_display_info *display_info;
 };
 
-/* 23: this dummy decl now needed to support TTYs */
+/* this dummy decl needed to support TTYs */
 struct x_output
 {
   unsigned long background_pixel;
@@ -680,7 +673,6 @@ struct x_output
 
 #define FRAME_FONTSET(f) ((f)->output_data.ns->fontset)
 
-/* 23 */
 #define FRAME_SMALLEST_CHAR_WIDTH(f)  \
   (FRAME_NS_DISPLAY_INFO (f)->smallest_char_width)
 #define FRAME_SMALLEST_FONT_HEIGHT(f) \
@@ -813,7 +805,7 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
-/* 23: needed somewhere... */
+/* needed somewhere... */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
 

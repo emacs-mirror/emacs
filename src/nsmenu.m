@@ -85,7 +85,7 @@ static int popup_activated_flag;
    ========================================================================== */
 
 
-/*23: FIXME: not currently used, but should normalize with other terms. */
+/* FIXME: not currently used, but should normalize with other terms. */
 void
 x_activate_menubar (struct frame *f)
 {

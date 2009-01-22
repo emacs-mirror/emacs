@@ -1,5 +1,15 @@
 2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
+	* nsfns.m:
+	* nsgui.h:
+	* nsmenu.m:
+	* nsselect.m:
+	* nsterm.h:
+	* nsterm.m: Remove '23' comments that indicated code added during
+	update from emacs-20 -> emacs-23.
+
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
 	* nsterm.m (EmavsView-keyDown:): Treat nil as Qnone for
 	ns_alternate_modifier. (Bug#1217)
 
