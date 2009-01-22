@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "18. Dezember 2008, 11:26:54 (ulf)"
+;; Time-stamp:  "22. Januar 2009, 20:41:31 (ulf)"
 
 ;; ======================================================================
 
@@ -1313,42 +1313,57 @@ Note: does not update the layout."
     (forward-line -1))
   (newsticker-treeview-show-item))
 
-(defun newsticker-treeview-next-new-or-immortal-item ()
-  "Move to next new or immortal item."
+(defun newsticker-treeview-next-new-or-immortal-item (&optional
+                                                      current-item-counts)
+  "Move to next new or immortal item.
+Will move to next feed until an item is found.  Will not move if
+optional argument CURRENT-ITEM-COUNTS is t and current item is
+new or immortal."
   (interactive)
   (newsticker--treeview-restore-layout)
   (newsticker--treeview-list-clear-highlight)
-  (catch 'found
-    (let ((index (newsticker-treeview-next-item)))
-      (while t
-        (save-current-buffer
-          (set-buffer (newsticker--treeview-list-buffer))
-          (forward-line 1)
-          (when (eobp)
-            (forward-line -1)
-            (throw 'found nil)))
-        (when (memq (newsticker--age
-                     (newsticker--treeview-get-selected-item)) '(new immortal))
-            (newsticker-treeview-show-item)
-            (throw 'found t))))))
+  (unless (catch 'found
+            (let ((move (not current-item-counts)))
+              (while t
+                (save-current-buffer
+                  (set-buffer (newsticker--treeview-list-buffer))
+                  (when move (forward-line 1)
+                        (when (eobp)
+                          (forward-line -1)
+                          (throw 'found nil))))
+                (when (memq (newsticker--age
+                             (newsticker--treeview-get-selected-item))
+                            '(new immortal))
+                  (newsticker-treeview-show-item)
+                  (throw 'found t))
+                (setq move t))))
+    (when (newsticker-treeview-next-feed t)
+      (newsticker-treeview-next-new-or-immortal-item t))))
 
 (defun newsticker-treeview-prev-new-or-immortal-item ()
-  "Move to previous new or immortal item."
+  "Move to previous new or immortal item.
+Will move to previous feed until an item is found."
   (interactive)
   (newsticker--treeview-restore-layout)
   (newsticker--treeview-list-clear-highlight)
-  (catch 'found
-    (let ((index (newsticker-treeview-next-item)))
-      (while t
-        (save-current-buffer
-          (set-buffer (newsticker--treeview-list-buffer))
-          (forward-line -1)
-          (when (bobp)
-            (throw 'found nil)))
-        (when (memq (newsticker--age
-                     (newsticker--treeview-get-selected-item)) '(new immortal))
-            (newsticker-treeview-show-item)
-            (throw 'found t))))))
+  (unless (catch 'found
+            (while t
+              (save-current-buffer
+                (set-buffer (newsticker--treeview-list-buffer))
+                (when (bobp)
+                  (throw 'found nil))
+                (forward-line -1))
+              (when (memq (newsticker--age
+                           (newsticker--treeview-get-selected-item))
+                          '(new immortal))
+                (newsticker-treeview-show-item)
+                (throw 'found t))
+                (when (bobp)
+                  (throw 'found nil))))
+    (when (newsticker-treeview-prev-feed t)
+      (set-buffer (newsticker--treeview-list-buffer))
+      (goto-char (point-max))
+      (newsticker-treeview-prev-new-or-immortal-item))))
 
 (defun newsticker--treeview-get-selected-item ()
   "Return item that is currently selected in list buffer."
@@ -1527,38 +1542,62 @@ is activated."
           (node
            (widget-apply-action node)))))
 
-(defun newsticker-treeview-next-feed ()
-  "Move to next feed."
+(defun newsticker-treeview-next-feed (&optional stay-in-tree)
+  "Move to next feed.
+Optional argument STAY-IN-TREE prevents moving from real feed
+tree to virtual feed tree or vice versa.
+Return t if a new feed was activated, nil otherwise."
   (interactive)
   (newsticker--treeview-restore-layout)
-  (let ((cur (newsticker--treeview-get-current-node)))
-    ;;(message "newsticker-treeview-next-feed from %s"
-    ;;       (widget-get cur :tag))
+  (let ((cur (newsticker--treeview-get-current-node))
+        (new nil))
+    (message "newsticker-treeview-next-feed from %s"
+             (widget-get cur :tag))
     (if cur
-        (let ((new (or (newsticker--treeview-get-next-sibling cur)
-                       (newsticker--treeview-get-next-uncle cur)
-                       (newsticker--treeview-get-other-tree))))
-          (newsticker--treeview-activate-node new))
-      (newsticker--treeview-activate-node
-       (car (widget-get newsticker--treeview-feed-tree :children)))))
-  (newsticker--treeview-tree-update-highlight))
+      (progn
+        (setq new
+              (if cur
+                  (or (newsticker--treeview-get-next-sibling cur)
+                      (newsticker--treeview-get-next-uncle cur)
+                      (and (not stay-in-tree)
+                           (newsticker--treeview-get-other-tree)))
+                (car (widget-get newsticker--treeview-feed-tree :children))))
+        (if new
+            (progn
+              (newsticker--treeview-activate-node new)
+              (newsticker--treeview-tree-update-highlight)
+              (not (eq new cur)))
+          nil))
+      nil)))
 
-(defun newsticker-treeview-prev-feed ()
-  "Move to previous feed."
+(defun newsticker-treeview-prev-feed (&optional stay-in-tree)
+  "Move to previous feed.
+Optional argument STAY-IN-TREE prevents moving from real feed
+tree to virtual feed tree or vice versa.
+Return t if a new feed was activated, nil otherwise."
   (interactive)
   (newsticker--treeview-restore-layout)
-  (let ((cur (newsticker--treeview-get-current-node)))
+  (let ((cur (newsticker--treeview-get-current-node))
+        (new nil))
     (message "newsticker-treeview-prev-feed from %s"
              (widget-get cur :tag))
     (if cur
-        (let ((new (or (newsticker--treeview-get-prev-sibling cur)
-                       (newsticker--treeview-get-prev-uncle cur)
-                       (newsticker--treeview-get-other-tree))))
-          (newsticker--treeview-activate-node new t))
-      (newsticker--treeview-activate-node
-       (car (widget-get newsticker--treeview-feed-tree :children)) t)))
-  (newsticker--treeview-tree-update-highlight))
-
+      (progn
+        (setq new
+              (if cur
+                  (or (newsticker--treeview-get-prev-sibling cur)
+                      (newsticker--treeview-get-prev-uncle cur)
+                      (and (not stay-in-tree)
+                           (newsticker--treeview-get-other-tree)))
+                (car (widget-get newsticker--treeview-feed-tree :children))))
+        (if new
+            (progn
+              (newsticker--treeview-activate-node new t)
+              (newsticker--treeview-tree-update-highlight)
+              (not (eq new cur)))
+          nil))
+      nil)))
+  
 (defun newsticker-treeview-next-page ()
   "Scroll item buffer."
   (interactive)

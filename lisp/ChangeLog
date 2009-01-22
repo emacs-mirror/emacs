@@ -1,3 +1,14 @@
+2009-01-19  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el
+	(newsticker-treeview-next-new-or-immortal-item): New optional arg
+	current-item-counts. Move to next feed if necessary. (Bug#1569)
+	(newsticker-treeview-prev-new-or-immortal-item): Move to previous
+	feed if necessary. (Bug#1569)
+	(newsticker-treeview-next-feed)
+	(newsticker-treeview-prev-feed): New optional arg
+	stay-in-tree. Don't activate node nil. (Bug#1569)
+
 2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-show-manual): Fix node name.
