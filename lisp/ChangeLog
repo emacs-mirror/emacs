@@ -1,3 +1,8 @@
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* format.el (format-annotate-function): Set
+	write-region-post-annotation-function.
+
 2009-01-21  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-mode.el: Add eshell-handle-ansi-color to the default
