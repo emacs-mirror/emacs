@@ -316,6 +316,7 @@ This is used by `eshell-watch-for-password-prompt'."
   (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
+  (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 
   (set (make-local-variable 'eshell-command-prefix)
        (make-symbol "eshell-command-prefix"))
