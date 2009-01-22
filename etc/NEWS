@@ -339,6 +339,14 @@ norwegian-alt-postfix, scandinavian-alt-postfix, spanish-alt-postfix,
 and swedish-alt-postfix.  Use the versions without "alt-", which are
 identical.
 
++++
+** If a function in write-region-annotate-functions returns with a
+different buffer current, Emacs no longer kills that buffer
+automatically.  This behavior existed in previous versions of Emacs,
+but was undocumented.  To kill a buffer after write-region, give the
+variable `write-region-post-annotation-function' a buffer-local value
+of `kill-buffer'.
+
 
 * Editing Changes in Emacs 23.1
 
