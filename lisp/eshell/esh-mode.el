@@ -164,6 +164,7 @@ number, if the function `eshell-truncate-buffer' is on
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom
     eshell-handle-control-codes
+    eshell-handle-ansi-color
     eshell-watch-for-password-prompt)
   "*Functions to call before output is displayed.
 These functions are only called for output that is displayed
