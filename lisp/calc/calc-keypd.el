@@ -1,7 +1,7 @@
 ;;; calc-keypd.el --- mouse-capable keypad input for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -608,7 +608,7 @@
 				   negative-argument))
 		       (and prefix (string-match "\\`\e?[-0-9]\\'" keys)))
 		   (progn
-		     (setq last-command-char (aref keys (1- (length keys))))
+		     (setq last-command-event (aref keys (1- (length keys))))
 		     (command-execute cmd)
 		     (setq flush 'not-any-more
 			   prefix t

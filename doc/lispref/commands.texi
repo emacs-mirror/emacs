@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/commands
 @node Command Loop, Keymaps, Minibuffers, Top
@@ -898,8 +898,7 @@ last-command-event
 @noindent
 The value is 5 because that is the @acronym{ASCII} code for @kbd{C-e}.
 
-The alias @code{last-command-char} exists for compatibility with
-Emacs version 18.
+The alias @code{last-command-char} is obsolete.
 @end defvar
 
 @c Emacs 19 feature
@@ -1146,11 +1145,11 @@ Lisp programs by representing the former as the integer 9, and the
 latter as the symbol @code{tab}.
 
 Most of the time, it's not useful to distinguish the two.  So normally
-@code{function-key-map} (@pxref{Translation Keymaps}) is set up to map
-@code{tab} into 9.  Thus, a key binding for character code 9 (the
-character @kbd{C-i}) also applies to @code{tab}.  Likewise for the other
-symbols in this group.  The function @code{read-char} likewise converts
-these events into characters.
+@code{local-function-key-map} (@pxref{Translation Keymaps}) is set up
+to map @code{tab} into 9.  Thus, a key binding for character code 9
+(the character @kbd{C-i}) also applies to @code{tab}.  Likewise for
+the other symbols in this group.  The function @code{read-char}
+likewise converts these events into characters.
 
 In @acronym{ASCII}, @key{BS} is really @kbd{C-h}.  But @code{backspace}
 converts into the character code 127 (@key{DEL}), not into code 8
@@ -2439,10 +2438,11 @@ the keyboard, and has no effect on mouse events or any other events.
 @end defvar
 
 @defvar keyboard-translate-table
-This variable is the translate table for keyboard characters.  It lets
-you reshuffle the keys on the keyboard without changing any command
-bindings.  Its value is normally a char-table, or else @code{nil}.
-(It can also be a string or vector, but this is considered obsolete.)
+This terminal-local variable is the translate table for keyboard
+characters.  It lets you reshuffle the keys on the keyboard without
+changing any command bindings.  Its value is normally a char-table, or
+else @code{nil}.  (It can also be a string or vector, but this is
+considered obsolete.)
 
 If @code{keyboard-translate-table} is a char-table
 (@pxref{Char-Tables}), then each character read from the keyboard is
@@ -2658,8 +2658,7 @@ this expression) remains the value of @code{last-command-event}.
 @end group
 @end example
 
-The alias @code{last-input-char} exists for compatibility with
-Emacs version 18.
+The alias @code{last-input-char} is obsolete.
 @end defvar
 
 @defmac while-no-input body@dots{}

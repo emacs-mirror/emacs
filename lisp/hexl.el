@@ -1,7 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
 ;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -835,7 +835,7 @@ Interactively, with a numeric argument, insert this character that many times.
 Non-ASCII characters are first encoded with `buffer-file-coding-system',
 and their encoded form is inserted byte by byte."
   (interactive "p")
-  (hexl-insert-multibyte-char last-command-char arg))
+  (hexl-insert-multibyte-char last-command-event arg))
 
 (defun hexl-insert-char (ch num)
   "Insert the character CH NUM times in a hexl buffer.

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
@@ -370,9 +370,16 @@ retrieving properties of characters.
 
   In Emacs, each property has a name, which is a symbol, and a set of
 possible values, whose types depend on the property; if a character
-does not have a certain property, the value is @code{nil}.  Here's the
-full list of value types for all the character properties that Emacs
-knows about:
+does not have a certain property, the value is @code{nil}.  As a
+general rule, the names of character properties in Emacs are produced
+from the corresponding Unicode properties by downcasing them and
+replacing each @samp{_} character with a dash @samp{-}.  For example,
+@code{Canonical_Combining_Class} becomes
+@code{canonical-combining-class}.  However, sometimes we shorten the
+names to make their use easier.
+
+  Here's the full list of value types for all the character properties
+that Emacs knows about:
 
 @table @code
 @item name
@@ -399,8 +406,9 @@ Corresponds to the Unicode @code{Decomposition_Type} and
 @code{Decomposition_Value} properties.  The value is a list, whose
 first element may be a symbol representing a compatibility formatting
 tag, such as @code{small}@footnote{
-Note that Emacs strips the @samp{<..>} brackets from the corresponding
-Unicode tags; e.g., Unicode specifies @samp{<small>} where Emacs uses
+Note that the Unicode spec writes these tag names inside
+@samp{<..>} brackets.  The tag names in Emacs do not include the
+brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.
 }; the other elements are characters that give the compatibility
 decomposition sequence of this character.
@@ -428,7 +436,7 @@ numbers.  For example, the value of this property for the character
 
 @item mirrored
 Corresponds to the Unicode @code{Bidi_Mirrored} property.  The value
-of this property is a symbol, either @samp{Y} or @samp{N}.
+of this property is a symbol, either @code{Y} or @code{N}.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
@@ -855,13 +863,23 @@ coding systems} such as @code{latin-1-unix}, @code{latin-1-dos} and
 well.  Most base coding systems have three corresponding variants whose
 names are formed by adding @samp{-unix}, @samp{-dos} and @samp{-mac}.
 
+@vindex raw-text@r{ coding system}
   The coding system @code{raw-text} is special in that it prevents
-character code conversion, and causes the buffer visited with that
-coding system to be a unibyte buffer.  It does not specify the
-end-of-line conversion, allowing that to be determined as usual by the
-data, and has the usual three variants which specify the end-of-line
-conversion.  @code{no-conversion} is equivalent to @code{raw-text-unix}:
-it specifies no conversion of either character codes or end-of-line.
+character code conversion, and causes the buffer visited with this
+coding system to be a unibyte buffer.  For historical reasons, you can
+save both unibyte and multibyte text with this coding system.  When
+you use @code{raw-text} to encode multibyte text, it does perform one
+character code conversion: it converts eight-bit characters to their
+single-byte external representation.  @code{raw-text} does not specify
+the end-of-line conversion, allowing that to be determined as usual by
+the data, and has the usual three variants which specify the
+end-of-line conversion.
+
+@vindex no-conversion@r{ coding system}
+@vindex binary@r{ coding system}
+  @code{no-conversion} (and its alias @code{binary}) is equivalent to
+@code{raw-text-unix}: it specifies no conversion of either character
+codes or end-of-line.
 
 @vindex emacs-internal@r{ coding system}
   The coding system @code{emacs-internal} specifies that the data is
@@ -1098,12 +1116,31 @@ If the region contains only @acronym{ASCII} characters except for such
 ISO-2022 control characters ISO-2022 as @code{ESC}, the value is
 @code{undecided} or @code{(undecided)}, or a variant specifying
 end-of-line conversion, if that can be deduced from the text.
+
+If the region contains null bytes, the value is @code{no-conversion},
+even if the region contains text encoded in some coding system.
 @end defun
 
 @defun detect-coding-string string &optional highest
 This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
+
+@defvar inhibit-null-byte-detection
+If this variable has a non-@code{nil} value, null bytes are ignored
+when detecting the encoding of a region or a string.  This allows to
+correctly detect the encoding of text that contains null bytes, such
+as Info files with Index nodes.
+@end defvar
+
+@defvar inhibit-iso-escape-detection
+If this variable has a non-@code{nil} value, ISO-2022 escape sequences
+are ignored when detecting the encoding of a region or a string.  The
+result is that no text is ever detected as encoded in some ISO-2022
+encoding, and all escape sequences become visible in a buffer.
+@strong{Warning:} @emph{Use this variable with extreme caution,
+because many files in the Emacs distribution use ISO-2022 encoding.}
+@end defvar
 
 @defun coding-system-charset-list coding-system
 This function returns the list of character sets (@pxref{Character
@@ -1559,15 +1596,21 @@ display text using a particular encoding such as Latin-1.  Emacs does
 not set @code{last-coding-system-used} for encoding or decoding of
 terminal I/O.
 
-@defun keyboard-coding-system
+@defun keyboard-coding-system &optional terminal
 This function returns the coding system that is in use for decoding
-keyboard input---or @code{nil} if no coding system is to be used.
+keyboard input from @var{terminal}---or @code{nil} if no coding system
+is to be used for that terminal.  If @var{terminal} is omitted or
+@code{nil}, it means the selected frame's terminal.  @xref{Multiple
+Terminals}.
 @end defun
 
-@deffn Command set-keyboard-coding-system coding-system
-This command specifies @var{coding-system} as the coding system to
-use for decoding keyboard input.  If @var{coding-system} is @code{nil},
-that means do not decode keyboard input.
+@deffn Command set-keyboard-coding-system coding-system &optional terminal
+This command specifies @var{coding-system} as the coding system to use
+for decoding keyboard input from @var{terminal}.  If
+@var{coding-system} is @code{nil}, that means do not decode keyboard
+input.  If @var{terminal} is a frame, it means that frame's terminal;
+if it is @code{nil}, that means the currently selected frame's
+terminal.  @xref{Multiple Terminals}.
 @end deffn
 
 @defun terminal-coding-system

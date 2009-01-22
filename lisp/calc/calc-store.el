@@ -1,7 +1,7 @@
 ;;; calc-store.el --- value storage functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -381,15 +381,15 @@
 
 (defun calc-store-quick ()
   (interactive)
-  (calc-store (intern (format "var-q%c" last-command-char))))
+  (calc-store (intern (format "var-q%c" last-command-event))))
 
 (defun calc-store-into-quick ()
   (interactive)
-  (calc-store-into (intern (format "var-q%c" last-command-char))))
+  (calc-store-into (intern (format "var-q%c" last-command-event))))
 
 (defun calc-recall-quick ()
   (interactive)
-  (calc-recall (intern (format "var-q%c" last-command-char))))
+  (calc-recall (intern (format "var-q%c" last-command-event))))
 
 (defun calc-copy-special-constant (&optional sconst var)
   (interactive)

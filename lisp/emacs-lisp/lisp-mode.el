@@ -1,7 +1,7 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
 ;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -197,7 +197,8 @@
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 (uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
-KEYWORDS-CASE-SENSITIVE means that for font-lock keywords will not be case sensitive."
+KEYWORDS-CASE-INSENSITIVE means that for font-lock keywords will not 
+be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -416,6 +417,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\{emacs-lisp-mode-map}
 Entry to this mode calls the value of `emacs-lisp-mode-hook'
 if that value is non-nil."
@@ -455,6 +457,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
+
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one.
@@ -532,6 +535,7 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Paragraphs are separated only by blank lines.
 Semicolons start comments.
+
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
 if that value is non-nil.")

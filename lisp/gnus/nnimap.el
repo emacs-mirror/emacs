@@ -1,9 +1,9 @@
 ;;; nnimap.el --- imap backend for Gnus
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008  Free Software Foundation, Inc.
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
-;; Author: Simon Josefsson <jas@pdc.kth.se>
+;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Jim Radford <radford@robby.caltech.edu>
 ;; Keywords: mail
 
@@ -163,6 +163,8 @@ the inbox string is also a regexp.  The actual splitting rules are as
 before, either a function, or a list with group/regexp or
 group/function elements."
   :group 'nnimap
+  ;; FIXME: Doesn't allow `("my2server" ("INBOX" nnimap-split-fancy))'
+  ;; per example above.  -- fx
   :type '(choice :tag "Rule type"
 		 (repeat :menu-tag "Single-server"
 			 :tag "Single-server list"
@@ -460,11 +462,17 @@ An example plist would be '(\"name\" \"Gnus\" \"version\" gnus-version-number
 		 (plist :key-type string :value-type string)))
 
 (defcustom nnimap-debug nil
-  "If non-nil, random debug spews are placed in *nnimap-debug* buffer.
+  "If non-nil, trace nnimap- functions into `nnimap-debug-buffer'.
+Uses `trace-function-background', so you can turn it off with,
+say, `untrace-all'.
+
 Note that username, passwords and other privacy sensitive
-information (such as e-mail) may be stored in the *nnimap-debug*
-buffer.  It is not written to disk, however.  Do not enable this
-variable unless you are comfortable with that."
+information (such as e-mail) may be stored in the buffer.
+It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that.
+
+This variable only takes effect when loading the `nnimap' library.
+See also `nnimap-log'."
   :group 'nnimap
   :type 'boolean)
 
@@ -555,8 +563,7 @@ If EXAMINE is non-nil the group is selected read-only."
 	      (imap-mailbox-select group examine))
       (let (minuid maxuid)
 	(when (> (imap-mailbox-get 'exists) 0)
-	  (imap-fetch (if imap-enable-exchange-bug-workaround "1,*:*" "1,*")
-		      "UID" nil 'nouidfetch)
+	  (imap-fetch-safe '("1,*" . "1,*:*") "UID" nil 'nouidfetch)
 	  (imap-message-map (lambda (uid Uid)
 			      (setq minuid (if minuid (min minuid uid) uid)
 				    maxuid (if maxuid (max maxuid uid) uid)))
@@ -620,7 +627,8 @@ If EXAMINE is non-nil the group is selected read-only."
        ;; to make it more clear.
        (mm-with-unibyte-buffer
 	 (buffer-disable-undo)
-	 (insert headers)
+	 ;; headers can be nil if article is write-only
+	 (when headers (insert headers))
 	 (let ((head (nnheader-parse-naked-head uid)))
 	   (mail-header-set-number head uid)
 	   (mail-header-set-chars head chars)
@@ -950,9 +958,11 @@ function is generally only called when Gnus is shutting down."
 	      (erase-buffer)
 	      (let ((data (imap-fetch article part prop nil
 				      nnimap-server-buffer)))
-		(insert (nnimap-demule (if detail
-					   (nth 2 (car data))
-					 data))))
+		;; data can be nil if article is write-only
+		(when data
+		  (insert (nnimap-demule (if detail
+					     (nth 2 (car data))
+					   data)))))
 	      (nnheader-ms-strip-cr)
 	      (gnus-message
 	       10 "nnimap: Fetching (part of) article %d from %s...done"

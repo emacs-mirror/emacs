@@ -1,8 +1,8 @@
 /* Coding system handler (conversion, detection, etc).
    Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008
+     2005, 2006, 2007, 2008, 2009
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -380,6 +380,9 @@ int inhibit_eol_conversion;
 /* Flag to inhibit ISO2022 escape sequence detection.  */
 int inhibit_iso_escape_detection;
 
+/* Flag to inhibit detection of binary files through null bytes.  */
+int inhibit_null_byte_detection;
+
 /* Flag to make buffer-file-coding-system inherit from process-coding.  */
 int inherit_process_coding_system;
 
@@ -738,6 +741,45 @@ static struct coding_system coding_categories[coding_category_max];
 	  }						\
       }							\
     consumed_chars++;					\
+  } while (0)
+
+/* Safely get two bytes from the source text pointed by SRC which ends
+   at SRC_END, and set C1 and C2 to those bytes while skipping the
+   heading multibyte characters.  If there are not enough bytes in the
+   source, it jumps to `no_more_source'.  If multibytep is nonzero and
+   a multibyte character is found for C2, set C2 to the negative value
+   of the character code.  The caller should declare and set these
+   variables appropriately in advance:
+	src, src_end, multibytep
+   It is intended that this macro is used in detect_coding_utf_16.  */
+
+#define TWO_MORE_BYTES(c1, c2)				\
+  do {							\
+    do {						\
+      if (src == src_end)				\
+	goto no_more_source;				\
+      c1 = *src++;					\
+      if (multibytep && (c1 & 0x80))			\
+	{						\
+	  if ((c1 & 0xFE) == 0xC0)			\
+	    c1 = ((c1 & 1) << 6) | *src++;		\
+	  else						\
+	    {						\
+	      src += BYTES_BY_CHAR_HEAD (c1) - 1;	\
+	      c1 = -1;					\
+	    }						\
+	}						\
+    } while (c1 < 0);					\
+    if (src == src_end)					\
+      goto no_more_source;				\
+    c2 = *src++;					\
+    if (multibytep && (c2 & 0x80))			\
+      {							\
+	if ((c2 & 0xFE) == 0xC0)			\
+	  c2 = ((c2 & 1) << 6) | *src++;		\
+	else						\
+	  c2 = -1;					\
+      }							\
   } while (0)
 
 
@@ -1376,7 +1418,11 @@ decode_coding_utf_8 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c1 = byte_after_cr, byte_after_cr = -1;
@@ -1568,8 +1614,7 @@ detect_coding_utf_16 (coding, detect_info)
       return 0;
     }
 
-  ONE_MORE_BYTE (c1);
-  ONE_MORE_BYTE (c2);
+  TWO_MORE_BYTES (c1, c2);
   if ((c1 == 0xFF) && (c2 == 0xFE))
     {
       detect_info->found |= (CATEGORY_MASK_UTF_16_LE
@@ -1585,6 +1630,11 @@ detect_coding_utf_16 (coding, detect_info)
       detect_info->rejected |= (CATEGORY_MASK_UTF_16_LE
 				| CATEGORY_MASK_UTF_16_BE_NOSIG
 				| CATEGORY_MASK_UTF_16_LE_NOSIG);
+    }
+  else if (c2 < 0)
+    {
+      detect_info->rejected |= CATEGORY_MASK_UTF_16;
+      return 0;
     }
   else
     {
@@ -1603,8 +1653,9 @@ detect_coding_utf_16 (coding, detect_info)
 
       while (1)
 	{
-	  ONE_MORE_BYTE (c1);
-	  ONE_MORE_BYTE (c2);
+	  TWO_MORE_BYTES (c1, c2);
+	  if (c2 < 0)
+	    break;
 	  if (! e[c1])
 	    {
 	      e[c1] = 1;
@@ -1682,7 +1733,11 @@ decode_coding_utf_16 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf + 2 >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr1 >= 0)
+	    src_base -= 2;
+	  break;
+	}
 
       if (byte_after_cr1 >= 0)
 	c1 = byte_after_cr1, byte_after_cr1 = -1;
@@ -2286,7 +2341,11 @@ decode_coding_emacs_mule (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -3197,7 +3256,11 @@ decode_coding_iso_2022 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c1 = byte_after_cr, byte_after_cr = -1;
@@ -4371,7 +4434,11 @@ decode_coding_sjis (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -4479,7 +4546,11 @@ decode_coding_big5 (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	c = byte_after_cr, byte_after_cr = -1;
@@ -5144,7 +5215,11 @@ decode_coding_charset (coding)
       consumed_chars_base = consumed_chars;
 
       if (charbuf >= charbuf_end)
-	break;
+	{
+	  if (byte_after_cr >= 0)
+	    src_base--;
+	  break;
+	}
 
       if (byte_after_cr >= 0)
 	{
@@ -5878,7 +5953,7 @@ detect_coding (coding)
 		      break;
 		    }
 		}
-	      else if (! c)
+	      else if (! c && !inhibit_null_byte_detection)
 		{
 		  null_byte_found = 1;
 		  if (eight_bit_found)
@@ -7762,7 +7837,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		      break;
 		    }
 		}
-	      else if (! c)
+	      else if (! c && !inhibit_null_byte_detection)
 		{
 		  null_byte_found = 1;
 		  if (eight_bit_found)
@@ -7830,10 +7905,11 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	    }
 	}
 
-      if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY)
+      if ((detect_info.rejected & CATEGORY_MASK_ANY) == CATEGORY_MASK_ANY
+	  || null_byte_found)
 	{
 	  detect_info.found = CATEGORY_MASK_RAW_TEXT;
-	  id = coding_categories[coding_category_raw_text].id;
+	  id = CODING_SYSTEM_ID (Qno_conversion);
 	  val = Fcons (make_number (id), Qnil);
 	}
       else if (! detect_info.rejected && ! detect_info.found)
@@ -10267,18 +10343,18 @@ called even if `coding-system-for-write' is non-nil.  The command
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
 	       &inhibit_iso_escape_detection,
 	       doc: /*
-If non-nil, Emacs ignores ISO2022's escape sequence on code detection.
+If non-nil, Emacs ignores ISO-2022 escape sequences during code detection.
 
-By default, on reading a file, Emacs tries to detect how the text is
-encoded.  This code detection is sensitive to escape sequences.  If
-the sequence is valid as ISO2022, the code is determined as one of
-the ISO2022 encodings, and the file is decoded by the corresponding
-coding system (e.g. `iso-2022-7bit').
+When Emacs reads text, it tries to detect how the text is encoded.
+This code detection is sensitive to escape sequences.  If Emacs sees
+a valid ISO-2022 escape sequence, it assumes the text is encoded in one
+of the ISO2022 encodings, and decodes text by the corresponding coding
+system (e.g. `iso-2022-7bit').
 
 However, there may be a case that you want to read escape sequences in
 a file as is.  In such a case, you can set this variable to non-nil.
-Then, as the code detection ignores any escape sequences, no file is
-detected as encoded in some ISO2022 encoding.  The result is that all
+Then the code detection will ignore any escape sequences, and no text is
+detected as encoded in some ISO-2022 encoding.  The result is that all
 escape sequences become visible in a buffer.
 
 The default value is nil, and it is strongly recommended not to change
@@ -10288,9 +10364,22 @@ in Emacs's distribution, and they won't be decoded correctly on
 reading if you suppress escape sequence detection.
 
 The other way to read escape sequences in a file without decoding is
-to explicitly specify some coding system that doesn't use ISO2022's
+to explicitly specify some coding system that doesn't use ISO-2022
 escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
+
+  DEFVAR_BOOL ("inhibit-null-byte-detection",
+	       &inhibit_null_byte_detection,
+	       doc: /* If non-nil, Emacs ignores null bytes on code detection.
+By default, Emacs treats it as binary data, and does not attempt to
+decode it.  The effect is as if you specified `no-conversion' for
+reading that text.
+
+Set this to non-nil when a regular text happens to include null bytes.
+Examples are Index nodes of Info files and null-byte delimited output
+from GNU Find and GNU Grep.  Emacs will then ignore the null bytes and
+decode text as usual.  */);
+  inhibit_null_byte_detection = 0;
 
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.

@@ -1,7 +1,7 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
 ;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008  Free Software Foundation, Inc.
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no
@@ -1197,7 +1197,7 @@ If COUNT is negative, move backward instead."
     ;; to have the line inserted after the begin-end match.
     (if show-char
 	(progn
-	  (insert-char last-command-char 1)
+	  (insert-char last-command-event 1)
 	  (sit-for 0)
 	  (backward-char 1)))
     (if (let ((where (simula-context))

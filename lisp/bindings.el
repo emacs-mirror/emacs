@@ -1,7 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -155,7 +155,7 @@ corresponding to the mode line clicked."
 	     mnemonic
 	     'help-echo (format "End-of-line style: %s\nmouse-1 to cycle"
 				(if (eq eol 0) "Unix-style LF"
-				  (if (eq eol 1) "Dos-style CRLF"
+				  (if (eq eol 1) "DOS-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
 				      "Undecided"))))
 	     'keymap
@@ -170,8 +170,8 @@ corresponding to the mode line clicked."
 (defvar mode-line-client
   `(""
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo "Emacsclient frame"))
-  "Mode-line control for identifying Emacsclient frames.")
+		 help-echo "emacsclient frame"))
+  "Mode-line control for identifying emacsclient frames.")
 
 (defvar mode-line-mule-info
   `(""

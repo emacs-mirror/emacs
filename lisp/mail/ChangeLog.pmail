@@ -1,3 +1,252 @@
+2009-01-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmailhdr.el: File removed.
+
+	* pmailsum.el: (pmail-summary-expunge-and-save): Use
+	pmail-expunge-and-save.
+
+	* pmail.el (buffer-swapped-with): Var removed.
+	(pmail-buffer-swapped): New var.
+	(pmail-write-region-annotate): New function.
+	(pmail-save-buffer): New function.
+
+	* pmailedit.el (pmail-cease-edit, pmail-edit-mode): Use
+	pmail-buffer-swapped.
+
+2009-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* pmailkwd.el (pmail-last-label, pmail-last-multi-labels):
+	Move back to pmail.el.
+	* pmail.el (pmail-last-label, pmail-last-multi-labels):
+	Move back here from pmailkwd.el.
+
+	* pmailsum.el (pmail-message-labels-p): Move back to pmail.el.
+	* pmail.el (pmail-message-labels-p): Move back here from pmailsum.el.
+
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* pmailout.el (pmail-update-summary): Declare.
+
+	* pmailsum.el (pmail-summary-mode-map)
+	(pmail-summary-output-to-pmail-file): Use pmail-summary-output
+	rather than pmail-summary-output-to-babyl-file (renamed 2009-01-05).
+	(pmail-output-as-seen): Declare.
+	(pmail-summary-output): Also require pmailout non-interactively.
+
+2009-01-10  Richard M Stallman  <rms@gnu.org>
+
+	* pmailout.el (pmail-output-to-r-mail-buffer): New function.
+	(pmail-output-as-babyl): Use it.
+	(pmail-output-to-pmail-buffer): New function.
+	(pmail-output-as-mbox): Use it.
+	(pmail-output-as-seen): Pass t to pmail-output-as-mbox.
+	(pmail-output): Call set-buffer later.
+
+	* pmail.el (pmail-count-screen-lines, pmail-use-collection-buffer)
+	(pmail-use-viewer-buffer): Fns deleted.
+	Other functions reordered but not changed.
+
+	* pmailsort.el (pmailhdr): Don't require it.
+	(pmail-fetch-field): Function deleted.
+	Callers use pmail-get-header.
+	(pmail-sort-messages): Replace point-offset with
+	return-to-point, which can be nil.
+	Call pmail-swap-buffers-maybe after that.
+	Don't bind buffer-read-only.  Bind inhibit-read-only.
+	Be more careful in making blank line at end of msg.
+	Don't enable undo at end.
+
+	* pmail.el (pmail-ignored-headers): Hide more fields.
+	(pmail-next-undeleted-message): If we stay on same message,
+	don't change anything.
+
+2009-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* pmailmsc.el (pmail-show-message): Fix declaration.
+
+	* pmailsum.el (pmail-output-read-pmail-file-name): Remove declaration.
+
+2009-01-05  Richard M Stallman  <rms@gnu.org>
+
+	* pmailkwd.el: Require pmail; delete compiler defvars.
+	Delete most declare-function calls.
+	(pmail-keywords, pmail-deleted-label, pmail-attributes): Vars deleted.
+	(pmail-attribute-p, pmail-keyword-p): Fns deleted.
+	(pmail-keywords, pmail-parse-file-keywords, pmail-install-keyword):
+	(pmail-force-make-label, pmail-quote-label-name): Fns deleted.
+	(pmail-last-label, pmail-last-multi-labels): Vars moved from pmail.el.
+	(pmail-read-label): Don't switch buffers, don't parse file keywords.
+	(pmail-set-label): Major rewrite.
+	(pmail-next-labeled-message): Call pmail-get-labels and match it.
+
+	* pmailsum.el (pmail-message-labels-p): Function moved from
+	pmail.el and rewritten.
+	(pmail-message-recipients-p): Likewise.
+	(pmail-message-regexp-p): Likewise.
+	(pmail-message-recipients-p-1): New subroutine.
+	(pmail-message-regexp-p-1): Likewise.
+	(pmail-summary-by-topic): Use pmail-simplified-subject.
+	Delete subject-re variable.
+	(pmail-message-subject-p): Total rewrite.
+	(pmail-message-senders-p): Total rewrite.
+	(pmail-new-summary-1): Call FUNCTION in the main Pmail buffer.
+	(pmail-get-summary): Doc fix.
+	(pmail-create-summary-line): Renamed from
+	pmail-get-create-summary-line, and major rewrite.
+	(pmail-get-summary-labels): Doc fix.
+	(pmail-create-summary): Major rewrite.  Construct line counts here.
+	(pmail-header-summary): Renamed from pmail-make-basic-summary-line.
+	Return list of two strings.
+	(pmail-summary-next-same-subject): Extract subjects and compare.
+	(pmail-summary-output): Renamed from pmail-summary-output-to-babyl-file.
+	Use pmail-output.
+	(pmail-summary-output-as-seen): Renamed from pmail-summary-output.
+	Use pmail-output-as-seen.
+	(pmail-summary-construct-io-menu): Use pmail-summary-output.
+
+	* pmail.el (basic-save-buffer): Protect buffer-modified flag
+	around first swap.
+	(pmail-show-message): Protect buffer-modified flag around swap.
+	(pmail-change-major-mode-hook): Likewise.
+	(pmail-use-collection-buffer, pmail-swap-buffers-maybe): Likewise.
+
+	* pmail.el (pmail-error-bad-format): Always phrase the error as
+	about an invalid message.
+	(pmail-convert-file-maybe): Don't use pmail-error-bad-format.
+	(pmail-mode-map): Move pmail-widen to C-c C-w.
+	(pmail-mode-1): Don't alter mode-line-modified.
+	(pmail-perm-variables): Turn off undo in view buffer.
+	(pmail-variables): Turn off undo.
+	(pmail-show-message): Delete useless calls to `widen'.
+	Avoid passing thru temp buffer if we don't need
+	base64 or quoted printable decoding for whole message.
+
+	* pmail.el (pmail-keywords): Variable deleted.
+	(pmail-last-label, pmail-last-multi-labels): Moved to pmailkwd.el.
+	(pmail-perm-variables): Don't mess with pmail-last-label.
+	Don't mess with pmail-keywords.
+	(pmail-copy-headers): Doc fix.
+	(pmail-set-header): New function.
+	(pmail-get-keywords): Doc fix.
+	(pmail-get-labels): New function.
+	(pmail-display-labels): Use pmail-get-labels.
+	(pmail-set-attribute): Mark pmail-buffer modified
+	if we change an attribute.
+
+	* pmail.el (pmail-apply-in-message): New function.
+	(pmail-message-labels-p): Function moved to pmailsum.el.
+	(pmail-message-recipients-p, pmail-message-regexp-p): Likewise.
+	(pmail-current-subject, pmail-current-subject-regexp): Fns deleted.
+	(pmail-simplified-subject, pmail-simplified-subject-regexp): New fns.
+	(pmail-next-same-subject): Fetch each msg's subject and compare.
+
+	* pmail.el (pmail-speedbar-move-message): Use pmail-output.
+	(pmail-construct-io-menu): Use pmail-output.
+	(pmail-default-pmail-file): Variable deleted.
+	(pmail-auto-file): Use pmail-output.
+	(pmail-mode-map): Remove pmail-output-to-babyl-file.
+	Add pmail-output-as-seen.
+	(pmail-mode): Update output commands in doc string.
+
+2008-12-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (buffer-swapped-with): New var, moved from files.el.
+	Add advice to basic-save-buffer to use it.
+
+2008-12-29  Richard M Stallman  <rms@gnu.org>
+
+	* pmailedit.el (pmail-edit-mode): Bind buffer-swwapped-with to nil.
+	(pmail-edit-current-message): Save all of buffer as old text.
+	Clear undo list.
+	(pmail-cease-edit): Widen first.
+	Operate in the view buffer; copy edited text back to mbox buffer
+	and re-encode what was decoded to display the message.
+	(pmail-abort-edit): Widen first.
+
+	* pmail.el (pmail-forwarded-attr-index): Doc fix.
+	(pmail-resent-attr-index): New variable.
+	(pmail-attr-array): Add r for resent.
+	(pmail-add-mbox-headers): Make 8 attributes.
+	(pmail-set-attribute): Extend attribute line if necessary.
+
+	* pmail.el (pmail-widen): New command.
+	(pmail-mode-map): o is pmail-output, C-o is pmail-output-as-seen,
+	(pmail-mode-map): c-w is pmail-widen.
+	(pmail-change-major-mode-hook): Do nothing unless buffer-swapped-with.
+	(pmail-show-message): Downcase character-coding.
+
+	* pmailout.el (pmail-output-decode-coding): New variable.
+	(pmail-delete-unwanted-fields): Greatly simplified.
+	(pmail-output-as-babyl): New function.
+	(pmail-convert-to-babyl-format): Considerably simplified:
+	assume just one message and don't worry about Content-Type.
+	(pmail-output-as-mbox): New function.
+	(pmail-output): Total rewrite.
+	(pmail-output-as-seen): New command.
+	(pmail-output-read-pmail-file-name): Function deleted.
+	(pmail-output-to-babyl-file): Function deleted.
+	(pmail-output-body-to-file): Don't set an attribute.
+
+2008-12-23  Richard M Stallman  <rms@gnu.org>
+
+	* pmailedit.el (pmail-edit-saved-coding-system): Var deleted.
+	(pmail-edit-current-message, pmail-cease-edit):
+	Don't set it, or save-buffer-coding-system.
+	(pmail-edit-current-message): Change error message.
+	(pmail-cease-edit): Put `>' before `From ' lines in message.
+
+	* pmail.el (pmail-variables): Don't set save-buffer-coding-system.
+
+	* pmailsum.el (pmail-message-subject-p): Mark as broken.
+	(pmail-message-senders-p): Likewise.
+	(pmail-new-summary-1): Don't unswap -- search messages where they are.
+
+	* pmail.el (pmail-display-labels): Doc fix.
+	(pmail-set-attribute): Deleted unused vars.
+	Bind inhibit-read-only, not buffer-read-only.
+	(pmail-message-attr-p): Doc fix.
+	(pmail-message-labels-p, pmail-message-recipients-p)
+	(pmail-message-regexp-p): Mark as broken.
+
+	* pmailedit.el (pmailhdr): Don't require it.
+	(pmail-edit-current-message): Don't call pmail-header-show-headers.
+	(pmail-cease-edit): Force a blank line at end of edited message.
+	Call pmail-set-attribute properly.
+	Don't set buffer-read-only.
+
+2008-12-22  Richard M Stallman  <rms@gnu.org>
+
+	* pmail.el (pmail-retried-attr-index, pmail-forwarded-attr-index):
+	Renamed from pmail-resent-attr-index and pmail-stored-attr-index.
+	(pmail-attr-array): Change names to `retried' and `forwarded'
+	(pmail-reply): Use pmail-answered-attr-index.
+	(pmail-forward): Use pmail-forwarded-attr-index.
+	(pmail-retry-failure): Use pmail-retried-attr-index.
+
+	* pmail.el (pmail-get-header): Don't unswap, just see data where it is.
+	(pmail-set-attribute): Don't unswap, just set the data where it is.
+	(pmail-show-message): Call pmail-swap-buffers-maybe before reswapping.
+
+	* pmail.el (pmail-get-attr-names): Doc fix.
+	(pmail-is-text-p): Doc fix.
+
+	* pmailout.el (pmail-output): Use pmail-buffers-swapped-p as function.
+
+	* pmail.el (pmail-swap-buffers-maybe): Variable deleted.
+	All uses call the function instead.
+
+	* pmail.el (pmail-save): Function deleted.
+	(pmail-mode-map): Don't bind C-x C-s.
+	(pmail-mode-1): Don't set up write-region-annotate-functions.
+	(pmail-write-region-annotate): Function deleted.
+	(pmail-change-major-mode-hook): Set buffer-swapped-with.
+	(pmail-use-collection-buffer): Likewise.
+	(pmail-show-message): Likewise.
+
+	* pmail.el (pmail-swap-buffers-maybe): Go to pmail-buffer before
+	testing anything.
+	(pmail): Call pmail-swap-buffers-maybe only if already in Pmail mode.
+
 2008-12-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmail.el (pmail-save): New function.
@@ -873,7 +1122,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

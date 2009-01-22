@@ -1,7 +1,7 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -387,7 +387,7 @@ of the file with the extension stripped off."
 
 ;;;###autoload
 (defun url-truncate-url-for-viewing (url &optional width)
-  "Return a shortened version of URL that is WIDTH characters or less wide.
+  "Return a shortened version of URL that is WIDTH characters wide or less.
 WIDTH defaults to the current frame width."
   (let* ((fr-width (or width (frame-width)))
 	 (str-width (length url))

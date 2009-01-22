@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to emacs-pretest-bug@gnu.org.
@@ -139,7 +139,7 @@ terminal frames using emacsclient.
 emacs server.
 
 *** The new command close-display-connection closes a connection to a
-remote display.
+remote display.  There are some bugs for Gtk+.  See etc/PROBLEMS.
 
 *** Emacs now supports the XEmbed specification.
 You can embed Emacs in another application on X11.  The new command line
@@ -338,6 +338,14 @@ finnish-alt-postfix, german-alt-postfix, icelandic-alt-postfix,
 norwegian-alt-postfix, scandinavian-alt-postfix, spanish-alt-postfix,
 and swedish-alt-postfix.  Use the versions without "alt-", which are
 identical.
+
++++
+** If a function in write-region-annotate-functions returns with a
+different buffer current, Emacs no longer kills that buffer
+automatically.  This behavior existed in previous versions of Emacs,
+but was undocumented.  To kill a buffer after write-region, give the
+variable `write-region-post-annotation-function' a buffer-local value
+of `kill-buffer'.
 
 
 * Editing Changes in Emacs 23.1
@@ -542,7 +550,8 @@ matches a regexp.
 +++
 *** The new command `set-file-modes' allows to set file's mode bits.
 The mode bits can be specified in symbolic notation, like with GNU
-Coreutils, in addition to an octal number.
+Coreutils, in addition to an octal number.  `chmod' is a new
+convenience alias for this function.
 
 *** `next-error-recenter' specifies how next-error should recenter the
 visited source file.  Its value can be a number (for example, 0 for
@@ -550,6 +559,8 @@ top line, -1 for bottom line), or nil for no recentering.
 +++
 *** When typing in a password in the echo area, C-y yanks the current
 kill into the password.
+
+*** `mkdir' is a new convenience alias for `make-directory'.
 
 * New Modes and Packages in Emacs 23.1
 
@@ -561,6 +572,9 @@ automatically when they are displayed.  It is globally on by default.
 It uses `auto-composition-function' (default `auto-compose-chars').
 
 ** Bubbles, a new game, is similar to SameGame.
+---
+** butterfly flips the desired bit on the drive platter.
+See http://xkcd.com/378/
 
 ** bug-reference.el provides clickable links to bug reports.
 
@@ -775,8 +789,8 @@ diff-auto-refine-mode.  It is bound to `C-c C-b'.
 buffer and tries to create ChangeLog entries for each change.
 It is bound to `C-x 4 A'.
 +++
-*** The new function `diff-show-trailing-whitespaces' shows
-trailing whitespace problems in the modified lines of a diff buffer.
+*** Turning on `whitespace-mode' in a diff buffer will show trailing
+whitespace problems in the modified lines.
 
 ** Dired
 +++
@@ -928,6 +942,10 @@ minibuffer.
 The new methods "plinkx", "plink2", "psftp", "sftp" and "fish" have
 been introduced.  There are also new so-called gateway methods
 "tunnel" and "socks".
+
+*** IPv6 addresses.
+IPv6 addresses are supported now as host names.  They must be embedded
+in square brackets, like in "/ssh:[::1]:".
 
 *** Multihop syntax has been removed.
 The pseudo-method "multi" has been removed.  Instead of, multi hops
@@ -1155,6 +1173,10 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
++++
+** The function x-font-family-list has been removed.
+Use the new function font-family-list (see Lisp Changes, below).
+
 ** Internationalization changes
 
 *** The value of the function `charset-id' is now always 0.
@@ -1186,6 +1208,14 @@ functions and variables (formerly used for Tamil script).
 * Lisp Changes in Emacs 23.1
 
 ** New coding system alias `emacs-internal'.
+
++++
+** The new variable `generate-autoload-cookie' controls the magic comment
+string used by `update-file-autoloads' to find autoloaded forms.  The
+variable `generated-autoload-file' similarly controls the name of the
+file where `update-file-autoloads' writes the calls to `autoload'.
+The default values are ";;;###autoload" and `loaddefs.el',
+respectively.
 
 +++
 ** New primitives `list-system-processes' and `system-process-attributes'
@@ -1397,7 +1427,7 @@ symbolic notation thanks to auxiliary functions.
 variables defined in the current buffer.
 
 ** Face-remapping
-
++++
 *** Each face can be remapped to a different face definition using the
 variable `face-remapping-alist'.  This is an alist that maps faces to
 replacement definitions (which can be face names, lists of face names,
@@ -1410,15 +1440,15 @@ menu and the new `C-x C-+', `C-x C--', and `C-x C-0' commands (see
 Editing Changes, above).
 
 *** New functions:
-
++++
 **** `face-remap-add-relative' adds a face remapping entry to the
 current buffer.
-
++++
 **** ``face-remap-remove-relative' removes a face remapping entry from
 the current buffer.
-
++++
 **** `face-remap-reset-base' restores a face to its global definition.
-
++++
 **** `face-remap-set-base' sets the base remapping of a face.
 
 ** Process changes
@@ -1544,6 +1574,12 @@ conversion should go.
 have an optional 4th argument specifying a buffer to store the result
 of conversion.
 
++++
+*** The new variable `inhibit-null-byte-detection' controls whether to
+consider text with null bytes as binary data.  By default, it is
+`nil', and Emacs uses `no-conversion' for any text containing null
+bytes.
+
 ---
 *** The functions `set-coding-priority' and `make-coding-system' are obsolete.
 
@@ -1609,26 +1645,26 @@ second argument, and has an optional 5th argument to control how to
 set the font.
 
 *** New functions:
-
++++
 **** `fontp' checks if the argument is a font-spec or font-entity.
-
++++
 **** `font-spec' creates a new font-spec object.
-
++++
 **** `font-get' returns a font property value.
-
++++
 **** `font-put' sets a font property value.
-
++++
 **** `font-face-attributes' returns a plist of face attributes set by a font.
-
++++
 **** `list-fonts' returns a list of font-entities matching a font spec.
-
-**** `font-font' returns the font-entity best matching the given font spec.
-
-**** `list-families' returns a list of family names of available fonts.
-
++++
+**** `find-font' returns the font-entity best matching the given font spec.
++++
+**** `font-family-list' returns a list of family names of available fonts.
++++
 **** `font-xlfd-name' returns an XLFD name of a given font spec, font
 entity, or font object.
-
+---
 **** `clear-font-cache' clears all font caches.
 
 ** Changes related to multiple-terminal (multi-tty) support
@@ -1646,19 +1682,24 @@ $TERM inherited by Emacs you will have to look inside initial-environment.
 for the first frame.  `window-system' is also now a function that
 takes a frame argument.
 
++++
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems are now terminal-local.
 
+---
 *** You can specify a terminal device (`tty' parameter) and a terminal
 type (`tty-type' parameter) to `make-terminal-frame'.
 
+---
 *** The function `make-frame-on-display' now works during a tty
-session, and `make-frame-on-tty' works during a graphical session.
+session.
 
++++
 *** A new `terminal' data type.
 The functions `get-device-terminal', `terminal-parameters',
-`terminal-parameter', `set-terminal-parameter' return this data type.
+`terminal-parameter', `set-terminal-parameter' use this data type.
 
++++
 *** Function key sequences are now mapped using `local-function-key-map',
 a new variable.  This inherits from the global variable function-key-map,
 which is not used directly any more.
@@ -1670,26 +1711,31 @@ which is not used directly any more.
 variable file-local-variables-alist, and before actually applying the
 file-local variables.
 
++++
 **** `suspend-tty-functions' and `resume-tty-functions' are called
 after a tty frame has been suspended or resumed, respectively.  The
 functions are called with the terminal id of the frame being
 suspended/resumed as a parameter.
 
++++
 **** The special hook `delete-terminal-functions' is called before
 deleting a terminal.
 
 *** New functions:
 
++++
 **** `environment'
 
-**** `make-frame-on-tty' creates a new frame on another tty device.
++++
+**** `delete-terminal'
 
-**** `delete-tty'
-
++++
 **** `suspend-tty'
 
++++
 **** `resume-tty'.
 
++++
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
 ** Redisplay changes
@@ -1732,6 +1778,9 @@ uses the minibuffer-local-shell-command-map for that.
 +++
 *** `buffer-swap-text' swaps text between two buffers.  This can be
 useful for modes such as tar-mode, archive-mode, RMAIL.
+
+*** New variable `buffer-swapped-with' lets the modes that use
+`buffer-swap-text' arrange to save the file from the proper buffer.
 
 +++
 *** `read-color' reads a color name using the minibuffer.

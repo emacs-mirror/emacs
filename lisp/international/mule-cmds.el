@@ -1,9 +1,9 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008  Free Software Foundation, Inc.
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008
+;;   2005, 2006, 2007, 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -288,7 +288,7 @@ wrong, use this command again to toggle back to the right mode."
 	 prefix)
     ;; read-key-sequence ignores quit, so make an explicit check.
     ;; Like many places, this assumes quit == C-g, but it need not be.
-    (if (char-equal last-input-char ?\C-g)
+    (if (equal last-input-event ?\C-g)
 	(keyboard-quit))
     (when (memq cmd '(universal-argument digit-argument))
       (call-interactively cmd)
@@ -299,10 +299,10 @@ wrong, use this command again to toggle back to the right mode."
 		     cmd (key-binding keyseq t))
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
-	      ;; Have to bind `last-command-char' here so that
+	      ;; Have to bind `last-command-event' here so that
 	      ;; `digit-argument', for instance, can compute the
 	      ;; prefix arg.
-	      (last-command-char (aref keyseq 0)))
+	      (last-command-event (aref keyseq 0)))
 	  (call-interactively cmd)))
 
       ;; This is the final call to `universal-argument-other-key', which

@@ -1,7 +1,7 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -44,7 +44,7 @@
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
 (add-to-list 'tramp-default-method-alist
-	     `(nil "%" ,tramp-smb-method))
+	     `(nil ,tramp-prefix-domain-regexp ,tramp-smb-method))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
@@ -216,7 +216,11 @@ PRESERVE-UID-GID is completely ignored."
 
     (if tmpfile
 	;; Remote filename.
-	(rename-file tmpfile newname ok-if-already-exists)
+	(condition-case err
+	    (rename-file tmpfile newname ok-if-already-exists)
+	  ((error quit)
+	   (delete-file tmpfile)
+	   (signal (car err) (cdr err))))
 
       ;; Remote newname.
       (when (file-directory-p newname)
@@ -548,10 +552,14 @@ PRESERVE-UID-GID is completely ignored."
   (let ((tmpfile (file-local-copy filename)))
 
     (if tmpfile
-	;; remote filename
-	(rename-file tmpfile newname ok-if-already-exists)
+	;; Remote filename.
+	(condition-case err
+	    (rename-file tmpfile newname ok-if-already-exists)
+	  ((error quit)
+	   (delete-file tmpfile)
+	   (signal (car err) (cdr err))))
 
-      ;; remote newname
+      ;; Remote newname.
       (when (file-directory-p newname)
 	(setq newname (expand-file-name
 		      (file-name-nondirectory filename) newname)))
@@ -618,12 +626,13 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	 (list start end tmpfile append 'no-message lockname)))
 
       (tramp-message v 5 "Writing tmp file %s to file %s..." tmpfile filename)
-      (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfile file))
-	  (tramp-message
-	   v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
-	(tramp-error v 'file-error "Cannot write `%s'" filename))
+      (unwind-protect
+	  (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfile file))
+	      (tramp-message
+	       v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
+	    (tramp-error v 'file-error "Cannot write `%s'" filename))
+	(delete-file tmpfile))
 
-      (delete-file tmpfile)
       (unless (equal curbuf (current-buffer))
 	(tramp-error
 	 v 'file-error
@@ -905,20 +914,13 @@ connection if a previous connection has died for some reason."
 		  (executable-find tramp-smb-program))
 	  (error "Cannot find command %s in %s" tramp-smb-program exec-path))
 
-	(let* ((user (tramp-file-name-user vec))
-	       (host (tramp-file-name-host vec))
-	       (real-user user)
-	       (real-host host)
-	       domain port args)
-
-	  ;; Check for domain ("user%domain") and port ("host#port").
-	  (when (and user (string-match "\\(.+\\)%\\(.+\\)" user))
-	    (setq real-user (or (match-string 1 user) user)
-		  domain (match-string 2 user)))
-
-	  (when (and host (string-match "\\(.+\\)#\\(.+\\)" host))
-	    (setq real-host (or (match-string 1 host) host)
-		  port (match-string 2 host)))
+	(let* ((user      (tramp-file-name-user vec))
+	       (host      (tramp-file-name-host vec))
+	       (real-user (tramp-file-name-real-user vec))
+	       (real-host (tramp-file-name-real-host vec))
+	       (domain    (tramp-file-name-domain vec))
+	       (port      (tramp-file-name-port vec))
+	       args)
 
 	  (if share
 	      (setq args (list (concat "//" real-host "/" share)))

@@ -1,7 +1,7 @@
 ;;; erc-speedbar.el --- Speedbar support for ERC
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;;   2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <eric@siege-engine.com>

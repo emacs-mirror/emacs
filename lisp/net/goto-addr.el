@@ -1,7 +1,7 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
 ;; Copyright (C) 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -129,7 +129,7 @@ A value of t means there is no limit--fontify regardless of the size."
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
-(defcustom goto-address-url-face 'bold
+(defcustom goto-address-url-face 'link
   "Face to use for URLs."
   :type 'face
   :group 'goto-address)

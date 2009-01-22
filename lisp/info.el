@@ -1,7 +1,7 @@
 ;;; info.el --- info package for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -461,13 +461,15 @@ Do the right thing if the file has been compressed or zipped."
 	  (insert-file-contents-literally fullname visit)
 	  (let ((inhibit-read-only t)
 		(coding-system-for-write 'no-conversion)
+		(inhibit-null-byte-detection t) ; Index nodes include null bytes
 		(default-directory (or (file-name-directory fullname)
 				       default-directory)))
 	    (or (consp decoder)
 		(setq decoder (list decoder)))
 	    (apply 'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
-      (insert-file-contents fullname visit))))
+      (let ((inhibit-null-byte-detection t)) ; Index nodes include null bytes
+	(insert-file-contents fullname visit)))))
 
 (defun Info-file-supports-index-cookies (&optional file)
   "Return non-nil value if FILE supports Info index cookies.
@@ -1007,7 +1009,7 @@ a case-insensitive match is tried."
                                  (delete new-history Info-history-list))))
                    (goto-char anchorpos))
                   ((numberp Info-point-loc)
-                   (forward-line (1- Info-point-loc))
+                   (forward-line (- Info-point-loc 2))
                    (setq Info-point-loc nil))
 		  ((stringp Info-point-loc)
 		   (Info-find-index-name Info-point-loc)
@@ -1094,7 +1096,10 @@ a case-insensitive match is tried."
 		      (or buffers
 			  (message "Composing main Info directory..."))
 		      (condition-case nil
-			  (progn
+			  ;; Index nodes include null bytes.  DIR
+			  ;; files should not have indices, but who
+			  ;; knows...
+			  (let ((inhibit-null-byte-detection t))
 			    (insert-file-contents file)
 			    (set (make-local-variable 'Info-dir-file-name)
 				 file)
@@ -1855,17 +1860,20 @@ If DIRECTION is `backward', search in the reverse direction."
 	;; Otherwise this variable is set after first search failure.
 	(and isearch-nonincremental Info-current-node)))
 
-(defun Info-isearch-filter-predicate (beg-found found)
-  "Skip invisible text, node header line and Tag Table node."
+(defun Info-isearch-filter (beg-found found)
+  "Test whether the current search hit is a visible useful text.
+Return non-nil if the text from BEG-FOUND to FOUND is visible
+and is not in the header line or a tag table."
   (save-match-data
     (let ((backward (< found beg-found)))
       (not
        (or
-	(if backward
-	    (or (text-property-not-all found beg-found 'invisible nil)
-		(text-property-not-all found beg-found 'display nil))
-	  (or (text-property-not-all beg-found found 'invisible nil)
-	      (text-property-not-all beg-found found 'display nil)))
+	(and (not (eq search-invisible t))
+	     (if backward
+		 (or (text-property-not-all found beg-found 'invisible nil)
+		     (text-property-not-all found beg-found 'display nil))
+	       (or (text-property-not-all beg-found found 'invisible nil)
+		   (text-property-not-all beg-found found 'display nil))))
 	;; Skip node header line
 	(and (save-excursion (forward-line -1)
 			     (looking-at "\^_"))
@@ -3540,7 +3548,7 @@ Advanced commands:
   (set (make-local-variable 'isearch-push-state-function)
        'Info-isearch-push-state)
   (set (make-local-variable 'isearch-filter-predicate)
-       'Info-isearch-filter-predicate)
+       'Info-isearch-filter)
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (set (make-local-variable 'revert-buffer-function)

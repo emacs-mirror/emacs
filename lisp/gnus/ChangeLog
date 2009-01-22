@@ -1,3 +1,155 @@
+2009-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Update docs to reflect epa-file-enable is to be used
+	now.
+
+2009-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-pathname-coding-system): Default to the `file-name'
+	coding system in XEmacs; add a workaround for XEmacs.
+
+2009-01-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Protect against nil value
+	of current-language-environment.
+
+2009-01-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnfolder.el (nnfolder-read-folder): Check if most-positive-fixnum is
+	available at runtime.
+
+2009-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut): Fix end point of narrowing.
+
+2009-01-11  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* nnfolder.el (nnfolder-read-folder): The (lsh -1 -1) trick to generate
+	the greatest positive fixnum value doesn't work under an XEmacs with
+	bignum support; use the most-positive-fixnum constant instead,
+	available since Emacs 21.1 with cl and XEmacs 21.1.
+
+2009-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Revert last change by which
+	XEmacs gets not to work.
+
+2009-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Allow the value like
+	"Japanese (UTF-8)" of current-language-environment.
+
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Replace last-command-char
+	with last-command-event.
+
+2009-01-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-fix-before-sending): Amend comment.
+
+2009-01-07  David Engster  <dengste@eml.cc>
+
+	* gnus-msg.el (gnus-inews-do-gcc): Fix last patch to deal with
+	simplified server definitions by converting it via
+	gnus-server-to-method.
+
+2009-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-set-local-parameters): Always evaluate
+	parameter's operands.
+
+2009-01-06  David Engster  <dengste@eml.cc>
+
+	* gnus-msg.el (gnus-inews-do-gcc): Reduce to short group name when on
+	primary select method (for gnus-group-mark-article-as-read).
+
+2009-01-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* gnus-art.el (gnus-treat-display-face): Fix docstring link to point to
+	`(gnus)Face', not `(gnus)X-Face'.
+
+2009-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-ucs-to-char): New function.
+
+	* mm-url.el (mm-url-decode-entities): Use it.
+
+2009-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-fix-before-sending): Add `eight-bit' to
+	illegible-text check.
+
+2009-01-03  Michael Olson  <mwolson@gnu.org>
+
+	* nnimap.el (nnimap-retrieve-headers-progress): Handle edge case where
+	`headers' is nil.  This can occur if the IMAP server does not have
+	permissions to read messages from a folder, but can write new messages
+	to the folder.
+	(nnimap-request-article-part): Do not insert `data' if it is nil.
+
+2009-01-01  Dave Love  <fx@gnu.org>
+
+	* nnimap.el (nnimap-find-minmax-uid): Use imap-fetch-safe.
+
+	* nnimap.el: Fix author email.
+	(nnimap-split-rule): Add FIXME comment.
+	(nnimap-debug): Fix doc string.
+
+2008-12-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-set-article-display-arrow): Make
+	overlay-arrow-position and overlay-arrow-string buffer-local; no need
+	to check if those variables exist (first appeared in Emacs 18.50).
+
+2008-12-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-line-number-at-pos): New function.
+
+	* spam-report.el (spam-report-process-queue): Use it.
+
+2008-12-24  David Engster  <dengste@eml.cc>
+
+	* gnus-sum.el (gnus-summary-set-local-parameters): Don't bind
+	parameters that haven't existed as variables as buffer-local variables.
+
+2008-12-23  Dave Love  <fx@gnu.org>
+
+	* legacy-gnus-agent.el (gnus-agent-unlist-expire-days): Don't use
+	cadar.
+
+	* sieve-manage.el (sieve-manage-starttls-p): Renamed from
+	imap-starttls-p.
+	(sieve-manage-starttls-open): Renamed from imap-starttls-open.
+
+2008-12-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-gmane-max-requests): New constant.
+	(spam-report-gmane-wait): New variable.
+	(spam-report-gmane-ham, spam-report-gmane-spam)
+	(spam-report-url-ping-plain, spam-report-process-queue): Wait only if
+	spam-report-gmane-wait is non-nil should be sufficient to avoid DOS-ing
+	the server.
+
+	* nnheader.el (nnheader-read-timeout, nnheader-accept-process-output):
+	Add explanations.
+
+	* pop3.el (pop3-accept-process-output, pop3-read-timeout): Use
+	nnheader-accept-process-output and nnheader-read-timeout if available.
+	(pop3-movemail): Use it.
+
+	* message.el (message-check-news-body-syntax): Fix signature check if
+	there's an attachment.
+
+2008-12-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el: Add comments to the mm- emulating functions.
+
+2008-12-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-before-startup-hook): Fix doc string.  Reported
+	by Stephen Berman <stephen.berman@gmx.net>.
+
 2008-12-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-substring-no-properties): New function.
@@ -10,6 +162,7 @@
 2008-12-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mml.el (mml-attach-file): Strip text properties from file name.
+	(Bug#1574)
 
 2008-12-16  Glenn Morris  <rgm@gnu.org>
 
@@ -11527,6 +11680,7 @@
 	* gnus-start.el (gnus-get-unread-articles): Fix last commit.
 
 2004-04-07  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
 	* gnus-agent.el (gnus-agent-total-fetched-hashtb): New variable.
 	(gnus-agent-with-refreshed-group): New macro.
 	(gnus-agent-rename-group): New function.
@@ -13123,11 +13277,10 @@
 
 2004-01-04  Mario Lang  <lang@zid.tugraz.at>
 
-	* dns.el: Add support for AAAA records (see RFC 3596)
-
-	* Fix typo PRT -> PTR
-
-	* Parse MX, PTR and SOA replies (see RFC 1035)
+	* dns.el (dns-query-types): Fix typo.
+	(dns-query-types): New function
+	(dns-read-type): Add support for AAAA records, see RFC 3596.  Parse MX,
+	PTR and SOA replies, see RFC 1035.
 
 2004-01-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -13154,7 +13307,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

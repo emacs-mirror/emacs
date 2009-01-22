@@ -1,6 +1,7 @@
 ;;; url-cid.el --- Content-ID URL loader
 
-;; Copyright (C) 1998, 1999, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -43,7 +44,7 @@
       (if (= 0 (length encoding)) (setq encoding "8bit"))
       (if (listp content-type)
 	  (setq content-type (car content-type)))
-      (insert (format "Content-type: %d\r\n"  (length data))
+      (insert (format "Content-length: %d\r\n"  (length data))
 	      "Content-type: " content-type "\r\n"
 	      "Content-transfer-encoding: " encoding "\r\n"
 	      "\r\n"

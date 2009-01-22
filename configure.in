@@ -4,7 +4,7 @@ dnl 	autoconf
 dnl in the directory containing this script.
 dnl
 dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
-dnl    2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+dnl    2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1891,6 +1891,13 @@ if test "${HAVE_FREETYPE}" = "yes"; then
                       HAVE_LIBOTF=no)
     if test "$HAVE_LIBOTF" = "yes"; then
       AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+      AC_CHECK_LIB(otf, OTF_get_variation_glyphs,
+      		   HAVE_OTF_GET_VARIATION_GLYPHS=yes,
+      		   HAVE_OTF_GET_VARIATION_GLYPHS=no)
+      if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
+        AC_DEFINE(HAVE_OTF_GET_VARIATION_GLYPHS, 1,
+	          [Define to 1 if libotf has OTF_get_variation_glyphs.])
+      fi
     fi
   fi
 dnl FIXME should there be an error if HAVE_FREETYPE != yes?
@@ -2558,7 +2565,7 @@ fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
    Copyright (C) 1988, 1993, 1994, 1999, 2000, 2001, 2002, 2004, 2005,
-     2006, 2007, 2008  Free Software Foundation, Inc.
+     2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

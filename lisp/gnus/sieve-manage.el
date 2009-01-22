@@ -1,7 +1,7 @@
 ;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008  Free Software Foundation, Inc.
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -304,15 +304,14 @@ Returns t if login was successful, nil otherwise."
       (when (memq (process-status process) '(open run))
 	process))))
 
-(defun imap-starttls-p (buffer)
-  ;;  (and (imap-capability 'STARTTLS buffer)
+(defun sieve-manage-starttls-p (buffer)
   (condition-case ()
       (progn
 	(require 'starttls)
 	(call-process "starttls"))
     (error nil)))
 
-(defun imap-starttls-open (name buffer server port)
+(defun sieve-manage-starttls-open (name buffer server port)
   (let* ((port (or port sieve-manage-default-port))
 	 (coding-system-for-read sieve-manage-coding-system-for-read)
 	 (coding-system-for-write sieve-manage-coding-system-for-write)

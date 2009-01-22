@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008
+   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008, 2009
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -212,6 +212,7 @@ static int ns_window_num =0;
 static NSRect uRect;
 static BOOL gsaved = NO;
 BOOL ns_in_resize = NO;
+static BOOL ns_fake_keydown = NO;
 int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
 /*static int debug_lock = 0; */
@@ -288,8 +289,7 @@ static BOOL inNsSelect = 0;
    methods.  Maybe it should even be a function.  */
 #define EV_TRAILER(e)                                         \
   {                                                           \
-  XSETFRAME (emacs_event->frame_or_window, [NSApp isActive] ? \
-             emacsframe : SELECTED_FRAME ());                 \
+  XSETFRAME (emacs_event->frame_or_window, emacsframe);       \
   if (e) emacs_event->timestamp = EV_TIMESTAMP (e);           \
   n_emacs_events_pending++;                                   \
   kbd_buffer_store_event_hold (emacs_event, q_event_ptr);     \
@@ -297,9 +297,12 @@ static BOOL inNsSelect = 0;
   ns_send_appdefined (-1);                                    \
   }
 
+void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
+
 /* TODO: get rid of need for these forward declarations */
-static void ns_condemn_scroll_bars (struct frame *f),
-            ns_judge_scroll_bars (struct frame *f);
+static void ns_condemn_scroll_bars (struct frame *f);
+static void ns_judge_scroll_bars (struct frame *f);
+void x_set_frame_alpha (struct frame *f);
 
 /* unused variables needed for compatibility reasons */
 int x_use_underline_position_properties, x_underline_at_descent_line;
@@ -1152,7 +1155,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
   pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-  
+
   /* If we have a change in toolbar display, calculate height */
   if (tb)
     /* XXX: GNUstep has not yet implemented the first method below, added
@@ -1417,7 +1420,7 @@ ns_get_color (const char *name, NSColor **col)
   /* Direct colors (hex values) */
   if (hex)
     {
-      unsigned long color = 0;
+      unsigned long long color = 0;
       if (sscanf (hex, "%x", &color))
         {
           float f1, f2, f3, f4;
@@ -1607,14 +1610,14 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
       color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
   [temp getRed: &r green: &g blue: &b alpha: &a];
-  color_def->red   = r * 256;
-  color_def->green = g * 256;
-  color_def->blue  = b * 256;
+  color_def->red   = r * 65535;
+  color_def->green = g * 65535;
+  color_def->blue  = b * 65535;
 
   if (!makeIndex)
     color_def->pixel
-      = ARGB_TO_ULONG((int)(a*256),
-		      color_def->red, color_def->green, color_def->blue);
+      = ARGB_TO_ULONG((int)(a*255),
+		      (int)(r*255), (int)(g*255), (int)(b*255));
 
   return 1;
 }
@@ -1667,7 +1670,7 @@ x_set_frame_alpha (struct frame *f)
     alpha = 1.0;
   else if (0.0 <= alpha && alpha < alpha_min && alpha_min <= 1.0)
     alpha = alpha_min;
-  
+
 #ifdef NS_IMPL_COCOA
   [[view window] setAlphaValue: alpha];
 #endif
@@ -1732,7 +1735,7 @@ note_mouse_movement (struct frame *frame, float x, float y)
 //  NSTRACE (note_mouse_movement);
 
   XSETFRAME (last_mouse_motion_frame, frame);
-  
+
   /* Note, this doesn't get called for enter/leave, since we don't have a
      position.  Those are taken care of in the corresponding NSView methods. */
 
@@ -3662,7 +3665,7 @@ ns_delete_terminal (struct terminal *terminal)
   struct ns_display_info *dpyinfo = terminal->display_info.ns;
   int i;
 
-  /* Protect against recursive calls.  Fdelete_frame in
+  /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
     return;
@@ -3984,8 +3987,15 @@ ns_term_shutdown (int sig)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));
 
-  ns_shutdown_properly = YES;
-  [NSApp terminate: NSApp];
+  if (sig == 0 || sig == SIGTERM)
+    {
+      ns_shutdown_properly = YES;
+      [NSApp terminate: NSApp];
+    }
+  else // force a stack trace to happen
+    {
+      abort();
+    }
 }
 
 
@@ -4118,7 +4128,7 @@ ns_term_shutdown (int sig)
   [NSApp setServicesProvider: NSApp];
   ns_send_appdefined (-2);
 }
- 
+
 
 - (void) terminate: (id)sender
 {
@@ -4372,6 +4382,7 @@ extern void update_window_cursor (struct window *w, int on);
 }
 
 
+
 /*****************************************************************************/
 /* Keyboard handling. */
 #define NS_KEYLOG 0
@@ -4388,7 +4399,9 @@ extern void update_window_cursor (struct window *w, int on);
   NSTRACE (keyDown);
 
   /* Rhapsody and OS X give up and down events for the arrow keys */
-  if ([theEvent type] != NSKeyDown)
+  if (ns_fake_keydown == YES)
+    ns_fake_keydown = NO;
+  else if ([theEvent type] != NSKeyDown)
     return;
 
   if (!emacs_event)
@@ -4483,10 +4496,12 @@ extern void update_window_cursor (struct window *w, int on);
         }
 
       if (flags & NSControlKeyMask)
-          emacs_event->modifiers |= parse_solitary_modifier (ns_control_modifier);
+          emacs_event->modifiers |=
+            parse_solitary_modifier (ns_control_modifier);
 
       if (flags & NS_FUNCTION_KEY_MASK && !fnKeysym)
-          emacs_event->modifiers |= parse_solitary_modifier (ns_function_modifier);
+          emacs_event->modifiers |=
+            parse_solitary_modifier (ns_function_modifier);
 
       if (flags & NSAlternateKeyMask) /* default = meta */
         {
@@ -4499,10 +4514,13 @@ extern void update_window_cursor (struct window *w, int on);
                 emacs_event->modifiers = 0;
             }
           else
-              emacs_event->modifiers |= parse_solitary_modifier (ns_alternate_modifier);
+              emacs_event->modifiers |=
+                parse_solitary_modifier (ns_alternate_modifier);
         }
 
-/*fprintf (stderr,"code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",code,fnKeysym,flags,emacs_event->modifiers); */
+  if (NS_KEYLOG)
+    fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
+             code, fnKeysym, flags, emacs_event->modifiers);
 
       /* if it was a function key or had modifiers, pass it directly to emacs */
       if (fnKeysym || (emacs_event->modifiers
@@ -4532,13 +4550,33 @@ extern void update_window_cursor (struct window *w, int on);
   firstTime = NO;
 
   if (NS_KEYLOG && !processingCompose)
-    fprintf (stderr, "Begin compose sequence.\n");
+    fprintf (stderr, "keyDown: Begin compose sequence.\n");
 
   processingCompose = YES;
   [nsEvArray addObject: theEvent];
   [self interpretKeyEvents: nsEvArray];
   [nsEvArray removeObject: theEvent];
 }
+
+
+#ifdef NS_IMPL_COCOA
+/* Needed to pick up Ctrl-tab and possibly other events that OS X has
+   decided not to send key-down for.
+   See http://osdir.com/ml/editors.vim.mac/2007-10/msg00141.html
+   If it matches one of these, send it on to keyDown. */
+-(void)keyUp: (NSEvent *)theEvent
+{
+  int flags = [theEvent modifierFlags];
+  int code = [theEvent keyCode];
+  if (code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
+    {
+      if (NS_KEYLOG)
+        fprintf (stderr, "keyUp: passed test");
+      ns_fake_keydown = YES;
+      [self keyDown: theEvent];
+    }
+}
+#endif
 
 
 /* <NSTextInput> implementation (called through super interpretKeyEvents:]). */
@@ -4551,7 +4589,8 @@ extern void update_window_cursor (struct window *w, int on);
   int len = [(NSString *)aString length];
   int i;
 
-if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
+  if (NS_KEYLOG)
+    NSLog (@"insertText '%@'\tlen = %d", aString, len);
   processingCompose = NO;
 
   if (!emacs_event)
@@ -4652,13 +4691,15 @@ if (NS_KEYLOG) NSLog (@"insertText '%@'\tlen = %d", aString, len);
 {
   NSRange rng = workingText != nil
     ? NSMakeRange (0, [workingText length]) : NSMakeRange (NSNotFound, 0);
-if (NS_KEYLOG) NSLog (@"markedRange request");
+  if (NS_KEYLOG)
+    NSLog (@"markedRange request");
   return rng;
 }
 
 - (void)unmarkText
 {
-if (NS_KEYLOG) NSLog (@"unmark (accept) text");
+  if (NS_KEYLOG)
+    NSLog (@"unmark (accept) text");
   [self deleteWorkingText];
   processingCompose = NO;
 }
@@ -4669,7 +4710,8 @@ if (NS_KEYLOG) NSLog (@"unmark (accept) text");
   NSRect rect;
   NSPoint pt;
   struct window *win = XWINDOW (FRAME_SELECTED_WINDOW (emacsframe));
-if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
+  if (NS_KEYLOG)
+    NSLog (@"firstRectForCharRange request");
 
   rect.size.width = theRange.length * FRAME_COLUMN_WIDTH (emacsframe);
   rect.size.height = FRAME_LINE_HEIGHT (emacsframe);
@@ -4692,8 +4734,8 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
-  if (NS_KEYLOG) NSLog (@"Do command by selector: %@",
-                       NSStringFromSelector (aSelector));
+  if (NS_KEYLOG)
+    NSLog (@"doCommandBySelector: %@", NSStringFromSelector (aSelector));
 
   if (aSelector == @selector (deleteBackward:))
     {
@@ -4717,13 +4759,15 @@ if (NS_KEYLOG) NSLog (@"firstRectForCharRange request");
 
 - (NSRange)selectedRange
 {
-if (NS_KEYLOG) NSLog (@"selectedRange request");
+  if (NS_KEYLOG)
+    NSLog (@"selectedRange request");
   return NSMakeRange (NSNotFound, 0);
 }
 
 - (unsigned int)characterIndexForPoint: (NSPoint)thePoint
 {
-if (NS_KEYLOG) NSLog (@"characterIndexForPoint request");
+  if (NS_KEYLOG)
+    NSLog (@"characterIndexForPoint request");
   return 0;
 }
 
@@ -4731,7 +4775,8 @@ if (NS_KEYLOG) NSLog (@"characterIndexForPoint request");
 {
   static NSAttributedString *str = nil;
   if (str == nil) str = [NSAttributedString new];
-if (NS_KEYLOG) NSLog (@"attributedSubstringFromRange request");
+  if (NS_KEYLOG)
+    NSLog (@"attributedSubstringFromRange request");
   return str;
 }
 
@@ -6044,6 +6089,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 }
 
 
+/* If you change this, change setPanelFromDefaultValues too. */
 - (void) setPanelFromValues
 {
   int cursorType
@@ -6074,6 +6120,23 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 }
 
 
+/* This and ns_set_default_prefs should be changed together. */
+- (void) setPanelFromDefaultValues
+{
+  [expandSpaceSlider setFloatValue: 0.0];
+  [cursorTypeMatrix selectCellWithTag: 1]; /* filled box */
+  selectItemWithTag (alternateModMenu, meta_modifier);
+  selectItemWithTag (commandModMenu, super_modifier);
+#ifdef NS_IMPL_COCOA
+  selectItemWithTag (controlModMenu, ctrl_modifier);
+  selectItemWithTag (functionModMenu, 0); /* none */
+  [smoothFontsCheck setState: YES];
+  [useQuickdrawCheck setState: NO];
+  [useSysHiliteCheck setState: YES];
+#endif
+}
+
+
 - (void) setValuesFromPanel
 {
   int altTag = [[alternateModMenu selectedItem] tag];
@@ -6100,7 +6163,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
     }
 
   store_frame_param (frame, Qcursor_type, cursor_type);
-  ns_set_cursor_type(frame, cursor_type, Qnil);  /* FIXME: do only if changed */
+  x_set_cursor_type (frame, cursor_type, Qnil);  /* FIXME: do only if changed */
 
   ns_alternate_modifier = ns_mod_to_lisp (altTag);
   ns_command_modifier = ns_mod_to_lisp (cmdTag);
@@ -6144,15 +6207,15 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (IBAction)resetToDefaults: (id)sender
 {
-  ns_set_default_prefs ();
-  [self setPanelFromValues];
+  [self setPanelFromDefaultValues];
 }
 
 
 - (IBAction)runHelp: (id)sender
 {
   Feval (Fcons (intern ("info"),
-              Fcons (build_string ("(ns-emacs)Preferences Panel"), Qnil)));
+                Fcons (build_string ("(emacs)Mac / GNUstep Customization"),
+                       Qnil)));
   SET_FRAME_GARBAGED (frame);
   ns_send_appdefined (-1);
 }
@@ -6162,6 +6225,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 {
   Lisp_Object lispFrame;
   XSETFRAME (lispFrame, frame);
+  ns_raise_frame(frame);
   Fns_popup_color_panel (lispFrame);
 }
 
@@ -6170,6 +6234,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 {
   Lisp_Object lispFrame;
   XSETFRAME (lispFrame, frame);
+  ns_raise_frame(frame);
   Fns_popup_font_panel (lispFrame);
 }
 
@@ -6181,7 +6246,6 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 /* ==========================================================================
 
    Font-related functions; these used to be in nsfaces.m
-   The XLFD functions (115 lines) are an abomination that should be removed.
 
    ========================================================================== */
 
@@ -6231,76 +6295,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 
 /* XLFD: -foundry-family-weight-slant-swidth-adstyle-pxlsz-ptSz-resx-resy-spc-avgWidth-rgstry-encoding */
-
-static const char *
-ns_font_to_xlfd (NSFont *nsfont)
-/* --------------------------------------------------------------------------
-    Convert an NS font name to an X font name (XLFD).
-    The string returned is temporarily allocated.
-   -------------------------------------------------------------------------- */
-{
-  NSFontManager *mgr = [NSFontManager sharedFontManager];
-  NSString *sname = [nsfont /*familyName*/fontName];
-  char *famName = (char *)[sname UTF8String];
-  char *weightStr = [mgr fontNamed: sname hasTraits: NSBoldFontMask] ?
-      "bold" : "medium";
-  char *slantStr = [mgr fontNamed: sname hasTraits: NSItalicFontMask] ?
-      "i" : "r";
-  int size = [nsfont pointSize];
-  int aWidth = lrint (10.0 * [nsfont widthOfString: @"a"]);
-  const char *xlfd;
-  int i, len;
-
-  /* change '-' to '$' to avoid messing w/XLFD separator */
-  for (len = strlen (famName), i =0; i<len; i++)
-    if (famName[i] == '-')
-      {
-        famName[i] = '\0';
-        break;
-      }
-
-  xlfd = [[NSString stringWithFormat:
-                       @"-apple-%s-%s-%s-normal--%d-%d-75-75-m-%d-iso10646-1",
-                       famName, weightStr, slantStr, size, 10*size, aWidth]
-                  UTF8String];
-/*fprintf (stderr, "converted '%s' to '%s'\n",name,xlfd); */
-  return xlfd;
-}
-
-static const char *
-ns_fontname_to_xlfd (const char *name)
-/* --------------------------------------------------------------------------
-    Convert an NS font name to an X font name (XLFD).
-    Sizes are set to 0.
-    The string returned is temporarily allocated.
-   -------------------------------------------------------------------------- */
-{
-  char famName[180];
-  char *weightStr = strcasestr (name, "bold") ? "bold" : "medium";
-  char *slantStr = strcasestr (name, "italic") || strcasestr (name, "oblique")
-    || strcasestr (name, "synthital") ? "i" : "r";
-  int i, len;
-  const char *xlfd;
-
-  /* change '-' to '$' to avoid messing w/XLFD separator, and ' ' to '_' */
-  bzero (famName, 180);
-  bcopy (name, famName, max (strlen (name), 179));
-  for (len =strlen (famName), i =0; i<len; i++)
-    {
-      if (famName[i] == '-')
-        famName[i] = '$';
-      else if (famName[i] == ' ')
-        famName[i] = '_';
-    }
-
-  xlfd = [[NSString stringWithFormat:
-                           @"-apple-%s-%s-%s-normal--0-0-75-75-m-0-iso10646-1",
-                           famName, weightStr, slantStr]
-                  UTF8String];
-/*fprintf (stderr, "converted '%s' to '%s'\n",name,xlfd); */
-  return xlfd;
-}
-
+/* Note: ns_font_to_xlfd and ns_fontname_to_xlfd no longer needed, removed
+         in 1.43. */
 
 const char *
 ns_xlfd_to_fontname (const char *xlfd)
@@ -6313,7 +6309,7 @@ ns_xlfd_to_fontname (const char *xlfd)
   char *name = xmalloc (180);
   int i, len;
   const char *ret;
-  
+
   if (!strncmp (xlfd, "--", 2))
     sscanf (xlfd, "--%*[^-]-%[^-]179-", name);
   else

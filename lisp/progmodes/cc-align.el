@@ -1,13 +1,14 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
-;;             1987 Dave Detlefs and Stewart Clamen
+;;             1987 Dave Detlefs
+;;             1987 Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
@@ -1245,7 +1246,7 @@ newline is added.  In either case, checking is stopped.  This supports
 exactly the old newline insertion behavior."
   ;; newline only after semicolon, but only if that semicolon is not
   ;; inside a parenthesis list (e.g. a for loop statement)
-  (if (not (eq last-command-char ?\;))
+  (if (not (eq last-command-event ?\;))
       nil				; continue checking
     (if (condition-case nil
 	    (save-excursion
@@ -1262,7 +1263,7 @@ If a comma was inserted, no determination is made.  If a semicolon was
 inserted, and the following line is not blank, no newline is inserted.
 Otherwise, no determination is made."
   (save-excursion
-    (if (and (= last-command-char ?\;)
+    (if (and (= last-command-event ?\;)
 	     ;;(/= (point-max)
 	     ;;    (save-excursion (skip-syntax-forward " ") (point))
 	     (zerop (forward-line 1))
@@ -1282,7 +1283,7 @@ For other semicolon contexts, no determination is made."
                (if (c-safe (up-list -1) t)
                    (c-point 'bol)
                  -1))))
-    (if (and (eq last-command-char ?\;)
+    (if (and (eq last-command-event ?\;)
              (eq (car (car syntax)) 'inclass)
              (eq (car (car (cdr syntax))) 'topmost-intro)
              (= (c-point 'bol) bol))

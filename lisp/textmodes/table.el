@@ -1,12 +1,12 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Wed Jan 03 2007 13:23:46 (PST)
+;; Revised: Thu Jan 08 2009 20:17:04 (PST)
 
 ;; This file is part of GNU Emacs.
 
@@ -3738,7 +3738,7 @@ companion command to `table-capture' this way.
 	(table--read-from-minibuffer '("Minimum cell width" . table-capture-min-cell-width-history)))
       (if (and (not (string= col-delim-regexp "")) (string= row-delim-regexp ""))
 	  (string-to-number
-	   (table--read-from-minibuffer '("Number of columns" . 'table-capture-columns-history)))
+	   (table--read-from-minibuffer '("Number of columns" . table-capture-columns-history)))
 	nil)
       )))
   (if (> beg end) (let ((tmp beg)) (setq beg end) (setq end tmp)))
@@ -3943,7 +3943,7 @@ converts a table into plain text without frames.  It is a companion to
 (defun *table--cell-self-insert-command ()
   "Table cell version of `self-insert-command'."
   (interactive "*")
-  (let ((char (table--unibyte-char-to-multibyte last-command-char)))
+  (let ((char (table--unibyte-char-to-multibyte last-command-event)))
     (if (eq buffer-undo-list t) nil
       (if (not (eq last-command this-command))
 	  (setq table-cell-self-insert-command-count 0)

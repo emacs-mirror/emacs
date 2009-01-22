@@ -1,7 +1,7 @@
 ;;; vera-mode.el --- major mode for editing Vera files.
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -1340,7 +1340,7 @@ If `vera-intelligent-tab' is nil, always indent line."
   (interactive "*P")
   (let* ((ch (char-before))
 	 (indentp (and (not arg)
-		       (eq last-command-char ?/)
+		       (eq last-command-event ?/)
 		       (or (and (eq ch ?/)
 				(not (vera-in-literal)))
 			   (and (eq ch ?*)

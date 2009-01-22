@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep, Microsoft Windows, Antinews, Top
 @appendix Emacs and Mac OS / GNUstep
@@ -146,7 +146,7 @@ To set the default font used by Emacs click the @samp{Default Font...} button
 to being up the Font Panel, then click on a frame.  The font of this frame
 will then be changed when you make a selection in the Font Panel, and this
 will be used as the default for future frames.  If you do not select a frame
-first, the Font Panel will not work.
+first, the frame selected when you activated Preferences will be changed.
 
 @item
 The Color panel, brought up by the @samp{Colors...} button, allows setting of

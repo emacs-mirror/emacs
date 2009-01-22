@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and MacOSX Cocoa menu and toolbar module.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,9 +36,12 @@ Carbon version by Yamamoto Mitsuharu. */
 #include "termhooks.h"
 #include "keyboard.h"
 
-/* for profiling */
+#define NSMENUPROFILE 0
+
+#if NSMENUPROFILE
 #include <sys/timeb.h>
 #include <sys/types.h>
+#endif
 
 #define MenuStagger 10.0
 
@@ -114,7 +117,6 @@ popup_activated ()
     2) deep_p = 1, submenu = nil: Recompute all submenus.
     3) deep_p = 1, submenu = non-nil: Update contents of a single submenu.
    -------------------------------------------------------------------------- */
-/*#define NSMENUPROFILE 1 */
 void
 ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 {
@@ -129,7 +131,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
 
-#ifdef NSMENUPROFILE
+#if NSMENUPROFILE
   struct timeb tb;
   long t;
 #endif
@@ -163,7 +165,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         [attMenu close];
     }
 
-#ifdef NSMENUPROFILE
+#if NSMENUPROFILE
   ftime (&tb);
   t = -(1000*tb.time+tb.millitm);
 #endif
@@ -329,7 +331,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             {
               /* No change.. */
 
-#ifdef NSMENUPROFILE
+#if NSMENUPROFILE
               ftime (&tb);
               t += 1000*tb.time+tb.millitm;
               fprintf (stderr, "NO CHANGE!  CUTTING OUT after %ld msec.\n", t);
@@ -480,7 +482,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
   free_menubar_widget_value_tree (first_wv);
 
 
-#ifdef NSMENUPROFILE
+#if NSMENUPROFILE
   ftime (&tb);
   t += 1000*tb.time+tb.millitm;
   fprintf (stderr, "Menu update took %ld msec.\n", t);
@@ -587,7 +589,7 @@ name_is_separator (name)
 }
 
 
-/* parse a wdiget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
+/* parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
    into an accelerator string */
 -(NSString *)parseKeyEquiv: (char *)key
 {

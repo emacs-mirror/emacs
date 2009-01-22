@@ -1,7 +1,7 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
@@ -8158,7 +8158,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-quote (count) "'' --> \""
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (if (= (preceding-char) last-input-char)
+      (if (= (preceding-char) last-input-event)
 	  (progn (delete-backward-char 1) (insert-char ?\" 1))
 	(insert-char ?\' 1))
     (self-insert-command count)))
@@ -8166,7 +8166,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-semicolon (count) "';;' --> ' : ', ': ;' --> ' := '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert ": ")
@@ -8180,7 +8180,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-comma (count) "',,' --> ' <= '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "<= ")))
@@ -8190,7 +8190,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-period (count) "'..' --> ' => '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "=> ")))
@@ -8200,7 +8200,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 (defun vhdl-electric-equal (count) "'==' --> ' == '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
-      (cond ((= (preceding-char) last-input-char)
+      (cond ((= (preceding-char) last-input-event)
 	     (progn (delete-char -1)
 		    (unless (eq (preceding-char) ? ) (insert " "))
 		    (insert "== ")))
@@ -10612,7 +10612,7 @@ but not if inside a comment or quote."
 	  (backward-word 1)
 	  (vhdl-case-word 1)
 	  (delete-char 1))
-      (let ((invoke-char last-command-char)
+      (let ((invoke-char last-command-event)
 	    (abbrev-mode -1)
 	    (vhdl-template-invoked-by-hook t))
 	(let ((caught (catch 'abort
@@ -12164,7 +12164,7 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
     (widen)
     (save-excursion
       (beginning-of-line)
-      (1+ (count-lines 1 (point))))))
+      (1+ (count-lines (point-min) (point))))))
 
 (defun vhdl-line-kill-entire (&optional arg)
   "Delete entire line."

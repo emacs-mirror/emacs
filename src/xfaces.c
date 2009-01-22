@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
    Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -874,7 +874,7 @@ init_frame_faces (f)
 }
 
 
-/* Free face cache of frame F.  Called from Fdelete_frame.  */
+/* Free face cache of frame F.  Called from delete_frame.  */
 
 void
 free_frame_faces (f)
@@ -1816,11 +1816,13 @@ DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 5, 0,
        doc: /* Return a list of the names of available fonts matching PATTERN.
 If optional arguments FACE and FRAME are specified, return only fonts
 the same size as FACE on FRAME.
-PATTERN is a string, perhaps with wildcard characters;
+
+PATTERN should be a string containing a font name in the XLFD,
+Fontconfig, or GTK format.  A font name given in the XLFD format may
+contain wildcard characters:
   the * character matches any substring, and
   the ? character matches any single character.
   PATTERN is case-insensitive.
-FACE is a face name--a symbol.
 
 The return value is a list of strings, suitable as arguments to
 `set-face-font'.
@@ -1892,6 +1894,9 @@ the WIDTH times as wide as FACE on FRAME.  */)
     Lisp_Object args[2], tail;
 
     font_spec = font_spec_from_name (pattern);
+    if (!FONTP (font_spec))
+      signal_error ("Invalid font name", pattern);
+
     if (size)
       {
 	Ffont_put (font_spec, QCsize, make_number (size));
@@ -1909,27 +1914,6 @@ the WIDTH times as wide as FACE on FRAME.  */)
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
-
-#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
-
-DEFUN ("x-font-family-list", Fx_font_family_list, Sx_font_family_list,
-       0, 1, 0,
-       doc: /* Return a list of available font families on FRAME.
-If FRAME is omitted or nil, use the selected frame.
-Value is a list of conses (FAMILY . FIXED-P) where FAMILY
-is a font family, and FIXED-P is non-nil if fonts of that family
-are fixed-pitch.  */)
-     (frame)
-     Lisp_Object frame;
-{
-#ifdef __MSDOS__
-  return Fcons (Fcons (build_string ("default"), Qt), Qnil);
-#else
-  return Ffont_family_list (frame);
-#endif
-}
-
-#endif	/* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 
 
 /***********************************************************************
@@ -2389,9 +2373,7 @@ set_lface_from_font (f, lface, font_object, force_p)
    merged height.  If FROM is an invalid height, then INVALID is
    returned instead.  FROM and TO may be either absolute face heights or
    `relative' heights; the returned value is always an absolute height
-   unless both FROM and TO are relative.  GCPRO is a lisp value that
-   will be protected from garbage-collection if this function makes a
-   call into lisp.  */
+   unless both FROM and TO are relative.  */
 
 Lisp_Object
 merge_face_heights (from, to, invalid)
@@ -2491,11 +2473,6 @@ merge_face_vectors (f, from, to, named_merge_points)
 				: FONT_SLANT_INDEX));
 	  }
       }
-
-  /* If `font' attribute is specified, reflect the font properties in
-     it to the other attributes.  */
-  if (0 && !UNSPECIFIEDP (to[LFACE_FONT_INDEX]))
-    font_update_lface (f, to);
 
   /* TO is always an absolute face, which should inherit from nothing.
      We blindly copy the :inherit attribute above and fix it up here.  */
@@ -3046,17 +3023,22 @@ FRAME 0 means change the face on all frames, and change the default
     {
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	{
-	  Lisp_Object test;
-
-	  test = (EQ (face, Qdefault)
-		  ? value
-		  /* The default face must have an absolute size,
-		     otherwise, we do a test merge with a random
-		     height to see if VALUE's ok. */
-		  : merge_face_heights (value, make_number (10), Qnil));
-
-	  if (!INTEGERP (test) || XINT (test) <= 0)
-	    signal_error ("Invalid face height", value);
+	  if (EQ (face, Qdefault))
+	    {
+	      /* The default face must have an absolute size.  */
+	      if (!INTEGERP (value) || XINT (value) <= 0)
+		signal_error ("Invalid default face height", value);
+	    }
+	  else
+	    {
+	      /* For non-default faces, do a test merge with a random
+		 height to see if VALUE's ok. */
+	      Lisp_Object test = merge_face_heights (value,
+						     make_number (10),
+						     Qnil);
+	      if (!INTEGERP (test) || XINT (test) <= 0)
+		signal_error ("Invalid face height", value);
+	    }
 	}
 
       old_value = LFACE_HEIGHT (lface);
@@ -3275,11 +3257,14 @@ FRAME 0 means change the face on all frames, and change the default
 		{
 		  if (STRINGP (value))
 		    {
-		      int fontset = fs_query_fontset (value, 0);
+		      Lisp_Object name = value;
+		      int fontset = fs_query_fontset (name, 0);
 
 		      if (fontset >= 0)
-			value = fontset_ascii (fontset);
-		      value = font_spec_from_name (value);
+			name = fontset_ascii (fontset);
+		      value = font_spec_from_name (name);
+		      if (!FONTP (value))
+			signal_error ("Invalid font name", name);
 		    }
 		  else
 		    signal_error ("Invalid font or font-spec", value);
@@ -7012,9 +6997,6 @@ a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
 #endif
-#if defined(HAVE_WINDOW_SYSTEM) || defined(__MSDOS__)
-  defsubr (&Sx_font_family_list);
-#endif /* HAVE_WINDOW_SYSTEM || __MSDOS__ */
 }
 
 /* arch-tag: 8a0f7598-5517-408d-9ab3-1da6fcd4c749

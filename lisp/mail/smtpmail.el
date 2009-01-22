@@ -1,7 +1,7 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
 ;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008  Free Software Foundation, Inc.
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>

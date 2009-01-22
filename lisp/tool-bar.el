@@ -1,7 +1,7 @@
 ;;; tool-bar.el --- setting up the tool bar
 ;;
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -54,9 +54,12 @@ conveniently adding tool bar items."
   :group 'frames
   (if tool-bar-mode
       (progn
-  	(dolist (frame (frame-list))
-  	  (if (display-graphic-p frame)
-  	      (set-frame-parameter frame 'tool-bar-lines 1)))
+	;; Make one tool-bar-line for any - including non-graphical -
+	;; terminal, see Bug#1754.  If this causes problems, we should
+	;; handle the problem in `modify-frame-parameters' or do not
+	;; call `modify-all-frames-parameters' when toggling the tool
+	;; bar off either.
+	(modify-all-frames-parameters (list (cons 'tool-bar-lines 1)))
 	(if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
 	    (tool-bar-setup)))
     (modify-all-frames-parameters (list (cons 'tool-bar-lines 0)))))

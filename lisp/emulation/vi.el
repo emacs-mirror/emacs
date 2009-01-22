@@ -506,13 +506,13 @@ set sw=n     M-x set-variable vi-shift-width n "
 (defun vi-undefined ()
   (interactive)
   (message "Command key \"%s\" is undefined in Evi."
-	   (single-key-description last-command-char))
+	   (single-key-description last-command-event))
   (ding))
 
 (defun vi-unimplemented ()
   (interactive)
   (message "Command key \"%s\" is not implemented in Evi."
-	   (single-key-description last-command-char))
+	   (single-key-description last-command-event))
   (ding))
 
 ;;;;;
@@ -832,7 +832,7 @@ Possible prefix-arg cases are nil, INTEGER, (nil . CHAR) or (INTEGER . CHAR)."
 (defun vi-goto-mark (mark-char &optional line-flag)
   "Go to marked position or line (if line-flag is given).
 Goto mark '@' means jump into and pop the top mark on the mark ring."
-  (cond ((char-equal mark-char last-command-char)	; `` or ''
+  (cond ((char-equal mark-char last-command-event)	; `` or ''
 	 (exchange-point-and-mark) (if line-flag (back-to-indentation)))
 	((char-equal mark-char ?@)	; jump and pop mark
 	 (set-mark-command t) (if line-flag (back-to-indentation)))
@@ -949,7 +949,7 @@ With argument, do this that many times."
   "Replace char after point by CHAR.  Repeat COUNT times."
   (interactive "p\nc")
   (delete-char count nil)       ; don't save in kill ring
-  (setq last-command-char char)
+  (setq last-command-event char)
   (self-insert-command count)
   (vi-set-last-change-command 'vi-replace-1-char count char))
 
@@ -984,15 +984,15 @@ With argument, do this that many times."
 the key bindings of the operators being fixed."
   (interactive "P")
   (catch 'vi-exit-op
-    (let ((this-op-char last-command-char))
-      (setq last-command-char (read-char))
-      (setq this-command (lookup-key vi-com-map (char-to-string last-command-char)))
+    (let ((this-op-char last-command-event))
+      (setq last-command-event (read-char))
+      (setq this-command (lookup-key vi-com-map (char-to-string last-command-event)))
       (if (not (eq this-command 'vi-digit-argument))
 	  (setq prefix-arg arg)
 	(vi-digit-argument arg)
-	(setq last-command-char (read-char))
-	(setq this-command (lookup-key vi-com-map (char-to-string last-command-char))))
-      (cond ((char-equal this-op-char last-command-char) ; line op
+	(setq last-command-event (read-char))
+	(setq this-command (lookup-key vi-com-map (char-to-string last-command-event))))
+      (cond ((char-equal this-op-char last-command-event) ; line op
 	     (vi-execute-op this-op-char 'next-line
 			    (cons (1- (vi-prefix-numeric-value prefix-arg))
 				  (vi-prefix-char-value prefix-arg))))

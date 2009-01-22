@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
 ;;   1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -214,6 +214,7 @@ have fast storage with limited space, such as a RAM disk."
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))
 (declare-function dos-8+3-filename "dos-fns" (filename))
 (declare-function view-mode-disable "view" ())
+(declare-function dosified-file-name "dos-fns" (file-name))
 
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
@@ -3275,14 +3276,20 @@ If the file is already registered, a cons from
 `dir-locals-directory-alist' is returned.
 Otherwise this returns nil."
   (setq file (expand-file-name file))
-  (let ((locals-file (locate-dominating-file file dir-locals-file))
-	(dir-elt nil))
+  (let* ((dir-locals-file-name
+	  (if (eq system-type 'ms-dos)
+	      (dosified-file-name dir-locals-file)
+	    dir-locals-file))
+	 (locals-file (locate-dominating-file file dir-locals-file-name))
+	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
     (when locals-file
-      (setq locals-file (expand-file-name dir-locals-file locals-file)))
+      (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
     (dolist (elt dir-locals-directory-alist)
       (when (and (eq t (compare-strings file nil (length (car elt))
-					(car elt) nil nil))
+					(car elt) nil nil
+					(memq system-type
+					      '(windows-nt cygwin ms-dos))))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
     (if (and locals-file dir-elt)
@@ -5724,12 +5731,9 @@ With prefix ARG, silently save all file-visiting buffers, then kill.
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
   (interactive "P")
-  (let ((proc (frame-parameter (selected-frame) 'client))
-	(frame (selected-frame)))
-    (if (null proc)
-	(save-buffers-kill-emacs)
-      (server-save-buffers-kill-terminal proc arg))))
-
+  (if (frame-parameter (selected-frame) 'client)
+      (server-save-buffers-kill-terminal arg)
+    (save-buffers-kill-emacs arg)))
 
 ;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.
@@ -5965,7 +5969,8 @@ Returns nil on success."
       (and (file-exists-p new-fn)
            ;; make new-fn unique.
            ;; example: "~/.Trash/abc.txt" -> "~/.Trash/abc.txt.~1~"
-           (let ((version-control t))
+           (let ((version-control t)
+		 (backup-directory-alist nil))
              (setq new-fn (car (find-backup-file-name new-fn)))))
       ;; stop processing if fn is same or parent directory of trash-dir.
       (and (string-match fn trash-dir)

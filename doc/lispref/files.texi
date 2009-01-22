@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
@@ -500,7 +500,10 @@ the list @code{after-insert-file-functions}.  @xref{Format Conversion}.
 Normally, one of the functions in the
 @code{after-insert-file-functions} list determines the coding system
 (@pxref{Coding Systems}) used for decoding the file's contents,
-including end-of-line conversion.
+including end-of-line conversion.  However, if the file contains null
+bytes, it is by default visited without any code conversions; see
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
+control this behavior.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
@@ -3067,18 +3070,17 @@ place without modifying the buffer.
 @c ??? for `write-region-annotate-functions', below?  --ttn
 
   In contrast, when reading, the annotations intermixed with the text
-are handled immediately.  @code{insert-file-contents} sets point to the
-beginning of some text to be converted, then calls the conversion
+are handled immediately.  @code{insert-file-contents} sets point to
+the beginning of some text to be converted, then calls the conversion
 functions with the length of that text.  These functions should always
-return with point at the beginning of the inserted text.  This approach
-makes sense for reading because annotations removed by the first
-converter can't be mistakenly processed by a later converter.
-
-  Each conversion function should scan for the annotations it
-recognizes, remove the annotation, modify the buffer text (to set a text
-property, for example), and return the updated length of the text, as it
-stands after those changes.  The value returned by one function becomes
-the argument to the next function.
+return with point at the beginning of the inserted text.  This
+approach makes sense for reading because annotations removed by the
+first converter can't be mistakenly processed by a later converter.
+Each conversion function should scan for the annotations it
+recognizes, remove the annotation, modify the buffer text (to set a
+text property, for example), and return the updated length of the
+text, as it stands after those changes.  The value returned by one
+function becomes the argument to the next function.
 
 @defvar write-region-annotate-functions
 A list of functions for @code{write-region} to call.  Each function in
@@ -3086,13 +3088,30 @@ the list is called with two arguments: the start and end of the region
 to be written.  These functions should not alter the contents of the
 buffer.  Instead, they should return annotations.
 
-@c ??? Following adapted from comment in `build_annotations' (fileio.c).
-@c ??? Perhaps this is intended for internal use only?
-@c ??? Someone who understands this, please reword it. --ttn
-As a special case, if a function returns with a different buffer
-current, Emacs takes it to mean the current buffer contains altered text
-to be output, and discards all previous annotations because they should
-have been dealt with by this function.
+As a special case, a function may return with a different buffer
+current.  Emacs takes this to mean that the current buffer contains
+altered text to be output.  It therefore changes the @var{start} and
+@var{end} arguments of the @code{write-region} call, giving them the
+values of @code{point-min} and @code{point-max} in the new buffer,
+respectively.  It also discards all previous annotations, because they
+should have been dealt with by this function.
+@end defvar
+
+@defvar write-region-post-annotation-function
+The value of this variable, if non-@code{nil}, should be a function.
+This function is called, with no arguments, after @code{write-region}
+has completed.
+
+If any function in @code{write-region-annotate-functions} returns with
+a different buffer current, Emacs calls
+@code{write-region-post-annotation-function} more than once.  Emacs
+calls it with the last buffer that was current, and again with the
+buffer before that, and so on back to the original buffer.
+
+Thus, a function in @code{write-region-annotate-functions} can create
+a buffer, give this variable the local value of @code{kill-buffer} in
+that buffer, set up the buffer with altered text, and make the buffer
+current.  The buffer will be killed after @code{write-region} is done.
 @end defvar
 
 @defvar after-insert-file-functions

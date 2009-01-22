@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008
+   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -163,6 +163,7 @@ static EmacsImage *ImageList = nil;
 + allocInitFromFile: (Lisp_Object)file
 {
   EmacsImage *image = ImageList;
+  NSImageRep *imgRep;
   Lisp_Object found;
 
   /* look for an existing image of the same name */
@@ -185,11 +186,17 @@ static EmacsImage *ImageList = nil;
   image = [[EmacsImage alloc] initByReferencingFile:
                      [NSString stringWithUTF8String: SDATA (found)]];
 
-  if ([image bestRepresentationForDevice: nil] == nil)
+  imgRep = [image bestRepresentationForDevice: nil];
+  if (imgRep == nil)
     {
       [image release];
       return nil;
     }
+
+  /* The next two lines cause the DPI of the image to be ignored.
+     This seems to be the behavior users expect. */
+  [image setScalesWhenResized: YES];
+  [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
   [image setName: [NSString stringWithUTF8String: SDATA (file)]];
   [image reference];
@@ -446,7 +453,8 @@ static EmacsImage *ImageList = nil;
   else if (onTiger)
     {
       [bmRep setColor:
-               [NSColor colorWithCalibratedRed: r green: g blue: b alpha: a]
+               [NSColor colorWithCalibratedRed: (r/255.0) green: (g/255.0)
+                                          blue: (b/255.0) alpha: (a/255.0)]
                   atX: x y: y];
     }
 }

@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
    Copyright (C) 1985, 1986, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -591,7 +591,7 @@ struct terminal
      instead.  Otherwise the hook must call delete_terminal itself.
 
      The hook must check for and close any live frames that are still
-     on the terminal.  Fdelete_frame ensures that there are no live
+     on the terminal.  delete_frame ensures that there are no live
      frames on the terminal when it calls this hook, so infinite
      recursion is prevented.  */
   void (*delete_terminal_hook) P_ ((struct terminal *));

@@ -1,8 +1,10 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009 Free Software Foundation, Inc.
 
+;; Author: Frank Bresz
+;; (according to authors.el)
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
@@ -80,10 +82,14 @@ were found."
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
   "Find and display the differences between OLD and NEW files.
-Interactively the current buffer's file name is the default for NEW
-and a backup file for NEW is the default for OLD.
+When called interactively, read OLD and NEW using the minibuffer;
+the default for NEW is the current buffer's file name, and the
+default for OLD is a backup file for NEW, if one exists.
 If NO-ASYNC is non-nil, call diff synchronously.
-With prefix arg, prompt for diff switches."
+
+When called interactively with a prefix argument, prompt
+interactively for diff switches.  Otherwise, the switches
+specified in `diff-switches' are passed to the diff command."
   (interactive
    (let (oldf newf)
      (setq newf (buffer-file-name)

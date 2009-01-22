@@ -1,6 +1,6 @@
 /* Block-relocating memory allocator.
    Copyright (C) 1993, 1995, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -402,6 +402,11 @@ find_bloc (ptr)
 
   while (p != NIL_BLOC)
     {
+      /* Consistency check. Don't return inconsistent blocs.
+	 Don't abort here, as callers might be expecting this,  but
+	 callers that always expect a bloc to be returned should abort
+	 if one isn't to avoid a memory corruption bug that is
+	 difficult to track down.  */
       if (p->variable == ptr && p->data == *ptr)
 	return p;
 
@@ -981,7 +986,7 @@ r_alloc_free (ptr)
 
   dead_bloc = find_bloc (ptr);
   if (dead_bloc == NIL_BLOC)
-    abort ();
+    abort (); /* Double free? PTR not originally used to allocate?  */
 
   free_bloc (dead_bloc);
   *ptr = 0;
@@ -1025,7 +1030,7 @@ r_re_alloc (ptr, size)
 
   bloc = find_bloc (ptr);
   if (bloc == NIL_BLOC)
-    abort ();
+    abort (); /* Already freed? PTR not originally used to allocate?  */
 
   if (size < bloc->size)
     {
@@ -1223,6 +1228,34 @@ r_alloc_check ()
 
 #endif /* DEBUG */
 
+/* Update the internal record of which variable points to some data to NEW.
+   Used by buffer-swap-text in Emacs to restore consistency after it
+   swaps the buffer text between two buffer objects.  The OLD pointer
+   is checked to ensure that memory corruption does not occur due to
+   misuse.  */
+void
+r_alloc_reset_variable (old, new)
+     POINTER *old, *new;
+{
+  bloc_ptr bloc = first_bloc;
+
+  /* Find the bloc that corresponds to the data pointed to by pointer.
+     find_bloc cannot be used, as it has internal consistency checks
+     which fail when the variable needs reseting.  */
+  while (bloc != NIL_BLOC)
+    {
+      if (bloc->data == *new)
+	break;
+
+      bloc = bloc->next;
+    }
+
+  if (bloc == NIL_BLOC || bloc->variable != old)
+    abort (); /* Already freed? OLD not originally used to allocate?  */
+
+  /* Update variable to point to the new location.  */
+  bloc->variable = new;
+}
 
 
 /***********************************************************************

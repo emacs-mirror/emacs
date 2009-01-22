@@ -1,7 +1,7 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -164,6 +164,7 @@ number, if the function `eshell-truncate-buffer' is on
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom
     eshell-handle-control-codes
+    eshell-handle-ansi-color
     eshell-watch-for-password-prompt)
   "*Functions to call before output is displayed.
 These functions are only called for output that is displayed
@@ -315,6 +316,7 @@ This is used by `eshell-watch-for-password-prompt'."
   (define-key eshell-mode-map [(meta return)] 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?m)] 'eshell-queue-input)
   (define-key eshell-mode-map [(meta control ?l)] 'eshell-show-output)
+  (define-key eshell-mode-map [(control ?a)] 'eshell-bol)
 
   (set (make-local-variable 'eshell-command-prefix)
        (make-symbol "eshell-command-prefix"))
@@ -484,9 +486,9 @@ This is used by `eshell-watch-for-password-prompt'."
   (interactive "i")
   (process-send-string
    (eshell-interactive-process)
-   (char-to-string (if (symbolp last-command-char)
-		       (get last-command-char 'ascii-character)
-		     last-command-char))))
+   (char-to-string (if (symbolp last-command-event)
+		       (get last-command-event 'ascii-character)
+		     last-command-event))))
 
 (defun eshell-intercept-commands ()
   (when (and (eshell-interactive-process)

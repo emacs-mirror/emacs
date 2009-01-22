@@ -1,7 +1,7 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
 ;; Copyright (C) 1985, 1986, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -65,13 +65,13 @@
               (setq prompt-string nil)
             (setq prompt-string "->")))
       (setq cmd (read-key-sequence prompt-string))
-      (setq last-command-char (aref cmd (1- (length cmd)))
+      (setq last-command-event (aref cmd (1- (length cmd)))
 	    this-command (key-binding cmd t)
 	    cmd this-command)
       ;; This makes universal-argument-other-key work.
       (setq universal-argument-num-events 0)
       (if (or (prog1 quit-flag (setq quit-flag nil))
-	      (eq last-input-char ?\C-g))
+	      (eq last-input-event ?\C-g))
 	  (progn (setq unread-command-events nil
 		       prefix-arg nil)
 		 ;; If it wasn't cancelling a prefix character, then quit.
@@ -87,7 +87,7 @@
 	      (progn (command-execute cmd)
 		     (setq last-command this-command)
 		     (if (or (prog1 quit-flag (setq quit-flag nil))
-			     (eq last-input-char ?\C-g))
+			     (eq last-input-event ?\C-g))
 			 (progn (setq unread-command-events nil)
 				(if (not inhibit-quit)
 				    (progn (ding)

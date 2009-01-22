@@ -1,7 +1,7 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1677,6 +1677,11 @@ this is a reply."
 				    group method t t))))
 		(gnus-message 1 "Couldn't store article in group %s: %s"
 			      group (gnus-status-message method)))
+	      (when (stringp method)
+		(setq method (gnus-server-to-method method)))
+	      (when (and (listp method)
+			 (gnus-native-method-p method))
+		(setq group (gnus-group-short-name group)))
 	      (when (and group-art
 			 ;; FIXME: Should gcc-mark-as-read work when
 			 ;; Gnus is not running?

@@ -1,7 +1,7 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
 ;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008  Free Software Foundation, Inc.
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -145,11 +145,9 @@
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
-    ["Forward 1 Week" calendar-forward-week]
     ["Forward 1 Month" calendar-scroll-left]
     ["Forward 3 Months" calendar-scroll-left-three-months]
     ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
-    ["Backward 1 Week" calendar-backward-week]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
     ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])

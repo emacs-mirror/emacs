@@ -1,7 +1,7 @@
 ;;; menu-bar.el --- define a default menu bar
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: RMS
 ;; Maintainer: FSF
@@ -64,8 +64,7 @@
 
 ;; The "File" menu items
 (define-key menu-bar-file-menu [exit-emacs]
-  '(menu-item "Exit Emacs" save-buffers-kill-emacs
-	      :keys "C-x C-c"
+  '(menu-item "Quit" save-buffers-kill-terminal
 	      :help "Save unsaved buffers, then exit"))
 
 (define-key menu-bar-file-menu [separator-exit]
@@ -1493,7 +1492,7 @@ key, a click, or a menu-item"))
   (let (enable-local-variables)
     (view-file (expand-file-name "MORE.STUFF"
 				 data-directory))
-    (goto-address)))
+    (goto-address-mode 1)))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [external-packages]

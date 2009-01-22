@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions
 
-;; Copyright (C) 2008  Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -250,7 +250,7 @@ Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format'."
   ;; Clear out any old echo-area message to make way for our new thing.
   (message nil)
-  (setq message (if (and (null args) (string-match "\\[.+\\]" message))
+  (setq message (if (and (null args) (string-match-p "\\` *\\[.+\\]\\'" message))
                     ;; Make sure we can put-text-property.
                     (copy-sequence message)
                   (concat " [" message "]")))
@@ -723,33 +723,37 @@ It also eliminates runs of equal strings."
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
       (dolist (str strings)
-	(unless (equal laststring str)  ; Remove (consecutive) duplicates.
+	(unless (equal laststring str) ; Remove (consecutive) duplicates.
 	  (setq laststring str)
-	  (unless (bolp)
-            (insert " \t")
-            (setq column (+ column colwidth))
-            ;; Leave the space unpropertized so that in the case we're
-            ;; already past the goal column, there is still
-            ;; a space displayed.
-            (set-text-properties (- (point) 1) (point)
-                                 ;; We can't just set tab-width, because
-                                 ;; completion-setup-function will kill all
-                                 ;; local variables :-(
-                                 `(display (space :align-to ,column)))
-	    (when (< wwidth (+ (max colwidth
-				    (if (consp str)
-					(+ (string-width (car str))
-					   (string-width (cadr str)))
-				      (string-width str)))
-			       column))
-	      (delete-char -2) (insert "\n") (setq column 0)))
-	  (if (not (consp str))
-	      (put-text-property (point) (progn (insert str) (point))
-				 'mouse-face 'highlight)
-	    (put-text-property (point) (progn (insert (car str)) (point))
-			       'mouse-face 'highlight)
-	    (put-text-property (point) (progn (insert (cadr str)) (point))
-                               'mouse-face nil)))))))
+          (let ((length (if (consp str)
+                            (+ (string-width (car str))
+                               (string-width (cadr str)))
+                          (string-width str))))
+            (unless (bolp)
+              (if (< wwidth (+ (max colwidth length) column))
+                  ;; No space for `str' at point, move to next line.
+                  (progn (insert "\n") (setq column 0))
+                (insert " \t")
+                ;; Leave the space unpropertized so that in the case we're
+                ;; already past the goal column, there is still
+                ;; a space displayed.
+                (set-text-properties (- (point) 1) (point)
+                                     ;; We can't just set tab-width, because
+                                     ;; completion-setup-function will kill all
+                                     ;; local variables :-(
+                                     `(display (space :align-to ,column)))
+                nil))
+            (if (not (consp str))
+                (put-text-property (point) (progn (insert str) (point))
+                                   'mouse-face 'highlight)
+              (put-text-property (point) (progn (insert (car str)) (point))
+                                 'mouse-face 'highlight)
+              (put-text-property (point) (progn (insert (cadr str)) (point))
+                                 'mouse-face nil))
+            ;; Next column to align to.
+            (setq column (+ column
+                            ;; Round up to a whole number of columns.
+                            (* colwidth (ceiling length colwidth))))))))))
 
 (defvar completion-common-substring nil)
 (make-obsolete-variable 'completion-common-substring nil "23.1")
@@ -789,7 +793,11 @@ of the differing parts is, by contrast, slightly highlighted."
                      (car (setq elem (cons (copy-sequence (car elem))
                                            (cdr elem))))
                    (setq elem (copy-sequence elem)))))
-            (put-text-property 0 com-str-len
+            (put-text-property 0
+			       ;; If completion-boundaries returns incorrect
+			       ;; values, all-completions may return strings
+			       ;; that don't contain the prefix.
+			       (min com-str-len (length str))
                                'font-lock-face 'completions-common-part
                                str)
             (if (> (length str) com-str-len)
@@ -901,7 +909,7 @@ the completions buffer."
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
   (interactive)
-  (if (characterp last-command-char)
+  (if (characterp last-command-event)
       (call-interactively 'self-insert-command)
     (ding))
   (exit-minibuffer))
@@ -945,7 +953,7 @@ the completions buffer."
 
 (defun completion--make-envvar-table ()
   (mapcar (lambda (enventry)
-            (substring enventry 0 (string-match "=" enventry)))
+            (substring enventry 0 (string-match-p "=" enventry)))
           process-environment))
 
 (defconst completion--embedded-envvar-re
@@ -981,7 +989,7 @@ the completions buffer."
     ;; FIXME: Actually, this is not always right in the presence of
     ;; envvars, but there's not much we can do, I think.
     (let ((start (length (file-name-directory string)))
-          (end (string-match "/" (cdr action))))
+          (end (string-match-p "/" (cdr action))))
       (list* 'boundaries start end)))
 
    (t
@@ -1333,7 +1341,13 @@ expression (not containing character ranges like `a-z')."
   :type 'string)
 
 (defun completion-pcm--pattern-trivial-p (pattern)
-  (and (stringp (car pattern)) (null (cdr pattern))))
+  (and (stringp (car pattern))
+       ;; It can be followed by `point' and "" and still be trivial.
+       (let ((trivial t))
+	 (dolist (elem (cdr pattern))
+	   (unless (member elem '(point ""))
+	     (setq trivial nil)))
+	 trivial)))
 
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
@@ -1349,7 +1363,7 @@ or a symbol chosen among `any', `star', `point'."
           (p 0)
           (p0 0))
 
-      (while (setq p (string-match completion-pcm--delim-wild-regex string p))
+      (while (setq p (string-match-p completion-pcm--delim-wild-regex string p))
         (push (substring string p0 p) pattern)
         (if (eq (aref string p) ?*)
             (progn
@@ -1405,35 +1419,30 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	  compl
 	(let ((poss ()))
 	  (dolist (c compl)
-	    (when (string-match regex c) (push c poss)))
+	    (when (string-match-p regex c) (push c poss)))
 	  poss)))))
 
 (defun completion-pcm--hilit-commonality (pattern completions)
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern '(point)))
-           (case-fold-search completion-ignore-case)
-           (last (last completions))
-           (base-size (cdr last)))
+           (case-fold-search completion-ignore-case))
       ;; Remove base-size during mapcar, and add it back later.
-      (setcdr last nil)
-      (nconc
-       (mapcar
-        (lambda (str)
-          ;; Don't modify the string itself.
-          (setq str (copy-sequence str))
-          (unless (string-match re str)
-            (error "Internal error: %s does not match %s" re str))
-          (let ((pos (or (match-beginning 1) (match-end 0))))
-            (put-text-property 0 pos
-                               'font-lock-face 'completions-common-part
-                               str)
-            (if (> (length str) pos)
-                (put-text-property pos (1+ pos)
-                                   'font-lock-face 'completions-first-difference
-                                   str)))
-          str)
-        completions)
-       base-size))))
+      (mapcar
+       (lambda (str)
+	 ;; Don't modify the string itself.
+         (setq str (copy-sequence str))
+         (unless (string-match re str)
+           (error "Internal error: %s does not match %s" re str))
+         (let ((pos (or (match-beginning 1) (match-end 0))))
+           (put-text-property 0 pos
+                              'font-lock-face 'completions-common-part
+                              str)
+           (if (> (length str) pos)
+               (put-text-property pos (1+ pos)
+				  'font-lock-face 'completions-first-difference
+				  str)))
+	 str)
+       completions))))
 
 (defun completion-pcm--find-all-completions (string table pred point
                                                     &optional filter)
@@ -1609,9 +1618,9 @@ filter out additional entries (because TABLE migth not obey PRED)."
                       (regexp-opt completion-ignored-extensions)
                       "\\)\\'")))
       (dolist (f all)
-        (unless (string-match re f) (push f try)))
+        (unless (string-match-p re f) (push f try)))
       (or try all))))
-      
+
 
 (defun completion-pcm--merge-try (pattern all prefix suffix)
   (cond

@@ -1,3 +1,19 @@
+2009-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Fix last change.
+
+2009-01-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-cookie.el (url-cookie-retrieve): Handle null localpart.
+
+2009-01-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-util.el (url-truncate-url-for-viewing): Doc fix.
+
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* url-cid.el (url-cid-gnus): Fix typo in header name.
+
 2008-11-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-util.el (url-basepath): Add url-basepath as an alias for
@@ -2106,7 +2122,7 @@
 ;; End:
 
     Copyright (C) 1999, 2001, 2002, 2004, 2005,
-	2006, 2007, 2008  Free Software Foundation, Inc.
+	2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

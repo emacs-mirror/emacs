@@ -1,7 +1,7 @@
 ;; erc.el --- An Emacs Internet Relay Chat client
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -3708,7 +3708,9 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
   (let ((minibuffer-allow-text-properties t)
 	(read-map minibuffer-local-map))
     (insert (read-from-minibuffer "Message: "
-				  (string last-command-char) read-map))
+				  (string (if (featurep 'xemacs)
+					      last-command-char
+					    last-command-event)) read-map))
     (erc-send-current-line)))
 
 (defvar erc-action-history-list ()
@@ -5097,7 +5099,7 @@ Specifically, return the position of `erc-insert-marker'."
 
 (defun erc-user-input ()
   "Return the input of the user in the current buffer."
-  (buffer-substring
+  (buffer-substring-no-properties
    erc-input-marker
    (erc-end-of-input-line)))
 
@@ -5914,6 +5916,11 @@ See `erc-mode-line-format' for which characters are can be used."
   :type '(choice (const :tag "Disabled" nil)
 		 string))
 
+(defcustom erc-header-line-uses-tabbar-p nil
+  "Use tabbar mode instead of the header line to display the header."
+  :group 'erc-mode-line-and-header
+  :type 'boolean)
+
 (defcustom erc-header-line-uses-help-echo-p t
   "Show the contents of the header line in the echo area or as a tooltip
 when you move point into the header line."
@@ -6046,6 +6053,8 @@ if `erc-away' is non-nil."
 ;; erc-goodies is required at end of this file.
 (declare-function erc-controls-strip "erc-goodies" (str))
 
+(defvar tabbar--local-hlf)
+
 (defun erc-update-mode-line-buffer (buffer)
   "Update the mode line in a single ERC buffer BUFFER."
   (with-current-buffer buffer
@@ -6085,7 +6094,11 @@ if `erc-away' is non-nil."
 	(let ((header (if erc-header-line-format
 			  (format-spec erc-header-line-format spec)
 			nil)))
-	  (cond ((null header)
+	  (cond (erc-header-line-uses-tabbar-p
+		 (set (make-local-variable 'tabbar--local-hlf)
+		      header-line-format)
+		 (kill-local-variable 'header-line-format))
+		((null header)
 		 (setq header-line-format nil))
 		(erc-header-line-uses-help-echo-p
 		 (let ((help-echo (with-temp-buffer

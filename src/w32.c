@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008  Free Software Foundation, Inc.
+                 2007, 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2739,76 +2739,69 @@ sys_unlink (const char * path)
 }
 
 static FILETIME utc_base_ft;
-static long double utc_base;
+static ULONGLONG utc_base;  /* In 100ns units */
 static int init = 0;
 
-static long double
-convert_time_raw (FILETIME ft)
+#define FILETIME_TO_U64(result, ft)        \
+  do {                                     \
+    ULARGE_INTEGER uiTemp;                 \
+    uiTemp.LowPart = (ft).dwLowDateTime;   \
+    uiTemp.HighPart = (ft).dwHighDateTime; \
+    result = uiTemp.QuadPart;              \
+  } while (0)
+
+static void
+initialize_utc_base ()
 {
-  return
-    (long double) ft.dwHighDateTime
-    * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
+  /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
+  SYSTEMTIME st;
+
+  st.wYear = 1970;
+  st.wMonth = 1;
+  st.wDay = 1;
+  st.wHour = 0;
+  st.wMinute = 0;
+  st.wSecond = 0;
+  st.wMilliseconds = 0;
+
+  SystemTimeToFileTime (&st, &utc_base_ft);
+  FILETIME_TO_U64 (utc_base, utc_base_ft);
 }
 
 static time_t
 convert_time (FILETIME ft)
 {
-  long double ret;
+  ULONGLONG tmp;
 
   if (!init)
     {
-      /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
-      SYSTEMTIME st;
-
-      st.wYear = 1970;
-      st.wMonth = 1;
-      st.wDay = 1;
-      st.wHour = 0;
-      st.wMinute = 0;
-      st.wSecond = 0;
-      st.wMilliseconds = 0;
-
-      SystemTimeToFileTime (&st, &utc_base_ft);
-      utc_base = (long double) utc_base_ft.dwHighDateTime
-	* 4096.0L * 1024.0L * 1024.0L + utc_base_ft.dwLowDateTime;
+      initialize_utc_base();
       init = 1;
     }
 
   if (CompareFileTime (&ft, &utc_base_ft) < 0)
     return 0;
 
-  return (time_t) ((convert_time_raw (ft) - utc_base) * 1e-7L);
+  FILETIME_TO_U64 (tmp, ft);
+  return (time_t) ((tmp - utc_base) / 10000000L);
 }
 
 
 void
 convert_from_time_t (time_t time, FILETIME * pft)
 {
-  long double tmp;
+  ULARGE_INTEGER tmp;
 
   if (!init)
     {
-      /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
-      SYSTEMTIME st;
-
-      st.wYear = 1970;
-      st.wMonth = 1;
-      st.wDay = 1;
-      st.wHour = 0;
-      st.wMinute = 0;
-      st.wSecond = 0;
-      st.wMilliseconds = 0;
-
-      SystemTimeToFileTime (&st, &utc_base_ft);
-      utc_base = (long double) utc_base_ft.dwHighDateTime
-	* 4096 * 1024 * 1024 + utc_base_ft.dwLowDateTime;
+      initialize_utc_base ();
       init = 1;
     }
 
   /* time in 100ns units since 1-Jan-1601 */
-  tmp = (long double) time * 1e7 + utc_base;
-  pft->dwHighDateTime = (DWORD) (tmp / (4096.0 * 1024 * 1024));
-  pft->dwLowDateTime = (DWORD) (tmp - (4096.0 * 1024 * 1024) * pft->dwHighDateTime);
+  tmp.QuadPart = (ULONGLONG) time * 10000000L + utc_base;
+  pft->dwHighDateTime = tmp.HighPart;
+  pft->dwLowDateTime = tmp.LowPart;
 }
 
 #if 0
@@ -3770,16 +3763,16 @@ ltime (time_sec, time_usec)
 		make_number (time_usec));
 }
 
+#define U64_TO_LISP_TIME(time) ltime ((time) / 1000000L, (time) % 1000000L)
+
 static int
-process_times (h_proc, ctime, etime, stime, utime, pcpu)
+process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
      HANDLE h_proc;
-     Lisp_Object *ctime, *etime, *stime, *utime;
+     Lisp_Object *ctime, *etime, *stime, *utime, *ttime;
      double *pcpu;
 {
   FILETIME ft_creation, ft_exit, ft_kernel, ft_user, ft_current;
-  long ctime_sec, ctime_usec, stime_sec, stime_usec, utime_sec, utime_usec;
-  long etime_sec, etime_usec;
-  long double tem1, tem2, tem;
+  ULONGLONG tem1, tem2, tem3, tem;
 
   if (!h_proc
       || !get_process_times_fn
@@ -3789,26 +3782,29 @@ process_times (h_proc, ctime, etime, stime, utime, pcpu)
 
   GetSystemTimeAsFileTime (&ft_current);
 
-  tem1 = convert_time_raw (ft_kernel) * 0.1L;
-  stime_usec = fmodl (tem1, 1000000.0L);
-  stime_sec = tem1 * 0.000001L;
-  *stime = ltime (stime_sec, stime_usec);
-  tem2 = convert_time_raw (ft_user) * 0.1L;
-  utime_usec = fmodl (tem2, 1000000.0L);
-  utime_sec = tem2 * 0.000001L;
-  *utime = ltime (utime_sec, utime_usec);
-  tem = convert_time_raw (ft_creation);
+  FILETIME_TO_U64 (tem1, ft_kernel);
+  tem1 /= 10L;
+  *stime = U64_TO_LISP_TIME (tem1);
+
+  FILETIME_TO_U64 (tem2, ft_user);
+  tem2 /= 10L;
+  *utime = U64_TO_LISP_TIME (tem2);
+
+  tem3 = tem1 + tem2;
+  *ttime = U64_TO_LISP_TIME (tem3);
+
+  FILETIME_TO_U64 (tem, ft_creation);
   /* Process no 4 (System) returns zero creation time.  */
   if (tem)
-    tem = (tem - utc_base) * 0.1;
-  ctime_usec = fmodl (tem, 1000000.0L);
-  ctime_sec = tem * 0.000001L;
-  *ctime = ltime (ctime_sec, ctime_usec);
+    tem = (tem - utc_base) / 10L;
+  *ctime = U64_TO_LISP_TIME (tem);
+
   if (tem)
-    tem = (convert_time_raw (ft_current) - utc_base) * 0.1L - tem;
-  etime_usec = fmodl (tem, 1000000.0L);
-  etime_sec = tem * 0.000001L;
-  *etime = ltime (etime_sec, etime_usec);
+    {
+      FILETIME_TO_U64 (tem3, ft_current);
+      tem = (tem3 - utc_base) / 10L - tem;
+    }
+  *etime = U64_TO_LISP_TIME (tem);
 
   if (tem)
     {
@@ -3850,7 +3846,7 @@ system_process_attributes (pid)
   MEMORYSTATUS memst;
   MEMORY_STATUS_EX memstex;
   double totphys = 0.0;
-  Lisp_Object ctime, stime, utime, etime;
+  Lisp_Object ctime, stime, utime, etime, ttime;
   double pcpu;
   BOOL result = FALSE;
 
@@ -4109,10 +4105,11 @@ system_process_attributes (pid)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
 
-  if (process_times (h_proc, &ctime, &etime, &stime, &utime, &pcpu))
+  if (process_times (h_proc, &ctime, &etime, &stime, &utime, &ttime, &pcpu))
     {
       attrs = Fcons (Fcons (Qutime, utime), attrs);
       attrs = Fcons (Fcons (Qstime, stime), attrs);
+      attrs = Fcons (Fcons (Qtime,  ttime), attrs);
       attrs = Fcons (Fcons (Qstart, ctime), attrs);
       attrs = Fcons (Fcons (Qetime, etime), attrs);
       attrs = Fcons (Fcons (Qpcpu, make_float (pcpu)), attrs);

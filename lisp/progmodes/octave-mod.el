@@ -1,6 +1,6 @@
 ;;; octave-mod.el --- editing Octave source files under Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;; Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
@@ -1312,7 +1312,7 @@ Insert a newline if `octave-auto-newline' is non-nil."
 Maybe expand abbrevs and blink matching block open keywords.
 Reindent the line of `octave-auto-indent' is non-nil."
   (interactive)
-  (setq last-command-char ? )
+  (setq last-command-event ? )
   (if (and octave-auto-indent
 	   (not (octave-not-in-string-or-comment-p)))
       (progn
@@ -1338,7 +1338,7 @@ Note that all Octave mode abbrevs start with a grave accent."
   (if (not abbrev-mode)
       (self-insert-command 1)
     (let (c)
-      (insert last-command-char)
+      (insert last-command-event)
       (if (if (featurep 'xemacs)
 	      (or (eq (event-to-character (setq c (next-event))) ??)
 		  (eq (event-to-character c) help-char))

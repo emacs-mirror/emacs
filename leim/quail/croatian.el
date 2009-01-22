@@ -1,10 +1,9 @@
 ;;; quail/croatian.el -- Quail package for inputing Croatian  -*-coding: iso-8859-2;-*-
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
-;; Author: Hrvoje Nik¹iæ <hniksic@xemacs.org>,
-;;         modeled after czech.el by Milan Zamazal.
+;; Author: Hrvoje Nik¹iæ <hniksic@xemacs.org>
 ;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
@@ -21,6 +20,10 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Modeled after czech.el by Milan Zamazal.
 
 ;;; Code:
 

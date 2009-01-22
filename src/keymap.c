@@ -1,7 +1,7 @@
 /* Manipulation of keymaps
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -650,6 +650,10 @@ map_keymap_char_table_item (args, key, val)
     {
       map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
       args = XCDR (args);
+      /* If the key is a range, make a copy since map_char_table modifies
+	 it in place.  */
+      if (CONSP (key))
+	key = Fcons (XCAR (key), XCDR (key));
       map_keymap_item (fun, XCDR (args), key, val,
 		       XSAVE_VALUE (XCAR (args))->pointer);
     }

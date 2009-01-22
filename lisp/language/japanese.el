@@ -1,9 +1,9 @@
 ;;; japanese.el --- support for Japanese -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008
+;;   2005, 2006, 2007, 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -249,6 +249,29 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
   (define-translation-table 'jisx0213-to-unicode table)
   (define-translation-table 'unicode-to-jisx0213
     (char-table-extra-slot table 0)))
+
+(defun compose-gstring-for-variation-glyph (gstring)
+  "Compose glyph-string GSTRING for graphic display.
+GSTRING must have two glyphs; the first is a glyph for a han character,
+and the second is a glyph for a variation selector."
+  (let* ((font (lgstring-font gstring))
+	 (han (lgstring-char gstring 0))
+	 (vs (lgstring-char gstring 1))
+	 (glyphs (font-variation-glyphs font han))
+	 (g0 (lgstring-glyph gstring 0))
+	 (g1 (lgstring-glyph gstring 1)))
+    (catch 'tag
+      (dolist (elt glyphs)
+	(if (= (car elt) vs)
+	    (progn
+	      (lglyph-set-code g0 (cdr elt))
+	      (lglyph-set-from-to g0 (lglyph-from g0) (lglyph-to g1))
+	      (lgstring-set-glyph gstring 1 nil)
+	      (throw 'tag gstring)))))))
+
+(let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0F) elt)
+  (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
 
 (provide 'japanese)
 

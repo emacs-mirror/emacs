@@ -43,7 +43,7 @@ This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software
 Foundation, Inc.
 
 @quotation
@@ -275,7 +275,8 @@ Editing Types
 * Buffer Type::             The basic object of editing.
 * Marker Type::             A position in a buffer.
 * Window Type::             What makes buffers visible.
-* Frame Type::		    Windows subdivide frames.
+* Frame Type::              Windows subdivide frames.
+* Terminal Type::           A terminal device displays frames.
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
 * Process Type::            A subprocess of Emacs running on the underlying OS.
@@ -420,9 +421,10 @@ Variables
 * Setting Variables::       Storing new values in variables.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
-* Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::    Handling local variable lists in files.
+* Directory Local Variables:: Local variables common to all files in a directory.
 * Frame-Local Variables::   Frame-local bindings for variables.
+* Future Local Variables::  New kinds of local values we might add some day.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -937,7 +939,9 @@ Frames
 
 * Creating Frames::	    Creating additional frames.
 * Multiple Displays::       Creating frames on other displays.
+* Multiple Terminals::          Displaying on several different devices.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
+* Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::	    Frames last until explicitly deleted.
 * Finding All Frames::	    How to examine all existing frames.
@@ -1280,13 +1284,15 @@ Faces
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
-* Font Selection::          Finding the best available font for a face.
+* Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
+* Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.
 * Fontsets::                A fontset is a collection of fonts
                               that handle a range of character sets.
+* Low-Level Font::          Lisp representation of character display fonts.
 
 Fringes
 

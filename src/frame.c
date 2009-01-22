@@ -1,6 +1,6 @@
 /* Generic frame functions.
    Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+     2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -193,7 +193,6 @@ set_menu_bar_lines (f, value, oldval)
     }
 }
 
-Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 
 extern Lisp_Object Vminibuffer_list;
@@ -595,20 +594,12 @@ make_terminal_frame (struct terminal *terminal)
     f->output_method = output_msdos_raw;
   else
     f->output_method = output_termcap;
-#else
-  {
-    f->output_method = output_termcap;
-    create_tty_output (f);
-
-    FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
-    FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-  }
-
-#ifdef CANNOT_DUMP
-  FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
-  FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
-#endif
-#endif /* MSDOS */
+#else /* not MSDOS */
+  f->output_method = output_termcap;
+  create_tty_output (f);
+  FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
+#endif /* not MSDOS */
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
@@ -1322,20 +1313,13 @@ delete_frame_handler (Lisp_Object arg)
 
 extern Lisp_Object Qrun_hook_with_args;
 
-DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
-       doc: /* Delete FRAME, permanently eliminating it from use.
-If omitted, FRAME defaults to the selected frame.
-A frame may not be deleted if its minibuffer is used by other frames.
-Normally, you may not delete a frame if all other frames are invisible,
-but if the second optional argument FORCE is non-nil, you may do so.
-
-This function runs `delete-frame-functions' before actually deleting the
-frame, unless the frame is a tooltip.
-The functions are run with one arg, the frame to be deleted.
-But FORCE inhibits this too.  */)
-/* FORCE is non-nil when handling a disconnected terminal.  */
-     (frame, force)
-     Lisp_Object frame, force;
+/* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
+  unconditionally.  x_connection_closed and delete_terminal use
+  this.  Any other value of FORCE implements the semantics
+  described for Fdelete_frame.  */
+Lisp_Object
+delete_frame (frame, force)
+     register Lisp_Object frame, force;
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
@@ -1360,12 +1344,10 @@ But FORCE inhibits this too.  */)
   if (NILP (force) && !other_visible_frames (f))
     error ("Attempt to delete the sole visible or iconified frame");
 
-#if 0
-  /* This is a nice idea, but x_connection_closed needs to be able
+  /* x_connection_closed must have set FORCE to `noelisp' in order
      to delete the last frame, if it is gone.  */
-  if (NILP (XCDR (Vframe_list)))
+  if (NILP (XCDR (Vframe_list)) && !EQ (force, Qnoelisp))
     error ("Attempt to delete the only frame");
-#endif
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
@@ -1385,19 +1367,20 @@ But FORCE inhibits this too.  */)
 		     WINDOW_FRAME (XWINDOW
 				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
 	    {
-	      /* If we MUST delete this frame, delete the other first.  */
-	      if (!NILP (force))
-		Fdelete_frame (this, force);
+	      /* If we MUST delete this frame, delete the other first.
+		 But do this only if FORCE equals `noelisp'.  */
+	      if (EQ (force, Qnoelisp))
+		delete_frame (this, Qnoelisp);
 	      else
 		error ("Attempt to delete a surrogate minibuffer frame");
 	    }
 	}
     }
 
-  /* Run `delete-frame-functions'
-     unless FORCE is `noelisp' or frame is a tooltip.
-     FORCE is set to `noelisp' when handling a disconnect from the terminal,
-     so we don't dare call Lisp code.  */
+  /* Run `delete-frame-functions' unless FORCE is `noelisp' or
+     frame is a tooltip.  FORCE is set to `noelisp' when handling
+     a disconnect from the terminal, so we don't dare call Lisp
+     code.  */
   if (NILP (Vrun_hooks) || !NILP (Fframe_parameter (frame, intern ("tooltip"))))
     ;
   if (EQ (force, Qnoelisp))
@@ -1641,6 +1624,24 @@ But FORCE inhibits this too.  */)
 
   return Qnil;
 }
+
+DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
+       doc: /* Delete FRAME, permanently eliminating it from use.
+FRAME defaults to the selected frame.
+
+A frame may not be deleted if its minibuffer is used by other frames.
+Normally, you may not delete a frame if all other frames are invisible,
+but if the second optional argument FORCE is non-nil, you may do so.
+
+This function runs `delete-frame-functions' before actually
+deleting the frame, unless the frame is a tooltip.
+The functions are run with one argument, the frame to be deleted.  */)
+     (frame, force)
+     Lisp_Object frame, force;
+{
+  return delete_frame (frame, !NILP (force) ? Qt : Qnil);
+}
+
 
 /* Return mouse position in character cell units.  */
 
@@ -2285,7 +2286,6 @@ store_frame_param (f, prop, val)
  	swap_in_global_binding (prop);
     }
 
-#ifndef WINDOWSNT
   /* The tty color needed to be set before the frame's parameter
      alist was updated with the new value.  This is not true any more,
      but we still do this test early on.  */
@@ -2293,7 +2293,6 @@ store_frame_param (f, prop, val)
       && f == FRAME_TTY (f)->previous_frame)
     /* Force redisplay of this tty.  */
     FRAME_TTY (f)->previous_frame = NULL;
-#endif
 
   /* Update the frame parameter alist.  */
   old_alist_elt = Fassq (prop, f->param_alist);
@@ -2926,6 +2925,9 @@ x_set_frame_parameters (f, alist)
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
   int fullscreen_is_being_set = 0;
+  int height_for_full_width = 0;
+  int width_for_full_height = 0;
+  enum fullscreen_type fullscreen_wanted = FULLSCREEN_NONE;
 
   struct gcpro gcpro1, gcpro2;
 
@@ -2968,7 +2970,7 @@ x_set_frame_parameters (f, alist)
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
   /* Process default font as well, since fringe widths depends on it.  */
-  /* Also, process fullscreen, width and height depend upon that */
+  /* Also, process fullscreen, width and height depend upon that.  */
   for (p = 0; p < i; p++)
     {
       Lisp_Object prop, val;
@@ -2981,6 +2983,19 @@ x_set_frame_parameters (f, alist)
           || EQ (prop, Qfullscreen))
 	{
 	  register Lisp_Object param_index, old_value;
+
+	  if (EQ (prop, Qfullscreen))
+	    {
+	      /* The parameter handler can reset f->want_fullscreen to
+	         FULLSCREEN_NONE.  But we need the requested value later
+	         to decide whether a height or width parameter shall be
+	         applied.  Therefore, we remember the requested value in
+	         fullscreen_wanted for the following two cases.  */ 
+	      if (EQ (val, Qfullheight))
+		fullscreen_wanted = FULLSCREEN_HEIGHT;
+	      else if (EQ (val, Qfullwidth))
+		fullscreen_wanted = FULLSCREEN_WIDTH;
+	    }
 
 	  old_value = get_frame_param (f, prop);
  	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
@@ -3007,9 +3022,9 @@ x_set_frame_parameters (f, alist)
       val = values[i];
 
       if (EQ (prop, Qwidth) && NATNUMP (val))
-	width = XFASTINT (val);
+	width_for_full_height = width = XFASTINT (val);
       else if (EQ (prop, Qheight) && NATNUMP (val))
-	height = XFASTINT (val);
+	height_for_full_width = height = XFASTINT (val);
       else if (EQ (prop, Qtop))
 	top = val;
       else if (EQ (prop, Qleft))
@@ -3089,6 +3104,15 @@ x_set_frame_parameters (f, alist)
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
       if (new_top != f->top_pos || new_left != f->left_pos)
         x_set_offset (f, new_left, new_top, 1);
+
+      /* When both height and fullwidth were requested, make sure the
+	 requested value for height gets applied.  */
+      if (height_for_full_width && fullscreen_wanted == FULLSCREEN_WIDTH)
+	height = height_for_full_width;
+      /* When both width and fullheight were requested, make sure the
+	 requested value for width gets applied.  */
+      if (width_for_full_height && fullscreen_wanted == FULLSCREEN_HEIGHT)
+	width = width_for_full_height;
     }
 
   /* Don't set these parameters unless they've been explicitly
@@ -3367,7 +3391,7 @@ x_set_font (f, arg, oldval)
 	  font_object = font_open_by_name (f, SDATA (ascii_font));
 	  if (NILP (font_object))
 	    error ("Font `%s' is not defined", SDATA (arg));
-	  arg = fontset_name (fontset);
+	  arg = AREF (font_object, FONT_NAME_INDEX);
 	}
       else
 	error ("The default fontset can't be used for a frame font");
@@ -3923,7 +3947,6 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
     {
       /* If we find this parm in ALIST, clear it out
 	 so that it won't be "left over" at the end.  */
-#ifndef WINDOWSNT /* w32fns.c has not yet been changed to cope with this.  */
       Lisp_Object tail;
       XSETCAR (tem, Qnil);
       /* In case the parameter appears more than once in the alist,
@@ -3932,7 +3955,6 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
 	if (CONSP (XCAR (tail))
 	    && EQ (XCAR (XCAR (tail)), param))
 	  XSETCAR (XCAR (tail), Qnil);
-#endif
     }
   else
     tem = Fassq (param, Vdefault_frame_alist);
@@ -4529,10 +4551,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
                doc: /* The initial frame-object, which represents Emacs's stdout.  */);
-
-  DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
-	       doc: /* Non-nil if all of Emacs is iconified and frame updates are not needed.  */);
-  Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
 	       doc: /* If non-nil, function to transform normal value of `mouse-position'.

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2005, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -355,6 +355,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 - (void) showForFrame: (struct frame *)f;
 - (void) setPanelFromValues;
+- (void) setPanelFromDefaultValues;
 - (void) setValuesFromPanel;
 @end
 
@@ -362,7 +363,7 @@ extern NSArray *ns_send_types, *ns_return_types;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
 @end

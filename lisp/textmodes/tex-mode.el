@@ -1,7 +1,7 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1989, 1992, 1994, 1995, 1996, 1997, 1998
-;;   1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2536,10 +2536,11 @@ Runs the shell command defined by `tex-show-queue-command'."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (let (shell-dirtrack-verbose
-	(tex-out-file
-         (tex-append (file-name-nondirectory (buffer-file-name)) ""))
-	(file-dir (file-name-directory (buffer-file-name))))
+  (let* (shell-dirtrack-verbose
+         (source-file (tex-main-file))
+         (tex-out-file
+          (tex-append (file-name-nondirectory source-file) ""))
+         (file-dir (file-name-directory source-file)))
     (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))

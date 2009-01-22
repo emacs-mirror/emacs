@@ -1,7 +1,7 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
@@ -470,7 +470,7 @@ This allows for context-sensitive checking whether pairing is appropriate.")
 
 
 (defvar skeleton-pair-alist ()
-  "An override alist of pairing partners matched against `last-command-char'.
+  "An override alist of pairing partners matched against `last-command-event'.
 Each alist element, which looks like (ELEMENT ...), is passed to
 `skeleton-insert' with no interactor.  Variable `str' does nothing.
 
@@ -504,7 +504,7 @@ symmetrical ones, and the same character twice for the others."
 		      (or (eq last-command 'mouse-drag-region)
 			  (and transient-mark-mode mark-active))))
 	   (skeleton-end-hook)
-	   (char last-command-char)
+	   (char last-command-event)
 	   (skeleton (or (assq char skeleton-pair-alist)
 			 (assq char skeleton-pair-default-alist)
 			 `(,char _ ,char))))

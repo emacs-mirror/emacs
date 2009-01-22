@@ -11,7 +11,7 @@
 	"Carl Edman (NeXTStep)",
 	"..see http://emacs-app.sf.net/authorship.html"
     );
-    Copyright = "Copyright (C) 2008 Free Software Foundation, Inc.";
+    Copyright = "Copyright (C) 2009 Free Software Foundation, Inc.";
     CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
     FullVersionID = "Emacs 23.0.60, NS Windowing";
     NSExecutable = Emacs;

@@ -1,6 +1,6 @@
 /* Machine description file for ARM-based non-RISCiX machines.
    Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008  Free Software Foundation, Inc.
+                 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

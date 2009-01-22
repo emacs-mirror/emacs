@@ -1,7 +1,7 @@
 ;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
@@ -118,9 +118,9 @@ Auto Revert Mode.")
 (defvar Info-current-node) ;; from info.el
 
 (defvar Buffer-menu-mode-map
-  (let ((map (make-keymap)))
+  (let ((map (make-keymap))
+	(menu-map (make-sparse-keymap)))
     (suppress-keymap map t)
-    (define-key map "q" 'quit-window)
     (define-key map "v" 'Buffer-menu-select)
     (define-key map "2" 'Buffer-menu-2-window)
     (define-key map "1" 'Buffer-menu-1-window)
@@ -140,26 +140,87 @@ Auto Revert Mode.")
     (define-key map "p" 'previous-line)
     (define-key map "\177" 'Buffer-menu-backup-unmark)
     (define-key map "~" 'Buffer-menu-not-modified)
-    (define-key map "?" 'describe-mode)
     (define-key map "u" 'Buffer-menu-unmark)
     (define-key map "m" 'Buffer-menu-mark)
     (define-key map "t" 'Buffer-menu-visit-tags-table)
     (define-key map "%" 'Buffer-menu-toggle-read-only)
     (define-key map "b" 'Buffer-menu-bury)
-    (define-key map "g" 'Buffer-menu-revert)
     (define-key map "V" 'Buffer-menu-view)
     (define-key map "T" 'Buffer-menu-toggle-files-only)
     (define-key map [mouse-2] 'Buffer-menu-mouse-select)
     (define-key map [follow-link] 'mouse-face)
     (define-key map (kbd "M-s a C-s")   'Buffer-menu-isearch-buffers)
     (define-key map (kbd "M-s a M-C-s") 'Buffer-menu-isearch-buffers-regexp)
+    (define-key map [menu-bar Buffer-menu-mode] (cons "Buffer Menu" menu-map))
+    (define-key menu-map [quit]
+      '(menu-item "Quit" quit-window
+		 :help "Mark buffer on this line to be deleted by x command"))
+    (define-key menu-map [rev]
+      '(menu-item "Refresh" revert-buffer
+		 :help "Refresh the *Buffer List* buffer contents"))
+    (define-key menu-map [s0] '("--"))
+    (define-key menu-map [tf]
+      '(menu-item "Show only file buffers" Buffer-menu-toggle-files-only
+		  :button (:toggle . Buffer-menu-files-only)
+		  :help "Toggle whether the current buffer-menu displays only file buffers"))
+    (define-key menu-map [s1] '("--"))
+    ;; FIXME: The "Select" entries could use better names...
+    (define-key menu-map [sel]
+      '(menu-item "Select marked" Buffer-menu-select
+		 :help "Select this line's buffer; also display buffers marked with `>'"))
+    (define-key menu-map [bm2]
+      '(menu-item "Select two" Buffer-menu-2-window
+		 :help "Select this line's buffer, with previous buffer in second window"))
+    (define-key menu-map [bm1]
+      '(menu-item "Select current" Buffer-menu-1-window
+		 :help "Select this line's buffer, alone, in full frame"))
+    (define-key menu-map [ow]
+      '(menu-item "Select in other window" Buffer-menu-other-window
+		 :help "Select this line's buffer in other window, leaving buffer menu visible"))
+    (define-key menu-map [tw]
+      '(menu-item "Select in current window" Buffer-menu-this-window
+		 :help "Select this line's buffer in this window"))
+    (define-key menu-map [s2] '("--"))
+    (define-key menu-map [is]
+      '(menu-item "Regexp Isearch marked buffers" Buffer-menu-isearch-buffers-regexp
+		 :help "Search for a regexp through all marked buffers using Isearch"))
+    (define-key menu-map [ir]
+      '(menu-item "Isearch marked buffers" Buffer-menu-isearch-buffers
+		 :help "Search for a string through all marked buffers using Isearch"))
+    (define-key menu-map [s3] '("--"))
+    (define-key menu-map [by]
+      '(menu-item "Bury" Buffer-menu-bury
+		 :help "Bury the buffer listed on this line"))
+    (define-key menu-map [vt]
+      '(menu-item "Set unmodified" Buffer-menu-not-modified
+		 :help "Mark buffer on this line as unmodified (no changes to save)"))
+    (define-key menu-map [ex]
+      '(menu-item "Execute" Buffer-menu-execute
+		 :help "Save and/or delete buffers marked with s or k commands"))
+    (define-key menu-map [s4] '("--"))
+    (define-key menu-map [delb]
+      '(menu-item "Mark for delete and move backwards" Buffer-menu-delete-backwards
+		 :help "Mark buffer on this line to be deleted by x command and move up one line"))
+    (define-key menu-map [del]
+      '(menu-item "Mark for delete" Buffer-menu-delete
+		 :help "Mark buffer on this line to be deleted by x command"))
+
+    (define-key menu-map [sv]
+      '(menu-item "Mark for save" Buffer-menu-save
+		 :help "Mark buffer on this line to be saved by x command"))
+    (define-key menu-map [umk]
+      '(menu-item "Unmark" Buffer-menu-unmark
+		 :help "Cancel all requested operations on buffer on this line and move down"))
+    (define-key menu-map [mk]
+      '(menu-item "Mark" Buffer-menu-mark
+		 :help "Mark buffer on this line for being displayed by v command"))
     map)
   "Local keymap for `Buffer-menu-mode' buffers.")
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
 (put 'Buffer-menu-mode 'mode-class 'special)
 
-(define-derived-mode Buffer-menu-mode nil "Buffer Menu"
+(define-derived-mode Buffer-menu-mode special-mode "Buffer Menu"
   "Major mode for editing a list of buffers.
 Each line describes one of the buffers in Emacs.
 Letters do not insert themselves; instead, they are commands.
@@ -190,7 +251,7 @@ Letters do not insert themselves; instead, they are commands.
   With prefix argument, also move up one line.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
-\\[Buffer-menu-revert] -- update the list of buffers.
+\\[revert-buffer] -- update the list of buffers.
 \\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (set (make-local-variable 'revert-buffer-function)
@@ -202,13 +263,6 @@ Letters do not insert themselves; instead, they are commands.
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
-
-;; This function exists so we can make the doc string of Buffer-menu-mode
-;; look nice.
-(defun Buffer-menu-revert ()
-  "Update the list of buffers."
-  (interactive)
-  (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
   (or (eq buffer-undo-list t)
@@ -649,7 +703,7 @@ For more information, see the function `buffer-menu'."
 	  (if (or m1 m2)
 	      (push (list buf m1 m2) l)))
 	(forward-line)))
-    (Buffer-menu-revert)
+    (revert-buffer)
     (save-excursion
       (Buffer-menu-beginning)
       (while (not (eobp))

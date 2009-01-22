@@ -1,3 +1,27 @@
+2009-01-15  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs, gmake.defs (UUID): New library for COM/OLE lookups.
+
+	* makefile.w32-in ($(BLD)/addpm.exe): Link with SHELL and OLE libs.
+
+	* addpm.c (main): Try using COM to create start menu shortcuts
+	before resorting to DDE (Bug#202)
+	Remove second command-line argument.
+
+2009-01-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Untabify help message.
+
+2009-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: New option --with-svg.
+
+	* INSTALL: Document experimental SVG support.
+
+2008-12-25  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (PTR): Remove.
+
 2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (LISTPROC, PROCATTR): Remove.
@@ -1676,7 +1700,7 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+       2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

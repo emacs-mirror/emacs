@@ -4,7 +4,7 @@
 ;;		 Viper Is also a Package for Emacs Rebels.
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
@@ -288,7 +288,7 @@
 ;;    convoluted.  Instead of viper-command-argument, keymaps should bind the
 ;;    actual commands.  E.g., "dw" should be bound to a generic command
 ;;    viper-delete that will delete things based on the value of
-;;    last-command-char.  This would greatly simplify the logic and the code.
+;;    last-command-event.  This would greatly simplify the logic and the code.
 ;;
 ;; 2. Somebody should venture to write a customization package a la
 ;;    options.el that would allow the user to change values of variables

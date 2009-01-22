@@ -1,3 +1,44 @@
+2009-01-14  Juri Linkov  <juri@jurta.org>
+
+	* .dir-locals.el (change-log-mode): Remove bug-reference-mode.
+
+	* .dir-locals.el (change-log-mode): Add bug-reference-url-format
+	and bug-reference-mode.
+
+2009-01-11  Juri Linkov  <juri@jurta.org>
+
+	* INSTALL.CVS: Move configuration explicitly to the first step.
+
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* .dir-locals.el: Don't set indent-tabs-mode.
+
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in: Define HAVE_OTF_GET_VARIATION_GLYPHS if libotf has
+	the function OTF_get_variation_glyphs.
+
+2008-12-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (install-arch-dep): Remove old directories in
+	ns_app* before moving new directories there.
+
+2008-12-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .dir-locals.el: Remove non-working entry for pmail.
+	(fill-column): Fix typo.
+	(change-log-mode): Add fill column.
+
+2008-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Produce _dir-locals.el from .dir-locals.el.
+
+2008-12-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-dist (tempdir): Distribute .dir-locals.el.
+
+	* .dir-locals.el: New file.
+
 2008-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat (--with-system-malloc): New option; see msdos/INSTALL
@@ -7493,7 +7534,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-	2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+	2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

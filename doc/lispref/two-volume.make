@@ -1,4 +1,4 @@
-# Copyright 2007, 2008 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 # See end for copying conditions.
 
 # although it would be nice to use tex rather than pdftex to avoid

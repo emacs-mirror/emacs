@@ -1,7 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2273,7 +2273,7 @@ window_loop (type, obj, mini, frames)
 		      windows = XCDR (windows);
 
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (w->frame, Qnil);
+		    delete_frame (w->frame, Qnil);
 		  }
 		else if (NILP (w->parent))
 		  {
@@ -2334,7 +2334,7 @@ window_loop (type, obj, mini, frames)
 		      windows = XCDR (windows);
 
 		    /* Now we can safely delete the frame.  */
-		    Fdelete_frame (w->frame, Qnil);
+		    delete_frame (w->frame, Qnil);
 		  }
 		else if (!NILP (w->dedicated) && !NILP (w->parent))
 		  {
@@ -5790,8 +5790,8 @@ DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        doc: /* Return the height in lines of the text display area of WINDOW.
 WINDOW defaults to the selected window.
 
-The return value does neither include the mode line or header line, if
-any, nor any partial-height lines in the text display area.  */)
+The return value does not include the mode line, any header line, nor
+any partial-height lines in the text display area.  */)
      (window)
      Lisp_Object window;
 {
@@ -6909,7 +6909,7 @@ foreach_window (f, fn, user_data)
      int (* fn) P_ ((struct window *, void *));
      void *user_data;
 {
-  /* Fdelete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
+  /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
   if (WINDOWP (FRAME_ROOT_WINDOW (f)))
     foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, user_data);
 }

@@ -1,7 +1,7 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
 ;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -67,7 +67,7 @@
 (defun autoarg-kp-digit-argument (arg)
   "Part of the numeric argument for the next command, like `digit-argument'."
   (interactive "P")
-  (let ((digit (cdr (assq last-command-char autoarg-kp-digits))))
+  (let ((digit (cdr (assq last-command-event autoarg-kp-digits))))
     (cond ((integerp arg)
 	   (setq prefix-arg (+ (* arg 10)
 			       (if (< arg 0) (- digit) digit))))

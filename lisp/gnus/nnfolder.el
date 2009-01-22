@@ -1,7 +1,7 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -925,7 +925,9 @@ deleted.  Point is left where the deleted region was."
 	      (active (or (cadr (assoc group nnfolder-group-alist))
 			  (cons 1 0)))
 	      (scantime (assoc group nnfolder-scantime-alist))
-	      (minid (lsh -1 -1))
+	      (minid (or (and (boundp 'most-positive-fixnum)
+			      most-positive-fixnum)
+			 (lsh -1 -1)))
 	      maxid start end newscantime
 	      novbuf articles newnum
 	      buffer-read-only)

@@ -1,7 +1,7 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
 ;; Copyright (C) 1985, 1986, 1987, 1991, 1994, 1995, 1996, 1997, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -183,14 +183,15 @@ end of a sentence, the ending period, question mark, or exclamation point
 must be followed by two spaces, with perhaps some closing delimiters
 in between.  See Info node `(elisp)Standard Regexps'."
   (or sentence-end
-      (concat (if sentence-end-without-period "\\w  \\|")
+      ;; We accept non-break space along with space.
+      (concat (if sentence-end-without-period "\\w[ \u00a0][ \u00a0]\\|")
 	      "\\("
 	      sentence-end-base
               (if sentence-end-double-space
-                  "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+                  "\\($\\|[ \u00a0]$\\|\t\\|[ \u00a0][ \u00a0]\\)" "\\($\\|[\t \u00a0]\\)")
               "\\|[" sentence-end-without-space "]+"
 	      "\\)"
-              "[ \t\n]*")))
+              "[ \u00a0\t\n]*")))
 
 (defcustom page-delimiter "^\014"
   "Regexp describing line-beginnings that separate pages."
@@ -449,7 +450,10 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
         (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
-	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
+	    ;; We used to use (start-of-paragraph-text), but this can
+	    ;; prevent sentence-end from matching if it is anchored at
+	    ;; BOL and the paragraph starts indented.
+	    (par-beg (save-excursion (backward-paragraph) (point))))
        (if (and (re-search-backward sentence-end par-beg t)
 		(or (< (match-end 0) pos)
 		    (re-search-backward sentence-end par-beg t)))

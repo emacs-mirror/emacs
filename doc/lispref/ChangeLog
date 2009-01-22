@@ -1,3 +1,189 @@
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Format Conversion Piecemeal): Clarify behavior of
+	write-region-annotate-functions.  Document
+	write-region-post-annotation-function.
+
+2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lookup): Document WIDTH argument of
+	x-list-fonts.
+
+2009-01-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* maps.texi (Standard Keymaps): Rename function-key-map to
+	local-function-key-map.
+
+	* keymaps.texi (Translation Keymaps): Rename function-key-map to
+	local-function-key-map.
+
+	* nonascii.texi (Terminal I/O Encoding): `keyboard-coding-system'
+	and `set-keyboard-coding-system' now accept an optional terminal
+	argument.
+
+	* commands.texi (Event Mod): `keyboard-translate-table' is now
+	terminal-local.
+	(Function Keys): Rename function-key-map to
+	local-function-key-map.
+
+	* elisp.texi (Top): Make @detailmenu be consistent with changes in
+	frames.texi.
+
+	* hooks.texi (Standard Hooks): Document `delete-frame-functions'
+	`delete-terminal-functions', `suspend-tty-functions' and
+	`resume-tty-functions'.
+
+	* frames.texi (Frames): Document `frame-terminal' and
+	`terminal-live-p'.
+	(Multiple Displays): Document `make-frame-on-tty'.
+	(Multiple Terminals): Document `terminal-list', `delete-terminal',
+	`terminal-name', and `get-device-terminal'.
+	(Terminal Parameters): Document `terminal-parameters',
+	`terminal-parameter', and `set-terminal-parameter'.
+
+	* os.texi (System Environment): Document `environment' and
+	`initial-environment'.
+	(Suspending Emacs): Update for multi-tty; document
+	`suspend-tty', `resume-tty', and `controlling-tty-p'.
+
+	* nonascii.texi (Coding System Basics): More accurate description
+	of `raw-text'.
+
+2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Low-Level Font): Fix typo.
+
+2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi (Top): Update node listing.
+
+	* display.texi (PostScript Images): Node deleted.
+
+2009-01-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Decoding Output): Document that null bytes force
+	no-conversion for reading process output.
+
+	* files.texi (Reading from Files): Document that null bytes force
+	no-conversion when visiting files.
+
+	* processes.texi (Serial Ports): Improve wording, suggested by
+	RMS.
+
+	* nonascii.texi (Lisp and Coding Systems): Document
+	inhibit-null-byte-detection and inhibit-iso-escape-detection.
+	(Character Properties): Improve wording.
+
+2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lookup): Remove obsolete function
+	x-font-family-list.  x-list-fonts accepts Fontconfig/GTK syntax.
+	(Low-Level Font): Rename from Fonts, move to end of Faces section.
+	(Font Selection): Reorder order of variable descriptions.  Minor
+	clarifications.
+
+	* elisp.texi (Top): Update node listing.
+
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* commands.texi (Command Loop Info): Say that last-command-char and
+	last-input-char are obsolete aliases.
+
+	* edebug.texi (Edebug Recursive Edit): Remove separate references to
+	last-input-char and last-command-char, since they are just aliases for
+	last-input-event and last-command-event.
+
+	* minibuf.texi (Minibuffer Commands): Use last-command-event rather than
+	last-command-char.
+
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi: Update node listing.
+
+	* display.texi (Faces): Put Font Selection node after Auto Faces.
+	(Face Attributes): Don't link to Font Lookup.  Document
+	font-family-list.
+	(Fonts): New node.
+
+2009-01-08  Jason Rumney  <jasonr@gnu.org>
+
+	* frames.texi (Pointer Shape): Clarify that only X supports
+	changing the standard pointer shapes. (Bug#1485)
+
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Attribute Functions): Note that a function value
+	:height is relative, and that compatibility functions work by
+	calling set-face-attribute.
+	(Displaying Faces): Reorder list in order of increasing priority.
+	(Face Remapping): New node.  Content moved here from Displaying
+	Faces.
+	(Glyphs): Link to Face Functions.
+
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Faces): Don't discuss face id here.  facep does
+	not return t.
+	(Defining Faces): Minor clarification.
+	(Face Attributes): Rearrange items to match docstring of
+	set-face-attribute.  Add :foundry attribute.  Document new role of
+	:font attribute.  Texinfo usage fix.
+	(Attribute Functions): Copyedits.
+	(Face Functions): Note that face number is seldom used.
+
+2009-01-05  Richard M Stallman  <rms@gnu.org>
+
+	* strings.texi (Predicates for Strings): Minor clarification.
+
+	* functions.texi (Function Safety): Texinfo usage fix.
+
+2009-01-04  Eduard Wiebe  <usenet@pusto.de>  (tiny patch)
+
+	* objects.texi (General Escape Syntax): Fix typo.
+
+2009-01-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Say that pop-up-frame-alist
+	works via the default value of pop-up-frame-function.
+
+2009-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (System Processes): Document the `time' and
+	`ctime' attributes of `system-process-attributes'.
+
+2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Face Attributes): Clarify :height attribute.
+
+2008-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (The Buffer List): Clarify what moves a buffer to
+	the front of the buffer list.  Add entries for `last-buffer' and
+	`unbury-buffer'.
+
+2008-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi (Top): Add @detailmenu items for "Multiple Terminals"
+	and its subsections.
+
+	* frames.texi (Multiple Terminals, Low-level Terminal)
+	(Terminal Parameters, Frames on Other TTY devices): New sections.
+	(Frames): Add an xref to "Multiple Terminals".
+
+	* elisp.texi (Top): Add @detailmenu item for "Terminal Type".
+
+	* objects.texi (Terminal Type): New node.
+	(Editing Types): Add it to the menu.
+
+	* elisp.texi (Top): Add a @detailmenu item for "Directory Local
+	Variables".
+
+	* variables.texi (Directory Local Variables): New node.
+	(Variables): Add a menu item for it.
+
+	* loading.texi (Autoload): Document `generate-autoload-cookie' and
+	`generated-autoload-file'.
+
 2008-12-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* os.texi (Startup Summary): Add xref to documentation of
@@ -7179,7 +7365,7 @@
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008  Free Software Foundation, Inc.
+      2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

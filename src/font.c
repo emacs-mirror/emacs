@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
-   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008
+   Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -254,6 +254,7 @@ font_intern_prop (str, len, force_symbol)
   int i;
   Lisp_Object tem;
   Lisp_Object obarray;
+  int nbytes, nchars;
 
   if (len == 1 && *str == '*')
     return Qnil;
@@ -266,14 +267,25 @@ font_intern_prop (str, len, force_symbol)
 	return make_number (atoi (str));
     }
 
-  /* The following code is copied from the function intern (in lread.c).  */
+  /* The following code is copied from the function intern (in
+     lread.c), and modified to suite our purpose.  */
   obarray = Vobarray;
   if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     obarray = check_obarray (obarray);
-  tem = oblookup (obarray, str, len, len);
+  parse_str_as_multibyte (str, len, &nchars, &nbytes);
+  if (len == nchars || len != nbytes)
+    /* CONTENTS contains no multibyte sequences or contains an invalid
+       multibyte sequence.  We'll make a unibyte string.  */
+    tem = oblookup (obarray, str, len, len);
+  else
+    tem = oblookup (obarray, str, nchars, len);
   if (SYMBOLP (tem))
     return tem;
-  return Fintern (make_unibyte_string (str, len), obarray);
+  if (len == nchars || len != nbytes)
+    tem = make_unibyte_string (str, len);
+  else
+    tem = make_multibyte_string (str, nchars, len);
+  return Fintern (tem, obarray);
 }
 
 /* Return a pixel size of font-spec SPEC on frame F.  */
@@ -1802,7 +1814,7 @@ font_parse_name (name, font)
      char *name;
      Lisp_Object font;
 {
-  if (name[0] == '-' || index (name, '*'))
+  if (name[0] == '-' || index (name, '*') || index (name, '?'))
     return font_parse_xlfd (name, font);
   return font_parse_fcname (name, font);
 }
@@ -3039,15 +3051,21 @@ font_get_spec (font_object)
   return spec;
 }
 
+
+/* Create a new font spec from FONT_NAME, and return it.  If FONT_NAME
+   could not be parsed by font_parse_name, return Qnil.  */
+
 Lisp_Object
 font_spec_from_name (font_name)
      Lisp_Object font_name;
 {
-  Lisp_Object args[2];
+  Lisp_Object spec = Ffont_spec (0, NULL);
 
-  args[0] = QCname;
-  args[1] = font_name;
-  return Ffont_spec (2, args);
+  CHECK_STRING (font_name);
+  if (font_parse_name ((char *) SDATA (font_name), spec) == -1)
+    return Qnil;
+  font_put_extra (spec, QCname, font_name);
+  return spec;
 }
 
 
@@ -3071,7 +3089,13 @@ font_clear_prop (attrs, prop)
   if (prop == FONT_FAMILY_INDEX || prop == FONT_FOUNDRY_INDEX)
     {
       if (prop == FONT_FAMILY_INDEX)
-	ASET (font, FONT_FOUNDRY_INDEX, Qnil);
+	{
+	  ASET (font, FONT_FOUNDRY_INDEX, Qnil);
+	  /* If we are setting the font family, we must also clear
+	     FONT_WIDTH_INDEX to avoid rejecting families that lack
+	     support for some widths.  */
+	  ASET (font, FONT_WIDTH_INDEX, Qnil);
+	}
       ASET (font, FONT_ADSTYLE_INDEX, Qnil);
       ASET (font, FONT_REGISTRY_INDEX, Qnil);
       ASET (font, FONT_SIZE_INDEX, Qnil);
@@ -3370,7 +3394,18 @@ font_open_for_lface (f, entity, attrs, spec)
     size = font_pixel_size (f, spec);
   else
     {
-      double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+      double pt;
+      if (INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
+	pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
+      else
+	{
+	  struct face *def = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	  Lisp_Object height = def->lface[LFACE_HEIGHT_INDEX];
+	  if (INTEGERP (height))
+	    pt = XINT (height);
+	  else
+	    abort(); /* We should never end up here.  */
+	}
 
       pt /= 10;
       size = POINT_TO_PIXEL (pt, f->resy);
@@ -3799,6 +3834,7 @@ font_range (pos, limit, w, face, string)
 
       category = CHAR_TABLE_REF (Vunicode_category_table, c);
       if (! EQ (category, QCf)
+	  && ! CHAR_VARIATION_SELECTOR_P (c)
 	  && font_encode_char (font_object, c) == FONT_INVALID_CODE)
 	{
 	  Lisp_Object f = font_for_char (face, c, pos - 1, string);
@@ -3820,6 +3856,7 @@ font_range (pos, limit, w, face, string)
 		FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, i, i_byte);
 	      category = CHAR_TABLE_REF (Vunicode_category_table, c);
 	      if (! EQ (category, QCf)
+		  && ! CHAR_VARIATION_SELECTOR_P (c)
 		  && font_encode_char (f, c) == FONT_INVALID_CODE)
 		{
 		  *limit = pos - 1;
@@ -4188,17 +4225,12 @@ Optional argument FRAME, if non-nil, specifies the target frame.  */)
     if (driver_list->driver->list_family)
       {
 	Lisp_Object val = driver_list->driver->list_family (frame);
+	Lisp_Object tail = list;
 
-	if (NILP (list))
-	  list = val;
-	else
-	  {
-	    Lisp_Object tail = list;
-
-	    for (; CONSP (val); val = XCDR (val))
-	      if (NILP (Fmemq (XCAR (val), tail)))
-		list = Fcons (XCAR (val), list);
-	  }
+	for (; CONSP (val); val = XCDR (val))
+	  if (NILP (Fmemq (XCAR (val), tail))
+	      && SYMBOLP (XCAR (val)))
+	    list = Fcons (SYMBOL_NAME (XCAR (val)), list);
       }
   return list;
 }
@@ -4393,6 +4425,49 @@ created glyph-string.  Otherwise, the value is nil.  */)
 	LGLYPH_SET_TO (glyph, to);
       }
   return composition_gstring_put_cache (gstring, XINT (n));
+}
+
+DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
+       2, 2, 0,
+       doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
+Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
+where
+  VARIATION-SELECTOR is a chracter code of variation selection
+    (#xFE00..#xFE0F or #xE0100..#xE01EF)
+  GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
+     (font_object, character)
+     Lisp_Object font_object, character;
+{
+  unsigned variations[256];
+  struct font *font;
+  int i, n;
+  Lisp_Object val;
+
+  CHECK_FONT_OBJECT (font_object);
+  CHECK_CHARACTER (character);
+  font = XFONT_OBJECT (font_object);
+  if (! font->driver->get_variation_glyphs)
+    return Qnil;
+  n = font->driver->get_variation_glyphs (font, XINT (character), variations);
+  if (! n)
+    return Qnil;
+  val = Qnil;
+  for (i = 0; i < 255; i++)
+    if (variations[i])
+      {
+	Lisp_Object code;
+	int vs = (i < 16 ? 0xFE00 + i : 0xE0100 + (i - 16));
+	/* Stops GCC whining about limited range of data type.	*/
+	EMACS_INT var = variations[i];
+
+	if (var > MOST_POSITIVE_FIXNUM)
+	  code = Fcons (make_number ((variations[i]) >> 16),
+			make_number ((variations[i]) & 0xFFFF));
+	else
+	  code = make_number (variations[i]);
+	val = Fcons (Fcons (make_number (vs), code), val);
+      }
+  return val;
 }
 
 #if 0
@@ -5053,6 +5128,7 @@ syms_of_font ()
   defsubr (&Sfont_xlfd_name);
   defsubr (&Sclear_font_cache);
   defsubr (&Sfont_shape_gstring);
+  defsubr (&Sfont_variation_glyphs);
 #if 0
   defsubr (&Sfont_drive_otf);
   defsubr (&Sfont_otf_alternates);

@@ -1,5 +1,5 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008
+   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -338,7 +338,7 @@ interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
 
 
 static void
-ns_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
 
@@ -363,7 +363,7 @@ ns_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct face *face;
   NSColor *col;
@@ -412,7 +412,7 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
 
@@ -435,10 +435,10 @@ ns_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
 
 static void
-ns_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSView *view = FRAME_NS_VIEW (f);
-  NSTRACE (ns_set_icon_name);
+  NSTRACE (x_set_icon_name);
 
   if (ns_in_resize)
     return;
@@ -581,9 +581,9 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
 static void
-ns_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
+x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
-  NSTRACE (ns_explicitly_set_name);
+  NSTRACE (x_explicitly_set_name);
   ns_set_name_iconic (f, arg, 1);
   ns_set_name (f, arg, 1);
 }
@@ -614,9 +614,9 @@ x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
    suggesting a new name, which lisp code should override; if
    F->explicit_name is set, ignore the new name; otherwise, set it.  */
 static void
-ns_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
+x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
-  NSTRACE (ns_set_title);
+  NSTRACE (x_set_title);
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
     return;
@@ -844,13 +844,13 @@ ns_implicitly_set_icon_type (struct frame *f)
 
 
 static void
-ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   EmacsView *view = FRAME_NS_VIEW (f);
   id image = nil;
   BOOL setMini = YES;
 
-  NSTRACE (ns_set_icon_type);
+  NSTRACE (x_set_icon_type);
 
   if (!NILP (arg) && SYMBOLP (arg))
     {
@@ -926,9 +926,9 @@ ns_cursor_type_to_lisp (int arg)
     }
 }
 
-/* this is like x_set_cursor_type defined in xfns.c */
+/* This is the same as the xfns.c definition.  */
 void
-ns_set_cursor_type (f, arg, oldval)
+x_set_cursor_type (f, arg, oldval)
      FRAME_PTR f;
      Lisp_Object arg, oldval;
 {
@@ -942,7 +942,7 @@ ns_set_cursor_type (f, arg, oldval)
 /* 23: called to set mouse pointer color, but all other terms use it to
        initialize pointer types (and don't set the color ;) */
 static void
-ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   /* don't think we can do this on Nextstep */
 }
@@ -952,7 +952,7 @@ ns_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #define Xstr(x) Str(x)
 
 static Lisp_Object
-ns_appkit_version ()
+ns_appkit_version_str ()
 {
   char tmp[80];
 
@@ -964,6 +964,21 @@ ns_appkit_version ()
   tmp = "ns-unknown";
 #endif
   return build_string (tmp);
+}
+
+
+/* This is for use by x-server-version and collapses all version info we
+   have into a single int.  For a better picture of the implementation
+   running, use ns_appkit_version_str.*/
+static int
+ns_appkit_version_int ()
+{
+#ifdef NS_IMPL_GNUSTEP
+  return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GNU_MINOR_VERSION;
+#elif defined(NS_IMPL_COCOA)
+  return (int)NSAppKitVersionNumber;
+#endif
+  return 0;
 }
 
 
@@ -1004,21 +1019,21 @@ frame_parm_handler ns_frame_parm_handlers[] =
 {
   x_set_autoraise, /* generic OK */
   x_set_autolower, /* generic OK */
-  ns_set_background_color,
+  x_set_background_color,
   0, /* x_set_border_color,  may be impossible under Nextstep */
   0, /* x_set_border_width,  may be impossible under Nextstep */
-  ns_set_cursor_color,
-  ns_set_cursor_type,
+  x_set_cursor_color,
+  x_set_cursor_type,
   x_set_font, /* generic OK */
-  ns_set_foreground_color,
-  ns_set_icon_name,
-  ns_set_icon_type,
+  x_set_foreground_color,
+  x_set_icon_name,
+  x_set_icon_type,
   x_set_internal_border_width, /* generic OK */
   x_set_menu_bar_lines,
-  ns_set_mouse_color,
-  ns_explicitly_set_name,
+  x_set_mouse_color,
+  x_explicitly_set_name,
   x_set_scroll_bar_width, /* generic OK */
-  ns_set_title,
+  x_set_title,
   x_set_unsplittable, /* generic OK */
   x_set_vertical_scroll_bars, /* generic OK */
   x_set_visibility, /* generic OK */
@@ -1602,14 +1617,26 @@ If omitted or nil, the selected frame's display is used.  */)
 
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Return the version number of Nextstep display server DISPLAY.
+       doc: /* Return the version numbers of the server of DISPLAY.
+The value is a list of three integers: the major and minor
+version numbers of the X Protocol in use, and the distributor-specific
+release number.  See also the function `x-server-vendor'.
+
+The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, the selected frame's display is used.
-See also the function `ns-server-vendor'.  */)
+If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  return ns_appkit_version ();
+  /*NOTE: it is unclear what would best correspond with "protocol";
+          we return 10.3, meaning Panther, since this is roughly the
+          level that GNUstep's APIs correspond to.
+          The last number is where we distinguish between the Apple
+          and GNUstep implementations ("distributor-specific release
+          number") and give int'ized versions of major.minor. */
+  return Fcons (make_number (10),
+		Fcons (make_number (3),
+		       Fcons (make_number (ns_appkit_version_int()), Qnil)));
 }
 
 
@@ -2054,8 +2081,10 @@ ns_do_applescript (script, result)
 	  *result = Qt;
 	  // script returned an AppleScript result
 	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 	      (typeUTF16ExternalRepresentation 
 	       == [returnDescriptor descriptorType]) ||
+#endif
 	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
 	      (typeCString == [returnDescriptor descriptorType]))
 	    {
@@ -2630,6 +2659,8 @@ syms_of_nsfns ()
 
   Qnone = intern ("none");
   staticpro (&Qnone);
+  /* FIXME: Because of the typo below, Qbuffered probably never did
+     anything useful, so it might as well be removed. */
   Qbuffered = intern ("bufferd");
   staticpro (&Qbuffered);
   Qfontsize = intern ("fontsize");
@@ -2658,7 +2689,7 @@ be used as the image of the icon representing the frame.  */);
 
   DEFVAR_LISP ("ns-version-string", &Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);
-  Vns_version_string = ns_appkit_version ();
+  Vns_version_string = ns_appkit_version_str ();
 
   defsubr (&Sns_read_file_name);
   defsubr (&Sns_get_resource);

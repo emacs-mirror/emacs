@@ -1,7 +1,7 @@
 ;;; calc-stuff.el --- miscellaneous functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -210,9 +210,9 @@ With a prefix, push that prefix as a number onto the stack."
   (interactive "P")
   (calc-clean (- (if num
 		     (prefix-numeric-value num)
-		   (if (and (>= last-command-char ?0)
-			    (<= last-command-char ?9))
-		       (- last-command-char ?0)
+		   (if (and (>= last-command-event ?0)
+			    (<= last-command-event ?9))
+		       (- last-command-event ?0)
 		     (error "Number required"))))))
 
 

@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -247,9 +247,11 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 (defun dbus-string-to-byte-array (string)
   "Transforms STRING to list (:array :byte c1 :byte c2 ...).
 STRING shall be UTF8 coded."
-  (let (result)
-    (dolist (elt (string-to-list string) (append '(:array) result))
-      (setq result (append result (list :byte elt))))))
+  (if (zerop (length string))
+      '(:array :signature "y")
+    (let (result)
+      (dolist (elt (string-to-list string) (append '(:array) result))
+	(setq result (append result (list :byte elt)))))))
 
 (defun dbus-byte-array-to-string (byte-array)
   "Transforms BYTE-ARRAY into UTF8 coded string.

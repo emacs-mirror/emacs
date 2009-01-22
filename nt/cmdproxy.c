@@ -1,6 +1,6 @@
 /* Proxy shell designed for use with Emacs on Windows 95 and NT.
    Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008  Free Software Foundation, Inc.
+     2008, 2009  Free Software Foundation, Inc.
 
    Accepts subset of Unix sh(1) command-line options, for compatibility
    with elisp code written for Unix.  When possible, executes external

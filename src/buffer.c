@@ -1,7 +1,7 @@
 /* Buffer manipulation primitives for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994,
                  1995, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2182,6 +2182,10 @@ advance_to_char_boundary (byte_pos)
   return byte_pos;
 }
 
+#ifdef REL_ALLOC
+extern void r_alloc_reset_variable P_ ((POINTER_TYPE *, POINTER_TYPE *));
+#endif /* REL_ALLOC */
+
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
        1, 1, 0,
        doc: /* Swap the text between current buffer and BUFFER.  */)
@@ -2223,6 +2227,13 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   swapfield (own_text, struct buffer_text);
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
+#ifdef REL_ALLOC
+  r_alloc_reset_variable ((POINTER_TYPE **) &current_buffer->own_text.beg,
+			  (POINTER_TYPE **) &other_buffer->own_text.beg);
+  r_alloc_reset_variable ((POINTER_TYPE **) &other_buffer->own_text.beg,
+			  (POINTER_TYPE **) &current_buffer->own_text.beg);
+#endif /* REL_ALLOC */
+
   swapfield (pt, EMACS_INT);
   swapfield (pt_byte, EMACS_INT);
   swapfield (begv, EMACS_INT);
@@ -5343,7 +5354,9 @@ init_buffer ()
   if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
       /* Grow buffer to add directory separator and '\0'.  */
-      pwd = (char *) xrealloc (pwd, len + 2);
+      pwd = (char *) realloc (pwd, len + 2);
+      if (!pwd)
+	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
     }

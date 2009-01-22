@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007, 2008
+;; Copyright (C) 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>

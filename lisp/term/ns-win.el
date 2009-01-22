@@ -1,10 +1,13 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008
+;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
-;; Authors: Carl Edman, Christian Limpach, Scott Bender,
-;;          Christophe de Dinechin, Adrian Robert
+;; Authors: Carl Edman
+;;	Christian Limpach
+;;	Scott Bender
+;;	Christophe de Dinechin
+;;	Adrian Robert
 ;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.

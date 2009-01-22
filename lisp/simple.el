@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -78,19 +78,22 @@ If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
     (car list)))
 
 (defun last-buffer (&optional buffer visible-ok frame)
-  "Return the last non-hidden displayable buffer in the buffer list.
-If BUFFER is non-nil, last-buffer will ignore that buffer.
+  "Return the last buffer in FRAME's buffer list.
+If BUFFER is the last buffer, return the preceding buffer instead.
 Buffers not visible in windows are preferred to visible buffers,
 unless optional argument VISIBLE-OK is non-nil.
-If the optional third argument FRAME is non-nil, use that frame's
-buffer list instead of the selected frame's buffer list.
-If no other buffer exists, the buffer `*scratch*' is returned."
+Optional third argument FRAME nil or omitted means use the
+selected frame's buffer list.
+If no such buffer exists, return the buffer `*scratch*', creating
+it if necessary."
   (setq frame (or frame (selected-frame)))
   (or (get-next-valid-buffer (nreverse (buffer-list frame))
  			     buffer visible-ok frame)
-      (progn
-	(set-buffer-major-mode (get-buffer-create "*scratch*"))
-	(get-buffer "*scratch*"))))
+      (get-buffer "*scratch*")
+      (let ((scratch (get-buffer-create "*scratch*")))
+	(set-buffer-major-mode scratch)
+	scratch)))
+
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
@@ -460,8 +463,8 @@ than the value of `fill-column' and ARG is nil."
 	(beforepos (point)))
     (if flag (backward-char 1))
     ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
-    ;; Set last-command-char to tell self-insert what to insert.
-    (let ((last-command-char ?\n)
+    ;; Set last-command-event to tell self-insert what to insert.
+    (let ((last-command-event ?\n)
 	  ;; Don't auto-fill if we have a numeric argument.
 	  ;; Also not if flag is true (it would fill wrong line);
 	  ;; there is no need to since we're at BOL.
@@ -1043,6 +1046,11 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
+
+(defvar minibuffer-default nil
+  "The current default value or list of default values in the minibuffer.
+The functions `read-from-minibuffer' and `completing-read' bind
+this variable locally.")
 
 (defcustom eval-expression-print-level 4
   "Value for `print-level' while printing value in `eval-expression'.
@@ -1987,7 +1995,7 @@ stdout will be intermixed in the output stream.")
 (declare-function mailcap-file-default-commands "mailcap" (files))
 
 (defun minibuffer-default-add-shell-commands ()
-  "Return a list of all commands associted with the current file.
+  "Return a list of all commands associated with the current file.
 This function is used to add all related commands retrieved by `mailcap'
 to the end of the list of defaults just after the default value."
   (interactive)
@@ -2588,9 +2596,9 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Part of the numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (let* ((char (if (integerp last-command-char)
-		   last-command-char
-		 (get last-command-char 'ascii-character)))
+  (let* ((char (if (integerp last-command-event)
+		   last-command-event
+		 (get last-command-event 'ascii-character)))
 	 (digit (- (logand char ?\177) ?0)))
     (cond ((integerp arg)
 	   (setq prefix-arg (+ (* arg 10)
@@ -4290,12 +4298,14 @@ and `current-column' to be able to ignore invisible text."
 
 (defun move-end-of-line (arg)
   "Move point to end of current line as displayed.
-\(If there's an image in the line, this disregards newlines
-which are part of the text that the image rests on.)
-
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
+
+To ignore the effects of the `intangible' text or overlay
+property, bind `inhibit-point-motion-hooks' to t.
+If there is an image in the current line, this function
+disregards newlines that are part of the text on which the image
+rests."
   (interactive "^p")
   (or arg (setq arg 1))
   (let (done)
@@ -4504,8 +4514,10 @@ the variable `line-move-visual'."
     (define-key map [remap kill-line] 'kill-visual-line)
     (define-key map [remap move-beginning-of-line] 'beginning-of-visual-line)
     (define-key map [remap move-end-of-line]  'end-of-visual-line)
-    (define-key map "\M-[" 'previous-logical-line)
-    (define-key map "\M-]" 'next-logical-line)
+    ;; These keybindings interfere with xterm function keys.  Are
+    ;; there any other suitable bindings?
+    ;; (define-key map "\M-[" 'previous-logical-line)
+    ;; (define-key map "\M-]" 'next-logical-line)
     map))
 
 (defcustom visual-line-fringe-indicators '(nil nil)
@@ -5217,13 +5229,17 @@ it skips the contents of comments that end before point."
                  ;; a matching-char info, in which case the two CDRs
                  ;; should match.
                  (eq matching-paren (cdr (syntax-after (1- oldpos))))))
-        (message "Mismatched parentheses"))
+	(if (minibufferp)
+	    (minibuffer-message " [Mismatched parentheses]")
+	  (message "Mismatched parentheses")))
        ((not blinkpos)
         (or blink-matching-paren-distance
             ;; Don't complain when `$' with no blinkpos, because it
             ;; could just be the first one typed in the buffer.
             atdollar
-            (message "Unmatched parenthesis")))
+            (if (minibufferp)
+		(minibuffer-message " [Unmatched parenthesis]")
+	      (message "Unmatched parenthesis"))))
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
         ;; if `blink-matching-paren-on-screen' is non-nil.

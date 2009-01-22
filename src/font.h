@@ -1,6 +1,6 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008
+   Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -653,8 +653,18 @@ struct font_driver
   /* Optional.
 
      If FONT is usable on frame F, return 0.  Otherwise return -1.
-   */
+     This method is used only for debugging.  If this method is NULL,
+     Emacs assumes that the font is usable on any frame.  */
   int (*check) P_ ((FRAME_PTR F, struct font *font));
+
+  /* Optional.
+
+     Return the number of variation glyphs of character C supported by
+     FONT.  VARIATIONS is an array of 256 elements.  If the variation
+     selector N (1..256) defines a glyph, that glyph code is stored in
+     the (N-1)th element of VARIATIONS.  */
+  int (*get_variation_glyphs) P_ ((struct font *font,
+				   int c, unsigned variations[256]));
 };
 
 

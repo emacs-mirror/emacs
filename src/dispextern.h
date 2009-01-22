@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
    Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1524,13 +1524,6 @@ struct face
      drawing shadows.  */
   unsigned use_box_color_for_shadows_p : 1;
 
-  /* The Lisp face attributes this face realizes.  All attributes
-     in this vector are non-nil.  */
-  Lisp_Object lface[LFACE_VECTOR_SIZE];
-
-  /* The hash value of this face.  */
-  unsigned hash;
-
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
   unsigned underline_p : 1;
@@ -1579,6 +1572,13 @@ struct face
   /* If non-zero, use geometric rotation (to simulate italic).  */
   unsigned synth_ital : 1;
 #endif
+
+  /* The Lisp face attributes this face realizes.  All attributes
+     in this vector are non-nil.  */
+  Lisp_Object lface[LFACE_VECTOR_SIZE];
+
+  /* The hash value of this face.  */
+  unsigned hash;
 
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;

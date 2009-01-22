@@ -1,7 +1,7 @@
 ;;; lisp.el --- Lisp editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -474,7 +474,7 @@ character is inserted ARG times.
 This command assumes point is not in a string or comment."
   (interactive "P")
   (if (not (and open close))
-      (let ((pair (or (assq last-command-char insert-pair-alist)
+      (let ((pair (or (assq last-command-event insert-pair-alist)
                       (assq (event-basic-type last-command-event)
                             insert-pair-alist))))
         (if pair

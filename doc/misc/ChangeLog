@@ -1,3 +1,69 @@
+2009-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (all): Harmonize usage of "external method",
+	"external transfer method" and "out-of-band method".
+	(Connection types): Precise the differences of inline and external
+	methods.  Written by Adrian Phillips <a.phillips@met.no>.
+
+2009-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Limiting): `/ N' and `/ o' are not really limiting
+	commands as described at the top.  Reported by Allan Gottlieb
+	<gottlieb@nyu.edu>.
+
+2009-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Non-ASCII Group Names, RSS): Update description of
+	nnmail-pathname-coding-system.
+
+2009-01-17  Peter Tury  <tury.peter@gmail.com>  (tiny change)
+
+	* org.texi (Relative timer): Fix typo.
+
+2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Clocking work time): Fix typo.
+	Reported by Peter Tury <tury.peter@gmail.com>.  (Bug#1925)
+
+2009-01-13  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Fix some more typos.
+
+2009-01-13  Peter Tury  <tury.peter@gmail.com>  (tiny change)
+
+	* org.texi: Fix some typos.
+
+2009-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Add note for local variables.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Converting Kill Files): Fix URL.  Include
+	gnus-kill-to-score.el in contrib directory.
+
+2009-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Startup Variables): Fix gnus-before-startup-hook.
+	Reported by Leo <sdl.web@gmail.com>.  (Bug#1660)
+	(Paging the Article): Add index entry.
+
+2009-01-03  Stephen Leake  <stephen_leake@member.fsf.org>
+
+	* ada-mode.texi (Examples): Delete redundant text.
+
+2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi.in (top): Declare ipv6prefix and ipv6postfix.
+
+	* tramp.texi (Filename Syntax, Filename completion): Handle IPv6
+	addresses.
+
+2009-01-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Scan Line Formats): Indicate that first column should be
+	kept empty.
+
 2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Activation, Exporting, ASCII export, HTML export)
@@ -5516,7 +5582,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

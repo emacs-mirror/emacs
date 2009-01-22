@@ -1,7 +1,7 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998,
                  1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <ctype.h>
 #include <errno.h>
-#include <setjmp.h>
 #include <sys/stat.h>
 
 #include "charset.h"
@@ -1524,6 +1523,35 @@ w32_alloc_lighter_color (f, color, factor, delta)
   *color = new;
 
   return 1;
+}
+
+/* On frame F, translate pixel colors to RGB values for the NCOLORS
+   colors in COLORS.  On W32, we no longer try to map colors to
+   a palette.  */
+void
+x_query_colors (f, colors, ncolors)
+     struct frame *f;
+     XColor *colors;
+     int ncolors;
+{
+  int i;
+
+  for (i = 0; i < ncolors; i++)
+    {
+      DWORD pixel = colors[i].pixel;
+      /* Convert to a 16 bit value in range 0 - 0xffff. */
+      colors[i].red = GetRValue (pixel) * 257;
+      colors[i].green = GetGValue (pixel) * 257;
+      colors[i].blue = GetBValue (pixel) * 257;
+    }
+}
+
+void
+x_query_color (f, color)
+     struct frame *f;
+     XColor *color;
+{
+  x_query_colors (f, color, 1);
 }
 
 
@@ -5229,9 +5257,7 @@ x_new_font (f, font_object, fontset)
   if (FRAME_FONT (f) == font)
     /* This font is already set in frame F.  There's nothing more to
        do.  */
-    return fontset_name (fontset);
-
-  BLOCK_INPUT;
+    return font_object;
 
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
@@ -5264,15 +5290,9 @@ x_new_font (f, font_object, fontset)
 	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
     }
 
-#ifdef HAVE_X_I18N
-  if (FRAME_XIC (f)
-      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
-    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
-#endif
+  /* X version sets font of input methods here also.  */
 
-  UNBLOCK_INPUT;
-
-  return fontset_name (fontset);
+  return font_object;
 }
 
 
@@ -6151,7 +6171,7 @@ x_delete_terminal (struct terminal *terminal)
   struct w32_display_info *dpyinfo = terminal->display_info.w32;
   int i;
 
-  /* Protect against recursive calls.  Fdelete_frame in
+  /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
     return;

@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -595,16 +595,16 @@ Uses `sgml-char-names'."
 (defun sgml-name-self ()
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
-  (sgml-name-char last-command-char))
+  (sgml-name-char last-command-event))
 
 (defun sgml-maybe-name-self ()
   "Insert a symbolic character name according to `sgml-char-names'."
   (interactive "*")
   (if sgml-name-8bit-mode
-      (let ((mc last-command-char))
+      (let ((mc last-command-event))
 	(if (< mc 256)
 	    (setq mc (unibyte-char-to-multibyte mc)))
-	(or mc (setq mc last-command-char))
+	(or mc (setq mc last-command-event))
 	(sgml-name-char mc))
     (self-insert-command 1)))
 
@@ -714,7 +714,7 @@ With prefix argument, only self insert."
 	    (eq (aref tag 0) ?/))
 	(self-insert-command (prefix-numeric-value arg))
       (sgml-attributes tag)
-      (setq last-command-char ?\s)
+      (setq last-command-event ?\s)
       (or (> (point) point)
 	  (self-insert-command 1)))))
 

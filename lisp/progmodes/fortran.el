@@ -1,7 +1,7 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;               2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;               2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;               Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -1006,7 +1006,7 @@ With non-nil ARG, uncomments the region."
   "Typing ;\\[help-command] or ;? lists all the Fortran abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
-  (insert last-command-char)
+  (insert last-command-event)
   (let* ((event (if (fboundp 'next-command-event) ; XEmacs
                     (next-command-event)
                   (read-event)))
@@ -1167,7 +1167,7 @@ Auto-indent does not happen if a numeric ARG is used."
             (looking-at "[0-9]"))       ; within a line number
         (self-insert-command (prefix-numeric-value arg))
       (skip-chars-backward " \t")
-      (insert last-command-char)
+      (insert last-command-event)
       (fortran-indent-line))))
 
 

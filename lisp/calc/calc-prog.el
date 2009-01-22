@@ -1,7 +1,7 @@
 ;;; calc-prog.el --- user programmability functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1285,7 +1285,7 @@ Redefine the corresponding command."
   (let* ((count 0)
 	 (parts nil)
 	 (body "")
-	 (open last-command-char)
+	 (open last-command-event)
 	 (counter initial)
 	 ch)
     (or executing-kbd-macro

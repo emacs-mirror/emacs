@@ -1,13 +1,14 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
-;;             1987 Dave Detlefs and Stewart Clamen
+;;             1987 Dave Detlefs
+;;             1987 Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
@@ -114,6 +115,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile
   (let ((load-path
 	 (if (and (boundp 'byte-compile-dest-file)
@@ -202,6 +207,12 @@ the evaluated constant value at compile time."
 ;  '
 (def-edebug-spec c-lang-defvar
   (&define name def-form &optional stringp)) ;)
+
+;; Suppress "might not be defined at runtime" warning.
+;; This file is only used when compiling other cc files.
+(declare-function delete-duplicates "cl-seq" (cl-seq &rest cl-keys))
+(declare-function mapcan "cl-extra" (cl-func cl-seq &rest cl-rest))
+(declare-function cl-macroexpand-all "cl-extra" (form &optional env))
 
 (eval-and-compile
   ;; Some helper functions used when building the language constants.

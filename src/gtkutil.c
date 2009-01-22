@@ -1,5 +1,5 @@
 /* Functions for creating and updating GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -224,7 +224,7 @@ free_widget_value (wv)
     {
       /* When the number of already allocated cells is too big,
 	 We free it.  */
-      free (wv);
+      xfree (wv);
       malloc_cpt--;
     }
   else

@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
    Copyright (C) 1985, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008
+                 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -326,11 +326,11 @@ Whichever character you type to run this command is inserted.  */)
   CHECK_NUMBER (n);
 
   /* Barf if the key that invoked this was not a character.  */
-  if (!CHARACTERP (last_command_char))
+  if (!CHARACTERP (last_command_event))
     bitch_at_user ();
   {
     int character = translate_char (Vtranslation_table_for_input,
-				    XINT (last_command_char));
+				    XINT (last_command_event));
     if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
       {
 	int modified_char = character;

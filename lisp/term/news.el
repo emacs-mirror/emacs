@@ -1,7 +1,7 @@
 ;;; news.el --- keypad and function key bindings for the Sony NEWS keyboard -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals

@@ -1,7 +1,7 @@
 ;;; pmailedit.el --- "PMAIL edit mode"  Edit the current message
 
 ;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;;   2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -28,8 +28,6 @@
 (eval-when-compile
   (require 'pmail)
   (require 'pmailsum))
-
-(require 'pmailhdr)
 
 (defcustom pmail-edit-mode-hook nil
   "List of functions to call when editing an PMAIL message."
@@ -63,44 +61,39 @@ to return to regular PMAIL:
   *  \\[pmail-cease-edit] makes them permanent.
 This functions runs the normal hook `pmail-edit-mode-hook'.
 \\{pmail-edit-map}"
-  (delay-mode-hooks (text-mode))
-  (use-local-map pmail-edit-map)
-  (setq major-mode 'pmail-edit-mode)
-  (setq mode-name "PMAIL Edit")
-  (if (boundp 'mode-line-modified)
-      (setq mode-line-modified (default-value 'mode-line-modified))
-    (setq mode-line-format (default-value 'mode-line-format)))
   (if (pmail-summary-exists)
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-disable)))
-  (run-mode-hooks 'pmail-edit-mode-hook))
+  (let (pmail-buffer-swapped)
+    ;; Prevent change-major-mode-hook from unswapping the buffers.
+    (delay-mode-hooks (text-mode))
+    (use-local-map pmail-edit-map)
+    (setq major-mode 'pmail-edit-mode)
+    (setq mode-name "PMAIL Edit")
+    (if (boundp 'mode-line-modified)
+	(setq mode-line-modified (default-value 'mode-line-modified))
+      (setq mode-line-format (default-value 'mode-line-format)))
+    (run-mode-hooks 'pmail-edit-mode-hook)))
 
 (defvar pmail-old-pruned nil)
 (put 'pmail-old-pruned 'permanent-local t)
-
-(defvar pmail-edit-saved-coding-system nil)
-(put 'pmail-edit-saved-coding-system 'permanent-local t)
 
 ;;;###autoload
 (defun pmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
   (if (= pmail-total-messages 0)
-      (error "No messages in this file"))
+      (error "No messages in this buffer"))
   (make-local-variable 'pmail-old-pruned)
   (setq pmail-old-pruned (eq pmail-header-style 'normal))
-  (make-local-variable 'pmail-edit-saved-coding-system)
-  (setq pmail-edit-saved-coding-system save-buffer-coding-system)
-  (pmail-header-show-headers)
   (pmail-edit-mode)
-  ;; As the local value of save-buffer-coding-system is deleted by
-  ;; pmail-edit-mode, we restore the original value.
-  (make-local-variable 'save-buffer-coding-system)
-  (setq save-buffer-coding-system pmail-edit-saved-coding-system)
   (make-local-variable 'pmail-old-text)
-  (setq pmail-old-text (buffer-substring (point-min) (point-max)))
+  (save-restriction
+    (widen)
+    (setq pmail-old-text (buffer-substring (point-min) (point-max))))
   (setq buffer-read-only nil)
+  (setq buffer-undo-list nil)
   (force-mode-line-update)
   (if (and (eq (key-binding "\C-c\C-c") 'pmail-cease-edit)
 	   (eq (key-binding "\C-c\C-]") 'pmail-abort-edit))
@@ -115,50 +108,100 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-enable)))
-  ;; Make sure buffer ends with a newline.
+  (widen)
+  ;; Disguise any "From " lines so they don't start a new message.
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "\nFrom " nil t)
+      (beginning-of-line)
+      (insert ">")))
+  ;; Make sure buffer ends with a blank line
+  ;; so as not to run this message together with the following one.
   (save-excursion
     (goto-char (point-max))
     (if (/= (preceding-char) ?\n)
 	(insert "\n"))
-    ;; Adjust the marker that points to the end of this message.
-    (set-marker (aref pmail-message-vector (1+ pmail-current-message))
-		(point)))
-  (let ((old pmail-old-text))
+    (unless (looking-back "\n\n")
+      (insert "\n")))
+  (let ((old pmail-old-text)
+	character-coding is-text-message coding-system
+	headers-end)
+    ;; Go back to Pmail mode, but carefully.
     (force-mode-line-update)
-    (kill-all-local-variables)
-    (pmail-mode-1)
-    (if (boundp 'tool-bar-map)
-	(set (make-local-variable 'tool-bar-map) pmail-tool-bar-map))
-    (pmail-variables)
-    ;; As the local value of save-buffer-coding-system is changed by
-    ;; pmail-variables, we restore the original value.
-    (setq save-buffer-coding-system pmail-edit-saved-coding-system)
-    (if (and (= (length old) (- (point-max) (point-min)))
-	     (string= old (buffer-substring (point-min) (point-max))))
-	()
+    (let (pmail-buffer-swapped)
+      (kill-all-local-variables)
+      (pmail-mode-1)
+      (if (boundp 'tool-bar-map)
+	  (set (make-local-variable 'tool-bar-map) pmail-tool-bar-map))
+      (setq buffer-undo-list t)
+      (pmail-variables))
+    ;; If text has really changed, mark message as edited.
+    (unless (and (= (length old) (- (point-max) (point-min)))
+		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
-      (pmail-set-attribute "edited" t)
-      (if (boundp 'pmail-summary-vector)
-	  (progn
-	    (aset pmail-summary-vector (1- pmail-current-message) nil)
-	    (save-excursion
-	      (pmail-widen-to-current-msgbeg
-		(function (lambda ()
-			    (forward-line 2)
-			    (if (looking-at "Summary-line: ")
-				(let ((buffer-read-only nil))
-				  (delete-region (point)
-						 (progn (forward-line 1)
-							(point))))))))))))
-    (save-excursion
-      (pmail-show-message)
-      (pmail-toggle-header (if pmail-old-pruned 1 0))))
-  (run-hooks 'pmail-mode-hook)
-  (setq buffer-read-only t))
+      (goto-char (point-min))
+      (search-forward "\n\n")
+      (setq headers-end (point))
+
+      (pmail-swap-buffers-maybe)
+
+      (setq character-coding (mail-fetch-field "content-transfer-encoding")
+	    is-text-message (pmail-is-text-p)
+	    coding-system (pmail-get-coding-system))
+      (if character-coding
+	  (setq character-coding (downcase character-coding)))
+
+      (narrow-to-region (pmail-msgbeg pmail-current-message)
+			(pmail-msgend pmail-current-message))
+      (goto-char (point-min))
+      (search-forward "\n\n")
+      (let ((inhibit-read-only t)
+	    (headers-end-1 (point)))
+	(insert-buffer-substring pmail-view-buffer headers-end)
+	(delete-region (point) (point-max))
+
+	;; Re-encode the message body in whatever
+	;; way it was decoded.
+	(cond
+	 ((string= character-coding "quoted-printable")
+	  (mail-quote-printable-region headers-end-1 (point-max)))
+	 ((and (string= character-coding "base64") is-text-message)
+	  (base64-encode-region headers-end-1 (point-max)))
+	 ((eq character-coding 'uuencode)
+	  (error "Not supported yet."))
+	 (t
+	  (if (or (not coding-system) (not (coding-system-p coding-system)))
+	      (setq coding-system 'undecided))
+	  (encode-coding-region headers-end-1 (point-max) coding-system)))
+	))
+
+    (pmail-set-attribute pmail-edited-attr-index t)
+	
+    ;;??? BROKEN perhaps.
+    ;; I think that the Summary-Line header may not be kept there any more.
+;;;       (if (boundp 'pmail-summary-vector)
+;;; 	  (progn
+;;; 	    (aset pmail-summary-vector (1- pmail-current-message) nil)
+;;; 	    (save-excursion
+;;; 	      (pmail-widen-to-current-msgbeg
+;;; 		(function (lambda ()
+;;; 			    (forward-line 2)
+;;; 			    (if (looking-at "Summary-line: ")
+;;; 				(let ((buffer-read-only nil))
+;;; 				  (delete-region (point)
+;;; 						 (progn (forward-line 1)
+;;; 							(point)))))))))))
+    )
+
+  (save-excursion
+    (pmail-show-message)
+    (pmail-toggle-header (if pmail-old-pruned 1 0)))
+  (run-hooks 'pmail-mode-hook))
 
 (defun pmail-abort-edit ()
   "Abort edit of current message; restore original contents."
   (interactive)
+  (widen)
   (delete-region (point-min) (point-max))
   (insert pmail-old-text)
   (pmail-cease-edit)

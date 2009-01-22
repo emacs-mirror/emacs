@@ -1,7 +1,7 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -392,7 +392,7 @@ This hook is called after Gnus is connected to the NNTP server."
   :type 'hook)
 
 (defcustom gnus-before-startup-hook nil
-  "A hook called at before startup.
+  "A hook called before startup.
 This hook is called as the first thing when Gnus is started."
   :group 'gnus-start
   :type 'hook)

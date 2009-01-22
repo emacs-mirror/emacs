@@ -1,9 +1,14 @@
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
 	      Building and Installing Emacs from CVS
+
+If this is the first time you go through it, you'll need to configure
+before bootstrapping:
+
+  $ ./configure
 
 Some of the files that are included in the Emacs tarball, such as
 byte-compiled Lisp files, are not stored in the CVS repository.
@@ -12,9 +17,6 @@ instead of just "make":
 
   $ cvs update -dP
   $ make bootstrap
-
-Of course, if this is the first time you go through it, you'll need to do
-./configure before the "make bootstrap".
 
 Normally, it is not necessary to use "make bootstrap" after every CVS
 update.  "make" should work in 90% of the cases and be much quicker.

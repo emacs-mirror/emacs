@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/processes
 @node Processes, Display, Abbrevs, Top
@@ -1388,7 +1388,10 @@ converts the unibyte output to multibyte using
 system to use (@pxref{Process Information}).  Otherwise, the coding
 system comes from @code{coding-system-for-read}, if that is
 non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
-Coding Systems}).
+Coding Systems}).  If the text output by a process contains null
+bytes, Emacs by default uses @code{no-conversion} for it; see
+@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
+control this behavior.
 
   @strong{Warning:} Coding systems such as @code{undecided} which
 determine the coding system from the data do not work entirely
@@ -1744,10 +1747,15 @@ Time spent by the process in the system (kernel) context, for
 processing system calls.  The corresponding @var{value} is in the same
 format as for @code{utime}.
 
+@item time
+The sum of @code{utime} and @code{stime}.  The corresponding
+@var{value} is in the same format as for @code{utime}.
+
 @item cutime
 @itemx cstime
-Like @code{utime} and @code{stime}, but includes the times of all the
-child processes of the given process.
+@itemx ctime
+Like @code{utime}, @code{stime}, and @code{time}, but include the
+times of all the child processes of the given process.
 
 @item pri
 The numerical priority of the process.
@@ -2501,8 +2509,8 @@ most common value.  If @var{speed} is @code{nil}, the function ignores
 all other arguments and does not configure the port.  This may be
 useful for special serial ports such as Bluetooth-to-serial converters
 which can only be configured through AT commands sent through the
-connection.  You can use the value of @code{nil} for @var{speed} only
-for connections that are already open by a previous call to
+connection.  The value of @code{nil} for @var{speed} is valid only for
+connections that were already opened by a previous call to
 @code{make-serial-process} or @code{serial-term}.
 
 @item :bytesize @var{bytesize}

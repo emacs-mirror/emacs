@@ -1,6 +1,6 @@
 /* Functions for memory limit warnings.
    Copyright (C) 1990, 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008  Free Software Foundation, Inc.
+                 2008, 2009  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -146,6 +146,13 @@ get_lim_data ()
   /* Don't believe they will give us more that 0.5 GB.   */
   if (lim_data > 512U * 1024U * 1024U)
     lim_data = 512U * 1024U * 1024U;
+}
+
+unsigned long
+ret_lim_data ()
+{
+  get_lim_data ();
+  return lim_data;
 }
 #else /* not MSDOS */
 static void

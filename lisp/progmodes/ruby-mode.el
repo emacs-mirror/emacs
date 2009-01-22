@@ -1,10 +1,11 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
 ;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
-;; Authors: Yukihiro Matsumoto, Nobuyoshi Nakada
+;; Authors: Yukihiro Matsumoto
+;;	Nobuyoshi Nakada
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/RubyMode
 ;; Created: Fri Feb  4 14:49:13 JST 1994
 ;; Keywords: languages ruby
@@ -1421,11 +1422,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
 (add-to-list 'auto-mode-alist '("\\.rb\\'" . ruby-mode))
 
 ;;;###autoload
-(add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("rbx" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("jruby" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("ruby1.9" . ruby-mode))
-(add-to-list 'interpreter-mode-alist '("ruby1.8" . ruby-mode))
+(dolist (name (list "ruby" "rbx" "jruby" "ruby1.9" "ruby1.8"))
+  (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
 
 (provide 'ruby-mode)
 

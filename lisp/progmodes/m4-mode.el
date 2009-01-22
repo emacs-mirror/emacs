@@ -1,6 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;; Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew_csillag@geocities.com>

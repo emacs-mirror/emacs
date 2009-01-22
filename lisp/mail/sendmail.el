@@ -1,7 +1,7 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -791,7 +791,7 @@ Prefix arg means don't delete this window."
 	     (not (one-window-p))
 	     (with-current-buffer
                  (window-buffer (next-window (selected-window) 'not))
-	       (setq rmail-flag (eq major-mode 'rmail-mode))
+	       (setq rmail-flag (memq major-mode '(rmail-mode pmail-mode)))
 	       (setq summary-buffer
 		     (and mail-bury-selects-summary
 			  (boundp 'rmail-summary-buffer)

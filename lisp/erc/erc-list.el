@@ -1,6 +1,6 @@
 ;;; erc-list.el --- /list support for ERC
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Version: 0.1

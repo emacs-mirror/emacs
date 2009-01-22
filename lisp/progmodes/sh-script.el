@@ -1,7 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;  2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;;  2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -244,12 +244,12 @@ By default we have the following three hierarchies:
 
 csh		C Shell
   jcsh		C Shell with Job Control
-  tcsh		Turbo C Shell
-    itcsh	? Turbo C Shell
+  tcsh		TENEX C Shell
+    itcsh	Ian's TENEX C Shell
 rc		Plan 9 Shell
   es		Extensible Shell
 sh		Bourne Shell
-  ash		? Shell
+  ash		Almquist Shell
   jsh		Bourne Shell with Job Control
     bash	GNU Bourne Again Shell
     ksh88	Korn Shell '88
@@ -3747,7 +3747,7 @@ The document is bounded by `sh-here-document-word'."
   (interactive "*P")
   (self-insert-command (prefix-numeric-value arg))
   (or arg
-      (not (eq (char-after (- (point) 2)) last-command-char))
+      (not (eq (char-after (- (point) 2)) last-command-event))
       (save-excursion
 	(backward-char 2)
 	(sh-quoted-p))

@@ -1,7 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
 ;; Copyright (C) 1986, 1987, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -465,10 +465,16 @@ If a server is already running, the server is not started.
 To force-start a server, do \\[server-force-delete] and then
 \\[server-start]."
   (interactive "P")
-  (when (or
-	 (not server-clients)
-	 (yes-or-no-p
-	  "The current server still has clients; delete them? "))
+  (when (or (not server-clients)
+	    ;; Ask the user before deleting existing clients---except
+	    ;; when we can't get user input, which may happen when
+	    ;; doing emacsclient --eval "(kill-emacs)" in daemon mode.
+	    (if (and (daemonp)
+		     (null (cdr (frame-list)))
+		     (eq (selected-frame) terminal-frame))
+		leave-dead
+	      (yes-or-no-p
+	       "The current server still has clients; delete them? ")))
     (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	   (server-file (expand-file-name server-name server-dir)))
       (when server-process
@@ -569,15 +575,12 @@ Return values:
   t                the server seems to be running.
   something else   we cannot determine whether it's running without using
                    commands which may have to wait for a long time."
-  (interactive
-   (list (if current-prefix-arg
-	     (read-string "Server name: " nil nil server-name))))
   (unless name (setq name server-name))
   (condition-case nil
       (if server-use-tcp
 	  (with-temp-buffer
 	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
-	    (or (and (looking-at "127\.0\.0\.1:[0-9]+ \\([0-9]+\\)")
+	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
 			   (system-process-attributes
 			    (string-to-number (match-string 1))))
@@ -982,7 +985,7 @@ The following commands are accepted by the client:
 			     ;; We can't use the Emacs daemon's
 			     ;; terminal frame.
 			     (not (and (daemonp)
-				       (= (length (frame-list)) 1)
+				       (null (cdr (frame-list)))
 				       (eq (selected-frame)
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
@@ -1344,26 +1347,32 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
       (select-frame-set-input-focus (window-frame (selected-window))))))
 
 ;;;###autoload
-(defun server-save-buffers-kill-terminal (proc &optional arg)
+(defun server-save-buffers-kill-terminal (arg)
   ;; Called from save-buffers-kill-terminal in files.el.
-  "Offer to save each buffer, then kill PROC.
-
+  "Offer to save each buffer, then kill the current client.
 With ARG non-nil, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  ;; save-buffers-kill-terminal occasionally calls us with proc set
-  ;; to `nowait' (comes from the value of the `client' frame parameter).
-  (when (processp proc)
-    (let ((buffers (process-get proc 'buffers)))
-      ;; If client is bufferless, emulate a normal Emacs session
-      ;; exit and offer to save all buffers.  Otherwise, offer to
-      ;; save only the buffers belonging to the client.
-      (save-some-buffers arg
-                         (if buffers
-                             (lambda () (memq (current-buffer) buffers))
-                           t))
-      (server-delete-client proc))))
+  (let ((proc (frame-parameter (selected-frame) 'client)))
+    (cond ((eq proc 'nowait)
+	   ;; Nowait frames have no client buffer list.
+	   (if (cdr (frame-list))
+	       (progn (save-some-buffers arg)
+		      (delete-frame))
+	     ;; If we're the last frame standing, kill Emacs.
+	     (save-buffers-kill-emacs arg)))
+	  ((processp proc)
+	   (let ((buffers (process-get proc 'buffers)))
+	     ;; If client is bufferless, emulate a normal Emacs exit
+	     ;; and offer to save all buffers.  Otherwise, offer to
+	     ;; save only the buffers belonging to the client.
+	     (save-some-buffers
+	      arg (if buffers
+		      (lambda () (memq (current-buffer) buffers))
+		    t))
+	     (server-delete-client proc)))
+	  (t (error "Invalid client frame")))))
 
 (define-key ctl-x-map "#" 'server-edit)
 

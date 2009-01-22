@@ -1,7 +1,7 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: maint, tools
@@ -86,7 +86,8 @@ When this is `function', only ask when called non-interactively."
 (defconst copyright-current-gpl-version "3"
   "String representing the current version of the GPL or nil.")
 
-(defvar copyright-update t)
+(defvar copyright-update t
+  "The function `copyright-update' sets this to nil after updating a buffer.")
 
 ;; This is a defvar rather than a defconst, because the year can
 ;; change during the Emacs session.
@@ -189,7 +190,7 @@ When this is `function', only ask when called non-interactively."
 
 ;;;###autoload
 (defun copyright-update (&optional arg interactivep)
-  "Update copyright notice at beginning of buffer to indicate the current year.
+  "Update copyright notice to indicate the current year.
 With prefix ARG, replace the years in the notice rather than adding
 the current year after them.  If necessary, and
 `copyright-current-gpl-version' is set, any copying permissions
@@ -231,6 +232,7 @@ version \\([0-9]+\\), or (at"
     nil))
 
 
+;; FIXME should be within 50 years of present (cf calendar).
 ;;;###autoload
 (defun copyright-fix-years ()
   "Convert 2 digit years to 4 digit years.
@@ -282,10 +284,12 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 
+;;;###autoload
 (defun copyright-update-directory (directory match)
   "Update copyright notice for all files in DIRECTORY matching MATCH."
-  (interactive "DDirectory: \nMFilenames matching: ")
+  (interactive "DDirectory: \nMFilenames matching (regexp): ")
   (dolist (file (directory-files directory t match nil))
+    (message "Updating file `%s'" file)
     (find-file file)
     (let ((copyright-query nil))
       (copyright-update))

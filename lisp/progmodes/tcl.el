@@ -1,7 +1,7 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -634,7 +634,7 @@ Commands:
   ;; Indent line first; this looks better if parens blink.
   (tcl-indent-line)
   (self-insert-command arg)
-  (if (and tcl-auto-newline (= last-command-char ?\;))
+  (if (and tcl-auto-newline (= last-command-event ?\;))
       (progn
 	(newline)
 	(tcl-indent-line))))
@@ -658,7 +658,7 @@ Commands:
 	;; In auto-newline case, must insert a newline after each
 	;; brace.  So an explicit loop is needed.
 	(while (> arg 0)
-	  (insert last-command-char)
+	  (insert last-command-event)
 	  (tcl-indent-line)
 	  (newline)
 	  (setq arg (1- arg))))

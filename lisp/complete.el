@@ -1,7 +1,7 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
@@ -290,7 +290,7 @@ See `PC-complete' for details.
 This can be bound to other keys, like `-' and `.', if you wish."
   (interactive)
   (if (eq (PC-was-meta-key) PC-meta-flag)
-      (if (eq last-command-char ? )
+      (if (eq last-command-event ? )
 	  (minibuffer-complete-word)
 	(self-insert-command 1))
     (self-insert-command 1)

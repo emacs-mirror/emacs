@@ -14,7 +14,7 @@
 @copying
 This manual is for ERC version 5.3.
 
-Copyright @copyright{} 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+Copyright @copyright{} 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -699,7 +699,7 @@ Translate morse code in messages
 
 @end table
 
-@c PRE5_3: Document every option of every module in its own subnode
+@c PRE5_4: Document every option of every module in its own subnode
 
 
 @node Advanced Usage, Getting Help and Reporting Bugs, Modules, Top
@@ -932,7 +932,7 @@ stuff, to the current ERC buffer."
 @section Options
 @cindex options
 
-@c PRE5_3: (Node) Document every ERC option (module options go in
+@c PRE5_4: (Node) Document every ERC option (module options go in
 @c previous chapter)
 
 This section has not yet been written.  For now, the easiest way to

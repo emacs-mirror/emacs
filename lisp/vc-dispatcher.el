@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.
 
-;; Copyright (C) 2008
+;; Copyright (C) 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)

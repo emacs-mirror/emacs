@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/os
 @node System Interface, Antinews, Display, Top
@@ -577,6 +577,11 @@ same buffers, the same kill ring, the same undo history, and so on.  To
 resume Emacs, use the appropriate command in the parent shell---most
 likely @code{fg}.
 
+@cindex controlling terminal
+  Suspending works only on a terminal device from which the Emacs
+session was started.  We call that device the @dfn{controlling
+terminal} of the session.
+
   Some operating systems do not support suspension of jobs; on these
 systems, ``suspension'' actually creates a new shell temporarily as a
 subprocess of Emacs.  Then you would exit the shell to return to Emacs.
@@ -591,6 +596,13 @@ a window system (X, MS Windows).
 This function stops Emacs and returns control to the superior process.
 If and when the superior process resumes Emacs, @code{suspend-emacs}
 returns @code{nil} to its caller in Lisp.
+
+This function works only on the controlling terminal of the Emacs
+session; to relinquish control of other tty devices, use
+@code{suspend-tty} (see below).  If the Emacs session uses more than
+one terminal device, you will need to delete the frames on all the
+other devices before suspending Emacs, otherwise this function signals
+an error.
 
 If @var{string} is non-@code{nil}, its characters are sent to be read
 as terminal input by Emacs's superior shell.  The characters in
@@ -663,6 +675,47 @@ This variable is a normal hook that Emacs runs on resuming
 after a suspension.
 @end defvar
 
+@defun suspend-tty &optional tty
+If @var{tty} specifies a terminal device used by Emacs, this function
+relinquishes the device and restores it to its prior state.  Frames
+that used the device continue to exist, but are not updated and Emacs
+doesn't read input from them.  If @var{tty} is a frame, it means that
+frame's terminal; if it is @code{nil}, the function uses the selected
+frame's terminal.  If @var{tty} is already suspended, the function
+does nothing.
+
+This function runs the hook @code{suspend-tty-functions} (each
+function gets one argument, the terminal that corresponds to
+@var{tty}).
+@end defun
+
+@defun resume-tty &optional tty
+Resume the previously suspended terminal device @var{tty}.  If
+@var{tty} is a frame, it means resume that frame's terminal;
+@code{nil} means the selected frame.
+
+This function reopens the terminal device, re-initializes it, and
+redraws its with that terminal's selected frame.  It then runs the
+hook @code{resume-tty-functions}, passing each function the terminal
+which corresponds to @var{tty}.
+
+If the same device is already used by another Emacs terminal, this
+function signals an error.
+@end defun
+
+@defun controlling-tty-p &optional terminal
+This function returns non-@code{nil} if @var{terminal} is the
+controlling terminal device of the Emacs session.
+@end defun
+
+@deffn Command suspend-frame
+This command @dfn{suspends} a frame.  For GUI frames, it calls
+@code{iconify-frame} (@pxref{Visibility of Frames}); for text-only
+frames, it calls either @code{suspend-emacs} or @code{suspend-tty},
+depending on whether the frame is displayed on the controlling
+terminal device or not.
+@end deffn
+
 @node System Environment
 @section Operating System Environment
 @cindex operating system environment
@@ -716,8 +769,9 @@ MS-Windows.
 AT&T System V.
 
 @item windows-nt
-Microsoft windows NT.  The same executable supports Windows 9X, but the
-value of @code{system-type} is @code{windows-nt} in either case.
+Microsoft Windows NT and later.  The same executable supports Windows
+9X, but the value of @code{system-type} is @code{windows-nt} in either
+case.
 
 @end table
 
@@ -820,6 +874,22 @@ process-environment
 If @code{process-environment} contains ``duplicate'' elements that
 specify the same environment variable, the first of these elements
 specifies the variable, and the other ``duplicates'' are ignored.
+@end defvar
+
+@defun environment &optional frame
+This is a convenience function that returns the value of
+@code{process-environment} after removing unset and duplicate
+variables from it.  The optional argument @var{frame}, which should be
+a frame, means return the list of environment variables in effect for
+that frame.  The value this function returns is a copy, so changing it
+will have no effect on the environment variables passed to
+subprocesses.
+@end defun
+
+@defvar initial-environment
+This variable holds the list of environment variables Emacs inherited
+from its parent process.  It is computed during startup, see
+@ref{Startup Summary}.
 @end defvar
 
 @defvar path-separator

@@ -1,8 +1,8 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;; Free Software Foundation, Inc.
-;;
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
+
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
 ;; Version: (see `antlr-version' below)
@@ -2512,7 +2512,7 @@ ANTLR's syntax and influences the auto indentation, see
 	    (let ((context (antlr-syntactic-context)))
 	      (not (and (numberp context)
 			(or (zerop context)
-			    (memq last-command-char '(?\{ ?\}))))))))
+			    (memq last-command-event '(?\{ ?\}))))))))
       (self-insert-command (prefix-numeric-value arg))
     (self-insert-command (prefix-numeric-value arg))
     (antlr-indent-line)))

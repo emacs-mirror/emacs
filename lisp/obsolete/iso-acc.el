@@ -1,7 +1,7 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
 ;; Copyright (C) 1993, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans
 ;; Maintainer: FSF
@@ -287,9 +287,9 @@ the language you choose)."
   "Modify the following character by adding an accent to it."
   ;; Pick up the accent character.
   (if (and iso-accents-mode
-	   (memq last-input-char iso-accents-enable))
+	   (memq last-input-event iso-accents-enable))
       (iso-accents-compose prompt)
-    (vector last-input-char)))
+    (vector last-input-event)))
 
 
 ;; The iso-accents-compose function is called deep inside Emacs' read
@@ -302,7 +302,7 @@ the language you choose)."
 ;; window's display matrix.
 
 (defun iso-accents-compose (prompt)
-  (let* ((first-char last-input-char)
+  (let* ((first-char last-input-event)
 	 (list (assq first-char iso-accents-list))
 	 ;; Wait for the second key and look up the combination.
 	 (second-char (if (or prompt

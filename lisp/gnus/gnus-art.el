@@ -1,7 +1,7 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1453,7 +1453,7 @@ See Info node `(gnus)Customizing Articles' and Info node
   "Display Face headers.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles' and Info
-node `(gnus)X-Face' for details."
+node `(gnus)Face' for details."
   :group 'gnus-article-treat
   :version "22.1"
   :link '(custom-manual "(gnus)Customizing Articles")
@@ -3404,9 +3404,15 @@ should replace the \"Date:\" one, or should be added below it."
 				    (point) 'original-date))
 		     (setq date (get-text-property pos 'original-date))
 		     t))
-	  (narrow-to-region pos (or (text-property-any pos (point-max)
-						       'original-date nil)
-				    (point-max)))
+	  (narrow-to-region
+	   pos (if (setq pos (text-property-any pos (point-max)
+						'original-date nil))
+		   (progn
+		     (goto-char pos)
+		     (if (or (bolp) (eobp))
+			 (point)
+		       (1+ (point))))
+		 (point-max)))
 	  (goto-char (point-min))
 	  (when (re-search-forward tdate-regexp nil t)
 	    (setq bface (get-text-property (point-at-bol) 'face)

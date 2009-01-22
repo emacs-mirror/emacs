@@ -1,4 +1,4 @@
-Copyright (C) 2007, 2008  Free Software Foundation, Inc.
+Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -63,7 +63,7 @@ It can be helpful to put a reminder comment at the start of a trivial
 file, eg: "add a license notice if this grows to > 10 lines of code".
 
 The years in the copyright notice should be updated every year (see
-file "years" in this directory). The PS versions of refcards etc
+file "years" in this directory). The PDF versions of refcards etc
 should display copyright notices (an exception to the rule about
 "generated" files), but these can just display the latest year. The
 full list of years should be kept in comments in the source file. If
@@ -123,14 +123,13 @@ from others, without recording the true authorship.
 rms, 2007/1, "Copyright years".]
 
 
+lisp/version.el           # emacs-copyright
+lib-src/ebrowse.c         # version
 lib-src/etags.c           # print_version
 lib-src/rcs2log           # Copyright
-lisp/calc/calc-help.el    # calc-full-help
-lisp/startup.el           # fancy-splash-tail
-mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
-mac/src/Emacs.r           # resource 'vers'
-src/emacs.c
-  - remember to change the latest copyright year in the --version output.
+Cocoa/Emacs.base/Contents/Info.plist
+Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
+GNUstep/Emacs.base/Resources/Info-gnustep.plist
    `set-copyright' in admin.el will do all the above.
 
 <top-level>/install-sh
@@ -139,6 +138,9 @@ lispintro/install-sh
 
 src/m/news-r6.h
   public domain, leave alone.
+
+etc/refcards/*.tex
+  also update the \def\year macro for the latest year.
 
 etc/BABYL, ms-kermit
   no notices (see below).
@@ -619,8 +621,7 @@ alone (may import them from Gnulib again). These are:
     Others:
     config.guess
     config.sub
-    lispintro/missing
-    man/texinfo.tex
+    doc/man/texinfo.tex
 
 Note _not_ included in the above are src/regex.{c,h} (rms: "That
 forked version is only in Emacs, so definitely relicense that."), and

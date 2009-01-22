@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
 @chapter File Handling
@@ -1588,7 +1588,8 @@ read, written to, or executed, and by whom.  This command reads file
 modes using the same symbolic or octal format accepted by the
 @command{chmod} command; for instance, @samp{u+x} means to add
 execution permission for the user who owns the file.  It has no effect
-on operating systems that do not support file modes.
+on operating systems that do not support file modes.  @code{chmod} is a
+convenience alias for this function.
 
 @node Compressed Files
 @section Accessing Compressed Files

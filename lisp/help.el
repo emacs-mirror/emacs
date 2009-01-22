@@ -1,7 +1,7 @@
 ;;; help.el --- help commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -221,7 +221,7 @@ i           Start the Info documentation reader: read on-line manuals.
 I METHOD    Describe a specific input method, or RET for current.
 k KEYS      Display the full documentation for the key sequence.
 K KEYS      Show the on-line manual's section for the command bound to KEYS.
-l           Show last 100 characters you typed (lossage).
+l           Show last 300 input keystrokes (lossage).
 L LANG-ENV  Describes a specific language environment, or RET for current.
 m           Display documentation of current minor modes and current major mode,
               including their special commands.
@@ -294,7 +294,7 @@ If that doesn't give a function, return nil."
 
 (defun view-help-file (file &optional dir)
   (view-file (expand-file-name file (or dir data-directory)))
-  (goto-address)
+  (goto-address-mode 1)
   (goto-char (point-min)))
 
 (defun describe-distribution ()

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
@@ -120,6 +120,13 @@ Hook called after defining each customize option.
 
 @item deactivate-mark-hook
 @xref{The Mark}.
+
+@item delete-frame-functions
+Functions to call when Emacs deletes a frame.  @xref{Deleting Frames}.
+
+@item delete-terminal-functions
+Functions to call when Emacs deletes a terminal.  @xref{Multiple
+Terminals}.
 
 @item desktop-after-read-hook
 Normal hook run after a successful @code{desktop-read}.  May be used
@@ -285,12 +292,18 @@ Manual}.
 @item redisplay-end-trigger-functions
 @xref{Window Hooks}.
 
+@item resume-tty-functions
+@xref{Suspending Emacs}.
+
 @item scheme-indent-function
 
 @item suspend-hook
 @xref{Suspending Emacs}.
 
 @item suspend-resume-hook
+@xref{Suspending Emacs}.
+
+@item suspend-tty-functions
 @xref{Suspending Emacs}.
 
 @item temp-buffer-setup-hook

@@ -1,3 +1,7 @@
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* mh-letter.el: Replace last-input-char with last-input-event.
+
 2008-08-18  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.1.
@@ -3113,7 +3117,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-  Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+  Copyright (C) 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

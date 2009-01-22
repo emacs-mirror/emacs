@@ -1,7 +1,7 @@
 ;;; calc-sel.el --- data selection functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -132,7 +132,7 @@
 
 (defun calc-select-part (num)
   (interactive "P")
-  (or num (setq num (- last-command-char ?0)))
+  (or num (setq num (- last-command-event ?0)))
   (calc-wrapper
    (calc-prepare-selection)
    (let ((sel (calc-find-nth-part (or (nth 2 calc-selection-cache-entry)

@@ -1,7 +1,7 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -628,7 +628,14 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   mm-text-coding-system
   "Coding system used in reading inbox")
 
-(defvar nnmail-pathname-coding-system nil
+(defvar nnmail-pathname-coding-system
+  ;; This causes Emacs 22.2 and 22.3 to issue a useless warning.
+  ;;(if (and (featurep 'xemacs) (featurep 'file-coding))
+  (if (featurep 'xemacs)
+      (if (featurep 'file-coding)
+	  ;; Work around a bug in many XEmacs 21.5 betas.
+	  ;; Cf. http://thread.gmane.org/gmane.emacs.gnus.general/68134
+	  (setq file-name-coding-system (coding-system-aliasee 'file-name))))
   "*Coding system for file name.")
 
 (defun nnmail-find-file (file)

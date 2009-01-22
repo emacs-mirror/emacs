@@ -1,3 +1,22 @@
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* org-mouse.el (org-mouse-show-context-menu): Use
+	mouse-menu-major-mode-map, if defined, rather than the obsolete
+	mouse-major-mode-menu.
+
+2008-12-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-remember.el (org-remember-handler): Safer way to get a new
+	buffer accessing the target file.
+
+	* org.el (org-refile-get-location): Handle case of current buffer
+	not having a file associated with it.
+
+2008-12-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-table.el (org-table-get-formula): Only ask to overwrite
+	field formula if there really is one.
+
 2008-12-21  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-export-latex.el (org-export-latex-make-header): Double the
@@ -2021,7 +2040,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008  Free Software Foundation, Inc.
+    Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

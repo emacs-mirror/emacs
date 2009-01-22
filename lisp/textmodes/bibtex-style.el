@@ -1,6 +1,6 @@
 ;;; bibtex-style.el --- Major mode for BibTeX Style files
 
-;; Copyright (C) 2005,2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 

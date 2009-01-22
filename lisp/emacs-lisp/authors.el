@@ -1,7 +1,7 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -45,14 +45,17 @@ files.")
     ("Anna M. Bigatti" "Anna Bigatti")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
+    ("Bill Mann" "William F. Mann")
+    ("Bill Rozas" "Guillermo J. Rozas")
     ("Björn Torkelsson" "Bjorn Torkelsson")
     ("Brian Fox" "Brian J. Fox")
     ("Christoph Wedler" "Christoph.Wedler@sap.com")
     ("Daniel Pfeiffer" "<Daniel.Pfeiffer@Informatik.START.db.de>"
      "<Daniel.Pfeiffer@Informatik.START.dbp.de>")
+    ("David De La Harpe Golden" "David Golden")
     ("David Gillespie" "Dave Gillespie")
     ("David Kågedal" "David K..edal")
-    ("David M. Koppelman" "David M. Koppelman, Koppel@Ee.Lsu.Edu"
+    ("David M. Koppelman" "David M. Koppelman, Koppel@Ec?e.Lsu.Edu"
      "David Koppelman")
     ("David M. Smith" "David Smith" "David M Smith")
     ("Deepak Goel" "D. Goel")
@@ -71,13 +74,17 @@ files.")
     ("Frederic Pierresteguy" "Fred Pierresteguy")
     ("Geoff Voelker" "voelker")
     ("Gerd Möllmann" "Gerd Moellmann")
-    ("Hallvard B. Furuseth" "Hallvard B Furuseth")
+    ("Hallvard B. Furuseth" "Hallvard B Furuseth" "Hallvard Furuseth")
     ("Hrvoje Nikšić" "Hrvoje Niksic")
-    (nil "(afs@hplb.hpl.hp.com)")
+    ;; src/ChangeLog.4, 1994-01-11, since fixed.
+;;;    (nil "(afs@hplb.hpl.hp.com)")
+    ;; lisp/gnus/ChangeLog.1, 1998-01-15.
+    ;; http://quimby.gnus.org/cgi-bin/cvsweb.cgi/gnus/lisp/gnus-art.el?rev=4.13
     (nil "<Use-Author-Address-Header@\\[127.1\\]>")
-    (nil "Code Extracted")
-    (nil "\\`FSF")
-    (nil "ISO-2022-JP")
+    (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header
+    (nil "\\`FSF")  ; FIXME what is this for - no effect?
+    ;; lisp/gnus/ChangeLog.1, 1997-10-12, since fixed.
+;;;    (nil "ISO-2022-JP")
     ("Jaeyoun Chung" "Jae-youn Chung" "Jae-you Chung" "Chung Jae-youn")
     ("Jan Djärv" "Jan D." "Jan Djarv")
     ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
@@ -88,6 +95,7 @@ files.")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
+    ("Joseph M. Kelsey" "Joe Kelsey")	; FIXME ?
     ("Juan León Lahoz García" "Juan-Leon Lahoz Garcia")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Großjohann" "Kai Grossjohann" "Kai Großjohann"
@@ -103,21 +111,31 @@ files.")
     ("Kyle Jones" "Kyle E. Jones")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
+    ("Marko Kohtala" "Kohtala Marko")
     ("Agustín Martín" "Agustin Martin")
     ("Martin Lorentzon" "Martin Lorentzson")
     ("Matt Swift" "Matthew Swift")
+    ("Maxime Edouard Robert Froumentin" "Max Froumentin")
     ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michaël Cadilhac" "Michael Cadilhac")
     ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, P/Bsg")
+    ("Michael R. Cook" "Michael Cook")
+    ("Michael Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Mikio Nakajima" "Nakajima Mikio")
+    ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
-    ("Pavel Janík" "Pavel Janík Ml." "Pavel Janík" "Pavel@Janik.Cz")
+    ("Pavel Janík" "Pavel Janík Ml." "Pavel Janik Ml." "Pavel Janik" "Pavel Janík" "Pavel@Janik.Cz")
+    ("Pavel Kobiakov" "Pavel Kobyakov")
     ("Per Abrahamsen" "Per Abhiddenware")
+    ("Per Starbäck" "Per Starback")
     ("Peter S. Galbraith" "Peter Galbraith")
     ("Peter Runestig" "Peter 'luna' Runestig")
     ("Peter S. Galbraith" "Peter S Galbraith")
+    ("Raja R. Harinath" "Raja R Harinath")
+    ("Richard G. Bielawski" "Richard G Bielawski" "Richard Bielawski")
+    ("Richard King" "Dick King")
     ("Richard M. Stallman" "Richard M. Stallman,,," "Richard Stallman"
      "rms" "rms@gnu.org")
     ("Robert J. Chassell" "Bob Chassell")
@@ -126,18 +144,28 @@ files.")
     ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
-    ("Stefan Monnier" "Stefan")
+    ;; There are other Stefans.
+;;;    ("Stefan Monnier" "Stefan")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
+    ("Stewart M. Clamen" "Stewart Clamen")
+    ("Stuart D. Herring" "Stuart Herring" "Davis Herring")
+    ("Taichi Kawabata" "KAWABATA,? Taichi")
     ("Takaaki Ota" "Tak Ota")
     ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
+    ("Thomas Horsley" "Tom Horsley")	; FIXME ?
+    ("Thomas Wurgler" "Tom Wurgler")
+    ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
     ("Torbjörn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
+    ("Tsugutomo Enami" "enami tsugutomo")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
     ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
+    ("Yoni Rabkin" "Yoni Rabkin Katzenell")
+    ("Yoshinori Koseki" "KOSEKI Yoshinori" "小関 吉則")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     )
   "Alist of author aliases.
@@ -149,6 +177,7 @@ If REALNAME is nil, ignore that author.")
 (defconst authors-fixed-case
   '("Bryan O'Sullivan"
     "Christian von Roques"
+    "Christophe de Dinechin"
     "Craig McDaniel"
     "David J. MacKenzie"
     "David McCabe"
@@ -159,8 +188,10 @@ If REALNAME is nil, ignore that author.")
     "Greg McGary"
     "Hans de Graaff"
     "James TD Smith"
+    "Joel N. Weber II"
     "Michael McNamara"
     "Mike McEwan"
+    "Nelson Jose dos Santos Ferreira"
     "Peter von der Ahe"
     "Peter O'Gorman"
     "Roland McGrath"
@@ -188,6 +219,7 @@ If REALNAME is nil, ignore that author.")
 (defvar authors-obsolete-files-regexps
   '("vc-\\*\\.el$"
     "spec.txt$"
+    ".*loaddefs.el$"			; not obsolete, but auto-generated
     "vc-\\(rcs\\|cvs\\|sccs\\)-hooks\\.el$")
   "List of regexps matching obsolete files.
 Changes to files matching one of the regexps in this list are not
@@ -203,6 +235,7 @@ listed.")
     "NEWS.unicode" "COPYING.DJ" "Makefile.old" "Makefile.am"
     "NEWS.1" "OOOOONEWS...OONEWS" "OOOONEWS" "etc/NEWS"
     "NEWS.1-17" "NEWS.18" "NEWS.19" "NEWS.20" "NEWS.21" "NEWS.22"
+    "MAINTAINERS" "MH-E-NEWS"
     "install-sh" "missing" "mkinstalldirs"
     "termcap.dat" "termcap.src" "termcap.ucb" "termcap"
     "ChangeLog.nextstep" "Emacs.clr" "spec.txt"
@@ -210,9 +243,11 @@ listed.")
     "texi/Makefile.in"
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
+    ;; Autogen:
+    "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     ;; Never had any meaningful changes logged, now deleted:
     "split-man" "Xkeymap.txt" "ms-7bkermit" "ulimit.hack"
-    "gnu-hp300" "refcard.bit" "ledit.l" "forms.README"
+    "gnu-hp300" "refcard.bit" "ledit.l" "forms.README" "forms-d2.dat"
     "CXTERM-DIC/PY.tit" "CXTERM-DIC/ZIRANMA.tit"
     "CXTERM-DIC/CTLau.tit" "CXTERM-DIC/CTLauB.tit"
     "NICKLES.WORTH" "INTERVAL.IDEAS" "RCP"
@@ -250,108 +285,156 @@ listed.")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
+;; FIXME :cowrote entries here can be overwritten by :wrote entries
+;; derived from a file's Author: header (eg mh-e).  This really means
+;; the Author: header is erroneous.
 (defconst authors-fixed-entries
   '(("Richard M. Stallman" :wrote "[The original GNU Emacs and numerous files]")
     ("Joseph Arceneaux" :wrote "xrdb.c")
-    ("Blitz Product Development Corporation" :wrote "ispell.el")
+    ;; This refers to the obsolete Willisson (qv) version.
+;;;    ("Blitz Product Development Corporation" :wrote "ispell.el")
     ("Frank Bresz" :wrote "diff.el")
     ("David M. Brown" :wrote "array.el")
-    ("Gary Byers" :changed "xenix.h")
+    ;; No longer distributed.
+;;;    ("Gary Byers" :changed "xenix.h")
     ("Shawn M. Carey" :wrote "freebsd.h")
-    ("Eric Decker"  :changed "hp9000s800.h" "hpux.h" "sysdep.c")
-    ("Lawrence R. Dodd" :wrote "dired-x.el")
-    ("Viktor Dukhovni" :wrote "unexsunos4.c")
+    ;; hp800.h renamed from hp9000s800.h, hpux.h merged into hpux10-20.h.
+    ;; FIXME overwritten by Author:.
+    ("Satyaki Das" :cowrote "mh-search.el")
+    ("Eric Decker" :changed "hp800.h" "hpux10-20.h" "sysdep.c")
+    ("Lawrence R. Dodd" :cowrote "dired-x.el")
+    ;; No longer distributed.
+;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
     ("Paul Eggert" :wrote "rcs2log" "vcdiff")
     ("Fred Fish" :changed "unexec.c")
-    ("Tim Fleehart" :wrote "makefile.nt")
+    ;; No longer distributed.
+;;;    ("Tim Fleehart" :wrote "makefile.nt")
     ("Keith Gabryelski" :wrote "hexl.c")
     ("Kevin Gallagher" :wrote "flow-ctrl.el")
-    ("Howard Gayle" :wrote "disp-table.el" "iso-syntax.el" "casetab.c")
-    ("Stephen Gildea" :wrote "refcard.tex" "mh-funcs.el" "mh-pick.el")
-    ("David Gillespie" :wrote "cl.texinfo")
-    ("Hewlett-Packard" :changed "emacsclient.c" "emacsserver.c"
-     "server.el" "keyboard.c")
-    ("Thomas Horsley" :wrote "cxux.h" "cxux7.h")
+    ;; Also wrote an earlier version of disp-table.el, since replaced
+    ;; by Erik Naggum's version; also iso-syntax.el, later renamed to
+    ;; latin-1.el, since deleted.
+    ("Howard Gayle" :wrote "casetab.c")
+    ;; :wrote mh-pick.el, since merged into mh-search.el.
+    ;; Originally wrote mh-funcs.el, but it has been rewritten since.
+    ("Stephen Gildea" :wrote "refcard.tex"
+     :cowrote "mh-funcs.el" "mh-search.el")
+    ;; cl.texinfo renamed to cl.texi.
+    ("David Gillespie" :wrote "cl.texi")
+    ;; No longer distributed: emacsserver.c.
+    ("Hewlett-Packard" :changed "emacsclient.c" "server.el" "keyboard.c")
+    ;; No longer distributed.
+;;;    ("Thomas Horsley" :wrote "cxux.h" "cxux7.h")
     ("Indiana University Foundation" :changed "buffer.c" "buffer.h"
      "indent.c" "search.c" "xdisp.c" "region-cache.c" "region-cache.h")
+    ;; ibmrt.h, ibmrt-aix.h no longer distributed.
     ("International Business Machines" :changed "emacs.c" "fileio.c"
-     "ibmrt.h" "process.c" "sysdep.c" "unexec.c" "ibmrt-aix.h")
-    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
+     "process.c" "sysdep.c" "unexec.c")
+    ;; No longer distributed.
+;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
+    ;; ymakefile no longer distributed.
     ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
-     "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h" "systty.h" "unexec.c"
-      "ymakefile" "linux.h")
-    ("Kyle Jones" :wrote "mldrag.el")
+     "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
+     "systty.h" "unexec.c" "linux.h")
+    ;; No longer distributed.
+;;;    ("Kyle Jones" :wrote "mldrag.el")
     ("Henry Kautz" :wrote "bib-mode.el")
-    ("Joseph M. Kelsey" :changed "fileio.c" "vms-pwd.h" "vmsfns.c" "dir.h"
-     "uaf.h")
+    ;; No longer distributed: vms-pwd.h, vmsfns.c, uaf.h.
+    ("Joseph M. Kelsey" :changed "fileio.c" "dir.h")
     ("Sam Kendall" :changed "etags.c" "etags.el")
-    ("Richard King" :wrote "backquote.el" "userlock.el" "filelock.c")
+    ;; ack.texi: "We're not using his backquote.el any more."
+    ("Richard King" :wrote "userlock.el" "filelock.c")
     ("Larry Kolodney" :wrote "cvtmail.c")
     ("Sebastian Kremer" :changed "add-log.el")
     ("Mark Lambert" :changed "process.c" "process.h")
     ("Aaron Larson" :changed "bibtex.el")
-    ("James R. Larus" :wrote "mh-e.el")
-    ("Lars Lindberg" :changed "dabbrev.el" :wrote "imenu.el")
+    ;; It was :wrote, but it has been rewritten since.
+    ("James R. Larus" :cowrote "mh-e.el")
+    ("Lars Lindberg" :changed "dabbrev.el" :cowrote "imenu.el")
+    ;; No longer distributed: lselect.el.
     ("Lucid, Inc." :changed "bytecode.c" "byte-opt.el" "byte-run.el"
      "bytecomp.el" "delsel.el" "disass.el" "faces.el" "font-lock.el"
-     "lmenu.el" "lselect.el" "mailabbrev.el" "select.el" "xfaces.c"
-     "xselect.c")
-    ("MCC" :changed "etags.c" "emacsclient.c" "emacsserver.c" "movemail.c"
+     "lmenu.el" "mailabbrev.el" "select.el" "xfaces.c" "xselect.c")
+    ;; MCC.  No longer distributed: emacsserver.c.
+    ("Microelectronics and Computer Technology Corporation"
+     :changed "etags.c" "emacsclient.c" "movemail.c"
      "rmail.el" "rmailedit.el" "rmailkwd.el"
      "rmailmsc.el" "rmailout.el" "rmailsum.el" "scribe.el"
-     "server.el" "lisp.h" "sysdep.c" "unexec.c" :wrote "xmenu.c")
+     ;; It was :wrote for xmenu.c, but it has been rewritten since.
+     "server.el" "lisp.h" "sysdep.c" "unexec.c" "xmenu.c")
     ("Niall Mansfield" :changed "etags.c")
-    ("Brian Marick" :wrote "hideif.el")
+    ("Brian Marick" :cowrote "hideif.el")
     ("Marko Kohtala" :changed "info.el")
     ("Sidney Markowitz" :changed "doctor.el")
-    ("Richard Mlynarik" :wrote "env.c" "ehelp.el")
+    ;; No longer distributed: env.c.
+    ("Richard Mlynarik" :wrote "ehelp.el")
     ("Mosur Mohan" :changed "etags.c")
     ("Jeff Morgenthaler" :changed "flow-ctrl.el" "vt200.el" "vt201.el"
      "vt220.el" "vt240.el")
     ("Motorola" :changed "buff-menu.el")
     ("Hiroshi Nakano" :changed "ralloc.c")
     ("Sundar Narasimhan" :changed "rnewspost.el")
-    ("NeXT, Inc." :wrote "unexnext.c")
+    ;; No longer distributed.
+;;;    ("NeXT, Inc." :wrote "unexnext.c")
     ("Mark Neale" :changed "fortran.el")
-    ("Martin Neitzel" :changed "sc.el")
-    ("Andrew Oram" :changed "miscellaneous changes to files in man/"
-     "man/calendar.texi")
+    ;; Renamed from sc.el.
+    ("Martin Neitzel" :changed "supercite.el")
+    ("Andrew Oram" :changed "calendar.texi (and other files in man/)")
     ("Frederic Pierresteguy" :wrote "widget.c")
     ("Michael D. Prange" :changed "tex-mode.el")
-    ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4r3.h")
-    ("Roland B. Roberts" :changed "files.el" "sort.el" "vmsproc.el"
-     "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h"
-     "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
-     :wrote "logout.com" "mailemacs.com")
+    ;; No longer distributed (dgux5-4r3.h was renamed to dgux5-4-3.h).
+;;;    ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4-3.h")
+    ("Roland B. Roberts" :changed "files.el" "sort.el"
+     "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h")
+     ;; No longer distributed.
+;;;     "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
+;;;     "vmsproc.el" :wrote "logout.com" "mailemacs.com")
     ("Guillermo J. Rozas" :wrote "fakemail.c")
     ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
      "sort.el" "alloc.c" "callint.c"
-     "config.h.in" "crt0.c" "data.c" "fns.c"
-     "lisp.h" "lread.c" "sun3.h"
-     "print.c" "ymakefile" :wrote "float-sup.el" "floatfns.c")
+     ;; config.in renamed from config.h.in; ecrt0.c from crt0.c.
+     "config.in" "ecrt0.c" "data.c" "fns.c"
+     "lisp.h" "lread.c" ; "sun3.h" "ymakefile" - no longer distributed
+     "print.c" :wrote "float-sup.el" "floatfns.c")
     ("Schlumberger Technology Corporation" :changed "gud.el")
-    ("Gregor Schmid" :wrote "tcl-mode.el")
+    ;; Replaced by tcl.el.
+;;;    ("Gregor Schmid" :wrote "tcl-mode.el")
     ("Rainer Schoepf" :wrote "alpha.h" "unexalpha.c")
-    ("William Sommerfeld" :wrote "emacsclient.c" "emacsserver.c" "scribe.el")
-    ("Leigh Stoller" :changed "emacsclient.c" "emacsserver.c" "server.el")
+    ;; No longer distributed: emacsserver.c.
+    ("William Sommerfeld" :wrote "emacsclient.c" "scribe.el")
+    ;; No longer distributed: emacsserver.c.
+    ("Leigh Stoller" :changed "emacsclient.c" "server.el")
     ("Steve Strassman" :wrote "spook.el")
     ("Shinichirou Sugou" :changed "etags.c")
-    ("Sun Microsystems, Inc" :changed "emacsclient.c" "emacsserver.c"
-     "server.el" :wrote "emacs.icon" "emacstool.1" "emacstool.c" "sun-curs.el"
-     "sun-fns.el" "sun-mouse.el" "sun.el" "sunfns.c")
-    ("Kayvan Sylvan" :changed "sc.el")
-    ("Spencer Thomas" :changed "emacsclient.c" "emacsserver.c" "server.el"
-     "dabbrev.el" "unexec.c" "tcp.c" "gnus.texi")
+    ;; No longer distributed: emacsserver.c.
+    ("Sun Microsystems, Inc" :changed "emacsclient.c" "server.el"
+     :wrote "emacs.icon" "sun.el")
+    ;; No longer distributed.
+;;;     "emacstool.1" "emacstool.c" "sun-curs.el"
+;;;     "sun-fns.el" "sun-mouse.el" "sunfns.c")
+    ;; Renamed from sc.el.
+    ("Kayvan Sylvan" :changed "supercite.el")
+    ;; No longer distributed: emacsserver.c, tcp.c.
+    ("Spencer Thomas" :changed "emacsclient.c" "server.el"
+     "dabbrev.el" "unexec.c" "gnus.texi")
     ("Jonathan Vail" :changed "vc.el")
     ("James Van Artsdalen" :changed "usg5-4.h" "unexec.c")
-    ("Geoff Voelker" :wrote "src/makefile.nt" "lisp/makefile.nt" "winnt.el"
-     "nt.c" "nt.h" "ntheap.c" "ntheap.h" "ntinevt.c"
-     "ntproc.c" "ntterm.c" "windowsnt.h")
+    ;; No longer distributed: src/makefile.nt, lisp/makefile.nt
+    ;; winnt.el renamed to w32-fns.el; nt.[ch] to w32.[ch];
+    ;; ntheap.[ch] to w32heap.[ch]; ntinevt.c to w32inevt.c;
+    ;; ntproc.c to w32proc.c; ntterm.c to w32term.c;
+    ;; windowsnt.h to ms-w32.h.
+    ("Geoff Voelker" :wrote "w32-fns.el" "w32.c" "w32.h" "w32heap.c"
+     "w32heap.h" "w32inevt.c" "w32proc.c" "w32term.c" "ms-w32.h")
     ("Morten Welinder" :wrote "dosfns.c" "[many MS-DOS files]" "msdos.h")
-    ("Pace Willisson" :wrote "ispell.el")
+    ;; Not using this version any more.
+;;;    ("Pace Willisson" :wrote "ispell.el")
+    ;; FIXME overwritten by Author:.
+    ("Bill Wohler" :cowrote "mh-e.el")
     ("Garrett Wollman" :changed "sendmail.el")
     ("Dale R. Worley" :changed "mail-extr.el")
-    ("Jamie Zawinski" :changed "bytecode.c" :wrote "disass.el" "tar-mode.el"))
+    ("Jamie Zawinski" :changed "bytecode.c" :wrote "tar-mode.el"
+     :cowrote "disass.el"))
   "Actions taken from the original, manually (un)maintained AUTHORS file.")
 
 
@@ -374,6 +457,7 @@ Changes to files in this list are not listed.")
     "getdate.y"
     "ymakefile"
     "permute-index" "index.perm"
+    "emacs.ico"
     "emacs21.ico"
     "LPF" "LEDIT" "OTHER.EMACSES"
     "emacs16_mac.png" "emacs24_mac.png"
@@ -393,9 +477,11 @@ found) in the repository.")
     ("w32console.c" . "w32term.c")
     ("unexnt.c" . "unexw32.c")
     ("s/windowsnt.h" . "s/ms-w32.h")
+    ("winnt.el" . "w32-fns.el")
     ("config.emacs" . "configure")
-    ("config.h.dist" . "config.h.in")
-    ("config.h-dist" . "config.h.in")
+    ("config.h.dist" . "config.in")
+    ("config.h-dist" . "config.in")
+    ("config.h.in" . "config.in")
     ("paths.h-dist" . "paths.h.in")
     ("patch1" . "sed1.inp")
     ("GETTING.GNU.SOFTWARE" . "FTP")
@@ -415,6 +501,9 @@ found) in the repository.")
     ("leim-Makefile.in" . "leim/Makefile.in")
     ("emacs-lisp/testcover-ses.el" . "tcover-ses.el")
     ("emacs-lisp/testcover-unsafep.el" . "tcover-unsafep.el")
+    ;; index and pick merged into search.
+    ("mh-index.el" . "mh-search.el")
+    ("mh-pick.el" . "mh-search.el")
     ("INSTALL-CVS" . "INSTALL.CVS")
     ("refcards/fr-drdref.pdf" . "refcards/fr-dired-ref.pdf")
     ("gnus-logo.eps" . "refcards/gnus-logo.eps")
@@ -483,19 +572,18 @@ Otherwise, the file name is accepted as is.")
 (defvar authors-invalid-file-names)
 
 (defun authors-canonical-file-name (file log-file pos author)
-  "Return canonical file name for FILE found in LOG-FILE at POS for AUTHOR.
+  "Return canonical file name for FILE found in LOG-FILE.
 Checks whether FILE is a valid (existing) file name, has been renamed,
 or is on the list of removed files.  Returns the non-diretory part of
-the file name."
-  (let ((entry (assoc file authors-checked-files-alist))
-	relname
-	valid)
-    ;; FIXME this is bogus.  FILE should be re-checked in every
-    ;; different directory associated with LOG-FILE.
-    ;; Eg if src/ChangeLog refers to configure.in, and you happen to
-    ;; scan src/ before top-level/, the configure.in entries in
-    ;; top-level/ get ignored, because this mistakenly thinks
-    ;; top-level/configure.in does not exist.
+the file name.  Only uses the LOG-FILE position POS and associated AUTHOR
+to print a message if FILE is not found."
+  ;; FILE should be re-checked in every different directory associated
+  ;; with a LOG-FILE.  Eg configure.in from src/ChangeLog is not the
+  ;; same as that from top-level/ChangeLog.
+  (let* ((fullname (expand-file-name file (file-name-directory log-file)))
+	 (entry (assoc fullname authors-checked-files-alist))
+	 relname
+	 valid)
     (if entry
 	(cdr entry)
       (setq relname (file-name-nondirectory file))
@@ -517,7 +605,7 @@ the file name."
 			rules nil))
 	      (setq rules (cdr rules))))))
       (setq authors-checked-files-alist
-	    (cons (cons file valid) authors-checked-files-alist))
+	    (cons (cons fullname valid) authors-checked-files-alist))
       (unless (or valid
 		  (member file authors-ignored-files)
 		  (string-match "[*]" file)
@@ -607,16 +695,17 @@ under the author's canonical name.
 Keys of TABLE are author names.  Values are alists of entries (FILE
 \(ACTION . COUNT) ...).  FILE is one file the author worked on.  The
 rest of the entry is a list of keyword symbols describing what he did
-with the file and the number of each action.
+with the file and the number of each action:
 
 :wrote		means the author wrote the file
+:cowrote	means he wrote the file in collaboration with others
 :changed	means he changed the file COUNT times."
 
-  (let* ((enable-local-variables :safe)
+  (let* ((enable-local-variables :safe)	; for find-file, hence let*
 	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
-	 author file pos)
+	 authors file pos)
     (save-excursion
       (set-buffer buffer)
       (save-restriction
@@ -626,11 +715,17 @@ with the file and the number of each action.
 	  (beginning-of-line)
 	  (setq pos (point))
 	  (cond ((looking-at "^[0-9]+-[0-9]+-[0-9]+")
-		 (skip-chars-forward " \t+:0-9-")
-		 (setq author (buffer-substring-no-properties
-			       (point) (line-end-position)))
-		 (setq author (authors-canonical-author-name author))
-		 (forward-line 1))
+		 ;; Handle joint authorship of changes.
+		 ;; This can be a bit fragile, and is not too common.
+		 (setq authors nil)
+		 (while (progn
+			  (skip-chars-forward " \t+:0-9-")
+			  (not (looking-at "\\($\\|\\*\\|\
+Suggested\\|Trivial\\|Version\\|Originally\\|From:\\|Patch[ \t]+[Bb]y\\)")))
+		   (push (authors-canonical-author-name
+			  (buffer-substring-no-properties
+			   (point) (line-end-position))) authors)
+		   (forward-line 1)))
 		((looking-at "^[ \t]+\\*")
 		 (let ((line (buffer-substring-no-properties
 			      (match-end 0) (line-end-position))))
@@ -646,9 +741,10 @@ with the file and the number of each action.
 		     (setq line (replace-regexp-in-string "[[(<{].*$" "" line))
 		     (setq line (replace-regexp-in-string "," "" line))
 		     (dolist (file (split-string line))
-		       (when (setq file (authors-canonical-file-name file log-file pos author))
-			 ;;(message "%s changed %s" author file)
-			 (authors-add author file :changed table))))
+		       (when (setq file (authors-canonical-file-name file log-file pos (car authors)))
+			 (dolist (author authors)
+			   ;;(message "%s changed %s" author file)
+			   (authors-add author file :changed table)))))
 		   (forward-line 1)))))))
     (unless existing-buffer
       (kill-buffer buffer))))
@@ -658,26 +754,40 @@ with the file and the number of each action.
   "Scan Lisp file FILE for author information.
 TABLE is a hash table to add author information to."
   (let* ((existing-buffer (get-file-buffer file))
-	 (enable-local-variables :safe)
+	 (enable-local-variables :safe)	; for find-file, hence let*
 	 (enable-local-eval nil)
 	 (buffer (find-file-noselect file)))
+    (setq file (file-name-nondirectory file))
     (save-excursion
       (set-buffer buffer)
       (save-restriction
 	(widen)
 	(goto-char (point-min))
 	(while (and (re-search-forward
-		     "^;+[ \t]*\\(Author\\|Commentary\\):[ \t]*" nil t)
-		    (not (string= (match-string 1) "Commentary")))
-	  ;; Some entries contain a year range in front of the
-	  ;; author's name.
-	  (skip-chars-forward "-0-9 \t")
-	  ;; FIXME handle multiline authors, comma-separated.
-	  (let ((author (buffer-substring-no-properties
-			 (point) (line-end-position))))
-	    (setq author (authors-canonical-author-name author))
-	    (setq file (file-name-nondirectory file))
-	    (authors-add author file :wrote table)))))
+		     "^;+[ \t]*\\(Authors?\\|Commentary\\|Code\\):[ \t]*" nil t)
+		    (not (member (match-string 1) '("Commentary" "Code"))))
+	  (let ((continue t)
+		(action :wrote)
+		authors)
+	    (while continue
+	      ;; Some entries contain a year range in front of the
+	      ;; author's name.
+	      (skip-chars-forward "-0-9 \t")
+	      (push (authors-canonical-author-name
+		     (buffer-substring-no-properties
+		      (point) (line-end-position))) authors)
+	      ;; tips.texi says the continuation line should begin
+	      ;; with a tab, but often spaces are used.
+	      (setq continue
+		    (and (zerop (forward-line 1))
+			 (looking-at ";;;?\\(\t+ *\\|  +\\)[[:alnum:]]")
+			 (goto-char (1- (match-end 0)))
+			 (not (looking-at "[[:upper:]][-[:alpha:]]+:[ \t]")))))
+	    (and (> (length authors) 1)
+		 (setq action :cowrote))
+	    (mapc (lambda (author)
+		    (authors-add author file action table))
+		  authors)))))
     (unless existing-buffer
       (kill-buffer buffer))))
 
@@ -698,28 +808,33 @@ TABLE is a hash table to add author information to."
   "Insert information about AUTHOR's work on Emacs into `authors-author-list'.
 CHANGES is an alist of entries (FILE (ACTION . COUNT) ...), as produced by
 `authors-scan-change-log'.
-The element added to `authors-author-list' is (AUTHOR WROTE CHANGED), where
-WROTE and CHANGED are lists of the files written and changed by AUTHOR."
+The element added to `authors-author-list' is (AUTHOR WROTE CO-WROTE CHANGED),
+where WROTE, CO-WROTE, and CHANGED are lists of the files written, co-written
+and changed by AUTHOR."
   (when author
     (let ((nchanged 0)
 	  wrote-list
+	  cowrote-list
 	  changed-list)
       (dolist (change changes)
-	(let ((actions (cdr change))
-	      (file (car change))
-	      slot)
-	  (if (assq :wrote actions)
-	      (setq wrote-list
-		    (cons
-		     (if (authors-public-domain-p file)
-			 (concat file " (public domain)")
-		       file)
-		     wrote-list))
-	    (setq changed-list
-		  (cons (cons file (cdr (assq :changed actions)))
-			changed-list)))))
+	(let* ((actions (cdr change))
+	       (file (car change))
+	       (filestat (if (authors-public-domain-p file)
+			     (concat file " (public domain)")
+			   file))
+	       slot)
+	  (cond ((assq :wrote actions)
+		 (setq wrote-list (cons filestat wrote-list)))
+		((assq :cowrote actions)
+		 (setq cowrote-list (cons filestat cowrote-list)))
+		(t
+		 (setq changed-list
+		       (cons (cons file (cdr (assq :changed actions)))
+			     changed-list))))))
       (if wrote-list
 	  (setq wrote-list (sort wrote-list 'string-lessp)))
+      (if cowrote-list
+	  (setq cowrote-list (sort cowrote-list 'string-lessp)))
       (when changed-list
 	(setq changed-list (sort changed-list
 				 (lambda (a b)
@@ -732,7 +847,7 @@ WROTE and CHANGED are lists of the files written and changed by AUTHOR."
 	  (setcdr (nthcdr authors-many-files changed-list)
 		  (list (format "and %d other files" (- nchanged authors-many-files)))))
       (setq authors-author-list
-	    (cons (list author wrote-list changed-list)
+	    (cons (list author wrote-list cowrote-list changed-list)
 		  authors-author-list)))))
 
 (defun authors (root)
@@ -750,7 +865,9 @@ buffer *Authors Errors* containing references to unknown files."
 	authors-invalid-file-names)
     (authors-add-fixed-entries table)
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-      (error "Not the root directory of Emacs: %s" root))
+      (unless (y-or-n-p
+	       (format "Not the root directory of Emacs: %s, continue? " root))
+	(error "Not the root directory.")))
     (dolist (log logs)
       (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
@@ -776,7 +893,8 @@ list of their contributions.\n")
       (dolist (a authors-author-list)
 	(let ((author (car a))
 	      (wrote (nth 1 a))
-	      (changed (nth 2 a))
+	      (cowrote (nth 2 a))
+	      (changed (nth 3 a))
 	      file)
 	(insert "\n" author ": ")
 	(when wrote
@@ -786,8 +904,17 @@ list of their contributions.\n")
 	      (insert "\n "))
 	    (insert " " file))
 	  (insert "\n"))
-	(when changed
+	(when cowrote
 	  (if wrote
+	      (insert "and "))
+	  (insert "co-wrote")
+	  (dolist (file cowrote)
+	    (if (> (+ (current-column) (length file)) 72)
+	      (insert "\n "))
+	    (insert " " file))
+	  (insert "\n"))
+	(when changed
+	  (if (or wrote cowrote)
 	      (insert "and "))
 	  (insert "changed")
 	  (dolist (file changed)

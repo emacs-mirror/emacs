@@ -1,7 +1,7 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -580,10 +580,10 @@ on, this also realigns the two buffers."
       ;; catch a mouse scroll on non-selected scrollbar
       (select-window
        (prog1 (selected-window)
-	 (and (consp last-command-char)
+	 (and (consp last-command-event)
 	      (not (eq (selected-window)
-		       (car (car (cdr last-command-char)))))
-	      (select-window (car (car (cdr last-command-char)))))
+		       (car (car (cdr last-command-event)))))
+	      (select-window (car (car (cdr last-command-event)))))
 	 ;; In some cases scrolling causes an error, but post-command-hook
 	 ;; shouldn't, and should always stay in the original window
 	 (condition-case ()

@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -259,15 +259,15 @@ int command_loop_level;
 /* Total number of times command_loop has read a key sequence.  */
 EMACS_INT num_input_keys;
 
-/* Last input character read as a command.  */
-Lisp_Object last_command_char;
+/* Last input event read as a command.  */
+Lisp_Object last_command_event;
 
 /* Last input character read as a command, not counting menus
    reached by the mouse.  */
 Lisp_Object last_nonmenu_event;
 
-/* Last input character read for any purpose.  */
-Lisp_Object last_input_char;
+/* Last input event read for any purpose.  */
+Lisp_Object last_input_event;
 
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
 Lisp_Object Vunread_command_events;
@@ -1265,18 +1265,17 @@ cmd_error_internal (data, context)
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
   else if (!sf->glyphs_initialized_p
-	   /* We used to check if "This is the case of the frame dumped with
-              Emacs, when we're running under a window system" with
-	        || (!NILP (Vwindow_system) && !inhibit_window_system
-	            && FRAME_TERMCAP_P (sf))
-	      then the multi-tty code generalized this check to
-	        || FRAME_INITIAL_P (sf)
-	      but this leads to undesirable behavior in daemon mode where
-	      we don't want to exit just because we got an error without
-	      having a frame (bug#1310).
-	      So I just removed the check, and rely instead on the `message_*'
-	      functions properly using FRAME_INITIAL_P.  In the worst case
-	      this should just make Emacs not exit when it should.  */
+	   /* The initial frame is a special non-displaying frame. It
+	      will be current in daemon mode when there are no frames
+	      to display, and in non-daemon mode before the real frame
+	      has finished initializing.  If an error is thrown in the
+	      latter case while creating the frame, then the frame
+	      will never be displayed, so the safest thing to do is
+	      write to stderr and quit.  In daemon mode, there are
+	      many other potential errors that do not prevent frames
+	      from being created, so continuing as normal is better in
+	      that case.  */
+	   || (!IS_DAEMON && FRAME_INITIAL_P (sf))
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
@@ -1556,7 +1555,7 @@ command_loop_1 ()
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
-  if (!CONSP (last_command_char))
+  if (!CONSP (last_command_event))
     current_kboard->Vlast_repeatable_command = real_this_command;
 
   while (1)
@@ -1656,7 +1655,7 @@ command_loop_1 ()
 	  goto finalize;
 	}
 
-      last_command_char = keybuf[i - 1];
+      last_command_event = keybuf[i - 1];
 
       /* If the previous command tried to force a specific window-start,
 	 forget about that, in case this command moves point far away
@@ -1821,12 +1820,12 @@ command_loop_1 ()
 		}
 	      else if (EQ (Vthis_command, Qself_insert_command)
 		       /* Try this optimization only on char keystrokes.  */
-		       && NATNUMP (last_command_char)
-		       && CHAR_VALID_P (XFASTINT (last_command_char), 0))
+		       && NATNUMP (last_command_event)
+		       && CHAR_VALID_P (XFASTINT (last_command_event), 0))
 		{
 		  unsigned int c
 		    = translate_char (Vtranslation_table_for_input,
-				      XFASTINT (last_command_char));
+				      XFASTINT (last_command_event));
 		  int value;
 		  if (NILP (Vexecuting_kbd_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -1930,11 +1929,11 @@ command_loop_1 ()
 	 If the command didn't actually create a prefix arg,
 	 but is merely a frame event that is transparent to prefix args,
 	 then the above doesn't apply.  */
-      if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_char))
+      if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_event))
 	{
 	  current_kboard->Vlast_command = Vthis_command;
 	  current_kboard->Vreal_last_command = real_this_command;
-	  if (!CONSP (last_command_char))
+	  if (!CONSP (last_command_event))
 	    current_kboard->Vlast_repeatable_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
@@ -2548,6 +2547,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
   if (CONSP (Vunread_command_events))
     {
+      int was_disabled = 0;
+
       c = XCAR (Vunread_command_events);
       Vunread_command_events = XCDR (Vunread_command_events);
 
@@ -2568,12 +2569,17 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       if (CONSP (c)
 	  && EQ (XCDR (c), Qdisabled)
 	  && (SYMBOLP (XCAR (c)) || INTEGERP (XCAR (c))))
-	c = XCAR (c);
+	{
+	  was_disabled = 1;
+	  c = XCAR (c);
+	}
 
       /* If the queued event is something that used the mouse,
          set used_mouse_menu accordingly.  */
       if (used_mouse_menu
-	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar)))
+	  /* Also check was_disabled so last-nonmenu-event won't return
+	     a bad value when submenus are involved.  (Bug#447)  */
+	  && (EQ (c, Qtool_bar) || EQ (c, Qmenu_bar) || was_disabled))
 	*used_mouse_menu = 1;
 
       goto reread_for_input_method;
@@ -3094,8 +3100,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       record_single_kboard_state ();
 #endif
 
-      last_input_char = c;
-      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
+      last_input_event = c;
+      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
@@ -3336,7 +3342,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	add_command_key (also_record);
     }
 
-  last_input_char = c;
+  last_input_event = c;
   num_input_events++;
 
   /* Process the help character specially if enabled */
@@ -3413,7 +3419,7 @@ record_menu_key (c)
   add_command_key (c);
 
   /* Re-reading in the middle of a command */
-  last_input_char = c;
+  last_input_event = c;
   num_input_events++;
 }
 
@@ -6313,6 +6319,11 @@ parse_modifiers_uncached (symbol, modifier_end)
       && ('0' <= SREF (name, i + 6) && SREF (name, i + 6) <= '9'))
     modifiers |= click_modifier;
 
+  if (! (modifiers & (double_modifier | triple_modifier))
+      && i + 6 < SBYTES (name)
+      && strncmp (SDATA (name) + i, "wheel-", 6) == 0)
+    modifiers |= click_modifier;
+
   if (modifier_end)
     *modifier_end = i;
 
@@ -7040,7 +7051,7 @@ read_avail_input (expected)
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
 
-              /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
+              /* XXX Is calling delete_terminal safe here?  It calls delete_frame. */
 	      {
 		Lisp_Object tmp;
 		XSETTERMINAL (tmp, t);
@@ -11865,10 +11876,7 @@ syms_of_keyboard ()
   defsubr (&Sposn_at_point);
   defsubr (&Sposn_at_x_y);
 
-  DEFVAR_LISP ("last-command-char", &last_command_char,
-	       doc: /* Last input event that was part of a command.  */);
-
-  DEFVAR_LISP_NOPRO ("last-command-event", &last_command_char,
+  DEFVAR_LISP ("last-command-event", &last_command_event,
 		     doc: /* Last input event that was part of a command.  */);
 
   DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
@@ -11877,11 +11885,8 @@ Mouse menus give back keys that don't look like mouse events;
 this variable holds the actual mouse event that led to the menu,
 so that you can determine whether the command was run by mouse or not.  */);
 
-  DEFVAR_LISP ("last-input-char", &last_input_char,
+  DEFVAR_LISP ("last-input-event", &last_input_event,
 	       doc: /* Last input event.  */);
-
-  DEFVAR_LISP_NOPRO ("last-input-event", &last_input_char,
-		     doc: /* Last input event.  */);
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
 	       doc: /* List of events to be read as the command input.

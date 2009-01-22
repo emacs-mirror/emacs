@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -858,7 +858,11 @@ wildcards, erases the buffer, and builds the subdir-alist anew
 
   ;; default-directory and dired-actual-switches must be buffer-local
   ;; and initialized by now.
-  (let (dirname)
+  (let (dirname
+	;; This makes readin much much faster.
+	;; In particular, it prevents the font lock hook from running
+	;; until the directory is all read in.
+	(inhibit-modification-hooks t))
     (if (consp dired-directory)
 	(setq dirname (car dired-directory))
       (setq dirname dired-directory))
@@ -2677,8 +2681,10 @@ name, or the marker and a count of marked files."
 	(format "%c [%d files]" dired-marker-char count)))))
 
 (defun dired-pop-to-buffer (buf)
-  ;; Pop up buffer BUF.
-  (pop-to-buffer (get-buffer-create buf))
+  "Pop up buffer BUF in a way suitable for Dired."
+  ;; Don't split window horizontally.  (Bug#1806)
+  (let (split-width-threshold)
+    (pop-to-buffer (get-buffer-create buf)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit
     ;; Try to not delete window when we want to display less than

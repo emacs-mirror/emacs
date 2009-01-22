@@ -1,7 +1,7 @@
 ;;; em-smart.el --- smart display of output
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008  Free Software Foundation, Inc.
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -291,7 +291,7 @@ and the end of the buffer are still visible."
 	(setq clear t)
       (cond
        ((eq this-command 'self-insert-command)
-	(if (eq last-command-char ? )
+	(if (eq last-command-event ? )
 	    (if (and eshell-smart-space-goes-to-end
 		     eshell-current-command)
 		(if (not (pos-visible-in-window-p (point-max)))

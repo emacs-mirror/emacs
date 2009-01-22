@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/windows
 @node Windows, Frames, Buffers, Top
@@ -1053,9 +1053,9 @@ variable is a function that creates a frame using parameters from
 @end defopt
 
 @defopt pop-up-frame-alist
-This variable holds an alist specifying frame parameters used when
-@code{display-buffer} makes a new frame.  @xref{Frame Parameters}, for
-more information about frame parameters.
+This variable holds an alist specifying frame parameters used by the
+default value of @code{pop-up-frame-function} for making new frames.
+@xref{Frame Parameters}, for more information about frame parameters.
 @end defopt
 
 @defopt special-display-buffer-names

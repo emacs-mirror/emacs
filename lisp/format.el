@@ -1,7 +1,7 @@
 ;;; format.el --- read and save files in multiple formats
 
 ;; Copyright (C) 1994, 1995, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -218,6 +218,9 @@ For most purposes, consider using `format-encode-region' instead."
 		  (multibyte enable-multibyte-characters)
 		  (coding-system buffer-file-coding-system))
 	      (with-current-buffer copy-buf
+		(set (make-local-variable
+		      'write-region-post-annotation-function)
+		     'kill-buffer)
 		(setq selective-display sel-disp)
 		(set-buffer-multibyte multibyte)
 		(setq buffer-file-coding-system coding-system))

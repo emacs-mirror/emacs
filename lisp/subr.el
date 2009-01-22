@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -564,7 +564,8 @@ Don't call this function; it is for internal use only."
 (defun keymap-canonicalize (map)
   "Return an equivalent keymap, without inheritance."
   (let ((bindings ())
-        (ranges ()))
+        (ranges ())
+	(prompt (keymap-prompt map)))
     (while (keymapp map)
       (setq map (map-keymap-internal
                  (lambda (key item)
@@ -573,8 +574,7 @@ Don't call this function; it is for internal use only."
                        (push (cons key item) ranges)
                      (push (cons key item) bindings)))
                  map)))
-    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap)
-                       (keymap-prompt map)))
+    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap) prompt))
     (dolist (binding ranges)
       ;; Treat char-ranges specially.
       (define-key map (vector (car binding)) (cdr binding)))
@@ -1065,6 +1065,16 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (make-obsolete-variable 'translation-table-for-input nil "23.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
+
+;; These aliases exist in Emacs 19.34, and probably before, but were
+;; only marked as obsolete in 23.1.
+;; The lisp manual (since at least Emacs 21) describes them as
+;; existing "for compatibility with Emacs version 18".
+(define-obsolete-variable-alias 'last-input-char 'last-input-event
+  "at least 19.34")
+(define-obsolete-variable-alias 'last-command-char 'last-command-event
+  "at least 19.34")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -1082,6 +1092,8 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
+(defalias 'chmod 'set-file-modes)
+(defalias 'mkdir 'make-directory)
 ;; These are the XEmacs names:
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
@@ -2249,7 +2261,9 @@ range 0..100 or a float in the range 0..1.0.  If not specified,
 don't change the volume setting of the sound device.
 
   :device DEVICE - play sound on DEVICE.  If not specified,
-a system-dependent default device name is used."
+a system-dependent default device name is used.
+
+Note: :data and :device are currently not supported on Windows."
   (if (fboundp 'play-sound-internal)
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))
@@ -2257,7 +2271,7 @@ a system-dependent default device name is used."
 (declare-function w32-shell-dos-semantics "w32-fns" nil)
 
 (defun shell-quote-argument (argument)
-  "Quote an argument for passing as argument to an inferior shell."
+  "Quote ARGUMENT for passing as argument to an inferior shell."
   (if (or (eq system-type 'ms-dos)
           (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
       ;; Quote using double quotes, but escape any existing quotes in
@@ -2295,7 +2309,7 @@ Otherwise, return nil."
   (memq object '(nil t)))
 
 (defun field-at-pos (pos)
-  "Return the field at position POS, taking stickiness etc into account"
+  "Return the field at position POS, taking stickiness etc into account."
   (let ((raw-field (get-char-property (field-beginning pos) 'field)))
     (if (eq raw-field 'boundary)
 	(get-char-property (1- (field-end pos)) 'field)

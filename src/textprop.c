@@ -1,6 +1,6 @@
 /* Interface code for dealing with text properties.
    Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -57,6 +57,7 @@ Lisp_Object Qlocal_map;
 /* Visual properties text (including strings) may have.  */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 Lisp_Object Qinvisible, Qread_only, Qintangible, Qmouse_face;
+Lisp_Object Qminibuffer_prompt;
 
 /* Sticky properties */
 Lisp_Object Qfront_sticky, Qrear_nonsticky;
@@ -2334,6 +2335,8 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   Qrear_nonsticky = intern ("rear-nonsticky");
   staticpro (&Qmouse_face);
   Qmouse_face = intern ("mouse-face");
+  staticpro (&Qminibuffer_prompt);
+  Qminibuffer_prompt = intern ("minibuffer-prompt");
 
   /* Properties that text might use to specify certain actions */
 

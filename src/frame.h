@@ -1,6 +1,6 @@
 /* Define frame-object for GNU Emacs.
    Copyright (C) 1993, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1115,6 +1115,7 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+extern Lisp_Object delete_frame P_ ((Lisp_Object, Lisp_Object));
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

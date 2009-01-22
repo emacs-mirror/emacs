@@ -2,7 +2,7 @@
 @c This file is used for printing the GNU Emacs Lisp Reference Manual
 @c in two volumes.  It is a modified version of elisp.texi.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c %**start of header
 @setfilename elisp
 @settitle GNU Emacs Lisp Reference Manual: Volume 1
@@ -67,7 +67,7 @@ This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software
+1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software
 Foundation, Inc.
 
 @quotation

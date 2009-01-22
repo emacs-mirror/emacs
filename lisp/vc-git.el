@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system
 
-;; Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: tools
@@ -295,7 +295,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      "  " (vc-git-permissions-as-string old-perm new-perm)
-     "     "
+     "    "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
                  'face (if isdir 'font-lock-comment-delimiter-face 'font-lock-function-name-face)
 		 'help-echo

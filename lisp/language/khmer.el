@@ -1,6 +1,6 @@
 ;;; khmer.el --- support for Khmer -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008
+;; Copyright (C) 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -30,7 +30,8 @@
 	   (sample-text . "Khmer (ភាសាខ្មែរ)	ជំរាបសួរ")
 	   (documentation . t)))
 
-(let ((val '(("[\x1780-\x17FF\x19E0-\x19FF\x200C\x200D]+" . font-shape-text))))
+(let ((val (list (vector "[\x1780-\x17FF\x19E0-\x19FF\x200C\x200D]+"
+			 0 'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 

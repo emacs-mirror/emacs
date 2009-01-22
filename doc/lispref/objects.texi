@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/objects
 @node Lisp Data Types, Numbers, Introduction, Top
@@ -345,7 +345,7 @@ following text.)
 @node General Escape Syntax
 @subsubsection General Escape Syntax
 
-  In addition to the specific excape sequences for special important
+  In addition to the specific escape sequences for special important
 control characters, Emacs provides general categories of escape syntax
 that you can use to specify non-ASCII text characters.
 
@@ -1384,7 +1384,8 @@ editing.
 * Buffer Type::         The basic object of editing.
 * Marker Type::         A position in a buffer.
 * Window Type::         Buffers are displayed in windows.
-* Frame Type::		Windows subdivide frames.
+* Frame Type::          Windows subdivide frames.
+* Terminal Type::       A terminal device displays frames.
 * Window Configuration Type::   Recording the way a frame is subdivided.
 * Frame Configuration Type::    Recording the status of all frames.
 * Process Type::        A subprocess of Emacs running on the underlying OS.
@@ -1528,6 +1529,25 @@ uniquely).
 @end example
 
   @xref{Frames}, for a description of the functions that work on frames.
+
+@node Terminal Type
+@subsection Terminal Type
+@cindex terminal type
+
+  A @dfn{terminal} is a device capable of displaying one or more
+Emacs frames (@pxref{Frame Type}).
+
+  Terminals have no read syntax.  They print in hash notation giving
+the terminal's ordinal number and its TTY device file name.
+
+@example
+@group
+(get-device-terminal nil)
+     @result{} #<terminal 1 on /dev/tty>
+@end group
+@end example
+
+@c FIXME: add an xref to where terminal-related primitives are described.
 
 @node Window Configuration Type
 @subsection Window Configuration Type

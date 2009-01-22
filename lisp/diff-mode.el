@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff
@@ -183,6 +183,9 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context
      :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
+    ["Show trailing whitespace" whitespace-mode
+     :style toggle :selected (bound-and-true-p whitespace-mode)
+     :help "Show trailing whitespace in modified lines"]
     "-----"
     ["Split hunk"		diff-split-hunk
      :active (diff-splittable-p)
@@ -1227,6 +1230,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
   (diff-hunk-next arg)
   (diff-goto-source))
 
+(defvar whitespace-style)
+(defvar whitespace-trailing-regexp)
+
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
@@ -1263,6 +1269,12 @@ a diff with \\[diff-reverse-direction].
        'diff-beginning-of-file-and-junk)
   (set (make-local-variable 'end-of-defun-function)
        'diff-end-of-file)
+
+  ;; Set up `whitespace-mode' so that turning it on will show trailing
+  ;; whitespace problems on the modified lines of the diff.
+  (set (make-local-variable 'whitespace-style) '(trailing))
+  (set (make-local-variable 'whitespace-trailing-regexp)
+       "^[-\+!<>].*?\\([\t ]+\\)$")
 
   (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
@@ -1884,13 +1896,6 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
               (add-change-log-entry nil nil t nil t)))
         ;; When there's no more hunks, diff-hunk-next signals an error.
 	(error nil)))))
-
-(defun diff-show-trailing-whitespaces ()
-  "Show trailing whitespaces in modified lines for diff-mode."
-  (interactive)
-  (let ((whitespace-style '(trailing))
-        (whitespace-trailing-regexp "^[-\+!<>].*?\\([\t ]+\\)$"))
-    (whitespace-mode 1)))     ; display trailing whitespace in diff buffer
 
 ;; provide the package
 (provide 'diff-mode)

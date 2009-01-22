@@ -1,3 +1,7 @@
+2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp supports IPv6 addresses.
+
 2008-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* refcards/orgcard.tex: Version number change.
@@ -4441,7 +4445,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006, 2007, 2008
+	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 	Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.

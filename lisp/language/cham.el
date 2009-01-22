@@ -1,6 +1,6 @@
 ;;; cham.el --- support for Cham -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008
+;; Copyright (C) 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -29,7 +29,7 @@
 
 (set-char-table-range composition-function-table
 		      '(#xAA00 . #xAA5F)
-		      '(("[\xAA00-\xAA5F]+" . font-shape-text)))
+		      (list (vector "[\xAA00-\xAA5F]+" 0 'font-shape-gstring)))
 
 (set-language-info-alist
  "Cham" '((charset unicode)

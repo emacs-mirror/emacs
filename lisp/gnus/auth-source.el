@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -35,7 +35,7 @@
 
 ;; if you want encrypted sources, which is strongly recommended, do
 ;; (require 'epa-file)
-;; (epa-file-mode)
+;; (epa-file-enable)
 ;; (setq epa-file-cache-passphrase-for-symmetric-encryption t) ; VERY important
 
 ;; before you put some data in ~/.authinfo.gpg (the default place)

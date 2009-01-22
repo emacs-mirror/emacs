@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/maps
 @node Standard Keymaps, Standard Hooks, Standard Buffer-Local Variables, Top
@@ -112,7 +112,7 @@ Properties menu.
 The sparse keymap that displays the Special Props submenu of the Text
 Properties menu.
 
-@item function-key-map
+@item local-function-key-map
 The keymap for translating key sequences to preferred alternatives.@*
 If there are none, then it contains an empty sparse keymap.
 @xref{Translation Keymaps}.
@@ -163,7 +163,8 @@ search.
 
 @item key-translation-map
 A keymap for translating keys.  This one overrides ordinary key
-bindings, unlike @code{function-key-map}.  @xref{Translation Keymaps}.
+bindings, unlike @code{local- function-key-map}.  @xref{Translation
+Keymaps}.
 
 @item kmacro-map
 @vindex kmacro-map

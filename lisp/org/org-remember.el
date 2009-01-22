@@ -1,6 +1,6 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -809,8 +809,7 @@ See also the variable `org-reverse-note-order'."
 	  (move-marker org-remember-last-stored-marker (point)))
 	(throw 'quit t))
       ;; Find the file
-      (if (not visiting) (find-file-noselect file))
-      (with-current-buffer (or visiting (get-file-buffer file))
+      (with-current-buffer (or visiting (find-file-noselect file))
 	(unless (org-mode-p)
 	  (error "Target files for remember notes must be in Org-mode"))
 	(save-excursion

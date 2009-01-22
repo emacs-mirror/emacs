@@ -1,10 +1,12 @@
 ;;; composite.el --- support character composition
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008
+;;   2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
+;; Author: Kenichi HANDA <handa@etl.go.jp>
+;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
 
 ;; This file is part of GNU Emacs.
@@ -445,6 +447,7 @@ after a sequence of character events."
 (defsubst lglyph-set-from-to (glyph from to)
   (progn (aset glyph 0 from) (aset glyph 1 to)))
 (defsubst lglyph-set-char (glyph char) (aset glyph 2 char))
+(defsubst lglyph-set-code (glyph code) (aset glyph 3 code))
 (defsubst lglyph-set-width (glyph width) (aset glyph 4 width))
 (defsubst lglyph-set-adjustment (glyph &optional xoff yoff wadjust)
   (aset glyph 9 (vector (or xoff 0) (or yoff 0) (or wadjust 0))))

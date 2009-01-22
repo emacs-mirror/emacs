@@ -1,3 +1,418 @@
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Vwrite_region_post_annotation_function)
+	(Vwrite_region_annotation_buffers): New vars.
+	(build_annotations_unwind): Just reset
+	Vwrite_region_annotation_buffers.
+	(Fwrite_region): Initialize Vwrite_region_annotation_buffers.
+	Call write-region-post-annotation-function.
+	(build_annotations): Add to Vwrite_region_annotation_buffers if
+	buffer changes.
+
+2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (EmacsApp-setAppleMenu:): Conditionalize more correctly on
+	Tiger.
+	* nsfns.m (ns_do_applescript): Conditionalize
+	typeUTF16ExternalRepresentation on Tiger.
+
+2009-01-21  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
+
+	* nsterm.m (EV_TRAILER): Always use emacsframe for frame_or_window.
+
+
+2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (NSMENUPROFILE): Change #if style.
+
+	* nsterm.h (EmacsPrefsController): Add -setPanelFromDefaultValues.
+
+	* nsterm.m (x_set_frame_alpha): Add prototype.
+	(ns_fake_keydown, EmacsView-keyUp:): New variable and function to
+	handle Ctrl-tab.  (Bug#1841)
+	(ns_get_color): Use unsigned long long for scanned hex string value.
+	(ns_term_shutdown): Abort on non SIGTERM signals.
+	(EmacsPrefsController-setDefaultFont:,-setColors:): Raise the frame.
+	(EmacsPrefsController-setPanelFromDefaultValues) New function.
+	(EmacsPrefsController-resetToDefaults:): Use it. (Bug#1801)
+	(ns_font_to_xlfd, ns_fontname_to_xlfd): Remove, unused.
+	(ns_defined_color): Fix settings of the XColor variable fields:
+	red,green,blue scale to 2-byte, pixel's parts to 1-byte. (Bug#1663)
+
+	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore image
+	DPI. (Bug#1316)
+	(EmacsImage-setPixelAtX:Y:toRed:green:blue:alpha:): Fix color
+	values in onTiger section.
+
+2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute, Fx_list_fonts):
+	Check return value of font_spec_from_name.
+	(Fx_list_fonts): Doc fix.
+
+	* font.c (font_spec_from_name): Return Qnil if font name could not
+	be parsed.
+	(font_parse_name): Treat a `?' character as part of an XLFD.
+
+	* fns.c (Fsubstring): Doc fix.
+
+2009-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_lookup_cache): Check the return value of
+	FcFontList.
+	(ftfont_list): Likewise.
+
+2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dbusbind.c (Fdbus_register_signal):
+	* process.c (conv_sockaddr_to_lisp):
+	* w32fns.c (Fw32_battery_status): Use empty_unibyte_string.
+
+	* callproc.c (Fgetenv_internal): Doc fix.
+
+2009-01-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_make_gc): Don't allocate stipple member for gc_values;
+	it is not even used.
+
+2009-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* font.c (Ffont_variation_glyphs): Silence compiler.
+
+2009-01-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c (SOUND_WARNING): Use _snprintf, for MSVC compatibility.
+	Reported by David Robinow <drobinow@gmail.com>.
+
+2009-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_system): Fix handling of
+	null_byte_found.
+
+2009-01-14  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (x_set_font): Always store a font to the font parameter,
+	never a fontset.  (Bug#1562)
+
+2009-01-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (TWO_MORE_BYTES): New macro.
+	(detect_coding_utf_16): Use TWO_MORE_BYTES instead of ONE_MORE_BYTE.
+
+2009-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_clear_prop): If clearing the family, clear the font
+	width index too.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Revert last change.
+
+2009-01-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sound.c [WINDOWSNT] (SOUND_WARNING): New macro.
+	(do_play_sound): Use it.  Don't pass a hardcoded buffer size to mci
+	functions, use sizeof.
+
+2009-01-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (read_char): Fix case where last_nonmenu_event
+	returned a bad value with submenus.  (Bug#447)
+
+2009-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): If setting the
+	family, clear the font width index too.
+
+2009-01-11  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (cmd_error_internal): Exit when errors occur before
+	frame creation and not in daemon mode.  (Bug#1836)
+
+2009-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): When iterator stops on the last glyph
+	of a display vector, backtrack.
+	(try_window_reusing_current_matrix): Check glyph type before
+	referencing charpos member.
+
+2009-01-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Bug #876:
+
+	* coding.c (inhibit_null_byte_detection): New variable.
+	(detect_coding, detect_coding_system): Don't pay attention to null
+	bytes if inhibit_null_byte_detection is non-zero.
+	(syms_of_coding) <inhibit-null-byte-detection>: Declare and
+	document.
+	<inhibit-iso-escape-detection>: Doc fix.
+
+2009-01-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (add_font_entity_to_list): Don't report unknown
+	Windows charset as any unrecognized registry.  (Bug#1548)
+	Only report Unicode Plane 2 fonts as unicode-sip.
+
+2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Fx_font_family_list): Function deleted.  Compatibility
+	version moved to faces.el.
+
+	* font.c (Ffont_family_list): Return a list of strings, not
+	symbols.
+
+2009-01-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Remember requested value for
+	fullscreen before it's reset by the parameter handler.
+
+2009-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* keyboard.c (last_command_char): For clarity, rename to...
+	(last_command-event): ... and update all users.
+	(last_input_char): For clarity, rename to...
+	(last_input_event): ... and update all users.
+	(last-command-char, last-input-char): Move to subr.el as aliases.
+	* cmds.c, commands.h: Update for last_command_char rename.
+
+2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_open_for_lface): Handle unspecified height
+	attribute.
+
+2009-01-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Vx_pointer_shape, Vx_nontext_pointer_shape)
+	(Vx_mode_pointer_shape, Vx_window_horizontal_drag_shape)
+	(Vx_hourglass_pointer_shape, Vx_sensitive_text_pointer_shape):
+	Don't declare.
+	(syms_of_w32fns): Don't define x-pointer-shape variable.  (Bug#1485)
+	(x_create_tip_frame) [GLYPH_DEBUG]: Enable image debugging code.
+
+2009-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): In the case of replace,
+	remember the coding system used for decoding in
+	coding_system (Bug#1039).
+
+	* coding.c (decode_coding_utf_8): Check byte_after_cr before
+	breaking the loop.  (Bug#870)
+	(decode_coding_utf_16, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_charset): Likewise.
+
+2009-01-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_frame_parameters): Make sure height (width) get
+	applied when fullwidth (fullheight) is set.  (Bug#1522)
+
+2009-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c: Use 64-bit arithmetic to do FILETIME conversions.  (Bug#1766)
+	(utc_base): Declare as ULONGLONG, not long double.
+	(convert_time_raw): Delete.
+	(FILETIME_TO_U64, U64_TO_LISP_TIME): New macros.
+	(initialize_utc_base): New function.
+	(convert_time): Use FILETIME_TO_U64, initialize_utc_base.
+	(convert_from_time_t): Use initialize_utc_base; compute result with
+	64-bit arithmetic.
+	(process_times): Use FILETIME_TO_U64, U64_TO_LISP_TIME.
+
+2009-01-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess)
+	(Qttname, Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime)
+	(Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs)
+	(Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime)
+	[!subprocesses]: Define.
+	(syms_of_process) [!subprocesses]: Intern and staticpro them.
+	(Flist_system_processes, Fsystem_process_attributes)
+	[!subprocesses]: Call list_system_processes and
+	system_process_attributes instead of returning Qnil.
+
+	* dosfns.c (system_process_attributes, list_system_processes):
+	New functions.
+
+	* vm-limit.c (ret_lim_data) [MSDOS]: New function.
+
+	* sysdep.c (list_system_processes, system_process_attributes) [MSDOS]:
+	Don't use the default (no-op) implementation.
+
+2009-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (parse_modifiers_uncached): Wheel events are
+	clicks (bug#687).
+
+	* w32term.c (x_query_colors, x_query_color): New functions.
+
+	* image.c (x_to_xcolors, png_load): Eliminate W32 specific code.
+	(svg_load_image): Cast returned pointers from dynamically loaded
+	functions.  Eliminate W32 specific code.
+
+2009-01-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* nsfns.m (x_set_foreground_color, x_set_background_color)
+	(x_set_cursor_color, x_set_icon_name, x_explicitly_set_name)
+	(x_set_title, x_set_icon_type, x_set_cursor_type): Rename to use
+	x_ prefix instead of ns_.  Update references.
+	(syms_of_nsfns): Add a FIXME comment.
+
+	* nsterm.m (x_set_cursor_type): New prototype.
+	(setValuesFromPanel): Use it instead of the old ns_ prefixed name.
+
+	* sysdep.c (system_process_attributes): Provide Qtime and Qctime
+	for Solaris instead of incorrectly providing Qutime and Qcutime.
+
+2009-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (process_times): Compute sum of utime and stime.
+	(system_process_attributes): Add Qtime to the alist.
+
+	* sysdep.c (system_process_attributes): Compute Qtime and Qctime
+	and add them to the alist.
+
+	* process.c (top level) <Qtime, Qctime>: New variables.
+	(syms_of_process): staticpro them.
+	(Fsystem_process_attributes): Add their documentation to the doc
+	string.
+
+	* process.h: Declare Qtime and Qctime.
+
+2009-01-02  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (Qgobject): New symbol.
+	(syms_of_image): Initialize it.
+	(init_svg_functions): Load some functions from gobject library.
+
+2009-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.c (make_terminal_frame): Remove redundant code and useless
+	block.
+
+2009-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (conv_sockaddr_to_lisp): Add workaround for
+	getsockname bug on BSD.
+
+2009-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_create_tip_frame): Set border width of the X window.
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Improve error
+	message.
+
+2009-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_new_font): Return font object, not fontset.  (Bug#119)
+	Don't block input, as per earlier xterm.c changes.
+
+2008-12-31  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns_appkit_version_str): Rename from ns_appkit_version.
+	(ns_appkit_version_int): New function.
+	(x-server-version): Use ns_appkit_version_int and follow 21+
+	convention of returning 3 integers.
+
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (CHAR_VARIATION_SELECTOR_P): New macro.
+	(CHAR_SURROGATE_PAIR_P): New macro.
+
+	* font.h (struct font_driver): New member get_variation_glyphs.
+
+	* font.c (font_range): Don't require a font for a variation selector.
+	(Ffont_variation_glyphs): New function.
+	(syms_of_font): Defsubr it.
+
+	* ftfont.c (ftfont_driver): Set the member get_variation_glyphs to
+	ftfont_variation_glyphs.
+	(setup_otf_gstring): New function.
+	(ftfont_drive_otf): Use it.
+	(ftfont_shape_by_flt): Handle variation selector.
+	(ftfont_variation_glyphs): New function.
+
+2008-12-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Vemacs_iconified): Remove.
+
+2008-12-30  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (store_frame_param, x_get_arg): Enable newer code on
+	WINDOWSNT too, as related changes have already been synced.  (Bug#117)
+
+2008-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't advance iterator if we have
+	reseated to the desired position.
+
+	* xdisp.c (move_it_to): Handle GET_FROM_STRETCH method when
+	checking for pos match.
+
+2008-12-30  Kenichi Handa  <handa@m17n.org>
+
+	* insdel.c (copy_text): To convert a non-ASCII char to unibyte,
+	just get the low 8-bit of the code.
+
+	* font.c (font_intern_prop): Validate str as multibyte.
+
+2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispextern.h (struct face): Move lface and hash from the middle
+	of bitfields.
+
+	* Makefile.in (INTERVALS_H): Rename from INTERVAL_SRC, update all users.
+
+2008-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (INTERVAL_SRC): Also depend on dispextern.h.
+	(coding.o, dispnew.o, keymap.o, msdos.o): Depend on INTERVAL_SRC
+	instead of intervals.h.
+
+2008-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* keymap.c (map_keymap_char_table_item): Make a copy of KEY if it is a
+	cons.
+
+2008-12-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* textprop.c (Qminibuffer_prompt): New variable.
+	(syms_of_textprop): Initialize it.
+	* callint.c (Fcall_interactively): For `c', `k', and `K' prompt
+	in minibuffer-prompt face.  (Bug#1662)
+
+2008-12-25  Jason Rumney  <jasonr@gnu.org>
+
+	* buffer.c (Fbuffer_swap_text): Use POINTER_TYPE.
+
+2008-12-24  Jason Rumney  <jasonr@gnu.org>
+
+	* ralloc.c (r_alloc_reset_variable): New function.
+
+	* buffer.c (Fbuffer_swap_text) [REL_ALLOC]: Reset ralloc's internal
+	record of what points where.  (Bug#716)
+
+2008-12-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* minibuf.c (read_minibuf): Follow the non-interactive case when
+	running as a daemon, before detaching.
+
+2008-12-22  Andreas Schwab  <schwab@suse.de>
+
+	* buffer.c (init_buffer): Use realloc instead of xrealloc.
+	* gtkutil.c (free_widget_value): Use xfree instead of free.
+
+2008-12-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (delete_frame): New function derived from
+	Fdelete_frame to handle Qnoelisp value for FORCE argument.
+	Delete last frame iff FORCE equals Qnoelisp.  (Bug#1450)
+	(Fdelete_frame): Call delete_frame.  Remove line from doc-string
+	saying that FORCE non-nil doesn't run `delete-frame-functions'.
+	* frame.h: Extern delete_frame.
+	* window.c (window_loop):
+	* terminal.c (delete_terminal):
+	* xterm.c (x_connection_closed):
+	* xfns.c (Fx_hide_tip):
+	* w32fns.c (Fx_hide_tip): Call delete_frame instead of Fdelete_frame.
+
 2008-12-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_encode_char): Return FONT_INVALID_CHAR
@@ -10,7 +425,7 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (Fmake_terminal_frame): Raise an error when called from
-	a graphical frame on Windows.
+	a graphical frame on Windows.  (Bug#1325)
 
 2008-12-20  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -23,10 +438,10 @@
 2008-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Do not allow ../ to go beyond the
-	server name in UNC paths.
+	server name in UNC paths.  (Bug#719)
 
 	* coding.c (decode_coding): Clear chars_at_source flag when using
-	charbuf.
+	charbuf.  (Bug#1035)
 
 2008-12-19  Daniel Engeler  <engeler@gmail.com>
 
@@ -57,7 +472,7 @@
 	(system_process_attributes): Rename from
 	procfs_list_system_processes.
 	(ltime_from_jiffies, get_up_time, procfs_ttyname, MAJOR, MINOR)
-	(procfs_get_total_memory):  Enclose in #ifdef GNU_LINUX.
+	(procfs_get_total_memory): Enclose in #ifdef GNU_LINUX.
 
 	* w32.c (list_system_processes): Rename from
 	w32_list_system_processes.
@@ -81,10 +496,10 @@
 	(xfont_list_family): Likewise.
 	(xfont_open): Likewise.
 
-	* ftfont.c (ftfont_open): Genarate a multibyte string if given
+	* ftfont.c (ftfont_open): Generate a multibyte string if given
 	names are utf-8.
 
-	* xftfont.c (xftfont_open): Genarate a multibyte string if given
+	* xftfont.c (xftfont_open): Generate a multibyte string if given
 	names are utf-8.
 
 2008-12-18  Jan Djärv  <jan.h.d@swipnet.se>
@@ -169,10 +584,10 @@
 
 2008-12-13  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_rescale_ratio): Moved from xfaces.c.  Argument
-	type changed.  Handle a font-spec too.
+	* font.c (font_rescale_ratio): Moved from xfaces.c.
+	Argument type changed.  Handle a font-spec too.
 	(font_score): Check Vface_font_rescale_alist.
-	(font_open_entity): Likewise.
+	(font_open_entity): Likewise.  (Bug#1547)
 
 	* xfaces.c (font_rescale_ratio): Moved to font.c.
 
@@ -198,10 +613,10 @@
 2008-12-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (fill_in_logfont): Don't assume symbol script means
-	SYMBOL_CHARSET.
+	SYMBOL_CHARSET.  (Bug#547)
 
 	* w32uniscribe.c (uniscribe_encode_char): Increase glyph buffer
-	size for surrogates.
+	size for surrogates.  (Bug#1096, bug#872)
 
 2008-12-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -492,7 +907,7 @@
 2008-11-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open_internal): Don't include external
-	leading in font height.
+	leading in font height.  (Bug#879)
 
 2008-11-26  Glenn Morris  <rgm@gnu.org>
 
@@ -536,7 +951,7 @@
 
 	* w32font.c (check_face_name): New function.
 	(add_font_entity_to_list): Use it to filter out common substituted
-	fonts.
+	fonts.  (Bug#642)
 
 2008-11-22  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1519,10 +1934,10 @@
 
 2008-09-01  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_spec_pattern): Don't create a charset of the
+	* ftfont.c (ftfont_spec_pattern): Don't create a charset if the
 	representative chars of the script is a vector.
-	(ftfont_list): Handle the case the representative chars of the
-	script is a vector.
+	(ftfont_list): Handle the case where the representative chars of
+	the script is a vector.
 
 	* character.c (syms_of_character): Docstring of
 	script-representative-chars fixed.
@@ -1621,7 +2036,7 @@
 	(composition_update_it, composition_adjust_point): Extern them.
 	(Fcomposition_get_gstring): EXFUN it.
 
-	* composite.c: Include window.h, frame.h, dispextern.h font.h.
+	* composite.c: Include window.h, frame.h, dispextern.h, font.h.
 	(Vcomposition_function_table)
 	(get_composition_id): Don't handle COMPOSITION_WITH_GLYPH_STRING.
 	(gstring_hash_table, gstring_work, gstring_work_headers):
@@ -1716,8 +2131,8 @@
 	(next_element_from_string): Check if the character at the current
 	position is composed by CHAR_COMPOSED_P.
 	(next_element_from_buffer): Likewise.
-	(next_element_from_composition): Adjust for the change of struct
-	it.  Update it->cmp_it.
+	(next_element_from_composition): Adjust for the change of struct it.
+	Update it->cmp_it.
 	(dump_glyph): Adjust for the change of struct glyph.
 	(fill_composite_glyph_string): Adjust for the change of struct
 	it and struct glyph.  Don't handle automatic composition here.
@@ -4012,7 +4427,7 @@
 	* s/uxpds.h:
 	* s/uxpv.h: Remove support for obsolete systems.
 	* s/hpux.h, s/hpux10.h, s/hpux8.h, s/hpux9.h, s/hpux9shr.h:
-	Remove, insert contents in s/hpux-10.20.h.
+	Remove, insert contents in s/hpux10-20.h.
 	* s/aix3-1.h, s/aix3-2-5.h, s/aix3-2.h, s/aix4-1.h, s/aix4.h:
 	Remove, insert contents in s/aix4-2.h.
 	* s/usg5-3.h: Remove, insert contents in s/usg5-4.h.
@@ -16744,7 +17159,7 @@ See ChangeLog.10 for earlier changes.
 ;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
-    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

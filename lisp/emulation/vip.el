@@ -1,7 +1,7 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
 ;; Copyright (C) 1986, 1987, 1988, 1992, 1993, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
 ;; Keywords: emulations
@@ -606,7 +606,7 @@ obtained so far, and COM is the command part obtained so far."
 (defun vip-digit-argument (arg)
   "Begin numeric argument for the next command."
   (interactive "P")
-  (vip-prefix-arg-value last-command-char nil
+  (vip-prefix-arg-value last-command-event nil
 			(if (consp arg) (cdr arg) nil)))
 
 (defun vip-command-argument (arg)
@@ -614,7 +614,7 @@ obtained so far, and COM is the command part obtained so far."
   (interactive "P")
   (condition-case conditions
       (vip-prefix-arg-com
-       last-command-char
+       last-command-event
        (cond ((null arg) nil)
 	     ((consp arg) (car arg))
 	     ((numberp arg) arg)

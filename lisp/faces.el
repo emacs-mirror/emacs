@@ -1,7 +1,7 @@
 ;;; faces.el --- Lisp faces
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -988,7 +988,7 @@ an integer value."
          (case attribute
            (:family
             (if (window-system frame)
-                (mapcar #'(lambda (x) (cons (symbol-name x) x))
+                (mapcar (lambda (x) (cons x x))
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
@@ -1020,7 +1020,7 @@ an integer value."
            ((:height)
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x w32 ns))
+            (and (memq (window-system frame) '(x ns)) ; No stipple on w32
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
@@ -1357,46 +1357,50 @@ If FRAME is omitted or nil, use the selected frame."
 	(set-buffer standard-output)
 	(dolist (f face)
 	  (if (stringp f) (setq f (intern f)))
-	  (insert "Face: " (symbol-name f))
-	  (if (not (facep f))
-	      (insert "   undefined face.\n")
-	    (let ((customize-label "customize this face")
-		  file-name)
-	      (insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
-	      (princ (concat " (" customize-label ")\n"))
-	      (insert "Documentation: "
-		      (or (face-documentation f)
-			  "Not documented as a face.")
-		      "\n")
-	      (with-current-buffer standard-output
-		(save-excursion
-		  (re-search-backward
-		   (concat "\\(" customize-label "\\)") nil t)
-		  (help-xref-button 1 'help-customize-face f)))
-	      (setq file-name (find-lisp-object-file-name f 'defface))
-	      (when file-name
-		(princ "Defined in `")
-		(princ (file-name-nondirectory file-name))
-		(princ "'")
-		;; Make a hyperlink to the library.
-		(save-excursion
-		  (re-search-backward "`\\([^`']+\\)'" nil t)
-		  (help-xref-button 1 'help-face-def f file-name))
-		(princ ".")
-		(terpri)
-		(terpri))
-	      (dolist (a attrs)
-		(let ((attr (face-attribute f (car a) frame)))
-		  (insert (make-string (- max-width (length (cdr a))) ?\s)
-			  (cdr a) ": " (format "%s" attr))
-		  (if (and (eq (car a) :inherit)
-			   (not (eq attr 'unspecified)))
-		      ;; Make a hyperlink to the parent face.
-		      (save-excursion
-			(re-search-backward ": \\([^:]+\\)" nil t)
-			(help-xref-button 1 'help-face attr)))
-		  (insert "\n")))))
-	  (terpri))))))
+	  ;; We may get called for anonymous faces (i.e., faces
+	  ;; expressed using prop-value plists).  Those can't be
+	  ;; usefully customized, so ignore them.
+	  (when (symbolp f)
+	    (insert "Face: " (symbol-name f))
+	    (if (not (facep f))
+		(insert "   undefined face.\n")
+	      (let ((customize-label "customize this face")
+		    file-name)
+		(insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
+		(princ (concat " (" customize-label ")\n"))
+		(insert "Documentation: "
+			(or (face-documentation f)
+			    "Not documented as a face.")
+			"\n")
+		(with-current-buffer standard-output
+		  (save-excursion
+		    (re-search-backward
+		     (concat "\\(" customize-label "\\)") nil t)
+		    (help-xref-button 1 'help-customize-face f)))
+		(setq file-name (find-lisp-object-file-name f 'defface))
+		(when file-name
+		  (princ "Defined in `")
+		  (princ (file-name-nondirectory file-name))
+		  (princ "'")
+		  ;; Make a hyperlink to the library.
+		  (save-excursion
+		    (re-search-backward "`\\([^`']+\\)'" nil t)
+		    (help-xref-button 1 'help-face-def f file-name))
+		  (princ ".")
+		  (terpri)
+		  (terpri))
+		(dolist (a attrs)
+		  (let ((attr (face-attribute f (car a) frame)))
+		    (insert (make-string (- max-width (length (cdr a))) ?\s)
+			    (cdr a) ": " (format "%s" attr))
+		    (if (and (eq (car a) :inherit)
+			     (not (eq attr 'unspecified)))
+			;; Make a hyperlink to the parent face.
+			(save-excursion
+			  (re-search-backward ": \\([^:]+\\)" nil t)
+			  (help-xref-button 1 'help-face attr)))
+		    (insert "\n")))))
+	    (terpri)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

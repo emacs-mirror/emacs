@@ -1,6 +1,6 @@
 /* Functions for the X window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2942,14 +2942,10 @@ x_make_gc (f)
   gc_values.foreground = FRAME_BACKGROUND_PIXEL (f);
   gc_values.background = f->output_data.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
-  gc_values.stipple
-    = XCreateBitmapFromData (FRAME_X_DISPLAY (f),
-			     FRAME_X_DISPLAY_INFO (f)->root_window,
-			     cursor_bits, 16, 16);
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 (GCForeground | GCBackground
-		  | GCFillStyle /* | GCStipple */ | GCLineWidth),
+		  | GCFillStyle | GCLineWidth),
 		 &gc_values);
 
   /* Reliefs.  */
@@ -4850,7 +4846,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 		       /* x, y, width, height */
 		       0, 0, 1, 1,
 		       /* Border.  */
-		       1,
+		       f->border_width,
 		       CopyFromParent, InputOutput, CopyFromParent,
 		       mask, &attrs);
     UNBLOCK_INPUT;
@@ -5248,7 +5244,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 
   if (FRAMEP (frame))
     {
-      Fdelete_frame (frame, Qnil);
+      delete_frame (frame, Qnil);
       deleted = Qt;
 
 #ifdef USE_LUCID

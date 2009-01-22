@@ -9,7 +9,7 @@
 @copying
 This file describes EasyPG Assistant.
 
-Copyright @copyright{} 2007, 2008 Free Software Foundation, Inc.
+Copyright @copyright{} 2007, 2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

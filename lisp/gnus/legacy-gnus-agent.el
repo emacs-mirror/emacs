@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- Legacy unplugged support for Gnus
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Kevin Greiner <kgreiner@xpediantsolutions.com>
 ;; Keywords: news
@@ -186,7 +186,7 @@ converted to the compressed format."
                                                                (when (eq 0 (string-match
                                                                             (caar days)
                                                                             group))
-                                                                 (throw 'found (cadar days)))
+                                                                 (throw 'found (cadr (car days))))
                                                                (setq days (cdr days)))
                                                              nil)))
                                                  (when day

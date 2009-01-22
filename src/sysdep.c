@@ -1,6 +1,6 @@
 /* Interfaces to system-dependent kernel and library entries.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3219,8 +3219,9 @@ list_system_processes ()
   return proclist;
 }
 
-/* The WINDOWSNT implementation is on w32.c.  */
-#elif !defined (WINDOWSNT)
+/* The WINDOWSNT implementation is on w32.c.
+   The MSDOS implementation is on dosfns.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
 list_system_processes ()
@@ -3493,11 +3494,17 @@ system_process_attributes (Lisp_Object pid)
 	  attrs = Fcons (Fcons (Qstime,
 				ltime_from_jiffies (stime, clocks_per_sec)),
 			 attrs);
+	  attrs = Fcons (Fcons (Qtime,
+				ltime_from_jiffies (stime+utime, clocks_per_sec)),
+			 attrs);
 	  attrs = Fcons (Fcons (Qcutime,
 				ltime_from_jiffies (cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qcstime,
 				ltime_from_jiffies (cstime, clocks_per_sec)),
+			 attrs);
+	  attrs = Fcons (Fcons (Qctime,
+				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
@@ -3702,17 +3709,19 @@ system_process_attributes (Lisp_Object pid)
 		Qcminflt
 		Qcmajflt
 
+		Qutime
+		Qcutime
 		Qstime
 		Qcstime
 		Are they available? */
 
-	  attrs = Fcons (Fcons (Qutime,
+	  attrs = Fcons (Fcons (Qtime,
 	  			list3 (make_number (pinfo.pr_time.tv_sec >> 16),
 	  			       make_number (pinfo.pr_time.tv_sec & 0xffff),
 	  			       make_number (pinfo.pr_time.tv_nsec))),
 	  		 attrs);
 
-	  attrs = Fcons (Fcons (Qcutime,
+	  attrs = Fcons (Fcons (Qctime,
 	  			list3 (make_number (pinfo.pr_ctime.tv_sec >> 16),
 	  			       make_number (pinfo.pr_ctime.tv_sec & 0xffff),
 	  			       make_number (pinfo.pr_ctime.tv_nsec))),
@@ -3753,8 +3762,9 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
-/* The WINDOWSNT implementation is on w32.c.  */
-#elif !defined (WINDOWSNT)
+/* The WINDOWSNT implementation is on w32.c.
+   The MSDOS implementation is on dosfns.c.  */
+#elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
 system_process_attributes (Lisp_Object pid)

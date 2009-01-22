@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1390,15 +1390,11 @@ DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 2, 0,
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
-This function searches `process-environment' for VARIABLE.  If it is
-not found there, then it continues the search in the environment list
-of the selected frame.
+This function searches `process-environment' for VARIABLE.
 
 If optional parameter ENV is a list, then search this list instead of
-`process-environment', and return t when encountering a negative entry.
-
-If it is a frame, then this function will ignore `process-environment' and
-will simply look up the variable in that frame's environment.  */)
+`process-environment', and return t when encountering a negative entry
+\(an entry for a variable with no value).  */)
      (variable, env)
      Lisp_Object variable, env;
 {

@@ -1,13 +1,14 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
-;;             1987 Dave Detlefs and Stewart Clamen
+;;             1987 Dave Detlefs
+;;             1987 Stewart Clamen
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
@@ -510,14 +511,21 @@ variables."
 			  (assoc 'other c-comment-prefix-regexp)))
 	  c-comment-prefix-regexp))
 
-  (let ((comment-line-prefix
-	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
+  (let* ((empty-is-prefix (string-match c-current-comment-prefix ""))
+	 (nonws-comment-line-prefix
+	  (concat "\\(" c-current-comment-prefix "\\)[ \t]*"))
+	 (comment-line-prefix (concat "[ \t]*" nonws-comment-line-prefix))
+	 (blank-or-comment-line-prefix
+	  (concat "[ \t]*"
+		  (if empty-is-prefix "" "\\(")
+		  nonws-comment-line-prefix
+		  (if empty-is-prefix "" "\\)?"))))
 
-    (setq paragraph-start (concat comment-line-prefix
+    (setq paragraph-start (concat blank-or-comment-line-prefix
 				  c-paragraph-start
 				  "\\|"
 				  page-delimiter)
-	  paragraph-separate (concat comment-line-prefix
+	  paragraph-separate (concat blank-or-comment-line-prefix
 				     c-paragraph-separate
 				     "\\|"
 				     page-delimiter)

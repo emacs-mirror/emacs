@@ -1,9 +1,9 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
 ;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008  Free Software Foundation, Inc.
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008
+;;   2005, 2006, 2007, 2008, 2009
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -830,10 +830,6 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	      (insert-char 32 (+ row (/ (- row 2) 2)))))
 	(setq lower (aref layout i)
 	      upper (aref layout (1+ i)))
-	(if (and (integerp lower) (>= lower 128) (< lower 256))
-	    (setq lower (unibyte-char-to-multibyte lower)))
-	(if (and (integerp upper) (>= upper 128) (< upper 256))
-	    (setq upper (unibyte-char-to-multibyte upper)))
 	(insert bar)
 	(if (= (if (stringp lower) (string-width lower) (char-width lower)) 1)
 	    (insert " "))

@@ -1,7 +1,7 @@
 ;;; double.el --- support for keyboard remapping with double clicking
 
 ;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: i18n
@@ -103,7 +103,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 (defun double-translate-key (prompt)
   ;; Translate input events using double map.
-  (let ((key last-input-char))
+  (let ((key last-input-event))
     (cond (unread-command-events
 	   ;; Artificial event, ignore it.
 	   (vector key))

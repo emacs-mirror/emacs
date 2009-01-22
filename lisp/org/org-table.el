@@ -1,6 +1,6 @@
 ;;; org-table.el --- The table editor for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1722,12 +1722,13 @@ When NAMED is non-nil, look for a named equation."
 	 (ref (format "@%d$%d" (org-table-current-dline)
 		      (org-table-current-column)))
 	 (refass (assoc ref stored-list))
+	 (nameass (assoc name stored-list))
 	 (scol (if named
 		   (if (and name (not (string-match "^LR[0-9]+$" name)))
 		       name
 		     ref)
 		 (int-to-string (org-table-current-column))))
-	 (dummy (and (or name refass) (not named)
+	 (dummy (and (or nameass refass) (not named)
 		     (not (y-or-n-p "Replace field formula with column formula? " ))
 		     (error "Abort")))
 	 (name (or name ref))

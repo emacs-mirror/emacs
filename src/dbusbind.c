@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1659,7 +1659,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
       /* When there is no unique name, we mark it with an empty
 	 string.  */
       if (NILP (uname))
-	uname = build_string ("");
+	uname = empty_unibyte_string;
     }
   else
     uname = service;

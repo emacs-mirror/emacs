@@ -1,8 +1,6 @@
 -*- outline -*-
 
-** When assignments are received, fix ns-emacs.texi copyright.
-
-** General update for ns-emacs.texi post-merge.
+** Check doc/emacs/macos.texi.
 
 
 * POST_MERGE CLEANUP

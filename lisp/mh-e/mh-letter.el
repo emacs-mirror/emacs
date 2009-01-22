@@ -1,7 +1,7 @@
 ;;; mh-letter.el --- MH-Letter mode
 
 ;; Copyright (C) 1993, 1995, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
-;;  2006, 2007, 2008  Free Software Foundation, Inc.
+;;  2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -617,7 +617,7 @@ a copy of the draft."
                                   mh-default-folder-for-message-function)))
                           "")
                       t)))
-  (let ((last-input-char ?\C-f))
+  (let ((last-input-event ?\C-f))
     (expand-abbrev)
     (save-excursion
       (mh-to-field)
@@ -647,10 +647,10 @@ Create the field if it does not exist.
 Set the mark to point before moving."
   (interactive)
   (expand-abbrev)
-  (let ((target (cdr (or (assoc (char-to-string (logior last-input-char ?`))
+  (let ((target (cdr (or (assoc (char-to-string (logior last-input-event ?`))
                                 mh-to-field-choices)
                          ;; also look for a char for version 4 compat
-                         (assoc (logior last-input-char ?`)
+                         (assoc (logior last-input-event ?`)
                                 mh-to-field-choices))))
         (case-fold-search t))
     (push-mark)
@@ -658,7 +658,7 @@ Set the mark to point before moving."
            (let ((eol (point)))
              (skip-chars-backward " \t")
              (delete-region (point) eol))
-           (if (and (not (eq (logior last-input-char ?`) ?s))
+           (if (and (not (eq (logior last-input-event ?`) ?s))
                     (save-excursion
                       (backward-char 1)
                       (not (looking-at "[:,]"))))

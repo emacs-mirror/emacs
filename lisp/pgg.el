@@ -1,7 +1,7 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
@@ -24,6 +24,9 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This file is on its way to obsolescence, waiting for allout.el to
+;; switch to EPG.
 
 ;;; Code:
 
