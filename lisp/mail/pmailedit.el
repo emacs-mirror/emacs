@@ -65,7 +65,7 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer pmail-summary-buffer)
 	(pmail-summary-disable)))
-  (let (buffer-swapped-with)
+  (let (pmail-buffer-swapped)
     ;; Prevent change-major-mode-hook from unswapping the buffers.
     (delay-mode-hooks (text-mode))
     (use-local-map pmail-edit-map)
@@ -128,7 +128,7 @@ This functions runs the normal hook `pmail-edit-mode-hook'.
 	headers-end)
     ;; Go back to Pmail mode, but carefully.
     (force-mode-line-update)
-    (let (buffer-swapped-with)
+    (let (pmail-buffer-swapped)
       (kill-all-local-variables)
       (pmail-mode-1)
       (if (boundp 'tool-bar-map)
