@@ -6,6 +6,8 @@
 	* nsmenu.m (EmacsMenu-parseKeyEquiv:, addItemWithWidgetValue:):
 	Display all shortcuts, including those w/o super modifier.
 
+	* nsfns.m (ns-read-file-name): Fix typo in assignment statement.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Vwrite_region_post_annotation_function)

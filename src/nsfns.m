@@ -1494,7 +1494,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
       ret = [panel runModalForDirectory: dirS file: initS types: nil];
     }
 
-  ret = (ret = NSOKButton) || panelOK;
+  ret = (ret == NSOKButton) || panelOK;
 
   fname = [panel filename];
 
