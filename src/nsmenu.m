@@ -589,21 +589,27 @@ name_is_separator (name)
 }
 
 
-/* parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
-   into an accelerator string */
+/* Parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
+   into an accelerator string.  We are only able to display a single character
+   for an accelerator, together with an optional modifier combination.  (Under
+   Carbon more control was possible, but in Cocoa multi-char strings passed to
+   NSMenuItem get ignored.  For now we try to display a super-single letter
+   combo, and return the others as strings to be appended to the item title.
+   (This is signaled by setting keyEquivModMask to 0 for now.) */
 -(NSString *)parseKeyEquiv: (char *)key
 {
   char *tpos = key;
-  keyEquivModMask = 0;
-  /* currently we just parse 'super' combinations;
-     later we'll set keyEquivModMask */
+  keyEquivModMask = NSCommandKeyMask;
+
   if (!key || !strlen (key))
     return @"";
   
   while (*tpos == ' ' || *tpos == '(')
     tpos++;
-  if (*tpos != 's'/* || tpos[3] != ')'*/)
-    return @"";
+  if (*tpos != 's') {
+    keyEquivModMask = 0; /* signal */
+    return [NSString stringWithUTF8String: tpos];
+  }
   return [NSString stringWithFormat: @"%c", tpos[2]];
 }
 
@@ -626,12 +632,13 @@ name_is_separator (name)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
       keyEq = [self parseKeyEquiv: wv->key];
+      if (keyEquivModMask == 0)
+        title = [title stringByAppendingFormat: @" (%@)", keyEq];
 
       item = [self addItemWithTitle: (NSString *)title
                              action: @selector (menuDown:)
                       keyEquivalent: keyEq];
-      if (keyEquivModMask)
-        [item setKeyEquivalentModifierMask: keyEquivModMask];
+      [item setKeyEquivalentModifierMask: keyEquivModMask];
 
       [item setEnabled: wv->enabled];
 
