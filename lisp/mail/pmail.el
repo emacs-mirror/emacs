@@ -41,44 +41,6 @@
 (require 'mail-utils)
 (eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
-
-;; The buffer-swapped-with feature has been moved here temporarily.
-;; When pmail is merged, this advice must be eliminated and the
-;; functionality somehow reimplemented.
-
-(defvar buffer-swapped-with nil
-  "Buffer that this buffer's contents are temporarily swapped with.
-You should only set this variable in file-visiting buffers,
-because it only affects how to save the buffer in its file.")
-(make-variable-buffer-local 'buffer-swapped-with)
-(put 'buffer-swapped-with 'permanent-local t)
-
-(defadvice basic-save-buffer
-  (around check-swap activate)
-  "If this buffer's real contents are swapped with some other buffer,
-temporarily unswap in order to save the real contents.  This
-advice is temporarily used by pmail until a satisfactory solution
-can be written."
-  (if (not buffer-swapped-with)
-      (progn
-;;;	(if (and (string= "PMAIL" (buffer-name))
-;;;		 (< (buffer-size) 1000000))
-;;;	    (debug))
-	ad-do-it)
-    (unwind-protect
-	(let ((modp (buffer-modified-p)))
-;;;	  (save-match-data
-;;;	    (let ((case-fold-search nil))
-;;;	      (unless (or (string-match "PMAIL" (buffer-name))
-;;;			  (string-match "xmail" (buffer-name))
-;;;			  (string-match "mbox" (buffer-name)))
-;;;		(debug))))
-	  (buffer-swap-text buffer-swapped-with)
-	  (set-buffer-modified-p modp)
-	  ad-do-it)
-      (buffer-swap-text buffer-swapped-with)
-      (set-buffer-modified-p nil))))
-
 (defconst pmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Pmail attribute data.")
 
@@ -614,6 +576,12 @@ by substituting the new message number into the existing list.")
 (put 'pmail-summary-buffer 'permanent-local t)
 (defvar pmail-summary-vector nil)
 (put 'pmail-summary-vector 'permanent-local t)
+
+;; Pmail buffer swapping variables.
+
+(defvar pmail-buffer-swapped nil
+  "If non-nil, `pmail-buffer' is swapped with `pmail-view-buffer'.")
+(make-variable-buffer-local 'pmail-buffer-swapped)
 
 (defvar pmail-view-buffer nil
   "Buffer which holds PMAIL message for MIME displaying.")
@@ -1299,7 +1267,9 @@ Instead, these commands are available:
   (use-local-map pmail-mode-map)
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table)
-  ;; First attempt at adding hook functions to support buffer swapping...
+  ;; Functions to support buffer swapping:
+  (add-hook 'write-region-annotate-functions
+	    'pmail-write-region-annotate nil t)
   (add-hook 'kill-buffer-hook 'pmail-mode-kill-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'pmail-change-major-mode-hook nil t))
 
@@ -1314,23 +1284,17 @@ Create the buffer if necessary."
 
 (defun pmail-change-major-mode-hook ()
   ;; Bring the actual Pmail messages back into the main buffer.
-  (if buffer-swapped-with
-      (when (pmail-buffers-swapped-p)
-	(setq buffer-swapped-with nil)
-	(let ((modp (buffer-modified-p)))
-	  (buffer-swap-text pmail-view-buffer)
-	  (set-buffer-modified-p modp)))))
-  ;; Throw away the summary.
-  ;;(when (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
+  (when (pmail-buffers-swapped-p)
+    (setq pmail-buffer-swapped nil)
+    (let ((modp (buffer-modified-p)))
+      (buffer-swap-text pmail-view-buffer)
+      (set-buffer-modified-p modp))))
 
 (defun pmail-buffers-swapped-p ()
   "Return non-nil if the message collection is in `pmail-view-buffer'."
-  ;; We need to be careful to keep track of which buffer holds the
-  ;; message collection, since we swap the collection the view of the
-  ;; current message back and forth.  This model is based on Stefan
-  ;; Monnier's solution for tar-mode.
+  ;; This is analogous to tar-data-swapped-p in tar-mode.el.
   (and (buffer-live-p pmail-view-buffer)
-       (> (buffer-size pmail-view-buffer) (buffer-size))))
+       pmail-buffer-swapped))
 
 (defun pmail-swap-buffers-maybe ()
   "Determine if the Pmail buffer is showing a message.
@@ -1340,7 +1304,7 @@ If so restore the actual mbox message collection."
       (let ((modp (buffer-modified-p)))
 	(buffer-swap-text pmail-view-buffer)
 	(set-buffer-modified-p modp))
-      (setq buffer-swapped-with nil))))
+      (setq pmail-buffer-swapped nil))))
 
 (defun pmail-mode-kill-buffer-hook ()
   (if (buffer-live-p pmail-view-buffer) (kill-buffer pmail-view-buffer)))
@@ -2601,7 +2565,7 @@ The current mail message becomes the message displayed."
       (let ((modp (buffer-modified-p)))
 	(buffer-swap-text pmail-view-buffer)
 	(set-buffer-modified-p modp))
-      (setq buffer-swapped-with pmail-view-buffer)
+      (setq pmail-buffer-swapped t)
       (run-hooks 'pmail-show-message-hook))
     blurb))
 
@@ -3912,6 +3876,12 @@ encoded string (and the same mask) will decode the string."
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(pmail-mode . pmail-restore-desktop-buffer))
 
+;; Used in `write-region-annotate-functions' to write pmail files.
+(defun pmail-write-region-annotate (start end)
+  (when (pmail-buffers-swapped-p)
+    (set-buffer pmail-view-buffer)
+    (widen)
+    nil))
 
 (provide 'pmail)
 
