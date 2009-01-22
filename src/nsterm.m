@@ -4213,11 +4213,17 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
+- (void)applicationWillBecomeActive: (NSNotification *)notification
+{
+  //ns_app_active=YES;
+}
 - (void)applicationDidBecomeActive: (NSNotification *)notification
 {
+  //ns_app_active=YES;
 }
 - (void)applicationDidResignActive: (NSNotification *)notification
 {
+  //ns_app_active=NO;
   ns_send_appdefined (-1);
 }
 
@@ -4505,7 +4511,8 @@ extern void update_window_cursor (struct window *w, int on);
 
       if (flags & NSAlternateKeyMask) /* default = meta */
         {
-          if (EQ (ns_alternate_modifier, Qnone) && !fnKeysym)
+          if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
+              && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
                 code = [[theEvent characters] characterAtIndex: 0];
