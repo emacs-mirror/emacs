@@ -1,3 +1,8 @@
+2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frames.texi (Multiple Displays): Remove documentation for
+	removed function make-frame-on-tty.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Format Conversion Piecemeal): Clarify behavior of

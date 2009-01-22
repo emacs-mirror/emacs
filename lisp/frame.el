@@ -654,23 +654,6 @@ The optional argument PARAMETERS specifies additional frame parameters."
 	 (make-frame `((window-system . x)
 		       (display . ,display) . ,parameters)))))
 
-(defun make-frame-on-tty (tty type &optional parameters)
-  "Make a frame on terminal device TTY.
-TTY should be the file name of the tty device to use.  TYPE
-should be the terminal type string of TTY, for example \"xterm\"
-or \"vt100\".  The optional third argument PARAMETERS specifies
-additional frame parameters."
-  ;; Use "F" rather than "f", in case the device does not exist, as
-  ;; far as the filesystem is concerned.
-  (interactive "FOpen frame on tty device: \nsTerminal type of %s: ")
-  (unless tty
-    (error "Invalid terminal device"))
-  (unless type
-    (error "Invalid terminal type"))
-  (if (eq window-system 'pc)
-      (make-frame `((window-system . pc) (tty . ,tty) (tty-type . ,type) . ,parameters))
-    (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters))))
-
 (declare-function x-close-connection "xfns.c" (terminal))
 
 (defun close-display-connection (display)

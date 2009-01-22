@@ -1,3 +1,10 @@
+2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (make-frame-on-tty): Remove function, inline contents
+	in the only user ...
+
+	* server.el (server-create-tty-frame): ... here.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* format.el (format-annotate-function): Set
