@@ -2,8 +2,8 @@
 
 	* pmailhdr.el: File removed.
 
-	* pmailsum.el: Require pmailkwd.
-	(pmail-summary-expunge-and-save): Use pmail-expunge-and-save.
+	* pmailsum.el: (pmail-summary-expunge-and-save): Use
+	pmail-expunge-and-save.
 
 	* pmail.el (buffer-swapped-with): Var removed.
 	(pmail-buffer-swapped): New var.
