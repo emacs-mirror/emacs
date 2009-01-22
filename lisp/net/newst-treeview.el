@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "22. Januar 2009, 20:41:31 (ulf)"
+;; Time-stamp:  "22. Januar 2009, 21:22:25 (ulf)"
 
 ;; ======================================================================
 
@@ -1551,8 +1551,6 @@ Return t if a new feed was activated, nil otherwise."
   (newsticker--treeview-restore-layout)
   (let ((cur (newsticker--treeview-get-current-node))
         (new nil))
-    (message "newsticker-treeview-next-feed from %s"
-             (widget-get cur :tag))
     (if cur
       (progn
         (setq new
@@ -1579,8 +1577,6 @@ Return t if a new feed was activated, nil otherwise."
   (newsticker--treeview-restore-layout)
   (let ((cur (newsticker--treeview-get-current-node))
         (new nil))
-    (message "newsticker-treeview-prev-feed from %s"
-             (widget-get cur :tag))
     (if cur
       (progn
         (setq new

@@ -1,4 +1,4 @@
-2009-01-19  Ulf Jasper  <ulf.jasper@web.de>
+2009-01-22  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el
 	(newsticker-treeview-next-new-or-immortal-item): New optional arg
