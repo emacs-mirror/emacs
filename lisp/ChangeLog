@@ -1,3 +1,7 @@
+2009-01-22  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (ELCFILES): Update.
+
 2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.el (make-frame-on-tty): Remove function, inline contents
