@@ -354,7 +354,7 @@ this defaults to \"printenv\"."
       (progn
 	(defun ns-show-manual () "Show Emacs.app section in the Emacs manual"
           (interactive)
-          (info "(emacs)Mac OS"))
+          (info "(emacs) Mac OS / GNUstep"))
 	(setq where-is-preferred-modifier 'super)
         (setq scroll-preserve-screen-position t)
         (transient-mark-mode 1)
@@ -1550,7 +1550,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
   "Non-nil if Nextstep windowing has been initialized.")
 
 (declare-function ns-list-services "nsfns.m" ())
-(declare-function x-open-connection "xfns.c"
+(declare-function x-open-connection "nsfns.m"
                   (display &optional xrm-string must-succeed))
 
 ;; Do the actual Nextstep Windows setup here; the above code just

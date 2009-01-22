@@ -1,3 +1,8 @@
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-show-manual): Fix node name.
+	(x-open-connection) Fix typo in declaration filename.
+
 2009-01-22  Romain Francoise  <romain@orebokech.com>
 
 	* Makefile.in (ELCFILES): Update.
