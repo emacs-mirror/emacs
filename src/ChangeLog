@@ -1,4 +1,4 @@
-2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (EmavsView-keyDown:): Treat nil as Qnone for
 	ns_alternate_modifier. (Bug#1217)
