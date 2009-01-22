@@ -177,10 +177,15 @@ Lisp_Object Qafter_insert_file_set_coding;
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
 Lisp_Object Qwrite_region_annotate_functions;
+Lisp_Object Vwrite_region_post_annotation_function;
 
 /* During build_annotations, each time an annotation function is called,
    this holds the annotations made by the previous functions.  */
 Lisp_Object Vwrite_region_annotations_so_far;
+
+/* Each time an annotation function changes the buffer, the new buffer
+   is added here.  */
+Lisp_Object Vwrite_region_annotation_buffers;
 
 /* File name in which we write a list of all our auto save files.  */
 Lisp_Object Vauto_save_list_file_name;
@@ -4250,24 +4255,11 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object));
 
-/* If build_annotations switched buffers, switch back to BUF.
-   Kill the temporary buffer that was selected in the meantime.
-
-   Since this kill only the last temporary buffer, some buffers remain
-   not killed if build_annotations switched buffers more than once.
-   -- K.Handa */
-
 static Lisp_Object
-build_annotations_unwind (buf)
-     Lisp_Object buf;
+build_annotations_unwind (arg)
+     Lisp_Object arg;
 {
-  Lisp_Object tembuf;
-
-  if (XBUFFER (buf) == current_buffer)
-    return Qnil;
-  tembuf = Fcurrent_buffer ();
-  Fset_buffer (buf);
-  Fkill_buffer (tembuf);
+  Vwrite_region_annotation_buffers = arg;
   return Qnil;
 }
 
@@ -4498,7 +4490,9 @@ This does code conversion according to the value of
       Fwiden ();
     }
 
-  record_unwind_protect (build_annotations_unwind, Fcurrent_buffer ());
+  record_unwind_protect (build_annotations_unwind,
+			 Vwrite_region_annotation_buffers);
+  Vwrite_region_annotation_buffers = Fcons (Fcurrent_buffer (), Qnil);
   count1 = SPECPDL_INDEX ();
 
   given_buffer = current_buffer;
@@ -4534,16 +4528,7 @@ This does code conversion according to the value of
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    {
-#if 0  /* This causes trouble for GNUS.  */
-      /* If we've locked this file for some other buffer,
-	 query before proceeding.  */
-      if (!visiting && EQ (Ffile_locked_p (lockname), Qt))
-	call2 (intern ("ask-user-about-lock"), filename, Vuser_login_name);
-#endif
-
-      lock_file (lockname);
-    }
+    lock_file (lockname);
 #endif /* CLASH_DETECTION */
 
   encoded_filename = ENCODE_FILE (filename);
@@ -4602,23 +4587,6 @@ This does code conversion according to the value of
 
   UNGCPRO;
 
-#if 0
-  /* The new encoding routine doesn't require the following.  */
-
-  /* Whether VMS or not, we must move the gap to the next of newline
-     when we must put designation sequences at beginning of line.  */
-  if (INTEGERP (start)
-      && coding.type == coding_type_iso2022
-      && coding.flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL
-      && GPT > BEG && GPT_ADDR[-1] != '\n')
-    {
-      int opoint = PT, opoint_byte = PT_BYTE;
-      scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, 0);
-      move_gap_both (PT, PT_BYTE);
-      SET_PT_BOTH (opoint, opoint_byte);
-    }
-#endif
-
   failure = 0;
   immediate_quit = 1;
 
@@ -4670,29 +4638,30 @@ This does code conversion according to the value of
     }
 #endif
 
-  /* Spurious "file has changed on disk" warnings have been
-     observed on Suns as well.
-     It seems that `close' can change the modtime, under nfs.
-
-     (This has supposedly been fixed in Sunos 4,
-     but who knows about all the other machines with NFS?)  */
-#if 0
-
-#define FOO
-  fstat (desc, &st);
-#endif
-
   /* NFS can report a write failure now.  */
   if (emacs_close (desc) < 0)
     failure = 1, save_errno = errno;
 
-#ifndef FOO
   stat (fn, &st);
-#endif
+
   /* Discard the unwind protect for close_file_unwind.  */
   specpdl_ptr = specpdl + count1;
-  /* Restore the original current buffer.  */
-  visit_file = unbind_to (count, visit_file);
+
+  /* Call write-region-post-annotation-function. */
+  while (!NILP (Vwrite_region_annotation_buffers))
+    {
+      Lisp_Object buf = XCAR (Vwrite_region_annotation_buffers);
+      if (!NILP (Fbuffer_live_p (buf)))
+  	{
+  	  Fset_buffer (buf);
+  	  if (FUNCTIONP (Vwrite_region_post_annotation_function))
+  	    call0 (Vwrite_region_post_annotation_function);
+  	}
+      Vwrite_region_annotation_buffers
+  	= XCDR (Vwrite_region_annotation_buffers);
+    }
+
+  unbind_to (count, Qnil);
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -4791,6 +4760,9 @@ build_annotations (start, end)
 	 been dealt with by this function.  */
       if (current_buffer != given_buffer)
 	{
+	  Vwrite_region_annotation_buffers
+	    = Fcons (Fcurrent_buffer (),
+		     Vwrite_region_annotation_buffers);
 	  XSETFASTINT (start, BEGV);
 	  XSETFASTINT (end, ZV);
 	  annotations = Qnil;
@@ -5651,15 +5623,36 @@ for `write-region'.  The function should return a list of pairs
 of the form (POSITION . STRING), consisting of strings to be effectively
 inserted at the specified positions of the file being written (1 means to
 insert before the first byte written).  The POSITIONs must be sorted into
-increasing order.  If there are several functions in the list, the several
-lists are merged destructively.  Alternatively, the function can return
-with a different buffer current; in that case it should pay attention
-to the annotations returned by previous functions and listed in
-`write-region-annotations-so-far'.*/);
+increasing order.
+
+If there are several annotation functions, the lists returned by these
+functions are merged destructively.  As each annotation function runs,
+the variable `write-region-annotations-so-far' contains a list of all
+annotations returned by previous annotation functions.
+
+An annotation function can return with a different buffer current.
+Doing so removes the annotations returned by previous functions, and
+resets START and END to `point-min' and `point-max' of the new buffer.
+
+After `write-region' completes, Emacs calls the function stored in
+`write-region-post-annotation-function', once for each buffer that was
+current when building the annotations (i.e., at least once), with that
+buffer current.  */);
   Vwrite_region_annotate_functions = Qnil;
   staticpro (&Qwrite_region_annotate_functions);
   Qwrite_region_annotate_functions
     = intern ("write-region-annotate-functions");
+
+  DEFVAR_LISP ("write-region-post-annotation-function",
+	       &Vwrite_region_post_annotation_function,
+	       doc: /* Function to call after `write-region' completes.
+The function is called with no arguments.  If one or more of the
+annotation functions in `write-region-annotate-functions' changed the
+current buffer, the function stored in this variable is called for
+each of those additional buffers as well, in addition to the original
+buffer.  The relevant buffer is current during each function call.  */);
+  Vwrite_region_post_annotation_function = Qnil;
+  staticpro (&Vwrite_region_annotation_buffers);
 
   DEFVAR_LISP ("write-region-annotations-so-far",
 	       &Vwrite_region_annotations_so_far,
