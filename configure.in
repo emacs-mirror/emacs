@@ -342,6 +342,7 @@ dnl see the `changequote' comment above.
       arm-*-netbsd*)	machine=arm ;;
       x86_64-*-netbsd*)	machine=amdx86-64 ;;
       hppa-*-netbsd*)	machine=hp800 ;;
+      m68k-*-netbsd*)	machine=m68k ;;
     esac
   ;;
 
