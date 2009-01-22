@@ -363,7 +363,7 @@ extern NSArray *ns_send_types, *ns_return_types;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
-#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
 @end

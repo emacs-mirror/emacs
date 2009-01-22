@@ -1,3 +1,10 @@
+2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (EmacsApp-setAppleMenu:): Conditionalize more correctly on
+	Tiger.
+	* nsfns.m (ns_do_applescript): Conditionalize
+	typeUTF16ExternalRepresentation on Tiger.
+
 2009-01-21  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
 
 	* nsterm.m (EV_TRAILER): Always use emacsframe for frame_or_window.

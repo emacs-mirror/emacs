@@ -2081,8 +2081,10 @@ ns_do_applescript (script, result)
 	  *result = Qt;
 	  // script returned an AppleScript result
 	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 	      (typeUTF16ExternalRepresentation 
 	       == [returnDescriptor descriptorType]) ||
+#endif
 	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
 	      (typeCString == [returnDescriptor descriptorType]))
 	    {
