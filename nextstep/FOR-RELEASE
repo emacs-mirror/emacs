@@ -1,20 +1,12 @@
 -*- outline -*-
 
-** Check doc/emacs/macos.texi.
-
 
 * POST_MERGE CLEANUP
 
-** remove all the /* 23 */ comments from the source code
+** Finish --daemon patch
 
 
 * CURSOR BUGS:
-
-** ns_cursor_blink_rate: change to use generic code; also, when set in
-   preferences, somehow save the option (but calling custom-save-all
-   from this causes error)
-
-** cursor nonerase on certain Leopard and Tiger installations
 
 ** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back up
    on top of all others
@@ -24,15 +16,13 @@
 
 * OTHER BUGS
 
-** Fix #include ordering for src/ns*.
-
 ** Remove Feval calls relating to insert working text in isearch mode.
 
 ** free_frame_resources, face colors
 
 ** numeric keysetting bug
 
-** http://emacsbugs.donarmstrong.com/cgi-bin/pkgreport.cgi?pkg=openstep
+** http://emacsbugs.donarmstrong.com/cgi-bin/pkgreport.cgi?pkg=ns
 
 
 * MAC-RELATED:
@@ -60,5 +50,3 @@
 ** Exec-dump not working on GNUstep (so slow startup).
 
 ** undo for color-drag face customization
-
-** look at nsfont_char_width and nsfont_string_width utils (Dan C.)
