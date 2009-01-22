@@ -2,17 +2,17 @@
 
 	* net/newst-treeview.el
 	(newsticker-treeview-next-new-or-immortal-item): New optional arg
-	current-item-counts. Move to next feed if necessary. (Bug#1569)
+	current-item-counts.  Move to next feed if necessary.  (Bug#1569)
 	(newsticker-treeview-prev-new-or-immortal-item): Move to previous
-	feed if necessary. (Bug#1569)
+	feed if necessary.  (Bug#1569)
 	(newsticker-treeview-next-feed)
-	(newsticker-treeview-prev-feed): New optional arg
-	stay-in-tree. Don't activate node nil. (Bug#1569)
+	(newsticker-treeview-prev-feed): New optional arg stay-in-tree.
+	Don't activate node nil.  (Bug#1569)
 
 2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-show-manual): Fix node name.
-	(x-open-connection) Fix typo in declaration filename.
+	(x-open-connection): Fix typo in declaration filename.
 
 2009-01-22  Romain Francoise  <romain@orebokech.com>
 
@@ -27,16 +27,16 @@
 
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* format.el (format-annotate-function): Set
-	write-region-post-annotation-function.
+	* format.el (format-annotate-function):
+	Set write-region-post-annotation-function.
 
 2009-01-21  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-mode.el: Add eshell-handle-ansi-color to the default
 	list of output filters.
-	(eshell-mode): Change the default binding of C-a to eshell-bol.  I
-	don't think it's actually bound at all by default in eshell; it
-	just falls back to the default binding of C-a.
+	(eshell-mode): Change the default binding of C-a to eshell-bol.
+	I don't think it's actually bound at all by default in eshell;
+	it just falls back to the default binding of C-a.
 
 2009-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
