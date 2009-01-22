@@ -218,6 +218,9 @@ For most purposes, consider using `format-encode-region' instead."
 		  (multibyte enable-multibyte-characters)
 		  (coding-system buffer-file-coding-system))
 	      (with-current-buffer copy-buf
+		(set (make-local-variable
+		      'write-region-post-annotation-function)
+		     'kill-buffer)
 		(setq selective-display sel-disp)
 		(set-buffer-multibyte multibyte)
 		(setq buffer-file-coding-system coding-system))
