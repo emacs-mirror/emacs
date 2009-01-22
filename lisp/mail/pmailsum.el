@@ -1314,13 +1314,8 @@ Position it according to WHERE which can be BEG or END"
   "Expunge and save PMAIL file."
   (interactive)
   (save-excursion
-    (set-buffer pmail-buffer)
-    (when (pmail-expunge-confirmed)
-      (pmail-only-expunge)))
+    (pmail-expunge-and-save))
   (pmail-update-summary)
-  (save-excursion
-    (set-buffer pmail-buffer)
-    (save-buffer))
   (set-buffer-modified-p nil))
 
 (defun pmail-summary-get-new-mail (&optional file-name)
