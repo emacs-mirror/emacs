@@ -581,7 +581,7 @@ by substituting the new message number into the existing list.")
 
 (defvar rmail-buffer-swapped nil
   "If non-nil, `rmail-buffer' is swapped with `rmail-view-buffer'.")
-(make-variable-buffer-local 'rmail-buffer-swapped)
+(put 'rmail-buffer-swapped 'permanent-local t)
 
 (defvar rmail-view-buffer nil
   "Buffer which holds RMAIL message for MIME displaying.")
