@@ -1,3 +1,8 @@
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* org-rmail.el (rmail-narrow-to-non-pruned-header):
+	Remove declaration of deleted function.
+
 2009-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* org-mouse.el (org-mouse-show-context-menu): Use
