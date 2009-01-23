@@ -2184,9 +2184,10 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
     toCheck = name + (!strncmp (name, "emacs.", 6) ? 6 : 0);
 
 /*fprintf (stderr, "Checking '%s'\n", toCheck); */
-  
-  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
-                   [NSString stringWithUTF8String: toCheck]] UTF8String];
+
+  res = ns_no_defaults ? NULL :
+    [[[NSUserDefaults standardUserDefaults] objectForKey:
+                     [NSString stringWithUTF8String: toCheck]] UTF8String];
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));

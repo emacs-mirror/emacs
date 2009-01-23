@@ -202,6 +202,10 @@ extern int inherited_pgroup;
 int display_arg;
 #endif
 
+#ifdef HAVE_NS
+extern char ns_no_defaults;
+#endif
+
 /* An address near the bottom of the stack.
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
@@ -1473,6 +1477,16 @@ main (int argc, char **argv)
     {
       char *tmp;
       display_arg = 4;
+      if (argmatch (argv, argc, "-q", "--no-init-file", 6, NULL, &skip_args))
+        {
+          ns_no_defaults = 1;
+          skip_args--;
+        }
+      if (argmatch (argv, argc, "-Q", "--quick", 5, NULL, &skip_args))
+        {
+          ns_no_defaults = 1;
+          skip_args--;
+        }
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {

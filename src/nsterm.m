@@ -151,9 +151,17 @@ extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
 EmacsPrefsController *prefsController;
 
-/* Defaults managed through the OpenStep defaults system.  These pertain to
-   the NS interface specifically.  Although a customization group could be
-   created, it's more natural to manage them via defaults. */
+/* Preferences equivalent to those set by X resources under X are managed
+   through the OpenStep defaults system.  These pertain to behavior of the
+   graphical interface components.  The one difference from X is that the
+   values below are SET when the user chooses save-options. This makes
+   things easier for users, but sometimes violates expectations when some
+   user-set options appear when running under -q/Q.  Therefore we depart
+   from X behavior and refuse to read defaults when started under these
+   options. */
+
+/* Set in emacs.c. */
+char ns_no_defaults;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
@@ -3801,9 +3809,6 @@ ns_term_init (Lisp_Object display_name)
   /* Put it on ns_display_name_list */
   ns_display_name_list = Fcons (Fcons (display_name, Qnil),
                                 ns_display_name_list);
-/*      ns_display_name_list = Fcons (Fcons (display_name,
-                                           Fcons (Qnil, dpyinfo->xrdb)),
-                                    ns_display_name_list); */
   dpyinfo->name_list_element = XCAR (ns_display_name_list);
 
   /* Set the name of the terminal. */
@@ -3815,34 +3820,38 @@ ns_term_init (Lisp_Object display_name)
 
   /* Read various user defaults. */
   ns_set_default_prefs ();
-  ns_default ("AlternateModifier", &ns_alternate_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_alternate_modifier))
-    ns_alternate_modifier = Qmeta;
-  ns_default ("CommandModifier", &ns_command_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_command_modifier))
-    ns_command_modifier = Qsuper;
-  ns_default ("ControlModifier", &ns_control_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_control_modifier))
-    ns_control_modifier = Qcontrol;
-  ns_default ("FunctionModifier", &ns_function_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_function_modifier))
-    ns_function_modifier = Qnone;
-  ns_default ("ExpandSpace", &ns_expand_space,
-             make_float (0.5), make_float (0.0), YES, NO);
-  ns_default ("GSFontAntiAlias", &ns_antialias_text,
-             Qt, Qnil, NO, NO);
-  tmp = Qnil;
-  ns_default ("AppleAntiAliasingThreshold", &tmp,
-             make_float (10.0), make_float (6.0), YES, NO);
-  ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
-  ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
-             Qt, Qnil, NO, NO);
-  ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
-             Qt, Qnil, NO, NO);
+  if (!ns_no_defaults)
+    {
+      ns_default ("AlternateModifier", &ns_alternate_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_alternate_modifier))
+        ns_alternate_modifier = Qmeta;
+      ns_default ("CommandModifier", &ns_command_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_command_modifier))
+        ns_command_modifier = Qsuper;
+      ns_default ("ControlModifier", &ns_control_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_control_modifier))
+        ns_control_modifier = Qcontrol;
+      ns_default ("FunctionModifier", &ns_function_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_function_modifier))
+        ns_function_modifier = Qnone;
+      ns_default ("ExpandSpace", &ns_expand_space,
+                 make_float (0.5), make_float (0.0), YES, NO);
+      ns_default ("GSFontAntiAlias", &ns_antialias_text,
+                 Qt, Qnil, NO, NO);
+      tmp = Qnil;
+      ns_default ("AppleAntiAliasingThreshold", &tmp,
+                 make_float (10.0), make_float (6.0), YES, NO);
+      ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
+      ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
+                 Qt, Qnil, NO, NO);
+      ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
+                 Qt, Qnil, NO, NO);
+    }
+
   if (EQ (ns_use_system_highlight_color, Qt))
     {
       ns_selection_color = [[NSUserDefaults standardUserDefaults]

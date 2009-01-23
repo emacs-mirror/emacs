@@ -726,6 +726,7 @@ extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern Lisp_Object Qnone;
+extern char ns_no_defaults;
 
 /* XColor defined in dispextern.h (we use color_def->pixel = NSColor id), but
    this causes an #include snafu, so we can't declare it.  */
