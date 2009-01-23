@@ -56,18 +56,56 @@
 #include <stdlib.h>
 
 
-#define testArenaSIZE   ((size_t)16<<20)
-
-#define myrootCOUNT 3000
 
 /* testChain -- generation parameters for the test */
 #define genCOUNT 2
 static mps_gen_param_s testChain[genCOUNT] = {
-  { 150, 0.85 }, { 170, 0.45 } };
+  { 100, 0.85 }, { 170, 0.45 } };
 
 
-/* note: static, so auto-initialised to NULL */
+/* myroot -- array of references that are the root
+ *
+ * (note: static, so auto-initialised to NULL)
+ */
+#define myrootCOUNT 30000
 static void *myroot[myrootCOUNT];
+
+
+static unsigned long cols(size_t bytes)
+{
+  double M;  /* Mebibytes */
+  unsigned long cM;  /* hundredths of a Mebibyte */
+
+  M = (double)bytes / (1UL<<20);
+  cM = (unsigned long)(M * 100 + 0.5);  /* round to nearest */
+  return cM;
+}
+
+/* showStatsAscii -- present collection stats, 'graphically'
+ *
+ */
+static void showStatsAscii(size_t notcon, size_t con, size_t live, size_t alimit)
+{
+  int n = cols(notcon);
+  int c = cols(notcon + con);
+  int l = cols(notcon + live);  /* a fraction of con */
+  int a = cols(alimit);
+  int count;
+  int i;
+  
+  /* if we can show alimit within 200 cols, do so */
+  count = (a < 200) ? a + 1 : c;
+  
+  for(i = 0; i < count; i++) {
+    printf( (i == a)  ? "A"
+            : (i < n) ? "n"
+            : (i < l) ? "L"
+            : (i < c) ? "_"
+            : " "
+          );
+  }
+  printf("\n");
+}
 
 
 /* print_M -- print count of bytes as Mebibytes with decimal fraction 
@@ -78,13 +116,33 @@ static void *myroot[myrootCOUNT];
 static void print_M(size_t bytes)
 {
   size_t M;  /* Mebibytes */
-  double Mfrac;  /* fraction of a Mebibyte, times 1000 */
+  double Mfrac;  /* fraction of a Mebibyte */
 
   M = bytes / (1UL<<20);
   Mfrac = (double)(bytes % (1UL<<20));
-  Mfrac = (Mfrac / (1UL<<20)) * 1000;
+  Mfrac = (Mfrac / (1UL<<20));
 
-  printf("%1lum%03.f", M, Mfrac);
+  printf("%1lum%03.f", M, Mfrac * 1000);
+}
+
+
+/* showStatsText -- present collection stats
+ *
+ * prints:
+ *   Coll End  0m137[->0m019 14%-live] (0m211-not )
+ */
+static void showStatsText(size_t notcon, size_t con, size_t live)
+{
+  double liveFrac = (double)live / (double)con;
+
+  print_M(con);
+  printf("[->");
+  print_M(live);
+  printf("% 3.f%%-live]", liveFrac * 100);
+  printf(" (");
+  print_M(notcon);
+  printf("-not ");
+  printf(")\n");
 }
 
 /* get -- get messages
@@ -112,21 +170,13 @@ static void get(mps_arena_t arena)
       case mps_message_type_gc(): {
         size_t con = mps_message_gc_condemned_size(arena, message);
         size_t notcon = mps_message_gc_not_condemned_size(arena, message);
-#if 0
-        size_t other = 0;  /* cannot determine; new method reqd */
-#endif
+        /* size_t other = 0;  -- cannot determine; new method reqd */
         size_t live = mps_message_gc_live_size(arena, message);
-        double liveFrac = (double)live / (double)con;
-
+        size_t alimit = mps_arena_reserved(arena);
+        
         printf("    Coll End  ");
-        print_M(con);
-        printf("[->");
-        print_M(live);
-        printf("% 3.f%%-live]", liveFrac * 100);
-        printf(" (");
-        print_M(notcon);
-        printf("-not ");
-        printf(")\n");
+        if(rnd()==0) showStatsText(notcon, con, live);
+        showStatsAscii(notcon, con, live, alimit);
         break;
       }
       case mps_message_type_finalization(): {
@@ -147,45 +197,50 @@ static void get(mps_arena_t arena)
 }
 
 
+/* checksi -- check count of sscanf items is correct
+ */
+
+static void checksi(int si, int si_shouldBe, const char *script, const char *scriptAll)
+{
+  if(si != si_shouldBe) {
+    printf("bad script command %s (full script %s).\n", script, scriptAll);
+    cdie(FALSE, "unknown script command");
+  }
+}
+
 /* testscriptC -- actually runs a test script
  *
  */
 static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 {
   const char *scriptAll = script;
-  int itemsread;
-  int bytesread;
+  int si, sb;  /* sscanf items, sscanf bytes */
 
   while(*script != '\0') {
     switch(*script) {
       case 'C': {
-        itemsread = sscanf(script, "Collect%n",
-                           &bytesread);
-        if(itemsread != 0) {
-          printf("bad script command %s (full script %s).\n",
-                 script, scriptAll);
-          cdie(FALSE, "unknown script command");
-        }
-        script += bytesread;
+        si = sscanf(script, "Collect%n",
+                       &sb);
+        checksi(si, 0, script, scriptAll);
+        script += sb;
         printf("  Collect\n");
         mps_arena_collect(arena);
         break;
       }
       case 'M': {
         unsigned keepCount = 0;
-        unsigned objCount = 0;
+        unsigned long objCount = 0;
         unsigned keepTotal = 0;
         unsigned keep1in = 0;
-        itemsread = sscanf(script, "Make(keep-1-in %u, keep %u)%n",
-                           &keep1in, &keepTotal, &bytesread);
-        if(itemsread != 2) {
-          printf("bad script command %s (full script %s).\n",
-                 script, scriptAll);
-          cdie(FALSE, "unknown script command");
-        }
-        printf("keepTotal: %d, keep-1-in: %d.\n",
-               keepTotal, keep1in);
-        script += bytesread;
+        unsigned keepRootspace = 0;
+        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u)%n",
+                    &keep1in, &keepTotal, &keepRootspace, &sb);
+        checksi(si, 3, script, scriptAll);
+        script += sb;
+        printf("  Make(keep-1-in %u, keep %u, rootspace %u).\n",
+               keep1in, keepTotal, keepRootspace);
+        
+        Insist(keepRootspace <= myrootCOUNT);
 
         objCount = 0;
         while(keepCount < keepTotal) {
@@ -196,14 +251,16 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
           objCount++;
           if(rnd() % keep1in == 0) {
             /* keep this one */
-            myroot[rnd() % myrootCOUNT] = (void*)v;
+            myroot[rnd() % keepRootspace] = (void*)v;
             keepCount++;
           }
           get(arena);
         }
-        printf("Made and kept: %d objects (actually created %d objects,"
-               " in accord with keep-1-in %d).\n",
-               keepCount, objCount, keep1in);
+        printf("  ...made and kept: %u objects, storing cyclically in "
+               "first %u roots "
+               "(actually created %lu objects, in accord with "
+               "keep-1-in %u).\n",
+               keepCount, keepRootspace, objCount, keep1in);
 
         break;
       }
@@ -296,15 +353,20 @@ static void *testscriptB(void *arg, size_t s)
 static void testscriptA(const char *script)
 {
   mps_arena_t arena;
+  int si, sb;  /* sscanf items, sscanf bytes */
+  unsigned long arenasize = 0;
   mps_thr_t thr;
   mps_tramp_t trampFunction;
   trampDataStruct trampData;
   void *trampResult;
 
-  printf("Script: \"%s\"\n  Create arena etc.\n", script);
+  si = sscanf(script, "Arena(size %lu)%n", &arenasize, &sb);
+  cdie(si == 1, "bad script command: Arena(size %%lu)");
+  script += sb;
+  printf("  Create arena, size = %lu.\n", arenasize);
 
   /* arena */
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), arenasize),
       "arena_create");
 
   /* thr: used to stop/restart multiple threads */
@@ -335,8 +397,9 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   /* The most basic scripts */
-  /* testscriptA("Make(objs 1500, keep-1-in 50)"); */
-  testscriptA("Make(keep-1-in 5, keep 50000), Collect.");
+
+  /* 1<<19 == 524288 == 1/2 Mebibyte */
+  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect.");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
