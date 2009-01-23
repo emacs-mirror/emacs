@@ -1,5 +1,8 @@
 2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/rmailsum.el (rmail-summary-by-labels): Correctly handle
+	return value of rmail-get-labels.
+
 	* mail/rmailkwd.el (rmail-next-labeled-message): Correctly handle
 	return value of rmail-get-labels.
 
