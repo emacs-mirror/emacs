@@ -338,17 +338,11 @@
 
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/rmailsort.el: Sync with rmailsort.el.
-	(rmail-sort-messages): Insert two newlines at the end of the
-	message if they do not exist.
+	* mail/rmailsort.el (rmail-sort-messages): Insert two newlines at the
+	end of the message if they do not exist.
 
-	* mail/rmailkwd.el: Sync with rmailkwd.el.
-
-	* mail/rmailout.el: Sync with rmailout.el.
-
-	* mail/rmailedit.el: Sync with rmailedit.el.
-	(rmail-edit-current-message): Remove deleted function
-	rmail-msg-is-pruned.
+	* mail/rmailedit.el (rmail-edit-current-message): Remove deleted
+	function rmail-msg-is-pruned.
 
 	* mail/rmaildesc.el: File deleted.
 
@@ -506,7 +500,6 @@
 
 	* mail/rmail.el (rmail-perm-variables): Make sure rmail-desc-vector is
 	buffer local.
-	(rmail-mime-charset-pattern): Sync with trunk.
 	(rmail): Don't bind coding-system-for-read.
 	(rmail-revert): Likewise.
 	(rmail-variables): Don't set buffer-file-coding-system.
