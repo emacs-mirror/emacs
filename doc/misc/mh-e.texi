@@ -578,7 +578,8 @@ the more you can leverage its power. See the
 @cindex MH profile component, @samp{Path:}
 
 Your MH environment includes your @dfn{MH profile} which is found in
-the file @file{~/.mh_profile}. This file contains a number of @dfn{MH
+the file @file{~/.mh_profile}, or the file named in the environment
+variable @samp{$MH}. This file contains a number of @dfn{MH
 profile components}. For example, the @samp{Path:} MH profile
 component contains the path to your mail directory, which is
 @file{~/Mail} by default.
