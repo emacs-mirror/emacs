@@ -25,7 +25,7 @@
 	    Glenn Morris  <rgm@gnu.org>
 	    Juanma Barranquero  <lekktu@gmail.com>
 
-	* rmail.el: Code implementing Rmail-mbox functionality.
+	* mail/rmail.el: Code implementing Rmail-mbox functionality.
 	(rmail-attribute-header, rmail-keyword-header)
 	(rmail-answered-attr-index, rmail-deleted-attr-index)
 	(rmail-edited-attr-index, rmail-filed-attr-index)
@@ -83,14 +83,14 @@
 	(rmail-expunge, rmail-expunge-and-save, rmail-quit): Use new
 	buffer swapping mechanism.
 
-	* rmailedit.el: Require rmailsum.el.
+	* mail/rmailedit.el: Require rmailsum.el.
 	(rmail-edit-mode): First check if buffer is swapped.
 	(rmail-edit-saved-coding-system): Var deleted.
 	(rmail-edit-current-message): Don't call deleted vars.
 	(rmail-cease-edit): Handle mbox format.
 	(rmail-abort-edit): Widen buffer.
 
-	* rmailkwd.el: Require rmail.el.  Remove unneeded function
+	* mail/rmailkwd.el: Require rmail.el.  Remove unneeded function
 	declarations.
 	(rmail-buffer, rmail-current-message, rmail-last-label)
 	(rmail-last-multi-labels, rmail-summary-vector)
@@ -105,12 +105,12 @@
 	(rmail-set-label): Rewritten using rmail-set-attribute.
 	(rmail-next-labeled-message): Use rmail-get-labels.
 
-	* rmailmm.el: New file.
+	* mail/rmailmm.el: New file.
 
-	* rmailmsc.el: Require rmail.el.
+	* mail/rmailmsc.el: Require rmail.el.
 	(set-rmail-inbox-list): Set rmail-inbox-list directly.
 
-	* rmailout.el (rmail-output-decode-coding): New var.
+	* mail/rmailout.el (rmail-output-decode-coding): New var.
 	(rmail-output-as-babyl, rmail-output-to-r-mail-buffer)
 	(rmail-convert-to-babyl-format, rmail-output-as-mbox)
 	(rmail-output-to-rmail-buffer): New functions.
@@ -121,14 +121,14 @@
 	(rmail-output-as-seen, rmail-output-body-to-file): Rewritten to
 	use mbox internal format.
 
-	* rmailsort.el: Eval mail-utils when compiled.  Require rmail.el.
+	* mail/rmailsort.el: Eval mail-utils when compiled.  Require rmail.el.
 	(rmail-sort-by-date, rmail-sort-by-subject, rmail-sort-by-author)
 	(rmail-sort-by-recipient, rmail-sort-by-correspondent): Use
 	rmail-get-header.
 	(rmail-sort-messages): Use new buffer swapping mechanism.  Handle
 	mbox internal format.
 
-	* rmailsum.el (rmail-summary): Make sure rmail buffer is shown.
+	* mail/rmailsum.el (rmail-summary): Make sure rmail buffer is shown.
 	(rmail-message-recipients-p, rmail-message-recipients-p-1)
 	(rmail-message-regexp-p, rmail-new-summary-1)
 	(rmail-get-create-summary-buffer, rmail-get-summary)
