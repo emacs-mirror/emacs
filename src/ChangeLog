@@ -1,6 +1,15 @@
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* emacs.c (main): Do fork+exec under --daemon in Cocoa.
+	(ns_no_defaults): New declaration.
+	(main): Use it.
+	* nsterm.h (ns_no_defaults): New declaration.
+	* nsfns.m (x_get_string_resource): Don't read when ns_no_defaults.
+	* nsterm.m (ns_no_defaults): New variable.
+	(ns_initialize): Don't read defaults when ns_no_defaults.
+	(EmacsView-readSelectionFromPasteboard:)
+	(writeSelectionToPasteboard:types:): New stubbed-out methods for
+	NSServicesRequests protocol. (Bug#1435)
 
 2009-01-23  Giorgos Keramidas  <keramida@freebsd.org>  (tiny change)
 

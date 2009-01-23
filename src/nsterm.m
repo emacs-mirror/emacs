@@ -5575,6 +5575,29 @@ extern void update_window_cursor (struct window *w, int on);
 }
 
 
+/* The next two methods are part of NSServicesRequests informal protocol,
+   supposedly called when a services menu item is chosen from this app.
+   But this should not happen because we override the services menu with our
+   own entries which call ns-perform-service.
+   Nonetheless, it appeared to happen here (under strange circumstances):
+   http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1435 
+   So let's at least stub them out until further investigation can be done. */
+
+- (BOOL) readSelectionFromPasteboard: (NSPasteboard *)pb
+{
+  /* we could call ns_string_from_pasteboard(pboard) here but then it should
+     be written into the buffer in place of the existing selection..
+     ordinary service calls go through functions defined in ns-win.el */
+  return NO;
+}
+
+- (BOOL) writeSelectionToPasteboard: (NSPasteboard *)pb types: (NSArray *)types
+{
+  /* supposed to write for as many of types as we are able */
+  return NO;
+}
+
+
 /* setMini =YES means set from internal (gives a finder icon), NO means set nil
    (gives a miniaturized version of the window); currently we use the latter for
    frames whose active buffer doesn't correspond to any file
