@@ -209,9 +209,5 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 
 (provide 'rmailedit)
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 9524f335-12cc-4e95-9e9b-3208dc30550b
 ;;; rmailedit.el ends here
