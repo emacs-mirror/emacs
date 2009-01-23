@@ -58,9 +58,5 @@ If FILE-NAME is empty, remove any existing inbox list."
       (setq rmail-inbox-list inbox-list)))
   (rmail-show-message rmail-current-message))
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; rmailmsc.el ends here
