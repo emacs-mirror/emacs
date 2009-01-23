@@ -1,3 +1,7 @@
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pmail.el (pmail-buffer-swapped): Mark as permanent local.
+
 2009-01-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pmailhdr.el: File removed.
