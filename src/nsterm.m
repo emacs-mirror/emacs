@@ -2884,10 +2884,66 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
       r.size.width = s->slice.width + 2*th-1;
       r.size.height = s->slice.height + 2*th-1;
       ns_draw_relief (r, th, raised_p,
-                     s->slice.y == 0,
-                     s->slice.y + s->slice.height == s->img->height,
-                     s->slice.x == 0,
-                     s->slice.x + s->slice.width == s->img->width, s);
+                      s->slice.y == 0,
+                      s->slice.y + s->slice.height == s->img->height,
+                      s->slice.x == 0,
+                      s->slice.x + s->slice.width == s->img->width, s);
+    }
+}
+
+
+static void
+ns_dumpglyphs_stretch (struct glyph_string *s)
+{
+  NSRect r[2];
+  int n, i;
+
+  if (!s->background_filled_p)
+    {
+      n = ns_get_glyph_string_clip_rect (s, r);
+      *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
+
+      for (i=0; i<n; i++)
+        {
+          if (!s->row->full_width_p)
+            {
+              /* truncate to avoid overwriting fringe and/or scrollbar */
+              int overrun = max (0, (s->x + s->background_width)
+                                  - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
+                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
+              r[i].size.width -= overrun;
+
+              /* XXX: Try to work between problem where a stretch glyph on
+                 a partially-visible bottom row will clear part of the
+                 modeline, and another where list-buffers headers and similar
+                 rows erroneously have visible_height set to 0.  Not sure
+                 where this is coming from as other terms seem not to show. */
+              r[i].size.height = min (s->height, s->row->visible_height);
+            }
+
+          /* expand full-width rows over internal borders */
+          else
+            {
+              r[i] = ns_fix_rect_ibw (r[i], FRAME_INTERNAL_BORDER_WIDTH (s->f),
+                                      FRAME_PIXEL_WIDTH (s->f));
+            }
+
+          /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
+             overwriting cursor (usually when cursor on a tab) */
+          if (s->hl == DRAW_CURSOR)
+            {
+              r[i].origin.x += s->width;
+              r[i].size.width -= s->width;
+            }
+        }
+
+      ns_focus (s->f, r, n);
+      [ns_lookup_indexed_color (NS_FACE_BACKGROUND
+           (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
+      NSRectFill (r[0]);
+      NSRectFill (r[1]);
+      ns_unfocus (s->f);
+      s->background_filled_p = 1;
     }
 }
 
@@ -2915,10 +2971,17 @@ ns_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
-            n = ns_get_glyph_string_clip_rect (s->next, r);
-            ns_focus (s->f, r, n);
-            ns_maybe_dumpglyphs_background (s->next, 1);
-            ns_unfocus (s->f);
+            if (next->first_glyph->type != STRETCH_GLYPH)
+              {
+                n = ns_get_glyph_string_clip_rect (s->next, r);
+                ns_focus (s->f, r, n);
+                ns_maybe_dumpglyphs_background (s->next, 1);
+                ns_unfocus (s->f);
+              }
+            else
+              {
+                ns_dumpglyphs_stretch (s->next);
+              }
             next->num_clips = 0;
           }
     }
@@ -2946,48 +3009,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     case STRETCH_GLYPH:
-      if (!s->background_filled_p)
-        {
-          *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
-
-          if (!s->row->full_width_p)
-            {
-              /* truncate to avoid overwriting fringe and/or scrollbar */
-              int overrun = max (0, (s->x + s->background_width)
-                                 - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
-              r[0].size.width -= overrun;
-
-              /* XXX: Try to work between problem where a stretch glyph on
-                  a partially-visible bottom row will clear part of the
-                  modeline, and another where list-buffers headers and similar
-                  rows erroneously have visible_height set to 0.  Not sure
-                  where this is coming from as other terms seem not to show. */
-              r[0].size.height = min (s->height, s->row->visible_height);
-            }
-
-          /* expand full-width rows over internal borders */
-          else
-            {
-              r[0] = ns_fix_rect_ibw (r[0], FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                                     FRAME_PIXEL_WIDTH (s->f));
-            }
-
-          /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
-             overwriting cursor (usually when cursor on a tab) */
-          if (s->hl == DRAW_CURSOR)
-            {
-              r[0].origin.x += s->width;
-              r[0].size.width -= s->width;
-            }
-
-          ns_focus (s->f, r, 1);
-          [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-               (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
-          NSRectFill (r[0]);
-          ns_unfocus (s->f);
-          s->background_filled_p = 1;
-        }
+      ns_dumpglyphs_stretch (s);
       break;
 
     case CHAR_GLYPH:

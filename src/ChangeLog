@@ -13,6 +13,9 @@
 	(EmacsView-readSelectionFromPasteboard:)
 	(writeSelectionToPasteboard:types:): New stubbed-out methods for
 	NSServicesRequests protocol. (Bug#1435)
+	(ns_dumpglyphs_stretch): New function.
+	(ns_draw_glyph_string): Use it, parallel Yamamoto Mitsuharu change
+	of 2008-11-15 to other terms. (Bug#615)
 
 	* nsimage.m (setPixmapData:): Set to ignore image DPI.
 
