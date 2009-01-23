@@ -90,7 +90,9 @@ LABELS should be a string containing the desired labels, separated by commas."
   (rmail-new-summary (concat "labels " labels)
 		     (list 'rmail-summary-by-labels labels)
 		     'rmail-message-labels-p
-		     (concat ", \\(" (mail-comma-list-regexp labels) "\\),")))
+		     (concat " \\("
+			     (mail-comma-list-regexp labels)
+			     "\\)\\(,\\|\\'\\)")))
 
 ;;;###autoload
 (defun rmail-summary-by-recipients (recipients &optional primary-only)
