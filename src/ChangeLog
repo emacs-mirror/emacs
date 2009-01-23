@@ -1,3 +1,7 @@
+2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main): Do fork+exec under --daemon in Cocoa.
+
 2009-01-23  Giorgos Keramidas  <keramida@freebsd.org>  (tiny change)
 
 	* alloc.c (mark_stack): Use "flushw" instead of "ta 3" assembly
