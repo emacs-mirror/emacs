@@ -7,7 +7,7 @@
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "22. Dezember 2008, 19:58:01 (ulf)"
+;; Time-stamp:  "23. Januar 2009, 19:39:22 (ulf)"
 
 ;; ======================================================================
 
@@ -2155,8 +2155,8 @@ FEED is a symbol!"
       (progn
         (when (y-or-n-p "Old newsticker cache file exists.  Read it? ")
           (newsticker--cache-read-version1))
-        (message "Please remove/rename the old cache file (%s) now."
-                 newsticker-cache-filename))
+        (when (y-or-n-p (format "Delete old newsticker cache file? "))
+          (delete-file newsticker-cache-filename)))
     (mapc (lambda (f)
             (newsticker--cache-read-feed (car f)))
           (append newsticker-url-list-defaults newsticker-url-list))))
