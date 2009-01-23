@@ -1,3 +1,7 @@
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-buffer-swapped): Mark as permanent local.
+
 2009-01-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
