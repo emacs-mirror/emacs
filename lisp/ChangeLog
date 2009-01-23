@@ -1,4 +1,23 @@
-2009-01-23  Paul Reilly  <pmr@pajato.com>
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-buffer-swapped): Mark as permanent local.
+
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+2009-01-22  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el
+	(newsticker-treeview-next-new-or-immortal-item): New optional arg
+	current-item-counts.  Move to next feed if necessary.  (Bug#1569)
+	(newsticker-treeview-prev-new-or-immortal-item): Move to previous
+	feed if necessary.  (Bug#1569)
+	(newsticker-treeview-next-feed)
+	(newsticker-treeview-prev-feed): New optional arg stay-in-tree.
+	Don't activate node nil.  (Bug#1569)
+
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 	    Henrik Enberg  <enberg@printf.se>
 	    Alex Schroeder  <alex@gnu.org>
 	    Chong Yidong  <cyd@stupidchicken.com>
@@ -132,25 +151,6 @@
 	(rmail-summary-mode-map): Rebind "o" to rmail-summary-output.
 	(rmail-summary-goto-msg): Use rmail-show-message-maybe.
 	(rmail-summary-expunge-and-save): Use rmail-expunge-and-save.
-
-2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
-
-	* mail/rmail.el (rmail-buffer-swapped): Mark as permanent local.
-
-2009-01-23  Glenn Morris  <rgm@gnu.org>
-
-	* Makefile.in (ELCFILES): Update.
-
-2009-01-22  Ulf Jasper  <ulf.jasper@web.de>
-
-	* net/newst-treeview.el
-	(newsticker-treeview-next-new-or-immortal-item): New optional arg
-	current-item-counts.  Move to next feed if necessary.  (Bug#1569)
-	(newsticker-treeview-prev-new-or-immortal-item): Move to previous
-	feed if necessary.  (Bug#1569)
-	(newsticker-treeview-next-feed)
-	(newsticker-treeview-prev-feed): New optional arg stay-in-tree.
-	Don't activate node nil.  (Bug#1569)
 
 2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
