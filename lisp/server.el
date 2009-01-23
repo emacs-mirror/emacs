@@ -200,7 +200,13 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
-(defvar server-name "server")
+(defcustom server-name "server"
+  "The name of the Emacs server, if this Emacs process creates one.
+The command `server-start' makes use of this.  It should not be
+changed while a server is running."
+  :group 'server
+  :type 'string
+  :version "23.1")
 
 (defvar server-socket-dir
   (and (featurep 'make-network-process '(:family local))
