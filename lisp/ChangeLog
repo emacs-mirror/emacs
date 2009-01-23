@@ -1,3 +1,8 @@
+2009-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmail.el (rmail-write-region-annotate): Only switch buffer if
+	start is nil, as was done in tar-mode.el.
+
 2009-01-23  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (mail-bury): Revert previous change now pmail is no

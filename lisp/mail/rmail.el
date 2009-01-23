@@ -3878,7 +3878,7 @@ encoded string (and the same mask) will decode the string."
 
 ;; Used in `write-region-annotate-functions' to write rmail files.
 (defun rmail-write-region-annotate (start end)
-  (when (rmail-buffers-swapped-p)
+  (when (and (null start) (rmail-buffers-swapped-p))
     (set-buffer rmail-view-buffer)
     (widen)
     nil))
