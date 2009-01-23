@@ -921,6 +921,10 @@ way as gud-mode does for debugging C programs with gdb.
 remote files, if there is no established connection to the
 corresponding remote host.
 
+** Rmail
+
+FIXME mbox merge details
+
 ** TeX modes
 ---
 *** New option latex-indent-within-escaped-parens
