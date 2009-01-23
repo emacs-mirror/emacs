@@ -1,3 +1,7 @@
+2009-01-23  Stephen Eglen  <stephen@gnu.org>
+
+	* mh-e.texi (Getting Started): Describe $MH.
+
 2009-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (all): Harmonize usage of "external method",
