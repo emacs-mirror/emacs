@@ -1,6 +1,6 @@
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/rmailsum.el: (rmail-summary-expunge-and-save): Use
+	* mail/rmailsum.el (rmail-summary-expunge-and-save): Use
 	rmail-expunge-and-save.
 
 	* mail/rmail.el (buffer-swapped-with): Var removed.
@@ -342,12 +342,6 @@
 	(rmail-sort-messages): Insert two newlines at the end of the
 	message if they do not exist.
 
-	* mail/rmailmm.el: Require mail-parse.
-	(rmail-mime-show): Don't use removed function
-	rmail-header-hide-headers.
-	(rmail-mime): Use rmail-msgbeg and rmail-msgend instead of removed
-	rmail-desc-* functions.
-
 	* mail/rmailkwd.el: Sync with rmailkwd.el.
 
 	* mail/rmailout.el: Sync with rmailout.el.
@@ -501,7 +495,7 @@
 
 2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* mail/rmail.el, mail/rmaildesc.el, mail/rmailkwd.el, mail/rmailmm.el:
+	* mail/rmail.el, mail/rmaildesc.el, mail/rmailkwd.el:
 	* mail/rmailmsc.el, mail/rmailsort.el, mail/rmailsum.el:
 	Resolve all byte compiler warnings and enable IMAP/movemail support.
 
@@ -586,15 +580,6 @@
 
 2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* mail/rmailmm.el (rmail-mime-text-handler): Only downcase if charset
-	exists.
-	(rmail-mime-handle): Doc.  Ignore errors when decoding base64.
-	Seems to be common on my system.
-	(rmail-mime-show): Change show-header code.
-	(rmail-mime): New.
-
-2009-01-22  Alex Schroeder  <alex@gnu.org>
-
 	* mail/rmail.el (qp): No longer require it.
 	(rmail-convert-file): Doc.  Remove useless test for coding system
 	header.  Don't call rmail-decode-mbox-format.  Just call
@@ -606,21 +591,6 @@
 	(rmail-maybe-set-message-counters): Delete.
 	(rmail-next-undeleted-message): Add caching of rmail-current-message
 	such that it doesn't break when rmail-show-message switches buffers.
-
-2009-01-22  Alex Schroeder  <alex@gnu.org>
-
-	* mail/rmailmm.el (rmail-mime-media-type-handlers-alist):
-	Remove non-existing handlers for the moment.
-	(rmail-mime-text-handler): Do decoding based on the charset parameter.
-	(test-rmail-mime-handler): Test decoding using an 8bit KOI8 message.
-	(rmail-mime-handle): Switch to unibyte if content transfer
-	encoding is 8bit.  Strange that it should be necessary.
-
-2009-01-22  Alex Schroeder  <alex@gnu.org>
-
-	* mail/rmailmm.el: Rename all symbols to rmail-mime-*.  Rewrite code
-	to modify the buffer instead of using display properties.
-	Fix bulk handler, and add simple test defun for it.
 
 2009-01-22  Alex Schroeder  <alex@gnu.org>
 
