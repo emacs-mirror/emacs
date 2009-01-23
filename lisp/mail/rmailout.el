@@ -594,9 +594,5 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
   (if rmail-delete-after-output
       (rmail-delete-forward)))
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 4059abf0-f249-4be4-8e0d-602d370d01d1
 ;;; rmailout.el ends here
