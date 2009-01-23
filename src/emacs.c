@@ -1117,9 +1117,10 @@ main (int argc, char **argv)
 
 #ifndef NS_IMPL_COCOA
       f = fork ();
-#else
-      /* Under Cocoa we must do fork+exec:
-   (http://developer.apple.com/ReleaseNotes/CoreFoundation/CoreFoundation.html)
+#else /* NS_IMPL_COCOA */
+      /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
+         forked process: http://developer.apple.com/ReleaseNotes/
+                                  CoreFoundation/CoreFoundation.html)
          We mark being in the exec'd process by a daemon name argument of
          form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
          NAME is the original daemon name, if any. */
@@ -1127,7 +1128,7 @@ main (int argc, char **argv)
 	  f = fork ();  /* in orig */
       else
 	  f = 0;  /* in exec'd */
-#endif
+#endif /* NS_IMPL_COCOA */
       if (f > 0)
 	{
 	  int retval;
@@ -1165,9 +1166,9 @@ main (int argc, char **argv)
 
 #ifdef NS_IMPL_COCOA
       {
-        /* in orig process, forked as child, OR in exec'd */
+        /* In orig process, forked as child, OR in exec'd. */
         if (!dname_arg || !strchr (dname_arg, '\n'))
-          {  /* in orig, child: now exec w/special daemon name */
+          {  /* In orig, child: now exec w/special daemon name. */
             char fdStr[80];
 
             if (dname_arg && strlen (dname_arg) > 70)
@@ -1185,7 +1186,7 @@ main (int argc, char **argv)
             exit (1);
           }
 
-        /* in exec'd: parse special dname into pipe and name info */
+        /* In exec'd: parse special dname into pipe and name info. */
         if (!dname_arg || !strchr (dname_arg, '\n')
             || strlen (dname_arg) < 1 || strlen (dname_arg) > 70)
           {
@@ -1197,7 +1198,7 @@ main (int argc, char **argv)
                 dname_arg2);
         dname_arg = strlen (dname_arg2) ? dname_arg2 : NULL;
       }
-#endif
+#endif /* NS_IMPL_COCOA */
 
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
