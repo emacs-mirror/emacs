@@ -791,7 +791,7 @@ Prefix arg means don't delete this window."
 	     (not (one-window-p))
 	     (with-current-buffer
                  (window-buffer (next-window (selected-window) 'not))
-	       (setq rmail-flag (memq major-mode '(rmail-mode pmail-mode)))
+	       (setq rmail-flag (eq major-mode 'rmail-mode))
 	       (setq summary-buffer
 		     (and mail-bury-selects-summary
 			  (boundp 'rmail-summary-buffer)

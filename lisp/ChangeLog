@@ -1,3 +1,10 @@
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Revert previous change now pmail is no
+	more.
+
+	* mail/uce.el (rmail-msg-is-pruned): Remove declaration of deleted func.
+
 2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-name): Make it a defcustom.
