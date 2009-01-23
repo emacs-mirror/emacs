@@ -344,8 +344,6 @@
 	* mail/rmailedit.el (rmail-edit-current-message): Remove deleted
 	function rmail-msg-is-pruned.
 
-	* mail/rmaildesc.el: File deleted.
-
 	* mail/rmail.el (rmail-get-header): Call rmail-swap-buffers-maybe.
 	(rmail-retry-failure): Remove call to non-existent function
 	rmail-clear-headers.
@@ -449,7 +447,7 @@
 
 2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* mail/rmail.el, mail/rmaildesc.el, mail/rmailout.el:
+	* mail/rmail.el, mail/rmailout.el:
 	Fix the expunge command so that the current message index is correct.
 
 	* mail/rmail.el (rmail-expunge-counter): New variable.
@@ -463,35 +461,22 @@
 	(rmail-expunge-callback): Simplify.  Just count the expunged messages
 	with a lower index than the current message index.
 
-	* mail/rmaildesc.el (rmail-desc-get-previous): Fix an "off by one"
-	issue.
-	(rmail-desc-set-attribute): Canonicalize the calling sequence to index,
-	attribute, state.
-
 	* mail/rmailout.el (rmail-output-body-to-file): Use the canonical
 	calling sequence.
 
-2009-01-22  Juanma Barranquero  <lekktu@gmail.com>
-
-	* mail/rmaildesc.el (rmail-desc-get-match-index): Fix malformed let
-	binding.
-
 2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* mail/rmail.el, mail/rmaildesc.el: Fix the expunge operation.
+	* mail/rmail.el: Fix the expunge operation.
 
 	* mail/rmail.el (rmail-only-expunge): Manage rmail-total-messages in the
 	callback handler; remove the extra show message call.
 	(rmail-expunge-callback): Rewrite to handle all possible conditions.
 
-	* mail/rmaildesc.el (rmail-desc-get-previous)
-	(rmail-desc-get-match-index): New functions.
-
 2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* mail/rmail.el, mail/rmaildesc.el, mail/rmailkwd.el:
-	* mail/rmailmsc.el, mail/rmailsort.el, mail/rmailsum.el:
-	Resolve all byte compiler warnings and enable IMAP/movemail support.
+	* mail/rmail.el, mail/rmailkwd.el, mail/rmailmsc.el, mail/rmailsort.el:
+	* mail/rmailsum.el: Resolve all byte compiler warnings and enable
+	IMAP/movemail support.
 
 2009-01-22  Henrik Enberg  <enberg@printf.se>
 
@@ -525,9 +510,6 @@
 
 	* mail/rmail.el (rmail-narrow-to-header): Don't end error message with
 	a period.
-
-	* mail/rmaildesc.el (rmail-desc-get-header-display-state): Make sure
-	whole header region is searched for overlays.
 
 	* mail/rmailedit.el (rmail-edit-current-message):
 	Use rmail-head-show-headers instead of rmail-toggle-header.
@@ -680,9 +662,6 @@
 
 2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* mail/rmaildesc.el (rmail-desc-default-attrs): New const.
-	(rmail-desc-get-default-attrs): Delete.
-
 	* mail/rmail.el (rmail): Go back to using find-file for reading in the
 	mail file.  This avoids gratuitous modification of the file.
 	(rmail-decode-region): Doc string, cleanup.
@@ -729,9 +708,6 @@
 	(rmail-toggle-header, rmail-show-message): Don't call
 	rmail-highlight-headers anymore.
 	(rmail-highlight-headers): Delete.
-
-	* mail/rmaildesc.el (rmail-desc-set-attribute): Use
-	rmail-header-add-header instead of rmail-header-set-header.
 
 	* mail/rmail.el (rmail-msgbeg, rmail-msgend): Fix and make obsolete.
 	(rmail-process-new-messages): Use mail-decode-encoded-word-string
@@ -838,11 +814,6 @@
 	(rmail-set-label): Display labels at the end.
 
 	* mail/rmailedit.el (rmail-cease-edit): Bugfix.
-
-	* mail/rmaildesc.el: Remove require statements.
-	(rmail-desc-add-keyword, rmail-desc-remove-keyword): Rewrite.
-	(rmail-desc-get-keywords, rmail-desc-get-keyword-list)
-	(rmail-desc-edited-index): Doc fix.
 
 	* mail/rmail.el (rmail-set-attribute): Move comment into document.
 
@@ -989,8 +960,6 @@
 	(unrmail, batch-unrmail): Now aliases.
 
 2009-01-22  Richard M. Stallman  <rms@gnu.org>
-
-	* mail/rmaildesc.el (rmail-message-deleted-p): Add as alias.
 
 	* mail/rmail.el (rmail-message-vector, rmail-deleted-vector)
 	(rmail-msgref-vector, rmail-summary-vector): Delete vars, and
