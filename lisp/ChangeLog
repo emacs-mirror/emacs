@@ -1,3 +1,7 @@
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
 2009-01-22  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el
