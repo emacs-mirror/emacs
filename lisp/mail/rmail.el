@@ -1279,8 +1279,8 @@ Create the buffer if necessary."
   (let* ((suffix (file-name-nondirectory (or buffer-file-name (buffer-name))))
 	 (name (format " *message-viewer %s*" suffix))
 	 (buf (get-buffer name)))
-    (unless buf
-      (generate-new-buffer name))))
+    (or buf
+	(generate-new-buffer name))))
 
 (defun rmail-change-major-mode-hook ()
   ;; Bring the actual Rmail messages back into the main buffer.
