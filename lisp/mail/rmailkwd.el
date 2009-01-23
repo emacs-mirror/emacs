@@ -144,7 +144,7 @@ With prefix argument N moves forward N messages with these labels."
 	(current rmail-current-message)
 	(regexp (concat " \\("
 			(mail-comma-list-regexp labels)
-			"\\)")))
+			"\\)\\(,\\|\\'\\)")))
     (while (and (> n 0) (< current rmail-total-messages))
       (setq current (1+ current))
       (if (string-match regexp (rmail-get-labels current))
