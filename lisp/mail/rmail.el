@@ -2055,11 +2055,12 @@ If nil, that means the current message."
 It is put in comma-separated form.
 MSG, if non-nil, identifies the message number to use.
 If nil, that means the current message."
+  (or msg (setq msg rmail-current-message))
   (let (blurb attr-names keywords)
     ;; Combine the message attributes and keywords 
     ;; into a comma-separated list.
-    (setq attr-names (rmail-get-attr-names rmail-current-message)
-	  keywords (rmail-get-keywords rmail-current-message))
+    (setq attr-names (rmail-get-attr-names msg)
+	  keywords (rmail-get-keywords msg))
     (if (string= keywords "")
 	(setq keywords nil))
     (cond
