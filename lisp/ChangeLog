@@ -7,6 +7,7 @@
 	return value of rmail-get-labels.
 
 	* mail/rmail.el (rmail-get-labels): Obey the MSG argument.
+	(rmail-buffer-swapped): Fix last change.
 
 2009-01-23  Ulf Jasper  <ulf.jasper@web.de>
 
