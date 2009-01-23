@@ -1,3 +1,8 @@
+2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-insert-working-text, ns-put-working-text): Switch
+	names and update comments for clarity.
+
 2009-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/rmail.el (rmail-write-region-annotate): Only switch buffer if

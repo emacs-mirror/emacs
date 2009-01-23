@@ -815,15 +815,16 @@ is currently being used."
 		    (eq (get-char-property (1- (point)) 'composition)
 			(get-char-property (point) 'composition)))))))
 
-;; Currently not used, doesn't work because the 'interactive' here stays
-;; for subinvocations.
-(defun ns-insert-working-text ()
+;; The 'interactive' here stays for subinvocations, so the ns-in-echo-area
+;; always returns nil for some reason.  If this WASN'T the case, we could
+;; map this to [ns-insert-working-text] and eliminate Fevals in nsterm.m.
+(defun ns-put-working-text ()
   (interactive)
-  (if (ns-in-echo-area) (ns-echo-working-text) (ns-put-working-text)))
+  (if (ns-in-echo-area) (ns-echo-working-text) (ns-insert-working-text)))
 
 (defvar ns-working-text)		; nsterm.m
 
-(defun ns-put-working-text ()
+(defun ns-insert-working-text ()
   "Insert contents of ns-working-text as UTF8 string and mark with
 ns-working-overlay.  Any previously existing working text is cleared first.
 The overlay is assigned the face ns-working-text-face."
