@@ -402,9 +402,5 @@ This calls `rmail-mime-show' to do the real job."
 
 (provide 'rmailmm)
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
 ;;; rmailmm.el ends here
