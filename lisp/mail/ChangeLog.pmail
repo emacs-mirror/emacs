@@ -1,7 +1,5 @@
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/rmailhdr.el: File removed.
-
 	* mail/rmailsum.el: (rmail-summary-expunge-and-save): Use
 	rmail-expunge-and-save.
 
@@ -47,8 +45,7 @@
 	(rmail-use-viewer-buffer): Fns deleted.
 	Other functions reordered but not changed.
 
-	* mail/rmailsort.el (rmailhdr): Don't require it.
-	(rmail-fetch-field): Function deleted.
+	* mail/rmailsort.el (rmail-fetch-field): Function deleted.
 	Callers use rmail-get-header.
 	(rmail-sort-messages): Replace point-offset with
 	return-to-point, which can be nil.
@@ -210,8 +207,8 @@
 	(rmail-message-labels-p, rmail-message-recipients-p)
 	(rmail-message-regexp-p): Mark as broken.
 
-	* mail/rmailedit.el (rmailhdr): Don't require it.
-	(rmail-edit-current-message): Don't call rmail-header-show-headers.
+	* mail/rmailedit.el (rmail-edit-current-message): Don't call
+	rmail-header-show-headers.
 	(rmail-cease-edit): Force a blank line at end of edited message.
 	Call rmail-set-attribute properly.
 	Don't set buffer-read-only.
@@ -344,7 +341,6 @@
 	* mail/rmailsort.el: Sync with rmailsort.el.
 	(rmail-sort-messages): Insert two newlines at the end of the
 	message if they do not exist.
-	(rmailhdr): Require rmailhdr.
 
 	* mail/rmailmm.el: Require mail-parse.
 	(rmail-mime-show): Don't use removed function
@@ -505,15 +501,9 @@
 
 2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* mail/rmail.el, mail/rmaildesc.el, mail/rmailhdr.el, mail/rmailkwd.el:
-	* mail/rmailmm.el, mail/rmailmsc.el, mail/rmailsort.el:
-	* mail/rmailsum.el: Resolve all byte compiler warnings and enable
-	IMAP/movemail support.
-
-2009-01-22  Henrik Enberg  <enberg@printf.se>
-
-	* mail/rmailhdr.el (rmail-header-add-header): Use delete-region instead
-	of kill-region.
+	* mail/rmail.el, mail/rmaildesc.el, mail/rmailkwd.el, mail/rmailmm.el:
+	* mail/rmailmsc.el, mail/rmailsort.el, mail/rmailsum.el:
+	Resolve all byte compiler warnings and enable IMAP/movemail support.
 
 2009-01-22  Henrik Enberg  <enberg@printf.se>
 
@@ -548,9 +538,6 @@
 
 	* mail/rmail.el (rmail-narrow-to-header): Don't end error message with
 	a period.
-
-	* mail/rmailhdr.el (rmail-header-get-limit): Don't end error message
-	with a period.
 
 	* mail/rmaildesc.el (rmail-desc-get-header-display-state): Make sure
 	whole header region is searched for overlays.
@@ -661,10 +648,6 @@
 	* mail/rmailkwd.el (rmail-next-labeled-message):
 	Don't call rmail-maybe-set-message-counters.  Use with-current-buffer.
 
-	* mail/rmailhdr.el (rmail-header-hide-headers): Simplify.
-	(rmail-header-get-limit): Wrap in a save-excursion.
-	(rmail-header-display-state): Rename from rmail-header-display-mode.
-
 2009-01-22  Henrik Enberg  <enberg@printf.se>
 
 	* mail/rmailsum.el (rmail-summary-show-message): Reformat.
@@ -707,10 +690,6 @@
 	(rmail-reply): Simplify code at the price of some efficiency when
 	setting up the variable bindings.  No longer toggle visibility of
 	headers, because rmail-header-show-headers is no longer necessary.
-
-	* mail/rmailhdr.el (rmail-header-get-header): Accept more arguments and
-	pass them to mail-fetch-field unchanged.
-	Bind inhibit-point-motion-hooks to t.
 
 	* mail/rmailsum.el (rmail-user-mail-address-regexp): Compute a default
 	value instead of assuming nil.  Doc.
@@ -790,15 +769,6 @@
 
 	* mail/rmaildesc.el (rmail-desc-set-attribute): Use
 	rmail-header-add-header instead of rmail-header-set-header.
-
-	* mail/rmailhdr.el (rmail-header-attribute-header)
-	(rmail-header-keyword-header, rmail-header-get-limit): Doc.
-	(rmail-header-add-header): Add inhibit-point-motion-hooks and
-	buffer-undo-list bindings from rmail-header-set-header.  I don't
-	know whether they are necessary, however.
-	(rmail-header-persist-attributes, rmail-header-set-header):
-	Delete.  rmail-header-add-header does what rmail-header-set-header did,
-	except throw an error if the header was not found.
 
 	* mail/rmail.el (rmail-msgbeg, rmail-msgend): Fix and make obsolete.
 	(rmail-process-new-messages): Use mail-decode-encoded-word-string
@@ -887,10 +857,6 @@
 
 2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* mail/rmailhdr.el (rmail-header-get-header): Rewrite to be a
-	convenience wrapper for mail-fetch-field.
-	(rmail-header-hide-headers): Simplify.
-
 	* mail/rmail.el (rmail-process-new-messages):
 	Use rmail-header-get-header instead of mail-fetch-field.
 
@@ -907,14 +873,6 @@
 	(rmail-kill-label): Only read labels that the current message has.
 	(rmail-read-label): Possibly only ask for existing labels.
 	(rmail-set-label): Display labels at the end.
-
-	* mail/rmailhdr.el (rmail-header-get-limit): Rewrite macro as simple
-	defun.
-	(rmail-header-persist-attributes): Doc.
-	(rmail-header-add-header): Simplify the finding of the header.
-	Delete header if value is nil or "".
-	(rmail-header-remove-keyword): Delet stub.  Removing can be
-	handled by calling `rmail-header-add-header' with value nil or "".
 
 	* mail/rmailedit.el (rmail-cease-edit): Bugfix.
 
