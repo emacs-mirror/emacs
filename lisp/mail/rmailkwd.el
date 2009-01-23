@@ -142,9 +142,9 @@ With prefix argument N moves forward N messages with these labels."
   (rmail-maybe-set-message-counters)
   (let ((lastwin rmail-current-message)
 	(current rmail-current-message)
-	(regexp (concat ", ?\\("
+	(regexp (concat " ?\\("
 			(mail-comma-list-regexp labels)
-			"\\),")))
+			"\\)")))
     (while (and (> n 0) (< current rmail-total-messages))
       (setq current (1+ current))
       (if (string-match regexp (rmail-get-labels current))
