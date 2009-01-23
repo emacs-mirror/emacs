@@ -41,8 +41,7 @@
 	(rmail-output-as-seen): Pass t to rmail-output-as-mbox.
 	(rmail-output): Call set-buffer later.
 
-	* mail/rmail.el (rmail-count-screen-lines, rmail-use-collection-buffer)
-	(rmail-use-viewer-buffer): Fns deleted.
+	* mail/rmail.el (rmail-count-screen-lines) Fn deleted.
 	Other functions reordered but not changed.
 
 	* mail/rmailsort.el (rmail-fetch-field): Function deleted.
@@ -106,8 +105,7 @@
 	* mail/rmail.el (basic-save-buffer): Protect buffer-modified flag
 	around first swap.
 	(rmail-show-message): Protect buffer-modified flag around swap.
-	(rmail-change-major-mode-hook): Likewise.
-	(rmail-use-collection-buffer, rmail-swap-buffers-maybe): Likewise.
+	(rmail-change-major-mode-hook, rmail-swap-buffers-maybe): Likewise.
 
 	* mail/rmail.el (rmail-error-bad-format): Always phrase the error as
 	about an invalid message.
@@ -236,21 +234,15 @@
 	* mail/rmail.el (rmail-swap-buffers-maybe): Variable deleted.
 	All uses call the function instead.
 
-	* mail/rmail.el (rmail-save): Function deleted.
-	(rmail-mode-map): Don't bind C-x C-s.
+	* mail/rmail.el (rmail-mode-map): Don't bind C-x C-s.
 	(rmail-mode-1): Don't set up write-region-annotate-functions.
 	(rmail-write-region-annotate): Function deleted.
 	(rmail-change-major-mode-hook): Set buffer-swapped-with.
-	(rmail-use-collection-buffer): Likewise.
 	(rmail-show-message): Likewise.
 
 	* mail/rmail.el (rmail-swap-buffers-maybe): Go to rmail-buffer before
 	testing anything.
 	(rmail): Call rmail-swap-buffers-maybe only if already in Rmail mode.
-
-2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
-
-	* mail/rmail.el (rmail-save): New function.
 
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -533,7 +525,7 @@
 	(rmail-deleted-label): Use an ordinary symbol.
 	(rmail-keywords): Doc, initial value nil.
 	(rmail-keywords, rmail-keyword-init): Delete defuns.
-	(rmail-attribute-p, rmail-keyword-p, rmail-make-label): Simplify.
+	(rmail-make-label): Simplify.
 	(rmail-keyword-register-keywords, rmail-install-keyword):
 	Replace.
 	(rmail-register-keywords, rmail-register-keyword): Replacements.
@@ -673,7 +665,6 @@
 	(rmail-fontify-message): Reformat, Doc String.
 	(rmail-displayed-headers): Default value set to nil.
 	(rmail-inbox-alist): Add version tag.
-	(rmail-count-screen-lines): Doc string.
 	(rmail-process-new-messages): Use rmail-desc-default-attrs.
 
 2009-01-22  Alex Schroeder  <alex@gnu.org>
@@ -990,8 +981,6 @@
 	* mail/rmail.el (rmail-convert-file, rmail-insert-rmail-file-header)
 	(rmail-convert-to-babyl-format): Delete functions.
 	(rmail-mode): Don't call rmail-convert-file.
-
-	* net/browse-url.el (browse-url-activate-urls): Add autoload.
 
 	* mail/rmailedit.el (rmail-edit-current-message):
 	Immediate error if file is empty.
