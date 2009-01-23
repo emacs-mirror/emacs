@@ -400,6 +400,12 @@ static EmacsImage *ImageList = nil;
 
           if ([bmRep numberOfPlanes] >= 3)
               [bmRep getBitmapDataPlanes: pixmapData];
+
+          /* The next two lines cause the DPI of the image to be ignored.
+             This seems to be the behavior users expect. */
+          [self setScalesWhenResized: YES];
+          [self setSize: NSMakeSize([bmRep pixelsWide], [bmRep pixelsHigh])];
+
           break;
         }
     }
