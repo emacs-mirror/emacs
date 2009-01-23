@@ -1,3 +1,7 @@
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-generate-viewer-buffer): Fix typo.
+
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-insert-working-text, ns-put-working-text): Switch
