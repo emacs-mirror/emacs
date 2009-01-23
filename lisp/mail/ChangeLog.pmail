@@ -1,545 +1,526 @@
-2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-buffer-swapped): Mark as permanent local.
+	* mail/rmailhdr.el: File removed.
 
-2009-01-18  Chong Yidong  <cyd@stupidchicken.com>
+	* mail/rmailsum.el: (rmail-summary-expunge-and-save): Use
+	rmail-expunge-and-save.
 
-	* pmailhdr.el: File removed.
+	* mail/rmail.el (buffer-swapped-with): Var removed.
+	(rmail-buffer-swapped): New var.
+	(rmail-write-region-annotate): New function.
+	(rmail-save-buffer): New function.
 
-	* pmailsum.el: (pmail-summary-expunge-and-save): Use
-	pmail-expunge-and-save.
+	* mail/rmailedit.el (rmail-cease-edit, rmail-edit-mode): Use
+	rmail-buffer-swapped.
 
-	* pmail.el (buffer-swapped-with): Var removed.
-	(pmail-buffer-swapped): New var.
-	(pmail-write-region-annotate): New function.
-	(pmail-save-buffer): New function.
+2009-01-22  Glenn Morris  <rgm@gnu.org>
 
-	* pmailedit.el (pmail-cease-edit, pmail-edit-mode): Use
-	pmail-buffer-swapped.
+	* mail/rmailkwd.el (rmail-last-label, rmail-last-multi-labels):
+	Move back to rmail.el.
+	* mail/rmail.el (rmail-last-label, rmail-last-multi-labels):
+	Move back here from rmailkwd.el.
 
-2009-01-20  Glenn Morris  <rgm@gnu.org>
+	* mail/rmailsum.el (rmail-message-labels-p): Move back to rmail.el.
+	* mail/rmail.el (rmail-message-labels-p): Move back here from
+	rmailsum.el.
 
-	* pmailkwd.el (pmail-last-label, pmail-last-multi-labels):
-	Move back to pmail.el.
-	* pmail.el (pmail-last-label, pmail-last-multi-labels):
-	Move back here from pmailkwd.el.
+2009-01-22  Glenn Morris  <rgm@gnu.org>
 
-	* pmailsum.el (pmail-message-labels-p): Move back to pmail.el.
-	* pmail.el (pmail-message-labels-p): Move back here from pmailsum.el.
+	* mail/rmailout.el (rmail-update-summary): Declare.
 
-2009-01-16  Glenn Morris  <rgm@gnu.org>
+	* mail/rmailsum.el (rmail-summary-mode-map)
+	(rmail-summary-output-to-rmail-file): Use rmail-summary-output
+	rather than rmail-summary-output-to-babyl-file (renamed 2009-01-05).
+	(rmail-output-as-seen): Declare.
+	(rmail-summary-output): Also require rmailout non-interactively.
 
-	* pmailout.el (pmail-update-summary): Declare.
+2009-01-22  Richard M Stallman  <rms@gnu.org>
 
-	* pmailsum.el (pmail-summary-mode-map)
-	(pmail-summary-output-to-pmail-file): Use pmail-summary-output
-	rather than pmail-summary-output-to-babyl-file (renamed 2009-01-05).
-	(pmail-output-as-seen): Declare.
-	(pmail-summary-output): Also require pmailout non-interactively.
+	* mail/rmailout.el (rmail-output-to-r-mail-buffer): New function.
+	(rmail-output-as-babyl): Use it.
+	(rmail-output-to-rmail-buffer): New function.
+	(rmail-output-as-mbox): Use it.
+	(rmail-output-as-seen): Pass t to rmail-output-as-mbox.
+	(rmail-output): Call set-buffer later.
 
-2009-01-10  Richard M Stallman  <rms@gnu.org>
-
-	* pmailout.el (pmail-output-to-r-mail-buffer): New function.
-	(pmail-output-as-babyl): Use it.
-	(pmail-output-to-pmail-buffer): New function.
-	(pmail-output-as-mbox): Use it.
-	(pmail-output-as-seen): Pass t to pmail-output-as-mbox.
-	(pmail-output): Call set-buffer later.
-
-	* pmail.el (pmail-count-screen-lines, pmail-use-collection-buffer)
-	(pmail-use-viewer-buffer): Fns deleted.
+	* mail/rmail.el (rmail-count-screen-lines, rmail-use-collection-buffer)
+	(rmail-use-viewer-buffer): Fns deleted.
 	Other functions reordered but not changed.
 
-	* pmailsort.el (pmailhdr): Don't require it.
-	(pmail-fetch-field): Function deleted.
-	Callers use pmail-get-header.
-	(pmail-sort-messages): Replace point-offset with
+	* mail/rmailsort.el (rmailhdr): Don't require it.
+	(rmail-fetch-field): Function deleted.
+	Callers use rmail-get-header.
+	(rmail-sort-messages): Replace point-offset with
 	return-to-point, which can be nil.
-	Call pmail-swap-buffers-maybe after that.
+	Call rmail-swap-buffers-maybe after that.
 	Don't bind buffer-read-only.  Bind inhibit-read-only.
 	Be more careful in making blank line at end of msg.
 	Don't enable undo at end.
 
-	* pmail.el (pmail-ignored-headers): Hide more fields.
-	(pmail-next-undeleted-message): If we stay on same message,
+	* mail/rmail.el (rmail-ignored-headers): Hide more fields.
+	(rmail-next-undeleted-message): If we stay on same message,
 	don't change anything.
 
-2009-01-08  Glenn Morris  <rgm@gnu.org>
+2009-01-22  Glenn Morris  <rgm@gnu.org>
 
-	* pmailmsc.el (pmail-show-message): Fix declaration.
+	* mail/rmailmsc.el (rmail-show-message): Fix declaration.
 
-	* pmailsum.el (pmail-output-read-pmail-file-name): Remove declaration.
+	* mail/rmailsum.el (rmail-output-read-rmail-file-name):
+	Remove declaration.
 
-2009-01-05  Richard M Stallman  <rms@gnu.org>
+2009-01-22  Richard M Stallman  <rms@gnu.org>
 
-	* pmailkwd.el: Require pmail; delete compiler defvars.
+	* mail/rmailkwd.el: Require rmail; delete compiler defvars.
 	Delete most declare-function calls.
-	(pmail-keywords, pmail-deleted-label, pmail-attributes): Vars deleted.
-	(pmail-attribute-p, pmail-keyword-p): Fns deleted.
-	(pmail-keywords, pmail-parse-file-keywords, pmail-install-keyword):
-	(pmail-force-make-label, pmail-quote-label-name): Fns deleted.
-	(pmail-last-label, pmail-last-multi-labels): Vars moved from pmail.el.
-	(pmail-read-label): Don't switch buffers, don't parse file keywords.
-	(pmail-set-label): Major rewrite.
-	(pmail-next-labeled-message): Call pmail-get-labels and match it.
+	(rmail-keywords, rmail-deleted-label, rmail-attributes): Vars deleted.
+	(rmail-attribute-p, rmail-keyword-p): Fns deleted.
+	(rmail-keywords, rmail-parse-file-keywords, rmail-install-keyword):
+	(rmail-force-make-label, rmail-quote-label-name): Fns deleted.
+	(rmail-last-label, rmail-last-multi-labels): Vars moved from rmail.el.
+	(rmail-read-label): Don't switch buffers, don't parse file keywords.
+	(rmail-set-label): Major rewrite.
+	(rmail-next-labeled-message): Call rmail-get-labels and match it.
 
-	* pmailsum.el (pmail-message-labels-p): Function moved from
-	pmail.el and rewritten.
-	(pmail-message-recipients-p): Likewise.
-	(pmail-message-regexp-p): Likewise.
-	(pmail-message-recipients-p-1): New subroutine.
-	(pmail-message-regexp-p-1): Likewise.
-	(pmail-summary-by-topic): Use pmail-simplified-subject.
+	* mail/rmailsum.el (rmail-message-labels-p): Function moved from
+	rmail.el and rewritten.
+	(rmail-message-recipients-p): Likewise.
+	(rmail-message-regexp-p): Likewise.
+	(rmail-message-recipients-p-1): New subroutine.
+	(rmail-message-regexp-p-1): Likewise.
+	(rmail-summary-by-topic): Use rmail-simplified-subject.
 	Delete subject-re variable.
-	(pmail-message-subject-p): Total rewrite.
-	(pmail-message-senders-p): Total rewrite.
-	(pmail-new-summary-1): Call FUNCTION in the main Pmail buffer.
-	(pmail-get-summary): Doc fix.
-	(pmail-create-summary-line): Renamed from
-	pmail-get-create-summary-line, and major rewrite.
-	(pmail-get-summary-labels): Doc fix.
-	(pmail-create-summary): Major rewrite.  Construct line counts here.
-	(pmail-header-summary): Renamed from pmail-make-basic-summary-line.
+	(rmail-message-subject-p): Total rewrite.
+	(rmail-message-senders-p): Total rewrite.
+	(rmail-new-summary-1): Call FUNCTION in the main Rmail buffer.
+	(rmail-get-summary): Doc fix.
+	(rmail-create-summary-line): Renamed from
+	rmail-get-create-summary-line, and major rewrite.
+	(rmail-get-summary-labels): Doc fix.
+	(rmail-create-summary): Major rewrite.  Construct line counts here.
+	(rmail-header-summary): Renamed from rmail-make-basic-summary-line.
 	Return list of two strings.
-	(pmail-summary-next-same-subject): Extract subjects and compare.
-	(pmail-summary-output): Renamed from pmail-summary-output-to-babyl-file.
-	Use pmail-output.
-	(pmail-summary-output-as-seen): Renamed from pmail-summary-output.
-	Use pmail-output-as-seen.
-	(pmail-summary-construct-io-menu): Use pmail-summary-output.
+	(rmail-summary-next-same-subject): Extract subjects and compare.
+	(rmail-summary-output): Renamed from rmail-summary-output-to-babyl-file.
+	Use rmail-output.
+	(rmail-summary-output-as-seen): Renamed from rmail-summary-output.
+	Use rmail-output-as-seen.
+	(rmail-summary-construct-io-menu): Use rmail-summary-output.
 
-	* pmail.el (basic-save-buffer): Protect buffer-modified flag
+	* mail/rmail.el (basic-save-buffer): Protect buffer-modified flag
 	around first swap.
-	(pmail-show-message): Protect buffer-modified flag around swap.
-	(pmail-change-major-mode-hook): Likewise.
-	(pmail-use-collection-buffer, pmail-swap-buffers-maybe): Likewise.
+	(rmail-show-message): Protect buffer-modified flag around swap.
+	(rmail-change-major-mode-hook): Likewise.
+	(rmail-use-collection-buffer, rmail-swap-buffers-maybe): Likewise.
 
-	* pmail.el (pmail-error-bad-format): Always phrase the error as
+	* mail/rmail.el (rmail-error-bad-format): Always phrase the error as
 	about an invalid message.
-	(pmail-convert-file-maybe): Don't use pmail-error-bad-format.
-	(pmail-mode-map): Move pmail-widen to C-c C-w.
-	(pmail-mode-1): Don't alter mode-line-modified.
-	(pmail-perm-variables): Turn off undo in view buffer.
-	(pmail-variables): Turn off undo.
-	(pmail-show-message): Delete useless calls to `widen'.
+	(rmail-convert-file-maybe): Don't use rmail-error-bad-format.
+	(rmail-mode-map): Move rmail-widen to C-c C-w.
+	(rmail-mode-1): Don't alter mode-line-modified.
+	(rmail-perm-variables): Turn off undo in view buffer.
+	(rmail-variables): Turn off undo.
+	(rmail-show-message): Delete useless calls to `widen'.
 	Avoid passing thru temp buffer if we don't need
 	base64 or quoted printable decoding for whole message.
 
-	* pmail.el (pmail-keywords): Variable deleted.
-	(pmail-last-label, pmail-last-multi-labels): Moved to pmailkwd.el.
-	(pmail-perm-variables): Don't mess with pmail-last-label.
-	Don't mess with pmail-keywords.
-	(pmail-copy-headers): Doc fix.
-	(pmail-set-header): New function.
-	(pmail-get-keywords): Doc fix.
-	(pmail-get-labels): New function.
-	(pmail-display-labels): Use pmail-get-labels.
-	(pmail-set-attribute): Mark pmail-buffer modified
+	* mail/rmail.el (rmail-keywords): Variable deleted.
+	(rmail-last-label, rmail-last-multi-labels): Moved to rmailkwd.el.
+	(rmail-perm-variables): Don't mess with rmail-last-label.
+	Don't mess with rmail-keywords.
+	(rmail-copy-headers): Doc fix.
+	(rmail-set-header): New function.
+	(rmail-get-keywords): Doc fix.
+	(rmail-get-labels): New function.
+	(rmail-display-labels): Use rmail-get-labels.
+	(rmail-set-attribute): Mark rmail-buffer modified
 	if we change an attribute.
 
-	* pmail.el (pmail-apply-in-message): New function.
-	(pmail-message-labels-p): Function moved to pmailsum.el.
-	(pmail-message-recipients-p, pmail-message-regexp-p): Likewise.
-	(pmail-current-subject, pmail-current-subject-regexp): Fns deleted.
-	(pmail-simplified-subject, pmail-simplified-subject-regexp): New fns.
-	(pmail-next-same-subject): Fetch each msg's subject and compare.
+	* mail/rmail.el (rmail-apply-in-message): New function.
+	(rmail-message-labels-p): Function moved to rmailsum.el.
+	(rmail-message-recipients-p, rmail-message-regexp-p): Likewise.
+	(rmail-current-subject, rmail-current-subject-regexp): Fns deleted.
+	(rmail-simplified-subject, rmail-simplified-subject-regexp): New fns.
+	(rmail-next-same-subject): Fetch each msg's subject and compare.
 
-	* pmail.el (pmail-speedbar-move-message): Use pmail-output.
-	(pmail-construct-io-menu): Use pmail-output.
-	(pmail-default-pmail-file): Variable deleted.
-	(pmail-auto-file): Use pmail-output.
-	(pmail-mode-map): Remove pmail-output-to-babyl-file.
-	Add pmail-output-as-seen.
-	(pmail-mode): Update output commands in doc string.
+	* mail/rmail.el (rmail-speedbar-move-message): Use rmail-output.
+	(rmail-construct-io-menu): Use rmail-output.
+	(rmail-default-rmail-file): Variable deleted.
+	(rmail-auto-file): Use rmail-output.
+	(rmail-mode-map): Remove rmail-output-to-babyl-file.
+	Add rmail-output-as-seen.
+	(rmail-mode): Update output commands in doc string.
 
-2008-12-31  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (buffer-swapped-with): New var, moved from files.el.
+	* mail/rmail.el (buffer-swapped-with): New var, moved from files.el.
 	Add advice to basic-save-buffer to use it.
 
-2008-12-29  Richard M Stallman  <rms@gnu.org>
+2009-01-22  Richard M Stallman  <rms@gnu.org>
 
-	* pmailedit.el (pmail-edit-mode): Bind buffer-swwapped-with to nil.
-	(pmail-edit-current-message): Save all of buffer as old text.
+	* mail/rmailedit.el (rmail-edit-mode): Bind buffer-swwapped-with to nil.
+	(rmail-edit-current-message): Save all of buffer as old text.
 	Clear undo list.
-	(pmail-cease-edit): Widen first.
+	(rmail-cease-edit): Widen first.
 	Operate in the view buffer; copy edited text back to mbox buffer
 	and re-encode what was decoded to display the message.
-	(pmail-abort-edit): Widen first.
+	(rmail-abort-edit): Widen first.
 
-	* pmail.el (pmail-forwarded-attr-index): Doc fix.
-	(pmail-resent-attr-index): New variable.
-	(pmail-attr-array): Add r for resent.
-	(pmail-add-mbox-headers): Make 8 attributes.
-	(pmail-set-attribute): Extend attribute line if necessary.
+	* mail/rmail.el (rmail-forwarded-attr-index): Doc fix.
+	(rmail-resent-attr-index): New variable.
+	(rmail-attr-array): Add r for resent.
+	(rmail-add-mbox-headers): Make 8 attributes.
+	(rmail-set-attribute): Extend attribute line if necessary.
 
-	* pmail.el (pmail-widen): New command.
-	(pmail-mode-map): o is pmail-output, C-o is pmail-output-as-seen,
-	(pmail-mode-map): c-w is pmail-widen.
-	(pmail-change-major-mode-hook): Do nothing unless buffer-swapped-with.
-	(pmail-show-message): Downcase character-coding.
+	* mail/rmail.el (rmail-widen): New command.
+	(rmail-mode-map): o is rmail-output, C-o is rmail-output-as-seen,
+	(rmail-mode-map): c-w is rmail-widen.
+	(rmail-change-major-mode-hook): Do nothing unless buffer-swapped-with.
+	(rmail-show-message): Downcase character-coding.
 
-	* pmailout.el (pmail-output-decode-coding): New variable.
-	(pmail-delete-unwanted-fields): Greatly simplified.
-	(pmail-output-as-babyl): New function.
-	(pmail-convert-to-babyl-format): Considerably simplified:
+	* mail/rmailout.el (rmail-output-decode-coding): New variable.
+	(rmail-delete-unwanted-fields): Greatly simplified.
+	(rmail-output-as-babyl): New function.
+	(rmail-convert-to-babyl-format): Considerably simplified:
 	assume just one message and don't worry about Content-Type.
-	(pmail-output-as-mbox): New function.
-	(pmail-output): Total rewrite.
-	(pmail-output-as-seen): New command.
-	(pmail-output-read-pmail-file-name): Function deleted.
-	(pmail-output-to-babyl-file): Function deleted.
-	(pmail-output-body-to-file): Don't set an attribute.
+	(rmail-output-as-mbox): New function.
+	(rmail-output): Total rewrite.
+	(rmail-output-as-seen): New command.
+	(rmail-output-read-rmail-file-name): Function deleted.
+	(rmail-output-to-babyl-file): Function deleted.
+	(rmail-output-body-to-file): Don't set an attribute.
 
-2008-12-23  Richard M Stallman  <rms@gnu.org>
+2009-01-22  Richard M Stallman  <rms@gnu.org>
 
-	* pmailedit.el (pmail-edit-saved-coding-system): Var deleted.
-	(pmail-edit-current-message, pmail-cease-edit):
+	* mail/rmailedit.el (rmail-edit-saved-coding-system): Var deleted.
+	(rmail-edit-current-message, rmail-cease-edit):
 	Don't set it, or save-buffer-coding-system.
-	(pmail-edit-current-message): Change error message.
-	(pmail-cease-edit): Put `>' before `From ' lines in message.
+	(rmail-edit-current-message): Change error message.
+	(rmail-cease-edit): Put `>' before `From ' lines in message.
 
-	* pmail.el (pmail-variables): Don't set save-buffer-coding-system.
+	* mail/rmail.el (rmail-variables): Don't set save-buffer-coding-system.
 
-	* pmailsum.el (pmail-message-subject-p): Mark as broken.
-	(pmail-message-senders-p): Likewise.
-	(pmail-new-summary-1): Don't unswap -- search messages where they are.
+	* mail/rmailsum.el (rmail-message-subject-p): Mark as broken.
+	(rmail-message-senders-p): Likewise.
+	(rmail-new-summary-1): Don't unswap -- search messages where they are.
 
-	* pmail.el (pmail-display-labels): Doc fix.
-	(pmail-set-attribute): Deleted unused vars.
+	* mail/rmail.el (rmail-display-labels): Doc fix.
+	(rmail-set-attribute): Deleted unused vars.
 	Bind inhibit-read-only, not buffer-read-only.
-	(pmail-message-attr-p): Doc fix.
-	(pmail-message-labels-p, pmail-message-recipients-p)
-	(pmail-message-regexp-p): Mark as broken.
+	(rmail-message-attr-p): Doc fix.
+	(rmail-message-labels-p, rmail-message-recipients-p)
+	(rmail-message-regexp-p): Mark as broken.
 
-	* pmailedit.el (pmailhdr): Don't require it.
-	(pmail-edit-current-message): Don't call pmail-header-show-headers.
-	(pmail-cease-edit): Force a blank line at end of edited message.
-	Call pmail-set-attribute properly.
+	* mail/rmailedit.el (rmailhdr): Don't require it.
+	(rmail-edit-current-message): Don't call rmail-header-show-headers.
+	(rmail-cease-edit): Force a blank line at end of edited message.
+	Call rmail-set-attribute properly.
 	Don't set buffer-read-only.
 
-2008-12-22  Richard M Stallman  <rms@gnu.org>
+2009-01-22  Richard M Stallman  <rms@gnu.org>
 
-	* pmail.el (pmail-retried-attr-index, pmail-forwarded-attr-index):
-	Renamed from pmail-resent-attr-index and pmail-stored-attr-index.
-	(pmail-attr-array): Change names to `retried' and `forwarded'
-	(pmail-reply): Use pmail-answered-attr-index.
-	(pmail-forward): Use pmail-forwarded-attr-index.
-	(pmail-retry-failure): Use pmail-retried-attr-index.
+	* mail/rmail.el (rmail-retried-attr-index, rmail-forwarded-attr-index):
+	Renamed from rmail-resent-attr-index and rmail-stored-attr-index.
+	(rmail-attr-array): Change names to `retried' and `forwarded'
+	(rmail-reply): Use rmail-answered-attr-index.
+	(rmail-forward): Use rmail-forwarded-attr-index.
+	(rmail-retry-failure): Use rmail-retried-attr-index.
 
-	* pmail.el (pmail-get-header): Don't unswap, just see data where it is.
-	(pmail-set-attribute): Don't unswap, just set the data where it is.
-	(pmail-show-message): Call pmail-swap-buffers-maybe before reswapping.
+	* mail/rmail.el (rmail-get-header): Don't unswap,
+	just see data where it is.
+	(rmail-set-attribute): Don't unswap, just set the data where it is.
+	(rmail-show-message): Call rmail-swap-buffers-maybe before reswapping.
 
-	* pmail.el (pmail-get-attr-names): Doc fix.
-	(pmail-is-text-p): Doc fix.
+	* mail/rmail.el (rmail-get-attr-names): Doc fix.
+	(rmail-is-text-p): Doc fix.
 
-	* pmailout.el (pmail-output): Use pmail-buffers-swapped-p as function.
+	* mail/rmailout.el (rmail-output): Use rmail-buffers-swapped-p as
+	function.
 
-	* pmail.el (pmail-swap-buffers-maybe): Variable deleted.
+	* mail/rmail.el (rmail-swap-buffers-maybe): Variable deleted.
 	All uses call the function instead.
 
-	* pmail.el (pmail-save): Function deleted.
-	(pmail-mode-map): Don't bind C-x C-s.
-	(pmail-mode-1): Don't set up write-region-annotate-functions.
-	(pmail-write-region-annotate): Function deleted.
-	(pmail-change-major-mode-hook): Set buffer-swapped-with.
-	(pmail-use-collection-buffer): Likewise.
-	(pmail-show-message): Likewise.
+	* mail/rmail.el (rmail-save): Function deleted.
+	(rmail-mode-map): Don't bind C-x C-s.
+	(rmail-mode-1): Don't set up write-region-annotate-functions.
+	(rmail-write-region-annotate): Function deleted.
+	(rmail-change-major-mode-hook): Set buffer-swapped-with.
+	(rmail-use-collection-buffer): Likewise.
+	(rmail-show-message): Likewise.
 
-	* pmail.el (pmail-swap-buffers-maybe): Go to pmail-buffer before
+	* mail/rmail.el (rmail-swap-buffers-maybe): Go to rmail-buffer before
 	testing anything.
-	(pmail): Call pmail-swap-buffers-maybe only if already in Pmail mode.
+	(rmail): Call rmail-swap-buffers-maybe only if already in Rmail mode.
 
-2008-12-22  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-save): New function.
+	* mail/rmail.el (rmail-save): New function.
 
-2008-12-20  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-get-new-mail): Call pmail-swap-buffers-maybe.
-	(pmail-get-new-mail-1): Adjust restriction after calling
-	pmail-insert-inbox-text.
-	(pmail-add-mbox-headers): Use save-restriction.
-	(pmail-expunge-and-save): Call pmail-swap-buffers-maybe before
+	* mail/rmail.el (rmail-get-new-mail): Call rmail-swap-buffers-maybe.
+	(rmail-get-new-mail-1): Adjust restriction after calling
+	rmail-insert-inbox-text.
+	(rmail-add-mbox-headers): Use save-restriction.
+	(rmail-expunge-and-save): Call rmail-swap-buffers-maybe before
 	saving.
-	(pmail-quit): Handling expunging manually, instead of calling
-	pmail-expunge-and-save.
-	(pmail-next-undeleted-message): If no other message can be shown,
+	(rmail-quit): Handling expunging manually, instead of calling
+	rmail-expunge-and-save.
+	(rmail-next-undeleted-message): If no other message can be shown,
 	show the current one.
-	(pmail-attr-array): Doc fix.
-	(pmail-add-header): Function deleted.
-	(pmail-add-mbox-headers): Insert header directly instead of
-	calling pmail-add-header.
-	(pmail-display-labels): Add leading space to attribute string.
-	(pmail-set-attribute): Call pmail-swap-buffers-maybe.  Insert
-	header directly instead of calling pmail-add-header.
-	(pmail): Ensure that pmail-mode-hook is run.
+	(rmail-attr-array): Doc fix.
+	(rmail-add-header): Function deleted.
+	(rmail-add-mbox-headers): Insert header directly instead of
+	calling rmail-add-header.
+	(rmail-display-labels): Add leading space to attribute string.
+	(rmail-set-attribute): Call rmail-swap-buffers-maybe.  Insert
+	header directly instead of calling rmail-add-header.
+	(rmail): Ensure that rmail-mode-hook is run.
 
-2008-12-15  Juanma Barranquero  <lekktu@gmail.com>
+2009-01-22  Juanma Barranquero  <lekktu@gmail.com>
 
-	* pmail.el (pmail-require-mime-maybe): Fix arguments of
+	* mail/rmail.el (rmail-require-mime-maybe): Fix arguments of
 	`display-warning'.
 
-2008-12-15  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail): Call pmail-swap-buffers-maybe.
-	(pmail-search): Call pmail-swap-buffers-maybe.
-	(pmail-expunge): Save point if no expunging was done.
+	* mail/rmail.el (rmail): Call rmail-swap-buffers-maybe.
+	(rmail-search): Call rmail-swap-buffers-maybe.
+	(rmail-expunge): Save point if no expunging was done.
 
-2008-12-13  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmailout.el (pmail-output-to-babyl-file): Rewrite, assuming mbox
+	* mail/rmailout.el (rmail-output-to-babyl-file): Rewrite, assuming mbox
 	internal format.
-	(pmail-convert-to-babyl-format, pmail-nuke-pinhead-header): New
-	functions, moved from pmail.el.
+	(rmail-convert-to-babyl-format, rmail-nuke-pinhead-header): New
+	functions, moved from rmail.el.
 
-2008-12-12  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmailout.el (pmail-output): Rewrite to handle mbox format.
-	(pmail-output-to-babyl-file): Renamed from
-	pmail-output-to-pmail-file.
+	* mail/rmailout.el (rmail-output): Rewrite to handle mbox format.
+	(rmail-output-to-babyl-file): Renamed from
+	rmail-output-to-rmail-file.
 
-	* pmail.el: All callers to pmail-output-to-pmail-file changed to
-	pmail-output-to-babyl-file.
+	* mail/rmail.el: All callers to rmail-output-to-rmail-file changed to
+	rmail-output-to-babyl-file.
 
-	* pmail.el: All callers to pmail-output-to-pmail-file changed to
-	pmail-output-to-babyl-file.
+	* mail/rmail.el: All callers to rmail-output-to-rmail-file changed to
+	rmail-output-to-babyl-file.
 
-2008-12-10  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmailout.el (pmail-output-to-pmail-file): Don't call
-	pmail-insert-pmail-file-header.
+	* mail/rmailout.el (rmail-output-to-rmail-file): Don't call
+	rmail-insert-rmail-file-header.
 
-	* pmail.el (pmail-insert-pmail-file-header): Function deleted.
-	(pmail-decode-babyl-format): Function deleted.
-	(pmail-perm-variables): Don't call pmail-parse-file-inboxes.
-	(pmail-parse-file-inboxes): Function deleted.
-	(pmail-get-new-mail-1): Function merged into pmail-get-new-mail.
-	(pmail-get-new-mail-2): Renamed to pmail-get-new-mail-1.
-	(pmail-get-new-mail-filter-spam): Call rmail-spam-filter, not
-	pmail-spam-filter.
-	(pmail-convert-to-babyl-format): Function deleted.
-	(pmail-nuke-pinhead-header): Function deleted.
-	(pmail-reply): Parsing headers in mbox format.  Call
-	rmail-dont-reply-to instead of pmail-dont-reply-to.
+	* mail/rmail.el (rmail-insert-rmail-file-header): Function deleted.
+	(rmail-decode-babyl-format): Function deleted.
+	(rmail-perm-variables): Don't call rmail-parse-file-inboxes.
+	(rmail-parse-file-inboxes): Function deleted.
+	(rmail-get-new-mail-1): Function merged into rmail-get-new-mail.
+	(rmail-get-new-mail-2): Renamed to rmail-get-new-mail-1.
+	(rmail-get-new-mail-filter-spam): Call rmail-spam-filter, not
+	rmail-spam-filter.
+	(rmail-convert-to-babyl-format): Function deleted.
+	(rmail-nuke-pinhead-header): Function deleted.
+	(rmail-reply): Parsing headers in mbox format.  Call
+	rmail-dont-reply-to instead of rmail-dont-reply-to.
 
-2008-12-09  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-only-expunge): Swap buffers at the beginning.
-	(pmail-expunge): Pass new optional arg to pmail-only-expunge.
-	(pmail-expunge-and-save): Don't reset view buffer.
+	* mail/rmail.el (rmail-only-expunge): Swap buffers at the beginning.
+	(rmail-expunge): Pass new optional arg to rmail-only-expunge.
+	(rmail-expunge-and-save): Don't reset view buffer.
 
-	* pmailsum.el (pmail-summary-header): Deleted.
-	(pmail-get-create-summary-line): Don't insert a summary line into
+	* mail/rmailsum.el (rmail-summary-header): Deleted.
+	(rmail-get-create-summary-line): Don't insert a summary line into
 	the file.
 
-2008-12-05  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-convert-babyl-to-mbox): Reinitialize pmail-mode
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Reinitialize rmail-mode
 	variables after conversion.
 
-2008-12-04  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmailsort.el: Sync with pmailsort.el.
-	(pmail-sort-messages): Insert two newlines at the end of the
+	* mail/rmailsort.el: Sync with rmailsort.el.
+	(rmail-sort-messages): Insert two newlines at the end of the
 	message if they do not exist.
-	(pmailhdr): Require pmailhdr.
+	(rmailhdr): Require rmailhdr.
 
-	* pmailmm.el: Require mail-parse.
-	(pmail-mime-show): Don't use removed function
-	pmail-header-hide-headers.
-	(pmail-mime): Use pmail-msgbeg and pmail-msgend instead of removed
-	pmail-desc-* functions.
+	* mail/rmailmm.el: Require mail-parse.
+	(rmail-mime-show): Don't use removed function
+	rmail-header-hide-headers.
+	(rmail-mime): Use rmail-msgbeg and rmail-msgend instead of removed
+	rmail-desc-* functions.
 
-	* pmailkwd.el: Sync with rmailkwd.el.
+	* mail/rmailkwd.el: Sync with rmailkwd.el.
 
-	* pmailout.el: Sync with rmailout.el.
+	* mail/rmailout.el: Sync with rmailout.el.
 
-	* pmailedit.el: Sync with rmailedit.el.
-	(pmail-edit-current-message): Remove deleted function
-	pmail-msg-is-pruned.
+	* mail/rmailedit.el: Sync with rmailedit.el.
+	(rmail-edit-current-message): Remove deleted function
+	rmail-msg-is-pruned.
 
-	* pmaildesc.el: File deleted.
+	* mail/rmaildesc.el: File deleted.
 
-	* pmail.el (pmail-get-header): Call pmail-swap-buffers-maybe.
-	(pmail-retry-failure): Remove call to non-existent function
-	pmail-clear-headers.
-	(pmail-message-labels-p): New function.
+	* mail/rmail.el (rmail-get-header): Call rmail-swap-buffers-maybe.
+	(rmail-retry-failure): Remove call to non-existent function
+	rmail-clear-headers.
+	(rmail-message-labels-p): New function.
 
-2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmailsort.el (pmail-sort-messages): Don't call removed function
-	pmail-header-show-headers.
+	* mail/rmailsort.el (rmail-sort-messages): Don't call removed function
+	rmail-header-show-headers.
 
-2008-12-02  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-only-expunge): Pass correct arg to
-	pmail-show-message-maybe.
+	* mail/rmail.el (rmail-only-expunge): Pass correct arg to
+	rmail-show-message-maybe.
 
-	* pmailsum.el (pmail-get-summary-labels): If no attribute headers
+	* mail/rmailsum.el (rmail-get-summary-labels): If no attribute headers
 	are found, use the empty string.
-	(pmail-summary): Call pmail-summary-beginning-of-message
-	(pmail-new-summary): Check for pmail-summary-mode in the current
-	buffer, not in the pmail buffer.
-	(pmail-summary-goto-msg): Use pmail-show-message-maybe.
+	(rmail-summary): Call rmail-summary-beginning-of-message
+	(rmail-new-summary): Check for rmail-summary-mode in the current
+	buffer, not in the rmail buffer.
+	(rmail-summary-goto-msg): Use rmail-show-message-maybe.
 
-2008-11-13  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el: Add support for save-buffer.
+	* mail/rmail.el: Add support for save-buffer.
 
-2008-10-17  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el (pmail):
+	* mail/rmail.el (rmail):
 	Remove a redundant message counter reset call; try to
 	minimize the attempts to show a message (ideally it should be done
 	once and only once).
 
-	(pmail-convert-babyl-to-mbox): Set up the global message variables
-	after inserting the converted mbox file into the Pmail buffer; avoid
+	(rmail-convert-babyl-to-mbox): Set up the global message variables
+	after inserting the converted mbox file into the Rmail buffer; avoid
 	an unecessary message display function call.
 
-	(pmail-show-message-maybe): Use the current message number when the
+	(rmail-show-message-maybe): Use the current message number when the
 	optional argument is not passed.
 
-2008-10-14  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el (pmail): Check for babyl conversion early; ignore multibyte.
+	* mail/rmail.el (rmail): Check for babyl conversion early; ignore
+	multibyte.
 
-2008-10-11  Chong Yidong  <cyd@stupidchicken.com>
+2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* pmail.el (pmail-tool-bar-map): Initialize it unconditionally.
+	* mail/rmail.el (rmail-tool-bar-map): Initialize it unconditionally.
 
-2008-10-05  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el, pmailsum.el:
-	Next step in the Rmail/mbox support: getting basic summary support working.
+	* mail/rmail.el, mail/rmailsum.el:
+	Next step in the Rmail/mbox support: getting basic summary support
+	working.
 
-2008-09-23  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el:
+	* mail/rmail.el:
 	First pass at handling decoding the mbox message into the view buffer.
 
-2008-09-16  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* subdirs.el: Remove file.
-
-2008-09-15  author  <author@lilly>
-
-	* ChangeLog.pmail: *** empty log message ***
-
-	* pmail.el:
+	* mail/rmail.el:
 	The Rmail/mbox merge has been abandoned in favor of a restart using
 	the current rmail.el file.  A comprehensive list of changes will be
-	supplied when pmail.el is morphed back into rmail.el
+	supplied when rmail.el is morphed back into rmail.el
 
-	The current status is that pmail.el supports basic Rmail navigation
-	(no summary support) and shows the current message in a special
-	buffer using buffer-swap-text.  No decoding is done yet.  That is the
-	next step.
+	The current status is that rmail.el supports basic Rmail
+	navigation (no summary support) and shows the current message in a
+	special buffer using buffer-swap-text.  No decoding is done yet.  That
+	is the next step.
 
-2008-09-15  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Glenn Morris  <rgm@gnu.org>
 
-	* pmail.el:
-	The Rmail/mbox merge has been abandoned in favor of a restart using
-	the current rmail.el file.  A comprehensive list of changes will be
-	supplied when pmail.el is morphed back into rmail.el
-
-	The current status is that pmail.el supports basic Rmail navigation
-	(no summary support) and shows the current message in a special
-	buffer using buffer-swap-text.  No decoding is done yet.  That is the
-	next step.
-
-	* mbox-trunk-annotations/rmail.el.annotation, mbox-trunk-annotations/rmailedit.el.annotation, mbox-trunk-annotations/rmailkwd.el.annotation, mbox-trunk-annotations/rmailmsc.el.annotation, mbox-trunk-annotations/rmailout.el.annotation, mbox-trunk-annotations/rmailsort.el.annotation:
-	Rmail/mbox merge abandoned. Remove stale files.
-
-	* mbox-changes/rmail.el.changes, mbox-changes/rmailedit.el.changes, mbox-changes/rmailkwd.el.changes, mbox-changes/rmailmsc.el.changes, mbox-changes/rmailout.el.changes, mbox-changes/rmailsort.el.changes, mbox-changes/rmailsum.el.changes:
-	Rmail/mbox merge abandoned.  Remove stale files.
-
-2008-09-06  Glenn Morris  <rgm@gnu.org>
-
-	* pmailsort.el (pmail-dont-reply-to, pmail-desc-get-marker-end)
-	(pmail-desc-get-marker-start): Remove declarations of undefined
+	* mail/rmailsort.el (rmail-dont-reply-to, rmail-desc-get-marker-end)
+	(rmail-desc-get-marker-start): Remove declarations of undefined
 	functions.
-	(pmail-select-correspondent): Use rmail-dont-reply-to from mail-utils
-	rather than non-existent pmail-dont-reply-to.
-	(pmail-sort-messages): Use pmail-desc-get-start, pmail-desc-get-end
+	(rmail-select-correspondent): Use rmail-dont-reply-to from mail-utils
+	rather than non-existent rmail-dont-reply-to.
+	(rmail-sort-messages): Use rmail-desc-get-start, rmail-desc-get-end
 	rather than non-existent `marker-' functions.
 
-	* pmailkwd.el (pmail-maybe-set-message-counters)
-	(pmail-set-message-deleted-p):
-	* pmailmsc.el (pmail-parse-file-inboxes):
-	* pmailsum.el (pmail-output-read-pmail-file-name):
+	* mail/rmailkwd.el (rmail-maybe-set-message-counters)
+	(rmail-set-message-deleted-p):
+	* mail/rmailmsc.el (rmail-parse-file-inboxes):
+	* mail/rmailsum.el (rmail-output-read-rmail-file-name):
 	Remove unused declarations.
 
-	* pmail.el (pmail-spam-filter): Remove declaration of undefined
+	* mail/rmail.el (rmail-spam-filter): Remove declaration of undefined
 	function.
-	(pmail-use-spam-filter): Remove un-needed variable declaration.
+	(rmail-use-spam-filter): Remove un-needed variable declaration.
 	Doc fix for actual definition.
-	(pmail-get-new-mail): Call rmail-spam-filter rather than non-existent
-	pmail-spam-filter.
+	(rmail-get-new-mail): Call rmail-spam-filter rather than non-existent
+	rmail-spam-filter.
 	(rmail-spam-filter): Autoload it.
 
-2008-09-05  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el (pmail-get-new-mail): When there are no new messages, invoke
-	a redisplay of the current message.
+	* mail/rmail.el (rmail-get-new-mail): When there are no new messages,
+	invoke a redisplay of the current message.
 
-2008-09-03  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el, pmaildesc.el, pmailout.el:
+	* mail/rmail.el, mail/rmaildesc.el, mail/rmailout.el:
 	Fix the expunge command so that the current message index is correct.
 
-	* pmail.el (pmail-expunge-counter): New variable.
-	(pmail-set-attribute): Canonicalize the calling sequence to index,
+	* mail/rmail.el (rmail-expunge-counter): New variable.
+	(rmail-set-attribute): Canonicalize the calling sequence to index,
 	attribute, state.
-	(pmail-show-message, pmail-delete-message)
-	(pmail-undelete-previous-message, pmail-delete-forward)
-	(pmail-mark-message): Use the new canonical calling sequence.
-	(pmail-only-expunge): Use the expunge counter to update the current
+	(rmail-show-message, rmail-delete-message)
+	(rmail-undelete-previous-message, rmail-delete-forward)
+	(rmail-mark-message): Use the new canonical calling sequence.
+	(rmail-only-expunge): Use the expunge counter to update the current
 	message index.
-	(pmail-expunge-callback): Simplify.  Just count the expunged messages
+	(rmail-expunge-callback): Simplify.  Just count the expunged messages
 	with a lower index than the current message index.
 
-	* pmaildesc.el (pmail-desc-get-previous): Fix an "off by one" issue.
-	(pmail-desc-set-attribute): Canonicalize the calling sequence to index,
+	* mail/rmaildesc.el (rmail-desc-get-previous): Fix an "off by one"
+	issue.
+	(rmail-desc-set-attribute): Canonicalize the calling sequence to index,
 	attribute, state.
 
-	* pmailout.el (pmail-output-body-to-file): Use the canonical calling
-	sequence.
+	* mail/rmailout.el (rmail-output-body-to-file): Use the canonical
+	calling sequence.
 
-2008-09-02  Juanma Barranquero  <lekktu@gmail.com>
+2009-01-22  Juanma Barranquero  <lekktu@gmail.com>
 
-	* pmaildesc.el (pmail-desc-get-match-index): Fix malformed let binding.
+	* mail/rmaildesc.el (rmail-desc-get-match-index): Fix malformed let
+	binding.
 
-2008-09-01  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el, pmaildesc.el: Fix the expunge operation.
+	* mail/rmail.el, mail/rmaildesc.el: Fix the expunge operation.
 
-	* pmail.el (pmail-only-expunge): Manage pmail-total-messages in the
+	* mail/rmail.el (rmail-only-expunge): Manage rmail-total-messages in the
 	callback handler; remove the extra show message call.
-	(pmail-expunge-callback): Rewrite to handle all possible conditions.
+	(rmail-expunge-callback): Rewrite to handle all possible conditions.
 
-	* pmaildesc.el (pmail-desc-get-previous, pmail-desc-get-match-index):
-	New functions.
+	* mail/rmaildesc.el (rmail-desc-get-previous)
+	(rmail-desc-get-match-index): New functions.
 
-2008-08-29  Paul Reilly  <pmr@pajato.com>
+2009-01-22  Paul Reilly  <pmr@pajato.com>
 
-	* pmail.el, pmaildesc.el, pmailhdr.el, pmailkwd.el, pmailmm.el,
-	* pmailmsc.el, pmailsort.el, pmailsum.el: Resolve all byte
-	compiler warnings and enable IMAP/movemail support.
+	* mail/rmail.el, mail/rmaildesc.el, mail/rmailhdr.el, mail/rmailkwd.el:
+	* mail/rmailmm.el, mail/rmailmsc.el, mail/rmailsort.el:
+	* mail/rmailsum.el: Resolve all byte compiler warnings and enable
+	IMAP/movemail support.
 
-2007-04-30  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailhdr.el (rmail-header-add-header): Use delete-region instead
+	* mail/rmailhdr.el (rmail-header-add-header): Use delete-region instead
 	of kill-region.
 
-2007-04-27  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailout.el (rmail-output): Bind buffer-file-coding-system even
+	* mail/rmailout.el (rmail-output): Bind buffer-file-coding-system even
 	when rmail-enable-mime is nil.
 
-	* rmail.el (rmail-perm-variables): Make sure rmail-desc-vector is
+	* mail/rmail.el (rmail-perm-variables): Make sure rmail-desc-vector is
 	buffer local.
 	(rmail-mime-charset-pattern): Sync with trunk.
 	(rmail): Don't bind coding-system-for-read.
@@ -547,50 +528,51 @@
 	(rmail-variables): Don't set buffer-file-coding-system.
 	(rmail-show-message): Likewise.
 
-2007-04-26  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-highlight): New face.
+	* mail/rmail.el (rmail-highlight): New face.
 	(rmail-highlight-face): Use it.
 
-2006-04-11  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-summary-kill-label): Call rmail-kill-label
+	* mail/rmailsum.el (rmail-summary-kill-label): Call rmail-kill-label
 	with only one argument.
 
-	* rmail.el (rmail-process-new-messages): Handle missing From
+	* mail/rmail.el (rmail-process-new-messages): Handle missing From
 	line (usually spam).
 
-2006-03-09  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailedit.el (rmail-edit-map): Initialize at definition.  Doc String.
+	* mail/rmailedit.el (rmail-edit-map): Initialize at definition.
+	Doc String.
 
-	* rmail.el (rmail-narrow-to-header): Don't end error message with
+	* mail/rmail.el (rmail-narrow-to-header): Don't end error message with
 	a period.
 
-	* rmailhdr.el (rmail-header-get-limit): Don't end error message
+	* mail/rmailhdr.el (rmail-header-get-limit): Don't end error message
 	with a period.
 
-	* rmaildesc.el (rmail-desc-get-header-display-state): Make sure
+	* mail/rmaildesc.el (rmail-desc-get-header-display-state): Make sure
 	whole header region is searched for overlays.
 
-	* rmailedit.el (rmail-edit-current-message):
+	* mail/rmailedit.el (rmail-edit-current-message):
 	Use rmail-head-show-headers instead of rmail-toggle-header.
 	(rmail-cease-edit): Likewise.  Simplify.
 
-2006-03-02  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailkwd.el (rmail-read-label): Since rmail-keywords is a list
+	* mail/rmailkwd.el (rmail-read-label): Since rmail-keywords is a list
 	of symbols, we need to transform it into an alist for completion.
 
-2006-03-01  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-summary-kill-label): Use rmail-kill-label
+	* mail/rmailsum.el (rmail-summary-kill-label): Use rmail-kill-label
 	instead of calling rmail-set-label, which will call rmail-make-label
 	on the string.
 
-2006-02-28  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailkwd.el (rmail-label-obarray): Delete.
+	* mail/rmailkwd.el (rmail-label-obarray): Delete.
 	(rmail-attributes): Use an ordinary list of symbols.
 	(rmail-deleted-label): Use an ordinary symbol.
 	(rmail-keywords): Doc, initial value nil.
@@ -603,7 +585,7 @@
 	(rmail-read-label): Return a string.
 	(rmail-set-label): Rewrote. Call rmail-display-labels always.
 
-	* rmail.el (qp): No longer required.
+	* mail/rmail.el (qp): No longer required.
 	(rmail-convert-file): Don't rmail-enable-multibyte.
 	(rmail-decode-mbox-format): Delete.
 	(rmail-convert-mbox-format): No converting of qp headings, no
@@ -615,17 +597,18 @@
 
 	(rmail-process-new-messages): Use rmail-register-keywords.
 
-2006-02-17  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailmm.el (rmail-mime-text-handler): Only downcase if charset exists.
+	* mail/rmailmm.el (rmail-mime-text-handler): Only downcase if charset
+	exists.
 	(rmail-mime-handle): Doc.  Ignore errors when decoding base64.
 	Seems to be common on my system.
 	(rmail-mime-show): Change show-header code.
 	(rmail-mime): New.
 
-2006-02-12  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (qp): No longer require it.
+	* mail/rmail.el (qp): No longer require it.
 	(rmail-convert-file): Doc.  Remove useless test for coding system
 	header.  Don't call rmail-decode-mbox-format.  Just call
 	rmail-convert-mbox-format.
@@ -637,82 +620,83 @@
 	(rmail-next-undeleted-message): Add caching of rmail-current-message
 	such that it doesn't break when rmail-show-message switches buffers.
 
-2006-02-07  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailmm.el (rmail-mime-media-type-handlers-alist):
+	* mail/rmailmm.el (rmail-mime-media-type-handlers-alist):
 	Remove non-existing handlers for the moment.
 	(rmail-mime-text-handler): Do decoding based on the charset parameter.
 	(test-rmail-mime-handler): Test decoding using an 8bit KOI8 message.
 	(rmail-mime-handle): Switch to unibyte if content transfer
 	encoding is 8bit.  Strange that it should be necessary.
 
-2006-02-04  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailmm.el: Rename all symbols to rmail-mime-*.  Rewrite code
+	* mail/rmailmm.el: Rename all symbols to rmail-mime-*.  Rewrite code
 	to modify the buffer instead of using display properties.
 	Fix bulk handler, and add simple test defun for it.
 
-2006-02-01  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-convert-mbox-format): Handle mails without subject.
+	* mail/rmail.el (rmail-convert-mbox-format): Handle mails without
+	subject.
 
-2006-02-01  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-first-unseen-message): Make sure to return the
+	* mail/rmail.el (rmail-first-unseen-message): Make sure to return the
 	last message if no unseen message was found.  Doc fix.
 	(rmail): Call rmail-first-unseen-message properly.
 	Remove commented out code.
 	(rmail-show-message): Maybe call rmail-unknown-mail-followup-to.
 	(rmail-revert): Simplify.
 
-2006-01-31  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailmm.el: New file, based on Alexander Pohoyda's code.
+	* mail/rmailmm.el: New file, based on Alexander Pohoyda's code.
 
-2006-01-30  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-next-message):
+	* mail/rmail.el (rmail-next-message):
 	Don't call rmail-maybe-set-message-counters. Use with-current-buffer.
 
-	* rmailkwd.el (rmail-next-labeled-message):
+	* mail/rmailkwd.el (rmail-next-labeled-message):
 	Don't call rmail-maybe-set-message-counters.  Use with-current-buffer.
 
-	* rmailhdr.el (rmail-header-hide-headers): Simplify.
+	* mail/rmailhdr.el (rmail-header-hide-headers): Simplify.
 	(rmail-header-get-limit): Wrap in a save-excursion.
 	(rmail-header-display-state): Rename from rmail-header-display-mode.
 
-2006-01-29  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-summary-show-message): Reformat.
+	* mail/rmailsum.el (rmail-summary-show-message): Reformat.
 	(rmail-summary-get-summary-line):
 	Rename from `rmail-summary-get-summary'.  Update callers.
 	(rmail-summary-mode-map): Initialize at definition, Doc fix.
 	(rmail-summary-undelete-many): Simplify.
 
-2006-01-26  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-summary-deleted-p): Fix misplaced paren.
+	* mail/rmailsum.el (rmail-summary-deleted-p): Fix misplaced paren.
 	(rmail-summary-undelete): Simplify.
 
-2006-01-25  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-summary-get-sender): Handle a nil value of
+	* mail/rmailsum.el (rmail-summary-get-sender): Handle a nil value of
 	rmail-user-mail-address-regexp.
 
-	* rmail.el (rmail-unknown-mail-followup-to): Likewise.
+	* mail/rmail.el (rmail-unknown-mail-followup-to): Likewise.
 
-	* rmailout.el (rmail-delete-unwanted-fields): Handle mbox format.
+	* mail/rmailout.el (rmail-delete-unwanted-fields): Handle mbox format.
 	(rmail-output): Error when target is a BABYL file.  Handle MIME
 	charset.  Make sure headers are properly hidden after output.
 	Avoid pointless with-current-buffer call.
 
-2006-01-24  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-summary-edit-map): Rewrite.
+	* mail/rmailsum.el (rmail-summary-edit-map): Rewrite.
 
-2006-01-23  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-narrow-to-non-pruned-header): Delete.
+	* mail/rmail.el (rmail-narrow-to-non-pruned-header): Delete.
 	(rmail-unknown-mail-followup-to, rmail-retry-failure): No longer
 	call rmail-narrow-to-non-pruned-header and replace
 	mail-fetch-field with rmail-header-get-header because that one
@@ -724,23 +708,23 @@
 	setting up the variable bindings.  No longer toggle visibility of
 	headers, because rmail-header-show-headers is no longer necessary.
 
-	* rmailhdr.el (rmail-header-get-header): Accept more arguments and
+	* mail/rmailhdr.el (rmail-header-get-header): Accept more arguments and
 	pass them to mail-fetch-field unchanged.
 	Bind inhibit-point-motion-hooks to t.
 
-	* rmailsum.el (rmail-user-mail-address-regexp): Compute a default
+	* mail/rmailsum.el (rmail-user-mail-address-regexp): Compute a default
 	value instead of assuming nil.  Doc.
 	(rmail-summary-get-sender): Compare with rmail-user-mail-address-regexp
 	instead of computing the default value.
 
-	* rmail.el (rmail-convert-mbox-format): Decode messages with
+	* mail/rmail.el (rmail-convert-mbox-format): Decode messages with
 	content-transfer-encoding quoted-printable, because it's easy to do.
 	(rmail-unknown-mail-followup-to): Compare with
 	rmail-user-mail-address-regexp instead of computing the default value.
 
-2006-01-23  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-decode-mbox-format):
+	* mail/rmail.el (rmail-decode-mbox-format):
 	Rename from `rmail-decode-mail-file'.
 	(rmail-process-new-messages): Don't add missing headers here.
 	(rmail-convert-mbox-format): Rename from `rmail-decode-messages'.
@@ -752,12 +736,12 @@
 	(rmail-display-labels): Avoid space in mode-line if there are no
 	keywords.
 
-2006-01-22  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmaildesc.el (rmail-desc-default-attrs): New const.
+	* mail/rmaildesc.el (rmail-desc-default-attrs): New const.
 	(rmail-desc-get-default-attrs): Delete.
 
-	* rmail.el (rmail): Go back to using find-file for reading in the
+	* mail/rmail.el (rmail): Go back to using find-file for reading in the
 	mail file.  This avoids gratuitous modification of the file.
 	(rmail-decode-region): Doc string, cleanup.
 	(rmail-decode-by-content-type): New function.
@@ -771,29 +755,29 @@
 	(rmail-count-screen-lines): Doc string.
 	(rmail-process-new-messages): Use rmail-desc-default-attrs.
 
-2006-01-21  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-decode-messages): Decode encoded-words in
+	* mail/rmail.el (rmail-decode-messages): Decode encoded-words in
 	Subject and From header.
 	(rmail-process-new-messages): Don't decode encoded words here.
 
-2006-01-21  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-process-new-messages): Don't decode messages
+	* mail/rmail.el (rmail-process-new-messages): Don't decode messages
 	here, don't lose on missing subject field.
 	(rmail-decode-messages): New function.
 	(rmail): Use it.
 	(rmail-get-new-mail): Likewise.
 
-	* rmailsum.el (rmail-summary-get-sender): Narrow to current
+	* mail/rmailsum.el (rmail-summary-get-sender): Narrow to current
 	message before extracting headers.
 
-2006-01-21  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailedit.el (rmail-abort-edit): Don't call rmail-highlight-headers
-	anymore.
+	* mail/rmailedit.el (rmail-abort-edit): Don't call
+	rmail-highlight-headers anymore.
 
-	* rmail.el (rmail-next-undeleted-message): Simplify.
+	* mail/rmail.el (rmail-next-undeleted-message): Simplify.
 	(rmail-what-message): Delete since it was never called.
 	(rmail-narrow-to-header): Use the same error message as
 	rmail-header-get-limit.
@@ -804,10 +788,10 @@
 	rmail-highlight-headers anymore.
 	(rmail-highlight-headers): Delete.
 
-	* rmaildesc.el (rmail-desc-set-attribute): Use
+	* mail/rmaildesc.el (rmail-desc-set-attribute): Use
 	rmail-header-add-header instead of rmail-header-set-header.
 
-	* rmailhdr.el (rmail-header-attribute-header)
+	* mail/rmailhdr.el (rmail-header-attribute-header)
 	(rmail-header-keyword-header, rmail-header-get-limit): Doc.
 	(rmail-header-add-header): Add inhibit-point-motion-hooks and
 	buffer-undo-list bindings from rmail-header-set-header.  I don't
@@ -816,16 +800,16 @@
 	Delete.  rmail-header-add-header does what rmail-header-set-header did,
 	except throw an error if the header was not found.
 
-	* rmail.el (rmail-msgbeg, rmail-msgend): Fix and make obsolete.
+	* mail/rmail.el (rmail-msgbeg, rmail-msgend): Fix and make obsolete.
 	(rmail-process-new-messages): Use mail-decode-encoded-word-string
 	on the subject.  Requires mail-parse from Gnus.
 	(rmail-highlight-headers): Doc.
 
-2006-01-21  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-message-senders-p): Fix typo.
+	* mail/rmailsum.el (rmail-message-senders-p): Fix typo.
 
-	* rmail.el (rmail-process-new-messages): Simplify.
+	* mail/rmail.el (rmail-process-new-messages): Simplify.
 	(rmail-decode-quoted-printable): Delete unused function.
 	(rmail-hex-string-to-integer): Likewise.
 	(rmail-hex-char-to-integer): Likewise.
@@ -835,57 +819,58 @@
 	(rmail-get-new-mail): Use it.
 	(rmail-get-inbox-files): Rename from `rmail-get-inbox-list'.
 
-2006-01-21  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-get-new-mail): Doc.
+	* mail/rmail.el (rmail-get-new-mail): Doc.
 	(rmail-get-inbox-list): Doc.
 	(rmail-require-mime-maybe): Simplify.
 	(rmail-mode-map): Rewrite using a local binding to agree
 	with "(elisp)Tips for Defining".
 
-2006-01-21  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-summary-get-sender): Doc fix.
+	* mail/rmailsum.el (rmail-summary-get-sender): Doc fix.
 
-	* rmail.el (rmail-redecode-body): Simplify.
+	* mail/rmail.el (rmail-redecode-body): Simplify.
 	(rmail-get-inbox-list): Stop on name conflict.
 	(rmail-show-message): Set `rmail-view-buffer' to `rmail-buffer` if
 	not using MIME.  Make sure we go to `point-min' before setting
 	window point as searching for coding header might move point.
 
-2006-01-20  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-inbox-alist): Doc.
+	* mail/rmail.el (rmail-inbox-alist): Doc.
 
-2006-01-20  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-summary-get-sender): New function.
+	* mail/rmailsum.el (rmail-summary-get-sender): New function.
 	(rmail-summary-get-summary): Use it.  Make sure sender is no
 	longer than 25 characters.
 	(rmail-summary-get-line-count): Doc fix.
 	(rmail-summary-get-summary-attributes): Likewise.
 
-	* rmailmsc.el (set-rmail-inbox-list): Rewrite to only set inbox
+	* mail/rmailmsc.el (set-rmail-inbox-list): Rewrite to only set inbox
 	list temporarily for a session.
 
-2006-01-20  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-show-message): Minor changes: comments.
+	* mail/rmail.el (rmail-show-message): Minor changes: comments.
 
-	* rmailsum.el (rmail-summary-get-summary): Fix display of keywords.
+	* mail/rmailsum.el (rmail-summary-get-summary): Fix display of keywords.
 	(rmail-summary-rmail-update): Minor changes: If to when, comments,
 	doc string.
 
-2006-01-20  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-inbox-alist): New variable.
+	* mail/rmail.el (rmail-inbox-alist): New variable.
 	(rmail-get-file-inbox-list): New function.
 	(rmail-perm-variables): Use it.
 	(rmail-parse-file-inboxes): Delete.
 
-2006-01-20  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-summary-mode): Fix typo in doc string and keymap.
+	* mail/rmailsum.el (rmail-summary-mode): Fix typo in doc string and
+	keymap.
 	(rmail-summary-update-attribute): Delete.
 	(rmail-summary-update): Simple defun regenerates the entire
 	summary line.
@@ -894,53 +879,55 @@
 	mail-fetch-field.
 	(rmail-summary-by-senders): Default to current sender.
 
-	* rmailkwd.el (rmail-set-label): Call rmail-summary-update at the end.
+	* mail/rmailkwd.el (rmail-set-label): Call rmail-summary-update at the
+	end.
 
-	* rmail.el (rmail-set-attribute): Call rmail-summary-update
+	* mail/rmail.el (rmail-set-attribute): Call rmail-summary-update
 	instead of just updating the attributes.
 
-2006-01-19  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailhdr.el (rmail-header-get-header): Rewrite to be a
+	* mail/rmailhdr.el (rmail-header-get-header): Rewrite to be a
 	convenience wrapper for mail-fetch-field.
 	(rmail-header-hide-headers): Simplify.
 
-	* rmail.el (rmail-process-new-messages):
+	* mail/rmail.el (rmail-process-new-messages):
 	Use rmail-header-get-header instead of mail-fetch-field.
 
-	* rmailout.el (rmail-output-read-file-name): Simplify.
+	* mail/rmailout.el (rmail-output-read-file-name): Simplify.
 	(rmail-output): Likewise.
 
-2006-01-18  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-make-summary-line-1)
+	* mail/rmailsum.el (rmail-make-summary-line-1)
 	(rmail-make-basic-summary-line): Delete.
 	(rmail-summary-kill-label): Only ask for existing labels.
 
-	* rmailkwd.el (rmail-add-label): Doc fix.
+	* mail/rmailkwd.el (rmail-add-label): Doc fix.
 	(rmail-kill-label): Only read labels that the current message has.
 	(rmail-read-label): Possibly only ask for existing labels.
 	(rmail-set-label): Display labels at the end.
 
-	* rmailhdr.el (rmail-header-get-limit): Rewrite macro as simple defun.
+	* mail/rmailhdr.el (rmail-header-get-limit): Rewrite macro as simple
+	defun.
 	(rmail-header-persist-attributes): Doc.
 	(rmail-header-add-header): Simplify the finding of the header.
 	Delete header if value is nil or "".
 	(rmail-header-remove-keyword): Delet stub.  Removing can be
 	handled by calling `rmail-header-add-header' with value nil or "".
 
-	* rmailedit.el (rmail-cease-edit): Bugfix.
+	* mail/rmailedit.el (rmail-cease-edit): Bugfix.
 
-	* rmaildesc.el: Remove require statements.
+	* mail/rmaildesc.el: Remove require statements.
 	(rmail-desc-add-keyword, rmail-desc-remove-keyword): Rewrite.
 	(rmail-desc-get-keywords, rmail-desc-get-keyword-list)
 	(rmail-desc-edited-index): Doc fix.
 
-	* rmail.el (rmail-set-attribute): Move comment into document.
+	* mail/rmail.el (rmail-set-attribute): Move comment into document.
 
-2006-01-18  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el (rmail-get-inbox-list): New function.
+	* mail/rmail.el (rmail-get-inbox-list): New function.
 	(rmail-get-new-mail): Use it.  Only call `rmail-show-message' on
 	file-error condition if no new messages are found.
 	(rmail-get-sender): Delete.
@@ -950,89 +937,90 @@
 	(rmail): Use it. Only call `rmail-show-message' if no new mail was
 	found.
 
-	* rmailsum.el (rmail-summary-get-new-mail): Only call
+	* mail/rmailsum.el (rmail-summary-get-new-mail): Only call
 	`rmail-summary-goto-msg' if no new mail was found.
 
-2006-01-18  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail): Only insert the file if it actually exists.
+	* mail/rmail.el (rmail): Only insert the file if it actually exists.
 	(rmail-show-message): Do not display labels if there are no
 	messages.  This corrects the mistake if visiting an empty file,
 	but it doesn't fix the situation where you delete the all messages
 	and expunge them.  This may leave the labels of the last message
 	in the modeline.
 
-2006-01-17  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailkwd.el: Don't require rmail.
+	* mail/rmailkwd.el: Don't require rmail.
 
-	* rmail.el (rmail-process-new-messages): Don't require rmailkwd
+	* mail/rmail.el (rmail-process-new-messages): Don't require rmailkwd
 	here, do it at toplevel instead.
 	(rmail-process-new-messages): Add an X-Coding-System
 	header if one doesn't exist.
 
-2006-01-17  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmailsum.el (rmail-summary-by-labels): No longer concatenate
+	* mail/rmailsum.el (rmail-summary-by-labels): No longer concatenate
 	regexp with commas because of recent change to
 	rmail-message-labels-p.
 	(rmail-summary-rmail-update): Replace rmail-message-labels-p test
 	with simple rmail-desc-get-keywords.
 
-	* rmail.el (rmail-message-labels-p):
+	* mail/rmail.el (rmail-message-labels-p):
 	Rewrite using rmail-desc-get-keywords.
 	(rmail-auto-file): Rewrite test for "filed" using
 	rmail-desc-get-keywords.
 
-	* rmailsum.el (rmail-summary-font-lock-keywords): Fix regular
+	* mail/rmailsum.el (rmail-summary-font-lock-keywords): Fix regular
 	expression for unread messages.
 	(rmail-summary-mode): Add documentation for the filtering commands.
 	(rmail-summary-mode-map): Add keybinding for rmail-summary-by-sender.
 	(rmail-summary-get-summary): Don't show attributes, only
 	user-defined keywords.
 
-	* rmailedit.el (rmail-cease-edit): Do not adjust the marker of the
+	* mail/rmailedit.el (rmail-cease-edit): Do not adjust the marker of the
 	last message.
 
-2006-01-17  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailout.el (rmail-output-read-file-name): Make sure search in
+	* mail/rmailout.el (rmail-output-read-file-name): Make sure search in
 	executed in `rmail-buffer'.
 	(rmail-output-to-rmail-file): Use `rmail-output-read-file-name'.
 	(rmail-output-read-rmail-file-name): Delete.
 
-	* rmailsum.el (rmail-summary-output-to-rmail-file):
+	* mail/rmailsum.el (rmail-summary-output-to-rmail-file):
 	Use `rmail-output-read-file-name'.
 	(rmail-summary-get-message-at-point): Handle 5-digit message ids.
 
-	* rmail.el (rmail-process-new-messages): Require rmailkwd.
+	* mail/rmail.el (rmail-process-new-messages): Require rmailkwd.
 	(rmail-ignored-headers): Add "Original-Recipient".
 
-2006-01-17  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-display-labels): Use identity instead of lambda.
+	* mail/rmail.el (rmail-display-labels): Use identity instead of lambda.
 
-	* rmailsum.el (rmail-summary-font-lock-keywords): Fix typo for labels.
+	* mail/rmailsum.el (rmail-summary-font-lock-keywords):
+	Fix typo for labels.
 	(rmail-summary-get-summary): Add labels again.
 
-2006-01-16  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-nuke-pinhead-header, rmail-reformat-message)
+	* mail/rmail.el (rmail-nuke-pinhead-header, rmail-reformat-message)
 	(rmail-msg-restore-non-pruned-header, rmail-msg-prune-header):
 	Delete.
 	(rmail-narrow-to-header): Fix typo, error if we cannot find the
 	end of the headers.
 
-	* rmailsum.el (rmail-message-subject-p, rmail-message-senders-p):
+	* mail/rmailsum.el (rmail-message-subject-p, rmail-message-senders-p):
 	Use mail-fetch-field instead of mail-header-get-header.
 	(rmail-summary-next-same-subject): Simplify.
 
-	* rmail.el (rmail): Create the buffer using file-name-nondirectory.
+	* mail/rmail.el (rmail): Create the buffer using file-name-nondirectory.
 	(rmail-mode-map): Bind j to rmail-show-message instead of rmail-message.
 
-2006-01-16  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmailsum.el (rmail-new-summary): Make sure summary buffer is
+	* mail/rmailsum.el (rmail-new-summary): Make sure summary buffer is
 	current when selecting message.
 	(rmail-summary-browse-body): Delete.
 	(rmail-summary-rmail-update, rmail-summary-get-message-at-point)
@@ -1041,9 +1029,9 @@
 	(rmail-summary-kill-label): Use with-current-buffer.
 	(rmail-summary-previous-msg): Add docstring.
 
-2006-01-16  Alex Schroeder  <alex@gnu.org>
+2009-01-22  Alex Schroeder  <alex@gnu.org>
 
-	* rmail.el (rmail-ignored-headers): Merge several terms using
+	* mail/rmail.el (rmail-ignored-headers): Merge several terms using
 	grouping, add simple "from " (without a colon), and several
 	other headers.
 	(rmail): Automatically convert BABYL files to mbox files.
@@ -1054,22 +1042,23 @@
 	message separators such that the fake separators inserted by
 	rmime.el are not matched.  The sections added by rmime.el are removed.
 
-2006-01-16  Henrik Enberg  <enberg@printf.se>
+2009-01-22  Henrik Enberg  <enberg@printf.se>
 
-	* rmail.el: Don't require `rmailout' and `rmailsum'.
+	* mail/rmail.el: Don't require `rmailout' and `rmailsum'.
 
-	* rmailsum.el (rmail-summary-get-line-count): Rightalign line count.
+	* mail/rmailsum.el (rmail-summary-get-line-count): Rightalign line
+	count.
 	(rmail-summary-get-summary): Display 5-digit message ids.
 	(rmail-summary-goto-msg): Adjust for 5-digit ids.
 	(rmail-summary-font-lock-keywords): Likewise.
 
-	* rmail.el (rmail-url-map, rmail-activate-urls)
+	* mail/rmail.el (rmail-url-map, rmail-activate-urls)
 	(rmail-visit-url-at-mouse, rmail-visit-url-at-point, rmail-browse-body):
 	Delete, don't duplicate goto-address functionality.
 
-2004-10-02  Richard M. Stallman  <rms@gnu.org>
+2009-01-22  Richard M. Stallman  <rms@gnu.org>
 
-	* mail/rmail.el	(rmail): Convert Babyl files using decode-babyl-file.
+	* mail/rmail.el (rmail): Convert Babyl files using decode-babyl-file.
 	(rmail-use-spam-filter): Add defvar.
 
 	* mail/unrmail.el: Mostly rewritten.  Parses the file
@@ -1078,7 +1067,7 @@
 	(decode-babyl): New functions.
 	(unrmail, batch-unrmail): Now aliases.
 
-2004-09-27  Richard M. Stallman  <rms@gnu.org>
+2009-01-22  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmaildesc.el (rmail-message-deleted-p): Add as alias.
 
@@ -1100,7 +1089,7 @@
 	(rmail-new-summary): Make it work once again as in old version.
 	(rmail-summary-get-summary): Call rmail-summary-line-decoder.
 
-2004-09-20  Richard M. Stallman  <rms@gnu.org>
+2009-01-22  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail): Error if file is Babyl format.
 	(rmail-process-new-messages, rmail-reply-callback, rmail-mark-message)
