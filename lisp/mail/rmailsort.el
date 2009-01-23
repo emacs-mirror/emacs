@@ -237,9 +237,5 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 
 (provide 'rmailsort)
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 665da245-f6a7-4115-ad8c-ba19216988d5
 ;;; rmailsort.el ends here

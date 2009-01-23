@@ -1757,9 +1757,5 @@ KEYWORDS is a comma-separated list of labels."
 
 (provide 'rmailsum)
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 80b0a27a-a50d-4f37-9466-83d32d1e0ca8
 ;;; rmailsum.el ends here

@@ -161,9 +161,5 @@ With prefix argument N moves forward N messages with these labels."
 
 (provide 'rmailkwd)
 
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.rmail"
-;; End:
-
 ;; arch-tag: 1149979c-8e47-4333-9629-cf3dc887a6a7
 ;;; rmailkwd.el ends here
