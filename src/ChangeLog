@@ -1,3 +1,7 @@
+2009-01-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_parse_xlfd): Handle patterns of length < 2.
+
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* emacs.c (main): Do fork+exec under --daemon in Cocoa.
