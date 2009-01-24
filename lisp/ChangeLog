@@ -1,3 +1,11 @@
+2009-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-insert-inbox-text): Revert replacement of
+	"popmail" by "pormail".
+
+	* language/ethio-util.el (rmail-current-message, rmail-message-vector):
+	Remove unneeded declarations.
+
 2009-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-poly.el (calcFunc-apart): Improve test for

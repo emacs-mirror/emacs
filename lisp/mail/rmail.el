@@ -1785,18 +1785,18 @@ is non-nil if the user has supplied the password interactively.
   (or (memq (file-locked-p buffer-file-name) '(nil t))
       (error "RMAIL file %s is locked"
 	     (file-name-nondirectory buffer-file-name)))
-  (let (file tofile delete-files movemail pormail got-password password)
+  (let (file tofile delete-files movemail popmail got-password password)
     (while files
       ;; Handle remote mailbox names specially; don't expand as filenames
       ;; in case the userid contains a directory separator.
       (setq file (car files))
       (let ((url-data (rmail-parse-url file)))
 	(setq file (nth 0 url-data))
-	(setq pormail (nth 1 url-data))
+	(setq popmail (nth 1 url-data))
 	(setq password (nth 2 url-data))
 	(setq got-password (nth 3 url-data)))
 
-      (if pormail
+      (if popmail
 	  (setq renamep t)
 	(setq file (file-truename
 		    (substitute-in-file-name (expand-file-name file)))))
@@ -1817,13 +1817,13 @@ is non-nil if the user has supplied the password interactively.
 		     (expand-file-name buffer-file-name))))
       ;; Always use movemail to rename the file,
       ;; since there can be mailboxes in various directories.
-      (when (not pormail)
+      (when (not popmail)
 	;; On some systems, /usr/spool/mail/foo is a directory
 	;; and the actual inbox is /usr/spool/mail/foo/foo.
 	(if (file-directory-p file)
 	    (setq file (expand-file-name (user-login-name)
 					 file))))
-      (cond (pormail
+      (cond (popmail
 	     (message "Getting mail from the remote server ..."))
 	    ((and (file-exists-p tofile)
 		  (/= 0 (nth 7 (file-attributes tofile))))
@@ -1835,7 +1835,7 @@ is non-nil if the user has supplied the password interactively.
       ;; rename or copy the file FILE to TOFILE if and as appropriate.
       (cond ((not renamep)
 	     (setq tofile file))
-	    ((or (file-exists-p tofile) (and (not pormail)
+	    ((or (file-exists-p tofile) (and (not popmail)
 					     (not (file-exists-p file))))
 	     nil)
 	    (t
