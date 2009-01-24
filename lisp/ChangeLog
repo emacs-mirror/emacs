@@ -1,3 +1,9 @@
+2009-01-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-language-environment-coding-systems): If
+	default-buffer-file-coding-system is nil, set up to have EOLs that
+	are native for the underlying system-type.
+
 2009-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-function-argstring-format):
