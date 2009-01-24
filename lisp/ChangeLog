@@ -1,3 +1,11 @@
+2009-01-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-first-feed): New.
+	(newsticker-treeview-next-new-or-immortal-item): Try first-feed if
+	next-feed does not succeed.  Fixes bug#1710 even more.
+	(newsticker-treeview-next-feed): Simplified.
+	(newsticker--group-get-feeds): Suppress group names in result.
+
 2009-01-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (menu-bar-select-frame): Drop this override.

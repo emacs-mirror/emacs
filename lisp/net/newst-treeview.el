@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "22. Januar 2009, 21:22:25 (ulf)"
+;; Time-stamp:  "24. Januar 2009, 11:22:20 (ulf)"
 
 ;; ======================================================================
 
@@ -1337,7 +1337,8 @@ new or immortal."
                   (newsticker-treeview-show-item)
                   (throw 'found t))
                 (setq move t))))
-    (when (newsticker-treeview-next-feed t)
+    (when (or (newsticker-treeview-next-feed t)
+              (newsticker--treeview-first-feed))
       (newsticker-treeview-next-new-or-immortal-item t))))
 
 (defun newsticker-treeview-prev-new-or-immortal-item ()
@@ -1542,6 +1543,11 @@ is activated."
           (node
            (widget-apply-action node)))))
 
+(defun newsticker--treeview-first-feed ()
+  "Jump to the depth-first feed in the newsticker-groups tree." 
+  (newsticker-treeview-jump
+   (car (reverse (newsticker--group-get-feeds newsticker-groups t)))))
+
 (defun newsticker-treeview-next-feed (&optional stay-in-tree)
   "Move to next feed.
 Optional argument STAY-IN-TREE prevents moving from real feed
@@ -1551,21 +1557,18 @@ Return t if a new feed was activated, nil otherwise."
   (newsticker--treeview-restore-layout)
   (let ((cur (newsticker--treeview-get-current-node))
         (new nil))
-    (if cur
-      (progn
-        (setq new
-              (if cur
-                  (or (newsticker--treeview-get-next-sibling cur)
-                      (newsticker--treeview-get-next-uncle cur)
-                      (and (not stay-in-tree)
-                           (newsticker--treeview-get-other-tree)))
-                (car (widget-get newsticker--treeview-feed-tree :children))))
-        (if new
-            (progn
-              (newsticker--treeview-activate-node new)
-              (newsticker--treeview-tree-update-highlight)
-              (not (eq new cur)))
-          nil))
+    (setq new
+          (if cur
+              (or (newsticker--treeview-get-next-sibling cur)
+                  (newsticker--treeview-get-next-uncle cur)
+                  (and (not stay-in-tree)
+                       (newsticker--treeview-get-other-tree)))
+            (car (widget-get newsticker--treeview-feed-tree :children))))
+    (if new
+        (progn
+          (newsticker--treeview-activate-node new)
+          (newsticker--treeview-tree-update-highlight)
+          (not (eq new cur)))
       nil)))
 
 (defun newsticker-treeview-prev-feed (&optional stay-in-tree)
@@ -1719,7 +1722,7 @@ return a nested list."
                   (let ((subfeeds (newsticker--group-get-feeds n t)))
                     (when subfeeds
                       (setq result (append subfeeds result)))))))
-          group)
+          (cdr group))
     result))
 
 (defun newsticker-group-add-group (name parent)
