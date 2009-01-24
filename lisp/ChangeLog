@@ -1,3 +1,8 @@
+2009-01-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (menu-bar-select-frame): Drop this override.
+	(menu-bar-update-frames): Update call to menu-bar-select-frame.
+
 2009-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-insert-inbox-text): Revert replacement of

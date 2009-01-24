@@ -622,14 +622,6 @@ this defaults to \"printenv\"."
 (define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
 (define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
 
-
-;;;; Windows menu
-(defun menu-bar-select-frame (&optional frame)
-  (interactive)
-  (make-frame-visible last-command-event)
-  (raise-frame last-command-event)
-  (select-frame last-command-event))
-
 (defun menu-bar-update-frames ()
   ;; If user discards the Windows item, play along.
   (when (lookup-key (current-global-map) [menu-bar windows])
@@ -638,9 +630,11 @@ this defaults to \"printenv\"."
       (setcdr frames-menu
               (nconc
                (mapcar (lambda (frame)
-                         (list* frame
-                                (cdr (assq 'name (frame-parameters frame)))
-                                'menu-bar-select-frame))
+			 (list*
+			  (frame-parameter frame 'window-id)
+			  (frame-parameter frame 'name)
+			  `(lambda ()
+			     (interactive) (menu-bar-select-frame ,frame))))
                        frames)
                (cdr frames-menu)))
       (define-key frames-menu [separator-frames] '("--"))
@@ -846,7 +840,8 @@ See ns-insert-working-text."
 	 message-log-max)
     (setq ns-working-overlay-len (length ns-working-text))
     (setq msg (concat msg ns-working-text))
-    (put-text-property msglen (+ msglen ns-working-overlay-len) 'face 'ns-working-text-face msg)
+    (put-text-property msglen (+ msglen ns-working-overlay-len)
+		       'face 'ns-working-text-face msg)
     (message "%s" msg)
     (setq ns-working-overlay t)))
 
