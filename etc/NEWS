@@ -1729,9 +1729,6 @@ deleting a terminal.
 *** New functions:
 
 +++
-**** `environment'
-
-+++
 **** `delete-terminal'
 
 +++
