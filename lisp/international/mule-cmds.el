@@ -1933,7 +1933,25 @@ See `set-language-info-alist' for use in programs."
   "Do various coding system setups for language environment LANGUAGE-NAME."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority))
-	 (eol-type (coding-system-eol-type default-buffer-file-coding-system)))
+	 ;; If default-buffer-file-coding-system is nil, don't use
+	 ;; coding-system-eol-type, because it treats nil as
+	 ;; `no-conversion'.  default-buffer-file-coding-system is set
+	 ;; to nil by reset-language-environment, and in that case we
+	 ;; want to have here the native EOL type for each platform.
+	 ;; FIXME: there should be a common code that runs both on
+	 ;; startup and here to set the default EOL type correctly.
+	 ;; Right now, DOS/Windows platforms set this on dos-w32.el,
+	 ;; which works only as long as the order of loading files at
+	 ;; dump time and calling functions at startup is not modified
+	 ;; significantly, i.e. as long as this function is called
+	 ;; _after_ default-buffer-file-coding-system was set by
+	 ;; dos-w32.el.
+	 (eol-type
+	  (if (null default-buffer-file-coding-system)
+	      (cond ((memq system-type '(windows-nt ms-dos)) 1)
+		    ((eq system-type 'macos) 2)
+		    (t 0))
+	    (coding-system-eol-type default-buffer-file-coding-system))))
     (when priority
       (set-default-coding-systems
        (if (memq eol-type '(0 1 2 unix dos mac))
