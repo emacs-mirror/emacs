@@ -3,6 +3,7 @@
 	* international/mule-cmds.el (set-language-environment-coding-systems): If
 	default-buffer-file-coding-system is nil, set up to have EOLs that
 	are native for the underlying system-type.
+	(prefer-coding-system, set-default-coding-systems): Doc fix.
 
 2009-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
