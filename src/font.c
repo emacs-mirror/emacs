@@ -1066,11 +1066,11 @@ font_parse_xlfd (name, font)
   Lisp_Object val;
   char *p;
 
-  if (len > 255)
+  if (len > 255 || !len)
     /* Maximum XLFD name length is 255. */
     return -1;
   /* Accept "*-.." as a fully specified XLFD. */
-  if (name[0] == '*' && name[1] == '-')
+  if (name[0] == '*' && (len == 1 || name[1] == '-'))
     i = 1, f[XLFD_FOUNDRY_INDEX] = name;
   else
     i = 0;
