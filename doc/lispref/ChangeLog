@@ -1,3 +1,8 @@
+2009-01-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (System Environment): Remove description of the
+	`environment' function which has been deleted.
+
 2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frames.texi (Multiple Displays): Remove documentation for
