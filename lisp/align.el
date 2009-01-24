@@ -1307,6 +1307,7 @@ aligner would have dealt with are."
 		 (rulesep (assq 'separate rule))
 		 (thissep (if rulesep (cdr rulesep) separate))
 		 same (eol 0)
+		 search-start
 		 group group-c
 		 spacing spacing-c
 		 tab-stop tab-stop-c
@@ -1412,6 +1413,7 @@ aligner would have dealt with are."
 		      ;; while we can find the rule in the alignment
 		      ;; region..
 		      (while (and (< (point) end-mark)
+				  (setq search-start (point))
 				  (if regfunc
 				      (funcall regfunc end-mark nil)
 				    (re-search-forward regexp
@@ -1436,7 +1438,7 @@ aligner would have dealt with are."
 			;; if the search ended us on the beginning of
 			;; the next line, move back to the end of the
 			;; previous line.
-			(if (bolp)
+			(if (and (bolp) (> (point) search-start))
 			    (forward-char -1))
 
 			;; lookup the `group' attribute the first time
@@ -1576,7 +1578,12 @@ aligner would have dealt with are."
 			    ;; the next line; don't bother searching
 			    ;; anymore on this one
 			    (if (and (not repeat) (not (bolp)))
-				(forward-line)))))
+				(forward-line))
+
+			    ;; if the search did not change point,
+			    ;; move forward to avoid an infinite loop
+			    (if (= (point) search-start)
+				(forward-char)))))
 
 		      ;; when they are no more matches for this rule,
 		      ;; align whatever was left over
