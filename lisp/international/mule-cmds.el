@@ -330,7 +330,7 @@ This sets the following coding systems:
 This also sets the following values:
   o default value used as `file-name-coding-system' for converting file names
       if CODING-SYSTEM is ASCII-compatible
-  o default value for the command `set-terminal-coding-system' (not on MS-DOS)
+  o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'
       if CODING-SYSTEM is ASCII-compatible"
   (check-coding-system coding-system)
@@ -370,16 +370,11 @@ This also sets the following coding systems:
   o default coding system for subprocess I/O
 This also sets the following values:
   o default value used as `file-name-coding-system' for converting file names
-  o default value for the command `set-terminal-coding-system' (not on MS-DOS)
+  o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'
 
 If CODING-SYSTEM specifies a certain type of EOL conversion, the coding
 systems set by this function will use that type of EOL conversion.
-
-This command does not change the default value of terminal coding system
-for MS-DOS terminal, because DOS terminals only support a single coding
-system, and Emacs automatically sets the default to that coding system at
-startup.
 
 A coding system that requires automatic detection of text+encoding
 \(e.g. undecided, unix) can't be preferred."
