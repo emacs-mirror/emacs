@@ -72,6 +72,45 @@ Fixed by this change?
 ** In C, use EMACS_INT for variables and structure members
 for buffer/string positions.  E.g. struct it, struct text_pos.
 
+** These lisp files refer to rmail, and might need updating post-mbox.
+
+mail/rmailout  ; act on the following comment?
+
+  ;; When Rmail is really installed, if we delete or rename the old Rmail
+  ;; we should do likewise with this function.
+
+  (defun rmail-output-to-r-mail-buffer (tembuf msg)
+
+mail/rmail-spam-filter.el: rmail-output-to-rmail-file was deleted
+           this file is modified in rmail-mbox-branch?
+
+dired-x.el             ; doc-fix for dired-bind-vm?
+gnus/gnus-art.el
+gnus/gnus-util.el
+gnus/gnus.el
+gnus/message.el
+gnus/nnbabyl.el
+mail/feedmail.el  ; comments about mail-header-separator still valid?
+mail/metamail.el
+mail/sendmail.el
+mail/uce.el
+mail/undigest.el
+mail/unrmail.el   ; this file is modified in rmail-mbox-branch?
+net/mairix.el
+org/org-rmail.el
+
+EOOH references:
+
+gnus/gnus-util.el
+gnus/nnbabyl.el
+gnus/nndoc.el
+gnus/nnmail.el
+mail/sendmail.el
+mail/uce.el
+mail/undigest.el
+mail/unrmail.el
+
+
 * DOCUMENTATION
 
 ** Clean up Emacs.app references in code and documentation.
