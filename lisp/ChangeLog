@@ -1,3 +1,10 @@
+2009-01-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-function-argstring-format):
+	Revert 2007-09-26 change; use `string-match-p' to check for &keywords.
+	(eldoc-get-fnsym-args-string, eldoc-highlight-function-argument):
+	Use `string-match-p'.
+
 2009-01-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-first-feed): New.
