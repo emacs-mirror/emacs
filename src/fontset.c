@@ -660,6 +660,10 @@ fontset_font (fontset, c, face, id)
   Lisp_Object rfont_def;
   Lisp_Object base_fontset;
 
+  /* If we know there is no font of C, don't do any work.  */
+  if (EQ (fontset_ref (fontset, c), Qt))
+    return Qnil;
+
   /* Try a font-group of FONTSET. */
   rfont_def = fontset_find_font (fontset, c, face, id, 0);
   if (VECTORP (rfont_def))
@@ -696,7 +700,7 @@ fontset_font (fontset, c, face, id)
 	return rfont_def;
     }
 
-  /* Remeber that we have no font for C.  */
+  /* Remember that we have no font for C.  */
   FONTSET_SET (fontset, make_number (c), Qt);
 
   return Qnil;
