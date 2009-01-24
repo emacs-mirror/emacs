@@ -2128,6 +2128,15 @@ to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
 
+** Setting w32-pass-rwindow-to-system and w32-pass-lwindow-to-system to nil
+does not prevent the Start menu from popping up when the left or right
+``Windows'' key is pressed.
+
+This was reported to happen when XKeymacs is installed.  At least with
+XKeymacs Version 3.47, deactivating XKeymacs when Emacs is active is
+not enough to avoid its messing with the keyboard input.  Exiting
+XKeymacs completely is reported to solve the problem.
+
 ** Windows 95 and networking.
 
 To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
