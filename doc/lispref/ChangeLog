@@ -1,5 +1,8 @@
 2009-01-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* display.texi (Window Systems): Document the value of
+	`initial-window-system' under --daemon.
+
 	* os.texi (System Environment): Remove description of the
 	`environment' function which has been deleted.
 
