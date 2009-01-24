@@ -1,5 +1,8 @@
 2009-01-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* fontset.c (fontset_font): If we know there is no font, don't do
+	any work.
+
 	* font.c (font_parse_xlfd): Handle patterns of length < 2.
 
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
