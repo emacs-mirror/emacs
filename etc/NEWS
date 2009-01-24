@@ -924,7 +924,18 @@ corresponding remote host.
 
 ** Rmail
 
-FIXME mbox merge details
+*** Rmail no longer converts the messages to Babyl format.
+Instead, it keeps them in their original mbox format, both on disk and
+in Rmail buffers, and does conversion and decoding when a message is
+displayed.
+
+First time you visit an Rmail file in Babyl format, Rmail
+automatically converts it to mbox format.  This is a one-time
+conversion, but it can take a few minutes, depending on how fast is
+your machine and on the size of the file.  You should find the rest of
+Rmail usage unaltered.
+
+FIXME: Add more mbox merge details
 
 ** TeX modes
 ---
