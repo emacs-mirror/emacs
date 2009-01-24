@@ -135,7 +135,8 @@ starts the server.  Clients can connect and create graphical or
 terminal frames using emacsclient.
 
 **** emacsclient starts emacs in daemon mode and connects to it when
---alternate-editor="" is used and emacsclient cannot connect to an
+--alternate-editor="" is used (or when the evironment variable
+ALTERNATE_EDITOR is set to "") and emacsclient cannot connect to an
 emacs server.
 
 *** The new command close-display-connection closes a connection to a
