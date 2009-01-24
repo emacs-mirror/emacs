@@ -961,22 +961,24 @@
 	((eq (car expr) '-)
 	 (math-sub (calcFunc-apart (nth 1 expr) var)
 		   (calcFunc-apart (nth 2 expr) var)))
-	((not (math-ratpoly-p expr var))
-	 (math-reject-arg expr "Expected a rational function"))
+        ((and var (not (math-ratpoly-p expr var)))
+         (math-reject-arg expr "Expected a rational function"))
 	(t
-	 (let* ((calc-prefer-frac t)
-		(rat (math-to-ratpoly expr))
-		(num (car rat))
-		(den (cdr rat))
-		(qr (math-poly-div num den))
-		(q (car qr))
-		(r (cdr qr)))
-	   (or var
-	       (setq var (math-polynomial-base den)))
-	   (math-add q (or (and var
-				(math-expr-contains den var)
-				(math-partial-fractions r den var))
-			   (math-div r den)))))))
+         (let* ((calc-prefer-frac t)
+                (rat (math-to-ratpoly expr))
+                (num (car rat))
+                (den (cdr rat)))
+           (or var
+               (setq var (math-polynomial-base den)))
+           (if (not (math-ratpoly-p expr var))
+               (math-reject-arg expr "Expected a rational function")
+             (let* ((qr (math-poly-div num den))
+                    (q (car qr))
+                    (r (cdr qr)))
+               (math-add q (or (and var
+                                    (math-expr-contains den var)
+                                    (math-partial-fractions r den var))
+                               (math-div r den)))))))))
 
 
 (defun math-padded-polynomial (expr var deg)
