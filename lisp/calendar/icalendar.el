@@ -222,9 +222,9 @@ The following specifiers are available:
 %t TIMESTAMP, a unique creation timestamp,
 %u USERNAME, the user-login-name.
 
-For example, a value of \"DTSTART_HASH@mydomain.com\" will
-generate a UID code for each entry composed of the time of the
-event, a hash code for the event, and your personal domain name."
+For example, a value of \"%s_%h@mydomain.com\" will generate a
+UID code for each entry composed of the time of the event, a hash
+code for the event, and your personal domain name."
   :type 'string
   :group 'icalendar)
 

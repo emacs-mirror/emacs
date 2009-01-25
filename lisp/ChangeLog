@@ -1,3 +1,7 @@
+2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-uid-format): Fixed doc string.
+
 2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-insert-working-text, ns-delete-working-text):
