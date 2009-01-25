@@ -11,8 +11,8 @@
 @set VERSION 8.1
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION
-@set UPDATED 2009-01-02
+@set EDITION , 2nd Edition
+@set UPDATED 2009-01-23
 @set UPDATE-MONTH January, 2009
 
 @c Other variables.
