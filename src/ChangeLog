@@ -28,14 +28,14 @@
 2009-01-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (buffer_posn_from_coords): Use Fset_buffer instead of
-	setting current_buffer directly.
+	setting current_buffer directly.  (Bug#2044)
 
 2009-01-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fontset.c (fontset_font): If we know there is no font, don't do
 	any work.  (Bug#1952, bug#1990).
 
-	* font.c (font_parse_xlfd): Handle patterns of length < 2.
+	* font.c (font_parse_xlfd): Handle patterns of length < 2.  (Bug#1802)
 
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -132,7 +132,7 @@
 
 	* xfaces.c (Finternal_set_lisp_face_attribute, Fx_list_fonts):
 	Check return value of font_spec_from_name.
-	(Fx_list_fonts): Doc fix.
+	(Fx_list_fonts): Doc fix.  (Bug#1951)
 
 	* font.c (font_spec_from_name): Return Qnil if font name could not
 	be parsed.
