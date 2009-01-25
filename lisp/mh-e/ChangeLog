@@ -1,3 +1,8 @@
+2009-01-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-folder-mode-help-messages): Add e and t to K's
+	help.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* mh-letter.el: Replace last-input-char with last-input-event.
