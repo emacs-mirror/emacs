@@ -126,7 +126,7 @@
 
 2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
 
-	* server.el (server-name): Make it a defcustom.
+	* server.el (server-name): Make it a defcustom.  (Bug#1995)
 
 	* mail/rmail.el (rmail-buffer-swapped): Mark as permanent local.
 
