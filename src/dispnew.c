@@ -5933,7 +5933,7 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
      int *width, *height;
 {
   struct it it;
-  struct buffer *old_current_buffer = current_buffer;
+  Lisp_Object old_current_buffer = Fcurrent_buffer ();
   struct text_pos startp;
   Lisp_Object string;
   struct glyph_row *row;
@@ -5942,7 +5942,9 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
 #endif
   int x0, x1;
 
-  current_buffer = XBUFFER (w->buffer);
+  /* We used to set current_buffer directly here, but that does the
+     wrong thing with `face-remapping-alist' (bug#2044).  */
+  Fset_buffer (w->buffer);
   SET_TEXT_POS_FROM_MARKER (startp, w->start);
   CHARPOS (startp) = min (ZV, max (BEGV, CHARPOS (startp)));
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
@@ -5952,7 +5954,7 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
   move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
 	      MOVE_TO_X | MOVE_TO_Y);
 
-  current_buffer = old_current_buffer;
+  Fset_buffer (old_current_buffer);
 
   *dx = x0 + it.first_visible_x - it.current_x;
   *dy = *y - it.current_y;
