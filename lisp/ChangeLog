@@ -1,3 +1,9 @@
+2009-01-25  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-mode-map): Put grep-find before grep and
+	change its title from "Recursive grep..." to "Grep via Find...".
+	Add menu items for lgrep and rgrep.
+
 2009-01-24  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* align.el (align-region): Avoid infloop.
