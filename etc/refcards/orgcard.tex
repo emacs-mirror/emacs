@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.16}
-\def\versionyear{2008}          % latest update
+\def\orgversionnumber{6.19a}
+\def\versionyear{2009}          % latest update
 \def\year{2009}                 % latest copyright year
 
 %**start of header
@@ -308,17 +308,16 @@ are preserved on all copies.
 \key{insert new heading after subtree}{C-RET}
 \key{insert new TODO entry/checkbox item}{M-S-RET}
 \key{insert TODO entry/ckbx after subtree}{C-S-RET}
-
+\key{turn (head)line into item, cycle item type}{C-c -}
+\key{turn item/line into headline}{C-c *}
 \key{promote/demote heading}{M-LEFT/RIGHT}
 \metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
 
-\key{move subtree/list item up/down}{M-S-UP/DOWN}
-\key{refile subtree}{C-c C-w}
-\key{kill subtree}{C-c C-x C-w}
-\key{copy subtree}{C-c C-x M-w}
+\metax{move subtree/list item up/down}{M-S-UP/DOWN}
+\metax{refile subtree}{C-c C-w}
+\metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
-\key{narrow buffer to current subtree}{C-x n s}
-\key{widen restriction to full buffer}{C-x n w}
+\metax{narrow buffer to subtree / widen}{C-x n s/w}
 
 \section{Archiving}
 
@@ -375,6 +374,7 @@ Outside of tables, the same keys may have other functionality.
 \key{kill the current row or horizontal line}{M-S-UP}
 \key{insert new row above the current row}{M-S-DOWN}
 \key{insert hline below (\kbd{C-u} : above) current row}{C-c -}
+\key{insert hline and move to line below it}{C-c RET}
 \key{sort lines in region}{C-c \^{}}
 
 {\bf Regions}
