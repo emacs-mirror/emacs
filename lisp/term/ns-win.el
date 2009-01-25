@@ -289,11 +289,10 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-drag-text] 'ns-insert-text)
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
-(define-key global-map [ns-insert-working-text] 'ns-insert-working-text)
-(define-key global-map [ns-delete-working-text] 'ns-delete-working-text)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
 (define-key global-map [ns-new-frame] 'make-frame)
-
+(define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
+(define-key global-map [ns-info-prefs] 'ns-show-preferences-help)
 
 
 ;; Functions to set environment variables by running a subshell.
@@ -398,10 +397,12 @@ this defaults to \"printenv\"."
              (cons (logior (lsh 0 16)   6) 'ns-drag-text)
              (cons (logior (lsh 0 16)   7) 'ns-change-font)
              (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
-             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
-             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
+;             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
+;             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
              (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
              (cons (logior (lsh 0 16)  12) 'ns-new-frame)
+             (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
+             (cons (logior (lsh 0 16)  14) 'ns-info-prefs)
              (cons (logior (lsh 1 16)  32) 'f1)
              (cons (logior (lsh 1 16)  33) 'f2)
              (cons (logior (lsh 1 16)  34) 'f3)
@@ -684,7 +685,7 @@ this defaults to \"printenv\"."
   (interactive)
   (ns-arrange-frames nil))
 
-(defun ns-arrange-frames ( vis)
+(defun ns-arrange-frames (vis)
   (let ((frame (next-frame))
 	(end-frame (selected-frame))
 	(inc-x 20)                      ;relative position of frames
@@ -792,8 +793,10 @@ this defaults to \"printenv\"."
   "Length of working text during compose sequence insert.")
 (make-variable-buffer-local 'ns-working-overlay-len)
 
-;; Based on mac-win.el 2007/08/26 unicode-2.  This will fail if called
-;; from an "interactive" function.
+(defvar ns-working-text)		; nsterm.m
+
+;; Test if in echo area, based on mac-win.el 2007/08/26 unicode-2.
+;; This will fail if called from a NONASCII_KEYSTROKE event on the global map.
 (defun ns-in-echo-area ()
   "Whether, for purposes of inserting working composition text, the minibuffer
 is currently being used."
@@ -812,16 +815,20 @@ is currently being used."
 ;; The 'interactive' here stays for subinvocations, so the ns-in-echo-area
 ;; always returns nil for some reason.  If this WASN'T the case, we could
 ;; map this to [ns-insert-working-text] and eliminate Fevals in nsterm.m.
+;; These functions test whether in echo area and delegate accordingly.
 (defun ns-put-working-text ()
   (interactive)
   (if (ns-in-echo-area) (ns-echo-working-text) (ns-insert-working-text)))
-
-(defvar ns-working-text)		; nsterm.m
+(defun ns-unput-working-text ()
+  (interactive)
+  (if (ns-in-echo-area) (ns-unecho-working-text) (ns-delete-working-text)))
 
 (defun ns-insert-working-text ()
   "Insert contents of ns-working-text as UTF8 string and mark with
 ns-working-overlay.  Any previously existing working text is cleared first.
 The overlay is assigned the face ns-working-text-face."
+;; FIXME: if buffer is read-only, don't try to insert anything
+;;  and if text is bound to a command, execute that instead (Bug#1453)
   (interactive)
   (if ns-working-overlay (ns-delete-working-text))
   (let ((start (point)))
@@ -857,6 +864,7 @@ See ns-insert-working-text."
   (let ((msg (current-message))
 	message-log-max)
     (setq msg (substring msg 0 (- (length msg) ns-working-overlay-len)))
+    (message "%s" msg)
     (setq ns-working-overlay-len 0)
     (setq ns-working-overlay nil)))
 
@@ -1228,6 +1236,12 @@ unless the current buffer is a scratch buffer.")
 
 
 ;;;; Dialog-related functions.
+
+
+(defun ns-show-preferences-help ()
+ "Show NS Preferences panel section in the Emacs manual"
+  (interactive)
+  (info "(emacs)Mac / GNUstep Customization"))
 
 ;; Ask user for confirm before printing.  Due to Kevin Rodgers.
 (defun ns-print-buffer ()
