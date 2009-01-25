@@ -1366,6 +1366,9 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
+;; Thanks to Eduard Wiebe <usenet@pusto.de> for fixing face
+;; background/foreground extraction.
+;;
 ;; Thanks to Friedrich Delgado Friedrichs <friedel@nomaden.org> for new label
 ;; printer page sizes.
 ;;
