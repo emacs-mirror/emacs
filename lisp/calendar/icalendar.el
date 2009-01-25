@@ -210,6 +210,24 @@ if nil they are ignored."
   :type 'boolean
   :group 'icalendar)
 
+(defcustom icalendar-uid-format
+  "emacs%t%c"
+  "Format of unique ID code (UID) for each iCalendar object.  
+The following specifiers are available: 
+%c COUNTER, an integer value that is increased each time a uid is
+   generated. This may be necessary for systems which do not
+   provide time-resolution finer than a second.
+%h HASH, a hash value of the diary entry,
+%s DTSTART, the start date (excluding time) of the diary entry,
+%t TIMESTAMP, a unique creation timestamp,
+%u USERNAME, the user-login-name.
+
+For example, a value of \"DTSTART_HASH@mydomain.com\" will
+generate a UID code for each entry composed of the time of the
+event, a hash code for the event, and your personal domain name."
+  :type 'string
+  :group 'icalendar)
+
 (defvar icalendar-debug nil
   "Enable icalendar debug messages.")
 
@@ -844,6 +862,9 @@ would be \"pm\"."
         ;; Be sure *not* to convert 12:00pm - 12:59pm to 2400-2459
         (if (and ampmstring (string= "pm" ampmstring) (< starttimenum 1200))
             (setq starttimenum (+ starttimenum 1200)))
+	;; Similar effect with 12:00am - 12:59am (need to convert to 0000-0059)
+        (if (and ampmstring (string= "am" ampmstring) (>= starttimenum 1200))
+            (setq starttimenum (- starttimenum 1200)))
         (format "T%04d00" starttimenum))
     nil))
 
@@ -880,17 +901,36 @@ Finto iCalendar file: ")
 (defvar icalendar--uid-count 0
   "Auxiliary counter for creating unique ids.")
 
-(defun icalendar--create-uid ()
-  "Create a unique identifier.
-Use `current-time' and a counter to create unique ids. The
-counter is necessary for systems which do not provide resolution
-finer than a second."
-  (setq icalendar--uid-count (1+ icalendar--uid-count))
-  (format "emacs%d%d%d%d"
-          (car (current-time))
-          (cadr (current-time))
-          (car (cddr (current-time)))
-          icalendar--uid-count))
+(defun icalendar--create-uid (entry-full contents)
+  "Construct a unique iCalendar UID for a diary entry.
+ENTRY-FULL is the full diary entry string.  CONTENTS is the
+current iCalendar object, as a string.  Increase
+`icalendar--uid-count'.  Returns the UID string."
+  (let ((uid icalendar-uid-format))
+    
+    (setq uid (replace-regexp-in-string 
+	       "%c" 
+	       (format "%d" icalendar--uid-count)
+               uid t t))
+    (setq icalendar--uid-count (1+ icalendar--uid-count))
+    (setq uid (replace-regexp-in-string 
+	       "%t"
+	       (format "%d%d%d" (car (current-time))
+		       (cadr (current-time))
+		       (car (cddr (current-time)))) 
+	       uid t t))
+    (setq uid (replace-regexp-in-string 
+	       "%h" 
+	       (format "%d" (abs (sxhash entry-full))) uid t t))
+    (setq uid (replace-regexp-in-string 
+	       "%u" (or user-login-name "UNKNOWN_USER") uid t t))
+    (let ((dtstart (if (string-match "^DTSTART[^:]*:\\([0-9]*\\)" contents)
+                       (substring contents (match-beginning 1) (match-end 1))
+                   "DTSTART")))
+          (setq uid (replace-regexp-in-string "%s" dtstart uid t t)))
+
+    ;; Return the UID string
+    uid))
 
 ;;;###autoload
 (defun icalendar-export-region (min max ical-filename)
@@ -907,6 +947,7 @@ FExport diary data into iCalendar file: ")
         (start 0)
         (entry-main "")
         (entry-rest "")
+	(entry-full "")
         (header "")
         (contents-n-summary)
         (contents)
@@ -931,14 +972,14 @@ FExport diary data into iCalendar file: ")
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
           (setq entry-rest ""))
-        (setq header (format "\nBEGIN:VEVENT\nUID:%s"
-                             (icalendar--create-uid)))
+	(setq entry-full (concat entry-main entry-rest))
+
         (condition-case error-val
             (progn
               (setq contents-n-summary
                     (icalendar--convert-to-ical nonmarker entry-main))
               (setq other-elements (icalendar--parse-summary-and-rest
-                                    (concat entry-main entry-rest)))
+				    entry-full))
               (setq contents (concat (car contents-n-summary)
                                      "\nSUMMARY:" (cadr contents-n-summary)))
               (let ((cla (cdr (assoc 'cla other-elements)))
@@ -962,6 +1003,9 @@ FExport diary data into iCalendar file: ")
                 ;;    (setq contents (concat contents "\nSUMMARY:" sum)))
                 (if url
                     (setq contents (concat contents "\nURL:" url))))
+
+	      (setq header (concat "\nBEGIN:VEVENT\nUID:" 
+				   (icalendar--create-uid entry-full contents)))
               (setq result (concat result header contents "\nEND:VEVENT")))
           ;; handle errors
           (error
@@ -1034,22 +1078,31 @@ Returns an alist."
              (p-sta (or (string-match "%t" icalendar-import-format) -1))
              (p-url (or (string-match "%u" icalendar-import-format) -1))
              (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url) '<))
+	     (ct 0)
              pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url)
         (dotimes (i (length p-list))
+	  ;; Use 'ct' to keep track of current position in list
           (cond ((and (>= p-cla 0) (= (nth i p-list) p-cla))
-                 (setq pos-cla (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-cla (* 2 ct)))
                 ((and (>= p-des 0) (= (nth i p-list) p-des))
-                 (setq pos-des (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-des (* 2 ct)))
                 ((and (>= p-loc 0) (= (nth i p-list) p-loc))
-                 (setq pos-loc (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-loc (* 2 ct)))
                 ((and (>= p-org 0) (= (nth i p-list) p-org))
-                 (setq pos-org (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-org (* 2 ct)))
                 ((and (>= p-sta 0) (= (nth i p-list) p-sta))
-                 (setq pos-sta (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-sta (* 2 ct)))
                 ((and (>= p-sum 0) (= (nth i p-list) p-sum))
-                 (setq pos-sum (+ 2 (* 2 i))))
+		 (setq ct (+ ct 1))
+                 (setq pos-sum (* 2 ct)))
                 ((and (>= p-url 0) (= (nth i p-list) p-url))
-                 (setq pos-url (+ 2 (* 2 i))))))
+		 (setq ct (+ ct 1))
+                 (setq pos-url (* 2 ct)))) )
         (mapc (lambda (ij)
                 (setq s (icalendar--rris (car ij) (cadr ij) s t t)))
               (list
@@ -1068,8 +1121,10 @@ Returns an alist."
                      (concat "\\(" icalendar-import-format-status "\\)??"))
                (list "%u"
                      (concat "\\(" icalendar-import-format-url "\\)??"))))
-        (setq s (concat "^" (icalendar--rris "%s" "\\(.*?\\)" s nil t)
-                        " $"))
+	;; Need the \' regexp in order to detect multi-line items
+        (setq s (concat "\\`" 
+			   (icalendar--rris "%s" "\\(.*?\\)" s nil t)
+                        "\\'"))
         (if (string-match s summary-and-rest)
             (let (cla des loc org sta sum url)
               (if (and pos-sum (match-beginning pos-sum))

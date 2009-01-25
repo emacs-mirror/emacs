@@ -1,3 +1,17 @@
+2009-01-25  Craig Markwardt <cbmarkwardt@gmail.com>
+
+	* calendar/icalendar.el (icalendar-uid-format): New defcustom
+	variable to allow the user to choose icalendar UID format.
+	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
+	12:00am-12:59am are correctly converted to 0000-0059, instead of
+	12pm.
+	(icalendar-export-region,icalendar--create-uid): Use custom
+	function to compute icalendar UID for each entry.
+	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
+	with description, location, etc. fields (need to keep active count
+	of fields encountered).  Another bug fix to the regex that matches
+	multiple lines (need \' regex instead of $ to match end-of-entry).
+
 2009-01-25  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-mode-map): Put grep-find before grep and
