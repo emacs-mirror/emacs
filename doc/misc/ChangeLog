@@ -1,3 +1,30 @@
+2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (References): Add information about remote references.
+	(Built-in table editor): Document `C-c RET' in tables.
+	(Math symbols, Quoting LaTeX code): Mention that simple
+	LaTeX macros survive LaTeX export.
+	(Images in LaTeX export): Show how to create a reference to a
+	figure.
+	(Sectioning structure): Document that the LaTeX class can be
+	specified in a property.
+	(Text areas in HTML export): New section.
+	(External links): Add examples for text search and ID links.
+	(Built-in table editor): Remove the descriptio of `C-c
+	C-q', it not longer works.
+	(Literal examples): Document that a space must follow
+	the colon in short examples.
+	(Relative timer): Document `org-timer-stop'.
+	(Footnotes): New section.
+	(Footnote markup): Shorten section and refer to new Footnote
+	section.
+	(Literal examples): Add documentation for line
+	numbering in and references to code examples.
+	(CSS support): Fix the description of default CSS styles.
+	(Capturing column view): Document
+	"file:path/to/file.org" as an allowed value for the ID property of
+	a dynamic block copying column view.
+
 2009-01-23  Stephen Eglen  <stephen@gnu.org>
 
 	* mh-e.texi (Getting Started): Describe $MH.
