@@ -204,12 +204,18 @@ See `compilation-error-screen-columns'"
     (define-key map [menu-bar grep compilation-compile]
       '(menu-item "Compile..." compile
 		  :help "Compile the program including the current buffer.  Default: run `make'"))
+    (define-key map [menu-bar grep compilation-rgrep]
+      '(menu-item "Recursive grep..." rgrep
+		  :help "User-friendly recursive grep in directory tree"))
+    (define-key map [menu-bar grep compilation-lgrep]
+      '(menu-item "Local grep..." lgrep
+		  :help "User-friendly grep in a directory"))
+    (define-key map [menu-bar grep compilation-grep-find]
+      '(menu-item "Grep via Find..." grep-find
+		  :help "Run grep via find, with user-specified args"))
     (define-key map [menu-bar grep compilation-grep]
       '(menu-item "Another grep..." grep
 		  :help "Run grep, with user-specified args, and collect output in a buffer."))
-    (define-key map [menu-bar grep compilation-grep-find]
-      '(menu-item "Recursive grep..." grep-find
-		  :help "Run grep via find, with user-specified args"))
     (define-key map [menu-bar grep compilation-recompile]
       '(menu-item "Repeat grep" recompile
 		  :help "Run grep again"))
