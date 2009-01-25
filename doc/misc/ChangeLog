@@ -1,3 +1,7 @@
+2009-01-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (EDITION, UPDATED): Update.	
+
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (References): Add information about remote references.
