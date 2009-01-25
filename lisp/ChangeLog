@@ -11,7 +11,7 @@
 	(ns-show-preferences-help, ns-unput-working-text): New functions.
 	(ns-unecho-working-text): Update message.
 
-2009-01-25  Craig Markwardt <cbmarkwardt@gmail.com>
+2009-01-25  Craig Markwardt  <cbmarkwardt@gmail.com>
 
 	* calendar/icalendar.el (icalendar-uid-format): New defcustom
 	variable to allow the user to choose icalendar UID format.
@@ -49,9 +49,9 @@
 
 	* env.el (environment): Function removed.
 
-	* international/mule-cmds.el (set-language-environment-coding-systems): If
-	default-buffer-file-coding-system is nil, set up to have EOLs that
-	are native for the underlying system-type.
+	* international/mule-cmds.el (set-language-environment-coding-systems):
+	If default-buffer-file-coding-system is nil, set up to have EOLs that
+	are native for the underlying system-type.  (Bug#1853)
 	(prefer-coding-system, set-default-coding-systems): Doc fix.
 
 2009-01-24  Juanma Barranquero  <lekktu@gmail.com>
