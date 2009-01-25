@@ -11,11 +11,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.3
+;; Version: 7.3.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.3.3"
-  "ps-print.el, v 7.3.3 <2008/10/22 vinicius>
+(defconst ps-print-version "7.3.4"
+  "ps-print.el, v 7.3.4 <2009/01/24 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -6235,6 +6235,13 @@ to the equivalent Latin-1 characters.")
   (memq attr '(foreground-color :foreground background-color :background)))
 
 
+(defun ps-face-extract-color (face-attrs)
+  (let ((color (cdr face-attrs)))
+    (if (listp color)
+	(car color)
+      color)))
+
+
 (defun ps-face-attributes (face)
   "Return face attribute vector.
 
@@ -6259,9 +6266,9 @@ If FACE is not a valid face name, use default face."
 			 (cons new-face ps-print-face-alist)))
 	       new-face))))
    ((ps-face-foreground-color-p (car face))
-    (vector 0 (cdr face) nil))
+    (vector 0 (ps-face-extract-color face) nil))
    ((ps-face-background-color-p (car face))
-    (vector 0 nil (cdr face)))
+    (vector 0 nil (ps-face-extract-color face)))
    (t
     (vector 0 nil nil))))
 
@@ -6295,10 +6302,10 @@ If FACE is not a valid face name, use default face."
     (ps-face-attributes face-or-list))
    ;; only foreground color, not a `real' face
    ((ps-face-foreground-color-p (car face-or-list))
-    (vector 0 (cdr face-or-list) nil))
+    (vector 0 (ps-face-extract-color face-or-list) nil))
    ;; only background color, not a `real' face
    ((ps-face-background-color-p (car face-or-list))
-    (vector 0 nil (cdr face-or-list)))
+    (vector 0 nil (ps-face-extract-color face-or-list)))
    ;; list of faces
    (t
     (let ((effects 0)

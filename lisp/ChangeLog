@@ -4,6 +4,16 @@
 	change its title from "Recursive grep..." to "Grep via Find...".
 	Add menu items for lgrep and rgrep.
 
+2009-01-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-version): New version 7.3.4.
+
+2009-01-24  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* ps-print.el: Fix face background/foreground extraction.
+	(ps-face-extract-color): New fun.
+	(ps-face-attributes, ps-face-attribute-list): Code fix.
+
 2009-01-24  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* align.el (align-region): Avoid infloop.
