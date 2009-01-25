@@ -1500,7 +1500,9 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   isQ = NILP (header);
 
-  if (EQ (position, Qt))
+  if (EQ (position, Qt)
+      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+                               || EQ (XCAR (position), Qtool_bar))))
     {
       window = selected_window;
     }
@@ -1516,23 +1518,23 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
           window = Fcar (tem);	     /* POSN_WINDOW (tem) */
         }
     }
-  else if (FRAMEP (position))
+  else if (WINDOWP (position) || FRAMEP (position))
     {
       window = position;
     }
   else
-    {
-      CHECK_LIVE_WINDOW (position);
-      window = position;
-    }
-  
+    window = Qnil;
+
   if (FRAMEP (window))
     f = XFRAME (window);
-  else
+  else if (WINDOWP (window))
     {
       CHECK_LIVE_WINDOW (window);
       f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
     }
+  else
+    CHECK_WINDOW (window);
+
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
@@ -1860,9 +1862,9 @@ void process_dialog (id window, Lisp_Object list)
     {
     (e = [NSApp nextEventMatchingMask: NSAnyEventMask
                             untilDate: [NSDate distantFuture]
-                               inMode: NSEventTrackingRunLoopMode
+                               inMode: NSModalPanelRunLoopMode
                               dequeue: NO]);
-/*fprintf (stderr, "ret = %d\te = %p\n", ret, e); */
+/*fprintf (stderr, "ret = %d\te = %p\n", ret, e);*/
     }
   [NSApp endModalSession: session];
 

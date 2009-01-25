@@ -1,3 +1,30 @@
+2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Changes to remove Feval calls from GUI under NS.
+
+	* nsterm.h: Move KEY_NS_... definitions here from nsterm.m.  Add
+	NS_TOGGLE_TOOLBAR, NS_PUT_WORKING_TEXT, NS_UNPUT_WORKING_TEXT.
+	Remove NS_INSERT_WORKING_TEXT, NS_DELETE_WORKING_TEXT.
+
+	* nsterm.m: Move KEY_NS_... definitions to nsterm.h.
+	(EmacsView-toggleToolbar:): Use KEY_NS_TOGGLE_TOOLBAR.
+	(EmacsView-setMarkedText:,-deleteWorkingText:): Use NS_TEXT_EVENT
+	instead of NON_ASCII_KEYSTROKE_EVENT.
+	(EmacsApp-terminate:): Use KEY_NS_POWER_OFF instead of Feval.
+	(EmacsApp-applicationShouldTerminate:): Query user.
+	(EmacsPreferencesController-runHelp:): Use KEY_NS_INFO_PREFS
+	instead of Feval.
+
+	* termhooks.h (NS_TEXT_EVENT): New event type under HAVE_NS.
+
+	* keyboard.c (kbd_buffer_get_event): Check for it.
+	(keys_of_keyboard): Define lispy keys for
+	ns-put/unput-working-text.
+
+	* nsmenu.m (ns_popup_dialog): Resync window setting with X and W32
+	versions.
+	(EmacsDialog-runDialogAt:): Use NSModalPanelRunLoopMode.
+
 2009-01-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (buffer_posn_from_coords): Use Fset_buffer instead of

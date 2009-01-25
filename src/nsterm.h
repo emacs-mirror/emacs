@@ -384,6 +384,22 @@ typedef unsigned long NSUInteger;
 
    ========================================================================== */
 
+/* Special keycodes that we pass down the event chain */
+#define KEY_NS_POWER_OFF               ((1<<28)|(0<<16)|1)
+#define KEY_NS_OPEN_FILE               ((1<<28)|(0<<16)|2)
+#define KEY_NS_OPEN_TEMP_FILE          ((1<<28)|(0<<16)|3)
+#define KEY_NS_DRAG_FILE               ((1<<28)|(0<<16)|4)
+#define KEY_NS_DRAG_COLOR              ((1<<28)|(0<<16)|5)
+#define KEY_NS_DRAG_TEXT               ((1<<28)|(0<<16)|6)
+#define KEY_NS_CHANGE_FONT             ((1<<28)|(0<<16)|7)
+#define KEY_NS_OPEN_FILE_LINE          ((1<<28)|(0<<16)|8)
+#define KEY_NS_PUT_WORKING_TEXT        ((1<<28)|(0<<16)|9)
+#define KEY_NS_UNPUT_WORKING_TEXT      ((1<<28)|(0<<16)|10)
+#define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
+#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
+#define KEY_NS_TOGGLE_TOOLBAR          ((1<<28)|(0<<16)|13)
+#define KEY_NS_INFO_PREFS              ((1<<28)|(0<<16)|14)
+
 /* could use list to store these, but rest of emacs has a big infrastructure
    for managing a table of bitmap "records" */
 struct ns_bitmap_record

@@ -69,20 +69,6 @@ int term_trace_num = 0;
 
    ========================================================================== */
 
-/* Special keycodes that we pass down the event chain */
-#define KEY_NS_POWER_OFF               ((1<<28)|(0<<16)|1)
-#define KEY_NS_OPEN_FILE               ((1<<28)|(0<<16)|2)
-#define KEY_NS_OPEN_TEMP_FILE          ((1<<28)|(0<<16)|3)
-#define KEY_NS_DRAG_FILE               ((1<<28)|(0<<16)|4)
-#define KEY_NS_DRAG_COLOR              ((1<<28)|(0<<16)|5)
-#define KEY_NS_DRAG_TEXT               ((1<<28)|(0<<16)|6)
-#define KEY_NS_CHANGE_FONT             ((1<<28)|(0<<16)|7)
-#define KEY_NS_OPEN_FILE_LINE          ((1<<28)|(0<<16)|8)
-#define KEY_NS_INSERT_WORKING_TEXT     ((1<<28)|(0<<16)|9)
-#define KEY_NS_DELETE_WORKING_TEXT     ((1<<28)|(0<<16)|10)
-#define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
-#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
-
 /* Convert a symbol indexed with an NSxxx value to a value as defined
    in keyboard.c (lispy_function_key). I hope this is a correct way
    of doing things... */
@@ -4048,7 +4034,7 @@ ns_term_shutdown (int sig)
   int type = [theEvent type];
   NSWindow *window = [theEvent window];
 /*  NSTRACE (sendEvent); */
-/*fprintf (stderr, "received event of type %d\n", [theEvent type]); */
+/*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
   if (type == NSCursorUpdate && window == nil)
     {
@@ -4153,37 +4139,79 @@ ns_term_shutdown (int sig)
 }
 
 
+/* Termination sequences (ns_shutdown_properly):
+    C-x C-c:
+    Cmd-Q:
+    MenuBar | File | Exit:
+        ns_term_shutdown: 0
+        received -terminate: 1
+        received -appShouldTerminate: 1
+
+    Select Quit from App menubar:
+        received -terminate: 0
+        ns_term_shutdown: 0
+        received -terminate: 1
+        received -appShouldTerminate: 1
+
+    Select Quit from Dock menu:
+    Logout attempt:
+        received -appShouldTerminate: 0
+          Cancel -> Nothing else
+          Accept ->
+            received -terminate: 0
+            ns_term_shutdown: 0
+            received -terminate: 1
+            received -appShouldTerminate: 1
+*/
+
 - (void) terminate: (id)sender
 {
-  BLOCK_INPUT;
   if (ns_shutdown_properly)
     [super terminate: sender];
   else
     {
-/*    Fkill_emacs (Qnil); */
+      struct frame *emacsframe = SELECTED_FRAME ();
+
+      if (!emacs_event)
+        return;
+
       ns_shutdown_properly = YES;
-      Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
+      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->code = KEY_NS_POWER_OFF;
+      EV_TRAILER ((id)nil);
     }
-  UNBLOCK_INPUT;
 }
 
 
 - (NSApplicationTerminateReply)applicationShouldTerminate: (id)sender
 {
+  int ret;
+
   if (ns_shutdown_properly)
     return NSTerminateNow;
 
-  Lisp_Object contents = list3 (build_string ("Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"),
-      Fcons (build_string ("Cancel"), Qnil),
-      Fcons (build_string ("Save and Exit"), Qt));
-  Lisp_Object res = ns_popup_dialog (Qt, contents, Qnil);
-fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
-  if (EQ (res, Qt))
-    {
-      Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
-      return NSTerminateNow;
-    }
-  return NSTerminateCancel;
+  /* XXX: This while() loop is needed because if the user switches to another
+          application while the panel is up, it is taken down w/a return value
+          of -1000, and the event queue gets messed up.  In this case resend
+          the appdefined and put up the window again. */
+  while (1) {
+    ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
+                          [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
+                          @"Save Buffers and Exit", @"Cancel", nil);
+
+    if (ret == NSAlertDefaultReturn)
+      {
+        send_appdefined = YES;
+        ns_send_appdefined(-1);
+        return NSTerminateNow;
+      }
+    else if (ret == NSAlertAlternateReturn)
+      {
+        send_appdefined = YES;
+        ns_send_appdefined(-1);
+        return NSTerminateCancel;
+      }
+  }
 }
 
 
@@ -4612,7 +4640,9 @@ extern void update_window_cursor (struct window *w, int on);
 /* <NSTextInput> implementation (called through super interpretKeyEvents:]). */
 
 
-/* <NSTextInput>: called through when done composing */
+/* <NSTextInput>: called when done composing;
+   NOTE: also called when we delete over working text, followed immed.
+         by doCommandBySelector: deleteBackward: */
 - (void)insertText: (id)aString
 {
   int code;
@@ -4667,20 +4697,9 @@ extern void update_window_cursor (struct window *w, int on);
   workingText = [str copy];
   ns_working_text = build_string ([workingText UTF8String]);
 
-  /* if in "echo area", not true minibuffer, can't show chars in interactive
-     mode, so call using eval; otherwise we send a key event, which was the
-     original way this was done */
-  if (!EQ (Feval (Fcons (intern ("ns-in-echo-area"), Qnil)), Qnil))
-    {
-      Feval (Fcons (intern ("ns-echo-working-text"), Qnil));
-      ns_send_appdefined (-1);
-    }
-  else
-    {
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-      emacs_event->code = KEY_NS_INSERT_WORKING_TEXT;
-      EV_TRAILER ((id)nil);
-    }
+  emacs_event->kind = NS_TEXT_EVENT;
+  emacs_event->code = KEY_NS_PUT_WORKING_TEXT;
+  EV_TRAILER ((id)nil);
 }
 
 
@@ -4690,7 +4709,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (workingText == nil)
     return;
   if (NS_KEYLOG)
-    fprintf (stderr, "deleteWorkingText len =%d\n", [workingText length]);
+    NSLog(@"deleteWorkingText len =%d\n", [workingText length]);
   [workingText release];
   workingText = nil;
   processingCompose = NO;
@@ -4698,24 +4717,17 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return;
 
-  if (!EQ (Feval (Fcons (intern ("ns-in-echo-area"), Qnil)), Qnil))
-    {
-      Feval (Fcons (intern ("ns-unecho-working-text"), Qnil));
-      ns_send_appdefined (-1);
-    }
-  else
-    {
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-      emacs_event->code = KEY_NS_DELETE_WORKING_TEXT;
-      EV_TRAILER ((id)nil);
-    }
- }
+  emacs_event->kind = NS_TEXT_EVENT;
+  emacs_event->code = KEY_NS_UNPUT_WORKING_TEXT;
+  EV_TRAILER ((id)nil);
+}
 
 
 - (BOOL)hasMarkedText
 {
   return workingText != nil;
 }
+
 
 - (NSRange)markedRange
 {
@@ -4726,6 +4738,7 @@ extern void update_window_cursor (struct window *w, int on);
   return rng;
 }
 
+
 - (void)unmarkText
 {
   if (NS_KEYLOG)
@@ -4733,6 +4746,7 @@ extern void update_window_cursor (struct window *w, int on);
   [self deleteWorkingText];
   processingCompose = NO;
 }
+
 
 /* used to position char selection windows, etc. */
 - (NSRect)firstRectForCharacterRange: (NSRange)theRange
@@ -4755,12 +4769,12 @@ extern void update_window_cursor (struct window *w, int on);
   return rect;
 }
 
+
 - (NSInteger)conversationIdentifier
 {
   return (NSInteger)self;
 }
 
-/* TODO: below here not yet implemented correctly, but may not be needed */
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
@@ -5398,7 +5412,7 @@ extern void update_window_cursor (struct window *w, int on);
     return self;
 
   /* send first event (for some reason two needed) */
-  theEvent =[[self window] currentEvent];
+  theEvent = [[self window] currentEvent];
   emacs_event->kind = TOOL_BAR_EVENT;
   XSETFRAME (emacs_event->arg, emacsframe);
   EV_TRAILER (theEvent);
@@ -5415,11 +5429,13 @@ extern void update_window_cursor (struct window *w, int on);
 
 - toggleToolbar: (id)sender
 {
-  Lisp_Object lispFrame;
-  XSETFRAME (lispFrame, emacsframe);
-  Feval (Fcons (intern ("ns-toggle-toolbar"), Fcons (lispFrame, Qnil)));
-  SET_FRAME_GARBAGED (emacsframe);
-  ns_send_appdefined (-1);
+  if (!emacs_event)
+    return self;
+
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_TOGGLE_TOOLBAR;
+  EV_TRAILER ((id)nil);
+  return self;
 }
 
 
@@ -6266,11 +6282,13 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (IBAction)runHelp: (id)sender
 {
-  Feval (Fcons (intern ("info"),
-                Fcons (build_string ("(emacs)Mac / GNUstep Customization"),
-                       Qnil)));
-  SET_FRAME_GARBAGED (frame);
-  ns_send_appdefined (-1);
+  struct frame *emacsframe = frame;
+  if (!emacs_event)
+    return;
+  ns_raise_frame(frame);
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_INFO_PREFS;
+  EV_TRAILER ((id)nil);
 }
 
 
