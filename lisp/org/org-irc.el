@@ -1,10 +1,10 @@
 ;;; org-irc.el --- Store links to IRC sessions
 ;;
-;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;

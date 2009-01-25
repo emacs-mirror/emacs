@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -219,11 +219,10 @@ this function is called.  Otherwise, the current major mode menu is used."
 	    (funcall org-mouse-context-menu-function event)
 	  (if (fboundp 'mouse-menu-major-mode-map)
 	      (popup-menu (mouse-menu-major-mode-map) event prefix)
-	    (with-no-warnings ; don't warn about fallback, obsolete since 23.1
-	      (mouse-major-mode-menu event prefix)))))
+	    (org-no-warnings ; don't warn about fallback, obsolete since 23.1
+	     (mouse-major-mode-menu event prefix)))))
     (setq this-command 'mouse-save-then-kill)
     (mouse-save-then-kill event)))
-
 
 (defun org-mouse-line-position ()
   "Returns `:beginning' or `:middle' or `:end', depending on the point position.

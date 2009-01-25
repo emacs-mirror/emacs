@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -594,7 +594,7 @@ an integer, select that value."
 This respects the format of the time stamp in S, active or non-active,
 and also including time or not.  S must be just a time stamp, no text
 around it."
-  (when (string-match (concat "^" org-ts-regexp3 "$") s)
+  (when (and s (string-match (concat "^" org-ts-regexp3 "$") s))
     (let* ((time (org-parse-time-string s 'nodefaults))
 	   (active (equal (string-to-char s) ?<))
 	   (fmt (funcall (if (nth 1 time) 'cdr 'car) org-time-stamp-formats))
@@ -1067,10 +1067,12 @@ PARAMS is a property list of parameters:
 
 :width    enforce same column widths with <N> specifiers.
 :id       the :ID: property of the entry where the columns view
-          should be built, as a string.  When `local', call locally.
+          should be built.  When the symbol `local', call locally.
           When `global' call column view with the cursor at the beginning
           of the buffer (usually this means that the whole buffer switches
-          to column view).
+          to column view).  When \"file:path/to/file.org\", invoke column
+          view at the start of that file.  Otherwise, the ID is located
+          using `org-id-find'.
 :hlines   When t, insert a hline before each item.  When a number, insert
           a hline before each level <= that number.
 :vlines   When t, make each column a colgroup to enforce vertical lines.
@@ -1083,20 +1085,38 @@ PARAMS is a property list of parameters:
 	(maxlevel (plist-get params :maxlevel))
 	(content-lines (org-split-string (plist-get params :content) "\n"))
 	(skip-empty-rows (plist-get params :skip-empty-rows))
-	tbl id idpos nfields tmp recalc line)
-    (save-excursion
-      (save-restriction
-	(when (setq id (plist-get params :id))
-	  (cond ((not id) nil)
-		((eq id 'global) (goto-char (point-min)))
-		((eq id 'local)  nil)
-		((setq idpos (org-find-entry-with-id id))
-		 (goto-char idpos))
-		(t (error "Cannot find entry with :ID: %s" id))))
-	(org-columns)
-	(setq tbl (org-columns-capture-view maxlevel skip-empty-rows))
-	(setq nfields (length (car tbl)))
-	(org-columns-quit)))
+	tbl id idpos nfields tmp recalc line
+	id-as-string view-file view-pos)
+    (when (setq id (plist-get params :id))
+      (setq id-as-string (cond ((numberp id) (number-to-string id))
+			       ((symbolp id) (symbol-name id))
+			       ((stringp id) id)
+			       (t "")))
+      (cond ((not id) nil)
+	    ((eq id 'global) (setq view-pos (point-min)))
+	    ((eq id 'local))
+	    ((string-match "^file:\\(.*\\)" id-as-string)
+	     (setq view-file (match-string 1 id-as-string)
+		   view-pos 1)
+	     (unless (file-exists-p view-file)
+	       (error "No such file: \"%s\"" id-as-string)))
+	    ((setq idpos (org-find-entry-with-id id))
+	     (setq view-pos idpos))
+	    ((setq idpos (org-id-find id))
+	     (setq view-file (car idpos))
+	     (setq view-pos (cdr idpos)))
+	    (t (error "Cannot find entry with :ID: %s" id))))
+    (with-current-buffer (if view-file
+			     (get-file-buffer view-file)
+			   (current-buffer))
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (or view-pos (point)))
+	  (org-columns)
+	  (setq tbl (org-columns-capture-view maxlevel skip-empty-rows))
+	  (setq nfields (length (car tbl)))
+	  (org-columns-quit))))
     (goto-char pos)
     (move-marker pos nil)
     (when tbl
@@ -1108,7 +1128,9 @@ PARAMS is a property list of parameters:
 	    (if (string-match "\\` *\\(\\*+\\)" (caar tbl))
 		(if (and (not (eq (car tmp) 'hline))
 			 (or (eq hlines t)
-			     (and (numberp hlines) (<= (- (match-end 1) (match-beginning 1)) hlines))))
+			     (and (numberp hlines)
+				  (<= (- (match-end 1) (match-beginning 1))
+				      hlines))))
 		    (push 'hline tmp)))
 	    (push (pop tbl) tmp)))
 	(setq tbl (nreverse tmp)))

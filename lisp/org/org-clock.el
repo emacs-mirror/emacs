@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -140,7 +140,7 @@ load."
 (defvar org-mode-line-string "")
 (put 'org-mode-line-string 'risky-local-variable t)
 
-(defvar org-mode-line-timer nil)
+(defvar org-clock-mode-line-timer nil)
 (defvar org-clock-heading "")
 (defvar org-clock-heading-for-remember "")
 (defvar org-clock-start-time "")
@@ -156,8 +156,8 @@ of a different task.")
 (defvar org-clock-interrupted-task (make-marker)
   "Marker pointing to the task that has been interrupted by the current clock.")
 
-(defvar org-clock-mode-map (make-sparse-keymap))
-(define-key org-clock-mode-map [mode-line mouse-2] 'org-clock-goto)
+(defvar org-clock-mode-line-map (make-sparse-keymap))
+(define-key org-clock-mode-line-map [mode-line mouse-2] 'org-clock-goto)
 
 (defun org-clock-history-push (&optional pos buffer)
   "Push a marker to the clock history."
@@ -241,7 +241,7 @@ of a different task.")
 	(insert (format "[%c] %-15s %s\n" i cat task))
 	(cons i marker)))))
 
-(defun org-update-mode-line ()
+(defun org-clock-update-mode-line ()
   (let* ((delta (- (time-to-seconds (current-time))
 		   (time-to-seconds org-clock-start-time)))
 	 (h (floor delta 3600))
@@ -256,7 +256,7 @@ of a different task.")
 		 (org-propertize (substring clock-string 0 org-clock-string-limit)
 			     'help-echo (concat help-text ": " org-clock-heading))
 	       (org-propertize clock-string 'help-echo help-text)))
-	   'local-map org-clock-mode-map
+	   'local-map org-clock-mode-line-map
 	   'mouse-face (if (featurep 'xemacs) 'highlight 'mode-line-highlight)))
     (force-mode-line-update)))
 
@@ -363,9 +363,9 @@ the clocking selection, associated with the letter `d'."
 	    (or (memq 'org-mode-line-string global-mode-string)
 		(setq global-mode-string
 		      (append global-mode-string '(org-mode-line-string))))
-	    (org-update-mode-line)
-	    (setq org-mode-line-timer
-		  (run-with-timer 60 60 'org-update-mode-line))
+	    (org-clock-update-mode-line)
+	    (setq org-clock-mode-line-timer
+		  (run-with-timer 60 60 'org-clock-update-mode-line))
 	    (message "Clock started at %s" ts)))))))
 
 (defun org-clock-find-position ()
@@ -463,9 +463,9 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	(when org-log-note-clock-out
 	  (org-add-log-setup 'clock-out nil nil nil
 			     (concat "# Task: " (org-get-heading t) "\n\n")))
-	(when org-mode-line-timer
-	  (cancel-timer org-mode-line-timer)
-	  (setq org-mode-line-timer nil))
+	(when org-clock-mode-line-timer
+	  (cancel-timer org-clock-mode-line-timer)
+	  (setq org-clock-mode-line-timer nil))
 	(setq global-mode-string
 	      (delq 'org-mode-line-string global-mode-string))
 	(force-mode-line-update)
@@ -562,7 +562,7 @@ Puts the resulting times in minutes as a text property on each headline."
 If TOTAL-ONLY is non-nil, only show the total time for the entire file
 in the echo area."
   (interactive)
-  (org-remove-clock-overlays)
+  (org-clock-remove-overlays)
   (let (time h m p)
     (org-clock-sum)
     (unless total-only
@@ -574,19 +574,19 @@ in the echo area."
 			    (point) :org-clock-minutes)))
 	  (goto-char p)
 	  (when (setq time (get-text-property p :org-clock-minutes))
-	    (org-put-clock-overlay time (funcall outline-level))))
+	    (org-clock-put-overlay time (funcall outline-level))))
 	(setq h (/ org-clock-file-total-minutes 60)
 	      m (- org-clock-file-total-minutes (* 60 h)))
 	;; Arrange to remove the overlays upon next change.
 	(when org-remove-highlights-with-change
-	  (org-add-hook 'before-change-functions 'org-remove-clock-overlays
+	  (org-add-hook 'before-change-functions 'org-clock-remove-overlays
 			nil 'local))))
     (message (concat "Total file time: " org-time-clocksum-format " (%d hours and %d minutes)") h m h m)))
 
 (defvar org-clock-overlays nil)
 (make-variable-buffer-local 'org-clock-overlays)
 
-(defun org-put-clock-overlay (time &optional level)
+(defun org-clock-put-overlay (time &optional level)
   "Put an overlays on the current line, displaying TIME.
 If LEVEL is given, prefix time with a corresponding number of stars.
 This creates a new overlay and stores it in `org-clock-overlays', so that it
@@ -605,7 +605,7 @@ will be easy to remove."
 		     (org-add-props (format fmt
 					    (make-string l ?*) h m
 					    (make-string (- 16 l) ?\ ))
-			 '(face secondary-selection))
+			 (list 'face 'org-clock-overlay))
 		     ""))
     (if (not (featurep 'xemacs))
 	(org-overlay-put ov 'display tx)
@@ -613,7 +613,7 @@ will be easy to remove."
       (org-overlay-put ov 'end-glyph (make-glyph tx)))
     (push ov org-clock-overlays)))
 
-(defun org-remove-clock-overlays (&optional beg end noremove)
+(defun org-clock-remove-overlays (&optional beg end noremove)
   "Remove the occur highlights from the buffer.
 BEG and END are ignored.  If NOREMOVE is nil, remove this function
 from the `before-change-functions' in the current buffer."
@@ -623,7 +623,7 @@ from the `before-change-functions' in the current buffer."
     (setq org-clock-overlays nil)
     (unless noremove
       (remove-hook 'before-change-functions
-		   'org-remove-clock-overlays 'local))))
+		   'org-clock-remove-overlays 'local))))
 
 (defvar state) ;; dynamically scoped into this function
 (defun org-clock-out-if-current ()
@@ -671,7 +671,7 @@ will be updated.  If not, a new clocktable will be inserted.
 When called with a prefix argument, move to the first clock table in the
 buffer and update it."
   (interactive "P")
-  (org-remove-clock-overlays)
+  (org-clock-remove-overlays)
   (when arg
     (org-find-dblock "clocktable")
     (org-show-entry))

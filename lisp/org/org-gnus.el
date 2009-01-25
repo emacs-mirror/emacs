@@ -6,7 +6,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -111,12 +111,12 @@ If `org-store-link' was called with a prefix arg the meaning of
 			 (gnus-group-name))
 			(t "???")))
 	   desc link)
-      (unless group (error "Not on a group"))
-      (org-store-link-props :type "gnus" :group group)
-      (setq desc (org-gnus-group-link group)
-	    link desc)
-      (org-add-link-props :link link :description desc)
-      link))
+      (when group
+	(org-store-link-props :type "gnus" :group group)
+	(setq desc (org-gnus-group-link group)
+	      link desc)
+	(org-add-link-props :link link :description desc)
+	link)))
 
    ((memq major-mode '(gnus-summary-mode gnus-article-mode))
     (and (eq major-mode 'gnus-summary-mode) (gnus-summary-show-article))

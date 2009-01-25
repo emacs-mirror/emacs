@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,6 +47,8 @@
       (let ((ss s))
 	(save-match-data
 	  (while (string-match "\\[:alnum:\\]" ss)
+	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
+	  (while (string-match "\\[:word:\\]" ss)
 	    (setq ss (replace-match "a-zA-Z0-9" t t ss)))
 	  (while (string-match "\\[:alpha:\\]" ss)
 	    (setq ss (replace-match "a-zA-Z" t t ss)))
@@ -100,6 +102,11 @@ We use a macro so that the test can happen at compilation time."
 (defmacro org-if-unprotected (&rest body)
   "Execute BODY if there is no `org-protected' text property at point."
   `(unless (get-text-property (point) 'org-protected)
+     ,@body))
+
+(defmacro org-if-unprotected-1 (&rest body)
+  "Execute BODY if there is no `org-protected' text property at point-1."
+  `(unless (get-text-property (1- (point)) 'org-protected)
      ,@body))
 
 (defmacro org-with-remote-undo (_buffer &rest _body)
@@ -187,6 +194,9 @@ we turn off invisibility temporarily.  Use this in a `let' form."
     (and pos (goto-char pos))
     ;; works also in narrowed buffer, because we start at 1, not point-min
     (+ (if (bolp) 1 0) (count-lines 1 (point)))))
+
+(defsubst org-current-line-string (&optional to-here)
+  (buffer-substring (point-at-bol) (if to-here (point) (point-at-eol))))
 
 (defsubst org-pos-in-match-range (pos n)
   (and (match-beginning n)

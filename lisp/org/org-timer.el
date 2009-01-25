@@ -1,11 +1,11 @@
-;;; org-clock.el --- The time clocking code for Org-mode
+;;; org-timer.el --- The relative timer code for Org-mode
 
 ;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,6 +31,9 @@
 
 (defvar org-timer-start-time nil
   "t=0 for the running timer.")
+
+(defvar org-timer-pause-time nil
+  "Time when the timer was paused.")
 
 (defconst org-timer-re "\\([-+]?[0-9]+\\):\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)"
   "Regular expression used to match timer stamps.")
@@ -75,9 +78,40 @@ the region 0:00:00."
 	       (-
 		(time-to-seconds (current-time))
 		(org-timer-hms-to-secs s)))))
+      (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
 	       (format-time-string "%T" org-timer-start-time)
 	       (org-timer-secs-to-hms (or delta 0))))))
+
+(defun org-timer-pause-or-continue (&optional stop)
+  "Pause or continue the relative timer.  With prefix arg, stop it entirely."
+  (interactive "P")
+  (cond
+   (stop (org-timer-stop))
+   ((not org-timer-start-time) (error "No timer is running"))
+   (org-timer-pause-time
+    ;; timer is paused, continue
+    (setq org-timer-start-time
+	  (seconds-to-time
+	   (-
+	    (time-to-seconds (current-time))
+	    (- (time-to-seconds org-timer-pause-time)
+	       (time-to-seconds org-timer-start-time))))
+	  org-timer-pause-time nil)
+    (org-timer-set-mode-line 'on)
+    (message "Timer continues at %s" (org-timer-value-string)))
+   (t
+    ;; pause timer
+    (setq org-timer-pause-time (current-time))
+    (org-timer-set-mode-line 'pause)
+    (message "Timer paused at %s" (org-timer-value-string)))))
+
+(defun org-timer-stop ()
+  "Stop the relative timer."
+  (interactive)
+  (setq org-timer-start-time nil
+	org-timer-pause-time nil)
+  (org-timer-set-mode-line 'off))
 
 ;;;###autoload
 (defun org-timer (&optional restart)
@@ -90,12 +124,14 @@ that was not started at the correct moment."
   (interactive "P")
   (if (equal restart '(4)) (org-timer-start))
   (or org-timer-start-time (org-timer-start))
-  (insert (format
-	   org-timer-format
-	   (org-timer-secs-to-hms
-	    (floor
-	     (- (time-to-seconds (current-time))
-		(time-to-seconds org-timer-start-time)))))))
+  (insert (org-timer-value-string)))
+
+(defun org-timer-value-string ()
+  (format org-timer-format (org-timer-secs-to-hms (floor (org-timer-seconds)))))
+
+(defun org-timer-seconds ()
+  (- (time-to-seconds (or org-timer-pause-time (current-time)))
+     (time-to-seconds org-timer-start-time)))
 
 ;;;###autoload
 (defun org-timer-change-times-in-region (beg end delta)
@@ -175,6 +211,47 @@ If the integer is negative, the string will start with \"-\"."
 	  m (/ s 60) s (- s (* 60 m))
 	  h (/ m 60) m (- m (* 60 h)))
     (format "%s%d:%02d:%02d" sign h m s)))
+
+(defvar org-timer-mode-line-timer nil)
+(defvar org-timer-mode-line-string nil)
+
+(defun org-timer-set-mode-line (value)
+  "Set the mode-line dispay of the relative timer.
+VALUE can be `on', `off', or `pause'."
+  (or global-mode-string (setq global-mode-string '("")))
+  (or (memq 'org-timer-mode-line-string global-mode-string)
+      (setq global-mode-string
+	    (append global-mode-string '(org-timer-mode-line-string))))
+  (cond
+   ((equal value 'off)
+    (when org-timer-mode-line-timer
+      (cancel-timer org-timer-mode-line-timer)
+      (setq org-timer-mode-line-timer nil))
+    (setq global-mode-string
+	  (delq 'org-timer-mode-line-string global-mode-string))
+    (force-mode-line-update))
+   ((equal value 'pause)
+    (when org-timer-mode-line-timer
+      (cancel-timer org-timer-mode-line-timer)
+      (setq org-timer-mode-line-timer nil)))
+   ((equal value 'on)
+    (or global-mode-string (setq global-mode-string '("")))
+    (or (memq 'org-timer-mode-line-string global-mode-string)
+	(setq global-mode-string
+	      (append global-mode-string '(org-timer-mode-line-string))))
+    (org-timer-update-mode-line)
+    (when org-timer-mode-line-timer
+      (cancel-timer org-timer-mode-line-timer))
+    (setq org-timer-mode-line-timer
+	  (run-with-timer 1 1 'org-timer-update-mode-line)))))
+
+(defun org-timer-update-mode-line ()
+  "Update the timer time in the mode line."
+  (if org-timer-pause-time
+      nil
+    (setq org-timer-mode-line-string
+	  (concat " <" (substring (org-timer-value-string) 0 -1) ">"))
+    (force-mode-line-update)))
 
 ;; arch-tag: 97538f8c-3871-4509-8f23-1e7b3ff3d107
 

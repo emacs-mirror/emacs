@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -316,12 +316,14 @@ line directly before or after the table."
 			   (mapcar (lambda (row) (nth ind row)) table)))) 0)
 	      (plist-put params :timeind t)
 	    ;; check for text ind column
-	    (if (> (length
-		    (delq 0 (mapcar
-			     (lambda (el)
-			       (if (string-match org-table-number-regexp el)
-				   0 1))
-			     (mapcar (lambda (row) (nth ind row)) table)))) 0)
+
+	    (if (or (string= (plist-get params :with) "hist")
+		    (> (length
+			(delq 0 (mapcar
+				 (lambda (el)
+				   (if (string-match org-table-number-regexp el)
+				       0 1))
+				 (mapcar (lambda (row) (nth ind row)) table)))) 0))
 		(plist-put params :textind t)))))
       ;; write script
       (with-temp-buffer

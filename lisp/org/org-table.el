@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1222,6 +1222,9 @@ With prefix ABOVE, insert above the current line."
   (interactive "P")
   (if (not (org-at-table-p))
       (error "Not at a table"))
+  (when (eobp) (insert "\n") (backward-char 1))
+  (if (not (string-match "|[ \t]*$" (org-current-line-string)))
+      (org-table-align))
   (let ((line (org-table-clean-line
 	       (buffer-substring (point-at-bol) (point-at-eol))))
 	(col (current-column)))
@@ -1729,7 +1732,7 @@ When NAMED is non-nil, look for a named equation."
 		     ref)
 		 (int-to-string (org-table-current-column))))
 	 (dummy (and (or nameass refass) (not named)
-		     (not (y-or-n-p "Replace field formula with column formula? " ))
+		     (not (y-or-n-p "Replace existing field formula with column formula? " ))
 		     (error "Abort")))
 	 (name (or name ref))
 	 (org-table-may-need-update nil)
@@ -1906,6 +1909,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
 	(if (match-end 1) (push l hlines) (push l dlines))
 	(beginning-of-line 2)
 	(setq l (1+ l)))
+      (push 'hline types) ;; add an imaginary extra hline to the end
       (setq org-table-current-line-types (apply 'vector (nreverse types))
 	    last-dline (car dlines)
 	    org-table-dlines (apply 'vector (cons nil (nreverse dlines)))
@@ -1914,7 +1918,7 @@ For all numbers larger than LIMIT, shift them by DELTA."
       (let* ((l last-dline)
 	     (fields (org-split-string
 		      (buffer-substring (point-at-bol) (point-at-eol))
-		      "|"))
+		      "[ \t]*|[ \t]*"))
 	     (nfields (length fields))
 	     al al2)
 	(loop for i from 1 to nfields do
@@ -2149,6 +2153,16 @@ not overwrite the stored one."
 	(if (and lispp literal) (setq lispp 'literal))
 	;; Check for old vertical references
 	(setq form (org-table-rewrite-old-row-references form))
+	;; Insert remote references
+	(while (string-match "\\<remote([ \t]*\\([-_a-zA-Z0-9]+\\)[ \t]*,[ \t]*\\([^\n)]+\\))" form)
+	  (setq form
+		(replace-match
+		 (save-match-data
+		   (org-table-make-reference
+		    (org-table-get-remote-range
+		     (match-string 1 form) (match-string 2 form))
+		    keep-empty numbers lispp))
+		 t t form)))
 	;; Insert complex ranges
 	(while (and (string-match org-table-range-regexp form)
 		    (> (length (match-string 0 form)) 1))
@@ -2525,12 +2539,14 @@ known that the table will be realigned a little later anyway."
       (setq f (replace-match (concat "$" (cdr a)) t t f)))
     ;; Parameters and constants
     (setq start 0)
-    (while (setq start (string-match "\\$\\([a-zA-Z][_a-zA-Z0-9]*\\)" f start))
-      (setq start (1+ start))
-      (if (setq a (save-match-data
-		    (org-table-get-constant (match-string 1 f))))
-	  (setq f (replace-match
-		   (concat (if pp "(") a (if pp ")")) t t f))))
+    (while (setq start (string-match "\\$\\([a-zA-Z][_a-zA-Z0-9]*\\)\\|\\(\\<remote([^)]*)\\)" f start))
+      (if (match-end 2)
+	  (setq start (match-end 2))
+	(setq start (1+ start))
+	(if (setq a (save-match-data
+		      (org-table-get-constant (match-string 1 f))))
+	    (setq f (replace-match
+		     (concat (if pp "(") a (if pp ")")) t t f)))))
     (if org-table-formula-debug
 	(put-text-property 0 (length f) :orig-formula f1 f))
     f))
@@ -2673,7 +2689,7 @@ Parameters get priority."
 Works for single references, but also for entire formulas and even the
 full TBLFM line."
   (let ((start 0))
-    (while (string-match "\\<\\([a-zA-Z]+\\)\\([0-9]+\\>\\|&\\)\\|\\(;[^\r\n:]+\\)" s start)
+    (while (string-match "\\<\\([a-zA-Z]+\\)\\([0-9]+\\>\\|&\\)\\|\\(;[^\r\n:]+\\|\\<remote([^)]*)\\)" s start)
       (cond
        ((match-end 3)
 	;; format match, just advance
@@ -4064,6 +4080,60 @@ provide ORGTBL directives for the generated table."
 	   :lend " |"))
 	 (params (org-combine-plists params2 params)))
     (orgtbl-to-generic table params)))
+
+(defun org-table-get-remote-range (name-or-id form)
+  "Get a field value or a list of values in a range from table at ID.
+
+NAME-OR-ID may be the name of a table in the current file as set by
+a \"#+TBLNAME:\" directive.  The first table following this line
+will then be used.  Alternatively, it may be an ID referring to
+any entry, also in a different file.  In this case, the first table
+in that netry will be referenced.
+FORM is a field or range descriptor like \"@2$3\" or or \"B3\" or
+\"@I$2..@II$2\".  All the references must be absolute, not relative.
+
+The return value is either a single string for a single field, or a
+list of the fields in the rectangle ."
+  (save-match-data
+    (let ((id-loc nil)
+	  org-table-column-names org-table-column-name-regexp
+	  org-table-local-parameters org-table-named-field-locations
+	  org-table-current-line-types org-table-current-begin-line
+	  org-table-current-begin-pos org-table-dlines
+	  org-table-hlines org-table-last-alignment
+	  org-table-last-column-widths org-table-last-alignment
+	  org-table-last-column-widths tbeg
+	  buffer loc)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (if (re-search-forward
+		 (concat "^#\\+TBLNAME:[ \t]*" (regexp-quote name-or-id) "[ \t]*$")
+		 nil t)
+		(setq buffer (current-buffer) loc (match-beginning 0))
+	      (setq id-loc (org-id-find name-or-id 'marker)
+		    buffer (marker-buffer id-loc)
+		    loc (marker-position id-loc))
+	      (move-marker id-loc nil)))
+	  (switch-to-buffer buffer)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char loc)
+	      (forward-char 1)
+	      (unless (and (re-search-forward "^\\(\\*+ \\)\\|[ \t]*|" nil t)
+			   (not (match-beginning 1)))
+		(error "Cannot find a table at NAME or ID %s" name-or-id))
+	      (setq tbeg (point-at-bol))
+	      (org-table-get-specials)
+	      (setq form (org-table-formula-substitute-names form))
+	      (if (and (string-match org-table-range-regexp form)
+		       (> (length (match-string 0 form)) 1))
+		  (save-match-data
+		    (org-table-get-range (match-string 0 form) tbeg 1))
+		form))))))))
 
 (provide 'org-table)
 

@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.16
+;; Version: 6.19a
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -64,7 +64,9 @@ where the Org file lives."
 
 (defcustom org-attach-file-list-property "Attachments"
   "The property used to keep a list of attachment belonging to this entry.
-This is not really needed, so you may set this to nil if you don't want it."
+This is not really needed, so you may set this to nil if you don't want it.
+Also, for entries where children inherit the directory, the list of
+attachments is not kept in this property."
   :group 'org-attach
   :type '(choice
 	  (const :tag "None" nil)
@@ -88,6 +90,15 @@ ln    create a hard link.  Note that this is not supported
   "Non-nil means do not show the splash buffer with the attach dispatcher."
   :group 'org-attach
   :type 'boolean)
+
+(defcustom org-attach-allow-inheritance t
+  "Non-nil means, allow attachment directories be inherited."
+  :group 'org-attach
+  :type 'boolean)
+  
+
+(defvar org-attach-inherited nil
+  "Indicates if the last access to the attachment directory was inherited.")
 
 ;;;###autoload
 (defun org-attach ()
@@ -124,7 +135,10 @@ F       Like \"f\", but force using dired in Emacs.
 
 d       Delete one attachment, you will be prompted for a file name.
 D       Delete all of a task's attachments.  A safer way is
-        to open the directory in dired and delete from there.")))
+        to open the directory in dired and delete from there.
+
+s       Set a specific attachment directory for this entry.
+i       Make children of the current entry inherit its attachment directory.")))
 	  (org-fit-window-to-buffer (get-buffer-window "*Org Attach*"))
 	  (message "Select command: [acmlzoOfFdD]")
 	  (setq c (read-char-exclusive))
@@ -147,29 +161,81 @@ D       Delete all of a task's attachments.  A safer way is
 			      'org-attach-delete-one))
        ((eq c ?D)            (call-interactively 'org-attach-delete-all))
        ((eq c ?q)            (message "Abort"))
+       ((memq c '(?s ?\C-s)) (call-interactively
+			      'org-attach-set-directory))
+       ((memq c '(?i ?\C-i)) (call-interactively
+			      'org-attach-set-inherit))
        (t (error "No such attachment command %c" c))))))
 
 (defun org-attach-dir (&optional create-if-not-exists-p)
   "Return the directory associated with the current entry.
+This first checks for a local property ATTACH_DIR, and then for an inherited
+property ATTACH_DIR_INHERIT.  If neither exists, the default mechanism
+using the entry ID will be invoked to access the unique directory for the
+current entry.
 If the directory does not exist and CREATE-IF-NOT-EXISTS-P is non-nil,
-the directory and the corresponding ID will be created."
-  (when (and (not (buffer-file-name (buffer-base-buffer)))
-	     (not (file-name-absolute-p org-attach-directory)))
-    (error "Need absolute `org-attach-directory' to attach in buffers without filename."))
-  (let ((uuid (org-id-get (point) create-if-not-exists-p)))
-    (when (or uuid create-if-not-exists-p)
-      (unless uuid
-	(error "ID retrieval/creation failed"))
-      (let ((attach-dir (expand-file-name
-			 (format "%s/%s"
-				 (substring uuid 0 2)
-				 (substring uuid 2))
-			 (expand-file-name org-attach-directory))))
-	(if (and create-if-not-exists-p
-		 (not (file-directory-p attach-dir)))
-	    (make-directory attach-dir t))
-	(and (file-exists-p attach-dir)
-	     attach-dir)))))
+the directory and (if necessary) the corresponding ID will be created."
+  (let (attach-dir uuid inherit)
+    (setq org-attach-inherited (org-entry-get nil "ATTACH_DIR_INHERIT"))
+    (cond
+     ((setq attach-dir (org-entry-get nil "ATTACH_DIR"))
+      (org-attach-check-absolute-path attach-dir))
+     ((and org-attach-allow-inheritance
+	   (setq inherit (org-entry-get nil "ATTACH_DIR_INHERIT" t)))
+      (setq attach-dir
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char org-entry-property-inherited-from)
+		(let (org-attach-allow-inheritance)
+		  (org-attach-dir create-if-not-exists-p)))))
+      (org-attach-check-absolute-path attach-dir)
+      (setq org-attach-inherited t))
+     (t ; use the ID
+      (org-attach-check-absolute-path nil)
+      (setq uuid (org-id-get (point) create-if-not-exists-p))
+      (when (or uuid create-if-not-exists-p)
+	(unless uuid (error "ID retrieval/creation failed"))
+	(setq attach-dir (expand-file-name
+			  (format "%s/%s"
+				  (substring uuid 0 2)
+				  (substring uuid 2))
+			  (expand-file-name org-attach-directory))))))
+    (when attach-dir
+      (if (and create-if-not-exists-p
+	       (not (file-directory-p attach-dir)))
+	  (make-directory attach-dir t))
+      (and (file-exists-p attach-dir)
+	   attach-dir))))
+
+(defun org-attach-check-absolute-path (dir)
+  "Check if we have enough information to root the atachment directory.
+When DIR is given, check also if it is already absolute.  Otherwise,
+assume that it will be relative, and check if `org-attach-directory' is
+absolute, or if at least the current buffer has a file name.
+Throw an error if we cannot root the directory."
+  (or (and dir (file-name-absolute-p dir))
+      (file-name-absolute-p org-attach-directory)
+      (buffer-file-name (buffer-base-buffer))
+      (error "Need absolute `org-attach-directory' to attach in buffers without filename.")))
+
+(defun org-attach-set-directory ()
+  "Set the ATTACH_DIR property of the current entry.
+The property defines the directory that is used for attachments
+of the entry."
+  (interactive)
+  (let ((dir (org-entry-get nil "ATTACH_DIR")))
+    (setq dir (read-directory-name "Attachment directory: " dir))
+    (org-entry-put nil "ATTACH_DIR" dir)))
+
+(defun org-attach-set-inherit ()
+  "Set the ATTACH_DIR_INHERIT property of the current entry.
+The property defines the directory that is used for attachments
+of the entry and any children that do not explicitly define (by setting
+the ATTACH_DIR property) their own attachment directory."
+  (interactive)
+  (org-entry-put nil "ATTACH_DIR_INHERIT" "t")
+  (message "Children will inherit attachment directory"))
 
 (defun org-attach-commit ()
   "Commit changes to git if `org-attach-directory' is properly initialized.
@@ -200,7 +266,7 @@ METHOD may be `cp', `mv', or `ln', default taken from `org-attach-method'."
   (interactive "fFile to keep as an attachment: \nP")
   (setq method (or method org-attach-method))
   (let ((basename (file-name-nondirectory file)))
-    (when org-attach-file-list-property
+    (when (and org-attach-file-list-property (not org-attach-inherited))
       (org-entry-add-to-multivalued-property
        (point) org-attach-file-list-property basename))
     (let* ((attach-dir (org-attach-dir t))
@@ -234,7 +300,7 @@ On some systems, this apparently does copy the file instead."
   "Create a new attachment FILE for the current task.
 The attachment is created as an Emacs buffer."
   (interactive "sCreate attachment named: ")
-  (when org-attach-file-list-property
+  (when (and org-attach-file-list-property (not org-attach-inherited))
     (org-entry-add-to-multivalued-property
      (point) org-attach-file-list-property file))
   (let ((attach-dir (org-attach-dir t)))
@@ -263,7 +329,7 @@ The attachment is created as an Emacs buffer."
 This actually deletes the entire attachment directory.
 A safer way is to open the directory in dired and delete from there."
   (interactive "P")
-  (when org-attach-file-list-property
+  (when (and org-attach-file-list-property (not org-attach-inherited))
     (org-entry-delete (point) org-attach-file-list-property))
   (let ((attach-dir (org-attach-dir)))
     (when
@@ -280,7 +346,7 @@ A safer way is to open the directory in dired and delete from there."
 This can be used after files have been added externally."
   (interactive)
   (org-attach-commit)
-  (when org-attach-file-list-property
+  (when (and org-attach-file-list-property (not org-attach-inherited))
     (org-entry-delete (point) org-attach-file-list-property))
   (let ((attach-dir (org-attach-dir)))
     (when attach-dir

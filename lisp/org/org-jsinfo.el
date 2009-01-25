@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -140,7 +140,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 	    default (cdr (assoc opt org-infojs-options)))
       (and (symbolp default) (not (memq default '(t nil)))
 	   (setq default (plist-get exp-plist default)))
-      (if (string-match (format " %s:\\(\\S-+\\)" opt) v)
+      (if (and v (string-match (format " %s:\\(\\S-+\\)" opt) v))
 	  (setq val (match-string 1 v))
 	(setq val default))
       (cond

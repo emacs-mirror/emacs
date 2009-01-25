@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,6 +34,7 @@
 (declare-function org-agenda-skip "org-agenda" ())
 (declare-function org-infojs-options-inbuffer-template "org-jsinfo" ())
 (declare-function htmlize-region "ext:htmlize" (beg end))
+(declare-function org-id-find-id-file "org-id" (id))
 (defvar htmlize-buffer-places)  ; from htmlize.el
 
 (defgroup org-export nil
@@ -298,6 +299,24 @@ drawer names to export."
   "Hook for preprocessing an export buffer.
 Pretty much the first thing when exporting is running this hook.")
 
+(defvar org-export-preprocess-after-include-files-hook nil
+  "Hook for preprocessing an export buffer.
+This is run after the contents of included files have been inserted.")
+
+(defvar org-export-preprocess-after-tree-selection-hook nil
+  "Hook for preprocessing an export buffer.
+This is run after selection of trees to be exported has happened.
+This selection includes tags-based selection, as well as removal
+of commented and archived trees.")
+
+(defvar org-export-preprocess-before-backend-specifics-hook nil
+  "Hook run before backend-specific functions are called during preprocessing.")
+
+(defvar org-export-preprocess-final-hook nil
+  "Hook for preprocessing an export buffer.
+This is run as the last thing in the preprocessing buffer, just before
+returning the buffer string to the backend.")
+
 (defgroup org-export-translation nil
   "Options for translating special ascii sequences for the export backends."
   :tag "Org Export Translation"
@@ -381,7 +400,7 @@ This option can also be set with the +OPTIONS line, e.g. \"-:nil\"."
 (defcustom org-export-with-TeX-macros t
   "Non-nil means, interpret simple TeX-like macros when exporting.
 For example, HTML export converts \\alpha to &alpha; and \\AA to &Aring;.
-No only real TeX macros will work here, but the standard HTML entities
+Not only real TeX macros will work here, but the standard HTML entities
 for math can be used as macro names as well.  For a list of supported
 names in HTML export, see the constant `org-html-entities'.
 Not all export backends support this.
@@ -522,6 +541,31 @@ Org-mode file."
   :group 'org-export-html
   :type '(string :tag "File or URL"))
 
+(defconst org-export-html-scripts
+"<script type=\"text/javascript\">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = \"code-highlighted\";
+     elem.className   = \"code-highlighted\";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*/-->
+</script>"
+"Basic javascript that is needed by HTML files produced by Org-mode.")
+
 (defconst org-export-html-style-default
 "<style type=\"text/css\">
  <!--/*--><![CDATA[/*><!--*/
@@ -547,6 +591,8 @@ Org-mode file."
   dt { font-weight: bold; }
   div.figure { padding: 0.5em; }
   div.figure p { text-align: center; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
   .org-info-js_info-navigation { border-style:none; }
   #org-info-js_console-label { font-size:10px; font-weight:bold;
                                white-space:nowrap; }
@@ -646,6 +692,12 @@ be linked only."
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Always" t)
 		 (const :tag "When there is no description" maybe)))
+
+(defcustom org-export-html-inline-image-extensions
+  '("png" "jpeg" "jpg" "gif")
+  "Extensions of image files that can be inlined into HTML."
+  :group 'org-export-html
+  :type '(repeat (string :tag "Extension")))
 
 ;; FIXME: rename
 (defcustom org-export-html-expand t
@@ -1422,6 +1474,8 @@ translations.  There is currently no way for users to extend this.")
 
 (defvar org-export-target-aliases nil
   "Alist of targets with invisible aliases.")
+(defvar org-export-code-refs nil
+  "Alist of code references and line numbers")
 
 (defun org-export-preprocess-string (string &rest parameters)
   "Cleanup STRING so that that the true exported has a more consistent source.
@@ -1442,13 +1496,12 @@ on this string to produce the exported version."
 	 target-alist rtn)
 
     (setq org-export-target-aliases nil)
+    (setq org-export-code-refs nil)
 
     (with-current-buffer (get-buffer-create " org-mode-tmp")
       (erase-buffer)
       (insert string)
       (setq case-fold-search t)
-      ;; Call the hook
-      (run-hooks 'org-export-preprocess-hook)
 
       ;; Remove license-to-kill stuff
       ;; The caller marks some stuff for killing, stuff that has been
@@ -1457,17 +1510,36 @@ on this string to produce the exported version."
 
       (let ((org-inhibit-startup t)) (org-mode))
       (setq case-fold-search t)
+
+      ;; Call the hook
+      (run-hooks 'org-export-preprocess-hook)
+
       (untabify (point-min) (point-max))
 
-      ;; Handle include files
+      ;; Handle include files, and call a hook
       (org-export-handle-include-files)
+      (run-hooks 'org-export-preprocess-after-include-files-hook)
 
-      ;; Get rid of excluded trees
+      ;; Get rid of archived trees
+      (org-export-remove-archived-trees archived-trees)
+
+      ;; Remove comment environment and comment subtrees
+      (org-export-remove-comment-blocks-and-subtrees)
+
+      ;; Get rid of excluded trees, and call a hook
       (org-export-handle-export-tags (plist-get parameters :select-tags)
 				     (plist-get parameters :exclude-tags))
+      (run-hooks 'org-export-preprocess-after-tree-selection-hook)
 
       ;; Handle source code snippets
-      (org-export-replace-src-segments)
+      (org-export-replace-src-segments-and-examples backend)
+
+      ;; Protect short examples marked by a leading colon
+      (org-export-protect-colon-examples)
+
+      ;; Normalize footnotes
+      (when (plist-get parameters :footnotes)
+	(org-footnote-normalize nil t))
 
       ;; Find all headings and compute the targets for them
       (setq target-alist (org-export-define-heading-targets target-alist))
@@ -1487,9 +1559,6 @@ on this string to produce the exported version."
 	(goto-char (point-min))
 	(insert (plist-get parameters :add-text) "\n"))
 
-      ;; Get rid of archived trees
-      (org-export-remove-archived-trees archived-trees)
-
       ;; Remove todo-keywords before exporting, if the user has requested so
       (org-export-remove-headline-metadata parameters)
 
@@ -1497,10 +1566,8 @@ on this string to produce the exported version."
       ;; but mark them as targets that should be invisible
       (setq target-alist (org-export-handle-invisible-targets target-alist))
 
-      ;; Protect examples
-      (org-export-protect-examples (if asciip 'indent nil))
-
-      ;; Protect backend specific stuff, throw away the others.
+      ;; Select and protect backend specific stuff, throw away stuff
+      ;; that is specific for other backends
       (org-export-select-backend-specific-text backend)
 
       ;; Protect quoted subtrees
@@ -1512,12 +1579,14 @@ on this string to produce the exported version."
       ;; Blockquotes and verse
       (org-export-mark-blockquote-and-verse)
 
+      ;; Remove timestamps, if the user has requested so
+      (org-export-remove-clock-lines)
+      (unless (plist-get parameters :timestamps)
+	(org-export-remove-timestamps))
+
       ;; Attach captions to the correct object
       (setq target-alist (org-export-attach-captions-and-attributes
 			  backend target-alist))
-
-      ;; Remove comment environment and comment subtrees
-      (org-export-remove-comment-blocks-and-subtrees)
 
       ;; Find matches for radio targets and turn them into internal links
       (org-export-mark-radio-links)
@@ -1542,21 +1611,27 @@ on this string to produce the exported version."
       (when org-export-table-remove-special-lines
 	(org-export-remove-special-table-lines))
 
-      ;; Specific LaTeX stuff
+      ;; Another hook
+      (run-hooks 'org-export-preprocess-before-backend-specifics-hook)
+
+      ;; LaTeX-specific preprocessing
       (when latexp
 	(require 'org-export-latex nil)
 	(org-export-latex-preprocess))
 
-      ;; Specific ASCII stuff
+      ;; ASCII-specific preprocessing
       (when asciip
 	(org-export-ascii-preprocess))
 
-      ;; Specific HTML stuff
+      ;; HTML-specific preprocessing
       (when htmlp
 	(org-export-html-preprocess parameters))
 
       ;; Remove or replace comments
       (org-export-handle-comments (plist-get parameters :comments))
+
+      ;; Run the final hook
+      (run-hooks 'org-export-preprocess-final-hook)
 
       (setq rtn (buffer-string)))
     (kill-buffer " org-mode-tmp")
@@ -1578,16 +1653,24 @@ The new targets are added to TARGET-ALIST, which is also returned."
   (org-init-section-numbers)
   (let ((re (concat "^" org-outline-regexp
 		    "\\| [ \t]*:ID:[ \t]*\\([^ \t\r\n]+\\)"))
-	level target)
+	level target last-section-target a)
     (while (re-search-forward re nil t)
       (if (match-end 1)
-	  (push (cons (org-match-string-no-properties 1)
-		      target) target-alist)
+	  (progn
+	    (push (cons (org-match-string-no-properties 1)
+			target) target-alist)
+	    (setq a (or (assoc last-section-target org-export-target-aliases)
+			(progn
+			  (push (list last-section-target)
+				org-export-target-aliases)
+			  (car org-export-target-aliases))))
+	    (push (caar target-alist) (cdr a)))
 	(setq level (org-reduced-level
 		     (save-excursion (goto-char (point-at-bol))
 				     (org-outline-level))))
 	(setq target (org-solidify-link-text
 		      (format "sec-%s" (org-section-number level))))
+	(setq last-section-target target)
 	(push (cons target target) target-alist)
 	(add-text-properties
 	 (point-at-bol) (point-at-eol)
@@ -1632,12 +1715,15 @@ the current file."
 	    (desc (match-end 2))
 	    (link (org-link-unescape (match-string 1)))
 	    (slink (org-solidify-link-text link))
-	    found props pos
+	    found props pos cref
 	    (target
 	     (cond
 	      ((cdr (assoc slink target-alist)))
 	      ((and (string-match "^id:" link)
 		    (cdr (assoc (substring link 3) target-alist))))
+	      ((string-match "^(\\(.*\\))$" link)
+	       (setq cref (match-string 1 link))
+	       (concat "coderef:" cref))
 	      ((string-match org-link-types-re link) nil)
 	      ((or (file-name-absolute-p link)
 		   (string-match "^\\." link))
@@ -1767,9 +1853,27 @@ from the buffer."
     (when (or (not todo) (not tags) (not pri))
       (goto-char (point-min))
       (while (re-search-forward re nil t)
-	(setq rpl (mapconcat (lambda (i) (if (match-end i) (match-string i) ""))
-			     elts " "))
-	(replace-match rpl t t)))))
+	(org-if-unprotected
+	 (setq rpl (mapconcat (lambda (i) (if (match-end i) (match-string i) ""))
+			      elts " "))
+	 (replace-match rpl t t))))))
+
+(defun org-export-remove-timestamps ()
+  "Remove timestamps and keywords for export."
+  (while (re-search-forward org-maybe-keyword-time-regexp nil t)
+    (backward-char 1)
+    (org-if-unprotected
+     (replace-match "")
+     (beginning-of-line 1)
+     (if (looking-at "[- \t]*\\(=>[- \t0-9:]*\\)?[ \t]*\n")
+	 (replace-match "")))))
+
+(defun org-export-remove-clock-lines ()
+  "Remove timestamps and keywords for export."
+  (let ((re (concat "^[ \t]*" org-clock-string ".*\n?")))
+    (while (re-search-forward re nil t)
+      (org-if-unprotected
+       (replace-match "")))))
 
 (defun org-export-protect-quoted-subtrees ()
   "Mark quoted subtrees with the protection property."
@@ -1789,24 +1893,25 @@ from the buffer."
 			 '(org-protected t))
     (goto-char (1+ (match-end 4)))))
 
-(defun org-export-protect-examples (&optional indent)
-  "Protect code that should be exported as monospaced examples."
+(defun org-export-protect-colon-examples ()
+  "Protect lines starting with a colon."
   (goto-char (point-min))
-  (while (re-search-forward "^#\\+BEGIN_EXAMPLE[ \t]*\n" nil t)
-    (goto-char (match-end 0))
-    (while (and (not (looking-at "#\\+END_EXAMPLE")) (not (eobp)))
-      (insert (if indent ":  " ":"))
-      (beginning-of-line 2)))
-  (goto-char (point-min))
-  (while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
-    (add-text-properties (match-beginning 0) (match-end 0)
-			 '(org-protected t))))
+  (let ((re "^[ \t]*:\\([ \t]\\|$\\)") beg end)
+    (while (re-search-forward re nil t)
+      (beginning-of-line 1)
+      (setq beg (point))
+      (while (looking-at re)
+	(end-of-line 1)
+	(or (eobp) (forward-char 1)))
+      (add-text-properties beg (if (bolp) (1- (point)) (point))
+			   '(org-protected t)))))
 
 (defun org-export-select-backend-specific-text (backend)
   (let ((formatters
 	 '((html "HTML" "BEGIN_HTML" "END_HTML")
 	   (ascii "ASCII" "BEGIN_ASCII" "END_ASCII")
 	   (latex "LaTeX" "BEGIN_LaTeX" "END_LaTeX")))
+	(case-fold-search t)
 	fmt)
 
     (while formatters
@@ -1969,10 +2074,15 @@ When it is nil, all comments will be removed."
 		    (org-translate-link
 		     (org-link-expand-abbrev (match-string 1)))))
 	      (s (concat
-		  "[[" xx "]"
+		  "[[" (org-add-props (copy-sequence xx)
+			   nil 'org-protected t)
+		  "]"
 		  (if (match-end 3)
 		      (match-string 2)
-		    (concat "[" xx "]"))
+		    (concat "[" (org-add-props
+				    (copy-sequence xx)
+				    '(org-protected t))
+			    "]"))
 		  "]")))
 	 (put-text-property 0 (length s) 'face 'org-link s)
 	 (replace-match s t t))))))
@@ -1993,8 +2103,10 @@ This is to make sure that the line-processing export backends
 can work correctly."
   (goto-char (point-min))
   (while (re-search-forward org-emph-re nil t)
-    (if (not (= (char-after (match-beginning 3))
-		(char-after (match-beginning 4))))
+    (if (and (not (= (char-after (match-beginning 3))
+		     (char-after (match-beginning 4))))
+	     (save-excursion (goto-char (match-beginning 0))
+			     (save-match-data (not (org-at-table-p)))))
 	(org-if-unprotected
 	 (subst-char-in-region (match-beginning 0) (match-end 0)
 			       ?\n ?\  t)
@@ -2149,7 +2261,7 @@ TYPE must be a string, any of:
 (defun org-export-handle-include-files ()
   "Include the contents of include files, with proper formatting."
   (let ((case-fold-search t)
-	params file markup lang start end prefix prefix1)
+	params file markup lang start end prefix prefix1 switches)
     (goto-char (point-min))
     (while (re-search-forward "^#\\+INCLUDE:?[ \t]+\\(.*\\)" nil t)
       (setq params (read (concat "(" (match-string 1) ")"))
@@ -2157,7 +2269,9 @@ TYPE must be a string, any of:
 	    prefix1 (org-get-and-remove-property 'params :prefix1)
 	    file (org-symname-or-string (pop params))
 	    markup (org-symname-or-string (pop params))
-	    lang (org-symname-or-string (pop params)))
+	    lang (and (member markup '("src" "SRC"))
+		      (org-symname-or-string (pop params)))
+	    switches (mapconcat '(lambda (x) (format "%s" x)) params " "))
       (delete-region (match-beginning 0) (match-end 0))
       (if (or (not file)
 	      (not (file-exists-p file))
@@ -2165,9 +2279,11 @@ TYPE must be a string, any of:
 	  (insert (format "CANNOT INCLUDE FILE %s" file))
 	(when markup
 	  (if (equal (downcase markup) "src")
-	      (setq start (format "#+begin_src %s\n" (or lang "fundamental"))
+	      (setq start (format "#+begin_src %s %s\n"
+				  (or lang "fundamental")
+				  (or switches ""))
 		    end "#+end_src")
-	    (setq start (format "#+begin_%s\n" markup)
+	    (setq start (format "#+begin_%s %s\n" markup switches)
 		  end  (format "#+end_%s" markup))))
 	(insert (or start ""))
 	(insert (org-get-file-contents (expand-file-name file) prefix prefix1))
@@ -2207,70 +2323,207 @@ in the list) and remove property and value from the list in LISTVAR."
       (if s (symbol-name s) s)
     s))
 
-;;; Fontification of code
-;; Currently only for the HTML backend, but who knows....
-(defun org-export-replace-src-segments ()
+;;; Fontification and line numbers for code examples
+
+(defvar org-export-last-code-line-counter-value 0)
+
+(defun org-export-replace-src-segments-and-examples (backend)
   "Replace source code segments with special code for export."
+  (setq org-export-last-code-line-counter-value 0)
   (let ((case-fold-search t)
-	lang code trans)
+	lang code trans opts)
     (goto-char (point-min))
     (while (re-search-forward
-	    "^#\\+BEGIN_SRC:?[ \t]+\\([^ \t\n]+\\)[ \t]*\n\\([^\000]+?\n\\)#\\+END_SRC.*"
+	    "\\(^#\\+BEGIN_SRC:?[ \t]+\\([^ \t\n]+\\)\\(.*\\)\n\\([^\000]+?\n\\)#\\+END_SRC.*\\)\\|\\(^#\\+BEGIN_EXAMPLE:?\\(?:[ \t]+\\(.*\\)\\)?\n\\([^\000]+?\n\\)#\\+END_EXAMPLE.*\\)"
 	    nil t)
-      (setq lang (match-string 1) code (match-string 2)
-	    trans (org-export-format-source-code lang code))
+      (if (match-end 1)
+	  ;; src segments
+	  (setq lang (match-string 2)
+		opts (match-string 3)
+		code (match-string 4))
+	(setq lang nil
+	      opts (match-string 6)
+	      code (match-string 7)))
+
+      (setq trans (org-export-format-source-code-or-example
+		   backend lang code opts))
       (replace-match trans t t))))
 
-(defvar htmlp)  ;; dynamically scoped from org-exp.el
+(defvar htmlp)  ;; dynamically scoped
+(defvar latexp)  ;; dynamically scoped
 
-(defun org-export-format-source-code (lang code)
+(defun org-export-format-source-code-or-example (backend
+						 lang code &optional opts)
   "Format CODE from language LANG and return it formatted for export.
-Currently, this only does something for HTML export, for all other
-backends, it converts the segment into an EXAMPLE segment."
+If LANG is nil, do not add any fontification.
+OPTS contains formatting optons, like `-n' for triggering numbering lines,
+and `+n' for continuing previous numering.
+Code formatting according to language currently only works for HTML.
+Numbering lines works for all three major backends (html, latex, and ascii)."
   (save-match-data
-    (cond
-     (htmlp
-      ;; We are exporting to HTML
-      (require 'htmlize nil t)
-      (if (not (fboundp 'htmlize-region-for-paste))
-	  (progn
-	    ;; we do not have htmlize.el, or an old version of it
-	    (message
-	     "htmlize.el 1.34 or later is needed for source code formatting")
-	    (concat "#+BEGIN_EXAMPLE\n" code
-		    (if (string-match "\n\\'" code) "" "\n")
-		    "#+END_EXAMPLE\n"))
-	;; ok, we are good to go
-	(let* ((mode (and lang (intern (concat lang "-mode"))))
-	       (org-inhibit-startup t)
-	       (org-startup-folded nil)
-	       (htmltext
-		(with-temp-buffer
-		  (insert code)
-		  ;; Free up the protected stuff
-		  (goto-char (point-min))
-		  (while (re-search-forward "^," nil t)
-		    (replace-match "")
-		    (end-of-line 1))
-		  (if (functionp mode)
-		      (funcall mode)
-		    (fundamental-mode))
-		  (font-lock-fontify-buffer)
-		  (org-export-htmlize-region-for-paste
-		   (point-min) (point-max)))))
-	  (if (string-match "<pre\\([^>]*\\)>\n?" htmltext)
-	      (setq htmltext (replace-match
-			      (format "<pre class=\"src src-%s\">\n" lang)
-			      t t htmltext)))
-	  (concat "\n#+BEGIN_HTML\n" htmltext "\n#+END_HTML\n\n"))))
-     (t
-      ;; This is not HTML, so just make it an example.
+    (let (num cont rtn named rpllbl keepp textareap cols rows fmt)
+      (setq opts (or opts "")
+	    num (string-match "[-+]n\\>" opts)
+	    cont (string-match "\\+n\\>" opts)
+	    rpllbl (string-match "-r\\>" opts)
+	    keepp (string-match "-k\\>" opts)
+	    textareap (string-match "-t\\>" opts)
+	    cols (if (string-match "-w[ \t]+\\([0-9]+\\)" opts)
+		     (string-to-number (match-string 1 opts))
+		   80)
+	    rows (if (string-match "-h[ \t]+\\([0-9]+\\)" opts)
+		     (string-to-number (match-string 1 opts))
+		   (org-count-lines code))
+	    fmt (if (string-match "-l[ \t]+\"\\([^\"\n]+\\)\"" opts)
+		    (match-string 1 opts)))
+      (when (and textareap (eq backend 'html))
+	;; we cannot use numbering or highlighting.
+	(setq num nil cont nil lang nil))
+      (if keepp (setq rpllbl 'keep))
+      (setq rtn code)
       (when (equal lang "org")
-	(while (string-match "^," code)
-	  (setq code (replace-match "" t t code))))
-      (concat "#+BEGIN_EXAMPLE\n" code
-	      (if (string-match "\n\\'" code) "" "\n")
-	      "#+END_EXAMPLE\n")))))
+	(setq rtn (with-temp-buffer
+		    (insert rtn)
+		    ;; Free up the protected lines
+		    (goto-char (point-min))
+		    (while (re-search-forward "^," nil t)
+		      (replace-match "")
+		      (end-of-line 1))
+		    (buffer-string))))
+      ;; Now backend-specific coding
+      (cond
+       ((eq backend 'html)
+	;; We are exporting to HTML
+	(when lang
+	  (require 'htmlize nil t)
+	  (when (not (fboundp 'htmlize-region-for-paste))
+	    ;; we do not have htmlize.el, or an old version of it
+	    (setq lang nil)
+	    (message
+	     "htmlize.el 1.34 or later is needed for source code formatting")))
+
+	(if lang
+	    (let* ((mode (and lang (intern (concat lang "-mode"))))
+		   (org-inhibit-startup t)
+		   (org-startup-folded nil))
+	      (setq rtn
+		    (with-temp-buffer
+		      (insert rtn)
+		      (if (functionp mode)
+			  (funcall mode)
+			(fundamental-mode))
+		      (font-lock-fontify-buffer)
+		      (org-export-htmlize-region-for-paste
+		       (point-min) (point-max))))
+	      (if (string-match "<pre\\([^>]*\\)>\n?" rtn)
+		  (setq rtn (replace-match
+			     (format "<pre class=\"src src-%s\">\n" lang)
+			     t t rtn))))
+	  (if textareap
+	      (setq rtn (concat
+			 (format "<p>\n<textarea cols=\"%d\" rows=\"%d\" overflow-x:scroll >\n"
+				 cols rows)
+			 rtn "</textarea>\n</p>\n"))
+	    (with-temp-buffer
+	      (insert rtn)
+	      (goto-char (point-min))
+	      (while (re-search-forward "[<>&]" nil t)
+		(replace-match (cdr (assq (char-before)
+					  '((?&."&amp;")(?<."&lt;")(?>."&gt;"))))
+			       t t))
+	      (setq rtn (buffer-string)))
+	    (setq rtn (concat "<pre class=\"example\">\n" rtn "</pre>\n"))))
+	(unless textareap
+	  (setq rtn (org-export-number-lines rtn 'html 1 1 num
+					     cont rpllbl fmt)))
+	(concat "\n#+BEGIN_HTML\n" (org-add-props rtn '(org-protected t)) "\n#+END_HTML\n\n"))
+       ((eq backend 'latex)
+	(setq rtn (org-export-number-lines rtn 'latex 0 0 num cont rpllbl fmt))
+	(concat "\n#+BEGIN_LaTeX\n"
+		(org-add-props (concat "\\begin{verbatim}\n" rtn "\n\\end{verbatim}\n")
+		    '(org-protected t))
+		"#+END_LaTeX\n\n"))
+       ((eq backend 'ascii)
+	;; This is not HTML or LaTeX, so just make it an example.
+	(setq rtn (org-export-number-lines rtn 'ascii 0 0 num cont rpllbl fmt))
+	(concat "#+BEGIN_ASCII\n"
+		(org-add-props
+		    (concat
+		     (mapconcat
+		      (lambda (l) (concat "  " l))
+		      (org-split-string rtn "\n")
+		      "\n")
+		     "\n")
+		    '(org-protected t))
+		"#+END_ASCII\n"))))))
+
+(defun org-export-number-lines (text backend
+				     &optional skip1 skip2 number cont
+				     replace-labels label-format)
+  (if (and (not number) (not (eq replace-labels 'keep)))
+      (setq replace-labels nil)) ;; must use names if no numbers
+  (setq skip1 (or skip1 0) skip2 (or skip2 0))
+  (if (not cont) (setq org-export-last-code-line-counter-value 0))
+  (with-temp-buffer
+    (insert text)
+    (goto-char (point-max))
+    (skip-chars-backward " \t\n\r")
+    (delete-region (point) (point-max))
+    (beginning-of-line (- 1 skip2))
+    (let* ((last (org-current-line))
+	   (n org-export-last-code-line-counter-value)
+	   (nmax (+ n (- last skip1)))
+	   (fmt (format "%%%dd:  " (length (number-to-string nmax))))
+	   (fm
+	    (cond
+	     ((eq backend 'html) (format "<span class=\"linenr\">%s</span>"
+					 fmt))
+	     ((eq backend 'ascii) fmt)
+	     ((eq backend 'latex) fmt)
+	     (t "")))
+	   (label-format (or label-format org-coderef-label-format))
+	   (label-pre (if (string-match "%s" label-format)
+			  (substring label-format 0 (match-beginning 0))
+			label-format))
+	   (label-post (if (string-match "%s" label-format)
+			   (substring label-format (match-end 0))
+			 ""))
+	   (lbl-re
+	    (concat 
+	     ".*?\\S-.*?\\([ \t]*\\("
+	     (regexp-quote label-pre)
+	     "\\([-a-zA-Z0-9_]+\\)"
+	     (regexp-quote label-post)
+	     "\\)\\)"))
+	   ref)
+
+      (goto-line (1+ skip1))
+      (while (and (re-search-forward "^" nil t) (not (eobp)) (< n nmax))
+	(if number
+	    (insert (format fm (incf n)))
+	  (forward-char 1))
+	(when (and (not (eq replace-labels 'keep))
+		   (looking-at lbl-re))
+	  (setq ref (match-string 3))
+	  (if replace-labels
+	      (progn
+		(delete-region (match-beginning 1) (match-end 1))
+		(push (cons ref n) org-export-code-refs))
+	    (goto-char (match-beginning 2))
+	    (delete-region (match-beginning 2) (match-end 2))
+	    (insert "(" ref ")")
+	    (push (cons ref (concat "(" ref ")")) org-export-code-refs))
+	  (when (eq backend 'html)
+	    (save-excursion
+	      (beginning-of-line 1)
+	      (insert (format "<span id=\"coderef-%s\" class=\"coderef-off\">"
+			      ref))
+	      (end-of-line 1)
+	      (insert "</span>")))))
+      (setq org-export-last-code-line-counter-value n)
+      (goto-char (point-max))
+      (newline)
+      (buffer-string))))
 
 ;;; ASCII export
 
@@ -2351,6 +2604,8 @@ underlined headlines.  The default is 3."
 		  :drawers (plist-get opt-plist :drawers)
 		  :tags (plist-get opt-plist :tags)
 		  :priority (plist-get opt-plist :priority)
+		  :footnotes (plist-get opt-plist :footnotes)
+		  :timestamps (plist-get opt-plist :timestamps)
 		  :todo-keywords (plist-get opt-plist :todo-keywords)
 		  :verbatim-multiline t
 		  :select-tags (plist-get opt-plist :select-tags)
@@ -2360,7 +2615,7 @@ underlined headlines.  The default is 3."
 		  :add-text (plist-get opt-plist :text))
 		 "\n"))
 	 thetoc have-headings first-heading-pos
-	 table-open table-buffer)
+	 table-open table-buffer link desc)
 
     (let ((inhibit-read-only t))
       (org-unmodified
@@ -2473,9 +2728,19 @@ underlined headlines.  The default is 3."
       (setq line (org-html-expand-for-ascii line))
       ;; Replace links with the description when possible
       (while (string-match org-bracket-link-regexp line)
-	(setq line (replace-match
-		    (if (match-end 3) "[\\3]" "[\\1]")
-		    t nil line)))
+	(setq link (match-string 1 line)
+	      desc (match-string (if (match-end 3) 3 1) line))
+	(if (and (> (length link) 8)
+		 (equal (substring link 0 8) "coderef:"))
+	    (setq line (replace-match
+			(format (org-export-get-coderef-format (substring link 8) desc)
+				(cdr (assoc
+				      (substring link 8)
+				      org-export-code-refs)))
+			t t line))
+	  (setq line (replace-match
+		      (if (match-end 3) "[\\3]" "[\\1]")
+		      t nil line))))
       (when custom-times
 	(setq line (org-translate-time line)))
       (cond
@@ -2719,7 +2984,8 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+EMAIL:     %s
 #+DATE:      %s
 #+LANGUAGE:  %s
-#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s -:%s f:%s *:%s TeX:%s LaTeX:%s skip:%s d:%s todo:%s pri:%s tags:%s
+#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s -:%s f:%s *:%s <:%s
+#+OPTIONS:   TeX:%s LaTeX:%s skip:%s d:%s todo:%s pri:%s tags:%s
 %s
 #+EXPORT_SELECT_TAGS: %s
 #+EXPORT_EXCLUDE_TAGS: %s
@@ -2750,6 +3016,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-special-strings
    org-export-with-footnotes
    org-export-with-emphasize
+   org-export-with-timestamps
    org-export-with-TeX-macros
    org-export-with-LaTeX-fragments
    org-export-skip-text-before-1st-heading
@@ -2933,7 +3200,8 @@ PUB-DIR is set, use this as the publishing directory."
 	 (style (concat (if (plist-get opt-plist :style-include-default)
 			    org-export-html-style-default)
 			(plist-get opt-plist :style)
-			(plist-get opt-plist :style-extra)))
+			(plist-get opt-plist :style-extra)
+			"\n" org-export-html-scripts))
 	 (html-extension (plist-get opt-plist :html-extension))
 	 (link-validate (plist-get opt-plist :link-validation-function))
 	 valid thetoc have-headings first-heading-pos
@@ -3032,6 +3300,8 @@ PUB-DIR is set, use this as the publishing directory."
 	    :todo-keywords (plist-get opt-plist :todo-keywords)
 	    :tags (plist-get opt-plist :tags)
 	    :priority (plist-get opt-plist :priority)
+	    :footnotes (plist-get opt-plist :footnotes)
+	    :timestamps (plist-get opt-plist :timestamps)
 	    :archived-trees
 	    (plist-get opt-plist :archived-trees)
 	    :select-tags (plist-get opt-plist :select-tags)
@@ -3046,7 +3316,8 @@ PUB-DIR is set, use this as the publishing directory."
 	 ind item-type starter didclose
 	 rpl path attr desc descp desc1 desc2 link
 	 snumber fnc item-tag
-	 footnotes
+	 footnotes footref-seen
+	 id-file
 	 )
 
     (let ((inhibit-read-only t))
@@ -3214,12 +3485,12 @@ lang=\"%s\" xml:lang=\"%s\">
 
 	  ;; Fixed-width, verbatim lines (examples)
 	  (when (and org-export-with-fixed-width
-		     (string-match "^[ \t]*:\\(.*\\)" line))
+		     (string-match "^[ \t]*:\\(\\([ \t]\\|$\\)\\(.*\\)\\)" line))
 	    (when (not infixed)
 	      (setq infixed t)
 	      (org-close-par-maybe)
 	      (insert "<pre class=\"example\">\n"))
-	    (insert (org-html-protect (match-string 1 line)) "\n")
+	    (insert (org-html-protect (match-string 3 line)) "\n")
 	    (when (or (not lines)
 		      (not (string-match "^[ \t]*\\(:.*\\)"
 					 (car lines))))
@@ -3236,7 +3507,6 @@ lang=\"%s\" xml:lang=\"%s\">
 		(replace-match "\\2\n"))
 	      (insert line "\n")
 	      (while (and lines
-			  (not (string-match "^[ \t]*:" (car lines)))
 			  (or (= (length (car lines)) 0)
 			      (get-text-property 0 'org-protected (car lines))))
 		(insert (pop lines) "\n"))
@@ -3308,7 +3578,7 @@ lang=\"%s\" xml:lang=\"%s\">
 
 	  ;; Format the links
 	  (setq start 0)
-	  (while (string-match org-bracket-link-analytic-regexp line start)
+	  (while (string-match org-bracket-link-analytic-regexp++ line start)
 	    (setq start (match-beginning 0))
 	    (setq path (save-match-data (org-link-unescape
 					 (match-string 3 line))))
@@ -3326,7 +3596,8 @@ lang=\"%s\" xml:lang=\"%s\">
 		  descp (and desc1 (not (equal desc1 desc2)))
 		  desc (or desc1 desc2))
 	    ;; Make an image out of the description if that is so wanted
-	    (when (and descp (org-file-image-p desc))
+	    (when (and descp (org-file-image-p
+			      desc org-export-html-inline-image-extensions))
 	      (save-match-data
 		(if (string-match "^file:" desc)
 		    (setq desc (substring desc (match-end 0)))))
@@ -3344,11 +3615,24 @@ lang=\"%s\" xml:lang=\"%s\">
 		     "\"" attr ">"
 		     (org-export-html-format-desc desc)
 		     "</a>")))
+	     ((and (equal type "id")
+		   (setq id-file (org-id-find-id-file path)))
+	      ;; This is an id: link to another file (if it was the same file,
+	      ;; it would have become an internal link...)
+	      (setq id-file (file-relative-name
+			     id-file (file-name-directory org-current-export-file)))
+	      (setq id-file (concat (file-name-sans-extension id-file)
+				    "." html-extension))
+	      (setq rpl (concat "<a href=\"" id-file "#" path "\""
+				attr ">"
+				(org-export-html-format-desc desc)
+				"</a>")))
 	     ((member type '("http" "https"))
 	      ;; standard URL, just check if we need to inline an image
 	      (if (and (or (eq t org-export-html-inline-images)
 			   (and org-export-html-inline-images (not descp)))
-		       (org-file-image-p path))
+		       (org-file-image-p
+			path org-export-html-inline-image-extensions))
 		  (setq rpl (org-export-html-format-image
 			     (concat type ":" path)))
 		(setq link (concat type ":" path))
@@ -3365,6 +3649,13 @@ lang=\"%s\" xml:lang=\"%s\">
 				"\"" attr ">"
 				(org-export-html-format-desc desc)
 				"</a>")))
+
+	     ((string= type "coderef")
+
+	      (setq rpl (format "<a href=\"#coderef-%s\" class=\"coderef\" onmouseover=\"CodeHighlightOn(this, 'coderef-%s');\" onmouseout=\"CodeHighlightOff(this, 'coderef-%s');\">%s</a>"
+				path path path
+				(format (org-export-get-coderef-format path (and descp desc))
+					(cdr (assoc path org-export-code-refs))))))
 
 	     ((functionp (setq fnc (nth 2 (assoc type org-link-protocols))))
 	      ;; The link protocol has a function for format the link
@@ -3385,7 +3676,9 @@ lang=\"%s\" xml:lang=\"%s\">
 			(if (functionp link-validate)
 			    (funcall link-validate filename current-dir)
 			  t))
-		  (setq file-is-image-p (org-file-image-p filename))
+		  (setq file-is-image-p
+			(org-file-image-p
+			 filename org-export-html-inline-image-extensions))
 		  (setq thefile (if abs-p (expand-file-name filename) filename))
 		  (when (and org-export-html-link-org-files-as-html
 			     (string-match "\\.org$" thefile))
@@ -3441,12 +3734,18 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (while (string-match "\\([^* \t].*?\\)\\[\\([0-9]+\\)\\]" line start)
 	      (if (get-text-property (match-beginning 2) 'org-protected line)
 		  (setq start (match-end 2))
-		(let ((n (match-string 2 line)))
+		(let ((n (match-string 2 line)) extra a)
+		  (if (setq a (assoc n footref-seen))
+		      (progn
+			(setcdr a (1+ (cdr a)))
+			(setq extra (format ".%d" (cdr a))))
+		    (setq extra "")
+		    (push (cons n 1) footref-seen))
 		  (setq line
 			(replace-match
 			 (format
-			  "%s<sup><a class=\"footref\" name=\"fnr.%s\" href=\"#fn.%s\">%s</a></sup>"
-			  (match-string 1 line) n n n)
+			  "%s<sup><a class=\"footref\" name=\"fnr.%s%s\" href=\"#fn.%s\">%s</a></sup>"
+			  (match-string 1 line) n extra n n)
 			 t t line))))))
 
 	  (cond
@@ -3585,6 +3884,17 @@ lang=\"%s\" xml:lang=\"%s\">
 	     (org-export-preserve-breaks
 	      (setq line (concat line "<br/>"))))
 
+	    ;; Check if a paragraph should be started
+	    (let ((start 0))
+	      (while (and org-par-open
+			  (string-match "\\\\par\\>" line start))
+		;; Leave a space in the </p> so that the footnote matcher
+		;; does not see this.
+		(if (not (get-text-property (match-beginning 0)
+					    'org-protected line))
+		    (setq line (replace-match "</p ><p >" t t line)))
+		(setq start (match-end 0))))
+
 	    (insert line "\n")))))
 
       ;; Properly close all local lists and other lists
@@ -3692,6 +4002,15 @@ lang=\"%s\" xml:lang=\"%s\">
 	  (prog1 (buffer-substring (point-min) (point-max))
 	    (kill-buffer (current-buffer)))
 	(current-buffer)))))
+
+(defun org-export-get-coderef-format (path desc)
+  (save-match-data
+    (if (and desc (string-match
+		   (regexp-quote (concat "(" path ")"))
+		   desc))
+	(replace-match "%s" t t desc)
+      "%s")))
+
 
 (defun org-export-html-format-href (s)
   "Make sure the S is valid as a href reference in an XHTML document."
@@ -3881,14 +4200,18 @@ lang=\"%s\" xml:lang=\"%s\">
       (push html-table-tag html))
     (concat (mapconcat 'identity html "\n") "\n")))
 
-(defun org-table-clean-before-export (lines)
+(defun org-table-clean-before-export (lines &optional maybe-quoted)
   "Check if the table has a marking column.
 If yes remove the column and the special lines."
   (setq org-table-colgroup-info nil)
   (if (memq nil
 	    (mapcar
 	     (lambda (x) (or (string-match "^[ \t]*|-" x)
-			     (string-match "^[ \t]*| *\\([#!$*_^ /]\\) *|" x)))
+			     (string-match
+			      (if maybe-quoted
+				  "^[ \t]*| *\\\\?\\([\#!$*_^ /]\\) *|"
+				"^[ \t]*| *\\([\#!$*_^ /]\\) *|")
+			      x)))
 	     lines))
       (progn
 	(setq org-table-clean-did-remove-column nil)
@@ -4007,22 +4330,16 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
   (catch 'exit
     (let (r b)
       (while (string-match org-maybe-keyword-time-regexp s)
-	(if (and (match-end 1) (equal (match-string 1 s) org-clock-string))
-	    ;; never export CLOCK
-	    (throw 'exit ""))
 	(or b (setq b (substring s 0 (match-beginning 0))))
-	(if (not org-export-with-timestamps)
-	    (setq r (concat r (substring s 0 (match-beginning 0)))
-		  s (substring s (match-end 0)))
-	  (setq r (concat
-		   r (substring s 0 (match-beginning 0))
-		   (if (match-end 1)
-		       (format "@<span class=\"timestamp-kwd\">%s @</span>"
-			       (match-string 1 s)))
-		   (format " @<span class=\"timestamp\">%s@</span>"
-			   (substring
-			    (org-translate-time (match-string 3 s)) 1 -1)))
-		s (substring s (match-end 0)))))
+	(setq r (concat
+		 r (substring s 0 (match-beginning 0))
+		 (if (match-end 1)
+		     (format "@<span class=\"timestamp-kwd\">%s @</span>"
+			     (match-string 1 s)))
+		 (format " @<span class=\"timestamp\">%s@</span>"
+			 (substring
+			  (org-translate-time (match-string 3 s)) 1 -1)))
+	      s (substring s (match-end 0))))
       ;; Line break if line started and ended with time stamp stuff
       (if (not r)
 	  s

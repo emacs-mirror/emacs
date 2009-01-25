@@ -5,7 +5,7 @@
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -49,93 +49,97 @@ This will encode `link-title' and `link-location' with
 `org-make-link-string', and insert the transformed test into the kill ring,
 so that it can be yanked into an Org-mode buffer with links working correctly."
   (interactive)
-  (let ((regionp (org-region-active-p))
-	transform-start transform-end
-	return-content
-	link-location link-title
-	temp-position out-bound)
-    (setq transform-start (if regionp (region-beginning) (point-min))
-	  transform-end (if regionp (region-end) (point-max)))
+  (let* ((regionp (org-region-active-p))
+         (transform-start (point-min))
+         (transform-end (point-max))
+         return-content
+         link-location link-title
+         temp-position out-bound)
+    (when regionp
+      (setq transform-start (region-beginning))
+      (setq transform-end (region-end))
+      ;; Deactivate mark if current mark is activate.
+      (if (fboundp 'deactivate-mark) (deactivate-mark)))
     (message "Transforming links...")
     (save-excursion
       (goto-char transform-start)
-      (while (and (not out-bound)   ; still inside region to copy
-		  (not (org-w3m-no-next-link-p))) ; no next link current buffer
-	;; store current point before jump next anchor
-	(setq temp-position (point))
-	;; move to next anchor when current point is not at anchor
-	(or (w3m-anchor (point)) (org-w3m-get-next-link-start))
-	(if (<= (point) transform-end)  ; if point is inside transform bound
-	    (progn
-	      ;; get content between two links.
-	      (if (> (point) temp-position)
-		  (setq return-content (concat return-content
-					       (buffer-substring
-						temp-position (point)))))
-	      ;; get link location at current point.
-	      (setq link-location (w3m-anchor (point)))
-	      ;; get link title at current point.
-	      (setq link-title (buffer-substring (point)
-						 (org-w3m-get-anchor-end)))
-	      ;; concat `org-mode' style url to `return-content'.
-	      (setq return-content (concat return-content
-					   (org-make-link-string
-					    link-location link-title))))
-	  (goto-char temp-position)     ; reset point before jump next anchor
-	  (setq out-bound t)		; for break out `while' loop
-	  ))
+      (while (and (not out-bound)                 ; still inside region to copy
+                  (not (org-w3m-no-next-link-p))) ; no next link current buffer
+        ;; store current point before jump next anchor
+        (setq temp-position (point))
+        ;; move to next anchor when current point is not at anchor
+        (or (w3m-anchor (point)) (org-w3m-get-next-link-start))
+        (if (<= (point) transform-end)  ; if point is inside transform bound
+            (progn
+              ;; get content between two links.
+              (if (> (point) temp-position)
+                  (setq return-content (concat return-content
+                                               (buffer-substring
+                                                temp-position (point)))))
+              ;; get link location at current point.
+              (setq link-location (w3m-anchor (point)))
+              ;; get link title at current point.
+              (setq link-title (buffer-substring (point)
+                                                 (org-w3m-get-anchor-end)))
+              ;; concat `org-mode' style url to `return-content'.
+              (setq return-content (concat return-content
+                                           (org-make-link-string
+                                            link-location link-title))))
+          (goto-char temp-position)     ; reset point before jump next anchor
+          (setq out-bound t)            ; for break out `while' loop
+          ))
       ;; add the rest until end of the region to be copied
       (if (< (point) transform-end)
-	  (setq return-content
-		(concat return-content
-			(buffer-substring (point) transform-end))))
+          (setq return-content
+                (concat return-content
+                        (buffer-substring (point) transform-end))))
       (kill-new return-content)
       (message "Transforming links...done, use C-y to insert text into Org-mode file")
       (message "Copy with link transformation complete."))))
 
 (defun org-w3m-get-anchor-start ()
-  "Move to and return `point' for the start of the current anchor."
+  "Move cursor to the start of current anchor.  Return point."
   ;; get start position of anchor or current point
   (goto-char (or (previous-single-property-change (point) 'w3m-anchor-sequence)
-		 (point))))
+                 (point))))
 
 (defun org-w3m-get-anchor-end ()
-  "Move and return `point' after the end of current anchor."
+  "Move cursor to the end of current anchor.  Return point."
   ;; get end position of anchor or point
   (goto-char (or (next-single-property-change (point) 'w3m-anchor-sequence)
 		 (point))))
 
 (defun org-w3m-get-next-link-start ()
-  "Move and return `point' for that start of the current link."
+  "Move cursor to the start of next link.  Return point."
   (catch 'reach
     (while (next-single-property-change (point) 'w3m-anchor-sequence)
       ;; jump to next anchor
       (goto-char (next-single-property-change (point) 'w3m-anchor-sequence))
       (when (w3m-anchor (point))
-	;; return point when current is valid link
-	(throw 'reach nil))))
+        ;; return point when current is valid link
+        (throw 'reach nil))))
   (point))
 
 (defun org-w3m-get-prev-link-start ()
-  "Move and return `point' for that end of the current link."
+  "Move cursor to the start of prevoius link.  Return point."
   (catch 'reach
     (while (previous-single-property-change (point) 'w3m-anchor-sequence)
       ;; jump to previous anchor
       (goto-char (previous-single-property-change (point) 'w3m-anchor-sequence))
       (when (w3m-anchor (point))
-	;; return point when current is valid link
-	(throw 'reach nil))))
+        ;; return point when current is valid link
+        (throw 'reach nil))))
   (point))
 
 (defun org-w3m-no-next-link-p ()
-  "Return t if no next link after cursor.
-Otherwise, return nil."
+  "Whether there is no next link after the cursor.
+Return t if there is no next link; otherwise, return nil."
   (save-excursion
     (equal (point) (org-w3m-get-next-link-start))))
 
 (defun org-w3m-no-prev-link-p ()
-  "Return t if no previous link after cursor.
-Otherwise, return nil."
+  "Whether there is no previous link after the cursor.
+Return t if there is no previous link; otherwise, return nil."
   (save-excursion
     (equal (point) (org-w3m-get-prev-link-start))))
 
@@ -143,11 +147,11 @@ Otherwise, return nil."
 (defvar w3m-mode-map)
 (defvar w3m-minor-mode-map)
 (when (and (boundp 'w3m-mode-map)
-	   (keymapp w3m-mode-map))
+           (keymapp w3m-mode-map))
   (define-key w3m-mode-map "\C-c\C-x\M-w" 'org-w3m-copy-for-org-mode)
   (define-key w3m-mode-map "\C-c\C-x\C-w" 'org-w3m-copy-for-org-mode))
 (when (and (boundp 'w3m-minor-mode-map)
-	   (keymapp w3m-minor-mode-map))
+           (keymapp w3m-minor-mode-map))
   (define-key w3m-minor-mode-map "\C-c\C-x\M-w" 'org-w3m-copy-for-org-mode)
   (define-key w3m-minor-mode-map "\C-c\C-x\C-w" 'org-w3m-copy-for-org-mode))
 (add-hook

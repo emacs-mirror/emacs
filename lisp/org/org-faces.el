@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -239,6 +239,13 @@ column view defines special faces for each outline level.  See the file
   "Face for links."
   :group 'org-faces)
 
+(defface org-footnote
+  '((((class color) (background light)) (:foreground "Purple" :underline t))
+    (((class color) (background dark)) (:foreground "Cyan" :underline t))
+    (t (:underline t)))
+  "Face for links."
+  :group 'org-faces)
+
 (defface org-ellipsis
   '((((class color) (background light)) (:foreground "DarkGoldenrod" :underline t))
     (((class color) (background dark)) (:foreground "LightGoldenrod" :underline t))
@@ -388,6 +395,22 @@ changes."
   "Face for fixed-with text like code snippets."
   :group 'org-faces
   :version "22.1")
+
+(defface org-clock-overlay ;; copied from secondary-selection
+  (org-compatible-face nil
+    '((((class color) (min-colors 88) (background light))
+       :background "yellow1")
+      (((class color) (min-colors 88) (background dark))
+       :background "SkyBlue4")
+      (((class color) (min-colors 16) (background light))
+       :background "yellow")
+      (((class color) (min-colors 16) (background dark))
+       :background "SkyBlue4")
+      (((class color) (min-colors 8))
+       :background "cyan" :foreground "black")
+      (t :inverse-video t)))
+    "Basic face for displaying the secondary selection."
+    :group 'org-faces)
 
 (defface org-agenda-structure ;; originally copied from font-lock-function-name-face
   (org-compatible-face nil

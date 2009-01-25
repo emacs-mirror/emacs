@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.19a
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -157,7 +157,9 @@ WINDOW defaults to the selected window.  MAX-HEIGHT and MIN-HEIGHT are
 passed through to `fit-window-to-buffer'.  If SHRINK-ONLY is set, call
 `shrink-window-if-larger-than-buffer' instead, the hight limit are
 ignored in this case."
-  (cond ((> (frame-width) (window-width window))
+  (cond ((if (fboundp 'window-full-width-p)
+	     (not (window-full-width-p window))
+	   (> (frame-width) (window-width window)))
 	 ;; do nothing if another window would suffer
 	 )
 	((and (fboundp 'fit-window-to-buffer) (not shrink-only))
@@ -286,6 +288,15 @@ that can be added."
   (if (featurep 'xemacs)
       (org-no-properties (substring string (or from 0) to))
     (substring-no-properties string from to)))
+
+(defun org-count-lines (s)
+  "How many lines in string S?"
+  (let ((start 0) (n 1))
+    (while (string-match "\n" s start)
+      (setq start (match-end 0) n (1+ n)))
+    (if (and (> (length s) 0) (= (aref s (1- (length s))) ?\n))
+	(setq n (1- n)))
+    n))
 
 (provide 'org-compat)
 
