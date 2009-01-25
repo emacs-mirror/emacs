@@ -1,5 +1,8 @@
 2009-01-26  Bill Wohler  <wohler@newt.com>
 
+	* mh-utils.el (mh-goto-header-end): Use mh-mail-header-separator
+	instead of -* in regexp.
+
 	* mh-folder.el (mh-folder-mode-help-messages): Add e and t to K's
 	help.
 
