@@ -860,7 +860,8 @@ Returns t if found, nil if not."
 ;;;###mh-autoload
 (defun mh-goto-header-end (arg)
   "Move the cursor ARG lines after the header."
-  (if (re-search-forward "^-*$" nil nil)
+  (if (re-search-forward (concat "^\\(" (regexp-quote mh-mail-header-separator)
+                                 "\\)?$") nil nil)
       (forward-line arg)))
 
 ;;;###mh-autoload
