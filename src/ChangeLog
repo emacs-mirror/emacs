@@ -1,3 +1,8 @@
+2009-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (buffer_posn_from_coords): Use Fset_buffer instead of
+	setting current_buffer directly.
+
 2009-01-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fontset.c (fontset_font): If we know there is no font, don't do
