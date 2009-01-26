@@ -434,7 +434,7 @@ when PUB-DIR is set, use this as the publishing directory."
 		     (region-p nil)
 		     (t (plist-get opt-plist :skip-before-1st-heading))))
 	 (text (plist-get opt-plist :text))
-	 (first-lines (if skip "" (org-export-latex-first-lines rbeg)))
+	 (first-lines (if skip "" (org-export-latex-first-lines opt-plist rbeg)))
 	 (coding-system (and (boundp 'buffer-file-coding-system)
 			     buffer-file-coding-system))
 	 (coding-system-for-write (or org-export-latex-coding-system
@@ -771,7 +771,7 @@ OPT-PLIST is the options plist for current buffer."
 	     (toc (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\\vspace*{1cm}\n"
 			  (plist-get opt-plist :headline-levels))))))))
 
-(defun org-export-latex-first-lines (&optional beg)
+(defun org-export-latex-first-lines (opt-plist &optional beg)
   "Export the first lines before first headline.
 If BEG is non-nil, the is the beginning of he region."
   (save-excursion
