@@ -1,3 +1,8 @@
+2009-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-event-error-hooks): New variable.
+	(dbus-handle-event): Use it.
+
 2009-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
