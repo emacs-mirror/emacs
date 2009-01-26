@@ -1,3 +1,7 @@
+2009-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): New variable dbus-event-error-hooks.
+
 2009-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* org.texi: Fix typos.
