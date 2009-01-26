@@ -1,5 +1,8 @@
 Format of Version 5 Babyl Files:
 
+(Babyl was the storage format used by Rmail before Emacs 23.1.
+Since then it uses mbox format.)
+
 Warning:
 
     This was written Tuesday, 12 April 1983 (by Eugene Ciccarelli),
