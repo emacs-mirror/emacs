@@ -3211,9 +3211,10 @@ use \\[mail-yank-original] to yank the original message into it."
 	      message-id (mail-fetch-field "message-id")
 	      references (mail-fetch-field "references" nil nil t)
 	      resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
-	      resent-cc (and (not just-sender)
-			     (mail-fetch-field "resent-cc" nil t))
-	      resent-to (or (mail-fetch-field "resent-to" nil t) "")
+	      ;; Bug#512.  It's inappropriate to reply to these addresses.
+;;;	      resent-cc (and (not just-sender)
+;;;			     (mail-fetch-field "resent-cc" nil t))
+;;;	      resent-to (or (mail-fetch-field "resent-to" nil t) "")
 ;;;	      resent-subject (mail-fetch-field "resent-subject")
 ;;;	      resent-date (mail-fetch-field "resent-date")
 ;;;	      resent-message-id (mail-fetch-field "resent-message-id")
@@ -3227,14 +3228,15 @@ use \\[mail-yank-original] to yank the original message into it."
 		  to (or (mail-fetch-field "to" nil t) ""))))))
 
     ;; Merge the resent-to and resent-cc into the to and cc.
-    (if (and resent-to (not (equal resent-to "")))
-	(if (not (equal to ""))
-	    (setq to (concat to ", " resent-to))
-	  (setq to resent-to)))
-    (if (and resent-cc (not (equal resent-cc "")))
-	(if (not (equal cc ""))
-	    (setq cc (concat cc ", " resent-cc))
-	  (setq cc resent-cc)))
+    ;; Bug#512.  It's inappropriate to reply to these addresses.
+;;;    (if (and resent-to (not (equal resent-to "")))
+;;;	(if (not (equal to ""))
+;;;	    (setq to (concat to ", " resent-to))
+;;;	  (setq to resent-to)))
+;;;    (if (and resent-cc (not (equal resent-cc "")))
+;;;	(if (not (equal cc ""))
+;;;	    (setq cc (concat cc ", " resent-cc))
+;;;	  (setq cc resent-cc)))
     ;; Add `Re: ' to subject if not there already.
     (and (stringp subject)
 	 (setq subject

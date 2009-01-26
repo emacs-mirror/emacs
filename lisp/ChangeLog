@@ -1,3 +1,8 @@
+2009-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Don't include Resent-To and Resent-Cc in
+	replies.  (Bug#512)
+
 2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-uid-format): Fixed doc string.
