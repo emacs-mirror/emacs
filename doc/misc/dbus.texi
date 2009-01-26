@@ -1535,7 +1535,22 @@ from.  It is either a signal name or a method name.
 
 D-Bus errors are not propagated during event handling, because it is
 usually not desired.  D-Bus errors in events can be made visible by
-setting the variable @code{dbus-debug} to @code{t}.
+setting the variable @code{dbus-debug} to @code{t}.  They can also be
+handled by a hook function.
+
+@defvar dbus-event-error-hooks
+This hook variable keeps a list of functions, which are called when a
+D-Bus error happens in the event handler.  Every function must accept
+one argument, the error variable catched in @code{condition-case} by
+@code{dbus-error}.  Example:
+
+@lisp
+(defun my-dbus-event-error-handler (err)
+  (message "my-dbus-event-error-handler: %S" (cadr err)))
+
+(add-hook 'dbus-event-error-hooks 'my-dbus-event-error-handler)
+@end lisp
+@end defvar
 
 
 @node GNU Free Documentation License
