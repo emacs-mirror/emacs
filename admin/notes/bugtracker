@@ -39,8 +39,15 @@ new report.
 
 Gnus users can add "\\(\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
 \\(submit\\|control\\)@emacsbugs\\.donarmstrong\\.com\\)"
-to message-dont-reply-to-names.  RMAIL users can investigate
-rmail-dont-reply-to-names.
+to message-dont-reply-to-names.
+
+Similarly, RMAIL users can use rmail-dont-reply-to-names.  They might
+also need to ignore "bug-submit-list@donarmstrong.com" since it
+appears in the "Resent-To" header of reports, and for a long time
+RMAIL erroneously included this address in replies.  Likewise for
+"owner@emacsbugs.donarmstrong.com", which can appear in the
+"Resent-CC:" header (but it is possible, outside of normal bug
+reporting, that you might want to have a dialog with this address).
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
