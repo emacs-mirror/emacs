@@ -1290,7 +1290,7 @@ folds, and for showing and hiding text:
 
 @table @asis
 @item @kbd{C-M-Mouse-1} zooms in on the heading clicked on
-@itemize @asis
+@itemize @w{}
 @item
 single click: expose body.
 @item
@@ -1301,7 +1301,7 @@ triple click: expose body and subheadings.
 quad click: expose entire subtree.
 @end itemize
 @item @kbd{C-M-Mouse-2} exposes text under the heading clicked on
-@itemize @asis
+@itemize @w{}
 @item
 single click: expose body.
 @item
@@ -1312,7 +1312,7 @@ triple click: expose body and subheadings.
 quad click: expose entire subtree.
 @end itemize
 @item @kbd{C-M-Mouse-3} hides text under the heading clicked on or exits fold
-@itemize @asis
+@itemize @w{}
 @item
 single click: hide subtree.
 @item
