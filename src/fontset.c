@@ -521,7 +521,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 
   font_group = fontset_get_font_group (fontset, fallback ? -1 : c);
   if (! CONSP (font_group))
-    return Qnil;
+    return font_group;
   vec = XCDR (font_group);
   if (ASIZE (vec) == 0)
     return Qnil;
@@ -659,10 +659,6 @@ fontset_font (fontset, c, face, id)
 {
   Lisp_Object rfont_def;
   Lisp_Object base_fontset;
-
-  /* If we know there is no font of C, don't do any work.  */
-  if (EQ (fontset_ref (fontset, c), Qt))
-    return Qnil;
 
   /* Try a font-group of FONTSET. */
   rfont_def = fontset_find_font (fontset, c, face, id, 0);
