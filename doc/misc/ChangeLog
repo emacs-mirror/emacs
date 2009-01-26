@@ -1,6 +1,10 @@
+2009-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Fix typos.
+
 2009-01-26  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi (EDITION, UPDATED): Update.	
+	* mh-e.texi (EDITION, UPDATED): Update.
 
 2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
 

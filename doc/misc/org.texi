@@ -583,7 +583,7 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
 
-Many commands in Org work on the region is he region is active.  To make use
+Many commands in Org work on the region if the region is active.  To make use
 of this, you need to have @code{transient-mark-mode} (@code{zmacs-regions} in
 XEmacs) turned on.  In Emacs 23 this is the default, in Emacs 22 you need to
 do this yourself with
@@ -1619,12 +1619,12 @@ created below the current one.
 @c
 @kindex C-c -
 @item C-c -
-Insert a horizontal line below current row. With a prefix argument, the line
+Insert a horizontal line below current row.  With a prefix argument, the line
 is created above the current line.
 @c
 @kindex C-c @key{RET}
 @item C-c @key{RET}
-Insert a horizontal line below current row. and mode the cursor into the row
+Insert a horizontal line below current row, and move the cursor into the row
 below that line.
 @c
 @kindex C-c ^
@@ -2100,7 +2100,7 @@ embed them in list or vector syntax.  A few examples, note how the
 @example
 @r{Swap the first two characters of the content of column 1}
   '(concat (substring $1 1 2) (substring $1 0 1) (substring $1 2))
-@r{Add columns 1 and 2, equivalent to the Calc's @code{$1+$2}}
+@r{Add columns 1 and 2, equivalent to Calc's @code{$1+$2}}
   '(+ $1 $2);N
 @r{Compute the sum of columns 1-4, like Calc's @code{vsum($1..$4)}}
   '(apply '+ '($1..$4));N
@@ -2728,7 +2728,7 @@ indicate the current article/entry.  For W3 and W3M buffers, the link goes to
 the current URL.  For IRC links, if you set the variable
 @code{org-irc-link-to-logs} to non-nil then @kbd{C-c l} will store a
 @samp{file:/} style link to the relevant point in the logs for the current
-conversation. Otherwise an @samp{irc:/} style link to the user/channel/server
+conversation.  Otherwise an @samp{irc:/} style link to the user/channel/server
 under the point will be stored. 
 
 For any other files, the link will point to the file, with a search string
@@ -6078,7 +6078,7 @@ timed entries are embedded in a time grid, like
    18:00...... ------------------
    19:00...... The Vogon reads his poem
    20:00...... ------------------
-   20:30-22:15 Marwin escorts the Hitchhikers to the bridge
+   20:30-22:15 Marvin escorts the Hitchhikers to the bridge
 @end example
 
 The time grid can be turned on and off with the variable
@@ -6734,7 +6734,7 @@ yourself.
 If you are away from your computer, it can be very useful to have a
 printed version of some agenda views to carry around.  Org mode can
 export custom agenda views as plain text, HTML@footnote{You need to
-install Hrvoje Niksic's @file{htmlize.el}.} postscript, and iCalendar
+install Hrvoje Niksic's @file{htmlize.el}.}, postscript, and iCalendar
 files.  If you want to do this only occasionally, use the command
 
 @table @kbd
@@ -7457,7 +7457,7 @@ numbered.  If you use a @code{+n} switch, the numbering from the previous
 numbered snippet will be continued in the current one.  In literal examples,
 Org will interpret strings like @samp{(ref:name)} as labels, and use them as
 targets for special hyperlinks like @code{[[(name)]]} (i.e. the reference
-name enclosed in single parenthesis).  In HTML, hoovering the mouse over such
+name enclosed in single parenthesis).  In HTML, hovering the mouse over such
 a link will remote-highlight the corresponding code line, which is kind of
 cool.  If the example/src snippet is numbered, you can also add a @code{-r}
 switch.  Then labels will be @i{removed} from the source code and the links
@@ -7479,8 +7479,8 @@ If the syntax for the label format conflicts with the language syntax, use a
 @code{-l} switch to change the format, for example @samp{#+BEGIN_SRC pascal
 -n -r -l "((%s))"}.  See also the variable @code{org-coderef-label-format}.
 
-HTML export also allows examples to be publishes as text areas, @pxref{Text
-areas in HTML export}
+HTML export also allows examples to be published as text areas, @pxref{Text
+areas in HTML export}.
 
 @table @kbd
 @kindex C-c '
@@ -9411,7 +9411,7 @@ implementation.  Still, it works somewhat.
 
 @item @file{org-interactive-query.el} by @i{Christopher League}
 Interactive modification of tags queries.  After running a general query in
-Org, this package allows to narrow down the results by adding more tags or
+Org, this package allows you to narrow down the results by adding more tags or
 keywords.
 
 @item @file{org-mairix.el} by @i{Georg C. F. Greve}
