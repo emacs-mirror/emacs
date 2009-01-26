@@ -1,5 +1,9 @@
 2009-01-26  Carsten Dominik  <dominik@science.uva.nl>
 
+	* org-export-latex.el (org-export-as-latex): Call
+	`org-export-latex-first-lines' with OPT-PLIST as a parameter.
+	(org-export-latex-first-lines): New parameter OPT-PLIST.
+
 	* org.el (org-yank): Tell `delete-selection-mode' about
 	`org-yank'.
 
