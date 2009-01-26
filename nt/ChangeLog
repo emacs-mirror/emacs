@@ -1,3 +1,8 @@
+2009-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.rc, emacs.rc: Swap name and description. Remove
+	Windows versions.
+
 2009-01-15  Jason Rumney  <jasonr@gnu.org>
 
 	* nmake.defs, gmake.defs (UUID): New library for COM/OLE lookups.
