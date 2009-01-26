@@ -1,3 +1,11 @@
+2009-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_list_internal): Return quickly if registry is
+	unknown.  Simplify final return.
+	(add_font_entity_to_list): Break complex logic down into more
+	manageable chunks.  Move unknown registry check to
+	w32font_list_internal.
+
 2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	Changes to remove Feval calls from GUI under NS.
