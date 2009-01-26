@@ -731,6 +731,19 @@ w32font_list_internal (frame, font_spec, opentype_only)
   bzero (&match_data.pattern, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
 
+  /* If the charset is unrecognized, then we won't find a font, so don't
+     waste time looking for one.  */
+  if (match_data.pattern.lfCharSet == DEFAULT_CHARSET)
+    {
+      Lisp_Object spec_charset = AREF (font_spec, FONT_REGISTRY_INDEX);
+      if (!NILP (spec_charset)
+	  && !EQ (spec_charset, Qiso10646_1)
+	  && !EQ (spec_charset, Qunicode_bmp)
+	  && !EQ (spec_charset, Qunicode_sip)
+	  && !EQ (spec_charset, Qunknown))
+	return Qnil;
+    }
+
   match_data.opentype_only = opentype_only;
   if (opentype_only)
     match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
@@ -751,7 +764,7 @@ w32font_list_internal (frame, font_spec, opentype_only)
       release_frame_dc (f, dc);
     }
 
-  return NILP (match_data.list) ? Qnil : match_data.list;
+  return match_data.list;
 }
 
 /* Internal implementation of w32font_match.
@@ -1386,88 +1399,104 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   struct font_callback_data *match_data
     = (struct font_callback_data *) lParam;
   Lisp_Object backend = match_data->opentype_only ? Quniscribe : Qgdi;
+  Lisp_Object entity;
 
-  if ((!match_data->opentype_only
-       || (((physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE)
-            || (font_type & TRUETYPE_FONTTYPE))
-           /* For the uniscribe backend, only consider fonts that claim
-              to cover at least some part of Unicode.  */
-           && (physical_font->ntmFontSig.fsUsb[3]
-               || physical_font->ntmFontSig.fsUsb[2]
-               || physical_font->ntmFontSig.fsUsb[1]
-               || (physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff))))
-      && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
-      && font_matches_spec (font_type, physical_font,
-                            match_data->orig_font_spec, backend,
-			    &logical_font->elfLogFont)
-      && w32font_coverage_ok (&physical_font->ntmFontSig,
-                              match_data->pattern.lfCharSet)
-      /* Avoid substitutions involving raster fonts (eg Helv -> MS Sans Serif)
-         We limit this to raster fonts, because the test can catch some
-         genuine fonts (eg the full name of DejaVu Sans Mono Light is actually
-         DejaVu Sans Mono ExtraLight). Helvetica -> Arial substitution will
-         therefore get through this test.  Since full names can be prefixed
-         by a foundry, we accept raster fonts if the font name is found
-         anywhere within the full name.  */
-      && (logical_font->elfLogFont.lfOutPrecision != OUT_STRING_PRECIS
-          || strstr (logical_font->elfFullName,
-                     logical_font->elfLogFont.lfFaceName))
+  int is_unicode = physical_font->ntmFontSig.fsUsb[3]
+    || physical_font->ntmFontSig.fsUsb[2]
+    || physical_font->ntmFontSig.fsUsb[1]
+    || physical_font->ntmFontSig.fsUsb[0] & 0x3fffffff;
+
+  /* Skip non matching fonts.  */
+
+  /* For uniscribe backend, consider only truetype or opentype fonts
+     that have some unicode coverage.  */
+  if (match_data->opentype_only
+      && ((!physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE
+	   && !(font_type & TRUETYPE_FONTTYPE))
+	  || !is_unicode))
+    return 1;
+
+  /* Ensure a match.  */
+  if (!logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
+      || !font_matches_spec (font_type, physical_font,
+			     match_data->orig_font_spec, backend,
+			     &logical_font->elfLogFont)
+      || !w32font_coverage_ok (&physical_font->ntmFontSig,
+			       match_data->pattern.lfCharSet))
+    return 1;
+
+  /* Avoid substitutions involving raster fonts (eg Helv -> MS Sans Serif)
+     We limit this to raster fonts, because the test can catch some
+     genuine fonts (eg the full name of DejaVu Sans Mono Light is actually
+     DejaVu Sans Mono ExtraLight). Helvetica -> Arial substitution will
+     therefore get through this test.  Since full names can be prefixed
+     by a foundry, we accept raster fonts if the font name is found
+     anywhere within the full name.  */
+  if ((logical_font->elfLogFont.lfOutPrecision == OUT_STRING_PRECIS
+       && strstr (logical_font->elfFullName,
+		  logical_font->elfLogFont.lfFaceName))
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
-      && (match_data->pattern.lfFaceName[0]
-	  && check_face_name (&logical_font->elfLogFont,
-			      logical_font->elfFullName)))
+      || (match_data->pattern.lfFaceName[0]
+	  && !check_face_name (&logical_font->elfLogFont,
+			       logical_font->elfFullName)))
+    return 1;
+
+  /* Make a font entity for the font.  */
+  entity = w32_enumfont_pattern_entity (match_data->frame, logical_font,
+					physical_font, font_type,
+					&match_data->pattern,
+					backend);
+
+  if (!NILP (entity))
     {
-      Lisp_Object entity
-        = w32_enumfont_pattern_entity (match_data->frame, logical_font,
-                                       physical_font, font_type,
-                                       &match_data->pattern,
-                                       backend);
-      if (!NILP (entity))
-        {
-          Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
-                                           FONT_REGISTRY_INDEX);
+      Lisp_Object spec_charset = AREF (match_data->orig_font_spec,
+				       FONT_REGISTRY_INDEX);
 
-          /* If registry was specified as iso10646-1, only report
-             ANSI and DEFAULT charsets, as most unicode fonts will
-             contain one of those plus others.  */
-          if ((EQ (spec_charset, Qiso10646_1)
-               || EQ (spec_charset, Qunicode_bmp))
-              && logical_font->elfLogFont.lfCharSet != DEFAULT_CHARSET
-              && logical_font->elfLogFont.lfCharSet != ANSI_CHARSET)
-            return 1;
-	  /* unicode-sip fonts must contain characters beyond the BMP,
-	     so look for bit 57 (surrogates) in the Unicode subranges.  */
-	  else if (EQ (spec_charset, Qunicode_sip)
-		   && (!(physical_font->ntmFontSig.fsUsb[1] & 0x02000000)
-		       || !(physical_font->ntmFontSig.fsUsb[1] & 0x28000000)))
+      /* iso10646-1 fonts must contain unicode mapping tables.  */
+      if (EQ (spec_charset, Qiso10646_1))
+	{
+	  if (!is_unicode)
 	    return 1;
-          /* If registry was specified, but did not map to a windows
-             charset, don't report any fonts.  */
-          else if (!NILP (spec_charset)
-                   && !EQ (spec_charset, Qiso10646_1)
-                   && !EQ (spec_charset, Qunicode_bmp)
-                   && !EQ (spec_charset, Qunicode_sip)
-                   && match_data->pattern.lfCharSet == DEFAULT_CHARSET)
-            return 0;
+	}
+      /* unicode-bmp fonts must contain characters from the BMP.  */
+      else if (EQ (spec_charset, Qunicode_bmp))
+	{
+	  if (!physical_font->ntmFontSig.fsUsb[3]
+	      && !(physical_font->ntmFontSig.fsUsb[2] & 0xFFFFFF9E)
+	      && !(physical_font->ntmFontSig.fsUsb[1] & 0xE81FFFFF)
+	      && !(physical_font->ntmFontSig.fsUsb[0] & 0x007F001F))
+	    return 1;
+	}
+      /* unicode-sip fonts must contain characters in unicode plane 2.
+	 so look for bit 57 (surrogates) in the Unicode subranges, plus
+	 the bits for CJK ranges that include those characters.  */
+      else if (EQ (spec_charset, Qunicode_sip))
+	{
+	  if (!physical_font->ntmFontSig.fsUsb[1] & 0x02000000
+	      || !physical_font->ntmFontSig.fsUsb[1] & 0x28000000)
+	    return 1;
+	}
 
-          /* If registry was specified, ensure it is reported as the same.  */
-          if (!NILP (spec_charset))
-            ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
+      /* This font matches.  */
 
-          match_data->list = Fcons (entity, match_data->list);
+      /* If registry was specified, ensure it is reported as the same.  */
+      if (!NILP (spec_charset))
+	ASET (entity, FONT_REGISTRY_INDEX, spec_charset);
 
-          /* If no registry specified, duplicate iso8859-1 truetype fonts
-             as iso10646-1.  */
-          if (NILP (spec_charset)
-              && font_type == TRUETYPE_FONTTYPE
-              && logical_font->elfLogFont.lfCharSet == ANSI_CHARSET)
-            {
-              Lisp_Object tem = Fcopy_font_spec (entity);
-              ASET (tem, FONT_REGISTRY_INDEX, Qiso10646_1);
-              match_data->list = Fcons (tem, match_data->list);
-            }
-        }
+      /* Otherwise if using the uniscribe backend, report ANSI and DEFAULT
+	 fonts as unicode and skip other charsets.  */
+      else if (match_data->opentype_only)
+	{
+	  if (logical_font->elfLogFont.lfCharSet == ANSI_CHARSET
+	      || logical_font->elfLogFont.lfCharSet == DEFAULT_CHARSET)
+	    ASET (entity, FONT_REGISTRY_INDEX, Qiso10646_1);
+	  else
+	    return 1;
+	}
+
+      /* Add this font to the list.  */
+      match_data->list = Fcons (entity, match_data->list);
     }
   return 1;
 }
