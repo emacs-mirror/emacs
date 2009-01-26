@@ -169,7 +169,10 @@ in interactive use.
 
 This command will ask if you want to process refiles or deletes
 first and then either run \\[mh-execute-commands] for you or undo
-the pending refiles and deletes."
+the pending refiles and deletes.
+
+The hook `mh-pack-folder-hook' is run after annotating; see its
+documentation for variables it can use."
   (interactive (list (if current-prefix-arg
                          (mh-read-range "Scan" mh-current-folder t nil t
                                         mh-interpret-number-as-range-flag)
@@ -181,6 +184,7 @@ the pending refiles and deletes."
       (mh-index-update-maps mh-current-folder))
     (cond (threaded-flag (mh-toggle-threads))
           (mh-index-data (mh-index-insert-folder-headers))))
+  (run-hooks 'mh-pack-folder-hook)
   (message "Packing folder...done"))
 
 (defun mh-pack-folder-1 (range)

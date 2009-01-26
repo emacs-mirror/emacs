@@ -1,3 +1,8 @@
+2009-01-26  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-e.el (mh-pack-folder-hook): New variable.
+	* mh-funcs.el (mh-pack-folder): Call new mh-pack-folder-hook.
+
 2009-01-26  Bill Wohler  <wohler@newt.com>
 
 	* mh-utils.el (mh-goto-header-end): Use mh-mail-header-separator

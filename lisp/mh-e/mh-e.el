@@ -3243,6 +3243,14 @@ This can be done with this hook which is called when
   :group 'mh-search
   :package-version '(MH-E . "8.0"))
 
+(defcustom-mh mh-pack-folder-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-pack-folder] after renumbering the messages.
+Hook functions can access the current folder name with `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-folder
+  :package-version '(MH-E . "8.1.1"))
+
 (defcustom-mh mh-quit-hook nil
   "Hook run by \\<mh-folder-mode-map>\\[mh-quit] after quitting MH-E.
 
