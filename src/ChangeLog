@@ -1,3 +1,9 @@
+2009-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix handling of non-cons return
+	value of fontset_get_font_group.
+	(fontset_font): Revert last change.
+
 2009-01-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_list_internal): Return quickly if registry is
