@@ -790,7 +790,9 @@ If BEG is non-nil, the is the beginning of he region."
 	    :add-text nil
 	    :comments nil
 	    :skip-before-1st-heading nil
-	    :LaTeX-fragments nil))
+	    :LaTeX-fragments nil
+	    :timestamps (plist-get opt-plist :timestamps)
+	    :footnotes (plist-get opt-plist :footnotes)))
 	(add-text-properties pt (max pt (1- end))
 			     '(:org-license-to-kill t))))))
 

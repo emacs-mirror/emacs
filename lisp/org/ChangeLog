@@ -1,3 +1,16 @@
+2009-01-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-yank): Tell `delete-selection-mode' about
+	`org-yank'.
+
+	* org-faces.el (org-clock-overlay): Fix face definition.
+
+	* org-export-latex.el (org-export-latex-first-lines): Pass
+	timestamp and footnote parameters to the preprocessor.
+
+	* org-exp.el (org-export-remove-timestamps): Do not remove time
+	stamps inside tables.
+
 2009-01-25  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-exp.el (org-export-as-html): Turn \par into a paragraph.

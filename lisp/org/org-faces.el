@@ -1,6 +1,7 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009;
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -408,7 +409,7 @@ changes."
        :background "SkyBlue4")
       (((class color) (min-colors 8))
        :background "cyan" :foreground "black")
-      (t :inverse-video t)))
+      (t (:inverse-video t))))
     "Basic face for displaying the secondary selection."
     :group 'org-faces)
 

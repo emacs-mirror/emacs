@@ -1,6 +1,7 @@
 ;;; org-exp.el --- ASCII, HTML, XOXO and iCalendar export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1863,10 +1864,11 @@ from the buffer."
   (while (re-search-forward org-maybe-keyword-time-regexp nil t)
     (backward-char 1)
     (org-if-unprotected
-     (replace-match "")
-     (beginning-of-line 1)
-     (if (looking-at "[- \t]*\\(=>[- \t0-9:]*\\)?[ \t]*\n")
-	 (replace-match "")))))
+     (unless (save-match-data (org-at-table-p))
+       (replace-match "")
+       (beginning-of-line 1)
+       (if (looking-at "[- \t]*\\(=>[- \t0-9:]*\\)?[ \t]*\n")
+	   (replace-match ""))))))
 
 (defun org-export-remove-clock-lines ()
   "Remove timestamps and keywords for export."
