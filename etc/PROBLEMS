@@ -7,8 +7,9 @@ See the end of the file for license conditions.
 
 
 This file describes various problems that have been encountered
-in compiling, installing and running GNU Emacs.  Try doing Ctl-C Ctl-t
-and browsing through the outline headers.
+in compiling, installing and running GNU Emacs.  Try doing C-c C-t
+and browsing through the outline headers.  (See C-h m for help on
+Outline mode.)
 
 * Mule-UCS doesn't work in Emacs 23.
 
