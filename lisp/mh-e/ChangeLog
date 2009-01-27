@@ -1,3 +1,10 @@
+2009-01-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-gnus.el (mh-mm-merge-handles)
+	(mh-mm-set-handle-multipart-parameter, mh-mm-inline-text-vcard)
+	(mh-mml-minibuffer-read-disposition, mh-mm-save-part): Update with
+	code from Gnus 5.11 (closes SF #2235022).
+
 2009-01-26  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-e.el (mh-pack-folder-hook): New variable.
