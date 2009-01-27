@@ -1,3 +1,12 @@
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el ([C-backspace]): Swap C-delete and C-backspace
+	bindings here, so we don't have to do it in
+	normal-erase-is-backspace-mode.
+
+	* simple.el (normal-erase-is-backspace-mode): Don't swap C-delete
+	and C-backspace; the latter is not available on ttys anyway.
+
 2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
 
 	(doc-view-mode): Fix broken call to string-match.
