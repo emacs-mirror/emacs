@@ -603,6 +603,8 @@ concat (nargs, args, target_type, last_special)
 	}
 
       result_len += len;
+      if (result_len < 0)
+	error ("String overflow");
     }
 
   if (! some_multibyte)
