@@ -175,8 +175,8 @@ static void get(mps_arena_t arena)
         size_t alimit = mps_arena_reserved(arena);
         
         printf("    Coll End  ");
-        if(rnd()==0) showStatsText(notcon, con, live);
-        showStatsAscii(notcon, con, live, alimit);
+        showStatsText(notcon, con, live);
+        if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
         break;
       }
       case mps_message_type_finalization(): {
@@ -196,6 +196,117 @@ static void get(mps_arena_t arena)
   }
 }
 
+
+/* The Catalog client:
+ * 
+ * This is an MPS client for testing the MPS.  It simulates 
+ * converting a multi-page "Catalog" document from a page-description 
+ * into a bitmap.
+ *
+ * The intention is that this task will cause memory usage that is 
+ * fairly realistic (much more so than randomly allocated objects 
+ * with random interconnections.  The patterns in common with real 
+ * clients are:
+ *   - the program input and its task are 'fractal', with a 
+ *     self-similar hierarchy;
+ *   - object allocation is prompted by each successive element of 
+ *     the input/task;
+ *   - objects are often used to store a transformed version of the 
+ *     program input;
+ *   - there may be several stages of transformation;
+ *   - at each stage, the old object (holding the untransformed data) 
+ *     may become dead;
+ *   - sometimes a tree of objects becomes dead once an object at 
+ *     some level of the hierarchy has been fully processed;
+ *   - there is more than one hierarchy, and objects in different 
+ *     hierarchies interact.
+ *
+ * The entity-relationship diagram is:
+ *        Catalog -< Page -< Article -< Polygon
+ *                                        v
+ *                                        |
+ *        Palette --------------------< Colour
+ *
+ * The first hierarchy is a Catalog, containing Pages, each 
+ * containing Articles (bits of artwork etc), each composed of 
+ * Polygons.  Each polygon has a single colour.  
+ *
+ * The second hierarchy is a top-level Palette, containing Colours.  
+ * Colours (in this client) are expensive, large objects (perhaps 
+ * because of complex colour modelling or colour blending).
+ *
+ * The things that matter for their effect on MPS behaviour are:
+ *   - when objects are allocated, and how big they are;
+ *   - how the reference graph mutates over time;
+ *   - how the mutator accesses objects (barrier hits).
+ */
+
+enum {
+  CatalogRootIndex = 0,
+  CatalogSig = 0x0000CA2A,  /* CATAlog */
+  CatalogFix = 1,
+  CatalogVar = 10,
+  PageSig =    0x0000BA9E,  /* PAGE */
+  PageFix = 1,
+  PageVar = 100,
+  ArtSig =     0x0000A621,  /* ARTIcle */
+  ArtFix = 1,
+  ArtVar = 100,
+  PolySig =    0x0000B071,  /* POLYgon */
+  PolyFix = 1,
+  PolyVar = 100
+};
+
+static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
+{
+  mps_word_t v;
+  void *Catalog, *Page, *Art, *Poly;
+  int i, j, k;
+
+  die(make_dylan_vector(&v, ap, CatalogFix + CatalogVar), "Catalog");
+  DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(CatalogSig);
+  DYLAN_VECTOR_SLOT(v, CatalogFix) = (mps_word_t)NULL;
+  Catalog = (void *)v;
+  
+  /* store Catalog in root */
+  myroot[CatalogRootIndex] = Catalog;
+  get(arena);
+
+  for(i = 0; i < CatalogVar; i += 1) {
+    die(make_dylan_vector(&v, ap, PageFix + PageVar), "Page");
+    DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(PageSig);
+    DYLAN_VECTOR_SLOT(v, PageFix) = (mps_word_t)NULL;
+    Page = (void *)v;
+
+    /* store Page in Catalog */
+    DYLAN_VECTOR_SLOT(Catalog, CatalogFix + i) = (mps_word_t)Page;
+    get(arena);
+    
+    printf("Page %d: make articles\n", i);
+    
+    for(j = 0; j < PageVar; j += 1) {
+      die(make_dylan_vector(&v, ap, ArtFix + ArtVar), "Art");
+      DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(ArtSig);
+      DYLAN_VECTOR_SLOT(v, ArtFix) = (mps_word_t)NULL;
+      Art = (void *)v;
+
+      /* store Art in Page */
+      DYLAN_VECTOR_SLOT(Page, PageFix + j) = (mps_word_t)Art;
+      get(arena);
+
+      for(k = 0; k < ArtVar; k += 1) {
+        die(make_dylan_vector(&v, ap, PolyFix + PolyVar), "Poly");
+        DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(PolySig);
+        DYLAN_VECTOR_SLOT(v, PolyFix) = (mps_word_t)NULL;
+        Poly = (void *)v;
+
+        /* store Poly in Art */
+        DYLAN_VECTOR_SLOT(Art, ArtFix + k) = (mps_word_t)Poly;
+        /* get(arena); */
+      }
+    }
+  }
+}
 
 /* checksi -- check count of sscanf items is correct
  */
@@ -225,6 +336,15 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         script += sb;
         printf("  Collect\n");
         mps_arena_collect(arena);
+        break;
+      }
+      case 'K': {
+        si = sscanf(script, "Katalog()%n",
+                       &sb);
+        checksi(si, 0, script, scriptAll);
+        script += sb;
+        printf("  Katalog()\n");
+        CatalogDo(arena, ap);
         break;
       }
       case 'M': {
@@ -399,7 +519,10 @@ int main(int argc, char **argv)
   /* The most basic scripts */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect.");
+  /* testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect."); */
+
+  /* 16<<20 == 16777216 == 16 Mebibyte */
+  testscriptA("Arena(size 16777216), Katalog(), Collect.");
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
