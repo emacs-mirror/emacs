@@ -113,7 +113,7 @@ RECIPIENTS is a string of regexps separated by commas."
 			  recipients primary-only))
 
 (defun rmail-message-recipients-p-1 (recipients &optional primary-only)
-  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+  (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
   (or (string-match recipients (or (mail-fetch-field "To") ""))
       (string-match recipients (or (mail-fetch-field "From") ""))
       (if (not primary-only)
@@ -140,7 +140,7 @@ Emacs will list the header line in the RMAIL-summary."
   (rmail-apply-in-message msg 'rmail-message-regexp-p-1 msg regexp))
 
 (defun rmail-message-regexp-p-1 (msg regexp)
-  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+  (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
   (if rmail-enable-mime
       (funcall rmail-search-mime-header-function msg regexp (point))
     (re-search-forward regexp nil t)))
