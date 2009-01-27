@@ -1,3 +1,13 @@
+2009-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_has_char): If the arg FONT is a font-object,
+	directly use GT_Get_Char_index.
+
+	* xftfont.c (struct xftfont_info): New member `index'.
+
+	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
+	(Ffontset_font): Adjusted for the change of fontset entry.
+
 2009-01-26  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): Fix handling of non-cons return
