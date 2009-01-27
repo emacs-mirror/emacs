@@ -714,7 +714,10 @@ a negative argument means to delete and move forward."
 	    (if (looking-at "D")
 		(progn (delete-char 1) (insert " ")))
 	  (delete-char 1)
-	  (insert "D"))))
+	  (insert "D"))
+	;; Register a new summary line.
+	(with-current-buffer rmail-buffer
+	  (aset rmail-summary-vector (1- n) (rmail-create-summary-line n)))))
   (beginning-of-line))
 
 (defun rmail-summary-mark-undeleted (n)
