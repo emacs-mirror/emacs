@@ -1,7 +1,7 @@
-;;; unrmail.el --- convert Rmail files to mailbox files
+;;; unrmail.el --- convert Rmail Babyl files to mailbox files
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -25,16 +25,13 @@
 
 ;;; Code:
 
-(defvar command-line-args-left)	;Avoid 'free variable' warning
-
 ;;;###autoload
 (defun batch-unrmail ()
-  "Convert Rmail files to system inbox format.
-Specify the input Rmail file names as command line arguments.
+  "Convert old-style Rmail Babyl files to system inbox format.
+Specify the input Rmail Babyl file names as command line arguments.
 For each Rmail file, the corresponding output file name
 is made by adding `.mail' at the end.
 For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
-  ;; command-line-args-left is what is left of the command line (from startup.el)
   (if (not noninteractive)
       (error "`batch-unrmail' is to be used only with -batch"))
   (let ((error nil))
@@ -50,8 +47,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 
 ;;;###autoload
 (defun unrmail (file to-file)
-  "Convert Rmail file FILE to system inbox format file TO-FILE."
-  (interactive "fUnrmail (rmail file): \nFUnrmail into (new mailbox file): ")
+  "Convert old-style Rmail Babyl file FILE to system inbox format file TO-FILE."
+  (interactive "fUnrmail (babyl file): \nFUnrmail into (new mailbox file): ")
   (with-temp-buffer
     ;; Read in the old Rmail file with no decoding.
     (let ((coding-system-for-read 'raw-text))
@@ -177,7 +174,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	    ;; Some operations on the message header itself.
 	    (goto-char (point-min))
 	    (save-restriction
-	      (narrow-to-region 
+	      (narrow-to-region
 	       (point-min)
 	       (save-excursion (search-forward "\n\n" nil 'move) (point)))
 
@@ -225,6 +222,5 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 
 (provide 'unrmail)
 
-;;; unrmail.el ends here
-
 ;; arch-tag: 14c6290d-60b2-456f-8909-5c2387de6acb
+;;; unrmail.el ends here
