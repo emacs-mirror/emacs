@@ -2431,12 +2431,13 @@ and selects that window."
   (interactive)
   (unless (display-multi-font-p)
     (error "Cannot change fonts on this display"))
-  (x-popup-menu
-   (if (listp last-nonmenu-event)
-       last-nonmenu-event
-     (list '(0 0) (selected-window)))
-   (append x-fixed-font-alist
-	   (list (generate-fontset-menu)))))
+  (car
+   (x-popup-menu
+    (if (listp last-nonmenu-event)
+	last-nonmenu-event
+      (list '(0 0) (selected-window)))
+    (append x-fixed-font-alist
+	    (list (generate-fontset-menu))))))
 
 (declare-function text-scale-mode "face-remap")
 
