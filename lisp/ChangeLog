@@ -1,4 +1,35 @@
-2009-01-26  Glenn Morris  <rgm@gnu.org>
+2009-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-vm): Doc fix.
+
+	* mail/rmail-spam-filter.el: Remove leading `*' from defcustom docs.
+	Replace `first' and `rest' with `car' and `cdr' throughout.
+	(rsf-auto-delete-spam-bbdb-entries): Remove unused variable.
+	(rsf-scanning-messages-now): Doc fix.
+	(rsf-check-field): Rename from `check-field' and update callers.
+	(rmail-spam-filter): Fix bbdb/mail_auto_create_p oddness.
+	Use rmail-output rather than deleted rmail-output-to-rmail-file.
+
+	* mail/rmail.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms and hooks.
+	(rmail-enable-mime, rmail-insert-mime-resent-message-function)
+	(rmail-search-mime-message-function, rmail-search-mime-header-function)
+	(rmail-decode-mime-charset): Doc fix.
+	(rmail-search-message, rmail-resend): Check functions set before use.
+
+	* mail/rmailout.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms.
+	(rmail-output-to-babyl-buffer): Rename from
+	rmail-output-to-r-mail-buffer and update caller.
+	(rmail-output): Doc fix.
+
+	* mail/rmailsum.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms.
+	(rmail-message-regexp-p-1): Check rmail-search-mime-header-function
+	is set.
+
+	* mail/unrmail.el (command-line-args-left): Remove unneeded declaration.
+	(batch-unrmail, unrmail): Doc fix.
 
 	* mail/rmailsum.el (rmail-message-recipients-p-1)
 	(rmail-message-regexp-p-1): Avoid clobbering the mark.

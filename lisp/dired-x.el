@@ -123,8 +123,11 @@
 
 (defcustom dired-bind-vm nil
   "Non-nil means \"V\" runs `dired-vm', otherwise \"V\" runs `dired-rmail'.
-Also, RMAIL files contain -*- rmail -*- at the top so \"f\",
-`dired-advertised-find-file', will run rmail."
+
+RMAIL files in the old Babyl format (used before before Emacs 23.1)
+contain \"-*- rmail -*-\" at the top, so `dired-find-file'
+will run `rmail' on these files.  New RMAIL files use the standard
+mbox format, and so cannot be distinguished in this way."
   :type 'boolean
   :group 'dired-keys)
 
