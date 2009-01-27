@@ -28,16 +28,14 @@
 (require 'rmail)
 (provide 'rmailout)
 
-;;;###autoload
 (defcustom rmail-output-decode-coding nil
-  "*If non-nil, do coding system decoding when outputting message as Babyl."
+  "If non-nil, do coding system decoding when outputting message as Babyl."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil))
   :group 'rmail)
 
-;;;###autoload
 (defcustom rmail-output-file-alist nil
-  "*Alist matching regexps to suggested output Rmail files.
+  "Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
 The suggestion is taken if REGEXP matches anywhere in the message buffer.
 NAME-EXP may be a string constant giving the file name to use,
@@ -81,9 +79,8 @@ Set `rmail-default-file' to this name as well as returning it."
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
 
-;;;###autoload
 (defcustom rmail-fields-not-to-output nil
-  "*Regexp describing fields to exclude when outputting a message to a file."
+  "Regexp describing fields to exclude when outputting a message to a file."
   :type '(choice (const :tag "None" nil)
 		 regexp)
   :group 'rmail-output)
@@ -130,16 +127,13 @@ It alters the current buffer's text, so it should be a temp buffer."
 			  rmail-current-message))))
 	  ;; If MSG is non-nil, buffer is in RMAIL mode.
 	  (if msg
-	      (rmail-output-to-r-mail-buffer tembuf msg)
+	      (rmail-output-to-babyl-buffer tembuf msg)
 	    ;; Output file not in rmail mode => just insert at the end.
 	    (narrow-to-region (point-min) (1+ (buffer-size)))
 	    (goto-char (point-max))
 	    (insert-buffer-substring tembuf)))))))
 
-;; When Rmail is really installed, if we delete or rename the old Rmail
-;; we should do likewise with this function.
-
-(defun rmail-output-to-r-mail-buffer (tembuf msg)
+(defun rmail-output-to-babyl-buffer (tembuf msg)
   "Copy msg in TEMBUF from BEG to END into this old R-mail BABYL buffer.
 Do what is necessary to make babyl R-mail know about the new message.
 Then display message number MSG."
@@ -415,7 +409,7 @@ starting with the current one.  Deleted messages are skipped and don't count.
 When called from Lisp code, COUNT may be omitted and defaults to 1.
 
 This command always outputs the complete message header,
-even the header display is currently pruned.
+even if the header display is currently pruned.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not
 to set the `filed' attribute, and not to display a message.
@@ -463,7 +457,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		    ;; Convert the text to one format or another and output.
 		    (if babyl-format
 			(rmail-output-as-babyl file-name (if noattribute 'nomsg))
-		      (rmail-output-as-mbox file-name 
+		      (rmail-output-as-mbox file-name
 					    (if noattribute 'nomsg))))))))
 
 	  ;; Mark message as "filed".
