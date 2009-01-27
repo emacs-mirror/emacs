@@ -801,7 +801,8 @@
                              (unless arg
                                (setq rhs (math-expand-term rhs))))))
                   (if (and arg (not no-simp))
-                      (setq rhs (calcFunc-expand rhs (unless (= arg 0) arg))))
+                      (setq rhs (math-simplify
+                                 (calcFunc-expand rhs (unless (= arg 0) arg)))))
 		  (setq alg (calc-encase-atoms
 			     (calc-normalize (list func lhs rhs)))))
 	      (setq rhs (list (if divide '* '/) sel alg))
