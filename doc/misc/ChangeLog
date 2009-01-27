@@ -1,3 +1,10 @@
+2009-01-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Embedded Mode, Algebraic-Style Calculations):
+	Make Calc the subject of sentences.
+	(Rearranging Formulas using Selections): Discuss new options
+	for `j *'.
+
 2009-01-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Errors and Events): New variable dbus-event-error-hooks.
