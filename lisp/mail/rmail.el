@@ -110,7 +110,7 @@ its character representation and its display representation.")
 
 ;; Temporary support for mbox.
 (defcustom rmail-file-name "~/RMAIL"
-  "*Name of user's primary mail file."
+  "Name of user's primary mail file."
   :type 'string
   :group 'rmail
   :version "21.1")
@@ -166,20 +166,20 @@ its character representation and its display representation.")
   :type '(choice (const nil) string))
 
 (defcustom rmail-pop-password nil
-  "*Password to use when reading mail from POP server.
+  "Password to use when reading mail from POP server.
 Please use `rmail-remote-password' instead."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
   :group 'rmail-obsolete)
 
 (defcustom rmail-pop-password-required nil
-  "*Non-nil if a password is required when reading mail from a POP server.
+  "Non-nil if a password is required when reading mail from a POP server.
 Please use rmail-remote-password-required instead."
   :type 'boolean
   :group 'rmail-obsolete)
 
 (defcustom rmail-remote-password nil
-  "*Password to use when reading mail from a remote server.
+  "Password to use when reading mail from a remote server.
 This setting is ignored for mailboxes whose URL already contains a password."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
@@ -196,7 +196,7 @@ This setting is ignored for mailboxes whose URL already contains a password."
   :version "22.1")
 
 (defcustom rmail-remote-password-required nil
-  "*Non-nil if a password is required when reading mail from a remote server."
+  "Non-nil if a password is required when reading mail from a remote server."
   :type 'boolean
   :set-after '(rmail-pop-password-required)
   :set #'(lambda (symbol value)
@@ -211,7 +211,7 @@ This setting is ignored for mailboxes whose URL already contains a password."
   :version "22.1")
 
 (defcustom rmail-movemail-flags nil
-  "*List of flags to pass to movemail.
+  "List of flags to pass to movemail.
 Most commonly used to specify `-g' to enable GSS-API authentication
 or `-k' to enable Kerberos authentication."
   :type '(repeat string)
@@ -228,14 +228,14 @@ please report it with \\[report-emacs-bug].")
 (defvar rmail-encoded-remote-password nil)
 
 (defcustom rmail-preserve-inbox nil
-  "*Non-nil means leave incoming mail in the user's inbox--don't delete it."
+  "Non-nil means leave incoming mail in the user's inbox--don't delete it."
   :type 'boolean
   :group 'rmail-retrieve)
 
 (defcustom rmail-movemail-search-path nil
-    "*List of directories to search for movemail (in addition to `exec-path')."
-    :group 'rmail-retrieve
-    :type '(repeat (directory)))
+  "List of directories to search for movemail (in addition to `exec-path')."
+  :group 'rmail-retrieve
+  :type '(repeat (directory)))
 
 (declare-function mail-position-on-field "sendmail" (field &optional soft))
 (declare-function mail-text-start "sendmail" ())
@@ -313,22 +313,21 @@ Currently known variants are 'emacs and 'mailutils."
 (rmail-movemail-variant-p)
 
 ;;;###autoload
-(defcustom rmail-dont-reply-to-names nil "\
-*A regexp specifying addresses to prune from a reply message.
+(defcustom rmail-dont-reply-to-names nil
+  "A regexp specifying addresses to prune from a reply message.
 A value of nil means exclude your own email address as an address
 plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "\\`info-" "\
-A regular expression specifying part of the default value of the
+(defvar rmail-default-dont-reply-to-names "\\`info-"
+  "A regular expression specifying part of the default value of the
 variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
 value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
 
-;;;###autoload
 (defcustom rmail-ignored-headers
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
@@ -347,7 +346,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^DomainKey-Signature:\\|^dkim-signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
 	  "\\|^x-.*:")
-  "*Regexp to match header fields that Rmail should normally hide.
+  "Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
 which normally happens once for each message,
@@ -359,7 +358,7 @@ go to that message and type \\[rmail-toggle-header] twice."
   :group 'rmail-headers)
 
 (defcustom rmail-nonignored-headers "^x-spam-status:"
-  "*Regexp to match X header fields that Rmail should show.
+  "Regexp to match X header fields that Rmail should show.
 This regexp overrides `rmail-ignored-headers'; if both this regexp
 and that one match a certain header field, Rmail shows the field.
 If this is nil, ignore all header fields in `rmail-ignored-headers'.
@@ -373,23 +372,20 @@ go to that message and type \\[rmail-toggle-header] twice."
   :type '(choice (const nil) (regexp))
   :group 'rmail-headers)
 
-;;;###autoload
 (defcustom rmail-displayed-headers nil
-  "*Regexp to match Header fields that Rmail should display.
+  "Regexp to match Header fields that Rmail should display.
 If nil, display all header fields except those matched by
 `rmail-ignored-headers'."
   :type '(choice regexp (const :tag "All"))
   :group 'rmail-headers)
 
-;;;###autoload
-(defcustom rmail-retry-ignored-headers "^x-authentication-warning:" "\
-*Headers that should be stripped when retrying a failed message."
+(defcustom rmail-retry-ignored-headers "^x-authentication-warning:"
+  "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers)
 
-;;;###autoload
-(defcustom rmail-highlighted-headers "^From:\\|^Subject:" "\
-*Regexp to match Header fields that Rmail should normally highlight.
+(defcustom rmail-highlighted-headers "^From:\\|^Subject:"
+  "Regexp to match Header fields that Rmail should normally highlight.
 A value of nil means don't highlight."
   :type 'regexp
   :group 'rmail-headers)
@@ -406,15 +402,14 @@ A value of nil means don't highlight."
   :group 'rmail-headers
   :version "23.1")
 
-;;;###autoload
-(defcustom rmail-delete-after-output nil "\
-*Non-nil means automatically delete a message that is copied to a file."
+(defcustom rmail-delete-after-output nil
+  "Non-nil means automatically delete a message that is copied to a file."
   :type 'boolean
   :group 'rmail-files)
 
 ;;;###autoload
-(defcustom rmail-primary-inbox-list nil "\
-*List of files which are inboxes for user's primary mail file `~/RMAIL'.
+(defcustom rmail-primary-inbox-list nil
+  "List of files which are inboxes for user's primary mail file `~/RMAIL'.
 nil means the default, which is (\"/usr/spool/mail/$USER\")
 \(the name varies depending on the operating system,
 and the value of the environment variable MAIL overrides it)."
@@ -428,9 +423,8 @@ and the value of the environment variable MAIL overrides it)."
   :group 'rmail-retrieve
   :group 'rmail-files)
 
-;;;###autoload
 (defcustom rmail-mail-new-frame nil
-  "*Non-nil means Rmail makes a new frame for composing outgoing mail.
+  "Non-nil means Rmail makes a new frame for composing outgoing mail.
 This is handy if you want to preserve the window configuration of
 the frame where you have the RMAIL buffer displayed."
   :type 'boolean
@@ -438,18 +432,17 @@ the frame where you have the RMAIL buffer displayed."
 
 ;;;###autoload
 (defcustom rmail-secondary-file-directory "~/"
-  "*Directory for additional secondary Rmail files."
+  "Directory for additional secondary Rmail files."
   :type 'directory
   :group 'rmail-files)
 ;;;###autoload
 (defcustom rmail-secondary-file-regexp "\\.xmail$"
-  "*Regexp for which files are secondary Rmail files."
+  "Regexp for which files are secondary Rmail files."
   :type 'regexp
   :group 'rmail-files)
 
-;;;###autoload
 (defcustom rmail-confirm-expunge 'y-or-n-p
-  "*Whether and how to ask for confirmation before expunging deleted messages."
+  "Whether and how to ask for confirmation before expunging deleted messages."
   :type '(choice (const :tag "No confirmation" nil)
 		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
 		 (const :tag "Confirm with yes-or-no-p" yes-or-no-p))
@@ -460,7 +453,6 @@ the frame where you have the RMAIL buffer displayed."
 (defvar rmail-mode-hook nil
   "List of functions to call when Rmail is invoked.")
 
-;;;###autoload
 (defvar rmail-get-new-mail-hook nil
   "List of functions to call when Rmail has retrieved new mail.")
 
@@ -471,11 +463,9 @@ the frame where you have the RMAIL buffer displayed."
   :options '(goto-address)
   :group 'rmail)
 
-;;;###autoload
 (defvar rmail-quit-hook nil
   "List of functions to call when quitting out of Rmail.")
 
-;;;###autoload
 (defvar rmail-delete-message-hook nil
   "List of functions to call when Rmail deletes a message.
 When the hooks are called, the message has been marked deleted but is
@@ -534,7 +524,7 @@ examples:
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defcustom rmail-display-summary nil
-  "*If non-nil, Rmail always displays the summary buffer."
+  "If non-nil, Rmail always displays the summary buffer."
   :group 'rmail-summary
   :type 'boolean)
 
@@ -600,11 +590,11 @@ by substituting the new message number into the existing list.")
 (put 'rmail-last-regexp 'permanent-local t)
 
 (defcustom rmail-default-file "~/xmail"
-  "*Default file name for \\[rmail-output]."
+  "Default file name for \\[rmail-output]."
   :type 'file
   :group 'rmail-files)
 (defcustom rmail-default-body-file "~/mailout"
-  "*Default file name for \\[rmail-output-body-to-file]."
+  "Default file name for \\[rmail-output-body-to-file]."
   :type 'file
   :group 'rmail-files
   :version "20.3")
@@ -617,16 +607,14 @@ by substituting the new message number into the existing list.")
 
 This is set to nil by default.")
 
-;;;###autoload
 (defcustom rmail-enable-mime nil
-  "*If non-nil, RMAIL uses MIME feature.
+  "If non-nil, RMAIL uses MIME features.
 If the value is t, RMAIL automatically shows MIME decoded message.
 If the value is neither t nor nil, RMAIL does not show MIME decoded message
 until a user explicitly requires it.
 
-Even if the value is non-nil, you can't use MIME feature
-if the feature specified by `rmail-mime-feature' is not available
-in your session."
+Even if the value is non-nil, you can't use MIME features
+unless the feature specified by `rmail-mime-feature' is available."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil)
 		 (other :tag "when asked" ask))
@@ -635,7 +623,7 @@ in your session."
 (defvar rmail-enable-mime-composing nil
   "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
 
-;;;###autoload
+;; FIXME unused.
 (defvar rmail-show-mime-function nil
   "Function to show MIME decoded message of RMAIL file.
 This function is called when `rmail-enable-mime' is non-nil.
@@ -650,31 +638,30 @@ It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
 
-;;;###autoload
 (defvar rmail-insert-mime-resent-message-function nil
   "Function to insert a message in MIME format so it can be resent.
-This function is called if `rmail-enable-mime' is non-nil.
+This function is called by `rmail-resend' if `rmail-enable-mime' is non-nil.
 It is called with one argument FORWARD-BUFFER, which is a
 buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
 
-;;;###autoload
+;; FIXME one might want to pass a LIMIT, as per
+;; rmail-search-mime-header-function.
 (defvar rmail-search-mime-message-function nil
   "Function to check if a regexp matches a MIME message.
-This function is called if `rmail-enable-mime' is non-nil.
-It is called with two arguments MSG and REGEXP, where
+This function is called by `rmail-search-message' if
+`rmail-enable-mime' is non-nil.  It is called (with point at the
+start of the message) with two arguments MSG and REGEXP, where
 MSG is the message number, REGEXP is the regular expression.")
 
-;;;###autoload
 (defvar rmail-search-mime-header-function nil
   "Function to check if a regexp matches a header of MIME message.
-This function is called if `rmail-enable-mime' is non-nil.
-It is called with three arguments MSG, REGEXP, and LIMIT, where
-MSG is the message number,
-REGEXP is the regular expression,
-LIMIT is the position specifying the end of header.")
+This function is called by `rmail-message-regexp-p-1' if
+`rmail-enable-mime' is non-nil.  It is called (with point at the
+start of the header) with three arguments MSG, REGEXP, and LIMIT,
+where MSG is the message number, REGEXP is the regular
+expression, LIMIT is the position specifying the end of header.")
 
-;;;###autoload
 (defvar rmail-mime-feature 'rmail-mime
   "Feature to require to load MIME support in Rmail.
 When starting Rmail, if `rmail-enable-mime' is non-nil,
@@ -683,17 +670,16 @@ this feature is required with `require'.
 The default value is `rmail-mime'.  This feature is provided by
 the rmail-mime package available at <http://www.m17n.org/rmail-mime/>.")
 
-;;;###autoload
+;; FIXME this is unused.
 (defvar rmail-decode-mime-charset t
   "*Non-nil means a message is decoded by MIME's charset specification.
 If this variable is nil, or the message has not MIME specification,
 the message is decoded as normal way.
 
-If the variable `rmail-enable-mime' is non-nil, this variables is
+If the variable `rmail-enable-mime' is non-nil, this variable is
 ignored, and all the decoding work is done by a feature specified by
 the variable `rmail-mime-feature'.")
 
-;;;###autoload
 (defvar rmail-mime-charset-pattern
   (concat "^content-type:[ \t]*text/plain;"
 	  "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
@@ -2058,7 +2044,7 @@ MSG, if non-nil, identifies the message number to use.
 If nil, that means the current message."
   (or msg (setq msg rmail-current-message))
   (let (blurb attr-names keywords)
-    ;; Combine the message attributes and keywords 
+    ;; Combine the message attributes and keywords
     ;; into a comma-separated list.
     (setq attr-names (rmail-get-attr-names msg)
 	  keywords (rmail-get-keywords msg))
@@ -2153,7 +2139,7 @@ change; nil means current message."
 	  (if (= msgnum rmail-current-message)
 	      (rmail-display-labels))))
       ;; If we made a significant change in an attribute,
-      ;; mark rmail-buffer modified, so it will be (1) saved 
+      ;; mark rmail-buffer modified, so it will be (1) saved
       ;; and (2) displayed in the mode line.
       (if altered
 	  (set-buffer-modified-p t)))))
@@ -2787,7 +2773,9 @@ or forward if N is negative."
   ;; unswaps the buffers.
   (goto-char (rmail-msgbeg msg))
   (if rmail-enable-mime
-      (funcall rmail-search-mime-message-function msg regexp)
+      (if rmail-search-mime-message-function
+          (funcall rmail-search-mime-message-function msg regexp)
+        (error "You must set `rmail-search-mime-message-function'"))
     (re-search-forward regexp (rmail-msgend msg) t)))
 
 (defvar rmail-search-last-regexp nil)
@@ -3428,7 +3416,9 @@ typically for purposes of moderating a list."
 	(with-current-buffer tembuf
 	  ;;>> Copy message into temp buffer
 	  (if rmail-enable-mime
-	      (funcall rmail-insert-mime-resent-message-function mailbuf)
+              (if rmail-insert-mime-resent-message-function
+                  (funcall rmail-insert-mime-resent-message-function mailbuf)
+                (error "You must set `rmail-insert-mime-resent-message-function'"))
 	    (insert-buffer-substring mailbuf))
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifiable.
@@ -3632,13 +3622,13 @@ In fact, the non-nil value returned is the summary buffer itself."
   (and rmail-summary-buffer (get-buffer-window rmail-summary-buffer)))
 
 (defcustom rmail-redisplay-summary nil
-  "*Non-nil means Rmail should show the summary when it changes.
+  "Non-nil means Rmail should show the summary when it changes.
 This has an effect only if a summary buffer exists."
   :type 'boolean
   :group 'rmail-summary)
 
 (defcustom rmail-summary-window-size nil
-  "*Non-nil means specify the height for an Rmail summary window."
+  "Non-nil means specify the height for an Rmail summary window."
   :type '(choice (const :tag "Disabled" nil) integer)
   :group 'rmail-summary)
 
