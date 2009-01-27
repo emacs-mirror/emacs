@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -188,7 +188,7 @@ of a different task.")
 (defun org-clock-select-task (&optional prompt)
   "Select a task that recently was associated with clocking."
   (interactive)
-  (let (sel-list rpl file task (i 0) s)
+  (let (sel-list rpl (i 0) s)
     (save-window-excursion
       (org-switch-to-buffer-other-window
        (get-buffer-create "*Clock Task Select*"))

@@ -1,12 +1,12 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009;
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;

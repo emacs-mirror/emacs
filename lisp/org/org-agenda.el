@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -2612,7 +2612,7 @@ in `org-agenda-text-search-extra-files'."
 		      'keymap org-agenda-keymap
 		      'help-echo (format "mouse-2 or RET jump to location")))
 	 regexp rtn rtnall files file pos
-	 marker priority category tags c neg re
+	 marker category tags c neg re
 	 ee txt beg end words regexps+ regexps- hdl-only buffer beg1 str)
     (unless (and (not edit-at)
 		 (stringp string)
@@ -3715,7 +3715,7 @@ FRACTION is what fraction of the head-warning time has passed."
 	 (regexp org-tr-regexp)
 	 (d0 (calendar-absolute-from-gregorian date))
 	 marker hdmarker ee txt d1 d2 s1 s2 timestr category todo-state tags pos
-	 donep head)
+	 head)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (catch :skip
@@ -4324,7 +4324,7 @@ to switch to narrowing."
 	(effort-prompt "")
 	(inhibit-read-only t)
 	(current org-agenda-filter)
-	char a n tag tags)
+	char a n tag)
     (unless char
       (message
        "%s by tag [%s ], [TAB], [/]:off, [+-]:narrow, [>=<]:effort: "
@@ -4423,7 +4423,7 @@ If the line does not have an effort defined, return nil."
       (while (not (eobp))
 	(if (get-text-property (point) 'org-marker)
 	    (progn
-	      (setq tags (get-text-property (point) 'tags))
+	      (setq tags (get-text-property (point) 'tags)) ; used in eval
 	      (if (not (eval org-agenda-filter-form))
 		  (org-agenda-filter-by-tag-hide-line))
 	      (beginning-of-line 2))
@@ -5084,7 +5084,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	(save-excursion
 	  (and (outline-next-heading)
 	       (org-flag-heading nil)))   ; show the next heading
-	(org-todo arg)
+	(call-interactively 'org-todo)
 	(and (bolp) (forward-char 1))
 	(setq newhead (org-get-heading))
 	(when (and (org-bound-and-true-p
@@ -5419,7 +5419,7 @@ TAB   Visit marked entry in other window
 
 The cursor may be at a date in the calendar, or in the Org agenda."
   (interactive)
-  (let (pos ans)
+  (let (ans)
     (message "Select action: [m]ark | [s]chedule [d]eadline [r]emember [ ]show")
     (setq ans (read-char-exclusive))
     (cond

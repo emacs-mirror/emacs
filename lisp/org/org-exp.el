@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -981,7 +981,7 @@ modified) list.")
 		    "LINK_UP" "LINK_HOME" "SETUPFILE" "STYLE" "LATEX_HEADER"
 		    "EXPORT_SELECT_TAGS" "EXPORT_EXCLUDE_TAGS")
 		  (mapcar 'car org-export-inbuffer-options-extra))))
-	    p key val text options js-up js-main js-css js-opt a pr style
+	    p key val text options a pr style
 	    latex-header
 	    ext-setup-or-nil setup-contents (start 0))
 	(while (or (and ext-setup-or-nil
@@ -1040,7 +1040,7 @@ modified) list.")
   "Parse an OPTIONS line and set values in the property list P."
   (let (o)
     (when options
-      (let ((op org-export-plist-vars) a)
+      (let ((op org-export-plist-vars))
 	(while (setq o (pop op))
 	  (if (and (nth 1 o)
 		   (string-match (concat (regexp-quote (nth 1 o))
@@ -1640,7 +1640,7 @@ on this string to produce the exported version."
 
 (defun org-export-kill-licensed-text ()
   "Remove all text that is marked with a :org-license-to-kill property."
-  (let (p q)
+  (let (p)
     (while (setq p (text-property-any (point-min) (point-max)
 				      :org-license-to-kill t))
       (delete-region
@@ -1849,7 +1849,7 @@ from the buffer."
 	(tags (plist-get opts :tags))
 	(pri  (plist-get opts :priority))
 	(elts '(1 2 3 4 5))
-	rpl props)
+	rpl)
     (setq elts (delq nil (list 1 (if todo 2) (if pri 3) 4 (if tags 5))))
     (when (or (not todo) (not tags) (not pri))
       (goto-char (point-min))
@@ -1898,7 +1898,7 @@ from the buffer."
 (defun org-export-protect-colon-examples ()
   "Protect lines starting with a colon."
   (goto-char (point-min))
-  (let ((re "^[ \t]*:\\([ \t]\\|$\\)") beg end)
+  (let ((re "^[ \t]*:\\([ \t]\\|$\\)") beg)
     (while (re-search-forward re nil t)
       (beginning-of-line 1)
       (setq beg (point))
@@ -2133,7 +2133,7 @@ can work correctly."
 
 (defun org-export-get-title-from-subtree ()
   "Return subtree title and exclude it from export."
-  (let (title (m (mark)) (rbeg (region-beginning)) (rend (region-end)))
+  (let (title (rbeg (region-beginning)) (rend (region-end)))
     (save-excursion
       (goto-char rbeg)
       (when (and (org-at-heading-p)
@@ -2160,7 +2160,7 @@ can work correctly."
 
 (defun org-get-min-level (lines)
   "Get the minimum level in LINES."
-  (let ((re "^\\(\\*+\\) ") l min)
+  (let ((re "^\\(\\*+\\) ") l)
     (catch 'exit
       (while (setq l (pop lines))
 	(if (string-match re l)
@@ -2363,7 +2363,7 @@ and `+n' for continuing previous numering.
 Code formatting according to language currently only works for HTML.
 Numbering lines works for all three major backends (html, latex, and ascii)."
   (save-match-data
-    (let (num cont rtn named rpllbl keepp textareap cols rows fmt)
+    (let (num cont rtn rpllbl keepp textareap cols rows fmt)
       (setq opts (or opts "")
 	    num (string-match "[-+]n\\>" opts)
 	    cont (string-match "\\+n\\>" opts)
@@ -4445,9 +4445,8 @@ If there are links in the string, don't modify these."
   "Apply all active conversions to translate special ASCII to HTML."
   (setq s (org-html-protect s))
   (if org-export-html-expand
-      (let ((start 0))
-	(while (string-match "@&lt;\\([^&]*\\)&gt;" s)
-	  (setq s (replace-match "<\\1>" t nil s)))))
+      (while (string-match "@&lt;\\([^&]*\\)&gt;" s)
+	(setq s (replace-match "<\\1>" t nil s))))
   (if org-export-with-emphasize
       (setq s (org-export-html-convert-emphasize s)))
   (if org-export-with-special-strings
@@ -4747,7 +4746,7 @@ When COMBINE is non nil, add the category to each line."
 	      "DTSTART"))
 	hd ts ts2 state status (inc t) pos b sexp rrule
 	scheduledp deadlinep todo prefix due start
-	tmp pri categories entry location summary desc uid
+	tmp pri categories location summary desc uid
 	(sexp-buffer (get-buffer-create "*ical-tmp*")))
     (org-refresh-category-properties)
     (save-excursion

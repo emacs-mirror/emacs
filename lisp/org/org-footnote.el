@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -255,7 +255,7 @@ or new, let the user edit the definition of the footnote."
   "Start the definition of a footnote with label LABEL."
   (interactive "sLabel: ")
   (setq label (org-footnote-normalize-label label))
-  (let (re p)
+  (let (re)
     (cond
      ((org-mode-p)
       (if (not org-footnote-section)
@@ -322,7 +322,7 @@ Org-mode exporters.
 When SORT-ONLY is set, only sort the footnote definitions into the
 referenced sequence."
   ;; This is based on Paul's function, but rewritten.
-  (let ((count 0) ref def idef ref-table liste beg beg1 marker a before
+  (let ((count 0) ref def idef ref-table beg beg1 marker a before
 	ins-point)
      (save-excursion
       ;; Now find footnote references, and extract the definitions
@@ -443,12 +443,11 @@ referenced sequence."
   "Find first reference of footnote ENTRY and insert the definition there.
 ENTRY is (fn-label num-mark definition)."
   (when (car entry)
-    (let ((pos (point)))
-      (goto-char (point-min))
-      (when (re-search-forward (format ".\\[%s[]:]" (regexp-quote (car entry)))
-			       nil t)
-	(org-footnote-goto-local-insertion-point)
-	(insert (format "\n\n[%s] %s" (car entry) (nth 2 entry)))))))
+    (goto-char (point-min))
+    (when (re-search-forward (format ".\\[%s[]:]" (regexp-quote (car entry)))
+			     nil t)
+      (org-footnote-goto-local-insertion-point)
+      (insert (format "\n\n[%s] %s" (car entry) (nth 2 entry))))))
 
 (defun org-footnote-goto-local-insertion-point ()
   "Find insertion point for footnote, just before next outline heading."

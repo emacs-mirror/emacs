@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -130,7 +130,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
     (let ((template org-infojs-template)
 	(ptoc (plist-get exp-plist :table-of-contents))
 	(hlevels (plist-get exp-plist :headline-levels))
-	tdepth sdepth p1 s p v a1 tmp e opt var val table default)
+	tdepth sdepth s v e opt var val table default)
     (setq sdepth hlevels
 	  tdepth hlevels)
     (if (integerp ptoc) (setq tdepth (min ptoc tdepth)))

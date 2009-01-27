@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -149,7 +149,7 @@ This is the compiled version of the format.")
 	 (face1 (list color 'org-agenda-column-dateline ref-face))
 	 (pl (or (get-text-property (point-at-bol) 'prefix-length) 0))
 	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
-	 pom property ass width f string ov column val modval s1 s2 title)
+	 pom property ass width f string ov column val modval s2 title)
     ;; Check if the entry is in another buffer.
     (unless props
       (if (eq major-mode 'org-agenda-mode)

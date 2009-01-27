@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19a
+;; Version: 6.19e
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -94,7 +94,7 @@
 
 ;;; Version
 
-(defconst org-version "6.19a"
+(defconst org-version "6.19e"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -199,6 +199,48 @@ to add the symbol `xyz', and the package must have a call to
 	(const :tag "C  sqlinsert:         Convert Org-mode tables to SQL insertions" orgtbl-sqlinsert)
 	(repeat :tag "External packages" :inline t (symbol :tag "Package"))))
 
+(defcustom org-support-shift-select nil
+  "Non-nil means, make shift-cursor commands select text when possible.
+
+In Emacs 23, when `shift-select-mode' is on, shifted cursor keys start
+selecting a region, or enlarge thusly regions started in this way.
+In Org-mode, in special contexts, these same keys are used for other
+purposes, important enough to compete with shift selection.  Org tries
+to balance these needs by supporting `shift-select-mode' outside these
+special contexts, under control of this variable.
+
+The default of this variable is nil, to avoid confusing behavior.  Shifted
+cursor keys will then execute Org commands in the following contexts:
+- on a headline, changing TODO state (left/right) and priority (up/down)
+- on a time stamp, changing the time
+- in a plain list item, changing the bullet type
+- in a property definition line, switching between allowed values
+- in the BEGIN line of a clock table (changing the time block).
+Outside these contexts, the commands will throw an error.
+
+When this variable is t and the cursor is not in a special context,
+Org-mode will support shift-selection for making and enlarging regions.
+To make this more effective, the bullet cycling will no longer happen
+anywhere in an item line, but only if the cursor is exactly on the bullet.
+
+If you set this variable to the symbol `always', then the keys
+will not be special in headlines, property lines, and item lines, to make
+shift selection work there as well.  If this is what you want, you can
+use the following alternative commands: `C-c C-t' and `C-c ,' to
+change TODO state and priority, `C-u C-u C-c C-t' can be used to switch
+TODO sets, `C-c -' to cycle item bullet types, and properties can be
+edited by hand or in column view.
+
+However, when the cursor is on a timestamp, shift-cursor commands
+will still edit the time stamp - this is just too good to give up.
+
+XEmacs user should have this variable set to nil, because shift-select-mode
+is Emacs 23 only."
+  :group 'org
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "When outside special context" t)
+	  (const :tag "Everywhere except timestamps" always)))
 
 (defgroup org-startup nil
   "Options concerning startup of Org-mode."
@@ -2341,7 +2383,6 @@ Changing this variable requires a restart of Emacs to take effect."
 	   (border (nth 2 e))
 	   (body (nth 3 e))
 	   (nl (nth 4 e))
-	   (stacked (and nil (nth 5 e))) ; stacked is no longer allowed, forced to nil
 	   (body1 (concat body "*?"))
 	   (markers (mapconcat 'car org-emphasis-alist ""))
 	   (vmarkers (mapconcat
@@ -2361,17 +2402,17 @@ Changing this variable requires a restart of Emacs to take effect."
                               (int-to-string nl) "\\}")))
       ;; Make the regexp
       (setq org-emph-re
-	    (concat "\\([" pre (if (and nil stacked) markers) "]\\|^\\)"
+	    (concat "\\([" pre "]\\|^\\)"
 		    "\\("
 		    "\\([" markers "]\\)"
 		    "\\("
 		    "[^" border "]\\|"
-		    "[^" border (if (and nil stacked) markers) "]"
+		    "[^" border "]"
 		    body1
-		    "[^" border (if (and nil stacked) markers) "]"
+		    "[^" border "]"
 		    "\\)"
 		    "\\3\\)"
-		    "\\([" post (if (and nil stacked) markers) "]\\|$\\)"))
+		    "\\([" post "]\\|$\\)"))
       (setq org-verbatim-re
 	    (concat "\\([" pre "]\\|^\\)"
 		    "\\("
@@ -4404,7 +4445,7 @@ With a numeric prefix, show all headlines up to that level."
 (defun org-set-visibility-according-to-property (&optional no-cleanup)
   "Switch subtree visibilities according to :VISIBILITY: property."
   (interactive)
-  (let (state)
+  (let (org-show-entry-below state)
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward
@@ -4482,16 +4523,16 @@ This function is the default value of the hook `org-cycle-hook'."
      ((eq state 'subtree)  (or (org-subtree-end-visible-p) (recenter 1))))))
 
 (defun org-compact-display-after-subtree-move ()
-  (let (beg end)
-    (save-excursion
-      (if (org-up-heading-safe)
-	  (progn
-	    (hide-subtree)
-	    (show-entry)
-	    (show-children)
-	    (org-cycle-show-empty-lines 'children)
-	    (org-cycle-hide-drawers 'children))
-	(org-overview)))))
+  "Show a compacter version of the tree of the entry's parent."
+  (save-excursion
+    (if (org-up-heading-safe)
+	(progn
+	  (hide-subtree)
+	  (show-entry)
+	  (show-children)
+	  (org-cycle-show-empty-lines 'children)
+	  (org-cycle-hide-drawers 'children))
+      (org-overview))))
 
 (defun org-cycle-show-empty-lines (state)
   "Show empty lines above all visible headlines.
@@ -5846,7 +5887,7 @@ exit by killing the buffer with \\[org-edit-src-exit]."
 	(msg (substitute-command-keys
 	      "Edit, then exit with C-c ' (C-c and single quote)"))
 	(org-mode-p (eq major-mode 'org-mode))
-	beg end lang lang-f)
+	beg end)
     (beginning-of-line 1)
     (if (looking-at "[ \t]*[^:\n \t]")
 	nil
@@ -5913,7 +5954,7 @@ the language, a switch telling of the content should be in a single line."
 	    ("^#\\+ascii:" "\n" "ascii" single-line)
 	    )))
 	(pos (point))
-	re re1 re2 single beg end lang lfmt match-re1)
+	re1 re2 single beg end lang lfmt match-re1)
     (catch 'exit
       (while (setq entry (pop re-list))
 	(setq re1 (car entry) re2 (nth 1 entry) lang (nth 2 entry)
@@ -7836,7 +7877,7 @@ operation has put the subtree."
     (apply
      'org-ido-completing-read prompt
      (lambda (string predicate &optional flag)
-       (let (rtn r s f (l (length string)))
+       (let (rtn r f (l (length string)))
 	 (cond
 	  ((eq flag nil)
 	   ;; try completion
@@ -8275,6 +8316,7 @@ DONE are present, add TODO at the beginning of the heading.
 
 With C-u prefix arg, use completion to determine the new state.
 With numeric prefix arg, switch to that state.
+With a double C-u prefix, switch to the next set of TODO keywords (nextset).
 
 For calling through lisp, arg is also interpreted in the following way:
 'none             -> empty state
@@ -8285,6 +8327,7 @@ For calling through lisp, arg is also interpreted in the following way:
 \"WAITING\"         -> switch to the specified keyword, but only if it
                      really is a member of `org-todo-keywords'."
   (interactive "P")
+  (if (equal arg '(16)) (setq arg 'nextset))
   (save-excursion
     (catch 'exit
       (org-back-to-heading)
@@ -8368,6 +8411,8 @@ For calling through lisp, arg is also interpreted in the following way:
 				 :position startpos))
 	     dolog now-done-p)
 	(when org-blocker-hook
+	  (setq org-last-todo-state-is-todo
+		(not (member this org-done-keywords)))
 	  (unless (save-excursion
 		    (save-match-data
 		      (run-hook-with-args-until-failure
@@ -8659,7 +8704,7 @@ This function is run automatically after each state change to a DONE state."
 	 (org-log-done nil)
 	 (org-todo-log-states nil)
 	 (nshiftmax 10) (nshift 0)
-	 re type n what ts mb0 time)
+	 re type n what ts time)
     (when repeat
       (if (eq org-log-repeat t) (setq org-log-repeat 'state))
       (org-todo (if (eq interpret 'type) last-state head))
@@ -8682,8 +8727,7 @@ This function is run automatically after each state change to a DONE state."
 	      re (save-excursion (outline-next-heading) (point)) t)
 	(setq type (if (match-end 1) org-scheduled-string
 		     (if (match-end 3) org-deadline-string "Plain:"))
-	      ts (match-string (if (match-end 2) 2 (if (match-end 4) 4 0)))
-	      mb0 (match-beginning 0))
+	      ts (match-string (if (match-end 2) 2 (if (match-end 4) 4 0))))
 	(when (string-match "\\([.+]\\)?\\(\\+[0-9]+\\)\\([dwmy]\\)" ts)
 	  (setq	n (string-to-number (match-string 2 ts))
 		what (match-string 3 ts))
@@ -10166,7 +10210,7 @@ the scanner.  The following items can be given here:
 	 (org-agenda-skip-function
 	  (car (org-delete-all '(comment archive) skip)))
 	 (org-tags-match-list-sublevels t)
-	 matcher pos file res
+	 matcher file res
 	 org-todo-keywords-for-agenda
 	 org-done-keywords-for-agenda
 	 org-todo-keyword-alist-for-agenda
@@ -10190,7 +10234,6 @@ the scanner.  The following items can be given here:
 	       (list (buffer-file-name (current-buffer))))
 	      (setq res (org-scan-tags func matcher)))
 	  ;; Get the right scope
-	  (setq pos (point))
 	  (cond
 	   ((and scope (listp scope) (symbolp (car scope)))
 	    (setq scope (eval scope)))
@@ -10588,7 +10631,7 @@ With INCLUDE-DEFAULTS, also include properties that has special meaning
 internally: ARCHIVE, CATEGORY, SUMMARY, DESCRIPTION, LOCATION, and LOGGING.
 With INCLUDE-COLUMNS, also include property names given in COLUMN
 formats in the current buffer."
-  (let (rtn range cfmt cols s p)
+  (let (rtn range cfmt s p)
     (save-excursion
       (save-restriction
 	(widen)
@@ -12898,9 +12941,19 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
 	     'delete-backward-char 'org-delete-backward-char)
   (org-defkey org-mode-map "|" 'org-force-self-insert))
 
-(defun org-shiftcursor-error ()
+(defun org-modifier-cursor-error ()
+  "Throw an error, a modified cursor command was applied in wrong context."
+  (error "This command is active in special context like tables, headlines or items"))
+
+(defun org-shiftselect-error ()
   "Throw an error because Shift-Cursor command was applied in wrong context."
-  (error "This command is active in special context like tables, headlines or timestamps"))
+  (if (and (boundp 'shift-select-mode) shift-select-mode)
+      (error "To use shift-selection with Org-mode, customize `org-support-shift-select'.")
+    (error "This command works only in special context like headlines or timestamps.")))
+
+(defun org-call-for-shift-select (cmd)
+  (let ((this-command-keys-shift-translated t))
+    (call-interactively cmd)))
 
 (defun org-shifttab (&optional arg)
   "Global visibility cycling or move to previous table field.
@@ -12926,7 +12979,7 @@ See the individual commands for more information."
    ((org-at-table-p) (call-interactively 'org-table-delete-column))
    ((org-on-heading-p) (call-interactively 'org-promote-subtree))
    ((org-at-item-p) (call-interactively 'org-outdent-item))
-   (t (org-shiftcursor-error))))
+   (t (org-modifier-cursor-error))))
 
 (defun org-shiftmetaright ()
   "Demote subtree or insert table column.
@@ -12938,7 +12991,7 @@ See the individual commands for more information."
    ((org-at-table-p) (call-interactively 'org-table-insert-column))
    ((org-on-heading-p) (call-interactively 'org-demote-subtree))
    ((org-at-item-p) (call-interactively 'org-indent-item))
-   (t (org-shiftcursor-error))))
+   (t (org-modifier-cursor-error))))
 
 (defun org-shiftmetaup (&optional arg)
   "Move subtree up or kill table row.
@@ -12950,7 +13003,7 @@ for more information."
    ((org-at-table-p) (call-interactively 'org-table-kill-row))
    ((org-on-heading-p) (call-interactively 'org-move-subtree-up))
    ((org-at-item-p) (call-interactively 'org-move-item-up))
-   (t (org-shiftcursor-error))))
+   (t (org-modifier-cursor-error))))
 (defun org-shiftmetadown (&optional arg)
   "Move subtree down or insert table row.
 Calls `org-move-subtree-down' or `org-table-insert-row' or
@@ -12961,7 +13014,7 @@ commands for more information."
    ((org-at-table-p) (call-interactively 'org-table-insert-row))
    ((org-on-heading-p) (call-interactively 'org-move-subtree-down))
    ((org-at-item-p) (call-interactively 'org-move-item-down))
-   (t (org-shiftcursor-error))))
+   (t (org-modifier-cursor-error))))
 
 (defun org-metaleft (&optional arg)
   "Promote heading or move table column to left.
@@ -13019,13 +13072,20 @@ Calls `org-timestamp-up' or `org-priority-up', or `org-previous-item',
 depending on context.  See the individual commands for more information."
   (interactive "P")
   (cond
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'previous-line))
    ((org-at-timestamp-p t)
     (call-interactively (if org-edit-timestamp-down-means-later
 			    'org-timestamp-down 'org-timestamp-up)))
-   ((org-on-heading-p) (call-interactively 'org-priority-up))
-   ((org-at-item-p) (call-interactively 'org-previous-item))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (call-interactively 'org-priority-up))
+   ((and (not org-support-shift-select) (org-at-item-p))
+    (call-interactively 'org-previous-item))
    ((org-clocktable-try-shift 'up arg))
-   (t (call-interactively 'org-beginning-of-item) (beginning-of-line 1))))
+   (org-support-shift-select
+    (org-call-for-shift-select 'previous-line))
+   (t (org-shiftselect-error))))
 
 (defun org-shiftdown (&optional arg)
   "Decrease item in timestamp or decrease priority of current headline.
@@ -13033,12 +13093,20 @@ Calls `org-timestamp-down' or `org-priority-down', or `org-next-item'
 depending on context.  See the individual commands for more information."
   (interactive "P")
   (cond
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'next-line))
    ((org-at-timestamp-p t)
     (call-interactively (if org-edit-timestamp-down-means-later
 			    'org-timestamp-up 'org-timestamp-down)))
-   ((org-on-heading-p) (call-interactively 'org-priority-down))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (call-interactively 'org-priority-down))
+   ((and (not org-support-shift-select) (org-at-item-p))
+    (call-interactively 'org-next-item))
    ((org-clocktable-try-shift 'down arg))
-   (t (call-interactively 'org-next-item))))
+   (org-support-shift-select 
+    (org-call-for-shift-select 'next-line))
+   (t (org-shiftselect-error))))
 
 (defun org-shiftright (&optional arg)
   "Cycle the thing at point or in the current line, depending on context.
@@ -13051,12 +13119,24 @@ Depending on context, this does one of the following:
 - on a clocktable definition line, move time block into the future"
   (interactive "P")
   (cond
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'forward-char))
    ((org-at-timestamp-p t) (call-interactively 'org-timestamp-up-day))
-   ((org-on-heading-p) (org-call-with-arg 'org-todo 'right))
-   ((org-at-item-p) (org-call-with-arg 'org-cycle-list-bullet nil))
-   ((org-at-property-p) (call-interactively 'org-property-next-allowed-value))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (org-call-with-arg 'org-todo 'right))
+   ((or (and org-support-shift-select
+	     (not (eq org-support-shift-select 'always))
+	     (org-at-item-bullet-p))
+	(and (not org-support-shift-select) (org-at-item-p)))
+    (org-call-with-arg 'org-cycle-list-bullet nil))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-at-property-p))
+    (call-interactively 'org-property-next-allowed-value))
    ((org-clocktable-try-shift 'right arg))
-   (t (org-shiftcursor-error))))
+   (org-support-shift-select 
+    (org-call-for-shift-select 'forward-char))
+   (t (org-shiftselect-error))))
 
 (defun org-shiftleft (&optional arg)
   "Cycle the thing at point or in the current line, depending on context.
@@ -13069,27 +13149,50 @@ Depending on context, this does one of the following:
 - on a clocktable definition line, move time block into the past"
   (interactive "P")
   (cond
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'backward-char))
    ((org-at-timestamp-p t) (call-interactively 'org-timestamp-down-day))
-   ((org-on-heading-p) (org-call-with-arg 'org-todo 'left))
-   ((org-at-item-p) (org-call-with-arg 'org-cycle-list-bullet 'previous))
-   ((org-at-property-p)
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (org-call-with-arg 'org-todo 'left))
+   ((or (and org-support-shift-select
+	     (not (eq org-support-shift-select 'always))
+	     (org-at-item-bullet-p))
+	(and (not org-support-shift-select) (org-at-item-p)))
+    (org-call-with-arg 'org-cycle-list-bullet 'previous))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-at-property-p))
     (call-interactively 'org-property-previous-allowed-value))
    ((org-clocktable-try-shift 'left arg))
-   (t (org-shiftcursor-error))))
+   (org-support-shift-select 
+    (org-call-for-shift-select 'backward-char))
+   (t (org-shiftselect-error))))
 
 (defun org-shiftcontrolright ()
   "Switch to next TODO set."
   (interactive)
   (cond
-   ((org-on-heading-p) (org-call-with-arg 'org-todo 'nextset))
-   (t (org-shiftcursor-error))))
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'forward-word))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (org-call-with-arg 'org-todo 'nextset))
+   (org-support-shift-select
+    (org-call-for-shift-select 'forward-word))
+   (t (org-shiftselect-error))))
 
 (defun org-shiftcontrolleft ()
   "Switch to previous TODO set."
   (interactive)
   (cond
-   ((org-on-heading-p) (org-call-with-arg 'org-todo 'previousset))
-   (t (org-shiftcursor-error))))
+   ((and org-support-shift-select (org-region-active-p))
+    (org-call-for-shift-select 'backward-word))
+   ((and (not (eq org-support-shift-select 'always))
+	 (org-on-heading-p))
+    (org-call-with-arg 'org-todo 'previousset))
+   (org-support-shift-select
+    (org-call-for-shift-select 'backward-word))
+   (t (org-shiftselect-error))))
 
 (defun org-ctrl-c-ret ()
   "Call `org-table-hline-and-move' or `org-insert-heading' dep. on context."
@@ -14846,7 +14949,7 @@ Show the heading too, if it is currently invisible."
 	 (re (concat "^" outline-regexp))
 	 (subs (make-vector (1+ n) nil))
 	 (last-level 0)
-	 m tree level head)
+	 m level head)
     (save-excursion
       (save-restriction
 	(widen)
@@ -14899,7 +15002,7 @@ if no description is present"
 To get rid of the restriction, use \\[org-agenda-remove-restriction-lock]."
   (interactive)
   (require 'org-agenda)
-  (let (p m tp np dir txt w)
+  (let (p m tp np dir txt)
     (cond
      ((setq p (text-property-any (point-at-bol) (point-at-eol)
 				 'org-imenu t))

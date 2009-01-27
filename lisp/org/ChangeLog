@@ -1,3 +1,36 @@
+2009-01-27  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-todo): Return correct state type even if the blocker
+	throws an error.
+	(org-modifier-cursor-error): Renamed from
+	`org-shiftcursor-error'.
+	(org-shiftmetaleft, org-shiftmetaright, org-shiftmetaup)
+	(org-shiftmetadown): Call `org-modifier-cursor-error'.
+
+	* org-agenda.el (org-agenda-todo): Call `org-todo' interactively,
+	to get real errors from the blocker hook.
+
+	* org.el (org-shiftselect-error, org-call-for-shift-select): New
+	functions.
+	(org-set-visibility-according-to-property): Turn off the setting
+	of `org-show-entry-below', to avoid overruling a FOLDED visibility
+	property.
+
+	* org.el (org-support-shift-select): New option.
+	(org-shiftup, org-shiftdown, org-shiftright, org-shiftleft)
+	(org-shiftcontrolright, org-shiftcontrolleft): Support for shift
+	selection outside contexts.
+
+	* org-list.el (org-at-item-bullet-p): New function.
+
+	* org-jsinfo.el (org-infojs-handle-options): Remove unnecessary
+	variables.
+
+	* org-footnote.el (org-footnote-normalize): Remove unnecessary
+	variable.
+	(org-insert-footnote-reference-near-definition): Remove
+	unnecessary let form.
+
 2009-01-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-export-latex.el (org-export-as-latex): Call

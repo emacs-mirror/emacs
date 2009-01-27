@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 6.19a
+;; Version: 6.19e
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -434,7 +434,8 @@ when PUB-DIR is set, use this as the publishing directory."
 		     (region-p nil)
 		     (t (plist-get opt-plist :skip-before-1st-heading))))
 	 (text (plist-get opt-plist :text))
-	 (first-lines (if skip "" (org-export-latex-first-lines opt-plist rbeg)))
+	 (first-lines (if skip "" (org-export-latex-first-lines
+				   opt-plist rbeg)))
 	 (coding-system (and (boundp 'buffer-file-coding-system)
 			     buffer-file-coding-system))
 	 (coding-system-for-write (or org-export-latex-coding-system
@@ -1306,7 +1307,7 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 
   ;; Convert LaTeX to \LaTeX{}
   (goto-char (point-min))
-  (let ((case-fold-search nil) rpl)
+  (let ((case-fold-search nil))
     (while (re-search-forward "\\([^+_]\\)LaTeX" nil t)
       (org-if-unprotected
        (replace-match (org-export-latex-protect-string
