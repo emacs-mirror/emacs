@@ -940,13 +940,10 @@ This function also reinitializes local variables used by Rmail."
 (defun rmail-get-coding-system ()
   "Return a suitable coding system to use for the current mail message.
 The buffer is expected to be narrowed to just the header of the message."
-  (let ((content-type-header (mail-fetch-field "content-type"))
-	separator)
-    (save-excursion
-      (setq separator (search-forward "\n\n")))
-    (if (and content-type-header
-	     (string-match rmail-mime-charset-pattern content-type-header))
-	(substring content-type-header (match-beginning 1) (match-end 1))
+  (save-excursion
+    (goto-char (point-min))
+    (if (re-search-forward rmail-mime-charset-pattern)
+	(coding-system-from-name (match-string 1))
       'undecided)))
 
 ;;; Set up Rmail mode keymaps
