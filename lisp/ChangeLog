@@ -1,5 +1,8 @@
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Prompt user before
+	converting.
+
 	* mail/unrmail.el (unrmail): Record labels in X-RMAIL-* fields,
 	which are recognized by the new Rmail, instead of X-BABYL-V6-*.
 
