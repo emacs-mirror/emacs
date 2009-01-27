@@ -2563,7 +2563,8 @@ Otherwise, if `rmail-displayed-headers' is non-nil, copy only
 those header fields whose names match that regexp.  Otherwise,
 copy all header fields whose names do not match
 `rmail-ignored-headers' (unless they also match
-`rmail-nonignored-headers')."
+`rmail-nonignored-headers').  Leaves point in the message viewer
+buffer at the end of the headers."
   (let ((header-start-regexp "\n[^ \t]")
 	lim)
     (with-current-buffer rmail-buffer
@@ -2579,8 +2580,12 @@ copy all header fields whose names do not match
 	  (cond
 	   ;; Handle the case where all headers should be copied.
 	   ((eq rmail-header-style 'full)
-	    (prepend-to-buffer rmail-view-buffer beg (point-max)))
-	   ;; Handle the case where the headers matching the diplayed
+	    (prepend-to-buffer rmail-view-buffer beg (point-max))
+	    ;; rmail-show-message expects this function to leave point
+	    ;; at the end of the headers.
+	    (with-current-buffer rmail-view-buffer
+	      (search-forward "\n\n" nil t)))
+	   ;; Handle the case where the headers matching the displayed
 	   ;; headers regexp should be copied.
 	   ((and rmail-displayed-headers (null ignored-headers))
 	    (while (not (eobp))
