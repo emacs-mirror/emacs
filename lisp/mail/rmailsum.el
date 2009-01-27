@@ -34,15 +34,13 @@
 ;; For rmail-select-summary
 (require 'rmail)
 
-;;;###autoload
 (defcustom rmail-summary-scroll-between-messages t
-  "*Non-nil means Rmail summary scroll commands move between messages."
+  "Non-nil means Rmail summary scroll commands move between messages."
   :type 'boolean
   :group 'rmail-summary)
 
-;;;###autoload
 (defcustom rmail-summary-line-count-flag t
-  "*Non-nil means Rmail summary should show the number of lines in each message."
+  "Non-nil means Rmail summary should show the number of lines in each message."
   :type 'boolean
   :group 'rmail-summary)
 
@@ -142,7 +140,9 @@ Emacs will list the header line in the RMAIL-summary."
 (defun rmail-message-regexp-p-1 (msg regexp)
   (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
   (if rmail-enable-mime
-      (funcall rmail-search-mime-header-function msg regexp (point))
+      (if rmail-search-mime-header-function
+	  (funcall rmail-search-mime-header-function msg regexp (point))
+	(error "You must set `rmail-search-mime-header-function'"))
     (re-search-forward regexp nil t)))
 
 ;;;###autoload
@@ -318,7 +318,7 @@ buffer, or by creating a new summary buffer."
   (if (and rmail-summary-buffer (buffer-name rmail-summary-buffer))
       rmail-summary-buffer
     (generate-new-buffer (concat (buffer-name) "-summary"))))
-	    
+
 
 ;; Low levels of generating a summary.
 
@@ -342,9 +342,8 @@ The current buffer contains the unrestricted message collection."
       (aset rmail-summary-vector (1- msgnum) line))
     line))
 
-;;;###autoload
 (defcustom rmail-summary-line-decoder (function identity)
-  "*Function to decode a Rmail summary line.
+  "Function to decode a Rmail summary line.
 It receives the summary line for one message as a string
 and should return the decoded string.
 
@@ -439,9 +438,10 @@ LINES is the number of lines in the message (if we should display that)
 	     (concat prefix basic-start linecount-string " "
 		     labels basic-end))))
 
+;; FIXME move to rmail.el?
 ;;;###autoload
 (defcustom rmail-user-mail-address-regexp nil
-  "*Regexp matching user mail addresses.
+  "Regexp matching user mail addresses.
 If non-nil, this variable is used to identify the correspondent
 when receiving new mail.  If it matches the address of the sender,
 the recipient is taken as correspondent of a mail.
