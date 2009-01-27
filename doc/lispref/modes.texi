@@ -2578,7 +2578,7 @@ which specifies how to highlight matches found by @var{matcher}.
 It has the form:
 
 @example
-(@var{subexp} @var{facespec} [[@var{override} [@var{laxmatch}]])
+(@var{subexp} @var{facespec} [@var{override} [@var{laxmatch}]])
 @end example
 
 The @sc{car}, @var{subexp}, is an integer specifying which subexpression
