@@ -1,3 +1,9 @@
+2009-01-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Plain lists, TODO basics, Priorities)
+	(Multiple sets in one file, Conflicts): Document interaction with
+	`shift-selection-mode'.
+
 2009-01-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Embedded Mode, Algebraic-Style Calculations):
