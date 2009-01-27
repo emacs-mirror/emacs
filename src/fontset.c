@@ -898,7 +898,7 @@ face_for_char (f, face, c, pos, object)
 	{
 	  Lisp_Object val;
 
-	  val = assoc_no_quit (charset, Vfont_encoding_charset_alist);
+	  val = assq_no_quit (charset, Vfont_encoding_charset_alist);
 	  if (CONSP (val) && CHARSETP (XCDR (val)))
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
@@ -1955,6 +1955,8 @@ patterns.  */)
 	if (VECTORP (elt))
 	  for (j = 0; j < ASIZE (elt); j++)
 	    {
+	      Lisp_Object family, registry;
+
 	      val = AREF (elt, j);
 	      repertory = AREF (val, 1);
 	      if (INTEGERP (repertory))
@@ -1970,7 +1972,14 @@ patterns.  */)
 		    continue;
 		}
 	      val = AREF (val, 0);
-	      val = Fcons (AREF (val, 0), AREF (val, 5));
+	      /* VAL is a FONT-SPEC */
+	      family = AREF (val, FONT_FAMILY_INDEX);
+	      if (! NILP (family))
+		family = SYMBOL_NAME (family);
+	      registry = AREF (val, FONT_REGISTRY_INDEX);
+	      if (! NILP (registry))
+		registry = SYMBOL_NAME (registry);
+	      val = Fcons (family, registry);
 	      if (NILP (all))
 		return val;
 	      list = Fcons (val, list);
