@@ -1,3 +1,8 @@
+2009-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-message-recipients-p-1)
+	(rmail-message-regexp-p-1): Avoid clobbering the mark.
+
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rmailsum.el (rmail-summary-mark-deleted): Recache summary.
