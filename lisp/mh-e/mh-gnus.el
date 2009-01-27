@@ -38,6 +38,7 @@
 (mh-require 'mml nil t)
 
 ;; Copy of function from gnus-util.el.
+;; TODO This is not in Gnus 5.11.
 (defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond ((featurep 'xemacs) (list 'keymap map))
@@ -46,29 +47,34 @@
 
 ;; Copy of function from mm-decode.el.
 (defun-mh mh-mm-merge-handles mm-merge-handles (handles1 handles2)
-  (append (if (listp (car handles1)) handles1 (list handles1))
-          (if (listp (car handles2)) handles2 (list handles2))))
+  (append
+   (if (listp (car handles1))
+       handles1
+     (list handles1))
+   (if (listp (car handles2))
+       handles2
+     (list handles2))))
 
 ;; Copy of function from mm-decode.el.
 (defun-mh mh-mm-set-handle-multipart-parameter
   mm-set-handle-multipart-parameter (handle parameter value)
   ;; HANDLE could be a CTL.
-  (if handle
-      (put-text-property 0 (length (car handle)) parameter value
-                         (car handle))))
+  (when handle
+    (put-text-property 0 (length (car handle)) parameter value
+		       (car handle))))
 
 ;; Copy of function from mm-view.el.
 (defun-mh mh-mm-inline-text-vcard mm-inline-text-vcard (handle)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (mm-insert-inline
      handle
      (concat "\n-- \n"
-             (ignore-errors
-               (if (fboundp 'vcard-pretty-print)
-                   (vcard-pretty-print (mm-get-part handle))
-                 (vcard-format-string
-                  (vcard-parse-string (mm-get-part handle)
-                                      'vcard-standard-filter))))))))
+	     (ignore-errors
+	       (if (fboundp 'vcard-pretty-print)
+		   (vcard-pretty-print (mm-get-part handle))
+		 (vcard-format-string
+		  (vcard-parse-string (mm-get-part handle)
+				      'vcard-standard-filter))))))))
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
 ;; Gnus to avoid compiler warning.
@@ -119,41 +125,43 @@
 
 ;; Copy of function in mml.el.
 (defun-mh mh-mml-minibuffer-read-disposition
-  mml-minibuffer-read-disposition (type &optional default)
-  (unless default (setq default
-                        (if (and (string-match "\\`text/" type)
-                                 (not (string-match "\\`text/rtf\\'" type)))
-                            "inline"
-                          "attachment")))
+  mml-minibuffer-read-disposition (type &optional default filename)
+  (unless default
+    (setq default (mml-content-disposition type filename)))
   (let ((disposition (completing-read
-                      (format "Disposition (default %s): " default)
-                      '(("attachment") ("inline") (""))
-                      nil t nil nil default)))
+		      (format "Disposition (default %s): " default)
+		      '(("attachment") ("inline") (""))
+		      nil t nil nil default)))
     (if (not (equal disposition ""))
-        disposition
+	disposition
       default)))
 
-;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
-;; buggy (the args to read-file-name are incorrect). When all supported
-;; versions of Emacs come with at least Gnus 5.10, we can delete this
-;; function and rename calls to mh-mm-save-part to mm-save-part.
-(defun mh-mm-save-part (handle)
-  "Write HANDLE to a file."
-  (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
-        (filename (mail-content-type-get
-                   (mm-handle-disposition handle) 'filename))
-        file)
+;; This is mm-save-part from Gnus 5.11 since that function in Emacs
+;; 21.2 is buggy (the args to read-file-name are incorrect) and the
+;; version in Emacs 22 is not consistent with C-x C-w in that you
+;; can't just specify a directory and have the right thing happen.
+(defun mh-mm-save-part (handle &optional prompt)
+  "Write HANDLE to a file.
+PROMPT overrides the default one used to ask user for a file name."
+  (let ((filename (or (mail-content-type-get
+		       (mm-handle-disposition handle) 'filename)
+		      (mail-content-type-get
+		       (mm-handle-type handle) 'name)))
+	file)
     (when filename
-      (setq filename (file-name-nondirectory filename)))
-    (setq file (read-file-name "Save MIME part to: "
-                               (or mm-default-directory
-                                   default-directory)
-                               nil nil (or filename name "")))
+      (setq filename (gnus-map-function mm-file-name-rewrite-functions
+					(file-name-nondirectory filename))))
+    (setq file
+          (read-file-name (or prompt "Save MIME part to: ")
+                          (or mm-default-directory default-directory)
+                          nil nil (or filename "")))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
-             (yes-or-no-p (format "File %s already exists; overwrite? "
-                                  file)))
-         (mm-save-part-to-file handle file))))
+	     (yes-or-no-p (format "File %s already exists; overwrite? "
+				  file)))
+	 (progn
+	   (mm-save-part-to-file handle file)
+	   file))))
 
 (defun mh-mm-text-html-renderer ()
   "Find the renderer Gnus is using to display text/html MIME parts."
