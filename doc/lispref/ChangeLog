@@ -1,3 +1,7 @@
+2009-01-27  Alan Mackenzie  <acm@muc.de>
+
+	* modes.texi (Search-based Fontification): Correct a typo.
+
 2009-01-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrevs.texi (Abbrev Table Properties): Fix typo.
