@@ -1,3 +1,7 @@
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailsum.el (rmail-summary-mark-deleted): Recache summary.
+
 2009-01-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-sel.el (cal-sel-mult-both-sides): Add an option to
