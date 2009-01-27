@@ -752,11 +752,12 @@
 				     (list (and calc-sel-reselect val))))))
      (calc-handle-whys))))
 
-(defun calc-sel-mult-both-sides (no-simp &optional divide)
+(defun calc-sel-mult-both-sides (arg &optional divide)
   (interactive "P")
   (calc-wrapper
    (calc-preserve-point)
-   (let* ((num (max 1 (calc-locate-cursor-element (point))))
+   (let* ((no-simp (consp arg))
+          (num (max 1 (calc-locate-cursor-element (point))))
 	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
@@ -794,10 +795,13 @@
 			      rhs (math-simplify rhs))
 			(and (eq func '/)
 			     (or (Math-equal (nth 1 sel) 1)
-				 (Math-equal (nth 1 sel) -1)
-				 (and (memq (car-safe (nth 2 sel)) '(+ -))
-				      (memq (car-safe alg) '(+ -))))
-			     (setq rhs (math-expand-term rhs)))))
+				 (Math-equal (nth 1 sel) -1))
+;				 (and (memq (car-safe (nth 2 sel)) '(+ -))
+;				      (memq (car-safe alg) '(+ -))))
+                             (unless arg
+                               (setq rhs (math-expand-term rhs))))))
+                  (if (and arg (not no-simp))
+                      (setq rhs (calcFunc-expand rhs (unless (= arg 0) arg))))
 		  (setq alg (calc-encase-atoms
 			     (calc-normalize (list func lhs rhs)))))
 	      (setq rhs (list (if divide '* '/) sel alg))
