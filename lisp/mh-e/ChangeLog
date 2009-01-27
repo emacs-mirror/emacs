@@ -1,5 +1,9 @@
 2009-01-27  Bill Wohler  <wohler@newt.com>
 
+	* mh-funcs.el (mh-pack-folder): Fix docstring.
+
+	* mh-e.el (mh-pack-folder-hook): Bump package-version to 8.2.
+
 	* mh-gnus.el (mh-mm-merge-handles)
 	(mh-mm-set-handle-multipart-parameter, mh-mm-inline-text-vcard)
 	(mh-mml-minibuffer-read-disposition, mh-mm-save-part): Update with
