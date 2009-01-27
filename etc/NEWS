@@ -1623,6 +1623,10 @@ ordered by their priorities.
 +++
 **** `set-coding-system-priority' sets priorities of coding systems.
 
+**** `coding-system-from-name' returns a coding system matching with
+the argument name.
+
+
 ** There is a new input method, Robin, different from Quail.
 It has three functionalities:
  i) a simple input method (converts an ASCII sequence into a string).
