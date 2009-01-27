@@ -2563,8 +2563,8 @@ Otherwise, if `rmail-displayed-headers' is non-nil, copy only
 those header fields whose names match that regexp.  Otherwise,
 copy all header fields whose names do not match
 `rmail-ignored-headers' (unless they also match
-`rmail-nonignored-headers').  Leaves point in the message viewer
-buffer at the end of the headers."
+`rmail-nonignored-headers').  Moves point in the message viewer
+buffer to the end of the headers."
   (let ((header-start-regexp "\n[^ \t]")
 	lim)
     (with-current-buffer rmail-buffer
