@@ -942,7 +942,7 @@ This function also reinitializes local variables used by Rmail."
 The buffer is expected to be narrowed to just the header of the message."
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward rmail-mime-charset-pattern)
+    (if (re-search-forward rmail-mime-charset-pattern nil t)
 	(coding-system-from-name (match-string 1))
       'undecided)))
 
