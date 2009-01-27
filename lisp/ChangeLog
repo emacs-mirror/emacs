@@ -1,3 +1,11 @@
+2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Enhance docstring and fallback to
+	fundamental-mode or ps-mode if the file is empty or doesn't exist
+	at all.
+	(doc-view-initiate-display): Better info message if doc-view-mode
+	cannot be used.  (Missing utility or no png support/no X frame.)
+
 2009-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-copy-headers): Doc fix.  Leave point at the end

@@ -1049,10 +1049,14 @@ If BACKWARD is non-nil, jump to the previous match."
     (message
      "%s"
      (substitute-command-keys
-      (concat "No image (png) support available or some conversion utility for "
+      (concat "No PNG support available or some conversion utility for "
 	      (file-name-extension doc-view-buffer-file-name)" files is missing.  "
-	      "Type \\[doc-view-toggle-display] to switch to an editing mode or "
-	      "\\[doc-view-open-text] to open a buffer showing the doc as text.")))))
+	      "Type \\[doc-view-toggle-display] to switch to "
+	      (if (eq doc-view-doc-type 'ps)
+		  "ps-mode"
+		"fundamental-mode")
+	      ", \\[doc-view-open-text] to show the doc as text in a separate buffer "
+	      " or \\[doc-view-kill-proc-and-buffer] to kill this buffer.")))))
 
 (defvar bookmark-make-record-function)
 
@@ -1078,93 +1082,105 @@ If BACKWARD is non-nil, jump to the previous match."
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
+
+DocView Mode is an Emacs document viewer.  It displays PDF, PS
+and DVI files (as PNG images) in Emacs buffers.
+
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text.
 \\{doc-view-mode-map}"
   (interactive)
 
-  (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
-			      doc-view-previous-major-mode
-			    major-mode)))
-    (kill-all-local-variables)
-    (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+  (if (or (not (file-exists-p buffer-file-name))
+	  (= (point-min) (point-max)))
+      ;; The doc is empty or doesn't exist at all, so fallback to an
+      ;; editing mode.
+      (if (string-match "[eE]?[pP][sS]" (file-name-extension buffer-file-name) "")
+	  (ps-mode)
+	(fundamental-mode)) ;;Should we activate d-v-minor-mode here?
 
-  ;; Figure out the document type.
-  (let ((name-types
-         (when buffer-file-name
-           (cdr (assoc (file-name-extension buffer-file-name)
-                       '(("dvi" dvi)
-                         ("pdf" pdf)
-                         ("epdf" pdf)
-                         ("ps" ps)
-                         ("eps" ps))))))
-        (content-types
-         (save-excursion
-           (goto-char (point-min))
-           (cond
-            ((looking-at "%!") '(ps))
-            ((looking-at "%PDF") '(pdf))
-            ((looking-at "\367\002") '(dvi))))))
-    (set (make-local-variable 'doc-view-doc-type)
-         (car (or (doc-view-intersection name-types content-types)
-                  (when (and name-types content-types)
-                    (error "Conflicting types: name says %s but content says %s"
-                           name-types content-types))
-                  name-types content-types
-                  (error "Cannot determine the document type")))))
-
-  (doc-view-make-safe-dir doc-view-cache-directory)
-  ;; Handle compressed files, remote files, files inside archives
-  (set (make-local-variable 'doc-view-buffer-file-name)
-       (cond
-	(jka-compr-really-do-compress
-	 (expand-file-name
-	  (file-name-nondirectory
-	   (file-name-sans-extension buffer-file-name))
-	  doc-view-cache-directory))
-        ;; Is the file readable by local processes?
-        ;; We used to use `file-remote-p' but it's unclear what it's
-        ;; supposed to return nil for things like local files accessed via
-        ;; `su' or via file://...
-	((let ((file-name-handler-alist nil))
-           (not (file-readable-p buffer-file-name)))
-	 (expand-file-name
-	  (file-name-nondirectory buffer-file-name)
-	  doc-view-cache-directory))
-	(t buffer-file-name)))
-  (when (not (string= doc-view-buffer-file-name buffer-file-name))
-    (write-region nil nil doc-view-buffer-file-name))
-
-  (add-hook 'change-major-mode-hook
-	    (lambda ()
-              (doc-view-kill-proc)
-              (remove-overlays (point-min) (point-max) 'doc-view t))
-	    nil t)
-  (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
-  (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
-
-  (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
-  ;; Keep track of display info ([vh]scroll, page number, overlay, ...)
-  ;; for each window in which this document is shown.
-  (add-hook 'image-mode-new-window-functions
-            'doc-view-new-window-function nil t)
-  (image-mode-setup-winprops)
-
-  (set (make-local-variable 'mode-line-position)
-       '(" P" (:eval (number-to-string (doc-view-current-page)))
-	 "/" (:eval (number-to-string (length doc-view-current-files)))))
-  ;; Don't scroll unless the user specifically asked for it.
-  (set (make-local-variable 'auto-hscroll-mode) nil)
-  (set (make-local-variable 'cursor-type) nil)
-  (use-local-map doc-view-mode-map)
-  (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
-  (set (make-local-variable 'bookmark-make-record-function)
-       'doc-view-bookmark-make-record)
-  (setq mode-name "DocView"
-	buffer-read-only t
-	major-mode 'doc-view-mode)
-  (doc-view-initiate-display)
-  (run-mode-hooks 'doc-view-mode-hook))
+    (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
+				doc-view-previous-major-mode
+			      major-mode)))
+      (kill-all-local-variables)
+      (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+    
+    ;; Figure out the document type.
+    (let ((name-types
+	   (when buffer-file-name
+	     (cdr (assoc (file-name-extension buffer-file-name)
+			 '(("dvi" dvi)
+			   ("pdf" pdf)
+			   ("epdf" pdf)
+			   ("ps" ps)
+			   ("eps" ps))))))
+	  (content-types
+	   (save-excursion
+	     (goto-char (point-min))
+	     (cond
+	      ((looking-at "%!") '(ps))
+	      ((looking-at "%PDF") '(pdf))
+	      ((looking-at "\367\002") '(dvi))))))
+      (set (make-local-variable 'doc-view-doc-type)
+	   (car (or (doc-view-intersection name-types content-types)
+		    (when (and name-types content-types)
+		      (error "Conflicting types: name says %s but content says %s"
+			     name-types content-types))
+		    name-types content-types
+		    (error "Cannot determine the document type")))))
+    
+    (doc-view-make-safe-dir doc-view-cache-directory)
+    ;; Handle compressed files, remote files, files inside archives
+    (set (make-local-variable 'doc-view-buffer-file-name)
+	 (cond
+	  (jka-compr-really-do-compress
+	   (expand-file-name
+	    (file-name-nondirectory
+	     (file-name-sans-extension buffer-file-name))
+	    doc-view-cache-directory))
+	  ;; Is the file readable by local processes?
+	  ;; We used to use `file-remote-p' but it's unclear what it's
+	  ;; supposed to return nil for things like local files accessed via
+	  ;; `su' or via file://...
+	  ((let ((file-name-handler-alist nil))
+	     (not (file-readable-p buffer-file-name)))
+	   (expand-file-name
+	    (file-name-nondirectory buffer-file-name)
+	    doc-view-cache-directory))
+	  (t buffer-file-name)))
+    (when (not (string= doc-view-buffer-file-name buffer-file-name))
+      (write-region nil nil doc-view-buffer-file-name))
+    
+    (add-hook 'change-major-mode-hook
+	      (lambda ()
+		(doc-view-kill-proc)
+		(remove-overlays (point-min) (point-max) 'doc-view t))
+	      nil t)
+    (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
+    (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
+    
+    (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
+    ;; Keep track of display info ([vh]scroll, page number, overlay,
+    ;; ...)  for each window in which this document is shown.
+    (add-hook 'image-mode-new-window-functions
+	      'doc-view-new-window-function nil t)
+    (image-mode-setup-winprops)
+    
+    (set (make-local-variable 'mode-line-position)
+	 '(" P" (:eval (number-to-string (doc-view-current-page)))
+	   "/" (:eval (number-to-string (length doc-view-current-files)))))
+    ;; Don't scroll unless the user specifically asked for it.
+    (set (make-local-variable 'auto-hscroll-mode) nil)
+    (set (make-local-variable 'cursor-type) nil)
+    (use-local-map doc-view-mode-map)
+    (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
+    (set (make-local-variable 'bookmark-make-record-function)
+	 'doc-view-bookmark-make-record)
+    (setq mode-name "DocView"
+	  buffer-read-only t
+	  major-mode 'doc-view-mode)
+    (doc-view-initiate-display)
+    (run-mode-hooks 'doc-view-mode-hook)))
 
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
