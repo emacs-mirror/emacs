@@ -917,6 +917,9 @@ MSGNUM, if present, indicates the malformed message."
 (defun rmail-convert-babyl-to-mbox ()
   "Convert the mail file from Babyl version 5 to mbox.
 This function also reinitializes local variables used by Rmail."
+  (unless (y-or-n-p "Babyl mail file detected.  Rmail now uses mbox format for mail files.
+Convert Babyl mail file to mbox format? ")
+    (error "Aborted"))
   (let ((old-file (make-temp-file "rmail"))
 	(new-file (make-temp-file "rmail")))
     (unwind-protect
