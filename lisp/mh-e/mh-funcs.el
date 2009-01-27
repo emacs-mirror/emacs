@@ -171,8 +171,8 @@ This command will ask if you want to process refiles or deletes
 first and then either run \\[mh-execute-commands] for you or undo
 the pending refiles and deletes.
 
-The hook `mh-pack-folder-hook' is run after annotating; see its
-documentation for variables it can use."
+The hook `mh-pack-folder-hook' is run after the folder is packed;
+see its documentation for variables it can use."
   (interactive (list (if current-prefix-arg
                          (mh-read-range "Scan" mh-current-folder t nil t
                                         mh-interpret-number-as-range-flag)
