@@ -583,7 +583,7 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
 
-Many commands in Org work on the region is the region is active.  To make use
+Many commands in Org work on the region if the region is active.  To make use
 of this, you need to have @code{transient-mark-mode} (@code{zmacs-regions} in
 XEmacs) turned on.  In Emacs 23 this is the default, in Emacs 22 you need to
 do this yourself with
