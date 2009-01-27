@@ -1,3 +1,12 @@
+2009-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-get-coding-system): Re-search
+	rmail-mime-charset-pattern directly instead of using
+	mail-fetch-field.  Use coding-system-from-name.
+
+	* international/mule-cmds.el (canonicalize-coding-system-name)
+	(coding-system-from-name): New functions.
+
 2009-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-bind-vm): Doc fix.
