@@ -1,3 +1,7 @@
+2009-01-27  Christopher Oliver  <coliver@message.nmc.edu>
+
+	* mouse.el (mouse-select-font): Return a string instead of a list.
+
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el: Swap C-delete and C-backspace bindings here, so we
