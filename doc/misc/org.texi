@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.19a
+@set VERSION 6.19e
 @set DATE January 2009
 
 @dircategory Emacs
@@ -583,7 +583,7 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
 
-Many commands in Org work on the region if the region is active.  To make use
+Many commands in Org work on the region is the region is active.  To make use
 of this, you need to have @code{transient-mark-mode} (@code{zmacs-regions} in
 XEmacs) turned on.  In Emacs 23 this is the default, in Emacs 22 you need to
 do this yourself with
@@ -1302,7 +1302,11 @@ Insert a new item with a checkbox (@pxref{Checkboxes}).
 @kindex S-@key{down}
 @item S-@key{up}
 @itemx S-@key{down}
-Jump to the previous/next item in the current list.
+@cindex shift-selection-mode
+Jump to the previous/next item in the current list, but only if
+@code{org-support-shift-select} is off.  If not, you can still use paragraph
+jumping commands like @kbd{C-@key{up}} and @kbd{C-@key{down}} to quite
+similar effect.
 @kindex M-S-@key{up}
 @kindex M-S-@key{down}
 @item M-S-@key{up}
@@ -1338,7 +1342,9 @@ converted into a list item.
 @kindex S-@key{left}
 @kindex S-@key{right}
 @item S-@key{left}/@key{right}
-Also cycle bullet styles when in the first line of an item.
+This command also cycles bullet styles when the cursor in on the bullet or
+anywhere in an item line, details depending on
+@code{org-support-shift-select}.
 @end table
 
 @node Drawers, Footnotes, Plain lists, Document Structure
@@ -3044,7 +3050,8 @@ more information.
 @itemx S-@key{left}
 Select the following/preceding TODO state, similar to cycling.  Useful
 mostly if more than two TODO states are possible (@pxref{TODO
-extensions}).
+extensions}).  See also @ref{Conflicts} for a discussion of the interaction
+with @code{shift-selection-mode}.
 @kindex C-c C-v
 @kindex C-c / t
 @cindex sparse tree, for TODO
@@ -3187,18 +3194,24 @@ keyword or using completion, you may also apply the following commands:
 @table @kbd
 @kindex C-S-@key{right}
 @kindex C-S-@key{left}
-@item C-S-@key{right}
+@kindex C-u C-u C-c C-t
+@item C-u C-u C-c C-t
+@itemx C-S-@key{right}
 @itemx C-S-@key{left}
 These keys jump from one TODO subset to the next.  In the above example,
-@kbd{C-S-@key{right}} would jump from @code{TODO} or @code{DONE} to
-@code{REPORT}, and any of the words in the second row to @code{CANCELED}.
+@kbd{C-u C-u C-c C-t} or @kbd{C-S-@key{right}} would jump from @code{TODO} or
+@code{DONE} to @code{REPORT}, and any of the words in the second row to
+@code{CANCELED}.  Note that the @kbd{C-S-} key binding conflict with
+@code{shift-selection-mode} (@pxref{Conflicts}).
 @kindex S-@key{right}
 @kindex S-@key{left}
 @item S-@key{right}
 @itemx S-@key{left}
-@kbd{S-@key{<left>}} and @kbd{S-@key{<right>}} and walk through
-@emph{all} keywords from all sets, so for example @kbd{S-@key{<right>}}
-would switch from @code{DONE} to @code{REPORT} in the example above.
+@kbd{S-@key{<left>}} and @kbd{S-@key{<right>}} and walk through @emph{all}
+keywords from all sets, so for example @kbd{S-@key{<right>}} would switch
+from @code{DONE} to @code{REPORT} in the example above.  See also
+@ref{Conflicts} for a discussion of the interaction with
+@code{shift-selection-mode}.
 @end table
 
 @node Fast access to TODO states, Per-file keywords, Multiple sets in one file, TODO extensions
@@ -3441,10 +3454,11 @@ agenda buffer with the @kbd{,} command (@pxref{Agenda commands}).
 @kindex S-@key{down}
 @item S-@key{up}
 @itemx S-@key{down}
-Increase/decrease priority of current headline@footnote{See also the
-option @code{org-priority-start-cycle-with-default'}.}.  Note that these
-keys are also used to modify time stamps (@pxref{Creating timestamps}).
-Furthermore, these keys are also used by CUA mode (@pxref{Conflicts}).
+Increase/decrease priority of current headline@footnote{See also the option
+@code{org-priority-start-cycle-with-default'}.}.  Note that these keys are
+also used to modify time stamps (@pxref{Creating timestamps}).  See also
+@ref{Conflicts} for a discussion of the interaction with
+@code{shift-selection-mode}.
 @end table
 
 You can change the range of allowed priorities by setting the variables
@@ -6731,11 +6745,11 @@ yourself.
 @subsection Exporting Agenda Views
 @cindex agenda views, exporting
 
-If you are away from your computer, it can be very useful to have a
-printed version of some agenda views to carry around.  Org mode can
-export custom agenda views as plain text, HTML@footnote{You need to
-install Hrvoje Niksic's @file{htmlize.el}.}, postscript, and iCalendar
-files.  If you want to do this only occasionally, use the command
+If you are away from your computer, it can be very useful to have a printed
+version of some agenda views to carry around.  Org mode can export custom
+agenda views as plain text, HTML@footnote{You need to install Hrvoje Niksic's
+@file{htmlize.el}.}, Postscript, and iCalendar files.  If you want to do this
+only occasionally, use the command
 
 @table @kbd
 @kindex C-x C-w
@@ -9275,33 +9289,40 @@ which makes using @file{footnote.el} unnecessary.
 
 @table @asis
 
-@cindex @file{allout.el}
-@item @file{allout.el} by Ken Manheimer
-Startup of Org may fail with the error message
-@code{(wrong-type-argument keymapp nil)} when there is an outdated
-version @file{allout.el} on the load path, for example the version
-distributed with Emacs 21.x.  Upgrade to Emacs 22 and this problem will
-disappear.  If for some reason you cannot do this, make sure that org.el
-is loaded @emph{before} @file{allout.el}, for example by putting
-@code{(require 'org)} early enough into your @file{.emacs} file.
+@cindex @code{shift-selection-mode}
+In Emacs 23, @code{shift-selection-mode} is on by default, meaning that
+cursor motions combined with the shift key should start or enlarge regions.
+This conflicts with the use of @kbd{S-@key{cursor}} commands in Org to change
+timestamps, TODO keywords, priorities, and item bullet types if the cursor is
+at such a location.  By default, @kbd{S-@key{cursor}} commands outside
+special contexts don't do anything, but you can customize the variable
+@code{org-support-shift-select}.  Org-mode then tries to accommodate shift
+selection by (i) using it outside of the special contexts where special
+commands apply, and by (ii) extending an existing active region even if the
+cursor moves across a special context.
 
 @cindex @file{CUA.el}
 @item @file{CUA.el} by Kim. F. Storm
-Key bindings in Org conflict with the @kbd{S-<cursor>} keys used by
-CUA mode (as well as pc-select-mode and s-region-mode) to select and
-extend the region.  If you want to use one of these packages along with
-Org, configure the variable @code{org-replace-disputed-keys}.  When
-set, Org will move the following key bindings in Org files, and
-in the agenda buffer (but not during date selection).
+Key bindings in Org conflict with the @kbd{S-<cursor>} keys used by CUA mode
+(as well as pc-select-mode and s-region-mode) to select and extend the
+region.  In fact, Emacs 23 has this built-in in the form of
+@code{shift-selection-mode}, see previous paragraph.  If you are using Emacs
+23 you probably don't want to use another package for this purpose.  However,
+if you prefer to leave these keys to a different package while working in
+Org-mode, configure the variable @code{org-replace-disputed-keys}.  When set,
+Org will move the following key bindings in Org files, and in the agenda
+buffer (but not during date selection).
 
 @example
-S-UP    -> M-p             S-DOWN  -> M-n
-S-LEFT  -> M--             S-RIGHT -> M-+
+S-UP      ->  M-p             S-DOWN     ->  M-n
+S-LEFT    ->  M--             S-RIGHT    ->  M-+
+C-S-LEFT  ->  M-S--           C-S-RIGHT  ->  M-S-+
 @end example
 
 Yes, these are unfortunately more difficult to remember.  If you want
 to have other replacement keys, look at the variable
 @code{org-disputed-keys}.
+
 @item @file{windmove.el} by Hovav Shacham
 @cindex @file{windmove.el}
 Also this package uses the @kbd{S-<cursor>} keys, so everything written
@@ -9411,8 +9432,8 @@ implementation.  Still, it works somewhat.
 
 @item @file{org-interactive-query.el} by @i{Christopher League}
 Interactive modification of tags queries.  After running a general query in
-Org, this package allows you to narrow down the results by adding more tags or
-keywords.
+Org, this package allows you to narrow down the results by adding more tags
+or keywords.
 
 @item @file{org-mairix.el} by @i{Georg C. F. Greve}
 Hook mairix search into Org for different MUAs.
