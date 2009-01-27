@@ -74,17 +74,10 @@ for buffer/string positions.  E.g. struct it, struct text_pos.
 
 ** These lisp files refer to rmail, and might need updating post-mbox.
 
-mail/rmailout  ; act on the following comment?
+It seems that rmail-output-to-rmail-file can be replaced by rmail-output.
 
-  ;; When Rmail is really installed, if we delete or rename the old Rmail
-  ;; we should do likewise with this function.
+mail/rmail-spam-filter.el:  check it still (?) works
 
-  (defun rmail-output-to-r-mail-buffer (tembuf msg)
-
-mail/rmail-spam-filter.el: rmail-output-to-rmail-file was deleted
-           this file is modified in rmail-mbox-branch?
-
-dired-x.el             ; doc-fix for dired-bind-vm?
 gnus/gnus-art.el
 gnus/gnus-util.el
 gnus/gnus.el
@@ -94,8 +87,9 @@ mail/feedmail.el  ; comments about mail-header-separator still valid?
 mail/metamail.el
 mail/sendmail.el
 mail/uce.el
-mail/undigest.el
-mail/unrmail.el   ; this file is modified in rmail-mbox-branch?
+mail/undigest.el  ; seems totally dependent (?) on Babyl format, and has
+                    received zero mbox-branch updates.  Is it not needed now?
+mail/unrmail.el   ; rev 1.13.2.4 not synced from mbox branch - should it be?
 net/mairix.el
 org/org-rmail.el
 
@@ -108,7 +102,6 @@ gnus/nnmail.el
 mail/sendmail.el
 mail/uce.el
 mail/undigest.el
-mail/unrmail.el
 
 
 * DOCUMENTATION
