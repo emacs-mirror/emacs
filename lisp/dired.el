@@ -1,7 +1,8 @@
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -1866,7 +1867,7 @@ Creates a buffer if necessary."
 	  (error "File is a symlink to a nonexistent target")
 	(error "File no longer exists; type `g' to update dired buffer")))))
 
-;; Force `f' rather than `e' in the mode doc:
+;; Force C-m keybinding rather than `f' or `e' in the mode doc:
 (defalias 'dired-advertised-find-file 'dired-find-file)
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
