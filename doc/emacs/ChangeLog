@@ -1,3 +1,7 @@
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fixit.texi (Undo): Update undo limit values.
+
 2009-01-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (Top): Fix Antinews menu entry.
