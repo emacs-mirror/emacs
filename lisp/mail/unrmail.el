@@ -203,9 +203,9 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	    ;; Insert the `From ' line.
 	    (insert mail-from "\n")
 	    ;; Record the keywords and attributes in our special way.
-	    (insert "X-BABYL-V6-ATTRIBUTES: " (apply 'string attrs) "\n")
+	    (insert "X-RMAIL-ATTRIBUTES: " (apply 'string attrs) "\n")
 	    (when keywords
-	      (insert "X-BABYL-V6-KEYWORDS: " keywords "\n"))
+	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
 	    (goto-char (point-min))
 	    ;; ``Quote'' "\nFrom " as "\n>From "
 	    ;;  (note that this isn't really quoting, as there is no requirement
