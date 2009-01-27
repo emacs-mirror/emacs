@@ -46,13 +46,14 @@ static Lisp_Object QChinting , QCautohint, QChintstyle, QCrgba, QCembolden;
 struct xftfont_info
 {
   struct font font;
-  /* The following three members must be here in this order to be
+  /* The following four members must be here in this order to be
      compatible with struct ftfont_info (in ftfont.c).  */
 #ifdef HAVE_LIBOTF
   int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
 #endif	/* HAVE_LIBOTF */
   FT_Size ft_size;
+  int index;
   Display *display;
   int screen;
   XftFont *xftfont;
