@@ -140,7 +140,7 @@ and Sending Mail and Registers and Minibuffer.
 * GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        Terms used in this manual.
-* Antinews::	        Information about Emacs version 21.
+* Antinews::	        Information about Emacs version 22.
 * Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!

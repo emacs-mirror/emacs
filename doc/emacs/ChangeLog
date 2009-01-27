@@ -1,3 +1,7 @@
+2009-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top): Fix Antinews menu entry.
+
 2009-01-25  Karl Berry  <karl@gnu.org>
 
 	* text.texi (Foldout): Use @itemize @w{} to make an itemize
