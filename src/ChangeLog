@@ -1,5 +1,7 @@
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* fns.c (concat): Check for string overflow (bug#1787).
+
 	* undo.c (undo_limit, undo_strong_limit, Vundo_outer_limit):
 	Quadruple undo limits (bug#1501).
 
