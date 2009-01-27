@@ -1,3 +1,8 @@
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* undo.c (undo_limit, undo_strong_limit, Vundo_outer_limit):
+	Quadruple undo limits (bug#1501).
+
 2009-01-27  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_has_char): If the arg FONT is a font-object,
