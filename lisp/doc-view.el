@@ -1095,7 +1095,7 @@ toggle between displaying the document or editing it as text.
 	  (= (point-min) (point-max)))
       ;; The doc is empty or doesn't exist at all, so fallback to an
       ;; editing mode.
-      (if (string-match "[eE]?[pP][sS]" (file-name-extension buffer-file-name) "")
+      (if (string-match "[eE]?[pP][sS]" (file-name-extension buffer-file-name))
 	  (ps-mode)
 	(fundamental-mode)) ;;Should we activate d-v-minor-mode here?
 

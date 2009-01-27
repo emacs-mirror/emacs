@@ -1,5 +1,9 @@
 2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
 
+	(doc-view-mode): Fix broken call to string-match.
+
+2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
+
 	* doc-view.el (doc-view-mode): Enhance docstring and fallback to
 	fundamental-mode or ps-mode if the file is empty or doesn't exist
 	at all.
