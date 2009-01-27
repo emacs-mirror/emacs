@@ -6221,8 +6221,7 @@ See also `normal-erase-is-backspace'."
     (cond ((or (memq window-system '(x w32 ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
 	   (let* ((bindings
-		   `(([C-delete] [C-backspace])
-		     ([M-delete] [M-backspace])
+		   `(([M-delete] [M-backspace])
 		     ([C-M-delete] [C-M-backspace])
 		     (,esc-map
 		      [C-delete] [C-backspace])))
