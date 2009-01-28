@@ -2368,12 +2368,12 @@ the message.  Point is at the beginning of the message."
 With argument ARG, show the message header pruned if ARG is greater than zero;
 otherwise, show it in full."
   (interactive "P")
-  (setq rmail-header-style
-	(cond
-	 ((and (numberp arg) (> arg 0)) 'normal)
-	 ((eq rmail-header-style 'full) 'normal)
-	 (t 'full)))
-  (rmail-show-message-maybe))
+  (let ((rmail-header-style
+	 (cond
+	  ((and (numberp arg) (> arg 0)) 'normal)
+	  ((eq rmail-header-style 'full) 'normal)
+	  (t 'full))))
+    (rmail-show-message-maybe)))
 
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
