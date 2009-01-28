@@ -1,3 +1,8 @@
+2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): Fix typos.  Describe second parameter
+	of hook functions.
+
 2009-01-28  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (TODO dependencies): New section.
