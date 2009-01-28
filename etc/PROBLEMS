@@ -236,7 +236,7 @@ http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 
 ** Emacs compiled with Gtk+ may loop forever if a display crashes.
 
-This is related to the bug above.  A scenario for this is when emacs is run 
+This is related to the bug above.  A scenario for this is when emacs is run
 as a server, and an X frame is created.  If the X server for the frame
 crashes or exits unexpectedly and an attempt is made to create a new
 frame on another X display, then a Gtk+ error happens in the emacs
@@ -2129,6 +2129,14 @@ to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
 
+** PATH can contain unexpanded environment variables
+
+Old releases of TCC (version 9) and 4NT (up to version 8) do not correctly
+expand App Paths entries of type REG_EXPAND_SZ.  When Emacs is run from TCC
+and such an entry exists for emacs.exe, exec-path will contain the
+unexpanded entry.  This has been fixed in TCC 10.  For more information,
+see bug#2062.
+
 ** Setting w32-pass-rwindow-to-system and w32-pass-lwindow-to-system to nil
 does not prevent the Start menu from popping up when the left or right
 ``Windows'' key is pressed.
@@ -2672,7 +2680,7 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 ** Bootstrapping
 
 Bootstrapping (compiling the .el files) is normally only necessary
-with CVS builds, since they the .elc files are pre-compiled in releases.
+with CVS builds, since the .elc files are pre-compiled in releases.
 
 *** "No rule to make target" with Ubuntu 8.04 make 3.81-3build1
 
