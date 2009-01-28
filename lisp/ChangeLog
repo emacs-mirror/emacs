@@ -1,3 +1,10 @@
+2009-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-classify): Propertize file name before
+	concatenating the type indicating character.
+	(ls-lisp-format): Don't propertize file-name only if
+	ls-lisp-classify already did.
+
 2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-event-error-hooks): Fix docstring.  Describe
