@@ -111,7 +111,8 @@ RECIPIENTS is a string of regexps separated by commas."
 			  recipients primary-only))
 
 (defun rmail-message-recipients-p-1 (recipients &optional primary-only)
-  (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
+  ;; mail-fetch-field does not care where it starts from.
+  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
   (or (string-match recipients (or (mail-fetch-field "To") ""))
       (string-match recipients (or (mail-fetch-field "From") ""))
       (if (not primary-only)
@@ -138,6 +139,7 @@ Emacs will list the header line in the RMAIL-summary."
   (rmail-apply-in-message msg 'rmail-message-regexp-p-1 msg regexp))
 
 (defun rmail-message-regexp-p-1 (msg regexp)
+  ;; Search functions can expect to start from the beginning.
   (narrow-to-region (point) (save-excursion (search-forward "\n\n") (point)))
   (if rmail-enable-mime
       (if rmail-search-mime-header-function
@@ -361,8 +363,9 @@ even if its text is swapped."
   (let ((beg (rmail-msgbeg msgnum))
 	(end (rmail-msgend msgnum))
 	(deleted (rmail-message-deleted-p msgnum))
-	(unseen (rmail-message-unseen-p msgnum))
-	lines)
+	;; Does not work (swapped?)
+;;;	(unseen (rmail-message-unseen-p msgnum))
+	unseen lines)
     (save-excursion
       ;; Switch to the buffer that has the whole mbox text.
       (if (rmail-buffers-swapped-p)
@@ -377,12 +380,24 @@ even if its text is swapped."
 	(if (search-forward "\n\n" end t)
 	    (save-restriction
 	      (narrow-to-region beg (point))
+	      ;; Replace rmail-message-unseen-p from above.
+	      (goto-char beg)
+	      (setq unseen (and (search-forward
+				 (concat rmail-attribute-header ": ") nil t)
+				(looking-at "......U")))
 	      ;; Generate a status line from the message.
 	      (rmail-create-summary msgnum deleted unseen lines))
 	  (rmail-error-bad-format msgnum))))))
 
-(defun rmail-get-summary-labels ()
-  "Return a coded string wrapped in curly braces denoting the status labels.
+;; FIXME this is now unused.
+;; The intention was to display in the summary something like {E}
+;; for an edited messaged, similarly for answered, etc.
+;; But that conflicts with the previous rmail usage, where
+;; any user-defined { labels } occupied this space.
+;; So whilst it would be nice to have this information in the summary,
+;; it would need to go somewhere else.
+(defun rmail-get-summary-status ()
+  "Return a coded string wrapped in curly braces denoting the status.
 
 The current buffer must already be narrowed to the message headers for
 the message being processed."
@@ -403,6 +418,14 @@ the message being processed."
     (when (> (length result) 0)
       (setq result (concat "{" result "}")))
     result))
+
+(defun rmail-get-summary-labels ()
+  "Return a string wrapped in curly braces with the current message labels.
+Returns nil if there are no labels.  The current buffer must
+already be narrowed to the message headers for the message being
+processed."
+  (let ((labels (mail-fetch-field rmail-keyword-header)))
+    (if labels (format "{ %s } " labels))))
 
 (defun rmail-create-summary (msgnum deleted unseen lines)
   "Return the summary line for message MSGNUM.
@@ -431,7 +454,7 @@ LINES is the number of lines in the message (if we should display that)
 		  (deleted ?D)
 		  (unseen ?-)
 		  (t ? ))
-	  prefix (format "%5d%c" msgnum status)
+	  prefix (format "%5d%c " msgnum status)
 	  basic-start (car line)
 	  basic-end (cadr line))
     (funcall rmail-summary-line-decoder
