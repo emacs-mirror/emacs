@@ -544,7 +544,6 @@
 	* org.el (org-sort-entries-or-items): Add a COMPARE-FUNC
 	argument.
 
-
 2008-12-20  Glenn Morris  <rgm@gnu.org>
 
 	* org.el (org-org-menu): Fix some more menu entries.
