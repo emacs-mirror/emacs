@@ -1392,8 +1392,8 @@ If so restore the actual mbox message collection."
   (rmail-swap-buffers-maybe)
   (save-buffer)
   (if (rmail-summary-exists)
-      (rmail-select-summary (set-buffer-modified-p nil))
-    (rmail-show-message)))
+      (rmail-select-summary (set-buffer-modified-p nil)))
+  (rmail-show-message))
 
 (defun rmail-quit ()
   "Quit out of RMAIL.
@@ -2051,7 +2051,8 @@ If nil, that means the current message."
     (if (string= keywords "")
 	(setq keywords nil))
     (cond
-     ((and attr-names keywords) (concat " " attr-names ", " keywords))
+     ;; FIXME ? old rmail did not have spaces in the comma-separated lists.
+     ((and attr-names keywords) (concat " " attr-names "; " keywords))
      (attr-names (concat " " attr-names))
      (keywords (concat " " keywords))
      (t ""))))
@@ -2150,14 +2151,14 @@ This function assumes the Rmail buffer is unswapped."
   (save-excursion
     (save-restriction
       (let ((start (rmail-msgbeg msg))
-	    limit)
-	(widen)
-	(goto-char start)
-	(setq limit (search-forward "\n\n" (rmail-msgend msg) t))
-	(goto-char start)
-	(and limit
-	     (search-forward (concat rmail-attribute-header ": ") limit t)
-	     (looking-at attrs))))))
+            limit)
+        (widen)
+        (goto-char start)
+        (setq limit (search-forward "\n\n" (rmail-msgend msg) t))
+        (goto-char start)
+        (and limit
+             (search-forward (concat rmail-attribute-header ": ") limit t)
+             (looking-at attrs))))))
 
 (defun rmail-message-unseen-p (msgnum)
   "Test the unseen attribute for message MSGNUM.
@@ -2429,6 +2430,14 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
   (rmail-swap-buffers-maybe)
   (widen))
 
+(defun rmail-no-mail-p ()
+  "Return nil if there is mail, else \"No mail.\"."
+  (if (zerop rmail-total-messages)
+      (save-excursion
+	(with-current-buffer rmail-view-buffer
+	  (erase-buffer)
+	  "No mail."))))
+
 (defun rmail-show-message-maybe (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also."
@@ -2439,12 +2448,8 @@ If summary buffer is currently displayed, update current message there also."
   (rmail-maybe-set-message-counters)
   (widen)
   (let ((msgnum (or n rmail-current-message))
-	blurb)
-    (if (zerop rmail-total-messages)
-	(save-excursion
-	  (with-current-buffer rmail-view-buffer
-	    (erase-buffer)
-	    (setq blurb "No mail.")))
+	(blurb (rmail-no-mail-p)))
+    (unless blurb
       (setq blurb (rmail-show-message msgnum))
       (when mail-mailing-lists
 	(rmail-unknown-mail-followup-to))
@@ -2484,77 +2489,78 @@ The current mail message becomes the message displayed."
 	blurb beg end body-start coding-system character-coding is-text-message)
     (if (not msg)
 	(setq msg rmail-current-message))
-    (cond ((<= msg 0)
-	   (setq msg 1
-		 rmail-current-message 1
-		 blurb "No previous message"))
-	  ((> msg rmail-total-messages)
-	   (setq msg rmail-total-messages
-		 rmail-current-message rmail-total-messages
-		 blurb "No following message"))
-	  (t (setq rmail-current-message msg)))
-    (with-current-buffer rmail-buffer
-      ;; Mark the message as seen, bracket the message in the mail
-      ;; buffer and determine the coding system the transfer encoding.
-      (rmail-set-attribute rmail-unseen-attr-index nil)
-      (rmail-swap-buffers-maybe)
-      (setq beg (rmail-msgbeg msg)
-	    end (rmail-msgend msg))
-      (narrow-to-region beg end)
-      (goto-char beg)
-      (setq body-start (search-forward "\n\n" nil t))
-      (narrow-to-region beg (point))
-      (goto-char beg)
-      (setq character-coding (mail-fetch-field "content-transfer-encoding")
-	    is-text-message (rmail-is-text-p)
-	    coding-system (rmail-get-coding-system))
-      (if character-coding
-	  (setq character-coding (downcase character-coding)))
-      (narrow-to-region beg end)
-      ;; Decode the message body into an empty view buffer using a
-      ;; unibyte temporary buffer where the character decoding takes
-      ;; place.
-      (with-current-buffer rmail-view-buffer
-	(erase-buffer))
-      (if (null character-coding)
-	  ;; Do it directly since that is fast.
-	  (rmail-decode-region body-start end coding-system view-buf)
-	;; Can this be done directly, skipping the temp buffer?
-	(with-temp-buffer
-	  (set-buffer-multibyte nil)
-	  (insert-buffer-substring mbox-buf body-start end)
-	  (cond
-	   ((string= character-coding "quoted-printable")
-	    (mail-unquote-printable-region (point-min) (point-max)))
-	   ((and (string= character-coding "base64") is-text-message)
-	    (base64-decode-region (point-min) (point-max)))
-	   ((eq character-coding 'uuencode)
-	    (error "Not supported yet"))
-	   (t))
-	  (rmail-decode-region (point-min) (point-max)
-			       coding-system view-buf)))
-      ;; Copy the headers to the front of the message view buffer.
-      (with-current-buffer rmail-view-buffer
-	(goto-char (point-min)))
-      (rmail-copy-headers beg end)
-      ;; Add the separator (blank line) between headers and body;
-      ;; highlight the message, activate any URL like text and add
-      ;; special highlighting for and quoted material.
-      (with-current-buffer rmail-view-buffer
-	(insert "\n")
-	(goto-char (point-min))
-	(rmail-highlight-headers)
-	;(rmail-activate-urls)
-	;(rmail-process-quoted-material)
-	)
-      ;; Update the mode-line with message status information and swap
-      ;; the view buffer/mail buffer contents.
-      (rmail-display-labels)
-      (let ((modp (buffer-modified-p)))
-	(buffer-swap-text rmail-view-buffer)
-	(set-buffer-modified-p modp))
-      (setq rmail-buffer-swapped t)
-      (run-hooks 'rmail-show-message-hook))
+    (unless (setq blurb (rmail-no-mail-p))
+      (cond ((<= msg 0)
+	     (setq msg 1
+		   rmail-current-message 1
+		   blurb "No previous message"))
+	    ((> msg rmail-total-messages)
+	     (setq msg rmail-total-messages
+		   rmail-current-message rmail-total-messages
+		   blurb "No following message"))
+	    (t (setq rmail-current-message msg)))
+      (with-current-buffer rmail-buffer
+	;; Mark the message as seen, bracket the message in the mail
+	;; buffer and determine the coding system the transfer encoding.
+	(rmail-set-attribute rmail-unseen-attr-index nil)
+	(rmail-swap-buffers-maybe)
+	(setq beg (rmail-msgbeg msg)
+	      end (rmail-msgend msg))
+	(narrow-to-region beg end)
+	(goto-char beg)
+	(setq body-start (search-forward "\n\n" nil t))
+	(narrow-to-region beg (point))
+	(goto-char beg)
+	(setq character-coding (mail-fetch-field "content-transfer-encoding")
+	      is-text-message (rmail-is-text-p)
+	      coding-system (rmail-get-coding-system))
+	(if character-coding
+	    (setq character-coding (downcase character-coding)))
+	(narrow-to-region beg end)
+	;; Decode the message body into an empty view buffer using a
+	;; unibyte temporary buffer where the character decoding takes
+	;; place.
+	(with-current-buffer rmail-view-buffer
+	  (erase-buffer))
+	(if (null character-coding)
+	    ;; Do it directly since that is fast.
+	    (rmail-decode-region body-start end coding-system view-buf)
+	  ;; Can this be done directly, skipping the temp buffer?
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert-buffer-substring mbox-buf body-start end)
+	    (cond
+	     ((string= character-coding "quoted-printable")
+	      (mail-unquote-printable-region (point-min) (point-max)))
+	     ((and (string= character-coding "base64") is-text-message)
+	      (base64-decode-region (point-min) (point-max)))
+	     ((eq character-coding 'uuencode)
+	      (error "Not supported yet"))
+	     (t))
+	    (rmail-decode-region (point-min) (point-max)
+				 coding-system view-buf)))
+	;; Copy the headers to the front of the message view buffer.
+	(with-current-buffer rmail-view-buffer
+	  (goto-char (point-min)))
+	(rmail-copy-headers beg end)
+	;; Add the separator (blank line) between headers and body;
+	;; highlight the message, activate any URL like text and add
+	;; special highlighting for and quoted material.
+	(with-current-buffer rmail-view-buffer
+	  (insert "\n")
+	  (goto-char (point-min))
+	  (rmail-highlight-headers)
+					;(rmail-activate-urls)
+					;(rmail-process-quoted-material)
+	  )
+	;; Update the mode-line with message status information and swap
+	;; the view buffer/mail buffer contents.
+	(rmail-display-labels)
+	(let ((modp (buffer-modified-p)))
+	  (buffer-swap-text rmail-view-buffer)
+	  (set-buffer-modified-p modp))
+	(setq rmail-buffer-swapped t)
+	(run-hooks 'rmail-show-message-hook)))
     blurb))
 
 (defun rmail-copy-headers (beg end &optional ignored-headers)

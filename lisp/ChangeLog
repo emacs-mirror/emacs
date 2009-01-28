@@ -1,3 +1,24 @@
+2009-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-expunge-and-save): Always show a message,
+	even when called from the summary.  (Bug#2075)
+	(rmail-no-mail-p): New func, extracted from rmail-show-message-maybe.
+	(rmail-show-message-maybe): Use rmail-no-mail-p.
+	(rmail-show-message): If empty folder, do nothing.  (Bug#2076)
+
+	(rmail-get-labels): Separate status and label fields with a semicolon,
+	rather than a comma, for consistency with old Rmail.
+
+	* mail/rmailsum.el (rmail-message-recipients-p-1): Don't bother
+	starting from the beginning, since mail-fetch-field does not care.
+	(rmail-create-summary-line): Fix unseen handling.  (Bug#2089)
+	(rmail-get-summary-status): New name for old rmail-get-summary-labels.
+	(rmail-get-summary-labels): New function.  Returns labels rather than
+	status (edited, etc).
+	(rmail-create-summary): Insert an extra space after the status
+	flags, for consistency with old rmail, and with current
+	rmail-summary-font-lock-keywords.
+
 2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/perl-mode.el (perl-indent-line-command): Call
@@ -84,7 +105,8 @@
 	(batch-unrmail, unrmail): Doc fix.
 
 	* mail/rmailsum.el (rmail-message-recipients-p-1)
-	(rmail-message-regexp-p-1): Avoid clobbering the mark.
+	(rmail-message-regexp-p-1): Ensure searches start from the
+	beginning of the header.
 
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
