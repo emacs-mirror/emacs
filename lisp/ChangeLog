@@ -1,3 +1,8 @@
+2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-toggle-header): Don't reset
+	rmail-header-style permanently (bug#2016).
+
 2009-01-28  Denis Howe  <denis.howe@gmail.com>
 
 	* complete.el (PC-do-completion): Correct case when completion is
