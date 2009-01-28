@@ -1,3 +1,7 @@
+2009-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
+
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (concat): Check for string overflow (bug#1787).
