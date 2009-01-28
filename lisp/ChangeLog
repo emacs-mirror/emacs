@@ -1,3 +1,9 @@
+2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-event-error-hooks): Fix docstring.  Describe
+	second parameter of hook functions.
+	(dbus-handle-event): Apply it.
+
 2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rmail.el (rmail-toggle-header): Don't reset
