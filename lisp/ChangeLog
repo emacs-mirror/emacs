@@ -1,3 +1,21 @@
+2009-01-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-insert-item-here): Prevent insertion
+	of a new entry inside of an existing entry.  Minor code cleanup.
+	(todo-add-category): Change the interactive spec.  Signal an error
+	if the Todo file is non-empty but contains no category.  Reject
+	category names that could induce bugs and confusion.  Call
+	todo-mode if the Todo file is new and unsaved.  Simplify handling
+	of local variables cookie.  Properly display the newly added
+	category in Todo mode.
+	(todo-show): Call todo-initial-setup only if there is neither a
+	Todo file nor a corresponding unsaved buffer.
+	(todo-category-alist): Delete function.
+	(todo-completing-read): New function.
+	(todo-insert-item, todo-jump-to-category): Use it.
+	(todo-insert-item): Make the use of the prefix argument conform to
+	the doc string.
+
 2009-01-28  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-expunge-and-save): Always show a message,
