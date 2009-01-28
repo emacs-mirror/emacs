@@ -37,17 +37,21 @@ Do NOT send a separate copy to the bug list, since this may generate a
 new report. The only time to send mail to the bug list is to create a
 new report.
 
-Gnus users can add "\\(\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
-\\(submit\\|control\\)@emacsbugs\\.donarmstrong\\.com\\)"
-to message-dont-reply-to-names.
+Gnus users can add the following to message-dont-reply-to-names;
+similarly with Rmail and rmail-dont-reply-to-names:
 
-Similarly, RMAIL users can use rmail-dont-reply-to-names.  They might
-also need to ignore "bug-submit-list@donarmstrong.com" since it
-appears in the "Resent-To" header of reports, and for a long time
-RMAIL erroneously included this address in replies.  Likewise for
-"owner@emacsbugs.donarmstrong.com", which can appear in the
-"Resent-CC:" header (but it is possible, outside of normal bug
-reporting, that you might want to have a dialog with this address).
+"\\(emacs-pretest-bug\\|bug-gnu-emacs\\)@gnu\\.org\\|\
+\\(\\(submit\\|control\\|owner\\)@emacsbugs\\.\\|bug-submit-list@\\)\
+donarmstrong\\.com"
+
+The "bug-submit-list@donarmstrong.com" and
+"owner@emacsbugs.donarmstrong.com" entries are there because they can
+appear in the "Resent-To" and "Resent-CC" headers, respectively. For a
+long time Rmail erroneously included these headers in replies.  If you
+correspond with an Rmail user on a bug, these addresses may end up in
+the Cc.  Mailing to them does nothing but create duplicates and errors.
+(It is possible you might want to have a dialog with the owner
+address, outside of normal bug reporting.)
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
@@ -228,3 +232,9 @@ The above page is accessible from the "Options" section at the end of
 the "main list of bugs" page. Select bugs "in package" = emacs;
 "newest bugs" = 100.  (I have no idea how you get to that Options
 section without having to go through the bug list page first...)
+
+** Mails to the bug tracker disappear
+
+Apparently it has some kind of spam filter that sometimes silently
+discards valid mails. Adding a subject (pointless in control messages)
+may help.
