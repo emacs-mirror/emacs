@@ -970,7 +970,7 @@ font_for_char (face, c, pos, object)
 	{
 	  Lisp_Object val;
 
-	  val = assoc_no_quit (charset, Vfont_encoding_charset_alist);
+	  val = assq_no_quit (charset, Vfont_encoding_charset_alist);
 	  if (CONSP (val) && CHARSETP (XCDR (val)))
 	    charset = XCDR (val);
 	  id = XINT (CHARSET_SYMBOL_ID (charset));
