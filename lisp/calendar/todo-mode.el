@@ -527,28 +527,45 @@ Use `todo-categories' instead.")
     (narrow-to-region (todo-item-start) (todo-item-end))))
 
 ;;;###autoload
-(defun todo-add-category (cat)
+(defun todo-add-category (&optional cat)
   "Add new category CAT to the TODO list."
-  (interactive "sCategory: ")
-  (save-window-excursion
-    (setq todo-categories (cons cat todo-categories))
-    (find-file todo-file-do)
-    (widen)
-    (goto-char (point-min))
-    (let ((posn (search-forward "-*- mode: todo; " 17 t)))
-      (if posn
-          (progn
-            (goto-char posn)
-            (kill-line))
-        (insert "-*- mode: todo; \n")
-        (forward-char -1)))
-    (insert (format "todo-categories: %S; -*-" todo-categories))
-    (forward-char 1)
-    (insert (format "%s%s%s\n%s\n%s %s\n"
-                    todo-prefix todo-category-beg cat
-                    todo-category-end
-                    todo-prefix todo-category-sep)))
-  0)
+  (interactive)
+  (let ((buf (find-file-noselect todo-file-do t))
+	(prompt "Category: "))
+    (unless (zerop (buffer-size buf))
+      (and (null todo-categories)
+	   (null todo-cats)
+	   (error "Error in %s: File is non-empty but contains no category" 
+		  todo-file-do)))
+    (unless cat (setq cat (read-from-minibuffer prompt)))
+    (with-current-buffer buf
+      ;; reject names that could induce bugs and confusion
+      (while (and (cond ((string= "" cat)
+			 (setq prompt "Enter a non-empty category name: "))
+			((string-match "\\`\\s-+\\'" cat)
+			 (setq prompt "Enter a category name that is not only white space: "))
+			((member cat todo-categories)
+			 (setq prompt "Enter a non-existing category name: ")))
+		  (setq cat (read-from-minibuffer prompt))))
+      ;; initialize a newly created Todo buffer for Todo mode
+      (unless (file-exists-p todo-file-do) (todo-mode))
+      (setq todo-categories (cons cat todo-categories))
+      (widen)
+      (goto-char (point-min))
+      (if (search-forward "-*- mode: todo; " 17 t)
+	  (kill-line)
+	(insert "-*- mode: todo; \n")
+	(forward-char -1))
+      (insert (format "todo-categories: %S; -*-" todo-categories))
+      (forward-char 1)
+      (insert (format "%s%s%s\n%s\n%s %s\n"
+		      todo-prefix todo-category-beg cat
+		      todo-category-end
+		      todo-prefix todo-category-sep))
+      (if (interactive-p)
+	  ;; properly display the newly added category
+	  (progn (setq todo-category-number 0) (todo-show))
+	0))))
 
 ;;;###autoload
 (defun todo-add-item-non-interactively (new-item category)
@@ -596,30 +613,27 @@ category."
 			      "New TODO entry: "
 			      (if todo-entry-prefix-function
 				  (funcall todo-entry-prefix-function)))))
-	   (categories todo-categories)
-	   (history (cons 'categories (1+ todo-category-number)))
 	   (current-category (nth todo-category-number todo-categories))
-	   (category
-	    (if arg
-		current-category
-	      (completing-read (concat "Category [" current-category "]: ")
-			       (todo-category-alist) nil nil nil
-			       history current-category))))
+	   (category (if arg (todo-completing-read) current-category)))
       (todo-add-item-non-interactively new-item category))))
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
 (defun todo-insert-item-here ()
-  "Insert new TODO list entry under the cursor."
-  (interactive "")
-  (save-excursion
-    (if (not (derived-mode-p 'todo-mode)) (todo-show))
-    (let* ((new-item (concat todo-prefix " "
-			     (read-from-minibuffer
-			      "New TODO entry: "
-			      (if todo-entry-prefix-function
-				  (funcall todo-entry-prefix-function))))))
-      (insert (concat new-item "\n")))))
+  "Insert a new TODO list entry directly above the entry at point.
+If point is on an empty line, insert the entry there."
+  (interactive)
+  (if (not (derived-mode-p 'todo-mode)) (todo-show))
+  (let ((new-item (concat todo-prefix " "
+			  (read-from-minibuffer
+			   "New TODO entry: "
+			   (if todo-entry-prefix-function
+			       (funcall todo-entry-prefix-function))))))
+    (unless (and (bolp) (eolp)) (goto-char (todo-item-start)))
+    (insert (concat new-item "\n"))
+    (backward-char)
+    ;; put point at start of new entry
+    (goto-char (todo-item-start))))
 
 (defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
@@ -801,12 +815,7 @@ Number of entries for each category is given by `todo-print-priorities'."
 (defun todo-jump-to-category ()
   "Jump to a category.  Default is previous category."
   (interactive)
-  (let* ((categories todo-categories)
-         (history (cons 'categories (1+ todo-category-number)))
-	 (default (nth todo-category-number todo-categories))
-	 (category (completing-read
-                    (concat "Category [" default "]: ")
-                    (todo-category-alist) nil nil nil history default)))
+  (let ((category (todo-completing-read)))
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (setq todo-category-number
@@ -861,9 +870,19 @@ Number of entries for each category is given by `todo-print-priorities'."
   "Return non-nil if STRING spans several lines."
   (> (todo-string-count-lines string) 1))
 
-(defun todo-category-alist ()
-  "Generate an alist for use in `completing-read' from `todo-categories'."
-  (mapcar #'list todo-categories))
+(defun todo-completing-read ()
+  "Return a category name, with completion, for use in Todo mode."
+  ;; make a copy of todo-categories in case history-delete-duplicates is
+  ;; non-nil, which makes completing-read alter todo-categories
+  (let* ((categories (copy-sequence todo-categories))
+	 (history (cons 'todo-categories (1+ todo-category-number)))
+	 (default (nth todo-category-number todo-categories))
+	 (category (completing-read
+		    (concat "Category [" default "]: ")
+		    todo-categories nil nil nil history default)))
+    ;; restore the original value of todo-categories
+    (setq todo-categories categories)
+    category))
 
 ;; ---------------------------------------------------------------------------
 
@@ -929,7 +948,12 @@ Number of entries for each category is given by `todo-print-priorities'."
 (defun todo-show ()
   "Show TODO list."
   (interactive)
-  (if (file-exists-p todo-file-do)
+  ;; Call todo-initial-setup only if there is neither a Todo file nor
+  ;; a corresponding unsaved buffer.
+  (if (or (file-exists-p todo-file-do)
+	  (let* ((buf (get-buffer (file-name-nondirectory todo-file-do)))
+		 (bufname (buffer-file-name buf)))
+	    (equal (expand-file-name todo-file-do) bufname)))
       (find-file todo-file-do)
     (todo-initial-setup))
   (if (null todo-categories)
