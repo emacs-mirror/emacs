@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.19e
+@set VERSION 6.20c
 @set DATE January 2009
 
 @dircategory Emacs
@@ -181,6 +181,7 @@ Extended use of TODO keywords
 * Fast access to TODO states::  Single letter selection of a state
 * Per-file keywords::           Different files, different requirements
 * Faces for TODO keywords::     Highlighting states
+* TODO dependencies::           When one tasks needs to wait for others
 
 Progress logging
 
@@ -3100,6 +3101,7 @@ TODO items in particular (@pxref{Tags}).
 * Fast access to TODO states::  Single letter selection of a state
 * Per-file keywords::           Different files, different requirements
 * Faces for TODO keywords::     Highlighting states
+* TODO dependencies::           When one tasks needs to wait for others
 @end menu
 
 @node Workflow states, TODO types, TODO extensions, TODO extensions
@@ -3282,7 +3284,7 @@ Org mode is activated after visiting a file.  @kbd{C-c C-c} with the
 cursor in a line starting with @samp{#+} is simply restarting Org mode
 for the current buffer.}.
 
-@node Faces for TODO keywords,  , Per-file keywords, TODO extensions
+@node Faces for TODO keywords, TODO dependencies, Per-file keywords, TODO extensions
 @subsection Faces for TODO keywords
 @cindex faces, for TODO keywords
 
@@ -3305,6 +3307,41 @@ special faces for some of them.  This can be done using the variable
 While using a list with face properties as shown for CANCELED
 @emph{should} work, this does not aways seem to be the case.  If
 necessary, define a special face and use that.
+
+@node TODO dependencies,  , Faces for TODO keywords, TODO extensions
+@subsection TODO dependencies
+
+The structure of Org files (hierarchy and lists) makes it easy to define TODO
+dependencies.  Usually, a parent TODO task should not be marked DONE until
+all subtasks (defined as children tasks) are marked as DONE.  And sometimes
+there is a logical sequence to a number of (sub)tasks, so that one task
+cannot be acted upon before all siblings above it are done.  If you customize
+the variable @code{org-enforce-todo-dependencies}, Org will block entries
+from changing state while they have children that are not DONE.  Furthermore,
+if an entry has a property @code{ORDERED}, each of its children will be
+blocked until all earlier siblings are marked DONE.  Here is an example:
+
+@example
+* TODO Blocked until (two) is done
+** DONE one
+** TODO two
+
+* Parent
+  :PROPERTIES:
+    :ORDERED: t
+  :END:
+** TODO a
+** TODO b, needs to wait for (a)
+** TODO c, needs to wait for (a) and (b)
+@end example
+
+If you set the variable @code{org-agenda-dim-blocked-tasks}, TODO entries
+that cannot be closed because of such dependencies will be shown in a dimmed
+font or even made invisible in agenda views (@pxref{Agenda Views}).
+
+If you need more complex dependency structures, for example dependencies
+between entries in different trees or files, check out the contributed
+module @file{org-depend.el}.
 
 @page
 @node Progress logging, Priorities, TODO extensions, TODO Items
@@ -3564,13 +3601,12 @@ Toggle checkbox at point.  With a prefix argument, set it to @samp{[-]},
 which is considered to be an intermediate state.
 @kindex C-c C-x C-b
 @item C-c C-x C-b
-Toggle checkbox at point.
+Toggle checkbox status or (with prefix arg) checkbox presence at point.
 @itemize @minus
 @item
 If there is an active region, toggle the first checkbox in the region
-and set all remaining boxes to the same status as the first.  If you
-want to toggle all boxes in the region independently, use a prefix
-argument.
+and set all remaining boxes to the same status as the first.  With a prefix
+arg, add or remove the checkbox for all items in the region.
 @item
 If the cursor is in a headline, toggle checkboxes in the region between
 this headline and the next (so @emph{not} the entire subtree).
@@ -10252,7 +10288,7 @@ incorporate project planning functionality directly into a notes file.
 A special thanks goes to @i{Bastien Guerry} who has not only written a large
 number of extensions to Org (most of them integrated into the core by now),
 but has also helped the development and maintenance of Org so much that he
-should be considered co-author of this package.
+should be considered the main co-contributor to this package.
 
 Since the first release, literally thousands of emails to me or on
 @code{emacs-orgmode@@gnu.org} have provided a constant stream of bug
@@ -10427,13 +10463,13 @@ keyword.
 system.
 @item
 @i{John Wiegley} wrote @file{emacs-wiki.el}, @file{planner.el}, and
-@file{muse.el}, which have similar goals as Org.  Initially the
-development of Org was fully independent because I was not aware of the
-existence of these packages.  But with time I have occasionally looked
-at John's code and learned a lot from it.  John has also contributed a
-number of great ideas and patches directly to Org, including the attachment
-system (@file{org-attach.el}) and integration with Apple Mail
-(@file{org-mac-message.el}).
+@file{muse.el}, which have some overlap with Org.  Initially the development
+of Org was fully independent because I was not aware of the existence of
+these packages.  But with time I have occasionally looked at John's code and
+learned a lot from it.  John has also contributed a number of great ideas and
+patches directly to Org, including the attachment system
+(@file{org-attach.el}), integration with Apple Mail
+(@file{org-mac-message.el}), and hierarchical dependencies of TODO items.
 @item
 @i{Carsten Wimmer} suggested some changes and helped fix a bug in
 linking to Gnus.
