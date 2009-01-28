@@ -59,7 +59,7 @@ extern int interrupt_input_pending;
 
 extern int pending_atimers;
 
-#if defined HAVE_NS && !defined COCOA_EXPERIMENTAL_CTRL_G
+#if defined (HAVE_NS) && !defined (COCOA_EXPERIMENTAL_CTRL_G)
 /* NS does not use interrupt-driven input processing (yet), so this is
    unneeded and moreover was causing problems. */
 #define BLOCK_INPUT
