@@ -1,6 +1,8 @@
 2009-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
+	(fontset_get_font_group): Remember that no font-group is specified
+	for C.
 
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
