@@ -23,7 +23,6 @@
 	(rmail-no-mail-p): New func, extracted from rmail-show-message-maybe.
 	(rmail-show-message-maybe): Use rmail-no-mail-p.
 	(rmail-show-message): If empty folder, do nothing.  (Bug#2076)
-
 	(rmail-get-labels): Separate status and label fields with a semicolon,
 	rather than a comma, for consistency with old Rmail.
 
