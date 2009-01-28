@@ -35,7 +35,6 @@
 (require 'org)
 
 ;; Declare external functions and variables
-(declare-function rmail-narrow-to-non-pruned-header "rmail" ())
 (declare-function rmail-show-message "rmail" (&optional n no-summary))
 (declare-function rmail-what-message "rmail" ())
 (defvar rmail-current-message)
