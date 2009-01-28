@@ -1,3 +1,9 @@
+2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/perl-mode.el (perl-indent-line-command): Call
+	indent-region if region is active.  Use cond instead of nested
+	ifs.
+
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rmail.el (rmail-convert-babyl-to-mbox): Prompt user before
