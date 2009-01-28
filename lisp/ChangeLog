@@ -1,3 +1,8 @@
+2009-01-28  Denis Howe  <denis.howe@gmail.com>
+
+	* complete.el (PC-do-completion): Correct case when completion is
+	unambiguous.
+
 2009-01-28  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todo-mode.el (todo-insert-item-here): Prevent insertion
