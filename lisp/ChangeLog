@@ -1,3 +1,9 @@
+2009-01-28  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Don't use string-match and file
+	extension to choose fallback mode on empty/non-existing files but
+	let-bind auto-mode-alist and call normal-mode.
+
 2009-01-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-classify): Propertize file name before

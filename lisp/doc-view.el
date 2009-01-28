@@ -1093,11 +1093,11 @@ toggle between displaying the document or editing it as text.
 
   (if (or (not (file-exists-p buffer-file-name))
 	  (= (point-min) (point-max)))
-      ;; The doc is empty or doesn't exist at all, so fallback to an
-      ;; editing mode.
-      (if (string-match "[eE]?[pP][sS]" (file-name-extension buffer-file-name))
-	  (ps-mode)
-	(fundamental-mode)) ;;Should we activate d-v-minor-mode here?
+      ;; The doc is empty or doesn't exist at all, so fallback to
+      ;; another mode.
+      (let ((auto-mode-alist (remq (rassq 'doc-view-mode auto-mode-alist)
+				   auto-mode-alist)))
+	(normal-mode))
 
     (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 				doc-view-previous-major-mode
