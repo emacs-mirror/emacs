@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -400,15 +400,15 @@ changes."
 (defface org-clock-overlay ;; copied from secondary-selection
   (org-compatible-face nil
     '((((class color) (min-colors 88) (background light))
-       :background "yellow1")
+       (:background "yellow1"))
       (((class color) (min-colors 88) (background dark))
-       :background "SkyBlue4")
+       (:background "SkyBlue4"))
       (((class color) (min-colors 16) (background light))
-       :background "yellow")
+       (:background "yellow"))
       (((class color) (min-colors 16) (background dark))
-       :background "SkyBlue4")
+       (:background "SkyBlue4"))
       (((class color) (min-colors 8))
-       :background "cyan" :foreground "black")
+       (:background "cyan" :foreground "black"))
       (t (:inverse-video t))))
     "Basic face for displaying the secondary selection."
     :group 'org-faces)
@@ -456,6 +456,11 @@ belong to the weekend.")
   "Face for items scheduled for a certain day."
   :group 'org-faces)
 
+(defface org-agenda-dimmed-todo-face
+  '((((background light)) (:foreground "grey50"))
+    (((background dark)) (:foreground "grey50")))
+  "Face used to dimm blocked tasks in the agenda."
+  :group 'org-faces)
 
 (defface org-scheduled-previously
   (org-compatible-face nil

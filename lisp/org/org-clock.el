@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -724,6 +724,7 @@ the returned times will be formatted strings."
       (setq date (calendar-gregorian-from-absolute
 		  (calendar-absolute-from-iso (list w 1 y))))
       (setq d (nth 1 date) month (car date) y (nth 2 date)
+	    dow 1
 	    key 'week))
      ((string-match "^\\([0-9]+\\)-\\([0-9]\\{1,2\\}\\)-\\([0-9]\\{1,2\\}\\)$" skey)
       (setq y (string-to-number (match-string 1 skey))

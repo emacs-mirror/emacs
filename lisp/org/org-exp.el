@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3031,7 +3031,10 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    (mapconcat 'identity org-export-exclude-tags " ")
    org-export-html-link-up
    org-export-html-link-home
-   (file-name-nondirectory buffer-file-name)
+   (or (ignore-errors
+	 (file-name-sans-extension
+	  (file-name-nondirectory (buffer-file-name (buffer-base-buffer)))))
+       "NOFILENAME")
    "TODO FEEDBACK VERIFY DONE"
    "Me Jason Marie DONE"
    org-highest-priority org-lowest-priority org-default-priority

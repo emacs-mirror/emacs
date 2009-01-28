@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -512,6 +512,21 @@ deadlines are always turned off when the item is DONE."
   :group 'org-agenda-skip
   :group 'org-agenda-daily/weekly
   :type 'boolean)
+
+(defcustom org-agenda-dim-blocked-tasks t
+  "Non-nil means, dim blocked tasks in the agenda display.
+This causes some overhead during agenda construction, but if you have turned
+on `org-enforce-todo-dependencies' or any other blocking mechanism, this
+will create useful feedback in the agenda.
+Instead ot t, this variable can also have the value `invisible'.  Then
+blocked tasks will be invisible and only become visible when they
+become unblocked."
+  :group 'org-agenda-daily/weekly
+  :group 'org-agenda-todo-list
+  :type '(choice
+	  (const :tag "Do not dim" nil)
+	  (const :tag "Dim to a grey face" t)
+	  (const :tag "Make invisibe" invisible)))
 
 (defcustom org-timeline-show-empty-dates 3
   "Non-nil means, `org-timeline' also shows dates without an entry.
@@ -2132,6 +2147,8 @@ VALUE defaults to t."
 	  (org-agenda-columns))
       (when org-agenda-fontify-priorities
 	(org-fontify-priorities))
+      (when (and org-agenda-dim-blocked-tasks org-blocker-hook)
+	(org-agenda-dim-blocked-tasks))
       (run-hooks 'org-finalize-agenda-hook)
       (setq org-agenda-type (get-text-property (point) 'org-agenda-type))
       )))
@@ -2162,6 +2179,36 @@ VALUE defaults to t."
 	       ((equal p h) 'bold)))
 	(org-overlay-put ov 'org-type 'org-priority)))))
 
+(defun org-agenda-dim-blocked-tasks ()
+  "Dim currently blocked TODO's in the agenda display."
+  (mapc (lambda (o) (if (eq (org-overlay-get o 'org-type) 'org-blocked-todo)
+			(org-delete-overlay o)))
+	(org-overlays-in (point-min) (point-max)))
+  (save-excursion
+    (let ((inhibit-read-only t)
+	  (invis (eq org-agenda-dim-blocked-tasks 'invisible))
+	  b e p ov h l)
+      (goto-char (point-min))
+      (while (let ((pos (next-single-property-change (point) 'todo-state)))
+	       (and pos (goto-char (1+ pos))))
+	(let ((marker (get-text-property (point) 'org-hd-marker)))
+	  (when (and marker
+		     (not (with-current-buffer (marker-buffer marker)
+			    (save-excursion
+			      (goto-char marker)
+			      (run-hook-with-args-until-failure
+			       'org-blocker-hook
+			       (list :type 'todo-state-change
+				     :position marker
+				     :from 'todo
+				     :to 'done))))))
+	    (setq b (if invis (max (point-min) (1- (point))) (point))
+		  e (point-at-eol)
+		  ov (org-make-overlay b e))
+	    (if invis
+		(org-overlay-put ov 'invisible t)
+	      (org-overlay-put ov 'face 'org-agenda-dimmed-todo-face))
+	    (org-overlay-put ov 'org-type 'org-blocked-todo)))))))
 
 (defvar org-agenda-skip-function nil
   "Function to be called at each match during agenda construction.
@@ -3272,7 +3319,7 @@ the documentation of `org-diary'."
       (catch :skip
 	(save-match-data
 	  (beginning-of-line)
-	  (setq beg (point) end (progn (outline-next-heading) (point)))
+	  (setq beg (point) end (save-excursion (outline-next-heading) (point)))
 	  (when (org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item end)
 	    (goto-char (1+ beg))
 	    (or org-agenda-todo-list-sublevels (org-end-of-subtree 'invisible))

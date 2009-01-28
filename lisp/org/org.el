@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -94,7 +94,7 @@
 
 ;;; Version
 
-(defconst org-version "6.19e"
+(defconst org-version "6.20c"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -1602,6 +1602,49 @@ The new state (a string with a TODO keyword, or nil) is available in the
 Lisp variable `state'."
   :group 'org-todo
   :type 'hook)
+
+(defvar org-blocker-hook nil
+  "Hook for functions that are allowed to block a state change.
+
+Each function gets as its single argument a property list, see
+`org-trigger-hook' for more information about this list.
+
+If any of the functions in this hook returns nil, the state change
+is blocked.")
+
+(defvar org-trigger-hook nil
+  "Hook for functions that are triggered by a state change.
+
+Each function gets as its single argument a property list with at least
+the following elements:
+
+ (:type type-of-change :position pos-at-entry-start
+  :from old-state :to new-state)
+
+Depending on the type, more properties may be present.
+
+This mechanism is currently implemented for:
+
+TODO state changes
+------------------
+:type  todo-state-change
+:from  previous state (keyword as a string), or nil, or a symbol
+       'todo' or 'done', to indicate the general type of state.
+:to    new state, like in :from")
+
+(defcustom org-enforce-todo-dependencies nil
+  "Non-nil means, undone TODO entries will block switching the parent to DONE.
+Also, if a parent has an :ORDERED: property, switching an entry to DONE will
+be blocked if any prior sibling is not yet done.
+You need to set this variable through the customize interface, or to
+restart emacs after changing the value."
+  :set (lambda (var val)
+	 (set var val)
+	 (if val
+	     (add-hook 'org-blocker-hook 'org-block-todo-from-children-or-siblings)
+	   (remove-hook 'org-blocker-hook 'org-block-todo-from-children-or-siblings)))
+  :group 'org-todo
+  :type 'boolean)
 
 (defcustom org-todo-state-tags-triggers nil
   "Tag changes that should be triggered by TODO state changes.
@@ -8272,34 +8315,6 @@ this is nil.")
 	      (push (nth 2 e) rtn)))
 	  rtn)))))
 
-(defvar org-blocker-hook nil
-  "Hook for functions that are allowed to block a state change.
-
-Each function gets as its single argument a property list, see
-`org-trigger-hook' for more information about this list.
-
-If any of the functions in this hook returns nil, the state change
-is blocked.")
-
-(defvar org-trigger-hook nil
-  "Hook for functions that are triggered by a state change.
-
-Each function gets as its single argument a property list with at least
-the following elements:
-
- (:type type-of-change :position pos-at-entry-start
-  :from old-state :to new-state)
-
-Depending on the type, more properties may be present.
-
-This mechanism is currently implemented for:
-
-TODO state changes
-------------------
-:type  todo-state-change
-:from  previous state (keyword as a string), or nil
-:to    new state (keyword as a string), or nil")
-
 (defvar org-agenda-headline-snapshot-before-repeat)
 (defun org-todo (&optional arg)
   "Change the TODO state of an item.
@@ -8492,6 +8507,60 @@ For calling through lisp, arg is also interpreted in the following way:
 	  (save-excursion
 	    (run-hook-with-args 'org-trigger-hook change-plist)))))))
 
+(defun org-block-todo-from-children-or-siblings (change-plist)
+  "Block turning an entry into a TODO, using the hierarchy.
+This checks whether the current task should be blocked from state
+changes.  Such blocking occurs when:
+
+  1. The task has children which are not all in a completed state.
+
+  2. A task has a parent with the property :ORDERED:, and there
+     are siblings prior to the current task with incomplete
+     status."
+  (catch 'dont-block
+    ;; If this is not a todo state change, or if this entry is already DONE,
+    ;; do not block
+    (when (or (not (eq (plist-get change-plist :type) 'todo-state-change))
+	      (member (plist-get change-plist :from)
+		      (cons 'done org-done-keywords)))
+      (throw 'dont-block t))
+    ;; If this task has children, and any are undone, it's blocked
+    (save-excursion
+      (org-back-to-heading t)
+      (let ((this-level (funcall outline-level)))
+	(outline-next-heading)
+	(let ((child-level (funcall outline-level)))
+	  (while (and (not (eobp))
+		      (> child-level this-level))
+	    ;; this todo has children, check whether they are all
+	    ;; completed
+	    (if (and (not (org-entry-is-done-p))
+		     (org-entry-is-todo-p))
+		(throw 'dont-block nil))
+	    (outline-next-heading)
+	    (setq child-level (funcall outline-level))))))
+    ;; Otherwise, if the task's parent has the :ORDERED: property, and
+    ;; any previous siblings are undone, it's blocked
+    (save-excursion
+      (org-back-to-heading t)
+      (when (save-excursion
+	      (ignore-errors
+		(outline-up-heading 1)
+		(org-entry-get (point) "ORDERED")))
+	(let* ((this-level (funcall outline-level))
+	       (current-level this-level))
+	  (while (and (not (bobp))
+		      (= current-level this-level))
+	    (outline-previous-heading)
+	    (setq current-level (funcall outline-level))
+	    (if (= current-level this-level)
+		;; this todo has children, check whether they are all
+		;; completed
+		(if (and (not (org-entry-is-done-p))
+			 (org-entry-is-todo-p))
+		    (throw 'dont-block nil)))))))
+    t))					; don't block
+
 (defun org-update-parent-todo-statistics ()
   "Update any statistics cookie in the parent of the current headline."
   (interactive)
@@ -8599,49 +8668,50 @@ Returns the new TODO keyword, or nil if no state change should occur."
 	 (ncol (/ (- (window-width) 4) fwidth))
 	 tg cnt e c tbl
 	 groups ingroup)
-    (save-window-excursion
-      (if expert
-	  (set-buffer (get-buffer-create " *Org todo*"))
-	(org-switch-to-buffer-other-window (get-buffer-create " *Org todo*")))
-      (erase-buffer)
-      (org-set-local 'org-done-keywords done-keywords)
-      (setq tbl fulltable cnt 0)
-      (while (setq e (pop tbl))
+    (save-excursion
+      (save-window-excursion
+	(if expert
+	    (set-buffer (get-buffer-create " *Org todo*"))
+	  (org-switch-to-buffer-other-window (get-buffer-create " *Org todo*")))
+	(erase-buffer)
+	(org-set-local 'org-done-keywords done-keywords)
+	(setq tbl fulltable cnt 0)
+	(while (setq e (pop tbl))
+	  (cond
+	   ((equal e '(:startgroup))
+	    (push '() groups) (setq ingroup t)
+	    (when (not (= cnt 0))
+	      (setq cnt 0)
+	      (insert "\n"))
+	    (insert "{ "))
+	   ((equal e '(:endgroup))
+	    (setq ingroup nil cnt 0)
+	    (insert "}\n"))
+	   (t
+	    (setq tg (car e) c (cdr e))
+	    (if ingroup (push tg (car groups)))
+	    (setq tg (org-add-props tg nil 'face
+				    (org-get-todo-face tg)))
+	    (if (and (= cnt 0) (not ingroup)) (insert "  "))
+	    (insert "[" c "] " tg (make-string
+				   (- fwidth 4 (length tg)) ?\ ))
+	    (when (= (setq cnt (1+ cnt)) ncol)
+	      (insert "\n")
+	      (if ingroup (insert "  "))
+	      (setq cnt 0)))))
+	(insert "\n")
+	(goto-char (point-min))
+	(if (not expert) (org-fit-window-to-buffer))
+	(message "[a-z..]:Set [SPC]:clear")
+	(setq c (let ((inhibit-quit t)) (read-char-exclusive)))
 	(cond
-	 ((equal e '(:startgroup))
-	  (push '() groups) (setq ingroup t)
-	  (when (not (= cnt 0))
-	    (setq cnt 0)
-	    (insert "\n"))
-	  (insert "{ "))
-	 ((equal e '(:endgroup))
-	  (setq ingroup nil cnt 0)
-	  (insert "}\n"))
-	 (t
-	  (setq tg (car e) c (cdr e))
-	  (if ingroup (push tg (car groups)))
-	  (setq tg (org-add-props tg nil 'face
-				  (org-get-todo-face tg)))
-	  (if (and (= cnt 0) (not ingroup)) (insert "  "))
-	  (insert "[" c "] " tg (make-string
-				 (- fwidth 4 (length tg)) ?\ ))
-	  (when (= (setq cnt (1+ cnt)) ncol)
-	    (insert "\n")
-	    (if ingroup (insert "  "))
-	    (setq cnt 0)))))
-      (insert "\n")
-      (goto-char (point-min))
-      (if (not expert) (org-fit-window-to-buffer))
-      (message "[a-z..]:Set [SPC]:clear")
-      (setq c (let ((inhibit-quit t)) (read-char-exclusive)))
-      (cond
-       ((or (= c ?\C-g)
-	    (and (= c ?q) (not (rassoc c fulltable))))
-	(setq quit-flag t))
-       ((= c ?\ ) nil)
-       ((setq e (rassoc c fulltable) tg (car e))
-	tg)
-       (t (setq quit-flag t))))))
+	 ((or (= c ?\C-g)
+	      (and (= c ?q) (not (rassoc c fulltable))))
+	  (setq quit-flag t))
+	 ((= c ?\ ) nil)
+	 ((setq e (rassoc c fulltable) tg (car e))
+	  tg)
+	 (t (setq quit-flag t)))))))
 
 (defun org-entry-is-todo-p ()
   (member (org-get-todo-state) org-not-done-keywords))

@@ -1,3 +1,33 @@
+2009-01-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-get-todos): Start search from correct
+	position.
+
+	* org.el (org-fast-todo-selection): Make sure TODO selection does
+	not change buffer position.
+
+	* org-list.el (org-toggle-checkbox): Implement adding or removing
+	checkboxes from line or region when called with a prefix
+	argument.
+
+	* org-rmail.el (org-rmail-store-link): Protect the call to
+	`rmail-narrow-to-non-pruned-header'.
+
+	* org-clock.el (org-clock-special-range): Fix week display in
+	clock tables.
+
+	* org-exp.el (org-get-current-options): Fix bug when in indirect
+	buffer.
+
+	* org-agenda.el (org-agenda-dim-blocked-tasks): New option.
+	(org-finalize-agenda): Call `org-agenda-dim-blocked-tasks'.
+	(org-agenda-dim-blocked-tasks): New function.
+
+	* org.el (org-enforce-todo-dependencies): New option.
+	(org-block-todo-from-children-or-siblings): New function.
+
+	* org-faces.el (org-agenda-dimmed-todo-face): New face.
+
 2009-01-27  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-todo): Return correct state type even if the blocker

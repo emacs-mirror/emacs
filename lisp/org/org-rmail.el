@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -52,7 +52,8 @@
       (save-restriction
 	(when (eq major-mode 'rmail-summary-mode)
 	  (rmail-show-message rmail-current-message))
-	(rmail-narrow-to-non-pruned-header)
+	(when (fboundp 'rmail-narrow-to-non-pruned-header)
+	  (rmail-narrow-to-non-pruned-header))
 	(let* ((folder buffer-file-name)
 	       (message-id (mail-fetch-field "message-id"))
 	       (from (mail-fetch-field "from"))

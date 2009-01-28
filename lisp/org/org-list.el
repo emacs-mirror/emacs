@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.19e
+;; Version: 6.20c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -248,11 +248,15 @@ Return t when things worked, nil when we are not in an item."
 	 (skip-chars-forward " \t")
 	 (looking-at "\\[[- X]\\]"))))
 
-(defun org-toggle-checkbox (&optional arg)
-  "Toggle the checkbox in the current line."
+(defun org-toggle-checkbox (&optional toggle-presence)
+  "Toggle the checkbox in the current line.
+With prefix arg TOGGLE-PRESENCE, add or remove checkboxes.
+When there is an active region, toggle status or presence of the checkbox
+in the first line, and make every item in the region have the same
+status or precence, respectively."
   (interactive "P")
   (catch 'exit
-    (let (beg end status (firstnew 'unknown))
+    (let (beg end status first-present first-status)
       (cond
        ((org-region-active-p)
 	(setq beg (region-beginning) end (region-end)))
@@ -260,23 +264,46 @@ Return t when things worked, nil when we are not in an item."
 	(setq beg (point) end (save-excursion (outline-next-heading) (point))))
        ((org-at-item-checkbox-p)
 	(let ((pos (point)))
-	  (replace-match
-	   (cond (arg "[-]")
-		 ((member (match-string 0) '("[ ]" "[-]")) "[X]")
-		 (t "[ ]"))
-	   t t)
+	  (if toggle-presence
+	      (progn
+		(replace-match "")
+		(goto-char (match-beginning 0))
+		(just-one-space))
+	    (replace-match
+	     (cond ((member (match-string 0) '("[ ]" "[-]")) "[X]")
+		   (t "[ ]"))
+	     t t))
 	  (goto-char pos))
 	(throw 'exit t))
+       ((org-at-item-p)
+	;; add a checkbox
+	(save-excursion
+	  (goto-char (match-end 0))
+	  (insert "[ ] "))
+	(throw 'exit t))
        (t (error "Not at a checkbox or heading, and no active region")))
+      (setq end (move-marker (make-marker) end))
       (save-excursion
 	(goto-char beg)
+	(setq first-present (org-at-item-checkbox-p)
+	      first-status (and first-present (equal (match-string 0) "[X]")))
 	(while (< (point) end)
-	  (when (org-at-item-checkbox-p)
-	    (setq status (equal (match-string 0) "[X]"))
-	    (when (eq firstnew 'unknown)
-	      (setq firstnew (not status)))
-	    (replace-match
-	     (if (if arg (not status) firstnew) "[X]" "[ ]") t t))
+	  (if toggle-presence
+	      (cond
+	       ((and first-present (org-at-item-checkbox-p))
+		(save-excursion
+		  (replace-match "")
+		  (goto-char (match-beginning 0))
+		  (just-one-space)))
+	       ((and (not first-present) (not (org-at-item-checkbox-p))
+		     (org-at-item-p))
+		(save-excursion
+		  (goto-char (match-end 0))
+		  (insert "[ ] "))))
+	    (when (org-at-item-checkbox-p)
+	      (setq status (equal (match-string 0) "[X]"))
+	      (replace-match
+	       (if first-status "[ ]" "[X]") t t)))
 	  (beginning-of-line 2)))))
   (org-update-checkbox-count-maybe))
 
