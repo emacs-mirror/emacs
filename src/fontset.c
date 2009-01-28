@@ -89,7 +89,8 @@ EXFUN (Fclear_face_cache, 1);
    An element of a base fontset is a vector of FONT-DEFs which itself
    is a vector [ FONT-SPEC ENCODING REPERTORY ].
 
-   An element of a realized fontset is nil, t, or a vector of this form:
+   An element of a realized fontset is nil, t, 0, or a vector of this
+   form:
 
 	[ CHARSET-ORDERED-LIST-TICK PREFERRED-RFONT-DEF
 	  RFONT-DEF0 RFONT-DEF1 ... ]
@@ -106,6 +107,10 @@ EXFUN (Fclear_face_cache, 1);
 
    The value t means that no font is available for the corresponding
    range of characters.
+
+   The value 0 means that no font is available for the corresponding
+   range of characters in this fontset, but may be available in the
+   default fontset.
 
 
    A fontset has 9 extra slots.
@@ -474,7 +479,11 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   else
     font_group = FONTSET_FALLBACK (base_fontset);
   if (NILP (font_group))
-    return Qnil;
+    {
+      if (c >= 0)
+	char_table_set_range (fontset, from, to, make_number (0));
+      return Qnil;
+    }
   font_group = Fcopy_sequence (font_group);
   for (i = 0; i < ASIZE (font_group); i++)
     if (! NILP (AREF (font_group, i)))
