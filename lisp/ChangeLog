@@ -2,6 +2,7 @@
 
 	* calendar/todo-mode.el (todo-insert-item-here): Prevent insertion
 	of a new entry inside of an existing entry.  Minor code cleanup.
+	(Bug#2084)
 	(todo-add-category): Change the interactive spec.  Signal an error
 	if the Todo file is non-empty but contains no category.  Reject
 	category names that could induce bugs and confusion.  Call
@@ -9,12 +10,12 @@
 	of local variables cookie.  Properly display the newly added
 	category in Todo mode.
 	(todo-show): Call todo-initial-setup only if there is neither a
-	Todo file nor a corresponding unsaved buffer.
+	Todo file nor a corresponding unsaved buffer.  (Bug#2085)
 	(todo-category-alist): Delete function.
 	(todo-completing-read): New function.
 	(todo-insert-item, todo-jump-to-category): Use it.
 	(todo-insert-item): Make the use of the prefix argument conform to
-	the doc string.
+	the doc string.  (Bug#2086)
 
 2009-01-28  Glenn Morris  <rgm@gnu.org>
 
@@ -38,9 +39,8 @@
 
 2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/perl-mode.el (perl-indent-line-command): Call
-	indent-region if region is active.  Use cond instead of nested
-	ifs.
+	* progmodes/perl-mode.el (perl-indent-line-command): Call indent-region
+	if region is active.  Use cond instead of nested ifs.  (Bug#2053)
 
 2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -73,6 +73,7 @@
 	at all.
 	(doc-view-initiate-display): Better info message if doc-view-mode
 	cannot be used.  (Missing utility or no png support/no X frame.)
+	(Bug#2058)
 
 2009-01-27  Glenn Morris  <rgm@gnu.org>
 
@@ -14190,15 +14191,15 @@
 
 	* org: New directory for Org-mode.
 
-	* org/org-export-latex.el: Moved from lisp/texmodes.
+	* org/org-export-latex.el: Moved from lisp/textmodes.
 
-	* org/org-irc.el: Moved from lisp/texmodes.
+	* org/org-irc.el: Moved from lisp/textmodes.
 
-	* org/org-mac-message.el: Moved from lisp/texmodes.
+	* org/org-mac-message.el: Moved from lisp/textmodes.
 
-	* org/org-mouse.el: Moved from lisp/texmodes.
+	* org/org-mouse.el: Moved from lisp/textmodes.
 
-	* org/org-publish.el: Moved from lisp/texmodes.
+	* org/org-publish.el: Moved from lisp/textmodes.
 
 2008-03-21  Juri Linkov  <juri@jurta.org>
 
