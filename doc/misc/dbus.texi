@@ -1525,11 +1525,11 @@ Returns the object path of the D-Bus object @var{event} is coming from.
 @end defun
 
 @defun dbus-event-interface-name event
-Returns the interface name of of the D-Bus object @var{event} is coming from.
+Returns the interface name of the D-Bus object @var{event} is coming from.
 @end defun
 
 @defun dbus-event-member-name event
-Returns the member name of of the D-Bus object @var{event} is coming
+Returns the member name of the D-Bus object @var{event} is coming
 from.  It is either a signal name or a method name.
 @end defun
 
@@ -1541,16 +1541,26 @@ handled by a hook function.
 @defvar dbus-event-error-hooks
 This hook variable keeps a list of functions, which are called when a
 D-Bus error happens in the event handler.  Every function must accept
-one argument, the error variable catched in @code{condition-case} by
-@code{dbus-error}.  Example:
+two arguments, the event and the error variable catched in
+@code{condition-case} by @code{dbus-error}.
+
+Such functions can be used the adapt the error signal to be raised.
+Example:
 
 @lisp
-(defun my-dbus-event-error-handler (err)
-  (message "my-dbus-event-error-handler: %S" (cadr err)))
+(defun my-dbus-event-error-handler (event error)
+  (when (string-equal (concat dbus-service-emacs ".FileManager")
+                      (dbus-event-interface-name event))
+    (message "my-dbus-event-error-handler: %S %S" event error)
+    (signal 'file-error (cdr error))))
 
 (add-hook 'dbus-event-error-hooks 'my-dbus-event-error-handler)
 @end lisp
 @end defvar
+
+Hook functions shall take into account, that there might be other
+D-Bus applications running.  Therefore, they shall check carefully,
+whether a given D-Bus error is related to them.
 
 
 @node GNU Free Documentation License
