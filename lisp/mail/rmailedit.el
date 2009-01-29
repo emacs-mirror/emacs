@@ -49,7 +49,7 @@
 ;; Rmail Edit mode is suitable only for specially formatted data.
 (put 'rmail-edit-mode 'mode-class 'special)
 
-(declare-function rmail-summary-disable "" ())
+(declare-function rmail-summary-disable "rmailsum" ())
 (declare-function rmail-summary-enable "rmailsum" ())
 
 (defun rmail-edit-mode ()

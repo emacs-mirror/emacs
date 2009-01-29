@@ -1,3 +1,19 @@
+2009-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-file-name): Remove duplicate definition.
+	(rmail-set-header): Ensure header changes get saved.
+
+	* mail/rmailedit.el (rmail-summary-disable): Fix declaration.
+
+	* mail/rmailkwd.el (rmail-set-label): Update the summary, if there is
+	one, after a label is added.
+
+	* mail/rmailsum.el (rmail-summary-update-line): New function.
+	(rmail-summary-goto-msg): Return a value according to whether message
+	was found.
+	(rmail-summary-update-highlight): Give the overlay an 'rmail-summary
+	property.  Use line-end-position.
+
 2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rmailedit.el (rmail-cease-edit): Add additional quotes to
@@ -38,9 +54,9 @@
 
 2009-01-28  Stephen Berman  <stephen.berman@gmx.net>
 
-	* calendar/todo-mode.el (todo-insert-item-here): Prevent insertion
-	of a new entry inside of an existing entry.  Minor code cleanup.
-	(Bug#2084)
+	* calendar/todo-mode.el (todo-insert-item-here):
+	Prevent insertion of a new entry inside of an existing entry.
+	Minor code cleanup.  (Bug#2084)
 	(todo-add-category): Change the interactive spec.  Signal an error
 	if the Todo file is non-empty but contains no category.  Reject
 	category names that could induce bugs and confusion.  Call
