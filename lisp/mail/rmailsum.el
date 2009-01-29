@@ -743,6 +743,26 @@ a negative argument means to delete and move forward."
 	  (aset rmail-summary-vector (1- n) (rmail-create-summary-line n)))))
   (beginning-of-line))
 
+(defun rmail-summary-update-line (n)
+  "Update the summary line for message N."
+  (when (rmail-summary-goto-msg n t t)
+    (let* ((buffer-read-only nil)
+	   (start (line-beginning-position))
+	   (end (line-beginning-position 2))
+	   (overlays (overlays-in start end))
+	   high ov)
+      (while (and (setq ov (car overlays))
+		  (not (setq high (overlay-get ov 'rmail-summary))))
+	(setq overlays (cdr overlays)))
+      (delete-region (line-beginning-position) (line-beginning-position 2))
+      (princ
+       (with-current-buffer rmail-buffer
+	 (aset rmail-summary-vector (1- n) (rmail-create-summary-line n)))
+       (current-buffer))
+      (when high
+	(forward-line -1)
+	(rmail-summary-update-highlight nil)))))
+
 (defun rmail-summary-mark-undeleted (n)
   (rmail-summary-mark-deleted n t))
 
@@ -1141,7 +1161,8 @@ If N is nil, use the message corresponding to point in the summary
 and move to that message in the Rmail buffer.
 
 If NOWARN, don't say anything if N is out of range.
-If SKIP-RMAIL, don't do anything to the Rmail buffer."
+If SKIP-RMAIL, don't do anything to the Rmail buffer.
+Returns non-nil if message N was found."
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
   (if (eobp) (forward-line -1))
@@ -1191,7 +1212,8 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 		   (rmail-show-message-maybe n))
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
-	  (set-buffer obuf))))))
+	  (set-buffer obuf))))
+    (not message-not-found)))
 
 ;; Update the highlighted line in an rmail summary buffer.
 ;; That should be current.  We highlight the line point is on.
@@ -1201,7 +1223,8 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
   (or rmail-summary-overlay
       (progn
 	(make-local-variable 'rmail-summary-overlay)
-	(setq rmail-summary-overlay (make-overlay (point) (point)))))
+	(setq rmail-summary-overlay (make-overlay (point) (point)))
+	(overlay-put rmail-summary-overlay 'rmail-summary t)))
   ;; If this message is in the summary, use the overlay to highlight it.
   ;; Otherwise, don't highlight anything.
   (if not-found
@@ -1210,7 +1233,7 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 		  (save-excursion (beginning-of-line)
 				  (skip-chars-forward " ")
 				  (point))
-		  (save-excursion (end-of-line) (point)))
+		  (line-end-position))
     (overlay-put rmail-summary-overlay 'face 'highlight)))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
