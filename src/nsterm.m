@@ -186,6 +186,8 @@ Lisp_Object ns_use_qd_smoothing;
 Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
+/* Confirm on exit. */
+Lisp_Object ns_confirm_quit;
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 
@@ -1580,6 +1582,28 @@ ns_color_to_lisp (NSColor *col)
 }
 
 
+void
+ns_query_color(void *col, XColor *color_def, int setPixel)
+/* --------------------------------------------------------------------------
+         Get ARGB values out of NSColor col and put them into color_def.
+         If setPixel, set the pixel to a concatenated version.
+         and set color_def pixel to the resulting index.
+   -------------------------------------------------------------------------- */
+{
+  float r, g, b, a;
+
+  [((NSColor *)col) getRed: &r green: &g blue: &b alpha: &a];
+  color_def->red   = r * 65535;
+  color_def->green = g * 65535;
+  color_def->blue  = b * 65535;
+
+  if (setPixel == YES)
+    color_def->pixel
+      = ARGB_TO_ULONG((int)(a*255),
+		      (int)(r*255), (int)(g*255), (int)(b*255));
+}
+
+
 int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
                   char makeIndex)
@@ -1592,7 +1616,6 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
    -------------------------------------------------------------------------- */
 {
   NSColor *temp;
-  float r, g, b, a;
   int notFound = ns_get_color (name, &temp);
 
   NSTRACE (ns_defined_color);
@@ -1603,15 +1626,7 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
   if (makeIndex && alloc)
       color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
-  [temp getRed: &r green: &g blue: &b alpha: &a];
-  color_def->red   = r * 65535;
-  color_def->green = g * 65535;
-  color_def->blue  = b * 65535;
-
-  if (!makeIndex)
-    color_def->pixel
-      = ARGB_TO_ULONG((int)(a*255),
-		      (int)(r*255), (int)(g*255), (int)(b*255));
+  ns_query_color (temp, color_def, !makeIndex);
 
   return 1;
 }
@@ -3128,7 +3143,9 @@ ns_read_socket (struct terminal *terminal, int expected,
   BLOCK_INPUT;
 
 #ifdef COCOA_EXPERIMENTAL_CTRL_G
-  /* causes Feval to abort; unclear on why this isn't in calling code */
+  /* causes Feval to abort; should probably set this in calling code when
+     it IS actually called from signal handler (which is only the case
+     under NS if SYNC_INPUT is off) */
   ++handling_signal;
 #endif
 
@@ -3549,6 +3566,7 @@ ns_set_default_prefs ()
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
   ns_use_qd_smoothing = Qnil;
   ns_use_system_highlight_color = Qt;
+  ns_confirm_quit = Qnil;
 }
 
 
@@ -3739,25 +3757,12 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
 }
 
 
-void
-ns_initialize ()
-/* --------------------------------------------------------------------------
-   Mainly vestigial under NS now that ns_create_terminal () does most things.
-   -------------------------------------------------------------------------- */
-{
-  baud_rate = 38400;
-  Fset_input_interrupt_mode (Qt);
-}
-
-
 struct ns_display_info *
 ns_term_init (Lisp_Object display_name)
 /* --------------------------------------------------------------------------
      Start the Application and get things rolling.
    -------------------------------------------------------------------------- */
 {
-  extern Lisp_Object Fset_input_mode (Lisp_Object, Lisp_Object,
-                                     Lisp_Object, Lisp_Object);
   struct terminal *terminal;
   struct ns_display_info *dpyinfo;
   static int ns_initialized = 0;
@@ -3772,7 +3777,8 @@ ns_term_init (Lisp_Object display_name)
 
   if (!ns_initialized)
     {
-      ns_initialize ();
+      baud_rate = 38400;
+      Fset_input_interrupt_mode (Qnil);
       ns_initialized = 1;
     }
 
@@ -3857,6 +3863,8 @@ ns_term_init (Lisp_Object display_name)
       ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
                  Qt, Qnil, NO, NO);
       ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
+                 Qt, Qnil, NO, NO);
+      ns_default ("ConfirmQuit", &ns_confirm_quit,
                  Qt, Qnil, NO, NO);
     }
 
@@ -4187,7 +4195,7 @@ ns_term_shutdown (int sig)
 {
   int ret;
 
-  if (ns_shutdown_properly)
+  if (ns_shutdown_properly || NILP (ns_confirm_quit))
     return NSTerminateNow;
 
   /* XXX: This while() loop is needed because if the user switches to another
@@ -6185,6 +6193,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
   [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
   [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
+  [confirmQuitCheck setState: (NILP (ns_confirm_quit) ? NO : YES)];
 #endif
 }
 
@@ -6242,6 +6251,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   ns_antialias_text = [smoothFontsCheck state] ? Qt : Qnil;
   ns_use_qd_smoothing = [useQuickdrawCheck state] ? Qt : Qnil;
   ns_use_system_highlight_color = [useSysHiliteCheck state] ? Qt : Qnil;
+  ns_confirm_quit = [confirmQuitCheck state] ? Qt : Qnil;
   if (! EQ (ns_use_system_highlight_color, prevUseHighlightColor))
     {
       prevUseHighlightColor = ns_use_system_highlight_color;
@@ -6489,6 +6499,9 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
   DEFVAR_LISP ("ns-use-system-highlight-color",
                &ns_use_system_highlight_color,
                "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
+
+  DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
+               "Whether to confirm application quit using dialog.");
 
   staticpro (&ns_display_name_list);
   ns_display_name_list = Qnil;
