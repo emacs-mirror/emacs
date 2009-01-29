@@ -112,9 +112,10 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   ;; Disguise any "From " lines so they don't start a new message.
   (save-excursion
     (goto-char (point-min))
-    (while (search-forward "\nFrom " nil t)
+    (while (re-search-forward "^>*From " nil t)
       (beginning-of-line)
-      (insert ">")))
+      (insert ">")
+      (forward-line)))
   ;; Make sure buffer ends with a blank line
   ;; so as not to run this message together with the following one.
   (save-excursion
