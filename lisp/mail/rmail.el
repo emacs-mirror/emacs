@@ -2539,9 +2539,15 @@ The current mail message becomes the message displayed."
 	     (t))
 	    (rmail-decode-region (point-min) (point-max)
 				 coding-system view-buf)))
-	;; Copy the headers to the front of the message view buffer.
 	(with-current-buffer rmail-view-buffer
+	  ;; Unquote quoted From lines
+	  (goto-char (point-min))
+	  (while (re-search-forward "^>+From " nil t)
+	    (beginning-of-line)
+	    (delete-char 1)
+	    (forward-line))
 	  (goto-char (point-min)))
+	;; Copy the headers to the front of the message view buffer.
 	(rmail-copy-headers beg end)
 	;; Add the separator (blank line) between headers and body;
 	;; highlight the message, activate any URL like text and add
