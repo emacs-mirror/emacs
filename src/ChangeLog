@@ -1,3 +1,8 @@
+2009-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_has_char): New function.
+	(syms_of_xftfont): Register xftfont_has_char in xftfont_driver.
+
 2009-01-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.h (EmacsPrefsController.cursorBlinkSlider): Only define
