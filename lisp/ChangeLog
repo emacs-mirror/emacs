@@ -1,5 +1,10 @@
 2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc-dir.el (vc-dir-menu-map, vc-dir-at-event, vc-dir-resynch-file):
+	Fix typos in docstrings.
+
+2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
 	* bindings.el (completion-ignored-extensions):
 	Add entries for VCS metadata directories (CVS/, .svn, etc).
 
@@ -9,7 +14,7 @@
 
 2009-01-29  Klaus Straubinger  <KSNetz@UseNet.ArcorNews.DE>  (tiny change)
 
-	* pcmpl-rpm.el (pcmpl-rpm): Doc fix.
+	* pcmpl-rpm.el (pcmpl-rpm): Doc fix.  (Bug#2094)
 
 2009-01-29  Glenn Morris  <rgm@gnu.org>
 

@@ -206,7 +206,7 @@ See `run-hooks'."
       '(menu-item "Register" vc-register
 		  :help "Register file set into the version control system"))
     map)
-  "Menu for VC dir")
+  "Menu for VC dir.")
 
 ;; VC backends can use this to add mode-specific menu items to
 ;; vc-dir-menu-map.
@@ -276,8 +276,8 @@ See `run-hooks'."
   "Keymap for directory buffer.")
 
 (defmacro vc-dir-at-event (event &rest body)
-  "Evaluate `body' with point located at event-start of `event'.
-If `body' uses `event', it should be a variable,
+  "Evaluate BODY with point located at event-start of EVENT.
+If BODY uses EVENT, it should be a variable,
  otherwise it will be evaluated twice."
   (let ((posn (make-symbol "vc-dir-at-event-posn")))
     `(save-excursion
@@ -850,7 +850,7 @@ If it is a file, return the corresponding cons for the file itself."
       (vc-dir-update fileentries (current-buffer)))))
 
 (defun vc-dir-resynch-file (&optional fname)
-  "Update the entries for FILE in any directory buffers that list it."
+  "Update the entries for FNAME in any directory buffers that list it."
   (let ((file (or fname (expand-file-name buffer-file-name)))
 	(found-vc-dir-buf nil))
     (save-excursion
