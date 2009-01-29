@@ -651,10 +651,12 @@ w32_console_read_socket (struct terminal *terminal,
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+      pending_signals = 1;
       return -1;
     }
 
   interrupt_input_pending = 0;
+  pending_signals = pending_atimers;
   BLOCK_INPUT;
 
   for (;;)
