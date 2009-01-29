@@ -1,3 +1,8 @@
+2009-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c: Rename pending_signals to msdos_pending_signals.
+	(sig_suspender, sigprocmask): Adjust.
+
 2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (pending_signals): New var.
