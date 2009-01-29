@@ -335,16 +335,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     IBOutlet NSPopUpButton *functionModMenu;
 #endif
     IBOutlet NSMatrix *cursorTypeMatrix;
-    IBOutlet NSSlider *cursorBlinkSlider;
     IBOutlet NSSlider *expandSpaceSlider;
 #ifdef NS_IMPL_COCOA
     IBOutlet NSButton *smoothFontsCheck;
     IBOutlet NSButton *useQuickdrawCheck;
     IBOutlet NSButton *useSysHiliteCheck;
+    IBOutlet NSButton *confirmQuitCheck;
     Lisp_Object prevUseHighlightColor;
 #endif
     float prevExpandSpace;
-    float prevBlinkRate;
+#ifdef NS_IMPL_GNUSTEP
+    /* TODO: remove as soon as someone can edit the .nib to replace the
+             cursor-blink widget with checkbox conn to confirmQuitCheck */
+    IBOutlet NSSlider *cursorBlinkSlider;
+#endif
 }
 - (IBAction)cancel: (id)sender;
 - (IBAction)ok: (id)sender;
@@ -744,11 +748,11 @@ extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern Lisp_Object Qnone;
 extern char ns_no_defaults;
 
-/* XColor defined in dispextern.h (we use color_def->pixel = NSColor id), but
-   this causes an #include snafu, so we can't declare it.  */
 extern int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
                   char makeIndex);
+extern void
+ns_query_color (void *col, XColor *color_def, int setPixel);
 
 #ifdef __OBJC__
 extern Lisp_Object ns_color_to_lisp (NSColor *col);
