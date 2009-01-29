@@ -144,6 +144,7 @@ static Lisp_Object xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void xftfont_close P_ ((FRAME_PTR, struct font *));
 static int xftfont_prepare_face P_ ((FRAME_PTR, struct face *));
 static void xftfont_done_face P_ ((FRAME_PTR, struct face *));
+static int xftfont_has_char P_ ((Lisp_Object, int));
 static unsigned xftfont_encode_char P_ ((struct font *, int));
 static int xftfont_text_extents P_ ((struct font *, unsigned *, int,
 				     struct font_metrics *));
@@ -466,6 +467,21 @@ xftfont_done_face (f, face)
     }
 }
 
+static int
+xftfont_has_char (font, c)
+     Lisp_Object font;
+     int c;
+{
+  struct xftfont_info *xftfont_info;
+
+  if (FONT_ENTITY_P (font))
+    return ftfont_driver.has_char (font, c);
+
+  xftfont_info = (struct xftfont_info *) XFONT_OBJECT (font);
+  return (XftCharExists (xftfont_info->display, xftfont_info->xftfont,
+			 (FcChar32) c) == FcTrue);
+}
+
 static unsigned
 xftfont_encode_char (font, c)
      struct font *font;
@@ -604,6 +620,7 @@ syms_of_xftfont ()
   xftfont_driver.close = xftfont_close;
   xftfont_driver.prepare_face = xftfont_prepare_face;
   xftfont_driver.done_face = xftfont_done_face;
+  xftfont_driver.has_char = xftfont_has_char;
   xftfont_driver.encode_char = xftfont_encode_char;
   xftfont_driver.text_extents = xftfont_text_extents;
   xftfont_driver.draw = xftfont_draw;
