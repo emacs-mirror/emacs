@@ -91,6 +91,13 @@ volatile int interrupt_input_blocked;
    during the current critical section.  */
 int interrupt_input_pending;
 
+/* This var should be (interrupt_input_pending || pending_atimers).
+   The QUIT macro checks this instead of interrupt_input_pending and
+   pending_atimers separately, to reduce code size.  So, any code that
+   changes interrupt_input_pending or pending_atimers should update
+   this too.  */
+int pending_signals;
+
 #define KBD_BUFFER_SIZE 4096
 
 KBOARD *initial_kboard;
@@ -2193,11 +2200,14 @@ poll_for_input (timer)
      struct atimer *timer;
 {
   if (poll_suppress_count == 0)
+    {
 #ifdef SYNC_INPUT
-    interrupt_input_pending = 1;
+      interrupt_input_pending = 1;
+      pending_signals = 1;
 #else
-    poll_for_input_1 ();
+      poll_for_input_1 ();
 #endif
+    }
 }
 
 #endif /* POLL_FOR_INPUT */
@@ -7261,6 +7271,7 @@ void
 handle_async_input ()
 {
   interrupt_input_pending = 0;
+  pending_signals = pending_atimers;
 
   while (1)
     {
@@ -7272,6 +7283,14 @@ handle_async_input ()
       if (nread <= 0)
 	break;
     }
+}
+
+void
+process_pending_signals ()
+{
+  if (interrupt_input_pending)
+    handle_async_input ();
+  do_pending_atimers ();
 }
 
 #ifdef SIGIO   /* for entire page */
@@ -7291,6 +7310,7 @@ input_available_signal (signo)
 
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
+  pending_signals = 1;
 #else
   SIGNAL_THREAD_CHECK (signo);
 #endif
@@ -11536,6 +11556,7 @@ init_keyboard ()
   input_pending = 0;
   interrupt_input_blocked = 0;
   interrupt_input_pending = 0;
+  pending_signals = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
