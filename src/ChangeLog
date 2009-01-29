@@ -1,3 +1,28 @@
+2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (pending_signals): New var.
+	(poll_for_input, input_available_signal, init_keyboard): Set it.
+	(process_pending_signals): New function.
+
+	* lisp.h (QUIT): Check pending_signals instead of
+	interrupt_input_pending.  Use process_pending_signals.
+
+	* atimer.c (run_timers, alarm_signal_handler): Update
+	pending_signals.
+
+	* process.c (wait_reading_process_output): Use
+	process_pending_signals.
+
+	* sysdep.c (emacs_write): Use process_pending_signals.
+
+	* xterm.c (XTread_socket): Update pending_signals.
+
+	* w32term.c (w32_read_socket): Update pending_signals.
+
+	* w32inevt.c (w32_console_read_socket): Update pending_signals.
+
+	* blockinput.h: Add declaration for pending_signals.
+
 2009-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_has_char): New function.
