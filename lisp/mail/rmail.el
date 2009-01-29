@@ -100,20 +100,7 @@ its character representation and its display representation.")
   "The current header display style choice, one of
 'normal (selected headers) or 'full (all headers).")
 
-; These variables now declared in paths.el.
-;(defvar rmail-spool-directory "/usr/spool/mail/"
-;  "This is the name of the directory used by the system mailer for\n\
-;delivering new mail.  Its name should end with a slash.")
-;(defvar rmail-file-name
-;  (expand-file-name "~/RMAIL")
-;  "")
-
-;; Temporary support for mbox.
-(defcustom rmail-file-name "~/RMAIL"
-  "Name of user's primary mail file."
-  :type 'string
-  :group 'rmail
-  :version "21.1")
+;; rmail-spool-directory and rmail-file-name are defined in paths.el.
 
 (defgroup rmail nil
   "Mail reader for Emacs."
@@ -2011,7 +1998,9 @@ If MSGNUM is nil, use the current message."
 			  (insert " " value))
 		      (goto-char end)
 		      (insert name ": " value "\n")))
-		(rmail-error-bad-format msgnum)))))))))
+		(rmail-error-bad-format msgnum)))))
+	;; Ensure header changes get saved.
+	(if end (set-buffer-modified-p t))))))
 
 ;;;; *** Rmail Attributes and Keywords ***
 
