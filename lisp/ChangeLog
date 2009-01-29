@@ -1,3 +1,7 @@
+2009-01-29  Klaus Straubinger  <KSNetz@UseNet.ArcorNews.DE>  (tiny change)
+
+	* pcmpl-rpm.el (pcmpl-rpm): Doc fix.
+
 2009-01-29  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-file-name): Remove duplicate definition.

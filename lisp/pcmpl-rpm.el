@@ -29,7 +29,7 @@
 (require 'pcomplete)
 
 (defgroup pcmpl-rpm nil
-  "Functions for dealing with CVS completions."
+  "Functions for dealing with rpm completions."
   :group 'pcomplete)
 
 ;; Functions:
