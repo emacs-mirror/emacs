@@ -1,7 +1,11 @@
 2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/rmailedit.el (rmail-cease-edit): Add additional quotes to
+	quoted From lines.
+
 	* mail/rmail.el (rmail-redecode-body): New function, based on old
 	version removed in 2009-01-22 change.
+	(rmail-show-message): Unquote From lines.
 
 2009-01-28  Tassilo Horn  <tassilo@member.fsf.org>
 
