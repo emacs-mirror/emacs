@@ -1,3 +1,22 @@
+2009-01-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (EmacsPrefsController.cursorBlinkSlider): Only define
+	under GNUstep.
+	(ns_query_color): New declaration.
+
+	* nsterm.m (ns_confirm_quit): New variable.
+	(ns_set_default_prefs, syms_of_nsterm, ns_term_init): Initialize it.
+	(EmacsApp-applicationShouldTerminate:): Use it.
+	(EmacsPrefsController): Let user set it.
+	(ns_query_color): New function.
+	(ns_defined_color): Use it.
+	(ns_initialize): Drop.
+	(ns_term_init): Add two lines from ns_initialize(), and set
+	input_interrupt_mode to nil.
+
+	* image.c (svg_load_image): Don't right-shift background RGB when
+	obtained from FRAME_BACKGROUND_PIXEL. Under HAVE_NS use ns_query_color.
+
 2009-01-28  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
