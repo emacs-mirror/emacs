@@ -21,8 +21,6 @@
 
 	* w32inevt.c (w32_console_read_socket): Update pending_signals.
 
-	* blockinput.h: Add declaration for pending_signals.
-
 2009-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_has_char): New function.
