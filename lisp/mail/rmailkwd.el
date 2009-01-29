@@ -70,6 +70,8 @@ Performs completion over known labels when reading."
 	rmail-last-label
       (setq rmail-last-label (rmail-make-label result)))))
 
+(declare-function rmail-summary-update-line "rmailsum" (n))
+
 (defun rmail-set-label (label state &optional msg)
   "Set LABEL as present or absent according to STATE in message MSG."
   (with-current-buffer rmail-buffer
@@ -109,7 +111,10 @@ Performs completion over known labels when reading."
 			after)
 		       ((string= after "")
 			before)
-		       (t (concat before ", " after)))))))))
+		       (t (concat before ", " after))))))
+	    (if (rmail-summary-exists)
+		(rmail-select-summary
+		 (rmail-summary-update-line msg))))))
       (if (= msg rmail-current-message)
 	  (rmail-display-labels)))))
 
