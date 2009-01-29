@@ -1843,8 +1843,8 @@ extern char *stack_bottom;
    and (in particular) cannot call arbitrary Lisp code.  */
 
 #ifdef SYNC_INPUT
-extern void handle_async_input P_ ((void));
-extern int interrupt_input_pending;
+extern void process_pending_signals P_ ((void));
+extern int pending_signals;
 
 #define QUIT						\
   do {							\
@@ -1856,8 +1856,8 @@ extern int interrupt_input_pending;
 	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
       }							\
-    else if (interrupt_input_pending)			\
-      handle_async_input ();				\
+    else if (pending_signals)				\
+      process_pending_signals ();			\
   } while (0)
 
 #else  /* not SYNC_INPUT */
