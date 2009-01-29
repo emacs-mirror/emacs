@@ -2358,10 +2358,12 @@ With argument ARG, show the message header pruned if ARG is greater than zero;
 otherwise, show it in full."
   (interactive "P")
   (let ((rmail-header-style
-	 (cond
-	  ((and (numberp arg) (> arg 0)) 'normal)
-	  ((eq rmail-header-style 'full) 'normal)
-	  (t 'full))))
+	 (if (numberp arg)
+	     (if (> arg 0) 'normal 'full)
+	   (with-current-buffer (if (rmail-buffers-swapped-p)
+				    rmail-view-buffer
+				  rmail-buffer)
+	     (if (eq rmail-header-style 'full) 'normal 'full)))))
     (rmail-show-message-maybe)))
 
 (defun rmail-beginning-of-message ()
@@ -2475,7 +2477,8 @@ range (displaying a reasonable choice as well), nil otherwise.
 The current mail message becomes the message displayed."
   (let ((mbox-buf rmail-buffer)
 	(view-buf rmail-view-buffer)
-	blurb beg end body-start coding-system character-coding is-text-message)
+	blurb beg end body-start coding-system character-coding
+	is-text-message header-style)
     (if (not msg)
 	(setq msg rmail-current-message))
     (unless (setq blurb (rmail-no-mail-p))
@@ -2489,6 +2492,7 @@ The current mail message becomes the message displayed."
 		   blurb "No following message"))
 	    (t (setq rmail-current-message msg)))
       (with-current-buffer rmail-buffer
+	(setq header-style rmail-header-style)
 	;; Mark the message as seen, bracket the message in the mail
 	;; buffer and determine the coding system the transfer encoding.
 	(rmail-set-attribute rmail-unseen-attr-index nil)
@@ -2510,6 +2514,11 @@ The current mail message becomes the message displayed."
 	;; unibyte temporary buffer where the character decoding takes
 	;; place.
 	(with-current-buffer rmail-view-buffer
+	  ;; We give the view buffer a buffer-local value of
+	  ;; rmail-header-style based on the binding in effect when
+	  ;; this function is called; `rmail-toggle-headers' can
+	  ;; inspect this value to determine how to toggle.
+	  (set (make-local-variable 'rmail-header-style) header-style)
 	  (erase-buffer))
 	(if (null character-coding)
 	    ;; Do it directly since that is fast.
