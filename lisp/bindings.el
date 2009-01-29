@@ -600,6 +600,8 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
+	 ;; VCS metadata directories
+	 ".svn/" ".hg/" ".git/" ".bzr/" "CVS/" "_darcs/" "_MTN/"
 	 ;; TeX-related
 	 ".fmt" ".tfm"
 	 ;; Java compiled

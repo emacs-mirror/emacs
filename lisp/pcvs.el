@@ -2325,9 +2325,6 @@ this file, or a list of arguments to send to the program."
 ;;;; useful global settings
 ;;;;
 
-;;;###autoload
-(add-to-list 'completion-ignored-extensions "CVS/")
-
 ;;
 ;; Hook to allow calling PCL-CVS by visiting the /CVS subdirectory
 ;;

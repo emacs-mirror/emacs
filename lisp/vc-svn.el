@@ -119,9 +119,6 @@ want to force an empty list of arguments, use t."
 ;;;###autoload       (load "vc-svn")
 ;;;###autoload       (vc-svn-registered f))))
 
-;;;###autoload
-(add-to-list 'completion-ignored-extensions ".svn/")
-
 (defun vc-svn-registered (file)
   "Check if FILE is SVN registered."
   (when (file-readable-p (expand-file-name (concat vc-svn-admin-directory

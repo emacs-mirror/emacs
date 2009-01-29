@@ -1,3 +1,12 @@
+2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions):
+	Add entries for VCS metadata directories (CVS/, .svn, etc).
+
+	* pcvs.el (completion-ignored-extensions):
+	* vc-svn.el (completion-ignored-extensions): Don't add VCS-specific
+	directory, now done in bindings.el.
+
 2009-01-29  Klaus Straubinger  <KSNetz@UseNet.ArcorNews.DE>  (tiny change)
 
 	* pcmpl-rpm.el (pcmpl-rpm): Doc fix.
@@ -42,8 +51,8 @@
 
 2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-event-error-hooks): Fix docstring.  Describe
-	second parameter of hook functions.
+	* net/dbus.el (dbus-event-error-hooks): Fix docstring.
+	Describe second parameter of hook functions.
 	(dbus-handle-event): Apply it.
 
 2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
