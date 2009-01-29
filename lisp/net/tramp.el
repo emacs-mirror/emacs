@@ -5797,6 +5797,8 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-process-actions (proc vec actions &optional timeout)
   "Perform actions until success or TIMEOUT."
+  ;; Enable auth-sorce and password-cache.
+  (tramp-set-connection-property proc "first-password-request" t)
   (let (exit)
     (while (not exit)
       (tramp-message proc 3 "Waiting for prompts from remote shell")
@@ -7422,20 +7424,24 @@ Invokes `password-read' if available, `read-passwd' else."
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key)))))
-
-    (or
-     ;; See if auth-sources contains something useful, if it's bound.
-     (when (boundp 'auth-sources)
-       ;; Try with Tramp's current method.
-       (funcall (symbol-function 'auth-source-user-or-password)
-		"password" tramp-current-host tramp-current-method))
-     ;; Else, get the password interactively.
-     (if (functionp 'password-read)
-	 (let ((password (funcall (symbol-function 'password-read)
-				  pw-prompt key)))
-	   (funcall (symbol-function 'password-cache-add) key password)
-	   password)
-       (read-passwd pw-prompt)))))
+    (prog1
+	(or
+	 ;; See if auth-sources contains something useful, if it's bound.
+	 (and (boundp 'auth-sources)
+	      (tramp-get-connection-property proc "first-password-request" nil)
+	      ;; Try with Tramp's current method.
+	      (funcall (symbol-function 'auth-source-user-or-password)
+		       "password" tramp-current-host tramp-current-method))
+	 ;; Try the password cache.
+	 (and (functionp 'password-read)
+	      (tramp-get-connection-property proc "first-password-request" nil)
+	      (let ((password (funcall (symbol-function 'password-read)
+				       pw-prompt key)))
+		(funcall (symbol-function 'password-cache-add) key password)
+		password))
+	 ;; Else, get the password interactively.
+	 (read-passwd pw-prompt))
+      (tramp-set-connection-property proc "first-password-request" nil))))
 
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
@@ -7664,8 +7670,6 @@ Only works for Bourne-like shells."
 ;;   long command lines.
 ;; * `vc-directory' does not work.  It never displays any files, even
 ;;   if it does show files when run locally.
-;; * Allow correction of passwords, if the remote end allows this.
-;;   (Mark Hershberger)
 ;; * How to deal with MULE in `insert-file-contents' and `write-region'?
 ;; * Grok `append' parameter for `write-region'.
 ;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
