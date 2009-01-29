@@ -3,8 +3,8 @@
 ;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009  Free Software Foundation, Inc.
 
-;; Author: Oliver Seidel <os10000@seidel-space.de>
-;;   [Not clear the above works, July 2000]
+;; Author: Oliver Seidel <privat@os10000.net>
+;; Maintainer: Stephen Berman <stephen.berman@gmx.net>
 ;; Created: 2 Aug 1997
 ;; Keywords: calendar, todo
 
