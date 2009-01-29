@@ -1,3 +1,11 @@
+2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-toggle-header): Determine current header
+	style using the buffer-local value of rmail-header-style in the
+	view buffer.
+	(rmail-show-message): Set a buffer-local value of
+	rmail-header-style in the view buffer.
+
 2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-dir.el (vc-dir-menu-map, vc-dir-at-event, vc-dir-resynch-file):
