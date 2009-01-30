@@ -1,3 +1,9 @@
+2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32inevt.c (w32_console_read_socket) [SYNC_INPUT]:
+	* w32term.c (w32_read_socket) [SYNC_INPUT]:
+	Remove; this code is not used on Windows.
+
 2009-01-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (detect_eol, decode_eol): Handle text with DOS-style
