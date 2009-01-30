@@ -1,3 +1,13 @@
+2009-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-hooks.el (vc-stay-local-p): Let vc-BACKEND-stay-local take
+	precedence even when it's value is t.
+
+	* vc-svn.el (vc-svn-dir-status): Correct logic for remote
+	connection.
+	(vc-svn-diff): Use old version number even when it is the working
+	revision.  This is needed, e.g, in the vc-print-log buffer.
+
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-reply): Handle empty folders.
