@@ -1,3 +1,11 @@
+2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* atimer.c (run_timers, alarm_signal_handler):
+	* keyboard.c (pending_signals, handle_async_input, init_keyboard):
+	* w32inevt.c (w32_console_read_socket):
+	* w32term.c (w32_read_socket):
+	* xterm.c (XTread_socket): Use "#ifdef SYNC_INPUT" where appropriate.
+
 2009-01-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callproc.c (Vtemp_file_name_pattern): Remove DEFVAR_LISP.

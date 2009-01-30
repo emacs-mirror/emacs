@@ -4078,12 +4078,16 @@ w32_read_socket (sd, expected, hold_quit)
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+#ifdef SYNC_INPUT
       pending_signals = 1;
+#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
+#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
+#endif
   BLOCK_INPUT;
 
   /* So people can tell when we have read the available input.  */

@@ -384,6 +384,7 @@ run_timers ()
       EMACS_GET_TIME (now);
     }
 
+#ifdef SYNC_INPUT
   if (pending_atimers)
     pending_signals = 1;
   else
@@ -391,6 +392,10 @@ run_timers ()
       pending_signals = interrupt_input_pending;
       set_alarm ();
     }
+#else
+  if (! pending_atimers)
+    set_alarm ();
+#endif
 }
 
 
@@ -402,8 +407,9 @@ alarm_signal_handler (signo)
      int signo;
 {
   pending_atimers = 1;
+#ifdef SYNC_INPUT
   pending_signals = 1;
-#ifndef SYNC_INPUT
+#else
   run_timers ();
 #endif
 }

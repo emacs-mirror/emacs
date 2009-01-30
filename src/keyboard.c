@@ -96,7 +96,9 @@ int interrupt_input_pending;
    pending_atimers separately, to reduce code size.  So, any code that
    changes interrupt_input_pending or pending_atimers should update
    this too.  */
+#ifdef SYNC_INPUT
 int pending_signals;
+#endif
 
 #define KBD_BUFFER_SIZE 4096
 
@@ -7271,7 +7273,9 @@ void
 handle_async_input ()
 {
   interrupt_input_pending = 0;
+#ifdef SYNC_INPUT
   pending_signals = pending_atimers;
+#endif
 
   while (1)
     {
@@ -11556,7 +11560,9 @@ init_keyboard ()
   input_pending = 0;
   interrupt_input_blocked = 0;
   interrupt_input_pending = 0;
+#ifdef SYNC_INPUT
   pending_signals = 0;
+#endif
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
