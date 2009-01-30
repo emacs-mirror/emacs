@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.20c
+@set VERSION 6.20g
 @set DATE January 2009
 
 @dircategory Emacs
@@ -3334,6 +3334,12 @@ blocked until all earlier siblings are marked DONE.  Here is an example:
 ** TODO b, needs to wait for (a)
 ** TODO c, needs to wait for (a) and (b)
 @end example
+
+@table @kbd
+@kindex C-c C-x o
+@item C-c C-x o
+Toggle the @code{ORDERED} property of the current entry.
+@end table
 
 If you set the variable @code{org-agenda-dim-blocked-tasks}, TODO entries
 that cannot be closed because of such dependencies will be shown in a dimmed
