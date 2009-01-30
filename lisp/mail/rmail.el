@@ -3282,6 +3282,8 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
+  (if (zerop rmail-current-message)
+      (error "There is no message to reply to"))
   (let (from reply-to cc subject date to message-id references
 	     resent-to resent-cc resent-reply-to
 	     (msgnum rmail-current-message))
