@@ -70,7 +70,7 @@
 (defconst rmail-unseen-attr-index 6
   "The index for the `unseen' attribute.")
 
-(defconst rmail-resent-attr-index 6
+(defconst rmail-resent-attr-index 7
   "The index for the `resent' attribute.")
 
 (defconst rmail-attr-array
