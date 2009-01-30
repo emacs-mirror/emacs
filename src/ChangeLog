@@ -1,3 +1,8 @@
+2009-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (detect_eol, decode_eol): Handle text with DOS-style
+	EOLs that also has stray ^M characters.
+
 2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* atimer.c (run_timers, alarm_signal_handler):
