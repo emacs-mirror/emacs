@@ -1,3 +1,7 @@
+2009-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* org-table.el (org-table-clean-before-export): Fix declaration.
+
 2009-01-30  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-timer.el (org-timer): Provide the timer feature.
@@ -1914,7 +1918,6 @@
 	and ftp links.
 
 	* org.el (org-autoload): Add `org-dblock-write:columnview'.
-
 
 2008-08-11  Glenn Morris  <rgm@gnu.org>
 

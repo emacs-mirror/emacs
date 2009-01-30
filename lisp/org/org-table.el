@@ -40,7 +40,8 @@
   (require 'cl))
 (require 'org)
 
-(declare-function org-table-clean-before-export "org-exp" (lines))
+(declare-function org-table-clean-before-export "org-exp"
+		  (lines &optional maybe-quoted))
 (declare-function org-format-org-table-html "org-exp" (lines &optional splice))
 (defvar orgtbl-mode) ; defined below
 (defvar orgtbl-mode-menu) ; defined when orgtbl mode get initialized
