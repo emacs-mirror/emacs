@@ -1,5 +1,8 @@
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
+	* org-list.el (org-empty-line-terminates-plain-lists)
+	(org-toggle-checkbox): Doc fixes.
+
 	* org-table.el (org-table-clean-before-export): Fix declaration.
 
 2009-01-30  Carsten Dominik  <carsten.dominik@gmail.com>

@@ -89,7 +89,7 @@ the bullet in each item of he list."
 
 (defcustom org-empty-line-terminates-plain-lists nil
   "Non-nil means, an empty line ends all plain list levels.
-When nil, empty lines are part of the preceeding item."
+When nil, empty lines are part of the preceding item."
   :group 'org-plain-lists
   :type 'boolean)
 
@@ -253,7 +253,7 @@ Return t when things worked, nil when we are not in an item."
 With prefix arg TOGGLE-PRESENCE, add or remove checkboxes.
 When there is an active region, toggle status or presence of the checkbox
 in the first line, and make every item in the region have the same
-status or precence, respectively.
+status or presence, respectively.
 If the cursor is in a headline, apply this to all checkbox items in the
 text below the heading."
   (interactive "P")
