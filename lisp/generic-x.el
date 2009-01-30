@@ -376,7 +376,7 @@ your changes into effect."
 (define-generic-mode hosts-generic-mode
   '(?#)
   '("localhost")
-  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face))
+  '(("\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" 1 font-lock-constant-face))
   '("[hH][oO][sS][tT][sS]\\'")
   nil
   "Generic mode for HOSTS files."))
@@ -1811,7 +1811,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   '("cache" "primary" "secondary" "forwarders" "limit" "options"
     "directory" "check-names")
   ;; List of additional font-lock-expressions
-  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face)
+  '(("\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" 1 font-lock-constant-face)
     ("^directory\\s-+\\(.*\\)"              1 font-lock-variable-name-face)
     ("^\\(primary\\|cache\\)\\s-+\\([.A-Za-z]+\\)\\s-+\\(.*\\)"
      (2 font-lock-variable-name-face)
@@ -1829,7 +1829,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of keywords
   '("IN" "NS" "CNAME" "SOA" "PTR" "MX" "A")
   ;; List of additional font-lock-expressions
-  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face)
+  '(("\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" 1 font-lock-constant-face)
     ("^\\([.A-Za-z0-9]+\\)"                 1 font-lock-variable-name-face))
   ;; List of additional auto-mode-alist expressions
   nil
