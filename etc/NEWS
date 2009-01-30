@@ -1220,7 +1220,7 @@ mlm-* functions and variables (formerly used for Malayalam script).
 **** `tamil' and `tml-util, and all associated tamil-* and tml-*
 functions and variables (formerly used for Tamil script).
 
-** The variable temp_file_name_pattern has been removed.
+** The variable temp-file-name-pattern has been removed.
 This variable was only used by call-process-region, which now uses
 temporary-file-directory instead.
 
