@@ -1,3 +1,29 @@
+2009-01-30  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-timer.el (org-timer): Provide the timer feature.
+
+	* org.el (org-require-autoloaded-modules): Add a few more files to
+	the list of autoloaded modules.
+
+	* org-agenda.el (org-agenda-todo): Pass ARG to `org-todo'.
+
+	* org-exp.el (org-export-remove-or-extract-drawers): Only remove
+	drawers that are unprotected.
+	(org-export-html-format-image): Make sure inlined LaTeX fragment
+	images remain inlined.
+
+	* org.el (org-toggle-ordered-property): New function.
+	(org-mode-map): Add a key for `org-toggle-ordered-property'.
+	(org-org-menu): Add menu entries for TODO dependencies.
+
+	* org.el (org-default-properties): Add ORDERED to the default
+	properties, to get completion support for it.
+
+	* org-list.el (org-update-checkbox-count): Update more than one cookie.
+
+	* org.el (org-update-parent-todo-statistics): Update more than one
+	cookie.
+
 2009-01-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-agenda.el (org-agenda-get-todos): Start search from correct

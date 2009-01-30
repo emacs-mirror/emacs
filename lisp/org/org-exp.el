@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.20c
+;; Version: 6.20g
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -383,20 +383,6 @@ This option can also be set with the +OPTIONS line, e.g. \"^:nil\"."
 	  (const :tag "Always interpret" t)
 	  (const :tag "Only with braces" {})
 	  (const :tag "Never interpret" nil)))
-
-(defcustom org-export-with-special-strings t
-  "Non-nil means, interpret \"\-\", \"--\" and \"---\" for export.
-When this option is turned on, these strings will be exported as:
-
-\\-  : &shy;
---  : &ndash;
---- :  &mdash;
-
-Not all export backends support this, but HTML does.
-
-This option can also be set with the +OPTIONS line, e.g. \"-:nil\"."
-  :group 'org-export-translation
-  :type 'boolean)
 
 (defcustom org-export-with-TeX-macros t
   "Non-nil means, interpret simple TeX-like macros when exporting.
@@ -1767,7 +1753,8 @@ whose content to keep."
 		       "\\|")
 		      "\\):[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n")))
       (while (re-search-forward re nil t)
-	(replace-match "")))))
+	(org-if-unprotected
+	 (replace-match ""))))))
 
 (defun org-export-handle-export-tags (select-tags exclude-tags)
   "Modify the buffer, honoring SELECT-TAGS and EXCLUDE-TAGS.
@@ -2618,7 +2605,6 @@ underlined headlines.  The default is 3."
 		 "\n"))
 	 thetoc have-headings first-heading-pos
 	 table-open table-buffer link desc)
-
     (let ((inhibit-read-only t))
       (org-unmodified
        (remove-text-properties (point-min) (point-max)
@@ -2776,7 +2762,7 @@ underlined headlines.  The default is 3."
 	(if (string-match "\\\\\\\\[ \t]*$" line)
 	    (setq line (replace-match "" t t line)))
 	(if (and org-export-with-fixed-width
-		 (string-match "^\\([ \t]*\\)\\(:\\)" line))
+		 (string-match "^\\([ \t]*\\)\\(:\\( \\|$\\)\\)" line))
 	    (setq line (replace-match "\\1" nil nil line)))
 	(insert line "\n"))))
 
@@ -4036,18 +4022,20 @@ lang=\"%s\" xml:lang=\"%s\">
 (defun org-export-html-format-image (src)
   "Create image tag with source and attributes."
   (save-match-data
-    (let* ((caption (org-find-text-property-in-string 'org-caption src))
-	   (attr (org-find-text-property-in-string 'org-attributes src))
-	   (label (org-find-text-property-in-string 'org-label src)))
-      (format "<div %sclass=\"figure\">
+    (if (string-match "^ltxpng/" src)
+	(format "<img src=\"%s\"/>" src)
+      (let* ((caption (org-find-text-property-in-string 'org-caption src))
+	     (attr (org-find-text-property-in-string 'org-attributes src))
+	     (label (org-find-text-property-in-string 'org-label src)))
+	(format "<div %sclass=\"figure\">
 <p><img src=\"%s\"%s /></p>%s
 </div>"
-	      (if label (format "id=\"%s\" " label) "")
-	      src
-	      (if (string-match "\\<alt=" (or attr ""))
-		  (concat " " attr )
-		(concat " " attr " alt=\"" src "\""))
-	      (if caption (concat "\n<p>" caption "</p>") "")))))
+		(if label (format "id=\"%s\" " label) "")
+		src
+		(if (string-match "\\<alt=" (or attr ""))
+		    (concat " " attr )
+		  (concat " " attr " alt=\"" src "\""))
+		(if caption (concat "\n<p>" caption "</p>") ""))))))
 
 (defvar org-table-colgroup-info nil)
 (defun org-format-table-ascii (lines)

@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.20c
+;; Version: 6.20g
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -253,7 +253,9 @@ Return t when things worked, nil when we are not in an item."
 With prefix arg TOGGLE-PRESENCE, add or remove checkboxes.
 When there is an active region, toggle status or presence of the checkbox
 in the first line, and make every item in the region have the same
-status or precence, respectively."
+status or precence, respectively.
+If the cursor is in a headline, apply this to all checkbox items in the
+text below the heading."
   (interactive "P")
   (catch 'exit
     (let (beg end status first-present first-status)
@@ -286,7 +288,10 @@ status or precence, respectively."
       (save-excursion
 	(goto-char beg)
 	(setq first-present (org-at-item-checkbox-p)
-	      first-status (and first-present (equal (match-string 0) "[X]")))
+	      first-status
+	      (save-excursion
+		(and (re-search-forward "[ \t]\\(\\[[ X]\\]\\)" end t)
+		     (equal (match-string 1) "[X]"))))
 	(while (< (point) end)
 	  (if toggle-presence
 	      (cond
@@ -343,7 +348,7 @@ the whole buffer."
 	     end-cookie (match-end 1)
 	     cstat (+ cstat (if end-cookie 1 0))
 	     startsearch (point-at-eol)
-	     continue-from (point-at-bol)
+	     continue-from (match-beginning 0)
 	     is-percent (match-beginning 2)
 	     lim (cond
 		  ((org-on-heading-p) (outline-next-heading) (point))

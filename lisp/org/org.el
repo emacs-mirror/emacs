@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.20c
+;; Version: 6.20g
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -94,7 +94,7 @@
 
 ;;; Version
 
-(defconst org-version "6.20c"
+(defconst org-version "6.20g"
   "The version number of the file org.el.")
 
 (defun org-version (&optional here)
@@ -8561,6 +8561,18 @@ changes.  Such blocking occurs when:
 		    (throw 'dont-block nil)))))))
     t))					; don't block
 
+(defun org-toggle-ordered-property ()
+  "Toggle the ORDERED property of the current entry."
+  (interactive)
+  (save-excursion
+    (org-back-to-heading)
+    (if (org-entry-get nil "ORDERED")
+	(progn
+	  (org-delete-property "ORDERED")
+	  (message "Subtasks can be completed in arbitrary order or parallel"))
+      (org-entry-put nil "ORDERED" "t")
+      (message "Subtasks must be completed in sequence"))))
+
 (defun org-update-parent-todo-statistics ()
   "Update any statistics cookie in the parent of the current headline."
   (interactive)
@@ -8569,24 +8581,24 @@ changes.  Such blocking occurs when:
     (catch 'exit
       (save-excursion
 	(setq level (org-up-heading-safe))
-	(unless (and level
-		     (re-search-forward box-re (point-at-eol) t))
+	(unless level
 	  (throw 'exit nil))
-	(setq is-percent (match-end 2))
-	(save-match-data
-	  (unless (outline-next-heading) (throw 'exit nil))
-	  (while (looking-at org-todo-line-regexp)
-	    (setq kwd (match-string 2))
-	    (and kwd (setq cnt-all (1+ cnt-all)))
-	    (and (member kwd org-done-keywords)
-		 (setq cnt-done (1+ cnt-done)))
-	    (condition-case nil
-		(org-forward-same-level 1)
-	      (error (end-of-line 1)))))
-	(replace-match
-	 (if is-percent
-	     (format "[%d%%]" (/ (* 100 cnt-done) (max 1 cnt-all)))
-	   (format "[%d/%d]" cnt-done cnt-all)))
+	(while (re-search-forward box-re (point-at-eol) t)
+	  (setq is-percent (match-end 2))
+	  (save-match-data
+	    (unless (outline-next-heading) (throw 'exit nil))
+	    (while (looking-at org-todo-line-regexp)
+	      (setq kwd (match-string 2))
+	      (and kwd (setq cnt-all (1+ cnt-all)))
+	      (and (member kwd org-done-keywords)
+		   (setq cnt-done (1+ cnt-done)))
+	      (condition-case nil
+		  (org-forward-same-level 1)
+		(error (end-of-line 1)))))
+	  (replace-match
+	   (if is-percent
+	       (format "[%d%%]" (/ (* 100 cnt-done) (max 1 cnt-all)))
+	     (format "[%d/%d]" cnt-done cnt-all))))
 	(run-hook-with-args 'org-after-todo-statistics-hook
 			    cnt-done (- cnt-all cnt-done))))))
 
@@ -10342,7 +10354,7 @@ but in some other way.")
   '("ARCHIVE" "CATEGORY" "SUMMARY" "DESCRIPTION"
     "LOCATION" "LOGGING" "COLUMNS" "VISIBILITY"
     "TABLE_EXPORT_FORMAT" "TABLE_EXPORT_FILE"
-    "EXPORT_FILE_NAME" "EXPORT_TITLE")
+    "EXPORT_FILE_NAME" "EXPORT_TITLE" "ORDERED")
   "Some properties that are used by Org-mode for various purposes.
 Being in this list makes sure that they are offered for completion.")
 
@@ -12876,6 +12888,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 (org-defkey org-mode-map "\C-c\C-x\C-l" 'org-preview-latex-fragment)
 (org-defkey org-mode-map "\C-c\C-x\C-b" 'org-toggle-checkbox)
 (org-defkey org-mode-map "\C-c\C-xp"    'org-set-property)
+(org-defkey org-mode-map "\C-c\C-xo"    'org-toggle-ordered-property)
 (org-defkey org-mode-map "\C-c\C-xi"    'org-insert-columns-dblock)
 
 (org-defkey org-mode-map "\C-c\C-x."    'org-timer)
@@ -13715,6 +13728,16 @@ See the individual commands for more information."
      ["Show TODO Tree" org-show-todo-tree t]
      ["Global TODO list" org-todo-list t]
      "--"
+     ["Enforce dependencies" (customize-variable 'org-enforce-todo-dependencies)
+      :selected org-enforce-todo-dependencies :style toggle :active t]
+     "Settings for tree at point"
+     ["Do Children sequentially" org-toggle-ordered-property :style radio
+      :selected (ignore-errors (org-entry-get nil "ORDERED"))
+      :active org-enforce-todo-dependencies :keys "C-c C-x o"]
+     ["Do Children parallel" org-toggle-ordered-property :style radio
+      :selected (ignore-errors (not (org-entry-get nil "ORDERED")))
+      :active org-enforce-todo-dependencies :keys "C-c C-x o"]
+     "--"
      ["Set Priority" org-priority t]
      ["Priority Up" org-shiftup t]
      ["Priority Down" org-shiftdown t])
@@ -13849,9 +13872,9 @@ With optional NODE, go directly to that node."
 (defun org-require-autoloaded-modules ()
   (interactive)
   (mapc 'require
-	'(org-agenda org-archive org-clock org-colview
+	'(org-agenda org-archive org-attach org-clock org-colview
 		     org-exp org-id org-export-latex org-publish
-		     org-remember org-table)))
+		     org-remember org-table org-timer)))
 
 ;;;###autoload
 (defun org-customize ()

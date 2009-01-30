@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.20c
+;; Version: 6.20g
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -252,6 +252,8 @@ VALUE can be `on', `off', or `pause'."
     (setq org-timer-mode-line-string
 	  (concat " <" (substring (org-timer-value-string) 0 -1) ">"))
     (force-mode-line-update)))
+
+(provide 'org-timer)
 
 ;; arch-tag: 97538f8c-3871-4509-8f23-1e7b3ff3d107
 
