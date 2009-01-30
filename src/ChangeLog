@@ -1,5 +1,10 @@
 2009-01-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* dispnew.c (window_change_signal): Don't try to get the size of a
+	suspended tty frame.
+	* term.c (Fresume_tty): Resize if the size has changed while the
+	tty was suspended.
+
 	* alloc.c (mark_stack): Properly conditionalize previous change.
 
 2009-01-30  Juanma Barranquero  <lekktu@gmail.com>

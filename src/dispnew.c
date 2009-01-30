@@ -6218,6 +6218,11 @@ window_change_signal (signalnum) /* If we don't have an argument, */
     if (! tty->term_initted)
       continue;
 
+    /* Suspended tty frames have tty->input == NULL avoid trying to
+       use it.  */
+    if (!tty->input)
+      continue;
+
     get_tty_size (fileno (tty->input), &width, &height);
 
     if (width > 5 && height > 2) {

@@ -2470,7 +2470,19 @@ the currently selected frame. */)
 #endif
 
       if (FRAMEP (t->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
+	{
+	  struct frame *f = XFRAME (t->display_info.tty->top_frame);
+	  int width, height;
+	  int old_height = FRAME_COLS (f);
+	  int old_width = FRAME_LINES (f);
+
+	  /* Check if terminal/window size has changed while the frame
+	     was suspended.  */
+	  get_tty_size (fileno (t->display_info.tty->input), &width, &height);
+	  if (width != old_width || height != old_height)
+	    change_frame_size (f, height, width, 0, 0, 0);
+	  FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
+	}
 
       init_sys_modes (t->display_info.tty);
 
