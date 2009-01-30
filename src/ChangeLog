@@ -1,3 +1,11 @@
+2009-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callproc.c (Vtemp_file_name_pattern): Remove DEFVAR_LISP.
+	Initialize it as a relative filename pattern.
+	(init_callproc): Don't initialize Vtemp_file_name_pattern here.
+	(Fcall_process_region): Simplify temp file creation using
+	temporary-file-directory.
+
 2009-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c: Rename pending_signals to msdos_pending_signals.
