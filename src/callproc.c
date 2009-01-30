@@ -104,7 +104,11 @@ extern char **environ;
 Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
 Lisp_Object Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
-Lisp_Object Vtemp_file_name_pattern;
+
+/* Pattern used by call-process-region to make temp files.  */
+static Lisp_Object Vtemp_file_name_pattern;
+
+extern Lisp_Object Vtemporary_file_directory;
 
 Lisp_Object Vshell_file_name;
 
@@ -882,36 +886,32 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
   int i;
-#ifdef DOS_NT
   char *tempfile;
-  char *outf = '\0';
+  Lisp_Object tmpdir, pattern;
 
-  if ((outf = egetenv ("TMPDIR"))
-      || (outf = egetenv ("TMP"))
-      || (outf = egetenv ("TEMP")))
-    strcpy (tempfile = alloca (strlen (outf) + 20), outf);
+  if (STRINGP (Vtemporary_file_directory))
+    tmpdir = Vtemporary_file_directory;
   else
     {
-      tempfile = alloca (20);
-      *tempfile = '\0';
-    }
-  if (!IS_DIRECTORY_SEP (tempfile[strlen (tempfile) - 1]))
-    strcat (tempfile, "/");
-  if ('/' == DIRECTORY_SEP)
-    dostounix_filename (tempfile);
-  else
-    unixtodos_filename (tempfile);
-#ifdef WINDOWSNT
-  strcat (tempfile, "emXXXXXX");
-#else
-  strcat (tempfile, "detmp.XXX");
+#ifndef DOS_NT
+      if (getenv ("TMPDIR"))
+	tmpdir = build_string (getenv ("TMPDIR"));
+      else
+	tmpdir = build_string ("/tmp/");
+#else /* DOS_NT */
+      char *outf;
+      if ((outf = egetenv ("TMPDIR"))
+	  || (outf = egetenv ("TMP"))
+	  || (outf = egetenv ("TEMP")))
+	tmpdir = build_string (outf);
+      else
+	tmpdir = Ffile_name_as_directory (build_string ("c:/temp"));
 #endif
-#else /* not DOS_NT */
-  char *tempfile = (char *) alloca (SBYTES (Vtemp_file_name_pattern) + 1);
-  bcopy (SDATA (Vtemp_file_name_pattern), tempfile,
-	 SBYTES (Vtemp_file_name_pattern) + 1);
-#endif /* not DOS_NT */
+    }
 
+  pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
+  tempfile = (char *) alloca (SBYTES (pattern) + 1);
+  bcopy (SDATA (pattern), tempfile, SBYTES (pattern) + 1);
   coding_systems = Qt;
 
 #ifdef HAVE_MKSTEMP
@@ -1537,16 +1537,6 @@ init_callproc ()
   sh = (char *) getenv ("SHELL");
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
 
-  if (getenv ("TMPDIR"))
-    {
-      char *dir = getenv ("TMPDIR");
-      Vtemp_file_name_pattern
-       = Fexpand_file_name (build_string ("emacsXXXXXX"),
-                            build_string (dir));
-    }
-  else
-    Vtemp_file_name_pattern = build_string ("/tmp/emacsXXXXXX");
-
 #ifdef DOS_NT
   Vshared_game_score_directory = Qnil;
 #else
@@ -1583,6 +1573,15 @@ syms_of_callproc ()
   Qbuffer_file_type = intern ("buffer-file-type");
   staticpro (&Qbuffer_file_type);
 #endif /* DOS_NT */
+
+#ifndef DOS_NT
+  Vtemp_file_name_pattern = build_string ("emacsXXXXXX");
+#elif defined (WINDOWSNT)
+  Vtemp_file_name_pattern = build_string ("emXXXXXX");
+#else
+  Vtemp_file_name_pattern = build_string ("detmp.XXX");
+#endif
+  staticpro (&Vtemp_file_name_pattern);
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
 	       doc: /* *File name to load inferior shells from.
@@ -1626,11 +1625,6 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
 #else
   Vshared_game_score_directory = build_string (PATH_GAME);
 #endif
-
-  DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
-	       doc: /* Pattern for making names for temporary files.
-This is used by `call-process-region'.  */);
-  /* This variable is initialized in init_callproc.  */
 
   DEFVAR_LISP ("initial-environment", &Vinitial_environment,
 	       doc: /* List of environment variables inherited from the parent process.
