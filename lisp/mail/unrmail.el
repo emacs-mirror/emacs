@@ -145,9 +145,10 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 		   (if (string-match ", deleted," label-line) ?D ?-)
 		   (if (string-match ", edited," label-line) ?E ?-)
 		   (if (string-match ", filed," label-line) ?F ?-)
-		   (if (string-match ", resent," label-line) ?R ?-)
-		   (if (string-match ", unseen," label-line) ?\  ?-)
-		   (if (string-match ", stored," label-line) ?S ?-)))
+		   (if (string-match ", retried," label-line) ?R ?-)
+		   (if (string-match ", forwarded," label-line) ?S ?-)
+		   (if (string-match ", unseen," label-line) ?U ?-)
+		   (if (string-match ", resent," label-line) ?r ?-)))
 
 	    ;; Delete the special Babyl lines at the start,
 	    ;; and the ***EOOH*** line, and the reformatted header if any.
