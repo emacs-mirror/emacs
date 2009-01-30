@@ -1,3 +1,10 @@
+2009-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Handle empty folders.
+
+	* mail/rmailsum.el (rmail-summary-update-line): Replace duplicate
+	line-beginning-position calls.
+
 2009-01-30  Toby Speight  <streapadair@gmx.net>  (tiny change)
 
 	* generic-x.el (hosts-generic-mode, named-database-generic-mode):

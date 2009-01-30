@@ -754,7 +754,7 @@ a negative argument means to delete and move forward."
       (while (and (setq ov (car overlays))
 		  (not (setq high (overlay-get ov 'rmail-summary))))
 	(setq overlays (cdr overlays)))
-      (delete-region (line-beginning-position) (line-beginning-position 2))
+      (delete-region start end)
       (princ
        (with-current-buffer rmail-buffer
 	 (aset rmail-summary-vector (1- n) (rmail-create-summary-line n)))
