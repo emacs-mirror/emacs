@@ -5819,16 +5819,26 @@ detect_eol (source, src_bytes, category)
 		       || src[lsb + 2] != '\n')
 		this_eol = EOL_SEEN_CR;
 	      else
-		this_eol = EOL_SEEN_CRLF;
+		{
+		  this_eol = EOL_SEEN_CRLF;
+		  src += 2;
+		}
 
 	      if (eol_seen == EOL_SEEN_NONE)
 		/* This is the first end-of-line.  */
 		eol_seen = this_eol;
 	      else if (eol_seen != this_eol)
 		{
-		  /* The found type is different from what found before.  */
-		  eol_seen = EOL_SEEN_LF;
-		  break;
+		  /* The found type is different from what found before.
+		     Allow for stray ^M characters in DOS EOL files.  */
+		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
+		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
+		    eol_seen = EOL_SEEN_CRLF;
+		  else
+		    {
+		      eol_seen = EOL_SEEN_LF;
+		      break;
+		    }
 		}
 	      if (++total == MAX_EOL_CHECK_COUNT)
 		break;
@@ -5857,9 +5867,16 @@ detect_eol (source, src_bytes, category)
 		eol_seen = this_eol;
 	      else if (eol_seen != this_eol)
 		{
-		  /* The found type is different from what found before.  */
-		  eol_seen = EOL_SEEN_LF;
-		  break;
+		  /* The found type is different from what found before.
+		     Allow for stray ^M characters in DOS EOL files.  */
+		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
+		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
+		    eol_seen = EOL_SEEN_CRLF;
+		  else
+		    {
+		      eol_seen = EOL_SEEN_LF;
+		      break;
+		    }
 		}
 	      if (++total == MAX_EOL_CHECK_COUNT)
 		break;
@@ -6114,7 +6131,12 @@ decode_eol (coding)
 		eol_seen |= EOL_SEEN_CR;
 	    }
 	}
-      if (eol_seen != EOL_SEEN_NONE
+      /* Handle DOS-style EOLs in a file with stray ^M characters.  */
+      if ((eol_seen & EOL_SEEN_CRLF) != 0
+	  && (eol_seen & EOL_SEEN_CR) != 0
+	  && (eol_seen & EOL_SEEN_LF) == 0)
+	eol_seen = EOL_SEEN_CRLF;
+      else if (eol_seen != EOL_SEEN_NONE
 	  && eol_seen != EOL_SEEN_LF
 	  && eol_seen != EOL_SEEN_CRLF
 	  && eol_seen != EOL_SEEN_CR)
