@@ -1,3 +1,7 @@
+2009-01-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el: Fix a typo.
+
 2009-01-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/unrmail.el (unrmail): Fix conversion of BABYL attributes
