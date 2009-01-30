@@ -186,7 +186,7 @@ CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME should this rather be all the files in dir?
   (let* ((local (vc-stay-local-p dir))
-	 (remote (and local (not (eq local 'only-file)))))
+	 (remote (or (not local) (eq local 'only-file))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
   (vc-exec-after
@@ -479,18 +479,6 @@ or svn+ssh://."
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two revisions of fileset FILES."
-  (and oldvers
-       files
-       (catch 'no
-	 (dolist (f files)
-	   (or (equal oldvers (vc-working-revision f))
-	       (throw 'no nil)))
-	 t)
-       ;; Use nil rather than the current revision because svn handles
-       ;; it better (i.e. locally).  Note that if _any_ of the files
-       ;; has a different revision, we fetch the lot, which is
-       ;; obviously sub-optimal.
-       (setq oldvers nil))
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
