@@ -1,12 +1,12 @@
 2009-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-hooks.el (vc-stay-local-p): Let vc-BACKEND-stay-local take
-	precedence even when it's value is t.
+	precedence even when its value is t.  (Bug#2093)
 
-	* vc-svn.el (vc-svn-dir-status): Correct logic for remote
-	connection.
+	* vc-svn.el (vc-svn-dir-status): Correct logic for remote connection.
+	(Bug#2093)
 	(vc-svn-diff): Use old version number even when it is the working
-	revision.  This is needed, e.g, in the vc-print-log buffer.
+	revision.  This is needed, e.g, in the vc-print-log buffer.  (Bug#2092)
 
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
@@ -21,7 +21,7 @@
 2009-01-30  Toby Speight  <streapadair@gmx.net>  (tiny change)
 
 	* generic-x.el (hosts-generic-mode, named-database-generic-mode):
-	Fix regexp quoting.
+	Fix regexp quoting.  (Bug#1739)
 
 2009-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -34,7 +34,7 @@
 	style using the buffer-local value of rmail-header-style in the
 	view buffer.
 	(rmail-show-message): Set a buffer-local value of
-	rmail-header-style in the view buffer.
+	rmail-header-style in the view buffer.  (Bug#2016)
 
 2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
 
