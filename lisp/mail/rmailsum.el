@@ -492,7 +492,7 @@ the message being processed."
 	     (if (not (re-search-forward "^Date:" nil t))
 		 "      "
 	       (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
-		       (save-excursion (end-of-line) (point)) t)
+		       (line-end-position) t)
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 2)
@@ -500,7 +500,7 @@ the message being processed."
 			      (buffer-substring
 			       (match-beginning 4) (match-end 4))))
 		     ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
-		       (save-excursion (end-of-line) (point)) t)
+		       (line-end-position) t)
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 4)
@@ -508,7 +508,7 @@ the message being processed."
 			      (buffer-substring
 			       (match-beginning 2) (match-end 2))))
 		     ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
-		       (save-excursion (end-of-line) (point)) t)
+		       (line-end-position) t)
 		      (format "%2s%2s%2s"
 			      (buffer-substring
 			       (match-beginning 2) (match-end 2))
