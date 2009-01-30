@@ -1,9 +1,12 @@
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-reply): Handle empty folders.
+	(rmail-speedbar-buttons)
+	(rmail-speedbar-move-message-to-folder-on-line): Use line-end-position.
 
 	* mail/rmailsum.el (rmail-summary-update-line): Replace duplicate
 	line-beginning-position calls.
+	(rmail-header-summary): Use line-end-position.
 
 2009-01-30  Toby Speight  <streapadair@gmx.net>  (tiny change)
 

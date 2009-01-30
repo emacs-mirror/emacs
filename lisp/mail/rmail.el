@@ -3857,9 +3857,7 @@ current message into that RMAIL folder."
 	      (setq from t)))
       (if from
 	  nil
-	(setq from (buffer-substring (point) (save-excursion
-					       (end-of-line)
-					       (point))))))
+	(setq from (buffer-substring (point) (line-end-position)))))
     (goto-char (point-min))
     (if (and (looking-at "Reply to:")
 	     (equal from rmail-speedbar-last-user))
@@ -3900,7 +3898,7 @@ TOKEN and INDENT are not used."
   (interactive)
   (save-excursion
     (beginning-of-line)
-    (if (re-search-forward "<M> " (save-excursion (end-of-line) (point)) t)
+    (if (re-search-forward "<M> " (line-end-position) t)
 	(progn
 	  (forward-char -2)
 	  (speedbar-do-function-pointer)))))
