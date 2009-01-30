@@ -1,3 +1,7 @@
+2009-01-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (mark_stack): Properly conditionalize previous change.
+
 2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32inevt.c (w32_console_read_socket) [SYNC_INPUT]:

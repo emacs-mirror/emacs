@@ -4488,7 +4488,8 @@ mark_stack ()
      needed on ia64 too.  See mach_dep.c, where it also says inline
      assembler doesn't work with relevant proprietary compilers.  */
 #ifdef __sparc__
-#ifdef __sparc64__
+#if defined (__sparc64__) && defined (__FreeBSD__)
+  /* FreeBSD does not have a ta 3 handler.  */
   asm ("flushw");
 #else
   asm ("ta 3");
