@@ -1,3 +1,9 @@
+2009-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Bind
+	coding-system-for-read to `raw-text', and use insert-file-contents
+	instead of insert-file-contents-literally.  Fixes bug #2019.
+
 2009-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-hooks.el (vc-stay-local-p): Let vc-BACKEND-stay-local take
