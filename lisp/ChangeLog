@@ -1,3 +1,7 @@
+2009-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/elp.el (elp-results-symname-map): Add follow-link.
+
 2009-01-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/lisp.el (end-of-defun): Protect against
@@ -327,7 +331,7 @@
 
 2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar-uid-format): Fixed doc string.
+	* calendar/icalendar.el (icalendar-uid-format): Fix doc string.
 
 2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -343,8 +347,7 @@
 	* calendar/icalendar.el (icalendar-uid-format): New defcustom
 	variable to allow the user to choose icalendar UID format.
 	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
-	12:00am-12:59am are correctly converted to 0000-0059, instead of
-	12pm.
+	12:00am-12:59am are correctly converted to 0000-0059, instead of 12pm.
 	(icalendar-export-region,icalendar--create-uid): Use custom
 	function to compute icalendar UID for each entry.
 	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
@@ -393,7 +396,7 @@
 	* net/newst-treeview.el (newsticker--treeview-first-feed): New.
 	(newsticker-treeview-next-new-or-immortal-item): Try first-feed if
 	next-feed does not succeed.  Fixes bug#1710 even more.
-	(newsticker-treeview-next-feed): Simplified.
+	(newsticker-treeview-next-feed): Simplify.
 	(newsticker--group-get-feeds): Suppress group names in result.
 
 2009-01-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
@@ -436,8 +439,8 @@
 
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* term/ns-win.el (ns-insert-working-text, ns-put-working-text): Switch
-	names and update comments for clarity.
+	* term/ns-win.el (ns-insert-working-text, ns-put-working-text):
+	Switch names and update comments for clarity.
 
 2009-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -502,7 +505,7 @@
 	(rmail-simplified-subject, rmail-simplified-subject-regexp)
 	(rmail-write-region-annotate): New functions.
 
-	(rmail-keywords, rmail-default-rmail-file): Vars deleted.
+	(rmail-keywords, rmail-default-rmail-file): Delete vars.
 	(rmail-convert-mailpath, rmail-convert-file)
 	(rmail-insert-rmail-file-header, rmail-decode-babyl-format)
 	(rmail-parse-file-inboxes, rmail-convert-to-babyl-format)
@@ -511,8 +514,7 @@
 	(rmail-msg-restore-non-pruned-header, rmail-msg-prune-header)
 	(rmail-narrow-to-non-pruned-header, rmail-message-recipients-p)
 	(rmail-count-screen-lines, rmail-message-regexp-p)
-	(rmail-current-subject, rmail-current-subject-regexp): Functions
-	deleted.
+	(rmail-current-subject, rmail-current-subject-regexp): Delete functions.
 	(rmail-nuke-pinhead-header): Move to rmailout.el.
 
 	(rmail-ignored-headers): Add additional headers.
@@ -540,7 +542,7 @@
 
 	* mail/rmailedit.el: Require rmailsum.el.
 	(rmail-edit-mode): First check if buffer is swapped.
-	(rmail-edit-saved-coding-system): Var deleted.
+	(rmail-edit-saved-coding-system): Delete var.
 	(rmail-edit-current-message): Don't call deleted vars.
 	(rmail-cease-edit): Handle mbox format.
 	(rmail-abort-edit): Widen buffer.
@@ -550,14 +552,13 @@
 	(rmail-buffer, rmail-current-message, rmail-last-label)
 	(rmail-last-multi-labels, rmail-summary-vector)
 	(rmail-total-messages, rmail-attributes, rmail-deleted-label)
-	(rmail-keywords): Vars deleted.
+	(rmail-keywords): Delete vars.
 	(rmail-attribute-p, rmail-keyword-p, rmail-make-label)
 	(rmail-force-make-label, rmail-quote-label-name, rmail-keywords)
-	(rmail-parse-file-keywords, rmail-install-keyword): Functions
-	deleted.
+	(rmail-parse-file-keywords, rmail-install-keyword): Delete functions.
 	(rmail-make-label): New function.
 	(rmail-read-label): Don't call rmail-parse-file-keywords.
-	(rmail-set-label): Rewritten using rmail-set-attribute.
+	(rmail-set-label): Rewrite using rmail-set-attribute.
 	(rmail-next-labeled-message): Use rmail-get-labels.
 
 	* mail/rmailmm.el: New file.
@@ -570,18 +571,18 @@
 	(rmail-convert-to-babyl-format, rmail-output-as-mbox)
 	(rmail-output-to-rmail-buffer): New functions.
 	(rmail-output-read-rmail-file-name, rmail-output-to-rmail-file):
-	Function deleted.
-	(rmail-nuke-pinhead-header): Moved from rmail.el.
-	(rmail-output): Rewritten to accept both mbox and babyl output.
-	(rmail-output-as-seen, rmail-output-body-to-file): Rewritten to
+	Delete functions.
+	(rmail-nuke-pinhead-header): Move from rmail.el.
+	(rmail-output): Rewrite to accept both mbox and babyl output.
+	(rmail-output-as-seen, rmail-output-body-to-file): Rewrite to
 	use mbox internal format.
 
 	* mail/rmailsort.el: Eval mail-utils when compiled.  Require rmail.el.
 	(rmail-sort-by-date, rmail-sort-by-subject, rmail-sort-by-author)
-	(rmail-sort-by-recipient, rmail-sort-by-correspondent): Use
-	rmail-get-header.
-	(rmail-sort-messages): Use new buffer swapping mechanism.  Handle
-	mbox internal format.
+	(rmail-sort-by-recipient, rmail-sort-by-correspondent):
+	Use rmail-get-header.
+	(rmail-sort-messages): Use new buffer swapping mechanism.
+	Handle mbox internal format.
 
 	* mail/rmailsum.el (rmail-summary): Make sure rmail buffer is shown.
 	(rmail-message-recipients-p, rmail-message-recipients-p-1)
@@ -589,8 +590,7 @@
 	(rmail-get-create-summary-buffer, rmail-get-summary)
 	(rmail-create-summary-line, rmail-get-summary-labels)
 	(rmail-create-summary, rmail-header-summary)
-	(rmail-summary-output, rmail-summary-output-as-seen): New
-	functions.
+	(rmail-summary-output, rmail-summary-output-as-seen): New functions.
 	(rmail-summary-by-topic, rmail-message-senders-p)
 	(rmail-header-summary, rmail-summary-next-same-subject): Use mbox
 	internal format.
@@ -601,8 +601,8 @@
 	(rmail-summary-undelete, rmail-summary-rmail-update)
 	(rmail-summary-scroll-msg-up, rmail-summary-scroll-msg-down)
 	(rmail-summary-show-message, rmail-summary-wipe)
-	(rmail-summary-toggle-header, rmail-summary-reply): Use
-	rmail-buffer instead of rmail-view-buffer.
+	(rmail-summary-toggle-header, rmail-summary-reply):
+	Use rmail-buffer instead of rmail-view-buffer.
 	(rmail-summary-mode-map): Rebind "o" to rmail-summary-output.
 	(rmail-summary-goto-msg): Use rmail-show-message-maybe.
 	(rmail-summary-expunge-and-save): Use rmail-expunge-and-save.
