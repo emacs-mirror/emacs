@@ -1,11 +1,11 @@
 ;;; uce.el --- facilitate reply to unsolicited commercial email
 
-;; Copyright (C) 1996, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: stanislav shalunov <shalunov@mccme.ru>
 ;; Created: 10 Dec 1996
-;; Keywords: uce, unsolicited commercial email
+;; Keywords: mail, uce, unsolicited commercial email
 
 ;; This file is part of GNU Emacs.
 
@@ -24,43 +24,68 @@
 
 ;;; Commentary:
 
-;; Code in this file provides semi-automatic means of replying to
-;; UCE's you might get.  It works currently only with Rmail and Gnus.
-;; If you would like to make it work with other mail readers,
-;; Rmail-specific section is marked below.  If you want to play with
-;; code, please let me know about your changes so I can incorporate
-;; them.  I'd appreciate it.
+;; The code in this file provides a semi-automatic means of replying
+;; to unsolicited commercial email (UCE) you might get.  Currently, it
+;; only works with Rmail and Gnus.  If you would like to make it work
+;; with other mail readers, see the mail-client dependent section of
+;; uce-reply-to-uce.  Please let me know about your changes so I can
+;; incorporate them.  I'd appreciate it.
 
-;; Function uce-reply-to-uce, if called when current message in RMAIL
-;; buffer is a UCE, will setup *mail* buffer in the following way: it
-;; scans full headers of message for 1) normal return address of
-;; sender (From, Reply-To lines); and puts these addresses into To:
-;; header, it also puts abuse@offenders.host address there 2) mailhub
-;; that first saw this message; and puts address of its postmaster
-;; into To: header 3) finally, it looks at Message-Id and adds
-;; posmaster of that host to the list of addresses.
+;; The command uce-reply-to-uce, if called when the current message
+;; buffer is a UCE, will setup a reply *mail* buffer as follows.  It
+;; scans the full headers of the message for: 1) the normal return
+;; address of the sender (From, Reply-To lines), and puts these
+;; addresses into the To: header, along with abuse@offenders.host; 2)
+;; the mailhub that first saw this message, and adds the address of
+;; its postmaster into the To: header; and 3), finally, it looks at
+;; the Message-Id and adds the postmaster of that host to the list of
+;; addresses.
 
-;; Then, we add "Errors-To: nobody@localhost" header, so that if some
-;; of these addresses are not actually correct, we will never see
+;; Then, we add an "Errors-To: nobody@localhost" header, so that if
+;; some of these addresses are not actually correct, we will never see
 ;; bounced mail.  Also, mail-self-blind and mail-archive-file-name
 ;; take no effect: the ideology is that we don't want to save junk or
 ;; replies to junk.
 
-;; Then we put template into buffer (customizable message that
-;; explains what has happened), customizable signature, and the
+;; Then we insert a template into the buffer (a customizable message
+;; that explains what has happened), customizable signature, and the
 ;; original message with full headers and envelope for postmasters.
-;; Then buffer is left for editing.
+;; Then the buffer is left for editing.
 
-;; The reason that function uce-reply-to-uce is Rmail dependant is
-;; that we want full headers of the original message, nothing
-;; stripped.  If we use normal means of inserting of the original
-;; message into *mail* buffer headers like Received: (not really
-;; headers, but envelope lines) will be stripped while they bear
-;; valuable for us and postmasters information.  I do wish that there
-;; would be some way to write this function in some portable way, but
-;; I am not aware of any.
+;; The reason that the function uce-reply-to-uce is mail-client
+;; dependent is that we want the full headers of the original message,
+;; nothing stripped.  If we use the normal means of inserting the
+;; original message into the *mail* buffer, headers like Received:
+;; (not really headers, but envelope lines) will be stripped, while
+;; they bear valuable information for us and postmasters.  I do wish
+;; that there would be some portable way to write this function, but I
+;; am not aware of any.
 
-;;; Change log:
+;; Usage:
+
+;; Place uce.el in your load-path (and optionally byte-compile it).
+;; Add the following line to your ~/.emacs:
+;; (autoload 'uce-reply-to-uce "uce" "Reply to UCEs" t nil)
+;; If you want to use it with Gnus rather than Rmail:
+;; (setq uce-mail-reader 'gnus)
+
+;; Options:
+
+;; uce-message-text is a template that will be inserted into buffer.
+;; It has a reasonable default.  If you want to write some scarier
+;; one, please do so and send it to me.  Please keep it polite.
+
+;; uce-signature behaves just like mail-signature.  If nil, nothing is
+;; inserted, if t, file ~/.signature is used, if a string, its
+;; contents are inserted into buffer.
+
+;; uce-uce-separator is a line that separates your message from the
+;; UCE that you enclose.
+
+;; uce-subject-line will be used as the subject of the outgoing message.
+
+
+;;; Change Log:
 
 ;; Dec 10, 1996 -- posted draft version to gnu.sources.emacs
 
@@ -83,39 +108,11 @@
 ;; latest Gnus.  Lars told him it should work for all versions of Gnus
 ;; younger than three years.
 
-;; Setup:
-
-;; Add the following line to your ~/.emacs:
-
-;; (autoload 'uce-reply-to-uce "uce" "Reply to UCEs" t nil)
-
-;; If you want to use it with Gnus also use
-
-;; (setq uce-mail-reader 'gnus)
-
-;; store this file (uce.el) somewhere in load-path and byte-compile it.
-
-;;; Variables:
-
-;; uce-message-text is template that will be inserted into buffer.  It
-;; has reasonable default.  If you want to write some scarier one,
-;; please do so and send it to me.  Please keep it polite.
-
-;; uce-signature behaves just like mail-signature.  If nil, nothing is
-;; inserted, if t, file ~/.signature is used, if a string, its
-;; contents are inserted into buffer.
-
-;; uce-uce-separator is line that separates your message from the UCE
-;; that you enclose.
-
-;; uce-subject-line will be used as subject of outgoing message.  If
-;; nil, left blank.
 
 ;;; Code:
 
 (defvar gnus-original-article-buffer)
 (defvar mail-reply-buffer)
-(defvar rmail-current-message)
 
 (require 'sendmail)
 ;; Those sections of code which are dependent upon
@@ -184,7 +181,7 @@ on beginning of some line from the spamming list.  So, when you set it
 up, it might be a good idea to actually use this feature.
 
 Value nil means insert no text by default, lets you type it in."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'uce)
 
 (defcustom uce-uce-separator
@@ -206,7 +203,7 @@ as your signature."
   "Errors-To: nobody@localhost\nPrecedence: bulk\n"
   "Additional headers to use when responding to a UCE with \\[uce-reply-to-uce].
 These are mostly meant for headers that prevent delivery errors reporting."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'uce)
 
 (defcustom uce-subject-line
@@ -215,40 +212,47 @@ These are mostly meant for headers that prevent delivery errors reporting."
   :type 'string
   :group 'uce)
 
+;; End of user options.
+
+
+(defvar rmail-buffer)
+(declare-function rmail-msg-is-pruned "rmail" ())
 (declare-function mail-strip-quoted-names "mail-utils" (address))
 (declare-function rmail-maybe-set-message-counters "rmail" ())
 (declare-function rmail-msgbeg "rmail" (n))
 (declare-function rmail-msgend "rmail" (n))
 (declare-function rmail-toggle-header "rmail" (&optional arg))
 
-
+;;;###autoload
 (defun uce-reply-to-uce (&optional ignored)
-  "Send reply to UCE in Rmail.
-UCE stands for unsolicited commercial email.  Function will set up reply
-buffer with default To: to the sender, his postmaster, his abuse@
-address, and postmaster of the mail relay used."
+  "Compose a reply to unsolicited commercial email (UCE).
+Sets up a reply buffer addressed to: the sender, his postmaster,
+his abuse@ address, and the postmaster of the mail relay used.
+You might need to set `uce-mail-reader' before using this."
   (interactive)
+  ;; Start of mail-client dependent section.
   (let ((message-buffer
 	 (cond ((eq uce-mail-reader 'gnus) gnus-original-article-buffer)
-	       ((eq uce-mail-reader 'rmail) "RMAIL")
+	       ((eq uce-mail-reader 'rmail) (bound-and-true-p rmail-buffer))
 	       (t (error
 		   "Variable uce-mail-reader set to unrecognized value"))))
-	(full-header-p (and (eq uce-mail-reader 'rmail)
-			    (not (rmail-msg-is-pruned)))))
-    (or (get-buffer message-buffer)
-	(error "No buffer %s, cannot find UCE" message-buffer))
+	pruned)
+    (or (and message-buffer (get-buffer message-buffer))
+	(error "No mail buffer, cannot find UCE"))
     (switch-to-buffer message-buffer)
     ;; We need the message with headers pruned.
-    (if full-header-p
-	(rmail-toggle-header 1))
+    ;; Why?  All we do is get the from and reply-to headers.  ?
+    (and (eq uce-mail-reader 'rmail)
+	 (not (setq pruned (rmail-msg-is-pruned)))
+	 (rmail-toggle-header 1))
     (let ((to (mail-strip-quoted-names (mail-fetch-field "from" t)))
 	  (reply-to (mail-fetch-field "reply-to"))
 	  temp)
       ;; Initial setting of the list of recipients of our message; that's
       ;; what they are pretending to be.
-      (if to
-	  (setq to (format "%s" (mail-strip-quoted-names to)))
-	(setq to ""))
+      (setq to (if to
+		   (format "%s" (mail-strip-quoted-names to))
+		 ""))
       (if reply-to
 	  (setq to (format "%s, %s" to (mail-strip-quoted-names reply-to))))
       (let (first-at-sign end-of-hostname sender-host)
@@ -260,31 +264,22 @@ address, and postmaster of the mail relay used."
 			     to sender-host sender-host))))
       (setq mail-send-actions nil)
       (setq mail-reply-buffer nil)
-      (cond ((eq uce-mail-reader 'gnus)
-	     (copy-region-as-kill (point-min) (point-max)))
-	    ((eq uce-mail-reader 'rmail)
-	     (save-excursion
-	       (save-restriction
-		 (rmail-toggle-header 1)
-		 (widen)
-		 (rmail-maybe-set-message-counters)
-		 (copy-region-as-kill (rmail-msgbeg rmail-current-message)
-				      (rmail-msgend rmail-current-message))))))
-      ;; Restore the pruned header state we found.
-      (if full-header-p
-	  (rmail-toggle-header 0))
+      (when (eq uce-mail-reader 'rmail)
+	(rmail-toggle-header 0)
+	(rmail-maybe-set-message-counters)) ; why?
+      (copy-region-as-kill (point-min) (point-max))
+      ;; Restore the initial header state we found.
+      (and pruned (rmail-toggle-header 1))
       (switch-to-buffer "*mail*")
       (erase-buffer)
-      (setq temp (point))
       (yank)
-      (goto-char temp)
-      (if (eq uce-mail-reader 'rmail)
-	  (progn
-	    (forward-line 2)
-	    (let ((case-fold-search t))
-	      (while (looking-at "Summary-Line:\\|Mail-From:")
-		(forward-line 1)))
-	    (delete-region temp (point))))
+      (goto-char (point-min))
+      ;; Delete any internal Rmail headers.
+      (when (eq uce-mail-reader 'rmail)
+	(search-forward "\n\n")
+	(while (re-search-backward "^X-RMAIL" nil t)
+	  (delete-region (point) (line-beginning-position 2)))
+	(goto-char (point-min)))
       ;; Now find the mail hub that first accepted this message.
       ;; This should try to find the last Received: header.
       ;; Sometimes there may be other headers inbetween Received: headers.
@@ -293,22 +288,15 @@ address, and postmaster of the mail relay used."
 	     (re-search-forward "^Lines:")
 	     (beginning-of-line))
 	    ((eq uce-mail-reader 'rmail)
-	     (goto-char (point-min))
-	     (search-forward "*** EOOH ***\n")
-	     (beginning-of-line)
-	     (forward-line -1)))
+	     (search-forward "\n\n")))
       (re-search-backward "^Received:")
-      (beginning-of-line)
       ;; Is this always good?  It's the only thing I saw when I checked
       ;; a few messages.
-      (let ((eol (save-excursion (end-of-line) (point))))
-	;;(if (not (re-search-forward ": \\(from\\|by\\) " eol t))
-	(if (not (re-search-forward "\\(from\\|by\\) " eol t))
-	    (progn
-	      (goto-char eol)
-	      (if (looking-at "[ \t\n]+\\(from\\|by\\) ")
-		  (goto-char (match-end 0))
-		(error "Failed to extract hub address")))))
+      ;;(if (not (re-search-forward ": \\(from\\|by\\) " eol t))
+      (unless (re-search-forward "\\(from\\|by\\) " (line-end-position) 'move)
+	(if (looking-at "[ \t\n]+\\(from\\|by\\) ")
+	    (goto-char (match-end 0))
+	  (error "Failed to extract hub address")))
       (setq temp (point))
       (search-forward " ")
       (forward-char -1)
@@ -317,34 +305,25 @@ address, and postmaster of the mail relay used."
 	  (setq to (format "%s, postmaster@%s"
 			   to (buffer-substring temp (point)))))
       ;; Also look at the message-id, it helps *very* often.
-      (if (and (search-forward "\nMessage-Id: " nil t)
-	       ;; Not all Message-Id:'s have an `@' sign.
-	       (let ((bol (point))
-		     eol)
-		 (end-of-line)
-		 (setq eol (point))
-		 (goto-char bol)
-		 (search-forward "@" eol t)))
-	  (progn
-	    (setq temp (point))
-	    (search-forward ">")
-	    (forward-char -1)
-	    (if (string-match "\\." (buffer-substring temp (point)))
-		(setq to (format "%s, postmaster@%s"
-				 to (buffer-substring temp (point)))))))
-      (cond ((eq uce-mail-reader 'gnus)
-	     ;; Does Gnus always have Lines: in the end?
-	     (re-search-forward "^Lines:")
-	     (beginning-of-line))
-	    ((eq uce-mail-reader 'rmail)
-	     (search-forward "\n*** EOOH ***\n")
-	     (forward-line -1)))
-      (setq temp (point))
-      (search-forward "\n\n" nil t)
-      (if (eq uce-mail-reader 'gnus)
-	  (forward-line -1))
-      (delete-region temp (point))
-      ;; End of Rmail dependent section.
+      (and (search-forward "\nMessage-Id: " nil t)
+	   ;; Not all Message-Id:'s have an `@' sign.
+	   (search-forward "@" (line-end-position) t)
+	   (progn
+	     (setq temp (point))
+	     (search-forward ">")
+	     (forward-char -1)
+	     (if (string-match "\\." (buffer-substring temp (point)))
+		 (setq to (format "%s, postmaster@%s"
+				  to (buffer-substring temp (point)))))))
+      (when (eq uce-mail-reader 'gnus)
+	;; Does Gnus always have Lines: in the end?
+	(re-search-forward "^Lines:")
+	(beginning-of-line)
+	(setq temp (point))
+	(search-forward "\n\n" nil t)
+	(forward-line -1)
+	(delete-region temp (point)))
+      ;; End of mail-client dependent section.
       (auto-save-mode auto-save-default)
       (mail-mode)
       (goto-char (point-min))
@@ -387,7 +366,7 @@ address, and postmaster of the mail relay used."
       (if to (goto-char to))
       (or to (set-buffer-modified-p nil))
       ;; Run hooks before we leave buffer for editing.  Reasonable usage
-      ;; might be to set up special key bindings, replace standart
+      ;; might be to set up special key bindings, replace standard
       ;; functions in mail-mode, etc.
       (run-hooks 'mail-setup-hook 'uce-setup-hook))))
 
