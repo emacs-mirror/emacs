@@ -185,8 +185,12 @@ want to force an empty list of arguments, use t."
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; FIXME should this rather be all the files in dir?
-  (let* ((local (vc-stay-local-p dir))
-	 (remote (or (not local) (eq local 'only-file))))
+  ;; FIXME: the vc-stay-local-p logic below is disabled, it ends up
+  ;; calling synchronously (vc-svn-registered DIR) => calling svn status -v DIR
+  ;; which is VERY SLOW for big trees and it makes emacs
+  ;; completely unresponsive during that time.
+  (let* ((local (and nil (vc-stay-local-p dir)))
+	 (remote (or t (not local) (eq local 'only-file))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
   (vc-exec-after
