@@ -344,7 +344,7 @@ This option can also be set with the +OPTIONS line, e.g. \"f:nil\"."
 
 (defcustom org-export-html-footnotes-section "<div id=\"footnotes\">
 <h2 class=\"footnotes\">%s: </h2>
-<div id=\"footnotes-text\">
+<div id=\"text-footnotes\">
 %s
 </div>
 </div>"

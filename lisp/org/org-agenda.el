@@ -2186,6 +2186,7 @@ VALUE defaults to t."
 	(org-overlays-in (point-min) (point-max)))
   (save-excursion
     (let ((inhibit-read-only t)
+	  (org-depend-tag-blocked nil)
 	  (invis (eq org-agenda-dim-blocked-tasks 'invisible))
 	  b e p ov h l)
       (goto-char (point-min))

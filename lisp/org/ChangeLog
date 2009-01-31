@@ -1,3 +1,13 @@
+2009-01-31  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-agenda.el (org-agenda-dim-blocked-tasks): No tagging when
+	only checking for blocks.
+
+	* org-exp.el (org-export-html-footnotes-section): Make the div id consistent
+
+	* org-export-latex.el (org-export-latex-classes): Remove
+	paper size option from LaTeX classes.
+
 2009-01-31  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-enforce-todo-checkbox-dependencies): New option.
