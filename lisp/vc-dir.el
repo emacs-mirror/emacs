@@ -689,10 +689,9 @@ that share the same state."
   (interactive)
   (find-file (vc-dir-current-file)))
 
-(defun vc-dir-find-file-other-window (&optional event)
+(defun vc-dir-find-file-other-window ()
   "Find the file on the current line, in another window."
-  (interactive (list last-input-event))
-  (if event (posn-set-point (event-end event)))
+  (interactive)
   (find-file-other-window (vc-dir-current-file)))
 
 (defun vc-dir-isearch ()
@@ -1144,13 +1143,6 @@ Interactively, a prefix argument means to ask for the backend."
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
-;; Keep existing map.
-(defvar vc-dir-mouse-map
-  (let ((map vc-dir-mode-map))
-    (define-key map [mouse-2] 'vc-dir-find-file-other-window)
-    map)
-  "Local keymap for visiting a file.")
-
 (defun vc-default-dir-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
@@ -1177,8 +1169,7 @@ Interactively, a prefix argument means to ask for the backend."
       (if isdir
 	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
 	"File\nmouse-3: Pop-up menu")
-      'mouse-face 'highlight
-      'local-map vc-dir-mouse-map))))
+      'mouse-face 'highlight))))
 
 (defun vc-default-extra-status-menu (backend)
   nil)

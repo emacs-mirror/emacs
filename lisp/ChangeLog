@@ -9,6 +9,11 @@
 
 2009-01-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-dir-mouse-map):
+	(vc-default-dir-printer):
+	(vc-dir-find-file-other-window): Undo previous change, it breaks
+	the behavior of mouse-2.
+
 	* vc-svn.el (vc-svn-dir-status): Disable the vc-stay-local-p
 	logic, it makes the makes the normal case too slow.
 
