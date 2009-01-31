@@ -1,5 +1,7 @@
 2009-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (mouse-drag-mode-line-1): Obey mouse-1-click-follows-link.
+
 	* progmodes/ebrowse.el:
 	* international/robin.el:
 	* emulation/viper-util.el:
