@@ -1,7 +1,7 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -302,10 +302,11 @@ the comma-separated list.  The pruned list is returned."
 ;;;###autoload
 (defun mail-fetch-field (field-name &optional last all list)
   "Return the value of the header field whose type is FIELD-NAME.
-The buffer is expected to be narrowed to just the header of the message.
 If second arg LAST is non-nil, use the last field of type FIELD-NAME.
 If third arg ALL is non-nil, concatenate all such fields with commas between.
-If 4th arg LIST is non-nil, return a list of all such fields."
+If 4th arg LIST is non-nil, return a list of all such fields.
+The header must be at the start of the buffer.  If any of the optional
+arguments are used, the buffer should be narrowed to just the header."
   (save-excursion
     (goto-char (point-min))
     (let ((case-fold-search t)
