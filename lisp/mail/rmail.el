@@ -2353,18 +2353,22 @@ the message.  Point is at the beginning of the message."
 
 ;;;; *** Rmail Message Formatting and Header Manipulation ***
 
+;; This is used outside of rmail.
+(defun rmail-msg-is-pruned ()
+  "Return nil if the current message is showing full headers."
+  (with-current-buffer (if (rmail-buffers-swapped-p) rmail-view-buffer
+                         rmail-buffer)
+    (eq rmail-header-style 'normal)))
+
 (defun rmail-toggle-header (&optional arg)
-  "Show original message header if pruned header currently shown, or vice versa.
-With argument ARG, show the message header pruned if ARG is greater than zero;
-otherwise, show it in full."
+  "Toggle between showing full and normal message headers.
+With optional integer ARG, show the normal message header if ARG
+is greater than zero; otherwise, show it in full."
   (interactive "P")
   (let ((rmail-header-style
 	 (if (numberp arg)
 	     (if (> arg 0) 'normal 'full)
-	   (with-current-buffer (if (rmail-buffers-swapped-p)
-				    rmail-view-buffer
-				  rmail-buffer)
-	     (if (eq rmail-header-style 'full) 'normal 'full)))))
+           (if (rmail-msg-is-pruned) 'full 'normal))))
     (rmail-show-message-maybe)))
 
 (defun rmail-beginning-of-message ()
@@ -3367,7 +3371,9 @@ use \\[mail-yank-original] to yank the original message into it."
 			(mail-strip-quoted-names
 			 (if (null cc) to (concat to ", " cc))))))
 	 (if (string= cc-list "") nil cc-list)))
-     rmail-view-buffer
+     (if (rmail-buffers-swapped-p)
+	 rmail-buffer
+       rmail-view-buffer)
      (list (list 'rmail-mark-message
 		 rmail-buffer
 		 (with-current-buffer rmail-buffer
