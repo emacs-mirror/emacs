@@ -1,3 +1,9 @@
+2009-01-31  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-enforce-todo-checkbox-dependencies): New option.
+	(org-block-todo-from-checkboxes): New function.
+	(org-todo): Make tripple prefix arg circumvent blocking.
+
 2009-01-30  Glenn Morris  <rgm@gnu.org>
 
 	* org-list.el (org-empty-line-terminates-plain-lists)
