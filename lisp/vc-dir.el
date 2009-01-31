@@ -876,13 +876,13 @@ If it is a file, return the corresponding cons for the file itself."
 (define-derived-mode vc-dir-mode special-mode "VC dir"
   "Major mode for VC directory buffers.
 Marking/Unmarking key bindings and actions:
-m - marks a file/directory or if the region is active, mark all the files
-     in region.
+m - mark a file/directory
+  - if the region is active, mark all the files in region.
     Restrictions: - a file cannot be marked if any parent directory is marked
                   - a directory cannot be marked if any child file or
                     directory is marked
-u - marks a file/directory or if the region is active, unmark all the files
-     in region.
+u - unmark a file/directory
+  - if the region is active, unmark all the files in region.
 M - if the cursor is on a file: mark all the files with the same state as
       the current file
   - if the cursor is on a directory: mark all child files
@@ -891,10 +891,12 @@ U - if the cursor is on a file: unmark all the files with the same state
       as the current file
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files
+mouse-2  - toggles the mark state
 
 VC commands
-VC commands in the `C-x v' can be used, they act on the marked
-entries, or on the current entry if nothing is marked.
+VC commands in the `C-x v' prefix can be used.
+VC commands act on the marked entries.  If nothing is marked, VC
+commands act on the current entry.
 
 Search & Replace
 S - searches the marked files
@@ -903,8 +905,8 @@ M-s a C-s - does an isearch on the marked files
 M-s a C-M-s - does a regexp isearch on the marked files
 If nothing is marked, these commands act on the current entry.
 When a directory is current or marked, the Search & Replace
-commands act on the files in those directories displayed in the
-*vc-dir* buffer.
+commands act on the child files of that directory that are displayed in
+the *vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
   (set (make-local-variable 'vc-dir-backend) use-vc-backend)
