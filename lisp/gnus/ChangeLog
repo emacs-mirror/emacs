@@ -1,3 +1,8 @@
+2009-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-summary-next-article): XEmacs-friendly version of
+	2009-01-09 change.
+
 2009-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Update docs to reflect epa-file-enable is to be used
