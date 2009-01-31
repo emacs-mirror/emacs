@@ -1,5 +1,10 @@
 2009-01-31  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/unrmail.el (unrmail): Set coding-system of the old Rmail
+	file to `raw-text-unix'.  Bind coding-system-for-write when
+	writing out the converted message, and make sure it uses Unix
+	EOLs.
+
 	* mail/rmail.el (rmail-convert-babyl-to-mbox): Set Rmail's buffer
 	encoding to `raw-text-unix'.
 	(rmail-perm-variables): Set encoding of rmail-view-buffer to
