@@ -1,3 +1,9 @@
+2009-01-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-dir.el (vc-dir-mouse-map): New keymap.
+	(vc-default-dir-printer): Use it locally.
+	(vc-dir-find-file-other-window): Allow mouse events.
+
 2009-01-30  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el: Fix a typo.
