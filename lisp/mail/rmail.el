@@ -2722,14 +2722,13 @@ iso-8859, koi8-r, etc."
 		 (not (coding-system-equal
 		       (coding-system-base old-coding)
 		       (coding-system-base coding)))
-		 ;; If the body includes only eight-bit-*
-		 ;; characters, encoding might fail, e.g. with
-		 ;; UTF-8, and isn't needed anyway.
+		 ;; If the body includes only eight-bit characters,
+		 ;; encoding might fail, e.g. with UTF-8, and isn't
+		 ;; needed anyway.
 		 (> (length (delq 'ascii
-				  (delq 'eight-bit-graphic
-					(delq 'eight-bit-control
-					      (find-charset-region
-					       (point-min) (point-max))))))
+				  (delq 'eight-bit
+					(find-charset-region
+					 (point-min) (point-max)))))
 		    0)
 		 (encode-coding-region (point-min) (point-max) old-coding))
 	    (decode-coding-region (point-min) (point-max) coding)
