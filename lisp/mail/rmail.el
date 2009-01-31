@@ -480,8 +480,8 @@ Each element of the list is of the form:
 
   (FOLDERNAME FIELD REGEXP [ FIELD REGEXP ] ... )
 
-Where FOLDERNAME is the name of a BABYL format folder to put the
-message.  If any of the field regexp's are nil, then it is ignored.
+Where FOLDERNAME is the name of a folder to put the message.
+If any of the field regexp's are nil, then it is ignored.
 
 If FOLDERNAME is \"/dev/null\", it is deleted.
 If FOLDERNAME is nil then it is deleted, and skipped.
@@ -811,8 +811,8 @@ So, the MIME support is turned off for the moment."
 ;;;###autoload
 (defun rmail (&optional file-name-arg)
   "Read and edit incoming mail.
-Moves messages into file named by `rmail-file-name' (a babyl format file)
- and edits that file in RMAIL Mode.
+Moves messages into file named by `rmail-file-name' and edits that
+file in RMAIL Mode.
 Type \\[describe-mode] once editing that file, for a list of RMAIL commands.
 
 May be called with file name as argument; then performs rmail editing on
@@ -1260,13 +1260,18 @@ Create the buffer if necessary."
     (or buf
 	(generate-new-buffer name))))
 
-(defun rmail-change-major-mode-hook ()
-  ;; Bring the actual Rmail messages back into the main buffer.
-  (when (rmail-buffers-swapped-p)
-    (setq rmail-buffer-swapped nil)
-    (let ((modp (buffer-modified-p)))
-      (buffer-swap-text rmail-view-buffer)
-      (set-buffer-modified-p modp))))
+(defun rmail-swap-buffers ()
+  "Swap text between current buffer and `rmail-view-buffer'.
+This function preserves the current buffer's modified flag, and also
+sets the current buffer's `buffer-file-coding-system' to that of
+`rmail-view-buffer'."
+  (let ((modp (buffer-modified-p))
+	(coding
+	 (with-current-buffer rmail-view-buffer
+	   buffer-file-coding-system)))
+    (buffer-swap-text rmail-view-buffer)
+    (setq buffer-file-coding-system coding)
+    (set-buffer-modified-p modp)))
 
 (defun rmail-buffers-swapped-p ()
   "Return non-nil if the message collection is in `rmail-view-buffer'."
@@ -1274,14 +1279,18 @@ Create the buffer if necessary."
   (and (buffer-live-p rmail-view-buffer)
        rmail-buffer-swapped))
 
+(defun rmail-change-major-mode-hook ()
+  ;; Bring the actual Rmail messages back into the main buffer.
+  (when (rmail-buffers-swapped-p)
+    (rmail-swap-buffers)
+    (setq rmail-buffer-swapped nil)))
+
 (defun rmail-swap-buffers-maybe ()
   "Determine if the Rmail buffer is showing a message.
 If so restore the actual mbox message collection."
   (with-current-buffer rmail-buffer
     (when (rmail-buffers-swapped-p)
-      (let ((modp (buffer-modified-p)))
-	(buffer-swap-text rmail-view-buffer)
-	(set-buffer-modified-p modp))
+      (rmail-swap-buffers)
       (setq rmail-buffer-swapped nil))))
 
 (defun rmail-mode-kill-buffer-hook ()
@@ -1909,9 +1918,16 @@ is non-nil if the user has supplied the password interactively.
    from to (coding-system-change-eol-conversion coding 1) destination)
   ;; Don't reveal the fact we used -dos decoding, as users generally
   ;; will not expect the RMAIL buffer to use DOS EOL format.
-  (setq buffer-file-coding-system
-	(setq last-coding-system-used
-	      (coding-system-change-eol-conversion coding 0))))
+  (cond
+   ((null destination)
+    (setq buffer-file-coding-system
+	  (setq last-coding-system-used
+		(coding-system-change-eol-conversion coding 0))))
+   ((bufferp destination)
+    (with-current-buffer destination
+      (setq buffer-file-coding-system
+	    (setq last-coding-system-used
+		  (coding-system-change-eol-conversion coding 0)))))))
 
 (defun rmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.
@@ -2441,31 +2457,31 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 
 (defun rmail-show-message-maybe (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
-If summary buffer is currently displayed, update current message there also."
+If summary buffer is currently displayed, update current message there also.
+N defaults to the current message."
   (interactive "p")
   (or (eq major-mode 'rmail-mode)
       (switch-to-buffer rmail-buffer))
   (rmail-swap-buffers-maybe)
   (rmail-maybe-set-message-counters)
   (widen)
-  (let ((msgnum (or n rmail-current-message))
-	(blurb (rmail-no-mail-p)))
-    (unless blurb
-      (setq blurb (rmail-show-message msgnum))
-      (when mail-mailing-lists
-	(rmail-unknown-mail-followup-to))
-      (if transient-mark-mode (deactivate-mark))
-      ;; If there is a summary buffer, try to move to this message
-      ;; in that buffer.  But don't complain if this message
-      ;; is not mentioned in the summary.
-      ;; Don't do this at all if we were called on behalf
-      ;; of cursor motion in the summary buffer.
-      (and (rmail-summary-exists) (not no-summary)
-	   (let ((curr-msg rmail-current-message))
-	     (rmail-select-summary
-	      (rmail-summary-goto-msg curr-msg t t))))
-      (with-current-buffer rmail-buffer
-	(rmail-auto-file)))
+  (let ((blurb (rmail-show-message n)))
+    (or (zerop rmail-total-messages)
+	(progn
+	  (when mail-mailing-lists
+	    (rmail-unknown-mail-followup-to))
+	  (if transient-mark-mode (deactivate-mark))
+	  ;; If there is a summary buffer, try to move to this message
+	  ;; in that buffer.  But don't complain if this message is
+	  ;; not mentioned in the summary.  Don't do this at all if we
+	  ;; were called on behalf of cursor motion in the summary
+	  ;; buffer.
+	  (and (rmail-summary-exists) (not no-summary)
+	       (let ((curr-msg rmail-current-message))
+		 (rmail-select-summary
+		  (rmail-summary-goto-msg curr-msg t t))))
+	  (with-current-buffer rmail-buffer
+	    (rmail-auto-file))))
     (if blurb
 	(message blurb))))
 
@@ -2481,7 +2497,7 @@ If summary buffer is currently displayed, update current message there also."
 	  (string-match text-regexp content-type-header)))))
 
 (defun rmail-show-message (&optional msg)
-  "Show message MSG using a special view buffer.
+  "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
 range (displaying a reasonable choice as well), nil otherwise.
 The current mail message becomes the message displayed."
@@ -2543,7 +2559,7 @@ The current mail message becomes the message displayed."
 	     ((and (string= character-coding "base64") is-text-message)
 	      (base64-decode-region (point-min) (point-max)))
 	     ((eq character-coding 'uuencode)
-	      (error "Not supported yet"))
+	      (error "uuencoded messages are not supported yet"))
 	     (t))
 	    (rmail-decode-region (point-min) (point-max)
 				 coding-system view-buf)))
@@ -2570,9 +2586,7 @@ The current mail message becomes the message displayed."
 	;; Update the mode-line with message status information and swap
 	;; the view buffer/mail buffer contents.
 	(rmail-display-labels)
-	(let ((modp (buffer-modified-p)))
-	  (buffer-swap-text rmail-view-buffer)
-	  (set-buffer-modified-p modp))
+	(rmail-swap-buffers)
 	(setq rmail-buffer-swapped t)
 	(run-hooks 'rmail-show-message-hook)))
     blurb))
