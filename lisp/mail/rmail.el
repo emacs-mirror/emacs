@@ -919,6 +919,9 @@ Convert Babyl mail file to mbox format? ")
 		(coding-system-for-read 'raw-text))
 	    (erase-buffer)
 	    (insert-file-contents new-file)
+	    ;; Rmail buffers need to be saved with Unix EOLs, or else
+	    ;; the format will not be recognized.
+	    (set-buffer-file-coding-system 'raw-text-unix)
 	    (rmail-mode-1)
 	    (rmail-perm-variables)
 	    (rmail-variables)
@@ -1296,7 +1299,9 @@ If so restore the actual mbox message collection."
     (setq rmail-view-buffer (rmail-generate-viewer-buffer))
     (set-buffer rmail-view-buffer)
     (setq buffer-undo-list t)
-    (set-buffer-multibyte t))
+    (set-buffer-multibyte t)
+    ;; Force C-x C-s write Unix EOLs.
+    (set-buffer-file-coding-system 'undecided-unix))
   (make-local-variable 'rmail-summary-buffer)
   (make-local-variable 'rmail-summary-vector)
   (make-local-variable 'rmail-current-message)
