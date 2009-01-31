@@ -1,12 +1,23 @@
+2009-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-msg-is-pruned): New function.
+	(rmail-toggle-header): Doc fix.  Use rmail-msg-is-pruned.
+	(rmail-reply): Set up to yank from the decoded message rather than the
+	raw one.  (Bug#2104).
+
+	* mail/mail-utils.el (mail-fetch-field): Doc fix.
+
+	* mail/uce.el (rmail-current-message): Remove unneeded declaration.
+	(uce-message-text, uce-default-headers): Fix custom type.
+	(rmail-buffer, rmail-msg-is-pruned): Declare.
+	(uce-reply-to-uce): Add autoload cookie.  Doc fix.
+	Update for mbox Rmail.
+
 2009-01-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-dir.el (vc-dir-mouse-map): New keymap.
 	(vc-default-dir-printer): Use it locally.
 	(vc-dir-find-file-other-window): Allow mouse events.
-
-2009-01-30  Alan Mackenzie  <acm@muc.de>
-
-	* progmodes/cc-mode.el: Fix a typo.
 
 2009-01-30  Eli Zaretskii  <eliz@gnu.org>
 
@@ -23,8 +34,8 @@
 	* vc-hooks.el (vc-stay-local-p): Let vc-BACKEND-stay-local take
 	precedence even when its value is t.  (Bug#2093)
 
-	* vc-svn.el (vc-svn-dir-status): Correct logic for remote connection.
-	(Bug#2093)
+	* vc-svn.el (vc-svn-dir-status): Correct logic for remote
+	connection.  (Bug#2093)
 	(vc-svn-diff): Use old version number even when it is the working
 	revision.  This is needed, e.g, in the vc-print-log buffer.  (Bug#2092)
 
