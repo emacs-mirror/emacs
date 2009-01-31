@@ -273,16 +273,17 @@
 (defalias 'ediff3 'ediff-files3)
 
 
-;; Visit FILE and arrange its buffer to Ediff's liking.
-;; FILE is actually a variable symbol that must contain a true file name.
-;; BUFFER-NAME is a variable symbol, which will get the buffer object into
-;; which FILE is read.
-;; LAST-DIR is the directory variable symbol where FILE's
-;; directory name should be returned.  HOOKS-VAR is a variable symbol that will
-;; be assigned the hook to be executed after `ediff-startup' is finished.
-;; `ediff-find-file' arranges that the temp files it might create will be
-;; deleted.
 (defun ediff-find-file (file-var buffer-name &optional last-dir hooks-var)
+  "Visit FILE and arrange its buffer to Ediff's liking.
+FILE-VAR is actually a variable symbol whose value must contain a true
+file name.
+BUFFER-NAME is a variable symbol, which will get the buffer object into
+which FILE is read.
+LAST-DIR is the directory variable symbol where FILE's
+directory name should be returned.  HOOKS-VAR is a variable symbol that will
+be assigned the hook to be executed after `ediff-startup' is finished.
+`ediff-find-file' arranges that the temp files it might create will be
+deleted."
   (let* ((file (symbol-value file-var))
 	 (file-magic (ediff-filename-magic-p file))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
@@ -1504,11 +1505,11 @@ With optional NODE, goes to that node."
 (run-hooks 'ediff-load-hook)
 
 
-;;; Local Variables:
-;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;;; End:
+;; Local Variables:
+;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
+;; End:
 
 ;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

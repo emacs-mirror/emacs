@@ -657,9 +657,9 @@ This buffer may be different from the one where the click occurred."
 
 
 
-;;; Local Variables:
-;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;;; End:
+;; Local Variables:
+;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
+;; End:
 
 
 ;; arch-tag: e56b2390-06c4-4dd1-96f5-c7876e2d8c2f
