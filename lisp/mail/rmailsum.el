@@ -204,8 +204,9 @@ nil for FUNCTION means all messages."
     (if (eq major-mode 'rmail-summary-mode)
 	(setq was-in-summary t))
     (with-current-buffer rmail-buffer
-      (setq mesg rmail-current-message
-	    rmail-summary-buffer (rmail-new-summary-1 desc redo func args)))
+      (if (zerop (setq mesg rmail-current-message))
+	  (error "No messages to summarize"))
+      (setq rmail-summary-buffer (rmail-new-summary-1 desc redo func args)))
     ;; Now display the summary buffer and go to the right place in it.
     (unless was-in-summary
       (if (and (one-window-p)

@@ -1,5 +1,8 @@
 2009-01-31  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmailsum.el (rmail-new-summary): Don't try to summarize an empty
+	folder.
+
 	* mail/rmail.el (rmail-msg-is-pruned): New function.
 	(rmail-toggle-header): Doc fix.  Use rmail-msg-is-pruned.
 	(rmail-reply): Set up to yank from the decoded message rather than the
