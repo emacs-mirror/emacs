@@ -2687,9 +2687,10 @@ iso-8859, koi8-r, etc."
 	    ;; Make sure the new coding system uses the same EOL
 	    ;; conversion, to prevent ^M characters from popping up
 	    ;; all over the place.
-	    (setq coding
-		  (coding-system-change-eol-conversion
-		   coding (coding-system-eol-type old-coding)))
+	    (let ((eol-type (coding-system-eol-type old-coding)))
+	      (if (numberp eol-type)
+		  (setq coding
+			(coding-system-change-eol-conversion coding eol-type))))
 	    ;; If old-coding is `undecided', encode-coding-region
 	    ;; will not encode the text at all.  Find a proper
 	    ;; non-trivial encoding to use.
