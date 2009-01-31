@@ -1191,10 +1191,10 @@ where the Rmail file resides, or can access the Rmail file remotely
 (@pxref{Remote Files}) from a machine where Emacs is installed.  If
 accessing Rmail files from Emacs is impossible, you can use the
 @command{b2m} program instead.  @command{b2m} is part of the Emacs
-distribution, it is installed into the same directory where all the
-other auxiliary programs (@command{etags} etc.) are installed, and its
-source is available in the Emacs source distribution, so that you
-could copy the source to the target machine and compile it there.
+distribution, it is installed into the same directory as the
+@command{emacs} executable, and its source is available in the Emacs
+source distribution (in the @file{lib-src} directory), so that you could
+copy the source to the target machine and compile it there.
 
   To convert a file @file{@var{babyl-file}} into @file{@var{mbox-file}},
 invoke @command{b2m} like this:
