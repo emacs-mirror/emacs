@@ -3,7 +3,7 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.20g
+@set VERSION 6.20h
 @set DATE January 2009
 
 @dircategory Emacs
@@ -3310,6 +3310,8 @@ necessary, define a special face and use that.
 
 @node TODO dependencies,  , Faces for TODO keywords, TODO extensions
 @subsection TODO dependencies
+@cindex TODO dependencies
+@cindex dependencies, of TODO states
 
 The structure of Org files (hierarchy and lists) makes it easy to define TODO
 dependencies.  Usually, a parent TODO task should not be marked DONE until
@@ -3317,9 +3319,10 @@ all subtasks (defined as children tasks) are marked as DONE.  And sometimes
 there is a logical sequence to a number of (sub)tasks, so that one task
 cannot be acted upon before all siblings above it are done.  If you customize
 the variable @code{org-enforce-todo-dependencies}, Org will block entries
-from changing state while they have children that are not DONE.  Furthermore,
-if an entry has a property @code{ORDERED}, each of its children will be
-blocked until all earlier siblings are marked DONE.  Here is an example:
+from changing state to DONE while they have children that are not DONE.
+Furthermore, if an entry has a property @code{ORDERED}, each of its children
+will be blocked until all earlier siblings are marked DONE.  Here is an
+example:
 
 @example
 * TODO Blocked until (two) is done
@@ -3339,11 +3342,20 @@ blocked until all earlier siblings are marked DONE.  Here is an example:
 @kindex C-c C-x o
 @item C-c C-x o
 Toggle the @code{ORDERED} property of the current entry.
+@kindex C-u C-u C-u C-c C-t
+@item C-u C-u C-u C-c C-t
+Change TODO state, circumventin any state blocking.
 @end table
 
 If you set the variable @code{org-agenda-dim-blocked-tasks}, TODO entries
 that cannot be closed because of such dependencies will be shown in a dimmed
 font or even made invisible in agenda views (@pxref{Agenda Views}).
+
+@cindex checkboxes and TODO dependencies
+You can also block changes of TODO states by looking at checkboxes
+(@pxref{Checkboxes}).  If you set the variable
+@code{org-enforce-todo-checkbox-dependencies}, an entry that has unchecked
+checkboxes will be blocked from switching to DONE.
 
 If you need more complex dependency structures, for example dependencies
 between entries in different trees or files, check out the contributed
