@@ -86,7 +86,6 @@ gnus/nnbabyl.el
 mail/feedmail.el  ; comments about mail-header-separator still valid?
 mail/metamail.el
 mail/sendmail.el
-mail/uce.el
 mail/undigest.el  ; seems totally dependent (?) on Babyl format, and has
                     received zero mbox-branch updates.  Is it not needed now?
 mail/unrmail.el   ; rev 1.13.2.4 not synced from mbox branch - should it be?
@@ -100,7 +99,6 @@ gnus/nnbabyl.el
 gnus/nndoc.el
 gnus/nnmail.el
 mail/sendmail.el
-mail/uce.el
 mail/undigest.el
 
 
