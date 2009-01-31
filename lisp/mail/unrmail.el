@@ -55,6 +55,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
       (insert-file-contents file))
     ;; But make it multibyte.
     (set-buffer-multibyte t)
+    (setq buffer-file-coding-system 'raw-text-unix)
 
     (if (not (looking-at "BABYL OPTIONS"))
 	(error "This file is not in Babyl format"))
@@ -192,7 +193,13 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      ;; If the message specifies a coding system, use it.
 	      (let ((maybe-coding (mail-fetch-field "X-Coding-System")))
 		(if maybe-coding
-		    (setq coding (intern maybe-coding))))
+		    (setq coding
+			  ;; Force Unix EOLs.
+			  (coding-system-change-eol-conversion
+			   (intern maybe-coding) 0))
+		  ;; If there's no X-Coding-System header, assume the
+		  ;; message was never decoded.
+		  (setq coding 'raw-text-unix)))
 
 	      ;; Delete the Mail-From: header field if any.
 	      (when (re-search-forward "^Mail-from:" nil t)
@@ -215,9 +222,10 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      (while (search-forward "\nFrom " nil t)
 		(forward-char -5)
 		(insert ?>)))
-	    ;; Write it to the output file.
-	    (write-region (point-min) (point-max) to-file t
-			  'nomsg))))
+	    ;; Write it to the output file, suitably encoded.
+	    (let ((coding-system-for-write coding))
+	      (write-region (point-min) (point-max) to-file t
+			    'nomsg)))))
       (kill-buffer temp-buffer))
     (message "Writing messages to %s...done" to-file)))
 
