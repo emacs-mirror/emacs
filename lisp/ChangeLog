@@ -4,6 +4,8 @@
 	encoding to `raw-text-unix'.
 	(rmail-perm-variables): Set encoding of rmail-view-buffer to
 	`undecided-unix'.
+	(rmail-redecode-body): Don't change EOL conversion of the new
+	encoding if the old one left it unspecified.
 
 2009-01-31  Glenn Morris  <rgm@gnu.org>
 
