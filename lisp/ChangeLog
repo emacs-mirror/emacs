@@ -1,3 +1,8 @@
+2009-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/lisp.el (end-of-defun): Protect against
+	infloops (Bug#2106).
+
 2009-01-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-svn.el (vc-svn-dir-status): Disable the vc-stay-local-p
