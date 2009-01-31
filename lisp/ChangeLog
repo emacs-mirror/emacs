@@ -6,6 +6,16 @@
 	`undecided-unix'.
 	(rmail-redecode-body): Don't change EOL conversion of the new
 	encoding if the old one left it unspecified.
+	(rmail-automatic-folder-directives, rmail): Doc fixes.
+	(rmail-swap-buffers): New function.
+	(rmail-change-major-mode-hook, rmail-swap-buffers-maybe)
+	(rmail-show-message): Use rmail-swap-buffers.
+	(rmail-decode-region): If DESTINATION is a buffer, set the
+	encoding of that buffer, rather than the current buffer.
+	(rmail-show-message): Make error message about uuencoded mail
+	more explicit.
+	(rmail-show-message-maybe): Simplify code.  Doc fix.
+	(rmail-show-message): Doc fix.
 
 2009-01-31  Glenn Morris  <rgm@gnu.org>
 
