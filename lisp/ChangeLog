@@ -1,5 +1,16 @@
 2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/rmail.el (rmail-view-buffer): Make buffer-local.
+	(rmail-select-summary, rmail-perm-variables, rmail-redecode-body)
+	(rmail-undelete-previous-message, rmail-mark-message)
+	(rmail-speedbar-buttons): Use with-current-buffer.
+	(rmail-mode-map): Move initialization into declaration.
+	(rmail-swap-buffers, rmail-unfontify-buffer-function)
+	(rmail-fontify-message): Use restore-buffer-modified-p.
+	(rmail-expunge-and-save): Don't swap buffer.
+	(rmail-get-header, rmail-set-header, rmail-set-attribute)
+	(rmail-apply-in-message): Swap save-excursion and save-restriction.
+
 	* mail/rmailsort.el (rmail-sort-messages): Use car-less-than-car
 	if possible.
 
