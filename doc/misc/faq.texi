@@ -7,7 +7,7 @@
 @setchapternewpage odd
 
 @c This is used in many places
-@set VER 23.0.60
+@set VER 23.0.90
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
