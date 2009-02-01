@@ -11125,8 +11125,17 @@ handle_interrupt ()
 	Vquit_flag = Qt;
     }
 
+/* TODO: The longjmp in this call throws the NS event loop integration off,
+         and it seems to do fine without this.  Probably some attention
+	 needs to be paid to the setting of waiting_for_input in
+         wait_reading_process_output() under HAVE_NS because of the call
+         to ns_select there (needed because otherwise events aren't picked up
+         outside of polling since we don't get SIGIO like X and we don't have a
+         separate event loop thread like W32. */
+#ifndef HAVE_NS
   if (waiting_for_input && !echoing)
       quit_throw_to_read_char ();
+#endif
 }
 
 /* Handle a C-g by making read_char return C-g.  */
@@ -11183,7 +11192,7 @@ See also `current-input-mode'.  */)
 #endif /* NO_SOCK_SIGIO */
     }
   else
-#endif
+#endif /* HAVE_X_WINDOWS */
     new_interrupt_input = !NILP (interrupt);
 #else /* not SIGIO */
   new_interrupt_input = 0;
