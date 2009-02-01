@@ -990,6 +990,7 @@ Lines are highlighted according to `ns-input-line'."
 (defvar ns-antialias-text)
 (defvar ns-use-qd-smoothing)
 (defvar ns-use-system-highlight-color)
+(defvar ns-confirm-quit)
 
 (declare-function ns-set-resource "nsfns.m" (owner name value))
 (declare-function ns-font-name "nsfns.m" (name))
@@ -1013,6 +1014,8 @@ Lines are highlighted according to `ns-input-line'."
 		   (if ns-use-qd-smoothing "YES" "NO"))
   (ns-set-resource nil "UseSystemHighlightColor"
 		   (if ns-use-system-highlight-color "YES" "NO"))
+  (ns-set-resource nil "ConfirmQuit"
+		   (if ns-confirm-quit "YES" "NO"))
   ;; Default frame parameters
   (let ((p (frame-parameters))
 	v)

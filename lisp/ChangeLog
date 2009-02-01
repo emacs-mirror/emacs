@@ -1,3 +1,7 @@
+2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-save-preferences): Save ns-confirm-quit option.
+
 2009-02-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.15.
