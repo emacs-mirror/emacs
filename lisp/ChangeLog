@@ -1,5 +1,8 @@
 2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/rmailsort.el (rmail-sort-messages): Use car-less-than-car
+	if possible.
+
 	* mail/rmailedit.el (rmail-edit-map): Move init into declaration.
 	(rmail-edit-mode, rmail-cease-edit): Use with-current-buffer.
 

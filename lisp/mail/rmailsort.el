@@ -162,7 +162,6 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
     (let ((return-to-point
 	   (if (rmail-buffers-swapped-p)
 	       (point)))
-	  (predicate nil)			;< or string-lessp
 	  (sort-lists nil))
       (rmail-swap-buffers-maybe)
       (message "Finding sort keys...")
@@ -179,15 +178,14 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	      (message "Finding sort keys...%d" msgnum))
 	  (setq msgnum (1+ msgnum))))
       (or reverse (setq sort-lists (nreverse sort-lists)))
-      ;; Decide predicate: < or string-lessp
-      (if (numberp (car (car sort-lists))) ;Is a key numeric?
-	  (setq predicate (function <))
-	(setq predicate (function string-lessp)))
       (setq sort-lists
 	    (sort sort-lists
-		  (function
-		   (lambda (a b)
-		     (funcall predicate (car a) (car b))))))
+                  ;; Decide predicate: < or string-lessp
+                  (if (numberp (car (car sort-lists))) ;Is a key numeric?
+                      'car-less-than-car
+                    (function
+                     (lambda (a b)
+                       (string-lessp (car a) (car b)))))))
       (if reverse (setq sort-lists (nreverse sort-lists)))
       ;; Now we enter critical region.  So, keyboard quit is disabled.
       (message "Reordering messages...")
