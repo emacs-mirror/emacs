@@ -1,3 +1,8 @@
+2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib: Remove
+	cursor blink slider, add confirm quit checkbox.
+
 2009-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* Cocoa/Emacs.base/Contents/Info.plist:
