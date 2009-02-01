@@ -1,3 +1,14 @@
+2009-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.15.
+
+	* net/tramp.el (tramp-read-passwd): Cached passwords shall still be
+	used.
+
+	* net/tramp-cache.el (top): Autoload `tramp-run-real-handler'.
+
+	* net/trampver.el: Update release number.
+
 2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/rmail.el (rmail-view-buffer): Make buffer-local.
