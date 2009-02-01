@@ -1,3 +1,9 @@
+2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmuscheme.el (scheme-args-to-list): Remove.
+	(run-scheme): Use split-string-and-unquote instead, so as to allow
+	spaces in the command name and/or the arguments.
+
 2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-save-preferences): Save ns-confirm-quit option.
