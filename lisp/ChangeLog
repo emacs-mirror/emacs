@@ -1,3 +1,8 @@
+2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmailedit.el (rmail-edit-map): Move init into declaration.
+	(rmail-edit-mode, rmail-cease-edit): Use with-current-buffer.
+
 2009-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-drag-mode-line-1): Obey mouse-1-click-follows-link.

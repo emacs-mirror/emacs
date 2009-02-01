@@ -37,14 +37,14 @@
 
 (defvar rmail-old-text)
 
-(defvar rmail-edit-map nil)
-(if rmail-edit-map
-    nil
-  ;; Make a keymap that inherits text-mode-map.
-  (setq rmail-edit-map (make-sparse-keymap))
-  (set-keymap-parent rmail-edit-map text-mode-map)
-  (define-key rmail-edit-map "\C-c\C-c" 'rmail-cease-edit)
-  (define-key rmail-edit-map "\C-c\C-]" 'rmail-abort-edit))
+(defvar rmail-edit-map
+  (let ((map (make-sparse-keymap)))
+    ;; Make a keymap that inherits text-mode-map.
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\C-c\C-c" 'rmail-cease-edit)
+    (define-key map "\C-c\C-]" 'rmail-abort-edit)
+    map))
+
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
 (put 'rmail-edit-mode 'mode-class 'special)
@@ -62,11 +62,10 @@ to return to regular RMAIL:
 This functions runs the normal hook `rmail-edit-mode-hook'.
 \\{rmail-edit-map}"
   (if (rmail-summary-exists)
-      (save-excursion
-	(set-buffer rmail-summary-buffer)
+      (with-current-buffer rmail-summary-buffer
 	(rmail-summary-disable)))
-  (let (rmail-buffer-swapped)
-    ;; Prevent change-major-mode-hook from unswapping the buffers.
+  (let ((rmail-buffer-swapped nil)) ; Prevent change-major-mode-hook
+                                    ; from unswapping the buffers.
     (delay-mode-hooks (text-mode))
     (use-local-map rmail-edit-map)
     (setq major-mode 'rmail-edit-mode)
@@ -105,8 +104,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   "Finish editing message; switch back to Rmail proper."
   (interactive)
   (if (rmail-summary-exists)
-      (save-excursion
-	(set-buffer rmail-summary-buffer)
+      (with-current-buffer rmail-summary-buffer
 	(rmail-summary-enable)))
   (widen)
   ;; Disguise any "From " lines so they don't start a new message.
@@ -129,7 +127,8 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 	headers-end)
     ;; Go back to Rmail mode, but carefully.
     (force-mode-line-update)
-    (let (rmail-buffer-swapped)
+    (let ((rmail-buffer-swapped nil)) ; Prevent change-major-mode-hook
+                                      ; from unswapping the buffers.
       (kill-all-local-variables)
       (rmail-mode-1)
       (if (boundp 'tool-bar-map)
