@@ -14,8 +14,8 @@
             OUTLETS = {
                 alternateModMenu = NSPopUpButton; 
                 commandModMenu = NSPopUpButton; 
+                confirmQuitCheck = NSButton; 
                 controlModMenu = NSPopUpButton; 
-                cursorBlinkSlider = NSSlider; 
                 cursorTypeMatrix = NSMatrix; 
                 expandSpaceSlider = NSSlider; 
                 functionModMenu = NSPopUpButton; 
