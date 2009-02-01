@@ -3131,15 +3131,22 @@ ns_read_socket (struct terminal *terminal, int expected,
   struct input_event ev;
   int nevents;
   static NSDate *lastCheck = nil;
+
 /*  NSTRACE (ns_read_socket); */
 
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+#ifdef SYNC_INPUT
+      pending_signals = 1;
+#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
+#ifdef SYNC_INPUT
+  pending_signals = pending_atimers;
+#endif
   BLOCK_INPUT;
 
 #ifdef COCOA_EXPERIMENTAL_CTRL_G
@@ -3181,15 +3188,15 @@ ns_read_socket (struct terminal *terminal, int expected,
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
 
-      /* TODO: from termhooks.h: */
-      /* XXX Please note that a non-zero value of EXPECTED only means that
-     there is available input on at least one of the currently opened
-     terminal devices -- but not necessarily on this device.
-     Therefore, in most cases EXPECTED should be simply ignored. */
-      /* However, if in ns_select, this is called from gobble_input, which
-         appears to set it correctly for our purposes, and always assuming
-         !expected causes 100% CPU usage. */
-      if (!inNsSelect || !expected)
+      /* If called via ns_select, this is called once with expected=1,
+         because we expect either the timeout or file descriptor activity.
+         In this case the first event through will either be real input or
+         one of these.  read_avail_input() then calls once more with expected=0
+         and in that case we need to return quickly if there is nothing.
+         If we're being called outside of that, it's also OK to return quickly
+         after one iteration through the event loop, since other terms do
+         this and emacs expects it. */
+      if (!(inNsSelect && expected))  // (!inNsSelect || !expected)
         {
           /* Post an application defined event on the event queue.  When this is
              received the [NXApp run] will return, thus having processed all
@@ -3208,6 +3215,7 @@ ns_read_socket (struct terminal *terminal, int expected,
   --handling_signal;
 #endif
   UNBLOCK_INPUT;
+
   return nevents;
 }
 
@@ -3267,9 +3275,13 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
                retain];
 
   /* Let Application dispatch events until it receives an event of the type
-       NX_APPDEFINED, which should only be sent by timeout_handler.  */
+     NX_APPDEFINED, which should only be sent by timeout_handler.
+     We tell read_avail_input() that input is "expected" because we do expect
+     either the timeout or fd handler to fire, and if they don't, the original
+     call from process.c that got us here expects us to wait until some input
+     comes. */
   inNsSelect = 1;
-  gobble_input (timeout ? 1 : 0);
+  gobble_input (1);
   ev = last_appdefined_event;
   inNsSelect = 0;
 

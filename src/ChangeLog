@@ -1,3 +1,11 @@
+2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_read_socket): Copy 2009-01-29 and 2009-01-30
+	XT,w32read_socket changes to ns_read_socket.
+	* keyboard.c (handle_interrupt): Don't call
+	quit_throw_to_read_char() under NS.
+	* blockinput.h: Remove NS-specific code.
+
 2009-01-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* dispnew.c (window_change_signal): Don't try to get the size of a
