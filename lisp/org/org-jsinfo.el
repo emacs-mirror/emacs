@@ -168,7 +168,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
     ;; actually be displayed is governed by the TDEPTH option.
     (setq exp-plist (plist-put exp-plist :table-of-contents sdepth))
 
-    ;; The table of contents should ot show more sections then we generate
+    ;; The table of contents should not show more sections then we generate
     (setq tdepth (min tdepth sdepth))
     (push (cons "TOC_DEPTH" tdepth) s)
 

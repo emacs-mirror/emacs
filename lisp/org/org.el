@@ -563,7 +563,7 @@ Drawers can be defined on the per-file basis with a line like:
   "Cycle globally if cursor is at beginning of buffer and not at a headline.
 This makes it possible to do global cycling without having to use S-TAB or
 C-u TAB.  For this special case to work, the first line of the buffer
-must not be a headline - it may be empty ot some other text.  When used in
+must not be a headline - it may be empty or some other text.  When used in
 this way, `org-cycle-hook' is disables temporarily, to make sure the
 cursor stays at the beginning of the buffer.
 When this option is nil, don't do anything special at the beginning

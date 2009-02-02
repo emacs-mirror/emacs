@@ -1,3 +1,9 @@
+2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-cycle-global-at-bob): Fix typo.
+
+	* org-jsinfo.el (org-infojs-handle-options): Fix typo in comment.
+
 2009-02-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-mode): Make dependence stuff work more reliably.
