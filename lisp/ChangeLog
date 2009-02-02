@@ -1,3 +1,8 @@
+2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-mode-abbrev-table-init):
+	Mark the entries as being "system" entries rather than "user" entries.
+
 2009-02-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* smerge-mode.el (smerge-start-session): Add interactive spec.
