@@ -197,7 +197,7 @@
   "Emacs Lisp byte-compiler."
   :group 'lisp)
 
-(defcustom emacs-lisp-file-regexp "\\.el$"
+(defcustom emacs-lisp-file-regexp "\\.el\\'"
   "Regexp which matches Emacs Lisp source files.
 You may want to redefine the function `byte-compile-dest-file'
 if you change this variable."

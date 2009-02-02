@@ -1,3 +1,7 @@
+2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (emacs-lisp-file-regexp): Fix up EOB.
+
 2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmuscheme.el (scheme-args-to-list): Remove.
