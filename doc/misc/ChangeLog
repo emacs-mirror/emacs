@@ -1,3 +1,9 @@
+2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Structure editing, Handling links)
+	(Fast access to TODO states, Javascript support): Make standard docs
+	correctly reflect default variable settings.
+
 2009-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* org.texi: Fix typos.
