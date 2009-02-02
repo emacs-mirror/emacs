@@ -1,5 +1,8 @@
 2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/vhdl-mode.el (vhdl-prepare-search-1)
+	(vhdl-prepare-search-2): Properly cleanup on `quit'.
+
 	* progmodes/vhdl-mode.el (vhdl-mode-abbrev-table-init):
 	Mark the entries as being "system" entries rather than "user" entries.
 

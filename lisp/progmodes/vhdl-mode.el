@@ -2328,42 +2328,19 @@ current buffer if no project is defined."
   "Enable case insensitive search and switch to syntax table that includes '_',
 then execute BODY, and finally restore the old environment.  Used for
 consistent searching."
-  `(let ((case-fold-search t)		; case insensitive search
-	 (current-syntax-table (syntax-table))
-	 result
-	 (restore-prog			; program to restore enviroment
-	  '(progn
-	     ;; restore syntax table
-	     (set-syntax-table current-syntax-table))))
+  `(let ((case-fold-search t))		; case insensitive search
      ;; use extended syntax table
-     (set-syntax-table vhdl-mode-ext-syntax-table)
-     ;; execute BODY safely
-     (setq result
-	   (condition-case info
-	       (progn ,@body)
-	     (error (eval restore-prog)	; restore environment on error
-		    (error (cadr info))))) ; pass error up
-     ;; restore environment
-     (eval restore-prog)
-     result))
+     (with-syntax-table vhdl-mode-ext-syntax-table
+       ,@body)))
 
 (defmacro vhdl-prepare-search-2 (&rest body)
   "Enable case insensitive search, switch to syntax table that includes '_',
 and remove `intangible' overlays, then execute BODY, and finally restore the
 old environment.  Used for consistent searching."
+  ;; FIXME: Why not just let-bind `inhibit-point-motion-hooks'?  --Stef
   `(let ((case-fold-search t)		; case insensitive search
 	 (current-syntax-table (syntax-table))
-	 result overlay-all-list overlay-intangible-list overlay
-	 (restore-prog			; program to restore enviroment
-	  '(progn
-	     ;; restore syntax table
-	     (set-syntax-table current-syntax-table)
-	     ;; restore `intangible' overlays
-	     (when (fboundp 'overlay-lists)
-	       (while overlay-intangible-list
-		 (overlay-put (car overlay-intangible-list) 'intangible t)
-		 (setq overlay-intangible-list
-		       (cdr overlay-intangible-list)))))))
+	 overlay-all-list overlay-intangible-list overlay)
      ;; use extended syntax table
      (set-syntax-table vhdl-mode-ext-syntax-table)
      ;; remove `intangible' overlays
@@ -2379,14 +2356,16 @@ old environment.  Used for consistent searching."
 	   (overlay-put overlay 'intangible nil))
 	 (setq overlay-all-list (cdr overlay-all-list))))
      ;; execute BODY safely
-     (setq result
-	   (condition-case info
-	       (progn ,@body)
-	     (error (eval restore-prog)	; restore environment on error
-		    (error (cadr info))))) ; pass error up
-     ;; restore environment
-     (eval restore-prog)
-     result))
+     (unwind-protect
+         (progn ,@body)
+       ;; restore syntax table
+       (set-syntax-table current-syntax-table)
+       ;; restore `intangible' overlays
+       (when (fboundp 'overlay-lists)
+         (while overlay-intangible-list
+           (overlay-put (car overlay-intangible-list) 'intangible t)
+           (setq overlay-intangible-list
+                 (cdr overlay-intangible-list)))))))
 
 (defmacro vhdl-visit-file (file-name issue-error &rest body)
   "Visit file FILE-NAME and execute BODY."
