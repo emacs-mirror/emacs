@@ -1,3 +1,7 @@
+2009-02-02  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Handle unaligned bss offset.
+
 2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_read_socket): Copy 2009-01-29 and 2009-01-30
