@@ -315,6 +315,7 @@ variable `rmail-dont-reply-to-names', for when the user does not set
 value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
 
+;;;###autoload
 (defcustom rmail-ignored-headers
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
@@ -359,6 +360,7 @@ go to that message and type \\[rmail-toggle-header] twice."
   :type '(choice (const nil) (regexp))
   :group 'rmail-headers)
 
+;;;###autoload
 (defcustom rmail-displayed-headers nil
   "Regexp to match Header fields that Rmail should display.
 If nil, display all header fields except those matched by
@@ -366,11 +368,13 @@ If nil, display all header fields except those matched by
   :type '(choice regexp (const :tag "All"))
   :group 'rmail-headers)
 
+;;;###autoload
 (defcustom rmail-retry-ignored-headers "^x-authentication-warning:"
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers)
 
+;;;###autoload
 (defcustom rmail-highlighted-headers "^From:\\|^Subject:"
   "Regexp to match Header fields that Rmail should normally highlight.
 A value of nil means don't highlight."

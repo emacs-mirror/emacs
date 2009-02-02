@@ -1,3 +1,9 @@
+2009-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers, rmail-displayed-headers)
+	(rmail-retry-ignored-headers, rmail-highlighted-headers):
+	Restore autoloads.
+
 2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (emacs-lisp-file-regexp): Fix up EOB.
