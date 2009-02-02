@@ -1,3 +1,7 @@
+2009-02-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* smerge-mode.el (smerge-start-session): Add interactive spec.
+
 2009-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-ignored-headers, rmail-displayed-headers)
