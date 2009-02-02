@@ -1,3 +1,7 @@
+2009-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Fix typos.
+
 2009-02-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.15.

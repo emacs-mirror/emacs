@@ -181,7 +181,7 @@ Extended use of TODO keywords
 * Fast access to TODO states::  Single letter selection of a state
 * Per-file keywords::           Different files, different requirements
 * Faces for TODO keywords::     Highlighting states
-* TODO dependencies::           When one tasks needs to wait for others
+* TODO dependencies::           When one task needs to wait for others
 
 Progress logging
 
@@ -3101,7 +3101,7 @@ TODO items in particular (@pxref{Tags}).
 * Fast access to TODO states::  Single letter selection of a state
 * Per-file keywords::           Different files, different requirements
 * Faces for TODO keywords::     Highlighting states
-* TODO dependencies::           When one tasks needs to wait for others
+* TODO dependencies::           When one task needs to wait for others
 @end menu
 
 @node Workflow states, TODO types, TODO extensions, TODO extensions
