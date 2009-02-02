@@ -1,3 +1,30 @@
+2009-02-02  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-mode): Make dependence stuff work more reliably.
+	(org-update-parent-todo-statistics): Fix bug with updating
+	statistics cookie.
+	(org-yank-adjusted-subtrees, org-return-follows-link)
+	(org-use-fast-todo-selection, org-tags-column): New default
+	setting for variables.
+
+	* org-export-latex.el (org-export-latex-emphasis-alist): Use = and
+	~ as verbatim delimiters, to avoid table bug.
+	(org-export-latex-classes): Remove the a4paper option from the
+	default styles.
+
+	* org-exp.el (org-export-html-format-image): New argument
+	PAR-OPEN, to fix XHTM validation bug.
+	(org-export-as-html): Pass par-open to
+	`org-export-html-format-image'.
+	(org-export-html-footnotes-section): Use a more consistent id for
+	footnotes.
+
+	* org-agenda.el (org-agenda-sorting-strategy)
+	(org-agenda-tags-column): New default setting for variables, based
+	on a poll what typical uses use.
+	(org-agenda-dim-blocked-tasks): Keep dimming blocked entries from
+	setting the blocked tag.
+
 2009-01-31  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-agenda.el (org-agenda-dim-blocked-tasks): No tagging when

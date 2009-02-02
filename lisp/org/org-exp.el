@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.20h
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3625,7 +3625,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		       (org-file-image-p
 			path org-export-html-inline-image-extensions))
 		  (setq rpl (org-export-html-format-image
-			     (concat type ":" path)))
+			     (concat type ":" path) org-par-open))
 		(setq link (concat type ":" path))
 		(setq rpl (concat "<a href=\""
 				  (org-export-html-format-href link)
@@ -3692,7 +3692,9 @@ lang=\"%s\" xml:lang=\"%s\">
 				   (or (eq t org-export-html-inline-images)
 				       (and org-export-html-inline-images
 					    (not descp))))
-			      (org-export-html-format-image thefile)
+			      (progn
+				(message "image %s %s" thefile org-par-open)
+				(org-export-html-format-image thefile org-par-open))
 			    (concat "<a href=\"" thefile "\"" attr ">"
 				    (org-export-html-format-desc desc)
 				    "</a>")))
@@ -4019,7 +4021,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	(org-html-do-expand s))
     s))
 
-(defun org-export-html-format-image (src)
+(defun org-export-html-format-image (src par-open)
   "Create image tag with source and attributes."
   (save-match-data
     (if (string-match "^ltxpng/" src)
@@ -4027,15 +4029,18 @@ lang=\"%s\" xml:lang=\"%s\">
       (let* ((caption (org-find-text-property-in-string 'org-caption src))
 	     (attr (org-find-text-property-in-string 'org-attributes src))
 	     (label (org-find-text-property-in-string 'org-label src)))
-	(format "<div %sclass=\"figure\">
+	(format "%s<div %sclass=\"figure\">
 <p><img src=\"%s\"%s /></p>%s
-</div>"
+</div>%s"
+		(if org-par-open "</p>\n" "")
 		(if label (format "id=\"%s\" " label) "")
 		src
 		(if (string-match "\\<alt=" (or attr ""))
 		    (concat " " attr )
 		  (concat " " attr " alt=\"" src "\""))
-		(if caption (concat "\n<p>" caption "</p>") ""))))))
+		(if caption (concat "\n<p>" caption "</p>") "")
+		(if org-par-open "\n<p>" ""))))))
+
 
 (defvar org-table-colgroup-info nil)
 (defun org-format-table-ascii (lines)
