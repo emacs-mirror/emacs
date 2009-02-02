@@ -554,7 +554,7 @@ echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources'"
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources
- ln Credits.html Emacs.icns ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources)
+ ln Credits.html *.icns ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj'"
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
@@ -570,7 +570,7 @@ echo "Making links to \`nextstep/Cocoa/Emacs.xcodeproj'"
 
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
- ln Emacs.desktop Info-gnustep.plist emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
+ ln Emacs.desktop Info-gnustep.plist README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
 
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources/preferences.gorm'"
 (cd nextstep/GNUstep/Emacs.base/Resources/preferences.gorm
