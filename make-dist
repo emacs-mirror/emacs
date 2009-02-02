@@ -543,9 +543,10 @@ echo "Making links to \`msdos'"
  cd ../${tempdir}/msdos
  rm -f =*)
 
+## FIXME are DEV-NOTES and FOR-RELEASE appropriate?
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln AUTHORS ChangeLog FOR-RELEASE README.txt compile ../${tempdir}/nextstep)
+ ln AUTHORS ChangeLog DEV-NOTES FOR-RELEASE README INSTALL ../${tempdir}/nextstep)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
