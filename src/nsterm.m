@@ -3151,8 +3151,8 @@ ns_read_socket (struct terminal *terminal, int expected,
 
 #ifdef COCOA_EXPERIMENTAL_CTRL_G
   /* causes Feval to abort; should probably set this in calling code when
-     it IS actually called from signal handler (which is only the case
-     under NS if SYNC_INPUT is off) */
+     it IS actually called from signal handler, in which case we need to
+     defer ns_update_menubar() calls */
   ++handling_signal;
 #endif
 
