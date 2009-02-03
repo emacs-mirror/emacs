@@ -184,11 +184,21 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      (setq mail-from
 		    (or (mail-fetch-field "Mail-From")
 			(concat "From "
-				(mail-strip-quoted-names (or (mail-fetch-field "from")
-							     (mail-fetch-field "really-from")
-							     (mail-fetch-field "sender")
-							     "unknown"))
-				" " (current-time-string))))
+				(mail-strip-quoted-names
+				 (or (mail-fetch-field "from")
+				     (mail-fetch-field "really-from")
+				     (mail-fetch-field "sender")
+				     "unknown"))
+				"  "
+				(let ((date (mail-fetch-field "date")))
+				  (or
+				   (and date
+					(setq date
+					      (ignore-errors
+					       (format-time-string
+						"%a %b %e %T %Y"
+						(date-to-time date)))))
+				   (current-time-string))))))
 
 	      ;; If the message specifies a coding system, use it.
 	      (let ((maybe-coding (mail-fetch-field "X-Coding-System")))

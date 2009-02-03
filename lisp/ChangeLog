@@ -1,5 +1,8 @@
 2009-02-03  Glenn Morris  <rgm@gnu.org>
 
+	* mail/unrmail.el (unrmail): In the absence of Mail-from, prefer Date
+	over current-time.  (Bug#2175)
+
 	* mail/rmail.el (rmail-convert-babyl-to-mbox): Disable undo while
 	inserting the converted mailbox.
 	(rmail-get-new-mail): Restore the loop over inboxes when two or more
