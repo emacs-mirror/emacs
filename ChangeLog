@@ -1,3 +1,8 @@
+2009-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add some missing files, remove some that are no longer
+	present.
+
 2009-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add some missing nextstep/ files.

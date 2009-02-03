@@ -328,8 +328,8 @@ for subdir in lisp site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/charsets etc/e etc/gnus etc/nxml \
-	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
-	      etc/images/icons etc/images/icons/hicolor \
+	      etc/images etc/images/custom etc/images/ezimage etc/images/gnus \
+	      etc/images/gud etc/images/icons etc/images/icons/hicolor \
 	      etc/images/icons/hicolor/*x* etc/images/icons/hicolor/scalable \
 	      etc/images/icons/hicolor/*/apps etc/images/icons/hicolor/*/mimetypes \
 	      etc/images/low-color etc/images/mail \
@@ -389,23 +389,14 @@ echo "Making links to \`lisp' and its subdirectories"
    mkdir -p ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
-   for img in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.xbm $file/[a-zA-Z]*.pbm; do
-     if [ -f $img ]; then
-       ln $img ../${tempdir}/lisp/$file
+   ## calc/README.priv, nxml/TODO
+   for f in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.[xp]bm \
+       $file/README $file/ChangeLog $file/ChangeLog.*[0-9] \
+       $file/README.prev $file/TODO; do
+     if [ -f $f ]; then
+       ln $f ../${tempdir}/lisp/$file
      fi
    done
-   if [ -f $file/README ]; then
-     ln $file/README ../${tempdir}/lisp/$file
-   fi
-
-   if [ -f $file/ChangeLog ]; then
-     ln $file/ChangeLog ../${tempdir}/lisp/$file
-     for f in $file/ChangeLog.*[0-9]; do
-       if [ -f $f ]; then
-	 ln $f ../${tempdir}/lisp/$file
-       fi
-     done
-   fi
  done )
 
 echo "Making links to \`leim' and its subdirectories"
@@ -414,14 +405,14 @@ echo "Making links to \`leim' and its subdirectories"
  ln makefile.w32-in ../${tempdir}/leim
  ln ChangeLog README ../${tempdir}/leim
 
- ln CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
+ ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
- ln MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
+ ln MISC-DIC/README MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
  ln Makefile.in ../${tempdir}/leim/Makefile.in
  ln leim-ext.el ../${tempdir}/leim/leim-ext.el
- ## Lisp files that start with a capital are generated from TIT
- ## dictionaries so we don't distribute them.
+ ## Lisp files that start with a capital (also 4Corner.el) are
+ ## generated from TIT dictionaries so we don't distribute them.
  ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
  rm -f ../${tempdir}/leim/quail/quick-b5.*
  rm -f ../${tempdir}/leim/quail/quick-cns.*
@@ -440,10 +431,9 @@ echo "Making links to \`src'"
  ln [a-zA-Z]*.h ../${tempdir}/src
  ln [a-zA-Z]*.m ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
- ln [a-zA-Z]*.opt ../${tempdir}/src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
- for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in [a-zA-Z]*.opt; do
+ for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in; do
    if test -f ../${tempdir}/src/$file; then
      # test -f appears to succeed for a symlink
      if test -L ../${tempdir}/src/$file; then
@@ -481,7 +471,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chmy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
+ ln b2m.pl grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -533,12 +523,12 @@ echo "Making links to \`nt/inc/netinet'"
 
 echo "Making links to \`nt/icons'"
 (cd nt/icons
- ln [a-z]*.ico ../../${tempdir}/nt/icons
+ ln README [a-z]*.ico ../../${tempdir}/nt/icons
  ln [a-z]*.cur ../../${tempdir}/nt/icons)
 
 echo "Making links to \`msdos'"
 (cd msdos
- ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
+ ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
  ln is_exec.c sigaction.c mainmake mainmake.v2 sed*.inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
@@ -633,8 +623,9 @@ echo "Making links to \`etc/images'"
      ln $f ../../${tempdir}/etc/images
  done)
 
-for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
-           etc/images/low-color etc/images/mail etc/images/smilies ; do
+for dir in etc/images/custom etc/images/ezimage etc/images/gnus \
+    etc/images/gud etc/images/icons etc/images/low-color etc/images/mail \
+    etc/images/smilies ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
      for f in *; do
@@ -677,20 +668,19 @@ echo "Making links to \`info'"
 
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
- ln *.texi *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
+ ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
  ln makefile.w32-in ../../${tempdir}/doc/emacs
- test -f README && ln README ../../${tempdir}/doc/emacs
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/emacs
  ln ChangeLog ../../${tempdir}/doc/emacs
- cp texinfo.tex ../../${tempdir}/doc/emacs
  cd ../../${tempdir}/doc/emacs
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
 
 echo "Making links to \`doc/misc'"
 (cd doc/misc
- ln *.texi *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/misc
+ ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/misc
  ln makefile.w32-in ../../${tempdir}/doc/misc
+ ln gnus-news.el ../../${tempdir}/doc/misc
  test -f README && ln README ../../${tempdir}/doc/misc
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/misc
  ln ChangeLog ../../${tempdir}/doc/misc
@@ -699,12 +689,13 @@ echo "Making links to \`doc/misc'"
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
 
+## FIXME book-spine.texinfo unused?
 echo "Making links to \`doc/lispref'"
 (cd doc/lispref
- ln `ls -1 *.texi` ../../${tempdir}/doc/lispref
- ln *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/lispref
+ ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/lispref
  ln *.txt *.el spellfile tindex.pl ../../${tempdir}/doc/lispref
  ln makefile.w32-in ../../${tempdir}/doc/lispref
+ ln book-spine.texinfo two-volume.make ../../${tempdir}/doc/lispref
  test -f README && ln README ../../${tempdir}/doc/lispref
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispref
  ln ChangeLog ../../${tempdir}/doc/lispref
@@ -714,9 +705,8 @@ echo "Making links to \`doc/lispref'"
 
 echo "Making links to \`doc/lispintro'"
 (cd doc/lispintro
- ln *.texi *.aux *.cps *.fns *.kys *.vrs *.eps ../../${tempdir}/doc/lispintro
+ ln *.texi *.aux *.fns *.kys *.vrs *.eps ../../${tempdir}/doc/lispintro
  ln makefile.w32-in ../../${tempdir}/doc/lispintro
- test -f texinfo.tex && ln texinfo.tex ../../${tempdir}/doc/lispintro
  test -f README && ln README ../../${tempdir}/doc/lispintro
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispintro
  ln ChangeLog ../../${tempdir}/doc/lispintro
