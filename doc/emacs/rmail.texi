@@ -1194,7 +1194,8 @@ accessing Rmail files from Emacs is impossible, you can use the
 distribution, it is installed into the same directory as the
 @command{emacs} executable, and its source is available in the Emacs
 source distribution (in the @file{lib-src} directory), so that you could
-copy the source to the target machine and compile it there.
+copy the source to the target machine and compile it there.  (In the
+same directory, there is also a version written in Perl, @file{b2m.pl}.)
 
   To convert a file @file{@var{babyl-file}} into @file{@var{mbox-file}},
 invoke @command{b2m} like this:
