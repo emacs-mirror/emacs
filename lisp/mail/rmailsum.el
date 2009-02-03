@@ -426,7 +426,9 @@ Returns nil if there are no labels.  The current buffer must
 already be narrowed to the message headers for the message being
 processed."
   (let ((labels (mail-fetch-field rmail-keyword-header)))
-    (if labels (format "{ %s } " labels))))
+    (and labels
+	 (not (string-equal labels ""))
+	 (format "{ %s } " labels))))
 
 (defun rmail-create-summary (msgnum deleted unseen lines)
   "Return the summary line for message MSGNUM.
