@@ -180,6 +180,13 @@ retitle -2 third bug
 The negative numbers provide a way to refer to the cloned bugs (which
 will be assigned proper numbers).
 
+NB you cannot clone a merged bug.  You'd think that trying to do so
+would just give you an unmerged copy of the specified bug number, but no:
+
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=474742
+
+You must unmerge, clone, then re-merge.
+
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
