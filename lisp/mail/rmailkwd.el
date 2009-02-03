@@ -27,35 +27,43 @@
 
 (require 'rmail)
 
-;; Global to all RMAIL buffers.  It exists primarily for the sake of
-;; completion.  It is better to use strings with the label functions
-;; and let them worry about making the label.
+;; Global to all RMAIL buffers.  It exists for the sake of completion.
+;; It is better to use strings with the label functions and let them
+;; worry about making the label.
+(defvar rmail-label-obarray (make-vector 47 0)
+  "Obarray of labels used by Rmail.
+`rmail-read-label' uses this to offer completion.")
 
-(defvar rmail-label-obarray (make-vector 47 0))
-
-(mapc (function (lambda (s) (intern s rmail-label-obarray)))
-      '("deleted" "answered" "filed" "forwarded" "unseen" "edited"
-	"resent"))
+;; Initialize with the standard labels.
+(mapc (lambda (s) (intern (cadr s) rmail-label-obarray))
+      rmail-attr-array)
 
 (defun rmail-make-label (s)
+  "Convert string S to a downcased symbol in `rmail-label-obarray'."
   (intern (downcase s) rmail-label-obarray))
 
 ;;;###autoload
-(defun rmail-add-label (string)
+(defun rmail-add-label (label)
   "Add LABEL to labels associated with current RMAIL message.
-Performs completion over known labels when reading."
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string."
   (interactive (list (rmail-read-label "Add label")))
-  (rmail-set-label string t))
+  (rmail-set-label label t))
 
 ;;;###autoload
-(defun rmail-kill-label (string)
+(defun rmail-kill-label (label)
   "Remove LABEL from labels associated with current RMAIL message.
-Performs completion over known labels when reading."
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string."
   (interactive (list (rmail-read-label "Remove label")))
-  (rmail-set-label string nil))
+  (rmail-set-label label nil))
 
 ;;;###autoload
 (defun rmail-read-label (prompt)
+  "Read a label with completion, prompting with PROMPT.
+Completions are chosen from `rmail-label-obarray'.  The default
+is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
+according to the choice made, and returns a symbol."
   (let ((result
 	 (completing-read (concat prompt
 				  (if rmail-last-label
@@ -73,7 +81,9 @@ Performs completion over known labels when reading."
 (declare-function rmail-summary-update-line "rmailsum" (n))
 
 (defun rmail-set-label (label state &optional msg)
-  "Set LABEL as present or absent according to STATE in message MSG."
+  "Set LABEL as present or absent according to STATE in message MSG.
+LABEL may be a symbol or string."
+  (or (stringp label) (setq label (symbol-name label)))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
     (if (not msg) (setq msg rmail-current-message))
@@ -89,7 +99,7 @@ Performs completion over known labels when reading."
 	  (rmail-set-attribute attr-index state msg)
 	;; Is this keyword already present in msg's keyword list?
 	(let* ((header (rmail-get-header rmail-keyword-header msg))
-	       (regexp (concat ", " (regexp-quote (symbol-name label)) ","))
+	       (regexp (concat ", " (regexp-quote label) ","))
 	       (present (string-match regexp (concat ", " header ","))))
 	  ;; If current state is not correct,
 	  (unless (eq present state)
@@ -99,8 +109,8 @@ Performs completion over known labels when reading."
 	     (if state
 		 ;; Add this keyword at the end.
 		 (if (and header (not (string= header "")))
-		     (concat header ", " (symbol-name label))
-		   (symbol-name label))
+		     (concat header ", " label)
+		   label)
 	       ;; Delete this keyword.
 	       (let ((before (substring header 0
 					(max 0 (- (match-beginning 0) 2))))
@@ -111,12 +121,12 @@ Performs completion over known labels when reading."
 			after)
 		       ((string= after "")
 			before)
-		       (t (concat before ", " after))))))
-	    (if (rmail-summary-exists)
-		(rmail-select-summary
-		 (rmail-summary-update-line msg))))))
-      (if (= msg rmail-current-message)
-	  (rmail-display-labels)))))
+		       (t (concat before ", " after))))))))))
+    (if (rmail-summary-exists)
+	(rmail-select-summary
+	 (rmail-summary-update-line msg)))
+    (if (= msg rmail-current-message)
+	(rmail-display-labels))))
 
 ;; Motion on messages with keywords.
 
