@@ -193,11 +193,10 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 				(let ((date (mail-fetch-field "date")))
 				  (or
 				   (and date
-					(setq date
-					      (ignore-errors
-					       (format-time-string
-						"%a %b %e %T %Y"
-						(date-to-time date)))))
+					(ignore-errors
+					 (format-time-string
+					  "%a %b %e %T %Y"
+					  (date-to-time date))))
 				   (current-time-string))))))
 
 	      ;; If the message specifies a coding system, use it.
