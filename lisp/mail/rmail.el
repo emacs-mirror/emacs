@@ -919,7 +919,8 @@ Convert Babyl mail file to mbox format? ")
 	  (unrmail old-file new-file)
 	  (message "Replacing BABYL format with mbox format...")
 	  (let ((inhibit-read-only t)
-		(coding-system-for-read 'raw-text))
+		(coding-system-for-read 'raw-text)
+		(buffer-undo-list t))
 	    (erase-buffer)
 	    (insert-file-contents new-file)
 	    ;; Rmail buffers need to be saved with Unix EOLs, or else
@@ -1575,34 +1576,44 @@ It returns t if it got any new messages."
 	(rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found)
     (unwind-protect
-	(when all-files
-	  (let ((opoint (point))
-		;; If buffer has not changed yet, and has not been
-		;; saved yet, don't replace the old backup file now.
-		(make-backup-files (and make-backup-files (buffer-modified-p)))
-		(buffer-read-only nil)
-		;; Don't make undo records while getting mail.
-		(buffer-undo-list t)
-		delete-files success files file-last-names)
-	    ;; Pull files off all-files onto files as long as there is
-	    ;; no name conflict.  A conflict happens when two inbox
-	    ;; file names have the same last component.
-	    (while (and all-files
-			(not (member (file-name-nondirectory (car all-files))
-				     file-last-names)))
-	      (setq files (cons (car all-files) files)
-		    file-last-names
-		    (cons (file-name-nondirectory (car all-files)) files))
-	      (setq all-files (cdr all-files)))
-	    ;; Put them back in their original order.
-	    (setq files (nreverse files))
-	    (goto-char (point-max))
-	    (skip-chars-backward " \t\n") ; just in case of brain damage
-	    (delete-region (point) (point-max)) ; caused by require-final-newline
-	    (setq found (rmail-get-new-mail-1 file-name files delete-files))))
-      found)
-    ;; Don't leave the buffer screwed up if we get a disk-full error.
-    (or found (rmail-show-message-maybe))))
+        (progn
+          ;; This loops if any members of the inbox list have the same
+          ;; basename (see "name conflict" below).
+          (while all-files
+            (let ((opoint (point))
+                  ;; If buffer has not changed yet, and has not been
+                  ;; saved yet, don't replace the old backup file now.
+                  (make-backup-files (and make-backup-files (buffer-modified-p)))
+                  (buffer-read-only nil)
+                  ;; Don't make undo records while getting mail.
+                  (buffer-undo-list t)
+                  delete-files success files file-last-names)
+              ;; Pull files off all-files onto files as long as there is
+              ;; no name conflict.  A conflict happens when two inbox
+              ;; file names have the same last component.
+	      ;; FIXME why does this "conflict" need kid gloves?
+	      (while (and all-files
+                          (not (member (file-name-nondirectory (car all-files))
+                                       file-last-names)))
+                (setq files (cons (car all-files) files)
+                      file-last-names
+                      (cons (file-name-nondirectory (car all-files)) files))
+                (setq all-files (cdr all-files)))
+              ;; Put them back in their original order.
+              (setq files (nreverse files))
+              (goto-char (point-max))
+              (skip-chars-backward " \t\n") ; just in case of brain damage
+              (delete-region (point) (point-max)) ; caused by require-final-newline
+              (setq found (or
+                           (rmail-get-new-mail-1 file-name files delete-files)
+			   found))))
+          ;; Move to the first new message unless we have other unseen
+          ;; messages before it.
+	  (if found (rmail-show-message-maybe (rmail-first-unseen-message)))
+	  (run-hooks 'rmail-after-get-new-mail-hook)
+	  found)
+      ;; Don't leave the buffer screwed up if we get a disk-full error.
+      (rmail-show-message-maybe))))
 
 (defun rmail-get-new-mail-1 (file-name files delete-files)
   "Return t if new messages are detected without error, nil otherwise."
@@ -1673,12 +1684,8 @@ It returns t if it got any new messages."
 	  (if rsf-beep (beep t))
 	  (sleep-for rsf-sleep-after-message))
 
-	;; Establish the return value and move to the first new
-	;; message unless we have other unseen messages before it.
+	;; Establish the return value.
 	(setq result (> new-messages 0))
-	(when result
-	  (rmail-show-message-maybe (rmail-first-unseen-message)))
-	(run-hooks 'rmail-after-get-new-mail-hook)
 	result))))
 
 (defun rmail-get-new-mail-filter-spam (new-message-count)
