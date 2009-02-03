@@ -19,6 +19,9 @@ For each step, check for possible errors.
     M-x set-version RET).  For a release, add released change log
     entries (M-x add-release-logs RET).
 
+    For a pretest, start at version .90.  After .99, use .990 (so that
+    it sorts).
+
 5.   rm configure; make bootstrap
 
 6.  Commit configure, README, doc/emacs/emacs.texi,
