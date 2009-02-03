@@ -1,3 +1,26 @@
+2009-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Disable undo while
+	inserting the converted mailbox.
+	(rmail-get-new-mail): Restore the loop over inboxes when two or more
+	have the same basename.  (Bug#2164)
+	Set the return value according to whether any mail was found,
+	not just in the last inbox.  Only show a message and run the hook after
+	checking all inboxes.
+	(rmail-get-new-mail-1): Move message display and running the hook to
+	rmail-get-new-mail.
+
+	* mail/rmailkwd.el (rmail-label-obarray): Initialize using
+	rmail-attr-array.
+	(rmail-make-label, rmail-read-label): Give it a doc string.
+	(rmail-add-label, rmail-kill-label): Change argument name to match the
+	doc.  Doc fix.
+	(rmail-set-label): Doc fix.  Also update summary in attr case.
+	Accept labels as a string or a symbol.  (Bug#2165)
+
+	* mail/rmailsum.el (rmail-get-summary-labels): Treat empty labels as
+	null.
+
 2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vhdl-mode.el (vhdl-prepare-search-1)
