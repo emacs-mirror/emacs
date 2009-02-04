@@ -627,7 +627,7 @@ encode_terminal_code (src, src_len, coding)
 		int c = LGLYPH_CHAR (g);
 
 		if (! char_charset (c, charset_list, NULL))
-		  break;
+		  c = '?';
 		buf += CHAR_STRING (c, buf);
 		nchars++;
 	      }
@@ -636,17 +636,23 @@ encode_terminal_code (src, src_len, coding)
 	      {
 		int c = COMPOSITION_GLYPH (cmp, i);
 
-		if (! char_charset (c, charset_list, NULL))
-		  break;
+		if (c == '\t')
+		  continue;
+		if (char_charset (c, charset_list, NULL))
+		  {
+		    if (CHAR_WIDTH (c) == 0
+			&& i > 0 && COMPOSITION_GLYPH (cmp, i - 1) == '\t')
+		      /* Should be left-padded */
+		      {
+			buf += CHAR_STRING (' ', buf);
+			nchars++;
+		      }
+		  }
+		else
+		  c = '?';
 		buf += CHAR_STRING (c, buf);
 		nchars++;
 	      }
-	  if (i == 0)
-	    {
-	      /* The first character of the composition is not encodable.  */
-	      *buf++ = '?';
-	      nchars++;
-	    }
 	}
       /* We must skip glyphs to be padded for a wide character.  */
       else if (! CHAR_GLYPH_PADDING_P (*src))
@@ -1811,8 +1817,7 @@ produce_composite_glyph (it)
     {
       struct composition *cmp = composition_table[it->cmp_it.id];
 
-      c = COMPOSITION_GLYPH (cmp, 0);
-      it->pixel_width = CHAR_WIDTH (it->c);
+      it->pixel_width = cmp->width;
     }
   else
     {
