@@ -1,3 +1,8 @@
+2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-svn.el (vc-svn-diff): Revert previous change but add a test
+	for newvars is nil. (C-u C-x v = with default values).
+
 2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-working-revision): Recognize a newer branch
