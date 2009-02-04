@@ -1,3 +1,7 @@
+2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Drop.
+
 2009-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add some missing files, remove some that are no longer
