@@ -1,3 +1,16 @@
+2009-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-fetch-field): Previous doc fix was
+	ill-advised.
+
+	* mail/rmail.el: No need for mule-util when compiling.
+	(rmail-first-message): Unbreak it.
+
+	* mail/rmailmsc.el: Require rmail not just when compiling.
+	Remove unneeded declarations.
+
+	* term/ns-win.el (ns): Define as a custom group.
+
 2009-02-04  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Check font-object by fontp.

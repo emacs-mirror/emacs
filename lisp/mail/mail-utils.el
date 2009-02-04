@@ -305,8 +305,8 @@ the comma-separated list.  The pruned list is returned."
 If second arg LAST is non-nil, use the last field of type FIELD-NAME.
 If third arg ALL is non-nil, concatenate all such fields with commas between.
 If 4th arg LIST is non-nil, return a list of all such fields.
-The header must be at the start of the buffer.  If any of the optional
-arguments are used, the buffer should be narrowed to just the header."
+The buffer should be narrowed to just the header, else false
+matches may be returned from the message body."
   (save-excursion
     (goto-char (point-min))
     (let ((case-fold-search t)
