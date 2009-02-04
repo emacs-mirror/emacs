@@ -2604,9 +2604,24 @@ dynamically linked C library has all the functions, but there is a
 conflict between the versions of malloc in the DLL and in Emacs, which
 is not resolvable due to the way Windows does dynamic linking.
 
-We recommend the use of the MingW port of GCC for compiling Emacs, as
+We recommend the use of the MinGW port of GCC for compiling Emacs, as
 not only does it not suffer these problems, but it is also Free
 software like Emacs.
+
+*** Building the MS-Windows port with Visual Studio fails compiling emacs.rc
+
+If the build fails with the following message then the problem
+described here most likely applies:
+
+../nt/emacs.rc(1) : error RC2176 : old DIB in icons\emacs.ico; pass it
+through SDKPAINT
+
+The Emacs icon contains a high resolution PNG icon for Vista, which is
+not recognized by older versions of the resource compiler. There are
+several workarounds for this problem:
+	1. Use Free MinGW tools to compile, which do not have this problem.
+	2. Install the latest Windows SDK.
+	3. Replace emacs.ico with an older or edited icon.
 
 ** Linking
 
