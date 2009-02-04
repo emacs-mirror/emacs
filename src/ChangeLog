@@ -1,3 +1,22 @@
+2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (pop_down_menu): New function.
+	(ns_popup_dialog): Call it on unwind.
+	(EmacsDialogPanel-runDialogAt:): Check popup_activated_flag and
+	call timer_check() (Bug#2154).
+	(EmacsMenu-menuNeedsUpdate:): Don't call ns_update_menu if
+	handling_signal is set.
+	(EmacsMenu-fillWithWidgetValue:): Set submenu title.
+
+	* config.in: Get rid of COCOA_EXPERIMENTAL_CTRL_G
+
+	* s/darwin.h: Same and NO_SOCK_SIGIO as well.
+
+	* nsterm.m (ns_read_socket): Same and don't set handling_signal.
+
+	* keyboard.c (poll_for_input_1, handle_async_input): Set
+	handling_signal under HAVE_NS.
+
 2009-02-04  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Fwrite_region): Doc fix (mention annotate-functions).

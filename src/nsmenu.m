@@ -573,7 +573,10 @@ name_is_separator (name)
      since key equivalents are handled through emacs.
      On Leopard, even keystroke events generate SystemDefined events, but
      their subtype is 8. */
-  if ([event type] != NSSystemDefined || [event subtype] == 8)
+  if ([event type] != NSSystemDefined || [event subtype] == 8
+      /* Also, don't try this if from an event picked up asynchronously,
+         as lots of lisp evaluation happens in ns_update_menubar. */
+      || handling_signal != 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
   ns_update_menubar (frame, 1, self);
@@ -688,7 +691,7 @@ name_is_separator (name)
 
       if (wv->contents)
         {
-          EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: @"Submenu"];
+          EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
 
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
@@ -1485,6 +1488,20 @@ update_frame_tool_bar (FRAME_PTR f)
 
    ========================================================================== */
 
+
+static Lisp_Object
+pop_down_menu (Lisp_Object arg)
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  popup_activated_flag = 0;
+  BLOCK_INPUT;
+  [((EmacsDialogPanel *) (p->pointer)) close];
+  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+  UNBLOCK_INPUT;
+  return Qnil;
+}
+
+
 Lisp_Object
 ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
@@ -1539,13 +1556,18 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
-  popup_activated_flag = 1;
-  tem = [dialog runDialogAt: p];
-  popup_activated_flag = 0;
+  {
+    int specpdl_count = SPECPDL_INDEX ();
+    record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
+    popup_activated_flag = 1;
+    tem = [dialog runDialogAt: p];
+    popup_activated_flag = 0;
+    unbind_to (specpdl_count, Qnil);
+  }
 
   [dialog close];
-
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+
   return tem;
 }
 
@@ -1858,12 +1880,14 @@ void process_dialog (id window, Lisp_Object list)
   [self orderFront: NSApp];
 
   session = [NSApp beginModalSessionForWindow: self];
-  while ((ret = [NSApp runModalSession: session]) == NSRunContinuesResponse)
+  while (popup_activated_flag
+         && (ret = [NSApp runModalSession: session]) == NSRunContinuesResponse)
     {
-    (e = [NSApp nextEventMatchingMask: NSAnyEventMask
-                            untilDate: [NSDate distantFuture]
-                               inMode: NSModalPanelRunLoopMode
-                              dequeue: NO]);
+      timer_check (1);  // for timers.el, indep of atimers; might not return
+      e = [NSApp nextEventMatchingMask: NSAnyEventMask
+                             untilDate: [NSDate dateWithTimeIntervalSinceNow: 1]
+                                inMode: NSModalPanelRunLoopMode
+                               dequeue: NO];
 /*fprintf (stderr, "ret = %d\te = %p\n", ret, e);*/
     }
   [NSApp endModalSession: session];
@@ -1876,7 +1900,6 @@ void process_dialog (id window, Lisp_Object list)
 }
 
 @end
-
 
 
 /* ==========================================================================

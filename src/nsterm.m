@@ -3132,7 +3132,7 @@ ns_read_socket (struct terminal *terminal, int expected,
   int nevents;
   static NSDate *lastCheck = nil;
 
-/*  NSTRACE (ns_read_socket); */
+/* NSTRACE (ns_read_socket); */
 
   if (interrupt_input_blocked)
     {
@@ -3147,15 +3147,8 @@ ns_read_socket (struct terminal *terminal, int expected,
 #ifdef SYNC_INPUT
   pending_signals = pending_atimers;
 #endif
+
   BLOCK_INPUT;
-
-#ifdef COCOA_EXPERIMENTAL_CTRL_G
-  /* causes Feval to abort; should probably set this in calling code when
-     it IS actually called from signal handler, in which case we need to
-     defer ns_update_menubar() calls */
-  ++handling_signal;
-#endif
-
   n_emacs_events_pending = 0;
   EVENT_INIT (ev);
   emacs_event = &ev;
@@ -3210,10 +3203,6 @@ ns_read_socket (struct terminal *terminal, int expected,
   nevents = n_emacs_events_pending;
   n_emacs_events_pending = 0;
   emacs_event = q_event_ptr = NULL;
-
-#ifdef COCOA_EXPERIMENTAL_CTRL_G
-  --handling_signal;
-#endif
   UNBLOCK_INPUT;
 
   return nevents;
@@ -4164,24 +4153,24 @@ ns_term_shutdown (int sig)
     Cmd-Q:
     MenuBar | File | Exit:
         ns_term_shutdown: 0
-        received -terminate: 1
-        received -appShouldTerminate: 1
+        -terminate: 1
+        -appShouldTerminate: 1
 
     Select Quit from App menubar:
         received -terminate: 0
         ns_term_shutdown: 0
-        received -terminate: 1
-        received -appShouldTerminate: 1
+        -terminate: 1
+        -appShouldTerminate: 1
 
     Select Quit from Dock menu:
     Logout attempt:
-        received -appShouldTerminate: 0
+        -appShouldTerminate: 0
           Cancel -> Nothing else
           Accept ->
-            received -terminate: 0
+            -terminate: 0
             ns_term_shutdown: 0
-            received -terminate: 1
-            received -appShouldTerminate: 1
+            -terminate: 1
+            -appShouldTerminate: 1
 */
 
 - (void) terminate: (id)sender
@@ -4212,8 +4201,8 @@ ns_term_shutdown (int sig)
 
   /* XXX: This while() loop is needed because if the user switches to another
           application while the panel is up, it is taken down w/a return value
-          of -1000, and the event queue gets messed up.  In this case resend
-          the appdefined and put up the window again. */
+          of NSRunStoppedResponse, and the event queue gets messed up.
+          In this case resend the appdefined and put up the window again. */
   while (1) {
     ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
                           [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
@@ -5112,13 +5101,6 @@ extern void update_window_cursor (struct window *w, int on);
     x_set_window_size (emacsframe, 0, cols, rows);
 
   ns_send_appdefined (-1);
-
-  /* The following line causes a crash on GNUstep.  Adrian Robert
-     says he doesn't remember why he added this line, but removing it
-     doesn't seem to cause problems on OSX, either.  */
-#if 0
-  [NSApp stopModal];
-#endif
 }
 
 

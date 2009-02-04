@@ -2182,16 +2182,24 @@ struct atimer *poll_timer;
 
 #ifdef POLL_FOR_INPUT
 
-/* Poll for input, so what we catch a C-g if it comes in.  This
+/* Poll for input, so that we catch a C-g if it comes in.  This
    function is called from x_make_frame_visible, see comment
    there.  */
 
 void
 poll_for_input_1 ()
 {
+/* Tell ns_read_socket() it is being called asynchronously so it can avoid
+   doing anything dangerous. */
+#ifdef HAVE_NS
+  ++handling_signal;
+#endif
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
     read_avail_input (0);
+#ifdef HAVE_NS
+  --handling_signal;
+#endif
 }
 
 /* Timer callback function for poll_timer.  TIMER is equal to
@@ -7276,7 +7284,11 @@ handle_async_input ()
 #ifdef SYNC_INPUT
   pending_signals = pending_atimers;
 #endif
-
+/* Tell ns_read_socket() it is being called asynchronously so it can avoid
+   doing anything dangerous. */
+#ifdef HAVE_NS
+  ++handling_signal;
+#endif
   while (1)
     {
       int nread;
@@ -7287,6 +7299,9 @@ handle_async_input ()
       if (nread <= 0)
 	break;
     }
+#ifdef HAVE_NS
+  --handling_signal;
+#endif
 }
 
 void
