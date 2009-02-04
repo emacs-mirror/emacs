@@ -5595,6 +5595,39 @@ coding_charset_list (coding)
 }
 
 
+/* Return a list of charsets supported by CODING-SYSTEM.  */
+
+Lisp_Object
+coding_system_charset_list (coding_system)
+     Lisp_Object coding_system;
+{
+  int id;
+  Lisp_Object attrs, charset_list;
+
+  CHECK_CODING_SYSTEM_GET_ID (coding_system, id);
+  attrs = CODING_ID_ATTRS (id);
+
+  if (EQ (CODING_ATTR_TYPE (attrs), Qiso_2022))
+    {
+      int flags = XINT (AREF (attrs, coding_attr_iso_flags));
+
+      if (flags & CODING_ISO_FLAG_FULL_SUPPORT)
+	charset_list = Viso_2022_charset_list;
+      else
+	charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+    }
+  else if (EQ (CODING_ATTR_TYPE (attrs), Qemacs_mule))
+    {
+      charset_list = Vemacs_mule_charset_list;
+    }
+  else
+    {
+      charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+    }
+  return charset_list;
+}
+
+
 /* Return raw-text or one of its subsidiaries that has the same
    eol_type as CODING-SYSTEM.  */
 
