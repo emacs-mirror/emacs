@@ -63,9 +63,9 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 100, 0.85 }, { 170, 0.45 } };
 
 
-/* myroot -- array of references that are the root
+/* myroot -- array of exact references that are the root
  *
- * (note: static, so auto-initialised to NULL)
+ * (note: static, so pointers are auto-initialised to NULL)
  */
 #define myrootCOUNT 30000
 static void *myroot[myrootCOUNT];
@@ -257,6 +257,54 @@ enum {
   PolyVar = 100
 };
 
+static void CatalogCheck(void)
+{
+  mps_word_t w;
+  void *Catalog, *Page, *Art, *Poly;
+  unsigned long Catalogs = 0, Pages = 0, Arts = 0, Polys = 0;
+  int i, j, k;
+
+  /* retrieve Catalog from root */
+  Catalog = myroot[CatalogRootIndex];
+  if(!Catalog)
+    return;
+  Insist(DYLAN_VECTOR_SLOT(Catalog, 0) == DYLAN_INT(CatalogSig));
+  Catalogs += 1;
+
+  for(i = 0; i < CatalogVar; i += 1) {
+    /* retrieve Page from Catalog */
+    w = DYLAN_VECTOR_SLOT(Catalog, CatalogFix + i);
+    /* printf("Page = 0x%8x\n", (unsigned int) w); */
+    if(w == DYLAN_INT(0))
+      break;
+    Page = (void *)w;
+    Insist(DYLAN_VECTOR_SLOT(Page, 0) == DYLAN_INT(PageSig));
+    Pages += 1;
+    
+    for(j = 0; j < PageVar; j += 1) {
+      /* retrieve Art from Page */
+      w = DYLAN_VECTOR_SLOT(Page, PageFix + j);
+      if(w == DYLAN_INT(0))
+        break;
+      Art = (void *)w;
+      Insist(DYLAN_VECTOR_SLOT(Art, 0) = DYLAN_INT(ArtSig));
+      Arts += 1;
+
+      for(k = 0; k < ArtVar; k += 1) {
+        /* retrieve Poly from Art */
+        w = DYLAN_VECTOR_SLOT(Art, ArtFix + k);
+        if(w == DYLAN_INT(0))
+          break;
+        Poly = (void *)w;
+        Insist(DYLAN_VECTOR_SLOT(Poly, 0) = DYLAN_INT(PolySig));
+        Polys += 1;
+      }
+    }
+  }
+  printf("Catalog ok with: Catalogs: %lu, Pages: %lu, Arts: %lu, Polys: %lu.\n",
+         Catalogs, Pages, Arts, Polys);
+}
+
 static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 {
   mps_word_t v;
@@ -265,17 +313,18 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 
   die(make_dylan_vector(&v, ap, CatalogFix + CatalogVar), "Catalog");
   DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(CatalogSig);
-  DYLAN_VECTOR_SLOT(v, CatalogFix) = (mps_word_t)NULL;
   Catalog = (void *)v;
   
   /* store Catalog in root */
   myroot[CatalogRootIndex] = Catalog;
   get(arena);
 
+  fflush(stdout);
+  CatalogCheck();
+
   for(i = 0; i < CatalogVar; i += 1) {
     die(make_dylan_vector(&v, ap, PageFix + PageVar), "Page");
     DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(PageSig);
-    DYLAN_VECTOR_SLOT(v, PageFix) = (mps_word_t)NULL;
     Page = (void *)v;
 
     /* store Page in Catalog */
@@ -283,11 +332,11 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
     get(arena);
     
     printf("Page %d: make articles\n", i);
+    fflush(stdout);
     
     for(j = 0; j < PageVar; j += 1) {
       die(make_dylan_vector(&v, ap, ArtFix + ArtVar), "Art");
       DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(ArtSig);
-      DYLAN_VECTOR_SLOT(v, ArtFix) = (mps_word_t)NULL;
       Art = (void *)v;
 
       /* store Art in Page */
@@ -297,7 +346,6 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
       for(k = 0; k < ArtVar; k += 1) {
         die(make_dylan_vector(&v, ap, PolyFix + PolyVar), "Poly");
         DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(PolySig);
-        DYLAN_VECTOR_SLOT(v, PolyFix) = (mps_word_t)NULL;
         Poly = (void *)v;
 
         /* store Poly in Art */
@@ -306,7 +354,10 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
       }
     }
   }
+  fflush(stdout);
+  CatalogCheck();
 }
+
 
 /* checksi -- check count of sscanf items is correct
  */
