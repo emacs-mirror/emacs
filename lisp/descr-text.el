@@ -630,7 +630,7 @@ as well as widgets, buttons, overlays, and text properties."
 		     (nglyphs (lgstring-glyph-len gstring))
 		     (i 0)
 		     glyph)
-		(if font
+		(if (fontp font)
 		    (progn
 		      (insert " using this font:\n  "
 			      (symbol-name (font-get font :type))
