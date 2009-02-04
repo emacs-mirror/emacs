@@ -39,7 +39,6 @@
 ;;
 
 (require 'mail-utils)
-(eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
 (defconst rmail-attribute-header "X-RMAIL-ATTRIBUTES"
   "The header that stores the Rmail attribute data.")
@@ -1576,39 +1575,40 @@ It returns t if it got any new messages."
 	(rmail-enable-multibyte (default-value 'enable-multibyte-characters))
 	found)
     (unwind-protect
-        (progn
-          ;; This loops if any members of the inbox list have the same
-          ;; basename (see "name conflict" below).
-          (while all-files
-            (let ((opoint (point))
-                  ;; If buffer has not changed yet, and has not been
-                  ;; saved yet, don't replace the old backup file now.
-                  (make-backup-files (and make-backup-files (buffer-modified-p)))
-                  (buffer-read-only nil)
-                  ;; Don't make undo records while getting mail.
-                  (buffer-undo-list t)
-                  delete-files success files file-last-names)
-              ;; Pull files off all-files onto files as long as there is
-              ;; no name conflict.  A conflict happens when two inbox
-              ;; file names have the same last component.
-	      ;; FIXME why does this "conflict" need kid gloves?
+	(progn
+	  ;; This loops if any members of the inbox list have the same
+	  ;; basename (see "name conflict" below).
+	  (while all-files
+	    (let ((opoint (point))
+		  ;; If buffer has not changed yet, and has not been
+		  ;; saved yet, don't replace the old backup file now.
+		  (make-backup-files (and make-backup-files (buffer-modified-p)))
+		  (buffer-read-only nil)
+		  ;; Don't make undo records while getting mail.
+		  (buffer-undo-list t)
+		  delete-files success files file-last-names)
+	      ;; Pull files off all-files onto files as long as there is
+	      ;; no name conflict.  A conflict happens when two inbox
+	      ;; file names have the same last component.
+	      ;; The reason this careful handling is necessary seems
+	      ;; to be that rmail-insert-inbox-text uses .newmail-BASENAME.
 	      (while (and all-files
-                          (not (member (file-name-nondirectory (car all-files))
-                                       file-last-names)))
-                (setq files (cons (car all-files) files)
-                      file-last-names
-                      (cons (file-name-nondirectory (car all-files)) files))
-                (setq all-files (cdr all-files)))
-              ;; Put them back in their original order.
-              (setq files (nreverse files))
-              (goto-char (point-max))
-              (skip-chars-backward " \t\n") ; just in case of brain damage
-              (delete-region (point) (point-max)) ; caused by require-final-newline
-              (setq found (or
-                           (rmail-get-new-mail-1 file-name files delete-files)
+			  (not (member (file-name-nondirectory (car all-files))
+				       file-last-names)))
+		(setq files (cons (car all-files) files)
+		      file-last-names
+		      (cons (file-name-nondirectory (car all-files)) files))
+		(setq all-files (cdr all-files)))
+	      ;; Put them back in their original order.
+	      (setq files (nreverse files))
+	      (goto-char (point-max))
+	      (skip-chars-backward " \t\n") ; just in case of brain damage
+	      (delete-region (point) (point-max)) ; caused by require-final-newline
+	      (setq found (or
+			   (rmail-get-new-mail-1 file-name files delete-files)
 			   found))))
-          ;; Move to the first new message unless we have other unseen
-          ;; messages before it.
+	  ;; Move to the first new message unless we have other unseen
+	  ;; messages before it.
 	  (if found (rmail-show-message-maybe (rmail-first-unseen-message)))
 	  (run-hooks 'rmail-after-get-new-mail-hook)
 	  found)
@@ -2884,7 +2884,7 @@ or forward if N is negative."
   "Show first message in file."
   (interactive)
   (rmail-maybe-set-message-counters)
-  (rmail-show-message-maybe (< 1 rmail-total-messages)))
+  (rmail-show-message-maybe 1))
 
 (defun rmail-last-message ()
   "Show last message in file."
