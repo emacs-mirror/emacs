@@ -25,14 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'rmail))
-
-(defvar rmail-current-message)
-(defvar rmail-inbox-list)
-
-(declare-function mail-parse-comma-list "mail-utils" ())
-(declare-function rmail-show-message "rmail" (&optional msg))
+(require 'rmail)
 
 ;;;###autoload
 (defun set-rmail-inbox-list (file-name)
