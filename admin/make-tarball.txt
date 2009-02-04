@@ -35,6 +35,11 @@ For each step, check for possible errors.
     tarballs are kept under fencepost.gnu.org:~pot/emacs-pretest/, while
     old emacs tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
 
+    If this is the first pretest of a major release, just comparing
+    with the previous release may overlook many new files.  You can try
+    something like `find -f | grep -v CVS...etc' in a clean CVS tree,
+    and compare the results against the new tar contents.
+
 8.   xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
 
 9.   tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
