@@ -24,6 +24,9 @@
 
 2009-02-04  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-cmds.el (select-safe-coding-system): Use
+	buffer-chars-modified-tick instead of buffer-modified-tick.
+
 	* descr-text.el (describe-char): Check font-object by fontp.
 
 	* composite.el (compose-gstring-for-terminal): If a character is
