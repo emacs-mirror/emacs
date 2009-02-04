@@ -2796,7 +2796,7 @@ link and description parts of the link.
 @cindex following links
 @kindex C-c C-o
 @kindex RET
-@item C-c C-o @r{or} @key{RET}
+@item C-c C-o
 Open link at point.  This will launch a web browser for URLs (using
 @command{browse-url-at-point}), run VM/MH-E/Wanderlust/Rmail/Gnus/BBDB for
 the corresponding links, and execute the command in a shell link.  When the

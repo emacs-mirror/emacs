@@ -1113,7 +1113,7 @@ Needs to be set before org.el is loaded."
   :group 'org-link-follow
   :type 'boolean)
 
-(defcustom org-return-follows-link t
+(defcustom org-return-follows-link nil
   "Non-nil means, on links RET will follow the link.
 Needs to be set before org.el is loaded."
   :group 'org-link-follow
