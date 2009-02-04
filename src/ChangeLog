@@ -1,3 +1,7 @@
+2009-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fwrite_region): Doc fix (mention annotate-functions).
+
 2009-02-04  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (composite.o): Depends on frame.h and termhooks.h.

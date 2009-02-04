@@ -4406,7 +4406,10 @@ The optional seventh arg MUSTBENEW, if non-nil, insists on a check
 This does code conversion according to the value of
 `coding-system-for-write', `buffer-file-coding-system', or
 `file-coding-system-alist', and sets the variable
-`last-coding-system-used' to the coding system actually used.  */)
+`last-coding-system-used' to the coding system actually used.
+
+This calls `write-region-annotate-functions' at the start, and
+`write-region-post-annotation-function' at the end.  */)
      (start, end, filename, append, visit, lockname, mustbenew)
      Lisp_Object start, end, filename, append, visit, lockname, mustbenew;
 {
