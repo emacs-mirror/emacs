@@ -1,3 +1,27 @@
+2009-02-04  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (composite.o): Depends on frame.h and termhooks.h.
+
+	* charset.c (Fchar_charset): New optional arg restriction.
+
+	* coding.h (coding_system_charset_list): Extern it.
+
+	* coding.c (coding_system_charset_list): New function.
+
+	* composite.c: Include coding.h and termhooks.h.
+	(composition_gstring_p): Fix for the terminal case.
+	(composition_gstring_width): Likewise.
+	(fill_gstring_body): Likewise.
+	(autocmp_chars): For terminal, call Fcomposition_get_gstring with
+	the frame.
+	(composition_compute_stop_pos): Adjust cmp_it->stop_pos if point
+	is within a composition.
+	(Fcomposition_get_gstring): Fix the the terminal case.
+
+	* term.c (encode_terminal_code): Fix handling of composition.
+	(produce_composite_glyph): For static composition, get pixel_width
+	from struct composition.
+
 2009-02-02  Andreas Schwab  <schwab@suse.de>
 
 	* unexelf.c (unexec): Handle unaligned bss offset.
