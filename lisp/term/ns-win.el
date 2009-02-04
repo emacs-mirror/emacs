@@ -59,6 +59,10 @@
 ;; Not needed?
 ;;(require 'ispell)
 
+(defgroup ns nil
+  "GNUstep/Mac OS X specific features."
+  :group 'environment)
+
 ;; nsterm.m
 (defvar ns-version-string)
 (defvar ns-expand-space)
