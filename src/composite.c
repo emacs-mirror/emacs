@@ -27,11 +27,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "character.h"
+#include "coding.h"
 #include "intervals.h"
 #include "window.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "font.h"
+#include "termhooks.h"
+
 
 /* Emacs uses special text property `composition' to support character
    composition.  A sequence of characters that have the same (i.e. eq)
@@ -723,7 +726,8 @@ composition_gstring_p (gstring)
   if (! VECTORP (header) || ASIZE (header) < 2)
     return 0;
   if (! NILP (LGSTRING_FONT (gstring))
-      && ! FONT_OBJECT_P (LGSTRING_FONT (gstring)))
+      && (! FONT_OBJECT_P (LGSTRING_FONT (gstring))
+	  && ! CODING_SYSTEM_P (LGSTRING_FONT (gstring))))
     return 0;
   for (i = 1; i < ASIZE (LGSTRING_HEADER (gstring)); i++)
     if (! NATNUMP (AREF (LGSTRING_HEADER (gstring), i)))
@@ -753,10 +757,19 @@ composition_gstring_width (gstring, from, to, metrics)
   if (metrics)
     {
       Lisp_Object font_object = LGSTRING_FONT (gstring);
-      struct font *font = XFONT_OBJECT (font_object);
 
-      metrics->ascent = font->ascent;
-      metrics->descent = font->descent;
+      if (FONT_OBJECT_P (font_object))
+	{
+	  struct font *font = XFONT_OBJECT (font_object);
+
+	  metrics->ascent = font->ascent;
+	  metrics->descent = font->descent;
+	}
+      else
+	{
+	  metrics->ascent = 1;
+	  metrics->descent = 0;
+	}
       metrics->width = metrics->lbearing = metrics->rbearing = 0;
     }
   for (glyph = &LGSTRING_GLYPH (gstring, from); from < to; from++, glyph++)
@@ -874,7 +887,7 @@ fill_gstring_body (gstring)
       LGLYPH_SET_FROM (g, i);
       LGLYPH_SET_TO (g, i);
       LGLYPH_SET_CHAR (g, c);
-      if (! NILP (font_object))
+      if (FONT_OBJECT_P (font_object))
 	{
 	  font_fill_lglyph_metrics (g, font_object);
 	}
@@ -953,7 +966,9 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
 		  return unbind_to (count, Qnil);
 		}
 	    }
+	  else
 #endif	/* not HAVE_WINDOW_SYSTEM */
+	    font_object = win->frame;
 	  gstring = Fcomposition_get_gstring (pos, make_number (to),
 					      font_object, string);
 	  if (NILP (LGSTRING_ID (gstring)))
@@ -1007,6 +1022,8 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
+  if (NILP (string) && PT > charpos && PT < endpos)
+    cmp_it->stop_pos = PT;
   if (NILP (current_buffer->enable_multibyte_characters)
       || ! FUNCTIONP (Vauto_composition_function))
     return;
@@ -1454,7 +1471,8 @@ DEFUN ("composition-get-gstring", Fcomposition_get_gstring,
        doc: /* Return a glyph-string for characters between FROM and TO.
 If the glyph string is for graphic display, FONT-OBJECT must be
 a font-object to use for those characters.
-Otherwise (for terminal display), FONT-OBJECT must be nil.
+Otherwise (for terminal display), FONT-OBJECT must be a terminal ID, a
+frame, or nil for the selected frame's terminal device.
 
 If the optional 4th argument STRING is not nil, it is a string
 containing the target characters between indices FROM and TO.
@@ -1467,7 +1485,7 @@ HEADER is a vector of this form:
     [FONT-OBJECT CHAR ...]
 where
     FONT-OBJECT is a font-object for all glyphs in the glyph-string,
-    or nil if not yet decided.
+    or the terminal coding system of the specified terminal.
     CHARs are characters to be composed by GLYPHs.
 
 ID is an identification number of the glyph-string.  It may be nil if
@@ -1494,8 +1512,17 @@ should be ignored.  */)
 
   CHECK_NATNUM (from);
   CHECK_NATNUM (to);
-  if (! NILP (font_object))
-    CHECK_FONT_OBJECT (font_object);
+  if (! FONT_OBJECT_P (font_object))
+    {
+      struct coding_system *coding;
+      struct terminal *terminal = get_terminal (font_object, 1);
+
+      coding = ((TERMINAL_TERMINAL_CODING (terminal)->common_flags
+		 & CODING_REQUIRE_ENCODING_MASK)
+		? TERMINAL_TERMINAL_CODING (terminal) : &safe_terminal_coding);
+      font_object = CODING_ID_NAME (coding->id);
+    }
+
   header = fill_gstring_header (Qnil, from, to, font_object, string);
   gstring = gstring_lookup_cache (header);
   if (! NILP (gstring))
