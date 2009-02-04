@@ -1,3 +1,7 @@
+2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* compilation.txt (gnu): Add an example for the "note" format.
+
 2009-02-04  Jason Rumney  <jasonr@gnu.org>
 
 	* PROBLEMS (CPP): Note problem with resource compiler of MSVC.

@@ -210,6 +210,7 @@ foo.c:8: message
 foo/bar.py:8: FutureWarning message
 foo.py:8: RuntimeWarning message
 foo.c:8:I: message
+foo.c:8.23: note: message
 foo.c:8.23: info: message
 foo.c:8:23:information: message
 foo.c:8.23-45: Informational: message
