@@ -2098,15 +2098,41 @@ CH in the charset.  */)
 }
 
 
-DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
-       doc: /* Return the charset of highest priority that contains CH.  */)
-     (ch)
-     Lisp_Object ch;
+DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 2, 0,
+       doc: /* Return the charset of highest priority that contains CH.
+If optional 2nd arg RESTRICTION is non-nil, it is a list of charsets
+from which to find the charset.  It may also be a coding system.  In
+that case, find the charset from what supported by that coding system.  */)
+     (ch, restriction)
+     Lisp_Object ch, restriction;
 {
   struct charset *charset;
 
   CHECK_CHARACTER (ch);
-  charset = CHAR_CHARSET (XINT (ch));
+  if (NILP (restriction))
+    charset = CHAR_CHARSET (XINT (ch));
+  else
+    {
+      Lisp_Object charset_list;
+
+      if (CONSP (restriction))
+	{
+	  for (charset_list = Qnil; CONSP (restriction);
+	       restriction = XCDR (restriction))
+	    {
+	      int id;
+
+	      CHECK_CHARSET_GET_ID (XCAR (restriction), id);
+	      charset_list = Fcons (make_number (id), charset_list);
+	    }
+	  charset_list = Fnreverse (charset_list);
+	}
+      else
+	charset_list = coding_system_charset_list (restriction);
+      charset = char_charset (XINT (ch), charset_list, NULL);
+      if (! charset)
+	return Qnil;
+    }
   return (CHARSET_NAME (charset));
 }
 
