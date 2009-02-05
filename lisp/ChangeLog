@@ -1,3 +1,9 @@
+2009-02-05  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-emacs-features): Check the working of
+	beginning/end-of-defun-function more rigorously before setting
+	argumentative-bod-function.
+
 2009-02-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
