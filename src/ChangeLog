@@ -1,3 +1,8 @@
+2009-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* character.c (syms_of_character) <script-representative-chars>:
+	Fix typo in docstring.
+
 2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (pop_down_menu): New function.
