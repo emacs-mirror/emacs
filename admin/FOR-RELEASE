@@ -89,8 +89,8 @@ mail/sendmail.el
 mail/undigest.el  ; seems totally dependent (?) on Babyl format, and has
                     received zero mbox-branch updates.  Is it not needed now?
 mail/unrmail.el   ; rev 1.13.2.4 not synced from mbox branch - should it be?
-net/mairix.el
-org/org-rmail.el
+net/mairix.el     ; fixed?
+org/org-rmail.el  ; fixed?
 
 EOOH references:
 
