@@ -1,4 +1,4 @@
-2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
+2009-02-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
 	(vc-dir-mouse-map): New keymap.
