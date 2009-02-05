@@ -1,3 +1,10 @@
+2009-02-05  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-mode): Use `image-get-display-property'
+	instead of `get-text-property'.
+	(image-minor-mode): Sync the logic with `image-mode' including the
+	displaying an image file as the actual image by default.
+
 2009-02-05  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-emacs-features): Check the working of
