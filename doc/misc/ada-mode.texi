@@ -749,7 +749,7 @@ point is put at the place of the error in the @file{hello.adb} buffer.
 To fix the error, change the line to be
 
 @example
-    Ada.Text_IO.Put_Line ("hello from hello.adb"):
+    Ada.Text_IO.Put_Line ("hello from hello.adb");
 @end example
 
 Now invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello}.

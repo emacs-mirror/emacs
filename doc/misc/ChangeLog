@@ -1,3 +1,7 @@
+2009-02-05  Arni Magnusson  <arnima@hafro.is>
+
+	* ada-mode.texi (No project files): Fix typo.  (Bug#2214)
+
 2009-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Print version about Incoming*.
