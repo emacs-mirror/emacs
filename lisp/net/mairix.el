@@ -228,8 +228,7 @@ Currently there are 'threads and 'flags.")
 (autoload 'rmail "rmail")
 (autoload 'rmail-summary-displayed "rmail")
 (autoload 'rmail-summary "rmailsum")
-(eval-when-compile
-  (defvar rmail-buffer))
+(defvar rmail-buffer)
 
 (defun mairix-rmail-display (folder)
   "Display mbox file FOLDER with RMail."
@@ -253,17 +252,20 @@ Currently there are 'threads and 'flags.")
       (rmail-summary))))
 
 ;; Fetching mail header field:
-(autoload 'rmail-narrow-to-non-pruned-header "rmail")
 (defun mairix-rmail-fetch-field (field)
   "Get mail header FIELD for current message using RMail."
   (unless (and (boundp 'rmail-buffer)
 	       rmail-buffer)
     (error "No RMail buffer available"))
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (save-restriction
-      (rmail-narrow-to-non-pruned-header)
-      (mail-fetch-field field))))
+  ;; At this point, we are in rmail mode, so the rmail funcs are loaded.
+  (if (fboundp 'rmail-get-header)	; Emacs 23
+      (rmail-get-header field)
+    (save-excursion
+      (set-buffer rmail-buffer)
+      (save-restriction
+	;; Don't warn about this when compiling Emacs 23.
+	(with-no-warnings (rmail-narrow-to-non-pruned-header))
+	(mail-fetch-field field)))))
 
 ;;; Gnus
 (eval-when-compile
