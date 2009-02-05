@@ -363,6 +363,7 @@ static Bool amcSegHasNailboard(Seg seg)
 
   type = *amcSegTypeP(seg);
   AVER(type == AMCPTypeNailboard || type == AMCPTypeGen);
+  AVER(type != AMCPTypeNailboard);  /* RHSK hack: nailboards disabled */
   return type == AMCPTypeNailboard;
 }
 
@@ -680,6 +681,7 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
 
 /* amcSegCreateNailboard -- create nailboard for segment */
 
+#if 0
 static Res amcSegCreateNailboard(Seg seg, Pool pool)
 {
   amcNailboard board;
@@ -720,7 +722,7 @@ failMarkTable:
 failAllocNailboard:
   return res;
 }
-
+#endif
 
 /* amcSegDestroyNailboard -- destroy the nailboard of a segment */
 
@@ -790,6 +792,7 @@ static Bool amcNailGetAndSetMark(Seg seg, Ref ref)
  * bits that correspond to client pointers for them.  We may assume
  * that the range is unmarked.
  */
+#if 0
 static void amcNailMarkRange(Seg seg, Addr base, Addr limit)
 {
   amcNailboard board;
@@ -815,7 +818,7 @@ static void amcNailMarkRange(Seg seg, Addr base, Addr limit)
   board->nails += ilimit - ibase;
   board->distinctNails += ilimit - ibase;
 }
-
+#endif
 
 /* amcNailRangeIsMarked -- check that a range in the board is marked
  *
@@ -1218,6 +1221,9 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
         /* There is an active buffer, make sure it's nailed. */
         if(!amcSegHasNailboard(seg)) {
           if(SegNailed(seg) == TraceSetEMPTY) {
+#if 1
+            UNUSED(res);
+#else
             res = amcSegCreateNailboard(seg, pool);
             if(res != ResOK) {
               /* Can't create nailboard, don't condemn. */
@@ -1227,6 +1233,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
               amcNailMarkRange(seg, BufferScanLimit(buffer),
                                BufferLimit(buffer));
             }
+#endif
             ++trace->nailCount;
             SegSetNailed(seg, TraceSetSingle(trace));
           } else {
@@ -1639,9 +1646,11 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
     if(SegNailed(seg) == TraceSetEMPTY) {
+#if 0
       res = amcSegCreateNailboard(seg, pool);
       if(res != ResOK)
         return res;
+#endif
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
@@ -1789,9 +1798,11 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
     if(SegNailed(seg) == TraceSetEMPTY) {
+#if 0
       res = amcSegCreateNailboard(seg, pool);
       if(res != ResOK)
         return res;
+#endif
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
