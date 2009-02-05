@@ -3931,7 +3931,8 @@ VALUE must be a string of XLFD-style or fontconfig-style font name.
 `:script'
 
 VALUE must be a symbol representing a script that the font must
-support.
+support.  It may be a symbol representing a subgroup of a script
+listed in the variable `script-representative-chars'.
 usage: (font-spec ARGS...)  */)
      (nargs, args)
      int nargs;
