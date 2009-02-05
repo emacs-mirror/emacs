@@ -12,7 +12,8 @@
 
 2009-02-05  Glenn Morris  <rgm@gnu.org>
 
-	* mail/rmail.el (rmail-what-message): Unbreak it.
+	* mail/rmail.el (rmail-what-message, rmail-duplicate-message):
+	Make these functions work.
 
 	* net/mairix.el (rmail-buffer): Remove unneeded eval-when-compile.
 	(rmail-narrow-to-non-pruned-header): Remove autoload.

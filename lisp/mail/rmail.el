@@ -1442,16 +1442,27 @@ Hook `rmail-quit-hook' is run after expunging."
 The duplicate copy goes into the Rmail file just after the
 original copy."
   (interactive)
-  (widen)
-  (let ((buffer-read-only nil)
-	(number rmail-current-message)
-	(string (buffer-substring (rmail-msgbeg rmail-current-message)
-				  (rmail-msgend rmail-current-message))))
-    (goto-char (rmail-msgend rmail-current-message))
-    (insert string)
-    (rmail-forget-messages)
-    (rmail-show-message-maybe number)
-    (message "Message duplicated")))
+  ;; If we are in a summary buffer, switch to the Rmail buffer.
+  (set-buffer rmail-buffer)
+  (let ((buff (current-buffer))
+        (n rmail-current-message)
+        (beg (rmail-msgbeg rmail-current-message))
+        (end (rmail-msgend rmail-current-message)))
+    (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
+    (widen)
+    (let ((buffer-read-only nil)
+          (string (buffer-substring-no-properties beg end)))
+      (goto-char end)
+      (insert string))
+    (set-buffer buff)
+    (rmail-swap-buffers-maybe)
+    (goto-char (point-max))
+    (rmail-set-message-counters)
+    (set-buffer-modified-p t)
+    (rmail-show-message n))
+  (if (rmail-summary-exists)
+      (rmail-select-summary (rmail-update-summary)))
+  (message "Message duplicated"))
 
 ;;;###autoload
 (defun rmail-input (filename)
