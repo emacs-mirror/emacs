@@ -1,3 +1,11 @@
+2009-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-what-message): Unbreak it.
+
+	* net/mairix.el (rmail-buffer): Remove unneeded eval-when-compile.
+	(rmail-narrow-to-non-pruned-header): Remove autoload.
+	(mairix-rmail-fetch-field): Handle mbox Rmail.
+
 2009-02-04  Dave Love  <fx@gnu.org>
 
 	* net/imap.el (imap-fetch-safe): Bind debug-on-error.

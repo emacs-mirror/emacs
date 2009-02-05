@@ -2894,14 +2894,17 @@ or forward if N is negative."
 
 (defun rmail-what-message ()
   "For debugging Rmail: find the message number that point is in."
-  (let ((where (point))
-	(low 1)
-	(high rmail-total-messages)
-	(mid (/ rmail-total-messages 2)))
+  (let* ((high rmail-total-messages)
+         (mid (/ high 2))
+         (low 1)
+         (where (with-current-buffer (if (rmail-buffers-swapped-p)
+                                         rmail-view-buffer
+                                       (current-buffer))
+                  (point))))
     (while (> (- high low) 1)
       (if (>= where (rmail-msgbeg mid))
-	  (setq low mid)
-	(setq high mid))
+          (setq low mid)
+          (setq high mid))
       (setq mid (+ low (/ (- high low) 2))))
     (if (>= where (rmail-msgbeg high)) high low)))
 
