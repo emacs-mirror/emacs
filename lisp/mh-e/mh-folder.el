@@ -390,8 +390,9 @@ annotation.")
     (?/ "Limit to [c]c, ran[g]e, fro[m], [s]ubject, [t]o; [w]iden")
     (?X "un[s]har, [u]udecode message")
     (?D "[b]urst digest")
-    (?K "[v]iew, [i]nline, [o]utput/save MIME part; save [a]ll parts; \n"
-        "[TAB] next; [SHIFT-TAB] previous")
+    (?K "[v]iew, [i]nline, with [e]xternal viewer; \n"
+        "[o]utput/save MIME part; save [a]ll parts; \n"
+        "[t]oggle buttons; [TAB] next; [SHIFT-TAB] previous")
     (?J "[b]lacklist, [w]hitelist message"))
   "Key binding cheat sheet.
 See `mh-set-help'.")

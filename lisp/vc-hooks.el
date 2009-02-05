@@ -177,8 +177,7 @@ individually should stay local."
       (delq nil (mapcar 'vc-stay-local-p file))
     (let* ((backend (vc-backend file))
 	   (sym (vc-make-backend-sym backend 'stay-local))
-	   (stay-local (if (boundp sym) (symbol-value sym) t)))
-      (if (eq stay-local t) (setq stay-local vc-stay-local))
+	   (stay-local (if (boundp sym) (symbol-value sym) vc-stay-local)))
       (if (symbolp stay-local) stay-local
 	(let ((dirname (if (file-directory-p file)
 			   (directory-file-name file)

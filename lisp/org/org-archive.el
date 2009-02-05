@@ -1,11 +1,12 @@
 ;;; org-archive.el --- Archiving for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -102,18 +103,19 @@ information."
 	 (t org-archive-location (match-string 1)))))))
 
 (defun org-add-archive-files (files)
-  "Splice the archive files into the list f files.
+  "Splice the archive files into the list of files.
 This implies visiting all these files and finding out what the
 archive file is."
-  (apply
-   'append
-   (mapcar
-    (lambda (f)
-      (if (not (file-exists-p f))
-	  nil
-	(with-current-buffer (org-get-agenda-file-buffer f)
-	  (cons f (org-all-archive-files)))))
-    files)))
+  (org-uniquify
+   (apply
+    'append
+    (mapcar
+     (lambda (f)
+       (if (not (file-exists-p f))
+	   nil
+	 (with-current-buffer (org-get-agenda-file-buffer f)
+	   (cons f (org-all-archive-files)))))
+     files))))
 
 (defun org-all-archive-files ()
   "Get a list of all archive files used in the current buffer."
@@ -150,7 +152,8 @@ if LOCATION is not given, the value of `org-archive-location' is used."
 if LOCATION is not given, the value of `org-archive-location' is used."
   (setq location (or location org-archive-location))
   (if (string-match "\\(.*\\)::\\(.*\\)" location)
-      (match-string 2 location)))
+      (format (match-string 2 location)
+	      (file-name-nondirectory buffer-file-name))))
 
 (defun org-archive-subtree (&optional find-done)
   "Move the current subtree to the archive.
@@ -304,7 +307,8 @@ this heading."
       (message "Subtree archived %s"
 	       (if (eq this-buffer buffer)
 		   (concat "under heading: " heading)
-		 (concat "in file: " (abbreviate-file-name afile)))))))
+		 (concat "in file: " (abbreviate-file-name afile))))))
+  (org-reveal))
 
 (defun org-archive-to-archive-sibling ()
   "Archive the current heading by moving it under the archive sibling.
@@ -355,7 +359,8 @@ sibling does not exist, it will be created at the end of the subtree."
       (outline-up-heading 1 t)
       (hide-subtree)
       (org-cycle-show-empty-lines 'folded)
-      (goto-char pos))))
+      (goto-char pos)))
+  (org-reveal))
 
 (defun org-archive-all-done (&optional tag)
   "Archive sublevels of the current tree without open TODO items.

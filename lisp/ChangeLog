@@ -1,15 +1,828 @@
+2009-02-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Do not turn on the
+	mode on the initial terminal.
+
+2009-02-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
+	(vc-dir-mouse-map): New keymap.
+	(vc-default-dir-printer): Use it locally.
+
+2009-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-what-message, rmail-duplicate-message):
+	Make these functions work.
+
+	* net/mairix.el (rmail-buffer): Remove unneeded eval-when-compile.
+	(rmail-narrow-to-non-pruned-header): Remove autoload.
+	(mairix-rmail-fetch-field): Handle mbox Rmail.
+
+2009-02-04  Dave Love  <fx@gnu.org>
+
+	* net/imap.el (imap-fetch-safe): Bind debug-on-error.
+	(imap-debug): Add imap-fetch-safe.
+
+2009-02-04  Teodor Zlatanov  <tzlatanov@jumptrading.com>
+
+	* net/netrc.el (netrc-machine-user-or-password): Use list of
+	auth-source modes.
+
+2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-svn.el (vc-svn-diff): Revert previous change but add a test
+	for newvars is nil. (C-u C-x v = with default values).
+
+2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Recognize a newer branch
+	format.  Use when instead of if.
+
+2009-02-04  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/lisp.el (forward-sexp, backward-sexp, forward-list)
+	(backward-list, backward-up-list, beginning-of-defun)
+	(beginning-of-defun-raw, end-of-defun): Add "^" to interactive spec.
+
+2009-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-fetch-field): Previous doc fix was
+	ill-advised.
+
+	* mail/rmail.el: No need for mule-util when compiling.
+	(rmail-first-message): Unbreak it.
+
+	* mail/rmailmsc.el: Require rmail not just when compiling.
+	Remove unneeded declarations.
+
+	* term/ns-win.el (ns): Define as a custom group.
+
+2009-02-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Use
+	buffer-chars-modified-tick instead of buffer-modified-tick.
+
+	* descr-text.el (describe-char): Check font-object by fontp.
+
+	* composite.el (compose-gstring-for-terminal): If a character is
+	not supported by the current terminal, don't make a multi-glyph
+	grapheme cluster.
+	(auto-compose-chars): Check font-object by fontp.
+
+2009-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (unrmail): In the absence of Mail-from, prefer Date
+	over current-time.  (Bug#2175)
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Disable undo while
+	inserting the converted mailbox.
+	(rmail-get-new-mail): Restore the loop over inboxes when two or more
+	have the same basename.  (Bug#2164)
+	Set the return value according to whether any mail was found,
+	not just in the last inbox.  Only show a message and run the hook after
+	checking all inboxes.
+	(rmail-get-new-mail-1): Move message display and running the hook to
+	rmail-get-new-mail.
+
+	* mail/rmailkwd.el (rmail-label-obarray): Initialize using
+	rmail-attr-array.
+	(rmail-make-label, rmail-read-label): Give it a doc string.
+	(rmail-add-label, rmail-kill-label): Change argument name to match the
+	doc.  Doc fix.
+	(rmail-set-label): Doc fix.  Also update summary in attr case.
+	Accept labels as a string or a symbol.  (Bug#2165)
+
+	* mail/rmailsum.el (rmail-get-summary-labels): Treat empty labels as
+	null.
+
+2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-prepare-search-1)
+	(vhdl-prepare-search-2): Properly cleanup on `quit'.
+
+	* progmodes/vhdl-mode.el (vhdl-mode-abbrev-table-init):
+	Mark the entries as being "system" entries rather than "user" entries.
+
+2009-02-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* smerge-mode.el (smerge-start-session): Add interactive spec.
+
+2009-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers, rmail-displayed-headers)
+	(rmail-retry-ignored-headers, rmail-highlighted-headers):
+	Restore autoloads.
+
+2009-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (emacs-lisp-file-regexp): Fix up EOB.
+
+2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmuscheme.el (scheme-args-to-list): Remove.
+	(run-scheme): Use split-string-and-unquote instead, so as to allow
+	spaces in the command name and/or the arguments.
+
+2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-save-preferences): Save ns-confirm-quit option.
+
+2009-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.15.
+
+	* net/tramp.el (tramp-read-passwd): Cached passwords shall still be
+	used.
+
+	* net/tramp-cache.el (top): Autoload `tramp-run-real-handler'.
+
+	* net/trampver.el: Update release number.
+
+2009-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmail.el (rmail-view-buffer): Make buffer-local.
+	(rmail-select-summary, rmail-perm-variables, rmail-redecode-body)
+	(rmail-undelete-previous-message, rmail-mark-message)
+	(rmail-speedbar-buttons): Use with-current-buffer.
+	(rmail-mode-map): Move initialization into declaration.
+	(rmail-swap-buffers, rmail-unfontify-buffer-function)
+	(rmail-fontify-message): Use restore-buffer-modified-p.
+	(rmail-expunge-and-save): Don't swap buffer.
+	(rmail-get-header, rmail-set-header, rmail-set-attribute)
+	(rmail-apply-in-message): Swap save-excursion and save-restriction.
+
+	* mail/rmailsort.el (rmail-sort-messages): Use car-less-than-car
+	if possible.
+
+	* mail/rmailedit.el (rmail-edit-map): Move init into declaration.
+	(rmail-edit-mode, rmail-cease-edit): Use with-current-buffer.
+
+2009-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-mode-line-1): Obey mouse-1-click-follows-link.
+
+	* progmodes/ebrowse.el:
+	* international/robin.el:
+	* emulation/viper-util.el:
+	* emulation/viper-mous.el:
+	* emulation/viper-keym.el:
+	* ediff.el:
+	* ediff-wind.el:
+	* ediff-vers.el:
+	* ediff-ptch.el:
+	* ediff-mult.el:
+	* ediff-merg.el:
+	* ediff-diff.el: Follow commenting conventions.
+
+2009-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-redecode-body): Use eight-bit instead of
+	obsolete eight-bit-control and eight-bit-graphic.
+
+2009-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/elp.el (elp-results-symname-map): Add follow-link.
+
+2009-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/lisp.el (end-of-defun): Protect against
+	infloops (Bug#2106).
+
+2009-01-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-mouse-map):
+	(vc-default-dir-printer):
+	(vc-dir-find-file-other-window): Undo previous change, it breaks
+	the behavior of mouse-2.
+	(vc-dir-mode): Fix docstring.
+
+	* vc-svn.el (vc-svn-dir-status): Disable the vc-stay-local-p
+	logic, it makes the makes the normal case too slow.
+
+2009-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/unrmail.el (unrmail): Set coding-system of the old Rmail
+	file to `raw-text-unix'.  Bind coding-system-for-write when
+	writing out the converted message, and make sure it uses Unix
+	EOLs.
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Set Rmail's buffer
+	encoding to `raw-text-unix'.
+	(rmail-perm-variables): Set encoding of rmail-view-buffer to
+	`undecided-unix'.
+	(rmail-redecode-body): Don't change EOL conversion of the new
+	encoding if the old one left it unspecified.
+	(rmail-automatic-folder-directives, rmail): Doc fixes.
+	(rmail-swap-buffers): New function.
+	(rmail-change-major-mode-hook, rmail-swap-buffers-maybe)
+	(rmail-show-message): Use rmail-swap-buffers.
+	(rmail-decode-region): If DESTINATION is a buffer, set the
+	encoding of that buffer, rather than the current buffer.
+	(rmail-show-message): Make error message about uuencoded mail
+	more explicit.
+	(rmail-show-message-maybe): Simplify code.  Doc fix.
+	(rmail-show-message): Doc fix.
+
+2009-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-new-summary): Don't try to summarize an empty
+	folder.
+
+	* mail/rmail.el (rmail-msg-is-pruned): New function.
+	(rmail-toggle-header): Doc fix.  Use rmail-msg-is-pruned.
+	(rmail-reply): Set up to yank from the decoded message rather than the
+	raw one.  (Bug#2104).
+
+	* mail/mail-utils.el (mail-fetch-field): Doc fix.
+
+	* mail/uce.el (rmail-current-message): Remove unneeded declaration.
+	(uce-message-text, uce-default-headers): Fix custom type.
+	(rmail-buffer, rmail-msg-is-pruned): Declare.
+	(uce-reply-to-uce): Add autoload cookie.  Doc fix.
+	Update for mbox Rmail.
+
+2009-01-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-dir.el (vc-dir-mouse-map): New keymap.
+	(vc-default-dir-printer): Use it locally.
+	(vc-dir-find-file-other-window): Allow mouse events.
+
+2009-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/unrmail.el (unrmail): Fix conversion of BABYL attributes
+	into Rmail-mbox attributes.
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Bind
+	coding-system-for-read to `raw-text', and use insert-file-contents
+	instead of insert-file-contents-literally.  Fixes bug #2019.
+	(rmail-resent-attr-index): Fix index value.
+
+2009-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-hooks.el (vc-stay-local-p): Let vc-BACKEND-stay-local take
+	precedence even when its value is t.  (Bug#2093)
+
+	* vc-svn.el (vc-svn-dir-status): Correct logic for remote
+	connection.  (Bug#2093)
+	(vc-svn-diff): Use old version number even when it is the working
+	revision.  This is needed, e.g, in the vc-print-log buffer.  (Bug#2092)
+
+2009-01-30  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Handle empty folders.
+	(rmail-speedbar-buttons)
+	(rmail-speedbar-move-message-to-folder-on-line): Use line-end-position.
+
+	* mail/rmailsum.el (rmail-summary-update-line): Replace duplicate
+	line-beginning-position calls.
+	(rmail-header-summary): Use line-end-position.
+
+2009-01-30  Toby Speight  <streapadair@gmx.net>  (tiny change)
+
+	* generic-x.el (hosts-generic-mode, named-database-generic-mode):
+	Fix regexp quoting.  (Bug#1739)
+
+2009-01-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions, tramp-read-passwd): Allow
+	correction of passwords.
+
+2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-toggle-header): Determine current header
+	style using the buffer-local value of rmail-header-style in the
+	view buffer.
+	(rmail-show-message): Set a buffer-local value of
+	rmail-header-style in the view buffer.  (Bug#2016)
+
+2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-dir.el (vc-dir-menu-map, vc-dir-at-event, vc-dir-resynch-file):
+	Fix typos in docstrings.
+
+2009-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions):
+	Add entries for VCS metadata directories (CVS/, .svn, etc).
+
+	* pcvs.el (completion-ignored-extensions):
+	* vc-svn.el (completion-ignored-extensions): Don't add VCS-specific
+	directory, now done in bindings.el.
+
+2009-01-29  Klaus Straubinger  <KSNetz@UseNet.ArcorNews.DE>  (tiny change)
+
+	* pcmpl-rpm.el (pcmpl-rpm): Doc fix.  (Bug#2094)
+
+2009-01-29  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-file-name): Remove duplicate definition.
+	(rmail-set-header): Ensure header changes get saved.
+
+	* mail/rmailedit.el (rmail-summary-disable): Fix declaration.
+
+	* mail/rmailkwd.el (rmail-set-label): Update the summary, if there is
+	one, after a label is added.
+
+	* mail/rmailsum.el (rmail-summary-update-line): New function.
+	(rmail-summary-goto-msg): Return a value according to whether message
+	was found.
+	(rmail-summary-update-highlight): Give the overlay an 'rmail-summary
+	property.  Use line-end-position.
+
+2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailedit.el (rmail-cease-edit): Add additional quotes to
+	quoted From lines.
+
+	* mail/rmail.el (rmail-redecode-body): New function, based on old
+	version removed in 2009-01-22 change.
+	(rmail-show-message): Unquote From lines.
+
+2009-01-28  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Don't use string-match and file
+	extension to choose fallback mode on empty/non-existing files but
+	let-bind auto-mode-alist and call normal-mode.
+
+2009-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-classify): Propertize file name before
+	concatenating the type indicating character.
+	(ls-lisp-format): Don't propertize file-name only if
+	ls-lisp-classify already did.
+
+2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-event-error-hooks): Fix docstring.
+	Describe second parameter of hook functions.
+	(dbus-handle-event): Apply it.
+
+2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-toggle-header): Don't reset
+	rmail-header-style permanently (bug#2016).
+
+2009-01-28  Denis Howe  <denis.howe@gmail.com>
+
+	* complete.el (PC-do-completion): Correct case when completion is
+	unambiguous.
+
+2009-01-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todo-mode.el (todo-insert-item-here):
+	Prevent insertion of a new entry inside of an existing entry.
+	Minor code cleanup.  (Bug#2084)
+	(todo-add-category): Change the interactive spec.  Signal an error
+	if the Todo file is non-empty but contains no category.  Reject
+	category names that could induce bugs and confusion.  Call
+	todo-mode if the Todo file is new and unsaved.  Simplify handling
+	of local variables cookie.  Properly display the newly added
+	category in Todo mode.
+	(todo-show): Call todo-initial-setup only if there is neither a
+	Todo file nor a corresponding unsaved buffer.  (Bug#2085)
+	(todo-category-alist): Delete function.
+	(todo-completing-read): New function.
+	(todo-insert-item, todo-jump-to-category): Use it.
+	(todo-insert-item): Make the use of the prefix argument conform to
+	the doc string.  (Bug#2086)
+
+2009-01-28  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-expunge-and-save): Always show a message,
+	even when called from the summary.  (Bug#2075)
+	(rmail-no-mail-p): New func, extracted from rmail-show-message-maybe.
+	(rmail-show-message-maybe): Use rmail-no-mail-p.
+	(rmail-show-message): If empty folder, do nothing.  (Bug#2076)
+	(rmail-get-labels): Separate status and label fields with a semicolon,
+	rather than a comma, for consistency with old Rmail.
+
+	* mail/rmailsum.el (rmail-message-recipients-p-1): Don't bother
+	starting from the beginning, since mail-fetch-field does not care.
+	(rmail-create-summary-line): Fix unseen handling.  (Bug#2089)
+	(rmail-get-summary-status): New name for old rmail-get-summary-labels.
+	(rmail-get-summary-labels): New function.  Returns labels rather than
+	status (edited, etc).
+	(rmail-create-summary): Insert an extra space after the status
+	flags, for consistency with old rmail, and with current
+	rmail-summary-font-lock-keywords.
+
+2009-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/perl-mode.el (perl-indent-line-command): Call indent-region
+	if region is active.  Use cond instead of nested ifs.  (Bug#2053)
+
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-convert-babyl-to-mbox): Prompt user before
+	converting.
+
+	* mail/unrmail.el (unrmail): Record labels in X-RMAIL-* fields,
+	which are recognized by the new Rmail, instead of X-BABYL-V6-*.
+
+2009-01-27  Christopher Oliver  <coliver@message.nmc.edu>
+
+	* mouse.el (mouse-select-font): Return a string instead of a list.
+
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Swap C-delete and C-backspace bindings here, so we
+	don't have to do it in normal-erase-is-backspace-mode.
+
+	* simple.el (normal-erase-is-backspace-mode): Don't swap C-delete
+	and C-backspace; the latter is not available on ttys anyway.
+
+2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
+
+	(doc-view-mode): Fix broken call to string-match.
+
+2009-01-27  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Enhance docstring and fallback to
+	fundamental-mode or ps-mode if the file is empty or doesn't exist
+	at all.
+	(doc-view-initiate-display): Better info message if doc-view-mode
+	cannot be used.  (Missing utility or no png support/no X frame.)
+	(Bug#2058)
+
+2009-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-copy-headers): Doc fix.  Leave point at the end
+	of the headers in the full header case.  (Bug#2073)
+
+2009-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-get-coding-system): Re-search
+	rmail-mime-charset-pattern directly instead of using
+	mail-fetch-field.  Use coding-system-from-name.
+
+	* international/mule-cmds.el (canonicalize-coding-system-name)
+	(coding-system-from-name): New functions.
+
+2009-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-bind-vm): Doc fix.
+
+	* mail/rmail-spam-filter.el: Remove leading `*' from defcustom docs.
+	Replace `first' and `rest' with `car' and `cdr' throughout.
+	(rsf-auto-delete-spam-bbdb-entries): Remove unused variable.
+	(rsf-scanning-messages-now): Doc fix.
+	(rsf-check-field): Rename from `check-field' and update callers.
+	(rmail-spam-filter): Fix bbdb/mail_auto_create_p oddness.
+	Use rmail-output rather than deleted rmail-output-to-rmail-file.
+
+	* mail/rmail.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms and hooks.
+	(rmail-enable-mime, rmail-insert-mime-resent-message-function)
+	(rmail-search-mime-message-function, rmail-search-mime-header-function)
+	(rmail-decode-mime-charset): Doc fix.
+	(rmail-search-message, rmail-resend): Check functions set before use.
+
+	* mail/rmailout.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms.
+	(rmail-output-to-babyl-buffer): Rename from
+	rmail-output-to-r-mail-buffer and update caller.
+	(rmail-output): Doc fix.
+
+	* mail/rmailsum.el: Remove leading `*' from defcustom docs.
+	Remove needless autoloads of many defcustoms.
+	(rmail-message-regexp-p-1): Check rmail-search-mime-header-function
+	is set.
+
+	* mail/unrmail.el (command-line-args-left): Remove unneeded declaration.
+	(batch-unrmail, unrmail): Doc fix.
+
+	* mail/rmailsum.el (rmail-message-recipients-p-1)
+	(rmail-message-regexp-p-1): Ensure searches start from the
+	beginning of the header.
+
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailsum.el (rmail-summary-mark-deleted): Recache summary.
+
+2009-01-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-sel.el (cal-sel-mult-both-sides): Add an option to
+	expand the denominator.
+
+2009-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-event-error-hooks): New variable.
+	(dbus-handle-event): Use it.
+
+2009-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+	* mail/rmail.el (rmail-reply): Don't include Resent-To and Resent-Cc in
+	replies.  (Bug#512)
+
+2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-uid-format): Fix doc string.
+
+2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-insert-working-text, ns-delete-working-text):
+	Remove from global map and key definitions.
+	(ns-toggle-toolbar, ns-info-prefs): Add to global map and key
+	definitions.
+	(ns-show-preferences-help, ns-unput-working-text): New functions.
+	(ns-unecho-working-text): Update message.
+
+2009-01-25  Craig Markwardt  <cbmarkwardt@gmail.com>
+
+	* calendar/icalendar.el (icalendar-uid-format): New defcustom
+	variable to allow the user to choose icalendar UID format.
+	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
+	12:00am-12:59am are correctly converted to 0000-0059, instead of 12pm.
+	(icalendar-export-region,icalendar--create-uid): Use custom
+	function to compute icalendar UID for each entry.
+	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
+	with description, location, etc. fields (need to keep active count
+	of fields encountered).  Another bug fix to the regex that matches
+	multiple lines (need \' regex instead of $ to match end-of-entry).
+
+2009-01-25  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-mode-map): Put grep-find before grep and
+	change its title from "Recursive grep..." to "Grep via Find...".
+	Add menu items for lgrep and rgrep.
+
+2009-01-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-version): New version 7.3.4.
+
+2009-01-24  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* ps-print.el: Fix face background/foreground extraction.
+	(ps-face-extract-color): New fun.
+	(ps-face-attributes, ps-face-attribute-list): Code fix.
+
+2009-01-24  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
+
+	* align.el (align-region): Avoid infloop.
+
+2009-01-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* env.el (environment): Function removed.
+
+	* international/mule-cmds.el (set-language-environment-coding-systems):
+	If default-buffer-file-coding-system is nil, set up to have EOLs that
+	are native for the underlying system-type.  (Bug#1853)
+	(prefer-coding-system, set-default-coding-systems): Doc fix.
+
+2009-01-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-function-argstring-format):
+	Revert 2007-09-26 change; use `string-match-p' to check for &keywords.
+	(eldoc-get-fnsym-args-string, eldoc-highlight-function-argument):
+	Use `string-match-p'.
+
+2009-01-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker--treeview-first-feed): New.
+	(newsticker-treeview-next-new-or-immortal-item): Try first-feed if
+	next-feed does not succeed.  Fixes bug#1710 even more.
+	(newsticker-treeview-next-feed): Simplify.
+	(newsticker--group-get-feeds): Suppress group names in result.
+
+2009-01-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (menu-bar-select-frame): Drop this override.
+	(menu-bar-update-frames): Update call to menu-bar-select-frame.
+
+2009-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-insert-inbox-text): Revert replacement of
+	"popmail" by "pormail".
+
+	* language/ethio-util.el (rmail-current-message, rmail-message-vector):
+	Remove unneeded declarations.
+
+2009-01-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-poly.el (calcFunc-apart): Improve test for
+	rational functions.
+
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailsum.el (rmail-summary-by-labels): Correctly handle
+	return value of rmail-get-labels.
+
+	* mail/rmailkwd.el (rmail-next-labeled-message): Correctly handle
+	return value of rmail-get-labels.
+
+	* mail/rmail.el (rmail-get-labels): Obey the MSG argument.
+	(rmail-buffer-swapped): Fix last change.  (Bug#1997)
+
+2009-01-23  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-backend.el (newsticker--cache-read): Offer deletion of
+	old cache file.  Fixes bug#1710.
+
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmail.el (rmail-generate-viewer-buffer): Fix typo.
+
+2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-insert-working-text, ns-put-working-text):
+	Switch names and update comments for clarity.
+
+2009-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmail.el (rmail-write-region-annotate): Only switch buffer if
+	start is nil, as was done in tar-mode.el.
+
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Revert previous change now pmail is no
+	more.
+
+	* mail/uce.el (rmail-msg-is-pruned): Remove declaration of deleted func.
+
+2009-01-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-name): Make it a defcustom.  (Bug#1995)
+
+	* mail/rmail.el (rmail-buffer-swapped): Mark as permanent local.
+
+2009-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+2009-01-22  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el
+	(newsticker-treeview-next-new-or-immortal-item): New optional arg
+	current-item-counts.  Move to next feed if necessary.  (Bug#1569)
+	(newsticker-treeview-prev-new-or-immortal-item): Move to previous
+	feed if necessary.  (Bug#1569)
+	(newsticker-treeview-next-feed)
+	(newsticker-treeview-prev-feed): New optional arg stay-in-tree.
+	Don't activate node nil.  (Bug#1569)
+
+2009-01-22  Paul Reilly  <pmr@pajato.com>
+	    Henrik Enberg  <enberg@printf.se>
+	    Alex Schroeder  <alex@gnu.org>
+	    Chong Yidong  <cyd@stupidchicken.com>
+	    Richard M Stallman  <rms@gnu.org>
+	    Glenn Morris  <rgm@gnu.org>
+	    Juanma Barranquero  <lekktu@gmail.com>
+
+	* mail/rmail.el: Code implementing Rmail-mbox functionality.
+	(rmail-attribute-header, rmail-keyword-header)
+	(rmail-answered-attr-index, rmail-deleted-attr-index)
+	(rmail-edited-attr-index, rmail-filed-attr-index)
+	(rmail-retried-attr-index, rmail-forwarded-attr-index)
+	(rmail-unseen-attr-index, rmail-resent-attr-index)
+	(rmail-attr-array, rmail-header-style, rmail-file-name)
+	(rmail-buffer-swapped): New vars.
+	(rmail-convert-file-maybe, rmail-error-bad-format)
+	(rmail-convert-babyl-to-mbox, rmail-get-coding-system)
+	(rmail-generate-viewer-buffer, rmail-change-major-mode-hook)
+	(rmail-buffers-swapped-p, rmail-swap-buffers-maybe)
+	(rmail-mode-kill-buffer-hook, rmail-get-new-mail-1)
+	(rmail-get-new-mail-filter-spam, rmail-add-mbox-headers)
+	(rmail-get-header, rmail-set-header, rmail-get-attr-names)
+	(rmail-get-keywords, rmail-get-labels, rmail-get-attr-value)
+	(rmail-message-attr-p, rmail-message-unseen-p)
+	(rmail-apply-in-message, rmail-collect-deleted, rmail-widen)
+	(rmail-show-message-maybe, rmail-copy-headers)
+	(rmail-simplified-subject, rmail-simplified-subject-regexp)
+	(rmail-write-region-annotate): New functions.
+
+	(rmail-keywords, rmail-default-rmail-file): Delete vars.
+	(rmail-convert-mailpath, rmail-convert-file)
+	(rmail-insert-rmail-file-header, rmail-decode-babyl-format)
+	(rmail-parse-file-inboxes, rmail-convert-to-babyl-format)
+	(rmail-reformat-message, rmail-clear-headers, rmail-msg-is-pruned)
+	(rmail-redecode-body)
+	(rmail-msg-restore-non-pruned-header, rmail-msg-prune-header)
+	(rmail-narrow-to-non-pruned-header, rmail-message-recipients-p)
+	(rmail-count-screen-lines, rmail-message-regexp-p)
+	(rmail-current-subject, rmail-current-subject-regexp): Delete functions.
+	(rmail-nuke-pinhead-header): Move to rmailout.el.
+
+	(rmail-ignored-headers): Add additional headers.
+	(rmail-mode-map): Update key commands.
+	(rmail-tool-bar-map): Build tool-bar unconditionally.
+	(rmail, rmail-mode, rmail-get-new-mail): Handle babyl-to-mbox
+	conversion and new buffer swapping mechanism.
+	(rmail-perm-variables): Use new vars, and remove deleted ones.
+	(rmail-revert): Use rmail-convert-file-maybe.
+	(rmail-duplicate-message): Use rmail-show-message-maybe.
+	(rmail-get-new-mail): Don't leave the buffer screwed up if we get
+	a disk-full error.
+	(rmail-parse-url): Strip embedded password.
+	(rmail-insert-inbox-text): Default to movemail if
+	rmail-movemail-program is null.  Handle mbox format.
+	(rmail-decode-region): New arg.
+	(rmail-display-labels): Don't perform Babyl processing.
+	(rmail-set-attribute, rmail-message-labels-p, rmail-search)
+	(rmail-set-message-counters, rmail-count-new-messages)
+	(rmail-set-message-counters-counter, rmail-show-message)
+	(rmail-next-same-subject, rmail-reply): Use mbox format.
+	(rmail-toggle-header, rmail-show-message, rmail-only-expunge)
+	(rmail-expunge, rmail-expunge-and-save, rmail-quit): Use new
+	buffer swapping mechanism.
+
+	* mail/rmailedit.el: Require rmailsum.el.
+	(rmail-edit-mode): First check if buffer is swapped.
+	(rmail-edit-saved-coding-system): Delete var.
+	(rmail-edit-current-message): Don't call deleted vars.
+	(rmail-cease-edit): Handle mbox format.
+	(rmail-abort-edit): Widen buffer.
+
+	* mail/rmailkwd.el: Require rmail.el.  Remove unneeded function
+	declarations.
+	(rmail-buffer, rmail-current-message, rmail-last-label)
+	(rmail-last-multi-labels, rmail-summary-vector)
+	(rmail-total-messages, rmail-attributes, rmail-deleted-label)
+	(rmail-keywords): Delete vars.
+	(rmail-attribute-p, rmail-keyword-p, rmail-make-label)
+	(rmail-force-make-label, rmail-quote-label-name, rmail-keywords)
+	(rmail-parse-file-keywords, rmail-install-keyword): Delete functions.
+	(rmail-make-label): New function.
+	(rmail-read-label): Don't call rmail-parse-file-keywords.
+	(rmail-set-label): Rewrite using rmail-set-attribute.
+	(rmail-next-labeled-message): Use rmail-get-labels.
+
+	* mail/rmailmm.el: New file.
+
+	* mail/rmailmsc.el: Require rmail.el.
+	(set-rmail-inbox-list): Set rmail-inbox-list directly.
+
+	* mail/rmailout.el (rmail-output-decode-coding): New var.
+	(rmail-output-as-babyl, rmail-output-to-r-mail-buffer)
+	(rmail-convert-to-babyl-format, rmail-output-as-mbox)
+	(rmail-output-to-rmail-buffer): New functions.
+	(rmail-output-read-rmail-file-name, rmail-output-to-rmail-file):
+	Delete functions.
+	(rmail-nuke-pinhead-header): Move from rmail.el.
+	(rmail-output): Rewrite to accept both mbox and babyl output.
+	(rmail-output-as-seen, rmail-output-body-to-file): Rewrite to
+	use mbox internal format.
+
+	* mail/rmailsort.el: Eval mail-utils when compiled.  Require rmail.el.
+	(rmail-sort-by-date, rmail-sort-by-subject, rmail-sort-by-author)
+	(rmail-sort-by-recipient, rmail-sort-by-correspondent):
+	Use rmail-get-header.
+	(rmail-sort-messages): Use new buffer swapping mechanism.
+	Handle mbox internal format.
+
+	* mail/rmailsum.el (rmail-summary): Make sure rmail buffer is shown.
+	(rmail-message-recipients-p, rmail-message-recipients-p-1)
+	(rmail-message-regexp-p, rmail-new-summary-1)
+	(rmail-get-create-summary-buffer, rmail-get-summary)
+	(rmail-create-summary-line, rmail-get-summary-labels)
+	(rmail-create-summary, rmail-header-summary)
+	(rmail-summary-output, rmail-summary-output-as-seen): New functions.
+	(rmail-summary-by-topic, rmail-message-senders-p)
+	(rmail-header-summary, rmail-summary-next-same-subject): Use mbox
+	internal format.
+	(rmail-new-summary): Rewrite window handling.
+	(rmail-make-summary-line, rmail-make-summary-line-1)
+	(rmail-make-basic-summary-line)
+	(rmail-summary-output-to-rmail-file): Functions deleted.
+	(rmail-summary-undelete, rmail-summary-rmail-update)
+	(rmail-summary-scroll-msg-up, rmail-summary-scroll-msg-down)
+	(rmail-summary-show-message, rmail-summary-wipe)
+	(rmail-summary-toggle-header, rmail-summary-reply):
+	Use rmail-buffer instead of rmail-view-buffer.
+	(rmail-summary-mode-map): Rebind "o" to rmail-summary-output.
+	(rmail-summary-goto-msg): Use rmail-show-message-maybe.
+	(rmail-summary-expunge-and-save): Use rmail-expunge-and-save.
+
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-show-manual): Fix node name.
+	(x-open-connection): Fix typo in declaration filename.
+
+2009-01-22  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (ELCFILES): Update.
+
+2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (make-frame-on-tty): Remove function, inline contents
+	in the only user ...
+
+	* server.el (server-create-tty-frame): ... here.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* format.el (format-annotate-function): Set
-	write-region-post-annotation-function.
+	* format.el (format-annotate-function):
+	Set write-region-post-annotation-function.
 
 2009-01-21  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-mode.el: Add eshell-handle-ansi-color to the default
 	list of output filters.
-	(eshell-mode): Change the default binding of C-a to eshell-bol.  I
-	don't think it's actually bound at all by default in eshell; it
-	just falls back to the default binding of C-a.
+	(eshell-mode): Change the default binding of C-a to eshell-bol.
+	I don't think it's actually bound at all by default in eshell;
+	it just falls back to the default binding of C-a.
 
 2009-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -13744,15 +14557,15 @@
 
 	* org: New directory for Org-mode.
 
-	* org/org-export-latex.el: Moved from lisp/texmodes.
+	* org/org-export-latex.el: Moved from lisp/textmodes.
 
-	* org/org-irc.el: Moved from lisp/texmodes.
+	* org/org-irc.el: Moved from lisp/textmodes.
 
-	* org/org-mac-message.el: Moved from lisp/texmodes.
+	* org/org-mac-message.el: Moved from lisp/textmodes.
 
-	* org/org-mouse.el: Moved from lisp/texmodes.
+	* org/org-mouse.el: Moved from lisp/textmodes.
 
-	* org/org-publish.el: Moved from lisp/texmodes.
+	* org/org-publish.el: Moved from lisp/textmodes.
 
 2008-03-21  Juri Linkov  <juri@jurta.org>
 

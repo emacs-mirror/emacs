@@ -5784,7 +5784,10 @@ Emacs is displaying the frame on a character-based terminal.
 
 @defvar initial-window-system
 This variable holds the value of @code{window-system} used for the
-first frame created by Emacs during startup.
+first frame created by Emacs during startup.  (When Emacs is invoked
+with the @option{--daemon} option, it does not create any initial
+frames, so @code{initial-window-system} is @code{nil}.  @xref{Initial
+Options, daemon,, emacs, The GNU Emacs Manual}.)
 @end defvar
 
 @defun window-system &optional frame

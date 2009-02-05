@@ -668,9 +668,9 @@ form ((key . function) (key . function) ... )."
 (provide 'viper-keym)
 
 
-;;; Local Variables:
-;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;;; End:
+;; Local Variables:
+;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
+;; End:
 
 
 ;; arch-tag: 43af4b2f-0bea-400b-889e-221ebc00acb1

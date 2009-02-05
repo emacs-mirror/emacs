@@ -1,7 +1,9 @@
-;;; pmailmm.el --- MIME decoding and display stuff for PMAIL
+;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
 ;; Copyright (C) 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
+;; Author: Alexander Pohoyda
+;;	Alex Schroeder
 ;; Maintainer: FSF
 ;; Keywords: mail
 
@@ -28,26 +30,26 @@
 
 ;; To use:
 
-;; (autoload 'pmail-mime "pmailmm"
+;; (autoload 'rmail-mime "rmailmm"
 ;;   "Show MIME message." t)
-;; (add-hook 'pmail-mode-hook
+;; (add-hook 'rmail-mode-hook
 ;;           (lambda ()
-;;             (define-key pmail-mode-map (kbd "v")
-;;               'pmail-mime)))
+;;             (define-key rmail-mode-map (kbd "v")
+;;               'rmail-mime)))
 
 ;;; Code:
 
-(require 'pmail)
+(require 'rmail)
 (require 'mail-parse)
 
 ;;; Variables
 
-(defcustom pmail-mime-media-type-handlers-alist
-  '(("multipart/.*" pmail-mime-multipart-handler)
-    ("text/.*" pmail-mime-text-handler)
-    ("text/\\(x-\\)?patch" pmail-mime-bulk-handler)
-    ("application/pgp-signature" pmail-mime-application/pgp-signature-handler)
-    ("\\(image\\|audio\\|video\\|application\\)/.*" pmail-mime-bulk-handler))
+(defcustom rmail-mime-media-type-handlers-alist
+  '(("multipart/.*" rmail-mime-multipart-handler)
+    ("text/.*" rmail-mime-text-handler)
+    ("text/\\(x-\\)?patch" rmail-mime-bulk-handler)
+    ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
+    ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
   "Alist of media type handlers, also known as agents.
 Every handler is a list of type (string symbol) where STRING is a
 regular expression to match the media type with and SYMBOL is a
@@ -56,7 +58,7 @@ job is done."
   :type 'list
   :group 'mime)
 
-(defcustom pmail-mime-attachment-dirs-alist
+(defcustom rmail-mime-attachment-dirs-alist
   '(("text/.*" "~/Documents")
     ("image/.*" "~/Pictures")
     (".*" "~/Desktop" "~" "/tmp"))
@@ -67,14 +69,14 @@ used."
   :type 'list
   :group 'mime)
 
-(defvar pmail-mime-total-number-of-bulk-attachments 0
+(defvar rmail-mime-total-number-of-bulk-attachments 0
   "A total number of attached bulk bodyparts in the message.  If more than 3,
 offer a way to save all attachments at once.")
-(put 'pmail-mime-total-number-of-bulk-attachments 'permanent-local t)
+(put 'rmail-mime-total-number-of-bulk-attachments 'permanent-local t)
 
 ;;; Buttons
 
-(defun pmail-mime-save (button)
+(defun rmail-mime-save (button)
   "Save the attachment using info in the BUTTON."
   (let* ((filename (button-get button 'filename))
 	 (directory (button-get button 'directory))
@@ -98,12 +100,12 @@ offer a way to save all attachments at once.")
       (set-buffer-file-coding-system 'no-conversion)
       (insert data))))
 
-(define-button-type 'pmail-mime-save
-  'action 'pmail-mime-save)
+(define-button-type 'rmail-mime-save
+  'action 'rmail-mime-save)
 
 ;;; Handlers
 
-(defun pmail-mime-text-handler (content-type
+(defun rmail-mime-text-handler (content-type
 				content-disposition
 				content-transfer-encoding)
   "Handle the current buffer as a plain text MIME part."
@@ -113,7 +115,7 @@ offer a way to save all attachments at once.")
     (when (coding-system-p coding-system)
       (decode-coding-region (point-min) (point-max) coding-system))))
 
-(defun test-pmail-mime-handler ()
+(defun test-rmail-mime-handler ()
   "Test of a mail using no MIME parts at all."
   (let ((mail "To: alex@gnu.org
 Content-Type: text/plain; charset=koi8-r
@@ -125,18 +127,18 @@ MIME-Version: 1.0
     (erase-buffer)
     (set-buffer-multibyte nil)
     (insert mail)
-    (pmail-mime-show t)
+    (rmail-mime-show t)
     (set-buffer-multibyte t)))
 
-(defun pmail-mime-bulk-handler (content-type
+(defun rmail-mime-bulk-handler (content-type
 				content-disposition
 				content-transfer-encoding)
   "Handle the current buffer as an attachment to download."
-  (setq pmail-mime-total-number-of-bulk-attachments
-	(1+ pmail-mime-total-number-of-bulk-attachments))
+  (setq rmail-mime-total-number-of-bulk-attachments
+	(1+ rmail-mime-total-number-of-bulk-attachments))
   ;; Find the default directory for this media type
   (let* ((directory (catch 'directory
-		      (dolist (entry pmail-mime-attachment-dirs-alist)
+		      (dolist (entry rmail-mime-attachment-dirs-alist)
 			(when (string-match (car entry) (car content-type))
 			  (dolist (dir (cdr entry))
 			    (when (file-directory-p dir)
@@ -149,12 +151,12 @@ MIME-Version: 1.0
     (delete-region (point-min) (point-max))
     (insert label)
     (insert-button filename
-		   :type 'pmail-mime-save
+		   :type 'rmail-mime-save
 		   'filename filename
 		   'directory directory
 		   'data data)))
 
-(defun test-pmail-mime-bulk-handler ()
+(defun test-rmail-mime-bulk-handler ()
   "Test of a mail used as an example in RFC 2183."
   (let ((mail "Content-Type: image/jpeg
 Content-Disposition: attachment; filename=genome.jpeg;
@@ -173,15 +175,15 @@ lgAAAABJRU5ErkJggg==
     (switch-to-buffer (get-buffer-create "*test*"))
     (erase-buffer)
     (insert mail)
-    (pmail-mime-show)))
+    (rmail-mime-show)))
 
-(defun pmail-mime-multipart-handler (content-type
+(defun rmail-mime-multipart-handler (content-type
 				     content-disposition
 				     content-transfer-encoding)
   "Handle the current buffer as a multipart MIME body.
 The current buffer should be narrowed to the body.  CONTENT-TYPE,
 CONTENT-DISPOSITION, and CONTENT-TRANSFER-ENCODING are the values
-of the respective parsed headers.  See `pmail-mime-handle' for their
+of the respective parsed headers.  See `rmail-mime-handle' for their
 format."
   ;; Some MUAs start boundaries with "--", while it should start
   ;; with "CRLF--", as defined by RFC 2046:
@@ -193,7 +195,7 @@ format."
   (let ((boundary (cdr (assq 'boundary content-type)))
 	beg end next)
     (unless boundary
-      (pmail-mm-get-boundary-error-message
+      (rmail-mm-get-boundary-error-message
        "No boundary defined" content-type content-disposition
        content-transfer-encoding))
     (setq boundary (concat "\n--" boundary))
@@ -203,7 +205,7 @@ format."
 	       (looking-at "[ \t]*\n"))
       (delete-region (point-min) (match-end 0)))
     ;; Reset the counter
-    (setq pmail-mime-total-number-of-bulk-attachments 0)
+    (setq rmail-mime-total-number-of-bulk-attachments 0)
     ;; Loop over all body parts, where beg points at the beginning of
     ;; the part and end points at the end of the part.  next points at
     ;; the beginning of the next part.
@@ -212,13 +214,13 @@ format."
       (setq end (match-beginning 0))
       ;; If this is the last boundary according to RFC 2046, hide the
       ;; epilogue, else hide the boundary only.  Use a marker for
-      ;; `next' because `pmail-mime-show' may change the buffer.
+      ;; `next' because `rmail-mime-show' may change the buffer.
       (cond ((looking-at "--[ \t]*\n")
 	     (setq next (point-max-marker)))
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0))))
 	    (t
-	     (pmail-mm-get-boundary-error-message
+	     (rmail-mm-get-boundary-error-message
 	      "Malformed boundary" content-type content-disposition
 	      content-transfer-encoding)))
       (delete-region end next)
@@ -227,11 +229,11 @@ format."
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg end)
-	    (pmail-mime-show))))
+	    (rmail-mime-show))))
       (setq beg next)
       (goto-char beg))))
 
-(defun test-pmail-mime-multipart-handler ()
+(defun test-rmail-mime-multipart-handler ()
   "Test of a mail used as an example in RFC 2046."
   (let ((mail "From: Nathaniel Borenstein <nsb@bellcore.com>
 To: Ned Freed <ned@innosoft.com>
@@ -260,11 +262,11 @@ This is the epilogue.  It is also to be ignored."))
     (switch-to-buffer (get-buffer-create "*test*"))
     (erase-buffer)
     (insert mail)
-    (pmail-mime-show t)))
+    (rmail-mime-show t)))
 
 ;;; Main code
 
-(defun pmail-mime-handle (content-type
+(defun rmail-mime-handle (content-type
 			  content-disposition
 			  content-transfer-encoding)
   "Handle the current buffer as a MIME part.
@@ -308,18 +310,18 @@ The parsed header value:
   ;; handler.
   (if (string= "inline" (car content-disposition))
       (let ((stop nil))
-	(dolist (entry pmail-mime-media-type-handlers-alist)
+	(dolist (entry rmail-mime-media-type-handlers-alist)
 	  (when (and (string-match (car entry) (car content-type)) (not stop))
 	    (progn
 	      (setq stop (funcall (cadr entry) content-type
 				  content-disposition
 				  content-transfer-encoding))))))
     ;; Everything else is an attachment.
-    (pmail-mime-bulk-handler content-type
+    (rmail-mime-bulk-handler content-type
 		       content-disposition
 		       content-transfer-encoding)))
 
-(defun pmail-mime-show (&optional show-headers)
+(defun rmail-mime-show (&optional show-headers)
   "Handle the current buffer as a MIME message.
 If SHOW-HEADERS is non-nil, then the headers of the current part
 will shown as usual for a MIME message.  The headers are also
@@ -373,38 +375,34 @@ modified."
 	     (narrow-to-region end (point-max)))
 	    ((not show-headers)
 	     (delete-region (point-min) end)))
-      (pmail-mime-handle content-type content-disposition
+      (rmail-mime-handle content-type content-disposition
 			 content-transfer-encoding))))
 
-(defun pmail-mime ()
+(defun rmail-mime ()
   "Copy buffer contents to a temporary buffer and handle MIME.
-This calls `pmail-mime-show' to do the real job."
+This calls `rmail-mime-show' to do the real job."
   (interactive)
-  (pmail-swap-buffers-maybe)
-  (let ((data (with-current-buffer pmail-buffer
+  (rmail-swap-buffers-maybe)
+  (let ((data (with-current-buffer rmail-buffer
 		(save-restriction
 		  (widen)
 		  (buffer-substring
-		   (pmail-msgbeg pmail-current-message)
-		   (pmail-msgend pmail-current-message)))))
-	(buf (get-buffer-create "*PMAIL*")))
+		   (rmail-msgbeg rmail-current-message)
+		   (rmail-msgend rmail-current-message)))))
+	(buf (get-buffer-create "*RMAIL*")))
     (set-buffer buf)
     (let ((inhibit-read-only t))
       (erase-buffer)
       (insert data)
-      (pmail-mime-show t))
+      (rmail-mime-show t))
     (view-buffer buf)))
 
-(defun pmail-mm-get-boundary-error-message (message type disposition encoding)
+(defun rmail-mm-get-boundary-error-message (message type disposition encoding)
   "Return MESSAGE with more information on the main mime components."
   (error "%s; type: %s; disposition: %s; encoding: %s"
 	 message type disposition encoding))
 
-(provide 'pmailmm)
-
-;; Local Variables:
-;; change-log-default-name: "ChangeLog.pmail"
-;; End:
+(provide 'rmailmm)
 
 ;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
-;;; pmailmm.el ends here
+;;; rmailmm.el ends here

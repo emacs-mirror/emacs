@@ -1101,8 +1101,8 @@ This does not load the font-lock package.  Use after
 ;; which could cause it to clobber user settings.  Later emacsen have
 ;; an append option, but it's not safe to use.
 
-;; The the extension ".C" is associated to C++ while the lowercase
-;; variant goes to C.  On case insensitive file systems, this means
+;; The extension ".C" is associated with C++ while the lowercase
+;; variant goes with C.  On case insensitive file systems, this means
 ;; that ".c" files also might open C++ mode if the C++ entry comes
 ;; first on `auto-mode-alist'.  Thus we try to ensure that ".C" comes
 ;; after ".c", and since `add-to-list' adds the entry first we have to

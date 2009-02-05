@@ -300,7 +300,7 @@ highlights argument number INDEX."
 	   ;; Remove any enclosing (), since e-function-argstring adds them.
 	   (string-match "\\`[^ )]* ?" args)
 	   (setq args (substring args (match-end 0)))
-	   (if (string-match ")\\'" args)
+	   (if (string-match-p ")\\'" args)
 	       (setq args (substring args 0 -1))))
 	  (t
 	   (setq args (help-function-arglist sym))))
@@ -338,7 +338,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 		     ;; All the rest arguments are the same.
 		     (setq index 1))
 		    ((string= argument "&optional"))
-		    ((string-match "\\.\\.\\.$" argument)
+		    ((string-match-p "\\.\\.\\.$" argument)
 		     (setq index 0))
 		    (t
 		     (setq index (1- index))))))
@@ -491,10 +491,10 @@ ARGLIST is either a string, or a list of strings or symbols."
   "Apply `eldoc-argument-case' to each word in ARGSTRING.
 The words \"&rest\", \"&optional\" are returned unchanged."
   (mapconcat (lambda (s)
-	       (if (member s '("&optional" "&rest"))
+	       (if (string-match-p "\\`(?&\\(?:optional\\|rest\\))?\\'" s)
 		   s
 		 (funcall eldoc-argument-case s)))
-	     (split-string argstring "[][ ()]+" t) " "))
+	     (split-string argstring) " "))
 
 
 ;; When point is in a sexp, the function args are not reprinted in the echo

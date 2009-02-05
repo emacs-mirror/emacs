@@ -762,15 +762,6 @@ ELCFILES = \
 	$(lisp)/mail/mailpost.elc \
 	$(lisp)/mail/metamail.elc \
 	$(lisp)/mail/mspools.elc \
-	$(lisp)/mail/pmail.elc \
-	$(lisp)/mail/pmailedit.elc \
-	$(lisp)/mail/pmailhdr.elc \
-	$(lisp)/mail/pmailkwd.elc \
-	$(lisp)/mail/pmailmm.elc \
-	$(lisp)/mail/pmailmsc.elc \
-	$(lisp)/mail/pmailout.elc \
-	$(lisp)/mail/pmailsort.elc \
-	$(lisp)/mail/pmailsum.elc \
 	$(lisp)/mail/reporter.elc \
 	$(lisp)/mail/rfc2368.elc \
 	$(lisp)/mail/rfc822.elc \
@@ -778,6 +769,7 @@ ELCFILES = \
 	$(lisp)/mail/rmail.elc \
 	$(lisp)/mail/rmailedit.elc \
 	$(lisp)/mail/rmailkwd.elc \
+	$(lisp)/mail/rmailmm.elc \
 	$(lisp)/mail/rmailmsc.elc \
 	$(lisp)/mail/rmailout.elc \
 	$(lisp)/mail/rmailsort.elc \
@@ -935,6 +927,7 @@ ELCFILES = \
 	$(lisp)/org/org-exp.elc \
 	$(lisp)/org/org-export-latex.elc \
 	$(lisp)/org/org-faces.elc \
+	$(lisp)/org/org-footnote.elc \
 	$(lisp)/org/org-gnus.elc \
 	$(lisp)/org/org-id.elc \
 	$(lisp)/org/org-info.elc \

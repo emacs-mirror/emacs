@@ -1,3 +1,98 @@
+2009-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-news.texi: Print version about Incoming*.
+
+2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Structure editing, Handling links)
+	(Fast access to TODO states, Javascript support): Make standard docs
+	correctly reflect default variable settings.
+
+2009-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Fix typos.
+
+2009-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.15.
+
+	* trampver.texi: Update release number.
+
+2009-01-31  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (TODO dependencies): Document TODO dependencies on
+	checkboxes.
+
+2009-01-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (TODO dependencies): Document key binding for toggling
+	ORDERED property.
+
+2009-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): Fix typos.  Describe second parameter
+	of hook functions.
+
+2009-01-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (TODO dependencies): New section.
+
+2009-01-27  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Plain lists, TODO basics, Priorities)
+	(Multiple sets in one file, Conflicts): Document interaction with
+	`shift-selection-mode'.
+
+2009-01-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Embedded Mode, Algebraic-Style Calculations):
+	Make Calc the subject of sentences.
+	(Rearranging Formulas using Selections): Discuss new options
+	for `j *'.
+
+2009-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): New variable dbus-event-error-hooks.
+
+2009-01-26  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Fix typos.
+
+2009-01-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (EDITION, UPDATED): Update.
+
+2009-01-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (References): Add information about remote references.
+	(Built-in table editor): Document `C-c RET' in tables.
+	(Math symbols, Quoting LaTeX code): Mention that simple
+	LaTeX macros survive LaTeX export.
+	(Images in LaTeX export): Show how to create a reference to a
+	figure.
+	(Sectioning structure): Document that the LaTeX class can be
+	specified in a property.
+	(Text areas in HTML export): New section.
+	(External links): Add examples for text search and ID links.
+	(Built-in table editor): Remove the descriptio of `C-c
+	C-q', it not longer works.
+	(Literal examples): Document that a space must follow
+	the colon in short examples.
+	(Relative timer): Document `org-timer-stop'.
+	(Footnotes): New section.
+	(Footnote markup): Shorten section and refer to new Footnote
+	section.
+	(Literal examples): Add documentation for line
+	numbering in and references to code examples.
+	(CSS support): Fix the description of default CSS styles.
+	(Capturing column view): Document
+	"file:path/to/file.org" as an allowed value for the ID property of
+	a dynamic block copying column view.
+
+2009-01-23  Stephen Eglen  <stephen@gnu.org>
+
+	* mh-e.texi (Getting Started): Describe $MH.
+
 2009-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (all): Harmonize usage of "external method",

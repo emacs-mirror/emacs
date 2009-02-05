@@ -2539,10 +2539,7 @@ emacs_write (fildes, buf, nbyte)
 #ifdef SYNC_INPUT
 	      /* I originally used `QUIT' but that might causes files to
 		 be truncated if you hit C-g in the middle of it.  --Stef  */
-	      if (interrupt_input_pending)
-		handle_async_input ();
-              if (pending_atimers)
-                do_pending_atimers ();
+	      process_pending_signals ();
 #endif
 	      continue;
 	    }

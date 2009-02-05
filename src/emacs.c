@@ -202,6 +202,10 @@ extern int inherited_pgroup;
 int display_arg;
 #endif
 
+#ifdef HAVE_NS
+extern char ns_no_defaults;
+#endif
+
 /* An address near the bottom of the stack.
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
@@ -797,6 +801,9 @@ main (int argc, char **argv)
   int no_loadup = 0;
   char *junk = 0;
   char *dname_arg = 0;
+#ifdef NS_IMPL_COCOA
+  char dname_arg2[80];
+#endif
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -1108,7 +1115,20 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
+#ifndef NS_IMPL_COCOA
       f = fork ();
+#else /* NS_IMPL_COCOA */
+      /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
+         forked process: http://developer.apple.com/ReleaseNotes/
+                                  CoreFoundation/CoreFoundation.html)
+         We mark being in the exec'd process by a daemon name argument of
+         form "--daemon=\nFD0,FD1\nNAME" where FD are the pipe file descriptors,
+         NAME is the original daemon name, if any. */
+      if (!dname_arg || !strchr (dname_arg, '\n'))
+	  f = fork ();  /* in orig */
+      else
+	  f = 0;  /* in exec'd */
+#endif /* NS_IMPL_COCOA */
       if (f > 0)
 	{
 	  int retval;
@@ -1143,6 +1163,42 @@ main (int argc, char **argv)
 	  fprintf (stderr, "Cannot fork!\n");
 	  exit (1);
 	}
+
+#ifdef NS_IMPL_COCOA
+      {
+        /* In orig process, forked as child, OR in exec'd. */
+        if (!dname_arg || !strchr (dname_arg, '\n'))
+          {  /* In orig, child: now exec w/special daemon name. */
+            char fdStr[80];
+
+            if (dname_arg && strlen (dname_arg) > 70)
+              {
+                fprintf (stderr, "daemon: child name too long\n");
+                exit (1);
+              }
+
+            sprintf (fdStr, "--daemon=\n%d,%d\n%s", daemon_pipe[0],
+                     daemon_pipe[1], dname_arg ? dname_arg : "");
+            argv[skip_args] = fdStr;
+
+            execv (argv[0], argv);
+            fprintf (stderr, "emacs daemon: exec failed: %d\t%d\n", errno);
+            exit (1);
+          }
+
+        /* In exec'd: parse special dname into pipe and name info. */
+        if (!dname_arg || !strchr (dname_arg, '\n')
+            || strlen (dname_arg) < 1 || strlen (dname_arg) > 70)
+          {
+            fprintf (stderr, "emacs daemon: daemon name absent or too long\n");
+            exit(1);
+          }
+        dname_arg2[0] = '\0';
+        sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
+                dname_arg2);
+        dname_arg = strlen (dname_arg2) ? dname_arg2 : NULL;
+      }
+#endif /* NS_IMPL_COCOA */
 
       if (dname_arg)
        	daemon_name = xstrdup (dname_arg);
@@ -1422,6 +1478,16 @@ main (int argc, char **argv)
     {
       char *tmp;
       display_arg = 4;
+      if (argmatch (argv, argc, "-q", "--no-init-file", 6, NULL, &skip_args))
+        {
+          ns_no_defaults = 1;
+          skip_args--;
+        }
+      if (argmatch (argv, argc, "-Q", "--quick", 5, NULL, &skip_args))
+        {
+          ns_no_defaults = 1;
+          skip_args--;
+        }
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {

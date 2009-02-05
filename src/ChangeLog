@@ -1,3 +1,274 @@
+2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsmenu.m (pop_down_menu): New function.
+	(ns_popup_dialog): Call it on unwind.
+	(EmacsDialogPanel-runDialogAt:): Check popup_activated_flag and
+	call timer_check() (Bug#2154).
+	(EmacsMenu-menuNeedsUpdate:): Don't call ns_update_menu if
+	handling_signal is set.
+	(EmacsMenu-fillWithWidgetValue:): Set submenu title.
+
+	* config.in: Get rid of COCOA_EXPERIMENTAL_CTRL_G
+
+	* s/darwin.h: Same and NO_SOCK_SIGIO as well.
+
+	* nsterm.m (ns_read_socket): Same and don't set handling_signal.
+
+	* keyboard.c (poll_for_input_1, handle_async_input): Set
+	handling_signal under HAVE_NS.
+
+2009-02-04  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fwrite_region): Doc fix (mention annotate-functions).
+
+2009-02-04  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (composite.o): Depends on frame.h and termhooks.h.
+
+	* charset.c (Fchar_charset): New optional arg restriction.
+
+	* coding.h (coding_system_charset_list): Extern it.
+
+	* coding.c (coding_system_charset_list): New function.
+
+	* composite.c: Include coding.h and termhooks.h.
+	(composition_gstring_p): Fix for the terminal case.
+	(composition_gstring_width): Likewise.
+	(fill_gstring_body): Likewise.
+	(autocmp_chars): For terminal, call Fcomposition_get_gstring with
+	the frame.
+	(composition_compute_stop_pos): Adjust cmp_it->stop_pos if point
+	is within a composition.
+	(Fcomposition_get_gstring): Fix the the terminal case.
+
+	* term.c (encode_terminal_code): Fix handling of composition.
+	(produce_composite_glyph): For static composition, get pixel_width
+	from struct composition.
+
+2009-02-02  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Handle unaligned bss offset.
+
+2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_read_socket): Copy 2009-01-29 and 2009-01-30
+	XT,w32read_socket changes to ns_read_socket.
+
+	* keyboard.c (handle_interrupt): Don't call
+	quit_throw_to_read_char() under NS.
+
+	* blockinput.h: Remove NS-specific code.
+
+2009-01-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (window_change_signal): Don't try to get the size of a
+	suspended tty frame.
+	* term.c (Fresume_tty): Resize if the size has changed while the
+	tty was suspended.
+
+	* alloc.c (mark_stack): Properly conditionalize previous change.
+
+2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32inevt.c (w32_console_read_socket) [SYNC_INPUT]:
+	* w32term.c (w32_read_socket) [SYNC_INPUT]:
+	Remove; this code is not used on Windows.
+
+2009-01-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (detect_eol, decode_eol): Handle text with DOS-style
+	EOLs that also has stray ^M characters.
+
+2009-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* atimer.c (run_timers, alarm_signal_handler):
+	* keyboard.c (pending_signals, handle_async_input, init_keyboard):
+	* w32inevt.c (w32_console_read_socket):
+	* w32term.c (w32_read_socket):
+	* xterm.c (XTread_socket): Use "#ifdef SYNC_INPUT" where appropriate.
+
+2009-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callproc.c (Vtemp_file_name_pattern): Remove DEFVAR_LISP.
+	Initialize it as a relative filename pattern.
+	(init_callproc): Don't initialize Vtemp_file_name_pattern here.
+	(Fcall_process_region): Simplify temp file creation using
+	temporary-file-directory.
+
+2009-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c: Rename pending_signals to msdos_pending_signals.
+	(sig_suspender, sigprocmask): Adjust.
+
+2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (pending_signals): New var.
+	(poll_for_input, input_available_signal, init_keyboard): Set it.
+	(process_pending_signals): New function.
+
+	* lisp.h (QUIT): Check pending_signals instead of
+	interrupt_input_pending.  Use process_pending_signals.
+
+	* atimer.c (run_timers, alarm_signal_handler): Update
+	pending_signals.
+
+	* process.c (wait_reading_process_output): Use
+	process_pending_signals.
+
+	* sysdep.c (emacs_write): Use process_pending_signals.
+
+	* xterm.c (XTread_socket): Update pending_signals.
+
+	* w32term.c (w32_read_socket): Update pending_signals.
+
+	* w32inevt.c (w32_console_read_socket): Update pending_signals.
+
+2009-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_has_char): New function.
+	(syms_of_xftfont): Register xftfont_has_char in xftfont_driver.
+
+2009-01-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (EmacsPrefsController.cursorBlinkSlider): Only define
+	under GNUstep.
+	(ns_query_color): New declaration.
+
+	* nsterm.m (ns_confirm_quit): New variable.
+	(ns_set_default_prefs, syms_of_nsterm, ns_term_init): Initialize it.
+	(EmacsApp-applicationShouldTerminate:): Use it.
+	(EmacsPrefsController): Let user set it.
+	(ns_query_color): New function.
+	(ns_defined_color): Use it.
+	(ns_initialize): Drop.
+	(ns_term_init): Add two lines from ns_initialize(), and set
+	input_interrupt_mode to nil.
+
+	* image.c (svg_load_image): Don't right-shift background RGB when
+	obtained from FRAME_BACKGROUND_PIXEL. Under HAVE_NS use ns_query_color.
+
+2009-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
+	(fontset_get_font_group): Remember that no font-group is specified
+	for C.
+
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (concat): Check for string overflow (bug#1787).
+
+	* undo.c (undo_limit, undo_strong_limit, Vundo_outer_limit):
+	Quadruple undo limits (bug#1501).
+
+2009-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_has_char): If the arg FONT is a font-object,
+	directly use GT_Get_Char_index.
+
+	* xftfont.c (struct xftfont_info): New member `index'.
+
+	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
+	(Ffontset_font): Adjusted for the change of fontset entry.
+
+2009-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix handling of non-cons return
+	value of fontset_get_font_group.
+	(fontset_font): Revert last change.
+
+2009-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_list_internal): Return quickly if registry is
+	unknown.  Simplify final return.
+	(add_font_entity_to_list): Break complex logic down into more
+	manageable chunks.  Move unknown registry check to
+	w32font_list_internal.
+
+2009-01-25  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Changes to remove Feval calls from GUI under NS.
+
+	* nsterm.h: Move KEY_NS_... definitions here from nsterm.m.
+	Add NS_TOGGLE_TOOLBAR, NS_PUT_WORKING_TEXT, NS_UNPUT_WORKING_TEXT.
+	Remove NS_INSERT_WORKING_TEXT, NS_DELETE_WORKING_TEXT.
+
+	* nsterm.m: Move KEY_NS_... definitions to nsterm.h.
+	(EmacsView-toggleToolbar:): Use KEY_NS_TOGGLE_TOOLBAR.
+	(EmacsView-setMarkedText:,-deleteWorkingText:): Use NS_TEXT_EVENT
+	instead of NON_ASCII_KEYSTROKE_EVENT.
+	(EmacsApp-terminate:): Use KEY_NS_POWER_OFF instead of Feval.
+	(EmacsApp-applicationShouldTerminate:): Query user.
+	(EmacsPreferencesController-runHelp:): Use KEY_NS_INFO_PREFS
+	instead of Feval.
+
+	* termhooks.h (NS_TEXT_EVENT): New event type under HAVE_NS.
+
+	* keyboard.c (kbd_buffer_get_event): Check for it.
+	(keys_of_keyboard): Define lispy keys for
+	ns-put/unput-working-text.
+
+	* nsmenu.m (ns_popup_dialog): Resync window setting with X and W32
+	versions.
+	(EmacsDialog-runDialogAt:): Use NSModalPanelRunLoopMode.
+
+2009-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (buffer_posn_from_coords): Use Fset_buffer instead of
+	setting current_buffer directly.  (Bug#2044)
+
+2009-01-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fontset.c (fontset_font): If we know there is no font, don't do
+	any work.  (Bug#1952, bug#1990).
+
+	* font.c (font_parse_xlfd): Handle patterns of length < 2.  (Bug#1802)
+
+2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (main): Do fork+exec under --daemon in Cocoa.
+	(ns_no_defaults): New declaration.
+	(main): Use it.
+
+	* nsterm.h (ns_no_defaults): New declaration.
+
+	* nsfns.m (x_get_string_resource): Don't read when ns_no_defaults.
+
+	* nsterm.m (ns_no_defaults): New variable.
+	(ns_initialize): Don't read defaults when ns_no_defaults.
+	(EmacsView-readSelectionFromPasteboard:)
+	(writeSelectionToPasteboard:types:): New stubbed-out methods for
+	NSServicesRequests protocol.  (Bug#1435)
+	(ns_dumpglyphs_stretch): New function.
+	(ns_draw_glyph_string): Use it, parallel Yamamoto Mitsuharu change
+	of 2008-11-15 to other terms.  (Bug#615)
+
+	* nsimage.m (setPixmapData:): Set to ignore image DPI.
+
+2009-01-23  Giorgos Keramidas  <keramida@freebsd.org>  (tiny change)
+
+	* alloc.c (mark_stack): Use "flushw" instead of "ta 3" assembly
+	call for Sparc64.
+
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m:
+	* nsgui.h:
+	* nsmenu.m:
+	* nsselect.m:
+	* nsterm.h:
+	* nsterm.m: Remove '23' comments that indicated code added during
+	update from emacs-20 -> emacs-23.
+
+2009-01-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmavsView-keyDown:): Treat nil as Qnone for
+	ns_alternate_modifier.  (Bug#1217)
+
+	* nsmenu.m (EmacsMenu-parseKeyEquiv:, addItemWithWidgetValue:):
+	Display all shortcuts, including those w/o super modifier.
+
+	* nsfns.m (ns-read-file-name): Fix typo in assignment statement.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Vwrite_region_post_annotation_function)
@@ -20,7 +291,6 @@
 
 	* nsterm.m (EV_TRAILER): Always use emacsframe for frame_or_window.
 
-
 2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (NSMENUPROFILE): Change #if style.
@@ -34,13 +304,13 @@
 	(ns_term_shutdown): Abort on non SIGTERM signals.
 	(EmacsPrefsController-setDefaultFont:,-setColors:): Raise the frame.
 	(EmacsPrefsController-setPanelFromDefaultValues) New function.
-	(EmacsPrefsController-resetToDefaults:): Use it. (Bug#1801)
+	(EmacsPrefsController-resetToDefaults:): Use it.  (Bug#1801)
 	(ns_font_to_xlfd, ns_fontname_to_xlfd): Remove, unused.
 	(ns_defined_color): Fix settings of the XColor variable fields:
-	red,green,blue scale to 2-byte, pixel's parts to 1-byte. (Bug#1663)
+	red,green,blue scale to 2-byte, pixel's parts to 1-byte.  (Bug#1663)
 
 	* nsimage.m (EmacsImage+allocInitFromFile:): Set to ignore image
-	DPI. (Bug#1316)
+	DPI.  (Bug#1316)
 	(EmacsImage-setPixelAtX:Y:toRed:green:blue:alpha:): Fix color
 	values in onTiger section.
 
@@ -48,7 +318,7 @@
 
 	* xfaces.c (Finternal_set_lisp_face_attribute, Fx_list_fonts):
 	Check return value of font_spec_from_name.
-	(Fx_list_fonts): Doc fix.
+	(Fx_list_fonts): Doc fix.  (Bug#1951)
 
 	* font.c (font_spec_from_name): Return Qnil if font name could not
 	be parsed.

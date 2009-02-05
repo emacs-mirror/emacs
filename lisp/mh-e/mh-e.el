@@ -1,8 +1,9 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
 ;; Copyright (C) 1985, 1986, 1987, 1988,
-;;  1990, 1992, 1993, 1994, 1995, 1997, 1999,
-;;  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   1990, 1992, 1993, 1994, 1995, 1997, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -3241,6 +3242,14 @@ This can be done with this hook which is called when
   :group 'mh-hooks
   :group 'mh-search
   :package-version '(MH-E . "8.0"))
+
+(defcustom-mh mh-pack-folder-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-pack-folder] after renumbering the messages.
+Hook functions can access the current folder name with `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-folder
+  :package-version '(MH-E . "8.2"))
 
 (defcustom-mh mh-quit-hook nil
   "Hook run by \\<mh-folder-mode-map>\\[mh-quit] after quitting MH-E.

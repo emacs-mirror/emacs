@@ -121,14 +121,14 @@ setting the variables @code{undo-limit}, @code{undo-strong-limit}, and
   The variable @code{undo-limit} sets a soft limit: Emacs keeps undo
 data for enough commands to reach this size, and perhaps exceed it,
 but does not keep data for any earlier commands beyond that.  Its
-default value is 20000.  The variable @code{undo-strong-limit} sets a
+default value is 80000.  The variable @code{undo-strong-limit} sets a
 stricter limit: any previous command (though not the most recent one)
 that pushes the size past this amount is forgotten.  The default value
-of @code{undo-strong-limit} is 30000.
+of @code{undo-strong-limit} is 120000.
 
   Regardless of the values of those variables, the most recent change
 is never discarded unless it gets bigger than @code{undo-outer-limit}
-(normally 3,000,000).  At that point, Emacs discards the undo data and
+(normally 12,000,000).  At that point, Emacs discards the undo data and
 warns you about it.  This is the only situation in which you cannot
 undo the last command.  If this happens, you can increase the value of
 @code{undo-outer-limit} to make it even less likely to happen in the

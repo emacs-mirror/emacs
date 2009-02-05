@@ -135,7 +135,8 @@ starts the server.  Clients can connect and create graphical or
 terminal frames using emacsclient.
 
 **** emacsclient starts emacs in daemon mode and connects to it when
---alternate-editor="" is used and emacsclient cannot connect to an
+--alternate-editor="" is used (or when the evironment variable
+ALTERNATE_EDITOR is set to "") and emacsclient cannot connect to an
 emacs server.
 
 *** The new command close-display-connection closes a connection to a
@@ -921,6 +922,21 @@ way as gud-mode does for debugging C programs with gdb.
 remote files, if there is no established connection to the
 corresponding remote host.
 
+** Rmail
+
+*** Rmail no longer converts the messages to Babyl format.
+Instead, it keeps them in their original mbox format, both on disk and
+in Rmail buffers, and does conversion and decoding when a message is
+displayed.
+
+First time you visit an Rmail file in Babyl format, Rmail
+automatically converts it to mbox format.  This is a one-time
+conversion, but it can take a few minutes, depending on how fast is
+your machine and on the size of the file.  You should find the rest of
+Rmail usage unaltered.
+
+FIXME: Add more mbox merge details
+
 ** TeX modes
 ---
 *** New option latex-indent-within-escaped-parens
@@ -1203,6 +1219,10 @@ mlm-* functions and variables (formerly used for Malayalam script).
 
 **** `tamil' and `tml-util, and all associated tamil-* and tml-*
 functions and variables (formerly used for Tamil script).
+
+** The variable temp-file-name-pattern has been removed.
+This variable was only used by call-process-region, which now uses
+temporary-file-directory instead.
 
 
 * Lisp Changes in Emacs 23.1
@@ -1607,6 +1627,10 @@ ordered by their priorities.
 +++
 **** `set-coding-system-priority' sets priorities of coding systems.
 
+**** `coding-system-from-name' returns a coding system matching with
+the argument name.
+
+
 ** There is a new input method, Robin, different from Quail.
 It has three functionalities:
  i) a simple input method (converts an ASCII sequence into a string).
@@ -1722,9 +1746,6 @@ suspended/resumed as a parameter.
 deleting a terminal.
 
 *** New functions:
-
-+++
-**** `environment'
 
 +++
 **** `delete-terminal'

@@ -1,3 +1,27 @@
+2009-01-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-funcs.el (mh-pack-folder): Fix docstring.
+
+	* mh-e.el (mh-pack-folder-hook): Bump package-version to 8.2.
+
+	* mh-gnus.el (mh-mm-merge-handles)
+	(mh-mm-set-handle-multipart-parameter, mh-mm-inline-text-vcard)
+	(mh-mml-minibuffer-read-disposition, mh-mm-save-part): Update with
+	code from Gnus 5.11 (closes SF #2235022).
+
+2009-01-26  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-e.el (mh-pack-folder-hook): New variable.
+	* mh-funcs.el (mh-pack-folder): Call new mh-pack-folder-hook.
+
+2009-01-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-goto-header-end): Use mh-mail-header-separator
+	instead of -* in regexp.
+
+	* mh-folder.el (mh-folder-mode-help-messages): Add e and t to K's
+	help.
+
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* mh-letter.el: Replace last-input-char with last-input-event.

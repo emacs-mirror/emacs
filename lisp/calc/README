@@ -74,6 +74,9 @@ Summary of changes to "Calc"
 
 Emacs 23.1:
 
+* Gave `j *' (cal-sel-mult-both-sides) an option to expand the
+  denominator.
+
 * Use `calc-embedded-word-regexp' for finding words in
   `calc-embedded-word' in place of delimiters.
 

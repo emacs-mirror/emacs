@@ -1,11 +1,12 @@
 ;;; org-jsinfo.el --- Support for org-info.js Javascript in Org HTML export
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -129,7 +130,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
     (let ((template org-infojs-template)
 	(ptoc (plist-get exp-plist :table-of-contents))
 	(hlevels (plist-get exp-plist :headline-levels))
-	tdepth sdepth p1 s p v a1 tmp e opt var val table default)
+	tdepth sdepth s v e opt var val table default)
     (setq sdepth hlevels
 	  tdepth hlevels)
     (if (integerp ptoc) (setq tdepth (min ptoc tdepth)))
@@ -140,7 +141,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 	    default (cdr (assoc opt org-infojs-options)))
       (and (symbolp default) (not (memq default '(t nil)))
 	   (setq default (plist-get exp-plist default)))
-      (if (string-match (format " %s:\\(\\S-+\\)" opt) v)
+      (if (and v (string-match (format " %s:\\(\\S-+\\)" opt) v))
 	  (setq val (match-string 1 v))
 	(setq val default))
       (cond
@@ -167,7 +168,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
     ;; actually be displayed is governed by the TDEPTH option.
     (setq exp-plist (plist-put exp-plist :table-of-contents sdepth))
 
-    ;; The table of contents should ot show more sections then we generate
+    ;; The table of contents should not show more sections then we generate
     (setq tdepth (min tdepth sdepth))
     (push (cons "TOC_DEPTH" tdepth) s)
 

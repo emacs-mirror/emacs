@@ -453,10 +453,11 @@ the `mail-source-keyword-map' variable."
 (put 'mail-source-bind 'lisp-indent-function 1)
 (put 'mail-source-bind 'edebug-form-spec '(sexp body))
 
+;; TODO: use the list format for auth-source-user-or-password modes
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
 	 (defaults (cdr (assq type mail-source-keyword-map)))
-	 default value keyword user-auth pass-auth)
+	 default value keyword auth-info user-auth pass-auth)
     (while (setq default (pop defaults))
       ;; for each default :SYMBOL, set SYMBOL to the plist value for :SYMBOL
       ;; using `mail-source-value' to evaluate the plist value
@@ -469,20 +470,21 @@ the `mail-source-keyword-map' variable."
 	    ((and
 	     (eq keyword :user)
 	     (setq user-auth 
-		   (auth-source-user-or-password
-		    "login"
-		    ;; this is "host" in auth-sources
-		    (if (boundp 'server) (symbol-value 'server) "")
-		    type)))
+		   (nth 0 (auth-source-user-or-password
+			   '("login" "password")
+			   ;; this is "host" in auth-sources
+			   (if (boundp 'server) (symbol-value 'server) "")
+			   type))))
 	     user-auth)
 	    ((and
-	     (eq keyword :password)
-	     (setq pass-auth 
-		   (auth-source-user-or-password
-		    "password"
-		    ;; this is "host" in auth-sources
-		    (if (boundp 'server) (symbol-value 'server) "")
-		    type)))
+	      (eq keyword :password)
+	      (setq pass-auth
+		    (nth 1
+			 (auth-source-user-or-password
+			  '("login" "password")
+			  ;; this is "host" in auth-sources
+			  (if (boundp 'server) (symbol-value 'server) "")
+			  type))))
 	     pass-auth)
 	    (t (if (setq value (plist-get source keyword))
 		 (mail-source-value value)

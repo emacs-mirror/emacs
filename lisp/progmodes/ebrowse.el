@@ -4489,12 +4489,12 @@ EVENT is the mouse event."
 
 (provide 'ebrowse)
 
-;;; Local variables:
-;;; eval:(put 'ebrowse-output 'lisp-indent-hook 0)
-;;; eval:(put 'ebrowse-ignoring-completion-case 'lisp-indent-hook 0)
-;;; eval:(put 'ebrowse-save-selective 'lisp-indent-hook 0)
-;;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
-;;; End:
+;; Local variables:
+;; eval:(put 'ebrowse-output 'lisp-indent-hook 0)
+;; eval:(put 'ebrowse-ignoring-completion-case 'lisp-indent-hook 0)
+;; eval:(put 'ebrowse-save-selective 'lisp-indent-hook 0)
+;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
+;; End:
 
 ;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

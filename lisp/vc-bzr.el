@@ -338,11 +338,13 @@ If any error occurred in running `bzr status', then return nil."
             ;; count lines in .bzr/branch/revision-history
             (insert-file-contents revhistory-file)
             (number-to-string (count-lines (line-end-position) (point-max))))
-           ((looking-at "Bazaar Branch Format 6 (bzr 0.15)")
+           ((or
+	     (looking-at "Bazaar Branch Format 6 (bzr 0.15)")
+	     (looking-at "Bazaar Branch Format 7 (needs bzr 1.6)"))
             ;; revno is the first number in .bzr/branch/last-revision
             (insert-file-contents lastrev-file)
-            (if (re-search-forward "[0-9]+" nil t)
-                (buffer-substring (match-beginning 0) (match-end 0))))))
+            (when (re-search-forward "[0-9]+" nil t)
+	      (buffer-substring (match-beginning 0) (match-end 0))))))
       ;; fallback to calling "bzr revno"
       (lexical-let*
           ((result (vc-bzr-command-discarding-stderr

@@ -65,30 +65,30 @@
 ;; invited to port xscheme functionality on top of comint mode...
 
 ;;; CHANGE LOG
-;;; ===========================================================================
-;;; 8/88 Olin
-;;; Created.
-;;;
-;;; 2/15/89 Olin
-;;; Removed -emacs flag from process invocation. It's only useful for
-;;; cscheme, and makes cscheme assume it's running under xscheme.el,
-;;; which messes things up royally. A bug.
-;;;
-;;; 5/22/90 Olin
-;;; - Upgraded to use comint-send-string and comint-send-region.
-;;; - run-scheme now offers to let you edit the command line if
-;;;   you invoke it with a prefix-arg. M-x scheme is redundant, and
-;;;   has been removed.
-;;; - Explicit references to process "scheme" have been replaced with
-;;;   (scheme-proc). This allows better handling of multiple process bufs.
-;;; - Added scheme-send-last-sexp, bound to C-x C-e. A gnu convention.
-;;; - Have not added process query facility a la cmulisp.el's lisp-show-arglist
-;;;   and friends, but interested hackers might find a useful application
-;;;   of this facility.
-;;;
-;;; 3/12/90 Olin
-;;; - scheme-load-file and scheme-compile-file no longer switch-to-scheme.
-;;;   Tale suggested this.
+;; ===========================================================================
+;; 8/88 Olin
+;; Created.
+;;
+;; 2/15/89 Olin
+;; Removed -emacs flag from process invocation. It's only useful for
+;; cscheme, and makes cscheme assume it's running under xscheme.el,
+;; which messes things up royally. A bug.
+;;
+;; 5/22/90 Olin
+;; - Upgraded to use comint-send-string and comint-send-region.
+;; - run-scheme now offers to let you edit the command line if
+;;   you invoke it with a prefix-arg. M-x scheme is redundant, and
+;;   has been removed.
+;; - Explicit references to process "scheme" have been replaced with
+;;   (scheme-proc). This allows better handling of multiple process bufs.
+;; - Added scheme-send-last-sexp, bound to C-x C-e. A gnu convention.
+;; - Have not added process query facility a la cmulisp.el's lisp-show-arglist
+;;   and friends, but interested hackers might find a useful application
+;;   of this facility.
+;;
+;; 3/12/90 Olin
+;; - scheme-load-file and scheme-compile-file no longer switch-to-scheme.
+;;   Tale suggested this.
 
 ;;; Code:
 
@@ -223,19 +223,6 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
       (backward-sexp)
       (buffer-substring (point) end))))
 
-(defun scheme-args-to-list (string)
-  (let ((where (string-match "[ \t]" string)))
-    (cond ((null where) (list string))
-	  ((not (= where 0))
-	   (cons (substring string 0 where)
-		 (scheme-args-to-list (substring string (+ 1 where)
-						 (length string)))))
-	  (t (let ((pos (string-match "[^ \t]" string)))
-	       (if (null pos)
-		   nil
-		 (scheme-args-to-list (substring string pos
-						 (length string)))))))))
-
 ;;;###autoload
 (defun run-scheme (cmd)
   "Run an inferior Scheme process, input and output via buffer `*scheme*'.
@@ -254,7 +241,7 @@ is run).
 			 (read-string "Run Scheme: " scheme-program-name)
 			 scheme-program-name)))
   (if (not (comint-check-proc "*scheme*"))
-      (let ((cmdlist (scheme-args-to-list cmd)))
+      (let ((cmdlist (split-string-and-unquote cmd)))
 	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
 			   (scheme-start-file (car cmdlist)) (cdr cmdlist)))
 	(inferior-scheme-mode)))

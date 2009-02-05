@@ -419,6 +419,10 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start-event-window (posn-window start))
 	 (start-event-frame (window-frame start-event-window))
 	 (start-nwindows (count-windows t))
+         (on-link (and mouse-1-click-follows-link
+		       (or mouse-1-click-in-non-selected-windows
+			   (eq (posn-window start) (selected-window)))
+                       (mouse-on-link-p start)))
 	 (minibuffer (frame-parameter nil 'minibuffer))
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
@@ -491,6 +495,11 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 			    (one-window-p t))
 		   (error "Attempt to resize sole window"))
 
+                 ;; If we ever move, make sure we don't mistakenly treat
+                 ;; some unexpected `mouse-1' final event as a sign that
+                 ;; this whole drag was nothing more than a click.
+                 (if (/= growth 0) (setq on-link nil))
+
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
 		     (unless resize-mini-windows
@@ -519,7 +528,14 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 				    (nth 1 (window-edges
 					    ;; Choose right window.
 					    start-event-window)))))
-		   (set-window-configuration wconfig)))))))))
+		   (set-window-configuration wconfig)))))
+
+        ;; Presumably if this was just a click, the last event should
+        ;; be `mouse-1', whereas if this did move the mouse, it should be
+        ;; a `drag-mouse-1'.  In any case `on-link' would have been nulled
+        ;; above if there had been any significant mouse movement.
+        (when (and on-link (eq 'mouse-1 (car-safe event)))
+          (push (cons 'mouse-2 (cdr event)) unread-command-events))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
@@ -2431,12 +2447,13 @@ and selects that window."
   (interactive)
   (unless (display-multi-font-p)
     (error "Cannot change fonts on this display"))
-  (x-popup-menu
-   (if (listp last-nonmenu-event)
-       last-nonmenu-event
-     (list '(0 0) (selected-window)))
-   (append x-fixed-font-alist
-	   (list (generate-fontset-menu)))))
+  (car
+   (x-popup-menu
+    (if (listp last-nonmenu-event)
+	last-nonmenu-event
+      (list '(0 0) (selected-window)))
+    (append x-fixed-font-alist
+	    (list (generate-fontset-menu))))))
 
 (declare-function text-scale-mode "face-remap")
 

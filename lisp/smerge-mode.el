@@ -1222,6 +1222,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 (defun smerge-start-session ()
   "Turn on `smerge-mode' and move point to first conflict marker.
 If no conflict maker is found, turn off `smerge-mode'."
+  (interactive)
   (smerge-mode 1)
   (condition-case nil
       (unless (looking-at smerge-begin-re)

@@ -547,10 +547,10 @@ struct font_driver
   void (*done_face) P_ ((FRAME_PTR f, struct face *face));
 
   /* Optional.
-     If FONT_ENTITY has a glyph for character C (Unicode code point),
-     return 1.  If not, return 0.  If a font must be opened to check
-     it, return -1.  */
-  int (*has_char) P_ ((Lisp_Object entity, int c));
+     If FONT (FONT-ENTITY or FONT-OBJECT) has a glyph for character C
+     (Unicode code point), return 1.  If not, return 0.  If FONT is
+     FONT-ENTITY and it must be opened to check it, return -1.  */
+  int (*has_char) P_ ((Lisp_Object font, int c));
 
   /* Return a glyph code of FONT for characer C (Unicode code point).
      If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */

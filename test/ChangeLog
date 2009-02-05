@@ -1,8 +1,19 @@
+2009-01-25  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar-testsuite.el
+	(icalendar-testsuite--run-function-tests): Added
+	icalendar-testsuite--test-diarytime-to-isotime.
+	(icalendar-testsuite--test-parse-summary-and-rest): Adjusted to
+	recent icalendar fixes.
+	(icalendar-testsuite--test-diarytime-to-isotime): New.
+	(icalendar-testsuite--test-create-uid): Adjusted to recent
+	icalendar changes.
+
 2008-11-30  Shigeru Fukaya  <shigeru.fukaya@gmail.com>
 
 	* bytecomp-testsuite.el: New file.
 
-2008-10-31  Ulf Jasper  <ulf@web.de>
+2008-10-31  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el (icalendar-testsuite--run-function-tests):
 	Added `icalendar-testsuite--test-create-uid'.

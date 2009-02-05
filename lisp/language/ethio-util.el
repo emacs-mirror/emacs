@@ -35,9 +35,6 @@
 
 (require 'robin)
 
-(defvar rmail-current-message)
-(defvar rmail-message-vector)
-
 ;; Information for exiting Ethiopic environment.
 (defvar exit-ethiopic-environment-data nil)
 

@@ -1,12 +1,13 @@
 ;;; org-list.el --- Plain lists for Org-mode
 ;;
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -46,6 +47,7 @@
 (declare-function org-trim "org" (s))
 (declare-function org-get-indentation "org" (&optional line))
 (declare-function org-timer-item "org-timer" (&optional arg))
+(declare-function org-combine-plists "org" (&rest plists))
 
 (defgroup org-plain-lists nil
   "Options concerning plain lists in Org-mode."
@@ -87,7 +89,7 @@ the bullet in each item of he list."
 
 (defcustom org-empty-line-terminates-plain-lists nil
   "Non-nil means, an empty line ends all plain list levels.
-When nil, empty lines are part of the preceeding item."
+When nil, empty lines are part of the preceding item."
   :group 'org-plain-lists
   :type 'boolean)
 
@@ -160,6 +162,12 @@ list, obtained by prompting the user."
 	((= llt ?\)) "\\([ \t]*\\([-+]\\|\\([0-9]+))\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
 	(t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))))))
 
+(defun org-at-item-bullet-p ()
+  "Is point at the bullet of a plain list item?"
+  (and (org-at-item-p)
+       (not (member (char-after) '(?\  ?\t)))
+       (< (point) (match-end 0))))
+
 (defun org-in-item-p ()
   "It the cursor inside a plain list item.
 Does not have to be the first line."
@@ -188,13 +196,20 @@ Return t when things worked, nil when we are not in an item."
 				  (save-match-data
 				    (and (looking-at "[ \t]*\\(.*?\\) ::")
 					 (match-string 1)))))
+	   (empty-line-p (save-excursion
+			   (goto-char (match-beginning 0))
+			   (and (not (bobp))
+				(or (beginning-of-line 0) t)
+				(save-match-data
+				  (looking-at "[ \t]*$")))))
 	   (timerp (and descp
 			(save-match-data
 			  (string-match "^[-+*][ \t]+[0-9]+:[0-9]+:[0-9]+$"
 					descp))))
 	   (eow (save-excursion (beginning-of-line 1) (looking-at "[ \t]*")
 				(match-end 0)))
-	   (blank (cdr (assq 'plain-list-item org-blank-before-new-entry)))
+	   (blank-a (cdr (assq 'plain-list-item org-blank-before-new-entry)))
+	   (blank (if (eq blank-a 'auto) empty-line-p blank-a))
 	   pos)
       (if descp (setq checkbox nil))
       (if timerp
@@ -233,11 +248,17 @@ Return t when things worked, nil when we are not in an item."
 	 (skip-chars-forward " \t")
 	 (looking-at "\\[[- X]\\]"))))
 
-(defun org-toggle-checkbox (&optional arg)
-  "Toggle the checkbox in the current line."
+(defun org-toggle-checkbox (&optional toggle-presence)
+  "Toggle the checkbox in the current line.
+With prefix arg TOGGLE-PRESENCE, add or remove checkboxes.
+When there is an active region, toggle status or presence of the checkbox
+in the first line, and make every item in the region have the same
+status or presence, respectively.
+If the cursor is in a headline, apply this to all checkbox items in the
+text below the heading."
   (interactive "P")
   (catch 'exit
-    (let (beg end status (firstnew 'unknown))
+    (let (beg end status first-present first-status)
       (cond
        ((org-region-active-p)
 	(setq beg (region-beginning) end (region-end)))
@@ -245,23 +266,49 @@ Return t when things worked, nil when we are not in an item."
 	(setq beg (point) end (save-excursion (outline-next-heading) (point))))
        ((org-at-item-checkbox-p)
 	(let ((pos (point)))
-	  (replace-match
-	   (cond (arg "[-]")
-		 ((member (match-string 0) '("[ ]" "[-]")) "[X]")
-		 (t "[ ]"))
-	   t t)
+	  (if toggle-presence
+	      (progn
+		(replace-match "")
+		(goto-char (match-beginning 0))
+		(just-one-space))
+	    (replace-match
+	     (cond ((member (match-string 0) '("[ ]" "[-]")) "[X]")
+		   (t "[ ]"))
+	     t t))
 	  (goto-char pos))
 	(throw 'exit t))
+       ((org-at-item-p)
+	;; add a checkbox
+	(save-excursion
+	  (goto-char (match-end 0))
+	  (insert "[ ] "))
+	(throw 'exit t))
        (t (error "Not at a checkbox or heading, and no active region")))
+      (setq end (move-marker (make-marker) end))
       (save-excursion
 	(goto-char beg)
+	(setq first-present (org-at-item-checkbox-p)
+	      first-status
+	      (save-excursion
+		(and (re-search-forward "[ \t]\\(\\[[ X]\\]\\)" end t)
+		     (equal (match-string 1) "[X]"))))
 	(while (< (point) end)
-	  (when (org-at-item-checkbox-p)
-	    (setq status (equal (match-string 0) "[X]"))
-	    (when (eq firstnew 'unknown)
-	      (setq firstnew (not status)))
-	    (replace-match
-	     (if (if arg (not status) firstnew) "[X]" "[ ]") t t))
+	  (if toggle-presence
+	      (cond
+	       ((and first-present (org-at-item-checkbox-p))
+		(save-excursion
+		  (replace-match "")
+		  (goto-char (match-beginning 0))
+		  (just-one-space)))
+	       ((and (not first-present) (not (org-at-item-checkbox-p))
+		     (org-at-item-p))
+		(save-excursion
+		  (goto-char (match-end 0))
+		  (insert "[ ] "))))
+	    (when (org-at-item-checkbox-p)
+	      (setq status (equal (match-string 0) "[X]"))
+	      (replace-match
+	       (if first-status "[ ]" "[X]") t t)))
 	  (beginning-of-line 2)))))
   (org-update-checkbox-count-maybe))
 
@@ -301,7 +348,7 @@ the whole buffer."
 	     end-cookie (match-end 1)
 	     cstat (+ cstat (if end-cookie 1 0))
 	     startsearch (point-at-eol)
-	     continue-from (point-at-bol)
+	     continue-from (match-beginning 0)
 	     is-percent (match-beginning 2)
 	     lim (cond
 		  ((org-on-heading-p) (outline-next-heading) (point))
@@ -894,9 +941,12 @@ sublevels as a list of strings."
 			(goto-char end))))
 	     (nextindent (match-string 1))
 	     (item (org-trim item))
-	     (item (if (string-match "^\\[.+\\]" item)
-		       (replace-match "\\\\texttt{\\&}"
-				      t nil item) item)))
+	     (item (if (string-match "^\\[\\([xX ]\\)\\]" item)
+		       (replace-match (if (equal (match-string 1 item) " ")
+					  "[CBOFF]"
+					"[CBON]")
+				      t nil item)
+		     item)))
 	(push item output)
 	(when (> (length nextindent)
 		 (length indent1))
@@ -1010,7 +1060,10 @@ Valid parameters PARAMS are
 :istart	    String to start a list item
 :iend	    String to end a list item
 :isep	    String to separate items
-:lsep	    String to separate sublists"
+:lsep	    String to separate sublists
+
+:cboff      String to insert for an unchecked checkbox
+:cbon       String to insert for a checked checkbox"
   (interactive)
   (let* ((p params) sublist
 	 (splicep (plist-get p :splice))
@@ -1027,7 +1080,9 @@ Valid parameters PARAMS are
 	 (istart  (plist-get p :istart))
 	 (iend	(plist-get p :iend))
 	 (isep	(plist-get p :isep))
-	 (lsep	(plist-get p :lsep)))
+	 (lsep	(plist-get p :lsep))
+	 (cbon	(plist-get p :cbon))
+	 (cboff (plist-get p :cboff)))
     (let ((wrapper
 	   (cond ((eq (car list) 'ordered)
 		  (concat ostart "\n%s" oend "\n"))
@@ -1043,6 +1098,10 @@ Valid parameters PARAMS are
 		 (setq term (org-trim (format (concat dtstart "%s" dtend)
 					      (match-string 1 sublist))))
 		 (setq sublist (substring sublist (1+ (length term)))))
+	       (if (string-match "\\[CBON\\]" sublist)
+		   (setq sublist (replace-match cbon t t sublist)))
+	       (if (string-match "\\[CBOFF\\]" sublist)
+		   (setq sublist (replace-match cboff t t sublist)))
 	       (setq rtn (concat rtn istart term ddstart
 				 sublist ddend iend isep)))
 	      (t (setq rtn (concat rtn	 ;; previous list
@@ -1052,38 +1111,56 @@ Valid parameters PARAMS are
 				   )))))
       (format wrapper rtn))))
 
-(defun org-list-to-latex (list)
-  "Convert LIST into a LaTeX list."
+(defun org-list-to-latex (list &optional params)
+  "Convert LIST into a LaTeX list.
+LIST is as returnd by `org-list-parse-list'.  PARAMS is a property list
+with overruling parameters for `org-list-to-generic'."
   (org-list-to-generic
-   list '(:splicep nil :ostart "\\begin{enumerate}" :oend "\\end{enumerate}"
-		       :ustart "\\begin{itemize}" :uend "\\end{itemize}"
-		       :dstart "\\begin{description}" :dend "\\end{description}"
-		       :dtstart "[" :dtend "]"
-		       :ddstart "" :ddend ""
-		       :istart "\\item " :iend ""
-		       :isep "\n" :lsep "\n")))
+   list
+   (org-combine-plists
+    '(:splicep nil :ostart "\\begin{enumerate}" :oend "\\end{enumerate}"
+	       :ustart "\\begin{itemize}" :uend "\\end{itemize}"
+	       :dstart "\\begin{description}" :dend "\\end{description}"
+	       :dtstart "[" :dtend "]"
+	       :ddstart "" :ddend ""
+	       :istart "\\item " :iend ""
+	       :isep "\n" :lsep "\n"
+	       :cbon "\\texttt{[X]}" :cboff "\\texttt{[ ]}")
+    params)))
 
-(defun org-list-to-html (list)
-  "Convert LIST into a HTML list."
+(defun org-list-to-html (list &optional params)
+  "Convert LIST into a HTML list.
+LIST is as returnd by `org-list-parse-list'.  PARAMS is a property list
+with overruling parameters for `org-list-to-generic'."
   (org-list-to-generic
-   list '(:splicep nil :ostart "<ol>" :oend "</ol>"
-		       :ustart "<ul>" :uend "</ul>"
-		       :dstart "<dl>" :dend "</dl>"
-		       :dtstart "<dt>" :dtend "</dt>"
-		       :ddstart "<dd>" :ddend "</dd>"
-		       :istart "<li>" :iend "</li>"
-		       :isep "\n" :lsep "\n")))
+   list
+   (org-combine-plists
+    '(:splicep nil :ostart "<ol>" :oend "</ol>"
+	       :ustart "<ul>" :uend "</ul>"
+	       :dstart "<dl>" :dend "</dl>"
+	       :dtstart "<dt>" :dtend "</dt>"
+	       :ddstart "<dd>" :ddend "</dd>"
+	       :istart "<li>" :iend "</li>"
+	       :isep "\n" :lsep "\n"
+	       :cbon "<code>[X]</code>" :cboff "<code>[ ]</code>")
+    params)))
 
-(defun org-list-to-texinfo (list)
-  "Convert LIST into a Texinfo list."
+(defun org-list-to-texinfo (list &optional params)
+  "Convert LIST into a Texinfo list.
+LIST is as returnd by `org-list-parse-list'.  PARAMS is a property list
+with overruling parameters for `org-list-to-generic'."
   (org-list-to-generic
-   list '(:splicep nil :ostart "@itemize @minus" :oend "@end itemize"
-		       :ustart "@enumerate" :uend "@end enumerate"
-		       :dstart "@table" :dend "@end table"
-		       :dtstart "@item " :dtend "\n"
-		       :ddstart "" :ddend ""
-		       :istart "@item\n" :iend ""
-		       :isep "\n" :lsep "\n")))
+   list 
+   (org-combine-plists
+    '(:splicep nil :ostart "@itemize @minus" :oend "@end itemize"
+	       :ustart "@enumerate" :uend "@end enumerate"
+	       :dstart "@table" :dend "@end table"
+	       :dtstart "@item " :dtend "\n"
+	       :ddstart "" :ddend ""
+	       :istart "@item\n" :iend ""
+	       :isep "\n" :lsep "\n"
+	       :cbon "@code{[X]}" :cboff "@code{[ ]}")
+    params)))
 
 (provide 'org-list)
 

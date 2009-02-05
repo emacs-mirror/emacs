@@ -42,7 +42,6 @@ static Lisp_Object Vns_lost_selection_hooks;
 static Lisp_Object Vselection_alist;
 static Lisp_Object Vselection_converter_alist;
 
-/* 23: new */
 static Lisp_Object Qforeign_selection;
 
 NSString *NXSecondaryPboard;
@@ -606,11 +605,8 @@ The functions are called with one argument, the selection type\n\
 \(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').");
   Vns_lost_selection_hooks = Qnil;
 
-/* 23: { */
   Qforeign_selection = intern ("foreign-selection");
   staticpro (&Qforeign_selection);
-/* } */
-
 }
 
 // arch-tag: 39d1dde7-06a6-49ff-95a7-0e7af12d2218

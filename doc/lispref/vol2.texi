@@ -26,7 +26,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 23.0.60
+@set EMACSVER 23.0.90
 
 @dircategory Emacs
 @direntry

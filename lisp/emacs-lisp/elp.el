@@ -537,6 +537,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 (defvar elp-results-symname-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'elp-results-jump-to-definition)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map "\C-m" 'elp-results-jump-to-definition)
     map)
   "Keymap used on the function name column." )

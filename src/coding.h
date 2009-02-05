@@ -650,6 +650,7 @@ extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern Lisp_Object coding_charset_list P_ ((struct coding_system *));
+extern Lisp_Object coding_system_charset_list P_ ((Lisp_Object));
 extern void detect_coding P_ ((struct coding_system *));
 extern Lisp_Object code_convert_region P_ ((Lisp_Object, Lisp_Object,
 					    Lisp_Object, Lisp_Object,

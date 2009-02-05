@@ -1,7 +1,8 @@
 ;;; mh-utils.el --- MH-E general utilities
 
 ;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -859,7 +860,8 @@ Returns t if found, nil if not."
 ;;;###mh-autoload
 (defun mh-goto-header-end (arg)
   "Move the cursor ARG lines after the header."
-  (if (re-search-forward "^-*$" nil nil)
+  (if (re-search-forward (concat "^\\(" (regexp-quote mh-mail-header-separator)
+                                 "\\)?$") nil nil)
       (forward-line arg)))
 
 ;;;###mh-autoload

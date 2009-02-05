@@ -198,6 +198,13 @@ enum event_kind
      first, so this is not a problem there.  */
   , MULTIMEDIA_KEY_EVENT
 #endif
+
+#ifdef HAVE_NS
+  /* Generated when native multi-keystroke input method is used to modify
+     tentative or indicative text display. */
+  , NS_TEXT_EVENT
+#endif
+
 };
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT

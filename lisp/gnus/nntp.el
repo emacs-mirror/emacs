@@ -1179,14 +1179,18 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
+	 (auth-info 
+	  (auth-source-user-or-password '("login" "password") nntp-address "nntp"))
+	 (auth-user (nth 0 auth-info))
+	 (auth-passwd (nth 1 auth-info))
 	 (user (or
 		;; this is preferred to netrc-*
-		(auth-source-user-or-password "login" nntp-address "nntp")
+		auth-user
 		(netrc-get alist "login")
 		nntp-authinfo-user))
 	 (passwd (or
 		  ;; this is preferred to netrc-*
-		  (auth-source-user-or-password "password" nntp-address "nntp")
+		  auth-passwd
 		  (netrc-get alist "password"))))
     (when (or (not send-if-force)
 	      force)

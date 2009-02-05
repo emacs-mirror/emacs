@@ -53,7 +53,7 @@ Should take the same arguments and behave similarly to `forward-sexp'.")
 With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (if forward-sexp-function
       (funcall forward-sexp-function arg)
@@ -65,7 +65,7 @@ This command assumes point is not in a string or comment."
 With ARG, do it that many times.  Negative arg -N means
 move forward across N balanced expressions.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
 
@@ -100,7 +100,7 @@ This command assumes point is not in a string or comment."
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
 
@@ -109,7 +109,7 @@ This command assumes point is not in a string or comment."
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (forward-list (- arg)))
 
@@ -118,7 +118,7 @@ This command assumes point is not in a string or comment."
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
     (while (/= arg 0)
@@ -130,7 +130,7 @@ This command assumes point is not in a string or comment."
 With ARG, do this that many times.
 A negative argument means move forward but still to a less deep spot.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (up-list (- (or arg 1))))
 
 (defun up-list (&optional arg)
@@ -138,7 +138,7 @@ This command assumes point is not in a string or comment."
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
     (while (/= arg 0)
@@ -213,7 +213,7 @@ defun's beginning.
 Regardless of the values of `defun-prompt-regexp' and
 `beginning-of-defun-function', point always moves to the
 beginning of the line whenever the search is successful."
-  (interactive "p")
+  (interactive "^p")
   (or (not (eq this-command 'beginning-of-defun))
       (eq last-command 'beginning-of-defun)
       (and transient-mark-mode mark-active)
@@ -229,7 +229,7 @@ is non-nil.
 
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
-  (interactive "p")   ; change this to "P", maybe, if we ever come to pass ARG
+  (interactive "^p")   ; change this to "P", maybe, if we ever come to pass ARG
                       ; to beginning-of-defun-function.
   (unless arg (setq arg 1))
   (cond
@@ -335,14 +335,15 @@ matches the open-parenthesis that starts a defun; see function
 
 If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
-  (interactive "p")
+  (interactive "^p")
   (or (not (eq this-command 'end-of-defun))
       (eq last-command 'end-of-defun)
       (and transient-mark-mode mark-active)
       (push-mark))
   (if (or (null arg) (= arg 0)) (setq arg 1))
   (while (> arg 0)
-    (let ((pos (point)))
+    (let ((pos (point))
+	  retry-point)
       (end-of-line 1)
       (beginning-of-defun-raw 1)
       (while (unless (eobp)
@@ -350,28 +351,37 @@ is called as a function to find the defun's end."
                (skip-chars-forward " \t")
                (if (looking-at "\\s<\\|\n")
                    (forward-line 1))
-               ;; If we started after the end of the previous function, then
-               ;; try again with the next one.
-               (when (<= (point) pos)
-                 (or (bobp) (forward-char -1))
-                 (beginning-of-defun-raw -1)
-                 'try-again))))
+               ;; If we started after the end of the previous
+               ;; function, try again with the next one.
+               (unless (or (> (point) pos)
+			   (eq (point) retry-point))
+		 (or (bobp) (forward-char -1))
+		 (beginning-of-defun-raw -1)
+		 (setq retry-point (point)))))
+      ;; Ensure that we move forward.
+      (when (< (point) pos)
+	(goto-char pos)))
     (setq arg (1- arg)))
   (while (< arg 0)
     (let ((pos (point)))
       (while (unless (bobp)
                (beginning-of-line 1)
                (beginning-of-defun-raw 1)
-               (let ((beg (point)))
+               (let ((beg (point))
+		     retry-point)
                  (funcall end-of-defun-function)
                  (skip-chars-forward " \t")
                  (if (looking-at "\\s<\\|\n")
                      (forward-line 1))
-                 ;; If we started from within the function just found, then
+                 ;; If we started from within the function just found,
                  ;; try again with the previous one.
-                 (when (>= (point) pos)
+                 (unless (or (< (point) pos)
+			     (eq (point) retry-point))
                    (goto-char beg)
-                   'try-again)))))
+                   (setq retry-point (point))))))
+      ;; Ensure that we move backward.
+      (when (> (point) pos)
+	(goto-char pos)))
     (setq arg (1+ arg))))
 
 (defun mark-defun (&optional allow-extend)

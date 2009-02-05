@@ -69,20 +69,6 @@ int term_trace_num = 0;
 
    ========================================================================== */
 
-/* Special keycodes that we pass down the event chain */
-#define KEY_NS_POWER_OFF               ((1<<28)|(0<<16)|1)
-#define KEY_NS_OPEN_FILE               ((1<<28)|(0<<16)|2)
-#define KEY_NS_OPEN_TEMP_FILE          ((1<<28)|(0<<16)|3)
-#define KEY_NS_DRAG_FILE               ((1<<28)|(0<<16)|4)
-#define KEY_NS_DRAG_COLOR              ((1<<28)|(0<<16)|5)
-#define KEY_NS_DRAG_TEXT               ((1<<28)|(0<<16)|6)
-#define KEY_NS_CHANGE_FONT             ((1<<28)|(0<<16)|7)
-#define KEY_NS_OPEN_FILE_LINE          ((1<<28)|(0<<16)|8)
-#define KEY_NS_INSERT_WORKING_TEXT     ((1<<28)|(0<<16)|9)
-#define KEY_NS_DELETE_WORKING_TEXT     ((1<<28)|(0<<16)|10)
-#define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
-#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
-
 /* Convert a symbol indexed with an NSxxx value to a value as defined
    in keyboard.c (lispy_function_key). I hope this is a correct way
    of doing things... */
@@ -151,9 +137,17 @@ extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
 EmacsPrefsController *prefsController;
 
-/* Defaults managed through the OpenStep defaults system.  These pertain to
-   the NS interface specifically.  Although a customization group could be
-   created, it's more natural to manage them via defaults. */
+/* Preferences equivalent to those set by X resources under X are managed
+   through the OpenStep defaults system.  These pertain to behavior of the
+   graphical interface components.  The one difference from X is that the
+   values below are SET when the user chooses save-options. This makes
+   things easier for users, but sometimes violates expectations when some
+   user-set options appear when running under -q/Q.  Therefore we depart
+   from X behavior and refuse to read defaults when started under these
+   options. */
+
+/* Set in emacs.c. */
+char ns_no_defaults;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
@@ -192,6 +186,8 @@ Lisp_Object ns_use_qd_smoothing;
 Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
+/* Confirm on exit. */
+Lisp_Object ns_confirm_quit;
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 
@@ -552,7 +548,7 @@ static void
 ns_update_begin (struct frame *f)
 /* --------------------------------------------------------------------------
    Prepare for a grouped sequence of drawing calls
-   23: external (RIF) call; now split w/ and called before update_window_begin
+   external (RIF) call; whole frame, called before update_window_begin
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
@@ -571,7 +567,7 @@ static void
 ns_update_window_begin (struct window *w)
 /* --------------------------------------------------------------------------
    Prepare for a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called after update_begin
+   external (RIF) call; for one window, called after update_begin
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -605,7 +601,7 @@ ns_update_window_end (struct window *w, int cursor_on_p,
                       int mouse_face_overwritten_p)
 /* --------------------------------------------------------------------------
    Finished a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called before update_window_end
+   external (RIF) call; for one window called before update_end
    -------------------------------------------------------------------------- */
 {
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (XFRAME (w->frame));
@@ -644,7 +640,7 @@ static void
 ns_update_end (struct frame *f)
 /* --------------------------------------------------------------------------
    Finished a grouped sequence of drawing calls
-   23: external (RIF) call; now split with and called after update_window_end
+   external (RIF) call; for whole frame, called after update_window_end
    -------------------------------------------------------------------------- */
 {
   NSView *view = FRAME_NS_VIEW (f);
@@ -673,7 +669,7 @@ ns_update_end (struct frame *f)
 static void
 ns_flush (struct frame *f)
 /* --------------------------------------------------------------------------
-   23: external (RIF) call
+   external (RIF) call
    NS impl is no-op since currently we flush in ns_update_end and elsewhere
    -------------------------------------------------------------------------- */
 {
@@ -746,7 +742,7 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 #endif
 
-  /*23: clipping */
+  /* clipping */
   if (r)
     {
       [[NSGraphicsContext currentContext] saveGraphicsState];
@@ -789,7 +785,7 @@ ns_unfocus (struct frame *f)
 static void
 ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 /* --------------------------------------------------------------------------
-     23: Internal (but parallels other terms): Focus drawing on given row
+     Internal (but parallels other terms): Focus drawing on given row
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -1376,9 +1372,9 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
-  /* 23: FIXME: emacs seems to downcase everything before passing it here,
-      which we can work around, except for GRAY, since gray##, where ## is
-      decimal between 0 and 99, is also an X11 colorname. */
+  /*  FIXME: emacs seems to downcase everything before passing it here,
+        which we can work around, except for GRAY, since gray##, where ## is
+        decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
@@ -1586,11 +1582,33 @@ ns_color_to_lisp (NSColor *col)
 }
 
 
+void
+ns_query_color(void *col, XColor *color_def, int setPixel)
+/* --------------------------------------------------------------------------
+         Get ARGB values out of NSColor col and put them into color_def.
+         If setPixel, set the pixel to a concatenated version.
+         and set color_def pixel to the resulting index.
+   -------------------------------------------------------------------------- */
+{
+  float r, g, b, a;
+
+  [((NSColor *)col) getRed: &r green: &g blue: &b alpha: &a];
+  color_def->red   = r * 65535;
+  color_def->green = g * 65535;
+  color_def->blue  = b * 65535;
+
+  if (setPixel == YES)
+    color_def->pixel
+      = ARGB_TO_ULONG((int)(a*255),
+		      (int)(r*255), (int)(g*255), (int)(b*255));
+}
+
+
 int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
                   char makeIndex)
 /* --------------------------------------------------------------------------
-   23:   Return 1 if named color found, and set color_def rgb accordingly.
+         Return 1 if named color found, and set color_def rgb accordingly.
          If makeIndex and alloc are nonzero put the color in the color_table,
          and set color_def pixel to the resulting index.
          If makeIndex is zero, set color_def pixel to ARGB.
@@ -1598,7 +1616,6 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
    -------------------------------------------------------------------------- */
 {
   NSColor *temp;
-  float r, g, b, a;
   int notFound = ns_get_color (name, &temp);
 
   NSTRACE (ns_defined_color);
@@ -1609,15 +1626,7 @@ ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
   if (makeIndex && alloc)
       color_def->pixel = ns_index_color(temp, f); /* [temp retain]; */
 
-  [temp getRed: &r green: &g blue: &b alpha: &a];
-  color_def->red   = r * 65535;
-  color_def->green = g * 65535;
-  color_def->blue  = b * 65535;
-
-  if (!makeIndex)
-    color_def->pixel
-      = ARGB_TO_ULONG((int)(a*255),
-		      (int)(r*255), (int)(g*255), (int)(b*255));
+  ns_query_color (temp, color_def, !makeIndex);
 
   return 1;
 }
@@ -1985,7 +1994,7 @@ ns_clear_frame (struct frame *f)
 void
 ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 /* --------------------------------------------------------------------------
-   23: External (RIF):  Clear section of frame
+    External (RIF):  Clear section of frame
    -------------------------------------------------------------------------- */
 {
   NSRect r = NSMakeRect (x, y, width, height);
@@ -2038,7 +2047,7 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 static void
 ns_scroll_run (struct window *w, struct run *run)
 /* --------------------------------------------------------------------------
-   23: External (RIF):  Insert or delete n lines at line vpos
+    External (RIF):  Insert or delete n lines at line vpos
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (w->frame);
@@ -2101,7 +2110,7 @@ ns_scroll_run (struct window *w, struct run *run)
 static void
 ns_after_update_window_line (struct glyph_row *desired_row)
 /* --------------------------------------------------------------------------
-   23: External (RIF): preparatory to fringe update after text was updated
+    External (RIF): preparatory to fringe update after text was updated
    -------------------------------------------------------------------------- */
 {
   struct window *w = updated_window;
@@ -2156,7 +2165,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
                            int x, int y, int width, int height,
                            int shift_by)
 /* --------------------------------------------------------------------------
-   23: External (RIF): copy an area horizontally, don't worry about clearing src
+    External (RIF): copy an area horizontally, don't worry about clearing src
    -------------------------------------------------------------------------- */
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
@@ -2182,7 +2191,7 @@ ns_shift_glyphs_for_insert (struct frame *f,
 static inline void
 ns_compute_glyph_string_overhangs (struct glyph_string *s)
 /* --------------------------------------------------------------------------
-   23:  External (RIF); compute left/right overhang of whole string and set in s
+     External (RIF); compute left/right overhang of whole string and set in s
    -------------------------------------------------------------------------- */
 {
   struct face *face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
@@ -2223,7 +2232,7 @@ static void
 ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
                       struct draw_fringe_bitmap_params *p)
 /* --------------------------------------------------------------------------
-   23: External (RIF); fringe-related
+    External (RIF); fringe-related
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -2876,10 +2885,66 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
       r.size.width = s->slice.width + 2*th-1;
       r.size.height = s->slice.height + 2*th-1;
       ns_draw_relief (r, th, raised_p,
-                     s->slice.y == 0,
-                     s->slice.y + s->slice.height == s->img->height,
-                     s->slice.x == 0,
-                     s->slice.x + s->slice.width == s->img->width, s);
+                      s->slice.y == 0,
+                      s->slice.y + s->slice.height == s->img->height,
+                      s->slice.x == 0,
+                      s->slice.x + s->slice.width == s->img->width, s);
+    }
+}
+
+
+static void
+ns_dumpglyphs_stretch (struct glyph_string *s)
+{
+  NSRect r[2];
+  int n, i;
+
+  if (!s->background_filled_p)
+    {
+      n = ns_get_glyph_string_clip_rect (s, r);
+      *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
+
+      for (i=0; i<n; i++)
+        {
+          if (!s->row->full_width_p)
+            {
+              /* truncate to avoid overwriting fringe and/or scrollbar */
+              int overrun = max (0, (s->x + s->background_width)
+                                  - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
+                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
+              r[i].size.width -= overrun;
+
+              /* XXX: Try to work between problem where a stretch glyph on
+                 a partially-visible bottom row will clear part of the
+                 modeline, and another where list-buffers headers and similar
+                 rows erroneously have visible_height set to 0.  Not sure
+                 where this is coming from as other terms seem not to show. */
+              r[i].size.height = min (s->height, s->row->visible_height);
+            }
+
+          /* expand full-width rows over internal borders */
+          else
+            {
+              r[i] = ns_fix_rect_ibw (r[i], FRAME_INTERNAL_BORDER_WIDTH (s->f),
+                                      FRAME_PIXEL_WIDTH (s->f));
+            }
+
+          /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
+             overwriting cursor (usually when cursor on a tab) */
+          if (s->hl == DRAW_CURSOR)
+            {
+              r[i].origin.x += s->width;
+              r[i].size.width -= s->width;
+            }
+        }
+
+      ns_focus (s->f, r, n);
+      [ns_lookup_indexed_color (NS_FACE_BACKGROUND
+           (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
+      NSRectFill (r[0]);
+      NSRectFill (r[1]);
+      ns_unfocus (s->f);
+      s->background_filled_p = 1;
     }
 }
 
@@ -2907,10 +2972,17 @@ ns_draw_glyph_string (struct glyph_string *s)
 	   width += next->width, next = next->next)
 	if (next->first_glyph->type != IMAGE_GLYPH)
           {
-            n = ns_get_glyph_string_clip_rect (s->next, r);
-            ns_focus (s->f, r, n);
-            ns_maybe_dumpglyphs_background (s->next, 1);
-            ns_unfocus (s->f);
+            if (next->first_glyph->type != STRETCH_GLYPH)
+              {
+                n = ns_get_glyph_string_clip_rect (s->next, r);
+                ns_focus (s->f, r, n);
+                ns_maybe_dumpglyphs_background (s->next, 1);
+                ns_unfocus (s->f);
+              }
+            else
+              {
+                ns_dumpglyphs_stretch (s->next);
+              }
             next->num_clips = 0;
           }
     }
@@ -2938,48 +3010,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     case STRETCH_GLYPH:
-      if (!s->background_filled_p)
-        {
-          *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
-
-          if (!s->row->full_width_p)
-            {
-              /* truncate to avoid overwriting fringe and/or scrollbar */
-              int overrun = max (0, (s->x + s->background_width)
-                                 - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
-              r[0].size.width -= overrun;
-
-              /* XXX: Try to work between problem where a stretch glyph on
-                  a partially-visible bottom row will clear part of the
-                  modeline, and another where list-buffers headers and similar
-                  rows erroneously have visible_height set to 0.  Not sure
-                  where this is coming from as other terms seem not to show. */
-              r[0].size.height = min (s->height, s->row->visible_height);
-            }
-
-          /* expand full-width rows over internal borders */
-          else
-            {
-              r[0] = ns_fix_rect_ibw (r[0], FRAME_INTERNAL_BORDER_WIDTH (s->f),
-                                     FRAME_PIXEL_WIDTH (s->f));
-            }
-
-          /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
-             overwriting cursor (usually when cursor on a tab) */
-          if (s->hl == DRAW_CURSOR)
-            {
-              r[0].origin.x += s->width;
-              r[0].size.width -= s->width;
-            }
-
-          ns_focus (s->f, r, 1);
-          [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-               (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
-          NSRectFill (r[0]);
-          ns_unfocus (s->f);
-          s->background_filled_p = 1;
-        }
+      ns_dumpglyphs_stretch (s);
       break;
 
     case CHAR_GLYPH:
@@ -3094,28 +3125,30 @@ ns_read_socket (struct terminal *terminal, int expected,
 /* --------------------------------------------------------------------------
      External (hook): Post an event to ourself and keep reading events until
      we read it back again.  In effect process all events which were waiting.
-   23: Now we have to manage the event buffer ourselves.
+     From 21+ we have to manage the event buffer ourselves.
    -------------------------------------------------------------------------- */
 {
   struct input_event ev;
   int nevents;
   static NSDate *lastCheck = nil;
-/*  NSTRACE (ns_read_socket); */
+
+/* NSTRACE (ns_read_socket); */
 
   if (interrupt_input_blocked)
     {
       interrupt_input_pending = 1;
+#ifdef SYNC_INPUT
+      pending_signals = 1;
+#endif
       return -1;
     }
 
   interrupt_input_pending = 0;
-  BLOCK_INPUT;
-
-#ifdef COCOA_EXPERIMENTAL_CTRL_G
-  /* causes Feval to abort; unclear on why this isn't in calling code */
-  ++handling_signal;
+#ifdef SYNC_INPUT
+  pending_signals = pending_atimers;
 #endif
 
+  BLOCK_INPUT;
   n_emacs_events_pending = 0;
   EVENT_INIT (ev);
   emacs_event = &ev;
@@ -3148,15 +3181,15 @@ ns_read_socket (struct terminal *terminal, int expected,
          to ourself, otherwise [NXApp run] will never exit.  */
       send_appdefined = YES;
 
-      /* TODO: from termhooks.h: */
-      /* XXX Please note that a non-zero value of EXPECTED only means that
-     there is available input on at least one of the currently opened
-     terminal devices -- but not necessarily on this device.
-     Therefore, in most cases EXPECTED should be simply ignored. */
-      /* However, if in ns_select, this is called from gobble_input, which
-         appears to set it correctly for our purposes, and always assuming
-         !expected causes 100% CPU usage. */
-      if (!inNsSelect || !expected)
+      /* If called via ns_select, this is called once with expected=1,
+         because we expect either the timeout or file descriptor activity.
+         In this case the first event through will either be real input or
+         one of these.  read_avail_input() then calls once more with expected=0
+         and in that case we need to return quickly if there is nothing.
+         If we're being called outside of that, it's also OK to return quickly
+         after one iteration through the event loop, since other terms do
+         this and emacs expects it. */
+      if (!(inNsSelect && expected))  // (!inNsSelect || !expected)
         {
           /* Post an application defined event on the event queue.  When this is
              received the [NXApp run] will return, thus having processed all
@@ -3170,11 +3203,8 @@ ns_read_socket (struct terminal *terminal, int expected,
   nevents = n_emacs_events_pending;
   n_emacs_events_pending = 0;
   emacs_event = q_event_ptr = NULL;
-
-#ifdef COCOA_EXPERIMENTAL_CTRL_G
-  --handling_signal;
-#endif
   UNBLOCK_INPUT;
+
   return nevents;
 }
 
@@ -3234,9 +3264,13 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
                retain];
 
   /* Let Application dispatch events until it receives an event of the type
-       NX_APPDEFINED, which should only be sent by timeout_handler.  */
+     NX_APPDEFINED, which should only be sent by timeout_handler.
+     We tell read_avail_input() that input is "expected" because we do expect
+     either the timeout or fd handler to fire, and if they don't, the original
+     call from process.c that got us here expects us to wait until some input
+     comes. */
   inNsSelect = 1;
-  gobble_input (timeout ? 1 : 0);
+  gobble_input (1);
   ev = last_appdefined_event;
   inNsSelect = 0;
 
@@ -3445,17 +3479,10 @@ ns_judge_scroll_bars (struct frame *f)
 }
 
 
-
-/* ==========================================================================
-
-    Miscellaneous, mainly stubbed-out functions added in 23
-
-   ========================================================================== */
-
-
 void
 x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 {
+  /* XXX irrelevant under NS */
 }
 
 
@@ -3540,6 +3567,7 @@ ns_set_default_prefs ()
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
   ns_use_qd_smoothing = Qnil;
   ns_use_system_highlight_color = Qt;
+  ns_confirm_quit = Qnil;
 }
 
 
@@ -3614,8 +3642,7 @@ ns_initialize_display_info (struct ns_display_info *dpyinfo)
 }
 
 
-/* 23: Needed as new part of display engine; this and next define public
-      functions in this file (well, many of them, anyway). */
+/* This and next define (many of the) public functions in this file. */
 /* x_... are generic versions in xdisp.c that we, and other terms, get away
          with using despite presence in the "system dependent" redisplay
          interface.  In addition, many of the ns_ methods have code that is
@@ -3624,28 +3651,28 @@ extern frame_parm_handler ns_frame_parm_handlers[];
 static struct redisplay_interface ns_redisplay_interface =
 {
   ns_frame_parm_handlers,
-  x_produce_glyphs, /*generic OK */
-  x_write_glyphs, /*generic OK */
-  x_insert_glyphs, /*generic OK */
-  x_clear_end_of_line, /*generic OK */
-  ns_scroll_run, /*23 */
-  ns_after_update_window_line, /*23: added */
-  ns_update_window_begin, /*23: split from update_begin */
-  ns_update_window_end, /*23: split from update_end */
-  x_cursor_to, /*generic OK */
+  x_produce_glyphs,
+  x_write_glyphs,
+  x_insert_glyphs,
+  x_clear_end_of_line,
+  ns_scroll_run,
+  ns_after_update_window_line,
+  ns_update_window_begin,
+  ns_update_window_end,
+  x_cursor_to,
   ns_flush,
   0, /* flush_display_optional */
-  x_clear_window_mouse_face, /*generic OK */
-  x_get_glyph_overhangs, /*23: generic OK */
-  x_fix_overlapping_area, /*generic OK */
-  ns_draw_fringe_bitmap, /*23 */
+  x_clear_window_mouse_face,
+  x_get_glyph_overhangs,
+  x_fix_overlapping_area,
+  ns_draw_fringe_bitmap,
   0, /* define_fringe_bitmap */ /* FIXME: simplify ns_draw_fringe_bitmap */
   0, /* destroy_fringe_bitmap */
-  ns_compute_glyph_string_overhangs, /*23 */
-  ns_draw_glyph_string, /*23: interface to nsfont.m */
-  ns_define_frame_cursor, /*23 */
-  ns_clear_frame_area, /*23 */
-  ns_draw_window_cursor, /*23: revamped ns_dumpcursor */
+  ns_compute_glyph_string_overhangs,
+  ns_draw_glyph_string, /* interface to nsfont.m */
+  ns_define_frame_cursor,
+  ns_clear_frame_area,
+  ns_draw_window_cursor,
   ns_draw_vertical_window_border,
   ns_shift_glyphs_for_insert
 };
@@ -3697,21 +3724,21 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->rif = &ns_redisplay_interface;
 
   terminal->clear_frame_hook = ns_clear_frame;
-  terminal->ins_del_lines_hook = 0; /* 23: vestigial? */
-  terminal->delete_glyphs_hook = 0; /* 23: vestigial? */
+  terminal->ins_del_lines_hook = 0; /* XXX vestigial? */
+  terminal->delete_glyphs_hook = 0; /* XXX vestigial? */
   terminal->ring_bell_hook = ns_ring_bell;
   terminal->reset_terminal_modes_hook = ns_reset_terminal_modes;
   terminal->set_terminal_modes_hook = ns_set_terminal_modes;
   terminal->update_begin_hook = ns_update_begin;
   terminal->update_end_hook = ns_update_end;
-  terminal->set_terminal_window_hook = NULL; /* 23: vestigial? */
+  terminal->set_terminal_window_hook = NULL; /* XXX vestigial? */
   terminal->read_socket_hook = ns_read_socket;
   terminal->frame_up_to_date_hook = ns_frame_up_to_date;
   terminal->mouse_position_hook = ns_mouse_position;
   terminal->frame_rehighlight_hook = ns_frame_rehighlight;
   terminal->frame_raise_lower_hook = ns_frame_raise_lower;
 
-  terminal->fullscreen_hook = 0; /*XTfullscreen_hook;//23.50 */
+  terminal->fullscreen_hook = 0; /* see XTfullscreen_hook */
 
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
@@ -3731,25 +3758,12 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
 }
 
 
-void
-ns_initialize ()
-/* --------------------------------------------------------------------------
-   Mainly vestigial under NS now that ns_create_terminal () does most things.
-   -------------------------------------------------------------------------- */
-{
-  baud_rate = 38400;
-  Fset_input_interrupt_mode (Qt);
-}
-
-
 struct ns_display_info *
 ns_term_init (Lisp_Object display_name)
 /* --------------------------------------------------------------------------
      Start the Application and get things rolling.
    -------------------------------------------------------------------------- */
 {
-  extern Lisp_Object Fset_input_mode (Lisp_Object, Lisp_Object,
-                                     Lisp_Object, Lisp_Object);
   struct terminal *terminal;
   struct ns_display_info *dpyinfo;
   static int ns_initialized = 0;
@@ -3764,7 +3778,8 @@ ns_term_init (Lisp_Object display_name)
 
   if (!ns_initialized)
     {
-      ns_initialize ();
+      baud_rate = 38400;
+      Fset_input_interrupt_mode (Qnil);
       ns_initialized = 1;
     }
 
@@ -3809,9 +3824,6 @@ ns_term_init (Lisp_Object display_name)
   /* Put it on ns_display_name_list */
   ns_display_name_list = Fcons (Fcons (display_name, Qnil),
                                 ns_display_name_list);
-/*      ns_display_name_list = Fcons (Fcons (display_name,
-                                           Fcons (Qnil, dpyinfo->xrdb)),
-                                    ns_display_name_list); */
   dpyinfo->name_list_element = XCAR (ns_display_name_list);
 
   /* Set the name of the terminal. */
@@ -3823,34 +3835,40 @@ ns_term_init (Lisp_Object display_name)
 
   /* Read various user defaults. */
   ns_set_default_prefs ();
-  ns_default ("AlternateModifier", &ns_alternate_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_alternate_modifier))
-    ns_alternate_modifier = Qmeta;
-  ns_default ("CommandModifier", &ns_command_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_command_modifier))
-    ns_command_modifier = Qsuper;
-  ns_default ("ControlModifier", &ns_control_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_control_modifier))
-    ns_control_modifier = Qcontrol;
-  ns_default ("FunctionModifier", &ns_function_modifier,
-             Qnil, Qnil, NO, YES);
-  if (NILP (ns_function_modifier))
-    ns_function_modifier = Qnone;
-  ns_default ("ExpandSpace", &ns_expand_space,
-             make_float (0.5), make_float (0.0), YES, NO);
-  ns_default ("GSFontAntiAlias", &ns_antialias_text,
-             Qt, Qnil, NO, NO);
-  tmp = Qnil;
-  ns_default ("AppleAntiAliasingThreshold", &tmp,
-             make_float (10.0), make_float (6.0), YES, NO);
-  ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
-  ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
-             Qt, Qnil, NO, NO);
-  ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
-             Qt, Qnil, NO, NO);
+  if (!ns_no_defaults)
+    {
+      ns_default ("AlternateModifier", &ns_alternate_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_alternate_modifier))
+        ns_alternate_modifier = Qmeta;
+      ns_default ("CommandModifier", &ns_command_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_command_modifier))
+        ns_command_modifier = Qsuper;
+      ns_default ("ControlModifier", &ns_control_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_control_modifier))
+        ns_control_modifier = Qcontrol;
+      ns_default ("FunctionModifier", &ns_function_modifier,
+                 Qnil, Qnil, NO, YES);
+      if (NILP (ns_function_modifier))
+        ns_function_modifier = Qnone;
+      ns_default ("ExpandSpace", &ns_expand_space,
+                 make_float (0.5), make_float (0.0), YES, NO);
+      ns_default ("GSFontAntiAlias", &ns_antialias_text,
+                 Qt, Qnil, NO, NO);
+      tmp = Qnil;
+      ns_default ("AppleAntiAliasingThreshold", &tmp,
+                 make_float (10.0), make_float (6.0), YES, NO);
+      ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
+      ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
+                 Qt, Qnil, NO, NO);
+      ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
+                 Qt, Qnil, NO, NO);
+      ns_default ("ConfirmQuit", &ns_confirm_quit,
+                 Qt, Qnil, NO, NO);
+    }
+
   if (EQ (ns_use_system_highlight_color, Qt))
     {
       ns_selection_color = [[NSUserDefaults standardUserDefaults]
@@ -4025,7 +4043,7 @@ ns_term_shutdown (int sig)
   int type = [theEvent type];
   NSWindow *window = [theEvent window];
 /*  NSTRACE (sendEvent); */
-/*fprintf (stderr, "received event of type %d\n", [theEvent type]); */
+/*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
   if (type == NSCursorUpdate && window == nil)
     {
@@ -4130,37 +4148,79 @@ ns_term_shutdown (int sig)
 }
 
 
+/* Termination sequences (ns_shutdown_properly):
+    C-x C-c:
+    Cmd-Q:
+    MenuBar | File | Exit:
+        ns_term_shutdown: 0
+        -terminate: 1
+        -appShouldTerminate: 1
+
+    Select Quit from App menubar:
+        received -terminate: 0
+        ns_term_shutdown: 0
+        -terminate: 1
+        -appShouldTerminate: 1
+
+    Select Quit from Dock menu:
+    Logout attempt:
+        -appShouldTerminate: 0
+          Cancel -> Nothing else
+          Accept ->
+            -terminate: 0
+            ns_term_shutdown: 0
+            -terminate: 1
+            -appShouldTerminate: 1
+*/
+
 - (void) terminate: (id)sender
 {
-  BLOCK_INPUT;
   if (ns_shutdown_properly)
     [super terminate: sender];
   else
     {
-/*    Fkill_emacs (Qnil); */
+      struct frame *emacsframe = SELECTED_FRAME ();
+
+      if (!emacs_event)
+        return;
+
       ns_shutdown_properly = YES;
-      Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
+      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->code = KEY_NS_POWER_OFF;
+      EV_TRAILER ((id)nil);
     }
-  UNBLOCK_INPUT;
 }
 
 
 - (NSApplicationTerminateReply)applicationShouldTerminate: (id)sender
 {
-  if (ns_shutdown_properly)
+  int ret;
+
+  if (ns_shutdown_properly || NILP (ns_confirm_quit))
     return NSTerminateNow;
 
-  Lisp_Object contents = list3 (build_string ("Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"),
-      Fcons (build_string ("Cancel"), Qnil),
-      Fcons (build_string ("Save and Exit"), Qt));
-  Lisp_Object res = ns_popup_dialog (Qt, contents, Qnil);
-fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
-  if (EQ (res, Qt))
-    {
-      Feval (Fcons (intern ("save-buffers-kill-emacs"), Qnil));
-      return NSTerminateNow;
-    }
-  return NSTerminateCancel;
+  /* XXX: This while() loop is needed because if the user switches to another
+          application while the panel is up, it is taken down w/a return value
+          of NSRunStoppedResponse, and the event queue gets messed up.
+          In this case resend the appdefined and put up the window again. */
+  while (1) {
+    ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
+                          [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
+                          @"Save Buffers and Exit", @"Cancel", nil);
+
+    if (ret == NSAlertDefaultReturn)
+      {
+        send_appdefined = YES;
+        ns_send_appdefined(-1);
+        return NSTerminateNow;
+      }
+    else if (ret == NSAlertAlternateReturn)
+      {
+        send_appdefined = YES;
+        ns_send_appdefined(-1);
+        return NSTerminateCancel;
+      }
+  }
 }
 
 
@@ -4213,11 +4273,17 @@ fprintf (stderr, "res = %d\n", EQ (res, Qt)); /* FIXME */
 
 
 /* TODO: these may help w/IO switching btwn terminal and NSApp */
+- (void)applicationWillBecomeActive: (NSNotification *)notification
+{
+  //ns_app_active=YES;
+}
 - (void)applicationDidBecomeActive: (NSNotification *)notification
 {
+  //ns_app_active=YES;
 }
 - (void)applicationDidResignActive: (NSNotification *)notification
 {
+  //ns_app_active=NO;
   ns_send_appdefined (-1);
 }
 
@@ -4505,7 +4571,8 @@ extern void update_window_cursor (struct window *w, int on);
 
       if (flags & NSAlternateKeyMask) /* default = meta */
         {
-          if (EQ (ns_alternate_modifier, Qnone) && !fnKeysym)
+          if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
+              && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
                 code = [[theEvent characters] characterAtIndex: 0];
@@ -4582,7 +4649,9 @@ extern void update_window_cursor (struct window *w, int on);
 /* <NSTextInput> implementation (called through super interpretKeyEvents:]). */
 
 
-/* <NSTextInput>: called through when done composing */
+/* <NSTextInput>: called when done composing;
+   NOTE: also called when we delete over working text, followed immed.
+         by doCommandBySelector: deleteBackward: */
 - (void)insertText: (id)aString
 {
   int code;
@@ -4637,20 +4706,9 @@ extern void update_window_cursor (struct window *w, int on);
   workingText = [str copy];
   ns_working_text = build_string ([workingText UTF8String]);
 
-  /* if in "echo area", not true minibuffer, can't show chars in interactive
-     mode, so call using eval; otherwise we send a key event, which was the
-     original way this was done */
-  if (!EQ (Feval (Fcons (intern ("ns-in-echo-area"), Qnil)), Qnil))
-    {
-      Feval (Fcons (intern ("ns-echo-working-text"), Qnil));
-      ns_send_appdefined (-1);
-    }
-  else
-    {
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-      emacs_event->code = KEY_NS_INSERT_WORKING_TEXT;
-      EV_TRAILER ((id)nil);
-    }
+  emacs_event->kind = NS_TEXT_EVENT;
+  emacs_event->code = KEY_NS_PUT_WORKING_TEXT;
+  EV_TRAILER ((id)nil);
 }
 
 
@@ -4660,7 +4718,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (workingText == nil)
     return;
   if (NS_KEYLOG)
-    fprintf (stderr, "deleteWorkingText len =%d\n", [workingText length]);
+    NSLog(@"deleteWorkingText len =%d\n", [workingText length]);
   [workingText release];
   workingText = nil;
   processingCompose = NO;
@@ -4668,24 +4726,17 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return;
 
-  if (!EQ (Feval (Fcons (intern ("ns-in-echo-area"), Qnil)), Qnil))
-    {
-      Feval (Fcons (intern ("ns-unecho-working-text"), Qnil));
-      ns_send_appdefined (-1);
-    }
-  else
-    {
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-      emacs_event->code = KEY_NS_DELETE_WORKING_TEXT;
-      EV_TRAILER ((id)nil);
-    }
- }
+  emacs_event->kind = NS_TEXT_EVENT;
+  emacs_event->code = KEY_NS_UNPUT_WORKING_TEXT;
+  EV_TRAILER ((id)nil);
+}
 
 
 - (BOOL)hasMarkedText
 {
   return workingText != nil;
 }
+
 
 - (NSRange)markedRange
 {
@@ -4696,6 +4747,7 @@ extern void update_window_cursor (struct window *w, int on);
   return rng;
 }
 
+
 - (void)unmarkText
 {
   if (NS_KEYLOG)
@@ -4703,6 +4755,7 @@ extern void update_window_cursor (struct window *w, int on);
   [self deleteWorkingText];
   processingCompose = NO;
 }
+
 
 /* used to position char selection windows, etc. */
 - (NSRect)firstRectForCharacterRange: (NSRange)theRange
@@ -4725,12 +4778,12 @@ extern void update_window_cursor (struct window *w, int on);
   return rect;
 }
 
+
 - (NSInteger)conversationIdentifier
 {
   return (NSInteger)self;
 }
 
-/* TODO: below here not yet implemented correctly, but may not be needed */
 
 - (void)doCommandBySelector: (SEL)aSelector
 {
@@ -5048,13 +5101,6 @@ extern void update_window_cursor (struct window *w, int on);
     x_set_window_size (emacsframe, 0, cols, rows);
 
   ns_send_appdefined (-1);
-
-  /* The following line causes a crash on GNUstep.  Adrian Robert
-     says he doesn't remember why he added this line, but removing it
-     doesn't seem to cause problems on OSX, either.  */
-#if 0
-  [NSApp stopModal];
-#endif
 }
 
 
@@ -5368,7 +5414,7 @@ extern void update_window_cursor (struct window *w, int on);
     return self;
 
   /* send first event (for some reason two needed) */
-  theEvent =[[self window] currentEvent];
+  theEvent = [[self window] currentEvent];
   emacs_event->kind = TOOL_BAR_EVENT;
   XSETFRAME (emacs_event->arg, emacsframe);
   EV_TRAILER (theEvent);
@@ -5385,11 +5431,13 @@ extern void update_window_cursor (struct window *w, int on);
 
 - toggleToolbar: (id)sender
 {
-  Lisp_Object lispFrame;
-  XSETFRAME (lispFrame, emacsframe);
-  Feval (Fcons (intern ("ns-toggle-toolbar"), Fcons (lispFrame, Qnil)));
-  SET_FRAME_GARBAGED (emacsframe);
-  ns_send_appdefined (-1);
+  if (!emacs_event)
+    return self;
+
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_TOGGLE_TOOLBAR;
+  EV_TRAILER ((id)nil);
+  return self;
 }
 
 
@@ -5564,6 +5612,29 @@ extern void update_window_cursor (struct window *w, int on);
 
   return [super validRequestorForSendType: typeSent
                                returnType: typeReturned];
+}
+
+
+/* The next two methods are part of NSServicesRequests informal protocol,
+   supposedly called when a services menu item is chosen from this app.
+   But this should not happen because we override the services menu with our
+   own entries which call ns-perform-service.
+   Nonetheless, it appeared to happen here (under strange circumstances):
+   http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1435 
+   So let's at least stub them out until further investigation can be done. */
+
+- (BOOL) readSelectionFromPasteboard: (NSPasteboard *)pb
+{
+  /* we could call ns_string_from_pasteboard(pboard) here but then it should
+     be written into the buffer in place of the existing selection..
+     ordinary service calls go through functions defined in ns-win.el */
+  return NO;
+}
+
+- (BOOL) writeSelectionToPasteboard: (NSPasteboard *)pb types: (NSArray *)types
+{
+  /* supposed to write for as many of types as we are able */
+  return NO;
 }
 
 
@@ -6116,6 +6187,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
   [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
   [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
+  [confirmQuitCheck setState: (NILP (ns_confirm_quit) ? NO : YES)];
 #endif
 }
 
@@ -6173,6 +6245,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   ns_antialias_text = [smoothFontsCheck state] ? Qt : Qnil;
   ns_use_qd_smoothing = [useQuickdrawCheck state] ? Qt : Qnil;
   ns_use_system_highlight_color = [useSysHiliteCheck state] ? Qt : Qnil;
+  ns_confirm_quit = [confirmQuitCheck state] ? Qt : Qnil;
   if (! EQ (ns_use_system_highlight_color, prevUseHighlightColor))
     {
       prevUseHighlightColor = ns_use_system_highlight_color;
@@ -6213,11 +6286,13 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
 
 - (IBAction)runHelp: (id)sender
 {
-  Feval (Fcons (intern ("info"),
-                Fcons (build_string ("(emacs)Mac / GNUstep Customization"),
-                       Qnil)));
-  SET_FRAME_GARBAGED (frame);
-  ns_send_appdefined (-1);
+  struct frame *emacsframe = frame;
+  if (!emacs_event)
+    return;
+  ns_raise_frame(frame);
+  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->code = KEY_NS_INFO_PREFS;
+  EV_TRAILER ((id)nil);
 }
 
 
@@ -6419,13 +6494,16 @@ or shrunk (negative).  Zero (the default) means standard line height.\n\
                &ns_use_system_highlight_color,
                "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
 
+  DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
+               "Whether to confirm application quit using dialog.");
+
   staticpro (&ns_display_name_list);
   ns_display_name_list = Qnil;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  /*23: now apparently we need to tell emacs what modifiers there are.. */
+  /* from 23+ we need to tell emacs what modifiers there are.. */
   Qmodifier_value = intern ("modifier-value");
   Qalt = intern ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));

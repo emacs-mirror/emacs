@@ -91,6 +91,15 @@ volatile int interrupt_input_blocked;
    during the current critical section.  */
 int interrupt_input_pending;
 
+/* This var should be (interrupt_input_pending || pending_atimers).
+   The QUIT macro checks this instead of interrupt_input_pending and
+   pending_atimers separately, to reduce code size.  So, any code that
+   changes interrupt_input_pending or pending_atimers should update
+   this too.  */
+#ifdef SYNC_INPUT
+int pending_signals;
+#endif
+
 #define KBD_BUFFER_SIZE 4096
 
 KBOARD *initial_kboard;
@@ -2173,16 +2182,24 @@ struct atimer *poll_timer;
 
 #ifdef POLL_FOR_INPUT
 
-/* Poll for input, so what we catch a C-g if it comes in.  This
+/* Poll for input, so that we catch a C-g if it comes in.  This
    function is called from x_make_frame_visible, see comment
    there.  */
 
 void
 poll_for_input_1 ()
 {
+/* Tell ns_read_socket() it is being called asynchronously so it can avoid
+   doing anything dangerous. */
+#ifdef HAVE_NS
+  ++handling_signal;
+#endif
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
     read_avail_input (0);
+#ifdef HAVE_NS
+  --handling_signal;
+#endif
 }
 
 /* Timer callback function for poll_timer.  TIMER is equal to
@@ -2193,11 +2210,14 @@ poll_for_input (timer)
      struct atimer *timer;
 {
   if (poll_suppress_count == 0)
+    {
 #ifdef SYNC_INPUT
-    interrupt_input_pending = 1;
+      interrupt_input_pending = 1;
+      pending_signals = 1;
 #else
-    poll_for_input_1 ();
+      poll_for_input_1 ();
 #endif
+    }
 }
 
 #endif /* POLL_FOR_INPUT */
@@ -4112,6 +4132,17 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  abort ();
 #endif
 	}
+
+#if defined (HAVE_NS)
+      else if (event->kind == NS_TEXT_EVENT)
+        {
+          if (event->code == KEY_NS_PUT_WORKING_TEXT)
+            obj = Fcons (intern ("ns-put-working-text"), Qnil);
+          else
+            obj = Fcons (intern ("ns-unput-working-text"), Qnil);
+	  kbd_fetch_ptr = event + 1;
+        }
+#endif
 
 #if defined (HAVE_X11) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS)
@@ -7250,7 +7281,14 @@ void
 handle_async_input ()
 {
   interrupt_input_pending = 0;
-
+#ifdef SYNC_INPUT
+  pending_signals = pending_atimers;
+#endif
+/* Tell ns_read_socket() it is being called asynchronously so it can avoid
+   doing anything dangerous. */
+#ifdef HAVE_NS
+  ++handling_signal;
+#endif
   while (1)
     {
       int nread;
@@ -7261,6 +7299,17 @@ handle_async_input ()
       if (nread <= 0)
 	break;
     }
+#ifdef HAVE_NS
+  --handling_signal;
+#endif
+}
+
+void
+process_pending_signals ()
+{
+  if (interrupt_input_pending)
+    handle_async_input ();
+  do_pending_atimers ();
 }
 
 #ifdef SIGIO   /* for entire page */
@@ -7280,6 +7329,7 @@ input_available_signal (signo)
 
 #ifdef SYNC_INPUT
   interrupt_input_pending = 1;
+  pending_signals = 1;
 #else
   SIGNAL_THREAD_CHECK (signo);
 #endif
@@ -11090,8 +11140,17 @@ handle_interrupt ()
 	Vquit_flag = Qt;
     }
 
+/* TODO: The longjmp in this call throws the NS event loop integration off,
+         and it seems to do fine without this.  Probably some attention
+	 needs to be paid to the setting of waiting_for_input in
+         wait_reading_process_output() under HAVE_NS because of the call
+         to ns_select there (needed because otherwise events aren't picked up
+         outside of polling since we don't get SIGIO like X and we don't have a
+         separate event loop thread like W32. */
+#ifndef HAVE_NS
   if (waiting_for_input && !echoing)
       quit_throw_to_read_char ();
+#endif
 }
 
 /* Handle a C-g by making read_char return C-g.  */
@@ -11148,7 +11207,7 @@ See also `current-input-mode'.  */)
 #endif /* NO_SOCK_SIGIO */
     }
   else
-#endif
+#endif /* HAVE_X_WINDOWS */
     new_interrupt_input = !NILP (interrupt);
 #else /* not SIGIO */
   new_interrupt_input = 0;
@@ -11525,6 +11584,9 @@ init_keyboard ()
   input_pending = 0;
   interrupt_input_blocked = 0;
   interrupt_input_pending = 0;
+#ifdef SYNC_INPUT
+  pending_signals = 0;
+#endif
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
@@ -12382,6 +12444,10 @@ keys_of_keyboard ()
 
   initial_define_lispy_key (Vspecial_event_map, "delete-frame",
 			    "handle-delete-frame");
+  initial_define_lispy_key (Vspecial_event_map, "ns-put-working-text",
+			    "ns-put-working-text");
+  initial_define_lispy_key (Vspecial_event_map, "ns-unput-working-text",
+			    "ns-unput-working-text");
   /* Here we used to use `ignore-event' which would simple set prefix-arg to
      current-prefix-arg, as is done in `handle-switch-frame'.
      But `handle-switch-frame is not run from the special-map.

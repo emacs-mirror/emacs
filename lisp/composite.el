@@ -664,28 +664,45 @@ a prepending a space before it."
 	 (nchars (lgstring-char-len gstring))
 	 (nglyphs (lgstring-glyph-len gstring))
 	 (i 0)
+	 (coding (lgstring-font gstring))
 	 glyph)
     (while (and (< i nglyphs)
 		(setq glyph (lgstring-glyph gstring i)))
-      (if (= (lglyph-width glyph) 0)
+      (if (not (char-charset (lglyph-char glyph) coding))
 	  (progn
-	    ;; Compose by prepending a space.
-	    (setq gstring (lgstring-insert-glyph gstring i (lglyph-copy glyph))
-		  nglyphs (lgstring-glyph-len gstring))
-	    (lglyph-set-char (lgstring-glyph gstring i) 32)
-	    (setq i (+ 2)))
-	(let ((from (lglyph-from glyph))
-	      (to (lglyph-to glyph))
-	      (j (1+ i)))
-	  (while (and (< j nglyphs)
-		      (setq glyph (lgstring-glyph gstring j))
-		      (= (lglyph-width glyph) 0))
-	    (setq to (lglyph-to glyph)
-		  j (1+ j)))
-	  (while (< i j)
-	    (setq glyph (lgstring-glyph gstring i))
-	    (lglyph-set-from-to glyph from to)
-	    (setq i (1+ i))))))
+	    ;; As the terminal doesn't support this glyph, return a
+	    ;; gstring in which each glyph is its own graphme-cluster
+	    ;; of width 1..
+	    (setq i 0)
+	    (while (and (< i nglyphs)
+			(setq glyph (lgstring-glyph gstring i)))
+	      (if (< (lglyph-width glyph) 1)
+		  (lglyph-set-width glyph 1))
+	      (lglyph-set-from-to glyph i i)
+	      (setq i (1+ i))))
+	(if (= (lglyph-width glyph) 0)
+	    (progn
+	      ;; Compose by prepending a space.
+	      (setq gstring (lgstring-insert-glyph gstring i
+						   (lglyph-copy glyph))
+		    nglyphs (lgstring-glyph-len gstring))
+	      (setq glyph (lgstring-glyph gstring i))
+	      (lglyph-set-char glyph 32)
+	      (lglyph-set-width glyph 1)
+	      (setq i (+ 2)))
+	  (let ((from (lglyph-from glyph))
+		(to (lglyph-to glyph))
+		(j (1+ i)))
+	    (while (and (< j nglyphs)
+			(setq glyph (lgstring-glyph gstring j))
+			(char-charset (lglyph-char glyph) coding)
+			(= (lglyph-width glyph) 0))
+	      (setq to (lglyph-to glyph)
+		    j (1+ j)))
+	    (while (< i j)
+	      (setq glyph (lgstring-glyph gstring i))
+	      (lglyph-set-from-to glyph from to)
+	      (setq i (1+ i)))))))
     gstring))
 
 
@@ -709,7 +726,7 @@ This function is the default value of `auto-composition-function' (which see)."
   (let ((gstring (composition-get-gstring from to font-object string)))
     (if (lgstring-shaped-p gstring)
 	gstring
-      (or font-object
+      (or (fontp font-object 'font-object)
 	  (setq func 'compose-gstring-for-terminal))
       (funcall func gstring))))
 

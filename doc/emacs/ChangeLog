@@ -1,3 +1,33 @@
+2009-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Out of Rmail): Mention b2m.pl.
+
+2009-01-31  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Out of Rmail): Correct b2m location.
+
+2009-01-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fixit.texi (Undo): Update undo limit values.
+
+2009-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (Top): Fix Antinews menu entry.
+
+2009-01-25  Karl Berry  <karl@gnu.org>
+
+	* text.texi (Foldout): Use @itemize @w{} to make an itemize
+	item with no marker, instead of the syntactically incorrect
+	@itemize @asis.
+
+2009-01-25  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Grep Searching): Fix index entry for lgrep.
+
+2009-01-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Printing): Add an index entry for Ghostscript.
+
 2009-01-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* macos.texi (Preferences Panel): Update description of font setting to

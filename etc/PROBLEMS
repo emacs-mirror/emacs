@@ -7,8 +7,9 @@ See the end of the file for license conditions.
 
 
 This file describes various problems that have been encountered
-in compiling, installing and running GNU Emacs.  Try doing Ctl-C Ctl-t
-and browsing through the outline headers.
+in compiling, installing and running GNU Emacs.  Try doing C-c C-t
+and browsing through the outline headers.  (See C-h m for help on
+Outline mode.)
 
 * Mule-UCS doesn't work in Emacs 23.
 
@@ -235,7 +236,7 @@ http://bugzilla.gnome.org/show_bug.cgi?id=85715.
 
 ** Emacs compiled with Gtk+ may loop forever if a display crashes.
 
-This is related to the bug above.  A scenario for this is when emacs is run 
+This is related to the bug above.  A scenario for this is when emacs is run
 as a server, and an X frame is created.  If the X server for the frame
 crashes or exits unexpectedly and an attempt is made to create a new
 frame on another X display, then a Gtk+ error happens in the emacs
@@ -2128,6 +2129,23 @@ to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
 
+** PATH can contain unexpanded environment variables
+
+Old releases of TCC (version 9) and 4NT (up to version 8) do not correctly
+expand App Paths entries of type REG_EXPAND_SZ.  When Emacs is run from TCC
+and such an entry exists for emacs.exe, exec-path will contain the
+unexpanded entry.  This has been fixed in TCC 10.  For more information,
+see bug#2062.
+
+** Setting w32-pass-rwindow-to-system and w32-pass-lwindow-to-system to nil
+does not prevent the Start menu from popping up when the left or right
+``Windows'' key is pressed.
+
+This was reported to happen when XKeymacs is installed.  At least with
+XKeymacs Version 3.47, deactivating XKeymacs when Emacs is active is
+not enough to avoid its messing with the keyboard input.  Exiting
+XKeymacs completely is reported to solve the problem.
+
 ** Windows 95 and networking.
 
 To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
@@ -2586,9 +2604,24 @@ dynamically linked C library has all the functions, but there is a
 conflict between the versions of malloc in the DLL and in Emacs, which
 is not resolvable due to the way Windows does dynamic linking.
 
-We recommend the use of the MingW port of GCC for compiling Emacs, as
+We recommend the use of the MinGW port of GCC for compiling Emacs, as
 not only does it not suffer these problems, but it is also Free
 software like Emacs.
+
+*** Building the MS-Windows port with Visual Studio fails compiling emacs.rc
+
+If the build fails with the following message then the problem
+described here most likely applies:
+
+../nt/emacs.rc(1) : error RC2176 : old DIB in icons\emacs.ico; pass it
+through SDKPAINT
+
+The Emacs icon contains a high resolution PNG icon for Vista, which is
+not recognized by older versions of the resource compiler. There are
+several workarounds for this problem:
+	1. Use Free MinGW tools to compile, which do not have this problem.
+	2. Install the latest Windows SDK.
+	3. Replace emacs.ico with an older or edited icon.
 
 ** Linking
 
@@ -2662,7 +2695,7 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 ** Bootstrapping
 
 Bootstrapping (compiling the .el files) is normally only necessary
-with CVS builds, since they the .elc files are pre-compiled in releases.
+with CVS builds, since the .elc files are pre-compiled in releases.
 
 *** "No rule to make target" with Ubuntu 8.04 make 3.81-3build1
 

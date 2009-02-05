@@ -1,3 +1,7 @@
+2009-02-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* admin.el (set-version): Remove deleted file ns-emacs.texi.
+
 2008-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-prop-alist): Docstring for

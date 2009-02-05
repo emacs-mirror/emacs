@@ -4,6 +4,7 @@
 
 @node Antinews, Mac OS / GNUstep, X Resources, Top
 @appendix Emacs 22 Antinews
+@c Update the emacs.texi Antinews menu entry with the above version number.
 
   For those users who live backwards in time, here is information
 about downgrading to Emacs version 22.3.  We hope you will enjoy the

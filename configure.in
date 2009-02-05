@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.61)
-AC_INIT(emacs, 23.0.60)
+AC_INIT(emacs, 23.0.90)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
@@ -175,12 +175,6 @@ test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
   GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
 test "X$GNUSTEP_CONFIG_FILE" = "X" && \
      GNUSTEP_CONFIG_FILE=/etc/GNUstep/GNUstep.conf
-
-AC_ARG_ENABLE(cocoa-experimental-ctrl-g,
-[AS_HELP_STRING([--enable-cocoa-experimental-ctrl-g],
-                [enable experimental improved ctrl-g recognition])],
-   EN_COCOA_EXPERIMENTAL_CTRL_G=$enableval,
-   EN_COCOA_EXPERIMENTAL_CTRL_G=no)
 
 AC_ARG_ENABLE(ns-self-contained,
 [AS_HELP_STRING([--disable-ns-self-contained],
@@ -342,6 +336,7 @@ dnl see the `changequote' comment above.
       arm-*-netbsd*)	machine=arm ;;
       x86_64-*-netbsd*)	machine=amdx86-64 ;;
       hppa-*-netbsd*)	machine=hp800 ;;
+      m68k-*-netbsd*)	machine=m68k ;;
     esac
   ;;
 
@@ -1496,7 +1491,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -2082,9 +2077,6 @@ if test "${HAVE_NS}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
     GNU_OBJC_CFLAGS=
     LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
-  fi
-  if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
-    AC_DEFINE(COCOA_EXPERIMENTAL_CTRL_G, 1, [Define to 1 if you are trying experimental enhanced Ctrl-g support using NS windowing under MacOS X.])
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])

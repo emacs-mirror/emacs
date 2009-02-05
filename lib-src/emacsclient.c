@@ -574,7 +574,15 @@ decode_options (argc, argv)
      inconvenient.  So we force users to use "--display $DISPLAY" if
      they want Emacs to connect to their current display.  */
   if (!current_frame && !tty && !display)
-    display = egetenv ("DISPLAY");
+    {
+      display = egetenv ("DISPLAY");
+#ifdef NS_IMPL_COCOA
+      /* Under Cocoa, we don't really use displays the same way as in X,
+         so provide a dummy. */
+      if (!display || strlen (display) == 0)
+        display = "ns";
+#endif
+    }
 
   /* A null-string display is invalid.  */
   if (display && strlen (display) == 0)

@@ -62,7 +62,7 @@ struct ftfont_info
 {
   struct font font;
 #ifdef HAVE_LIBOTF
-  /* The following three members must be here in this order to be
+  /* The following four members must be here in this order to be
      compatible with struct xftfont_info (in xftfont.c).  */
   int maybe_otf;	/* Flag to tell if this may be OTF or not.  */
   OTF *otf;
@@ -1189,13 +1189,24 @@ ftfont_close (f, font)
 }
 
 static int
-ftfont_has_char (entity, c)
-     Lisp_Object entity;
+ftfont_has_char (font, c)
+     Lisp_Object font;
      int c;
 {
-  FcCharSet *charset = ftfont_get_fc_charset (entity);
+  if (FONT_ENTITY_P (font))
+    {
+      FcCharSet *charset = ftfont_get_fc_charset (font);
 
-  return (FcCharSetHasChar (charset, c) == FcTrue);
+      return (FcCharSetHasChar (charset, c) == FcTrue);
+    }
+  else
+    {
+      struct ftfont_info *ftfont_info;
+
+      ftfont_info = (struct ftfont_info *) XFONT_OBJECT (font);
+      return (FT_Get_Char_Index (ftfont_info->ft_size->face, (FT_ULong) c)
+	      != 0);
+    }
 }
 
 static unsigned

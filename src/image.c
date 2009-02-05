@@ -8082,21 +8082,21 @@ svg_load_image (f, img, contents, size)
   if (STRINGP (specified_bg)
       && x_defined_color (f, SDATA (specified_bg), &background, 0))
     {
-      background.red   >>= 8;
-      background.green >>= 8;
-      background.blue  >>= 8;
-    }
-  else
-    {
-      background.pixel = FRAME_BACKGROUND_PIXEL (f);
-      x_query_color (f, &background);
-
       /* SVG pixmaps specify transparency in the last byte, so right
 	 shift 8 bits to get rid of it, since emacs doesn't support
 	 transparency.  */
       background.red   >>= 8;
       background.green >>= 8;
       background.blue  >>= 8;
+    }
+  else
+    {
+#ifndef HAVE_NS
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+      x_query_color (f, &background);
+#else
+      ns_query_color(FRAME_BACKGROUND_COLOR (f), &background, 1);
+#endif
     }
 
   /* This loop handles opacity values, since Emacs assumes

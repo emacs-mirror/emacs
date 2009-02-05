@@ -51,6 +51,7 @@
   (icalendar-testsuite--test-first-weekday-of-year)
   (icalendar-testsuite--test-datestring-to-isodate)
   (icalendar-testsuite--test-datetime-to-diary-date)
+  (icalendar-testsuite--test-diarytime-to-isotime)
   (icalendar-testsuite--test-calendar-style)
   (icalendar-testsuite--test-create-uid))
 
@@ -104,12 +105,11 @@ END:VEVENT
         (icalendar-import-format-url " URL %s")
         (icalendar-import-format-class " CLA %s")
         (result))
-    ;; FIXME: need a trailing blank char!
-    (setq result (icalendar--parse-summary-and-rest "SUM sum ORG org "))
+    (setq result (icalendar--parse-summary-and-rest "SUM sum ORG org"))
     (assert (string= (cdr (assoc 'org result)) "org"))
 
     (setq result (icalendar--parse-summary-and-rest
-                  "SUM sum DES des LOC loc ORG org STA sta URL url CLA cla "))
+                  "SUM sum DES des LOC loc ORG org STA sta URL url CLA cla"))
     (assert (string= (cdr (assoc 'des result)) "des"))
     (assert (string= (cdr (assoc 'loc result)) "loc"))
     (assert (string= (cdr (assoc 'org result)) "org"))
@@ -210,6 +210,31 @@ END:VEVENT
     (assert (string= (icalendar--datetime-to-diary-date datetime)
                      "12 31 2008"))))
 
+(defun icalendar-testsuite--test-diarytime-to-isotime ()
+  "Test method for `icalendar--diarytime-to-isotime'."
+  (assert (string= (icalendar--diarytime-to-isotime "0100" "")
+                   "T010000"))
+  (assert (string= (icalendar--diarytime-to-isotime "0100" "am")
+                   "T010000"))
+  (assert (string= (icalendar--diarytime-to-isotime "0100" "pm")
+                   "T130000"))
+  (assert (string= (icalendar--diarytime-to-isotime "1200" "")
+                   "T120000"))
+  (assert (string= (icalendar--diarytime-to-isotime "17:17" "")
+                   "T171700"))
+  (assert (string= (icalendar--diarytime-to-isotime "1200" "am")
+                   "T000000"))
+  (assert (string= (icalendar--diarytime-to-isotime "1201" "am")
+                   "T000100"))
+  (assert (string= (icalendar--diarytime-to-isotime "1259" "am")
+                   "T005900"))
+  (assert (string= (icalendar--diarytime-to-isotime "1200" "pm")
+                   "T120000"))
+  (assert (string= (icalendar--diarytime-to-isotime "1201" "pm")
+                   "T120100"))
+  (assert (string= (icalendar--diarytime-to-isotime "1259" "pm")
+                   "T125900")))
+
 (defun icalendar-testsuite--test-calendar-style ()
   "Test method for `icalendar--date-style'."
   (dolist (calendar-date-style '(iso american european))
@@ -224,16 +249,29 @@ END:VEVENT
 
 (defun icalendar-testsuite--test-create-uid ()
   "Test method for `icalendar--create-uid'."
-  (let (t-ct
-        (icalendar--uid-count 77))
+  (let* ((icalendar-uid-format "xxx-%t-%c-%h-%u-%s")
+         t-ct
+         (icalendar--uid-count 77)
+         (entry-full "30.06.1964 07:01 blahblah")
+         (hash (format "%d" (abs (sxhash entry-full))))
+         (contents "DTSTART:19640630T070100\nblahblah")
+         (username (or user-login-name "UNKNOWN_USER"))
+         )
     ;; FIXME! If a test fails 'current-time is screwed. FIXME!
     (fset 't-ct (symbol-function 'current-time))
     (fset 'current-time (lambda () '(1 2 3)))
     (assert (= 77 icalendar--uid-count))
-    (assert (string=  "emacs12378" (icalendar--create-uid)))
+    (assert (string=  (concat "xxx-123-77-" hash "-" username "-19640630")
+                      (icalendar--create-uid entry-full contents)))
     (assert (= 78 icalendar--uid-count))
     (fset 'current-time (symbol-function 't-ct))
+
+    (setq contents "blahblah")
+    (setq icalendar-uid-format "yyy%syyy")
+    (assert (string=  (concat "yyyDTSTARTyyy")
+                      (icalendar--create-uid entry-full contents)))
     ))
+
 
 ;; ======================================================================
 ;; Test methods for exporting from diary to icalendar

@@ -1,6 +1,6 @@
 /* Localized versions of Info.plist keys */
 
 CFBundleName = "Emacs";
-CFBundleShortVersionString = "Version 23.0.60";
-CFBundleGetInfoString = "Emacs version 23.0.60, NS Windowing";
+CFBundleShortVersionString = "Version 23.0.90";
+CFBundleGetInfoString = "Emacs version 23.0.90, NS Windowing";
 NSHumanReadableCopyright = "Copyright (C) 2009 Free Software Foundation, Inc.";

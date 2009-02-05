@@ -738,6 +738,7 @@ for non-PostScript printing.  (There are two distinct sets of
 variables in case you have two printers attached to two different
 ports, and only one of them is a PostScript printer.)
 
+@cindex Ghostscript, use for PostScript printing
   The default value of the variable @code{ps-lpr-command} is @code{""},
 which causes PostScript output to be sent to the printer port specified
 by @code{ps-printer-name}, but @code{ps-lpr-command} can also be set to

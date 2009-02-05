@@ -453,7 +453,7 @@ modifies the capitalization of the expansion.
 @node Abbrev Table Properties,  , Abbrev Properties, Abbrevs
 @section Abbrev Table Properties
 
-Like abbrevs, abble tables have properties, some of which influence
+Like abbrevs, abbrev tables have properties, some of which influence
 the way they work.  You can provide them as arguments to
 @code{define-abbrev-table} and you can manipulate them with the
 functions:

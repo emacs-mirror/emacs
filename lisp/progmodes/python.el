@@ -1,6 +1,7 @@
 ;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -26,13 +27,15 @@
 
 ;; Major mode for editing Python, with support for inferior processes.
 
-;; There is another Python mode, python-mode.el, used by XEmacs and
-;; maintained with Python.  That isn't covered by an FSF copyright
-;; assignment, unlike this code, and seems not to be well-maintained
-;; for Emacs (though I've submitted fixes).  This mode is rather
-;; simpler and is better in other ways.  In particular, using the
-;; syntax functions with text properties maintained by font-lock makes
-;; it more correct with arbitrary string and comment contents.
+;; There is another Python mode, python-mode.el:
+;; http://launchpad.net/python-mode
+;; used by XEmacs, and originally maintained with Python.
+;; That isn't covered by an FSF copyright assignment (?), unlike this
+;; code, and seems not to be well-maintained for Emacs (though I've
+;; submitted fixes).  This mode is rather simpler and is better in
+;; other ways.  In particular, using the syntax functions with text
+;; properties maintained by font-lock makes it more correct with
+;; arbitrary string and comment contents.
 
 ;; This doesn't implement all the facilities of python-mode.el.  Some
 ;; just need doing, e.g. catching exceptions in the inferior Python

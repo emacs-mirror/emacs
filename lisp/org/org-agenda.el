@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,15 @@ only needed when the text to be killed contains more than N non-white lines."
 This is done by leaving out unnecessary lines."
   :group 'org-agenda
   :type 'boolean)
+
+(defcustom org-agenda-block-separator ?=
+  "The separator between blocks in the agenda.
+If this is a string, it will be used as the separator, with a newline added.
+If it is a character, it will be repeated to fill the window width."
+  :group 'org-agenda
+  :type '(choice
+	  (character)
+	  (string)))
 
 (defgroup org-agenda-export nil
  "Options concerning exporting agenda views in Org-mode."
@@ -400,6 +409,18 @@ this one will be used."
  "Options concerning skipping parts of agenda files."
  :tag "Org Agenda Skip"
  :group 'org-agenda)
+(defgroup org-agenda-daily/weekly nil
+  "Options concerning the daily/weekly agenda."
+  :tag "Org Agenda Daily/Weekly"
+  :group 'org-agenda)
+(defgroup org-agenda-todo-list nil
+  "Options concerning the global todo list agenda view."
+  :tag "Org Agenda Todo List"
+  :group 'org-agenda)
+(defgroup org-agenda-match-view nil
+  "Options concerning the general tags/property/todo match agenda view."
+  :tag "Org Agenda Match View"
+  :group 'org-agenda)
 
 (defvar org-agenda-archives-mode nil
   "Non-nil means, the agenda will include archived items.
@@ -419,7 +440,7 @@ When nil, these trees are also scanned by agenda commands."
 When nil, the sublevels of a TODO entry are not checked, resulting in
 potentially much shorter TODO lists."
   :group 'org-agenda-skip
-  :group 'org-todo
+  :group 'org-agenda-todo-list
   :type 'boolean)
 
 (defcustom org-agenda-todo-ignore-with-date nil
@@ -430,7 +451,7 @@ When this is set, it also covers deadlines and scheduled items, the settings
 of `org-agenda-todo-ignore-scheduled' and `org-agenda-todo-ignore-deadlines'
 will be ignored."
   :group 'org-agenda-skip
-  :group 'org-todo
+  :group 'org-agenda-todo-list
   :type 'boolean)
 
 (defcustom org-agenda-todo-ignore-scheduled nil
@@ -439,7 +460,7 @@ The idea behind this is that by scheduling it, you have already taken care
 of this item.
 See also `org-agenda-todo-ignore-with-date'."
   :group 'org-agenda-skip
-  :group 'org-todo
+  :group 'org-agenda-todo-list
   :type 'boolean)
 
 (defcustom org-agenda-todo-ignore-deadlines nil
@@ -448,7 +469,22 @@ Near means closer than `org-deadline-warning-days' days.
 The idea behind this is that such items will appear in the agenda anyway.
 See also `org-agenda-todo-ignore-with-date'."
   :group 'org-agenda-skip
-  :group 'org-todo
+  :group 'org-agenda-todo-list
+  :type 'boolean)
+
+(defcustom org-agenda-tags-todo-honor-ignore-options nil
+  "Non-nil means, honor todo-list ...ignore options also in tags-todo search.
+The variables
+   `org-agenda-todo-ignore-with-date',
+   `org-agenda-todo-ignore-scheduled' 
+   `org-agenda-todo-ignore-deadlines'
+make the global TODO list skip entries that have time stamps of certain
+kinds.  If this option is set, the same options will also apply for the
+tags-todo search, which is the general tags/property matcher
+restricted to unfinished TODO entries only."
+  :group 'org-agenda-skip
+  :group 'org-agenda-todo-list
+  :group 'org-agenda-match-view
   :type 'boolean)
 
 (defcustom org-agenda-skip-scheduled-if-done nil
@@ -458,6 +494,7 @@ it applies only to the actual date of the scheduling.  Warnings about
 an item with a past scheduling dates are always turned off when the item
 is DONE."
   :group 'org-agenda-skip
+  :group 'org-agenda-daily/weekly
   :type 'boolean)
 
 (defcustom org-agenda-skip-deadline-if-done nil
@@ -467,12 +504,29 @@ This is relevant for the daily/weekly agenda.  And it applied only to the
 actually date of the deadline.  Warnings about approaching and past-due
 deadlines are always turned off when the item is DONE."
   :group 'org-agenda-skip
+  :group 'org-agenda-daily/weekly
   :type 'boolean)
 
 (defcustom org-agenda-skip-timestamp-if-done nil
   "Non-nil means don't select item by timestamp or -range if it is DONE."
   :group 'org-agenda-skip
+  :group 'org-agenda-daily/weekly
   :type 'boolean)
+
+(defcustom org-agenda-dim-blocked-tasks t
+  "Non-nil means, dim blocked tasks in the agenda display.
+This causes some overhead during agenda construction, but if you have turned
+on `org-enforce-todo-dependencies' or any other blocking mechanism, this
+will create useful feedback in the agenda.
+Instead ot t, this variable can also have the value `invisible'.  Then
+blocked tasks will be invisible and only become visible when they
+become unblocked."
+  :group 'org-agenda-daily/weekly
+  :group 'org-agenda-todo-list
+  :type '(choice
+	  (const :tag "Do not dim" nil)
+	  (const :tag "Dim to a grey face" t)
+	  (const :tag "Make invisibe" invisible)))
 
 (defcustom org-timeline-show-empty-dates 3
   "Non-nil means, `org-timeline' also shows dates without an entry.
@@ -550,11 +604,6 @@ option will be ignored.."
   :group 'org-agenda-windows
   :type 'boolean)
 
-(defgroup org-agenda-daily/weekly nil
-  "Options concerning the daily/weekly agenda."
-  :tag "Org Agenda Daily/Weekly"
-  :group 'org-agenda)
-
 (defcustom org-agenda-ndays 7
   "Number of days to include in overview display.
 Should be 1 or 7."
@@ -631,7 +680,8 @@ and timeline buffers."
 (defcustom org-agenda-include-all-todo nil
   "Set  means weekly/daily agenda will always contain all TODO entries.
 The TODO entries will be listed at the top of the agenda, before
-the entries for specific days."
+the entries for specific days.
+This option is deprecated, it is better to define a block agenda instead."
   :group 'org-agenda-daily/weekly
   :type 'boolean)
 
@@ -731,9 +781,9 @@ a grid line."
   :group 'org-agenda)
 
 (defcustom org-agenda-sorting-strategy
-  '((agenda time-up category-keep priority-down)
-    (todo category-keep priority-down)
-    (tags category-keep priority-down)
+  '((agenda time-up        priority-down category-keep)
+    (todo   priority-down  category-keep)
+    (tags   priority-down  category-keep)
     (search category-keep))
   "Sorting structure for the agenda items of a single day.
 This is a list of symbols which will be used in sequence to determine
@@ -964,7 +1014,7 @@ When this is the symbol `prefix', only remove tags when
     (defvaralias 'org-agenda-remove-tags-when-in-prefix
       'org-agenda-remove-tags))
 
-(defcustom org-agenda-tags-column -80
+(defcustom org-agenda-tags-column (if (featurep 'xemacs) -79 -80)
   "Shift tags in agenda items to this column.
 If this number is positive, it specifies the column.  If it is negative,
 it means that the tags should be flushright to that column.  For example,
@@ -990,7 +1040,6 @@ or a list like `(:background \"Red\")'."
 	  (repeat :tag "Specify"
 		  (list (character :tag "Priority" :value ?A)
 			(sexp :tag "face")))))
-
 
 (defgroup org-agenda-column-view nil
   "Options concerning column view in the agenda."
@@ -1057,7 +1106,8 @@ works you probably want to add it to `org-agenda-custom-commands' for good."
 (defvar org-agenda-show-log nil)
 (defvar org-agenda-redo-command nil)
 (defvar org-agenda-query-string nil)
-(defvar org-agenda-mode-hook nil)
+(defvar org-agenda-mode-hook nil
+  "Hook for org-agenda-mode, run after the mode is turned on.")
 (defvar org-agenda-type nil)
 (defvar org-agenda-force-single-file nil)
 
@@ -1712,7 +1762,7 @@ s   Search for keywords                 C   Configure custom agenda commands
     (widen)
     (setq org-agenda-redo-command redo)
     (goto-char (point-min)))
-  (org-finalize-agenda))
+  (org-let (nth 1 series) '(org-finalize-agenda)))
 
 ;;;###autoload
 (defmacro org-batch-agenda (cmd-key &rest parameters)
@@ -2040,7 +2090,11 @@ VALUE defaults to t."
 	(setq buffer-read-only nil)
 	(goto-char (point-max))
 	(unless (or (bobp) org-agenda-compact-blocks)
-	  (insert "\n" (make-string (window-width) ?=) "\n"))
+	  (insert "\n"
+		  (if (stringp org-agenda-block-separator)
+		      org-agenda-block-separator
+		    (make-string (window-width) org-agenda-block-separator))
+		  "\n"))
 	(narrow-to-region (point) (point-max)))
     (org-agenda-reset-markers)
     (setq org-agenda-contributing-files nil)
@@ -2093,6 +2147,8 @@ VALUE defaults to t."
 	  (org-agenda-columns))
       (when org-agenda-fontify-priorities
 	(org-fontify-priorities))
+      (when (and org-agenda-dim-blocked-tasks org-blocker-hook)
+	(org-agenda-dim-blocked-tasks))
       (run-hooks 'org-finalize-agenda-hook)
       (setq org-agenda-type (get-text-property (point) 'org-agenda-type))
       )))
@@ -2123,6 +2179,37 @@ VALUE defaults to t."
 	       ((equal p h) 'bold)))
 	(org-overlay-put ov 'org-type 'org-priority)))))
 
+(defun org-agenda-dim-blocked-tasks ()
+  "Dim currently blocked TODO's in the agenda display."
+  (mapc (lambda (o) (if (eq (org-overlay-get o 'org-type) 'org-blocked-todo)
+			(org-delete-overlay o)))
+	(org-overlays-in (point-min) (point-max)))
+  (save-excursion
+    (let ((inhibit-read-only t)
+	  (org-depend-tag-blocked nil)
+	  (invis (eq org-agenda-dim-blocked-tasks 'invisible))
+	  b e p ov h l)
+      (goto-char (point-min))
+      (while (let ((pos (next-single-property-change (point) 'todo-state)))
+	       (and pos (goto-char (1+ pos))))
+	(let ((marker (get-text-property (point) 'org-hd-marker)))
+	  (when (and marker
+		     (not (with-current-buffer (marker-buffer marker)
+			    (save-excursion
+			      (goto-char marker)
+			      (run-hook-with-args-until-failure
+			       'org-blocker-hook
+			       (list :type 'todo-state-change
+				     :position marker
+				     :from 'todo
+				     :to 'done))))))
+	    (setq b (if invis (max (point-min) (1- (point))) (point))
+		  e (point-at-eol)
+		  ov (org-make-overlay b e))
+	    (if invis
+		(org-overlay-put ov 'invisible t)
+	      (org-overlay-put ov 'face 'org-agenda-dimmed-todo-face))
+	    (org-overlay-put ov 'org-type 'org-blocked-todo)))))))
 
 (defvar org-agenda-skip-function nil
   "Function to be called at each match during agenda construction.
@@ -2573,7 +2660,7 @@ in `org-agenda-text-search-extra-files'."
 		      'keymap org-agenda-keymap
 		      'help-echo (format "mouse-2 or RET jump to location")))
 	 regexp rtn rtnall files file pos
-	 marker priority category tags c neg re
+	 marker category tags c neg re
 	 ee txt beg end words regexps+ regexps- hdl-only buffer beg1 str)
     (unless (and (not edit-at)
 		 (stringp string)
@@ -3233,14 +3320,8 @@ the documentation of `org-diary'."
       (catch :skip
 	(save-match-data
 	  (beginning-of-line)
-	  (setq beg (point) end (progn (outline-next-heading) (point)))
-	  (when (or (and org-agenda-todo-ignore-with-date (goto-char beg)
-			 (re-search-forward org-ts-regexp end t))
-		    (and org-agenda-todo-ignore-scheduled (goto-char beg)
-			 (re-search-forward org-scheduled-time-regexp end t))
-		    (and org-agenda-todo-ignore-deadlines (goto-char beg)
-			 (re-search-forward org-deadline-time-regexp end t)
-			 (org-deadline-close (match-string 1))))
+	  (setq beg (point) end (save-excursion (outline-next-heading) (point)))
+	  (when (org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item end)
 	    (goto-char (1+ beg))
 	    (or org-agenda-todo-list-sublevels (org-end-of-subtree 'invisible))
 	    (throw :skip nil)))
@@ -3262,6 +3343,22 @@ the documentation of `org-diary'."
 	    (goto-char (match-end 1))
 	  (org-end-of-subtree 'invisible))))
     (nreverse ee)))
+
+;;;###autoload
+(defun org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item (&optional end)
+  "Do we have a reason to ignore this todo entry because it has a time stamp?"
+  (when (or org-agenda-todo-ignore-with-date
+	    org-agenda-todo-ignore-scheduled
+	    org-agenda-todo-ignore-deadlines)
+    (setq end (or end (save-excursion (outline-next-heading) (point))))
+    (save-excursion
+      (or (and org-agenda-todo-ignore-with-date
+	       (re-search-forward org-ts-regexp end t))
+	  (and org-agenda-todo-ignore-scheduled
+	       (re-search-forward org-scheduled-time-regexp end t))
+	  (and org-agenda-todo-ignore-deadlines
+	       (re-search-forward org-deadline-time-regexp end t)
+	       (org-deadline-close (match-string 1)))))))
 
 (defconst org-agenda-no-heading-message
   "No heading for this item in buffer or region.")
@@ -3666,7 +3763,7 @@ FRACTION is what fraction of the head-warning time has passed."
 	 (regexp org-tr-regexp)
 	 (d0 (calendar-absolute-from-gregorian date))
 	 marker hdmarker ee txt d1 d2 s1 s2 timestr category todo-state tags pos
-	 donep head)
+	 head)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (catch :skip
@@ -4275,7 +4372,7 @@ to switch to narrowing."
 	(effort-prompt "")
 	(inhibit-read-only t)
 	(current org-agenda-filter)
-	char a n tag tags)
+	char a n tag)
     (unless char
       (message
        "%s by tag [%s ], [TAB], [/]:off, [+-]:narrow, [>=<]:effort: "
@@ -4374,7 +4471,7 @@ If the line does not have an effort defined, return nil."
       (while (not (eobp))
 	(if (get-text-property (point) 'org-marker)
 	    (progn
-	      (setq tags (get-text-property (point) 'tags))
+	      (setq tags (get-text-property (point) 'tags)) ; used in eval
 	      (if (not (eval org-agenda-filter-form))
 		  (org-agenda-filter-by-tag-hide-line))
 	      (beginning-of-line 2))
@@ -5035,7 +5132,8 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 	(save-excursion
 	  (and (outline-next-heading)
 	       (org-flag-heading nil)))   ; show the next heading
-	(org-todo arg)
+	(let ((current-prefix-arg arg))
+	  (call-interactively 'org-todo))
 	(and (bolp) (forward-char 1))
 	(setq newhead (org-get-heading))
 	(when (and (org-bound-and-true-p
@@ -5370,7 +5468,7 @@ TAB   Visit marked entry in other window
 
 The cursor may be at a date in the calendar, or in the Org agenda."
   (interactive)
-  (let (pos ans)
+  (let (ans)
     (message "Select action: [m]ark | [s]chedule [d]eadline [r]emember [ ]show")
     (setq ans (read-char-exclusive))
     (cond

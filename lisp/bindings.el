@@ -600,6 +600,8 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
+	 ;; VCS metadata directories
+	 ".svn/" ".hg/" ".git/" ".bzr/" "CVS/" "_darcs/" "_MTN/"
 	 ;; TeX-related
 	 ".fmt" ".tfm"
 	 ;; Java compiled
@@ -1054,8 +1056,8 @@ language you are using."
 (global-set-key [C-right]  'forward-word)
 (global-set-key [C-left]   'backward-word)
 ;; This is not quite compatible, but at least is analogous
-(global-set-key [C-delete] 'backward-kill-word)
-(global-set-key [C-backspace] 'kill-word)
+(global-set-key [C-delete] 'kill-word)
+(global-set-key [C-backspace] 'backward-kill-word)
 ;; This is "move to the clipboard", or as close as we come.
 (global-set-key [S-delete] 'kill-region)
 

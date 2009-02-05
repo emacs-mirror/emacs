@@ -1,6 +1,7 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
-;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005, 2006, 2007, 2008,
+;;   2009 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -60,6 +61,7 @@
   (autoload 'tramp-file-name-user "tramp")
   (autoload 'tramp-file-name-host "tramp")
   (autoload 'tramp-file-name-localname "tramp")
+  (autoload 'tramp-run-real-handler "tramp")
   (autoload 'time-stamp-string "time-stamp"))
 
 ;;; -- Cache --

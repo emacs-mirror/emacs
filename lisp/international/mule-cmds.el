@@ -243,6 +243,44 @@ how text is formatted automatically while decoding."
      (if coding coding 'undecided)
      (if (numberp eol-type) (aref [unix dos mac] eol-type)))))
 
+;; Canonicalize the coding system name NAME by removing some prefixes
+;; and delimiter characters.  Support function of
+;; coding-system-from-name.
+(defun canonicalize-coding-system-name (name)
+  (if (string-match "^iso[-_ ]?[0-9]" name)
+      ;; "iso-8859-1" -> "8859-1", "iso-2022-jp" ->"2022-jp"
+      (setq name (substring name (1- (match-end 0)))))
+  (let ((idx (string-match "[-_ /]" name)))
+    ;; Delete "-", "_", " ", "/" but do distinguish "16-be" and "16be".
+    (while idx
+      (if (and (>= idx 2)
+	       (eq (string-match "16-[lb]e$" name (- idx 2))
+		   (- idx 2)))
+	  (setq idx (string-match "[-_ /]" name (match-end 0)))
+	(setq name (concat (substring name 0 idx) (substring name (1+ idx)))
+	      idx (string-match "[-_ /]" name idx))))
+    name))
+
+(defun coding-system-from-name (name)
+  "Return a coding system whose name matches with NAME (string or symbol)."
+  (let (sym)
+    (if (stringp name) (setq sym (intern name))
+      (setq sym name name (symbol-name name)))
+    (if (coding-system-p sym)
+	sym
+      (let ((eol-type
+	     (if (string-match "-\\(unix\\|dos\\|mac\\)$" name)
+		 (prog1 (intern (match-string 1 name))
+		   (setq name (substring name 0 (match-beginning 0)))))))
+	(setq name (canonicalize-coding-system-name (downcase name)))
+	(catch 'tag
+	  (dolist (elt (coding-system-list))
+	    (if (string= (canonicalize-coding-system-name (symbol-name elt))
+			 name)
+		(throw 'tag (if eol-type (coding-system-change-eol-conversion
+					  elt eol-type)
+			      elt)))))))))
+
 (defun toggle-enable-multibyte-characters (&optional arg)
   "Change whether this buffer uses multibyte characters.
 With ARG, use multibyte characters if the ARG is positive.
@@ -330,7 +368,7 @@ This sets the following coding systems:
 This also sets the following values:
   o default value used as `file-name-coding-system' for converting file names
       if CODING-SYSTEM is ASCII-compatible
-  o default value for the command `set-terminal-coding-system' (not on MS-DOS)
+  o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'
       if CODING-SYSTEM is ASCII-compatible"
   (check-coding-system coding-system)
@@ -370,16 +408,11 @@ This also sets the following coding systems:
   o default coding system for subprocess I/O
 This also sets the following values:
   o default value used as `file-name-coding-system' for converting file names
-  o default value for the command `set-terminal-coding-system' (not on MS-DOS)
+  o default value for the command `set-terminal-coding-system'
   o default value for the command `set-keyboard-coding-system'
 
 If CODING-SYSTEM specifies a certain type of EOL conversion, the coding
 systems set by this function will use that type of EOL conversion.
-
-This command does not change the default value of terminal coding system
-for MS-DOS terminal, because DOS terminals only support a single coding
-system, and Emacs automatically sets the default to that coding system at
-startup.
 
 A coding system that requires automatic detection of text+encoding
 \(e.g. undecided, unix) can't be preferred."
@@ -942,7 +975,7 @@ It is highly recommended to fix it before writing to a file."
 
     (let ((codings (find-coding-systems-region from to))
 	  (coding-system nil)
-	  (tick (if (not (stringp from)) (buffer-modified-tick)))
+	  (tick (if (not (stringp from)) (buffer-chars-modified-tick)))
 	  safe rejected unsafe)
       (if (eq (car codings) 'undecided)
 	  ;; Any coding system is ok.
@@ -1008,7 +1041,7 @@ It is highly recommended to fix it before writing to a file."
 %s specified by file contents.  Really save (else edit coding cookies \
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
-      (when (and tick (/= tick (buffer-modified-tick)))
+      (when (and tick (/= tick (buffer-chars-modified-tick)))
 	(error "Cancelled because the buffer was modified"))
       coding-system)))
 
@@ -1933,7 +1966,25 @@ See `set-language-info-alist' for use in programs."
   "Do various coding system setups for language environment LANGUAGE-NAME."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority))
-	 (eol-type (coding-system-eol-type default-buffer-file-coding-system)))
+	 ;; If default-buffer-file-coding-system is nil, don't use
+	 ;; coding-system-eol-type, because it treats nil as
+	 ;; `no-conversion'.  default-buffer-file-coding-system is set
+	 ;; to nil by reset-language-environment, and in that case we
+	 ;; want to have here the native EOL type for each platform.
+	 ;; FIXME: there should be a common code that runs both on
+	 ;; startup and here to set the default EOL type correctly.
+	 ;; Right now, DOS/Windows platforms set this on dos-w32.el,
+	 ;; which works only as long as the order of loading files at
+	 ;; dump time and calling functions at startup is not modified
+	 ;; significantly, i.e. as long as this function is called
+	 ;; _after_ default-buffer-file-coding-system was set by
+	 ;; dos-w32.el.
+	 (eol-type
+	  (if (null default-buffer-file-coding-system)
+	      (cond ((memq system-type '(windows-nt ms-dos)) 1)
+		    ((eq system-type 'macos) 2)
+		    (t 0))
+	    (coding-system-eol-type default-buffer-file-coding-system))))
     (when priority
       (set-default-coding-systems
        (if (memq eol-type '(0 1 2 unix dos mac))

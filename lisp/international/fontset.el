@@ -211,7 +211,6 @@
 	(ancient-greek-musical-notation #x1D200)
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
-	(mathematical #x1D400)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)))
 
@@ -522,11 +521,47 @@
 		    ancient-greek-musical-notation
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
-		    mathematical
 		    mahjong-tile
 		    domino-tile))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)))
+
+  ;; Special settings for `MATHEMATICAL (U+1D400..U+1D7FF)'.
+  (dolist (math-subgroup '((#x1D400 #x1D433 mathematical-bold)
+			   (#x1D434 #x1D467 mathematical-italic)
+			   (#x1D468 #x1D49B mathematical-bold-italic)
+			   (#x1D49C #x1D4CF mathematical-script)
+			   (#x1D4D0 #x1D503 mathematical-bold-script)
+			   (#x1D504 #x1D537 mathematical-fraktur)
+			   (#x1D538 #x1D56B mathematical-double-struck)
+			   (#x1D56C #x1D59F mathematical-bold-fraktur)
+			   (#x1D5A0 #x1D5D3 mathematical-sans-serif)
+			   (#x1D5D4 #x1D607 mathematical-sans-serif-bold)
+			   (#x1D608 #x1D63B mathematical-sans-serif-italic)
+			   (#x1D63C #x1D66F mathematical-sans-serif-bold-italic)
+			   (#x1D670 #x1D6A3 mathematical-monospace)
+			   (#x1D6A4 #x1D6A5 mathematical-italic)
+			   (#x1D6A8 #x1D6E1 mathematical-bold)
+			   (#x1D6E2 #x1D71B mathematical-italic)
+			   (#x1D71C #x1D755 mathematical-bold-italic)
+			   (#x1D756 #x1D78F mathematical-sans-serif-bold)
+			   (#x1D790 #x1D7C9 mathematical-sans-serif-bold-italic)
+			   (#x1D7CA #x1D7D7 mathematical-bold)
+			   (#x1D7D8 #x1D7E1 mathematical-double-struck)
+			   (#x1D7E2 #x1D7EB mathematical-sans-serif)
+			   (#x1D7EC #x1D7F5 mathematical-sans-serif-bold)
+			   (#x1D7F6 #x1D7FF mathematical-monospace)))
+    (let ((slot (assq (nth 2 math-subgroup) script-representative-chars)))
+      (if slot
+	  (if (vectorp (cdr slot))
+	      (setcdr slot (vconcat (cdr slot) (vector (car math-subgroup))))
+	    (setcdr slot (vector (cadr slot) (car math-subgroup))))
+	(setq slot (list (nth 2 math-subgroup) (car math-subgroup)))
+	(nconc script-representative-chars (list slot))))
+    (set-fontset-font
+     "fontset-default"
+     (cons (car math-subgroup) (nth 1 math-subgroup))
+     (font-spec :registry "iso10646-1" :script (nth 2 math-subgroup))))
 
   ;; Append Unicode fonts.
   ;; This may find fonts with more variants (bold, italic) but which

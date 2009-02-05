@@ -158,11 +158,22 @@ MODE can be \"login\" or \"password\", suitable for passing to
 	(ports (or ports '(nil)))
 	(defaults (or defaults '(nil)))
 	info)
-    (dolist (machine machines)
-      (dolist (default defaults)
-	(dolist (port ports)
-	  (let ((alist (netrc-machine authinfo-list machine port default)))
-	    (setq info (or (netrc-get alist mode) info))))))
+    (if (listp mode)
+	(setq info 
+	      (mapcar 
+	       (lambda (mode-element) 
+		 (netrc-machine-user-or-password
+		  mode-element
+		  authinfo-list
+		  machines
+		  ports
+		  defaults))
+	       mode))
+      (dolist (machine machines)
+	(dolist (default defaults)
+	  (dolist (port ports)
+	    (let ((alist (netrc-machine authinfo-list machine port default)))
+	      (setq info (or (netrc-get alist mode) info)))))))
     info))
 
 (defun netrc-get (alist type)

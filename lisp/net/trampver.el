@@ -1,8 +1,8 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes
@@ -29,14 +29,14 @@
 ;; "autoconf && ./configure" to change them.  (X)Emacs version check is defined
 ;; in macro AC_EMACS_INFO of aclocal.m4; should be changed only there.
 
-(defconst tramp-version "2.1.15-pre"
+(defconst tramp-version "2.1.15"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
   "Email address to send bug reports to.")
 
 ;; Check for (X)Emacs version.
-(let ((x (if (or (< emacs-major-version 21)	(and (featurep 'xemacs)	     (< emacs-minor-version 4)))    (format "Tramp 2.1.15-pre is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version))))    "ok")))
+(let ((x (if (or (< emacs-major-version 21)	(and (featurep 'xemacs)	     (< emacs-minor-version 4)))    (format "Tramp 2.1.15 is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version))))    "ok")))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
 
 (provide 'trampver)

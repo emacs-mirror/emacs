@@ -1,7 +1,7 @@
 ;;; rmailmsc.el --- miscellaneous support functions for the RMAIL mail reader
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -25,11 +25,7 @@
 
 ;;; Code:
 
-(defvar rmail-current-message)
-(defvar rmail-inbox-list)
-
-(declare-function rmail-parse-file-inboxes "rmail" ())
-(declare-function rmail-show-message "rmail" (&optional n no-summary))
+(require 'rmail)
 
 ;;;###autoload
 (defun set-rmail-inbox-list (file-name)
@@ -37,31 +33,23 @@
 You can specify one file name, or several names separated by commas.
 If FILE-NAME is empty, remove any existing inbox list."
   (interactive "sSet mailbox list to (comma-separated list of filenames): ")
-
   (unless (eq major-mode 'rmail-mode)
     (error "set-rmail-inbox-list works only for an Rmail file"))
-
-  (save-excursion
-    (let ((names (rmail-parse-file-inboxes))
-	  (standard-output nil))
-      (if (or (not names)
+  (let ((inbox-list
+	 (with-temp-buffer
+	   (insert file-name)
+	   (goto-char (point-min))
+	   (nreverse (mail-parse-comma-list)))))
+    (when (or (not rmail-inbox-list)
 	      (y-or-n-p (concat "Replace "
-				(mapconcat 'identity names ", ")
+				(mapconcat 'identity
+					   rmail-inbox-list
+					   ", ")
 				"? ")))
-	  (let ((buffer-read-only nil))
-	    (widen)
-	    (goto-char (point-min))
-	    (search-forward "\n\^_")
-	    (re-search-backward "^Mail" nil t)
-	    (forward-line 0)
-	    (if (looking-at "Mail:")
-		(delete-region (point)
-			       (progn (forward-line 1)
-				      (point))))
-	    (if (not (string= file-name ""))
-		(insert-before-markers "Mail: " file-name "\n"))))))
-  (setq rmail-inbox-list (rmail-parse-file-inboxes))
+      (message "Setting the inbox list for %s for this session"
+	       (file-name-nondirectory (buffer-file-name)))
+      (setq rmail-inbox-list inbox-list)))
   (rmail-show-message rmail-current-message))
 
-;; arch-tag: 74ed1d50-2c25-4cbd-b5ae-d29ed8aba6e4
+;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; rmailmsc.el ends here

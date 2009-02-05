@@ -260,7 +260,7 @@ KEY is a string.
 OUTPUT is a character or a string.
 For example, if you evaluate the following,
 
-(robin-define-package \"test\" \"Uppercase input characters\"
+\(robin-define-package \"test\" \"Uppercase input characters\"
   (\"a\" \"A\")
   (\"ab\" \"AB\")
   (\"ac\" \"AC\")
@@ -567,9 +567,9 @@ used."
 
 (provide 'robin)
 
-;;; Local Variables:
-;;; coding: utf-8-emacs
-;;; End:
+;; Local Variables:
+;; coding: utf-8-emacs
+;; End:
 
 ;; arch-tag: ba995140-7436-4a57-b875-747fc340f605
 ;;; robin.el ends here

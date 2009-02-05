@@ -1,3 +1,25 @@
+2009-01-27  Alan Mackenzie  <acm@muc.de>
+
+	* modes.texi (Search-based Fontification): Correct a typo.
+
+2009-01-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrevs.texi (Abbrev Table Properties): Fix typo.
+	Reported by Seweryn Kokot <sewkokot@gmail.com>.  (Bug#2039)
+
+2009-01-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Document the value of
+	`initial-window-system' under --daemon.
+
+	* os.texi (System Environment): Remove description of the
+	`environment' function which has been deleted.
+
+2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frames.texi (Multiple Displays): Remove documentation for
+	removed function make-frame-on-tty.
+
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Format Conversion Piecemeal): Clarify behavior of

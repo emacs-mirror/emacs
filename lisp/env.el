@@ -205,54 +205,6 @@ in the environment list of the selected frame."
       (message "%s" (if value value "Not set")))
     value))
 
-(defun environment (&optional frame)
-  "Return a list of environment variables with their values.
-Each entry in the list is a string of the form NAME=VALUE.
-
-The returned list can not be used to change environment
-variables, only read them.  See `setenv' to do that.
-
-If optional parameter FRAME is non-nil, then it should be a
-frame.  The function returns the environment of that frame.
-
-The list is constructed by concatenating the elements of
-`process-environment' and the 'environment parameter of the
-selected frame, and removing duplicated and empty values.
-
-Non-ASCII characters are encoded according to the initial value of
-`locale-coding-system', i.e. the elements must normally be decoded for use.
-See `setenv' and `getenv'."
-  (let* ((env (append process-environment
-                      ;; (frame-environment frame)
-		      nil))
-	 (scan env)
-	 prev seen)
-    ;; Remove unset variables from the beginning of the list.
-    (while (and env
-		(or (not (stringp (car env)))
-		    (not (string-match "=" (car env)))))
-      (or (member (car env) seen)
-	  (setq seen (cons (car env) seen)))
-      (setq env (cdr env)
-	    scan env))
-    (let (name)
-      (while scan
-	(cond ((or (not (stringp (car scan)))
-		   (not (string-match "=" (car scan))))
-	       ;; Unset variable.
-	       (or (member (car scan) seen)
-		   (setq seen (cons (car scan) seen)))
-	       (setcdr prev (cdr scan)))
-	      ((member (setq name (substring (car scan) 0 (string-match "=" (car scan)))) seen)
-	       ;; Duplicated variable.
-	       (setcdr prev (cdr scan)))
-	      (t
-	       ;; New variable.
-	       (setq seen (cons name seen))))
-	(setq prev scan
-	      scan (cdr scan))))
-    env))
-
 (provide 'env)
 
 ;; arch-tag: b7d6a8f7-bc81-46db-8e39-8d721d4ed0b8

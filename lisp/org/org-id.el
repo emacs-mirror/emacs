@@ -1,10 +1,11 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
+;;
 ;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.16
+;; Version: 6.21b
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -262,6 +263,9 @@ Move the cursor to that entry in that buffer."
 The return value is a cons cell (file-name . position), or nil
 if there is no entry with that ID.
 With optional argument MARKERP, return the position as a new marker."
+  (cond
+   ((symbolp id) (setq id (symbol-name id)))
+   ((numberp id) (setq id (number-to-string id))))
   (let ((file (org-id-find-id-file id))
 	org-agenda-new-buffers where)
     (when file
@@ -495,7 +499,7 @@ When CHECK is given, prepare detailed information about duplicate IDs."
   (let ((res (make-hash-table
 	      :test 'equal
 	      :size (apply '+ (mapcar 'length list))))
-	f i)
+	f)
     (mapc
      (lambda (x)
        (setq f (car x))
@@ -521,6 +525,7 @@ When CHECK is given, prepare detailed information about duplicate IDs."
 
 ;; Finding entries with specified id
 
+;;;###autoload
 (defun org-id-find-id-file (id)
   "Query the id database for the file in which this ID is located."
   (unless org-id-locations (org-id-locations-load))
@@ -535,7 +540,7 @@ If that files does not exist, or if it does not contain this ID,
 return nil.
 The position is returned as a cons cell (file-name . position).  With
 optional argument MARKERP, return the position as a new marker."
-  (let (org-agenda-new-buffers m buf pos)
+  (let (org-agenda-new-buffers buf pos)
     (cond
      ((not file) nil)
      ((not (file-exists-p file)) nil)

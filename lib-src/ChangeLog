@@ -1,3 +1,8 @@
+2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacsclient.c (decode_options): Use a dummy display name under
+	NS/Cocoa.
+
 2009-01-14  Lars Rasmusson  <lars.rasmusson@gmail.com>  (tiny change)
 
 	* ebrowse.c (matching_regexp): Fix OB1 error.

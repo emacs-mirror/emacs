@@ -5595,6 +5595,39 @@ coding_charset_list (coding)
 }
 
 
+/* Return a list of charsets supported by CODING-SYSTEM.  */
+
+Lisp_Object
+coding_system_charset_list (coding_system)
+     Lisp_Object coding_system;
+{
+  int id;
+  Lisp_Object attrs, charset_list;
+
+  CHECK_CODING_SYSTEM_GET_ID (coding_system, id);
+  attrs = CODING_ID_ATTRS (id);
+
+  if (EQ (CODING_ATTR_TYPE (attrs), Qiso_2022))
+    {
+      int flags = XINT (AREF (attrs, coding_attr_iso_flags));
+
+      if (flags & CODING_ISO_FLAG_FULL_SUPPORT)
+	charset_list = Viso_2022_charset_list;
+      else
+	charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+    }
+  else if (EQ (CODING_ATTR_TYPE (attrs), Qemacs_mule))
+    {
+      charset_list = Vemacs_mule_charset_list;
+    }
+  else
+    {
+      charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+    }
+  return charset_list;
+}
+
+
 /* Return raw-text or one of its subsidiaries that has the same
    eol_type as CODING-SYSTEM.  */
 
@@ -5819,16 +5852,26 @@ detect_eol (source, src_bytes, category)
 		       || src[lsb + 2] != '\n')
 		this_eol = EOL_SEEN_CR;
 	      else
-		this_eol = EOL_SEEN_CRLF;
+		{
+		  this_eol = EOL_SEEN_CRLF;
+		  src += 2;
+		}
 
 	      if (eol_seen == EOL_SEEN_NONE)
 		/* This is the first end-of-line.  */
 		eol_seen = this_eol;
 	      else if (eol_seen != this_eol)
 		{
-		  /* The found type is different from what found before.  */
-		  eol_seen = EOL_SEEN_LF;
-		  break;
+		  /* The found type is different from what found before.
+		     Allow for stray ^M characters in DOS EOL files.  */
+		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
+		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
+		    eol_seen = EOL_SEEN_CRLF;
+		  else
+		    {
+		      eol_seen = EOL_SEEN_LF;
+		      break;
+		    }
 		}
 	      if (++total == MAX_EOL_CHECK_COUNT)
 		break;
@@ -5857,9 +5900,16 @@ detect_eol (source, src_bytes, category)
 		eol_seen = this_eol;
 	      else if (eol_seen != this_eol)
 		{
-		  /* The found type is different from what found before.  */
-		  eol_seen = EOL_SEEN_LF;
-		  break;
+		  /* The found type is different from what found before.
+		     Allow for stray ^M characters in DOS EOL files.  */
+		  if (eol_seen == EOL_SEEN_CR && this_eol == EOL_SEEN_CRLF
+		      || eol_seen == EOL_SEEN_CRLF && this_eol == EOL_SEEN_CR)
+		    eol_seen = EOL_SEEN_CRLF;
+		  else
+		    {
+		      eol_seen = EOL_SEEN_LF;
+		      break;
+		    }
 		}
 	      if (++total == MAX_EOL_CHECK_COUNT)
 		break;
@@ -6114,7 +6164,12 @@ decode_eol (coding)
 		eol_seen |= EOL_SEEN_CR;
 	    }
 	}
-      if (eol_seen != EOL_SEEN_NONE
+      /* Handle DOS-style EOLs in a file with stray ^M characters.  */
+      if ((eol_seen & EOL_SEEN_CRLF) != 0
+	  && (eol_seen & EOL_SEEN_CR) != 0
+	  && (eol_seen & EOL_SEEN_LF) == 0)
+	eol_seen = EOL_SEEN_CRLF;
+      else if (eol_seen != EOL_SEEN_NONE
 	  && eol_seen != EOL_SEEN_LF
 	  && eol_seen != EOL_SEEN_CRLF
 	  && eol_seen != EOL_SEEN_CR)

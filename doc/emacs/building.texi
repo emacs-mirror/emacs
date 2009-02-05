@@ -350,7 +350,7 @@ mode (@pxref{Compilation Mode}).
 
 @table @kbd
 @item M-x grep
-@item M-x lgrep
+@itemx M-x lgrep
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
 @item M-x grep-find

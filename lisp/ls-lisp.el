@@ -531,13 +531,17 @@ for directory, string (name linked to) for symbolic link, or nil."
         (type (cadr filedata)))
     (cond (type
 	   (cons
-	    (concat file-name (if (eq type t) "/" "@"))
+	    (concat (propertize file-name 'dired-filename t)
+		    (if (eq type t) "/" "@"))
 	    (cdr filedata)))
 	  ((string-match "x" (nth 9 filedata))
 	   (cons
-	    (concat file-name "*")
+	    (concat (propertize file-name 'dired-filename t) "*")
 	    (cdr filedata)))
-	  (t filedata))))
+	  (t
+	   (cons
+	    (propertize file-name 'dired-filename t)
+	    (cdr filedata))))))
 
 (defun ls-lisp-extension (filename)
   "Return extension of FILENAME (ignoring any version extension)
@@ -632,7 +636,9 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
 	    " "
-	    (propertize file-name 'dired-filename t)
+	    (if (not (memq ?F switches)) ; ls-lisp-classify already did that
+		(propertize file-name 'dired-filename t)
+	      file-name)
 	    (if (stringp file-type)	; is a symbolic link
 		(concat " -> " file-type))
 	    "\n"

@@ -913,8 +913,8 @@ is
 @end group
 @end smallexample
 
-(Note that by default division had lower precedence than multiplication
-in Calc, so that @samp{1 / ln(x) x} is equivalent to @samp{1 / (ln(x) x)}.)
+(Note that by default, Calc gives division lower precedence than multiplication,
+so that @samp{1 / ln(x) x} is equivalent to @samp{1 / (ln(x) x)}.)
 
 To make this look nicer, you might want to press @kbd{d =} to center
 the formula, and even @kbd{d B} to use Big display mode.
@@ -1758,9 +1758,9 @@ Calculator in Algebraic mode, which is closer to the way
 non-RPN calculators work.  In Algebraic mode, you enter formulas
 in traditional @expr{2+3} notation.
 
-@strong{Warning:} Note that @samp{/} has lower precedence than
-@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  See
-below for details.
+@strong{Notice:} Calc gives @samp{/} lower precedence than @samp{*}, so
+that @samp{a/b*c} is interpreted as @samp{a/(b*c)}; this is not
+standard across all computer languages.  See below for details.
 
 You don't really need any special ``mode'' to enter algebraic formulas.
 You can enter a formula at any time by pressing the apostrophe (@kbd{'})
@@ -21921,24 +21921,33 @@ formula using algebraic entry, then multiplies both sides of the
 selected quotient or equation by that formula.  It simplifies each
 side with @kbd{a s} (@code{calc-simplify}) before re-forming the
 quotient or equation.  You can suppress this simplification by
-providing any numeric prefix argument.  There is also a @kbd{j /}
+providing a prefix argument: @kbd{C-u j *}.  There is also a @kbd{j /}
 (@code{calc-sel-div-both-sides}) which is similar to @kbd{j *} but
 dividing instead of multiplying by the factor you enter.
 
-As a special feature, if the numerator of the quotient is 1, then
-the denominator is expanded at the top level using the distributive
-law (i.e., using the @kbd{C-u -1 a x} command).  Suppose the
-formula on the stack is @samp{1 / (sqrt(a) + 1)}, and you wish
-to eliminate the square root in the denominator by multiplying both
-sides by @samp{sqrt(a) - 1}.  Calc's default simplifications would
-change the result @samp{(sqrt(a) - 1) / (sqrt(a) - 1) (sqrt(a) + 1)}
-right back to the original form by cancellation; Calc expands the
-denominator to @samp{sqrt(a) (sqrt(a) - 1) + sqrt(a) - 1} to prevent
-this.  (You would now want to use an @kbd{a x} command to expand
-the rest of the way, whereupon the denominator would cancel out to
-the desired form, @samp{a - 1}.)  When the numerator is not 1, this
-initial expansion is not necessary because Calc's default
-simplifications will not notice the potential cancellation.
+If the selection is a quotient with numerator 1, then Calc's default
+simplifications would normally cancel the new factors.  To prevent
+this, when the @kbd{j *} command is used on a selection whose numerator is
+1 or -1, the denominator is expanded at the top level using the
+distributive law (as if using the @kbd{C-u 1 a x} command).  Suppose the
+formula on the stack is @samp{1 / (a + 1)} and you wish to multiplying the
+top and bottom by @samp{a - 1}.  Calc's default simplifications would
+normally change the result @samp{(a - 1) /(a + 1) (a - 1)} back
+to the original form by cancellation; when @kbd{j *} is used, Calc
+expands the denominator to  @samp{a (a - 1) + a - 1} to prevent this.
+
+If you wish the @kbd{j *} command to completely expand the denominator
+of a quotient you can call it with a zero prefix: @kbd{C-u 0 j *}.  For
+example, if the formula on the stack is @samp{1 / (sqrt(a) + 1)}, you may
+wish to eliminate the square root in the denominator by multiplying
+the top and bottom by @samp{sqrt(a) - 1}.  If you did this simply by using
+a simple @kbd{j *} command, you would get 
+@samp{(sqrt(a)-1)/ (sqrt(a) (sqrt(a) - 1) + sqrt(a) - 1)}.  Instead,
+you would probably want to use @kbd{C-u 0 j *}, which would expand the
+bottom and give you the desired result @samp{(sqrt(a)-1)/(a-1)}.  More
+generally, if @kbd{j *} is called with an argument of a positive
+integer @var{n}, then the denominator of the expression will be
+expanded @var{n} times (as if with the @kbd{C-u @var{n} a x} command).
 
 If the selection is an inequality, @kbd{j *} and @kbd{j /} will
 accept any factor, but will warn unless they can prove the factor

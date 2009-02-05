@@ -1,17 +1,22 @@
 .\" See section COPYING for copyright and redistribution information.
 .TH b2m 1
 .SH NAME
-b2m \- convert RMAIL Babyl format to Unix mailbox format
+b2m \- convert old Emacs Rmail Babyl format to mbox format
 .SH SYNOPSIS
 .B b2m
+<
+.I babyl-file
+>
+.I mbox-file
 .SH DESCRIPTION
 .B b2m
-accepts Babyl format (as used by
-.BR RMAIL
+accepts Babyl format mail (as used by older versions of
+.BR Rmail
 in
 .BR "GNU Emacs" )
-mail on standard input, and converts it to Unix mail format on
-standard output.  This program is distributed with
+on standard input, and converts it to mbox format on standard output.
+Babyl was the storage format used by Rmail prior to Emacs 23.1.  Since
+then, it uses standard mbox format.  This program is distributed with
 .BR "GNU Emacs" .
 .PP
 .SH OPTIONS
@@ -27,7 +32,7 @@ Display basic usage information.
 The Babyl format is described in the file
 .B etc/BABYL
 in the Emacs distribution.
-.B RMAIL
+.B Rmail
 is documented in the GNU Emacs manual, which  you  can  read  using
 .BR Info ,
 either from Emacs or as a standalone program.

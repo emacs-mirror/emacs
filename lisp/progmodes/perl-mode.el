@@ -630,18 +630,20 @@ If at end-of-line, and not in a comment or a quote, correct the's indentation."
 ;;    (error nil)))
 
 (defun perl-indent-command (&optional arg)
-  "Indent current line as Perl code, or optionally, insert a tab character.
+  "Indent Perl code in the active region or current line.
+In Transient Mark mode, when the region is active, reindent the region.
+Otherwise, with a prefix argument, reindent the current line
+unconditionally.
 
-With an argument, indent the current line, regardless of other options.
+Otherwise, if `perl-tab-always-indent' is nil and point is not in
+the indentation area at the beginning of the line, insert a tab.
 
-If `perl-tab-always-indent' is nil and point is not in the indentation
-area at the beginning of the line, simply insert a tab.
-
-Otherwise, indent the current line.  If point was within the indentation
-area it is moved to the end of the indentation area.  If the line was
-already indented properly and point was not within the indentation area,
-and if `perl-tab-to-comment' is non-nil (the default), then do the first
-possible action from the following list:
+Otherwise, indent the current line.  If point was within the
+indentation area, it is moved to the end of the indentation area.
+If the line was already indented properly and point was not
+within the indentation area, and if `perl-tab-to-comment' is
+non-nil (the default), then do the first possible action from the
+following list:
 
   1) delete an empty comment
   2) move forward to start of comment, indenting if necessary
@@ -649,50 +651,55 @@ possible action from the following list:
   4) create an empty comment
   5) move backward to start of comment, indenting if necessary."
   (interactive "P")
-  (if arg				; If arg, just indent this line
-      (perl-indent-line "\f")
-    (if (and (not perl-tab-always-indent)
-	     (> (current-column) (current-indentation)))
-	(insert-tab)
-      (let* ((oldpnt (point))
-	     (lsexp (progn (beginning-of-line) (point)))
-	     (bof (perl-beginning-of-function))
-	     (delta (progn
-		      (goto-char oldpnt)
-		      (perl-indent-line "\f\\|;?#" bof))))
-	(and perl-tab-to-comment
-	     (= oldpnt (point))		; done if point moved
-	     (if (listp delta)		; if line starts in a quoted string
-		 (setq lsexp (or (nth 2 delta) bof))
-	       (= delta 0))		; done if indenting occurred
-	     (let ((eol (progn (end-of-line) (point)))
-		   state)
-	       (if (= (char-after bof) ?=)
-		   (if (= oldpnt eol)
-		       (message "In a format statement"))
-		 (setq state (parse-partial-sexp lsexp eol))
-		 (if (nth 3 state)
-		     (if (= oldpnt eol)	; already at eol in a string
-			 (message "In a string which starts with a %c."
-				  (nth 3 state)))
-		   (if (not (nth 4 state))
-		       (if (= oldpnt eol) ; no comment, create one?
-			   (indent-for-comment))
-		     (beginning-of-line)
-		     (if (and comment-start-skip
-			      (re-search-forward comment-start-skip eol 'move))
+  (cond ((use-region-p)            ; indent the active region
+	 (indent-region (region-beginning) (region-end)))
+	(arg
+	 (perl-indent-line "\f"))  ; just indent this line
+	((and (not perl-tab-always-indent)
+	      (> (current-column) (current-indentation)))
+	 (insert-tab))
+	(t
+	 (let* ((oldpnt (point))
+		(lsexp (progn (beginning-of-line) (point)))
+		(bof (perl-beginning-of-function))
+		(delta (progn
+			 (goto-char oldpnt)
+			 (perl-indent-line "\f\\|;?#" bof))))
+	   (and perl-tab-to-comment
+		(= oldpnt (point))   ; done if point moved
+		(if (listp delta)    ; if line starts in a quoted string
+		    (setq lsexp (or (nth 2 delta) bof))
+		  (= delta 0))	     ; done if indenting occurred
+		(let ((eol (progn (end-of-line) (point)))
+		      state)
+		  (cond ((= (char-after bof) ?=)
+			 (if (= oldpnt eol)
+			     (message "In a format statement")))
+			((progn (setq state (parse-partial-sexp lsexp eol))
+				(nth 3 state))
+			 (if (= oldpnt eol) ; already at eol in a string
+			     (message "In a string which starts with a %c."
+				      (nth 3 state))))
+			((not (nth 4 state))
+			 (if (= oldpnt eol) ; no comment, create one?
+			     (indent-for-comment)))
+			((progn (beginning-of-line)
+				(and comment-start-skip
+				     (re-search-forward
+				      comment-start-skip eol 'move)))
 			 (if (eolp)
-			     (progn	; delete existing comment
+			     (progn	    ; delete existing comment
 			       (goto-char (match-beginning 0))
 			       (skip-chars-backward " \t")
 			       (delete-region (point) eol))
 			   (if (or (< oldpnt (point)) (= oldpnt eol))
 			       (indent-for-comment) ; indent existing comment
-			     (end-of-line)))
-		       (if (/= oldpnt eol)
-			   (end-of-line)
+			     (end-of-line))))
+			((/= oldpnt eol)
+			 (end-of-line))
+			(t
 			 (message "Use backslash to quote # characters.")
-			 (ding t))))))))))))
+			 (ding t)))))))))
 
 (defun perl-indent-line (&optional nochange parse-start)
   "Indent current line as Perl code.

@@ -26,12 +26,14 @@
 
 ;;; Code:
 
-(require 'sort)
-
-;; For rmail-select-summary
-(require 'rmail)
+(eval-when-compile
+  (require 'mail-utils)
+  (require 'sort)
+  (require 'rmail))
 
 (autoload 'timezone-make-date-sortable "timezone")
+
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 ;; Sorting messages in Rmail buffer
 
@@ -44,7 +46,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 		       (function
 			(lambda (msg)
 			  (rmail-make-date-sortable
-			   (rmail-fetch-field msg "Date"))))))
+			   (rmail-get-header "Date" msg))))))
 
 ;;;###autoload
 (defun rmail-sort-by-subject (reverse)
@@ -54,7 +56,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (rmail-sort-messages reverse
 		       (function
 			(lambda (msg)
-			  (let ((key (or (rmail-fetch-field msg "Subject") ""))
+			  (let ((key (or (rmail-get-header "Subject" msg) ""))
 				(case-fold-search t))
 			    ;; Remove `Re:'
 			    (if (string-match "^\\(re:[ \t]*\\)*" key)
@@ -71,8 +73,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (downcase	;Canonical name
 			   (mail-strip-quoted-names
-			    (or (rmail-fetch-field msg "From")
-				(rmail-fetch-field msg "Sender") "")))))))
+			    (or (rmail-get-header "From" msg)
+				(rmail-get-header "Sender" msg) "")))))))
 
 ;;;###autoload
 (defun rmail-sort-by-recipient (reverse)
@@ -84,8 +86,8 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			(lambda (msg)
 			  (downcase	;Canonical name
 			   (mail-strip-quoted-names
-			    (or (rmail-fetch-field msg "To")
-				(rmail-fetch-field msg "Apparently-To") "")
+			    (or (rmail-get-header "To" msg)
+				(rmail-get-header "Apparently-To" msg) "")
 			    ))))))
 
 ;;;###autoload
@@ -104,9 +106,10 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
   (let ((ans ""))
     (while (and fields (string= ans ""))
       (setq ans
+	    ;; NB despite the name, this lives in mail-utils.el.
 	    (rmail-dont-reply-to
 	     (mail-strip-quoted-names
-	      (or (rmail-fetch-field msg (car fields)) ""))))
+	      (or (rmail-get-header (car fields) msg) ""))))
       (setq fields (cdr fields)))
     ans))
 
@@ -150,20 +153,17 @@ KEYWORDS is a comma-separated list of labels."
 			      n))))))
 
 ;; Basic functions
-(declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-sort-messages (reverse keyfun)
   "Sort messages of current Rmail file.
 If 1st argument REVERSE is non-nil, sort them in reverse order.
 2nd argument KEYFUN is called with a message number, and should return a key."
-  (save-current-buffer
-    ;; If we are in a summary buffer, operate on the Rmail buffer.
-    (if (eq major-mode 'rmail-summary-mode)
-	(set-buffer rmail-buffer))
-    (let ((buffer-read-only nil)
-	  (point-offset (- (point) (point-min)))
-	  (predicate nil)			;< or string-lessp
+  (with-current-buffer rmail-buffer
+    (let ((return-to-point
+	   (if (rmail-buffers-swapped-p)
+	       (point)))
 	  (sort-lists nil))
+      (rmail-swap-buffers-maybe)
       (message "Finding sort keys...")
       (widen)
       (let ((msgnum 1))
@@ -178,66 +178,55 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	      (message "Finding sort keys...%d" msgnum))
 	  (setq msgnum (1+ msgnum))))
       (or reverse (setq sort-lists (nreverse sort-lists)))
-      ;; Decide predicate: < or string-lessp
-      (if (numberp (car (car sort-lists))) ;Is a key numeric?
-	  (setq predicate (function <))
-	(setq predicate (function string-lessp)))
       (setq sort-lists
 	    (sort sort-lists
-		  (function
-		   (lambda (a b)
-		     (funcall predicate (car a) (car b))))))
+                  ;; Decide predicate: < or string-lessp
+                  (if (numberp (car (car sort-lists))) ;Is a key numeric?
+                      'car-less-than-car
+                    (function
+                     (lambda (a b)
+                       (string-lessp (car a) (car b)))))))
       (if reverse (setq sort-lists (nreverse sort-lists)))
       ;; Now we enter critical region.  So, keyboard quit is disabled.
       (message "Reordering messages...")
       (let ((inhibit-quit t)		;Inhibit quit
+	    (inhibit-read-only t)
 	    (current-message nil)
 	    (msgnum 1)
 	    (msginfo nil))
 	;; There's little hope that we can easily undo after that.
 	(buffer-disable-undo (current-buffer))
 	(goto-char (rmail-msgbeg 1))
-	;; To force update of all markers.
+	;; To force update of all markers,
+	;; keep the new copies separated from the remaining old messages.
 	(insert-before-markers ?Z)
 	(backward-char 1)
 	;; Now reorder messages.
-	(while sort-lists
-	  (setq msginfo (car sort-lists))
+	(dolist (msginfo sort-lists)
 	  ;; Swap two messages.
 	  (insert-buffer-substring
 	   (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
-	  (delete-region  (nth 2 msginfo) (nth 3 msginfo))
+	  ;; The last message may not have \n\n after it.
+	  (unless (bobp)
+	    (insert "\n"))
+	  (unless (looking-back "\n\n")
+	    (insert "\n"))
+	  (delete-region (nth 2 msginfo) (nth 3 msginfo))
 	  ;; Is current message?
 	  (if (nth 1 msginfo)
 	      (setq current-message msgnum))
-	  (setq sort-lists (cdr sort-lists))
 	  (if (zerop (% msgnum 10))
 	      (message "Reordering messages...%d" msgnum))
 	  (setq msgnum (1+ msgnum)))
-	;; Delete the garbage inserted before.
+	;; Delete the dummy separator Z inserted before.
 	(delete-char 1)
 	(setq quit-flag nil)
-	(buffer-enable-undo)
 	(rmail-set-message-counters)
 	(rmail-show-message current-message)
-	(goto-char (+ point-offset (point-min)))
+	(if return-to-point
+	    (goto-char return-to-point))
 	(if (rmail-summary-exists)
-	    (rmail-select-summary
-	     (rmail-update-summary)))))))
-
-(defun rmail-fetch-field (msg field)
-  "Return the value of the header FIELD of MSG.
-Arguments are MSG and FIELD."
-  (save-restriction
-    (widen)
-    (let ((next (rmail-msgend msg)))
-      (goto-char (rmail-msgbeg msg))
-      (narrow-to-region (if (search-forward "\n*** EOOH ***\n" next t)
-			    (point)
-			  (forward-line 1)
-			  (point))
-			(progn (search-forward "\n\n" nil t) (point)))
-      (mail-fetch-field field))))
+	    (rmail-select-summary (rmail-update-summary)))))))
 
 (defun rmail-make-date-sortable (date)
   "Make DATE sortable using the function string-lessp."
@@ -246,5 +235,5 @@ Arguments are MSG and FIELD."
 
 (provide 'rmailsort)
 
-;; arch-tag: 0d90896b-0c35-46ac-b240-38be5ada2360
+;; arch-tag: 665da245-f6a7-4115-ad8c-ba19216988d5
 ;;; rmailsort.el ends here

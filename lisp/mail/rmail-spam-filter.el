@@ -1,6 +1,7 @@
 ;;; rmail-spam-filter.el  --- spam filter for rmail, the emacs mail reader.
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 
@@ -32,7 +33,7 @@
 
 ;;; put in your .emacs:
 
-;;; (load "rmail-spam-filter.el")
+;;; (require 'rmail-spam-filter)
 
 ;;; and use customize (in rmail-spam-filter group) to:
 
@@ -71,39 +72,27 @@
 ;;; rmail-spam-filter such that the spam is rejected by
 ;;; rmail-spam-filter itself.
 
-;;; (*) rmail spam filter also works with bbdb to prevent spam senders
-;;; from entering into the .bbdb file.  See variable
-;;; "rsf-auto-delete-spam-bbdb-entries".  This is done
-;;; in two ways: (a) bbdb is made not to auto-create entries for
-;;; messages that are deleted by the rmail-spam-filter, (b) when a
-;;; message is deleted in rmail, the user is offered to delete the
-;;; sender's bbdb entry as well _if_ it was created at the same day.
-
 (require 'rmail)
-(if (> emacs-major-version 20)
-    (require 'rmailsum)
-  (if (not (fboundp 'rmail-make-summary-line)) (load-library "rmailsum")))
+(require 'rmailsum)
 
-(defvar bbdb/mail_auto_create_p)
 (defvar rmail-summary-mode-map)
 
-;; For find-if and other cool common lisp functions we may want to use.
 (eval-when-compile
-  (require 'cl))
+  (require 'cl))                        ; for setf
 
 (defgroup rmail-spam-filter nil
   "Spam filter for RMAIL, the mail reader for Emacs."
   :group 'rmail)
 
 (defcustom rmail-use-spam-filter nil
-  "*Non-nil to activate the rmail spam filter.
+  "Non-nil to activate the rmail spam filter.
 Specify `rsf-definitions-alist' to define what you consider spam
 emails."
   :type 'boolean
   :group 'rmail-spam-filter )
 
 (defcustom rsf-file "~/XRMAIL-SPAM"
-  "*Name of rmail file for optionally saving some of the spam.
+  "Name of rmail file for optionally saving some of the spam.
 Spam may be either just deleted, or saved in a separate spam file to
 be looked at at a later time.  Whether the spam is just deleted or
 also saved in a separete spam file is specified for each definition of
@@ -112,27 +101,27 @@ spam, as one of the fields of `rsf-definitions-alist'"
   :group 'rmail-spam-filter )
 
 (defcustom rsf-no-blind-cc nil
-  "*Non-nil to treat blind CC (no To: header) as spam."
+  "Non-nil to treat blind CC (no To: header) as spam."
   :type 'boolean
   :group 'rmail-spam-filter )
 
 (defcustom rsf-ignore-case nil
-  "*Non-nil to ignore case in `rsf-definitions-alist'."
+  "Non-nil to ignore case in `rsf-definitions-alist'."
   :type 'boolean
   :group 'rmail-spam-filter )
 
 (defcustom rsf-beep nil
-  "*Non-nil to beep if spam is found."
+  "Non-nil to beep if spam is found."
   :type 'boolean
   :group 'rmail-spam-filter )
 
 (defcustom rsf-sleep-after-message 2.0
-  "*Seconds to wait after display of message that spam was found."
+  "Seconds to wait after display of message that spam was found."
   :type 'number
   :group 'rmail-spam-filter )
 
 (defcustom rsf-min-region-to-spam-list 7
-  "*Minimum size of region that you can add to the spam list.
+  "Minimum size of region that you can add to the spam list.
 This is a size limit on text that you can specify as
 indicating a message is spam.  The aim is to avoid
 accidentally adding a too short region, which would result
@@ -140,19 +129,8 @@ in false positive identification of spam."
   :type 'integer
   :group 'rmail-spam-filter )
 
-(defcustom rsf-auto-delete-spam-bbdb-entries nil
-  "*Non-nil to make sure no entries are made in bbdb for spam emails.
-This is done in two ways: (1) bbdb is made not to auto-create entries
-for messages that are deleted by the `rmail-spam-filter', (2) when a
-message is deleted in rmail, the user is offered to delete the
-sender's bbdb entry as well if it was created at the same day.  Note
-that Emacs needs to be restarted after setting this option for it to
-take an effect."
-  :type 'boolean
-  :group 'rmail-spam-filter )
-
 (defcustom rsf-autosave-newly-added-definitions nil
-  "*Non-nil to auto save new spam entries.
+  "Non-nil to auto save new spam entries.
 New entries entered via the spam menu bar item are then saved to
 customization file immediately after being added via the menu bar, and
 do not require explicitly saving the file after adding the new
@@ -161,7 +139,7 @@ entries."
   :group 'rmail-spam-filter )
 
 (defcustom rsf-white-list nil
-  "*List of strings to identify valid senders.
+  "List of strings to identify valid senders.
 If any rsf-white-list string matches a substring of the 'From'
 header, the message is flagged as a valid, non-spam message.  Example:
 If your domain is emacs.com then including 'emacs.com' in your
@@ -171,7 +149,7 @@ valid."
   :group 'rmail-spam-filter )
 
 (defcustom rsf-definitions-alist nil
-  "*Alist matching strings defining what messages are considered spam.
+  "Alist matching strings defining what messages are considered spam.
 Each definition may contain specifications of one or more of the
 elements {subject, sender, recipients or contents}, as well as a
 definition of what to do with the spam (action item).  A spam e-mail
@@ -211,23 +189,23 @@ specify 'this\\&that' in the appropriate spam definition field."
    ))
   :group 'rmail-spam-filter)
 
+;; FIXME nothing uses this.
 (defvar rsf-scanning-messages-now nil
-  "Non-nil when `rmail-spam-filter' scans messages.
-This is for interaction with `rsf-bbdb-auto-delete-spam-entries'.")
+  "Non-nil when `rmail-spam-filter' scans messages.")
 
 ;; the advantage over the automatic filter definitions is the AND conjunction
 ;; of in-one-definition-elements
-(defun check-field (field-symbol message-data definition result)
+(defun rsf-check-field (field-symbol message-data definition result)
   "Check if field-symbol is in `rsf-definitions-alist'.
 Capture maybe-spam and this-is-a-spam-email in a cons in result,
-where maybe-spam is in first and this-is-a-spam-email is in rest.
+where maybe-spam is in the car and this-is-a-spam-email is in the cdr.
 The values are returned by destructively changing result.
 If FIELD-SYMBOL field does not exist AND is not specified,
 this may still be spam due to another element...
-if (first result) is nil, we already have a contradiction in another
+if (car result) is nil, we already have a contradiction in another
 field"
   (let ((definition-field (cdr (assoc field-symbol definition))))
-    (if (and (first result) (> (length definition-field) 0))
+    (if (and (car result) (> (length definition-field) 0))
         ;; only in this case can maybe-spam change from t to nil
         ;; ... else, if FIELD-SYMBOL field does appear in the message,
         ;; and it also appears in spam definition list, this
@@ -236,9 +214,9 @@ field"
                  (string-match definition-field message-data))
             ;; if we do not get a contradiction from another field, this is
             ;; spam
-            (setf (rest result) t)
+            (setf (cdr result) t)
           ;; the message data contradicts the specification, this is no spam
-          (setf (first result) nil)))))
+          (setf (car result) nil)))))
 
 (defun rmail-spam-filter (msg)
   "Return nil if msg is spam based on rsf-definitions-alist.
@@ -260,16 +238,13 @@ it from rmail file.  Called for each new message retrieved by
 	(exit-while-loop nil)
 	(saved-case-fold-search case-fold-search)
 	(save-current-msg)
-	(rsf-saved-bbdb/mail_auto_create_p nil)
+	;; make sure bbdb does not create entries for messages while spam
+	;; filter is scanning the rmail file:
+	(bbdb/mail_auto_create_p nil)
 	)
 
-    ;; make sure bbdb does not create entries for messages while spam
-    ;; filter is scanning the rmail file:
-    (setq rsf-saved-bbdb/mail_auto_create_p 'bbdb/mail_auto_create_p)
-    (setq bbdb/mail_auto_create_p nil)
-    ;; let `rsf-bbdb-auto-delete-spam-entries' know that rmail spam
-    ;; filter is running, so that deletion of rmail messages should be
-    ;; ignored for now:
+    ;; Other things may wish to know if we are running (nothing uses
+    ;; this at present).
     (setq rsf-scanning-messages-now t)
     (save-excursion
       (save-restriction
@@ -318,8 +293,8 @@ it from rmail file.  Called for each new message retrieved by
                   maybe-spam nil
                   this-is-a-spam-email nil))
 
-        ;; maybe-spam is in first, this-is-a-spam-email in rest, this
-        ;; simplifies the call to check-field
+        ;; maybe-spam is in the car, this-is-a-spam-email in cdr, this
+        ;; simplifies the call to rsf-check-field
         (setq maybe-spam (cons maybe-spam this-is-a-spam-email))
 
 	;; scan all elements of the list rsf-definitions-alist
@@ -350,25 +325,25 @@ it from rmail file.  Called for each new message retrieved by
 	    ;; scanned, AND if "from" field does not appear in spam
 	    ;; definitions for this element, this may still be spam
 	    ;; due to another element...
-            (check-field 'from message-sender definition maybe-spam)
+            (rsf-check-field 'from message-sender definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check recipients:
-            (check-field 'to message-recipients definition maybe-spam)
+            (rsf-check-field 'to message-recipients definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check subject:
-            (check-field 'subject message-subject definition maybe-spam)
+            (rsf-check-field 'subject message-subject definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check content-type:
-            (check-field 'content-type message-content-type
+            (rsf-check-field 'content-type message-content-type
                          definition maybe-spam)
 	    ;; next, if spam was not ruled out already, check
 	    ;; contents: if contents field is not specified, this may
 	    ;; still be spam due to another element...
-            (check-field 'contents
+            (rsf-check-field 'contents
                          (buffer-substring
                           (rmail-msgbeg msg) (rmail-msgend msg))
                          definition maybe-spam)
 
 	    ;; finally, check the X-Spam-Status header.  You will typically
 	    ;; look for the "Yes" string in this header field
-	    (check-field 'x-spam-status message-spam-status
+	    (rsf-check-field 'x-spam-status message-spam-status
 			 definition maybe-spam)
 
 	    ;; if the search in rsf-definitions-alist found
@@ -376,7 +351,7 @@ it from rmail file.  Called for each new message retrieved by
 	    ;; rmail file, mark the email for deletion, leave the
 	    ;; while loop and return nil so that an rmail summary line
 	    ;; wont be displayed for this message:
-	    (if (and (first maybe-spam) (rest maybe-spam))
+	    (if (and (car maybe-spam) (cdr maybe-spam))
 		;; found that this is spam, no need to look at the
 		;; rest of the rsf-definitions-alist, exit
 		;; loop:
@@ -389,8 +364,8 @@ it from rmail file.  Called for each new message retrieved by
           )
 
         ;; (BK) re-set originally used variables
-        (setq this-is-a-spam-email (rest maybe-spam)
-              maybe-spam (first maybe-spam))
+        (setq this-is-a-spam-email (cdr maybe-spam)
+              maybe-spam (car maybe-spam))
 
 	(if (and this-is-a-spam-email maybe-spam)
 	    (progn
@@ -408,7 +383,7 @@ it from rmail file.  Called for each new message retrieved by
 				   (nth num-element rsf-definitions-alist)))
 		       'output-and-delete)
 		(progn
-		  (rmail-output-to-rmail-file rsf-file 1 t)
+		  (rmail-output rsf-file)
                   ;; Don't delete if automatic deletion after output
                   ;; is turned on
 		  (unless rmail-delete-after-output (rmail-delete-message))
@@ -421,8 +396,6 @@ it from rmail file.  Called for each new message retrieved by
 		  ))
 	       )
 	       (setq rmail-current-message save-current-msg)
-	       (setq bbdb/mail_auto_create_p
-	       'rsf-saved-bbdb/mail_auto_create_p)
 	      ;; set return value.  These lines must be last in the
 	      ;; function, so that they will determine the value
 	      ;; returned by rmail-spam-filter:

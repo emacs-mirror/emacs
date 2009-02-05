@@ -85,7 +85,7 @@ static int popup_activated_flag;
    ========================================================================== */
 
 
-/*23: FIXME: not currently used, but should normalize with other terms. */
+/* FIXME: not currently used, but should normalize with other terms. */
 void
 x_activate_menubar (struct frame *f)
 {
@@ -573,7 +573,10 @@ name_is_separator (name)
      since key equivalents are handled through emacs.
      On Leopard, even keystroke events generate SystemDefined events, but
      their subtype is 8. */
-  if ([event type] != NSSystemDefined || [event subtype] == 8)
+  if ([event type] != NSSystemDefined || [event subtype] == 8
+      /* Also, don't try this if from an event picked up asynchronously,
+         as lots of lisp evaluation happens in ns_update_menubar. */
+      || handling_signal != 0)
     return;
 /*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
   ns_update_menubar (frame, 1, self);
@@ -589,21 +592,27 @@ name_is_separator (name)
 }
 
 
-/* parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
-   into an accelerator string */
+/* Parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
+   into an accelerator string.  We are only able to display a single character
+   for an accelerator, together with an optional modifier combination.  (Under
+   Carbon more control was possible, but in Cocoa multi-char strings passed to
+   NSMenuItem get ignored.  For now we try to display a super-single letter
+   combo, and return the others as strings to be appended to the item title.
+   (This is signaled by setting keyEquivModMask to 0 for now.) */
 -(NSString *)parseKeyEquiv: (char *)key
 {
   char *tpos = key;
-  keyEquivModMask = 0;
-  /* currently we just parse 'super' combinations;
-     later we'll set keyEquivModMask */
+  keyEquivModMask = NSCommandKeyMask;
+
   if (!key || !strlen (key))
     return @"";
   
   while (*tpos == ' ' || *tpos == '(')
     tpos++;
-  if (*tpos != 's'/* || tpos[3] != ')'*/)
-    return @"";
+  if (*tpos != 's') {
+    keyEquivModMask = 0; /* signal */
+    return [NSString stringWithUTF8String: tpos];
+  }
   return [NSString stringWithFormat: @"%c", tpos[2]];
 }
 
@@ -626,12 +635,13 @@ name_is_separator (name)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
       keyEq = [self parseKeyEquiv: wv->key];
+      if (keyEquivModMask == 0)
+        title = [title stringByAppendingFormat: @" (%@)", keyEq];
 
       item = [self addItemWithTitle: (NSString *)title
                              action: @selector (menuDown:)
                       keyEquivalent: keyEq];
-      if (keyEquivModMask)
-        [item setKeyEquivalentModifierMask: keyEquivModMask];
+      [item setKeyEquivalentModifierMask: keyEquivModMask];
 
       [item setEnabled: wv->enabled];
 
@@ -681,7 +691,7 @@ name_is_separator (name)
 
       if (wv->contents)
         {
-          EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: @"Submenu"];
+          EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
 
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
@@ -1478,6 +1488,20 @@ update_frame_tool_bar (FRAME_PTR f)
 
    ========================================================================== */
 
+
+static Lisp_Object
+pop_down_menu (Lisp_Object arg)
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  popup_activated_flag = 0;
+  BLOCK_INPUT;
+  [((EmacsDialogPanel *) (p->pointer)) close];
+  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+  UNBLOCK_INPUT;
+  return Qnil;
+}
+
+
 Lisp_Object
 ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
@@ -1493,7 +1517,9 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   isQ = NILP (header);
 
-  if (EQ (position, Qt))
+  if (EQ (position, Qt)
+      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+                               || EQ (XCAR (position), Qtool_bar))))
     {
       window = selected_window;
     }
@@ -1509,34 +1535,39 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
           window = Fcar (tem);	     /* POSN_WINDOW (tem) */
         }
     }
-  else if (FRAMEP (position))
+  else if (WINDOWP (position) || FRAMEP (position))
     {
       window = position;
     }
   else
-    {
-      CHECK_LIVE_WINDOW (position);
-      window = position;
-    }
-  
+    window = Qnil;
+
   if (FRAMEP (window))
     f = XFRAME (window);
-  else
+  else if (WINDOWP (window))
     {
       CHECK_LIVE_WINDOW (window);
       f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
     }
+  else
+    CHECK_WINDOW (window);
+
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
-  popup_activated_flag = 1;
-  tem = [dialog runDialogAt: p];
-  popup_activated_flag = 0;
+  {
+    int specpdl_count = SPECPDL_INDEX ();
+    record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
+    popup_activated_flag = 1;
+    tem = [dialog runDialogAt: p];
+    popup_activated_flag = 0;
+    unbind_to (specpdl_count, Qnil);
+  }
 
   [dialog close];
-
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+
   return tem;
 }
 
@@ -1849,13 +1880,15 @@ void process_dialog (id window, Lisp_Object list)
   [self orderFront: NSApp];
 
   session = [NSApp beginModalSessionForWindow: self];
-  while ((ret = [NSApp runModalSession: session]) == NSRunContinuesResponse)
+  while (popup_activated_flag
+         && (ret = [NSApp runModalSession: session]) == NSRunContinuesResponse)
     {
-    (e = [NSApp nextEventMatchingMask: NSAnyEventMask
-                            untilDate: [NSDate distantFuture]
-                               inMode: NSEventTrackingRunLoopMode
-                              dequeue: NO]);
-/*fprintf (stderr, "ret = %d\te = %p\n", ret, e); */
+      timer_check (1);  // for timers.el, indep of atimers; might not return
+      e = [NSApp nextEventMatchingMask: NSAnyEventMask
+                             untilDate: [NSDate dateWithTimeIntervalSinceNow: 1]
+                                inMode: NSModalPanelRunLoopMode
+                               dequeue: NO];
+/*fprintf (stderr, "ret = %d\te = %p\n", ret, e);*/
     }
   [NSApp endModalSession: session];
 
@@ -1867,7 +1900,6 @@ void process_dialog (id window, Lisp_Object list)
 }
 
 @end
-
 
 
 /* ==========================================================================

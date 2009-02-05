@@ -205,16 +205,6 @@ the other frame parameters from @var{parameters}.  Aside from the
 Frames}).
 @end deffn
 
-@deffn Command make-frame-on-tty tty type &optional parameters
-This command creates a text-only frame on another text terminal.  The
-argument @var{tty} identifies the terminal device by its file name,
-e.g., @file{/dev/ttys2}, and @var{type} gives the device type as a
-string, e.g., @code{"vt100"}, to use for searching the
-termcap/terminfo database for the entry describing capabilities of the
-device.  Optional argument @var{parameters} specifies additional
-parameters for the frame.
-@end deffn
-
 @defun x-display-list
 This returns a list that indicates which X displays Emacs has a
 connection to.  The elements of the list are strings, and each one is

@@ -236,7 +236,10 @@ down the SHIFT key while pressing the mouse button."
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."
-  (when (and xterm-mouse-mode (eq t (terminal-live-p terminal)))
+  (when (and xterm-mouse-mode (eq t (terminal-live-p terminal))
+	     ;; Avoid the initial terminal which is not a termcap device.
+	     ;; FIXME: is there more elegant way to detect the initial terminal?
+	     (not (string= (terminal-name terminal) "initial_terminal")))
     (unless (terminal-parameter terminal 'xterm-mouse-mode)
       ;; Simulate selecting a terminal by selecting one of its frames ;-(
       (with-selected-frame (car (frames-on-display-list terminal))
@@ -249,7 +252,10 @@ down the SHIFT key while pressing the mouse button."
   ;; Only send the disable command to those terminals to which we've already
   ;; sent the enable command.
   (when (and (terminal-parameter terminal 'xterm-mouse-mode)
-             (eq t (terminal-live-p terminal)))
+             (eq t (terminal-live-p terminal))
+	     ;; Avoid the initial terminal which is not a termcap device.
+	     ;; FIXME: is there more elegant way to detect the initial terminal?
+	     (not (string= (terminal-name terminal) "initial_terminal")))
     ;; We could remove the key-binding and unset the `xterm-mouse-mode'
     ;; terminal parameter, but it seems less harmful to send this escape
     ;; command too many times (or to catch an unintended key sequence), than

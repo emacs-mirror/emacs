@@ -737,8 +737,6 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		     (setq prefix (PC-try-completion
 				   (PC-chunk-after basestr skip) poss)))
 		(let ((first t) i)
-		  ;; Retain capitalization of user input even if
-		  ;; completion-ignore-case is set.
 		  (if (eq mode 'word)
 		      (setq prefix (PC-chop-word prefix basestr)))
 		  (goto-char (+ beg (length dirname)))
@@ -746,27 +744,25 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 				(setq i 0) ; index into prefix string
 				(while (< i (length prefix))
 				  (if (and (< (point) end)
-					   (eq (downcase (aref prefix i))
-					       (downcase (following-char))))
-				      ;; same char (modulo case); no action
-				      (forward-char 1)
-				    (if (and (< (point) end)
-					     (and (looking-at " ")
-                                                  (memq (aref prefix i)
-							PC-delims-list)))
-					;; replace " " by the actual delimiter
-					(progn
-					  (delete-char 1)
-					  (insert (substring prefix i (1+ i))))
-				      ;; insert a new character
+                                           (or (eq (downcase (aref prefix i))
+						   (downcase (following-char)))
+					       (and (looking-at " ")
+						    (memq (aref prefix i)
+							  PC-delims-list))))
+				      ;; replace " " by the actual delimiter
+                                      ;; or input char by prefix char
 				      (progn
-                                        (and filename (looking-at "\\*")
-                                             (progn
-                                               (delete-char 1)
-                                               (setq end (1- end))))
-					(setq improved t)
-                                        (insert (substring prefix i (1+ i)))
-					(setq end (1+ end)))))
+					(delete-char 1)
+					(insert (substring prefix i (1+ i))))
+				    ;; insert a new character
+				    (progn
+				      (and filename (looking-at "\\*")
+					   (progn
+					     (delete-char 1)
+					     (setq end (1- end))))
+				      (setq improved t)
+				      (insert (substring prefix i (1+ i)))
+				      (setq end (1+ end))))
 				  (setq i (1+ i)))
 				(or pt (setq pt (point)))
 				(looking-at PC-delim-regex))

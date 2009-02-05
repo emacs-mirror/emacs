@@ -3156,7 +3156,7 @@ non-nil."
 (defun c-indent-line-or-region (&optional arg region)
   "Indent active region, current line, or block starting on this line.
 In Transient Mark mode, when the region is active, reindent the region.
-Othewise, with a prefix argument, rigidly reindent the expression
+Otherwise, with a prefix argument, rigidly reindent the expression
 starting on the current line.
 Otherwise reindent just the current line."
   (interactive

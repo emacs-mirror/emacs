@@ -335,16 +335,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     IBOutlet NSPopUpButton *functionModMenu;
 #endif
     IBOutlet NSMatrix *cursorTypeMatrix;
-    IBOutlet NSSlider *cursorBlinkSlider;
     IBOutlet NSSlider *expandSpaceSlider;
 #ifdef NS_IMPL_COCOA
     IBOutlet NSButton *smoothFontsCheck;
     IBOutlet NSButton *useQuickdrawCheck;
     IBOutlet NSButton *useSysHiliteCheck;
+    IBOutlet NSButton *confirmQuitCheck;
     Lisp_Object prevUseHighlightColor;
 #endif
     float prevExpandSpace;
-    float prevBlinkRate;
+#ifdef NS_IMPL_GNUSTEP
+    /* TODO: remove as soon as someone can edit the .nib to replace the
+             cursor-blink widget with checkbox conn to confirmQuitCheck */
+    IBOutlet NSSlider *cursorBlinkSlider;
+#endif
 }
 - (IBAction)cancel: (id)sender;
 - (IBAction)ok: (id)sender;
@@ -383,6 +387,22 @@ typedef unsigned long NSUInteger;
    Non-OO stuff
 
    ========================================================================== */
+
+/* Special keycodes that we pass down the event chain */
+#define KEY_NS_POWER_OFF               ((1<<28)|(0<<16)|1)
+#define KEY_NS_OPEN_FILE               ((1<<28)|(0<<16)|2)
+#define KEY_NS_OPEN_TEMP_FILE          ((1<<28)|(0<<16)|3)
+#define KEY_NS_DRAG_FILE               ((1<<28)|(0<<16)|4)
+#define KEY_NS_DRAG_COLOR              ((1<<28)|(0<<16)|5)
+#define KEY_NS_DRAG_TEXT               ((1<<28)|(0<<16)|6)
+#define KEY_NS_CHANGE_FONT             ((1<<28)|(0<<16)|7)
+#define KEY_NS_OPEN_FILE_LINE          ((1<<28)|(0<<16)|8)
+#define KEY_NS_PUT_WORKING_TEXT        ((1<<28)|(0<<16)|9)
+#define KEY_NS_UNPUT_WORKING_TEXT      ((1<<28)|(0<<16)|10)
+#define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
+#define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
+#define KEY_NS_TOGGLE_TOOLBAR          ((1<<28)|(0<<16)|13)
+#define KEY_NS_INFO_PREFS              ((1<<28)|(0<<16)|14)
 
 /* could use list to store these, but rest of emacs has a big infrastructure
    for managing a table of bitmap "records" */
@@ -453,7 +473,7 @@ struct nsfont_info
   char bold, ital;  /* convenience flags */
   char synthItal;
   float voffset;  /* mean of ascender/descender offsets */
-  XCharStruct max_bounds; /* 23 */
+  XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */
   unsigned short **glyphs; /* map unicode index to glyph */
@@ -483,38 +503,33 @@ struct ns_display_info
   /* Minimum font height over all fonts in font_table.  */
   int smallest_font_height;
 
-  /*/23 */
   struct ns_bitmap_record *bitmaps;
   int bitmaps_size;
   int bitmaps_last;
 
-  /* 23 */
   struct image_cache *image_cache;
 
   struct ns_color_table *color_table;
 
-  /* 23: DPI resolution of this screen */
+  /* DPI resolution of this screen */
   double resx, resy;
 
-  /* 23: Mask of things that cause the mouse to be grabbed */
+  /* Mask of things that cause the mouse to be grabbed */
   int grabbed;
 
-  /* 23 */
   int n_planes;
 
-  /* 23 */
   int color_p;
 
-  /* 23 */
   Window root_window;
 
-  /* 23: Xism */
+  /* Xism */
   XrmDatabase xrdb;
 
-  /* 23: The cursor to use for vertical scroll bars. */
+  /* The cursor to use for vertical scroll bars. */
   Cursor vertical_scroll_bar_cursor;
 
-  /* 23: most mouse face stuff moved in here (and reasonably so) */
+  /* most mouse face stuff moved in here as of 21+ (and reasonably so) */
   int mouse_face_beg_row, mouse_face_beg_col;
   int mouse_face_end_row, mouse_face_end_col;
   int mouse_face_beg_x, mouse_face_beg_y;
@@ -540,8 +555,6 @@ extern struct ns_display_info *x_display_list;
 extern Lisp_Object ns_display_name_list;
 extern struct ns_display_info *ns_display_info_for_name ();
 
-/* 23: FIXME: these functions (we defined in nsfns) are used in various
-       places, but no prototypes are provided */
 struct ns_display_info *check_x_display_info (Lisp_Object frame);
 FRAME_PTR check_x_frame (Lisp_Object frame);
 
@@ -564,7 +577,7 @@ struct ns_output
   void *toolbar;
 #endif
 
-  /* 23: NSCursors init'ed in initFrameFromEmacs */
+  /* NSCursors init'ed in initFrameFromEmacs */
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
@@ -572,10 +585,10 @@ struct ns_output
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
-  /* 23: NS-specific */
+  /* NS-specific */
   Cursor current_pointer;
 
-  /* 23: lord knows why Emacs needs to know about our Window ids.. */
+  /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
   char explicit_parent;
 
@@ -603,7 +616,7 @@ struct ns_output
   struct ns_display_info *display_info;
 };
 
-/* 23: this dummy decl now needed to support TTYs */
+/* this dummy decl needed to support TTYs */
 struct x_output
 {
   unsigned long background_pixel;
@@ -680,7 +693,6 @@ struct x_output
 
 #define FRAME_FONTSET(f) ((f)->output_data.ns->fontset)
 
-/* 23 */
 #define FRAME_SMALLEST_CHAR_WIDTH(f)  \
   (FRAME_NS_DISPLAY_INFO (f)->smallest_char_width)
 #define FRAME_SMALLEST_FONT_HEIGHT(f) \
@@ -734,12 +746,13 @@ extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern Lisp_Object Qnone;
+extern char ns_no_defaults;
 
-/* XColor defined in dispextern.h (we use color_def->pixel = NSColor id), but
-   this causes an #include snafu, so we can't declare it.  */
 extern int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
                   char makeIndex);
+extern void
+ns_query_color (void *col, XColor *color_def, int setPixel);
 
 #ifdef __OBJC__
 extern Lisp_Object ns_color_to_lisp (NSColor *col);
@@ -813,7 +826,7 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
-/* 23: needed somewhere... */
+/* needed somewhere... */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
 

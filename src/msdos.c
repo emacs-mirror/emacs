@@ -4940,7 +4940,7 @@ static int sigprocmask_count = -1;
 static sigset_t current_mask;
 
 /* Which signals are pending (initially none).  */
-static sigset_t pending_signals;
+static sigset_t msdos_pending_signals;
 
 /* Previous handlers to restore when the blocked signals are unblocked.  */
 typedef void (*sighandler_t)(int);
@@ -4952,7 +4952,7 @@ static void
 sig_suspender (signo)
      int signo;
 {
-  sigaddset (&pending_signals, signo);
+  sigaddset (&msdos_pending_signals, signo);
 }
 
 int
@@ -4968,7 +4968,7 @@ sigprocmask (how, new_set, old_set)
   if (sigprocmask_count != __bss_count)
     {
       sigprocmask_count = __bss_count;
-      sigemptyset (&pending_signals);
+      sigemptyset (&msdos_pending_signals);
       sigemptyset (&current_mask);
       for (signo = 0; signo < 320; signo++)
 	prev_handlers[signo] = SIG_ERR;
@@ -5014,9 +5014,9 @@ sigprocmask (how, new_set, old_set)
 	      signal (signo, prev_handlers[signo]);
 	      prev_handlers[signo] = SIG_ERR;
 	    }
-	  if (sigismember (&pending_signals, signo))
+	  if (sigismember (&msdos_pending_signals, signo))
 	    {
-	      sigdelset (&pending_signals, signo);
+	      sigdelset (&msdos_pending_signals, signo);
 	      raise (signo);
 	    }
 	}

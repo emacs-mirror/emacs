@@ -384,8 +384,18 @@ run_timers ()
       EMACS_GET_TIME (now);
     }
 
+#ifdef SYNC_INPUT
+  if (pending_atimers)
+    pending_signals = 1;
+  else
+    {
+      pending_signals = interrupt_input_pending;
+      set_alarm ();
+    }
+#else
   if (! pending_atimers)
     set_alarm ();
+#endif
 }
 
 
@@ -397,7 +407,9 @@ alarm_signal_handler (signo)
      int signo;
 {
   pending_atimers = 1;
-#ifndef SYNC_INPUT
+#ifdef SYNC_INPUT
+  pending_signals = 1;
+#else
   run_timers ();
 #endif
 }
@@ -439,6 +451,7 @@ init_atimer ()
 {
   free_atimers = atimers = NULL;
   pending_atimers = 0;
+  /* pending_signals is initialized in init_keyboard.*/
   signal (SIGALRM, alarm_signal_handler);
 }
 

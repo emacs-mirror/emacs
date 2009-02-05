@@ -30,10 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
-/* Define to 1 if you are trying experimental enhanced Ctrl-g support using NS
-   windowing under MacOS X. */
-#undef COCOA_EXPERIMENTAL_CTRL_G
-
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
