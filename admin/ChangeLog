@@ -1,3 +1,7 @@
+2009-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nt/README.W32: Fix typo.  (Bug#2207)
+
 2009-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* admin.el (set-version): Remove deleted file ns-emacs.texi.
