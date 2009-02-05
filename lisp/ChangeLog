@@ -1,3 +1,9 @@
+2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
+	(vc-dir-mouse-map): New keymap.
+	(vc-default-dir-printer): Use it locally.
+
 2009-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-what-message): Unbreak it.
