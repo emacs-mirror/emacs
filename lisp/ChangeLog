@@ -1,3 +1,9 @@
+2009-02-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
+	(turn-off-xterm-mouse-tracking-on-terminal): Do not turn on the
+	mode on the initial terminal.
+
 2009-02-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
