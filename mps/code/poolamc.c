@@ -756,7 +756,7 @@ static Bool amcNailGetMark(Seg seg, Ref ref)
   AVERT(amcNailboard, board);
 
   i = AddrOffset(SegBase(seg), ref) >> board->markShift;
-  return BTGet(board->mark, i);
+  return TRUE; /* BTGet(board->mark, i); RHSK-hack */
 }
 
 
