@@ -1,3 +1,7 @@
+2009-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-news.texi: Print version about Incoming*.
+
 2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Structure editing, Handling links)

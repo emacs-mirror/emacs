@@ -163,12 +163,20 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
   (interactive "slogin/password: \nsHost: \nsProtocol: \n") ;for testing
   (remhash (format "%s %s:%s" mode host protocol) auth-source-cache))
 
+(defun auth-source-forget-all-cached ()
+  "Forget all cached auth-source authentication tokens."
+  (interactive)
+  (setq auth-source-cache (make-hash-table :test 'equal)))
+
 (defun auth-source-user-or-password (mode host protocol)
-  "Find user or password (from the string MODE) matching HOST and PROTOCOL."
+  "Find MODE (string or list of strings) matching HOST and PROTOCOL.
+MODE can be \"login\" or \"password\" for example."
   (gnus-message 9
 		"auth-source-user-or-password: get %s for %s (%s)"
 		mode host protocol)
-  (let* ((cname (format "%s %s:%s" mode host protocol))
+  (let* ((listy (listp mode))
+	 (mode (if listy mode (list mode)))
+	 (cname (format "%s %s:%s" mode host protocol))
 	 (found (gethash cname auth-source-cache)))
     (if found
 	(progn
@@ -176,7 +184,7 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 			"auth-source-user-or-password: cached %s=%s for %s (%s)"
 			mode
 			;; don't show the password
-			(if (equal mode "password") "SECRET" found)
+			(if (member "password" mode) "SECRET" found)
 			host protocol)
 	  found)
       (dolist (choice (auth-source-pick host protocol))
@@ -191,8 +199,9 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 			"auth-source-user-or-password: found %s=%s for %s (%s)"
 			mode
 			;; don't show the password
-			(if (equal mode "password") "SECRET" found)
+			(if (member "password" mode) "SECRET" found)
 			host protocol)
+	  (setq found (if listy found (car-safe found)))
 	  (when auth-source-do-cache
 	    (puthash cname found auth-source-cache)))
 	(return found)))))

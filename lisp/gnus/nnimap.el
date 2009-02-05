@@ -805,8 +805,12 @@ If EXAMINE is non-nil the group is selected read-only."
  	   (port (if nnimap-server-port
  		     (int-to-string nnimap-server-port)
  		   "imap"))
+	   (auth-info 
+	    (auth-source-user-or-password '("login" "password") server port))
+	   (auth-user (nth 0 auth-info))
+	   (auth-passwd (nth 1 auth-info))
 	   (user (or
-		  (auth-source-user-or-password "login" server port) ; this is preferred to netrc-*
+		  auth-user ; this is preferred to netrc-*
 		  (netrc-machine-user-or-password
 		   "login"
 		   list
@@ -816,7 +820,7 @@ If EXAMINE is non-nil the group is selected read-only."
 		   (list port)
 		   (list "imap" "imaps" "143" "993"))))
 	   (passwd (or
-		    (auth-source-user-or-password "password" server port) ; this is preferred to netrc-*
+		    auth-passwd ; this is preferred to netrc-*
 		    (netrc-machine-user-or-password
 		     "password"
 		     list

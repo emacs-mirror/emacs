@@ -1798,25 +1798,38 @@ However, UIDS here is a cons, where the car is the canonical form
 of the UIDS specification, and the cdr is the one which works with
 Exchange 2007 or, potentially, other buggy servers.
 See `imap-enable-exchange-bug-workaround'."
-  ;; We don't unconditionally use the alternative (valid) form, since
-  ;; this is said to be significantly inefficient.  The first time we
-  ;; get here for a given, we'll try the canonical form.  If we get
-  ;; the known error from the buggy server, set the flag
-  ;; buffer-locally (to account for connections to multiple servers),
-  ;; then re-try with the alternative UIDS spec.
+  ;; The first time we get here for a given, we'll try the canonical
+  ;; form.  If we get the known error from the buggy server, set the
+  ;; flag buffer-locally (to account for connections to multiple
+  ;; servers), then re-try with the alternative UIDS spec.  We don't
+  ;; unconditionally use the alternative form, since the
+  ;; currently-used alternatives are seriously inefficient with some
+  ;; servers (although they are valid).
+  ;;
+  ;; FIXME:  Maybe it would be cleaner to have a flag to not signal
+  ;; the error (which otherwise gives a message), and test
+  ;; `imap-failed-tags'.  Also, Other IMAP clients use other forms of
+  ;; request which work with Exchange, e.g. Claws does "UID FETCH 1:*
+  ;; (UID)" rather than "FETCH UID 1,*".  Is there a good reason not
+  ;; to do the same?
   (condition-case data
-      (imap-fetch (if imap-enable-exchange-bug-workaround
-		      (cdr uids)
-		    (car uids))
-		  props receive nouidfetch buffer)
+      ;; Binding `debug-on-error' allows us to get the error from
+      ;; `imap-parse-response' -- it's normally caught by Emacs around
+      ;; execution of a process filter.
+      (let ((debug-on-error t))
+	(imap-fetch (if imap-enable-exchange-bug-workaround
+			(cdr uids)
+		      (car uids))
+		    props receive nouidfetch buffer))
     (error
      (if (and (not imap-enable-exchange-bug-workaround)
-	      (string-match
-	       "The specified message set is invalid"
-	       (cadr data)))
+	      ;; This is the Exchange 2007 response.  It may be more
+	      ;; robust just to check for a BAD response to the
+	      ;; attempted fetch.
+	      (string-match "The specified message set is invalid"
+			    (cadr data)))
 	 (with-current-buffer (or buffer (current-buffer))
-	   (set (make-local-variable
-		 'imap-enable-exchange-bug-workaround)
+	   (set (make-local-variable 'imap-enable-exchange-bug-workaround)
 		t)
 	   (imap-fetch (cdr uids) props receive nouidfetch))
        (signal (car data) (cdr data))))))
@@ -3027,6 +3040,7 @@ Return nil if no complete line has arrived."
 	  imap-list-to-message-set
 	  imap-fetch-asynch
 	  imap-fetch
+	  imap-fetch-safe
 	  imap-message-put
 	  imap-message-get
 	  imap-message-map

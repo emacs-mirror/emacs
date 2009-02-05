@@ -3,6 +3,25 @@
 	* gnus-sum.el (gnus-summary-next-article): XEmacs-friendly version of
 	2009-01-09 change.
 
+2009-01-26  Teodor Zlatanov  <tzlatanov@jumptrading.com>
+
+	* auth-source.el (auth-source-forget-user-or-password): Clarify docs.
+	(auth-source-forget-all-cached): New convenience function.
+	(auth-source-user-or-password): Accept list of modes or a single mode.
+
+	* mail-source.el (mail-source-bind, mail-source-set-1): Use list of
+	auth-source modes.
+
+	* nnimap.el (nnimap-open-connection): Use list of
+	auth-source modes.
+
+	* nntp.el (nntp-send-authinfo): Use list of
+	auth-source modes.
+
+2009-01-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nntp.el (nntp-send-authinfo): 
+
 2009-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Update docs to reflect epa-file-enable is to be used

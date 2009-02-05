@@ -1,3 +1,13 @@
+2009-02-04  Dave Love  <fx@gnu.org>
+
+	* net/imap.el (imap-fetch-safe): Bind debug-on-error.
+	(imap-debug): Add imap-fetch-safe.
+
+2009-02-04  Teodor Zlatanov  <tzlatanov@jumptrading.com>
+
+	* net/netrc.el (netrc-machine-user-or-password): Use list of
+	auth-source modes.
+
 2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-svn.el (vc-svn-diff): Revert previous change but add a test
