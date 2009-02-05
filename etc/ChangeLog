@@ -1,17 +1,3 @@
-<<<<<<< ChangeLog
-2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
-
-	* refcards/orgcard.tex: New version number.
-
-2009-01-31  Carsten Dominik  <dominik@science.uva.nl>
-
-	* refcards/orgcard.tex: New version number.
-
-2009-01-30  Carsten Dominik  <dominik@science.uva.nl>
-
-	* refcards/orgcard.tex: New version number.
-
-=======
 2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* compilation.txt (gnu): Add an example for the "note" format.
@@ -20,7 +6,10 @@
 
 	* PROBLEMS (CPP): Note problem with resource compiler of MSVC.
 
->>>>>>> 1.761
+2009-02-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* refcards/orgcard.tex: New version number.
+
 2009-01-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* PROBLEMS (Windows): Add entry about TCC/4NT and App Paths keys.
