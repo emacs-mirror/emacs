@@ -557,7 +557,7 @@
 	      (setcdr slot (vconcat (cdr slot) (vector (car math-subgroup))))
 	    (setcdr slot (vector (cadr slot) (car math-subgroup))))
 	(setq slot (list (nth 2 math-subgroup) (car math-subgroup)))
-	(push slot script-representative-chars)))
+	(nconc script-representative-chars (list slot))))
     (set-fontset-font
      "fontset-default"
      (cons (car math-subgroup) (nth 1 math-subgroup))
