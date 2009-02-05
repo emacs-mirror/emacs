@@ -1,3 +1,9 @@
+2009-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* org-rmail.el (rmail-show-message): Update declaration.
+	(rmail-buffer, rmail-view-buffer): Declare.
+	(org-rmail-store-link, org-rmail-follow-link): Handle mbox Rmail.
+
 2009-02-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-return-follows-link): Revert setting
