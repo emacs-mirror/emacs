@@ -194,8 +194,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 				  (or
 				   (and date
 					(ignore-errors
-					 (format-time-string
-					  "%a %b %e %T %Y"
+					 (current-time-string
 					  (date-to-time date))))
 				   (current-time-string))))))
 

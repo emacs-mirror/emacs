@@ -1,5 +1,7 @@
 2009-02-06  Glenn Morris  <rgm@gnu.org>
 
+	* mail/unrmail.el (unrmail): Use current-time-string.
+
 	* simple.el (kill-whole-line): Provide a default argument of 1.
 
 	* mail/undigest.el (rmail-mail-separator): Delete.
