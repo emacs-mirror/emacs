@@ -1,3 +1,8 @@
+2009-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Signal an error if no font is
+	found (Bug#2147).
+
 2009-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* character.c (syms_of_character) <script-representative-chars>:
