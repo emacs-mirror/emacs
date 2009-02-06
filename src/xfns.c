@@ -3307,6 +3307,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   x_default_font_parameter (f, parms);
+  if (!FRAME_FONT (f))
+    {
+      delete_frame (frame, Qnoelisp);
+      error ("Invalid frame font");
+    }
 
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug
