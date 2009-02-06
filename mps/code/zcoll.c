@@ -25,7 +25,7 @@
  *           random) in the specified myroot array slots, and 
  *           drops the rest (which therefore become garbage)
  *   Katalog -- (will be renamed Catalog) makes a Catalog, which 
- *           is a 4-level tree of 100000 objects; see .catalog
+ *           is a 40 MB 4-level tree of 10^5 objects; see .catalog
  *   Collect -- request a synchronous full garbage collection
  *
  *
@@ -64,7 +64,7 @@
 #include "mpsw3.h"
 #endif
 #include <stdlib.h>
-
+#include <time.h>  /* clock */
 
 
 /* testChain -- generation parameters for the test */
@@ -164,6 +164,8 @@ static void get(mps_arena_t arena)
 
   while (mps_message_queue_type(&type, arena)) {
     mps_message_t message;
+    static mps_clock_t mclockBegin = 0;
+    static mps_clock_t mclockEnd = 0;
     mps_word_t *obj;
     mps_word_t objind;
     mps_addr_t objaddr;
@@ -173,6 +175,9 @@ static void get(mps_arena_t arena)
     
     switch(type) {
       case mps_message_type_gc_start(): {
+        mclockBegin = mps_message_clock(arena, message);
+        printf("    %5lu: (%5lu)",
+               mclockBegin, mclockBegin - mclockEnd);
         printf("    Coll Begin                                     (%s)\n",
                mps_message_gc_start_why(arena, message));
         break;
@@ -183,7 +188,11 @@ static void get(mps_arena_t arena)
         /* size_t other = 0;  -- cannot determine; new method reqd */
         size_t live = mps_message_gc_live_size(arena, message);
         size_t alimit = mps_arena_reserved(arena);
+
+        mclockEnd = mps_message_clock(arena, message);
         
+        printf("    %5lu: (%5lu)",
+               mclockEnd, mclockEnd - mclockBegin);
         printf("    Coll End  ");
         showStatsText(notcon, con, live);
         if(rnd()==0) showStatsAscii(notcon, con, live, alimit);
