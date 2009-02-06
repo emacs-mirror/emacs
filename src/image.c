@@ -8079,17 +8079,8 @@ svg_load_image (f, img, contents, size)
   /* Handle alpha channel by combining the image with a background
      color.  */
   specified_bg = image_spec_value (img->spec, QCbackground, NULL);
-  if (STRINGP (specified_bg)
-      && x_defined_color (f, SDATA (specified_bg), &background, 0))
-    {
-      /* SVG pixmaps specify transparency in the last byte, so right
-	 shift 8 bits to get rid of it, since emacs doesn't support
-	 transparency.  */
-      background.red   >>= 8;
-      background.green >>= 8;
-      background.blue  >>= 8;
-    }
-  else
+  if (!STRINGP (specified_bg)
+      || !x_defined_color (f, SDATA (specified_bg), &background, 0))
     {
 #ifndef HAVE_NS
       background.pixel = FRAME_BACKGROUND_PIXEL (f);
@@ -8098,6 +8089,13 @@ svg_load_image (f, img, contents, size)
       ns_query_color(FRAME_BACKGROUND_COLOR (f), &background, 1);
 #endif
     }
+
+  /* SVG pixmaps specify transparency in the last byte, so right
+     shift 8 bits to get rid of it, since emacs doesn't support
+     transparency.  */
+  background.red   >>= 8;
+  background.green >>= 8;
+  background.blue  >>= 8;
 
   /* This loop handles opacity values, since Emacs assumes
      non-transparent images.  Each pixel must be "flattened" by
