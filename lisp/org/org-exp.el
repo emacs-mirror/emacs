@@ -1538,7 +1538,7 @@ on this string to produce the exported version."
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
 	(goto-char (point-min))
-	(when (re-search-forward "\\(^#.*\n\\)^\\*+[ \t]" nil t)
+	(when (re-search-forward "^\\(#.*\n\\)?\\*+[ \t]" nil t)
 	  (delete-region (point-min) (match-beginning 0))
 	  (goto-char (point-min))
 	  (insert "\n")))
