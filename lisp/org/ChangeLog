@@ -2,6 +2,8 @@
 
 	* org-exp.el (org-export-preprocess-string): Fix bug with skipping
 	text before first headline.
+	(org-export-remove-or-extract-drawers): Fix regular expression for
+	extracting drawers.
 
 	* org.el (org-format-latex): Stop LaTeX fragment processing in
 	protected examples.

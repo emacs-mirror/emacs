@@ -1751,7 +1751,7 @@ whose content to keep."
 		       (org-delete-all exp-drawers
 				       (copy-sequence all-drawers))
 		       "\\|")
-		      "\\):[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n")))
+		      "\\):[ \t]*\n\\([^\000]*?\n\\)?[ \t]*:END:[ \t]*\n")))
       (while (re-search-forward re nil t)
 	(org-if-unprotected
 	 (replace-match ""))))))
