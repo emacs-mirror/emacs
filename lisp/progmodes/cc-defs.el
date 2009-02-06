@@ -1446,19 +1446,19 @@ non-nil, a caret is prepended to invert the set."
     ;; Check whether beginning/end-of-defun call
     ;; beginning/end-of-defun-function nicely, passing through the
     ;; argument and respecting the return code.
-    (let (mark-ring
-	  (bod-param 'foo) (eod-param 'foo)
-	  (beginning-of-defun-function
-	   (lambda (&optional arg)
-	     (or (eq bod-param 'foo) (setq bod-param 'bar))
-	     (and (eq bod-param 'foo)
-		  (setq bod-param arg)
-		  (eq arg 3))))
-	  (end-of-defun-function
-	   (lambda (&optional arg)
-	     (and (eq eod-param 'foo)
-		  (setq eod-param arg)
-		  (eq arg 3)))))
+    (let* (mark-ring
+	   (bod-param 'foo) (eod-param 'foo)
+	   (beginning-of-defun-function
+	    (lambda (&optional arg)
+	      (or (eq bod-param 'foo) (setq bod-param 'bar))
+	      (and (eq bod-param 'foo)
+		   (setq bod-param arg)
+		   (eq arg 3))))
+	   (end-of-defun-function
+	    (lambda (&optional arg)
+	      (and (eq eod-param 'foo)
+		   (setq eod-param arg)
+		   (eq arg 3)))))
       (if (save-excursion (and (beginning-of-defun 3) (= bod-param 3)
 			       (not (beginning-of-defun))
 			       (end-of-defun 3) (= eod-param 3)
