@@ -3219,6 +3219,7 @@ If ARG is negative, kill backward.  Also kill the preceding newline.
 \(This is meant to make \\[repeat] work well with negative arguments.\)
 If ARG is zero, kill current line but exclude the trailing newline."
   (interactive "p")
+  (or arg (setq arg 1))
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
       (signal 'end-of-buffer nil))
   (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))

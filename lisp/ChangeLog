@@ -1,3 +1,11 @@
+2009-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (kill-whole-line): Provide a default argument of 1.
+
+	* mail/undigest.el (rmail-mail-separator): Delete.
+	(undigestify-rmail-message, unforward-rmail-message): Update for
+	mbox Rmail.
+
 2009-02-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (script-representative-chars): Remove
