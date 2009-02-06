@@ -1,3 +1,8 @@
+2009-02-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-format-latex): Stop LaTeX fragment processing in
+	protected examples.
+
 2009-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* org-rmail.el (rmail-show-message): Update declaration.
