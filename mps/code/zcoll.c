@@ -10,13 +10,23 @@
  * progress.
  *
  * Please add tests for other collection behaviour into this file.  
+ * (It's easier to maintain a few big tests than myriad small tests).
  * Expand the script language as necessary!  RHSK 2008-12-22.
  *
  *
  * DESIGN OVERVIEW
  *
  * Each script runs in a newly created arena.
- * [incomplete]
+ *
+ * [preliminary, incomplete, code still being written]
+ * The commands are:
+ *   Arena -- governs initial arena size, required, must be first
+ *   Make -- makes some objects, stores a proportion (chosen at 
+ *           random) in the specified myroot array slots, and 
+ *           drops the rest (which therefore become garbage)
+ *   Katalog -- (will be renamed Catalog) makes a Catalog, which 
+ *           is a 4-level tree of 100000 objects; see .catalog
+ *   Collect -- request a synchronous full garbage collection
  *
  *
  * CODE OVERVIEW
@@ -197,7 +207,7 @@ static void get(mps_arena_t arena)
 }
 
 
-/* The Catalog client:
+/* .catalog: The Catalog client:
  * 
  * This is an MPS client for testing the MPS.  It simulates 
  * converting a multi-page "Catalog" document from a page-description 
