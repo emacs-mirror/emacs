@@ -1,0 +1,194 @@
+Last login: Wed Feb  4 12:28:26 on ttyp9
+Welcome to Darwin!
+   SMART Status:       Verified
+duck:~ richardk$ cd mps/branch/2008-10-30/timing/code/
+duck:~/mps/branch/2008-10-30/timing/code richardk$ 
+duck:~/mps/branch/2008-10-30/timing/code richardk$ 
+duck:~/mps/branch/2008-10-30/timing/code richardk$ 
+duck:~/mps/branch/2008-10-30/timing/code richardk$ gcc ./xcppgc/ci/mpsicv 16993
+powerpc-apple-darwin8-gcc-4.0.1: 16993: No such file or directory
+duck:~/mps/branch/2008-10-30/timing/code richardk$ gcc ./xcppgc/ci/mpsicv 16993
+powerpc-apple-darwin8-gcc-4.0.1: 16993: No such file or directory
+duck:~/mps/branch/2008-10-30/timing/code richardk$ gcc mpsicv 16993
+powerpc-apple-darwin8-gcc-4.0.1: mpsicv: No such file or directory
+powerpc-apple-darwin8-gcc-4.0.1: 16993: No such file or directory
+powerpc-apple-darwin8-gcc-4.0.1: no input files
+duck:~/mps/branch/2008-10-30/timing/code richardk$ gdb ./xcppgc/ci/mpsicv 16993
+GNU gdb 6.3.50-20050815 (Apple version gdb-477) (Sun Apr 30 20:06:22 GMT 2006)
+Copyright 2004 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB.  Type "show warranty" for details.
+This GDB was configured as "powerpc-apple-darwin"...Reading symbols for shared libraries .. done
+
+/Users/richardk/mps/branch/2008-10-30/timing/code/16993: No such file or directory.
+Attaching to program: `/Users/richardk/mps/branch/2008-10-30/timing/code/xcppgc/ci/mpsicv', process 16993.
+Reading symbols for shared libraries . done
+0x000138a4 in ArenaCheck (arena=0x19e000) at arena.c:120
+120       CHECKL(arena->alignment >= MPS_PF_ALIGN);
+(gdb) bt
+#0  0x000138a4 in ArenaCheck (arena=0x19e000) at arena.c:120
+#1  0x0001c578 in ChunkOfAddr (chunkReturn=0xbffff2ac, arena=0x19e000, addr=0x3e3d000) at tract.c:317
+#2  0x0002fe80 in SegCheck (seg=0x3fea8c0) at seg.c:639
+#3  0x0003fe6c in ShieldCover (arena=0x19e000, seg=0x3fea8c0) at shield.c:295
+#4  0x0005c9c4 in AMCFix (pool=0x3fd00a8, ss=0xbffff710, seg=0x3fea8c0, refIO=0x3baf078) at poolamc.c:1741
+#5  0x00027e5c in TraceFix (ss=0xbffff710, refIO=0x3baf078) at trace.c:1196
+#6  0x00004b64 in dylan_scan_contig (mps_ss=0xbffff710, base=0x3baf060, limit=0x3baf084) at fmtdy.c:222
+#7  0x00005604 in dylan_scan1 (mps_ss=0xbffff710, object_io=0xbffff61c) at fmtdy.c:468
+#8  0x000057a0 in dylan_scan (mps_ss=0xbffff710, base=0x3baf058, limit=0x3baf4e0) at fmtdy.c:515
+#9  0x0005bdb8 in AMCScan (totalReturn=0xbffff70c, ss=0xbffff710, pool=0x3fd00a8, seg=0x3fbd480) at poolamc.c:1487
+#10 0x000219a0 in PoolScan (totalReturn=0xbffff70c, ss=0xbffff710, pool=0x3fd00a8, seg=0x3fbd480) at pool.c:404
+#11 0x0002760c in traceScanSegRes (ts=1, rank=1, arena=0x19e000, seg=0x3fbd480) at trace.c:1038
+#12 0x00027888 in traceScanSeg (ts=1, rank=1, arena=0x19e000, seg=0x3fbd480) at trace.c:1097
+#13 0x0002925c in TraceQuantum (trace=0x19e344) at trace.c:1698
+#14 0x0002af9c in ArenaPark (globals=0x19e000) at traceanc.c:587
+#15 0x0002b13c in ArenaCollect (globals=0x19e000, why=5) at traceanc.c:630
+#16 0x000080f4 in mps_arena_collect (mps_space=0x19e000) at mpsi.c:400
+#17 0x00004040 in test (arg=0x19e000, s=0) at mpsicv.c:476
+#18 0x00057354 in ProtTramp (resultReturn=0xbffffb14, f=0x36dc <test>, p=0x19e000, s=0) at protix.c:139
+#19 0x0000ac04 in mps_tramp (r_o=0xbffffb14, f=0x36dc <test>, p=0x19e000, s=0) at mpsi.c:1430
+#20 0x00004230 in main (argc=1, argv=0xbffffbec) at mpsicv.c:518
+(gdb) q
+The program is running.  Quit anyway (and detach it)? (y or n) y
+Detaching from program: `/Users/richardk/mps/branch/2008-10-30/timing/code/xcppgc/ci/mpsicv', process 16993 thread 0xd03.
+duck:~/mps/branch/2008-10-30/timing/code richardk$ gdb ./xcppgc/hi/zcoll 17375 
+GNU gdb 6.3.50-20050815 (Apple version gdb-477) (Sun Apr 30 20:06:22 GMT 2006)
+Copyright 2004 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB.  Type "show warranty" for details.
+This GDB was configured as "powerpc-apple-darwin"...Reading symbols for shared libraries .. done
+
+/Users/richardk/mps/branch/2008-10-30/timing/code/17375: No such file or directory.
+Attaching to program: `/Users/richardk/mps/branch/2008-10-30/timing/code/xcppgc/hi/zcoll', process 17375.
+Reading symbols for shared libraries . done
+0x00000000 in ?? ()
+(gdb) bt
+#0  0x00000000 in ?? ()
+Cannot access memory at address 0x0
+Cannot access memory at address 0x0
+Cannot access memory at address 0x0
+#1  0x000397e8 in sigHandle (sig=Cannot access memory at address 0x0
+Cannot access memory at address 0x0
+Cannot access memory at address 0x0
+10, info=0xbffff2d8, contextArg=0xbffff318) at protxcpp.c:110
+#2  <signal handler called>
+#3  CatalogDo (arena=0x18f000, ap=0x3ffe514) at zcoll.c:331
+#4  0x000036f4 in testscriptC (arena=0x18f000, ap=0x3ffe514, script=0x3fa6c ", Katalog(), Collect.") at zcoll.c:398
+#5  0x000039f0 in testscriptB (arg=0x3ffe1c8, s=259940) at zcoll.c:509
+#6  0x0003974c in ProtTramp (resultReturn=0xbffffad4, f=0x3884 <testscriptB>, p=0xbffffac8, s=12) at protix.c:139
+#7  0x00006d54 in mps_tramp (r_o=0xbffffad4, f=0x3884 <testscriptB>, p=0xbffffac8, s=12) at mpsi.c:1430
+#8  0x00003b04 in testscriptA (script=0x3fa6c ", Katalog(), Collect.") at zcoll.c:552
+#9  0x00003b5c in main (argc=0, argv=0x3f764) at zcoll.c:576
+(gdb) disas CatalogDo
+Dump of assembler code for function CatalogDo:
+0x00003344 <CatalogDo+0>:       mflr    r0
+0x00003348 <CatalogDo+4>:       stmw    r17,-60(r1)
+0x0000334c <CatalogDo+8>:       stw     r0,8(r1)
+0x00003350 <CatalogDo+12>:      stwu    r1,-144(r1)
+0x00003354 <CatalogDo+16>:      bcl-    20,4*cr7+so,0x3358 <CatalogDo+20>
+0x00003358 <CatalogDo+20>:      mflr    r31
+0x0000335c <CatalogDo+24>:      mr      r22,r3
+0x00003360 <CatalogDo+28>:      mr      r27,r4
+0x00003364 <CatalogDo+32>:      addi    r3,r1,56
+0x00003368 <CatalogDo+36>:      li      r5,11
+0x0000336c <CatalogDo+40>:      bl      0x4700 <make_dylan_vector>
+0x00003370 <CatalogDo+44>:      addis   r4,r31,4
+0x00003374 <CatalogDo+48>:      addi    r4,r4,-15356
+0x00003378 <CatalogDo+52>:      bl      0x3ea08 <die>
+0x0000337c <CatalogDo+56>:      lis     r0,3
+0x00003380 <CatalogDo+60>:      ori     r0,r0,10409
+0x00003384 <CatalogDo+64>:      lwz     r2,56(r1)
+0x00003388 <CatalogDo+68>:      stw     r0,8(r2)
+0x0000338c <CatalogDo+72>:      lwz     r29,56(r1)
+0x00003390 <CatalogDo+76>:      addis   r2,r31,6
+0x00003394 <CatalogDo+80>:      stw     r29,-10840(r2)
+0x00003398 <CatalogDo+84>:      mr      r3,r22
+0x0000339c <CatalogDo+88>:      bl      0x3084 <get>
+0x000033a0 <CatalogDo+92>:      addis   r3,r31,6
+0x000033a4 <CatalogDo+96>:      lwz     r3,-11808(r3)
+0x000033a8 <CatalogDo+100>:     addi    r3,r3,88
+0x000033ac <CatalogDo+104>:     bl      0x3f000 <dyld_stub_fflush>
+0x000033b0 <CatalogDo+108>:     bl      0x31e8 <CatalogCheck>
+0x000033b4 <CatalogDo+112>:     mr      r23,r29
+0x000033b8 <CatalogDo+116>:     li      r20,0
+0x000033bc <CatalogDo+120>:     addis   r19,r31,4
+0x000033c0 <CatalogDo+124>:     addis   r2,r31,6
+0x000033c4 <CatalogDo+128>:     lwz     r18,-11808(r2)
+0x000033c8 <CatalogDo+132>:     addis   r17,r31,4
+0x000033cc <CatalogDo+136>:     lis     r21,2
+0x000033d0 <CatalogDo+140>:     ori     r21,r21,39045
+0x000033d4 <CatalogDo+144>:     addis   r26,r31,4
+0x000033d8 <CatalogDo+148>:     lis     r28,2
+0x000033dc <CatalogDo+152>:     ori     r28,r28,49605
+0x000033e0 <CatalogDo+156>:     addi    r3,r1,56
+0x000033e4 <CatalogDo+160>:     mr      r4,r27
+0x000033e8 <CatalogDo+164>:     li      r5,101
+0x000033ec <CatalogDo+168>:     bl      0x4700 <make_dylan_vector>
+0x000033f0 <CatalogDo+172>:     addi    r4,r19,-15348
+0x000033f4 <CatalogDo+176>:     bl      0x3ea08 <die>
+0x000033f8 <CatalogDo+180>:     lis     r0,2
+0x000033fc <CatalogDo+184>:     ori     r0,r0,60025
+0x00003400 <CatalogDo+188>:     lwz     r2,56(r1)
+0x00003404 <CatalogDo+192>:     stw     r0,8(r2)
+0x00003408 <CatalogDo+196>:     lwz     r29,56(r1)
+0x0000340c <CatalogDo+200>:     stw     r29,12(r23)
+0x00003410 <CatalogDo+204>:     mr      r3,r22
+0x00003414 <CatalogDo+208>:     bl      0x3084 <get>
+0x00003418 <CatalogDo+212>:     addis   r3,r31,4
+0x0000341c <CatalogDo+216>:     addi    r3,r3,-15340
+0x00003420 <CatalogDo+220>:     mr      r4,r20
+0x00003424 <CatalogDo+224>:     bl      0x3ead8 <printf$LDBLStub>
+0x00003428 <CatalogDo+228>:     addi    r3,r18,88
+0x0000342c <CatalogDo+232>:     bl      0x3f000 <dyld_stub_fflush>
+0x00003430 <CatalogDo+236>:     mr      r24,r29
+0x00003434 <CatalogDo+240>:     li      r25,0
+0x00003438 <CatalogDo+244>:     addi    r3,r1,56
+0x0000343c <CatalogDo+248>:     mr      r4,r27
+0x00003440 <CatalogDo+252>:     li      r5,101
+0x00003444 <CatalogDo+256>:     bl      0x4700 <make_dylan_vector>
+0x00003448 <CatalogDo+260>:     addi    r4,r17,-15316
+0x0000344c <CatalogDo+264>:     bl      0x3ea08 <die>
+0x00003450 <CatalogDo+268>:     lwz     r2,56(r1)
+0x00003454 <CatalogDo+272>:     stw     r21,8(r2)
+0x00003458 <CatalogDo+276>:     lwz     r29,56(r1)
+0x0000345c <CatalogDo+280>:     add     r2,r25,r24
+0x00003460 <CatalogDo+284>:     stw     r29,12(r2)
+0x00003464 <CatalogDo+288>:     mr      r3,r22
+0x00003468 <CatalogDo+292>:     bl      0x3084 <get>
+0x0000346c <CatalogDo+296>:     li      r30,0
+0x00003470 <CatalogDo+300>:     addi    r3,r1,56
+0x00003474 <CatalogDo+304>:     mr      r4,r27
+0x00003478 <CatalogDo+308>:     li      r5,101
+0x0000347c <CatalogDo+312>:     bl      0x4700 <make_dylan_vector>
+0x00003480 <CatalogDo+316>:     addi    r4,r26,-15312
+0x00003484 <CatalogDo+320>:     bl      0x3ea08 <die>
+0x00003488 <CatalogDo+324>:     lwz     r2,56(r1)
+0x0000348c <CatalogDo+328>:     stw     r28,8(r2)
+0x00003490 <CatalogDo+332>:     add     r2,r29,r30
+0x00003494 <CatalogDo+336>:     lwz     r0,56(r1)
+0x00003498 <CatalogDo+340>:     stw     r0,12(r2)
+0x0000349c <CatalogDo+344>:     cmpwi   cr7,r30,396
+0x000034a0 <CatalogDo+348>:     addi    r30,r30,4
+0x000034a4 <CatalogDo+352>:     bne+    cr7,0x3470 <CatalogDo+300>
+0x000034a8 <CatalogDo+356>:     cmpwi   cr7,r25,396
+0x000034ac <CatalogDo+360>:     addi    r25,r25,4
+0x000034b0 <CatalogDo+364>:     bne+    cr7,0x3438 <CatalogDo+244>
+0x000034b4 <CatalogDo+368>:     addi    r23,r23,4
+0x000034b8 <CatalogDo+372>:     cmpwi   cr7,r20,9
+0x000034bc <CatalogDo+376>:     addi    r20,r20,1
+0x000034c0 <CatalogDo+380>:     bne+    cr7,0x33e0 <CatalogDo+156>
+0x000034c4 <CatalogDo+384>:     addis   r3,r31,6
+0x000034c8 <CatalogDo+388>:     lwz     r3,-11808(r3)
+0x000034cc <CatalogDo+392>:     addi    r3,r3,88
+0x000034d0 <CatalogDo+396>:     bl      0x3f000 <dyld_stub_fflush>
+0x000034d4 <CatalogDo+400>:     bl      0x31e8 <CatalogCheck>
+0x000034d8 <CatalogDo+404>:     addi    r1,r1,144
+0x000034dc <CatalogDo+408>:     lwz     r0,8(r1)
+0x000034e0 <CatalogDo+412>:     mtlr    r0
+0x000034e4 <CatalogDo+416>:     lmw     r17,-60(r1)
+0x000034e8 <CatalogDo+420>:     blr
+End of assembler dump.
+(gdb) 
