@@ -751,6 +751,15 @@ systems specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
+@defvar translation-table-for-input
+Self-inserting characters are translated through this translation
+table before they are inserted.  Search commands also translate their
+input through this table, so they can compare more reliably with
+what's in the buffer.
+
+This variable automatically becomes buffer-local when set.
+@end defvar
+
 @defun make-translation-table-from-vector vec
 This function returns a translation table made from @var{vec} that is
 an array of 256 elements to map byte values 0 through 255 to
