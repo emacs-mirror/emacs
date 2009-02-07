@@ -1,3 +1,9 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailedit.el (rmail-cease-edit): Look for the message's
+	encoding, and its "content-transfer-encoding" and "content-type"
+	headers only in the headers' portion.  (Bug#2017)
+
 2009-02-07  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el
