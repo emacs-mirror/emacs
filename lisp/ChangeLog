@@ -1,3 +1,8 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail): Bind coding-system-for-read to
+	no-conversion before calling find-file-noselect.  (Bug#2015)
+
 2009-02-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-after-send-signal-hook): Use defcustom.
