@@ -1,5 +1,8 @@
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* subr.el: Don't declare `translation-table-for-input' obsolete.
+	Equivalent info added to its doc string, q.v.
+
 	* files.el (save-buffer): Display "Saving file FOO..." message
 	regardless of buffer's size.  (Bug#2137)
 
