@@ -1,3 +1,24 @@
+2009-02-07  Alex Schroeder  <alex@gnu.org>
+
+	* mail/unrmail.el (unrmail): Use regexps to find message separators so
+	as not to match any fake rmime.el separators.  Remove any sections added
+	by rmime.el.
+
+2009-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/metamail.el (metamail-interpret-body): Remove Rmail-specific hack
+	that is no longer appropriate to mbox Rmail.
+
+	* mail/rmailsum.el (rmail-create-summary-line): Widen the view buffer
+	before trying to move to the start of the message.
+	(rmail-summary-undelete-many, rmail-summary-rmail-update):
+	Fix rmail-set-attribute calls.
+
+	* mail/sendmail.el (mail-bury-selects-summary, mail-yank-original):
+	Doc fix.
+	(rmail-output-to-rmail-buffer): Autoload it.
+	(mail-do-fcc): Give it a doc string.  Update for mbox Rmail, simplify.
+
 2009-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* mail/unrmail.el (unrmail): Use current-time-string.
