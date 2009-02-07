@@ -4024,11 +4024,14 @@ If `vc-make-backup-files' is nil, which is the default,
 See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
   (let ((modp (buffer-modified-p))
-	(large (> (buffer-size) 50000))
 	(make-backup-files (or (and make-backup-files (not (eq args 0)))
 			       (memq args '(16 64)))))
     (and modp (memq args '(16 64)) (setq buffer-backed-up nil))
-    (if (and modp large (buffer-file-name))
+    ;; We used to display the message below only for files > 50KB, but
+    ;; then Rmail-mbox never displays it due to buffer swapping.  If
+    ;; the test is ever re-introduced, be sure to handle saving of
+    ;; Rmail files.
+    (if (and modp (buffer-file-name))
 	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
     (and modp (memq args '(4 64)) (setq buffer-backed-up nil))))
