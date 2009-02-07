@@ -2549,9 +2549,12 @@ The current mail message becomes the message displayed."
 	(setq body-start (search-forward "\n\n" nil t))
 	(narrow-to-region beg (point))
 	(goto-char beg)
+	(save-excursion
+	  (if (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
+	      (setq coding-system (intern (match-string 1)))
+	    (setq coding-system (rmail-get-coding-system))))
 	(setq character-coding (mail-fetch-field "content-transfer-encoding")
-	      is-text-message (rmail-is-text-p)
-	      coding-system (rmail-get-coding-system))
+	      is-text-message (rmail-is-text-p))
 	(if character-coding
 	    (setq character-coding (downcase character-coding)))
 	(narrow-to-region beg end)
@@ -2666,40 +2669,22 @@ buffer to the end of the headers."
 		(goto-char lim))))
 	   (t (error "No headers selected for display!"))))))))
 
-(defun rmail-redecode-body (coding &optional raw)
+(defun rmail-redecode-body (coding)
   "Decode the body of the current message using coding system CODING.
 This is useful with mail messages that have malformed or missing
 charset= headers.
 
 This function assumes that the current message is already decoded
 and displayed in the RMAIL buffer, but the coding system used to
-decode it was incorrect.  It then encodes the message back to its
-original form, and decodes it again, using the coding system CODING.
-
-Optional argument RAW, if non-nil, means don't encode the message
-before decoding it with the new CODING.  This is useful if the current
-message text was produced by some function which invokes `insert',
-since `insert' leaves unibyte character codes 128 through 255 unconverted
-to multibyte.  One example of such a situation is when the text was
-produced by `base64-decode-region'.
-
-Interactively, invoke the function with a prefix argument to set RAW
-non-nil.
-
-Note that if Emacs erroneously auto-detected one of the iso-2022
-encodings in the message, this function might fail because the escape
-sequences that switch between character sets and also single-shift and
-locking-shift codes are impossible to recover.  This function is meant
-to be used to fix messages encoded with 8-bit encodings, such as
-iso-8859, koi8-r, etc."
+decode it was incorrect.  It then decodes the message again,
+using the coding system CODING."
   (interactive "zCoding system for re-decoding this message: ")
   (when (not rmail-enable-mime)
     (with-current-buffer rmail-buffer
       (rmail-swap-buffers-maybe)
       (save-restriction
 	(widen)
-	(let ((raw (or raw current-prefix-arg))
-	      (msgbeg (rmail-msgbeg rmail-current-message))
+	(let ((msgbeg (rmail-msgbeg rmail-current-message))
 	      (msgend (rmail-msgend rmail-current-message))
 	      (buffer-read-only nil)
 	      body-start x-coding-header old-coding)
@@ -2711,10 +2696,11 @@ iso-8859, koi8-r, etc."
 	  (save-restriction
 	    ;; Narrow to headers
 	    (narrow-to-region (point-min) body-start)
-	    (goto-char (point-min))
-	    (unless (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t)
-	      (error "No X-Coding-System header found"))
-	    (setq old-coding (intern (match-string 1)))
+	    (setq x-coding-header (goto-char (point-min)))
+	    (if (not (re-search-forward "^X-Coding-System: *\\(.*\\)$" nil t))
+		(setq old-coding (rmail-get-coding-system))
+	      (setq old-coding (intern (match-string 1)))
+	      (setq x-coding-header (point)))
 	    (check-coding-system old-coding)
 	    ;; Make sure the new coding system uses the same EOL
 	    ;; conversion, to prevent ^M characters from popping up
@@ -2723,40 +2709,18 @@ iso-8859, koi8-r, etc."
 	      (if (numberp eol-type)
 		  (setq coding
 			(coding-system-change-eol-conversion coding eol-type))))
-	    ;; If old-coding is `undecided', encode-coding-region
-	    ;; will not encode the text at all.  Find a proper
-	    ;; non-trivial encoding to use.
-	    (when (memq (coding-system-base old-coding) '(nil undecided))
-	      (setq old-coding
-		    (car (find-coding-systems-region msgbeg msgend))))
-	    (setq x-coding-header (point)))
-
-	  (save-restriction
-	    ;; Narrow to message body
-	    (narrow-to-region body-start (point-max))
-	    (and (null raw)
-		 ;; If old and new encoding are the same, it
-		 ;; clearly doesn't make sense to encode.
-		 (not (coding-system-equal
-		       (coding-system-base old-coding)
-		       (coding-system-base coding)))
-		 ;; If the body includes only eight-bit characters,
-		 ;; encoding might fail, e.g. with UTF-8, and isn't
-		 ;; needed anyway.
-		 (> (length (delq 'ascii
-				  (delq 'eight-bit
-					(find-charset-region
-					 (point-min) (point-max)))))
-		    0)
-		 (encode-coding-region (point-min) (point-max) old-coding))
-	    (decode-coding-region (point-min) (point-max) coding)
-	    (setq last-coding-system-used coding))
-
-	  ;; Rewrite the coding-system header.
-	  (goto-char x-coding-header)
-	  (delete-region (line-beginning-position) (point))
-	  (insert "X-Coding-System: "
-		  (symbol-name last-coding-system-used))
+	    (when (not (coding-system-equal
+			(coding-system-base old-coding)
+			(coding-system-base coding)))
+	      ;; Rewrite the coding-system header.
+	      (goto-char x-coding-header)
+	      (if (> (point) (point-min))
+		  (delete-region (line-beginning-position) (point))
+		(forward-line)
+		(insert "\n")
+		(forward-line -1))
+	      (insert "X-Coding-System: "
+		      (symbol-name coding))))
 	  (rmail-show-message-maybe))))))
 
 ;; Find all occurrences of certain fields, and highlight them.
