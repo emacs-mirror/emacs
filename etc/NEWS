@@ -937,6 +937,11 @@ Rmail usage unaltered.
 
 FIXME: Add more mbox merge details
 
+*** The command `rmail-redecode-body' no longer accepts the optional arg RAW.
+Since Rmail now holds messages in their original undecoded form in a
+separate buffer, `rmail-redecode-body' no longer encodes the original
+message, and therefore there should be no need to avoid encoding it.
+
 ** TeX modes
 ---
 *** New option latex-indent-within-escaped-parens
