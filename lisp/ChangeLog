@@ -1,3 +1,7 @@
+2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-visual): Handle overflow-newline-into-fringe.
+
 2009-02-07  Alex Schroeder  <alex@gnu.org>
 
 	* mail/unrmail.el (unrmail): Use regexps to find message separators so
