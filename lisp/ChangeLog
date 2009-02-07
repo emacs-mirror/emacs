@@ -1,3 +1,8 @@
+2009-02-07  Andreas Schwab  <schwab@suse.de>
+
+	* image-mode.el (image-mode): Always set image-type.
+	(image-minor-mode): Likewise.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailedit.el (rmail-cease-edit): Look for the message's

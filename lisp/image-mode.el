@@ -321,7 +321,6 @@ You can use \\<image-mode-map>\\[image-toggle-display]
 to toggle between display as an image and display as text."
   (interactive)
   (kill-all-local-variables)
-  (setq mode-name "Image[text]")
   (setq major-mode 'image-mode)
   ;; Use our own bookmarking function for images.
   (set (make-local-variable 'bookmark-make-record-function)
@@ -337,8 +336,11 @@ to toggle between display as an image and display as text."
 	;; Set next vars when image is already displayed but local
 	;; variables were cleared by kill-all-local-variables
 	(use-local-map image-mode-map)
-	(setq cursor-type nil truncate-lines t))
+	(setq cursor-type nil truncate-lines t
+	      image-type (plist-get (cdr (image-get-display-property)) :type)))
+    (setq image-type "text")
     (use-local-map image-mode-text-map))
+  (setq mode-name (format "Image[%s]" image-type))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
       (message "%s" (concat
@@ -362,7 +364,8 @@ See the command `image-mode' for more information on this mode."
     (if (display-images-p)
 	(if (not (image-get-display-property))
 	    (image-toggle-display)
-	  (setq cursor-type nil truncate-lines t))
+	  (setq cursor-type nil truncate-lines t
+		image-type (plist-get (cdr (image-get-display-property)) :type)))
       (setq image-type "text")
       (use-local-map image-mode-text-map))
     (if (display-images-p)
