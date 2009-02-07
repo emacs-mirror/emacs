@@ -1,3 +1,8 @@
+2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/rmailmm.el (rmail-mime-attachment-dirs-alist): Use
+	temporary-file-directory.
+
 2009-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* mail/unrmail.el (rmime-magic-string): Define for compiler.
