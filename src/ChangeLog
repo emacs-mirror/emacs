@@ -1,3 +1,7 @@
+2009-02-07  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Fix error message.
+
 2009-02-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (EmacsApp-sendEvent:): Defer NSApplicationDefined event
