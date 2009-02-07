@@ -1530,7 +1530,9 @@ accept a cons of characters as the first argument, and modify all
 entries in that range of characters.
 
 +++
-*** `translation-table-for-input' is now obsolete.
+*** Use of `translation-table-for-input' for character code unification
+is now obsolete, since Emacs 23.1 and later uses Unicode as basis for
+internal representation of characters.
 
 *** New functions:
 
