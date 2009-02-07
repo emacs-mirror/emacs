@@ -1,5 +1,8 @@
 2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/ps-mode.el (ps-run-tmp-dir): Doc fix.
+	(ps-run-make-tmp-filename): Use temporary-file-directory.
+
 	* textmodes/artist.el (artist-system): Allow make-temp-file to use
 	temporary-file-directory.
 
