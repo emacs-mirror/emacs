@@ -10439,7 +10439,11 @@ decode text as usual.  */);
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.
 This is applied to the result of input methods, not their input.
-See also `keyboard-translate-table'.  */);
+See also `keyboard-translate-table'.
+
+Use of this variable for character code unification was rendered
+obsolete in Emacs 23.1 and later, since Unicode is now the basis of
+internal character representation.  */);
     Vtranslation_table_for_input = Qnil;
 
   {
