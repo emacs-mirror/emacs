@@ -843,7 +843,12 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (rmail-set-message-counters)))
       ;; The mail file is either unchanged or not visited.  Visit it.
       (switch-to-buffer
-       (let ((enable-local-variables nil))
+       (let ((enable-local-variables nil)
+	     ;; Force no-conversion by default, since that's what
+	     ;; pre-mbox Rmail did with BABYL files (via
+	     ;; auto-coding-regexp-alist).
+	     (coding-system-for-read
+	      (or coding-system-for-read 'no-conversion)))
 	 (find-file-noselect file-name))))
     ;; Ensure that the collection and view buffers are in sync and
     ;; ensure that a message is not being edited.
