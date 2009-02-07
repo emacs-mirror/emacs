@@ -208,6 +208,8 @@ changed while a server is running."
   :type 'string
   :version "23.1")
 
+;; We do not use `temporary-file-directory' here, because emacsclient
+;; does not read the init file.
 (defvar server-socket-dir
   (and (featurep 'make-network-process '(:family local))
        (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid)))
