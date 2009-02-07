@@ -1,3 +1,7 @@
+2009-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-execute): Enable quit.
+
 2009-02-07  Andreas Schwab  <schwab@suse.de>
 
 	* image-mode.el (image-mode): Always set image-type.
@@ -19,8 +23,8 @@
 
 	* mail/rmailedit.el (rmail-cease-edit): narrow-to-region before
 	extracting mail message headers.  Use encode-coding-region instead
-	of insert-buffer-substring for re-encoding edited message.  Add
-	qp/b64 encoding only after text was encoded.
+	of insert-buffer-substring for re-encoding edited message.
+	Add qp/b64 encoding only after text was encoded.
 
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 

@@ -1036,40 +1036,48 @@ The following commands are accepted by the client:
     (error (server-return-error proc err))))
 
 (defun server-execute (proc files nowait commands dontkill frame tty-name)
-  (condition-case err
-      (let* ((buffers
-              (when files
-                (run-hooks 'pre-command-hook)
-                (prog1 (server-visit-files files proc nowait)
-                  (run-hooks 'post-command-hook)))))
+  ;; This is run from timers and process-filters, i.e. "asynchronously".
+  ;; But w.r.t the user, this is not really asynchronous since the timer
+  ;; is run after 0s and the process-filter is run in response to the
+  ;; user running `emacsclient'.  So it is OK to override the
+  ;; inhibit-quit flag, which is good since `commands' (as well as
+  ;; find-file-noselect via the major-mode) can run arbitrary code,
+  ;; including code that needs to wait.
+  (with-local-quit
+    (condition-case err
+        (let* ((buffers
+                (when files
+                  (run-hooks 'pre-command-hook)
+                  (prog1 (server-visit-files files proc nowait)
+                    (run-hooks 'post-command-hook)))))
 
-        (mapc 'funcall (nreverse commands))
+          (mapc 'funcall (nreverse commands))
 
-        ;; Delete the client if necessary.
-        (cond
-         (nowait
-          ;; Client requested nowait; return immediately.
-          (server-log "Close nowait client" proc)
-          (server-delete-client proc))
-         ((and (not dontkill) (null buffers))
-          ;; This client is empty; get rid of it immediately.
-          (server-log "Close empty client" proc)
-          (server-delete-client proc)))
-        (cond
-         ((or isearch-mode (minibufferp))
-          nil)
-         ((and frame (null buffers))
-          (message "%s" (substitute-command-keys
-                         "When done with this frame, type \\[delete-frame]")))
-         ((not (null buffers))
-          (server-switch-buffer (car buffers) nil (cdr (car files)))
-          (run-hooks 'server-switch-hook)
-          (unless nowait
+          ;; Delete the client if necessary.
+          (cond
+           (nowait
+            ;; Client requested nowait; return immediately.
+            (server-log "Close nowait client" proc)
+            (server-delete-client proc))
+           ((and (not dontkill) (null buffers))
+            ;; This client is empty; get rid of it immediately.
+            (server-log "Close empty client" proc)
+            (server-delete-client proc)))
+          (cond
+           ((or isearch-mode (minibufferp))
+            nil)
+           ((and frame (null buffers))
             (message "%s" (substitute-command-keys
-                           "When done with a buffer, type \\[server-edit]")))))
-        (when (and frame (null tty-name))
-          (server-unselect-display frame)))
-    (error (server-return-error proc err))))
+                           "When done with this frame, type \\[delete-frame]")))
+           ((not (null buffers))
+            (server-switch-buffer (car buffers) nil (cdr (car files)))
+            (run-hooks 'server-switch-hook)
+            (unless nowait
+              (message "%s" (substitute-command-keys
+                             "When done with a buffer, type \\[server-edit]")))))
+          (when (and frame (null tty-name))
+            (server-unselect-display frame)))
+      (error (server-return-error proc err)))))
 
 (defun server-return-error (proc err)
   (ignore-errors
