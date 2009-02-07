@@ -1,3 +1,11 @@
+2009-02-07  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-after-send-signal-hook): Use defcustom.
+	(proced-header-line): Handle header lines that are shorter than
+	window-hscroll.
+	(proced-send-signal): Rebind split-width-threshold analogous to
+	dired-pop-to-buffer.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-redecode-body): Don't encode/decode the
