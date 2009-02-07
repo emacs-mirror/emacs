@@ -44,6 +44,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (kill-emacs (if error 1 0))))
 
 (declare-function mail-strip-quoted-names "mail-utils" (address))
+(defvar rmime-magic-string)		; in rmime.el, if you have it
 
 ;;;###autoload
 (defun unrmail (file to-file)

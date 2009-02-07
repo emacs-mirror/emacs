@@ -1,3 +1,7 @@
+2009-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/unrmail.el (rmime-magic-string): Define for compiler.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail): Bind coding-system-for-read to
