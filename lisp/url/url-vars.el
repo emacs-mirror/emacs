@@ -293,6 +293,8 @@ Applies when a protected document is denied by the server."
   "*Where temporary files go."
   :type 'directory
   :group 'url-file)
+(make-obsolete-variable 'url-temporary-directory
+			'temporary-file-directory "23.1")
 
 (defcustom url-show-status t
   "*Whether to show a running total of bytes transferred.
