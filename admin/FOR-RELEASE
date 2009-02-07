@@ -81,17 +81,10 @@ mail/rmail-spam-filter.el:  check it still (?) works
 Remainder all in lisp/gnus:
 
 gnus-art.el
-gnus-util.el
+gnus-util.el  (also EOOH)
 gnus.el
 message.el
-nnbabyl.el
-
-EOOH references:
-
-gnus-util.el
-nnbabyl.el
-nndoc.el
-nnmail.el
+nnbabyl.el  (also EOOH)
 
 
 * DOCUMENTATION
