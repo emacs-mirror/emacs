@@ -1,3 +1,11 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Commands for Insertion): 
+	* commands.texi (Event Mod): 
+	* keymaps.texi (Searching Keymaps): 
+	* nonascii.texi (Translation of Characters): Reinstate
+	documentation of translation-table-for-input.
+
 2009-01-27  Alan Mackenzie  <acm@muc.de>
 
 	* modes.texi (Search-based Fontification): Correct a typo.
