@@ -1,3 +1,11 @@
+2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-file.el (url-file): Use make-temp-file.
+
+	* url-util.el (url-generate-unique-filename): Mark as obsolete.
+
+	* url-vars.el (url-temporary-directory): Mark as obsolete.
+
 2009-01-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-cookie.el (url-cookie-retrieve): Fix last change.
