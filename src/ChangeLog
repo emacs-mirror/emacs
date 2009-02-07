@@ -1,3 +1,16 @@
+2009-02-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsApp-sendEvent:): Defer NSApplicationDefined event
+	when modal window is active. (Bug #2152)
+	(applicationShouldTerminate:): Remove now-unneeded while loop
+	around NSRunAlertPanel.
+
+	* nsmenu.m (popupSession): New file-global variable.
+	(pop_down_menu): End the popupSession before closing dialog.
+	(ns_popup_dialog): BLOCK_INPUT around dialog presentation.
+	(EmacsDialogPanel-runDialogAt:): Don't place window (superfluous),
+	don't query NSApp for events (just sleep instead).
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (syms_of_coding) <translation-table-for-input>: Modify
