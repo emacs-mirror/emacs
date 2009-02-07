@@ -1,3 +1,10 @@
+2009-02-07  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (rmail-msg-restore-non-pruned-header): Remove unneeded
+	autoload of function that no longer exists.
+	(rmail-toggle-header): Declare.
+	(message-forward-rmail-make-body): Handle mbox Rmail.
+
 2009-01-31  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sum.el (gnus-summary-next-article): XEmacs-friendly version of
