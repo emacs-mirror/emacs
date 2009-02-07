@@ -1,5 +1,8 @@
 2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/artist.el (artist-system): Allow make-temp-file to use
+	temporary-file-directory.
+
 	* mail/rmailmm.el (rmail-mime-attachment-dirs-alist): Use
 	temporary-file-directory.
 
