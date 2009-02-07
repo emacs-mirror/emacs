@@ -59,9 +59,9 @@ job is done."
   :group 'mime)
 
 (defcustom rmail-mime-attachment-dirs-alist
-  '(("text/.*" "~/Documents")
+  `(("text/.*" "~/Documents")
     ("image/.*" "~/Pictures")
-    (".*" "~/Desktop" "~" "/tmp"))
+    (".*" "~/Desktop" "~" ,temporary-file-directory))
   "Default directories to save attachments into.
 Each media type may have it's own list of directories in order of
 preference.  The first existing directory in the list will be
