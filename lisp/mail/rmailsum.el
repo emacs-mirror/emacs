@@ -374,21 +374,22 @@ even if its text is swapped."
       ;; Now we can compute the line count.
       (if rmail-summary-line-count-flag
 	  (setq lines (count-lines beg end)))
-
       ;; Narrow to the message header.
       (save-excursion
-	(goto-char beg)
-	(if (search-forward "\n\n" end t)
-	    (save-restriction
-	      (narrow-to-region beg (point))
-	      ;; Replace rmail-message-unseen-p from above.
-	      (goto-char beg)
-	      (setq unseen (and (search-forward
-				 (concat rmail-attribute-header ": ") nil t)
-				(looking-at "......U")))
-	      ;; Generate a status line from the message.
-	      (rmail-create-summary msgnum deleted unseen lines))
-	  (rmail-error-bad-format msgnum))))))
+	(save-restriction
+	  (widen)
+	  (goto-char beg)
+	  (if (search-forward "\n\n" end t)
+	      (progn
+		(narrow-to-region beg (point))
+		;; Replace rmail-message-unseen-p from above.
+		(goto-char beg)
+		(setq unseen (and (search-forward
+				   (concat rmail-attribute-header ": ") nil t)
+				  (looking-at "......U")))
+		;; Generate a status line from the message.
+		(rmail-create-summary msgnum deleted unseen lines))
+	    (rmail-error-bad-format msgnum)))))))
 
 ;; FIXME this is now unused.
 ;; The intention was to display in the summary something like {E}
@@ -810,7 +811,7 @@ Optional prefix ARG means undelete ARG previous messages."
       (while (and (> rmail-current-message 0)
 		  (< msgs-undeled n))
 	(if (rmail-message-deleted-p rmail-current-message)
-	    (progn (rmail-set-attribute "deleted" nil)
+	    (progn (rmail-set-attribute rmail-deleted-attr-index nil)
 		   (setq msgs-undeled (1+ msgs-undeled))))
 	(setq rmail-current-message (1- rmail-current-message)))
       (set-buffer rmail-summary-buffer)
@@ -917,7 +918,7 @@ Search, the `unseen' attribute is restored.")
 		    ;; and we have gone to a different message while searching,
 		    ;; put back `unseen' on the former one.
 		    (if rmail-summary-put-back-unseen
-			(rmail-set-attribute "unseen" t
+			(rmail-set-attribute rmail-unseen-attr-index t
 					     rmail-current-message))
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
