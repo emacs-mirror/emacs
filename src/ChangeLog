@@ -1,3 +1,8 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (syms_of_coding) <translation-table-for-input>: Modify
+	doc string to discourage use for character code unification.
+
 2009-02-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* atimer.c (run_timers): Update pending_atimers.
