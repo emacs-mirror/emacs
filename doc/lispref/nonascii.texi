@@ -1568,6 +1568,10 @@ inserting it.
 
 If decoded text is inserted in some buffer, this command returns the
 length of the decoded text.
+
+This command puts a @code{charset} text property on the decoded text.
+The value of the property states the character set used to decode the
+original text.
 @end deffn
 
 @defun decode-coding-string string coding-system &optional nocopy buffer
@@ -1583,6 +1587,18 @@ contains 8-bit bytes in their multibyte form).
 If optional argument @var{buffer} specifies a buffer, the decoded text
 is inserted in that buffer after point (point does not move).  In this
 case, the return value is the length of the decoded text.
+
+@cindex @code{charset}, text property
+This function puts a @code{charset} text property on the decoded text.
+The value of the property states the character set used to decode the
+original text:
+
+@example
+@group
+(decode-coding-string "Gr\374ss Gott" 'latin-1)
+     @result{} #("Gr@"uss Gott" 0 9 (charset iso-8859-1))
+@end group
+@end example
 @end defun
 
 @defun decode-coding-inserted-region from to filename &optional visit beg end replace
