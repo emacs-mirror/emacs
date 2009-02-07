@@ -1,3 +1,8 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* rmail.texi (Rmail Coding) <rmail-redecode-body>: Remove stale
+	documentation of possible problems with redecoding.
+
 2009-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Out of Rmail): Mention b2m.pl.
