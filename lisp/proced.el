@@ -356,6 +356,13 @@ May be used to adapt the window size via `fit-window-to-buffer'."
   :options '(fit-window-to-buffer)
   :group 'proced)
 
+(defcustom proced-after-send-signal-hook nil
+  "Normal hook run after sending a signal to processes by `proced-send-signal'.
+May be used to revert the process listing."
+  :type 'hook
+  :options '(proced-revert)
+  :group 'proced)
+
 ;; Internal variables
 
 (defvar proced-available (not (null (list-system-processes)))
@@ -585,8 +592,10 @@ Important: the match ends just after the marker.")
 (defun proced-header-line ()
   "Return header line for Proced buffer."
   (list (propertize " " 'display '(space :align-to 0))
-        (replace-regexp-in-string ;; preserve text properties
-         "\\(%\\)" "\\1\\1" (substring proced-header-line (window-hscroll)))))
+        (if (<= (window-hscroll) (length proced-header-line))
+            (replace-regexp-in-string ;; preserve text properties
+             "\\(%\\)" "\\1\\1"
+             (substring proced-header-line (window-hscroll))))))
 
 (defun proced-pid-at-point ()
   "Return pid of system process at point.
@@ -1711,7 +1720,10 @@ After sending the signal, this command runs the normal hook
           (dolist (process process-alist)
             (insert "  " (cdr process) "\n"))
           (save-window-excursion
-            (pop-to-buffer (current-buffer))
+            ;; Analogous to `dired-pop-to-buffer'
+            ;; Don't split window horizontally.  (Bug#1806)
+            (let (split-width-threshold)
+              (pop-to-buffer (current-buffer)))
             (fit-window-to-buffer (get-buffer-window) nil 1)
             (let* ((completion-ignore-case t)
                    (pnum (if (= 1 (length process-alist))
