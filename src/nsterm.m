@@ -4037,7 +4037,8 @@ ns_term_shutdown (int sig)
 
 - (void)sendEvent: (NSEvent *)theEvent
 /* --------------------------------------------------------------------------
-     Events posted by ns_send_appdefined interrupt the run loop here
+     Called when NSApp is running for each event received.  Used to stop
+     the loop when we choose, since there's no way to just run one iteration.
    -------------------------------------------------------------------------- */
 {
   int type = [theEvent type];
@@ -4081,8 +4082,19 @@ ns_term_shutdown (int sig)
 
   if (type == NSApplicationDefined)
     {
-      last_appdefined_event = theEvent;
-      [self stop: self];
+      /* Events posted by ns_send_appdefined interrupt the run loop here.
+         But, if a modal window is up, an appdefined can still come through,
+         (e.g., from a makeKeyWindow event) but stopping self also stops the
+         modal loop. Just defer it until later. */
+      if ([NSApp modalWindow] == nil)
+        {
+          last_appdefined_event = theEvent;
+          [self stop: self];
+        }
+      else
+        {
+          send_appdefined = YES;
+        }
     }
 
   [super sendEvent: theEvent];
@@ -4199,28 +4211,15 @@ ns_term_shutdown (int sig)
   if (ns_shutdown_properly || NILP (ns_confirm_quit))
     return NSTerminateNow;
 
-  /* XXX: This while() loop is needed because if the user switches to another
-          application while the panel is up, it is taken down w/a return value
-          of NSRunStoppedResponse, and the event queue gets messed up.
-          In this case resend the appdefined and put up the window again. */
-  while (1) {
     ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
                           [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
                           @"Save Buffers and Exit", @"Cancel", nil);
 
     if (ret == NSAlertDefaultReturn)
-      {
-        send_appdefined = YES;
-        ns_send_appdefined(-1);
         return NSTerminateNow;
-      }
     else if (ret == NSAlertAlternateReturn)
-      {
-        send_appdefined = YES;
-        ns_send_appdefined(-1);
         return NSTerminateCancel;
-      }
-  }
+    return NSTerminateNow;  /* just in case */
 }
 
 
