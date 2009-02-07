@@ -1,3 +1,9 @@
+2009-02-07  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el
+	(newsticker-treeview-next-new-or-immortal-item): New arg
+	DONT-WRAP-TREES to prevent infinite recursion.
+
 2009-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/rmailedit.el (rmail-cease-edit): narrow-to-region before

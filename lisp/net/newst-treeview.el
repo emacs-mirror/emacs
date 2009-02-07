@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "24. Januar 2009, 11:22:20 (ulf)"
+;; Time-stamp:  "7. Februar 2009, 11:46:00 (ulf)"
 
 ;; ======================================================================
 
@@ -1314,7 +1314,8 @@ Note: does not update the layout."
   (newsticker-treeview-show-item))
 
 (defun newsticker-treeview-next-new-or-immortal-item (&optional
-                                                      current-item-counts)
+                                                      current-item-counts
+                                                      dont-wrap-trees)
   "Move to next new or immortal item.
 Will move to next feed until an item is found.  Will not move if
 optional argument CURRENT-ITEM-COUNTS is t and current item is
@@ -1337,9 +1338,10 @@ new or immortal."
                   (newsticker-treeview-show-item)
                   (throw 'found t))
                 (setq move t))))
-    (when (or (newsticker-treeview-next-feed t)
-              (newsticker--treeview-first-feed))
-      (newsticker-treeview-next-new-or-immortal-item t))))
+    (let ((wrap-trees (not dont-wrap-trees)))
+      (when (or (newsticker-treeview-next-feed t)
+                (and wrap-trees (newsticker--treeview-first-feed)))
+        (newsticker-treeview-next-new-or-immortal-item t t)))))
 
 (defun newsticker-treeview-prev-new-or-immortal-item ()
   "Move to previous new or immortal item.
