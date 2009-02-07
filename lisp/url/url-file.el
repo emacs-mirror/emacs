@@ -88,7 +88,6 @@ to them."
 (declare-function ange-ftp-copy-file-internal "ange-ftp"
 		  (filename newname ok-if-already-exists
 			    keep-date &optional msg cont nowait))
-(declare-function url-generate-unique-filename "url-util" (&optional fmt))
 
 (defun url-file-build-filename (url)
   (if (not (vectorp url))
@@ -202,10 +201,8 @@ to them."
 					(current-buffer)
 					callback cbargs))
 	  ;; FTP handling
-	  (let* ((extension (url-file-extension filename))
-		 (new (url-generate-unique-filename
-		       (and (> (length extension) 0)
-			    (concat "%s." extension)))))
+	  (let ((new (make-temp-file
+		      (format "url-tmp.%d" (user-real-uid)))))
 	    (if (featurep 'ange-ftp)
 		(ange-ftp-copy-file-internal filename (expand-file-name new) t
 					     nil t
