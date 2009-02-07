@@ -1,3 +1,8 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (save-buffer): Display "Saving file FOO..." message
+	regardless of buffer's size.  (Bug#2137)
+
 2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): Handle overflow-newline-into-fringe.
