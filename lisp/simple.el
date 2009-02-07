@@ -4035,9 +4035,12 @@ into account variable-width characters and line continuation."
 	       (or (memq last-command '(next-line previous-line))
 		   ;; In case we're called from some other command.
 		   (eq last-command this-command)))
-    (let ((x (car (nth 2 (posn-at-point)))))
-      (when x
-	(setq temporary-goal-column (/ (float x) (frame-char-width))))))
+    (let ((posn (posn-at-point))
+	  x)
+      (cond ((eq (nth 1 posn) 'right-fringe) ; overflow-newline-into-fringe
+	     (setq temporary-goal-column (- (window-width) 1)))
+	    ((setq x (car (nth 2 posn)))
+	     (setq temporary-goal-column (/ (float x) (frame-char-width)))))))
   (or (= (vertical-motion
 	  (cons (or goal-column (truncate temporary-goal-column)) arg))
 	 arg)
