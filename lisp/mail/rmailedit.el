@@ -145,38 +145,38 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 
       (rmail-swap-buffers-maybe)
 
+      (narrow-to-region (rmail-msgbeg rmail-current-message)
+                       (rmail-msgend rmail-current-message))
+
       (setq character-coding (mail-fetch-field "content-transfer-encoding")
 	    is-text-message (rmail-is-text-p)
 	    coding-system (rmail-get-coding-system))
       (if character-coding
 	  (setq character-coding (downcase character-coding)))
 
-      (narrow-to-region (rmail-msgbeg rmail-current-message)
-			(rmail-msgend rmail-current-message))
       (goto-char (point-min))
       (search-forward "\n\n")
-      (let ((inhibit-read-only t)
-	    (headers-end-1 (point)))
-	(insert-buffer-substring rmail-view-buffer headers-end)
-	(delete-region (point) (point-max))
+      (let ((inhibit-read-only t))
+	(let ((data-buffer (current-buffer))
+	      (end (copy-marker (point) t)))
+	  (with-current-buffer rmail-view-buffer
+	    (encode-coding-region headers-end (point-max) coding-system
+				  data-buffer))
+	  (delete-region end (point-max)))
 
 	;; Re-encode the message body in whatever
 	;; way it was decoded.
 	(cond
 	 ((string= character-coding "quoted-printable")
-	  (mail-quote-printable-region headers-end-1 (point-max)))
+	  (mail-quote-printable-region (point) (point-max)))
 	 ((and (string= character-coding "base64") is-text-message)
-	  (base64-encode-region headers-end-1 (point-max)))
+	  (base64-encode-region (point) (point-max)))
 	 ((eq character-coding 'uuencode)
-	  (error "Not supported yet."))
-	 (t
-	  (if (or (not coding-system) (not (coding-system-p coding-system)))
-	      (setq coding-system 'undecided))
-	  (encode-coding-region headers-end-1 (point-max) coding-system)))
+	  (error "uuencoded messages are not supported yet.")))
 	))
 
     (rmail-set-attribute rmail-edited-attr-index t)
-	
+
     ;;??? BROKEN perhaps.
     ;; I think that the Summary-Line header may not be kept there any more.
 ;;;       (if (boundp 'rmail-summary-vector)
