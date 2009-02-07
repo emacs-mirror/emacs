@@ -1,3 +1,10 @@
+2009-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmailedit.el (rmail-cease-edit): narrow-to-region before
+	extracting mail message headers.  Use encode-coding-region instead
+	of insert-buffer-substring for re-encoding edited message.  Add
+	qp/b64 encoding only after text was encoded.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el: Don't declare `translation-table-for-input' obsolete.
