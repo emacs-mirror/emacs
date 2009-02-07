@@ -124,7 +124,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (insert "\n")))
   (let ((old rmail-old-text)
 	character-coding is-text-message coding-system
-	headers-end)
+	headers-end limit)
     ;; Go back to Rmail mode, but carefully.
     (force-mode-line-update)
     (let ((rmail-buffer-swapped nil)) ; Prevent change-major-mode-hook
@@ -146,16 +146,24 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (rmail-swap-buffers-maybe)
 
       (narrow-to-region (rmail-msgbeg rmail-current-message)
-                       (rmail-msgend rmail-current-message))
+			(rmail-msgend rmail-current-message))
 
-      (setq character-coding (mail-fetch-field "content-transfer-encoding")
-	    is-text-message (rmail-is-text-p)
-	    coding-system (rmail-get-coding-system))
+      (save-restriction
+	(setq limit
+	      (save-excursion
+		(goto-char (point-min))
+		(search-forward "\n\n" nil t)))
+	;; All 3 of the functions we call below assume the buffer was
+	;; narrowed to just the headers of the message.
+	(narrow-to-region (rmail-msgbeg rmail-current-message) limit)
+	(setq character-coding
+	      (mail-fetch-field "content-transfer-encoding")
+	      is-text-message (rmail-is-text-p)
+	      coding-system (rmail-get-coding-system)))
       (if character-coding
 	  (setq character-coding (downcase character-coding)))
 
-      (goto-char (point-min))
-      (search-forward "\n\n")
+      (goto-char limit)
       (let ((inhibit-read-only t))
 	(let ((data-buffer (current-buffer))
 	      (end (copy-marker (point) t)))
@@ -164,14 +172,14 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 				  data-buffer))
 	  (delete-region end (point-max)))
 
-	;; Re-encode the message body in whatever
-	;; way it was decoded.
+	;; Re-apply content-transfer-encoding, if any, on the message
+	;; body.
 	(cond
 	 ((string= character-coding "quoted-printable")
 	  (mail-quote-printable-region (point) (point-max)))
 	 ((and (string= character-coding "base64") is-text-message)
 	  (base64-encode-region (point) (point-max)))
-	 ((eq character-coding 'uuencode)
+	 ((and (eq character-coding 'uuencode) is-text-message)
 	  (error "uuencoded messages are not supported yet.")))
 	))
 
