@@ -1098,23 +1098,9 @@ its characters displayed as empty boxes, this may have happened.
   You can correct the problem by decoding the message again using the
 right coding system, if you can figure out or guess which one is
 right.  To do this, invoke the @kbd{M-x rmail-redecode-body} command.
-It reads the name of a coding system, encodes the message body using
-whichever coding system was used to decode it before, then redecodes
-it using the coding system you specified.  If you specified the right
+It reads the name of a coding system, and then redecodes the message
+using the coding system you specified.  If you specified the right
 coding system, the result should be readable.
-
-  Decoding and encoding using the wrong coding system is lossless for
-most encodings, in particular with 8-bit encodings such as iso-8859 or
-koi8.  So, if the initial attempt to redecode the message didn't
-result in a legible text, you can try other coding systems until you
-succeed.
-
-  With some coding systems, notably those from the iso-2022 family,
-information can be lost in decoding, so that encoding the message
-again won't bring back the original incoming text.  In such a case,
-@code{rmail-redecode-body} cannot work.  However, the problems that
-call for use of @code{rmail-redecode-body} rarely occur with those
-coding systems.  So in practice the command works when you need it.
 
 @node Rmail Editing
 @section Editing Within a Message
