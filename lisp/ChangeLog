@@ -1,3 +1,13 @@
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-redecode-body): Don't encode/decode the
+	message; instead, just rewrite the X-Coding-System header with the
+	new encoding, and let rmail-show-message do the rest.  Remove
+	unused argument RAW.  Fix doc string to be consistent with the new
+	implementation.
+	(rmail-show-message): Honor X-Coding-System header, if present, in
+	preference to Content-Type header.
+
 2009-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-execute): Enable quit.
