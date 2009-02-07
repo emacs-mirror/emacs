@@ -1813,17 +1813,11 @@ Optional args PROGRAM-ARGS are arguments to PROGRAM.
 Return a list (RETURN-CODE STDOUT STDERR)."
   (save-excursion
     (let* ((tmp-stdin-file-name (if stdin
-				    (make-temp-file
-				     (concat (file-name-as-directory
-					      (or (getenv "TMPDIR") "/tmp"))
-					     "artist-stdin."))
+				    (make-temp-file "artist-stdin.")
 				  nil))
 	   (tmp-stdout-buffer (get-buffer-create
 			       (concat "*artist-" program "*")))
-	   (tmp-stderr-file-name (make-temp-file
-				  (concat (file-name-as-directory
-					   (or (getenv "TMPDIR") "/tmp"))
-					  "artist-stdout.")))
+	   (tmp-stderr-file-name (make-temp-file "artist-stdout."))
 	   (binary-process-input nil)	; for msdos
 	   (binary-process-output nil))
 
