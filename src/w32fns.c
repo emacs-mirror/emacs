@@ -5279,9 +5279,18 @@ w32_hide_hourglass ()
     {
       struct frame *f = x_window_to_frame (&one_w32_display_info,
 					   hourglass_hwnd);
+      if (f)
+	f->output_data.w32->hourglass_p = 0;
+      else
+	/* If frame was deleted, restore to selected frame's cursor.  */
+	f = SELECTED_FRAME ();
 
-      f->output_data.w32->hourglass_p = 0;
-      SetCursor (f->output_data.w32->current_cursor);
+      if (FRAME_W32_P (f))
+	SetCursor (f->output_data.w32->current_cursor);
+      else
+	/* No cursors on non GUI frames - restore to stock arrow cursor.  */
+	SetCursor (w32_load_cursor (IDC_ARROW));
+
       hourglass_shown_p = 0;
     }
 }
