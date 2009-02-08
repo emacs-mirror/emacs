@@ -1,22 +1,13 @@
 -*- outline -*-
 
 
-* POST_MERGE CLEANUP
-
-** Finish --daemon patch
-
-
 * CURSOR BUGS:
 
 ** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back up
    on top of all others
 
-** cursor-over bugs w/some scripts (move around in HELLO to see)
-
 
 * OTHER BUGS
-
-** Remove Feval calls relating to insert working text in isearch mode.
 
 ** free_frame_resources, face colors
 
@@ -28,8 +19,6 @@
 * MAC-RELATED:
 
 ** open file:/// URLs
-
-** finish handle terminate request (user logout)
 
 ** put frame autopositioning into C code somewhere -- if loc = same, offset
 
@@ -43,9 +32,6 @@
 * OTHER / LOW PRIORITY:
 
 ** better recog of unicode scripts / Greek / composition
-
-** Ctrl-g not picked up in all situations;
-   get --experimental-ctrl-g in 'compile' working better
 
 ** Exec-dump not working on GNUstep (so slow startup).
 
