@@ -5079,6 +5079,21 @@ is non-nil."
   (message "Truncate long lines %s"
 	   (if truncate-lines "enabled" "disabled")))
 
+(defun toggle-word-wrap (&optional arg)
+  "Toggle whether to use word-wrapping for continuation lines.
+With prefix argument ARG, wrap continuation lines at word boundaries
+if ARG is positive, otherwise wrap them at the right screen edge.
+This command toggles the value of `word-wrap'.  It has no effect
+if long lines are truncated."
+  (interactive "P")
+  (setq word-wrap
+	(if (null arg)
+	    (not word-wrap)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update)
+  (message "Word wrapping %s"
+	   (if word-wrap "enabled" "disabled")))
+
 (defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")
 (defvar overwrite-mode-binary " Bin Ovwrt"
