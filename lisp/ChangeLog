@@ -1,3 +1,7 @@
+2009-02-08  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (toggle-word-wrap): New command.
+
 2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/ps-mode.el (ps-run-tmp-dir): Doc fix.
