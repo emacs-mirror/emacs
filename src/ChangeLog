@@ -1,3 +1,8 @@
+2009-02-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_hide_hourglass): Handle case where frame
+	disappeared while hourglass was displayed. (Bug #2193)
+
 2009-02-07  Andreas Schwab  <schwab@suse.de>
 
 	* unexelf.c (unexec): Fix error message.
