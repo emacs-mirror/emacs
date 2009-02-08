@@ -1,3 +1,11 @@
+2009-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-entry-marker, calendar-today-marker)
+	(calendar-holiday-marker, calendar-mark-visible-date):
+	* calendar/diary-lib.el (diary-fancy-display):
+	It doesn't make sense to check font-lock-mode (see comments;
+	reverts 2008-04-02 change).  (Bug#2199)
+
 2009-02-08  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (toggle-word-wrap): New command.

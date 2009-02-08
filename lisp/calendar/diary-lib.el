@@ -1017,7 +1017,9 @@ This is an option for `diary-display-function'."
                                                     (nth 1 entry)))
                                  :type 'diary-entry)
                 (insert this-entry ?\n))
-              (and font-lock-mode
+              ;; Doesn't make sense to check font-lock-mode - see
+              ;; comments above diary-entry-marker in calendar.el.
+              (and ; font-lock-mode
                    (setq marks (nth 4 entry))
                    (save-excursion
                      (setq temp-face (calendar-make-temp-face marks))
