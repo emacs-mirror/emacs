@@ -196,6 +196,7 @@ be overridden by the value of `calendar-setup'."
 (define-obsolete-variable-alias 'mark-diary-entries-in-calendar
   'calendar-mark-diary-entries-flag "23.1")
 
+;; FIXME :set
 (defcustom calendar-mark-diary-entries-flag nil
   "Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'."
@@ -250,7 +251,15 @@ See `calendar-holiday-marker'."
 (put 'holiday-face 'face-alias 'holiday)
 
 ;; These don't respect changes in font-lock-mode after loading.
-(defcustom diary-entry-marker (if (and font-lock-mode (display-color-p))
+
+;; Checking font-lock-mode is broken, since it is a buffer-local
+;; variable, and which buffer happens to be current when this file is
+;; loaded shouldn't make a difference.  One could perhaps check
+;; global-font-lock-mode, or font-lock-global-modes; but this feature
+;; doesn't use font-lock, so there's no real reason it should respect
+;; those either.  See bug#2199.
+(defcustom diary-entry-marker (if ;(and font-lock-mode
+                                  (display-color-p)
                                   'diary
                                 "+")
   "How to mark dates that have diary entries.
@@ -258,7 +267,8 @@ The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'diary)
 
-(defcustom calendar-today-marker (if (and font-lock-mode (display-color-p))
+(defcustom calendar-today-marker (if ;(and font-lock-mode
+                                     (display-color-p)
                                      'calendar-today
                                    "=")
   "How to mark today's date in the calendar.
@@ -267,7 +277,8 @@ Used by `calendar-mark-today'."
   :type '(choice string face)
   :group 'calendar)
 
-(defcustom calendar-holiday-marker (if (and font-lock-mode (display-color-p))
+(defcustom calendar-holiday-marker (if ;(and font-lock-mode
+                                       (display-color-p)
                                        'holiday
                                      "*")
   "How to mark notable dates in the calendar.
@@ -288,6 +299,7 @@ displayed."
 (define-obsolete-variable-alias 'mark-holidays-in-calendar
   'calendar-mark-holidays-flag "23.1")
 
+;; FIXME :set
 (defcustom calendar-mark-holidays-flag nil
   "Non-nil means mark dates of holidays in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'."
@@ -2267,11 +2279,14 @@ MARK defaults to `diary-entry-marker'."
           (calendar-cursor-to-visible-date date)
           (setq mark
                 (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-                    (and font-lock-mode
-                         (or
+                    ;; The next two use to also check font-lock-mode.
+                    ;; See comments above diary-entry-marker for why
+                    ;; this was dropped.
+;;;                    (and font-lock-mode
+;;;                         (or
                           (and (listp mark) (> (length mark) 0) mark) ; attrs
-                          (and (facep mark) mark))) ; face-name
-                    diary-entry-marker))
+                          (and (facep mark) mark) ; )) face-name
+                          diary-entry-marker))
           (cond
            ;; Face or an attr-list that contained a face.
            ((facep mark)
