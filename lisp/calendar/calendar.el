@@ -250,40 +250,33 @@ See `calendar-holiday-marker'."
 ;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'holiday-face 'face-alias 'holiday)
 
-;; These don't respect changes in font-lock-mode after loading.
-
-;; Checking font-lock-mode is broken, since it is a buffer-local
-;; variable, and which buffer happens to be current when this file is
-;; loaded shouldn't make a difference.  One could perhaps check
-;; global-font-lock-mode, or font-lock-global-modes; but this feature
-;; doesn't use font-lock, so there's no real reason it should respect
-;; those either.  See bug#2199.
-(defcustom diary-entry-marker (if ;(and font-lock-mode
-                                  (display-color-p)
-                                  'diary
-                                "+")
+;; These briefly checked font-lock-mode, but that is broken, since it
+;; is a buffer-local variable, and which buffer happens to be current
+;; when this file is loaded shouldn't make a difference.  One could
+;; perhaps check global-font-lock-mode, or font-lock-global-modes; but
+;; this feature doesn't use font-lock, so there's no real reason it
+;; should respect those either.  See bug#2199.
+;; They also used to check display-color-p, but that is a problem if
+;; loaded from --daemon.  Since BW displays are rare now, this was
+;; also taken out.  The way to keep it would be to have nil mean do a
+;; runtime check whenever this variable is used.
+(defcustom diary-entry-marker 'diary
   "How to mark dates that have diary entries.
-The value can be either a single-character string or a face."
-  :type '(choice string face)
+The value can be either a single-character string (e.g. \"+\") or a face."
+  :type '(choice (string :tag "Single character string") face)
   :group 'diary)
 
-(defcustom calendar-today-marker (if ;(and font-lock-mode
-                                     (display-color-p)
-                                     'calendar-today
-                                   "=")
+(defcustom calendar-today-marker 'calendar-today
   "How to mark today's date in the calendar.
-The value can be either a single-character string or a face.
+The value can be either a single-character string (e.g. \"=\") or a face.
 Used by `calendar-mark-today'."
-  :type '(choice string face)
+  :type '(choice (string :tag "Single character string") face)
   :group 'calendar)
 
-(defcustom calendar-holiday-marker (if ;(and font-lock-mode
-                                       (display-color-p)
-                                       'holiday
-                                     "*")
+(defcustom calendar-holiday-marker 'holiday
   "How to mark notable dates in the calendar.
-The value can be either a single-character string or a face."
-  :type '(choice string face)
+The value can be either a single-character string (e.g. \"*\") or a face."
+  :type '(choice (string :tag "Single character string") face)
   :group 'holidays)
 
 (define-obsolete-variable-alias 'view-calendar-holidays-initially

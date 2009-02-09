@@ -1,3 +1,8 @@
+2009-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-entry-marker, calendar-today-marker)
+	(calendar-holiday-marker): Drop test for color display.
+
 2009-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-entry-marker, calendar-today-marker)
