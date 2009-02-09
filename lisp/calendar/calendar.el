@@ -264,20 +264,23 @@ See `calendar-holiday-marker'."
   "How to mark dates that have diary entries.
 The value can be either a single-character string (e.g. \"+\") or a face."
   :type '(choice (string :tag "Single character string") face)
-  :group 'diary)
+  :group 'diary
+  :version "23.1")
 
 (defcustom calendar-today-marker 'calendar-today
   "How to mark today's date in the calendar.
 The value can be either a single-character string (e.g. \"=\") or a face.
 Used by `calendar-mark-today'."
   :type '(choice (string :tag "Single character string") face)
-  :group 'calendar)
+  :group 'calendar
+  :version "23.1")
 
 (defcustom calendar-holiday-marker 'holiday
   "How to mark notable dates in the calendar.
 The value can be either a single-character string (e.g. \"*\") or a face."
   :type '(choice (string :tag "Single character string") face)
-  :group 'holidays)
+  :group 'holidays
+  :version "23.1")
 
 (define-obsolete-variable-alias 'view-calendar-holidays-initially
   'calendar-view-holidays-initially-flag "23.1")
