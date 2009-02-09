@@ -346,7 +346,8 @@ Can be `dvi', `pdf', or `ps'.")
 (defun doc-view-goto-page (page)
   "View the page given by PAGE."
   (interactive "nPage: ")
-  (let ((len (length doc-view-current-files)))
+  (let ((len (length doc-view-current-files))
+	(hscroll (window-hscroll)))
     (if (< page 1)
 	(setq page 1)
       (when (and (> page len)
@@ -379,6 +380,7 @@ Can be `dvi', `pdf', or `ps'.")
     (let ((file (expand-file-name (format "page-%d.png" page)
                                   (doc-view-current-cache-dir))))
       (doc-view-insert-image file :pointer 'arrow)
+      (set-window-hscroll (selected-window) hscroll)
       (when (and (not (file-exists-p file))
                  doc-view-current-converter-processes)
         ;; The PNG file hasn't been generated yet.
@@ -418,22 +420,26 @@ Can be `dvi', `pdf', or `ps'.")
 (defun doc-view-scroll-up-or-next-page ()
   "Scroll page up if possible, else goto next page."
   (interactive)
-  (when (= (window-vscroll) (image-scroll-up nil))
-    (let ((cur-page (doc-view-current-page)))
+  (let ((hscroll (window-hscroll))
+	(cur-page (doc-view-current-page)))
+    (when (= (window-vscroll) (image-scroll-up nil))
       (doc-view-next-page)
       (when (/= cur-page (doc-view-current-page))
 	(image-bob)
-	(image-bol 1)))))
+	(image-bol 1))
+      (set-window-hscroll (selected-window) hscroll))))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
   (interactive)
-  (when (= (window-vscroll) (image-scroll-down nil))
-    (let ((cur-page (doc-view-current-page)))
+  (let ((hscroll (window-hscroll))
+	(cur-page (doc-view-current-page)))
+    (when (= (window-vscroll) (image-scroll-down nil))
       (doc-view-previous-page)
       (when (/= cur-page (doc-view-current-page))
 	(image-eob)
-	(image-bol 1)))))
+	(image-bol 1))
+      (set-window-hscroll (selected-window) hscroll))))
 
 ;;;; Utility Functions
 
@@ -1104,7 +1110,7 @@ toggle between displaying the document or editing it as text.
 			      major-mode)))
       (kill-all-local-variables)
       (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
-    
+
     ;; Figure out the document type.
     (let ((name-types
 	   (when buffer-file-name
@@ -1128,7 +1134,7 @@ toggle between displaying the document or editing it as text.
 			     name-types content-types))
 		    name-types content-types
 		    (error "Cannot determine the document type")))))
-    
+
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
     (set (make-local-variable 'doc-view-buffer-file-name)
@@ -1150,7 +1156,7 @@ toggle between displaying the document or editing it as text.
 	  (t buffer-file-name)))
     (when (not (string= doc-view-buffer-file-name buffer-file-name))
       (write-region nil nil doc-view-buffer-file-name))
-    
+
     (add-hook 'change-major-mode-hook
 	      (lambda ()
 		(doc-view-kill-proc)
@@ -1158,14 +1164,14 @@ toggle between displaying the document or editing it as text.
 	      nil t)
     (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
     (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
-    
+
     (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
     ;; Keep track of display info ([vh]scroll, page number, overlay,
     ;; ...)  for each window in which this document is shown.
     (add-hook 'image-mode-new-window-functions
 	      'doc-view-new-window-function nil t)
     (image-mode-setup-winprops)
-    
+
     (set (make-local-variable 'mode-line-position)
 	 '(" P" (:eval (number-to-string (doc-view-current-page)))
 	   "/" (:eval (number-to-string (length doc-view-current-files)))))

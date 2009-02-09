@@ -1,3 +1,9 @@
+2009-02-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page, doc-view-goto-page): Reset
+	the old hscroll value after switching pages.
+
 2009-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-entry-marker, calendar-today-marker)
