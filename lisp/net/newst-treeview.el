@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "7. Februar 2009, 11:46:00 (ulf)"
+;; Time-stamp:  "8. Februar 2009, 19:24:05 (ulf)"
 
 ;; ======================================================================
 
@@ -1246,7 +1246,8 @@ Note: does not update the layout."
         (erase-buffer)
         (insert ";; -*- coding: utf-8 -*-\n")
         (insert (prin1-to-string newsticker-groups))
-        (save-buffer)))))
+        (save-buffer)
+        (kill-buffer)))))
 
 (defun newsticker--treeview-load ()
   "Load treeview settings."
@@ -1267,7 +1268,8 @@ Note: does not update the layout."
           (setq newsticker-groups (read buf))
         (error
          (message "Error while reading newsticker groups file!")
-         (setq newsticker-groups nil))))))
+         (setq newsticker-groups nil)))
+      (kill-buffer buf))))
 
 
 (defun newsticker-treeview-scroll-item ()
