@@ -5101,7 +5101,7 @@ detect_coding_charset (coding, detect_info)
   valids = AREF (attrs, coding_attr_charset_valids);
   name = CODING_ID_NAME (coding->id);
   if (VECTORP (Vlatin_extra_code_table)
-      && strcmp ((char *) SDATA (SYMBOL_NAME (name)), "iso-8859-"))
+      && strcmp ((char *) SDATA (SYMBOL_NAME (name)), "iso-8859-") == 0)
     check_latin_extra = 1;
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
