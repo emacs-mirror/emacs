@@ -1,3 +1,8 @@
+2009-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Holidays, Displaying the Diary): Update for new marker
+	defaults.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* rmail.texi (Rmail Coding) <rmail-redecode-body>: Remove stale

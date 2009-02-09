@@ -488,8 +488,7 @@ window.
 @vindex calendar-mark-holidays-flag
   To view the distribution of holidays for all the dates shown in the
 calendar, use the @kbd{x} command.  This displays the dates that are
-holidays in a different face (or places a @samp{*} after these dates, if
-a color display is not available, or if @code{font-lock-mode} is off).
+holidays in a different face.
 @iftex
 @inforef{Calendar Customizing, calendar-holiday-marker, emacs-xtra}.
 @end iftex
@@ -1095,8 +1094,7 @@ current date is visible).
 @vindex calendar-mark-diary-entries-flag
   To get a broader view of which days are mentioned in the diary, use
 the @kbd{m} command.  This displays the dates that have diary entries in
-a different face (or places a @samp{+} after these dates, if display
-with multiple faces is not available).
+a different face.
 @iftex
 @inforef{Calendar Customizing, diary-entry-marker, emacs-xtra}.
 @end iftex
