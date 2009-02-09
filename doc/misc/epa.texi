@@ -338,6 +338,10 @@ Compose a signed message from the current buffer.
 @kindex @kbd{C-c C-e e}
 @findex epa-mail-encrypt
 Compose an encrypted message from the current buffer.
+By default it tries to build the recipient list from @samp{to},
+@samp{cc}, and @samp{bcc} fields of the mail header.  To include your
+key in the recipient list, use @samp{encrypt-to} option in
+@file{~/.gnupg/gpg.conf}.
 
 @end table
 
