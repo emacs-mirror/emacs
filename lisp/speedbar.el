@@ -4127,10 +4127,9 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
      (if (eq font-lock-global-modes t)
 	 (setq font-lock-global-modes '(not speedbar-mode))
        (if (eq (car font-lock-global-modes) 'not)
-	   (add-to-list 'font-lock-global-modes 'speedbar-mode t))))
-;; If f-l-g-m is a non-empty list that doesn't begin with not, there
-;; is nothing we can do.
-
+	   (add-to-list 'font-lock-global-modes 'speedbar-mode t)
+	 (setq font-lock-global-modes (delq 'speedbar-mode
+					    font-lock-global-modes)))))
 
 ;;; Obsolete variables and functions
 
