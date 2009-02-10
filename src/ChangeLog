@@ -1,3 +1,8 @@
+2009-02-10  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (send_process): Properly relocate pointer into data
+	when using encoded data.
+
 2009-02-08  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>
 
 	* coding.c (detect_coding_charset): Fix previous change.
