@@ -342,7 +342,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 		 (format "%s:%s (#x%04X%04X)"
 			 type name (car code) (cdr code))))))
     (let* ((charset (get-text-property pos 'charset))
-	   (coding (terminal-coding-system))
+	   (coding (or (terminal-coding-system) 'us-ascii))
 	   (encoded (encode-coding-char char coding charset)))
       (if encoded
 	  (encoded-string-description encoded coding)))))
@@ -411,6 +411,80 @@ as well as widgets, buttons, overlays, and text properties."
 	    (setq charset (char-charset char)
 		  code (encode-char char charset)))
       (setq code char))
+    (when composition
+      ;; When the composition is trivial (i.e. composed only with the
+      ;; current character itself without any alternate characters),
+      ;; we don't show the composition information.  Otherwise, store
+      ;; two descriptive strings in the first two elments of
+      ;; COMPOSITION.
+      (or (catch 'tag
+	    (let ((from (car composition))
+		  (to (nth 1 composition))
+		  (next (1+ pos))
+		  (components (nth 2 composition))
+		  ch)
+	      (if (and (vectorp components) (vectorp (aref components 0)))
+		  (let ((idx (- pos from))
+			(nglyphs (lgstring-glyph-len components))
+			(i 0) j glyph glyph-from)
+		    ;; COMPONENTS is a gstring.  Find a grapheme
+		    ;; cluster containing the current character.
+		    (while (and (< i nglyphs)
+				(setq glyph (lgstring-glyph components i))
+				(< (lglyph-to glyph) idx))
+		      (setq i (1+ i)))
+		    (if (or (not glyph) (= i nglyphs))
+			;; The composition is broken.
+			(throw 'tag nil))
+		    (setq glyph-from (lglyph-from glyph)
+			  to (+ from (lglyph-to glyph) 1)
+			  from (+ from glyph-from)
+			  j i)
+		    (while (and (< j nglyphs)
+				(setq glyph (lgstring-glyph components j))
+				(= (lglyph-from glyph) glyph-from))
+		      (setq j (1+ j)))
+		    (if (and (= i (1- j))
+			     (setq glyph (lgstring-glyph components i))
+			     (= char (lglyph-char glyph)))
+			;; The composition is trivial.
+			(throw 'tag nil))
+		    (nconc composition (list i (1- j))))
+		(dotimes (i (length components))
+		  (if (integerp (setq ch (aref components i)))
+		      (push (cons ch (describe-char-display pos ch))
+			    component-chars)))
+		(setq component-chars (nreverse component-chars)))
+	      (if (< from pos)
+		  (if (< (1+ pos) to)
+		      (setcar composition
+			      (concat
+			       " with the surrounding characters \""
+			       (mapconcat 'describe-char-padded-string
+					  (buffer-substring from pos) "")
+			       "\" and \""
+			       (mapconcat 'describe-char-padded-string
+					  (buffer-substring (1+ pos) to) "")
+			       "\""))
+		    (setcar composition
+			    (concat
+			     " with the preceding character(s) \""
+			     (mapconcat 'describe-char-padded-string
+					(buffer-substring from pos) "")
+			     "\"")))
+		(if (< (1+ pos) to)
+		    (setcar composition
+			    (concat
+			     " with the following character(s) \""
+			     (mapconcat 'describe-char-padded-string
+					(buffer-substring (1+ pos) to) "")
+			     "\""))
+		  (setcar composition nil)))
+	      (setcar (cdr composition)
+		      (format "composed to form \"%s\" (see below)"
+			      (buffer-substring from to)))))
+	  (setq composition nil)))
+
     (setq item-list
 	  `(("character"
 	     ,(format "%s (%d, #o%o, #x%x)"
@@ -497,22 +571,7 @@ as well as widgets, buttons, overlays, and text properties."
 			     (format "?%c" (glyph-char (car x))))
 			 disp-vector " ")))
 	       (composition
-		(let ((from (car composition))
-		      (to (nth 1 composition))
-		      (next (1+ pos))
-		      (components (nth 2 composition))
-		      ch)
-		  (setcar composition
-			  (and (< from pos) (buffer-substring from pos)))
-		  (setcar (cdr composition)
-			  (and (< next to) (buffer-substring next to)))
-		  (dotimes (i (length components))
-		    (if (integerp (setq ch (aref components i)))
-			(push (cons ch (describe-char-display pos ch))
-			      component-chars)))
-		  (setq component-chars (nreverse component-chars))
-		  (format "composed to form \"%s\" (see below)"
-			  (buffer-substring from to))))
+		(cadr composition))
 	       (t
 		(let ((display (describe-char-display pos char)))
 		  (if (display-graphic-p (selected-frame))
@@ -606,29 +665,13 @@ as well as widgets, buttons, overlays, and text properties."
 	(when composition
 	  (insert "\nComposed")
 	  (if (car composition)
-	      (if (cadr composition)
-		  (insert " with the surrounding characters \""
-			  (mapconcat 'describe-char-padded-string
-				     (car composition) "")
-			  "\" and \""
-			  (mapconcat 'describe-char-padded-string
-				     (cadr composition) "")
-			  "\"")
-		(insert " with the preceding character(s) \""
-			(mapconcat 'describe-char-padded-string
-				   (car composition) "")
-			"\""))
-	    (if (cadr composition)
-		(insert " with the following character(s) \""
-			(mapconcat 'describe-char-padded-string
-				   (cadr composition) "")
-			"\"")))
+	      (insert (car composition)))
 	  (if (and (vectorp (nth 2 composition))
 		   (vectorp (aref (nth 2 composition) 0)))
 	      (let* ((gstring (nth 2 composition))
 		     (font (lgstring-font gstring))
-		     (nglyphs (lgstring-glyph-len gstring))
-		     (i 0)
+		     (from (nth 3 composition))
+		     (to (nth 4 composition))
 		     glyph)
 		(if (fontp font)
 		    (progn
@@ -637,16 +680,16 @@ as well as widgets, buttons, overlays, and text properties."
 			      ?:
 			      (aref (query-font font) 0)
 			      "\nby these glyphs:\n")
-		      (while (and (< i nglyphs)
-				  (setq glyph (lgstring-glyph gstring i)))
+		      (while (and (<= from to)
+				  (setq glyph (lgstring-glyph gstring from)))
 			(insert (format "  %S\n" glyph))
-			(setq i (1+ i))))
+			(setq from (1+ from))))
 		  (insert " by these characters:\n")
-		  (while (and (< i nglyphs)
-			      (setq glyph (lgstring-glyph gstring i)))
+		  (while (and (<= from to)
+			      (setq glyph (lgstring-glyph gstring from)))
 		    (insert (format " %c (#x%d)\n"
 				    (lglyph-char glyph) (lglyph-char glyph)))
-		    (setq i (1+ i)))))
+		    (setq from (1+ from)))))
 	    (insert " by the rule:\n\t(")
 	    (let ((first t))
 	      (mapc (lambda (x)
