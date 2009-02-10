@@ -2148,8 +2148,18 @@ significant attribute change was made."
   "Turn an attribute of a message on or off according to STATE.
 STATE is either nil or the character (numeric) value associated
 with the state (nil represents off and non-nil represents on).
-ATTR is the index of the attribute.  MSGNUM is message number to
+ATTR is either the index number of the attribute, or a string,
+both from `rmail-attr-array'.  MSGNUM is message number to
 change; nil means current message."
+  (let ((n 0)
+        (nmax (length rmail-attr-array)))
+    (while (and (stringp attr)
+                (< n nmax))
+      (if (string-equal attr (cadr (aref rmail-attr-array n)))
+          (setq attr n))
+      (setq n (1+ n))))
+  (if (stringp attr)
+      (error "Unknown attribute `%s'" attr))
   (with-current-buffer rmail-buffer
     (or msgnum (setq msgnum rmail-current-message))
     (when (> msgnum 0)

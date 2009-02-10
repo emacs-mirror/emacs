@@ -25,6 +25,7 @@
 	(rmail-get-attr-names): Check for missing or corrupt attribute headers.
 	(rmail-auto-file): Set the filed attribute, rather than explicitly not
 	doing so.  (Bug#2231)
+	(rmail-set-attribute): Allow ATTR to be a string.
 
 2009-02-09  Ulf Jasper  <ulf.jasper@web.de>
 
