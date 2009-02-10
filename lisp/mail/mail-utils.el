@@ -33,8 +33,8 @@
 (require 'lisp-mode)
 
 ;;;###autoload
-(defcustom mail-use-rfc822 nil "\
-*If non-nil, use a full, hairy RFC822 parser on mail addresses.
+(defcustom mail-use-rfc822 nil
+  "If non-nil, use a full, hairy RFC822 parser on mail addresses.
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser."
   :type 'boolean
@@ -43,13 +43,10 @@ often correct parser."
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload
 (defun mail-file-babyl-p (file)
-  (let ((buf (generate-new-buffer " *rmail-file-p*")))
-    (unwind-protect
-	(save-excursion
-	  (set-buffer buf)
-	  (insert-file-contents file nil 0 100)
-	  (looking-at "BABYL OPTIONS:"))
-      (kill-buffer buf))))
+  "Return non-nil if FILE is a Babyl file."
+  (with-temp-buffer
+    (insert-file-contents file nil 0 100)
+    (looking-at "BABYL OPTIONS:")))
 
 (defun mail-string-delete (string start end)
   "Returns a string containing all of STRING except the part

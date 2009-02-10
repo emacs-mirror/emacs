@@ -1,5 +1,8 @@
 2009-02-10  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mail-utils.el (mail-use-rfc822): Remove * from defcustom doc.
+	(mail-file-babyl-p): Use with-temp-buffer.
+
 	* mail/rmailsort.el: Just require rmail.
 
 	* mail/rmailedit.el: Just require rmail.
