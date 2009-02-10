@@ -1,3 +1,7 @@
+2009-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-util.el (url-generate-unique-filename): Silence compiler.
+
 2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-file.el (url-file): Use make-temp-file.
