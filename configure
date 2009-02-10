@@ -1337,8 +1337,6 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-cocoa-experimental-ctrl-g
-                          enable experimental improved ctrl-g recognition
   --disable-ns-self-contained
                           disable self contained build under NeXTstep
   --enable-asserts        compile code with asserts enabled
@@ -2171,14 +2169,6 @@ test "X${with_gnustep_conf}" != X && test "${with_gnustep_conf}" != yes && \
   GNUSTEP_CONFIG_FILE="${with_gnustep_conf}"
 test "X$GNUSTEP_CONFIG_FILE" = "X" && \
      GNUSTEP_CONFIG_FILE=/etc/GNUstep/GNUstep.conf
-
-# Check whether --enable-cocoa-experimental-ctrl-g was given.
-if test "${enable_cocoa_experimental_ctrl_g+set}" = set; then
-  enableval=$enable_cocoa_experimental_ctrl_g; EN_COCOA_EXPERIMENTAL_CTRL_G=$enableval
-else
-  EN_COCOA_EXPERIMENTAL_CTRL_G=no
-fi
-
 
 # Check whether --enable-ns-self-contained was given.
 if test "${enable_ns_self_contained+set}" = set; then
@@ -14998,13 +14988,6 @@ _ACEOF
     GNU_OBJC_CFLAGS=
     LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
   fi
-  if test "${EN_COCOA_EXPERIMENTAL_CTRL_G}" = "yes"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define COCOA_EXPERIMENTAL_CTRL_G 1
-_ACEOF
-
-  fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
@@ -18856,11 +18839,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18900,11 +18885,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
