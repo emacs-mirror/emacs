@@ -1,7 +1,7 @@
 ;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
 
-;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -25,9 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'rmail)
-  (require 'rmailsum))
+(require 'rmail)
 
 (defcustom rmail-edit-mode-hook nil
   "List of functions to call when editing an RMAIL message."
@@ -35,7 +33,6 @@
   :version "21.1"
   :group 'rmail-edit)
 
-(defvar rmail-old-text)
 
 (defvar rmail-edit-map
   (let ((map (make-sparse-keymap)))
@@ -45,12 +42,7 @@
     (define-key map "\C-c\C-]" 'rmail-abort-edit)
     map))
 
-
-;; Rmail Edit mode is suitable only for specially formatted data.
-(put 'rmail-edit-mode 'mode-class 'special)
-
 (declare-function rmail-summary-disable "rmailsum" ())
-(declare-function rmail-summary-enable "rmailsum" ())
 
 (defun rmail-edit-mode ()
   "Major mode for editing the contents of an RMAIL message.
@@ -75,30 +67,41 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (setq mode-line-format (default-value 'mode-line-format)))
     (run-mode-hooks 'rmail-edit-mode-hook)))
 
-(defvar rmail-old-pruned nil)
+;; Rmail Edit mode is suitable only for specially formatted data.
+(put 'rmail-edit-mode 'mode-class 'special)
+
+
+(defvar rmail-old-text)
+(defvar rmail-old-pruned nil
+  "Non-nil means the message being edited originally had pruned headers.")
 (put 'rmail-old-pruned 'permanent-local t)
 
 ;;;###autoload
 (defun rmail-edit-current-message ()
   "Edit the contents of this message."
   (interactive)
-  (if (= rmail-total-messages 0)
+  (if (zerop rmail-total-messages)
       (error "No messages in this buffer"))
-  (make-local-variable 'rmail-old-pruned)
-  (setq rmail-old-pruned (eq rmail-header-style 'normal))
+  (set (make-local-variable 'rmail-old-pruned) (rmail-msg-is-pruned))
   (rmail-edit-mode)
-  (make-local-variable 'rmail-old-text)
-  (save-restriction
-    (widen)
-    (setq rmail-old-text (buffer-substring (point-min) (point-max))))
+  (set (make-local-variable 'rmail-old-text)
+       (save-restriction
+	 (widen)
+	 (buffer-substring (point-min) (point-max))))
   (setq buffer-read-only nil)
   (setq buffer-undo-list nil)
+  ;; FIXME whether the buffer is initially marked as modified or not
+  ;; depends on whether or not the underlying rmail buffer was so marked.
+  ;; Seems poor.
   (force-mode-line-update)
   (if (and (eq (key-binding "\C-c\C-c") 'rmail-cease-edit)
 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))
       (message "Editing: Type C-c C-c to return to Rmail, C-c C-] to abort")
     (message "%s" (substitute-command-keys
 		   "Editing: Type \\[rmail-cease-edit] to return to Rmail, \\[rmail-abort-edit] to abort"))))
+
+
+(declare-function rmail-summary-enable "rmailsum" ())
 
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
@@ -110,6 +113,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   ;; Disguise any "From " lines so they don't start a new message.
   (save-excursion
     (goto-char (point-min))
+    (or rmail-old-pruned (forward-line 1))
     (while (re-search-forward "^>*From " nil t)
       (beginning-of-line)
       (insert ">")
@@ -123,6 +127,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (unless (looking-back "\n\n")
       (insert "\n")))
   (let ((old rmail-old-text)
+	(pruned rmail-old-pruned)
 	character-coding is-text-message coding-system
 	headers-end limit)
     ;; Go back to Rmail mode, but carefully.
@@ -142,12 +147,9 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (goto-char (point-min))
       (search-forward "\n\n")
       (setq headers-end (point))
-
       (rmail-swap-buffers-maybe)
-
       (narrow-to-region (rmail-msgbeg rmail-current-message)
 			(rmail-msgend rmail-current-message))
-
       (save-restriction
 	(setq limit
 	      (save-excursion
@@ -172,38 +174,21 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 				  data-buffer))
 	  (delete-region end (point-max)))
 
-	;; Re-apply content-transfer-encoding, if any, on the message
-	;; body.
+	;; Re-apply content-transfer-encoding, if any, on the message body.
 	(cond
 	 ((string= character-coding "quoted-printable")
 	  (mail-quote-printable-region (point) (point-max)))
 	 ((and (string= character-coding "base64") is-text-message)
 	  (base64-encode-region (point) (point-max)))
 	 ((and (eq character-coding 'uuencode) is-text-message)
-	  (error "uuencoded messages are not supported yet.")))
-	))
-
-    (rmail-set-attribute rmail-edited-attr-index t)
-
+	  (error "uuencoded messages are not supported"))))
+      (rmail-set-attribute rmail-edited-attr-index t))
     ;;??? BROKEN perhaps.
-    ;; I think that the Summary-Line header may not be kept there any more.
-;;;       (if (boundp 'rmail-summary-vector)
-;;; 	  (progn
-;;; 	    (aset rmail-summary-vector (1- rmail-current-message) nil)
-;;; 	    (save-excursion
-;;; 	      (rmail-widen-to-current-msgbeg
-;;; 		(function (lambda ()
-;;; 			    (forward-line 2)
-;;; 			    (if (looking-at "Summary-line: ")
-;;; 				(let ((buffer-read-only nil))
-;;; 				  (delete-region (point)
-;;; 						 (progn (forward-line 1)
-;;; 							(point)))))))))))
-    )
-
-  (save-excursion
-    (rmail-show-message)
-    (rmail-toggle-header (if rmail-old-pruned 1 0)))
+;;;    (if (boundp 'rmail-summary-vector)
+;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
+    (save-excursion
+      (rmail-show-message)
+      (rmail-toggle-header (if pruned 1 0))))
   (run-hooks 'rmail-mode-hook))
 
 (defun rmail-abort-edit ()
