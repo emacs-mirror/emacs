@@ -1,3 +1,10 @@
+2009-02-10  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-display): On terminal, if terminal
+	coding system is nil, assume us-ascii.
+	(describe-char): Don't show the composition informaiton if it is
+	trivial.
+
 2009-02-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-svn.el (vc-svn-after-dir-status): Use shy group for revision
