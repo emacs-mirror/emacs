@@ -498,7 +498,9 @@ FIELD/REGEXP pairs continue in the list.
 
 examples:
   (\"/dev/null\" \"from\" \"@spam.com\") ; delete all mail from spam.com
-  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS."
+  (\"RMS\" \"from\" \"rms@\") ; save all mail from RMS.
+
+Note that this is only applied in the folder specifed by `rmail-file-name'."
   :group 'rmail
   :version "21.1"
   :type '(repeat (sexp :tag "Directive")))
@@ -529,16 +531,24 @@ In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 
 ;; Message counters and markers.  Deleted flags.
 
-(defvar rmail-current-message nil)
+(defvar rmail-current-message nil
+  "Integer specifying the message currently being displayed in this folder.")
 (put 'rmail-current-message 'permanent-local t)
 
-(defvar rmail-total-messages nil)
+(defvar rmail-total-messages nil
+  "Integer specifying the total number of messages in this folder.
+Includes deleted messages.")
 (put 'rmail-total-messages 'permanent-local t)
 
-(defvar rmail-message-vector nil)
+(defvar rmail-message-vector nil
+  "Vector of markers specifying the start and end of each message.
+Element N and N+1 specify the start and end of message N.")
 (put 'rmail-message-vector 'permanent-local t)
 
-(defvar rmail-deleted-vector nil)
+(defvar rmail-deleted-vector nil
+  "A string of length `rmail-total-messages' plus one.
+Character N is either a space or \"D\", according to whether
+message N is deleted or not.")
 (put 'rmail-deleted-vector 'permanent-local t)
 
 (defvar rmail-msgref-vector nil
@@ -1444,18 +1454,17 @@ Hook `rmail-quit-hook' is run after expunging."
 
 (defun rmail-duplicate-message ()
   "Create a duplicated copy of the current message.
-The duplicate copy goes into the Rmail file just after the
-original copy."
-  (interactive)
+The duplicate copy goes into the Rmail file just after the original."
   ;; If we are in a summary buffer, switch to the Rmail buffer.
+  ;; FIXME simpler to swap the contents, not the buffers?
   (set-buffer rmail-buffer)
   (let ((buff (current-buffer))
         (n rmail-current-message)
         (beg (rmail-msgbeg rmail-current-message))
         (end (rmail-msgend rmail-current-message)))
     (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-    (widen)
-    (let ((buffer-read-only nil)
+      (widen)
+      (let ((buffer-read-only nil)
           (string (buffer-substring-no-properties beg end)))
       (goto-char end)
       (insert string))
@@ -1710,7 +1719,7 @@ It returns t if it got any new messages."
 	 (rsf-number-of-spam 0)
 	 (rsf-scanned-message-number (1+ old-messages))
 	 ;; save deletion flags of old messages: vector starts at zero
-	 ;; (is one longer that no of messages), therefore take 1+
+	 ;; (is one longer than no of messages), therefore take 1+
 	 ;; old-messages
 	 (save-deleted (substring rmail-deleted-vector 0 (1+ old-messages)))
 	 blurb)
@@ -1988,65 +1997,45 @@ new messages.  Return the number of new messages."
 	    (setq start (point))))
 	count))))
 
+(defun rmail-get-header-1 (name)
+  "Subroutine of `rmail-get-header'.
+Narrow to header, call `mail-fetch-field' to find header NAME."
+  (if (search-forward "\n\n" nil t)
+      (progn
+        (narrow-to-region (point-min) (point))
+        (mail-fetch-field name))
+    (rmail-error-bad-format)))
+
 (defun rmail-get-header (name &optional msgnum)
   "Return the value of message header NAME, nil if it has none.
 MSGNUM specifies the message number to get it from.
 If MSGNUM is nil, use the current message."
-  (with-current-buffer rmail-buffer
-    (or msgnum (setq msgnum rmail-current-message))
-    (when (> msgnum 0)
-      (let (msgbeg end)
-	(setq msgbeg (rmail-msgbeg msgnum))
-	;; All access to the buffer's local variables is now finished...
-	(save-excursion
-	  ;; ... so it is ok to go to a different buffer.
-	  (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-          (save-excursion
-	  (save-restriction
-	    (widen)
-	      (goto-char msgbeg)
-	      (setq end (search-forward "\n\n" nil t))
-	      (if end
-		  (progn
-		    (narrow-to-region msgbeg end)
-		    (mail-fetch-field name))
-		(rmail-error-bad-format msgnum)))))))))
+  (rmail-apply-in-message msgnum 'rmail-get-header-1 name))
+
+(defun rmail-set-header-1 (name value)
+  "Subroutine of `rmail-set-header'.
+Narrow to header, set header NAME to VALUE, replacing existing if present."
+  (if (search-forward "\n\n" nil t)
+      (progn
+	(forward-char -1)
+	(narrow-to-region (point-min) (point))
+	(goto-char (point-min))
+	(if (re-search-forward (concat "^" (regexp-quote name) ":") nil 'move)
+	    (progn
+	      (delete-region (point) (line-end-position))
+	      (insert " " value))
+	  (insert name ": " value "\n")))
+    (rmail-error-bad-format)))
 
 (defun rmail-set-header (name &optional msgnum value)
   "Store VALUE in message header NAME, nil if it has none.
 MSGNUM specifies the message number to operate on.
 If MSGNUM is nil, use the current message."
-  (with-current-buffer rmail-buffer
-    (or msgnum (setq msgnum rmail-current-message))
-    (when (> msgnum 0)
-      (let (msgbeg end)
-	(setq msgbeg (rmail-msgbeg msgnum))
-	;; All access to the buffer's local variables is now finished...
-	(save-excursion
-	  ;; ... so it is ok to go to a different buffer.
-	  (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-          (save-excursion
-	  (save-restriction
-	    (widen)
-	      (goto-char msgbeg)
-	      (setq end (search-forward "\n\n" nil t))
-	      (if end (setq end (1- end)))
-	      (if end
-		  (progn
-		    (narrow-to-region msgbeg end)
-		    (goto-char msgbeg)
-		    (if (re-search-forward (concat "^"
-						   (regexp-quote name)
-						   ":")
-					   nil t)
-			(progn
-			  (delete-region (point) (line-end-position))
-			  (insert " " value))
-		      (goto-char end)
-		      (insert name ": " value "\n")))
-		(rmail-error-bad-format msgnum)))))
-	;; Ensure header changes get saved.
-	(if end (set-buffer-modified-p t))))))
+  (rmail-apply-in-message msgnum 'rmail-set-header-1 name value)
+  ;; Ensure header changes get saved.
+  ;; (Note replacing a header with an identical copy modifies.)
+  (with-current-buffer rmail-buffer (set-buffer-modified-p t)))
+
 
 ;;;; *** Rmail Attributes and Keywords ***
 
@@ -2055,16 +2044,20 @@ If MSGNUM is nil, use the current message."
 MSG specifies the message number to get it from.
 If MSG is nil, use the current message."
   (let ((value (rmail-get-header rmail-attribute-header msg))
+	(nmax (length rmail-attr-array))
 	result temp)
-    (dotimes (index (length value))
-      (setq temp (and (not (= ?- (aref value index)))
-		      (nth 1 (aref rmail-attr-array index)))
-	    result
-	    (cond
-	     ((and temp result) (format "%s, %s" result temp))
-	     (temp temp)
-	     (t result))))
-    result))
+    (when value
+      (unless (= (length value) nmax)
+	(error "Corrupt attribute header in message"))
+      (dotimes (index nmax)
+	(setq temp (and (not (= ?- (aref value index)))
+			(nth 1 (aref rmail-attr-array index)))
+	      result
+	      (cond
+	       ((and temp result) (format "%s, %s" result temp))
+	       (temp temp)
+	       (t result))))
+      result)))
 
 (defun rmail-get-keywords (&optional msg)
   "Return the message keywords in a comma separated string.
@@ -2116,6 +2109,41 @@ header value. STATE is one of nil, t, or a character value."
    ((not state) ?-)
    (t (nth 0 (aref rmail-attr-array attr)))))
 
+(defun rmail-set-attribute-1 (attr state)
+  "Subroutine of `rmail-set-attribute'.
+Set Rmail attribute ATTR to STATE in `rmail-attribute-header',
+creating the header if necessary.  Returns non-nil if a
+significant attribute change was made."
+  (let ((limit (search-forward "\n\n" nil t))
+        (value (rmail-get-attr-value attr state))
+        (inhibit-read-only t)
+        altered)
+    (goto-char (point-min))
+    (if (search-forward (concat rmail-attribute-header ": ") limit t)
+        ;; If this message already records attributes, just change the
+        ;; value for this one.
+        (let ((missing (- (+ (point) attr) (line-end-position))))
+          ;; Position point at this attribute, adding attributes if necessary.
+          (if (> missing 0)
+              (progn
+                (end-of-line)
+                (insert-char ?- missing)
+                (backward-char 1))
+            (forward-char attr))
+          ;; Change this attribute.
+          (when (/= value (char-after))
+            (setq altered t)
+            (delete-char 1)
+            (insert value)))
+      ;; Otherwise add a header line to record the attributes and set
+      ;; all but this one to no.
+      (let ((header-value "--------"))
+        (aset header-value attr value)
+        (goto-char (if limit (1- limit) (point-max)))
+        (setq altered (/= value ?-))
+        (insert rmail-attribute-header ": " header-value "\n")))
+    altered))
+
 (defun rmail-set-attribute (attr state &optional msgnum)
   "Turn an attribute of a message on or off according to STATE.
 STATE is either nil or the character (numeric) value associated
@@ -2123,77 +2151,25 @@ with the state (nil represents off and non-nil represents on).
 ATTR is the index of the attribute.  MSGNUM is message number to
 change; nil means current message."
   (with-current-buffer rmail-buffer
-    (let ((value (rmail-get-attr-value attr state))
-	  (inhibit-read-only t)
-	  limit
-	  altered
-	  msgbeg)
-      (or msgnum (setq msgnum rmail-current-message))
-      (when (> msgnum 0)
-	;; The "deleted" attribute is also stored in a special vector
-	;; so update that too.
-	(if (= attr rmail-deleted-attr-index)
-	    (rmail-set-message-deleted-p msgnum state))
-	(setq msgbeg (rmail-msgbeg msgnum))
-
-	;; All access to the buffer's local variables is now finished...
-	(unwind-protect
-	    (save-excursion
-	      ;; ... so it is ok to go to a different buffer.
-	      (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-              (save-excursion
-	      (save-restriction
-		(widen)
-		  ;; Determine if the current state is the desired state.
-		  (goto-char msgbeg)
-		  (save-excursion
-		    (setq limit (search-forward "\n\n" nil t)))
-		  (if (search-forward (concat rmail-attribute-header ": ") limit t)
-		      ;; If this message already records attributes,
-		      ;; just change the value for this one.
-		      (let ((missing (- (+ (point) attr) (line-end-position))))
-			;; Position point at this  attribute,
-			;; adding attributes if necessary.
-			(if (> missing 0)
-			    (progn
-			      (end-of-line)
-			      (insert-char ?- missing)
-			      (backward-char 1))
-			  (forward-char attr))
-			;; Change this attribute.
-			(when (/= value (char-after))
-			  (setq altered t)
-			  (delete-char 1)
-			  (insert value)))
-		    ;; Otherwise add a header line to record the attributes
-		    ;; and set all but this one to no.
-		    (let ((header-value "--------"))
-		      (aset header-value attr value)
-		      (goto-char (if limit (- limit 1) (point-max)))
-		      (setq altered (/= value ?-))
-		      (insert rmail-attribute-header ": " header-value "\n"))))))
-	  (if (= msgnum rmail-current-message)
-	      (rmail-display-labels))))
-      ;; If we made a significant change in an attribute,
-      ;; mark rmail-buffer modified, so it will be (1) saved
-      ;; and (2) displayed in the mode line.
-      (if altered
-	  (set-buffer-modified-p t)))))
+    (or msgnum (setq msgnum rmail-current-message))
+    (when (> msgnum 0)
+      ;; The "deleted" attribute is also stored in a special vector so
+      ;; update that too.
+      (if (= attr rmail-deleted-attr-index)
+          (rmail-set-message-deleted-p msgnum state))
+      (if (prog1
+              (rmail-apply-in-message msgnum 'rmail-set-attribute-1 attr state)
+            (if (= msgnum rmail-current-message)
+                (rmail-display-labels)))
+          ;; If we made a significant change in an attribute, mark
+          ;; rmail-buffer modified, so it will be (1) saved and (2)
+          ;; displayed in the mode line.
+          (set-buffer-modified-p t)))))
 
 (defun rmail-message-attr-p (msg attrs)
-  "Return t if the attributes header for message MSG matches regexp ATTRS.
-This function assumes the Rmail buffer is unswapped."
-  (save-excursion
-    (save-restriction
-      (let ((start (rmail-msgbeg msg))
-            limit)
-        (widen)
-        (goto-char start)
-        (setq limit (search-forward "\n\n" (rmail-msgend msg) t))
-        (goto-char start)
-        (and limit
-             (search-forward (concat rmail-attribute-header ": ") limit t)
-             (looking-at attrs))))))
+  "Return t if the attributes header for message MSG matches regexp ATTRS."
+  (let ((value (rmail-get-header rmail-attribute-header msg)))
+    (and value (string-match attrs value))))
 
 (defun rmail-message-unseen-p (msgnum)
   "Test the unseen attribute for message MSGNUM.
@@ -2228,13 +2204,14 @@ If MSGNUM is nil, use the current message."
 	(save-excursion
 	  ;; ... so it is ok to go to a different buffer.
 	  (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-          (save-excursion
-	  (save-restriction
-	    (widen)
+	  (save-excursion
+	    (save-restriction
+	      (widen)
 	      (goto-char msgbeg)
-		(narrow-to-region msgbeg msgend)
-              (apply function args))))))))
+	      (narrow-to-region msgbeg msgend)
+	      (apply function args))))))))
 
+;; Unused (save for commented out code in rmailedit.el).
 (defun rmail-widen-to-current-msgbeg (function)
   "Call FUNCTION with point at start of internal data of current message.
 Assumes that bounds were previously narrowed to display the message in Rmail.
@@ -2805,7 +2782,7 @@ Called when a new message is displayed."
 		(rmail-delete-forward)
 	      (if (string= "/dev/null" folder)
 		  (rmail-delete-message)
-		(rmail-output folder 1 t)
+		(rmail-output folder 1)
 		(setq d nil))))
 	(setq d (cdr d))))))
 
