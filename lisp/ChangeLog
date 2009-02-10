@@ -1,3 +1,12 @@
+2009-02-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-svn.el (vc-svn-after-dir-status): Use shy group for revision
+	number as it isn't present for unregistered files.
+
+	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
+	(vc-dir-mouse-map): New keymap.
+	(vc-default-dir-printer): Use it locally.
+
 2009-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* speedbar.el: Avoid messing up font-lock-global-modes.
@@ -192,12 +201,6 @@
 	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
 	(turn-off-xterm-mouse-tracking-on-terminal): Do not turn on the
 	mode on the initial terminal.
-
-2009-02-05  Nick Roberts  <nickrob@snap.net.nz>
-
-	* vc-dir.el (vc-dir-find-file-other-window): Allow mouse events.
-	(vc-dir-mouse-map): New keymap.
-	(vc-default-dir-printer): Use it locally.
 
 2009-02-05  Glenn Morris  <rgm@gnu.org>
 
