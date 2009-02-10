@@ -8,10 +8,6 @@ Compilation
 In the top-level directory, use:
 
   ./configure --with-ns
-  make -j2
-
-Make the -j higher on multi-core systems, usually one higher than number of
-cores is best.
 
 This will compile all the files, but emacs will not be able to be run except
 in -nw (terminal) mode.
@@ -49,16 +45,6 @@ Distributions and Universal Binaries
 Building as outlined above will create ordinary binaries running on your
 architecture only.  To create universal binaries, set CFLAGS to include
 "-arch ppc -arch i386".
-
-
-Improve Ctrl-G Handling
------------------------
-
-To enable a version of the code that handles ctrl-g more responsively in
-certain cases -- but may introduce other glitches -- pass
-"--enable-cocoa-experimental-ctrl-g" to configure.
-
-
 
 
 This file is part of GNU Emacs.
