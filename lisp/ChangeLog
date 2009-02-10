@@ -2,7 +2,7 @@
 
 	* descr-text.el (describe-char-display): On terminal, if terminal
 	coding system is nil, assume us-ascii.
-	(describe-char): Don't show the composition informaiton if it is
+	(describe-char): Don't show the composition information if it is
 	trivial.
 
 2009-02-10  Nick Roberts  <nickrob@snap.net.nz>
