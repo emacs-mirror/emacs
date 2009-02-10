@@ -1,5 +1,7 @@
 2009-02-10  Glenn Morris  <rgm@gnu.org>
 
+	* speedbar.el: Avoid messing up font-lock-global-modes.
+
 	* mail/mail-utils.el (mail-use-rfc822): Remove * from defcustom doc.
 	(mail-file-babyl-p): Use with-temp-buffer.
 
