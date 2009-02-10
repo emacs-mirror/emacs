@@ -923,7 +923,7 @@ int
 mbx_delimit_begin (mbf)
      FILE *mbf;
 {
-  if (fputs ("\f\n0, unseen,,\n", mbf) == EOF)
+  if (fputs ("From movemail\n", mbf) == EOF)
     return (NOTOK);
   return (OK);
 }
@@ -932,7 +932,7 @@ int
 mbx_delimit_end (mbf)
      FILE *mbf;
 {
-  if (putc ('\037', mbf) == EOF)
+  if (putc ('\n', mbf) == EOF)
     return (NOTOK);
   return (OK);
 }
