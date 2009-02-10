@@ -198,7 +198,9 @@ in the environment list of the selected frame."
 				    (encode-coding-string
 				     variable locale-coding-system)
 				  variable)
-				frame)))
+				(and frame
+				     (assq 'environment
+					   (frame-parameters frame))))))
     (if (and enable-multibyte-characters value)
 	(setq value (decode-coding-string value locale-coding-system)))
     (when (interactive-p)

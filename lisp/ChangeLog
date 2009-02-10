@@ -1,3 +1,8 @@
+2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	* env.el (getenv): When FRAME is non-nil, pass the frame environment
+	to `getenv-internal', not the frame.  (Bug#2259)
+
 2009-02-10  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char-display): On terminal, if terminal
