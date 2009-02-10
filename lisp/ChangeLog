@@ -1,3 +1,28 @@
+2009-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsort.el: Just require rmail.
+
+	* mail/rmailedit.el: Just require rmail.
+	(rmail-old-pruned): Add doc string.
+	(rmail-edit-current-message): Use rmail-msg-is-pruned.
+	(rmail-cease-edit): Don't mangle the leading From line.
+	Don't mark as edited if there were no changes.  (Bug#2256)
+	Correctly restore header state.
+
+	* mail/rmail.el (rmail-automatic-folder-directives): Doc fix.
+	(rmail-current-message, rmail-total-messages)
+	(rmail-message-vector, rmail-deleted-vector): Add doc strings.
+	(rmail-duplicate-message): Doc fix.
+	(rmail-get-header-1, rmail-set-header-1, rmail-set-attribute-1):
+	New functions.
+	(rmail-get-header, rmail-set-header, rmail-set-attribute):
+	Use rmail-apply-in-message.
+	(rmail-message-attr-p): Use rmail-get-header, hence no longer requires
+	unswapped-ness.
+	(rmail-get-attr-names): Check for missing or corrupt attribute headers.
+	(rmail-auto-file): Set the filed attribute, rather than explicitly not
+	doing so.  (Bug#2231)
+
 2009-02-09  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-save)

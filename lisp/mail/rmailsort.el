@@ -26,14 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'mail-utils)
-  (require 'sort)
-  (require 'rmail))
-
-(autoload 'timezone-make-date-sortable "timezone")
-
-(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+(require 'rmail)
 
 ;; Sorting messages in Rmail buffer
 
@@ -153,6 +146,7 @@ KEYWORDS is a comma-separated list of labels."
 			      n))))))
 
 ;; Basic functions
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-sort-messages (reverse keyfun)
   "Sort messages of current Rmail file.
@@ -227,6 +221,8 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	    (goto-char return-to-point))
 	(if (rmail-summary-exists)
 	    (rmail-select-summary (rmail-update-summary)))))))
+
+(autoload 'timezone-make-date-sortable "timezone")
 
 (defun rmail-make-date-sortable (date)
   "Make DATE sortable using the function string-lessp."
