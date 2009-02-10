@@ -1,4 +1,4 @@
-2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>
+2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
 
 	* env.el (getenv): When FRAME is non-nil, pass the frame environment
 	to `getenv-internal', not the frame.  (Bug#2259)
