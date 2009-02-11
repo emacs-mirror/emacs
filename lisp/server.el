@@ -240,9 +240,9 @@ ENV should be in the same format as `process-environment'."
     `(let ((process-environment process-environment))
        (dolist (,var ,vars)
          (let ((,value (getenv-internal ,var ,env)))
-           (push (if (null ,value)
-                     ,var
-                   (concat ,var "=" ,value))
+           (push (if (stringp ,value)
+                     (concat ,var "=" ,value)
+                   ,var)
                  process-environment)))
        (progn ,@body))))
 
