@@ -1,3 +1,13 @@
+2009-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-window-list): Ignore invisible windows.
+	(calendar-set-mode-line): Fall back to a default width if we seem to be
+	called from daemon.  (Bug#2199)
+
+	* mail/rmailkwd.el (rmail-make-label): Doc fix.
+	(rmail-read-label): Add current labels to completion list.  (Bug#2222)
+	(rmail-set-label): Use `or'.
+
 2009-02-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/find-func.el (find-library-name, find-library): Doc

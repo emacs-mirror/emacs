@@ -1723,10 +1723,13 @@ the STRINGS are just concatenated and the result truncated."
   "List of all calendar-related windows."
   (let ((calendar-buffers (calendar-buffer-list))
         list)
+    ;; Using 0 rather than t for last argument - see bug#2199.
+    ;; This is only used with calendar-hide-window, which ignores
+    ;; iconified frames anyway, so could use 'visible rather than 0.
     (walk-windows (lambda (w)
                     (if (memq (window-buffer w) calendar-buffers)
                         (push w list)))
-                  nil t)
+                  nil 0)
     list))
 
 (defun calendar-buffer-list ()
@@ -2461,6 +2464,11 @@ If called by a mouse-event, pops up a menu with the result."
   (let* ((edges (window-edges))
          ;; As per doc of window-width, total visible mode-line length.
          (width (- (nth 2 edges) (car edges))))
+    ;; Hack for --daemon.  See bug #2199.
+    ;; If no frame exists yet, we have no idea what width to use.
+    (and (= width 10)
+         (not window-system)
+         (setq width (or (getenv "COLUMNS") 80)))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified
