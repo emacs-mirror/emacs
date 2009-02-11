@@ -143,7 +143,8 @@ See the functions `find-function' and `find-variable'."
       (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
 (defun find-library-name (library)
-  "Return the absolute file name of the Lisp source of LIBRARY."
+  "Return the absolute file name of the Emacs Lisp source of LIBRARY.
+LIBRARY should be a string (the name of the library)."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
   (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
@@ -207,7 +208,8 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 
 ;;;###autoload
 (defun find-library (library)
-  "Find the elisp source of LIBRARY."
+  "Find the Emacs Lisp source of LIBRARY.
+LIBRARY should be a string (the name of the library)."
   (interactive
    (let* ((dirs (or find-function-source-path load-path))
           (suffixes (find-library-suffixes))
