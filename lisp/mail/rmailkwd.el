@@ -39,7 +39,7 @@
       rmail-attr-array)
 
 (defun rmail-make-label (s)
-  "Convert string S to a downcased symbol in `rmail-label-obarray'."
+  "Intern string S as a downcased symbol in `rmail-label-obarray'."
   (intern (downcase s) rmail-label-obarray))
 
 ;;;###autoload
@@ -64,16 +64,20 @@ LABEL may be a symbol or string."
 Completions are chosen from `rmail-label-obarray'.  The default
 is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
 according to the choice made, and returns a symbol."
-  (let ((result
-	 (completing-read (concat prompt
-				  (if rmail-last-label
-				      (concat " (default "
-					      (symbol-name rmail-last-label)
-					      "): ")
-				    ": "))
-			  rmail-label-obarray
-			  nil
-			  nil)))
+  (let* ((old (rmail-get-keywords))
+	(result
+	 (progn
+	   ;; Offer any existing labels as choices.
+	   (if old (mapc 'rmail-make-label (split-string old ", ")))
+	   (completing-read (concat prompt
+				    (if rmail-last-label
+					(concat " (default "
+						(symbol-name rmail-last-label)
+						"): ")
+				      ": "))
+			    rmail-label-obarray
+			    nil
+			    nil))))
     (if (string= result "")
 	rmail-last-label
       (setq rmail-last-label (rmail-make-label result)))))
@@ -86,7 +90,7 @@ LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
-    (if (not msg) (setq msg rmail-current-message))
+    (or msg (setq msg rmail-current-message))
     ;; Force recalculation of summary for this message.
     (aset rmail-summary-vector (1- msg) nil)
     (let (attr-index)
@@ -123,8 +127,7 @@ LABEL may be a symbol or string."
 			before)
 		       (t (concat before ", " after))))))))))
     (if (rmail-summary-exists)
-	(rmail-select-summary
-	 (rmail-summary-update-line msg)))
+	(rmail-select-summary (rmail-summary-update-line msg)))
     (if (= msg rmail-current-message)
 	(rmail-display-labels))))
 
