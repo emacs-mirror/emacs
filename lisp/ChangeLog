@@ -1,7 +1,12 @@
+2009-02-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-add-entry): Avoid munging long-form Dired
+	switches (Bug#2261).
+
 2009-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
-	* server.el (server-with-environment):
-	Don't fail for negative entries in ENV.
+	* server.el (server-with-environment): Don't fail for negative
+	entries in ENV.
 
 2009-02-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
