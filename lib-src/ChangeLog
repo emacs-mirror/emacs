@@ -1,3 +1,7 @@
+2009-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (mbx_delimit_begin): Also write the current time.
+
 2009-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* movemail.c (mbx_delimit_begin, mbx_delimit_end): Write mbox rather

@@ -683,6 +683,8 @@ xmalloc (size)
 #include <winsock.h>
 #endif
 #include <pwd.h>
+#include <string.h>
+#include <time.h>
 
 #define NOTOK (-1)
 #define OK 0
@@ -923,7 +925,16 @@ int
 mbx_delimit_begin (mbf)
      FILE *mbf;
 {
-  if (fputs ("From movemail\n", mbf) == EOF)
+  time_t now;
+  struct tm *ltime;
+  char fromline[40] = "From movemail ";
+
+  now = time (NULL);
+  ltime = localtime (&now);
+
+  strcat (fromline, asctime (ltime));
+
+  if (fputs (fromline, mbf) == EOF)
     return (NOTOK);
   return (OK);
 }
