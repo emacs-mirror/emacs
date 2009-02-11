@@ -19,7 +19,7 @@
 2009-02-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/find-func.el (find-library-name, find-library): Doc
-	fixes.
+	fixes.  (Part of bug#2270)
 
 2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
 

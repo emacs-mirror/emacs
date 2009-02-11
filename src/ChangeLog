@@ -5,7 +5,7 @@
 2009-02-10  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (send_process): Properly relocate pointer into data
-	when using encoded data.
+	when using encoded data.  (Bug#2272)
 
 2009-02-08  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>
 
@@ -14,7 +14,7 @@
 2009-02-08  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_hide_hourglass): Handle case where frame
-	disappeared while hourglass was displayed. (Bug #2193)
+	disappeared while hourglass was displayed.  (Bug #2193)
 
 2009-02-07  Andreas Schwab  <schwab@suse.de>
 
@@ -23,7 +23,7 @@
 2009-02-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (EmacsApp-sendEvent:): Defer NSApplicationDefined event
-	when modal window is active. (Bug #2152)
+	when modal window is active.  (Bug #2152)
 	(applicationShouldTerminate:): Remove now-unneeded while loop
 	around NSRunAlertPanel.
 
