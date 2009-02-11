@@ -4651,7 +4651,7 @@ This calls `write-region-annotate-functions' at the start, and
   specpdl_ptr = specpdl + count1;
 
   /* Call write-region-post-annotation-function. */
-  while (!NILP (Vwrite_region_annotation_buffers))
+  while (CONSP (Vwrite_region_annotation_buffers))
     {
       Lisp_Object buf = XCAR (Vwrite_region_annotation_buffers);
       if (!NILP (Fbuffer_live_p (buf)))

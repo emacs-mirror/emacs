@@ -1,3 +1,7 @@
+2009-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fwrite_region): !NILP -> CONSP.
+
 2009-02-10  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (send_process): Properly relocate pointer into data
