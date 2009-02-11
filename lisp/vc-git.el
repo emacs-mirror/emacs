@@ -302,6 +302,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (if isdir
 		     "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
 		   "File\nmouse-3: Pop-up menu")
+		 'keymap vc-dir-filename-mouse-map
 		 'mouse-face 'highlight)
      (vc-git-file-type-as-string old-perm new-perm)
      (vc-git-rename-as-string state extra))))

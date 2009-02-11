@@ -1,3 +1,11 @@
+2009-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-filename-mouse-map): Rename from vc-dir-mouse-map.
+	(vc-default-dir-printer): Add a comment about updating this function.
+
+	* vc-git.el (vc-git-dir-printer): Use vc-dir-filename-mouse-map
+	for the file name.
+
 2009-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-window-list): Ignore invisible windows.

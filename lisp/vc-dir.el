@@ -1146,7 +1146,7 @@ Interactively, a prefix argument means to ask for the backend."
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
-(defvar vc-dir-mouse-map
+(defvar vc-dir-filename-mouse-map
    (let ((map (make-sparse-keymap)))
      (define-key map [mouse-2] 'vc-dir-find-file-other-window)
     map)
@@ -1155,6 +1155,9 @@ Interactively, a prefix argument means to ask for the backend."
 (defun vc-default-dir-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
+  ;; VC backends can implement backend specific versions of this
+  ;; function.  Changes here might need to be reflected in the
+  ;; vc-BACKEND-dir-printer functions.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
 	(state (if isdir "" (vc-dir-fileinfo->state fileentry)))
 	(filename (vc-dir-fileinfo->name fileentry)))
@@ -1179,7 +1182,7 @@ Interactively, a prefix argument means to ask for the backend."
 	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
 	"File\nmouse-3: Pop-up menu")
       'mouse-face 'highlight
-      'keymap vc-dir-mouse-map))))
+      'keymap vc-dir-filename-mouse-map))))
 
 (defun vc-default-extra-status-menu (backend)
   nil)
