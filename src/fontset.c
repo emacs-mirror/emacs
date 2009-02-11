@@ -1062,7 +1062,7 @@ fontset_pattern_regexp (pattern)
 	    nstars++;
 	  else if (*p0 == '['
 		   || *p0 == '.' || *p0 == '\\'
-		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '+' || *p0 == '^'
 		   || *p0 == '$')
 	    nescs++;
 	}
@@ -1090,7 +1090,7 @@ fontset_pattern_regexp (pattern)
 	    *p1++ = '.';
 	  else if (*p0 == '['
 		   || *p0 == '.' || *p0 == '\\'
-		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '+' || *p0 == '^'
 		   || *p0 == '$')
 	    *p1++ = '\\', *p1++ = *p0;
 	  else
@@ -1619,7 +1619,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
     }
   else
     {
-      fontset = FONTSET_FROM_ID (id);;
+      fontset = FONTSET_FROM_ID (id);
       free_realized_fontsets (fontset);
       Fset_char_table_range (fontset, Qt, Qnil);
     }

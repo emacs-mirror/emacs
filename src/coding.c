@@ -6626,7 +6626,7 @@ produce_charset (coding, charbuf, pos)
 
 #define ALLOC_CONVERSION_WORK_AREA(coding)				\
   do {									\
-    int size = CHARBUF_SIZE;;						\
+    int size = CHARBUF_SIZE;						\
     									\
     coding->charbuf = NULL;						\
     while (size > 1024)							\

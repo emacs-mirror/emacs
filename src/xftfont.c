@@ -159,7 +159,7 @@ xftfont_list (frame, spec)
      Lisp_Object spec;
 {
   Lisp_Object list = ftfont_driver.list (frame, spec), tail;
-  
+
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qxft);
   return list;
@@ -271,7 +271,7 @@ xftfont_open (f, entity, pixel_size)
 
   FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
   FcPatternAddInteger (pat, FC_INDEX, XINT (index));
-		       
+
 
   BLOCK_INPUT;
   match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
@@ -335,7 +335,7 @@ xftfont_open (f, entity, pixel_size)
       font->space_width = extents.xOff;
       if (font->space_width <= 0)
 	/* dirty workaround */
-	font->space_width = pixel_size;	
+	font->space_width = pixel_size;
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
       font->average_width = (font->space_width + extents.xOff) / 95;
     }
@@ -451,7 +451,7 @@ xftfont_done_face (f, face)
      struct face *face;
 {
   struct xftface_info *xftface_info;
-  
+
 #if 0
   /* This doesn't work if face->ascii_face doesn't use an Xft font. */
   if (face != face->ascii_face
@@ -490,7 +490,7 @@ xftfont_encode_char (font, c)
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
   unsigned code = XftCharIndex (xftfont_info->display, xftfont_info->xftfont,
 				(FcChar32) c);
-  
+
   return (code ? code : FONT_INVALID_CODE);
 }
 
@@ -523,7 +523,7 @@ static XftDraw *
 xftfont_get_xft_draw (f)
      FRAME_PTR f;
 {
-  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);;
+  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);
 
   if (! xft_draw)
     {

@@ -1,3 +1,13 @@
+2009-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* casetab.c (init_casetab_once):
+	* coding.c (ALLOC_CONVERSION_WORK_AREA):
+	* font.c (font_update_lface):
+	* fontset.c (Fnew_fontset):
+	* ftfont.c (ftfont_drive_otf):
+	* xfont.c (xfont_open):
+	* xftfont.c (xftfont_get_xft_draw): Remove spurious semicolons.
+
 2009-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fwrite_region): !NILP -> CONSP.

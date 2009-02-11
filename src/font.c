@@ -3132,7 +3132,7 @@ font_update_lface (f, attrs)
   if (! NILP (AREF (spec, FONT_WEIGHT_INDEX)))
     attrs[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_SLANT_INDEX)))
-    attrs[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (spec);;
+    attrs[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_WIDTH_INDEX)))
     attrs[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_SIZE_INDEX)))

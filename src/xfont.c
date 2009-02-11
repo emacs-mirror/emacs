@@ -220,7 +220,7 @@ xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
 {
   char *p0 = xlfd, *p1 = output;
   int c;
-  
+
   while (*p0)
     {
       c = *(unsigned char *) p0++;
@@ -242,7 +242,7 @@ xfont_encode_coding_xlfd (char *xlfd)
   const unsigned char *p0 = (unsigned char *) xlfd;
   unsigned char *p1 = (unsigned char *) xlfd;
   int len = 0;
-  
+
   while (*p0)
     {
       int c = STRING_CHAR_ADVANCE (p0);
@@ -363,7 +363,7 @@ xfont_list (frame, spec)
   int len;
   /* Large enough to contain the longest XLFD (255 bytes) in UTF-8.  */
   char name[512];
-  
+
   extra = AREF (spec, FONT_EXTRA_INDEX);
   if (CONSP (extra))
     {
@@ -642,7 +642,7 @@ xfont_open (f, entity, pixel_size)
       char *p0, *p;
       int dashes = 0;
 
-      p0 = p = (char *) XGetAtomName (FRAME_X_DISPLAY (f), (Atom) value);;
+      p0 = p = (char *) XGetAtomName (FRAME_X_DISPLAY (f), (Atom) value);
       /* Count the number of dashes in the "full name".
 	 If it is too few, this isn't really the font's full name,
 	 so don't use it.
