@@ -1074,7 +1074,7 @@ See Info node `(emacs)Subdir switches' for more details."
 	      ;; Don't expand `.'.  Show just the file name within directory.
 	      (let ((default-directory directory))
 		(dired-insert-directory directory
-					(concat dired-actual-switches "d")
+					(concat dired-actual-switches " -d")
 					(list filename)))
               (goto-char opoint)
 	      ;; Put in desired marker char.
