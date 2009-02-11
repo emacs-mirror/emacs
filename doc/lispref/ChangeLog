@@ -1,8 +1,13 @@
+2009-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Visibility of Frames): Mention the effect multiple
+	workspaces/desktops can have on visibility.
+
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* text.texi (Commands for Insertion): 
-	* commands.texi (Event Mod): 
-	* keymaps.texi (Searching Keymaps): 
+	* text.texi (Commands for Insertion):
+	* commands.texi (Event Mod):
+	* keymaps.texi (Searching Keymaps):
 	* nonascii.texi (Translation of Characters): Reinstate
 	documentation of translation-table-for-input.
 	(Explicit Encoding): Document the `charset' text property produced
