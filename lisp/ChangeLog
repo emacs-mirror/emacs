@@ -1,3 +1,8 @@
+2009-02-12  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-show-message-verbose-min): New option.
+	(rmail-show-message): Conditionally show start and finish in echo area.
+
 2009-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailsum.el (rmail-get-summary-labels): Store any message labels
