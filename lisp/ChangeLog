@@ -1,3 +1,13 @@
+2009-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-get-summary-labels): Store any message labels
+	for use in completion.
+	* mail/rmailkwd.el (rmail-read-label): Don't scan for labels if the
+	summary exists, since it's already done.
+
+	* mail/rmail.el (rmail-unix-mail-delimiter): Doc fix.
+	(rmail-enable-multibyte): Don't really define, only for compiler.
+
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (read-buffer-to-switch):

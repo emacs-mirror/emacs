@@ -741,7 +741,7 @@ The first parenthesized expression should match the MIME-charset name.")
      "\n"))
   "Regexp matching the delimiter of messages in UNIX mail format
 \(UNIX From lines), minus the initial ^.  Note that if you change
-this expression, you must change the code in rmail-nuke-pinhead-header
+this expression, you must change the code in `rmail-nuke-pinhead-header'
 that knows the exact ordering of the \\( \\) subexpressions.")
 
 (defvar rmail-font-lock-keywords
@@ -793,12 +793,6 @@ that knows the exact ordering of the \\( \\) subexpressions.")
      (rmail-maybe-display-summary)))
 
 ;;;; *** Rmail Mode ***
-
-;; This variable is dynamically bound.  The defvar is here to placate
-;; the byte compiler.
-
-(defvar rmail-enable-multibyte nil)
-
 
 (defun rmail-require-mime-maybe ()
   "Require `rmail-mime-feature' if that is non-nil.
@@ -1174,6 +1168,8 @@ The buffer is expected to be narrowed to just the header of the message."
 
 (defun rmail-mode-kill-summary ()
   (if rmail-summary-buffer (kill-buffer rmail-summary-buffer)))
+
+(defvar rmail-enable-multibyte)         ; dynamically bound
 
 ;;;###autoload
 (defun rmail-mode ()
