@@ -1,3 +1,11 @@
+2009-02-12  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-toggle-display):
+	Let-bind `buffer-file-truename' to nil around the call to
+	`add-text-properties' to prevent directory time modification
+	by lock_file.  Replace `set-buffer-modified-p' with
+	`restore-buffer-modified-p'.  (Bug#2295)
+
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-use-skeletons): Re-add.
