@@ -2503,6 +2503,11 @@ N defaults to the current message."
       (or (not content-type-header)
 	  (string-match text-regexp content-type-header)))))
 
+(defcustom rmail-show-message-verbose-min 200000
+  "Message size at which to show progress messages for displaying it."
+  :type 'integer
+  :group 'rmail)
+
 (defun rmail-show-message (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
@@ -2532,6 +2537,8 @@ The current mail message becomes the message displayed."
 	(rmail-swap-buffers-maybe)
 	(setq beg (rmail-msgbeg msg)
 	      end (rmail-msgend msg))
+	(when (> (- end beg) rmail-show-message-verbose-min)
+	  (message "Showing message %d" msg))
 	(narrow-to-region beg end)
 	(goto-char beg)
 	(setq body-start (search-forward "\n\n" nil t))
@@ -2598,7 +2605,9 @@ The current mail message becomes the message displayed."
 	(rmail-display-labels)
 	(rmail-swap-buffers)
 	(setq rmail-buffer-swapped t)
-	(run-hooks 'rmail-show-message-hook)))
+	(run-hooks 'rmail-show-message-hook)
+	(when (> (- end beg) rmail-show-message-verbose-min)
+	  (message "Showing message %d...done" msg))))
     blurb))
 
 (defun rmail-copy-headers (beg end &optional ignored-headers)
