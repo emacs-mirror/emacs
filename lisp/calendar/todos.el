@@ -423,9 +423,6 @@ For details see the variable `time-stamp-format'."
 (defvar todos-category-end "--- End"
   "Separator after a category.")
 
-(defvar todos-header "-*- mode: todo; "
-  "Header of todo files.")
-
 ;; ---------------------------------------------------------------------------
 
 (defun todos-category-select ()
@@ -539,12 +536,12 @@ For details see the variable `time-stamp-format'."
       (setq todos-categories (cons cat todos-categories))
       (widen)
       (goto-char (point-min))
-      (if (search-forward "-*- mode: todo; " 17 t)
-	  (kill-line)
-	(insert "-*- mode: todo; \n")
-	(forward-char -1))
-      (insert (format "todos-categories: %S; -*-" todos-categories))
-      (forward-char 1)
+      ;; (if (search-forward "-*- mode: todo; " 17 t)
+      ;; 	  (kill-line)
+      ;; 	(insert "-*- mode: todo; \n")
+      ;; 	(forward-char -1))
+      ;; (insert (format "todos-categories: %S; -*-" todos-categories))
+      ;; (forward-char 1)
       (insert (format "%s%s%s\n%s\n%s %s\n"
 		      todos-prefix todos-category-beg cat
 		      todos-category-end
@@ -793,6 +790,22 @@ Number of entries for each category is given by `todos-print-priorities'."
 	     (kill-this-buffer))
 	(message "Todo printing done.")))))
 
+(defun todos-list-categories ()
+  "Return a list of the Todo mode categories."
+  (let ((todos-buf (find-file-noselect todos-file-do))
+	categories)
+    (with-current-buffer todos-buf
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-max))
+	  (while (re-search-backward
+		  (concat "^" (regexp-quote (concat todo-prefix todo-category-beg))
+			  "\\(.*\\)\n")
+		  (point-min) t)
+	    (push (match-string-no-properties 1) categories)))))
+    categories))
+
 (defun todos-jump-to-category ()
   "Jump to a category.  Default is previous category."
   (interactive)
@@ -937,16 +950,9 @@ Number of entries for each category is given by `todos-print-priorities'."
 	    (equal (expand-file-name todos-file-do) bufname)))
       (find-file todos-file-do)
     (todos-initial-setup))
-  (if (null todos-categories)
-      (if (null todos-cats)
-          (error "Error in %s: No categories in list `todos-categories'"
-                 todos-file-do)
-        (goto-char (point-min))
-        (and (search-forward "todos-cats:" nil t)
-             (replace-match "todos-categories:"))
-        (make-local-variable 'todos-categories)
-        (setq todos-categories todos-cats)))
-  (beginning-of-line)
+  (unless todos-categories
+    (setq todos-categories (todos-list-categories)))
+  ;; (beginning-of-line)
   (todos-category-select))
 
 (defun todos-initial-setup ()

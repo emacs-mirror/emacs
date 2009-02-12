@@ -1,3 +1,11 @@
+2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el (todos-header): Remove defvar.
+	(todos-add-category): Comment out code that inserts and updates
+	the file local variables first line of the file todos-file-do.
+	(todos-list-categories): New function.
+	(todos-show): Use it; remove use of a previously deleted variable.
+
 2012-09-11  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: New file.  This is a copy of todo-mode.el
