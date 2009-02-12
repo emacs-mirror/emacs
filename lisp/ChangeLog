@@ -1,5 +1,8 @@
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* isearch.el (isearch-yank-char-in-minibuffer)
+	(isearch-other-meta-char): Use with-current-buffer.
+
 	* progmodes/verilog-mode.el (verilog-mode): Avoid circular use of
 	syntax-ppss.
 

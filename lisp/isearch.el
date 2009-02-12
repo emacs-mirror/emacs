@@ -544,9 +544,9 @@ Each set is a vector of the form:
 (defvar isearch-just-started nil)
 (defvar isearch-start-hscroll 0)	; hscroll when starting the search.
 
-; case-fold-search while searching.
-;   either nil, t, or 'yes.  'yes means the same as t except that mixed
-;   case in the search string is ignored.
+;; case-fold-search while searching.
+;;   either nil, t, or 'yes.  'yes means the same as t except that mixed
+;;   case in the search string is ignored.
 (defvar isearch-case-fold-search nil)
 
 (defvar isearch-last-case-fold-search nil)
@@ -1523,8 +1523,7 @@ or it might return the position of the end of the line."
   (interactive "p")
   (if (eobp)
       (insert
-       (save-excursion
-         (set-buffer (cadr (buffer-list)))
+       (with-current-buffer (cadr (buffer-list))
          (buffer-substring-no-properties
           (point) (progn (forward-char arg) (point)))))
     (forward-char arg)))
@@ -1949,8 +1948,7 @@ Isearch mode."
 		      (windowp window)
 		      (or (> (minibuffer-depth) 0)
 			  (not (window-minibuffer-p window))))
-		 (save-excursion
-		   (set-buffer (window-buffer window))
+		 (with-current-buffer (window-buffer window)
 		   (isearch-done)
 		   (isearch-clean-overlays))
 	       (isearch-done)
