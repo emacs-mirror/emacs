@@ -64,20 +64,24 @@ LABEL may be a symbol or string."
 Completions are chosen from `rmail-label-obarray'.  The default
 is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
 according to the choice made, and returns a symbol."
-  (let* ((old (rmail-get-keywords))
-	(result
-	 (progn
-	   ;; Offer any existing labels as choices.
-	   (if old (mapc 'rmail-make-label (split-string old ", ")))
-	   (completing-read (concat prompt
-				    (if rmail-last-label
-					(concat " (default "
-						(symbol-name rmail-last-label)
-						"): ")
-				      ": "))
-			    rmail-label-obarray
-			    nil
-			    nil))))
+  (let* ((old nil)
+	 (result
+	  (progn
+	    ;; If the summary exists, we've already read all the
+	    ;; existing labels.  If not, read the ones in this message.
+	    (or (eq major-mode 'rmail-summary-mode)
+		(rmail-summary-exists)
+		(and (setq old (rmail-get-keywords))
+		     (mapc 'rmail-make-label (split-string old ", "))))
+	    (completing-read (concat prompt
+				     (if rmail-last-label
+					 (concat " (default "
+						 (symbol-name rmail-last-label)
+						 "): ")
+				       ": "))
+			     rmail-label-obarray
+			     nil
+			     nil))))
     (if (string= result "")
 	rmail-last-label
       (setq rmail-last-label (rmail-make-label result)))))
