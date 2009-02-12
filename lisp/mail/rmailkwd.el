@@ -107,7 +107,9 @@ LABEL may be a symbol or string."
 	  (rmail-set-attribute attr-index state msg)
 	;; Is this keyword already present in msg's keyword list?
 	(let* ((header (rmail-get-keywords msg))
-	       (present (not (null (member label (split-string header ", "))))))
+	       (regexp (concat ", " (regexp-quote label) ","))
+	       (present (not (null (string-match-p
+				    regexp (concat ", " header ","))))))
 	  ;; If current state is not correct,
 	  (unless (eq present state)
 	    ;; either add it or delete it.
