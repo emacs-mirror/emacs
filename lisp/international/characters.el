@@ -110,9 +110,11 @@ A character which can't be placed at beginning of line.")
 (define-category ?< "Not at eol
 A character which can't be placed at end of line.")
 
-;; Combining
+;; Base and Combining
+(define-category ?. "Base
+Base characters (Unicode General Category L,N,P,S,Zs)")
 (define-category ?^ "Combining
-Combining diacritic or mark")
+Combining diacritic or mark (Unicode General Category M")
 
 ;;; Setting syntax and category.
 
@@ -1049,7 +1051,6 @@ Setup char-width-table appropriate for non-CJK language environment."
   (setq char-width-table (char-table-parent cjk-char-width-table)))
 
 (optimize-char-table (standard-case-table))
-(optimize-char-table (standard-category-table))
 (optimize-char-table (standard-syntax-table))
 
 
@@ -1182,6 +1183,15 @@ Setup char-width-table appropriate for non-CJK language environment."
     table))
 
 (setq unicode-category-table (build-unicode-category-table))
+(map-char-table #'(lambda (key val)
+		    (if (and val
+			     (or (and (/= (aref (symbol-name val) 0) ?M)
+				      (/= (aref (symbol-name val) 0) ?C))
+				 (eq val 'Zs)))
+			(modify-category-entry key ?.)))
+		unicode-category-table)
+
+(optimize-char-table (standard-category-table))
 
 
 ;;; Setting word boundary.
