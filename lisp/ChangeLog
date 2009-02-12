@@ -1,7 +1,7 @@
 2009-02-12  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-defs.el (c-emacs-features): Crash-fix: change `='
-	to `eq'.
+	to `eq'.  (Bug#2304)
 
 2009-02-12  Glenn Morris  <rgm@gnu.org>
 
