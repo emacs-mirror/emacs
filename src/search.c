@@ -557,6 +557,74 @@ fast_string_match_ignore_case (regexp, string)
   return val;
 }
 
+/* Match REGEXP atainst the characters after POS to LIMIT, and return
+   the number of matched characters.  If STRING is non-nil, match
+   against the characters in it.  In that case, POS and LIMIT are
+   indices into the string.  This function doesn't modify the match
+   data.  */
+
+EMACS_INT
+fast_looking_at (regexp, pos, pos_byte, limit, limit_byte, string)
+     Lisp_Object regexp;
+     EMACS_INT pos, pos_byte, limit, limit_byte;
+     Lisp_Object string;
+{
+  int multibyte;
+  struct re_pattern_buffer *buf;
+  unsigned char *p1, *p2;
+  int s1, s2;
+  EMACS_INT len;
+  
+  if (STRINGP (string))
+    {
+      if (pos_byte < 0)
+	pos_byte = string_char_to_byte (string, pos);
+      if (limit_byte < 0)
+	limit_byte = string_char_to_byte (string, limit);
+      p1 = NULL;
+      s1 = 0;
+      p2 = SDATA (string);
+      s2 = SBYTES (string);
+      re_match_object = string;
+      multibyte = STRING_MULTIBYTE (string);
+    }
+  else
+    {
+      if (pos_byte < 0)
+	pos_byte = CHAR_TO_BYTE (pos);
+      if (limit_byte < 0)
+	limit_byte = CHAR_TO_BYTE (limit);
+      pos_byte -= BEGV_BYTE;
+      limit_byte -= BEGV_BYTE;
+      p1 = BEGV_ADDR;
+      s1 = GPT_BYTE - BEGV_BYTE;
+      p2 = GAP_END_ADDR;
+      s2 = ZV_BYTE - GPT_BYTE;
+      if (s1 < 0)
+	{
+	  p2 = p1;
+	  s2 = ZV_BYTE - BEGV_BYTE;
+	  s1 = 0;
+	}
+      if (s2 < 0)
+	{
+	  s1 = ZV_BYTE - BEGV_BYTE;
+	  s2 = 0;
+	}
+      re_match_object = Qnil;
+      multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+    }
+
+  buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
+  immediate_quit = 1;
+  len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
+		    pos_byte, NULL, limit_byte);
+  immediate_quit = 0;
+
+  return len;
+}
+
+
 /* The newline cache: remembering which sections of text have no newlines.  */
 
 /* If the user has requested newline caching, make sure it's on.
