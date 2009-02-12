@@ -1433,8 +1433,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
      by a foundry, we accept raster fonts if the font name is found
      anywhere within the full name.  */
   if ((logical_font->elfLogFont.lfOutPrecision == OUT_STRING_PRECIS
-       && strstr (logical_font->elfFullName,
-		  logical_font->elfLogFont.lfFaceName))
+       && !strstr (logical_font->elfFullName,
+		   logical_font->elfLogFont.lfFaceName))
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
       || (match_data->pattern.lfFaceName[0]
