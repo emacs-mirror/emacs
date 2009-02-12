@@ -421,6 +421,8 @@ the message being processed."
       (setq result (concat "{" result "}")))
     result))
 
+(autoload 'rmail-make-label "rmailkwd")
+
 (defun rmail-get-summary-labels ()
   "Return a string wrapped in curly braces with the current message labels.
 Returns nil if there are no labels.  The current buffer must
@@ -429,7 +431,10 @@ processed."
   (let ((labels (mail-fetch-field rmail-keyword-header)))
     (and labels
 	 (not (string-equal labels ""))
-	 (format "{ %s } " labels))))
+	 (progn
+	   ;; Intern so that rmail-read-label can offer completion.
+	   (mapc 'rmail-make-label (split-string labels ", "))
+	   (format "{ %s } " labels)))))
 
 (defun rmail-create-summary (msgnum deleted unseen lines)
   "Return the summary line for message MSGNUM.
