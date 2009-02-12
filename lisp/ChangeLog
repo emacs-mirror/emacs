@@ -1,3 +1,11 @@
+2009-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (?.): New character category for
+	Base characters.  Set them in the standard category table.
+
+	* composite.el: Use "\\c." instead of "[[:alpha:]]" to match with
+	a base character.
+
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el (isearch-yank-char-in-minibuffer)
