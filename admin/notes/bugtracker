@@ -245,3 +245,16 @@ section without having to go through the bug list page first...)
 Apparently it has some kind of spam filter that sometimes silently
 discards valid mails. Adding a subject (pointless in control messages)
 may help.
+
+** Gnus-specific voodoo
+
+*** Put point on a bug-number and try: M-x gnus-read-ephemeral-emacs-bug-group
+
+*** If the above is not available:
+(add-hook 'gnus-article-mode-hook
+          (lambda ()
+             (setq bug-reference-url-format
+               "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s")
+              (bug-reference-mode 1)))
+
+and you can click on the bug number in the subject header.
