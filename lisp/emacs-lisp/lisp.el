@@ -348,9 +348,10 @@ is called as a function to find the defun's end."
       (beginning-of-defun-raw 1)
       (while (unless (eobp)
                (funcall end-of-defun-function)
-               (skip-chars-forward " \t")
-               (if (looking-at "\\s<\\|\n")
-                   (forward-line 1))
+               (unless (bolp)
+                 (skip-chars-forward " \t")
+                 (if (looking-at "\\s<\\|\n")
+                     (forward-line 1)))
                ;; If we started after the end of the previous
                ;; function, try again with the next one.
                (unless (or (> (point) pos)
@@ -370,9 +371,10 @@ is called as a function to find the defun's end."
                (let ((beg (point))
 		     retry-point)
                  (funcall end-of-defun-function)
-                 (skip-chars-forward " \t")
-                 (if (looking-at "\\s<\\|\n")
-                     (forward-line 1))
+                 (unless (bolp)
+                   (skip-chars-forward " \t")
+                   (if (looking-at "\\s<\\|\n")
+                       (forward-line 1)))
                  ;; If we started from within the function just found,
                  ;; try again with the previous one.
                  (unless (or (< (point) pos)

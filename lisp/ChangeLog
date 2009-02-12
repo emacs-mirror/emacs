@@ -1,3 +1,8 @@
+2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (end-of-defun): Don't skip to next line after
+	calling end-of-defun-function if it already moved to BOL.
+
 2009-02-12  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-show-message-verbose-min): New option.
@@ -106,8 +111,7 @@
 2009-02-09  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-save)
-	(newsticker--treeview-load): Kill groups buffer after
-	saving/loading.
+	(newsticker--treeview-load): Kill groups buffer after saving/loading.
 
 2009-02-09  Tassilo Horn  <tassilo@member.fsf.org>
 
