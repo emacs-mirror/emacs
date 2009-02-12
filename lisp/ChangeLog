@@ -1,3 +1,9 @@
+2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-make-guidance-frame): Remove the
+	`parent-id' parameter.
+	(quail-show-guidance): Make the new window dedicated.
+
 2009-02-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/characters.el (?1, ?2, ?3, ?4, ?7, ?^):
