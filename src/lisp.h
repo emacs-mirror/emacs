@@ -2950,6 +2950,8 @@ EXFUN (Flooking_at, 1);
 extern int fast_string_match P_ ((Lisp_Object, Lisp_Object));
 extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, const char *));
 extern int fast_string_match_ignore_case P_ ((Lisp_Object, Lisp_Object));
+extern EMACS_INT fast_looking_at P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
+				      EMACS_INT, EMACS_INT, Lisp_Object));
 extern int scan_buffer P_ ((int, int, int, int, int *, int));
 extern int scan_newline P_ ((int, int, int, int, int, int));
 extern int find_next_newline P_ ((int, int));
