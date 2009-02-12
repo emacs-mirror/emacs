@@ -1,3 +1,8 @@
+2009-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailkwd.el (rmail-set-label): Fix the test for a label being
+	already present.  (Bug#2210)
+
 2009-02-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el (?.): New character category for
