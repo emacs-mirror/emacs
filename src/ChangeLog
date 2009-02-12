@@ -1,11 +1,15 @@
 2009-02-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (check_face_name): Check for fake helv.  (Bug#2275)
+	(add_font_entity_to_list): Call check_face_name even when family
+	is unspecified.
+
 	* w32term.c (x_display_pixel_height, x_display_pixel_width):
 	Release DC when finished.  Use NULL window to refer to desktop.
-	(w32_term_init): Use NULL window to refer to desktop. (Bug#460)
+	(w32_term_init): Use NULL window to refer to desktop.  (Bug#460)
 
 	* w32font.c (add_font_entity_to_list): Fix check for substituted
-	raster fonts. (Bug#2219)
+	raster fonts.  (Bug#2219)
 
 2009-02-12  Kenichi Handa  <handa@m17n.org>
 
