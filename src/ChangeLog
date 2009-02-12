@@ -1,3 +1,8 @@
+2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (adjust_point_for_property): Allow stopping betwen two
+	invisible areas.
+
 2009-02-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (check_face_name): Check for fake helv.  (Bug#2275)
@@ -27,14 +32,14 @@
 
 	* search.c (fast_looking_at): New function.
 
-	* term.c (encode_terminal_code): Adjusted for the change of
+	* term.c (encode_terminal_code): Adjust for the change of
 	<struct glyph>.u.cmp.to.
 	(append_composite_glyph): Likewise.
 
-	* xdisp.c (fill_gstring_glyph_string): Adjusted for the change of
+	* xdisp.c (fill_gstring_glyph_string): Adjust for the change of
 	<struct glyph>.u.cmp.to.  Check if the glyph belongs to the same
 	composition.
-	(append_composite_glyph): Adjusted for the change of
+	(append_composite_glyph): Adjust for the change of
 	<strcut glyph>.u.cmp.to.
 
 2009-02-11  Juanma Barranquero  <lekktu@gmail.com>
@@ -84,8 +89,8 @@
 
 2009-02-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* coding.c (syms_of_coding) <translation-table-for-input>: Modify
-	doc string to discourage use for character code unification.
+	* coding.c (syms_of_coding) <translation-table-for-input>:
+	Modify doc string to discourage use for character code unification.
 
 2009-02-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -119,8 +124,8 @@
 
 	* nsterm.m (ns_read_socket): Same and don't set handling_signal.
 
-	* keyboard.c (poll_for_input_1, handle_async_input): Set
-	handling_signal under HAVE_NS.
+	* keyboard.c (poll_for_input_1, handle_async_input):
+	Set handling_signal under HAVE_NS.
 
 2009-02-04  Glenn Morris  <rgm@gnu.org>
 
@@ -214,11 +219,9 @@
 	* lisp.h (QUIT): Check pending_signals instead of
 	interrupt_input_pending.  Use process_pending_signals.
 
-	* atimer.c (run_timers, alarm_signal_handler): Update
-	pending_signals.
+	* atimer.c (run_timers, alarm_signal_handler): Update pending_signals.
 
-	* process.c (wait_reading_process_output): Use
-	process_pending_signals.
+	* process.c (wait_reading_process_output): Use process_pending_signals.
 
 	* sysdep.c (emacs_write): Use process_pending_signals.
 
@@ -273,7 +276,7 @@
 	* xftfont.c (struct xftfont_info): New member `index'.
 
 	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
-	(Ffontset_font): Adjusted for the change of fontset entry.
+	(Ffontset_font): Adjust for the change of fontset entry.
 
 2009-01-26  Kenichi Handa  <handa@m17n.org>
 
@@ -389,8 +392,8 @@
 
 	* nsterm.h (EmacsApp-setAppleMenu:): Conditionalize more correctly on
 	Tiger.
-	* nsfns.m (ns_do_applescript): Conditionalize
-	typeUTF16ExternalRepresentation on Tiger.
+	* nsfns.m (ns_do_applescript):
+	Conditionalize typeUTF16ExternalRepresentation on Tiger.
 
 2009-01-21  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
 
@@ -433,8 +436,7 @@
 
 2009-01-19  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_lookup_cache): Check the return value of
-	FcFontList.
+	* ftfont.c (ftfont_lookup_cache): Check the return value of FcFontList.
 	(ftfont_list): Likewise.
 
 2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
@@ -461,8 +463,7 @@
 
 2009-01-15  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding_system): Fix handling of
-	null_byte_found.
+	* coding.c (detect_coding_system): Fix handling of null_byte_found.
 
 2009-01-14  Jason Rumney  <jasonr@gnu.org>
 
@@ -516,8 +517,7 @@
 	* coding.c (inhibit_null_byte_detection): New variable.
 	(detect_coding, detect_coding_system): Don't pay attention to null
 	bytes if inhibit_null_byte_detection is non-zero.
-	(syms_of_coding) <inhibit-null-byte-detection>: Declare and
-	document.
+	(syms_of_coding) <inhibit-null-byte-detection>: Declare and document.
 	<inhibit-iso-escape-detection>: Doc fix.
 
 2009-01-09  Jason Rumney  <jasonr@gnu.org>
@@ -528,11 +528,10 @@
 
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfaces.c (Fx_font_family_list): Function deleted.  Compatibility
-	version moved to faces.el.
+	* xfaces.c (Fx_font_family_list): Delete function.
+	Move compatibility version to faces.el.
 
-	* font.c (Ffont_family_list): Return a list of strings, not
-	symbols.
+	* font.c (Ffont_family_list): Return a list of strings, not symbols.
 
 2009-01-09  Martin Rudalics  <rudalics@gmx.at>
 
@@ -550,8 +549,7 @@
 
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* font.c (font_open_for_lface): Handle unspecified height
-	attribute.
+	* font.c (font_open_for_lface): Handle unspecified height attribute.
 
 2009-01-08  Jason Rumney  <jasonr@gnu.org>
 
@@ -671,8 +669,7 @@
 
 	* xfns.c (x_create_tip_frame): Set border width of the X window.
 
-	* xfaces.c (Finternal_set_lisp_face_attribute): Improve error
-	message.
+	* xfaces.c (Finternal_set_lisp_face_attribute): Improve error message.
 
 2009-01-01  Jason Rumney  <jasonr@gnu.org>
 

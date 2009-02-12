@@ -2046,6 +2046,20 @@ adjust_point_for_property (last_pt, modified)
 
 	  /* Find boundaries `beg' and `end' of the invisible area, if any.  */
 	  while (end < ZV
+		 /* Stop if we find a spot between two runs of
+		    `invisible' where inserted text would be visible.
+		    This is important when we have two invisible
+		    boundaries that enclose an area: if the area is
+		    empty, we need this test in order to make it
+		    possible to place point in the middle rather than
+		    skip both boundaries.
+		    Note that this will stop anywhere in a non-sticky
+		    text-property, but I don't think there's much we
+		    can do about that.  */
+		 && (val = get_pos_property (make_number (end),
+					     Qinvisible, Qnil),
+		     TEXT_PROP_MEANS_INVISIBLE (val))
+		 /* FIXME: write and then use get_pos_property_and_overlay.  */
 		 && !NILP (val = get_char_property_and_overlay
 		           (make_number (end), Qinvisible, Qnil, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
@@ -2059,6 +2073,9 @@ adjust_point_for_property (last_pt, modified)
 	      end = NATNUMP (tmp) ? XFASTINT (tmp) : ZV;
 	    }
 	  while (beg > BEGV
+		 && (val = get_pos_property (make_number (beg),
+					     Qinvisible, Qnil),
+		     TEXT_PROP_MEANS_INVISIBLE (val))
 		 && !NILP (val = get_char_property_and_overlay
 		           (make_number (beg - 1), Qinvisible, Qnil, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
