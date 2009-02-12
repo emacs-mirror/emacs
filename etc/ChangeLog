@@ -2722,7 +2722,7 @@
 
 	* NEWS: Mention the thumbs.el package.
 
-2004-08-14  Eric Hanchrow  <offby1@blarg.net>
+2004-08-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* TUTORIAL.es: Replace actual whitespace with the magic string
 	that causes help-with-tutorial to automatically insert the correct
