@@ -19688,15 +19688,16 @@ fill_gstring_glyph_string (s, face_id, start, end, overlaps)
   last = s->row->glyphs[s->area] + end;
   s->cmp_id = glyph->u.cmp.id;
   s->cmp_from = glyph->u.cmp.from;
-  s->cmp_to = glyph->u.cmp.to;
+  s->cmp_to = glyph->u.cmp.to + 1;
   s->face = FACE_FROM_ID (s->f, face_id);
   lgstring = composition_gstring_from_id (s->cmp_id);
   s->font = XFONT_OBJECT (LGSTRING_FONT (lgstring));
   glyph++;
   while (glyph < last
 	 && glyph->u.cmp.automatic
-	 && glyph->u.cmp.id == s->cmp_id)
-    s->cmp_to = (glyph++)->u.cmp.to;
+	 && glyph->u.cmp.id == s->cmp_id
+	 && s->cmp_to == glyph->u.cmp.from)
+    s->cmp_to = (glyph++)->u.cmp.to + 1;
 
   for (i = s->cmp_from; i < s->cmp_to; i++)
     {
@@ -19905,7 +19906,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
 	  struct font_metrics metrics;
 
 	  composition_gstring_width (gstring, glyph->u.cmp.from,
-				     glyph->u.cmp.to, &metrics);
+				     glyph->u.cmp.to + 1, &metrics);
 	  if (metrics.rbearing > metrics.width)
 	    *right = metrics.rbearing;
 	  if (metrics.lbearing < 0)
@@ -20653,7 +20654,7 @@ append_composite_glyph (it)
 	  glyph->u.cmp.automatic = 1;
 	  glyph->u.cmp.id = it->cmp_it.id;
 	  glyph->u.cmp.from = it->cmp_it.from;
-	  glyph->u.cmp.to = it->cmp_it.to;
+	  glyph->u.cmp.to = it->cmp_it.to - 1;
 	}
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
