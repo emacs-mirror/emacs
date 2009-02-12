@@ -1,5 +1,8 @@
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-use-skeletons): Re-add.
+	(def-python-skeleton): Use it.
+
 	* international/quail.el (quail-make-guidance-frame): Remove the
 	`parent-id' parameter.
 	(quail-show-guidance): Make the new window dedicated.
