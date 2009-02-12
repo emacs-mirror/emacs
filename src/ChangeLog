@@ -1,5 +1,9 @@
 2009-02-12  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (x_display_pixel_height, x_display_pixel_width):
+	Release DC when finished.  Use NULL window to refer to desktop.
+	(w32_term_init): Use NULL window to refer to desktop. (Bug#460)
+
 	* w32font.c (add_font_entity_to_list): Fix check for substituted
 	raster fonts. (Bug#2219)
 
