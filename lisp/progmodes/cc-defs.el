@@ -1459,9 +1459,9 @@ non-nil, a caret is prepended to invert the set."
 	      (and (eq eod-param 'foo)
 		   (setq eod-param arg)
 		   (eq arg 3)))))
-      (if (save-excursion (and (beginning-of-defun 3) (= bod-param 3)
+      (if (save-excursion (and (beginning-of-defun 3) (eq bod-param 3)
 			       (not (beginning-of-defun))
-			       (end-of-defun 3) (= eod-param 3)
+			       (end-of-defun 3) (eq eod-param 3)
 			       (not (end-of-defun))))
 	  (setq list (cons 'argumentative-bod-function list))))
 
