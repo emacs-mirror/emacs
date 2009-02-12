@@ -287,7 +287,7 @@ or new, let the user edit the definition of the footnote."
 ;;;###autoload
 (defun org-footnote-action (&optional special)
   "Do the right thing for footnotes.
-When at a foornote reference, jump to the definition.  When at a definition,
+When at a footnote reference, jump to the definition.  When at a definition,
 jump to the refernces.  When neither at definition or reference,
 create a new footnote, interactively.
 With prefix arg SPECIAL, offer additional commands in a menu."
