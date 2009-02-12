@@ -646,7 +646,7 @@ All non-spacing characters has this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(let ((elt '(["[[:alpha:]]\\c^+" 1 compose-gstring-for-graphic]
+(let ((elt '(["\\c.\\c^+" 1 compose-gstring-for-graphic]
 	     [nil 0 compose-gstring-for-graphic])))
   (map-char-table
    #'(lambda (key val)
