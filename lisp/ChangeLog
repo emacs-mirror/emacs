@@ -1,5 +1,8 @@
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/verilog-mode.el (verilog-mode): Avoid circular use of
+	syntax-ppss.
+
 	* emacs-lisp/lisp.el (end-of-defun): Rewrite, to use the ARG argument
 	to beginning-of-defun-raw.
 

@@ -2373,6 +2373,8 @@ Use filename, if current buffer being edited shorten to just buffer name."
 		   ;; Fontify things in translate off regions
 		   '(verilog-match-translate-off
                      (0 'verilog-font-lock-translate-off-face prepend))))))
+  ;; FIXME: This XEmacs setting is redundant with the setting done later
+  ;; for Emacs (because XEmacs obeys Emacs's setting as well).
   (put 'verilog-mode 'font-lock-defaults
        '((verilog-font-lock-keywords
 	  verilog-font-lock-keywords-1
@@ -2560,10 +2562,17 @@ Key bindings specific to `verilog-mode-map' are:
 
   ;; Stuff for GNU Emacs
   (set (make-local-variable 'font-lock-defaults)
-       '((verilog-font-lock-keywords verilog-font-lock-keywords-1
+       `((verilog-font-lock-keywords verilog-font-lock-keywords-1
                                      verilog-font-lock-keywords-2
                                      verilog-font-lock-keywords-3)
-         nil nil nil verilog-beg-of-defun))
+         nil nil nil
+         ,(if (functionp 'syntax-ppss)
+              ;; verilog-beg-of-defun uses syntax-ppss, and syntax-ppss uses
+              ;; font-lock-beginning-of-syntax-function, so
+              ;; font-lock-beginning-of-syntax-function, can't use
+              ;; verilog-beg-of-defun.
+              nil
+            'verilog-beg-of-defun)))
   ;;------------------------------------------------------------
   ;; now hook in 'verilog-colorize-include-files (eldo-mode.el&spice-mode.el)
   ;; all buffer local:
