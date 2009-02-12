@@ -1,3 +1,29 @@
+2009-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (MAX_AUTO_COMPOSITION_LOOKBACK): New macro.
+	(composition_gstring_width): Fix handling of LGLYPH_YOFF.
+	(autocmp_chars): Use fast_looking_at.  Don't compose more
+	characters than MAX_COMPOSITION_COMPONENST.
+	(find_automatic_composition): While looking forward and backward,
+	check static composition.  Fix where to stop looking forward.
+	(composition_adjust_point): Fix checking of static composition.
+	(Fcomposition_get_gstring): Pay attention to
+	MAX_COMPOSITION_COMPONENST.
+
+	* lisp.h (fast_looking_at): Extern it.
+
+	* search.c (fast_looking_at): New function.
+
+	* term.c (encode_terminal_code): Adjusted for the change of
+	<struct glyph>.u.cmp.to.
+	(append_composite_glyph): Likewise.
+
+	* xdisp.c (fill_gstring_glyph_string): Adjusted for the change of
+	<struct glyph>.u.cmp.to.  Check if the glyph belongs to the same
+	composition.
+	(append_composite_glyph): Adjusted for the change of
+	<strcut glyph>.u.cmp.to.
+
 2009-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* casetab.c (init_casetab_once):
