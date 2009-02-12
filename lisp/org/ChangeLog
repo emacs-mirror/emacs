@@ -1,3 +1,11 @@
+2009-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* org-footnote.el (org-footnote-at-definition-p): Fix doc typo.
+
+2009-02-12  Joachim Reiter  <Reiter.Joachim@web.de>  (tiny change)
+
+	* org-footnote.el (org-footnote-action): Fix doc typo.
+
 2009-02-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-export-preprocess-string): Fix bug with skipping

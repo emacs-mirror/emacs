@@ -124,7 +124,7 @@ extracted will be filled again."
 If yes, return the beginning position, the label, and the definition, if local."
   (when (org-in-regexp org-footnote-re 15)
     (list (match-beginning 0)
-	  (or (match-string 1) 
+	  (or (match-string 1)
 	      (if (equal (match-string 2) "fn:") nil (match-string 2)))
 	  (match-string 4))))
 
@@ -133,7 +133,7 @@ If yes, return the beginning position, the label, and the definition, if local."
 This matches only pure definitions like [1] or [fn:name] at the beginning
 of a line.  It does not a references like [fn:name:definition], where the
 footnote text is included and defined locally.
-The return value will be nil if not at a foornote definition, and a list
+The return value will be nil if not at a footnote definition, and a list
 with start and label of the footnote if there is a definition at point."
   (save-excursion
     (end-of-line 1)
