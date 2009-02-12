@@ -457,8 +457,9 @@ and showing the image as an image."
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
       (image-refresh image)
-      (add-text-properties (point-min) (point-max) props)
-      (set-buffer-modified-p modified)
+      (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
+	(add-text-properties (point-min) (point-max) props)
+	(restore-buffer-modified-p modified))
       ;; Inhibit the cursor when the buffer contains only an image,
       ;; because cursors look very strange on top of images.
       (setq cursor-type nil)
