@@ -1,3 +1,11 @@
+2012-09-11  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el: New file.  This is a copy of todo-mode.el
+	from revision 94343 except for the following changes: replace all
+	occurrences of the namespace prefix "todo-" with "todos-", delete
+	the defvar todo-cats (the old name of todo-categories) and its use
+	in todos-add-category, delete all defaliases of old command names.
+
 2012-09-11  Bastien Guerry  <bzg@gnu.org>
 
 	* subr.el (set-temporary-overlay-map): Add a docstring.
