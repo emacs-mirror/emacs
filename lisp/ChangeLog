@@ -1,5 +1,8 @@
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (end-of-defun): Rewrite, to use the ARG argument
+	to beginning-of-defun-raw.
+
 	* emacs-lisp/lisp.el (end-of-defun): Don't skip to next line after
 	calling end-of-defun-function if it already moved to BOL.
 

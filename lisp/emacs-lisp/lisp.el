@@ -341,50 +341,36 @@ is called as a function to find the defun's end."
       (and transient-mark-mode mark-active)
       (push-mark))
   (if (or (null arg) (= arg 0)) (setq arg 1))
-  (while (> arg 0)
-    (let ((pos (point))
-	  retry-point)
-      (end-of-line 1)
-      (beginning-of-defun-raw 1)
-      (while (unless (eobp)
-               (funcall end-of-defun-function)
-               (unless (bolp)
-                 (skip-chars-forward " \t")
-                 (if (looking-at "\\s<\\|\n")
-                     (forward-line 1)))
-               ;; If we started after the end of the previous
-               ;; function, try again with the next one.
-               (unless (or (> (point) pos)
-			   (eq (point) retry-point))
-		 (or (bobp) (forward-char -1))
-		 (beginning-of-defun-raw -1)
-		 (setq retry-point (point)))))
-      ;; Ensure that we move forward.
-      (when (< (point) pos)
-	(goto-char pos)))
-    (setq arg (1- arg)))
-  (while (< arg 0)
-    (let ((pos (point)))
-      (while (unless (bobp)
-               (beginning-of-line 1)
-               (beginning-of-defun-raw 1)
-               (let ((beg (point))
-		     retry-point)
-                 (funcall end-of-defun-function)
-                 (unless (bolp)
-                   (skip-chars-forward " \t")
-                   (if (looking-at "\\s<\\|\n")
-                       (forward-line 1)))
-                 ;; If we started from within the function just found,
-                 ;; try again with the previous one.
-                 (unless (or (< (point) pos)
-			     (eq (point) retry-point))
-                   (goto-char beg)
-                   (setq retry-point (point))))))
-      ;; Ensure that we move backward.
-      (when (> (point) pos)
-	(goto-char pos)))
-    (setq arg (1+ arg))))
+  (let ((pos (point))
+        (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point))))
+    (funcall end-of-defun-function)
+    (cond
+     ((> arg 0)
+      ;; Moving forward.
+      (if (> (point) pos)
+          ;; We already moved forward by one because we started from
+          ;; within a function.
+          (setq arg (1- arg))
+        ;; We started from after the end of the previous function.
+        (goto-char pos))
+      (unless (zerop arg)
+        (beginning-of-defun-raw (- arg))
+        (funcall end-of-defun-function)))
+     ((< arg 0)
+      ;; Moving backward.
+      (if (< (point) pos)
+          ;; We already moved backward because we started from between
+          ;; two functions.
+          (setq arg (1+ arg))
+        ;; We started from inside a function.
+        (goto-char beg))
+      (unless (zerop arg)
+        (beginning-of-defun-raw (- arg))
+        (funcall end-of-defun-function))))
+    (unless (bolp)
+      (skip-chars-forward " \t")
+      (if (looking-at "\\s<\\|\n")
+          (forward-line 1)))))
 
 (defun mark-defun (&optional allow-extend)
   "Put mark at end of this defun, point at beginning.
