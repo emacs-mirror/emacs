@@ -1156,7 +1156,17 @@ need to omit the name of current buffer from the list of completions
 and default values."
   (let ((rbts-completion-table (internal-complete-buffer-except)))
     (minibuffer-with-setup-hook
-        (lambda () (setq minibuffer-completion-table rbts-completion-table))
+        (lambda ()
+          (setq minibuffer-completion-table rbts-completion-table)
+          ;; Since rbts-completion-table is built dynamically, we
+          ;; can't just add it to the default value of
+          ;; icomplete-with-completion-tables, so we add it
+          ;; here manually.
+          (if (and (boundp 'icomplete-with-completion-tables)
+                   (listp icomplete-with-completion-tables))
+              (set (make-local-variable 'icomplete-with-completion-tables)
+                   (cons rbts-completion-table
+                         icomplete-with-completion-tables))))
       (read-buffer prompt (other-buffer (current-buffer))
                    (confirm-nonexistent-file-or-buffer)))))
 
