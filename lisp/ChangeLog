@@ -1,3 +1,9 @@
+2009-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (load-library): Doc fix.
+
+	* subr.el (locate-library): Doc fix.  (Bug#2291)
+
 2009-02-13  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-defun-name): Widen, to allow it to work
