@@ -182,7 +182,7 @@ With prefix argument N moves forward N messages with these labels."
 	(error "No previous message with labels %s" labels)
       (if (> n 0)
 	  (error "No following message with labels %s" labels)
-	(rmail-show-message lastwin)))))
+	(rmail-show-message-1 lastwin)))))
 
 (provide 'rmailkwd)
 

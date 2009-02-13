@@ -155,7 +155,7 @@ Then display message number MSG."
     (if (rmail-summary-exists)
 	(rmail-select-summary
 	 (rmail-update-summary)))
-    (rmail-show-message msg)))
+    (rmail-show-message-1 msg)))
 
 (defun rmail-convert-to-babyl-format ()
   (let ((count 0) (start (point-min))
@@ -392,7 +392,7 @@ Then display message number MSG."
     (if (rmail-summary-exists)
 	(rmail-select-summary
 	 (rmail-update-summary)))
-    (rmail-show-message msg)))
+    (rmail-show-message-1 msg)))
 
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.

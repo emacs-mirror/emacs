@@ -216,7 +216,7 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	(delete-char 1)
 	(setq quit-flag nil)
 	(rmail-set-message-counters)
-	(rmail-show-message current-message)
+	(rmail-show-message-1 current-message)
 	(if return-to-point
 	    (goto-char return-to-point))
 	(if (rmail-summary-exists)
