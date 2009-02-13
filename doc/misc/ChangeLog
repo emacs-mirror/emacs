@@ -1,3 +1,7 @@
+2009-02-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Org Plot): Fix link.
+
 2009-02-09  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Mail-mode integration): Mention the way to do

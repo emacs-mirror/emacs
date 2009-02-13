@@ -2461,7 +2461,7 @@ Further control over the labels, type, content, and appearance of plots can
 be exercised through the @code{#+Plot:} lines preceding a table.  See below
 for a complete list of Org plot options.  For more information and examples
 see the org-plot tutorial at
-@uref{http://legito.org/worg/org-tutorials/org-plot.php}.
+@uref{http://orgmode.org/worg/org-tutorials/org-plot.php}.
 
 @subsubheading Plot Options
 
