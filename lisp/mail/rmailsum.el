@@ -29,9 +29,7 @@
 
 ;;; Code:
 
-(defvar msgnum)
-
-;; For rmail-select-summary
+;; For rmail-select-summary.
 (require 'rmail)
 
 (defcustom rmail-summary-scroll-between-messages t
@@ -52,13 +50,15 @@
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
-(defvar rmail-summary-redo
+(defvar rmail-summary-redo nil
   "(FUNCTION . ARGS) to regenerate this Rmail summary buffer.")
 
-(defvar rmail-summary-overlay nil)
+(defvar rmail-summary-overlay nil
+  "Overlay used to highlight the current message in the Rmail summary.")
 (put 'rmail-summary-overlay 'permanent-local t)
 
-(defvar rmail-summary-mode-map nil)
+(defvar rmail-summary-mode-map nil
+  "Keymap used in Rmail summary mode.")
 
 ;; Entry points for making a summary buffer.
 
@@ -741,7 +741,7 @@ a negative argument means to delete and move forward."
       (not (overlay-get rmail-summary-overlay 'face))
       (let ((buffer-read-only nil))
 	(skip-chars-forward " ")
-	(skip-chars-forward "[0-9]")
+	(skip-chars-forward "0-9")
 	(if undel
 	    (if (looking-at "D")
 		(progn (delete-char 1) (insert " ")))
@@ -779,7 +779,7 @@ a negative argument means to delete and move forward."
   (save-excursion
     (and n (rmail-summary-goto-msg n nil t))
     (skip-chars-forward " ")
-    (skip-chars-forward "[0-9]")
+    (skip-chars-forward "0-9")
     (looking-at "D")))
 
 (defun rmail-summary-undelete (&optional arg)
@@ -885,6 +885,24 @@ Commands for sorting the summary:
   (add-hook 'post-command-hook 'rmail-summary-rmail-update nil t)
   (setq revert-buffer-function 'rmail-update-summary))
 
+(defun rmail-summary-mark-seen (n &optional nomove)
+  "Remove the unseen mark from the current message, update the summary vector.
+N is the number of the current message.  Optional argument NOMOVE
+non-nil means we are already at the right column."
+  (save-excursion
+    (unless nomove
+      (beginning-of-line)
+      (skip-chars-forward " ")
+      (skip-chars-forward "0-9"))
+    (when (char-equal (following-char) ?-)
+      (let ((buffer-read-only nil))
+	(delete-char 1)
+	(insert " "))
+      (let ((line (buffer-substring-no-properties (line-beginning-position)
+						  (line-beginning-position 2))))
+      (with-current-buffer rmail-buffer
+	(aset rmail-summary-vector (1- n) line))))))
+
 (defvar rmail-summary-put-back-unseen nil
   "Used for communicating between calls to `rmail-summary-rmail-update'.
 If it moves to a message within an Incremental Search, and removes
@@ -930,16 +948,10 @@ Search, the `unseen' attribute is restored.")
 		    (setq rmail-summary-put-back-unseen
 			  (rmail-message-attr-p msg-num rmail-unseen-attr-index)))
 		(setq rmail-summary-put-back-unseen nil))
-
 	      ;; Go to the desired message.
 	      (setq rmail-current-message msg-num)
-
 	      ;; Update the summary to show the message has been seen.
-	      (if (= (following-char) ?-)
-		  (progn
-		    (delete-char 1)
-		    (insert " ")))
-
+	      (rmail-summary-mark-seen msg-num t)
 	      (if window
 		  ;; Using save-window-excursion would cause the new value
 		  ;; of point to get lost.
@@ -1204,17 +1216,10 @@ Returns non-nil if message N was found."
 		 (setq n curmsg)
 		 (setq message-not-found t)
 		 (goto-char cur))))
-    (beginning-of-line)
-    (skip-chars-forward " ")
-    (skip-chars-forward "0-9")
-    (save-excursion (if (= (following-char) ?-)
-			(let ((buffer-read-only nil))
-			  (delete-char 1)
-			  (insert " "))))
+    (rmail-summary-mark-seen n)
     (rmail-summary-update-highlight message-not-found)
     (beginning-of-line)
-    (if skip-rmail
-	nil
+    (unless skip-rmail
       (let ((selwin (selected-window)))
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
