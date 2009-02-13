@@ -8,7 +8,7 @@
 	buffer-substring.  Handle superfluous CR at eol.
 	(ziranma-converter): Likewise
 	(ctlau-converter): Likewise.
-	(miscdic-convert): Read a file without eol conversion.
+	(miscdic-convert): Read a file without eol conversion.  (Bug#2307)
 
 2009-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
