@@ -829,6 +829,10 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 
 (defun load-library (library)
   "Load the library named LIBRARY.
+
+LIBRARY should be a relative file name of the library, a string.
+It can omit the suffix (a.k.a. file-name extension).
+
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
