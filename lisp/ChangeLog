@@ -1,3 +1,15 @@
+2009-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (tit-process-header): Use
+	buffer-substring-no-properties instead of buffer-substring.
+	(tit-process-body): Likewise.
+	(tsang-quick-converter): Handle superfluous CR at eol.
+	(py-converter): Use buffer-substring-no-properties instead of
+	buffer-substring.  Handle superfluous CR at eol.
+	(ziranma-converter): Likewise
+	(ctlau-converter): Likewise.
+	(miscdic-convert): Read a file without eol conversion.
+
 2009-02-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuffer.el (internal-complete-buffer-except): Doc fix.  (Bug#2315)
