@@ -127,7 +127,9 @@ LABEL may be a symbol or string."
 				       (min (length header)
 					    (- (match-end 0) 1)))))
 		 (cond ((string= before "")
-			after)
+			;; If before and after both empty, delete the header.
+			(unless (string= after "")
+			  after))
 		       ((string= after "")
 			before)
 		       (t (concat before ", " after))))))))))
