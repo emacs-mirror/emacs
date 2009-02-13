@@ -880,7 +880,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (rmail-get-new-mail))
       (progn
 	(set-buffer mail-buf)
-	(rmail-show-message-maybe (rmail-first-unseen-message))
+	(rmail-show-message (rmail-first-unseen-message))
 	(if rmail-display-summary (rmail-summary))
 	(rmail-construct-io-menu)
 	(if run-mail-hook
@@ -969,7 +969,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "g"      'rmail-get-new-mail)
     (define-key map "h"      'rmail-summary)
     (define-key map "i"      'rmail-input)
-    (define-key map "j"      'rmail-show-message-maybe)
+    (define-key map "j"      'rmail-show-message)
     (define-key map "k"      'rmail-kill-label)
     (define-key map "l"      'rmail-summary-by-labels)
     (define-key map "\e\C-h" 'rmail-summary)
@@ -1190,7 +1190,7 @@ Instead, these commands are available:
 \\[rmail-previous-message]	Move to Previous message whether deleted or not.
 \\[rmail-first-message]	Move to the first message in Rmail file.
 \\[rmail-last-message]	Move to the last message in Rmail file.
-\\[rmail-show-message-maybe]	Jump to message specified by numeric position in file.
+\\[rmail-show-message]	Jump to message specified by numeric position in file.
 \\[rmail-search]	Search for string and show message it is found in.
 \\[rmail-delete-forward]	Delete this message, move to next nondeleted.
 \\[rmail-delete-backward]	Delete this message, move to previous nondeleted.
@@ -1236,7 +1236,7 @@ Instead, these commands are available:
 	(goto-char (point-max))
 	(set-buffer-multibyte t)))
     (rmail-set-message-counters)
-    (rmail-show-message-maybe rmail-total-messages)
+    (rmail-show-message rmail-total-messages)
     (when finding-rmail-file
       (when rmail-display-summary
 	(rmail-summary))
@@ -1397,7 +1397,7 @@ If so restore the actual mbox message collection."
 	  (set-buffer-multibyte t))
       (goto-char (point-max))
       (rmail-set-message-counters)
-      (rmail-show-message-maybe rmail-total-messages)
+      (rmail-show-message rmail-total-messages)
       (run-hooks 'rmail-mode-hook))))
 
 (defun rmail-expunge-and-save ()
@@ -1633,11 +1633,11 @@ It returns t if it got any new messages."
 			   found))))
 	  ;; Move to the first new message unless we have other unseen
 	  ;; messages before it.
-	  (if found (rmail-show-message-maybe (rmail-first-unseen-message)))
+	  (if found (rmail-show-message (rmail-first-unseen-message)))
 	  (run-hooks 'rmail-after-get-new-mail-hook)
 	  found)
       ;; Don't leave the buffer screwed up if we get a disk-full error.
-      (rmail-show-message-maybe))))
+      (rmail-show-message))))
 
 (defun rmail-get-new-mail-1 (file-name files delete-files)
   "Return t if new messages are detected without error, nil otherwise."
@@ -2403,7 +2403,7 @@ is greater than zero; otherwise, show it in full."
 	 (if (numberp arg)
 	     (if (> arg 0) 'normal 'full)
            (if (rmail-msg-is-pruned) 'full 'normal))))
-    (rmail-show-message-maybe)))
+    (rmail-show-message)))
 
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
@@ -2411,7 +2411,7 @@ is greater than zero; otherwise, show it in full."
   (let ((rmail-show-message-hook
 	 (list (function (lambda ()
 			   (goto-char (point-min)))))))
-    (rmail-show-message-maybe rmail-current-message)))
+    (rmail-show-message rmail-current-message)))
 
 (defun rmail-end-of-message ()
   "Show bottom of current message."
@@ -2420,7 +2420,7 @@ is greater than zero; otherwise, show it in full."
 	 (list (function (lambda ()
 			   (goto-char (point-max))
 			   (recenter (1- (window-height))))))))
-    (rmail-show-message-maybe rmail-current-message)))
+    (rmail-show-message rmail-current-message)))
 
 (defun rmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
@@ -2468,7 +2468,7 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 	  (erase-buffer)
 	  "No mail."))))
 
-(defun rmail-show-message-maybe (&optional n no-summary)
+(defun rmail-show-message (&optional n no-summary)
   "Show message number N (prefix argument), counting from start of file.
 If summary buffer is currently displayed, update current message there also.
 N defaults to the current message."
@@ -2725,7 +2725,7 @@ using the coding system CODING."
 		(forward-line -1))
 	      (insert "X-Coding-System: "
 		      (symbol-name coding))))
-	  (rmail-show-message-maybe))))))
+	  (rmail-show-message))))))
 
 ;; Find all occurrences of certain fields, and highlight them.
 (defun rmail-highlight-headers ()
@@ -2816,7 +2816,7 @@ With prefix arg N, moves forward N messages, or backward if N is negative."
   (interactive "p")
   (set-buffer rmail-buffer)
   (rmail-maybe-set-message-counters)
-  (rmail-show-message-maybe (+ rmail-current-message n)))
+  (rmail-show-message (+ rmail-current-message n)))
 
 (defun rmail-previous-message (n)
   "Show previous message whether deleted or not.
@@ -2844,7 +2844,7 @@ Returns t if a new message is being shown, nil otherwise."
       (if (not (rmail-message-deleted-p current))
 	  (setq lastwin current n (1+ n))))
     (if (/= lastwin rmail-current-message)
- 	(progn (rmail-show-message-maybe lastwin)
+ 	(progn (rmail-show-message lastwin)
  	       t)
       (if (< n 0)
 	  (message "No previous nondeleted message"))
@@ -2863,13 +2863,13 @@ or forward if N is negative."
   "Show first message in file."
   (interactive)
   (rmail-maybe-set-message-counters)
-  (rmail-show-message-maybe 1))
+  (rmail-show-message 1))
 
 (defun rmail-last-message ()
   "Show last message in file."
   (interactive)
   (rmail-maybe-set-message-counters)
-  (rmail-show-message-maybe rmail-total-messages))
+  (rmail-show-message rmail-total-messages))
 
 (defun rmail-what-message ()
   "For debugging Rmail: find the message number that point is in."
@@ -2951,7 +2951,7 @@ Interactively, empty argument means use same regexp used last time."
 	  (setq n (+ n (if reversep 1 -1))))
       (if found
 	  (progn
-	    (rmail-show-message-maybe msg)
+	    (rmail-show-message msg)
 	    ;; Search forward (if this is a normal search) or backward
 	    ;; (if this is a reverse search) through this message to
 	    ;; position point.  This search may fail because REGEXP
@@ -2967,7 +2967,7 @@ Interactively, empty argument means use same regexp used last time."
 	    (message "%sRmail search for %s...done"
 		     (if reversep "Reverse " "")
 		     regexp))
-	(rmail-show-message-maybe orig-message)
+	(rmail-show-message orig-message)
 	(if opoint (goto-char opoint))
 	(ding)
 	(message "Search failed: %s" regexp)))))
@@ -3059,7 +3059,7 @@ If N is negative, go backwards instead."
 	(if done (setq found i)))
       (setq n (if forward (1- n) (1+ n))))
     (if found
-	(rmail-show-message-maybe found)
+	(rmail-show-message found)
       (error "No %s message with same subject"
 	     (if forward "following" "previous")))))
 
@@ -3095,7 +3095,7 @@ If N is negative, go forwards instead."
     (if (= msg 0)
 	(error "No previous deleted message")
       (if (/= msg rmail-current-message)
-	  (rmail-show-message-maybe msg))
+	  (rmail-show-message msg))
       (rmail-set-attribute rmail-deleted-attr-index nil)
       (if (rmail-summary-exists)
 	  (with-current-buffer rmail-summary-buffer
@@ -3230,7 +3230,7 @@ See also user-option `rmail-confirm-expunge'."
       (if (not win)
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
-	  (rmail-show-message-maybe (min rmail-current-message rmail-total-messages)))
+	  (rmail-show-message (min rmail-current-message rmail-total-messages)))
       (if rmail-enable-mime
 	  (goto-char (+ (point-min) opoint))
 	(goto-char (+ (point) opoint))))))
