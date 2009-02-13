@@ -1,5 +1,15 @@
 2009-02-13  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-show-message-1): New name for the old
+	rmail-show-message.
+	* mail/rmail.el, mail/rmailkwd.el, mail/rmailmsc.el, mail/rmailout.el:
+	* mail/rmailsort.el: Update for rmail-show-message name change.
+
+	* mail/rmail.el (rmail-show-message): New name for the old
+	rmail-show-message-maybe.
+	* mail/rmail.el, mail/rmailsum.el: Update for rmail-show-message-maybe
+	name change.
+
 	* mail/rmailsum.el (msgnum): Remove declaration.
 	(rmail-summary-redo): Add missing initialization value.
 	(rmail-summary-overlay, rmail-summary-mode-map): Add doc string.

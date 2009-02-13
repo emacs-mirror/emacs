@@ -958,12 +958,12 @@ Search, the `unseen' attribute is restored.")
 		  (unwind-protect
 		      (progn
 			(select-window window)
-			(rmail-show-message-maybe msg-num t))
+			(rmail-show-message msg-num t))
 		    (select-window owin))
 		(if (buffer-name rmail-buffer)
 		    (save-excursion
 		      (set-buffer rmail-buffer)
-		      (rmail-show-message-maybe msg-num t))))))
+		      (rmail-show-message msg-num t))))))
 	(rmail-summary-update-highlight nil)))))
 
 (defun rmail-summary-save-buffer ()
@@ -1223,7 +1223,7 @@ Returns non-nil if message N was found."
       (let ((selwin (selected-window)))
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
-		   (rmail-show-message-maybe n))
+		   (rmail-show-message n))
 	  (select-window selwin)
 	  ;; The actions above can alter the current buffer.  Preserve it.
 	  (set-buffer obuf))))
