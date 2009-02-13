@@ -1,3 +1,8 @@
+2009-02-13  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-defun-name): Widen, to allow it to work
+	in narrowed buffers.
+
 2009-02-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (tit-process-header): Use
