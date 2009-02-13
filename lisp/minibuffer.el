@@ -1213,6 +1213,7 @@ and `read-file-name-function'."
 
 (defun internal-complete-buffer-except (&optional buffer)
   "Perform completion on all buffers excluding BUFFER.
+BUFFER nil or omitted means use the current buffer.
 Like `internal-complete-buffer', but removes BUFFER from the completion list."
   (lexical-let ((except (if (stringp buffer) buffer (buffer-name buffer))))
     (apply-partially 'completion-table-with-predicate

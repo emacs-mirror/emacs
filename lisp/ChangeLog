@@ -1,3 +1,7 @@
+2009-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuffer.el (internal-complete-buffer-except): Doc fix.  (Bug#2315)
+
 2009-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-show-message-1): New name for the old
