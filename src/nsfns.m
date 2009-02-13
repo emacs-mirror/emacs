@@ -1449,7 +1449,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   static id fileDelegate = nil;
   int ret;
   id panel;
-  NSString *fname;
+  Lisp_Object fname;
 
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
     [NSString stringWithUTF8String: SDATA (prompt)];
@@ -1482,6 +1482,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   [panel setDelegate: fileDelegate];
 
   panelOK = 0;
+  BLOCK_INPUT;
   if (NILP (isLoad))
     {
       ret = [panel runModalForDirectory: dirS file: initS];
@@ -1494,11 +1495,13 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
 
   ret = (ret == NSOKButton) || panelOK;
 
-  fname = [panel filename];
-
+  if (ret)
+    fname = build_string ([[panel filename] UTF8String]);
+  
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+  UNBLOCK_INPUT;
 
-  return ret ? build_string ([fname UTF8String]) : Qnil;
+  return ret ? fname : Qnil;
 }
 
 
@@ -2643,6 +2646,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 @end
 
 #endif
+
 
 /* ==========================================================================
 

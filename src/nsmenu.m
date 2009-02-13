@@ -1494,12 +1494,15 @@ static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  popup_activated_flag = 0;
-  BLOCK_INPUT;
-  [NSApp endModalSession: popupSession];
-  [((EmacsDialogPanel *) (p->pointer)) close];
-  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-  UNBLOCK_INPUT;
+  if (popup_activated_flag)
+    {
+      popup_activated_flag = 0;
+      BLOCK_INPUT;
+      [NSApp endModalSession: popupSession];
+      [((EmacsDialogPanel *) (p->pointer)) close];
+      [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+      UNBLOCK_INPUT;
+    }
   return Qnil;
 }
 
@@ -1565,12 +1568,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
-    popup_activated_flag = 0;
-    unbind_to (specpdl_count, Qnil);
+    unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
   }
-
-  [dialog close];
-  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
   UNBLOCK_INPUT;
 
   return tem;
@@ -1879,6 +1878,7 @@ void process_dialog (id window, Lisp_Object list)
 {
   int ret;
 
+  /* initiate a session that will be ended by pop_down_menu */
   popupSession = [NSApp beginModalSessionForWindow: self];
   while (popup_activated_flag
          && (ret = [NSApp runModalSession: popupSession])
@@ -1889,7 +1889,6 @@ void process_dialog (id window, Lisp_Object list)
       timer_check (1);
       [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
     }
-  [NSApp endModalSession: popupSession];
 
   {				/* FIXME: BIG UGLY HACK!!! */
       Lisp_Object tmp;

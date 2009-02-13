@@ -1,3 +1,14 @@
+2009-02-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns-read-file-name): BLOCK_INPUT while showing dialog.
+
+	* nsmenu.m (pop_down_menu): Check popup_activated_flag.
+	(ns_popup_dialog, EmacsDialogPanel-runDialogAt:): Let
+	pop_down_menu do the cleanup work as it is always called. (Bug#2154)
+
+	* nsfont.m (nsfont_make_fontset_for_font): For now, don't try to
+	set fontset font for "mathematical-" sub-scripts. (Bug #2218)
+
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (adjust_point_for_property): Allow stopping betwen two
