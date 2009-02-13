@@ -1,3 +1,8 @@
+2009-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* org-rmail.el (rmail-show-message): Restore argument list to the
+	declaration now that this functions behaves in Emacs 23 as in 22.
+
 2009-02-12  Glenn Morris  <rgm@gnu.org>
 
 	* org-footnote.el (org-footnote-at-definition-p): Fix doc typo.
