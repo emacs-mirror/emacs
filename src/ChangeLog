@@ -21,12 +21,12 @@
 	* composite.c (MAX_AUTO_COMPOSITION_LOOKBACK): New macro.
 	(composition_gstring_width): Fix handling of LGLYPH_YOFF.
 	(autocmp_chars): Use fast_looking_at.  Don't compose more
-	characters than MAX_COMPOSITION_COMPONENST.
+	characters than MAX_COMPOSITION_COMPONENTS.
 	(find_automatic_composition): While looking forward and backward,
 	check static composition.  Fix where to stop looking forward.
 	(composition_adjust_point): Fix checking of static composition.
 	(Fcomposition_get_gstring): Pay attention to
-	MAX_COMPOSITION_COMPONENST.
+	MAX_COMPOSITION_COMPONENTS.
 
 	* lisp.h (fast_looking_at): Extern it.
 
