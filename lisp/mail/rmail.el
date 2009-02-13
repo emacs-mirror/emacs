@@ -1472,7 +1472,7 @@ The duplicate copy goes into the Rmail file just after the original."
     (goto-char (point-max))
     (rmail-set-message-counters)
     (set-buffer-modified-p t)
-    (rmail-show-message n))
+    (rmail-show-message-1 n))
   (if (rmail-summary-exists)
       (rmail-select-summary (rmail-update-summary)))
   (message "Message duplicated"))
@@ -2479,7 +2479,7 @@ N defaults to the current message."
   (rmail-swap-buffers-maybe)
   (rmail-maybe-set-message-counters)
   (widen)
-  (let ((blurb (rmail-show-message n)))
+  (let ((blurb (rmail-show-message-1 n)))
     (or (zerop rmail-total-messages)
 	(progn
 	  (when mail-mailing-lists
@@ -2515,7 +2515,7 @@ N defaults to the current message."
   :type 'integer
   :group 'rmail)
 
-(defun rmail-show-message (&optional msg)
+(defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
 range (displaying a reasonable choice as well), nil otherwise.
@@ -2644,7 +2644,7 @@ buffer to the end of the headers."
 	   ;; Handle the case where all headers should be copied.
 	   ((eq rmail-header-style 'full)
 	    (prepend-to-buffer rmail-view-buffer beg (point-max))
-	    ;; rmail-show-message expects this function to leave point
+	    ;; rmail-show-message-1 expects this function to leave point
 	    ;; at the end of the headers.
 	    (with-current-buffer rmail-view-buffer
 	      (search-forward "\n\n" nil t)))
@@ -3246,7 +3246,7 @@ See also user-option `rmail-confirm-expunge'."
       (rmail-only-expunge dont-show)
       (if (rmail-summary-exists)
 	  (rmail-select-summary (rmail-update-summary))
-	(rmail-show-message rmail-current-message)
+	(rmail-show-message-1 rmail-current-message)
 	(if (and (eq old-total rmail-total-messages) opoint)
 	    (goto-char opoint))))))
 
