@@ -133,14 +133,16 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 		  (buffer-substring (point)
 				    (save-excursion (forward-line 1)
 						    (point))))
-	    (search-forward ",,")
+	    (re-search-forward ",, ?")
 	    (unless (eolp)
 	      (setq keywords
 		    (buffer-substring (point)
 				      (progn (end-of-line)
 					     (1- (point)))))
-	      (setq keywords
-		    (replace-regexp-in-string ", " "," keywords)))
+	      ;; Mbox rmail needs the spaces.  Bug#2303.
+	      ;;; (setq keywords
+	      ;;; 	    (replace-regexp-in-string ", " "," keywords))
+	      )
 
 	    (setq attrs
 		  (list
