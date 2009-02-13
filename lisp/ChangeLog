@@ -1,3 +1,27 @@
+2009-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (msgnum): Remove declaration.
+	(rmail-summary-redo): Add missing initialization value.
+	(rmail-summary-overlay, rmail-summary-mode-map): Add doc string.
+	(rmail-summary-mark-deleted, rmail-summary-deleted-p):
+	Fix skip-chars-forward calls.
+	(rmail-summary-mark-seen): New function.  As well as removing the '-'
+	mark, update the summary-vector.  (Bug#2135)
+	(rmail-summary-rmail-update, rmail-summary-goto-msg):
+	Use rmail-summary-mark-seen.
+
+	* mail/rmail.el (rmail-summary-vector, rmail-mode-map): Add doc string.
+
+	* mail/unrmail.el (unrmail): When getting message keywords, don't
+	include a leading space, but do include the space after the separating
+	comma.  (Bug#2303)
+
+	* mail/rmail.el (rmail-set-header-1): If VALUE is nil, remove the
+	header altogether.
+	(rmail-set-header): Doc fix.
+	* mail/rmailkwd.el (rmail-set-label): Delete the keyword header if all
+	labels are removed.  (Bug#2302)
+
 2009-02-12  Juri Linkov  <juri@jurta.org>
 
 	* image-mode.el (image-toggle-display):

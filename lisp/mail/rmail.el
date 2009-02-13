@@ -564,7 +564,9 @@ by substituting the new message number into the existing list.")
 
 (defvar rmail-summary-buffer nil)
 (put 'rmail-summary-buffer 'permanent-local t)
-(defvar rmail-summary-vector nil)
+(defvar rmail-summary-vector nil
+  "In an Rmail buffer, vector of (newline-terminated) strings.
+Element N specifies the summary line for message N+1.")
 (put 'rmail-summary-vector 'permanent-local t)
 
 ;; Rmail buffer swapping variables.
@@ -1130,7 +1132,8 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map [menu-bar move next]
       '("Next" . rmail-next-message))
 
-    map))
+   map)
+  "Keymap used in Rmail mode.")
 
 ;; Rmail toolbar
 (defvar rmail-tool-bar-map
@@ -2010,23 +2013,27 @@ If MSGNUM is nil, use the current message."
 
 (defun rmail-set-header-1 (name value)
   "Subroutine of `rmail-set-header'.
-Narrow to header, set header NAME to VALUE, replacing existing if present."
+Narrow to header, set header NAME to VALUE, replacing existing if present.
+VALUE nil means to remove NAME altogether."
   (if (search-forward "\n\n" nil t)
       (progn
 	(forward-char -1)
 	(narrow-to-region (point-min) (point))
 	(goto-char (point-min))
 	(if (re-search-forward (concat "^" (regexp-quote name) ":") nil 'move)
-	    (progn
-	      (delete-region (point) (line-end-position))
-	      (insert " " value))
-	  (insert name ": " value "\n")))
+            (if value
+                (progn
+                  (delete-region (point) (line-end-position))
+                  (insert " " value))
+              (delete-region (line-beginning-position)
+                             (line-beginning-position 2)))
+          (if value (insert name ": " value "\n"))))
     (rmail-error-bad-format)))
 
 (defun rmail-set-header (name &optional msgnum value)
-  "Store VALUE in message header NAME, nil if it has none.
-MSGNUM specifies the message number to operate on.
-If MSGNUM is nil, use the current message."
+  "Set message header NAME to VALUE in message number MSGNUM.
+If MSGNUM is nil, use the current message.  NAME and VALUE are strings.
+VALUE may also be nil, meaning to remove the header."
   (rmail-apply-in-message msgnum 'rmail-set-header-1 name value)
   ;; Ensure header changes get saved.
   ;; (Note replacing a header with an identical copy modifies.)
