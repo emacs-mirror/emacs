@@ -60,6 +60,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <stdio.h>
 #include <errno.h>
+#include <time.h>
 
 #include <getopt.h>
 #ifdef HAVE_UNISTD_H
@@ -375,7 +376,7 @@ main (argc, argv)
       int lockcount = 0;
       int status = 0;
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
-      long touched_lock, now;
+      time_t touched_lock, now;
 #endif
 
       setuid (getuid ());
@@ -684,7 +685,6 @@ xmalloc (size)
 #endif
 #include <pwd.h>
 #include <string.h>
-#include <time.h>
 
 #define NOTOK (-1)
 #define OK 0
