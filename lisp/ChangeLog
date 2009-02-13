@@ -43,7 +43,7 @@
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-use-skeletons): Re-add.
-	(def-python-skeleton): Use it.
+	(def-python-skeleton): Use it.  (Bug#2238)
 
 	* international/quail.el (quail-make-guidance-frame): Remove the
 	`parent-id' parameter.
@@ -78,7 +78,7 @@
 	(isearch-other-meta-char): Use with-current-buffer.
 
 	* progmodes/verilog-mode.el (verilog-mode): Avoid circular use of
-	syntax-ppss.
+	syntax-ppss.  (Bug#1243)
 
 	* emacs-lisp/lisp.el (end-of-defun): Rewrite, to use the ARG argument
 	to beginning-of-defun-raw.
