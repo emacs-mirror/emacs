@@ -957,19 +957,20 @@ IT_set_face (int face)
     }
 }
 
+/* According to RBIL (INTERRUP.A, V-1000), 160 is the maximum possible
+   width of a DOS display in any known text mode.  We multiply by 2 to
+   accomodate the screen attribute byte.  */
+#define MAX_SCREEN_BUF 160*2
+
 Lisp_Object Vdos_unsupported_char_glyph;
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
 static void
 IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 {
-  unsigned char *screen_buf, *screen_bp, *screen_buf_end, *bp;
-  int unsupported_face = 0;
-  unsigned unsupported_char = '\177';
+  unsigned char screen_buf[MAX_SCREEN_BUF], *screen_bp, *bp;
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
   register int sl = str_len;
-  register int tlen = GLYPH_TABLE_LENGTH;
-  register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   struct tty_display_info *tty = FRAME_TTY (f);
   struct frame *sf;
   unsigned char *conversion_buffer;
@@ -990,8 +991,6 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 
   if (str_len <= 0) return;
 
-  screen_buf = screen_bp = alloca (str_len * 2);
-  screen_buf_end = screen_buf + str_len * 2;
   sf = SELECTED_FRAME();
 
   /* Since faces get cached and uncached behind our back, we can't
@@ -1004,73 +1003,50 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
   coding->mode &= ~CODING_MODE_LAST_BLOCK;
+  screen_bp = &screen_buf[0];
   while (sl > 0)
     {
       int cf;
+      int n;
 
-      /* Glyphs with GLYPH_MASK_PADDING bit set are actually there
-	 only for the redisplay code to know how many columns does
-         this character occupy on the screen.  Skip padding glyphs.  */
-      if (CHAR_GLYPH_PADDING_P (*str))
+      /* If the face of this glyph is different from the current
+	 screen face, update the screen attribute byte.  */
+      cf = str->face_id;
+      if (cf != screen_face)
+	IT_set_face (cf);	/* handles invalid faces gracefully */
+
+      /* Identify a run of glyphs with the same face.  */
+      for (n = 1; n < sl; ++n)
+	if (str[n].face_id != cf)
+	  break;
+
+      if (n >= sl)
+	/* This is the last glyph.  */
+	coding->mode |= CODING_MODE_LAST_BLOCK;
+
+      conversion_buffer = encode_terminal_code (str, n, coding);
+      if (coding->produced > 0)
 	{
-	  str++;
-	  sl--;
-	}
-      else
-	{
-	  /* If the face of this glyph is different from the current
-	     screen face, update the screen attribute byte.  */
-	  cf = str->face_id;
-	  if (cf != screen_face)
-	    IT_set_face (cf);	/* handles invalid faces gracefully */
-
-	  if (sl <= 1)
-	    /* This is the last glyph.  */
-	    coding->mode |= CODING_MODE_LAST_BLOCK;
-
-	  conversion_buffer = encode_terminal_code (str, 1, coding);
-	  if (coding->produced > 0)
+	  /* Copy the encoded bytes to the screen buffer.  */
+	  for (bp = conversion_buffer; coding->produced--; bp++)
 	    {
-	      if (2*coding->produced > screen_buf_end - screen_bp)
+	      /* Paranoia: discard bytes that would overrun the end of
+		 the screen buffer.  */
+	      if (screen_bp - screen_buf <= MAX_SCREEN_BUF - 2)
 		{
-		  /* The allocated buffer for screen writes is too small.
-		     Flush it and loop again without incrementing STR, so
-		     that the next loop will begin with the same glyph.  */
-		  int nbytes = screen_bp - screen_buf;
-
-		  mouse_off_maybe ();
-		  dosmemput (screen_buf, nbytes, (int)ScreenPrimary + offset);
-		  if (screen_virtual_segment)
-		    dosv_refresh_virtual_screen (offset, nbytes / 2);
-		  new_pos_X += nbytes / 2;
-		  offset += nbytes;
-
-		  /* Prepare to reuse the same buffer again.  */
-		  screen_bp = screen_buf;
-		  continue;
+		  *screen_bp++ = (unsigned char)*bp;
+		  *screen_bp++ = ScreenAttrib;
 		}
-	      else
-		{
-		  /* There's enough place in the allocated buffer to add
-		     the encoding of this glyph.  */
-
-		  /* Copy the encoded bytes to the allocated buffer.  */
-		  for (bp = conversion_buffer; coding->produced--; bp++)
-		    {
-		      *screen_bp++ = (unsigned char)*bp;
-		      *screen_bp++ = ScreenAttrib;
-		      if (tty->termscript)
-			fputc (*bp, tty->termscript);
-		    }
-		}
+	      if (tty->termscript)
+		fputc (*bp, tty->termscript);
 	    }
-	  /* Update STR and its remaining length.  */
-	  str++;
-	  sl--;
 	}
+      /* Update STR and its remaining length.  */
+      str += n;
+      sl -= n;
     }
 
-  /* Dump whatever is left in the screen buffer.  */
+  /* Dump whatever we have in the screen buffer.  */
   mouse_off_maybe ();
   dosmemput (screen_buf, screen_bp - screen_buf, (int)ScreenPrimary + offset);
   if (screen_virtual_segment)
