@@ -1187,6 +1187,10 @@ is the text in the current buffer between @var{from} and @var{to}.  If
 @var{from} is a string, the string specifies the text to encode, and
 @var{to} is ignored.
 
+If the specified text includes raw bytes (@pxref{Text
+Representations}), @code{select-safe-coding-system} suggests
+@code{raw-text} for its encoding.
+
 If @var{default-coding-system} is non-@code{nil}, that is the first
 coding system to try; if that can handle the text,
 @code{select-safe-coding-system} returns that coding system.  It can
@@ -1543,6 +1547,13 @@ The result of encoding is logically a sequence of bytes, but the
 buffer remains multibyte if it was multibyte before, and any 8-bit
 bytes are converted to their multibyte representation (@pxref{Text
 Representations}).
+
+@cindex @code{undecided} coding-system, when encoding
+Do @emph{not} use @code{undecided} for @var{coding-system} when
+encoding text, since that may lead to unexpected results.  Instead,
+use @code{select-safe-coding-system} (@pxref{User-Chosen Coding
+Systems, select-safe-coding-system}) to suggest a suitable encoding,
+if there's no obvious pertinent value for @var{coding-system}.
 @end deffn
 
 @defun encode-coding-string string coding-system &optional nocopy buffer
