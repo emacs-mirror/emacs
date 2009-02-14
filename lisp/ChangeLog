@@ -1,3 +1,14 @@
+2009-02-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-global-key-alist)
+	(bibtex-initialize): Exclude current buffer if it does not use
+	bibtex-mode.
+	(bibtex-parse-strings, bibtex-strings, bibtex-initialize)
+	(bibtex-sort-buffer, bibtex-search-entry)
+	(bibtex-prepare-new-entry, bibtex-clean-entry): Use functionp to
+	test whether bibtex-strings and bibtex-reference-keys have their
+	initial values.
+
 2009-02-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-insert-word): Use `with-no-warnings'
