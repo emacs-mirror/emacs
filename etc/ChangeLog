@@ -1,3 +1,8 @@
+2009-02-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* refcards/calccard.tex: Update version number.
+	Mention Maxima mode.
+
 2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* compilation.txt (gnu): Add an example for the "note" format.
