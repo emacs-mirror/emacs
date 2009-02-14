@@ -5136,6 +5136,7 @@ push_it (it)
   p->voffset = it->voffset;
   p->string_from_display_prop_p = it->string_from_display_prop_p;
   p->display_ellipsis_p = 0;
+  p->line_wrap = it->line_wrap;
   ++it->sp;
 }
 
@@ -5191,6 +5192,7 @@ pop_it (it)
   it->font_height = p->font_height;
   it->voffset = p->voffset;
   it->string_from_display_prop_p = p->string_from_display_prop_p;
+  it->line_wrap = p->line_wrap;
 }
 
 
@@ -16506,7 +16508,13 @@ handle_line_prefix (struct it *it)
 	prefix = Vline_prefix;
     }
   if (! NILP (prefix))
-    push_display_prop (it, prefix);
+    {
+      push_display_prop (it, prefix);
+      /* If the prefix is wider than the window, and we try to wrap
+	 it, it would acquire its own wrap prefix, and so on till the
+	 iterator stack overflows.  So, don't wrap the prefix.  */
+      it->line_wrap = TRUNCATE;
+    }
 }
 
 
