@@ -1,3 +1,8 @@
+2009-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (with-buffer-prepared-for-jit-lock): Swap the `let' and
+	the `with-buffer-unmodified' to avoid useless `readlink' calls.
+
 2009-02-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-global-key-alist)
@@ -18,8 +23,8 @@
 	around forms that refer to translation-table-for-input.
 
 	* international/quail.el (quail-input-string-to-events)
-	(quail-store-decode-map-key, quail-char-equal-p): Use
-	`with-no-warnings' around forms that refer to
+	(quail-store-decode-map-key, quail-char-equal-p):
+	Use `with-no-warnings' around forms that refer to
 	translation-table-for-input.
 
 	* simple.el (quoted-insert, zap-to-char): Use `with-no-warnings'

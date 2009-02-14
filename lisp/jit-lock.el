@@ -45,15 +45,17 @@
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
     (declare (debug t))
-    `(with-buffer-unmodified
-      (let ((buffer-undo-list t)
-	    (inhibit-read-only t)
-	    (inhibit-point-motion-hooks t)
-	    (inhibit-modification-hooks t)
-	    deactivate-mark
-	    buffer-file-name
-	    buffer-file-truename)
-	,@body))))
+    `(let ((buffer-undo-list t)
+           (inhibit-read-only t)
+           (inhibit-point-motion-hooks t)
+           (inhibit-modification-hooks t)
+           deactivate-mark
+           buffer-file-name
+           buffer-file-truename)
+       ;; Do reset the modification status from within the let, since
+       ;; otherwise set-buffer-modified-p may try to unlock the file.
+       (with-buffer-unmodified
+           ,@body))))
 
 
 
