@@ -356,7 +356,7 @@ highlighted properly when you open them."
      :sqli-prompt-length 0)
     (sqlite
      :font-lock sql-mode-sqlite-font-lock-keywords
-     :sqli-login (user password server database)
+     :sqli-login (database)
      :sqli-connect sql-connect-sqlite
      :sqli-prompt-regexp "^sqlite> "
      :sqli-prompt-length 8)
@@ -2611,12 +2611,6 @@ parameters and command options."
   (let ((params))
     (if (not (string= "" sql-database))
 	(setq params (append (list sql-database) params)))
-    (if (not (string= "" sql-server))
-	(setq params (append (list (concat "--host=" sql-server)) params)))
-    (if (not (string= "" sql-password))
-	(setq params (append (list (concat "--password=" sql-password)) params)))
-    (if (not (string= "" sql-user))
-	(setq params (append (list (concat "--user=" sql-user)) params)))
     (if (not (null sql-sqlite-options))
 	(setq params (append sql-sqlite-options params)))
     (set-buffer (apply 'make-comint "SQL" sql-sqlite-program
