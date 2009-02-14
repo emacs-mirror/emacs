@@ -2214,14 +2214,22 @@ update the match data, and return point."
   (let* ((func (isearch-search-fun))
          (pos1 (save-excursion (funcall func string bound noerror)))
          pos2)
-    (when (and (char-table-p translation-table-for-input)
-               (multibyte-string-p string)
-               ;; Minor optimization.
-               (string-match-p "[^[:ascii:]]" string))
+    (when (and
+	   ;; Avoid "obsolete" warnings for translation-table-for-input.
+	   (with-no-warnings
+	     (char-table-p translation-table-for-input))
+	   (multibyte-string-p string)
+	   ;; Minor optimization.
+	   (string-match-p "[^[:ascii:]]" string))
       (let ((translated
              (apply 'string
                     (mapcar (lambda (c)
-                              (or (aref translation-table-for-input c) c))
+                              (or
+			       ;; Avoid "obsolete" warnings for
+			       ;; translation-table-for-input.
+			       (with-no-warnings
+				 (aref translation-table-for-input c))
+			       c))
                             string)))
             match-data)
         (when translated
