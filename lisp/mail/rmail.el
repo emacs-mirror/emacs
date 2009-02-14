@@ -846,6 +846,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (find-file file-name)
 	  (when (and (verify-visited-file-modtime existed)
 		     (eq major-mode 'rmail-mode))
+	    (rmail-swap-buffers-maybe)
 	    (rmail-set-message-counters)))
       ;; The mail file is either unchanged or not visited.  Visit it.
       (switch-to-buffer
@@ -1382,7 +1383,8 @@ If so restore the actual mbox message collection."
   (let* ((revert-buffer-function (default-value 'revert-buffer-function))
 	 (rmail-enable-multibyte enable-multibyte-characters)
 	 ;; See similar code in `rmail'.
-	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text)))
+	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
+	 (before-revert-hook 'rmail-swap-buffers-maybe))
     ;; Call our caller again, but this time it does the default thing.
     (when (revert-buffer arg noconfirm)
       ;; If the user said "yes", and we changed something,

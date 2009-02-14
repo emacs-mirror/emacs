@@ -1,3 +1,14 @@
+2009-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail): When reverting, swap buffers before setting
+	counters.  (Bug#2229)
+	(rmail-revert): Swap buffers before replacing contents.
+
+2009-02-14  Ian Eure  <ian@digg.com>  (tiny change)
+
+	* progmodes/sql.el (sql-product-alist, sql-connect-sqlite):
+	Remove host, user, password options not applicable to SQlite. (Bug#1904)
+
 2009-02-14  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailout.el (rmail-output-body-to-file): Avoid space and colon
