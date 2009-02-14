@@ -1,3 +1,10 @@
+2009-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (User-Chosen Coding Systems): Document that
+	select-safe-coding-system suggests raw-text if there are raw bytes
+	in the region.
+	(Explicit Encoding): Warn not to use `undecided' when encoding.
+
 2009-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* frames.texi (Visibility of Frames): Mention the effect multiple
