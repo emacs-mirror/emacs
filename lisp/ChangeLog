@@ -11,6 +11,14 @@
 
 2009-02-14  Richard M Stallman  <rms@gnu.org>
 
+	* mail/rmailedit.el: Handle editing of header fields.
+	(rmail-old-headers): New variable.
+	(rmail-edit-current-message): Set it, recording current headers.
+	(rmail-cease-edit): Compute new headers and diff against old ones.
+	Update the mbox buffer with the changes that were made.
+	(rmail-edit-headers-alist): New function.
+	(rmail-edit-diff-headers, rmail-edit-update-headers): New functions.
+
 	* mail/rmailout.el (rmail-output-body-to-file): Avoid space and colon
 	in default file name.
 
