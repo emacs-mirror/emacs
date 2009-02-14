@@ -1,3 +1,16 @@
+2009-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (rmail-default-rmail-file): Remove declaration of deleted
+	variable (only used in gnus-util, which declares it anyway).
+	(rmail-output-to-rmail-file): Move autoload to gnus-art, the only place
+	that uses it.
+	(rmail-insert-rmail-file-header): Remove autoload of deleted function,
+	only used in gnus-util, which autoloads it itself.
+	(rmail-update-summary): Fix autoload.
+
+	* gnus-art.el (rmail-output-to-rmail-file): Move autoload here
+	from gnus.el.
+
 2009-02-07  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (rmail-msg-restore-non-pruned-header): Remove unneeded
@@ -24,10 +37,6 @@
 
 	* nntp.el (nntp-send-authinfo): Use list of
 	auth-source modes.
-
-2009-01-26  Teodor Zlatanov  <tzz@lifelogs.com>
-
-	* nntp.el (nntp-send-authinfo): 
 
 2009-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
 

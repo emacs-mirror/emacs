@@ -3879,6 +3879,9 @@ Directory to save to is default to `gnus-article-save-directory'."
 	(gnus-output-to-rmail filename))))
   filename)
 
+;; FIXME deleted in Emacs 23.
+(autoload 'rmail-output-to-rmail-file "rmailout")
+
 (defun gnus-summary-save-in-mail (&optional filename)
   "Append this article to Unix mail file.
 Optional argument FILENAME specifies file name.
