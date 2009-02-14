@@ -1,3 +1,11 @@
+2009-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (MAX_SCREEN_BUF): New macro.
+	(IT_write_glyphs): Make screen_buf[] always be MAX_SCREEN_BUF-long.
+	Encode the entire run of glyphs sharing the same face, instead of
+	doing that one glyph at a time (fixes a bug with displaying
+	double-size characters).
+
 2009-02-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfns.m (ns-read-file-name): BLOCK_INPUT while showing dialog.
