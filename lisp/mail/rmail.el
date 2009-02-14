@@ -891,21 +891,22 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (widen)
   (goto-char (point-min))
   ;; Detect previous Babyl format files.
-  (cond ((looking-at "BABYL OPTIONS:")
-	 ;; The file is Babyl version 5.  Use unrmail to convert
-	 ;; it.
-	 (rmail-convert-babyl-to-mbox))
-	((looking-at "Version: 5\n")
-	 ;; Losing babyl file made by old version of Rmail.  Fix the
-	 ;; babyl file header and use unrmail to convert to mbox
-	 ;; format.
-	 (let ((buffer-read-only nil))
-	   (insert "BABYL OPTIONS: -*- rmail -*-\n")
-	   (rmail-convert-babyl-to-mbox)))
-	((equal (point-min) (point-max))
-	 (message "Empty Rmail file."))
-	((looking-at "From "))
-	(t (error "Invalid mbox file"))))
+  (let ((case-fold-search nil))
+    (cond ((looking-at "BABYL OPTIONS:")
+	   ;; The file is Babyl version 5.  Use unrmail to convert
+	   ;; it.
+	   (rmail-convert-babyl-to-mbox))
+	  ((looking-at "Version: 5\n")
+	   ;; Losing babyl file made by old version of Rmail.  Fix the
+	   ;; babyl file header and use unrmail to convert to mbox
+	   ;; format.
+	   (let ((buffer-read-only nil))
+	     (insert "BABYL OPTIONS: -*- rmail -*-\n")
+	     (rmail-convert-babyl-to-mbox)))
+	  ((equal (point-min) (point-max))
+	   (message "Empty Rmail file."))
+	  ((looking-at "From "))
+	  (t (error "Invalid mbox file")))))
 
 (defun rmail-error-bad-format (&optional msgnum)
   "Report that the buffer is not in the mbox file format.
@@ -1973,6 +1974,7 @@ new messages.  Return the number of new messages."
       (let ((count 0)
 	    (start (point))
 	    (value "------U-")
+	    (case-fold-search nil)
 	    limit)
 	;; Detect an empty inbox file.
 	(unless (= start (point-max))
