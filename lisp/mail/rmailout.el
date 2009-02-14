@@ -568,6 +568,10 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
    (let ((default-file
 	   (or (mail-fetch-field "Subject")
 	       rmail-default-body-file)))
+     (setq default-file
+	   (replace-regexp-in-string ":" "-" default-file))
+     (setq default-file
+	   (replace-regexp-in-string " " "-" default-file))
      (list (setq rmail-default-body-file
 		 (read-file-name
 		  "Output message body to file: "
