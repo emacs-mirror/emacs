@@ -1,3 +1,11 @@
+2009-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct iterator_stack_entry): New line_wrap
+	member.
+
+	* xdisp.c (push_it, pop_it): Save and restore line_wrap.
+	(handle_line_prefix): Suppress wrapping of wrap prefixes.
+
 2009-02-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (MAX_SCREEN_BUF): New macro.
