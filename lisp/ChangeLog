@@ -1,5 +1,8 @@
 2009-02-14  Richard M Stallman  <rms@gnu.org>
 
+	* mail/rmailout.el (rmail-output-body-to-file): Avoid space and colon
+	in default file name.
+
 	* mail/rmail.el (rmail-convert-file-maybe): Turn off case-fold-search.
 	(rmail-add-mbox-headers): Likewise.
 
