@@ -1599,14 +1599,15 @@ This allows it to improve the suggestion list based on actual misspellings."
 			  (setq more-lines (= 0 (forward-line))))))))))))))
 
 
-;; Insert WORD while translating Latin characters to the equivalent
-;; characters that is supported by buffer-file-coding-system.
-
+;; Insert WORD while possibly translating characters by
+;; translation-table-for-input.
 (defun ispell-insert-word (word)
   (let ((pos (point)))
     (insert word)
-    (if (char-table-p translation-table-for-input)
-	(translate-region pos (point) translation-table-for-input))))
+    ;; Avoid "obsolete" warnings for translation-table-for-input.
+    (with-no-warnings
+      (if (char-table-p translation-table-for-input)
+	  (translate-region pos (point) translation-table-for-input)))))
 
 ;;;###autoload
 (defun ispell-word (&optional following quietly continue region)
