@@ -314,9 +314,10 @@ is called as a function to find the defun's beginning."
 
 (defvar end-of-defun-function #'forward-sexp
   "Function for `end-of-defun' to call.
-This is used to find the end of the defun.
+This is used to find the end of the defun at point.
 It is called with no argument, right after calling `beginning-of-defun-raw'.
-So the function can assume that point is at the beginning of the defun body.")
+So the function can assume that point is at the beginning of the defun body.
+It should move point to the first position after the defun.")
 
 (defun buffer-end (arg)
   "Return the \"far end\" position of the buffer, in direction ARG.
