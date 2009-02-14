@@ -1055,6 +1055,12 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (make-obsolete-variable 'x-sent-selection-hooks
 			'x-sent-selection-functions "22.1")
 
+;; This was introduced in 21.4 for pre-unicode unification.  That
+;; usage was rendered obsolete in 23.1 which uses Unicode internally.
+;; Other uses are possible, so this variable is not _really_ obsolete,
+;; but Stefan insists to mark it so.
+(make-obsolete-variable 'translation-table-for-input nil "23.1")
+
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 
 ;; These aliases exist in Emacs 19.34, and probably before, but were
