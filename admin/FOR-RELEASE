@@ -80,11 +80,11 @@ mail/rmail-spam-filter.el:  check it still (?) works
 
 Remainder all in lisp/gnus:
 
-gnus-art.el
-gnus-util.el  (also EOOH)
-gnus.el
-message.el
-nnbabyl.el  (also EOOH)
+gnus-art.el  ; mainly doc fixes? change Rmail to Babyl Rmail?
+gnus-util.el  fix gnus-output-to-rmail
+message.el    fix message-do-fcc
+
+nnbabyl seems ok, but Gnus manual needs updating with respect to rmail.
 
 
 * DOCUMENTATION
