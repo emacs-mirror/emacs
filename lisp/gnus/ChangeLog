@@ -2,14 +2,14 @@
 
 	* gnus.el (rmail-default-rmail-file): Remove declaration of deleted
 	variable (only used in gnus-util, which declares it anyway).
-	(rmail-output-to-rmail-file): Move autoload to gnus-art, the only place
-	that uses it.
+	(rmail-output-to-rmail-file): Remove autoload of deleted function,
+	which was only needed by gnus-art (changed to not use it any more).
 	(rmail-insert-rmail-file-header): Remove autoload of deleted function,
 	only used in gnus-util, which autoloads it itself.
 	(rmail-update-summary): Fix autoload.
 
-	* gnus-art.el (rmail-output-to-rmail-file): Move autoload here
-	from gnus.el.
+	* gnus-art.el (gnus-summary-save-in-mail): Use gnus-output-to-rmail
+	rather than rmail-output-to-rmail-file.
 
 2009-02-07  Glenn Morris  <rgm@gnu.org>
 
