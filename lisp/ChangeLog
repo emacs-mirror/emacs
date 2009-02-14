@@ -1,3 +1,8 @@
+2009-02-14  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-convert-file-maybe): Turn off case-fold-search.
+	(rmail-add-mbox-headers): Likewise.
+
 2009-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (load-library): Doc fix.
