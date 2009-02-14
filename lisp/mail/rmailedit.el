@@ -69,12 +69,16 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
 (put 'rmail-edit-mode 'mode-class 'special)
-
+    
 
 (defvar rmail-old-text)
 (defvar rmail-old-pruned nil
   "Non-nil means the message being edited originally had pruned headers.")
 (put 'rmail-old-pruned 'permanent-local t)
+
+(defvar rmail-old-headers nil
+  "Holds the headers of this message before editing started.")
+(put 'rmail-old-headers 'permanent-local t)
 
 ;;;###autoload
 (defun rmail-edit-current-message ()
@@ -82,12 +86,16 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (interactive)
   (if (zerop rmail-total-messages)
       (error "No messages in this buffer"))
-  (set (make-local-variable 'rmail-old-pruned) (rmail-msg-is-pruned))
+  (make-local-variable 'rmail-old-pruned)
+  (setq rmail-old-pruned (rmail-msg-is-pruned))
   (rmail-edit-mode)
-  (set (make-local-variable 'rmail-old-text)
-       (save-restriction
-	 (widen)
-	 (buffer-substring (point-min) (point-max))))
+  (make-local-variable 'rmail-old-text)
+  (setq rmail-old-text
+	(save-restriction
+	  (widen)
+	  (buffer-substring (point-min) (point-max))))
+  (make-local-variable 'rmail-old-headers)
+  (setq rmail-old-headers (rmail-edit-headers-alist t))
   (setq buffer-read-only nil)
   (setq buffer-undo-list nil)
   ;; FIXME whether the buffer is initially marked as modified or not
@@ -128,6 +136,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (insert "\n")))
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
+	new-headers
 	character-coding is-text-message coding-system
 	headers-end limit)
     ;; Go back to Rmail mode, but carefully.
@@ -147,6 +156,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (goto-char (point-min))
       (search-forward "\n\n")
       (setq headers-end (point))
+      (setq new-headers (rmail-edit-headers-alist t))
       (rmail-swap-buffers-maybe)
       (narrow-to-region (rmail-msgbeg rmail-current-message)
 			(rmail-msgend rmail-current-message))
@@ -174,6 +184,11 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 				  data-buffer))
 	  (delete-region end (point-max)))
 
+	;; Apply to the mbox buffer any changes in header fields
+	;; that the user made while editing in the view buffer.
+	(rmail-edit-update-headers (rmail-edit-diff-headers
+				    rmail-old-headers new-headers))
+
 	;; Re-apply content-transfer-encoding, if any, on the message body.
 	(cond
 	 ((string= character-coding "quoted-printable")
@@ -199,6 +214,130 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (insert rmail-old-text)
   (rmail-cease-edit)
   (rmail-highlight-headers))
+
+(defun rmail-edit-headers-alist (&optional widen markers)
+  "Return an alist of the headers of the message in the current buffer.
+Each element has the form (HEADER-NAME . ENTIRE-STRING).
+ENTIRE-STRING includes the name of the header field (which is HEADER-NAME)
+and has a final newline.
+If part of the text is not valid as a header field, HEADER-NAME
+is an integer and we use consecutive integers.
+
+If WIDEN is non-nil, operate on the entire buffer.
+
+If MARKERS is non-nil, the value looks like
+ \(HEADER-NAME ENTIRE-STRING BEG-MARKER END-MARKER)."
+  (let (header-alist (no-good-header-count 1))
+    (save-excursion
+      (save-restriction
+	(if widen (widen))
+	(goto-char (point-min))
+	(search-forward "\n\n")
+	(narrow-to-region (point-min) (1- (point)))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (let ((start (point))
+		name header)
+	    ;; Match the name.
+	    (if (looking-at "[ \t]*\\([^:\n \t]\\(\\|[^:\n]*[^:\n \t]\\)\\)[ \t]*:")
+		(setq name (match-string-no-properties 1))
+	      (setq name no-good-header-count
+		    no-good-header-count (1+ no-good-header-count)))
+	    (forward-line 1)
+	    (while (looking-at "[ \t]")
+	      (forward-line 1))
+	    (setq header (buffer-substring-no-properties start (point)))
+	    (if markers
+		(push (list header (copy-marker start) (point-marker))
+		      header-alist)
+	      (push (cons name header) header-alist))))))
+    (nreverse header-alist)))
+
+
+(defun rmail-edit-diff-headers (old-headers new-headers)
+  "Compare OLD-HEADERS and NEW-HEADERS and return field differences.
+The value is a list of three lists, (INSERTED DELETED CHANGED).
+
+INSERTED's elements describe inserted header fields
+and each looks like (AFTER-WHAT INSERT-WHAT)
+INSERT-WHAT is the header field to insert (a member of NEW-HEADERS).
+AFTER-WHAT is the field to insert it after (a member of NEW-HEADERS)
+or else nil to insert it at the beginning.
+
+DELETED's elements are elements of OLD-HEADERS.
+CHANGED's elements have the form (OLD . NEW)
+where OLD is a element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
+
+  (let ((reverse-new (reverse new-headers))
+	inserted deleted changed)
+    (dolist (old old-headers)
+      (let ((new (assoc (car old) new-headers)))
+	;; If it's in OLD-HEADERS and has no new counterpart,
+	;; it is a deletion.
+	(if (null new)
+	    (push old deleted)
+	  ;; If it has a new counterpart, maybe it was changed.
+	  (unless (equal (cdr old) (cdr new))
+	    (push (cons old new) changed))
+	  ;; Remove the new counterpart, since it has been spoken for.
+	  (setq new-headers (remq new new-headers)))))
+    ;; Look at the new headers with no old counterpart.
+    (dolist (new new-headers)
+      (let ((prev (cadr (member new reverse-new))))
+	;; Mark each one as an insertion.  Show the previous new header.
+	(unless old
+	  (push (list prev new) inserted))))
+    ;; It is crucial to return the insertions in buffer order
+    ;; so that `rmail-edit-update-headers' can insert a field
+    ;; after a new field.
+    (list (nreverse inserted)
+	  (nreverse deleted)
+	  (nreverse changed))))
+
+(defun rmail-edit-update-headers (header-diff)
+  "Edit the mail headers in the buffer based on HEADER-DIFF.
+HEADER-DIFF should be a return value from `rmail-edit-diff-headers'."
+  (let ((buf-headers (rmail-edit-headers-alist nil t)))
+    ;; Change all the fields scheduled for being changed.
+    (dolist (chg (nth 2 header-diff))
+      (let* ((match (assoc (cdar chg) buf-headers))
+	     (end (marker-position (nth 2 match))))
+	(goto-char end)
+	;; Insert the new, then delete the old.
+	;; That avoids collapsing markers.
+	(insert-before-markers (cddr chg))
+	(delete-region (nth 1 match) end)
+	;; Remove the old field from BUF-HEADERS.
+	(setq buf-headers (delq match buf-headers))
+	;; Update BUF-HEADERS to show the changed field.
+	(push (list (cddr chg) (point-marker)
+		    (copy-marker (- (point) (length (cddr chg))))
+		    (point-marker))
+	      buf-headers)))
+    ;; Delete all the fields scheduled for deletion.
+    ;; We do deletion after changes
+    ;; because when two fields look alike and get replaced by one,
+    ;; the first of them is considered changed
+    ;; and the second is considered deleted.
+    (dolist (del (nth 1 header-diff))
+      (let ((match (assoc (cdr del) buf-headers)))
+	(delete-region (nth 1 match) (nth 2 match))))
+    ;; Insert all the fields scheduled for insertion.
+    (dolist (ins (nth 0 header-diff))
+      (let* ((new (cadr ins))
+	     (after (car ins))
+	     (match (assoc (cdr after) buf-headers)))
+	(goto-char (if match (nth 2 match) (point-min)))
+	(insert (cdr new))
+	;; Update BUF-HEADERS to show the inserted field.
+	(push (list (cdr new)
+		    (copy-marker (- (point) (length (cdr new))))
+		    (point-marker))
+	      buf-headers)))
+    ;; Disconnect the markers
+    (dolist (hdr buf-headers)
+      (set-marker (nth 1 hdr) nil)
+      (set-marker (nth 2 hdr) nil))))
 
 (provide 'rmailedit)
 
