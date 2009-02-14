@@ -72,19 +72,29 @@ Fixed by this change?
 ** In C, use EMACS_INT for variables and structure members
 for buffer/string positions.  E.g. struct it, struct text_pos.
 
-** These lisp files refer to rmail, and might need updating post-mbox.
-
-It seems that rmail-output-to-rmail-file can be replaced by rmail-output.
+** Rmail issues:
 
 mail/rmail-spam-filter.el:  check it still (?) works
 
-Remainder all in lisp/gnus:
+Gnus/Rmail issues:
+gnus-util.el:
+  rmail-insert-rmail-file-header does not exist and should not be
+  autoloaded (it was only a compiler pacifier)
+  Ditto rmail-default-rmail-file.
+  gnus-output-to-rmail should be fixed to do the following (ideally):
+    In Emacs 23, write Babyl only if FILENAME is Babyl, otherwise mbox.
+      (rmailout can handle this?)
+    In Emacs 22, write Babyl
+    In both cases, if an Rmail buffer is visiting FILENAME, update it
 
-gnus-art.el  ; mainly doc fixes? change Rmail to Babyl Rmail?
-gnus-util.el  fix gnus-output-to-rmail
-message.el    fix message-do-fcc
+message.el:
+  Fix message-fcc-handler-function for the case
+    message-fcc-handler-function = rmail-output
+  Ideally, it should behave as gnus-output-to-rmail above. In fact,
+  why doesn't it just use gnus-output-to-rmail?
 
-nnbabyl seems ok, but Gnus manual needs updating with respect to rmail.
+Gnus manual needs updating with respect to Rmail (but then so does the
+Rmail manual).
 
 
 * DOCUMENTATION
