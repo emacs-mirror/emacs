@@ -6,6 +6,8 @@
 	(rmail-output-as-babyl, rmail-output-to-babyl-buffer): Remove
 	unnecessary use of with-no-warnings.
 	(rmail-output-as-mbox, rmail-output-as-seen): Doc fix.
+	(rmail-output-as-mbox): Start search from point-min.  If constructing a
+	"From " line, prefer the date header over the current time.
 
 2009-02-15  Richard M Stallman  <rms@gnu.org>
 

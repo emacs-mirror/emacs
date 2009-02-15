@@ -307,45 +307,37 @@ It alters the current buffer's text, so call with a temp buffer current.
 If FILE-NAME is visited, output into its buffer instead.
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
-	mail-from mime-version content-type)
-
+	from date)
+    (goto-char (point-min))
     ;; Preserve the Mail-From and MIME-Version fields
     ;; even if they have been pruned.
     (search-forward "\n\n" nil 'move)
     (narrow-to-region (point-min) (point))
-
     (rmail-delete-unwanted-fields
      (if rmail-enable-mime "Mail-From"
        "Mail-From\\|MIME-Version\\|Content-type"))
-
+    ;; Generate a From line from other header fields if necessary.
+    ;; FIXME this duplicates code from unrmail.el.
+    (goto-char (point-min))
+    (unless (looking-at "From ")
+      (setq from (or (mail-fetch-field "from")
+		     (mail-fetch-field "really-from")
+		     (mail-fetch-field "sender")
+		     "unknown")
+	    date (mail-fetch-field "date")
+	    date (or (and date
+			  (ignore-errors
+			   (current-time-string (date-to-time date))))
+		     (current-time-string)))
+      (insert "From " (mail-strip-quoted-names from) " " date "\n"))
     (widen)
-
     ;; Make sure message ends with blank line.
     (goto-char (point-max))
     (unless (bolp)
        (insert "\n"))
     (unless (looking-back "\n\n")
       (insert "\n"))
-
-    ;; Generate a From line from other header fields
-    ;; if necessary.
     (goto-char (point-min))
-    (unless (looking-at "From ")
-      (insert "From "
-	      (mail-strip-quoted-names
-	       (save-excursion
-		 (save-restriction
-		   (goto-char (point-min))
-		   (narrow-to-region
-		    (point)
-		    (or (search-forward "\n\n" nil)
-			(point-max)))
-		   (or (mail-fetch-field "from")
-		       (mail-fetch-field "really-from")
-		       (mail-fetch-field "sender")
-		       "unknown"))))
-	      " " (current-time-string) "\n"))
-
     (let ((buf (find-buffer-visiting file-name))
 	  (tembuf (current-buffer)))
       (if (null buf)
