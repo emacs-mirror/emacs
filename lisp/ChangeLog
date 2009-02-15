@@ -1,3 +1,12 @@
+2009-02-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-output-as-seen): Doc fix.
+
+	* mail/rmailout.el (rmail-output-decode-coding): Fix custom type, group.
+	(rmail-output-as-babyl, rmail-output-to-babyl-buffer): Remove
+	unnecessary use of with-no-warnings.
+	(rmail-output-as-mbox, rmail-output-as-seen): Doc fix.
+
 2009-02-15  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailedit.el (rmail-edit-diff-headers):

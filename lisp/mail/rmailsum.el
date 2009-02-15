@@ -1685,7 +1685,7 @@ even the header display is currently pruned."
 		  (file-name &optional count noattribute from-gnus))
 
 (defun rmail-summary-output-as-seen (&optional file-name n)
-  "Append this message to system-inbox-format mail file named FILE-NAME.
+  "Append this message to mbox file named FILE-NAME.
 A prefix argument N says to output that many consecutive messages,
 from the summary, starting with the current one.
 Deleted messages are skipped and don't count.
