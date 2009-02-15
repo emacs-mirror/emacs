@@ -284,9 +284,9 @@ where OLD is a element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
     ;; Look at the new headers with no old counterpart.
     (dolist (new new-headers)
       (let ((prev (cadr (member new reverse-new))))
-	;; Mark each one as an insertion.  Show the previous new header.
-	(unless old
-	  (push (list prev new) inserted))))
+	;; Mark each one as an insertion.
+	;; Record the previous new header, to insert it after that.
+	(push (list prev new) inserted)))
     ;; It is crucial to return the insertions in buffer order
     ;; so that `rmail-edit-update-headers' can insert a field
     ;; after a new field.
