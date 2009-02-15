@@ -30,9 +30,8 @@
 
 (defcustom rmail-output-decode-coding nil
   "If non-nil, do coding system decoding when outputting message as Babyl."
-  :type '(choice (const :tag "on" t)
-		 (const :tag "off" nil))
-  :group 'rmail)
+  :type 'boolean
+  :group 'rmail-output)
 
 (defcustom rmail-output-file-alist nil
   "Alist matching regexps to suggested output Rmail files.
@@ -45,6 +44,12 @@ a file name as a string."
 		       (choice :value ""
 			       (string :tag "File Name")
 			       sexp)))
+  :group 'rmail-output)
+
+(defcustom rmail-fields-not-to-output nil
+  "Regexp describing fields to exclude when outputting a message to a file."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
   :group 'rmail-output)
 
 (defun rmail-output-read-file-name ()
@@ -78,12 +83,6 @@ Set `rmail-default-file' to this name as well as returning it."
 	      (expand-file-name
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
-
-(defcustom rmail-fields-not-to-output nil
-  "Regexp describing fields to exclude when outputting a message to a file."
-  :type '(choice (const :tag "None" nil)
-		 regexp)
-  :group 'rmail-output)
 
 ;; Delete from the buffer header fields we don't want output.
 ;; Buffer should be pre-narrowed to the header.
@@ -122,9 +121,7 @@ It alters the current buffer's text, so it should be a temp buffer."
 	;; File has been visited, in buffer BUF.
 	(set-buffer buf)
 	(let ((inhibit-read-only t)
-	      (msg (with-no-warnings
-		     (and (boundp 'rmail-current-message)
-			  rmail-current-message))))
+	      (msg (bound-and-true-p rmail-current-message)))
 	  ;; If MSG is non-nil, buffer is in RMAIL mode.
 	  (if msg
 	      (rmail-output-to-babyl-buffer tembuf msg)
@@ -137,25 +134,24 @@ It alters the current buffer's text, so it should be a temp buffer."
   "Copy msg in TEMBUF from BEG to END into this old R-mail BABYL buffer.
 Do what is necessary to make babyl R-mail know about the new message.
 Then display message number MSG."
-  (with-no-warnings
-    ;; Turn on Auto Save mode, if it's off in this
-    ;; buffer but enabled by default.
-    (and (not buffer-auto-save-file-name)
-	 auto-save-default
-	 (auto-save-mode t))
-    (rmail-maybe-set-message-counters)
-    (widen)
-    (narrow-to-region (point-max) (point-max))
-    (insert-buffer-substring tembuf)
-    (goto-char (point-min))
-    (widen)
-    (search-backward "\n\^_")
-    (narrow-to-region (point) (point-max))
-    (rmail-count-new-messages t)
-    (if (rmail-summary-exists)
-	(rmail-select-summary
-	 (rmail-update-summary)))
-    (rmail-show-message-1 msg)))
+  ;; Turn on Auto Save mode, if it's off in this
+  ;; buffer but enabled by default.
+  (and (not buffer-auto-save-file-name)
+       auto-save-default
+       (auto-save-mode t))
+  (rmail-maybe-set-message-counters)
+  (widen)
+  (narrow-to-region (point-max) (point-max))
+  (insert-buffer-substring tembuf)
+  (goto-char (point-min))
+  (widen)
+  (search-backward "\n\^_")
+  (narrow-to-region (point) (point-max))
+  (rmail-count-new-messages t)
+  (if (rmail-summary-exists)
+      (rmail-select-summary
+       (rmail-update-summary)))
+  (rmail-show-message-1 msg))
 
 (defun rmail-convert-to-babyl-format ()
   (let ((count 0) (start (point-min))
@@ -306,7 +302,7 @@ Then display message number MSG."
 		t)))))))
 
 (defun rmail-output-as-mbox (file-name nomsg &optional as-seen)
-  "Convert the current buffer's text to mbox Babyl and output to FILE-NAME.
+  "Convert the current buffer's text to mbox and output to FILE-NAME.
 It alters the current buffer's text, so call with a temp buffer current.
 If FILE-NAME is visited, output into its buffer instead.
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
@@ -478,8 +474,9 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 			   (if (= num-appended 1) "" "s"))))))
       (kill-buffer tembuf))))
 
+;; FIXME gnus does not use this function.
 (defun rmail-output-as-seen (file-name &optional count noattribute from-gnus)
-  "Append this message to system-inbox-format mail file named FILE-NAME.
+  "Append this message to mbox file named FILE-NAME.
 A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
 When called from Lisp code, COUNT may be omitted and defaults to 1.
@@ -537,7 +534,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		(with-current-buffer tembuf
 		  (insert-buffer-substring cur beg end)
 		  ;; Convert the text to one format or another and output.
-		  (rmail-output-as-mbox file-name 
+		  (rmail-output-as-mbox file-name
 					(if noattribute 'nomsg)
 					t)))))
 
