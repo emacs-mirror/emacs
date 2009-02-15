@@ -1,3 +1,8 @@
+2009-02-15  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmailedit.el (rmail-edit-diff-headers):
+	Delete spurious reference to OLD.
+
 2009-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (with-buffer-prepared-for-jit-lock): Swap the `let' and
