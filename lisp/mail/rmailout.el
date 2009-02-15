@@ -130,6 +130,9 @@ It alters the current buffer's text, so it should be a temp buffer."
 	    (goto-char (point-max))
 	    (insert-buffer-substring tembuf)))))))
 
+;; Called only if rmail-summary-exists, which means rmailsum is loaded.
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+
 (defun rmail-output-to-babyl-buffer (tembuf msg)
   "Copy msg in TEMBUF from BEG to END into this old R-mail BABYL buffer.
 Do what is necessary to make babyl R-mail know about the new message.
@@ -358,9 +361,6 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
 	    (narrow-to-region (point-min) (1+ (buffer-size)))
 	    (goto-char (point-max))
 	    (insert-buffer-substring tembuf)))))))
-
-;; Called only if rmail-summary-exists, which means rmailsum is loaded.
-(declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-output-to-rmail-buffer (tembuf msg)
   "Copy msg in TEMBUF from BEG to END into this Rmail buffer.
