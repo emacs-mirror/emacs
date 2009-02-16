@@ -52,12 +52,12 @@ static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static void alertfn(int alertcode, int whycode)
 {
   switch(alertcode) {
-    case MPS_ALERT_COLLECTION_START: {
-      printf("\n^^^^^^ START (why: %d) ^^^^^^\n", whycode);
+    case MPS_ALERT_COLLECTION_BEGIN: {
+      printf("\n^^^^^^ BEGIN (why: %d) ^^^^^^\n", whycode);
       break;
     }
-    case MPS_ALERT_COLLECTION_STOP: {
-      printf("vvvvvv STOP (why: %d)  vvvvvv\n", whycode);
+    case MPS_ALERT_COLLECTION_END: {
+      printf("vvvvvv END (why: %d)  vvvvvv\n", whycode);
       break;
     }
     default: {
