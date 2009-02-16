@@ -3,6 +3,13 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
+ 
+ 
+Warning: this file has been hacked (in branch/2008-10-30/timing) 
+to enable _gc_start messages, but never get them -- this is a 
+(minor) client error.
+ 
+ 
  *
  * DESIGN
  *
