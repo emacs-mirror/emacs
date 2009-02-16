@@ -79,6 +79,8 @@ Started' chapter.
 @end ifinfo
 @end ifnottex
 
+@insertcopying 
+
 @menu
 * Getting Started::             Getting started using an Info reader.
 * Advanced::                    Advanced Info commands.

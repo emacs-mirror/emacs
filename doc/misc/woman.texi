@@ -4,7 +4,7 @@
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <Mon 30-Jun-2008 19:59:42 gm on grasmoor>
+@set UPDATED Time-stamp: <2009-02-16 09:25:50 karl>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -82,6 +82,8 @@ Manual Last Updated @value{UPDATED}
 Queen Mary and Westfield College (University of London)
 Mile End Road, London E1 4NS, UK
 @end display
+
+@insertcopying
 @end ifnottex
 
 @menu

@@ -62,7 +62,6 @@ Public License.''
 @end direntry
 
 @c Title Page
-@setchapternewpage odd
 @titlepage
 @title The MH-E Manual
 @subtitle Version @value{VERSION}@value{EDITION}

@@ -51,6 +51,9 @@ developing GNU and promoting software freedom.''
 @ifnottex
 @node Top
 @top Newsticker
+
+@insertcopying 
+
 @end ifnottex
 
 @menu

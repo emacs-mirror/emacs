@@ -2,10 +2,6 @@
 @c %**start of header
 @setfilename ../../info/idlwave
 @settitle IDLWAVE User Manual
-@dircategory Emacs
-@direntry
-* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
-@end direntry
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -43,6 +39,11 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
+@dircategory Emacs
+@direntry
+* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
+@end direntry
+
 @titlepage
 @title IDLWAVE User Manual
 @subtitle Emacs major mode and shell for IDL
@@ -52,17 +53,16 @@ developing GNU and promoting software freedom.''
 @vskip 0pt plus 1filll
 @insertcopying
 @end titlepage
+
 @contents
 
-@page
-
 @ifnottex
-
 @node Top, Introduction, (dir), (dir)
 
 IDLWAVE is a package which supports editing source code written in the
 Interactive Data Language (IDL), and running IDL as an inferior shell.
 
+@insertcopying 
 @end ifnottex
 
 @menu

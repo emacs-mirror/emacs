@@ -33,10 +33,11 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @ifnottex
 @node Top, Basics, (dir), (dir)
 @top rcirc Manual
-@end ifnottex
 
 @code{rcirc} is an Emacs IRC client.
 
@@ -44,6 +45,10 @@ IRC (Internet Relay Chat) is a multi-user chat protocol.  Users
 communicate with each other in real-time.  Communication occurs both in
 topic channels which are collections of many users, or privately, with
 just one other user.
+
+@insertcopying
+
+@end ifnottex
 
 @menu
 * Basics::

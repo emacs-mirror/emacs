@@ -5,7 +5,6 @@
 @c %**end of header
 
 @copying
-
 This manual documents nxml-mode, an Emacs major mode for editing
 XML with RELAX NG support. 
 
@@ -39,8 +38,9 @@ license to the document, as described in section 6 of the license.
 @node Top
 @top nXML Mode
 
-This manual documents nxml-mode, an Emacs major mode for editing
-XML with RELAX NG support.  This manual is not yet complete.
+@insertcopying
+
+This manual is not yet complete.
 
 @menu
 * Completion::                  

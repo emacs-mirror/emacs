@@ -47,6 +47,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @node Top
 @top Emacs MIME
 
@@ -65,6 +67,10 @@ Header Extensions for Non-@acronym{ASCII} Text), RFC2048 (Registration
 Procedures), RFC2049 (Conformance Criteria and Examples).  It is highly
 recommended that anyone who intends writing @acronym{MIME}-compliant software
 read at least RFC2045 and RFC2047.
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @menu
 * Decoding and Viewing::  A framework for decoding and viewing.
@@ -1873,8 +1879,6 @@ Documentation of the text/plain format parameter for flowed text.
 @chapter Index
 @printindex cp
 
-@summarycontents
-@contents
 @bye
 
 

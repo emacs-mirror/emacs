@@ -1,12 +1,10 @@
 \input texinfo.tex
-
 @c %**start of header
 @setfilename ../../info/widget
 @settitle The Emacs Widget Library
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@afourpaper
 @c %**end of header
 
 @copying
@@ -33,9 +31,13 @@ developing GNU and promoting software freedom.''
                            facility.
 @end direntry
 
+@contents
+
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
 @top The Emacs Widget Library
+
+@insertcopying
 
 @menu
 * Introduction::
@@ -1826,8 +1828,6 @@ This is an alphabetical listing of all concepts, functions, commands,
 variables, and widgets described in this manual.
 @printindex cp
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

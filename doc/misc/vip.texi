@@ -1,5 +1,4 @@
 \input texinfo
-
 @setfilename ../../info/vip
 @settitle VIP
 
@@ -34,12 +33,13 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@finalout
+@contents
+
 @dircategory Emacs
 @direntry
 * VIP: (vip).		An older VI-emulation for Emacs.
 @end direntry
-
-@finalout
 
 @ifnottex
 @node Top, Survey,, (DIR)
@@ -59,6 +59,8 @@ you start using VIP.  Other nodes may be visited as needed.
 Comments and bug reports are welcome.  Please send messages to
 @code{ms@@Sail.Stanford.Edu} if you are outside of Japan and to
 @code{masahiko@@sato.riec.tohoku.junet} if you are in Japan.@refill
+
+@insertcopying 
 
 @end ifnottex
 
@@ -1943,8 +1945,6 @@ file.
 @unnumbered Concept Index
 @printindex cp
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

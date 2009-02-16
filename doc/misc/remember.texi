@@ -2,14 +2,8 @@
 @c %**start of header
 @setfilename ../../info/remember
 @settitle Remember Manual
-@c %**end of header
-
-@dircategory Emacs
-@direntry
-* Remember: (remember). Simple information manager for Emacs
-@end direntry
-
 @syncodeindex fn cp
+@c %**end of header
 
 @copying
 This manual is for Remember Mode, version 1.9
@@ -31,6 +25,11 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
+@dircategory Emacs
+@direntry
+* Remember: (remember). Simple information manager for Emacs
+@end direntry
+
 @titlepage
 @title Guide to Remember Mode
 @subtitle a simple information manager
@@ -43,7 +42,6 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
-@c So the toc is printed at the start
 @contents
 
 @ifnottex

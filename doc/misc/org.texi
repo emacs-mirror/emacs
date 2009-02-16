@@ -6,11 +6,6 @@
 @set VERSION 6.21b
 @set DATE February 2009
 
-@dircategory Emacs
-@direntry
-* Org Mode: (org).      Outline-based notes management and organizer
-@end direntry
-
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers webpage}
 @set AUTHOR Carsten Dominik
@@ -55,6 +50,11 @@ separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
+
+@dircategory Emacs
+@direntry
+* Org Mode: (org).      Outline-based notes management and organizer
+@end direntry
 
 @titlepage
 @title The Org Manual

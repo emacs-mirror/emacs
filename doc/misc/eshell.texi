@@ -30,8 +30,6 @@ developing GNU and promoting software freedom.''
 * Eshell: (eshell).     A command shell implemented in Emacs Lisp.
 @end direntry
 
-@setchapternewpage on
-
 @titlepage
 @sp 4
 @c The title is printed in a large font.
@@ -64,13 +62,15 @@ developing GNU and promoting software freedom.''
 @node Top, What is Eshell?, (dir), (dir)
 @top Eshell
 
-This manual documents Eshell, a shell-like command interpretor
+Eshell is a shell-like command interpretor
 implemented in Emacs Lisp.  It invokes no external processes except for
 those requested by the user.  It is intended to be a functional
 replacement for command shells such as @command{bash}, @command{zsh},
 @command{rc}, or @command{4dos}; since Emacs itself is capable of
 handling the sort of tasks accomplished by those tools.
 @c This manual is updated to release 2.4 of Eshell.
+
+@insertcopying
 @end ifnottex
 
 @menu

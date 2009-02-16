@@ -58,6 +58,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @ifnottex
 @node Top
 @top Forms Mode
@@ -72,6 +74,8 @@ Forms mode is not a simple major mode, but requires two files to do its
 job: a control file and a data file.  The data file holds the
 actual data to be presented.  The control file describes
 how to present it.
+
+@insertcopying 
 
 @menu
 * Forms Example::               An example: editing the password data base.
@@ -971,7 +975,6 @@ Software Foundation.  Thanks, Richard!
 @unnumbered Index
 @printindex cp
 
-@contents
 @bye
 
 @ignore

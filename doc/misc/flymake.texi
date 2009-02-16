@@ -47,6 +47,7 @@ developing GNU and promoting software freedom.''
 @ifnottex
 @node Top
 @top GNU Flymake
+@insertcopying 
 @end ifnottex
 
 @menu

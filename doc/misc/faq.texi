@@ -4,8 +4,6 @@
 @settitle GNU Emacs FAQ
 @c %**end of header
 
-@setchapternewpage odd
-
 @c This is used in many places
 @set VER 23.0.90
 
@@ -56,6 +54,8 @@ distribution.]
 @insertcopying
 @end titlepage
 
+@contents
+
 @node    Top, FAQ notation, (dir), (dir)
 
 This is the GNU Emacs FAQ, last updated on @today{}.
@@ -63,6 +63,10 @@ This is the GNU Emacs FAQ, last updated on @today{}.
 This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
 or have any suggestions, please use @kbd{M-x report-emacs-bug} to report
 them.
+
+@ifnottex
+@insertcopying
+@end ifnottex 
 
 @menu
 * FAQ notation::
@@ -5492,7 +5496,6 @@ part of the Gnus distribution.
 @unnumbered Concept Index
 @printindex cp
 
-@contents
 @bye
 
 @ignore

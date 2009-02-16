@@ -127,8 +127,6 @@ developing GNU and promoting software freedom.''
 @page
 
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 @insertcopying
 @end titlepage
 
@@ -160,6 +158,8 @@ For help in the Emacs Info system (which you are using to read this
 file), type @kbd{?}.  (You can also type @kbd{h} to run through a
 longer Info tutorial.)
 @end ifinfo
+
+@insertcopying
 
 @menu
 * Getting Started::       General description and overview.

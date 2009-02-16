@@ -1,5 +1,4 @@
 \input texinfo   @c -*-texinfo-*-
-
 @setfilename ../../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
 @syncodeindex fn cp
@@ -38,6 +37,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @node Top, , , (dir)Top
 @comment  node-name,  next,  previous,  up
 
@@ -66,6 +67,10 @@ Throughout this manual, activities are defined as `clicking on', or
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
+
+@ifnottex
+@insertcopying 
+@end ifnottex
 
 @menu
 * Introduction::     Basics of speedbar.

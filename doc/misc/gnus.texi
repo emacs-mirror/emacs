@@ -320,10 +320,6 @@ developing GNU and promoting software freedom.''
 @end iflatex
 @end iftex
 
-@ifnottex
-@insertcopying
-@end ifnottex
-
 @dircategory Emacs
 @direntry
 * Gnus: (gnus).         The newsreader Gnus.
@@ -331,8 +327,6 @@ developing GNU and promoting software freedom.''
 @iftex
 @finalout
 @end iftex
-@setchapternewpage odd
-
 
 
 @titlepage
@@ -344,6 +338,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@summarycontents
+@contents
 
 @node Top
 @top The Gnus Newsreader
@@ -357,6 +353,10 @@ luck.
 
 @c Adjust ../Makefile.in if you change the following line:
 This manual corresponds to Gnus v5.13
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @end ifinfo
 
@@ -30505,7 +30505,7 @@ Below is a slightly shortened version of the @code{nndir} back end.
 
 @lisp
 ;;; @r{nndir.el --- single directory newsgroup access for Gnus}
-;; @r{Copyright (C) 1995,96 Free Software Foundation, Inc.}
+;; @r{Copyright (C) 1995,1996 Free Software Foundation, Inc.}
 
 ;;; @r{Code:}
 
@@ -31265,8 +31265,6 @@ former).  The manual is unambiguous, but it can be confusing.
 @chapter Key Index
 @printindex ky
 
-@summarycontents
-@contents
 @bye
 
 @iftex

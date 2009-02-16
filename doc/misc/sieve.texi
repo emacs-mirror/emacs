@@ -1,5 +1,4 @@
 \input texinfo                  @c -*-texinfo-*-
-
 @setfilename ../../info/sieve
 @settitle Emacs Sieve Manual
 @synindex fn cp
@@ -44,13 +43,13 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@summarycontents
+@contents
 
 @node Top
 @top Sieve Support for Emacs
 
-This manual documents the Emacs Sieve package.
-
-It is intended as a users manual for Sieve Mode and Manage Sieve, and
+This is intended as a users manual for Sieve Mode and Manage Sieve, and
 as a reference manual for the @samp{sieve-manage} protocol Emacs Lisp
 API.
 
@@ -58,7 +57,9 @@ Sieve is a language for server-side filtering of mail.  The language
 is documented in RFC 3028.  This manual does not attempt to document
 the language, so keep RFC 3028 around.
 
-A good online Sieve resources is @uref{http://www.cyrusoft.com/sieve/}.
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @menu
 * Installation::          Getting ready to use the package.
@@ -352,8 +353,6 @@ A Protocol for Remotely Managing Sieve Scripts
 @unnumbered Index
 @printindex cp
 
-@summarycontents
-@contents
 @bye
 
 @c End:

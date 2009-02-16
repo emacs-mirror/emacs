@@ -74,6 +74,9 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@summarycontents
+@contents
+
 @ifnottex
 @node Top,,,(dir)
 
@@ -85,6 +88,8 @@ Don't be discouraged by the size of this manual, which covers
 @b{Ref@TeX{}} can be summarized on two pages (@pxref{RefTeX in a
 Nutshell}).  You can go back later to other parts of this document when
 needed.
+
+@insertcopying 
 
 @menu
 * Introduction::                     Quick-Start information.
@@ -5883,8 +5888,6 @@ released on 7 Jan 1997.
 @unnumbered Index
 @printindex cp
 
-@summarycontents
-@contents
 @bye
 
 @ignore

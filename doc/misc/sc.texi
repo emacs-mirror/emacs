@@ -49,12 +49,16 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@summarycontents
+@contents
+
 @ifnottex
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
 
-This document describes Supercite, an Emacs package for citing and
-attributing replies to mail and news messages.  The manual is divided
+@insertcopying 
+
+The manual is divided
 into the following chapters.
 
 @menu
@@ -1935,9 +1939,6 @@ its @var{variable} name.
 @sp 2
 @end iftex
 @printindex vr
-@setchapternewpage odd
-@summarycontents
-@contents
 @bye
 
 @ignore
