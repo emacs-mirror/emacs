@@ -246,7 +246,7 @@ void TracePostStartMessage(Trace trace)
   AVER(!arena->tsMessage[ti]);
 
   if(arena->alertCollection) {
-    (*arena->alertCollection)(MPS_ALERT_COLLECTION_START, trace->why);
+    (*arena->alertCollection)(MPS_ALERT_COLLECTION_BEGIN, trace->why);
   }
 }
 
@@ -417,7 +417,7 @@ void TracePostMessage(Trace trace)
   AVER(!arena->tMessage[ti]);
 
   if(arena->alertCollection) {
-    (*arena->alertCollection)(MPS_ALERT_COLLECTION_STOP, trace->why);
+    (*arena->alertCollection)(MPS_ALERT_COLLECTION_END, trace->why);
   }
 }
 
