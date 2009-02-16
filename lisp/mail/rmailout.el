@@ -393,23 +393,29 @@ display message number MSG."
 ;;;###autoload
 (defun rmail-output (file-name &optional count noattribute from-gnus)
   "Append this message to mail file FILE-NAME.
-This works with both mbox format and Babyl format files,
-outputting in the appropriate format for each.
+Writes mbox format, unless FILE-NAME exists and is Babyl format, in which
+case it writes Babyl.
 
 Interactively, the default file name comes from `rmail-default-file',
 which is updated to the name you use in this command.  In all uses, if
 FILE-NAME is not absolute, it is expanded with the directory part of
 `rmail-default-file'.
 
-A prefix argument COUNT says to output that many consecutive messages,
-starting with the current one.  Deleted messages are skipped and don't count.
-When called from Lisp code, COUNT may be omitted and defaults to 1.
+If a buffer is visiting FILE-NAME, adds the text to that buffer
+rather than saving the file directly.  If the buffer is an Rmail
+buffer, updates it accordingly.
 
-This command always outputs the complete message header,
-even if the header display is currently pruned.
+This command always outputs the complete message header, even if
+the header display is currently pruned.
 
-The optional third argument NOATTRIBUTE, if non-nil, says not
-to set the `filed' attribute, and not to display a message.
+Optional prefix argument COUNT (default 1) says to output that
+many consecutive messages, starting with the current one (ignoring
+deleted messages).  If `rmail-delete-after-output' is non-nil, deletes
+messages after output.
+
+The optional third argument NOATTRIBUTE, if non-nil, says not to
+set the `filed' attribute, and not to display a \"Wrote file\"
+message (if writing a file directly).
 
 The optional fourth argument FROM-GNUS is set when called from Gnus."
   (interactive
@@ -476,21 +482,11 @@ The optional fourth argument FROM-GNUS is set when called from Gnus."
       (kill-buffer tembuf))))
 
 ;; FIXME gnus does not use this function.
+;; FIXME this duplicates much code from rmail-output.
 (defun rmail-output-as-seen (file-name &optional count noattribute from-gnus)
   "Append this message to mbox file named FILE-NAME.
-A prefix argument COUNT says to output that many consecutive messages,
-starting with the current one.  Deleted messages are skipped and don't count.
-When called from Lisp code, COUNT may be omitted and defaults to 1.
-
-This outputs the message header as you see it.
-
-The default file name comes from `rmail-default-file',
-which is updated to the name you use in this command.
-
-The optional third argument NOATTRIBUTE, if non-nil, says not
-to set the `filed' attribute, and not to display a message.
-
-The optional fourth argument FROM-GNUS is set when called from Gnus."
+The details are as for `rmail-output', except that the header is output
+as currently seen, and that this function cannot write to Babyl files."
   (interactive
    (list (rmail-output-read-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
