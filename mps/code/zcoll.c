@@ -67,6 +67,13 @@
 #include <time.h>  /* clock */
 
 
+#ifdef MPS_BUILD_MV
+/* MSVC warning 4996 = stdio / C runtime 'unsafe' */
+/* Objects to: sscanf.  See job001934. */
+#pragma warning( disable : 4996 )
+#endif
+
+
 /* testChain -- generation parameters for the test */
 #define genCOUNT 2
 static mps_gen_param_s testChain[genCOUNT] = {
