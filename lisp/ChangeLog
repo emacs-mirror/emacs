@@ -1,5 +1,10 @@
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-list-categories): Fix typos.
+	(todos-show): Ensure file is in todos-mode.
+
+2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-header): Remove defvar.
 	(todos-add-category): Comment out code that inserts and updates
 	the file local variables first line of the file todos-file-do.

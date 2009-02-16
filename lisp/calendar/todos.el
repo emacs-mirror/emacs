@@ -800,7 +800,7 @@ Number of entries for each category is given by `todos-print-priorities'."
 	  (widen)
 	  (goto-char (point-max))
 	  (while (re-search-backward
-		  (concat "^" (regexp-quote (concat todo-prefix todo-category-beg))
+		  (concat "^" (regexp-quote (concat todos-prefix todos-category-beg))
 			  "\\(.*\\)\n")
 		  (point-min) t)
 	    (push (match-string-no-properties 1) categories)))))
@@ -950,6 +950,7 @@ Number of entries for each category is given by `todos-print-priorities'."
 	    (equal (expand-file-name todos-file-do) bufname)))
       (find-file todos-file-do)
     (todos-initial-setup))
+  (unless (eq major-mode 'todos-mode) (todos-mode))
   (unless todos-categories
     (setq todos-categories (todos-list-categories)))
   ;; (beginning-of-line)
