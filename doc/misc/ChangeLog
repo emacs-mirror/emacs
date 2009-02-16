@@ -1,3 +1,7 @@
+2009-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi: New file documenting auth-source.
+
 2009-02-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Org Plot): Fix link.

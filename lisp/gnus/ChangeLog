@@ -1,3 +1,7 @@
+2009-02-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-alist): Recognize Konqueror info links.
+
 2009-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-util.el (rmail-insert-rmail-file-header)

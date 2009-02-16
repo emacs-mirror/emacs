@@ -7412,7 +7412,11 @@ positives are possible."
       gnus-button-ctan-directory-regexp
       "/[-_.a-z0-9]+/[-_./a-z0-9]+[/a-z0-9]\\)")
      1 (>= gnus-button-tex-level 8) gnus-button-handle-ctan 1)
-    ;; This is info (home-grown style) <info://foo/bar+baz>
+    ;; Info Konqueror style <info:/foo/bar baz>.
+    ;; Must come before " Gnus home-grown style".
+    ("\\binfo://?\\([^'\">\n\t]+\\)"
+     0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-url 1)
+   ;; Info, Gnus home-grown style (deprecated) <info://foo/bar+baz>
     ("\\binfo://\\([^'\">\n\t ]+\\)"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-url 1)
     ;; Info GNOME style <info:foo#bar_baz>
