@@ -84,10 +84,10 @@ Set `rmail-default-file' to this name as well as returning it."
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
 
-;; Delete from the buffer header fields we don't want output.
-;; Buffer should be pre-narrowed to the header.
-;; PRESERVE is a regexp for fields NEVER to delete.
 (defun rmail-delete-unwanted-fields (preserve)
+  "Delete all headers matching `rmail-fields-not-to-output'.
+Retains headers matching the regexp PRESERVE.  The buffer should be
+narrowed to just the header."
   (if rmail-fields-not-to-output
       (save-excursion
 	(goto-char (point-min))
@@ -99,9 +99,13 @@ Set `rmail-default-file' to this name as well as returning it."
 
 (defun rmail-output-as-babyl (file-name nomsg)
   "Convert the current buffer's text to Babyl and output to FILE-NAME.
-It alters the current buffer's text, so it should be a temp buffer."
-  (let ((coding-system-for-write
-	 'emacs-mule-unix))
+Alters the current buffer's text, so it should be a temporary buffer.
+If a buffer is visiting FILE-NAME, adds the text to that buffer
+rather than saving the file directly.  If the buffer is an Rmail buffer,
+updates it accordingly.  If no buffer is visiting FILE-NAME, appends
+the text directly to FILE-NAME, and displays a \"Wrote file\" message
+unless NOMSG is a symbol (neither nil nor t)."
+  (let ((coding-system-for-write 'emacs-mule-unix))
     (save-restriction
       (goto-char (point-min))
       (search-forward "\n\n" nil 'move)
@@ -134,11 +138,10 @@ It alters the current buffer's text, so it should be a temp buffer."
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-output-to-babyl-buffer (tembuf msg)
-  "Copy msg in TEMBUF from BEG to END into this old R-mail BABYL buffer.
-Do what is necessary to make babyl R-mail know about the new message.
-Then display message number MSG."
-  ;; Turn on Auto Save mode, if it's off in this
-  ;; buffer but enabled by default.
+  "Copy message in TEMBUF into the current Babyl Rmail buffer.
+Do what is necessary to make Rmail know about the new message, then
+display message number MSG."
+  ;; Turn on Auto Save mode, if it's off in this buffer but enabled by default.
   (and (not buffer-auto-save-file-name)
        auto-save-default
        (auto-save-mode t))
@@ -152,11 +155,11 @@ Then display message number MSG."
   (narrow-to-region (point) (point-max))
   (rmail-count-new-messages t)
   (if (rmail-summary-exists)
-      (rmail-select-summary
-       (rmail-update-summary)))
+      (rmail-select-summary (rmail-update-summary)))
   (rmail-show-message-1 msg))
 
 (defun rmail-convert-to-babyl-format ()
+  "Convert the mbox message in the current buffer to Babyl format."
   (let ((count 0) (start (point-min))
 	(case-fold-search nil)
 	(buffer-undo-list t))
@@ -251,11 +254,11 @@ Then display message number MSG."
 		(symbol-name last-coding-system-used)
 		"\n")))))
 
-;; Delete the "From ..." line, creating various other headers with
-;; information from it if they don't already exist.  Now puts the
-;; original line into a mail-from: header line for debugging and for
-;; use by the rmail-output function.
 (defun rmail-nuke-pinhead-header ()
+  "Delete the \"From \" line in the current mbox message.
+The variable `rmail-unix-mail-delimiter' specifies the From line format.
+Replaces the From line with a \"Mail-from\" header.  Adds \"Date\" and
+\"From\" headers if they are not already present."
   (save-excursion
     (save-restriction
       (let ((start (point))
@@ -306,8 +309,12 @@ Then display message number MSG."
 
 (defun rmail-output-as-mbox (file-name nomsg &optional as-seen)
   "Convert the current buffer's text to mbox and output to FILE-NAME.
-It alters the current buffer's text, so call with a temp buffer current.
-If FILE-NAME is visited, output into its buffer instead.
+Alters the current buffer's text, so it should be a temporary buffer.
+If a buffer is visiting FILE-NAME, adds the text to that buffer
+rather than saving the file directly.  If the buffer is an Rmail buffer,
+updates it accordingly.  If no buffer is visiting FILE-NAME, appends
+the text directly to FILE-NAME, and displays a \"Wrote file\" message
+unless NOMSG is a symbol (neither nil nor t).
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
 	from date)
@@ -363,9 +370,9 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
 	    (insert-buffer-substring tembuf)))))))
 
 (defun rmail-output-to-rmail-buffer (tembuf msg)
-  "Copy msg in TEMBUF from BEG to END into this Rmail buffer.
-Do what is necessary to make Rmail know about the new message.
-Then display message number MSG."
+  "Copy message in TEMBUF into the current Rmail buffer.
+Do what is necessary to make Rmail know about the new message. then
+display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
     ;; Turn on Auto Save mode, if it's off in this
@@ -378,8 +385,7 @@ Then display message number MSG."
     (insert-buffer-substring tembuf)
     (rmail-count-new-messages t)
     (if (rmail-summary-exists)
-	(rmail-select-summary
-	 (rmail-update-summary)))
+	(rmail-select-summary (rmail-update-summary)))
     (rmail-show-message-1 msg)))
 
 ;;; There are functions elsewhere in Emacs that use this function;
@@ -389,8 +395,11 @@ Then display message number MSG."
   "Append this message to mail file FILE-NAME.
 This works with both mbox format and Babyl format files,
 outputting in the appropriate format for each.
-The default file name comes from `rmail-default-file',
-which is updated to the name you use in this command.
+
+Interactively, the default file name comes from `rmail-default-file',
+which is updated to the name you use in this command.  In all uses, if
+FILE-NAME is not absolute, it is expanded with the directory part of
+`rmail-default-file'.
 
 A prefix argument COUNT says to output that many consecutive messages,
 starting with the current one.  Deleted messages are skipped and don't count.
@@ -402,7 +411,7 @@ even if the header display is currently pruned.
 The optional third argument NOATTRIBUTE, if non-nil, says not
 to set the `filed' attribute, and not to display a message.
 
-The optional fourth argument FROM-GNUS is set when called from GNUS."
+The optional fourth argument FROM-GNUS is set when called from Gnus."
   (interactive
    (list (rmail-output-read-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
@@ -481,7 +490,7 @@ which is updated to the name you use in this command.
 The optional third argument NOATTRIBUTE, if non-nil, says not
 to set the `filed' attribute, and not to display a message.
 
-The optional fourth argument FROM-GNUS is set when called from GNUS."
+The optional fourth argument FROM-GNUS is set when called from Gnus."
   (interactive
    (list (rmail-output-read-file-name)
 	 (prefix-numeric-value current-prefix-arg)))
@@ -552,7 +561,15 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 ;;;###autoload
 (defun rmail-output-body-to-file (file-name)
   "Write this message body to the file FILE-NAME.
-FILE-NAME defaults, interactively, from the Subject field of the message."
+Interactively, the default file name comes from either the message
+\"Subject\" header, or from `rmail-default-body-file'.  Updates the value
+of `rmail-default-body-file' accordingly.  In all uses, if FILE-NAME
+is not absolute, it is expanded with the directory part of
+`rmail-default-body-file'.
+
+Note that this overwrites FILE-NAME (after confirmation), rather
+than appending to it.  Deletes the message after writing if
+`rmail-delete-after-output' is non-nil."
   (interactive
    (let ((default-file
 	   (or (mail-fetch-field "Subject")

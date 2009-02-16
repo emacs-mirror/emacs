@@ -1,3 +1,11 @@
+2009-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-delete-unwanted-fields)
+	(rmail-output-as-babyl, rmail-output-to-babyl-buffer)
+	(rmail-convert-to-babyl-format, rmail-nuke-pinhead-header)
+	(rmail-output-as-mbox, rmail-output-to-rmail-buffer, rmail-output)
+	(rmail-output-as-seen, rmail-output-body-to-file): Doc fixes.
+
 2009-02-15  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-output-as-seen): Doc fix.
