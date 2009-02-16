@@ -1,3 +1,7 @@
+2009-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fcheck_coding_systems_region): Fix typo; Qt -> Qnil.
+
 2009-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispextern.h (struct iterator_stack_entry): New line_wrap
