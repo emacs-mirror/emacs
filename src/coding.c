@@ -8463,7 +8463,7 @@ START may be a string.  In that case, check if the string is
 encodable, and the value contains indices to the string instead of
 buffer positions.  END is ignored.
 
-If the current buffer (or START if it is string) is unibyte, the value
+If the current buffer (or START if it is a string) is unibyte, the value
 is nil.  */)
      (start, end, coding_system_list)
      Lisp_Object start, end, coding_system_list;
@@ -8478,7 +8478,7 @@ is nil.  */)
   if (STRINGP (start))
     {
       if (!STRING_MULTIBYTE (start)
-	  && SCHARS (start) != SBYTES (start))
+	  || SCHARS (start) == SBYTES (start))
 	return Qnil;
       start_byte = 0;
       end_byte = SBYTES (start);
