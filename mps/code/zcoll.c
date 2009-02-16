@@ -25,7 +25,8 @@
  *           random) in the specified myroot array slots, and 
  *           drops the rest (which therefore become garbage)
  *   Katalog -- (will be renamed Catalog) makes a Catalog, which 
- *           is a 40 MB 4-level tree of 10^5 objects; see .catalog
+ *           is a 40 MB 4-level tree of 10^5 objects; see .catalog;
+ *           see also .catalog.broken.
  *   Collect -- request a synchronous full garbage collection
  *
  *
@@ -331,6 +332,17 @@ static void CatalogCheck(void)
          Catalogs, Pages, Arts, Polys);
 }
 
+
+/* CatalogDo -- make a Catalog and its tree of objects
+ *
+ * .catalog.broken: this code, when compiled with 
+ * moderate optimization, may have ambiguous interior pointers but 
+ * lack corresponding ambiguous base pointers to MPS objects.  This 
+ * means the interior pointers are unmanaged references, and the 
+ * code goes wrong.  The hack in poolamc.c#4 cures this, but not very 
+ * nicely.  For further discussion, see:
+ *    <http://info.ravenbrook.com/mail/2009/02/05/18-05-52/0.txt>
+ */
 static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 {
   mps_word_t v;
@@ -596,10 +608,12 @@ int main(int argc, char **argv)
   /* The most basic scripts */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  /* testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect."); */
+  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
+  /* See .catalog.broken.
   testscriptA("Arena(size 16777216), Katalog(), Collect.");
+  */
 
   fflush(stdout); /* synchronize */
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
