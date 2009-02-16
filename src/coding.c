@@ -8461,7 +8461,10 @@ value is nil.
 
 START may be a string.  In that case, check if the string is
 encodable, and the value contains indices to the string instead of
-buffer positions.  END is ignored.  */)
+buffer positions.  END is ignored.
+
+If the current buffer (or START if it is string) is unibyte, the value
+is nil.  */)
      (start, end, coding_system_list)
      Lisp_Object start, end, coding_system_list;
 {
@@ -8492,7 +8495,7 @@ buffer positions.  END is ignored.  */)
       start_byte = CHAR_TO_BYTE (XINT (start));
       end_byte = CHAR_TO_BYTE (XINT (end));
       if (XINT (end) - XINT (start) == end_byte - start_byte)
-	return Qt;
+	return Qnil;
 
       if (XINT (start) < GPT && XINT (end) > GPT)
 	{
