@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "8. Februar 2009, 19:24:05 (ulf)"
+;; Time-stamp:  "16. Februar 2009, 21:25:09 (ulf)"
 
 ;; ======================================================================
 
@@ -1261,6 +1261,9 @@ Note: does not update the layout."
               (concat newsticker-dir "/groups")))
          (buf (and (file-exists-p filename)
                    (find-file-noselect filename))))
+    (if (and (file-exists-p newsticker-groups-filename)
+             (y-or-n-p (format "Delete old newsticker groups file? "))
+             (delete-file newsticker-groups-filename)))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))
