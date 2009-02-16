@@ -131,7 +131,7 @@ void rnd_verify(int depth)
 {
   unsigned long orig_seed = seed;
   unsigned long i;
-  unsigned long r;
+  unsigned long r = 0;
   
   /* 0: the next value from rnd() matches rnd_verify_*() */
   if(depth >= 0) {
