@@ -1,11 +1,11 @@
 2009-02-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fcheck_coding_systems_region): Fix typo; Qt -> Qnil.
+	(Bug#1723)
 
 2009-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* dispextern.h (struct iterator_stack_entry): New line_wrap
-	member.
+	* dispextern.h (struct iterator_stack_entry): New line_wrap member.
 
 	* xdisp.c (push_it, pop_it): Save and restore line_wrap.
 	(handle_line_prefix): Suppress wrapping of wrap prefixes.
@@ -24,10 +24,10 @@
 
 	* nsmenu.m (pop_down_menu): Check popup_activated_flag.
 	(ns_popup_dialog, EmacsDialogPanel-runDialogAt:): Let
-	pop_down_menu do the cleanup work as it is always called. (Bug#2154)
+	pop_down_menu do the cleanup work as it is always called.  (Bug#2154)
 
 	* nsfont.m (nsfont_make_fontset_for_font): For now, don't try to
-	set fontset font for "mathematical-" sub-scripts. (Bug #2218)
+	set fontset font for "mathematical-" sub-scripts.  (Bug #2218)
 
 2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
