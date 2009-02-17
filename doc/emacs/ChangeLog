@@ -1,3 +1,8 @@
+2009-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* basic.texi (Position Info): M-x count-lines-region is not always on
+	M-=.  (Bug#2269)
+
 2009-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Holidays, Displaying the Diary): Update for new marker
