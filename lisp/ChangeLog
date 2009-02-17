@@ -1,5 +1,7 @@
 2009-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
+	* net/newst-treeview.el (newsticker--treeview-load): Remove bogus `if'.
+
 	* progmodes/cc-menus.el (cc-imenu-objc-function): Doc fix.
 
 2009-02-17  Miles Bader  <miles@gnu.org>

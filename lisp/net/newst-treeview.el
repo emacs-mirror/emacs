@@ -1261,9 +1261,9 @@ Note: does not update the layout."
               (concat newsticker-dir "/groups")))
          (buf (and (file-exists-p filename)
                    (find-file-noselect filename))))
-    (if (and (file-exists-p newsticker-groups-filename)
-             (y-or-n-p (format "Delete old newsticker groups file? "))
-             (delete-file newsticker-groups-filename)))
+    (and (file-exists-p newsticker-groups-filename)
+	 (y-or-n-p (format "Delete old newsticker groups file? "))
+	 (delete-file newsticker-groups-filename))
     (when buf
       (set-buffer buf)
       (goto-char (point-min))
@@ -1551,7 +1551,7 @@ is activated."
            (widget-apply-action node)))))
 
 (defun newsticker--treeview-first-feed ()
-  "Jump to the depth-first feed in the newsticker-groups tree." 
+  "Jump to the depth-first feed in the newsticker-groups tree."
   (newsticker-treeview-jump
    (car (reverse (newsticker--group-get-feeds newsticker-groups t)))))
 
@@ -1603,7 +1603,7 @@ Return t if a new feed was activated, nil otherwise."
               (not (eq new cur)))
           nil))
       nil)))
-  
+
 (defun newsticker-treeview-next-page ()
   "Scroll item buffer."
   (interactive)
