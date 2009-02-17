@@ -1726,7 +1726,9 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
-Just inserts the text, and runs `compilation-filter-hook'."
+Just inserts the text,
+handles carriage motion (see `comint-inhibit-carriage-motion'),
+and runs `compilation-filter-hook'."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
@@ -1739,6 +1741,8 @@ Just inserts the text, and runs `compilation-filter-hook'."
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.
               (insert string)
+              (unless comint-inhibit-carriage-motion
+                (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               (run-hooks 'compilation-filter-hook))
           (goto-char pos))))))
