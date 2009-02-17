@@ -132,6 +132,8 @@ Also Running Shell Commands from Emacs
 and Sending Mail and Registers and Minibuffer.
 @end ignore
 
+@insertcopying
+
 @menu
 * Distrib::	        How to get the latest Emacs distribution.
 * Copying::	        The GNU General Public License gives you permission
@@ -1082,10 +1084,11 @@ What is not allowed is to try to prevent others from further sharing
 any version of GNU Emacs that they might get from you.  The precise
 conditions are found in the GNU General Public License that comes with
 Emacs and also appears in this manual@footnote{This manual is itself
-covered by the GNU Free Documentation License.  This license is
-similar in spirit to the General Public License, but is more suitable
-for documentation.  @xref{GNU Free Documentation License}.}.
-@xref{Copying}.
+covered by the GNU Free Documentation License (see the reverse title
+page in the printed manual or view the full source for online formats
+to see the precise conditions).  This license is similar in spirit to
+the General Public License, but is more suitable for documentation.
+@xref{GNU Free Documentation License}.}.  @xref{Copying}.
 
 One way to get a copy of GNU Emacs is from someone else who has it.
 You need not ask for our permission to do so, or tell any one else;
