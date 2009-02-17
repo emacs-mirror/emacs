@@ -924,6 +924,7 @@ corresponding remote host.
 
 ** Rmail
 
++++
 *** Rmail no longer converts the messages to Babyl format.
 Instead, it keeps them in their original mbox format, both on disk and
 in Rmail buffers, and does conversion and decoding when a message is
@@ -935,12 +936,27 @@ conversion, but it can take a few minutes, depending on how fast is
 your machine and on the size of the file.  You should find the rest of
 Rmail usage unaltered.
 
+However, M-x set-rmail-inbox-list now lasts only for one session
+because there is no way to save the list of inbox files in an
+mbox-format file.
+
 FIXME: Add more mbox merge details
 
 *** The command `rmail-redecode-body' no longer accepts the optional arg RAW.
 Since Rmail now holds messages in their original undecoded form in a
 separate buffer, `rmail-redecode-body' no longer encodes the original
 message, and therefore there should be no need to avoid encoding it.
+
++++
+*** The o command is now `rmail-output'.  It is an all-purpose command
+for copying messages from Rmail and appending them to files.  It
+handles Babyl-format files as well as mbox-format files, and it
+handles both kinds properly when they are visited in Emacs.  It always
+copies the full headers of the message.
+
++++
+*** The C-o command is now `rmail-output-as-seen'.  It uses
+the message as displayed, appending it to an mbox file.
 
 ** TeX modes
 ---
