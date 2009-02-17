@@ -186,7 +186,10 @@ Bool GlobalsCheck(Globals arenaGlobals)
       /* <design/arena/#trace.invalid> */
       CHECKL(trace->sig == SigInvalid);
     }
+    /* <design/message-gc/> */
+    CHECKL(TraceIdMessagesCheck(arena, ti));
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
+
   for(rank = 0; rank < RankLIMIT; ++rank)
     CHECKL(RingCheck(&arena->greyRing[rank]));
   CHECKL(RingCheck(&arena->chainRing));
@@ -223,6 +226,8 @@ Res GlobalsInit(Globals arenaGlobals)
 {
   Arena arena;
   Index i;
+  TraceId ti;
+  Trace trace;
   Rank rank;
 
   /* This is one of the first things that happens, */
@@ -271,6 +276,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->formatSerial = (Serial)0;
   RingInit(&arena->messageRing);
   arena->enabledMessageTypes = NULL;
+  arena->droppedMessages = 0;
   arena->isFinalPool = FALSE;
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
@@ -286,10 +292,14 @@ Res GlobalsInit(Globals arenaGlobals)
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
 
- for (i=0; i < TraceLIMIT; i++) {
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     /* <design/arena/#trace.invalid> */
-    arena->trace[i].sig = SigInvalid;
-  }
+    arena->trace[ti].sig = SigInvalid;
+    /* <design/message-gc/#lifecycle> */
+    arena->tsMessage[ti] = NULL;
+    arena->tMessage[ti] = NULL;
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
+
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
   STATISTIC(arena->writeBarrierHitCount = 0);
@@ -316,6 +326,8 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   Arena arena;
   Res res;
   void *p;
+  TraceId ti;
+  Trace trace;
 
   AVERT(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
@@ -330,6 +342,13 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
     arena->enabledMessageTypes = v;
     BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
   }
+  
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
+    /* <design/message-gc/#lifecycle> */
+    res = TraceIdMessagesCreate(arena, ti);
+    if(res != ResOK)
+      return res;
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   res = ControlAlloc(&p, arena, LockSize(), FALSE);
   if (res != ResOK)
@@ -379,6 +398,8 @@ void GlobalsFinish(Globals arenaGlobals)
 void GlobalsPrepareToDestroy(Globals arenaGlobals)
 {
   Arena arena;
+  TraceId ti;
+  Trace trace;
 
   AVERT(Globals, arenaGlobals);
 
@@ -391,11 +412,27 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* destroyed would lead to a crash just the same. */
   LockFinish(arenaGlobals->lock);
 
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
+    /* <design/message-gc/#lifecycle> */
+    TraceIdMessagesDestroy(arena, ti);
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
+
+  /* report dropped messages (currently in diagnostic varieties only) */
+  if(arena->droppedMessages > 0) {
+    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_dropped",
+      "arena->droppedMessages = $U", (WriteFU)arena->droppedMessages,
+      NULL ));
+  }
+
   /* .message.queue.empty: Empty the queue of messages before */
   /* proceeding to finish the arena.  It is important that this */
   /* is done before destroying the finalization pool as otherwise */
   /* the message queue would have dangling pointers to messages */
   /* whose memory has been unmapped. */
+  if(MessagePoll(arena)) {
+    DIAG_SINGLEF(( "GlobalsPrepareToDestroy_queue",
+      "Message queue not empty", NULL ));
+  }
   MessageEmpty(arena);
 
   /* throw away the BT used by messages */

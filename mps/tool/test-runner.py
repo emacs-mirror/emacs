@@ -119,6 +119,7 @@ runtestlist([
     "awlut",
     "awluthe",
     "mpsicv",
+    "zmess",
     "messtest",
  ], ["we", "hi", "di", "ci"], testout)
 
