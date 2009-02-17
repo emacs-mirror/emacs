@@ -66,6 +66,7 @@
 #endif
 #include <stdlib.h>
 #include <time.h>  /* clock */
+#include <string.h>  /* strlen */
 
 
 #ifdef MPS_BUILD_MV
@@ -414,11 +415,13 @@ static void checksi(int si, int si_shouldBe, const char *script, const char *scr
 static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 {
   const char *scriptAll = script;
+  const char *cmd;
   int si, sb;  /* sscanf items, sscanf bytes */
 
   while(*script != '\0') {
-    switch(*script) {
-      case 'C': {
+    do {  /* to allow break */
+      cmd = "Collect";
+      if(0 == strncmp(script, cmd, strlen(cmd))) {
         si = sscanf(script, "Collect%n",
                        &sb);
         checksi(si, 0, script, scriptAll);
@@ -427,7 +430,9 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         mps_arena_collect(arena);
         break;
       }
-      case 'K': {
+
+      cmd = "Katalog";
+      if(0 == strncmp(script, cmd, strlen(cmd))) {
         si = sscanf(script, "Katalog()%n",
                        &sb);
         checksi(si, 0, script, scriptAll);
@@ -436,7 +441,9 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         CatalogDo(arena, ap);
         break;
       }
-      case 'M': {
+
+      cmd = "Make";
+      if(0 == strncmp(script, cmd, strlen(cmd))) {
         unsigned keepCount = 0;
         unsigned long objCount = 0;
         unsigned keepTotal = 0;
@@ -473,19 +480,23 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
 
         break;
       }
-      case ' ':
-      case ',':
-      case '.': {
+      
+      if(*script == ' '
+         || *script == ','
+         || *script == '.') {
         script++;
         break;
       }
-      default: {
+      
+      /* default: */
+      {
         printf("unknown script command %c (script %s).\n",
                *script, scriptAll);
         cdie(FALSE, "unknown script command");
         return;
       }
-    }
+    } while(0);
+    
     get(arena);
   }
 
