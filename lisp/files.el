@@ -4541,7 +4541,12 @@ this happens by default."
 	  (make-directory-internal dir)
 	(let ((dir (directory-file-name (expand-file-name dir)))
 	      create-list)
-	  (while (not (file-exists-p dir))
+	  (while (and (not (file-exists-p dir))
+		      ;; If directory is its own parent, then we can't
+		      ;; keep looping forever
+		      (not (equal dir
+				  (directory-file-name
+				   (file-name-directory dir)))))
 	    (setq create-list (cons dir create-list)
 		  dir (directory-file-name (file-name-directory dir))))
 	  (while create-list
