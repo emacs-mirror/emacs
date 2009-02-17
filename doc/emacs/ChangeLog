@@ -1,3 +1,20 @@
+2009-02-17  Richard M Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Mention Babyl format.
+
+	* emacs.texi (Top): Delete `Out of Rmail' from subnode menu.
+
+	* rmail.texi: Update for mbox format.
+	Various small fixes, as well as the following.
+	(Out of Rmail): Node deleted.
+	(Rmail): Update menu.
+	(Rmail Files): Comment out set-rmail-inbox-list.
+	Document rmail-inbox-list instead.
+	(Rmail Output): Substantial changes since C-o is now
+	rmail-output-as-seen and o is rmail-output.
+	(Rmail Attributes): Delete `stored', add `retried'.
+	(Rmail Display): Editing headers works in all cases.
+
 2009-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* basic.texi (Position Info): M-x count-lines-region is not always on
