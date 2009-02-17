@@ -773,7 +773,6 @@ Reading Mail with Rmail
 * Rmail Coding::        How Rmail handles decoding character sets.
 * Rmail Editing::       Editing message text and headers in Rmail.
 * Rmail Digest::        Extracting the messages from a digest message.
-* Out of Rmail::	Converting an Rmail file to mailbox format.
 * Rmail Rot13::         Reading messages encoded in the rot13 code.
 * Movemail::            More details of fetching new mail.
 * Remote Mailboxes::    Retrieving Mail from Remote Mailboxes.
