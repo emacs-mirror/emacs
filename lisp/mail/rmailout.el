@@ -308,6 +308,21 @@ Replaces the From line with a \"Mail-from\" header.  Adds \"Date\" and
 		    "From: \\1\n"))
 		t)))))))
 
+;; Note this is duplicated in unrmail.el.
+(defun rmail-mbox-from ()
+  "Return a \"From \" line for the current message.
+The buffer should be narrowed to just the header."
+  (let ((from (or (mail-fetch-field "from")
+		  (mail-fetch-field "really-from")
+		  (mail-fetch-field "sender")
+		  "unknown"))
+	(date (mail-fetch-field "date")))
+    (format "From %s %s\n" (mail-strip-quoted-names from)
+	    (or (and date
+		     (ignore-errors
+		      (current-time-string (date-to-time date))))
+		(current-time-string)))))
+
 (defun rmail-output-as-mbox (file-name nomsg &optional as-seen)
   "Convert the current buffer's text to mbox and output to FILE-NAME.
 Alters the current buffer's text, so it should be a temporary buffer.
@@ -327,20 +342,9 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
     (rmail-delete-unwanted-fields
      (if rmail-enable-mime "Mail-From"
        "Mail-From\\|MIME-Version\\|Content-type"))
-    ;; Generate a From line from other header fields if necessary.
-    ;; FIXME this duplicates code from unrmail.el.
     (goto-char (point-min))
-    (unless (looking-at "From ")
-      (setq from (or (mail-fetch-field "from")
-		     (mail-fetch-field "really-from")
-		     (mail-fetch-field "sender")
-		     "unknown")
-	    date (mail-fetch-field "date")
-	    date (or (and date
-			  (ignore-errors
-			   (current-time-string (date-to-time date))))
-		     (current-time-string)))
-      (insert "From " (mail-strip-quoted-names from) " " date "\n"))
+    (or (looking-at "From ")
+	(insert (rmail-mbox-from)))
     (widen)
     ;; Make sure message ends with blank line.
     (goto-char (point-max))
@@ -439,11 +443,16 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
 	(cur (current-buffer)))
     (if not-rmail		 ; eg via message-fcc-handler-function
 	(with-temp-buffer
-	  ;; FIXME need to ensure a From line for rmail-convert-to-babyl-format.
 	  (insert-buffer-substring cur)
 	  ;; Output in the appropriate format.
 	  (if babyl-format
-	      (rmail-output-as-babyl file-name noattribute)
+	      (progn
+		(goto-char (point-min))
+		;; rmail-convert-to-babyl-format errors if no From line,
+		;; whereas rmail-output-as-mbox inserts one.
+		(or (looking-at "From ")
+		    (insert (rmail-mbox-from)))
+		(rmail-output-as-babyl file-name noattribute))
 	    (rmail-output-as-mbox file-name noattribute)))
       ;; Called from an Rmail buffer.
       (if rmail-buffer

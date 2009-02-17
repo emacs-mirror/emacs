@@ -4,6 +4,9 @@
 	(rmail-delete-unwanted-fields): Ignore case.  Use line-beg-pos.
 	(rmail-output, rmail-output-as-seen): Change the "from-gnus" argument to
 	"not-rmail", and make it work.  Simplify.
+	(rmail-mbox-from): New function.
+	(rmail-output-as-mbox): Use rmail-mbox-from.
+	(rmail-output): Ensure a From line in the not-rmail Babyl case.
 
 	* mail/rmail.el (rmail-get-attr-names): Give a warning rather than an
 	error if the header is corrupt.
