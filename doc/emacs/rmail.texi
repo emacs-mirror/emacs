@@ -32,7 +32,6 @@ to run commands for managing mail.
 * Coding: Rmail Coding.      How Rmail handles decoding character sets.
 * Editing: Rmail Editing.    Editing message text and headers in Rmail.
 * Digest: Rmail Digest.      Extracting the messages from a digest message.
-* Out of Rmail::	     Converting an Rmail file to mailbox format.
 * Rot13: Rmail Rot13.	     Reading messages encoded in the rot13 code.
 * Movemail::                 More details of fetching new mail.
 * Remote Mailboxes::         Retrieving Mail from Remote Mailboxes.
@@ -52,7 +51,7 @@ Rmail file, merges new mail in from your inboxes, displays the first
 message you haven't read yet, and lets you begin reading.  The variable
 @code{rmail-file-name} specifies the name of the primary Rmail file.
 
-  Rmail uses narrowing to hide all but one message in the Rmail file.
+  Rmail displays only one message in the Rmail file at a time.
 The message that is shown is called the @dfn{current message}.  Rmail
 mode's special commands can do such things as delete the current
 message, copy it into another file, send a reply, or move to another
@@ -370,7 +369,7 @@ exist, and Rmail will use it again the next time it gets new mail from
 that inbox.
 
   If Rmail is unable to convert the data in
-@file{~/.newmail-@var{inboxname}} into Babyl format, it renames the file
+@file{~/.newmail-@var{inboxname}} into mbox format, it renames the file
 to @file{~/RMAILOSE.@var{n}} (@var{n} is an integer chosen to make the
 name unique) so that Rmail will not have trouble with the data again.
 You should look at the file, find whatever message confuses Rmail
@@ -410,11 +409,13 @@ in Rmail mode.  You can use @kbd{M-x rmail-input} even when not in
 Rmail, but it is easier to type @kbd{C-u M-x rmail}, which does the
 same thing.
 
-  The file you read with @kbd{i} should normally be a valid Rmail file.
-If it is not, Rmail tries to decompose it into a stream of messages in
-various known formats.  If it succeeds, it converts the whole file to an
-Rmail file.  If you specify a file name that doesn't exist, @kbd{i}
-initializes a new buffer for creating a new Rmail file.
+  The file you read with @kbd{i} should normally be a valid mbox file.
+If it is not, Rmail tries to convert its text to mbox format, and
+visits the converted text in the buffer.  If you save the buffer, that
+converts the file.
+
+  If you specify a file name that doesn't exist, @kbd{i} initializes a
+new buffer for creating a new Rmail file.
 
 @vindex rmail-secondary-file-directory
 @vindex rmail-secondary-file-regexp
@@ -427,6 +428,7 @@ second says which files in that directory to offer (all those that
 match the regular expression).  These variables also apply to choosing
 a file for output (@pxref{Rmail Output}).
 
+@ignore
 @findex set-rmail-inbox-list
   Each Rmail file can contain a list of inbox file names; you can specify
 this list with @kbd{M-x set-rmail-inbox-list @key{RET} @var{files}
@@ -434,9 +436,13 @@ this list with @kbd{M-x set-rmail-inbox-list @key{RET} @var{files}
 by commas.  It can also be empty, which specifies that this file should
 have no inboxes.  Once you specify a list of inboxes in an Rmail file,
 the  Rmail file remembers it permanently until you specify a different list.
+@end ignore
 
-  As a special exception, if your primary Rmail file does not specify any
-inbox files, it uses your standard system inbox.
+@vindex rmail-inbox-list
+  The inbox files to use are specified by the variable
+@code{rmail-inbox-list}, which is buffer-local in Rmail mode.  As a
+special exception, if you have specified no inbox files for your
+primary Rmail file, it uses your standard system inbox.
 
 @kindex g @r{(Rmail)}
 @findex rmail-get-new-mail
@@ -458,12 +464,12 @@ therefore, a general way of merging one file of messages into another.
 
 @table @kbd
 @item o @var{file} @key{RET}
-Append a copy of the current message to the file @var{file}, using Rmail
-file format by default (@code{rmail-output-to-rmail-file}).
+Append a full copy of the current message to the file @var{file}
+(@code{rmail-output}).
 
 @item C-o @var{file} @key{RET}
-Append a copy of the current message to the file @var{file}, using
-system inbox file format by default (@code{rmail-output}).
+Append a copy of the current message, as displayed, to the file
+@var{file} (@code{rmail-output-as-seen}).
 
 @item w @var{file} @key{RET}
 Output just the message body to the file @var{file}, taking the default
@@ -471,25 +477,21 @@ file name from the message @samp{Subject} header.
 @end table
 
 @kindex o @r{(Rmail)}
-@findex rmail-output-to-rmail-file
+@findex rmail-output-as-seen
 @kindex C-o @r{(Rmail)}
 @findex rmail-output
   The commands @kbd{o} and @kbd{C-o} copy the current message into a
-specified file.  This file may be an Rmail file or it may be in system
-inbox format; the output commands ascertain the file's format and write
-the copied message in that format.
+specified file, adding it at the end.  The two commands differ mainly
+in how much to copy: @kbd{o} copies the full message headers, even if
+they are not all visible, while @kbd{C-o} copies exactly the headers
+currently displayed and no more.  @xref{Rmail Display}.  In addition,
+@kbd{o} converts the message to Babyl format (used by Rmail in Emacs
+version 22 and before) if the file is in Babyl format; @kbd{C-o}
+cannot output to Babyl files at all.
 
-  The @kbd{o} and @kbd{C-o} commands differ in two ways: each has its
-own separate default file name, and each specifies a choice of format to
-use when the file does not already exist.  The @kbd{o} command uses
-Rmail format when it creates a new file, while @kbd{C-o} uses system
-inbox format for a new file.  The default file name for @kbd{o} is the
-file name used last with @kbd{o}, and the default file name for
-@kbd{C-o} is the file name used last with @kbd{C-o}.
-
-  If the output file is an Rmail file currently visited in an Emacs buffer,
-the output commands copy the message into that buffer.  It is up to you
-to save the buffer eventually in its file.
+  If the output file is currently visited in an Emacs buffer, the
+output commands append the message to that buffer.  It is up to you to
+save the buffer eventually in its file.
 
 @kindex w @r{(Rmail)}
 @findex rmail-output-body-to-file
@@ -514,17 +516,12 @@ match the regular expression).
 @vindex rmail-delete-after-output
   Copying a message with @kbd{o} or @kbd{C-o} gives the original copy
 of the message the @samp{filed} attribute, so that @samp{filed}
-appears in the mode line when such a message is current.  @kbd{w}
-gives it the @samp{stored} attribute.  If you like to keep just a
-single copy of every mail message, set the variable
-@code{rmail-delete-after-output} to @code{t}; then the @kbd{o},
-@kbd{C-o} and @kbd{w} commands delete the original message after
-copying it.  (You can undelete the original afterward if you wish.)
+appears in the mode line when such a message is current.
 
-  Copying messages into files in system inbox format uses the header
-fields that are displayed in Rmail at the time.  Thus, if you use the
-@kbd{t} command to view the entire header and then copy the message, the
-entire header is copied.  @xref{Rmail Display}.
+  If you like to keep just a single copy of every mail message, set
+the variable @code{rmail-delete-after-output} to @code{t}; then the
+@kbd{o}, @kbd{C-o} and @kbd{w} commands delete the original message
+after copying it.  (You can undelete it afterward if you wish.)
 
 @vindex rmail-output-file-alist
   The variable @code{rmail-output-file-alist} lets you specify
@@ -633,8 +630,6 @@ removed by undeletion commands (@pxref{Rmail Deletion}).
 @item filed
 Means the message has been copied to some other file.  Assigned by the
 @kbd{o} and @kbd{C-o} file output commands (@pxref{Rmail Output}).
-@item stored
-Assigned by the @kbd{w} file output command (@pxref{Rmail Output}).
 @item answered
 Means you have mailed an answer to the message.  Assigned by the @kbd{r}
 command (@code{rmail-reply}).  @xref{Rmail Reply}.
@@ -647,6 +642,9 @@ Means you have edited the text of the message within Rmail.
 @item resent
 Means you have resent the message.  Assigned by the command @kbd{M-x
 rmail-resend}.  @xref{Rmail Reply}.
+@item retried
+Means you have retried a failed outgoing message.  Assigned by the
+command @kbd{M-x rmail-retry-failure}.  @xref{Rmail Reply}.
 @end table
 
   All other labels are assigned or removed only by users, and have no
@@ -761,7 +759,7 @@ if you provide a numeric argument.)
 
 @kindex m @r{(Rmail)}
 @findex rmail-mail
-  The @kbd{m} (@code{rmail-mail}) command is used to start editing an
+  Use the @kbd{m} (@code{rmail-mail}) command to start editing an
 outgoing message that is not a reply.  It leaves the header fields empty.
 Its only difference from @kbd{C-x 4 m} is that it makes the Rmail buffer
 accessible for @kbd{C-c C-y}, just as @kbd{r} does.  Thus, @kbd{m} can be
@@ -1038,12 +1036,6 @@ again, which shows only the interesting headers according to the
 current values of those variable.  Selecting the message again also
 reformats it if necessary.
 
-  One consequence of this is that if you edit the reformatted header
-(using @kbd{e}; @pxref{Rmail Editing}), subsequent use of @kbd{t} will
-discard your edits.  On the other hand, if you use @kbd{e} after
-@kbd{t}, to edit the original (unreformatted) header, those changes are
-permanent.
-
   When the @kbd{t} command has a prefix argument, a positive argument
 means to show the reformatted header, and a zero or negative argument
 means to show the full header.
@@ -1123,18 +1115,17 @@ Rmail mode into Rmail Edit mode, another major mode which is nearly the
 same as Text mode.  The mode line indicates this change.
 
   In Rmail Edit mode, letters insert themselves as usual and the Rmail
-commands are not available.  When you are finished editing the message and
-are ready to go back to Rmail, type @kbd{C-c C-c}, which switches back to
-Rmail mode.  Alternatively, you can return to Rmail mode but cancel all the
-editing that you have done, by typing @kbd{C-c C-]}.
+commands are not available.  You can edit message body and header
+fields.  When you are finished editing the message, type @kbd{C-c C-c}
+to switch back to Rmail mode.  Alternatively, you can return to Rmail
+mode but cancel all the editing that you have done, by typing @kbd{C-c
+C-]}.
 
 @vindex rmail-edit-mode-hook
-  Entering Rmail Edit mode runs the hook @code{text-mode-hook}; then it
-runs the hook @code{rmail-edit-mode-hook} (@pxref{Hooks}).  It adds the
-attribute @samp{edited} to the message.  It also displays the full
-headers of the message, so that you can edit the headers as well as the
-body of the message, and your changes in the headers will be
-permanent.
+  Entering Rmail Edit mode runs the hook @code{text-mode-hook}; then
+it runs the hook @code{rmail-edit-mode-hook} (@pxref{Hooks}).
+Returning to ordinary Rmail mode adds the attribute @samp{edited} to
+the message, if you have made any changes in it.
 
 @node Rmail Digest
 @section Digest Messages
@@ -1158,37 +1149,6 @@ To do this, select the digest message and type the command @kbd{M-x
 undigestify-rmail-message}.  This extracts the submessages as separate
 Rmail messages, and inserts them following the digest.  The digest
 message itself is flagged as deleted.
-
-@node Out of Rmail
-@section Converting an Rmail File to Inbox Format
-@cindex Babyl format to Inbox format
-@cindex converting Rmail file to mailbox format
-
-@findex unrmail
-  The command @kbd{M-x unrmail} converts a file in Rmail format to inbox
-format (also known as the system mailbox, or mbox, format), so that
-you can use it with other mail-editing tools.  You must specify two
-arguments, the name of the Rmail file and the name to use for the
-converted file.  @kbd{M-x unrmail} does not alter the Rmail file itself.
-
-@pindex b2m
-  @kbd{M-x unrmail} is useful if you can run Emacs on the machine
-where the Rmail file resides, or can access the Rmail file remotely
-(@pxref{Remote Files}) from a machine where Emacs is installed.  If
-accessing Rmail files from Emacs is impossible, you can use the
-@command{b2m} program instead.  @command{b2m} is part of the Emacs
-distribution, it is installed into the same directory as the
-@command{emacs} executable, and its source is available in the Emacs
-source distribution (in the @file{lib-src} directory), so that you could
-copy the source to the target machine and compile it there.  (In the
-same directory, there is also a version written in Perl, @file{b2m.pl}.)
-
-  To convert a file @file{@var{babyl-file}} into @file{@var{mbox-file}},
-invoke @command{b2m} like this:
-
-@example
- b2m < @var{babyl-file} > @var{mbox-file}
-@end example
 
 @node Rmail Rot13
 @section Reading Rot13 Messages
