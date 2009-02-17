@@ -1,3 +1,8 @@
+2009-02-17  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): Tweaked to match
+	copyright statements where the years follow the name.
+
 2009-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Don't let y-or-n-p
