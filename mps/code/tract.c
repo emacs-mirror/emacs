@@ -441,7 +441,7 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
 
 Tract TractOfBaseAddr(Arena arena, Addr addr)
 {
-  Tract tract;
+  Tract tract = NULL;
   Bool found;
 
   AVERT_CRITICAL(Arena, arena);

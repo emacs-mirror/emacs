@@ -138,10 +138,14 @@ extern void verror(const char *format, va_list args);
 
 /* rnd -- random number generator
  *
- * rnd() generates a sequence of integers in the range [0, 2^31-2].
+ * rnd() generates a sequence of integers in the range [1, 2^31-1].
  */
 
 extern unsigned long rnd(void);
+
+
+/* rnd_verify() -- checks behaviour of rnd() */
+extern void rnd_verify(int depth);
 
 
 /* rnd_addr -- random number generator
@@ -167,7 +171,7 @@ extern void randomize(int argc, char **argv);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

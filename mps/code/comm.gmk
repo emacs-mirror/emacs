@@ -195,17 +195,17 @@ PLINTH = mpsliban.c mpsioan.c
 EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
             tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
-            trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
-            shield.c ld.c event.c sac.c message.c \
+            trace.c traceanc.c root.c seg.c format.c buffer.c ref.c \
+            bt.c ring.c shield.c ld.c event.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli.c \
             boot.c meter.c splay.c cbs.c diag.c version.c
 MPM = $(MPMCOMMON) $(MPMPF)
 SWCOMMON = mpsi.c mpm.c arenavm.c arenacl.c arena.c global.c locus.c \
            tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
-           trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
-           shield.c ld.c event.c sac.c message.c \
-	   poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli \
-	   poolams.c poolamsi.c poolmvff.c \
+           trace.c traceanc.c root.c seg.c format.c buffer.c ref.c \
+           bt.c ring.c shield.c ld.c event.c sac.c message.c \
+           poolmrg.c poolmfs.c poolmv.c dbgpool.c dbgpooli \
+           poolams.c poolamsi.c poolmvff.c \
            boot.c meter.c splay.c cbs.c version.c mpsioan.c
 SW = $(SWCOMMON) $(SWPF)
 
@@ -271,9 +271,10 @@ endif
 
 all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv locv qs apss \
-     finalcv fin1658a finaltest arenacv bttest teletest \
+     finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
-     eventcnv walkt0 libcbt \
+     walkt0 libcbt zcoll zmess \
+     eventcnv \
      mps.a mpsplan.a
 
 swall: mmsw.a replaysw
@@ -296,13 +297,14 @@ testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
 
 mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   awluthe mpsicv lockcov poolncv locv qs apss \
-  finalcv fin1658a finaltest arenacv bttest teletest \
+  finalcv finaltest arenacv bttest teletest \
   expt825 \
   libcbt \
   abqtest cbstest btcv mv2test \
   messtest steptest \
   walkt0 \
   exposet0 \
+  zcoll zmess \
   eventcnv replay replaysw \
   mps.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -355,9 +357,6 @@ endif
 ifdef VARIETY
 
 $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
-	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
-
-$(PFM)/$(VARIETY)/fin1658a: $(PFM)/$(VARIETY)/fin1658a.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
@@ -454,6 +453,12 @@ $(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/zcoll: $(PFM)/$(VARIETY)/zcoll.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/zmess: $(PFM)/$(VARIETY)/zmess.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
