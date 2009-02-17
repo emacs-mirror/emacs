@@ -513,6 +513,7 @@ static void *testscriptB(void *arg, size_t s)
   mps_fmt_t fmt;
   mps_chain_t chain;
   mps_pool_t amc;
+  int i;
   mps_root_t root_table;
   mps_ap_t ap;
   mps_root_t root_stackreg;
@@ -528,6 +529,9 @@ static void *testscriptB(void *arg, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc");
+  for(i = 0; i < myrootCOUNT; ++i) {
+    myroot[i] = NULL;
+  }
   die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
                             myroot, (size_t)myrootCOUNT),
       "root_create");
