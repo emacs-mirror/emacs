@@ -5221,7 +5221,13 @@ Otherwise, generate and save a value for `canlock-password' first."
 	    (if (and message-fcc-handler-function
 		     (not (eq message-fcc-handler-function 'rmail-output)))
 		(funcall message-fcc-handler-function file)
-	      ;; FIXME broken in Emacs CVS?  Does it work in 22?
+	      ;; FIXME this option, rmail-output (also used if
+	      ;; message-fcc-handler-function is nil) is not
+	      ;; documented anywhere AFAICS.  It should work in Emacs
+	      ;; 23; I suspect it does not work in Emacs 22.
+	      ;; FIXME I don't see the need for the two different cases here.
+	      ;; mail-use-rfc822 makes no difference (in Emacs 23),and
+	      ;; the third argument just controls \"Wrote file\" message.
 	      (if (and (file-readable-p file) (mail-file-babyl-p file))
 		  (rmail-output file 1 nil t)
 		(let ((mail-use-rfc822 t))
