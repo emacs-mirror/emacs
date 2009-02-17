@@ -1,3 +1,10 @@
+2009-02-17  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmailmsc.el (set-rmail-inbox-list): Doc fix.
+
+	* mail/rmail.el (rmail-copy-headers): When copying full headers,
+	correctly put point at the end.
+
 2009-02-17  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-filter): Call
