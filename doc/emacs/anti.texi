@@ -46,6 +46,11 @@ to store the result of their conversions.  The result always replaces
 the original, so there's no need to look for it elsewhere.
 
 @item
+Rmail now uses a special file format, Babyl format, designed specially
+for storing and editing mail.  When you visit a file in Rmail, or get new
+mail, Rmail converts it automatically to Babyl format.
+
+@item
 Emacs no longer performs font anti-aliasing.  If your fonts look ugly,
 try choosing a larger font and increasing the screen resolution.
 Admittedly, this becomes difficult as you go further back in time,
