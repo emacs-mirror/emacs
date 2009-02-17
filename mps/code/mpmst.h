@@ -447,20 +447,6 @@ typedef struct LDStruct {
   RefSet rs;            /* RefSet of Add'ed references */
 } LDStruct;
 
-/* TraceStartMessage
- *
- * See <design/message-gc/>.
- *
- * Embedded in TraceStruct. */
-
-#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
-
-typedef struct TraceStartMessageStruct {
-  Sig sig;
-  char why[TRACE_START_MESSAGE_WHY_LEN];
-  MessageStruct messageStruct;
-} TraceStartMessageStruct;
-
 
 /* ScanState
  *
@@ -547,9 +533,6 @@ typedef struct TraceStruct {
   Size preservedInPlaceSize;    /* bytes preserved in place */
   STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
   STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
-  /* Always allocated message structure.  Implements
-     mps_message_type_gc_start().  See <design/message-gc/> */
-  TraceStartMessageStruct startMessage;
 } TraceStruct;
 
 
@@ -682,6 +665,7 @@ typedef struct ArenaStruct {
   /* message fields (<design/message/>, <code/message.c>) */
   RingStruct messageRing;       /* ring of pending messages */
   BT enabledMessageTypes;       /* map of which types are enabled */
+  Count droppedMessages;        /* <design/message-gc/#lifecycle> */
 
   /* finalization fields (<design/finalize/>), <code/poolmrg.c> */
   Bool isFinalPool;             /* indicator for finalPool */
@@ -707,6 +691,10 @@ typedef struct ArenaStruct {
   TraceSet flippedTraces;       /* set of running and flipped traces */
   TraceStruct trace[TraceLIMIT]; /* trace structures.  See
                                    <design/trace/#intance.limit> */
+
+  /* trace ancillary fields (<code/traceanc.c>) */
+  TraceStartMessage tsMessage[TraceLIMIT];  /* <design/message-gc/> */
+  TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
   double tracedSize;

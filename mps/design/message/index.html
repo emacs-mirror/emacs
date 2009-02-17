@@ -42,12 +42,12 @@
 
 <p> Messages are used when the MPS needs to asynchronously send information to the client.  Currently, messages are used to signal:</p>
 <ul>
-  <li> Finalization </li>
-  <li> GC-Start </li>
-  <li> GC-Complete </li>
+  <li> finalization ("<code>_finalization</code>" message); </li>
+  <li> trace start ("<code>_gc_start</code>" message); </li>
+  <li> trace end ("<code>_gc</code>" message). </li>
 </ul>
 
-<p>The Originator of the message is some part of the MPS.  For example, the finalization system (see poolmrg.c) calls MessagePost() to send a finalization message to the client when an object is no longer referenced.</p>
+<p>The Originator of the message is some part of the MPS.  For example, the finalization system (see poolmrg.c) is the originator of finalization messages, sent to the client when an object is no longer exactly reachable.</p>
 
 <p>The MPS's Message-system (message.c) keeps messages that have been posted and are awaiting collection by the client in an arena-wide queue -- these are "queued messages".</p>
 
@@ -58,30 +58,37 @@
   <li> calls mps_message_discard() when it has finished using the message.</li>
 </ol>
 
-
-<h2> The Message-system </h2>
-
-<p>The Message-system does these things:</p>
+<p>The design is intended to support two alternative models of Client:</p>
 <ul>
-  <li>class-based method dispatch on any valid message (methods: Delete, slot accessors);</li>
-  <li>queue for messages that have been Posted but not yet Got;</li>
-  <li>maintains message lifecycle information (a minimal amount, currently).</li>
+	<li>a client with a central function that Gets all messages, and dispatches them to the various parts of the Client;</li>
+	<li>a client with no such central function, but instead several parts which each Get only the message types they are interested in.</li>
 </ul>
 
 
-<h2> Using the Internal Interface </h2>
+<h2> The Message-system </h2>
 
-<p>Any part of the MPS can be a message Originator.  The Originator allocates storage for messages it originates.</p>
+<p>The Message-system does just two things:</p>
+<ul>
+  <li>class-based method dispatch on any valid message (methods: Delete, slot accessors);</li>
+  <li>queue for messages that have been Posted but not yet Got.</li>
+</ul>
 
-<p>Any struct can be a message, as long as it:</p>
+<p>Note that message type is now an attribute of a message class: each class implements exactly one type.  (But multiple different classes, such as for several different pool classes, may all implement a single common message type).</p>
+
+
+<h2> How to Originate a Message </h2>
+
+<p>Any part of the MPS can be a message Originator.  Any struct can be a message, as long as it:</p>
 <ul>
   <li> contains an embedded MessageStruct (used by the Message-system for housekeeping); </li>
-  <li> gets appropriate MessageInit() and MessageFinish() calls (for its embedded MessageStruct); </li>
+  <li> makes appropriate MessageInit() and MessageFinish() calls (for its embedded MessageStruct); </li>
   <li> has a Delete() function, to be called when the Client calls mps_message_discard(); </li>
   <li> has appropriate accessor functions. </li>
 </ul>
 
-<p>Here's an example.  Notice the embedded MessageStruct:</p>
+<p>The Originator must define a message class, which is simply a struct containing the Delete and accessor functions, and a few other bits of housekeeping.  The Originator may wish to define a new message type too.</p> 
+
+<p>Here's an example of a message.  Notice the embedded MessageStruct:</p>
 <blockquote><pre><code>typedef struct TraceStartMessageStruct {
   Sig sig;
   char why[TRACE_START_MESSAGE_WHY_LEN];
@@ -89,53 +96,58 @@
 } TraceStartMessageStruct;
 </code></pre></blockquote>
 
+<p>The Originator allocates storage for messages.  It is important to consider how to handle the case where this allocation fails because of insufficient free memory.  Here are some sensible allocation strategies:</p>
+<ul>
+  <li><p> Pre-allocate the struct when creating the subject it will refer to.  The message is then ready to post at any time.  This is ideal for subjects that the client creates explicitly, because failure to allocate the message makes the whole operation fail and report a non-OK result code.  This approach only allows a fixed number of messages over the entire lifetime of the subject.  (Used for finalization messages).</p></li>
+  <li><p> Allocate the struct from control pool (with ControlAlloc) immediately before posting, and free it (with ControlFree) in the Delete method.  Must cope with failure to allocate.</p></li>
+  <li><p> Allocate the struct from control pool (with ControlAlloc) long in advance of posting.  This is needed for messages that are likely to be emitted when memory is low, such as trace start messages.  Must cope with failure to allocate.  (Used for trace start and trace end messages).</p></li>
+</ul>
 
-<h3>Lifecycle</h3>
+<p>Note: Originators should not re-use message structs.  Each message should be dynamically allocated, posted once, queued for as long as the client wants, and then freed when the client discards it.  Otherwise the Originator is imposing a limit on the maximum number of ungot (queued) messages, which therefore requires the client to either get the messages 'promptly', or risk losing messages.  But typically there is no way for the client to reliably meet this promptness constraint.  (Note also that the MPS message system does not distinguish between <strong>unsent</strong> and <strong>received</strong> states).  See also <a href="/project/mps/issue/job001570/">job001570</a>.</p>
 
-<p>The lifecycle of a Message is:</p>
+<p>If a message cannot be allocated, the Originator should report an error code if possible.  If not possible, for example because the message is about an operation that was not explicitly requested by the Client, then there is a "<code>droppedMessages</code>" counter in the arena.  Increment this.  It's not great, but what else can you do?</p>
+
+<p>It is good design to make the Client's life as easy as possible by making message behaviour as simple as possible.  Ideally, make sure that messages will never be dropped.  If there is a set of messages that make sense together (eg trace start and trace end), then ideally make sure that the set is 'all or nothing' -- either all messages will be sent, or all will be dropped.  Where logical, add new accessors to an existing message, instead of creating a new message type.  All this simplifies the code the Client has to write: Client code that has to rendezvous several messages with one another is tricky to write and tricky to test.</p>
+
+
+<h2>Lifecycle</h2>
+
+<p>The normal lifecycle of a Message is:</p>
 
 <blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  (Discard Delete Finish free)</p></blockquote>
 
-<p>The struct is a <strong>valid</strong> message between Init and Finish.</p>
+<p>The struct is a <strong>valid</strong> message between Init and Finish.  The Originator is permitted to Finish and free an unsent message.</p>
 
-<p>MessagePost() simply links the struct into the message queue (using a RingStruct inside the MessageStruct): no copying occurs.  The message is now <strong>queued</strong>, and MessageOnQueue() returns true.  The Originator must not free a queued message, or the Message-system will get upset.  Outside this time, the Message-system doesn't care if the message vanishes.</p>
+<p>MessagePost() simply links the struct into the message queue (using a RingStruct inside the MessageStruct): no copying occurs.  The message is now <strong>queued</strong>, and MessageOnQueue() returns true.  The Originator must not free a queued message.</p>
 
-<p>When/if the client calls mps_message_get(), the Message-system simply unlinks the message from the queue.  The message is now <strong>received</strong>, and is in use by the client.</p>
+<p>When the client calls mps_message_get(), the Message-system simply unlinks the message from the queue.  The message is now <strong>received</strong>, and is in use by the client.  The Originator must not free or change a received message, because the Client would then have a reference to freed memory, or would see inconsistent data.</p>
 
-<p>When/if the Client calls mps_message_discard(), the Message-system simply calls through to the Originator-supplied Delete method.  The Originator may call Finish and free.  Or it may recycle the message to <strong>unsent</strong> by calling Init.</p>
+<p>When the Client calls mps_message_discard(), the Message-system calls through to the Originator-supplied Delete method.  The Originator calls Finish and free.</p>
 
-<p><em class="note">[Note: the Message-system does not distinguish between <strong>unsent</strong> and <strong>received</strong> states, so this recycling is not currently safe.  See <a href="#note-reuse-message">note</a> below.  RHSK 2006-12-11]</em></p>
+<h3>Abnormal lifecycles</h3>
 
-<p>The Originator must not free a <strong>queued</strong> or <strong>received</strong> message; and it should not edit the message, or the Client may see inconsistent data.</p>
+<p>If the Client has not enabled messages of this type (with mps_message_type_enable), Posting the message immediately Discards it, which calls the Delete method:</p>
 
-<p>If the Client has not enabled messages of this type (with mps_message_type_enable), Posting the message immediately Discards it, which calls the Delete method.  The Originator's Delete method must be safe to call from wherever the Originator calls MessagePost().</p>
+<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post Discard Delete Finish free) -- client did not enable this message type</p></blockquote>
 
-<p>Here's a selection of lifecycles:</p>
-
-<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  (Discard Delete Finish free) -- typical</p></blockquote>
-
-<blockquote><p> (alloc <strong>[</strong>  Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  (Discard Delete  <strong>]</strong> -- Originator reuses message struct</p></blockquote>
-
-<blockquote><p> ... Init)  <strong>unsent</strong>  (Post Discard Delete) -- client did not enable this message type</p></blockquote>
-
-<blockquote><p> ... Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  -- client never gets message</p></blockquote>
-
-<blockquote><p> ... Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  -- client never discards message</p></blockquote>
-
-<p>Messages can also be dropped from the queue if the client calls mps_message_type_disable() when there are already some messages of that type queued, or if MessageEmpty() is called:</p> 
-
-<blockquote><p> ... Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Discard Delete ... -- killing messages</p></blockquote>
-
-
-<h3>Allocation strategy</h3>
-
-<p>The Originator allocates the message struct.  The two common allocation strategies are:</p>
+<p>Therefore whenever an Originator calls MessagePost(), beware:</p>
 <ul>
-  <li><p> Pre-allocate the message struct when allocating the subject it will refer to.  Note that this means you can only have one message in use per subject.  (Used for finalization messages and trace start messages).</p></li>
-  <li><p> Allocate the message struct (from control pool) immediately before posting, and free it in the Delete method.  (Used for GC-Complete messages).</p></li>
+	<li>it must be safe to call the Originator's Delete method;</li>
+	<li>the delete may deallocate and unmap the message, so the Originator must not use its reference to the message any more.</li>
 </ul>
+	
+<p>If the client has enabled but never gets the message, it remains on the message queue until ArenaDestroy.  Theoretically these messages could accumulate forever until they exhaust memory.  This is intentional: the client should not enable a message type and then never get it!</p>
 
-<p><em class="note" id="note-reuse-message">[Note: the Message-system does not currently support re-using message structs, because it does not distinguish between <strong>unsent</strong> and <strong>received</strong> states.  If Originators would like to safely re-use a message once the client has finished with it (TraceStart messages are the current example), the lifecycle state variable, and check code to do this safely, should be added to the Message-system.  RHSK 2006-12-11]</em></p>
+<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (ArenaDestroy Discard Delete Finish free)  -- client never gets message</p></blockquote>
+
+<p>Messages can also be dropped from the queue if the client calls mps_message_type_disable() when there are already some messages of that type queued:</p> 
+
+<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (_type_disable Discard Delete Finish free) -- client disables this message type</p></blockquote>
+
+<p>If the client simply drops its reference without calling mps_message_discard (this is a client error), the memory will not be reclaimed until ArenaDestroy.  This is intentional: the control pool is not garbage-collected:</p>
+
+<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  (ArenaDestroy free)  -- client never discards message</p></blockquote>
+
 
 <h2>Future ideas</h2>
 
@@ -145,10 +157,6 @@
 
 <p>The field <code>Clock postedClock</code> could be implemented and stored by only those message types that use it.  A bit messy though.</p>
 
-
-<h3>Support lifecycle, by distinguishing between unsent and received states</h3>
-
-<p>Choose one of these states -- <strong>unsent</strong> for example -- and distinguish it by defining that the <code>RingStruct queueRing</code> is set to NULL in that state.  Need to check that this would actually help the only current re-user of Messages: TraceStart.</p>
 
 <hr />
 
@@ -580,12 +588,18 @@ del - frees both the link part and the reference part of the guardian.
   <td>More on lifecycle; unmention evil hack in initial design.</td>
 </tr>
 
+<tr valign="top">
+  <td>2008-12-19</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Simplify and clarify lifecycle.  Remove description of and deprecate re-use of messages.</td>
+</tr>
+
 </table>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 1995-2002, 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 1995-2002, 2006, 2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
