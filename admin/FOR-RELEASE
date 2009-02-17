@@ -76,23 +76,7 @@ for buffer/string positions.  E.g. struct it, struct text_pos.
 
 mail/rmail-spam-filter.el:  check it still (?) works
 
-Gnus/Rmail issues:
-
-message.el:
-Fix message-fcc-handler-function for the case
-  message-fcc-handler-function = rmail-output
-(but is this even a sensible option? It is not the default.)
-Ideally, it should behave as gnus-output-to-rmail does:
-  In Emacs 23, write Babyl only if FILENAME is Babyl, otherwise mbox.
-    (rmailout can handle this?)
-  In Emacs 22, write Babyl
-  In both cases, if an Rmail buffer is visiting FILENAME, update it
-It could just use gnus-output-to-rmail, but message.el probably
-wants to remain independent from gnus (?).
-
-Gnus manual needs updating with respect to Rmail (but then so does the
-Rmail manual).
-
+Update the rmail (and gnus) manuals for mbox rmail.
 
 * DOCUMENTATION
 
