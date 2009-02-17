@@ -1,3 +1,7 @@
+2009-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cc-menus.el (cc-imenu-objc-function): Doc fix.
+
 2009-02-17  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): Tweaked to match

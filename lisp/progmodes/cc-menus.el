@@ -261,7 +261,7 @@ Example:
 		 (and (<= ?A char) (<= char ?Z))
 		 (and (<= ?0 char) (<= char ?9))
 		 (= ?_ char)))
-	(if argreq	
+	(if argreq
 	    (setq inargvar t
 		  argreq nil)
 	  (setq return (concat return (char-to-string char)))))
@@ -296,7 +296,7 @@ Example:
     return))
 
 (defun cc-imenu-objc-function ()
-  "imenu supports for objc-mode."
+  "Imenu support for Objective C mode."
   (let (methodlist
 	clist
 	;;
