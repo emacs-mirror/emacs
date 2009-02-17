@@ -157,11 +157,13 @@ When this is `function', only ask when called non-interactively."
     (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		     (substring copyright-current-year -2))
       (if (or noquery
-	      (y-or-n-p (if replace
-			    (concat "Replace copyright year(s) by "
-				    copyright-current-year "? ")
-			  (concat "Add " copyright-current-year
-				  " to copyright? "))))
+	      ;; Fixes some point-moving oddness (bug#2209).
+	      (save-excursion
+		(y-or-n-p (if replace
+			      (concat "Replace copyright year(s) by "
+				      copyright-current-year "? ")
+			    (concat "Add " copyright-current-year
+				    " to copyright? ")))))
 	  (if replace
 	      (replace-match copyright-current-year t t nil 3)
 	    (let ((size (save-excursion (skip-chars-backward "0-9"))))

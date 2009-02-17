@@ -1,5 +1,8 @@
 2009-02-17  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/copyright.el (copyright-update-year): Don't let y-or-n-p
+	move point.  (Bug#2209)
+
 	* mail/rmailout.el (rmail-fields-not-to-output): Doc fix.
 	(rmail-delete-unwanted-fields): Ignore case.  Use line-beg-pos.
 	(rmail-output, rmail-output-as-seen): Change the "from-gnus" argument to
