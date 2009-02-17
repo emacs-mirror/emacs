@@ -1,3 +1,13 @@
+2009-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailout.el (rmail-fields-not-to-output): Doc fix.
+	(rmail-delete-unwanted-fields): Ignore case.  Use line-beg-pos.
+	(rmail-output, rmail-output-as-seen): Change the "from-gnus" argument to
+	"not-rmail", and make it work.  Simplify.
+
+	* mail/rmail.el (rmail-get-attr-names): Give a warning rather than an
+	error if the header is corrupt.
+
 2009-02-16  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker--treeview-load): Offer

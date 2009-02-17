@@ -2054,16 +2054,16 @@ If MSG is nil, use the current message."
 	(nmax (length rmail-attr-array))
 	result temp)
     (when value
-      (unless (= (length value) nmax)
-	(error "Corrupt attribute header in message"))
-      (dotimes (index nmax)
-	(setq temp (and (not (= ?- (aref value index)))
-			(nth 1 (aref rmail-attr-array index)))
-	      result
-	      (cond
-	       ((and temp result) (format "%s, %s" result temp))
-	       (temp temp)
-	       (t result))))
+      (if (/= (length value) nmax)
+          (message "Warning: corrupt attribute header in message")
+        (dotimes (index nmax)
+          (setq temp (and (not (= ?- (aref value index)))
+                          (nth 1 (aref rmail-attr-array index)))
+                result
+                (cond
+                 ((and temp result) (format "%s, %s" result temp))
+                 (temp temp)
+                 (t result)))))
       result)))
 
 (defun rmail-get-keywords (&optional msg)
