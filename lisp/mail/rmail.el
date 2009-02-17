@@ -2650,8 +2650,11 @@ buffer to the end of the headers."
 	    (prepend-to-buffer rmail-view-buffer beg (point-max))
 	    ;; rmail-show-message-1 expects this function to leave point
 	    ;; at the end of the headers.
-	    (with-current-buffer rmail-view-buffer
-	      (search-forward "\n\n" nil t)))
+
+	    (let ((len (- (point-max) beg)))
+	      (with-current-buffer rmail-view-buffer
+		(goto-char (1+ len)))))
+
 	   ;; Handle the case where the headers matching the displayed
 	   ;; headers regexp should be copied.
 	   ((and rmail-displayed-headers (null ignored-headers))
