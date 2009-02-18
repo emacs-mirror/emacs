@@ -72,6 +72,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'tool-bar)
+(require 'comint)
 
 (defvar font-lock-extra-managed-props)
 (defvar font-lock-keywords)
@@ -1155,7 +1156,7 @@ Returns the compilation buffer created."
   (or mode (setq mode 'compilation-mode))
   (let* ((name-of-mode
 	  (if (eq mode t)
-	      (prog1 "compilation" (require 'comint))
+	      "compilation"
 	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 outwin outbuf)
