@@ -1,3 +1,10 @@
+2009-02-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cc-menus.el (imenu-progress-message):
+	Remove bogus cc-bytecomp-defun.
+	(cc-imenu-objc-function): Don't call `imenu-progress-message'.
+	Don't let-bind variable `stupid'.  (Bug#1638)
+
 2009-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-get-new-mail-filter-spam):

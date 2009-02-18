@@ -47,7 +47,6 @@
 (cc-bytecomp-defvar imenu-case-fold-search)
 (cc-bytecomp-defvar imenu-generic-expression)
 (cc-bytecomp-defvar imenu-create-index-function)
-(cc-bytecomp-defun imenu-progress-message)
 
 
 ;; imenu integration
@@ -316,7 +315,6 @@ Example:
 	;;
 	(classcount 0)
 	toplist
-	stupid
 	str
 	str2
 	(intflen (length "@interface"))
@@ -330,10 +328,8 @@ Example:
 	     'buffer-substring-no-properties
 	   'buffer-substring)))
     (goto-char (point-max))
-    (imenu-progress-message stupid 0)
     ;;
     (while (re-search-backward cc-imenu-objc-generic-expression nil t)
-      (imenu-progress-message stupid)
       (setq langnum (if (match-beginning OBJC)
 			OBJC
 		      (cond
@@ -385,7 +381,6 @@ Example:
 					  methodlist) toplist))
 	      methodlist nil))))
     ;;
-    (imenu-progress-message stupid 100)
     (if (eq (car toplist) nil)
 	(setq toplist (cdr toplist)))
 
