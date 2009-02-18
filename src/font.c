@@ -2424,7 +2424,10 @@ font_check_otf_features (script, langsys, features, table)
   for (negative = 0; CONSP (features); features = XCDR (features))
     {
       if (NILP (XCAR (features)))
-	negative = 1;
+	{
+	  negative = 1;
+	  continue;
+	}
       if (NILP (Fmemq (XCAR (features), table)) != negative)
 	return 0;
     }
@@ -3921,8 +3924,8 @@ encoding of a font, e.g. ``iso8859-1''.
 `:size'
 
 VALUE must be a non-negative integer or a floating point number
-specifying the font size.  It specifies the font size in pixels
-(if VALUE is an integer), or in points (if VALUE is a float).
+specifying the font size.  It specifies the font size in pixels (if
+VALUE is an integer), or in points (if VALUE is a float).
 
 `:name'
 
@@ -3933,6 +3936,30 @@ VALUE must be a string of XLFD-style or fontconfig-style font name.
 VALUE must be a symbol representing a script that the font must
 support.  It may be a symbol representing a subgroup of a script
 listed in the variable `script-representative-chars'.
+
+`:lang'
+
+VALUE must be a symbol of two-letter ISO-639 language names,
+e.g. `ja'.
+
+`:otf'
+
+VALUE must be a list (SCRIPT-TAG LANGSYS-TAG GSUB [ GPOS ]) to specify
+required OpenType features.
+
+  SCRIPT-TAG: OpenType script tag symbol (e.g. `deva').
+  LANGSYS-TAG: OpenType language system tag symbol,
+     or nil for the default language system.
+  GSUB: List of OpenType GSUB feature tag symbols, or nil if none required.
+  GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
+
+GSUB and GPOS may contain `nil' element.  In such a case, the font
+must not have any of the remaining elements.
+
+For instance, if the VALUE is `(thai nil nil (mark))', the font must
+be an OpenTyep font, and whose GPOS table of `thai' script's default
+language system must contain `mark' feature.
+
 usage: (font-spec ARGS...)  */)
      (nargs, args)
      int nargs;
