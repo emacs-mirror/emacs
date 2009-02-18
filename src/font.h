@@ -509,7 +509,7 @@ struct font_driver
 
   /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
      is a list of font-entities.  The font properties to be considered
-     are: :foundly, :family, :adstyle, :registry, :script, :lang, and
+     are: :foundry, :family, :adstyle, :registry, :script, :lang, and
      :otf.  See the function `font-spec' for their meanings.  Note
      that the last three properties are stored in FONT_EXTRA_INDEX
      slot of FONT_SPEC.
@@ -530,9 +530,9 @@ struct font_driver
      font-entities.  */
   Lisp_Object (*list) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
-  /* Return a font-entity most closely maching with FONT_SPEC on
+  /* Return a font-entity most closely matching with FONT_SPEC on
      FRAME.  Which font property to consider, and how to calculate the
-     closeness is detemined by the font backend, thus
+     closeness is determined by the font backend, thus
      `face-font-selection-order' is ignored here.
 
      The properties that the font-entity has is the same as `list'
