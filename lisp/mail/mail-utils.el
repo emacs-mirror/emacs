@@ -386,6 +386,20 @@ matches may be returned from the message body."
 	    (substring s (match-beginning 3) (match-end 3)) " "
 	    (mail-rfc822-time-zone time))))
 
+(defun mail-mbox-from ()
+  "Return an mbox \"From \" line for the current message.
+The buffer should be narrowed to just the header."
+  (let ((from (or (mail-fetch-field "from")
+		  (mail-fetch-field "really-from")
+		  (mail-fetch-field "sender")
+		  "unknown"))
+	(date (mail-fetch-field "date")))
+    (format "From %s %s\n" (mail-strip-quoted-names from)
+	    (or (and date
+		     (ignore-errors
+		      (current-time-string (date-to-time date))))
+		(current-time-string)))))
+
 (provide 'mail-utils)
 
 ;; arch-tag: b24aec2f-fd65-4ceb-9e39-3cc2827036fd
