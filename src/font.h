@@ -508,15 +508,35 @@ struct font_driver
   Lisp_Object (*get_cache) P_ ((FRAME_PTR F));
 
   /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
-     is a list of font-entities.  It is assured that the properties
-     WEIGHT to AVGWIDTH are all nil (i.e. not specified) in FONT_SPEC.
+     is a list of font-entities.  The font properties to be considered
+     are: :foundly, :family, :adstyle, :registry, :script, :lang, and
+     :otf.  See the function `font-spec' for their meanings.  Note
+     that the last three properties are stored in FONT_EXTRA_INDEX
+     slot of FONT_SPEC.
+
+     The returned value is a list of font-entities.  Each font-entity
+     has :type property whose value is the same as the above `type'.
+     It also has these properties if they are available from the
+     corresponding font; :foundry, :family, :adstyle, :registry,
+     :weight, :slant, :width, :size, :dpi, :spacing, :avgwidth.  If
+     the font is scalable, :size and :avgwidth must be 0.
+
+     The `open' method of the same font-backend is called with one of
+     the returned font-entities.  If the backend needs additional
+     information to be used in `open' method, this method can add any
+     Lispy value by the property :font-entity to the entities.
+
      This and the following `match' are the only APIs that allocate
      font-entities.  */
   Lisp_Object (*list) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
-  /* Return a font entity most closely maching with FONT_SPEC on
-     FRAME.  The closeness is detemined by the font backend, thus
-     `face-font-selection-order' is ignored here.  */
+  /* Return a font-entity most closely maching with FONT_SPEC on
+     FRAME.  Which font property to consider, and how to calculate the
+     closeness is detemined by the font backend, thus
+     `face-font-selection-order' is ignored here.
+
+     The properties that the font-entity has is the same as `list'
+     method.  */
   Lisp_Object (*match) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
   /* Optional.
