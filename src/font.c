@@ -3957,7 +3957,7 @@ GSUB and GPOS may contain `nil' element.  In such a case, the font
 must not have any of the remaining elements.
 
 For instance, if the VALUE is `(thai nil nil (mark))', the font must
-be an OpenTyep font, and whose GPOS table of `thai' script's default
+be an OpenType font, and whose GPOS table of `thai' script's default
 language system must contain `mark' feature.
 
 usage: (font-spec ARGS...)  */)
