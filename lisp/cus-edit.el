@@ -4006,8 +4006,11 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (let ((start (point)))
 	     (insert tag " group: ")
 	     (widget-specify-sample widget start (point)))
-	   (when (and doc (< (length doc) 50))
-	     (insert doc))
+	   (cond
+	    ((not doc)
+	     (insert " Group definition missing. "))
+	    ((< (length doc) 50)
+	     (insert doc)))
 	   ;; Create visibility indicator.
 	   (unless (eq custom-buffer-style 'links)
 	     (insert "--------")

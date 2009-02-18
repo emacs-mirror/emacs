@@ -1,3 +1,8 @@
+2009-02-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (custom-group-value-create): Insert some
+	informatory text in the WIDGET-misses-doc-string case.
+
 2009-02-18  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el: Require comint at top level to fix the
