@@ -1,3 +1,7 @@
+2009-02-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/flymake.el (flymake): Add defgroup.  (Bug#2356)
+
 2009-02-18  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail-spam-filter.el (rmail-summary-mode-map): Remove unneeded
