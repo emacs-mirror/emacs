@@ -43,7 +43,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (message "Done")
     (kill-emacs (if error 1 0))))
 
-(declare-function mail-strip-quoted-names "mail-utils" (address))
+(declare-function mail-mbox-from "mail-utils" ())
 (defvar rmime-magic-string)		; in rmime.el, if you have it
 
 ;;;###autoload
@@ -191,22 +191,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	       (save-excursion (search-forward "\n\n" nil 'move) (point)))
 
 	      ;; Fetch or construct what we should use in the `From ' line.
-	      (setq mail-from
-		    (or (mail-fetch-field "Mail-From")
-			(concat "From "
-				(mail-strip-quoted-names
-				 (or (mail-fetch-field "from")
-				     (mail-fetch-field "really-from")
-				     (mail-fetch-field "sender")
-				     "unknown"))
-				"  "
-				(let ((date (mail-fetch-field "date")))
-				  (or
-				   (and date
-					(ignore-errors
-					 (current-time-string
-					  (date-to-time date))))
-				   (current-time-string))))))
+	      (setq mail-from (or (mail-fetch-field "Mail-From")
+				  (mail-mbox-from)))
 
 	      ;; If the message specifies a coding system, use it.
 	      (let ((maybe-coding (mail-fetch-field "X-Coding-System")))
