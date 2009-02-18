@@ -75,6 +75,11 @@
 	* progmodes/compile.el (compilation-filter): Call
 	`comint-carriage-motion', just like `comint-output-filter'.
 
+2009-02-17  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (make-directory): Stop recursing if parent is
+	self. (Bug#2309)
+
 2009-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/newst-treeview.el (newsticker--treeview-load): Remove bogus `if'.
