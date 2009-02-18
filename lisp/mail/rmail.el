@@ -1710,8 +1710,8 @@ It returns t if it got any new messages."
 	(message "%d new message%s read%s" new-messages suffix blurb)
 	(unless (string-equal blurb "") ; there was spam
 	  (if rsf-beep (beep t))
-	  ;; FIXME This doesn't seem a very good feature, e.g. it delays the
-	  ;; appearance of the summary, and leaves the raw buffer visible.
+	  ;; The use of rmail-show-message in rmail-get-new-mail-filter-spam
+	  ;; also prevents the raw mbox buffer from showing at this point.
 	  (sleep-for rsf-sleep-after-message))
 	;; Establish the return value.
 	(setq result (> new-messages 0))
@@ -1726,12 +1726,13 @@ It returns t if it got any new messages."
       (or (rmail-spam-filter nscan)
 	  (setq nspam (1+ nspam)))
       (setq nscan (1+ nscan)))
-    ;; FIXME the expunge prompt leaves the raw mbox buffer showing,
-    ;; but it's not straightforward to show a message at this point
-    ;; without messing up the rest of get-new-mail.
-    (and (> nspam 0)
-	 (rmail-expunge-confirmed)
-	 (rmail-only-expunge t))
+    (when (> nspam 0)
+      ;; Otherwise the expunge prompt leaves the raw mbox buffer showing.
+      (rmail-show-message (rmail-first-unseen-message) 1)
+      (if (rmail-expunge-confirmed) (rmail-only-expunge t))
+      ;; Swap back, else get-new-mail-1 gets confused.
+      (rmail-swap-buffers-maybe)
+      (widen))
     ;; Return a message based on the number of spam messages found.
     (cond
      ((zerop nspam) "")

@@ -1,3 +1,9 @@
+2009-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-get-new-mail-filter-spam):
+	* mail/rmail-spam-filter.el (rmail-spam-filter):
+	Show a message rather than the raw mbox while prompting.
+
 2009-02-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/flymake.el (flymake): Add defgroup.  (Bug#2356)
