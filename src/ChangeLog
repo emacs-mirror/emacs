@@ -1,3 +1,7 @@
+2009-02-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/ibmrs6000.h (ADDR_CORRECT): Restore, removed by mistake on 2008-07-23.
+
 2009-02-18  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_check_otf_features): Fix handling of `nil' element.
