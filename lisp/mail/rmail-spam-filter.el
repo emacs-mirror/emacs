@@ -329,13 +329,20 @@ it from rmail file.  Called for each new message retrieved by
           ;; and delete the spam msg if needed:
           (let ((rmail-current-message msg) ; FIXME does this do anything?
                 (action (cdr (assq 'action
-                                   (nth num-element rsf-definitions-alist)))))
+                                   (nth num-element rsf-definitions-alist))))
+                (newfile (not (file-exists-p rsf-file))))
             ;; Check action item in rsf-definitions-alist and do it.
             (cond
              ((eq action 'output-and-delete)
-              ;; FIXME the prompt to write a new file leaves the raw
+              ;; Else the prompt to write a new file leaves the raw
               ;; mbox buffer visible.
+              (and newfile
+                   (rmail-show-message (rmail-first-unseen-message) 1))
               (rmail-output rsf-file)
+              ;; Swap back, else rmail-get-new-mail-1 gets confused.
+              (when newfile
+                (rmail-swap-buffers-maybe)
+                (widen))
               ;; Don't delete if automatic deletion after output is on.
               (or rmail-delete-after-output (rmail-delete-message)))
              ((eq action 'delete-spam)
