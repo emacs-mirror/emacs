@@ -1383,6 +1383,7 @@ If so restore the actual mbox message collection."
   (let* ((revert-buffer-function (default-value 'revert-buffer-function))
 	 (rmail-enable-multibyte enable-multibyte-characters)
 	 ;; See similar code in `rmail'.
+	 ;; FIXME needs updating?
 	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 (before-revert-hook 'rmail-swap-buffers-maybe))
     ;; Call our caller again, but this time it does the default thing.
@@ -1707,47 +1708,37 @@ It returns t if it got any new messages."
 	    (rmail-select-summary (rmail-update-summary)))
 	(setq suffix (if (= 1 new-messages) "" "s"))
 	(message "%d new message%s read%s" new-messages suffix blurb)
-	(when spam-filter-p
+	(unless (string-equal blurb "") ; there was spam
 	  (if rsf-beep (beep t))
+	  ;; FIXME This doesn't seem a very good feature, e.g. it delays the
+	  ;; appearance of the summary, and leaves the raw buffer visible.
 	  (sleep-for rsf-sleep-after-message))
-
 	;; Establish the return value.
 	(setq result (> new-messages 0))
 	result))))
 
-(defun rmail-get-new-mail-filter-spam (new-message-count)
-  "Process new messages for spam."
-  (let* ((old-messages (- rmail-total-messages new-message-count))
-	 (rsf-number-of-spam 0)
-	 (rsf-scanned-message-number (1+ old-messages))
-	 ;; save deletion flags of old messages: vector starts at zero
-	 ;; (is one longer than no of messages), therefore take 1+
-	 ;; old-messages
-	 (save-deleted (substring rmail-deleted-vector 0 (1+ old-messages)))
-	 blurb)
-    ;; set all messages to undeleted
-    (setq rmail-deleted-vector (make-string (1+ rmail-total-messages) ?\ ))
-    (while (<= rsf-scanned-message-number rmail-total-messages)
-      (progn
-	(if (not (rmail-spam-filter rsf-scanned-message-number))
-	    (progn (setq rsf-number-of-spam (1+ rsf-number-of-spam))))
-	(setq rsf-scanned-message-number (1+ rsf-scanned-message-number))))
-    (if (> rsf-number-of-spam 0)
-	(progn
-	  (when (rmail-expunge-confirmed)
-	    (rmail-only-expunge t))))
-    (setq rmail-deleted-vector
-	  (concat save-deleted
-		  (make-string (- rmail-total-messages old-messages) ?\ )))
-    ;; Generate a return value message based on the number of spam
-    ;; messages found.
+(defun rmail-get-new-mail-filter-spam (nnew)
+  "Check the most NNEW recent messages for spam."
+  (let* ((nold (- rmail-total-messages nnew))
+	 (nspam 0)
+	 (nscan (1+ nold)))
+    (while (<= nscan rmail-total-messages)
+      (or (rmail-spam-filter nscan)
+	  (setq nspam (1+ nspam)))
+      (setq nscan (1+ nscan)))
+    ;; FIXME the expunge prompt leaves the raw mbox buffer showing,
+    ;; but it's not straightforward to show a message at this point
+    ;; without messing up the rest of get-new-mail.
+    (and (> nspam 0)
+	 (rmail-expunge-confirmed)
+	 (rmail-only-expunge t))
+    ;; Return a message based on the number of spam messages found.
     (cond
-     ((zerop rsf-number-of-spam) "")
-     ((= 1 new-message-count) ", and appears to be spam")
-     ((= rsf-number-of-spam new-message-count) ", and all appear to be spam")
-     ((> rsf-number-of-spam 1)
-      (format ", and %d appear to be spam" rsf-number-of-spam))
-     (t ", and 1 appears to be spam"))))
+     ((zerop nspam) "")
+     ((= 1 nnew) ", and it appears to be spam")
+     ((= nspam nnew) ", and all appear to be spam")
+     (t (format ", and %d appear%s to be spam" nspam
+		(if (= 1 nspam) "s" ""))))))
 
 (defun rmail-parse-url (file)
   "Parse the supplied URL. Return (list MAILBOX-NAME REMOTE PASSWORD GOT-PASSWORD)
@@ -1882,7 +1873,7 @@ is non-nil if the user has supplied the password interactively.
 		     nil
 		   (set-buffer errors)
 		   (subst-char-in-region (point-min) (point-max)
-					 ?\n ?\  )
+					 ?\n ?\s)
 		   (goto-char (point-max))
 		   (skip-chars-backward " \t")
 		   (delete-region (point) (point-max))
@@ -2078,7 +2069,7 @@ It is put in comma-separated form.
 MSG, if non-nil, identifies the message number to use.
 If nil, that means the current message."
   (or msg (setq msg rmail-current-message))
-  (let (blurb attr-names keywords)
+  (let (attr-names keywords)
     ;; Combine the message attributes and keywords
     ;; into a comma-separated list.
     (setq attr-names (rmail-get-attr-names msg)
@@ -2184,26 +2175,26 @@ change; nil means current message."
           (set-buffer-modified-p t)))))
 
 (defun rmail-message-attr-p (msg attrs)
-  "Return t if the attributes header for message MSG matches regexp ATTRS."
+  "Return non-nil if message number MSG has attributes matching regexp ATTRS."
   (let ((value (rmail-get-header rmail-attribute-header msg)))
     (and value (string-match attrs value))))
 
 (defun rmail-message-unseen-p (msgnum)
-  "Test the unseen attribute for message MSGNUM.
-Return non-nil if the unseen attribute is set, nil otherwise."
+  "Return non-nil if message number MSGNUM has the unseen attribute."
   (rmail-message-attr-p msgnum "......U"))
 
-;; Return t if the attributes/keywords line of msg number MSG
-;; contains a match for the regexp LABELS.
 (defun rmail-message-labels-p (msg labels)
+  "Return non-nil if message number MSG has labels matching regexp LABELS."
   (string-match labels (rmail-get-labels msg)))
 
 ;;;; *** Rmail Message Selection And Support ***
 
 (defun rmail-msgend (n)
+  "Return the start position for message number N."
   (marker-position (aref rmail-message-vector (1+ n))))
 
 (defun rmail-msgbeg (n)
+  "Return the end position for message number N."
   (marker-position (aref rmail-message-vector n)))
 
 (defun rmail-apply-in-message (msgnum function &rest args)
@@ -2364,7 +2355,7 @@ the message.  Point is at the beginning of the message."
 	  (cons (if (and (search-forward (concat rmail-attribute-header ": ") message-end t)
 			 (looking-at "?D"))
 		    ?D
-		  ?\ ) deleted-head))))
+		  ?\s) deleted-head))))
 
 (defun rmail-set-message-counters-counter (&optional stop)
   ;; Collect the start position for each message into 'messages-head.
@@ -3080,10 +3071,13 @@ If N is negative, go forwards instead."
 ;;;; *** Rmail Message Deletion Commands ***
 
 (defun rmail-message-deleted-p (n)
+  "Return non-nil if message number N is deleted (in `rmail-deleted-vector')."
   (= (aref rmail-deleted-vector n) ?D))
 
 (defun rmail-set-message-deleted-p (n state)
-  (aset rmail-deleted-vector n (if state ?D ?\ )))
+  "Set the deleted state of message number N (in `rmail-deleted-vector').
+STATE non-nil means mark as deleted."
+  (aset rmail-deleted-vector n (if state ?D ?\s)))
 
 (defun rmail-delete-message ()
   "Delete this message and stay on it."
@@ -3229,7 +3223,7 @@ See also user-option `rmail-confirm-expunge'."
 	    (setq rmail-current-message new-message-number
 		  rmail-total-messages counter
 		  rmail-message-vector (apply 'vector messages-head)
-		  rmail-deleted-vector (make-string (1+ counter) ?\ )
+		  rmail-deleted-vector (make-string (1+ counter) ?\s)
 		  rmail-summary-vector (vconcat (nreverse new-summary))
 		  rmail-msgref-vector (apply 'vector (nreverse new-msgref))
 		  win t)))
@@ -3449,10 +3443,10 @@ which is an element of rmail-msgref-vector."
                (end (match-end 1)))
            ;; Trim whitespace which above regexp match allows
            (while (and (< start end)
-                       (memq (aref from start) '(?\t ?\ )))
+                       (memq (aref from start) '(?\t ?\s)))
              (setq start (1+ start)))
            (while (and (< start end)
-                       (memq (aref from (1- end)) '(?\t ?\ )))
+                       (memq (aref from (1- end)) '(?\t ?\s)))
              (setq end (1- end)))
            (let ((field (substring from start end)))
              (if date (setq field (concat "message from " field " on " date)))
@@ -3984,15 +3978,15 @@ encoded string (and the same mask) will decode the string."
 ;;;;  Desktop support
 
 (defun rmail-restore-desktop-buffer (desktop-buffer-file-name
-                                     desktop-buffer-name
-                                     desktop-buffer-misc)
+				     desktop-buffer-name
+				     desktop-buffer-misc)
   "Restore an rmail buffer specified in a desktop file."
   (condition-case error
       (progn
-        (rmail-input desktop-buffer-file-name)
-        (if (eq major-mode 'rmail-mode)
-            (current-buffer)
-          rmail-buffer))
+	(rmail-input desktop-buffer-file-name)
+	(if (eq major-mode 'rmail-mode)
+	    (current-buffer)
+	  rmail-buffer))
     (file-locked
       (kill-buffer (current-buffer))
       nil)))
