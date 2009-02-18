@@ -1,3 +1,41 @@
+2009-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail-spam-filter.el (rmail-summary-mode-map): Remove unneeded
+	declaration.
+	(top-level): No need for cl now.
+	(rmail-spam-filter, rmail-use-spam-filter, rsf-file, rsf-no-blind-cc)
+	(rsf-beep, rsf-sleep-after-message, rsf-min-region-to-spam-list)
+	(rsf-autosave-newly-added-definitions, rsf-white-list)
+	(rsf-definitions-alist, rsf-check-field, rsf-add-subject-to-spam-list)
+	(rsf-add-sender-to-spam-list, rsf-add-region-to-spam-list)
+	(rsf-customize-spam-definitions, rsf-customize-group)
+	(rsf-custom-save-all, rsf-add-content-type-field): Doc fixes.
+	(rsf-check-field): Use setcar and setcdr rather than setf.
+	(rmail-spam-filter): Simplify.
+	(rsf-add-subject-to-spam-list, rsf-add-sender-to-spam-list)
+	(rsf-add-region-to-spam-list): Use rmail-get-header or
+	buffer-substring-no-properties.  Regexp-quote the extracted data.
+	Make the messages less verbose.
+	(rmail-summary-mode-map, rmail-mode-map): Use easy-menu and dolist to
+	simplify things.
+	(rsf-add-content-type-field): Make the message less verbose.
+
+	* mail/rmail.el (rmail-get-new-mail-1): Fix the spam beep test.
+	(rmail-get-new-mail-filter-spam): Simplify.  Don't mess with
+	rmail-deleted-vector.
+	(rmail-insert-inbox-text, rmail-collect-deleted)
+	(rmail-set-message-deleted-p, rmail-only-expunge)
+	(rmail-make-in-reply-to-field): Replace ?\  with ?\s.
+	(rmail-get-labels): Remove unused local `blurb'.
+	(rmail-message-attr-p, rmail-message-unseen-p, rmail-message-labels-p)
+	(rmail-msgend, rmail-msgbeg, rmail-message-deleted-p)
+	(rmail-set-message-deleted-p): Doc fixes.
+
+	* mail/rmailout.el (rmail-mbox-from): Move to mail-utils.
+	Update callers for associated name change.
+	* mail/mail-utils.el (mail-mbox-from): Move here from rmailout.el.
+	* mail/unrmail.el (unrmail): Use mail-mbox-from.
+
 2009-02-17  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailmsc.el (set-rmail-inbox-list): Doc fix.
