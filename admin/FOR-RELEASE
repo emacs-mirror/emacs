@@ -74,13 +74,7 @@ for buffer/string positions.  E.g. struct it, struct text_pos.
 
 ** Rmail issues:
 
-mail/rmail-spam-filter.el: It seems (?) to work.
-At a few places, it leaves the raw mbox buffer visible, either while
-it displays a prompt or waits.  This is poor, but it does not seem
-straightforward to show a message at that point without messing up the
-rest of get-new-mail.  (See rmail-get-new-mail-filter-spam, end of
-rmail-get-new-mail-1, and end of rmail-spam-filter for FIXMEs.)
-
+rmail-spam-filter.el: seems to work, but needs more checking.
 Update the rmail (and gnus) manuals for mbox rmail.
 
 * DOCUMENTATION
