@@ -179,10 +179,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):[0-9]+:[0-9]+:\\)?\
 \\( warning\\)?" 1 2 3 (4))
 
-    (maven
-     ;; Maven is a popular build tool for Java.  Maven is Free Software.
-     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
 
@@ -280,6 +276,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
       (3 compilation-line-face nil t)
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
 	 append)))
+
+    (maven
+     ;; Maven is a popular build tool for Java.  Maven is Free Software.
+     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
 
     ;; Should be lint-1, lint-2 (SysV lint)
     (mips-1
