@@ -1,3 +1,7 @@
+2009-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Give Xft driver a higher priority.
+
 2009-02-19  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Preserve coding->mode.
