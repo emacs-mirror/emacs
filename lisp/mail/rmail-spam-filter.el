@@ -337,7 +337,7 @@ it from rmail file.  Called for each new message retrieved by
               ;; Else the prompt to write a new file leaves the raw
               ;; mbox buffer visible.
               (and newfile
-                   (rmail-show-message (rmail-first-unseen-message) 1))
+                   (rmail-show-message (rmail-first-unseen-message) t))
               (rmail-output rsf-file)
               ;; Swap back, else rmail-get-new-mail-1 gets confused.
               (when newfile
@@ -352,23 +352,51 @@ it from rmail file.  Called for each new message retrieved by
     return-value))
 
 (defun rmail-get-new-mail-filter-spam (nnew)
-  "Check the most NNEW recent messages for spam."
+  "Check the most NNEW recent messages for spam.
+This is called at the end of `rmail-get-new-mail-1' if there is new mail."
   (let* ((nold (- rmail-total-messages nnew))
 	 (nspam 0)
-	 (nscan (1+ nold)))
-    (while (<= nscan rmail-total-messages)
-      (or (rmail-spam-filter nscan)
-	  (setq nspam (1+ nspam)))
+	 (nscan (1+ nold))
+	 ;; Save the original deleted state of all the messages.
+	 (rdv-old rmail-deleted-vector)
+	 errflag)
+    ;; Set all messages undeleted so that the expunge only affects spam.
+    (setq rmail-deleted-vector (make-string (1+ rmail-total-messages) ?\s))
+    (while (and (not errflag) (<= nscan rmail-total-messages))
+      (condition-case nil
+	  (or (rmail-spam-filter nscan)
+	      (setq nspam (1+ nspam)))
+	(error (setq errflag nscan)))
       (setq nscan (1+ nscan)))
-    (when (> nspam 0)
-      ;; Otherwise the expunge prompt leaves the raw mbox buffer showing.
-      (rmail-show-message (rmail-first-unseen-message) 1)
-      (if (rmail-expunge-confirmed) (rmail-only-expunge t))
-      ;; Swap back, else get-new-mail-1 gets confused.
-      (rmail-swap-buffers-maybe)
-      (widen))
+    (unwind-protect
+	(if errflag
+	    (progn
+	      (setq rmail-use-spam-filter nil)
+	      (if rsf-beep (ding t))
+	      (message "Spam filter error for new message %d, disabled" errflag)
+	      (sleep-for rsf-sleep-after-message))
+	  (when (> nspam 0)
+	    ;; Otherwise sleep or expunge prompt leaves raw mbox buffer showing.
+	    (rmail-show-message (or (rmail-first-unseen-message) 1) t)
+	    (unwind-protect
+		(progn
+		  (if rsf-beep (ding t))
+		  (message "Rmail spam-filter detected and deleted %d spam \
+message%s"
+			   nspam (if (= 1 nspam) "" "s"))
+		  (sleep-for rsf-sleep-after-message)
+		  (if (rmail-expunge-confirmed) (rmail-only-expunge t)))
+	      ;; Swap back, else get-new-mail-1 gets confused.
+	      (rmail-swap-buffers-maybe)
+	      (widen))))
+      ;; Restore the original deleted state.  Character N refers to message N.
+      (setq rmail-deleted-vector
+	    (concat (substring rdv-old 0 (1+ nold))
+		    ;; This still works if we deleted all the new mail.
+		    (substring rmail-deleted-vector (1+ nold)))))
     ;; Return a message based on the number of spam messages found.
     (cond
+     (errflag ", error in spam filter")
      ((zerop nspam) "")
      ((= 1 nnew) ", and it appears to be spam")
      ((= nspam nnew) ", and all appear to be spam")
