@@ -351,6 +351,30 @@ it from rmail file.  Called for each new message retrieved by
         (setq return-value t)))
     return-value))
 
+(defun rmail-get-new-mail-filter-spam (nnew)
+  "Check the most NNEW recent messages for spam."
+  (let* ((nold (- rmail-total-messages nnew))
+	 (nspam 0)
+	 (nscan (1+ nold)))
+    (while (<= nscan rmail-total-messages)
+      (or (rmail-spam-filter nscan)
+	  (setq nspam (1+ nspam)))
+      (setq nscan (1+ nscan)))
+    (when (> nspam 0)
+      ;; Otherwise the expunge prompt leaves the raw mbox buffer showing.
+      (rmail-show-message (rmail-first-unseen-message) 1)
+      (if (rmail-expunge-confirmed) (rmail-only-expunge t))
+      ;; Swap back, else get-new-mail-1 gets confused.
+      (rmail-swap-buffers-maybe)
+      (widen))
+    ;; Return a message based on the number of spam messages found.
+    (cond
+     ((zerop nspam) "")
+     ((= 1 nnew) ", and it appears to be spam")
+     ((= nspam nnew) ", and all appear to be spam")
+     (t (format ", and %d appear%s to be spam" nspam
+		(if (= 1 nspam) "s" ""))))))
+
 ;; define functions for interactively adding sender/subject of a
 ;; specific message to the spam definitions while reading it, using
 ;; the menubar:
