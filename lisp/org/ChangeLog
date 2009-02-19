@@ -1,3 +1,12 @@
+2009-02-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-block-todo-from-children-or-siblings): Use
+	`org-up-heading-all' so that this will work correctly with hidden
+	property drawers and entries.
+	(org-end-of-line, org-beginning-of-line): Make prefix arg work, by
+	falling back to normal, default command.
+	(org-get-location): Temporarily turn off special behavior.
+
 2009-02-13  Glenn Morris  <rgm@gnu.org>
 
 	* org-rmail.el (rmail-show-message): Restore argument list to the

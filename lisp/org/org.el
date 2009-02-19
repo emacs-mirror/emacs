@@ -4812,7 +4812,7 @@ or nil."
 	      (goto-char org-goto-start-pos)
 	      (and (org-invisible-p) (org-show-context)))
 	  (goto-char (point-min)))
-	(org-beginning-of-line)
+	(let (org-special-ctrl-a/e) (org-beginning-of-line))
 	(message "Select location and press RET")
 	(use-local-map org-goto-map)
 	(recursive-edit)
@@ -8588,7 +8588,7 @@ changes.  Such blocking occurs when:
       (org-back-to-heading t)
       (when (save-excursion
 	      (ignore-errors
-		(outline-up-heading 1)
+		(org-up-heading-all 1)
 		(org-entry-get (point) "ORDERED")))
 	(let* ((this-level (funcall outline-level))
 	       (current-level this-level))
@@ -14697,14 +14697,16 @@ beyond the end of the headline."
   (interactive "P")
   (let ((pos (point)) refpos)
     (beginning-of-line 1)
-    (if (bobp)
-	nil
-      (backward-char 1)
-      (if (org-invisible-p)
-	  (while (and (not (bobp)) (org-invisible-p))
-	    (backward-char 1)
-	    (beginning-of-line 1))
-	(forward-char 1)))
+    (if (and arg (fboundp 'move-beginning-of-line))
+	(call-interactively 'move-beginning-of-line)
+      (if (bobp)
+	  nil
+	(backward-char 1)
+	(if (org-invisible-p)
+	    (while (and (not (bobp)) (org-invisible-p))
+	      (backward-char 1)
+	      (beginning-of-line 1))
+	  (forward-char 1))))
     (when org-special-ctrl-a/e
       (cond
        ((and (looking-at org-complex-heading-regexp)
@@ -14738,8 +14740,11 @@ first attempt, and only move to after the tags when the cursor is already
 beyond the end of the headline."
   (interactive "P")
   (if (or (not org-special-ctrl-a/e)
-	  (not (org-on-heading-p)))
-      (end-of-line arg)
+	  (not (org-on-heading-p))
+	  arg)
+      (call-interactively (if (fboundp 'move-end-of-line)
+			      'move-end-of-line
+			    'end-of-line))
     (let ((pos (point)))
       (beginning-of-line 1)
       (if (looking-at (org-re ".*?\\([ \t]*\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
@@ -14751,10 +14756,11 @@ beyond the end of the headline."
 	    (if (or (< pos (match-end 0)) (not (eq this-command last-command)))
 		(goto-char (match-end 0))
 	      (goto-char (match-beginning 1))))
-	(end-of-line arg))))
+	(call-interactively (if (fboundp 'move-end-of-line)
+				'move-end-of-line
+			      'end-of-line)))))
   (org-no-warnings
    (and (featurep 'xemacs) (setq zmacs-region-stays t))))
-
 
 (define-key org-mode-map "\C-a" 'org-beginning-of-line)
 (define-key org-mode-map "\C-e" 'org-end-of-line)
