@@ -1,5 +1,8 @@
 2009-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-fontify-syntactic-keywords-region):
+	Make sure we stop when we reach the limit.
+
 	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): ' inside
 	a "..." does not quote anything.
 
