@@ -1,3 +1,8 @@
+2009-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): 
+	Move entry for maven (alphabetical order).
+
 2009-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-by-topic): Doc fix.
