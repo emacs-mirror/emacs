@@ -72,12 +72,9 @@ Fixed by this change?
 ** In C, use EMACS_INT for variables and structure members
 for buffer/string positions.  E.g. struct it, struct text_pos.
 
-** Rmail issues:
-
-rmail-spam-filter.el: seems to work, but needs more checking.
-Update the rmail (and gnus) manuals for mbox rmail.
-
 * DOCUMENTATION
+
+** Update the rmail (and gnus) manuals for mbox rmail.
 
 ** Clean up Emacs.app references in code and documentation.
 
