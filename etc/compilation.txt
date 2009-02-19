@@ -241,6 +241,13 @@ makepp: bla bla `/foo/Makeppfile:12' bla
 makepp: bla bla `/foo/bar.c' and `/foo/bar.h'
 
 
+* maven 2.0.9
+
+symbol: maven
+
+FooBar.java:[111,53] no interface expected here
+
+
 * MIPS lint; looks good for SunPro lint also
 
 symbols: mips-1 mips-2
