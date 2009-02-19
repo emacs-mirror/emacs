@@ -1,3 +1,21 @@
+2009-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailsum.el (rmail-summary-by-topic): Doc fix.
+	Regexp-quote default argument taken from current subject.
+	(rmail-new-summary-1): Error if empty summary.  (Bug#2333)
+
+	* mail/rmail-spam-filter.el (rmail-get-new-mail-filter-spam):
+	Move here from rmail.el.  Be more careful about error-handling.
+	Restore the feature of temporarily setting all old messages
+	undeleted before expunging (removed 2009-02-18).
+
+	* mail/rmail.el (rsf-beep, rsf-sleep-after-message, rmail-spam-filter):
+	Don't declare.
+	(rmail-get-new-mail-filter-spam): Declare.  Move definition to
+	rmail-spam-filter.el.
+	(rmail-get-new-mail-1): Move the beep and sleep to
+	rmail-get-new-mail-filter-spam.
+
 2009-02-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-edit.el (custom-group-value-create): Insert some

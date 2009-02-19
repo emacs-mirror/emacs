@@ -150,12 +150,13 @@ Emacs will list the header line in the RMAIL-summary."
 ;;;###autoload
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
-Normally checks the Subject field of headers;
-but if WHOLE-MESSAGE is non-nil (prefix arg given),
- look in the whole message.
+Normally checks just the Subject field of headers; but with prefix
+argument WHOLE-MESSAGE is non-nil, looks in the whole message.
 SUBJECT is a string of regexps separated by commas."
   (interactive
-   (let* ((subject (rmail-simplified-subject))
+   ;; We quote the default subject, because if it contains regexp
+   ;; special characters (eg "?"), it can fail to match itself.  (Bug#2333)
+   (let* ((subject (regexp-quote (rmail-simplified-subject)))
 	  (prompt (concat "Topics to summarize by (regexp"
 			  (if subject ", default current subject" "")
 			  "): ")))
@@ -282,18 +283,18 @@ message."
 			       rmail-new-summary-line-count)))
 		(setq summary-msgs (nreverse summary-msgs)))
 	    (narrow-to-region old-min old-max)))))
-
     ;; Temporarily, while summary buffer is unfinished,
     ;; we "don't have" a summary.
-    ;;
+    (setq rmail-summary-buffer nil)
+    (unless summary-msgs
+      (kill-buffer sumbuf)
+      (error "Nothing to summarize"))
     ;; I have not a clue what this clause is doing.  If you read this
     ;; chunk of code and have a clue, then please email that clue to
     ;; pmr@pajato.com
-    (setq rmail-summary-buffer nil)
     (if rmail-enable-mime
 	(with-current-buffer rmail-buffer
 	  (setq rmail-summary-buffer nil)))
-
     (save-excursion
       (let ((rbuf (current-buffer))
 	    (total rmail-total-messages))
