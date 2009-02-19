@@ -89,9 +89,6 @@ its character representation and its display representation.")
 (defvar mail-abbrev-syntax-table)
 (defvar mail-abbrevs)
 (defvar messages-head)
-(defvar rmail-use-spam-filter)
-(defvar rsf-beep)
-(defvar rsf-sleep-after-message)
 (defvar total-messages)
 (defvar tool-bar-map)
 
@@ -1555,7 +1552,6 @@ The duplicate copy goes into the Rmail file just after the original."
 
 ;;;; *** Rmail input ***
 
-(declare-function rmail-spam-filter "rmail-spam-filter" (msg))
 (declare-function rmail-summary-goto-msg "rmailsum" (&optional n nowarn skip-rmail))
 (declare-function rmail-summary-mark-undeleted "rmailsum" (n))
 (declare-function rmail-summary-mark-deleted "rmailsum" (&optional n undel))
@@ -1643,6 +1639,9 @@ It returns t if it got any new messages."
       ;; Don't leave the buffer screwed up if we get a disk-full error.
       (rmail-show-message))))
 
+(defvar rmail-use-spam-filter)
+(declare-function rmail-get-new-mail-filter-spam "rmail-spam-filter" (nnew))
+
 (defun rmail-get-new-mail-1 (file-name files delete-files)
   "Return t if new messages are detected without error, nil otherwise."
   (save-excursion
@@ -1700,46 +1699,15 @@ It returns t if it got any new messages."
 	(if (zerop new-messages)
 	    (when (or file-name rmail-inbox-list)
 	      (message "(No new mail has arrived)"))
-	  ;; Generate the spam message.
-	  (setq blurb (if spam-filter-p
-			  (rmail-get-new-mail-filter-spam new-messages)
-			"")))
+	  (if spam-filter-p
+	      (setq blurb (rmail-get-new-mail-filter-spam new-messages))))
 	(if (rmail-summary-exists)
 	    (rmail-select-summary (rmail-update-summary)))
 	(setq suffix (if (= 1 new-messages) "" "s"))
 	(message "%d new message%s read%s" new-messages suffix blurb)
-	(unless (string-equal blurb "") ; there was spam
-	  (if rsf-beep (beep t))
-	  ;; The use of rmail-show-message in rmail-get-new-mail-filter-spam
-	  ;; also prevents the raw mbox buffer from showing at this point.
-	  (sleep-for rsf-sleep-after-message))
 	;; Establish the return value.
 	(setq result (> new-messages 0))
 	result))))
-
-(defun rmail-get-new-mail-filter-spam (nnew)
-  "Check the most NNEW recent messages for spam."
-  (let* ((nold (- rmail-total-messages nnew))
-	 (nspam 0)
-	 (nscan (1+ nold)))
-    (while (<= nscan rmail-total-messages)
-      (or (rmail-spam-filter nscan)
-	  (setq nspam (1+ nspam)))
-      (setq nscan (1+ nscan)))
-    (when (> nspam 0)
-      ;; Otherwise the expunge prompt leaves the raw mbox buffer showing.
-      (rmail-show-message (rmail-first-unseen-message) 1)
-      (if (rmail-expunge-confirmed) (rmail-only-expunge t))
-      ;; Swap back, else get-new-mail-1 gets confused.
-      (rmail-swap-buffers-maybe)
-      (widen))
-    ;; Return a message based on the number of spam messages found.
-    (cond
-     ((zerop nspam) "")
-     ((= 1 nnew) ", and it appears to be spam")
-     ((= nspam nnew) ", and all appear to be spam")
-     (t (format ", and %d appear%s to be spam" nspam
-		(if (= 1 nspam) "s" ""))))))
 
 (defun rmail-parse-url (file)
   "Parse the supplied URL. Return (list MAILBOX-NAME REMOTE PASSWORD GOT-PASSWORD)
