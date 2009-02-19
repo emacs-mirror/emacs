@@ -5,6 +5,7 @@
 2009-02-19  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Preserve coding->mode.
+	Don't overflow coding->carryover.
 
 2009-02-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
