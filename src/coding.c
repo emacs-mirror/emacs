@@ -5955,6 +5955,7 @@ detect_coding (coding)
      struct coding_system *coding;
 {
   const unsigned char *src, *src_end;
+  int saved_mode = coding->mode;
 
   coding->consumed = coding->consumed_char = 0;
   coding->produced = coding->produced_char = 0;
@@ -6125,6 +6126,7 @@ detect_coding (coding)
 	    setup_coding_system (XCDR (coding_systems), coding);
 	}
     }
+  coding->mode = saved_mode;
 }
 
 
