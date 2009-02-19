@@ -1,3 +1,7 @@
+2009-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/rst.el (rst-mode-abbrev-table): Mark entries as `system'.
+
 2009-02-19  Andreas Schwab  <schwab@suse.de>
 
 	* term.el: Remap self-insert-command to term-send-raw in
