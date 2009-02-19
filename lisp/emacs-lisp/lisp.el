@@ -259,7 +259,8 @@ is called as a function to find the defun's beginning."
 					 "\\(?:" defun-prompt-regexp "\\)\\s(")
 			       "^\\s(")
 			     nil 'move arg)
-	 (progn (goto-char (1- (match-end 0)))) t))
+	 (progn (goto-char (1- (match-end 0)))
+                t)))
 
    ;; If open-paren-in-column-0-is-defun-start and defun-prompt-regexp
    ;; are both nil, column 0 has no significance - so scan forward
