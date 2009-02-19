@@ -6805,6 +6805,8 @@ decode_coding (coding)
 	     coding->carryover.  */
 	  unsigned char *p = coding->carryover;
 
+	  if (nbytes > sizeof coding->carryover)
+	    nbytes = sizeof coding->carryover;
 	  coding->carryover_bytes = nbytes;
 	  while (nbytes-- > 0)
 	    *p++ = *src++;
