@@ -1,5 +1,8 @@
 2009-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): ' inside
+	a "..." does not quote anything.
+
 	* textmodes/rst.el (rst-mode-abbrev-table): Mark entries as `system'.
 
 2009-02-19  Andreas Schwab  <schwab@suse.de>

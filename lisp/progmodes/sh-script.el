@@ -1063,7 +1063,9 @@ subshells can nest."
                                (< (point) limit)))
         ;; unescape " inside a $( ... ) construct.
         (case (char-after)
-          (?\' (forward-char 1) (skip-chars-forward "^'" limit))
+          (?\' (case state
+                 (double-quote nil)
+                 (t (forward-char 1) (skip-chars-forward "^'" limit))))
           (?\\ (forward-char 1))
           (?\" (case state
                  (double-quote (setq state (pop states)))
