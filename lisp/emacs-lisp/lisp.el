@@ -345,6 +345,14 @@ is called as a function to find the defun's end."
   (let ((pos (point))
         (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point))))
     (funcall end-of-defun-function)
+    ;; When comparing point against pos, we want to consider that if
+    ;; point was right after the end of the function, it's still
+    ;; considered as "in that function".
+    ;; E.g. `eval-defun' from right after the last close-paren.
+    (unless (bolp)
+      (skip-chars-forward " \t")
+      (if (looking-at "\\s<\\|\n")
+          (forward-line 1)))
     (cond
      ((> arg 0)
       ;; Moving forward.

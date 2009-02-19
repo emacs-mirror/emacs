@@ -1,6 +1,11 @@
+2009-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (end-of-defun): Consider the ".*\n" after the end of
+	the function as being part of the function.
+
 2009-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Move entry for maven (alphabetical order).
 
 2009-02-19  Glenn Morris  <rgm@gnu.org>
