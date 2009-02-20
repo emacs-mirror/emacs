@@ -1,3 +1,9 @@
+2009-02-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/python.el (python-shift-left, python-shift-right):
+	When the mark is not active shift the current line.  (Bug#2381)
+	Suggested by Guillaume Salagnac <guillaume.salagnac@gmail.com>
+
 2009-02-20  Andreas Schwab  <schwab@suse.de>
 
 	* startup.el (command-line): Don't match an empty argument as an
