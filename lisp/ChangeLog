@@ -1,3 +1,8 @@
+2009-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-start): Make the warning more
+	verbose (Bug#2395).
+
 2009-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-fontify-syntactic-keywords-region):
