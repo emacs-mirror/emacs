@@ -1,3 +1,10 @@
+2009-02-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore): Fix
+	regexp (Bug#2385).
+	(bibtex-autokey-get-title): Observe case for
+	bibtex-autokey-titleword-ignore.
+
 2009-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-start): Make the warning more
