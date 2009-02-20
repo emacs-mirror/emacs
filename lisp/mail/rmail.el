@@ -3816,6 +3816,7 @@ browsing, and moving of messages.")
     (define-key rmail-speedbar-key-map "M"
       'rmail-speedbar-move-message-to-folder-on-line)))
 
+;; FIXME unused?
 (defvar rmail-speedbar-menu-items
   '(["Read Folder" speedbar-edit-line t]
     ["Move message to folder" rmail-speedbar-move-message-to-folder-on-line
@@ -3857,12 +3858,12 @@ current message into that RMAIL folder."
 	     (df (directory-files (with-current-buffer buffer
                                     default-directory)
 				  nil rmail-speedbar-match-folder-regexp)))
-	(while df
-	  (speedbar-insert-button "<M>" 'speedbar-button-face 'highlight
-				  'rmail-speedbar-move-message (car df))
-	  (speedbar-insert-button (car df) 'speedbar-file-face 'highlight
-				  'rmail-speedbar-find-file nil t)
-	  (setq df (cdr df)))))))
+	(dolist (file df)
+	  (when (file-regular-p file)
+	    (speedbar-insert-button "<M>" 'speedbar-button-face 'highlight
+				    'rmail-speedbar-move-message file)
+	    (speedbar-insert-button file 'speedbar-file-face 'highlight
+				    'rmail-speedbar-find-file nil t)))))))
 
 (defun rmail-speedbar-button (text token indent)
   "Execute an rmail command specified by TEXT.
@@ -3875,7 +3876,7 @@ The command used is TOKEN.  INDENT is not used."
 TOKEN and INDENT are not used."
   (speedbar-with-attached-buffer
    (message "Loading in RMAIL file %s..." text)
-   (find-file text)))
+   (rmail text)))
 
 (defun rmail-speedbar-move-message-to-folder-on-line ()
   "If the current line is a folder, move current message to it."
@@ -3887,6 +3888,7 @@ TOKEN and INDENT are not used."
 	  (forward-char -2)
 	  (speedbar-do-function-pointer)))))
 
+;; FIXME loses the directory part.
 (defun rmail-speedbar-move-message (text token indent)
   "From button TEXT, copy current message to the rmail file specified by TOKEN.
 TEXT and INDENT are not used."
@@ -3894,10 +3896,10 @@ TEXT and INDENT are not used."
    (message "Moving message to %s" token)
    (rmail-output token)))
 
-; Functions for setting, getting and encoding the POP password.
-; The password is encoded to prevent it from being easily accessible
-; to "prying eyes."  Obviously, this encoding isn't "real security,"
-; nor is it meant to be.
+;; Functions for setting, getting and encoding the POP password.
+;; The password is encoded to prevent it from being easily accessible
+;; to "prying eyes."  Obviously, this encoding isn't "real security,"
+;; nor is it meant to be.
 
 ;;;###autoload
 (defun rmail-set-remote-password (password)
