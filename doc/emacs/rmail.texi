@@ -11,10 +11,9 @@
 @vindex rmail-mode-hook
 
   Rmail is an Emacs subsystem for reading and disposing of mail that
-you receive.  Rmail stores mail messages in files called Rmail files
-which use a special format.  Reading the message in an Rmail file is
-done in a special major mode, Rmail mode, which redefines most letters
-to run commands for managing mail.
+you receive.  Rmail stores mail messages in files called Rmail files.
+Reading the message in an Rmail file is done in a special major mode,
+Rmail mode, which redefines most letters to run commands for managing mail.
 @menu
 * Basic: Rmail Basics.       Basic concepts of Rmail, and simple use.
 * Scroll: Rmail Scrolling.   Scrolling through a message.
@@ -342,11 +341,11 @@ all into a separate Rmail file avoids the need for interlocking in all
 the rest of Rmail, since only Rmail operates on the Rmail file.
 @end enumerate
 
-  Rmail was written to use Babyl format as its internal format.  Since
-then, we have recognized that the usual inbox format on Unix and GNU
-systems is adequate for the job, and we plan to change Rmail to use that
-as its internal format.  However, the Rmail file will still be separate
-from the inbox file, even when their format is the same.
+  Rmail was originally written to use Babyl as its internal format.
+Since then, we have recognized that the usual inbox format on Unix and
+GNU systems is adequate for the job, and so since Emacs 23 Rmail uses
+that as its internal format.  The Rmail file is still separate from the
+inbox file, even though their format is the same.
 
 @vindex rmail-preserve-inbox
   When getting new mail, Rmail first copies the new mail from the

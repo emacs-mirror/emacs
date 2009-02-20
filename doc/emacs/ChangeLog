@@ -1,7 +1,10 @@
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi: Minor updates for mbox rather than Babyl.
+
 2009-02-17  Karl Berry  <karl@gnu.org>
 
-	* emacs.texi (Top): Add @insertcopying before the master menu.
-	(Bug#1988)
+	* emacs.texi (Top): Add @insertcopying before master menu.  (Bug#1988)
 
 2009-02-17  Richard M Stallman  <rms@gnu.org>
 
