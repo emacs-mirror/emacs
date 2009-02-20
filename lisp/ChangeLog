@@ -3,7 +3,7 @@
 	* mail/rmail.el (rmail-speedbar-buttons): Only add regular files.
 	(rmail-speedbar-find-file): Use rmail rather than find-file.
 
-2009-02-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+2009-02-20  Era Eriksson  <era@iki.fi>  (tiny change)
 
 	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore): Fix
 	regexp (Bug#2385).
