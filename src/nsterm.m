@@ -1001,6 +1001,8 @@ x_make_frame_invisible (struct frame *f)
   NSTRACE (x_make_frame_invisible);
   check_ns ();
   [[view window] orderOut: NSApp];
+  f->async_visible = 0;
+  f->async_iconified = 0;
 }
 
 
@@ -5308,8 +5310,8 @@ extern void update_window_cursor (struct window *w, int on);
   NSTRACE (windowDidDeminiaturize);
   if (!emacsframe->output_data.ns)
     return;
-  emacsframe->async_visible   = 1;
   emacsframe->async_iconified = 0;
+  emacsframe->async_visible   = 1;
   windows_or_buffers_changed++;
 
   if (emacs_event)
@@ -5340,6 +5342,7 @@ extern void update_window_cursor (struct window *w, int on);
     return;
 
   emacsframe->async_iconified = 1;
+  emacsframe->async_visible = 0;
 
   if (emacs_event)
     {
