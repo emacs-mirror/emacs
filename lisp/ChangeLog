@@ -1,3 +1,7 @@
+2009-02-20  Daniel Jensen  <daniel@bigwalter.net>  (tiny change)
+
+	* apropos.el (apropos-library): Check for null filename in load-history.
+
 2009-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* apropos.el (apropos-library): Remove the element with null filename,
