@@ -1159,7 +1159,7 @@ to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 @cindex Reading mail.
 @findex dired-rmail
 Bound to @kbd{V} if @code{dired-bind-vm} is @code{nil}.  Run Rmail on this
-file (assumed to be mail folder in Rmail/BABYL format).
+file (assumed to be mail folder in Rmail format).
 
 @item dired-info
 @kindex I

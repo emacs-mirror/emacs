@@ -1,3 +1,8 @@
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Miscellaneous Commands):
+	* gnus.texi: Minor updates for mbox Rmail.
+
 2009-02-16  Karl Berry  <karl@gnu.org>
 
 	* ada-mode.texi,
