@@ -2208,7 +2208,7 @@ means Gnus never ignores old articles.
 @vindex gnus-auto-select-subject
 If @code{gnus-auto-select-first} is non-@code{nil}, select an article
 automatically when entering a group with the @kbd{SPACE} command.
-Which article this is is controlled by the
+Which article this is controlled by the
 @code{gnus-auto-select-subject} variable.  Valid values for this
 variable are:
 
@@ -4390,7 +4390,7 @@ FIXME: As a first step, convert the commentary of @file{nnir} to texi.
 @node nnmairix
 @subsection nnmairix
 
-@cindex mairix 
+@cindex mairix
 @cindex nnmairix
 This paragraph describes how to set up mairix and the back end
 @code{nnmairix} for indexing and searching your mail from within
@@ -4480,7 +4480,7 @@ to certain mairix searches.  This way, you can easily create a group
 containing mails from a certain sender, with a certain subject line or
 even for one specific thread based on the Message-ID.  If you check for
 new mail in these folders (e.g. by pressing @kbd{g} or @kbd{M-g}), they
-automatically update themselves by calling mairix. 
+automatically update themselves by calling mairix.
 
 You might ask why you need @code{nnmairix} at all, since mairix already
 creates the group, populates it with links to the mails so that you can
@@ -14475,7 +14475,7 @@ List of strings to be used as the switches to
 Does essentially the same, but uses @code{telnet} instead of @samp{netcat}
 to connect to the real @acronym{NNTP} server from the intermediate host.
 @code{telnet} is a bit less robust because of things like
-line-end-conversion, but sometimes @code{netcat} is simply not available.  
+line-end-conversion, but sometimes @code{netcat} is simply not available.
 
 @code{nntp-open-via-rlogin-and-telnet}-specific variables:
 
@@ -25029,7 +25029,7 @@ the value @samp{spam} means @samp{nnimap+your-server:spam}.  The value
 @vindex nnimap-split-download-body
 Note for IMAP users: if you use the @code{spam-check-bogofilter},
 @code{spam-check-ifile}, and @code{spam-check-stat} spam back ends,
-you should also set set the variable @code{nnimap-split-download-body}
+you should also set the variable @code{nnimap-split-download-body}
 to @code{t}.  These spam back ends are most useful when they can
 ``scan'' the full message body.  By default, the nnimap back end only
 retrieves the message headers; @code{nnimap-split-download-body} tells
@@ -26587,10 +26587,10 @@ of all messages matching a particular set of criteria.
 @end enumerate
 
 @menu
-* Setup::                       
-* Fancy splitting to parent::   
-* Store custom flags and keywords::  
-* Store arbitrary data::        
+* Setup::
+* Fancy splitting to parent::
+* Store custom flags and keywords::
+* Store arbitrary data::
 @end menu
 
 @node Setup

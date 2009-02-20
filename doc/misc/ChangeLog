@@ -1,3 +1,14 @@
+2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ada-mode.texi (Project files, Automatic Casing):
+	* dbus.texi (Signals):
+	* gnus.texi (Selecting a Group, Filtering Incoming Mail):
+	* mh-e.texi (HTML):
+	* nxml-mode.texi (Locating a schema)
+	(Using the document's URI to locate a schema):
+	* org.texi (Footnotes, Using the mapping API):
+	* rcirc.texi (Channels): Remove duplicate words.
+
 2009-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Miscellaneous Commands):

@@ -379,7 +379,7 @@ commands never display the completion list buffer; you must type
 shows the completion list buffer on the second attempt to complete.
 In other words, if there is nothing to complete, the first @key{TAB}
 echoes @samp{Next char not unique}; the second @key{TAB} does the
-completion list buffer buffer.
+completion list buffer.
 
 @vindex completion-ignored-extensions
 @cindex ignored file names, in completion

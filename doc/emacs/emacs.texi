@@ -1233,7 +1233,7 @@ in various programming languages.
 
   @dfn{Self-documenting} means that at any time you can use special
 commands, known as @dfn{help commands}, to find out what your options
-are, or to find out what what any command does, or to find all the
+are, or to find out what any command does, or to find all the
 commands that pertain to a given topic.  @xref{Help}.
 
   @dfn{Customizable} means that you can easily alter the behavior of

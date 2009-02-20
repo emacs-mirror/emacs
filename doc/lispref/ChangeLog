@@ -1,3 +1,8 @@
+2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Major Mode Conventions): Remove duplicate words.
+	(Customizing Keywords): Fix typo.
+
 2009-02-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (User-Chosen Coding Systems): Document that

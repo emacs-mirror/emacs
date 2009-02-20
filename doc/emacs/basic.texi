@@ -206,7 +206,7 @@ Move to the end of the buffer (@code{end-of-buffer}).
 Scroll the display one screen forward, and move point if necessary to
 put it on the screen (@code{scroll-up}).  If your keyboard has a
 @key{PageDown} key (sometimes labelled @key{next}), it does the same
-thing as as @key{C-v}.  Scrolling commands are described further in
+thing as @key{C-v}.  Scrolling commands are described further in
 @ref{Scrolling}.
 @item M-v
 @itemx @key{PageUp}
@@ -539,7 +539,7 @@ Toggle automatic display of the size of the buffer.
   @kbd{M-x what-line} displays the current line number in the echo
 area.  This command is usually redundant, because the current line
 number is shown in the mode line (@pxref{Mode Line}).  However, if you
-narrow the buffer, the mode line shows the the line number relative to
+narrow the buffer, the mode line shows the line number relative to
 the accessible portion (@pxref{Narrowing}).  By contrast,
 @code{what-line} displays both the line number relative to the
 narrowed region and the line number relative to the whole buffer.

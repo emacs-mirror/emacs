@@ -1,3 +1,10 @@
+2009-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* basic.texi (Moving Point, Position Info):
+	* files.texi (Visiting):
+	* mini.texi (Completion Options):
+	* text.texi (HTML Mode): Remove duplicate words.
+
 2009-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi: Minor updates for mbox rather than Babyl.

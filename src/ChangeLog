@@ -218,7 +218,7 @@
 	the frame.
 	(composition_compute_stop_pos): Adjust cmp_it->stop_pos if point
 	is within a composition.
-	(Fcomposition_get_gstring): Fix the the terminal case.
+	(Fcomposition_get_gstring): Fix the terminal case.
 
 	* term.c (encode_terminal_code): Fix handling of composition.
 	(produce_composite_glyph): For static composition, get pixel_width
@@ -9095,7 +9095,7 @@
 	* ftfont.c (struct OpenTypeSpec): Rename members script_tag to
 	script, langsys_tag to langsys, new member script.
 	(OTF_TAG_STR): Terminate by '\0'.
-	(ftfont_get_open_type_spec): If :otf prop is is spec, Limit the
+	(ftfont_get_open_type_spec): If :otf prop is spec, limit the
 	listing to the script specified in that property.  Fix arg to
 	OTF_check_features.
 

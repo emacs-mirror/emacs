@@ -657,7 +657,7 @@ expected.
 
 @kindex C-c C-l
 @cindex low priority channels
-The solution is to mark this channel as as a low priority channel.
+The solution is to mark this channel as a low priority channel.
 Use @kbd{C-c C-l} to make the current channel a low-priority channel.
 Low priority channels have the modeline indicator ``LowPri''.
 @kbd{C-c C-@key{SPC}} will not switch to low priority channels unless
@@ -745,7 +745,7 @@ listed.  Example: @code{/keyword manual}.
 
 @node Notices, , Keywords, Fighting Information Overload
 @section Notices
-@cindex part notices, how to omit 
+@cindex part notices, how to omit
 @cindex join notices, how to omit
 @cindex quit notices, how to omit
 @cindex nick notices, how to omit
