@@ -1353,7 +1353,7 @@ DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
        doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
 STRING is like the inside of a `[...]' in a regular expression
 except that `]' is never special and `\\' quotes `^', `-' or `\\'
- (but not as the end of a range; quoting is never needed there).
+ (but not at the end of a range; quoting is never needed there).
 Thus, with arg "a-zA-Z", this skips letters stopping before first nonletter.
 With arg "^a-zA-Z", skips nonletters stopping before first letter.
 Char classes, e.g. `[:alpha:]', are supported.
