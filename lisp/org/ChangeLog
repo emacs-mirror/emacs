@@ -1,3 +1,16 @@
+2009-02-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-remember.el (org-remember-apply-template): Turn off ido for
+	this completion.
+
+	* org.el (org-priority): Also find invisible headings, for remote
+	editing.
+	(org-completing-read-no-ido): New function.
+	(org-make-tags-matcher, org-set-property): Turn off ido for this completion.
+
+	* org-colview.el (org-columns-edit-value): No special treatment of
+	prefix arg.
+
 2009-02-19  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-block-todo-from-children-or-siblings): Use
