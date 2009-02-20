@@ -3816,7 +3816,7 @@ browsing, and moving of messages.")
     (define-key rmail-speedbar-key-map "M"
       'rmail-speedbar-move-message-to-folder-on-line)))
 
-;; FIXME unused?
+;; Mouse-3.
 (defvar rmail-speedbar-menu-items
   '(["Read Folder" speedbar-edit-line t]
     ["Move message to folder" rmail-speedbar-move-message-to-folder-on-line
