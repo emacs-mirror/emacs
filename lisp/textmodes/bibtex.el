@@ -746,11 +746,11 @@ See `bibtex-generate-autokey' for details."
 
 (defcustom bibtex-autokey-titleword-ignore
   '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
-    "[^[:upper:]].*" ".*[^[:upper:]0-9].*")
+    "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*")
   "Determines words from the title that are not to be used in the key.
 Each item of the list is a regexp.  If a word of the title matches a
 regexp from that list, it is not included in the title part of the key.
-See `bibtex-generate-autokey' for details."
+Case is significant.  See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
@@ -2307,6 +2307,10 @@ Return the result as a string"
     ;; gather words from titlestring into a list.  Ignore
     ;; specific words and use only a specific amount of words.
     (let ((counter 0)
+	  (ignore-re (concat "\\`\\(?:"
+                             (mapconcat 'identity
+                                        bibtex-autokey-titleword-ignore "\\|")
+                             "\\)\\'"))
           titlewords titlewords-extra word)
       (while (and (or (not (numberp bibtex-autokey-titlewords))
                       (< counter (+ bibtex-autokey-titlewords
@@ -2315,13 +2319,9 @@ Return the result as a string"
         (setq word (match-string 0 titlestring)
               titlestring (substring titlestring (match-end 0)))
         ;; Ignore words matched by one of the elements of
-        ;; `bibtex-autokey-titleword-ignore'
-        (unless (let ((lst bibtex-autokey-titleword-ignore))
-                  (while (and lst
-                              (not (string-match (concat "\\`\\(?:" (car lst)
-                                                         "\\)\\'") word)))
-                    (setq lst (cdr lst)))
-                  lst)
+        ;; `bibtex-autokey-titleword-ignore'.  Case is significant.
+        (unless (let (case-fold-search)
+		  (string-match ignore-re word))
           (setq counter (1+ counter))
           (if (or (not (numberp bibtex-autokey-titlewords))
                   (<= counter bibtex-autokey-titlewords))
