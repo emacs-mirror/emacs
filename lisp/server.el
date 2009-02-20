@@ -493,9 +493,14 @@ To force-start a server, do \\[server-force-delete] and then
 	  ;; Remove any leftover socket or authentication file
 	  (ignore-errors (delete-file server-file))
 	(setq server-mode nil) ;; already set by the minor mode code
-	(display-warning 'server
-			 (format "Emacs server named %S already running" server-name)
-			 :warning)
+	(display-warning
+	 'server
+	 (concat "Unable to start the Emacs server.\n"
+		 (format "There is an existing Emacs server, named %S.\n"
+			 server-name)
+		 "To start the server in this Emacs process, stop the existing
+server or call `M-x server-force-delete' to forcibly disconnect it.")
+	 :warning)
 	(setq leave-dead t))
       ;; If this Emacs already had a server, clear out associated status.
       (while server-clients
