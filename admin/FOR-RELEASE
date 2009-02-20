@@ -74,8 +74,6 @@ for buffer/string positions.  E.g. struct it, struct text_pos.
 
 * DOCUMENTATION
 
-** Update the rmail (and gnus) manuals for mbox rmail.
-
 ** Clean up Emacs.app references in code and documentation.
 
 ** Document new font backend
