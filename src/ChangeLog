@@ -1,3 +1,7 @@
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* syntax.c (Fskip_chars_forward): Fix doc typo.
+
 2009-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fkeymap_parent): Doc fix (Bug#2391).
