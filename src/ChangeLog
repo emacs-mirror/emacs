@@ -1,3 +1,10 @@
+2009-02-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (x_make_frame_invisible): Unset async_visible,
+	async_iconified.  Based on a patch by Christian Lynbech
+	<christian.lynbech@tieto.com>.
+	(EmacsView-windowDidMiniaturize:): Unset async_visible.
+
 2009-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* syntax.c (Fskip_chars_forward): Fix doc typo.
