@@ -1,5 +1,8 @@
 2009-02-20  Glenn Morris  <rgm@gnu.org>
 
+	* apropos.el (apropos-library): Remove the element with null filename,
+	if present, from the completion list.
+
 	* mail/rmail.el (rmail-speedbar-buttons): Only add regular files.
 	(rmail-speedbar-find-file): Use rmail rather than find-file.
 

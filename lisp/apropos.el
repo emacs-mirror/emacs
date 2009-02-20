@@ -569,17 +569,18 @@ Returns list of symbols and documentation found."
 FILE should be one of the libraries currently loaded and should
 thus be found in `load-history'."
   (interactive
-   (let ((libs
-          (nconc (delq nil
-                       (mapcar
-                        (lambda (l)
-                          (setq l (file-name-nondirectory l))
-                          (while
-                              (not (equal (setq l (file-name-sans-extension l))
-                                          l)))
-                          l)
-                        (mapcar 'car load-history)))
-                 (mapcar 'car load-history))))
+   (let* ((libs (delq nil (mapcar 'car load-history)))
+          (libs
+           (nconc (delq nil
+                        (mapcar
+                         (lambda (l)
+                           (setq l (file-name-nondirectory l))
+                           (while
+                               (not (equal (setq l (file-name-sans-extension l))
+                                           l)))
+                           l)
+                         libs))
+                  libs)))
      (list (completing-read "Describe library: " libs nil t))))
   (let ((symbols nil)
 	;; (autoloads nil)
