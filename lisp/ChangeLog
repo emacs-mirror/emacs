@@ -1,3 +1,9 @@
+2009-02-20  Andreas Schwab  <schwab@suse.de>
+
+	* startup.el (command-line): Don't match an empty argument as an
+	option.
+	(command-line-1): Likewise.
+
 2009-02-20  Daniel Jensen  <daniel@bigwalter.net>  (tiny change)
 
 	* apropos.el (apropos-library): Check for null filename in load-history.
