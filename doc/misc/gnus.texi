@@ -684,7 +684,7 @@ Mail Sources
 Choosing a Mail Back End
 
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
-* Rmail Babyl::                 Emacs programs use the Rmail Babyl format.
+* Babyl::                       Babyl was used by older versions of Rmail.
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
@@ -8524,7 +8524,8 @@ Save the current article in a Unix mail box (mbox) file
 @kindex O r (Summary)
 @findex gnus-summary-save-article-rmail
 Save the current article in Rmail format
-(@code{gnus-summary-save-article-rmail}).
+(@code{gnus-summary-save-article-rmail}).  This is mbox since Emacs 23,
+Babyl in older versions.
 
 @item O f
 @kindex O f (Summary)
@@ -8610,7 +8611,11 @@ functions below, or you can create your own.
 @findex gnus-summary-save-in-rmail
 @vindex gnus-rmail-save-name
 @findex gnus-plain-save-name
-This is the default format, @dfn{Babyl}.  Uses the function in the
+This is the default format, that used by the Rmail package.  Since Emacs
+23, Rmail uses standard mbox format.  Before this, it used the
+@dfn{Babyl} format.  Accordingly, this command writes mbox format since
+Emacs 23, unless appending to an existing Babyl file.  In older versions
+of Emacs, it always uses Babyl format.  Uses the function in the
 @code{gnus-rmail-save-name} variable to get a file name to save the
 article in.  The default is @code{gnus-plain-save-name}.
 
@@ -16473,8 +16478,8 @@ mail, which should help.
 @vindex nnmh-get-new-mail
 @vindex nnfolder-get-new-mail
 This might be too much, if, for instance, you are reading mail quite
-happily with @code{nnml} and just want to peek at some old Rmail
-file you have stashed away with @code{nnbabyl}.  All back ends have
+happily with @code{nnml} and just want to peek at some old (pre-Emacs
+23) Rmail file you have stashed away with @code{nnbabyl}.  All back ends have
 variables called back-end-@code{get-new-mail}.  If you want to disable
 the @code{nnbabyl} mail reading, you edit the virtual server for the
 group to have a setting where @code{nnbabyl-get-new-mail} to @code{nil}.
@@ -16498,7 +16503,7 @@ Spool}).
 
 @menu
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
-* Rmail Babyl::                 Emacs programs use the Rmail Babyl format.
+* Babyl::                       Babyl was used by older versions of Rmail.
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
@@ -16538,27 +16543,26 @@ into groups.  Default is @code{t}.
 @end table
 
 
-@node Rmail Babyl
-@subsubsection Rmail Babyl
+@node Babyl
+@subsubsection Babyl
 @cindex nnbabyl
-@cindex Rmail mbox
 
 @vindex nnbabyl-active-file
 @vindex nnbabyl-mbox-file
-The @dfn{nnbabyl} back end will use a Babyl mail box (aka. @dfn{Rmail
-mbox}) to store mail.  @code{nnbabyl} will add extra headers to each
-mail article to say which group it belongs in.
+The @dfn{nnbabyl} back end will use a Babyl mail box to store mail.
+@code{nnbabyl} will add extra headers to each mail article to say which
+group it belongs in.
 
 Virtual server settings:
 
 @table @code
 @item nnbabyl-mbox-file
 @vindex nnbabyl-mbox-file
-The name of the Rmail mbox file.  The default is @file{~/RMAIL}
+The name of the Babyl file.  The default is @file{~/RMAIL}
 
 @item nnbabyl-active-file
 @vindex nnbabyl-active-file
-The name of the active file for the rmail box.  The default is
+The name of the active file for the Babyl file.  The default is
 @file{~/.rmail-active}
 
 @item nnbabyl-get-new-mail
@@ -17154,7 +17158,8 @@ to understand the mail files folks already had in existence.  Gnus (and
 VM, for that matter) continue to support this format because it's
 perceived as having some good qualities in those mailer-specific
 headers/status bits stuff.  Rmail itself still exists as well, of
-course, and is still maintained by Stallman.
+course, and is still maintained within Emacs.  Since Emacs 23, it
+uses standard mbox format rather than Babyl.
 
 Both of the above forms leave your mail in a single file on your
 file system, and they must parse that entire file each time you take a
@@ -18640,9 +18645,8 @@ as a newsgroup.  Several files types are supported:
 
 @table @code
 @cindex Babyl
-@cindex Rmail mbox
 @item babyl
-The Babyl (Rmail) mail box.
+The Babyl format.
 
 @cindex mbox
 @cindex Unix mbox
@@ -28819,6 +28823,7 @@ was inserted directly.
 @item
 @code{message-insinuate-rmail}
 
+@c FIXME should that not be 'message-user-agent?
 Adding @code{(message-insinuate-rmail)} and @code{(setq
 mail-user-agent 'gnus-user-agent)} in @file{.emacs} convinces Rmail to
 compose, reply and forward messages in message-mode, where you can
