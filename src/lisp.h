@@ -2173,6 +2173,8 @@ extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 extern Lisp_Object Qinteger;
 
+extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
+
 extern void circular_list_error P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Finteractive_form, 1);
 
