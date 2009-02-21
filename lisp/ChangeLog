@@ -1,5 +1,8 @@
 2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Tweak regexp (Bug#2173).
+
 	* textmodes/flyspell.el (flyspell-mouse-map): Undefine mouse-2 to
 	avoid yanks (Bug#2408).
 
