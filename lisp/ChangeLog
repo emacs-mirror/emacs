@@ -1,3 +1,8 @@
+2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-mouse-map): Undefine mouse-2 to
+	avoid yanks (Bug#2408).
+
 2009-02-21  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-case-kwds-regexp): New variable.
