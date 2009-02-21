@@ -136,9 +136,18 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (insert "\n")))
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
+	;; People who know what they are doing might have modified the
+	;; buffer's encoding if editing the message included inserting
+	;; characters that were unencodable by the original message's
+	;; encoding.  Make note of the new encoding and use it for
+	;; encoding the edited message.
+	(edited-coding buffer-file-coding-system)
 	new-headers
 	character-coding is-text-message coding-system
 	headers-end limit)
+    ;; Make sure `edited-coding' can safely encode the edited message.
+    (setq edited-coding
+	  (select-safe-coding-system (point-min) (point-max) edited-coding))
     ;; Go back to Rmail mode, but carefully.
     (force-mode-line-update)
     (let ((rmail-buffer-swapped nil)) ; Prevent change-major-mode-hook
@@ -153,6 +162,33 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
     (unless (and (= (length old) (- (point-max) (point-min)))
 		 (string= old (buffer-substring (point-min) (point-max))))
       (setq old nil)
+      (goto-char (point-min))
+      ;; If they changed the message's encoding, rewrite the charset=
+      ;; header for them, so that subsequent rmail-show-message
+      ;; decodes it correctly.
+      (let ((buffer-read-only nil)
+	    (new-coding (coding-system-base edited-coding))
+	    old-coding mime-charset mime-beg mime-end)
+	(when (re-search-forward rmail-mime-charset-pattern
+				 (1- (save-excursion (search-forward "\n\n")))
+				 'move)
+	    (setq mime-beg (match-beginning 1)
+		  mime-end (match-end 1)
+		  old-coding (coding-system-from-name (match-string 1))))
+	(setq mime-charset
+	      (symbol-name
+	       (or (coding-system-get new-coding :mime-charset)
+		   (if (coding-system-equal new-coding 'undecided)
+		       'us-ascii
+		     new-coding))))
+	(cond
+	 ((null old-coding)
+	  ;; If there was no charset= spec, insert one.
+	  (insert "Content-type: text/plain; charset=" mime-charset "\n"))
+	 ((not (coding-system-equal (coding-system-base old-coding)
+				    new-coding))
+	  (delete-region mime-beg mime-end)
+	  (insert mime-charset))))
       (goto-char (point-min))
       (search-forward "\n\n")
       (setq headers-end (point))
@@ -171,7 +207,12 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 	(setq character-coding
 	      (mail-fetch-field "content-transfer-encoding")
 	      is-text-message (rmail-is-text-p)
-	      coding-system (rmail-get-coding-system)))
+	      coding-system (if (and edited-coding
+				     (not (coding-system-equal
+					   (coding-system-base edited-coding)
+					   'undecided)))
+				edited-coding
+			      (rmail-get-coding-system))))
       (if character-coding
 	  (setq character-coding (downcase character-coding)))
 
