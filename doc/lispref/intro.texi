@@ -474,15 +474,15 @@ running.  It is useful to include this string in bug reports.
 @smallexample
 @group
 (emacs-version)
-  @result{} "GNU Emacs 20.3.5 (i486-pc-linux-gnulibc1, X toolkit)
- of Sat Feb 14 1998 on psilocin.gnu.org"
+  @result{} "GNU Emacs 23.1 (i686-pc-linux-gnu, GTK+ Version 2.14.4)
+             of 2009-06-01 on cyd.mit.edu"
 @end group
 @end smallexample
 
 If @var{here} is non-@code{nil}, it inserts the text in the buffer
-before point, and returns @code{nil}.  Called interactively, the
-function prints the same information in the echo area, but giving a
-prefix argument makes @var{here} non-@code{nil}.
+before point, and returns @code{nil}.  When this function is called
+interactively, it prints the same information in the echo area, but
+giving a prefix argument makes @var{here} non-@code{nil}.
 @end deffn
 
 @defvar emacs-build-time
@@ -493,30 +493,30 @@ of @code{current-time} (@pxref{Time of Day}).
 @example
 @group
 emacs-build-time
-     @result{} (13623 62065 344633)
+     @result{} (18846 52016 156039)
 @end group
 @end example
 @end defvar
 
 @defvar emacs-version
 The value of this variable is the version of Emacs being run.  It is a
-string such as @code{"20.3.1"}.  The last number in this string is not
-really part of the Emacs release version number; it is incremented each
-time you build Emacs in any given directory.  A value with four numeric
-components, such as @code{"20.3.9.1"}, indicates an unreleased test
-version.
+string such as @code{"23.1.1"}.  The last number in this string is not
+really part of the Emacs release version number; it is incremented
+each time you build Emacs in any given directory.  A value with four
+numeric components, such as @code{"22.0.91.1"}, indicates an
+unreleased test version.
 @end defvar
 
   The following two variables have existed since Emacs version 19.23:
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version
-20.3, the value is 20.
+23.1, the value is 23.
 @end defvar
 
 @defvar emacs-minor-version
 The minor version number of Emacs, as an integer.  For Emacs version
-20.3, the value is 3.
+23.1, the value is 1.
 @end defvar
 
 @node Acknowledgements
@@ -528,20 +528,24 @@ manual group, in an effort extending over several years.
 Robert@tie{}J. Chassell helped to review and edit the manual, with the
 support of the Defense Advanced Research Projects Agency, ARPA Order
 6082, arranged by Warren@tie{}A. Hunt, Jr.@: of Computational Logic,
-Inc.
+Inc.  Additional sections were written by Miles Bader, Lars Brinkhoff,
+Chong Yidong, Kenichi Handa, Lute Kamstra, Juri Linkov, Glenn Morris,
+Thien-Thi Nguyen, Dan Nicolaescu, Martin Rudalics, Kim F. Storm, Luc
+Teirlinck, and Eli Zaretskii.
 
-  Corrections were supplied by Karl Berry, Jim Blandy, Bard Bloom,
-Stephane Boucher, David Boyes, Alan Carroll, Richard Davis, Lawrence
-R. Dodd, Peter Doornbosch, David A. Duff, Chris Eich, Beverly
-Erlebacher, David Eckelkamp, Ralf Fassel, Eirik Fuller, Stephen Gildea,
-Bob Glickstein, Eric Hanchrow, George Hartzell, Nathan Hess, Masayuki
-Ida, Dan Jacobson, Jak Kirman, Bob Knighten, Frederick M. Korz, Joe
-Lammens, Glenn M. Lewis, K. Richard Magill, Brian Marick, Roland
-McGrath, Skip Montanaro, John Gardiner Myers, Thomas A. Peterson,
-Francesco Potorti, Friedrich Pukelsheim, Arnold D. Robbins, Raul
-Rockwell, Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp,
-Bill Trost, Rickard Westman, Jean White, Matthew Wilding, Carl Witty,
-Dale Worley, Rusty Wright, and David D. Zuhn.
+  Corrections were supplied by Drew Adams, Juanma Barranquero, Karl
+Berry, Jim Blandy, Bard Bloom, Stephane Boucher, David Boyes, Alan
+Carroll, Richard Davis, Lawrence R. Dodd, Peter Doornbosch, David
+A. Duff, Chris Eich, Beverly Erlebacher, David Eckelkamp, Ralf Fassel,
+Eirik Fuller, Stephen Gildea, Bob Glickstein, Eric Hanchrow, Jesper
+Harder, George Hartzell, Nathan Hess, Masayuki Ida, Dan Jacobson, Jak
+Kirman, Bob Knighten, Frederick M. Korz, Joe Lammens, Glenn M. Lewis,
+K. Richard Magill, Brian Marick, Roland McGrath, Stefan Monnier, Skip
+Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potorti,
+Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
+Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
+Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,
+Carl Witty, Dale Worley, Rusty Wright, and David D. Zuhn.
 
 @ignore
    arch-tag: d156593f-82f8-4708-a844-204e48f7f2aa
