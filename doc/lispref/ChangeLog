@@ -1,3 +1,18 @@
+2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Lisp Data Types, Syntax for Strings, Buffer Type):
+	Minor edits.
+	(Frame Configuration Type): Emphasize that it is not primitive.
+	(Font Type): New node.
+	(Type Predicates): Add fontp; type-of now recognizes font object
+	types.
+
+	* intro.texi (Version Info): Update version numbers in examples.
+	(Acknowledgements): List more contributors.
+
+	* elisp.texi: Bump version number to 3.0.
+	(Top): Link to Font Type node.
+
 2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Major Mode Conventions): Remove duplicate words.
