@@ -6,7 +6,7 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
-@set VERSION  2.9
+@set VERSION  3.0
 @set EMACSVER 23.0.90
 
 @c in general, keep the following line commented out, unless doing a
@@ -283,6 +283,7 @@ Editing Types
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
+* Font Type::               Fonts for displaying text.
 
 Numbers
 
