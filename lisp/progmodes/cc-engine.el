@@ -554,7 +554,7 @@ start of the definition in a \"#define\".  Also stop at start of
 macros before leaving them.
 
 Return:
-'label          if stopped at a label;
+'label          if stopped at a label or \"case...:\" or \"default:\";
 'same           if stopped at the beginning of the current statement;
 'up             if stepped to a containing statement;
 'previous       if stepped to a preceding statement;
@@ -665,7 +665,7 @@ comment at the start of cc-engine.el for more info."
 	(c-stmt-delim-chars (if comma-delim
 				c-stmt-delim-chars-with-comma
 			      c-stmt-delim-chars))
-	c-in-literal-cache c-maybe-labelp saved
+	c-in-literal-cache c-maybe-labelp after-case:-pos saved
 	;; Current position.
 	pos
 	;; Position of last stmt boundary character (e.g. ;).
@@ -979,7 +979,7 @@ comment at the start of cc-engine.el for more info."
 			    ;; Like a C "continue".  Analyze the next sexp.
 			    (throw 'loop t)))
 
-			sexp-loop-continue-pos)	; End of "go back a sexp" loop.
+			sexp-loop-continue-pos)	; End of "go back a sexp" loop condition.
 		    (goto-char sexp-loop-continue-pos)
 		    (setq sexp-loop-end-pos sexp-loop-continue-pos
 			  sexp-loop-continue-pos nil))))
@@ -997,19 +997,16 @@ comment at the start of cc-engine.el for more info."
 		  ;; `c-crosses-statement-barrier-p' has found a colon, so we
 		  ;; might be in a label now.  Have we got a real label
 		  ;; (including a case label) or something like C++'s "public:"?
-		  (if (or (not (looking-at c-nonlabel-token-key)) ; proper label
-			  (save-excursion ; e.g. "case 'a':" ?
-			    (and (c-safe (c-backward-sexp) t)
-				 (looking-at "\\<case\\>")))) ; FIXME!!! this is
-					; wrong for AWK.  2006/1/14.
-		      (progn
-			(if after-labels-pos ; Have we already encountered a label?
-			    (if (not last-label-pos)
-				(setq last-label-pos (or tok start)))
-			  (setq after-labels-pos (or tok start)))
-			(setq c-maybe-labelp t
-			      label-good-pos nil))
-		    (setq c-maybe-labelp nil))) ; bogus "label"
+		  ;; A case label might use an expression rather than a token.
+		  (setq after-case:-pos (or tok start))
+		  (if (looking-at c-nonlabel-token-key) ; e.g. "while" or "'a'"
+		      (setq c-maybe-labelp nil)
+		    (if after-labels-pos ; Have we already encountered a label?
+			(if (not last-label-pos)
+			    (setq last-label-pos (or tok start)))
+		      (setq after-labels-pos (or tok start)))
+		    (setq c-maybe-labelp t
+			  label-good-pos nil))) ; bogus "label"
 
 		(when (and (not label-good-pos)	; i.e. no invalid "label"'s yet
 						; been found.
@@ -1064,8 +1061,16 @@ comment at the start of cc-engine.el for more info."
 		;; Might have jumped over several labels.  Go to the last one.
 		(setq pos last-label-pos)))))
 
-      ;; Skip over the unary operators that can start the statement.
+      ;; Have we got "case <expression>:"?
       (goto-char pos)
+      (when (and after-case:-pos
+		 (not (eq ret 'beginning))
+		 (looking-at c-case-kwds-regexp))
+	(if (< after-case:-pos start)
+	    (setq pos after-case:-pos)
+	  (setq ret 'label)))
+
+      ;; Skip over the unary operators that can start the statement.
       (while (progn
 	       (c-backward-syntactic-ws)
 	       ;; protect AWK post-inc/decrement operators, etc.
