@@ -47,8 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif /* HAVE_NS */
 
-Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
-
 #ifdef HAVE_NS
 extern Lisp_Object Qfontsize;
 #endif
@@ -5090,10 +5088,6 @@ syms_of_font ()
 
   staticpro (&font_charset_alist);
   font_charset_alist = Qnil;
-
-  DEFSYM (Qfont_spec, "font-spec");
-  DEFSYM (Qfont_entity, "font-entity");
-  DEFSYM (Qfont_object, "font-object");
 
   DEFSYM (Qopentype, "opentype");
 
