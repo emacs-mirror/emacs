@@ -721,7 +721,7 @@ the list should be unique."
   "Deal with a \"From \" line in the header.
 Such a line should only occur at the very start of the headers."
   (and sc-mail-warn-if-non-rfc822-p
-       (not (= (point) sc-mail-headers-start))
+       (/= (point) sc-mail-headers-start)
        (sc-mail-error-in-mail-field)))
 
 (defun sc-mail-fetch-field (&optional attribs-p)
