@@ -1,3 +1,10 @@
+2009-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailedit.el (rmail-cease-edit): Notice changes in buffer's
+	encoding during editing.  Make sure to use encoding that can
+	safely encode the message.  Rewrite MIME charset= header if the
+	new encoding is different from the old one.
+
 2009-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* mail/supercite.el (sc-mail-glom-frame): Handle a "From " line
