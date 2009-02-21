@@ -413,8 +413,10 @@ property of the major mode name.")
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-mouse-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (if (featurep 'xemacs) [button2] [down-mouse-2])
-      #'flyspell-correct-word)
+    (if (featurep 'xemacs)
+	(define-key map [button2] #'flyspell-correct-word)
+      (define-key map [down-mouse-2] #'flyspell-correct-word)
+      (define-key map [mouse-2] 'undefined))
     map)
   "Keymap for Flyspell to put on erroneous words.")
 
