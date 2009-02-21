@@ -1,3 +1,14 @@
+2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* data.c (syms_of_data): Define Qfont_spec, Qfont_entity, and
+	Qfont_object.
+	(Ftype_of): Recognize font objects.
+
+	* lisp.h: Define Qfont_spec, Qfont_entity, Qfont_object extern.
+
+	* font.c (Qfont_spec, Qfont_entity, Qfont_object): Definitions
+	moved to data.c.
+
 2009-02-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (x_make_frame_invisible): Unset async_visible,
