@@ -1,3 +1,8 @@
+2009-02-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-use-emacs-fn): Make sure that the
+	lisp number is in decimal.
+
 2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
