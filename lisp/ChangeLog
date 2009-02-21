@@ -1,3 +1,9 @@
+2009-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/supercite.el (sc-mail-glom-frame): Handle a "From " line
+	at the start of the headers.
+	(sc-mail-check-from): New function.
+
 2009-02-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/python.el (python-shift-left, python-shift-right):
