@@ -1,3 +1,10 @@
+2009-02-21  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-case-kwds-regexp): New variable.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Enhance to
+	parse case clauses with (compile-time) expressions.
+
 2009-02-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailedit.el (rmail-cease-edit): Notice changes in buffer's
