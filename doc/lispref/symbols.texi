@@ -403,15 +403,17 @@ it returns @code{nil}.
 @cindex plist
 
   A @dfn{property list} (@dfn{plist} for short) is a list of paired
-elements stored in the property list cell of a symbol.  Each of the
-pairs associates a property name (usually a symbol) with a property or
-value.  Property lists are generally used to record information about a
-symbol, such as its documentation as a variable, the name of the file
-where it was defined, or perhaps even the grammatical class of the
-symbol (representing a word) in a language-understanding system.
+elements.  Each of the pairs associates a property name (usually a
+symbol) with a property or value.
 
-  Character positions in a string or buffer can also have property lists.
-@xref{Text Properties}.
+  Every symbol has a cell that stores a property list (@pxref{Symbol
+Components}).  This property list is used to record information about
+the symbol, such as its variable documentation and the name of the
+file where it was defined.
+
+  Property lists can also be used in other contexts.  For instance,
+you can assign property lists to character positions in a string or
+buffer.  @xref{Text Properties}.
 
   The property names and values in a property list can be any Lisp
 objects, but the names are usually symbols.  Property list functions
@@ -529,8 +531,10 @@ The @code{put} function returns @var{value}.
 that are stored in places other than symbols:
 
 @defun plist-get plist property
-This returns the value of the @var{property} property
-stored in the property list @var{plist}.  For example,
+This returns the value of the @var{property} property stored in the
+property list @var{plist}.  It accepts a malformed @var{plist}
+argument.  If @var{property} is not found in the @var{plist}, it
+returns @code{nil}.  For example,
 
 @example
 (plist-get '(foo 4) 'foo)
@@ -539,12 +543,6 @@ stored in the property list @var{plist}.  For example,
      @result{} 4
 (plist-get '(foo 4 bad) 'bad)
      @result{} @code{nil}
-@end example
-
-It accepts a malformed @var{plist} argument and always returns @code{nil}
-if @var{property} is not found in the @var{plist}.  For example,
-
-@example
 (plist-get '(foo 4 bad) 'bar)
      @result{} nil
 @end example
