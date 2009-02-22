@@ -1,3 +1,15 @@
+2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lists.texi (Building Lists): Remove obsolete Emacs 20 usage of
+	`append'.
+
+	* sequences.texi (Vector Functions): Remove obsolete Emacs 20 use
+	of `vconcat'.
+
+	* strings.texi (Creating Strings): Copyedits.  Remove obsolete
+	Emacs 20 usage of `concat'.
+	(Case Conversion): Copyedits.
+
 2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* objects.texi (Lisp Data Types, Syntax for Strings, Buffer Type):
