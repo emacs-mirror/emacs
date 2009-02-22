@@ -541,7 +541,8 @@ The subtype controls the number of @dfn{extra slots} in the
 char-table.  This number is specified by the subtype's
 @code{char-table-extra-slots} symbol property, which should be an
 integer between 0 and 10.  If the subtype has no such symbol property,
-the char-table has no extra slots.
+the char-table has no extra slots.  @xref{Property Lists}, for
+information about symbol properties.
 @end itemize
 
 @cindex parent of char-table
@@ -570,8 +571,8 @@ If @var{subtype} has the @code{char-table-extra-slots} symbol
 property, that specifies the number of extra slots in the char-table.
 This should be an integer between 0 and 10; otherwise,
 @code{make-char-table} raises an error.  If @var{subtype} has no
-@code{char-table-extra-slots} symbol property, the char-table has no
-extra slots.
+@code{char-table-extra-slots} symbol property (@pxref{Property
+Lists}), the char-table has no extra slots.
 @end defun
 
 @defun char-table-p object
