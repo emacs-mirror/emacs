@@ -61,15 +61,13 @@ concerned with these two representations.
   Sometimes key sequences are represented as unibyte strings.  When a
 unibyte string is a key sequence, string elements in the range 128 to
 255 represent meta characters (which are large integers) rather than
-character codes in the range 128 to 255.
-
-  Strings cannot hold characters that have the hyper, super or alt
-modifiers; they can hold @acronym{ASCII} control characters, but no other
-control characters.  They do not distinguish case in @acronym{ASCII} control
-characters.  If you want to store such characters in a sequence, such as
-a key sequence, you must use a vector instead of a string.
-@xref{Character Type}, for more information about the representation of meta
-and other modifiers for keyboard input characters.
+character codes in the range 128 to 255.  Strings cannot hold
+characters that have the hyper, super or alt modifiers; they can hold
+@acronym{ASCII} control characters, but no other control characters.
+They do not distinguish case in @acronym{ASCII} control characters.
+If you want to store such characters in a sequence, such as a key
+sequence, you must use a vector instead of a string.  @xref{Character
+Type}, for more information about keyboard input characters.
 
   Strings are useful for holding regular expressions.  You can also
 match regular expressions against strings with @code{string-match}
@@ -155,11 +153,11 @@ index @var{start} up to (but excluding) the character at the index
 @end example
 
 @noindent
-Here the index for @samp{a} is 0, the index for @samp{b} is 1, and the
-index for @samp{c} is 2.  Thus, three letters, @samp{abc}, are copied
-from the string @code{"abcdefg"}.  The index 3 marks the character
-position up to which the substring is copied.  The character whose index
-is 3 is actually the fourth character in the string.
+In the above example, the index for @samp{a} is 0, the index for
+@samp{b} is 1, and the index for @samp{c} is 2.  The index 3---which
+is the the fourth character in the string---marks the character
+position up to which the substring is copied.  Thus, @samp{abc} is
+copied from the string @code{"abcdefg"}.
 
 A negative number counts from the end of the string, so that @minus{}1
 signifies the index of the last character of the string.  For example:
@@ -256,16 +254,9 @@ returns an empty string.
 @end example
 
 @noindent
-The @code{concat} function always constructs a new string that is
-not @code{eq} to any existing string, except when the result is empty
-(since empty strings are canonicalized to save space).
-
-In Emacs versions before 21, when an argument was an integer (not a
-sequence of integers), it was converted to a string of digits making up
-the decimal printed representation of the integer.  This obsolete usage
-no longer works.  The proper way to convert an integer to its decimal
-printed form is with @code{format} (@pxref{Formatting Strings}) or
-@code{number-to-string} (@pxref{String Conversion}).
+This function always constructs a new string that is not @code{eq} to
+any existing string, except when the result is the empty string (to
+save space, Emacs makes only one empty multibyte string).
 
 For information about other concatenation functions, see the
 description of @code{mapconcat} in @ref{Mapping Functions},
@@ -276,20 +267,19 @@ combine-and-quote-strings}.
 @end defun
 
 @defun split-string string &optional separators omit-nulls
-This function splits @var{string} into substrings at matches for the
-regular expression @var{separators}.  Each match for @var{separators}
-defines a splitting point; the substrings between the splitting points
-are made into a list, which is the value returned by
-@code{split-string}.
+This function splits @var{string} into substrings based on the regular
+expression @var{separators} (@pxref{Regular Expressions}).  Each match
+for @var{separators} defines a splitting point; the substrings between
+splitting points are made into a list, which is returned.
 
-If @var{omit-nulls} is @code{nil}, the result contains null strings
-whenever there are two consecutive matches for @var{separators}, or a
-match is adjacent to the beginning or end of @var{string}.  If
-@var{omit-nulls} is @code{t}, these null strings are omitted from the
-result.
+If @var{omit-nulls} is @code{nil} (or omitted), the result contains
+null strings whenever there are two consecutive matches for
+@var{separators}, or a match is adjacent to the beginning or end of
+@var{string}.  If @var{omit-nulls} is @code{t}, these null strings are
+omitted from the result.
 
-If @var{separators} is @code{nil} (or omitted),
-the default is the value of @code{split-string-default-separators}.
+If @var{separators} is @code{nil} (or omitted), the default is the
+value of @code{split-string-default-separators}.
 
 As a special case, when @var{separators} is @code{nil} (or omitted),
 null strings are always omitted from the result.  Thus:
@@ -441,9 +431,9 @@ For technical reasons, a unibyte and a multibyte string are
 @code{equal} if and only if they contain the same sequence of
 character codes and all these codes are either in the range 0 through
 127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
-However, when a unibyte string gets converted to a multibyte string,
-all characters with codes in the range 160 through 255 get converted
-to characters with higher codes, whereas @acronym{ASCII} characters
+However, when a unibyte string is converted to a multibyte string, all
+characters with codes in the range 160 through 255 are converted to
+characters with higher codes, whereas @acronym{ASCII} characters
 remain unchanged.  Thus, a unibyte string and its conversion to
 multibyte are only @code{equal} if the string is all @acronym{ASCII}.
 Character codes 160 through 255 are not entirely proper in multibyte
@@ -549,7 +539,7 @@ be a list of strings or symbols rather than an actual alist.
 @xref{Association Lists}.
 @end defun
 
-  See also the @code{compare-buffer-substrings} function in
+  See also the function @code{compare-buffer-substrings} in
 @ref{Comparing Text}, for a way to compare text in buffers.  The
 function @code{string-match}, which matches a regular expression
 against a string, can be used for a kind of string comparison; see
@@ -560,14 +550,14 @@ against a string, can be used for a kind of string comparison; see
 @section Conversion of Characters and Strings
 @cindex conversion of strings
 
-  This section describes functions for conversions between characters,
-strings and integers.  @code{format} (@pxref{Formatting Strings})
-and @code{prin1-to-string}
-(@pxref{Output Functions}) can also convert Lisp objects into strings.
-@code{read-from-string} (@pxref{Input Functions}) can ``convert'' a
-string representation of a Lisp object into an object.  The functions
-@code{string-make-multibyte} and @code{string-make-unibyte} convert the
-text representation of a string (@pxref{Converting Representations}).
+  This section describes functions for converting between characters,
+strings and integers.  @code{format} (@pxref{Formatting Strings}) and
+@code{prin1-to-string} (@pxref{Output Functions}) can also convert
+Lisp objects into strings.  @code{read-from-string} (@pxref{Input
+Functions}) can ``convert'' a string representation of a Lisp object
+into an object.  The functions @code{string-make-multibyte} and
+@code{string-make-unibyte} convert the text representation of a string
+(@pxref{Converting Representations}).
 
   @xref{Documentation}, for functions that produce textual descriptions
 of text characters and general input events
@@ -689,10 +679,10 @@ Functions}.
 @cindex formatting strings
 @cindex strings, formatting them
 
-  @dfn{Formatting} means constructing a string by substitution of
-computed values at various places in a constant string.  This constant string
-controls how the other values are printed, as well as where they appear;
-it is called a @dfn{format string}.
+  @dfn{Formatting} means constructing a string by substituting
+computed values at various places in a constant string.  This constant
+string controls how the other values are printed, as well as where
+they appear; it is called a @dfn{format string}.
 
   Formatting is often useful for computing messages to be displayed.  In
 fact, the functions @code{message} and @code{error} provide the same
@@ -936,15 +926,15 @@ arguments.
 @acronym{ASCII} codes 88 and 120 respectively.
 
 @defun downcase string-or-char
-This function converts a character or a string to lower case.
+This function converts @var{string-or-char}, which should be either a
+character or a string, to lower case.
 
-When the argument to @code{downcase} is a string, the function creates
-and returns a new string in which each letter in the argument that is
-upper case is converted to lower case.  When the argument to
-@code{downcase} is a character, @code{downcase} returns the
-corresponding lower case character.  This value is an integer.  If the
-original character is lower case, or is not a letter, then the value
-equals the original character.
+When @var{string-or-char} is a string, this function returns a new
+string in which each letter in the argument that is upper case is
+converted to lower case.  When @var{string-or-char} is a character,
+this function returns the corresponding lower case character (an
+integer); if the original character is lower case, or is not a letter,
+the return value is equal to the original character.
 
 @example
 (downcase "The cat in the hat")
@@ -956,16 +946,15 @@ equals the original character.
 @end defun
 
 @defun upcase string-or-char
-This function converts a character or a string to upper case.
+This function converts @var{string-or-char}, which should be either a
+character or a string, to upper case.
 
-When the argument to @code{upcase} is a string, the function creates
-and returns a new string in which each letter in the argument that is
-lower case is converted to upper case.
-
-When the argument to @code{upcase} is a character, @code{upcase}
-returns the corresponding upper case character.  This value is an integer.
-If the original character is upper case, or is not a letter, then the
-value returned equals the original character.
+When @var{string-or-char} is a string, this function returns a new
+string in which each letter in the argument that is lower case is
+converted to upper case.  When @var{string-or-char} is a character,
+this function returns the corresponding upper case character (an an
+integer); if the original character is upper case, or is not a letter,
+the return value is equal to the original character.
 
 @example
 (upcase "The cat in the hat")
@@ -979,9 +968,9 @@ value returned equals the original character.
 @defun capitalize string-or-char
 @cindex capitalization
 This function capitalizes strings or characters.  If
-@var{string-or-char} is a string, the function creates and returns a new
-string, whose contents are a copy of @var{string-or-char} in which each
-word has been capitalized.  This means that the first character of each
+@var{string-or-char} is a string, the function returns a new string
+whose contents are a copy of @var{string-or-char} in which each word
+has been capitalized.  This means that the first character of each
 word is converted to upper case, and the rest are converted to lower
 case.
 
@@ -989,8 +978,8 @@ The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
 table (@pxref{Syntax Class Table}).
 
-When the argument to @code{capitalize} is a character, @code{capitalize}
-has the same result as @code{upcase}.
+When @var{string-or-char} is a character, this function does the same
+thing as @code{upcase}.
 
 @example
 @group
@@ -1084,13 +1073,13 @@ equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
 equivalent characters.)
 
-  When you construct a case table, you can provide @code{nil} for
+  When constructing a case table, you can provide @code{nil} for
 @var{canonicalize}; then Emacs fills in this slot from the lower case
 and upper case mappings.  You can also provide @code{nil} for
 @var{equivalences}; then Emacs fills in this slot from
 @var{canonicalize}.  In a case table that is actually in use, those
-components are non-@code{nil}.  Do not try to specify @var{equivalences}
-without also specifying @var{canonicalize}.
+components are non-@code{nil}.  Do not try to specify
+@var{equivalences} without also specifying @var{canonicalize}.
 
   Here are the functions for working with case tables:
 
@@ -1125,7 +1114,7 @@ of an abnormal exit via @code{throw} or error (@pxref{Nonlocal
 Exits}).
 @end defmac
 
-  Some language environments may modify the case conversions of
+  Some language environments modify the case conversions of
 @acronym{ASCII} characters; for example, in the Turkish language
 environment, the @acronym{ASCII} character @samp{I} is downcased into
 a Turkish ``dotless i''.  This can interfere with code that requires
