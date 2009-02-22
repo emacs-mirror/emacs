@@ -1,9 +1,19 @@
 2009-02-22  Juri Linkov  <juri@jurta.org>
 
+	* dired-aux.el (minibuffer-default-add-dired-shell-commands):
+	Doc fix.
+
+	* dired-x.el (dired-guess-shell-command): Use read-shell-command
+	instead of read-from-minibuffer.
+	(dired-read-shell-command): Add code that uses
+	minibuffer-with-setup-hook to set minibuffer-default-add-function
+	to minibuffer-default-add-dired-shell-commands exactly like
+	`dired-read-shell-command' in dired-aux.el already does.  Doc fix.
+
 	* dired-x.el (dired-smart-shell-command): Remove code that uses
 	minibuffer-with-setup-hook to set minibuffer-default-add-function
 	to minibuffer-default-add-shell-commands because the same code was
-	already moved to `read-shell-command' 2008-07-31.
+	already moved to `read-shell-command' 2008-07-31.  (Bug#2414)
 
 2009-02-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
