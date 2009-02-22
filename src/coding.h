@@ -391,7 +391,7 @@ struct coding_system
     } spec;
 
   int max_charset_id;
-  char *safe_charsets;
+  unsigned char *safe_charsets;
 
   /* The following two members specify how binary 8-bit code 128..255
      are represented in source and destination text respectively.  1

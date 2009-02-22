@@ -432,9 +432,11 @@ Lisp_Object Vbig5_coding_system;
 	       reg)))
 
 
-#define CODING_ISO_REQUEST(coding, charset_id)	\
-  ((charset_id <= (coding)->max_charset_id	\
-    ? (coding)->safe_charsets[charset_id]	\
+#define CODING_ISO_REQUEST(coding, charset_id)		\
+  (((charset_id) <= (coding)->max_charset_id		\
+    ? ((coding)->safe_charsets[charset_id] != 255	\
+       ? (coding)->safe_charsets[charset_id]		\
+       : -1)						\
     : -1))
 
 
@@ -2729,7 +2731,7 @@ enum iso_code_class_type iso_code_class[256];
 
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
-   && (coding)->safe_charsets[id] >= 0)
+   && (coding)->safe_charsets[id] != 255)
 
 
 #define SHIFT_OUT_OK(category)	\
@@ -2767,8 +2769,8 @@ setup_iso_safe_charsets (attrs)
 	max_charset_id = id;
     }
 
-  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-				make_number (255));
+  safe_charsets = make_uninit_string (max_charset_id + 1);
+  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
   request = AREF (attrs, coding_attr_iso_request);
   reg_usage = AREF (attrs, coding_attr_iso_usage);
   reg94 = XINT (XCAR (reg_usage));
@@ -2832,11 +2834,11 @@ detect_coding_iso_2022 (coding, detect_info)
 	continue;
       attrs = CODING_ID_ATTRS (this->id);
       if (CODING_ISO_FLAGS (this) & CODING_ISO_FLAG_FULL_SUPPORT
-	  && ! EQ (CODING_ATTR_SAFE_CHARSETS (attrs), Viso_2022_charset_list))
+	  && ! EQ (CODING_ATTR_CHARSET_LIST (attrs), Viso_2022_charset_list))
 	setup_iso_safe_charsets (attrs);
       val = CODING_ATTR_SAFE_CHARSETS (attrs);
       this->max_charset_id = SCHARS (val) - 1;
-      this->safe_charsets = (char *) SDATA (val);
+      this->safe_charsets = SDATA (val);
     }
 
   /* A coding system of this category is always ASCII compatible.  */
@@ -3246,7 +3248,7 @@ decode_coding_iso_2022 (coding)
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
-  coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
+  coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
   while (1)
     {
@@ -4133,7 +4135,7 @@ encode_coding_iso_2022 (coding)
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
-  coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
+  coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
@@ -5414,7 +5416,7 @@ setup_coding_system (coding_system, coding)
 
   val = CODING_ATTR_SAFE_CHARSETS (attrs);
   coding->max_charset_id = SCHARS (val) - 1;
-  coding->safe_charsets = (char *) SDATA (val);
+  coding->safe_charsets = SDATA (val);
   coding->default_char = XINT (CODING_ATTR_DEFAULT_CHAR (attrs));
 
   coding_type = CODING_ATTR_TYPE (attrs);
@@ -5459,7 +5461,7 @@ setup_coding_system (coding_system, coding)
 	  setup_iso_safe_charsets (attrs);
 	  val = CODING_ATTR_SAFE_CHARSETS (attrs);
 	  coding->max_charset_id = SCHARS (val) - 1;
-	  coding->safe_charsets = (char *) SDATA (val);
+	  coding->safe_charsets = SDATA (val);
 	}
       CODING_ISO_FLAGS (coding) = flags;
     }
@@ -5529,13 +5531,13 @@ setup_coding_system (coding_system, coding)
 	       tail = XCDR (tail))
 	    if (max_charset_id < XFASTINT (XCAR (tail)))
 	      max_charset_id = XFASTINT (XCAR (tail));
-	  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-					make_number (255));
+	  safe_charsets = make_uninit_string (max_charset_id + 1);
+	  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
 	  for (tail = Vemacs_mule_charset_list; CONSP (tail);
 	       tail = XCDR (tail))
 	    SSET (safe_charsets, XFASTINT (XCAR (tail)), 0);
 	  coding->max_charset_id = max_charset_id;
-	  coding->safe_charsets = (char *) SDATA (safe_charsets);
+	  coding->safe_charsets = SDATA (safe_charsets);
 	}
     }
   else if (EQ (coding_type, Qshift_jis))
@@ -9293,8 +9295,8 @@ usage: (define-coding-system-internal ...)  */)
     }
   CODING_ATTR_CHARSET_LIST (attrs) = charset_list;
 
-  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-				make_number (255));
+  safe_charsets = make_uninit_string (max_charset_id + 1);
+  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
   for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
     SSET (safe_charsets, XFASTINT (XCAR (tail)), 0);
   CODING_ATTR_SAFE_CHARSETS (attrs) = safe_charsets;

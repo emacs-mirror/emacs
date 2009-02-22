@@ -1,5 +1,17 @@
 2009-02-22  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* coding.h (struct coding_system): Make safe_charsets a pointer to
+	unsigned char.
+	* coding.c (CODING_ISO_REQUEST): Check for safe_charsets content
+	being 255.
+	(SAFE_CHARSET_P): Likewise.
+	(setup_iso_safe_charsets): Properly setup safe_charsets.
+	(Fdefine_coding_system_internal): Likewise.
+	(setup_coding_system): Likewise.  Remove unneeded casts.
+	(detect_coding_iso_2022): Compare Viso_2022_charset_list with
+	CODING_ATTR_CHARSET_LIST, not CODING_ATTR_SAFE_CHARSETS.  Remove
+	unneeded casts.
+
 	* insdel.c (del_range_2): Don't modify gap contents when called
 	from decode_coding_object.  (Bug#1809)
 
