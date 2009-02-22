@@ -843,14 +843,10 @@ Knows about the special cases in variable `default-directory-alist'."
   "Like function `shell-command', but in the current Virtual Dired directory."
   (interactive
    (list
-    (minibuffer-with-setup-hook
-	(lambda ()
-	  (set (make-local-variable 'minibuffer-default-add-function)
-	       'minibuffer-default-add-shell-commands))
-      (read-shell-command "Shell command: " nil nil
-			  (cond
-			   (buffer-file-name (file-relative-name buffer-file-name))
-			   ((eq major-mode 'dired-mode) (dired-get-filename t t)))))
+    (read-shell-command "Shell command: " nil nil
+			(cond
+			 (buffer-file-name (file-relative-name buffer-file-name))
+			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
   (let ((default-directory (dired-default-directory)))
