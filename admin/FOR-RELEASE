@@ -187,7 +187,7 @@ eval.texi
 files.texi
 frames.texi
 functions.texi
-hash.texi
+hash.texi         -- cyd
 help.texi
 hooks.texi
 index.texi
