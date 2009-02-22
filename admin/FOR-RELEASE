@@ -192,9 +192,9 @@ help.texi
 hooks.texi
 index.texi
 internals.texi
-intro.texi
+intro.texi        -- cyd
 keymaps.texi
-lists.texi
+lists.texi        -- cyd
 loading.texi
 locals.texi
 macros.texi
@@ -203,15 +203,15 @@ markers.texi
 minibuf.texi
 modes.texi
 nonascii.texi
-numbers.texi
-objects.texi
+numbers.texi      -- cyd
+objects.texi      -- cyd
 os.texi
 positions.texi
 processes.texi
 searching.texi
 sequences.texi
 streams.texi
-strings.texi
+strings.texi      -- cyd
 symbols.texi
 syntax.texi
 text.texi
