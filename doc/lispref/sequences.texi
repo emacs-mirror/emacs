@@ -498,12 +498,6 @@ The @code{vconcat} function also allows byte-code function objects as
 arguments.  This is a special feature to make it easy to access the entire
 contents of a byte-code function object.  @xref{Byte-Code Objects}.
 
-In Emacs versions before 21, the @code{vconcat} function allowed
-integers as arguments, converting them to strings of digits, but that
-feature has been eliminated.  The proper way to convert an integer to
-a decimal number in this way is with @code{format} (@pxref{Formatting
-Strings}) or @code{number-to-string} (@pxref{String Conversion}).
-
 For other concatenation functions, see @code{mapconcat} in @ref{Mapping
 Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
 in @ref{Building Lists}.
