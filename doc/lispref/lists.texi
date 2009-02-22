@@ -489,14 +489,6 @@ is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
 dotted list since its final @sc{cdr} is not @code{nil} as required
 in a true list.
-
-In Emacs 20 and before, the @code{append} function also allowed
-integers as (non last) arguments.  It converted them to strings of
-digits, making up the decimal print representation of the integer, and
-then used the strings instead of the original integers.  This obsolete
-usage no longer works.  The proper way to convert an integer to a
-decimal number in this way is with @code{format} (@pxref{Formatting
-Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 @end defun
 
   Here is an example of using @code{append}:
