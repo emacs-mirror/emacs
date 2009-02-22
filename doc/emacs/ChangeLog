@@ -1,3 +1,7 @@
+2009-02-22  Karl Berry  <karl@gnu.org>
+
+	* macos.texi (Mac / GNUstep Customization): One more duplicate "the".
+
 2009-02-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* basic.texi (Moving Point, Position Info):
