@@ -1,5 +1,9 @@
 2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* symbols.texi (Property Lists): Emphasize that property lists are
+	not restricted to symbol cells.
+	(Other Plists): Copyedit.
+
 	* sequences.texi (Sequences Arrays Vectors): Make introduction
 	more concise.
 	(Arrays): Mention char-tables and bool-vectors too.
