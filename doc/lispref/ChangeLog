@@ -1,5 +1,15 @@
 2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* sequences.texi (Sequences Arrays Vectors): Make introduction
+	more concise.
+	(Arrays): Mention char-tables and bool-vectors too.
+	(Vectors): Don't repeat information given in Arrays node.  Link to
+	nodes that explain the vector usage examples.
+	(Char-Tables): Note that char-table elements can have arbitrary
+	type.  Explain effect of omitted char-table-extra-slots property.
+
+2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
+
 	* lists.texi (Building Lists): Remove obsolete Emacs 20 usage of
 	`append'.
 	(List Elements): Copyedits.
