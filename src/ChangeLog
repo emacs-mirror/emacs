@@ -1,3 +1,8 @@
+2009-02-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* insdel.c (del_range_2): Don't modify gap contents when called
+	from decode_coding_object.  (Bug#1809)
+
 2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* data.c (syms_of_data): Define Qfont_spec, Qfont_entity, and
