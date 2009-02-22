@@ -17009,7 +17009,7 @@ person hopes to do with an unadorned file?  Fundamental mode is the
 right default for such a file, just as C mode is the right default for
 editing C code.  (Enough programming languages have syntaxes
 that enable them to share or nearly share features, so C mode is
-now provided by by CC mode, the `C Collection'.)
+now provided by CC mode, the `C Collection'.)
 
 But when you do know who is going to use Emacs---you,
 yourself---then it makes sense to customize Emacs.
