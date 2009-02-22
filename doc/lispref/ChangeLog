@@ -2,6 +2,7 @@
 
 	* lists.texi (Building Lists): Remove obsolete Emacs 20 usage of
 	`append'.
+	(List Elements): Copyedits.
 
 	* sequences.texi (Vector Functions): Remove obsolete Emacs 20 use
 	of `vconcat'.
