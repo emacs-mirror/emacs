@@ -7,6 +7,7 @@
 	nodes that explain the vector usage examples.
 	(Char-Tables): Note that char-table elements can have arbitrary
 	type.  Explain effect of omitted char-table-extra-slots property.
+	Link to Property Lists node.
 
 2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
 
