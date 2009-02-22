@@ -209,7 +209,7 @@ os.texi
 positions.texi
 processes.texi
 searching.texi
-sequences.texi
+sequences.texi    -- cyd
 streams.texi
 strings.texi      -- cyd
 symbols.texi
