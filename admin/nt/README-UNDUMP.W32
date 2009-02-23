@@ -4,18 +4,21 @@ See the end of the file for license conditions.
 
 			   Emacs for Windows
 
-This README file describes how to dump a bare precompiled version of GNU
-Emacs for Windows NT/2000/XP and Windows 95/98/Me.  This distribution
-supplements the standard dumped precompiled distribution of Emacs, which
-you can download from:
+This README file describes how to dump a bare precompiled version of
+GNU Emacs for Windows.  This barebin distribution supplements the
+standard distribution of Emacs, which you can download from:
 
-	ftp://ftp.gnu.org/gnu/emacs/windows/
+	ftp://ftp.gnu.org/gnu/emacs/
 
-If you do not have the "bin" distribution, then you will need to
-download it before you can use this undumped version.  Also note that
-you should only need to dump Emacs yourself if you want to dump Emacs
-with more elisp files than are included normally, or to rebuild Emacs
-after patching one of the elisp files that is preloaded.
+If you do not have the "bin" or "src" distribution, then you will need
+to download one of those before you can use this barebin version.
+
+An additional feature of the barebin version that is not present in
+the bin distribution is that it contains an undumped binary of Emacs
+(temacs.exe).  This can be used to dump Emacs yourself.  Note that you
+should only need to dump Emacs yourself if you want to dump Emacs with
+more elisp files than are included normally, or to rebuild Emacs after
+patching one of the elisp files that is preloaded.
 
 The dumping process consists of running a bare Emacs, loading up a
 number of general elisp files, and then creating a new Emacs executable
@@ -23,7 +26,7 @@ preinitialized and ready to run.  In the precompiled distributions,
 Emacs has already been dumped with the standard configuration.
 
 To dump Emacs, unpack this distribution into the directory created by
-unpacking the corresponding standard precompiled distribution.  To
+unpacking the corresponding standard src or bin distribution.  To
 verify that you unpacked in the proper place, check to make sure that
 you now have a temacs.exe file in the bin directory.
 
@@ -32,10 +35,10 @@ run dump.bat.  This will produce a new bin\emacs.exe executable for you
 to use (the original one is renamed to emacs.exe.orig; this is not
 overwritten if you run dump more than once).
 
-For more information about running Emacs, read the README.W32 file that
-came with the standard dumped precompiled distribution.  If you have
-problems with Emacs, including problems with dumping, send email to
-"help-emacs-windows@gnu.org".
+For more information about running Emacs, read the README.W32 file
+that came with this distribution.  If you need help using Emacs on
+Windows, including problems with dumping, send email to
+<help-emacs-windows@gnu.org>.
 
 Enjoy!
 
