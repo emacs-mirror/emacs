@@ -54,6 +54,11 @@
 	safely encode the message.  Rewrite MIME charset= header if the
 	new encoding is different from the old one.
 
+2009-02-21  Jason Rumney  <jasonr@gnu.org>
+
+	* url/url-expand.el (url-default-expander): Use concat to combine
+	parts. (Bug #1020)
+
 2009-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* mail/supercite.el (sc-mail-glom-frame): Handle a "From " line
