@@ -1,3 +1,8 @@
+2009-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--down): When wrapping around, use `forward-line',
+	not `goto-line', to avoid distracting "Mark set" message.
+
 2009-02-23  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* ibuffer.el (ibuffer-redisplay-engine): Avoid "Mark set" message
