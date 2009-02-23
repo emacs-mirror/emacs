@@ -176,14 +176,14 @@ backups.texi
 buffers.texi
 commands.texi
 compile.texi
-control.texi
+control.texi      -- cyd
 customize.texi
 debugging.texi
 display.texi
 edebug.texi
 elisp.texi
 errors.texi
-eval.texi
+eval.texi         -- cyd
 files.texi
 frames.texi
 functions.texi
