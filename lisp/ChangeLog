@@ -1,3 +1,8 @@
+2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Adapt switch
+	manipulation to 2009-02-11 change to dired-add-entry (Bug#2410).
+
 2009-02-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--down): When wrapping around, use `forward-line',
