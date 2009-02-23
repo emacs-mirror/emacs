@@ -37,6 +37,9 @@ future.
 @node Mac / GNUstep Basics, Mac / GNUstep Customization, , Mac OS / GNUstep
 @section Basic Emacs usage under Mac OS and GNUstep
 
+  Redundancy in the menus can be reduced and more shortcuts shown by
+invoking @code{ns-extended-platform-support-mode}.
+
   By default, the @key{alt} and @key{option} keys are the same as
 @key{Meta} when running under Mac OS.  The Mac @key{Cmd} key is the
 same as @key{Super}, and Emacs provides a set of keybindings using
@@ -125,6 +128,9 @@ to a second or two to the Emacs startup time.
 
 Emacs can be customized in several ways in addition to the standard
 customization buffers and the Options menu.
+
+In addition, redundancy in the menus can be reduced and more shortcuts
+shown by invoking @code{ns-extended-platform-support-mode}.
 
 
 @subsection Preferences Panel

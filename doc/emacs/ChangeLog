@@ -1,3 +1,8 @@
+2009-02-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi (Mac / GNUstep Basics, Mac / GNUstep Customization):
+	Mention ns-extended-platform-support-mode.
+
 2009-02-22  Karl Berry  <karl@gnu.org>
 
 	* macos.texi (Mac / GNUstep Customization): One more duplicate "the".
