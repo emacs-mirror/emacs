@@ -1,7 +1,6 @@
 2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-dired.el: Require gnus-msg instead of autoloading it for
-	the gnus-setup-message macro.
+	* gnus-dired.el: Tell autoload that gnus-setup-message is a macro.
 
 2009-02-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
