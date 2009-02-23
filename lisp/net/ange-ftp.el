@@ -4478,7 +4478,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
        ;; then do an ls of current dir, which obviously won't work if we
        ;; want to ls a file.  So instead, we get a full listing of the
        ;; parent directory and extract the line corresponding to `file'.
-       (when (string-match "d\\'" switches)
+       (when (string-match "-?d\\'" switches)
          ;; Remove "d" which dired added to `switches'.
          (setq switches (substring switches 0 (match-beginning 0))))
        (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
