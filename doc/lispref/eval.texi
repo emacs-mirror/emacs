@@ -30,75 +30,70 @@ function @code{eval}.
 @node Intro Eval
 @section Introduction to Evaluation
 
-  The Lisp interpreter, or evaluator, is the program that computes
-the value of an expression that is given to it.  When a function
-written in Lisp is called, the evaluator computes the value of the
-function by evaluating the expressions in the function body.  Thus,
-running any Lisp program really means running the Lisp interpreter.
-
-  How the evaluator handles an object depends primarily on the data
-type of the object.
+  The Lisp interpreter, or evaluator, is the part of Emacs that
+computes the value of an expression that is given to it.  When a
+function written in Lisp is called, the evaluator computes the value
+of the function by evaluating the expressions in the function body.
+Thus, running any Lisp program really means running the Lisp
+interpreter.
 @end ifnottex
 
-@cindex forms
+@cindex form
 @cindex expression
   A Lisp object that is intended for evaluation is called an
-@dfn{expression} or a @dfn{form}.  The fact that expressions are data
+@dfn{expression} or a @dfn{form}.  The fact that forms are data
 objects and not merely text is one of the fundamental differences
 between Lisp-like languages and typical programming languages.  Any
 object can be evaluated, but in practice only numbers, symbols, lists
 and strings are evaluated very often.
 
-  It is very common to read a Lisp expression and then evaluate the
-expression, but reading and evaluation are separate activities, and
-either can be performed alone.  Reading per se does not evaluate
-anything; it converts the printed representation of a Lisp object to the
-object itself.  It is up to the caller of @code{read} whether this
+  In subsequent sections, we will describe the details of what
+evaluation means for each kind of form.
+
+  It is very common to read a Lisp form and then evaluate the form,
+but reading and evaluation are separate activities, and either can be
+performed alone.  Reading per se does not evaluate anything; it
+converts the printed representation of a Lisp object to the object
+itself.  It is up to the caller of @code{read} to specify whether this
 object is a form to be evaluated, or serves some entirely different
 purpose.  @xref{Input Functions}.
+
+@cindex recursive evaluation
+  Evaluation is a recursive process, and evaluating a form often
+involves evaluating parts within that form.  For instance, when you
+evaluate a @dfn{function call} form such as @code{(car x)}, Emacs
+first evaluates the argument (the subform @code{x}).  After evaluating
+the argument, Emacs @dfn{executes} the function (@code{car}), and if
+the function is written in Lisp, execution works by evaluating the
+@dfn{body} of the function.  (In this example, however, @code{car} is
+not a Lisp function; it is a primitive function implemented in C.)
+@xref{Functions}, for more information about functions and function
+calls.
+
+@cindex environment
+  Evaluation takes place in a context called the @dfn{environment},
+which consists of the current values and bindings of all Lisp
+variables (@pxref{Variables}).@footnote{This definition of
+``environment'' is specifically not intended to include all the data
+that can affect the result of a program.}  Whenever a form refers to a
+variable without creating a new binding for it, the variable evaluates
+to the value given by the current environment.  Evaluating a form may
+create a new environment for recursive evaluation, by binding
+variables (@pxref{Local Variables}).  Such environments are temporary,
+and vanish when the evaluation of the form is complete.
+
+@cindex side effect
+  Evaluating a form may also make changes that persist; these changes
+are called @dfn{side effects}.  An example of a form that produces a
+side effect is @code{(setq foo 1)}.
 
   Do not confuse evaluation with command key interpretation.  The
 editor command loop translates keyboard input into a command (an
 interactively callable function) using the active keymaps, and then
-uses @code{call-interactively} to invoke the command.  The execution of
-the command itself involves evaluation if the command is written in
-Lisp, but that is not a part of command key interpretation itself.
-@xref{Command Loop}.
-
-@cindex recursive evaluation
-  Evaluation is a recursive process.  That is, evaluation of a form may
-call @code{eval} to evaluate parts of the form.  For example, evaluation
-of a function call first evaluates each argument of the function call,
-and then evaluates each form in the function body.  Consider evaluation
-of the form @code{(car x)}: the subform @code{x} must first be evaluated
-recursively, so that its value can be passed as an argument to the
-function @code{car}.
-
-  Evaluation of a function call ultimately calls the function specified
-in it.  @xref{Functions}.  The execution of the function may itself work
-by evaluating the function definition; or the function may be a Lisp
-primitive implemented in C, or it may be a byte-compiled function
-(@pxref{Byte Compilation}).
-
-@cindex environment
-  The evaluation of forms takes place in a context called the
-@dfn{environment}, which consists of the current values and bindings of
-all Lisp variables.@footnote{This definition of ``environment'' is
-specifically not intended to include all the data that can affect the
-result of a program.}  Whenever a form refers to a variable without
-creating a new binding for it, the value of the variable's binding in
-the current environment is used.  @xref{Variables}.
-
-@cindex side effect
-  Evaluation of a form may create new environments for recursive
-evaluation by binding variables (@pxref{Local Variables}).  These
-environments are temporary and vanish by the time evaluation of the form
-is complete.  The form may also make changes that persist; these changes
-are called @dfn{side effects}.  An example of a form that produces side
-effects is @code{(setq foo 1)}.
-
-  The details of what evaluation means for each kind of form are
-described below (@pxref{Forms}).
+uses @code{call-interactively} to execute that command.  Executing the
+command usually involves evaluation, if the command is written in
+Lisp; however, this step is not considered a part of command key
+interpretation.  @xref{Command Loop}.
 
 @node Forms
 @section Kinds of Forms
@@ -130,13 +125,13 @@ forms.
 @cindex literal evaluation
 @cindex self-evaluating form
 
-  A @dfn{self-evaluating form} is any form that is not a list or symbol.
-Self-evaluating forms evaluate to themselves: the result of evaluation
-is the same object that was evaluated.  Thus, the number 25 evaluates to
-25, and the string @code{"foo"} evaluates to the string @code{"foo"}.
-Likewise, evaluation of a vector does not cause evaluation of the
-elements of the vector---it returns the same vector with its contents
-unchanged.
+  A @dfn{self-evaluating form} is any form that is not a list or
+symbol.  Self-evaluating forms evaluate to themselves: the result of
+evaluation is the same object that was evaluated.  Thus, the number 25
+evaluates to 25, and the string @code{"foo"} evaluates to the string
+@code{"foo"}.  Likewise, evaluating a vector does not cause evaluation
+of the elements of the vector---it returns the same vector with its
+contents unchanged.
 
 @example
 @group
@@ -236,13 +231,12 @@ Scheme.
 @cindex indirection for functions
 @cindex void function
 
-  If the first element of the list is a symbol then evaluation examines
-the symbol's function cell, and uses its contents instead of the
-original symbol.  If the contents are another symbol, this process,
-called @dfn{symbol function indirection}, is repeated until it obtains a
-non-symbol.  @xref{Function Names}, for more information about using a
-symbol as a name for a function stored in the function cell of the
-symbol.
+  If the first element of the list is a symbol then evaluation
+examines the symbol's function cell, and uses its contents instead of
+the original symbol.  If the contents are another symbol, this
+process, called @dfn{symbol function indirection}, is repeated until
+it obtains a non-symbol.  @xref{Function Names}, for more information
+about symbol function indirection.
 
   One possible consequence of this process is an infinite loop, in the
 event that a symbol's function cell refers to the same symbol.  Or a
@@ -253,10 +247,10 @@ which ought to be a function or other suitable object.
 
 @kindex invalid-function
   More precisely, we should now have a Lisp function (a lambda
-expression), a byte-code function, a primitive function, a Lisp macro, a
-special form, or an autoload object.  Each of these types is a case
-described in one of the following sections.  If the object is not one of
-these types, the error @code{invalid-function} is signaled.
+expression), a byte-code function, a primitive function, a Lisp macro,
+a special form, or an autoload object.  Each of these types is a case
+described in one of the following sections.  If the object is not one
+of these types, Emacs signals an @code{invalid-function} error.
 
   The following example illustrates the symbol indirection process.  We
 use @code{fset} to set the function cell of a symbol and
@@ -695,10 +689,11 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 300.  If you set it to a value
-less than 100, Lisp will reset it to 100 if the given value is reached.
-Entry to the Lisp debugger increases the value, if there is little room
-left, to make sure the debugger itself has room to execute.
+The default value of this variable is 400.  If you set it to a value
+less than 100, Lisp will reset it to 100 if the given value is
+reached.  Entry to the Lisp debugger increases the value, if there is
+little room left, to make sure the debugger itself has room to
+execute.
 
 @code{max-specpdl-size} provides another limit on nesting.
 @xref{Definition of max-specpdl-size,, Local Variables}.
