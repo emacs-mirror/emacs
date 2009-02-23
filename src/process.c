@@ -7075,15 +7075,14 @@ DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
        doc: /* Return a list of numerical process IDs of all running processes.
 If this functionality is unsupported, return nil.
 
-See `system-process-attributes' for getting attributes of a process
-given its ID.  */)
+See `process-attributes' for getting attributes of a process given its ID.  */)
     ()
 {
   return list_system_processes ();
 }
 
-DEFUN ("system-process-attributes", Fsystem_process_attributes,
-       Ssystem_process_attributes, 1, 1, 0,
+DEFUN ("process-attributes", Fprocess_attributes,
+       Sprocess_attributes, 1, 1, 0,
        doc: /* Return attributes of the process given by its PID, a number.
 
 Value is an alist where each element is a cons cell of the form
@@ -7511,7 +7510,7 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sset_process_filter_multibyte);
   defsubr (&Sprocess_filter_multibyte_p);
   defsubr (&Slist_system_processes);
-  defsubr (&Ssystem_process_attributes);
+  defsubr (&Sprocess_attributes);
 }
 
 
@@ -7810,15 +7809,14 @@ DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
        doc: /* Return a list of numerical process IDs of all running processes.
 If this functionality is unsupported, return nil.
 
-See `system-process-attributes' for getting attributes of a process
-given its ID.  */)
+See `process-attributes' for getting attributes of a process given its ID.  */)
     ()
 {
   return list_system_processes ();
 }
 
-DEFUN ("system-process-attributes", Fsystem_process_attributes,
-       Ssystem_process_attributes, 1, 1, 0,
+DEFUN ("process-attributes", Fprocess_attributes,
+       Sprocess_attributes, 1, 1, 0,
        doc: /* Return attributes of the process given by its PID, a number.
 
 Value is an alist where each element is a cons cell of the form
@@ -7957,7 +7955,7 @@ syms_of_process ()
   defsubr (&Sget_buffer_process);
   defsubr (&Sprocess_inherit_coding_system_flag);
   defsubr (&Slist_system_processes);
-  defsubr (&Ssystem_process_attributes);
+  defsubr (&Sprocess_attributes);
 }
 
 

@@ -1,3 +1,9 @@
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* process.c (Flist_system_processes, Fprocess_attributes)
+	(syms_of_process): Rename `system-process-attributes' to
+	`process-attributes'.
+
 2009-02-22  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* coding.h (struct coding_system): Make safe_charsets a pointer to

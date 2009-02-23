@@ -595,7 +595,7 @@ Return values:
 	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
 	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
-			   (system-process-attributes
+			   (process-attributes
 			    (string-to-number (match-string 1))))
 		     t)
 		:other))

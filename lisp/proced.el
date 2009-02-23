@@ -32,12 +32,12 @@
 ;; - allow "sudo kill PID", "renice PID"
 ;;
 ;; Thoughts and Ideas
-;; - Currently, `system-process-attributes' returns the list of
+;; - Currently, `process-attributes' returns the list of
 ;;   command-line arguments of a process as one concatenated string.
 ;;   This format is compatible with `shell-command'.  Also, under
 ;;   MS-Windows, the command-line arguments are actually stored as a
 ;;   single string, so that it is impossible to reverse-engineer it back
-;;   into separate arguments.  Alternatively, `system-process-attributes'
+;;   into separate arguments.  Alternatively, `process-attributes'
 ;;   could (try to) return a list of strings that correspond to individual
 ;;   command-line arguments.  Then one could feed such a list of
 ;;   command-line arguments into `call-process' or `start-process'.
@@ -94,7 +94,7 @@ the external command (usually \"kill\")."
 ;; It would be neat if one could temporarily override the following
 ;; predefined rules.
 (defcustom proced-grammar-alist
-  '( ;; attributes defined in `system-process-attributes'
+  '( ;; attributes defined in `process-attributes'
     (euid    "EUID"    "%d" right proced-< nil (euid pid) (nil t nil))
     (user    "USER"    nil left proced-string-lessp nil (user pid) (nil t nil))
     (egid    "EGID"    "%d" right proced-< nil (egid euid pid) (nil t nil))
@@ -218,7 +218,7 @@ If REFINER is nil no refinement is done."
 This variable extends the functionality of `proced-process-attributes'.
 Each function is called with one argument, the list of attributes
 of a system process.  It returns a cons cell of the form (KEY . VALUE)
-like `system-process-attributes'.  This cons cell is appended to the list
+like `process-attributes'.  This cons cell is appended to the list
 returned by `proced-process-attributes'.
 If the function returns nil, the value is ignored."
   :group 'proced
@@ -1539,7 +1539,7 @@ the process is ignored."
   ;; lists are ignored?  When would such processes be of interest?
   (let (process-alist attributes attr)
     (dolist (pid (or pid-list (list-system-processes)) process-alist)
-      (when (setq attributes (system-process-attributes pid))
+      (when (setq attributes (process-attributes pid))
         (setq attributes (cons (cons 'pid pid) attributes))
         (dolist (fun proced-custom-attributes)
           (if (setq attr (funcall fun attributes))

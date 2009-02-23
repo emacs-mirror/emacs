@@ -1260,7 +1260,7 @@ The default values are ";;;###autoload" and `loaddefs.el',
 respectively.
 
 +++
-** New primitives `list-system-processes' and `system-process-attributes'
+** New primitives `list-system-processes' and `process-attributes'
 let Lisp programs access the processes that are running on the local
 machine.  See the doc strings of these functions for more details.
 Not all platforms support accessing this information; on those that

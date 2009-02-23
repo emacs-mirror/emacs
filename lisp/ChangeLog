@@ -1,3 +1,9 @@
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* proced.el (proced-process-attributes):
+	* server.el (server-running-p): Rename `system-process-attributes'
+	to `process-attributes'.
+
 2009-02-22  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (minibuffer-default-add-dired-shell-commands):

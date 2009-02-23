@@ -1,3 +1,7 @@
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* NEWS: Rename `system-process-attributes' to `process-attributes'.
+
 2009-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* compilation.txt: Add entry for maven.
