@@ -1,3 +1,9 @@
+2009-02-23  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
+
+	* ibuffer.el (ibuffer-redisplay-engine): Avoid "Mark set" message
+	clobbering the useful message from `ibuffer-toggle-sorting-mode'.
+	(Bug#2439)
+
 2009-02-23  Miles Bader  <miles@gnu.org>
 
 	* proced.el (proced-process-attributes):
