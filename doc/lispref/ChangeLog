@@ -1,3 +1,13 @@
+2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* control.texi (Control Structures): Add cindex entry for "textual
+	order".
+
+	* eval.texi (Intro Eval): Copyedits.  Standardize on "form"
+	instead of "expression" throughout.
+	(Function Indirection): Copyedits.  Use active voice.
+	(Eval): The default value of max-lisp-eval-depth is now 400.
+
 2009-02-23  Miles Bader  <miles@gnu.org>
 
 	* processes.texi (System Processes): Rename `system-process-attributes'
