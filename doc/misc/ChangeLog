@@ -1,3 +1,12 @@
+2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): Fix description of gnus-use-nocem.
+
+2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): Update default values for gnus-nocem-groups,
+	gnus-nocem-issuers, and gnus-nocem-verifyer.
+
 2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ada-mode.texi (Project files, Automatic Casing):

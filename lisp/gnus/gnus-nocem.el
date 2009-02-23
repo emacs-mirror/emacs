@@ -38,18 +38,21 @@
   :group 'gnus-score)
 
 (defcustom gnus-nocem-groups
-  '("news.lists.filters" "news.admin.net-abuse.bulletins"
-    "alt.nocem.misc" "news.admin.net-abuse.announce")
+  '("news.lists.filters" "alt.nocem.misc")
   "*List of groups that will be searched for NoCeM messages."
   :group 'gnus-nocem
+  :version "23.1"
   :type '(repeat (string :tag "Group")))
 
 (defcustom gnus-nocem-issuers
-  '("AutoMoose-1"			; CancelMoose[tm]
-    "clewis@ferret.ocunix"		; Chris Lewis
-    "cosmo.roadkill"
-    "SpamHippo"
-    "hweede@snafu.de")
+  '("Adri Verhoef"
+    "alba-nocem@albasani.net"
+    "bleachbot@httrack.com"
+    "news@arcor-online.net"
+    "news@uni-berlin.de"
+    "nocem@arcor.de"
+    "pgpmoose@killfile.org"
+    "xjsppl@gmx.de")
   "*List of NoCeM issuers to pay attention to.
 
 This can also be a list of `(ISSUER CONDITION ...)' elements.
@@ -58,7 +61,34 @@ See <URL:http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html> for an
 issuer registry."
   :group 'gnus-nocem
   :link '(url-link "http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html")
-  :type '(repeat (choice string sexp)))
+  :version "23.1"
+  :type '(repeat (cons :format "%v" (string :tag "Issuer")
+		       (repeat :tag "Condition"
+			       (group (checklist :inline t (const not))
+				      (regexp :tag "Type" :value ".*")))))
+  :get (lambda (symbol)
+	 (mapcar (lambda (elem)
+		   (if (consp elem)
+		       (cons (car elem)
+			     (mapcar (lambda (elt)
+				       (if (consp elt) elt (list elt)))
+				     (cdr elem)))
+		     (list elem)))
+		 (default-value symbol)))
+  :set (lambda (symbol value)
+	 (custom-set-default
+	  symbol
+	  (mapcar (lambda (elem)
+		    (if (consp elem)
+			(if (cdr elem)
+			    (mapcar (lambda (elt)
+				      (if (consp elt)
+					  (if (cdr elt) elt (car elt))
+					elt))
+				    elem)
+			  (car elem))
+		      elem))
+		  value))))
 
 (defcustom gnus-nocem-directory
   (nnheader-concat gnus-article-save-directory "NoCeM/")
@@ -71,14 +101,24 @@ issuer registry."
   :group 'gnus-nocem
   :type 'integer)
 
-(defcustom gnus-nocem-verifyer 'pgg-verify
+(defcustom gnus-nocem-verifyer (if (locate-library "epg")
+				   'gnus-nocem-epg-verify
+				 'pgg-verify)
   "*Function called to verify that the NoCeM message is valid.
-One likely value is `pgg-verify'.  If the function in this variable
-isn't bound, the message will be used unconditionally."
+If the function in this variable isn't bound, the message will be used
+unconditionally."
   :group 'gnus-nocem
-  :type '(radio (function-item pgg-verify)
+  :version "23.1"
+  :type '(radio (function-item gnus-nocem-epg-verify)
+		(function-item pgg-verify)
 		(function-item mc-verify)
-		(function :tag "other")))
+		(function :tag "other"))
+  :set (lambda (symbol value)
+	 (custom-set-default symbol
+			     (if (and (eq value 'gnus-nocem-epg-verify)
+				      (not (locate-library "epg")))
+				 'pgg-verify
+			       value))))
 
 (defcustom gnus-nocem-liberal-fetch nil
   "*If t try to fetch all messages which have @@NCM in the subject.
@@ -391,6 +431,21 @@ valid issuer, which is much faster if you are selective about the issuers."
   "Say whether article ID in the current group is wanted."
   (and gnus-nocem-hashtb
        (gethash id gnus-nocem-hashtb)))
+
+(autoload 'epg-make-context "epg")
+(eval-when-compile
+  (autoload 'epg-verify-string "epg")
+  (autoload 'epg-context-result-for "epg")
+  (autoload 'epg-signature-status "epg"))
+
+(defun gnus-nocem-epg-verify ()
+  "Return t if EasyPG verifies a signed message in the current buffer."
+  (let ((context (epg-make-context 'OpenPGP))
+	result)
+    (epg-verify-string context (buffer-string))
+    (and (setq result (epg-context-result-for context 'verify))
+	 (not (cdr result))
+	 (eq (epg-signature-status (car result)) 'good))))
 
 (provide 'gnus-nocem)
 

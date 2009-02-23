@@ -1,3 +1,11 @@
+2009-02-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-nocem.el (gnus-nocem-groups): Remove invalid NoCeM groups.
+	(gnus-nocem-issuers): List currently active issuers; fix custom type.
+	(gnus-nocem-verifyer): Default to gnus-nocem-epg-verify if EasyPG is
+	available.
+	(gnus-nocem-epg-verify): New function.
+
 2009-02-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-button-alist): Recognize Konqueror info links.
