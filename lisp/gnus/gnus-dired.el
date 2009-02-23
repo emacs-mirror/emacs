@@ -53,8 +53,10 @@
 ;; Autoloads to avoid byte-compiler warnings.  These are used only if the user
 ;; customizes `gnus-dired-mail-mode' to use Message and/or Gnus.
 (autoload 'message-buffers "message")
-(autoload 'gnus-setup-message "gnus-msg")
 (autoload 'gnus-print-buffer "gnus-sum")
+
+;; Load the `gnus-setup-message' macro that `gnus-dired-attach' uses.
+(require 'gnus-msg)
 
 (defvar gnus-dired-mode nil
   "Minor mode for intersections of MIME mail composition and dired.")

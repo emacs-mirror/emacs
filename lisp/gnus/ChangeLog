@@ -1,3 +1,8 @@
+2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-dired.el: Require gnus-msg instead of autoloading it for
+	the gnus-setup-message macro.
+
 2009-02-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-nocem.el (gnus-nocem-groups): Remove invalid NoCeM groups.
