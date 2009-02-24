@@ -152,7 +152,7 @@ enum font_property_index
     /* In a font-spec, the value is an alist of extra information of a
        font such as name, OpenType features, and language coverage.
        In addition, in a font-entity, the value may contain a pair
-       (font-entity . INFO) where INFO is extra infomation to identify
+       (font-entity . INFO) where INFO is extra information to identify
        a font (font-driver dependent).  */
     FONT_EXTRA_INDEX,		/* alist		alist */
 
