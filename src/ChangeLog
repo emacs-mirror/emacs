@@ -1,3 +1,8 @@
+2009-02-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_ring_bell): Convert rect to window coordinates
+	before caching.
+
 2009-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): Fix the condition for checking
