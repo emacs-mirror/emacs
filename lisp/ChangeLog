@@ -1,3 +1,12 @@
+2009-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/ns-win.el (ns-working-overlay): Don't make it buffer-local.
+	(ns-working-overlay-len): Remove.  Use ns-working-overlay instead.
+	(ns-delete-working-text): Merge with ns-unecho-working-text.
+	Decide which to use based on ns-working-overlay.
+	(ns-unecho-working-text): Remove.
+	(ns-insert-working-text, ns-echo-working-text): Adjust accordingly.
+
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/ispell.el (ispell-region): Adapt "done" message to
