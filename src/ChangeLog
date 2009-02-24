@@ -1,3 +1,8 @@
+2009-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix the condition for checking
+	unavailable font.
+
 2009-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* xfaces.c (Finternal_set_font_selection_order): Remove leading
