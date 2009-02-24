@@ -270,6 +270,7 @@ If N or M is nil, it means the end of the list."
       (setq text (replace-match " " t t text)))
     text))
 
+;; FIXME this is just dolist.
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list"
   `(let ((list-iter ,for-list))
@@ -649,6 +650,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	       (user (match-string 3))
 	       (group (match-string 4))
 	       (size (string-to-number (match-string 5)))
+	       (name (ange-ftp-parse-filename))
 	       (mtime
 		(if (fboundp 'parse-time-string)
 		    (let ((moment (parse-time-string
@@ -661,7 +663,6 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 			(setcar (nthcdr 2 moment) 0))
 		      (apply 'encode-time moment))
 		  (ange-ftp-file-modtime (expand-file-name name dir))))
-	       (name (ange-ftp-parse-filename))
 	       symlink)
 	  (if (string-match "\\(.+\\) -> \\(.+\\)" name)
 	      (setq symlink (match-string 2 name)
