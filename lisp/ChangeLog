@@ -1,5 +1,8 @@
 2009-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-use-meta-tab): Add a custom
+	:set function.  (Bug#2429)
+
 	* eshell/esh-util.el (eshell-parse-ange-ls): Define `name' before
 	potential use.
 
