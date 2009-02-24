@@ -1,3 +1,8 @@
+2009-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Finternal_set_font_selection_order): Remove leading
+	whitespace that confuses documentation.
+
 2009-02-23  Miles Bader  <miles@gnu.org>
 
 	* process.c (Flist_system_processes, Fprocess_attributes)
