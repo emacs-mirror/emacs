@@ -68,8 +68,8 @@ struct glyph_string;
 enum font_property_index
   {
     /* FONT-TYPE is a symbol indicating a font backend; currently `x',
-       `xft', `ftx' are available on X, gdi on Windows, and ns under
-       Cocoa / GNUstep.  */
+       `xft', `ftx' are available on X, `uniscribe' and `gdi' on
+       Windows, and `ns' under Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
@@ -169,7 +169,7 @@ enum font_property_index
 
     /* XLFD name of the font (string). */
     FONT_NAME_INDEX = FONT_ENTITY_MAX,
-    
+
     /* Full name of the font (string).  It is the name extracted from
        the opend font, and may be different from the above.  It may be
        nil if the opened font doesn't give a name.  */
@@ -647,7 +647,7 @@ struct font_driver
      makes some data specific to F and stores it in F by calling
      font_put_frame_data ().  */
   int (*start_for_frame) P_ ((FRAME_PTR f));
-  
+
   /* Optional.
      End using the driver for frame F.  Usually this function free
      some data stored for F.  */
@@ -738,7 +738,7 @@ extern int font_style_to_value P_ ((enum font_property_index prop,
 extern Lisp_Object font_style_symbolic P_ ((Lisp_Object font,
 					    enum font_property_index prop,
 					    int for_face));
-                           
+
 extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object font));
 extern Lisp_Object font_list_entities P_ ((Lisp_Object frame,
 					   Lisp_Object spec));
