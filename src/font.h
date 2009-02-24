@@ -68,9 +68,8 @@ struct glyph_string;
 enum font_property_index
   {
     /* FONT-TYPE is a symbol indicating a font backend; currently `x',
-       `xft', `ftx' are available on X and gdi on Windows.
-       For Windows, `bdf' and `uniscribe' backends are in progress.
-       For Mac OS X, we need `atm'.  */
+       `xft', `ftx' are available on X, gdi on Windows, and ns under
+       Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
@@ -153,8 +152,8 @@ enum font_property_index
     /* In a font-spec, the value is an alist of extra information of a
        font such as name, OpenType features, and language coverage.
        In addition, in a font-entity, the value may contain a pair
-       (font-entity . INFO) where INFO is an extra infomation to
-       identify a font (font-driver dependent).  */
+       (font-entity . INFO) where INFO is extra infomation to identify
+       a font (font-driver dependent).  */
     FONT_EXTRA_INDEX,		/* alist		alist */
 
     /* This value is the length of font-spec vector.  */
@@ -499,7 +498,7 @@ struct font_driver
   /* Symbol indicating the type of the font-driver.  */
   Lisp_Object type;
 
-  /* 1 iff the font's foundary, family, and adstyle names are case
+  /* 1 iff the font's foundry, family, and adstyle names are case
      sensitve.  */
   int case_sensitive;
 
