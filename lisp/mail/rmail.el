@@ -875,10 +875,11 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     (unwind-protect
 	;; Only get new mail when there is not a file name argument.
 	(unless file-name-arg
-	  (rmail-get-new-mail))
+	  (setq msg-shown (rmail-get-new-mail)))
       (progn
 	(set-buffer mail-buf)
-	(rmail-show-message (rmail-first-unseen-message))
+	(or msg-shown
+	    (rmail-show-message (rmail-first-unseen-message)))
 	(if rmail-display-summary (rmail-summary))
 	(rmail-construct-io-menu)
 	(if run-mail-hook
@@ -1419,7 +1420,6 @@ Hook `rmail-quit-hook' is run after expunging."
   (interactive)
   (set-buffer rmail-buffer)
   (rmail-expunge t)
-  (rmail-swap-buffers-maybe)
   (save-buffer)
   (when (boundp 'rmail-quit-hook)
     (run-hooks 'rmail-quit-hook))
@@ -1499,7 +1499,8 @@ The duplicate copy goes into the Rmail file just after the original."
 	(sort files 'string<))))
 
 (defun rmail-list-to-menu (menu-name l action &optional full-name)
-  (let ((menu (make-sparse-keymap menu-name)))
+  (let ((menu (make-sparse-keymap menu-name))
+	name)
     (mapc
      (lambda (item)
        (let (command)
@@ -3226,6 +3227,8 @@ See also user-option `rmail-confirm-expunge'."
 				   replybuffer sendactions same-window others)
   (let (yank-action)
     (if replybuffer
+	;; The function used here must behave like insert-buffer wrt
+	;; point and mark (see doc of sc-cite-original).
 	(setq yank-action (list 'insert-buffer replybuffer)))
     (setq others (cons (cons "cc" cc) others))
     (setq others (cons (cons "in-reply-to" in-reply-to) others))
