@@ -1,5 +1,8 @@
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* textmodes/ispell.el (ispell-region): Adapt "done" message to
+	coding conventions.  (Bug#2447)
+
 	* scroll-bar.el (scroll-bar-mode): Turn off scroll bars when
 	argument is 0.  Doc fix.  (Bug#1527)
 

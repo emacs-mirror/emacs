@@ -2849,7 +2849,7 @@ Return nil if spell session is quit,
       (if (not recheckp) (set-marker ispell-region-end nil))
       ;; Only save if successful exit.
       (ispell-pdict-save ispell-silently-savep)
-      (message "Spell-checking %s using %s with %s dictionary done"
+      (message "Spell-checking %s using %s with %s dictionary...done"
 	       (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		   (buffer-name) "region")
 	       (file-name-nondirectory ispell-program-name)
