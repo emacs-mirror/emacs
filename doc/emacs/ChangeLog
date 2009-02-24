@@ -1,3 +1,12 @@
+2009-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* mule.texi (Fontsets): Mention fontset-default, font specs and
+	fallback fontsets.
+	(Defining Fontsets): Mention ns and w32 variants of
+	standard-fontset-spec.  Update description of startup fontset to match
+	Emacs 23 behavior.
+	(Modifying Fontsets): New section.
+
 2009-02-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* macos.texi (Mac / GNUstep Basics, Mac / GNUstep Customization):
