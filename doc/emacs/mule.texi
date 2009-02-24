@@ -1356,11 +1356,8 @@ The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
 However it does not specify font family names, so results can be
-somewhat random if you use it directly.  The standard fontset merely
-falls back on the default fontset without defining any modifications
-of its own, and is defined for backwards compatibility. You can
-specify use of the standard fontset with the @samp{-fn} option.  For
-example,
+somewhat random if you use it directly.  You can specify use of a
+specific fontset with the @samp{-fn} option.  For example,
 
 @example
 emacs -fn fontset-standard
@@ -1369,6 +1366,11 @@ emacs -fn fontset-standard
 @noindent
 You can also specify a fontset with the @samp{Font} resource (@pxref{X
 Resources}).
+
+  If no fontset is specified for use, then Emacs uses an
+@acronym{ASCII} font, with @samp{fontset-default} as a fallback for
+characters the font does not cover.  The standard fontset is only used if
+explicitly requested, despite its name.
 
   A fontset does not necessarily specify a font for every character
 code.  If a fontset specifies no font for a certain character, or if it
