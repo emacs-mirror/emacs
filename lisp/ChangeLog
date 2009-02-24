@@ -1,3 +1,21 @@
+2009-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-util.el (eshell-parse-ange-ls): Define `name' before
+	potential use.
+
+	* progmodes/cperl-mode.el (cperl-find-pods-heres):
+	Don't globally bind `name'.
+
+	* emacs-lisp/elint.el (elint-unknown-builtin-args):
+	Fix encode-time spec.  (Bug#2453)
+	(elint-find-builtin-args): Make the match more restrictive.
+	Handle errors.  Return a result actually containing the function name.
+
+	* mail/rmail.el (rmail): Don't show a message if rmail-get-new-mail
+	already did.  (Bug#2440)
+	(rmail-quit): Don't swap buffers.  (Bug#2441)
+	(rmail-list-to-menu): Don't globally bind `name'.
+
 2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Adapt switch
@@ -11,8 +29,7 @@
 2009-02-23  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* ibuffer.el (ibuffer-redisplay-engine): Avoid "Mark set" message
-	clobbering the useful message from `ibuffer-toggle-sorting-mode'.
-	(Bug#2439)
+	clobbering useful message from `ibuffer-toggle-sorting-mode'. (Bug#2439)
 
 2009-02-23  Miles Bader  <miles@gnu.org>
 
