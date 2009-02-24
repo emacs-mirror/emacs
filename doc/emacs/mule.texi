@@ -103,6 +103,7 @@ to make sure Emacs interprets keyboard input correctly; see
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
+* Modifying Fontsets::      Modifying an existing fontset.
 * Undisplayable Characters:: When characters don't display.
 * Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
