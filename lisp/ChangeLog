@@ -1,5 +1,8 @@
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* scroll-bar.el (scroll-bar-mode): Turn off scroll bars when
+	argument is 0.  Doc fix.  (Bug#1527)
+
 	* w32-vars.el (w32-system-shells): Doc fix.
 
 	* image.el (image-load-path-for-library, insert-sliced-image):
