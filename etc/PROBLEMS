@@ -3534,6 +3534,28 @@ program by the same name supplied with DJGPP, which is used by
 config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
 the front of your PATH environment variable.
 
+*** When Emacs compiled with DJGPP runs on Windows 2000 and later, it cannot
+find your HOME directory.
+
+This was reported to happen when you click on "Save for future
+sessions" button in a Customize buffer.  You might see an error
+message like this one:
+
+  basic-save-buffer-2: c:/FOO/BAR/~dosuser/: no such directory
+
+(The telltale sign is the "~USER" part at the end of the directory
+Emacs complains about, where USER is your username or the literal
+string "dosuser", which is the default username set up by the DJGPP
+startup file DJGPP.ENV.)
+
+This happens when the functions `user-login-name' and
+`user-real-login-name' return different strings for your username as
+Emacs sees it.  To correct this, make sure both USER and USERNAME
+environment variables are set to the same value.  Windows 2000 and
+later sets USERNAME, so if you want to keep that, make sure USER is
+set to the same value.  If you don't want to set USER globally, you
+can do it in the [emacs] section of your DJGPP.ENV file.
+
 *** When Emacs compiled with DJGPP runs on Vista, it runs out of memory.
 
 If Emacs running on Vista displays "!MEM FULL!" in the mode line, you
