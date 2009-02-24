@@ -1,5 +1,7 @@
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32-vars.el (w32-system-shells): Doc fix.
+
 	* image.el (image-load-path-for-library, insert-sliced-image):
 	Fix typos in docstrings.
 
