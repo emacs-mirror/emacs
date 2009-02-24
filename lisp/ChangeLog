@@ -1,3 +1,8 @@
+2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-load-path-for-library, insert-sliced-image):
+	Fix typos in docstrings.
+
 2009-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-use-meta-tab): Add a custom
@@ -32,7 +37,7 @@
 2009-02-23  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* ibuffer.el (ibuffer-redisplay-engine): Avoid "Mark set" message
-	clobbering useful message from `ibuffer-toggle-sorting-mode'. (Bug#2439)
+	clobbering useful message from `ibuffer-toggle-sorting-mode' (Bug#2439).
 
 2009-02-23  Miles Bader  <miles@gnu.org>
 

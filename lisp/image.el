@@ -123,11 +123,11 @@ in \"`data-directory'/images\".
 
 Then this function returns a list of directories which contains
 first the directory in which IMAGE was found, followed by the
-value of `load-path'. If PATH is given, it is used instead of
+value of `load-path'.  If PATH is given, it is used instead of
 `load-path'.
 
 If NO-ERROR is non-nil and a suitable path can't be found, don't
-signal an error. Instead, return a list of directories as before,
+signal an error.  Instead, return a list of directories as before,
 except that nil appears in place of the image directory.
 
 Here is an example that uses a common idiom to provide
@@ -455,7 +455,7 @@ AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area.
-The image is automatically split into ROW x COLS slices."
+The image is automatically split into ROWS x COLS slices."
   (unless string (setq string " "))
   (unless (eq (car-safe image) 'image)
     (error "Not an image: %s" image))
