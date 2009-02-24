@@ -579,7 +579,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	/* This is a sign of not to try the other fonts.  */
 	return Qt;
       if (INTEGERP (RFONT_DEF_FACE (elt))
-	  && XINT (AREF (elt, 1)) < 0)
+	  && XINT (RFONT_DEF_FACE (elt)) < 0)
 	/* We couldn't open this font last time.  */
 	continue;
 
