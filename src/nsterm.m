@@ -844,11 +844,9 @@ ns_ring_bell ()
           r.origin.y += (r.size.height - dim.y) / 2;
           r.size.width = dim.x;
           r.size.height = dim.y;
-          /* XXX: cacheImageInRect under GNUstep does not account for
-             offset in x_set_window_size, so overestimate (4 fine on Cocoa) */
-          surr = NSInsetRect (r, -10, -10);
+          surr = NSInsetRect (r, -2, -2);
           ns_focus (frame, &surr, 1);
-          [[view window] cacheImageInRect: surr];
+          [[view window] cacheImageInRect: [view convertRect: surr toView:nil]];
           [ns_lookup_indexed_color (NS_FACE_FOREGROUND
                                       (FRAME_DEFAULT_FACE (frame)), frame) set];
           NSRectFill (r);
