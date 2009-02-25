@@ -98,6 +98,8 @@ supported.  Defaults to non-nil on Windows, nil otherwise."
 	      (mail-strip-quoted-names field) "\, *"))
 	    result)))))
 
+(declare-function clipboard-kill-ring-save "menu-bar.el" (beg end))
+
 ;;;###autoload
 (defun mailclient-send-it ()
   "Pass current buffer on to the system's mail client.
