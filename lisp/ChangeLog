@@ -1,5 +1,7 @@
 2009-02-25  Kenichi Handa  <handa@m17n.org>
 
+	* ps-mule.el (ps-mule-begin-job): Don't call auto-compose-region.
+
 	* composite.el (auto-composition-mode): Don't add a hook to
 	after-change-functions.  Don't decompose the buffer.
 	(auto-composition-after-change): Delete it.
