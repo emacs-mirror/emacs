@@ -1,3 +1,7 @@
+2009-02-25  David Reitter <david.reitter@gmail.com>
+
+	* mail/mailclient.el: declare clipboard-kill-ring-save
+
 2009-02-25  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-begin-job): Don't call auto-compose-region.
