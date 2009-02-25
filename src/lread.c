@@ -1113,14 +1113,12 @@ Return t if the file exists and loads successfully.  */)
     int count = 0;
     Lisp_Object tem;
     for (tem = Vloads_in_progress; CONSP (tem); tem = XCDR (tem))
-      if (!NILP (Fequal (found, XCAR (tem))))
-	count++;
-    if (count > 3)
-      {
-	if (fd >= 0)
-	  emacs_close (fd);
-	signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
-      }
+      if (!NILP (Fequal (found, XCAR (tem))) && (++count > 3))
+	{
+	  if (fd >= 0)
+	    emacs_close (fd);
+	  signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
+	}
     record_unwind_protect (record_load_unwind, Vloads_in_progress);
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
