@@ -1,3 +1,9 @@
+2009-02-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-dired.el: Remove autoload for gnus-setup-message.
+	(gnus-dired-attach): Fake this-command value to prevent Gnus from
+	displaying Gnus logo; always use compose-mail.
+
 2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-dired.el: Tell autoload that gnus-setup-message is a macro.
