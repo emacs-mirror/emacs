@@ -1,3 +1,8 @@
+2009-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (eval-expression):
+	* emacs-lisp/lisp-mode.el (eval-last-sexp): Mention truncation in doc.
+
 2009-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-update): Make sure ./ is always first in the listing.

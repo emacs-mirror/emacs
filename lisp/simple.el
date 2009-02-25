@@ -1101,7 +1101,8 @@ display the result of expression evaluation."
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE, if non-nil, means
 insert the result into the current buffer instead of printing it in
-the echo area.
+the echo area.  Truncates long output according to the value of the
+variables `eval-expression-print-length' and `eval-expression-print-level'.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
