@@ -1,3 +1,12 @@
+2009-02-25  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-mode): Don't add a hook to
+	after-change-functions.  Don't decompose the buffer.
+	(auto-composition-after-change): Delete it.
+	(toggle-auto-composition): Make it an alias of
+	auto-composition-mode.
+	(auto-compose-region): Delete it.
+
 2009-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/ns-win.el (ns-working-overlay): Don't make it buffer-local.
