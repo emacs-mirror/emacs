@@ -1131,7 +1131,7 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
  \(setq dired-guess-shell-alist-user
        (list (list \"\\\\.foo\\\\'\" \"FOO-COMMAND\");; fixed rule
               ;; possibly more rules ...
-              (list \"\\\\.bar\\\'\";; rule with condition test
+              (list \"\\\\.bar\\\\'\";; rule with condition test
                     '(if condition
                           \"BAR-COMMAND-1\"
                         \"BAR-COMMAND-2\")))\)"
