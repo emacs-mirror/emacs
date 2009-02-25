@@ -351,13 +351,13 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		     ((string< (car entry1) (car entry2))))))))
     ;; Insert directory entries in the right places.
     (let ((entry (car entries))
-	  (node (ewoc-nth vc-ewoc 0)))
+	  (node (ewoc-nth vc-ewoc 0))
+	  (dotname (file-relative-name default-directory)))
       ;; Insert . if it is not present.
       (unless node
-	(let ((rd (file-relative-name default-directory)))
-	  (ewoc-enter-last
-	   vc-ewoc (vc-dir-create-fileinfo
-		    rd nil nil nil (expand-file-name default-directory))))
+	(ewoc-enter-last
+	 vc-ewoc (vc-dir-create-fileinfo
+		  dotname nil nil nil (expand-file-name default-directory)))
 	(setq node (ewoc-nth vc-ewoc 0)))
 
       (while (and entry node)
@@ -372,6 +372,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	    ;; Found the directory, find the place for the file name.
 	    (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
 	      (cond
+	       ((string= nodefile dotname)
+		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-equal nodefile entryfile)

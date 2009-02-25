@@ -1,6 +1,10 @@
+2009-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-update): Make sure ./ is always first in the listing.
+
 2009-02-25  David Reitter <david.reitter@gmail.com>
 
-	* mail/mailclient.el: declare clipboard-kill-ring-save
+	* mail/mailclient.el (clipboard-kill-ring-save): Declare.
 
 2009-02-25  Kenichi Handa  <handa@m17n.org>
 
