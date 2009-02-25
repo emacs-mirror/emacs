@@ -1,7 +1,7 @@
 2009-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
-	* lread.c (Fload): Stop checking Vloads_in_progress as soon as
-	a recursive load is detected.
+	* lread.c (Fload): Stop checking Vloads_in_progress and signal
+	error as soon as a recursive load is detected.
 
 2009-02-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
