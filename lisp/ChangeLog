@@ -1,3 +1,8 @@
+2009-02-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--down):
+	* ibuffer.el (ibuffer-redisplay-engine): Use `point-min' instead of 1.
+
 2009-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-guess-shell-alist-user): Fix doc typo.

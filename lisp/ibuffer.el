@@ -2280,7 +2280,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
       (setq buffer-read-only t)
       (set-buffer-modified-p ibuffer-did-modification)
       (setq ibuffer-did-modification nil)
-      (goto-char 1)
+      (goto-char (point-min))
       (forward-line orig))))
 
 (defun ibuffer-quit ()

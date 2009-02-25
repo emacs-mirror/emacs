@@ -1009,7 +1009,7 @@ If on top of buffer list go to last line."
 If at end of buffer list go to first line."
   (if (eq (line-end-position) (point-max))
       (progn
-	(goto-char 1)
+	(goto-char (point-min))
 	(forward-line bs-header-lines-length))
     (forward-line 1)))
 
