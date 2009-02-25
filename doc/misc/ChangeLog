@@ -1,3 +1,7 @@
+2009-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Emacs for minimalists): New node.  (Bug#2452)
+
 2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NoCeM): Fix description of gnus-use-nocem.
