@@ -1,3 +1,7 @@
+2009-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* MORE.STUFF: Mention Zile.
+
 2009-02-23  Miles Bader  <miles@gnu.org>
 
 	* NEWS: Rename `system-process-attributes' to `process-attributes'.
