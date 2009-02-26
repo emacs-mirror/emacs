@@ -22,7 +22,12 @@ For each step, check for possible errors.
     For a pretest, start at version .90.  After .99, use .990 (so that
     it sorts).
 
-5.   rm configure; make bootstrap
+5.  rm configure; autoconf
+
+    Patch configure: See
+    http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00851.html
+
+    make bootstrap
 
 6.  Commit configure, README, doc/emacs/emacs.texi,
     doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el,    
