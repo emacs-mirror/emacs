@@ -5619,8 +5619,7 @@ extern void update_window_cursor (struct window *w, int on);
    supposedly called when a services menu item is chosen from this app.
    But this should not happen because we override the services menu with our
    own entries which call ns-perform-service.
-   Nonetheless, it appeared to happen here (under strange circumstances):
-   http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1435 
+   Nonetheless, it appeared to happen (under strange circumstances): bug#1435.
    So let's at least stub them out until further investigation can be done. */
 
 - (BOOL) readSelectionFromPasteboard: (NSPasteboard *)pb
