@@ -1,3 +1,8 @@
+2009-02-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-coding-commands): Add
+	"base64".  (Bug#2463)
+
 2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* x-dnd.el (x-dnd-test-function, x-dnd-get-state-cons-for-frame)
