@@ -1493,7 +1493,7 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-    RSVG_REQUIRED=2.0.0
+    RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
     PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, :, :)
