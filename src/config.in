@@ -479,6 +479,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Mac OS X. */
 #undef HAVE_NS
 
+/* Define to 1 if libotf has OTF_get_variation_glyphs. */
+#undef HAVE_OTF_GET_VARIATION_GLYPHS
+
 /* Define to 1 if personality LINUX32 can be set. */
 #undef HAVE_PERSONALITY_LINUX32
 
@@ -1048,7 +1051,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* See also .m.o rule in Makefile.in */
 /* FIXME: are all these flags really needed?  Document here why.  */
 #  define C_SWITCH_X_SYSTEM -D_REENTRANT -fPIC -fno-strict-aliasing
-/* GNUStep needs a bit more pure memory.  Of the existing knobs,
+/* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #  define SYSTEM_PURESIZE_EXTRA 30000
 # endif /* NS_IMPL_GNUSTEP */
