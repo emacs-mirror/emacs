@@ -5404,7 +5404,7 @@ DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        Snext_read_file_uses_dialog_p, 0, 0, 0,
        doc: /* Return t if a call to `read-file-name' will use a dialog.
 The return value is only relevant for a call to `read-file-name' that happens
-before any other event (mouse or keypress) is handeled.  */)
+before any other event (mouse or keypress) is handled.  */)
   ()
 {
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)

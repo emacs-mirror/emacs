@@ -1,3 +1,7 @@
+2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Fnext_read_file_uses_dialog_p): Fix typo in docstring.
+
 2009-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (Fload): Stop checking Vloads_in_progress and signal
