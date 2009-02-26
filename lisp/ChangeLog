@@ -1,3 +1,13 @@
+2009-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-vars.el (c-style-variables-are-local-p):
+	Mark as safe if boolean.  (Bug#2197)
+
+2009-02-26  Tobias C. Rittweiler  <tcr@freebits.de>  (tiny change)
+
+	* mail/sendmail.el (sendmail-send-it): `call-process-region' can
+	return a string.  (Bug#2428)
+
 2009-02-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--down):
