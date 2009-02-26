@@ -1,3 +1,12 @@
+2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* x-dnd.el (x-dnd-test-function, x-dnd-get-state-cons-for-frame)
+	(x-dnd-get-state-for-frame, x-dnd-handle-moz-url)
+	(x-dnd-handle-uri-list, x-dnd-choose-type, x-dnd-get-drop-width-height)
+	(x-dnd-init-motif-for-frame): Fix typos in docstrings.
+	(x-dnd-drop-data, x-dnd-types-alist, x-dnd-default-test-function):
+	Reflow docstrings.
+
 2009-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-rmail-update):
