@@ -1168,8 +1168,13 @@ external program defined by `sendmail-program'."
 			      )
 		      )
 		     (exit-value (apply 'call-process-region args)))
-		(or (null exit-value) (eq 0 exit-value)
-		    (error "Sending...failed with exit value %d" exit-value)))
+		(cond ((or (null exit-value) (eq 0 exit-value)))
+		      ((numberp exit-value)
+		       (error "Sending...failed with exit value %d" exit-value))
+		      ((stringp exit-value)
+		       (error "Sending...terminated by signal: %s" exit-value))
+		      (t
+		       (error "SENDMAIL-SEND-IT -- fall through: %S" exit-value))))
 	    (or fcc-was-found
 		(error "No recipients")))
 	  (if mail-interactive
