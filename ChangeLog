@@ -1,3 +1,8 @@
+2009-02-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (HAVE_XFT, HAVE_FREETYPE, HAVE_LIBOTF)
+	(HAVE_M17N_FLT): Don't check for these unless HAVE_X11.
+
 2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Drop.
