@@ -1,7 +1,7 @@
 2009-02-26  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-rmail-update):
-	Use rmail-message-unseen-p.
+	Use rmail-message-unseen-p.  (Bug#2477)
 
 	* progmodes/cc-vars.el (c-style-variables-are-local-p):
 	Mark as safe if boolean.  (Bug#2197)
