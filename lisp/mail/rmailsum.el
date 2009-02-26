@@ -947,7 +947,7 @@ Search, the `unseen' attribute is restored.")
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
 		    (setq rmail-summary-put-back-unseen
-			  (rmail-message-attr-p msg-num rmail-unseen-attr-index)))
+			  (rmail-message-unseen-p msg-num)))
 		(setq rmail-summary-put-back-unseen nil))
 	      ;; Go to the desired message.
 	      (setq rmail-current-message msg-num)
