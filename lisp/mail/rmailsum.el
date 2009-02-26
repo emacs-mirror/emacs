@@ -886,19 +886,20 @@ Commands for sorting the summary:
   (add-hook 'post-command-hook 'rmail-summary-rmail-update nil t)
   (setq revert-buffer-function 'rmail-update-summary))
 
-(defun rmail-summary-mark-seen (n &optional nomove)
+(defun rmail-summary-mark-seen (n &optional nomove unseen)
   "Remove the unseen mark from the current message, update the summary vector.
 N is the number of the current message.  Optional argument NOMOVE
-non-nil means we are already at the right column."
+non-nil means we are already at the right column.  Optional argument
+UNSEEN non-nil means mark the message as unseen."
   (save-excursion
     (unless nomove
       (beginning-of-line)
       (skip-chars-forward " ")
       (skip-chars-forward "0-9"))
-    (when (char-equal (following-char) ?-)
+    (when (char-equal (following-char) (if unseen ?\s ?-))
       (let ((buffer-read-only nil))
 	(delete-char 1)
-	(insert " "))
+	(insert (if unseen "-" " ")))
       (let ((line (buffer-substring-no-properties (line-beginning-position)
 						  (line-beginning-position 2))))
       (with-current-buffer rmail-buffer
@@ -936,18 +937,21 @@ Search, the `unseen' attribute is restored.")
 	    (let ((window (get-buffer-window rmail-buffer t))
 		  (owin (selected-window)))
 	      (if isearch-mode
-		  (save-excursion
-		    (set-buffer rmail-buffer)
+		  (progn
 		    ;; If we first saw the previous message in this search,
 		    ;; and we have gone to a different message while searching,
 		    ;; put back `unseen' on the former one.
-		    (if rmail-summary-put-back-unseen
-			(rmail-set-attribute rmail-unseen-attr-index t
-					     rmail-current-message))
+		    (when rmail-summary-put-back-unseen
+		      (rmail-set-attribute rmail-unseen-attr-index t
+					   rmail-current-message)
+		      (save-excursion
+			(goto-char rmail-summary-put-back-unseen)
+			(rmail-summary-mark-seen rmail-current-message t t)))
 		    ;; Arrange to do that later, for the new current message,
 		    ;; if it still has `unseen'.
 		    (setq rmail-summary-put-back-unseen
-			  (rmail-message-unseen-p msg-num)))
+			  (if (rmail-message-unseen-p msg-num)
+			      (point))))
 		(setq rmail-summary-put-back-unseen nil))
 	      ;; Go to the desired message.
 	      (setq rmail-current-message msg-num)

@@ -2,6 +2,10 @@
 
 	* mail/rmailsum.el (rmail-summary-rmail-update):
 	Use rmail-message-unseen-p.  (Bug#2477)
+	(rmail-summary-mark-seen): Add option to mark as unseen.
+	(rmail-summary-rmail-update): Store a position in
+	rmail-summary-put-back-unseen rather than just a flag, and use it to put
+	back the "-" mark in the summary.
 
 	* progmodes/cc-vars.el (c-style-variables-are-local-p):
 	Mark as safe if boolean.  (Bug#2197)
