@@ -11100,7 +11100,7 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-    RSVG_REQUIRED=2.0.0
+    RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
 
@@ -12901,7 +12901,12 @@ _ACEOF
   CFLAGS=$late_CFLAGS
 fi
 
-### Start of font-backend section.
+### Start of font-backend (under any platform) section.
+# (nothing here yet -- this is a placeholder)
+### End of font-backend (under any platform) section.
+
+### Start of font-backend (under X11) section.
+if test "${HAVE_X11}" = "yes"; then
 
   succeeded=no
 
@@ -12996,14 +13001,14 @@ $as_echo "no" >&6; }
      HAVE_FC=no
   fi
 
-test "${HAVE_FC}" = "no" && with_freetype=no
+   test "${HAVE_FC}" = "no" && with_freetype=no
 
 ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
-HAVE_XFT=maybe
-if test "x${with_freetype}" = "xno" || test "x${with_x}" = "xno"; then
-  with_xft="no";
-fi
-if test "x${with_xft}" != "xno"; then
+   HAVE_XFT=maybe
+    if test "x${with_freetype}" = "xno" || test "x${with_x}" = "xno"; then
+      with_xft="no";
+    fi
+    if test "x${with_xft}" != "xno"; then
 
 
   succeeded=no
@@ -13099,14 +13104,14 @@ $as_echo "no" >&6; }
      HAVE_XFT=no
   fi
 
-  if test "$HAVE_XFT" != no; then
-    OLD_CPPFLAGS="$CPPFLAGS"
-    OLD_CFLAGS="$CFLAGS"
-    OLD_LIBS="$LIBS"
-    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
-    CFLAGS="$CFLAGS $XFT_CFLAGS"
-    LIBS="$XFT_LIBS $LIBS"
-    if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
+      if test "$HAVE_XFT" != no; then
+	OLD_CPPFLAGS="$CPPFLAGS"
+	OLD_CFLAGS="$CFLAGS"
+	OLD_LIBS="$LIBS"
+	CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+	CFLAGS="$CFLAGS $XFT_CFLAGS"
+	LIBS="$XFT_LIBS $LIBS"
+	if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
   { $as_echo "$as_me:$LINENO: checking for X11/Xft/Xft.h" >&5
 $as_echo_n "checking for X11/Xft/Xft.h... " >&6; }
 if test "${ac_cv_header_X11_Xft_Xft_h+set}" = set; then
@@ -13307,34 +13312,34 @@ fi
 
 
 
-    if test "${HAVE_XFT}" = "yes"; then
+	if test "${HAVE_XFT}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_XFT 1
 _ACEOF
 
 
-      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
-    else
-      CPPFLAGS="$OLD_CPPFLAGS"
-      CFLAGS="$OLD_CFLAGS"
-      LIBS="$OLD_LIBS"
-    fi                        # "${HAVE_XFT}" = "yes"
-  fi                          # "$HAVE_XFT" != no
-fi                            # "x${with_xft}" != "xno"
+	  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+	else
+	  CPPFLAGS="$OLD_CPPFLAGS"
+	  CFLAGS="$OLD_CFLAGS"
+	  LIBS="$OLD_LIBS"
+	fi                        # "${HAVE_XFT}" = "yes"
+      fi                          # "$HAVE_XFT" != no
+    fi                            # "x${with_xft}" != "xno"
 
-if test "$HAVE_XFT" != "yes"; then
-   HAVE_XFT=no
-fi
+        if test "$HAVE_XFT" != "yes"; then
+       HAVE_XFT=no
+    fi
 
 
-HAVE_FREETYPE=no
-### Use -lfreetype if available, unless `--with-freetype=no'.
-if test "${HAVE_XFT}" = "yes"; then
-      HAVE_FREETYPE=yes
-  FONTCONFIG_CFLAGS=
-  FONTCONFIG_LIBS=
-elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
+    HAVE_FREETYPE=no
+    ### Use -lfreetype if available, unless `--with-freetype=no'.
+    if test "${HAVE_XFT}" = "yes"; then
+                  HAVE_FREETYPE=yes
+      FONTCONFIG_CFLAGS=
+      FONTCONFIG_LIBS=
+    elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
 
 
   succeeded=no
@@ -13430,16 +13435,16 @@ $as_echo "no" >&6; }
      HAVE_FREETYPE=no
   fi
 
-fi
+    fi
 
-HAVE_LIBOTF=no
-if test "${HAVE_FREETYPE}" = "yes"; then
+    HAVE_LIBOTF=no
+    if test "${HAVE_FREETYPE}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREETYPE 1
 _ACEOF
 
-  if test "${with_libotf}" != "no"; then
+      if test "${with_libotf}" != "no"; then
 
   succeeded=no
 
@@ -13534,13 +13539,13 @@ $as_echo "no" >&6; }
      HAVE_LIBOTF=no
   fi
 
-    if test "$HAVE_LIBOTF" = "yes"; then
+	if test "$HAVE_LIBOTF" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBOTF 1
 _ACEOF
 
-      { $as_echo "$as_me:$LINENO: checking for OTF_get_variation_glyphs in -lotf" >&5
+	  { $as_echo "$as_me:$LINENO: checking for OTF_get_variation_glyphs in -lotf" >&5
 $as_echo_n "checking for OTF_get_variation_glyphs in -lotf... " >&6; }
 if test "${ac_cv_lib_otf_OTF_get_variation_glyphs+set}" = set; then
   $as_echo_n "(cached) " >&6
@@ -13611,20 +13616,20 @@ else
   HAVE_OTF_GET_VARIATION_GLYPHS=no
 fi
 
-      if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
+	  if test "${HAVE_OTF_GET_VARIATION_GLYPHS}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_OTF_GET_VARIATION_GLYPHS 1
 _ACEOF
 
+	  fi
+	fi
       fi
-    fi
-  fi
-fi
+            fi
 
-HAVE_M17N_FLT=no
-if test "${HAVE_LIBOTF}" = yes; then
-  if test "${with_m17n_flt}" != "no"; then
+    HAVE_M17N_FLT=no
+    if test "${HAVE_LIBOTF}" = yes; then
+      if test "${with_m17n_flt}" != "no"; then
 
   succeeded=no
 
@@ -13719,15 +13724,22 @@ $as_echo "no" >&6; }
      HAVE_M17N_FLT=no
   fi
 
-    if test "$HAVE_M17N_FLT" = "yes"; then
+	if test "$HAVE_M17N_FLT" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1
 _ACEOF
 
+	fi
+      fi
     fi
-  fi
+else
+    HAVE_XFT=no
+    HAVE_FREETYPE=no
+    HAVE_LIBOTF=no
+    HAVE_M17N_FLT=no
 fi
+### End of font-backend (under X11) section.
 
 
 
@@ -13737,8 +13749,6 @@ fi
 
 
 
-
-### End of font-backend section.
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
