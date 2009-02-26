@@ -1,3 +1,7 @@
+2009-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Require librsvg >= 2.11.
+
 2009-02-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (HAVE_XFT, HAVE_FREETYPE, HAVE_LIBOTF)
