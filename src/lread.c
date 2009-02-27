@@ -2205,7 +2205,7 @@ read_escape (readcharfun, stringp)
       /* A Unicode escape. We only permit them in strings and characters,
 	 not arbitrarily in the source code, as in some other languages.  */
       {
-	int i = 0;
+	unsigned int i = 0;
 	int count = 0;
 
 	while (++count <= unicode_hex_count)
@@ -2222,7 +2222,8 @@ read_escape (readcharfun, stringp)
 		break;
 	      }
 	  }
-
+	if (i > 0x10FFFF)
+	  error ("Non-Unicode character: 0x%x", i);
 	return i;
       }
 
