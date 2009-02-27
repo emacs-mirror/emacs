@@ -1,3 +1,7 @@
+2009-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* lread.c (read_escape): Signal an error for invalid \UXXXXXXXX.
+
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (font_style_to_value): Set value for unknown symbols to
