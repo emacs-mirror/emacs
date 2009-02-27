@@ -1,3 +1,11 @@
+2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_style_to_value): Set value for unknown symbols to
+	100 instead of 255.
+
+	* font.h (weight_table, slant_table, width_table): Treat
+	"unspecified" as the default value.
+
 2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fileio.c (Fnext_read_file_uses_dialog_p): Fix typo in docstring.
