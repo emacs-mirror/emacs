@@ -1,5 +1,17 @@
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* elisp.texi (Top): Update node listing.
+
+	* variables.texi (Variables): Clarify introduction.
+	(Global Variables): Mention that setq is a special form.
+	(Local Variables): Use active voice.
+	(Tips for Defining): Mention marking variables as safe.
+	(Buffer-Local Variables): Mention terminal-local and frame-local
+	variables together.
+	(File Local Variables): Copyedits.
+	(Frame-Local Variables): Note that they are not really useful.
+	(Future Local Variables): Node deleted.
+
 	* objects.texi (General Escape Syntax): Update explanation of
 	unicode escape syntax.
 
