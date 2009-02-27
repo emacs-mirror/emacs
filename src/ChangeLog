@@ -2,9 +2,8 @@
 
 	* font.c (font_style_to_value): Set value for unknown symbols to
 	100 instead of 255.
-
-	* font.h (weight_table, slant_table, width_table): Treat
-	"unspecified" as the default value.
+	(weight_table, slant_table, width_table): Treat "unspecified" as
+	the default value.
 
 2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
