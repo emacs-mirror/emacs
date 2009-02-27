@@ -637,7 +637,22 @@ by \"Save Options\" in Custom buffers.")
   		(mouse-select-font)))
 	spec)
     (when font
-      (set-face-attribute 'default nil :font font)
+      ;; We used to call set-face-attribute with a nil argument here,
+      ;; but this does the wrong thing (Bug#2476).  The reason is
+      ;; subtle: when Emacs looks for a font matching the `font'
+      ;; argument, it tries to guess the best matching font by
+      ;; examining the other face attributes.  The attributes for
+      ;; future frames are generally unspecified, so this matching
+      ;; process works poorly.  What we do instead is assign `font' to
+      ;; the selected frame, then use that font object and assign it
+      ;; to all other frames (and to future frames).
+      (set-face-attribute 'default (selected-frame) :font font)
+      (let ((font-object (face-attribute 'default :font)))
+	(dolist (f (frame-list))
+	  (and (not (eq f (selected-frame)))
+	       (display-graphic-p f)
+	       (set-face-attribute 'default f :font font-object)))
+	(set-face-attribute 'default t :font font-object))
       (setq spec (list (list t (face-attr-construct 'default))))
       (put 'default 'customized-face spec)
       (custom-push-theme 'theme-face 'default 'user 'set spec)
