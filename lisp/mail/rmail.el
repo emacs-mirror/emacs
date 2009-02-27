@@ -3891,13 +3891,15 @@ TOKEN and INDENT are not used."
 	  (forward-char -2)
 	  (speedbar-do-function-pointer)))))
 
-;; FIXME loses the directory part.
 (defun rmail-speedbar-move-message (text token indent)
   "From button TEXT, copy current message to the rmail file specified by TOKEN.
 TEXT and INDENT are not used."
   (speedbar-with-attached-buffer
    (message "Moving message to %s" token)
-   (rmail-output token)))
+   ;; expand-file-name is needed due to the unhelpful way in which
+   ;; rmail-output expands non-absolute filenames against rmail-default-file.
+   ;; What is the point of that, anyway?
+   (rmail-output (expand-file-name token))))
 
 ;; Functions for setting, getting and encoding the POP password.
 ;; The password is encoded to prevent it from being easily accessible
