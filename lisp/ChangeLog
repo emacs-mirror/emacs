@@ -1,3 +1,11 @@
+2009-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (find-lisp-object-file-name): Need a buffer position, not
+	just a buffer, to find a definition.
+
+	* mail/rmail.el (rmail-speedbar-move-message): Preserve the directory
+	part against rmail-output's oddness.
+
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-set-font): Assign the same font object to all
