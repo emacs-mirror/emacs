@@ -96,7 +96,7 @@ static struct table_entry weight_table[] =
   { 40, { "extra-light", "extralight" }},
   { 50, { "light" }},
   { 75, { "semi-light", "semilight", "demilight", "book" }},
-  { 100, { "normal", "medium", "regular" }},
+  { 100, { "normal", "medium", "regular", "unspecified" }},
   { 180, { "semi-bold", "semibold", "demibold", "demi" }},
   { 200, { "bold" }},
   { 205, { "extra-bold", "extrabold" }},
@@ -110,7 +110,7 @@ static struct table_entry slant_table[] =
 {
   { 0, { "reverse-oblique", "ro" }},
   { 10, { "reverse-italic", "ri" }},
-  { 100, { "normal", "r" }},
+  { 100, { "normal", "r", "unspecified" }},
   { 200, { "italic" ,"i", "ot" }},
   { 210, { "oblique", "o" }}
 };
@@ -124,7 +124,7 @@ static struct table_entry width_table[] =
   { 63, { "extra-condensed", "extracondensed" }},
   { 75, { "condensed", "compressed", "narrow" }},
   { 87, { "semi-condensed", "semicondensed", "demicondensed" }},
-  { 100, { "normal", "medium", "regular" }},
+  { 100, { "normal", "medium", "regular", "unspecified" }},
   { 113, { "semi-expanded", "semiexpanded", "demiexpanded" }},
   { 125, { "expanded" }},
   { 150, { "extra-expanded", "extraexpanded" }},
@@ -360,12 +360,12 @@ font_style_to_value (prop, val, noerror)
 	return -1;
       if (len == 255)
 	abort ();
-      elt = Fmake_vector (make_number (2), make_number (255));
+      elt = Fmake_vector (make_number (2), make_number (100));
       ASET (elt, 1, val);
       args[0] = table;
       args[1] = Fmake_vector (make_number (1), elt);
       ASET (font_style_table, prop - FONT_WEIGHT_INDEX, Fvconcat (2, args));
-      return (255 << 8) | (i << 4);
+      return (100 << 8) | (i << 4);
     }
   else
     {
