@@ -1,3 +1,7 @@
+2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-set-font): Fix last fix.
+
 2009-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* help-fns.el (find-lisp-object-file-name): Need a buffer position, not
