@@ -1,5 +1,8 @@
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* replace.el (keep-lines-read-args): Use empty string as
+	default (Bug#2495).
+
 	* menu-bar.el (menu-set-font): Fix last fix.
 
 2009-02-27  Glenn Morris  <rgm@gnu.org>
