@@ -1,3 +1,7 @@
+2009-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Finteractive): Doc fix.
+
 2009-02-27  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c (read_escape): Signal an error for invalid \UXXXXXXXX.
