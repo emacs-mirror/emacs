@@ -1,3 +1,8 @@
+2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Fix last change so the first `cd' doesn't affect
+	the second.
+
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Copy .dbxinit to _dbxinit.

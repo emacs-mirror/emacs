@@ -341,7 +341,7 @@ src: Makefile FRC
 	    cd $@; $(MAKE) all $(MFLAGS)                                   \
 	      CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'         \
 	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
-	fi;                                                                \
+	fi;
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""
