@@ -320,6 +320,12 @@ src:	lib-src FRC
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
 lisp: src
 
+# These targets should be "${SUBDIR} without `src'".
+lib-src lisp: Makefile FRC
+	cd $@; $(MAKE) all $(MFLAGS)                           \
+	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
+
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
 # is either set to bootstrap-emacs (in case bootstrap-emacs has not been
 # constructed yet) or the empty string (otherwise).
@@ -329,12 +335,16 @@ lisp: src
 # file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
-${SUBDIR}: Makefile FRC
+src: Makefile FRC
 	boot=bootstrap-emacs$(EXEEXT);                         \
-	if [ -x "src/$$boot" ]; then boot=""; fi;                   \
+	if [ ! -x "src/$$boot" ]; then                                     \
+	    cd $@; $(MAKE) all $(MFLAGS)                                   \
+	      CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'         \
+	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
+	fi;                                                                \
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""
 
 blessmail: Makefile src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \

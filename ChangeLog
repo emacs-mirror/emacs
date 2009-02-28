@@ -1,3 +1,9 @@
+2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (lib-src, lisp): Use simpler rule.
+	(src): Be more specific to avoid recompiling all the .elc files just
+	because the bootstrap-emacs is missing.
+
 2009-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Require librsvg >= 2.11.
