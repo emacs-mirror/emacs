@@ -396,16 +396,17 @@ A value of nil means don't highlight."
 
 ;;;###autoload
 (defcustom rmail-primary-inbox-list nil
-  "List of files which are inboxes for user's primary mail file `~/RMAIL'.
-nil means the default, which is (\"/usr/spool/mail/$USER\")
-\(the name varies depending on the operating system,
-and the value of the environment variable MAIL overrides it)."
-  ;; Don't use backquote here, because we don't want to need it
-  ;; at load time.
+  "List of files that are inboxes for your primary mail file `rmail-file-name'.
+If this is nil, uses the environment variable MAIL.  If that is
+unset, uses a file named by the function `user-login-name' in the
+directory `rmail-spool-directory' (whose value depends on the
+operating system).  For example, \"/var/mail/USER\"."
+  ;; Don't use backquote here, because we don't want to need it at load time.
+  ;; (That must be an old comment - it's dumped these days.)
   :type (list 'choice '(const :tag "Default" nil)
 	      (list 'repeat ':value (list (or (getenv "MAIL")
-					      (concat "/var/spool/mail/"
-						      (getenv "USER"))))
+					      (concat rmail-spool-directory
+						      (user-login-name))))
 		    'file))
   :group 'rmail-retrieve
   :group 'rmail-files)
@@ -995,6 +996,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "\es"    'rmail-search)
     (define-key map "t"      'rmail-toggle-header)
     (define-key map "u"      'rmail-undelete-previous-message)
+    (define-key map "v"      'rmail-mime)
     (define-key map "w"      'rmail-output-body-to-file)
     (define-key map "\C-c\C-w"    'rmail-widen)
     (define-key map "x"      'rmail-expunge)
@@ -1343,6 +1345,7 @@ If so restore the actual mbox message collection."
        (setq rmail-inbox-list
 	     (or rmail-primary-inbox-list
 		 (list (or (getenv "MAIL")
+			   ;; FIXME expand-file-name?
 			   (concat rmail-spool-directory
 				   (user-login-name)))))))
   (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map))
@@ -1564,23 +1567,37 @@ The duplicate copy goes into the Rmail file just after the original."
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
 
+;; In Babyl, the Mail: header in the preamble overrode rmail-inbox-list.
+;; Mbox does not have this feature.
 (defun rmail-get-new-mail (&optional file-name)
-  "Move any new mail from this RMAIL file's inbox files.
-The inbox files can be specified with the file's Mail: option.  The
-variable `rmail-primary-inbox-list' specifies the inboxes for your
-primary RMAIL file if it has no Mail: option.  By default, this is
-your /usr/spool/mail/$USER.
+  "Move any new mail from this Rmail file's inbox files.
+The buffer-local variable `rmail-inbox-list' specifies the list
+of inbox files.  By default, this is nil, except for your primary
+Rmail file `rmail-file-name'.  In this case, when you first visit
+the Rmail file it is initialized using either
+`rmail-primary-inbox-list', or the \"MAIL\" environment variable,
+or the function `user-login-name' and the directory
+`rmail-spool-directory' (whose value depends on the operating system).
 
-You can also specify the file to get new mail from.  In this case, the
-file of new mail is not changed or deleted.  Noninteractively, you can
-pass the inbox file name as an argument.  Interactively, a prefix
-argument causes us to read a file name and use that file as the inbox.
+The command `set-rmail-inbox-list' sets `rmail-inbox-list' to the
+value you specify.
+
+You can also specify the file to get new mail from just for one
+instance of this command.  In this case, the file of new mail is
+not changed or deleted.  Noninteractively, you can pass the inbox
+file name as an argument.  Interactively, a prefix argument
+causes us to read a file name and use that file as the inbox.
 
 If the variable `rmail-preserve-inbox' is non-nil, new mail will
 always be left in inbox files rather than deleted.
 
-This function runs `rmail-get-new-mail-hook' before saving the updated file.
-It returns t if it got any new messages."
+Before doing anything, this runs `rmail-before-get-new-mail-hook'.
+Just before returning, it runs `rmail-after-get-new-mail-hook',
+whether or not there is new mail.
+
+If there is new mail, it runs `rmail-get-new-mail-hook', saves
+the updated file, and shows the first unseen message (which might
+not be a new one).  It returns non-nil if it got any new messages."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
@@ -1607,7 +1624,8 @@ It returns t if it got any new messages."
 	    (let ((opoint (point))
 		  ;; If buffer has not changed yet, and has not been
 		  ;; saved yet, don't replace the old backup file now.
-		  (make-backup-files (and make-backup-files (buffer-modified-p)))
+		  (make-backup-files (and make-backup-files
+					  (buffer-modified-p)))
 		  (buffer-read-only nil)
 		  ;; Don't make undo records while getting mail.
 		  (buffer-undo-list t)
@@ -1619,16 +1637,17 @@ It returns t if it got any new messages."
 	      ;; to be that rmail-insert-inbox-text uses .newmail-BASENAME.
 	      (while (and all-files
 			  (not (member (file-name-nondirectory (car all-files))
-				       file-last-names)))
+				file-last-names)))
 		(setq files (cons (car all-files) files)
 		      file-last-names
 		      (cons (file-name-nondirectory (car all-files)) files))
 		(setq all-files (cdr all-files)))
 	      ;; Put them back in their original order.
 	      (setq files (nreverse files))
+	      ;; In case of brain damage caused by require-final-newline.
 	      (goto-char (point-max))
-	      (skip-chars-backward " \t\n") ; just in case of brain damage
-	      (delete-region (point) (point-max)) ; caused by require-final-newline
+	      (skip-chars-backward " \t\n")
+	      (delete-region (point) (point-max))
 	      (setq found (or
 			   (rmail-get-new-mail-1 file-name files delete-files)
 			   found))))
@@ -2373,23 +2392,30 @@ is greater than zero; otherwise, show it in full."
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
   (interactive)
-  (let ((rmail-show-message-hook
-	 (list (function (lambda ()
-			   (goto-char (point-min)))))))
+  (let ((rmail-show-message-hook '((lambda () (goto-char (point-min)))))
+	(rmail-header-style (with-current-buffer (if (rmail-buffers-swapped-p)
+						     rmail-view-buffer
+						   rmail-buffer)
+			      rmail-header-style)))
     (rmail-show-message rmail-current-message)))
 
 (defun rmail-end-of-message ()
   "Show bottom of current message."
   (interactive)
-  (let ((rmail-show-message-hook
-	 (list (function (lambda ()
-			   (goto-char (point-max))
-			   (recenter (1- (window-height))))))))
+  (let ((rmail-show-message-hook '((lambda ()
+				     (goto-char (point-max))
+				     (recenter (1- (window-height))))))
+	(rmail-header-style (with-current-buffer (if (rmail-buffers-swapped-p)
+						     rmail-view-buffer
+						   rmail-buffer)
+			      rmail-header-style)))
     (rmail-show-message rmail-current-message)))
 
 (defun rmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
 Ask the user whether to add that list name to `mail-mailing-lists'."
+  ;; FIXME s-r not needed?  Use rmail-get-header?
+  ;; We have not narrowed to the headers at ths point?
    (save-restriction
      (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
        (when mail-followup-to
