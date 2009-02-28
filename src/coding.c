@@ -5102,12 +5102,12 @@ detect_coding_charset (coding, detect_info)
   attrs = CODING_ID_ATTRS (coding->id);
   valids = AREF (attrs, coding_attr_charset_valids);
   name = CODING_ID_NAME (coding->id);
-  if (VECTORP (Vlatin_extra_code_table)
-      && (strncmp ((char *) SDATA (SYMBOL_NAME (name)),
-		   "iso-8859-", sizeof ("iso-8859-") - 1) == 0
-	  || strncmp ((char *) SDATA (SYMBOL_NAME (name)),
-		      "iso-latin-", sizeof ("iso-latin-") - 1) == 0))
+  if (strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+	       "iso-8859-", sizeof ("iso-8859-") - 1) == 0
+      || strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+		  "iso-latin-", sizeof ("iso-latin-") - 1) == 0)
     check_latin_extra = 1;
+
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
 
@@ -5128,7 +5128,8 @@ detect_coding_charset (coding, detect_info)
       if (c >= 0x80)
 	{
 	  if (c < 0xA0
-	      && (!check_latin_extra
+	      && check_latin_extra
+	      && (!VECTORP (Vlatin_extra_code_table)
 		  || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c])))
 	    break;
 	  found = CATEGORY_MASK_CHARSET;
