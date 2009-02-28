@@ -1374,7 +1374,8 @@ decode_coding_utf_8 (coding)
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   Lisp_Object attr, charset_list;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
@@ -1696,7 +1697,8 @@ decode_coding_utf_16 (coding)
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
   Lisp_Object attr, charset_list;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr1 = -1, byte_after_cr2 = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
@@ -2330,7 +2332,8 @@ decode_coding_emacs_mule (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -3241,7 +3244,8 @@ decode_coding_iso_2022 (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -4128,7 +4132,7 @@ encode_coding_iso_2022 (coding)
   int preferred_charset_id = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
     eol_type = Qunix;
 
@@ -4416,7 +4420,8 @@ decode_coding_sjis (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -4531,7 +4536,8 @@ decode_coding_big5 (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -4983,7 +4989,8 @@ static void
 decode_coding_raw_text (coding)
      struct coding_system *coding;
 {
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
 
   coding->chars_at_source = 1;
   coding->consumed_char = coding->src_chars;
@@ -5202,7 +5209,8 @@ decode_coding_charset (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -5399,7 +5407,7 @@ setup_coding_system (coding_system, coding)
   CHECK_CODING_SYSTEM_GET_ID (coding_system, coding->id);
 
   attrs = CODING_ID_ATTRS (coding->id);
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
 
   coding->mode = 0;
   coding->head_ascii = -1;
@@ -6144,7 +6152,7 @@ decode_eol (coding)
   unsigned char *p, *pbeg, *pend;
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
-  if (EQ (eol_type, Qunix))
+  if (EQ (eol_type, Qunix) || inhibit_eol_conversion)
     return;
 
   if (NILP (coding->dst_object))
@@ -6820,7 +6828,8 @@ decode_coding (coding)
       coding->consumed = coding->src_bytes;
     }
 
-  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
+  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix)
+      && !inhibit_eol_conversion)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
@@ -6971,7 +6980,7 @@ consume_chars (coding, translation_table, max_lookup)
   if (! NILP (translation_table))
     lookup_buf = alloca (sizeof (int) * max_lookup);
 
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
     eol_type = Qunix;
 
