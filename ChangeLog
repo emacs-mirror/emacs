@@ -1,3 +1,7 @@
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist (Making links to `info'): Remove .gitignore.
+
 2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (lib-src, lisp): Use simpler rule.
