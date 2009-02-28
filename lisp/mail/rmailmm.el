@@ -25,17 +25,8 @@
 ;;; Commentary:
 
 ;; Essentially based on the design of Alexander Pohoyda's MIME
-;; extensions (mime-display.el and mime.el).  To use, copy a complete
-;; message into a new buffer and call (mime-show t).
-
-;; To use:
-
-;; (autoload 'rmail-mime "rmailmm"
-;;   "Show MIME message." t)
-;; (add-hook 'rmail-mode-hook
-;;           (lambda ()
-;;             (define-key rmail-mode-map (kbd "v")
-;;               'rmail-mime)))
+;; extensions (mime-display.el and mime.el).
+;; Call `M-x rmail-mime' when viewing an Rmail message.
 
 ;;; Code:
 
@@ -378,6 +369,7 @@ modified."
       (rmail-mime-handle content-type content-disposition
 			 content-transfer-encoding))))
 
+;;;###autoload
 (defun rmail-mime ()
   "Copy buffer contents to a temporary buffer and handle MIME.
 This calls `rmail-mime-show' to do the real job."

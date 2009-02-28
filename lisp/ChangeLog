@@ -1,3 +1,15 @@
+2009-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): Add autoload cookie.
+	* mail/rmail.el (rmail-mode-map):
+	* mail/rmailsum.el (rmail-summary-mode-map): Bind rmail-mime to `v'.
+
+	* mail/rmail.el (rmail-primary-inbox-list): Doc fix.
+	Fix custom choice to match default.
+	(rmail-get-new-mail): Doc fix.
+	(rmail-beginning-of-message, rmail-end-of-message): Preserve the current
+	header style.
+
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (keep-lines-read-args): Use empty string as
