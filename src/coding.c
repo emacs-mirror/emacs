@@ -5128,8 +5128,8 @@ detect_coding_charset (coding, detect_info)
       if (c >= 0x80)
 	{
 	  if (c < 0xA0
-	      && check_latin_extra
-	      && NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	      && (!check_latin_extra
+		  || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c])))
 	    break;
 	  found = CATEGORY_MASK_CHARSET;
 	}
