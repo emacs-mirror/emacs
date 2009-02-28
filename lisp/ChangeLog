@@ -1,5 +1,7 @@
 2009-02-28  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmailout.el (rmail-output-as-seen): Add autoload cookie.
+
 	* mail/rmailmm.el (rmail-mime): Add autoload cookie.
 	* mail/rmail.el (rmail-mode-map):
 	* mail/rmailsum.el (rmail-summary-mode-map): Bind rmail-mime to `v'.

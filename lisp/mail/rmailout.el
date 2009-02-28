@@ -477,6 +477,7 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
 
 ;; FIXME nothing outside uses this, so NOT-RMAIL could be dropped.
 ;; FIXME this duplicates code from rmail-output.
+;;;###autoload
 (defun rmail-output-as-seen (file-name &optional count noattribute not-rmail)
   "Append this message to mbox file named FILE-NAME.
 The details are as for `rmail-output', except that:
