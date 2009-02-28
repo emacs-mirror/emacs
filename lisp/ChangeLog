@@ -1,3 +1,8 @@
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/grep.el (grep-process-setup) [windows-nt msdos]: Use
+	"--color=always".
+
 2009-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailout.el (rmail-output-as-seen): Add autoload cookie.
