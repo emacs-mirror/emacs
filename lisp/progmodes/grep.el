@@ -407,7 +407,11 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; `--color=auto' emits escape sequences on a tty rather than on a pipe,
     ;; thus allowing to use multiple grep filters on the command line
     ;; and to output escape sequences only on the final grep output
-    (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=auto"))
+    (setenv "GREP_OPTIONS"
+	    (concat (getenv "GREP_OPTIONS")
+		    ;; Windows and DOS pipes fail `isatty' detection in Grep.
+		    " --color=" (if (memq system-type '(windows-nt ms-dos))
+				    "always" "auto")))
     ;; GREP_COLOR is used in GNU grep 2.5.1, but deprecated in later versions
     (setenv "GREP_COLOR" "01;31")
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
