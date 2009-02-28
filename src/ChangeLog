@@ -1,3 +1,8 @@
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (detect_coding_charset): Fix change from 2008-10-21.
+	Also, check iso-latin-*, not only iso-8859-*.
+
 2009-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* callint.c (Finteractive): Doc fix.
