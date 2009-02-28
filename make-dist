@@ -664,7 +664,7 @@ echo "Making links to \`info'"
  cd ../${tempdir}/info
  # Avoid an error when expanding the wildcards later.
  ln emacs dummy~ ; ln emacs \#dummy\#
- rm -f *~ \#*\# core .arch-inventory)
+ rm -f *~ \#*\# core .arch-inventory .gitignore)
 
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
