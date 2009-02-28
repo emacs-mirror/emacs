@@ -8,6 +8,7 @@ makefile
 Makefile.c
 TAGS-LISP
 _gdbinit
+_dbxinit
 bootstrap-emacs
 config.h
 config.stamp
