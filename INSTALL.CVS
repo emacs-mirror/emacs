@@ -41,7 +41,6 @@ was not provided").  In that case, follow the instructions below.
 To update loaddefs.el (and similar files), do:
 
   $ cd lisp
-  $ make autogen-clean
   $ make autoloads
 
 If either of the above partial procedures fails, try "make bootstrap".
