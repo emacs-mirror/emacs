@@ -1,3 +1,8 @@
+2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrevs.texi (Expanding Abbrevs): Mention abbrev-expand-functions
+	instead of obsolete pre-abbrev-expand-hook.  Link to elisp manual.
+
 2009-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Rmail): Fix some typos.  Use consistent case in menu.
