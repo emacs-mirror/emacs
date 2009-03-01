@@ -1,3 +1,14 @@
+2009-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail): Fix some typos.
+	(Rmail Motion): - M-s searches from the end of messages.
+	(Rmail Deletion): Minor clarification.  Fix numeric argument
+	description.
+	(Rmail Inbox): Fix default inbox description.  Mention `mbox' by name.
+	newmail and RMAILOSE files need not be in home-directory.
+	(Rmail Files): Mention I/O menus are unselectable if no files match.
+	Mention `MAIL' env-var.
+
 2009-02-24  Jason Rumney  <jasonr@gnu.org>
 
 	* mule.texi (Fontsets): Mention fontset-default, font specs and

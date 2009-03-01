@@ -12,7 +12,7 @@
 
   Rmail is an Emacs subsystem for reading and disposing of mail that
 you receive.  Rmail stores mail messages in files called Rmail files.
-Reading the message in an Rmail file is done in a special major mode,
+Reading the messages in an Rmail file is done in a special major mode,
 Rmail mode, which redefines most letters to run commands for managing mail.
 @menu
 * Basic: Rmail Basics.       Basic concepts of Rmail, and simple use.
@@ -21,7 +21,7 @@ Rmail mode, which redefines most letters to run commands for managing mail.
 * Deletion: Rmail Deletion.  Deleting and expunging messages.
 * Inbox: Rmail Inbox.        How mail gets into the Rmail file.
 * Files: Rmail Files.        Using multiple Rmail files.
-* Output: Rmail Output.	     Copying message out to files.
+* Output: Rmail Output.	     Copying messages out to files.
 * Labels: Rmail Labels.      Classifying messages by labeling them.
 * Attrs: Rmail Attributes.   Certain standard labels, called attributes.
 * Reply: Rmail Reply.        Sending replies to messages you are viewing.
@@ -35,7 +35,7 @@ Rmail mode, which redefines most letters to run commands for managing mail.
 * Movemail::                 More details of fetching new mail.
 * Remote Mailboxes::         Retrieving Mail from Remote Mailboxes.
 * Other Mailbox Formats::    Retrieving Mail from Local Mailboxes in
-                             Various Formats
+                             Various Formats.
 @end menu
 
 @node Rmail Basics
@@ -125,6 +125,8 @@ for one thing, it does not set the mark; for another, it resets the buffer
 boundaries to the current message if you have changed them.  Similarly,
 the command @kbd{/} (@code{rmail-end-of-message}) scrolls forward to the end
 of the selected message.
+@c The comment about buffer boundaries is still true in mbox Rmail, if
+@c less likely to be relevant.
 
 @node Rmail Motion
 @section Moving Among Messages
@@ -202,7 +204,8 @@ that message.  If @var{regexp} is empty, @kbd{M-s} reuses the regexp
 used the previous time.
 
   To search backward in the file for another message, give @kbd{M-s} a
-negative argument.  In Rmail you can do this with @kbd{- M-s}.
+negative argument.  In Rmail you can do this with @kbd{- M-s}.  This
+begins searching from the end of the previous message.
 
   It is also possible to search for a message based on labels.
 @xref{Rmail Labels}.
@@ -242,8 +245,8 @@ Delete the current message, and move to the next nondeleted message
 Delete the current message, and move to the previous nondeleted
 message (@code{rmail-delete-backward}).
 @item u
-Undelete the current message, or move back to a deleted message and
-undelete it (@code{rmail-undelete-previous-message}).
+Undelete the current message, or move back to the previous deleted
+message and undelete it (@code{rmail-undelete-previous-message}).
 @item x
 Expunge the Rmail file (@code{rmail-expunge}).
 @end table
@@ -257,10 +260,12 @@ current message and select another message.  @kbd{d}
 (@code{rmail-delete-forward}) moves to the following message, skipping
 messages already deleted, while @kbd{C-d} (@code{rmail-delete-backward})
 moves to the previous nondeleted message.  If there is no nondeleted
-message to move to in the specified direction, the message that was just
-deleted remains current.  @kbd{d} with a numeric argument is
-equivalent to @kbd{C-d}.
+message to move to in the specified direction, these commands move to
+the last or first message.  With a numeric argument, these commands
+delete the specified number of messages.  @kbd{d} with a negative
+numeric argument is equivalent to @kbd{C-d}, and vice versa.
 
+@c mention other hooks, eg show message hook?
 @vindex rmail-delete-message-hook
   Whenever Rmail deletes a message, it runs the hook
 @code{rmail-delete-message-hook}.  When the hook functions are invoked,
@@ -313,15 +318,16 @@ any time in Rmail by typing @kbd{g}.
 @cindex @env{MAIL} environment variable
   The variable @code{rmail-primary-inbox-list} contains a list of the
 files which are inboxes for your primary Rmail file.  If you don't set
-this variable explicitly, it is initialized from the @env{MAIL}
-environment variable, or, as a last resort, set to @code{nil}, which
-means to use the default inbox.  The default inbox file depends on
-your operating system; often it is @file{/var/mail/@var{username}},
-@file{/usr/spool/mail/@var{username}}, or
-@file{/usr/mail/@var{username}}.
+this variable explicitly, Rmail uses the @env{MAIL} environment
+variable, or, as a last resort, a default inbox based on
+@code{rmail-spool-directory}.  The default inbox file depends on your
+operating system; often it is @file{/var/mail/@var{username}},
+@file{/var/spool/mail/@var{username}}, or
+@file{/usr/spool/mail/@var{username}}.
 
-  You can specify the inbox file(s) for any Rmail file with the
-command @code{set-rmail-inbox-list}; see @ref{Rmail Files}.
+  You can specify the inbox file(s) for any Rmail file for the current
+session with the command @code{set-rmail-inbox-list}; see @ref{Rmail
+Files}.
 
   There are two reasons for having separate Rmail files and inboxes.
 
@@ -341,11 +347,12 @@ all into a separate Rmail file avoids the need for interlocking in all
 the rest of Rmail, since only Rmail operates on the Rmail file.
 @end enumerate
 
-  Rmail was originally written to use Babyl as its internal format.
-Since then, we have recognized that the usual inbox format on Unix and
-GNU systems is adequate for the job, and so since Emacs 23 Rmail uses
-that as its internal format.  The Rmail file is still separate from the
-inbox file, even though their format is the same.
+  Rmail was originally written to use the Babyl format as its internal
+format.  Since then, we have recognized that the usual inbox format
+(@samp{mbox}) on Unix and GNU systems is adequate for the job, and so
+since Emacs 23 Rmail uses that as its internal format.  The Rmail file
+is still separate from the inbox file, even though their format is the
+same.
 
 @vindex rmail-preserve-inbox
   When getting new mail, Rmail first copies the new mail from the
@@ -361,20 +368,20 @@ on the server and you can save it later on your workstation.
   In some cases, Rmail copies the new mail from the inbox file
 indirectly.  First it runs the @code{movemail} program to move the mail
 from the inbox to an intermediate file called
-@file{~/.newmail-@var{inboxname}}.  Then Rmail merges the new mail from
-that file, saves the Rmail file, and only then deletes the intermediate
-file.  If there is a crash at the wrong time, this file continues to
-exist, and Rmail will use it again the next time it gets new mail from
-that inbox.
+@file{.newmail-@var{inboxname}}, in the same directory as the Rmail
+file.  Then Rmail merges the new mail from that file, saves the Rmail
+file, and only then deletes the intermediate file.  If there is a crash
+at the wrong time, this file continues to exist, and Rmail will use it
+again the next time it gets new mail from that inbox.
 
   If Rmail is unable to convert the data in
-@file{~/.newmail-@var{inboxname}} into mbox format, it renames the file
-to @file{~/RMAILOSE.@var{n}} (@var{n} is an integer chosen to make the
-name unique) so that Rmail will not have trouble with the data again.
-You should look at the file, find whatever message confuses Rmail
-(probably one that includes the control-underscore character, octal code
-037), and delete it.  Then you can use @kbd{1 g} to get new mail from
-the corrected file.
+@file{.newmail-@var{inboxname}} into mbox format, it renames the file to
+@file{RMAILOSE.@var{n}} (@var{n} is an integer chosen to make the name
+unique) so that Rmail will not have trouble with the data again.  You
+should look at the file, find whatever message confuses Rmail (probably
+one that includes the control-underscore character, octal code 037), and
+delete it.  Then you can use @kbd{1 g} to get new mail from the
+corrected file.
 
 @node Rmail Files
 @section Multiple Rmail Files
@@ -423,9 +430,10 @@ choose the Input Rmail File item; then choose the Rmail file you want.
 The variables @code{rmail-secondary-file-directory} and
 @code{rmail-secondary-file-regexp} specify which files to offer in the
 menu: the first variable says which directory to find them in; the
-second says which files in that directory to offer (all those that
-match the regular expression).  These variables also apply to choosing
-a file for output (@pxref{Rmail Output}).
+second says which files in that directory to offer (all those that match
+the regular expression).  If no files match, you cannot select this menu
+item.  These variables also apply to choosing a file for output
+(@pxref{Rmail Output}).
 
 @ignore
 @findex set-rmail-inbox-list
@@ -440,8 +448,9 @@ the  Rmail file remembers it permanently until you specify a different list.
 @vindex rmail-inbox-list
   The inbox files to use are specified by the variable
 @code{rmail-inbox-list}, which is buffer-local in Rmail mode.  As a
-special exception, if you have specified no inbox files for your
-primary Rmail file, it uses your standard system inbox.
+special exception, if you have specified no inbox files for your primary
+Rmail file, it uses the @env{MAIL} environment variable, or your
+standard system inbox.
 
 @kindex g @r{(Rmail)}
 @findex rmail-get-new-mail
@@ -510,7 +519,8 @@ that file, like the @kbd{o} command.  The variables
 @code{rmail-secondary-file-regexp} specify which files to offer in the
 menu: the first variable says which directory to find them in; the
 second says which files in that directory to offer (all those that
-match the regular expression).
+match the regular expression).  If no files match, you cannot select
+this menu item.
 
 @vindex rmail-delete-after-output
   Copying a message with @kbd{o} or @kbd{C-o} gives the original copy
