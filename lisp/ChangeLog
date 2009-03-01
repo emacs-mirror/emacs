@@ -1,5 +1,8 @@
 2009-03-01  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (rmail-mode-map): Add explicit keybinding for
+	rmail-resend in the menu.
+
 	* files.el (confirm-nonexistent-file-or-buffer): `other' must be last
 	custom choice.  (Bug#2506)
 

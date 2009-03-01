@@ -966,6 +966,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map "d"      'rmail-delete-forward)
     (define-key map "\C-d"   'rmail-delete-backward)
     (define-key map "e"      'rmail-edit-current-message)
+    ;; If you change this, change the rmail-resend menu-item's :keys.
     (define-key map "f"      'rmail-forward)
     (define-key map "g"      'rmail-get-new-mail)
     (define-key map "h"      'rmail-summary)
@@ -1078,7 +1079,7 @@ The buffer is expected to be narrowed to just the header of the message."
       '("Continue" . rmail-continue))
 
     (define-key map [menu-bar mail resend]
-      '("Re-send..." . rmail-resend))
+    '(menu-item "Resend..." rmail-resend :keys "C-u f"))
 
     (define-key map [menu-bar mail forward]
       '("Forward" . rmail-forward))
@@ -3282,6 +3283,7 @@ original message into it."
   (interactive)
   (rmail-start-mail nil nil nil nil nil rmail-view-buffer))
 
+;; FIXME should complain if there is nothing to continue.
 (defun rmail-continue ()
   "Continue composing outgoing message previously being composed."
   (interactive)
