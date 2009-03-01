@@ -15,7 +15,7 @@ EMACSFLAGS=-batch --no-site-file
 LOADPATH= ../speedbar/ ../contrib/ ../ede/ ../srecode/ ../semantic/wisent/ ../semantic/bovine/ ../semantic/ ../eieio/ ../common/
 templates_MISC=cit-extra-cpp.srt
 scripts_MISC=cit-test.sh
-Misc_MISC=README
+Misc_MISC=README ChangeLog
 VERSION=1.0
 DISTDIR=$(top)cit-$(VERSION)
 
