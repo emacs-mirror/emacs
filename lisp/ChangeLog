@@ -1,3 +1,7 @@
+2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrev.el (clear-abbrev-table): Always return nil (Bug#2515).
+
 2009-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-mode-map): Add explicit keybinding for
