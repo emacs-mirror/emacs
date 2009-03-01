@@ -24,7 +24,7 @@
    (ede-proj-target-makefile-miscelaneous "Misc"
     :name "Misc"
     :path ""
-    :source '("README")
+    :source '("README" "ChangeLog")
     )
    )
   :metasubproject 't
