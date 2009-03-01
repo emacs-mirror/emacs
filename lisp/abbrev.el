@@ -521,7 +521,8 @@ the current abbrev table before abbrev lookup happens."
       (set newsym nil)	     ; Make sure it won't be confused for an abbrev.
       (setplist newsym (symbol-plist sym)))
     (abbrev-table-put table :abbrev-table-modiff
-                      (1+ (abbrev-table-get table :abbrev-table-modiff)))))
+                      (1+ (abbrev-table-get table :abbrev-table-modiff))))
+  nil)
 
 (defun define-abbrev (table name expansion &optional hook &rest props)
   "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
