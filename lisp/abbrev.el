@@ -522,6 +522,7 @@ the current abbrev table before abbrev lookup happens."
       (setplist newsym (symbol-plist sym)))
     (abbrev-table-put table :abbrev-table-modiff
                       (1+ (abbrev-table-get table :abbrev-table-modiff))))
+  ;; For backward compatibility, always return nil.
   nil)
 
 (defun define-abbrev (table name expansion &optional hook &rest props)
