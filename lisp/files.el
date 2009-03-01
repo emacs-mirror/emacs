@@ -1138,9 +1138,9 @@ Any other non-nil value means to request confirmation.
 This affects commands like `switch-to-buffer' and `find-file'."
   :group 'find-file
   :version "23.1"
-  :type '(choice (other :tag "Always" t)
-		 (const :tag "After completion" after-completion)
-		 (const :tag "Never" nil)))
+  :type '(choice (const :tag "After completion" after-completion)
+		 (const :tag "Never" nil)
+		 (other :tag "Always" t)))
 
 (defun confirm-nonexistent-file-or-buffer ()
   "Whether to request confirmation before visiting a new file or buffer.

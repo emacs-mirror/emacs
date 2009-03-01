@@ -1,3 +1,8 @@
+2009-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (confirm-nonexistent-file-or-buffer): `other' must be last
+	custom choice.  (Bug#2506)
+
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (grep-process-setup) [windows-nt msdos]: Use
