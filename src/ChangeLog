@@ -1,3 +1,9 @@
+2009-03-01  Richard M Stallman  <rms@gnu.org>
+
+	* m/mips.h (DATA_SEG_BITS, XUINT, XSET): Definitions disabled.
+
+	* emacs.c (gdb_data_seg_bits) [USE_LSB_TAG]: Make it 0.
+
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (decode_coding_utf_8, decode_coding_utf_16)
