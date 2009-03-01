@@ -213,8 +213,10 @@ to turn on Abbrev mode first.  It may also be useful together with a
 special set of abbrev definitions for making several global replacements at
 once.  This command is effective even if Abbrev mode is not enabled.
 
-  Expanding any abbrev first runs the hook @code{pre-abbrev-expand-hook}
-(@pxref{Hooks}).
+  Expanding any abbrev runs @code{abbrev-expand-functions}, a special
+hook.  Functions in this special hook can make arbitrary changes to
+the abbrev expansion.  @xref{Abbrev Expansion,,, elisp, The Emacs Lisp
+Reference Manual}.
 
 @node Editing Abbrevs
 @section Examining and Editing Abbrevs
