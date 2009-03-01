@@ -33,9 +33,9 @@ Rmail mode, which redefines most letters to run commands for managing mail.
 * Digest: Rmail Digest.      Extracting the messages from a digest message.
 * Rot13: Rmail Rot13.	     Reading messages encoded in the rot13 code.
 * Movemail::                 More details of fetching new mail.
-* Remote Mailboxes::         Retrieving Mail from Remote Mailboxes.
-* Other Mailbox Formats::    Retrieving Mail from Local Mailboxes in
-                             Various Formats.
+* Remote Mailboxes::         Retrieving mail from remote mailboxes.
+* Other Mailbox Formats::    Retrieving mail from local mailboxes in
+                             various formats.
 @end menu
 
 @node Rmail Basics

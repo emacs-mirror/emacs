@@ -1,6 +1,6 @@
 2009-03-01  Glenn Morris  <rgm@gnu.org>
 
-	* rmail.texi (Rmail): Fix some typos.
+	* rmail.texi (Rmail): Fix some typos.  Use consistent case in menu.
 	(Rmail Motion): - M-s searches from the end of messages.
 	(Rmail Deletion): Minor clarification.  Fix numeric argument
 	description.
