@@ -5,9 +5,11 @@
 
 	* mail/rmail.el (rmail-reply): Use rmail-apply-in-message so that this
 	function has access to all the headers, not just the visible ones.
+	Avoid extraneous leading whitespace in `References'.
 	(rmail-dont-reply-to-names, rmail-default-dont-reply-to-names):
 	Doc fixes.
-	(rmail-reply): Avoid extraneous leading whitespace.
+	(rmail-retry-failure): Use rmail-get-header rather than a magical
+	save-excursion/restriction combination that does nothing.
 
 2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
 

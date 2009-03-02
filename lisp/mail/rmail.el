@@ -3640,12 +3640,7 @@ specifying headers which should not be copied into the new message."
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
 	bounce-start bounce-end bounce-indent resending
-	;; Fetch any content-type header in current message
-	;; Must search thru the whole unpruned header.
-	(content-type
-	 (save-excursion
-	   (save-restriction
-	     (mail-fetch-field "Content-Type") ))))
+	(content-type (rmail-get-header "Content-Type")))
     (save-excursion
       (goto-char (point-min))
       (let ((case-fold-search t))
