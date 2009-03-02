@@ -1,3 +1,7 @@
+2009-03-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mark.texi (Marking Objects): Fix typo.
+
 2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* abbrevs.texi (Expanding Abbrevs): Mention abbrev-expand-functions

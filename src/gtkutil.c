@@ -2588,7 +2588,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
 /* Update the menu item W so it corresponds to VAL.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
-   CL_DATA is the data to set in the widget for menu invokation.  */
+   CL_DATA is the data to set in the widget for menu invocation.  */
 
 static void
 xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)

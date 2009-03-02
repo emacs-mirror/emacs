@@ -62,7 +62,7 @@
 ;; slice you can use `doc-view-set-slice' (bound to `s s') which will query you
 ;; for the coordinates of the slice's top-left corner and its width and height.
 ;; A much more convenient way to do the same is offered by the command
-;; `doc-view-set-slice-using-mouse' (bound to `s m').  After invokation you
+;; `doc-view-set-slice-using-mouse' (bound to `s m').  After invocation you
 ;; only have to press mouse-1 at the top-left corner and drag it to the
 ;; bottom-right corner of the desired slice.  To reset the slice use
 ;; `doc-view-reset-slice' (bound to `s r').
@@ -74,7 +74,7 @@
 ;; `C-r' you can do the same, but backwards.  To search for a new regexp give a
 ;; prefix arg to one of the search functions, e.g. by typing `C-u C-s'.  The
 ;; searching works by using a plain text representation of the document.  If
-;; that doesn't already exist the first invokation of `doc-view-search' (or
+;; that doesn't already exist the first invocation of `doc-view-search' (or
 ;; `doc-view-search-backward') starts the conversion.  When that finishes and
 ;; you're still viewing the document (i.e. you didn't switch to another buffer)
 ;; you're queried for the regexp then.

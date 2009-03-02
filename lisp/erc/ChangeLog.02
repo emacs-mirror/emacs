@@ -2371,7 +2371,7 @@
 	Minor docstring fixes (using M-x checkdoc-current-buffer)
 	  If you find time, and you are native english speaker, do that too!!
 
-	* erc.el 1.195: fixed macro-invokation
+	* erc.el 1.195: fixed macro-invocation
 
 2002-01-31  Andreas Fuchs  <asf@void.at>
 
