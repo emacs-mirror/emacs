@@ -3300,45 +3300,35 @@ use \\[mail-yank-original] to yank the original message into it."
   (let (from reply-to cc subject date to message-id references
 	     resent-to resent-cc resent-reply-to
 	     (msgnum rmail-current-message))
-    (save-excursion
-      (save-restriction
-	(widen)
-	(if (rmail-buffers-swapped-p)
-	    (narrow-to-region
-	     (goto-char (point-min))
-	     (search-forward "\n\n" nil 'move))
-	  (goto-char (rmail-msgbeg rmail-current-message))
-	  (forward-line 1)
-	  (narrow-to-region
-	   (point)
-	   (search-forward "\n\n"
-			   (rmail-msgend rmail-current-message)
-			   'move)))
-	(setq from (mail-fetch-field "from")
-	      reply-to (or (mail-fetch-field "mail-reply-to" nil t)
-			   (mail-fetch-field "reply-to" nil t)
-			   from)
-	      subject (mail-fetch-field "subject")
-	      date (mail-fetch-field "date")
-	      message-id (mail-fetch-field "message-id")
-	      references (mail-fetch-field "references" nil nil t)
-	      resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
-	      ;; Bug#512.  It's inappropriate to reply to these addresses.
-;;;	      resent-cc (and (not just-sender)
-;;;			     (mail-fetch-field "resent-cc" nil t))
-;;;	      resent-to (or (mail-fetch-field "resent-to" nil t) "")
-;;;	      resent-subject (mail-fetch-field "resent-subject")
-;;;	      resent-date (mail-fetch-field "resent-date")
-;;;	      resent-message-id (mail-fetch-field "resent-message-id")
-	      )
-	(unless just-sender
-	  (if (mail-fetch-field "mail-followup-to" nil t)
-	      ;; If this header field is present, use it instead of
-	      ;; the To and CC fields.
-	      (setq to (mail-fetch-field "mail-followup-to" nil t))
-	    (setq cc (or (mail-fetch-field "cc" nil t) "")
-		  to (or (mail-fetch-field "to" nil t) ""))))))
-
+    (rmail-apply-in-message
+     rmail-current-message
+     (lambda ()
+       (search-forward "\n\n" nil 'move)
+       (narrow-to-region (point-min) (point))
+       (setq from (mail-fetch-field "from")
+	     reply-to (or (mail-fetch-field "mail-reply-to" nil t)
+			  (mail-fetch-field "reply-to" nil t)
+			  from)
+	     subject (mail-fetch-field "subject")
+	     date (mail-fetch-field "date")
+	     message-id (mail-fetch-field "message-id")
+	     references (mail-fetch-field "references" nil nil t)
+	     resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
+	     ;; Bug#512.  It's inappropriate to reply to these addresses.
+;;;	     resent-cc (and (not just-sender)
+;;;			    (mail-fetch-field "resent-cc" nil t))
+;;;	     resent-to (or (mail-fetch-field "resent-to" nil t) "")
+;;;	     resent-subject (mail-fetch-field "resent-subject")
+;;;	     resent-date (mail-fetch-field "resent-date")
+;;;	     resent-message-id (mail-fetch-field "resent-message-id")
+	     )
+       (unless just-sender
+	 (if (mail-fetch-field "mail-followup-to" nil t)
+	     ;; If this header field is present, use it instead of the
+	     ;; To and CC fields.
+	     (setq to (mail-fetch-field "mail-followup-to" nil t))
+	   (setq cc (or (mail-fetch-field "cc" nil t) "")
+		 to (or (mail-fetch-field "to" nil t) ""))))))
     ;; Merge the resent-to and resent-cc into the to and cc.
     ;; Bug#512.  It's inappropriate to reply to these addresses.
 ;;;    (if (and resent-to (not (equal resent-to "")))

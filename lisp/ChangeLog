@@ -1,3 +1,8 @@
+2009-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Use rmail-apply-in-message so that this
+	function has access to all the headers, not just the visible ones.
+
 2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* abbrev.el (clear-abbrev-table): Always return nil (Bug#2515).
