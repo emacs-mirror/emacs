@@ -3625,6 +3625,25 @@ typically for purposes of moderating a list."
 (defvar mail-mime-unsent-header "^Content-Type: message/rfc822 *$"
  "A regexp that matches the header of a MIME body part with a failed message.")
 
+;; This is a cut-down version of rmail-clear-headers from Emacs 22.
+;; It doesn't have the same functionality, hence the name change.
+(defun rmail-delete-headers (regexp)
+  "Delete any mail headers matching REGEXP.
+The message should be narrowed to just the headers."
+  (when regexp
+    (goto-char (point-min))
+    (while (re-search-forward regexp nil t)
+      (beginning-of-line)
+      ;; This code from Emacs 22 doesn't seem right, since r-n-h is
+      ;; just for display.
+;;;      (if (looking-at rmail-nonignored-headers)
+;;;	  (forward-line 1)
+      (delete-region (point)
+		     (save-excursion
+		       (if (re-search-forward "\n[^ \t]" nil t)
+			   (1- (point))
+			 (point-max)))))))
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -3709,9 +3728,7 @@ specifying headers which should not be copied into the new message."
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
-	  (let ((inhibit-read-only t)
-		rmail-displayed-headers
-		rmail-ignored-headers)
+	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (insert-buffer-substring rmail-this-buffer
 				     bounce-start bounce-end)
@@ -3721,6 +3738,8 @@ specifying headers which should not be copied into the new message."
 	    (mail-sendmail-delimit-header)
 	    (save-restriction
 	      (narrow-to-region (point-min) (mail-header-end))
+	      (rmail-delete-headers rmail-retry-ignored-headers)
+	      (rmail-delete-headers "^\\(sender\\|return-path\\|received\\):")
 	      (setq resending (mail-fetch-field "resent-to"))
 	      (if mail-self-blind
 		  (if resending

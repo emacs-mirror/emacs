@@ -10,6 +10,9 @@
 	Doc fixes.
 	(rmail-retry-failure): Use rmail-get-header rather than a magical
 	save-excursion/restriction combination that does nothing.
+	(rmail-delete-headers): New function.
+	(rmail-retry-failure): Restore yet another feature mbox Rmail removed
+	without telling anyone, namely rmail-retry-ignored-headers.
 
 2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
 
