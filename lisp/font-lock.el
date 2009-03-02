@@ -2239,8 +2239,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"\\)\\)\\>"
 		;; Any whitespace and defined object.
 		"[ \t'\(]*"
-		"\\(setf[ \t]+\\sw+\\|\\sw+\\)?"
-		"[ \t)]*")
+		"\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
        (1 font-lock-keyword-face)
        (9 (cond ((match-beginning 3) font-lock-function-name-face)
 		((match-beginning 6) font-lock-variable-name-face)
