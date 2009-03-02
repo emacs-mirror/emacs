@@ -1,3 +1,8 @@
+2009-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (Fcall_process): Bind inhibit-modification-hooks to t
+	when decoding process output.
+
 2009-03-01  Richard M Stallman  <rms@gnu.org>
 
 	* m/mips.h (DATA_SEG_BITS, XUINT, XSET): Definitions disabled.
