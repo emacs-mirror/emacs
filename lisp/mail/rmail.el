@@ -298,18 +298,24 @@ Currently known variants are 'emacs and 'mailutils."
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil
   "A regexp specifying addresses to prune from a reply message.
-A value of nil means exclude your own email address as an address
-plus whatever is specified by `rmail-default-dont-reply-to-names'."
+If this is nil, it is set the first time you compose a reply, to
+a value which excludes your own email address, plus whatever is
+specified by `rmail-default-dont-reply-to-names'.
+
+Matching addresses are excluded from the CC field in replies, and
+also the To field, unless this would leave an empty To field."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'rmail-reply)
 
 ;;;###autoload
 (defvar rmail-default-dont-reply-to-names "\\`info-"
-  "A regular expression specifying part of the default value of the
-variable `rmail-dont-reply-to-names', for when the user does not set
-`rmail-dont-reply-to-names' explicitly.  (The other part of the default
-value is the user's email address and name.)
-It is useful to set this variable in the site customization file.")
+  "Regexp specifying part of the default value of `rmail-dont-reply-to-names'.
+This is used when the user does not set `rmail-dont-reply-to-names'
+explicitly.  (The other part of the default value is the user's
+email address and name.)  It is useful to set this variable in
+the site customization file.  The default value is conventionally
+used for large mailing lists to broadcast announcements.")
+;; Is it really useful to set this site-wide?
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
@@ -3378,8 +3384,10 @@ use \\[mail-yank-original] to yank the original message into it."
 		   (aref rmail-msgref-vector msgnum))
 		 rmail-answered-attr-index))
      nil
-     (list (cons "References" (concat (mapconcat 'identity references " ")
-				      " " message-id))))))
+     (list (cons "References" (if references
+				  (concat (mapconcat 'identity references " ")
+					  " " message-id)
+				message-id))))))
 
 (defun rmail-mark-message (buffer msgnum-list attribute)
   "Give BUFFER's message number in MSGNUM-LIST the attribute ATTRIBUTE.
