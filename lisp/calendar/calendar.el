@@ -836,6 +836,9 @@ For examples of three common styles, see `diary-american-date-forms',
                          (repeat (list :inline t :format "%v"
                                        (symbol :tag "Keyword")
                                        (choice symbol regexp)))))
+  :set-after '(calendar-date-style diary-iso-date-forms
+                                   diary-european-date-forms
+                                   diary-american-date-forms)
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
          (unless (equal value (eval symbol))
@@ -903,6 +906,9 @@ would give the usual American style in fixed-length fields.  The variables
 `calendar-american-date-display-form' provide some defaults for three common
 styles."
   :type 'sexp
+  :set-after '(calendar-date-style calendar-iso-date-display-form
+                                   calendar-european-date-display-form
+                                   calendar-american-date-display-form)
   :group 'calendar)
 
 (defun calendar-set-date-style (style)

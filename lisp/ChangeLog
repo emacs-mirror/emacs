@@ -1,5 +1,8 @@
 2009-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (diary-date-forms, calendar-date-display-form):
+	Add :set-after listing variables on which we might depend.
+
 	* mail/rmail.el (rmail-reply): Use rmail-apply-in-message so that this
 	function has access to all the headers, not just the visible ones.
 
