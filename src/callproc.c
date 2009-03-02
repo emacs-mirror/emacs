@@ -732,10 +732,18 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    else
 	      {			/* We have to decode the input.  */
 		Lisp_Object curbuf;
+		int count1 = SPECPDL_INDEX ();
 
 		XSETBUFFER (curbuf, current_buffer);
+		/* We cannot allow after-change-functions be run
+		   during decoding, because that might modify the
+		   buffer, while we rely on process_coding.produced to
+		   faithfully reflect inserted text until we
+		   TEMP_SET_PT_BOTH below.  */
+		specbind (Qinhibit_modification_hooks, Qt);
 		decode_coding_c_string (&process_coding, buf, nread,
 					curbuf);
+		unbind_to (count1, Qnil);
 		if (display_on_the_fly
 		    && CODING_REQUIRE_DETECTION (&saved_coding)
 		    && ! CODING_REQUIRE_DETECTION (&process_coding))
