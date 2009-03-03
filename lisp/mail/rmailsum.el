@@ -187,8 +187,8 @@ SUBJECT is a string of regexps separated by commas."
 
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
-  "Display a summary of all messages with the given SENDERS.
-SENDERS is a string of names separated by commas."
+  "Display a summary of all messages whose \"From\" field matches SENDERS.
+SENDERS is a string of regexps separated by commas."
   (interactive "sSenders to summarize by: ")
   (rmail-new-summary
    (concat "senders " senders)
@@ -1017,6 +1017,8 @@ Search, the `unseen' attribute is restored.")
   (define-key rmail-summary-mode-map "\e\C-l" 'rmail-summary-by-labels)
   (define-key rmail-summary-mode-map "\e\C-r" 'rmail-summary-by-recipients)
   (define-key rmail-summary-mode-map "\e\C-s" 'rmail-summary-by-regexp)
+  ;; `f' for "from".
+  (define-key rmail-summary-mode-map "\e\C-f" 'rmail-summary-by-senders)
   (define-key rmail-summary-mode-map "\e\C-t" 'rmail-summary-by-topic)
   (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
   (define-key rmail-summary-mode-map "\M-m"   'rmail-summary-retry-failure)

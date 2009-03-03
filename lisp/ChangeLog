@@ -7,8 +7,10 @@
 
 	* mail/rmailsum.el (rmail-summary-scroll-between-messages)
 	(rmail-summary-line-count-flag, rmail-summary-by-regexp): Doc fixes.
+	(rmail-summary-by-senders): Doc fix.
 	(rmail-summary-mode-map): Bind C-o to output-as-seen, not output.
 	Make the output menu-items consistent with rmail-mode-map.
+	Bind rmail-summary-by-senders to C-M-f.
 
 2009-03-03  Kenichi Handa  <handa@m17n.org>
 
