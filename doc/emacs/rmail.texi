@@ -834,14 +834,17 @@ Summarize all messages (@code{rmail-summary}).
 Summarize messages that have one or more of the specified labels
 (@code{rmail-summary-by-labels}).
 @item C-M-r @var{rcpts} @key{RET}
-Summarize messages that have one or more of the specified recipients
+Summarize messages that match the specified recipients
 (@code{rmail-summary-by-recipients}).
 @item C-M-t @var{topic} @key{RET}
 Summarize messages that have a match for the specified regexp
 @var{topic} in their subjects (@code{rmail-summary-by-topic}).
-@item C-M-s @var{regexp}
+@item C-M-s @var{regexp} @key{RET}
 Summarize messages whose headers match the specified regular expression
 @var{regexp} (@code{rmail-summary-by-regexp}).
+@item C-M-f @var{senders} @key{RET}
+Summarize messages that match the specified senders.
+(@code{rmail-summary-by-senders}).
 @end table
 
 @kindex h @r{(Rmail)}
@@ -862,8 +865,8 @@ commas.
 @findex rmail-summary-by-recipients
   @kbd{C-M-r @var{rcpts} @key{RET}} (@code{rmail-summary-by-recipients})
 makes a partial summary mentioning only the messages that have one or
-more recipients matching the regular expression @var{rcpts}.  Commas can
-be used to separate multiple regular expressions.  These are matched
+more recipients matching the regular expression @var{rcpts}.  You can
+use commas to separate multiple regular expressions.  These are matched
 against the @samp{To}, @samp{From}, and @samp{CC} headers (with a prefix
 argument, this header is not included).
 
@@ -871,7 +874,7 @@ argument, this header is not included).
 @findex rmail-summary-by-topic
   @kbd{C-M-t @var{topic} @key{RET}} (@code{rmail-summary-by-topic})
 makes a partial summary mentioning only the messages whose subjects have
-a match for the regular expression @var{topic}.  Commas can be used to
+a match for the regular expression @var{topic}.  You can use commas to
 separate multiple regular expressions.  With a prefix argument, the
 match is against the whole message, not just the subject.
 
@@ -881,6 +884,13 @@ match is against the whole message, not just the subject.
 makes a partial summary that mentions only the messages whose headers
 (including the date and the subject lines) match the regular
 expression @var{regexp}.
+
+@kindex C-M-f @r{(Rmail)}
+@findex rmail-summary-by-senders
+  @kbd{C-M-f @var{senders} @key{RET}} (@code{rmail-summary-by-senders})
+makes a partial summary that mentions only the messages whose @samp{From}
+fields match the regular expression @var{senders}.  You can use commas to
+separate multiple regular expressions.
 
   Note that there is only one summary buffer for any Rmail buffer;
 making any kind of summary discards any previous summary.
@@ -915,8 +925,14 @@ serves as a repeat count.  A negative argument reverses the meaning of
 the relevant direction, the delete commands go to the first or last
 message, rather than staying on the current message.)  @kbd{o} and
 @kbd{C-o} output the current message to a FILE; @kbd{r} starts a reply
-to it.  You can scroll the current message while remaining in the
+to it; etc.  You can scroll the current message while remaining in the
 summary buffer using @key{SPC} and @key{DEL}.
+@c rmail-summary-scroll-between-messages not mentioned.
+
+@findex rmail-summary-undelete-many
+@kbd{M-u} (@code{rmail-summary-undelete-many}) undeletes all deleted
+messages in the summary.  A prefix argument means to undelete that many
+of the previous deleted messages.
 
   The Rmail commands to move between messages also work in the summary
 buffer, but with a twist: they move through the set of messages included
@@ -928,28 +944,42 @@ Here is a list of these commands:
 @table @kbd
 @item n
 Move to next line, skipping lines saying `deleted', and select its
-message.
+message (@code{rmail-summary-next-msg}).
 @item p
 Move to previous line, skipping lines saying `deleted', and select
-its message.
+its message (@code{rmail-summary-previous-msg}).
 @item M-n
-Move to next line and select its message.
+Move to next line and select its message (@code{rmail-summary-next-all}).
 @item M-p
-Move to previous line and select its message.
+Move to previous line and select its message
+(@code{rmail-summary-previous-all}).
 @item >
-Move to the last line, and select its message.
+Move to the last line, and select its message
+(@code{rmail-summary-last-message}).
 @item <
-Move to the first line, and select its message.
+Move to the first line, and select its message
+(@code{rmail-summary-first-message}).
 @item j
 @itemx @key{RET}
-Select the message on the current line (ensuring that the RMAIL buffer
-appears on the screen).  With argument @var{n}, select message number
-@var{n} and move to its line in the summary buffer; this signals an
-error if the message is not listed in the summary buffer.
+Select the message on the current line (ensuring that the Rmail buffer
+appears on the screen; @code{rmail-summary-goto-msg}).  With argument
+@var{n}, select message number @var{n} and move to its line in the
+summary buffer; this signals an error if the message is not listed in
+the summary buffer.
 @item M-s @var{pattern} @key{RET}
 Search through messages for @var{pattern} starting with the current
 message; select the message found, and move point in the summary buffer
-to that message's line.
+to that message's line (@code{rmail-summary-search}).  A prefix argument
+acts as a repeat count; a negative argument means search backward
+(equivalent to @code{rmail-summary-search-backward}.)
+@item C-M-n @var{labels} @key{RET}
+Move to the next message with at least one of the specified labels
+(@code{rmail-summary-next-labeled-message}).  @var{labels} is a
+comma-separated list of labels.  A prefix argument acts as a repeat
+count.
+@item C-M-p @var{labels} @key{RET}
+Move to the previous message with at least one of the specified labels
+(@code{rmail-summary-previous-labeled-message}).
 @end table
 
 @vindex rmail-redisplay-summary

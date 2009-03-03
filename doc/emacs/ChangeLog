@@ -8,9 +8,12 @@
 	<rmail-summary-by-topic>: Headers includes the subject.
 	<rmail-summary-by-recipients, rmail-summary-by-topic>: Give more
 	details, including prefix arguments.
+	Mention rmail-summary-by-senders on C-M-f.
 	Not counting lines might be faster.
 	(Rmail Summary Edit): More details on the delete commands.
-	Add rmail-summary-bury.
+	Mention rmail-summary-undelete-many, rmail-summary-bury, and C-M-n/p.
+	Name the commands bound to the various keys.  Mention prefix argument
+	for searching.
 	(Rmail Display): Mention rmail-displayed-headers.  Fix typo.
 	Simplify rmail-highlighted-headers description.  Update face name.
 
