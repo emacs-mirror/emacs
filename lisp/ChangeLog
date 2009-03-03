@@ -1,3 +1,8 @@
+2009-03-03  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-move-to-column):
+	Guard against negative col values.
+
 2009-03-03  Simon Josefsson  <simon@josefsson.org>
 
 	* mail/smtpmail.el (smtpmail-auth-supported): Mention that list is

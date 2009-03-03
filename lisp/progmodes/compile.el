@@ -864,7 +864,7 @@ from a different message."
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
 just char-counts."
   (if screen
-      (move-to-column col)
+      (move-to-column (max col 0))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
 
 (defun compilation-internal-error-properties (file line end-line col end-col type fmts)
