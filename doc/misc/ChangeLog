@@ -1,3 +1,10 @@
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi: Fix @setfilename.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add auth.
+	(auth, $(infodir)/auth, auth.dvi): New rules.
+
 2009-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Emacs for minimalists): New node.  (Bug#2452)

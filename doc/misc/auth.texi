@@ -1,5 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
-@setfilename auth.info
+@setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
 
 @set VERSION 0.1
