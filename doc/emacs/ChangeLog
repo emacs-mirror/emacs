@@ -1,3 +1,19 @@
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Deletion): Revert previous change, which was
+	describing the Rmail summary versions.
+	(Rmail Reply): Give more details of rmail-dont-reply-to-names.
+	Minor re-wording for rmail-resend.
+	(Rmail Make Summary): Summaries apply to buffers rather than files.
+	<rmail-summary-by-topic>: Headers includes the subject.
+	<rmail-summary-by-recipients, rmail-summary-by-topic>: Give more
+	details, including prefix arguments.
+	Not counting lines might be faster.
+	(Rmail Summary Edit): More details on the delete commands.
+	Add rmail-summary-bury.
+	(Rmail Display): Mention rmail-displayed-headers.  Fix typo.
+	Simplify rmail-highlighted-headers description.  Update face name.
+
 2009-03-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mark.texi (Marking Objects): Fix typo.

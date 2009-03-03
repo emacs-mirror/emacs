@@ -260,10 +260,10 @@ current message and select another message.  @kbd{d}
 (@code{rmail-delete-forward}) moves to the following message, skipping
 messages already deleted, while @kbd{C-d} (@code{rmail-delete-backward})
 moves to the previous nondeleted message.  If there is no nondeleted
-message to move to in the specified direction, these commands move to
-the last or first message.  With a numeric argument, these commands
-delete the specified number of messages.  @kbd{d} with a negative
-numeric argument is equivalent to @kbd{C-d}, and vice versa.
+message to move to in the specified direction, the message that was just
+deleted remains current.  @kbd{d} with a prefix argument is equivalent
+to @kbd{C-d}.  Note that the Rmail summary versions of these commands
+behave slightly differently (@pxref{Rmail Summary Edit}).
 
 @c mention other hooks, eg show message hook?
 @vindex rmail-delete-message-hook
@@ -698,13 +698,16 @@ sent the message you received, and the @samp{CC} field starts out with
 all the other recipients of that message.
 
 @vindex rmail-dont-reply-to-names
-  You can exclude certain recipients from being placed automatically in
-the @samp{CC}, using the variable @code{rmail-dont-reply-to-names}.  Its
+  You can exclude certain recipients from being included automatically
+in replies, using the variable @code{rmail-dont-reply-to-names}.  Its
 value should be a regular expression (as a string); any recipient that
 the regular expression matches, is excluded from the @samp{CC} field.
-The default value matches your own name, and any name starting with
-@samp{info-}.  (Those names are excluded because there is a convention
-of using them for large mailing lists to broadcast announcements.)
+They are also excluded from the @samp{To} field, unless this would leave
+the field empty.  If this variables is nil, then the first time you
+compose a reply it is initialized to a default value that matches your
+own address, and any name starting with @samp{info-}.  (Those names are
+excluded because there is a convention of using them for large mailing
+lists to broadcast announcements.)
 
   To omit the @samp{CC} field completely for a particular reply, enter
 the reply command with a numeric argument: @kbd{C-u r} or @kbd{1 r}.
@@ -763,8 +766,8 @@ difference is that resending sends a message that is ``from'' the
 original sender, just as it reached you---with a few added header fields
 @samp{Resent-From} and @samp{Resent-To} to indicate that it came via
 you.  To resend a message in Rmail, use @kbd{C-u f}.  (@kbd{f} runs
-@code{rmail-forward}, which is programmed to invoke @code{rmail-resend}
-if you provide a numeric argument.)
+@code{rmail-forward}, which invokes @code{rmail-resend} if you provide a
+numeric argument.)
 
 @kindex m @r{(Rmail)}
 @findex rmail-mail
@@ -817,9 +820,9 @@ time.
 @node Rmail Make Summary
 @subsection Making Summaries
 
-  Here are the commands to create a summary for the current Rmail file.
-Once the Rmail file has a summary buffer, changes in the Rmail file
-(such as deleting or expunging messages, and getting new mail)
+  Here are the commands to create a summary for the current Rmail
+buffer.  Once the Rmail buffer has a summary, changes in the Rmail
+buffer (such as deleting or expunging messages, and getting new mail)
 automatically update the summary.
 
 @table @kbd
@@ -837,15 +840,14 @@ Summarize messages that have one or more of the specified recipients
 Summarize messages that have a match for the specified regexp
 @var{topic} in their subjects (@code{rmail-summary-by-topic}).
 @item C-M-s @var{regexp}
-Summarize messages whose headers and the subject line match the
-specified regular expression @var{regexp}
-(@code{rmail-summary-by-regexp}).
+Summarize messages whose headers match the specified regular expression
+@var{regexp} (@code{rmail-summary-by-regexp}).
 @end table
 
 @kindex h @r{(Rmail)}
 @findex rmail-summary
   The @kbd{h} or @kbd{C-M-h} (@code{rmail-summary}) command fills the summary buffer
-for the current Rmail file with a summary of all the messages in the file.
+for the current Rmail buffer with a summary of all the messages in the buffer.
 It then displays and selects the summary buffer in another window.
 
 @kindex l @r{(Rmail)}
@@ -859,24 +861,28 @@ commas.
 @kindex C-M-r @r{(Rmail)}
 @findex rmail-summary-by-recipients
   @kbd{C-M-r @var{rcpts} @key{RET}} (@code{rmail-summary-by-recipients})
-makes a partial summary mentioning only the messages that have one or more
-of the recipients @var{rcpts}.  @var{rcpts} should contain mailing
-addresses separated by commas.
+makes a partial summary mentioning only the messages that have one or
+more recipients matching the regular expression @var{rcpts}.  Commas can
+be used to separate multiple regular expressions.  These are matched
+against the @samp{To}, @samp{From}, and @samp{CC} headers (with a prefix
+argument, this header is not included).
 
 @kindex C-M-t @r{(Rmail)}
 @findex rmail-summary-by-topic
   @kbd{C-M-t @var{topic} @key{RET}} (@code{rmail-summary-by-topic})
 makes a partial summary mentioning only the messages whose subjects have
-a match for the regular expression @var{topic}.
+a match for the regular expression @var{topic}.  Commas can be used to
+separate multiple regular expressions.  With a prefix argument, the
+match is against the whole message, not just the subject.
 
 @kindex C-M-s @r{(Rmail)}
 @findex rmail-summary-by-regexp
   @kbd{C-M-s @var{regexp} @key{RET}} (@code{rmail-summary-by-regexp})
-makes a partial summary which mentions only the messages whose headers
+makes a partial summary that mentions only the messages whose headers
 (including the date and the subject lines) match the regular
 expression @var{regexp}.
 
-  Note that there is only one summary buffer for any Rmail file;
+  Note that there is only one summary buffer for any Rmail buffer;
 making any kind of summary discards any previous summary.
 
 @vindex rmail-summary-window-size
@@ -884,7 +890,8 @@ making any kind of summary discards any previous summary.
   The variable @code{rmail-summary-window-size} says how many lines to
 use for the summary window.  The variable
 @code{rmail-summary-line-count-flag} controls whether the summary line
-for a message should include the line count of the message.
+for a message should include the line count of the message.  Setting
+this option to nil might speed up the generation of summaries.
 
 @node Rmail Summary Edit
 @subsection Editing in Summaries
@@ -904,10 +911,12 @@ Rmail buffer.  Thus, @kbd{d} in the summary buffer deletes the current
 message, @kbd{u} undeletes, and @kbd{x} expunges.  (However, in the
 summary buffer, a numeric argument to @kbd{d}, @kbd{C-d} and @kbd{u}
 serves as a repeat count.  A negative argument reverses the meaning of
-@kbd{d} and @kbd{C-d}.)  @kbd{o} and @kbd{C-o} output the current
-message to a file; @kbd{r} starts a reply to it.  You can scroll the
-current message while remaining in the summary buffer using @key{SPC}
-and @key{DEL}.
+@kbd{d} and @kbd{C-d}.  Also, if there are no more undeleted messages in
+the relevant direction, the delete commands go to the first or last
+message, rather than staying on the current message.)  @kbd{o} and
+@kbd{C-o} output the current message to a FILE; @kbd{r} starts a reply
+to it.  You can scroll the current message while remaining in the
+summary buffer using @key{SPC} and @key{DEL}.
 
   The Rmail commands to move between messages also work in the summary
 buffer, but with a twist: they move through the set of messages included
@@ -954,11 +963,15 @@ the screen.
 @findex rmail-summary-wipe
 @kindex q @r{(Rmail summary)}
 @findex rmail-summary-quit
+@kindex b @r{(Rmail summary)}
+@findex rmail-summary-bury
   When you are finished using the summary, type @kbd{Q}
 (@code{rmail-summary-wipe}) to delete the summary buffer's window.  You
 can also exit Rmail while in the summary: @kbd{q}
 (@code{rmail-summary-quit}) deletes the summary window, then exits from
 Rmail by saving the Rmail file and switching to another buffer.
+Alternatively, @kbd{b} (@code{rmail-summary-bury}) simply buries the
+Rmail summary and buffer.
 
 @node Rmail Sorting
 @section Sorting the Rmail File
@@ -1035,6 +1048,11 @@ of a header field, that whole field is hidden.  However, the variable
 matching that regular expression is shown even if it matches
 @code{rmail-ignored-headers} too.
 
+@vindex rmail-displayed-headers
+  As an alternative to the previous two variables, you can set
+@code{rmail-displayed-headers} instead.  If non-@code{nil}, this should
+be a regular expression specifying which headers to display.
+
 @kindex t @r{(Rmail)}
 @findex rmail-toggle-header
   Rmail saves the complete original header before reformatting; to see
@@ -1042,7 +1060,7 @@ it, use the @kbd{t} command (@code{rmail-toggle-header}).  This
 discards the reformatted headers of the current message and displays
 it with the original header.  Repeating @kbd{t} reformats the message
 again, which shows only the interesting headers according to the
-current values of those variable.  Selecting the message again also
+current values of the above variables.  Selecting the message again also
 reformats it if necessary.
 
   When the @kbd{t} command has a prefix argument, a positive argument
@@ -1050,19 +1068,14 @@ means to show the reformatted header, and a zero or negative argument
 means to show the full header.
 
 @vindex rmail-highlighted-headers
-  When the terminal supports multiple fonts or colors, Rmail
-highlights certain header fields that are especially interesting---by
-default, the @samp{From} and @samp{Subject} fields.  The variable
-@code{rmail-highlighted-headers} holds a regular expression that
-specifies the header fields to highlight; if it matches the beginning
-of a header field, that whole field is highlighted.
-
-  If you specify unusual colors for your text foreground and
-background, the colors used for highlighting may not go well with
-them.  If so, specify different colors by setting the variable
-@code{rmail-highlight-face} to a suitable face.  To turn off
-highlighting entirely in Rmail, set @code{rmail-highlighted-headers}
-to @code{nil}.
+  Rmail highlights certain header fields that are especially
+interesting---by default, the @samp{From} and @samp{Subject} fields.
+The variable @code{rmail-highlighted-headers} holds a regular expression
+that specifies the header fields to highlight; if it matches the
+beginning of a header field, that whole field is highlighted.  To turn
+off this feature, set @code{rmail-highlighted-headers} to @code{nil}.
+Customize the face @code{rmail-highlight} to adjust the style of the
+highlighting.
 
   You can highlight and activate URLs in incoming messages by adding
 the function @code{goto-address-mode} to the hook
