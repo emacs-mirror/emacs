@@ -1,3 +1,20 @@
+2009-03-03  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (basic-save-buffer-1): Set car part of
+	buffer-file-coding-system-explicit.
+	(revert-buffer): Check car part of
+	buffer-file-coding-system-explicit.
+
+	* international/mule-cmds.el (select-safe-coding-system): If cdr
+	part of buffer-file-coding-system-explicit is set, ignore
+	default-buffer-file-coding-system and the most preferred coding
+	system.
+
+	* international/mule.el (set-buffer-file-coding-system): Set cdr
+	part of buffer-file-coding-system-explicit.
+	(after-insert-file-set-coding): Set
+	buffer-file-coding-system-explicit to a cons.
+
 2009-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-date-forms, calendar-date-display-form):
