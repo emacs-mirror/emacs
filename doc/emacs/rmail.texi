@@ -700,14 +700,14 @@ all the other recipients of that message.
 @vindex rmail-dont-reply-to-names
   You can exclude certain recipients from being included automatically
 in replies, using the variable @code{rmail-dont-reply-to-names}.  Its
-value should be a regular expression (as a string); any recipient that
-the regular expression matches, is excluded from the @samp{CC} field.
-They are also excluded from the @samp{To} field, unless this would leave
-the field empty.  If this variables is nil, then the first time you
-compose a reply it is initialized to a default value that matches your
-own address, and any name starting with @samp{info-}.  (Those names are
-excluded because there is a convention of using them for large mailing
-lists to broadcast announcements.)
+value should be a regular expression; any recipients that match are
+excluded from the @samp{CC} field.  They are also excluded from the
+@samp{To} field, unless this would leave the field empty.  If this
+variable is nil, then the first time you compose a reply it is
+initialized to a default value that matches your own address, and any
+name starting with @samp{info-}.  (Those names are excluded because
+there is a convention of using them for large mailing lists to broadcast
+announcements.)
 
   To omit the @samp{CC} field completely for a particular reply, enter
 the reply command with a numeric argument: @kbd{C-u r} or @kbd{1 r}.
