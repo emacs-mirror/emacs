@@ -1,3 +1,11 @@
+2009-03-03  Simon Josefsson  <simon@josefsson.org>
+
+	* mail/smtpmail.el (smtpmail-auth-supported): Mention that list is
+	in preference order.
+	(smtpmail-try-auth-methods): Improve which authentication
+	mechanism to use, so that the locally most preferred and mutually
+	supported mechanism is used.
+
 2009-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (end-of-defun-function): Make it more clear that
