@@ -313,7 +313,8 @@ is called as a function to find the defun's beginning."
 	     (goto-char (if arg-+ve floor ceiling))
 	     nil))))))))
 
-(defvar end-of-defun-function #'forward-sexp
+(defvar end-of-defun-function
+  (lambda () (forward-sexp 1))
   "Function for `end-of-defun' to call.
 This is used to find the end of the defun at point.
 It is called with no argument, right after calling `beginning-of-defun-raw'.

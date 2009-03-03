@@ -1,3 +1,8 @@
+2009-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (end-of-defun-function): Make it more clear that
+	the function takes no argument.
+
 2009-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-highlighted-headers, rmail-highlight)
@@ -451,7 +456,7 @@
 
 2009-02-17  Miles Bader  <miles@gnu.org>
 
-	* emacs-lisp/copyright.el (copyright-regexp): Tweaked to match
+	* emacs-lisp/copyright.el (copyright-regexp): Tweak to match
 	copyright statements where the years follow the name.
 
 2009-02-17  Glenn Morris  <rgm@gnu.org>
@@ -461,8 +466,8 @@
 
 	* mail/rmailout.el (rmail-fields-not-to-output): Doc fix.
 	(rmail-delete-unwanted-fields): Ignore case.  Use line-beg-pos.
-	(rmail-output, rmail-output-as-seen): Change the "from-gnus" argument to
-	"not-rmail", and make it work.  Simplify.
+	(rmail-output, rmail-output-as-seen): Change the "from-gnus" argument
+	to "not-rmail", and make it work.  Simplify.
 	(rmail-mbox-from): New function.
 	(rmail-output-as-mbox): Use rmail-mbox-from.
 	(rmail-output): Ensure a From line in the not-rmail Babyl case.
@@ -472,8 +477,8 @@
 
 2009-02-16  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-treeview.el (newsticker--treeview-load): Offer
-	deletion of old groups file.
+	* net/newst-treeview.el (newsticker--treeview-load):
+	Offer deletion of old groups file.
 
 2009-02-16  Glenn Morris  <rgm@gnu.org>
 
@@ -488,8 +493,8 @@
 	* mail/rmailsum.el (rmail-summary-output-as-seen): Doc fix.
 
 	* mail/rmailout.el (rmail-output-decode-coding): Fix custom type, group.
-	(rmail-output-as-babyl, rmail-output-to-babyl-buffer): Remove
-	unnecessary use of with-no-warnings.
+	(rmail-output-as-babyl, rmail-output-to-babyl-buffer):
+	Remove unnecessary use of with-no-warnings.
 	(rmail-output-as-mbox, rmail-output-as-seen): Doc fix.
 	(rmail-output-as-mbox): Start search from point-min.  If constructing a
 	"From " line, prefer the date header over the current time.
