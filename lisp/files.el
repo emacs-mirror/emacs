@@ -4187,7 +4187,10 @@ Before and after saving the buffer, this function runs
 	  (let ((coding-system-for-write save-buffer-coding-system))
 	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
-    (setq buffer-file-coding-system-explicit last-coding-system-used)))
+    (if buffer-file-coding-system-explicit
+	(setcar buffer-file-coding-system-explicit last-coding-system-used)
+      (setq buffer-file-coding-system-explicit
+	    (cons last-coding-system-used nil)))))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -4705,7 +4708,9 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; internal coding.
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				buffer-file-coding-system-explicit))))
+				(and
+				 buffer-file-coding-system-explicit
+				 (car buffer-file-coding-system-explicit))))))
 		     (if (and (not enable-multibyte-characters)
 			      coding-system-for-read
 			      (not (memq (coding-system-base
