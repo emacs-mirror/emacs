@@ -1034,6 +1034,8 @@ Search, the `unseen' attribute is restored.")
   (define-key rmail-summary-mode-map "Q"      'rmail-summary-wipe)
   (define-key rmail-summary-mode-map "r"      'rmail-summary-reply)
   (define-key rmail-summary-mode-map "s"      'rmail-summary-expunge-and-save)
+  ;; See rms's comment in rmail.el
+;;;  (define-key rmail-summary-mode-map "\er"    'rmail-summary-search-backward)
   (define-key rmail-summary-mode-map "\es"    'rmail-summary-search)
   (define-key rmail-summary-mode-map "t"      'rmail-summary-toggle-header)
   (define-key rmail-summary-mode-map "u"      'rmail-summary-undelete)
@@ -1535,11 +1537,13 @@ Interactively, empty argument means use same regexp used last time."
 	    (prefix-numeric-value current-prefix-arg))))
   ;; Don't use save-excursion because that prevents point from moving
   ;; properly in the summary buffer.
-  (let ((buffer (current-buffer)))
+  (let ((buffer (current-buffer))
+	(selwin (selected-window)))
     (unwind-protect
 	(progn
-	  (set-buffer rmail-buffer)
+	  (pop-to-buffer rmail-buffer)
 	  (rmail-search regexp n))
+      (select-window selwin)
       (set-buffer buffer))))
 
 (defun rmail-summary-toggle-header ()
