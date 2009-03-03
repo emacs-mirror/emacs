@@ -379,19 +379,22 @@ If nil, display all header fields except those matched by
 ;;;###autoload
 (defcustom rmail-highlighted-headers "^From:\\|^Subject:"
   "Regexp to match Header fields that Rmail should normally highlight.
-A value of nil means don't highlight."
+A value of nil means don't highlight.  Uses the face `rmail-highlight'."
   :type 'regexp
   :group 'rmail-headers)
 
 (defface rmail-highlight
   '((t (:inherit highlight)))
-  "Face to use for highlighting the most important header fields."
+  "Face to use for highlighting the most important header fields.
+The variable `rmail-highlighted-headers' specifies which headers."
   :group 'rmail-headers
   :version "22.1")
 
 (defface rmail-header-name
   '((t (:inherit font-lock-function-name-face)))
-  "Face to use for highlighting the header names."
+  "Face to use for highlighting the header names.
+The variable `rmail-font-lock-keywords' specifies which headers
+get highlighted."
   :group 'rmail-headers
   :version "23.1")
 
@@ -474,6 +477,13 @@ still the current message in the Rmail buffer.")
 (defvar rmail-mmdf-delim2 "^\001\001\001\001\n"
   "Regexp marking the end of an mmdf message.")
 
+;; FIXME Post-mbox, this is now unused.
+;; In Emacs-22, this was called:
+;;  i) the very first time a message was shown.
+;; ii) when toggling the headers to the normal state, every time.
+;; It's not clear what it should do now, since there is nothing that
+;; records when a message is shown for the first time (unseen is not
+;; necessarily the same thing).
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
@@ -750,6 +760,9 @@ The first parenthesized expression should match the MIME-charset name.")
 this expression, you must change the code in `rmail-nuke-pinhead-header'
 that knows the exact ordering of the \\( \\) subexpressions.")
 
+;; FIXME the rmail-header-name headers ought to be customizable.
+;; It seems a bit arbitrary, for example, that all of the Date: line
+;; gets highlighted.
 (defvar rmail-font-lock-keywords
   ;; These are all matched case-insensitively.
   (eval-when-compile
@@ -2511,7 +2524,8 @@ N defaults to the current message."
 (defcustom rmail-show-message-verbose-min 200000
   "Message size at which to show progress messages for displaying it."
   :type 'integer
-  :group 'rmail)
+  :group 'rmail
+  :version "23.1")
 
 (defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
@@ -2728,22 +2742,16 @@ using the coding system CODING."
 		      (symbol-name coding))))
 	  (rmail-show-message))))))
 
-;; Find all occurrences of certain fields, and highlight them.
 (defun rmail-highlight-headers ()
-  ;; Do this only if the system supports faces.
-  (if (and (fboundp 'internal-find-face)
-	   rmail-highlighted-headers)
+  "Highlight the headers specified by `rmail-highlighted-headers'.
+Uses the face `rmail-highlight'."
+  (if rmail-highlighted-headers
       (save-excursion
 	(search-forward "\n\n" nil 'move)
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
 	  (let ((case-fold-search t)
 		(inhibit-read-only t)
-		;; Highlight with boldface if that is available.
-		;; Otherwise use the `highlight' face.
-		(face (or 'rmail-highlight
-			  (if (face-differs-from-default-p 'bold)
-			      'bold 'highlight)))
 		;; List of overlays to reuse.
 		(overlays rmail-overlay-list))
 	    (goto-char (point-min))
@@ -2762,12 +2770,12 @@ using the coding system CODING."
 		    (progn
 		      (setq overlay (car overlays)
 			    overlays (cdr overlays))
-		      (overlay-put overlay 'face face)
+		      (overlay-put overlay 'face 'rmail-highlight)
 		      (move-overlay overlay beg (point)))
 		  ;; Make a new overlay and add it to
 		  ;; rmail-overlay-list.
 		  (setq overlay (make-overlay beg (point)))
-		  (overlay-put overlay 'face face)
+		  (overlay-put overlay 'face 'rmail-highlight)
 		  (setq rmail-overlay-list
 			(cons overlay rmail-overlay-list))))))))))
 
