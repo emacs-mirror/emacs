@@ -930,28 +930,30 @@ It is highly recommended to fix it before writing to a file."
 		      (append default-coding-system
 			      (list (cons buffer-file-coding-system base)))))))
 
-      ;; If default-buffer-file-coding-system is not nil nor undecided,
-      ;; append it to the defaults.
-      (if default-buffer-file-coding-system
-	  (let ((base (coding-system-base default-buffer-file-coding-system)))
-	    (or (eq base 'undecided)
-		(rassq base default-coding-system)
-		(setq default-coding-system
-		      (append default-coding-system
-			      (list (cons default-buffer-file-coding-system
-					  base)))))))
+      (unless (and buffer-file-coding-system-explicit
+		   (cdr buffer-file-coding-system-explicit))
+	;; If default-buffer-file-coding-system is not nil nor undecided,
+	;; append it to the defaults.
+	(if default-buffer-file-coding-system
+	    (let ((base (coding-system-base default-buffer-file-coding-system)))
+	      (or (eq base 'undecided)
+		  (rassq base default-coding-system)
+		  (setq default-coding-system
+			(append default-coding-system
+				(list (cons default-buffer-file-coding-system
+					    base)))))))
 
-      ;; If the most preferred coding system has the property mime-charset,
-      ;; append it to the defaults.
-      (let ((preferred (coding-system-priority-list t))
-	    base)
-	(and (coding-system-p preferred)
-	     (setq base (coding-system-base preferred))
-	     (coding-system-get preferred :mime-charset)
-	     (not (rassq base default-coding-system))
-	     (setq default-coding-system
-		   (append default-coding-system
-			   (list (cons preferred base)))))))
+	;; If the most preferred coding system has the property mime-charset,
+	;; append it to the defaults.
+	(let ((preferred (coding-system-priority-list t))
+	      base)
+	  (and (coding-system-p preferred)
+	       (setq base (coding-system-base preferred))
+	       (coding-system-get preferred :mime-charset)
+	       (not (rassq base default-coding-system))
+	       (setq default-coding-system
+		     (append default-coding-system
+			     (list (cons preferred base))))))))
 
     (if select-safe-coding-system-accept-default-p
 	(setq accept-default-p select-safe-coding-system-accept-default-p))
