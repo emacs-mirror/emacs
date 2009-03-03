@@ -33,12 +33,18 @@
 (require 'rmail)
 
 (defcustom rmail-summary-scroll-between-messages t
-  "Non-nil means Rmail summary scroll commands move between messages."
+  "Non-nil means Rmail summary scroll commands move between messages.
+That is, after `rmail-summary-scroll-msg-up' reaches the end of a
+message, it moves to the next message; and similarly for
+`rmail-summary-scroll-msg-down'."
   :type 'boolean
   :group 'rmail-summary)
 
+;; FIXME could do with a :set function that regenerates the summary
+;; and updates rmail-summary-vector.
 (defcustom rmail-summary-line-count-flag t
-  "Non-nil means Rmail summary should show the number of lines in each message."
+  "Non-nil means Rmail summary should show the number of lines in each message.
+Setting this option to nil might speed up the generation of summaries."
   :type 'boolean
   :group 'rmail-summary)
 
@@ -92,6 +98,10 @@ LABELS should be a string containing the desired labels, separated by commas."
 			     (mail-comma-list-regexp labels)
 			     "\\)\\(,\\|\\'\\)")))
 
+;; FIXME "a string of regexps separated by commas" makes no sense because:
+;;  i) it's pointless (you can just use \\|)
+;; ii) it's broken (you can't specify a literal comma)
+;; rmail-summary-by-topic and rmail-summary-by-senders have the same issue.
 ;;;###autoload
 (defun rmail-summary-by-recipients (recipients &optional primary-only)
   "Display a summary of all messages with the given RECIPIENTS.
@@ -118,12 +128,15 @@ RECIPIENTS is a string of regexps separated by commas."
       (if (not primary-only)
 	  (string-match recipients (or (mail-fetch-field "Cc") "")))))
 
+;; FIXME I find this a non-obvious name for what this function does.
+;; Also, the optional WHOLE-MESSAGE argument of r-s-by-topic would
+;; seem more natural here.
 ;;;###autoload
 (defun rmail-summary-by-regexp (regexp)
   "Display a summary of all messages according to regexp REGEXP.
 If the regular expression is found in the header of the message
 \(including in the date and other lines, as well as the subject line),
-Emacs will list the header line in the RMAIL-summary."
+Emacs will list the message in the summary."
   (interactive "sRegexp to summarize by: ")
   (if (string= regexp "")
       (setq regexp (or rmail-last-regexp
@@ -1011,7 +1024,7 @@ Search, the `unseen' attribute is restored.")
   (define-key rmail-summary-mode-map "\en"    'rmail-summary-next-all)
   (define-key rmail-summary-mode-map "\e\C-n" 'rmail-summary-next-labeled-message)
   (define-key rmail-summary-mode-map "o"      'rmail-summary-output)
-  (define-key rmail-summary-mode-map "\C-o"   'rmail-summary-output)
+  (define-key rmail-summary-mode-map "\C-o"   'rmail-summary-output-as-seen)
   (define-key rmail-summary-mode-map "p"      'rmail-summary-previous-msg)
   (define-key rmail-summary-mode-map "\ep"    'rmail-summary-previous-all)
   (define-key rmail-summary-mode-map "\e\C-p" 'rmail-summary-previous-labeled-message)
@@ -1072,13 +1085,13 @@ Search, the `unseen' attribute is restored.")
   '(nil))
 
 (define-key rmail-summary-mode-map [menu-bar classify output-body]
-  '("Output (body)..." . rmail-summary-output-body))
+  '("Output body..." . rmail-summary-output-body))
 
 (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
-  '("Output (inbox)..." . rmail-summary-output))
+  '("Output..." . rmail-summary-output))
 
 (define-key rmail-summary-mode-map [menu-bar classify output]
-  '("Output (Rmail)..." . rmail-summary-output))
+  '("Output as seen..." . rmail-summary-output-as-seen))
 
 (define-key rmail-summary-mode-map [menu-bar classify kill-label]
   '("Kill Label..." . rmail-summary-kill-label))
