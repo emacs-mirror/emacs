@@ -79,6 +79,7 @@ Emacs misc features
 * WoMan: (woman).       Browse UN*X Manual Pages "W.O. (without) Man".
 
 Emacs lisp libraries
+* Auth-source: (auth).  A single configuration for multiple applications.
 * CL: (cl).             Partial Common Lisp support for Emacs Lisp.
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 * Emacs MIME: (emacs-mime).   Emacs MIME de/composition library.

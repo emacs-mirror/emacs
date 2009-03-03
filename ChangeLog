@@ -1,3 +1,7 @@
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add Auth-source.
+
 2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (src): Fix last change so the first `cd' doesn't affect
