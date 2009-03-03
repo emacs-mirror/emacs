@@ -1,3 +1,8 @@
+2009-03-03  Brian Sniffen  <bts@evenmere.org>  (tiny change)
+
+	* gnus-draft.el (gnus-draft-send): Bind gnus-message-setup-hook to nil
+	when sending a queued message to avoid extra mml tags.
+
 2009-03-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-insert-mime): Don't break parts that mm-uu dissected.
