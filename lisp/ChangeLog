@@ -1,3 +1,8 @@
+2009-03-04  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Handle "omake -P" messages "file foo changed".
+
 2009-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailedit.el (rmail-edit-mode): Doc fix.

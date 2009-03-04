@@ -292,6 +292,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
 : \\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:" 2 3 nil (4))
 
+    (omake
+     ;; "omake -P" reports "file foo changed"
+     ;; (useful if you do "cvs up" and want to see what has changed)
+     "omake: file \\(.*\\) changed" 1)
+
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
 \\(?:\\(?:,\\| at\\)? column \\([0-9]+\\)\\)?\
