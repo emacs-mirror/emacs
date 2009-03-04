@@ -1,3 +1,8 @@
+2009-03-04  Nikolaj Schumacher <me@nschum.de>
+
+	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp
+	value.
+
 2009-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Only ignore IME messages for the

@@ -1053,7 +1053,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     CGContextSetFont (gcontext, font->cgfont);
     CGContextSetFontSize (gcontext, font->size);
-    if (ns_antialias_text == NO || font->size <= ns_antialias_threshold)
+    if (ns_antialias_text == Qnil || font->size <= ns_antialias_threshold)
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
