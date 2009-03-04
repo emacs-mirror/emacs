@@ -36,6 +36,7 @@ infodir=../../info
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = makeinfo --force
 
+# Also add new entries to INFO_FILES in the top-level Makefile.in.
 INFO_TARGETS = \
 	$(infodir)/ada-mode \
 	$(infodir)/auth \
