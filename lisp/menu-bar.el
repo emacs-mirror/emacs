@@ -456,11 +456,13 @@
 	      :help "Choose a string from the kill ring and paste it"))
 (define-key menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
-	      :enable (and
-		       ;; Emacs compiled --without-x doesn't have
-		       ;; x-selection-exists-p.
-		       (fboundp 'x-selection-exists-p)
-		       (x-selection-exists-p) (not buffer-read-only))
+	      :enable (and (or
+			    ;; Emacs compiled --without-x doesn't have
+			    ;; x-selection-exists-p.
+			    (and (fboundp 'x-selection-exists-p)
+				 (x-selection-exists-p))
+			    kill-ring)
+			   (not buffer-read-only))
 	      :help "Paste (yank) text most recently cut/copied"))
 (define-key menu-bar-edit-menu [copy]
   '(menu-item "Copy" menu-bar-kill-ring-save
@@ -495,10 +497,10 @@
      '(and mark-active (not buffer-read-only)))
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
-     '(and (or (and (fboundp 'x-selection-exists-p)
-		    (x-selection-exists-p))
+     '(and (or (not (fboundp 'x-selection-exists-p))
+	       (x-selection-exists-p)
 	       (x-selection-exists-p 'CLIPBOARD))
-	   (not buffer-read-only)))
+ 	   (not buffer-read-only)))
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
