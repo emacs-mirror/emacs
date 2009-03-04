@@ -2992,7 +2992,10 @@ xbm_read_bitmap_data (f, contents, end, width, height, data)
     }
 
   if (!check_image_size (f, *width, *height))
-    goto failure;
+    {
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+      goto failure;
+    }
   else if (data == NULL)
     goto success;
 
@@ -4202,7 +4205,7 @@ xpm_load_image (f, img, contents, end)
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto failure;
     }
 
@@ -5543,7 +5546,7 @@ pbm_load (f, img)
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto error;
     }
 
@@ -6079,8 +6082,10 @@ png_load (f, img)
 		   &interlace_type, NULL, NULL);
 
   if (!check_image_size (f, width, height))
-    goto error;
-
+    {
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+      goto error;
+    }
   /* If image contains simply transparency data, we prefer to
      construct a clipping mask.  */
   if (fn_png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
@@ -6787,7 +6792,7 @@ jpeg_load (f, img)
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       longjmp (mgr.setjmp_buffer, 2);
     }
 
@@ -7238,7 +7243,7 @@ tiff_load (f, img)
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       fn_TIFFClose (tiff);
       UNGCPRO;
       return 0;
@@ -7577,7 +7582,7 @@ gif_load (f, img)
   /* Before reading entire contents, check the declared image size. */
   if (!check_image_size (f, gif->SWidth, gif->SHeight))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       fn_DGifCloseFile (gif);
       UNGCPRO;
       return 0;
@@ -7620,7 +7625,7 @@ gif_load (f, img)
 
   if (!check_image_size (f, width, height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       fn_DGifCloseFile (gif);
       UNGCPRO;
       return 0;
@@ -8047,7 +8052,10 @@ svg_load_image (f, img, contents, size)
 
   fn_rsvg_handle_get_dimensions (rsvg_handle, &dimension_data);
   if (! check_image_size (f, dimension_data.width, dimension_data.height))
-    goto rsvg_error;
+    {
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+      goto rsvg_error;
+    }
 
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
@@ -8320,7 +8328,7 @@ gs_load (f, img)
 
   if (!check_image_size (f, img->width, img->height))
     {
-      image_error ("Invalid image size", Qnil, Qnil);
+      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       return 0;
     }
 
