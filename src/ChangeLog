@@ -1,12 +1,12 @@
 2009-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Only ignore IME messages for the
-	characters that have already been read.
+	characters that have already been read.  (Bug#2569)
 
 	* image.c (xbm_read_bitmap_data, png_load, svg_load_image):
 	Log an error message if check_image_size failed.
 	(xpm_load_image, pbm_load, jpeg_load, tiff_load, gif_load)
-	(gs_load): Mention max-image-size in size error message.
+	(gs_load): Mention max-image-size in size error message.  (Bug#2560)
 
 2009-03-02  Eli Zaretskii  <eliz@gnu.org>
 
