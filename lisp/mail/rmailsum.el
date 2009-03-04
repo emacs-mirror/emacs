@@ -330,11 +330,14 @@ message."
     sumbuf))
 
 (defun rmail-get-create-summary-buffer ()
-  "Obtain a summary buffer by re-using an existing summary
-buffer, or by creating a new summary buffer."
+  "Return the Rmail summary buffer.
+If necessary, it is created and undo is disabled."
   (if (and rmail-summary-buffer (buffer-name rmail-summary-buffer))
       rmail-summary-buffer
-    (generate-new-buffer (concat (buffer-name) "-summary"))))
+    (let ((buff (generate-new-buffer (concat (buffer-name) "-summary"))))
+      (with-current-buffer buff
+	(setq buffer-undo-list t))
+      buff)))
 
 
 ;; Low levels of generating a summary.
@@ -1791,53 +1794,61 @@ FILE-NAME defaults, interactively, from the Subject field of the message."
 ;; Sorting messages in Rmail Summary buffer.
 
 (defun rmail-summary-sort-by-date (reverse)
-  "Sort messages of current Rmail summary by date.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+  "Sort messages of current Rmail summary by \"Date\" header.
+If prefix argument REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-date) reverse))
 
 (defun rmail-summary-sort-by-subject (reverse)
-  "Sort messages of current Rmail summary by subject.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+  "Sort messages of current Rmail summary by \"Subject\" header.
+Ignores any \"Re: \" prefix.  If prefix argument REVERSE is
+non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-subject) reverse))
 
 (defun rmail-summary-sort-by-author (reverse)
   "Sort messages of current Rmail summary by author.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+This uses either the \"From\" or \"Sender\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-author) reverse))
 
 (defun rmail-summary-sort-by-recipient (reverse)
   "Sort messages of current Rmail summary by recipient.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+This uses either the \"To\" or \"Apparently-To\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-recipient) reverse))
 
 (defun rmail-summary-sort-by-correspondent (reverse)
   "Sort messages of current Rmail summary by other correspondent.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+This uses either the \"From\", \"Sender\", \"To\", or
+\"Apparently-To\" header, downcased.  Uses the first header not
+excluded by `rmail-dont-reply-to-names'.  If prefix argument
+REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))
 
 (defun rmail-summary-sort-by-lines (reverse)
-  "Sort messages of current Rmail summary by lines of the message.
-If prefix argument REVERSE is non-nil, sort them in reverse order."
+  "Sort messages of current Rmail summary by the number of lines.
+If prefix argument REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-lines) reverse))
 
 (defun rmail-summary-sort-by-labels (reverse labels)
   "Sort messages of current Rmail summary by labels.
-If prefix argument REVERSE is non-nil, sort them in reverse order.
-KEYWORDS is a comma-separated list of labels."
+LABELS is a comma-separated list of labels.
+If prefix argument REVERSE is non-nil, sorts in reverse order."
   (interactive "P\nsSort by labels: ")
   (rmail-sort-from-summary
-   (function (lambda (reverse)
-	       (rmail-sort-by-labels reverse labels)))
+   (lambda (reverse) (rmail-sort-by-labels reverse labels))
    reverse))
 
 (defun rmail-sort-from-summary (sortfun reverse)
-  "Sort Rmail messages from Summary buffer and update it after sorting."
+  "Sort the Rmail buffer using sorting function SORTFUN.
+Passes REVERSE to SORTFUN as its sole argument.  Then regenerates
+the summary.  Note that the whole Rmail buffer is sorted, even if
+the summary is only showing a subset of messages."
   (require 'rmailsort)
   (let ((selwin (selected-window)))
     (unwind-protect
