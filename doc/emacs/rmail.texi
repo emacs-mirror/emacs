@@ -1010,37 +1010,44 @@ Rmail summary and buffer.
 
 @table @kbd
 @findex rmail-sort-by-date
-@item M-x rmail-sort-by-date
-Sort messages of current Rmail file by date.
+@item C-c C-s C-d
+@itemx M-x rmail-sort-by-date
+Sort messages of current Rmail buffer by date.
 
 @findex rmail-sort-by-subject
-@item M-x rmail-sort-by-subject
-Sort messages of current Rmail file by subject.
+@item C-c C-s C-s
+@itemx M-x rmail-sort-by-subject
+Sort messages of current Rmail buffer by subject.
 
 @findex rmail-sort-by-author
-@item M-x rmail-sort-by-author
-Sort messages of current Rmail file by author's name.
+@item C-c C-s C-a
+@itemx M-x rmail-sort-by-author
+Sort messages of current Rmail buffer by author's name.
 
 @findex rmail-sort-by-recipient
-@item M-x rmail-sort-by-recipient
-Sort messages of current Rmail file by recipient's names.
+@item C-c C-s C-r
+@itemx M-x rmail-sort-by-recipient
+Sort messages of current Rmail buffer by recipient's names.
 
 @findex rmail-sort-by-correspondent
-@item M-x rmail-sort-by-correspondent
-Sort messages of current Rmail file by the name of the other
+@item C-c C-s C-c
+@itemx M-x rmail-sort-by-correspondent
+Sort messages of current Rmail buffer by the name of the other
 correspondent.
 
 @findex rmail-sort-by-lines
-@item M-x rmail-sort-by-lines
-Sort messages of current Rmail file by size (number of lines).
+@item C-c C-s C-l
+@itemx M-x rmail-sort-by-lines
+Sort messages of current Rmail buffer by number of lines.
 
-@findex rmail-sort-by-keywords
-@item M-x rmail-sort-by-keywords @key{RET} @var{labels} @key{RET}
-Sort messages of current Rmail file by labels.  The argument
+@findex rmail-sort-by-labels
+@item C-c C-s C-k @key{RET} @var{labels} @key{RET}
+@itemx M-x rmail-sort-by-labels @key{RET} @var{labels} @key{RET}
+Sort messages of current Rmail buffer by labels.  The argument
 @var{labels} should be a comma-separated list of labels.  The order of
 these labels specifies the order of messages; messages with the first
 label come first, messages with the second label come second, and so on.
-Messages which have none of these labels come last.
+Messages that have none of these labels come last.
 @end table
 
   The Rmail sort commands perform a @emph{stable sort}: if there is no
@@ -1050,9 +1057,17 @@ example, if you use @code{rmail-sort-by-date} and then
 @code{rmail-sort-by-author}, messages from the same author appear in
 order by date.
 
-  With a numeric argument, all these commands reverse the order of
+  With a prefix argument, all these commands reverse the order of
 comparison.  This means they sort messages from newest to oldest, from
 biggest to smallest, or in reverse alphabetical order.
+
+  The same keys in the summary buffer run similar functions; for
+example, @kbd{C-c C-s C-l} runs @code{rmail-summary-sort-by-lines}.
+Note that these commands always sort the whole Rmail buffer, even if the
+summary is only showing a subset of messages.
+
+  Note that you cannot undo a sort, so you may wish to save the Rmail
+buffer before sorting it.
 
 @node Rmail Display
 @section Display of Messages
@@ -1107,12 +1122,18 @@ off this feature, set @code{rmail-highlighted-headers} to @code{nil}.
 Customize the face @code{rmail-highlight} to adjust the style of the
 highlighting.
 
-  You can highlight and activate URLs in incoming messages by adding
-the function @code{goto-address-mode} to the hook
-@code{rmail-show-message-hook}.  Then you can browse these URLs by
-clicking on them with @kbd{Mouse-2} (or @kbd{Mouse-1} quickly) or by
-moving to one and typing @kbd{C-c @key{RET}}.  @xref{Goto Address
-mode, Activating URLs, Activating URLs}.
+  You can highlight and activate URLs in incoming messages using
+Goto Address mode:
+
+@c FIXME goto-addr.el commentary says to use goto-address instead.
+@smallexample
+(add-hook 'rmail-show-message-hook (lambda () (goto-address-mode 1)))
+@end smallexample
+
+@noindent
+Then you can browse these URLs by clicking on them with @kbd{Mouse-2}
+(or @kbd{Mouse-1} quickly) or by moving to one and typing @kbd{C-c
+@key{RET}}.  @xref{Goto Address mode, Activating URLs, Activating URLs}.
 
 @node Rmail Coding
 @section Rmail and Coding Systems
@@ -1149,7 +1170,7 @@ coding system, the result should be readable.
 @node Rmail Editing
 @section Editing Within a Message
 
-  Most of the usual Emacs commands are available in Rmail mode, though a
+  Most of the usual Emacs keybindings are available in Rmail mode, though a
 few, such as @kbd{C-M-n} and @kbd{C-M-h}, are redefined by Rmail for
 other purposes.  However, the Rmail buffer is normally read only, and
 most of the letters are redefined as Rmail commands.  If you want to
@@ -1167,11 +1188,10 @@ Rmail mode into Rmail Edit mode, another major mode which is nearly the
 same as Text mode.  The mode line indicates this change.
 
   In Rmail Edit mode, letters insert themselves as usual and the Rmail
-commands are not available.  You can edit message body and header
+commands are not available.  You can edit the message body and header
 fields.  When you are finished editing the message, type @kbd{C-c C-c}
 to switch back to Rmail mode.  Alternatively, you can return to Rmail
-mode but cancel all the editing that you have done, by typing @kbd{C-c
-C-]}.
+mode but cancel any editing that you have done, by typing @kbd{C-c C-]}.
 
 @vindex rmail-edit-mode-hook
   Entering Rmail Edit mode runs the hook @code{text-mode-hook}; then
@@ -1221,27 +1241,27 @@ which applies the code when displaying the text.
 @section @code{movemail} program
 @cindex @code{movemail} program
 
-  When invoked for the first time, Rmail attempts to locate the
-@code{movemail} program and determine its version.  There are two
-versions of @code{movemail} program: the native one, shipped with GNU
-Emacs (the ``emacs version'') and the one included in GNU mailutils
-(the ``mailutils version,'' @pxref{movemail,,,mailutils,GNU
-mailutils}).  They support the same command line syntax and the same
-basic subset of options.  However, the Mailutils version offers
-additional features.
+  Rmail uses the @code{movemail} program to move mail from your inbox to
+your Rmail file (@pxref{Rmail Inbox}).  When loaded for the first time,
+Rmail attempts to locate the @code{movemail} program and determine its
+version.  There are two versions of the @code{movemail} program: the
+native one, shipped with GNU Emacs (the ``emacs version'') and the one
+included in GNU mailutils (the ``mailutils version,''
+@pxref{movemail,,,mailutils,GNU mailutils}).  They support the same
+command line syntax and the same basic subset of options.  However, the
+Mailutils version offers additional features.
 
-  The Emacs version of @code{movemail} is able to retrieve mail from
+  The Emacs version of @code{movemail} is able to retrieve mail from the
 usual UNIX mailbox formats and from remote mailboxes using the POP3
 protocol.
 
   The Mailutils version is able to handle a wide set of mailbox
 formats, such as plain UNIX mailboxes, @code{maildir} and @code{MH}
-mailboxes, etc.  It is able to retrieve remote mail using POP3 or
+mailboxes, etc.  It is able to access remote mailboxes using the POP3 or
 IMAP4 protocol, and can retrieve mail from them using a TLS encrypted
-channel.  It also accepts mailbox argument in the @acronym{URL} form.
+channel.  It also accepts mailbox arguments in @acronym{URL} form.
 The detailed description of mailbox @acronym{URL}s can be found in
-@ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a @acronym{URL}
-is:
+@ref{URL,,,mailutils,Mailbox URL Formats}.  In short, a @acronym{URL} is:
 
 @smallexample
 @var{proto}://[@var{user}[:@var{password}]@@]@var{host-or-file-name}
@@ -1326,14 +1346,12 @@ in @code{exec-directory}.
 @pindex movemail
 
   Some sites use a method called POP for accessing users' inbox data
-instead of storing the data in inbox files.  The @code{Emacs
-movemail} can work with POP if you compile it with the macro
-@code{MAIL_USE_POP} defined.  (You can achieve that by specifying
-@samp{--with-pop} when you run @code{configure} during the
-installation of Emacs.)
+instead of storing the data in inbox files.  By default, the @code{Emacs
+movemail} can work with POP (unless the Emacs @code{configure} script
+was run with the option @samp{--without-pop}).
 
-The Mailutils @code{movemail} by default supports POP, unless it was
-configured with @samp{--disable-pop} option.
+Similarly, the Mailutils @code{movemail} by default supports POP, unless
+it was configured with the @samp{--disable-pop} option.
 
 Both versions of @code{movemail} only work with POP3, not with older
 versions of POP.
@@ -1341,7 +1359,7 @@ versions of POP.
 @cindex @env{MAILHOST} environment variable
 @cindex POP mailboxes
   No matter which flavor of @code{movemail} you use, you can specify
-POP inbox by using POP @dfn{URL} (@pxref{Movemail}).  A POP
+a POP inbox by using a POP @dfn{URL} (@pxref{Movemail}).  A POP
 @acronym{URL} is a ``file name'' of the form
 @samp{pop://@var{username}@@@var{hostname}}, where
 @var{hostname} is the host name or IP address of the remote mail
@@ -1349,18 +1367,17 @@ server and @var{username} is the user name on that server.
 Additionally, you may specify the password in the mailbox @acronym{URL}:
 @samp{pop://@var{username}:@var{password}@@@var{hostname}}.  In this
 case, @var{password} takes preference over the one set by
-@code{rmail-remote-password}.  This is especially useful if you have
-several remote mailboxes with different passwords.
+@code{rmail-remote-password} (see below).  This is especially useful
+if you have several remote mailboxes with different passwords.
 
-  For backward compatibility, Rmail also supports two alternative ways
-of specifying remote POP mailboxes.  First, specifying an inbox name
-in the form @samp{po:@var{username}:@var{hostname}} is equivalent to
-@samp{pop://@var{username}@@@var{hostname}}.  Alternatively, you may
-set a ``file name'' of @samp{po:@var{username}} in the inbox list of
-an Rmail file.  @code{movemail} will handle such a name by opening a
-connection to the POP server.  In this case, the @env{MAILHOST}
-environment variable specifies the machine on which to look for the
-POP server.
+  For backward compatibility, Rmail also supports an alternative way of
+specifying remote POP mailboxes.  Specifying an inbox name in the form
+@samp{po:@var{username}:@var{hostname}} is equivalent to
+@samp{pop://@var{username}@@@var{hostname}}.  If you omit the
+@var{:hostname} part, the @env{MAILHOST} environment variable specifies
+the machine on which to look for the POP server.
+
+@c FIXME mention --with-hesiod "support Hesiod to get the POP server host"?
 
 @cindex IMAP mailboxes
   Another method for accessing remote mailboxes is IMAP.  This method is
@@ -1371,29 +1388,22 @@ mailbox in the inbox list, use the following mailbox @acronym{URL}:
 
 @vindex rmail-remote-password
 @vindex rmail-remote-password-required
-@vindex rmail-pop-password
-@vindex rmail-pop-password-required
   Accessing a remote mailbox may require a password.  Rmail uses the
 following algorithm to retrieve it:
 
 @enumerate
 @item
-If the @var{password} is present in mailbox URL (see above), it is
+If a @var{password} is present in the mailbox URL (see above), it is
 used.
+@item
+If the variable @code{rmail-remote-password-required} is @code{nil},
+Rmail assumes no password is required.
 @item
 If the variable @code{rmail-remote-password} is non-@code{nil}, its
 value is used.
 @item
-Otherwise, if @code{rmail-remote-password-required} is non-@code{nil},
-then Rmail will ask you for the password to use.
-@item
-Otherwise, Rmail assumes no password is required.
+Otherwise, Rmail will ask you for the password to use.
 @end enumerate
-
-  For compatibility with previous versions, the variables
-@code{rmail-pop-password} and @code{rmail-pop-password-required} may
-be used instead of @code{rmail-remote-password} and
-@code{rmail-remote-password-required}.
 
 @vindex rmail-movemail-flags
   If you need to pass additional command-line flags to @code{movemail},
@@ -1403,10 +1413,12 @@ preserve your inbox contents; use @code{rmail-preserve-inbox} instead.
 
 @cindex Kerberos POP authentication
   The @code{movemail} program installed at your site may support
-Kerberos authentication.  If it is
-supported, it is used by default whenever you attempt to retrieve
-POP mail when @code{rmail-pop-password} and
-@code{rmail-pop-password-required} are unset.
+Kerberos authentication (the Emacs @code{movemail} does so if Emacs was
+configured with the option @code{--with-kerberos} or
+@code{--with-kerberos5}).  If it is supported, it is used by default
+whenever you attempt to retrieve POP mail when
+@code{rmail-remote-password} and @code{rmail-remote-password-required}
+are unset.
 
 @cindex reverse order in POP inboxes
   Some POP servers store messages in reverse order.  If your server does
