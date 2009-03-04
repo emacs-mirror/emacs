@@ -3159,10 +3159,13 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
               my_post_msg (&wmsg, hwnd, WM_UNICHAR, (WPARAM) buffer[i],
                            lParam);
             }
-          /* We output the whole string above, so ignore following ones
-             until we are notified of the end of composition.  */
-          ignore_ime_char = 1;
+          /* Ignore the messages for the rest of the
+	     characters in the string that was output above.  */
+          ignore_ime_char = (size / sizeof (wchar_t)) - 1;
         }
+      else
+	ignore_ime_char--;
+
       break;
 
     case WM_IME_ENDCOMPOSITION:
