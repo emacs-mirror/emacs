@@ -229,7 +229,7 @@ main (argc, argv)
       )
     {
 #ifdef MAIL_USE_POP
-      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
+      fprintf (stderr, "Usage: movemail [-p] [-r] inbox destfile%s\n",
 	       " [POP-password]");
 #else
       fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n", "");

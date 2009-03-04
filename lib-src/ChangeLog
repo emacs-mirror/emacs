@@ -1,3 +1,7 @@
+2009-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (main) [MAIL_USE_POP]: Add -r to usage message.
+
 2009-02-13  Sven Joachim  <svenjoac@gmx.de>
 
 	* movemail.c: Include time.h unconditionally.
