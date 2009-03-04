@@ -1,3 +1,9 @@
+2009-03-04  David Reitter <david.reitter@gmail.com>
+
+	* menu-bar.el (clipboard-yank): avoid
+	checking (x-selection-exists-p) if unbound in order to enable the
+	item.  For paste menu item, same, and check kill-ring.
+
 2009-03-04  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
