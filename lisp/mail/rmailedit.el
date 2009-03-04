@@ -45,19 +45,18 @@
 (declare-function rmail-summary-disable "rmailsum" ())
 
 (defun rmail-edit-mode ()
-  "Major mode for editing the contents of an RMAIL message.
-The editing commands are the same as in Text mode, together with two commands
-to return to regular RMAIL:
-  *  \\[rmail-abort-edit] cancels the changes
-     you have made and returns to RMAIL
+  "Major mode for editing the contents of an Rmail message.
+The editing commands are the same as in Text mode, together with
+two commands to return to regular Rmail:
+  *  \\[rmail-abort-edit] cancels any changes and returns to Rmail
   *  \\[rmail-cease-edit] makes them permanent.
-This functions runs the normal hook `rmail-edit-mode-hook'.
+This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 \\{rmail-edit-map}"
   (if (rmail-summary-exists)
       (with-current-buffer rmail-summary-buffer
 	(rmail-summary-disable)))
-  (let ((rmail-buffer-swapped nil)) ; Prevent change-major-mode-hook
-                                    ; from unswapping the buffers.
+  ;; Prevent change-major-mode-hook from unswapping the buffers.
+  (let ((rmail-buffer-swapped nil))
     (delay-mode-hooks (text-mode))
     (use-local-map rmail-edit-map)
     (setq major-mode 'rmail-edit-mode)
@@ -69,7 +68,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
 (put 'rmail-edit-mode 'mode-class 'special)
-    
+
 
 (defvar rmail-old-text)
 (defvar rmail-old-pruned nil

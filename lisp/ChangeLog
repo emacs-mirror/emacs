@@ -1,3 +1,27 @@
+2009-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el (rmail-edit-mode): Doc fix.
+
+	* mail/rmailsort.el: Replace `(function (lambda' by `(lambda'.
+	(rmail-sort-by-date, rmail-sort-by-subject)
+	(rmail-sort-by-author, rmail-sort-by-recipient)
+	(rmail-sort-by-correspondent, rmail-select-correspondent)
+	(rmail-sort-by-lines, rmail-sort-by-labels, rmail-sort-messages)
+	(rmail-make-date-sortable): Doc fixes.
+	(rmail-sort-by-correspondent): Downcase correspondents.
+	(rmail-sort-by-labels): Make it work.
+	(rmail-sort-messages): Restore undo if it was initially enabled.
+	Fix bobp/bolp typo that was adding a line on every sort.
+
+	* mail/rmailsum.el (rmail-get-create-summary-buffer): Doc fix.
+	Disable undo in the summary buffer.
+	(rmail-summary-sort-by-date, rmail-summary-sort-by-subject)
+	(rmail-summary-sort-by-author, rmail-summary-sort-by-recipient)
+	(rmail-summary-sort-by-correspondent, rmail-summary-sort-by-lines)
+	(rmail-summary-sort-by-labels, rmail-sort-from-summary): Doc fixes.
+	(rmail-summary-sort-by-labels): Replace `(function (lambda'
+	by `(lambda'.
+
 2009-03-03  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-move-to-column):
