@@ -3161,6 +3161,75 @@ font_update_lface (f, attrs)
 }
 
 
+/* Selecte a font from ENTITIES that supports C and matches best with
+   ATTRS and PIXEL_SIZE.  */
+
+static Lisp_Object
+font_select_entity (frame, entities, attrs, pixel_size, c)
+     Lisp_Object frame, entities, *attrs;
+     int pixel_size, c;
+{
+  Lisp_Object font_entity;
+  Lisp_Object prefer;
+  Lisp_Object props[FONT_REGISTRY_INDEX + 1] ;
+  int result, i;
+  FRAME_PTR f = XFRAME (frame);
+
+  if (ASIZE (entities) == 1)
+    {
+      font_entity = AREF (entities, 0);
+      if (c < 0
+	  || (result = font_has_char (f, font_entity, c)) > 0)
+	return font_entity;
+      return Qnil;
+    }
+
+  /* Sort fonts by properties specified in ATTRS.  */
+  prefer = scratch_font_prefer;
+
+  for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+    ASET (prefer, i, Qnil);
+  if (FONTP (attrs[LFACE_FONT_INDEX]))
+    {
+      Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
+
+      for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+	ASET (prefer, i, AREF (face_font, i));
+    }
+  if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
+  if (NILP (AREF (prefer, FONT_SLANT_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
+  if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
+  ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
+  entities = font_sort_entites (entities, prefer, frame, c < 0);
+
+  if (c < 0)
+    return entities;
+
+  for (i = 0; i < ASIZE (entities); i++)
+    {
+      int j;
+
+      font_entity = AREF (entities, i);
+      if (i > 0)
+	{
+	  for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
+	    if (! EQ (AREF (font_entity, j), props[j]))
+	      break;
+	  if (j > FONT_REGISTRY_INDEX)
+	    continue;
+	}
+      for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
+	props[j] = AREF (font_entity, j);
+      result = font_has_char (f, font_entity, c);
+      if (result > 0)
+	return font_entity;
+    }
+  return Qnil;
+}
+
 /* Return a font-entity satisfying SPEC and best matching with face's
    font related attributes in ATTRS.  C, if not negative, is a
    character that the entity must support.  */
@@ -3308,72 +3377,15 @@ font_find_for_lface (f, attrs, spec, c)
 		  ASET (work, FONT_ADSTYLE_INDEX, adstyle[l]);
 		  entities = font_list_entities (frame, work);
 		  if (ASIZE (entities) > 0)
-		    goto found;
+		    {
+		      val = font_select_entity (frame, entities,
+						attrs, pixel_size, c);
+		      if (! NILP (val))
+			return val;
+		    }
 		}
 	    }
 	}
-    }
-  return Qnil;
- found:
-  if (ASIZE (entities) == 1)
-    {
-      if (c < 0)
-	return AREF (entities, 0);
-    }
-  else
-    {
-      /* Sort fonts by properties specified in LFACE.  */
-      Lisp_Object prefer = scratch_font_prefer;
-
-      for (i = 0; i < FONT_EXTRA_INDEX; i++)
-	ASET (prefer, i, AREF (work, i));
-      if (FONTP (attrs[LFACE_FONT_INDEX]))
-	{
-	  Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
-
-	  for (i = 0; i < FONT_EXTRA_INDEX; i++)
-	    if (NILP (AREF (prefer, i)))
-	      ASET (prefer, i, AREF (face_font, i));
-	}
-      if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
-      if (NILP (AREF (prefer, FONT_SLANT_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
-      if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
-      ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
-      entities = font_sort_entites (entities, prefer, frame, c < 0);
-    }
-  if (c < 0)
-    return entities;
-
-  for (i = 0; i < ASIZE (entities); i++)
-    {
-      int j;
-
-      val = AREF (entities, i);
-      if (i > 0)
-	{
-	  for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
-	    if (! EQ (AREF (val, j), props[j]))
-	      break;
-	  if (j > FONT_REGISTRY_INDEX)
-	    continue;
-	}
-      for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
-	props[j] = AREF (val, j);
-      result = font_has_char (f, val, c);
-      if (result > 0)
-	return val;
-      if (result == 0)
-	return Qnil;
-      val = font_open_for_lface (f, val, attrs, spec);
-      if (NILP (val))
-	continue;
-      result = font_has_char (f, val, c);
-      font_close_object (f, val);
-      if (result > 0)
-	return AREF (entities, i);
     }
   return Qnil;
 }
