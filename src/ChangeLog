@@ -1,3 +1,12 @@
+2009-03-05  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_select_entity): New function.
+	(font_find_for_lface): Use font_select_entity to select a font.
+
+	* fontset.c (fontset_find_font): If a font found without
+	restricting of the characters C doen't support C, try to find a
+	font with C restriction.
+
 2009-03-04  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
 
 	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp value.
