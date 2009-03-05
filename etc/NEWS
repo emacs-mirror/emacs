@@ -926,11 +926,10 @@ corresponding remote host.
 
 +++
 *** Rmail no longer converts the messages to Babyl format.
-Instead, it keeps them in their original mbox format, both on disk and
-in Rmail buffers, and does conversion and decoding when a message is
-displayed.
+Instead, it uses UNIX mbox format, both on disk and in Rmail buffers,
+and does conversion and decoding when a message is displayed.
 
-First time you visit an Rmail file in Babyl format, Rmail
+The first time you visit an Rmail file in Babyl format, Rmail
 automatically converts it to mbox format.  This is a one-time
 conversion, but it can take a few minutes, depending on how fast is
 your machine and on the size of the file.  You should find the rest of
@@ -940,8 +939,33 @@ However, M-x set-rmail-inbox-list now lasts only for one session
 because there is no way to save the list of inbox files in an
 mbox-format file.
 
-FIXME: Add more mbox merge details
+If you have written any extensions to Rmail, they are likely to need
+updating.  Conceptually, the Rmail buffer that you see is no longer
+just a narrowed portion of the whole.  So you cannot access the whole
+of a message (or message collection) by a simple save-restriction and
+widen.  Instead, there are two buffers: the rmail-buffer, and the
+rmail-view-buffer. The former is the buffer that you see, the latter
+is invisible.  Most of the time, the invisible `view' buffer contains
+the full contents of the Rmail file, and the Rmail buffer contains a
+decoded copy of the current message (with only a subset of the
+headers). In this state, Rmail is said to be `swapped'.
 
+You may find the following functions useful:
+
+`rmail-get-header' and `rmail-set-header' get or set the value of a
+message header, whether or not it is currently visible.
+
+`rmail-apply-in-message' is a general purpose function that calls a
+function (with arguments) which you specify on the full text of a given
+message.  To further narrow to just the headers, search forward for "\n\n".
+
++++
+*** The new command `rmail-mime' displays MIME messages.
+It is bound to `v' in Rmail buffers and summaries. It displays plain
+text and multipart messages in a temporary buffer, and offers buttons
+to save attachments.
+
+---
 *** The command `rmail-redecode-body' no longer accepts the optional arg RAW.
 Since Rmail now holds messages in their original undecoded form in a
 separate buffer, `rmail-redecode-body' no longer encodes the original
