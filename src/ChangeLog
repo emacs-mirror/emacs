@@ -1,7 +1,6 @@
-2009-03-04  Nikolaj Schumacher <me@nschum.de>
+2009-03-04  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
 
-	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp
-	value.
+	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp value.
 
 2009-03-04  Jason Rumney  <jasonr@gnu.org>
 
