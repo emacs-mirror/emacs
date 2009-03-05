@@ -157,7 +157,7 @@ mule.texi
 m-x.texi          -- cyd
 programs.texi     -- cyd
 regs.texi         -- cyd
-rmail.texi
+rmail.texi        -- rgm
 screen.texi       -- cyd
 search.texi       -- cyd
 sending.texi
