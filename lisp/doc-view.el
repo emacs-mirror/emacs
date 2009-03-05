@@ -721,8 +721,16 @@ Those files are saved in the directory given by the function
   ;; resets during the redisplay).
   (setq doc-view-pending-cache-flush t)
   (let ((png-file (expand-file-name "page-%d.png"
+                                    (doc-view-current-cache-dir)))
+	(res-file (expand-file-name "resolution.el"
                                     (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir) t)
+    ;; Save the used resolution so that it can be restored when
+    ;; reading the cached files.
+    (let ((res doc-view-resolution))
+      (with-temp-buffer
+	(princ res (current-buffer))
+	(write-file res-file)))
     (case doc-view-doc-type
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
@@ -1045,6 +1053,16 @@ If BACKWARD is non-nil, jump to the previous match."
 	(if (doc-view-already-converted-p)
 	    (progn
 	      (message "DocView: using cached files!")
+	      ;; Load the saved resolution
+	      (let ((res-file (expand-file-name "resolution.el"
+						(doc-view-current-cache-dir)))
+		    (res doc-view-resolution))
+		(with-temp-buffer
+		  (when (file-exists-p res-file)
+		    (insert-file-contents res-file)
+		    (setq res (read (current-buffer)))))
+		(when (numberp res)
+		  (set (make-local-variable 'doc-view-resolution) res)))
 	      (doc-view-display (current-buffer) 'force))
 	  (doc-view-convert-current-doc))
 	(message

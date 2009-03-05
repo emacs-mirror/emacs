@@ -1,3 +1,10 @@
+2009-03-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-convert-current-doc): Save the current
+	resolution in the cache directory.
+	(doc-view-initiate-display): Restore the saved resolution when
+	using cached image files.
+
 2009-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-perm-variables): rmail-overlay-list needs to be
