@@ -631,8 +631,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	  if (! EQ (RFONT_DEF_FONT_DEF (rfont_def), font_def))
 	    break;
 	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
-	  xassert (! NILP (font_object));
-	  if (font_has_char (f, font_object, c))
+	  if (! NILP (font_object) && font_has_char (f, font_object, c))
 	    return rfont_def;
 	}
 
