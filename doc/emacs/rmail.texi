@@ -59,12 +59,12 @@ messages between them.
 
 @cindex message number
   Within the Rmail file, messages are normally arranged sequentially in
-order of receipt; you can specify other ways to sort them.  Messages are
-identified by consecutive integers which are their @dfn{message numbers}.
-The number of the current message is displayed in Rmail's mode line,
-followed by the total number of messages in the file.  You can move to
-a message by specifying its message number with the @kbd{j} key
-(@pxref{Rmail Motion}).
+order of receipt; you can specify other ways to sort them (@pxref{Rmail
+Sorting}).  Messages are identified by consecutive integers which are
+their @dfn{message numbers}.  The number of the current message is
+displayed in Rmail's mode line, followed by the total number of messages
+in the file.  You can move to a message by specifying its message number
+with the @kbd{j} key (@pxref{Rmail Motion}).
 
 @kindex s @r{(Rmail)}
 @findex rmail-expunge-and-save
@@ -122,7 +122,7 @@ through it by screenfuls, Rmail makes @key{SPC} and @key{DEL} synonyms of
   The command @kbd{.} (@code{rmail-beginning-of-message}) scrolls back to the
 beginning of the selected message.  This is not quite the same as @kbd{M-<}:
 for one thing, it does not set the mark; for another, it resets the buffer
-boundaries to the current message if you have changed them.  Similarly,
+boundaries of the current message if you have changed them.  Similarly,
 the command @kbd{/} (@code{rmail-end-of-message}) scrolls forward to the end
 of the selected message.
 @c The comment about buffer boundaries is still true in mbox Rmail, if
@@ -225,7 +225,7 @@ the next message with the same subject as the current one.  A prefix
 argument serves as a repeat count.  With a negative argument, this
 command moves backward, acting like @kbd{C-c C-p}
 (@code{rmail-previous-same-subject}).  When comparing subjects, these
-commands ignore the typical prefixes added to the subjects of replies.
+commands ignore the prefixes typically added to the subjects of replies.
 
 @kindex j @r{(Rmail)}
 @kindex > @r{(Rmail)}
@@ -250,9 +250,11 @@ message number.
 
 @cindex expunging (Rmail)
   @dfn{Expunging} the Rmail file actually removes the deleted messages.
-The remaining messages are renumbered consecutively.  Expunging is the only
-action that changes the message number of any message, except for
-undigestifying (@pxref{Rmail Digest}).
+The remaining messages are renumbered consecutively.
+@c The following is neither true (there is also unforward, sorting,
+@c etc), nor especially interesting.
+@c Expunging is the only action that changes the message number of any
+@c message, except for undigestifying (@pxref{Rmail Digest}).
 
 @table @kbd
 @item d
@@ -612,7 +614,7 @@ means to assign or remove the same label most recently assigned or
 removed.
 
   Once you have given messages labels to classify them as you wish, there
-are two ways to use the labels: in moving and in summaries.
+are three ways to use the labels: in moving, in summaries, and in sorting.
 
 @kindex C-M-n @r{(Rmail)}
 @kindex C-M-p @r{(Rmail)}
@@ -635,6 +637,8 @@ argument @var{labels} is one or more label names, separated by commas.
   If the @var{labels} argument to @kbd{C-M-n}, @kbd{C-M-p} or
 @kbd{C-M-l} is empty, it means to use the last set of labels specified
 for any of these commands.
+
+  @xref{Rmail Sorting}, for information on sorting messages with labels.
 
 @node Rmail Attributes
 @section Rmail Attributes
@@ -781,7 +785,7 @@ current one.
   @dfn{Resending} is an alternative similar to forwarding; the
 difference is that resending sends a message that is ``from'' the
 original sender, just as it reached you---with a few added header fields
-@samp{Resent-From} and @samp{Resent-To} to indicate that it came via
+(@samp{Resent-From} and @samp{Resent-To}) to indicate that it came via
 you.  To resend a message in Rmail, use @kbd{C-u f}.  (@kbd{f} runs
 @code{rmail-forward}, which invokes @code{rmail-resend} if you provide a
 numeric argument.)
@@ -997,6 +1001,13 @@ count.
 @item C-M-p @var{labels} @key{RET}
 Move to the previous message with at least one of the specified labels
 (@code{rmail-summary-previous-labeled-message}).
+@item C-c C-n @key{RET}
+Move to the next message with the same subject as the current message
+(@code{rmail-summary-next-same-subject}).  A prefix argument acts as a
+repeat count.
+@item C-c C-p @key{RET}
+Move to the previous message with the same subject as the current message
+(@code{rmail-summary-previous-same-subject}).
 @end table
 
 @vindex rmail-redisplay-summary
@@ -1117,13 +1128,12 @@ be a regular expression specifying which headers to display.
 
 @kindex t @r{(Rmail)}
 @findex rmail-toggle-header
-  Rmail saves the complete original header before reformatting; to see
-it, use the @kbd{t} command (@code{rmail-toggle-header}).  This
-discards the reformatted headers of the current message and displays
-it with the original header.  Repeating @kbd{t} reformats the message
-again, which shows only the interesting headers according to the
-current values of the above variables.  Selecting the message again also
-reformats it if necessary.
+  To see the complete, original header, use the @kbd{t} command
+(@code{rmail-toggle-header}).  This discards the reformatted headers of
+the current message and displays it with the original header.  Repeating
+@kbd{t} reformats the message again, which shows only the interesting
+headers according to the current values of the above variables.
+Selecting the message again also reformats it if necessary.
 
   When the @kbd{t} command has a prefix argument, a positive argument
 means to show the reformatted header, and a zero or negative argument

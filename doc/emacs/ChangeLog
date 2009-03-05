@@ -1,6 +1,12 @@
 2009-03-05  Glenn Morris  <rgm@gnu.org>
 
-	* rmail.texi (Rmail Motion): Mention rmail-next-same-subject.
+	* rmail.texi (Rmail Basics): Add reference to sorting.
+	(Rmail Scrolling, Rmail Motion, Rmail Reply, Rmail Display):
+	Minor re-wordings.
+	(Rmail Motion): Mention rmail-next-same-subject.
+	(Rmail Deletion): Expunging is not the only way to change the numbers.
+	(Rmail Labels): Labels can also be used in sorting.
+	(Rmail Summary Edit): Mention rmail-summary-next-same-subject.
 	(Rmail Display): Mention rmail-mime.
 
 2009-03-04  Glenn Morris  <rgm@gnu.org>
