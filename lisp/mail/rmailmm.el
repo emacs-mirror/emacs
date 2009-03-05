@@ -33,36 +33,45 @@
 (require 'rmail)
 (require 'mail-parse)
 
-;;; Variables
+;;; User options.
 
+;; FIXME should these be in an rmail group?
+;; FIXME we ought to be able to display images in Emacs.
 (defcustom rmail-mime-media-type-handlers-alist
   '(("multipart/.*" rmail-mime-multipart-handler)
     ("text/.*" rmail-mime-text-handler)
     ("text/\\(x-\\)?patch" rmail-mime-bulk-handler)
-    ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
+    ;; FIXME this handler not defined anywhere?
+;;;   ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
     ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
-  "Alist of media type handlers, also known as agents.
-Every handler is a list of type (string symbol) where STRING is a
-regular expression to match the media type with and SYMBOL is a
-function to run.  Handlers should return a non-nil value if the
-job is done."
-  :type 'list
+  "Functions to handle various content types.
+This is an alist with elements of the form (REGEXP FUNCTION).
+REGEXP is a regular expression matching a content-type, and
+FUNCTION is a handler function to run.  It should return non-nil
+if the job is done."
+  :type '(alist :key-type regexp :value-type (group function))
+  :version "23.1"
   :group 'mime)
 
 (defcustom rmail-mime-attachment-dirs-alist
   `(("text/.*" "~/Documents")
     ("image/.*" "~/Pictures")
     (".*" "~/Desktop" "~" ,temporary-file-directory))
-  "Default directories to save attachments into.
-Each media type may have it's own list of directories in order of
-preference.  The first existing directory in the list will be
-used."
-  :type 'list
+  "Default directories to save attachments of various types into.
+This is an alist with elements of the form (REGEXP DIR ...).
+The first item is a regular expression matching a content-type.
+The remaining elements are directories, in order of decreasing preference.
+The first directory that exists is used."
+  :type '(alist :key-type regexp :value-type (repeat directory))
+  :version "23.1"
   :group 'mime)
 
+;;; End of user options.
+
+
 (defvar rmail-mime-total-number-of-bulk-attachments 0
-  "A total number of attached bulk bodyparts in the message.  If more than 3,
-offer a way to save all attachments at once.")
+  "The total number of bulk attachments in the message.
+If more than 3, offer a way to save all attachments at once.")
 (put 'rmail-mime-total-number-of-bulk-attachments 'permanent-local t)
 
 ;;; Buttons
@@ -106,6 +115,7 @@ offer a way to save all attachments at once.")
     (when (coding-system-p coding-system)
       (decode-coding-region (point-min) (point-max) coding-system))))
 
+;; FIXME move to the test/ directory?
 (defun test-rmail-mime-handler ()
   "Test of a mail using no MIME parts at all."
   (let ((mail "To: alex@gnu.org
@@ -371,22 +381,22 @@ modified."
 
 ;;;###autoload
 (defun rmail-mime ()
-  "Copy buffer contents to a temporary buffer and handle MIME.
-This calls `rmail-mime-show' to do the real job."
+  "Process the current Rmail message as a MIME message.
+This creates a temporary \"*RMAIL*\" buffer holding a decoded
+copy of the message.  Content-types are handled according to
+`rmail-mime-media-type-handlers-alist'.  By default, this
+displays text and multipart messages, and offers to download
+attachments as specfied by `rmail-mime-attachment-dirs-alist'."
   (interactive)
-  (rmail-swap-buffers-maybe)
-  (let ((data (with-current-buffer rmail-buffer
-		(save-restriction
-		  (widen)
-		  (buffer-substring
-		   (rmail-msgbeg rmail-current-message)
-		   (rmail-msgend rmail-current-message)))))
+  (let ((data (rmail-apply-in-message rmail-current-message 'buffer-string))
 	(buf (get-buffer-create "*RMAIL*")))
     (set-buffer buf)
+    (setq buffer-undo-list t)
     (let ((inhibit-read-only t))
       (erase-buffer)
       (insert data)
-      (rmail-mime-show t))
+      (rmail-mime-show t)
+      (set-buffer-modified-p nil))
     (view-buffer buf)))
 
 (defun rmail-mm-get-boundary-error-message (message type disposition encoding)
