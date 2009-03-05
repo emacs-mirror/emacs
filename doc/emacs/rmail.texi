@@ -153,6 +153,12 @@ Move to the next message, including deleted messages
 @item M-p
 Move to the previous message, including deleted messages
 (@code{rmail-previous-message}).
+@item C-c C-n
+Move to the next message with the same subject as the current one
+(@code{rmail-next-same-subject}).
+@item C-c C-p
+Move to the previous message with the same subject as the current one
+(@code{rmail-previous-same-subject}).
 @item j
 Move to the first message.  With argument @var{n}, move to
 message number @var{n} (@code{rmail-show-message}).
@@ -209,6 +215,17 @@ begins searching from the end of the previous message.
 
   It is also possible to search for a message based on labels.
 @xref{Rmail Labels}.
+
+@kindex C-c C-n @r{(Rmail)}
+@kindex C-c C-p @r{(Rmail)}
+@findex rmail-next-same-subject
+@findex rmail-previous-same-subject
+  The @kbd{C-c C-n} (@code{rmail-next-same-subject}) command moves to
+the next message with the same subject as the current one.  A prefix
+argument serves as a repeat count.  With a negative argument, this
+command moves backward, acting like @kbd{C-c C-p}
+(@code{rmail-previous-same-subject}).  When comparaing subjects, these
+commands ignore the typical prefixes added to the subjects of replies.
 
 @kindex j @r{(Rmail)}
 @kindex > @r{(Rmail)}
@@ -1134,6 +1151,13 @@ Goto Address mode:
 Then you can browse these URLs by clicking on them with @kbd{Mouse-2}
 (or @kbd{Mouse-1} quickly) or by moving to one and typing @kbd{C-c
 @key{RET}}.  @xref{Goto Address mode, Activating URLs, Activating URLs}.
+
+@cindex MIME messages (Rmail)
+@findex rmail-mime
+@kindex v @r{(Rmail)}
+  The @kbd{v} (@code{rmail-mime}) command creates a temporary buffer
+displaying the current MIME message.  By default, it displays plain text
+and multipart messages, and offers buttons to save attachments.
 
 @node Rmail Coding
 @section Rmail and Coding Systems

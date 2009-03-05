@@ -1,3 +1,8 @@
+2009-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Motion): Mention rmail-next-same-subject.
+	(Rmail Display): Mention rmail-mime.
+
 2009-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Rmail Sorting): Add the keybindings associated with each
