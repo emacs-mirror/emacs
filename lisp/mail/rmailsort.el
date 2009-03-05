@@ -220,10 +220,7 @@ Numeric keys are sorted numerically, all others as strings."
 	  (insert-buffer-substring
 	   (current-buffer) (nth 2 msginfo) (nth 3 msginfo))
 	  ;; The last message may not have \n\n after it.
-	  (unless (bolp)
-	    (insert "\n"))
-	  (unless (looking-back "\n\n")
-	    (insert "\n"))
+	  (rmail-ensure-blank-line)
 	  (delete-region (nth 2 msginfo) (nth 3 msginfo))
 	  ;; Is current message?
 	  (if (nth 1 msginfo)
