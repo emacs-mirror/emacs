@@ -224,7 +224,7 @@ begins searching from the end of the previous message.
 the next message with the same subject as the current one.  A prefix
 argument serves as a repeat count.  With a negative argument, this
 command moves backward, acting like @kbd{C-c C-p}
-(@code{rmail-previous-same-subject}).  When comparaing subjects, these
+(@code{rmail-previous-same-subject}).  When comparing subjects, these
 commands ignore the typical prefixes added to the subjects of replies.
 
 @kindex j @r{(Rmail)}
