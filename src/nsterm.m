@@ -3221,7 +3221,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   NSEvent *ev;
 /*  NSTRACE (ns_select); */
 
-  if (NSApp == nil /* || ([NSApp isActive] == NO &&
+  if (NSApp == nil || inNsSelect == 1 /* || ([NSApp isActive] == NO &&
                       [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:nil
  inMode:NSDefaultRunLoopMode dequeue:NO] == nil) */)
     return select (nfds, readfds, writefds, exceptfds, timeout);

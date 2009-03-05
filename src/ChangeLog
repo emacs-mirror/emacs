@@ -1,3 +1,7 @@
+2009-03-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_select): Shortcircuit if reentrant call.
+
 2009-03-05  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_select_entity): New function.
