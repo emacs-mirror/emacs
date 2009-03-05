@@ -1344,6 +1344,7 @@ If so restore the actual mbox message collection."
   (set-buffer-multibyte nil)
   (with-current-buffer (setq rmail-view-buffer (rmail-generate-viewer-buffer))
     (setq buffer-undo-list t)
+    (set (make-local-variable 'rmail-overlay-list) nil)
     (set-buffer-multibyte t)
     ;; Force C-x C-s write Unix EOLs.
     (set-buffer-file-coding-system 'undecided-unix))
@@ -1352,8 +1353,6 @@ If so restore the actual mbox message collection."
   (make-local-variable 'rmail-current-message)
   (make-local-variable 'rmail-total-messages)
   (setq rmail-total-messages 0)
-  (make-local-variable 'rmail-overlay-list)
-  (setq rmail-overlay-list nil)
   (make-local-variable 'rmail-message-vector)
   (make-local-variable 'rmail-msgref-vector)
   (make-local-variable 'rmail-inbox-list)
@@ -1964,6 +1963,14 @@ is non-nil if the user has supplied the password interactively.
 	    (setq last-coding-system-used
 		  (coding-system-change-eol-conversion coding 0)))))))
 
+(defun rmail-ensure-blank-line ()
+  "Ensure a message ends in a blank line.
+Call with point at the end of the message."
+  (unless (bolp)
+    (insert "\n"))
+  (unless (looking-back "\n\n")
+    (insert "\n")))
+
 (defun rmail-add-mbox-headers ()
   "Validate the RFC2822 format for the new messages.
 Point should be at the first new message.
@@ -2192,6 +2199,10 @@ change; nil means current message."
   "Return non-nil if message number MSGNUM has the unseen attribute."
   (rmail-message-attr-p msgnum "......U"))
 
+;; FIXME rmail-get-labels does some formatting (eg leading space, `;'
+;; between attributes and labels), so this might not do what you want.
+;; Eg see rmail-sort-by-labels.  rmail-get-labels could have an
+;; optional `noformat' argument.
 (defun rmail-message-labels-p (msg labels)
   "Return non-nil if message number MSG has labels matching regexp LABELS."
   (string-match labels (rmail-get-labels msg)))
