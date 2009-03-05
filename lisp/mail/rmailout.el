@@ -33,6 +33,7 @@
   :type 'boolean
   :group 'rmail-output)
 
+;; FIXME risky?
 (defcustom rmail-output-file-alist nil
   "Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
@@ -335,15 +336,13 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
     (widen)
     ;; Make sure message ends with blank line.
     (goto-char (point-max))
-    (unless (bolp)
-       (insert "\n"))
-    (unless (looking-back "\n\n")
-      (insert "\n"))
+    (rmail-ensure-blank-line)
     (goto-char (point-min))
     (let ((buf (find-buffer-visiting file-name))
 	  (tembuf (current-buffer)))
       (if (null buf)
 	  (let ((coding-system-for-write 'raw-text-unix))
+	    ;; FIXME should ensure existing file ends with a blank line.
 	    (write-region (point-min) (point-max) file-name t nomsg))
 	(if (eq buf (current-buffer))
 	    (error "Can't output message to same file it's already in"))
@@ -367,15 +366,22 @@ Do what is necessary to make Rmail know about the new message. then
 display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
-    ;; Turn on Auto Save mode, if it's off in this
-    ;; buffer but enabled by default.
+    ;; Turn on Auto Save mode, if it's off in this buffer but enabled
+    ;; by default.
     (and (not buffer-auto-save-file-name)
 	 auto-save-default
 	 (auto-save-mode t))
     (rmail-maybe-set-message-counters)
+    ;; Insert the new message after the last old message.
+    (widen)
+    ;; Make sure the last old message ends with a blank line.
+    (goto-char (point-max))
+    (rmail-ensure-blank-line)
+    ;; Insert the new message at the end.
     (narrow-to-region (point-max) (point-max))
     (insert-buffer-substring tembuf)
     (rmail-count-new-messages t)
+    ;; FIXME should re-use existing windows.
     (if (rmail-summary-exists)
 	(rmail-select-summary (rmail-update-summary)))
     (rmail-show-message-1 msg)))
