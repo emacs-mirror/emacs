@@ -1,3 +1,24 @@
+2009-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-perm-variables): rmail-overlay-list needs to be
+	buffer-local in the view buffer, not the rmail buffer.
+
+	* mail/rmailout.el (rmail-output-to-rmail-buffer): Add the new message
+	at the end of the existing messages, ensuring there is a blank line
+	between them.  (Bug#2521)
+
+	* mail/rmail.el (rmail-ensure-blank-line): New function.
+	* mail/rmailedit.el (rmail-cease-edit):
+	* mail/rmailout.el (rmail-output-as-mbox):
+	* mail/rmailsort.el (rmail-sort-messages): Use rmail-ensure-blank-line.
+
+	* mail/rmailmm.el (rmail-mime-media-type-handlers-alist)
+	(rmail-mime-attachment-dirs-alist): Doc fixes.  Fix custom-type.
+	Add version.
+	(rmail-mime-total-number-of-bulk-attachments): Doc fix.
+	(rmail-mime): Doc fix.  Use rmail-apply-in-message.
+	Disable undo in the mime buffer, mark unmodified.
+
 2009-03-04  David Reitter <david.reitter@gmail.com>
 
 	* menu-bar.el (clipboard-yank): avoid

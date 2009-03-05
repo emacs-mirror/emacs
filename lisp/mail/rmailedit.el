@@ -125,14 +125,11 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (beginning-of-line)
       (insert ">")
       (forward-line)))
-  ;; Make sure buffer ends with a blank line
-  ;; so as not to run this message together with the following one.
+  ;; Make sure buffer ends with a blank line so as not to run this
+  ;; message together with the following one.
   (save-excursion
     (goto-char (point-max))
-    (if (/= (preceding-char) ?\n)
-	(insert "\n"))
-    (unless (looking-back "\n\n")
-      (insert "\n")))
+    (rmail-ensure-blank-line))
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
 	;; People who know what they are doing might have modified the
