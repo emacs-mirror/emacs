@@ -1,3 +1,7 @@
+2009-03-05  John Foerch  <jjfoerch@earthlink.net>  (tiny change)
+
+	* display.texi (Display Margins): Fix paren typo.
+
 2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* elisp.texi (Top): Update node listing.
