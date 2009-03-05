@@ -1,3 +1,7 @@
+2009-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* fixit.texi (Spelling): Add turn-on-flyspell.  (Bug#2517)
+
 2009-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Rmail Basics): Add reference to sorting.

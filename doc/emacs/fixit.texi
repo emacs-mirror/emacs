@@ -396,6 +396,10 @@ When it finds a word that it does not recognize, it highlights that
 word.  This does not interfere with your editing, but when you see the
 highlighted word, you can move to it and fix it.  Type @kbd{M-x
 flyspell-mode} to enable or disable this mode in the current buffer.
+@findex turn-on-flyspell
+To enable @code{flyspell-mode} in all text mode buffers, add
+@code{turn-on-flyspell} to @code{text-mode-hook}.
+
 
   When Flyspell mode highlights a word as misspelled, you can click on
 it with @kbd{Mouse-2} to display a menu of possible corrections and
