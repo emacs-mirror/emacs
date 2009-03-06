@@ -45,11 +45,11 @@
 ;;;   ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
     ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
   "Functions to handle various content types.
-This is an alist with elements of the form (REGEXP FUNCTION).
-REGEXP is a regular expression matching a content-type, and
-FUNCTION is a handler function to run.  It should return non-nil
-if the job is done."
-  :type '(alist :key-type regexp :value-type (group function))
+This is an alist with elements of the form (REGEXP FUNCTION ...).
+The first item is a regular expression matching a content-type.
+The remaining elements are handler functions to run, in order of
+decreasing preference.  These are called until one returns non-nil."
+  :type '(alist :key-type regexp :value-type (repeat function))
   :version "23.1"
   :group 'mime)
 

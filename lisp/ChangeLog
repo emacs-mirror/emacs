@@ -1,3 +1,8 @@
+2009-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-media-type-handlers-alist): Fix doc and
+	custom type.
+
 2009-03-05  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-convert-current-doc): Save the current
