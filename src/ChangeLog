@@ -1,3 +1,10 @@
+2009-03-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (x_set_window_size): Change back to calculated method
+	of setting toolbar height under Cocoa.  (Bug#2546)
+	(EmacsView-windowWillUseStandardFrame:defaultFrame:): New method.
+	(EmacsView-drawRect:): Completely shortcircuit if ns_in_resize.
+
 2009-03-06  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to detect incorrect composition sequence without
@@ -51,7 +58,7 @@
 
 2009-03-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsterm.m (ns_select): Shortcircuit if reentrant call.
+	* nsterm.m (ns_select): Shortcircuit if reentrant call.  (Bug#2564)
 
 2009-03-05  Kenichi Handa  <handa@m17n.org>
 
