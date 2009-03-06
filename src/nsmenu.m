@@ -636,8 +636,11 @@ name_is_separator (name)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
       keyEq = [self parseKeyEquiv: wv->key];
+#ifdef NS_IMPL_COCOA
+      /* OS X just ignores modifier strings longer than one character */
       if (keyEquivModMask == 0)
         title = [title stringByAppendingFormat: @" (%@)", keyEq];
+#endif
 
       item = [self addItemWithTitle: (NSString *)title
                              action: @selector (menuDown:)
