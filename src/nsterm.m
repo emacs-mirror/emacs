@@ -1152,21 +1152,21 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
-  /* If we have a change in toolbar display, calculate height */
+  /* If we have a toolbar, take its height into account. */
+  /* XXX: GNUstep has not yet implemented the first method below, added
+          in Panther, however the second is incorrect under Cocoa. */
   if (tb)
-    /* XXX: GNUstep has not yet implemented the first method below, added
-           in Panther, however the second is incorrect under Cocoa. */
-#ifdef NS_IMPL_GNUSTEP
-    FRAME_NS_TOOLBAR_HEIGHT (f)
-      = NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
-			    styleMask: [window styleMask]])
-        - FRAME_NS_TITLEBAR_HEIGHT (f);
+    FRAME_NS_TOOLBAR_HEIGHT (f) =
+#ifdef NS_IMPL_COCOA
+      NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
+      /* NOTE: previously this would generate wrong result if toolbar not
+               yet displayed and fixing toolbar_height=32 helped, but
+               now (200903) seems no longer needed */
 #else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 32;
-      /* actually get wrong result here if toolbar not yet displayed
-         NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
-         - FRAME_NS_TITLEBAR_HEIGHT (f); */
+      NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
+					styleMask: [window styleMask]])
 #endif
+            - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
     FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
 
@@ -5293,14 +5293,33 @@ extern void update_window_cursor (struct window *w, int on);
 /* if we don't do this manually, the window will resize but not move */
 - (BOOL)windowShouldZoom: (NSWindow *)sender toFrame: (NSRect)newFrame
 {
+  NSTRACE (windowShouldZoom);
   [[self window] setFrame: newFrame display: NO];
   return YES;
 }
 #endif
 
-/* Implement this to control size of frame on zoom.
+
+/* Override to do something slightly nonstandard, but nice.  First click on
+   zoom button will zoom vertically.  Second will zoom completely.  Third
+   returns to original. */
 - (NSRect)windowWillUseStandardFrame:(NSWindow *)sender
-                        defaultFrame:(NSRect)defaultFrame; */
+                        defaultFrame:(NSRect)defaultFrame
+{
+  NSRect result = [sender frame];
+  NSTRACE (windowWillUseStandardFrame);
+
+  if (result.size.height == defaultFrame.size.height) {
+    result = defaultFrame;
+  } else {
+    result.size.height = defaultFrame.size.height;
+    result.origin.y = defaultFrame.origin.y;
+  }
+
+  /* A windowWillResize does not get generated at least on Tiger. */
+  [self windowWillResize: sender toSize: result.size];
+  return result;
+}
 
 
 - (void)windowDidDeminiaturize: sender
@@ -5448,18 +5467,13 @@ extern void update_window_cursor (struct window *w, int on);
 
   NSTRACE (drawRect);
 
-  if (!emacsframe || !emacsframe->output_data.ns)
+  if (!emacsframe || !emacsframe->output_data.ns || ns_in_resize)
     return;
 
-  if (!ns_in_resize)
-    ns_clear_frame_area (emacsframe, x, y, width, height);
+  ns_clear_frame_area (emacsframe, x, y, width, height);
   expose_frame (emacsframe, x, y, width, height);
-
   emacsframe->async_visible = 1;
   emacsframe->async_iconified = 0;
-
-/*    SET_FRAME_GARBAGED (emacsframe);
-      ns_send_appdefined (-1); */
 }
 
 
