@@ -32,6 +32,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <math.h>
 #include <sys/types.h>
 #include <time.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include "lisp.h"
@@ -4474,13 +4475,12 @@ extern void update_window_cursor (struct window *w, int on);
 
  if (![[self window] isKeyWindow])
    {
-     /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
-         when Emacs display updates a different frame from the current one,
-         and temporarily selects it, then processes some interrupt-driven
-         input (dispnew.c:3878), OS will send the event to the correct NSWindow,
-         but for some reason that window has its first responder set to the
-         NSView most recently updated (I guess), which is not the correct one.
-         UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
+     /* XXX: There is an occasional condition in which, when Emacs display
+         updates a different frame from the current one, and temporarily
+         selects it, then processes some interrupt-driven input
+         (dispnew.c:3878), OS will send the event to the correct NSWindow, but
+         for some reason that window has its first responder set to the NSView
+         most recently updated (I guess), which is not the correct one. */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
          [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
      return;
