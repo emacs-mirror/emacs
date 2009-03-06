@@ -10,6 +10,8 @@
 	(EmacsView-windowWillUseStandardFrame:defaultFrame:): New method.
 	(EmacsView-drawRect:): Completely shortcircuit if ns_in_resize.
 
+	* nsfns.m (ns_appkit_version_int): Fix typo in the version macro.
+
 2009-03-06  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to detect incorrect composition sequence without
