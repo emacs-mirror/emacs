@@ -1,7 +1,7 @@
 2009-03-06  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to detect incorrect composition sequence without
-	looking ahead the source.
+	looking ahead the source.  (Bug#2370)
 
 	* coding.h: Include "composite.h".
 	(enum compisition_state): New enum.
