@@ -2454,7 +2454,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face;
-  NSRect r = NSMakeRect (x, y0, 2, y1-y0);
+  NSRect r = NSMakeRect (x, y0, 1, y1-y0);
 
   NSTRACE (ns_draw_vertical_window_border);
 
@@ -2463,7 +2463,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
       [ns_lookup_indexed_color(face->foreground, f) set];
 
   ns_focus (f, &r, 1);
-  NSDrawGroove (r, r);
+  NSRectFill(r);
   ns_unfocus (f);
 }
 
