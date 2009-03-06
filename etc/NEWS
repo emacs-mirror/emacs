@@ -21,9 +21,6 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
-* About external Lisp packages
-
-
 * Installation Changes in Emacs 23.1
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
@@ -60,7 +57,7 @@ a GIF library.
 This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
-Specify --with-ns to configure for this. By default, a self-contained
+Specify --with-ns to configure for this.  By default, a self-contained
 app will be built (containing all lisp).  To install/share lisp with
 other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
 nextstep/README and nextstep/INSTALL in the Emacs source directory.
@@ -763,7 +760,7 @@ the first error encountered during compilations.
 says to stop auto scrolling at the first error that occurs.
 ---
 *** The `cc' alias for C++ files in `grep-file-aliases' has been
-improved. `hh' can be used to match C++ header files and `cchh' both
+improved.  `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
 
 ** Copyright
@@ -905,7 +902,7 @@ history.  See `Minibuffer changes', above.
 +++
 ** MH-E
 
-*** Upgraded to MH-E version 8.1. See MH-E-NEWS for details.
+*** Upgraded to MH-E version 8.1.  See MH-E-NEWS for details.
 
 ** Python
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
@@ -944,11 +941,11 @@ updating.  Conceptually, the Rmail buffer that you see is no longer
 just a narrowed portion of the whole.  So you cannot access the whole
 of a message (or message collection) by a simple save-restriction and
 widen.  Instead, there are two buffers: the rmail-buffer, and the
-rmail-view-buffer. The former is the buffer that you see, the latter
+rmail-view-buffer.  The former is the buffer that you see, the latter
 is invisible.  Most of the time, the invisible `view' buffer contains
 the full contents of the Rmail file, and the Rmail buffer contains a
 decoded copy of the current message (with only a subset of the
-headers). In this state, Rmail is said to be `swapped'.
+headers).  In this state, Rmail is said to be `swapped'.
 
 You may find the following functions useful:
 
@@ -961,7 +958,7 @@ message.  To further narrow to just the headers, search forward for "\n\n".
 
 +++
 *** The new command `rmail-mime' displays MIME messages.
-It is bound to `v' in Rmail buffers and summaries. It displays plain
+It is bound to `v' in Rmail buffers and summaries.  It displays plain
 text and multipart messages in a temporary buffer, and offers buttons
 to save attachments.
 
@@ -981,6 +978,10 @@ copies the full headers of the message.
 +++
 *** The C-o command is now `rmail-output-as-seen'.  It uses
 the message as displayed, appending it to an mbox file.
+
+---
+*** The modified status of the Rmail buffer is reported in the mode-line.
+Previously, this information was hidden.
 
 ** TeX modes
 ---
@@ -1188,7 +1189,7 @@ w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
 
 ** BDF fonts no longer supported on MS-Windows.
-The font backend was completely rewritten for this release. The focus
+The font backend was completely rewritten for this release.  The focus
 on Windows has been getting acceptable performance and full unicode
 support, including complex script shaping for native Windows fonts.  A
 rewrite of the BDF font support has not happened due to lack of time
@@ -1501,7 +1502,7 @@ or attribute/value plists.  If this variable is buffer-local, the
 remapping occurs only in that buffer.
 
 *** text-scale-mode remaps the default face to a larger or smaller
-size in the current buffer. This feature is used by the Buffer Face
+size in the current buffer.  This feature is used by the Buffer Face
 menu and the new `C-x C-+', `C-x C--', and `C-x C-0' commands (see
 Editing Changes, above).
 
