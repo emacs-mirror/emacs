@@ -974,7 +974,7 @@ static int
 ns_appkit_version_int ()
 {
 #ifdef NS_IMPL_GNUSTEP
-  return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GNU_MINOR_VERSION;
+  return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GUI_MINOR_VERSION;
 #elif defined(NS_IMPL_COCOA)
   return (int)NSAppKitVersionNumber;
 #endif
