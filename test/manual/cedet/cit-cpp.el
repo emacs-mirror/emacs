@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.2 2009-01-10 19:00:38 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.3 2009-03-06 14:24:33 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -151,7 +151,12 @@
   (ede-add-file "Prog")
 
   ;; 1 g) build the sources.
+  ;; Direct compile to test that make fails properly.
   (compile "make")
+  ;; @todo - verify make error status
+  (while compilation-in-progress
+    (accept-process-output)
+    (sit-for 1))
 
   (cit-compile-and-wait)
   )
