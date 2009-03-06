@@ -419,7 +419,7 @@ dnl see the `changequote' comment above.
   rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix5* | powerpc-ibm-aix6*  )
+  rs6000-ibm-aix6* | powerpc-ibm-aix6*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
 

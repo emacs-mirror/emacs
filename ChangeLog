@@ -1,3 +1,7 @@
+2009-03-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (rs6000-ibm-aix6*): Fix typo.
+
 2009-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INFO_FILES): Add auth.
