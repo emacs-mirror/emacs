@@ -1,7 +1,7 @@
 2009-03-06  Aaron Ecay <aaronecay@gmail.com>  (tiny change)
 
-	(ns_draw_vertical_window_border): Draw 1 pixel wide, not two, and
-	use NSRectFill instead of NSDrawGroove.
+	* nsterm.m (ns_draw_vertical_window_border): Draw 1 pixel wide,
+	not two, and use NSRectFill instead of NSDrawGroove.  (Bug#2352)
 
 2009-03-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
