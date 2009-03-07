@@ -1,3 +1,8 @@
+2009-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* man.el (Man-init-defvars) [windows-nt]: Use a special command
+	list.  Don't invoke Awk.
+
 2009-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-media-type-handlers-alist): Fix doc and
