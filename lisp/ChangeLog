@@ -1,5 +1,8 @@
 2009-03-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* woman.el (woman-parse-colon-path): Return a list even if there's
+	only one directory in PATHS.
+
 	* man.el (Man-init-defvars) [windows-nt]: Use a special command
 	list.  Don't invoke Awk.
 
