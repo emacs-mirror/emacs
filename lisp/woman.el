@@ -468,7 +468,7 @@ As a special case, if PATHS is nil then replace it by calling
 	      (parse-colon-path paths)))
 	    ((string-match "\\`[a-zA-Z]:" paths)
 	     ;; Assume single DOS-style path...
-	     paths)
+	     (list paths))
 	    (t
 	     ;; Assume UNIX/Cygwin-style path-list...
 	     (woman-mapcan		; splice list into list
