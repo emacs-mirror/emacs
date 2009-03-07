@@ -2,6 +2,9 @@
 
 	* woman.el (woman-parse-colon-path): Return a list even if there's
 	only one directory in PATHS.
+	(woman-mode): Restore tab-width value after the call to Man-mode,
+	since Man-mode resets it to the default, and that makes right
+	margin extend beyond woman-fill-column.
 
 	* man.el (Man-init-defvars) [windows-nt]: Use a special command
 	list.  Don't invoke Awk.
