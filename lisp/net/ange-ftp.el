@@ -702,7 +702,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 ;; Otherwise, ange-ftp will go into multi-skip mode, and never come out.
 
 (defvar ange-ftp-multi-msgs
-  "^220-\\|^230-\\|^226\\|^25.-\\|^221-\\|^200-\\|^331-\\|^4[25]1-\\|^530-"
+  "^150-\\|^220-\\|^230-\\|^226\\|^25.-\\|^221-\\|^200-\\|^331-\\|^4[25]1-\\|^530-"
   "*Regular expression matching the start of a multiline FTP reply.")
 
 (defvar ange-ftp-good-msgs
