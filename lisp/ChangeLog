@@ -1,5 +1,8 @@
 2009-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* finder.el (finder-commentary): Don't delete other
+	windows (Bug#2291).
+
 	* term.el (term-send-raw, term-send-raw-meta): Deactivate the mark
 	first (Bug#2449).
 
