@@ -1182,7 +1182,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   "Send the last character typed through the terminal-emulator
 without any interpretation."
   (interactive)
- ;; Convert `return' to C-m, etc.
+  (deactivate-mark)
+  ;; Convert `return' to C-m, etc.
   (when (and (symbolp last-input-event)
 	     (get last-input-event 'ascii-character))
     (setq last-input-event (get last-input-event 'ascii-character)))
