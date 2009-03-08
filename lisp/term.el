@@ -1191,6 +1191,7 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
+  (deactivate-mark)
   (let ((char last-input-event))
     (when (symbolp last-input-event)
       ;; Convert `return' to C-m, etc.
