@@ -1,3 +1,7 @@
+2009-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-send-raw): Deactivate the mark first (Bug#2449).
+
 2009-03-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* net/ange-ftp.el (ange-ftp-multi-msgs): Add 150-.
