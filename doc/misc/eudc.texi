@@ -47,16 +47,13 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @ifnottex
 @node     Top, Overview, (dir), (dir)
 @comment  node-name,  next,         previous, up
 
-
-This manual documents EUDC v1.30b, the Emacs Unified Directory Client.
-
-A common interface to directory servers using various protocols such as
-LDAP or the CCSO white pages directory system (PH/QI)
-
+@insertcopying
 @end ifnottex
 
 @menu
@@ -970,8 +967,6 @@ in testing and proofreading the code and docs of @file{ph.el}.
 
 @printindex vr
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

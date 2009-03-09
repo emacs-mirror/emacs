@@ -646,7 +646,7 @@ All non-spacing characters has this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(let ((elt '(["[[:alpha:]]\\c^+" 1 compose-gstring-for-graphic]
+(let ((elt '(["\\c.\\c^+" 1 compose-gstring-for-graphic]
 	     [nil 0 compose-gstring-for-graphic])))
   (map-char-table
    #'(lambda (key val)
@@ -748,57 +748,9 @@ Auto Composition mode in all buffers (this is the default)."
   (if noninteractive
       (setq auto-composition-mode nil))
   (cond (auto-composition-mode
-	 (add-hook 'after-change-functions 'auto-composition-after-change nil t)
 	 (setq auto-composition-function 'auto-compose-chars))
 	(t
-	 (remove-hook 'after-change-functions 'auto-composition-after-change t)
-	 (setq auto-composition-function nil)))
-  (save-buffer-state nil
-    (save-restriction
-      (widen)
-      (remove-text-properties (point-min) (point-max) '(auto-composed nil))
-      (decompose-region (point-min) (point-max)))))
-
-(defun auto-composition-after-change (start end old-len)
-  (save-buffer-state nil
-    (if (< start (point-min))
-	(setq start (point-min)))
-    (if (> end (point-max))
-	(setq end (point-max)))
-    (when (and auto-composition-mode (not memory-full))
-      (let (func1 func2)
-	(when (and (> start (point-min))
-		   (setq func2 (aref composition-function-table
-				     (char-after (1- start))))
-		   (or (= start (point-max))
-		       (not (setq func1 (aref composition-function-table
-					      (char-after start))))
-		       (eq func1 func2)))
-	  (setq start (1- start)
-		func1 func2)
-	  (while (eq func1 func2)
-	    (if (> start (point-min))
-		(setq start (1- start)
-		      func2 (aref composition-function-table
-				  (char-after start)))
-	      (setq func2 nil))))
-	(when (and (< end (point-max))
-		   (setq func2 (aref composition-function-table
-				     (char-after end)))
-		   (or (= end (point-min))
-		       (not (setq func1 (aref composition-function-table
-					      (char-after (1- end)))))
-		       (eq func1 func2)))
-	  (setq end (1+ end)
-		func1 func2)
-	  (while (eq func1 func2)
-	    (if (< end (point-max))
-		(setq func2 (aref composition-function-table
-				  (char-after end))
-		      end (1+ end))
-	      (setq func2 nil))))
-	(if (< start end)
-	    (remove-text-properties start end '(auto-composed nil)))))))
+	 (setq auto-composition-function nil))))
 
 (defun turn-on-auto-composition-if-enabled ()
   (if enable-multibyte-characters
@@ -813,53 +765,7 @@ Auto Composition mode in all buffers (this is the default)."
   :group 'auto-composition
   :version "23.1")
 
-(defun toggle-auto-composition (&optional arg)
-  "Change whether automatic character composition is enabled in this buffer.
-With arg, enable it if and only if arg is positive."
-  (interactive "P")
-  (let ((enable (if (null arg) (not auto-composition-function)
-		  (> (prefix-numeric-value arg) 0))))
-    (if enable
-	(kill-local-variable 'auto-composition-function)
-      (make-local-variable 'auto-composition-function)
-      (setq auto-composition-function nil)
-      (save-buffer-state nil
-	(save-restriction
-	  (widen)
-	  (decompose-region (point-min) (point-max)))))
-
-    (save-buffer-state nil
-      (save-restriction
-	(widen)
-	(remove-text-properties (point-min) (point-max)
-				'(auto-composed nil))))))
-
-(defun auto-compose-region (from to)
-  "Force automatic character composition on the region FROM and TO."
-  (save-excursion
-    (if (get-text-property from 'auto-composed)
-	(setq from (next-single-property-change from 'auto-composed nil to)))
-    (goto-char from)
-    (let ((modified-p (buffer-modified-p))
-	  (inhibit-read-only '(composition auto-composed))
-	  (stop (next-single-property-change (point) 'auto-composed nil to)))
-      (while (< (point) to)
-	(if (= (point) stop)
-	    (progn
-	      (goto-char (next-single-property-change (point)
-						      'auto-composed nil to))
-	      (setq stop (next-single-property-change (point)
-						      'auto-composed nil to)))
-	  (let ((func (aref composition-function-table (following-char)))
-		(font-obj (and (display-multi-font-p)
-			       (font-at (point) (selected-window))))
-		(pos (point)))
-	    (if (and (functionp func) font-obj)
-		(goto-char (funcall func (point) to font-obj nil)))
-	    (if (<= (point) pos)
-		(forward-char 1)))))
-      (put-text-property from to 'auto-composed t)
-      (set-buffer-modified-p modified-p))))
+(defalias 'toggle-auto-composition 'auto-composition-mode)
 
 
 ;; The following codes are only for backward compatibility with Emacs

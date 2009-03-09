@@ -522,7 +522,7 @@ get_utf8_string (str)
   if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
 
-  if (!utf8_str) 
+  if (!utf8_str)
     {
       /* Probably some control characters in str.  Escape them. */
       size_t nr_bad = 0;
@@ -542,7 +542,7 @@ get_utf8_string (str)
           error = NULL;
         }
 
-      if (error) 
+      if (error)
         {
           g_error_free (error);
           error = NULL;
@@ -565,12 +565,12 @@ get_utf8_string (str)
           error = NULL;
         }
 
-      if (cp) 
+      if (cp)
         {
           strcat (utf8_str, cp);
           g_free (cp);
         }
-      if (error) 
+      if (error)
         {
           g_error_free (error);
           error = NULL;
@@ -1393,8 +1393,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   wbox = gtk_vbox_new (FALSE, 0);
   gtk_widget_show (wbox);
   wtoggle = gtk_check_button_new_with_label ("Show hidden files.");
-  
-  if (x_gtk_show_hidden_files) 
+
+  if (x_gtk_show_hidden_files)
     {
       g_object_set (G_OBJECT (filewin), "show-hidden", TRUE, NULL);
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wtoggle), TRUE);
@@ -1415,7 +1415,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       strcat (message, "\nIf you don't like this file selector, use the "
               "corresponding\nkey binding or customize "
               "use-file-dialog to turn it off.");
-    
+
       wmessage = gtk_label_new (message);
       gtk_widget_show (wmessage);
     }
@@ -1438,7 +1438,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
         file = Fexpand_file_name (file, Qnil);
-      
+
       utf8_filename = SSDATA (ENCODE_UTF_8 (file));
       if (! NILP (Ffile_directory_p (file)))
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
@@ -2588,7 +2588,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
 /* Update the menu item W so it corresponds to VAL.
    SELECT_CB is the callback to use when a menu item is selected.
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.
-   CL_DATA is the data to set in the widget for menu invokation.  */
+   CL_DATA is the data to set in the widget for menu invocation.  */
 
 static void
 xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
@@ -3134,7 +3134,7 @@ xg_gtk_scroll_destroy (widget, data)
 }
 
 /* Callback for button press/release events.  Used to start timer so that
-   the scroll bar repetition timer in GTK gets handeled.
+   the scroll bar repetition timer in GTK gets handled.
    Also, sets bar->dragging to Qnil when dragging (button release) is done.
    WIDGET is the scroll bar widget the event is for (not used).
    EVENT contains the event.
@@ -3450,10 +3450,10 @@ xg_tool_bar_callback (w, client_data)
      to `(tool_bar)', see keyboard.c.  */
   event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
-  event.arg = frame; 	 
-  kbd_buffer_store_event (&event); 	 
-  
-  event.kind = TOOL_BAR_EVENT; 	 
+  event.arg = frame;
+  kbd_buffer_store_event (&event);
+
+  event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
   event.arg = key;
   /* Convert between the modifier bits GDK uses and the modifier bits
@@ -3502,7 +3502,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
   GtkWidget *wmenuitem = gtk_image_menu_item_new ();
   GtkWidget *wmenuimage;
 
-  if (gtk_button_get_use_stock (wbutton)) 
+  if (gtk_button_get_use_stock (wbutton))
     wmenuimage = gtk_image_new_from_stock (gtk_button_get_label (wbutton),
                                            GTK_ICON_SIZE_MENU);
   else
@@ -3527,7 +3527,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
       else if (store_type == GTK_IMAGE_PIXBUF)
         {
           gint width, height;
-      
+
           if (settings &&
               gtk_icon_size_lookup_for_settings (settings, GTK_ICON_SIZE_MENU,
                                                  &width, &height))
@@ -3546,7 +3546,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
               abort ();
             }
         }
-      else if (store_type == GTK_IMAGE_ICON_NAME) 
+      else if (store_type == GTK_IMAGE_ICON_NAME)
         {
           const gchar *icon_name;
           GtkIconSize icon_size;
@@ -3788,7 +3788,7 @@ find_rtl_image (f, image, rtl)
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
       Lisp_Object rtl_image = PROP (TOOL_BAR_ITEM_IMAGES);
-      if (!NILP (file = file_for_image (rtl_image))) 
+      if (!NILP (file = file_for_image (rtl_image)))
         {
           file = call1 (intern ("file-name-sans-extension"),
                        Ffile_name_nondirectory (file));
@@ -3914,7 +3914,7 @@ update_frame_tool_bar (f)
             }
           else if (gtk_stock_lookup (SSDATA (stock), &stock_item))
               icon_size = gtk_toolbar_get_icon_size (wtoolbar);
-          else 
+          else
             {
               stock = Qnil;
               stock_name = NULL;
@@ -3954,7 +3954,7 @@ update_frame_tool_bar (f)
           img_id = lookup_image (f, image);
           img = IMAGE_FROM_ID (f, img_id);
           prepare_image_for_display (f, img);
-      
+
           if (img->load_failed_p || img->pixmap == None)
             {
                 if (ti)
@@ -3986,7 +3986,7 @@ update_frame_tool_bar (f)
                                       (gpointer) xstrdup (stock_name),
                                       (GDestroyNotify) xfree);
             }
-          else if (icon_name) 
+          else if (icon_name)
             {
               w = gtk_image_new_from_icon_name (icon_name, icon_size);
               g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_ICON_NAME,
@@ -4037,7 +4037,7 @@ update_frame_tool_bar (f)
 
           gtk_widget_set_sensitive (wbutton, enabled_p);
           gtk_tool_item_set_homogeneous (ti, FALSE);
-          
+
           /* Callback to save modifyer mask (Shift/Control, etc).  GTK makes
              no distinction based on modifiers in the activate callback,
              so we have to do it ourselves.  */

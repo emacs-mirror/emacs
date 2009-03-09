@@ -160,6 +160,10 @@ Lisp_Object Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
 Lisp_Object Vcomposition_function_table;
 
+/* Maxinum number of characters to lookback to check
+   auto-composition.  */
+#define MAX_AUTO_COMPOSITION_LOOKBACK 3
+
 EXFUN (Fremove_list_of_text_properties, 4);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
@@ -792,7 +796,7 @@ composition_gstring_width (gstring, from, to, metrics)
 	  x = LGLYPH_ASCENT (*glyph) - LGLYPH_YOFF (*glyph);
 	  if (metrics->ascent < x)
 	    metrics->ascent = x;
-	  x = LGLYPH_DESCENT (*glyph) - LGLYPH_YOFF (*glyph);
+	  x = LGLYPH_DESCENT (*glyph) + LGLYPH_YOFF (*glyph);
 	  if (metrics->descent < x)
 	    metrics->descent = x;
 	}
@@ -908,7 +912,6 @@ fill_gstring_body (gstring)
     LGSTRING_SET_GLYPH (gstring, i, Qnil);
 }
 
-EXFUN (Fre_search_forward, 4);
 
 /* Try to compose the characters at CHARPOS according to CFT_ELEMENT
    which is an element of composition-fucntion-table (which see).
@@ -936,30 +939,40 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
       Lisp_Object elt = XCAR (cft_element);
       Lisp_Object re;
       Lisp_Object font_object = Qnil, gstring;
-      EMACS_INT to;
+      EMACS_INT len, to;
 
       if (! VECTORP (elt) || ASIZE (elt) != 3)
 	continue;
       if (lookback < 0)
-	lookback = XFASTINT (AREF (elt, 1));
+	{
+	  lookback = XFASTINT (AREF (elt, 1));
+	  if (limit > charpos + MAX_COMPOSITION_COMPONENTS)
+	    limit = charpos + MAX_COMPOSITION_COMPONENTS;
+	}
       else if (lookback != XFASTINT (AREF (elt, 1)))
 	break;
       re = AREF (elt, 0);
-      if (NILP (string))
-	TEMP_SET_PT_BOTH (charpos, bytepos);
-      if (NILP (re)
-	  || (STRINGP (re)
-	      && (STRINGP (string)
-		  ? EQ (Fstring_match (re, string, pos), pos)
-		  : (! NILP (Fre_search_forward (re, make_number (limit), Qt, Qnil))
-		     && EQ (Fmatch_beginning (make_number (0)), pos)))))
+      if (NILP (re))
+	len = 1;
+      else if ((len = fast_looking_at (re, charpos, bytepos, limit, -1, string))
+	       > 0)
 	{
-	  to = (NILP (re) ? charpos + 1 : XINT (Fmatch_end (make_number (0))));
+	  if (NILP (string))
+	    len = BYTE_TO_CHAR (bytepos + len) - charpos;
+	  else
+	    len = string_byte_to_char (string, bytepos + len) - charpos;
+	}
+      if (len > 0)
+	{
+	  limit = to = charpos + len;
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (FRAME_WINDOW_P (f))
 	    {
 	      font_object = font_range (charpos, &to, win, face, string);
-	      if (! FONT_OBJECT_P (font_object))
+	      if (! FONT_OBJECT_P (font_object)
+		  || (! NILP (re)
+		      && to < limit
+		      && (fast_looking_at (re, charpos, bytepos, to, -1, string) <= 0)))
 		{
 		  if (NILP (string))
 		    TEMP_SET_PT_BOTH (pt, pt_byte);
@@ -1271,6 +1284,8 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
      Lisp_Object *gstring, string;
 {
   EMACS_INT head, tail, stop;
+  /* Limit to check a composition after POS.  */
+  EMACS_INT fore_check_limit;
   struct position_record orig, cur, check, prev;
   Lisp_Object check_val, val, elt;
   int check_lookback;
@@ -1297,19 +1312,14 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
       orig.p = SDATA (string) + orig.pos_byte;
     }
   if (limit < pos)
-    {
-      head = max (head, limit);
-      tail = min (tail, pos + 3);
-    }
+    fore_check_limit = min (tail, pos + MAX_AUTO_COMPOSITION_LOOKBACK);
   else
-    {
-      tail = min (tail, limit + 3);
-    }
+    fore_check_limit = min (tail, limit + MAX_AUTO_COMPOSITION_LOOKBACK);
   cur = orig;
 
  retry:
   check_val = Qnil;
-  /* At first, check if POS is compoable.  */
+  /* At first, check if POS is composable.  */
   c = STRING_CHAR (cur.p, 0);
   if (! CHAR_COMPOSABLE_P (c))
     {
@@ -1324,9 +1334,18 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
       if (! NILP (val))
 	check_val = val, check = cur;
       else
-	while (cur.pos + 1 < tail)
+	while (cur.pos + 1 < fore_check_limit)
 	  {
+	    EMACS_INT b, e;
+
 	    FORWARD_CHAR (cur, stop);
+	    if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e,
+					Qnil)
+		&& COMPOSITION_VALID_P (b, e, val))
+	      {
+		fore_check_limit = cur.pos;
+		break;
+	      }
 	    c = STRING_CHAR (cur.p, 0);
 	    if (! CHAR_COMPOSABLE_P (c))
 	      break;
@@ -1342,7 +1361,12 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
      for compositions.  */
   while (cur.pos > head)
     {
+      EMACS_INT b, e;
+
       BACKWARD_CHAR (cur, stop);
+      if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e, Qnil)
+	  && COMPOSITION_VALID_P (b, e, val))
+	break;
       c = STRING_CHAR (cur.p, 0);
       if (! CHAR_COMPOSABLE_P (c))
 	break;
@@ -1360,7 +1384,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
 	cur = orig;
       else
 	cur = check;
-      while (cur.pos < tail)
+      while (cur.pos < fore_check_limit)
 	{
 	  int need_adjustment = 0;
 
@@ -1418,7 +1442,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
       cur = prev;
       BACKWARD_CHAR (cur, stop);
       orig = cur;
-      tail = orig.pos;
+      fore_check_limit = orig.pos;
       goto retry;
     }
   return 0;
@@ -1437,10 +1461,13 @@ composition_adjust_point (last_pt)
 
   /* At first check the static composition. */
   if (get_property_and_range (PT, Qcomposition, &val, &beg, &end, Qnil)
-      && COMPOSITION_VALID_P (beg, end, val)
-      && beg < PT /* && end > PT   <- It's always the case.  */
-      && (last_pt <= beg || last_pt >= end))
-    return (PT < last_pt ? beg : end);
+      && COMPOSITION_VALID_P (beg, end, val))
+    {
+      if (beg < PT /* && end > PT   <- It's always the case.  */
+	  && (last_pt <= beg || last_pt >= end))
+	return (PT < last_pt ? beg : end);
+      return PT;
+    }
 
   if (NILP (current_buffer->enable_multibyte_characters)
       || ! FUNCTIONP (Vauto_composition_function))
@@ -1512,6 +1539,8 @@ should be ignored.  */)
 
   CHECK_NATNUM (from);
   CHECK_NATNUM (to);
+  if (XINT (to) > XINT (from) + MAX_COMPOSITION_COMPONENTS)
+    to = make_number (XINT (from) + MAX_COMPOSITION_COMPONENTS);
   if (! FONT_OBJECT_P (font_object))
     {
       struct coding_system *coding;
@@ -1775,10 +1804,10 @@ this form: ([PATTERN PREV-CHARS FUNC] ...)
 PATTERN is a regular expression which C and the surrounding
 characters must match.
 
-PREV-CHARS is a number of characters before C to check the
-matching with PATTERN.  If it is 0, PATTERN must match C and
-the following characters.  If it is 1, PATTERN must match a
-character before C and the following characters.
+PREV-CHARS is a non-negative integer (less than 4) specifying how many
+characters before C to check the matching with PATTERN.  If it is 0,
+PATTERN must match C and the following characters.  If it is 1,
+PATTERN must match a character before C and the following characters.
 
 If PREV-CHARS is 0, PATTERN can be nil, which means that the
 single character C should be composed.

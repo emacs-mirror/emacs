@@ -47,6 +47,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @ifnottex
 @node Top, Overview,, (DIR)
 
@@ -93,6 +95,7 @@ Comments and bug reports are welcome.
 @code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
+@insertcopying
 @end ifnottex
 
 @menu
@@ -4537,8 +4540,6 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 
 @printindex cp
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

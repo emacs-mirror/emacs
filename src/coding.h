@@ -306,6 +306,37 @@ enum coding_result_code
    ASCII characters (usually '?') for unsupported characters.  */
 #define CODING_MODE_SAFE_ENCODING		0x20
 
+  /* For handling composition sequence.  */
+#include "composite.h"
+
+enum composition_state
+  {
+    COMPOSING_NO,
+    COMPOSING_CHAR,
+    COMPOSING_RULE,
+    COMPOSING_COMPONENT_CHAR,
+    COMPOSING_COMPONENT_RULE
+  };
+
+/* Structure for the current composition status.  */
+struct composition_status
+{
+  enum composition_state state;
+  enum composition_method method;
+  int old_form;		  /* 0:pre-21 form, 1:post-21 form */
+  int length;		  /* number of elements produced in charbuf */
+  int nchars;		  /* number of characters composed */
+  int ncomps;		  /* number of composition components */
+  /* Maximum carryover is for the case of COMPOSITION_WITH_RULE_ALTCHARS.
+     See the comment in coding.c.  */
+  int carryover[4 		/* annotation header */
+		+ MAX_COMPOSITION_COMPONENTS * 3 - 2 /* ALTs and RULEs */
+		+ 2				     /* intermediate -1 -1 */
+		+ MAX_COMPOSITION_COMPONENTS	     /* CHARs */
+		];
+};
+
+
 /* Structure of the field `spec.iso_2022' in the structure
    `coding_system'.  */
 struct iso_2022_spec
@@ -327,6 +358,21 @@ struct iso_2022_spec
 
   /* Set to 1 temporarily only when processing at beginning of line.  */
   int bol;
+
+  /* If positive, we are now scanning CTEXT extended segment.  */
+  int ctext_extended_segment_len;
+
+  /* If nonzero, we are now scanning embedded UTF-8 sequence.  */
+  int embedded_utf_8;
+
+  /* The current composition.  */
+  struct composition_status cmp_status;
+};
+
+struct emacs_mule_spec
+{
+  int full_support;
+  struct composition_status cmp_status;
 };
 
 struct ccl_spec;
@@ -387,11 +433,11 @@ struct coding_system
       struct ccl_spec *ccl;	/* Defined in ccl.h.  */
       struct utf_16_spec utf_16;
       enum utf_bom_type utf_8_bom;
-      int emacs_mule_full_support;
+      struct emacs_mule_spec emacs_mule;
     } spec;
 
   int max_charset_id;
-  char *safe_charsets;
+  unsigned char *safe_charsets;
 
   /* The following two members specify how binary 8-bit code 128..255
      are represented in source and destination text respectively.  1

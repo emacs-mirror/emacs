@@ -2199,6 +2199,8 @@ extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 extern Lisp_Object Qinteger;
 
+extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
+
 extern void circular_list_error P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Finteractive_form, 1);
 
@@ -2978,6 +2980,8 @@ EXFUN (Flooking_at, 1);
 extern int fast_string_match P_ ((Lisp_Object, Lisp_Object));
 extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, const char *));
 extern int fast_string_match_ignore_case P_ ((Lisp_Object, Lisp_Object));
+extern EMACS_INT fast_looking_at P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
+				      EMACS_INT, EMACS_INT, Lisp_Object));
 extern int scan_buffer P_ ((int, int, int, int, int *, int));
 extern int scan_newline P_ ((int, int, int, int, int, int));
 extern int find_next_newline P_ ((int, int));

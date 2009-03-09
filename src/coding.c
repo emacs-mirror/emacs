@@ -432,9 +432,11 @@ Lisp_Object Vbig5_coding_system;
 	       reg)))
 
 
-#define CODING_ISO_REQUEST(coding, charset_id)	\
-  ((charset_id <= (coding)->max_charset_id	\
-    ? (coding)->safe_charsets[charset_id]	\
+#define CODING_ISO_REQUEST(coding, charset_id)		\
+  (((charset_id) <= (coding)->max_charset_id		\
+    ? ((coding)->safe_charsets[charset_id] != 255	\
+       ? (coding)->safe_charsets[charset_id]		\
+       : -1)						\
     : -1))
 
 
@@ -450,6 +452,12 @@ Lisp_Object Vbig5_coding_system;
   ((coding)->spec.iso_2022.bol)
 #define CODING_ISO_INVOKED_CHARSET(coding, plane)	\
   CODING_ISO_DESIGNATION ((coding), CODING_ISO_INVOCATION ((coding), (plane)))
+#define CODING_ISO_CMP_STATUS(coding)	\
+  (&(coding)->spec.iso_2022.cmp_status)
+#define CODING_ISO_EXTSEGMENT_LEN(coding)	\
+  ((coding)->spec.iso_2022.ctext_extended_segment_len)
+#define CODING_ISO_EMBEDDED_UTF_8(coding)	\
+  ((coding)->spec.iso_2022.embedded_utf_8)
 
 /* Control characters of ISO2022.  */
 			/* code */	/* function */
@@ -943,11 +951,8 @@ static int detect_eol P_ ((const unsigned char *,
 static Lisp_Object adjust_coding_eol_type P_ ((struct coding_system *, int));
 static void decode_eol P_ ((struct coding_system *));
 static Lisp_Object get_translation_table P_ ((Lisp_Object, int, int *));
-static Lisp_Object get_translation P_ ((Lisp_Object, int *, int *,
-					int, int *, int *));
+static Lisp_Object get_translation P_ ((Lisp_Object, int *, int *));
 static int produce_chars P_ ((struct coding_system *, Lisp_Object, int));
-static INLINE void produce_composition P_ ((struct coding_system *, int *,
-					    EMACS_INT));
 static INLINE void produce_charset P_ ((struct coding_system *, int *,
 					EMACS_INT));
 static void produce_annotation P_ ((struct coding_system *, EMACS_INT));
@@ -1206,10 +1211,6 @@ alloc_destination (coding, nbytes, dst)
 
 /** Macros for annotations.  */
 
-/* Maximum length of annotation data (sum of annotations for
-   composition and charset).  */
-#define MAX_ANNOTATION_LENGTH (4 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 + 4)
-
 /* An annotation data is stored in the array coding->charbuf in this
    format:
      [ -LENGTH ANNOTATION_MASK NCHARS ... ]
@@ -1221,13 +1222,26 @@ alloc_destination (coding, nbytes, dst)
 
    In the case of CODING_ANNOTATE_COMPOSITION_MASK, these elements
    follows:
-     ... METHOD [ COMPOSITION-COMPONENTS ... ]
+     ... NBYTES METHOD [ COMPOSITION-COMPONENTS ... ]
+
+   NBYTES is the number of bytes specified in the header part of
+   old-style emacs-mule encoding, or 0 for the other kind of
+   composition.
+
    METHOD is one of enum composition_method.
+
    Optionnal COMPOSITION-COMPONENTS are characters and composition
    rules.
 
    In the case of CODING_ANNOTATE_CHARSET_MASK, one element CHARSET-ID
-   follows.  */
+   follows.
+
+   If ANNOTATION_MASK is 0, this annotation is just a space holder to
+   recover from an invalid annotation, and should be skipped by
+   produce_annotation.  */
+
+/* Maximum length of the header of annotation data.  */
+#define MAX_ANNOTATION_LENGTH 5
 
 #define ADD_ANNOTATION_DATA(buf, len, mask, nchars)	\
   do {							\
@@ -1237,9 +1251,10 @@ alloc_destination (coding, nbytes, dst)
     coding->annotated = 1;				\
   } while (0);
 
-#define ADD_COMPOSITION_DATA(buf, nchars, method)			    \
+#define ADD_COMPOSITION_DATA(buf, nchars, nbytes, method)		    \
   do {									    \
-    ADD_ANNOTATION_DATA (buf, 4, CODING_ANNOTATE_COMPOSITION_MASK, nchars); \
+    ADD_ANNOTATION_DATA (buf, 5, CODING_ANNOTATE_COMPOSITION_MASK, nchars); \
+    *buf++ = nbytes;							    \
     *buf++ = method;							    \
   } while (0)
 
@@ -1372,7 +1387,8 @@ decode_coding_utf_8 (coding)
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   Lisp_Object attr, charset_list;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
@@ -1694,7 +1710,8 @@ decode_coding_utf_16 (coding)
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
   Lisp_Object attr, charset_list;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr1 = -1, byte_after_cr2 = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
@@ -1916,12 +1933,12 @@ encode_coding_utf_16 (coding)
    Next, character composition data are represented by the byte
    sequence of the form: 0x80 METHOD BYTES CHARS COMPONENT ...,
    where,
-	METHOD is 0xF0 plus one of composition method (enum
+	METHOD is 0xF2 plus one of composition method (enum
 	composition_method),
 
 	BYTES is 0xA0 plus a byte length of this composition data,
 
-	CHARS is 0x20 plus a number of characters composed by this
+	CHARS is 0xA0 plus a number of characters composed by this
 	data,
 
 	COMPONENTs are characters of multibye form or composition
@@ -1943,11 +1960,107 @@ encode_coding_utf_16 (coding)
 
 char emacs_mule_bytes[256];
 
+
+/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
+   Check if a text is encoded in `emacs-mule'.  If it is, return 1,
+   else return 0.  */
+
+static int
+detect_coding_emacs_mule (coding, detect_info)
+     struct coding_system *coding;
+     struct coding_detection_info *detect_info;
+{
+  const unsigned char *src = coding->source, *src_base;
+  const unsigned char *src_end = coding->source + coding->src_bytes;
+  int multibytep = coding->src_multibyte;
+  int consumed_chars = 0;
+  int c;
+  int found = 0;
+
+  detect_info->checked |= CATEGORY_MASK_EMACS_MULE;
+  /* A coding system of this category is always ASCII compatible.  */
+  src += coding->head_ascii;
+
+  while (1)
+    {
+      src_base = src;
+      ONE_MORE_BYTE (c);
+      if (c < 0)
+	continue;
+      if (c == 0x80)
+	{
+	  /* Perhaps the start of composite character.  We simply skip
+	     it because analyzing it is too heavy for detecting.  But,
+	     at least, we check that the composite character
+	     constitutes of more than 4 bytes.  */
+	  const unsigned char *src_base;
+
+	repeat:
+	  src_base = src;
+	  do
+	    {
+	      ONE_MORE_BYTE (c);
+	    }
+	  while (c >= 0xA0);
+
+	  if (src - src_base <= 4)
+	    break;
+	  found = CATEGORY_MASK_EMACS_MULE;
+	  if (c == 0x80)
+	    goto repeat;
+	}
+
+      if (c < 0x80)
+	{
+	  if (c < 0x20
+	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO))
+	    break;
+	}
+      else
+	{
+	  int more_bytes = emacs_mule_bytes[*src_base] - 1;
+
+	  while (more_bytes > 0)
+	    {
+	      ONE_MORE_BYTE (c);
+	      if (c < 0xA0)
+		{
+		  src--;	/* Unread the last byte.  */
+		  break;
+		}
+	      more_bytes--;
+	    }
+	  if (more_bytes != 0)
+	    break;
+	  found = CATEGORY_MASK_EMACS_MULE;
+	}
+    }
+  detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
+  return 0;
+
+ no_more_source:
+  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
+    {
+      detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
+      return 0;
+    }
+  detect_info->found |= found;
+  return 1;
+}
+
+
+/* Parse emacs-mule multibyte sequence at SRC and return the decoded
+   character.  If CMP_STATUS indicates that we must expect MSEQ or
+   RULE described above, decode it and return the negative value of
+   the deocded character or rule.  If an invalid byte is found, return
+   -1.  If SRC is too short, return -2.  */
+
 int
-emacs_mule_char (coding, src, nbytes, nchars, id)
+emacs_mule_char (coding, src, nbytes, nchars, id, cmp_status)
      struct coding_system *coding;
      const unsigned char *src;
      int *nbytes, *nchars, *id;
+     struct composition_status *cmp_status;
 {
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base = src;
@@ -1956,6 +2069,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
   unsigned code;
   int c;
   int consumed_chars = 0;
+  int mseq_found = 0;
 
   ONE_MORE_BYTE (c);
   if (c < 0)
@@ -1967,14 +2081,31 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
     {
       if (c >= 0xA0)
 	{
-	  /* Old style component character of a composition.  */
-	  if (c == 0xA0)
+	  if (cmp_status->state != COMPOSING_NO
+	      && cmp_status->old_form)
 	    {
-	      ONE_MORE_BYTE (c);
-	      c -= 0x80;
+	      if (cmp_status->state == COMPOSING_CHAR)
+		{
+		  if (c == 0xA0)
+		    {
+		      ONE_MORE_BYTE (c);
+		      c -= 0x80;
+		      if (c < 0)
+			goto invalid_code;
+		    }
+		  else
+		    c -= 0x20;
+		  mseq_found = 1;
+		}
+	      else
+		{
+		  *nbytes = src - src_base;
+		  *nchars = consumed_chars;
+		  return -c;
+		}
 	    }
 	  else
-	    c -= 0x20;
+	    goto invalid_code;
 	}
 
       switch (emacs_mule_bytes[c])
@@ -2046,7 +2177,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
   *nchars = consumed_chars;
   if (id)
     *id = charset->id;
-  return c;
+  return (mseq_found ? -c : c);
 
  no_more_source:
   return -2;
@@ -2056,259 +2187,250 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
 }
 
 
-/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in `emacs-mule'.  If it is, return 1,
-   else return 0.  */
-
-static int
-detect_coding_emacs_mule (coding, detect_info)
-     struct coding_system *coding;
-     struct coding_detection_info *detect_info;
-{
-  const unsigned char *src = coding->source, *src_base;
-  const unsigned char *src_end = coding->source + coding->src_bytes;
-  int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
-  int c;
-  int found = 0;
-
-  detect_info->checked |= CATEGORY_MASK_EMACS_MULE;
-  /* A coding system of this category is always ASCII compatible.  */
-  src += coding->head_ascii;
-
-  while (1)
-    {
-      src_base = src;
-      ONE_MORE_BYTE (c);
-      if (c < 0)
-	continue;
-      if (c == 0x80)
-	{
-	  /* Perhaps the start of composite character.  We simple skip
-	     it because analyzing it is too heavy for detecting.  But,
-	     at least, we check that the composite character
-	     constitutes of more than 4 bytes.  */
-	  const unsigned char *src_base;
-
-	repeat:
-	  src_base = src;
-	  do
-	    {
-	      ONE_MORE_BYTE (c);
-	    }
-	  while (c >= 0xA0);
-
-	  if (src - src_base <= 4)
-	    break;
-	  found = CATEGORY_MASK_EMACS_MULE;
-	  if (c == 0x80)
-	    goto repeat;
-	}
-
-      if (c < 0x80)
-	{
-	  if (c < 0x20
-	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO))
-	    break;
-	}
-      else
-	{
-	  int more_bytes = emacs_mule_bytes[*src_base] - 1;
-
-	  while (more_bytes > 0)
-	    {
-	      ONE_MORE_BYTE (c);
-	      if (c < 0xA0)
-		{
-		  src--;	/* Unread the last byte.  */
-		  break;
-		}
-	      more_bytes--;
-	    }
-	  if (more_bytes != 0)
-	    break;
-	  found = CATEGORY_MASK_EMACS_MULE;
-	}
-    }
-  detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
-  return 0;
-
- no_more_source:
-  if (src_base < src && coding->mode & CODING_MODE_LAST_BLOCK)
-    {
-      detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
-      return 0;
-    }
-  detect_info->found |= found;
-  return 1;
-}
-
-
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".  */
 
-/* Decode a character represented as a component of composition
-   sequence of Emacs 20/21 style at SRC.  Set C to that character and
-   update SRC to the head of next character (or an encoded composition
-   rule).  If SRC doesn't points a composition component, set C to -1.
-   If SRC points an invalid byte sequence, global exit by a return
-   value 0.  */
+/* Handle these composition sequence ('|': the end of header elements,
+   BYTES and CHARS >= 0xA0):
 
-#define DECODE_EMACS_MULE_COMPOSITION_CHAR(buf)			\
-  do    							\
-    {								\
-      int c;							\
-      int nbytes, nchars;					\
-								\
-      if (src == src_end)					\
-	break;							\
-      c = emacs_mule_char (coding, src, &nbytes, &nchars, NULL);\
-      if (c < 0)						\
-	{							\
-	  if (c == -2)						\
-	    break;						\
-	  goto invalid_code;					\
-	}							\
-      *buf++ = c;						\
-      src += nbytes;						\
-      consumed_chars += nchars;					\
-    }								\
-  while (0)
+   (1) relative composition: 0x80 0xF2 BYTES CHARS | CHAR ...
+   (2) altchar composition:  0x80 0xF4 BYTES CHARS | ALT ... ALT CHAR ...
+   (3) alt&rule composition: 0x80 0xF5 BYTES CHARS | ALT RULE ... ALT CHAR ...
 
+   and these old form:
+  
+   (4) relative composition: 0x80 | MSEQ ... MSEQ
+   (5) rulebase composition: 0x80 0xFF | MSEQ MRULE ... MSEQ
 
-/* Decode a composition rule represented as a component of composition
-   sequence of Emacs 20 style at SRC.  Store the decoded rule in *BUF,
-   and increment BUF.  If SRC points an invalid byte sequence, set C
-   to -1.  */
+   When the starter 0x80 and the following header elements are found,
+   this annotation header is produced.
 
-#define DECODE_EMACS_MULE_COMPOSITION_RULE_20(buf)	\
+	[ -LENGTH(==-5) CODING_ANNOTATE_COMPOSITION_MASK NCHARS NBYTES METHOD ]
+
+   NCHARS is CHARS - 0xA0 for (1), (2), (3), and 0 for (4), (5).
+   NBYTES is BYTES - 0xA0 for (1), (2), (3), and 0 for (4), (5).
+
+   Then, upon reading the following elements, these codes are produced
+   until the composition end is found:
+
+   (1) CHAR ... CHAR
+   (2) ALT ... ALT CHAR ... CHAR
+   (3) ALT -2 DECODED-RULE ALT -2 DECODED-RULE ... ALT CHAR ... CHAR
+   (4) CHAR ... CHAR
+   (5) CHAR -2 DECODED-RULE CHAR -2 DECODED-RULE ... CHAR
+
+   When the composition end is found, LENGTH and NCHARS in the
+   annotation header is updated as below:
+
+   (1) LENGTH: unchanged, NCHARS: unchanged
+   (2) LENGTH: length of the whole sequence minus NCHARS, NCHARS: unchanged
+   (3) LENGTH: length of the whole sequence minus NCHARS, NCHARS: unchanged
+   (4) LENGTH: unchanged,  NCHARS: number of CHARs
+   (5) LENGTH: unchanged,  NCHARS: number of CHARs
+
+   If an error is found while composing, the annotation header is
+   changed to the original composition header (plus filler -1s) as
+   below:
+
+   (1),(2),(3)  [ 0x80 0xF2+METHOD BYTES CHARS -1 ]
+   (5)          [ 0x80 0xFF -1 -1- -1 ]
+
+   and the sequence [ -2 DECODED-RULE ] is changed to the original
+   byte sequence as below:
+	o the original byte sequence is B: [ B -1 ]
+	o the original byte sequence is B1 B2: [ B1 B2 ]
+
+   Most of the routines are implemented by macros because many
+   variables and labels in the caller decode_coding_emacs_mule must be
+   accessible, and they are usually called just once (thus doesn't
+   increase the size of compiled object).  */
+
+/* Decode a composition rule represented by C as a component of
+   composition sequence of Emacs 20 style.  Set RULE to the decoded
+   rule. */
+
+#define DECODE_EMACS_MULE_COMPOSITION_RULE_20(c, rule)	\
   do {							\
-    int c, gref, nref;					\
-							\
-    if (src >= src_end)					\
-      goto invalid_code;				\
-    ONE_MORE_BYTE_NO_CHECK (c);				\
+    int gref, nref;					\
+    							\
     c -= 0xA0;						\
     if (c < 0 || c >= 81)				\
       goto invalid_code;				\
-							\
     gref = c / 9, nref = c % 9;				\
-    *buf++ = COMPOSITION_ENCODE_RULE (gref, nref);	\
+    if (gref == 4) gref = 10;				\
+    if (nref == 4) nref = 10;				\
+    rule = COMPOSITION_ENCODE_RULE (gref, nref);	\
   } while (0)
 
 
-/* Decode a composition rule represented as a component of composition
-   sequence of Emacs 21 style at SRC.  Store the decoded rule in *BUF,
-   and increment BUF.  If SRC points an invalid byte sequence, set C
-   to -1.  */
+/* Decode a composition rule represented by C and the following byte
+   at SRC as a component of composition sequence of Emacs 21 style.
+   Set RULE to the decoded rule.  */
 
-#define DECODE_EMACS_MULE_COMPOSITION_RULE_21(buf)	\
+#define DECODE_EMACS_MULE_COMPOSITION_RULE_21(c, rule)	\
   do {							\
     int gref, nref;					\
-							\
-    if (src + 1>= src_end)				\
+    							\
+    gref = c - 0x20;					\
+    if (gref < 0 || gref >= 81)				\
       goto invalid_code;				\
-    ONE_MORE_BYTE_NO_CHECK (gref);			\
-    gref -= 0x20;					\
-    ONE_MORE_BYTE_NO_CHECK (nref);			\
-    nref -= 0x20;					\
-    if (gref < 0 || gref >= 81				\
-	|| nref < 0 || nref >= 81)			\
+    ONE_MORE_BYTE (c);					\
+    nref = c - 0x20;					\
+    if (nref < 0 || nref >= 81)				\
       goto invalid_code;				\
-    *buf++ = COMPOSITION_ENCODE_RULE (gref, nref);	\
+    rule = COMPOSITION_ENCODE_RULE (gref, nref);	\
   } while (0)
 
 
-#define DECODE_EMACS_MULE_21_COMPOSITION(c)				\
+/* Start of Emacs 21 style format.  The first three bytes at SRC are
+   (METHOD - 0xF2), (BYTES - 0xA0), (CHARS - 0xA0), where BYTES is the
+   byte length of this composition information, CHARS is the number of
+   characters composed by this composition.  */
+
+#define DECODE_EMACS_MULE_21_COMPOSITION()				\
   do {									\
-    /* Emacs 21 style format.  The first three bytes at SRC are		\
-       (METHOD - 0xF2), (BYTES - 0xA0), (CHARS - 0xA0), where BYTES is	\
-       the byte length of this composition information, CHARS is the	\
-       number of characters composed by this composition.  */		\
     enum composition_method method = c - 0xF2;				\
     int *charbuf_base = charbuf;					\
-    int consumed_chars_limit;						\
     int nbytes, nchars;							\
-									\
+    									\
     ONE_MORE_BYTE (c);							\
     if (c < 0)								\
       goto invalid_code;						\
     nbytes = c - 0xA0;							\
-    if (nbytes < 3)							\
+    if (nbytes < 3 || (method == COMPOSITION_RELATIVE && nbytes != 4))	\
       goto invalid_code;						\
     ONE_MORE_BYTE (c);							\
-    if (c < 0)								\
-      goto invalid_code;						\
     nchars = c - 0xA0;							\
-    ADD_COMPOSITION_DATA (charbuf, nchars, method);			\
-    consumed_chars_limit = consumed_chars_base + nbytes;		\
-    if (method != COMPOSITION_RELATIVE)					\
-      {									\
-	int i = 0;							\
-	while (consumed_chars < consumed_chars_limit)			\
-	  {								\
-	    if (i % 2 && method != COMPOSITION_WITH_ALTCHARS)		\
-	      DECODE_EMACS_MULE_COMPOSITION_RULE_21 (charbuf);		\
-	    else							\
-	      DECODE_EMACS_MULE_COMPOSITION_CHAR (charbuf);		\
-	    i++;							\
-	  }								\
-	if (consumed_chars < consumed_chars_limit)			\
-	  goto invalid_code;						\
-	charbuf_base[0] -= i;						\
-      }									\
-  } while (0)
-
-
-#define DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION(c)			\
-  do {									\
-    /* Emacs 20 style format for relative composition.  */		\
-    /* Store multibyte form of characters to be composed.  */		\
-    enum composition_method method = COMPOSITION_RELATIVE;		\
-    int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];			\
-    int *buf = components;						\
-    int i, j;								\
-    									\
-    src = src_base;							\
-    ONE_MORE_BYTE (c);		/* skip 0x80 */				\
-    for (i = 0; *src >= 0xA0 && i < MAX_COMPOSITION_COMPONENTS; i++)	\
-      DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);				\
-    if (i < 2)								\
+    if (nchars <= 0 || nchars >= MAX_COMPOSITION_COMPONENTS)		\
       goto invalid_code;						\
-    ADD_COMPOSITION_DATA (charbuf, i, method);				\
-    for (j = 0; j < i; j++)						\
-      *charbuf++ = components[j];					\
+    cmp_status->old_form = 0;						\
+    cmp_status->method = method;					\
+    if (method == COMPOSITION_RELATIVE)					\
+      cmp_status->state = COMPOSING_CHAR;				\
+    else								\
+      cmp_status->state = COMPOSING_COMPONENT_CHAR;			\
+    cmp_status->length = MAX_ANNOTATION_LENGTH;				\
+    cmp_status->nchars = nchars;					\
+    cmp_status->ncomps = nbytes - 4;					\
+    ADD_COMPOSITION_DATA (charbuf, nchars, nbytes, method);		\
   } while (0)
 
 
-#define DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION(c)		\
+/* Start of Emacs 20 style format for relative composition.  */
+
+#define DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION()		\
   do {								\
-    /* Emacs 20 style format for rule-base composition.  */	\
-    /* Store multibyte form of characters to be composed.  */	\
-    enum composition_method method = COMPOSITION_WITH_RULE;	\
-    int *charbuf_base = charbuf;				\
-    int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
-    int *buf = components;					\
-    int i, j;							\
+    cmp_status->old_form = 1;					\
+    cmp_status->method = COMPOSITION_RELATIVE;			\
+    cmp_status->state = COMPOSING_CHAR;				\
+    cmp_status->length = MAX_ANNOTATION_LENGTH;			\
+    cmp_status->nchars = cmp_status->ncomps = 0;		\
+    ADD_COMPOSITION_DATA (charbuf, 0, 0, cmp_status->method);	\
+  } while (0)
+
+
+/* Start of Emacs 20 style format for rule-base composition.  */
+
+#define DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION()		\
+  do {								\
+    cmp_status->old_form = 1;					\
+    cmp_status->method = COMPOSITION_WITH_RULE;			\
+    cmp_status->state = COMPOSING_CHAR;				\
+    cmp_status->length = MAX_ANNOTATION_LENGTH;			\
+    cmp_status->nchars = cmp_status->ncomps = 0;		\
+    ADD_COMPOSITION_DATA (charbuf, 0, 0, cmp_status->method);	\
+  } while (0)
+
+
+#define DECODE_EMACS_MULE_COMPOSITION_START()		\
+  do {							\
+    const unsigned char *current_src = src;		\
+    							\
+    ONE_MORE_BYTE (c);					\
+    if (c < 0)						\
+      goto invalid_code;				\
+    if (c - 0xF2 >= COMPOSITION_RELATIVE		\
+	&& c - 0xF2 <= COMPOSITION_WITH_RULE_ALTCHARS)	\
+      DECODE_EMACS_MULE_21_COMPOSITION ();		\
+    else if (c < 0xA0)					\
+      goto invalid_code;				\
+    else if (c < 0xC0)					\
+      {							\
+	DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION ();	\
+	/* Re-read C as a composition component.  */	\
+	src = current_src;				\
+      }							\
+    else if (c == 0xFF)					\
+      DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION ();	\
+    else						\
+      goto invalid_code;				\
+  } while (0)
+
+#define EMACS_MULE_COMPOSITION_END()				\
+  do {								\
+    int idx = - cmp_status->length;				\
     								\
-    DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
-    for (i = 1; i < MAX_COMPOSITION_COMPONENTS; i++)		\
-      {								\
-	if (*src < 0xA0)					\
-	  break;						\
-	DECODE_EMACS_MULE_COMPOSITION_RULE_20 (buf);		\
-	DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);		\
-      }								\
-    if (i <= 1 || (buf - components) % 2 == 0)			\
-      goto invalid_code;					\
-    if (charbuf + i + (i / 2) + 1 >= charbuf_end)		\
-      goto no_more_source;					\
-    ADD_COMPOSITION_DATA (charbuf, i, method);			\
-    i = i * 2 - 1;						\
-    for (j = 0; j < i; j++)					\
-      *charbuf++ = components[j];				\
-    charbuf_base[0] -= i;					\
-    for (j = 0; j < i; j += 2)					\
-      *charbuf++ = components[j];				\
+    if (cmp_status->old_form)					\
+      charbuf[idx + 2] = cmp_status->nchars;			\
+    else if (cmp_status->method > COMPOSITION_RELATIVE)		\
+      charbuf[idx] = charbuf[idx + 2] - cmp_status->length;	\
+    cmp_status->state = COMPOSING_NO;				\
+  } while (0)
+
+
+static int
+emacs_mule_finish_composition (charbuf, cmp_status)
+     int *charbuf;
+     struct composition_status *cmp_status;
+{
+  int idx = - cmp_status->length;
+  int new_chars;
+
+  if (cmp_status->old_form && cmp_status->nchars > 0)
+    {
+      charbuf[idx + 2] = cmp_status->nchars;
+      new_chars = 0;
+      if (cmp_status->method == COMPOSITION_WITH_RULE
+	  && cmp_status->state == COMPOSING_CHAR)
+	{
+	  /* The last rule was invalid.  */
+	  int rule = charbuf[-1] + 0xA0;
+
+	  charbuf[-2] = BYTE8_TO_CHAR (rule);
+	  charbuf[-1] = -1;
+	  new_chars = 1;
+	}
+    }
+  else
+    {
+      charbuf[idx++] = BYTE8_TO_CHAR (0x80);
+
+      if (cmp_status->method == COMPOSITION_WITH_RULE)
+	{
+	  charbuf[idx++] = BYTE8_TO_CHAR (0xFF);
+	  charbuf[idx++] = -3;
+	  charbuf[idx++] = 0;
+	  new_chars = 1;
+	}
+      else
+	{
+	  int nchars = charbuf[idx + 1] + 0xA0;
+	  int nbytes = charbuf[idx + 2] + 0xA0;
+
+	  charbuf[idx++] = BYTE8_TO_CHAR (0xF2 + cmp_status->method);
+	  charbuf[idx++] = BYTE8_TO_CHAR (nbytes);
+	  charbuf[idx++] = BYTE8_TO_CHAR (nchars);
+	  charbuf[idx++] = -1;
+	  new_chars = 4;
+	}
+    }
+  cmp_status->state = COMPOSING_NO;
+  return new_chars;
+}
+
+#define EMACS_MULE_MAYBE_FINISH_COMPOSITION()				  \
+  do {									  \
+    if (cmp_status->state != COMPOSING_NO)				  \
+      char_offset += emacs_mule_finish_composition (charbuf, cmp_status); \
   } while (0)
 
 
@@ -2328,14 +2450,25 @@ decode_coding_emacs_mule (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
+  struct composition_status *cmp_status = &coding->spec.emacs_mule.cmp_status;
 
   CODING_GET_INFO (coding, attrs, charset_list);
 
+  if (cmp_status->state != COMPOSING_NO)
+    {
+      int i;
+
+      for (i = 0; i < cmp_status->length; i++)
+	*charbuf++ = cmp_status->carryover[i];
+      coding->annotated = 1;
+    }
+
   while (1)
     {
-      int c;
+      int c, id;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -2351,64 +2484,160 @@ decode_coding_emacs_mule (coding)
 	c = byte_after_cr, byte_after_cr = -1;
       else
 	ONE_MORE_BYTE (c);
-      if (c < 0)
+
+      if (c < 0 || c == 0x80)
 	{
-	  *charbuf++ = -c;
-	  char_offset++;
+	  EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+	  if (c < 0)
+	    {
+	      *charbuf++ = -c;
+	      char_offset++;
+	    }
+	  else
+	    DECODE_EMACS_MULE_COMPOSITION_START ();
+	  continue;
 	}
-      else if (c < 0x80)
+
+      if (c < 0x80)
 	{
 	  if (eol_crlf && c == '\r')
 	    ONE_MORE_BYTE (byte_after_cr);
-	  *charbuf++ = c;
-	  char_offset++;
+	  id = charset_ascii;
+	  if (cmp_status->state != COMPOSING_NO)
+	    {
+	      if (cmp_status->old_form)
+		EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+	      else if (cmp_status->state >= COMPOSING_COMPONENT_CHAR)
+		cmp_status->ncomps--;
+	    }
 	}
-      else if (c == 0x80)
+      else
 	{
-	  ONE_MORE_BYTE (c);
-	  if (c < 0)
-	    goto invalid_code;
-	  if (c - 0xF2 >= COMPOSITION_RELATIVE
-	      && c - 0xF2 <= COMPOSITION_WITH_RULE_ALTCHARS)
-	    DECODE_EMACS_MULE_21_COMPOSITION (c);
-	  else if (c < 0xC0)
-	    DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION (c);
-	  else if (c == 0xFF)
-	    DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION (c);
-	  else
-	    goto invalid_code;
-	}
-      else if (c < 0xA0 && emacs_mule_bytes[c] > 1)
-	{
-	  int nbytes, nchars;
-	  int id;
+	  int nchars, nbytes;
 
-	  src = src_base;
-	  consumed_chars = consumed_chars_base;
-	  c = emacs_mule_char (coding, src, &nbytes, &nchars, &id);
+	  c = emacs_mule_char (coding, src_base, &nbytes, &nchars, &id,
+			       cmp_status);
 	  if (c < 0)
 	    {
+	      if (c == -1)
+		goto invalid_code;
 	      if (c == -2)
 		break;
-	      goto invalid_code;
 	    }
+	  src = src_base + nbytes;
+	  consumed_chars = consumed_chars_base + nchars;
+	  if (cmp_status->state >= COMPOSING_COMPONENT_CHAR)
+	    cmp_status->ncomps -= nchars;
+	}
+
+      /* Now if C >= 0, we found a normally encoded characer, if C <
+	 0, we found an old-style composition component character or
+	 rule.  */
+
+      if (cmp_status->state == COMPOSING_NO)
+	{
 	  if (last_id != id)
 	    {
 	      if (last_id != charset_ascii)
-		ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
+		ADD_CHARSET_DATA (charbuf, char_offset - last_offset,
+				  last_id);
 	      last_id = id;
 	      last_offset = char_offset;
 	    }
 	  *charbuf++ = c;
-	  src += nbytes;
-	  consumed_chars += nchars;
 	  char_offset++;
 	}
-      else
-	goto invalid_code;
+      else if (cmp_status->state == COMPOSING_CHAR)
+	{
+	  if (cmp_status->old_form)
+	    {
+	      if (c >= 0)
+		{
+		  EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+		  *charbuf++ = c;
+		  char_offset++;
+		}
+	      else
+		{
+		  *charbuf++ = -c;
+		  cmp_status->nchars++;
+		  cmp_status->length++;
+		  if (cmp_status->nchars == MAX_COMPOSITION_COMPONENTS)
+		    EMACS_MULE_COMPOSITION_END ();
+		  else if (cmp_status->method == COMPOSITION_WITH_RULE)
+		    cmp_status->state = COMPOSING_RULE;
+		}
+	    }
+	  else
+	    {
+	      *charbuf++ = c;
+	      cmp_status->length++;
+	      cmp_status->nchars--;
+	      if (cmp_status->nchars == 0)
+		EMACS_MULE_COMPOSITION_END ();
+	    }
+	}
+      else if (cmp_status->state == COMPOSING_RULE)
+	{
+	  int rule;
+
+	  if (c >= 0)
+	    {
+	      EMACS_MULE_COMPOSITION_END ();
+	      *charbuf++ = c;
+	      char_offset++;
+	    }
+	  else
+	    {
+	      c = -c;
+	      DECODE_EMACS_MULE_COMPOSITION_RULE_20 (c, rule);
+	      if (rule < 0)
+		goto invalid_code;
+	      *charbuf++ = -2;
+	      *charbuf++ = rule;
+	      cmp_status->length += 2;
+	      cmp_status->state = COMPOSING_CHAR;
+	    }
+	}
+      else if (cmp_status->state == COMPOSING_COMPONENT_CHAR)
+	{
+	  *charbuf++ = c;
+	  cmp_status->length++;
+	  if (cmp_status->ncomps == 0)
+	    cmp_status->state = COMPOSING_CHAR;
+	  else if (cmp_status->ncomps > 0)
+	    {
+	      if (cmp_status->method == COMPOSITION_WITH_RULE_ALTCHARS)
+		cmp_status->state = COMPOSING_COMPONENT_RULE;
+	    }
+	  else
+	    EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+	}
+      else			/* COMPOSING_COMPONENT_RULE */
+	{
+	  int rule;
+
+	  DECODE_EMACS_MULE_COMPOSITION_RULE_21 (c, rule);
+	  if (rule < 0)
+	    goto invalid_code;
+	  *charbuf++ = -2;
+	  *charbuf++ = rule;
+	  cmp_status->length += 2;
+	  cmp_status->ncomps--;
+	  if (cmp_status->ncomps > 0)
+	    cmp_status->state = COMPOSING_COMPONENT_CHAR;
+	  else
+	    EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+	}
+      continue;
+
+    retry:
+      src = src_base;
+      consumed_chars = consumed_chars_base;
       continue;
 
     invalid_code:
+      EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
       src = src_base;
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
@@ -2418,6 +2647,19 @@ decode_coding_emacs_mule (coding)
     }
 
  no_more_source:
+  if (cmp_status->state != COMPOSING_NO)
+    {
+      if (coding->mode & CODING_MODE_LAST_BLOCK)
+	EMACS_MULE_MAYBE_FINISH_COMPOSITION ();
+      else
+	{
+	  int i;
+
+	  charbuf -= cmp_status->length;
+	  for (i = 0; i < cmp_status->length; i++)
+	    cmp_status->carryover[i] = charbuf[i];
+	}
+    }
   if (last_id != charset_ascii)
     ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
@@ -2729,7 +2971,7 @@ enum iso_code_class_type iso_code_class[256];
 
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
-   && (coding)->safe_charsets[id] >= 0)
+   && (coding)->safe_charsets[id] != 255)
 
 
 #define SHIFT_OUT_OK(category)	\
@@ -2767,8 +3009,8 @@ setup_iso_safe_charsets (attrs)
 	max_charset_id = id;
     }
 
-  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-				make_number (255));
+  safe_charsets = make_uninit_string (max_charset_id + 1);
+  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
   request = AREF (attrs, coding_attr_iso_request);
   reg_usage = AREF (attrs, coding_attr_iso_usage);
   reg94 = XINT (XCAR (reg_usage));
@@ -2832,11 +3074,11 @@ detect_coding_iso_2022 (coding, detect_info)
 	continue;
       attrs = CODING_ID_ATTRS (this->id);
       if (CODING_ISO_FLAGS (this) & CODING_ISO_FLAG_FULL_SUPPORT
-	  && ! EQ (CODING_ATTR_SAFE_CHARSETS (attrs), Viso_2022_charset_list))
+	  && ! EQ (CODING_ATTR_CHARSET_LIST (attrs), Viso_2022_charset_list))
 	setup_iso_safe_charsets (attrs);
       val = CODING_ATTR_SAFE_CHARSETS (attrs);
       this->max_charset_id = SCHARS (val) - 1;
-      this->safe_charsets = (char *) SDATA (val);
+      this->safe_charsets = SDATA (val);
     }
 
   /* A coding system of this category is always ASCII compatible.  */
@@ -3072,134 +3314,237 @@ detect_coding_iso_2022 (coding, detect_info)
   } while (0)
 
 
-#define MAYBE_FINISH_COMPOSITION()				\
+/* Handle these composition sequence (ALT: alternate char):
+
+   (1) relative composition: ESC 0 CHAR ... ESC 1
+   (2) rulebase composition: ESC 2 CHAR RULE CHAR RULE ... CHAR ESC 1
+   (3) altchar composition:  ESC 3 ALT ... ALT ESC 0 CHAR ... ESC 1
+   (4) alt&rule composition: ESC 4 ALT RULE ... ALT ESC 0 CHAR ... ESC 1
+
+   When the start sequence (ESC 0/2/3/4) is found, this annotation
+   header is produced.
+
+	[ -LENGTH(==-5) CODING_ANNOTATE_COMPOSITION_MASK NCHARS(==0) 0 METHOD ]
+
+   Then, upon reading CHAR or RULE (one or two bytes), these codes are
+   produced until the end sequence (ESC 1) is found:
+
+   (1) CHAR ... CHAR
+   (2) CHAR -2 DECODED-RULE CHAR -2 DECODED-RULE ... CHAR
+   (3) ALT ... ALT -1 -1 CHAR ... CHAR
+   (4) ALT -2 DECODED-RULE ALT -2 DECODED-RULE ... ALT -1 -1 CHAR ... CHAR
+
+   When the end sequence (ESC 1) is found, LENGTH and NCHARS in the
+   annotation header is updated as below:
+
+   (1) LENGTH: unchanged,  NCHARS: number of CHARs
+   (2) LENGTH: unchanged,  NCHARS: number of CHARs
+   (3) LENGTH: += number of ALTs + 2,  NCHARS: number of CHARs
+   (4) LENGTH: += number of ALTs * 3,  NCHARS: number of CHARs
+
+   If an error is found while composing, the annotation header is
+   changed to:
+
+	[ ESC '0'/'2'/'3'/'4' -2 0 ]
+
+   and the sequence [ -2 DECODED-RULE ] is changed to the original
+   byte sequence as below:
+	o the original byte sequence is B: [ B -1 ]
+	o the original byte sequence is B1 B2: [ B1 B2 ]
+   and the sequence [ -1 -1 ] is changed to the original byte
+   sequence:
+	[ ESC '0' ]
+*/
+
+/* Decode a composition rule C1 and maybe one more byte from the
+   source, and set RULE to the encoded composition rule, NBYTES to the
+   length of the composition rule.  If the rule is invalid, set RULE
+   to some negative value.  */
+
+#define DECODE_COMPOSITION_RULE(rule, nbytes)				\
+  do {									\
+    rule = c1 - 32;							\
+    if (rule < 0)							\
+      break;								\
+    if (rule < 81)		/* old format (before ver.21) */	\
+      {									\
+	int gref = (rule) / 9;						\
+	int nref = (rule) % 9;						\
+	if (gref == 4) gref = 10;					\
+	if (nref == 4) nref = 10;					\
+	rule = COMPOSITION_ENCODE_RULE (gref, nref);			\
+	nbytes = 1;							\
+      }									\
+    else			/* new format (after ver.21) */		\
+      {									\
+	int c;								\
+									\
+	ONE_MORE_BYTE (c);						\
+	rule = COMPOSITION_ENCODE_RULE (rule - 81, c - 32);		\
+	if (rule >= 0)							\
+	  rule += 0x100;   /* to destinguish it from the old format */	\
+	nbytes = 2;							\
+      }									\
+  } while (0)
+
+#define ENCODE_COMPOSITION_RULE(rule)				\
   do {								\
-    int i;							\
-    if (composition_state == COMPOSING_NO)			\
-      break;							\
-    /* It is assured that we have enough room for producing	\
-       characters stored in the table `components'.  */		\
-    if (charbuf + component_idx > charbuf_end)			\
-      goto no_more_source;					\
-    composition_state = COMPOSING_NO;				\
-    if (method == COMPOSITION_RELATIVE				\
-	|| method == COMPOSITION_WITH_ALTCHARS)			\
+    int gref = (rule % 0x100) / 12, nref = (rule % 0x100) % 12;	\
+    								\
+    if (rule < 0x100)		/* old format */		\
       {								\
-	for (i = 0; i < component_idx; i++)			\
-	  *charbuf++ = components[i];				\
-	char_offset += component_idx;				\
+	if (gref == 10) gref = 4;				\
+	if (nref == 10) nref = 4;				\
+	charbuf[idx] = 32 + gref * 9 + nref;			\
+	charbuf[idx + 1] = -1;					\
+	new_chars++;						\
       }								\
-    else							\
+    else				/* new format */	\
       {								\
-	for (i = 0; i < component_idx; i += 2)			\
-	  *charbuf++ = components[i];				\
-	char_offset += (component_idx / 2) + 1;			\
+	charbuf[idx] = 32 + 81 + gref;				\
+	charbuf[idx + 1] = 32 + nref;				\
+	new_chars += 2;						\
       }								\
   } while (0)
 
+/* Finish the current composition as invalid.  */
+
+static int finish_composition P_ ((int *, struct composition_status *));
+
+static int
+finish_composition (charbuf, cmp_status)
+     int *charbuf;
+     struct composition_status *cmp_status;
+{
+  int idx = - cmp_status->length;
+  int new_chars;
+
+  /* Recover the original ESC sequence */
+  charbuf[idx++] = ISO_CODE_ESC;
+  charbuf[idx++] = (cmp_status->method == COMPOSITION_RELATIVE ? '0'
+		    : cmp_status->method == COMPOSITION_WITH_RULE ? '2'
+		    : cmp_status->method == COMPOSITION_WITH_ALTCHARS ? '3'
+		    /* cmp_status->method == COMPOSITION_WITH_RULE_ALTCHARS */
+		    : '4');
+  charbuf[idx++] = -2;
+  charbuf[idx++] = 0;
+  charbuf[idx++] = -1;
+  new_chars = cmp_status->nchars;
+  if (cmp_status->method >= COMPOSITION_WITH_RULE)
+    for (; idx < 0; idx++)
+      {
+	int elt = charbuf[idx];
+
+	if (elt == -2)
+	  {
+	    ENCODE_COMPOSITION_RULE (charbuf[idx + 1]);
+	    idx++;
+	  }
+	else if (elt == -1)
+	  {
+	    charbuf[idx++] = ISO_CODE_ESC;
+	    charbuf[idx] = '0';
+	    new_chars += 2;
+	  }
+      }
+  cmp_status->state = COMPOSING_NO;
+  return new_chars;
+}
+
+/* If characers are under composition, finish the composition.  */
+#define MAYBE_FINISH_COMPOSITION()				\
+  do {								\
+    if (cmp_status->state != COMPOSING_NO)			\
+      char_offset += finish_composition (charbuf, cmp_status);	\
+  } while (0)
 
 /* Handle composition start sequence ESC 0, ESC 2, ESC 3, or ESC 4.
+
    ESC 0 : relative composition : ESC 0 CHAR ... ESC 1
    ESC 2 : rulebase composition : ESC 2 CHAR RULE CHAR RULE ... CHAR ESC 1
    ESC 3 : altchar composition :  ESC 3 CHAR ... ESC 0 CHAR ... ESC 1
    ESC 4 : alt&rule composition : ESC 4 CHAR RULE ... CHAR ESC 0 CHAR ... ESC 1
-  */
 
-#define DECODE_COMPOSITION_START(c1)					\
-  do {									\
-    if (c1 == '0'							\
-	&& composition_state == COMPOSING_COMPONENT_RULE)		\
-      {									\
-	component_len = component_idx;					\
-	composition_state = COMPOSING_CHAR;				\
-      }									\
-    else								\
-      {									\
-	const unsigned char *p;						\
-									\
-	MAYBE_FINISH_COMPOSITION ();					\
-	if (charbuf + MAX_COMPOSITION_COMPONENTS > charbuf_end)		\
-	  goto no_more_source;						\
-	for (p = src; p < src_end - 1; p++)				\
-	  if (*p == ISO_CODE_ESC && p[1] == '1')			\
-	    break;							\
-	if (p == src_end - 1)						\
-	  {								\
-	    if (coding->mode & CODING_MODE_LAST_BLOCK)			\
-	      goto invalid_code;					\
-	    /* The current composition doesn't end in the current	\
-	       source.  */						\
-	    record_conversion_result					\
-	      (coding, CODING_RESULT_INSUFFICIENT_SRC);			\
-	    goto no_more_source;					\
-	  }								\
-									\
-	/* This is surely the start of a composition.  */		\
-	method = (c1 == '0' ? COMPOSITION_RELATIVE			\
-		  : c1 == '2' ? COMPOSITION_WITH_RULE			\
-		  : c1 == '3' ? COMPOSITION_WITH_ALTCHARS		\
-		  : COMPOSITION_WITH_RULE_ALTCHARS);			\
-	composition_state = (c1 <= '2' ? COMPOSING_CHAR			\
-			     : COMPOSING_COMPONENT_CHAR);		\
-	component_idx = component_len = 0;				\
-      }									\
+   Produce this annotation sequence now:
+
+   [ -LENGTH(==-4) CODING_ANNOTATE_COMPOSITION_MASK NCHARS(==0) METHOD ]
+*/
+
+#define DECODE_COMPOSITION_START(c1)					   \
+  do {									   \
+    if (c1 == '0'							   \
+	&& ((cmp_status->state == COMPOSING_COMPONENT_CHAR		   \
+	     && cmp_status->method == COMPOSITION_WITH_ALTCHARS)	   \
+	    || (cmp_status->state == COMPOSING_COMPONENT_RULE		   \
+		&& cmp_status->method == COMPOSITION_WITH_RULE_ALTCHARS))) \
+      {									   \
+	*charbuf++ = -1;						   \
+	*charbuf++= -1;							   \
+	cmp_status->state = COMPOSING_CHAR;				   \
+	cmp_status->length += 2;					   \
+      }									   \
+    else								   \
+      {									   \
+	MAYBE_FINISH_COMPOSITION ();					   \
+	cmp_status->method = (c1 == '0' ? COMPOSITION_RELATIVE		   \
+			      : c1 == '2' ? COMPOSITION_WITH_RULE	   \
+			      : c1 == '3' ? COMPOSITION_WITH_ALTCHARS	   \
+			      : COMPOSITION_WITH_RULE_ALTCHARS);	   \
+	cmp_status->state						   \
+	  = (c1 <= '2' ? COMPOSING_CHAR : COMPOSING_COMPONENT_CHAR);	   \
+	ADD_COMPOSITION_DATA (charbuf, 0, 0, cmp_status->method);	   \
+	cmp_status->length = MAX_ANNOTATION_LENGTH;			   \
+	cmp_status->nchars = cmp_status->ncomps = 0;			   \
+	coding->annotated = 1;						   \
+      }									   \
   } while (0)
 
 
-/* Handle compositoin end sequence ESC 1.  */
+/* Handle composition end sequence ESC 1.  */
 
 #define DECODE_COMPOSITION_END()					\
   do {									\
-    int nchars = (component_len > 0 ? component_idx - component_len	\
-		  : method == COMPOSITION_RELATIVE ? component_idx	\
-		  : (component_idx + 1) / 2);				\
-    int i;								\
-    int *saved_charbuf = charbuf;					\
-									\
-    ADD_COMPOSITION_DATA (charbuf, nchars, method);			\
-    if (method != COMPOSITION_RELATIVE)					\
+    if (cmp_status->nchars == 0						\
+	|| ((cmp_status->state == COMPOSING_CHAR)			\
+	    == (cmp_status->method == COMPOSITION_WITH_RULE)))		\
       {									\
-	if (component_len == 0)						\
-	  for (i = 0; i < component_idx; i++)				\
-	    *charbuf++ = components[i];					\
-	else								\
-	  for (i = 0; i < component_len; i++)				\
-	    *charbuf++ = components[i];					\
-	*saved_charbuf = saved_charbuf - charbuf;			\
+	MAYBE_FINISH_COMPOSITION ();					\
+	goto invalid_code;						\
       }									\
-    if (method == COMPOSITION_WITH_RULE)				\
-      for (i = 0; i < component_idx; i += 2, char_offset++)		\
-	*charbuf++ = components[i];					\
-    else								\
-      for (i = component_len; i < component_idx; i++, char_offset++)	\
-	*charbuf++ = components[i];					\
-    coding->annotated = 1;						\
-    composition_state = COMPOSING_NO;					\
+    if (cmp_status->method == COMPOSITION_WITH_ALTCHARS)		\
+      charbuf[- cmp_status->length] -= cmp_status->ncomps + 2;		\
+    else if (cmp_status->method == COMPOSITION_WITH_RULE_ALTCHARS)	\
+      charbuf[- cmp_status->length] -= cmp_status->ncomps * 3;		\
+    charbuf[- cmp_status->length + 2] = cmp_status->nchars;		\
+    char_offset += cmp_status->nchars;					\
+    cmp_status->state = COMPOSING_NO;					\
   } while (0)
 
+/* Store a composition rule RULE in charbuf, and update cmp_status.  */
 
-/* Decode a composition rule from the byte C1 (and maybe one more byte
-   from SRC) and store one encoded composition rule in
-   coding->cmp_data.  */
+#define STORE_COMPOSITION_RULE(rule)	\
+  do {					\
+    *charbuf++ = -2;			\
+    *charbuf++ = rule;			\
+    cmp_status->length += 2;		\
+    cmp_status->state--;		\
+  } while (0)
 
-#define DECODE_COMPOSITION_RULE(c1)					\
+/* Store a composed char or a component char C in charbuf, and update
+   cmp_status.  */
+
+#define STORE_COMPOSITION_CHAR(c)					\
   do {									\
-    (c1) -= 32;								\
-    if (c1 < 81)		/* old format (before ver.21) */	\
-      {									\
-	int gref = (c1) / 9;						\
-	int nref = (c1) % 9;						\
-	if (gref == 4) gref = 10;					\
-	if (nref == 4) nref = 10;					\
-	c1 = COMPOSITION_ENCODE_RULE (gref, nref);			\
-      }									\
-    else if (c1 < 93)		/* new format (after ver.21) */		\
-      {									\
-	ONE_MORE_BYTE (c2);						\
-	c1 = COMPOSITION_ENCODE_RULE (c1 - 81, c2 - 32);		\
-      }									\
+    *charbuf++ = (c);							\
+    cmp_status->length++;						\
+    if (cmp_status->state == COMPOSING_CHAR)				\
+      cmp_status->nchars++;						\
     else								\
-      c1 = 0;								\
+      cmp_status->ncomps++;						\
+    if (cmp_status->method == COMPOSITION_WITH_RULE			\
+	|| (cmp_status->method == COMPOSITION_WITH_RULE_ALTCHARS	\
+	    && cmp_status->state == COMPOSING_COMPONENT_CHAR))		\
+      cmp_status->state++;						\
   } while (0)
 
 
@@ -3214,7 +3559,7 @@ decode_coding_iso_2022 (coding)
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - 4 - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
@@ -3223,30 +3568,28 @@ decode_coding_iso_2022 (coding)
   int charset_id_2, charset_id_3;
   struct charset *charset;
   int c;
-  /* For handling composition sequence.  */
-#define COMPOSING_NO			0
-#define COMPOSING_CHAR			1
-#define COMPOSING_RULE			2
-#define COMPOSING_COMPONENT_CHAR	3
-#define COMPOSING_COMPONENT_RULE	4
-
-  int composition_state = COMPOSING_NO;
-  enum composition_method method;
-  int components[MAX_COMPOSITION_COMPONENTS * 2 + 1];
-  int component_idx;
-  int component_len;
+  struct composition_status *cmp_status = CODING_ISO_CMP_STATUS (coding);
   Lisp_Object attrs, charset_list;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
+  int i;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
-  coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
+  coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
+
+  if (cmp_status->state != COMPOSING_NO)
+    {
+      for (i = 0; i < cmp_status->length; i++)
+	*charbuf++ = cmp_status->carryover[i];
+      coding->annotated = 1;
+    }
 
   while (1)
     {
@@ -3269,26 +3612,58 @@ decode_coding_iso_2022 (coding)
       if (c1 < 0)
 	goto invalid_code;
 
+      if (CODING_ISO_EXTSEGMENT_LEN (coding) > 0)
+	{
+	  *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	  char_offset++;
+	  CODING_ISO_EXTSEGMENT_LEN (coding)--;
+	  continue;
+	}
+
+      if (CODING_ISO_EMBEDDED_UTF_8 (coding))
+	{
+	  if (c1 == ISO_CODE_ESC)
+	    {
+	      if (src + 1 >= src_end)
+		goto no_more_source;
+	      *charbuf++ = ISO_CODE_ESC;
+	      char_offset++;
+	      if (src[0] == '%' && src[1] == '@')
+		{
+		  src += 2;
+		  consumed_chars += 2;
+		  char_offset += 2;
+		  /* We are sure charbuf can contain two more chars. */
+		  *charbuf++ = '%';
+		  *charbuf++ = '@';
+		  CODING_ISO_EMBEDDED_UTF_8 (coding) = 0;
+		}
+	    }
+	  else
+	    {
+	      *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
+	      char_offset++;
+	    }
+	  continue;
+	}
+
+      if ((cmp_status->state == COMPOSING_RULE
+	   || cmp_status->state == COMPOSING_COMPONENT_RULE)
+	  && c1 != ISO_CODE_ESC)
+	{
+	  int rule, nbytes;
+
+	  DECODE_COMPOSITION_RULE (rule, nbytes);
+	  if (rule < 0)
+	    goto invalid_code;
+	  STORE_COMPOSITION_RULE (rule);
+	  continue;
+	}
+
       /* We produce at most one character.  */
       switch (iso_code_class [c1])
 	{
 	case ISO_0x20_or_0x7F:
-	  if (composition_state != COMPOSING_NO)
-	    {
-	      if (composition_state == COMPOSING_RULE
-		  || composition_state == COMPOSING_COMPONENT_RULE)
-		{
-		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
-		    {
-		      DECODE_COMPOSITION_RULE (c1);
-		      components[component_idx++] = c1;
-		      composition_state--;
-		      continue;
-		    }
-		  /* Too long composition.  */
-		  MAYBE_FINISH_COMPOSITION ();
-		}
-	    }
 	  if (charset_id_0 < 0
 	      || ! CHARSET_ISO_CHARS_96 (CHARSET_FROM_ID (charset_id_0)))
 	    /* This is SPACE or DEL.  */
@@ -3298,21 +3673,6 @@ decode_coding_iso_2022 (coding)
 	  break;
 
 	case ISO_graphic_plane_0:
-	  if (composition_state != COMPOSING_NO)
-	    {
-	      if (composition_state == COMPOSING_RULE
-		  || composition_state == COMPOSING_COMPONENT_RULE)
-		{
-		  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
-		    {
-		      DECODE_COMPOSITION_RULE (c1);
-		      components[component_idx++] = c1;
-		      composition_state--;
-		      continue;
-		    }
-		  MAYBE_FINISH_COMPOSITION ();
-		}
-	    }
 	  if (charset_id_0 < 0)
 	    charset = CHARSET_FROM_ID (charset_ascii);
 	  else
@@ -3340,7 +3700,6 @@ decode_coding_iso_2022 (coding)
 	  break;
 
 	case ISO_control_1:
-	  MAYBE_FINISH_COMPOSITION ();
 	  goto invalid_code;
 
 	case ISO_shift_out:
@@ -3478,11 +3837,17 @@ decode_coding_iso_2022 (coding)
 	    case '0': case '2':	case '3': case '4': /* start composition */
 	      if (! (coding->common_flags & CODING_ANNOTATE_COMPOSITION_MASK))
 		goto invalid_code;
+	      if (last_id != charset_ascii)
+		{
+		  ADD_CHARSET_DATA (charbuf, char_offset- last_offset, last_id);
+		  last_id = charset_ascii;
+		  last_offset = char_offset;
+		}
 	      DECODE_COMPOSITION_START (c1);
 	      continue;
 
 	    case '1':		/* end composition */
-	      if (composition_state == COMPOSING_NO)
+	      if (cmp_status->state == COMPOSING_NO)
 		goto invalid_code;
 	      DECODE_COMPOSITION_END ();
 	      continue;
@@ -3533,10 +3898,16 @@ decode_coding_iso_2022 (coding)
 		  int size;
 
 		  ONE_MORE_BYTE (dim);
+		  if (dim < 0 || dim > 4)
+		    goto invalid_code;
 		  ONE_MORE_BYTE (M);
+		  if (M < 128)
+		    goto invalid_code;
 		  ONE_MORE_BYTE (L);
+		  if (L < 128)
+		    goto invalid_code;
 		  size = ((M - 128) * 128) + (L - 128);
-		  if (charbuf + 8 + size > charbuf_end)
+		  if (charbuf + 6 > charbuf_end)
 		    goto break_loop;
 		  *charbuf++ = ISO_CODE_ESC;
 		  *charbuf++ = '%';
@@ -3544,11 +3915,7 @@ decode_coding_iso_2022 (coding)
 		  *charbuf++ = dim;
 		  *charbuf++ = BYTE8_TO_CHAR (M);
 		  *charbuf++ = BYTE8_TO_CHAR (L);
-		  while (size-- > 0)
-		    {
-		      ONE_MORE_BYTE (c1);
-		      *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
-		    }
+		  CODING_ISO_EXTSEGMENT_LEN (coding) = size;
 		}
 	      else if (c1 == 'G')
 		{
@@ -3556,32 +3923,12 @@ decode_coding_iso_2022 (coding)
 		     ESC % G --UTF-8-BYTES-- ESC % @
 		     We keep these bytes as is for the moment.
 		     They may be decoded by post-read-conversion.  */
-		  int *p = charbuf;
-
-		  if (p + 6 > charbuf_end)
+		  if (charbuf + 3 > charbuf_end)
 		    goto break_loop;
-		  *p++ = ISO_CODE_ESC;
-		  *p++ = '%';
-		  *p++ = 'G';
-		  while (p < charbuf_end)
-		    {
-		      ONE_MORE_BYTE (c1);
-		      if (c1 == ISO_CODE_ESC
-			  && src + 1 < src_end
-			  && src[0] == '%'
-			  && src[1] == '@')
-			{
-			  src += 2;
-			  break;
-			}
-		      *p++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
-		    }
-		  if (p + 3 > charbuf_end)
-		    goto break_loop;
-		  *p++ = ISO_CODE_ESC;
-		  *p++ = '%';
-		  *p++ = '@';
-		  charbuf = p;
+		  *charbuf++ = ISO_CODE_ESC;
+		  *charbuf++ = '%';
+		  *charbuf++ = 'G';
+		  CODING_ISO_EMBEDDED_UTF_8 (coding) = 1;
 		}
 	      else
 		goto invalid_code;
@@ -3619,7 +3966,8 @@ decode_coding_iso_2022 (coding)
 	    }
 	}
 
-      if (charset->id != charset_ascii
+      if (cmp_status->state == COMPOSING_NO
+	  && charset->id != charset_ascii
 	  && last_id != charset->id)
 	{
 	  if (last_id != charset_ascii)
@@ -3661,28 +4009,23 @@ decode_coding_iso_2022 (coding)
 		*charbuf++ = BYTE8_TO_CHAR (*src_base);
 	    }
 	}
-      else if (composition_state == COMPOSING_NO)
+      else if (cmp_status->state == COMPOSING_NO)
 	{
 	  *charbuf++ = c;
 	  char_offset++;
 	}
-      else
+      else if ((cmp_status->state == COMPOSING_CHAR
+		? cmp_status->nchars
+		: cmp_status->ncomps)
+	       >= MAX_COMPOSITION_COMPONENTS)
 	{
-	  if (component_idx < MAX_COMPOSITION_COMPONENTS * 2 + 1)
-	    {
-	      components[component_idx++] = c;
-	      if (method == COMPOSITION_WITH_RULE
-		  || (method == COMPOSITION_WITH_RULE_ALTCHARS
-		      && composition_state == COMPOSING_COMPONENT_CHAR))
-		composition_state++;
-	    }
-	  else
-	    {
-	      MAYBE_FINISH_COMPOSITION ();
-	      *charbuf++ = c;
-	      char_offset++;
-	    }
+	  /* Too long composition.  */
+	  MAYBE_FINISH_COMPOSITION ();
+	  *charbuf++ = c;
+	  char_offset++;
 	}
+      else
+	STORE_COMPOSITION_CHAR (c);
       continue;
 
     invalid_code:
@@ -3700,7 +4043,18 @@ decode_coding_iso_2022 (coding)
     }
 
  no_more_source:
-  if (last_id != charset_ascii)
+  if (cmp_status->state != COMPOSING_NO)
+    {
+      if (coding->mode & CODING_MODE_LAST_BLOCK)
+	MAYBE_FINISH_COMPOSITION ();
+      else
+	{
+	  charbuf -= cmp_status->length;
+	  for (i = 0; i < cmp_status->length; i++)
+	    cmp_status->carryover[i] = charbuf[i];
+	}
+    }
+  else if (last_id != charset_ascii)
     ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
@@ -4126,14 +4480,14 @@ encode_coding_iso_2022 (coding)
   int preferred_charset_id = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
     eol_type = Qunix;
 
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
-  coding->safe_charsets = (char *) SDATA (CODING_ATTR_SAFE_CHARSETS(attrs));
+  coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
@@ -4414,7 +4768,8 @@ decode_coding_sjis (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -4529,7 +4884,8 @@ decode_coding_big5 (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -4981,7 +5337,8 @@ static void
 decode_coding_raw_text (coding)
      struct coding_system *coding;
 {
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
 
   coding->chars_at_source = 1;
   coding->consumed_char = coding->src_chars;
@@ -5100,9 +5457,12 @@ detect_coding_charset (coding, detect_info)
   attrs = CODING_ID_ATTRS (coding->id);
   valids = AREF (attrs, coding_attr_charset_valids);
   name = CODING_ID_NAME (coding->id);
-  if (VECTORP (Vlatin_extra_code_table)
-      && strcmp ((char *) SDATA (SYMBOL_NAME (name)), "iso-8859-"))
+  if (strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+	       "iso-8859-", sizeof ("iso-8859-") - 1) == 0
+      || strncmp ((char *) SDATA (SYMBOL_NAME (name)),
+		  "iso-latin-", sizeof ("iso-latin-") - 1) == 0)
     check_latin_extra = 1;
+
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     src += head_ascii;
 
@@ -5124,7 +5484,8 @@ detect_coding_charset (coding, detect_info)
 	{
 	  if (c < 0xA0
 	      && check_latin_extra
-	      && NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	      && (!VECTORP (Vlatin_extra_code_table)
+		  || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c])))
 	    break;
 	  found = CATEGORY_MASK_CHARSET;
 	}
@@ -5196,7 +5557,8 @@ decode_coding_charset (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
-  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int eol_crlf =
+    !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -5393,7 +5755,7 @@ setup_coding_system (coding_system, coding)
   CHECK_CODING_SYSTEM_GET_ID (coding_system, coding->id);
 
   attrs = CODING_ID_ATTRS (coding->id);
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
 
   coding->mode = 0;
   coding->head_ascii = -1;
@@ -5414,7 +5776,7 @@ setup_coding_system (coding_system, coding)
 
   val = CODING_ATTR_SAFE_CHARSETS (attrs);
   coding->max_charset_id = SCHARS (val) - 1;
-  coding->safe_charsets = (char *) SDATA (val);
+  coding->safe_charsets = SDATA (val);
   coding->default_char = XINT (CODING_ATTR_DEFAULT_CHAR (attrs));
 
   coding_type = CODING_ATTR_TYPE (attrs);
@@ -5459,9 +5821,13 @@ setup_coding_system (coding_system, coding)
 	  setup_iso_safe_charsets (attrs);
 	  val = CODING_ATTR_SAFE_CHARSETS (attrs);
 	  coding->max_charset_id = SCHARS (val) - 1;
-	  coding->safe_charsets = (char *) SDATA (val);
+	  coding->safe_charsets = SDATA (val);
 	}
       CODING_ISO_FLAGS (coding) = flags;
+      CODING_ISO_CMP_STATUS (coding)->state = COMPOSING_NO;
+      CODING_ISO_CMP_STATUS (coding)->method = COMPOSITION_NO;
+      CODING_ISO_EXTSEGMENT_LEN (coding) = 0;
+      CODING_ISO_EMBEDDED_UTF_8 (coding) = 0;
     }
   else if (EQ (coding_type, Qcharset))
     {
@@ -5519,6 +5885,7 @@ setup_coding_system (coding_system, coding)
       coding->encoder = encode_coding_emacs_mule;
       coding->common_flags
 	|= (CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK);
+      coding->spec.emacs_mule.full_support = 1;
       if (! NILP (AREF (attrs, coding_attr_emacs_mule_full))
 	  && ! EQ (CODING_ATTR_CHARSET_LIST (attrs), Vemacs_mule_charset_list))
 	{
@@ -5529,14 +5896,17 @@ setup_coding_system (coding_system, coding)
 	       tail = XCDR (tail))
 	    if (max_charset_id < XFASTINT (XCAR (tail)))
 	      max_charset_id = XFASTINT (XCAR (tail));
-	  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-					make_number (255));
+	  safe_charsets = make_uninit_string (max_charset_id + 1);
+	  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
 	  for (tail = Vemacs_mule_charset_list; CONSP (tail);
 	       tail = XCDR (tail))
 	    SSET (safe_charsets, XFASTINT (XCAR (tail)), 0);
 	  coding->max_charset_id = max_charset_id;
-	  coding->safe_charsets = (char *) SDATA (safe_charsets);
+	  coding->safe_charsets = SDATA (safe_charsets);
+	  coding->spec.emacs_mule.full_support = 1;
 	}
+      coding->spec.emacs_mule.cmp_status.state = COMPOSING_NO;
+      coding->spec.emacs_mule.cmp_status.method = COMPOSITION_NO;
     }
   else if (EQ (coding_type, Qshift_jis))
     {
@@ -5955,6 +6325,7 @@ detect_coding (coding)
      struct coding_system *coding;
 {
   const unsigned char *src, *src_end;
+  int saved_mode = coding->mode;
 
   coding->consumed = coding->consumed_char = 0;
   coding->produced = coding->produced_char = 0;
@@ -6125,6 +6496,7 @@ detect_coding (coding)
 	    setup_coding_system (XCDR (coding_systems), coding);
 	}
     }
+  coding->mode = saved_mode;
 }
 
 
@@ -6136,7 +6508,7 @@ decode_eol (coding)
   unsigned char *p, *pbeg, *pend;
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
-  if (EQ (eol_type, Qunix))
+  if (EQ (eol_type, Qunix) || inhibit_eol_conversion)
     return;
 
   if (NILP (coding->dst_object))
@@ -6322,51 +6694,39 @@ get_translation_table (attrs, encodep, max_lookup)
   } while (0)
 
 
-static Lisp_Object
-get_translation (val, buf, buf_end, last_block, from_nchars, to_nchars)
-     Lisp_Object val;
-     int *buf, *buf_end;
-     int last_block;
-     int *from_nchars, *to_nchars;
-{
-  /* VAL is TO or (([FROM-CHAR ...] .  TO) ...) where TO is TO-CHAR or
-     [TO-CHAR ...].  */
-  if (CONSP (val))
-    {
-      Lisp_Object from, tail;
-      int i, len;
+/* Return a translation of character(s) at BUF according to TRANS.
+   TRANS is TO-CHAR or ((FROM .  TO) ...) where
+   FROM = [FROM-CHAR ...], TO is TO-CHAR or [TO-CHAR ...].
+   The return value is TO-CHAR or ([FROM-CHAR ...] . TO) if a
+   translation is found, and Qnil if not found..
+   If BUF is too short to lookup characters in FROM, return Qt.  */
 
-      for (tail = val; CONSP (tail); tail = XCDR (tail))
+static Lisp_Object
+get_translation (trans, buf, buf_end)
+     Lisp_Object trans;
+     int *buf, *buf_end;
+{
+
+  if (INTEGERP (trans))
+    return trans;
+  for (; CONSP (trans); trans = XCDR (trans))
+    {
+      Lisp_Object val = XCAR (trans);
+      Lisp_Object from = XCAR (val);
+      int len = ASIZE (from);
+      int i;
+
+      for (i = 0; i < len; i++)
 	{
-	  val = XCAR (tail);
-	  from = XCAR (val);
-	  len = ASIZE (from);
-	  for (i = 0; i < len; i++)
-	    {
-	      if (buf + i == buf_end)
-		{
-		  if (! last_block)
-		    return Qt;
-		  break;
-		}
-	      if (XINT (AREF (from, i)) != buf[i])
-		break;
-	    }
-	  if (i == len)
-	    {
-	      val = XCDR (val);
-	      *from_nchars = len;
-	      break;
-	    }
+	  if (buf + i == buf_end)
+	    return Qt;
+	  if (XINT (AREF (from, i)) != buf[i])
+	    break;
 	}
-      if (! CONSP (tail))
-	return Qnil;
+      if (i == len)
+	return val;
     }
-  if (VECTORP (val))
-    *buf = XINT (AREF (val, 0)), *to_nchars = ASIZE (val);
-  else
-    *buf = XINT (val);
-  return val;
+  return Qnil;
 }
 
 
@@ -6406,11 +6766,23 @@ produce_chars (coding, translation_table, last_block)
 	      LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
 	      if (! NILP (trans))
 		{
-		  trans = get_translation (trans, buf, buf_end, last_block,
-					   &from_nchars, &to_nchars);
-		  if (EQ (trans, Qt))
+		  trans = get_translation (trans, buf, buf_end);
+		  if (INTEGERP (trans))
+		    c = XINT (trans);
+		  else if (CONSP (trans))
+		    {
+		      from_nchars = ASIZE (XCAR (trans));
+		      trans = XCDR (trans);
+		      if (INTEGERP (trans))
+			c = XINT (trans);
+		      else
+			{
+			  to_nchars = ASIZE (trans);
+			  c = XINT (AREF (trans, 0));
+			}
+		    }
+		  else if (EQ (trans, Qt) && ! last_block)
 		    break;
-		  c = *buf;
 		}
 
 	      if (dst + MAX_MULTIBYTE_LENGTH * to_nchars > dst_end)
@@ -6422,7 +6794,8 @@ produce_chars (coding, translation_table, last_block)
 		  if (EQ (coding->src_object, coding->dst_object))
 		    {
 		      coding_set_source (coding);
-		      dst_end = ((unsigned char *) coding->source) + coding->consumed;
+		      dst_end = (((unsigned char *) coding->source)
+				 + coding->consumed);
 		    }
 		  else
 		    dst_end = coding->destination + coding->dst_bytes;
@@ -6439,9 +6812,7 @@ produce_chars (coding, translation_table, last_block)
 		    *dst++ = CHAR_TO_BYTE8 (c);
 		}
 	      produced_chars += to_nchars;
-	      *buf++ = to_nchars;
-	      while (--from_nchars > 0)
-		*buf++ = 0;
+	      buf += from_nchars;
 	    }
 	  else
 	    /* This is an annotation datum.  (-C) is the length.  */
@@ -6557,7 +6928,7 @@ produce_chars (coding, translation_table, last_block)
 
 /* Compose text in CODING->object according to the annotation data at
    CHARBUF.  CHARBUF is an array:
-     [ -LENGTH ANNOTATION_MASK FROM TO METHOD COMP_LEN [ COMPONENTS... ] ]
+     [ -LENGTH ANNOTATION_MASK NCHARS NBYTES METHOD [ COMPONENTS... ] ]
  */
 
 static INLINE void
@@ -6571,33 +6942,33 @@ produce_composition (coding, charbuf, pos)
   enum composition_method method;
   Lisp_Object components;
 
-  len = -charbuf[0];
+  len = -charbuf[0] - MAX_ANNOTATION_LENGTH;
   to = pos + charbuf[2];
-  if (to <= pos)
-    return;
-  method = (enum composition_method) (charbuf[3]);
+  method = (enum composition_method) (charbuf[4]);
 
   if (method == COMPOSITION_RELATIVE)
     components = Qnil;
-  else if (method >= COMPOSITION_WITH_RULE
-	   && method <= COMPOSITION_WITH_RULE_ALTCHARS)
+  else
     {
       Lisp_Object args[MAX_COMPOSITION_COMPONENTS * 2 - 1];
-      int i;
+      int i, j;
 
-      len -= 4;
-      charbuf += 4;
-      for (i = 0; i < len; i++)
+      if (method == COMPOSITION_WITH_RULE)
+	len = charbuf[2] * 3 - 2;
+      charbuf += MAX_ANNOTATION_LENGTH;
+      /* charbuf = [ CHRA ... CHAR] or [ CHAR -2 RULE ... CHAR ] */
+      for (i = j = 0; i < len && charbuf[i] != -1; i++, j++)
 	{
-	  args[i] = make_number (charbuf[i]);
-	  if (charbuf[i] < 0)
-	    return;
+	  if (charbuf[i] >= 0)
+	    args[j] = make_number (charbuf[i]);
+	  else
+	    {
+	      i++;
+	      args[j] = make_number (charbuf[i] % 0x100);
+	    }
 	}
-      components = (method == COMPOSITION_WITH_ALTCHARS
-		    ? Fstring (len, args) : Fvector (len, args));
+      components = (i == j ? Fstring (j, args) : Fvector (j, args));
     }
-  else
-    return;
   compose_text (pos, to, components, Qnil, coding->dst_object);
 }
 
@@ -6626,7 +6997,7 @@ produce_charset (coding, charbuf, pos)
 
 #define ALLOC_CONVERSION_WORK_AREA(coding)				\
   do {									\
-    int size = CHARBUF_SIZE;;						\
+    int size = CHARBUF_SIZE;						\
     									\
     coding->charbuf = NULL;						\
     while (size > 1024)							\
@@ -6659,21 +7030,21 @@ produce_annotation (coding, pos)
   while (charbuf < charbuf_end)
     {
       if (*charbuf >= 0)
-	pos += *charbuf++;
+	pos++, charbuf++;
       else
 	{
 	  int len = -*charbuf;
-	  switch (charbuf[1])
-	    {
-	    case CODING_ANNOTATE_COMPOSITION_MASK:
-	      produce_composition (coding, charbuf, pos);
-	      break;
-	    case CODING_ANNOTATE_CHARSET_MASK:
-	      produce_charset (coding, charbuf, pos);
-	      break;
-	    default:
-	      abort ();
-	    }
+
+	  if (len > 2)
+	    switch (charbuf[1])
+	      {
+	      case CODING_ANNOTATE_COMPOSITION_MASK:
+		produce_composition (coding, charbuf, pos);
+		break;
+	      case CODING_ANNOTATE_CHARSET_MASK:
+		produce_charset (coding, charbuf, pos);
+		break;
+	      }
 	  charbuf += len;
 	}
     }
@@ -6803,6 +7174,8 @@ decode_coding (coding)
 	     coding->carryover.  */
 	  unsigned char *p = coding->carryover;
 
+	  if (nbytes > sizeof coding->carryover)
+	    nbytes = sizeof coding->carryover;
 	  coding->carryover_bytes = nbytes;
 	  while (nbytes-- > 0)
 	    *p++ = *src++;
@@ -6810,7 +7183,8 @@ decode_coding (coding)
       coding->consumed = coding->src_bytes;
     }
 
-  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix))
+  if (! EQ (CODING_ID_EOL_TYPE (coding->id), Qunix)
+      && !inhibit_eol_conversion)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
@@ -6856,7 +7230,7 @@ handle_composition_annotation (pos, limit, coding, buf, stop)
 	  enum composition_method method = COMPOSITION_METHOD (prop);
 	  int nchars = COMPOSITION_LENGTH (prop);
 
-	  ADD_COMPOSITION_DATA (buf, nchars, method);
+	  ADD_COMPOSITION_DATA (buf, nchars, 0, method);
 	  if (method != COMPOSITION_RELATIVE)
 	    {
 	      Lisp_Object components;
@@ -6961,7 +7335,7 @@ consume_chars (coding, translation_table, max_lookup)
   if (! NILP (translation_table))
     lookup_buf = alloca (sizeof (int) * max_lookup);
 
-  eol_type = CODING_ID_EOL_TYPE (coding->id);
+  eol_type = inhibit_eol_conversion ? Qunix : CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
     eol_type = Qunix;
 
@@ -7043,12 +7417,26 @@ consume_chars (coding, translation_table, max_lookup)
 	  for (i = 1; i < max_lookup && p < src_end; i++)
 	    lookup_buf[i] = STRING_CHAR_ADVANCE (p);
 	  lookup_buf_end = lookup_buf + i;
-	  trans = get_translation (trans, lookup_buf, lookup_buf_end, 1,
-				   &from_nchars, &to_nchars);
-	  if (EQ (trans, Qt)
-	      || buf + to_nchars > buf_end)
+	  trans = get_translation (trans, lookup_buf, lookup_buf_end);
+	  if (INTEGERP (trans))
+	    c = XINT (trans);
+	  else if (CONSP (trans))
+	    {
+	      from_nchars = ASIZE (XCAR (trans));
+	      trans = XCDR (trans);
+	      if (INTEGERP (trans))
+		c = XINT (trans);
+	      else
+		{
+		  to_nchars = ASIZE (trans);
+		  if (buf + to_nchars > buf_end)
+		    break;
+		  c = XINT (AREF (trans, 0));
+		}
+	    }
+	  else
 	    break;
-	  *buf++ = *lookup_buf;
+	  *buf++ = c;
 	  for (i = 1; i < to_nchars; i++)
 	    *buf++ = XINT (AREF (trans, i));
 	  for (i = 1; i < from_nchars; i++, pos++)
@@ -8461,7 +8849,10 @@ value is nil.
 
 START may be a string.  In that case, check if the string is
 encodable, and the value contains indices to the string instead of
-buffer positions.  END is ignored.  */)
+buffer positions.  END is ignored.
+
+If the current buffer (or START if it is a string) is unibyte, the value
+is nil.  */)
      (start, end, coding_system_list)
      Lisp_Object start, end, coding_system_list;
 {
@@ -8475,7 +8866,7 @@ buffer positions.  END is ignored.  */)
   if (STRINGP (start))
     {
       if (!STRING_MULTIBYTE (start)
-	  && SCHARS (start) != SBYTES (start))
+	  || SCHARS (start) == SBYTES (start))
 	return Qnil;
       start_byte = 0;
       end_byte = SBYTES (start);
@@ -8492,7 +8883,7 @@ buffer positions.  END is ignored.  */)
       start_byte = CHAR_TO_BYTE (XINT (start));
       end_byte = CHAR_TO_BYTE (XINT (end));
       if (XINT (end) - XINT (start) == end_byte - start_byte)
-	return Qt;
+	return Qnil;
 
       if (XINT (start) < GPT && XINT (end) > GPT)
 	{
@@ -9286,8 +9677,8 @@ usage: (define-coding-system-internal ...)  */)
     }
   CODING_ATTR_CHARSET_LIST (attrs) = charset_list;
 
-  safe_charsets = Fmake_string (make_number (max_charset_id + 1),
-				make_number (255));
+  safe_charsets = make_uninit_string (max_charset_id + 1);
+  memset (SDATA (safe_charsets), 255, max_charset_id + 1);
   for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
     SSET (safe_charsets, XFASTINT (XCAR (tail)), 0);
   CODING_ATTR_SAFE_CHARSETS (attrs) = safe_charsets;
@@ -10439,7 +10830,11 @@ decode text as usual.  */);
   DEFVAR_LISP ("translation-table-for-input", &Vtranslation_table_for_input,
 	       doc: /* Char table for translating self-inserting characters.
 This is applied to the result of input methods, not their input.
-See also `keyboard-translate-table'.  */);
+See also `keyboard-translate-table'.
+
+Use of this variable for character code unification was rendered
+obsolete in Emacs 23.1 and later, since Unicode is now the basis of
+internal character representation.  */);
     Vtranslation_table_for_input = Qnil;
 
   {

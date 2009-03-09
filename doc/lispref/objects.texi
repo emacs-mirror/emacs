@@ -33,10 +33,10 @@ include @dfn{integer}, @dfn{float}, @dfn{cons}, @dfn{symbol},
   Each primitive type has a corresponding Lisp function that checks
 whether an object is a member of that type.
 
-  Note that Lisp is unlike many other languages in that Lisp objects are
-@dfn{self-typing}: the primitive type of the object is implicit in the
-object itself.  For example, if an object is a vector, nothing can treat
-it as a number; Lisp knows it is a vector, not a number.
+  Lisp is unlike many other languages in that its objects are
+@dfn{self-typing}: the primitive type of each object is implicit in
+the object itself.  For example, if an object is a vector, nothing can
+treat it as a number; Lisp knows it is a vector, not a number.
 
   In most languages, the programmer must declare the data type of each
 variable, and the type is known by the compiler but not represented in
@@ -346,18 +346,19 @@ following text.)
 @subsubsection General Escape Syntax
 
   In addition to the specific escape sequences for special important
-control characters, Emacs provides general categories of escape syntax
-that you can use to specify non-ASCII text characters.
+control characters, Emacs provides several types of escape syntax that
+you can use to specify non-ASCII text characters.
 
 @cindex unicode character escape
-  For instance, you can specify characters by their Unicode values.
+  You can specify characters by their Unicode values.
 @code{?\u@var{nnnn}} represents a character that maps to the Unicode
-code point @samp{U+@var{nnnn}}.  There is a slightly different syntax
-for specifying characters with code points above @code{#xFFFF};
-@code{\U00@var{nnnnnn}} represents the character whose Unicode code
-point is @samp{U+@var{nnnnnn}}, if such a character is supported by
-Emacs.  If the corresponding character is not supported, Emacs signals
-an error.
+code point @samp{U+@var{nnnn}} (by convention, Unicode code points are
+given in hexadecimal).  There is a slightly different syntax for
+specifying characters with code points higher than
+@code{U+@var{ffff}}: @code{\U00@var{nnnnnn}} represents the character
+whose code point is @samp{U+@var{nnnnnn}}.  The Unicode standard only
+defines code points up to @samp{U+@var{10ffff}}, so if you specify a
+code point higher than that, Emacs signals an error.
 
   This peculiar and inconvenient syntax was adopted for compatibility
 with other programming languages.  Unlike some other languages, Emacs
@@ -987,12 +988,13 @@ of a string returns the same string.
 @cindex double-quote in strings
 @cindex @samp{\} in strings
 @cindex backslash in strings
-  The read syntax for strings is a double-quote, an arbitrary number of
-characters, and another double-quote, @code{"like this"}.  To include a
-double-quote in a string, precede it with a backslash; thus, @code{"\""}
-is a string containing just a single double-quote character.  Likewise,
-you can include a backslash by preceding it with another backslash, like
-this: @code{"this \\ is a single embedded backslash"}.
+  The read syntax for a string is a double-quote, an arbitrary number
+of characters, and another double-quote, @code{"like this"}.  To
+include a double-quote in a string, precede it with a backslash; thus,
+@code{"\""} is a string containing just a single double-quote
+character.  Likewise, you can include a backslash by preceding it with
+another backslash, like this: @code{"this \\ is a single embedded
+backslash"}.
 
 @cindex newline in strings
   The newline character is not special in the read syntax for strings;
@@ -1392,6 +1394,7 @@ editing.
 * Stream Type::         Receive or send characters.
 * Keymap Type::         What function a keystroke invokes.
 * Overlay Type::        How an overlay is represented.
+* Font Type::           Fonts for displaying text.
 @end menu
 
 @node Buffer Type
@@ -1401,23 +1404,23 @@ editing.
 (@pxref{Buffers}).  Most buffers hold the contents of a disk file
 (@pxref{Files}) so they can be edited, but some are used for other
 purposes.  Most buffers are also meant to be seen by the user, and
-therefore displayed, at some time, in a window (@pxref{Windows}).  But a
-buffer need not be displayed in any window.
+therefore displayed, at some time, in a window (@pxref{Windows}).  But
+a buffer need not be displayed in any window.  Each buffer has a
+designated position called @dfn{point} (@pxref{Positions}); most
+editing commands act on the contents of the current buffer in the
+neighborhood of point.  At any time, one buffer is the @dfn{current
+buffer}.
 
   The contents of a buffer are much like a string, but buffers are not
 used like strings in Emacs Lisp, and the available operations are
 different.  For example, you can insert text efficiently into an
 existing buffer, altering the buffer's contents, whereas ``inserting''
-text into a string requires concatenating substrings, and the result is
-an entirely new string object.
+text into a string requires concatenating substrings, and the result
+is an entirely new string object.
 
-  Each buffer has a designated position called @dfn{point}
-(@pxref{Positions}).  At any time, one buffer is the @dfn{current
-buffer}.  Most editing commands act on the contents of the current
-buffer in the neighborhood of point.  Many of the standard Emacs
-functions manipulate or test the characters in the current buffer; a
-whole chapter in this manual is devoted to describing these functions
-(@pxref{Text}).
+  Many of the standard Emacs functions manipulate or test the
+characters in the current buffer; a whole chapter in this manual is
+devoted to describing these functions (@pxref{Text}).
 
   Several other data structures are associated with each buffer:
 
@@ -1568,10 +1571,11 @@ window configurations.
 @cindex window layout, all frames
 
   A @dfn{frame configuration} stores information about the positions,
-sizes, and contents of the windows in all frames.  It is actually
-a list whose @sc{car} is @code{frame-configuration} and whose
-@sc{cdr} is an alist.  Each alist element describes one frame,
-which appears as the @sc{car} of that element.
+sizes, and contents of the windows in all frames.  It is not a
+primitive type---it is actually a list whose @sc{car} is
+@code{frame-configuration} and whose @sc{cdr} is an alist.  Each alist
+element describes one frame, which appears as the @sc{car} of that
+element.
 
   @xref{Frame Configurations}, for a description of several functions
 related to frame configurations.
@@ -1649,6 +1653,17 @@ syntax, and print in hash notation, giving the buffer name and range of
 positions.
 
   @xref{Overlays}, for how to create and use overlays.
+
+@node Font Type
+@subsection Font Type
+
+  A @dfn{font} specifies how to display text on a graphical terminal.
+There are actually three separate font types---@dfn{font objects},
+@dfn{font specs}, and @dfn{font entities}---each of which has slightly
+different properties.  None of them have a read syntax; their print
+syntax looks like @samp{#<font-object>}, @samp{#<font-spec>}, and
+@samp{#<font-entity>} respectively.  @xref{Low-Level Font}, for a
+description of these Lisp objects.
 
 @node Circular Objects
 @section Read Syntax for Circular Objects
@@ -1806,6 +1821,9 @@ with references to further information.
 @item floatp
 @xref{Predicates on Numbers, floatp}.
 
+@item fontp
+@xref{Low-Level Font}.
+
 @item frame-configuration-p
 @xref{Frame Configurations, frame-configuration-p}.
 
@@ -1903,11 +1921,12 @@ types.  In most cases, it is more convenient to use type predicates than
 
 @defun type-of object
 This function returns a symbol naming the primitive type of
-@var{object}.  The value is one of the symbols @code{symbol},
-@code{integer}, @code{float}, @code{string}, @code{cons}, @code{vector},
-@code{char-table}, @code{bool-vector}, @code{hash-table}, @code{subr},
-@code{compiled-function}, @code{marker}, @code{overlay}, @code{window},
-@code{buffer}, @code{frame}, @code{process}, or
+@var{object}.  The value is one of the symbols @code{bool-vector},
+@code{buffer}, @code{char-table}, @code{compiled-function},
+@code{cons}, @code{float}, @code{font-entity}, @code{font-object},
+@code{font-spec}, @code{frame}, @code{hash-table}, @code{integer},
+@code{marker}, @code{overlay}, @code{process}, @code{string},
+@code{subr}, @code{symbol}, @code{vector}, @code{window}, or
 @code{window-configuration}.
 
 @example

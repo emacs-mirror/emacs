@@ -2,7 +2,6 @@
 @setfilename ../../info/tramp
 @c %**start of header
 @settitle TRAMP User Manual
-@setchapternewpage odd
 @c %**end of header
 
 @c This is *so* much nicer :)
@@ -62,21 +61,15 @@ supports it in developing GNU and promoting software freedom.''
                                  @value{emacsname} remote file access via rsh and rcp.
 @end direntry
 
-@tex
-
 @titlepage
 @title @value{tramp} version @value{trampver} User Manual
-
 @author by Daniel Pittman
 @author based on documentation by Kai Gro@ss{}johann
-
 @page
 @insertcopying
-
 @end titlepage
-@page
 
-@end tex
+@contents
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
@@ -3490,8 +3483,6 @@ for @value{emacsothername}.
 @unnumbered Concept Index
 @printindex cp
 
-@contents
-@c End of tramp.texi - the TRAMP User Manual
 @bye
 
 @c TODO

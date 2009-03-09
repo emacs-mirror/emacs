@@ -277,7 +277,7 @@ slight error in typing the name.
 
 @vindex find-file-run-dired
   If you ``visit'' a file that is actually a directory, Emacs invokes
-Dired, the Emacs directory browser; this lets you you ``edit'' the
+Dired, the Emacs directory browser; this lets you ``edit'' the
 contents of the directory.  @xref{Dired}.  You can disable this
 behavior by setting the variable @code{find-file-run-dired} to
 @code{nil}; in that case, it is an error to try to visit a directory.

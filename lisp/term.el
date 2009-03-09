@@ -895,6 +895,7 @@ is buffer-local.")
     (unless (or (eq i ?O) (eq i 91))
 		(define-key esc-map (make-string 1 i) 'term-send-raw-meta))
     (setq i (1+ i)))
+  (define-key map [remap self-insert-command] 'term-send-raw)
   (define-key map "\e" esc-map)
   (setq term-raw-map map)
   (setq term-raw-escape-map
@@ -1181,7 +1182,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   "Send the last character typed through the terminal-emulator
 without any interpretation."
   (interactive)
- ;; Convert `return' to C-m, etc.
+  (deactivate-mark)
+  ;; Convert `return' to C-m, etc.
   (when (and (symbolp last-input-event)
 	     (get last-input-event 'ascii-character))
     (setq last-input-event (get last-input-event 'ascii-character)))
@@ -1189,6 +1191,7 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
+  (deactivate-mark)
   (let ((char last-input-event))
     (when (symbolp last-input-event)
       ;; Convert `return' to C-m, etc.

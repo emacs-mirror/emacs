@@ -67,10 +67,16 @@ top_srcdir := $(subst \,/,$(shell cd))
 # Find out which version of Emacs this is.
 version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
 
-# Do we need to bootstrap?
+# Q: Do we need to bootstrap?
+# A: Only if we find admin/admin.el, i.e. we are building out of CVS,
+#    and src/b-emacs.exe does not exist.  This avoids building a
+#    bootstrap-emacs and recompiling Lisp files when building a
+#    pretest/release tarball.
 boot :=
+ifneq ($(wildcard admin/admin.el),)
 ifeq ($(wildcard src/b-emacs.exe),)
 boot := b-emacs.exe
+endif
 endif
 
 # Subdirectories to run Make.  `lisp' is not included because the

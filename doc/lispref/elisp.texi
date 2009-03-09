@@ -6,8 +6,8 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
-@set VERSION  2.9
-@set EMACSVER 23.0.90
+@set VERSION  3.0
+@set EMACSVER 23.0.91
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -283,6 +283,7 @@ Editing Types
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
+* Font Type::               Fonts for displaying text.
 
 Numbers
 
@@ -424,7 +425,6 @@ Variables
 * File Local Variables::    Handling local variable lists in files.
 * Directory Local Variables:: Local variables common to all files in a directory.
 * Frame-Local Variables::   Frame-local bindings for variables.
-* Future Local Variables::  New kinds of local values we might add some day.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.

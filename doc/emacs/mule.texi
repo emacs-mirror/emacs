@@ -103,6 +103,7 @@ to make sure Emacs interprets keyboard input correctly; see
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
+* Modifying Fontsets::      Modifying an existing fontset.
 * Undisplayable Characters:: When characters don't display.
 * Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
@@ -1333,8 +1334,10 @@ non-graphic characters.
   A font typically defines shapes for a single alphabet or script.
 Therefore, displaying the entire range of scripts that Emacs supports
 requires a collection of many fonts.  In Emacs, such a collection is
-called a @dfn{fontset}.  A fontset is defined by a list of fonts, each
-assigned to handle a range of character codes.
+called a @dfn{fontset}.  A fontset is defined by a list of font specs,
+each assigned to handle a range of character codes, and may fall back
+on another fontset for characters which are not covered by the fonts
+it specifies.
 
   Each fontset has a name, like a font.  However, while fonts are
 stored in the system and the available font names are defined by the
@@ -1347,13 +1350,14 @@ use for them has no font for those characters.@footnote{The Emacs
 installation instructions have information on additional font
 support.}
 
-  Emacs creates two fontsets automatically: the @dfn{standard fontset}
-and the @dfn{startup fontset}.  The standard fontset is most likely to
-have fonts for a wide variety of non-@acronym{ASCII} characters;
-however, this is not the default for Emacs to use.  (By default, Emacs
-tries to find a font that has bold and italic variants.)  You can
-specify use of the standard fontset with the @samp{-fn} option.  For
-example,
+  Emacs creates three fontsets automatically: the @dfn{standard
+fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
+The default fontset is most likely to have fonts for a wide variety of
+non-@acronym{ASCII} characters and is the default fallback for the
+other two fontsets, and if you set a default font rather than fontset.
+However it does not specify font family names, so results can be
+somewhat random if you use it directly.  You can specify use of a
+specific fontset with the @samp{-fn} option.  For example,
 
 @example
 emacs -fn fontset-standard
@@ -1362,6 +1366,11 @@ emacs -fn fontset-standard
 @noindent
 You can also specify a fontset with the @samp{Font} resource (@pxref{X
 Resources}).
+
+  If no fontset is specified for use, then Emacs uses an
+@acronym{ASCII} font, with @samp{fontset-default} as a fallback for
+characters the font does not cover.  The standard fontset is only used if
+explicitly requested, despite its name.
 
   A fontset does not necessarily specify a font for every character
 code.  If a fontset specifies no font for a certain character, or if it
@@ -1373,8 +1382,10 @@ empty box instead.
 @section Defining fontsets
 
 @vindex standard-fontset-spec
+@vindex w32-standard-fontset-spec
+@vindex ns-standard-fontset-spec
 @cindex standard fontset
-  Emacs creates a standard fontset automatically according to the value
+  When running on X, Emacs creates a standard fontset automatically according to the value
 of @code{standard-fontset-spec}.  This fontset's name is
 
 @example
@@ -1384,19 +1395,23 @@ of @code{standard-fontset-spec}.  This fontset's name is
 @noindent
 or just @samp{fontset-standard} for short.
 
+  On GNUstep and Mac, fontset-standard is created using the value of
+@code{ns-standard-fontset-spec}, and on Windows it is
+created using the value of @code{w32-standard-fontset-spec}.
+
   Bold, italic, and bold-italic variants of the standard fontset are
 created automatically.  Their names have @samp{bold} instead of
 @samp{medium}, or @samp{i} instead of @samp{r}, or both.
 
 @cindex startup fontset
-  If you specify a default @acronym{ASCII} font with the @samp{Font} resource or
-the @samp{-fn} argument, Emacs generates a fontset from it
-automatically.  This is the @dfn{startup fontset} and its name is
-@code{fontset-startup}.  It does this by replacing the @var{foundry},
-@var{family}, @var{add_style}, and @var{average_width} fields of the
-font name with @samp{*}, replacing @var{charset_registry} field with
-@samp{fontset}, and replacing @var{charset_encoding} field with
-@samp{startup}, then using the resulting string to specify a fontset.
+  Emacs generates a fontset automatically, based on any default
+@acronym{ASCII} font that you specify with the @samp{Font} resource or
+the @samp{-fn} argument, or the default font that Emacs found when it
+started.  This is the @dfn{startup fontset} and its name is
+@code{fontset-startup}.  It does this by replacing the
+@var{charset_registry} field with @samp{fontset}, and replacing
+@var{charset_encoding} field with @samp{startup}, then using the
+resulting string to specify a fontset.
 
   For instance, if you start Emacs this way,
 
@@ -1409,8 +1424,13 @@ Emacs generates the following fontset and uses it for the initial X
 window frame:
 
 @example
--*-*-medium-r-normal-*-14-140-*-*-*-*-fontset-startup
+-*-courier-medium-r-normal-*-14-140-*-*-*-*-fontset-startup
 @end example
+
+  The startup fontset will use the font that you specify or a variant
+with a different registry and encoding for all the characters which
+are supported by that font, and fallback on @samp{fontset-default} for
+other characters.
 
   With the X resource @samp{Emacs.Font}, you can specify a fontset name
 just like an actual font name.  But be careful not to specify a fontset
@@ -1495,6 +1515,41 @@ fontset is called @code{create-fontset-from-fontset-spec}.  You can also
 call this function explicitly to create a fontset.
 
   @xref{Font X}, for more information about font naming in X.
+
+@node Modifying Fontsets
+@section Modifying Fontsets
+@cindex fontsets, modifying
+@findex set-fontset-font
+
+  Fontsets do not always have to be created from scratch.  If only
+minor changes are required it may be easier to modify an existing
+fontset.  Modifying @samp{fontset-default} will also affect other
+fontsets that use it as a fallback, so can be an effective way of
+fixing problems with the fonts that Emacs chooses for a particular
+script.
+
+Fontsets can be modified using the function @code{set-fontset-font},
+specifying a character, a charset, a script, or a range of characters
+to modify the font for, and a font-spec for the font to be used. Some
+examples are:
+
+@example
+;; Use Liberation Mono for latin-3 charset.
+(set-fontset-font "fontset-default" 'iso-8859-3 "Liberation Mono")
+
+;; Prefer a big5 font for han characters
+(set-fontset-font "fontset-default" 'han (font-spec :registry "big5")
+                  nil 'prepend)
+
+;; Use DejaVu Sans Mono as a fallback in fontset-startup before
+;; resorting to fontset-default.
+(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono" nil 'append)
+
+;; Use MyPrivateFont for the Unicode private use area.
+(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff) "MyPrivateFont")
+
+@end example
+
 
 @node Undisplayable Characters
 @section Undisplayable Characters

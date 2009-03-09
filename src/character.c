@@ -1047,7 +1047,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
       if (NILP (position))
 	{
 	  p = PT_ADDR;
-	}	  
+	}
       else
 	{
 	  CHECK_NUMBER_COERCE_MARKER (position);
@@ -1166,7 +1166,7 @@ It has one extra slot whose value is a list of script symbols.  */);
   DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
 	       doc: /* Alist of scripts vs the representative characters.
 Each element is a cons (SCRIPT . CHARS).
-SCRIPT is a symbol representing a script or a subgroupd of a script.
+SCRIPT is a symbol representing a script or a subgroup of a script.
 CHARS is a list or a vector of characters.
 If it is a list, all characters in the list are necessary for supporting SCRIPT.
 If it is a vector, one of the characters in the vector is necessary.

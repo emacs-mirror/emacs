@@ -1443,15 +1443,27 @@ non-nil, a caret is prepended to invert the set."
 			 '1-bit)
 		       list)))
 
-    ;; In Emacs >= 23, beginning-of-defun-raw passes its argument to
-    ;; beginning-of-defun-function.  Assume end-of-defun does likewise.
-    (let ((beginning-of-defun-function
-	   (lambda (&optional arg)
-	     (not (eq arg nil))))
-	  mark-ring)
-      (save-excursion
-	(if (beginning-of-defun-raw 1)
-	    (setq list (cons 'argumentative-bod-function list)))))
+    ;; Check whether beginning/end-of-defun call
+    ;; beginning/end-of-defun-function nicely, passing through the
+    ;; argument and respecting the return code.
+    (let* (mark-ring
+	   (bod-param 'foo) (eod-param 'foo)
+	   (beginning-of-defun-function
+	    (lambda (&optional arg)
+	      (or (eq bod-param 'foo) (setq bod-param 'bar))
+	      (and (eq bod-param 'foo)
+		   (setq bod-param arg)
+		   (eq arg 3))))
+	   (end-of-defun-function
+	    (lambda (&optional arg)
+	      (and (eq eod-param 'foo)
+		   (setq eod-param arg)
+		   (eq arg 3)))))
+      (if (save-excursion (and (beginning-of-defun 3) (eq bod-param 3)
+			       (not (beginning-of-defun))
+			       (end-of-defun 3) (eq eod-param 3)
+			       (not (end-of-defun))))
+	  (setq list (cons 'argumentative-bod-function list))))
 
     (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties

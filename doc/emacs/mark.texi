@@ -180,7 +180,7 @@ that paragraph, and the mark goes at the start of the region.
   Similarly, @kbd{C-M-h} (@code{mark-defun}) sets mark and point
 around major top-level definitions (@pxref{Moving by Defuns}), and
 @kbd{C-x C-p} (@code{mark-page}) does the same for pages
-(@pxref{Pages}).  These treat repeated invokations and prefix
+(@pxref{Pages}).  These treat repeated invocations and prefix
 arguments similarly to @code{mark-paragraph}.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire

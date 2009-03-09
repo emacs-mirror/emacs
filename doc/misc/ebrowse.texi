@@ -43,11 +43,15 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
-@node Top, Overview, (dir), (dir)
+@contents
 
 @ifnottex
+@node Top, Overview, (dir), (dir)
+
 You can browse C++ class hierarchies from within Emacs by using
 Ebrowse.
+
+@insertcopying
 @end ifnottex
 
 @menu
@@ -1448,7 +1452,6 @@ in on with the command @kbd{C-c C-m m}.
 @unnumbered Concept Index
 @printindex cp
 
-@contents
 @bye
 
 @ignore

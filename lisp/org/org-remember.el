@@ -538,7 +538,7 @@ to be run from that hook to function properly."
 			   propprompt
 			   (mapcar 'list (org-split-string allowed "[ \t]+"))
 			   nil 'req-match)
-			(org-completing-read propprompt existing nil nil
+			(org-completing-read-no-ido propprompt existing nil nil
 					     "" nil ""))))
 	      (org-set-property prop val)))
 	   (char

@@ -44,6 +44,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @node Top, Overview, (dir), (dir)
 @chapter Introduction
 
@@ -52,6 +54,10 @@ This document describes a set of Emacs Lisp facilities borrowed from
 Common Lisp.  All the facilities are described here in detail.  While
 this document does not assume any prior knowledge of Common Lisp, it
 does assume a basic familiarity with Emacs Lisp.
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @menu
 * Overview::             Installation, usage, etc.
@@ -5329,8 +5335,6 @@ recursion.
 
 @printindex vr
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

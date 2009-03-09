@@ -62,7 +62,6 @@ Public License.''
 @end direntry
 
 @c Title Page
-@setchapternewpage odd
 @titlepage
 @title The MH-E Manual
 @subtitle Version @value{VERSION}@value{EDITION}
@@ -2667,7 +2666,7 @@ documentation for the Gnus command @kbd{W h} (see section
 @findex browse-url-at-mouse
 @kindex S-Mouse-2
 
-A useful key binding that you can add to to @file{~/.emacs} is the
+A useful key binding that you can add to @file{~/.emacs} is the
 following which displays an HTML link or textual URL in an external
 browser when clicked with @kbd{S-mouse-2}. This binding works in any
 buffer, including HTML buffers.

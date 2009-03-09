@@ -843,14 +843,10 @@ Knows about the special cases in variable `default-directory-alist'."
   "Like function `shell-command', but in the current Virtual Dired directory."
   (interactive
    (list
-    (minibuffer-with-setup-hook
-	(lambda ()
-	  (set (make-local-variable 'minibuffer-default-add-function)
-	       'minibuffer-default-add-shell-commands))
-      (read-shell-command "Shell command: " nil nil
-			  (cond
-			   (buffer-file-name (file-relative-name buffer-file-name))
-			   ((eq major-mode 'dired-mode) (dired-get-filename t t)))))
+    (read-shell-command "Shell command: " nil nil
+			(cond
+			 (buffer-file-name (file-relative-name buffer-file-name))
+			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
   (let ((default-directory (dired-default-directory)))
@@ -1135,7 +1131,7 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
  \(setq dired-guess-shell-alist-user
        (list (list \"\\\\.foo\\\\'\" \"FOO-COMMAND\");; fixed rule
               ;; possibly more rules ...
-              (list \"\\\\.bar\\\'\";; rule with condition test
+              (list \"\\\\.bar\\\\'\";; rule with condition test
                     '(if condition
                           \"BAR-COMMAND-1\"
                         \"BAR-COMMAND-2\")))\)"
@@ -1191,7 +1187,7 @@ See `dired-guess-shell-alist-user'."
         default-list val)
     (if (null default)
         ;; Nothing to guess
-        (read-from-minibuffer prompt nil nil nil 'dired-shell-command-history)
+        (read-shell-command prompt nil 'dired-shell-command-history)
       (if (listp default)
           ;; More than one guess
           (setq default-list default
@@ -1204,24 +1200,28 @@ See `dired-guess-shell-alist-user'."
       ;; Put the first guess in the prompt but not in the initial value.
       (setq prompt (concat prompt (format "[%s] " default)))
       ;; All guesses can be retrieved with M-n
-      (setq val (read-from-minibuffer prompt nil nil nil
-                                      'dired-shell-command-history
-                                      default-list))
+      (setq val (read-shell-command prompt nil
+                                    'dired-shell-command-history
+                                    default-list))
       ;; If we got a return, then return default.
       (if (equal val "") default val))))
 
 ;; REDEFINE.
 ;; Redefine dired-aux.el's version:
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using read-string).
+  "Read a dired shell command prompting with PROMPT (using read-shell-command).
 ARG is the prefix arg and may be used to indicate in the prompt which
-  files are affected.
+FILES are affected.
 This is an extra function so that you can redefine it."
-  (dired-mark-pop-up
-   nil 'shell files
-   'dired-guess-shell-command
-   (format prompt (dired-mark-prompt arg files)) ; PROMPT
-   files))                                       ; FILES
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (set (make-local-variable 'minibuffer-default-add-function)
+             'minibuffer-default-add-dired-shell-commands))
+    (dired-mark-pop-up
+     nil 'shell files
+     'dired-guess-shell-command
+     (format prompt (dired-mark-prompt arg files)) ; PROMPT
+     files)))                                      ; FILES
 
 
 ;;; RELATIVE SYMBOLIC LINKS.

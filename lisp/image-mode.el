@@ -321,7 +321,6 @@ You can use \\<image-mode-map>\\[image-toggle-display]
 to toggle between display as an image and display as text."
   (interactive)
   (kill-all-local-variables)
-  (setq mode-name "Image[text]")
   (setq major-mode 'image-mode)
   ;; Use our own bookmarking function for images.
   (set (make-local-variable 'bookmark-make-record-function)
@@ -332,13 +331,16 @@ to toggle between display as an image and display as text."
 
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (display-images-p)
-      (if (not (get-text-property (point-min) 'display))
+      (if (not (image-get-display-property))
 	  (image-toggle-display)
 	;; Set next vars when image is already displayed but local
 	;; variables were cleared by kill-all-local-variables
 	(use-local-map image-mode-map)
-	(setq cursor-type nil truncate-lines t))
+	(setq cursor-type nil truncate-lines t
+	      image-type (plist-get (cdr (image-get-display-property)) :type)))
+    (setq image-type "text")
     (use-local-map image-mode-text-map))
+  (setq mode-name (format "Image[%s]" image-type))
   (run-mode-hooks 'image-mode-hook)
   (if (display-images-p)
       (message "%s" (concat
@@ -357,15 +359,21 @@ See the command `image-mode' for more information on this mode."
   :version "22.1"
   (if (not image-minor-mode)
       (image-toggle-display-text)
-    (if (image-get-display-property)
-	(setq cursor-type nil truncate-lines t)
-      (setq image-type "text"))
     (image-mode-setup-winprops)
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
-    (message "%s" (concat (substitute-command-keys
-			   "Type \\[image-toggle-display] to view the image as ")
-			  (if (image-get-display-property)
-			      "text" "an image") "."))))
+    (if (display-images-p)
+	(if (not (image-get-display-property))
+	    (image-toggle-display)
+	  (setq cursor-type nil truncate-lines t
+		image-type (plist-get (cdr (image-get-display-property)) :type)))
+      (setq image-type "text")
+      (use-local-map image-mode-text-map))
+    (if (display-images-p)
+	(message "%s" (concat
+		       (substitute-command-keys
+			"Type \\[image-toggle-display] to view the image as ")
+		       (if (image-get-display-property)
+			   "text" "an image") ".")))))
 
 ;;;###autoload
 (defun image-mode-maybe ()
@@ -449,8 +457,9 @@ and showing the image as an image."
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
       (image-refresh image)
-      (add-text-properties (point-min) (point-max) props)
-      (set-buffer-modified-p modified)
+      (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
+	(add-text-properties (point-min) (point-max) props)
+	(restore-buffer-modified-p modified))
       ;; Inhibit the cursor when the buffer contains only an image,
       ;; because cursors look very strange on top of images.
       (setq cursor-type nil)
@@ -465,7 +474,7 @@ and showing the image as an image."
 	  (setq mode-name (format "Image[%s]" type)))
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
-
+
 ;;; Support for bookmark.el
 (declare-function bookmark-make-record-default "bookmark"
                   (&optional point-only))
@@ -477,8 +486,6 @@ and showing the image as an image."
          `((image-type . ,image-type)
            (handler    . image-bookmark-jump))))
 
-
-
 ;;;###autoload
 (defun image-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
@@ -486,7 +493,7 @@ and showing the image as an image."
   (prog1 (bookmark-default-handler bmk)
     (when (not (string= image-type (bookmark-prop-get bmk 'image-type)))
       (image-toggle-display))))
-
+
 (provide 'image-mode)
 
 ;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb

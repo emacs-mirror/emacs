@@ -486,36 +486,51 @@ This is necessary if one wants to dump man.el with Emacs."
 	(apply 'list
 	 (cons
 	  Man-sed-command
-	  (list
-	   (if Man-sed-script
-	       (concat "-e '" Man-sed-script "'")
-	     "")
-	   "-e '/^[\001-\032][\001-\032]*$/d'"
-	   "-e '/\e[789]/s///g'"
-	   "-e '/Reformatting page.  Wait/d'"
-	   "-e '/Reformatting entry.  Wait/d'"
-	   "-e '/^[ \t]*Hewlett-Packard[ \t]Company[ \t]*-[ \t][0-9]*[ \t]-/d'"
-	   "-e '/^[ \t]*Hewlett-Packard[ \t]*-[ \t][0-9]*[ \t]-.*$/d'"
-	   "-e '/^[ \t][ \t]*-[ \t][0-9]*[ \t]-[ \t]*Formatted:.*[0-9]$/d'"
-	   "-e '/^[ \t]*Page[ \t][0-9]*.*(printed[ \t][0-9\\/]*)$/d'"
-	   "-e '/^Printed[ \t][0-9].*[0-9]$/d'"
-	   "-e '/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d'"
-	   "-e '/^[A-Za-z].*Last[ \t]change:/d'"
-	   "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
-	   "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
-	   "-e '/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d'"
-	   ))
-	 (cons
-	  Man-awk-command
-	  (list
-	   "'\n"
-	   "BEGIN { blankline=0; anonblank=0; }\n"
-	   "/^$/ { if (anonblank==0) next; }\n"
-	   "{ anonblank=1; }\n"
-	   "/^$/ { blankline++; next; }\n"
-	   "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }\n"
-	   "'"
-	   ))
+	  (if (eq system-type 'windows-nt)
+	      ;; Windows needs ".." quoting, not '..'.
+	      (list
+	       "-e \"/Reformatting page.  Wait/d\""
+	       "-e \"/Reformatting entry.  Wait/d\""
+	       "-e \"/^[ \t][ \t]*-[ \t][0-9]*[ \t]-[ \t]*Formatted:.*[0-9]$/d\""
+	       "-e \"/^[ \t]*Page[ \t][0-9]*.*(printed[ \t][0-9\\/]*)$/d\""
+	       "-e \"/^Printed[ \t][0-9].*[0-9]$/d\""
+	       "-e \"/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d\""
+	       "-e \"/^[A-Za-z].*Last[ \t]change:/d\""
+	       "-e \"/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d\""
+	       "-e \"/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d\"")
+	    (list
+	     (if Man-sed-script
+		 (concat "-e '" Man-sed-script "'")
+	       "")
+	     "-e '/^[\001-\032][\001-\032]*$/d'"
+	     "-e '/\e[789]/s///g'"
+	     "-e '/Reformatting page.  Wait/d'"
+	     "-e '/Reformatting entry.  Wait/d'"
+	     "-e '/^[ \t]*Hewlett-Packard[ \t]Company[ \t]*-[ \t][0-9]*[ \t]-/d'"
+	     "-e '/^[ \t]*Hewlett-Packard[ \t]*-[ \t][0-9]*[ \t]-.*$/d'"
+	     "-e '/^[ \t][ \t]*-[ \t][0-9]*[ \t]-[ \t]*Formatted:.*[0-9]$/d'"
+	     "-e '/^[ \t]*Page[ \t][0-9]*.*(printed[ \t][0-9\\/]*)$/d'"
+	     "-e '/^Printed[ \t][0-9].*[0-9]$/d'"
+	     "-e '/^[ \t]*X[ \t]Version[ \t]1[01].*Release[ \t][0-9]/d'"
+	     "-e '/^[A-Za-z].*Last[ \t]change:/d'"
+	     "-e '/^Sun[ \t]Release[ \t][0-9].*[0-9]$/d'"
+	     "-e '/[ \t]*Copyright [0-9]* UNIX System Laboratories, Inc.$/d'"
+	     "-e '/^[ \t]*Rev\\..*Page [0-9][0-9]*$/d'"
+	     )))
+	 ;; Windows doesn't support multi-line commands, so don't
+	 ;; invoke Awk there.
+	 (unless (eq system-type 'windows-nt)
+	   (cons
+	    Man-awk-command
+	    (list
+	     "'\n"
+	     "BEGIN { blankline=0; anonblank=0; }\n"
+	     "/^$/ { if (anonblank==0) next; }\n"
+	     "{ anonblank=1; }\n"
+	     "/^$/ { blankline++; next; }\n"
+	     "{ if (blankline>0) { print \"\"; blankline=0; } print $0; }\n"
+	     "'"
+	     )))
 	 (if (not Man-uses-untabify-flag)
 	     ;; The outer list will be stripped off by apply.
 	     (list (cons

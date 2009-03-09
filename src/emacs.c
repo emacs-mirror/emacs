@@ -106,7 +106,7 @@ int gdb_use_union = 1;
 #endif
 EMACS_INT gdb_valbits = VALBITS;
 EMACS_INT gdb_gctypebits = GCTYPEBITS;
-#ifdef DATA_SEG_BITS
+#if defined (DATA_SEG_BITS) && ! defined (USE_LSB_TAG)
 EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
 EMACS_INT gdb_data_seg_bits = 0;

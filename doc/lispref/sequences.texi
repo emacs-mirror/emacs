@@ -13,10 +13,9 @@ types: lists and arrays.  In other words, any list is a sequence, and
 any array is a sequence.  The common property that all sequences have is
 that each is an ordered collection of elements.
 
-  An @dfn{array} is a single primitive object that has a slot for each
-of its elements.  All the elements are accessible in constant time, but
-the length of an existing array cannot be changed.  Strings, vectors,
-char-tables and bool-vectors are the four types of arrays.
+  An @dfn{array} is a fixed-length object with a slot for each of its
+elements.  All the elements are accessible in constant time.  The four
+types of arrays are strings, vectors, char-tables and bool-vectors.
 
   A list is a sequence of elements, but it is not a single primitive
 object; it is made of cons cells, one cell per element.  Finding the
@@ -46,9 +45,6 @@ But it is possible to add elements to the list, or remove elements.
          |_____________________________________________|
 @end group
 @end example
-
-  The elements of vectors and lists may be any Lisp objects.  The
-elements of strings are all characters.
 
 @menu
 * Sequence Functions::    Functions that accept any kind of sequence.
@@ -223,17 +219,17 @@ y @result{} [foo (69 2)]
 @cindex array
 
   An @dfn{array} object has slots that hold a number of other Lisp
-objects, called the elements of the array.  Any element of an array may
-be accessed in constant time.  In contrast, an element of a list
-requires access time that is proportional to the position of the element
-in the list.
+objects, called the elements of the array.  Any element of an array
+may be accessed in constant time.  In contrast, the time to access an
+element of a list is proportional to the position of that element in
+the list.
 
-  Emacs defines four types of array, all one-dimensional: @dfn{strings},
-@dfn{vectors}, @dfn{bool-vectors} and @dfn{char-tables}.  A vector is a
-general array; its elements can be any Lisp objects.  A string is a
-specialized array; its elements must be characters.  Each type of array
-has its own read syntax.
-@xref{String Type}, and @ref{Vector Type}.
+  Emacs defines four types of array, all one-dimensional:
+@dfn{strings} (@pxref{String Type}), @dfn{vectors} (@pxref{Vector
+Type}), @dfn{bool-vectors} (@pxref{Bool-Vector Type}), and
+@dfn{char-tables} (@pxref{Char-Table Type}).  Vectors and char-tables
+can hold elements of any type, but strings can only hold characters,
+and bool-vectors can only hold @code{t} and @code{nil}.
 
   All four kinds of array share these characteristics:
 
@@ -390,14 +386,13 @@ are often useful for objects known to be arrays.  @xref{Sequence Functions}.
 @section Vectors
 @cindex vector (type)
 
-  Arrays in Lisp, like arrays in most languages, are blocks of memory
-whose elements can be accessed in constant time.  A @dfn{vector} is a
-general-purpose array of specified length; its elements can be any Lisp
-objects.  (By contrast, a string can hold only characters as elements.)
-Vectors in Emacs are used for obarrays (vectors of symbols), and as part
-of keymaps (vectors of commands).  They are also used internally as part
-of the representation of a byte-compiled function; if you print such a
-function, you will see a vector in it.
+  A @dfn{vector} is a general-purpose array whose elements can be any
+Lisp objects.  (By contrast, the elements of a string can only be
+characters.  @xref{Strings and Characters}.)  Vectors are used in
+Emacs for many purposes: as key sequences (@pxref{Key Sequences}), as
+symbol-lookup tables (@pxref{Creating Symbols}), as part of the
+representation of a byte-compiled function (@pxref{Byte Compilation}),
+and more.
 
   In Emacs Lisp, the indices of the elements of a vector start from zero
 and count up from there.
@@ -471,7 +466,7 @@ each initialized to @var{object}.
 
 @defun vconcat &rest sequences
 @cindex copying vectors
-This function returns a new vector containing all the elements of the
+This function returns a new vector containing all the elements of
 @var{sequences}.  The arguments @var{sequences} may be true lists,
 vectors, strings or bool-vectors.  If no @var{sequences} are given, an
 empty vector is returned.
@@ -497,12 +492,6 @@ existing vector.
 The @code{vconcat} function also allows byte-code function objects as
 arguments.  This is a special feature to make it easy to access the entire
 contents of a byte-code function object.  @xref{Byte-Code Objects}.
-
-In Emacs versions before 21, the @code{vconcat} function allowed
-integers as arguments, converting them to strings of digits, but that
-feature has been eliminated.  The proper way to convert an integer to
-a decimal number in this way is with @code{format} (@pxref{Formatting
-Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 
 For other concatenation functions, see @code{mapconcat} in @ref{Mapping
 Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
@@ -531,18 +520,30 @@ character codes.  Any valid character code, without modifiers, can be
 used as an index in a char-table.  You can access a char-table's
 elements with @code{aref} and @code{aset}, as with any array.  In
 addition, a char-table can have @dfn{extra slots} to hold additional
-data not associated with particular character codes.  Char-tables are
-constants when evaluated.
+data not associated with particular character codes.  Like vectors,
+char-tables are constants when evaluated, and can hold elements of any
+type.
 
 @cindex subtype of char-table
-  Each char-table has a @dfn{subtype} which is a symbol.  The subtype
-has two purposes: to distinguish char-tables meant for different uses,
-and to control the number of extra slots.  For example, display tables
-are char-tables with @code{display-table} as the subtype, and syntax
-tables are char-tables with @code{syntax-table} as the subtype.  A valid
-subtype must have a @code{char-table-extra-slots} property which is an
-integer between 0 and 10.  This integer specifies the number of
-@dfn{extra slots} in the char-table.
+  Each char-table has a @dfn{subtype}, a symbol, which serves two
+purposes:
+
+@itemize @bullet
+@item
+The subtype provides an easy way to tell what the char-table is for.
+For instance, display tables are char-tables with @code{display-table}
+as the subtype, and syntax tables are char-tables with
+@code{syntax-table} as the subtype.  The subtype can be queried using
+the function @code{char-table-subtype}, described below.
+
+@item
+The subtype controls the number of @dfn{extra slots} in the
+char-table.  This number is specified by the subtype's
+@code{char-table-extra-slots} symbol property, which should be an
+integer between 0 and 10.  If the subtype has no such symbol property,
+the char-table has no extra slots.  @xref{Property Lists}, for
+information about symbol properties.
+@end itemize
 
 @cindex parent of char-table
   A char-table can have a @dfn{parent}, which is another char-table.  If
@@ -558,18 +559,25 @@ specifies @code{nil}.
 whenever the char-table does not specify any other non-@code{nil} value.
 
 @defun make-char-table subtype &optional init
-Return a newly created char-table, with subtype @var{subtype}.  Each
-element is initialized to @var{init}, which defaults to @code{nil}.  You
-cannot alter the subtype of a char-table after the char-table is
-created.
+Return a newly-created char-table, with subtype @var{subtype} (a
+symbol).  Each element is initialized to @var{init}, which defaults to
+@code{nil}.  You cannot alter the subtype of a char-table after the
+char-table is created.
 
 There is no argument to specify the length of the char-table, because
 all char-tables have room for any valid character code as an index.
+
+If @var{subtype} has the @code{char-table-extra-slots} symbol
+property, that specifies the number of extra slots in the char-table.
+This should be an integer between 0 and 10; otherwise,
+@code{make-char-table} raises an error.  If @var{subtype} has no
+@code{char-table-extra-slots} symbol property (@pxref{Property
+Lists}), the char-table has no extra slots.
 @end defun
 
 @defun char-table-p object
-This function returns @code{t} if @var{object} is a char-table,
-otherwise @code{nil}.
+This function returns @code{t} if @var{object} is a char-table, and
+@code{nil} otherwise.
 @end defun
 
 @defun char-table-subtype char-table

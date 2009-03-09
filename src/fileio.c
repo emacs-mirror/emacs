@@ -4651,7 +4651,7 @@ This calls `write-region-annotate-functions' at the start, and
   specpdl_ptr = specpdl + count1;
 
   /* Call write-region-post-annotation-function. */
-  while (!NILP (Vwrite_region_annotation_buffers))
+  while (CONSP (Vwrite_region_annotation_buffers))
     {
       Lisp_Object buf = XCAR (Vwrite_region_annotation_buffers);
       if (!NILP (Fbuffer_live_p (buf)))
@@ -5404,7 +5404,7 @@ DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        Snext_read_file_uses_dialog_p, 0, 0, 0,
        doc: /* Return t if a call to `read-file-name' will use a dialog.
 The return value is only relevant for a call to `read-file-name' that happens
-before any other event (mouse or keypress) is handeled.  */)
+before any other event (mouse or keypress) is handled.  */)
   ()
 {
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)

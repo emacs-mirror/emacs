@@ -1,3 +1,48 @@
+2009-02-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-remember.el (org-remember-apply-template): Turn off ido for
+	this completion.
+
+	* org.el (org-priority): Also find invisible headings, for remote
+	editing.
+	(org-completing-read-no-ido): New function.
+	(org-make-tags-matcher, org-set-property): Turn off ido for this completion.
+
+	* org-colview.el (org-columns-edit-value): No special treatment of
+	prefix arg.
+
+2009-02-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-block-todo-from-children-or-siblings): Use
+	`org-up-heading-all' so that this will work correctly with hidden
+	property drawers and entries.
+	(org-end-of-line, org-beginning-of-line): Make prefix arg work, by
+	falling back to normal, default command.
+	(org-get-location): Temporarily turn off special behavior.
+
+2009-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* org-rmail.el (rmail-show-message): Restore argument list to the
+	declaration now that this functions behaves in Emacs 23 as in 22.
+
+2009-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* org-footnote.el (org-footnote-at-definition-p): Fix doc typo.
+
+2009-02-12  Joachim Reiter  <Reiter.Joachim@web.de>  (tiny change)
+
+	* org-footnote.el (org-footnote-action): Fix doc typo.
+
+2009-02-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org-exp.el (org-export-preprocess-string): Fix bug with skipping
+	text before first headline.
+	(org-export-remove-or-extract-drawers): Fix regular expression for
+	extracting drawers.
+
+	* org.el (org-format-latex): Stop LaTeX fragment processing in
+	protected examples.
+
 2009-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* org-rmail.el (rmail-show-message): Update declaration.

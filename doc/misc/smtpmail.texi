@@ -414,7 +414,6 @@ cannot accept mail.
 
 @printindex fn
 
-@contents
 @bye
 
 @ignore

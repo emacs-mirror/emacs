@@ -1065,7 +1065,7 @@ up-arrow.
 line.  @kbd{o} visits that file in another window.  @kbd{q} dismisses
 the directory buffer.
 
-  @kbd{x} toggles hiding of up-to-date files.
+  @kbd{x} hides up-to-date files.
 
   @kbd{m} marks the file or directory on the current line.  If the
 region is active, @kbd{m} marks all the files in the region.  There

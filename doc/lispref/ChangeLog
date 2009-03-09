@@ -1,3 +1,109 @@
+2009-03-05  John Foerch  <jjfoerch@earthlink.net>  (tiny change)
+
+	* display.texi (Display Margins): Fix paren typo.
+
+2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* elisp.texi (Top): Update node listing.
+
+	* variables.texi (Variables): Clarify introduction.
+	(Global Variables): Mention that setq is a special form.
+	(Local Variables): Use active voice.
+	(Tips for Defining): Mention marking variables as safe.
+	(Buffer-Local Variables): Mention terminal-local and frame-local
+	variables together.
+	(File Local Variables): Copyedits.
+	(Frame-Local Variables): Note that they are not really useful.
+	(Future Local Variables): Node deleted.
+
+	* objects.texi (General Escape Syntax): Update explanation of
+	unicode escape syntax.
+
+2009-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* control.texi (Control Structures): Add cindex entry for "textual
+	order".
+
+	* eval.texi (Intro Eval): Copyedits.  Standardize on "form"
+	instead of "expression" throughout.
+	(Function Indirection): Copyedits.  Use active voice.
+	(Eval): The default value of max-lisp-eval-depth is now 400.
+
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* processes.texi (System Processes): Rename `system-process-attributes'
+	to `process-attributes'.
+
+2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* symbols.texi (Property Lists): Emphasize that property lists are
+	not restricted to symbol cells.
+	(Other Plists): Copyedit.
+
+	* sequences.texi (Sequences Arrays Vectors): Make introduction
+	more concise.
+	(Arrays): Mention char-tables and bool-vectors too.
+	(Vectors): Don't repeat information given in Arrays node.  Link to
+	nodes that explain the vector usage examples.
+	(Char-Tables): Note that char-table elements can have arbitrary
+	type.  Explain effect of omitted char-table-extra-slots property.
+	Link to Property Lists node.
+
+2009-02-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lists.texi (Building Lists): Remove obsolete Emacs 20 usage of
+	`append'.
+	(List Elements): Copyedits.
+
+	* sequences.texi (Vector Functions): Remove obsolete Emacs 20 use
+	of `vconcat'.
+
+	* strings.texi (Creating Strings): Copyedits.  Remove obsolete
+	Emacs 20 usage of `concat'.
+	(Case Conversion): Copyedits.
+
+2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Lisp Data Types, Syntax for Strings, Buffer Type):
+	Minor edits.
+	(Frame Configuration Type): Emphasize that it is not primitive.
+	(Font Type): New node.
+	(Type Predicates): Add fontp; type-of now recognizes font object
+	types.
+
+	* intro.texi (Version Info): Update version numbers in examples.
+	(Acknowledgements): List more contributors.
+
+	* elisp.texi: Bump version number to 3.0.
+	(Top): Link to Font Type node.
+
+2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Major Mode Conventions): Remove duplicate words.
+	(Customizing Keywords): Fix typo.
+
+2009-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (User-Chosen Coding Systems): Document that
+	select-safe-coding-system suggests raw-text if there are raw bytes
+	in the region.
+	(Explicit Encoding): Warn not to use `undecided' when encoding.
+
+2009-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Visibility of Frames): Mention the effect multiple
+	workspaces/desktops can have on visibility.
+
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Commands for Insertion):
+	* commands.texi (Event Mod):
+	* keymaps.texi (Searching Keymaps):
+	* nonascii.texi (Translation of Characters): Reinstate
+	documentation of translation-table-for-input.
+	(Explicit Encoding): Document the `charset' text property produced
+	by decode-coding-region and decode-coding-string.
+
 2009-01-27  Alan Mackenzie  <acm@muc.de>
 
 	* modes.texi (Search-based Fontification): Correct a typo.

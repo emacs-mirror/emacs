@@ -37,10 +37,13 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
-@c fixme; title page doesn't show up in ada-mode.info; why bother with
-@c it?
+@contents
 
 @node Top, Overview, (dir), (dir)
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @menu
 * Overview::
@@ -373,7 +376,7 @@ and other things on a per-project basis.
 
 Note that Ada mode project files @samp{*.adp} are different than GNAT
 compiler project files @samp{*.gpr}. However, Emacs Ada mode can use a
-GNAT project project file to specify the project directories. If no
+GNAT project file to specify the project directories. If no
 other customization is needed, a GNAT project file can be used without
 an Emacs Ada mode project file.
 
@@ -749,7 +752,7 @@ point is put at the place of the error in the @file{hello.adb} buffer.
 To fix the error, change the line to be
 
 @example
-    Ada.Text_IO.Put_Line ("hello from hello.adb"):
+    Ada.Text_IO.Put_Line ("hello from hello.adb");
 @end example
 
 Now invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello}.
@@ -1348,7 +1351,7 @@ to @code{My_VARIable}.
 @end table
 
 Ada mode allows you to define exceptions to these rules, in a file
-specified by the variable variable @code{ada-case-exception-file}
+specified by the variable @code{ada-case-exception-file}
 (default @file{~/.emacs_case_exceptions}). Each line in this file
 specifies the casing of one word or word fragment. Comments may be
 included, separated from the word by a space.
@@ -1520,7 +1523,6 @@ autofill the current comment.
 
 @printindex fn
 
-@contents
 @bye
 
 @ignore

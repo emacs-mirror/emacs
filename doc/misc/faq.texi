@@ -4,10 +4,8 @@
 @settitle GNU Emacs FAQ
 @c %**end of header
 
-@setchapternewpage odd
-
 @c This is used in many places
-@set VER 23.0.90
+@set VER 23.0.91
 
 @c This file is maintained by Romain Francoise <rfrancoise@gnu.org>.
 @c Feel free to install changes without prior permission (but I'd
@@ -56,6 +54,8 @@ distribution.]
 @insertcopying
 @end titlepage
 
+@contents
+
 @node    Top, FAQ notation, (dir), (dir)
 
 This is the GNU Emacs FAQ, last updated on @today{}.
@@ -63,6 +63,10 @@ This is the GNU Emacs FAQ, last updated on @today{}.
 This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
 or have any suggestions, please use @kbd{M-x report-emacs-bug} to report
 them.
+
+@ifnottex
+@insertcopying
+@end ifnottex 
 
 @menu
 * FAQ notation::
@@ -3520,6 +3524,7 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 * Packages that do not come with Emacs::
 * Current GNU distributions::
 * Difference between Emacs and XEmacs::
+* Emacs for minimalists::
 * Emacs for MS-DOS::
 * Emacs for Windows::
 * Emacs for OS/2::
@@ -3625,7 +3630,7 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
 @uref{http://www.gnu.org/order/ftp.html}
 
-@node Difference between Emacs and XEmacs, Emacs for MS-DOS, Current GNU distributions, Finding Emacs and related packages
+@node Difference between Emacs and XEmacs, Emacs for minimalists, Current GNU distributions, Finding Emacs and related packages
 @section What is the difference between Emacs and XEmacs (formerly Lucid Emacs)?
 @cindex XEmacs
 @cindex Difference Emacs and XEmacs
@@ -3658,7 +3663,21 @@ origin in the work of the GNU Project.  Terms such as ``Emacsen'' and
 ``(X)Emacs'' are not wrong, but they are not very clear, so it
 is better to write ``Emacs and XEmacs.''
 
-@node Emacs for MS-DOS, Emacs for Windows, Difference between Emacs and XEmacs, Finding Emacs and related packages
+@node Emacs for minimalists, Emacs for MS-DOS, Difference between Emacs and XEmacs, Finding Emacs and related packages
+@section I don't have enough disk space to install Emacs
+@cindex Zile
+@cindex Not enough disk space to install Emacs
+
+GNU Zile is a lightweight Emacs clone.  Zile is short for @samp{Zile Is
+Lossy Emacs}.  It has all of Emacs's basic editing features.  The Zile
+binary typically has a size of about 130 kbytes, so this can be useful
+if you are in an extremely space-restricted environment.  More
+information is available from
+
+@uref{http://www.gnu.org/software/zile/}
+
+
+@node Emacs for MS-DOS, Emacs for Windows, Emacs for minimalists, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running MS-DOS?
 @cindex MS-DOS, Emacs for
 @cindex DOS, Emacs for
@@ -5492,7 +5511,6 @@ part of the Gnus distribution.
 @unnumbered Concept Index
 @printindex cp
 
-@contents
 @bye
 
 @ignore

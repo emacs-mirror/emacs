@@ -1,3 +1,21 @@
+2009-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (main) [MAIL_USE_POP]: Add -r to usage message.
+
+2009-02-13  Sven Joachim  <svenjoac@gmx.de>
+
+	* movemail.c: Include time.h unconditionally.
+	(main): Use time_t for time variables.
+
+2009-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (mbx_delimit_begin): Also write the current time.
+
+2009-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* movemail.c (mbx_delimit_begin, mbx_delimit_end): Write mbox rather
+	than Babyl format.  (Bug#2196)
+
 2009-01-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* emacsclient.c (decode_options): Use a dummy display name under

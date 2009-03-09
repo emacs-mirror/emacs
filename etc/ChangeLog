@@ -1,3 +1,20 @@
+2009-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* MORE.STUFF: Mention Zile.
+
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* NEWS: Rename `system-process-attributes' to `process-attributes'.
+
+2009-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* compilation.txt: Add entry for maven.
+
+2009-02-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* refcards/calccard.tex: Update version number.
+	Mention Maxima mode.
+
 2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* compilation.txt (gnu): Add an example for the "note" format.
@@ -2722,7 +2739,7 @@
 
 	* NEWS: Mention the thumbs.el package.
 
-2004-08-14  Eric Hanchrow  <offby1@blarg.net>
+2004-08-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* TUTORIAL.es: Replace actual whitespace with the magic string
 	that causes help-with-tutorial to automatically insert the correct

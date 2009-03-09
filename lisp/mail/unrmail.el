@@ -43,7 +43,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (message "Done")
     (kill-emacs (if error 1 0))))
 
-(declare-function mail-strip-quoted-names "mail-utils" (address))
+(declare-function mail-mbox-from "mail-utils" ())
+(defvar rmime-magic-string)		; in rmime.el, if you have it
 
 ;;;###autoload
 (defun unrmail (file to-file)
@@ -107,11 +108,12 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	  (from-buffer (current-buffer)))
 
       ;; Process the messages one by one.
-      (while (search-forward "\^_\^l" nil t)
+      (while (re-search-forward "^\^_\^l" nil t)
 	(let ((beg (point))
 	      (end (save-excursion
-		     (if (search-forward "\^_" nil t)
-			 (1- (point)) (point-max))))
+		     (if (re-search-forward "^\^_\\(\^l\\|\\'\\)" nil t)
+			 (match-beginning 0)
+		       (point-max))))
 	      (coding 'raw-text)
 	      label-line attrs keywords
 	      mail-from reformatted)
@@ -131,14 +133,16 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 		  (buffer-substring (point)
 				    (save-excursion (forward-line 1)
 						    (point))))
-	    (search-forward ",,")
+	    (re-search-forward ",, ?")
 	    (unless (eolp)
 	      (setq keywords
 		    (buffer-substring (point)
 				      (progn (end-of-line)
 					     (1- (point)))))
-	      (setq keywords
-		    (replace-regexp-in-string ", " "," keywords)))
+	      ;; Mbox rmail needs the spaces.  Bug#2303.
+	      ;;; (setq keywords
+	      ;;; 	    (replace-regexp-in-string ", " "," keywords))
+	      )
 
 	    (setq attrs
 		  (list
@@ -173,6 +177,12 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      (re-search-forward "^[*][*][*] EOOH [*][*][*]\n")
 	      (delete-region (point-min) (point)))
 
+	    ;; Handle rmime formatting.
+	    (when (require 'rmime nil t)
+	      (let ((start (point)))
+		(while (search-forward rmime-magic-string nil t))
+		(delete-region start (point))))
+
 	    ;; Some operations on the message header itself.
 	    (goto-char (point-min))
 	    (save-restriction
@@ -181,23 +191,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	       (save-excursion (search-forward "\n\n" nil 'move) (point)))
 
 	      ;; Fetch or construct what we should use in the `From ' line.
-	      (setq mail-from
-		    (or (mail-fetch-field "Mail-From")
-			(concat "From "
-				(mail-strip-quoted-names
-				 (or (mail-fetch-field "from")
-				     (mail-fetch-field "really-from")
-				     (mail-fetch-field "sender")
-				     "unknown"))
-				"  "
-				(let ((date (mail-fetch-field "date")))
-				  (or
-				   (and date
-					(ignore-errors
-					 (format-time-string
-					  "%a %b %e %T %Y"
-					  (date-to-time date))))
-				   (current-time-string))))))
+	      (setq mail-from (or (mail-fetch-field "Mail-From")
+				  (mail-mbox-from)))
 
 	      ;; If the message specifies a coding system, use it.
 	      (let ((maybe-coding (mail-fetch-field "X-Coding-System")))

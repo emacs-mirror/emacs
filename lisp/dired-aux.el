@@ -476,8 +476,8 @@ with a prefix argument."
 (declare-function mailcap-file-default-commands "mailcap" (files))
 
 (defun minibuffer-default-add-dired-shell-commands ()
-  "Return a list of all commands associted with current dired files.
-This function is used to add all related commands retieved by `mailcap'
+  "Return a list of all commands associated with current dired files.
+This function is used to add all related commands retrieved by `mailcap'
 to the end of the list of defaults just after the default value."
   (interactive)
   (let ((commands (and (boundp 'files) (require 'mailcap nil t)
@@ -1074,7 +1074,7 @@ See Info node `(emacs)Subdir switches' for more details."
 	      ;; Don't expand `.'.  Show just the file name within directory.
 	      (let ((default-directory directory))
 		(dired-insert-directory directory
-					(concat dired-actual-switches "d")
+					(concat dired-actual-switches " -d")
 					(list filename)))
               (goto-char opoint)
 	      ;; Put in desired marker char.

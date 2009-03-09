@@ -1060,8 +1060,11 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defvaralias 'x-sent-selection-hooks 'x-sent-selection-functions)
 (make-obsolete-variable 'x-sent-selection-hooks
 			'x-sent-selection-functions "22.1")
-;; This was introduced in 21.4 for pre-unicode unification and was rendered
-;; obsolete by the use of Unicode internally in 23.1.
+
+;; This was introduced in 21.4 for pre-unicode unification.  That
+;; usage was rendered obsolete in 23.1 which uses Unicode internally.
+;; Other uses are possible, so this variable is not _really_ obsolete,
+;; but Stefan insists to mark it so.
 (make-obsolete-variable 'translation-table-for-input nil "23.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
@@ -1510,6 +1513,9 @@ definition, variable definition, or face definition only."
 
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
+LIBRARY should be a relative file name of the library, a string.
+It can omit the suffix (a.k.a. file-name extension) if NOSUFFIX is
+nil (which is the default, see below).
 This command searches the directories in `load-path' like `\\[load-library]'
 to find the file that `\\[load-library] RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'

@@ -4812,7 +4812,7 @@ or nil."
 	      (goto-char org-goto-start-pos)
 	      (and (org-invisible-p) (org-show-context)))
 	  (goto-char (point-min)))
-	(org-beginning-of-line)
+	(let (org-special-ctrl-a/e) (org-beginning-of-line))
 	(message "Select location and press RET")
 	(use-local-map org-goto-map)
 	(recursive-edit)
@@ -6956,6 +6956,10 @@ used as the link location instead of reading one interactively."
     (org-defkey minibuffer-local-completion-map "?" 'self-insert-command)
     (apply 'org-ido-completing-read args)))
 
+(defun org-completing-read-no-ido (&rest args)
+  (let (org-completion-use-ido)
+    (apply 'org-completing-read args)))
+
 (defun org-ido-completing-read (&rest args)
   "Completing-read using `ido-mode' speedups if available"
   (if (and org-completion-use-ido
@@ -8588,7 +8592,7 @@ changes.  Such blocking occurs when:
       (org-back-to-heading t)
       (when (save-excursion
 	      (ignore-errors
-		(outline-up-heading 1)
+		(org-up-heading-all 1)
 		(org-entry-get (point) "ORDERED")))
 	(let* ((this-level (funcall outline-level))
 	       (current-level this-level))
@@ -9391,7 +9395,7 @@ ACTION can be `set', `up', `down', or a character."
   (setq action (or action 'set))
   (let (current new news have remove)
     (save-excursion
-      (org-back-to-heading)
+      (org-back-to-heading t)
       (if (looking-at org-priority-regexp)
 	  (setq current (string-to-char (match-string 2))
 		have t)
@@ -9652,7 +9656,7 @@ also TODO lines."
     ;; Get a new match request, with completion
     (let ((org-last-tags-completion-table
 	   (org-global-tags-completion-table)))
-      (setq match (org-completing-read
+      (setq match (org-completing-read-no-ido
 		   "Match: " 'org-tags-completion-function nil nil nil
 		   'org-tags-history))))
 
@@ -10889,7 +10893,7 @@ in the current file."
 	  (existing (mapcar 'list (org-property-values prop)))
 	  (val (if allowed
 		   (org-completing-read "Value: " allowed nil 'req-match)
-		 (org-completing-read
+		 (org-completing-read-no-ido
 		  (concat "Value" (if (and cur (string-match "\\S-" cur))
 				      (concat "[" cur "]") "")
 			  ": ")
@@ -12709,7 +12713,9 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
       (when (member m matchers)
 	(goto-char (point-min))
 	(while (re-search-forward re nil t)
-	  (when (or (not at) (equal (cdr at) (match-beginning n)))
+	  (when (and (or (not at) (equal (cdr at) (match-beginning n)))
+		     (not (get-text-property (match-beginning n)
+					     'org-protected)))
 	    (setq txt (match-string n)
 		  beg (match-beginning n) end (match-end n)
 		  cnt (1+ cnt)
@@ -14695,14 +14701,16 @@ beyond the end of the headline."
   (interactive "P")
   (let ((pos (point)) refpos)
     (beginning-of-line 1)
-    (if (bobp)
-	nil
-      (backward-char 1)
-      (if (org-invisible-p)
-	  (while (and (not (bobp)) (org-invisible-p))
-	    (backward-char 1)
-	    (beginning-of-line 1))
-	(forward-char 1)))
+    (if (and arg (fboundp 'move-beginning-of-line))
+	(call-interactively 'move-beginning-of-line)
+      (if (bobp)
+	  nil
+	(backward-char 1)
+	(if (org-invisible-p)
+	    (while (and (not (bobp)) (org-invisible-p))
+	      (backward-char 1)
+	      (beginning-of-line 1))
+	  (forward-char 1))))
     (when org-special-ctrl-a/e
       (cond
        ((and (looking-at org-complex-heading-regexp)
@@ -14736,8 +14744,11 @@ first attempt, and only move to after the tags when the cursor is already
 beyond the end of the headline."
   (interactive "P")
   (if (or (not org-special-ctrl-a/e)
-	  (not (org-on-heading-p)))
-      (end-of-line arg)
+	  (not (org-on-heading-p))
+	  arg)
+      (call-interactively (if (fboundp 'move-end-of-line)
+			      'move-end-of-line
+			    'end-of-line))
     (let ((pos (point)))
       (beginning-of-line 1)
       (if (looking-at (org-re ".*?\\([ \t]*\\)\\(:[[:alnum:]_@:]+:\\)[ \t]*$"))
@@ -14749,10 +14760,11 @@ beyond the end of the headline."
 	    (if (or (< pos (match-end 0)) (not (eq this-command last-command)))
 		(goto-char (match-end 0))
 	      (goto-char (match-beginning 1))))
-	(end-of-line arg))))
+	(call-interactively (if (fboundp 'move-end-of-line)
+				'move-end-of-line
+			      'end-of-line)))))
   (org-no-warnings
    (and (featurep 'xemacs) (setq zmacs-region-stays t))))
-
 
 (define-key org-mode-map "\C-a" 'org-beginning-of-line)
 (define-key org-mode-map "\C-e" 'org-end-of-line)

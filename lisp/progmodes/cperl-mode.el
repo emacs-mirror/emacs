@@ -3608,7 +3608,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	 face head-face here-face b e bb tag qtag b1 e1 argument i c tail tb
 	 is-REx is-x-REx REx-subgr-start REx-subgr-end was-subgr i2 hairy-RE
 	 (case-fold-search nil) (inhibit-read-only t) (buffer-undo-list t)
-	 (modified (buffer-modified-p)) overshoot is-o-REx
+	 (modified (buffer-modified-p)) overshoot is-o-REx name
 	 (after-change-functions nil)
 	 (cperl-font-locking t)
 	 (use-syntax-state (and cperl-syntax-state

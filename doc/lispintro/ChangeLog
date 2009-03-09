@@ -1,3 +1,12 @@
+2009-02-22  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp-intro.texi (Default Configuration): fix dup word "by by".
+
+2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp-intro.texi (current-kill, Code for current-kill)
+	(Body of current-kill): Remove duplicate words.
+
 2008-11-19  Glenn Morris  <rgm@gnu.org>
 
 	* doclicense.texi: New file.

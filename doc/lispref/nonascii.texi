@@ -751,6 +751,15 @@ systems specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
+@defvar translation-table-for-input
+Self-inserting characters are translated through this translation
+table before they are inserted.  Search commands also translate their
+input through this table, so they can compare more reliably with
+what's in the buffer.
+
+This variable automatically becomes buffer-local when set.
+@end defvar
+
 @defun make-translation-table-from-vector vec
 This function returns a translation table made from @var{vec} that is
 an array of 256 elements to map byte values 0 through 255 to
@@ -1178,6 +1187,10 @@ is the text in the current buffer between @var{from} and @var{to}.  If
 @var{from} is a string, the string specifies the text to encode, and
 @var{to} is ignored.
 
+If the specified text includes raw bytes (@pxref{Text
+Representations}), @code{select-safe-coding-system} suggests
+@code{raw-text} for its encoding.
+
 If @var{default-coding-system} is non-@code{nil}, that is the first
 coding system to try; if that can handle the text,
 @code{select-safe-coding-system} returns that coding system.  It can
@@ -1534,6 +1547,13 @@ The result of encoding is logically a sequence of bytes, but the
 buffer remains multibyte if it was multibyte before, and any 8-bit
 bytes are converted to their multibyte representation (@pxref{Text
 Representations}).
+
+@cindex @code{undecided} coding-system, when encoding
+Do @emph{not} use @code{undecided} for @var{coding-system} when
+encoding text, since that may lead to unexpected results.  Instead,
+use @code{select-safe-coding-system} (@pxref{User-Chosen Coding
+Systems, select-safe-coding-system}) to suggest a suitable encoding,
+if there's no obvious pertinent value for @var{coding-system}.
 @end deffn
 
 @defun encode-coding-string string coding-system &optional nocopy buffer
@@ -1559,6 +1579,10 @@ inserting it.
 
 If decoded text is inserted in some buffer, this command returns the
 length of the decoded text.
+
+This command puts a @code{charset} text property on the decoded text.
+The value of the property states the character set used to decode the
+original text.
 @end deffn
 
 @defun decode-coding-string string coding-system &optional nocopy buffer
@@ -1574,6 +1598,18 @@ contains 8-bit bytes in their multibyte form).
 If optional argument @var{buffer} specifies a buffer, the decoded text
 is inserted in that buffer after point (point does not move).  In this
 case, the return value is the length of the decoded text.
+
+@cindex @code{charset}, text property
+This function puts a @code{charset} text property on the decoded text.
+The value of the property states the character set used to decode the
+original text:
+
+@example
+@group
+(decode-coding-string "Gr\374ss Gott" 'latin-1)
+     @result{} #("Gr@"uss Gott" 0 9 (charset iso-8859-1))
+@end group
+@end example
 @end defun
 
 @defun decode-coding-inserted-region from to filename &optional visit beg end replace

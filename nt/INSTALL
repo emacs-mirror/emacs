@@ -92,7 +92,7 @@
 
   If you are building out of CVS, then some files in this directory
   (.bat files, nmake.defs and makefile.w32-in) may need the line-ends
-  fixing first. The easiest way to do this and avoid future conflicts
+  fixing first.  The easiest way to do this and avoid future conflicts
   is to run the following command in this (emacs/nt) directory:
 
      cvs update -kb
@@ -146,18 +146,18 @@
   or sh.exe., a port of a Unixy shell.  For reference, below is a list
   of which builds of GNU Make are known to work or not, and whether
   they work in the presence and/or absence of sh.exe, the Cygwin port
-  of Bash. Note that any version of Make that is compiled with Cygwin
+  of Bash.  Note that any version of Make that is compiled with Cygwin
   will only work with Cygwin tools, due to the use of cygwin style
   paths.  This means Cygwin Make is unsuitable for building parts of
   Emacs that need to invoke Emacs itself (leim and "make bootstrap",
   for example).  Also see the Trouble-shooting section below if you
   decide to go ahead and use Cygwin make.
 
-  In addition, using 4NT as your shell is known to fail the build process,
-  at least for 4NT version 3.01.  Use CMD.EXE, the default Windows shell,
-  instead. MSYS sh.exe also appears to cause various problems. If you have
-  MSYS installed, try "make SHELL=cmd.exe" to force the use of cmd.exe
-  instead of sh.exe.
+  In addition, using 4NT or TCC as your shell is known to fail the build
+  process, at least since 4NT version 3.01.  Use CMD.EXE, the default
+  Windows shell, instead.  MSYS sh.exe also appears to cause various
+  problems.  If you have MSYS installed, try "make SHELL=cmd.exe" to
+  force the use of cmd.exe instead of sh.exe.
 
                                          sh exists     no sh
 
@@ -303,9 +303,9 @@
 
   SVG support is currently experimental, and not built by default.
   Specify --with-svg and ensure you have all the dependencies in your
-  include path. Unless you have built a minimalist librsvg yourself
+  include path.  Unless you have built a minimalist librsvg yourself
   (untested), librsvg depends on a significant chunk of GTK+ to build,
-  plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime. The
+  plus a few Gnome libraries, libxml2, libbz2 and zlib at runtime.  The
   easiest way to obtain the dependencies required for building is to
   download a pre-bundled GTK+ development environment for Windows.
   GTK puts its header files all over the place, so you will need to
@@ -319,7 +319,7 @@
   short list, then it most likely only lists the immediate
   dependencies of librsvg, but the dependencies themselves have
   dependencies - so don't download individual libraries from GTK+,
-  download and install the whole thing. If you think you've got all
+  download and install the whole thing.  If you think you've got all
   the dependencies and SVG support is still not working, check your
   PATH for other libraries that shadow the ones you downloaded.
   Libraries of the same name from different sources may not be
@@ -328,7 +328,7 @@
 
   If you can see etc/images/splash.svg, then you have managed to get
   SVG support working.  Congratulations for making it through DLL hell
-  to this point. You'll probably find that some SVG images crash
+  to this point.  You'll probably find that some SVG images crash
   Emacs.  Problems have been observed in some images that contain
   text, they seem to be a problem in the Windows port of Pango, or
   maybe a problem with the way Cairo or librsvg is using it that
@@ -408,7 +408,7 @@
   make distclean
   In addition to the files removed by make clean, this also removes
   Makefiles and other generated files to get back to the state of a
-  freshly unpacked source distribution. Note that this will not remove
+  freshly unpacked source distribution.  Note that this will not remove
   installed files, or the results of builds performed with different
   compiler or optimization options than the current configuration.
   After make distclean, it is necessary to run configure.bat followed

@@ -64,7 +64,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
-@page
+@contents
+
 
 @ifnottex
 
@@ -96,6 +97,8 @@ For @file{dired-x.el} revision 2
 @c @t{/roebling.poly.edu:/pub/packages/dired-x.tar.gz}
 
 @end itemize
+
+@insertcopying
 
 @menu
 * Introduction::
@@ -1156,7 +1159,7 @@ to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 @cindex Reading mail.
 @findex dired-rmail
 Bound to @kbd{V} if @code{dired-bind-vm} is @code{nil}.  Run Rmail on this
-file (assumed to be mail folder in Rmail/BABYL format).
+file (assumed to be mail folder in Rmail format).
 
 @item dired-info
 @kindex I
@@ -1256,12 +1259,7 @@ Lawrence R. Dodd
 @unnumbered Variable Index
 @printindex vr
 
-@setchapternewpage odd
-@c @summarycontents
-@contents
-
 @bye
-@c dired-x.texi ends here.
 
 @ignore
    arch-tag: 201727aa-9318-4c74-a0d7-4f51c550c4de

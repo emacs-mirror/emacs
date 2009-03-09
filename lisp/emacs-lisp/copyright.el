@@ -51,7 +51,8 @@ This is useful for ChangeLogs."
 (defcustom copyright-regexp
  "\\(©\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *©\\)\
-\\s *\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+\\s *\\(?:[^0-9\n]*\\s *\\)?\
+\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
@@ -157,11 +158,13 @@ When this is `function', only ask when called non-interactively."
     (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		     (substring copyright-current-year -2))
       (if (or noquery
-	      (y-or-n-p (if replace
-			    (concat "Replace copyright year(s) by "
-				    copyright-current-year "? ")
-			  (concat "Add " copyright-current-year
-				  " to copyright? "))))
+	      ;; Fixes some point-moving oddness (bug#2209).
+	      (save-excursion
+		(y-or-n-p (if replace
+			      (concat "Replace copyright year(s) by "
+				      copyright-current-year "? ")
+			    (concat "Add " copyright-current-year
+				    " to copyright? ")))))
 	  (if replace
 	      (replace-match copyright-current-year t t nil 3)
 	    (let ((size (save-excursion (skip-chars-backward "0-9"))))

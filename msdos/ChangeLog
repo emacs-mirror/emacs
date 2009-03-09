@@ -1,3 +1,8 @@
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (boot): Don't require b-emacs.exe if not building
+	out of CVS.  (Bug#2151)
+
 2008-12-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Document the problems on Windows Vista and the

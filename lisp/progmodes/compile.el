@@ -72,6 +72,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'tool-bar)
+(require 'comint)
 
 (defvar font-lock-extra-managed-props)
 (defvar font-lock-keywords)
@@ -178,10 +179,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):[0-9]+:[0-9]+:\\)?\
 \\( warning\\)?" 1 2 3 (4))
 
-    (maven
-     ;; Maven is a popular build tool for Java.  Maven is Free Software.
-     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
 
@@ -254,7 +251,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
 \\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-/\n]\\)*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
-\\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
+\\(?:-\\([0-9]+\\)?\\(?:\\.\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\|[Nn]ote\\)\\|\
 \[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
@@ -280,6 +277,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
 	 append)))
 
+    (maven
+     ;; Maven is a popular build tool for Java.  Maven is Free Software.
+     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
+
     ;; Should be lint-1, lint-2 (SysV lint)
     (mips-1
      " (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
@@ -290,6 +291,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; AFAWK, The message may be a "warning", "error", or "fatal error".
      "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
 : \\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:" 2 3 nil (4))
+
+    (omake
+     ;; "omake -P" reports "file foo changed"
+     ;; (useful if you do "cvs up" and want to see what has changed)
+     "omake: file \\(.*\\) changed" 1)
 
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
@@ -863,7 +869,7 @@ from a different message."
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
 just char-counts."
   (if screen
-      (move-to-column col)
+      (move-to-column (max col 0))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
 
 (defun compilation-internal-error-properties (file line end-line col end-col type fmts)
@@ -1155,7 +1161,7 @@ Returns the compilation buffer created."
   (or mode (setq mode 'compilation-mode))
   (let* ((name-of-mode
 	  (if (eq mode t)
-	      (prog1 "compilation" (require 'comint))
+	      "compilation"
 	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 outwin outbuf)
@@ -1726,7 +1732,9 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
-Just inserts the text, and runs `compilation-filter-hook'."
+Just inserts the text,
+handles carriage motion (see `comint-inhibit-carriage-motion'),
+and runs `compilation-filter-hook'."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
@@ -1739,6 +1747,8 @@ Just inserts the text, and runs `compilation-filter-hook'."
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.
               (insert string)
+              (unless comint-inhibit-carriage-motion
+                (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               (run-hooks 'compilation-filter-hook))
           (goto-char pos))))))

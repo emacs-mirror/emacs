@@ -181,12 +181,7 @@ You won't need to set this option for Ghostscript."
 
 (defcustom ps-run-tmp-dir nil
   "*Name of directory to place temporary file.
-
-If nil, the following are tried in turn, until success:
-  1. \"$TEMP\"
-  2. \"$TMP\"
-  3. \"$HOME/tmp\"
-  4. \"/tmp\""
+If nil, use `temporary-file-directory'."
   :group 'PostScript-interaction
   :type '(choice (const nil) directory))
 
@@ -1124,24 +1119,10 @@ grestore
 
 (defun ps-run-make-tmp-filename ()
   (unless ps-mode-tmp-file
-    (cond (ps-run-tmp-dir)
-	  ((setq ps-run-tmp-dir (getenv "TEMP")))
-	  ((setq ps-run-tmp-dir (getenv "TMP")))
-	  ((setq ps-run-tmp-dir (getenv "HOME"))
-	   (setq
-	    ps-run-tmp-dir
-	    (concat (file-name-as-directory ps-run-tmp-dir) "tmp"))
-	   (unless (file-directory-p ps-run-tmp-dir)
-	     (setq ps-run-tmp-dir nil))))
-    (unless ps-run-tmp-dir
-      (setq ps-run-tmp-dir "/tmp"))
     (setq ps-mode-tmp-file
-	  (make-temp-file
-	   (concat
-	    (if ps-run-tmp-dir
-		(file-name-as-directory ps-run-tmp-dir)
-	      "")
-	    "ps-run-"))))
+	  (let ((temporary-file-directory (or ps-run-tmp-dir
+					      temporary-file-directory)))
+	    (make-temp-file "ps-run-"))))
   ps-mode-tmp-file)
 
 ;; Remove temporary file

@@ -196,6 +196,7 @@ be overridden by the value of `calendar-setup'."
 (define-obsolete-variable-alias 'mark-diary-entries-in-calendar
   'calendar-mark-diary-entries-flag "23.1")
 
+;; FIXME :set
 (defcustom calendar-mark-diary-entries-flag nil
   "Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'."
@@ -249,31 +250,37 @@ See `calendar-holiday-marker'."
 ;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'holiday-face 'face-alias 'holiday)
 
-;; These don't respect changes in font-lock-mode after loading.
-(defcustom diary-entry-marker (if (and font-lock-mode (display-color-p))
-                                  'diary
-                                "+")
+;; These briefly checked font-lock-mode, but that is broken, since it
+;; is a buffer-local variable, and which buffer happens to be current
+;; when this file is loaded shouldn't make a difference.  One could
+;; perhaps check global-font-lock-mode, or font-lock-global-modes; but
+;; this feature doesn't use font-lock, so there's no real reason it
+;; should respect those either.  See bug#2199.
+;; They also used to check display-color-p, but that is a problem if
+;; loaded from --daemon.  Since BW displays are rare now, this was
+;; also taken out.  The way to keep it would be to have nil mean do a
+;; runtime check whenever this variable is used.
+(defcustom diary-entry-marker 'diary
   "How to mark dates that have diary entries.
-The value can be either a single-character string or a face."
-  :type '(choice string face)
-  :group 'diary)
+The value can be either a single-character string (e.g. \"+\") or a face."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'diary
+  :version "23.1")
 
-(defcustom calendar-today-marker (if (and font-lock-mode (display-color-p))
-                                     'calendar-today
-                                   "=")
+(defcustom calendar-today-marker 'calendar-today
   "How to mark today's date in the calendar.
-The value can be either a single-character string or a face.
+The value can be either a single-character string (e.g. \"=\") or a face.
 Used by `calendar-mark-today'."
-  :type '(choice string face)
-  :group 'calendar)
+  :type '(choice (string :tag "Single character string") face)
+  :group 'calendar
+  :version "23.1")
 
-(defcustom calendar-holiday-marker (if (and font-lock-mode (display-color-p))
-                                       'holiday
-                                     "*")
+(defcustom calendar-holiday-marker 'holiday
   "How to mark notable dates in the calendar.
-The value can be either a single-character string or a face."
-  :type '(choice string face)
-  :group 'holidays)
+The value can be either a single-character string (e.g. \"*\") or a face."
+  :type '(choice (string :tag "Single character string") face)
+  :group 'holidays
+  :version "23.1")
 
 (define-obsolete-variable-alias 'view-calendar-holidays-initially
   'calendar-view-holidays-initially-flag "23.1")
@@ -288,6 +295,7 @@ displayed."
 (define-obsolete-variable-alias 'mark-holidays-in-calendar
   'calendar-mark-holidays-flag "23.1")
 
+;; FIXME :set
 (defcustom calendar-mark-holidays-flag nil
   "Non-nil means mark dates of holidays in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'."
@@ -828,6 +836,9 @@ For examples of three common styles, see `diary-american-date-forms',
                          (repeat (list :inline t :format "%v"
                                        (symbol :tag "Keyword")
                                        (choice symbol regexp)))))
+  :set-after '(calendar-date-style diary-iso-date-forms
+                                   diary-european-date-forms
+                                   diary-american-date-forms)
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
          (unless (equal value (eval symbol))
@@ -895,6 +906,9 @@ would give the usual American style in fixed-length fields.  The variables
 `calendar-american-date-display-form' provide some defaults for three common
 styles."
   :type 'sexp
+  :set-after '(calendar-date-style calendar-iso-date-display-form
+                                   calendar-european-date-display-form
+                                   calendar-american-date-display-form)
   :group 'calendar)
 
 (defun calendar-set-date-style (style)
@@ -1715,10 +1729,13 @@ the STRINGS are just concatenated and the result truncated."
   "List of all calendar-related windows."
   (let ((calendar-buffers (calendar-buffer-list))
         list)
+    ;; Using 0 rather than t for last argument - see bug#2199.
+    ;; This is only used with calendar-hide-window, which ignores
+    ;; iconified frames anyway, so could use 'visible rather than 0.
     (walk-windows (lambda (w)
                     (if (memq (window-buffer w) calendar-buffers)
                         (push w list)))
-                  nil t)
+                  nil 0)
     list))
 
 (defun calendar-buffer-list ()
@@ -2267,11 +2284,14 @@ MARK defaults to `diary-entry-marker'."
           (calendar-cursor-to-visible-date date)
           (setq mark
                 (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-                    (and font-lock-mode
-                         (or
+                    ;; The next two use to also check font-lock-mode.
+                    ;; See comments above diary-entry-marker for why
+                    ;; this was dropped.
+;;;                    (and font-lock-mode
+;;;                         (or
                           (and (listp mark) (> (length mark) 0) mark) ; attrs
-                          (and (facep mark) mark))) ; face-name
-                    diary-entry-marker))
+                          (and (facep mark) mark) ; )) face-name
+                          diary-entry-marker))
           (cond
            ;; Face or an attr-list that contained a face.
            ((facep mark)
@@ -2450,6 +2470,11 @@ If called by a mouse-event, pops up a menu with the result."
   (let* ((edges (window-edges))
          ;; As per doc of window-width, total visible mode-line length.
          (width (- (nth 2 edges) (car edges))))
+    ;; Hack for --daemon.  See bug #2199.
+    ;; If no frame exists yet, we have no idea what width to use.
+    (and (= width 10)
+         (not window-system)
+         (setq width (or (getenv "COLUMNS") 80)))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified

@@ -32,7 +32,6 @@ developing GNU and promoting software freedom.''
 @iftex
 @finalout
 @end iftex
-@setchapternewpage odd
 
 @titlepage
 @title Message Manual
@@ -43,10 +42,16 @@ developing GNU and promoting software freedom.''
 @vskip 0pt plus 1filll
 @insertcopying
 @end titlepage
-@page
+
+@summarycontents
+@contents
 
 @node Top
 @top Message
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 All message composition from Gnus (both mail and news) takes place in
 Message mode buffers.
@@ -2432,8 +2437,6 @@ basis of the new @code{Cc} header, except if this header is
 @chapter Key Index
 @printindex ky
 
-@summarycontents
-@contents
 @bye
 
 @c End:

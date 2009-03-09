@@ -1416,8 +1416,11 @@ position consistent with the new selected frame.
 A window frame may be @dfn{visible}, @dfn{invisible}, or
 @dfn{iconified}.  If it is visible, you can see its contents, unless
 other windows cover it.  If it is iconified, the frame's contents do
-not appear on the screen, but an icon does.  If the frame is
-invisible, it doesn't show on the screen, not even as an icon.
+not appear on the screen, but an icon does.  (Note: because of the
+way in which some window managers implement the concept of multiple
+workspaces, or desktops, all frames on other workspaces may appear to
+Emacs to be iconified.)  If the frame is invisible, it doesn't show on
+the screen, not even as an icon.
 
 Visibility is meaningless for terminal frames, since only the selected
 one is actually displayed in any case.

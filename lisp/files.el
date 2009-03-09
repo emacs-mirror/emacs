@@ -829,6 +829,10 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 
 (defun load-library (library)
   "Load the library named LIBRARY.
+
+LIBRARY should be a relative file name of the library, a string.
+It can omit the suffix (a.k.a. file-name extension).
+
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
@@ -1134,9 +1138,9 @@ Any other non-nil value means to request confirmation.
 This affects commands like `switch-to-buffer' and `find-file'."
   :group 'find-file
   :version "23.1"
-  :type '(choice (other :tag "Always" t)
-		 (const :tag "After completion" after-completion)
-		 (const :tag "Never" nil)))
+  :type '(choice (const :tag "After completion" after-completion)
+		 (const :tag "Never" nil)
+		 (other :tag "Always" t)))
 
 (defun confirm-nonexistent-file-or-buffer ()
   "Whether to request confirmation before visiting a new file or buffer.
@@ -1156,7 +1160,17 @@ need to omit the name of current buffer from the list of completions
 and default values."
   (let ((rbts-completion-table (internal-complete-buffer-except)))
     (minibuffer-with-setup-hook
-        (lambda () (setq minibuffer-completion-table rbts-completion-table))
+        (lambda ()
+          (setq minibuffer-completion-table rbts-completion-table)
+          ;; Since rbts-completion-table is built dynamically, we
+          ;; can't just add it to the default value of
+          ;; icomplete-with-completion-tables, so we add it
+          ;; here manually.
+          (if (and (boundp 'icomplete-with-completion-tables)
+                   (listp icomplete-with-completion-tables))
+              (set (make-local-variable 'icomplete-with-completion-tables)
+                   (cons rbts-completion-table
+                         icomplete-with-completion-tables))))
       (read-buffer prompt (other-buffer (current-buffer))
                    (confirm-nonexistent-file-or-buffer)))))
 
@@ -4024,11 +4038,14 @@ If `vc-make-backup-files' is nil, which is the default,
 See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
   (let ((modp (buffer-modified-p))
-	(large (> (buffer-size) 50000))
 	(make-backup-files (or (and make-backup-files (not (eq args 0)))
 			       (memq args '(16 64)))))
     (and modp (memq args '(16 64)) (setq buffer-backed-up nil))
-    (if (and modp large (buffer-file-name))
+    ;; We used to display the message below only for files > 50KB, but
+    ;; then Rmail-mbox never displays it due to buffer swapping.  If
+    ;; the test is ever re-introduced, be sure to handle saving of
+    ;; Rmail files.
+    (if (and modp (buffer-file-name))
 	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
     (and modp (memq args '(4 64)) (setq buffer-backed-up nil))))
@@ -4170,7 +4187,10 @@ Before and after saving the buffer, this function runs
 	  (let ((coding-system-for-write save-buffer-coding-system))
 	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
-    (setq buffer-file-coding-system-explicit last-coding-system-used)))
+    (if buffer-file-coding-system-explicit
+	(setcar buffer-file-coding-system-explicit last-coding-system-used)
+      (setq buffer-file-coding-system-explicit
+	    (cons last-coding-system-used nil)))))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -4524,7 +4544,12 @@ this happens by default."
 	  (make-directory-internal dir)
 	(let ((dir (directory-file-name (expand-file-name dir)))
 	      create-list)
-	  (while (not (file-exists-p dir))
+	  (while (and (not (file-exists-p dir))
+		      ;; If directory is its own parent, then we can't
+		      ;; keep looping forever
+		      (not (equal dir
+				  (directory-file-name
+				   (file-name-directory dir)))))
 	    (setq create-list (cons dir create-list)
 		  dir (directory-file-name (file-name-directory dir))))
 	  (while create-list
@@ -4683,7 +4708,9 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; internal coding.
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
-				buffer-file-coding-system-explicit))))
+				(and
+				 buffer-file-coding-system-explicit
+				 (car buffer-file-coding-system-explicit))))))
 		     (if (and (not enable-multibyte-characters)
 			      coding-system-for-read
 			      (not (memq (coding-system-base

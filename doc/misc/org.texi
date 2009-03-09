@@ -6,11 +6,6 @@
 @set VERSION 6.21b
 @set DATE February 2009
 
-@dircategory Emacs
-@direntry
-* Org Mode: (org).      Outline-based notes management and organizer
-@end direntry
-
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers webpage}
 @set AUTHOR Carsten Dominik
@@ -55,6 +50,11 @@ separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
+
+@dircategory Emacs
+@direntry
+* Org Mode: (org).      Outline-based notes management and organizer
+@end direntry
 
 @titlepage
 @title The Org Manual
@@ -310,7 +310,7 @@ Markup rules
 * Include files::               Include the contents of a file during export
 * Tables exported::             Tables are exported richly
 * Inlined images::              How to inline images during export
-* Footnote markup::             
+* Footnote markup::
 * Emphasis and monospace::      To bold or not to bold
 * TeX macros and LaTeX fragments::  Create special, rich export.
 * Horizontal rules::            A line across the page
@@ -1413,7 +1413,7 @@ A LaTeX-like anonymous footnote where the definition is given directly at the
 reference point.
 @item [fn:name: a definition]
 An inline definition of a footnote, which also specifies a name for the note.
-Since Org allows multiple references to the same note, you can then use use
+Since Org allows multiple references to the same note, you can then use
 @code{[fn:name]} to create additional references.
 @end table
 
@@ -2461,7 +2461,7 @@ Further control over the labels, type, content, and appearance of plots can
 be exercised through the @code{#+Plot:} lines preceding a table.  See below
 for a complete list of Org plot options.  For more information and examples
 see the org-plot tutorial at
-@uref{http://legito.org/worg/org-tutorials/org-plot.php}.
+@uref{http://orgmode.org/worg/org-tutorials/org-plot.php}.
 
 @subsubheading Plot Options
 
@@ -2737,7 +2737,7 @@ the current URL.  For IRC links, if you set the variable
 @code{org-irc-link-to-logs} to non-nil then @kbd{C-c l} will store a
 @samp{file:/} style link to the relevant point in the logs for the current
 conversation.  Otherwise an @samp{irc:/} style link to the user/channel/server
-under the point will be stored. 
+under the point will be stored.
 
 For any other files, the link will point to the file, with a search string
 (@pxref{Search options}) pointing to the contents of the current line.  If
@@ -7348,7 +7348,7 @@ markup rule used in an Org mode buffer.
 * Include files::               Include the contents of a file during export
 * Tables exported::             Tables are exported richly
 * Inlined images::              How to inline images during export
-* Footnote markup::             
+* Footnote markup::
 * Emphasis and monospace::      To bold or not to bold
 * TeX macros and LaTeX fragments::  Create special, rich export.
 * Horizontal rules::            A line across the page
@@ -10230,7 +10230,7 @@ archive   @r{skip trees with the archive tag}
 comment   @r{skip trees with the COMMENT keyword}
 function or Lisp form
           @r{will be used as value for @code{org-agenda-skip-function},}
-          @r{so whenever the the function returns t, FUNC}
+          @r{so whenever the function returns t, FUNC}
           @r{will not be called for that entry and search will}
           @r{continue from the point where the function leaves it}
 @end example

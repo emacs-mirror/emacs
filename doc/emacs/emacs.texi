@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  23.0.90
+@set EMACSVER  23.0.91
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
@@ -131,6 +131,8 @@ to avoid conflicts.
 Also Running Shell Commands from Emacs
 and Sending Mail and Registers and Minibuffer.
 @end ignore
+
+@insertcopying
 
 @menu
 * Distrib::	        How to get the latest Emacs distribution.
@@ -773,7 +775,6 @@ Reading Mail with Rmail
 * Rmail Coding::        How Rmail handles decoding character sets.
 * Rmail Editing::       Editing message text and headers in Rmail.
 * Rmail Digest::        Extracting the messages from a digest message.
-* Out of Rmail::	Converting an Rmail file to mailbox format.
 * Rmail Rot13::         Reading messages encoded in the rot13 code.
 * Movemail::            More details of fetching new mail.
 * Remote Mailboxes::    Retrieving Mail from Remote Mailboxes.
@@ -1083,10 +1084,11 @@ What is not allowed is to try to prevent others from further sharing
 any version of GNU Emacs that they might get from you.  The precise
 conditions are found in the GNU General Public License that comes with
 Emacs and also appears in this manual@footnote{This manual is itself
-covered by the GNU Free Documentation License.  This license is
-similar in spirit to the General Public License, but is more suitable
-for documentation.  @xref{GNU Free Documentation License}.}.
-@xref{Copying}.
+covered by the GNU Free Documentation License (see the reverse title
+page in the printed manual or view the full source for online formats
+to see the precise conditions).  This license is similar in spirit to
+the General Public License, but is more suitable for documentation.
+@xref{GNU Free Documentation License}.}.  @xref{Copying}.
 
 One way to get a copy of GNU Emacs is from someone else who has it.
 You need not ask for our permission to do so, or tell any one else;
@@ -1231,7 +1233,7 @@ in various programming languages.
 
   @dfn{Self-documenting} means that at any time you can use special
 commands, known as @dfn{help commands}, to find out what your options
-are, or to find out what what any command does, or to find all the
+are, or to find out what any command does, or to find all the
 commands that pertain to a given topic.  @xref{Help}.
 
   @dfn{Customizable} means that you can easily alter the behavior of

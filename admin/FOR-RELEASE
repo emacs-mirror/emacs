@@ -72,36 +72,6 @@ Fixed by this change?
 ** In C, use EMACS_INT for variables and structure members
 for buffer/string positions.  E.g. struct it, struct text_pos.
 
-** These lisp files refer to rmail, and might need updating post-mbox.
-
-It seems that rmail-output-to-rmail-file can be replaced by rmail-output.
-
-mail/rmail-spam-filter.el:  check it still (?) works
-
-gnus/gnus-art.el
-gnus/gnus-util.el
-gnus/gnus.el
-gnus/message.el
-gnus/nnbabyl.el
-mail/feedmail.el  ; comments about mail-header-separator still valid?
-mail/metamail.el
-mail/sendmail.el
-mail/undigest.el  ; seems totally dependent (?) on Babyl format, and has
-                    received zero mbox-branch updates.  Is it not needed now?
-mail/unrmail.el   ; rev 1.13.2.4 not synced from mbox branch - should it be?
-net/mairix.el     ; fixed?
-org/org-rmail.el  ; fixed?
-
-EOOH references:
-
-gnus/gnus-util.el
-gnus/nnbabyl.el
-gnus/nndoc.el
-gnus/nnmail.el
-mail/sendmail.el
-mail/undigest.el
-
-
 * DOCUMENTATION
 
 ** Clean up Emacs.app references in code and documentation.
@@ -187,7 +157,7 @@ mule.texi
 m-x.texi          -- cyd
 programs.texi     -- cyd
 regs.texi         -- cyd
-rmail.texi
+rmail.texi        -- rgm
 screen.texi       -- cyd
 search.texi       -- cyd
 sending.texi
@@ -206,25 +176,25 @@ backups.texi
 buffers.texi
 commands.texi
 compile.texi
-control.texi
+control.texi      -- cyd
 customize.texi
 debugging.texi
 display.texi
 edebug.texi
 elisp.texi
 errors.texi
-eval.texi
+eval.texi         -- cyd
 files.texi
 frames.texi
 functions.texi
-hash.texi
+hash.texi         -- cyd
 help.texi
 hooks.texi
 index.texi
 internals.texi
-intro.texi
+intro.texi        -- cyd
 keymaps.texi
-lists.texi
+lists.texi        -- cyd
 loading.texi
 locals.texi
 macros.texi
@@ -233,20 +203,20 @@ markers.texi
 minibuf.texi
 modes.texi
 nonascii.texi
-numbers.texi
-objects.texi
+numbers.texi      -- cyd
+objects.texi      -- cyd
 os.texi
 positions.texi
 processes.texi
 searching.texi
-sequences.texi
+sequences.texi    -- cyd
 streams.texi
-strings.texi
-symbols.texi
+strings.texi      -- cyd
+symbols.texi      -- cyd
 syntax.texi
 text.texi
 tips.texi
-variables.texi
+variables.texi    -- cyd
 windows.texi
 
 * PLANNED ADDITIONS

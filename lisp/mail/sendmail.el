@@ -429,9 +429,9 @@ so you can edit or delete these lines."
 
 ;;;###autoload
 (defcustom mail-bury-selects-summary t
-  "If non-nil, try to show RMAIL summary buffer after returning from mail.
+  "If non-nil, try to show Rmail summary buffer after returning from mail.
 The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
-the RMAIL summary buffer before returning, if it exists and this variable
+the Rmail summary buffer before returning, if it exists and this variable
 is non-nil."
   :type 'boolean
   :group 'sendmail)
@@ -784,7 +784,7 @@ Prefix arg means don't delete this window."
 	  (if (display-multi-frame-p)
 	      (delete-frame (selected-frame))
 	    ;; The previous frame is where normally they have the
-	    ;; RMAIL buffer displayed.
+	    ;; Rmail buffer displayed.
 	    (other-frame -1)))
       (let (rmail-flag summary-buffer)
 	(and (not arg)
@@ -1168,8 +1168,13 @@ external program defined by `sendmail-program'."
 			      )
 		      )
 		     (exit-value (apply 'call-process-region args)))
-		(or (null exit-value) (eq 0 exit-value)
-		    (error "Sending...failed with exit value %d" exit-value)))
+		(cond ((or (null exit-value) (eq 0 exit-value)))
+		      ((numberp exit-value)
+		       (error "Sending...failed with exit value %d" exit-value))
+		      ((stringp exit-value)
+		       (error "Sending...terminated by signal: %s" exit-value))
+		      (t
+		       (error "SENDMAIL-SEND-IT -- fall through: %S" exit-value))))
 	    (or fcc-was-found
 		(error "No recipients")))
 	  (if mail-interactive
@@ -1184,132 +1189,119 @@ external program defined by `sendmail-program'."
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
 
+(autoload 'rmail-output-to-rmail-buffer "rmailout")
+
 (defun mail-do-fcc (header-end)
+  "Find and act on any FCC: headers in the current message before HEADER-END.
+If a buffer is visiting the FCC file, append to it before
+offering to save it, if it was modified initially.  If this is an
+Rmail buffer, update Rmail as needed.  If there is no buffer,
+just append to the file, in Babyl format if necessary."
   (unless (markerp header-end)
     (error "Value of `header-end' must be a marker"))
   (let (fcc-list
-	(rmailbuf (current-buffer))
-	(time (current-time))
-	(tembuf (generate-new-buffer " rmail output"))
-	(case-fold-search t))
+	(mailbuf (current-buffer))
+	(time (current-time)))
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "^FCC:[ \t]*" header-end t)
-	(push (buffer-substring (point)
-                                (progn
-                                  (end-of-line)
-                                  (skip-chars-backward " \t")
-                                  (point)))
-              fcc-list)
-	(delete-region (match-beginning 0)
-		       (progn (forward-line 1) (point))))
-      (set-buffer tembuf)
-      (erase-buffer)
-      ;; This initial newline is written out if the fcc file already exists.
-      (insert "\nFrom " (user-login-name) " "
-	      (current-time-string time) "\n")
-      ;; Insert the time zone before the year.
-      (forward-char -1)
-      (forward-word -1)
-      (require 'mail-utils)
-      (insert (mail-rfc822-time-zone time) " ")
-      (goto-char (point-max))
-      (insert-buffer-substring rmailbuf)
-      ;; Make sure messages are separated.
-      (goto-char (point-max))
-      (insert ?\n)
-      (goto-char 2)
-      ;; ``Quote'' "^From " as ">From "
-      ;;  (note that this isn't really quoting, as there is no requirement
-      ;;   that "^[>]+From " be quoted in the same transparent way.)
-      (let ((case-fold-search nil))
-	(while (search-forward "\nFrom " nil t)
-	  (forward-char -5)
-	  (insert ?>)))
-      (dolist (fcc fcc-list)
-	(let* ((buffer (find-buffer-visiting fcc))
-	       (curbuf (current-buffer))
-	       dont-write-the-file
-	       buffer-matches-file
-	       (beg (point-min)) (end (point-max))
-	       (beg2 (save-excursion (goto-char (point-min))
-				     (forward-line 2) (point))))
-	  (if buffer
-	      ;; File is present in a buffer => append to that buffer.
-	      (with-current-buffer buffer
-		(setq buffer-matches-file
-		      (and (not (buffer-modified-p))
-			   (verify-visited-file-modtime buffer)))
-		;; Keep the end of the accessible portion at the same place
-		;; unless it is the end of the buffer.
-		(let ((max (if (/= (1+ (buffer-size)) (point-max))
-			       (point-max))))
-		  (unwind-protect
-		      ;; Code below lifted from rmailout.el
-		      ;; function rmail-output-to-rmail-file:
-		      (let ((buffer-read-only nil)
-			    (msg (and (boundp 'rmail-current-message)
-				      rmail-current-message)))
-			;; If MSG is non-nil, buffer is in RMAIL mode.
-			(if msg
-			    (progn
-			      ;; Append to an ordinary buffer as a
-			      ;; Unix mail message.
-			      (rmail-maybe-set-message-counters)
-			      (widen)
-			      (narrow-to-region (point-max) (point-max))
-			      (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-				      "Date: " (mail-rfc822-date) "\n")
-			      (insert-buffer-substring curbuf beg2 end)
-			      (insert "\n\C-_")
-			      (goto-char (point-min))
-			      (widen)
-			      (search-backward "\n\^_")
-			      (narrow-to-region (point) (point-max))
-			      (rmail-count-new-messages t)
-			      (rmail-show-message msg)
-			      (setq max nil))
-			  ;; Output file not in rmail mode
-			  ;; => just insert at the end.
-			  (narrow-to-region (point-min) (1+ (buffer-size)))
-			  (goto-char (point-max))
-			  (insert-buffer-substring curbuf beg end))
-			(or buffer-matches-file
-			    (progn
-			      (if (y-or-n-p (format "Save file %s? "
-						    fcc))
-				  (save-buffer))
-			      (setq dont-write-the-file t))))
-		    (if max (narrow-to-region (point-min) max))))))
-	  ;; Append to the file directly,
-	  ;; unless we've already taken care of it.
-	  (unless dont-write-the-file
-	    (if (and (file-exists-p fcc)
-		     ;; Check that the file isn't empty.  We don't
-		     ;; want to insert a newline at the start of an
-		     ;; empty file.
-		     (not (zerop (nth 7 (file-attributes fcc))))
-		     (mail-file-babyl-p fcc))
-		;; If the file is a Babyl file,
-		;; convert the message to Babyl format.
-		(let ((coding-system-for-write
-		       (or rmail-file-coding-system
-			   'emacs-mule)))
-		  (with-current-buffer (get-buffer-create " mail-temp")
-		    (setq buffer-read-only nil)
-		    (erase-buffer)
-		    (insert "\C-l\n0, unseen,,\n*** EOOH ***\nDate: "
-			    (mail-rfc822-date) "\n")
-		    (insert-buffer-substring curbuf beg2 end)
-		    (insert "\n\C-_")
-		    (write-region (point-min) (point-max) fcc t)
-		    (erase-buffer)))
-	      (write-region
-	       (1+ (point-min)) (point-max) fcc t)))
-	  (and buffer (not dont-write-the-file)
-	       (with-current-buffer buffer
-		 (set-visited-file-modtime))))))
-    (kill-buffer tembuf)))
+      (let ((case-fold-search t))
+	(while (re-search-forward "^FCC:[ \t]*" header-end t)
+	  (push (buffer-substring (point)
+				  (progn
+				    (end-of-line)
+				    (skip-chars-backward " \t")
+				    (point)))
+		fcc-list)
+	  (delete-region (match-beginning 0)
+			 (progn (forward-line 1) (point)))))
+      (with-temp-buffer
+	;; This initial newline is not written out if we create a new
+	;; file (see below).
+	(insert "\nFrom " (user-login-name) " " (current-time-string time) "\n")
+	;; Insert the time zone before the year.
+	(forward-char -1)
+	(forward-word -1)
+	(require 'mail-utils)
+	(insert (mail-rfc822-time-zone time) " ")
+	(goto-char (point-max))
+	(insert-buffer-substring mailbuf)
+	;; Make sure messages are separated.
+	(goto-char (point-max))
+	(insert ?\n)
+	(goto-char 2)
+	;; ``Quote'' "^From " as ">From "
+	;;  (note that this isn't really quoting, as there is no requirement
+	;;   that "^[>]+From " be quoted in the same transparent way.)
+	(let ((case-fold-search nil))
+	  (while (search-forward "\nFrom " nil t)
+	    (forward-char -5)
+	    (insert ?>)))
+	(dolist (fcc fcc-list)
+	  (let* ((buffer (find-buffer-visiting fcc))
+		 (curbuf (current-buffer))
+		 dont-write-the-file
+		 buffer-matches-file
+		 (beg (point-min))	; the initial blank line
+		 (end (point-max))
+		 ;; After the ^From line.
+		 (beg2 (save-excursion (goto-char (point-min))
+				       (forward-line 2) (point))))
+	    (if buffer
+		;; File is present in a buffer => append to that buffer.
+		(with-current-buffer buffer
+		  (setq buffer-matches-file
+			(and (not (buffer-modified-p))
+			     (verify-visited-file-modtime buffer)))
+		  (let ((msg (bound-and-true-p rmail-current-message))
+			(buffer-read-only nil))
+		    ;; If MSG is non-nil, buffer is in Rmail mode.
+		    (if msg
+			(let ((buff (generate-new-buffer " *mail-do-fcc")))
+			  (unwind-protect
+			      (progn
+				(with-current-buffer buff
+				  (insert-buffer-substring curbuf (1+ beg) end))
+				(rmail-output-to-rmail-buffer buff msg))
+			    (kill-buffer buff)))
+		      ;; Output file not in Rmail mode => just insert
+		      ;; at the end.
+		      (save-restriction
+			(widen)
+			(goto-char (point-max))
+			(insert-buffer-substring curbuf beg end)))
+		    ;; Offer to save the buffer if it was modified
+		    ;; before we started.
+		    (unless buffer-matches-file
+		      (if (y-or-n-p (format "Save file %s? " fcc))
+			  (save-buffer))
+		      (setq dont-write-the-file t)))))
+	    ;; Append to the file directly, unless we've already taken
+	    ;; care of it.
+	    (unless dont-write-the-file
+	      (if (and (file-exists-p fcc)
+		       (mail-file-babyl-p fcc))
+		  ;; If the file is a Babyl file, convert the message to
+		  ;; Babyl format.  Even though Rmail no longer uses
+		  ;; Babyl, this code can remain for the time being, on
+		  ;; the off-chance one FCCs to a Babyl file that has
+		  ;; not yet been converted to mbox.
+		  (let ((coding-system-for-write
+			 (or rmail-file-coding-system 'emacs-mule)))
+		    (with-temp-buffer
+		      (insert "\C-l\n0, unseen,,\n*** EOOH ***\nDate: "
+			      (mail-rfc822-date) "\n")
+		      (insert-buffer-substring curbuf beg2 end)
+		      (insert "\n\C-_")
+		      (write-region (point-min) (point-max) fcc t)))
+		;; Ensure there is a blank line between messages, but
+		;; not at the very start of the file.
+		(write-region (if (file-exists-p fcc)
+				  (point-min)
+				(1+ (point-min)))
+			      (point-max) fcc t)))
+	    (and buffer (not dont-write-the-file)
+		 (with-current-buffer buffer
+		   (set-visited-file-modtime)))))))))
 
 (defun mail-sent-via ()
   "Make a Sent-via header line from each To or CC header line."
@@ -1462,7 +1454,7 @@ However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
 	  (forward-line 1))))))
 
 (defun mail-yank-original (arg)
-  "Insert the message being replied to, if any (in rmail).
+  "Insert the message being replied to, if any (in Rmail).
 Puts point after the text and mark before.
 Normally, indents each nonblank line ARG spaces (default 3).
 However, if `mail-yank-prefix' is non-nil, insert that prefix on each line.

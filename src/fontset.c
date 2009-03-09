@@ -523,7 +523,7 @@ fontset_find_font (fontset, c, face, id, fallback)
      struct face *face;
      int id, fallback;
 {
-  Lisp_Object elt, vec, font_group;
+  Lisp_Object vec, font_group;
   int i, charset_matched = -1;
   FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
     ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
@@ -561,97 +561,109 @@ fontset_find_font (fontset, c, face, id, fallback)
   /* Find the first available font in the vector of RFONT-DEF.  */
   for (i = 0; i < ASIZE (vec); i++)
     {
+      Lisp_Object rfont_def, font_def;
       Lisp_Object font_entity, font_object;
 
       if (i == 0 && charset_matched >= 0)
 	{
 	  /* Try the element matching with the charset ID at first.  */
-	  elt = AREF (vec, charset_matched);
+	  rfont_def = AREF (vec, charset_matched);
 	  charset_matched = -1;
 	  i--;
 	}
       else if (i != charset_matched)
-	elt = AREF (vec, i);
+	rfont_def = AREF (vec, i);
       else
 	continue;
 
-      if (NILP (elt))
+      if (NILP (rfont_def))
 	/* This is a sign of not to try the other fonts.  */
 	return Qt;
-      if (INTEGERP (RFONT_DEF_FACE (elt))
-	  && XINT (AREF (elt, 1)) < 0)
+      if (INTEGERP (RFONT_DEF_FACE (rfont_def))
+	  && XINT (RFONT_DEF_FACE (rfont_def)) < 0)
 	/* We couldn't open this font last time.  */
 	continue;
 
-      font_object = RFONT_DEF_OBJECT (elt);
+      font_object = RFONT_DEF_OBJECT (rfont_def);
       if (NILP (font_object))
 	{
-	  Lisp_Object font_def = RFONT_DEF_FONT_DEF (elt);
+	  font_def = RFONT_DEF_FONT_DEF (rfont_def);
 
 	  if (! face)
 	    /* We have not yet opened the font.  */
 	    return Qnil;
+	  /* Find a font best-matching with the spec without checking
+	     the support of the character C.  That checking is costly,
+	     and even without the checking, the found font supports C
+	     in high possibility.  */
 	  font_entity = font_find_for_lface (f, face->lface,
 					     FONT_DEF_SPEC (font_def), -1);
 	  if (NILP (font_entity))
 	    {
 	      /* Record that no font matches the spec.  */
-	      RFONT_DEF_SET_FACE (elt, -1);
+	      RFONT_DEF_SET_FACE (rfont_def, -1);
 	      continue;
 	    }
 	  font_object = font_open_for_lface (f, font_entity, face->lface,
 					     FONT_DEF_SPEC (font_def));
 	  if (NILP (font_object))
 	    {
-	      /* Record that the font is unsable.  */
-	      RFONT_DEF_SET_FACE (elt, -1);
+	      /* Something strange happened, perhaps because of a
+		 Font-backend problem.  Too avoid crashing, record
+		 that this spec is unsable.  It may be better to find
+		 another font of the same spec, but currently we don't
+		 have such an API.  */
+	      RFONT_DEF_SET_FACE (rfont_def, -1);
 	      continue;
 	    }
-	  RFONT_DEF_SET_OBJECT (elt, font_object);
+	  RFONT_DEF_SET_OBJECT (rfont_def, font_object);
 	}
 
       if (font_has_char (f, font_object, c))
-	return elt;
+	return rfont_def;
 
-#if 0
-      /* The following code makes Emacs to find a font for C by fairly
-	 exhausitive search.  But, that takes long time especially for
-	 X font backend.  */
-
-      /* Try to find the different font maching with the current spec
-	 and support C. */
-      font_def = RFONT_DEF_FONT_DEF (elt);
+      /* Find a font already opened, maching with the current spec,
+	 and supporting C. */
+      font_def = RFONT_DEF_FONT_DEF (rfont_def);
       for (i++; i < ASIZE (vec); i++)
 	{
-	  if (! EQ (RFONT_DEF_FONT_DEF (AREF (vec, i)), font_def))
+	  rfont_def = AREF (vec, i);
+	  if (! EQ (RFONT_DEF_FONT_DEF (rfont_def), font_def))
 	    break;
-	  if (font_has_char (f, RFONT_DEF_OBJECT (AREF (vec, i)), c))
-	    return AREF (vec, i);
+	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
+	  if (! NILP (font_object) && font_has_char (f, font_object, c))
+	    return rfont_def;
 	}
-      /* Find an font-entity that support C.  */
+
+      /* Find a font-entity with the current spec and supporting C.  */
       font_entity = font_find_for_lface (f, face->lface,
 					 FONT_DEF_SPEC (font_def), c);
       if (! NILP (font_entity))
 	{
-	  Lisp_Object rfont_def, new_vec;
+	  /* We found a font.  Open it and insert a new element for
+	     that font in VEC.  */
+	  Lisp_Object new_vec;
 	  int j;
 
 	  font_object = font_open_for_lface (f, font_entity, face->lface,
 					     Qnil);
+	  if (NILP (font_object))
+	    continue;
 	  RFONT_DEF_NEW (rfont_def, font_def);
 	  RFONT_DEF_SET_OBJECT (rfont_def, font_object);
-	  RFONT_DEF_SET_SCORE (rfont_def, RFONT_DEF_SCORE (elt));
+	  RFONT_DEF_SET_SCORE (rfont_def, RFONT_DEF_SCORE (rfont_def));
 	  new_vec = Fmake_vector (make_number (ASIZE (vec) + 1), Qnil);
 	  for (j = 0; j < i; j++)
 	    ASET (new_vec, j, AREF (vec, j));
 	  ASET (new_vec, j, rfont_def);
 	  for (j++; j < ASIZE (new_vec); j++)
 	    ASET (new_vec, j, AREF (vec, j - 1));
-	  vec = new_vec;
+	  XSETCDR (font_group, new_vec);
 	  return rfont_def;
 	}
+
+      /* No font of the current spec for C.  Try the next spec.  */
       i--;
-#endif	/* 0 */
     }
 
   FONTSET_SET (fontset, make_number (c), make_number (0));
@@ -1062,7 +1074,7 @@ fontset_pattern_regexp (pattern)
 	    nstars++;
 	  else if (*p0 == '['
 		   || *p0 == '.' || *p0 == '\\'
-		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '+' || *p0 == '^'
 		   || *p0 == '$')
 	    nescs++;
 	}
@@ -1090,7 +1102,7 @@ fontset_pattern_regexp (pattern)
 	    *p1++ = '.';
 	  else if (*p0 == '['
 		   || *p0 == '.' || *p0 == '\\'
-		   || *p0 == '+' || *p0 == '^' 
+		   || *p0 == '+' || *p0 == '^'
 		   || *p0 == '$')
 	    *p1++ = '\\', *p1++ = *p0;
 	  else
@@ -1619,7 +1631,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
     }
   else
     {
-      fontset = FONTSET_FROM_ID (id);;
+      fontset = FONTSET_FROM_ID (id);
       free_realized_fontsets (fontset);
       Fset_char_table_range (fontset, Qt, Qnil);
     }

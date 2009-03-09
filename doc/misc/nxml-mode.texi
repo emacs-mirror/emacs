@@ -5,9 +5,8 @@
 @c %**end of header
 
 @copying
-
 This manual documents nxml-mode, an Emacs major mode for editing
-XML with RELAX NG support. 
+XML with RELAX NG support.
 
 Copyright @copyright{} 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -39,17 +38,18 @@ license to the document, as described in section 6 of the license.
 @node Top
 @top nXML Mode
 
-This manual documents nxml-mode, an Emacs major mode for editing
-XML with RELAX NG support.  This manual is not yet complete.
+@insertcopying
+
+This manual is not yet complete.
 
 @menu
-* Completion::                  
-* Inserting end-tags::          
-* Paragraphs::                  
-* Outlining::                   
-* Locating a schema::           
-* DTDs::                        
-* Limitations::                 
+* Completion::
+* Inserting end-tags::
+* Paragraphs::
+* Outlining::
+* Locating a schema::
+* DTDs::
+* Limitations::
 @end menu
 
 @node Completion
@@ -427,7 +427,7 @@ of the current section.
 @kbd{C-c C-o C-d} hides the text content
 and subsections of the current section.
 @item
-@kbd{C-c C-o C-s} shows the current section 
+@kbd{C-c C-o C-s} shows the current section
 and all its direct and indirect subsections normally.
 @item
 @kbd{C-c C-o C-k} shows the headings of the
@@ -483,7 +483,7 @@ from file @var{x} have precedence over rules from file
 @samp{rng-schema-locating-files} may be relative. If so, it will
 be resolved relative to the document for which a schema is being
 located. It is not an error if relative file-names in
-@samp{rng-schema-locating-files} do not not exist. You can use
+@samp{rng-schema-locating-files} do not exist. You can use
 @kbd{M-x customize-variable @key{RET} rng-schema-locating-files
 @key{RET}} to customize the list of schema locating
 files.
@@ -498,8 +498,8 @@ edited if such a file exist.  The second member contains rules for the
 schemas that are included with the nXML distribution.
 
 @menu
-* Commands for locating a schema::  
-* Schema locating files::       
+* Commands for locating a schema::
+* Schema locating files::
 @end menu
 
 @node Commands for locating a schema
@@ -565,11 +565,11 @@ there is nothing specific to locating schemas in the design; it could
 equally well be used for locating a stylesheet.
 
 @menu
-* Schema locating file syntax basics::  
-* Using the document's URI to locate a schema::  
-* Using the document element to locate a schema::  
-* Using type identifiers in schema locating files::  
-* Using multiple schema locating files::  
+* Schema locating file syntax basics::
+* Using the document's URI to locate a schema::
+* Using the document element to locate a schema::
+* Using type identifiers in schema locating files::
+* Using multiple schema locating files::
 @end menu
 
 @node Schema locating file syntax basics
@@ -626,7 +626,7 @@ the schema for a particular document.  For example,
 @end example
 
 @noindent
-specifies that that the schema for @samp{spec.xml} is
+specifies that the schema for @samp{spec.xml} is
 @samp{docbook.rnc}.
 
 The @samp{pattern} attribute can be used instead of the

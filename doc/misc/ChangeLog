@@ -1,3 +1,112 @@
+2009-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add auth.
+	($(infodir)/auth, auth.dvi): New targets.
+
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi: Fix @setfilename.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add auth.
+	(auth, $(infodir)/auth, auth.dvi): New rules.
+
+2009-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Emacs for minimalists): New node.  (Bug#2452)
+
+2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): Fix description of gnus-use-nocem.
+
+2009-02-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): Update default values for gnus-nocem-groups,
+	gnus-nocem-issuers, and gnus-nocem-verifyer.
+
+2009-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ada-mode.texi (Project files, Automatic Casing):
+	* dbus.texi (Signals):
+	* gnus.texi (Selecting a Group, Filtering Incoming Mail):
+	* mh-e.texi (HTML):
+	* nxml-mode.texi (Locating a schema)
+	(Using the document's URI to locate a schema):
+	* org.texi (Footnotes, Using the mapping API):
+	* rcirc.texi (Channels): Remove duplicate words.
+
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Miscellaneous Commands):
+	* gnus.texi: Minor updates for mbox Rmail.
+
+2009-02-16  Karl Berry  <karl@gnu.org>
+
+	* ada-mode.texi,
+	* auth.texi,
+	* autotype.texi,
+	* calc.texi,
+	* cc-mode.texi,
+	* cl.texi,
+	* dbus.texi,
+	* dired-x.texi,
+	* ebrowse.texi,
+	* ediff.texi,
+	* emacs-mime.texi,
+	* epa.texi,
+	* erc.texi,
+	* eshell.texi,
+	* eudc.texi,
+	* faq.texi,
+	* flymake.texi,
+	* forms.texi,
+	* gnus-coding.texi,
+	* gnus.texi,
+	* idlwave.texi,
+	* info.texi,
+	* mairix-el.texi,
+	* message.texi,
+	* mh-e.texi,
+	* newsticker.texi,
+	* nxml-mode.texi,
+	* org.texi,
+	* pcl-cvs.texi,
+	* pgg.texi,
+	* rcirc.texi,
+	* reftex.texi,
+	* remember.texi,
+	* sasl.texi,
+	* sc.texi,
+	* ses.texi,
+	* sieve.texi,
+	* smtpmail.texi,
+	* speedbar.texi,
+	* tramp.texi,
+	* url.texi,
+	* vip.texi,
+	* viper.texi,
+	* widget.texi,
+	* woman.texi: Consistently use @insertcopying in the Top node,
+	@contents at the front (after @end titlepage),
+	and @direntry after @copying.
+	(Bug#1988)
+
+2009-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi: New file documenting auth-source.
+
+2009-02-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Org Plot): Fix link.
+
+2009-02-09  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Mail-mode integration): Mention the way to do
+	"encrypt-to-self".  (Bug#1807)
+
+2009-02-05  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+
+	* ada-mode.texi (No project files): Fix typo.  (Bug#2214)
+
 2009-02-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Print version about Incoming*.

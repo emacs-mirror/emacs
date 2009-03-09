@@ -1824,7 +1824,6 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'nnvirtual-find-group-art "nnvirtual")
 (autoload 'rmail-dont-reply-to "mail-utils")
 (autoload 'rmail-msg-is-pruned "rmail")
-(autoload 'rmail-msg-restore-non-pruned-header "rmail")
 (autoload 'rmail-output "rmailout")
 
 
@@ -5222,6 +5221,13 @@ Otherwise, generate and save a value for `canlock-password' first."
 	    (if (and message-fcc-handler-function
 		     (not (eq message-fcc-handler-function 'rmail-output)))
 		(funcall message-fcc-handler-function file)
+	      ;; FIXME this option, rmail-output (also used if
+	      ;; message-fcc-handler-function is nil) is not
+	      ;; documented anywhere AFAICS.  It should work in Emacs
+	      ;; 23; I suspect it does not work in Emacs 22.
+	      ;; FIXME I don't see the need for the two different cases here.
+	      ;; mail-use-rfc822 makes no difference (in Emacs 23),and
+	      ;; the third argument just controls \"Wrote file\" message.
 	      (if (and (file-readable-p file) (mail-file-babyl-p file))
 		  (rmail-output file 1 nil t)
 		(let ((mail-use-rfc822 t))
@@ -7232,12 +7238,16 @@ is for the internal use."
       (message-forward-make-body-plain forward-buffer)))
   (message-position-point))
 
+(declare-function rmail-toggle-header "rmail" (&optional arg))
+
 ;;;###autoload
 (defun message-forward-rmail-make-body (forward-buffer)
   (save-window-excursion
     (set-buffer forward-buffer)
     (if (rmail-msg-is-pruned)
-	(rmail-msg-restore-non-pruned-header)))
+	(if (fboundp 'rmail-msg-restore-non-pruned-header)
+	    (rmail-msg-restore-non-pruned-header) ; Emacs 22
+	  (rmail-toggle-header 0))))		  ; Emacs 23
   (message-forward-make-body forward-buffer))
 
 ;; Fixme: Should have defcustom.

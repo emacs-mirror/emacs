@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "syssignal.h"
 #include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p. */
+#include "font.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -85,6 +86,7 @@ Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qfunction_vector, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
+Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
@@ -227,6 +229,12 @@ for example, (type-of 1) returns `integer'.  */)
 	return Qframe;
       if (HASH_TABLE_P (object))
 	return Qhash_table;
+      if (FONT_SPEC_P (object))
+	return Qfont_spec;
+      if (FONT_ENTITY_P (object))
+	return Qfont_entity;
+      if (FONT_OBJECT_P (object))
+	return Qfont_object;
       return Qvector;
 
     case Lisp_Float:
@@ -3151,6 +3159,10 @@ syms_of_data ()
   Qchar_table = intern ("char-table");
   Qbool_vector = intern ("bool-vector");
   Qhash_table = intern ("hash-table");
+
+  DEFSYM (Qfont_spec, "font-spec");
+  DEFSYM (Qfont_entity, "font-entity");
+  DEFSYM (Qfont_object, "font-object");
 
   staticpro (&Qinteger);
   staticpro (&Qsymbol);

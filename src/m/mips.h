@@ -50,9 +50,13 @@ NOTE-END  */
 
 #define TEXT_START      0x00400000
 #define DATA_START      0x10000000
-#define DATA_SEG_BITS	0x10000000
 
 
+#if 0 /* These definitions were advantageous when not using
+	 USE_LSB_TAG.  With that, they get ignored but cause errors.  */
+
+#define DATA_SEG_BITS	0x10000000
+
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
 
@@ -65,3 +69,6 @@ NOTE-END  */
 
 /* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
    (do not change this comment) */
+
+#endif /* 0 */
+

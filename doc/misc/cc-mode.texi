@@ -211,10 +211,13 @@ from
 @comment This appears only in the Info file, not the printed manual.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+@summarycontents
+@contents
+
 @node    Top, Introduction, (dir), (dir)
 @comment node-name, next, previous, up
 
-@ifinfo
+@ifnottex
 @top @ccmode{}
 
 @ccmode{} is a GNU Emacs mode for editing files containing C, C++,
@@ -223,7 +226,9 @@ and AWK code.  It provides syntax-based indentation, font locking, and
 has several handy commands and some minor modes to make the editing
 easier.  It does not provide tools to look up and navigate between
 functions, classes etc - there are other packages for that.
-@end ifinfo
+
+@insertcopying
+@end ifnottex
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6985,12 +6990,6 @@ Since most @ccmode{} variables are prepended with the string
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment Epilogue.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@iftex
-@page
-@summarycontents
-@contents
-@end iftex
 
 @bye
 

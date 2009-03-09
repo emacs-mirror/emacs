@@ -21,9 +21,6 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
-* About external Lisp packages
-
-
 * Installation Changes in Emacs 23.1
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
@@ -60,7 +57,7 @@ a GIF library.
 This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
-Specify --with-ns to configure for this. By default, a self-contained
+Specify --with-ns to configure for this.  By default, a self-contained
 app will be built (containing all lisp).  To install/share lisp with
 other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
 nextstep/README and nextstep/INSTALL in the Emacs source directory.
@@ -526,7 +523,7 @@ is on a different frame.
 +++
 *** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 This moves the current line to window center, top and bottom on
-successive invokations.
+successive invocations.
 +++
 *** scroll-preserve-screen-position also preserves the column position.
 +++
@@ -763,7 +760,7 @@ the first error encountered during compilations.
 says to stop auto scrolling at the first error that occurs.
 ---
 *** The `cc' alias for C++ files in `grep-file-aliases' has been
-improved. `hh' can be used to match C++ header files and `cchh' both
+improved.  `hh' can be used to match C++ header files and `cchh' both
 C++ sources and headers.
 
 ** Copyright
@@ -905,7 +902,7 @@ history.  See `Minibuffer changes', above.
 +++
 ** MH-E
 
-*** Upgraded to MH-E version 8.1. See MH-E-NEWS for details.
+*** Upgraded to MH-E version 8.1.  See MH-E-NEWS for details.
 
 ** Python
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
@@ -924,18 +921,67 @@ corresponding remote host.
 
 ** Rmail
 
++++
 *** Rmail no longer converts the messages to Babyl format.
-Instead, it keeps them in their original mbox format, both on disk and
-in Rmail buffers, and does conversion and decoding when a message is
-displayed.
+Instead, it uses UNIX mbox format, both on disk and in Rmail buffers,
+and does conversion and decoding when a message is displayed.
 
-First time you visit an Rmail file in Babyl format, Rmail
+The first time you visit an Rmail file in Babyl format, Rmail
 automatically converts it to mbox format.  This is a one-time
 conversion, but it can take a few minutes, depending on how fast is
 your machine and on the size of the file.  You should find the rest of
 Rmail usage unaltered.
 
-FIXME: Add more mbox merge details
+However, M-x set-rmail-inbox-list now lasts only for one session
+because there is no way to save the list of inbox files in an
+mbox-format file.
+
+If you have written any extensions to Rmail, they are likely to need
+updating.  Conceptually, the Rmail buffer that you see is no longer
+just a narrowed portion of the whole.  So you cannot access the whole
+of a message (or message collection) by a simple save-restriction and
+widen.  Instead, there are two buffers: the rmail-buffer, and the
+rmail-view-buffer.  The former is the buffer that you see, the latter
+is invisible.  Most of the time, the invisible `view' buffer contains
+the full contents of the Rmail file, and the Rmail buffer contains a
+decoded copy of the current message (with only a subset of the
+headers).  In this state, Rmail is said to be `swapped'.
+
+You may find the following functions useful:
+
+`rmail-get-header' and `rmail-set-header' get or set the value of a
+message header, whether or not it is currently visible.
+
+`rmail-apply-in-message' is a general purpose function that calls a
+function (with arguments) which you specify on the full text of a given
+message.  To further narrow to just the headers, search forward for "\n\n".
+
++++
+*** The new command `rmail-mime' displays MIME messages.
+It is bound to `v' in Rmail buffers and summaries.  It displays plain
+text and multipart messages in a temporary buffer, and offers buttons
+to save attachments.
+
+---
+*** The command `rmail-redecode-body' no longer accepts the optional arg RAW.
+Since Rmail now holds messages in their original undecoded form in a
+separate buffer, `rmail-redecode-body' no longer encodes the original
+message, and therefore there should be no need to avoid encoding it.
+
++++
+*** The o command is now `rmail-output'.  It is an all-purpose command
+for copying messages from Rmail and appending them to files.  It
+handles Babyl-format files as well as mbox-format files, and it
+handles both kinds properly when they are visited in Emacs.  It always
+copies the full headers of the message.
+
++++
+*** The C-o command is now `rmail-output-as-seen'.  It uses
+the message as displayed, appending it to an mbox file.
+
+---
+*** The modified status of the Rmail buffer is reported in the mode-line.
+Previously, this information was hidden.
 
 ** TeX modes
 ---
@@ -1143,7 +1189,7 @@ w32-pass-multimedia-buttons to nil.  See the doc string of that variable
 for the list of extra keys that are available.
 
 ** BDF fonts no longer supported on MS-Windows.
-The font backend was completely rewritten for this release. The focus
+The font backend was completely rewritten for this release.  The focus
 on Windows has been getting acceptable performance and full unicode
 support, including complex script shaping for native Windows fonts.  A
 rewrite of the BDF font support has not happened due to lack of time
@@ -1220,6 +1266,7 @@ mlm-* functions and variables (formerly used for Malayalam script).
 **** `tamil' and `tml-util, and all associated tamil-* and tml-*
 functions and variables (formerly used for Tamil script).
 
+---
 ** The variable temp-file-name-pattern has been removed.
 This variable was only used by call-process-region, which now uses
 temporary-file-directory instead.
@@ -1238,7 +1285,7 @@ The default values are ";;;###autoload" and `loaddefs.el',
 respectively.
 
 +++
-** New primitives `list-system-processes' and `system-process-attributes'
+** New primitives `list-system-processes' and `process-attributes'
 let Lisp programs access the processes that are running on the local
 machine.  See the doc strings of these functions for more details.
 Not all platforms support accessing this information; on those that
@@ -1455,7 +1502,7 @@ or attribute/value plists.  If this variable is buffer-local, the
 remapping occurs only in that buffer.
 
 *** text-scale-mode remaps the default face to a larger or smaller
-size in the current buffer. This feature is used by the Buffer Face
+size in the current buffer.  This feature is used by the Buffer Face
 menu and the new `C-x C-+', `C-x C--', and `C-x C-0' commands (see
 Editing Changes, above).
 
@@ -1530,7 +1577,9 @@ accept a cons of characters as the first argument, and modify all
 entries in that range of characters.
 
 +++
-*** `translation-table-for-input' is now obsolete.
+*** Use of `translation-table-for-input' for character code unification
+is now obsolete, since Emacs 23.1 and later uses Unicode as basis for
+internal representation of characters.
 
 *** New functions:
 

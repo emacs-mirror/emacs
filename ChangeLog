@@ -1,3 +1,41 @@
+2009-03-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (rs6000-ibm-aix6*): Fix typo.
+
+2009-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add auth.
+
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Add Auth-source.
+
+2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Fix last change so the first `cd' doesn't affect
+	the second.
+
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Copy .dbxinit to _dbxinit.
+
+	* make-dist (Making links to `info'): Remove .gitignore.
+
+2009-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (lib-src, lisp): Use simpler rule.
+	(src): Be more specific to avoid recompiling all the .elc files just
+	because the bootstrap-emacs is missing.
+
+2009-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Require librsvg >= 2.11.
+
+2009-02-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* configure.in (HAVE_XFT, HAVE_FREETYPE, HAVE_LIBOTF)
+	(HAVE_M17N_FLT): Don't check for these unless HAVE_X11.
+
 2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* configure.in (COCOA_EXPERIMENTAL_CTRL_G): Drop.
@@ -13,7 +51,7 @@
 
 2009-01-22  Yavor Doganov  <yavor@gnu.org>  (tiny change)
 
-	* configure.in (HAVE_RSVG): Use librsvg under HAVE_NS also. (Bug#616)
+	* configure.in (HAVE_RSVG): Use librsvg under HAVE_NS also.  (Bug#616)
 
 2009-01-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -7551,7 +7589,6 @@
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
-;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,

@@ -208,6 +208,8 @@ changed while a server is running."
   :type 'string
   :version "23.1")
 
+;; We do not use `temporary-file-directory' here, because emacsclient
+;; does not read the init file.
 (defvar server-socket-dir
   (and (featurep 'make-network-process '(:family local))
        (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid)))
@@ -238,9 +240,9 @@ ENV should be in the same format as `process-environment'."
     `(let ((process-environment process-environment))
        (dolist (,var ,vars)
          (let ((,value (getenv-internal ,var ,env)))
-           (push (if (null ,value)
-                     ,var
-                   (concat ,var "=" ,value))
+           (push (if (stringp ,value)
+                     (concat ,var "=" ,value)
+                   ,var)
                  process-environment)))
        (progn ,@body))))
 
@@ -491,9 +493,14 @@ To force-start a server, do \\[server-force-delete] and then
 	  ;; Remove any leftover socket or authentication file
 	  (ignore-errors (delete-file server-file))
 	(setq server-mode nil) ;; already set by the minor mode code
-	(display-warning 'server
-			 (format "Emacs server named %S already running" server-name)
-			 :warning)
+	(display-warning
+	 'server
+	 (concat "Unable to start the Emacs server.\n"
+		 (format "There is an existing Emacs server, named %S.\n"
+			 server-name)
+		 "To start the server in this Emacs process, stop the existing
+server or call `M-x server-force-delete' to forcibly disconnect it.")
+	 :warning)
 	(setq leave-dead t))
       ;; If this Emacs already had a server, clear out associated status.
       (while server-clients
@@ -588,7 +595,7 @@ Return values:
 	    (insert-file-contents-literally (expand-file-name name server-auth-dir))
 	    (or (and (looking-at "127\\.0\\.0\\.1:[0-9]+ \\([0-9]+\\)")
 		     (assq 'comm
-			   (system-process-attributes
+			   (process-attributes
 			    (string-to-number (match-string 1))))
 		     t)
 		:other))
@@ -1036,40 +1043,48 @@ The following commands are accepted by the client:
     (error (server-return-error proc err))))
 
 (defun server-execute (proc files nowait commands dontkill frame tty-name)
-  (condition-case err
-      (let* ((buffers
-              (when files
-                (run-hooks 'pre-command-hook)
-                (prog1 (server-visit-files files proc nowait)
-                  (run-hooks 'post-command-hook)))))
+  ;; This is run from timers and process-filters, i.e. "asynchronously".
+  ;; But w.r.t the user, this is not really asynchronous since the timer
+  ;; is run after 0s and the process-filter is run in response to the
+  ;; user running `emacsclient'.  So it is OK to override the
+  ;; inhibit-quit flag, which is good since `commands' (as well as
+  ;; find-file-noselect via the major-mode) can run arbitrary code,
+  ;; including code that needs to wait.
+  (with-local-quit
+    (condition-case err
+        (let* ((buffers
+                (when files
+                  (run-hooks 'pre-command-hook)
+                  (prog1 (server-visit-files files proc nowait)
+                    (run-hooks 'post-command-hook)))))
 
-        (mapc 'funcall (nreverse commands))
+          (mapc 'funcall (nreverse commands))
 
-        ;; Delete the client if necessary.
-        (cond
-         (nowait
-          ;; Client requested nowait; return immediately.
-          (server-log "Close nowait client" proc)
-          (server-delete-client proc))
-         ((and (not dontkill) (null buffers))
-          ;; This client is empty; get rid of it immediately.
-          (server-log "Close empty client" proc)
-          (server-delete-client proc)))
-        (cond
-         ((or isearch-mode (minibufferp))
-          nil)
-         ((and frame (null buffers))
-          (message "%s" (substitute-command-keys
-                         "When done with this frame, type \\[delete-frame]")))
-         ((not (null buffers))
-          (server-switch-buffer (car buffers) nil (cdr (car files)))
-          (run-hooks 'server-switch-hook)
-          (unless nowait
+          ;; Delete the client if necessary.
+          (cond
+           (nowait
+            ;; Client requested nowait; return immediately.
+            (server-log "Close nowait client" proc)
+            (server-delete-client proc))
+           ((and (not dontkill) (null buffers))
+            ;; This client is empty; get rid of it immediately.
+            (server-log "Close empty client" proc)
+            (server-delete-client proc)))
+          (cond
+           ((or isearch-mode (minibufferp))
+            nil)
+           ((and frame (null buffers))
             (message "%s" (substitute-command-keys
-                           "When done with a buffer, type \\[server-edit]")))))
-        (when (and frame (null tty-name))
-          (server-unselect-display frame)))
-    (error (server-return-error proc err))))
+                           "When done with this frame, type \\[delete-frame]")))
+           ((not (null buffers))
+            (server-switch-buffer (car buffers) nil (cdr (car files)))
+            (run-hooks 'server-switch-hook)
+            (unless nowait
+              (message "%s" (substitute-command-keys
+                             "When done with a buffer, type \\[server-edit]")))))
+          (when (and frame (null tty-name))
+            (server-unselect-display frame)))
+      (error (server-return-error proc err)))))
 
 (defun server-return-error (proc err)
   (ignore-errors

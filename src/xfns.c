@@ -3292,7 +3292,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-  register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -3300,6 +3299,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
+  register_font_driver (&xfont_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -3307,6 +3307,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   x_default_font_parameter (f, parms);
+  if (!FRAME_FONT (f))
+    {
+      delete_frame (frame, Qnoelisp);
+      error ("Invalid frame font");
+    }
 
 #ifdef USE_LUCID
   /* Prevent lwlib/xlwmenu.c from crashing because of a bug

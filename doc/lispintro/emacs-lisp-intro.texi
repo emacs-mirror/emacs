@@ -25,7 +25,7 @@
 @comment %**end of header
 
 @c per rms and peterb, use 10pt fonts for the main text, mostly to
-@c save on paper cost.  
+@c save on paper cost.
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @ifset smallbook
@@ -17009,7 +17009,7 @@ person hopes to do with an unadorned file?  Fundamental mode is the
 right default for such a file, just as C mode is the right default for
 editing C code.  (Enough programming languages have syntaxes
 that enable them to share or nearly share features, so C mode is
-now provided by by CC mode, the `C Collection'.)
+now provided by CC mode, the `C Collection'.)
 
 But when you do know who is going to use Emacs---you,
 yourself---then it makes sense to customize Emacs.
@@ -17997,7 +17997,7 @@ version 21 and is likely to continue, you could write
 @end smallexample
 
 @noindent
-and add other expressions, too. 
+and add other expressions, too.
 
 
 @node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
@@ -19261,7 +19261,7 @@ To return to the old value for the length of the kill ring, evaluate:
 The @code{current-kill} function changes the element in the kill ring
 to which @code{kill-ring-yank-pointer} points.  (Also, the
 @code{kill-new} function sets @code{kill-ring-yank-pointer} to point
-to the latest element of the the kill ring.  The @code{kill-new}
+to the latest element of the kill ring.  The @code{kill-new}
 function is used directly or indirectly by @code{kill-append},
 @code{copy-region-as-kill}, @code{kill-ring-save}, @code{kill-line},
 and @code{kill-region}.)
@@ -19319,7 +19319,7 @@ yanking point; just return the Nth kill forward."
 @end smallexample
 
 Remember also that the @code{kill-new} function sets
-@code{kill-ring-yank-pointer} to the latest element of the the kill
+@code{kill-ring-yank-pointer} to the latest element of the kill
 ring, which means that all the functions that call it set the value
 indirectly: @code{kill-append}, @code{copy-region-as-kill},
 @code{kill-ring-save}, @code{kill-line}, and @code{kill-region}.
@@ -19381,7 +19381,7 @@ The @code{if} expression has two parts, one if there exists
 
 @need 2000
 Let us consider the `if not' or else-part of the @code{current-kill}
-function.  (The then-part uses the the @code{kill-new} function, which
+function.  (The then-part uses the @code{kill-new} function, which
 we have already described.  @xref{kill-new function, , The
 @code{kill-new} function}.)
 

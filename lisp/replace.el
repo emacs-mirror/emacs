@@ -570,7 +570,7 @@ regexp, the last isearch string, and the last replacement regexp."
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
-  (list (read-regexp prompt) nil nil t))
+  (list (read-regexp prompt "") nil nil t))
 
 (defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.

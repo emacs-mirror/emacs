@@ -265,7 +265,7 @@ suitable file is found, return nil."
 	     (condition-case nil
 		 (find-function-search-for-symbol object nil file-name)
 	       (error nil))))
-	(when location
+	(when (cdr location)
 	  (with-current-buffer (car location)
 	    (goto-char (cdr location))
 	    (when (re-search-backward

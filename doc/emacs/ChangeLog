@@ -1,3 +1,144 @@
+2009-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* maintaining.texi (VC Directory Commands): Fix doc for the x key in
+	vc-dir.  (Bug#2598)
+
+2009-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* fixit.texi (Spelling): Add turn-on-flyspell.  (Bug#2517)
+
+2009-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Basics): Add reference to sorting.
+	(Rmail Scrolling, Rmail Motion, Rmail Reply, Rmail Display):
+	Minor re-wordings.
+	(Rmail Motion): Mention rmail-next-same-subject.
+	(Rmail Deletion): Expunging is not the only way to change the numbers.
+	(Rmail Labels): Labels can also be used in sorting.
+	(Rmail Summary Edit): Mention rmail-summary-next-same-subject.
+	(Rmail Display): Mention rmail-mime.
+
+2009-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Sorting): Add the keybindings associated with each
+	sort command.  Fix `rmail-sort-by-labels' name.  Mention sorting from
+	summary.  Mention sorts cannot be undone.
+	(Rmail Display): Give an example of how to use goto-address-mode.
+	(Rmail Editing): It's keybindings that are redefined, not commands.
+	Fix some typos.
+	(Movemail): Some minor rewording.
+	(Remote Mailboxes): Emacs movemail supports pop by default.
+	Fix some minor grammatical issues.  The "two alternative ways" to
+	specify a POP mailbox are really just one.  Remove all reference to the
+	variables rmail-pop-password and rmail-pop-password-required, obsolete
+	since Emacs 22.1.  Clarify the four password steps.  Emacs movemail
+	can support Kerberos.
+
+2009-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail Deletion): Revert previous change, which was
+	describing the Rmail summary versions.
+	(Rmail Reply): Give more details of rmail-dont-reply-to-names.
+	Minor re-wording for rmail-resend.
+	(Rmail Make Summary): Summaries apply to buffers rather than files.
+	<rmail-summary-by-topic>: Headers includes the subject.
+	<rmail-summary-by-recipients, rmail-summary-by-topic>: Give more
+	details, including prefix arguments.
+	Mention rmail-summary-by-senders on C-M-f.
+	Not counting lines might be faster.
+	(Rmail Summary Edit): More details on the delete commands.
+	Mention rmail-summary-undelete-many, rmail-summary-bury, and C-M-n/p.
+	Name the commands bound to the various keys.  Mention prefix argument
+	for searching.
+	(Rmail Display): Mention rmail-displayed-headers.  Fix typo.
+	Simplify rmail-highlighted-headers description.  Update face name.
+
+2009-03-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mark.texi (Marking Objects): Fix typo.
+
+2009-03-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrevs.texi (Expanding Abbrevs): Mention abbrev-expand-functions
+	instead of obsolete pre-abbrev-expand-hook.  Link to elisp manual.
+
+2009-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi (Rmail): Fix some typos.  Use consistent case in menu.
+	(Rmail Motion): - M-s searches from the end of messages.
+	(Rmail Deletion): Minor clarification.  Fix numeric argument
+	description.
+	(Rmail Inbox): Fix default inbox description.  Mention `mbox' by name.
+	newmail and RMAILOSE files need not be in home-directory.
+	(Rmail Files): Mention I/O menus are unselectable if no files match.
+	Mention `MAIL' env-var.
+
+2009-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* mule.texi (Fontsets): Mention fontset-default, font specs and
+	fallback fontsets.
+	(Defining Fontsets): Mention ns and w32 variants of
+	standard-fontset-spec.  Update description of startup fontset to match
+	Emacs 23 behavior.
+	(Modifying Fontsets): New section.  (Bug#656)
+	(International): Link to Modifying Fontsets.
+
+2009-02-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* macos.texi (Mac / GNUstep Basics, Mac / GNUstep Customization):
+	Mention ns-extended-platform-support-mode.
+
+2009-02-22  Karl Berry  <karl@gnu.org>
+
+	* macos.texi (Mac / GNUstep Customization): One more duplicate "the".
+
+2009-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* basic.texi (Moving Point, Position Info):
+	* files.texi (Visiting):
+	* mini.texi (Completion Options):
+	* text.texi (HTML Mode): Remove duplicate words.
+
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* rmail.texi: Minor updates for mbox rather than Babyl.
+
+2009-02-17  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (Top): Add @insertcopying before master menu.  (Bug#1988)
+
+2009-02-17  Richard M Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Mention Babyl format.
+
+	* emacs.texi (Top): Delete `Out of Rmail' from subnode menu.
+
+	* rmail.texi: Update for mbox format.
+	Various small fixes, as well as the following.
+	(Out of Rmail): Node deleted.
+	(Rmail): Update menu.
+	(Rmail Files): Comment out set-rmail-inbox-list.
+	Document rmail-inbox-list instead.
+	(Rmail Output): Substantial changes since C-o is now
+	rmail-output-as-seen and o is rmail-output.
+	(Rmail Attributes): Delete `stored', add `retried'.
+	(Rmail Display): Editing headers works in all cases.
+
+2009-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* basic.texi (Position Info): M-x count-lines-region is not always on
+	M-=.  (Bug#2269)
+
+2009-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Holidays, Displaying the Diary): Update for new marker
+	defaults.
+
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* rmail.texi (Rmail Coding) <rmail-redecode-body>: Remove stale
+	documentation of possible problems with redecoding.
+
 2009-02-03  Glenn Morris  <rgm@gnu.org>
 
 	* rmail.texi (Out of Rmail): Mention b2m.pl.

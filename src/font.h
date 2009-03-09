@@ -68,9 +68,8 @@ struct glyph_string;
 enum font_property_index
   {
     /* FONT-TYPE is a symbol indicating a font backend; currently `x',
-       `xft', `ftx' are available on X and gdi on Windows.
-       For Windows, `bdf' and `uniscribe' backends are in progress.
-       For Mac OS X, we need `atm'.  */
+       `xft', `ftx' are available on X, `uniscribe' and `gdi' on
+       Windows, and `ns' under Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
@@ -153,8 +152,8 @@ enum font_property_index
     /* In a font-spec, the value is an alist of extra information of a
        font such as name, OpenType features, and language coverage.
        In addition, in a font-entity, the value may contain a pair
-       (font-entity . INFO) where INFO is an extra infomation to
-       identify a font (font-driver dependent).  */
+       (font-entity . INFO) where INFO is extra information to identify
+       a font (font-driver dependent).  */
     FONT_EXTRA_INDEX,		/* alist		alist */
 
     /* This value is the length of font-spec vector.  */
@@ -170,7 +169,7 @@ enum font_property_index
 
     /* XLFD name of the font (string). */
     FONT_NAME_INDEX = FONT_ENTITY_MAX,
-    
+
     /* Full name of the font (string).  It is the name extracted from
        the opend font, and may be different from the above.  It may be
        nil if the opened font doesn't give a name.  */
@@ -499,7 +498,7 @@ struct font_driver
   /* Symbol indicating the type of the font-driver.  */
   Lisp_Object type;
 
-  /* 1 iff the font's foundary, family, and adstyle names are case
+  /* 1 iff the font's foundry, family, and adstyle names are case
      sensitve.  */
   int case_sensitive;
 
@@ -508,15 +507,35 @@ struct font_driver
   Lisp_Object (*get_cache) P_ ((FRAME_PTR F));
 
   /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
-     is a list of font-entities.  It is assured that the properties
-     WEIGHT to AVGWIDTH are all nil (i.e. not specified) in FONT_SPEC.
+     is a list of font-entities.  The font properties to be considered
+     are: :foundry, :family, :adstyle, :registry, :script, :lang, and
+     :otf.  See the function `font-spec' for their meanings.  Note
+     that the last three properties are stored in FONT_EXTRA_INDEX
+     slot of FONT_SPEC.
+
+     The returned value is a list of font-entities.  Each font-entity
+     has :type property whose value is the same as the above `type'.
+     It also has these properties if they are available from the
+     corresponding font; :foundry, :family, :adstyle, :registry,
+     :weight, :slant, :width, :size, :dpi, :spacing, :avgwidth.  If
+     the font is scalable, :size and :avgwidth must be 0.
+
+     The `open' method of the same font-backend is called with one of
+     the returned font-entities.  If the backend needs additional
+     information to be used in `open' method, this method can add any
+     Lispy value by the property :font-entity to the entities.
+
      This and the following `match' are the only APIs that allocate
      font-entities.  */
   Lisp_Object (*list) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
-  /* Return a font entity most closely maching with FONT_SPEC on
-     FRAME.  The closeness is detemined by the font backend, thus
-     `face-font-selection-order' is ignored here.  */
+  /* Return a font-entity most closely matching with FONT_SPEC on
+     FRAME.  Which font property to consider, and how to calculate the
+     closeness is determined by the font backend, thus
+     `face-font-selection-order' is ignored here.
+
+     The properties that the font-entity has is the same as `list'
+     method.  */
   Lisp_Object (*match) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
   /* Optional.
@@ -628,7 +647,7 @@ struct font_driver
      makes some data specific to F and stores it in F by calling
      font_put_frame_data ().  */
   int (*start_for_frame) P_ ((FRAME_PTR f));
-  
+
   /* Optional.
      End using the driver for frame F.  Usually this function free
      some data stored for F.  */
@@ -719,7 +738,7 @@ extern int font_style_to_value P_ ((enum font_property_index prop,
 extern Lisp_Object font_style_symbolic P_ ((Lisp_Object font,
 					    enum font_property_index prop,
 					    int for_face));
-                           
+
 extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object font));
 extern Lisp_Object font_list_entities P_ ((Lisp_Object frame,
 					   Lisp_Object spec));

@@ -320,10 +320,6 @@ developing GNU and promoting software freedom.''
 @end iflatex
 @end iftex
 
-@ifnottex
-@insertcopying
-@end ifnottex
-
 @dircategory Emacs
 @direntry
 * Gnus: (gnus).         The newsreader Gnus.
@@ -331,8 +327,6 @@ developing GNU and promoting software freedom.''
 @iftex
 @finalout
 @end iftex
-@setchapternewpage odd
-
 
 
 @titlepage
@@ -344,6 +338,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@summarycontents
+@contents
 
 @node Top
 @top The Gnus Newsreader
@@ -357,6 +353,10 @@ luck.
 
 @c Adjust ../Makefile.in if you change the following line:
 This manual corresponds to Gnus v5.13
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @end ifinfo
 
@@ -684,7 +684,7 @@ Mail Sources
 Choosing a Mail Back End
 
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
-* Rmail Babyl::                 Emacs programs use the Rmail Babyl format.
+* Babyl::                       Babyl was used by older versions of Rmail.
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
@@ -2208,7 +2208,7 @@ means Gnus never ignores old articles.
 @vindex gnus-auto-select-subject
 If @code{gnus-auto-select-first} is non-@code{nil}, select an article
 automatically when entering a group with the @kbd{SPACE} command.
-Which article this is is controlled by the
+Which article this is controlled by the
 @code{gnus-auto-select-subject} variable.  Valid values for this
 variable are:
 
@@ -4390,7 +4390,7 @@ FIXME: As a first step, convert the commentary of @file{nnir} to texi.
 @node nnmairix
 @subsection nnmairix
 
-@cindex mairix 
+@cindex mairix
 @cindex nnmairix
 This paragraph describes how to set up mairix and the back end
 @code{nnmairix} for indexing and searching your mail from within
@@ -4480,7 +4480,7 @@ to certain mairix searches.  This way, you can easily create a group
 containing mails from a certain sender, with a certain subject line or
 even for one specific thread based on the Message-ID.  If you check for
 new mail in these folders (e.g. by pressing @kbd{g} or @kbd{M-g}), they
-automatically update themselves by calling mairix. 
+automatically update themselves by calling mairix.
 
 You might ask why you need @code{nnmairix} at all, since mairix already
 creates the group, populates it with links to the mails so that you can
@@ -8524,7 +8524,8 @@ Save the current article in a Unix mail box (mbox) file
 @kindex O r (Summary)
 @findex gnus-summary-save-article-rmail
 Save the current article in Rmail format
-(@code{gnus-summary-save-article-rmail}).
+(@code{gnus-summary-save-article-rmail}).  This is mbox since Emacs 23,
+Babyl in older versions.
 
 @item O f
 @kindex O f (Summary)
@@ -8610,7 +8611,11 @@ functions below, or you can create your own.
 @findex gnus-summary-save-in-rmail
 @vindex gnus-rmail-save-name
 @findex gnus-plain-save-name
-This is the default format, @dfn{Babyl}.  Uses the function in the
+This is the default format, that used by the Rmail package.  Since Emacs
+23, Rmail uses standard mbox format.  Before this, it used the
+@dfn{Babyl} format.  Accordingly, this command writes mbox format since
+Emacs 23, unless appending to an existing Babyl file.  In older versions
+of Emacs, it always uses Babyl format.  Uses the function in the
 @code{gnus-rmail-save-name} variable to get a file name to save the
 article in.  The default is @code{gnus-plain-save-name}.
 
@@ -14470,7 +14475,7 @@ List of strings to be used as the switches to
 Does essentially the same, but uses @code{telnet} instead of @samp{netcat}
 to connect to the real @acronym{NNTP} server from the intermediate host.
 @code{telnet} is a bit less robust because of things like
-line-end-conversion, but sometimes @code{netcat} is simply not available.  
+line-end-conversion, but sometimes @code{netcat} is simply not available.
 
 @code{nntp-open-via-rlogin-and-telnet}-specific variables:
 
@@ -16473,8 +16478,8 @@ mail, which should help.
 @vindex nnmh-get-new-mail
 @vindex nnfolder-get-new-mail
 This might be too much, if, for instance, you are reading mail quite
-happily with @code{nnml} and just want to peek at some old Rmail
-file you have stashed away with @code{nnbabyl}.  All back ends have
+happily with @code{nnml} and just want to peek at some old (pre-Emacs
+23) Rmail file you have stashed away with @code{nnbabyl}.  All back ends have
 variables called back-end-@code{get-new-mail}.  If you want to disable
 the @code{nnbabyl} mail reading, you edit the virtual server for the
 group to have a setting where @code{nnbabyl-get-new-mail} to @code{nil}.
@@ -16498,7 +16503,7 @@ Spool}).
 
 @menu
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
-* Rmail Babyl::                 Emacs programs use the Rmail Babyl format.
+* Babyl::                       Babyl was used by older versions of Rmail.
 * Mail Spool::                  Store your mail in a private spool?
 * MH Spool::                    An mhspool-like back end.
 * Maildir::                     Another one-file-per-message format.
@@ -16538,27 +16543,26 @@ into groups.  Default is @code{t}.
 @end table
 
 
-@node Rmail Babyl
-@subsubsection Rmail Babyl
+@node Babyl
+@subsubsection Babyl
 @cindex nnbabyl
-@cindex Rmail mbox
 
 @vindex nnbabyl-active-file
 @vindex nnbabyl-mbox-file
-The @dfn{nnbabyl} back end will use a Babyl mail box (aka. @dfn{Rmail
-mbox}) to store mail.  @code{nnbabyl} will add extra headers to each
-mail article to say which group it belongs in.
+The @dfn{nnbabyl} back end will use a Babyl mail box to store mail.
+@code{nnbabyl} will add extra headers to each mail article to say which
+group it belongs in.
 
 Virtual server settings:
 
 @table @code
 @item nnbabyl-mbox-file
 @vindex nnbabyl-mbox-file
-The name of the Rmail mbox file.  The default is @file{~/RMAIL}
+The name of the Babyl file.  The default is @file{~/RMAIL}
 
 @item nnbabyl-active-file
 @vindex nnbabyl-active-file
-The name of the active file for the rmail box.  The default is
+The name of the active file for the Babyl file.  The default is
 @file{~/.rmail-active}
 
 @item nnbabyl-get-new-mail
@@ -17154,7 +17158,8 @@ to understand the mail files folks already had in existence.  Gnus (and
 VM, for that matter) continue to support this format because it's
 perceived as having some good qualities in those mailer-specific
 headers/status bits stuff.  Rmail itself still exists as well, of
-course, and is still maintained by Stallman.
+course, and is still maintained within Emacs.  Since Emacs 23, it
+uses standard mbox format rather than Babyl.
 
 Both of the above forms leave your mail in a single file on your
 file system, and they must parse that entire file each time you take a
@@ -18640,9 +18645,8 @@ as a newsgroup.  Several files types are supported:
 
 @table @code
 @cindex Babyl
-@cindex Rmail mbox
 @item babyl
-The Babyl (Rmail) mail box.
+The Babyl format.
 
 @cindex mbox
 @cindex Unix mbox
@@ -23829,7 +23833,8 @@ away.
 What use are these NoCeM messages if the articles are canceled anyway?
 Some sites do not honor cancel messages and some sites just honor cancels
 from a select few people.  Then you may wish to make use of the NoCeM
-messages, which are distributed in the @samp{alt.nocem.misc} newsgroup.
+messages, which are distributed in the newsgroups
+@samp{news.lists.filters}, @samp{alt.nocem.misc}, etc.
 
 Gnus can read and parse the messages in this group automatically, and
 this will make spam disappear.
@@ -23847,28 +23852,34 @@ In that case, Gnus scans NoCeM messages when checking new news if this
 value is not exceeding a group level that you specify as the prefix
 argument to some commands, e.g. @code{gnus},
 @code{gnus-group-get-new-news}, etc.  Otherwise, Gnus does not scan
-NoCeM messages if you specify a group level to those commands.  For
-example, if you use 1 or 2 on the mail groups and the levels on the news
-groups remain the default, 3 is the best choice.
+NoCeM messages if you specify a group level that is smaller than this
+value to those commands.  For example, if you use 1 or 2 on the mail
+groups and the levels on the news groups remain the default, 3 is the
+best choice.
 
 @item gnus-nocem-groups
 @vindex gnus-nocem-groups
 Gnus will look for NoCeM messages in the groups in this list.  The
 default is
 @lisp
-("news.lists.filters" "news.admin.net-abuse.bulletins"
- "alt.nocem.misc" "news.admin.net-abuse.announce")
+("news.lists.filters" "alt.nocem.misc")
 @end lisp
 
 @item gnus-nocem-issuers
 @vindex gnus-nocem-issuers
 There are many people issuing NoCeM messages.  This list says what
-people you want to listen to.  The default is
+people you want to listen to.  The default is:
+
 @lisp
-("Automoose-1" "clewis@@ferret.ocunix.on.ca"
- "cosmo.roadkill" "SpamHippo" "hweede@@snafu.de")
+("Adri Verhoef"
+ "alba-nocem@@albasani.net"
+ "bleachbot@@httrack.com"
+ "news@@arcor-online.net"
+ "news@@uni-berlin.de"
+ "nocem@@arcor.de"
+ "pgpmoose@@killfile.org"
+ "xjsppl@@gmx.de")
 @end lisp
-fine, upstanding citizens all of them.
 
 Known despammers that you can put in this list are listed at@*
 @uref{http://www.xs4all.nl/~rosalind/nocemreg/nocemreg.html}.
@@ -23903,18 +23914,21 @@ The specs are applied left-to-right.
 
 @item gnus-nocem-verifyer
 @vindex gnus-nocem-verifyer
+@findex gnus-nocem-epg-verify
 @findex pgg-verify
 This should be a function for verifying that the NoCeM issuer is who she
-says she is.  The default is @code{pgg-verify}, which returns
-non-@code{nil} if the verification is successful, otherwise (including
-the case the NoCeM message was not signed) returns @code{nil}.  If this
-is too slow and you don't care for verification (which may be dangerous),
-you can set this variable to @code{nil}.
+says she is.  This variable defaults to @code{gnus-nocem-epg-verify} if
+EasyPG is available, otherwise defaults to @code{pgg-verify}.  The
+function should return non-@code{nil} if the verification is successful,
+otherwise (including the case the NoCeM message was not signed) should
+return @code{nil}.  If this is too slow and you don't care for
+verification (which may be dangerous), you can set this variable to
+@code{nil}.
 
 Formerly the default was @code{mc-verify}, which is a Mailcrypt
 function.  While you can still use it, you can change it into
-@code{pgg-verify} running with GnuPG if you are willing to add the
-@acronym{PGP} public keys to GnuPG's keyring.
+@code{gnus-nocem-epg-verify} or @code{pgg-verify} running with GnuPG if
+you are willing to add the @acronym{PGP} public keys to GnuPG's keyring.
 
 @item gnus-nocem-directory
 @vindex gnus-nocem-directory
@@ -23937,7 +23951,8 @@ issuers.
 @item gnus-nocem-check-article-limit
 @vindex gnus-nocem-check-article-limit
 If non-@code{nil}, the maximum number of articles to check in any NoCeM
-group.  NoCeM groups can be huge and very slow to process.
+group.  @code{nil} means no restriction.  NoCeM groups can be huge and
+very slow to process.
 
 @end table
 
@@ -25025,7 +25040,7 @@ the value @samp{spam} means @samp{nnimap+your-server:spam}.  The value
 @vindex nnimap-split-download-body
 Note for IMAP users: if you use the @code{spam-check-bogofilter},
 @code{spam-check-ifile}, and @code{spam-check-stat} spam back ends,
-you should also set set the variable @code{nnimap-split-download-body}
+you should also set the variable @code{nnimap-split-download-body}
 to @code{t}.  These spam back ends are most useful when they can
 ``scan'' the full message body.  By default, the nnimap back end only
 retrieves the message headers; @code{nnimap-split-download-body} tells
@@ -26583,10 +26598,10 @@ of all messages matching a particular set of criteria.
 @end enumerate
 
 @menu
-* Setup::                       
-* Fancy splitting to parent::   
-* Store custom flags and keywords::  
-* Store arbitrary data::        
+* Setup::
+* Fancy splitting to parent::
+* Store custom flags and keywords::
+* Store arbitrary data::
 @end menu
 
 @node Setup
@@ -28819,6 +28834,7 @@ was inserted directly.
 @item
 @code{message-insinuate-rmail}
 
+@c FIXME should that not be 'message-user-agent?
 Adding @code{(message-insinuate-rmail)} and @code{(setq
 mail-user-agent 'gnus-user-agent)} in @file{.emacs} convinces Rmail to
 compose, reply and forward messages in message-mode, where you can
@@ -30505,7 +30521,7 @@ Below is a slightly shortened version of the @code{nndir} back end.
 
 @lisp
 ;;; @r{nndir.el --- single directory newsgroup access for Gnus}
-;; @r{Copyright (C) 1995,96 Free Software Foundation, Inc.}
+;; @r{Copyright (C) 1995,1996 Free Software Foundation, Inc.}
 
 ;;; @r{Code:}
 
@@ -31265,8 +31281,6 @@ former).  The manual is unambiguous, but it can be confusing.
 @chapter Key Index
 @printindex ky
 
-@summarycontents
-@contents
 @bye
 
 @iftex

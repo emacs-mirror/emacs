@@ -310,14 +310,14 @@ This inherits from Text mode.")
 (defvar rst-mode-abbrev-table nil
   "Abbrev table used while in Rst mode.")
 (define-abbrev-table 'rst-mode-abbrev-table
-  '(
-    ("contents" ".. contents::\n..\n   " nil 0)
-    ("con" ".. contents::\n..\n   " nil 0)
-    ("cont" "[...]" nil 0)
-    ("skip" "\n\n[...]\n\n  " nil 0)
-    ("seq" "\n\n[...]\n\n  " nil 0)
-    ;; FIXME: Add footnotes, links, and more.
-    ))
+  (mapcar (lambda (x) (append x '(nil 0 system)))
+          '(("contents" ".. contents::\n..\n   ")
+            ("con" ".. contents::\n..\n   ")
+            ("cont" "[...]")
+            ("skip" "\n\n[...]\n\n  ")
+            ("seq" "\n\n[...]\n\n  ")
+            ;; FIXME: Add footnotes, links, and more.
+            )))
 
 
 ;; Syntax table.

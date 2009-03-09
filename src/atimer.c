@@ -384,6 +384,9 @@ run_timers ()
       EMACS_GET_TIME (now);
     }
 
+  if (! atimers)
+    pending_atimers = 0;
+
 #ifdef SYNC_INPUT
   if (pending_atimers)
     pending_signals = 1;

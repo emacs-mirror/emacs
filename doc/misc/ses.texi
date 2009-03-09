@@ -64,6 +64,8 @@ by formulas that can refer to the values of other cells.
 
 To report bugs, send email to @email{jyavner@@member.fsf.org}.
 
+@insertcopying
+
 @menu
 * Sales Pitch::                 Why use SES?
 * The Basics::                  Basic spreadsheet commands

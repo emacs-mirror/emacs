@@ -5363,7 +5363,7 @@ face for italic.  */)
 			    Font selection
  ***********************************************************************/
 
- DEFUN ("internal-set-font-selection-order",
+DEFUN ("internal-set-font-selection-order",
        Finternal_set_font_selection_order,
        Sinternal_set_font_selection_order, 1, 1, 0,
        doc: /* Set font selection order for face font selection to ORDER.

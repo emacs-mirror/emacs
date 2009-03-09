@@ -2008,9 +2008,10 @@ COUNT defaults to `python-indent'.  If region isn't active, just shift
 current line.  The region shifted includes the lines in which START and
 END lie.  It is an error if any lines in the region are indented less than
 COUNT columns."
-  (interactive (if mark-active
-		   (list (region-beginning) (region-end) current-prefix-arg)
-		 (list (point) (point) current-prefix-arg)))
+  (interactive
+   (if mark-active
+       (list (region-beginning) (region-end) current-prefix-arg)
+     (list (line-beginning-position) (line-end-position) current-prefix-arg)))
   (if count
       (setq count (prefix-numeric-value count))
     (setq count python-indent))
@@ -2031,9 +2032,10 @@ COUNT columns."
 COUNT defaults to `python-indent'.  If region isn't active, just shift
 current line.  The region shifted includes the lines in which START and
 END lie."
-  (interactive (if mark-active
-		   (list (region-beginning) (region-end) current-prefix-arg)
-		 (list (point) (point) current-prefix-arg)))
+  (interactive
+   (if mark-active
+       (list (region-beginning) (region-end) current-prefix-arg)
+     (list (line-beginning-position) (line-end-position) current-prefix-arg)))
   (if count
       (setq count (prefix-numeric-value count))
     (setq count python-indent))
@@ -2205,6 +2207,13 @@ Interactively, prompt for name."
 
 ;;;; Skeletons
 
+(defcustom python-use-skeletons nil
+  "Non-nil means template skeletons will be automagically inserted.
+This happens when pressing \"if<SPACE>\", for example, to prompt for
+the if condition."
+  :type 'boolean
+  :group 'python)
+
 (define-abbrev-table 'python-mode-abbrev-table ()
   "Abbrev table for Python mode."
   :case-fixed t
@@ -2221,9 +2230,10 @@ Interactively, prompt for name."
     `(progn
        ;; Usual technique for inserting a skeleton, but expand
        ;; to the original abbrev instead if in a comment or string.
-       (define-abbrev python-mode-abbrev-table ,name ""
-	 ',function
-	 nil t)				; system abbrev
+       (when python-use-skeletons
+         (define-abbrev python-mode-abbrev-table ,name ""
+           ',function
+           nil t))                      ; system abbrev
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
 	 ,@elements)))))

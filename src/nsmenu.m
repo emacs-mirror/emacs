@@ -73,6 +73,7 @@ EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
+static NSModalSession popupSession;
 
 /* NOTE: toolbar implementation is at end,
   following complete menu implementation. */
@@ -635,8 +636,11 @@ name_is_separator (name)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
       keyEq = [self parseKeyEquiv: wv->key];
+#ifdef NS_IMPL_COCOA
+      /* OS X just ignores modifier strings longer than one character */
       if (keyEquivModMask == 0)
         title = [title stringByAppendingFormat: @" (%@)", keyEq];
+#endif
 
       item = [self addItemWithTitle: (NSString *)title
                              action: @selector (menuDown:)
@@ -1493,11 +1497,15 @@ static Lisp_Object
 pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
-  popup_activated_flag = 0;
-  BLOCK_INPUT;
-  [((EmacsDialogPanel *) (p->pointer)) close];
-  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
-  UNBLOCK_INPUT;
+  if (popup_activated_flag)
+    {
+      popup_activated_flag = 0;
+      BLOCK_INPUT;
+      [NSApp endModalSession: popupSession];
+      [((EmacsDialogPanel *) (p->pointer)) close];
+      [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+      UNBLOCK_INPUT;
+    }
   return Qnil;
 }
 
@@ -1554,6 +1562,8 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
+
+  BLOCK_INPUT;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents
                                            isQuestion: isQ];
   {
@@ -1561,12 +1571,9 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
     record_unwind_protect (pop_down_menu, make_save_value (dialog, 0));
     popup_activated_flag = 1;
     tem = [dialog runDialogAt: p];
-    popup_activated_flag = 0;
-    unbind_to (specpdl_count, Qnil);
+    unbind_to (specpdl_count, Qnil);  /* calls pop_down_menu */
   }
-
-  [dialog close];
-  [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
+  UNBLOCK_INPUT;
 
   return tem;
 }
@@ -1872,27 +1879,21 @@ void process_dialog (id window, Lisp_Object list)
 
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
-  NSEvent *e;
-  NSModalSession session;
   int ret;
 
-  [self center];  /*XXX p ignored? */
-  [self orderFront: NSApp];
-
-  session = [NSApp beginModalSessionForWindow: self];
+  /* initiate a session that will be ended by pop_down_menu */
+  popupSession = [NSApp beginModalSessionForWindow: self];
   while (popup_activated_flag
-         && (ret = [NSApp runModalSession: session]) == NSRunContinuesResponse)
+         && (ret = [NSApp runModalSession: popupSession])
+              == NSRunContinuesResponse)
     {
-      timer_check (1);  // for timers.el, indep of atimers; might not return
-      e = [NSApp nextEventMatchingMask: NSAnyEventMask
-                             untilDate: [NSDate dateWithTimeIntervalSinceNow: 1]
-                                inMode: NSModalPanelRunLoopMode
-                               dequeue: NO];
-/*fprintf (stderr, "ret = %d\te = %p\n", ret, e);*/
+      /* Run this for timers.el, indep of atimers; might not return.
+         TODO: use return value to avoid calling every iteration. */
+      timer_check (1);
+      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
     }
-  [NSApp endModalSession: session];
 
-  {				// FIXME: BIG UGLY HACK!!!
+  {				/* FIXME: BIG UGLY HACK!!! */
       Lisp_Object tmp;
       *(EMACS_INT*)(&tmp) = ret;
       return tmp;

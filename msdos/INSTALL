@@ -118,6 +118,10 @@ of this Registry key:
 Create this key if it does not exist.  The value is a DWORD; setting
 it to 536870912 should let Emacs use up to 512MB of memory.
 
+If you have other problems, either building Emacs or running the
+produced binary, look in the file etc/PROBLEMS for some known problems
+related to the DJGPP port (search for "MS-DOS").
+
 To install the international fonts, chdir to the intlfonts-X.Y
 directory created when you unpacked the intlfonts distribution (X.Y is
 the version number of the fonts' distribution), and type the following

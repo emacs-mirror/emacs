@@ -1,3 +1,387 @@
+2009-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Qfile_name_handler_alist): Extern it.
+	(load_charset_map_from_file): Temporarily bind
+	`file-name-handler-alist' to nil while calling openp.  (Bug#2435)
+
+2009-03-06  Aaron Ecay <aaronecay@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_draw_vertical_window_border): Draw 1 pixel wide,
+	not two, and use NSRectFill instead of NSDrawGroove.  (Bug#2352)
+
+2009-03-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m: Include <signal.h> for SIGTERM used in ns_term_shutdown.
+	(x_set_window_size): Change back to calculated method of setting
+	toolbar height under Cocoa.  (Bug#2546)
+	(EmacsView-windowWillUseStandardFrame:defaultFrame:): New method.
+	(EmacsView-drawRect:): Completely shortcircuit if ns_in_resize.
+
+	* nsfns.m (ns_appkit_version_int): Fix typo in the version macro.
+
+	* nsmenu.m (EmacsMenu-addItemWithWidgetValue:): Don't add
+	accelerator in parens under GNUstep.
+
+2009-03-06  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to detect incorrect composition sequence without
+	looking ahead the source.  (Bug#2370)
+
+	* coding.h: Include "composite.h".
+	(enum compisition_state): New enum.
+	(struct compisition_status): New struct.
+	(struct iso_2022_spec): New member cmp_status.
+	(struct emacs_mule_spec): New struct.
+	(struct coding_system): New members ctext_extended_segment_len and
+	embedded_utf_8.  Change the union member
+	spec.emacs_mule_full_support to spec.emacs_mule.
+
+	* coding.c (CODING_ISO_CMP_STATUS): New macro.
+	(CODING_ISO_EXTSEGMENT_LEN, CODING_ISO_EMBEDDED_UTF_8): New macros.
+	(MAX_ANNOTATION_LENGTH): Defined to 5.
+	(ADD_COMPOSITION_DATA): New arg nbytes.
+	(emacs_mule_char): New arg cmp_status.
+	(DECODE_EMACS_MULE_COMPOSITION_CHAR): Delete it.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): New arg c.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_21): New arg c.
+	(DECODE_EMACS_MULE_21_COMPOSITION): Delete the arg c.
+	(DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION): Likewise.
+	(DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION): Likewise.
+	(DECODE_EMACS_MULE_COMPOSITION_START): New macro.
+	(EMACS_MULE_COMPOSITION_END): New macro.
+	(emacs_mule_finish_composition): New function.
+	(EMACS_MULE_MAYBE_FINISH_COMPOSITION): New macro.
+	(decode_coding_emacs_mule): Avoid long looking ahead while
+	handling composition.
+	(DECODE_COMPOSITION_RULE): Argument changed to rule and nbytes.
+	(ENCODE_COMPOSITION_RULE): New macro.
+	(finish_composition): New function.
+	(MAYBE_FINISH_COMPOSITION): Call finish_composition.
+	(DECODE_COMPOSITION_START): New implementation.
+	(DECODE_COMPOSITION_END): Likewise.
+	(STORE_COMPOSITION_RULE): New macro.
+	(decode_coding_iso_2022): Avoid long looking ahead while handling
+	composition, CTEXT extended segment, and embedded UTF-8.
+	(setup_coding_system): For a coding of type iso-2022, reset
+	CODING_ISO_EXTSEGMENT_LEN (coding) and
+	CODING_ISO_EMBEDDED_UTF_8 (coding).
+	(get_translation): Delete arguments last_block, from_nchars,
+	to_nchars.  Callers changed.
+	(produce_chars): Don't modify charbuf.  Adjusted for the change of
+	get_translation.
+	(produce_composition): Adjusted for the new annotation sequence.
+	(handle_composition_annotation): Likewise.
+	(consume_chars): Adjusted for the change of get_translation.
+
+2009-03-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_select): Shortcircuit if reentrant call.  (Bug#2564)
+
+2009-03-05  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_select_entity): New function.
+	(font_find_for_lface): Use font_select_entity to select a font.
+
+	* fontset.c (fontset_find_font): If a font found without
+	restricting of the characters C doen't support C, try to find a
+	font with C restriction.
+
+2009-03-04  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
+
+	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp value.
+
+2009-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Only ignore IME messages for the
+	characters that have already been read.  (Bug#2569)
+
+	* image.c (xbm_read_bitmap_data, png_load, svg_load_image):
+	Log an error message if check_image_size failed.
+	(xpm_load_image, pbm_load, jpeg_load, tiff_load, gif_load)
+	(gs_load): Mention max-image-size in size error message.  (Bug#2560)
+
+2009-03-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (Fcall_process): Bind inhibit-modification-hooks to t
+	when decoding process output.
+
+2009-03-01  Richard M Stallman  <rms@gnu.org>
+
+	* m/mips.h (DATA_SEG_BITS, XUINT, XSET): Definitions disabled.
+
+	* emacs.c (gdb_data_seg_bits) [USE_LSB_TAG]: Make it 0.
+
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (decode_coding_utf_8, decode_coding_utf_16)
+	(decode_coding_emacs_mule, decode_coding_iso_2022)
+	(encode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_raw_text, decode_coding_charset)
+	(setup_coding_system, decode_eol, decode_coding, consume_chars):
+	Honor inhibit-eol-conversion.  (Bug #2186)
+
+2009-02-28  Jason Rumney  <jasonr@gnu.org>
+
+	* coding.c (detect_coding_charset): If not checking latin extra,
+	fail on characters between 0x80 and 0xA0.  (Bug#2354)
+
+2009-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (detect_coding_charset): Fix change from 2008-10-21.
+	Also, check iso-latin-*, not only iso-8859-*.  (Bug#2497)
+
+2009-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* callint.c (Finteractive): Doc fix.
+
+2009-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* lread.c (read_escape): Signal an error for invalid \UXXXXXXXX.
+
+2009-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (font_style_to_value): Set value for unknown symbols to
+	100 instead of 255.
+	(weight_table, slant_table, width_table): Treat "unspecified" as
+	the default value.
+
+2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Fnext_read_file_uses_dialog_p): Fix typo in docstring.
+
+2009-02-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (Fload): Stop checking Vloads_in_progress and signal
+	error as soon as a recursive load is detected.
+
+2009-02-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_ring_bell): Convert rect to window coordinates
+	before caching.
+
+2009-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Fix the condition for checking
+	unavailable font.
+
+2009-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Finternal_set_font_selection_order): Remove leading
+	whitespace that confuses documentation.
+
+2009-02-23  Miles Bader  <miles@gnu.org>
+
+	* process.c (Flist_system_processes, Fprocess_attributes)
+	(syms_of_process): Rename `system-process-attributes' to
+	`process-attributes'.
+
+2009-02-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.h (struct coding_system): Make safe_charsets a pointer to
+	unsigned char.
+	* coding.c (CODING_ISO_REQUEST): Check for safe_charsets content
+	being 255.
+	(SAFE_CHARSET_P): Likewise.
+	(setup_iso_safe_charsets): Properly setup safe_charsets.
+	(Fdefine_coding_system_internal): Likewise.
+	(setup_coding_system): Likewise.  Remove unneeded casts.
+	(detect_coding_iso_2022): Compare Viso_2022_charset_list with
+	CODING_ATTR_CHARSET_LIST, not CODING_ATTR_SAFE_CHARSETS.  Remove
+	unneeded casts.
+
+	* insdel.c (del_range_2): Don't modify gap contents when called
+	from decode_coding_object.  (Bug#1809)
+
+2009-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* data.c (syms_of_data): Define Qfont_spec, Qfont_entity, and
+	Qfont_object.
+	(Ftype_of): Recognize font objects.
+
+	* lisp.h: Define Qfont_spec, Qfont_entity, Qfont_object extern.
+
+	* font.c (Qfont_spec, Qfont_entity, Qfont_object): Definitions
+	moved to data.c.
+
+2009-02-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (x_make_frame_invisible): Unset async_visible,
+	async_iconified.  Based on a patch by Christian Lynbech
+	<christian.lynbech@tieto.com>.
+	(EmacsView-windowDidMiniaturize:): Unset async_visible.
+
+2009-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* syntax.c (Fskip_chars_forward): Fix doc typo.
+
+2009-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkeymap_parent): Doc fix (Bug#2391).
+
+2009-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Give Xft driver a higher priority.
+
+2009-02-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding): Preserve coding->mode.
+	Don't overflow coding->carryover.  (Bug#2370)
+
+2009-02-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/ibmrs6000.h (ADDR_CORRECT): Restore, removed by mistake on 2008-07-23.
+
+2009-02-18  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_check_otf_features): Fix handling of `nil' element.
+	(Ffont_spec): Describe :lang and :otf in the docstring.
+
+2009-02-16  Andreas Schwab  <schwab@suse.de>
+
+	* coding.c (Fcheck_coding_systems_region): Fix test for unibyte
+	string.
+
+2009-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fcheck_coding_systems_region): Fix typo; Qt -> Qnil.
+	(Bug#1723)
+
+2009-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct iterator_stack_entry): New line_wrap member.
+
+	* xdisp.c (push_it, pop_it): Save and restore line_wrap.
+	(handle_line_prefix): Suppress wrapping of wrap prefixes.
+
+2009-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (MAX_SCREEN_BUF): New macro.
+	(IT_write_glyphs): Make screen_buf[] always be MAX_SCREEN_BUF-long.
+	Encode the entire run of glyphs sharing the same face, instead of
+	doing that one glyph at a time (fixes a bug with displaying
+	double-size characters).
+
+2009-02-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (ns-read-file-name): BLOCK_INPUT while showing dialog.
+
+	* nsmenu.m (pop_down_menu): Check popup_activated_flag.
+	(ns_popup_dialog, EmacsDialogPanel-runDialogAt:): Let
+	pop_down_menu do the cleanup work as it is always called.  (Bug#2154)
+
+	* nsfont.m (nsfont_make_fontset_for_font): For now, don't try to
+	set fontset font for "mathematical-" sub-scripts.  (Bug #2218)
+
+2009-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (adjust_point_for_property): Allow stopping betwen two
+	invisible areas.
+
+2009-02-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (check_face_name): Check for fake helv.  (Bug#2275)
+	(add_font_entity_to_list): Call check_face_name even when family
+	is unspecified.
+
+	* w32term.c (x_display_pixel_height, x_display_pixel_width):
+	Release DC when finished.  Use NULL window to refer to desktop.
+	(w32_term_init): Use NULL window to refer to desktop.  (Bug#460)
+
+	* w32font.c (add_font_entity_to_list): Fix check for substituted
+	raster fonts.  (Bug#2219)
+
+2009-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (MAX_AUTO_COMPOSITION_LOOKBACK): New macro.
+	(composition_gstring_width): Fix handling of LGLYPH_YOFF.
+	(autocmp_chars): Use fast_looking_at.  Don't compose more
+	characters than MAX_COMPOSITION_COMPONENTS.
+	(find_automatic_composition): While looking forward and backward,
+	check static composition.  Fix where to stop looking forward.
+	(composition_adjust_point): Fix checking of static composition.
+	(Fcomposition_get_gstring): Pay attention to
+	MAX_COMPOSITION_COMPONENTS.
+
+	* lisp.h (fast_looking_at): Extern it.
+
+	* search.c (fast_looking_at): New function.
+
+	* term.c (encode_terminal_code): Adjust for the change of
+	<struct glyph>.u.cmp.to.
+	(append_composite_glyph): Likewise.
+
+	* xdisp.c (fill_gstring_glyph_string): Adjust for the change of
+	<struct glyph>.u.cmp.to.  Check if the glyph belongs to the same
+	composition.
+	(append_composite_glyph): Adjust for the change of
+	<strcut glyph>.u.cmp.to.
+
+2009-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* casetab.c (init_casetab_once):
+	* coding.c (ALLOC_CONVERSION_WORK_AREA):
+	* font.c (font_update_lface):
+	* fontset.c (Fnew_fontset):
+	* ftfont.c (ftfont_drive_otf):
+	* xfont.c (xfont_open):
+	* xftfont.c (xftfont_get_xft_draw): Remove spurious semicolons.
+
+2009-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fwrite_region): !NILP -> CONSP.
+
+2009-02-10  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (send_process): Properly relocate pointer into data
+	when using encoded data.  (Bug#2272)
+
+2009-02-08  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>
+
+	* coding.c (detect_coding_charset): Fix previous change.
+
+2009-02-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_hide_hourglass): Handle case where frame
+	disappeared while hourglass was displayed.  (Bug #2193)
+
+2009-02-07  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Fix error message.
+
+2009-02-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsApp-sendEvent:): Defer NSApplicationDefined event
+	when modal window is active.  (Bug #2152)
+	(applicationShouldTerminate:): Remove now-unneeded while loop
+	around NSRunAlertPanel.
+
+	* nsmenu.m (popupSession): New file-global variable.
+	(pop_down_menu): End the popupSession before closing dialog.
+	(ns_popup_dialog): BLOCK_INPUT around dialog presentation.
+	(EmacsDialogPanel-runDialogAt:): Don't place window (superfluous),
+	don't query NSApp for events (just sleep instead).
+
+2009-02-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (syms_of_coding) <translation-table-for-input>:
+	Modify doc string to discourage use for character code unification.
+
+2009-02-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* atimer.c (run_timers): Update pending_atimers.
+
+2009-02-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (svg_load_image): Fix last change.
+
+	* xfns.c (Fx_create_frame): Signal an error if no font is
+	found (Bug#2147).
+
+2009-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* character.c (syms_of_character) <script-representative-chars>:
+	Fix typo in docstring.
+
 2009-02-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsmenu.m (pop_down_menu): New function.
@@ -14,8 +398,8 @@
 
 	* nsterm.m (ns_read_socket): Same and don't set handling_signal.
 
-	* keyboard.c (poll_for_input_1, handle_async_input): Set
-	handling_signal under HAVE_NS.
+	* keyboard.c (poll_for_input_1, handle_async_input):
+	Set handling_signal under HAVE_NS.
 
 2009-02-04  Glenn Morris  <rgm@gnu.org>
 
@@ -39,7 +423,7 @@
 	the frame.
 	(composition_compute_stop_pos): Adjust cmp_it->stop_pos if point
 	is within a composition.
-	(Fcomposition_get_gstring): Fix the the terminal case.
+	(Fcomposition_get_gstring): Fix the terminal case.
 
 	* term.c (encode_terminal_code): Fix handling of composition.
 	(produce_composite_glyph): For static composition, get pixel_width
@@ -109,11 +493,9 @@
 	* lisp.h (QUIT): Check pending_signals instead of
 	interrupt_input_pending.  Use process_pending_signals.
 
-	* atimer.c (run_timers, alarm_signal_handler): Update
-	pending_signals.
+	* atimer.c (run_timers, alarm_signal_handler): Update pending_signals.
 
-	* process.c (wait_reading_process_output): Use
-	process_pending_signals.
+	* process.c (wait_reading_process_output): Use process_pending_signals.
 
 	* sysdep.c (emacs_write): Use process_pending_signals.
 
@@ -168,7 +550,7 @@
 	* xftfont.c (struct xftfont_info): New member `index'.
 
 	* fontset.c (font_for_char): Use assq_no_quit, not assoc_no_quit.
-	(Ffontset_font): Adjusted for the change of fontset entry.
+	(Ffontset_font): Adjust for the change of fontset entry.
 
 2009-01-26  Kenichi Handa  <handa@m17n.org>
 
@@ -284,8 +666,8 @@
 
 	* nsterm.h (EmacsApp-setAppleMenu:): Conditionalize more correctly on
 	Tiger.
-	* nsfns.m (ns_do_applescript): Conditionalize
-	typeUTF16ExternalRepresentation on Tiger.
+	* nsfns.m (ns_do_applescript):
+	Conditionalize typeUTF16ExternalRepresentation on Tiger.
 
 2009-01-21  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
 
@@ -328,8 +710,7 @@
 
 2009-01-19  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_lookup_cache): Check the return value of
-	FcFontList.
+	* ftfont.c (ftfont_lookup_cache): Check the return value of FcFontList.
 	(ftfont_list): Likewise.
 
 2009-01-18  Juanma Barranquero  <lekktu@gmail.com>
@@ -356,8 +737,7 @@
 
 2009-01-15  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding_system): Fix handling of
-	null_byte_found.
+	* coding.c (detect_coding_system): Fix handling of null_byte_found.
 
 2009-01-14  Jason Rumney  <jasonr@gnu.org>
 
@@ -411,8 +791,7 @@
 	* coding.c (inhibit_null_byte_detection): New variable.
 	(detect_coding, detect_coding_system): Don't pay attention to null
 	bytes if inhibit_null_byte_detection is non-zero.
-	(syms_of_coding) <inhibit-null-byte-detection>: Declare and
-	document.
+	(syms_of_coding) <inhibit-null-byte-detection>: Declare and document.
 	<inhibit-iso-escape-detection>: Doc fix.
 
 2009-01-09  Jason Rumney  <jasonr@gnu.org>
@@ -423,11 +802,10 @@
 
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfaces.c (Fx_font_family_list): Function deleted.  Compatibility
-	version moved to faces.el.
+	* xfaces.c (Fx_font_family_list): Delete function.
+	Move compatibility version to faces.el.
 
-	* font.c (Ffont_family_list): Return a list of strings, not
-	symbols.
+	* font.c (Ffont_family_list): Return a list of strings, not symbols.
 
 2009-01-09  Martin Rudalics  <rudalics@gmx.at>
 
@@ -445,8 +823,7 @@
 
 2009-01-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* font.c (font_open_for_lface): Handle unspecified height
-	attribute.
+	* font.c (font_open_for_lface): Handle unspecified height attribute.
 
 2009-01-08  Jason Rumney  <jasonr@gnu.org>
 
@@ -566,8 +943,7 @@
 
 	* xfns.c (x_create_tip_frame): Set border width of the X window.
 
-	* xfaces.c (Finternal_set_lisp_face_attribute): Improve error
-	message.
+	* xfaces.c (Finternal_set_lisp_face_attribute): Improve error message.
 
 2009-01-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -8924,7 +9300,7 @@
 	* ftfont.c (struct OpenTypeSpec): Rename members script_tag to
 	script, langsys_tag to langsys, new member script.
 	(OTF_TAG_STR): Terminate by '\0'.
-	(ftfont_get_open_type_spec): If :otf prop is is spec, Limit the
+	(ftfont_get_open_type_spec): If :otf prop is spec, limit the
 	listing to the script specified in that property.  Fix arg to
 	OTF_check_features.
 
@@ -17426,7 +17802,6 @@ See ChangeLog.10 for earlier changes.
 ;; Local Variables:
 ;; coding: utf-8
 ;; add-log-time-zone-rule: t
-;; bug-reference-url-format: "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s"
 ;; End:
 
     Copyright (C) 2007, 2008, 2009  Free Software Foundation, Inc.

@@ -1053,7 +1053,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
     CGContextSetFont (gcontext, font->cgfont);
     CGContextSetFontSize (gcontext, font->size);
-    if (ns_antialias_text == NO || font->size <= ns_antialias_threshold)
+    if (ns_antialias_text == Qnil || font->size <= ns_antialias_threshold)
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
@@ -1235,7 +1235,13 @@ void nsfont_make_fontset_for_font (Lisp_Object name, Lisp_Object font_object)
                       font_info->name, family,
                        SDATA (SYMBOL_NAME (scripts[i])));
 
-            Fset_fontset_font (name, scripts[i], famAndReg, Qnil, Qnil);
+            /* TODO: Some of the "scripts" in script-representative-chars are
+               actually only "sub-scripts" which are not fully defined.  For
+               these, calling set_fontset_font generates an abort.  Try to
+               guess which ones these are and avoid it. */
+            if (strstr (SDATA (SYMBOL_NAME (scripts[i])), "mathematical-")
+                    != SDATA (SYMBOL_NAME (scripts[i])))
+              Fset_fontset_font (name, scripts[i], famAndReg, Qnil, Qnil);
             free (family);
           }
         else

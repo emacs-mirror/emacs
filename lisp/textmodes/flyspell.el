@@ -262,10 +262,17 @@ If `flyspell-large-region' is nil, all regions are treated as small."
   :group 'flyspell
   :type '(choice string (const nil)))
 
+(defvar flyspell-mode-map)
+
 (defcustom flyspell-use-meta-tab t
   "Non-nil means that flyspell uses M-TAB to correct word."
   :group 'flyspell
-  :type 'boolean)
+  :type 'boolean
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+	 (define-key flyspell-mode-map "\M-\t"
+	   (if (set sym val)
+	       'flyspell-auto-correct-word))))
 
 (defcustom flyspell-auto-correct-binding
   [(control ?\;)]
@@ -413,8 +420,10 @@ property of the major mode name.")
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-mouse-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (if (featurep 'xemacs) [button2] [down-mouse-2])
-      #'flyspell-correct-word)
+    (if (featurep 'xemacs)
+	(define-key map [button2] #'flyspell-correct-word)
+      (define-key map [down-mouse-2] #'flyspell-correct-word)
+      (define-key map [mouse-2] 'undefined))
     map)
   "Keymap for Flyspell to put on erroneous words.")
 

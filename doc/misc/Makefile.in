@@ -36,8 +36,10 @@ infodir=../../info
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = makeinfo --force
 
+# Also add new entries to INFO_FILES in the top-level Makefile.in.
 INFO_TARGETS = \
 	$(infodir)/ada-mode \
+	$(infodir)/auth \
 	$(infodir)/autotype \
 	$(infodir)/calc \
 	$(infodir)/ccmode \
@@ -83,6 +85,7 @@ INFO_TARGETS = \
 
 DVI_TARGETS = \
 	ada-mode.dvi \
+	auth.dvi \
 	autotype.dvi \
 	calc.dvi \
 	cc-mode.dvi \
@@ -156,6 +159,12 @@ $(infodir)/ada-mode: ada-mode.texi
 	cd $(srcdir); $(MAKEINFO) ada-mode.texi
 ada-mode.dvi: ada-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ada-mode.texi
+
+auth : $(infodir)/auth
+$(infodir)/auth: auth.texi
+	cd $(srcdir); $(MAKEINFO) auth.texi
+auth.dvi: auth.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/auth.texi
 
 autotype : $(infodir)/autotype
 $(infodir)/autotype: autotype.texi

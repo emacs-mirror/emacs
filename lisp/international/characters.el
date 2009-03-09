@@ -80,17 +80,17 @@ Cyrillic characters of 2-byte character sets")
 
 (define-category ?0 "consonant")
 (define-category ?1 "base vowel
-base (independent) vowel")
+Base (independent) vowel")
 (define-category ?2 "upper diacritic
-upper diacritical mark (including upper vowel)")
+Upper diacritical mark (including upper vowel)")
 (define-category ?3 "lower diacritic
-lower diacritical mark (including lower vowel)")
+Lower diacritical mark (including lower vowel)")
 (define-category ?4 "combining tone
-combining tone mark")
+Combining tone mark")
 (define-category ?5 "symbol")
 (define-category ?6 "digit")
 (define-category ?7 "vowel diacritic
-vowel-modifying diacritical mark")
+Vowel-modifying diacritical mark")
 (define-category ?8 "vowel-signs")
 (define-category ?9 "semivowel lower")
 
@@ -110,9 +110,11 @@ A character which can't be placed at beginning of line.")
 (define-category ?< "Not at eol
 A character which can't be placed at end of line.")
 
-;; Combining
+;; Base and Combining
+(define-category ?. "Base
+Base characters (Unicode General Category L,N,P,S,Zs)")
 (define-category ?^ "Combining
-Combining diacritic or mark")
+Combining diacritic or mark (Unicode General Category M)")
 
 ;;; Setting syntax and category.
 
@@ -442,7 +444,7 @@ Combining diacritic or mark")
 	   (uc (encode-char char 'ucs))
 	   (lc (encode-char charl 'ucs)))
       (set-case-syntax-pair char (decode-char 'vietnamese-viscii-lower i)
-			    tbl)	
+			    tbl)
       (if uc (modify-category-entry uc ?v))
       (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
@@ -1028,7 +1030,7 @@ Combining diacritic or mark")
 
 (defvar cjk-char-width-table
   (let ((table (make-char-table nil)))
-    (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1 
+    (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1
 			    japanese-jisx0208 korean-ksc5601))
       (map-charset-chars #'(lambda (range arg)
 			     (set-char-table-range table range 2))
@@ -1049,7 +1051,6 @@ Setup char-width-table appropriate for non-CJK language environment."
   (setq char-width-table (char-table-parent cjk-char-width-table)))
 
 (optimize-char-table (standard-case-table))
-(optimize-char-table (standard-category-table))
 (optimize-char-table (standard-syntax-table))
 
 
@@ -1182,6 +1183,15 @@ Setup char-width-table appropriate for non-CJK language environment."
     table))
 
 (setq unicode-category-table (build-unicode-category-table))
+(map-char-table #'(lambda (key val)
+		    (if (and val
+			     (or (and (/= (aref (symbol-name val) 0) ?M)
+				      (/= (aref (symbol-name val) 0) ?C))
+				 (eq val 'Zs)))
+			(modify-category-entry key ?.)))
+		unicode-category-table)
+
+(optimize-char-table (standard-category-table))
 
 
 ;;; Setting word boundary.

@@ -376,7 +376,7 @@ Rmail that do not allow self-insertion of text can reasonably redefine
 letters and other printing characters as special commands.
 
 @item
-Major modes modes for editing text should not define @key{RET} to do
+Major modes for editing text should not define @key{RET} to do
 anything other than insert a newline.  However, it is ok for
 specialized modes for text that users don't directly edit, such as
 Dired and Info modes, to redefine @key{RET} to do something entirely
@@ -2708,7 +2708,7 @@ Non-@code{nil} means that regular expression matching for the sake of
 
   You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
-@code{font-lock-remove-keywords} to removes rules.
+@code{font-lock-remove-keywords} to remove rules.
 
 @defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer

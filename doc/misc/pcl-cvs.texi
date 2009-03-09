@@ -55,6 +55,8 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
+
 @c ================================================================
 @c                   The real text starts here
 @c ================================================================
@@ -68,6 +70,9 @@ is nowhere near complete, so you are advised to use @kbd{M-x
 customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
 of the various commands and major modes for further information.
 @c This manual is updated to release 2.5 of PCL-CVS.
+
+@insertcopying 
+
 @end ifnottex
 
 @menu
@@ -1426,9 +1431,6 @@ this manual.
 
 @printindex ky
 
-@setchapternewpage odd
-@summarycontents
-@contents
 @bye
 
 @ignore

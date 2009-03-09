@@ -604,7 +604,7 @@ encode_terminal_code (src, src_len, coding)
 	  if (src->u.cmp.automatic)
 	    {
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
-	      required = src->u.cmp.to - src->u.cmp.from;
+	      required = src->u.cmp.to + 1 - src->u.cmp.from;
 	    }
 	  else
 	    {
@@ -621,7 +621,7 @@ encode_terminal_code (src, src_len, coding)
 	    }
 
 	  if (src->u.cmp.automatic)
-	    for (i = src->u.cmp.from; i < src->u.cmp.to; i++)
+	    for (i = src->u.cmp.from; i <= src->u.cmp.to; i++)
 	      {
 		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 		int c = LGLYPH_CHAR (g);
@@ -1788,7 +1788,7 @@ append_composite_glyph (it)
 	  glyph->u.cmp.automatic = 1;
 	  glyph->u.cmp.id = it->cmp_it.id;
 	  glyph->u.cmp.from = it->cmp_it.from;
-	  glyph->u.cmp.to = it->cmp_it.to;
+	  glyph->u.cmp.to = it->cmp_it.to - 1;
 	}
 
       glyph->face_id = it->face_id;

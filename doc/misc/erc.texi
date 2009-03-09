@@ -2,14 +2,8 @@
 @c %**start of header
 @setfilename ../../info/erc
 @settitle ERC Manual
-@c %**end of header
-
-@dircategory Emacs
-@direntry
-* ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
-@end direntry
-
 @syncodeindex fn cp
+@c %**end of header
 
 @copying
 This manual is for ERC version 5.3.
@@ -33,6 +27,11 @@ and modified without restriction.
 @end quotation
 @end copying
 
+@dircategory Emacs
+@direntry
+* ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
+@end direntry
+
 @titlepage
 @title ERC manual
 @subtitle a full-featured IRC client
@@ -45,7 +44,6 @@ and modified without restriction.
 @insertcopying
 @end titlepage
 
-@c So the toc is printed at the start
 @contents
 
 @ifnottex

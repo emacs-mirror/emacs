@@ -1146,6 +1146,25 @@ FORM is a form to evaluate to define the coding-system."
       (put (intern name) 'coding-system-define-form form)
       (setq coding-system-alist (cons (list name) coding-system-alist)))))
 
+;; This variable is set in these three cases:
+;;   (1) A file is read by a coding system specified explicitly.
+;;       after-insert-file-set-coding sets the car of this value to
+;;       coding-system-for-read, and sets the cdr to nil.
+;;   (2) A buffer is saved.
+;;       After writing, basic-save-buffer-1 sets the car of this value
+;;       to last-coding-system-used.
+;;   (3) set-buffer-file-coding-system is called.
+;;       The cdr of this value is set to the specified coding system.
+;; This variable is used for decoding in revert-buffer and encoding in
+;; select-safe-coding-system.
+(defvar buffer-file-coding-system-explicit nil
+  "The file coding system explicitly specified for the current buffer.
+The value is a cons of coding systems for reading (decoding) and
+writing (encoding).
+Internal use only.")
+(make-variable-buffer-local 'buffer-file-coding-system-explicit)
+(put 'buffer-file-coding-system-explicit 'permanent-local t)
+
 (defun set-buffer-file-coding-system (coding-system &optional force nomodify)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
 This means that when you save the buffer, it will be converted
@@ -1169,6 +1188,9 @@ just set the variable `buffer-file-coding-system' directly."
       (setq coding-system
 	    (merge-coding-systems coding-system buffer-file-coding-system)))
   (setq buffer-file-coding-system coding-system)
+  (if buffer-file-coding-system-explicit
+      (setcdr buffer-file-coding-system-explicit coding-system)
+    (setq buffer-file-coding-system-explicit (cons nil coding-system)))
   ;; This is in case of an explicit call.  Normally, `normal-mode' and
   ;; `set-buffer-major-mode-hook' take care of setting the table.
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
@@ -1831,20 +1853,6 @@ function by default."
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-;; This variable is set in these two cases:
-;;   (1) A file is read by a coding system specified explicitly.
-;;       after-insert-file-set-coding sets this value to
-;;       coding-system-for-read.
-;;   (2) A buffer is saved.
-;;       After writing, basic-save-buffer-1 sets this value to
-;;       last-coding-system-used.
-;; This variable is used for decoding in revert-buffer.
-(defvar buffer-file-coding-system-explicit nil
-  "The file coding system explicitly specified for the current buffer.
-Internal use only.")
-(make-variable-buffer-local 'buffer-file-coding-system-explicit)
-(put 'buffer-file-coding-system-explicit 'permanent-local t)
-
 (defun after-insert-file-set-coding (inserted &optional visit)
   "Set `buffer-file-coding-system' of current buffer after text is inserted.
 INSERTED is the number of characters that were inserted, as figured
@@ -1855,7 +1863,8 @@ The optional second arg VISIT non-nil means that we are visiting a file."
   (if (and visit
 	   coding-system-for-read
 	   (not (eq coding-system-for-read 'auto-save-coding)))
-      (setq buffer-file-coding-system-explicit coding-system-for-read))
+      (setq buffer-file-coding-system-explicit
+	    (cons coding-system-for-read nil)))
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used)))

@@ -1,3 +1,20 @@
+2009-02-21  Jason Rumney  <jasonr@gnu.org>
+
+	* url-expand.el (url-default-expander): Use concat to combine
+	parts. (Bug #1020)
+
+2009-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* url-util.el (url-generate-unique-filename): Silence compiler.
+
+2009-02-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-file.el (url-file): Use make-temp-file.
+
+	* url-util.el (url-generate-unique-filename): Mark as obsolete.
+
+	* url-vars.el (url-temporary-directory): Mark as obsolete.
+
 2009-01-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-cookie.el (url-cookie-retrieve): Fix last change.

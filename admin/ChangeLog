@@ -1,3 +1,24 @@
+2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nt/README.W32: Fix typos.
+
+2009-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* nt/README-ftp-server: Update for 23.0.91
+
+	* nt/README.W32: Remove ever expanding versions of Windows.
+	Shorten FAQ URL.  Remove mention of obsolete lock directory.
+	Windows distribution now bin and barebin only.  Add note about
+	SVG support.  Remove old tar and gzip problem workarounds.
+	Use new (22.x) -Q option.  Report all bugs through bug tracker.
+
+	* nt/README-UNDUMP.W32: Modify for barebin distribution, as
+	undumped distribution no longer exists.
+
+2009-02-05  Yu-ji Hosokawa  <yu-ji@hoso.net>  (tiny change)
+
+	* nt/README.W32: Fix typo.  (Bug#2207)
+
 2009-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* admin.el (set-version): Remove deleted file ns-emacs.texi.

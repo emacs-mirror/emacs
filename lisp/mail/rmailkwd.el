@@ -39,7 +39,7 @@
       rmail-attr-array)
 
 (defun rmail-make-label (s)
-  "Convert string S to a downcased symbol in `rmail-label-obarray'."
+  "Intern string S as a downcased symbol in `rmail-label-obarray'."
   (intern (downcase s) rmail-label-obarray))
 
 ;;;###autoload
@@ -64,16 +64,24 @@ LABEL may be a symbol or string."
 Completions are chosen from `rmail-label-obarray'.  The default
 is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
 according to the choice made, and returns a symbol."
-  (let ((result
-	 (completing-read (concat prompt
-				  (if rmail-last-label
-				      (concat " (default "
-					      (symbol-name rmail-last-label)
-					      "): ")
-				    ": "))
-			  rmail-label-obarray
-			  nil
-			  nil)))
+  (let* ((old nil)
+	 (result
+	  (progn
+	    ;; If the summary exists, we've already read all the
+	    ;; existing labels.  If not, read the ones in this message.
+	    (or (eq major-mode 'rmail-summary-mode)
+		(rmail-summary-exists)
+		(and (setq old (rmail-get-keywords))
+		     (mapc 'rmail-make-label (split-string old ", "))))
+	    (completing-read (concat prompt
+				     (if rmail-last-label
+					 (concat " (default "
+						 (symbol-name rmail-last-label)
+						 "): ")
+				       ": "))
+			     rmail-label-obarray
+			     nil
+			     nil))))
     (if (string= result "")
 	rmail-last-label
       (setq rmail-last-label (rmail-make-label result)))))
@@ -86,7 +94,7 @@ LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
-    (if (not msg) (setq msg rmail-current-message))
+    (or msg (setq msg rmail-current-message))
     ;; Force recalculation of summary for this message.
     (aset rmail-summary-vector (1- msg) nil)
     (let (attr-index)
@@ -98,9 +106,10 @@ LABEL may be a symbol or string."
 	  ;; If so, set it as an attribute.
 	  (rmail-set-attribute attr-index state msg)
 	;; Is this keyword already present in msg's keyword list?
-	(let* ((header (rmail-get-header rmail-keyword-header msg))
+	(let* ((header (rmail-get-keywords msg))
 	       (regexp (concat ", " (regexp-quote label) ","))
-	       (present (string-match regexp (concat ", " header ","))))
+	       (present (not (null
+			      (string-match regexp (concat ", " header ","))))))
 	  ;; If current state is not correct,
 	  (unless (eq present state)
 	    ;; either add it or delete it.
@@ -118,13 +127,14 @@ LABEL may be a symbol or string."
 				       (min (length header)
 					    (- (match-end 0) 1)))))
 		 (cond ((string= before "")
-			after)
+			;; If before and after both empty, delete the header.
+			(unless (string= after "")
+			  after))
 		       ((string= after "")
 			before)
 		       (t (concat before ", " after))))))))))
     (if (rmail-summary-exists)
-	(rmail-select-summary
-	 (rmail-summary-update-line msg)))
+	(rmail-select-summary (rmail-summary-update-line msg)))
     (if (= msg rmail-current-message)
 	(rmail-display-labels))))
 
@@ -172,7 +182,7 @@ With prefix argument N moves forward N messages with these labels."
 	(error "No previous message with labels %s" labels)
       (if (> n 0)
 	  (error "No following message with labels %s" labels)
-	(rmail-show-message lastwin)))))
+	(rmail-show-message-1 lastwin)))))
 
 (provide 'rmailkwd)
 

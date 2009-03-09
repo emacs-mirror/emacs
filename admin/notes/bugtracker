@@ -60,6 +60,38 @@ mail with the bug report number in.  If you do not do this, each reply
 in the subsequent discussion will end up creating a new bug.  This is
 annoying.
 
+Note that the way this feature works is perhaps not ideal (Bug#1720).
+If X-Debbugs-CC: was specifed by a real header, that header is removed
+in the mail sent out to the bug list, and the addresses merged into
+the Resent-CC header (see below).  They don't appear as an explicit CC:
+header, nor do they appear in the Reply-To: header.  So people you
+X-Debbugs-CC are not included in any following discussion unless they are
+manually cc'd.  So this feature really only serves to notify them that
+a bug has been filed.  It's then up to them to follow any subsequent
+discussion.
+
+If X-Debbugs-CC were merged into the Reply-To header, this might work
+more the way people expect.
+
+** How does Debbugs send out mails?
+
+The mails are sent out to the bug list with From: and To: unchanged.
+Eg if you file a bug with "submit@emacsbugs.donarmstrong.com", that
+remains in the To: address.  They reach the bug list by being resent.
+
+Mails arriving at the bug list have the following Resent-* headers:
+
+Resent-From: person who submitted the bug
+Resent-To:   bug-submit-list@donarmstrong.com
+Resent-CC:   maintainer email address, plus any X-Debbugs-CC: entries
+
+The "maintainer email address" is "Emacs Bugs <bug-gnu-emacs@gnu.org>"
+in most cases.
+
+They also have:
+
+Reply-To:   bug submitter, 123@emacsbugs.donarmstrong.com
+
 ** To not get acknowledgement mail from the tracker,
 add an "X-Debbugs-No-Ack:" header (with any value).  If you use Gnus,
 you can add an element to gnus-posting-styles to do this automatically, eg:
@@ -245,3 +277,16 @@ section without having to go through the bug list page first...)
 Apparently it has some kind of spam filter that sometimes silently
 discards valid mails. Adding a subject (pointless in control messages)
 may help.
+
+** Gnus-specific voodoo
+
+*** Put point on a bug-number and try: M-x gnus-read-ephemeral-emacs-bug-group
+
+*** If the above is not available:
+(add-hook 'gnus-article-mode-hook
+          (lambda ()
+             (setq bug-reference-url-format
+               "http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=%s")
+              (bug-reference-mode 1)))
+
+and you can click on the bug number in the subject header.

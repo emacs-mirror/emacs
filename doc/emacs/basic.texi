@@ -206,7 +206,7 @@ Move to the end of the buffer (@code{end-of-buffer}).
 Scroll the display one screen forward, and move point if necessary to
 put it on the screen (@code{scroll-up}).  If your keyboard has a
 @key{PageDown} key (sometimes labelled @key{next}), it does the same
-thing as as @key{C-v}.  Scrolling commands are described further in
+thing as @key{C-v}.  Scrolling commands are described further in
 @ref{Scrolling}.
 @item M-v
 @itemx @key{PageUp}
@@ -515,9 +515,10 @@ Display the line number of point in the whole buffer.
 @itemx M-x column-number-mode
 Toggle automatic display of the current line number or column number.
 @xref{Optional Mode Line}.
-@item M-=
-Display the number of lines in the current region (@code{count-lines-region}).
-@xref{Mark}, for information about the region.
+@item M-x count-lines-region
+Display the number of lines in the current region.  Normally bound to
+@kbd{M-=}, except in a few specialist modes.  @xref{Mark}, for
+information about the region.
 @item C-x =
 Display the character code of character after point, character position of
 point, and column of point (@code{what-cursor-position}).
@@ -538,7 +539,7 @@ Toggle automatic display of the size of the buffer.
   @kbd{M-x what-line} displays the current line number in the echo
 area.  This command is usually redundant, because the current line
 number is shown in the mode line (@pxref{Mode Line}).  However, if you
-narrow the buffer, the mode line shows the the line number relative to
+narrow the buffer, the mode line shows the line number relative to
 the accessible portion (@pxref{Narrowing}).  By contrast,
 @code{what-line} displays both the line number relative to the
 narrowed region and the line number relative to the whole buffer.
@@ -549,9 +550,9 @@ counts lines within the page, showing both numbers in the echo area.
 
 @kindex M-=
 @findex count-lines-region
-  Use @kbd{M-=} (@code{count-lines-region}) to display the number of
-lines in the region (@pxref{Mark}).  @xref{Pages}, for the command
-@kbd{C-x l} which counts the lines in the current page.
+  Use @kbd{M-x count-lines-region} (normally bound to @kbd{M-=}) to
+display the number of lines in the region (@pxref{Mark}).  @xref{Pages},
+for the command @kbd{C-x l} which counts the lines in the current page.
 
 @kindex C-x =
 @findex what-cursor-position

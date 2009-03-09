@@ -1,7 +1,7 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    Glenn Morris <rgm@gnu.org>
@@ -700,6 +700,7 @@ the list should be unique."
   "For minibuffer completion on mail field modifications.")
 (defvar sc-mail-glom-frame
   '((begin                        (setq sc-mail-headers-start (point)))
+    ("^From "                     (sc-mail-check-from) nil nil)
     ("^x-attribution:[ \t]+.*$"   (sc-mail-fetch-field t) nil t)
     ("^\\S +:.*$"                 (sc-mail-fetch-field) nil t)
     ("^$"                         (list 'abort '(step . 0)))
@@ -712,6 +713,17 @@ the list should be unique."
 (defvar curline)			; dynamic bondage
 
 ;; regi functions
+
+;; http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00691.html
+;; When rmail replies to a message with full headers visible, the "From "
+;; line can be included.
+(defun sc-mail-check-from ()
+  "Deal with a \"From \" line in the header.
+Such a line should only occur at the very start of the headers."
+  (and sc-mail-warn-if-non-rfc822-p
+       (/= (point) sc-mail-headers-start)
+       (sc-mail-error-in-mail-field)))
+
 (defun sc-mail-fetch-field (&optional attribs-p)
   "Insert a key and value into `sc-mail-info' alist.
 If optional ATTRIBS-P is non-nil, the key/value pair is placed in

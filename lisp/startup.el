@@ -828,10 +828,10 @@ opening the first frame (e.g. open a connection to an X server).")
              (orig-argi argi)
              argval)
 	;; Handle --OPTION=VALUE format.
-	(when (string-match "^\\(--[^=]*\\)=" argi)
+	(when (string-match "\\`\\(--[^=]*\\)=" argi)
 	  (setq argval (substring argi (match-end 0))
                 argi (match-string 1 argi)))
-	(unless (equal argi "--")
+	(when (string-match "\\`--." orig-argi)
 	  (let ((completion (try-completion argi longopts)))
 	    (if (eq completion t)
 		(setq argi (substring argi 1))
@@ -2125,21 +2125,20 @@ A fancy display is used on graphic displays, normal otherwise."
 		(setq argi "")
 	      ;; Convert long options to ordinary options
 	      ;; and separate out an attached option argument into argval.
-	      (when (string-match "^\\(--[^=]*\\)=" argi)
+	      (when (string-match "\\`\\(--[^=]*\\)=" argi)
 		(setq argval (substring argi (match-end 0))
 		      argi (match-string 1 argi)))
-	      (if (equal argi "--")
-		  (setq completion nil)
-		(setq completion (try-completion argi longopts)))
-	      (if (eq completion t)
-		  (setq argi (substring argi 1))
-		(if (stringp completion)
-		    (let ((elt (assoc completion longopts)))
-		      (or elt
-			  (error "Option `%s' is ambiguous" argi))
-		      (setq argi (substring (car elt) 1)))
-		  (setq argval nil
-			argi orig-argi))))
+	      (when (string-match "\\`--." orig-argi)
+		(setq completion (try-completion argi longopts))
+		(if (eq completion t)
+		    (setq argi (substring argi 1))
+		  (if (stringp completion)
+		      (let ((elt (assoc completion longopts)))
+			(or elt
+			    (error "Option `%s' is ambiguous" argi))
+			(setq argi (substring (car elt) 1)))
+		    (setq argval nil
+			  argi orig-argi)))))
 
 	    ;; Execute the option.
 	    (cond ((setq tem (assoc argi command-switch-alist))

@@ -1,4 +1,4 @@
-;;; rmail-spam-filter.el  --- spam filter for rmail, the emacs mail reader.
+;;; rmail-spam-filter.el --- spam filter for Rmail, the Emacs mail reader
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
@@ -75,91 +75,84 @@
 (require 'rmail)
 (require 'rmailsum)
 
-(defvar rmail-summary-mode-map)
-
-(eval-when-compile
-  (require 'cl))                        ; for setf
-
 (defgroup rmail-spam-filter nil
-  "Spam filter for RMAIL, the mail reader for Emacs."
+  "Spam filter for Rmail, the Emacs mail reader."
   :group 'rmail)
 
 (defcustom rmail-use-spam-filter nil
-  "Non-nil to activate the rmail spam filter.
-Specify `rsf-definitions-alist' to define what you consider spam
-emails."
+  "Non-nil to activate the Rmail spam filter.
+Set `rsf-definitions-alist' to define what you consider spam emails."
   :type 'boolean
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-file "~/XRMAIL-SPAM"
-  "Name of rmail file for optionally saving some of the spam.
-Spam may be either just deleted, or saved in a separate spam file to
-be looked at at a later time.  Whether the spam is just deleted or
-also saved in a separete spam file is specified for each definition of
-spam, as one of the fields of `rsf-definitions-alist'"
+  "Name of Rmail file for optionally saving some of the spam.
+You can either just delete spam, or save it in this file for
+later review.  Which action to take for each spam definition is
+specified by the \"action\" element of the definition."
   :type 'string
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-no-blind-cc nil
-  "Non-nil to treat blind CC (no To: header) as spam."
+  "Non-nil means mail with no explicit To: or Cc: is spam."
   :type 'boolean
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-ignore-case nil
-  "Non-nil to ignore case in `rsf-definitions-alist'."
+  "Non-nil means to ignore case in `rsf-definitions-alist'."
   :type 'boolean
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-beep nil
-  "Non-nil to beep if spam is found."
+  "Non-nil means to beep if spam is found."
   :type 'boolean
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-sleep-after-message 2.0
-  "Seconds to wait after display of message that spam was found."
+  "Seconds to wait after displaying a message that spam was found."
   :type 'number
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-min-region-to-spam-list 7
   "Minimum size of region that you can add to the spam list.
-This is a size limit on text that you can specify as
-indicating a message is spam.  The aim is to avoid
-accidentally adding a too short region, which would result
-in false positive identification of spam."
+The aim is to avoid adding too short a region, which could result
+in false positive identification of a valid message as spam."
   :type 'integer
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-autosave-newly-added-definitions nil
-  "Non-nil to auto save new spam entries.
-New entries entered via the spam menu bar item are then saved to
-customization file immediately after being added via the menu bar, and
-do not require explicitly saving the file after adding the new
-entries."
+  "Non-nil to auto-save new spam entries.
+Any time you add an entry via the \"Spam\" menu, immediately saves
+the custom file."
   :type 'boolean
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-white-list nil
-  "List of strings to identify valid senders.
-If any rsf-white-list string matches a substring of the 'From'
-header, the message is flagged as a valid, non-spam message.  Example:
-If your domain is emacs.com then including 'emacs.com' in your
-rsf-white-list would flag all mail from your colleagues as
-valid."
+  "List of regexps to identify valid senders.
+If any element matches the \"From\" header, the message is
+flagged as a valid, non-spam message.  E.g., if your domain is
+\"emacs.com\" then including \"emacs\\\\.com\" in this list would
+flag all mail (purporting to be) from your colleagues as valid."
   :type '(repeat string)
-  :group 'rmail-spam-filter )
+  :group 'rmail-spam-filter)
 
 (defcustom rsf-definitions-alist nil
-  "Alist matching strings defining what messages are considered spam.
-Each definition may contain specifications of one or more of the
-elements {subject, sender, recipients or contents}, as well as a
-definition of what to do with the spam (action item).  A spam e-mail
-is defined as one that fits all of the specified elements of any one
-of the spam definitions.  The strings that specify spam subject,
-sender, etc, may be regexp.  For example, to specify that the subject
-may be either 'this is spam' or 'another spam', use the regexp: 'this
-is spam\\|another spam' (without the single quotes).  To specify that
-if the contents contain both this and that the message is spam,
-specify 'this\\&that' in the appropriate spam definition field."
+  "A list of rules (definitions) matching spam messages.
+Each rule is an alist, with elements of the form (FIELD . REGEXP).
+The recognized FIELDS are: from, to, subject, content-type,
+x-spam-status, and contents.  The \"contents\" element refers to
+the entire text of the message; all the other elements refer to
+message headers of the same name.
+
+Using an empty-string for REGEXP is the same as omitting that
+element altogether.
+
+Each rule should contain one \"action\" element, saying what to do
+if the rule is matched.  This has the form (action . CHOICE), where
+CHOICE may be either `output-and-delete' (save to `rsf-file', then delete),
+or `delete-spam' (just delete).
+
+A rule matches only if all the specified elements match."
   :type '(repeat
           (list :format "%v"
 	   (cons :format "%v" :value (from . "")
@@ -183,241 +176,246 @@ specify 'this\\&that' in the appropriate spam definition field."
 	   (cons :format "%v" :value (action . output-and-delete)
 		 (const :format "" action)
 		 (choice :tag "Action selection"
-		  (const :tag "output to spam folder and delete" output-and-delete)
-		  (const :tag "delete spam" delete-spam)
-		  ))
-   ))
+		  (const :tag "Output and delete" output-and-delete)
+		  (const :tag "Delete" delete-spam)
+		  ))))
   :group 'rmail-spam-filter)
 
-;; FIXME nothing uses this.
+;; FIXME nothing uses this, and it could just be let-bound.
 (defvar rsf-scanning-messages-now nil
   "Non-nil when `rmail-spam-filter' scans messages.")
 
 ;; the advantage over the automatic filter definitions is the AND conjunction
 ;; of in-one-definition-elements
 (defun rsf-check-field (field-symbol message-data definition result)
-  "Check if field-symbol is in `rsf-definitions-alist'.
-Capture maybe-spam and this-is-a-spam-email in a cons in result,
-where maybe-spam is in the car and this-is-a-spam-email is in the cdr.
-The values are returned by destructively changing result.
-If FIELD-SYMBOL field does not exist AND is not specified,
-this may still be spam due to another element...
-if (car result) is nil, we already have a contradiction in another
-field"
+  "Check if a message appears to be spam.
+FIELD-SYMBOL is one of the possible keys of a `rsf-definitions-alist'
+rule; e.g. from, to.  MESSAGE-DATA is a string giving the value of
+FIELD-SYMBOL in the current message.  DEFINITION is the element of
+`rsf-definitions-alist' currently being checked.
+
+RESULT is a cons of the form (MAYBE-SPAM . IS-SPAM).  If the car
+is nil, or if the entry for FIELD-SYMBOL in this DEFINITION is
+absent or the empty string, this function does nothing.
+
+Otherwise, if MESSAGE-DATA is non-nil and the entry matches it,
+the cdr is set to t.  Else, the car is set to nil."
   (let ((definition-field (cdr (assoc field-symbol definition))))
+    ;; Only in this case can maybe-spam change from t to nil.
     (if (and (car result) (> (length definition-field) 0))
-        ;; only in this case can maybe-spam change from t to nil
-        ;; ... else, if FIELD-SYMBOL field does appear in the message,
-        ;; and it also appears in spam definition list, this
-        ;; is potentially a spam:
+        ;; If FIELD-SYMBOL field appears in the message, and also in
+        ;; spam definition list, this is potentially a spam.
         (if (and message-data
                  (string-match definition-field message-data))
-            ;; if we do not get a contradiction from another field, this is
-            ;; spam
-            (setf (cdr result) t)
-          ;; the message data contradicts the specification, this is no spam
-          (setf (car result) nil)))))
+            ;; If we do not get a contradiction from another field, this is spam
+            (setcdr result t)
+          ;; The message data contradicts the specification, this is not spam.
+          ;; Note that the total absence of a header specified in the
+          ;; rule means this cannot be spam.
+          (setcar result nil)))))
 
 (defun rmail-spam-filter (msg)
-  "Return nil if msg is spam based on rsf-definitions-alist.
-If spam, optionally output msg to a file `rsf-file' and delete
+  "Return nil if message number MSG is spam based on `rsf-definitions-alist'.
+If spam, optionally output message to a file `rsf-file' and delete
 it from rmail file.  Called for each new message retrieved by
 `rmail-get-new-mail'."
-
-  (let ((old-message)
-	(return-value)
-	(this-is-a-spam-email)
-	(maybe-spam)
-	(message-sender)
-	(message-recipients)
-	(message-subject)
-	(message-content-type)
-	(message-spam-status)
-	(num-spam-definition-elements)
+  (let ((return-value)
+	;; maybe-spam is in the car, this-is-a-spam-email in cdr.
+	(maybe-spam '(nil . nil))
+	message-sender message-to message-cc message-recipients
+	message-subject message-content-type message-spam-status
+	(num-spam-definition-elements (safe-length rsf-definitions-alist))
 	(num-element 0)
 	(exit-while-loop nil)
-	(saved-case-fold-search case-fold-search)
-	(save-current-msg)
+	;; Do we want to ignore case in spam definitions.
+	(case-fold-search rsf-ignore-case)
 	;; make sure bbdb does not create entries for messages while spam
 	;; filter is scanning the rmail file:
 	(bbdb/mail_auto_create_p nil)
-	)
-
-    ;; Other things may wish to know if we are running (nothing uses
-    ;; this at present).
-    (setq rsf-scanning-messages-now t)
+	;; Other things may wish to know if we are running (nothing
+	;; uses this at present).
+	(rsf-scanning-messages-now t))
     (save-excursion
+      ;; Narrow buffer to header of message and get Sender and
+      ;; Subject fields to be used below:
       (save-restriction
-	(setq this-is-a-spam-email nil)
-	;; Narrow buffer to header of message and get Sender and
-	;; Subject fields to be used below:
-	(save-restriction
-	  (goto-char (rmail-msgbeg msg))
-	  (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
-	  (setq message-sender (mail-fetch-field "From"))
-	  (setq message-recipients
-		(concat (mail-fetch-field "To")
-			(if (mail-fetch-field "Cc")
-			    (concat ", " (mail-fetch-field "Cc")))))
-	  (setq message-subject (mail-fetch-field "Subject"))
-	  (setq message-content-type (mail-fetch-field "Content-Type"))
-	  (setq message-spam-status (mail-fetch-field "X-Spam-Status"))
-	  )
-	;; Find number of spam-definition elements in the list
-	;; rsf-definitions-alist specified by user:
-	(setq num-spam-definition-elements (safe-length
-					    rsf-definitions-alist))
+        (goto-char (rmail-msgbeg msg))
+        (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+        (setq message-sender (mail-fetch-field "From"))
+        (setq message-to (mail-fetch-field "To")
+              message-cc (mail-fetch-field "Cc")
+              message-recipients (or (and message-to message-cc
+                                          (concat message-to ", " message-cc))
+                                     message-to
+                                     message-cc))
+        (setq message-subject (mail-fetch-field "Subject"))
+        (setq message-content-type (mail-fetch-field "Content-Type"))
+        (setq message-spam-status (mail-fetch-field "X-Spam-Status")))
+      ;; Check for blind CC condition.  Set vars such that while
+      ;; loop will be bypassed and spam condition will trigger.
+      (and rsf-no-blind-cc
+           (null message-recipients)
+           (setq exit-while-loop t
+                 maybe-spam '(t . t)))
+      ;; Check white list, and likewise cause while loop bypass.
+      (and message-sender
+           (let ((white-list rsf-white-list)
+                 (found nil))
+             (while (and (not found) white-list)
+               (if (string-match (car white-list) message-sender)
+                   (setq found t)
+                 (setq white-list (cdr white-list))))
+             found)
+           (setq exit-while-loop t
+                 maybe-spam '(nil . nil)))
+      ;; Scan all elements of the list rsf-definitions-alist.
+      (while (and (< num-element num-spam-definition-elements)
+                  (not exit-while-loop))
+        (let ((definition (nth num-element rsf-definitions-alist)))
+          ;; Initialize car, which is set to t in one of two cases:
+          ;; (1) unspecified definition-elements are found in
+          ;; rsf-definitions-alist, (2) empty field is found in the
+          ;; message being scanned (e.g. empty subject, sender,
+          ;; recipients, etc).  It is set to nil if a non-empty field
+          ;; of the scanned message does not match a specified field
+          ;; in rsf-definitions-alist.
+          ;; FIXME the car is never set to t?!
 
-	;;; do we want to ignore case in spam definitions:
-	  (setq case-fold-search rsf-ignore-case)
+          ;; Initialize cdr to nil.  This is set to t if one of the
+          ;; spam definitions matches a field in the scanned message.
+          (setq maybe-spam (cons t nil))
 
-	;; Check for blind CC condition.  Set vars such that while
-	;; loop will be bypassed and spam condition will trigger
-	(if (and rsf-no-blind-cc
-		 (null message-recipients))
-	    (setq exit-while-loop t
-                  maybe-spam t
-                  this-is-a-spam-email t))
+          ;; Maybe the different fields should also be done in a
+          ;; loop to make the whole thing more flexible.
 
-        ;; Check white list, and likewise cause while loop
-        ;;  bypass.
-        (if (and message-sender
-                 (let ((white-list rsf-white-list)
-                       (found nil))
-                   (while (and (not found) white-list)
-                     (if (string-match (car white-list) message-sender)
-                         (setq found t)
-                       (setq white-list (cdr white-list))))
-                   found))
-            (setq exit-while-loop t
-                  maybe-spam nil
-                  this-is-a-spam-email nil))
+          ;; If sender field is not specified in message being
+          ;; scanned, AND if "from" field does not appear in spam
+          ;; definitions for this element, this may still be spam due
+          ;; to another element...
+          (rsf-check-field 'from message-sender definition maybe-spam)
+          ;; Next, if spam was not ruled out already, check recipients:
+          (rsf-check-field 'to message-recipients definition maybe-spam)
+          ;; Next, if spam was not ruled out already, check subject:
+          (rsf-check-field 'subject message-subject definition maybe-spam)
+          ;; Next, if spam was not ruled out already, check content-type:
+          (rsf-check-field 'content-type message-content-type
+                           definition maybe-spam)
+          ;; Next, if spam was not ruled out already, check contents:
+          ;; If contents field is not specified, this may still be
+          ;; spam due to another element...
+          (rsf-check-field 'contents
+                           (buffer-substring-no-properties
+                            (rmail-msgbeg msg) (rmail-msgend msg))
+                           definition maybe-spam)
 
-        ;; maybe-spam is in the car, this-is-a-spam-email in cdr, this
-        ;; simplifies the call to rsf-check-field
-        (setq maybe-spam (cons maybe-spam this-is-a-spam-email))
+          ;; Finally, check the X-Spam-Status header.  You will typically
+          ;; look for the "Yes" string in this header field.
+          (rsf-check-field 'x-spam-status message-spam-status
+                           definition maybe-spam)
 
-	;; scan all elements of the list rsf-definitions-alist
-	(while (and
-		(< num-element num-spam-definition-elements)
-		(not exit-while-loop))
-          (let ((definition (nth num-element rsf-definitions-alist)))
-	    ;; Initialize maybe-spam which is set to t in one of two
-	    ;; cases: (1) unspecified definition-elements are found in
-	    ;; rsf-definitions-alist, (2) empty field is found
-	    ;; in the message being scanned (e.g. empty subject,
-	    ;; sender, recipients, etc).  The variable is set to nil
-	    ;; if a non empty field of the scanned message does not
-	    ;; match a specified field in
-	    ;; rsf-definitions-alist.
+          ;; If the search in rsf-definitions-alist found
+          ;; that this email is spam, output the email to the spam
+          ;; rmail file, mark the email for deletion, leave the
+          ;; while loop and return nil so that an rmail summary line
+          ;; wont be displayed for this message: (FIXME ?)
+          (if (and (car maybe-spam) (cdr maybe-spam))
+              (setq exit-while-loop t)
+            ;; Else, spam was not yet found, proceed to next element
+            ;; in rsf-definitions-alist:
+            (setq num-element (1+ num-element)))))
 
-	    ;; initialize this-is-a-spam-email to nil.  This variable
-	    ;; is set to t if one of the spam definitions matches a
-	    ;; field in the scanned message.
-            (setq maybe-spam (cons t nil))
-
-	    ;; start scanning incoming message:
-	    ;;---------------------------------
-
-            ;; Maybe the different fields should also be done in a
-            ;; loop to make the whole thing more flexible
- 	    ;; if sender field is not specified in message being
-	    ;; scanned, AND if "from" field does not appear in spam
-	    ;; definitions for this element, this may still be spam
-	    ;; due to another element...
-            (rsf-check-field 'from message-sender definition maybe-spam)
- 	    ;; next, if spam was not ruled out already, check recipients:
-            (rsf-check-field 'to message-recipients definition maybe-spam)
- 	    ;; next, if spam was not ruled out already, check subject:
-            (rsf-check-field 'subject message-subject definition maybe-spam)
- 	    ;; next, if spam was not ruled out already, check content-type:
-            (rsf-check-field 'content-type message-content-type
-                         definition maybe-spam)
-	    ;; next, if spam was not ruled out already, check
-	    ;; contents: if contents field is not specified, this may
-	    ;; still be spam due to another element...
-            (rsf-check-field 'contents
-                         (buffer-substring
-                          (rmail-msgbeg msg) (rmail-msgend msg))
-                         definition maybe-spam)
-
-	    ;; finally, check the X-Spam-Status header.  You will typically
-	    ;; look for the "Yes" string in this header field
-	    (rsf-check-field 'x-spam-status message-spam-status
-			 definition maybe-spam)
-
-	    ;; if the search in rsf-definitions-alist found
-	    ;; that this email is spam, output the email to the spam
-	    ;; rmail file, mark the email for deletion, leave the
-	    ;; while loop and return nil so that an rmail summary line
-	    ;; wont be displayed for this message:
-	    (if (and (car maybe-spam) (cdr maybe-spam))
-		;; found that this is spam, no need to look at the
-		;; rest of the rsf-definitions-alist, exit
-		;; loop:
-		(setq exit-while-loop t)
-	      ;; else, spam was not yet found, increment number of
-	      ;; element in rsf-definitions-alist and proceed
-	      ;; to next element:
-	      (setq num-element (+ num-element 1)))
-	    )
-          )
-
-        ;; (BK) re-set originally used variables
-        (setq this-is-a-spam-email (cdr maybe-spam)
-              maybe-spam (car maybe-spam))
-
-	(if (and this-is-a-spam-email maybe-spam)
-	    (progn
-	      ;;(message "Found spam!")
-	      ;;(ding 1) (sleep-for 2)
-
-	      ;; temprarily set rmail-current-message in order to
-	      ;; output and delete the spam msg if needed:
-	      (setq save-current-msg rmail-current-message)
-	      (setq rmail-current-message msg)
-	      ;; check action item and rsf-definitions-alist
-	      ;; and do it:
-	      (cond
-	       ((equal (cdr (assoc 'action
-				   (nth num-element rsf-definitions-alist)))
-		       'output-and-delete)
-		(progn
-		  (rmail-output rsf-file)
-                  ;; Don't delete if automatic deletion after output
-                  ;; is turned on
-		  (unless rmail-delete-after-output (rmail-delete-message))
-		  ))
-	       ((equal (cdr (assoc 'action
-				   (nth num-element rsf-definitions-alist)))
-		       'delete-spam)
-		(progn
-		  (rmail-delete-message)
-		  ))
-	       )
-	       (setq rmail-current-message save-current-msg)
-	      ;; set return value.  These lines must be last in the
-	      ;; function, so that they will determine the value
-	      ;; returned by rmail-spam-filter:
-	      (setq return-value nil))
-	    (setq return-value t))))
-    (setq case-fold-search saved-case-fold-search)
-    (setq rsf-scanning-messages-now nil)
+      (if (and (car maybe-spam) (cdr maybe-spam))
+          ;; Temporarily set rmail-current-message in order to output
+          ;; and delete the spam msg if needed:
+          (let ((rmail-current-message msg) ; FIXME does this do anything?
+                (action (cdr (assq 'action
+                                   (nth num-element rsf-definitions-alist))))
+                (newfile (not (file-exists-p rsf-file))))
+            ;; Check action item in rsf-definitions-alist and do it.
+            (cond
+             ((eq action 'output-and-delete)
+              ;; Else the prompt to write a new file leaves the raw
+              ;; mbox buffer visible.
+              (and newfile
+                   (rmail-show-message (rmail-first-unseen-message) t))
+              (rmail-output rsf-file)
+              ;; Swap back, else rmail-get-new-mail-1 gets confused.
+              (when newfile
+                (rmail-swap-buffers-maybe)
+                (widen))
+              ;; Don't delete if automatic deletion after output is on.
+              (or rmail-delete-after-output (rmail-delete-message)))
+             ((eq action 'delete-spam)
+              (rmail-delete-message)))
+            (setq return-value nil))
+        (setq return-value t)))
     return-value))
 
+(defun rmail-get-new-mail-filter-spam (nnew)
+  "Check the most NNEW recent messages for spam.
+This is called at the end of `rmail-get-new-mail-1' if there is new mail."
+  (let* ((nold (- rmail-total-messages nnew))
+	 (nspam 0)
+	 (nscan (1+ nold))
+	 ;; Save the original deleted state of all the messages.
+	 (rdv-old rmail-deleted-vector)
+	 errflag)
+    ;; Set all messages undeleted so that the expunge only affects spam.
+    (setq rmail-deleted-vector (make-string (1+ rmail-total-messages) ?\s))
+    (while (and (not errflag) (<= nscan rmail-total-messages))
+      (condition-case nil
+	  (or (rmail-spam-filter nscan)
+	      (setq nspam (1+ nspam)))
+	(error (setq errflag nscan)))
+      (setq nscan (1+ nscan)))
+    (unwind-protect
+	(if errflag
+	    (progn
+	      (setq rmail-use-spam-filter nil)
+	      (if rsf-beep (ding t))
+	      (message "Spam filter error for new message %d, disabled" errflag)
+	      (sleep-for rsf-sleep-after-message))
+	  (when (> nspam 0)
+	    ;; Otherwise sleep or expunge prompt leaves raw mbox buffer showing.
+	    (rmail-show-message (or (rmail-first-unseen-message) 1) t)
+	    (unwind-protect
+		(progn
+		  (if rsf-beep (ding t))
+		  (message "Rmail spam-filter detected and deleted %d spam \
+message%s"
+			   nspam (if (= 1 nspam) "" "s"))
+		  (sleep-for rsf-sleep-after-message)
+		  (if (rmail-expunge-confirmed) (rmail-only-expunge t)))
+	      ;; Swap back, else get-new-mail-1 gets confused.
+	      (rmail-swap-buffers-maybe)
+	      (widen))))
+      ;; Restore the original deleted state.  Character N refers to message N.
+      (setq rmail-deleted-vector
+	    (concat (substring rdv-old 0 (1+ nold))
+		    ;; This still works if we deleted all the new mail.
+		    (substring rmail-deleted-vector (1+ nold)))))
+    ;; Return a message based on the number of spam messages found.
+    (cond
+     (errflag ", error in spam filter")
+     ((zerop nspam) "")
+     ((= 1 nnew) ", and it appears to be spam")
+     ((= nspam nnew) ", and all appear to be spam")
+     (t (format ", and %d appear%s to be spam" nspam
+		(if (= 1 nspam) "s" ""))))))
 
 ;; define functions for interactively adding sender/subject of a
 ;; specific message to the spam definitions while reading it, using
 ;; the menubar:
 (defun rsf-add-subject-to-spam-list ()
+  "Add the \"Subject\" header to the spam list."
   (interactive)
-  (set-buffer rmail-buffer)
-  (let ((message-subject))
-    (setq message-subject (mail-fetch-field "Subject"))
-    ;; note the use of a backquote and comma on the subject line here,
+  (let ((message-subject (regexp-quote (rmail-get-header "Subject"))))
+    ;; Note the use of a backquote and comma on the subject line here,
     ;; to make sure message-subject is actually evaluated and its value
-    ;; substituted:
+    ;; substituted.
     (add-to-list 'rsf-definitions-alist
+		 ;; Note that an empty elment is treated the same as
+		 ;; an absent one, so why does it bother to add them?
 		 (list '(from . "")
 		       '(to . "")
 		       `(subject . ,message-subject)
@@ -429,23 +427,15 @@ it from rmail file.  Called for each new message retrieved by
     (if rsf-autosave-newly-added-definitions
 	(progn
 	  (custom-save-all)
-	  (message "%s" (concat "added subject \n <<< \n" message-subject
-			   " \n >>> \n to list of spam definitions. \n"
-			   "and saved the spam definitions to file.")))
-      (message "%s" (concat "added subject \n <<< \n" message-subject
-		       " \n >>> \n to list of spam definitions. \n"
-		       "Don't forget to save the spam definitions to file using the spam
-		       menu"))
-      )))
+          (message "Added subject `%s' to spam list, and saved it"
+                   message-subject))
+      (message "Added subject `%s' to spam list (remember to save it)"
+               message-subject))))
 
 (defun rsf-add-sender-to-spam-list ()
+  "Add the \"From\" address to the spam list."
   (interactive)
-  (set-buffer rmail-buffer)
-  (let ((message-sender))
-    (setq message-sender (mail-fetch-field "From"))
-    ;; note the use of a backquote and comma on the "from" line here,
-    ;; to make sure message-sender is actually evaluated and its value
-    ;; substituted:
+  (let ((message-sender (regexp-quote (rmail-get-header "From"))))
     (add-to-list 'rsf-definitions-alist
 		 (list `(from . ,message-sender)
 		       '(to . "")
@@ -458,131 +448,84 @@ it from rmail file.  Called for each new message retrieved by
     (if rsf-autosave-newly-added-definitions
 	(progn
 	  (custom-save-all)
-	  (message "%s" (concat "added sender \n <<< \n" message-sender
-			   " \n >>> \n to list of spam definitions. \n"
-			   "and saved the spam definitions to file.")))
-      (message "%s" (concat "added sender \n <<< \n " message-sender
-		       " \n >>> \n to list of spam definitions."
-		       "Don't forget to save the spam definitions to file using the spam
-		       menu"))
-      )))
-
+          (message "Added sender `%s' to spam list, and saved it"
+                   message-sender))
+      (message "Added sender `%s' to spam list (remember to save it)"
+               message-sender))))
 
 (defun rsf-add-region-to-spam-list ()
-  "Add the region makred by user in the rmail buffer to spam list.
-Added to spam definitions as a contents field."
+  "Add the marked region in the Rmail buffer to the spam list.
+Adds to spam definitions as a \"contents\" field."
   (interactive)
   (set-buffer rmail-buffer)
-  (let ((region-to-spam-list))
-    ;; check if region is inactive or has zero size:
-    (if (not (and mark-active (not (= (region-beginning) (region-end)))))
-	;; if inactive, print error message:
-	(message "you need to first highlight some text in the rmail buffer")
-      (if (< (- (region-end) (region-beginning)) rsf-min-region-to-spam-list)
-	  (message
-	   (concat "highlighted region is too small; min length set by variable \n"
-		   "rsf-min-region-to-spam-list"
-		   " is " (number-to-string rsf-min-region-to-spam-list)))
-	;; if region active and long enough, add to list of spam definisions:
-	(progn
-	  (setq region-to-spam-list (buffer-substring (region-beginning) (region-end)))
-	  ;; note the use of a backquote and comma on the "from" line here,
-	  ;; to make sure message-sender is actually evaluated and its value
-	  ;; substituted:
-	  (add-to-list 'rsf-definitions-alist
-		       (list '(from . "")
-			     '(to . "")
-			     '(subject . "")
-			     '(content-type . "")
-			     `(contents . ,region-to-spam-list)
-			     '(action . output-and-delete))
-		       t)
-	  (customize-mark-to-save 'rsf-definitions-alist)
-	  (if rsf-autosave-newly-added-definitions
-	      (progn
-		(custom-save-all)
-		(message "%s" (concat "added highlighted text \n <<< \n" region-to-spam-list
-				 " \n >>> \n to list of spam definitions. \n"
-				 "and saved the spam definitions to file.")))
-	    (message "%s" (concat "added highlighted text \n <<< \n " region-to-spam-list
-			     " \n >>> \n to list of spam definitions."
-			     "Don't forget to save the spam definitions to file using the
-			     spam menu"))
-	    ))))))
-
+  ;; Check if region is inactive or has zero size.
+  (if (not (and mark-active (not (= (region-beginning) (region-end)))))
+      ;; If inactive, print error message.
+      (message "You must highlight some text in the Rmail buffer")
+    (if (< (- (region-end) (region-beginning)) rsf-min-region-to-spam-list)
+        (message "Region is too small (minimum %d characters)"
+                 rsf-min-region-to-spam-list)
+      ;; If region active and long enough, add to list of spam definitions.
+      (let ((region-to-spam-list (regexp-quote
+                                  (buffer-substring-no-properties
+                                   (region-beginning) (region-end)))))
+        (add-to-list 'rsf-definitions-alist
+                     (list '(from . "")
+                           '(to . "")
+                           '(subject . "")
+                           '(content-type . "")
+                           `(contents . ,region-to-spam-list)
+                           '(action . output-and-delete))
+                     t)
+        (customize-mark-to-save 'rsf-definitions-alist)
+        (if rsf-autosave-newly-added-definitions
+            (progn
+              (custom-save-all)
+              (message "Added highlighted text:\n%s\n\
+to the spam list, and saved it" region-to-spam-list))
+          (message "Added highlighted text:\n%s\n\
+to the spam list (remember to save it)" region-to-spam-list))))))
 
 (defun rsf-customize-spam-definitions ()
+  "Customize `rsf-definitions-alist'."
   (interactive)
-  (customize-variable (quote rsf-definitions-alist)))
+  (customize-variable 'rsf-definitions-alist))
 
 (defun rsf-customize-group ()
+  "Customize the rmail-spam-filter group."
   (interactive)
-  (customize-group (quote rmail-spam-filter)))
+  (customize-group 'rmail-spam-filter))
 
 (defun rsf-custom-save-all ()
+  "Interactive version of `custom-save-all'."
   (interactive)
   (custom-save-all))
 
-;; add the actual menu items and keyboard shortcuts to both rmail and
-;; rmail-summary menu-bars::
-(define-key rmail-summary-mode-map [menu-bar spam]
-  (cons "Spam" (make-sparse-keymap "Spam")))
-(define-key rmail-mode-map [menu-bar spam]
-  (cons "Spam" (make-sparse-keymap "Spam")))
-
-(define-key rmail-summary-mode-map [menu-bar spam customize-group]
-  '("Browse customizations of rmail spam filter" . rsf-customize-group))
-(define-key rmail-mode-map [menu-bar spam customize-group]
-  '("Browse customizations of rmail spam filter" . rsf-customize-group))
-(define-key rmail-summary-mode-map "\C-cSg" 'rsf-customize-group)
-(define-key rmail-mode-map "\C-cSg" 'rsf-customize-group)
-
-(define-key rmail-summary-mode-map [menu-bar spam customize-spam-list]
-  '("Customize list of spam definitions" . rsf-customize-spam-definitions))
-(define-key rmail-mode-map [menu-bar spam customize-spam-list]
-  '("Customize list of spam definitions" . rsf-customize-spam-definitions))
-(define-key rmail-summary-mode-map "\C-cSd" 'rsf-customize-spam-definitions)
-(define-key rmail-mode-map "\C-cSd" 'rsf-customize-spam-definitions)
-
-(define-key rmail-summary-mode-map [menu-bar spam lambda] '("----"))
-(define-key rmail-mode-map [menu-bar spam lambda] '("----"))
-
-(define-key rmail-summary-mode-map [menu-bar spam my-custom-save-all]
-  '("save newly added spam definitions to customization file" . rsf-custom-save-all))
-(define-key rmail-mode-map [menu-bar spam my-custom-save-all]
-  '("save newly added spam definitions to customization file" . rsf-custom-save-all))
-(define-key rmail-summary-mode-map "\C-cSa" 'rsf-custom-save-all)
-(define-key rmail-mode-map "\C-cSa" 'rsf-custom-save-all)
-
-(define-key rmail-summary-mode-map [menu-bar spam add-region-to-spam-list]
-  '("add region to spam list" . rsf-add-region-to-spam-list))
-(define-key rmail-mode-map [menu-bar spam add-region-to-spam-list]
-  '("add region to spam list" . rsf-add-region-to-spam-list))
-(define-key rmail-summary-mode-map "\C-cSn" 'rsf-add-region-to-spam-list)
-(define-key rmail-mode-map "\C-cSn" 'rsf-add-region-to-spam-list)
-
-(define-key rmail-summary-mode-map [menu-bar spam add-sender-to-spam-list]
-  '("add sender to spam list" . rsf-add-sender-to-spam-list))
-(define-key rmail-mode-map [menu-bar spam add-sender-to-spam-list]
-  '("add sender to spam list" . rsf-add-sender-to-spam-list))
-(define-key rmail-summary-mode-map "\C-cSr" 'rsf-add-sender-to-spam-list)
-(define-key rmail-mode-map "\C-cSr" 'rsf-add-sender-to-spam-list)
-
-(define-key rmail-summary-mode-map [menu-bar spam add-subject-to-spam-list]
-  '("add subject to spam list" . rsf-add-subject-to-spam-list))
-(define-key rmail-mode-map [menu-bar spam add-subject-to-spam-list]
-  '("add subject to spam list" . rsf-add-subject-to-spam-list))
-(define-key rmail-summary-mode-map "\C-cSt" 'rsf-add-subject-to-spam-list)
-(define-key rmail-mode-map "\C-cSt" 'rsf-add-subject-to-spam-list)
+;; Add menu items (and keyboard shortcuts) to both rmail and rmail-summary.
+(dolist (map (list rmail-summary-mode-map rmail-mode-map))
+  (easy-menu-define nil map nil
+    '("Spam"
+      ["Add subject to spam list" rsf-add-subject-to-spam-list]
+      ["Add sender to spam list"  rsf-add-sender-to-spam-list]
+      ["Add region to spam list"  rsf-add-region-to-spam-list]
+      ["Save spam definitions"    rsf-custom-save-all]
+      "--"
+      ["Customize spam definitions" rsf-customize-spam-definitions]
+      ["Browse spam customizations" rsf-customize-group]
+      ))
+  (define-key map "\C-cSt" 'rsf-add-subject-to-spam-list)
+  (define-key map "\C-cSr" 'rsf-add-sender-to-spam-list)
+  (define-key map "\C-cSn" 'rsf-add-region-to-spam-list)
+  (define-key map "\C-cSa" 'rsf-custom-save-all)
+  (define-key map "\C-cSd" 'rsf-customize-spam-definitions)
+  (define-key map "\C-cSg" 'rsf-customize-group))
 
 (defun rsf-add-content-type-field ()
   "Maintain backward compatibility for `rmail-spam-filter'.
-The most recent version of `rmail-spam-filter' checks the contents
-field of the incoming mail to see if it spam.  The format of
+The most recent version of `rmail-spam-filter' checks the content-type
+field of the incoming mail to see if it is spam.  The format of
 `rsf-definitions-alist' has therefore changed.  This function
-checks to see if old format is used, and if it is, it converts
-`rsf-definitions-alist' to the new format.  Invoked
-automatically, no user input is required."
+checks to see if the old format is used, and updates it if necessary."
   (interactive)
   (if (and rsf-definitions-alist
            (not (assoc 'content-type (car rsf-definitions-alist))))
@@ -606,12 +549,8 @@ automatically, no user input is required."
         (if rsf-autosave-newly-added-definitions
             (progn
               (custom-save-all)
-              (message (concat "converted spam definitions to new format\n"
-                               "and saved the spam definitions to file.")))
-          (message (concat "converted spam definitions to new format\n"
-                           "Don't forget to save the spam definitions to file using the
-                           spam menu"))
-          ))))
+              (message "Spam definitions converted to new format, and saved"))
+          (message "Spam definitions converted to new format (remember to save)")))))
 
 (provide 'rmail-spam-filter)
 

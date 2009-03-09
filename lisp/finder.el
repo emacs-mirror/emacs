@@ -286,7 +286,6 @@ FILE should be in a form suitable for passing to `locate-library'."
     (or str (error "Can't find any Commentary section"))
     ;; This used to use *Finder* but that would clobber the
     ;; directory of categories.
-    (delete-other-windows)
     (pop-to-buffer "*Finder-package*")
     (setq buffer-read-only nil
           buffer-undo-list t)

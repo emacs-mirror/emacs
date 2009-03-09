@@ -2040,6 +2040,7 @@ struct it
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
+    enum line_wrap_method line_wrap;
 
     /* properties from display property that are reset by another display property. */
     short voffset;

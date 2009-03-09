@@ -1538,7 +1538,7 @@ on this string to produce the exported version."
       ;; Get the correct stuff before the first headline
       (when (plist-get parameters :skip-before-1st-heading)
 	(goto-char (point-min))
-	(when (re-search-forward "\\(^#.*\n\\)^\\*+[ \t]" nil t)
+	(when (re-search-forward "^\\(#.*\n\\)?\\*+[ \t]" nil t)
 	  (delete-region (point-min) (match-beginning 0))
 	  (goto-char (point-min))
 	  (insert "\n")))
@@ -1751,7 +1751,7 @@ whose content to keep."
 		       (org-delete-all exp-drawers
 				       (copy-sequence all-drawers))
 		       "\\|")
-		      "\\):[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n")))
+		      "\\):[ \t]*\n\\([^\000]*?\n\\)?[ \t]*:END:[ \t]*\n")))
       (while (re-search-forward re nil t)
 	(org-if-unprotected
 	 (replace-match ""))))))

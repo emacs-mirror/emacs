@@ -537,6 +537,7 @@ that the symbol of the saver function, which is specified by
   :group 'gnus-article-saving
   :type 'regexp)
 
+;; Note that "Rmail format" is mbox since Emacs 23, but Babyl before.
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
   "A function to save articles in your favourite format.
 The function will be called by way of the `gnus-summary-save-article'
@@ -3876,6 +3877,9 @@ Directory to save to is default to `gnus-article-save-directory'."
     (save-excursion
       (save-restriction
 	(widen)
+	;; Note that unlike gnus-summary-save-in-mail, there is no
+	;; check to see if filename is Babyl.  Rmail in Emacs 23 does
+	;; not use Babyl.
 	(gnus-output-to-rmail filename))))
   filename)
 
@@ -3894,7 +3898,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 	(if (and (file-readable-p filename)
 		 (file-regular-p filename)
 		 (mail-file-babyl-p filename))
-	    (rmail-output-to-rmail-file filename t)
+	    (gnus-output-to-rmail filename)
 	  (gnus-output-to-mail filename)))))
   filename)
 
@@ -7408,7 +7412,11 @@ positives are possible."
       gnus-button-ctan-directory-regexp
       "/[-_.a-z0-9]+/[-_./a-z0-9]+[/a-z0-9]\\)")
      1 (>= gnus-button-tex-level 8) gnus-button-handle-ctan 1)
-    ;; This is info (home-grown style) <info://foo/bar+baz>
+    ;; Info Konqueror style <info:/foo/bar baz>.
+    ;; Must come before " Gnus home-grown style".
+    ("\\binfo://?\\([^'\">\n\t]+\\)"
+     0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-url 1)
+   ;; Info, Gnus home-grown style (deprecated) <info://foo/bar+baz>
     ("\\binfo://\\([^'\">\n\t ]+\\)"
      0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-url 1)
     ;; Info GNOME style <info:foo#bar_baz>

@@ -327,7 +327,8 @@ keymap_parent (keymap, autoload)
 }
 
 DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
-       doc: /* Return the parent keymap of KEYMAP.  */)
+       doc: /* Return the parent keymap of KEYMAP.
+If KEYMAP has no parent, return nil.  */)
      (keymap)
      Lisp_Object keymap;
 {

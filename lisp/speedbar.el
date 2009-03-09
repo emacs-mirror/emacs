@@ -4122,12 +4122,14 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 	    (def-edebug-spec speedbar-with-writable def-body)))
 
 ;; Fix a font lock problem for some versions of Emacs
-(if (boundp 'font-lock-global-modes)
-    (if (listp font-lock-global-modes)
-	(add-to-list 'font-lock-global-modes '(not speedbar-mode))
-      )
-  )
-
+(and (boundp 'font-lock-global-modes)
+     font-lock-global-modes
+     (if (eq font-lock-global-modes t)
+	 (setq font-lock-global-modes '(not speedbar-mode))
+       (if (eq (car font-lock-global-modes) 'not)
+	   (add-to-list 'font-lock-global-modes 'speedbar-mode t)
+	 (setq font-lock-global-modes (delq 'speedbar-mode
+					    font-lock-global-modes)))))
 
 ;;; Obsolete variables and functions
 

@@ -32,6 +32,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <math.h>
 #include <sys/types.h>
 #include <time.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include "lisp.h"
@@ -844,11 +845,9 @@ ns_ring_bell ()
           r.origin.y += (r.size.height - dim.y) / 2;
           r.size.width = dim.x;
           r.size.height = dim.y;
-          /* XXX: cacheImageInRect under GNUstep does not account for
-             offset in x_set_window_size, so overestimate (4 fine on Cocoa) */
-          surr = NSInsetRect (r, -10, -10);
+          surr = NSInsetRect (r, -2, -2);
           ns_focus (frame, &surr, 1);
-          [[view window] cacheImageInRect: surr];
+          [[view window] cacheImageInRect: [view convertRect: surr toView:nil]];
           [ns_lookup_indexed_color (NS_FACE_FOREGROUND
                                       (FRAME_DEFAULT_FACE (frame)), frame) set];
           NSRectFill (r);
@@ -1001,6 +1000,8 @@ x_make_frame_invisible (struct frame *f)
   NSTRACE (x_make_frame_invisible);
   check_ns ();
   [[view window] orderOut: NSApp];
+  f->async_visible = 0;
+  f->async_iconified = 0;
 }
 
 
@@ -1152,21 +1153,21 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   pixelwidth =  FRAME_TEXT_COLS_TO_PIXEL_WIDTH   (f, cols);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
-  /* If we have a change in toolbar display, calculate height */
+  /* If we have a toolbar, take its height into account. */
+  /* XXX: GNUstep has not yet implemented the first method below, added
+          in Panther, however the second is incorrect under Cocoa. */
   if (tb)
-    /* XXX: GNUstep has not yet implemented the first method below, added
-           in Panther, however the second is incorrect under Cocoa. */
-#ifdef NS_IMPL_GNUSTEP
-    FRAME_NS_TOOLBAR_HEIGHT (f)
-      = NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
-			    styleMask: [window styleMask]])
-        - FRAME_NS_TITLEBAR_HEIGHT (f);
+    FRAME_NS_TOOLBAR_HEIGHT (f) =
+#ifdef NS_IMPL_COCOA
+      NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
+      /* NOTE: previously this would generate wrong result if toolbar not
+               yet displayed and fixing toolbar_height=32 helped, but
+               now (200903) seems no longer needed */
 #else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 32;
-      /* actually get wrong result here if toolbar not yet displayed
-         NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
-         - FRAME_NS_TITLEBAR_HEIGHT (f); */
+      NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
+					styleMask: [window styleMask]])
 #endif
+            - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
     FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
 
@@ -2454,7 +2455,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face;
-  NSRect r = NSMakeRect (x, y0, 2, y1-y0);
+  NSRect r = NSMakeRect (x, y0, 1, y1-y0);
 
   NSTRACE (ns_draw_vertical_window_border);
 
@@ -2463,7 +2464,7 @@ ns_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
       [ns_lookup_indexed_color(face->foreground, f) set];
 
   ns_focus (f, &r, 1);
-  NSDrawGroove (r, r);
+  NSRectFill(r);
   ns_unfocus (f);
 }
 
@@ -3221,7 +3222,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
   NSEvent *ev;
 /*  NSTRACE (ns_select); */
 
-  if (NSApp == nil /* || ([NSApp isActive] == NO &&
+  if (NSApp == nil || inNsSelect == 1 /* || ([NSApp isActive] == NO &&
                       [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:nil
  inMode:NSDefaultRunLoopMode dequeue:NO] == nil) */)
     return select (nfds, readfds, writefds, exceptfds, timeout);
@@ -4037,7 +4038,8 @@ ns_term_shutdown (int sig)
 
 - (void)sendEvent: (NSEvent *)theEvent
 /* --------------------------------------------------------------------------
-     Events posted by ns_send_appdefined interrupt the run loop here
+     Called when NSApp is running for each event received.  Used to stop
+     the loop when we choose, since there's no way to just run one iteration.
    -------------------------------------------------------------------------- */
 {
   int type = [theEvent type];
@@ -4081,8 +4083,19 @@ ns_term_shutdown (int sig)
 
   if (type == NSApplicationDefined)
     {
-      last_appdefined_event = theEvent;
-      [self stop: self];
+      /* Events posted by ns_send_appdefined interrupt the run loop here.
+         But, if a modal window is up, an appdefined can still come through,
+         (e.g., from a makeKeyWindow event) but stopping self also stops the
+         modal loop. Just defer it until later. */
+      if ([NSApp modalWindow] == nil)
+        {
+          last_appdefined_event = theEvent;
+          [self stop: self];
+        }
+      else
+        {
+          send_appdefined = YES;
+        }
     }
 
   [super sendEvent: theEvent];
@@ -4199,28 +4212,15 @@ ns_term_shutdown (int sig)
   if (ns_shutdown_properly || NILP (ns_confirm_quit))
     return NSTerminateNow;
 
-  /* XXX: This while() loop is needed because if the user switches to another
-          application while the panel is up, it is taken down w/a return value
-          of NSRunStoppedResponse, and the event queue gets messed up.
-          In this case resend the appdefined and put up the window again. */
-  while (1) {
     ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
                           [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
                           @"Save Buffers and Exit", @"Cancel", nil);
 
     if (ret == NSAlertDefaultReturn)
-      {
-        send_appdefined = YES;
-        ns_send_appdefined(-1);
         return NSTerminateNow;
-      }
     else if (ret == NSAlertAlternateReturn)
-      {
-        send_appdefined = YES;
-        ns_send_appdefined(-1);
         return NSTerminateCancel;
-      }
-  }
+    return NSTerminateNow;  /* just in case */
 }
 
 
@@ -4475,13 +4475,12 @@ extern void update_window_cursor (struct window *w, int on);
 
  if (![[self window] isKeyWindow])
    {
-     /* XXX: Using NO_SOCK_SIGIO like Carbon causes a condition in which,
-         when Emacs display updates a different frame from the current one,
-         and temporarily selects it, then processes some interrupt-driven
-         input (dispnew.c:3878), OS will send the event to the correct NSWindow,
-         but for some reason that window has its first responder set to the
-         NSView most recently updated (I guess), which is not the correct one.
-         UPDATE: After multi-TTY merge this happens even w/o NO_SOCK_SIGIO */
+     /* XXX: There is an occasional condition in which, when Emacs display
+         updates a different frame from the current one, and temporarily
+         selects it, then processes some interrupt-driven input
+         (dispnew.c:3878), OS will send the event to the correct NSWindow, but
+         for some reason that window has its first responder set to the NSView
+         most recently updated (I guess), which is not the correct one. */
      if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
          [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
      return;
@@ -5294,14 +5293,33 @@ extern void update_window_cursor (struct window *w, int on);
 /* if we don't do this manually, the window will resize but not move */
 - (BOOL)windowShouldZoom: (NSWindow *)sender toFrame: (NSRect)newFrame
 {
+  NSTRACE (windowShouldZoom);
   [[self window] setFrame: newFrame display: NO];
   return YES;
 }
 #endif
 
-/* Implement this to control size of frame on zoom.
+
+/* Override to do something slightly nonstandard, but nice.  First click on
+   zoom button will zoom vertically.  Second will zoom completely.  Third
+   returns to original. */
 - (NSRect)windowWillUseStandardFrame:(NSWindow *)sender
-                        defaultFrame:(NSRect)defaultFrame; */
+                        defaultFrame:(NSRect)defaultFrame
+{
+  NSRect result = [sender frame];
+  NSTRACE (windowWillUseStandardFrame);
+
+  if (result.size.height == defaultFrame.size.height) {
+    result = defaultFrame;
+  } else {
+    result.size.height = defaultFrame.size.height;
+    result.origin.y = defaultFrame.origin.y;
+  }
+
+  /* A windowWillResize does not get generated at least on Tiger. */
+  [self windowWillResize: sender toSize: result.size];
+  return result;
+}
 
 
 - (void)windowDidDeminiaturize: sender
@@ -5309,8 +5327,8 @@ extern void update_window_cursor (struct window *w, int on);
   NSTRACE (windowDidDeminiaturize);
   if (!emacsframe->output_data.ns)
     return;
-  emacsframe->async_visible   = 1;
   emacsframe->async_iconified = 0;
+  emacsframe->async_visible   = 1;
   windows_or_buffers_changed++;
 
   if (emacs_event)
@@ -5341,6 +5359,7 @@ extern void update_window_cursor (struct window *w, int on);
     return;
 
   emacsframe->async_iconified = 1;
+  emacsframe->async_visible = 0;
 
   if (emacs_event)
     {
@@ -5448,18 +5467,13 @@ extern void update_window_cursor (struct window *w, int on);
 
   NSTRACE (drawRect);
 
-  if (!emacsframe || !emacsframe->output_data.ns)
+  if (!emacsframe || !emacsframe->output_data.ns || ns_in_resize)
     return;
 
-  if (!ns_in_resize)
-    ns_clear_frame_area (emacsframe, x, y, width, height);
+  ns_clear_frame_area (emacsframe, x, y, width, height);
   expose_frame (emacsframe, x, y, width, height);
-
   emacsframe->async_visible = 1;
   emacsframe->async_iconified = 0;
-
-/*    SET_FRAME_GARBAGED (emacsframe);
-      ns_send_appdefined (-1); */
 }
 
 
@@ -5619,8 +5633,7 @@ extern void update_window_cursor (struct window *w, int on);
    supposedly called when a services menu item is chosen from this app.
    But this should not happen because we override the services menu with our
    own entries which call ns-perform-service.
-   Nonetheless, it appeared to happen here (under strange circumstances):
-   http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1435 
+   Nonetheless, it appeared to happen (under strange circumstances): bug#1435.
    So let's at least stub them out until further investigation can be done. */
 
 - (BOOL) readSelectionFromPasteboard: (NSPasteboard *)pb

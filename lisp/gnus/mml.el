@@ -898,10 +898,17 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
       (unless (setq textp (equal (mm-handle-media-supertype handle) "text"))
 	(save-excursion
 	  (set-buffer (setq buffer (mml-generate-new-buffer " *mml*")))
-	  (mm-insert-part handle 'no-cache)
-	  (if (setq mmlp (equal (mm-handle-media-type handle)
-				"message/rfc822"))
-	      (mime-to-mml)))))
+	  (if (eq (mail-content-type-get (mm-handle-type handle) 'charset)
+		  'gnus-decoded)
+	      ;; A part that mm-uu dissected from a non-MIME message
+	      ;; because of `gnus-article-emulate-mime'.
+	      (progn
+		(mm-enable-multibyte)
+		(insert-buffer-substring (mm-handle-buffer handle)))
+	    (mm-insert-part handle 'no-cache)
+	    (if (setq mmlp (equal (mm-handle-media-type handle)
+				  "message/rfc822"))
+		(mime-to-mml))))))
     (if mmlp
 	(mml-insert-mml-markup handle nil t t)
       (unless (and no-markup

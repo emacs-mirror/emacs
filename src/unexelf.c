@@ -1278,7 +1278,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	   new_file_size, errno);
 #else
     fatal ("Didn't write %d bytes to %s: errno %d\n",
-	   new_file_size, new_base, errno);
+	   new_file_size, new_name, errno);
 #endif
   munmap (old_base, old_file_size);
   munmap (new_base, new_file_size);

@@ -15,6 +15,7 @@ We control the order of execution of these forms by enclosing them in
 control when, whether, or how many times to execute the forms they
 contain.
 
+@cindex textual order
   The simplest order of execution is sequential execution: first form
 @var{a}, then form @var{b}, and so on.  This is what happens when you
 write several forms in succession in the body of a function, or at top

@@ -1,7 +1,7 @@
 ;;; undigest.el --- digest-cracking support for the RMAIL mail reader
 
-;; Copyright (C) 1985, 1986, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 1996, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -23,16 +23,12 @@
 
 ;;; Commentary:
 
-;; See Internet RFC 934 and RFC 1153
-;; Also limited support for MIME digest encapsulation
+;; See Internet RFC 934 and RFC 1153.
+;; Also limited support for MIME digest encapsulation.
 
 ;;; Code:
 
 (require 'rmail)
-
-(defconst rmail-mail-separator
-  "\^_\^L\n0, unseen,,\n*** EOOH ***\n"
-  "String for separating messages in an rmail file.")
 
 (defcustom rmail-forward-separator-regex
   "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage"
@@ -59,7 +55,7 @@ each undigestified message as markers.")
   (goto-char (point-min))
   (when (let ((head-end (progn (search-forward "\n\n" nil t) (point))))
 	  (goto-char (point-min))
-	  (and head-end
+	  (and head-end			; FIXME always true
 	       (re-search-forward
 		(concat
 		 "^Content-type: multipart/digest;"
@@ -158,78 +154,75 @@ See rmail-digest-methods."
   "Break up a digest message into its constituent messages.
 Leaves original message, deleted, before the undigestified messages."
   (interactive)
-  (with-current-buffer rmail-buffer
+  (set-buffer rmail-buffer)
+  (let ((buff (current-buffer))
+        (current rmail-current-message)
+	(msgbeg (rmail-msgbeg rmail-current-message))
+	(msgend (rmail-msgend rmail-current-message)))
+    (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
     (widen)
     (let ((error t)
 	  (buffer-read-only nil))
-      (goto-char (rmail-msgend rmail-current-message))
-      (let ((msg-copy (buffer-substring (rmail-msgbeg rmail-current-message)
-					(rmail-msgend rmail-current-message))))
+      (goto-char msgend)
+      (let ((msg-copy (buffer-substring-no-properties msgbeg msgend)))
 	(narrow-to-region (point) (point))
-	(insert msg-copy))
-      (narrow-to-region (point-min) (1- (point-max)))
+	(insert "\n" msg-copy))
+      (goto-char (point-min))
       (unwind-protect
 	  (progn
-	    (save-restriction
-	      (goto-char (point-min))
-	      (delete-region (point-min)
-			     (progn (search-forward "\n*** EOOH ***\n" nil t)
-				    (point)))
-	      (insert "\n" rmail-mail-separator)
-	      (narrow-to-region (point)
-				(point-max))
-	      (let ((fill-prefix "")
-		    (case-fold-search t)
-		    digest-name type start end separator fun-list sep-list)
-		(setq digest-name (mail-strip-quoted-names
-				   (save-restriction
-				     (search-forward "\n\n" nil 'move)
-				     (setq start (point))
-				     (narrow-to-region (point-min) start)
-				     (or (mail-fetch-field "Reply-To")
-					 (mail-fetch-field "To")
-					 (mail-fetch-field "Apparently-To")
-					 (mail-fetch-field "From")))))
-		(unless digest-name
-		  (error "Message is not a digest--bad header"))
-
-		(setq fun-list rmail-digest-methods)
-		(while (and fun-list
-			    (null (setq sep-list (funcall (car fun-list)))))
-		  (setq fun-list (cdr fun-list)))
-		(unless sep-list
-		  (error "Message is not a digest--no messages found"))
-
-		;;; Split the digest into separate rmail messages
-		(while sep-list
-		  (let ((start (caar sep-list))
-			(end (cdar sep-list)))
-		    (delete-region start end)
-		    (goto-char start)
-		    (insert rmail-mail-separator)
-		    (search-forward "\n\n" (caar (cdr sep-list)) 'move)
-		    (save-restriction
-		      (narrow-to-region end (point))
-		      (unless (mail-fetch-field "To")
-			(goto-char start)
-			(insert "To: " digest-name "\n")))
-		    (set-marker start nil)
-		    (set-marker end nil))
-		  (setq sep-list (cdr sep-list)))))
-
+	    (let ((fill-prefix "")
+		  (case-fold-search t)
+		  digest-name fun-list sep-list start end)
+	      (setq digest-name (mail-strip-quoted-names
+				 (save-restriction
+				   (search-forward "\n\n" nil 'move)
+				   (narrow-to-region (point-min) (point))
+				   (or (mail-fetch-field "Reply-To")
+				       (mail-fetch-field "To")
+				       (mail-fetch-field "Apparently-To")
+				       (mail-fetch-field "From")))))
+	      (unless digest-name
+		(error "Message is not a digest--bad header"))
+	      (setq fun-list rmail-digest-methods)
+	      (while (and fun-list
+			  (null (setq sep-list (funcall (car fun-list)))))
+		(setq fun-list (cdr fun-list)))
+	      (unless sep-list
+		(error "Message is not a digest--no messages found"))
+	      ;; Split the digest into separate rmail messages.
+	      (while sep-list
+		(setq start (caar sep-list)
+		      end (cdar sep-list))
+		(delete-region start end)
+		(goto-char start)
+		(search-forward "\n\n" (caar (cdr sep-list)) 'move)
+		(save-restriction
+		  (narrow-to-region end (point))
+		  (goto-char (point-min))
+		  (insert "\nFrom rmail@localhost  " (current-time-string) "\n")
+		  (save-excursion
+		    (forward-line -1)
+		    (rmail-add-mbox-headers))
+		  (unless (mail-fetch-field "To")
+		    (insert "To: " digest-name "\n")))
+		(set-marker start nil)
+		(set-marker end nil)
+		(setq sep-list (cdr sep-list))))
 	    (setq error nil)
 	    (message "Message successfully undigestified")
-	    (let ((n rmail-current-message))
-	      (rmail-forget-messages)
-	      (rmail-show-message n)
-	      (rmail-delete-forward)
-	      (if (rmail-summary-exists)
-		  (rmail-select-summary
-		   (rmail-update-summary)))))
-	(cond (error
-	       (narrow-to-region (point-min) (1+ (point-max)))
-	       (delete-region (point-min) (point-max))
-	       (rmail-show-message rmail-current-message)))))))
+	    (set-buffer buff)
+	    (rmail-swap-buffers-maybe)
+	    (goto-char (point-max))
+	    (rmail-set-message-counters)
+	    (set-buffer-modified-p t)
+	    (rmail-show-message current)
+	    (rmail-delete-forward)
+	    (if (rmail-summary-exists)
+		(rmail-select-summary (rmail-update-summary))))
+	(when error
+	  (delete-region (point-min) (point-max))
+	  (set-buffer buff)
+	  (rmail-show-message current))))))
 
 ;;;###autoload
 (defun unforward-rmail-message ()
@@ -237,81 +230,96 @@ Leaves original message, deleted, before the undigestified messages."
 This puts the forwarded message into a separate rmail message
 following the containing message."
   (interactive)
-  ;; If we are in a summary buffer, switch to the Rmail buffer.
-  (unwind-protect
-      (with-current-buffer rmail-buffer
-	(goto-char (point-min))
-	(narrow-to-region (point)
-			  (save-excursion (search-forward "\n\n") (point)))
-	(let ((buffer-read-only nil)
-	      (old-fwd-from (mail-fetch-field "Forwarded-From" nil nil t))
-	      (old-fwd-date (mail-fetch-field "Forwarded-Date" nil nil t))
-	      (fwd-from (mail-fetch-field "From"))
-	      (fwd-date (mail-fetch-field "Date"))
-	      beg end prefix forward-msg)
-	  (narrow-to-region (rmail-msgbeg rmail-current-message)
-			    (rmail-msgend rmail-current-message))
-	  (goto-char (point-min))
-	  (cond ((re-search-forward rmail-forward-separator-regex nil t)
-		 (forward-line 1)
-		 (skip-chars-forward "\n")
-		 (setq beg (point))
-		 (setq end (if (re-search-forward "^----.*[^- \t\n]" nil t)
-			       (match-beginning 0) (point-max)))
-		 (setq forward-msg
-		       (replace-regexp-in-string
-			"^- -" "-" (buffer-substring beg end))))
-		((and (re-search-forward "^\\(> ?\\)[a-zA-Z-]+: .*\n" nil t)
-		      (setq beg (match-beginning 0))
-		      (setq prefix (match-string-no-properties 1))
-		      (goto-char beg)
-		      (looking-at (concat "\\(" prefix ".+\n\\)*"
-					  prefix "Date: ."))
-		      (looking-at (concat "\\(" prefix ".+\n\\)*"
-					  prefix "From: .+\n"
-					  "\\(" prefix ".+\n\\)*"
-					  "\\(> ?\\)?\n" prefix)))
-		 (re-search-forward "^[^>\n]" nil 'move)
-		 (backward-char)
-		 (skip-chars-backward " \t\n")
-		 (forward-line 1)
-		 (setq end (point))
-		 (setq forward-msg
-		       (replace-regexp-in-string
-			(if (string= prefix ">") "^>" "> ?")
-			"" (buffer-substring beg end))))
-		(t
-		 (error "No forwarded message found")))
+  (set-buffer rmail-buffer)
+  (let ((buff (current-buffer))
+        (current rmail-current-message)
+        (beg (rmail-msgbeg rmail-current-message))
+        (msgend (rmail-msgend rmail-current-message))
+	(error t))
+    (unwind-protect
+	(progn
+	  (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
 	  (widen)
-	  (goto-char (rmail-msgend rmail-current-message))
-	  (narrow-to-region (point) (point))
-	  (insert rmail-mail-separator)
-	  (narrow-to-region (point) (point))
-	  (while old-fwd-from
-	    (insert "Forwarded-From: " (car old-fwd-from) "\n")
-	    (insert "Forwarded-Date: " (car old-fwd-date) "\n")
-	    (setq old-fwd-from (cdr old-fwd-from))
-	    (setq old-fwd-date (cdr old-fwd-date)))
-	  (insert "Forwarded-From: " fwd-from "\n")
-	  (insert "Forwarded-Date: " fwd-date "\n")
-	  (insert forward-msg)
-	  (save-restriction
-	    (goto-char (point-min))
-	    (re-search-forward "\n$" nil 'move)
-	    (narrow-to-region (point-min) (point))
+	  (goto-char beg)
+	  (search-forward "\n\n" msgend)
+	  (narrow-to-region beg (point))
+	  (let ((old-fwd-from (mail-fetch-field "Forwarded-From" nil nil t))
+		(old-fwd-date (mail-fetch-field "Forwarded-Date" nil nil t))
+		(fwd-from (mail-fetch-field "From"))
+		(fwd-date (mail-fetch-field "Date"))
+		(buffer-read-only nil)
+		prefix forward-msg end)
+	    (widen)
+	    (narrow-to-region beg msgend)
+	    (cond ((re-search-forward rmail-forward-separator-regex nil t)
+		   (forward-line 1)
+		   (skip-chars-forward "\n")
+		   (setq beg (point))
+		   (setq end (if (re-search-forward "^----.*[^- \t\n]" nil t)
+				 (match-beginning 0) (point-max)))
+		   (setq forward-msg
+			 (replace-regexp-in-string
+			  "^- -" "-" (buffer-substring beg end))))
+		  ((and (re-search-forward "^\\(> ?\\)[a-zA-Z-]+: .*\n" nil t)
+			(setq beg (match-beginning 0))
+			(setq prefix (match-string-no-properties 1))
+			(goto-char beg)
+			(looking-at (concat "\\(" prefix ".+\n\\)*"
+					    prefix "Date: ."))
+			(looking-at (concat "\\(" prefix ".+\n\\)*"
+					    prefix "From: .+\n"
+					    "\\(" prefix ".+\n\\)*"
+					    "\\(> ?\\)?\n" prefix)))
+		   (re-search-forward "^[^>\n]" nil 'move)
+		   (backward-char)
+		   (skip-chars-backward " \t\n")
+		   (forward-line 1)
+		   (setq end (point))
+		   (setq forward-msg
+			 (replace-regexp-in-string
+			  (if (string= prefix ">") "^>" "> ?")
+			  "" (buffer-substring beg end))))
+		  (t
+		   (error "No forwarded message found")))
+	    (widen)
+	    (goto-char msgend)
+	    ;; Insert a fake From line.
+	    ;; FIXME we could construct one using the From and Date headers
+	    ;; of the forwarded message - is it worth it?
+	    (insert "\n\nFrom rmail@localhost  " (current-time-string) "\n")
+	    (setq beg (point))		; start of header
+	    (while old-fwd-from
+	      (insert "Forwarded-From: " (car old-fwd-from) "\n")
+	      (insert "Forwarded-Date: " (car old-fwd-date) "\n")
+	      (setq old-fwd-from (cdr old-fwd-from))
+	      (setq old-fwd-date (cdr old-fwd-date)))
+	    (insert "Forwarded-From: " fwd-from "\n")
+	    (insert "Forwarded-Date: " fwd-date "\n")
+	    (insert forward-msg "\n")
+	    (goto-char beg)
+	    (re-search-forward "\n$" nil 'move) ; end of header
+	    (narrow-to-region beg (point))
 	    (goto-char (point-min))
 	    (while (not (eobp))
 	      (unless (looking-at "^[a-zA-Z-]+: ")
 		(insert "\t"))
-	      (forward-line)))
-	  (goto-char (point-min))))
-    (let ((n rmail-current-message))
-      (rmail-forget-messages)
-      (rmail-show-message n))
-    (if (rmail-summary-exists)
-	(rmail-select-summary
-	 (rmail-update-summary)))))
-
+	      (forward-line))
+	    (widen)
+	    (goto-char beg)
+	    (forward-line -1)
+	    (rmail-add-mbox-headers))		; marks as unseen
+	  (setq error nil)
+	  (set-buffer buff)
+	  (rmail-swap-buffers-maybe)
+	  (goto-char (point-max))
+	  (rmail-set-message-counters)
+	  (set-buffer-modified-p t)
+	  (rmail-show-message current)
+	  (if (rmail-summary-exists)
+	      (rmail-select-summary (rmail-update-summary))))
+      (when error
+	(set-buffer buff)
+	(rmail-show-message current)))))
 
 (provide 'undigest)
 

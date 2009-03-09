@@ -1,9 +1,8 @@
-*.elc
 4Corner.el
 ARRAY30.el
 CCDOSPY.el
-CTLau.el
 CTLau-b5.el
+CTLau.el
 ECDICT.el
 ETZY.el
 PY-b5.el
@@ -16,8 +15,9 @@ SW.el
 TONEPY.el
 ZIRANMA.el
 ZOZY.el
-tsang-cns.el
+quick-b5.el
 quick-cns.el
 tsang-b5.el
-quick-b5.el
+tsang-cns.el
 
+# arch-tag: 51d8b13a-24b5-45fb-8451-7bef7f101f26

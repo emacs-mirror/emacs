@@ -1366,6 +1366,7 @@ The list of variables to buffer localize are:
     c-special-indent-hook
     c-indentation-style"
   :type 'boolean
+  :safe 'booleanp
   :group 'c)
 
 (defcustom c-mode-hook nil

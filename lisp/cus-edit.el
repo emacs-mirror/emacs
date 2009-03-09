@@ -3877,7 +3877,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	 (symbol (widget-value widget))
 	 (members (custom-group-members symbol
 					(and (eq custom-buffer-style 'tree)
-					     custom-browse-only-groups))))
+					     custom-browse-only-groups)))
+	 (doc (widget-docstring widget)))
     (cond ((and (eq custom-buffer-style 'tree)
 		(eq state 'hidden)
 		(or members (custom-unloaded-widget-p widget)))
@@ -4005,8 +4006,11 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (let ((start (point)))
 	     (insert tag " group: ")
 	     (widget-specify-sample widget start (point)))
-	   (if (< (length (widget-docstring widget)) 50)
-	       (insert (widget-docstring widget)))
+	   (cond
+	    ((not doc)
+	     (insert " Group definition missing. "))
+	    ((< (length doc) 50)
+	     (insert doc)))
 	   ;; Create visibility indicator.
 	   (unless (eq custom-buffer-style 'links)
 	     (insert "--------")
@@ -4033,9 +4037,9 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (if (>= (length (widget-docstring widget)) 50)
-	       (widget-add-documentation-string-button
-		widget :visibility-widget 'custom-visibility))
+	   (when (and doc (>= (length doc) 50))
+	     (widget-add-documentation-string-button
+	      widget :visibility-widget 'custom-visibility))
 
 	   ;; Parent groups.
 	   (if nil  ;;; This should test that the buffer

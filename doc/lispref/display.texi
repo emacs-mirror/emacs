@@ -3889,7 +3889,7 @@ text you put it on does not get displayed; the margin display appears,
 but that text does not.
 
   A margin display specification looks like @code{((margin
-right-margin) @var{spec}} or @code{((margin left-margin) @var{spec})}.
+right-margin) @var{spec})} or @code{((margin left-margin) @var{spec})}.
 Here, @var{spec} is another display specification that says what to
 display in the margin.  Typically it is a string of text to display,
 or an image descriptor.

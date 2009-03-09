@@ -47,8 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif /* HAVE_NS */
 
-Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
-
 #ifdef HAVE_NS
 extern Lisp_Object Qfontsize;
 #endif
@@ -98,7 +96,7 @@ static struct table_entry weight_table[] =
   { 40, { "extra-light", "extralight" }},
   { 50, { "light" }},
   { 75, { "semi-light", "semilight", "demilight", "book" }},
-  { 100, { "normal", "medium", "regular" }},
+  { 100, { "normal", "medium", "regular", "unspecified" }},
   { 180, { "semi-bold", "semibold", "demibold", "demi" }},
   { 200, { "bold" }},
   { 205, { "extra-bold", "extrabold" }},
@@ -112,7 +110,7 @@ static struct table_entry slant_table[] =
 {
   { 0, { "reverse-oblique", "ro" }},
   { 10, { "reverse-italic", "ri" }},
-  { 100, { "normal", "r" }},
+  { 100, { "normal", "r", "unspecified" }},
   { 200, { "italic" ,"i", "ot" }},
   { 210, { "oblique", "o" }}
 };
@@ -126,7 +124,7 @@ static struct table_entry width_table[] =
   { 63, { "extra-condensed", "extracondensed" }},
   { 75, { "condensed", "compressed", "narrow" }},
   { 87, { "semi-condensed", "semicondensed", "demicondensed" }},
-  { 100, { "normal", "medium", "regular" }},
+  { 100, { "normal", "medium", "regular", "unspecified" }},
   { 113, { "semi-expanded", "semiexpanded", "demiexpanded" }},
   { 125, { "expanded" }},
   { 150, { "extra-expanded", "extraexpanded" }},
@@ -362,12 +360,12 @@ font_style_to_value (prop, val, noerror)
 	return -1;
       if (len == 255)
 	abort ();
-      elt = Fmake_vector (make_number (2), make_number (255));
+      elt = Fmake_vector (make_number (2), make_number (100));
       ASET (elt, 1, val);
       args[0] = table;
       args[1] = Fmake_vector (make_number (1), elt);
       ASET (font_style_table, prop - FONT_WEIGHT_INDEX, Fvconcat (2, args));
-      return (255 << 8) | (i << 4);
+      return (100 << 8) | (i << 4);
     }
   else
     {
@@ -2424,7 +2422,10 @@ font_check_otf_features (script, langsys, features, table)
   for (negative = 0; CONSP (features); features = XCDR (features))
     {
       if (NILP (XCAR (features)))
-	negative = 1;
+	{
+	  negative = 1;
+	  continue;
+	}
       if (NILP (Fmemq (XCAR (features), table)) != negative)
 	return 0;
     }
@@ -3132,7 +3133,7 @@ font_update_lface (f, attrs)
   if (! NILP (AREF (spec, FONT_WEIGHT_INDEX)))
     attrs[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_SLANT_INDEX)))
-    attrs[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (spec);;
+    attrs[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_WIDTH_INDEX)))
     attrs[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (spec);
   if (! NILP (AREF (spec, FONT_SIZE_INDEX)))
@@ -3159,6 +3160,75 @@ font_update_lface (f, attrs)
     }
 }
 
+
+/* Selecte a font from ENTITIES that supports C and matches best with
+   ATTRS and PIXEL_SIZE.  */
+
+static Lisp_Object
+font_select_entity (frame, entities, attrs, pixel_size, c)
+     Lisp_Object frame, entities, *attrs;
+     int pixel_size, c;
+{
+  Lisp_Object font_entity;
+  Lisp_Object prefer;
+  Lisp_Object props[FONT_REGISTRY_INDEX + 1] ;
+  int result, i;
+  FRAME_PTR f = XFRAME (frame);
+
+  if (ASIZE (entities) == 1)
+    {
+      font_entity = AREF (entities, 0);
+      if (c < 0
+	  || (result = font_has_char (f, font_entity, c)) > 0)
+	return font_entity;
+      return Qnil;
+    }
+
+  /* Sort fonts by properties specified in ATTRS.  */
+  prefer = scratch_font_prefer;
+
+  for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+    ASET (prefer, i, Qnil);
+  if (FONTP (attrs[LFACE_FONT_INDEX]))
+    {
+      Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
+
+      for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
+	ASET (prefer, i, AREF (face_font, i));
+    }
+  if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
+  if (NILP (AREF (prefer, FONT_SLANT_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
+  if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
+    FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
+  ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
+  entities = font_sort_entites (entities, prefer, frame, c < 0);
+
+  if (c < 0)
+    return entities;
+
+  for (i = 0; i < ASIZE (entities); i++)
+    {
+      int j;
+
+      font_entity = AREF (entities, i);
+      if (i > 0)
+	{
+	  for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
+	    if (! EQ (AREF (font_entity, j), props[j]))
+	      break;
+	  if (j > FONT_REGISTRY_INDEX)
+	    continue;
+	}
+      for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
+	props[j] = AREF (font_entity, j);
+      result = font_has_char (f, font_entity, c);
+      if (result > 0)
+	return font_entity;
+    }
+  return Qnil;
+}
 
 /* Return a font-entity satisfying SPEC and best matching with face's
    font related attributes in ATTRS.  C, if not negative, is a
@@ -3307,72 +3377,15 @@ font_find_for_lface (f, attrs, spec, c)
 		  ASET (work, FONT_ADSTYLE_INDEX, adstyle[l]);
 		  entities = font_list_entities (frame, work);
 		  if (ASIZE (entities) > 0)
-		    goto found;
+		    {
+		      val = font_select_entity (frame, entities,
+						attrs, pixel_size, c);
+		      if (! NILP (val))
+			return val;
+		    }
 		}
 	    }
 	}
-    }
-  return Qnil;
- found:
-  if (ASIZE (entities) == 1)
-    {
-      if (c < 0)
-	return AREF (entities, 0);
-    }
-  else
-    {
-      /* Sort fonts by properties specified in LFACE.  */
-      Lisp_Object prefer = scratch_font_prefer;
-
-      for (i = 0; i < FONT_EXTRA_INDEX; i++)
-	ASET (prefer, i, AREF (work, i));
-      if (FONTP (attrs[LFACE_FONT_INDEX]))
-	{
-	  Lisp_Object face_font = attrs[LFACE_FONT_INDEX];
-
-	  for (i = 0; i < FONT_EXTRA_INDEX; i++)
-	    if (NILP (AREF (prefer, i)))
-	      ASET (prefer, i, AREF (face_font, i));
-	}
-      if (NILP (AREF (prefer, FONT_WEIGHT_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_WEIGHT_INDEX, attrs[LFACE_WEIGHT_INDEX]);
-      if (NILP (AREF (prefer, FONT_SLANT_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_SLANT_INDEX, attrs[LFACE_SLANT_INDEX]);
-      if (NILP (AREF (prefer, FONT_WIDTH_INDEX)))
-	FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
-      ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
-      entities = font_sort_entites (entities, prefer, frame, c < 0);
-    }
-  if (c < 0)
-    return entities;
-
-  for (i = 0; i < ASIZE (entities); i++)
-    {
-      int j;
-
-      val = AREF (entities, i);
-      if (i > 0)
-	{
-	  for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
-	    if (! EQ (AREF (val, j), props[j]))
-	      break;
-	  if (j > FONT_REGISTRY_INDEX)
-	    continue;
-	}
-      for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
-	props[j] = AREF (val, j);
-      result = font_has_char (f, val, c);
-      if (result > 0)
-	return val;
-      if (result == 0)
-	return Qnil;
-      val = font_open_for_lface (f, val, attrs, spec);
-      if (NILP (val))
-	continue;
-      result = font_has_char (f, val, c);
-      font_close_object (f, val);
-      if (result > 0)
-	return AREF (entities, i);
     }
   return Qnil;
 }
@@ -3921,8 +3934,8 @@ encoding of a font, e.g. ``iso8859-1''.
 `:size'
 
 VALUE must be a non-negative integer or a floating point number
-specifying the font size.  It specifies the font size in pixels
-(if VALUE is an integer), or in points (if VALUE is a float).
+specifying the font size.  It specifies the font size in pixels (if
+VALUE is an integer), or in points (if VALUE is a float).
 
 `:name'
 
@@ -3933,6 +3946,30 @@ VALUE must be a string of XLFD-style or fontconfig-style font name.
 VALUE must be a symbol representing a script that the font must
 support.  It may be a symbol representing a subgroup of a script
 listed in the variable `script-representative-chars'.
+
+`:lang'
+
+VALUE must be a symbol of two-letter ISO-639 language names,
+e.g. `ja'.
+
+`:otf'
+
+VALUE must be a list (SCRIPT-TAG LANGSYS-TAG GSUB [ GPOS ]) to specify
+required OpenType features.
+
+  SCRIPT-TAG: OpenType script tag symbol (e.g. `deva').
+  LANGSYS-TAG: OpenType language system tag symbol,
+     or nil for the default language system.
+  GSUB: List of OpenType GSUB feature tag symbols, or nil if none required.
+  GPOS: List of OpenType GPOS feature tag symbols, or nil if none required.
+
+GSUB and GPOS may contain `nil' element.  In such a case, the font
+must not have any of the remaining elements.
+
+For instance, if the VALUE is `(thai nil nil (mark))', the font must
+be an OpenType font, and whose GPOS table of `thai' script's default
+language system must contain `mark' feature.
+
 usage: (font-spec ARGS...)  */)
      (nargs, args)
      int nargs;
@@ -5063,10 +5100,6 @@ syms_of_font ()
 
   staticpro (&font_charset_alist);
   font_charset_alist = Qnil;
-
-  DEFSYM (Qfont_spec, "font-spec");
-  DEFSYM (Qfont_entity, "font-entity");
-  DEFSYM (Qfont_object, "font-object");
 
   DEFSYM (Qopentype, "opentype");
 

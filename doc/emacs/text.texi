@@ -1855,7 +1855,7 @@ used as a cheap preview.
 @cindex mode, nXML
 @findex nxml-mode
 @cindex XML schema
-  Emacs also provides a more advanced mode mode for editing XML
+  Emacs also provides a more advanced mode for editing XML
 documents, called nXML mode (@code{nxml-mode}).  nXML mode is aware of
 many existing XML schema, and uses them to provide completion of XML
 elements via @kbd{C-@key{RET}} or @kbd{M-@key{TAB}}, as well as

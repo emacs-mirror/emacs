@@ -134,9 +134,11 @@ path components followed by `..' are removed, along with the `..' itself."
 		  file (substring (url-filename urlobj) 0 (match-beginning 0))
 		  sepchar (substring (url-filename urlobj) (match-beginning 0) (match-end 0)))
 	  (setq file (url-filename urlobj)))
+	;; We use concat rather than expand-file-name to combine
+	;; directory and file name, since urls do not follow the same
+	;; rules as local files on all platforms.
 	(setq file (url-expander-remove-relative-links
-		    (expand-file-name file
-				      (url-file-directory (url-filename defobj)))))
+		    (concat (url-file-directory (url-filename defobj)) file)))
 	(setf (url-filename urlobj)
               (if query (concat file sepchar query) file))))))
 

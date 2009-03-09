@@ -164,13 +164,12 @@ considered a list and @code{not} when it is considered a truth value
 
 @defun car cons-cell
 This function returns the value referred to by the first slot of the
-cons cell @var{cons-cell}.  Expressed another way, this function
-returns the @sc{car} of @var{cons-cell}.
+cons cell @var{cons-cell}.  In other words, it returns the @sc{car} of
+@var{cons-cell}.
 
-As a special case, if @var{cons-cell} is @code{nil}, then @code{car}
-is defined to return @code{nil}; therefore, any list is a valid argument
-for @code{car}.  An error is signaled if the argument is not a cons cell
-or @code{nil}.
+As a special case, if @var{cons-cell} is @code{nil}, this function
+returns @code{nil}.  Therefore, any list is a valid argument.  An
+error is signaled if the argument is not a cons cell or @code{nil}.
 
 @example
 @group
@@ -185,14 +184,13 @@ or @code{nil}.
 @end defun
 
 @defun cdr cons-cell
-This function returns the value referred to by the second slot of
-the cons cell @var{cons-cell}.  Expressed another way, this function
-returns the @sc{cdr} of @var{cons-cell}.
+This function returns the value referred to by the second slot of the
+cons cell @var{cons-cell}.  In other words, it returns the @sc{cdr} of
+@var{cons-cell}.
 
-As a special case, if @var{cons-cell} is @code{nil}, then @code{cdr}
-is defined to return @code{nil}; therefore, any list is a valid argument
-for @code{cdr}.  An error is signaled if the argument is not a cons cell
-or @code{nil}.
+As a special case, if @var{cons-cell} is @code{nil}, this function
+returns @code{nil}; therefore, any list is a valid argument.  An error
+is signaled if the argument is not a cons cell or @code{nil}.
 
 @example
 @group
@@ -489,14 +487,6 @@ is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
 dotted list since its final @sc{cdr} is not @code{nil} as required
 in a true list.
-
-In Emacs 20 and before, the @code{append} function also allowed
-integers as (non last) arguments.  It converted them to strings of
-digits, making up the decimal print representation of the integer, and
-then used the strings instead of the original integers.  This obsolete
-usage no longer works.  The proper way to convert an integer to a
-decimal number in this way is with @code{format} (@pxref{Formatting
-Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 @end defun
 
   Here is an example of using @code{append}:

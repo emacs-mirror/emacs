@@ -146,6 +146,8 @@ Obeys the standard process/prefix convention."
                                  message-send-hook))
          (message-setup-hook (and (not is-queue)
                                   message-setup-hook))
+	 (gnus-message-setup-hook (and (not is-queue)
+				       gnus-message-setup-hook))
 	 (message-signature (and (not is-queue)
 				 message-signature))
          (gnus-agent-queue-mail (and (not is-queue)

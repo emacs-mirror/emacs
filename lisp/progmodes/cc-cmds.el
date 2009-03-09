@@ -1687,68 +1687,70 @@ with a brace block."
       (beginning-of-defun-function end-of-defun-function
        where pos name-end)
 
-    (save-excursion
-      ;; Move back out of any macro/comment/string we happen to be in.
-      (c-beginning-of-macro)
-      (setq pos (c-literal-limits))
-      (if pos (goto-char (car pos)))
+    (save-restriction
+      (widen)
+      (save-excursion
+	;; Move back out of any macro/comment/string we happen to be in.
+	(c-beginning-of-macro)
+	(setq pos (c-literal-limits))
+	(if pos (goto-char (car pos)))
 
-      (setq where (c-where-wrt-brace-construct))
+	(setq where (c-where-wrt-brace-construct))
 
-      ;; Move to the beginning of the current defun, if any, if we're not
-      ;; already there.
-      (if (eq where 'outwith-function)
-	  nil
-	(unless (eq where 'at-header)
-	  (c-backward-to-nth-BOF-{ 1 where)
-	  (c-beginning-of-decl-1))
+	;; Move to the beginning of the current defun, if any, if we're not
+	;; already there.
+	(if (eq where 'outwith-function)
+	    nil
+	  (unless (eq where 'at-header)
+	    (c-backward-to-nth-BOF-{ 1 where)
+	    (c-beginning-of-decl-1))
 
-	;; Pick out the defun name, according to the type of defun.
-	(cond
-	  ;; struct, union, enum, or similar:
-	 ((and (looking-at c-type-prefix-key)
-	       (progn (c-forward-token-2 2) ; over "struct foo "
-		      (or (eq (char-after) ?\{)
-			  (looking-at c-symbol-key)))) ; "struct foo bar ..."
-	  (save-match-data (c-forward-token-2))
-	  (when (eq (char-after) ?\{)
-	    (c-backward-token-2)
-	    (looking-at c-symbol-key))
-	  (match-string-no-properties 0))
-
-	 ((looking-at "DEFUN\\_>")
-	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
-	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
-	  (down-list 1)
-	  (c-forward-syntactic-ws)
-	  (when (eq (char-after) ?\")
-	    (forward-sexp 1)
-	    (c-forward-token-2))	; over the comma and following WS.
-	  (buffer-substring-no-properties
-	   (point)
-	   (progn
-	     (c-forward-token-2)
-             (when (looking-at ":") ; CLISP: DEFUN(PACKAGE:LISP-SYMBOL,...)
-               (skip-chars-forward "^,"))
-	     (c-backward-syntactic-ws)
-	     (point))))
-
-         ((looking-at "DEF[a-zA-Z0-9_]* *( *\\([^, ]*\\) *,")
-          ;; DEFCHECKER(sysconf_arg,prefix=_SC,default=, ...) ==> sysconf_arg
-          ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
-          (match-string-no-properties 1))
-
-	 (t
-	 ;; Normal function or initializer.
-	  (when (c-syntactic-re-search-forward "[{(]" nil t)
-	    (backward-char)
-	    (c-backward-syntactic-ws)
-	    (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
+	  ;; Pick out the defun name, according to the type of defun.
+	  (cond
+	   ;; struct, union, enum, or similar:
+	   ((and (looking-at c-type-prefix-key)
+		 (progn (c-forward-token-2 2) ; over "struct foo "
+			(or (eq (char-after) ?\{)
+			    (looking-at c-symbol-key)))) ; "struct foo bar ..."
+	    (save-match-data (c-forward-token-2))
+	    (when (eq (char-after) ?\{)
 	      (c-backward-token-2)
-	      (c-backward-syntactic-ws))
-	    (setq name-end (point))
-	    (c-backward-token-2)
-	    (buffer-substring-no-properties (point) name-end))))))))
+	      (looking-at c-symbol-key))
+	    (match-string-no-properties 0))
+
+	   ((looking-at "DEFUN\\_>")
+	    ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
+	    ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
+	    (down-list 1)
+	    (c-forward-syntactic-ws)
+	    (when (eq (char-after) ?\")
+	      (forward-sexp 1)
+	      (c-forward-token-2))	; over the comma and following WS.
+	    (buffer-substring-no-properties
+	     (point)
+	     (progn
+	       (c-forward-token-2)
+	       (when (looking-at ":")  ; CLISP: DEFUN(PACKAGE:LISP-SYMBOL,...)
+		 (skip-chars-forward "^,"))
+	       (c-backward-syntactic-ws)
+	       (point))))
+
+	   ((looking-at "DEF[a-zA-Z0-9_]* *( *\\([^, ]*\\) *,")
+	    ;; DEFCHECKER(sysconf_arg,prefix=_SC,default=, ...) ==> sysconf_arg
+	    ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
+	    (match-string-no-properties 1))
+
+	   (t
+	    ;; Normal function or initializer.
+	    (when (c-syntactic-re-search-forward "[{(]" nil t)
+	      (backward-char)
+	      (c-backward-syntactic-ws)
+	      (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
+		(c-backward-token-2)
+		(c-backward-syntactic-ws))
+	      (setq name-end (point))
+	      (c-backward-token-2)
+	      (buffer-substring-no-properties (point) name-end)))))))))
 
 (defun c-declaration-limits (near)
   ;; Return a cons of the beginning and end positions of the current

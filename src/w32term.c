@@ -464,14 +464,20 @@ int
 x_display_pixel_height (dpyinfo)
      struct w32_display_info *dpyinfo;
 {
-  return GetDeviceCaps (GetDC (GetDesktopWindow ()), VERTRES);
+  HDC dc = GetDC (NULL);
+  int pixels = GetDeviceCaps (dc, VERTRES);
+  ReleaseDC (NULL, dc);
+  return pixels;
 }
 
 int
 x_display_pixel_width (dpyinfo)
      struct w32_display_info *dpyinfo;
 {
-  return GetDeviceCaps (GetDC (GetDesktopWindow ()), HORZRES);
+  HDC dc = GetDC (NULL);
+  int pixels = GetDeviceCaps (dc, HORZRES);
+  ReleaseDC (NULL, dc);
+  return pixels;
 }
 
 
@@ -6216,7 +6222,7 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->next = x_display_list;
   x_display_list = dpyinfo;
 
-  hdc = GetDC (GetDesktopWindow ());
+  hdc = GetDC (NULL);
 
   dpyinfo->root_window = GetDesktopWindow ();
   dpyinfo->n_planes = GetDeviceCaps (hdc, PLANES);
@@ -6224,7 +6230,7 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  ReleaseDC (GetDesktopWindow (), hdc);
+  ReleaseDC (NULL, hdc);
 
   /* initialise palette with white and black */
   {

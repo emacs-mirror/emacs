@@ -1,6 +1,10 @@
+2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add comment about TCC; fix typos.
+
 2009-01-26  Jason Rumney  <jasonr@gnu.org>
 
-	* emacsclient.rc, emacs.rc: Swap name and description. Remove
+	* emacsclient.rc, emacs.rc: Swap name and description.  Remove
 	Windows versions.
 
 2009-01-15  Jason Rumney  <jasonr@gnu.org>

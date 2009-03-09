@@ -290,8 +290,9 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 	       (cond ((looking-at "COMMENT")
 		      (let ((pos (match-end 0)))
 			(end-of-line)
-			(setq tit-comments (cons (buffer-substring pos (point))
-						 tit-comments))))))
+			(setq tit-comments
+			      (cons (buffer-substring-no-properties pos (point))
+				    tit-comments))))))
 	      ((= ch ?M)		; MULTICHOICE, MOVERIGHT, MOVELEFT
 	       (cond ((looking-at "MULTICHOICE:[ \t]*")
 		      (goto-char (match-end 0))
@@ -335,7 +336,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 				    tit-keyprompt)))))))
 	(end-of-line)
 	(princ ";; ")
-	(princ (buffer-substring pos (point)))
+	(princ (buffer-substring-no-properties pos (point)))
 	(princ "\n")
 	(forward-line 1)))
 
@@ -431,7 +432,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 	  (forward-line 1)
 	(setq pos (point))
 	(skip-chars-forward "^ \t\n")
-	(setq key (buffer-substring pos (point)))
+	(setq key (buffer-substring-no-properties pos (point)))
 	(skip-chars-forward " \t")
 	(setq ch (following-char))
 	(if (or (= ch ?#) (= ch ?\n))
@@ -450,12 +451,13 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 		(setq translations
 		      (if translations
 			  (concat translations
-				  (buffer-substring pos (point)))
-			(buffer-substring pos (point)))))
+				  (buffer-substring-no-properties pos (point)))
+			(buffer-substring-no-properties pos (point)))))
 	    (while (not (eolp))
 	      (setq pos (point))
 	      (skip-chars-forward "^ \t\n")
-	      (setq translations (cons (buffer-substring pos (point))
+	      (setq translations (cons (buffer-substring-no-properties
+					pos (point))
 				       translations))
 	      (skip-chars-forward " \t")
 	      (setq ch (following-char))
@@ -778,9 +780,6 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
       ;; Handle double CR line ends, which result when checking out of
       ;; CVS on MS-Windows.
       (goto-char (point-min))
-      (while (re-search-forward "\r\r$" nil t)
-	(replace-match ""))
-      (goto-char (point-min))
       (search-forward "A440")
       (beginning-of-line)
       (let ((table (make-hash-table :test 'equal))
@@ -789,13 +788,13 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	  (forward-char 5)
 	  (let ((trans (char-to-string (following-char)))
 		key slot)
-	    (re-search-forward "[A-Z]+$" nil t)
+	    (re-search-forward "\\([A-Z]+\\)\r*$" nil t)
 	    (setq key (downcase
 		       (if (or tsang-p
-			       (<= (- (match-end 0) (match-beginning 0)) 1))
-			   (match-string 0)
-			 (string (char-after (match-beginning 0))
-				 (char-after (1- (match-end 0)))))))
+			       (<= (- (match-end 1) (match-beginning 1)) 1))
+			   (match-string 1)
+			 (string (char-after (match-beginning 1))
+				 (char-after (1- (match-end 1)))))))
 	    (setq val (gethash key table))
 	    (if val (setq trans (concat val trans)))
 	    (puthash key trans table)
@@ -909,7 +908,7 @@ method `chinese-tonepy' with which you must specify tones by digits
   nil nil nil nil)\n\n")
   (insert "(quail-define-rules\n")
   (let ((pos (point)))
-    (insert-buffer-substring dicbuf)
+    (insert-buffer-substring-no-properties dicbuf)
     (goto-char pos)
     (re-search-forward "^[a-z]")
     (beginning-of-line)
@@ -920,6 +919,8 @@ method `chinese-tonepy' with which you must specify tones by digits
       (insert "\" \"")
       (delete-char 1)
       (end-of-line)
+      (while (= (preceding-char) ?\r)
+	(delete-char -1))
       (insert "\")")
       (forward-line 1)))
   (insert ")\n"))
@@ -933,15 +934,18 @@ method `chinese-tonepy' with which you must specify tones by digits
     (save-excursion
       (set-buffer dicbuf)
       (goto-char (point-min))
-      (search-forward "%keyname end\n")
+      (search-forward "\n%keyname end")
+      (forward-line 1)
       (let ((table (make-hash-table :test 'equal))
 	    elt pos key trans val)
 	(while (not (eobp))
 	  (setq pos (point))
 	  (skip-chars-forward "^ \t")
-	  (setq key (buffer-substring pos (point)))
+	  (setq key (buffer-substring-no-properties pos (point)))
 	  (skip-chars-forward " \t")
-	  (setq trans (vector (buffer-substring (point) (line-end-position))))
+	  (setq pos (point))
+	  (skip-chars-forward "^\r\n")
+	  (setq trans (vector (buffer-substring-no-properties pos (point))))
 	  (setq val (gethash key table))
 	  (if val (setq trans (vconcat val trans)))
 	  (puthash key trans table)
@@ -1051,12 +1055,13 @@ To input symbols and punctuations, type `/' followed by one of `a' to
     (save-excursion
       (set-buffer dicbuf)
       (goto-char (point-min))
-      (search-forward "#\n#<hr>\n")
+      (re-search-forward "^#<hr>")
+      (forward-line 1)
       (setq dicbuf-start (point))
       (goto-char (point-max))
-      (forward-line -1)
+      (re-search-backward "^<hr>")
       (setq dicbuf-end (point)))
-    (insert-buffer-substring dicbuf dicbuf-start dicbuf-end)
+    (insert-buffer-substring-no-properties dicbuf dicbuf-start dicbuf-end)
     ;; CTLau-b5.html contains characters (0xa1 0xbc) which show up as
     ;; hollow boxes when the original characters in CTLau.html from
     ;; which the file is converted have no Big5 equivalent.  Go
@@ -1078,6 +1083,8 @@ To input symbols and punctuations, type `/' followed by one of `a' to
       (insert "\" \"")
       (delete-char 1)
       (end-of-line)
+      (while (= (preceding-char) ?\r)
+	(delete-char -1))
       (insert "\")")
       (forward-line 1)))
   (insert ")\n"))
@@ -1168,7 +1175,8 @@ the generated Quail package is saved."
 		    (if (eq coding 'iso-2022-cn-ext) "Chinese-CNS"
 		      "Chinese-GB"))
 		  "\" \"" title "\" t\n")
-	  (let* ((coding-system-for-read coding)
+	  (let* ((coding-system-for-read
+		  (coding-system-change-eol-conversion coding 'unix))
 		 (dicbuf (find-file-noselect filename)))
 	    (funcall converter dicbuf name title)
 	    (kill-buffer dicbuf)))

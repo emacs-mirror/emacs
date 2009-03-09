@@ -60,6 +60,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <stdio.h>
 #include <errno.h>
+#include <time.h>
 
 #include <getopt.h>
 #ifdef HAVE_UNISTD_H
@@ -228,7 +229,7 @@ main (argc, argv)
       )
     {
 #ifdef MAIL_USE_POP
-      fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n",
+      fprintf (stderr, "Usage: movemail [-p] [-r] inbox destfile%s\n",
 	       " [POP-password]");
 #else
       fprintf (stderr, "Usage: movemail [-p] inbox destfile%s\n", "");
@@ -375,7 +376,7 @@ main (argc, argv)
       int lockcount = 0;
       int status = 0;
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
-      long touched_lock, now;
+      time_t touched_lock, now;
 #endif
 
       setuid (getuid ());
@@ -683,6 +684,7 @@ xmalloc (size)
 #include <winsock.h>
 #endif
 #include <pwd.h>
+#include <string.h>
 
 #define NOTOK (-1)
 #define OK 0
@@ -923,7 +925,16 @@ int
 mbx_delimit_begin (mbf)
      FILE *mbf;
 {
-  if (fputs ("\f\n0, unseen,,\n", mbf) == EOF)
+  time_t now;
+  struct tm *ltime;
+  char fromline[40] = "From movemail ";
+
+  now = time (NULL);
+  ltime = localtime (&now);
+
+  strcat (fromline, asctime (ltime));
+
+  if (fputs (fromline, mbf) == EOF)
     return (NOTOK);
   return (OK);
 }
@@ -932,7 +943,7 @@ int
 mbx_delimit_end (mbf)
      FILE *mbf;
 {
-  if (putc ('\037', mbf) == EOF)
+  if (putc ('\n', mbf) == EOF)
     return (NOTOK);
   return (OK);
 }

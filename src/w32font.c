@@ -1374,6 +1374,14 @@ check_face_name (font, full_name)
       _strlwr (full_iname);
       return strstr ("helvetica", full_iname) != NULL;
     }
+  /* Same for Helv.  */
+  if (!xstrcasecmp (font->lfFaceName, "helv"))
+    {
+      strncpy (full_iname, full_name, LF_FULLFACESIZE);
+      full_iname[LF_FULLFACESIZE] = 0;
+      _strlwr (full_iname);
+      return strstr ("helv", full_iname) != NULL;
+    }
 
   /* Since Times is mapped to Times New Roman, a substring
      match is not sufficient to filter out the bogus match.  */
@@ -1433,13 +1441,12 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
      by a foundry, we accept raster fonts if the font name is found
      anywhere within the full name.  */
   if ((logical_font->elfLogFont.lfOutPrecision == OUT_STRING_PRECIS
-       && strstr (logical_font->elfFullName,
-		  logical_font->elfLogFont.lfFaceName))
+       && !strstr (logical_font->elfFullName,
+		   logical_font->elfLogFont.lfFaceName))
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
-      || (match_data->pattern.lfFaceName[0]
-	  && !check_face_name (&logical_font->elfLogFont,
-			       logical_font->elfFullName)))
+      || (!check_face_name (&logical_font->elfLogFont,
+			    logical_font->elfFullName)))
     return 1;
 
   /* Make a font entity for the font.  */

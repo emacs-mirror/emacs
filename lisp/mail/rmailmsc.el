@@ -31,7 +31,9 @@
 (defun set-rmail-inbox-list (file-name)
   "Set the inbox list of the current RMAIL file to FILE-NAME.
 You can specify one file name, or several names separated by commas.
-If FILE-NAME is empty, remove any existing inbox list."
+If FILE-NAME is empty, remove any existing inbox list.
+
+This applies only to the current session."
   (interactive "sSet mailbox list to (comma-separated list of filenames): ")
   (unless (eq major-mode 'rmail-mode)
     (error "set-rmail-inbox-list works only for an Rmail file"))
@@ -49,7 +51,7 @@ If FILE-NAME is empty, remove any existing inbox list."
       (message "Setting the inbox list for %s for this session"
 	       (file-name-nondirectory (buffer-file-name)))
       (setq rmail-inbox-list inbox-list)))
-  (rmail-show-message rmail-current-message))
+  (rmail-show-message-1 rmail-current-message))
 
 ;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; rmailmsc.el ends here

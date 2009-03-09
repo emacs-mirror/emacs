@@ -1,7 +1,5 @@
 \input texinfo
 @c This is an annex of the Emacs manual.
-@c Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 @c Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 @setfilename ../../info/autotype
 @c @node Autotypist, Picture, Abbrevs, Top
@@ -51,6 +49,8 @@ frequently in Emacs}
 @insertcopying
 @end titlepage
 
+@contents
+
 @node Top
 @top Autotyping
 
@@ -79,6 +79,10 @@ be defined for inserting and navigating between text more generally.  A
 sort of meta-expansion facility can be used to try a set of alternative
 completions and expansions of text at point.
 
+@ifnottex
+@insertcopying
+@end ifnottex
+
 @menu
 * Using Skeletons::        How to insert a skeleton into your text.
 * Wrapping Skeletons::     Putting existing text within a skeleton.
@@ -99,7 +103,6 @@ completions and expansions of text at point.
 * Command Index::
 * Variable Index::
 @end menu
-
 
 
 @node Using Skeletons
@@ -660,8 +663,6 @@ of the expansion possibilities.
 @unnumbered Variable Index
 @printindex vr
 
-@setchapternewpage odd
-@contents
 @bye
 
 @ignore

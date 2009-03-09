@@ -35,7 +35,7 @@
 (require 'org)
 
 ;; Declare external functions and variables
-(declare-function rmail-show-message "rmail")
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
 (declare-function rmail-get-header "rmail" (name &optional msgnum))
 (declare-function rmail-what-message "rmail" ())
 (defvar rmail-current-message)

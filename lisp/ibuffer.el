@@ -54,10 +54,10 @@
 (defvar ibuffer-tmp-hide-regexps)
 (defvar ibuffer-tmp-show-regexps)
 
-(declare-function ibuffer-mark-on-buffer "ibuf-ext" 
+(declare-function ibuffer-mark-on-buffer "ibuf-ext"
 		  (func &optional ibuffer-mark-on-buffer-mark group))
 (declare-function ibuffer-format-qualifier "ibuf-ext" (qualifier))
-(declare-function ibuffer-generate-filter-groups "ibuf-ext" 
+(declare-function ibuffer-generate-filter-groups "ibuf-ext"
 		  (bmarklist &optional noempty nodefault))
 (declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
 
@@ -1239,7 +1239,7 @@ a new window in the current frame, splitting vertically."
   (ibuffer-map-on-mark ibuffer-deletion-char func))
 
 (defsubst ibuffer-assert-ibuffer-mode ()
-  (assert (derived-mode-p 'ibuffer-mode))) 
+  (assert (derived-mode-p 'ibuffer-mode)))
 
 (defun ibuffer-buffer-file-name ()
   (or buffer-file-name
@@ -2066,7 +2066,7 @@ the value of point at the beginning of the line for that buffer."
 				  name)))
 		  (when hmap
 		    (setq
-		     strname 
+		     strname
 		     (propertize strname 'mouse-face 'highlight 'keymap hmap)))
 		  strname)))))
 	 (add-text-properties opos (point) `(ibuffer-title-header t))
@@ -2280,7 +2280,8 @@ If optional arg SILENT is non-nil, do not display progress messages."
       (setq buffer-read-only t)
       (set-buffer-modified-p ibuffer-did-modification)
       (setq ibuffer-did-modification nil)
-      (goto-line (1+ orig)))))
+      (goto-char (point-min))
+      (forward-line orig))))
 
 (defun ibuffer-quit ()
   "Quit this `ibuffer' session.

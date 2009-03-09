@@ -468,7 +468,7 @@ As a special case, if PATHS is nil then replace it by calling
 	      (parse-colon-path paths)))
 	    ((string-match "\\`[a-zA-Z]:" paths)
 	     ;; Assume single DOS-style path...
-	     paths)
+	     (list paths))
 	    (t
 	     ;; Assume UNIX/Cygwin-style path-list...
 	     (woman-mapcan		; splice list into list
@@ -1949,7 +1949,8 @@ See `Man-mode' for additional details."
       (fset 'Man-build-page-list Man-build-page-list)
       (fset 'Man-strip-page-headers Man-strip-page-headers)
       (fset 'Man-unindent Man-unindent)
-      (fset 'Man-goto-page Man-goto-page)))
+      (fset 'Man-goto-page Man-goto-page)
+      (setq tab-width woman-tab-width)))
   (setq major-mode 'woman-mode
 	mode-name "WoMan")
   ;; Don't show page numbers like Man-mode does.  (Online documents do

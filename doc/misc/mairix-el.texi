@@ -36,6 +36,7 @@ developing GNU and promoting software freedom.''
 @insertcopying
 @end titlepage
 
+@contents
 
 @node Top
 @top mairix.el - Mairix interface for Emacs
@@ -49,6 +50,10 @@ call mairix with a search term, easily create searches based on the
 currently displayed mail, save regularly used searches in your
 @file{.emacs} for future use and lets you call mairix for updating the
 database.
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @menu
 * About mairix and mairix.el::  About the mairix search engine and mairix.el

@@ -1040,7 +1040,6 @@ Any other value is treated as \"/H0\"."
 (defun ps-mule-begin-job (from to)
   "Start printing job for multi-byte chars between FROM and TO.
 It checks if all multi-byte characters in the region are printable or not."
-  (auto-compose-region from to)
   (if (and (not (find-composition from to))
 	   (save-excursion
 	     (goto-char from)

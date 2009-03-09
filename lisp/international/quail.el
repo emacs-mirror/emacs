@@ -1290,11 +1290,12 @@ If STR has `advice' text property, append the following special event:
 \(quail-advice STR)"
   (let ((events (mapcar
 		 (lambda (c)
-		   ;; This gives us the chance to unify on input
-		   ;; (e.g. using ucs-tables.el).
-		   (or (and translation-table-for-input
-			    (aref translation-table-for-input c))
-		       c))
+		   (or
+		    ;; Avoid "obsolete" warnings for translation-table-for-input.
+		    (with-no-warnings
+		      (and translation-table-for-input
+			   (aref translation-table-for-input c)))
+		    c))
 		 str)))
     (if (or (get-text-property 0 'advice str)
 	    (next-single-property-change 0 'advice str))
@@ -1927,6 +1928,10 @@ Remaining args are for FUNC."
 		    (frame-char-height) (* internal-border 2) (* border 2))))
     (if (< newtop 0)
 	(setq newtop (+ top (frame-pixel-height) internal-border border)))
+    ;; If I leave the `parent-id' parameter, my frame ends up with 13 lines
+    ;; rather than just 1.  Not sure what is really going on, but
+    ;; clearly this parameter is not needed.  --Stef
+    (setq fparam (delq (assoc 'parent-id fparam) fparam))
     (make-frame (append '((user-position . t) (height . 1)
 			  (minibuffer)
 			  (menu-bar-lines . 0) (tool-bar-lines . 0))
@@ -1990,7 +1995,7 @@ minibuffer and the selected frame has no other windows)."
 	    ;; window system.
 	    (let ((guidance quail-guidance-str))
 	      (or (frame-live-p quail-guidance-frame)
-		  (setq quail-guidance-frame 
+		  (setq quail-guidance-frame
 			(quail-make-guidance-frame)))
 	      (or (buffer-live-p quail-guidance-buf)
 		  (setq quail-guidance-buf
@@ -1999,14 +2004,15 @@ minibuffer and the selected frame has no other windows)."
 		(erase-buffer)
 		(setq cursor-type nil)
 		(insert guidance))
-	      (set-window-buffer (frame-root-window quail-guidance-frame)
-				 quail-guidance-buf)
+              (let ((win (frame-root-window quail-guidance-frame)))
+                (set-window-buffer win quail-guidance-buf)
+                (set-window-dedicated-p win t))
 	      (quail-minibuffer-message
 	       (format " [%s]" current-input-method-title)))
 	  ;; Show the guidance in the next line of the currrent
 	  ;; minibuffer.
 	  (quail-minibuffer-message
-	   (format "  [%s]\n%s" 
+	   (format "  [%s]\n%s"
 		   current-input-method-title quail-guidance-str)))
       ;; Show the guidance in echo area without logging.
       (let ((message-log-max nil))
@@ -2640,10 +2646,12 @@ KEY BINDINGS FOR CONVERSION
 	  (or (string= key elt)
 	      (aset table char (list key elt))))
       (aset table char key))
-    (if (and translation-table-for-input
-	     (setq char (aref translation-table-for-input char)))
-	(let ((translation-table-for-input nil))
-	  (quail-store-decode-map-key table char key)))))
+    ;; Avoid "obsolete" warnings for translation-table-for-input.
+    (with-no-warnings
+      (if (and translation-table-for-input
+	       (setq char (aref translation-table-for-input char)))
+	  (let ((translation-table-for-input nil))
+	    (quail-store-decode-map-key table char key))))))
 
 ;; Helper function for quail-gen-decode-map.  Store key strings to
 ;; type each character under MAP in TABLE (char-table).  MAP is an
@@ -2692,9 +2700,11 @@ KEY BINDINGS FOR CONVERSION
 
 (defsubst quail-char-equal-p (char target)
   (or (= char target)
-      (and translation-table-for-input
-	   (setq char (aref translation-table-for-input char))
-	   (= char target))))
+      ;; Avoid "obsolete" warnings for translation-table-for-input.
+      (with-no-warnings
+	(and translation-table-for-input
+	     (setq char (aref translation-table-for-input char))
+	     (= char target)))))
 
 ;; Helper function for quail-find-key.  Prepend key strings to type
 ;; for inputting CHAR by the current input method to KEY-LIST and

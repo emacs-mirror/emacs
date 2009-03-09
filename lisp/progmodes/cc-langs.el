@@ -2115,6 +2115,17 @@ nevertheless contains a list separated with ';' and not ','."
 	(c-make-keywords-re t (c-lang-const c-asm-stmt-kwds))))
 (c-lang-defvar c-opt-asm-stmt-key (c-lang-const c-opt-asm-stmt-key))
 
+(c-lang-defconst c-case-kwds
+  "The keyword\(s) which introduce a \"case\" like construct.
+This construct is \"<keyword> <expression> :\"."
+  t '("case")
+  awk nil)
+
+(c-lang-defconst c-case-kwds-regexp
+  ;; Adorned regexp matching any "case"-like keyword.
+  t (c-make-keywords-re t (c-lang-const c-case-kwds)))
+(c-lang-defvar c-case-kwds-regexp (c-lang-const c-case-kwds-regexp))
+
 (c-lang-defconst c-label-kwds
   "Keywords introducing colon terminated labels in blocks."
   t '("case" "default")

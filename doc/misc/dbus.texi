@@ -27,6 +27,7 @@ developing GNU and promoting software freedom.''
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 @end direntry
 
+@contents
 
 @node Top, Overview, (dir), (dir)
 @top D-Bus integration in Emacs
@@ -38,7 +39,9 @@ before you compile Emacs.}  D-Bus is a message bus system, a simple
 way for applications to talk to one another.  An overview of D-Bus can
 be found at @uref{http://dbus.freedesktop.org/}.
 
+@ifnottex
 @insertcopying
+@end ifnottex
 
 @menu
 * Overview::                    An overview of D-Bus.
@@ -1434,7 +1437,7 @@ which objects the GNU/Linux @code{hal} daemon adds.
 @end defun
 
 @defun dbus-unregister-object object
-Unregister @var{object} from the the D-Bus.  @var{object} must be the
+Unregister @var{object} from the D-Bus.  @var{object} must be the
 result of a preceding @code{dbus-register-signal} or
 @code{dbus-register-method} call.  It returns @code{t} if @var{object}
 has been unregistered, @code{nil} otherwise.
@@ -1567,8 +1570,6 @@ whether a given D-Bus error is related to them.
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@contents
-@c End of dbus.texi
 @bye
 
 @ignore

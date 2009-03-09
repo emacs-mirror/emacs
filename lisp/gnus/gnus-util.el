@@ -52,9 +52,6 @@
 
 (autoload 'message-fetch-field "message")
 (autoload 'gnus-get-buffer-window "gnus-win")
-(autoload 'rmail-insert-rmail-file-header "rmail")
-(autoload 'rmail-count-new-messages "rmail")
-(autoload 'rmail-show-message "rmail")
 (autoload 'nnheader-narrow-to-headers "nnheader")
 (autoload 'nnheader-replace-chars-in-string "nnheader")
 (autoload 'mail-header-remove-comments "mail-parse")
@@ -1053,31 +1050,45 @@ with potentially long computations."
      (autoload 'rmail-summary-displayed "rmail")
      (autoload 'rmail-maybe-display-summary "rmail"))))
 
-(defvar rmail-default-rmail-file)
 (defvar mm-text-coding-system)
 
 (declare-function mm-append-to-file "mm-util"
                   (start end filename &optional codesys inhibit))
 
 (defun gnus-output-to-rmail (filename &optional ask)
-  "Append the current article to an Rmail file named FILENAME."
+  "Append the current article to an Rmail file named FILENAME.
+In Emacs 22 this writes Babyl format; in Emacs 23 it writes mbox unless
+FILENAME exists and is Babyl format."
   (require 'rmail)
   (require 'mm-util)
-  ;; Most of these codes are borrowed from rmailout.el.
+  ;; Some of this codes is borrowed from rmailout.el.
   (setq filename (expand-file-name filename))
-  (setq rmail-default-rmail-file filename)
+  ;; FIXME should we really be messing with this defcustom?
+  ;; It is not needed for the operation of this function.
+  (if (boundp 'rmail-default-rmail-file)
+      (setq rmail-default-rmail-file filename) ; 22
+    (setq rmail-default-file filename))        ; 23
   (let ((artbuf (current-buffer))
-	(tmpbuf (get-buffer-create " *Gnus-output*")))
+	(tmpbuf (get-buffer-create " *Gnus-output*"))
+        ;; Babyl rmail.el defines this, mbox does not.
+        (babyl (fboundp 'rmail-insert-rmail-file-header)))
     (save-excursion
-      (or (get-file-buffer filename)
-	  (file-exists-p filename)
+      ;; Note that we ignore the possibility of visiting a Babyl
+      ;; format buffer in Emacs 23, since Rmail no longer supports that.
+     (or (get-file-buffer filename)
+         (progn
+           ;; In case someone wants to write to a Babyl file from Emacs 23.
+           (when (file-exists-p filename)
+             (setq babyl (mail-file-babyl-p filename))
+             t))
 	  (if (or (not ask)
 		  (gnus-yes-or-no-p
 		   (concat "\"" filename "\" does not exist, create it? ")))
 	      (let ((file-buffer (create-file-buffer filename)))
 		(save-excursion
 		  (set-buffer file-buffer)
-		  (rmail-insert-rmail-file-header)
+                  (if (fboundp 'rmail-insert-rmail-file-header)
+                      (rmail-insert-rmail-file-header))
 		  (let ((require-final-newline nil)
 			(coding-system-for-write mm-text-coding-system))
 		    (gnus-write-buffer filename)))
@@ -1086,32 +1097,56 @@ with potentially long computations."
       (set-buffer tmpbuf)
       (erase-buffer)
       (insert-buffer-substring artbuf)
-      (gnus-convert-article-to-rmail)
+      (if babyl
+          (gnus-convert-article-to-rmail)
+        ;; Non-Babyl case copied from gnus-output-to-mail.
+        (goto-char (point-min))
+        (if (looking-at "From ")
+            (forward-line 1)
+          (insert "From nobody " (current-time-string) "\n"))
+        (let (case-fold-search)
+          (while (re-search-forward "^From " nil t)
+            (beginning-of-line)
+            (insert ">"))))
       ;; Decide whether to append to a file or to an Emacs buffer.
       (let ((outbuf (get-file-buffer filename)))
 	(if (not outbuf)
-	    (let ((file-name-coding-system nnmail-pathname-coding-system))
-	      (mm-append-to-file (point-min) (point-max) filename))
+            (progn
+              (unless babyl             ; from gnus-output-to-mail
+                (let ((buffer-read-only nil))
+                  (goto-char (point-max))
+                  (forward-char -2)
+                  (unless (looking-at "\n\n")
+                    (goto-char (point-max))
+                    (unless (bolp)
+                      (insert "\n"))
+                    (insert "\n"))))
+              (let ((file-name-coding-system nnmail-pathname-coding-system))
+                (mm-append-to-file (point-min) (point-max) filename)))
 	  ;; File has been visited, in buffer OUTBUF.
 	  (set-buffer outbuf)
 	  (let ((buffer-read-only nil)
 		(msg (and (boundp 'rmail-current-message)
 			  (symbol-value 'rmail-current-message))))
 	    ;; If MSG is non-nil, buffer is in RMAIL mode.
+            ;; Compare this with rmail-output-to-rmail-buffer in Emacs 23.
 	    (when msg
-	      (widen)
-	      (narrow-to-region (point-max) (point-max)))
+              (unless babyl
+                (rmail-swap-buffers-maybe)
+                (rmail-maybe-set-message-counters))
+              (widen)
+              (narrow-to-region (point-max) (point-max)))
 	    (insert-buffer-substring tmpbuf)
 	    (when msg
-	      (goto-char (point-min))
-	      (widen)
-	      (search-backward "\n\^_")
-	      (narrow-to-region (point) (point-max))
+              (when babyl
+                (goto-char (point-min))
+                (widen)
+                (search-backward "\n\^_")
+                (narrow-to-region (point) (point-max)))
 	      (rmail-count-new-messages t)
 	      (when (rmail-summary-exists)
 		(rmail-select-summary
 		 (rmail-update-summary)))
-	      (rmail-count-new-messages t)
 	      (rmail-show-message msg))
 	    (save-buffer)))))
     (kill-buffer tmpbuf)))

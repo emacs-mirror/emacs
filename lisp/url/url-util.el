@@ -1,7 +1,7 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -476,25 +476,28 @@ Has a preference for looking backward when not directly on a symbol."
 
 (defun url-generate-unique-filename (&optional fmt)
   "Generate a unique filename in `url-temporary-directory'."
-  (if (not fmt)
-      (let ((base (format "url-tmp.%d" (user-real-uid)))
+  ;; This variable is obsolete, but so is this function.
+  (let ((tempdir (with-no-warnings url-temporary-directory)))
+    (if (not fmt)
+	(let ((base (format "url-tmp.%d" (user-real-uid)))
+	      (fname "")
+	      (x 0))
+	  (setq fname (format "%s%d" base x))
+	  (while (file-exists-p
+		  (expand-file-name fname tempdir))
+	    (setq x (1+ x)
+		  fname (concat base (int-to-string x))))
+	  (expand-file-name fname tempdir))
+      (let ((base (concat "url" (int-to-string (user-real-uid))))
 	    (fname "")
 	    (x 0))
-	(setq fname (format "%s%d" base x))
+	(setq fname (format fmt (concat base (int-to-string x))))
 	(while (file-exists-p
-		(expand-file-name fname url-temporary-directory))
+		(expand-file-name fname tempdir))
 	  (setq x (1+ x)
-		fname (concat base (int-to-string x))))
-	(expand-file-name fname url-temporary-directory))
-    (let ((base (concat "url" (int-to-string (user-real-uid))))
-	  (fname "")
-	  (x 0))
-      (setq fname (format fmt (concat base (int-to-string x))))
-      (while (file-exists-p
-	      (expand-file-name fname url-temporary-directory))
-	(setq x (1+ x)
-	      fname (format fmt (concat base (int-to-string x)))))
-      (expand-file-name fname url-temporary-directory))))
+		fname (format fmt (concat base (int-to-string x)))))
+	(expand-file-name fname tempdir)))))
+(make-obsolete 'url-generate-unique-filename 'make-temp-file "23.1")
 
 (defun url-extract-mime-headers ()
   "Set `url-current-mime-headers' in current buffer."

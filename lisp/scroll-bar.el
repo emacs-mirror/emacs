@@ -117,15 +117,15 @@ Setting the variable with a customization buffer also takes effect."
   "Toggle display of vertical scroll bars on all frames.
 This command applies to all frames that exist and frames to be
 created in the future.
-With a numeric argument, if the argument is negative,
-turn off scroll bars; otherwise, turn on scroll bars."
+With a numeric argument, if the argument is positive
+turn on scroll bars; otherwise turn off scroll bars."
   (interactive "P")
 
   ;; Tweedle the variable according to the argument.
   (set-scroll-bar-mode (if (if (null flag)
 			       (not scroll-bar-mode)
 			     (setq flag (prefix-numeric-value flag))
-			     (or (not (numberp flag)) (>= flag 0)))
+			     (or (not (numberp flag)) (> flag 0)))
 			   (or previous-scroll-bar-mode
 			       default-frame-scroll-bars))))
 

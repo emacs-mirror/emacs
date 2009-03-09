@@ -1644,7 +1644,7 @@ from all the other processes running on the same machine at the same
 time.
 @end defun
 
-@defun system-process-attributes pid
+@defun process-attributes pid
 This function returns an alist of attributes for the process specified
 by its process ID @var{pid}.  Each association in the alist is of the
 form @code{(@var{key} . @var{value})}, where @var{key} designates the

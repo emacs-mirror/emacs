@@ -1,7 +1,7 @@
 ;;; elint.el --- Lint Emacs Lisp
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -107,7 +107,7 @@
     (if cond then &rest else)
     (apply function &rest args)
     (format string &rest args)
-    (encode-time second minute hour day month year zone &rest args)
+    (encode-time second minute hour day month year &optional zone)
     (min &rest args)
     (logand &rest args)
     (logxor &rest args)
@@ -506,6 +506,7 @@ Returns `unknown' if we couldn't find arguments."
 	      (let ((fcode (indirect-function func)))
 		(if (subrp fcode)
 		    (let ((args (get func 'elint-args)))
+		      ;; FIXME builtins with no args have args = nil.
 		      (if args args 'unknown))
 		  (elint-find-args-in-code fcode)))
 	    'undefined)
@@ -792,15 +793,14 @@ functions, otherwise use LIST.
 Each functions is represented by a cons cell:
 \(function-symbol . args)
 If no documentation could be found args will be `unknown'."
-
-    (mapcar (function (lambda (f)
-			(let ((doc (documentation f t)))
-			  (if (and doc (string-match "\n\n\\((.*)\\)" doc))
-			      (read (match-string 1 doc))
-			    (cons f 'unknown))
-			  )))
-	    (if list list
-	      (elint-find-builtins))))
+  (mapcar (lambda (f)
+	    (let ((doc (documentation f t)))
+	      (or (and doc
+		       (string-match "\n\n(fn\\(.*)\\)\\'" doc)
+		       (ignore-errors
+			(read (format "(%s %s" f (match-string 1 doc)))))
+		  (cons f 'unknown))))
+	  (or list (elint-find-builtins))))
 
 (provide 'elint)
 

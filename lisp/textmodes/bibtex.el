@@ -746,11 +746,11 @@ See `bibtex-generate-autokey' for details."
 
 (defcustom bibtex-autokey-titleword-ignore
   '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
-    "[^[:upper:]].*" ".*[^[:upper:]0-9].*")
+    "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*")
   "Determines words from the title that are not to be used in the key.
 Each item of the list is a regexp.  If a word of the title matches a
 regexp from that list, it is not included in the title part of the key.
-See `bibtex-generate-autokey' for details."
+Case is significant.  See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
@@ -2307,6 +2307,10 @@ Return the result as a string"
     ;; gather words from titlestring into a list.  Ignore
     ;; specific words and use only a specific amount of words.
     (let ((counter 0)
+	  (ignore-re (concat "\\`\\(?:"
+                             (mapconcat 'identity
+                                        bibtex-autokey-titleword-ignore "\\|")
+                             "\\)\\'"))
           titlewords titlewords-extra word)
       (while (and (or (not (numberp bibtex-autokey-titlewords))
                       (< counter (+ bibtex-autokey-titlewords
@@ -2315,13 +2319,9 @@ Return the result as a string"
         (setq word (match-string 0 titlestring)
               titlestring (substring titlestring (match-end 0)))
         ;; Ignore words matched by one of the elements of
-        ;; `bibtex-autokey-titleword-ignore'
-        (unless (let ((lst bibtex-autokey-titleword-ignore))
-                  (while (and lst
-                              (not (string-match (concat "\\`\\(?:" (car lst)
-                                                         "\\)\\'") word)))
-                    (setq lst (cdr lst)))
-                  lst)
+        ;; `bibtex-autokey-titleword-ignore'.  Case is significant.
+        (unless (let (case-fold-search)
+		  (string-match ignore-re word))
           (setq counter (1+ counter))
           (if (or (not (numberp bibtex-autokey-titlewords))
                   (<= counter bibtex-autokey-titlewords))
@@ -2440,8 +2440,10 @@ Concatenate the key:
       (apply 'append
              (mapcar (lambda (buf)
                        (with-current-buffer buf bibtex-reference-keys))
-                     (bibtex-initialize t)))
-    bibtex-reference-keys))
+                     ;; include current buffer only if it uses `bibtex-mode'
+                     (bibtex-initialize (eq major-mode 'bibtex-mode))))
+    (if (eq major-mode 'bibtex-mode)
+        bibtex-reference-keys)))
 
 (defun bibtex-read-key (prompt &optional key global)
   "Read BibTeX key from minibuffer using PROMPT and default KEY.
@@ -2531,8 +2533,7 @@ Return alist of strings if parsing was completed, `aborted' otherwise."
   (save-excursion
     (save-match-data
       (goto-char (point-min))
-      (let ((strings (if (and add
-                              (listp bibtex-strings))
+      (let ((strings (if (and add (not (functionp bibtex-strings)))
                          bibtex-strings))
             bounds key)
         (if (listp add)
@@ -2555,8 +2556,9 @@ Return alist of strings if parsing was completed, `aborted' otherwise."
 
 (defun bibtex-strings ()
   "Return `bibtex-strings'.  Initialize this variable if necessary."
-  (if (listp bibtex-strings) bibtex-strings
-    (bibtex-parse-strings (bibtex-string-files-init))))
+  (if (functionp bibtex-strings)
+      (bibtex-parse-strings (bibtex-string-files-init))
+    bibtex-strings))
 
 (defun bibtex-string-files-init ()
   "Return initialization for `bibtex-strings'.
@@ -2668,7 +2670,11 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
     (dolist (file file-list)
       (if (file-readable-p file)
         (push (find-file-noselect file) buffer-list)))
-    ;; include current buffer iff we want it
+    ;; Include current buffer iff we want it.
+    ;; Exclude current buffer if it doesn't use `bibtex-mode'.
+    ;; Thus calling `bibtex-initialize' gives meaningful results for
+    ;; any current buffer.
+    (unless (and current (eq major-mode 'bibtex-mode)) (setq current nil))
     (cond ((and current (not (memq (current-buffer) buffer-list)))
            (push (current-buffer) buffer-list))
           ((and (not current) (memq (current-buffer) buffer-list))
@@ -2676,7 +2682,7 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
     ;; parse keys
     (dolist (buffer buffer-list)
       (with-current-buffer buffer
-        (if (or force (nlistp bibtex-reference-keys))
+        (if (or force (functionp bibtex-reference-keys))
             (bibtex-parse-keys))))
     ;; select BibTeX buffer
     (if select
@@ -3484,7 +3490,7 @@ are ignored."
   (bibtex-beginning-of-first-entry)     ; Needed by `sort-subr'
   (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
   (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (nlistp bibtex-reference-keys))
+           (functionp bibtex-reference-keys))
       (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
   (sort-subr nil
              'bibtex-skip-to-valid-entry   ; NEXTREC function
@@ -3591,8 +3597,7 @@ mode is not `bibtex-mode', START is nil, and DISPLAY is t."
         (while (and (not found)
                     (setq buffer (pop buffer-list)))
           (with-current-buffer buffer
-            (if (and (listp bibtex-reference-keys)
-                     (cdr (assoc-string key bibtex-reference-keys)))
+            (if (cdr (assoc-string key bibtex-reference-keys))
                 ;; `bibtex-search-entry' moves point if key found
                 (setq found (bibtex-search-entry key)))))
         (cond ((and found display)
@@ -3632,7 +3637,7 @@ see `bibtex-validate'.
 Return t if preparation was successful or nil if entry KEY already exists."
   (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
   (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (nlistp bibtex-reference-keys))
+           (functionp bibtex-reference-keys))
       (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
   (let ((key (nth 0 index))
         key-exist)
@@ -4247,23 +4252,27 @@ At end of the cleaning process, the functions in
             (if (cdr (assoc-string key bibtex-reference-keys))
                 (error "Duplicate key in %s" (buffer-file-name)))))
 
-        ;; Only update the list of keys if it has been built already.
+        ;; Only update `bibtex-strings' and `bibtex-reference-keys'
+        ;; if they have been built already.
         (cond ((eq entry-type 'string)
-               (if (and (listp bibtex-strings)
-                        (not (assoc key bibtex-strings)))
-                   (push (cons key (bibtex-text-in-string
-                                    (bibtex-parse-string) t))
-                           bibtex-strings)))
+               ;; We have a @String entry.
+               (unless (or (functionp bibtex-strings)
+                           (assoc key bibtex-strings))
+                 (push (cons key (bibtex-text-in-string
+                                  (bibtex-parse-string) t))
+                       bibtex-strings)))
               ;; We have a normal entry.
-              ((listp bibtex-reference-keys)
-               (cond ((not (assoc key bibtex-reference-keys))
-                      (push (cons key t) bibtex-reference-keys))
-                     ((not (cdr (assoc key bibtex-reference-keys)))
-                      ;; Turn a crossref key into a header key
-                      (setq bibtex-reference-keys
-                            (cons (cons key t)
-                                  (delete (list key) bibtex-reference-keys)))))
-               ;; Handle crossref key.
+              ((not (functionp bibtex-reference-keys))
+               (let ((found (assoc key bibtex-reference-keys)))
+                 (cond ((not found)
+                        (push (cons key t) bibtex-reference-keys))
+                       ((not (cdr found))
+                        ;; Turn a crossref key into a header key
+                        (setq bibtex-reference-keys
+                              (cons (cons key t)
+                                    (delete (list key) bibtex-reference-keys))))))
+               ;; If entry has a crossref key, it goes into the list
+               ;; `bibtex-reference-keys', too.
                (if (and (nth 1 index)
                         (not (assoc (nth 1 index) bibtex-reference-keys)))
                    (push (list (nth 1 index)) bibtex-reference-keys)))))

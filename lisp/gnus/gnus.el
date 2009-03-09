@@ -2802,9 +2802,6 @@ gnus-registry.el will populate this if it's loaded.")
 
 (defvar gnus-reffed-article-number nil)
 
-;;; Let the byte-compiler know that we know about this variable.
-(defvar rmail-default-rmail-file)
-
 (defvar gnus-dead-summary nil)
 
 (defvar gnus-invalid-group-regexp "[: `'\"/]\\|^$"
@@ -2843,10 +2840,14 @@ gnus-registry.el will populate this if it's loaded.")
      ("babel" babel-as-string)
      ("nnmail" nnmail-split-fancy nnmail-article-group)
      ("nnvirtual" nnvirtual-catchup-group nnvirtual-convert-headers)
-     ("rmailout" rmail-output rmail-output-to-rmail-file)
-     ("rmail" rmail-insert-rmail-file-header rmail-count-new-messages
-      rmail-show-message rmail-summary-exists
-      rmail-select-summary rmail-update-summary)
+     ;; This is only used in message.el, which has an autoload.
+     ("rmailout" rmail-output)
+     ;; Next two used in gnus-util, which has autoloads, and contrib/sendmail.
+     ("rmail" rmail-count-new-messages rmail-show-message
+      ;; Next two only used in gnus-util.
+      rmail-summary-exists rmail-select-summary)
+     ;; Only used in gnus-util, which has an autoload.
+     ("rmailsum" rmail-update-summary)
      ("gnus-audio" :interactive t gnus-audio-play)
      ("gnus-xmas" gnus-xmas-splash)
      ("gnus-soup" :interactive t

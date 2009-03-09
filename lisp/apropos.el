@@ -1,10 +1,10 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
-;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
+;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)
 ;; Keywords: help
 
 ;; This file is part of GNU Emacs.
@@ -569,17 +569,18 @@ Returns list of symbols and documentation found."
 FILE should be one of the libraries currently loaded and should
 thus be found in `load-history'."
   (interactive
-   (let ((libs
-          (nconc (delq nil
-                       (mapcar
-                        (lambda (l)
-                          (setq l (file-name-nondirectory l))
-                          (while
-                              (not (equal (setq l (file-name-sans-extension l))
-                                          l)))
-                          l)
-                        (mapcar 'car load-history)))
-                 (mapcar 'car load-history))))
+   (let* ((libs (delq nil (mapcar 'car load-history)))
+          (libs
+           (nconc (delq nil
+                        (mapcar
+                         (lambda (l)
+                           (setq l (file-name-nondirectory l))
+                           (while
+                               (not (equal (setq l (file-name-sans-extension l))
+                                           l)))
+                           l)
+                         libs))
+                  libs)))
      (list (completing-read "Describe library: " libs nil t))))
   (let ((symbols nil)
 	;; (autoloads nil)
@@ -592,7 +593,7 @@ thus be found in `load-history'."
             (re (concat "\\(?:\\`\\|[\\/]\\)" (regexp-quote file)
                         "\\(\\.\\|\\'\\)")))
         (while (and lh (null lh-entry))
-          (if (string-match re (caar lh))
+          (if (and (caar lh) (string-match re (caar lh)))
               (setq lh-entry (car lh))
             (setq lh (cdr lh)))))
       (unless lh-entry (error "Unknown library `%s'" file)))

@@ -53,7 +53,6 @@
 ;; Autoloads to avoid byte-compiler warnings.  These are used only if the user
 ;; customizes `gnus-dired-mail-mode' to use Message and/or Gnus.
 (autoload 'message-buffers "message")
-(autoload 'gnus-setup-message "gnus-msg")
 (autoload 'gnus-print-buffer "gnus-sum")
 
 (defvar gnus-dired-mode nil
@@ -162,9 +161,17 @@ filenames."
 				    bufs)
 				   nil t)))
 	;; setup a new mail composition buffer
-	(if (eq gnus-dired-mail-mode 'gnus-user-agent)
-	    (gnus-setup-message 'message (message-mail))
-	  ;; FIXME: Is this the right thing?
+	(let ((mail-user-agent gnus-dired-mail-mode)
+	      ;; A workaround to prevent Gnus from displaying the Gnus
+	      ;; logo when invoking this command without loading Gnus.
+	      ;; Gnus demonstrates it when gnus.elc is being loaded if
+	      ;; a command of which the name is prefixed with "gnus"
+	      ;; causes that autoloading.  See the code in question,
+	      ;; that is the one first found in gnus.el by performing
+	      ;; `C-s this-command'.
+	      (this-command (if (eq gnus-dired-mail-mode 'gnus-user-agent)
+				'gnoose-dired-attach
+			      this-command)))
 	  (compose-mail))
 	(setq destination (current-buffer)))
 

@@ -1008,7 +1008,9 @@ If on top of buffer list go to last line."
   "Move cursor vertically down one line.
 If at end of buffer list go to first line."
   (if (eq (line-end-position) (point-max))
-      (goto-line (1+ bs-header-lines-length))
+      (progn
+	(goto-char (point-min))
+	(forward-line bs-header-lines-length))
     (forward-line 1)))
 
 (defun bs-visits-non-file (buffer)

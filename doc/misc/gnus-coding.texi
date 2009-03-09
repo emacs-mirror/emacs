@@ -7,7 +7,8 @@
 @syncodeindex pg cp
 
 @copying
-Copyright (C) 2004, 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2007, 2008, 2009  Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -42,9 +43,14 @@ license to the document, as described in section 6 of the license.
 @c anyway hoping that it might annoy someone enough to fix it.  ;-)
 @c Fixing only a paragraph also is appreciated.
 
+@ifnottex
 @node Top
 @top Gnus Coding Style and Maintainance Guide
 This manual describes @dots{}
+
+@insertcopying 
+@end ifnottex
+
 @menu
 * Gnus Coding Style:: Gnus Coding Style
 * Gnus Maintainance Guide:: Gnus Maintainance Guide

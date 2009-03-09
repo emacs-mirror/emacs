@@ -113,6 +113,9 @@ You might find bug-fixes or enhancements in these places.
    * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/>
        (or CPAN mirrors)
 
+* GNU Zile: <URL:http://www.gnu.org/software/zile/>
+  A lightweight Emacs clone, for when you don't have room for Emacs proper.
+
 * Packages and add-ons not bundled with Emacs
 
 Various major packages or useful additions aren't distributed as part of

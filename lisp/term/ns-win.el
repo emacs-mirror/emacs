@@ -779,11 +779,11 @@ this defaults to \"printenv\"."
 
 
 
-;;;; Composed key sequence handling for Nextstep system input methods.
-;;;; (On Nextstep systems, input methods are provided for CJK
-;;;; characters, etc. which require multiple keystrokes, and during
-;;;; entry a partial ("working") result is typically shown in the
-;;;; editing window.)
+;; Composed key sequence handling for Nextstep system input methods.
+;; (On Nextstep systems, input methods are provided for CJK
+;; characters, etc. which require multiple keystrokes, and during
+;; entry a partial ("working") result is typically shown in the
+;; editing window.)
 
 (defface ns-working-text-face
   '((t :underline t))
@@ -791,11 +791,8 @@ this defaults to \"printenv\"."
   :group 'ns)
 
 (defvar ns-working-overlay nil
-  "Overlay used to highlight working text during compose sequence insert.")
-(make-variable-buffer-local 'ns-working-overlay)
-(defvar ns-working-overlay-len 0
-  "Length of working text during compose sequence insert.")
-(make-variable-buffer-local 'ns-working-overlay-len)
+  "Overlay used to highlight working text during compose sequence insert.
+When text is in th echo area, this just stores the length of the working text.")
 
 (defvar ns-working-text)		; nsterm.m
 
@@ -825,52 +822,52 @@ is currently being used."
   (if (ns-in-echo-area) (ns-echo-working-text) (ns-insert-working-text)))
 (defun ns-unput-working-text ()
   (interactive)
-  (if (ns-in-echo-area) (ns-unecho-working-text) (ns-delete-working-text)))
+  (ns-delete-working-text))
 
 (defun ns-insert-working-text ()
-  "Insert contents of ns-working-text as UTF8 string and mark with
-ns-working-overlay.  Any previously existing working text is cleared first.
-The overlay is assigned the face ns-working-text-face."
-;; FIXME: if buffer is read-only, don't try to insert anything
-;;  and if text is bound to a command, execute that instead (Bug#1453)
+  "Insert contents of `ns-working-text' as UTF8 string and mark with
+`ns-working-overlay'.  Any previously existing working text is cleared first.
+The overlay is assigned the face `ns-working-text-face'."
+  ;; FIXME: if buffer is read-only, don't try to insert anything
+  ;;  and if text is bound to a command, execute that instead (Bug#1453)
   (interactive)
-  (if ns-working-overlay (ns-delete-working-text))
+  (ns-delete-working-text)
   (let ((start (point)))
     (insert ns-working-text)
     (overlay-put (setq ns-working-overlay (make-overlay start (point)
 							(current-buffer) nil t))
-		 'face 'ns-working-text-face)
-    (setq ns-working-overlay-len (+ ns-working-overlay-len (- (point) start)))))
+		 'face 'ns-working-text-face)))
 
 (defun ns-echo-working-text ()
   "Echo contents of ns-working-text in message display area.
-See ns-insert-working-text."
-  (if ns-working-overlay (ns-unecho-working-text))
+See `ns-insert-working-text'."
+  (ns-delete-working-text)
   (let* ((msg (current-message))
 	 (msglen (length msg))
 	 message-log-max)
-    (setq ns-working-overlay-len (length ns-working-text))
+    (setq ns-working-overlay (length ns-working-text))
     (setq msg (concat msg ns-working-text))
-    (put-text-property msglen (+ msglen ns-working-overlay-len)
+    (put-text-property msglen (+ msglen ns-working-overlay)
 		       'face 'ns-working-text-face msg)
-    (message "%s" msg)
-    (setq ns-working-overlay t)))
+    (message "%s" msg)))
 
 (defun ns-delete-working-text()
-  "Delete working text and clear ns-working-overlay."
+  "Delete working text and clear `ns-working-overlay'."
   (interactive)
-  (delete-backward-char ns-working-overlay-len)
-  (setq ns-working-overlay-len 0)
-  (delete-overlay ns-working-overlay))
-
-(defun ns-unecho-working-text()
-  "Delete working text from echo area and clear ns-working-overlay."
-  (let ((msg (current-message))
-	message-log-max)
-    (setq msg (substring msg 0 (- (length msg) ns-working-overlay-len)))
-    (message "%s" msg)
-    (setq ns-working-overlay-len 0)
-    (setq ns-working-overlay nil)))
+  (cond
+   ((and (overlayp ns-working-overlay)
+         ;; Still alive?
+         (overlay-buffer ns-working-overlay))
+    (with-current-buffer (overlay-buffer ns-working-overlay)
+      (delete-region (overlay-start ns-working-overlay)
+                     (overlay-end ns-working-overlay))
+      (delete-overlay ns-working-overlay)))
+   ((integerp ns-working-overlay)
+    (let ((msg (current-message))
+          message-log-max)
+      (setq msg (substring msg 0 (- (length msg) ns-working-overlay)))
+      (message "%s" msg))))
+  (setq ns-working-overlay nil))
 
 
 (declare-function ns-convert-utf8-nfd-to-nfc "nsfns.m" (str))

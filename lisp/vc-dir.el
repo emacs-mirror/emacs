@@ -351,13 +351,13 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		     ((string< (car entry1) (car entry2))))))))
     ;; Insert directory entries in the right places.
     (let ((entry (car entries))
-	  (node (ewoc-nth vc-ewoc 0)))
+	  (node (ewoc-nth vc-ewoc 0))
+	  (dotname (file-relative-name default-directory)))
       ;; Insert . if it is not present.
       (unless node
-	(let ((rd (file-relative-name default-directory)))
-	  (ewoc-enter-last
-	   vc-ewoc (vc-dir-create-fileinfo
-		    rd nil nil nil (expand-file-name default-directory))))
+	(ewoc-enter-last
+	 vc-ewoc (vc-dir-create-fileinfo
+		  dotname nil nil nil (expand-file-name default-directory)))
 	(setq node (ewoc-nth vc-ewoc 0)))
 
       (while (and entry node)
@@ -372,6 +372,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	    ;; Found the directory, find the place for the file name.
 	    (let ((nodefile (vc-dir-fileinfo->name (ewoc-data node))))
 	      (cond
+	       ((string= nodefile dotname)
+		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-equal nodefile entryfile)
@@ -689,9 +691,10 @@ that share the same state."
   (interactive)
   (find-file (vc-dir-current-file)))
 
-(defun vc-dir-find-file-other-window ()
+(defun vc-dir-find-file-other-window (&optional event)
   "Find the file on the current line, in another window."
-  (interactive)
+  (interactive (list last-nonmenu-event))
+  (if event (posn-set-point (event-end event)))
   (find-file-other-window (vc-dir-current-file)))
 
 (defun vc-dir-isearch ()
@@ -1145,9 +1148,18 @@ Interactively, a prefix argument means to ask for the backend."
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
+(defvar vc-dir-filename-mouse-map
+   (let ((map (make-sparse-keymap)))
+     (define-key map [mouse-2] 'vc-dir-find-file-other-window)
+    map)
+  "Local keymap for visiting a file.")
+
 (defun vc-default-dir-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-dir-move-to-goal-column.
+  ;; VC backends can implement backend specific versions of this
+  ;; function.  Changes here might need to be reflected in the
+  ;; vc-BACKEND-dir-printer functions.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
 	(state (if isdir "" (vc-dir-fileinfo->state fileentry)))
 	(filename (vc-dir-fileinfo->name fileentry)))
@@ -1171,7 +1183,8 @@ Interactively, a prefix argument means to ask for the backend."
       (if isdir
 	  "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
 	"File\nmouse-3: Pop-up menu")
-      'mouse-face 'highlight))))
+      'mouse-face 'highlight
+      'keymap vc-dir-filename-mouse-map))))
 
 (defun vc-default-extra-status-menu (backend)
   nil)

@@ -121,11 +121,21 @@ Its header part is not interpreted at all."
 	     (append metamail-switches
 		     (list "-b" "-c" contype "-E" encoding))))
 	(metamail-region end (point-max) viewmode nil nodisplay))
-      ;; Mode specific hack.
-      (cond ((eq major-mode 'rmail-mode)
-	     ;; Adjust the marker of this message if in Rmail mode buffer.
-	     (set-marker (aref rmail-message-vector (1+ rmail-current-message))
-			 (point-max))))
+      ;; This mode specific hack is no longer appropriate in mbox Rmail.
+      ;; Pre-mbox, we have just modified the actual folder, so we
+      ;; update the message-vector with the new end position of the
+      ;; current message.  In mbox Rmail, all we have done is modify a
+      ;; display copy of the message.  Note also that point-max is a
+      ;; marker in the wrong buffer: the message-vector contains
+      ;; markers in rmail-view-buffer (which is not in rmail-mode).
+      ;; So this hack actually breaks the message-vector.
+      ;; If you're calling this on the actual rmail-view-buffer (or a
+      ;; non-swapped rmail-buffer), you would still need this hack.
+      ;; But you're not going to do that.
+;;;      (cond ((eq major-mode 'rmail-mode)
+;;;	     ;; Adjust the marker of this message if in Rmail mode buffer.
+;;;	     (set-marker (aref rmail-message-vector (1+ rmail-current-message))
+;;;			 (point-max))))
       )))
 
 ;;;###autoload

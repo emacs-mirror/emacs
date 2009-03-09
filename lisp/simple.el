@@ -689,11 +689,14 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let* ((char (let (translation-table-for-input input-method-function)
-		 (if (or (not overwrite-mode)
-			 (eq overwrite-mode 'overwrite-mode-binary))
-		     (read-quoted-char)
-		   (read-char)))))
+  (let* ((char
+	  ;; Avoid "obsolete" warnings for translation-table-for-input.
+	  (with-no-warnings
+	    (let (translation-table-for-input input-method-function)
+	      (if (or (not overwrite-mode)
+		      (eq overwrite-mode 'overwrite-mode-binary))
+		  (read-quoted-char)
+		(read-char))))))
     ;; This used to assume character codes 0240 - 0377 stand for
     ;; characters in some single-byte character set, and converted them
     ;; to Emacs characters.  But in 23.1 this feature is deprecated
@@ -1098,7 +1101,8 @@ display the result of expression evaluation."
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE, if non-nil, means
 insert the result into the current buffer instead of printing it in
-the echo area.
+the echo area.  Truncates long output according to the value of the
+variables `eval-expression-print-length' and `eval-expression-print-level'.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
@@ -3147,8 +3151,10 @@ and KILLP is t if a prefix arg was specified."
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive "p\ncZap to char: ")
-  (if (char-table-p translation-table-for-input)
-      (setq char (or (aref translation-table-for-input char) char)))
+  ;; Avoid "obsolete" warnings for translation-table-for-input.
+  (with-no-warnings
+    (if (char-table-p translation-table-for-input)
+	(setq char (or (aref translation-table-for-input char) char))))
   (kill-region (point) (progn
 			 (search-forward (char-to-string char) nil nil arg)
 ;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
@@ -3219,6 +3225,7 @@ If ARG is negative, kill backward.  Also kill the preceding newline.
 \(This is meant to make \\[repeat] work well with negative arguments.\)
 If ARG is zero, kill current line but exclude the trailing newline."
   (interactive "p")
+  (or arg (setq arg 1))
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
       (signal 'end-of-buffer nil))
   (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
@@ -4034,9 +4041,12 @@ into account variable-width characters and line continuation."
 	       (or (memq last-command '(next-line previous-line))
 		   ;; In case we're called from some other command.
 		   (eq last-command this-command)))
-    (let ((x (car (nth 2 (posn-at-point)))))
-      (when x
-	(setq temporary-goal-column (/ (float x) (frame-char-width))))))
+    (let ((posn (posn-at-point))
+	  x)
+      (cond ((eq (nth 1 posn) 'right-fringe) ; overflow-newline-into-fringe
+	     (setq temporary-goal-column (- (window-width) 1)))
+	    ((setq x (car (nth 2 posn)))
+	     (setq temporary-goal-column (/ (float x) (frame-char-width)))))))
   (or (= (vertical-motion
 	  (cons (or goal-column (truncate temporary-goal-column)) arg))
 	 arg)
@@ -5074,6 +5084,21 @@ is non-nil."
 		    nil t)))
   (message "Truncate long lines %s"
 	   (if truncate-lines "enabled" "disabled")))
+
+(defun toggle-word-wrap (&optional arg)
+  "Toggle whether to use word-wrapping for continuation lines.
+With prefix argument ARG, wrap continuation lines at word boundaries
+if ARG is positive, otherwise wrap them at the right screen edge.
+This command toggles the value of `word-wrap'.  It has no effect
+if long lines are truncated."
+  (interactive "P")
+  (setq word-wrap
+	(if (null arg)
+	    (not word-wrap)
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update)
+  (message "Word wrapping %s"
+	   (if word-wrap "enabled" "disabled")))
 
 (defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")

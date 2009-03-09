@@ -105,7 +105,9 @@ If this can't be done, return NIL."
               (math-read-number
                (number-to-string
                 (funcall fn 
-                         (string-to-number (math-format-number (math-float x))))))
+			 (string-to-number 
+			  (let ((calc-number-radix 10))
+			    (math-format-number (math-float x)))))))
             (error nil))))))
 
 (defun calc-sqrt (arg)

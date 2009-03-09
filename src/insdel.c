@@ -2006,7 +2006,10 @@ del_range_2 (from, from_byte, to, to_byte, ret_string)
   Z -= nchars_del;
   GPT = from;
   GPT_BYTE = from_byte;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+  if (GAP_SIZE > 0 && !current_buffer->text->inhibit_shrinking)
+    /* Put an anchor, unless called from decode_coding_object which
+       needs to access the previous gap contents.  */
+    *(GPT_ADDR) = 0;
 
   if (GPT_BYTE < GPT)
     abort ();

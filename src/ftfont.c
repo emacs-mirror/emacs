@@ -1390,7 +1390,7 @@ ftfont_otf_features (gsub_gpos)
 	    sym = Qnil;
 	  langsyses = Fcons (Fcons (sym, features), langsyses);
 	}
-      
+
       OTF_TAG_SYM (sym, gsub_gpos->ScriptList.Script[i].ScriptTag);
       scripts = Fcons (Fcons (sym, langsyses), scripts);
     }
@@ -1778,7 +1778,7 @@ ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
 		base_x = otfg->f.f4.base_anchor->XCoordinate * x_scale / 0x10000;
 		base_y = otfg->f.f4.base_anchor->YCoordinate * y_scale / 0x10000;
 		mark_x = otfg->f.f4.mark_anchor->XCoordinate * x_scale / 0x10000;
-		mark_y = otfg->f.f4.mark_anchor->YCoordinate * y_scale / 0x10000;;
+		mark_y = otfg->f.f4.mark_anchor->YCoordinate * y_scale / 0x10000;
 
 		if (otfg->f.f4.base_anchor->AnchorFormat != 1)
 		  adjust_anchor (ft_face, otfg->f.f4.base_anchor,
