@@ -1159,9 +1159,11 @@ and `read-file-name-function'."
                         (completing-read prompt 'read-file-name-internal
                                          nil mustmatch insdef 'file-name-history
                                          default-filename)))
-                  ;; If DIR contains a file name, split it.
+                  ;; If DEFAULT-FILENAME not supplied and DIR contains
+                  ;; a file name, split it.
                   (let ((file (file-name-nondirectory dir)))
-                    (when (and default-filename (not (zerop (length file))))
+                    (when (and (not default-filename)
+			       (not (zerop (length file))))
                       (setq default-filename file)
                       (setq dir (file-name-directory dir)))
                     (if default-filename
