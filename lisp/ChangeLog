@@ -1,3 +1,8 @@
+2009-03-09  Jason Rumney  <jasonr@gnu.org>
+
+	* minibuffer.el (read-file-name): Only split dir name when
+	default filename is missing.  (Bug#2585)
+
 2009-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* finder.el (finder-commentary): Don't delete other
