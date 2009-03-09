@@ -477,6 +477,7 @@ read_hex (fp, eof)
   return n;
 }
 
+extern Lisp_Object Qfile_name_handler_alist;
 
 /* Return a mapping vector for CHARSET loaded from MAPFILE.
    Each line of MAPFILE has this form
@@ -490,7 +491,10 @@ read_hex (fp, eof)
    The returned vector has this form:
 	[ CODE1 CHAR1 CODE2 CHAR2 .... ]
    where CODE1 is a code-point or a cons of code-points specifying a
-   range.  */
+   range.
+
+   Note that this funciton uses `openp' to open MAPFILE but ignores
+   `file-name-handler-alist to avoid running any Lisp codes.  */
 
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
@@ -508,11 +512,14 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   Lisp_Object suffixes;
   struct charset_map_entries *head, *entries;
   int n_entries;
+  int count = SPECPDL_INDEX ();
 
   suffixes = Fcons (build_string (".map"),
 		    Fcons (build_string (".TXT"), Qnil));
 
+  specbind (Qfile_name_handler_alist, Qnil);
   fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
+  unbind_to (count, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
     {
