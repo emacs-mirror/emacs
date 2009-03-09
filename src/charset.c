@@ -493,8 +493,8 @@ extern Lisp_Object Qfile_name_handler_alist;
    where CODE1 is a code-point or a cons of code-points specifying a
    range.
 
-   Note that this funciton uses `openp' to open MAPFILE but ignores
-   `file-name-handler-alist to avoid running any Lisp codes.  */
+   Note that this function uses `openp' to open MAPFILE but ignores
+   `file-name-handler-alist' to avoid running any Lisp code.  */
 
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
