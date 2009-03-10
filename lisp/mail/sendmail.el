@@ -183,7 +183,8 @@ This is used by the default mail-sending commands.  See also
 ;;;###autoload
 (defcustom mail-archive-file-name nil
   "Name of file to write all outgoing messages in, or nil for none.
-This can be an inbox file or an Rmail file."
+This is normally an mbox file, but for backwards compatibility may also
+be a Babyl file."
   :type '(choice file (const nil))
   :group 'sendmail)
 
@@ -422,11 +423,12 @@ This directory is used for auto-save files of mail buffers."
 ;;;###autoload
 (defcustom mail-default-headers nil
   "A string containing header lines, to be inserted in outgoing messages.
-It is inserted before you edit the message,
-so you can edit or delete these lines."
+It can contain newlines, and should end in one.  It is inserted
+before you edit the message, so you can edit or delete the lines."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
+;; FIXME no need for autoload
 ;;;###autoload
 (defcustom mail-bury-selects-summary t
   "If non-nil, try to show Rmail summary buffer after returning from mail.
@@ -436,6 +438,7 @@ is non-nil."
   :type 'boolean
   :group 'sendmail)
 
+;; FIXME no need for autoload
 ;;;###autoload
 (defcustom mail-send-nonascii 'mime
   "Specify whether to allow sending non-ASCII characters in mail.
@@ -812,9 +815,8 @@ Prefix arg means don't delete this window."
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-mailing-lists nil "\
-*List of mailing list addresses the user is subscribed to.
-
+(defcustom mail-mailing-lists nil
+"List of mailing list addresses the user is subscribed to.
 The variable is used to trigger insertion of the \"Mail-Followup-To\"
 header when sending a message to a mailing list."
   :type '(repeat string)

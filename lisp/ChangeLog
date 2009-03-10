@@ -1,5 +1,9 @@
 2009-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el (mail-archive-file-name, mail-default-headers):
+	Doc fixes.
+	(mail-mailing-lists): Remove leading `*' from defcustom doc.
+
 	* simple.el (compose-mail): Doc fix.
 
 2009-03-10  Alexander Becher  <alexander.becher@capgemini-sdm.com>  (tiny change)
