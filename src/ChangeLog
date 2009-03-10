@@ -1,3 +1,7 @@
+2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lread.c (Feval_buffer): Doc fix.
+
 2009-03-09  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Qfile_name_handler_alist): Extern it.
