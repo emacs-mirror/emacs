@@ -1,3 +1,7 @@
+2009-03-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (syms_of_nsfns): Remove Qbuffered.
+
 2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fswitch_to_buffer): Revert part of 2008-10-21's change.

@@ -2662,10 +2662,6 @@ syms_of_nsfns ()
 
   Qnone = intern ("none");
   staticpro (&Qnone);
-  /* FIXME: Because of the typo below, Qbuffered probably never did
-     anything useful, so it might as well be removed. */
-  Qbuffered = intern ("bufferd");
-  staticpro (&Qbuffered);
   Qfontsize = intern ("fontsize");
   staticpro (&Qfontsize);
 
