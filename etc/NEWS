@@ -542,7 +542,7 @@ run processes remotely.
 +++
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
-
+---
 *** The new commands `pp-macroexpand-expression' and
 `pp-macroexpand-last-sexp' pretty-print macro expansions.
 +++
