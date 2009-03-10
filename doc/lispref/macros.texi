@@ -178,16 +178,13 @@ itself---they would be computed at compile time, which is not useful.
 already be defined in Lisp when the calls to them are compiled.  The
 compiler has a special feature to help you do this: if a file being
 compiled contains a @code{defmacro} form, the macro is defined
-temporarily for the rest of the compilation of that file.  To make this
-feature work, you must put the @code{defmacro} in the same file where it
-is used, and before its first use.
+temporarily for the rest of the compilation of that file.
 
-  Byte-compiling a file executes any @code{require} calls at top-level
-in the file.  This is in case the file needs the required packages for
-proper compilation.  One way to ensure that necessary macro definitions
-are available during compilation is to require the files that define
-them (@pxref{Named Features}).  To avoid loading the macro definition files
-when someone @emph{runs} the compiled program, write
+  Byte-compiling a file also executes any @code{require} calls at
+top-level in the file, so you can ensure that necessary macro
+definitions are available during compilation by requiring the files
+that define them (@pxref{Named Features}).  To avoid loading the macro
+definition files when someone @emph{runs} the compiled program, write
 @code{eval-when-compile} around the @code{require} calls (@pxref{Eval
 During Compile}).
 
@@ -355,17 +352,6 @@ Here are some examples:
      @result{} (use the words foo bar as elements)
 @end group
 @end example
-
-In old Emacs versions, before version 19.29, @samp{`} used a different
-syntax which required an extra level of parentheses around the entire
-backquote construct.  Likewise, each @samp{,} or @samp{,@@} substitution
-required an extra level of parentheses surrounding both the @samp{,} or
-@samp{,@@} and the following expression.  The old syntax required
-whitespace between the @samp{`}, @samp{,} or @samp{,@@} and the
-following expression.
-
-This syntax is still accepted, for compatibility with old Emacs
-versions, but support for it will be removed in the future.
 
 @node Problems with Macros
 @section Common Problems Using Macros
