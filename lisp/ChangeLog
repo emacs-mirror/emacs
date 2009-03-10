@@ -1,5 +1,8 @@
 2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* server.el (server-process-filter): Use expand-file-name rather than
+	command-line-normalize-file-name so as to use the `dir' when provided.
+
 	* doc-view.el (doc-view-convert-current-doc): Fix last change.
 
 2009-03-10  Glenn Morris  <rgm@gnu.org>

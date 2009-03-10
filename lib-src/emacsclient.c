@@ -1566,11 +1566,11 @@ main (argc, argv)
           quote_argument (emacs_socket, environ[i]);
           send_to_emacs (emacs_socket, " ");
         }
-      send_to_emacs (emacs_socket, "-dir ");
-      quote_argument (emacs_socket, cwd);
-      send_to_emacs (emacs_socket, "/");
-      send_to_emacs (emacs_socket, " ");
     }
+  send_to_emacs (emacs_socket, "-dir ");
+  quote_argument (emacs_socket, cwd);
+  send_to_emacs (emacs_socket, "/");
+  send_to_emacs (emacs_socket, " ");
 
  retry:
   if (nowait)
@@ -1613,7 +1613,6 @@ main (argc, argv)
     {
       for (i = optind; i < argc; i++)
 	{
-          int relative = 0;
 
 	  if (eval)
             {
@@ -1635,40 +1634,9 @@ main (argc, argv)
                   send_to_emacs (emacs_socket, " ");
                   continue;
                 }
-              else
-                relative = 1;
             }
-	  else if (! file_name_absolute_p (argv[i]))
-#ifndef WINDOWSNT
-	    relative = 1;
-#else
-	    /* Call GetFullPathName so filenames of the form X:Y, where X is
-	       a valid drive designator, are interpreted as drive:path, not
-	       file:stream, and treated as absolute.
-	       The user can still pass a file:stream if desired (for example,
-	       .\X:Y), but it is not very useful, as Emacs currently does a
-	       very bad job of dealing with NTFS streams. */
-	    {
-	      char *filename = (char *) xmalloc (MAX_PATH);
-	      DWORD size;
-
-	      size = GetFullPathName (argv[i], MAX_PATH, filename, NULL);
-	      if (size > 0 && size < MAX_PATH)
-		argv[i] = filename;
-	      else
-		{
-		  relative = 1;
-		  free (filename);
-		}
-	    }
-#endif
 
           send_to_emacs (emacs_socket, "-file ");
-          if (relative)
-            {
-              quote_argument (emacs_socket, cwd);
-              send_to_emacs (emacs_socket, "/");
-            }
           quote_argument (emacs_socket, argv[i]);
           send_to_emacs (emacs_socket, " ");
         }
