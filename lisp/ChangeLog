@@ -1,3 +1,8 @@
+2009-03-10  Alexander Becher  <alexander.becher@capgemini-sdm.com>  (tiny change)
+
+	* vc-annotate.el (vc-annotate): Use widened line
+	number (Bug#2612).
+
 2009-03-09  Jason Rumney  <jasonr@gnu.org>
 
 	* minibuffer.el (read-file-name): Only split dir name when
