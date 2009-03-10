@@ -197,7 +197,7 @@ keymaps.texi
 lists.texi        -- cyd
 loading.texi
 locals.texi
-macros.texi
+macros.texi       -- cyd
 maps.texi
 markers.texi
 minibuf.texi
