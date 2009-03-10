@@ -362,7 +362,10 @@ mode-specific menu.  `vc-annotate-color-map' and
          ;; If BUF is specified, we presume the caller maintains current line,
          ;; so we don't need to do it here.  This implementation may give
          ;; strange results occasionally in the case of REV != WORKFILE-REV.
-         (current-line (or move-point-to (unless buf (line-number-at-pos)))))
+         (current-line (or move-point-to (unless buf
+					   (save-restriction
+					     (widen)
+					     (line-number-at-pos))))))
     (message "Annotating...")
     ;; If BUF is specified it tells in which buffer we should put the
     ;; annotations.  This is used when switching annotations to another
