@@ -1,3 +1,7 @@
+2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-convert-current-doc): Fix last change.
+
 2009-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (mail-archive-file-name, mail-default-headers):
@@ -8,8 +12,7 @@
 
 2009-03-10  Alexander Becher  <alexander.becher@capgemini-sdm.com>  (tiny change)
 
-	* vc-annotate.el (vc-annotate): Use widened line
-	number (Bug#2612).
+	* vc-annotate.el (vc-annotate): Use widened line number (Bug#2612).
 
 2009-03-09  Jason Rumney  <jasonr@gnu.org>
 
@@ -74,9 +77,9 @@
 
 2009-03-04  David Reitter <david.reitter@gmail.com>
 
-	* menu-bar.el (clipboard-yank): avoid
-	checking (x-selection-exists-p) if unbound in order to enable the
-	item.  For paste menu item, same, and check kill-ring.
+	* menu-bar.el (clipboard-yank): Avoid checking (x-selection-exists-p)
+	if unbound in order to enable the item.
+	For paste menu item, same, and check kill-ring.
 
 2009-03-04  Sam Steingold  <sds@gnu.org>
 
@@ -144,18 +147,16 @@
 
 	* files.el (basic-save-buffer-1): Set car part of
 	buffer-file-coding-system-explicit.
-	(revert-buffer): Check car part of
-	buffer-file-coding-system-explicit.
+	(revert-buffer): Check car part of buffer-file-coding-system-explicit.
 
 	* international/mule-cmds.el (select-safe-coding-system): If cdr
 	part of buffer-file-coding-system-explicit is set, ignore
-	default-buffer-file-coding-system and the most preferred coding
-	system.
+	default-buffer-file-coding-system and the most preferred coding system.
 
 	* international/mule.el (set-buffer-file-coding-system): Set cdr
 	part of buffer-file-coding-system-explicit.
-	(after-insert-file-set-coding): Set
-	buffer-file-coding-system-explicit to a cons.
+	(after-insert-file-set-coding):
+	Set buffer-file-coding-system-explicit to a cons.
 
 2009-03-02  Glenn Morris  <rgm@gnu.org>
 
@@ -187,8 +188,8 @@
 
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* progmodes/grep.el (grep-process-setup) [windows-nt msdos]: Use
-	"--color=always".
+	* progmodes/grep.el (grep-process-setup) [windows-nt msdos]:
+	Use "--color=always".
 
 2009-02-28  Glenn Morris  <rgm@gnu.org>
 
@@ -226,8 +227,7 @@
 
 2009-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-remote-coding-commands): Add
-	"base64".  (Bug#2463)
+	* net/tramp.el (tramp-remote-coding-commands): Add "base64". (Bug#2463)
 
 2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -430,8 +430,8 @@
 
 2009-02-20  Era Eriksson  <era@iki.fi>  (tiny change)
 
-	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore): Fix
-	regexp (Bug#2385).
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore):
+	Fix regexp (Bug#2385).
 	(bibtex-autokey-get-title): Observe case for
 	bibtex-autokey-titleword-ignore.
 
@@ -562,8 +562,8 @@
 
 2009-02-17  Sam Steingold  <sds@gnu.org>
 
-	* progmodes/compile.el (compilation-filter): Call
-	`comint-carriage-motion', just like `comint-output-filter'.
+	* progmodes/compile.el (compilation-filter):
+	Call `comint-carriage-motion', just like `comint-output-filter'.
 
 2009-02-17  Jason Rumney  <jasonr@gnu.org>
 
@@ -701,13 +701,13 @@
 
 2009-02-13  Kenichi Handa  <handa@m17n.org>
 
-	* international/titdic-cnv.el (tit-process-header): Use
-	buffer-substring-no-properties instead of buffer-substring.
+	* international/titdic-cnv.el (tit-process-header):
+	Use buffer-substring-no-properties instead of buffer-substring.
 	(tit-process-body): Likewise.
 	(tsang-quick-converter): Handle superfluous CR at eol.
 	(py-converter): Use buffer-substring-no-properties instead of
 	buffer-substring.  Handle superfluous CR at eol.
-	(ziranma-converter): Likewise
+	(ziranma-converter): Likewise.
 	(ctlau-converter): Likewise.
 	(miscdic-convert): Read a file without eol conversion.  (Bug#2307)
 
@@ -916,8 +916,8 @@
 2009-02-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)
-	(doc-view-scroll-down-or-previous-page, doc-view-goto-page): Reset
-	the old hscroll value after switching pages.
+	(doc-view-scroll-down-or-previous-page, doc-view-goto-page):
+	Reset the old hscroll value after switching pages.
 
 2009-02-09  Glenn Morris  <rgm@gnu.org>
 
@@ -944,8 +944,8 @@
 	* textmodes/artist.el (artist-system): Allow make-temp-file to use
 	temporary-file-directory.
 
-	* mail/rmailmm.el (rmail-mime-attachment-dirs-alist): Use
-	temporary-file-directory.
+	* mail/rmailmm.el (rmail-mime-attachment-dirs-alist):
+	Use temporary-file-directory.
 
 2009-02-07  Glenn Morris  <rgm@gnu.org>
 
@@ -968,9 +968,9 @@
 
 	* mail/rmail.el (rmail-redecode-body): Don't encode/decode the
 	message; instead, just rewrite the X-Coding-System header with the
-	new encoding, and let rmail-show-message do the rest.  Remove
-	unused argument RAW.  Fix doc string to be consistent with the new
-	implementation.
+	new encoding, and let rmail-show-message do the rest.
+	Remove unused argument RAW.  Fix doc string to be consistent with the
+	new implementation.
 	(rmail-show-message): Honor X-Coding-System header, if present, in
 	preference to Content-Type header.
 
@@ -1047,8 +1047,8 @@
 
 2009-02-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (script-representative-chars): Remove
-	mathematical.
+	* international/fontset.el (script-representative-chars):
+	Remove mathematical.
 	(setup-default-fontset): Add entries for each subgroup of
 	mathematical script.
 
@@ -1121,8 +1121,8 @@
 
 2009-02-04  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-safe-coding-system): Use
-	buffer-chars-modified-tick instead of buffer-modified-tick.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Use buffer-chars-modified-tick instead of buffer-modified-tick.
 
 	* descr-text.el (describe-char): Check font-object by fontp.
 
@@ -1193,7 +1193,7 @@
 
 	Sync with Tramp 2.1.15.
 
-	* net/tramp.el (tramp-read-passwd): Cached passwords shall still be
+	* net/tramp.el (tramp-read-passwd): Cache passwords shall still be
 	used.
 
 	* net/tramp-cache.el (top): Autoload `tramp-run-real-handler'.
@@ -1265,8 +1265,7 @@
 
 	* mail/unrmail.el (unrmail): Set coding-system of the old Rmail
 	file to `raw-text-unix'.  Bind coding-system-for-write when
-	writing out the converted message, and make sure it uses Unix
-	EOLs.
+	writing out the converted message, and make sure it uses Unix EOLs.
 
 	* mail/rmail.el (rmail-convert-babyl-to-mbox): Set Rmail's buffer
 	encoding to `raw-text-unix'.
@@ -1314,8 +1313,8 @@
 	* mail/unrmail.el (unrmail): Fix conversion of BABYL attributes
 	into Rmail-mbox attributes.
 
-	* mail/rmail.el (rmail-convert-babyl-to-mbox): Bind
-	coding-system-for-read to `raw-text', and use insert-file-contents
+	* mail/rmail.el (rmail-convert-babyl-to-mbox):
+	Bind coding-system-for-read to `raw-text', and use insert-file-contents
 	instead of insert-file-contents-literally.  Fixes bug #2019.
 	(rmail-resent-attr-index): Fix index value.
 
@@ -1346,8 +1345,8 @@
 
 2009-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-process-actions, tramp-read-passwd): Allow
-	correction of passwords.
+	* net/tramp.el (tramp-process-actions, tramp-read-passwd):
+	Allow correction of passwords.
 
 2009-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1435,9 +1434,9 @@
 	Prevent insertion of a new entry inside of an existing entry.
 	Minor code cleanup.  (Bug#2084)
 	(todo-add-category): Change the interactive spec.  Signal an error
-	if the Todo file is non-empty but contains no category.  Reject
-	category names that could induce bugs and confusion.  Call
-	todo-mode if the Todo file is new and unsaved.  Simplify handling
+	if the Todo file is non-empty but contains no category.
+	Reject category names that could induce bugs and confusion.
+	Call todo-mode if the Todo file is new and unsaved.  Simplify handling
 	of local variables cookie.  Properly display the newly added
 	category in Todo mode.
 	(todo-show): Call todo-initial-setup only if there is neither a

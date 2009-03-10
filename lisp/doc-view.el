@@ -730,7 +730,9 @@ Those files are saved in the directory given by the function
     (let ((res doc-view-resolution))
       (with-temp-buffer
 	(princ res (current-buffer))
-	(write-file res-file)))
+        ;; Don't use write-file, so as to avoid prompts for `require-newline',
+        ;; or for pre-existing buffers with the same name, ...
+	(write-region nil nil res-file nil 'silently)))
     (case doc-view-doc-type
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
