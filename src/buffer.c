@@ -1800,9 +1800,11 @@ messing with the window-buffer correspondences.  */)
 	record_buffer (buffer_or_name);
       return Fset_buffer (buffer_or_name);
     }
-
-  if (EQ (minibuf_window, selected_window)
-      || !NILP (Fwindow_dedicated_p (selected_window)))
+  else if (EQ (minibuf_window, selected_window)
+	   /* If `dedicated' is neither nil nor t, it means it's
+	      dedicatedness can be overridden by an explicit request
+	      such as a call to switch-to-buffer.  */
+	   || EQ (Fwindow_dedicated_p (selected_window), Qt))
     /* We can't use the selected window so let `pop-to-buffer' try some
        other window. */
     return call3 (intern ("pop-to-buffer"), buffer_or_name, Qnil, norecord);

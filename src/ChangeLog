@@ -1,3 +1,7 @@
+2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fswitch_to_buffer): Revert part of 2008-10-21's change.
+
 2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* lread.c (Feval_buffer): Doc fix.
