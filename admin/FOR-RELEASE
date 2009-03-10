@@ -186,7 +186,7 @@ errors.texi
 eval.texi         -- cyd
 files.texi
 frames.texi
-functions.texi
+functions.texi    -- cyd
 hash.texi         -- cyd
 help.texi
 hooks.texi
