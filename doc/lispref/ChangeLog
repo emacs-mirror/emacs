@@ -1,3 +1,10 @@
+2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macros.texi (Compiling Macros): Omit misleading sentence, which
+	implied that macros can only be used in the same file they are
+	defined.
+	(Backquote): Remove obsolete information about Emacs 19.
+
 2009-03-05  John Foerch  <jjfoerch@earthlink.net>  (tiny change)
 
 	* display.texi (Display Margins): Fix paren typo.
