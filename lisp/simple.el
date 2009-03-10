@@ -5468,7 +5468,7 @@ header fields.  Elements look like (HEADER . VALUE) where both
 HEADER and VALUE are strings.
 
 CONTINUE, if non-nil, says to continue editing a message already
-being composed.
+being composed.  Interactively, CONTINUE is the prefix argument.
 
 SWITCH-FUNCTION, if non-nil, is a function to use to
 switch to and display the buffer used for mail composition.

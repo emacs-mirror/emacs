@@ -1,3 +1,7 @@
+2009-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (compose-mail): Doc fix.
+
 2009-03-10  Alexander Becher  <alexander.becher@capgemini-sdm.com>  (tiny change)
 
 	* vc-annotate.el (vc-annotate): Use widened line
