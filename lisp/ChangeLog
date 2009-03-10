@@ -1,3 +1,7 @@
+2009-03-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-vars.el (w32-list-proportional-fonts): Make obsolete.
+
 2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-process-filter): Use expand-file-name rather than

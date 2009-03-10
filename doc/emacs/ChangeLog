@@ -1,3 +1,10 @@
+2009-03-10  Jason Rumney  <jasonr@gnu.org>
+
+	* msdog.texi (Windows Misc): Remove doc for obsolete variable.  Modify
+	w32-use-visible-system-caret doc to indicate that it should get set
+	automatically.
+	(Windows Fonts): Add doc for the uniscribe backend.
+
 2009-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* maintaining.texi (VC Directory Commands): Fix doc for the x key in
