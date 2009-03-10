@@ -42,7 +42,7 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
 
 (defvar w32-list-proportional-fonts nil
   "Include proportional fonts in the default font dialog.")
-(make-obsolete-variable w32-list-proportional-fonts "No longer used" "23.1")
+(make-obsolete-variable 'w32-list-proportional-fonts "no longer used." "23.1")
 
 (defcustom w32-allow-system-shell nil
   "Disable startup warning when using \"system\" shells."

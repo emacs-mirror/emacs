@@ -1,3 +1,7 @@
+2009-03-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-vars.el (w32-list-proportional-fonts): Fix typos in last change.
+
 2009-03-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-vars.el (w32-list-proportional-fonts): Make obsolete.
