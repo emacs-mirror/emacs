@@ -1,4 +1,4 @@
-2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+2009-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacsclient.c (main): Revert part of last change, so
 	drive-relative file names again work on Windows.
