@@ -1635,6 +1635,26 @@ main (argc, argv)
                   continue;
                 }
             }
+#ifdef WINDOWSNT
+	  else if (! file_name_absolute_p (argv[i])
+		   && (isalpha (argv[i][0]) && argv[i][1] == ':'))
+	    /* Windows can have a different default directory for each
+	       drive, so the cwd passed via "-dir" is not sufficient
+	       to account for that.
+	       If the user uses <drive>:<relpath>, we hence need to be
+	       careful to expand <relpath> with the default directory
+	       corresponding to <drive>.  */
+	    {
+	      char *filename = (char *) xmalloc (MAX_PATH);
+	      DWORD size;
+
+	      size = GetFullPathName (argv[i], MAX_PATH, filename, NULL);
+	      if (size > 0 && size < MAX_PATH)
+		argv[i] = filename;
+	      else
+		free (filename);
+	    }
+#endif
 
           send_to_emacs (emacs_socket, "-file ");
           quote_argument (emacs_socket, argv[i]);
