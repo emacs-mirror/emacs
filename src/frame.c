@@ -3399,10 +3399,11 @@ x_set_font (f, arg, oldval)
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
-      /* This is store the XLFD font name in the frame parameter for
+      /* This is to store the XLFD font name in the frame parameter for
 	 backward compatiblity.  We should store the font-object
 	 itself in the future.  */
       arg = AREF (font_object, FONT_NAME_INDEX);
+      fontset = FRAME_FONTSET (f);
     }
   else
     signal_error ("Invalid font", arg);
