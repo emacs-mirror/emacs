@@ -1,3 +1,8 @@
+2009-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-initialize-window-system): Don't override
+	Japanese font settings.
+
 2009-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailedit.el (rmail-edit-mode):

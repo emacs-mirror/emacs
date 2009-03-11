@@ -256,16 +256,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; Setup the default fontset.
   (setup-default-fontset)
 
-  ;; Enable Japanese fonts on Windows to be used by default.
-  (set-fontset-font t (make-char 'katakana-jisx0201)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'latin-jisx0201)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'japanese-jisx0208)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'japanese-jisx0208-1978)
-		    '("*" . "JISX0208-SJIS"))
-
   ;; Create the standard fontset.
   (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
