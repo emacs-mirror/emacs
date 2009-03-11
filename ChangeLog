@@ -606,6 +606,7 @@
 
 	* configure.in: Print an error for systems that we think are obsolete
 	and are proposed to be removed.  Remove some more unused systems.
+	Add support for powerpc-ibm-aix6*.
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
