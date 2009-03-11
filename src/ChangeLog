@@ -1,5 +1,8 @@
 2009-03-11  Kenichi Handa  <handa@m17n.org>
 
+	* font.c (font_open_by_spec): New function.
+	(font_open_by_name): Use font_open_by_spec.
+
 	* frame.c (x_set_font): When ARG is a font-object, don't alter the
 	fontset of the frame.
 
