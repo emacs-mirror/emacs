@@ -1835,34 +1835,11 @@ instead.
 ** Miscellaneous new functions
 
 +++
-*** `format-seconds' converts a number of seconds into a readable
-string of days, hours, etc.
-
-+++
 *** `apply-partially' performs a "curried" application of a function.
-
-+++
-*** `read-shell-command' does what its name says, with completion.  It
-uses the minibuffer-local-shell-command-map for that.
 
 +++
 *** `buffer-swap-text' swaps text between two buffers.  This can be
 useful for modes such as tar-mode, archive-mode, RMAIL.
-
-*** New variable `buffer-swapped-with' lets the modes that use
-`buffer-swap-text' arrange to save the file from the proper buffer.
-
-+++
-*** `read-color' reads a color name using the minibuffer.
-
-+++
-*** `face-all-attributes' returns an alist describing all the basic
-attributes of a given face.
-
-+++
-*** `split-string-and-unquote' splits a string into a list of substrings
-on the boundaries of a given delimiter, and unquotes the substrings that
-are quoted.  Useful for taking apart shell commands.
 
 +++
 *** `combine-and-quote-strings' produces a single string from a list of strings
@@ -1870,9 +1847,36 @@ sticking a separator string in between each pair, and quoting those
 strings that include the separator as their substring.  Useful for
 consing shell command lines from the individual arguments.
 
+*** `custom-note-var-changed' tells Custom to treat the change in a
+certain variable as having been made within Custom.
+
++++
+*** `face-all-attributes' returns an alist describing all the basic
+attributes of a given face.
+
++++
+*** `format-seconds' converts a number of seconds into a readable
+string of days, hours, etc.
+
 +++
 *** `image-refresh' refreshes all images associated with a given image
 specification.
+
+*** `locate-user-emacs-file' helps packages to select the appropriate
+place to save user-specific files.  It defaults to `user-emacs-directory'
+unless the file already exists at $HOME.
+
++++
+*** `read-color' reads a color name using the minibuffer.
+
++++
+*** `read-shell-command' does what its name says, with completion.  It
+uses the minibuffer-local-shell-command-map for that.
+
++++
+*** `split-string-and-unquote' splits a string into a list of substrings
+on the boundaries of a given delimiter, and unquotes the substrings that
+are quoted.  Useful for taking apart shell commands.
 
 +++
 *** The two new functions `looking-at-p' and `string-match-p' can do
@@ -1883,10 +1887,6 @@ the match data.
 *** The two new functions `make-serial-process' and
 `serial-process-configure' provide a Lisp interface to the new serial
 port support (see Emacs changes, above).
-
-*** `locate-user-emacs-file' helps packages to select the appropriate
-place to save user-specific files.  It defaults to `user-emacs-directory'
-unless the file already exists at $HOME.
 
 ** Miscellaneous new variables
 
@@ -1904,9 +1904,6 @@ relevant data.
 
 *** `fill-forward-paragraph-function' specifies which function the
 filling code should use to find paragraph boundaries.
-
-*** `custom-note-var-changed' tells Custom to treat the change in a
-certain variable as having been made within Custom.
 
 
 * New Packages for Lisp Programming in Emacs 23.1
