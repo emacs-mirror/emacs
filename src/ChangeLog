@@ -1,3 +1,15 @@
+2009-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* frame.c (x_set_font): When ARG is a font-object, don't alter the
+	fontset of the frame.
+
+	* fontset.c (Fset_fontset_font): When a font for ASCII is changed,
+	modify the default font of frames that use this fontset.
+	(num_auto_fontsets): New variable.
+	(fontset_from_font): Use num_auto_fontsets to decide a fontset
+	name.  Be sure to set FONTSET_ASCII to the correct font name.
+	(update_auto_fontset_alist): New function.
+
 2009-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.
