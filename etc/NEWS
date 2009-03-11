@@ -1847,6 +1847,7 @@ sticking a separator string in between each pair, and quoting those
 strings that include the separator as their substring.  Useful for
 consing shell command lines from the individual arguments.
 
+---
 *** `custom-note-var-changed' tells Custom to treat the change in a
 certain variable as having been made within Custom.
 
