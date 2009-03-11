@@ -64,6 +64,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (if (boundp 'mode-line-modified)
 	(setq mode-line-modified (default-value 'mode-line-modified))
       (setq mode-line-format (default-value 'mode-line-format)))
+    ;; If someone uses C-x C-s, don't clobber the rmail file (bug#2625).
+    (add-hook 'write-region-annotate-functions
+	      'rmail-write-region-annotate nil t)
     (run-mode-hooks 'rmail-edit-mode-hook)))
 
 ;; Rmail Edit mode is suitable only for specially formatted data.

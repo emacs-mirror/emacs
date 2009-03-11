@@ -1,3 +1,8 @@
+2009-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailedit.el (rmail-edit-mode):
+	Set write-region-annotate-functions.  (Bug#2625)
+
 2009-03-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-vars.el (w32-list-proportional-fonts): Fix typos in last change.
