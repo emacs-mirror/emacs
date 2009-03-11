@@ -85,7 +85,6 @@
                   (&optional frame exclude-proportional))
 (define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
-(defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
 (declare-function w32-send-sys-command "w32fns.c")
@@ -98,10 +97,10 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-(defun w32-drag-n-drop-debug (event)
-  "Print the drag-n-drop EVENT in a readable form."
-  (interactive "e")
-  (princ event))
+;; (defun w32-drag-n-drop-debug (event)
+;;   "Print the drag-n-drop EVENT in a readable form."
+;;   (interactive "e")
+;;   (princ event))
 
 (defun w32-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.

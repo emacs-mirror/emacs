@@ -2,6 +2,8 @@
 
 	* term/w32-win.el (w32-initialize-window-system): Don't override
 	Japanese font settings.
+	(xlfd-regexp-registry-subnum): Remove unused declaration.
+	(w32-drag-n-drop-debug): Comment out unused debug function.
 
 2009-03-11  Glenn Morris  <rgm@gnu.org>
 
