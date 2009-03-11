@@ -1,5 +1,7 @@
 2009-03-11  Kenichi Handa  <handa@m17n.org>
 
+	* font.h (font_open_by_spec): Extern it.
+
 	* font.c (font_open_by_spec): New function.
 	(font_open_by_name): Use font_open_by_spec.
 
