@@ -3484,20 +3484,16 @@ font_done_for_face (f, face)
 }
 
 
-/* Open a font best matching with NAME on frame F.  If no proper font
-   is found, return Qnil.  */
+/* Open a font matching with font-spec SPEC on frame F.  If no proper
+   font is found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (f, name)
+font_open_by_spec (f, spec)
      FRAME_PTR f;
-     char *name;
+     Lisp_Object spec;
 {
-  Lisp_Object args[2];
-  Lisp_Object spec, attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
-  args[0] = QCname;
-  args[1] = make_unibyte_string (name, strlen (name));
-  spec = Ffont_spec (2, args);
   /* We set up the default font-related attributes of a face to prefer
      a moderate font.  */
   attrs[LFACE_FAMILY_INDEX] = attrs[LFACE_FOUNDRY_INDEX] = Qnil;
@@ -3511,6 +3507,24 @@ font_open_by_name (f, name)
   attrs[LFACE_FONT_INDEX] = Qnil;
 
   return font_load_for_lface (f, attrs, spec);
+}
+
+
+/* Open a font matching with NAME on frame F.  If no proper font is
+   found, return Qnil.  */
+
+Lisp_Object
+font_open_by_name (f, name)
+     FRAME_PTR f;
+     char *name;
+{
+  Lisp_Object args[2];
+  Lisp_Object spec;
+
+  args[0] = QCname;
+  args[1] = make_unibyte_string (name, strlen (name));
+  spec = Ffont_spec (2, args);
+  return font_open_by_spec (f, spec);
 }
 
 
