@@ -176,7 +176,19 @@ VERSION=`grep 'defconst[	 ]*emacs-version' $SRC/lisp/version.el \
 DST_SHARE="$prefix/share/emacs/$VERSION"
 DST_BIN="$prefix/bin"
 DST_LIBEXEC="$prefix/libexec/emacs/$VERSION/$ARCH"
-DST_INFO="$prefix/info"
+
+# There are various common places for the info dir to be, so try to
+# use whatever's already there, defaulting to (and preferring)
+# .../share/info.
+#
+DST_INFO=''
+for D in "$prefix/share/info" "$prefix/info"; do
+  if test -d "$D"; then
+    DST_INFO="$D"
+    break
+  fi
+done
+DST_INFO=${DST_INFO:-"$prefix/share/info"}
 
 maybe_mkdir ()
 {

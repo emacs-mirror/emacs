@@ -1,3 +1,7 @@
+2009-03-11  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* quick-install-emacs: Be more clever about locating info directory.
+
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nt/README.W32: Fix typos.
