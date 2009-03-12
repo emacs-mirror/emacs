@@ -1,14 +1,13 @@
-2009-03-12  David Reitter <david.reitter@gmail.com>
+2009-03-12  David Reitter  <david.reitter@gmail.com>
 
-	* termhooks.h [HAVE_NS]: define NS_NONKEY_EVENT to be used for
+	* termhooks.h [HAVE_NS]: Define NS_NONKEY_EVENT to be used for
 	non-key system events on NS.  Formerly, NON_ASCII_KEYSTROKE_EVENT
 	were used for such events.
 
-	* nsterm.m (newFrame, openFile, fulfillService, changeFont,
-	toggleToolbar, performDragOperation, runHelp): use it.
+	* nsterm.m (newFrame, openFile, fulfillService, changeFont)
+	(toggleToolbar, performDragOperation, runHelp): Use it.
 
-
-	* keyboard.c (parse_menu_item) [HAVE_NS]: treat new event like
+	* keyboard.c (parse_menu_item) [HAVE_NS]: Treat new event like
 	NON_ASCII_KEYSTROKE_EVENT, but set used_mouse_menu.
 
 2009-03-11  Kenichi Handa  <handa@m17n.org>
