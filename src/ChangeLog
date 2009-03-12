@@ -1,3 +1,13 @@
+2009-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfns.m (Fx_close_connection): Doc fix.
+	(Fns_do_applescript): Reflow docstring.
+	(Fns_hide_others, Fns_hide_emacs, Fns_convert_utf8_nfd_to_nfc)
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fns_display_usable_bounds, Fx_display_planes, Fx_show_tip):
+	Fix typos in docstrings.
+	(Fns_set_alpha): Fix typos in error messages.
+
 2009-03-12  David Reitter  <david.reitter@gmail.com>
 
 	* termhooks.h [HAVE_NS]: Define NS_NONKEY_EVENT to be used for
