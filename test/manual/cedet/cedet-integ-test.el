@@ -67,14 +67,20 @@
 (require 'ede)
 (require 'data-debug)
 (require 'ede-make)
+
+(eval-and-compile
+  (defvar cedet-integ-base "/tmp/CEDET_INTEG"
+    "Root of multiple project integration tests.")
+  )
+
 (require 'cit-cpp)
 (require 'cit-srec)
 (require 'cit-el)
 (require 'cit-texi)
 (require 'cit-gnustep)
 
-(defvar cedet-integ-target "/tmp/CEDET_INTEG"
-  "Root of the integration tests.")
+(defvar cedet-integ-target (expand-file-name "edeproj" cedet-integ-base)
+  "Root of the EDE project integration tests.")
 
 ;;; Code:
 (defun cedet-integ-test ()
@@ -82,6 +88,7 @@
   (interactive)
   ;; 1 a) build directories
   ;;
+  (cit-make-dir cedet-integ-base)
   (cit-make-dir cedet-integ-target)
   ;; 1 c) make src and include directories
   (cit-make-dir (cit-file "src"))
@@ -229,7 +236,6 @@ are found, but don't error if they are not their."
 	(data-debug-insert-thing
 	 (cit-tag-verify-error-debug "Dbg" :actual T1 :expected T2)
 	 ">" "")
-	 )
 
 	(error "Tag %s does not match %s"
 	       (semantic-format-tag-name T1)
@@ -238,7 +244,7 @@ are found, but don't error if they are not their."
        ))
 
     (setq actual (cdr actual))
-    )
+    ))
 
 (defun cit-compile-and-wait ()
   "Compile our current project, but wait for it to finish."
