@@ -4158,6 +4158,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
           else
             obj = Fcons (intern ("ns-unput-working-text"), Qnil);
 	  kbd_fetch_ptr = event + 1;
+	  *used_mouse_menu = 1;
         }
 #endif
 
@@ -4310,6 +4311,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 		  && !EQ (event->frame_or_window, event->arg)
 		  && (event->kind == MENU_BAR_EVENT
 		      || event->kind == TOOL_BAR_EVENT))
+		*used_mouse_menu = 1;
+#endif
+#ifdef HAVE_NS
+	      /* certain system events are non-key events */
+	      if (event->kind == NS_NONKEY_EVENT)
 		*used_mouse_menu = 1;
 #endif
 
@@ -5551,6 +5557,12 @@ make_lispy_event (event)
 	XSETFASTINT (lispy_c, c);
 	return lispy_c;
       }
+
+#ifdef HAVE_NS
+      /* NS_NONKEY_EVENTs are just like NON_ASCII_KEYSTROKE_EVENTs,
+	 except that they are non-key events (last-nonmenu-event is nil). */
+    case NS_NONKEY_EVENT:
+#endif
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
