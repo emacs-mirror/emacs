@@ -4117,7 +4117,7 @@ ns_term_shutdown (int sig)
 
   if (!emacs_event)
     return;
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_NEW_FRAME;
   emacs_event->modifiers = 0;
   EV_TRAILER (theEvent);
@@ -4133,7 +4133,7 @@ ns_term_shutdown (int sig)
   if (!emacs_event)
     return NO;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_OPEN_FILE_LINE;
   ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
   ns_input_line = Qnil; /* can be start or cons start,end */
@@ -4358,7 +4358,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return NO;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_SPI_SERVICE_CALL;
   ns_input_spi_name = build_string ([name UTF8String]);
   ns_input_spi_arg = build_string ([arg UTF8String]);
@@ -4414,7 +4414,7 @@ extern void update_window_cursor (struct window *w, int on);
     {
       SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->modifiers = 0;
       emacs_event->code = KEY_NS_CHANGE_FONT;
 
@@ -5453,7 +5453,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return self;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_TOGGLE_TOOLBAR;
   EV_TRAILER ((id)nil);
   return self;
@@ -5527,7 +5527,7 @@ extern void update_window_cursor (struct window *w, int on);
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
         {
-          emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+          emacs_event->kind = NS_NONKEY_EVENT;
           emacs_event->code = KEY_NS_DRAG_FILE;
           XSETINT (emacs_event->x, x);
           XSETINT (emacs_event->y, y);
@@ -5548,7 +5548,7 @@ extern void update_window_cursor (struct window *w, int on);
         return NO;
 
       file = [fileURL path];
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_FILE;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5565,7 +5565,7 @@ extern void update_window_cursor (struct window *w, int on);
       if (! (data = [pb stringForType: type]))
         return NO;
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_TEXT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5577,7 +5577,7 @@ extern void update_window_cursor (struct window *w, int on);
   else if ([type isEqualToString: NSColorPboardType])
     {
       NSColor *c = [NSColor colorFromPasteboard: pb];
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_COLOR;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5597,7 +5597,7 @@ extern void update_window_cursor (struct window *w, int on);
       if (font == nil)
         return NO;
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_CHANGE_FONT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -6303,7 +6303,7 @@ static void selectItemWithTag (NSPopUpButton *popup, int tag)
   if (!emacs_event)
     return;
   ns_raise_frame(frame);
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_INFO_PREFS;
   EV_TRAILER ((id)nil);
 }
