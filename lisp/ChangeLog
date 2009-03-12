@@ -1,3 +1,10 @@
+2009-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* register.el (get-register): Rename arg REG to REGISTER for
+	consistency with other register functions.
+	(set-register, jump-to-register): Fix typos in docstrings.
+	(copy-to-register, copy-rectangle-to-register): Reflow docstrings.
+
 2009-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mailabbrev.el (mail-abbrev-next-line)

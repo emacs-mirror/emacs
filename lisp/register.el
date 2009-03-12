@@ -58,13 +58,13 @@ A list of the form (WINDOW-CONFIGURATION POSITION)
 A list of the form (FRAME-CONFIGURATION POSITION)
  represents a saved frame configuration plus a saved value of point.")
 
-(defun get-register (reg)
-  "Return contents of Emacs register named REG, or nil if none."
-  (cdr (assq reg register-alist)))
+(defun get-register (register)
+  "Return contents of Emacs register named REGISTER, or nil if none."
+  (cdr (assq register register-alist)))
 
 (defun set-register (register value)
   "Set contents of Emacs register named REGISTER to VALUE.  Returns VALUE.
-See the documentation of the variable `register-alist' for possible VALUE."
+See the documentation of the variable `register-alist' for possible VALUEs."
   (let ((aelt (assq register register-alist)))
     (if aelt
 	(setcdr aelt value)
@@ -105,7 +105,7 @@ Argument is a character, naming the register."
 (defun jump-to-register (register &optional delete)
   "Move point to location stored in a register.
 If the register contains a file name, find that file.
- \(To put a file name in a register, you must use `set-register'.)
+\(To put a file name in a register, you must use `set-register'.)
 If the register contains a window configuration (one frame) or a frame
 configuration (all frames), restore that frame or all frames accordingly.
 First argument is a character, naming the register.
@@ -288,7 +288,8 @@ Interactively, second arg is non-nil if prefix arg is supplied."
   (if (not arg) (exchange-point-and-mark)))
 
 (defun copy-to-register (register start end &optional delete-flag)
-  "Copy region into register REGISTER.  With prefix arg, delete as well.
+  "Copy region into register REGISTER.
+With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to copy."
   (interactive "cCopy to register: \nr\nP")
@@ -325,8 +326,8 @@ START and END are buffer positions indicating what to prepend."
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
   "Copy rectangular region into register REGISTER.
-With prefix arg, delete as well.  To insert this register
-in the buffer, use \\[insert-register].
+With prefix arg, delete as well.
+To insert this register in the buffer, use \\[insert-register].
 
 Called from a program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions giving two corners of rectangle."
