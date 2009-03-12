@@ -1,4 +1,6 @@
-2009-03-11  Chong Yidong  <cyd@stupidchicken.com>
+2009-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* loading.texi (Repeated Loading): Simplify examples.
 
 	* customize.texi (Common Keywords): It's not necessary to use :tag
 	to remove hyphens, as custom-unlispify-tag-name does it
