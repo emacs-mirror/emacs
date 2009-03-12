@@ -1,3 +1,12 @@
+2009-03-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* customize.texi (Common Keywords): It's not necessary to use :tag
+	to remove hyphens, as custom-unlispify-tag-name does it
+	automatically.
+	(Variable Definitions): Link to File Local Variables.  Document
+	customized-value symbol property.
+	(Customization Types): Move menu to end of node.
+
 2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macros.texi (Compiling Macros): Omit misleading sentence, which
