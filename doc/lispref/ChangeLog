@@ -1,5 +1,8 @@
 2009-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* compile.texi (Speed of Byte-Code): Update example.
+	(Disassembly): Update examples.
+
 	* loading.texi (Repeated Loading): Simplify examples.
 
 	* customize.texi (Common Keywords): It's not necessary to use :tag
