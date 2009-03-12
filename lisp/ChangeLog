@@ -1,3 +1,8 @@
+2009-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mailabbrev.el (mail-abbrev-next-line)
+	(mail-abbrev-end-of-buffer): Doc fixes.
+
 2009-03-11  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32-initialize-window-system): Don't override
