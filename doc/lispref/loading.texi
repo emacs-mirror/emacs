@@ -621,24 +621,18 @@ initialized.  (@xref{Defining Variables}.)
 @end example
 
 @noindent
-But this would add multiple elements if the library is reloaded.
-To avoid the problem, write this:
-
-@example
-(or (assq 'leif-mode minor-mode-alist)
-    (push '(leif-mode " Leif") minor-mode-alist))
-@end example
-
-@noindent
-or this:
+But this would add multiple elements if the library is reloaded.  To
+avoid the problem, use @code{add-to-list} (@pxref{List Variables}):
 
 @example
 (add-to-list '(leif-mode " Leif") minor-mode-alist)
 @end example
 
   Occasionally you will want to test explicitly whether a library has
-already been loaded.  Here's one way to test, in a library, whether it
-has been loaded before:
+already been loaded.  If the library uses @code{provide} to provide a
+named feature, you can use @code{featurep} earlier in the file to test
+whether the @code{provide} call has been executed before (@pxref{Named
+Features}).  Alternatively, you could use something like this:
 
 @example
 (defvar foo-was-loaded nil)
@@ -649,12 +643,6 @@ has been loaded before:
 @end example
 
 @noindent
-If the library uses @code{provide} to provide a named feature, you can
-use @code{featurep} earlier in the file to test whether the
-@code{provide} call has been executed before.
-@ifnottex
-@xref{Named Features}.
-@end ifnottex
 
 @node Named Features
 @section Features
@@ -674,13 +662,13 @@ feature.  Another program that uses them may ensure they are defined by
 @dfn{requiring} the feature.  This loads the file of definitions if it
 hasn't been loaded already.
 
+@cindex load error with require
   To require the presence of a feature, call @code{require} with the
 feature name as argument.  @code{require} looks in the global variable
 @code{features} to see whether the desired feature has been provided
 already.  If not, it loads the feature from the appropriate file.  This
 file should call @code{provide} at the top level to add the feature to
 @code{features}; if it fails to do so, @code{require} signals an error.
-@cindex load error with require
 
   For example, in @file{emacs/lisp/prolog.el},
 the definition for @code{run-prolog} includes the following code:
