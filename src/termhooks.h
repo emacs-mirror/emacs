@@ -203,6 +203,8 @@ enum event_kind
   /* Generated when native multi-keystroke input method is used to modify
      tentative or indicative text display. */
   , NS_TEXT_EVENT
+  /* Non-key system events (e.g. application menu events) */
+  , NS_NONKEY_EVENT
 #endif
 
 };
