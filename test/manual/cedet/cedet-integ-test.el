@@ -64,6 +64,9 @@
 ;;    a Make sure the semanticdb cleans up the dead cache files.
 ;;    b Make sure EDE clears this project from it's project cache.
 (require 'semantic)
+(require 'ede)
+(require 'data-debug)
+(require 'ede-make)
 (require 'cit-cpp)
 (require 'cit-srec)
 (require 'cit-el)
@@ -224,8 +227,11 @@ are found, but don't error if they are not their."
 	)
 
        (t ;; Not the same
-	(semantic-adebug-show (cit-tag-verify-error-debug
-			       "Dbg" :actual T1 :expected T2))
+	(data-debug-new-buffer "*Test Failure*")
+	(data-debug-insert-thing
+	 (cit-tag-verify-error-debug "Dbg" :actual T1 :expected T2)
+	 ">" "")
+	 )
 
 	(error "Tag %s does not match %s"
 	       (semantic-format-tag-name T1)
@@ -234,7 +240,7 @@ are found, but don't error if they are not their."
        ))
 
     (setq actual (cdr actual))
-    ))
+    )
 
 (defun cit-compile-and-wait ()
   "Compile our current project, but wait for it to finish."
@@ -242,7 +248,7 @@ are found, but don't error if they are not their."
   ;; 1 f) Create a build file.
   (ede-proj-regenerate)
   ;; 1 g) build the sources.
-  (compile "make")
+  (compile ede-make-command)
 
   (while compilation-in-progress
     (accept-process-output)
