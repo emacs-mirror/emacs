@@ -1,10 +1,13 @@
 2009-03-13  D. Goel  <deego3@gmail.com>
 
-	* midnight.el (midnight-next): Ditto.
 
 	* ibuf-ext.el (ibuffer-generate-filter-groups): 
-	(multiple-value-bind .. ls) -> (multiple-value-bind
-	.. (values-list ls))
+	When calling (multiple-value-bind/setq .. ls)
+	ls -> (values-list ls)  throughout. 
+	
+	* progmodes/ebrowse.el: Ditto.
+
+	* midnight.el (midnight-next): Ditto.
 
 2009-03-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
