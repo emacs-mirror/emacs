@@ -1,3 +1,8 @@
+2009-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-send-raw-string): Deactivate mark.
+	(term-send-raw, term-send-raw-meta): Undo 2009-03-08 change.
+
 2009-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* register.el (get-register): Rename arg REG to REGISTER for
