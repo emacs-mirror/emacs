@@ -1,3 +1,7 @@
+2009-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* advice.texi (Advising Primitives): Link to What Is a Function.
+
 2009-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* compile.texi (Speed of Byte-Code): Update example.
