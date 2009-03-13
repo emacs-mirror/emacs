@@ -1266,6 +1266,14 @@ mlm-* functions and variables (formerly used for Malayalam script).
 **** `tamil' and `tml-util, and all associated tamil-* and tml-*
 functions and variables (formerly used for Tamil script).
 
+*** The meaning of NAME argument of `set-fontset-font' is changed.
+Previously nil is accepted as the default fontset.  Now, nil is for
+the fontset of the selected frame and t is for the default fontset.
+
+*** The meaning of FONTSET argument of `print-fontset' is changed.
+Now, nil is for the fontset of the selected frame and t is for the
+default fontset.
+
 ---
 ** The variable temp-file-name-pattern has been removed.
 This variable was only used by call-process-region, which now uses
