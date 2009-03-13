@@ -1767,7 +1767,7 @@ fontset_from_font (font_object)
     ASET (font_spec, i, Qnil);
   Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qnil);
   Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
-  if (registry != Qiso10646_1)
+  if (!EQ (registry, Qiso10646_1))
     {
       font_spec = Fcopy_font_spec (font_spec);
       ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);

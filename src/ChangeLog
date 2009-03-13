@@ -1,3 +1,8 @@
+2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fontset.c (fontset_from_font): YAILOM (Yet another int/Lisp_Object
+	mixup).
+
 2009-03-13  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Ffontset_info, check_fontset_name): New arg frame.
@@ -885,7 +890,7 @@
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (last_command_char): For clarity, rename to...
-	(last_command-event): ... and update all users.
+	(last_command_event): ... and update all users.
 	(last_input_char): For clarity, rename to...
 	(last_input_event): ... and update all users.
 	(last-command-char, last-input-char): Move to subr.el as aliases.
@@ -2456,7 +2461,7 @@
 
 2008-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Oject
+	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Object
 	mixup (YAILOM).
 
 2008-09-17  Chong Yidong  <cyd@stupidchicken.com>
@@ -2674,7 +2679,8 @@
 
 	* font.h (font_range):
 	* fileio.c (report_file_error):
-	* composite.c (composition_update_it): Yet another int/Lisp_Oject mixup.
+	* composite.c (composition_update_it): Yet another int/Lisp_Object
+	mixup (YAILOM).
 
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
@@ -9090,7 +9096,7 @@
 	* font.c (check_gstring): Use them and AREF to access the vector before
 	we know it's really a gstring.
 	(Ffont_shape_text): Fix typo.
-	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Oject mixups.
+	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Object mixups.
 
 	* composite.h (Fcompose_region_internal, Fcompose_string_internal):
 	Declare.
