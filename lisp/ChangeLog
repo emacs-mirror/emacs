@@ -1,3 +1,12 @@
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset): Handling of the
+	argument FONTSET changed for consistency.  Reorder the printed
+	information to match with the font searching strategy.
+	(describe-fontset): Use face-attribute to get the fontset of the
+	selected frame.
+	(mule-diag): Likewise.  Print both font and fontset of the frame.
+
 2009-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term.el (term-send-raw-string): Deactivate mark.
