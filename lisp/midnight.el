@@ -205,7 +205,8 @@ The default value is `clean-buffer-list'."
 
 (defun midnight-next ()
   "Return the number of seconds till the next midnight."
-  (multiple-value-bind (sec min hrs) (decode-time)
+  (multiple-value-bind (sec min hrs) 
+      (values-list (decode-time))
     (- (* 24 60 60) (* 60 60 hrs) (* 60 min) sec)))
 
 ;;;###autoload
