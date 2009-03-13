@@ -1965,7 +1965,7 @@ format is the same as above.  */)
 
   tables[0] = Fmake_char_table (Qfontset_info, Qnil);
   fontsets[0] = fontset;
-  if (fontset != Vdefault_fontset)
+  if (!EQ (fontset, Vdefault_fontset))
     {
       tables[1] = Fmake_char_table (Qnil, Qnil);
       XCHAR_TABLE (tables[0])->extras[0] = tables[1];
