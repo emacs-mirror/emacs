@@ -289,6 +289,7 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
     (define-key map [remap goto-line] 'doc-view-goto-page)
+    (define-key map (kbd "RET")       'image-next-line)
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)

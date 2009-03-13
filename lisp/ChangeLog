@@ -1,3 +1,7 @@
+2009-03-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode-map): Bind RET to image-next-line.
+
 2009-03-13  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-previous-revision, vc-git-next-revision):
