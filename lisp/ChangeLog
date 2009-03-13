@@ -1,7 +1,7 @@
 2009-03-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-get-word): Initialize spellchecker
-	params.
+	params. (Bug #2654)
 
 2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
