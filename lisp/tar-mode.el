@@ -226,7 +226,7 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
   "Return a `tar-header' structure.
 This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
-  (assert (<= (+ pos 512) (point-max)))
+  (if (> (+ pos 512) (point-max)) (error "Malformed Tar header"))
   (assert (zerop (mod (- pos (point-min)) 512)))
   (assert (not enable-multibyte-characters))
   (let ((string (buffer-substring pos (setq pos (+ pos 512)))))
@@ -483,7 +483,7 @@ MODE should be an integer which is a file mode value."
                                     (point-min) (point-max))))
          descriptor)
     (with-current-buffer tar-data-buffer
-      (while (and (<= (+ pos 512) (point-max))
+      (while (and (< pos (point-max))
                   (setq descriptor (tar-header-block-tokenize pos coding)))
         (let ((size (tar-header-size descriptor)))
           (if (< size 0)
@@ -654,9 +654,17 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
        (generate-new-buffer (format " *tar-data %s*"
                                     (file-name-nondirectory
                                      (or buffer-file-name (buffer-name))))))
-  (tar-swap-data)
-  (tar-summarize-buffer)
-  (tar-next-line 0))
+  (condition-case err
+      (progn
+        (tar-swap-data)
+        (tar-summarize-buffer)
+        (tar-next-line 0))
+    (error
+     ;; If summarizing caused an error, then maybe the buffer doesn't contain
+     ;; tar data.  Rather than show a mysterious empty buffer, let's
+     ;; revert to fundamental-mode.
+     (fundamental-mode)
+     (signal (car err) (cdr err)))))
 
 
 (defun tar-subfile-mode (p)
@@ -773,7 +781,13 @@ appear on disk when you save the tar-file's buffer."
 	   (read-only-p (or buffer-read-only view-p))
 	   (new-buffer-file-name (expand-file-name
 				  ;; `:' is not allowed on Windows
-				  (concat tarname "!" name)))
+                                  (concat tarname "!"
+                                          (if (string-match "/" name)
+                                              name
+                                            ;; Make sure `name' contains a /
+                                            ;; so set-auto-mode doesn't try
+                                            ;; to look at `tarname' for hints.
+                                            (concat "./" name)))))
 	   (buffer (get-file-buffer new-buffer-file-name))
 	   (just-created nil)
 	   undo-list)

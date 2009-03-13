@@ -1,3 +1,12 @@
+2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header-block-tokenize): Presume less, check more.
+	(tar-summarize-buffer): Don't silently skip incomplete headers.
+	(tar-mode): Revert to fundamental-mode in case of malformed tar data.
+	(tar-extract): Try to make sure set-auto-mode doesn't mistakenly
+	treat a tar file member as being a tar file itself, just because
+	its own filename includes the parent tar file's.
+
 2009-03-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-fontset): Handling of the
