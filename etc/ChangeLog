@@ -1,3 +1,8 @@
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Add description for the argument change of
+	`set-fontset-font' and `print-fontset'.
+
 2009-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* MORE.STUFF: Mention Zile.
