@@ -1,5 +1,8 @@
 2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (auto-mode-alist): Add rules for OpenOffice extension
+	packages, as well as Opkg/Ipkg packages.
+
 	* tar-mode.el (tar-header-block-tokenize): Presume less, check more.
 	(tar-summarize-buffer): Don't silently skip incomplete headers.
 	(tar-mode): Revert to fundamental-mode in case of malformed tar data.

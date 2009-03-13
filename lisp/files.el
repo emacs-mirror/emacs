@@ -2205,8 +2205,8 @@ since only a single case-insensitive search through the alist is made."
      ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
-     ("\\.\\(sx[dmicw]\\|od[fgpst]\\)\\'" . archive-mode) ; OpenOffice.org
-     ("\\.\\(deb\\)\\'" . archive-mode)                 ; Debian packages.
+     ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
+     ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
