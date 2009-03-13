@@ -1,3 +1,7 @@
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Update the description.
+
 2009-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* advice.texi (Advising Primitives): Link to What Is a Function.
