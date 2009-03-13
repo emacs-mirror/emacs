@@ -79,7 +79,7 @@
       'float-time
     (if (featurep 'xemacs)
 	(lambda ()
-	  (multiple-value-bind (s0 s1 s2) (current-time)
+	  (multiple-value-bind (s0 s1 s2) (values-list (current-time))
 	    (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2)))))))
 
 (defalias 'flymake-replace-regexp-in-string
