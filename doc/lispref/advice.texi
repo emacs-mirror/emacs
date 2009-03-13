@@ -685,7 +685,7 @@ Instead they are implemented specially by the advice mechanism.
 @section Advising Primitives
 @cindex advising primitives
 
-  Advising a primitive function (also called a ``subr'') is risky.
+  Advising a primitive function (@pxref{What Is a Function}) is risky.
 Some primitive functions are used by the advice mechanism; advising
 them could cause an infinite recursion.  Also, many primitive
 functions are called directly from C code.  Calls to the primitive
