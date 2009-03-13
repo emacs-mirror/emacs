@@ -1,3 +1,11 @@
+2009-03-13  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-previous-revision, vc-git-next-revision):
+	Fall back to original commit if vc-git-symbolic-commit fails to
+	find a symbolic name.
+	(vc-git-symbolic-commit): Don't limit search to tags. Treat
+	"undefined" as an error. (Bug #2110)
+
 2009-03-13  D. Goel  <deego3@gmail.com>
 
 	* ibuf-ext.el: 
