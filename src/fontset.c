@@ -2042,7 +2042,7 @@ format is the same as above.  */)
 	    }
 	  c = to + 1;
 	}
-      if (fontset == Vdefault_fontset)
+      if (EQ (fontset, Vdefault_fontset))
 	break;
     }
 

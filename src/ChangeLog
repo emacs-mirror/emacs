@@ -1,7 +1,7 @@
 2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* fontset.c (fontset_from_font): YAILOM (Yet another int/Lisp_Object
-	mixup).
+	* fontset.c (fontset_from_font, Ffontset_info): YAILOM (Yet another
+	int/Lisp_Object mixup).
 
 2009-03-13  Kenichi Handa  <handa@m17n.org>
 
