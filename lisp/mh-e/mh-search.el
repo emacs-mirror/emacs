@@ -717,7 +717,7 @@ parsed."
               ((equal token "and") (push 'and op-stack))
               ((equal token ")")
                (multiple-value-setq (op-stack operand-stack)
-                 (mh-index-evaluate op-stack operand-stack))
+                 (values-list (mh-index-evaluate op-stack operand-stack)))
                (when (eq (car op-stack) 'not)
                  (setq op-stack (cdr op-stack))
                  (push `(not ,(pop operand-stack)) operand-stack))
@@ -767,7 +767,7 @@ parsed."
       (while op-stack
         (setq op (pop op-stack))
         (cond ((eq op 'paren)
-               (return-from mh-index-evaluate (values op-stack operand-stack)))
+               (return-from mh-index-evaluate (list op-stack operand-stack)))
               ((eq op 'not)
                (push `(not ,(pop operand-stack)) operand-stack))
               ((or (eq op 'and) (eq op 'or))
