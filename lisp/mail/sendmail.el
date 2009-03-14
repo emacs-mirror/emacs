@@ -121,7 +121,7 @@ so you can remove or alter the BCC field to override the default."
   ;; bounce message to be delivered anywhere, least of all to the
   ;; user's mailbox.
   "Non-nil means when sending a message wait for and display errors.
-nil means let mailer mail back a message to report errors."
+Otherwise, let mailer send back a message to report errors."
   :type 'boolean
   :version "23.1"			; changed from nil to t
   :group 'sendmail)
@@ -131,11 +131,16 @@ nil means let mailer mail back a message to report errors."
           (regexp-opt '("via" "mail-from" "origin" "status" "remailed"
                         "received" "message-id" "summary-line" "to" "subject"
                         "in-reply-to" "return-path" "mail-reply-to"
+                        ;; Should really be rmail-attribute-header and
+                        ;; rmail-keyword-header, but this file does not
+                        ;; require rmail (at run time).
+                        "x-rmail-attributes" "x-rmail-keywords"
                         "mail-followup-to") "\\(?:")
           ":")
   "Delete these headers from old message when it's inserted in a reply."
   :type 'regexp
-  :group 'sendmail)
+  :group 'sendmail
+  :version "23.1")
 
 ;; Prevent problems with `window-system' not having the correct value
 ;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
@@ -248,6 +253,7 @@ Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
 
+;; FIXME make it really obsolete.
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
@@ -482,8 +488,12 @@ The value should be an expression to test whether the problem will
 actually occur.")
 
 (defvar mail-mode-syntax-table
+  ;; define-derived-mode will make it inherit from text-mode-syntax-table.
   (let ((st (make-syntax-table)))
-    ;; define-derived-mode will make it inherit from text-mode-syntax-table.
+    ;; FIXME this is probably very obsolete now ("percent hack").
+    ;; sending.texi used to say:
+    ;;   Mail mode defines the character `%' as a word separator; this
+    ;;   is helpful for using the word commands to edit mail addresses.
     (modify-syntax-entry ?% ". " st)
     st)
   "Syntax table used while in `mail-mode'.")
@@ -595,15 +605,7 @@ actually occur.")
 		       'category 'mail-header-separator)
     ;; Insert the signature.  But remember the beginning of the message.
     (if to (setq to (point)))
-    (cond ((eq mail-signature t)
-	   (if (file-exists-p mail-signature-file)
-	       (progn
-		 (insert "\n\n-- \n")
-		 (insert-file-contents mail-signature-file))))
-	  ((stringp mail-signature)
-	   (insert mail-signature))
-	  (t
-	   (eval mail-signature)))
+    (if mail-signature (mail-signature t))
     (goto-char (point-max))
     (or (bolp) (newline)))
   (if to (goto-char to))
@@ -1328,19 +1330,19 @@ just append to the file, in Babyl format if necessary."
 	  (insert-before-markers "Sent-via:" to-line))))))
 
 (defun mail-to ()
-  "Move point to end of To-field."
+  "Move point to end of To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "To"))
 
 (defun mail-subject ()
-  "Move point to end of Subject-field."
+  "Move point to end of Subject field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Subject"))
 
 (defun mail-cc ()
-  "Move point to end of CC-field.  Create a CC field if none."
+  "Move point to end of CC field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "cc" t)
@@ -1348,7 +1350,7 @@ just append to the file, in Babyl format if necessary."
 	     (insert "\nCC: "))))
 
 (defun mail-bcc ()
-  "Move point to end of BCC-field.  Create a BCC field if none."
+  "Move point to end of BCC field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "bcc" t)
@@ -1364,14 +1366,13 @@ just append to the file, in Babyl format if necessary."
   (insert "\nFCC: " folder))
 
 (defun mail-reply-to ()
-  "Move point to end of Reply-To-field.  Create a Reply-To field if none."
+  "Move point to end of Reply-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Reply-To"))
 
 (defun mail-mail-reply-to ()
-  "Move point to end of Mail-Reply-To field.
-Create a Mail-Reply-To field if none."
+  "Move point to end of Mail-Reply-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "mail-reply-to" t)
@@ -1379,8 +1380,7 @@ Create a Mail-Reply-To field if none."
            (insert "\nMail-Reply-To: "))))
 
 (defun mail-mail-followup-to ()
-  "Move point to end of Mail-Followup-To field.
-Create a Mail-Followup-To field if none."
+  "Move point to end of Mail-Followup-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "mail-followup-to" t)
@@ -1411,20 +1411,34 @@ Create a Mail-Followup-To field if none."
   (goto-char (mail-text-start)))
 
 (defun mail-signature (&optional atpoint)
-  "Sign letter with signature based on `mail-signature-file'.
-Prefix arg means put contents at point."
-  (interactive "P")
-  (save-excursion
-    (or atpoint
-	(goto-char (point-max)))
-    (skip-chars-backward " \t\n")
-    (end-of-line)
-    (or atpoint
+  "Sign letter with signature.
+If the variable `mail-signature' is a string, inserts it.
+If it is t or nil, inserts the contents of the file `mail-signature-file'.
+Otherwise, evals `mail-signature'.
+Prefix argument ATPOINT means insert at point rather than the end."
+  (interactive "*P")
+  ;; Test for an unreadable file here, before we delete trailing
+  ;; whitespace, so that we don't modify the buffer needlessly.
+  (if (and (memq mail-signature '(t nil))
+	   (not (file-readable-p mail-signature-file)))
+      (if (interactive-p)
+	  (message "The signature file `%s' could not be read"
+		   mail-signature-file))
+    (save-excursion
+      (unless atpoint
+	(goto-char (point-max))
+	;; Delete trailing whitespace and blank lines.
+	(skip-chars-backward " \t\n")
+	(end-of-line)
 	(delete-region (point) (point-max)))
-    (if (stringp mail-signature)
-	(insert mail-signature)
-      (insert "\n\n-- \n")
-      (insert-file-contents (expand-file-name mail-signature-file)))))
+      (cond ((stringp mail-signature)
+	     (insert mail-signature))
+	    ((memq mail-signature '(t nil))
+	     (insert "\n\n-- \n")
+	     (insert-file-contents (expand-file-name mail-signature-file)))
+	    (t
+	     ;; FIXME add condition-case error handling?
+	     (eval mail-signature))))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.

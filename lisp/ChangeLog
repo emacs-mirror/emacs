@@ -1,3 +1,14 @@
+2009-03-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-interactive): Doc fix.
+	(mail-yank-ignored-headers): Add X-RMAIL- headers, bump :version.
+	(mail-setup): Use the function mail-signature.
+	(mail-to, mail-subject, mail-cc, mail-bcc, mail-reply-to)
+	(mail-mail-reply-to, mail-mail-followup-to): Doc fixes.
+	(mail-signature): Check the signature file is readable.
+	With the argument ATPOINT, really insert at point.
+	Handle the case when the variable mail-signature is an expression.
+
 2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (undo-outer-limit-truncate): Mention that
