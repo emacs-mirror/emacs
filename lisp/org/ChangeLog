@@ -1,3 +1,8 @@
+2009-03-13  D. Goel  <deego3@gmail.com>
+
+	* org-bbdb.el: When calling (multiple-value-bind/setq .. ls)
+	replace ls by (values-list ls).
+
 2009-02-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-remember.el (org-remember-apply-template): Turn off ido for
