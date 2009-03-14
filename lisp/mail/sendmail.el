@@ -614,7 +614,9 @@ actually occur.")
   (run-hooks 'mail-setup-hook))
 
 (defcustom mail-mode-hook nil
-  "Hook run by Mail mode."
+  "Hook run by Mail mode.
+When composing a mail, this runs immediately after creating, or
+switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   :group 'sendmail
   :type 'hook
   :options '(footnote-mode))
