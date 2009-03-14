@@ -1,3 +1,10 @@
+2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* debugging.texi (Error Debugging): Don't mislead the reader into
+	thinking that debug-on-error enters debugger for C-f at EOB.
+	(Error Debugging): Setting debug-on-init within the init file
+	works, and has for some time.
+
 2009-03-13  Kenichi Handa  <handa@m17n.org>
 
 	* display.texi (Fontsets): Update the description.
