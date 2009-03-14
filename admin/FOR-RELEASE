@@ -178,7 +178,7 @@ commands.texi
 compile.texi      -- cyd
 control.texi      -- cyd
 customize.texi    -- cyd
-debugging.texi
+debugging.texi    -- cyd
 display.texi
 edebug.texi
 elisp.texi
