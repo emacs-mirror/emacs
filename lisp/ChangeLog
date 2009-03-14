@@ -1,3 +1,7 @@
+2009-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (undo): Don't loop when encountering empty undo records.
+
 2009-03-13  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode-map): Bind RET to image-next-line.

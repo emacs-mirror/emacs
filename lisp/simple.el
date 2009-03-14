@@ -1682,9 +1682,13 @@ as an argument limits undo to changes within the current region."
     ;; In the ordinary case (not within a region), map the redo
     ;; record to the following undos.
     ;; I don't know how to do that in the undo-in-region case.
-    (puthash buffer-undo-list
-	     (if undo-in-region t pending-undo-list)
-	     undo-equiv-table)
+    (let ((list buffer-undo-list))
+      ;; Strip any leading undo boundaries there might be, like we do
+      ;; above when checking.
+      (while (eq (car list) nil)
+	(setq list (cdr list)))
+      (puthash list (if undo-in-region t pending-undo-list)
+	       undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
