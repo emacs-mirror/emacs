@@ -2426,7 +2426,7 @@ to provide the `find-revision' operation instead."
 
 (defun vc-default-receive-file (backend file rev)
   "Let BACKEND receive FILE from another version control system."
-  (vc-call-backend backend 'register file rev ""))
+  (vc-call-backend backend 'register (list file) rev ""))
 
 (defun vc-default-retrieve-tag (backend dir name update)
   (if (string= name "")
