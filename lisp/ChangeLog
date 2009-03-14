@@ -1,3 +1,9 @@
+2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (undo-outer-limit-truncate): Mention that
+	warning-suppress-types is defined in the warnings
+	library (Bug#2668).
+
 2009-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-default-receive-file): The 'register method now
