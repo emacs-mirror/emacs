@@ -25,16 +25,11 @@
 2009-03-13  D. Goel  <deego3@gmail.com>
 
 	* ibuf-ext.el:
-	When calling (multiple-value-bind/setq .. ls)
-	ls -> (values-list ls) throughout.
-
-	* progmodes/flymake.el (flymake-float-time): Ditto.
-
-	* progmodes/ebrowse.el: Ditto.
-
-	* midnight.el (midnight-next): Ditto.
-
-	* org/org-bbdb.el: Ditto.
+	* midnight.el (midnight-next):
+	* progmodes/ebrowse.el:
+	* progmodes/flymake.el (flymake-float-time):
+	When calling (multiple-value-bind/setq .. ls) replace ls
+	by (values-list ls) throughout.
 
 2009-03-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
