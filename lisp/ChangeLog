@@ -10,6 +10,8 @@
 
 2009-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mailalias.el: Remove leading `*' from defcustom docs.
+
 	* mail/sendmail.el (mail-interactive): Doc fix.
 	(mail-yank-ignored-headers): Add X-RMAIL- headers, bump :version.
 	(mail-setup): Use the function mail-signature.
