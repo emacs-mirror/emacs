@@ -1,3 +1,8 @@
+2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* doc-view.el (doc-view-sentinel): Strip trailing newline from
+	event message.
+
 2009-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (undo): Don't loop when encountering empty undo records.
