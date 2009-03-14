@@ -1,3 +1,13 @@
+2009-03-14  David Reitter  <david.reitter@gmail.com>
+
+	* term/ns-win.el (ns-expand-space): remove.
+	(ns-show-prefs event): run `customize'.
+	(ns-power-off): run `save-buffers-kill-emacs', but ask user
+	whether to save files (as is standard)
+	(clipboard-yank, clipboard-kill-ring-save, clipboard-kill-region)
+	(menu-bar-enable-clipboard): do not undefine these.
+	(ns-save-preferences,ns-save-options,ns-show-preferences-help): remove.
+
 2009-03-14  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (mail-interactive): Doc fix.

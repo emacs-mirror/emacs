@@ -1379,17 +1379,6 @@ FRAME nil means use the selected frame.  */)
 }
 
 
-DEFUN ("ns-popup-prefs-panel", Fns_popup_prefs_panel, Sns_popup_prefs_panel,
-       0, 0, "",
-       doc: /* Pop up the preferences panel. */)
-     ()
-{
-  check_ns ();
-  [(EmacsApp *)NSApp showPreferencesWindow: NSApp];
-  return Qnil;
-}
-
-
 DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
        0, 1, "",
        doc: /* Pop up the font panel. */)
@@ -2729,7 +2718,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_perform_service);
   defsubr (&Sns_convert_utf8_nfd_to_nfc);
   defsubr (&Sx_focus_frame);
-  defsubr (&Sns_popup_prefs_panel);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);
 

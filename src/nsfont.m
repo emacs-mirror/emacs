@@ -42,7 +42,6 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
 static Lisp_Object Qapple, Qroman, Qmedium;
-extern Lisp_Object ns_expand_space;
 extern Lisp_Object Qappend;
 extern int ns_antialias_text, ns_use_qd_smoothing;
 extern float ns_antialias_threshold;
@@ -658,12 +657,12 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     min_height = [sfont ascender] - [sfont descender];
     hd = full_height - min_height;
 
-    if (!NUMBERP (ns_expand_space))
-      error ("No expand space defined");
+    /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
+    expand = 0.0; 
+    shrink = 1.0;
+    hshrink = 1.0;
 
-    /* ns_expand_space = 0.0 is use standard height; less shrink, more expand */
-    expand = XFLOATINT (ns_expand_space) + 0.5;
-
+    /*
     if (expand < 0.0)
       {
         shrink = 1 + expand;
@@ -672,6 +671,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       }
     else
       shrink = hshrink = 1.0;
+    */
 
     font_info->underpos = 2; /*[sfont underlinePosition] is often clipped out */
     font_info->underwidth = [sfont underlineThickness];

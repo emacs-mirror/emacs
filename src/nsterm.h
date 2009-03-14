@@ -317,52 +317,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 @end
 #endif	/* NS_IMPL_COCOA */
 
-
-/* ==========================================================================
-
-   Running the preferences window
-
-   ========================================================================== */
-
-@interface EmacsPrefsController : NSObject
-{
-    struct frame *frame;
-    IBOutlet NSWindow *prefsWindow;
-    IBOutlet NSPopUpButton *alternateModMenu;
-    IBOutlet NSPopUpButton *commandModMenu;
-#ifdef NS_IMPL_COCOA
-    IBOutlet NSPopUpButton *controlModMenu;
-    IBOutlet NSPopUpButton *functionModMenu;
-#endif
-    IBOutlet NSMatrix *cursorTypeMatrix;
-    IBOutlet NSSlider *expandSpaceSlider;
-#ifdef NS_IMPL_COCOA
-    IBOutlet NSButton *smoothFontsCheck;
-    IBOutlet NSButton *useQuickdrawCheck;
-    IBOutlet NSButton *useSysHiliteCheck;
-    IBOutlet NSButton *confirmQuitCheck;
-    Lisp_Object prevUseHighlightColor;
-#endif
-    float prevExpandSpace;
-#ifdef NS_IMPL_GNUSTEP
-    /* TODO: remove as soon as someone can edit the .nib to replace the
-             cursor-blink widget with checkbox conn to confirmQuitCheck */
-    IBOutlet NSSlider *cursorBlinkSlider;
-#endif
-}
-- (IBAction)cancel: (id)sender;
-- (IBAction)ok: (id)sender;
-- (IBAction)resetToDefaults: (id)sender;
-- (IBAction)runHelp: (id)sender;
-- (IBAction)setColors: (id)sender;
-- (IBAction)setDefaultFont: (id)sender;
-
-- (void) showForFrame: (struct frame *)f;
-- (void) setPanelFromValues;
-- (void) setPanelFromDefaultValues;
-- (void) setValuesFromPanel;
-@end
-
 extern NSArray *ns_send_types, *ns_return_types;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
@@ -402,7 +356,7 @@ typedef unsigned long NSUInteger;
 #define KEY_NS_SPI_SERVICE_CALL        ((1<<28)|(0<<16)|11)
 #define KEY_NS_NEW_FRAME               ((1<<28)|(0<<16)|12)
 #define KEY_NS_TOGGLE_TOOLBAR          ((1<<28)|(0<<16)|13)
-#define KEY_NS_INFO_PREFS              ((1<<28)|(0<<16)|14)
+#define KEY_NS_SHOW_PREFS              ((1<<28)|(0<<16)|14)
 
 /* could use list to store these, but rest of emacs has a big infrastructure
    for managing a table of bitmap "records" */
