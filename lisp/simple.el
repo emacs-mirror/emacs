@@ -1980,7 +1980,8 @@ If you did not execute any such command, the situation is
 probably due to a bug and you should report it.
 
 You can disable the popping up of this buffer by adding the entry
-\(undo discard-info) to the user option `warning-suppress-types'.\n")
+\(undo discard-info) to the user option `warning-suppress-types',
+which is defined in the `warnings' library.\n")
 		     :warning)
     (setq buffer-undo-list nil)
     t))
