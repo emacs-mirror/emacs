@@ -1,9 +1,9 @@
-;;; cit-load.el ---
+;;; cit-load.el --- Configuration when running the integration tests.
 
-;; Copyright (C) 2008 Eric M. Ludlam
+;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-load.el,v 1.3 2008-03-11 02:35:54 zappo Exp $
+;; X-RCS: $Id: cit-load.el,v 1.4 2009-03-14 15:17:28 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -22,7 +22,10 @@
 
 ;;; Commentary:
 ;;
-;; Loading cit stuff.
+;; Do a setup for running the integration tests.
+;;
+;; Disable various caches as needed to mimic a CEDET install that
+;; is bootstrapping up for the first time.
 
 ;;; Code:
 
@@ -34,6 +37,16 @@
   "Src dir to CIT testing suite.")
 
 (setq inhibit-splash-screen t)
+
+;; Disables all caches related to semantic DB so all
+;; tests run as if we have bootstrapped CEDET for the
+;; first time.
+(setq-default semanticdb-new-database-class 'semanticdb-project-database)
+(message "Disabling existing Semantic Database Caches.")
+
+;; Disabling the srecoder map, we won't load a pre-existing one
+;; and will be forced to bootstrap a new one.
+(setq srecode-map-save-file nil)
 
 (require 'cedet-integ-test)
 
