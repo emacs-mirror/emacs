@@ -36,12 +36,12 @@
   :group 'mail)
 
 (defcustom mail-passwd-files '("/etc/passwd")
-  "*List of files from which to determine valid user names."
+  "List of files from which to determine valid user names."
   :type '(repeat string)
   :group 'mailalias)
 
 (defcustom mail-passwd-command nil
-  "*Shell command to retrieve text to add to `/etc/passwd', or nil."
+  "Shell command to retrieve text to add to `/etc/passwd', or nil."
   :type '(choice string (const nil))
   :group 'mailalias)
 
@@ -66,7 +66,7 @@ When t this still needs to be initialized.")
 	  ("Followup-To:" . (mail-sentto-newsgroups))
 	  ;;("Distribution:" ???)
 	  ))
-  "*Alist of header field and expression to return alist for completion.
+  "Alist of header field and expression to return alist for completion.
 The expression may reference the variable `pattern'
 which will hold the string being completed.
 If not on matching header, `mail-complete-function' gets called instead."
@@ -76,7 +76,7 @@ If not on matching header, `mail-complete-function' gets called instead."
 
 ;;;###autoload
 (defcustom mail-complete-style 'angles
-  "*Specifies how \\[mail-complete] formats the full name when it completes.
+  "Specifies how \\[mail-complete] formats the full name when it completes.
 If `nil', they contain just the return address like:
 	king@grassland.com
 If `parens', they look like:
@@ -87,26 +87,26 @@ If `angles', they look like:
   :group 'mailalias)
 
 (defcustom mail-complete-function 'ispell-complete-word
-  "*Function to call when completing outside `mail-complete-alist'-header."
+  "Function to call when completing outside `mail-complete-alist'-header."
   :type '(choice function (const nil))
   :group 'mailalias)
 
 (defcustom mail-directory-function nil
-  "*Function to get completions from directory service or nil for none.
+  "Function to get completions from directory service or nil for none.
 See `mail-directory-requery'."
   :type '(choice function (const nil))
   :group 'mailalias)
 
 ;; This is for when the directory is huge, or changes frequently.
 (defcustom mail-directory-requery nil
-  "*When non-nil call `mail-directory-function' for each completion.
+  "When non-nil call `mail-directory-function' for each completion.
 In that case, one argument gets passed to the function, the partial string
 entered so far."
   :type 'boolean
   :group 'mailalias)
 
 (defcustom mail-directory-process nil
-  "*Shell command to get the list of names from a mail directory.
+  "Shell command to get the list of names from a mail directory.
 This value is used when the value of `mail-directory-function'
 is `mail-directory-process'.  The value should be a list
 of the form (COMMAND ARG ...), where each of the list elements
@@ -127,13 +127,13 @@ or like this:
 (put 'mail-directory-process 'risky-local-variable t)
 
 (defcustom mail-directory-stream nil
-  "*List of (HOST SERVICE) for stream connection to mail directory."
+  "List of (HOST SERVICE) for stream connection to mail directory."
   :type 'sexp
   :group 'mailalias)
 (put 'mail-directory-stream 'risky-local-variable t)
 
 (defcustom mail-directory-parser nil
-  "*How to interpret the output of `mail-directory-function'.
+  "How to interpret the output of `mail-directory-function'.
 Three types of values are possible:
 
   - nil means to gather each line as one name
