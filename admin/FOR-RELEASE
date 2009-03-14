@@ -210,7 +210,7 @@ positions.texi
 processes.texi
 searching.texi
 sequences.texi    -- cyd
-streams.texi
+streams.texi      -- cyd
 strings.texi      -- cyd
 symbols.texi      -- cyd
 syntax.texi
