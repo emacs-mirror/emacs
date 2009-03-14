@@ -5,6 +5,9 @@
 
 2009-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tar-mode.el (tar-extract): Setup the buffer's name, undo-list, and
+	modified status before running the major-mode.
+
 	* simple.el (undo): Don't loop when encountering empty undo records.
 
 2009-03-13  Tassilo Horn  <tassilo@member.fsf.org>

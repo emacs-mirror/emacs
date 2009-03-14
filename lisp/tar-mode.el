@@ -622,10 +622,6 @@ inside of a tar archive without extracting it and re-archiving it.
 
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 \\{tar-mode-map}"
-  ;; this is not interactive because you shouldn't be turning this
-  ;; mode on and off.  You can corrupt things that way.
-  ;; rms: with permanent locals, it should now be possible to make this work
-  ;; interactively in some reasonable fashion.
   (make-local-variable 'tar-parse-info)
   (set (make-local-variable 'require-final-newline) nil) ; binary data, dude...
   (set (make-local-variable 'local-enable-local-variables) nil)
@@ -839,15 +835,13 @@ appear on disk when you save the tar-file's buffer."
           (setq default-directory
                 (with-current-buffer tar-buffer
                   default-directory))
-          (normal-mode)  ; pick a mode.
           (rename-buffer bufname)
-          (make-local-variable 'tar-superior-buffer)
-          (make-local-variable 'tar-superior-descriptor)
-          (setq tar-superior-buffer tar-buffer)
-          (setq tar-superior-descriptor descriptor)
-          (setq buffer-read-only read-only-p)
           (set-buffer-modified-p nil)
           (setq buffer-undo-list undo-list)
+          (normal-mode)  ; pick a mode.
+          (set (make-local-variable 'tar-superior-buffer) tar-buffer)
+          (set (make-local-variable 'tar-superior-descriptor) descriptor)
+          (setq buffer-read-only read-only-p)
           (tar-subfile-mode 1)))
       (if view-p
 	  (view-buffer
