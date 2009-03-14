@@ -564,7 +564,10 @@ Should be invoked when the cached images aren't up-to-date."
   "Generic sentinel for doc-view conversion processes."
   (if (not (string-match "finished" event))
       (message "DocView: process %s changed status to %s."
-               (process-name proc) event)
+               (process-name proc)
+	       (if (string-match "\\(.+\\)\n?\\'" event)
+		   (match-string 1 event)
+		 event))
     (when (buffer-live-p (process-get proc 'buffer))
       (with-current-buffer (process-get proc 'buffer)
         (setq doc-view-current-converter-processes
