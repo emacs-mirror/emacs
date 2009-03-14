@@ -7,18 +7,17 @@
 	* vc-git.el (vc-git-previous-revision, vc-git-next-revision):
 	Fall back to original commit if vc-git-symbolic-commit fails to
 	find a symbolic name.
-	(vc-git-symbolic-commit): Don't limit search to tags. Treat
-	"undefined" as an error. (Bug #2110)
+	(vc-git-symbolic-commit): Don't limit search to tags.
+	Treat "undefined" as an error.  (Bug #2110)
 
 2009-03-13  D. Goel  <deego3@gmail.com>
 
-
-	* ibuf-ext.el: 
+	* ibuf-ext.el:
 	When calling (multiple-value-bind/setq .. ls)
-	ls -> (values-list ls)  throughout. 
+	ls -> (values-list ls) throughout.
 
 	* progmodes/flymake.el (flymake-float-time): Ditto.
-	
+
 	* progmodes/ebrowse.el: Ditto.
 
 	* midnight.el (midnight-next): Ditto.
@@ -28,7 +27,7 @@
 2009-03-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-get-word): Initialize spellchecker
-	params. (Bug #2654)
+	params.  (Bug #2654)
 
 2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
