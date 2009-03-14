@@ -1057,6 +1057,9 @@ from that sequence is used.  The special value `t' means "no switches".
 *** Clicking on the VC mode-line entry now pops the VC menu.
 +++
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
+
+*** In VC Annotate mode, the key bindings have changed to use lower
+case keys instead of the upper case keys used in the past.
 +++
 *** In VC Annotate mode, for VC systems that support changesets, you can
 see the diff for the whole changeset (not only for the current file)
