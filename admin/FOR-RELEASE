@@ -160,7 +160,8 @@ regs.texi         -- cyd
 rmail.texi        -- rgm
 screen.texi       -- cyd
 search.texi       -- cyd
-sending.texi
+sending.texi      -- rgm (maybe needs some brief mailclient.el details in
+                          "Mail Sending" section?)
 text.texi         -- cyd
 trouble.texi
 windows.texi      -- rudalics
