@@ -1085,13 +1085,13 @@ merge in the changes into your working copy."
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
 	  (if (not verbose)
-	      (vc-checkin ready-for-commit)
+	      (vc-checkin ready-for-commit backend)
 	    (progn
 	      (setq revision (read-string "New revision or backend: "))
 	      (let ((vsym (intern (upcase revision))))
 		(if (member vsym vc-handled-backends)
 		    (dolist (file files) (vc-transfer-file file vsym))
-		  (vc-checkin ready-for-commit revision))))))))
+		  (vc-checkin ready-for-commit backend revision))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
@@ -1327,7 +1327,7 @@ Type \\[vc-next-action] to check in changes.")
      ".\n")
     (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
 
-(defun vc-checkin (files &optional rev comment initial-contents)
+(defun vc-checkin (files backend &optional rev comment initial-contents)
   "Check in FILES.
 The optional argument REV may be a string specifying the new revision
 level (if nil increment the current level).  COMMENT is a comment
@@ -1341,28 +1341,30 @@ that the version control system supports this mode of operation.
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (when vc-before-checkin-hook
     (run-hooks 'vc-before-checkin-hook))
-  (vc-start-logentry
-   files rev comment initial-contents
-   "Enter a change comment."
-   "*VC-log*"
-   (lambda (files rev comment)
-     (message "Checking in %s..." (vc-delistify files))
-     ;; "This log message intentionally left almost blank".
-     ;; RCS 5.7 gripes about white-space-only comments too.
-     (or (and comment (string-match "[^\t\n ]" comment))
-	 (setq comment "*** empty log message ***"))
-     (with-vc-properties
-      files
-      ;; We used to change buffers to get local value of vc-checkin-switches,
-      ;; but 'the' local buffer is not a well-defined concept for filesets.
-      (progn
-	(vc-call checkin files rev comment)
-	(mapc 'vc-delete-automatic-version-backups files))
-      `((vc-state . up-to-date)
-	(vc-checkout-time . ,(nth 5 (file-attributes file)))
-	(vc-working-revision . nil)))
-     (message "Checking in %s...done" (vc-delistify files)))
-   'vc-checkin-hook))
+  (lexical-let
+   ((backend backend))
+   (vc-start-logentry
+    files rev comment initial-contents
+    "Enter a change comment."
+    "*VC-log*"
+    (lambda (files rev comment)
+      (message "Checking in %s..." (vc-delistify files))
+      ;; "This log message intentionally left almost blank".
+      ;; RCS 5.7 gripes about white-space-only comments too.
+      (or (and comment (string-match "[^\t\n ]" comment))
+	  (setq comment "*** empty log message ***"))
+      (with-vc-properties
+       files
+       ;; We used to change buffers to get local value of vc-checkin-switches,
+       ;; but 'the' local buffer is not a well-defined concept for filesets.
+       (progn
+	 (vc-call-backend backend 'checkin files rev comment)
+	 (mapc 'vc-delete-automatic-version-backups files))
+       `((vc-state . up-to-date)
+	 (vc-checkout-time . ,(nth 5 (file-attributes file)))
+	 (vc-working-revision . nil)))
+      (message "Checking in %s...done" (vc-delistify files)))
+    'vc-checkin-hook)))
 
 ;;; Additional entry points for examining version histories
 
@@ -2096,7 +2098,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
       (vc-mode-line file)
-      (vc-checkin file nil comment (stringp comment)))))
+      (vc-checkin file new-backend nil comment (stringp comment)))))
 
 (defun vc-rename-master (oldmaster newfile templates)
   "Rename OLDMASTER to be the master file for NEWFILE based on TEMPLATES."

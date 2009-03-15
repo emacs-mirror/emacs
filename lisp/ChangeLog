@@ -1,3 +1,10 @@
+2009-03-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-checkin): Add an extra argument for the VC backend,
+	pass it down to vc-start-logentry.
+	(vc-next-action, vc-transfer-file): Pass the VC backend to
+	vc-checkin.
+
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (get-free-disk-space): Ensure that default-directory is
