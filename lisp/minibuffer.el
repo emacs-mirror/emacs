@@ -307,7 +307,7 @@ where NAME is the name that should be used in `completion-styles',
 TRY-COMPLETION is the function that does the completion, and
 ALL-COMPLETIONS is the function that lists the completions.")
 
-(defcustom completion-styles '(basic partial-completion)
+(defcustom completion-styles '(basic partial-completion emacs22)
   "List of completion styles to use."
   :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
                                    completion-styles-alist)))
