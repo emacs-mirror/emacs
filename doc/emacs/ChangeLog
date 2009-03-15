@@ -1,3 +1,10 @@
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Completion Commands): Describe Emacs 23 completion rules.
+	(Completion Options): Document read-file-name-completion-ignore-case,
+	read-buffer-completion-ignore-case, and completion-styles.  Remove
+	description of partial-completion-mode.
+
 2009-03-14  Glenn Morris  <rgm@gnu.org>
 
 	* sending.texi (Mail Format): Fix typo.  Add index entry for
