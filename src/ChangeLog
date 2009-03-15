@@ -1,16 +1,16 @@
 2009-03-14  David Reitter <david.reitter@gmail.com>
 
-	* nsterm.m (ns_shutdown_properly, -terminate): remove global state
-	variable as it was never reset
-	(ns_term_init): remove initialization of Lisp-settable defaults
-	and ns_expand_space
-	(-setPanelFromDefaultValues): remove ns_expand_space.
-	(-showPreferencesWindow): send new KEY_NS_SHOW_PREFS key.
-	* nsfont.m (nsfont_open): remove ns_expand_space, assume -0.5
+	* nsterm.m (ns_shutdown_properly, -terminate): Remove global state
+	variable as it was never reset.
+	(ns_term_init): Remove initialization of Lisp-settable defaults
+	and ns_expand_space.
+	(-setPanelFromDefaultValues): Remove ns_expand_space.
+	(-showPreferencesWindow): Send new KEY_NS_SHOW_PREFS key.
+	* nsfont.m (nsfont_open): Remove ns_expand_space, assume -0.5
 	i.e. no additional spacing, similar to Carbon port.
 
-	* nsterm.h: define KEY_NS_SHOW_PREFS key.
-	* nsfns.m (ns-popup-prefs-panel): remove.
+	* nsterm.h: Define KEY_NS_SHOW_PREFS key.
+	* nsfns.m (ns-popup-prefs-panel): Remove.
 
 2009-03-14  Jan Djärv  <jan.h.d@swipnet.se>
 
