@@ -499,7 +499,7 @@ showing a list of possible coding systems.
   The variable @code{send-mail-function} controls how the default mail
 user agent sends mail.  It should be set to a function.  In most cases,
 the default is @code{sendmail-send-it}, which delivers mail using the
-Sendmail installation on the local host.  On Mac OS X and Windows,
+Sendmail installation on the local host.  On Mac OS X and MS-Windows,
 however, the default is normally @code{mailclient-send-it} (see
 @file{mailclient.el}).  To send mail through an SMTP
 server, set @code{send-mail-function} to @code{smtpmail-send-it} and set
