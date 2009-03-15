@@ -471,6 +471,8 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
+extern Lisp_Object Qremap;
+
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 Lisp_Object Qmouse_fixup_help_message;
 #endif
@@ -8067,6 +8069,11 @@ parse_menu_item (item, notreal, inmenubar)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
+
+	  /* Don't display remap bindings.*/
+	  if (VECTORP (tem) && ASIZE (tem) > 0 && EQ (AREF (tem, 0), Qremap))
+	    tem = Qnil;
+
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
