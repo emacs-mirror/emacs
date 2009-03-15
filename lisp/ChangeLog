@@ -1,5 +1,8 @@
 2009-03-15  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-preamble-extra): Add an example string
+	value to help people with the formatting.
+
 	* mail/sendmail.el (mail-yank-prefix): Doc fix.
 	(mail-mode-map): Only enable the "Cite Original" menu-item when
 	appropriate.  Standardize the text used for other headers re hyphens.
