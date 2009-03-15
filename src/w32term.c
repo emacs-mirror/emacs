@@ -4105,7 +4105,7 @@ w32_read_socket (sd, expected, hold_quit)
 
       switch (msg.msg.message)
 	{
-	case WM_PAINT:
+	case WM_EMACS_PAINT:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
 	  if (f)

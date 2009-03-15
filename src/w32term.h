@@ -609,7 +609,8 @@ do { \
 #define WM_EMACS_SHOW_CARET            (WM_EMACS_START + 17)
 #define WM_EMACS_HIDE_CARET            (WM_EMACS_START + 18)
 #define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
-#define WM_EMACS_END                   (WM_EMACS_START + 20)
+#define WM_EMACS_PAINT                 (WM_EMACS_START + 20)
+#define WM_EMACS_END                   (WM_EMACS_START + 21)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)

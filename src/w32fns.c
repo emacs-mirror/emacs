@@ -2841,7 +2841,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
             EndPaint (hwnd, &paintStruct);
             leave_crit ();
 
-            my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	    /* Change the message type to prevent Windows from
+	       combining WM_PAINT messages in the Lisp thread's queue,
+	       since Windows assumes that each message queue is
+	       dedicated to one frame and does not bother checking
+	       that hwnd matches before combining them.  */
+            my_post_msg (&wmsg, hwnd, WM_EMACS_PAINT, wParam, lParam);
 
             return 0;
           }

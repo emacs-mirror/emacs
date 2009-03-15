@@ -1,3 +1,10 @@
+2009-03-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (WM_EMACS_PAINT): New message.
+	* w32term.c (w32_read_socket): Use it instead of WM_PAINT.
+	* w32fns.c (w32_wnd_proc): Change WM_PAINT to WM_EMACS_PAINT
+	before passing to lisp thread.  (Bug#950)
+
 2009-03-14  David Reitter <david.reitter@gmail.com>
 
 	* nsterm.m (ns_shutdown_properly, -terminate): Remove global state
