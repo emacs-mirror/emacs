@@ -242,7 +242,7 @@ The alias definitions in the file have this form:
 ;;;###autoload
 (defcustom mail-yank-prefix nil
   "Prefix insert on lines of yanked message being replied to.
-nil means use indentation."
+If this is nil, use indentation, as specified by `mail-indentation-spaces'."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
@@ -315,6 +315,8 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map "\C-c\C-c" 'mail-send-and-exit)
     (define-key map "\C-c\C-s" 'mail-send)
     (define-key map "\C-c\C-i" 'mail-attach-file)
+    ;; FIXME add this? "b" = bury buffer.  It's in the menu-bar.
+;;;    (define-key map "\C-c\C-b" 'mail-dont-send)
 
     (define-key map [menu-bar mail]
       (cons "Mail" (make-sparse-keymap "Mail")))
@@ -323,7 +325,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
       '("Fill Citation" . mail-fill-yanked-message))
 
     (define-key map [menu-bar mail yank]
-      '("Cite Original" . mail-yank-original))
+      '(menu-item "Cite Original" mail-yank-original :enable mail-reply-action))
 
     (define-key map [menu-bar mail signature]
       '("Insert Signature" . mail-signature))
@@ -350,13 +352,13 @@ The default value matches citations like `foo-bar>' plus whitespace."
       '("Expand Aliases" . expand-mail-aliases))
 
     (define-key map [menu-bar headers sent-via]
-      '("Sent Via" . mail-sent-via))
+      '("Sent-Via" . mail-sent-via))
 
     (define-key map [menu-bar headers mail-reply-to]
-      '("Mail Reply To" . mail-mail-reply-to))
+      '("Mail-Reply-To" . mail-mail-reply-to))
 
     (define-key map [menu-bar headers mail-followup-to]
-      '("Mail Followup To" . mail-mail-followup-to))
+      '("Mail-Followup-To" . mail-mail-followup-to))
 
     (define-key map [menu-bar headers reply-to]
       '("Reply-To" . mail-reply-to))
