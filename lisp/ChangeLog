@@ -1,3 +1,8 @@
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion-styles): Add emacs22 completion style
+	as fallback.
+
 2009-03-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-checkin): Add an extra argument for the VC backend,
