@@ -453,7 +453,7 @@ completion-ignore-case for file name completion.
 +++
 *** The variable read-buffer-completion-ignore-case overrides
 completion-ignore-case for buffer name completion.
----
++++
 *** `completion-styles' can be customized to choose your favorite
 completion style.
 ---
