@@ -771,7 +771,8 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(From\\|Sender\\|Resent-From\\):"
 	      . 'rmail-header-name)
-	    '("^Reply-To:.*$" . 'rmail-header-name)
+	    '("^\\(Mail-\\)?Reply-To:.*$" . 'rmail-header-name)
+	    ;; FIXME Mail-Followup-To should probably be here too.
 	    '("^Subject:" . 'rmail-header-name)
 	    '("^X-Spam-Status:" . 'rmail-header-name)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"

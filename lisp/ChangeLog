@@ -1,3 +1,12 @@
+2009-03-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-yank-prefix): Doc fix.
+	(mail-mode-map): Only enable the "Cite Original" menu-item when
+	appropriate.  Standardize the text used for other headers re hyphens.
+
+	* mail/rmail.el (rmail-font-lock-keywords): Treat "Mail-Reply-To"
+	like "Reply-To".
+
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-styles): Add emacs22 completion style
