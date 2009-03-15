@@ -5336,10 +5336,17 @@ program specified by `directory-free-space-program' if that is non-nil."
       (save-match-data
 	(with-temp-buffer
 	  (when (and directory-free-space-program
-		     (eq 0 (call-process directory-free-space-program
+		     (let ((default-directory
+			     (if (and (not (file-remote-p default-directory))
+				      (file-directory-p default-directory)
+				      (file-readable-p default-directory))
+				 default-directory
+			       (expand-file-name "~/"))))
+		       (eq (call-process directory-free-space-program
 					 nil t nil
 					 directory-free-space-args
-					 dir)))
+					 dir)
+			   0)))
 	    ;; Usual format is a header line followed by a line of
 	    ;; numbers.
 	    (goto-char (point-min))
