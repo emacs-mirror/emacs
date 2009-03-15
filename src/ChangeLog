@@ -1,3 +1,8 @@
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (parse_menu_item): Don't display remappings as menu
+	equivalent bindings (Bug#788).
+
 2009-03-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (WM_EMACS_PAINT): New message.
