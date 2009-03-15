@@ -1,3 +1,9 @@
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (get-free-disk-space): Ensure that default-directory is
+	usable before calling call-process.  Suggested by Kevin
+	Ryde (Bug#2631).
+
 2009-03-14  David Reitter  <david.reitter@gmail.com>
 
 	* term/ns-win.el (ns-expand-space): Remove.
