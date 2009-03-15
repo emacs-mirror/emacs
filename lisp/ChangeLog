@@ -4,6 +4,8 @@
 	pass it down to vc-start-logentry.
 	(vc-next-action, vc-transfer-file): Pass the VC backend to
 	vc-checkin.
+	(vc-next-action): Do not assume that all backends in
+	vc-handled-backends are upper case.
 
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -1041,9 +1041,12 @@ merge in the changes into your working copy."
        (verbose
 	;; go to a different revision
 	(setq revision (read-string "Branch, revision, or backend to move to: "))
-	(let ((vsym (intern-soft (upcase revision))))
-	  (if (member vsym vc-handled-backends)
-	      (dolist (file files) (vc-transfer-file file vsym))
+	(let ((revision-downcase (downcase revision)))
+	  (if (member
+	       revision-downcase
+	       (mapcar (lambda (arg) (downcase (symbol-name arg))) vc-handled-backends))
+	      (let ((vsym (intern-soft revision-downcase)))
+		(dolist (file files) (vc-transfer-file file vsym)))
 	    (dolist (file files)
               (vc-checkout file (eq model 'implicit) revision)))))
        ((not (eq model 'implicit))
@@ -1086,12 +1089,15 @@ merge in the changes into your working copy."
 	    (message "No files remain to be committed")
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit backend)
-	    (progn
-	      (setq revision (read-string "New revision or backend: "))
-	      (let ((vsym (intern (upcase revision))))
-		(if (member vsym vc-handled-backends)
-		    (dolist (file files) (vc-transfer-file file vsym))
-		  (vc-checkin ready-for-commit backend revision))))))))
+	    (setq revision (read-string "New revision or backend: "))
+	    (let ((revision-downcase (downcase revision)))
+	      (if (member
+		   revision-downcase
+		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
+			   vc-handled-backends))
+		  (let ((vsym (intern revision-downcase)))
+		    (dolist (file files) (vc-transfer-file file vsym)))
+		(vc-checkin ready-for-commit backend revision)))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
