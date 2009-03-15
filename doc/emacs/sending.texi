@@ -91,14 +91,14 @@ separate manual.  It may be useful for looking up names and addresses.
 
   In addition to the @dfn{text} or @dfn{body}, a message has @dfn{header
 fields} which say who sent it, when, to whom, why, and so on.  Some
-header fields, such as @samp{Date} and @samp{Sender}, are created
+header fields, such as @samp{Date} and @samp{Message-Id}, are created
 automatically when you send the message.  Others, such as the recipient
 names, must be specified by you in order to send the message properly.
 
   In the mail buffer, you can insert and edit header fields using
 ordinary editing commands.  Mail mode provides commands to help you
-edit some header fields, and some are preinitialized in the buffer
-automatically when appropriate.
+edit some header fields, and some are automatically preinitialized in
+the buffer, when appropriate.
 
 @vindex mail-header-separator
   The line in the buffer that says
@@ -211,8 +211,13 @@ To put a fixed @samp{Reply-to} address into every outgoing message, set
 the variable @code{mail-default-reply-to} to that address (as a string).
 Then Emacs initializes the message with a @samp{Reply-to} field as
 specified.  When you first compose a mail, if
-@code{mail-default-reply-to} is @code{nil}, it is initialized from the
+@code{mail-default-reply-to} is @code{nil}, Emacs initializes it from the
 environment variable @env{REPLYTO}.
+
+@item Mail-reply-to
+  This field takes precedence over @samp{Reply-to}.  It is used because
+some mailing lists set the @samp{Reply-to} field for their own purposes
+(a somewhat controversial practice).
 
 @item Mail-followup-to
   This field contains one or more addresses.  It is typically used when
@@ -237,9 +242,9 @@ when you reply to a message in Rmail, and you never need to
 think about it (@pxref{Rmail}).
 
 @item References
-This field lists the message IDs of related previous messages (a message
-ID is a unique identifier generated when a message is sent).  Rmail sets
-up this field automatically when you reply to a message.
+This field lists the Message-Ids of related previous messages (a
+Message-Id is a unique identifier generated when a message is sent).
+Rmail sets up this field automatically when you reply to a message.
 @end table
 
   The @samp{To}, @samp{CC}, and @samp{BCC} header fields can appear
@@ -284,8 +289,7 @@ Allow the system to insert the @samp{From} field.
 outgoing message by setting the variable @code{mail-default-headers}
 to a string.  Then @code{C-x m} inserts this string into the message
 headers.  If the default header fields are not appropriate for a
-particular message, edit them as appropriate before sending the
-message.
+particular message, edit them as necessary before sending the message.
 
 @node Mail Aliases
 @section Mail Aliases
@@ -328,12 +332,12 @@ include double quotes around parts of the address, such as the person's
 full name.  Emacs puts them in if they are needed.  For example,
 
 @example
-alias pres "President of the United States <president@@whitehouse.gov>"
+alias jsmith "John Q. Smith <none@@example.com>"
 @end example
 
 @noindent
 is correct in @samp{.mailrc}.  Emacs will insert the address as
-@samp{"President of the United States" <president@@whitehouse.gov>}.
+@samp{"John Q. Smith" <none@@example.com>}.
 
   Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
 They look like this:
@@ -493,14 +497,16 @@ showing a list of possible coding systems.
 @cindex Mailclient
 @vindex send-mail-function
   The variable @code{send-mail-function} controls how the default mail
-user agent sends mail.  It should be set to a function.  The default
-is @code{sendmail-send-it}, which delivers mail using the Sendmail
-installation on the local host.  To send mail through a SMTP server,
-set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
-(@pxref{Top,,Emacs SMTP Library, smtpmail, Sending mail via SMTP}).
-Other options are @code{feedmail-send-it} (see the commentary section of
-the @file{feedmail.el} package), and @code{mailclient-send-it} (see
-@file{mailclient.el}).
+user agent sends mail.  It should be set to a function.  In most cases,
+the default is @code{sendmail-send-it}, which delivers mail using the
+Sendmail installation on the local host.  On Mac OS X and Windows,
+however, the default is normally @code{mailclient-send-it} (see
+@file{mailclient.el}).  To send mail through an SMTP
+server, set @code{send-mail-function} to @code{smtpmail-send-it} and set
+up the Emacs SMTP library (@pxref{Top,,Emacs SMTP Library, smtpmail,
+Sending mail via SMTP}).  Another option is @code{feedmail-send-it} (see
+the commentary section of the @file{feedmail.el} package).
+@c FIXME Some details of Mailclient would probably be good.
 
 @node Header Editing
 @subsection Mail Header Editing
@@ -609,16 +615,17 @@ Fill each paragraph cited from another message
 @kindex C-c C-y @r{(Mail mode)}
 @findex mail-yank-original
   When mail sending is invoked from the Rmail mail reader using an Rmail
-command, @kbd{C-c C-y} can be used inside the mail buffer to insert
-the text of the message you are replying to.  Normally it indents each line
+command, @kbd{C-c C-y} can be used inside the mail buffer to insert the
+text of the message you are replying to.  Normally it indents each line
 of that message three spaces and eliminates most header fields (as
 specified by the variable @code{mail-yank-ignored-headers}).  A numeric
-argument specifies the number of spaces to indent.  An argument of just
-@kbd{C-u} says not to indent at all and not to eliminate anything.
-@kbd{C-c C-y} always uses the current message from the Rmail buffer,
-so you can insert several old messages by selecting one in Rmail,
-switching to @samp{*mail*} and yanking it, then switching back to
-Rmail to select another.
+argument specifies the number of spaces to indent (the variable
+@code{mail-indentation-spaces} specifies the default number).  An
+argument of just @kbd{C-u} says not to indent at all and not to
+eliminate anything.  @kbd{C-c C-y} always uses the current message from
+the Rmail buffer, so you can insert several old messages by selecting
+one in Rmail, switching to @samp{*mail*} and yanking it, then switching
+back to Rmail to select another.
 
 @vindex mail-yank-prefix
   You can specify the text for @kbd{C-c C-y} to insert at the beginning
@@ -626,7 +633,6 @@ of each line: set @code{mail-yank-prefix} to the desired string.  (A
 value of @code{nil} means to use indentation; this is the default.)
 However, @kbd{C-u C-c C-y} never adds anything at the beginning of the
 inserted lines, regardless of the value of @code{mail-yank-prefix}.
-@c Indentation controlled by mail-indentation-spaces.
 
 @kindex C-c C-r @r{(Mail mode)}
 @findex mail-yank-region
@@ -677,14 +683,14 @@ separator line---that is, to the beginning of the message body text.
 @kindex C-c C-w @r{(Mail mode)}
 @findex mail-signature
 @vindex mail-signature
-  @kbd{C-c C-w} (@code{mail-signature}) adds a standard piece of text at
-the end of the message to say more about who you are.  For example, it
-may contain telephone numbers, or your physical location.  The text
-comes from the variable @code{mail-signature}.  It can be a fixed
-string, or a Lisp expression that returns a string.  If it is @code{t}
-or @code{nil}, the function inserts the contents of the file
-@code{mail-signature-file}.  By default, this is the file
-@file{~/.signature} in your home directory.
+  @kbd{C-c C-w} (@code{mail-signature}) adds a standard piece of text
+(your @dfn{mail signature}) at the end of the message to say more about who
+you are.  For example, it may contain telephone numbers, or your
+physical location.  The text comes from the variable
+@code{mail-signature}.  It can be a fixed string, or a Lisp expression
+that returns a string.  If it is @code{t} or @code{nil}, the function
+inserts the contents of the file @code{mail-signature-file}.  By
+default, this is the file @file{~/.signature} in your home directory.
 
   If the variable @code{mail-signature} has a non-@code{nil} value,
 starting a mail automatically inserts your signature.  Otherwise, you

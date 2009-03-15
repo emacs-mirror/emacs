@@ -1,3 +1,15 @@
+2009-03-15  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Format): Replace "Sender" with "Message-Id", since
+	the former is not always used.
+	(Mail Headers): Use active voice.  Add "Mail-reply-to".
+	Change case of "Id".  Avoid repeated "appropriate".
+	(Mail Aliases): Fix previous change - use an example with a ".", so it
+	does actually get quoted when expanded.
+	(Mail Sending): Mailclient is the default on some systems.
+	(Citing Mail): Mention mail-indentation-spaces.
+	(Mail Mode Misc): Add an @dfn for "mail signature".
+
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mini.texi (Completion Commands): Describe Emacs 23 completion rules.
