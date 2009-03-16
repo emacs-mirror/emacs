@@ -3758,6 +3758,7 @@ specifying headers which should not be copied into the new message."
 	    (mail-sendmail-delimit-header)
 	    (save-restriction
 	      (narrow-to-region (point-min) (mail-header-end))
+	      (rmail-delete-headers rmail-ignored-headers)
 	      (rmail-delete-headers rmail-retry-ignored-headers)
 	      (rmail-delete-headers "^\\(sender\\|return-path\\|received\\):")
 	      (setq resending (mail-fetch-field "resent-to"))
