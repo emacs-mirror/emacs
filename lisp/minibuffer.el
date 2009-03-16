@@ -1105,17 +1105,31 @@ the same non-empty string that was inserted by this function.
 If the user exits with an empty minibuffer, this function returns
 an empty string.  (This can only happen if the user erased the
 pre-inserted contents or if `insert-default-directory' is nil.)
-Fourth arg MUSTMATCH non-nil means require existing file's name.
- Non-nil and non-t means also require confirmation after completion.
+
+Fourth arg MUSTMATCH can take the following values:
+- nil means that the user can exit with any input.
+- t means that the user is not allowed to exit unless
+  the input is (or completes to) an existing file.
+- `confirm' means that the user can exit with any input, but she needs
+  to confirm her choice if the input is not an existing file.
+- `confirm-after-completion' means that the user can exit with any
+  input, but she needs to confirm her choice if she called
+  `minibuffer-complete' right before `minibuffer-complete-and-exit'
+  and the input is not an existing file.
+- anything else behaves like t except that typing RET does not exit if it
+  does non-null completion.
+
 Fifth arg INITIAL specifies text to start with.
+
 If optional sixth arg PREDICATE is non-nil, possible completions and
 the resulting file name must satisfy (funcall PREDICATE NAME).
 DIR should be an absolute directory name.  It defaults to the value of
 `default-directory'.
 
-If this command was invoked with the mouse, use a file dialog box if
-`use-dialog-box' is non-nil, and the window system or X toolkit in use
-provides a file dialog box.
+If this command was invoked with the mouse, use a graphical file
+dialog if `use-dialog-box' is non-nil, and the window system or X
+toolkit in use provides a file dialog box.  For graphical file
+dialogs, any non-nil value of MUSTMATCH is equivalent to t.
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
