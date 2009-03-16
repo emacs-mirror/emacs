@@ -411,6 +411,19 @@ Emacs asks for confirmation.  The default value is `after-completion'.
 If you change it to t, Emacs always asks for confirmation; if you
 change it to nil, Emacs never asks for confirmation.
 +++
+*** The rules for performing completion have been changed.
+When generating completion alternatives, Emacs now takes the
+minibuffer text after point, if any, into account: this text is
+treated as a substring of the remaining part of the completion
+alternative (i.e., the part not matched by the minibuffer text before
+point).  If no completion alternatives are found this way, Emacs
+attempts to perform partial-completion.  If still no completion
+alternatives are found, we fall back on the Emacs 22 rules for
+performing completion.
+
+The new variable `completion-styles' can be customized to choose your
+favorite completion style.
++++
 *** When M-n in the minibuffer reaches the end of the list of defaults,
 it adds the completion list to the end, so next M-n continues putting
 completion items to the minibuffer.  The same principle applies to
@@ -453,11 +466,6 @@ completion-ignore-case for file name completion.
 +++
 *** The variable read-buffer-completion-ignore-case overrides
 completion-ignore-case for buffer name completion.
-+++
-*** `completion-styles' can be customized to choose your favorite
-completion style.
----
-*** The default completion styles include a form of partial-completion.
 ---
 *** The new command `minibuffer-force-complete' chooses one of the
 possible completions, rather than stopping at the common prefix.
