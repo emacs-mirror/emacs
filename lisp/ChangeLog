@@ -1,5 +1,7 @@
 2009-03-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* minibuffer.el (read-file-name): Doc fix.
+
 	* tooltip.el (tooltip-show-help-non-mode): Don't set
 	tooltip-previous-message if called with the same tooltip that is
 	showing (Bug#2680).
