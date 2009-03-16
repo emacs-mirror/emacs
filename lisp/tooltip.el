@@ -333,11 +333,13 @@ the buffer of PROCESS."
              (not cursor-in-echo-area)) ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (unless tooltip-previous-message
+      (setq help (replace-regexp-in-string "\n" ", " help))
+      (unless (or tooltip-previous-message
+		  (string-equal help (current-message)))
         (setq tooltip-previous-message (current-message)))
       (let ((message-truncate-lines t)
             (message-log-max nil))
-        (message "%s" (replace-regexp-in-string "\n" ", " help))))
+        (message "%s" help)))
      ((stringp tooltip-previous-message)
       (let ((message-log-max nil))
         (message "%s" tooltip-previous-message)
