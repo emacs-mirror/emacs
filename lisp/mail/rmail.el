@@ -3274,6 +3274,7 @@ See also user-option `rmail-confirm-expunge'."
 	  (if (or was-deleted (not was-swapped))
 	      (rmail-show-message-1 rmail-current-message)
 	    ;; Show the same message that was being shown before.
+	    (rmail-display-labels)
 	    (rmail-swap-buffers)
 	    (setq rmail-buffer-swapped t)))))))
 
