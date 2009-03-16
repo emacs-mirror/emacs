@@ -35,10 +35,11 @@
 	* term/ns-win.el (ns-expand-space): Remove.
 	(ns-show-prefs event): Run `customize'.
 	(ns-power-off): Run `save-buffers-kill-emacs', but ask user
-	whether to save files (as is standard)
+	whether to save files (as is standard).
 	(clipboard-yank, clipboard-kill-ring-save, clipboard-kill-region)
 	(menu-bar-enable-clipboard): Do not undefine these.
-	(ns-save-preferences,ns-save-options,ns-show-preferences-help): Remove.
+	(ns-save-preferences, ns-save-options, ns-show-preferences-help):
+	Remove.
 
 2009-03-14  Glenn Morris  <rgm@gnu.org>
 
