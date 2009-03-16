@@ -338,7 +338,7 @@ specifies an invalid attribute."
 
 (defun set-face-attributes-from-resources (face frame)
   "Set attributes of FACE from X resources for FRAME."
-  (when (memq (framep frame) '(x w32 ns))
+  (when (memq (framep frame) '(x w32))
     (dolist (definition face-x-resources)
       (let ((attribute (car definition)))
 	(dolist (entry (cdr definition))
@@ -2020,7 +2020,7 @@ frame parameters in PARAMETERS and `default-frame-alist'."
 	  ;; X resouces for the default face are applied during
 	  ;; x-create-frame.
 	  (and (not (eq face 'default))
-	       (memq (window-system frame) '(x w32 ns))
+	       (memq (window-system frame) '(x w32))
 	       (make-face-x-resource-internal face frame))
 	  ;; Apply attributes specified by face-new-frame-defaults
 	  (internal-merge-in-global-face face frame))
