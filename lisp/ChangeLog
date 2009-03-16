@@ -1,3 +1,9 @@
+2009-03-16  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-retry-failure): Discard rmail-ignored-headers.
+	(rmail-expunge): Show the message only once, and only if needed.
+	If the current message was current before, just re-swap.
+
 2009-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/ccl.el (ccl-compile-if): Signal an error for
