@@ -1,5 +1,9 @@
 2009-03-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* tooltip.el (tooltip-show-help-non-mode): Don't set
+	tooltip-previous-message if called with the same tooltip that is
+	showing (Bug#2680).
+
 	* emacs-lisp/crm.el (crm--choose-completion-string): New function.
 	(completing-read-multiple): Set and restore
 	choose-completion-string-functions (Bug#1080).
