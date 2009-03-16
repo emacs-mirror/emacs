@@ -228,6 +228,22 @@ This function is modeled after `minibuffer-complete-and-exit'."
       (forward-char 1))
     (if doexit (exit-minibuffer))))
 
+(defun crm--choose-completion-string (choice buffer mini-p base-size)
+  "Completion string chooser for `completing-read-multiple'.
+This is called from `choose-completion-string-functions'.
+It replaces the string that is currently being completed, without
+exiting the minibuffer."
+  (let ((ol (crm--select-current-element)))
+    (if base-size
+	(delete-region (+ base-size (field-beginning)) (point))
+      (choose-completion-delete-max-match choice))
+    (insert choice)
+    (remove-text-properties (- (point) (length choice)) (point)
+			    '(mouse-face nil))
+    ;; Update point in the window that BUFFER is showing in.
+    (let ((window (get-buffer-window buffer t)))
+      (set-window-point window (point)))))
+
 ;; superemulates behavior of completing_read in src/minibuf.c
 ;;;###autoload
 (defun completing-read-multiple
@@ -259,22 +275,28 @@ The return value of this function is a list of the read strings.
 See the documentation for `completing-read' for details on the arguments:
 PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
 INHERIT-INPUT-METHOD."
-  (let* ((minibuffer-completion-table #'crm--collection-fn)
-	 (minibuffer-completion-predicate predicate)
-	 ;; see completing_read in src/minibuf.c
-	 (minibuffer-completion-confirm
-	  (unless (eq require-match t) require-match))
-	 (crm-completion-table table)
-	 (map (if require-match
-		  crm-local-must-match-map
-		crm-local-completion-map))
-	 ;; If the user enters empty input, read-from-minibuffer returns
-	 ;; the empty string, not DEF.
-	 (input (read-from-minibuffer
-		 prompt initial-input map
-		 nil hist def inherit-input-method)))
-    (and def (string-equal input "") (setq input def))
-    (split-string input crm-separator)))
+  (unwind-protect
+      (progn
+	(add-hook 'choose-completion-string-functions
+		  'crm--choose-completion-string)
+	(let* ((minibuffer-completion-table #'crm--collection-fn)
+	       (minibuffer-completion-predicate predicate)
+	       ;; see completing_read in src/minibuf.c
+	       (minibuffer-completion-confirm
+		(unless (eq require-match t) require-match))
+	       (crm-completion-table table)
+	       (map (if require-match
+			crm-local-must-match-map
+		      crm-local-completion-map))
+	       ;; If the user enters empty input, read-from-minibuffer returns
+	       ;; the empty string, not DEF.
+	       (input (read-from-minibuffer
+		       prompt initial-input map
+		       nil hist def inherit-input-method)))
+	  (and def (string-equal input "") (setq input def))
+	  (split-string input crm-separator)))
+    (remove-hook 'choose-completion-string-functions
+		 'crm--choose-completion-string)))
 
 (define-obsolete-function-alias 'crm-minibuffer-complete 'crm-complete "23.1")
 (define-obsolete-function-alias
