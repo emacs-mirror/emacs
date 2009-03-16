@@ -1,3 +1,9 @@
+2009-03-16  David Reitter <david.reitter@gmail.com>
+
+	* faces.el (set-face-attributes-from-resources,
+	face-set-after-frame-default): Do not import X resources on NS
+	because NS does not have system-wide X resources.
+
 2009-03-16  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-retry-failure): Discard rmail-ignored-headers.
