@@ -505,6 +505,8 @@ If READ-FLAG is non-nil, this statement has the form
 	    (op (get (nth 1 condition) 'ccl-arith-code))
 	    (arg (nth 2 condition)))
 	(ccl-check-register rrr cmd)
+	(or (integerp op)
+	    (error "CCL: invalid operator: %s" (nth 1 condition)))
 	(if (integerp arg)
 	    (progn
 	      (ccl-embed-code (if read-flag 'read-jump-cond-expr-const
