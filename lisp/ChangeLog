@@ -1,3 +1,8 @@
+2009-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (ccl-compile-if): Signal an error for
+	invalid operator.
+
 2009-03-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (read-file-name): Doc fix.
