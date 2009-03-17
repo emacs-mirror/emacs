@@ -1,6 +1,6 @@
 2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* minibuf.c (syms_of_minibuf): Doc fix.
+	* minibuf.c (Vminibuffer_completion_confirm): Doc fix.
 
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
