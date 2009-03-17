@@ -2202,8 +2202,8 @@ If the value is `confirm', the user may exit with an input that is not
  a valid completion alternative, but Emacs asks for confirmation.
 If the value is `confirm-after-completion', the user may exit with an
  input that is not a valid completion alternative, but Emacs asks for
- confirmation if the user submitted the input right after
- `minibuffer-complete'.  */);
+ confirmation if the user submitted the input right after any of the
+ completion commands listed in `minibuffer-confirm-exit-commands'.  */);
   Vminibuffer_completion_confirm = Qnil;
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
