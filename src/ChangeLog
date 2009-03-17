@@ -1,3 +1,9 @@
+2009-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Check completion-ignored-extensions
+	only if the entry can't affect bestmatch anyway.
+	Stop the search early, as Ftry_completion already does.
+
 2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Vminibuffer_completion_confirm): Doc fix.

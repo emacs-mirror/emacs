@@ -537,6 +537,18 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
       if (!all_flag)
 	{
 	  int skip;
+
+	  /* If this entry matches the current bestmatch, the only
+	     thing it can do is increase matchcount, so don't bother
+	     investigating it any further.  */
+	  if (!completion_ignore_case
+	      /* The return result depends on whether it's the sole match.  */
+	      && matchcount > 1
+	      && !includeall /* This match may allow includeall to 0.  */
+	      && len >= bestmatchsize
+	      && 0 > scmp (dp->d_name, SDATA (bestmatch), bestmatchsize))
+	    continue;
+
 	  if (directoryp)
 	    {
 #ifndef TRIVIAL_DIRECTORY_ENTRY
@@ -705,8 +717,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      /* This tests that the current file is an exact match
 		 but BESTMATCH is not (it is too long).  */
 	      if ((matchsize == SCHARS (name)
-		   && matchsize + !!directoryp
-		   < SCHARS (bestmatch))
+		   && matchsize + !!directoryp < SCHARS (bestmatch))
 		  ||
 		  /* If there is no exact match ignoring case,
 		     prefer a match that does not change the case
@@ -734,6 +745,20 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 		bestmatch = name;
 	    }
 	  bestmatchsize = matchsize;
+
+	  /* If the best completion so far is reduced to the string
+	     we're trying to complete, then we already know there's no
+	     other completion, so there's no point looking any further.  */
+	  if (matchsize <= SCHARS (file)
+	      && !includeall /* A future match may allow includeall to 0.  */
+	      /* If completion-ignore-case is non-nil, don't
+		 short-circuit because we want to find the best
+		 possible match *including* case differences.  */
+	      && (!completion_ignore_case || matchsize == 0)
+	      /* The return value depends on whether it's the sole match.  */
+	      && matchcount > 1)
+	    break;
+
 	}
     }
 
