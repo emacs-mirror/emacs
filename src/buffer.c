@@ -5311,9 +5311,8 @@ init_buffer_once ()
 
   Qucs_set_table_for_input = intern ("ucs-set-table-for-input");
 
-  Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
-
   /* super-magic invisible buffer */
+  Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
   Vbuffer_alist = Qnil;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
