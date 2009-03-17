@@ -1,3 +1,7 @@
+2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (syms_of_minibuf): Doc fix.
+
 2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (parse_menu_item): Don't display remappings as menu
