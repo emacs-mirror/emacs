@@ -1,3 +1,7 @@
+2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (minibuffer-complete-and-exit): Doc fix.
+
 2009-03-16  David Reitter <david.reitter@gmail.com>
 
 	* faces.el (set-face-attributes-from-resources,
