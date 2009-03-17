@@ -1,3 +1,18 @@
+2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Basic Completion): Note that
+	read-file-name-completion-ignore-case and
+	read-buffer-completion-ignore-case can override
+	completion-ignore-case.
+	(Minibuffer Completion): Document completing-read changes.
+	(Completion Commands): Avoid mentioning partial completion mode.
+	Document minibuffer-completion-confirm changes, and
+	minibuffer-confirm-exit-commands.
+	(High-Level Completion): Document new require-match behavior for
+	read-buffer.  Document read-buffer-completion-ignore-case.
+	(Reading File Names): Document new require-match behavior for
+	read-file-name.
+
 2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* debugging.texi (Error Debugging): Don't mislead the reader into
