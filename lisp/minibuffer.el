@@ -539,8 +539,9 @@ If `minibuffer-completion-confirm' is `confirm', do not try to
  confirmed.
 If `minibuffer-completion-confirm' is `confirm-after-completion',
  do not try to complete; instead, ask for confirmation if the
- preceding minibuffer command was `minibuffer-complete', and
- accept the input otherwise."
+ preceding minibuffer command was a member of
+ `minibuffer-confirm-exit-commands', and accept the input
+ otherwise."
   (interactive)
   (let ((beg (field-beginning))
         (end (field-end)))
