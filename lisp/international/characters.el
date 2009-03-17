@@ -1031,7 +1031,7 @@ Combining diacritic or mark (Unicode General Category M)")
 (defvar cjk-char-width-table
   (let ((table (make-char-table nil)))
     (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1
-			    japanese-jisx0208 korean-ksc5601))
+			    japanese-jisx0208 cp932-2-byte korean-ksc5601))
       (map-charset-chars #'(lambda (range arg)
 			     (set-char-table-range table range 2))
 			 charset))
