@@ -1,16 +1,20 @@
+2009-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/benchmark.el (benchmark): Reflow docstring.
+
 2009-03-17  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
-	* international/characters.el (cjk-char-width-table): Add
-	cp932-2-byte.
+	* international/characters.el (cjk-char-width-table):
+	Add cp932-2-byte.
 
 2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (minibuffer-complete-and-exit): Doc fix.
 
-2009-03-16  David Reitter <david.reitter@gmail.com>
+2009-03-16  David Reitter  <david.reitter@gmail.com>
 
-	* faces.el (set-face-attributes-from-resources,
-	face-set-after-frame-default): Do not import X resources on NS
+	* faces.el (set-face-attributes-from-resources)
+	(face-set-after-frame-default): Do not import X resources on NS
 	because NS does not have system-wide X resources.
 
 2009-03-16  Richard M Stallman  <rms@gnu.org>
