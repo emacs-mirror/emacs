@@ -1,3 +1,9 @@
+2009-03-18  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (after-insert-file-set-coding): Set
+	buffer-file-coding-system directly without calling
+	set-buffer-file-coding-system.
+
 2009-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/benchmark.el (benchmark): Reflow docstring.
