@@ -634,6 +634,7 @@ Completion
                               (reading buffer name, file name, etc.)
 * Reading File Names::      Using completion to read file names and
                               shell commands.
+* Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
