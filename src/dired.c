@@ -906,8 +906,8 @@ ID-FORMAT if you use the returned uid or gid.
 Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
- 2. File uid as a string or an integer.  If a string value cannot be
-  looked up, the integer value is returned.
+ 2. File uid as a string or a number.  If a string value cannot be
+  looked up, a numeric value, either an integer or a float, is returned.
  3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
@@ -980,8 +980,16 @@ which see.  */)
   gid = s.st_gid;
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
-      values[2] = make_fixnum_or_float (uid);
-      values[3] = make_fixnum_or_float (gid);
+      if (sizeof (s.st_uid) > sizeof (uid) || uid < 0
+	  || FIXNUM_OVERFLOW_P (uid))
+	values[2] = make_float ((double)s.st_uid);
+      else
+	values[2] = make_number (uid);
+      if (sizeof (s.st_gid) > sizeof (gid) || gid < 0
+	  || FIXNUM_OVERFLOW_P (gid))
+	values[3] = make_float ((double)s.st_gid);
+      else
+	values[3] = make_number (gid);
     }
   else
     {
