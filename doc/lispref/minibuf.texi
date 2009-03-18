@@ -634,6 +634,7 @@ for reading certain kinds of names with completion.
                              (reading buffer name, file name, etc.)
 * Reading File Names::     Using completion to read file names and
                              shell commands.
+* Completion Styles::      Specifying rules for performing completion.
 * Programmed Completion::  Writing your own completion-function.
 @end menu
 
@@ -1531,6 +1532,58 @@ Input}).  The rest of @var{args}, if present, are used as the
 This keymap is used by @code{read-shell-command} for completing
 command and file names that are part of a shell command.
 @end defvar
+
+@node Completion Styles
+@subsection Completion Styles
+@cindex completion styles
+
+  A @dfn{completion style} is a set of rules for generating
+completions.  The user option @code{completion-styles} stores a list
+of completion styles, which are represented by symbols.
+
+@defopt completion-styles
+This is a list of completion style symbols to use for performing
+completion.  Each completion style in this list must be defined in
+@code{completion-styles-alist}.
+@end defopt
+
+@defvar completion-styles-alist
+This variable stores a list of available completion styles.  Each
+element in the list must have the form @samp{(@var{name}
+@var{try-completion} @var{all-completions})}.  Here, @var{name} is the
+name of the completion style (a symbol), which may be used in
+@code{completion-styles-alist} to refer to this style.
+
+@var{try-completion} is the function that does the completion, and
+@var{all-completions} is the function that lists the completions.
+These functions should accept four arguments: @var{string},
+@var{collection}, @var{predicate}, and @var{point}.  The @var{string},
+@var{collection}, and @var{predicate} arguments have the same meanings
+as in @code{try-completion} (@pxref{Basic Completion}), and the
+@var{point} argument is the position of point within @var{string}.
+Each function should return a non-@code{nil} value if it performed its
+job, and @code{nil} if it did not (e.g., if there is no way to
+complete @var{string} according to the completion style).
+
+When the user calls a completion command, such as
+@code{minibuffer-complete} (@pxref{Completion Commands}), Emacs looks
+for the first style listed in @code{completion-styles} and calls its
+@var{try-completion} function.  If this function returns @code{nil},
+Emacs moves to the next completion style listed in
+@code{completion-styles} and calls its @var{try-completion} function,
+and so on until one of the @var{try-completion} functions successfully
+performs completion and returns a non-@code{nil} value.  A similar
+procedure is used for listing completions, via the
+@var{all-completions} functions.
+@end defvar
+
+  By default, @code{completion-styles-alist} contains four pre-defined
+completion styles: @code{basic}, a basic completion style;
+@code{partial-completion}, which does partial completion (completing
+each word in the input separately); @code{emacs22}, which performs
+completion according to the rules used in Emacs 22; and
+@code{emacs21}, which performs completion according to the rules used
+in Emacs 21.
 
 @node Programmed Completion
 @subsection Programmed Completion
