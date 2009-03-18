@@ -1,3 +1,9 @@
+2009-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Completion Styles): New node.
+
+	* elisp.texi (Top): Update node listing.
+
 2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Basic Completion): Note that
