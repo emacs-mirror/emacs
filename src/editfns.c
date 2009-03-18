@@ -1278,12 +1278,13 @@ This is based on the effective uid, not the real uid.
 Also, if the environment variables LOGNAME or USER are set,
 that determines the value of this function.
 
-If optional argument UID is an integer, return the login name of the user
-with that uid, or nil if there is no such user.  */)
+If optional argument UID is an integer or a float, return the login name
+of the user with that uid, or nil if there is no such user.  */)
      (uid)
      Lisp_Object uid;
 {
   struct passwd *pw;
+  uid_t id;
 
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
@@ -1294,9 +1295,9 @@ with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  CHECK_NUMBER (uid);
+  id = (uid_t)XFLOATINT (uid);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (XINT (uid));
+  pw = (struct passwd *) getpwuid (id);
   UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
