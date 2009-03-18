@@ -1,3 +1,8 @@
+2009-03-18  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-retry-ignored-headers): Add usual mime headers.
+	(rmail-retry-failure): Undo previous change.
+
 2009-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (after-insert-file-set-coding):
