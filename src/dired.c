@@ -538,6 +538,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	{
 	  int skip;
 
+#if 0 /* FIXME: The `scmp' call compares an encoded and a decoded string. */
 	  /* If this entry matches the current bestmatch, the only
 	     thing it can do is increase matchcount, so don't bother
 	     investigating it any further.  */
@@ -548,6 +549,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
 	      && len >= bestmatchsize
 	      && 0 > scmp (dp->d_name, SDATA (bestmatch), bestmatchsize))
 	    continue;
+#endif
 
 	  if (directoryp)
 	    {

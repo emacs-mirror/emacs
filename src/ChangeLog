@@ -1,3 +1,8 @@
+2009-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Disable the first optimization just
+	installed, since it is not implemented correctly.
+
 2009-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.c (file_name_completion): Check completion-ignored-extensions
