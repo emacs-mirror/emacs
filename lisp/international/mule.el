@@ -1868,12 +1868,8 @@ The optional second arg VISIT non-nil means that we are visiting a file."
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used)))
-	(when coding-system
-	  ;; Tell set-buffer-file-coding-system not to mark the file
-	  ;; as modified; we just read it, and it's supposed to be unmodified.
-	  ;; Marking it modified would try to lock it, which would
-	  ;; check the modtime, and we don't want to do that again now.
-	  (set-buffer-file-coding-system coding-system t t))))
+	(if coding-system
+	    (setq buffer-file-coding-system coding-system))))
   inserted)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
