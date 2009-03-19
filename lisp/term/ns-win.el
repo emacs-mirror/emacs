@@ -1179,9 +1179,14 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (if (fboundp 'new-fontset)
     (progn
       ;; Setup the default fontset.
-      (setup-default-fontset)
+      (create-default-fontset)
       ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)))
+      (condition-case err
+	  (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
+	(error (display-warning 
+		'initialization
+		(format "Creation of the standard fontset failed: %s" err)
+		:error)))))
 
 ;;(push (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard")
 ;;      default-frame-alist)
