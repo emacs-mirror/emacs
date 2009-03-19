@@ -1968,10 +1968,12 @@ cited."
 	(insert (sc-mail-field "sc-citation"))
       (error "Line is already cited"))))
 
+;; The argument logic here is crazy.
 (defun sc-version (message)
-  "Echo the current version of Supercite in the minibuffer.
+  "Return the current Supercite version.
 If MESSAGE is non-nil (interactively, with no prefix argument),
-inserts the version string in the current buffer instead."
+echoes the version in the minibuffer.  Otherwise, inserts the
+version at point."
   (interactive (list (not current-prefix-arg)))
   (let ((verstr (format "Using Supercite.el %s" emacs-version)))
     (if message
