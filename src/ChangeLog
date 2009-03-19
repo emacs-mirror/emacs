@@ -1,3 +1,11 @@
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fset_fontset_font): When a spec of ASCII font is
+	changed, use font_load_for_lface to get a new font object.  Call
+	free_realized_fontset after handling ASCII font change.
+
+	* frame.c (x_set_font): Handle the case that ARG is a cons.
+
 2009-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Fsubstitute_in_file_name): Doc fix.
