@@ -2094,14 +2094,11 @@ whether or not it is currently displayed in some window.  */)
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       if (IT_CHARPOS (it) != PT)
-	{
-	  int oselective = it.selective;
-	  /* Temporarily disable selective display so we don't move
-	     too far */
-	  it.selective = 0;
-	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-	  it.selective = oselective;
-	}
+	/* We used to temporarily disable selective display here; the
+	   comment said this is "so we don't move too far" (2005-01-19
+	   checkin by kfs).  But this does nothing useful that I can
+	   tell, and it causes Bug#2694 .  -- cyd */
+	move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
       if (XINT (lines) <= 0)
 	{
