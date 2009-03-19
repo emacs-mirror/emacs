@@ -579,6 +579,16 @@
 
   (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
 
+(defun create-default-fontset ()
+  "Create the default fontset.
+Internal use only.  Should be called at startup time."
+  (condition-case err
+      (setup-default-fontset)
+    (error (display-warning
+	    'initialization
+	    (format "Creation of the default fontsets failed: %s" err)
+	    :error))))
+
 ;; These are the registered registries/encodings from
 ;; ftp://ftp.x.org/pub/DOCS/registry 2001/06/01
 
@@ -1049,8 +1059,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
       (condition-case nil
-	  (create-fontset-from-fontset-spec fontset-spec t 'noerror)
-	(error (message "Fontset-%d: invalid specification in X resource" idx)))
+	  (create-fontset-from-fontset-spec fontset-spec t)
+	(error (display-warning
+		'initialization
+		(format "Fontset-%d: invalid specification in X resource" idx)
+		:warning)))
       (setq idx (1+ idx)))))
 
 ;;
