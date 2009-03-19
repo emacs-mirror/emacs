@@ -1,3 +1,7 @@
+2009-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Undo 2005-01-19 change (Bug#2694).
+
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (load_charset_map_from_file): When a mapfile can't be
