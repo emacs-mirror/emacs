@@ -522,10 +522,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   unbind_to (count, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
-    {
-      add_to_log ("Failure in loading charset map: %S", mapfile, Qnil);
-      return;
-    }
+    error ("Failure in loading charset map: %S", SDATA (mapfile));
 
   head = entries = ((struct charset_map_entries *)
 		    alloca (sizeof (struct charset_map_entries)));
