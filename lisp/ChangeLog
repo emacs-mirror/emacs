@@ -1,3 +1,21 @@
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* term/ns-win.el: Call create-defualt-fontset, not
+	setup-default-fontset.  Call create-fontset-from-fontset-spec
+	within condition-case.
+
+	* term/w32-win.el (w32-initialize-window-system): Call
+	create-defualt-fontset, not setup-default-fontset.  Call
+	create-fontset-from-fontset-spec within condition-case.
+
+	* term/x-win.el (x-initialize-window-system): Call
+	create-defualt-fontset, not setup-default-fontset.  Call
+	create-fontset-from-fontset-spec within condition-case.
+
+	* international/fontset.el (create-default-fontset): New function.
+	(create-fontset-from-x-resource): Use display-warning instead of
+	message.
+
 2009-03-18  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-retry-ignored-headers): Add usual mime headers.
