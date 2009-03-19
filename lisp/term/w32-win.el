@@ -252,11 +252,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                      ;; are the initial display
                      (eq initial-window-system 'w32))
 
-  ;; Setup the default fontset.
-  (setup-default-fontset)
-
+  ;; Create the default fontset.
+  (create-default-fontset)
   ;; Create the standard fontset.
-  (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+  (condition-case err
+      (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+    (error (display-warning 
+	    'initialization
+	    (format "Creation of the standard fontset failed: %s" err)
+	    :error)))
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
   (create-fontset-from-x-resource)
 
