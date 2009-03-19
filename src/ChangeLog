@@ -1,3 +1,8 @@
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (load_charset_map_from_file): When a mapfile can't be
+	loaded, signal an error.
+
 2009-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Make sure UID and GID are always
