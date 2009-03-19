@@ -1,5 +1,11 @@
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
+	* international/quail.el (quail-update-leim-list-file): Save
+	leim-list.el in utf-8.
+
+	* international/mule-cmds.el (leim-list-header): Use utf-8 coding
+	tag.
+
 	* term/ns-win.el: Call create-defualt-fontset, not
 	setup-default-fontset.  Call create-fontset-from-fontset-spec
 	within condition-case.
