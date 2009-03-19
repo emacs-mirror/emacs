@@ -3103,13 +3103,13 @@ With ARG, rotate that many kills forward (or backward, if negative)."
 (defun kill-forward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point arg)))
+  (kill-region (point) (+ (point) arg)))
 
 ;; Internal subroutine of backward-delete-char
 (defun kill-backward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point (- arg))))
+  (kill-region (point) (- (point) arg)))
 
 (defcustom backward-delete-char-untabify-method 'untabify
   "The method for untabifying when deleting backward.

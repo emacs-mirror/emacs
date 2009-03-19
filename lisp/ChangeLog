@@ -1,3 +1,11 @@
+2009-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (forward-point): Add obsolescence declaration.
+
+	* paren.el (show-paren-function):
+	* simple.el (kill-forward-chars, kill-backward-chars):
+	 Use (+/- (point) N), instead of `forward-point'.
+
 2009-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-retry-ignored-headers): Add :version tag.
