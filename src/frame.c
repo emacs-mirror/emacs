@@ -3372,8 +3372,9 @@ x_set_font (f, arg, oldval)
      fail to use ARG as the new parameter value.  */
   store_frame_param (f, Qfont, oldval);
 
-  /* ARG is a fontset name, a font name, or a font object.
-     In the last case, this function never fail.  */
+  /* ARG is a fontset name, a font name, a cons of fontset name and a
+     font object, or a font object.  In the last case, this function
+     never fail.  */
   if (STRINGP (arg))
     {
       fontset = fs_query_fontset (arg, 0);
@@ -3395,6 +3396,17 @@ x_set_font (f, arg, oldval)
 	}
       else
 	error ("The default fontset can't be used for a frame font");
+    }
+  else if (CONSP (arg) && STRINGP (XCAR (arg)) && FONT_OBJECT_P (XCDR (arg)))
+    {
+      /* This is the case that the ASCII font of F's fontset XCAR
+	 (arg) is changed to the font XCDR (arg) by
+	 `set-fontset-font'.  */
+      fontset = fs_query_fontset (XCAR (arg), 0);
+      if (fontset < 0)
+	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
+      font_object = XCDR (arg);
+      arg = AREF (font_object, FONT_NAME_INDEX);
     }
   else if (FONT_OBJECT_P (arg))
     {
