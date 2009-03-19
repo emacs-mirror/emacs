@@ -1,3 +1,7 @@
+2009-03-19  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* mail/supercite.el (sc-version): Fix typo in interactive spec.
+
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-update-leim-list-file): Save
