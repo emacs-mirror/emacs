@@ -1,3 +1,11 @@
+2009-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fuser_uid, Fuser_real_uid): If UID as EMACS_INT is
+	negative, produce a float value.
+
+	* dired.c (make_uid, make_gid): New functions.
+	(Ffile_attributes): Use them to avoid negative UID and GID.
+
 2009-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keyboard.c (Fcurrent_idle_time): Reflow docstring.
