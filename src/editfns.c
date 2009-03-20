@@ -1319,23 +1319,33 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
        doc: /* Return the effective uid of Emacs.
-Value is an integer or float, depending on the value.  */)
+Value is an integer or a float, depending on the value.  */)
      ()
 {
   /* Assignment to EMACS_INT stops GCC whining about limited range of
      data type.  */
   EMACS_INT euid = geteuid ();
+
+  /* Make sure we don't produce a negative UID due to signed integer
+     overflow.  */
+  if (euid < 0)
+    return make_float ((double)geteuid ());
   return make_fixnum_or_float (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
        doc: /* Return the real uid of Emacs.
-Value is an integer or float, depending on the value.  */)
+Value is an integer or a float, depending on the value.  */)
      ()
 {
   /* Assignment to EMACS_INT stops GCC whining about limited range of
      data type.  */
   EMACS_INT uid = getuid ();
+
+  /* Make sure we don't produce a negative UID due to signed integer
+     overflow.  */
+  if (uid < 0)
+    return make_float ((double)getuid ());
   return make_fixnum_or_float (uid);
 }
 
