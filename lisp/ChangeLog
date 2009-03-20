@@ -1,3 +1,7 @@
+2009-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-deduce-fileset): Make the error message more explicit.
+
 2009-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (forward-point): Add obsolescence declaration.
