@@ -1,8 +1,14 @@
+2009-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Fcurrent_idle_time): Reflow docstring.
+	(syms_of_keyboard) <command-hook-internal, input-method-function>:
+	Fix typos in docstrings.
+
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fset_fontset_font): When a spec of ASCII font is
-	changed, use font_load_for_lface to get a new font object.  Call
-	free_realized_fontset after handling ASCII font change.
+	changed, use font_load_for_lface to get a new font object.
+	Call free_realized_fontset after handling ASCII font change.
 
 	* frame.c (x_set_font): Handle the case that ARG is a cons.
 
@@ -59,7 +65,7 @@
 	* w32fns.c (w32_wnd_proc): Change WM_PAINT to WM_EMACS_PAINT
 	before passing to lisp thread.  (Bug#950)
 
-2009-03-14  David Reitter <david.reitter@gmail.com>
+2009-03-14  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_shutdown_properly, -terminate): Remove global state
 	variable as it was never reset.
@@ -78,7 +84,7 @@
 	* sound.c (alsa_configure): Remove call to deprecated
 	snd_pcm_sw_params_set_xfer_align.
 
-2009-03-14  Stephen Berman <stephen.berman@gmx.net>
+2009-03-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* gtkutil.c (xg_tool_bar_callback): Set focus back to the frame
 	after clicking in a detached tool bar.

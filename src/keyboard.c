@@ -4693,10 +4693,9 @@ timer_check (do_it_now)
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
        doc: /* Return the current length of Emacs idleness, or nil.
-The value when Emacs is idle is a list of three integers.  The first has the
-most significant 16 bits of the seconds, while the second has the
-least significant 16 bits.  The third integer gives the microsecond
-count.
+The value when Emacs is idle is a list of three integers.  The first has
+the most significant 16 bits of the seconds, while the second has the least
+significant 16 bits.  The third integer gives the microsecond count.
 
 The value when Emacs is not idle is nil.
 
@@ -12215,7 +12214,7 @@ Buffer modification stores t in this variable.  */);
   staticpro (&Qdeactivate_mark);
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
-	       doc: /* Temporary storage of pre-command-hook or post-command-hook.  */);
+	       doc: /* Temporary storage of `pre-command-hook' or `post-command-hook'.  */);
   Vcommand_hook_internal = Qnil;
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
@@ -12392,7 +12391,7 @@ to be used as input.  If it wants to put back some events
 to be reconsidered, separately, by the input method,
 it can add them to the beginning of `unread-command-events'.
 
-The input method function can find in `input-method-previous-method'
+The input method function can find in `input-method-previous-message'
 the previous echo area message.
 
 The input method function should refer to the variables
