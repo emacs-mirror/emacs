@@ -5,21 +5,21 @@
  */
 
 struct passwd {
-    char *pw_name;
-    char *pw_passwd;
-    int   pw_uid;
-    int   pw_gid;
-    int   pw_quota;
-    char *pw_gecos;
-    char *pw_dir;
-    char *pw_shell;
+    char     *pw_name;
+    char     *pw_passwd;
+    unsigned  pw_uid;  /* Vista's TrustedInstaller has a very large RID */
+    unsigned  pw_gid;
+    int       pw_quota;
+    char     *pw_gecos;
+    char     *pw_dir;
+    char     *pw_shell;
 };
 
-typedef int uid_t;
+typedef unsigned uid_t;
 typedef uid_t gid_t;
 
 struct passwd * getpwnam (char *);
-struct passwd * getpwuid (int);
+struct passwd * getpwuid (unsigned);
 
 
 #endif /* _PWD_H_ */
