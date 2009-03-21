@@ -249,25 +249,25 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
 	     ;; nsterm.m
-	     (ns-control-modifier 
-	      nextstep 
+	     (ns-control-modifier
+	      nextstep
 	      (choice (const :tag "No modifier" nil)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
-	     (ns-command-modifier 
-	      nextstep 
+	     (ns-command-modifier
+	      nextstep
 	      (choice (const :tag "No modifier" nil)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
-	     (ns-alternate-modifier 
-	      nextstep 
+	     (ns-alternate-modifier
+	      nextstep
 	      (choice (const :tag "No modifier (work as alternate/option)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
-	     (ns-function-modifier 
+	     (ns-function-modifier
 	      nextstep
 	      (choice (const :tag "No modifier (work as function)" none)
 		      (const control) (const meta)
@@ -381,6 +381,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
+		      ((string-match "\\`ns-" (symbol-name symbol))
+		       (featurep 'ns))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))
