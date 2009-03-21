@@ -1,3 +1,22 @@
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* eshell/em-ls.el (eshell-ls-dir): Call
+	eshell-directory-files-and-attributes with additional argument
+	'integer or 'string, according to numeric-uid-gid.
+	(eshell-ls-file): Don't convert UID and GID to strings, as
+	eshell-ls-dir already did.  Enlarge max user-name string length to
+	14 characters.
+	(eshell-do-ls): Fix the long name of the -L option.
+
+	* eshell/esh-util.el (directory-files-and-attributes): Accept and
+	ignore additional optional argument id-format.
+	(eshell-directory-files-and-attributes): Call
+	directory-files-and-attributes with additional argument id-format.
+
+	* eshell/em-ls.el (eshell-ls-file): Enlarge default size-width to 8.
+	(eshell-ls-dir): Under -l, call eshell-ls-printable-size with last
+	argument nil.
+
 2009-03-21  David Reitter <david.reitter@gmail.com>
 
 	* cus-start.el (all): Use existing `ns' rather than new `nextstep'
