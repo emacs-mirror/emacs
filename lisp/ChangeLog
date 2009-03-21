@@ -1,3 +1,7 @@
+2009-03-21  Jari Aalto  <jari.aalto@cante.net>
+
+	* time.el (display-time-default-load-average): Doc fix.
+
 2009-03-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (handle-shift-selection): Doc fix.  (Bug#2738)
