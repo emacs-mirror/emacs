@@ -1,3 +1,7 @@
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Fix last change.
+
 2009-03-21  David Reitter  <david.reitter@gmail.com>
 
 	* cus-start.el (all): Add
