@@ -1,3 +1,8 @@
+2009-03-21  David Reitter <david.reitter@gmail.com>
+
+	* cus-start.el (all): Use existing `ns' rather than new `nextstep'
+	group for variables affected by last two changes.
+
 2009-03-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Fix last change.
