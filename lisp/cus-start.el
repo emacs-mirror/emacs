@@ -250,25 +250,25 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (dos-unsupported-char-glyph display integer)
 	     ;; nsterm.m
 	     (ns-control-modifier
-	      nextstep
+	      ns
 	      (choice (const :tag "No modifier" nil)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-command-modifier
-	      nextstep
+	      ns
 	      (choice (const :tag "No modifier" nil)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-alternate-modifier
-	      nextstep
+	      ns
 	      (choice (const :tag "No modifier (work as alternate/option)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-function-modifier
-	      nextstep
+	      ns
 	      (choice (const :tag "No modifier (work as function)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
