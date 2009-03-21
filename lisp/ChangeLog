@@ -1,3 +1,7 @@
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (handle-shift-selection): Doc fix.  (Bug#2738)
+
 2009-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (file-modes-rights-to-number): Doc fix.
