@@ -600,6 +600,11 @@
 ;;   the two branches.  Or you locally add file FOO and then pull a
 ;;   change that also adds a new file FOO, ...
 ;;
+;; - The use of vc-start-logentry in vc-register should be removed.
+;;   It's a remnant from old times when vc-register had an opportunity
+;;   to provide a message linked to the file's addition, but nowadays
+;;   it's just extra baggage that makes the code less readable.
+;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
