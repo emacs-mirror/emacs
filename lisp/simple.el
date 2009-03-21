@@ -3747,8 +3747,7 @@ mode temporarily."
     nil))
 
 (defun handle-shift-selection (&optional deactivate)
-  "Activate or deactivate the mark depending on whether the
-current command was invoked through ``shift translation.''
+  "Activate/deactivate mark depending on invocation thru ``shift translation.''
 
 \(See `this-command-keys-shift-translated' for the meaning of
 shift translation.)
