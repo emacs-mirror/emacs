@@ -248,6 +248,33 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					   function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
+	     ;; nsterm.m
+	     (ns-control-modifier 
+	      nextstep 
+	      (choice (const :tag "No modifier" nil)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-command-modifier 
+	      nextstep 
+	      (choice (const :tag "No modifier" nil)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-alternate-modifier 
+	      nextstep 
+	      (choice (const :tag "No modifier (work as alternate/option)" none)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-function-modifier 
+	      nextstep
+	      (choice (const :tag "No modifier (work as function)" none)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-antialias-text ns boolean "23.1")
+	     (ns-use-qd-smoothing ns boolean "23.1")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
