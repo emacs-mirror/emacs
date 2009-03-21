@@ -3747,18 +3747,21 @@ mode temporarily."
     nil))
 
 (defun handle-shift-selection (&optional deactivate)
-  "Check for shift translation, and operate on the mark accordingly.
+  "Activate or deactivate the mark depending on whether the
+current command was invoked through ``shift translation.''
+
+\(See `this-command-keys-shift-translated' for the meaning of
+shift translation.)
+
 This is called whenever a command with a `^' character in its
 `interactive' spec is invoked while `shift-select-mode' is
 non-nil.
 
-If the command was invoked through shift-translation, set the
+If the command was invoked through shift translation, set the
 mark and activate the region temporarily, unless it was already
-set in this way.  If the command was invoked without
-shift-translation and a region is temporarily active, deactivate
-the mark.
-
-With optional arg DEACTIVATE, only perform region deactivation."
+set in this way.  If the command was invoked without shift
+translation, or if the optional argument DEACTIVATE is non-nil,
+deactivate the mark if the region is temporarily active."
   (cond ((and this-command-keys-shift-translated
 	      (null deactivate))
 	 (unless (and mark-active
