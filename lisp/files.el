@@ -5892,7 +5892,7 @@ If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
 
 (defun file-modes-rights-to-number (rights who-mask &optional from)
   "Convert a symbolic mode string specification to an equivalent number.
-RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]+)+\".
+RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]*)+\".
 WHO-MASK is the bit-mask specifying the category of users to which to
 apply the access permissions.  See `file-modes-char-to-who'.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
@@ -5920,7 +5920,7 @@ as in \"og+rX-w\"."
 (defun file-modes-symbolic-to-number (modes &optional from)
   "Convert symbolic file modes to numeric file modes.
 MODES is the string to convert, it should match
-\"[ugoa]*([+-=][rwxXstugo]+)+,...\".
+\"[ugoa]*([+-=][rwxXstugo]*)+,...\".
 See (info \"(coreutils)File permissions\") for more information on this
 notation.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
@@ -5930,7 +5930,7 @@ as in \"og+rX-w\"."
     (let ((case-fold-search nil)
 	  (num-modes (or from 0)))
       (while (/= (string-to-char modes) 0)
-	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]+\\)+\\(,\\|\\)" modes)
+	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]*\\)+\\(,\\|\\)" modes)
 	    (let ((num-who (apply 'logior 0
 				  (mapcar 'file-modes-char-to-who
 					  (match-string 1 modes)))))
