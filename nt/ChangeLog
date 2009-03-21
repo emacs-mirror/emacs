@@ -1,3 +1,13 @@
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (struct stat): Change the types of st_uid and
+	st_gid to unsigned.
+
+	* inc/pwd.h (struct passwd): Change the types of pw_uid and pw_gid
+	to unsigned.
+	(getpwuid): Argument is now unsigned.
+	uid_t is now unsigned.
+
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL: Add comment about TCC; fix typos.
