@@ -506,8 +506,9 @@ whose cdr is the list of file attributes."
 		     ""))
 		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
 		       (len (length str)))
-		  (if (< len (or size-width 4))
-		      (concat (make-string (- (or size-width 4) len) ? ) str)
+		  ;; Let file sizes shorter than 9 align neatly.
+		  (if (< len (or size-width 8))
+		      (concat (make-string (- (or size-width 8) len) ? ) str)
 		    str))
 		" " (format-time-string
 		     (concat
@@ -565,7 +566,11 @@ relative to that directory."
 			  size-width
 			  (max size-width
 			       (length (eshell-ls-printable-size
-					(nth 7 (cdr e)) t))))))
+					(nth 7 (cdr e))
+					(not
+					 ;; If we are under -l, count length
+					 ;; of sizes in bytes, not in blocks.
+					 (eq listing-style 'long-listing))))))))
 	      (funcall insert-func "total "
 		       (eshell-ls-printable-size total t) "\n")))
 	  (let ((default-directory (expand-file-name dir)))
