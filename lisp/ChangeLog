@@ -1,3 +1,9 @@
+2009-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (file-modes-rights-to-number): Doc fix.
+	(file-modes-symbolic-to-number): Handle empty permissions
+	arg (Bug#2729).
+
 2009-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (Todo): Add note on simplifying vc-register.
