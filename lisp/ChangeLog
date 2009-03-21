@@ -2,11 +2,11 @@
 
 	* cus-start.el (all): Fix last change.
 
-2009-03-21  David Reitter  <david.reitter@gmail.com>
+2009-03-21  David Reitter <david.reitter@gmail.com>
 
-	* cus-start.el (all): Add
-	`ns-{control|command|alternate|function}-modifier',
-	`ns-antialias-text' and `ns-use-qd-smoothing'.
+	* cus-start.el (all): Add ns-control-modifier,
+	ns-command-modifier, ns-alternate-modifier, ns-function-modifier,
+	ns-antialias-text, and ns-use-qd-smoothing.
 
 2009-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
