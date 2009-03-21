@@ -361,7 +361,7 @@ instead."
 	 "list entries by lines instead of by columns")
      (?C nil by-columns listing-style
 	 "list entries by columns")
-     (?L "deference" nil dereference-links
+     (?L "dereference" nil dereference-links
 	 "list entries pointed to by symbolic links")
      (?R "recursive" nil show-recursive
 	 "list subdirectories recursively")
@@ -483,25 +483,19 @@ whose cdr is the list of file attributes."
 		(if show-size
 		    (concat (eshell-ls-size-string attrs size-width) " "))
 		(format
-		 "%s%4d %-8s %-8s "
+		 (if numeric-uid-gid
+		     "%s%4d %-8s %-8s "
+		   "%s%4d %-14s %-8s ")
 		 (or (nth 8 attrs) "??????????")
 		 (or (nth 1 attrs) 0)
 		 (or (let ((user (nth 2 attrs)))
-		       (and (not numeric-uid-gid)
-			    user
-			    (eshell-substring
-			     (if (numberp user)
-				 (user-login-name user)
-			       user) 8)))
+		       (and (stringp user)
+			    (eshell-substring user 14)))
 		     (nth 2 attrs)
 		     "")
 		 (or (let ((group (nth 3 attrs)))
-		       (and (not numeric-uid-gid)
-			    group
-			    (eshell-substring
-			     (if (numberp group)
-				 (eshell-group-name group)
-			       group) 8)))
+		       (and (stringp group)
+			    (eshell-substring group 8)))
 		     (nth 3 attrs)
 		     ""))
 		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
@@ -547,7 +541,12 @@ relative to that directory."
 	(let ((entries (eshell-directory-files-and-attributes
 			dir nil (and (not show-all)
 				     eshell-ls-exclude-hidden
-				     "\\`[^.]") t)))
+				     "\\`[^.]") t
+				     ;; Asking for UID and GID as
+				     ;; strings saves another syscall
+				     ;; later when we are going to
+				     ;; display user and group names.
+				     (if numeric-uid-gid 'integer 'string))))
 	  (when (and (not show-all) eshell-ls-exclude-regexp)
 	    (while (and entries (string-match eshell-ls-exclude-regexp
 					      (caar entries)))
