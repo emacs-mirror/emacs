@@ -1,3 +1,11 @@
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (getpwuid): Change argument type to unsigned.
+	(struct w32_id): Change type of `rid' member to unsigned.
+	(w32_cached_id, w32_add_to_cache, get_name_and_id): Change type of
+	argument ID to unsigned.  All callers changed.
+	(getuid, geteuid, getgid, getegid): Change return type to unsigned.
+
 2009-03-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Fuser_uid, Fuser_real_uid): If UID as EMACS_INT is
