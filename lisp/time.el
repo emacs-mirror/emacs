@@ -65,7 +65,7 @@ directory `display-time-mail-directory' contains nonempty files."
 (defcustom display-time-default-load-average 0
   "Which load average value will be shown in the mode line.
 Almost every system can provide values of load for past 1 minute, past 5 or
-past 15 minutes. The default is to display 1 minute load average.
+past 15 minutes.  The default is to display 1 minute load average.
 The value can be one of:
 
   0   => 1 minute load
