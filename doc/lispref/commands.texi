@@ -158,24 +158,22 @@ arguments.  This leads quickly to an error if the command requires one
 or more arguments.
 
 @item
-It may be a string; then its contents should consist of a code character
-followed by a prompt (which some code characters use and some ignore).
-The prompt ends either with the end of the string or with a newline.
-Here is a simple example:
+It may be a string; its contents are a sequence of elements separated
+by newlines, one for each parameter@footnote{Some elements actually
+supply two parameters.}.  Each element consists of a code character
+(@pxref{ Interactive Codes}) optionally followed by a prompt (which
+some code characters use and some ignore).  Here is an example:
 
 @smallexample
-(interactive "bFrobnicate buffer: ")
+(interactive "P\nbFrobnicate buffer: ")
 @end smallexample
 
 @noindent
-The code letter @samp{b} says to read the name of an existing buffer,
-with completion.  The buffer name is the sole argument passed to the
-command.  The rest of the string is a prompt.
-
-If there is a newline character in the string, it terminates the prompt.
-If the string does not end there, then the rest of the string should
-contain another code character and prompt, specifying another argument.
-You can specify any number of arguments in this way.
+The code letter @samp{P} sets the command's first argument to the raw
+command prefix (@pxref{Prefix Command Arguments}).  @samp{bFrobnicate
+buffer: } prompts the user with @samp{Frobnicate buffer: } to enter
+the name of an existing buffer, which becomes the second and final
+argument.
 
 @c Emacs 19 feature
 The prompt string can use @samp{%} to include previous argument values
