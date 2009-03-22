@@ -68,18 +68,19 @@ static Lisp_Object callint_message;
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
        doc: /* Specify a way of parsing arguments for interactive use of a function.
 For example, write
-  (defun foo (arg) "Doc string" (interactive "p") ...use arg...)
-to make ARG be the prefix argument when `foo' is called as a command.
+ (defun foo (arg buf) "Doc string" (interactive "P\\nbbuffer: ") .... )
+ to make ARG be the raw prefix argument, and set BUF to an existing buffer,
+ when `foo' is called as a command.
 The "call" to `interactive' is actually a declaration rather than a function;
  it tells `call-interactively' how to read arguments
  to pass to the function.
 When actually called, `interactive' just returns nil.
 
-The argument of `interactive' is usually a string containing a code letter
- followed by a prompt.  (Some code letters do not use I/O to get
- the argument and do not need prompts.)  To prompt for multiple arguments,
- give a code letter, its prompt, a newline, and another code letter, etc.
- Prompts are passed to format, and may use % escapes to print the
+Usually the argument of `interactive' is a string containing a code letter
+ followed optionally by a prompt.  (Some code letters do not use I/O to get
+ the argument and do not use prompts.)  To get several arguments, concatenate
+ the individual strings, separating them by newline characters.
+Prompts are passed to format, and may use % escapes to print the
  arguments that have already been read.
 If the argument is not a string, it is evaluated to get a list of
  arguments to pass to the function.
