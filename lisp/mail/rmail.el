@@ -3265,9 +3265,15 @@ See also user-option `rmail-confirm-expunge'."
   (interactive)
   (when (rmail-expunge-confirmed)
     (let ((was-deleted (rmail-message-deleted-p rmail-current-message))
-	  (was-swapped (rmail-buffers-swapped-p)))
+	  (was-swapped (rmail-buffers-swapped-p))
+	  (total rmail-total-messages))
       (rmail-only-expunge t)
-      (unless dont-show
+      (if dont-show
+	  ;; Do update the summary buffer, if any.
+	  (when (rmail-summary-exists)
+	    (with-current-buffer rmail-summary-buffer
+	      (let ((rmail-total-messages total))
+		(rmail-update-summary))))
 	(if (rmail-summary-exists)
 	    (rmail-select-summary (rmail-update-summary))
 	  ;; If we expunged the current message, a new one is current now,
