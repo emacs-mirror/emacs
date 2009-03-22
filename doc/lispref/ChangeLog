@@ -1,3 +1,8 @@
+2009-03-22  Alan Mackenzie  <acm@muc.de>
+
+	* commands.texi (Using Interactive): Clarify string argument to
+	`interactive' - even promptless elements need \n separators.
+
 2009-03-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Completion Styles): New node.
