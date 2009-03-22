@@ -1,6 +1,8 @@
 2009-03-22  Richard M Stallman  <rms@gnu.org>
 
-	* mail/rmail.el (rmail-expunge): Update summary buffer even if NO-SHOW.
+	* mail/rmail.el (rmail-expunge): Update summary buffer even if DONT-SHOW.
+	(rmail-expunge): Without DONT-SHOW, show the message even after
+	updating summary.
 
 2009-03-21  Jari Aalto  <jari.aalto@cante.net>
 
