@@ -1,3 +1,7 @@
+2009-03-22  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-expunge): Update summary buffer even if NO-SHOW.
+
 2009-03-21  Jari Aalto  <jari.aalto@cante.net>
 
 	* time.el (display-time-default-load-average): Doc fix.
