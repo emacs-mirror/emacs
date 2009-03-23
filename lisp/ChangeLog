@@ -1,3 +1,10 @@
+2009-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-working-revision): Add support for lightweight
+	checkouts.  (Bug#2157)
+	(vc-bzr-after-dir-status): Ignore a warning for bzr status.
+	(vc-bzr-dir-extra-headers): Add headers for lightweight checkouts.
+
 2009-03-22  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-expunge): Update summary buffer even if DONT-SHOW.
