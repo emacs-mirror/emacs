@@ -119,9 +119,12 @@ xg_display_open (display_name, dpy)
   GdkDisplay *gdpy;
 
   gdpy = gdk_display_open (display_name);
-  if (!gdpy_def)
-    gdk_display_manager_set_default_display (gdk_display_manager_get (),
-					     gdpy);
+  if (!gdpy_def && gdpy)
+    {
+      gdpy_def = gdpy;
+      gdk_display_manager_set_default_display (gdk_display_manager_get (),
+					       gdpy);
+    }
 
   *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
   return gdpy != NULL;
