@@ -1,3 +1,7 @@
+2009-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (Intro to Minibuffers): Fix typos.
+
 2009-03-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Intro to Minibuffers): Remove long-obsolete info
@@ -264,8 +268,7 @@
 	* files.texi (Reading from Files): Document that null bytes force
 	no-conversion when visiting files.
 
-	* processes.texi (Serial Ports): Improve wording, suggested by
-	RMS.
+	* processes.texi (Serial Ports): Improve wording, suggested by RMS.
 
 	* nonascii.texi (Lisp and Coding Systems): Document
 	inhibit-null-byte-detection and inhibit-iso-escape-detection.

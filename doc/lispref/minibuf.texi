@@ -75,14 +75,14 @@ code that uses the minibuffer, if you do not want that to change them.
   Under some circumstances, a command can use a minibuffer even if
 there is an active minibuffer; such minibuffers are called a
 @dfn{recursive minibuffer}.  The first minibuffer is named
-@w{ @samp{*Minibuf-0*}}.  Recursive minibuffers are named by
+@w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
 entered) is the active minibuffer.  We usually call this ``the''
 minibuffer.  You can permit or forbid recursive minibuffers by setting
 the variable @code{enable-recursive-minibuffers}, or by putting
-properties of that name on command symbols (@xref{Recursive Mini}.
+properties of that name on command symbols (@xref{Recursive Mini}.)
 
   Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
