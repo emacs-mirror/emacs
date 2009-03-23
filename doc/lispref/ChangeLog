@@ -1,3 +1,10 @@
+2009-03-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Intro to Minibuffers): Remove long-obsolete info
+	about minibuffers in old Emacs versions.  Copyedits.  Emphasize
+	that enable-recursive-minibuffers defaults to nil.
+	(Text from Minibuffer): Simplify introduction.
+
 2009-03-22  Alan Mackenzie  <acm@muc.de>
 
 	* commands.texi (Using Interactive): Clarify string argument to
