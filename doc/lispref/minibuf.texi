@@ -56,17 +56,15 @@ read-only so you won't accidentally delete or change it.  It is also
 marked as a field (@pxref{Fields}), so that certain motion functions,
 including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
-boundary between the prompt and the actual text.  (In older Emacs
-versions, the prompt was displayed using a special mechanism and was not
-part of the buffer contents.)
+boundary between the prompt and the actual text.
 
   The minibuffer's window is normally a single line; it grows
-automatically if necessary if the contents require more space.  You can
-explicitly resize it temporarily with the window sizing commands; it
-reverts to its normal size when the minibuffer is exited.  You can
-resize it permanently by using the window sizing commands in the frame's
-other window, when the minibuffer is not active.  If the frame contains
-just a minibuffer, you can change the minibuffer's size by changing the
+automatically if the contents require more space.  You can explicitly
+resize it temporarily with the window sizing commands; it reverts to
+its normal size when the minibuffer is exited.  You can resize it
+permanently by using the window sizing commands in the frame's other
+window, when the minibuffer is not active.  If the frame contains just
+a minibuffer, you can change the minibuffer's size by changing the
 frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
@@ -74,16 +72,17 @@ of variables such as @code{this-command} and @code{last-command}
 (@pxref{Command Loop Info}).  Your program should bind them around the
 code that uses the minibuffer, if you do not want that to change them.
 
-  If a command uses a minibuffer while there is an active minibuffer,
-this is called a @dfn{recursive minibuffer}.  The first minibuffer is
-named @w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
-incrementing the number at the end of the name.  (The names begin with a
-space so that they won't show up in normal buffer lists.)  Of several
-recursive minibuffers, the innermost (or most recently entered) is the
-active minibuffer.  We usually call this ``the'' minibuffer.  You can
-permit or forbid recursive minibuffers by setting the variable
-@code{enable-recursive-minibuffers} or by putting properties of that
-name on command symbols (@pxref{Recursive Mini}).
+  Under some circumstances, a command can use a minibuffer even if
+there is an active minibuffer; such minibuffers are called a
+@dfn{recursive minibuffer}.  The first minibuffer is named
+@w{ @samp{*Minibuf-0*}}.  Recursive minibuffers are named by
+incrementing the number at the end of the name.  (The names begin with
+a space so that they won't show up in normal buffer lists.)  Of
+several recursive minibuffers, the innermost (or most recently
+entered) is the active minibuffer.  We usually call this ``the''
+minibuffer.  You can permit or forbid recursive minibuffers by setting
+the variable @code{enable-recursive-minibuffers}, or by putting
+properties of that name on command symbols (@xref{Recursive Mini}.
 
   Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
@@ -99,13 +98,13 @@ was supplied when Emacs was started.
 @node Text from Minibuffer
 @section Reading Text Strings with the Minibuffer
 
-  Most often, the minibuffer is used to read text as a string.  It can
-also be used to read a Lisp object in textual form.  The most basic
-primitive for minibuffer input is @code{read-from-minibuffer}; it can
-do either one.  Regular expressions (@pxref{Regular Expressions}) are
-a special kind of strings; use @code{read-regexp} for their minibuffer
-input.  There are also specialized commands for reading commands,
-variables, file names, etc.@: (@pxref{Completion}).
+  The most basic primitive for minibuffer input is
+@code{read-from-minibuffer}, which can be used to read either a string
+or a Lisp object in textual form.  The function @code{read-regexp} is
+used for reading regular expressions (@pxref{Regular Expressions}),
+which are a special kind of string.  There are also specialized
+functions for reading commands, variables, file names, etc.@:
+(@pxref{Completion}).
 
   In most cases, you should not call minibuffer input functions in the
 middle of a Lisp function.  Instead, do all minibuffer input as part of
@@ -113,7 +112,7 @@ reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
 @defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
-This function is the most general way to get input through the
+This function is the most general way to get input from the
 minibuffer.  By default, it accepts arbitrary text and returns it as a
 string; however, if @var{read} is non-@code{nil}, then it uses
 @code{read} to convert the text into a Lisp object (@pxref{Input
