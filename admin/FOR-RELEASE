@@ -201,7 +201,7 @@ locals.texi
 macros.texi       -- cyd
 maps.texi
 markers.texi
-minibuf.texi
+minibuf.texi      -- cyd
 modes.texi
 nonascii.texi
 numbers.texi      -- cyd
