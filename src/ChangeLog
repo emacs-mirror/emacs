@@ -1,3 +1,8 @@
+2009-03-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_display_open): Assign a value to gdpy_def, check
+	that gdpy is set.
+
 2009-03-22  Alan Mackenzie  <acm@muc.de>
 
 	* callint.c (Finteractive): Clarify the doc string - even
