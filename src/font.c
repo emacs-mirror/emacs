@@ -439,8 +439,7 @@ find_font_encoding (fontname)
 	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
 	return (XCDR (elt));
     }
-  /* We don't know the encoding of this font.  Let's assume `ascii'.  */
-  return Qascii;
+  return Qnil;
 }
 
 /* Return encoding charset and repertory charset for REGISTRY in
