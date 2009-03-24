@@ -1,7 +1,7 @@
 2009-03-24  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (find_font_encoding): Return Qnil for unsupported
-	encoding.
+	encoding (Bug#2722).
 
 2009-03-23  Jan Djärv  <jan.h.d@swipnet.se>
 
