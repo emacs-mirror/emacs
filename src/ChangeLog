@@ -1,3 +1,9 @@
+2009-03-24  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Fsubstitute_in_file_name): Always work on a copy.
+	Calculate total size precisely.  Decode environment variables
+	before substituting.  (Bug#38)
+
 2009-03-24  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (find_font_encoding): Return Qnil for unsupported

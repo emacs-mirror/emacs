@@ -1629,10 +1629,13 @@ those `/' is discarded.  */)
   unsigned char *target = NULL;
   int total = 0;
   int substituted = 0;
+  int multibyte;
   unsigned char *xnm;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
+
+  multibyte = STRING_MULTIBYTE (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -1641,8 +1644,11 @@ those `/' is discarded.  */)
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
   nm = SDATA (filename);
-#ifdef DOS_NT
+  /* Always work on a copy of the string, in case GC happens during
+     decode of environment variables, causing the original Lisp_String
+     data to be relocated.  */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
+#ifdef DOS_NT
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
 #endif
@@ -1655,9 +1661,7 @@ those `/' is discarded.  */)
        again.  Important with filenames like "/home/foo//:/hello///there"
        which whould substitute to "/:/hello///there" rather than "/there".  */
     return Fsubstitute_in_file_name
-      (make_specified_string (p, -1, endp - p,
-			      STRING_MULTIBYTE (filename)));
-
+      (make_specified_string (p, -1, endp - p, multibyte));
 
   /* See if any variables are substituted into the string
      and find the total length of their values in `total' */
@@ -1703,8 +1707,16 @@ those `/' is discarded.  */)
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
 	if (o)
-	  { /* Eight-bit chars occupy upto 2 bytes in multibyte.  */
-	    total += strlen (o) * (STRING_MULTIBYTE (filename) ? 2 : 1);
+	  {
+	    /* Don't try to guess a maximum length - UTF8 can use up to
+	       four bytes per character.  This code is unlikely to run
+	       in a situation that requires performance, so decoding the
+	       env variables twice should be acceptable. Note that
+	       decoding may cause a garbage collect.  */
+	    Lisp_Object orig, decoded;
+	    orig = make_unibyte_string (o, strlen (o));
+	    decoded = DECODE_FILE (orig);
+	    total += SBYTES (decoded);
 	    substituted = 1;
 	  }
 	else if (*p == '}')
@@ -1762,21 +1774,22 @@ those `/' is discarded.  */)
 	    *x++ = '$';
 	    strcpy (x, target); x+= strlen (target);
 	  }
-	else if (STRING_MULTIBYTE (filename))
-	  {
-	    /* If the original string is multibyte,
-	       convert what we substitute into multibyte.  */
-	    while (*o)
-	      {
-		int c = *o++;
-		c = unibyte_char_to_multibyte (c);
-		x += CHAR_STRING (c, x);
-	      }
-	  }
 	else
 	  {
-	    strcpy (x, o);
-	    x += strlen (o);
+	    Lisp_Object orig, decoded;
+	    int orig_length, decoded_length;
+	    orig_length = strlen (o);
+	    orig = make_unibyte_string (o, orig_length);
+	    decoded = DECODE_FILE (orig);
+	    decoded_length = SBYTES (decoded);
+	    strncpy (x, SDATA (decoded), decoded_length);
+	    x += decoded_length;
+
+	    /* If environment variable needed decoding, return value
+	       needs to be multibyte.  */
+	    if (decoded_length != orig_length
+		|| strncmp (SDATA (decoded), o, orig_length))
+	      multibyte = 1;
 	  }
       }
 
@@ -1789,7 +1802,7 @@ those `/' is discarded.  */)
        need to quote some $ to $$ first.  */
     xnm = p;
 
-  return make_specified_string (xnm, -1, x - xnm, STRING_MULTIBYTE (filename));
+  return make_specified_string (xnm, -1, x - xnm, multibyte);
 
  badsubst:
   error ("Bad format environment-variable substitution");
