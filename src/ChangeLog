@@ -1,3 +1,10 @@
+2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* data.c (Qinteractive_form): New variable.
+	(Finteractive_form): Use it.
+
+	* eval.c (Fcommandp): Use Qinteractive_form.
+
 2009-03-24  Jason Rumney  <jasonr@gnu.org>
 
 	* fileio.c (Fsubstitute_in_file_name): Always work on a copy.
