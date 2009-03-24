@@ -1,3 +1,11 @@
+2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Defining Commands): Clarify introduction.
+	(Using Interactive): Not that interactive can be put in a symbol
+	property.
+	(Interactive Call): Note that a symbol with a non-nil
+	interactive-form property satisfies commandp.
+
 2009-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.texi (Intro to Minibuffers): Fix typos.
