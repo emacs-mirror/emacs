@@ -1,3 +1,11 @@
+2009-03-24  Glenn Morris  <rgm@gnu.org>
+
+	* wid-edit.el (widget-specify-field): Don't add a second overlay for a
+	field with just a newline character.
+	(widget-field-value-get): Don't reduce fields with just a space
+	character to null.
+	(character): Accept newline.  (Bug#2689)
+
 2009-03-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (font-encoding-alist): Add an entry for
