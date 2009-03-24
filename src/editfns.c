@@ -1564,7 +1564,7 @@ DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
 If SPECIFIED-TIME is given, it is the time to convert to float
 instead of the current time.  The argument should have the form
-(HIGH LOW . IGNORED). Thus, you can use times obtained from
+(HIGH LOW) or (HIGH LOW USEC). Thus, you can use times obtained from
 `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
 have the form (HIGH . LOW), but this is considered obsolete.
 
