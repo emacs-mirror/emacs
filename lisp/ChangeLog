@@ -1,3 +1,7 @@
+2009-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 534.
+
 2009-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* wid-edit.el (widget-specify-field): Don't add a second overlay for a
