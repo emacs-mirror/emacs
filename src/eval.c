@@ -97,6 +97,7 @@ Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
 Lisp_Object Qdebug;
+extern Lisp_Object Qinteractive_form;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -2084,7 +2085,7 @@ then strings and vectors are not accepted.  */)
   fun = function;
   while (SYMBOLP (fun))
     {
-      Lisp_Object tmp = Fget (fun, intern ("interactive-form"));
+      Lisp_Object tmp = Fget (fun, Qinteractive_form);
       if (!NILP (tmp))
 	if_prop = Qt;
       fun = Fsymbol_function (fun);
