@@ -115,6 +115,7 @@
 	("muleindian-1" . indian-1-column)
 	("mulelao-1" . mule-lao)
 	("muletibetan-2" . tibetan)
+	("muletibetan-0" . tibetan)
 	("muletibetan-1" . tibetan-1-column)))
 
 (defvar font-encoding-charset-alist)
