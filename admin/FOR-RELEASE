@@ -175,7 +175,7 @@ anti.texi
 back.texi
 backups.texi
 buffers.texi
-commands.texi
+commands.texi     -- cyd
 compile.texi      -- cyd
 control.texi      -- cyd
 customize.texi    -- cyd
