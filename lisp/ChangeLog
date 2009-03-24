@@ -1,3 +1,8 @@
+2009-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	muletibetan-0.
+
 2009-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-working-revision): Add support for lightweight
