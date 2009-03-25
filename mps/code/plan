@@ -1,0 +1,31 @@
+Eventual Aim: auto-flip, no re-use, auto-detect Ra
+
+1. Manual flip, manually detect that object has moved.
+  - manual client-request flip: condemns everything;
+    -- no ambig
+  - detect: try in sequence:
+    -- try access stale, see if it faults;
+    -- 
+
+( 2. Does Ra auto-detect on w3i3mv? )
+
+
+3. Auto flip every time, manual detect.  Mac OS
+
+
+4. Then things from this list:
+Flip trigger: more triggers, not every time, markers, ...
+No re-use
+Protect white (unless it already is).
+Multiflips, ...
+
+
+
+--------------
+
+Other investigations:
+
+Why does R0, Ra, etc not fault on Mac OS X?
+
+Does mutator access to white objs fault?  On which platforms?
+
