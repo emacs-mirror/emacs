@@ -929,7 +929,18 @@ static char * dot3d_xpm[] = {
 
 ;;;###autoload
 (defun bubbles ()
-  "Play Bubbles game."
+  "Play Bubbles game.
+\\<bubbles-mode-map>
+The goal is to remove all bubbles with as few moves as possible.
+\\[bubbles-plop] on a bubble removes that bubble and all
+connected bubbles of the same color.  Unsupported bubbles fall
+down, and columns that do not contain any bubbles suck the
+columns on its right towards the left.
+
+\\[bubbles-set-game-easy] sets the difficulty to easy.
+\\[bubbles-set-game-medium] sets the difficulty to medium.
+\\[bubbles-set-game-difficult] sets the difficulty to difficult.
+\\[bubbles-set-game-hard] sets the difficulty to hard."
   (interactive)
   (switch-to-buffer (get-buffer-create "*bubbles*"))
   (when (or (not bubbles--playing)
