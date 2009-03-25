@@ -694,7 +694,7 @@ composition_gstring_put_cache (gstring, len)
 	  break;
       len = i;
     }
-      
+
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)
@@ -914,7 +914,7 @@ fill_gstring_body (gstring)
 
 
 /* Try to compose the characters at CHARPOS according to CFT_ELEMENT
-   which is an element of composition-fucntion-table (which see).
+   which is an element of composition-function-table (which see).
    LIMIT limits the characters to compose.  STRING, if not nil, is a
    target string.  WIN is a window where the characters are being
    displayed.  */
@@ -932,7 +932,7 @@ autocmp_chars (cft_element, charpos, bytepos, limit, win, face, string)
   Lisp_Object pos = make_number (charpos);
   EMACS_INT pt = PT, pt_byte = PT_BYTE;
   int lookback;
-  
+
   record_unwind_save_match_data ();
   for (lookback = -1; CONSP (cft_element); cft_element = XCDR (cft_element))
     {
@@ -1376,7 +1376,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
     }
   prev = cur;
   /* Now search forward.  */
- search_forward:  
+ search_forward:
   *gstring = Qnil;
   if (! NILP (check_val) || limit >= orig.pos)
     {
