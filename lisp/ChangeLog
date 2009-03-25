@@ -1,3 +1,7 @@
+2009-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* play/bubbles.el (bubbles): Doc fix (Bug#2776).
+
 2009-03-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* composite.el (auto-compose-chars): Fix typo in docstring.
