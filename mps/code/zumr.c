@@ -95,7 +95,7 @@ static void *myunmanaged[10];
 static void testscriptC(mps_arena_t arena, mps_ap_t ap, mps_root_t root_stackreg)
 {
   mps_word_t v;
-  enum {thingSig = 0x00007770 >> 2};
+  enum {thingSig = 0x00ccccc0 >> 2};
 
   printf("  U1()\n");
   die(make_dylan_vector(&v, ap, 1), "make_dylan_vector");
@@ -103,6 +103,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, mps_root_t root_stackreg
   myroot[0] = (void*)v;
   printf("myroot[0] = %p\n", myroot[0]);
   Insist(DYLAN_VECTOR_SLOT(myroot[0], 0) = DYLAN_INT(thingSig));
+  v = 0;
   
   /* Ru */
   myunmanaged[0] = myroot[0];
@@ -110,7 +111,11 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, mps_root_t root_stackreg
   Insist(DYLAN_VECTOR_SLOT(myunmanaged[0], 0) = DYLAN_INT(thingSig));
   
   /* Flip */
+  printf("fill this page with junk, so should be only junk, so unmapped by GC.\n");
+  die(make_dylan_vector(&v, ap, 10000), "make_dylan_vector");
   v = 0;
+
+  printf("flip.\n");
   mps_root_destroy(root_stackreg);
   mps_arena_collect(arena);
   
@@ -118,7 +123,12 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, mps_root_t root_stackreg
   printf("myroot[0] = %p\n", myroot[0]);
   printf("myunmanaged[0] = %p\n", myunmanaged[0]);
   Insist(DYLAN_VECTOR_SLOT(myroot[0], 0) = DYLAN_INT(thingSig));
-  Insist(DYLAN_VECTOR_SLOT(myunmanaged[0], 0) = DYLAN_INT(thingSig));
+  
+  /* Check */
+  if(myunmanaged[0] != myroot[0]) {
+    printf("Move detected.\n");
+    exit(1);
+  }
 }
 
 
