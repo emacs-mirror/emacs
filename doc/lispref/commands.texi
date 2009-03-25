@@ -1567,13 +1567,12 @@ Focus events are represented in Lisp as lists that look like this:
 @noindent
 where @var{new-frame} is the frame switched to.
 
-Most X window managers are set up so that just moving the mouse into a
-window is enough to set the focus there.  Emacs appears to do this,
-because it changes the cursor to solid in the new frame.  However, there
-is no need for the Lisp program to know about the focus change until
-some other kind of input arrives.  So Emacs generates a focus event only
-when the user actually types a keyboard key or presses a mouse button in
-the new frame; just moving the mouse between frames does not generate a
+Some X window managers are set up so that just moving the mouse into a
+window is enough to set the focus there.  Usually, there is no need
+for a Lisp program to know about the focus change until some other
+kind of input arrives.  Emacs generates a focus event only when the
+user actually types a keyboard key or presses a mouse button in the
+new frame; just moving the mouse between frames does not generate a
 focus event.
 
 A focus event in the middle of a key sequence would garble the
