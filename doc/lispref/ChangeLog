@@ -1,3 +1,8 @@
+2009-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Focus Events): Most X window managers don't use
+	focus-follows-mouse nowadays.
+
 2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Defining Commands): Clarify introduction.
