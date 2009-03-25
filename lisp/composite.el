@@ -712,9 +712,7 @@ FUNC is called with one argument GSTRING which is built for characters
 in the region FROM (inclusive) and TO (exclusive).
 
 If the character are composed on a graphic display, FONT-OBJECT
-is a font to use.
-
-Otherwise, FONT-OBJECT is nil, and the fucntion
+is a font to use.  Otherwise, FONT-OBJECT is nil, and the function
 `compose-gstring-for-terminal' is used instead of FUNC.
 
 If STRING is non-nil, it is a string, and FROM and TO are indices
