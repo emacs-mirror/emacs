@@ -1,3 +1,9 @@
+2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (shift-select-mode): Move declaration from callint.c.
+	(handle-shift-selection): Remove `deactivate' arg and check
+	shift-select-mode instead.
+
 2009-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* align.el (align-large-region, align-perl-modes, align-rules-list)

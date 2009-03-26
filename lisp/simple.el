@@ -3746,33 +3746,44 @@ mode temporarily."
 	  (t (activate-mark)))
     nil))
 
-(defun handle-shift-selection (&optional deactivate)
+(defvar shift-select-mode t
+  "When non-nil, shifted motion keys activate the mark momentarily.
+
+While the mark is activated in this way, any shift-translated point
+motion key extends the region, and if Transient Mark mode was off, it
+is temporarily turned on.  Furthermore, the mark will be deactivated
+by any subsequent point motion key that was not shift-translated, or
+by any action that normally deactivates the mark in Transient Mark mode.
+
+See `this-command-keys-shift-translated' for the meaning of
+shift-translation.")
+
+(defun handle-shift-selection ()
   "Activate/deactivate mark depending on invocation thru ``shift translation.''
 
 \(See `this-command-keys-shift-translated' for the meaning of
 shift translation.)
 
 This is called whenever a command with a `^' character in its
-`interactive' spec is invoked while `shift-select-mode' is
-non-nil.
+`interactive' spec is invoked.
+Its behavior is controlled by `shift-select-mode'.
 
 If the command was invoked through shift translation, set the
 mark and activate the region temporarily, unless it was already
 set in this way.  If the command was invoked without shift
-translation, or if the optional argument DEACTIVATE is non-nil,
+translation, or if the region was activated by the mouse,
 deactivate the mark if the region is temporarily active."
-  (cond ((and this-command-keys-shift-translated
-	      (null deactivate))
-	 (unless (and mark-active
-		      (eq (car-safe transient-mark-mode) 'only))
-	   (setq transient-mark-mode
-		 (cons 'only
-		       (unless (eq transient-mark-mode 'lambda)
-			 transient-mark-mode)))
-	   (push-mark nil nil t)))
-	((eq (car-safe transient-mark-mode) 'only)
-	 (setq transient-mark-mode (cdr transient-mark-mode))
-	 (deactivate-mark))))
+  (cond ((and shift-select-mode this-command-keys-shift-translated)
+         (unless (and mark-active
+                      (eq (car-safe transient-mark-mode) 'only))
+           (setq transient-mark-mode
+                 (cons 'only
+                       (unless (eq transient-mark-mode 'lambda)
+                         transient-mark-mode)))
+           (push-mark nil nil t)))
+        ((eq (car-safe transient-mark-mode) 'only)
+         (setq transient-mark-mode (cdr transient-mark-mode))
+         (deactivate-mark))))
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.

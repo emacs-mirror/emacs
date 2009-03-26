@@ -1,3 +1,9 @@
+2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): For '^' just delegate the work to
+	handle-shift-selection.
+	(syms_of_callint): Move declaration of shift-select-mode to simple.el.
+
 2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Ffloat_time): Doc fix (Bug#2768).
