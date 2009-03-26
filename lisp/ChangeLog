@@ -1,3 +1,9 @@
+2009-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-large-region, align-perl-modes, align-rules-list)
+	(align-open-comment-modes): Fix typos in docstrings.
+	(align-region-separate): Doc fixes.
+
 2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* arc-mode.el (archive-ar-summarize): Don't burp on special GNU
