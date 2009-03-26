@@ -1,5 +1,7 @@
 2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (Fx_focus_frame): Declare.
+
 	* callint.c (Fcall_interactively): For '^' just delegate the work to
 	handle-shift-selection.
 	(syms_of_callint): Move declaration of shift-select-mode to simple.el.
@@ -103,7 +105,7 @@
 2009-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.c (file_name_completion): Check completion-ignored-extensions
-	only if the entry can't affect bestmatch anyway.
+	only if the entry can affect bestmatch.
 	Stop the search early, as Ftry_completion already does.
 
 2009-03-17  Chong Yidong  <cyd@stupidchicken.com>

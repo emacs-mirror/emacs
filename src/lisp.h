@@ -3310,6 +3310,7 @@ EXFUN (Fnew_fontset, 2);
 /* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 5);
+EXFUN (Fx_focus_frame, 1);
 #endif
 
 /* Defined in xfaces.c */
