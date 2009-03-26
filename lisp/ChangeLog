@@ -1,3 +1,11 @@
+2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-ar-summarize): Don't burp on special GNU
+	extension entries for lookup tables or extended file name tables.
+	Distinguish the internal and external name, so lookup is easier.
+	(archive-ar-extract): Take advantage of more precise name.
+	Preserve point.
+
 2009-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* play/bubbles.el (bubbles): Doc fix (Bug#2776).
@@ -56,8 +64,8 @@
 
 2009-03-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* eshell/em-ls.el (eshell-ls-dir): Call
-	eshell-directory-files-and-attributes with additional argument
+	* eshell/em-ls.el (eshell-ls-dir):
+	Call eshell-directory-files-and-attributes with additional argument
 	'integer or 'string, according to numeric-uid-gid.
 	(eshell-ls-file): Don't convert UID and GID to strings, as
 	eshell-ls-dir already did.  Enlarge max user-name string length to
@@ -66,8 +74,8 @@
 
 	* eshell/esh-util.el (directory-files-and-attributes): Accept and
 	ignore additional optional argument id-format.
-	(eshell-directory-files-and-attributes): Call
-	directory-files-and-attributes with additional argument id-format.
+	(eshell-directory-files-and-attributes):
+	Call directory-files-and-attributes with additional argument id-format.
 
 	* eshell/em-ls.el (eshell-ls-file): Enlarge default size-width to 8.
 	(eshell-ls-dir): Under -l, call eshell-ls-printable-size with last
