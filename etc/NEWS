@@ -946,7 +946,8 @@ mbox-format file.
 
 Also, whereas with Babyl format M-x find-file would switch to Rmail
 mode, with mbox format this is no longer the case (there being no way
-to add an "-*- rmail-*-" cookie to an mbox file).
+to add an "-*- rmail-*-" cookie to an mbox file).  Use C-u M-x rmail
+instead.
 
 If you have written any extensions to Rmail, they are likely to need
 updating.  Conceptually, the Rmail buffer that you see is no longer
