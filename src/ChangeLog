@@ -1,3 +1,17 @@
+2009-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (x_set_font): If the fullscreen property is non-nil, adjust
+	lines and columns so we keep the same pixel height and width.
+
+	* xterm.c (handle_one_xevent): Call x_handle_net_wm_state if
+	the property _NET_WM_STATE has changed.
+	updated.
+	(x_handle_net_wm_state): New function to update frame parameter
+	fullscreen.
+	(x_term_init): Initialize atoms for _NET_WM_STATE.
+
+	* xterm.h (struct x_display_info): Add atoms for _NET_WM_STATE.
+
 2009-03-27  Kevin Ryde  <user42@zip.com.au>
 
 	* keyboard.c (tty_read_avail_input): Don't treat a -1 return from
