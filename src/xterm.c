@@ -363,6 +363,7 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    enum scroll_bar_part *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
+static void x_handle_net_wm_state P_ ((struct frame *, XPropertyEvent *));
 static void x_check_fullscreen P_ ((struct frame *));
 static void x_check_expected_move P_ ((struct frame *, int, int));
 static void x_sync_with_move P_ ((struct frame *, int, int, int));
@@ -6096,6 +6097,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         goto OTHER;
 #endif
 #endif
+      f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
+      if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
+        x_handle_net_wm_state (f, &event.xproperty);
+
       x_handle_property_notify (&event.xproperty);
       goto OTHER;
 
@@ -8656,6 +8661,69 @@ XTfullscreen_hook (f)
 }
 
 
+extern Lisp_Object Qfullwidth, Qfullheight, Qfullboth;
+static void
+x_handle_net_wm_state (f, event)
+     struct frame *f;
+     XPropertyEvent *event;
+{
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int i, rc, actual_format, value = 0;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 65536;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  unsigned char *tmp_data = NULL;
+  Atom target_type = XA_ATOM;
+
+  BLOCK_INPUT;
+  x_catch_errors (dpy);
+  rc = XGetWindowProperty (dpy, event->window,
+                           event->atom, 0, max_len, False, target_type,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, &tmp_data);
+
+  if (rc != Success || actual_type != target_type || x_had_errors_p (dpy))
+    {
+      if (tmp_data) XFree (tmp_data);
+      x_uncatch_errors ();
+      UNBLOCK_INPUT;
+      return;
+    }
+
+  x_uncatch_errors ();
+
+  for (i = 0; i < actual_size; ++i)
+    {
+      Atom a = ((Atom*)tmp_data)[i];
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
+        value |= FULLSCREEN_WIDTH;
+      else if (a == dpyinfo->Xatom_net_wm_state_maximized_vert)
+        value |= FULLSCREEN_HEIGHT;
+      else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
+        value |= FULLSCREEN_BOTH;
+    }
+
+  Lisp_Object lval = Qnil;
+  switch (value) 
+    {
+    case FULLSCREEN_WIDTH:
+      lval = Qfullwidth;
+      break;
+    case FULLSCREEN_HEIGHT:
+      lval = Qfullheight;
+      break;
+    case FULLSCREEN_BOTH:
+      lval = Qfullboth;
+      break;
+    }
+      
+  store_frame_param (f, Qfullscreen, lval);
+  
+  if (tmp_data) XFree (tmp_data);
+  UNBLOCK_INPUT;
+}
+
 /* Check if we need to resize the frame due to a fullscreen request.
    If so needed, resize the frame. */
 static void
@@ -10349,6 +10417,15 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->Xatom_XEMBED = XInternAtom (dpyinfo->display, "_XEMBED",
 				       False);
+
+  dpyinfo->Xatom_net_wm_state
+    = XInternAtom (dpyinfo->display, "_NET_WM_STATE", False);
+  dpyinfo->Xatom_net_wm_state_fullscreen_atom
+    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_FULLSCREEN", False);
+  dpyinfo->Xatom_net_wm_state_maximized_horz
+    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+  dpyinfo->Xatom_net_wm_state_maximized_vert
+    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
 
   dpyinfo->cut_buffers_initialized = 0;
 
