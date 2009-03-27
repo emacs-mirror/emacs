@@ -1,3 +1,7 @@
+2009-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-file-handler): Save match data.
+
 2009-02-21  Jason Rumney  <jasonr@gnu.org>
 
 	* url-expand.el (url-default-expander): Use concat to combine
