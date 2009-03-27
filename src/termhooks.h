@@ -653,7 +653,7 @@ extern void delete_terminal P_ ((struct terminal *));
 extern struct terminal *initial_terminal;
 
 #ifdef HAVE_GPM
-extern void close_gpm (void);
+extern void close_gpm (int gpm_fd);
 #endif
 
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d

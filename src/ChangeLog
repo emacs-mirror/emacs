@@ -1,3 +1,11 @@
+2009-03-27  Kevin Ryde  <user42@zip.com.au>
+
+	* keyboard.c (tty_read_avail_input): Don't treat a -1 return from
+	Gpm_GetEvent as an error that justifies closing the filedescriptor.
+	* term.c (close_gpm): Get the filedescriptor as a (new) parameter.
+	(Fgpm_mouse_stop): Pass that new parameter.
+	* termhooks.h (close_gpm): Adjust prototype.
+
 2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (Fx_focus_frame): Declare.

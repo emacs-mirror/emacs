@@ -7184,17 +7184,23 @@ tty_read_avail_input (struct terminal *terminal,
   {
       Gpm_Event event;
       struct input_event hold_quit;
-      int gpm;
+      int gpm, fd = gpm_fd;
 
       EVENT_INIT (hold_quit);
       hold_quit.kind = NO_EVENT;
 
+      /* gpm==1 if event received.
+         gpm==0 if the GPM daemon has closed the connection, in which case
+                Gpm_GetEvent closes gpm_fd and clears it to -1, which is why
+		we save it in `fd' so close_gpm can remove it from the
+		select masks.
+         gpm==-1 if a protocol error or EWOULDBLOCK; the latter is normal. */
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
 	  nread += handle_one_term_event (tty, &event, &hold_quit);
       }
-      if (gpm < 0)
+      if (gpm == 0)
 	/* Presumably the GPM daemon has closed the connection.  */
-	close_gpm ();
+	close_gpm (fd);
       if (hold_quit.kind != NO_EVENT)
 	  kbd_buffer_store_event (&hold_quit);
       if (nread)
