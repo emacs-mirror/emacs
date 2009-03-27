@@ -1,3 +1,8 @@
+2009-03-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* simple.el (shift-select-mode): Make it a defcustom.
+	* cus-start.el: Remove shift-select-mode.
+
 2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (shift-select-mode): Move declaration from callint.c.

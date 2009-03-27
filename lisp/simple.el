@@ -3746,7 +3746,7 @@ mode temporarily."
 	  (t (activate-mark)))
     nil))
 
-(defvar shift-select-mode t
+(defcustom shift-select-mode t
   "When non-nil, shifted motion keys activate the mark momentarily.
 
 While the mark is activated in this way, any shift-translated point
@@ -3756,7 +3756,9 @@ by any subsequent point motion key that was not shift-translated, or
 by any action that normally deactivates the mark in Transient Mark mode.
 
 See `this-command-keys-shift-translated' for the meaning of
-shift-translation.")
+shift-translation."
+  :type 'boolean
+  :group 'editing-basics)
 
 (defun handle-shift-selection ()
   "Activate/deactivate mark depending on invocation thru ``shift translation.''
