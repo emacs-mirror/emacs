@@ -3422,7 +3422,25 @@ x_set_font (f, arg, oldval)
 
   if (! NILP (Fequal (font_object, oldval)))
     return;
+
+  
+  Lisp_Object lval = Fassq (Qfullscreen, f->param_alist);
+  if (CONSP (lval)) lval = CDR (lval);
+
   x_new_font (f, font_object, fontset);
+  /* If the fullscreen property is non-nil, adjust lines and columns so we
+     keep the same pixel height and width.  */
+  if (! NILP (lval))
+    {
+      int height = FRAME_LINES (f), width = FRAME_COLS (f);
+      if (EQ (lval, Qfullboth) || EQ (lval, Qfullwidth))
+        width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
+      if (EQ (lval, Qfullboth) || EQ (lval, Qfullheight))
+        height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
+      
+      change_frame_size (f, height, width, 0, 0, 1);
+    }
+
   store_frame_param (f, Qfont, arg);
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
