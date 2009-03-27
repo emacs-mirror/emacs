@@ -650,18 +650,19 @@ more marks than this are pushed onto the @code{mark-ring},
 @code{push-mark} discards an old mark when it adds a new one.
 @end defopt
 
-@defun handle-shift-selection &optional deactivate
+@defun handle-shift-selection
 This function checks whether the current command was invoked via shift
 translation (@pxref{Key Sequence Input, shift-translation}), and if
 so, sets the mark and temporarily activates the region, unless the
 region is already temporarily activated in this way.  If the command
-was invoked without shift translation, or if the optional argument
-@var{deactivate} is non-@code{nil}, the function deactivates the mark.
+was invoked without shift translation and the region is temporarily
+active, or if the region was activated by the mouse, the function
+deactivates the mark.
+
 This function is called whenever a command with a @samp{^} character
 in its @code{interactive} spec (@pxref{Interactive Codes, ^}) is
 invoked while @code{shift-select-mode} (@pxref{Shift Selection,,,
 emacs, The GNU Emacs Manual}) is non-@code{nil}.
-
 @end defun
 
 @node The Region
