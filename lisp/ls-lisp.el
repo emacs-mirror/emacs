@@ -390,7 +390,10 @@ not contain `d', so that a full listing is expected."
 	      (setq elt (car file-alist)
 		    file-alist (cdr file-alist))
 	      (when (and (eq (cadr elt) t) ; directory
-			 (not (string-match "\\`\\.\\.?\\'" (car elt))))
+			 ;; Under -F, we have already decorated all
+			 ;; directories, including "." and "..", with
+			 ;; a /, so allow for that as well.
+			 (not (string-match "\\`\\.\\.?/?\\'" (car elt))))
 		(setq elt (expand-file-name (car elt) dir))
 		(insert "\n" elt ":\n")
 		(ls-lisp-insert-directory
