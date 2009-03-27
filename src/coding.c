@@ -8557,6 +8557,8 @@ DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
        1, 2, 0,
        doc: /* Detect coding system of the text in STRING.
 Return a list of possible coding systems ordered by priority.
+The coding systems to try and their priorities follows what
+the function `coding-system-priority-list' (which see) returns.
 
 If only ASCII characters are found (except for such ISO-2022 control
 characters as ESC), it returns a list of single element `undecided'
