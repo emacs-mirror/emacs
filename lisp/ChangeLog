@@ -1,3 +1,8 @@
+2009-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Allow for a trailing '/'
+	when looking for "." and "..".  (Bug#2801)
+
 2009-03-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* simple.el (shift-select-mode): Make it a defcustom.
