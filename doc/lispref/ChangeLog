@@ -1,5 +1,8 @@
 2009-03-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* os.texi (System Environment): Update the list of system-type
+	values.
+
 	* markers.texi (The Mark) <handle-shift-selection>: Update for
 	removal of the optional argument DEACTIVATE.
 
