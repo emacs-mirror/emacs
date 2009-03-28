@@ -2,6 +2,8 @@
 
 	* modes.texi (Major Mode Conventions): Note that specialness is
 	inherited.
+	(Derived Modes): Note that define-derive-mode sets the mode-class
+	property.
 
 	* keymaps.texi (Prefix Keys): The M-g prefix key is now named
 	goto-map.  Add search-map to the list.
