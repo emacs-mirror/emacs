@@ -1319,7 +1319,10 @@ extern Lisp_Object Qrun_hook_with_args;
   described for Fdelete_frame.  */
 Lisp_Object
 delete_frame (frame, force)
-     register Lisp_Object frame, force;
+     /* If we use `register' here, gcc-4.0.2 on amd64 using
+	-DUSE_LISP_UNION_TYPE complains further down that we're getting the
+	address of `force'.  Go figure.  */
+     Lisp_Object frame, force;
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
