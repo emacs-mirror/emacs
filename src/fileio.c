@@ -3048,8 +3048,6 @@ Lisp_Object Qfind_buffer_file_type;
 #define READ_BUF_SIZE (64 << 10)
 #endif
 
-extern void adjust_markers_for_delete P_ ((int, int, int, int));
-
 /* This function is called after Lisp functions to decide a coding
    system are called, or when they cause an error.  Before they are
    called, the current buffer is set unibyte and it contains only a
@@ -3094,8 +3092,8 @@ decide_coding_unwind (unwind_data)
 /* Used to pass values from insert-file-contents to read_non_regular.  */
 
 static int non_regular_fd;
-static int non_regular_inserted;
-static int non_regular_nbytes;
+static EMACS_INT non_regular_inserted;
+static EMACS_INT non_regular_nbytes;
 
 
 /* Read from a non-regular file.
@@ -3106,7 +3104,7 @@ static int non_regular_nbytes;
 static Lisp_Object
 read_non_regular ()
 {
-  int nbytes;
+  EMACS_INT nbytes;
 
   immediate_quit = 1;
   QUIT;
@@ -3156,15 +3154,15 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 {
   struct stat st;
   register int fd;
-  int inserted = 0;
+  EMACS_INT inserted = 0;
   int nochange = 0;
-  register int how_much;
-  register int unprocessed;
+  register EMACS_INT how_much;
+  register EMACS_INT unprocessed;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
-  int total = 0;
+  EMACS_INT total = 0;
   int not_regular = 0;
   unsigned char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
@@ -3340,7 +3338,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		 We assume that the 1K-byte and 3K-byte for heading
 		 and tailing respectively are sufficient for this
 		 purpose.  */
-	      int nread;
+	      EMACS_INT nread;
 
 	      if (st.st_size <= (1024 * 4))
 		nread = emacs_read (fd, read_buf, 1024 * 4);
@@ -3450,9 +3448,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* same_at_start and same_at_end count bytes,
 	 because file access counts bytes
 	 and BEG and END count bytes.  */
-      int same_at_start = BEGV_BYTE;
-      int same_at_end = ZV_BYTE;
-      int overlap;
+      EMACS_INT same_at_start = BEGV_BYTE;
+      EMACS_INT same_at_end = ZV_BYTE;
+      EMACS_INT overlap;
       /* There is still a possibility we will find the need to do code
 	 conversion.  If that happens, we set this variable to 1 to
 	 give up on handling REPLACE in the optimized way.  */
@@ -3471,7 +3469,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	 match the text at the beginning of the buffer.  */
       while (1)
 	{
-	  int nread, bufpos;
+	  EMACS_INT nread, bufpos;
 
 	  nread = emacs_read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
@@ -3522,7 +3520,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	 already found that decoding is necessary, don't waste time.  */
       while (!giveup_match_end)
 	{
-	  int total_read, nread, bufpos, curpos, trial;
+	  EMACS_INT total_read, nread, bufpos, curpos, trial;
 
 	  /* At what file position are we now scanning?  */
 	  curpos = XINT (end) - (ZV_BYTE - same_at_end);
@@ -3578,7 +3576,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (! giveup_match_end)
 	{
-	  int temp;
+	  EMACS_INT temp;
 
 	  /* We win!  We can handle REPLACE the optimized way.  */
 
@@ -3638,7 +3636,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       EMACS_INT overlap;
       EMACS_INT bufpos;
       unsigned char *decoded;
-      int temp;
+      EMACS_INT temp;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
       Lisp_Object conversion_buffer;
@@ -3663,8 +3661,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
 	     quitting while reading a huge while.  */
 	  /* try is reserved in some compilers (Microsoft C) */
-	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
-	  int this;
+	  EMACS_INT trytry = min (total - how_much,
+				  READ_BUF_SIZE - unprocessed);
+	  EMACS_INT this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
@@ -3867,13 +3866,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   /* Here, we don't do code conversion in the loop.  It is done by
      decode_coding_gap after all data are read into the buffer.  */
   {
-    int gap_size = GAP_SIZE;
+    EMACS_INT gap_size = GAP_SIZE;
 
     while (how_much < total)
       {
 	/* try is reserved in some compilers (Microsoft C) */
-	int trytry = min (total - how_much, READ_BUF_SIZE);
-	int this;
+	EMACS_INT trytry = min (total - how_much, READ_BUF_SIZE);
+	EMACS_INT this;
 
 	if (not_regular)
 	  {
@@ -4130,7 +4129,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     {
       /* Don't run point motion or modification hooks when decoding.  */
       int count = SPECPDL_INDEX ();
-      int old_inserted = inserted;
+      EMACS_INT old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
 
@@ -4156,9 +4155,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     Hence we temporarily save `point' and `inserted' here and
 	     restore `point' iff format-decode did not insert or delete
 	     any text.  Otherwise we leave `point' at point-min.  */
-	  int opoint = PT;
-	  int opoint_byte = PT_BYTE;
-	  int oinserted = ZV - BEGV;
+	  EMACS_INT opoint = PT;
+	  EMACS_INT opoint_byte = PT_BYTE;
+	  EMACS_INT oinserted = ZV - BEGV;
 	  int ochars_modiff = CHARS_MODIFF;
 
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
@@ -4194,9 +4193,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    {
 	      /* For the rationale of this see the comment on
 		 format-decode above.  */
-	      int opoint = PT;
-	      int opoint_byte = PT_BYTE;
-	      int oinserted = ZV - BEGV;
+	      EMACS_INT opoint = PT;
+	      EMACS_INT opoint_byte = PT_BYTE;
+	      EMACS_INT oinserted = ZV - BEGV;
 	      int ochars_modiff = CHARS_MODIFF;
 
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
