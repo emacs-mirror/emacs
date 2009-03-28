@@ -157,13 +157,13 @@ If @var{function} has a non-@code{nil} property
 changing major modes) won't delete it from the hook variable's local
 value.
 
-It is best to design your hook functions so that the order in which they
-are executed does not matter.  Any dependence on the order is ``asking
-for trouble.''  However, the order is predictable: normally,
+It is best to design your hook functions so that the order in which
+they are executed does not matter.  Any dependence on the order is
+asking for trouble.  However, the order is predictable: normally,
 @var{function} goes at the front of the hook list, so it will be
-executed first (barring another @code{add-hook} call).  If the optional
-argument @var{append} is non-@code{nil}, the new hook function goes at
-the end of the hook list and will be executed last.
+executed first (barring another @code{add-hook} call).  If the
+optional argument @var{append} is non-@code{nil}, the new hook
+function goes at the end of the hook list and will be executed last.
 
 @code{add-hook} can handle the cases where @var{hook} is void or its
 value is a single function; it sets or changes the value to a list of
@@ -231,11 +231,11 @@ writing a minor mode, which is often difficult).
   If the new mode is similar to an old one, it is often unwise to
 modify the old one to serve two purposes, since it may become harder
 to use and maintain.  Instead, copy and rename an existing major mode
-definition and alter the copy---or use @code{define-derived-mode} to
-define a @dfn{derived mode} (@pxref{Derived Modes}).  For example,
-Rmail Edit mode is a major mode that is very similar to Text mode
-except that it provides two additional commands.  Its definition is
-distinct from that of Text mode, but uses that of Text mode.
+definition and alter the copy---or use the @code{define-derived-mode}
+macro to define a @dfn{derived mode} (@pxref{Derived Modes}).  For
+example, Rmail Edit mode is a major mode that is very similar to Text
+mode except that it provides two additional commands.  Its definition
+is distinct from that of Text mode, but uses that of Text mode.
 
   Even if the new mode is not an obvious derivative of any other mode,
 it is convenient to use @code{define-derived-mode} with a @code{nil}
@@ -460,9 +460,9 @@ and then runs the normal hook @code{after-change-major-mode-hook}.
 The major mode command may start by calling some other major mode
 command (called the @dfn{parent mode}) and then alter some of its
 settings.  A mode that does this is called a @dfn{derived mode}.  The
-recommended way to define one is to use @code{define-derived-mode},
-but this is not required.  Such a mode should call the parent mode
-command inside a @code{delay-mode-hooks} form.  (Using
+recommended way to define one is to use the @code{define-derived-mode}
+macro, but this is not required.  Such a mode should call the parent
+mode command inside a @code{delay-mode-hooks} form.  (Using
 @code{define-derived-mode} does this automatically.)  @xref{Derived
 Modes}, and @ref{Mode Hooks}.
 
@@ -487,6 +487,12 @@ This tells Emacs that new buffers created while the current buffer is
 in Funny mode should not inherit Funny mode, in case
 @code{default-major-mode} is @code{nil}.  Modes such as Dired, Rmail,
 and Buffer List use this feature.
+
+The @code{define-derived-mode} macro automatically marks the derived
+mode as special if the parent mode is special.  The special mode
+@code{special-mode} provides a convenient parent for other special
+modes to inherit from; it sets @code{buffer-read-only} to @code{t},
+and does nothing else.
 
 @item
 If you want to make the new mode the default for files with certain
