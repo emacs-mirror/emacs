@@ -738,7 +738,7 @@ documentation of the major mode.
 one.  An easy way to do this is to use @code{define-derived-mode}.
 
 @defmac define-derived-mode variant parent name docstring keyword-args@dots{} body@dots{}
-This construct defines @var{variant} as a major mode command, using
+This macro defines @var{variant} as a major mode command, using
 @var{name} as the string form of the mode name.  @var{variant} and
 @var{parent} should be unquoted symbols.
 
@@ -775,6 +775,12 @@ In addition, you can specify how to override other aspects of
 @var{parent} with @var{body}.  The command @var{variant}
 evaluates the forms in @var{body} after setting up all its usual
 overrides, just before running the mode hooks.
+
+If @var{parent} has a non-@code{nil} @code{mode-class} symbol
+property, then @code{define-derived-mode} sets the @code{mode-class}
+property of @var{variant} to the same value.  This ensures, for
+example, that if @var{parent} is a special mode, then @var{variant} is
+also a special mode (@pxref{Major Mode Conventions}).
 
 You can also specify @code{nil} for @var{parent}.  This gives the new
 mode no parent.  Then @code{define-derived-mode} behaves as described
