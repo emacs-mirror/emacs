@@ -1,3 +1,8 @@
+2009-03-28  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (minibuffer-default-add-completions):
+	Remove `(interactive)'.  (Bug#2805)
+
 2009-03-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (shell-quote-wildcard-pattern): Doc fix.
