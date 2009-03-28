@@ -5254,12 +5254,14 @@ and `list-directory-verbose-switches'."
   "Quote characters special to the shell in PATTERN, leave wildcards alone.
 
 PATTERN is assumed to represent a file-name wildcard suitable for the
-underlying filesystem.  For Unix and GNU/Linux, the characters from the
-set [ \\t\\n;<>&|()'\"#$] are quoted with a backslash; for DOS/Windows, all
+underlying filesystem.  For Unix and GNU/Linux, each character from the
+set [ \\t\\n;<>&|()'\"#$] is quoted with a backslash; for DOS/Windows, all
 the parts of the pattern which don't include wildcard characters are
 quoted with double quotes.
-Existing quote characters in PATTERN are left alone, so you can pass
-PATTERN that already quotes some of the special characters."
+
+This function leaves alone existing quote characters (\\ on Unix and \"
+on Windows), so PATTERN can use them to quote wildcard characters that
+need to be passed verbatim to shell commands."
   (save-match-data
     (cond
      ((memq system-type '(ms-dos windows-nt cygwin))
