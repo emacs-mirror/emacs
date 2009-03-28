@@ -1359,7 +1359,6 @@ this by calling a function defined by `minibuffer-default-add-function'.")
   "Return a list of all completions without the default value.
 This function is used to add all elements of the completion table to
 the end of the list of defaults just after the default value."
-  (interactive)
   (let ((def minibuffer-default)
 	(all (all-completions ""
 			      minibuffer-completion-table
