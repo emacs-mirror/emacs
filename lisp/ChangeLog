@@ -1,3 +1,16 @@
+2009-03-28  David Reitter <david.reitter@gmail.com>
+
+	* term/ns-win.el (ns-expand-space): remove defvar.
+	(S-,): bind to `customize' in line with menu item.
+	([global-map windows]): remove (in line with other
+	platforms).
+	(menu-bar-update-frames, force-menu-bar-update-buffers,
+	force-menu-bar-update-buffers,
+	force-menu-bar-update-buffers): remove, not needed.
+	(menu-bar-update-hook): do not alter.
+	(generate-fontset-menu,mouse-set-font): amend doc string
+	of these defaliases to point out their altered meaning in NS.
+
 2009-03-28  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (minibuffer-default-add-completions):
