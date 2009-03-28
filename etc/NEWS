@@ -1949,6 +1949,7 @@ of multiple buffers.  Top-level commands `multi-isearch-buffers',
 `multi-isearch-files-regexp' accept a single argument that specifies
 a list of buffers/files to search for a string/regexp.
 
++++
 ** The new major mode `special-mode' is intended as a parent for
 major modes such as those that set the "'mode-class 'special" property.
 
