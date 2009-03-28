@@ -1,5 +1,8 @@
 2009-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* modes.texi (Major Mode Conventions): Note that specialness is
+	inherited.
+
 	* keymaps.texi (Prefix Keys): The M-g prefix key is now named
 	goto-map.  Add search-map to the list.
 
