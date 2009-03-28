@@ -1,3 +1,7 @@
+2009-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (shell-quote-wildcard-pattern): Doc fix.
+
 2009-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Allow for a trailing '/'
