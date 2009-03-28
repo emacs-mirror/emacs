@@ -3300,7 +3300,11 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     overflow.  The calculations below double the file size
 	     twice, so check that it can be multiplied by 4 safely.  */
 	  if (XINT (end) != st.st_size
-	      || st.st_size > INT_MAX / 4)
+	      /* Actually, it should test either INT_MAX or LONG_MAX
+		 depending on which one is used for EMACS_INT.  But in
+		 any case, in practice, this test is redundant with the
+		 one above.
+		 || st.st_size > INT_MAX / 4 */)
 	    error ("Maximum buffer size exceeded");
 
 	  /* The file size returned from stat may be zero, but data

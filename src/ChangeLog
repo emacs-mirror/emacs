@@ -1,3 +1,7 @@
+2009-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't limit size to INT_MAX/4.
+
 2009-03-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.c (x_set_font): If the fullscreen property is non-nil, adjust
