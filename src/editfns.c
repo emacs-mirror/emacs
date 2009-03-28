@@ -98,10 +98,11 @@ static Lisp_Object region_limit P_ ((int));
 int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
 				   size_t, const struct tm *, int));
-static void general_insert_function P_ ((void (*) (const unsigned char *, int),
-					 void (*) (Lisp_Object, int, int, int,
-						   int, int),
-					 int, int, Lisp_Object *));
+static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
+				     void (*) (Lisp_Object, EMACS_INT,
+					       EMACS_INT, EMACS_INT,
+					       EMACS_INT, int),
+				     int, int, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind P_ ((Lisp_Object));
 static Lisp_Object subst_char_in_region_unwind_1 P_ ((Lisp_Object));
 static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
@@ -2161,12 +2162,12 @@ set_time_zone_rule (tzstring)
    INSERT_FROM_STRING_FUNC as the last argument.  */
 
 static void
-general_insert_function (insert_func, insert_from_string_func,
-			 inherit, nargs, args)
-     void (*insert_func) P_ ((const unsigned char *, int));
-     void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int, int, int));
-     int inherit, nargs;
-     register Lisp_Object *args;
+general_insert_function (void (*insert_func)
+			      (const unsigned char *, EMACS_INT),
+			 void (*insert_from_string_func)
+			      (Lisp_Object, EMACS_INT, EMACS_INT,
+			       EMACS_INT, EMACS_INT, int),
+			 int inherit, int nargs, Lisp_Object *args)
 {
   register int argnum;
   register Lisp_Object val;

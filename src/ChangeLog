@@ -1,5 +1,14 @@
 2009-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.c (delete_frame): Work around compiler bug.
+
+	* editfns.c (general_insert_function): Adjust to insdel.c changes.
+	* insdel.c (prepare_to_modify_buffer, signal_before_change):
+	Some more EMACS_INT.
+	* lisp.h (copy_text, count_size_as_multibyte): Fix last change.
+
+	* xdisp.c (dump_glyph): Fix typo.
+
 	* insdel.c (move_gap, move_gap_both, gap_left, gap_right)
 	(adjust_markers_gap_motion, adjust_markers_for_delete)
 	(adjust_markers_for_insert, adjust_point)

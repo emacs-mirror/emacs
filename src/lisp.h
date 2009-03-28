@@ -2455,9 +2455,9 @@ extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap (EMACS_INT);
 extern void move_gap_both (EMACS_INT, EMACS_INT);
 extern void make_gap (EMACS_INT);
-extern int copy_text (const unsigned char *, unsigned char *,
-		      EMACS_INT, int, int);
-extern int count_size_as_multibyte (const unsigned char *, EMACS_INT);
+extern EMACS_INT copy_text (const unsigned char *, unsigned char *,
+			    EMACS_INT, int, int);
+extern EMACS_INT count_size_as_multibyte (const unsigned char *, EMACS_INT);
 extern int count_combining_before (const unsigned char *,
 				   EMACS_INT, EMACS_INT, EMACS_INT);
 extern int count_combining_after (const unsigned char *,
@@ -2486,8 +2486,8 @@ extern void del_range_both (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT, int);
 extern Lisp_Object del_range_2 (EMACS_INT, EMACS_INT,
 				EMACS_INT, EMACS_INT, int);
 extern void modify_region (struct buffer *, EMACS_INT, EMACS_INT, int);
-extern void prepare_to_modify_buffer (EMACS_INT, EMACS_INT, int *);
-extern void signal_before_change (EMACS_INT, EMACS_INT, int *);
+extern void prepare_to_modify_buffer (EMACS_INT, EMACS_INT, EMACS_INT *);
+extern void signal_before_change (EMACS_INT, EMACS_INT, EMACS_INT *);
 extern void signal_after_change (EMACS_INT, EMACS_INT, EMACS_INT);
 extern void adjust_after_replace (EMACS_INT, EMACS_INT, Lisp_Object,
 				  EMACS_INT, EMACS_INT);

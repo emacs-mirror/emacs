@@ -2032,7 +2032,8 @@ modify_region (struct buffer *buffer, EMACS_INT start, EMACS_INT end,
    by holding its value temporarily in a marker.  */
 
 void
-prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end, int *preserve_ptr)
+prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
+			  EMACS_INT *preserve_ptr)
 {
   struct buffer *base_buffer;
 
@@ -2146,7 +2147,7 @@ reset_var_on_error (val)
 
 void
 signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
-		      int *preserve_ptr)
+		      EMACS_INT *preserve_ptr)
 {
   Lisp_Object start, end;
   Lisp_Object start_marker, end_marker;
