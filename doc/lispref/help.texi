@@ -532,7 +532,6 @@ It also displays the symbols in a buffer named @samp{*Apropos*}, each
 with a one-line description taken from the beginning of its
 documentation string.
 
-@c Emacs 19 feature
 If @var{do-all} is non-@code{nil}, or if the user option
 @code{apropos-do-all} is non-@code{nil}, then @code{apropos} also
 shows key bindings for the functions that are found; it also shows
@@ -645,15 +644,12 @@ bindings are, and what the mode is intended for.  It returns @code{nil}.
 This can be customized by changing the map @code{Helper-help-map}.
 @end deffn
 
-@c Emacs 19 feature
 @defvar data-directory
 @anchor{Definition of data-directory}
 This variable holds the name of the directory in which Emacs finds
-certain documentation and text files that come with Emacs.  In older
-Emacs versions, @code{exec-directory} was used for this.
+certain documentation and text files that come with Emacs.
 @end defvar
 
-@c Emacs 19 feature
 @defmac make-help-screen fname help-line help-text help-map
 This macro defines a help command named @var{fname} that acts like a
 prefix key that shows a list of the subcommands it offers.
