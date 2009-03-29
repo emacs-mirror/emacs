@@ -1,3 +1,8 @@
+2009-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Mode Line Variables): The default values of the mode
+	line variables are now more complicated.
+
 2009-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Major Mode Conventions): Note that specialness is
