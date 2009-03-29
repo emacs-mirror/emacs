@@ -289,7 +289,6 @@ for in the directory @code{doc-directory}.  Usually @var{filename} is
 @code{"DOC-@var{version}"}.
 @end defun
 
-@c Emacs 19 feature
 @defvar doc-directory
 This variable holds the name of the directory which should contain the
 file @code{"DOC-@var{version}"} that contains documentation strings for
@@ -298,8 +297,6 @@ built-in and preloaded functions and variables.
 In most cases, this is the same as @code{data-directory}.  They may be
 different when you run Emacs from the directory where you built it,
 without actually installing it.  @xref{Definition of data-directory}.
-
-In older Emacs versions, @code{exec-directory} was used for this.
 @end defvar
 
 @node Keys in Documentation
