@@ -1,3 +1,8 @@
+2009-03-29  Sebastian Rose  <sebastian_rose@gmx.de>  (tiny change)
+
+	* ftfont.c: Conditionalize prototyping and use of
+	ftfont_variation_glyphs.
+
 2009-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (delete_frame): Work around compiler bug.
