@@ -1800,53 +1800,31 @@ current input method.  @xref{Non-ASCII Characters}.
 
 @defvar mode-line-modified
 This variable holds the value of the mode-line construct that displays
-whether the current buffer is modified.
-
-The default value of @code{mode-line-modified} is @code{("%1*%1+")}.
-This means that the mode line displays @samp{**} if the buffer is
-modified, @samp{--} if the buffer is not modified, @samp{%%} if the
-buffer is read only, and @samp{%*} if the buffer is read only and
-modified.
+whether the current buffer is modified.  Its default value displays
+@samp{**} if the buffer is modified, @samp{--} if the buffer is not
+modified, @samp{%%} if the buffer is read only, and @samp{%*} if the
+buffer is read only and modified.
 
 Changing this variable does not force an update of the mode line.
 @end defvar
 
 @defvar mode-line-frame-identification
-This variable identifies the current frame.  The default value is
-@code{"  "} if you are using a window system which can show multiple
-frames, or @code{"-%F  "} on an ordinary terminal which shows only one
-frame at a time.
+This variable identifies the current frame.  Its default value
+displays @code{" "} if you are using a window system which can show
+multiple frames, or @code{"-%F "} on an ordinary terminal which shows
+only one frame at a time.
 @end defvar
 
 @defvar mode-line-buffer-identification
-This variable identifies the buffer being displayed in the window.  Its
-default value is @code{("%12b")}, which displays the buffer name, padded
-with spaces to at least 12 columns.
+This variable identifies the buffer being displayed in the window.
+Its default value displays the buffer name, padded with spaces to at
+least 12 columns.
 @end defvar
 
 @defvar mode-line-position
-This variable indicates the position in the buffer.  Here is a
-simplified version of its default value.  The actual default value
-also specifies addition of the @code{help-echo} text property.
-
-@example
-@group
-((-3 "%p")
- (size-indication-mode (8 " of %I"))
-@end group
-@group
- (line-number-mode
-  ((column-number-mode
-    (10 " (%l,%c)")
-    (6 " L%l")))
-  ((column-number-mode
-    (5 " C%c")))))
-@end group
-@end example
-
-This means that @code{mode-line-position} displays at least the buffer
-percentage and possibly the buffer size, the line number and the column
-number.
+This variable indicates the position in the buffer.  Its default value
+displays the buffer percentage and, optionally, the buffer size, the
+line number and the column number.
 @end defvar
 
 @defvar vc-mode
@@ -1857,21 +1835,9 @@ line, or @code{nil} for no version control.
 @end defvar
 
 @defvar mode-line-modes
-This variable displays the buffer's major and minor modes.  Here is a
-simplified version of its default value.  The real default value also
-specifies addition of text properties.
-
-@example
-@group
-("%[(" mode-name
- mode-line-process minor-mode-alist
- "%n" ")%]--")
-@end group
-@end example
-
-So @code{mode-line-modes} normally also displays the recursive editing
-level, information on the process status and whether narrowing is in
-effect.
+This variable displays the buffer's major and minor modes.  Its
+default value also displays the recursive editing level, information
+on the process status, and whether narrowing is in effect.
 @end defvar
 
   The following three variables are used in @code{mode-line-modes}:
