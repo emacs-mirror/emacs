@@ -65,7 +65,6 @@
 
 ;; nsterm.m
 (defvar ns-version-string)
-(defvar ns-expand-space)
 (defvar ns-alternate-modifier)
 
 ;;;; Command line argument handling.
@@ -224,7 +223,7 @@ The properties returned may include `top', `left', `height', and `width'."
   "Keymap of alternative meanings for some keys under NS.")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
-(define-key global-map [?\s-,] 'ns-popup-prefs-panel)
+(define-key global-map [?\s-,] 'customize)
 (define-key global-map [?\s-'] 'next-multiframe-window)
 (define-key global-map [?\s-`] 'other-frame)
 (define-key global-map [?\s--] 'center-line)
@@ -403,10 +402,10 @@ this defaults to \"printenv\"."
 ;             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
 ;             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
              (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-             (cons (logior (lsh 0 16)  12) 'ns-new-frame)
-             (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-             (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
-             (cons (logior (lsh 1 16)  32) 'f1)
+	     (cons (logior (lsh 0 16)  12) 'ns-new-frame)
+	     (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
+	     (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
+	     (cons (logior (lsh 1 16)  32) 'f1)
              (cons (logior (lsh 1 16)  33) 'f2)
              (cons (logior (lsh 1 16)  34) 'f3)
              (cons (logior (lsh 1 16)  35) 'f4)
@@ -516,7 +515,6 @@ this defaults to \"printenv\"."
 
 (define-key global-map [menu-bar services]
   (cons "Services" (make-sparse-keymap "Services")))
-(define-key global-map [menu-bar windows] (make-sparse-keymap "Windows"))
 (define-key global-map [menu-bar buffer]
   (cons "Buffers" global-buffers-menu-map))
 ;;  (cons "Buffers" (make-sparse-keymap "Buffers")))
@@ -625,56 +623,6 @@ this defaults to \"printenv\"."
 ;; Separate undo from cut/paste section, add spell for platform consistency.
 (define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
 (define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
-
-(defun menu-bar-update-frames ()
-  ;; If user discards the Windows item, play along.
-  (when (lookup-key (current-global-map) [menu-bar windows])
-    (let ((frames (frame-list))
-          (frames-menu (make-sparse-keymap "Select Frame")))
-      (setcdr frames-menu
-              (nconc
-               (mapcar (lambda (frame)
-			 (list*
-			  (frame-parameter frame 'window-id)
-			  (frame-parameter frame 'name)
-			  `(lambda ()
-			     (interactive) (menu-bar-select-frame ,frame))))
-                       frames)
-               (cdr frames-menu)))
-      (define-key frames-menu [separator-frames] '("--"))
-      (define-key frames-menu [popup-color-panel]
-        '("Colors..." . ns-popup-color-panel))
-      (define-key frames-menu [popup-font-panel]
-        '("Font Panel..." . ns-popup-font-panel))
-      (define-key frames-menu [separator-arrange] '("--"))
-      (define-key frames-menu [arrange-all-frames]
-        '("Arrange All Frames" . ns-arrange-all-frames))
-      (define-key frames-menu [arrange-visible-frames]
-        '("Arrange Visible Frames" . ns-arrange-visible-frames))
-      ;; Don't use delete-frame as event name
-      ;; because that is a special event.
-      (define-key (current-global-map) [menu-bar windows]
-        (cons "Windows" frames-menu)))))
-
-(defun force-menu-bar-update-buffers ()
-  ;; This is a hack to get around fact that we already checked
-  ;; frame-or-buffer-changed-p and reset it, so menu-bar-update-buffers
-  ;; does not pick up any change.
-  (menu-bar-update-buffers t))
-
-(add-hook 'menu-bar-update-fab-hook 'menu-bar-update-frames)
-(add-hook 'menu-bar-update-fab-hook 'force-menu-bar-update-buffers)
-
-(defun menu-bar-update-frames-and-buffers ()
-  (if (frame-or-buffer-changed-p)
-      (run-hooks 'menu-bar-update-fab-hook)))
-
-(setq menu-bar-update-hook
-      (delq 'menu-bar-update-buffers menu-bar-update-hook))
-(add-hook 'menu-bar-update-hook 'menu-bar-update-frames-and-buffers)
-
-(menu-bar-update-frames-and-buffers)
-
 
 ;; ns-arrange functions contributed
 ;; by Eberhard Mandler <mandler@dbag.ulm.DaimlerBenz.COM>
@@ -1141,8 +1089,10 @@ unless the current buffer is a scratch buffer.")
 
 ;; Set to use font panel instead
 (declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'generate-fontset-menu 'ns-popup-font-panel)
-(defalias 'mouse-set-font 'ns-popup-font-panel)
+(defalias 'generate-fontset-menu 'ns-popup-font-panel "Pop up the font panel.
+This function has been overloaded in NS.")
+(defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
+This function has been overloaded in NS.")
 
 ;; nsterm.m
 (defvar ns-input-font)
