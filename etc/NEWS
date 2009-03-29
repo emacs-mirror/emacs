@@ -861,6 +861,7 @@ Gnus can use `auth-source' for POP and IMAP passwords.  Also see that
 authentication respectively.
 
 ** Help mode
++++
 *** New macro `with-help-window' should set up help windows better
 than `with-output-to-temp-buffer' with `print-help-return-message'.
 
