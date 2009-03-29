@@ -1,7 +1,7 @@
 2009-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* help.texi (Accessing Documentation): Remove a sentence about
-	long-obsolete Emacs versions.
+	* help.texi (Accessing Documentation, Help Functions): Remove
+	information about long-obsolete Emacs versions.
 
 	* modes.texi (Mode Line Variables): The default values of the mode
 	line variables are now more complicated.
