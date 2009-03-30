@@ -232,9 +232,9 @@ in the `*Help*' buffer."
 
 @group
     ;; @r{Display the data.}
-    (with-output-to-temp-buffer "*Help*"
-      (mapcar describe-func (sort sym-list 'string<))
-      (print-help-return-message))))
+    (help-setup-xref (list 'describe-symbols pattern) (interactive-p))
+    (with-help-window (help-buffer)
+      (mapcar describe-func (sort sym-list 'string<)))))
 @end group
 @end smallexample
 
@@ -557,19 +557,6 @@ follows:
 @end smallexample
 @end deffn
 
-@defun print-help-return-message &optional function
-This function builds a string that explains how to restore the previous
-state of the windows after a help command.  After building the message,
-it applies @var{function} to it if @var{function} is non-@code{nil}.
-Otherwise it calls @code{message} to display it in the echo area.
-
-This function expects to be called inside a
-@code{with-output-to-temp-buffer} special form, and expects
-@code{standard-output} to have the value bound by that special form.
-For an example of its use, see the long example in @ref{Accessing
-Documentation}.
-@end defun
-
 @defvar help-char
 The value of this variable is the help character---the character that
 Emacs recognizes as meaning Help.  By default, its value is 8, which
@@ -650,6 +637,38 @@ This variable holds the name of the directory in which Emacs finds
 certain documentation and text files that come with Emacs.
 @end defvar
 
+@deffn help-buffer
+This function returns the name of the help buffer, which is normally
+@samp{*Help*}; if such a buffer does not exist, it is first created.
+@end deffn
+
+@defmac with-help-window buffer-name body@dots{}
+This macro evaluates the @var{body} forms, inserting any output they
+produce into a buffer named @var{buffer-name} like
+@code{with-output-to-temp-buffer} (@pxref{Temporary Displays}).
+(Usually, @var{buffer-name} should be the value returned by the
+function @code{help-buffer}.)  It also puts the specified buffer into
+Help mode and displays a message telling the user how to quit and
+scroll the help window.
+@end defmac
+
+@deffn help-setup-xref item interactive-p
+This function updates the cross reference data in the @samp{*Help*}
+buffer, which is used to regenerate the help information when the user
+clicks on the @samp{Back} or @samp{Forward} buttons.  Most commands
+that use the @samp{*Help*} buffer should invoke this function before
+clearing the buffer.  The @var{item} argument should have the form
+@code{(@var{funtion} . @var{args})}, where @var{funtion} is a function
+to call, with argument list @var{args}, to regenerate the help buffer.
+The @var{interactive-p} argument is non-@code{nil} if the calling
+command was invoked interactively; in that case, the stack of items
+for the @samp{*Help*} buffer's @samp{Back} buttons is cleared.
+@end deffn
+
+@xref{describe-symbols example}, for an example of using
+@code{help-buffer}, @code{with-help-window}, and
+@code{help-setup-xref}.
+
 @defmac make-help-screen fname help-line help-text help-map
 This macro defines a help command named @var{fname} that acts like a
 prefix key that shows a list of the subcommands it offers.
@@ -673,18 +692,6 @@ argument is used only if you set the option @code{three-step-help} to
 
 This macro is used in the command @code{help-for-help} which is the
 binding of @kbd{C-h C-h}.
-@end defmac
-
-@defmac with-help-window buffer-name body@dots{}
-This macro evaluates the @var{body} forms, inserting any output they
-produce into a buffer named @var{buffer-name} like
-@code{with-output-to-temp-buffer} (@pxref{Temporary Displays}).  It
-also puts that buffer in Help mode, displays a message telling the
-user how to quit and scroll the help window, and does various other
-things that make a help window work better.
-
-Don't use @code{print-help-return-message} in the body of this macro;
-it would cause bad results.
 @end defmac
 
 @defopt three-step-help
