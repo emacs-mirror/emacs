@@ -1,5 +1,8 @@
 2009-03-30  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (fontset_from_font): Specify only registry in a
+	font-spec for all characters supported by that registry.
+
 	* ftfont.c: Fix previous change.  Define ftfont_variation_glyphs
 	even if HAVE_M17N_FLT is not defined.
 
