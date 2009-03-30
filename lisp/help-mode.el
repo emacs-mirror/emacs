@@ -358,10 +358,11 @@ restore it properly when going back."
 
 ;;;###autoload
 (defun help-buffer ()
-  "Return a buffer for inserting help.
-If `help-xref-following' is non-nil, this is the current buffer.
-Otherwise, it is the buffer named *Help*.  If no such buffer
-currently exists, it is created."
+  "Return the name of a buffer for inserting help.
+If `help-xref-following' is non-nil, this is the name of the
+current buffer.
+Otherwise, it is *Help*; if no buffer with that name currently
+exists, it is created."
   (buffer-name				;for with-output-to-temp-buffer
    (if help-xref-following
        (current-buffer)
