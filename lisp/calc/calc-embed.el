@@ -159,10 +159,9 @@
         (message "Current modes will be preserved when leaving embedded mode."))
     (message "Not in embedded mode.")))
 
-(defun calc-embedded-restore-original-modes ()
+(defun calc-embedded-restore-original-modes (calcbuf)
   "Restore the original Calc modes when leaving embedded mode."
-  (let ((calcbuf (get-buffer "*Calculator*"))
-        (changed nil)
+  (let ((changed nil)
         (lang (car calc-embedded-original-modes))
         (modes (cdr calc-embedded-original-modes)))
     (if (and calcbuf calc-embedded-original-modes)
@@ -232,7 +231,8 @@
 
 	    ((eq (current-buffer) (aref calc-embedded-info 0))
 	     (let* ((info calc-embedded-info)
-		    (mode calc-embedded-modes))
+		    (mode calc-embedded-modes)
+                    (calcbuf (aref calc-embedded-info 1)))
 	       (save-excursion
 		 (set-buffer (aref info 1))
 		 (if (and (> (calc-stack-size) 0)
@@ -253,7 +253,7 @@
                (setq minor-mode-overriding-map-alist
                      (remq calc-override-minor-modes minor-mode-overriding-map-alist))
 	       (set-buffer-modified-p (buffer-modified-p))
-               (calc-embedded-restore-original-modes)
+               (calc-embedded-restore-original-modes calcbuf)
 	       (or calc-embedded-quiet
 		   (message "Back to %s mode" (format-mode-line mode-name)))))
 
