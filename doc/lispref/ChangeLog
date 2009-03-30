@@ -1,3 +1,11 @@
+2009-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation): Update example to use
+	help-setup-xref and with-help-window.
+	(Help Functions): Remove print-help-return-message, which is
+	semi-obsolete due to with-help-window.  Document help-buffer and
+	help-setup-xref.
+
 2009-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.texi (Accessing Documentation, Help Functions): Remove
