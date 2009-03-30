@@ -1,3 +1,9 @@
+2009-03-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ansi-color.el (ansi-color-get-face): Use
+	ansi-color-parameter-regexp to match parameters.
+	(ansi-color-regexp): Include final `m' in first group.
+
 2009-03-30  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (locate-dominating-stop-dir-regexp): Stop searching
