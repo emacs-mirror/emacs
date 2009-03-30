@@ -728,6 +728,7 @@ map_charset_for_dump (c_function, function, arg, from, to)
 	}
       c++;
     }
+  UNGCPRO;
 }
 
 void
