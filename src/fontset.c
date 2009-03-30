@@ -1729,7 +1729,14 @@ static Lisp_Object auto_fontset_alist;
 /* Number of automatically created fontsets.  */
 static int num_auto_fontsets;
 
-/* Retun a fontset synthesized from FONT-OBJECT.  */
+/* Retun a fontset synthesized from FONT-OBJECT.  This is called from
+   x_new_font when FONT-OBJECT is used for the default ASCII font of a
+   frame, and the returned fontset is used for the default fontset of
+   that frame.  The fontset specifies a font of the same registry as
+   FONT-OBJECT for all characters in the repertory of the registry
+   (see Vfont_encoding_alist).  If the repertory is not known, the
+   fontset specifies the font for all Latin characters assuming that a
+   user intends to use FONT-OBJECT for Latin characters.  */
 
 int
 fontset_from_font (font_object)
@@ -1765,17 +1772,19 @@ fontset_from_font (font_object)
   alias = Fdowncase (AREF (font_object, FONT_NAME_INDEX));
   Vfontset_alias_alist = Fcons (Fcons (name, alias), Vfontset_alias_alist);
   auto_fontset_alist = Fcons (Fcons (font_spec, fontset), auto_fontset_alist);
-  font_spec = Fcopy_font_spec (font_spec);
-  for (i = FONT_WEIGHT_INDEX; i < FONT_EXTRA_INDEX; i++)
-    ASET (font_spec, i, Qnil);
-  Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qnil);
-  Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
-  if (!EQ (registry, Qiso10646_1))
-    {
-      font_spec = Fcopy_font_spec (font_spec);
-      ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);
-      Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qappend);
-    }
+  font_spec = Ffont_spec (0, NULL);
+  ASET (font_spec, FONT_REGISTRY_INDEX, registry);
+  {
+    Lisp_Object target = find_font_encoding (SYMBOL_NAME (registry));
+
+    if (CONSP (target))
+      target = XCDR (target);
+    if (! CHARSETP (target))
+      target = Qlatin;
+    Fset_fontset_font (name, target, font_spec, Qnil, Qnil);
+    Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
+  }
+
   FONTSET_ASCII (fontset) = font_name;
 
 #ifdef HAVE_NS
