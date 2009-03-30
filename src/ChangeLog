@@ -1,3 +1,8 @@
+2009-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c: Fix previous change.  Define ftfont_variation_glyphs
+	even if HAVE_M17N_FLT is not defined.
+
 2009-03-29  Sebastian Rose  <sebastian_rose@gmx.de>  (tiny change)
 
 	* ftfont.c: Conditionalize prototyping and use of
