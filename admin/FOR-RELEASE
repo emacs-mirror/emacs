@@ -189,7 +189,7 @@ files.texi
 frames.texi
 functions.texi    -- cyd
 hash.texi         -- cyd
-help.texi
+help.texi         -- cyd
 hooks.texi
 index.texi
 internals.texi
