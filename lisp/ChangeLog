@@ -1,3 +1,7 @@
+2009-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (chinese-big5): Change type to `big5'.
+
 2009-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-mode.el (help-buffer): Add docstring.
