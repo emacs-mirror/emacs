@@ -1,11 +1,9 @@
 2009-03-13  D. Goel  <deego3@gmail.com>
 
-
 	* erc-backend.el: In (multiple-value-bind/setq .. ls),
-	ls-> (values-list ls) throughout. 
+	ls-> (values-list ls) throughout.
 	* erc.el: Ditto.
 
-	
 2009-01-18  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-header-line-uses-tabbar-p): Set to nil by default.
