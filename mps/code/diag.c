@@ -34,6 +34,10 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "AMCWhiten", "*", "*" },
   { "+", "AMCReclaim_Mobile", "*", "*" },
   { "+", "amcReclaimNailed", "*", "*" },
+  { "+", "TraceStart", "*", "because code " },
+  { "+", "TraceStart", "*", "reserved" },
+  { "+", "TraceStart", "*", "committed" },
+  { "+", "TraceStart", "*", "alignment" },
   { NULL, "", "", "" }
 };
 
