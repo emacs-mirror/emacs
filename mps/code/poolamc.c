@@ -1203,7 +1203,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   AMCSegSketch(seg, abzSketchAfter, NELEMS(abzSketchAfter));
   condemned = TraceSetIsMember(SegWhite(seg), trace);
 
-  if(segSize > bigseg)
+  if(segSize >= bigseg)
     DIAG_SINGLEF(( "AMCWhiten",
       "  segSize: $W\n", segSize,
       "  sketch: $S\n", abzSketch,
@@ -2025,7 +2025,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     freed = TRUE;
   }
 
-  if(segSize > bigseg)
+  if(segSize >= bigseg)
     DIAG_SINGLEF(( "amcReclaimNailed",
       "  segSize: $W\n", segSize,
       "  sketch: $S\n", abzSketch,
@@ -2091,7 +2091,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   SegFree(seg);
 
-  if(segSize > bigseg)
+  if(segSize >= bigseg)
     DIAG_SINGLEF(( "AMCReclaim_Mobile",
       "  segSize: $W\n", segSize,
       "  sketch: $S\n", abzSketch,
