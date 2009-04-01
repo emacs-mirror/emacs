@@ -1,3 +1,8 @@
+2009-04-01  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Suggest how to handle output
+	batches.
+
 2009-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.texi (Accessing Documentation): Update example to use
