@@ -1305,7 +1305,8 @@ that produces the same output twice in a row may send it as one batch of
 200 characters one time, and five batches of 40 characters the next.  If
 the filter looks for certain text strings in the subprocess output, make
 sure to handle the case where one of these strings is split across two
-or more batches of output.
+or more batches of output; one way to do this is to insert the
+received text into a temporary buffer, which can then be searched.
 
 @defun set-process-filter process filter
 This function gives @var{process} the filter function @var{filter}.  If
