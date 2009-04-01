@@ -2006,9 +2006,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
-  cond[0] = emptySeg ? 'E' : 'e';
-  cond[1] = (SegBuffer(seg) == NULL) ? 'b' : 'B';
-  cond[2] = (SegNailed(seg) == TraceSetEMPTY) ? 'n' : 'N';
+  /* (char) casts needed for VC6.0 compiler on platform.w3i3mv */
+  cond[0] = emptySeg ? (char)'E' : (char)'e';
+  cond[1] = (SegBuffer(seg) == NULL) ? (char)'b' : (char)'B';
+  cond[2] = (SegNailed(seg) == TraceSetEMPTY) ? (char)'n' : (char)'N';
   cond[3] = '\0';
   if(emptySeg
      && (SegBuffer(seg) == NULL)
