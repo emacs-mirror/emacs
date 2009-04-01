@@ -1,3 +1,12 @@
+2009-04-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-name): Avoid calling vc-backend twice.
+	(vc-mode-line): Accept and use an optional argument for the
+	backend.
+	(vc-find-file-hook): Use when instead of if.  Avoid calling
+	vc-backend multiple times, pass down the value computed the first
+	time.
+
 2009-03-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* ansi-color.el (ansi-color-get-face): Use

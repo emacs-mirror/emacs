@@ -409,9 +409,10 @@ If the file is not registered, or the master name is not known, return nil."
   (or (vc-file-getprop file 'vc-name)
       ;; force computation of the property by calling
       ;; vc-BACKEND-registered explicitly
-      (if (and (vc-backend file)
-	       (vc-call-backend (vc-backend file) 'registered file))
-	  (vc-file-getprop file 'vc-name))))
+      (let ((backend (vc-backend file)))
+	(if (and backend
+		 (vc-call-backend backend 'registered file))
+	    (vc-file-getprop file 'vc-name)))))
 
 (defun vc-checkout-model (backend files)
   "Indicate how FILES are checked out.
@@ -761,47 +762,48 @@ Before doing that, check if there are any old backups and get rid of them."
     (define-key map [mode-line down-mouse-1] vc-menu-entry)
     map))
 
-(defun vc-mode-line (file)
+(defun vc-mode-line (file &optional backend)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
-visiting FILE."
+visiting FILE.
+If BACKEND is passed use it as the VC backend when computing the result."
   (interactive (list buffer-file-name))
-  (let ((backend (vc-backend file)))
-    (if (not backend)
-	(setq vc-mode nil)
-      (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
-             (ml-echo (get-text-property 0 'help-echo ml-string)))
-        (setq vc-mode
-              (concat
-               " "
-               (if (null vc-display-status)
-                   (symbol-name backend)
-                 (propertize
-                  ml-string
-                  'mouse-face 'mode-line-highlight
-                  'help-echo
-                  (concat (or ml-echo
-                              (format "File under the %s version control system"
-                                      backend))
-                          "\nmouse-1: Version Control menu")
-                  'local-map vc-mode-line-map)))))
-      ;; If the file is locked by some other user, make
-      ;; the buffer read-only.  Like this, even root
-      ;; cannot modify a file that someone else has locked.
-      (and (equal file buffer-file-name)
-	   (stringp (vc-state file))
-	   (setq buffer-read-only t))
-      ;; If the user is root, and the file is not owner-writable,
-      ;; then pretend that we can't write it
-      ;; even though we can (because root can write anything).
-      ;; This way, even root cannot modify a file that isn't locked.
-      (and (equal file buffer-file-name)
-	   (not buffer-read-only)
-	   (zerop (user-real-uid))
-	   (zerop (logand (file-modes buffer-file-name) 128))
-	   (setq buffer-read-only t)))
-    (force-mode-line-update)
-    backend))
+  (setq backend (or backend (vc-backend file)))
+  (if (not backend)
+      (setq vc-mode nil)
+    (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
+	   (ml-echo (get-text-property 0 'help-echo ml-string)))
+      (setq vc-mode
+	    (concat
+	     " "
+	     (if (null vc-display-status)
+		 (symbol-name backend)
+	       (propertize
+		ml-string
+		'mouse-face 'mode-line-highlight
+		'help-echo
+		(concat (or ml-echo
+			    (format "File under the %s version control system"
+				    backend))
+			"\nmouse-1: Version Control menu")
+		'local-map vc-mode-line-map)))))
+    ;; If the file is locked by some other user, make
+    ;; the buffer read-only.  Like this, even root
+    ;; cannot modify a file that someone else has locked.
+    (and (equal file buffer-file-name)
+	 (stringp (vc-state file))
+	 (setq buffer-read-only t))
+    ;; If the user is root, and the file is not owner-writable,
+    ;; then pretend that we can't write it
+    ;; even though we can (because root can write anything).
+    ;; This way, even root cannot modify a file that isn't locked.
+    (and (equal file buffer-file-name)
+	 (not buffer-read-only)
+	 (zerop (user-real-uid))
+	 (zerop (logand (file-modes buffer-file-name) 128))
+	 (setq buffer-read-only t)))
+  (force-mode-line-update)
+  backend)
 
 (defun vc-default-mode-line-string (backend file)
   "Return string for placement in modeline by `vc-mode-line' for FILE.
@@ -868,48 +870,49 @@ current, and kill the buffer that visits the link."
   "Function for `find-file-hook' activating VC mode if appropriate."
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
-  (if vc-mode
-      (setq vc-mode nil))
+  (when vc-mode
+    (setq vc-mode nil))
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     (add-hook 'mode-line-hook 'vc-mode-line nil t)
-    (cond
-     ((with-demoted-errors (vc-backend buffer-file-name))
-      ;; Compute the state and put it in the modeline.
-      (vc-mode-line buffer-file-name)
-      (unless vc-make-backup-files
-	;; Use this variable, not make-backup-files,
-	;; because this is for things that depend on the file name.
-	(set (make-local-variable 'backup-inhibited) t))
-      ;; Let the backend setup any buffer-local things he needs.
-      (vc-call-backend (vc-backend buffer-file-name) 'find-file-hook))
-     ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
-                            (vc-backend buffer-file-truename))))
-	(cond ((not link-type) nil)	;Nothing to do.
-	      ((eq vc-follow-symlinks nil)
-	       (message
-        "Warning: symbolic link to %s-controlled source file" link-type))
-	      ((or (not (eq vc-follow-symlinks 'ask))
-		   ;; If we already visited this file by following
-		   ;; the link, don't ask again if we try to visit
-		   ;; it again.  GUD does that, and repeated questions
-		   ;; are painful.
-		   (get-file-buffer
-		    (abbreviate-file-name
-		     (file-chase-links buffer-file-name))))
-
-	       (vc-follow-link)
-	       (message "Followed link to %s" buffer-file-name)
-	       (vc-find-file-hook))
-	      (t
-	       (if (yes-or-no-p (format
-        "Symbolic link to %s-controlled source file; follow link? " link-type))
-		   (progn (vc-follow-link)
-			  (message "Followed link to %s" buffer-file-name)
-			  (vc-find-file-hook))
+    (let (backend)
+      (cond
+       ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+	;; Compute the state and put it in the modeline.
+	(vc-mode-line buffer-file-name backend)
+	(unless vc-make-backup-files
+	  ;; Use this variable, not make-backup-files,
+	  ;; because this is for things that depend on the file name.
+	  (set (make-local-variable 'backup-inhibited) t))
+	;; Let the backend setup any buffer-local things he needs.
+	(vc-call-backend backend 'find-file-hook))
+       ((let ((link-type (and (not (equal buffer-file-name buffer-file-truename))
+			      (vc-backend buffer-file-truename))))
+	  (cond ((not link-type) nil)	;Nothing to do.
+		((eq vc-follow-symlinks nil)
 		 (message
-        "Warning: editing through the link bypasses version control")
-		 ))))))))
+		  "Warning: symbolic link to %s-controlled source file" link-type))
+		((or (not (eq vc-follow-symlinks 'ask))
+		     ;; If we already visited this file by following
+		     ;; the link, don't ask again if we try to visit
+		     ;; it again.  GUD does that, and repeated questions
+		     ;; are painful.
+		     (get-file-buffer
+		      (abbreviate-file-name
+		       (file-chase-links buffer-file-name))))
+
+		 (vc-follow-link)
+		 (message "Followed link to %s" buffer-file-name)
+		 (vc-find-file-hook))
+		(t
+		 (if (yes-or-no-p (format
+				   "Symbolic link to %s-controlled source file; follow link? " link-type))
+		     (progn (vc-follow-link)
+			    (message "Followed link to %s" buffer-file-name)
+			    (vc-find-file-hook))
+		   (message
+		    "Warning: editing through the link bypasses version control")
+		   )))))))))
 
 (add-hook 'find-file-hook 'vc-find-file-hook)
 
