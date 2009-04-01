@@ -14,6 +14,7 @@
 
 SRCID(poolamc, "$Id$");
 
+Size bigseg = 1UL << 20;
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailboard */
 enum {AMCPTypeGen = 1, AMCPTypeNailboard};
@@ -1183,7 +1184,36 @@ static void AMCRampEnd(Pool pool, Buffer buf)
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
  */
+static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg);
 static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
+{
+  Res res;
+  Size segSize;
+  char abzSketch[5];
+  char abzSketchAfter[5];
+  Bool condemned;
+  
+  segSize = SegSize(seg);
+  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
+
+  AVER(!TraceSetIsMember(SegWhite(seg), trace)); /* from trace.c#start.black */
+  
+  res = AMCWhiten_inner(pool, trace, seg);
+
+  AMCSegSketch(seg, abzSketchAfter, NELEMS(abzSketchAfter));
+  condemned = TraceSetIsMember(SegWhite(seg), trace);
+
+  if(segSize > bigseg)
+    DIAG_SINGLEF(( "AMCWhiten",
+      "  segSize: $W\n", segSize,
+      "  sketch: $S\n", abzSketch,
+      "  sketchAfter: $S\n", abzSketchAfter,
+      "  condemned?: $S", condemned ? "Condemned" : "not condemned",
+      NULL ));
+  
+  return res;
+}
+static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
 {
   amcGen gen;
   AMC amc;
@@ -1898,6 +1928,12 @@ returnRes:
 
 static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 {
+  Size segSize;
+  char abzSketch[5];
+  Count Npip = 0, Npad = 0;
+  char cond[4];
+  Bool freed = FALSE;
+
   Addr p, limit;
   Arena arena;
   Format format;
@@ -1916,6 +1952,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
+
+  segSize = SegSize(seg);
+  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   /* see <design/poolamc/#nailboard.limitations> for improvements */
   headerSize = format->headerSize;
@@ -1939,9 +1978,11 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         /* somewhat overstated. */
         : (*format->isMoved)(p) != NULL)
     {
+      Npad += 1;
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
     } else {
+      Npip += 1;
       emptySeg = FALSE;
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
@@ -1965,6 +2006,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
+  cond[0] = emptySeg ? 'E' : 'e';
+  cond[1] = (SegBuffer(seg) == NULL) ? 'b' : 'B';
+  cond[2] = (SegNailed(seg) == TraceSetEMPTY) ? 'n' : 'N';
+  cond[3] = '\0';
   if(emptySeg
      && (SegBuffer(seg) == NULL)
      && (SegNailed(seg) == TraceSetEMPTY)) {
@@ -1977,7 +2022,17 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     --gen->segs;
     gen->pgen.totalSize -= SegSize(seg);
     SegFree(seg);
+    freed = TRUE;
   }
+
+  if(segSize > bigseg)
+    DIAG_SINGLEF(( "amcReclaimNailed",
+      "  segSize: $W\n", segSize,
+      "  sketch: $S\n", abzSketch,
+      "  Npip: $U, Npad: $U\n", Npip, Npad,
+      "  cond: $S (empty? buffered? nailed?)\n", cond,
+      "  freed?: $S", freed ? "Freed" : "preserved",
+      NULL ));
 }
 
 
@@ -1987,6 +2042,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
  */
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
+  Size segSize;
+  char abzSketch[5];
+
   AMC amc;
   amcGen gen;
   Size size;
@@ -2018,6 +2076,9 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
     return;
   }
   
+  segSize = SegSize(seg);
+  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
+
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
   AVER(SegBuffer(seg) == NULL);
@@ -2029,6 +2090,13 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   trace->reclaimSize += size;
 
   SegFree(seg);
+
+  if(segSize > bigseg)
+    DIAG_SINGLEF(( "AMCReclaim_Mobile",
+      "  segSize: $W\n", segSize,
+      "  sketch: $S\n", abzSketch,
+      "  Freed.",
+      NULL ));
 }
 
 
