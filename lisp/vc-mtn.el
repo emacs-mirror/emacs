@@ -151,7 +151,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	      (t ?:))
 	    branch)))
 
-(defun vc-mtn-register (files &optional rest)
+(defun vc-mtn-register (files &optional rev comment)
   (vc-mtn-command nil 0 files "add"))
 
 (defun vc-mtn-responsible-p (file) (vc-mtn-root file))
