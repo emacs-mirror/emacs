@@ -2007,9 +2007,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   /* (char) casts needed for VC6.0 compiler on platform.w3i3mv */
-  cond[0] = emptySeg ? (char)'E' : (char)'e';
-  cond[1] = (SegBuffer(seg) == NULL) ? (char)'b' : (char)'B';
-  cond[2] = (SegNailed(seg) == TraceSetEMPTY) ? (char)'n' : (char)'N';
+  cond[0] = (char)(emptySeg ? 'E' : 'e');
+  cond[1] = (char)((SegBuffer(seg) == NULL) ? 'b' : 'B');
+  cond[2] = (char)((SegNailed(seg) == TraceSetEMPTY) ? 'n' : 'N');
   cond[3] = '\0';
   if(emptySeg
      && (SegBuffer(seg) == NULL)
