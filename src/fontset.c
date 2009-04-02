@@ -686,7 +686,7 @@ fontset_font (fontset, c, face, id)
   if (VECTORP (rfont_def))
     return rfont_def;
   if (EQ (rfont_def, Qt))
-    return Qnil;
+    goto no_font;
 
   /* Try a font-group of the default fontset. */
   base_fontset = FONTSET_BASE (fontset);
@@ -699,7 +699,7 @@ fontset_font (fontset, c, face, id)
       if (VECTORP (rfont_def))
 	return rfont_def;
       if (EQ (rfont_def, Qt))
-	return Qnil;
+	goto no_font;
     }
 
   /* Try a fallback font-group of FONTSET. */
@@ -707,7 +707,7 @@ fontset_font (fontset, c, face, id)
   if (VECTORP (rfont_def))
     return rfont_def;
   if (EQ (rfont_def, Qt))
-    return Qnil;
+    goto no_font;
 
   /* Try a fallback font-group of the default fontset . */
   if (! EQ (base_fontset, Vdefault_fontset))
@@ -717,6 +717,7 @@ fontset_font (fontset, c, face, id)
 	return rfont_def;
     }
 
+ no_font:
   /* Remember that we have no font for C.  */
   FONTSET_SET (fontset, make_number (c), Qt);
 
