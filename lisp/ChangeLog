@@ -1,3 +1,10 @@
+2009-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-cyclic): Check for +ve N.
+
+	* calendar/holidays.el (calendar-holidays):
+	Don't autoload it.  (Bug#2811)
+
 2009-04-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Specify

@@ -319,7 +319,9 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (define-obsolete-variable-alias 'solar-holidays 'holiday-solar-holidays "23.1")
 
-;;;###autoload
+;; This one should not be autoloaded, else .emacs changes of
+;; holiday-general-holidays etc have no effect.
+;; FIXME should have some :set-after.
 (defcustom calendar-holidays
   (append holiday-general-holidays holiday-local-holidays
           holiday-other-holidays holiday-christian-holidays
