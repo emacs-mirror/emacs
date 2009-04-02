@@ -1950,11 +1950,14 @@ Otherwise, an error occurs in these cases."
 	  ;; Get rid of the mouse-face property that file names have.
 	  (set-text-properties 0 (length file) nil file)
 	  ;; Unquote names quoted by ls or by dired-insert-directory.
-	  (while (string-match
-		  "\\(?:[^\\]\\|\\`\\)\\(\\\\[0-7][0-7][0-7]\\)" file)
-	    (setq file (replace-match
-			(read (concat "\"" (match-string 1 file)  "\""))
-			nil t file 1)))
+	  ;; This code was written using `read' to unquote, because
+          ;; it's faster than substituting \007 (4 chars) -> ^G (1
+          ;; char) etc. in a lisp loop.  Unfortunately, this decision
+          ;; has necessitated hacks such as dealing with filenames
+          ;; with quotation marks in their names.
+	  (while (string-match "\\(?:[^\\]\\|\\`\\)\\(\"\\)" file)
+	    (setq file (replace-match "\\\"" nil t file 1)))
+          (setq file (read (concat "\"" file "\"")))
 	  ;; The above `read' will return a unibyte string if FILE
 	  ;; contains eight-bit-control/graphic characters.
 	  (if (and enable-multibyte-characters

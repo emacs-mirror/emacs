@@ -1,3 +1,8 @@
+2009-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-get-filename): Always pass filename through
+	`read' to ensure unquoting is performed (Bug#2862).
+
 2009-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-mode): Don't give up if the file doesn't exist.
