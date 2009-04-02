@@ -8,7 +8,7 @@
 2009-04-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Specify
-	iso10646-1 font for characters in PUA of BMP.
+	iso10646-1 font for characters in PUA of BMP.  (Bug#2830)
 
 2009-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
