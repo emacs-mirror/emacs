@@ -637,10 +637,10 @@ The following OPTIONS are accepted:\n\
 			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
 			Editor to fallback to if the server is not running\n"
-#ifdef WINDOWSNT
+#ifndef WINDOWSNT
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
-#endif /* WINDOWSNT */
+#endif /* not WINDOWSNT */
 "\n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
