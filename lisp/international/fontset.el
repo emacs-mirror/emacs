@@ -578,7 +578,11 @@
   (set-fontset-font "fontset-default" '(#x20000 . #x2FFFF)
 		    '(nil . "unicode-sip"))
 
-  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
+  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF)
+		    '(nil . "iso10646-1"))
+  ;; Don't try the fallback fonts even if no suitable font was found
+  ;; by the above font-spec.
+  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil nil 'append))
 
 (defun create-default-fontset ()
   "Create the default fontset.
