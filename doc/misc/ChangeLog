@@ -1,3 +1,10 @@
+2009-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi: Capitalize direntry.
+
+	* mairix-el.texi: Copy the direntry from ../../info/dir, and avoid
+	using a period in the entry name.  (Bug#2797)
+
 2009-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add auth.
