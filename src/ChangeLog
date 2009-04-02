@@ -1,3 +1,8 @@
+2009-04-02  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_font): Record no-font when a fontset
+	explicitly tells not to try another font-specs.
+
 2009-03-30  Pierre Poissinger  <pierre.poissinger@gmail.com>  (tiny change)
 
 	* charset.c (map_charset_for_dump): Add missing UNGCPRO.
