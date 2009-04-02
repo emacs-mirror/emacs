@@ -308,6 +308,9 @@ static void traceSetSignalEmergency(TraceSet ts, Arena arena)
   TraceId ti;
   Trace trace;
 
+  DIAG_SINGLEF(( "traceSetSignalEmergency",
+    "traceSet: $B", ts, NULL ));
+
   TRACE_SET_ITER(ti, trace, ts, arena)
     trace->emergency = TRUE;
   TRACE_SET_ITER_END(ti, trace, ts, arena);

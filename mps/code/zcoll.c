@@ -404,7 +404,7 @@ static void checksi(int si, int si_shouldBe, const char *script, const char *scr
 {
   if(si != si_shouldBe) {
     printf("bad script command %s (full script %s).\n", script, scriptAll);
-    cdie(FALSE, "unknown script command");
+    cdie(FALSE, "bad script command!");
   }
 }
 
@@ -442,19 +442,42 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         unsigned keepTotal = 0;
         unsigned keep1in = 0;
         unsigned keepRootspace = 0;
-        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u)%n",
-                    &keep1in, &keepTotal, &keepRootspace, &sb);
-        checksi(si, 3, script, scriptAll);
+        unsigned sizemethod = 0;
+        si = sscanf(script, "Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u)%n",
+                    &keep1in, &keepTotal, &keepRootspace, &sizemethod, &sb);
+        checksi(si, 4, script, scriptAll);
         script += sb;
-        printf("  Make(keep-1-in %u, keep %u, rootspace %u).\n",
-               keep1in, keepTotal, keepRootspace);
+        printf("  Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
+               keep1in, keepTotal, keepRootspace, sizemethod);
         
         Insist(keepRootspace <= myrootCOUNT);
 
         objCount = 0;
         while(keepCount < keepTotal) {
           mps_word_t v;
-          die(make_dylan_vector(&v, ap, 2), "make_dylan_vector");
+          unsigned slots = 2;  /* minimum */
+          switch(sizemethod) {
+            case 0: {
+              /* minimum */
+              slots = 2;
+              break;
+            }
+            case 1: {
+              slots = 2;
+              if(rnd() % 10000 == 0) {
+                printf("*");
+                slots = 300000;
+              }
+              break;
+            }
+            default: {
+              printf("bad script command %s (full script %s).\n", script, scriptAll);
+              printf(" -- sizemethod %u unknown.\n", sizemethod);
+              cdie(FALSE, "bad script command!");
+              break;
+            }
+          }
+          die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
           DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
           DYLAN_VECTOR_SLOT(v, 1) = (mps_word_t)NULL;
           objCount++;
@@ -482,7 +505,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
       default: {
         printf("unknown script command %c (script %s).\n",
                *script, scriptAll);
-        cdie(FALSE, "unknown script command");
+        cdie(FALSE, "unknown script command!");
         return;
       }
     }
@@ -532,7 +555,7 @@ static void *testscriptB(void *arg, size_t s)
   for(i = 0; i < myrootCOUNT; ++i) {
     myroot[i] = NULL;
   }
-  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+  die(mps_root_create_table(&root_table, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
                             myroot, (size_t)myrootCOUNT),
       "root_create");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
@@ -612,7 +635,7 @@ int main(int argc, char **argv)
   /* The most basic scripts */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000), Collect.");
+  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.

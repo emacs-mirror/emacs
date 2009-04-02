@@ -1189,11 +1189,13 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 {
   Res res;
   Size segSize;
+  Addr base;
   char abzSketch[5];
   char abzSketchAfter[5];
   Bool condemned;
   
   segSize = SegSize(seg);
+  base = SegBase(seg);
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   AVER(!TraceSetIsMember(SegWhite(seg), trace)); /* from trace.c#start.black */
@@ -1206,6 +1208,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   if(segSize >= bigseg)
     DIAG_SINGLEF(( "AMCWhiten",
       "  segSize: $W\n", segSize,
+      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(pool->arena, base),
       "  sketch: $S\n", abzSketch,
       "  sketchAfter: $S\n", abzSketchAfter,
       "  condemned?: $S", condemned ? "Condemned" : "not condemned",
@@ -1674,6 +1677,14 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         return res;
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
+      if(SegSize(seg) >= bigseg) {
+        DIAG_SINGLEF(( "AMCFix_amcSegCreateNailboard",
+          "  segSize: $W\n", SegSize(seg),
+          "  segBase: $A, zone: $U\n", (WriteFA)SegBase(seg), AddrZone(pool->arena, SegBase(seg)),
+          "  ref: $A\n", (WriteFA)*refIO,
+          "  &ref: $A\n", (WriteFA)refIO,
+          NULL ));
+      }
     }
     amcFixInPlace(pool, seg, ss, refIO);
     return ResOK;
@@ -1824,6 +1835,11 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         return res;
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
+      DIAG_SINGLEF(( "AMCHeaderFix_amcSegCreateNailboard",
+        "  segBase: $A, zone: $U\n", (WriteFA)SegBase(seg), AddrZone(pool->arena, SegBase(seg)),
+        "  ref: $A\n", (WriteFA)*refIO,
+        "  &ref: $A\n", (WriteFA)refIO,
+        NULL ));
     }
     amcFixInPlace(pool, seg, ss, refIO);
     return ResOK;
@@ -1928,7 +1944,37 @@ returnRes:
 
 static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 {
+  /* Diagnostics for padding:
+   *
+   * Hopefully we're only interested in big segments: those that 
+   * are much bigger than MPS default segsize of 1 page (usually 4096 
+   * bytes).
+   *
+   * To avoid having to be stateful, we can simply emit diag for 
+   * trace start, and for each big seg we see in the trace.
+   *
+   * We want to:
+   *   - see the large amount of padding being created;
+   *   - know exactly how much padding was created
+   *     (to correlate -- or not -- with GR's printHeapSummary report);
+   *   - get an idea of size distribution;
+   *   - understand _why_ it had to be padded, not freed.
+   *
+   * But we may not see the padding being created: if not, we want to 
+   * know why not.  So clock the segments into the trace (Whiten) as 
+   * well as out of it (Reclaim).
+   *
+   * Why seg not freed?  Must have been non-mobile, and not freed 
+   * because of a nail on the start of an object.  (Which could be a 
+   * cli, pad, or fwd).
+   *  - Why is the seg nailed in the first place?  There was an ambig 
+   *    ref into it.
+   *  - Why was it not freed?  There was an ambig ref apparently to 
+   *    the start of an object on it.
+   */
+  
   Size segSize;
+  Addr base;
   char abzSketch[5];
   Count Npip = 0, Npad = 0;
   char cond[4];
@@ -1954,6 +2000,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   AVERT(Arena, arena);
 
   segSize = SegSize(seg);
+  base = SegBase(seg);
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   /* see <design/poolamc/#nailboard.limitations> for improvements */
@@ -2029,8 +2076,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   if(segSize >= bigseg)
     DIAG_SINGLEF(( "amcReclaimNailed",
       "  segSize: $W\n", segSize,
+      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(arena, base),
       "  sketch: $S\n", abzSketch,
       "  Npip: $U, Npad: $U\n", Npip, Npad,
+      "  cbpip: $W, cbpad: $W\n", preservedInPlaceSize, bytesReclaimed,
       "  cond: $S (empty? buffered? nailed?)\n", cond,
       "  freed?: $S", freed ? "Freed" : "preserved",
       NULL ));
@@ -2044,6 +2093,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
   Size segSize;
+  Addr base;
   char abzSketch[5];
 
   AMC amc;
@@ -2078,6 +2128,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   }
   
   segSize = SegSize(seg);
+  base = SegBase(seg);
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
@@ -2095,6 +2146,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   if(segSize >= bigseg)
     DIAG_SINGLEF(( "AMCReclaim_Mobile",
       "  segSize: $W\n", segSize,
+      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(pool->arena, base),
       "  sketch: $S\n", abzSketch,
       "  Freed.",
       NULL ));

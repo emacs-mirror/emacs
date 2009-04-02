@@ -31,13 +31,18 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
   { "-", "*", "*", "*" },
+  { "+", "DiagFilter_Rules", "*", "*" },
   { "+", "AMCWhiten", "*", "*" },
+  { "+", "AMCFix_amcSegCreateNailboard", "*", "*" },
+  { "+", "AMCHeaderFix_amcSegCreateNailboard", "*", "*" },
   { "+", "AMCReclaim_Mobile", "*", "*" },
   { "+", "amcReclaimNailed", "*", "*" },
   { "+", "TraceStart", "*", "because code " },
   { "+", "TraceStart", "*", "reserved" },
   { "+", "TraceStart", "*", "committed" },
   { "+", "TraceStart", "*", "alignment" },
+  { "+", "TraceStart", "*", "genZoneSet" },
+  { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }
 };
 
