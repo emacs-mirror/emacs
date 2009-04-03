@@ -1,7 +1,7 @@
 2009-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* print.c (print_object): Make each lowest sub_char_table start a
-	new line.
+	new line (Bug#2866).
 
 2009-04-02  Kenichi Handa  <handa@m17n.org>
 
