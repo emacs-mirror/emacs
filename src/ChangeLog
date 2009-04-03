@@ -1,3 +1,8 @@
+2009-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (print_object): Make each lowest sub_char_table start a
+	new line.
+
 2009-04-02  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_font): Record no-font when a fontset
