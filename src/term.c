@@ -1740,6 +1740,10 @@ produce_stretch_glyph (it)
   if (width <= 0 && (width < 0 || !zero_width_ok_p))
     width = 1;
 
+  if (width > 0 && it->line_wrap != TRUNCATE
+      && it->current_x + width > it->last_visible_x)
+    width = it->last_visible_x - it->current_x - 1;
+
   if (width > 0 && it->glyph_row)
     {
       Lisp_Object o_object = it->object;

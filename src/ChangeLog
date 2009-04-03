@@ -1,3 +1,9 @@
+2009-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.c (produce_stretch_glyph): Reduce width of stretch glyphs
+	so they don't get wider than the window, matching 2006-01-23
+	change to the partner function in xdisp.c (Bug#2800).
+
 2009-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* print.c (print_object): Make each lowest sub_char_table start a
