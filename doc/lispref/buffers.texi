@@ -115,15 +115,13 @@ the subroutine does not change which buffer is current (unless, of
 course, that is the subroutine's purpose).  Therefore, you should
 normally use @code{set-buffer} within a @code{save-current-buffer} or
 @code{save-excursion} (@pxref{Excursions}) form that will restore the
-current buffer when your function is done.  Here is an example, the
-code for the command @code{append-to-buffer} (with the documentation
-string abridged):
+current buffer when your function is done.  Here, as an example, is a
+simplified version of the command @code{append-to-buffer}:
 
 @example
 @group
 (defun append-to-buffer (buffer start end)
-  "Append to specified buffer the text of the region.
-@dots{}"
+  "Append to specified buffer the text of the region."
   (interactive "BAppend to buffer: \nr")
   (let ((oldbuf (current-buffer)))
     (save-current-buffer
@@ -157,30 +155,21 @@ beginning is current again whenever the variable is unbound.
 
   Do not rely on using @code{set-buffer} to change the current buffer
 back, because that won't do the job if a quit happens while the wrong
-buffer is current.  Here is what @emph{not} to do:
+buffer is current.  For instance, in the previous example, it would
+have been wrong to do this:
 
 @example
 @group
-(let (buffer-read-only
-      (obuf (current-buffer)))
-  (set-buffer @dots{})
-  @dots{}
-  (set-buffer obuf))
+  (let ((oldbuf (current-buffer)))
+    (set-buffer (get-buffer-create buffer))
+    (insert-buffer-substring oldbuf start end)
+    (set-buffer oldbuf))
 @end group
 @end example
 
 @noindent
-Using @code{save-current-buffer}, as shown here, handles quitting,
-errors, and @code{throw}, as well as ordinary evaluation.
-
-@example
-@group
-(let (buffer-read-only)
-  (save-current-buffer
-    (set-buffer @dots{})
-    @dots{}))
-@end group
-@end example
+Using @code{save-current-buffer}, as we did, handles quitting, errors,
+and @code{throw}, as well as ordinary evaluation.
 
 @defun current-buffer
 This function returns the current buffer.

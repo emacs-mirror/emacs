@@ -1,5 +1,9 @@
 2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* buffers.texi (Current Buffer): Note that the append-to-buffer
+	example is no longer in synch with the latest code.  Tie the two
+	examples together.
+
 	* files.texi (File Attributes): Move note about MS-DOS from
 	Changing Files to File Attributes.
 	(Create/Delete Dirs): Note that mkdir is an alias for this.
