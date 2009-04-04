@@ -291,7 +291,8 @@ message."
 				    summary-msgs))))
 		  (setq msgnum (1+ msgnum))
 		  ;; Provide a periodic User progress message.
-		  (if (zerop (% rmail-new-summary-line-count 10))
+		  (if (and (not (zerop rmail-new-summary-line-count))
+			   (zerop (% rmail-new-summary-line-count 10)))
 		      (message "Computing summary lines...%d"
 			       rmail-new-summary-line-count)))
 		(setq summary-msgs (nreverse summary-msgs)))
