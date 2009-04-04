@@ -135,7 +135,7 @@ emacs.texi        -- cyd
 emacs-xtra.texi
 emerge-xtra.texi
 entering.texi     -- cyd
-files.texi        -- cyd
+files.texi
 fixit.texi        -- cyd
 fortran-xtra.texi -- rgm
 frames.texi       -- cyd
@@ -185,7 +185,7 @@ edebug.texi
 elisp.texi
 errors.texi
 eval.texi         -- cyd
-files.texi
+files.texi        -- cyd
 frames.texi
 functions.texi    -- cyd
 hash.texi         -- cyd
