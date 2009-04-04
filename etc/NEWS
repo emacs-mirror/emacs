@@ -567,6 +567,9 @@ top line, -1 for bottom line), or nil for no recentering.
 +++
 *** When typing in a password in the echo area, C-y yanks the current
 kill into the password.
+---
+*** Tooltip frame parameters `font' and `color' in `tooltip-frame-parameters'
+are ignored.  Customize the `tooltip' face instead.
 +++
 *** `mkdir' is a new convenience alias for `make-directory'.
 
