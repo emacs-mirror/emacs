@@ -1,3 +1,10 @@
+2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* terminal.c (Fterminal_name, Fdelete_terminal, Fterminal_name)
+	(Fterminal_parameters, Fterminal_parameter)
+	(Fset_terminal_parameter): In doc string, refer to terminal
+	objects rather than terminal ids.
+
 2009-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* dosfns.c (system_process_attributes) [SYSTEM_MALLOC]: Don't call

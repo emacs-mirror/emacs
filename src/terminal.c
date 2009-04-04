@@ -297,8 +297,8 @@ static Lisp_Object Vdelete_terminal_functions;
 
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
-TERMINAL may be a terminal id, a frame, or nil (meaning the selected
-frame's terminal).
+TERMINAL may be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).
 
 Normally, you may not delete a display if all other displays are suspended,
 but if the second argument FORCE is non-nil, you may do so. */)
@@ -422,7 +422,7 @@ DEFUN ("terminal-name", Fterminal_name, Sterminal_name, 0, 1, 0,
        doc: /* Return the name of the terminal device TERMINAL.
 It is not guaranteed that the returned value is unique among opened devices.
 
-TERMINAL may be a terminal id, a frame, or nil (meaning the
+TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal). */)
   (terminal)
      Lisp_Object terminal;
@@ -476,8 +476,8 @@ DEFUN ("terminal-parameters", Fterminal_parameters, Sterminal_parameters, 0, 1, 
 The value is a list of elements of the form (PARM . VALUE), where PARM
 is a symbol.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -488,8 +488,8 @@ frame's terminal).  */)
 
 DEFUN ("terminal-parameter", Fterminal_parameter, Sterminal_parameter, 2, 2, 0,
        doc: /* Return TERMINAL's value for parameter PARAMETER.
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  */)
      (terminal, parameter)
      Lisp_Object terminal;
      Lisp_Object parameter;
@@ -507,8 +507,8 @@ DEFUN ("set-terminal-parameter", Fset_terminal_parameter,
        doc: /* Set TERMINAL's value for parameter PARAMETER to VALUE.
 Return the previous value of PARAMETER.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
+TERMINAL can be a terminal object, a frame or nil (meaning the
+selected frame's terminal).  */)
      (terminal, parameter, value)
      Lisp_Object terminal;
      Lisp_Object parameter;
