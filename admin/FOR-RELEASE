@@ -174,7 +174,7 @@ advice.texi       -- cyd
 anti.texi
 back.texi
 backups.texi
-buffers.texi
+buffers.texi      -- cyd
 commands.texi     -- cyd
 compile.texi      -- cyd
 control.texi      -- cyd
