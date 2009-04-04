@@ -938,8 +938,7 @@ Windows
 Frames
 
 * Creating Frames::	    Creating additional frames.
-* Multiple Displays::       Creating frames on other displays.
-* Multiple Terminals::          Displaying on several different devices.
+* Multiple Terminals::      Displaying on several different devices.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
 * Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.

@@ -898,7 +898,7 @@ If non-@code{nil}, this variable holds a keymap to use instead of
 or overlay keymaps, and all the minor mode keymaps.
 
 This variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.  It is used to implement
+buffer-local.  @xref{Multiple Terminals}.  It is used to implement
 incremental search mode.
 @end defvar
 

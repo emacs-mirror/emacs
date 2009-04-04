@@ -781,7 +781,7 @@ the command loop, except when the command has specified a prefix
 argument for the following command.
 
 This variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar real-last-command
@@ -3340,7 +3340,7 @@ The commands @code{start-kbd-macro}, @code{kmacro-start-macro} and
 @code{end-kbd-macro} set this variable---do not set it yourself.
 
 The variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar last-kbd-macro
@@ -3348,7 +3348,7 @@ This variable is the definition of the most recently defined keyboard
 macro.  Its value is a string or vector, or @code{nil}.
 
 The variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar kbd-macro-termination-hook

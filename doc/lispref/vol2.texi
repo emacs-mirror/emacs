@@ -947,7 +947,7 @@ Windows
 Frames
 
 * Creating Frames::	    Creating additional frames.
-* Multiple Displays::       Creating frames on other displays.
+* Multiple Terminals::       Creating frames on other displays.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::	    Frames last until explicitly deleted.

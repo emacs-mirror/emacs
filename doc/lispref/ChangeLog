@@ -1,5 +1,26 @@
 2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frames.texi (Frames): Clean up introduction.  Document `ns'
+	return value for framep.
+	(Creating Frames): Note how the terminal is chosen.
+	(Multiple Terminals, Multiple Displays): Merge into a single node.
+	(Color Parameters): Fix typo.
+
+	* variables.texi (Local Variables, Buffer-Local Variables)
+	(Creating Buffer-Local): Change link to Multiple Terminals.
+
+	* os.texi (X11 Keysyms): Change link to Multiple Terminals.
+
+	* keymaps.texi (Controlling Active Maps): Change link to Multiple
+	Terminals.
+
+	* commands.texi (Command Loop Info, Keyboard Macros): Change link
+	to Multiple Terminals.
+
+	* elisp.texi (Top): Update node listing.
+	* vol2.texi (Top): Update node listing.
+	* vol1.texi (Top): Update node listing.
+
 	* buffers.texi (Current Buffer): Note that the append-to-buffer
 	example is no longer in synch with the latest code.  Tie the two
 	examples together.
