@@ -79,7 +79,6 @@
 
 	* xterm.c (handle_one_xevent): Call x_handle_net_wm_state if
 	the property _NET_WM_STATE has changed.
-	updated.
 	(x_handle_net_wm_state): New function to update frame parameter
 	fullscreen.
 	(x_term_init): Initialize atoms for _NET_WM_STATE.
@@ -849,7 +848,7 @@
 	input_interrupt_mode to nil.
 
 	* image.c (svg_load_image): Don't right-shift background RGB when
-	obtained from FRAME_BACKGROUND_PIXEL. Under HAVE_NS use ns_query_color.
+	obtained from FRAME_BACKGROUND_PIXEL.  Under HAVE_NS use ns_query_color.
 
 2009-01-28  Kenichi Handa  <handa@m17n.org>
 
