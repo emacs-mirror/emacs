@@ -917,7 +917,7 @@ PRESERVE-UID-GID is completely ignored."
   (when (and keep-date (functionp 'set-file-times))
     (set-file-times newname (nth 5 (file-attributes filename))))
   ;; Set the mode.
-  (set-file-modes newname (file-modes filename)))
+  (set-file-modes newname (tramp-default-file-modes filename)))
 
 (defun tramp-fish-get-file-entries (vec localname list)
   "Read entries returned by FISH server.
