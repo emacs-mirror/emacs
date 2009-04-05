@@ -1,3 +1,8 @@
+2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* positions.texi (Screen Lines): Document (cols . lines) argument
+	for vertical-motion.
+
 2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Frames): Clean up introduction.  Document `ns'
