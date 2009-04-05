@@ -4350,6 +4350,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
 (put 'load 'ange-ftp 'ange-ftp-load)
 (put 'find-backup-file-name 'ange-ftp 'ange-ftp-find-backup-file-name)
+(put 'set-file-modes 'ange-ftp 'ange-ftp-set-file-modes)
 
 ;; Turn off truename processing to save time.
 ;; Treat each name as its own truename.
@@ -4358,7 +4359,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; We must return non-nil in order to mask our inability to do the job.
 ;; Otherwise there are errors when applied to the target file during
 ;; copying from a (localhost) Tramp file.
-(put 'set-file-modes 'ange-ftp 'ignore)
 (put 'set-file-times 'ange-ftp 'ignore)
 
 ;; Turn off RCS/SCCS processing to save time.
@@ -4577,12 +4577,14 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
                                                (format "doing chmod %s"
                                                        abbr))))
                (or (car result)
-                   (call-process
-                    remote-shell-program
-                    nil t nil host dired-chmod-program mode name))))))
+		   (ange-ftp-error
+		    host user (concat "CHMOD failed: " (cdr result))))))))
      rest))
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
+
+(defun ange-ftp-set-file-modes (filename mode)
+  (ange-ftp-call-chmod (list (format "%o" mode) filename)))
 
 ;; This is turned off because it has nothing properly to do
 ;; with dired.  It could be reasonable to adapt this to
