@@ -1,3 +1,21 @@
+2009-04-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired-aux.el (dired-copy-file-recursive): Set mode to "700" if
+	`file-modes' returns nil.
+
+	* net/ange-ftp.el (ange-ftp-set-file-modes): New defun.  Change
+	`ange-ftp' property of `set-file-modes' to
+	`ange-ftp-set-file-modes'.
+	(ange-ftp-call-chmod): Add error handling.
+
+	* net/tramp.el (tramp-default-file-modes) New defun.  Replace all
+	calls of `file-modes' by this.
+	(tramp-handle-find-backup-file-name): Use `symbol-value' instead
+	of `boundp'.
+
+	* net/tramp-fish.el (tramp-fish-do-copy-or-rename-file-directly):
+	Use `tramp-default-file-modes'.
+
 2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (make-frame): Doc fix.
