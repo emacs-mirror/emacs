@@ -5614,6 +5614,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
     (define-key map "\e\e\e" 'delete-completion-window)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
+    (define-key map "q" 'quit-window)
     map)
   "Local map for completion list buffers.")
 

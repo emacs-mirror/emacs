@@ -1,3 +1,8 @@
+2009-04-06  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (completion-list-mode-map): Bind "q" to quit-window,
+	just like in all other read-only buffers.
+
 2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (handle-shift-selection): Clarify docstring.
