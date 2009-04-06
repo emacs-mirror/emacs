@@ -1,3 +1,8 @@
+2009-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* ftfont.c (ftfont_open): Fix checking of the return value of
+	FT_Load_Char.  Fix setting font->underline_thickness.
+
 2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* terminal.c (Fterminal_name, Fdelete_terminal, Fterminal_name)
