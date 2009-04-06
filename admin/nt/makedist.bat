@@ -44,7 +44,6 @@ echo Create archive with just the basic binaries and generated files
 echo (the user needs to unpack the full source distribution for
 echo  everything else)
 copy %3\README.W32 emacs-%1\README.W32
-copy %3\dump.bat emacs-%1\bin\dump.bat
 rem Info-ZIP zip seems to be broken on Windows.
 rem It always writes to zip.zip and treats the zipfile argument as one
 rem of the files to go in it.
