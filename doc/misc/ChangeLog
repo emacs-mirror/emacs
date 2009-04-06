@@ -1,3 +1,8 @@
+2009-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi (FAQ 8-4): Fix wrong group name of
+	news.software.readers.  Reported by Florian Rehnisch.
+
 2009-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* auth.texi: Capitalize direntry.

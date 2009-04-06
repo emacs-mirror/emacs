@@ -2164,7 +2164,7 @@ questions.  If you have questions about development versions of
 Gnus, you should better ask on the ding mailing list, see below.
 
 If you want to stay in the big8,
-news.software.newssreaders is also read by some Gnus
+news.software.readers is also read by some Gnus
 users (but chances for qualified help are much better in
 the above groups).  If you speak German, there's
 de.comm.software.gnus.
