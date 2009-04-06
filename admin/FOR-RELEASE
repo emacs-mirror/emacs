@@ -200,7 +200,7 @@ loading.texi      -- cyd
 locals.texi
 macros.texi       -- cyd
 maps.texi
-markers.texi
+markers.texi      -- cyd
 minibuf.texi      -- cyd
 modes.texi        -- cyd
 nonascii.texi
