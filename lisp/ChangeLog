@@ -1,3 +1,7 @@
+2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (handle-shift-selection): Clarify docstring.
+
 2009-04-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dired-aux.el (dired-copy-file-recursive): Set mode to "700" if
