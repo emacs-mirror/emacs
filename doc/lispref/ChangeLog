@@ -1,5 +1,9 @@
 2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* markers.texi (The Mark): Copyedits.  Improve description of
+	handle-shift-selection.
+	(The Region): Move use-region-p here from The Mark.
+
 	* positions.texi (Screen Lines): Document (cols . lines) argument
 	for vertical-motion.
 
