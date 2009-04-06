@@ -1,3 +1,8 @@
+2009-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tooltip.el (tooltip-show-help-non-mode): Don't save the last
+	message if it was also a help message (Bug#2895).
+
 2009-04-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry)

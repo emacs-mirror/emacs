@@ -319,7 +319,9 @@ the buffer of PROCESS."
 ;;; Tooltip help.
 
 (defvar tooltip-help-message nil
-  "The last help message received via `tooltip-show-help'.")
+  "The last help message received via `show-help-function'.
+This is used by `tooltip-show-help' and
+`tooltip-show-help-non-mode'.")
 
 (defvar tooltip-previous-message nil
   "The previous content of the echo area.")
@@ -327,16 +329,17 @@ the buffer of PROCESS."
 (defun tooltip-show-help-non-mode (help)
   "Function installed as `show-help-function' when tooltip is off."
   (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
-             ;; Don't know how to reproduce it in Elisp:
-             ;; Don't overwrite a keystroke echo.
-             ;; (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
-             (not cursor-in-echo-area)) ;Don't overwrite a prompt.
+             (not cursor-in-echo-area))  ;Don't overwrite a prompt.
     (cond
      ((stringp help)
       (setq help (replace-regexp-in-string "\n" ", " help))
       (unless (or tooltip-previous-message
-		  (string-equal help (current-message)))
+		  (string-equal help (current-message))
+		  (and (stringp tooltip-help-message)
+		       (string-equal tooltip-help-message
+				     (current-message))))
         (setq tooltip-previous-message (current-message)))
+      (setq tooltip-help-message help)
       (let ((message-truncate-lines t)
             (message-log-max nil))
         (message "%s" help)))
