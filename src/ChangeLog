@@ -1,3 +1,7 @@
+2009-04-06  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (x_set_font): Avoid C99 mid-block variable declaration.
+
 2009-04-06  Kenichi Handa  <handa@m17n.org>
 
 	* ftxfont.c (ftxfont_draw_backgrond): Fix args to XFillRectangle.

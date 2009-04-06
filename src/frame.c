@@ -3367,9 +3367,8 @@ x_set_font (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Lisp_Object frame;
+  Lisp_Object frame, font_object, lval;
   int fontset = -1;
-  Lisp_Object font_object;
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
@@ -3427,7 +3426,7 @@ x_set_font (f, arg, oldval)
     return;
 
   
-  Lisp_Object lval = Fassq (Qfullscreen, f->param_alist);
+  lval = Fassq (Qfullscreen, f->param_alist);
   if (CONSP (lval)) lval = CDR (lval);
 
   x_new_font (f, font_object, fontset);
