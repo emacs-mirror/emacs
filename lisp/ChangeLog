@@ -9,11 +9,11 @@
 
 	* net/ange-ftp.el (ange-ftp-set-file-modes): New defun.  Change
 	`ange-ftp' property of `set-file-modes' to
-	`ange-ftp-set-file-modes'.
+	`ange-ftp-set-file-modes' (Bug#2865).
 	(ange-ftp-call-chmod): Add error handling.
 
 	* net/tramp.el (tramp-default-file-modes) New defun.  Replace all
-	calls of `file-modes' by this.
+	calls of `file-modes' by this (Bug#2869).
 	(tramp-handle-find-backup-file-name): Use `symbol-value' instead
 	of `boundp'.
 
