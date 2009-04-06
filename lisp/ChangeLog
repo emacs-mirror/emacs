@@ -1,3 +1,9 @@
+2009-04-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry)
+	(bibtex-search-crossref): Allow OPT prefix for name of crossref
+	field.
+
 2009-04-06  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (completion-list-mode-map): Bind "q" to quit-window,
