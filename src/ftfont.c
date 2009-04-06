@@ -1130,7 +1130,7 @@ ftfont_open (f, entity, pixel_size)
 
       font->min_width = font->average_width = font->space_width = 0;
       for (i = 32, n = 0; i < 127; i++)
-	if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
+	if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) == 0)
 	  {
 	    int this_width = ft_face->glyph->metrics.horiAdvance >> 6;
 
@@ -1153,7 +1153,7 @@ ftfont_open (f, entity, pixel_size)
   if (scalable)
     {
       font->underline_position = -ft_face->underline_position * size / upEM;
-      font->underline_thickness = -ft_face->underline_thickness * size / upEM;
+      font->underline_thickness = ft_face->underline_thickness * size / upEM;
     }
   else
     {
