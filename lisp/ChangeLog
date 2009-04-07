@@ -1,3 +1,7 @@
+2009-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Fix last fix.
+
 2009-04-07  Glenn Morris  <rgm@gnu.org>
 
 	* term/ns-win.el (ns-pop-up-frames): Make it a defcustom.
