@@ -1430,13 +1430,12 @@ If so restore the actual mbox message collection."
   "Expunge and save RMAIL file."
   (interactive)
   (set-buffer rmail-buffer)
-  (rmail-expunge t)
+  (rmail-expunge)
   ;; No need to swap buffers: rmail-write-region-annotate takes care of it.
   ;; (rmail-swap-buffers-maybe)
   (save-buffer)
   (if (rmail-summary-exists)
-      (rmail-select-summary (set-buffer-modified-p nil)))
-  (rmail-show-message))
+      (rmail-select-summary (set-buffer-modified-p nil))))
 
 (defun rmail-quit ()
   "Quit out of RMAIL.
@@ -1449,6 +1448,8 @@ Hook `rmail-quit-hook' is run after expunging."
     (run-hooks 'rmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
   (when rmail-summary-buffer
+    (with-current-buffer rmail-summary-buffer
+      (set-buffer-modified-p nil))
     (replace-buffer-in-windows rmail-summary-buffer)
     (bury-buffer rmail-summary-buffer))
   (if rmail-enable-mime
@@ -3170,6 +3171,8 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   "Return t if deleted message should be expunged. If necessary, ask the user.
 See also user-option `rmail-confirm-expunge'."
   (set-buffer rmail-buffer)
+  ;; FIXME shouldn't this return nil if there is nothing to expunge?
+  ;; Eg to save rmail-expunge wasting its time?
   (or (not (stringp rmail-deleted-vector))
       (not (string-match "D" rmail-deleted-vector))
       (null rmail-confirm-expunge)
@@ -3260,31 +3263,43 @@ See also user-option `rmail-confirm-expunge'."
 	  (goto-char (+ (point-min) opoint))
 	(goto-char (+ (point) opoint))))))
 
+;; The DONT-SHOW argument is new in 23.  Does not seem very important.
 (defun rmail-expunge (&optional dont-show)
-  "Erase deleted messages from Rmail file and summary buffer."
+  "Erase deleted messages from Rmail file and summary buffer.
+This always shows a message (so as not to leave the Rmail buffer
+unswapped), and always updates any summary (so that it remains
+consistent with the Rmail buffer).  If DONT-SHOW is non-nil, it
+does not pop any summary buffer."
   (interactive)
   (when (rmail-expunge-confirmed)
     (let ((was-deleted (rmail-message-deleted-p rmail-current-message))
 	  (was-swapped (rmail-buffers-swapped-p)))
       (rmail-only-expunge t)
-      (if dont-show
-	  ;; Do update the summary buffer, if any.
-	  (let ((total rmail-total-messages))
-	    (when (rmail-summary-exists)
-	      (with-current-buffer rmail-summary-buffer
-		(let ((rmail-total-messages total))
-		  (rmail-update-summary)))))
-	;; Update the summary and show it.
-	(if (rmail-summary-exists)
-	    (rmail-select-summary (rmail-update-summary)))
-	;; If we expunged the current message, a new one is current now,
-	;; so show it.  If we weren't showing a message, show it. 
-	(if (or was-deleted (not was-swapped))
-	    (rmail-show-message-1 rmail-current-message)
-	  ;; Show the same message that was being shown before.
-	  (rmail-display-labels)
-	  (rmail-swap-buffers)
-	  (setq rmail-buffer-swapped t))))))
+      ;; We always update the summary buffer, so that the contents
+      ;; remain consistent with the rmail buffer.
+      ;; The only difference is, in the dont-show case, we use a
+      ;; cut-down version of rmail-select-summary that does not pop
+      ;; the summary buffer.  It's only used by rmail-quit, which is
+      ;; just going to bury any summary immediately after.  If we made
+      ;; rmail-quit bury the summary first, dont-show could be removed.
+      ;; But the expunge might not be confirmed...
+      (if (rmail-summary-exists)
+	  (if dont-show
+	      (let ((total rmail-total-messages))
+		(with-current-buffer rmail-summary-buffer
+		  (let ((rmail-total-messages total))
+		    (rmail-update-summary))))
+	    (rmail-select-summary (rmail-update-summary))))
+      ;; We always show a message, because (rmail-only-expunge t)
+      ;; leaves the rmail buffer unswapped.
+      ;; If we expunged the current message, a new one is current now,
+      ;; so show it.  If we weren't showing a message, show it.
+      (if (or was-deleted (not was-swapped))
+	  (rmail-show-message-1 rmail-current-message)
+	;; We can just show the same message that was being shown before.
+	(rmail-display-labels)
+	(rmail-swap-buffers)
+	(setq rmail-buffer-swapped t)))))
 
 ;;;; *** Rmail Mailing Commands ***
 

@@ -1,3 +1,10 @@
+2009-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-expunge-and-save): Let rmail-expunge show the
+	message.
+	(rmail-quit): Mark summary unmodified.
+	(rmail-expunge): Doc fix.  Always show a message.  (Bug#2763)
+
 2009-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc-bzr.el (vc-bzr-log-view-mode): Tweak
