@@ -84,6 +84,7 @@ into help buttons that call `describe-text-category' or
 	      (symbol-name value)
 	      'action `(lambda (&rest ignore)
 			 (describe-text-category ',value))
+	      'follow-link t
 	      'help-echo "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
 	     (insert-text-button
@@ -513,6 +514,7 @@ as well as widgets, buttons, overlays, and text properties."
 				    (if (search-forward ,(char-to-string char)
 							nil t)
 					(goto-char (match-beginning 0))))))
+		      'follow-link t
 		      'help-echo
 		      "mouse-2, RET: show this character in its character set")
 		  str)))
@@ -727,7 +729,8 @@ as well as widgets, buttons, overlays, and text properties."
 	   "customize what to show"
 	   'action (lambda (&rest ignore)
 		     (customize-variable
-		      'describe-char-unidata-list)))
+		      'describe-char-unidata-list))
+	   'follow-link t)
 	  (insert "\n")
 	  (dolist (elt (if (eq describe-char-unidata-list t)
 			   (nreverse (mapcar 'car char-code-property-alist))
