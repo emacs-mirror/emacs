@@ -1,5 +1,7 @@
 2009-04-07  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-pop-up-frames): Make it a defcustom.
+
 	* mail/rmail.el (rmail-expunge-and-save): Let rmail-expunge show the
 	message.
 	(rmail-quit): Mark summary unmodified.

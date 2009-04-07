@@ -955,10 +955,15 @@ Lines are highlighted according to `ns-input-line'."
     (message ns-output-file)
     (if ns-output-file (write-file ns-output-file))))
 
-(defvar ns-pop-up-frames 'fresh
-  "*Non-nil means open files upon request from the Workspace in a new frame.
+(defcustom ns-pop-up-frames 'fresh
+  "Non-nil means open files upon request from the Workspace in a new frame.
 If t, always do so.  Any other non-nil value means open a new frame
-unless the current buffer is a scratch buffer.")
+unless the current buffer is a scratch buffer."
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Always" t)
+                 (other :tag "Except for scratch buffer" fresh))
+  :version "23.1"
+  :group 'ns)
 
 (declare-function ns-hide-emacs "nsfns.m" (on))
 
