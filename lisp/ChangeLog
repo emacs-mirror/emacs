@@ -1,5 +1,8 @@
 2009-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc-bzr.el (vc-bzr-log-view-mode): Tweak
+	log-view-message-re (Bug#2872).
+
 	* descr-text.el (describe-property-list, describe-char): Add
 	follow-link properties to buttons that need them.
 

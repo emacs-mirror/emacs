@@ -454,7 +454,7 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
-       "^ *-+\n *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
+       "^\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
