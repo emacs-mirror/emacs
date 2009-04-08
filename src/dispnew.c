@@ -4129,14 +4129,14 @@ redraw_overlapping_rows (w, yb)
 
       bottom_y = MATRIX_ROW_BOTTOM_Y (row);
 
-      if (row->overlapping_p && i > 0 && bottom_y < yb)
+      if (row->overlapping_p)
 	{
 	  int overlaps = 0;
 
-	  if (MATRIX_ROW_OVERLAPS_PRED_P (row)
+	  if (MATRIX_ROW_OVERLAPS_PRED_P (row) && i > 0
 	      && !MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p)
 	    overlaps |= OVERLAPS_PRED;
-	  if (MATRIX_ROW_OVERLAPS_SUCC_P (row)
+	  if (MATRIX_ROW_OVERLAPS_SUCC_P (row) && bottom_y < yb
 	      && !MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p)
 	    overlaps |= OVERLAPS_SUCC;
 
