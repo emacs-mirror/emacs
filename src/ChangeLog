@@ -1,5 +1,8 @@
 2009-04-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
+	* dispnew.c (redraw_overlapping_rows): Fix detection of
+	overlapping for topmost and bottommost rows.
+
 	* ftfont.c (ftfont_text_extents): Fix calculation of
 	metrics->descent.
 
