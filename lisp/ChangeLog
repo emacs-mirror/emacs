@@ -1,3 +1,7 @@
+2009-04-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Give hint for GDB in Emacs on Mac OSX.
+
 2009-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/fill.el (fill-paragraph): Doc fix.
