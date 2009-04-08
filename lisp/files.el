@@ -4475,8 +4475,14 @@ Don't call it from programs!  Use `insert-file-contents' instead.
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
 When called from a function, expects three arguments,
-START, END and FILENAME.  START and END are buffer positions
-saying what text to write."
+START, END and FILENAME.  START and END are normally buffer positions
+specifying the part of the buffer to write.
+If START is nil, that means to use the entire buffer contents.
+If START is a string, then output that string to the file
+instead of any buffer contents; END is ignored.
+
+This does character code conversion and applies annotations
+like `write-region' does."
   (interactive "r\nFAppend to file: ")
   (write-region start end filename t))
 
