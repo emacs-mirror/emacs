@@ -1073,11 +1073,29 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   PoolGenUpdateZones(&gen->pgen, seg);
 
-  /* Give the buffer the entire segment to allocate in. */
   base = SegBase(seg);
   *baseReturn = base;
-  limit = AddrAdd(base, alignedSize);
-  AVER(limit == SegLimit(seg));
+  if(size < 8 * ArenaAlign(arena)) {
+    /* Small segment: give the buffer the entire seg to allocate in. */
+    limit = AddrAdd(base, alignedSize);
+    AVER(limit == SegLimit(seg));
+  } else {
+    /* Big segment: ONLY give the buffer the size requested, and pad */
+    /* the remainder of the segment: see job001811. */
+    Size padSize;
+
+    limit = AddrAdd(base, size);
+    AVER(limit <= SegLimit(seg));
+    
+    padSize = alignedSize - size;
+    AVER(SizeIsAligned(padSize, pool->alignment));
+    AVER(AddrAdd(limit, padSize) == SegLimit(seg));
+    if(padSize > 0) {
+      ShieldExpose(arena, seg);
+      (*pool->format->pad)(limit, padSize);
+      ShieldCover(arena, seg);
+    }
+  }
   *limitReturn = limit;
   return ResOK;
 }
