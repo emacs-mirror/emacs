@@ -83,6 +83,13 @@
 ;;   2) Use MinGW GDB instead.
 ;;   3) Use cygwin-mount.el
 
+;;; Mac OSX:
+
+;; GDB in Emacs on Mac OSX works best with FSF GDB as Apple have made
+;; some changes to the version that they include as part of Mac OSX.
+;; This requires GDB version 7.0 or later (estimated release date June 2009)
+;; as earlier versions don not compile on Mac OSX.
+
 ;;; Known Bugs:
 
 ;; 1) Cannot handle multiple debug sessions.
