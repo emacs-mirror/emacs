@@ -1,5 +1,7 @@
 2009-04-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.el (append-to-file): Doc fix.
+
 	* term/pc-win.el (msdos-last-help-message): New defvar.
 	(msdos-show-help): Use it to avoid saving the last message if it
 	was also a help message (Bug#2895).
