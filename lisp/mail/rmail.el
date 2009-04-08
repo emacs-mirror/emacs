@@ -3046,6 +3046,10 @@ and typical reply prefixes such as Re:."
 	(setq subject (substring subject (match-end 0))))
     (if (string-match "[ \t]+\\'" subject)
 	(setq subject (substring subject 0 (match-beginning 0))))
+    ;; If Subject is long, mailers will break it into several lines at
+    ;; arbitrary places, so normalize whitespace by replacing every
+    ;; run of whitespace characters with a single space.
+    (setq subject (replace-regexp-in-string "[ \t\n]+" " " subject))
     subject))
 
 (defun rmail-simplified-subject-regexp ()
