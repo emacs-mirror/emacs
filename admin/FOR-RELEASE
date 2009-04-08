@@ -173,7 +173,7 @@ abbrevs.texi
 advice.texi       -- cyd
 anti.texi
 back.texi
-backups.texi
+backups.texi      -- cyd
 buffers.texi      -- cyd
 commands.texi     -- cyd
 compile.texi      -- cyd
