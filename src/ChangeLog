@@ -1,3 +1,8 @@
+2009-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_text_extents): Fix calculation of
+	metrics->descent.
+
 2009-04-06  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (x_set_font): Avoid C99 mid-block variable declaration.
