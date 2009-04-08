@@ -1255,7 +1255,7 @@ ftfont_text_extents (font, code, nglyphs, metrics)
 		  metrics->lbearing = m->horiBearingX >> 6;
 		  metrics->rbearing = (m->horiBearingX + m->width) >> 6;
 		  metrics->ascent = m->horiBearingY >> 6;
-		  metrics->descent = (m->horiBearingY + m->height) >> 6;
+		  metrics->descent = (m->height - m->horiBearingY) >> 6;
 		}
 	      first = 0;
 	    }
@@ -1269,8 +1269,8 @@ ftfont_text_extents (font, code, nglyphs, metrics)
 		  = width + ((m->horiBearingX + m->width) >> 6);
 	      if (metrics->ascent < (m->horiBearingY >> 6))
 		metrics->ascent = m->horiBearingY >> 6;
-	      if (metrics->descent > ((m->horiBearingY + m->height) >> 6))
-		metrics->descent = (m->horiBearingY + m->height) >> 6;
+	      if (metrics->descent > ((m->height - m->horiBearingY) >> 6))
+		metrics->descent = (m->height - m->horiBearingY) >> 6;
 	    }
 	  width += m->horiAdvance >> 6;
 	}
