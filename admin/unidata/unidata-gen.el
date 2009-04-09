@@ -1134,8 +1134,13 @@ Property value is a character."
 	       (ON . "Other Neutrals")))))
 
 (defun unidata-describe-decomposition (val)
-  (mapconcat #'(lambda (x) (if (symbolp x) (symbol-name x) (string ?' x ?')))
-	     val " "))
+  (mapconcat
+   #'(lambda (x)
+       (if (symbolp x) (symbol-name x)
+	 (concat (string ?')
+		 (compose-string (string x) 0 1 (string ?\t x ?\t))
+		 (string ?'))))
+   val " "))
 
 ;; Verify if we can retrieve correct values from the generated
 ;; char-tables.
