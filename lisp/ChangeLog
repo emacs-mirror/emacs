@@ -1,7 +1,9 @@
 2009-04-09  Richard M Stallman  <rms@gnu.org>
 
+	* mail/rmailout.el (rmail-convert-to-babyl-format): Don't set "unseen".
+
 	* mail/rmailout.el (rmail-output-to-rmail-buffer):
-	Call rmail-modify-format..
+	Call rmail-modify-format.
 
 	Don't query before visiting a Babyl file.
 	Instead, query before modifications that would save it.

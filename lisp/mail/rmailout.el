@@ -169,7 +169,7 @@ display message number MSG."
     (save-restriction
       (unless (looking-at "^From ")
 	(error "Invalid mbox message"))
-      (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
+      (insert "\^L\n0,,\n*** EOOH ***\n")
       (rmail-nuke-pinhead-header)
       ;; Decode base64 or quoted printable contents, Rmail style.
       (let* ((header-end (save-excursion
