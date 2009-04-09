@@ -138,7 +138,7 @@ Remove also properties of all files in subdirectories."
   (tramp-message vec 8 "%s" directory)
     (maphash
      '(lambda (key value)
-	(when (and (stringp key)
+	(when (and (stringp (tramp-file-name-localname key))
 		   (string-match directory (tramp-file-name-localname key)))
 	  (remhash key tramp-cache-data)))
      tramp-cache-data)))
