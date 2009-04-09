@@ -1,3 +1,8 @@
+2009-04-09  Richard M Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (sendmail-send-it): Replace any
+	pre-existing Content-type header if we insert one.
+
 2009-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler-alist): Add
