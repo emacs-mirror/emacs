@@ -1,3 +1,8 @@
+2009-04-09  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--indent-rectangle): Insert tabs using
+	tab-to-tab-stop to respect indent-tabs-mode.
+
 2009-04-09  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailkwd.el (rmail-set-label): Warn if multipe labels spec'd.
