@@ -1933,6 +1933,7 @@ marker used for window-point.
 modes like Info can teach bookmark.el how to save and restore the
 relevant data.
 
++++
 *** `fill-forward-paragraph-function' specifies which function the
 filling code should use to find paragraph boundaries.
 
