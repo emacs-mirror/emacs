@@ -1842,7 +1842,8 @@ This is used to map a mode number to a permission string.")
     (dired-recursive-delete-directory
      . tramp-handle-dired-recursive-delete-directory)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
-    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime))
+    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (vc-registered . tramp-handle-vc-registered))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -4514,6 +4515,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	(when (or (eq visit t) (null visit) (stringp visit))
 	  (tramp-message v 0 "Wrote %s" filename))
 	(run-hooks 'tramp-handle-write-region-hook)))))
+
+(defun tramp-handle-vc-registered (file)
+  "Like `vc-registered' for Tramp files."
+  ;; There could be new files, created by the vc backend.  We disable
+  ;; the cache therefore, by providing a temporary one.
+  (let ((tramp-cache-data (make-hash-table :test 'equal)))
+    (tramp-run-real-handler 'vc-registered (list file))))
 
 ;;;###autoload
 (progn (defun tramp-run-real-handler (operation args)
