@@ -215,7 +215,7 @@ streams.texi      -- cyd
 strings.texi      -- cyd
 symbols.texi      -- cyd
 syntax.texi
-text.texi
+text.texi         -- cyd
 tips.texi
 variables.texi    -- cyd
 windows.texi
