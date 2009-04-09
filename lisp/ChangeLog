@@ -1,3 +1,13 @@
+2009-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el: Re-generated.
+	* international/uni-bidi.el: Re-generated.
+	* international/uni-category.el: Re-generated.
+	* international/uni-combining.el: Re-generated.
+	* international/uni-decomposition.el: Re-generated.
+	* international/uni-mirrored.el: Re-generated.
+	* international/uni-name.el: Re-generated.
+
 2009-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (append-to-file): Doc fix.
