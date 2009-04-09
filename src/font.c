@@ -719,6 +719,8 @@ font_put_extra (font, prop, val)
     {
       Lisp_Object prev = Qnil;
 
+      if (NILP (val))
+	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
@@ -729,6 +731,8 @@ font_put_extra (font, prop, val)
       return val;
     }
   XSETCDR (slot, val);
+  if (NILP (val))
+    ASET (font, FONT_EXTRA_INDEX, Fdelq (slot, extra));
   return val;
 }
 
@@ -3078,13 +3082,20 @@ font_clear_prop (attrs, prop)
 
   if (! FONTP (font))
     return;
+  if (! NILP (Ffont_get (font, QCname)))
+    {
+      font = Fcopy_font_spec (font);
+      font_put_extra (font, QCname, Qnil);
+    }
+
   if (NILP (AREF (font, prop))
       && prop != FONT_FAMILY_INDEX
       && prop != FONT_FOUNDRY_INDEX
       && prop != FONT_WIDTH_INDEX
       && prop != FONT_SIZE_INDEX)
     return;
-  font = Fcopy_font_spec (font);
+  if (EQ (font, attrs[LFACE_FONT_INDEX]))
+    font = Fcopy_font_spec (font);
   ASET (font, prop, Qnil);
   if (prop == FONT_FAMILY_INDEX || prop == FONT_FOUNDRY_INDEX)
     {
