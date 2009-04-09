@@ -1,3 +1,19 @@
+2009-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Yank Commands): Note that yank uses push-mark.
+	(Filling): Clarify REGION argument of fill-paragraph.  Document
+	fill-forward-paragraph-function.
+	(Special Properties): Remove "new in Emacs 22" declaration.
+	(Clickable Text): Merge with Links and Mouse-1 node.
+
+	* display.texi (Button Properties, Button Buffer Commands): Change
+	xref to Clickable Text.
+
+	* tips.texi (Key Binding Conventions): Change xref to Clickable
+	Text.
+
+	* elisp.texi (Top): Update node listing.
+
 2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* markers.texi (The Mark): Copyedits.  Improve description of

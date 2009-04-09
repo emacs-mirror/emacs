@@ -1078,7 +1078,6 @@ Text Properties
                               only when text is examined.
 * Clickable Text::          Using text properties to make regions of text
                               do something when you click on them.
-* Links and Mouse-1::       How to make @key{Mouse-1} follow a link.
 * Fields::                  The @code{field} property defines
                               fields within the buffer.
 * Not Intervals::	    Why text properties do not use
