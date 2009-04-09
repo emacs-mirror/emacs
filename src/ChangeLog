@@ -1,3 +1,9 @@
+2009-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_put_extra): If VAL is nil, delete the slot for PROP
+	from the list of extra properties.
+	(font_clear_prop): Be sure to delete `:name' font property.
+
 2009-04-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispnew.c (redraw_overlapping_rows): Fix detection of
