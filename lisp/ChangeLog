@@ -1,5 +1,8 @@
 2009-04-09  Richard M Stallman  <rms@gnu.org>
 
+	* mail/rmailkwd.el (rmail-set-label): Warn if multipe labels spec'd.
+	(rmail-kill-label, rmail-add-label): Doc fixes.
+
 	* mail/rmailout.el (rmail-output): If file is visited,
 	check the buffer's format.
 
