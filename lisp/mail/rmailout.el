@@ -434,7 +434,20 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
   (if noattribute (setq noattribute 'nomsg))
   (let ((babyl-format (and (file-readable-p file-name)
 			   (mail-file-babyl-p file-name)))
-	(cur (current-buffer)))
+	(cur (current-buffer))
+	(buf (find-buffer-visiting file-name)))
+
+    ;; If a babyl file is visited in a buffer, is it visited as babyl
+    ;; or as mbox?
+    (and babyl-format buf
+	 (with-current-buffer buf
+	   (save-restriction
+	     (widen)
+	     (save-excursion
+	       (goto-char (point-min))
+	       (setq babyl-format
+		     (looking-at "BABYL OPTIONS:"))))))
+
     (if not-rmail		 ; eg via message-fcc-handler-function
 	(with-temp-buffer
 	  (insert-buffer-substring cur)
