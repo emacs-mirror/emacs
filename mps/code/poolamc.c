@@ -1088,6 +1088,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     AVER(limit <= SegLimit(seg));
     
     padSize = alignedSize - size;
+    DIAG_SINGLEF(( "AMCBufferFill_big", NULL ));
     AVER(SizeIsAligned(padSize, pool->alignment));
     AVER(AddrAdd(limit, padSize) == SegLimit(seg));
     if(padSize > 0) {
@@ -1121,7 +1122,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
   AVER(init <= limit);
-  AVER(SegLimit(seg) == limit);
+  /* AVER(SegLimit(seg) == limit); -- job001811 */
+  AVER(limit <= SegLimit(seg));
 
   arena = BufferArena(buffer);
 
@@ -2295,6 +2297,13 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
     res = amcGenDescribe(gen, stream);
+    if(res != ResOK)
+      return res;
+  }
+
+  RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
+    Seg seg = RING_ELT(Seg, poolRing, node);
+    res = AMCSegDescribe(seg, stream);
     if(res != ResOK)
       return res;
   }
