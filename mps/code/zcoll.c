@@ -81,13 +81,15 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 100, 0.85 }, { 170, 0.45 } };
 
 
-/* myroot -- array of exact references that are the root
- *
- * (note: static, so pointers are auto-initialised to NULL)
- */
+/* myroot -- array of exact references that are the root */
+/* (note: static, so pointers are auto-initialised to NULL) */
 #define myrootCOUNT 30000
 static void *myroot[myrootCOUNT];
 
+/*
+#define myrootAmbigCOUNT 10
+static void *myrootAmbig[myrootAmbigCOUNT];
+*/
 
 static unsigned long cols(size_t bytes)
 {
@@ -397,6 +399,36 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 }
 
 
+static void MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
+{
+  mps_word_t v;
+  size_t minsize;
+  static unsigned long objCount = 0;
+  unsigned slots;
+  
+  minsize = 2 * sizeof(mps_word_t);
+  if(size <= minsize) {
+    slots = 0;
+  } else {
+    slots = (size - minsize) / sizeof(mps_word_t);
+  }
+
+  /* printf("size(requested):%lu, slots: %u, size(will be):%lu\n", size, slots, (2 + slots) * sizeof(mps_word_t)); */
+  die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
+  DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
+  objCount++;
+  myroot[objCount % myrootCOUNT] = (void*)v;
+  get(arena);
+}
+
+static void BigSmall(mps_arena_t arena, mps_ap_t ap)
+{
+  MakeThing(arena, ap, 1);
+  MakeThing(arena, ap, 40000);
+  MakeThing(arena, ap, 1);
+}
+
+
 /* checksi -- check count of sscanf items is correct
  */
 
@@ -434,6 +466,15 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         script += sb;
         printf("  Katalog()\n");
         CatalogDo(arena, ap);
+        break;
+      }
+      case 'B': {
+        si = sscanf(script, "BigSmall()%n",
+                       &sb);
+        checksi(si, 0, script, scriptAll);
+        script += sb;
+        printf("  BigSmall()\n");
+        BigSmall(arena, ap);
         break;
       }
       case 'M': {
@@ -503,7 +544,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       default: {
-        printf("unknown script command %c (script %s).\n",
+        printf("unknown script command '%c' (script %s).\n",
                *script, scriptAll);
         cdie(FALSE, "unknown script command!");
         return;
@@ -635,7 +676,10 @@ int main(int argc, char **argv)
   /* The most basic scripts */
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+  /*testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");*/
+
+  /* 1<<19 == 524288 == 1/2 Mebibyte */
+  testscriptA("Arena(size 524288), BigSmall(), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.
