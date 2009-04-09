@@ -1,5 +1,21 @@
 2009-04-09  Richard M Stallman  <rms@gnu.org>
 
+	* mail/rmailout.el (rmail-output-to-rmail-buffer):
+	Call rmail-modify-format..
+
+	* mail/rmail.el (rmail-was-converted): New variable.
+	(rmail-seriously-modified): New variable.
+	(rmail-perm-variables): Set them to nil.
+	(rmail-convert-babyl-to-mbox): Don't query about converting Babyl file.
+	Instead, set rmail-was-converted.
+	(rmail-modify-format): New function.  Query if save will change format.
+	(rmail-dont-modify-format): New function.
+	(rmail-duplicate-message, rmail-get-new-mail):
+	Call rmail-modify-format.
+	(rmail-set-header): Call rmail-dont-modify-format.
+	(rmail-set-attribute): Likewise.
+	(rmail-expunge-confirmed): Call rmail-modify-format.
+
 	* mail/sendmail.el (sendmail-send-it): Replace any
 	pre-existing Content-type header if we insert one.
 

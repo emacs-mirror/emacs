@@ -366,6 +366,7 @@ Do what is necessary to make Rmail know about the new message. then
 display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
+    (rmail-modify-format)
     ;; Turn on Auto Save mode, if it's off in this buffer but enabled
     ;; by default.
     (and (not buffer-auto-save-file-name)
