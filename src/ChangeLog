@@ -1,5 +1,8 @@
 2009-04-09  Kenichi Handa  <handa@m17n.org>
 
+	* charset.c (map_charset_chars): For a charset of `superset'
+	method, fix calculation of code range.
+
 	* font.c (font_put_extra): If VAL is nil, delete the slot for PROP
 	from the list of extra properties.
 	(font_clear_prop): Be sure to delete `:name' font property.
