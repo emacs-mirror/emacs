@@ -809,8 +809,8 @@ map_charset_chars (c_function, function, arg,
 
 	  charset = CHARSET_FROM_ID (XFASTINT (XCAR (XCAR (parents))));
 	  offset = XINT (XCDR (XCAR (parents)));
-	  this_from = from - offset;
-	  this_to = to - offset;
+	  this_from = from > offset ? from - offset : 0;
+	  this_to = to > offset ? to - offset : 0;
 	  if (this_from < CHARSET_MIN_CODE (charset))
 	    this_from = CHARSET_MIN_CODE (charset);
 	  if (this_to > CHARSET_MAX_CODE (charset))
