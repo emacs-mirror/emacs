@@ -1,3 +1,12 @@
+2009-04-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler-alist): Add
+	`vc-registered'.
+	(tramp-handle-vc-registered ): New defun.  (Bug#1741).
+
+	* net/tramp-cache.el (tramp-flush-directory-property): Use the
+	localname of KEY for check.
+
 2009-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/charprop.el: Re-generated.
