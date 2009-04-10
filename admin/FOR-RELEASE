@@ -209,12 +209,12 @@ objects.texi      -- cyd
 os.texi
 positions.texi    -- cyd
 processes.texi
-searching.texi
+searching.texi    -- cyd
 sequences.texi    -- cyd
 streams.texi      -- cyd
 strings.texi      -- cyd
 symbols.texi      -- cyd
-syntax.texi
+syntax.texi       -- cyd
 text.texi         -- cyd
 tips.texi
 variables.texi    -- cyd
