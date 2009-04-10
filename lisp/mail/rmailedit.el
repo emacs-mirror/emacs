@@ -117,6 +117,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
+  (rmail-modify-format)
   (if (rmail-summary-exists)
       (with-current-buffer rmail-summary-buffer
 	(rmail-summary-enable)))
