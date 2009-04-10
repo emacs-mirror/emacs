@@ -1,5 +1,10 @@
 2009-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* syntax.texi (Syntax Table Functions): Document cons cell
+	argument for modify-syntax-entry.
+	(Categories): Document cons cell argument for
+	modify-category-entry.
+
 	* searching.texi (String Search): Document word-search-forward-lax
 	and word-search-backward-lax.
 	(Searching and Case): Describe isearch behavior more precisely.
