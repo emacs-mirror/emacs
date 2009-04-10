@@ -1834,6 +1834,49 @@ is non-nil if the user has supplied the password interactively.
    (t
     (list file nil nil nil))))
 
+(defun rmail-unrmail-new-mail (from-file)
+  "Replace newly read mail in Babyl format with equivalent mbox format.
+
+FROM-FILE is the Babyl file from which the new mail should be read."
+  (let ((to-file (make-temp-file "rmail"))
+	size)
+    (unrmail from-file to-file)
+    (let ((inhibit-read-only t)
+	  (coding-system-for-read 'raw-text)
+	  (buffer-undo-list t))
+      (delete-region (point) (point-max))
+      (setq size (nth 1 (insert-file-contents to-file)))
+      (delete-file to-file)
+      size)))
+
+(defun rmail-unrmail-new-mail-maybe (file size)
+  "If newly read mail from FILE is in Babyl format, convert it to mbox format.
+
+SIZE is the original size of the newly read mail.
+Value is the size of the newly read mail after conversion."
+  ;; Detect previous Babyl format files.
+  (let ((case-fold-search nil)
+	(old-file file)
+	new-file)
+    (cond ((looking-at "BABYL OPTIONS:")
+	   ;; The new mail is in Babyl version 5 format.  Use unrmail
+	   ;; to convert it.
+	   (setq size (rmail-unrmail-new-mail old-file)))
+	  ((looking-at "Version: 5\n")
+	   ;; New mail is in Babyl format made by old version of
+	   ;; Rmail.  Fix the babyl file header and use unrmail to
+	   ;; convert it.
+	   (let ((buffer-read-only nil)
+		 (write-region-annotate-functions nil)
+		 (write-region-post-annotation-function nil)
+		 (old-file  (make-temp-file "rmail")))
+	     (insert "BABYL OPTIONS: -*- rmail -*-\n")
+	     (forward-line -1)
+	     (write-region (point) (point-max) old-file)
+	     (setq size (rmail-unrmail-new-mail old-file))
+	     (delete-file old-file))))
+    size))
+
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
   ;; out of the real inbox file.  (That could scare people.)
@@ -1951,7 +1994,11 @@ is non-nil if the user has supplied the password interactively.
 	  (let ((coding-system-for-read 'no-conversion)
 		size)
 	    (goto-char (point-max))
-	    (setq size (nth 1 (insert-file-contents tofile)))
+	    (setq size
+		  ;; If new mail is in Babyl format, convert it to mbox.
+		  (rmail-unrmail-new-mail-maybe
+		   tofile
+		   (nth 1 (insert-file-contents tofile))))
 	    ;; Determine if a pair of newline message separators need
 	    ;; to be added to the new collection of messages.  This is
 	    ;; the case for all new message collections added to a
