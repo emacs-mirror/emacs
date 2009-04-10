@@ -4105,7 +4105,7 @@ w32_read_socket (sd, expected, hold_quit)
 
       switch (msg.msg.message)
 	{
-	case WM_PAINT:
+	case WM_EMACS_PAINT:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
 	  if (f)
@@ -6459,9 +6459,7 @@ the cursor have no effect.  */);
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.
-
-NOTE: Not supported on MS-Windows yet.  */);
+to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",

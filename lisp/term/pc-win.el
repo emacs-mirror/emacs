@@ -248,23 +248,30 @@ support other types of selections."
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.
 
+(defvar msdos-last-help-message nil
+  "The last help message received via `show-help-function'.
+This is used by `msdos-show-help'.")
+
 (defvar msdos-previous-message nil
   "The content of the echo area before help echo was displayed.")
 
 (defun msdos-show-help (help)
   "Function installed as `show-help-function' on MS-DOS frames."
   (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
-             ;; Don't know how to reproduce it in Elisp:
-             ;; Don't overwrite a keystroke echo.
-             ;; (NILP (echo_message_buffer) || ok_to_overwrite_keystroke_echo)
              (not cursor-in-echo-area)) ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (unless msdos-previous-message
+      (setq help (replace-regexp-in-string "\n" ", " help))
+      (unless (or msdos-previous-message
+		  (string-equal help (current-message))
+		  (and (stringp msdos-last-help-message)
+		       (string-equal msdos-last-help-message
+				     (current-message))))
         (setq msdos-previous-message (current-message)))
+      (setq msdos-last-help-message help)
       (let ((message-truncate-lines nil)
             (message-log-max nil))
-        (message "%s" (replace-regexp-in-string "\n" ", " help))))
+        (message "%s" help)))
      ((stringp msdos-previous-message)
       (let ((message-log-max nil))
         (message "%s" msdos-previous-message)

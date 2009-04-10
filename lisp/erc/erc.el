@@ -4185,7 +4185,7 @@ See also: `erc-echo-notice-in-user-buffers',
 (defun erc-banlist-store (proc parsed)
   "Record ban entries for a channel."
   (multiple-value-bind (channel mask whoset)
-      (cdr (erc-response.command-args parsed))
+      (values-list (cdr (erc-response.command-args parsed)))
     ;; Determine to which buffer the message corresponds
     (let ((buffer (erc-get-buffer channel proc)))
       (with-current-buffer buffer

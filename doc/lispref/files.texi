@@ -1269,6 +1269,17 @@ is on file system number -32252.
 @end table
 @end defun
 
+@cindex MS-DOS and file modes
+@cindex file modes and MS-DOS
+  On MS-DOS, there is no such thing as an ``executable'' file mode bit.
+So Emacs considers a file executable if its name ends in one of the
+standard executable extensions, such as @file{.com}, @file{.bat},
+@file{.exe}, and some others.  Files that begin with the Unix-standard
+@samp{#!} signature, such as shell and Perl scripts, are also considered
+as executable files.  This is reflected in the values returned by
+@code{file-modes} and @code{file-attributes}.  Directories are also
+reported with executable bit set, for compatibility with Unix.
+
 @node Locating Files
 @subsection How to Locate Files in Standard Places
 @cindex locate file in path
@@ -1569,17 +1580,6 @@ set, otherwise it is @code{nil}.  @var{time} defaults to the current
 time and must be in the format returned by @code{current-time}
 (@pxref{Time of Day}).
 @end defun
-
-@cindex MS-DOS and file modes
-@cindex file modes and MS-DOS
-  On MS-DOS, there is no such thing as an ``executable'' file mode bit.
-So Emacs considers a file executable if its name ends in one of the
-standard executable extensions, such as @file{.com}, @file{.bat},
-@file{.exe}, and some others.  Files that begin with the Unix-standard
-@samp{#!} signature, such as shell and Perl scripts, are also considered
-as executable files.  This is reflected in the values returned by
-@code{file-modes} and @code{file-attributes}.  Directories are also
-reported with executable bit set, for compatibility with Unix.
 
 @node File Names
 @section File Names
@@ -2491,11 +2491,14 @@ files that are directories.  For example, you cannot delete a directory
 with @code{delete-file}.  These special functions exist to create and
 delete directories.
 
+@findex mkdir
 @defun make-directory dirname &optional parents
 This function creates a directory named @var{dirname}.
 If @var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
+
+@code{mkdir} is an alias for this fuction.
 @end defun
 
 @defun delete-directory dirname

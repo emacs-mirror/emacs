@@ -1752,6 +1752,7 @@ many times.
 
 Word syntax is controlled by the definition of the chosen dictionary,
 which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'."
+  (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (let* ((ispell-casechars (ispell-get-casechars))
 	 (ispell-not-casechars (ispell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))

@@ -1842,7 +1842,8 @@ This is used to map a mode number to a permission string.")
     (dired-recursive-delete-directory
      . tramp-handle-dired-recursive-delete-directory)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
-    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime))
+    (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
+    (vc-registered . tramp-handle-vc-registered))
   "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
@@ -2763,6 +2764,12 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
     (when (file-exists-p truename)
       (tramp-mode-string-to-int (nth 8 (file-attributes truename))))))
 
+(defun tramp-default-file-modes (filename)
+  "Return file modes of FILENAME as integer.
+If the file modes of FILENAME cannot be determined, return the
+value of `default-file-modes'."
+  (or (file-modes filename) (default-file-modes)))
+
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
   ;; Care must be taken that this function returns `t' for symlinks
@@ -3177,7 +3184,7 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   ;; KEEP-DATE handling.
   (when keep-date (set-file-times newname (nth 5 (file-attributes filename))))
   ;; Set the mode.
-  (set-file-modes newname (file-modes filename))
+  (set-file-modes newname (tramp-default-file-modes filename))
   ;; If the operation was `rename', delete the original file.
   (unless (eq op 'copy) (delete-file filename)))
 
@@ -3314,7 +3321,7 @@ the uid and gid from FILENAME."
       (condition-case nil
 	  (when (and keep-date (not preserve-uid-gid))
 	    (set-file-times newname (nth 5 (file-attributes filename)))
-	    (set-file-modes newname (file-modes filename)))
+	    (set-file-modes newname (tramp-default-file-modes filename)))
 	(error)))))
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
@@ -3414,7 +3421,7 @@ be a local filename.  The method used must be an out-of-band method."
 
       ;; Set the mode.
       (unless (and keep-date copy-keep-date)
-	(set-file-modes newname (file-modes filename))))
+	(set-file-modes newname (tramp-default-file-modes filename))))
 
     ;; If the operation was `rename', delete the original file.
     (unless (eq op 'copy)
@@ -4072,7 +4079,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 
 	      (tramp-message v 5 "Decoding remote file %s...done" filename)
 	      ;; Set proper permissions.
-	      (set-file-modes tmpfile (file-modes filename))
+	      (set-file-modes tmpfile (tramp-default-file-modes filename))
 	      ;; Set local user ownership.
 	      (tramp-set-file-uid-gid tmpfile)))
 
@@ -4210,7 +4217,7 @@ coding system might not be determined.  This function repairs it."
     (let ((backup-directory-alist
 	   ;; Emacs case
 	   (when (boundp 'backup-directory-alist)
-	     (if (boundp 'tramp-backup-directory-alist)
+	     (if (symbol-value 'tramp-backup-directory-alist)
 		 (mapcar
 		  '(lambda (x)
 		     (cons
@@ -4226,7 +4233,7 @@ coding system might not be determined.  This function repairs it."
 	  (bkup-backup-directory-info
 	   ;; XEmacs case
 	   (when (boundp 'bkup-backup-directory-info)
-	     (if (boundp 'tramp-bkup-backup-directory-info)
+	     (if (symbol-value 'tramp-bkup-backup-directory-info)
 		 (mapcar
 		  '(lambda (x)
 		     (nconc
@@ -4333,7 +4340,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
 	      (loc-enc (tramp-get-local-coding v "local-encoding"))
-	      (modes (save-excursion (file-modes filename)))
+	      (modes (save-excursion (tramp-default-file-modes filename)))
 	      ;; We use this to save the value of
 	      ;; `last-coding-system-used' after writing the tmp file.
 	      ;; At the end of the function, we set
@@ -4508,6 +4515,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	(when (or (eq visit t) (null visit) (stringp visit))
 	  (tramp-message v 0 "Wrote %s" filename))
 	(run-hooks 'tramp-handle-write-region-hook)))))
+
+(defun tramp-handle-vc-registered (file)
+  "Like `vc-registered' for Tramp files."
+  ;; There could be new files, created by the vc backend.  We disable
+  ;; the cache therefore, by providing a temporary one.
+  (let ((tramp-cache-data (make-hash-table :test 'equal)))
+    (tramp-run-real-handler 'vc-registered (list file))))
 
 ;;;###autoload
 (progn (defun tramp-run-real-handler (operation args)

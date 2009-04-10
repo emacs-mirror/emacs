@@ -85,7 +85,6 @@
                   (&optional frame exclude-proportional))
 (define-obsolete-function-alias 'w32-select-font 'x-select-font "23.1")
 
-(defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
 (declare-function w32-send-sys-command "w32fns.c")
@@ -98,10 +97,10 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-(defun w32-drag-n-drop-debug (event)
-  "Print the drag-n-drop EVENT in a readable form."
-  (interactive "e")
-  (princ event))
+;; (defun w32-drag-n-drop-debug (event)
+;;   "Print the drag-n-drop EVENT in a readable form."
+;;   (interactive "e")
+;;   (princ event))
 
 (defun w32-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.
@@ -253,21 +252,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                      ;; are the initial display
                      (eq initial-window-system 'w32))
 
-  ;; Setup the default fontset.
-  (setup-default-fontset)
-
-  ;; Enable Japanese fonts on Windows to be used by default.
-  (set-fontset-font t (make-char 'katakana-jisx0201)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'latin-jisx0201)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'japanese-jisx0208)
-		    '("*" . "JISX0208-SJIS"))
-  (set-fontset-font t (make-char 'japanese-jisx0208-1978)
-		    '("*" . "JISX0208-SJIS"))
-
+  ;; Create the default fontset.
+  (create-default-fontset)
   ;; Create the standard fontset.
-  (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+  (condition-case err
+      (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+    (error (display-warning 
+	    'initialization
+	    (format "Creation of the standard fontset failed: %s" err)
+	    :error)))
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
   (create-fontset-from-x-resource)
 

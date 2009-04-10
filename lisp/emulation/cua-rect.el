@@ -847,7 +847,7 @@ If command is repeated at same position, delete the rectangle."
              (move-to-column col t))
 	 (cond
 	  (to-col (indent-to to-col))
-	  (ch (insert ch))
+	  ((and ch (not (eq ch ?\t))) (insert ch))
 	  (t (tab-to-tab-stop)))
          (if (cua--rectangle-right-side t)
              (cua--rectangle-insert-col (current-column))

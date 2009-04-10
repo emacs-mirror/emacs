@@ -840,13 +840,13 @@ static struct group dflt_group =
   0,
 };
 
-int
+unsigned
 getuid ()
 {
   return dflt_passwd.pw_uid;
 }
 
-int
+unsigned
 geteuid ()
 {
   /* I could imagine arguing for checking to see whether the user is
@@ -855,20 +855,20 @@ geteuid ()
   return getuid ();
 }
 
-int
+unsigned
 getgid ()
 {
   return dflt_passwd.pw_gid;
 }
 
-int
+unsigned
 getegid ()
 {
   return getgid ();
 }
 
 struct passwd *
-getpwuid (int uid)
+getpwuid (unsigned uid)
 {
   if (uid == dflt_passwd.pw_uid)
     return &dflt_passwd;
@@ -2894,7 +2894,7 @@ get_rid (PSID sid)
 #endif
 
 struct w32_id {
-  int rid;
+  unsigned rid;
   struct w32_id *next;
   char name[GNLEN+1];
   unsigned char sid[FLEXIBLE_ARRAY_MEMBER];
@@ -2903,7 +2903,7 @@ struct w32_id {
 static struct w32_id *w32_idlist;
 
 static int
-w32_cached_id (PSID sid, int *id, char *name)
+w32_cached_id (PSID sid, unsigned *id, char *name)
 {
   struct w32_id *tail, *found;
 
@@ -2926,7 +2926,7 @@ w32_cached_id (PSID sid, int *id, char *name)
 }
 
 static void
-w32_add_to_cache (PSID sid, int id, char *name)
+w32_add_to_cache (PSID sid, unsigned id, char *name)
 {
   DWORD sid_len;
   struct w32_id *new_entry;
@@ -2953,7 +2953,7 @@ w32_add_to_cache (PSID sid, int id, char *name)
 
 static int
 get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
-		 int *id, char *nm, int what)
+		 unsigned *id, char *nm, int what)
 {
   PSID sid = NULL;
   char machine[MAX_COMPUTERNAME_LENGTH+1];
@@ -3837,8 +3837,8 @@ system_process_attributes (pid)
   DWORD blen = 0;
   TOKEN_USER user_token;
   TOKEN_PRIMARY_GROUP group_token;
-  int euid;
-  int egid;
+  unsigned euid;
+  unsigned egid;
   DWORD sess;
   PROCESS_MEMORY_COUNTERS mem;
   PROCESS_MEMORY_COUNTERS_EX mem_ex;

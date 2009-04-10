@@ -51,7 +51,7 @@ extern Lisp_Object Qface, Qminibuffer_prompt;
    even if mark_active is 0.  */
 Lisp_Object Vmark_even_if_inactive;
 
-Lisp_Object Vshift_select_mode, Qhandle_shift_selection;
+Lisp_Object Qhandle_shift_selection;
 
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
@@ -68,18 +68,19 @@ static Lisp_Object callint_message;
 DEFUN ("interactive", Finteractive, Sinteractive, 0, UNEVALLED, 0,
        doc: /* Specify a way of parsing arguments for interactive use of a function.
 For example, write
-  (defun foo (arg) "Doc string" (interactive "p") ...use arg...)
-to make ARG be the prefix argument when `foo' is called as a command.
+ (defun foo (arg buf) "Doc string" (interactive "P\\nbbuffer: ") .... )
+ to make ARG be the raw prefix argument, and set BUF to an existing buffer,
+ when `foo' is called as a command.
 The "call" to `interactive' is actually a declaration rather than a function;
  it tells `call-interactively' how to read arguments
  to pass to the function.
 When actually called, `interactive' just returns nil.
 
-The argument of `interactive' is usually a string containing a code letter
- followed by a prompt.  (Some code letters do not use I/O to get
- the argument and do not need prompts.)  To prompt for multiple arguments,
- give a code letter, its prompt, a newline, and another code letter, etc.
- Prompts are passed to format, and may use % escapes to print the
+Usually the argument of `interactive' is a string containing a code letter
+ followed optionally by a prompt.  (Some code letters do not use I/O to get
+ the argument and do not use prompts.)  To get several arguments, concatenate
+ the individual strings, separating them by newline characters.
+Prompts are passed to format, and may use % escapes to print the
  arguments that have already been read.
 If the argument is not a string, it is evaluated to get a list of
  arguments to pass to the function.
@@ -453,14 +454,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	}
       else if (*string == '^')
 	{
-	  if (! NILP (Vshift_select_mode))
-	    call1 (Qhandle_shift_selection, Qnil);
-	  /* Even if shift-select-mode is off, temporarily active
-	     regions could be set using the mouse, and should be
-	     deactivated.  */
-	  else if (CONSP (Vtransient_mark_mode)
-		   && EQ (XCAR (Vtransient_mark_mode), Qonly))
-	    call1 (Qhandle_shift_selection, Qt);
+	  call0 (Qhandle_shift_selection);
 	  string++;
 	}
       else break;
@@ -992,20 +986,6 @@ When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qt;
-
-  DEFVAR_LISP ("shift-select-mode", &Vshift_select_mode,
-	       doc: /* When non-nil, shifted motion keys activate the mark momentarily.
-
-While the mark is activated in this way, any shift-translated point
-motion key extends the region, and if Transient Mark mode was off, it
-is temporarily turned on.  Furthermore, the mark will be deactivated
-by any subsequent point motion key that was not shift-translated, or
-by any action that normally deactivates the mark in Transient Mark
-mode.
-
-See `this-command-keys-shift-translated' for the meaning of
-shift-translation.  */);
-  Vshift_select_mode = Qt;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.

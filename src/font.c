@@ -439,8 +439,7 @@ find_font_encoding (fontname)
 	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
 	return (XCDR (elt));
     }
-  /* We don't know the encoding of this font.  Let's assume `ascii'.  */
-  return Qascii;
+  return Qnil;
 }
 
 /* Return encoding charset and repertory charset for REGISTRY in
@@ -720,6 +719,8 @@ font_put_extra (font, prop, val)
     {
       Lisp_Object prev = Qnil;
 
+      if (NILP (val))
+	return val;
       while (CONSP (extra)
 	     && NILP (Fstring_lessp (prop, XCAR (XCAR (extra)))))
 	prev = extra, extra = XCDR (extra);
@@ -730,6 +731,8 @@ font_put_extra (font, prop, val)
       return val;
     }
   XSETCDR (slot, val);
+  if (NILP (val))
+    ASET (font, FONT_EXTRA_INDEX, Fdelq (slot, extra));
   return val;
 }
 
@@ -3079,13 +3082,20 @@ font_clear_prop (attrs, prop)
 
   if (! FONTP (font))
     return;
+  if (! NILP (Ffont_get (font, QCname)))
+    {
+      font = Fcopy_font_spec (font);
+      font_put_extra (font, QCname, Qnil);
+    }
+
   if (NILP (AREF (font, prop))
       && prop != FONT_FAMILY_INDEX
       && prop != FONT_FOUNDRY_INDEX
       && prop != FONT_WIDTH_INDEX
       && prop != FONT_SIZE_INDEX)
     return;
-  font = Fcopy_font_spec (font);
+  if (EQ (font, attrs[LFACE_FONT_INDEX]))
+    font = Fcopy_font_spec (font);
   ASET (font, prop, Qnil);
   if (prop == FONT_FAMILY_INDEX || prop == FONT_FOUNDRY_INDEX)
     {
@@ -3484,20 +3494,16 @@ font_done_for_face (f, face)
 }
 
 
-/* Open a font best matching with NAME on frame F.  If no proper font
-   is found, return Qnil.  */
+/* Open a font matching with font-spec SPEC on frame F.  If no proper
+   font is found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (f, name)
+font_open_by_spec (f, spec)
      FRAME_PTR f;
-     char *name;
+     Lisp_Object spec;
 {
-  Lisp_Object args[2];
-  Lisp_Object spec, attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
-  args[0] = QCname;
-  args[1] = make_unibyte_string (name, strlen (name));
-  spec = Ffont_spec (2, args);
   /* We set up the default font-related attributes of a face to prefer
      a moderate font.  */
   attrs[LFACE_FAMILY_INDEX] = attrs[LFACE_FOUNDRY_INDEX] = Qnil;
@@ -3511,6 +3517,24 @@ font_open_by_name (f, name)
   attrs[LFACE_FONT_INDEX] = Qnil;
 
   return font_load_for_lface (f, attrs, spec);
+}
+
+
+/* Open a font matching with NAME on frame F.  If no proper font is
+   found, return Qnil.  */
+
+Lisp_Object
+font_open_by_name (f, name)
+     FRAME_PTR f;
+     char *name;
+{
+  Lisp_Object args[2];
+  Lisp_Object spec;
+
+  args[0] = QCname;
+  args[1] = make_unibyte_string (name, strlen (name));
+  spec = Ffont_spec (2, args);
+  return font_open_by_spec (f, spec);
 }
 
 

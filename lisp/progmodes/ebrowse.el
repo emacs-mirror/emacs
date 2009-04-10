@@ -1141,7 +1141,7 @@ Tree mode key bindings:
 
     (unless (zerop (buffer-size))
       (goto-char (point-min))
-      (multiple-value-setq (header tree) (ebrowse-read))
+      (multiple-value-setq (header tree) (values-list (ebrowse-read)))
       (message "Sorting. Please be patient...")
       (setq tree (ebrowse-sort-tree-list tree))
       (erase-buffer)
@@ -2593,7 +2593,7 @@ TAGS-FILE-NAME is the file name of the BROWSE file."
 	      accessor (second info)
 	      member (third info))
       (multiple-value-setq (tree member on-class)
-	(ebrowse-member-info-from-point))
+	(values-list (ebrowse-member-info-from-point)))
       (setq accessor ebrowse--accessor))
     ;; View/find class if on a line containing a class name.
     (when on-class
@@ -3313,7 +3313,7 @@ from point as default.  Value is a list (CLASS-NAME MEMBER-NAME)."
   (save-excursion
     (let* (start member-info (members (ebrowse-member-table header)))
       (multiple-value-bind (class-name member-name)
-	  (ebrowse-tags-read-member+class-name)
+	  (values-list (ebrowse-tags-read-member+class-name))
 	(unless member-name
 	  (error "No member name at point"))
 	(if members
@@ -3378,7 +3378,7 @@ the user choose the class to use.  As a last step, a tags search
 is performed that positions point on the member declaration or
 definition."
   (multiple-value-bind
-      (tree header tree-buffer) (ebrowse-choose-tree)
+      (tree header tree-buffer) (values-list (ebrowse-choose-tree))
     (unless tree (error "No class tree"))
     (let* ((marker (point-marker))
 	   class-name
@@ -3386,10 +3386,11 @@ definition."
 	   info)
       (unless name
 	(multiple-value-setq (class-name name)
-	  (ebrowse-tags-read-name
-	   header
-	   (concat (if view "View" "Find") " member "
-		   (if definition "definition" "declaration") ": "))))
+	  (values-list 
+	   (ebrowse-tags-read-name
+	    header
+	    (concat (if view "View" "Find") " member "
+		    (if definition "definition" "declaration") ": ")))))
       (setq info (ebrowse-tags-choose-class tree header name class-name))
       (ebrowse-push-position marker info)
       ;; Goto the occurrence of the member
@@ -3507,13 +3508,14 @@ FIX-NAME non-nil means display the buffer for that member.
 Otherwise read a member name from point."
   (interactive)
   (multiple-value-bind
-      (tree header tree-buffer) (ebrowse-choose-tree)
+      (tree header tree-buffer) (values-list (ebrowse-choose-tree))
     (unless tree (error "No class tree"))
     (let* ((marker (point-marker)) class-name (name fix-name) info)
       (unless name
 	(multiple-value-setq (class-name name)
-	  (ebrowse-tags-read-name header
-				  (concat "Find member list of: "))))
+	  (values-list 
+	   (ebrowse-tags-read-name header
+				   (concat "Find member list of: ")))))
       (setq info (ebrowse-tags-choose-class tree header name class-name))
       (ebrowse-push-position marker info)
       (ebrowse-tags-select/create-member-buffer tree-buffer info))))
@@ -3819,14 +3821,14 @@ looks like a function call to the member."
   (interactive)
   ;; Choose the tree to use if there is more than one.
   (multiple-value-bind (tree header tree-buffer)
-      (ebrowse-choose-tree)
+      (values-list (ebrowse-choose-tree))
     (unless tree
       (error "No class tree"))
     ;; Get the member name NAME (class-name is ignored).
     (let ((name fix-name) class-name regexp)
       (unless name
 	(multiple-value-setq (class-name name)
-	  (ebrowse-tags-read-name header "Find calls of: ")))
+	  (values-list (ebrowse-tags-read-name header "Find calls of: "))))
       ;; Set tags loop form to search for member and begin loop.
       (setq regexp (concat "\\<" name "[ \t]*(")
 	    ebrowse-tags-loop-form (list 're-search-forward regexp nil t))
@@ -4168,7 +4170,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
     (with-output-to-temp-buffer "*Tree Statistics*"
       (multiple-value-bind (classes member-functions member-variables
 				    static-functions static-variables)
-	  (ebrowse-gather-statistics)
+	  (values-list (ebrowse-gather-statistics))
 	(set-buffer standard-output)
 	(erase-buffer)
 	(insert "STATISTICS FOR TREE " (or tree-file "unknown") ":\n\n")

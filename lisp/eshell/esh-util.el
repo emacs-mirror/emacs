@@ -579,7 +579,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	string)))
 
 (unless (fboundp 'directory-files-and-attributes)
-  (defun directory-files-and-attributes (directory &optional full match nosort)
+  (defun directory-files-and-attributes (directory &optional full match nosort id-format)
     "Return a list of names of files and their attributes in DIRECTORY.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
@@ -596,12 +596,12 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 
 (defvar ange-cache)
 
-(defun eshell-directory-files-and-attributes (dir &optional full match nosort)
+(defun eshell-directory-files-and-attributes (dir &optional full match nosort id-format)
   "Make sure to use the handler for `directory-file-and-attributes'."
   (let* ((dir (expand-file-name dir))
 	 (dfh (find-file-name-handler dir 'directory-files)))
     (if (not dfh)
-	(directory-files-and-attributes dir full match nosort)
+	(directory-files-and-attributes dir full match nosort id-format)
       (let ((files (funcall dfh 'directory-files dir full match nosort))
 	    (fah (find-file-name-handler dir 'file-attributes)))
 	(mapcar

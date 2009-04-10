@@ -1616,7 +1616,10 @@ DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
 the value of that variable.  The variable name should be terminated
 with a character not a letter, digit or underscore; otherwise, enclose
 the entire variable name in braces.
-If `/~' appears, all of FILENAME through that `/' is discarded.  */)
+
+If `/~' appears, all of FILENAME through that `/' is discarded.
+If `//' appears, everything up to and including the first of
+those `/' is discarded.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -1626,10 +1629,13 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
   unsigned char *target = NULL;
   int total = 0;
   int substituted = 0;
+  int multibyte;
   unsigned char *xnm;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
+
+  multibyte = STRING_MULTIBYTE (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -1638,8 +1644,11 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
   nm = SDATA (filename);
-#ifdef DOS_NT
+  /* Always work on a copy of the string, in case GC happens during
+     decode of environment variables, causing the original Lisp_String
+     data to be relocated.  */
   nm = strcpy (alloca (strlen (nm) + 1), nm);
+#ifdef DOS_NT
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
 #endif
@@ -1652,9 +1661,7 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
        again.  Important with filenames like "/home/foo//:/hello///there"
        which whould substitute to "/:/hello///there" rather than "/there".  */
     return Fsubstitute_in_file_name
-      (make_specified_string (p, -1, endp - p,
-			      STRING_MULTIBYTE (filename)));
-
+      (make_specified_string (p, -1, endp - p, multibyte));
 
   /* See if any variables are substituted into the string
      and find the total length of their values in `total' */
@@ -1700,8 +1707,16 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
 	if (o)
-	  { /* Eight-bit chars occupy upto 2 bytes in multibyte.  */
-	    total += strlen (o) * (STRING_MULTIBYTE (filename) ? 2 : 1);
+	  {
+	    /* Don't try to guess a maximum length - UTF8 can use up to
+	       four bytes per character.  This code is unlikely to run
+	       in a situation that requires performance, so decoding the
+	       env variables twice should be acceptable. Note that
+	       decoding may cause a garbage collect.  */
+	    Lisp_Object orig, decoded;
+	    orig = make_unibyte_string (o, strlen (o));
+	    decoded = DECODE_FILE (orig);
+	    total += SBYTES (decoded);
 	    substituted = 1;
 	  }
 	else if (*p == '}')
@@ -1759,21 +1774,22 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
 	    *x++ = '$';
 	    strcpy (x, target); x+= strlen (target);
 	  }
-	else if (STRING_MULTIBYTE (filename))
-	  {
-	    /* If the original string is multibyte,
-	       convert what we substitute into multibyte.  */
-	    while (*o)
-	      {
-		int c = *o++;
-		c = unibyte_char_to_multibyte (c);
-		x += CHAR_STRING (c, x);
-	      }
-	  }
 	else
 	  {
-	    strcpy (x, o);
-	    x += strlen (o);
+	    Lisp_Object orig, decoded;
+	    int orig_length, decoded_length;
+	    orig_length = strlen (o);
+	    orig = make_unibyte_string (o, orig_length);
+	    decoded = DECODE_FILE (orig);
+	    decoded_length = SBYTES (decoded);
+	    strncpy (x, SDATA (decoded), decoded_length);
+	    x += decoded_length;
+
+	    /* If environment variable needed decoding, return value
+	       needs to be multibyte.  */
+	    if (decoded_length != orig_length
+		|| strncmp (SDATA (decoded), o, orig_length))
+	      multibyte = 1;
 	  }
       }
 
@@ -1786,7 +1802,7 @@ If `/~' appears, all of FILENAME through that `/' is discarded.  */)
        need to quote some $ to $$ first.  */
     xnm = p;
 
-  return make_specified_string (xnm, -1, x - xnm, STRING_MULTIBYTE (filename));
+  return make_specified_string (xnm, -1, x - xnm, multibyte);
 
  badsubst:
   error ("Bad format environment-variable substitution");
@@ -3032,8 +3048,6 @@ Lisp_Object Qfind_buffer_file_type;
 #define READ_BUF_SIZE (64 << 10)
 #endif
 
-extern void adjust_markers_for_delete P_ ((int, int, int, int));
-
 /* This function is called after Lisp functions to decide a coding
    system are called, or when they cause an error.  Before they are
    called, the current buffer is set unibyte and it contains only a
@@ -3078,8 +3092,8 @@ decide_coding_unwind (unwind_data)
 /* Used to pass values from insert-file-contents to read_non_regular.  */
 
 static int non_regular_fd;
-static int non_regular_inserted;
-static int non_regular_nbytes;
+static EMACS_INT non_regular_inserted;
+static EMACS_INT non_regular_nbytes;
 
 
 /* Read from a non-regular file.
@@ -3090,7 +3104,7 @@ static int non_regular_nbytes;
 static Lisp_Object
 read_non_regular ()
 {
-  int nbytes;
+  EMACS_INT nbytes;
 
   immediate_quit = 1;
   QUIT;
@@ -3140,15 +3154,15 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 {
   struct stat st;
   register int fd;
-  int inserted = 0;
+  EMACS_INT inserted = 0;
   int nochange = 0;
-  register int how_much;
-  register int unprocessed;
+  register EMACS_INT how_much;
+  register EMACS_INT unprocessed;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
-  int total = 0;
+  EMACS_INT total = 0;
   int not_regular = 0;
   unsigned char read_buf[READ_BUF_SIZE];
   struct coding_system coding;
@@ -3284,7 +3298,11 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     overflow.  The calculations below double the file size
 	     twice, so check that it can be multiplied by 4 safely.  */
 	  if (XINT (end) != st.st_size
-	      || st.st_size > INT_MAX / 4)
+	      /* Actually, it should test either INT_MAX or LONG_MAX
+		 depending on which one is used for EMACS_INT.  But in
+		 any case, in practice, this test is redundant with the
+		 one above.
+		 || st.st_size > INT_MAX / 4 */)
 	    error ("Maximum buffer size exceeded");
 
 	  /* The file size returned from stat may be zero, but data
@@ -3320,7 +3338,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		 We assume that the 1K-byte and 3K-byte for heading
 		 and tailing respectively are sufficient for this
 		 purpose.  */
-	      int nread;
+	      EMACS_INT nread;
 
 	      if (st.st_size <= (1024 * 4))
 		nread = emacs_read (fd, read_buf, 1024 * 4);
@@ -3430,9 +3448,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* same_at_start and same_at_end count bytes,
 	 because file access counts bytes
 	 and BEG and END count bytes.  */
-      int same_at_start = BEGV_BYTE;
-      int same_at_end = ZV_BYTE;
-      int overlap;
+      EMACS_INT same_at_start = BEGV_BYTE;
+      EMACS_INT same_at_end = ZV_BYTE;
+      EMACS_INT overlap;
       /* There is still a possibility we will find the need to do code
 	 conversion.  If that happens, we set this variable to 1 to
 	 give up on handling REPLACE in the optimized way.  */
@@ -3451,7 +3469,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	 match the text at the beginning of the buffer.  */
       while (1)
 	{
-	  int nread, bufpos;
+	  EMACS_INT nread, bufpos;
 
 	  nread = emacs_read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
@@ -3502,7 +3520,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	 already found that decoding is necessary, don't waste time.  */
       while (!giveup_match_end)
 	{
-	  int total_read, nread, bufpos, curpos, trial;
+	  EMACS_INT total_read, nread, bufpos, curpos, trial;
 
 	  /* At what file position are we now scanning?  */
 	  curpos = XINT (end) - (ZV_BYTE - same_at_end);
@@ -3558,7 +3576,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (! giveup_match_end)
 	{
-	  int temp;
+	  EMACS_INT temp;
 
 	  /* We win!  We can handle REPLACE the optimized way.  */
 
@@ -3618,7 +3636,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       EMACS_INT overlap;
       EMACS_INT bufpos;
       unsigned char *decoded;
-      int temp;
+      EMACS_INT temp;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
       Lisp_Object conversion_buffer;
@@ -3643,8 +3661,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* We read one bunch by one (READ_BUF_SIZE bytes) to allow
 	     quitting while reading a huge while.  */
 	  /* try is reserved in some compilers (Microsoft C) */
-	  int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
-	  int this;
+	  EMACS_INT trytry = min (total - how_much,
+				  READ_BUF_SIZE - unprocessed);
+	  EMACS_INT this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
@@ -3847,13 +3866,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   /* Here, we don't do code conversion in the loop.  It is done by
      decode_coding_gap after all data are read into the buffer.  */
   {
-    int gap_size = GAP_SIZE;
+    EMACS_INT gap_size = GAP_SIZE;
 
     while (how_much < total)
       {
 	/* try is reserved in some compilers (Microsoft C) */
-	int trytry = min (total - how_much, READ_BUF_SIZE);
-	int this;
+	EMACS_INT trytry = min (total - how_much, READ_BUF_SIZE);
+	EMACS_INT this;
 
 	if (not_regular)
 	  {
@@ -4110,7 +4129,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     {
       /* Don't run point motion or modification hooks when decoding.  */
       int count = SPECPDL_INDEX ();
-      int old_inserted = inserted;
+      EMACS_INT old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
 
@@ -4136,9 +4155,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     Hence we temporarily save `point' and `inserted' here and
 	     restore `point' iff format-decode did not insert or delete
 	     any text.  Otherwise we leave `point' at point-min.  */
-	  int opoint = PT;
-	  int opoint_byte = PT_BYTE;
-	  int oinserted = ZV - BEGV;
+	  EMACS_INT opoint = PT;
+	  EMACS_INT opoint_byte = PT_BYTE;
+	  EMACS_INT oinserted = ZV - BEGV;
 	  int ochars_modiff = CHARS_MODIFF;
 
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
@@ -4174,9 +4193,9 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    {
 	      /* For the rationale of this see the comment on
 		 format-decode above.  */
-	      int opoint = PT;
-	      int opoint_byte = PT_BYTE;
-	      int oinserted = ZV - BEGV;
+	      EMACS_INT opoint = PT;
+	      EMACS_INT opoint_byte = PT_BYTE;
+	      EMACS_INT oinserted = ZV - BEGV;
 	      int ochars_modiff = CHARS_MODIFF;
 
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);

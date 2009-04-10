@@ -119,20 +119,20 @@ cuserid (char * s)
   return name;
 }
 
-int
+unsigned
 getuid ()
 {
   return 0;
 }
 
 int
-setuid (int uid)
+setuid (unsigned uid)
 {
   return 0;
 }
 
 struct passwd *
-getpwuid (int uid)
+getpwuid (unsigned uid)
 {
   return NULL;
 }
@@ -185,7 +185,7 @@ getpass (const char * prompt)
 }
 
 int
-fchown (int fd, int uid, int gid)
+fchown (int fd, unsigned uid, unsigned gid)
 {
   return 0;
 }

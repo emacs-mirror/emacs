@@ -1,3 +1,30 @@
+2009-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (print_help_and_exit): Fix typo.
+
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.c (setuid): Argument is now unsigned.
+	(getuid): Return value is now unsigned.
+	(getpwuid): Argument is now unsigned.
+	(fchown): UID and GID arguments are now unsigned.
+
+	* ntlib.h (fchown): UID and GID arguments are now unsigned.
+	(getuid): Return value is now unsigned.
+	(setuid): Argument is now unsigned.
+	(getpwuid): Remove prototype (it's declared in nt/inc/pwd.h).
+
+2009-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Revert part of last change, so
+	drive-relative file names again work on Windows.
+
+2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Always pass cwd via "-dir".  Pass the file
+	names without prepending cwd to them, so Emacs uses its customary
+	rules to determine how to interpret the file name.
+
 2009-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* movemail.c (main) [MAIL_USE_POP]: Add -r to usage message.

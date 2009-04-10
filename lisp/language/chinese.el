@@ -122,7 +122,7 @@
 
 (define-coding-system 'chinese-big5
   "BIG5 8-bit encoding for Chinese (MIME:Big5)"
-  :coding-type 'charset
+  :coding-type 'big5
   :mnemonic ?B 
   :charset-list '(ascii big5)
   :mime-charset 'big5)

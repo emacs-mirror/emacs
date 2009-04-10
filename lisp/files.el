@@ -742,13 +742,14 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 (make-obsolete 'locate-file-completion 'locate-file-completion-table "23.1")
 
 (defvar locate-dominating-stop-dir-regexp
-  "\\`\\(?:[\\/][\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
+  "\\`\\(?:[\\/][\\/][^\\/]+\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
   "Regexp of directory names which stop the search in `locate-dominating-file'.
 Any directory whose name matches this regexp will be treated like
 a kind of root directory by `locate-dominating-file' which will stop its search
 when it bumps into it.
 The default regexp prevents fruitless and time-consuming attempts to find
-special files in directories in which filenames are interpreted as hostnames.")
+special files in directories in which filenames are interpreted as hostnames,
+or mount points potentially requiring authentication as a different user.")
 
 ;; (defun locate-dominating-files (file regexp)
 ;;   "Look up the directory hierarchy from FILE for a file matching REGEXP.
@@ -2205,8 +2206,8 @@ since only a single case-insensitive search through the alist is made."
      ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
-     ("\\.\\(sx[dmicw]\\|od[fgpst]\\)\\'" . archive-mode) ; OpenOffice.org
-     ("\\.\\(deb\\)\\'" . archive-mode)                 ; Debian packages.
+     ("\\.\\(sx[dmicw]\\|od[fgpst]\\|oxt\\)\\'" . archive-mode) ;OpenOffice.org
+     ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
@@ -4474,8 +4475,14 @@ Don't call it from programs!  Use `insert-file-contents' instead.
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
 When called from a function, expects three arguments,
-START, END and FILENAME.  START and END are buffer positions
-saying what text to write."
+START, END and FILENAME.  START and END are normally buffer positions
+specifying the part of the buffer to write.
+If START is nil, that means to use the entire buffer contents.
+If START is a string, then output that string to the file
+instead of any buffer contents; END is ignored.
+
+This does character code conversion and applies annotations
+like `write-region' does."
   (interactive "r\nFAppend to file: ")
   (write-region start end filename t))
 
@@ -5254,12 +5261,14 @@ and `list-directory-verbose-switches'."
   "Quote characters special to the shell in PATTERN, leave wildcards alone.
 
 PATTERN is assumed to represent a file-name wildcard suitable for the
-underlying filesystem.  For Unix and GNU/Linux, the characters from the
-set [ \\t\\n;<>&|()'\"#$] are quoted with a backslash; for DOS/Windows, all
+underlying filesystem.  For Unix and GNU/Linux, each character from the
+set [ \\t\\n;<>&|()'\"#$] is quoted with a backslash; for DOS/Windows, all
 the parts of the pattern which don't include wildcard characters are
 quoted with double quotes.
-Existing quote characters in PATTERN are left alone, so you can pass
-PATTERN that already quotes some of the special characters."
+
+This function leaves alone existing quote characters (\\ on Unix and \"
+on Windows), so PATTERN can use them to quote wildcard characters that
+need to be passed verbatim to shell commands."
   (save-match-data
     (cond
      ((memq system-type '(ms-dos windows-nt cygwin))
@@ -5336,10 +5345,17 @@ program specified by `directory-free-space-program' if that is non-nil."
       (save-match-data
 	(with-temp-buffer
 	  (when (and directory-free-space-program
-		     (eq 0 (call-process directory-free-space-program
+		     (let ((default-directory
+			     (if (and (not (file-remote-p default-directory))
+				      (file-directory-p default-directory)
+				      (file-readable-p default-directory))
+				 default-directory
+			       (expand-file-name "~/"))))
+		       (eq (call-process directory-free-space-program
 					 nil t nil
 					 directory-free-space-args
-					 dir)))
+					 dir)
+			   0)))
 	    ;; Usual format is a header line followed by a line of
 	    ;; numbers.
 	    (goto-char (point-min))
@@ -5885,7 +5901,7 @@ If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
 
 (defun file-modes-rights-to-number (rights who-mask &optional from)
   "Convert a symbolic mode string specification to an equivalent number.
-RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]+)+\".
+RIGHTS is the symbolic mode spec, it should match \"([+=-][rwxXstugo]*)+\".
 WHO-MASK is the bit-mask specifying the category of users to which to
 apply the access permissions.  See `file-modes-char-to-who'.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
@@ -5913,7 +5929,7 @@ as in \"og+rX-w\"."
 (defun file-modes-symbolic-to-number (modes &optional from)
   "Convert symbolic file modes to numeric file modes.
 MODES is the string to convert, it should match
-\"[ugoa]*([+-=][rwxXstugo]+)+,...\".
+\"[ugoa]*([+-=][rwxXstugo]*)+,...\".
 See (info \"(coreutils)File permissions\") for more information on this
 notation.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
@@ -5923,7 +5939,7 @@ as in \"og+rX-w\"."
     (let ((case-fold-search nil)
 	  (num-modes (or from 0)))
       (while (/= (string-to-char modes) 0)
-	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]+\\)+\\(,\\|\\)" modes)
+	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]*\\)+\\(,\\|\\)" modes)
 	    (let ((num-who (apply 'logior 0
 				  (mapcar 'file-modes-char-to-who
 					  (match-string 1 modes)))))

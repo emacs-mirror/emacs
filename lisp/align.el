@@ -174,7 +174,7 @@ may cause unexpected behavior at times."
 
 (defcustom align-large-region 10000
   "If an integer, defines what constitutes a \"large\" region.
-If nil,then no messages will ever be printed to the minibuffer."
+If nil, then no messages will ever be printed to the minibuffer."
   :type 'integer
   :group 'align)
 
@@ -184,7 +184,7 @@ If nil,then no messages will ever be printed to the minibuffer."
   :group 'align)
 
 (defcustom align-perl-modes '(perl-mode cperl-mode)
-  "A list of modes where perl syntax is to be seen."
+  "A list of modes where Perl syntax is to be seen."
   :type '(repeat symbol)
   :group 'align)
 
@@ -222,7 +222,7 @@ If nil,then no messages will ever be printed to the minibuffer."
   (append align-lisp-modes align-c++-modes align-perl-modes
 	  '(python-mode makefile-mode))
   "A list of modes with a single-line comment syntax.
-These are comments as in Lisp, which have a beginning but, end with
+These are comments as in Lisp, which have a beginning, but end with
 the line (i.e., `comment-end' is an empty string)."
   :type '(repeat symbol)
   :group 'align)
@@ -259,8 +259,8 @@ The possible settings for `align-region-separate' are:
 
  `group'   Each contiguous set of lines where a specific alignment
 	   occurs is considered a section for that alignment rule.
-	   Note that each rule will may have any entirely different
-	   set of section divisions than another.
+	   Note that each rule may have any entirely different set
+           of section divisions than another.
 
 	     int    alpha = 1; /* one */
 	     double beta  = 2.0;
@@ -292,7 +292,7 @@ The possible settings for `align-region-separate' are:
 	   between sections, the behavior will be very similar to
 	   `largest', and faster.  But if the mode does not use clear
 	   separators (for example, if you collapse your braces onto
-	   the preceding statement in C or perl), `largest' is
+	   the preceding statement in C or Perl), `largest' is
 	   probably the better alternative.
 
  function  A function that will be passed the beginning and ending
@@ -301,8 +301,8 @@ The possible settings for `align-region-separate' are:
 	   both of these parameters will be nil, in which case the
 	   function should return non-nil if it wants each rule to
 	   define its own section, or nil if it wants the largest
-	   section found to be used as the common section for all rules
-	   that occur there.
+	   section found to be used as the common section for all
+	   rules that occur there.
 
  list      A list of markers within the buffer that represent where
 	   the section dividers lie.  Be certain to use markers!  For
@@ -623,8 +623,8 @@ The following attributes are meaningful:
 	    the purposes of alignment.  The \"alignment character\" is
 	    always the first character immediately following this
 	    parenthesis group.  This attribute may also be a list of
-	    integer, in which case multiple alignment characters will
-	    be aligned, with the list of integer identifying the
+	    integers, in which case multiple alignment characters will
+	    be aligned, with the list of integers identifying the
 	    whitespace groups which precede them.  The default for
 	    this attribute is 1.
 
@@ -636,7 +636,7 @@ The following attributes are meaningful:
 `case-fold' If `regexp' is an ordinary regular expression string
 	    containing alphabetic character, sometimes you may want
 	    the search to proceed case-insensitively (for languages
-	    that ignore case, such as pascal for example).  In that
+	    that ignore case, such as Pascal for example).  In that
 	    case, set `case-fold' to a non-nil value, and the regular
 	    expression search will ignore case.  If `regexp' is set to
 	    a function, that function must handle the job of ignoring

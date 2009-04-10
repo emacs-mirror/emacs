@@ -592,39 +592,26 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		alias))))))
 
 (defun mail-abbrev-next-line (&optional arg)
-  "Expand any mail abbrev, then move cursor vertically down ARG lines.
-If there is no character in the target line exactly under the current column,
-the cursor is positioned after the character in that line which spans this
-column, or at the end of the line if it is not long enough.
-If there is no line in the buffer after this one,
-a newline character is inserted to create a line
-and the cursor moves to that line.
+  "Expand a mail abbrev before point, then move vertically down ARG lines.
+This only expands an abbrev (if one is present) if called with
+point at the end of a line, or on whitespace before the end of a line.
 
-The command \\[set-goal-column] can be used to create
-a semipermanent goal column to which this command always moves.
-Then it does not try to move vertically.  This goal column is stored
-in `goal-column', which is nil when there is none.
-
-If you are thinking of using this in a Lisp program, consider
-using `forward-line' instead.  It is usually easier to use
-and more reliable (no dependence on goal column, etc.)."
+In terms of line motion, this behaves like `next-line', which see."
   (interactive "p")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'next-line)
   (with-no-warnings (next-line arg)))
 
 (defun mail-abbrev-end-of-buffer (&optional arg)
-  "Expand any mail abbrev, then move point to end of buffer.
-Leave mark at previous position.
-With arg N, put point N/10 of the way from the true end.
+  "Expand a mail abbrev before point, then move to the end of the buffer.
+This only expands an abbrev (if one is present) if called with
+point at the end of a line, or on whitespace before the end of a line.
 
-Don't use this command in Lisp programs!
-\(goto-char (point-max)) is faster and avoids clobbering the mark."
+In other respects, this behaves like `end-of-buffer', which see."
   (interactive "P")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'end-of-buffer)
-  (with-no-warnings
-   (end-of-buffer arg)))
+  (with-no-warnings (end-of-buffer arg)))
 
 (eval-after-load "sendmail"
   '(progn

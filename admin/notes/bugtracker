@@ -278,6 +278,26 @@ Apparently it has some kind of spam filter that sometimes silently
 discards valid mails. Adding a subject (pointless in control messages)
 may help.
 
+** ChangeLog issues
+
+*** When you fix a bug, it can be helpful to put the bug number in the
+ChangeLog entry, for example:
+
+   * foo.el (foofunc): Fix the `foo' case.  (Bug#123)
+
+Then the relevant bug can be found for easy reference.  If it's an
+obvious fix (e.g. a typo), there's no need to clutter the log with the
+bug number.
+
+Similarly, when you close a bug, it can be helpful to include the
+relevant ChangeLog entry in the message to the bug tracker, so people
+can see eaxctly what the fix was.
+
+*** bug-reference-mode
+
+Activate `bug-reference-mode' in ChangeLogs to get clickable links to
+the bug web-pages.
+
 ** Gnus-specific voodoo
 
 *** Put point on a bug-number and try: M-x gnus-read-ephemeral-emacs-bug-group

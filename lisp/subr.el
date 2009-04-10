@@ -1004,6 +1004,7 @@ and `event-end' functions."
 (define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
+(make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.

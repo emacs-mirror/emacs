@@ -2015,6 +2015,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (search-forward "!<arch>\n")
     (while (looking-at archive-ar-file-header-re)
       (let ((name (match-string 1))
+            extname
             ;; Emacs will automatically use float here because those
             ;; timestamps don't fit in our ints.
             (time (string-to-number (match-string 2)))
@@ -2024,35 +2025,33 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
             (size (string-to-number (match-string 6))))
         ;; Move to the beginning of the data.
         (goto-char (match-end 0))
-        (cond
-         ((equal name "//              ")
-          ;; FIXME: todo
-          nil)
-         ((equal name "/               ")
-          ;; FIXME: todo
-          nil)
-         (t
-          (setq time
-                (format-time-string
-                 "%Y-%m-%d %H:%M"
-                 (let ((high (truncate (/ time 65536))))
-                   (list high (truncate (- time (* 65536.0 high)))))))
-          (setq name (substring name 0 (string-match "/? *\\'" name)))
-          (setq user (substring user 0 (string-match " +\\'" user)))
-          (setq group (substring group 0 (string-match " +\\'" group)))
-          (setq mode (tar-grind-file-mode mode))
-          ;; Move to the end of the data.
-          (forward-char size) (if (eq ?\n (char-after)) (forward-char 1))
-          (setq size (number-to-string size))
-          (if (> (length name) maxname) (setq maxname (length name)))
-          (if (> (length time) maxtime) (setq maxtime (length time)))
-          (if (> (length user) maxuser) (setq maxuser (length user)))
-          (if (> (length group) maxgroup) (setq maxgroup (length group)))
-          (if (> (length mode) maxmode) (setq maxmode (length mode)))
-          (if (> (length size) maxsize) (setq maxsize (length size)))
-          (push (vector name name nil mode
-                        time user group size)
-                files)))))
+        (setq time
+              (format-time-string
+               "%Y-%m-%d %H:%M"
+               (let ((high (truncate (/ time 65536))))
+                 (list high (truncate (- time (* 65536.0 high)))))))
+        (setq extname
+              (cond ((equal name "//              ")
+                     (propertize ".<ExtNamesTable>." 'face 'italic))
+                    ((equal name "/               ")
+                     (propertize ".<LookupTable>." 'face 'italic))
+                    ((string-match "/? *\\'" name)
+                     (substring name 0 (match-beginning 0)))))
+        (setq user (substring user 0 (string-match " +\\'" user)))
+        (setq group (substring group 0 (string-match " +\\'" group)))
+        (setq mode (tar-grind-file-mode mode))
+        ;; Move to the end of the data.
+        (forward-char size) (if (eq ?\n (char-after)) (forward-char 1))
+        (setq size (number-to-string size))
+        (if (> (length name) maxname) (setq maxname (length name)))
+        (if (> (length time) maxtime) (setq maxtime (length time)))
+        (if (> (length user) maxuser) (setq maxuser (length user)))
+        (if (> (length group) maxgroup) (setq maxgroup (length group)))
+        (if (> (length mode) maxmode) (setq maxmode (length mode)))
+        (if (> (length size) maxsize) (setq maxsize (length size)))
+        (push (vector name extname nil mode
+                      time user group size)
+              files)))
     (setq files (nreverse files))
     (goto-char (point-min))
     (let* ((format (format "%%%ds %%%ds/%%-%ds  %%%ds %%%ds %%s"
@@ -2091,25 +2090,25 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (save-restriction
         ;; We may be in archive-mode or not, so either with or without
         ;; narrowing and with or without a prepended summary.
-        (widen)
-        (search-forward "!<arch>\n")
-        (while (and (not from) (looking-at archive-ar-file-header-re))
-          (let ((this (match-string 1)))
-            (setq size (string-to-number (match-string 6)))
-            (goto-char (match-end 0))
-            (setq this (substring this 0 (string-match "/? *\\'" this)))
-            (if (equal name this)
-                (setq from (point))
-              ;; Move to the end of the data.
-              (forward-char size) (if (eq ?\n (char-after)) (forward-char 1)))))
-        (when from
-          (set-buffer-multibyte nil)
-          (with-current-buffer destbuf
-            ;; Do it within the `widen'.
-            (insert-buffer-substring archivebuf from (+ from size)))
-          (set-buffer-multibyte 'to)
-          ;; Inform the caller that the call succeeded.
-          t)))))
+        (save-excursion
+          (widen)
+          (search-forward "!<arch>\n")
+          (while (and (not from) (looking-at archive-ar-file-header-re))
+            (let ((this (match-string 1)))
+              (setq size (string-to-number (match-string 6)))
+              (goto-char (match-end 0))
+              (if (equal name this)
+                  (setq from (point))
+                ;; Move to the end of the data.
+                (forward-char size) (if (eq ?\n (char-after)) (forward-char 1)))))
+          (when from
+            (set-buffer-multibyte nil)
+            (with-current-buffer destbuf
+              ;; Do it within the `widen'.
+              (insert-buffer-substring archivebuf from (+ from size)))
+            (set-buffer-multibyte 'to)
+            ;; Inform the caller that the call succeeded.
+            t))))))
 
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.

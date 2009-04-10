@@ -903,6 +903,8 @@ Used by `calc-user-invocation'.")
   "The list of recent undo operations.")
 (defvar calc-main-buffer nil
   "A pointer to Calculator buffer.")
+(defvar calc-buffer-list nil
+  "A list of all Calc buffers.")
 (defvar calc-trail-buffer nil
   "A pointer to Calc Trail buffer.")
 (defvar calc-why nil
@@ -1201,6 +1203,67 @@ Used by `calc-user-invocation'.")
 
 (defvar calc-alg-map) ; Defined in calc-ext.el
 
+
+(defvar calc-embedded-modes) ; Defined in calc-embed.el
+(defvar calc-override-minor-modes) ; Defined in calc-embed.el
+(defun calc-kill-stack-buffer ()
+  "Check to see if user wants to kill the Calc stack buffer.
+This will look for buffers using the Calc buffer for embedded mode,
+and inform the user if there are any.
+If the user wants to kill the Calc buffer, this will remove
+embedded information from the appropriate buffers and tidy up
+the trail buffer."
+  (let ((cb (current-buffer))
+        (info-list nil)
+        (buflist)
+;        (plural nil)
+        (cea calc-embedded-active))
+    ;; Get a list of all buffers using this buffer for
+    ;; embedded Calc.
+    (while cea
+      (when (and (eq cb (aref (nth 1 (car cea)) 1))
+                 (buffer-name (car (car cea))))
+        (setq info-list (cons (car cea) info-list)))
+      (setq cea (cdr cea)))
+    ;; Eventually, prompt user with a list of buffers using embedded mode.
+    (when (and
+           info-list
+           (yes-or-no-p 
+            (concat "This Calc stack is being used for embedded mode. Kill anyway?")))
+      (while info-list
+        (with-current-buffer (car (car info-list))
+          (when calc-embedded-info
+            (setq calc-embedded-info nil
+                  mode-line-buffer-identification (car calc-embedded-modes)
+                  truncate-lines (nth 2 calc-embedded-modes)
+                  buffer-read-only nil)
+            (use-local-map (nth 1 calc-embedded-modes))
+            (setq minor-mode-overriding-map-alist
+                  (remq calc-override-minor-modes minor-mode-overriding-map-alist))
+            (let ((str mode-line-buffer-identification))
+              (setq mode-line-buffer-identification str))
+            (set-buffer-modified-p (buffer-modified-p))))
+        (setq calc-embedded-active
+              (delete (car info-list) calc-embedded-active))
+        (setq info-list (cdr info-list))))
+    (if (not info-list)
+        (progn
+          (setq calc-buffer-list (delete cb calc-buffer-list))
+          (with-current-buffer calc-trail-buffer
+            (if (eq cb calc-main-buffer)
+                ;; If there are other Calc stacks, make another one
+                ;; the calc-main-buffer ...
+                (if calc-buffer-list
+                    (setq calc-main-buffer (car calc-buffer-list))
+                  ;; ... otherwise kill the trail and its windows.
+                  (let ((wl (get-buffer-window-list calc-trail-buffer)))
+                    (while wl
+                      (delete-window (car wl))
+                      (setq wl (cdr wl))))
+                  (kill-buffer calc-trail-buffer)
+                  (setq calc-trail-buffer nil))))
+          t))))
+
 (defun calc-mode ()
   "Calculator major mode.
 
@@ -1242,6 +1305,9 @@ Notations:  3.14e6     3.14 * 10^6
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (add-hook 'kill-buffer-query-functions
+            'calc-kill-stack-buffer
+            t t)
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (setq major-mode 'calc-mode)
@@ -1268,7 +1334,8 @@ Notations:  3.14e6     3.14 * 10^6
   (run-mode-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
-  (calc-check-defines))
+  (calc-check-defines)
+  (add-to-list 'calc-buffer-list (current-buffer) t))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
 (defun calc-check-defines ()

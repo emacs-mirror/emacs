@@ -76,7 +76,8 @@ in this order is used."
             (x-face (setq raw (mh-uncompface x-face)
                           type 'pbm))
             (url (setq type 'url))
-            (t (multiple-value-setq (type raw) (mh-picon-get-image))))
+            (t (multiple-value-setq (type raw) 
+                 (values-list (mh-picon-get-image)))))
       (when type
         (goto-char (point-min))
         (when (re-search-forward "^from:" (point-max) t)
@@ -275,8 +276,8 @@ elements of the list are nil."
         (let ((type (and (string-match ".*\\.\\(...\\)$" file)
                          (intern (match-string 1 file)))))
           (insert-file-contents-literally file)
-          (values type (buffer-string))))
-    (values nil nil)))
+          (list type (buffer-string))))
+    (list nil nil)))
 
 
 

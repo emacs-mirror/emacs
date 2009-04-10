@@ -1,3 +1,23 @@
+2009-03-13  D. Goel  <deego3@gmail.com>
+
+	* mh-seq.el (mh-folder-size-flist): Use (values-list) in m-v call
+	to list.
+
+	* mh-speed.el (mh-speed-parse-flists-output): Ditto.
+	* mh-xface.el (mh-face-display-function): Ditto.
+	* mh-search.el (mh-index-parse-search-regexp): Ditto.
+
+	* mh-thread.el (mh-thread-generate): Ditto.
+
+	* mh-seq.el (mh-parse-flist-output-line): Return list rather than values.
+	We want to avoid emacs using m-v facilities.
+	(mh-folder-size-folder):  Ditto.
+	(mh-parse-flist-output-line): Ditto.
+	* mh-thread.el (mh-thread-prune-subject): Ditto.
+	* mh-xface.el (mh-picon-get-image): Ditto.
+	(mh-picon-file-contents): Ditto.
+	* mh-search.el (mh-index-evaluate): Ditto.
+
 2009-01-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-funcs.el (mh-pack-folder): Fix docstring.

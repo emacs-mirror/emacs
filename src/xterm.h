@@ -356,6 +356,10 @@ struct x_display_info
   Atom *net_supported_atoms;
   int nr_net_supported_atoms;
   Window net_supported_window;
+
+  /* Atoms dealing with maximization and fullscreen */
+  Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen_atom,
+    Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert;
 };
 
 #ifdef HAVE_X_I18N

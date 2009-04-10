@@ -1,3 +1,14 @@
+2009-04-09  Glenn Morris  <rgm@gnu.org>
+
+	* MORE.STUFF: Update some urls.  Remove dead links: eshell, expand,
+	ffap, hideshow.  Remove original whitespace, now in obsolete/.
+	Remember and nXML are part of the distribution now.
+
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Add description for the argument change of
+	`set-fontset-font' and `print-fontset'.
+
 2009-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* MORE.STUFF: Mention Zile.

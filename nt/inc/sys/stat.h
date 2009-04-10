@@ -61,8 +61,8 @@ struct stat {
   dev_t st_dev;
   unsigned short   st_mode;
   short		   st_nlink;
-  int		   st_uid;
-  int		   st_gid;
+  unsigned	   st_uid; /* Vista's TrustedInstaller has a very large RID */
+  unsigned	   st_gid;
   unsigned __int64 st_size;
   dev_t		   st_rdev;
   time_t	   st_atime;

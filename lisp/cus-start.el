@@ -98,7 +98,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			   "22.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
-	     (shift-select-mode editing-basics boolean)
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute
@@ -248,6 +247,33 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					   function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
+	     ;; nsterm.m
+	     (ns-control-modifier
+	      ns
+	      (choice (const :tag "No modifier" nil)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-command-modifier
+	      ns
+	      (choice (const :tag "No modifier" nil)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-alternate-modifier
+	      ns
+	      (choice (const :tag "No modifier (work as alternate/option)" none)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-function-modifier
+	      ns
+	      (choice (const :tag "No modifier (work as function)" none)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.1")
+	     (ns-antialias-text ns boolean "23.1")
+	     (ns-use-qd-smoothing ns boolean "23.1")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
@@ -354,6 +380,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
+		      ((string-match "\\`ns-" (symbol-name symbol))
+		       (featurep 'ns))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))

@@ -65,7 +65,6 @@
 
 ;; nsterm.m
 (defvar ns-version-string)
-(defvar ns-expand-space)
 (defvar ns-alternate-modifier)
 
 ;;;; Command line argument handling.
@@ -224,7 +223,7 @@ The properties returned may include `top', `left', `height', and `width'."
   "Keymap of alternative meanings for some keys under NS.")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
-(define-key global-map [?\s-,] 'ns-popup-prefs-panel)
+(define-key global-map [?\s-,] 'customize)
 (define-key global-map [?\s-'] 'next-multiframe-window)
 (define-key global-map [?\s-`] 'other-frame)
 (define-key global-map [?\s--] 'center-line)
@@ -283,8 +282,7 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;; Special Nextstep-generated events are converted to function keys.  Here
 ;; are the bindings for them.
-(define-key global-map [ns-power-off]
-  (lambda () (interactive) (save-buffers-kill-emacs t)))
+(define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
 (define-key global-map [ns-drag-file] 'ns-insert-file)
@@ -296,7 +294,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
 (define-key global-map [ns-new-frame] 'make-frame)
 (define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
-(define-key global-map [ns-info-prefs] 'ns-show-preferences-help)
+(define-key global-map [ns-show-prefs] 'customize)
 
 
 ;; Functions to set environment variables by running a subshell.
@@ -404,10 +402,10 @@ this defaults to \"printenv\"."
 ;             (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
 ;             (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
              (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-             (cons (logior (lsh 0 16)  12) 'ns-new-frame)
-             (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-             (cons (logior (lsh 0 16)  14) 'ns-info-prefs)
-             (cons (logior (lsh 1 16)  32) 'f1)
+	     (cons (logior (lsh 0 16)  12) 'ns-new-frame)
+	     (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
+	     (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
+	     (cons (logior (lsh 1 16)  32) 'f1)
              (cons (logior (lsh 1 16)  33) 'f2)
              (cons (logior (lsh 1 16)  34) 'f3)
              (cons (logior (lsh 1 16)  35) 'f4)
@@ -494,10 +492,10 @@ this defaults to \"printenv\"."
 
 ;; Must come after keybindings.
 
-(fmakunbound 'clipboard-yank)
-(fmakunbound 'clipboard-kill-ring-save)
-(fmakunbound 'clipboard-kill-region)
-(fmakunbound 'menu-bar-enable-clipboard)
+;; (fmakunbound 'clipboard-yank)
+;; (fmakunbound 'clipboard-kill-ring-save)
+;; (fmakunbound 'clipboard-kill-region)
+;; (fmakunbound 'menu-bar-enable-clipboard)
 
 ;; Add a couple of menus and rearrange some others; easiest just to redo toplvl
 ;; Note keymap defns must be given last-to-first
@@ -517,7 +515,6 @@ this defaults to \"printenv\"."
 
 (define-key global-map [menu-bar services]
   (cons "Services" (make-sparse-keymap "Services")))
-(define-key global-map [menu-bar windows] (make-sparse-keymap "Windows"))
 (define-key global-map [menu-bar buffer]
   (cons "Buffers" global-buffers-menu-map))
 ;;  (cons "Buffers" (make-sparse-keymap "Buffers")))
@@ -626,56 +623,6 @@ this defaults to \"printenv\"."
 ;; Separate undo from cut/paste section, add spell for platform consistency.
 (define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
 (define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
-
-(defun menu-bar-update-frames ()
-  ;; If user discards the Windows item, play along.
-  (when (lookup-key (current-global-map) [menu-bar windows])
-    (let ((frames (frame-list))
-          (frames-menu (make-sparse-keymap "Select Frame")))
-      (setcdr frames-menu
-              (nconc
-               (mapcar (lambda (frame)
-			 (list*
-			  (frame-parameter frame 'window-id)
-			  (frame-parameter frame 'name)
-			  `(lambda ()
-			     (interactive) (menu-bar-select-frame ,frame))))
-                       frames)
-               (cdr frames-menu)))
-      (define-key frames-menu [separator-frames] '("--"))
-      (define-key frames-menu [popup-color-panel]
-        '("Colors..." . ns-popup-color-panel))
-      (define-key frames-menu [popup-font-panel]
-        '("Font Panel..." . ns-popup-font-panel))
-      (define-key frames-menu [separator-arrange] '("--"))
-      (define-key frames-menu [arrange-all-frames]
-        '("Arrange All Frames" . ns-arrange-all-frames))
-      (define-key frames-menu [arrange-visible-frames]
-        '("Arrange Visible Frames" . ns-arrange-visible-frames))
-      ;; Don't use delete-frame as event name
-      ;; because that is a special event.
-      (define-key (current-global-map) [menu-bar windows]
-        (cons "Windows" frames-menu)))))
-
-(defun force-menu-bar-update-buffers ()
-  ;; This is a hack to get around fact that we already checked
-  ;; frame-or-buffer-changed-p and reset it, so menu-bar-update-buffers
-  ;; does not pick up any change.
-  (menu-bar-update-buffers t))
-
-(add-hook 'menu-bar-update-fab-hook 'menu-bar-update-frames)
-(add-hook 'menu-bar-update-fab-hook 'force-menu-bar-update-buffers)
-
-(defun menu-bar-update-frames-and-buffers ()
-  (if (frame-or-buffer-changed-p)
-      (run-hooks 'menu-bar-update-fab-hook)))
-
-(setq menu-bar-update-hook
-      (delq 'menu-bar-update-buffers menu-bar-update-hook))
-(add-hook 'menu-bar-update-hook 'menu-bar-update-frames-and-buffers)
-
-(menu-bar-update-frames-and-buffers)
-
 
 ;; ns-arrange functions contributed
 ;; by Eberhard Mandler <mandler@dbag.ulm.DaimlerBenz.COM>
@@ -985,134 +932,9 @@ Lines are highlighted according to `ns-input-line'."
      (t (read res)))))
 
 ;; nsterm.m
-(defvar ns-command-modifier)
-(defvar ns-control-modifier)
-(defvar ns-function-modifier)
-(defvar ns-antialias-text)
-(defvar ns-use-qd-smoothing)
-(defvar ns-use-system-highlight-color)
-(defvar ns-confirm-quit)
 
-(declare-function ns-set-resource "nsfns.m" (owner name value))
-(declare-function ns-font-name "nsfns.m" (name))
 (declare-function ns-read-file-name "nsfns.m"
 		  (prompt &optional dir isLoad init))
-
-(defun ns-save-preferences ()
-  "Set all the defaults."
-  (interactive)
-  ;; Global preferences
-  (ns-set-resource nil "AlternateModifier" (symbol-name ns-alternate-modifier))
-  (ns-set-resource nil "CommandModifier" (symbol-name ns-command-modifier))
-  (ns-set-resource nil "ControlModifier" (symbol-name ns-control-modifier))
-  (ns-set-resource nil "FunctionModifier" (symbol-name ns-function-modifier))
-  (ns-set-resource nil "ExpandSpace"
-                   (if ns-expand-space
-                       (number-to-string ns-expand-space)
-                     "NO"))
-  (ns-set-resource nil "GSFontAntiAlias" (if ns-antialias-text "YES" "NO"))
-  (ns-set-resource nil "UseQuickdrawSmoothing"
-		   (if ns-use-qd-smoothing "YES" "NO"))
-  (ns-set-resource nil "UseSystemHighlightColor"
-		   (if ns-use-system-highlight-color "YES" "NO"))
-  (ns-set-resource nil "ConfirmQuit"
-		   (if ns-confirm-quit "YES" "NO"))
-  ;; Default frame parameters
-  (let ((p (frame-parameters))
-	v)
-    (if (setq v (assq 'font p))
-	(ns-set-resource nil "Font" (ns-font-name (cdr v))))
-    (if (setq v (assq 'fontsize p))
-	(ns-set-resource nil "FontSize" (number-to-string (cdr v))))
-    (if (setq v (assq 'foreground-color p))
-	(ns-set-resource nil "Foreground" (cdr v)))
-    (if (setq v (assq 'background-color p))
-	(ns-set-resource nil "Background" (cdr v)))
-    (if (setq v (assq 'cursor-color p))
-	(ns-set-resource nil "CursorColor" (cdr v)))
-    (if (setq v (assq 'cursor-type p))
-	(ns-set-resource nil "CursorType" (if (symbolp (cdr v))
-					      (symbol-name (cdr v))
-					    (cdr v))))
-    (if (setq v (assq 'underline p))
-	(ns-set-resource nil "Underline"
-			 (case (cdr v)
-			       ((t) "YES")
-			       ((nil) "NO")
-			       (t (cdr v)))))
-    (if (setq v (assq 'internal-border-width p))
-	(ns-set-resource nil "InternalBorderWidth"
-			 (number-to-string (cdr v))))
-    (if (setq v (assq 'vertical-scroll-bars p))
-	(ns-set-resource nil "VerticalScrollBars"
-			 (case (cdr v)
-			       ((t) "YES")
-			       ((nil) "NO")
-			       ((left) "left")
-			       ((right) "right")
-			       (t nil))))
-    (if (setq v (assq 'height p))
-	(ns-set-resource nil "Height" (number-to-string (cdr v))))
-    (if (setq v (assq 'width p))
-	(ns-set-resource nil "Width" (number-to-string (cdr v))))
-    (if (setq v (assq 'top p))
-	(ns-set-resource nil "Top" (number-to-string (cdr v))))
-    (if (setq v (assq 'left p))
-	(ns-set-resource nil "Left" (number-to-string (cdr v))))
-    ;; These not fully supported
-    (if (setq v (assq 'auto-raise p))
-	(ns-set-resource nil "AutoRaise" (if (cdr v) "YES" "NO")))
-    (if (setq v (assq 'auto-lower p))
-	(ns-set-resource nil "AutoLower" (if (cdr v) "YES" "NO")))
-    (if (setq v (assq 'menu-bar-lines p))
-	(ns-set-resource nil "Menus" (if (cdr v) "YES" "NO")))
-    )
-  (let ((fl (face-list)))
-    (while (consp fl)
-      (or (eq 'default (car fl))
-          ;; dont save Default* since it causes all created faces to
-          ;; inherit its values.  The properties of the default face
-          ;; have already been saved from the frame-parameters anyway.
-          (let* ((name (symbol-name (car fl)))
-                 (font (face-font (car fl)))
-                 ;; (fontsize (face-fontsize (car fl)))
-                 (foreground (face-foreground (car fl)))
-                 (background (face-background (car fl)))
-                 (underline (face-underline-p (car fl)))
-                 (italic (face-italic-p (car fl)))
-                 (bold (face-bold-p (car fl)))
-                 (stipple (face-stipple (car fl))))
-            ;; (ns-set-resource nil (concat name ".attributeFont")
-            ;;                  (if font font nil))
-            ;; (ns-set-resource nil (concat name ".attributeFontSize")
-            ;;                  (if fontsize (number-to-string fontsize) nil))
-            (ns-set-resource nil (concat name ".attributeForeground")
-                             (if foreground foreground nil))
-            (ns-set-resource nil (concat name ".attributeBackground")
-                             (if background background nil))
-            (ns-set-resource nil (concat name ".attributeUnderline")
-                             (if underline "YES" nil))
-            (ns-set-resource nil (concat name ".attributeItalic")
-                             (if italic "YES" nil))
-            (ns-set-resource nil (concat name ".attributeBold")
-                             (if bold "YES" nil))
-            (and stipple
-                 (or (stringp stipple)
-                     (setq stipple (prin1-to-string stipple))))
-            (ns-set-resource nil (concat name ".attributeStipple")
-                             (if stipple stipple nil))))
-      (setq fl (cdr fl)))))
-
-(declare-function menu-bar-options-save-orig "ns-win" () t)
-
-;; call ns-save-preferences when menu-bar-options-save is called
-(fset 'menu-bar-options-save-orig (symbol-function 'menu-bar-options-save))
-(defun ns-save-options ()
-  (interactive)
-  (menu-bar-options-save-orig)
-  (ns-save-preferences))
-(fset 'menu-bar-options-save (symbol-function 'ns-save-options))
-
 
 ;;;; File handling.
 
@@ -1133,10 +955,15 @@ Lines are highlighted according to `ns-input-line'."
     (message ns-output-file)
     (if ns-output-file (write-file ns-output-file))))
 
-(defvar ns-pop-up-frames 'fresh
-  "*Non-nil means open files upon request from the Workspace in a new frame.
+(defcustom ns-pop-up-frames 'fresh
+  "Non-nil means open files upon request from the Workspace in a new frame.
 If t, always do so.  Any other non-nil value means open a new frame
-unless the current buffer is a scratch buffer.")
+unless the current buffer is a scratch buffer."
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "Always" t)
+                 (other :tag "Except for scratch buffer" fresh))
+  :version "23.1"
+  :group 'ns)
 
 (declare-function ns-hide-emacs "nsfns.m" (on))
 
@@ -1242,11 +1069,6 @@ unless the current buffer is a scratch buffer.")
 ;;;; Dialog-related functions.
 
 
-(defun ns-show-preferences-help ()
- "Show NS Preferences panel section in the Emacs manual"
-  (interactive)
-  (info "(emacs)Mac / GNUstep Customization"))
-
 ;; Ask user for confirm before printing.  Due to Kevin Rodgers.
 (defun ns-print-buffer ()
   "Interactive front-end to `print-buffer': asks for user confirmation first."
@@ -1272,8 +1094,10 @@ unless the current buffer is a scratch buffer.")
 
 ;; Set to use font panel instead
 (declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'generate-fontset-menu 'ns-popup-font-panel)
-(defalias 'mouse-set-font 'ns-popup-font-panel)
+(defalias 'generate-fontset-menu 'ns-popup-font-panel "Pop up the font panel.
+This function has been overloaded in NS.")
+(defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
+This function has been overloaded in NS.")
 
 ;; nsterm.m
 (defvar ns-input-font)
@@ -1310,9 +1134,14 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (if (fboundp 'new-fontset)
     (progn
       ;; Setup the default fontset.
-      (setup-default-fontset)
+      (create-default-fontset)
       ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec ns-standard-fontset-spec t)))
+      (condition-case err
+	  (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
+	(error (display-warning 
+		'initialization
+		(format "Creation of the standard fontset failed: %s" err)
+		:error)))))
 
 ;;(push (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard")
 ;;      default-frame-alist)

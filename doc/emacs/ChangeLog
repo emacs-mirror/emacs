@@ -1,3 +1,59 @@
+2009-03-15  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Format): Replace "Sender" with "Message-Id", since
+	the former is not always used.
+	(Mail Headers): Use active voice.  Add "Mail-reply-to".
+	Change case of "Id".  Avoid repeated "appropriate".
+	(Mail Aliases): Fix previous change - use an example with a ".", so it
+	does actually get quoted when expanded.
+	(Mail Sending): Mailclient is the default on some systems.
+	(Citing Mail): Mention mail-indentation-spaces.
+	(Mail Mode Misc): Add an @dfn for "mail signature".
+
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mini.texi (Completion Commands): Describe Emacs 23 completion rules.
+	(Completion Options): Document read-file-name-completion-ignore-case,
+	read-buffer-completion-ignore-case, and completion-styles.  Remove
+	description of partial-completion-mode.
+
+2009-03-14  Glenn Morris  <rgm@gnu.org>
+
+	* sending.texi (Mail Format): Fix typo.  Add index entry for
+	mail-header-separator.
+	(Mail Headers): Put info about initialization and changing in one place
+	at the start.  Update FCC section for mbox Rmail.  Clarify From
+	section, mention mail-setup-with-from.  Clarify Reply-to section.
+	Add Mail-followup-to and mail-mailing-lists.  Clarify References
+	section.
+	(Mail Aliases): Update example, make less contentious.
+	Update for name change of mail-interactive-insert-alias.
+	(Mail Mode): Remove mention of `%' as a word separator.
+	(Mail Sending): Mention mail-send-hook.  Mention Mailclient.
+	(Header Editing): Add reply-to, mail-reply-to, and mail-followup-to
+	commands.  Clarify FCC handling.  In mail-complete, add reference to
+	Mail Aliases section, and mention mail-complete-function.
+	(Citing Mail): Mention mail-yank-ignored-headers and mail-citation-hook.
+	(Mail Mode Misc): Clarify the mail-signature function.  Add basic
+	signature netiquette.  Explain how the mail hooks work when continuing
+	a composition.
+	(Mail Amusements): Internationalize the spook section a bit.
+	Remove the spook mail-setup-hook example, since it doesn't work well.
+	Mention fortune-file.
+	(Mail Methods): Mention read-mail-command.
+
+2009-03-14  David Reitter <david.reitter@gmail.com>
+
+	* macos.texi (Mac / GNUstep Basics): Remove references to Prefs panel
+	and NS resources following recent changes.
+
+2009-03-10  Jason Rumney  <jasonr@gnu.org>
+
+	* msdog.texi (Windows Misc): Remove doc for obsolete variable.  Modify
+	w32-use-visible-system-caret doc to indicate that it should get set
+	automatically.
+	(Windows Fonts): Add doc for the uniscribe backend.
+
 2009-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* maintaining.texi (VC Directory Commands): Fix doc for the x key in

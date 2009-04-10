@@ -783,7 +783,14 @@ fontconfig library used in modern Free desktops:
   The old XLFD based format is also supported for backwards compatibility.
 
   Emacs 23 supports a number of backends.  Currently, the @code{gdi}
-font backend is supported on Windows.
+and @code{uniscribe} font backends are supported on Windows. The
+@code{gdi} font backend is available on all versions of Windows, and
+supports all fonts that are natively supported by Windows. The
+@code{uniscribe} font backend is available on Windows 2000 and later,
+and supports Truetype and Opentype fonts. Some languages requiring
+complex layout can only be properly supported by the uniscribe
+backend. By default, both backends are enabled if supported, with
+@code{uniscribe} taking priority over @code{gdi}.
 
 @cindex font properties (MS Windows)
 @noindent
@@ -881,12 +888,14 @@ letters.  If unspecified, the font will use the system default antialiasing.
 @vindex w32-use-visible-system-caret
 @cindex screen reader software, MS-Windows
   The variable @code{w32-use-visible-system-caret} is a flag that
-determines whether to make the system caret visible.  The default is
-@code{nil}, which means Emacs draws its own cursor to indicate the
-position of point.  A non-@code{nil} value means Emacs will indicate
-point location by the system caret; this facilitates use of screen
-reader software.  When this variable is non-@code{nil}, other
-variables affecting the cursor display have no effect.
+determines whether to make the system caret visible.  The default when
+no screen reader software is in use is @code{nil}, which means Emacs
+draws its own cursor to indicate the position of point.  A
+non-@code{nil} value means Emacs will indicate point location by the
+system caret; this facilitates use of screen reader software, and is
+the default when such software is detected when running Emacs.
+When this variable is non-@code{nil}, other variables affecting the
+cursor display have no effect.
 
 @iftex
 @inforef{Windows Misc, , emacs}, for information about additional
@@ -900,12 +909,6 @@ Windows-specific variables in this category.
 non-@code{nil} value causes a frame to grab focus when it is raised.
 The default is @code{t}, which fits well with the Windows default
 click-to-focus policy.
-
-@vindex w32-list-proportional-fonts
-  The variable @code{w32-list-proportional-fonts} controls whether
-proportional fonts are included in the font selection dialog.  If its
-value is non-@code{nil}, these fonts will be included.  The default is
-@code{nil}.
 @end ifnottex
 
 @ifnottex

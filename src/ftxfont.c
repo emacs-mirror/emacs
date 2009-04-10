@@ -235,7 +235,7 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
 		GCForeground | GCBackground, &xgcv);
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
   XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		  x, y - font->ascent, width, y + font->descent);
+		  x, y - FONT_BASE (font), width, FONT_HEIGHT (font));
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }
 

@@ -136,15 +136,9 @@ Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
 
-EmacsPrefsController *prefsController;
-
-/* Preferences equivalent to those set by X resources under X are managed
-   through the OpenStep defaults system.  These pertain to behavior of the
-   graphical interface components.  The one difference from X is that the
-   values below are SET when the user chooses save-options. This makes
-   things easier for users, but sometimes violates expectations when some
-   user-set options appear when running under -q/Q.  Therefore we depart
-   from X behavior and refuse to read defaults when started under these
+/* Some preferences equivalent to those set by X resources under X are
+   managed through the OpenStep defaults system. We depart from X
+   behavior and refuse to read defaults when started under these
    options. */
 
 /* Set in emacs.c. */
@@ -165,11 +159,6 @@ Lisp_Object ns_control_modifier;
 /* Specifies which emacs modifier should be generated when NS receives
    the Function modifer (laptops).  May be any of the modifier lisp symbols. */
 Lisp_Object ns_function_modifier;
-
-/* A floating point value specifying vertical stretch (positive) or shrink
-  (negative) of text line spacing.  Zero means default spacing.
-  YES indicates 0.5, NO indicates 0.0. */
-Lisp_Object ns_expand_space;
 
 /* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
 Lisp_Object ns_antialias_text;
@@ -234,7 +223,6 @@ static fd_set select_readfds, t_readfds;
 static struct timeval select_timeout;
 static int select_nfds;
 static NSAutoreleasePool *outerpool;
-static BOOL ns_shutdown_properly = NO;
 static struct input_event *emacs_event = NULL;
 static struct input_event *q_event_ptr = NULL;
 static int n_emacs_events_pending = 0;
@@ -3563,7 +3551,6 @@ ns_set_default_prefs ()
   ns_command_modifier = Qsuper;
   ns_control_modifier = Qcontrol;
   ns_function_modifier = Qnone;
-  ns_expand_space = make_float (0.0);
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
   ns_use_qd_smoothing = Qnil;
@@ -3838,48 +3825,20 @@ ns_term_init (Lisp_Object display_name)
   ns_set_default_prefs ();
   if (!ns_no_defaults)
     {
-      ns_default ("AlternateModifier", &ns_alternate_modifier,
-                 Qnil, Qnil, NO, YES);
-      if (NILP (ns_alternate_modifier))
-        ns_alternate_modifier = Qmeta;
-      ns_default ("CommandModifier", &ns_command_modifier,
-                 Qnil, Qnil, NO, YES);
-      if (NILP (ns_command_modifier))
-        ns_command_modifier = Qsuper;
-      ns_default ("ControlModifier", &ns_control_modifier,
-                 Qnil, Qnil, NO, YES);
-      if (NILP (ns_control_modifier))
-        ns_control_modifier = Qcontrol;
-      ns_default ("FunctionModifier", &ns_function_modifier,
-                 Qnil, Qnil, NO, YES);
-      if (NILP (ns_function_modifier))
-        ns_function_modifier = Qnone;
-      ns_default ("ExpandSpace", &ns_expand_space,
-                 make_float (0.5), make_float (0.0), YES, NO);
       ns_default ("GSFontAntiAlias", &ns_antialias_text,
                  Qt, Qnil, NO, NO);
       tmp = Qnil;
+      /* this is a standard variable */
       ns_default ("AppleAntiAliasingThreshold", &tmp,
                  make_float (10.0), make_float (6.0), YES, NO);
       ns_antialias_threshold = NILP (tmp) ? 10.0 : XFLOATINT (tmp);
-      ns_default ("UseQuickdrawSmoothing", &ns_use_qd_smoothing,
-                 Qt, Qnil, NO, NO);
-      ns_default ("UseSystemHighlightColor", &ns_use_system_highlight_color,
-                 Qt, Qnil, NO, NO);
-      ns_default ("ConfirmQuit", &ns_confirm_quit,
-                 Qt, Qnil, NO, NO);
     }
 
-  if (EQ (ns_use_system_highlight_color, Qt))
-    {
-      ns_selection_color = [[NSUserDefaults standardUserDefaults]
-                               stringForKey: @"AppleHighlightColor"];
-      if (ns_selection_color == nil)
-        ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
-    }
-  else
+  ns_selection_color = [[NSUserDefaults standardUserDefaults]
+			 stringForKey: @"AppleHighlightColor"];
+  if (ns_selection_color == nil)
     ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
-
+  
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
@@ -4008,7 +3967,6 @@ ns_term_shutdown (int sig)
 
   if (sig == 0 || sig == SIGTERM)
     {
-      ns_shutdown_properly = YES;
       [NSApp terminate: NSApp];
     }
   else // force a stack trace to happen
@@ -4104,9 +4062,15 @@ ns_term_shutdown (int sig)
 
 - (void)showPreferencesWindow: (id)sender
 {
-  if (prefsController == nil)
-    prefsController = [[EmacsPrefsController alloc] init];
-  [prefsController showForFrame: SELECTED_FRAME ()];
+  struct frame *emacsframe = SELECTED_FRAME ();
+  NSEvent *theEvent = [NSApp currentEvent];
+
+  if (!emacs_event)
+    return;
+  emacs_event->kind = NS_NONKEY_EVENT;
+  emacs_event->code = KEY_NS_SHOW_PREFS;
+  emacs_event->modifiers = 0;
+  EV_TRAILER (theEvent);
 }
 
 
@@ -4117,7 +4081,7 @@ ns_term_shutdown (int sig)
 
   if (!emacs_event)
     return;
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_NEW_FRAME;
   emacs_event->modifiers = 0;
   EV_TRAILER (theEvent);
@@ -4133,7 +4097,7 @@ ns_term_shutdown (int sig)
   if (!emacs_event)
     return NO;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_OPEN_FILE_LINE;
   ns_input_file = append2 (ns_input_file, build_string ([fileName UTF8String]));
   ns_input_line = Qnil; /* can be start or cons start,end */
@@ -4161,47 +4125,38 @@ ns_term_shutdown (int sig)
 }
 
 
-/* Termination sequences (ns_shutdown_properly):
+/* Termination sequences:
     C-x C-c:
     Cmd-Q:
     MenuBar | File | Exit:
-        ns_term_shutdown: 0
-        -terminate: 1
-        -appShouldTerminate: 1
-
     Select Quit from App menubar:
-        received -terminate: 0
-        ns_term_shutdown: 0
-        -terminate: 1
-        -appShouldTerminate: 1
+        -terminate
+	KEY_NS_POWER_OFF, (save-buffers-kill-emacs)
+	ns_term_shutdown()
 
     Select Quit from Dock menu:
     Logout attempt:
-        -appShouldTerminate: 0
+        -appShouldTerminate
           Cancel -> Nothing else
           Accept ->
-            -terminate: 0
-            ns_term_shutdown: 0
-            -terminate: 1
-            -appShouldTerminate: 1
+	  
+	  -terminate
+	  KEY_NS_POWER_OFF, (save-buffers-kill-emacs)
+	  ns_term_shutdown()
+
 */
 
 - (void) terminate: (id)sender
 {
-  if (ns_shutdown_properly)
-    [super terminate: sender];
-  else
-    {
-      struct frame *emacsframe = SELECTED_FRAME ();
-
-      if (!emacs_event)
-        return;
-
-      ns_shutdown_properly = YES;
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-      emacs_event->code = KEY_NS_POWER_OFF;
-      EV_TRAILER ((id)nil);
-    }
+  struct frame *emacsframe = SELECTED_FRAME ();
+  
+  if (!emacs_event)
+    return;
+  
+  emacs_event->kind = NS_NONKEY_EVENT;
+  emacs_event->code = KEY_NS_POWER_OFF;
+  emacs_event->arg = Qt; /* mark as non-key event */
+  EV_TRAILER ((id)nil);
 }
 
 
@@ -4209,7 +4164,7 @@ ns_term_shutdown (int sig)
 {
   int ret;
 
-  if (ns_shutdown_properly || NILP (ns_confirm_quit))
+  if (NILP (ns_confirm_quit)) //   || ns_shutdown_properly  --> TO DO
     return NSTerminateNow;
 
     ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
@@ -4358,7 +4313,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return NO;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_SPI_SERVICE_CALL;
   ns_input_spi_name = build_string ([name UTF8String]);
   ns_input_spi_arg = build_string ([arg UTF8String]);
@@ -4414,7 +4369,7 @@ extern void update_window_cursor (struct window *w, int on);
     {
       SET_FRAME_GARBAGED (emacsframe); /* now needed as of 2008/10 */
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->modifiers = 0;
       emacs_event->code = KEY_NS_CHANGE_FONT;
 
@@ -5453,7 +5408,7 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return self;
 
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+  emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_TOGGLE_TOOLBAR;
   EV_TRAILER ((id)nil);
   return self;
@@ -5527,7 +5482,7 @@ extern void update_window_cursor (struct window *w, int on);
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
         {
-          emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+          emacs_event->kind = NS_NONKEY_EVENT;
           emacs_event->code = KEY_NS_DRAG_FILE;
           XSETINT (emacs_event->x, x);
           XSETINT (emacs_event->y, y);
@@ -5548,7 +5503,7 @@ extern void update_window_cursor (struct window *w, int on);
         return NO;
 
       file = [fileURL path];
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_FILE;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5565,7 +5520,7 @@ extern void update_window_cursor (struct window *w, int on);
       if (! (data = [pb stringForType: type]))
         return NO;
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_TEXT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5577,7 +5532,7 @@ extern void update_window_cursor (struct window *w, int on);
   else if ([type isEqualToString: NSColorPboardType])
     {
       NSColor *c = [NSColor colorFromPasteboard: pb];
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_DRAG_COLOR;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -5597,7 +5552,7 @@ extern void update_window_cursor (struct window *w, int on);
       if (font == nil)
         return NO;
 
-      emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
+      emacs_event->kind = NS_NONKEY_EVENT;
       emacs_event->code = KEY_NS_CHANGE_FONT;
       XSETINT (emacs_event->x, x);
       XSETINT (emacs_event->y, y);
@@ -6133,203 +6088,6 @@ extern void update_window_cursor (struct window *w, int on);
 
 
 
-/* ==========================================================================
-
-    EmacsPrefsController implementation
-
-   ========================================================================== */
-
-
-@implementation EmacsPrefsController
-
-/* in Tiger+, can just do [popup selectItemWithTag: tag]; */
-static void selectItemWithTag (NSPopUpButton *popup, int tag)
-{
-  NSEnumerator *items = [[popup itemArray] objectEnumerator];
-  NSMenuItem *item;
-  while (item = [items nextObject])
-    {
-      if ([item tag] == tag)
-        {
-          [popup selectItem: item];
-          return;
-        }
-    }
-}
-
-- init
-{
-  [NSBundle loadNibNamed: @"preferences" owner: self];
-  return self;
-}
-
-
-- (void) showForFrame: (struct frame *)f
-{
-  frame = f;
-  [self setPanelFromValues];
-  [prefsWindow makeKeyAndOrderFront: self];
-  [prefsWindow display];
-}
-
-
-/* If you change this, change setPanelFromDefaultValues too. */
-- (void) setPanelFromValues
-{
-  int cursorType
-    = ns_lisp_to_cursor_type (get_frame_param (frame, Qcursor_type));
-  prevExpandSpace = XFLOATINT (ns_expand_space);
-
-#ifdef NS_IMPL_COCOA
-  prevUseHighlightColor = ns_use_system_highlight_color;
-#endif
-
-  [expandSpaceSlider setFloatValue: prevExpandSpace];
-  [cursorTypeMatrix selectCellWithTag: (cursorType == FILLED_BOX_CURSOR ? 1 :
-                                        (cursorType == BAR_CURSOR ? 2 :
-                                         (cursorType == HBAR_CURSOR ? 3 : 4)))];
-  selectItemWithTag (alternateModMenu,
-		     parse_solitary_modifier (ns_alternate_modifier));
-  selectItemWithTag (commandModMenu,
-		     parse_solitary_modifier (ns_command_modifier));
-#ifdef NS_IMPL_COCOA
-  selectItemWithTag (controlModMenu,
-		     parse_solitary_modifier (ns_control_modifier));
-  selectItemWithTag (functionModMenu,
-		     parse_solitary_modifier (ns_function_modifier));
-  [smoothFontsCheck setState: (NILP (ns_antialias_text) ? NO : YES)];
-  [useQuickdrawCheck setState: (NILP (ns_use_qd_smoothing) ? NO : YES)];
-  [useSysHiliteCheck setState: (NILP (prevUseHighlightColor) ? NO : YES)];
-  [confirmQuitCheck setState: (NILP (ns_confirm_quit) ? NO : YES)];
-#endif
-}
-
-
-/* This and ns_set_default_prefs should be changed together. */
-- (void) setPanelFromDefaultValues
-{
-  [expandSpaceSlider setFloatValue: 0.0];
-  [cursorTypeMatrix selectCellWithTag: 1]; /* filled box */
-  selectItemWithTag (alternateModMenu, meta_modifier);
-  selectItemWithTag (commandModMenu, super_modifier);
-#ifdef NS_IMPL_COCOA
-  selectItemWithTag (controlModMenu, ctrl_modifier);
-  selectItemWithTag (functionModMenu, 0); /* none */
-  [smoothFontsCheck setState: YES];
-  [useQuickdrawCheck setState: NO];
-  [useSysHiliteCheck setState: YES];
-#endif
-}
-
-
-- (void) setValuesFromPanel
-{
-  int altTag = [[alternateModMenu selectedItem] tag];
-  int cmdTag = [[commandModMenu selectedItem] tag];
-#ifdef NS_IMPL_COCOA
-  int ctrlTag = [[controlModMenu selectedItem] tag];
-  int fnTag = [[functionModMenu selectedItem] tag];
-#endif
-  float expandSpace = [expandSpaceSlider floatValue];
-  int cursorTag = [[cursorTypeMatrix selectedCell] tag];
-  Lisp_Object cursor_type = ns_cursor_type_to_lisp
-       ( cursorTag == 1 ? FILLED_BOX_CURSOR
-       : cursorTag == 2 ? BAR_CURSOR
-       : cursorTag == 3 ? HBAR_CURSOR : HOLLOW_BOX_CURSOR);
-
-  if (expandSpace != prevExpandSpace)
-    {
-      ns_expand_space = make_float (expandSpace);
-      /* TODO: more needed: store needed metrics in nsfont_info, update
-         frame default font max_bounds and fontp, recompute faces */
-/*         FRAME_LINE_HEIGHT (frame) *= (expandSpace / prevExpandSpace);
-           x_set_window_size (frame, 0, frame->text_cols, frame->text_lines); */
-      prevExpandSpace = expandSpace;
-    }
-
-  store_frame_param (frame, Qcursor_type, cursor_type);
-  x_set_cursor_type (frame, cursor_type, Qnil);  /* FIXME: do only if changed */
-
-  ns_alternate_modifier = ns_mod_to_lisp (altTag);
-  ns_command_modifier = ns_mod_to_lisp (cmdTag);
-#ifdef NS_IMPL_COCOA
-  ns_control_modifier = ns_mod_to_lisp (ctrlTag);
-  ns_function_modifier = ns_mod_to_lisp (fnTag);
-  ns_antialias_text = [smoothFontsCheck state] ? Qt : Qnil;
-  ns_use_qd_smoothing = [useQuickdrawCheck state] ? Qt : Qnil;
-  ns_use_system_highlight_color = [useSysHiliteCheck state] ? Qt : Qnil;
-  ns_confirm_quit = [confirmQuitCheck state] ? Qt : Qnil;
-  if (! EQ (ns_use_system_highlight_color, prevUseHighlightColor))
-    {
-      prevUseHighlightColor = ns_use_system_highlight_color;
-      if (EQ (ns_use_system_highlight_color, Qt))
-        {
-          ns_selection_color = [[NSUserDefaults standardUserDefaults]
-                                 stringForKey: @"AppleHighlightColor"];
-          if (ns_selection_color == nil)
-            ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
-        }
-      else
-        ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
-    }
-#endif /* NS_IMPL_COCOA */
-  Fcall_interactively (intern ("ns-save-preferences"), Qnil, Qnil);
-}
-
-
-/* buttons */
-- (IBAction)cancel: (id)sender
-{
-  [prefsWindow close];
-}
-
-
-- (IBAction)ok: (id)sender
-{
-  [self setValuesFromPanel];
-  [prefsWindow close];
-}
-
-
-- (IBAction)resetToDefaults: (id)sender
-{
-  [self setPanelFromDefaultValues];
-}
-
-
-- (IBAction)runHelp: (id)sender
-{
-  struct frame *emacsframe = frame;
-  if (!emacs_event)
-    return;
-  ns_raise_frame(frame);
-  emacs_event->kind = NON_ASCII_KEYSTROKE_EVENT;
-  emacs_event->code = KEY_NS_INFO_PREFS;
-  EV_TRAILER ((id)nil);
-}
-
-
-- (IBAction)setColors: (id)sender
-{
-  Lisp_Object lispFrame;
-  XSETFRAME (lispFrame, frame);
-  ns_raise_frame(frame);
-  Fns_popup_color_panel (lispFrame);
-}
-
-
-- (IBAction)setDefaultFont: (id)sender
-{
-  Lisp_Object lispFrame;
-  XSETFRAME (lispFrame, frame);
-  ns_raise_frame(frame);
-  Fns_popup_font_panel (lispFrame);
-}
-
-@end  /* EmacsPrefsController */
-
-
-
 
 /* ==========================================================================
 
@@ -6491,11 +6249,6 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.");
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
-
-  DEFVAR_LISP ("ns-expand-space", &ns_expand_space,
-               "Amount by which spacing between lines is expanded (positive)\n\
-or shrunk (negative).  Zero (the default) means standard line height.\n\
-(This variable should only be read, never set.)");
 
   DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
                "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");

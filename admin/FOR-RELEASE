@@ -160,7 +160,8 @@ regs.texi         -- cyd
 rmail.texi        -- rgm
 screen.texi       -- cyd
 search.texi       -- cyd
-sending.texi
+sending.texi      -- rgm (maybe needs some brief mailclient.el details in
+                          "Mail Sending" section?)
 text.texi         -- cyd
 trouble.texi
 windows.texi      -- rudalics
@@ -169,52 +170,52 @@ xresources.texi
 ** Check the Lisp manual.
 
 abbrevs.texi
-advice.texi
+advice.texi       -- cyd
 anti.texi
 back.texi
-backups.texi
-buffers.texi
-commands.texi
-compile.texi
+backups.texi      -- cyd
+buffers.texi      -- cyd
+commands.texi     -- cyd
+compile.texi      -- cyd
 control.texi      -- cyd
-customize.texi
-debugging.texi
+customize.texi    -- cyd
+debugging.texi    -- cyd
 display.texi
 edebug.texi
 elisp.texi
 errors.texi
 eval.texi         -- cyd
-files.texi
-frames.texi
-functions.texi
+files.texi        -- cyd
+frames.texi       -- cyd
+functions.texi    -- cyd
 hash.texi         -- cyd
-help.texi
+help.texi         -- cyd
 hooks.texi
 index.texi
 internals.texi
 intro.texi        -- cyd
-keymaps.texi
+keymaps.texi      -- cyd
 lists.texi        -- cyd
-loading.texi
+loading.texi      -- cyd
 locals.texi
-macros.texi
+macros.texi       -- cyd
 maps.texi
-markers.texi
-minibuf.texi
-modes.texi
-nonascii.texi
+markers.texi      -- cyd
+minibuf.texi      -- cyd
+modes.texi        -- cyd
+nonascii.texi     -- cyd
 numbers.texi      -- cyd
 objects.texi      -- cyd
 os.texi
-positions.texi
+positions.texi    -- cyd
 processes.texi
 searching.texi
 sequences.texi    -- cyd
-streams.texi
+streams.texi      -- cyd
 strings.texi      -- cyd
 symbols.texi      -- cyd
 syntax.texi
-text.texi
+text.texi         -- cyd
 tips.texi
 variables.texi    -- cyd
 windows.texi

@@ -45,8 +45,7 @@ invoking @code{ns-extended-platform-support-mode}.
 same as @key{Super}, and Emacs provides a set of keybindings using
 this modifier key that mimic other Mac / GNUstep applications (@pxref{Mac /
 GNUstep Events}).  You can change these bindings in the usual way (@pxref{Key
-Bindings}), or by using the Preferences panel (@pxref{Mac / GNUstep
-Customization}).
+Bindings}).
 
   The standard Mac / GNUstep font and color panels are accessible via the
 @samp{Windows} menu, or via the standard @key{Cmd-t} and @key{Cmd-C}
@@ -133,312 +132,20 @@ In addition, redundancy in the menus can be reduced and more shortcuts
 shown by invoking @code{ns-extended-platform-support-mode}.
 
 
-@subsection Preferences Panel
-
-The Preferences panel, much like the Options menu, is designed to allow quick
-and convenient setting of commonly used options.
-
-The Preferences panel is available for setting commonly used GUI-related
-options for Emacs.  Access it under the Emacs menu (Mac) or Info menu
-(GNUstep), or using @kbd{Cmd-,}.
-
-Settings made here are saved when @samp{OK} is hit, or @samp{Save Options} is
-selected from the Options menu.  These settings are stored into the NeXTstep
-``defaults'' system under keys described below.
-
-@itemize @bullet
-@item
-To set the default font used by Emacs click the @samp{Default Font...} button
-to being up the Font Panel, then click on a frame.  The font of this frame
-will then be changed when you make a selection in the Font Panel, and this
-will be used as the default for future frames.  If you do not select a frame
-first, the frame selected when you activated Preferences will be changed.
-
-@item
-The Color panel, brought up by the @samp{Colors...} button, allows setting of
-foreground or background of any face.  Drag from the color bar to over the
-emacs face you want to change.  This will change the foreground of that face,
-or holding shift when dragging will change the background.
-
-@item
-@samp{Smooth Fonts} and @samp{Use Quickdraw} control text antialiasing.
-Quickdraw is an older Mac technology still supported under OS X.
-
-@item
-The @samp{Expand Line Spacing} slider controls vertical spacing of text.  The
-0.0 setting corresponds to the same height as other applications.  Settings
-less than 0 compress the spacing, and greater than 0 expand it.  Emacs must be
-restarted for the new setting to take effect.
-
-@item
-The @samp{Cursor Type} radio buttons select the cursor shape:
-cursor:
-
-@itemize
-@item
-Filled Box - the cursor is displayed as a box (default)
-@item
-Vertical Bar - the cursor is displayed as a vertical line
-@item
-Underscore - the cursor is displayed as a horizontal line
-@item
-Hollow - the cursor is displayed as a box with an outline but no fill
-@end itemize
-
-@item
-The @samp{Cursor Blink Rate} slider to sets the frequency at which the cursor
-blinks (CURRENTLY INOPERATIVE -- use @samp{customize group cursor} instead.)
-
-@item
-The @samp{Use System Highlight Color} option controls whether selected text is
-highlighted with the system default or the local emacs setting.
-
-@end itemize
-
-The behavior of Modifier keys inside emacs can be controlled by the drop-down
-menus in the @samp{Modifiers} section.  By default the Alt or Opt key is bound
-to the Emacs 'Meta' key, and the Command key is bound to 'super' which allows
-the Command key to function in a way similar to other NeXTstep/OS X
-applications.
-
-
 @subsection Font and Color Panels
 
 The Font Panel may be accessed from the Windows menu or by @kbd{Cmd-t}.  It
 will set the default font in the frame most recently used or clicked on.  To
 make the setting permanent, use @samp{Save Options} in the Options menu, or
-run @code{ns-save-preferences}.
+run @code{menu-bar-options-save}.
 
 You can bring up a color panel (with @key{Cmd-C} or from the Windows menu) and
 drag the color you want over the emacs face you want to change.  Normal
 dragging will alter the foreground color.  Shift dragging will alter the
 background color.  To make the changes permanent select the "Save Options"
-item in the "Options" menu, or run @code{ns-save-preferences}.  Useful in this
+item in the "Options" menu, or run @code{menu-bar-options-save}.  Useful in this
 context is the listing of all faces obtained by @key{M-x}
 @code{list-faces-display}.
-
-
-@subsection Defaults
-
-Under X, resources are used to customize the behavior of Emacs to the
-needs of the user.  Nextstep defaults fulfill a similar function.  From
-the command line, the command @samp{defaults read org.gnu.Emacs} shows
-these resources as of the last Emacs exited, and individual resources
-can be read or written by commands like @samp{defaults read Emacs Foo}
-and @samp{defaults write Emacs Foo barvalue}.
-
-  Calling the function @code{ns-save-preferences} in lisp, or
-selecting the @samp{Option / Save Options} menu item, automatically
-writes out the defaults corresponding to the selected window.
-
-  In addition, you can set many of the following customizations by
-setting @code{default-frame-alist} in your initialization file.
-
-  Many of the preferences relating specifically to the Nextstep windowing
-system (such as font rendering and the cursor type) can be set using the
-Preferences panel.  It is important to note that when you hit @samp{OK} on
-this panel, @emph{all} Nextstep settings are saved (including font and
-colors).
-
-This is a listing of some of the more useful defaults (and their
-default values).  Several of these defaults accept the names of colors
-as values.  For a list of all available colors pull up the color panel
-and look at the color list called @samp{Emacs}.  Emacs also accepts
-color specifications of the form @samp{ARGBaarrggbb} where @var{aa},
-@var{rr}, @var{gg}, and @var{bb} are two hexadecimal digits describing
-the alpha, red, green, and blue content of the color respectively.
-@samp{HSBhhssbb}, @samp{CMYKccmmyykk} and @samp{GRAYgg} are the
-equivalents in @samp{HSB}, @samp{CMYK} and gray scales.  (For HSB,
-@samp{AHSBaahhssbb} is also accepted.)
-
-@table @samp
-@item InternalBorderWidth
-Width in pixels of the internal border of the Nextstep frame.  This
-acts to separate the text area of the window from the fringes,
-scrollbars, and/or edges.
-
-@example
-defaults write Emacs InternalBorderWidth 2
-@end example
-
-@item VerticalScrollBars
-@samp{YES} or @samp{NO} to enable or disable scroll bars, @samp{left} or
-@samp{right} to explicitly set the side.
-
-@example
-defaults write Emacs VerticalScrollBars YES
-@end example
-
-@item Font
-Name of the default font to be used for new frames (which can be
-overridden by various faces).  If this font is not set, Emacs will use
-the system wide fixed pitch font.  For most users the system fixed
-pitch font will be @samp{Monaco} which doesn't have any bold or italic
-versions.  (Italic will be synthesized.)
-
-@item FontSize
-Size of the font to be used for new frames.  If not set, Emacs will
-use the default size of the system wide fixed pitch font.
-
-@item Foreground
-The default foreground (text) color for new frames.
-
-@example
-defaults write Emacs Foreground "Black"
-@end example
-
-@item Background
-The default background color for new frames.
-
-@example
-defaults write Emacs Background "White"
-@end example
-
-@item Height
-Height in rows of the default window.
-
-@example
-defaults write Emacs Height 48
-@end example
-
-@item Width
-Width in columns of the default window.
-
-@example
-defaults write Emacs Width 80
-@end example
-
-@item CursorType
-Name of the default cursor type for Emacs.  Allowed values are
-@samp{box}, @samp{hollow}, @samp{underscore}, @samp{bar}, @samp{line} and @samp{no}.
-
-@example
-defaults write Emacs CursorType box
-@end example
-
-@item CursorColor
-Name of the default cursor color for Emacs.  Of a particular use for
-this setting is the @samp{Highlight} color.  When it is the cursor
-color, Emacs will draw the cursor using the standard Nextstep
-highlighting operator.
-
-@example
-defaults write Emacs CursorColor blue
-@end example
-
-@item Top
-Distance in pixels from the top of the screen of the upper left corner
-of the default window.
-
-@example
-defaults write Emacs Top 100
-@end example
-
-@item Left
-Distance in pixels from the left edge of the screen to the upper left
-corner of the default window.
-
-@example
-defaults write Emacs Left 100
-@end example
-
-@item HideOnAutoLaunch
-@samp{YES} or @samp{NO} to determine whether Emacs will hide itself when
-autolaunched from the dock.
-
-@example
-defaults write Emacs HideOnAutoLaunch NO
-@end example
-
-@item ExpandSpace
-This lets you expand or shrink the line height used for displaying
-text.  When this is set to 0.0, display should look like other
-Nextstep applications.  If you set it higher than 0, Emacs will spread
-the text lines apart, less than 0, compress them together.  (With
-settings below zero parts of characters may be chopped off in certain
-fonts.)  When using the Preferences panel, this is controlled by a
-slider.  You must OK the panel and then restart Emacs for this default
-to take effect.
-
-When setting this using @code{"defaults write"}, you can either set a floating
-point value, or @samp{YES}, which is equivalent 0.5, or @samp{NO}, which is
-equivalent to 0.0.
-
-@example
-defaults write Emacs ExpandSpace -0.125
-@end example
-
-@item GSFontAntiAlias
-This turns antialiasing on and off on.  Note that, on OS X, even if
-antialiasing is on, Emacs will not antialias text of a size below the system
-preference setting.
-
-@example
-defaults write Emacs GSFontAntiAlias NO
-@end example
-
-@item UseQuickdrawSmoothing
-On OS X 10.3 and higher, this will render fonts using Quickdraw antialiasing,
-which is less heavy than the Quartz antialiasing used by default.  Whether
-this is on or off, the system font size threshold for antialiasing (see above)
-is respected.
-
-@example
-defaults write Emacs UseQuickdrawSmoothing YES
-@end example
-
-@item AlternateModifier
-This allows you to set the effect of the Alt or Opt key.  The default is
-@samp{meta}, meaning to use as the Emacs 'meta' key.  You can also set this to
-@samp{command}, @samp{hyper}, @samp{alt}, or @samp{none}.  The last is useful
-for Continental users who normally use this key to enter accented and other
-special characters.
-
-@example
-defaults write Emacs AlternateModifier "none"
-@end example
-
-@item CommandModifier
-This allows you to set the effect of the Command key.  The default is
-@samp{super}, which is used in a set of keybindings such as @code{s-o} for
-``open file'' and @code{s-z} for ``undo'' that are similar to other NeXTstep
-applications.  On the other hand, some people who use the Alt/Opt key for
-accent entry like to set this to @samp{meta} so they still have easy access to
-Emacs functionality bound to meta keys.  You can also set this, like Alt/Opt,
-to @samp{hyper} or @samp{alt}, though there are no bindings to combinations
-using these keys by default.  The @samp{none} option is not available for the
-Command key.
-
-@example
-defaults write Emacs CommandModifier "meta"
-@end example
-
-@item fooFrame
-Position and size to use for the frame named @var{foo} when it is
-created.  The position and size have to be specified as a space
-separated list: @samp{top}, @samp{left}, @samp{height} and
-@samp{width}.  @samp{top} and @samp{left} are expressed in pixels,
-@samp{height} is given in rows and @samp{width} is given in columns.
-Named frames can be created by e.g. @code{(make-frame '((name
-. "FOO")))}.
-
-@example
-defaults write Emacs TestFrame "100 200 30 70"
-@end example
-
-Another default previouly used by many Emacs users is this.
-
-@example
-defaults write Workspace DefaultOpenApp Emacs
-@end example
-
-It caused the NeXTstep Workspace to open files without a registered extension
-in Emacs instead of as usual Edit.  For this default to work, Emacs needed to
-be in the application search path of the Workspace (which usually includes
-@file{~/Applications} and @file{~/Applications}).  If anyone knows the current
-way to do this under OS X please contact the authors.
-
-@end table
 
 @subsection Open files by dragging to an Emacs window
 
@@ -518,9 +225,9 @@ font are stored in the variables @code{ns-input-font} and
 @code{ns-input-fontsize} respectively.
 
 @item ns-power-off
-This event occurs when the user logs out and Emacs is still running.
-The default behavior is to save all file-visiting buffers without
-confirmation, and exit.
+This event occurs when the user logs out and Emacs is still running, or when 
+`Quit Emacs' is chosen from the application menu.
+The default behavior is to save all file-visiting buffers.
 @end table
 
   Emacs also allows users to make use of Nextstep services, via a set

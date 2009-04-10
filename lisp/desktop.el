@@ -40,7 +40,7 @@
 ;;	(desktop-save-mode 1)
 ;;
 ;; For further usage information, look at the section
-;; "Saving Emacs Sessions" in the GNU Emacs Manual.
+;; (info "(emacs)Saving Emacs Sessions") in the GNU Emacs Manual.
 
 ;; When the desktop module is loaded, the function `desktop-kill' is
 ;; added to the `kill-emacs-hook'.  This function is responsible for

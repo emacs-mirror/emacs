@@ -471,6 +471,8 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
+extern Lisp_Object Qremap;
+
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 Lisp_Object Qmouse_fixup_help_message;
 #endif
@@ -4158,6 +4160,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
           else
             obj = Fcons (intern ("ns-unput-working-text"), Qnil);
 	  kbd_fetch_ptr = event + 1;
+	  *used_mouse_menu = 1;
         }
 #endif
 
@@ -4310,6 +4313,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 		  && !EQ (event->frame_or_window, event->arg)
 		  && (event->kind == MENU_BAR_EVENT
 		      || event->kind == TOOL_BAR_EVENT))
+		*used_mouse_menu = 1;
+#endif
+#ifdef HAVE_NS
+	      /* certain system events are non-key events */
+	      if (event->kind == NS_NONKEY_EVENT)
 		*used_mouse_menu = 1;
 #endif
 
@@ -4685,10 +4693,9 @@ timer_check (do_it_now)
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
        doc: /* Return the current length of Emacs idleness, or nil.
-The value when Emacs is idle is a list of three integers.  The first has the
-most significant 16 bits of the seconds, while the second has the
-least significant 16 bits.  The third integer gives the microsecond
-count.
+The value when Emacs is idle is a list of three integers.  The first has
+the most significant 16 bits of the seconds, while the second has the least
+significant 16 bits.  The third integer gives the microsecond count.
 
 The value when Emacs is not idle is nil.
 
@@ -5551,6 +5558,12 @@ make_lispy_event (event)
 	XSETFASTINT (lispy_c, c);
 	return lispy_c;
       }
+
+#ifdef HAVE_NS
+      /* NS_NONKEY_EVENTs are just like NON_ASCII_KEYSTROKE_EVENTs,
+	 except that they are non-key events (last-nonmenu-event is nil). */
+    case NS_NONKEY_EVENT:
+#endif
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
@@ -7171,17 +7184,23 @@ tty_read_avail_input (struct terminal *terminal,
   {
       Gpm_Event event;
       struct input_event hold_quit;
-      int gpm;
+      int gpm, fd = gpm_fd;
 
       EVENT_INIT (hold_quit);
       hold_quit.kind = NO_EVENT;
 
+      /* gpm==1 if event received.
+         gpm==0 if the GPM daemon has closed the connection, in which case
+                Gpm_GetEvent closes gpm_fd and clears it to -1, which is why
+		we save it in `fd' so close_gpm can remove it from the
+		select masks.
+         gpm==-1 if a protocol error or EWOULDBLOCK; the latter is normal. */
       while (gpm = Gpm_GetEvent (&event), gpm == 1) {
 	  nread += handle_one_term_event (tty, &event, &hold_quit);
       }
-      if (gpm < 0)
+      if (gpm == 0)
 	/* Presumably the GPM daemon has closed the connection.  */
-	close_gpm ();
+	close_gpm (fd);
       if (hold_quit.kind != NO_EVENT)
 	  kbd_buffer_store_event (&hold_quit);
       if (nread)
@@ -8055,6 +8074,11 @@ parse_menu_item (item, notreal, inmenubar)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
+
+	  /* Don't display remap bindings.*/
+	  if (VECTORP (tem) && ASIZE (tem) > 0 && EQ (AREF (tem, 0), Qremap))
+	    tem = Qnil;
+
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
 	    {
@@ -12196,7 +12220,7 @@ Buffer modification stores t in this variable.  */);
   staticpro (&Qdeactivate_mark);
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
-	       doc: /* Temporary storage of pre-command-hook or post-command-hook.  */);
+	       doc: /* Temporary storage of `pre-command-hook' or `post-command-hook'.  */);
   Vcommand_hook_internal = Qnil;
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
@@ -12373,7 +12397,7 @@ to be used as input.  If it wants to put back some events
 to be reconsidered, separately, by the input method,
 it can add them to the beginning of `unread-command-events'.
 
-The input method function can find in `input-method-previous-method'
+The input method function can find in `input-method-previous-message'
 the previous echo area message.
 
 The input method function should refer to the variables

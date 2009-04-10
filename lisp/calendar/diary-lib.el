@@ -1912,6 +1912,8 @@ and %s by the ordinal ending of that number (that is, `st', `nd',
 
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
+  (or (> n 0)
+      (error "Day count must be positive"))
   (let* ((diff (- (calendar-absolute-from-gregorian date)
                   (calendar-absolute-from-gregorian
                    (diary-make-date month day year))))

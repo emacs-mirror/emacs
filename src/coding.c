@@ -8518,6 +8518,8 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 3, 0,
        doc: /* Detect coding system of the text in the region between START and END.
 Return a list of possible coding systems ordered by priority.
+The coding systems to try and their priorities follows what
+the function `coding-system-priority-list' (which see) returns.
 
 If only ASCII characters are found (except for such ISO-2022 control
 characters as ESC), it returns a list of single element `undecided'
@@ -8555,6 +8557,8 @@ DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
        1, 2, 0,
        doc: /* Detect coding system of the text in STRING.
 Return a list of possible coding systems ordered by priority.
+The coding systems to try and their priorities follows what
+the function `coding-system-priority-list' (which see) returns.
 
 If only ASCII characters are found (except for such ISO-2022 control
 characters as ESC), it returns a list of single element `undecided'
@@ -9552,6 +9556,9 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
 DEFUN ("coding-system-priority-list", Fcoding_system_priority_list,
        Scoding_system_priority_list, 0, 1, 0,
        doc: /* Return a list of coding systems ordered by their priorities.
+The list contains a subset of coding systems; i.e. coding systems
+assigned to each coding category (see `coding-category-list').
+
 HIGHESTP non-nil means just return the highest priority one.  */)
      (highestp)
      Lisp_Object highestp;

@@ -2116,6 +2116,13 @@ print_object (obj, printcharfun, escapeflag)
 	      /* We print a char-table as if it were a vector,
 		 lumping the parent and default slots in with the
 		 character slots.  But we add #^ as a prefix.  */
+
+	      /* Make each lowest sub_char_table start a new line.
+		 Otherwise we'll make a line extremely long, which
+		 results in slow redisplay.  */
+	      if (SUB_CHAR_TABLE_P (obj)
+		  && XINT (XSUB_CHAR_TABLE (obj)->depth) == 3)
+		PRINTCHAR ('\n');
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('^');
 	      if (SUB_CHAR_TABLE_P (obj))

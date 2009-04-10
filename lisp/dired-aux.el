@@ -1210,7 +1210,7 @@ Special value `always' suppresses confirmation."
 	     (or (eq recursive 'always)
 		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
-	(let ((mode (file-modes from))
+	(let ((mode (or (file-modes from) #o700))
 	      (files
 	       (condition-case err
 		   (directory-files from nil dired-re-no-dot)

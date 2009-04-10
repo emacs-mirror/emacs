@@ -737,22 +737,28 @@ The value of this variable is a symbol indicating the type of operating
 system Emacs is operating on.  Here is a table of the possible values:
 
 @table @code
-@item aix-v3
-AIX.
+@item aix
+IBM's AIX.
 
 @item berkeley-unix
-Berkeley BSD.
+Berkeley BSD and its variants.
 
 @item cygwin
-Cygwin.
+Cygwin, a Posix layer on top of MS-Windows.
+
+@item darwin
+Darwin (Mac OS X).
 
 @item gnu
-the GNU system (using the GNU kernel, which consists of the HURD and Mach).
+The GNU system (using the GNU kernel, which consists of the HURD and Mach).
 
 @item gnu/linux
 A GNU/Linux system---that is, a variant GNU system, using the Linux
 kernel.  (These systems are the ones people often call ``Linux,'' but
 actually Linux is just the kernel, not the whole system.)
+
+@item gnu/kfreebsd
+A GNU (glibc-based) system with a FreeBSD kernel.
 
 @item hpux
 Hewlett-Packard HPUX operating system.
@@ -760,13 +766,16 @@ Hewlett-Packard HPUX operating system.
 @item irix
 Silicon Graphics Irix system.
 
+@item lynxos 3.0.1
+LynxOS-3.0.1.
+
 @item ms-dos
 Microsoft MS-DOS ``operating system.''  Emacs compiled with DJGPP for
 MS-DOS binds @code{system-type} to @code{ms-dos} even when you run it on
 MS-Windows.
 
 @item usg-unix-v
-AT&T System V.
+AT&T Unix System V.
 
 @item windows-nt
 Microsoft Windows NT and later.  The same executable supports Windows
@@ -2062,7 +2071,7 @@ servers; those do no harm, as long as they don't conflict with the ones
 used by the X server actually in use.
 
 The variable is always local to the current terminal, and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 You can specify which keysyms Emacs should use for the Meta, Alt, Hyper, and Super modifiers by setting these variables:

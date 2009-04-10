@@ -15692,7 +15692,7 @@ dump_glyph (row, glyph, area)
 	fprintf (stderr,
 		 "[%d-%d]",
 		 glyph->u.cmp.from, glyph->u.cmp.to);
-      fprintf (stderr, " . %4d %1.1d%1.1d\n"
+      fprintf (stderr, " . %4d %1.1d%1.1d\n",
 	       glyph->face_id,
 	       glyph->left_box_line_p,
 	       glyph->right_box_line_p);

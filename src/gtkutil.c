@@ -119,9 +119,12 @@ xg_display_open (display_name, dpy)
   GdkDisplay *gdpy;
 
   gdpy = gdk_display_open (display_name);
-  if (!gdpy_def)
-    gdk_display_manager_set_default_display (gdk_display_manager_get (),
-					     gdpy);
+  if (!gdpy_def && gdpy)
+    {
+      gdpy_def = gdpy;
+      gdk_display_manager_set_default_display (gdk_display_manager_get (),
+					       gdpy);
+    }
 
   *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
   return gdpy != NULL;
@@ -3457,10 +3460,14 @@ xg_tool_bar_callback (w, client_data)
   event.frame_or_window = frame;
   event.arg = key;
   /* Convert between the modifier bits GDK uses and the modifier bits
-     Emacs uses.  This assumes GDK an X masks are the same, which they are when
+     Emacs uses.  This assumes GDK and X masks are the same, which they are when
      this is written.  */
   event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), mod);
   kbd_buffer_store_event (&event);
+ 
+   /* Return focus to the frame after we have clicked on a detached
+      tool bar button. */
+   Fx_focus_frame (frame);
 }
 
 /* Callback function invoked when a tool bar item is pressed in a detached
@@ -3480,11 +3487,6 @@ xg_tool_bar_proxy_callback (w, client_data)
   xg_tool_bar_callback (wbutton, client_data);
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (wbutton),
                                                XG_FRAME_DATA);
-  /* Put focus back to the frame after we have clicked on a detached
-     tool bar button. */
-  Lisp_Object frame;
-  XSETFRAME (frame, f);
-  Fx_focus_frame (frame);
 }
 
 /* This callback is called when a tool item should create a proxy item,

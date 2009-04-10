@@ -493,8 +493,8 @@ not put into a single thread."
       (setq subject-pruned-flag t)
       (setq subject (substring subject 0 (match-beginning 0))))
     ;; Canonicalize subject only if it is non-empty
-    (cond ((equal subject "") (values subject subject-pruned-flag))
-          (t (values
+    (cond ((equal subject "") (list subject subject-pruned-flag))
+          (t (list
               (or (gethash subject mh-thread-subject-hash)
                   (setf (gethash subject mh-thread-subject-hash) subject))
               subject-pruned-flag)))))
@@ -618,7 +618,7 @@ Only information about messages in MSG-LIST are added to the tree."
                 (return-from process-message))
               (unless (integerp index) (return)) ;Error message here
               (multiple-value-setq (subject subject-re-p)
-                (mh-thread-prune-subject subject))
+                (values-list (mh-thread-prune-subject subject)))
               (setq in-reply-to (mh-thread-process-in-reply-to in-reply-to))
               (setq refs (loop for x in (append (split-string refs) in-reply-to)
                                when (string-match mh-message-id-regexp x)

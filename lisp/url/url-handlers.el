@@ -132,7 +132,7 @@ the arguments that would have been passed to OPERATION."
 	(hooked nil))
     (if (and fn (fboundp fn))
 	(setq hooked t
-	      val (apply fn args))
+	      val (save-match-data (apply fn args)))
       (setq hooked nil
 	    val (url-run-real-handler operation args)))
     (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")

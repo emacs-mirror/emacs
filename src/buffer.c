@@ -1800,9 +1800,11 @@ messing with the window-buffer correspondences.  */)
 	record_buffer (buffer_or_name);
       return Fset_buffer (buffer_or_name);
     }
-
-  if (EQ (minibuf_window, selected_window)
-      || !NILP (Fwindow_dedicated_p (selected_window)))
+  else if (EQ (minibuf_window, selected_window)
+	   /* If `dedicated' is neither nil nor t, it means it's
+	      dedicatedness can be overridden by an explicit request
+	      such as a call to switch-to-buffer.  */
+	   || EQ (Fwindow_dedicated_p (selected_window), Qt))
     /* We can't use the selected window so let `pop-to-buffer' try some
        other window. */
     return call3 (intern ("pop-to-buffer"), buffer_or_name, Qnil, norecord);
@@ -5309,9 +5311,8 @@ init_buffer_once ()
 
   Qucs_set_table_for_input = intern ("ucs-set-table-for-input");
 
-  Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
-
   /* super-magic invisible buffer */
+  Vprin1_to_string_buffer = Fget_buffer_create (build_string (" prin1"));
   Vbuffer_alist = Qnil;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));

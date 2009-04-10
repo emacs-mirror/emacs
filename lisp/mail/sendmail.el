@@ -121,7 +121,7 @@ so you can remove or alter the BCC field to override the default."
   ;; bounce message to be delivered anywhere, least of all to the
   ;; user's mailbox.
   "Non-nil means when sending a message wait for and display errors.
-nil means let mailer mail back a message to report errors."
+Otherwise, let mailer send back a message to report errors."
   :type 'boolean
   :version "23.1"			; changed from nil to t
   :group 'sendmail)
@@ -131,11 +131,16 @@ nil means let mailer mail back a message to report errors."
           (regexp-opt '("via" "mail-from" "origin" "status" "remailed"
                         "received" "message-id" "summary-line" "to" "subject"
                         "in-reply-to" "return-path" "mail-reply-to"
+                        ;; Should really be rmail-attribute-header and
+                        ;; rmail-keyword-header, but this file does not
+                        ;; require rmail (at run time).
+                        "x-rmail-attributes" "x-rmail-keywords"
                         "mail-followup-to") "\\(?:")
           ":")
   "Delete these headers from old message when it's inserted in a reply."
   :type 'regexp
-  :group 'sendmail)
+  :group 'sendmail
+  :version "23.1")
 
 ;; Prevent problems with `window-system' not having the correct value
 ;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
@@ -183,7 +188,8 @@ This is used by the default mail-sending commands.  See also
 ;;;###autoload
 (defcustom mail-archive-file-name nil
   "Name of file to write all outgoing messages in, or nil for none.
-This can be an inbox file or an Rmail file."
+This is normally an mbox file, but for backwards compatibility may also
+be a Babyl file."
   :type '(choice file (const nil))
   :group 'sendmail)
 
@@ -236,7 +242,7 @@ The alias definitions in the file have this form:
 ;;;###autoload
 (defcustom mail-yank-prefix nil
   "Prefix insert on lines of yanked message being replied to.
-nil means use indentation."
+If this is nil, use indentation, as specified by `mail-indentation-spaces'."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
@@ -247,6 +253,7 @@ Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
 
+;; FIXME make it really obsolete.
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
@@ -308,6 +315,8 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map "\C-c\C-c" 'mail-send-and-exit)
     (define-key map "\C-c\C-s" 'mail-send)
     (define-key map "\C-c\C-i" 'mail-attach-file)
+    ;; FIXME add this? "b" = bury buffer.  It's in the menu-bar.
+;;;    (define-key map "\C-c\C-b" 'mail-dont-send)
 
     (define-key map [menu-bar mail]
       (cons "Mail" (make-sparse-keymap "Mail")))
@@ -316,7 +325,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
       '("Fill Citation" . mail-fill-yanked-message))
 
     (define-key map [menu-bar mail yank]
-      '("Cite Original" . mail-yank-original))
+      '(menu-item "Cite Original" mail-yank-original :enable mail-reply-action))
 
     (define-key map [menu-bar mail signature]
       '("Insert Signature" . mail-signature))
@@ -343,13 +352,13 @@ The default value matches citations like `foo-bar>' plus whitespace."
       '("Expand Aliases" . expand-mail-aliases))
 
     (define-key map [menu-bar headers sent-via]
-      '("Sent Via" . mail-sent-via))
+      '("Sent-Via" . mail-sent-via))
 
     (define-key map [menu-bar headers mail-reply-to]
-      '("Mail Reply To" . mail-mail-reply-to))
+      '("Mail-Reply-To" . mail-mail-reply-to))
 
     (define-key map [menu-bar headers mail-followup-to]
-      '("Mail Followup To" . mail-mail-followup-to))
+      '("Mail-Followup-To" . mail-mail-followup-to))
 
     (define-key map [menu-bar headers reply-to]
       '("Reply-To" . mail-reply-to))
@@ -422,11 +431,12 @@ This directory is used for auto-save files of mail buffers."
 ;;;###autoload
 (defcustom mail-default-headers nil
   "A string containing header lines, to be inserted in outgoing messages.
-It is inserted before you edit the message,
-so you can edit or delete these lines."
+It can contain newlines, and should end in one.  It is inserted
+before you edit the message, so you can edit or delete the lines."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
+;; FIXME no need for autoload
 ;;;###autoload
 (defcustom mail-bury-selects-summary t
   "If non-nil, try to show Rmail summary buffer after returning from mail.
@@ -436,6 +446,7 @@ is non-nil."
   :type 'boolean
   :group 'sendmail)
 
+;; FIXME no need for autoload
 ;;;###autoload
 (defcustom mail-send-nonascii 'mime
   "Specify whether to allow sending non-ASCII characters in mail.
@@ -479,8 +490,12 @@ The value should be an expression to test whether the problem will
 actually occur.")
 
 (defvar mail-mode-syntax-table
+  ;; define-derived-mode will make it inherit from text-mode-syntax-table.
   (let ((st (make-syntax-table)))
-    ;; define-derived-mode will make it inherit from text-mode-syntax-table.
+    ;; FIXME this is probably very obsolete now ("percent hack").
+    ;; sending.texi used to say:
+    ;;   Mail mode defines the character `%' as a word separator; this
+    ;;   is helpful for using the word commands to edit mail addresses.
     (modify-syntax-entry ?% ". " st)
     st)
   "Syntax table used while in `mail-mode'.")
@@ -592,15 +607,7 @@ actually occur.")
 		       'category 'mail-header-separator)
     ;; Insert the signature.  But remember the beginning of the message.
     (if to (setq to (point)))
-    (cond ((eq mail-signature t)
-	   (if (file-exists-p mail-signature-file)
-	       (progn
-		 (insert "\n\n-- \n")
-		 (insert-file-contents mail-signature-file))))
-	  ((stringp mail-signature)
-	   (insert mail-signature))
-	  (t
-	   (eval mail-signature)))
+    (if mail-signature (mail-signature t))
     (goto-char (point-max))
     (or (bolp) (newline)))
   (if to (goto-char to))
@@ -609,7 +616,9 @@ actually occur.")
   (run-hooks 'mail-setup-hook))
 
 (defcustom mail-mode-hook nil
-  "Hook run by Mail mode."
+  "Hook run by Mail mode.
+When composing a mail, this runs immediately after creating, or
+switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   :group 'sendmail
   :type 'hook
   :options '(footnote-mode))
@@ -812,9 +821,8 @@ Prefix arg means don't delete this window."
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-mailing-lists nil "\
-*List of mailing list addresses the user is subscribed to.
-
+(defcustom mail-mailing-lists nil
+"List of mailing list addresses the user is subscribed to.
 The variable is used to trigger insertion of the \"Mail-Followup-To\"
 header when sending a message to a mailing list."
   :type '(repeat string)
@@ -1105,7 +1113,10 @@ external program defined by `sendmail-program'."
 	    (if (not (re-search-forward "^From:" delimline t))
 		(mail-insert-from-field))
 	    ;; Possibly add a MIME header for the current coding system
-	    (let (charset)
+	    (let (charset where-content-type)
+	      (goto-char (point-min))
+	      (setq where-content-type
+		    (re-search-forward "^Content-type:" delimline t))
 	      (goto-char (point-min))
 	      (and (eq mail-send-nonascii 'mime)
 		   (not (re-search-forward "^MIME-version:" delimline t))
@@ -1114,11 +1125,19 @@ external program defined by `sendmail-program'."
 		   selected-coding
 		   (setq charset
 			 (coding-system-get selected-coding :mime-charset))
-		   (goto-char delimline)
-		   (insert "MIME-version: 1.0\n"
-			   "Content-type: text/plain; charset="
-			   (symbol-name charset)
-			   "\nContent-Transfer-Encoding: 8bit\n")))
+		   (progn
+		     (goto-char delimline)
+		     (insert "MIME-version: 1.0\n"
+			     "Content-type: text/plain; charset="
+			     (symbol-name charset)
+			     "\nContent-Transfer-Encoding: 8bit\n")
+		   ;; The character set we will actually use
+		   ;; should override any specified in the message itself.
+		     (when where-content-type
+		       (goto-char where-content-type)
+		       (beginning-of-line)
+		       (delete-region (point)
+				      (progn (forward-line 1) (point)))))))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
@@ -1326,19 +1345,19 @@ just append to the file, in Babyl format if necessary."
 	  (insert-before-markers "Sent-via:" to-line))))))
 
 (defun mail-to ()
-  "Move point to end of To-field."
+  "Move point to end of To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "To"))
 
 (defun mail-subject ()
-  "Move point to end of Subject-field."
+  "Move point to end of Subject field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Subject"))
 
 (defun mail-cc ()
-  "Move point to end of CC-field.  Create a CC field if none."
+  "Move point to end of CC field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "cc" t)
@@ -1346,7 +1365,7 @@ just append to the file, in Babyl format if necessary."
 	     (insert "\nCC: "))))
 
 (defun mail-bcc ()
-  "Move point to end of BCC-field.  Create a BCC field if none."
+  "Move point to end of BCC field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "bcc" t)
@@ -1362,14 +1381,13 @@ just append to the file, in Babyl format if necessary."
   (insert "\nFCC: " folder))
 
 (defun mail-reply-to ()
-  "Move point to end of Reply-To-field.  Create a Reply-To field if none."
+  "Move point to end of Reply-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (mail-position-on-field "Reply-To"))
 
 (defun mail-mail-reply-to ()
-  "Move point to end of Mail-Reply-To field.
-Create a Mail-Reply-To field if none."
+  "Move point to end of Mail-Reply-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "mail-reply-to" t)
@@ -1377,8 +1395,7 @@ Create a Mail-Reply-To field if none."
            (insert "\nMail-Reply-To: "))))
 
 (defun mail-mail-followup-to ()
-  "Move point to end of Mail-Followup-To field.
-Create a Mail-Followup-To field if none."
+  "Move point to end of Mail-Followup-To field, creating it if necessary."
   (interactive)
   (expand-abbrev)
   (or (mail-position-on-field "mail-followup-to" t)
@@ -1409,20 +1426,34 @@ Create a Mail-Followup-To field if none."
   (goto-char (mail-text-start)))
 
 (defun mail-signature (&optional atpoint)
-  "Sign letter with signature based on `mail-signature-file'.
-Prefix arg means put contents at point."
-  (interactive "P")
-  (save-excursion
-    (or atpoint
-	(goto-char (point-max)))
-    (skip-chars-backward " \t\n")
-    (end-of-line)
-    (or atpoint
+  "Sign letter with signature.
+If the variable `mail-signature' is a string, inserts it.
+If it is t or nil, inserts the contents of the file `mail-signature-file'.
+Otherwise, evals `mail-signature'.
+Prefix argument ATPOINT means insert at point rather than the end."
+  (interactive "*P")
+  ;; Test for an unreadable file here, before we delete trailing
+  ;; whitespace, so that we don't modify the buffer needlessly.
+  (if (and (memq mail-signature '(t nil))
+	   (not (file-readable-p mail-signature-file)))
+      (if (interactive-p)
+	  (message "The signature file `%s' could not be read"
+		   mail-signature-file))
+    (save-excursion
+      (unless atpoint
+	(goto-char (point-max))
+	;; Delete trailing whitespace and blank lines.
+	(skip-chars-backward " \t\n")
+	(end-of-line)
 	(delete-region (point) (point-max)))
-    (if (stringp mail-signature)
-	(insert mail-signature)
-      (insert "\n\n-- \n")
-      (insert-file-contents (expand-file-name mail-signature-file)))))
+      (cond ((stringp mail-signature)
+	     (insert mail-signature))
+	    ((memq mail-signature '(t nil))
+	     (insert "\n\n-- \n")
+	     (insert-file-contents (expand-file-name mail-signature-file)))
+	    (t
+	     ;; FIXME add condition-case error handling?
+	     (eval mail-signature))))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.

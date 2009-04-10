@@ -1101,7 +1101,7 @@ outside of VC) and one wants to do some operation on it."
       ;; state to decide which operation to perform.
       (dolist (crt (cdr only-files-list))
 	(unless (vc-compatible-state (cdr crt) state)
-	  (error "%s:%s clashes with %s:%s"
+	  (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
 		 (car crt) (cdr crt) (caar only-files-list) state)))
       (setq only-files-list (mapcar 'car only-files-list))
       (when (and state (not (eq state 'unregistered)))

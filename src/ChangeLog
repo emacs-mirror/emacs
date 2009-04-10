@@ -1,10 +1,370 @@
+2009-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (map_charset_chars): For a charset of `superset'
+	method, fix calculation of code range.
+
+	* font.c (font_put_extra): If VAL is nil, delete the slot for PROP
+	from the list of extra properties.
+	(font_clear_prop): Be sure to delete `:name' font property.
+
+2009-04-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (redraw_overlapping_rows): Fix detection of
+	overlapping for topmost and bottommost rows.
+
+	* ftfont.c (ftfont_text_extents): Fix calculation of
+	metrics->descent.
+
+2009-04-06  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (x_set_font): Avoid C99 mid-block variable declaration.
+
+2009-04-06  Kenichi Handa  <handa@m17n.org>
+
+	* ftxfont.c (ftxfont_draw_backgrond): Fix args to XFillRectangle.
+
+	* xftfont.c (xftfont_open): Fix setting font->underline_thickness.
+
+2009-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* ftfont.c (ftfont_open): Fix checking of the return value of
+	FT_Load_Char.  Fix setting font->underline_thickness.
+
+2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* terminal.c (Fterminal_name, Fdelete_terminal, Fterminal_name)
+	(Fterminal_parameters, Fterminal_parameter)
+	(Fset_terminal_parameter): In doc string, refer to terminal
+	objects rather than terminal ids.
+
+2009-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.c (system_process_attributes) [SYSTEM_MALLOC]: Don't call
+	ret_lim_data.  (Bug#2867)
+
+2009-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.c (produce_stretch_glyph): Reduce width of stretch glyphs
+	so they don't get wider than the window, matching 2006-01-23
+	change to the partner function in xdisp.c (Bug#2800).
+
+2009-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (print_object): Make each lowest sub_char_table start a
+	new line (Bug#2866).
+
+2009-04-02  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_font): Record no-font when a fontset
+	explicitly tells not to try another font-specs.
+
+2009-03-30  Pierre Poissinger  <pierre.poissinger@gmail.com>  (tiny change)
+
+	* charset.c (map_charset_for_dump): Add missing UNGCPRO.
+
+2009-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_from_font): Specify only registry in a
+	font-spec for all characters supported by that registry.
+
+	* ftfont.c: Fix previous change.  Define ftfont_variation_glyphs
+	even if HAVE_M17N_FLT is not defined.
+
+2009-03-29  Sebastian Rose  <sebastian_rose@gmx.de>  (tiny change)
+
+	* ftfont.c: Conditionalize prototyping and use of
+	ftfont_variation_glyphs.
+
+2009-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (delete_frame): Work around compiler bug.
+
+	* editfns.c (general_insert_function): Adjust to insdel.c changes.
+	* insdel.c (prepare_to_modify_buffer, signal_before_change):
+	Some more EMACS_INT.
+	* lisp.h (copy_text, count_size_as_multibyte): Fix last change.
+
+	* xdisp.c (dump_glyph): Fix typo.
+
+	* insdel.c (move_gap, move_gap_both, gap_left, gap_right)
+	(adjust_markers_gap_motion, adjust_markers_for_delete)
+	(adjust_markers_for_insert, adjust_point)
+	(adjust_markers_for_replace, make_gap_larger, make_gap_smaller)
+	(make_gap, copy_text, count_size_as_multibyte, insert)
+	(insert_and_inherit, insert_before_markers)
+	(insert_before_markers_and_inherit, insert_1)
+	(count_combining_before, count_combining_after, insert_1_both)
+	(insert_from_string, insert_from_string_before_markers)
+	(insert_from_string_1, insert_from_gap, insert_from_buffer)
+	(insert_from_buffer_1, adjust_after_replace)
+	(adjust_after_replace_noundo, adjust_after_insert, replace_range)
+	(replace_range_2, del_range, del_range_1, del_range_byte)
+	(del_range_both, del_range_2, modify_region)
+	(prepare_to_modify_buffer, signal_before_change)
+	(signal_after_change, Fcombine_after_change_execute): Use EMACS_INT
+	for buffer positions and sizes.
+	* lisp.h: Adjust prototypes accordingly.
+
+	* fileio.c (adjust_markers_for_delete): Move declaration to lisp.h.
+	(non_regular_inserted, non_regular_nbytes, read_non_regular)
+	(Finsert_file_contents): Use EMACS_INT for buffer positions.
+
+	* fileio.c (Finsert_file_contents): Don't limit size to INT_MAX/4.
+
+2009-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.c (x_set_font): If the fullscreen property is non-nil, adjust
+	lines and columns so we keep the same pixel height and width.
+
+	* xterm.c (handle_one_xevent): Call x_handle_net_wm_state if
+	the property _NET_WM_STATE has changed.
+	(x_handle_net_wm_state): New function to update frame parameter
+	fullscreen.
+	(x_term_init): Initialize atoms for _NET_WM_STATE.
+
+	* xterm.h (struct x_display_info): Add atoms for _NET_WM_STATE.
+
+2009-03-27  Kevin Ryde  <user42@zip.com.au>
+
+	* keyboard.c (tty_read_avail_input): Don't treat a -1 return from
+	Gpm_GetEvent as an error that justifies closing the filedescriptor.
+	* term.c (close_gpm): Get the filedescriptor as a (new) parameter.
+	(Fgpm_mouse_stop): Pass that new parameter.
+	* termhooks.h (close_gpm): Adjust prototype.
+
+2009-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (Fx_focus_frame): Declare.
+
+	* callint.c (Fcall_interactively): For '^' just delegate the work to
+	handle-shift-selection.
+	(syms_of_callint): Move declaration of shift-select-mode to simple.el.
+
+2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Ffloat_time): Doc fix (Bug#2768).
+
+	* data.c (Qinteractive_form): New variable.
+	(Finteractive_form): Use it.
+
+	* eval.c (Fcommandp): Use Qinteractive_form.
+
+2009-03-24  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Fsubstitute_in_file_name): Always work on a copy.
+	Calculate total size precisely.  Decode environment variables
+	before substituting.  (Bug#38)
+
+2009-03-24  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (find_font_encoding): Return Qnil for unsupported
+	encoding (Bug#2722).
+
+2009-03-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_display_open): Assign a value to gdpy_def, check
+	that gdpy is set.
+
+2009-03-22  Alan Mackenzie  <acm@muc.de>
+
+	* callint.c (Finteractive): Clarify the doc string - even
+	promptless elements need \n separators.
+
+2009-03-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (syms_of_w32term): Doc fix for
+	x-use-underline-position-properties.
+
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (getpwuid): Change argument type to unsigned.
+	(struct w32_id): Change type of `rid' member to unsigned.
+	(w32_cached_id, w32_add_to_cache, get_name_and_id): Change type of
+	argument ID to unsigned.  All callers changed.
+	(getuid, geteuid, getgid, getegid): Change return type to unsigned.
+
+2009-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fuser_uid, Fuser_real_uid): If UID as EMACS_INT is
+	negative, produce a float value.
+
+	* dired.c (make_uid, make_gid): New functions.
+	(Ffile_attributes): Use them to avoid negative UID and GID.
+
+2009-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Fcurrent_idle_time): Reflow docstring.
+	(syms_of_keyboard) <command-hook-internal, input-method-function>:
+	Fix typos in docstrings.
+
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fset_fontset_font): When a spec of ASCII font is
+	changed, use font_load_for_lface to get a new font object.
+	Call free_realized_fontset after handling ASCII font change.
+
+	* frame.c (x_set_font): Handle the case that ARG is a cons.
+
+2009-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fsubstitute_in_file_name): Doc fix.
+
+2009-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Undo 2005-01-19 change (Bug#2694).
+
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (load_charset_map_from_file): When a mapfile can't be
+	loaded, signal an error.
+
+2009-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Make sure UID and GID are always
+	positive, even if the value is too large for a positive EMACS_INT.
+	Doc fix.
+
+	* editfns.c (Fuser_login_name): Support float arguments.  Doc fix.
+
+2009-03-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xmenu.c (xdialog_show): Move Fredisplay call ...
+	(Fx_popup_dialog): ... here.
+
+2009-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Disable the first optimization just
+	installed, since it is not implemented correctly.
+
+2009-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (file_name_completion): Check completion-ignored-extensions
+	only if the entry can affect bestmatch.
+	Stop the search early, as Ftry_completion already does.
+
+2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Vminibuffer_completion_confirm): Doc fix.
+
+2009-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (parse_menu_item): Don't display remappings as menu
+	equivalent bindings (Bug#788).
+
+2009-03-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (WM_EMACS_PAINT): New message.
+	* w32term.c (w32_read_socket): Use it instead of WM_PAINT.
+	* w32fns.c (w32_wnd_proc): Change WM_PAINT to WM_EMACS_PAINT
+	before passing to lisp thread.  (Bug#950)
+
+2009-03-14  David Reitter  <david.reitter@gmail.com>
+
+	* nsterm.m (ns_shutdown_properly, -terminate): Remove global state
+	variable as it was never reset.
+	(ns_term_init): Remove initialization of Lisp-settable defaults
+	and ns_expand_space.
+	(-setPanelFromDefaultValues): Remove ns_expand_space.
+	(-showPreferencesWindow): Send new KEY_NS_SHOW_PREFS key.
+	* nsfont.m (nsfont_open): Remove ns_expand_space, assume -0.5
+	i.e. no additional spacing, similar to Carbon port.
+
+	* nsterm.h: Define KEY_NS_SHOW_PREFS key.
+	* nsfns.m (ns-popup-prefs-panel): Remove.
+
+2009-03-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_configure): Remove call to deprecated
+	snd_pcm_sw_params_set_xfer_align.
+
+2009-03-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* gtkutil.c (xg_tool_bar_callback): Set focus back to the frame
+	after clicking in a detached tool bar.
+	(xg_tool_bar_proxy_callback): Remove call to Fx_focus_frame.
+
+2009-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fontset.c (fontset_from_font, Ffontset_info): YAILOM (Yet another
+	int/Lisp_Object mixup).
+
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Ffontset_info, check_fontset_name): New arg frame.
+	Handle NAME nil and t correctly.  Callers changed.
+	(font_def_arg, add_arg, from_arg, to_arg): Delete them.
+	(set_fontset_font): Change ARG to a vector.  Handle range_list in
+	ARG correctly.
+	(Fset_fontset_font): Fix the case that TARGET is both a script
+	name and charset name.  Adjust the arg to set_fontset_font for
+	the above change.
+	(fontset_from_font): Fix previous change.
+	(Ffontset_info): Adjust for the 2008-07-09 change of fontset
+	entry.  If FONTSET is the default fontset, don't set the extra
+	slot of the returning char-table.
+
+2009-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nsfns.m (Fx_close_connection): Doc fix.
+	(Fns_do_applescript): Reflow docstring.
+	(Fns_hide_others, Fns_hide_emacs, Fns_convert_utf8_nfd_to_nfc)
+	(Fx_display_pixel_width, Fx_display_pixel_height)
+	(Fns_display_usable_bounds, Fx_display_planes, Fx_show_tip):
+	Fix typos in docstrings.
+	(Fns_set_alpha): Fix typos in error messages.
+
+2009-03-12  David Reitter  <david.reitter@gmail.com>
+
+	* termhooks.h [HAVE_NS]: Define NS_NONKEY_EVENT to be used for
+	non-key system events on NS.  Formerly, NON_ASCII_KEYSTROKE_EVENT
+	were used for such events.
+
+	* nsterm.m (newFrame, openFile, fulfillService, changeFont)
+	(toggleToolbar, performDragOperation, runHelp): Use it.
+
+	* keyboard.c (parse_menu_item) [HAVE_NS]: Treat new event like
+	NON_ASCII_KEYSTROKE_EVENT, but set used_mouse_menu.
+
+2009-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (font_open_by_spec): Extern it.
+
+	* font.c (font_open_by_spec): New function.
+	(font_open_by_name): Use font_open_by_spec.
+
+	* frame.c (x_set_font): When ARG is a font-object, don't alter the
+	fontset of the frame.
+
+	* fontset.c (Fset_fontset_font): When a font for ASCII is changed,
+	modify the default font of frames that use this fontset.
+	(num_auto_fontsets): New variable.
+	(fontset_from_font): Use num_auto_fontsets to decide a fontset
+	name.  Be sure to set FONTSET_ASCII to the correct font name.
+	(update_auto_fontset_alist): New function.
+
+2009-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
+2009-03-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfns.m (syms_of_nsfns): Remove Qbuffered.
+
+2009-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fswitch_to_buffer): Revert part of 2008-10-21's change.
+
+2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* lread.c (Feval_buffer): Doc fix.
+
 2009-03-09  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Qfile_name_handler_alist): Extern it.
 	(load_charset_map_from_file): Temporarily bind
 	`file-name-handler-alist' to nil while calling openp.  (Bug#2435)
 
-2009-03-06  Aaron Ecay <aaronecay@gmail.com>  (tiny change)
+2009-03-06  Aaron Ecay  <aaronecay@gmail.com>  (tiny change)
 
 	* nsterm.m (ns_draw_vertical_window_border): Draw 1 pixel wide,
 	not two, and use NSRectFill instead of NSDrawGroove.  (Bug#2352)
@@ -527,7 +887,7 @@
 	input_interrupt_mode to nil.
 
 	* image.c (svg_load_image): Don't right-shift background RGB when
-	obtained from FRAME_BACKGROUND_PIXEL. Under HAVE_NS use ns_query_color.
+	obtained from FRAME_BACKGROUND_PIXEL.  Under HAVE_NS use ns_query_color.
 
 2009-01-28  Kenichi Handa  <handa@m17n.org>
 
@@ -815,7 +1175,7 @@
 2009-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* keyboard.c (last_command_char): For clarity, rename to...
-	(last_command-event): ... and update all users.
+	(last_command_event): ... and update all users.
 	(last_input_char): For clarity, rename to...
 	(last_input_event): ... and update all users.
 	(last-command-char, last-input-char): Move to subr.el as aliases.
@@ -2386,7 +2746,7 @@
 
 2008-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Oject
+	* composite.c (Fcomposition_get_gstring): Yet another int/Lisp_Object
 	mixup (YAILOM).
 
 2008-09-17  Chong Yidong  <cyd@stupidchicken.com>
@@ -2604,7 +2964,8 @@
 
 	* font.h (font_range):
 	* fileio.c (report_file_error):
-	* composite.c (composition_update_it): Yet another int/Lisp_Oject mixup.
+	* composite.c (composition_update_it): Yet another int/Lisp_Object
+	mixup (YAILOM).
 
 2008-08-30  Glenn Morris  <rgm@gnu.org>
 
@@ -9020,7 +9381,7 @@
 	* font.c (check_gstring): Use them and AREF to access the vector before
 	we know it's really a gstring.
 	(Ffont_shape_text): Fix typo.
-	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Oject mixups.
+	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Object mixups.
 
 	* composite.h (Fcompose_region_internal, Fcompose_string_internal):
 	Declare.

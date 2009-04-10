@@ -907,23 +907,52 @@ The font must be already used by Emacs."
 
 (defun print-fontset (fontset &optional print-opened)
   "Print information about FONTSET.
-If FONTSET is nil, print information about the default fontset.
+FONTSET nil means the fontset of the selected frame, t means the
+default fontset.
 If optional arg PRINT-OPENED is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
-  (or fontset
-      (setq fontset (query-fontset "fontset-default")))
+  (if (eq fontset t)
+      (setq fontset (query-fontset "fontset-default"))
+    (if (eq fontset nil)
+	(setq fontset (face-attribute 'default :fontset))))
   (beginning-of-line)
+  (narrow-to-region (point) (point))
   (insert "Fontset: " fontset "\n")
   (insert (propertize "CHAR RANGE" 'face 'underline)
 	   " (" (propertize "CODE RANGE" 'face 'underline) ")\n")
   (insert "    " (propertize "FONT NAME" 'face 'underline)
 	  " (" (propertize "REQUESTED" 'face 'underline)
 	  " and [" (propertize "OPENED" 'face 'underline) "])")
-  (let ((info (fontset-info fontset)))
+  (let* ((info (fontset-info fontset))
+	 (default-info (char-table-extra-slot info 0))
+	 start1 end1 start2 end2)
     (describe-vector info 'print-fontset-element)
-    (insert "\n  ---<fallback to the default fontset>---")
-    (describe-vector (char-table-extra-slot info 0) 'print-fontset-element)))
+    (when (char-table-range info nil)
+      ;; The default of FONTSET is described.
+      (setq start1 (re-search-backward "^default"))
+      (delete-region (point) (line-end-position))
+      (insert "\n  ---<fallback to the default of the specified fontset>---")
+      (put-text-property (line-beginning-position) (point) 'face 'highlight)
+      (goto-char (point-max))
+      (setq end1 (setq start2 (point))))
+    (when default-info
+      (insert "\n  ---<fallback to the default fontset>---")
+      (put-text-property (line-beginning-position) (point) 'face 'highlight)
+      (describe-vector default-info 'print-fontset-element)
+      (when (char-table-range default-info nil)
+	;; The default of the default fontset is described.
+	(setq end2 (re-search-backward "^default"))
+	(delete-region (point) (line-end-position))
+	(insert "\n  ---<fallback to the default of the default fontset>---")
+	(put-text-property (line-beginning-position) (point) 'face 'highlight)))
+      (if (and start1 end2)
+	  ;; Reoder the printed information to match with the font
+	  ;; searching strategy; i.e. FONTSET, the default fontset,
+	  ;; default of FONTSET, default of the default fontset.
+	  (transpose-regions start1 end1 start2 end2))
+      (goto-char (point-max)))
+  (widen))
 
 (defvar fontset-alias-alist)
 (declare-function fontset-list "fontset.c" ())
@@ -943,8 +972,8 @@ This shows which font is used for which character(s)."
 	      "Fontset (default used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
-      (setq fontset (frame-parameter nil 'font)))
-  (setq fontset (query-fontset fontset))
+      (setq fontset (face-attribute 'default :fontset))
+    (setq fontset (query-fontset fontset)))
   (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
@@ -1064,9 +1093,9 @@ system which uses fontsets)."
 
       (if window-system
 	  (let ((font (cdr (assq 'font (frame-parameters)))))
-	    (insert "The selected frame is using the "
-		    (if (query-fontset font) "fontset" "font")
-		    ":\n\t" font))
+	    (insert "The font and fontset of the selected frame are:\n"
+		    "     font: " font "\n"
+		    "  fontset: " (face-attribute 'default :fontset) "\n"))
 	(insert "Coding system of the terminal: "
 		(symbol-name (terminal-coding-system))))
       (insert "\n\n")

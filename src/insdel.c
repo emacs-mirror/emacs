@@ -32,15 +32,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NULL 0
 #endif
 
-static void insert_from_string_1 P_ ((Lisp_Object, int, int, int, int, int, int));
-static void insert_from_buffer_1 ();
-static void gap_left P_ ((int, int, int));
-static void gap_right P_ ((int, int));
-static void adjust_markers_gap_motion P_ ((int, int, int));
-static void adjust_markers_for_insert P_ ((int, int, int, int, int));
-void        adjust_markers_for_delete P_ ((int, int, int, int));
-static void adjust_markers_for_replace P_ ((int, int, int, int, int, int));
-static void adjust_point P_ ((int, int));
+static void insert_from_string_1 (Lisp_Object string,
+				  EMACS_INT pos, EMACS_INT pos_byte,
+				  EMACS_INT nchars, EMACS_INT nbytes,
+				  int inherit, int before_markers);
+static void insert_from_buffer_1 (struct buffer *buf,
+				  EMACS_INT from, EMACS_INT nchars,
+				  int inherit);
+static void gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap);
+static void gap_right (EMACS_INT charpos, EMACS_INT bytepos);
+static void adjust_markers_gap_motion (EMACS_INT from, EMACS_INT to,
+				       EMACS_INT amount);
+static void adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
+				       EMACS_INT to, EMACS_INT to_byte,
+				       int before_markers);
+static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
+					EMACS_INT, EMACS_INT, EMACS_INT);
+static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
 Lisp_Object Fcombine_after_change_execute ();
 
@@ -98,8 +106,7 @@ check_markers ()
    Note that this can quit!  */
 
 void
-move_gap (charpos)
-     int charpos;
+move_gap (EMACS_INT charpos)
 {
   move_gap_both (charpos, charpos_to_bytepos (charpos));
 }
@@ -108,8 +115,7 @@ move_gap (charpos)
    Note that this can quit!  */
 
 void
-move_gap_both (charpos, bytepos)
-     int charpos, bytepos;
+move_gap_both (EMACS_INT charpos, EMACS_INT bytepos)
 {
   if (bytepos < GPT_BYTE)
     gap_left (charpos, bytepos, 0);
@@ -123,13 +129,11 @@ move_gap_both (charpos, bytepos)
    If NEWGAP is nonzero, then don't update beg_unchanged and end_unchanged.  */
 
 static void
-gap_left (charpos, bytepos, newgap)
-     register int charpos, bytepos;
-     int newgap;
+gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap)
 {
   register unsigned char *to, *from;
-  register int i;
-  int new_s1;
+  register EMACS_INT i;
+  EMACS_INT new_s1;
 
   if (!newgap)
     BUF_COMPUTE_UNCHANGED (current_buffer, charpos, GPT);
@@ -200,12 +204,11 @@ gap_left (charpos, bytepos, newgap)
    and CHARPOS is the corresponding char position.  */
 
 static void
-gap_right (charpos, bytepos)
-     register int charpos, bytepos;
+gap_right (EMACS_INT charpos, EMACS_INT bytepos)
 {
   register unsigned char *to, *from;
-  register int i;
-  int new_s1;
+  register EMACS_INT i;
+  EMACS_INT new_s1;
 
   BUF_COMPUTE_UNCHANGED (current_buffer, charpos, GPT);
 
@@ -285,15 +288,14 @@ gap_right (charpos, bytepos)
 int adjust_markers_test;
 
 static void
-adjust_markers_gap_motion (from, to, amount)
-     register int from, to, amount;
+adjust_markers_gap_motion (EMACS_INT from, EMACS_INT to, EMACS_INT amount)
 {
   /* Now that a marker has a bytepos, not counting the gap,
      nothing needs to be done here.  */
 #if 0
   Lisp_Object marker;
   register struct Lisp_Marker *m;
-  register int mpos;
+  register EMACS_INT mpos;
 
   marker = BUF_MARKERS (current_buffer);
 
@@ -338,12 +340,12 @@ adjust_markers_gap_motion (from, to, amount)
    or inside of the range being deleted.  */
 
 void
-adjust_markers_for_delete (from, from_byte, to, to_byte)
-     register int from, from_byte, to, to_byte;
+adjust_markers_for_delete (EMACS_INT from, EMACS_INT from_byte,
+			   EMACS_INT to, EMACS_INT to_byte)
 {
   Lisp_Object marker;
   register struct Lisp_Marker *m;
-  register int charpos;
+  register EMACS_INT charpos;
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -403,14 +405,13 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
    or BEFORE_MARKERS is true.  */
 
 static void
-adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
-     register int from, from_byte, to, to_byte;
-     int before_markers;
+adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
+			   EMACS_INT to, EMACS_INT to_byte, int before_markers)
 {
   struct Lisp_Marker *m;
   int adjusted = 0;
-  int nchars = to - from;
-  int nbytes = to_byte - from_byte;
+  EMACS_INT nchars = to - from;
+  EMACS_INT nbytes = to_byte - from_byte;
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -455,8 +456,7 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
    intervals.  */
 
 static void
-adjust_point (nchars, nbytes)
-     int nchars, nbytes;
+adjust_point (EMACS_INT nchars, EMACS_INT nbytes)
 {
   BUF_PT (current_buffer) += nchars;
   BUF_PT_BYTE (current_buffer) += nbytes;
@@ -471,14 +471,14 @@ adjust_point (nchars, nbytes)
    an insertion.  */
 
 static void
-adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
-			    new_chars, new_bytes)
-     int from, from_byte, old_chars, old_bytes, new_chars, new_bytes;
+adjust_markers_for_replace (EMACS_INT from, EMACS_INT from_byte,
+			    EMACS_INT old_chars, EMACS_INT old_bytes,
+			    EMACS_INT new_chars, EMACS_INT new_bytes)
 {
   register struct Lisp_Marker *m;
-  int prev_to_byte = from_byte + old_bytes;
-  int diff_chars = new_chars - old_chars;
-  int diff_bytes = new_bytes - old_bytes;
+  EMACS_INT prev_to_byte = from_byte + old_bytes;
+  EMACS_INT diff_chars = new_chars - old_chars;
+  EMACS_INT diff_bytes = new_bytes - old_bytes;
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -501,13 +501,12 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
 void
-make_gap_larger (nbytes_added)
-     int nbytes_added;
+make_gap_larger (EMACS_INT nbytes_added)
 {
   Lisp_Object tem;
-  int real_gap_loc;
-  int real_gap_loc_byte;
-  int old_gap_size;
+  EMACS_INT real_gap_loc;
+  EMACS_INT real_gap_loc_byte;
+  EMACS_INT old_gap_size;
 
   /* If we have to get more space, get enough to last a while.  */
   nbytes_added += 2000;
@@ -557,16 +556,15 @@ make_gap_larger (nbytes_added)
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
 void
-make_gap_smaller (nbytes_removed)
-     int nbytes_removed;
+make_gap_smaller (EMACS_INT nbytes_removed)
 {
   Lisp_Object tem;
-  int real_gap_loc;
-  int real_gap_loc_byte;
-  int real_Z;
-  int real_Z_byte;
-  int real_beg_unchanged;
-  int new_gap_size;
+  EMACS_INT real_gap_loc;
+  EMACS_INT real_gap_loc_byte;
+  EMACS_INT real_Z;
+  EMACS_INT real_Z_byte;
+  EMACS_INT real_beg_unchanged;
+  EMACS_INT new_gap_size;
 
   /* Make sure the gap is at least 20 bytes.  */
   if (GAP_SIZE - nbytes_removed < 20)
@@ -614,8 +612,7 @@ make_gap_smaller (nbytes_removed)
 }
 
 void
-make_gap (nbytes_added)
-     int nbytes_added;
+make_gap (EMACS_INT nbytes_added)
 {
   if (nbytes_added >= 0)
     make_gap_larger (nbytes_added);
@@ -632,13 +629,9 @@ make_gap (nbytes_added)
 
    Return the number of bytes stored at TO_ADDR.  */
 
-int
-copy_text (from_addr, to_addr, nbytes,
-	   from_multibyte, to_multibyte)
-     const unsigned char *from_addr;
-     unsigned char *to_addr;
-     int nbytes;
-     int from_multibyte, to_multibyte;
+EMACS_INT
+copy_text (const unsigned char *from_addr, unsigned char *to_addr,
+	   EMACS_INT nbytes, int from_multibyte, int to_multibyte)
 {
   if (from_multibyte == to_multibyte)
     {
@@ -647,8 +640,8 @@ copy_text (from_addr, to_addr, nbytes,
     }
   else if (from_multibyte)
     {
-      int nchars = 0;
-      int bytes_left = nbytes;
+      EMACS_INT nchars = 0;
+      EMACS_INT bytes_left = nbytes;
       Lisp_Object tbl = Qnil;
 
       while (bytes_left > 0)
@@ -691,13 +684,11 @@ copy_text (from_addr, to_addr, nbytes,
    to convert some single-byte text to multibyte.
    The single-byte text consists of NBYTES bytes at PTR.  */
 
-int
-count_size_as_multibyte (ptr, nbytes)
-     const unsigned char *ptr;
-     int nbytes;
+EMACS_INT
+count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
 {
-  int i;
-  int outgoing_nbytes = 0;
+  EMACS_INT i;
+  EMACS_INT outgoing_nbytes = 0;
 
   for (i = 0; i < nbytes; i++)
     {
@@ -724,13 +715,11 @@ count_size_as_multibyte (ptr, nbytes)
    prepare_to_modify_buffer could relocate the text.  */
 
 void
-insert (string, nbytes)
-     register const unsigned char *string;
-     register int nbytes;
+insert (const unsigned char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      int len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text (string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 0, 1, 0);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -741,13 +730,11 @@ insert (string, nbytes)
 /* Likewise, but inherit text properties from neighboring characters.  */
 
 void
-insert_and_inherit (string, nbytes)
-     register const unsigned char *string;
-     register int nbytes;
+insert_and_inherit (const unsigned char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      int len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text (string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 1, 1, 0);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -758,8 +745,7 @@ insert_and_inherit (string, nbytes)
 /* Insert the character C before point.  Do not inherit text properties.  */
 
 void
-insert_char (c)
-     int c;
+insert_char (int c)
 {
   unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len;
@@ -778,8 +764,7 @@ insert_char (c)
 /* Insert the null-terminated string S before point.  */
 
 void
-insert_string (s)
-     const char *s;
+insert_string (const char *s)
 {
   insert (s, strlen (s));
 }
@@ -790,13 +775,11 @@ insert_string (s)
    since gc could happen and relocate it.  */
 
 void
-insert_before_markers (string, nbytes)
-     const unsigned char *string;
-     register int nbytes;
+insert_before_markers (const unsigned char *string, EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      int len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text (string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 0, 1, 1);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -807,13 +790,12 @@ insert_before_markers (string, nbytes)
 /* Likewise, but inherit text properties from neighboring characters.  */
 
 void
-insert_before_markers_and_inherit (string, nbytes)
-     const unsigned char *string;
-     register int nbytes;
+insert_before_markers_and_inherit (const unsigned char *string,
+				   EMACS_INT nbytes)
 {
   if (nbytes > 0)
     {
-      int len = chars_in_text (string, nbytes), opoint;
+      EMACS_INT len = chars_in_text (string, nbytes), opoint;
       insert_1_both (string, len, nbytes, 1, 1, 1);
       opoint = PT - len;
       signal_after_change (opoint, 0, len);
@@ -824,10 +806,8 @@ insert_before_markers_and_inherit (string, nbytes)
 /* Subroutine used by the insert functions above.  */
 
 void
-insert_1 (string, nbytes, inherit, prepare, before_markers)
-     register const unsigned char *string;
-     register int nbytes;
-     int inherit, prepare, before_markers;
+insert_1 (const unsigned char *string, EMACS_INT nbytes,
+	  int inherit, int prepare, int before_markers)
 {
   insert_1_both (string, chars_in_text (string, nbytes), nbytes,
 		 inherit, prepare, before_markers);
@@ -842,10 +822,8 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
    which combine in this way.  Otherwise, return 0.  */
 
 int
-count_combining_before (string, length, pos, pos_byte)
-     const unsigned char *string;
-     int length;
-     int pos, pos_byte;
+count_combining_before (const unsigned char *string, EMACS_INT length,
+			EMACS_INT pos, EMACS_INT pos_byte)
 {
   int len, combining_bytes;
   const unsigned char *p;
@@ -889,14 +867,12 @@ count_combining_before (string, length, pos, pos_byte)
    which combine in this way.  Otherwise, return 0.  */
 
 int
-count_combining_after (string, length, pos, pos_byte)
-     const unsigned char *string;
-     int length;
-     int pos, pos_byte;
+count_combining_after (const unsigned char *string,
+		       EMACS_INT length, EMACS_INT pos, EMACS_INT pos_byte)
 {
-  int opos_byte = pos_byte;
-  int i;
-  int bytes;
+  EMACS_INT opos_byte = pos_byte;
+  EMACS_INT i;
+  EMACS_INT bytes;
   unsigned char *bufp;
 
   if (NILP (current_buffer->enable_multibyte_characters))
@@ -955,10 +931,9 @@ count_combining_after (string, length, pos, pos_byte)
    are the same as in insert_1.  */
 
 void
-insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
-     register const unsigned char *string;
-     register int nchars, nbytes;
-     int inherit, prepare, before_markers;
+insert_1_both (const unsigned char *string,
+	       EMACS_INT nchars, EMACS_INT nbytes,
+	       int inherit, int prepare, int before_markers)
 {
   if (nchars == 0)
     return;
@@ -1035,12 +1010,10 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
    without insert noticing.  */
 
 void
-insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
-     Lisp_Object string;
-     register int pos, pos_byte, length, length_byte;
-     int inherit;
+insert_from_string (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
+		    EMACS_INT length, EMACS_INT length_byte, int inherit)
 {
-  int opoint = PT;
+  EMACS_INT opoint = PT;
 
   if (SCHARS (string) == 0)
     return;
@@ -1055,13 +1028,12 @@ insert_from_string (string, pos, pos_byte, length, length_byte, inherit)
    at the place where the insertion happens are adjusted to point after it.  */
 
 void
-insert_from_string_before_markers (string, pos, pos_byte,
-				   length, length_byte, inherit)
-     Lisp_Object string;
-     register int pos, pos_byte, length, length_byte;
-     int inherit;
+insert_from_string_before_markers (Lisp_Object string,
+				   EMACS_INT pos, EMACS_INT pos_byte,
+				   EMACS_INT length, EMACS_INT length_byte,
+				   int inherit)
 {
-  int opoint = PT;
+  EMACS_INT opoint = PT;
 
   if (SCHARS (string) == 0)
     return;
@@ -1075,14 +1047,12 @@ insert_from_string_before_markers (string, pos, pos_byte,
 /* Subroutine of the insertion functions above.  */
 
 static void
-insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
-		      inherit, before_markers)
-     Lisp_Object string;
-     register int pos, pos_byte, nchars, nbytes;
-     int inherit, before_markers;
+insert_from_string_1 (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
+		      EMACS_INT nchars, EMACS_INT nbytes,
+		      int inherit, int before_markers)
 {
   struct gcpro gcpro1;
-  int outgoing_nbytes = nbytes;
+  EMACS_INT outgoing_nbytes = nbytes;
   INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
@@ -1169,8 +1139,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
    starting at GPT_ADDR.  */
 
 void
-insert_from_gap (nchars, nbytes)
-     register EMACS_INT nchars, nbytes;
+insert_from_gap (EMACS_INT nchars, EMACS_INT nbytes)
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
@@ -1215,12 +1184,10 @@ insert_from_gap (nchars, nbytes)
    and relocate BUF's text before the bcopy happens.  */
 
 void
-insert_from_buffer (buf, charpos, nchars, inherit)
-     struct buffer *buf;
-     int charpos, nchars;
-     int inherit;
+insert_from_buffer (struct buffer *buf,
+		    EMACS_INT charpos, EMACS_INT nchars, int inherit)
 {
-  int opoint = PT;
+  EMACS_INT opoint = PT;
 
   insert_from_buffer_1 (buf, charpos, nchars, inherit);
   signal_after_change (opoint, 0, PT - opoint);
@@ -1228,17 +1195,15 @@ insert_from_buffer (buf, charpos, nchars, inherit)
 }
 
 static void
-insert_from_buffer_1 (buf, from, nchars, inherit)
-     struct buffer *buf;
-     int from, nchars;
-     int inherit;
+insert_from_buffer_1 (struct buffer *buf,
+		      EMACS_INT from, EMACS_INT nchars, int inherit)
 {
   register Lisp_Object temp;
-  int chunk, chunk_expanded;
-  int from_byte = buf_charpos_to_bytepos (buf, from);
-  int to_byte = buf_charpos_to_bytepos (buf, from + nchars);
-  int incoming_nbytes = to_byte - from_byte;
-  int outgoing_nbytes = incoming_nbytes;
+  EMACS_INT chunk, chunk_expanded;
+  EMACS_INT from_byte = buf_charpos_to_bytepos (buf, from);
+  EMACS_INT to_byte = buf_charpos_to_bytepos (buf, from + nchars);
+  EMACS_INT incoming_nbytes = to_byte - from_byte;
+  EMACS_INT outgoing_nbytes = incoming_nbytes;
   INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
@@ -1248,8 +1213,8 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
     outgoing_nbytes = nchars;
   else if (NILP (buf->enable_multibyte_characters))
     {
-      int outgoing_before_gap = 0;
-      int outgoing_after_gap = 0;
+      EMACS_INT outgoing_before_gap = 0;
+      EMACS_INT outgoing_after_gap = 0;
 
       if (from < BUF_GPT (buf))
 	{
@@ -1371,11 +1336,10 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
    PREV_TEXT nil means the new text was just inserted.  */
 
 void
-adjust_after_replace (from, from_byte, prev_text, len, len_byte)
-     int from, from_byte, len, len_byte;
-     Lisp_Object prev_text;
+adjust_after_replace (EMACS_INT from, EMACS_INT from_byte,
+		      Lisp_Object prev_text, EMACS_INT len, EMACS_INT len_byte)
 {
-  int nchars_del = 0, nbytes_del = 0;
+  EMACS_INT nchars_del = 0, nbytes_del = 0;
 
 #ifdef BYTE_COMBINING_DEBUG
   if (count_combining_before (GPT_ADDR, len_byte, from, from_byte)
@@ -1438,8 +1402,9 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
    This is for use when undo is not enabled in the current buffer.  */
 
 void
-adjust_after_replace_noundo (from, from_byte, nchars_del, nbytes_del, len, len_byte)
-     int from, from_byte, nchars_del, nbytes_del, len, len_byte;
+adjust_after_replace_noundo (EMACS_INT from, EMACS_INT from_byte,
+			     EMACS_INT nchars_del, EMACS_INT nbytes_del,
+			     EMACS_INT len, EMACS_INT len_byte)
 {
 #ifdef BYTE_COMBINING_DEBUG
   if (count_combining_before (GPT_ADDR, len_byte, from, from_byte)
@@ -1491,10 +1456,10 @@ adjust_after_replace_noundo (from, from_byte, nchars_del, nbytes_del, len, len_b
    - FROM) may be incorrect, the correct length is NEWLEN.  */
 
 void
-adjust_after_insert (from, from_byte, to, to_byte, newlen)
-     int from, from_byte, to, to_byte, newlen;
+adjust_after_insert (EMACS_INT from, EMACS_INT from_byte,
+		     EMACS_INT to, EMACS_INT to_byte, EMACS_INT newlen)
 {
-  int len = to - from, len_byte = to_byte - from_byte;
+  EMACS_INT len = to - from, len_byte = to_byte - from_byte;
 
   if (GPT != to)
     move_gap_both (to, to_byte);
@@ -1518,18 +1483,17 @@ adjust_after_insert (from, from_byte, to, to_byte, newlen)
    But if MARKERS is 0, don't relocate markers.  */
 
 void
-replace_range (from, to, new, prepare, inherit, markers)
-     Lisp_Object new;
-     int from, to, prepare, inherit, markers;
+replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
+	       int prepare, int inherit, int markers)
 {
-  int inschars = SCHARS (new);
-  int insbytes = SBYTES (new);
-  int from_byte, to_byte;
-  int nbytes_del, nchars_del;
+  EMACS_INT inschars = SCHARS (new);
+  EMACS_INT insbytes = SBYTES (new);
+  EMACS_INT from_byte, to_byte;
+  EMACS_INT nbytes_del, nchars_del;
   register Lisp_Object temp;
   struct gcpro gcpro1;
   INTERVAL intervals;
-  int outgoing_insbytes = insbytes;
+  EMACS_INT outgoing_insbytes = insbytes;
   Lisp_Object deletion;
 
   CHECK_MARKERS ();
@@ -1539,7 +1503,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   if (prepare)
     {
-      int range_length = to - from;
+      EMACS_INT range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
       to = from + range_length;
     }
@@ -1699,12 +1663,12 @@ replace_range (from, to, new, prepare, inherit, markers)
    prepare_to_modify_buffer and never call signal_after_change.  */
 
 void
-replace_range_2 (from, from_byte, to, to_byte, ins, inschars, insbytes, markers)
-     int from, from_byte, to, to_byte;
-     char *ins;
-     int inschars, insbytes, markers;
+replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
+		 EMACS_INT to, EMACS_INT to_byte,
+		 char *ins, EMACS_INT inschars, EMACS_INT insbytes,
+		 int markers)
 {
-  int nbytes_del, nchars_del;
+  EMACS_INT nbytes_del, nchars_del;
   Lisp_Object temp;
 
   CHECK_MARKERS ();
@@ -1812,8 +1776,7 @@ replace_range_2 (from, from_byte, to, to_byte, ins, inschars, insbytes, markers)
    If TO comes before FROM, we delete nothing.  */
 
 void
-del_range (from, to)
-     register int from, to;
+del_range (EMACS_INT from, EMACS_INT to)
 {
   del_range_1 (from, to, 1, 0);
 }
@@ -1822,10 +1785,9 @@ del_range (from, to)
    RET_STRING says to return the deleted text. */
 
 Lisp_Object
-del_range_1 (from, to, prepare, ret_string)
-     int from, to, prepare, ret_string;
+del_range_1 (EMACS_INT from, EMACS_INT to, int prepare, int ret_string)
 {
-  int from_byte, to_byte;
+  EMACS_INT from_byte, to_byte;
   Lisp_Object deletion;
   struct gcpro gcpro1;
 
@@ -1840,7 +1802,7 @@ del_range_1 (from, to, prepare, ret_string)
 
   if (prepare)
     {
-      int range_length = to - from;
+      EMACS_INT range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
       to = min (ZV, from + range_length);
     }
@@ -1859,10 +1821,9 @@ del_range_1 (from, to, prepare, ret_string)
 /* Like del_range_1 but args are byte positions, not char positions.  */
 
 void
-del_range_byte (from_byte, to_byte, prepare)
-     int from_byte, to_byte, prepare;
+del_range_byte (EMACS_INT from_byte, EMACS_INT to_byte, int prepare)
 {
-  int from, to;
+  EMACS_INT from, to;
 
   /* Make args be valid */
   if (from_byte < BEGV_BYTE)
@@ -1878,8 +1839,8 @@ del_range_byte (from_byte, to_byte, prepare)
 
   if (prepare)
     {
-      int old_from = from, old_to = Z - to;
-      int range_length = to - from;
+      EMACS_INT old_from = from, old_to = Z - to;
+      EMACS_INT range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
       to = from + range_length;
 
@@ -1903,8 +1864,8 @@ del_range_byte (from_byte, to_byte, prepare)
    and bytepos.  */
 
 void
-del_range_both (from, from_byte, to, to_byte, prepare)
-     int from, from_byte, to, to_byte, prepare;
+del_range_both (EMACS_INT from, EMACS_INT from_byte,
+		EMACS_INT to, EMACS_INT to_byte, int prepare)
 {
   /* Make args be valid */
   if (from_byte < BEGV_BYTE)
@@ -1922,8 +1883,8 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 
   if (prepare)
     {
-      int old_from = from, old_to = Z - to;
-      int range_length = to - from;
+      EMACS_INT old_from = from, old_to = Z - to;
+      EMACS_INT range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
       to = from + range_length;
 
@@ -1949,10 +1910,10 @@ del_range_both (from, from_byte, to, to_byte, prepare)
    If RET_STRING is true, the deleted area is returned as a string. */
 
 Lisp_Object
-del_range_2 (from, from_byte, to, to_byte, ret_string)
-     int from, from_byte, to, to_byte, ret_string;
+del_range_2 (EMACS_INT from, EMACS_INT from_byte,
+	     EMACS_INT to, EMACS_INT to_byte, int ret_string)
 {
-  register int nbytes_del, nchars_del;
+  register EMACS_INT nbytes_del, nchars_del;
   Lisp_Object deletion;
 
   CHECK_MARKERS ();
@@ -2036,9 +1997,8 @@ del_range_2 (from, from_byte, to, to_byte, ret_string)
    Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
 
 void
-modify_region (buffer, start, end, preserve_chars_modiff)
-     struct buffer *buffer;
-     int start, end, preserve_chars_modiff;
+modify_region (struct buffer *buffer, EMACS_INT start, EMACS_INT end,
+	       int preserve_chars_modiff)
 {
   struct buffer *old_buffer = current_buffer;
 
@@ -2072,9 +2032,8 @@ modify_region (buffer, start, end, preserve_chars_modiff)
    by holding its value temporarily in a marker.  */
 
 void
-prepare_to_modify_buffer (start, end, preserve_ptr)
-     int start, end;
-     int *preserve_ptr;
+prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
+			  EMACS_INT *preserve_ptr)
 {
   struct buffer *base_buffer;
 
@@ -2187,9 +2146,8 @@ reset_var_on_error (val)
    by holding its value temporarily in a marker.  */
 
 void
-signal_before_change (start_int, end_int, preserve_ptr)
-     int start_int, end_int;
-     int *preserve_ptr;
+signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
+		      EMACS_INT *preserve_ptr)
 {
   Lisp_Object start, end;
   Lisp_Object start_marker, end_marker;
@@ -2266,8 +2224,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
    after the change.  */
 
 void
-signal_after_change (charpos, lendel, lenins)
-     int charpos, lendel, lenins;
+signal_after_change (EMACS_INT charpos, EMACS_INT lendel, EMACS_INT lenins)
 {
   int count = SPECPDL_INDEX ();
   if (inhibit_modification_hooks)
@@ -2352,8 +2309,8 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
      ()
 {
   int count = SPECPDL_INDEX ();
-  int beg, end, change;
-  int begpos, endpos;
+  EMACS_INT beg, end, change;
+  EMACS_INT begpos, endpos;
   Lisp_Object tail;
 
   if (NILP (combine_after_change_list))
@@ -2387,7 +2344,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        tail = XCDR (tail))
     {
       Lisp_Object elt;
-      int thisbeg, thisend, thischange;
+      EMACS_INT thisbeg, thisend, thischange;
 
       /* Extract the info from the next element.  */
       elt = XCAR (tail);

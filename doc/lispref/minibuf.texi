@@ -56,17 +56,15 @@ read-only so you won't accidentally delete or change it.  It is also
 marked as a field (@pxref{Fields}), so that certain motion functions,
 including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
-boundary between the prompt and the actual text.  (In older Emacs
-versions, the prompt was displayed using a special mechanism and was not
-part of the buffer contents.)
+boundary between the prompt and the actual text.
 
   The minibuffer's window is normally a single line; it grows
-automatically if necessary if the contents require more space.  You can
-explicitly resize it temporarily with the window sizing commands; it
-reverts to its normal size when the minibuffer is exited.  You can
-resize it permanently by using the window sizing commands in the frame's
-other window, when the minibuffer is not active.  If the frame contains
-just a minibuffer, you can change the minibuffer's size by changing the
+automatically if the contents require more space.  You can explicitly
+resize it temporarily with the window sizing commands; it reverts to
+its normal size when the minibuffer is exited.  You can resize it
+permanently by using the window sizing commands in the frame's other
+window, when the minibuffer is not active.  If the frame contains just
+a minibuffer, you can change the minibuffer's size by changing the
 frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
@@ -74,16 +72,17 @@ of variables such as @code{this-command} and @code{last-command}
 (@pxref{Command Loop Info}).  Your program should bind them around the
 code that uses the minibuffer, if you do not want that to change them.
 
-  If a command uses a minibuffer while there is an active minibuffer,
-this is called a @dfn{recursive minibuffer}.  The first minibuffer is
-named @w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
-incrementing the number at the end of the name.  (The names begin with a
-space so that they won't show up in normal buffer lists.)  Of several
-recursive minibuffers, the innermost (or most recently entered) is the
-active minibuffer.  We usually call this ``the'' minibuffer.  You can
-permit or forbid recursive minibuffers by setting the variable
-@code{enable-recursive-minibuffers} or by putting properties of that
-name on command symbols (@pxref{Recursive Mini}).
+  Under some circumstances, a command can use a minibuffer even if
+there is an active minibuffer; such minibuffers are called a
+@dfn{recursive minibuffer}.  The first minibuffer is named
+@w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
+incrementing the number at the end of the name.  (The names begin with
+a space so that they won't show up in normal buffer lists.)  Of
+several recursive minibuffers, the innermost (or most recently
+entered) is the active minibuffer.  We usually call this ``the''
+minibuffer.  You can permit or forbid recursive minibuffers by setting
+the variable @code{enable-recursive-minibuffers}, or by putting
+properties of that name on command symbols (@xref{Recursive Mini}.)
 
   Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
@@ -99,13 +98,13 @@ was supplied when Emacs was started.
 @node Text from Minibuffer
 @section Reading Text Strings with the Minibuffer
 
-  Most often, the minibuffer is used to read text as a string.  It can
-also be used to read a Lisp object in textual form.  The most basic
-primitive for minibuffer input is @code{read-from-minibuffer}; it can
-do either one.  Regular expressions (@pxref{Regular Expressions}) are
-a special kind of strings; use @code{read-regexp} for their minibuffer
-input.  There are also specialized commands for reading commands,
-variables, file names, etc.@: (@pxref{Completion}).
+  The most basic primitive for minibuffer input is
+@code{read-from-minibuffer}, which can be used to read either a string
+or a Lisp object in textual form.  The function @code{read-regexp} is
+used for reading regular expressions (@pxref{Regular Expressions}),
+which are a special kind of string.  There are also specialized
+functions for reading commands, variables, file names, etc.@:
+(@pxref{Completion}).
 
   In most cases, you should not call minibuffer input functions in the
 middle of a Lisp function.  Instead, do all minibuffer input as part of
@@ -113,7 +112,7 @@ reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
 @defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
-This function is the most general way to get input through the
+This function is the most general way to get input from the
 minibuffer.  By default, it accepts arbitrary text and returns it as a
 string; however, if @var{read} is non-@code{nil}, then it uses
 @code{read} to convert the text into a Lisp object (@pxref{Input
@@ -634,6 +633,7 @@ for reading certain kinds of names with completion.
                              (reading buffer name, file name, etc.)
 * Reading File Names::     Using completion to read file names and
                              shell commands.
+* Completion Styles::      Specifying rules for performing completion.
 * Programmed Completion::  Writing your own completion-function.
 @end menu
 
@@ -824,7 +824,11 @@ it returns, @code{test-completion} returns in turn.
 
 @defvar completion-ignore-case
 If the value of this variable is non-@code{nil}, Emacs does not
-consider case significant in completion.
+consider case significant in completion.  Note, however, that this
+variable is overridden by @code{read-file-name-completion-ignore-case}
+within @code{read-file-name} (@pxref{Reading File Names}), and by
+@code{read-buffer-completion-ignore-case} within @code{read-buffer}
+(@pxref{High-Level Completion}).
 @end defvar
 
 @defvar completion-regexp-list
@@ -871,15 +875,33 @@ Some of these commands also call @code{test-completion}.  Thus, if
 @var{collection} and @code{completion-ignore-case}.  @xref{Definition
 of test-completion}.
 
-If @var{require-match} is @code{nil}, the exit commands work regardless
-of the input in the minibuffer.  If @var{require-match} is @code{t}, the
-usual minibuffer exit commands won't exit unless the input completes to
-an element of @var{collection}.  If @var{require-match} is
-@code{confirm-only}, the user can exit with any input, but she will
-be asked for a confirmation if the input is not an element of
-@var{collection}.  Any other value of @var{require-match} behaves like
-@code{t}, except that the exit commands won't exit if it does non-null
-completion.
+The value of the optional argument @var{require-match} determines how
+the user may exit the minibuffer:
+
+@itemize @bullet
+@item
+If @code{nil}, the usual minibuffer exit commands work regardless of
+the input in the minibuffer.
+
+@item
+If @code{t}, the usual minibuffer exit commands won't exit unless the
+input completes to an element of @var{collection}.
+
+@item
+If @code{confirm}, the user can exit with any input, but is asked for
+confirmation if the input is not an element of @var{collection}.
+
+@item
+If @code{confirm-after-completion}, the user can exit with any input,
+but is asked for confirmation if the preceding command was a
+completion command (i.e., one of the commands in
+@code{minibuffer-confirm-exit-commands}) and the resulting input is
+not an element of @var{collection}.  @xref{Completion Commands}.
+
+@item
+Any other value of @var{require-match} behaves like @code{t}, except
+that the exit commands won't exit if it performs completion.
+@end itemize
 
 However, empty input is always permitted, regardless of the value of
 @var{require-match}; in that case, @code{completing-read} returns the
@@ -948,12 +970,7 @@ They are described in the following section.
 @subsection Minibuffer Commands that Do Completion
 
   This section describes the keymaps, commands and user options used
-in the minibuffer to do completion.  The description refers to the
-situation when Partial Completion mode is disabled (as it is by
-default).  When enabled, this minor mode uses its own alternatives to
-some of the commands described below.  @xref{Completion Options,,,
-emacs, The GNU Emacs Manual}, for a short description of Partial
-Completion mode.
+in the minibuffer to do completion.
 
 @defvar minibuffer-completion-table
 The value of this variable is the collection used for completion in
@@ -969,10 +986,25 @@ minibuffer completion functions.
 @end defvar
 
 @defvar minibuffer-completion-confirm
-When the value of this variable is non-@code{nil}, Emacs asks for
-confirmation of a completion before exiting the minibuffer.
-@code{completing-read} binds this variable, and the function
-@code{minibuffer-complete-and-exit} checks the value before exiting.
+This variable determines whether Emacs asks for confirmation before
+exiting the minibuffer; @code{completing-read} binds this variable,
+and the function @code{minibuffer-complete-and-exit} checks the value
+before exiting.  If the value is @code{nil}, confirmation is not
+required.  If the value is @code{confirm}, the user may exit with an
+input that is not a valid completion alternative, but Emacs asks for
+confirmation.  If the value is @code{confirm-after-completion}, the
+user may exit with an input that is not a valid completion
+alternative, but Emacs asks for confirmation if the user submitted the
+input right after any of the completion commands in
+@code{minibuffer-confirm-exit-commands}.
+@end defvar
+
+@defvar minibuffer-confirm-exit-commands
+This variable holds a list of commands that cause Emacs to ask for
+confirmation before exiting the minibuffer, if the @var{require-match}
+argument to @code{completing-read} is @code{confirm-after-completion}.
+The confirmation is requested if the user attempts to exit the
+minibuffer immediately after calling any command in this list.
 @end defvar
 
 @deffn Command minibuffer-complete-word
@@ -1113,7 +1145,7 @@ Lisp function.  When possible, do all minibuffer input as part of
 reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
-@defun read-buffer prompt &optional default existing
+@defun read-buffer prompt &optional default require-match
 This function reads the name of a buffer and returns it as a string.
 The argument @var{default} is the default name to use, the value to
 return if the user exits with an empty minibuffer.  If non-@code{nil},
@@ -1127,17 +1159,12 @@ space.  If @var{default} is non-@code{nil}, the function inserts it in
 @var{prompt} before the colon to follow the convention for reading from
 the minibuffer with a default value (@pxref{Programming Tips}).
 
-If @var{existing} is non-@code{nil}, then the name specified must be
-that of an existing buffer.  The usual commands to exit the minibuffer
-do not exit if the text is not valid, and @key{RET} does completion to
-attempt to find a valid name.  If @var{existing} is neither @code{nil}
-nor @code{t}, confirmation is required after completion.  (However,
-@var{default} is not checked for validity; it is returned, whatever it
-is, if the user exits with the minibuffer empty.)
+The optional argument @var{require-match} has the same meaning as in
+@code{completing-read}.  @xref{Minibuffer Completion}.
 
 In the following example, the user enters @samp{minibuffer.t}, and
-then types @key{RET}.  The argument @var{existing} is @code{t}, and the
-only buffer name starting with the given input is
+then types @key{RET}.  The argument @var{require-match} is @code{t},
+and the only buffer name starting with the given input is
 @samp{minibuffer.texi}, so that name is the value.
 
 @example
@@ -1166,6 +1193,11 @@ This variable specifies how to read buffer names.  For example, if you
 set this variable to @code{iswitchb-read-buffer}, all Emacs commands
 that call @code{read-buffer} to read a buffer name will actually use the
 @code{iswitchb} package to read it.
+@end defvar
+
+@defvar read-buffer-completion-ignore-case
+If this variable is non-@code{nil}, @code{read-buffer} ignores case
+when performing completion.
 @end defvar
 
 @defun read-command prompt &optional default
@@ -1302,23 +1334,18 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 for reading file names and shell commands.  They provide special
 features including automatic insertion of the default directory.
 
-@defun read-file-name prompt &optional directory default existing initial predicate
+@defun read-file-name prompt &optional directory default require-match initial predicate
 This function reads a file name in the minibuffer, prompting with
 @var{prompt} and providing completion.
 
-If @var{existing} is non-@code{nil}, then the user must specify the name
-of an existing file; @key{RET} performs completion to make the name
-valid if possible, and then refuses to exit if it is not valid.  If the
-value of @var{existing} is neither @code{nil} nor @code{t}, then
-@key{RET} also requires confirmation after completion.  If
-@var{existing} is @code{nil}, then the name of a nonexistent file is
-acceptable.
+The optional argument @var{require-match} has the same meaning as in
+@code{completing-read}.  @xref{Minibuffer Completion}.
 
 @code{read-file-name} uses
 @code{minibuffer-local-filename-completion-map} as the keymap if
-@var{existing} is @code{nil}, and uses
-@code{minibuffer-local-filename-must-match-map} if @var{existing} is
-non-@code{nil}.  @xref{Completion Commands}.
+@var{require-match} is @code{nil}, and uses
+@code{minibuffer-local-filename-must-match-map} if @var{require-match}
+is non-@code{nil}.  @xref{Completion Commands}.
 
 The argument @var{directory} specifies the directory to use for
 completion of relative file names.  It should be an absolute directory
@@ -1341,7 +1368,7 @@ contents that @code{read-file-name} inserted initially.  The initial
 minibuffer contents are always non-empty if
 @code{insert-default-directory} is non-@code{nil}, as it is by
 default.  @var{default} is not checked for validity, regardless of the
-value of @var{existing}.  However, if @var{existing} is
+value of @var{require-match}.  However, if @var{require-match} is
 non-@code{nil}, the initial minibuffer contents should be a valid file
 (or directory) name.  Otherwise @code{read-file-name} attempts
 completion if the user exits without any editing, and does not return
@@ -1361,9 +1388,9 @@ types @key{RET} without any editing, @code{read-file-name} simply
 returns the pre-inserted contents of the minibuffer.
 
 If the user types @key{RET} in an empty minibuffer, this function
-returns an empty string, regardless of the value of @var{existing}.
-This is, for instance, how the user can make the current buffer visit
-no file using @code{M-x set-visited-file-name}.
+returns an empty string, regardless of the value of
+@var{require-match}.  This is, for instance, how the user can make the
+current buffer visit no file using @code{M-x set-visited-file-name}.
 
 If @var{predicate} is non-@code{nil}, it specifies a function of one
 argument that decides which file names are acceptable completion
@@ -1420,7 +1447,7 @@ If this variable is non-@code{nil}, @code{read-file-name} ignores case
 when performing completion.
 @end defvar
 
-@defun read-directory-name prompt &optional directory default existing initial
+@defun read-directory-name prompt &optional directory default require-match initial
 This function is like @code{read-file-name} but allows only directory
 names as completion possibilities.
 
@@ -1504,6 +1531,58 @@ Input}).  The rest of @var{args}, if present, are used as the
 This keymap is used by @code{read-shell-command} for completing
 command and file names that are part of a shell command.
 @end defvar
+
+@node Completion Styles
+@subsection Completion Styles
+@cindex completion styles
+
+  A @dfn{completion style} is a set of rules for generating
+completions.  The user option @code{completion-styles} stores a list
+of completion styles, which are represented by symbols.
+
+@defopt completion-styles
+This is a list of completion style symbols to use for performing
+completion.  Each completion style in this list must be defined in
+@code{completion-styles-alist}.
+@end defopt
+
+@defvar completion-styles-alist
+This variable stores a list of available completion styles.  Each
+element in the list must have the form @samp{(@var{name}
+@var{try-completion} @var{all-completions})}.  Here, @var{name} is the
+name of the completion style (a symbol), which may be used in
+@code{completion-styles-alist} to refer to this style.
+
+@var{try-completion} is the function that does the completion, and
+@var{all-completions} is the function that lists the completions.
+These functions should accept four arguments: @var{string},
+@var{collection}, @var{predicate}, and @var{point}.  The @var{string},
+@var{collection}, and @var{predicate} arguments have the same meanings
+as in @code{try-completion} (@pxref{Basic Completion}), and the
+@var{point} argument is the position of point within @var{string}.
+Each function should return a non-@code{nil} value if it performed its
+job, and @code{nil} if it did not (e.g., if there is no way to
+complete @var{string} according to the completion style).
+
+When the user calls a completion command, such as
+@code{minibuffer-complete} (@pxref{Completion Commands}), Emacs looks
+for the first style listed in @code{completion-styles} and calls its
+@var{try-completion} function.  If this function returns @code{nil},
+Emacs moves to the next completion style listed in
+@code{completion-styles} and calls its @var{try-completion} function,
+and so on until one of the @var{try-completion} functions successfully
+performs completion and returns a non-@code{nil} value.  A similar
+procedure is used for listing completions, via the
+@var{all-completions} functions.
+@end defvar
+
+  By default, @code{completion-styles-alist} contains four pre-defined
+completion styles: @code{basic}, a basic completion style;
+@code{partial-completion}, which does partial completion (completing
+each word in the input separately); @code{emacs22}, which performs
+completion according to the rules used in Emacs 22; and
+@code{emacs21}, which performs completion according to the rules used
+in Emacs 21.
 
 @node Programmed Completion
 @subsection Programmed Completion

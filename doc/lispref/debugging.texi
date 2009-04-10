@@ -78,19 +78,19 @@ error.
 
   However, entry to the debugger is not a normal consequence of an
 error.  Many commands frequently cause Lisp errors when invoked
-inappropriately (such as @kbd{C-f} at the end of the buffer), and during
-ordinary editing it would be very inconvenient to enter the debugger
-each time this happens.  So if you want errors to enter the debugger, set
-the variable @code{debug-on-error} to non-@code{nil}.  (The command
+inappropriately, and during ordinary editing it would be very
+inconvenient to enter the debugger each time this happens.  So if you
+want errors to enter the debugger, set the variable
+@code{debug-on-error} to non-@code{nil}.  (The command
 @code{toggle-debug-on-error} provides an easy way to do this.)
 
 @defopt debug-on-error
-This variable determines whether the debugger is called when an error is
-signaled and not handled.  If @code{debug-on-error} is @code{t}, all
-kinds of errors call the debugger (except those listed in
-@code{debug-ignored-errors}).  If it is @code{nil}, none call the
-debugger.  (Note that @code{eval-expression-debug-on-error} affects the
-setting of this variable in some cases; see below.)
+This variable determines whether the debugger is called when an error
+is signaled and not handled.  If @code{debug-on-error} is @code{t},
+all kinds of errors call the debugger, except those listed in
+@code{debug-ignored-errors} (see below).  If it is @code{nil}, none
+call the debugger.  (Note that @code{eval-expression-debug-on-error}
+affects the setting of this variable in some cases; see below.)
 
 The value can also be a list of error conditions that should call the
 debugger.  For example, if you set it to the list
@@ -154,18 +154,6 @@ file, use the option @samp{--debug-init}.  This binds
 @code{debug-on-error} to @code{t} while loading the init file, and
 bypasses the @code{condition-case} which normally catches errors in the
 init file.
-
-  If your init file sets @code{debug-on-error}, the effect may
-not last past the end of loading the init file.  (This is an undesirable
-byproduct of the code that implements the @samp{--debug-init} command
-line option.)  The best way to make the init file set
-@code{debug-on-error} permanently is with @code{after-init-hook}, like
-this:
-
-@example
-(add-hook 'after-init-hook
-          (lambda () (setq debug-on-error t)))
-@end example
 
 @node Infinite Loops
 @subsection Debugging Infinite Loops

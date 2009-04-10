@@ -1,3 +1,15 @@
+2009-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi (FAQ 8-4): Fix wrong group name of
+	news.software.readers.  Reported by Florian Rehnisch.
+
+2009-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* auth.texi: Capitalize direntry.
+
+	* mairix-el.texi: Copy the direntry from ../../info/dir, and avoid
+	using a period in the entry name.  (Bug#2797)
+
 2009-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add auth.

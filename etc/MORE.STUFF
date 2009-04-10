@@ -37,15 +37,15 @@ The Emacs Wiki has an area for storing elisp files
 * Emacs tutorials and manuals
 
  * Emacs slides and tutorials can be found here:
-   <URL:http://stuff.mit.edu/iap/emacs/>
+   <URL:http://web.psung.name/emacs/>
 
 * Maintenance versions of some packages distributed with Emacs
 
 You might find bug-fixes or enhancements in these places.
 
- * Ada-mode: <URL:http://libre.act-europe.fr/adamode>
+ * Ada-mode: <URL:http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html>
 
- * Battery and Info Look: <URL:http://www-cdf.fnal.gov/~sthrlnd/emacs/>
+ * Battery and Info Look: <URL:http://ralph-schleicher.de/emacs.html>
 
  * BS: <URL:http://www.geekware.de/software/emacs/index.html>
 
@@ -53,44 +53,38 @@ You might find bug-fixes or enhancements in these places.
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
- * CPerl: <URL:http://www.cpan.org/modules/by-module/CPAN/ILYAZ/cperl-mode/>
+ * CPerl: <URL:http://math.berkeley.edu/~ilya/software/emacs/>
 
  * Ediff and Viper: <URL:http://www.cs.sunysb.edu/~kifer/emacs.html>
 
  * Eldoc and Rlogin:
    <URL:http://www.splode.com/~friedman/software/emacs-lisp/>
 
- * ERC: IRC client:
-   <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
+ * ERC: <URL:http://savannah.gnu.org/projects/erc/>
 
- * EShell: <URL:http://johnwiegley.com/eshell.html>
-
- * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
-
- * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
+ * Etags: <URL:http://fly.cnuce.cnr.it/software/#etags>
 
  * Gnus: <URL:http://www.gnus.org/>
-
- * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
-   (And some addons for it.)
-
- * Hideshow: <URL:http://staff.science.uva.nl/~dominik/Tools/org/>
 
  * Ispell: <URL:http://www.eng.utah.edu/~kstevens/ispell-page.html>
 
  * MH-E: <URL:http://mh-e.sourceforge.net/>
 
- * Org mode: <URL:http://staff.science.uva.nl/~dominik/Tools/org/>
+ * nXML: <URL:http://www.thaiopensource.com/nxml-mode/>
+
+ * Org mode: <URL:http://orgmode.org/>
 
  * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
  * PS-print: <URL:http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage>
 
- * Python mode: <URL:http://www.emacswiki.org/cgi-bin/wiki/PythonMode>
+ * Python: <URL:http://www.loveshack.ukfsn.org/emacs/>
 
  * QuickURL: <URL:http://www.davep.org/emacs/>
 
  * RefTeX: <URL:http://www.gnu.org/software/auctex/reftex.html>
+
+ * Remember: <URL:https://gna.org/p/remember-el>
 
  * Speedbar, Checkdoc etc: <URL:http://cedet.sourceforge.net/>
 
@@ -100,8 +94,6 @@ You might find bug-fixes or enhancements in these places.
    <URL:http://savannah.gnu.org/projects/tramp/>
 
  * Webjump: <URL:http://www.neilvandyke.org/webjump>
-
- * Whitespace: <URL:http://www.dsmit.com/lisp/whitespace.el>
 
 * Auxiliary files
 
@@ -154,11 +146,10 @@ Several are for Debian GNU/Linux in particular.
  * EDB: database: <URL:http://www.gnuvola.org/software/edb/>
 
  * Ee: categorizing information manager:
-   <URL:http://www.jurta.org/emacs/ee/>
+   <URL:http://www.jurta.org/en/emacs/ee/>
 
  * EFS: enhanced version of ange-ftp:
-   <URL:http://www-uk.hpl.hp.com/people/ange/efs>
-   Version 1.16 is said not to work properly with Emacs 20.
+   <URL:http://www-pu.informatik.uni-tuebingen.de/users/sperber/software/efs/>
 
  * Elib library: <URL:http://www.gnu.org/software/elib/elib.html>
    From GNU distribution mirrors.  (Much of this functionality is now
@@ -167,7 +158,7 @@ Several are for Debian GNU/Linux in particular.
  * EMacro: <URL:http://emacro.sourceforge.net/>
    EMacro is a portable configuration file that configures itself.
 
- * Emacs Muse: <URL:http://www.mwolson.org/projects/EmacsMuse.html>
+ * Emacs Muse: <URL:http://mwolson.org/projects/EmacsMuse.html>
    An authoring and publishing environment for Emacs.
 
  * Emacs speaks statistics (ESS): statistical programming within Emacs
@@ -179,16 +170,16 @@ Several are for Debian GNU/Linux in particular.
  * Emacs-w3m : <URL:http://emacs-w3m.namazu.org/>
    A simple Emacs interface to w3m, which is a text-mode WWW browser
 
- * Emacs Wiki Mode: <URL:http://www.mwolson.org/projects/EmacsWiki.html>
+ * Emacs Wiki Mode: <URL:http://mwolson.org/projects/EmacsWikiMode.html>
    A wiki-like publishing tool and personal information manager
 
  * Gnuserv:
    <URL:http://www.hpl.hp.com/personal/ange/gnuserv/home.html>
-   Enhanced emacsclient/emacsserver.  Also available from this Web
+   Alternative emacsclient/emacsserver.  Also available from this Web
    page: eiffel-mode.el.
 
  * Go in a buffer: Go Text Protocol client:
-   <URL:http://www.gnuvola.org/software/personal-elisp/standalone/>
+   <URL:http://www.gnuvola.org/software/personal-elisp/dist/lisp/diversions/gnugo.el>
    A modified version is also bundled with GNU Go:
    <URL:http://www.gnu.org/software/gnugo/gnugo.html>
 
@@ -201,7 +192,7 @@ Several are for Debian GNU/Linux in particular.
    Hyperbole is an open, efficient, programmable information
    management and hypertext system.
 
- * JDEE: <URL:http://jdee.sunsite.dk/>
+ * JDEE: <URL:http://jdee.sourceforge.net/>
    Provides a Java development environment for Emacs.
 
  * Mailcrypt:
@@ -216,25 +207,17 @@ Several are for Debian GNU/Linux in particular.
    MMM Mode is an emacs add-on package providing a minor mode that
    allows Multiple Major Modes to coexist in one buffer.
 
- * nXML Mode: New mode for XML:
-   <URL:http://www.thaiopensource.com/nxml-mode/>
-   nXML mode is an addon for GNU Emacs, which makes GNU Emacs into a
-   powerful XML editor.
-
- * Planner Mode: <URL:http://wjsullivan.net/PlannerMode>
+ * Planner Mode: <URL:http://www.wjsullivan.net/PlannerMode.html>
    Planner is an organizer and day planner for Emacs.
 
  * Preview LaTeX: embed preview LaTeX images in source buffer.
-   <URL:http://www.gnu.org/software/auctex/preview-latex>
+   <URL:http://www.gnu.org/software/auctex/preview-latex.html>
 
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
    DTD-aware serious SGML/XML editing.
 
  * Quack: <URL:http://www.neilvandyke.org/quack/>
    Quack enhances Emacs support for Scheme.
-
- * Remember: <URL:https://gna.org/p/remember-el>
-   A Personal Information Manager (PIM) for Emacs.
 
  * Session: <URL:http://emacs-session.sourceforge.net/>
    Session Management for Emacs.
@@ -243,14 +226,14 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://common-lisp.net/project/slime/>
 
  * Tamago: Chinese/Japanese/Korean input method
-   <URL:ftp://m17n.org/pub/tamago/>
+   <URL:http://www.m17n.org/tamago/index.en.html>
    Emacs Lisp package to provide input methods for CJK characters.
    It can use these background conversion servers:
 	FreeWnn (jserver, cserver, tserver),
 	Wnn6,
 	SJ3 Ver.2
 
- * Tiny Tools: <URL:http://tiny-tools.sourceforge.net/>
+ * Tiny Tools: <URL:http://freshmeat.net/projects/emacs-tiny-tools>
 
  * VM (View Mail): <URL:http://www.nongnu.org/viewmail/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>

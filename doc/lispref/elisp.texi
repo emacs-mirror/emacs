@@ -7,7 +7,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  3.0
-@set EMACSVER 23.0.91
+@set EMACSVER 23.0.92
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -635,6 +635,7 @@ Completion
                               (reading buffer name, file name, etc.)
 * Reading File Names::      Using completion to read file names and
                               shell commands.
+* Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
@@ -938,8 +939,7 @@ Windows
 Frames
 
 * Creating Frames::	    Creating additional frames.
-* Multiple Displays::       Creating frames on other displays.
-* Multiple Terminals::          Displaying on several different devices.
+* Multiple Terminals::      Displaying on several different devices.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
 * Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
@@ -1079,7 +1079,6 @@ Text Properties
                               only when text is examined.
 * Clickable Text::          Using text properties to make regions of text
                               do something when you click on them.
-* Links and Mouse-1::       How to make @key{Mouse-1} follow a link.
 * Fields::                  The @code{field} property defines
                               fields within the buffer.
 * Not Intervals::	    Why text properties do not use

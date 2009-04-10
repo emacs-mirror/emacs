@@ -571,7 +571,9 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
+#ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
+#endif
 
       uid = getuid ();
       attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
@@ -604,8 +606,12 @@ system_process_attributes (Lisp_Object pid)
 			    make_fixnum_or_float ((unsigned long)sbrk(0)/1024)),
 		     attrs);
       attrs = Fcons (Fcons (Qetime, tem), attrs);
+#ifndef SYSTEM_MALLOC
+      /* ret_lim_data is on vm-limit.c, which is not compiled in under
+	 SYSTEM_MALLOC.  */
       pmem = (double)((unsigned long) sbrk (0)) / ret_lim_data () * 100.0;
       if (pmem > 100)
+#endif
 	pmem = 100;
       attrs = Fcons (Fcons (Qpmem, make_float (pmem)), attrs);
       /* Pass 1: Count how much storage we need.  */

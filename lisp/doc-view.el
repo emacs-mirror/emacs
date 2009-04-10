@@ -289,6 +289,7 @@ Can be `dvi', `pdf', or `ps'.")
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
     (define-key map [remap goto-line] 'doc-view-goto-page)
+    (define-key map (kbd "RET")       'image-next-line)
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
@@ -563,7 +564,10 @@ Should be invoked when the cached images aren't up-to-date."
   "Generic sentinel for doc-view conversion processes."
   (if (not (string-match "finished" event))
       (message "DocView: process %s changed status to %s."
-               (process-name proc) event)
+               (process-name proc)
+	       (if (string-match "\\(.+\\)\n?\\'" event)
+		   (match-string 1 event)
+		 event))
     (when (buffer-live-p (process-get proc 'buffer))
       (with-current-buffer (process-get proc 'buffer)
         (setq doc-view-current-converter-processes
@@ -730,7 +734,9 @@ Those files are saved in the directory given by the function
     (let ((res doc-view-resolution))
       (with-temp-buffer
 	(princ res (current-buffer))
-	(write-file res-file)))
+        ;; Don't use write-file, so as to avoid prompts for `require-newline',
+        ;; or for pre-existing buffers with the same name, ...
+	(write-region nil nil res-file nil 'silently)))
     (case doc-view-doc-type
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
@@ -1115,10 +1121,10 @@ toggle between displaying the document or editing it as text.
 \\{doc-view-mode-map}"
   (interactive)
 
-  (if (or (not (file-exists-p buffer-file-name))
-	  (= (point-min) (point-max)))
+  (if (= (point-min) (point-max))
       ;; The doc is empty or doesn't exist at all, so fallback to
-      ;; another mode.
+      ;; another mode.  We used to also check file-exists-p, but this
+      ;; returns nil for tar members.
       (let ((auto-mode-alist (remq (rassq 'doc-view-mode auto-mode-alist)
 				   auto-mode-alist)))
 	(normal-mode))

@@ -2478,40 +2478,55 @@ extern void init_image P_ ((void));
 
 /* Defined in insdel.c */
 extern Lisp_Object Qinhibit_modification_hooks;
-extern void move_gap P_ ((int));
-extern void move_gap_both P_ ((int, int));
-extern void make_gap P_ ((int));
-extern int copy_text P_ ((const unsigned char *, unsigned char *, int, int, int));
-extern int count_size_as_multibyte P_ ((const unsigned char *, int));
-extern int count_combining_before P_ ((const unsigned char *, int, int, int));
-extern int count_combining_after P_ ((const unsigned char *, int, int, int));
-extern void insert P_ ((const unsigned char *, int));
-extern void insert_and_inherit P_ ((const unsigned char *, int));
-extern void insert_1 P_ ((const unsigned char *, int, int, int, int));
-extern void insert_1_both P_ ((const unsigned char *, int, int, int, int, int));
-extern void insert_from_gap P_ ((EMACS_INT, EMACS_INT));
-extern void insert_from_string P_ ((Lisp_Object, int, int, int, int, int));
-extern void insert_from_buffer P_ ((struct buffer *, int, int, int));
-extern void insert_char P_ ((int));
-extern void insert_string P_ ((const char *));
-extern void insert_before_markers P_ ((const unsigned char *, int));
-extern void insert_before_markers_and_inherit P_ ((const unsigned char *, int));
-extern void insert_from_string_before_markers P_ ((Lisp_Object, int, int, int, int, int));
-extern void del_range P_ ((int, int));
-extern Lisp_Object del_range_1 P_ ((int, int, int, int));
-extern void del_range_byte P_ ((int, int, int));
-extern void del_range_both P_ ((int, int, int, int, int));
-extern Lisp_Object del_range_2 P_ ((int, int, int, int, int));
-extern void modify_region P_ ((struct buffer *, int, int, int));
-extern void prepare_to_modify_buffer P_ ((int, int, int *));
-extern void signal_before_change P_ ((int, int, int *));
-extern void signal_after_change P_ ((int, int, int));
-extern void adjust_after_replace P_ ((int, int, Lisp_Object, int, int));
-extern void adjust_after_replace_noundo P_ ((int, int, int, int, int, int));
-extern void adjust_after_insert P_ ((int, int, int, int, int));
-extern void replace_range P_ ((int, int, Lisp_Object, int, int, int));
-extern void replace_range_2 P_ ((int, int, int, int, char *, int, int, int));
-extern void syms_of_insdel P_ ((void));
+extern void move_gap (EMACS_INT);
+extern void move_gap_both (EMACS_INT, EMACS_INT);
+extern void make_gap (EMACS_INT);
+extern EMACS_INT copy_text (const unsigned char *, unsigned char *,
+			    EMACS_INT, int, int);
+extern EMACS_INT count_size_as_multibyte (const unsigned char *, EMACS_INT);
+extern int count_combining_before (const unsigned char *,
+				   EMACS_INT, EMACS_INT, EMACS_INT);
+extern int count_combining_after (const unsigned char *,
+				  EMACS_INT, EMACS_INT, EMACS_INT);
+extern void insert (const unsigned char *, EMACS_INT);
+extern void insert_and_inherit (const unsigned char *, EMACS_INT);
+extern void insert_1 (const unsigned char *, EMACS_INT, int, int, int);
+extern void insert_1_both (const unsigned char *, EMACS_INT, EMACS_INT,
+			   int, int, int);
+extern void insert_from_gap (EMACS_INT, EMACS_INT);
+extern void insert_from_string (Lisp_Object, EMACS_INT, EMACS_INT,
+				EMACS_INT, EMACS_INT, int);
+extern void insert_from_buffer (struct buffer *, EMACS_INT, EMACS_INT, int);
+extern void insert_char (int);
+extern void insert_string (const char *);
+extern void insert_before_markers (const unsigned char *, EMACS_INT);
+extern void insert_before_markers_and_inherit (const unsigned char *,
+					       EMACS_INT);
+extern void insert_from_string_before_markers (Lisp_Object, EMACS_INT,
+					       EMACS_INT, EMACS_INT,
+					       EMACS_INT, int);
+extern void del_range (EMACS_INT, EMACS_INT);
+extern Lisp_Object del_range_1 (EMACS_INT, EMACS_INT, int, int);
+extern void del_range_byte (EMACS_INT, EMACS_INT, int);
+extern void del_range_both (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT, int);
+extern Lisp_Object del_range_2 (EMACS_INT, EMACS_INT,
+				EMACS_INT, EMACS_INT, int);
+extern void modify_region (struct buffer *, EMACS_INT, EMACS_INT, int);
+extern void prepare_to_modify_buffer (EMACS_INT, EMACS_INT, EMACS_INT *);
+extern void signal_before_change (EMACS_INT, EMACS_INT, EMACS_INT *);
+extern void signal_after_change (EMACS_INT, EMACS_INT, EMACS_INT);
+extern void adjust_after_replace (EMACS_INT, EMACS_INT, Lisp_Object,
+				  EMACS_INT, EMACS_INT);
+extern void adjust_after_replace_noundo (EMACS_INT, EMACS_INT, EMACS_INT,
+					 EMACS_INT, EMACS_INT, EMACS_INT);
+extern void adjust_after_insert (EMACS_INT, EMACS_INT, EMACS_INT,
+				 EMACS_INT, EMACS_INT);
+extern void adjust_markers_for_delete (EMACS_INT, EMACS_INT,
+				       EMACS_INT, EMACS_INT);
+extern void replace_range (EMACS_INT, EMACS_INT, Lisp_Object, int, int, int);
+extern void replace_range_2 (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
+			     char *, EMACS_INT, EMACS_INT, int);
+extern void syms_of_insdel (void);
 
 /* Defined in dispnew.c */
 extern Lisp_Object selected_frame;
@@ -3340,6 +3355,7 @@ EXFUN (Fnew_fontset, 2);
 /* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 5);
+EXFUN (Fx_focus_frame, 1);
 #endif
 
 /* Defined in xfaces.c */

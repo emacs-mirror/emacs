@@ -780,9 +780,10 @@ argument to it), and if it returns non-nil, we simply return its value.
 
 If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling.
 
-Interactively (when `region' is non-nil) in Transient Mark mode when
-the mark is active, call `fill-region' to fill each of the paragraphs
-in the active region."
+The REGION argument is non-nil if called interactively; in that
+case, if Transient Mark mode is enabled and the mark is active,
+call `fill-region' to fill each of the paragraphs in the active
+region, instead of just filling the current paragraph."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (if current-prefix-arg 'full) t)))

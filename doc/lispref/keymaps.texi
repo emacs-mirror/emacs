@@ -487,14 +487,12 @@ prefix key.
 @code{ctl-x-4-map} is the global keymap used for the @kbd{C-x 4} prefix
 key.
 
-@c Emacs 19 feature
 @item
 @cindex @kbd{C-x 5}
 @vindex ctl-x-5-map
 @code{ctl-x-5-map} is the global keymap used for the @kbd{C-x 5} prefix
 key.
 
-@c Emacs 19 feature
 @item
 @cindex @kbd{C-x 6}
 @vindex 2C-mode-map
@@ -508,16 +506,27 @@ key.
 key.
 
 @item
+@cindex @kbd{M-g}
+@vindex goto-map
+@code{goto-map} is the global keymap used for the @kbd{M-g} prefix
+key.
+
+@item
+@cindex @kbd{M-s}
+@vindex search-map
+@code{search-map} is the global keymap used for the @kbd{M-s} prefix
+key.
+
+@item
 @cindex @kbd{M-o}
 @vindex facemenu-keymap
 @code{facemenu-keymap} is the global keymap used for the @kbd{M-o}
 prefix key.
 
-@c Emacs 19 feature
 @item
-The other Emacs prefix keys are @kbd{M-g}, @kbd{C-x @@}, @kbd{C-x a i},
-@kbd{C-x @key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps
-that have no special names.
+The other Emacs prefix keys are @kbd{C-x @@}, @kbd{C-x a i}, @kbd{C-x
+@key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps that have
+no special names.
 @end itemize
 
   The keymap binding of a prefix key is used for looking up the event
@@ -889,7 +898,7 @@ If non-@code{nil}, this variable holds a keymap to use instead of
 or overlay keymaps, and all the minor mode keymaps.
 
 This variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.  It is used to implement
+buffer-local.  @xref{Multiple Terminals}.  It is used to implement
 incremental search mode.
 @end defvar
 
@@ -2694,7 +2703,7 @@ specifies the local map to make the definition in.  The argument
 @code{tool-bar-add-item-from-menu}.
 @end defun
 
-@defvar auto-resize-tool-bar
+@defvar auto-resize-tool-bars
 If this variable is non-@code{nil}, the tool bar automatically resizes to
 show all defined tool bar items---but not larger than a quarter of the
 frame's height.
@@ -2702,6 +2711,9 @@ frame's height.
 If the value is @code{grow-only}, the tool bar expands automatically,
 but does not contract automatically.  To contract the tool bar, the
 user has to redraw the frame by entering @kbd{C-l}.
+
+If Emacs is built with GTK or Nextstep, the tool bar can only show one
+line, so this variable has no effect.
 @end defvar
 
 @defvar auto-raise-tool-bar-buttons

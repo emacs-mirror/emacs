@@ -1941,18 +1941,16 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
 DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 5, "",
        doc: /* Execute the current buffer as Lisp code.
-Programs can pass two arguments, BUFFER and PRINTFLAG.
+When called from a Lisp program (i.e., not interactively), this
+function accepts up to five optional arguments:
 BUFFER is the buffer to evaluate (nil means use current buffer).
 PRINTFLAG controls printing of output:
-A value of nil means discard it; anything else is stream for print.
-
-If the optional third argument FILENAME is non-nil,
-it specifies the file name to use for `load-history'.
-The optional fourth argument UNIBYTE specifies `load-convert-to-unibyte'
-for this invocation.
-
-The optional fifth argument DO-ALLOW-PRINT, if non-nil, specifies that
-`print' and related functions should work normally even if PRINTFLAG is nil.
+ A value of nil means discard it; anything else is stream for print.
+FILENAME specifies the file name to use for `load-history'.
+UNIBYTE, if non-nil, specifies `load-convert-to-unibyte' for this
+ invocation.
+DO-ALLOW-PRINT, if non-nil, specifies that `print' and related
+ functions should work normally even if PRINTFLAG is nil.
 
 This function preserves the position of point.  */)
      (buffer, printflag, filename, unibyte, do_allow_print)

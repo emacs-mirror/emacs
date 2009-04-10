@@ -1359,7 +1359,6 @@ this by calling a function defined by `minibuffer-default-add-function'.")
   "Return a list of all completions without the default value.
 This function is used to add all elements of the completion table to
 the end of the list of defaults just after the default value."
-  (interactive)
   (let ((def minibuffer-default)
 	(all (all-completions ""
 			      minibuffer-completion-table
@@ -1682,9 +1681,13 @@ as an argument limits undo to changes within the current region."
     ;; In the ordinary case (not within a region), map the redo
     ;; record to the following undos.
     ;; I don't know how to do that in the undo-in-region case.
-    (puthash buffer-undo-list
-	     (if undo-in-region t pending-undo-list)
-	     undo-equiv-table)
+    (let ((list buffer-undo-list))
+      ;; Strip any leading undo boundaries there might be, like we do
+      ;; above when checking.
+      (while (eq (car list) nil)
+	(setq list (cdr list)))
+      (puthash list (if undo-in-region t pending-undo-list)
+	       undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
@@ -1976,7 +1979,8 @@ If you did not execute any such command, the situation is
 probably due to a bug and you should report it.
 
 You can disable the popping up of this buffer by adding the entry
-\(undo discard-info) to the user option `warning-suppress-types'.\n")
+\(undo discard-info) to the user option `warning-suppress-types',
+which is defined in the `warnings' library.\n")
 		     :warning)
     (setq buffer-undo-list nil)
     t))
@@ -3098,13 +3102,13 @@ With ARG, rotate that many kills forward (or backward, if negative)."
 (defun kill-forward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point arg)))
+  (kill-region (point) (+ (point) arg)))
 
 ;; Internal subroutine of backward-delete-char
 (defun kill-backward-chars (arg)
   (if (listp arg) (setq arg (car arg)))
   (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point (- arg))))
+  (kill-region (point) (- (point) arg)))
 
 (defcustom backward-delete-char-untabify-method 'untabify
   "The method for untabifying when deleting backward.
@@ -3741,31 +3745,46 @@ mode temporarily."
 	  (t (activate-mark)))
     nil))
 
-(defun handle-shift-selection (&optional deactivate)
-  "Check for shift translation, and operate on the mark accordingly.
-This is called whenever a command with a `^' character in its
-`interactive' spec is invoked while `shift-select-mode' is
-non-nil.
+(defcustom shift-select-mode t
+  "When non-nil, shifted motion keys activate the mark momentarily.
 
-If the command was invoked through shift-translation, set the
-mark and activate the region temporarily, unless it was already
-set in this way.  If the command was invoked without
-shift-translation and a region is temporarily active, deactivate
-the mark.
+While the mark is activated in this way, any shift-translated point
+motion key extends the region, and if Transient Mark mode was off, it
+is temporarily turned on.  Furthermore, the mark will be deactivated
+by any subsequent point motion key that was not shift-translated, or
+by any action that normally deactivates the mark in Transient Mark mode.
 
-With optional arg DEACTIVATE, only perform region deactivation."
-  (cond ((and this-command-keys-shift-translated
-	      (null deactivate))
-	 (unless (and mark-active
-		      (eq (car-safe transient-mark-mode) 'only))
-	   (setq transient-mark-mode
-		 (cons 'only
-		       (unless (eq transient-mark-mode 'lambda)
-			 transient-mark-mode)))
-	   (push-mark nil nil t)))
-	((eq (car-safe transient-mark-mode) 'only)
-	 (setq transient-mark-mode (cdr transient-mark-mode))
-	 (deactivate-mark))))
+See `this-command-keys-shift-translated' for the meaning of
+shift-translation."
+  :type 'boolean
+  :group 'editing-basics)
+
+(defun handle-shift-selection ()
+  "Activate/deactivate mark depending on invocation thru shift translation.
+This function is called by `call-interactively' when a command
+with a `^' character in its `interactive' spec is invoked, before
+running the command itself.
+
+If `shift-select-mode' is enabled and the command was invoked
+through shift translation, set the mark and activate the region
+temporarily, unless it was already set in this way.  See
+`this-command-keys-shift-translated' for the meaning of shift
+translation.
+
+Otherwise, if the region has been activated temporarily,
+deactivate it, and restore the variable `transient-mark-mode' to
+its earlier value."
+  (cond ((and shift-select-mode this-command-keys-shift-translated)
+         (unless (and mark-active
+                      (eq (car-safe transient-mark-mode) 'only))
+           (setq transient-mark-mode
+                 (cons 'only
+                       (unless (eq transient-mark-mode 'lambda)
+                         transient-mark-mode)))
+           (push-mark nil nil t)))
+        ((eq (car-safe transient-mark-mode) 'only)
+         (setq transient-mark-mode (cdr transient-mark-mode))
+         (deactivate-mark))))
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
@@ -4989,6 +5008,10 @@ unless optional argument SOFT is non-nil."
 Some major modes set this.")
 
 (put 'auto-fill-function :minor-mode-function 'auto-fill-mode)
+;; `functions' and `hooks' are usually unsafe to set, but setting
+;; auto-fill-function to nil in a file-local setting is safe and
+;; can be useful to prevent auto-filling.
+(put 'auto-fill-function 'safe-local-variable 'null)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
 (defun auto-fill-mode (&optional arg)
@@ -5468,7 +5491,7 @@ header fields.  Elements look like (HEADER . VALUE) where both
 HEADER and VALUE are strings.
 
 CONTINUE, if non-nil, says to continue editing a message already
-being composed.
+being composed.  Interactively, CONTINUE is the prefix argument.
 
 SWITCH-FUNCTION, if non-nil, is a function to use to
 switch to and display the buffer used for mail composition.
@@ -5591,6 +5614,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
     (define-key map "\e\e\e" 'delete-completion-window)
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
+    (define-key map "q" 'quit-window)
     map)
   "Local map for completion list buffers.")
 

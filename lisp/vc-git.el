@@ -576,19 +576,19 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
   (if file
-      (let ((default-directory (file-name-directory (expand-file-name file)))
-            (file (file-name-nondirectory file)))
-        (vc-git-symbolic-commit
-         (with-temp-buffer
-           (and
-            (vc-git--out-ok "rev-list" "-2" rev "--" file)
-            (goto-char (point-max))
-            (bolp)
-            (zerop (forward-line -1))
-            (not (bobp))
-            (buffer-substring-no-properties
-             (point)
-             (1- (point-max)))))))
+      (let* ((default-directory (file-name-directory (expand-file-name file)))
+             (file (file-name-nondirectory file))
+             (prev-rev (with-temp-buffer
+                         (and
+                          (vc-git--out-ok "rev-list" "-2" rev "--" file)
+                          (goto-char (point-max))
+                          (bolp)
+                          (zerop (forward-line -1))
+                          (not (bobp))
+                          (buffer-substring-no-properties
+                           (point)
+                           (1- (point-max)))))))
+        (or (vc-git-symbolic-commit prev-rev) prev-rev))
     (with-temp-buffer
       (and
        (vc-git--out-ok "rev-parse" (concat rev "^"))
@@ -609,18 +609,19 @@ or BRANCH^ (where \"^\" can be repeated)."
              (bobp)
              (buffer-substring-no-properties
               (point)
-              (1- (point-max)))))))
-    (and current-rev
-	 (vc-git-symbolic-commit
-	  (with-temp-buffer
-	    (and
-	     (vc-git--out-ok "rev-list" "HEAD" "--" file)
-	     (goto-char (point-min))
-	     (search-forward current-rev nil t)
-	     (zerop (forward-line -1))
-	     (buffer-substring-no-properties
-	      (point)
-	      (progn (forward-line 1) (1- (point))))))))))
+              (1- (point-max))))))
+         (next-rev
+          (and current-rev
+               (with-temp-buffer
+                 (and
+                  (vc-git--out-ok "rev-list" "HEAD" "--" file)
+                  (goto-char (point-min))
+                  (search-forward current-rev nil t)
+                  (zerop (forward-line -1))
+                  (buffer-substring-no-properties
+                   (point)
+                   (progn (forward-line 1) (1- (point)))))))))
+    (or (vc-git-symbolic-commit next-rev) next-rev)))
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))
@@ -731,13 +732,14 @@ The difference to vc-do-command is that this function always invokes `git'."
   "Translate COMMIT string into symbolic form.
 Returns nil if not possible."
   (and commit
-       (with-temp-buffer
-	 (and
-	  (vc-git--out-ok "name-rev" "--name-only" "--tags" commit)
-	  (goto-char (point-min))
-	  (= (forward-line 2) 1)
-	  (bolp)
-	  (buffer-substring-no-properties (point-min) (1- (point-max)))))))
+       (let ((name (with-temp-buffer
+                     (and
+                      (vc-git--out-ok "name-rev" "--name-only" commit)
+                      (goto-char (point-min))
+                      (= (forward-line 2) 1)
+                      (bolp)
+                      (buffer-substring-no-properties (point-min) (1- (point-max)))))))
+         (and name (not (string= name "undefined")) name))))
 
 (provide 'vc-git)
 

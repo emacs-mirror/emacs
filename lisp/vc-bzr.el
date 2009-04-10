@@ -327,7 +327,24 @@ If any error occurred in running `bzr status', then return nil."
        (lastrev-file (expand-file-name vc-bzr-admin-lastrev rootdir)))
     ;; This looks at internal files to avoid forking a bzr process.
     ;; May break if they change their format.
-    (if (file-exists-p branch-format-file)
+    (if (and (file-exists-p branch-format-file)
+	     ;; For lightweight checkouts (obtained with bzr checkout --lightweight)
+	     ;; the branch-format-file does not contain the revision
+	     ;; information, we need to look up the branch-format-file
+	     ;; in the place where the lightweight checkout comes
+	     ;; from.  We only do that if it's a local file.
+	     (let ((location-fname (expand-file-name
+				    (concat vc-bzr-admin-dirname
+					    "/branch/location") rootdir)))
+	       ;; The existence of this file is how we distinguish
+	       ;; lightweight checkouts.
+	       (if (file-exists-p location-fname)
+		   (with-temp-buffer
+		     (insert-file-contents location-fname)
+		     (when (re-search-forward "file://\(.+\)" nil t)
+		       (setq branch-format-file (match-string 1))
+		       (file-exists-p branch-format-file)))
+		 t)))
         (with-temp-buffer
           (insert-file-contents branch-format-file)
           (goto-char (point-min))
@@ -437,7 +454,7 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
-       "^ *-+\n *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
+       "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
@@ -619,6 +636,11 @@ stream.  Standard error output is discarded."
 		       ;; For a non existent file FOO, the output is:
 		       ;; bzr: ERROR: Path(s) do not exist: FOO
 		       ("bzr" . not-found)
+		       ;; If the tree is not up to date, bzr will print this warning:
+		       ;; working tree is out of date, run 'bzr update'
+		       ;; ignore it.
+		       ;; FIXME: maybe this warning can be put in the vc-dir header...
+		       ("wor" . not-found)
                        ;; Ignore "P " and "P." for pending patches.
                        ))
 	(translated nil)
@@ -671,16 +693,35 @@ stream.  Standard error output is discarded."
    `(vc-bzr-after-dir-status (quote ,update-function))))
 
 (defun vc-bzr-dir-extra-headers (dir)
-  (let ((str (with-temp-buffer
-	       (vc-bzr-command "info" t 0 dir)
-	       (buffer-string))))
+  (let*
+      ((str (with-temp-buffer
+	      (vc-bzr-command "info" t 0 dir)
+	      (buffer-string)))
+       (light-checkout
+	(when (string-match ".+light checkout root: \\(.+\\)$" str)
+	  (match-string 1 str)))
+       (light-checkout-branch
+	(when light-checkout
+	  (when (string-match ".+checkout of branch: \\(.+\\)$" str)
+	    (match-string 1 str)))))
     (concat
-     (propertize "Parent branch: " 'face 'font-lock-type-face)
-     (propertize 
+     (propertize "Parent branch      : " 'face 'font-lock-type-face)
+     (propertize
       (if (string-match "parent branch: \\(.+\\)$" str)
-	  (match-string 1 str)
-	"None")
-       'face 'font-lock-variable-name-face))))
+ 	  (match-string 1 str)
+ 	"None")
+       'face 'font-lock-variable-name-face)
+     "\n"
+      (when light-checkout
+	(concat
+	 (propertize "Light checkout root: " 'face 'font-lock-type-face)
+	 (propertize light-checkout 'face 'font-lock-variable-name-face)
+	 "\n"))
+      (when light-checkout-branch
+	(concat
+	 (propertize "Checkout of branch : " 'face 'font-lock-type-face)
+	 (propertize light-checkout-branch 'face 'font-lock-variable-name-face)
+	 "\n")))))
 
 ;;; Revision completion
 

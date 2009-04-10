@@ -1,3 +1,8 @@
+2009-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* INSTALL: Make the section "Complex Text Layout support
+	libraries" the first of "ADDITIONAL DISTRIBUTION FILES".
+
 2009-03-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (rs6000-ibm-aix6*): Fix typo.
@@ -606,6 +611,7 @@
 
 	* configure.in: Print an error for systems that we think are obsolete
 	and are proposed to be removed.  Remove some more unused systems.
+	Add support for powerpc-ibm-aix6*.
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 

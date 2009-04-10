@@ -962,7 +962,7 @@ The following commands are accepted by the client:
 		  (let ((file (pop command-line-args-left)))
 		    (if coding-system
 			(setq file (decode-coding-string file coding-system)))
-		    (setq file (command-line-normalize-file-name file))
+                    (setq file (expand-file-name file dir))
 		    (push (cons file filepos) files)
 		    (server-log (format "New file: %s %s"
                                         file (or filepos "")) proc))

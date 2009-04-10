@@ -98,10 +98,11 @@ static Lisp_Object region_limit P_ ((int));
 int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
 				   size_t, const struct tm *, int));
-static void general_insert_function P_ ((void (*) (const unsigned char *, int),
-					 void (*) (Lisp_Object, int, int, int,
-						   int, int),
-					 int, int, Lisp_Object *));
+static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
+				     void (*) (Lisp_Object, EMACS_INT,
+					       EMACS_INT, EMACS_INT,
+					       EMACS_INT, int),
+				     int, int, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind P_ ((Lisp_Object));
 static Lisp_Object subst_char_in_region_unwind_1 P_ ((Lisp_Object));
 static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
@@ -1278,12 +1279,13 @@ This is based on the effective uid, not the real uid.
 Also, if the environment variables LOGNAME or USER are set,
 that determines the value of this function.
 
-If optional argument UID is an integer, return the login name of the user
-with that uid, or nil if there is no such user.  */)
+If optional argument UID is an integer or a float, return the login name
+of the user with that uid, or nil if there is no such user.  */)
      (uid)
      Lisp_Object uid;
 {
   struct passwd *pw;
+  uid_t id;
 
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
@@ -1294,9 +1296,9 @@ with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  CHECK_NUMBER (uid);
+  id = (uid_t)XFLOATINT (uid);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (XINT (uid));
+  pw = (struct passwd *) getpwuid (id);
   UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
@@ -1318,23 +1320,33 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
        doc: /* Return the effective uid of Emacs.
-Value is an integer or float, depending on the value.  */)
+Value is an integer or a float, depending on the value.  */)
      ()
 {
   /* Assignment to EMACS_INT stops GCC whining about limited range of
      data type.  */
   EMACS_INT euid = geteuid ();
+
+  /* Make sure we don't produce a negative UID due to signed integer
+     overflow.  */
+  if (euid < 0)
+    return make_float ((double)geteuid ());
   return make_fixnum_or_float (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
        doc: /* Return the real uid of Emacs.
-Value is an integer or float, depending on the value.  */)
+Value is an integer or a float, depending on the value.  */)
      ()
 {
   /* Assignment to EMACS_INT stops GCC whining about limited range of
      data type.  */
   EMACS_INT uid = getuid ();
+
+  /* Make sure we don't produce a negative UID due to signed integer
+     overflow.  */
+  if (uid < 0)
+    return make_float ((double)getuid ());
   return make_fixnum_or_float (uid);
 }
 
@@ -1553,7 +1565,7 @@ DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
 If SPECIFIED-TIME is given, it is the time to convert to float
 instead of the current time.  The argument should have the form
-(HIGH LOW . IGNORED). Thus, you can use times obtained from
+(HIGH LOW) or (HIGH LOW USEC). Thus, you can use times obtained from
 `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
 have the form (HIGH . LOW), but this is considered obsolete.
 
@@ -2150,12 +2162,12 @@ set_time_zone_rule (tzstring)
    INSERT_FROM_STRING_FUNC as the last argument.  */
 
 static void
-general_insert_function (insert_func, insert_from_string_func,
-			 inherit, nargs, args)
-     void (*insert_func) P_ ((const unsigned char *, int));
-     void (*insert_from_string_func) P_ ((Lisp_Object, int, int, int, int, int));
-     int inherit, nargs;
-     register Lisp_Object *args;
+general_insert_function (void (*insert_func)
+			      (const unsigned char *, EMACS_INT),
+			 void (*insert_from_string_func)
+			      (Lisp_Object, EMACS_INT, EMACS_INT,
+			       EMACS_INT, EMACS_INT, int),
+			 int inherit, int nargs, Lisp_Object *args)
 {
   register int argnum;
   register Lisp_Object val;

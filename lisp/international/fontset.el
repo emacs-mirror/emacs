@@ -115,6 +115,7 @@
 	("muleindian-1" . indian-1-column)
 	("mulelao-1" . mule-lao)
 	("muletibetan-2" . tibetan)
+	("muletibetan-0" . tibetan)
 	("muletibetan-1" . tibetan-1-column)))
 
 (defvar font-encoding-charset-alist)
@@ -577,7 +578,21 @@
   (set-fontset-font "fontset-default" '(#x20000 . #x2FFFF)
 		    '(nil . "unicode-sip"))
 
-  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
+  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF)
+		    '(nil . "iso10646-1"))
+  ;; Don't try the fallback fonts even if no suitable font was found
+  ;; by the above font-spec.
+  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil nil 'append))
+
+(defun create-default-fontset ()
+  "Create the default fontset.
+Internal use only.  Should be called at startup time."
+  (condition-case err
+      (setup-default-fontset)
+    (error (display-warning
+	    'initialization
+	    (format "Creation of the default fontsets failed: %s" err)
+	    :error))))
 
 ;; These are the registered registries/encodings from
 ;; ftp://ftp.x.org/pub/DOCS/registry 2001/06/01
@@ -1049,8 +1064,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
       (condition-case nil
-	  (create-fontset-from-fontset-spec fontset-spec t 'noerror)
-	(error (message "Fontset-%d: invalid specification in X resource" idx)))
+	  (create-fontset-from-fontset-spec fontset-spec t)
+	(error (display-warning
+		'initialization
+		(format "Fontset-%d: invalid specification in X resource" idx)
+		:warning)))
       (setq idx (1+ idx)))))
 
 ;;

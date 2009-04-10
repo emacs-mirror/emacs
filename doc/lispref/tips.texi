@@ -301,7 +301,7 @@ Modes such as Dired, Info, Compilation, and Occur redefine it in this
 way.
 
 In addition, they should mark the text as a kind of ``link'' so that
-@kbd{mouse-1} will follow it also.  @xref{Links and Mouse-1}.
+@kbd{mouse-1} will follow it also.  @xref{Clickable Text}.
 
 @item
 @cindex reserved keys

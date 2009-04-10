@@ -1,3 +1,13 @@
+2009-03-14  David Reitter  <david.reitter@gmail.com>
+
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/classes.nib:
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/info.nib:
+	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/keyedobjects.nib:
+	* GNUstep/Emacs.base/Resources/preferences.gorm/data.classes:
+	* GNUstep/Emacs.base/Resources/preferences.gorm/data.info:
+	* GNUstep/Emacs.base/Resources/preferences.gorm/objects.gorm:
+	Remove files.
+
 2009-02-01  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Cocoa/Emacs.base/Contents/Resources/preferences.nib: Remove

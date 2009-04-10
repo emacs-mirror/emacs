@@ -520,9 +520,14 @@ This function moves point to the start of the screen line @var{count}
 screen lines down from the screen line containing point.  If @var{count}
 is negative, it moves up instead.
 
-@code{vertical-motion} returns the number of screen lines over which it
-moved point.  The value may be less in absolute value than @var{count}
-if the beginning or end of the buffer was reached.
+The @var{count} argument can be a cons cell, @code{(@var{cols}
+. @var{lines})}, instead of an integer.  Then the function moves by
+@var{lines} screen lines, and puts point @var{cols} columns from the
+start of that screen line.
+
+The return value is the number of screen lines over which point was
+moved.  The value may be less in absolute value than @var{count} if
+the beginning or end of the buffer was reached.
 
 The window @var{window} is used for obtaining parameters such as the
 width, the horizontal scrolling, and the display table.  But

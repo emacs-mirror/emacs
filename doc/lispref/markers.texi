@@ -392,44 +392,42 @@ This is another name for @code{set-marker}.
 @cindex mark, the
 @cindex mark ring
 
-  One special marker in each buffer is designated @dfn{the mark}.  It
-specifies a position to bound a range of text for commands such as
-@code{kill-region} and @code{indent-rigidly}.  Lisp programs should
-set the mark only to values that have a potential use to the user, and
-never for their own internal purposes.  For example, the
-@code{replace-regexp} command sets the mark to the value of point
-before doing any replacements, because this enables the user to move
-back there conveniently after the replace is finished.
+  Each buffer has a special marker, which is designated @dfn{the
+mark}.  When a buffer is newly created, this marker exists but does
+not point anywhere; this means that the mark ``doesn't exist'' in that
+buffer yet.  Subsequent commands can set the mark.
 
-  Many commands are designed to operate on the text between point and
-the mark when called interactively.  If you are writing such a
-command, don't examine the mark directly; instead, use
+  The mark specifies a position to bound a range of text for many
+commands, such as @code{kill-region} and @code{indent-rigidly}.  These
+commands typically act on the text between point and the mark, which
+is called the @dfn{region}.  If you are writing a command that
+operates on the region, don't examine the mark directly; instead, use
 @code{interactive} with the @samp{r} specification.  This provides the
 values of point and the mark as arguments to the command in an
 interactive call, but permits other Lisp programs to specify arguments
 explicitly.  @xref{Interactive Codes}.
 
-  Each buffer has a marker which represents the value of the mark in
-that buffer, independent of any other buffer.  When a buffer is newly
-created, this marker exists but does not point anywhere.  That means
-the mark ``doesn't exist'' in that buffer as yet.
+  Some commands set the mark as a side-effect.  Commands should do
+this only if it has a potential use to the user, and never for their
+own internal purposes.  For example, the @code{replace-regexp} command
+sets the mark to the value of point before doing any replacements,
+because this enables the user to move back there conveniently after
+the replace is finished.
 
   Once the mark ``exists'' in a buffer, it normally never ceases to
-exist.  However, it may become @dfn{inactive}, if Transient Mark mode is
-enabled.  The variable @code{mark-active}, which is always buffer-local
-in all buffers, indicates whether the mark is active: non-@code{nil}
-means yes.  A command can request deactivation of the mark upon return
-to the editor command loop by setting @code{deactivate-mark} to a
-non-@code{nil} value (but this causes deactivation only if Transient
-Mark mode is enabled).
+exist.  However, it may become @dfn{inactive}, if Transient Mark mode
+is enabled.  The buffer-local variable @code{mark-active}, if
+non-@code{nil}, means that the mark is active.  A command can call the
+function @code{deactivate-mark} to deactivate the mark directly, or it
+can request deactivation of the mark upon return to the editor command
+loop by setting the variable @code{deactivate-mark} to a
+non-@code{nil} value.
 
-  Certain editing commands that normally apply to text near point,
-work on the region when Transient Mode is enabled and the mark is
+  If Transient Mode is enabled, certain editing commands that normally
+apply to text near point, apply instead to the region when the mark is
 active.  This is the main motivation for using Transient Mark mode.
-
-  Another motivation for using Transient Mark mode is that this mode
-also enables highlighting of the region when the mark is active.
-@xref{Display}.
+(Another is that this enables highlighting of the region when the mark
+is active.  @xref{Display}.)
 
   In addition to the mark, each buffer has a @dfn{mark ring} which is a
 list of markers containing previous values of the mark.  When editing
@@ -450,8 +448,8 @@ or @code{nil} if no mark has ever been set in this buffer.
 If Transient Mark mode is enabled, and @code{mark-even-if-inactive} is
 @code{nil}, @code{mark} signals an error if the mark is inactive.
 However, if @var{force} is non-@code{nil}, then @code{mark} disregards
-inactivity of the mark, and returns the mark position anyway (or
-@code{nil}).
+inactivity of the mark, and returns the mark position (or @code{nil})
+anyway.
 @end defun
 
 @defun mark-marker
@@ -481,20 +479,6 @@ it is the mark, it will yield perfectly consistent, but rather odd,
 results.  We recommend that you not do it!
 @end defun
 
-@ignore
-@deffn Command set-mark-command jump
-If @var{jump} is @code{nil}, this command sets the mark to the value
-of point and pushes the previous value of the mark on the mark ring.  The
-message @samp{Mark set} is also displayed in the echo area.
-
-If @var{jump} is not @code{nil}, this command sets point to the value
-of the mark, and sets the mark to the previous saved mark value, which
-is popped off the mark ring.
-
-This function is @emph{only} intended for interactive use.
-@end deffn
-@end ignore
-
 @defun set-mark position
 This function sets the mark to @var{position}, and activates the mark.
 The old value of the mark is @emph{not} pushed onto the mark ring.
@@ -522,14 +506,6 @@ example:
 @end example
 @end defun
 
-@c for interactive use only
-@ignore
-@deffn Command exchange-point-and-mark
-This function exchanges the positions of point and the mark.
-It is intended for interactive use.
-@end deffn
-@end ignore
-
 @defun push-mark &optional position nomsg activate
 This function sets the current buffer's mark to @var{position}, and
 pushes a copy of the previous mark onto @code{mark-ring}.  If
@@ -553,16 +529,15 @@ The return value is not meaningful.
 @end defun
 
 @defopt transient-mark-mode
-@c  @cindex Transient Mark mode  Redundant
-This variable if non-@code{nil} enables Transient Mark mode, in which
-every buffer-modifying primitive sets @code{deactivate-mark}.  The
-consequence of this is that commands that modify the buffer normally
-make the mark inactive.
+This variable, if non-@code{nil}, enables Transient Mark mode.  In
+Transient Mark mode, every buffer-modifying primitive sets
+@code{deactivate-mark}.  As a consequence, most commands that modify
+the buffer also deactivate the mark.
 
-Certain commands normally apply to text near point, but in Transient
-Mark mode when the mark is active, they apply to the region instead.
-These commands should call @code{use-region-p} to test whether they
-should operate on the region.
+When Transient Mark mode is enabled and the mark is active, many
+commands that normally apply to the text near point instead apply to
+the region.  Such commands should use the function @code{use-region-p}
+to test whether they should operate on the region.  @xref{The Region}.
 
 Lisp programs can set @code{transient-mark-mode} to non-@code{nil},
 non-@code{t} values to enable Transient Mark mode temporarily.  If the
@@ -574,14 +549,6 @@ any subsequent command that moves point and is not shift-translated
 (@pxref{Key Sequence Input, shift-translation}), or after any other
 action that would normally deactivate the mark.
 @end defopt
-
-@defun use-region-p
-This function returns @code{t} if Transient Mark mode is enabled, the
-mark is active, and there's a valid region in the buffer.  Commands
-that operate on the region (instead of on text near point) when
-there's an active mark should use this subroutine to test whether to
-do that.
-@end defun
 
 @defopt mark-even-if-inactive
 If this is non-@code{nil}, Lisp programs and the Emacs user can use the
@@ -619,7 +586,7 @@ The mark is active when this variable is non-@code{nil}.  This
 variable is always buffer-local in each buffer.  Do @emph{not} use the
 value of this variable to decide whether a command that normally
 operates on text near point should operate on the region instead.  Use
-the @code{use-region-p} subroutine (see above) for that.
+the function @code{use-region-p} for that (@pxref{The Region}).
 @end defvar
 
 @defvar activate-mark-hook
@@ -629,6 +596,23 @@ and when it becomes inactive.  The hook @code{activate-mark-hook} is
 also run at the end of a command if the mark is active and it is
 possible that the region may have changed.
 @end defvar
+
+@defun handle-shift-selection
+This function implements the ``shift-selection'' behavior of
+point-motion commands.  @xref{Shift Selection,,, emacs, The GNU Emacs
+Manual}.  It is called automatically by the Emacs command loop
+whenever a command with a @samp{^} character in its @code{interactive}
+spec is invoked, before the command itself is executed
+(@pxref{Interactive Codes, ^}).
+
+If @code{shift-select-mode} is non-@code{nil} and the current command
+was invoked via shift translation (@pxref{Key Sequence Input,
+shift-translation}), this function sets the mark and temporarily
+activates the region, unless the region was already temporarily
+activated in this way.  Otherwise, if the region has been activated
+temporarily, it deactivates the mark and restores the variable
+@code{transient-mark-mode} to its earlier value.
+@end defun
 
 @defvar mark-ring
 The value of this buffer-local variable is the list of saved former
@@ -649,20 +633,6 @@ The value of this variable is the maximum size of @code{mark-ring}.  If
 more marks than this are pushed onto the @code{mark-ring},
 @code{push-mark} discards an old mark when it adds a new one.
 @end defopt
-
-@defun handle-shift-selection &optional deactivate
-This function checks whether the current command was invoked via shift
-translation (@pxref{Key Sequence Input, shift-translation}), and if
-so, sets the mark and temporarily activates the region, unless the
-region is already temporarily activated in this way.  If the command
-was invoked without shift translation, or if the optional argument
-@var{deactivate} is non-@code{nil}, the function deactivates the mark.
-This function is called whenever a command with a @samp{^} character
-in its @code{interactive} spec (@pxref{Interactive Codes, ^}) is
-invoked while @code{shift-select-mode} (@pxref{Shift Selection,,,
-emacs, The GNU Emacs Manual}) is non-@code{nil}.
-
-@end defun
 
 @node The Region
 @section The Region
@@ -696,6 +666,13 @@ should normally use @code{interactive} with the @samp{r} specification
 to find the beginning and end of the region.  This lets other Lisp
 programs specify the bounds explicitly as arguments.  (@xref{Interactive
 Codes}.)
+
+@defun use-region-p
+This function returns @code{t} if Transient Mark mode is enabled, the
+mark is active, and there's a valid region in the buffer.  Commands
+that operate on the region (instead of on text near point) when
+there's an active mark should use this to test whether to do that.
+@end defun
 
 @ignore
    arch-tag: b1ba2e7a-a0f3-4c5e-875c-7d8e22d73299

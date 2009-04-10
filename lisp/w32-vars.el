@@ -40,10 +40,9 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
   :type 'boolean
   :group 'w32)
 
-(defcustom w32-list-proportional-fonts nil
-  "Include proportional fonts in the default font dialog."
-  :type 'boolean
-  :group 'w32)
+(defvar w32-list-proportional-fonts nil
+  "Include proportional fonts in the default font dialog.")
+(make-obsolete-variable 'w32-list-proportional-fonts "no longer used." "23.1")
 
 (defcustom w32-allow-system-shell nil
   "Disable startup warning when using \"system\" shells."

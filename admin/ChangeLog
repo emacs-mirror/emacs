@@ -1,3 +1,13 @@
+2009-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-describe-decomposition): Return
+	a string with a composition property to disable combining
+	characters being composed.
+
+2009-03-11  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* quick-install-emacs: Be more clever about locating info directory.
+
 2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nt/README.W32: Fix typos.

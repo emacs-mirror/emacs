@@ -1,3 +1,7 @@
+2009-03-19  Kenichi Handa  <handa@m17n.org>
+
+	* leim-ext.el: Change the encoding to utf-8.
+
 2008-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (install): Remove old directories in ns_appresdir before

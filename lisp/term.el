@@ -1168,6 +1168,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
     (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
+  (deactivate-mark)
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc)
 	(error "Current buffer has no process")
@@ -1182,7 +1183,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   "Send the last character typed through the terminal-emulator
 without any interpretation."
   (interactive)
-  (deactivate-mark)
   ;; Convert `return' to C-m, etc.
   (when (and (symbolp last-input-event)
 	     (get last-input-event 'ascii-character))
@@ -1191,7 +1191,6 @@ without any interpretation."
 
 (defun term-send-raw-meta ()
   (interactive)
-  (deactivate-mark)
   (let ((char last-input-event))
     (when (symbolp last-input-event)
       ;; Convert `return' to C-m, etc.

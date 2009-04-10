@@ -1,3 +1,199 @@
+2009-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Tool Bar): Mention that some platforms do not
+	support multi-line toolbars.  Suggested by Stephen Eglen.
+
+	* frames.texi (Layout Parameters): Mention that Nextstep also
+	allows only one tool-bar line.  Suggested by Stephen Eglen.
+
+	* nonascii.texi (Text Representations): Copyedits.
+	(Coding System Basics): Also mention utf-8-emacs.
+	(Converting Representations, Selecting a Representation)
+	(Scanning Charsets, Translation of Characters, Encoding and I/O):
+	Copyedits.
+	(Character Codes): Mention role of codepoints 1114112 to 4194175.
+
+2009-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Yank Commands): Note that yank uses push-mark.
+	(Filling): Clarify REGION argument of fill-paragraph.  Document
+	fill-forward-paragraph-function.
+	(Special Properties): Remove "new in Emacs 22" declaration.
+	(Clickable Text): Merge with Links and Mouse-1 node.
+
+	* display.texi (Button Properties, Button Buffer Commands): Change
+	xref to Clickable Text.
+
+	* tips.texi (Key Binding Conventions): Change xref to Clickable
+	Text.
+
+	* elisp.texi (Top): Update node listing.
+
+2009-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* markers.texi (The Mark): Copyedits.  Improve description of
+	handle-shift-selection.
+	(The Region): Move use-region-p here from The Mark.
+
+	* positions.texi (Screen Lines): Document (cols . lines) argument
+	for vertical-motion.
+
+2009-04-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Frames): Clean up introduction.  Document `ns'
+	return value for framep.
+	(Creating Frames): Note how the terminal is chosen.
+	(Multiple Terminals, Multiple Displays): Merge into a single node.
+	(Color Parameters): Fix typo.
+
+	* variables.texi (Local Variables, Buffer-Local Variables)
+	(Creating Buffer-Local): Change link to Multiple Terminals.
+
+	* os.texi (X11 Keysyms): Change link to Multiple Terminals.
+
+	* keymaps.texi (Controlling Active Maps): Change link to Multiple
+	Terminals.
+
+	* commands.texi (Command Loop Info, Keyboard Macros): Change link
+	to Multiple Terminals.
+
+	* elisp.texi (Top): Update node listing.
+	* vol2.texi (Top): Update node listing.
+	* vol1.texi (Top): Update node listing.
+
+	* buffers.texi (Current Buffer): Note that the append-to-buffer
+	example is no longer in synch with the latest code.  Tie the two
+	examples together.
+
+	* files.texi (File Attributes): Move note about MS-DOS from
+	Changing Files to File Attributes.
+	(Create/Delete Dirs): Note that mkdir is an alias for this.
+
+2009-04-01  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Suggest how to handle output
+	batches.
+
+2009-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation): Update example to use
+	help-setup-xref and with-help-window.
+	(Help Functions): Remove print-help-return-message, which is
+	semi-obsolete due to with-help-window.  Document help-buffer and
+	help-setup-xref.
+
+2009-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation, Help Functions): Remove
+	information about long-obsolete Emacs versions.
+
+	* modes.texi (Mode Line Variables): The default values of the mode
+	line variables are now more complicated.
+
+2009-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Major Mode Conventions): Note that specialness is
+	inherited.
+	(Derived Modes): Note that define-derive-mode sets the mode-class
+	property.
+
+	* keymaps.texi (Prefix Keys): The M-g prefix key is now named
+	goto-map.  Add search-map to the list.
+
+2009-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (System Environment): Update the list of system-type
+	values.
+
+	* markers.texi (The Mark) <handle-shift-selection>: Update for
+	removal of the optional argument DEACTIVATE.
+
+2009-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Focus Events): Most X window managers don't use
+	focus-follows-mouse nowadays.
+
+2009-03-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Defining Commands): Clarify introduction.
+	(Using Interactive): Not that interactive can be put in a symbol
+	property.
+	(Interactive Call): Note that a symbol with a non-nil
+	interactive-form property satisfies commandp.
+
+2009-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (Intro to Minibuffers): Fix typos.
+
+2009-03-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Intro to Minibuffers): Remove long-obsolete info
+	about minibuffers in old Emacs versions.  Copyedits.  Emphasize
+	that enable-recursive-minibuffers defaults to nil.
+	(Text from Minibuffer): Simplify introduction.
+
+2009-03-22  Alan Mackenzie  <acm@muc.de>
+
+	* commands.texi (Using Interactive): Clarify string argument to
+	`interactive' - even promptless elements need \n separators.
+
+2009-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Completion Styles): New node.
+
+	* elisp.texi (Top): Update node listing.
+
+2009-03-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Basic Completion): Note that
+	read-file-name-completion-ignore-case and
+	read-buffer-completion-ignore-case can override
+	completion-ignore-case.
+	(Minibuffer Completion): Document completing-read changes.
+	(Completion Commands): Avoid mentioning partial completion mode.
+	Document minibuffer-completion-confirm changes, and
+	minibuffer-confirm-exit-commands.
+	(High-Level Completion): Document new require-match behavior for
+	read-buffer.  Document read-buffer-completion-ignore-case.
+	(Reading File Names): Document new require-match behavior for
+	read-file-name.
+
+2009-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* debugging.texi (Error Debugging): Don't mislead the reader into
+	thinking that debug-on-error enters debugger for C-f at EOB.
+	(Error Debugging): Setting debug-on-init within the init file
+	works, and has for some time.
+
+2009-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Update the description.
+
+2009-03-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* advice.texi (Advising Primitives): Link to What Is a Function.
+
+2009-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* compile.texi (Speed of Byte-Code): Update example.
+	(Disassembly): Update examples.
+
+	* loading.texi (Repeated Loading): Simplify examples.
+
+	* customize.texi (Common Keywords): It's not necessary to use :tag
+	to remove hyphens, as custom-unlispify-tag-name does it
+	automatically.
+	(Variable Definitions): Link to File Local Variables.  Document
+	customized-value symbol property.
+	(Customization Types): Move menu to end of node.
+
+2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macros.texi (Compiling Macros): Omit misleading sentence, which
+	implied that macros can only be used in the same file they are
+	defined.
+	(Backquote): Remove obsolete information about Emacs 19.
+
 2009-03-05  John Foerch  <jjfoerch@earthlink.net>  (tiny change)
 
 	* display.texi (Display Margins): Fix paren typo.
@@ -195,8 +391,7 @@
 	* files.texi (Reading from Files): Document that null bytes force
 	no-conversion when visiting files.
 
-	* processes.texi (Serial Ports): Improve wording, suggested by
-	RMS.
+	* processes.texi (Serial Ports): Improve wording, suggested by RMS.
 
 	* nonascii.texi (Lisp and Coding Systems): Document
 	inhibit-null-byte-detection and inhibit-iso-escape-detection.

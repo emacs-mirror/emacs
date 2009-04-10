@@ -8,39 +8,42 @@
 @chapter Frames
 @cindex frame
 
-  In Emacs editing, a @dfn{frame} is a screen object that contains one
-or more Emacs windows, see @ref{Windows}.  It's the kind of object that
-is called a ``window'' in the terminology of graphical environments; but
-we can't call it a ``window'' here, because Emacs uses that word in a
-different way.  In Emacs Lisp, a @dfn{frame object} is a Lisp object
-that represents a frame on the screen.  @xref{Frame Type}.
+  A @dfn{frame} is a screen object that contains one or more Emacs
+windows (@pxref{Windows}).  It is the kind of object called a
+``window'' in the terminology of graphical environments; but we can't
+call it a ``window'' here, because Emacs uses that word in a different
+way.  In Emacs Lisp, a @dfn{frame object} is a Lisp object that
+represents a frame on the screen.  @xref{Frame Type}.
 
   A frame initially contains a single main window and/or a minibuffer
 window; you can subdivide the main window vertically or horizontally
 into smaller windows.  @xref{Splitting Windows}.
 
+@cindex terminal
   A @dfn{terminal} is a display device capable of displaying one or
-more Emacs frames.  On GNU and Unix systems, Emacs supports any number
-of different terminals in one session, and can mix GUI and text-only
-frames in the same session.
-
-  Emacs represents each terminal on which it displays frames as a
-special @dfn{terminal object} data type, see @ref{Terminal Type}.
+more Emacs frames.  In Emacs Lisp, a @dfn{terminal object} is a Lisp
+object that represents a terminal.  @xref{Terminal Type}.
 
 @cindex terminal frame
-  When Emacs runs on a text-only terminal, it starts with one
-@dfn{terminal frame}.  If you create additional frames on the same
-terminal, Emacs displays one and only one at any given time---on that
-terminal screen, of course.  You can create additional frames, either
-text-only or GUI, on other terminals from the same Emacs session.
-(This comes in handy when you connect to the same session from several
-remote locations.)  @xref{Multiple Terminals}.
-
 @cindex window frame
-  When Emacs communicates directly with a supported window system, such
-as X, it does not have a terminal frame; instead, it starts with
-a single @dfn{window frame}, but you can create more, and Emacs can
-display several such frames at once as is usual for window systems.
+  There are two classes of terminals: text-only terminals and
+graphical terminals.  Text-only terminals are non-graphics-capable
+display devices, including ``terminal emulators'' such as xterm.  On
+text-only terminals, each frame occupies the entire terminal screen;
+although you can create additional frames and switch between them,
+only one frame can be shown at any given time.  We refer to frames on
+text-only terminals as @dfn{terminal frames}.  Graphical terminals, on
+the other hand, are graphics-capable windowing systems, such as the X
+Window System.  On a graphical terminal, Emacs can display multiple
+frames simultaneously.  We refer to such frames as @dfn{window
+frames}.
+
+  On GNU and Unix systems, you can create additional frames on any
+available terminal, within a single Emacs session, regardless of
+whether Emacs was started on a text-only or graphical terminal.  Emacs
+can display on both graphical and text-only terminals simultaneously.
+This comes in handy, for instance, when you connect to the same
+session from several remote locations.  @xref{Multiple Terminals}.
 
 @defun framep object
 This predicate returns a non-@code{nil} value if @var{object} is a
@@ -54,15 +57,17 @@ The frame is displayed in an X window.
 A terminal frame on a character display.
 @item w32
 The frame is displayed on MS-Windows 9X/NT.
+@item ns
+The frame is displayed on a GNUstep or Macintosh Cocoa display.
 @item pc
 The frame is displayed on an MS-DOS terminal.
 @end table
 @end defun
 
 @defun frame-terminal &optional frame
-This function returns the terminal object (@pxref{Terminal Type}) that
-displays @var{frame}.  If @var{frame} is @code{nil} or unspecified, it
-defaults to the selected frame.
+This function returns the terminal object that displays @var{frame}.
+If @var{frame} is @code{nil} or unspecified, it defaults to the
+selected frame.
 @end defun
 
 @defun terminal-live-p object
@@ -75,7 +80,6 @@ is the same as for @code{framep} above.
 
 @menu
 * Creating Frames::             Creating additional frames.
-* Multiple Displays::           Creating frames on other displays.
 * Multiple Terminals::          Displaying on several different devices.
 * Frame Parameters::            Controlling frame size, position, font, etc.
 * Terminal Parameters::         Parameters common for all frames on terminal.
@@ -103,9 +107,6 @@ is the same as for @code{framep} above.
 * Display Feature Testing::     Determining the features of a terminal.
 @end menu
 
-  @xref{Display}, for information about the related topic of
-controlling Emacs redisplay.
-
 @node Creating Frames
 @section Creating Frames
 
@@ -113,35 +114,34 @@ To create a new frame, call the function @code{make-frame}.
 
 @defun make-frame &optional alist
 This function creates and returns a new frame, displaying the current
-buffer.  If you are using a supported window system, it makes a window
-frame; otherwise, it makes a terminal frame.
+buffer.
 
-The argument is an alist specifying frame parameters.  Any parameters
-not mentioned in @var{alist} default according to the value of the
-variable @code{default-frame-alist}; parameters not specified even there
-default from the standard X resources or whatever is used instead on
-your system.
+The @var{alist} argument is an alist that specifies frame parameters
+for the new frame.  @xref{Frame Parameters}.  If you specify the
+@code{terminal} parameter in @var{alist}, the new frame is created on
+that terminal.  Otherwise, if you specify the @code{window-system}
+frame parameter in @var{alist}, that determines whether the frame
+should be displayed on a text-only or graphical terminal.
+@xref{Window Systems}.  If neither is specified, the new frame is
+created in the same terminal as the selected frame.
 
-After the frame is created, this function applies to it the
-parameters, if any, listed in the value of
-@code{frame-inherited-parameters} (see below) and not present in the
-argument, taking the values from the frame that was selected when
-@code{make-frame} was called.
-
-The set of possible parameters depends in principle on what kind of
-window system Emacs uses to display its frames.  @xref{Window Frame
-Parameters}, for documentation of individual parameters you can specify.
+Any parameters not mentioned in @var{alist} default to the values in
+the alist @code{default-frame-alist} (@pxref{Initial Parameters});
+parameters not specified there default from the X resources or its
+equivalent on your operating system (@pxref{X Resources,, X Resources,
+emacs, The GNU Emacs Manual}).  After the frame is created, Emacs
+applies any parameters listed in @code{frame-inherited-parameters}
+(see below) and not present in the argument, taking the values from
+the frame that was selected when @code{make-frame} was called.
 
 This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
-However, the window system may select the new frame for its own reasons,
-for instance if the frame appears under the mouse pointer and your
-setup is for focus to follow the pointer.
+On graphical terminals, however, the windowing system may select the
+new frame for its own reasons.
 @end defun
 
 @defvar before-make-frame-hook
-A normal hook run by @code{make-frame} before it actually creates the
-frame.
+A normal hook run by @code{make-frame} before it creates the frame.
 @end defvar
 
 @defvar after-make-frame-functions
@@ -159,130 +159,40 @@ that parameter in the created frame to its value in the selected
 frame.
 @end defvar
 
-@node Multiple Displays
-@section Multiple Displays
-@cindex multiple X displays
-@cindex displays, multiple
-
-  A single Emacs can talk to more than one X display.
-Initially, Emacs uses just one display---the one chosen with the
-@code{DISPLAY} environment variable or with the @samp{--display} option
-(@pxref{Initial Options,,, emacs, The GNU Emacs Manual}).  To connect to
-another display, use the command @code{make-frame-on-display} or specify
-the @code{display} frame parameter when you create the frame.
-
-  Emacs treats each X server as a separate terminal, giving each one its
-own selected frame and its own minibuffer windows.  However, only one of
-those frames is ``@emph{the} selected frame'' at any given moment, see
-@ref{Input Focus}.
-
-  A few Lisp variables are @dfn{terminal-local}; that is, they have a
-separate binding for each terminal.  The binding in effect at any time
-is the one for the terminal that the currently selected frame belongs
-to.  These variables include @code{default-minibuffer-frame},
-@code{defining-kbd-macro}, @code{last-kbd-macro}, and
-@code{system-key-alist}.  They are always terminal-local, and can never
-be buffer-local (@pxref{Buffer-Local Variables}).
-
-  A single X server can handle more than one screen.  A display name
-@samp{@var{host}:@var{server}.@var{screen}} has three parts; the last
-part specifies the screen number for a given server.  When you use two
-screens belonging to one server, Emacs knows by the similarity in their
-names that they share a single keyboard, and it treats them as a single
-terminal.
-
-  Note that some graphical terminals can output to more than a one
-monitor (or other output device) at the same time.  On these
-``multi-monitor'' setups, a single @var{display} value controls the
-output to all the physical monitors.  In this situation, there is
-currently no platform-independent way for Emacs to distinguish between
-the different physical monitors.
-
-@deffn Command make-frame-on-display display &optional parameters
-This creates and returns a new frame on display @var{display}, taking
-the other frame parameters from @var{parameters}.  Aside from the
-@var{display} argument, it is like @code{make-frame} (@pxref{Creating
-Frames}).
-@end deffn
-
-@defun x-display-list
-This returns a list that indicates which X displays Emacs has a
-connection to.  The elements of the list are strings, and each one is
-a display name.
-@end defun
-
-@defun x-open-connection display &optional xrm-string must-succeed
-This function opens a connection to the X display @var{display}.  It
-does not create a frame on that display, but it permits you to check
-that communication can be established with that display.
-
-The optional argument @var{xrm-string}, if not @code{nil}, is a
-string of resource names and values, in the same format used in the
-@file{.Xresources} file.  The values you specify override the resource
-values recorded in the X server itself; they apply to all Emacs frames
-created on this display.  Here's an example of what this string might
-look like:
-
-@example
-"*BorderWidth: 3\n*InternalBorder: 2\n"
-@end example
-
-@xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
-
-If @var{must-succeed} is non-@code{nil}, failure to open the connection
-terminates Emacs.  Otherwise, it is an ordinary Lisp error.
-@end defun
-
-@defun x-close-connection display
-This function closes the connection to display @var{display}.  Before
-you can do this, you must first delete all the frames that were open on
-that display (@pxref{Deleting Frames}).
-@end defun
-
 @node Multiple Terminals
 @section Multiple Terminals
 @cindex multiple terminals
 @cindex multi-tty
+@cindex multiple X displays
+@cindex displays, multiple
 
-  Emacs represents each terminal on which it displays frames as a
-special @dfn{terminal object} data type, see @ref{Terminal Type}.  The
+  Emacs represents each terminal, whether graphical or text-only, as a
+@dfn{terminal object} data type (@pxref{Terminal Type}).  On GNU and
+Unix systems, Emacs can use multiple terminals simultaneously in each
+session.  On other systems, it can only use a single terminal.  Each
 terminal object has the following attributes:
 
 @itemize @bullet
 @item
-The name of the device used by the terminal (e.g., @file{/dev/tty}).
+The name of the device used by the terminal (e.g., @samp{:0.0} or
+@file{/dev/tty}).
 
 @item
-The terminal and keyboard coding systems (@pxref{Terminal I/O
-Encoding}) used on the terminal.
+The terminal and keyboard coding systems used on the terminal.
+@xref{Terminal I/O Encoding}.
 
 @item
-The kind of frames (@pxref{Frames}) the terminal is displaying.
+The kind of display associated with the terminal.  This is the symbol
+returned by the function @code{terminal-live-p} (i.e., @code{x},
+@code{t}, @code{w32}, @code{ns}, or @code{pc}).  @xref{Frames}.
 
 @item
-A list of the terminal parameters (@pxref{Terminal Parameters}).
+A list of terminal parameters.  @xref{Terminal Parameters}.
 @end itemize
 
-  There's no primitive for creating terminal objects; Emacs creates
-them as needed when you call one of the primitives, such as
-@code{make-frame-on-tty} (@pxref{Multiple Displays}), that start
-displaying on a new terminal.
-
-@defun terminal-list
-This function return the list of all the terminal objects used by
-Emacs to display frames in this session.
-@end defun
-
-@defun delete-terminal &optional terminal force
-This function deletes all frames on @var{terminal} and frees the
-resources used by it.  @var{terminal} can be a terminal object, a
-frame (meaning that frame's terminal), or @code{nil} (meaning the
-selected frame's terminal).  Normally, the function signals an error
-if you attempt to delete the sole active terminal, but if @var{force}
-is non-@code{nil}, you are allowed to do so.  This function runs the
-hook @code{delete-terminal-functions}, passing each function a single
-argument, @var{terminal}.
-@end defun
+  There is no primitive for creating terminal objects.  Emacs creates
+them as needed, such as when you call @code{make-frame-on-display}
+(which is described below).
 
 @defun terminal-name &optional terminal
 This function returns the file name of the device used by
@@ -291,17 +201,122 @@ defaults to the selected frame's terminal.  @var{terminal} can also be
 a frame, meaning that frame's terminal.
 @end defun
 
+@defun terminal-list
+This function returns a list of all terminal objects currently in use.
+@end defun
+
 @defun get-device-terminal device
-This function is in a sense the opposite of @code{terminal-name}: it
-returns a terminal whose device name is given by @var{device}.  If
-@var{device} is a string, it can be either the file name of a terminal
-device or the name of an X display of the form
-@samp{@var{host}:@var{server}.@var{screen}} (@pxref{Multiple
-Displays}).  If @var{device} is a frame, this function returns that
-frame's terminal; @code{nil} means the selected frame.  Finally, if
-@var{device} is a terminal object that represents a live terminal,
-that terminal is returned.  The function signals an error if its
-argument is none of the above.
+This function returns a terminal whose device name is given by
+@var{device}.  If @var{device} is a string, it can be either the file
+name of a terminal device, or the name of an X display of the form
+@samp{@var{host}:@var{server}.@var{screen}}.  If @var{device} is a
+frame, this function returns that frame's terminal; @code{nil} means
+the selected frame.  Finally, if @var{device} is a terminal object
+that represents a live terminal, that terminal is returned.  The
+function signals an error if its argument is none of the above.
+@end defun
+
+@defun delete-terminal &optional terminal force
+This function deletes all frames on @var{terminal} and frees the
+resources used by it.  It runs the abnormal hook
+@code{delete-terminal-functions}, passing @var{terminal} as the
+argument to each function.
+
+If @var{terminal} is omitted or @code{nil}, it defaults to the
+selected frame's terminal.  @var{terminal} can also be a frame,
+meaning that frame's terminal.
+
+Normally, this function signals an error if you attempt to delete the
+sole active terminal, but if @var{force} is non-@code{nil}, you are
+allowed to do so.  Emacs automatically calls this function when the
+last frame on a terminal is deleted (@pxref{Deleting Frames}).
+@end defun
+
+@defvar delete-terminal-functions
+An abnormal hook run by @code{delete-terminal}.  Each function
+receives one argument, the @var{terminal} argument passed to
+@code{delete-terminal}.  Due to technical details, the functions may
+be called either just before the terminal is deleted, or just
+afterwards.
+@end defvar
+
+@cindex terminal-local variables
+  A few Lisp variables are @dfn{terminal-local}; that is, they have a
+separate binding for each terminal.  The binding in effect at any time
+is the one for the terminal that the currently selected frame belongs
+to.  These variables include @code{default-minibuffer-frame},
+@code{defining-kbd-macro}, @code{last-kbd-macro}, and
+@code{system-key-alist}.  They are always terminal-local, and can
+never be buffer-local (@pxref{Buffer-Local Variables}).
+
+  On GNU and Unix systems, each X display is a separate graphical
+terminal.  When Emacs is started from within the X window system, it
+uses the X display chosen with the @code{DISPLAY} environment
+variable, or with the @samp{--display} option.  @xref{Initial
+Options,,, emacs, The GNU Emacs Manual}.  Emacs can connect to other X
+displays via the command @code{make-frame-on-display}.  Each X display
+has its own selected frame and its own minibuffer windows; however,
+only one of those frames is ``@emph{the} selected frame'' at any given
+moment (@pxref{Input Focus}).  Emacs can even connect to other
+text-only terminals, by interacting with the @command{emacsclient}
+program.  @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+
+  A single X server can handle more than one display.  Each X display
+has a three-part name, @samp{@var{host}:@var{server}.@var{screen}}.
+The first two parts, @var{host} and @var{server}, identify the X
+server; the third part, @var{screen}, identifies a screen number on
+that X server.  When you use two or more screens belonging to one
+server, Emacs knows by the similarity in their names that they share a
+single keyboard.
+
+  On some ``multi-monitor'' setups, a single X display outputs to more
+than one monitor.  Currently, there is no way for Emacs to distinguish
+between the different physical monitors.
+
+@deffn Command make-frame-on-display display &optional parameters
+This function creates and returns a new frame on @var{display}, taking
+the other frame parameters from the alist @var{parameters}.
+@var{display} should be the name of an X display (a string).
+
+Before creating the frame, this function ensures that Emacs is ``set
+up'' to display graphics.  For instance, if Emacs has not processed X
+resources (e.g., if it was started on a text-only terminal), it does
+so at this time.  In all other respects, this function behaves like
+@code{make-frame} (@pxref{Creating Frames}).
+@end deffn
+
+@defun x-display-list
+This function returns a list that indicates which X displays Emacs has
+a connection to.  The elements of the list are strings, and each one
+is a display name.
+@end defun
+
+@defun x-open-connection display &optional xrm-string must-succeed
+This function opens a connection to the X display @var{display},
+without creating a frame on that display.  Normally, Emacs Lisp
+programs need not call this function, as @code{make-frame-on-display}
+calls it automatically.  The only reason for calling it is to check
+whether communication can be established with a given X display.
+
+The optional argument @var{xrm-string}, if not @code{nil}, is a string
+of resource names and values, in the same format used in the
+@file{.Xresources} file.  @xref{X Resources,, X Resources, emacs, The
+GNU Emacs Manual}.  These values apply to all Emacs frames created on
+this display, overriding the resource values recorded in the X server.
+Here's an example of what this string might look like:
+
+@example
+"*BorderWidth: 3\n*InternalBorder: 2\n"
+@end example
+
+If @var{must-succeed} is non-@code{nil}, failure to open the connection
+terminates Emacs.  Otherwise, it is an ordinary Lisp error.
+@end defun
+
+@defun x-close-connection display
+This function closes the connection to display @var{display}.  Before
+you can do this, you must first delete all the frames that were open
+on that display (@pxref{Deleting Frames}).
 @end defun
 
 @node Frame Parameters
@@ -653,8 +668,8 @@ menu bar line; they treat larger values as 1.)
 
 @item tool-bar-lines
 The number of lines to use for the tool bar.  A value of @code{nil}
-means don't display a tool bar.  (GTK allows at most one tool bar line;
-it treats larger values as 1.)
+means don't display a tool bar.  (GTK and Nextstep allow at most one
+tool bar line; they treat larger values as 1.)
 
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive
@@ -852,10 +867,10 @@ completely opaque.  It can also have a @code{nil} value, which tells
 Emacs not to set the frame opacity (leaving it to the window manager).
 
 To prevent the frame from disappearing completely from view, the
-variable @var{frame-alpha-lower-limit} defines a lower opacity limit.
+variable @code{frame-alpha-lower-limit} defines a lower opacity limit.
 If the value of the frame parameter is less than the value of this
 variable, Emacs uses the latter.  By default,
-@var{frame-alpha-lower-limit} is 20.
+@code{frame-alpha-lower-limit} is 20.
 
 The @code{alpha} frame parameter can also be a cons cell
 @code{(@samp{active} . @samp{inactive})}, where @samp{active} is the
@@ -1278,7 +1293,7 @@ when you enter the minibuffer.  If so, set the variable
 This variable specifies the frame to use for the minibuffer window, by
 default.  It does not affect existing frames.  It is always local to
 the current terminal and cannot be buffer-local.  @xref{Multiple
-Displays}.
+Terminals}.
 @end defvar
 
 @node Input Focus
@@ -1290,15 +1305,15 @@ At any time, one frame in Emacs is the @dfn{selected frame}.  The selected
 window always resides on the selected frame.
 
 When Emacs displays its frames on several terminals (@pxref{Multiple
-Displays}), each terminal has its own selected frame.  But only one of
-these is ``@emph{the} selected frame'': it's the frame that belongs to
-the terminal from which the most recent input came.  That is, when Emacs
-runs a command that came from a certain terminal, the selected frame is
-the one of that terminal.  Since Emacs runs only a single command at any
-given time, it needs to consider only one selected frame at a time; this
-frame is what we call @dfn{the selected frame} in this manual.  The
-display on which the selected frame is shown is the @dfn{selected
-frame's display}.
+Terminals}), each terminal has its own selected frame.  But only one
+of these is ``@emph{the} selected frame'': it's the frame that belongs
+to the terminal from which the most recent input came.  That is, when
+Emacs runs a command that came from a certain terminal, the selected
+frame is the one of that terminal.  Since Emacs runs only a single
+command at any given time, it needs to consider only one selected
+frame at a time; this frame is what we call @dfn{the selected frame}
+in this manual.  The display on which the selected frame is shown is
+the @dfn{selected frame's display}.
 
 @defun selected-frame
 This function returns the selected frame.
@@ -2285,7 +2300,7 @@ On a character terminal, it gives the height in characters.
 
 For graphical terminals, note that on ``multi-monitor'' setups this
 refers to the pixel width for all physical monitors associated with
-@var{display}.  @xref{Multiple Displays}.
+@var{display}.  @xref{Multiple Terminals}.
 @end defun
 
 @defun display-pixel-width &optional display
@@ -2294,7 +2309,7 @@ On a character terminal, it gives the width in characters.
 
 For graphical terminals, note that on ``multi-monitor'' setups this
 refers to the pixel width for all physical monitors associated with
-@var{display}.  @xref{Multiple Displays}.
+@var{display}.  @xref{Multiple Terminals}.
 @end defun
 
 @defun display-mm-height &optional display

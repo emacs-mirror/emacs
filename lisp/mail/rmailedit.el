@@ -64,6 +64,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (if (boundp 'mode-line-modified)
 	(setq mode-line-modified (default-value 'mode-line-modified))
       (setq mode-line-format (default-value 'mode-line-format)))
+    ;; If someone uses C-x C-s, don't clobber the rmail file (bug#2625).
+    (add-hook 'write-region-annotate-functions
+	      'rmail-write-region-annotate nil t)
     (run-mode-hooks 'rmail-edit-mode-hook)))
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
@@ -97,9 +100,10 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (setq rmail-old-headers (rmail-edit-headers-alist t))
   (setq buffer-read-only nil)
   (setq buffer-undo-list nil)
-  ;; FIXME whether the buffer is initially marked as modified or not
+  ;; Whether the buffer is initially marked as modified or not
   ;; depends on whether or not the underlying rmail buffer was so marked.
-  ;; Seems poor.
+  ;; Given the way this works, it has to.
+  ;; If you kill the edit buffer, you've killed your rmail buffer.
   (force-mode-line-update)
   (if (and (eq (key-binding "\C-c\C-c") 'rmail-cease-edit)
 	   (eq (key-binding "\C-c\C-]") 'rmail-abort-edit))

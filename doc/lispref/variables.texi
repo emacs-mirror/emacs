@@ -256,7 +256,7 @@ Macro calls (@pxref{Macros}).
 
   Variables can also have buffer-local bindings (@pxref{Buffer-Local
 Variables}); a few variables have terminal-local bindings
-(@pxref{Multiple Displays}).  These kinds of bindings work somewhat
+(@pxref{Multiple Terminals}).  These kinds of bindings work somewhat
 like ordinary local bindings, but they are localized depending on
 ``where'' you are in Emacs, rather than localized in time.
 
@@ -1091,7 +1091,7 @@ additional, unusual kinds of variable binding, such as
 @dfn{buffer-local} bindings, which apply only in one buffer.  Having
 different values for a variable in different buffers is an important
 customization method.  (Variables can also have bindings that are
-local to each terminal, or to each frame.  @xref{Multiple Displays},
+local to each terminal, or to each frame.  @xref{Multiple Terminals},
 and @xref{Frame-Local Variables}.)
 
 @menu
@@ -1193,7 +1193,7 @@ GNU Emacs Manual}.
 
   A buffer-local variable cannot be made frame-local
 (@pxref{Frame-Local Variables}) or terminal-local (@pxref{Multiple
-Displays}).
+Terminals}).
 
 @node Creating Buffer-Local
 @subsection Creating and Deleting Buffer-Local Bindings
@@ -1245,7 +1245,7 @@ is not current either on entry to or exit from the @code{let}.  This is
 because @code{let} does not distinguish between different kinds of
 bindings; it knows only which variable the binding was made for.
 
-If the variable is terminal-local (@pxref{Multiple Displays}), or
+If the variable is terminal-local (@pxref{Multiple Terminals}), or
 frame-local (@pxref{Frame-Local Variables}), this function signals an
 error.  Such variables cannot have buffer-local bindings as well.
 

@@ -225,7 +225,7 @@ italicised, in all other cases it is left unchanged."
 (defun org-bbdb-anniv-extract-date (time-str)
   "Convert YYYY-MM-DD to (month date year).
 Argument TIME-STR is the value retrieved from BBDB."
-  (multiple-value-bind (y m d) (bbdb-split time-str "-")
+  (multiple-value-bind (y m d) (values-list (bbdb-split time-str "-"))
     (list (string-to-number m)
 	  (string-to-number d)
 	  (string-to-number y))))
@@ -258,7 +258,7 @@ The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
         (while annivs
           (setq split (org-bbdb-anniv-split (pop annivs)))
           (multiple-value-bind (m d y)
-              (funcall org-bbdb-extract-date-fun (car split))
+              (values-list (funcall org-bbdb-extract-date-fun (car split)))
             (setq tmp (gethash (list m d) org-bbdb-anniv-hash))
             (puthash (list m d) (cons (list y
                                             (bbdb-record-name rec)

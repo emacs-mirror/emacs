@@ -604,6 +604,17 @@ for instance using the window manager, then this produces a quit and
   if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
     error ("Can not put X dialog on this terminal");
 
+  /* Force a redisplay before showing the dialog.  If a frame is created
+     just before showing the dialog, its contents may not have been fully
+     drawn, as this depends on timing of events from the X server.  Redisplay
+     is not done when a dialog is shown.  If redisplay could be done in the
+     X event loop (i.e. the X event loop does not run in a signal handler)
+     this would not be needed.
+
+     Do this before creating the widget value that points to Lisp
+     string contents, because Fredisplay may GC and relocate them.  */
+  Fredisplay (Qt);
+
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Display a menu with these alternatives
      in the middle of frame F.  */
@@ -2447,14 +2458,6 @@ xdialog_show (f, keymaps, title, header, error_name)
 
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
-
-  /* Force a redisplay before showing the dialog.  If a frame is created
-     just before showing the dialog, its contents may not have been fully
-     drawn, as this depends on timing of events from the X server.  Redisplay
-     is not done when a dialog is shown.  If redisplay could be done in the
-     X event loop (i.e. the X event loop does not run in a signal handler)
-     this would not be needed.  */
-  Fredisplay (Qt);
 
   /* Actually create and show the dialog.  */
   create_and_show_dialog (f, first_wv);

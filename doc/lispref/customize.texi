@@ -40,13 +40,7 @@ display one name.
 Use @var{label}, a string, instead of the item's name, to label the
 item in customization menus and buffers.  @strong{Don't use a tag
 which is substantially different from the item's real name; that would
-cause confusion.}  One legitimate case for use of @code{:tag} is to
-specify a dash where normally a hyphen would be converted to a space:
-
-@example
-(defcustom cursor-in-non-selected-windows @dots{}
-  :tag "Cursor In Non-selected Windows"
-@end example
+cause confusion.}
 
 @kindex group@r{, customization keyword}
 @item :group @var{group}
@@ -266,12 +260,14 @@ turn this feature back on, if someone would like to do the work.
   Use @code{defcustom} to declare user-customizable variables.
 
 @defmac defcustom option standard doc [keyword value]@dots{}
-This construct declares @var{option} as a customizable user option
-variable.  You should not quote @var{option}.  The argument @var{doc}
-specifies the documentation string for the variable.  There is no need
-to start it with a @samp{*}, because @code{defcustom} automatically
-marks @var{option} as a @dfn{user option} (@pxref{Defining
-Variables}).
+This macro declares @var{option} as a customizable @dfn{user option}.
+You should not quote @var{option}.
+
+This causes the function @code{user-variable-p} to return @code{t}
+when given @var{option} as an argument.  @xref{Defining Variables}.
+The argument @var{doc} specifies the documentation string for the
+variable.  (Note that there is no need to start @var{doc} with a
+@samp{*}.)
 
 The argument @var{standard} is an expression that specifies the
 standard value for @var{option}.  Evaluating the @code{defcustom} form
@@ -401,11 +397,13 @@ variables and functions will be defined, so there will not be an error.
 
 @item :risky @var{value}
 @kindex risky@r{, @code{defcustom} keyword}
-Set this variable's @code{risky-local-variable} property to @var{value}.
+Set this variable's @code{risky-local-variable} property to
+@var{value} (@pxref{File Local Variables}).
 
 @item :safe @var{function}
 @kindex safe@r{, @code{defcustom} keyword}
-Set this variable's @code{safe-local-variable} property to @var{function}.
+Set this variable's @code{safe-local-variable} property to
+@var{function} (@pxref{File Local Variables}).
 
 @item :set-after @var{variables}
 @kindex set-after@r{, @code{defcustom} keyword}
@@ -416,11 +414,11 @@ setting this variable until after those others have been handled.  Use
 those other variables already have their intended values.
 @end table
 
-  The @code{:require} keyword is useful for an option that turns on the
-operation of a certain feature.  Assuming that the package is coded to
-check the value of the option, you still need to arrange for the package
-to be loaded.  You can do that with @code{:require}.  @xref{Common
-Keywords}.  Here is an example, from the library @file{saveplace.el}:
+  It is useful to specify the @code{:require} keyword for an option
+that ``turns on'' a certain feature.  This causes Emacs to load the
+feature, if it is not already loaded, whenever the option is set.
+@xref{Common Keywords}.  Here is an example, from the library
+@file{saveplace.el}:
 
 @example
 (defcustom save-place nil
@@ -454,23 +452,22 @@ of @var{symbol}.
 
 Internally, @code{defcustom} uses the symbol property
 @code{standard-value} to record the expression for the standard value,
-and @code{saved-value} to record the value saved by the user with the
-customization buffer.  Both properties are actually lists whose car is
-an expression which evaluates to the value.
+@code{saved-value} to record the value saved by the user with the
+customization buffer, and @code{customized-value} to record the value
+set by the user with the customization buffer, but not saved.
+@xref{Property Lists}.  These properties are lists, the car of which
+is an expression that evaluates to the value.
 
 @defun custom-reevaluate-setting symbol
-This function re-evaluates the standard value of a user-customizable
-variable declared via @code{defcustom}.  (If the variable was
-customized, this function re-evaluates the saved value instead.)  This
-is useful for customizable options that are defined before their value
-could be computed correctly, such as variables defined in packages
-that are loaded at dump time, but depend on the run-time information.
-For example, the value could be a file whose precise name depends on
-the hierarchy of files when Emacs runs, or a name of a program that
-needs to be searched at run time.
-
-The argument @var{symbol} is the symbol of the variable whose value
-you want to re-evaluate.
+This function re-evaluates the standard value of @var{symbol}, which
+should be a user option declared via @code{defcustom}.  (If the
+variable was customized, this function re-evaluates the saved value
+instead.)  This is useful for customizable options that are defined
+before their value could be computed correctly, such as variables
+defined in packages that are loaded at dump time, but depend on the
+run-time information.  For example, the value could be a file whose
+precise name depends on the hierarchy of files when Emacs runs, or a
+name of a program that needs to be searched at run time.
 
 A good place to put calls to this function is in the function
 @code{command-line} that is run during startup (@pxref{Startup Summary})
@@ -506,11 +503,14 @@ sections.  After this symbol come a number of arguments, depending on
 the symbol.  Between the type symbol and its arguments, you can
 optionally write keyword-value pairs (@pxref{Type Keywords}).
 
-  Some of the type symbols do not use any arguments; those are called
+  Some type symbols do not use any arguments; those are called
 @dfn{simple types}.  For a simple type, if you do not use any
 keyword-value pairs, you can omit the parentheses around the type
 symbol.  For example just @code{string} as a customization type is
 equivalent to @code{(string)}.
+
+  All customization types are implemented as widgets; see @ref{Top, ,
+Introduction, widget, The Emacs Widget Library}, for details.
 
 @menu
 * Simple Types::
@@ -519,9 +519,6 @@ equivalent to @code{(string)}.
 * Type Keywords::
 * Defining New Types::
 @end menu
-
-All customization types are implemented as widgets; see @ref{Top, ,
-Introduction, widget, The Emacs Widget Library}, for details.
 
 @node Simple Types
 @subsection Simple Types

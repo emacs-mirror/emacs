@@ -1319,7 +1319,10 @@ extern Lisp_Object Qrun_hook_with_args;
   described for Fdelete_frame.  */
 Lisp_Object
 delete_frame (frame, force)
-     register Lisp_Object frame, force;
+     /* If we use `register' here, gcc-4.0.2 on amd64 using
+	-DUSE_LISP_UNION_TYPE complains further down that we're getting the
+	address of `force'.  Go figure.  */
+     Lisp_Object frame, force;
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
@@ -3364,16 +3367,16 @@ x_set_font (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Lisp_Object frame;
+  Lisp_Object frame, font_object, lval;
   int fontset = -1;
-  Lisp_Object font_object;
 
   /* Set the frame parameter back to the old value because we may
      fail to use ARG as the new parameter value.  */
   store_frame_param (f, Qfont, oldval);
 
-  /* ARG is a fontset name, a font name, or a font object.
-     In the last case, this function never fail.  */
+  /* ARG is a fontset name, a font name, a cons of fontset name and a
+     font object, or a font object.  In the last case, this function
+     never fail.  */
   if (STRINGP (arg))
     {
       fontset = fs_query_fontset (arg, 0);
@@ -3396,20 +3399,50 @@ x_set_font (f, arg, oldval)
       else
 	error ("The default fontset can't be used for a frame font");
     }
+  else if (CONSP (arg) && STRINGP (XCAR (arg)) && FONT_OBJECT_P (XCDR (arg)))
+    {
+      /* This is the case that the ASCII font of F's fontset XCAR
+	 (arg) is changed to the font XCDR (arg) by
+	 `set-fontset-font'.  */
+      fontset = fs_query_fontset (XCAR (arg), 0);
+      if (fontset < 0)
+	error ("Unknown fontset: %s", SDATA (XCAR (arg)));
+      font_object = XCDR (arg);
+      arg = AREF (font_object, FONT_NAME_INDEX);
+    }
   else if (FONT_OBJECT_P (arg))
     {
       font_object = arg;
-      /* This is store the XLFD font name in the frame parameter for
+      /* This is to store the XLFD font name in the frame parameter for
 	 backward compatiblity.  We should store the font-object
 	 itself in the future.  */
       arg = AREF (font_object, FONT_NAME_INDEX);
+      fontset = FRAME_FONTSET (f);
     }
   else
     signal_error ("Invalid font", arg);
 
   if (! NILP (Fequal (font_object, oldval)))
     return;
+
+  
+  lval = Fassq (Qfullscreen, f->param_alist);
+  if (CONSP (lval)) lval = CDR (lval);
+
   x_new_font (f, font_object, fontset);
+  /* If the fullscreen property is non-nil, adjust lines and columns so we
+     keep the same pixel height and width.  */
+  if (! NILP (lval))
+    {
+      int height = FRAME_LINES (f), width = FRAME_COLS (f);
+      if (EQ (lval, Qfullboth) || EQ (lval, Qfullwidth))
+        width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
+      if (EQ (lval, Qfullboth) || EQ (lval, Qfullheight))
+        height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
+      
+      change_frame_size (f, height, width, 0, 0, 1);
+    }
+
   store_frame_param (f, Qfont, arg);
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;

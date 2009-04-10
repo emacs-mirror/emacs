@@ -46,7 +46,7 @@
 (defun rmail-add-label (label)
   "Add LABEL to labels associated with current RMAIL message.
 Completes (see `rmail-read-label') over known labels when reading.
-LABEL may be a symbol or string."
+LABEL may be a symbol or string.  Only one label is allowed."
   (interactive (list (rmail-read-label "Add label")))
   (rmail-set-label label t))
 
@@ -54,7 +54,7 @@ LABEL may be a symbol or string."
 (defun rmail-kill-label (label)
   "Remove LABEL from labels associated with current RMAIL message.
 Completes (see `rmail-read-label') over known labels when reading.
-LABEL may be a symbol or string."
+LABEL may be a symbol or string.  Only one label is allowed."
   (interactive (list (rmail-read-label "Remove label")))
   (rmail-set-label label nil))
 
@@ -92,6 +92,8 @@ according to the choice made, and returns a symbol."
   "Set LABEL as present or absent according to STATE in message MSG.
 LABEL may be a symbol or string."
   (or (stringp label) (setq label (symbol-name label)))
+  (if (string-match "," label)
+      (error "More than one label specified"))
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)
     (or msg (setq msg rmail-current-message))

@@ -36,8 +36,8 @@ how they are stored in strings and buffers.
 @cindex text representation
 
   Emacs buffers and strings support a large repertoire of characters
-from many different scripts.  This is so users could type and display
-text in most any known written language.
+from many different scripts, allowing users to type and display text
+in most any known written language.
 
 @cindex character codepoint
 @cindex codespace
@@ -65,15 +65,13 @@ This internal representation is based on one of the encodings defined
 by the Unicode Standard, called @dfn{UTF-8}, for representing any
 Unicode codepoint, but Emacs extends UTF-8 to represent the additional
 codepoints it uses for raw 8-bit bytes and characters not unified with
-Unicode.}.
-For example, any @acronym{ASCII} character takes up only 1 byte, a
-Latin-1 character takes up 2 bytes, etc.  We call this representation
-of text @dfn{multibyte}, because it uses several bytes for each
-character.
+Unicode.}.  For example, any @acronym{ASCII} character takes up only 1
+byte, a Latin-1 character takes up 2 bytes, etc.  We call this
+representation of text @dfn{multibyte}.
 
   Outside Emacs, characters can be represented in many different
 encodings, such as ISO-8859-1, GB-2312, Big-5, etc.  Emacs converts
-between these external encodings and the internal representation, as
+between these external encodings and its internal representation, as
 appropriate, when it reads text into a buffer or a string, or when it
 writes text to a disk file or passes it to some other process.
 
@@ -87,9 +85,9 @@ Before the conversion, the buffer holds encoded text.
   Encoded text is not really text, as far as Emacs is concerned, but
 rather a sequence of raw 8-bit bytes.  We call buffers and strings
 that hold encoded text @dfn{unibyte} buffers and strings, because
-Emacs treats them as a sequence of individual bytes.  In particular,
-Emacs usually displays unibyte buffers and strings as octal codes such
-as @code{\237}.  We recommend that you never use unibyte buffers and
+Emacs treats them as a sequence of individual bytes.  Usually, Emacs
+displays unibyte buffers and strings as octal codes such as
+@code{\237}.  We recommend that you never use unibyte buffers and
 strings except for manipulating encoded text or binary non-text data.
 
   In a buffer, the buffer-local value of the variable
@@ -165,10 +163,10 @@ conversions happen when inserting text into a buffer, or when putting
 text from several strings together in one string.  You can also
 explicitly convert a string's contents to either representation.
 
-  Emacs chooses the representation for a string based on the text that
-it is constructed from.  The general rule is to convert unibyte text to
-multibyte text when combining it with other multibyte text, because the
-multibyte representation is more general and can hold whatever
+  Emacs chooses the representation for a string based on the text from
+which it is constructed.  The general rule is to convert unibyte text
+to multibyte text when combining it with other multibyte text, because
+the multibyte representation is more general and can hold whatever
 characters the unibyte text has.
 
   When inserting text into a buffer, Emacs converts the text to the
@@ -181,9 +179,9 @@ alternative, to convert the buffer contents to multibyte, is not
 acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
-  Converting unibyte text to multibyte text leaves @acronym{ASCII} characters
-unchanged, and converts bytes with codes 128 through 159 to the
-multibyte representation of raw eight-bit bytes.
+  Converting unibyte text to multibyte text leaves @acronym{ASCII}
+characters unchanged, and converts bytes with codes 128 through 159 to
+the multibyte representation of raw eight-bit bytes.
 
   Converting multibyte text to unibyte converts all @acronym{ASCII}
 and eight-bit characters to their single-byte form, but loses
@@ -214,9 +212,9 @@ characters.
 @end defun
 
 @defun multibyte-char-to-unibyte char
-This convert the multibyte character @var{char} to a unibyte
-character.  If @var{char} is a character that is neither
-@acronym{ASCII} nor eight-bit, the value is -1.
+This converts the multibyte character @var{char} to a unibyte
+character, and returns that character.  If @var{char} is neither
+@acronym{ASCII} nor eight-bit, the function returns -1.
 @end defun
 
 @defun unibyte-char-to-multibyte char
@@ -238,9 +236,9 @@ is @code{nil}, the buffer becomes unibyte.
 
 This function leaves the buffer contents unchanged when viewed as a
 sequence of bytes.  As a consequence, it can change the contents
-viewed as characters; a sequence of three bytes which is treated as
-one character in multibyte representation will count as three
-characters in unibyte representation.  Eight-bit characters
+viewed as characters; for instance, a sequence of three bytes which is
+treated as one character in multibyte representation will count as
+three characters in unibyte representation.  Eight-bit characters
 representing raw bytes are an exception.  They are represented by one
 byte in a unibyte buffer, but when the buffer is set to multibyte,
 they are converted to two-byte sequences, and vice versa.
@@ -256,28 +254,24 @@ base buffer.
 @end defun
 
 @defun string-as-unibyte string
-This function returns a string with the same bytes as @var{string} but
-treating each byte as a character.  This means that the value may have
-more characters than @var{string} has.  Eight-bit characters
-representing raw bytes are an exception: each one of them is converted
-to a single byte.
-
-If @var{string} is already a unibyte string, then the value is
-@var{string} itself.  Otherwise it is a newly created string, with no
+If @var{string} is already a unibyte string, this function returns
+@var{string} itself.  Otherwise, it returns a new string with the same
+bytes as @var{string}, but treating each byte as a separate character
+(so that the value may have more characters than @var{string}); as an
+exception, each eight-bit character representing a raw byte is
+converted into a single byte.  The newly-created string contains no
 text properties.
 @end defun
 
 @defun string-as-multibyte string
-This function returns a string with the same bytes as @var{string} but
-treating each multibyte sequence as one character.  This means that
-the value may have fewer characters than @var{string} has.  If a byte
-sequence in @var{string} is invalid as a multibyte representation of a
-single character, each byte in the sequence is treated as raw 8-bit
-byte.
-
-If @var{string} is already a multibyte string, then the value is
-@var{string} itself.  Otherwise it is a newly created string, with no
-text properties.
+If @var{string} is a multibyte string, this function returns
+@var{string} itself.  Otherwise, it returns a new string with the same
+bytes as @var{string}, but treating each multibyte sequence as one
+character.  This means that the value may have fewer characters than
+@var{string} has.  If a byte sequence in @var{string} is invalid as a
+multibyte representation of a single character, each byte in the
+sequence is treated as a raw 8-bit byte.  The newly-created string
+contains no text properties.
 @end defun
 
 @node Character Codes
@@ -291,9 +285,10 @@ character codes for multibyte representation range from 0 to 4194303
 (#x3FFFFF).  In this code space, values 0 through 127 are for
 @acronym{ASCII} charcters, and values 129 through 4194175 (#x3FFF7F)
 are for non-@acronym{ASCII} characters.  Values 0 through 1114111
-(#10FFFF) corresponds to Unicode characters of the same codepoint,
-while values 4194176 (#x3FFF80) through 4194303 (#x3FFFFF) are for
-representing eight-bit raw bytes.
+(#10FFFF) correspond to Unicode characters of the same codepoint;
+values 1114112 (#110000) through 4194175 (#x3FFF7F) represent
+characters that are not unified with Unicode; and values 4194176
+(#x3FFF80) through 4194303 (#x3FFFFF) represent eight-bit raw bytes.
 
 @defun characterp charcode
 This returns @code{t} if @var{charcode} is a valid character, and
@@ -334,9 +329,9 @@ codepoint can have.
 @end defun
 
 @defun get-byte pos &optional string
-This function returns the byte at current buffer's character position
-@var{pos}.  If the current buffer is unibyte, this is literally the
-byte at that position.  If the buffer is multibyte, byte values of
+This function returns the byte at character position @var{pos} in the
+current buffer.  If the current buffer is unibyte, this is literally
+the byte at that position.  If the buffer is multibyte, byte values of
 @acronym{ASCII} characters are the same as character codepoints,
 whereas eight-bit raw bytes are converted to their 8-bit codes.  The
 function signals an error if the character at @var{pos} is
@@ -360,13 +355,11 @@ of character properties.  In particular, Emacs supports the
 Model}, and the Emacs character property database is derived from the
 Unicode Character Database (@acronym{UCD}).  See the
 @uref{http://www.unicode.org/versions/Unicode5.0.0/ch04.pdf, Character
-Properties chapter of the Unicode Standard}, for detailed description
-of Unicode character properties and their meaning.  This section
-assumes you are already familiar with that chapter of the Unicode
-Standard, and want to apply that knowledge to Emacs Lisp programs.
-
-  The facilities documented in this section are useful for setting and
-retrieving properties of characters.
+Properties chapter of the Unicode Standard}, for a detailed
+description of Unicode character properties and their meaning.  This
+section assumes you are already familiar with that chapter of the
+Unicode Standard, and want to apply that knowledge to Emacs Lisp
+programs.
 
   In Emacs, each property has a name, which is a symbol, and a set of
 possible values, whose types depend on the property; if a character
@@ -378,8 +371,8 @@ replacing each @samp{_} character with a dash @samp{-}.  For example,
 @code{canonical-combining-class}.  However, sometimes we shorten the
 names to make their use easier.
 
-  Here's the full list of value types for all the character properties
-that Emacs knows about:
+  Here is the full list of value types for all the character
+properties that Emacs knows about:
 
 @table @code
 @item name
@@ -428,7 +421,7 @@ corresponding number.
 @item numeric-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Numeric}.  The value of
-this property is an integer of a floating-point number.  Examples of
+this property is an integer or a floating-point number.  Examples of
 characters that have this property include fractions, subscripts,
 superscripts, Roman numerals, currency numerators, and encircled
 numbers.  For example, the value of this property for the character
@@ -656,16 +649,15 @@ or last codepoint of @var{charset}, respectively.
 @node Scanning Charsets
 @section Scanning for Character Sets
 
-  Sometimes it is useful to find out, for characters that appear in a
-certain part of a buffer or a string, to which character sets they
-belong.  One use for this is in determining which coding systems
-(@pxref{Coding Systems}) are capable of representing all of the text
-in question; another is to determine the font(s) for displaying that
-text.
+  Sometimes it is useful to find out which character set a particular
+character belongs to.  One use for this is in determining which coding
+systems (@pxref{Coding Systems}) are capable of representing all of
+the text in question; another is to determine the font(s) for
+displaying that text.
 
 @defun charset-after &optional pos
 This function returns the charset of highest priority containing the
-character in the current buffer at position @var{pos}.  If @var{pos}
+character at position @var{pos} in the current buffer.  If @var{pos}
 is omitted or @code{nil}, it defaults to the current value of point.
 If @var{pos} is out of range, the value is @code{nil}.
 @end defun
@@ -675,15 +667,15 @@ This function returns a list of the character sets of highest priority
 that contain characters in the current buffer between positions
 @var{beg} and @var{end}.
 
-The optional argument @var{translation} specifies a translation table to
-be used in scanning the text (@pxref{Translation of Characters}).  If it
-is non-@code{nil}, then each character in the region is translated
+The optional argument @var{translation} specifies a translation table
+to use for scanning the text (@pxref{Translation of Characters}).  If
+it is non-@code{nil}, then each character in the region is translated
 through this table, and the value returned describes the translated
 characters instead of the characters actually in the buffer.
 @end defun
 
 @defun find-charset-string string &optional translation
-This function returns a list of the character sets of highest priority
+This function returns a list of character sets of highest priority
 that contain characters in @var{string}.  It is just like
 @code{find-charset-region}, except that it applies to the contents of
 @var{string} instead of part of the current buffer.
@@ -721,7 +713,7 @@ character, say @var{to-alt}, @var{from} is also translated to
 
   During decoding, the translation table's translations are applied to
 the characters that result from ordinary decoding.  If a coding system
-has property @code{:decode-translation-table}, that specifies the
+has the property @code{:decode-translation-table}, that specifies the
 translation table to use, or a list of translation tables to apply in
 sequence.  (This is a property of the coding system, as returned by
 @code{coding-system-get}, not a property of the symbol that is the
@@ -779,8 +771,8 @@ respectively in the @var{props} argument to
 This function is similar to @code{make-translation-table} but returns
 a complex translation table rather than a simple one-to-one mapping.
 Each element of @var{alist} is of the form @code{(@var{from}
-. @var{to})}, where @var{from} and @var{to} are either a character or
-a vector specifying a sequence of characters.  If @var{from} is a
+. @var{to})}, where @var{from} and @var{to} are either characters or
+vectors specifying a sequence of characters.  If @var{from} is a
 character, that character is translated to @var{to} (i.e.@: to a
 character or a character sequence).  If @var{from} is a vector of
 characters, that sequence is translated to @var{to}.  The returned
@@ -891,10 +883,13 @@ end-of-line conversion.
 codes or end-of-line.
 
 @vindex emacs-internal@r{ coding system}
-  The coding system @code{emacs-internal} specifies that the data is
-represented in the internal Emacs encoding.  This is like
-@code{raw-text} in that no code conversion happens, but different in
-that the result is multibyte data.
+@vindex utf-8-emacs@r{ coding system}
+  The coding system @code{utf-8-emacs} specifies that the data is
+represented in the internal Emacs encoding (@pxref{Text
+Representations}).  This is like @code{raw-text} in that no code
+conversion happens, but different in that the result is multibyte
+data.  The name @code{emacs-internal} is an alias for
+@code{utf-8-emacs}.
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
@@ -924,9 +919,9 @@ This function returns the list of aliases of @var{coding-system}.
 @subsection Encoding and I/O
 
   The principal purpose of coding systems is for use in reading and
-writing files.  The function @code{insert-file-contents} uses
-a coding system for decoding the file data, and @code{write-region}
-uses one to encode the buffer contents.
+writing files.  The function @code{insert-file-contents} uses a coding
+system to decode the file data, and @code{write-region} uses one to
+encode the buffer contents.
 
   You can specify the coding system to use either explicitly
 (@pxref{Specifying Coding Systems}), or implicitly using a default

@@ -169,7 +169,7 @@ display message number MSG."
     (save-restriction
       (unless (looking-at "^From ")
 	(error "Invalid mbox message"))
-      (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
+      (insert "\^L\n0,,\n*** EOOH ***\n")
       (rmail-nuke-pinhead-header)
       ;; Decode base64 or quoted printable contents, Rmail style.
       (let* ((header-end (save-excursion
@@ -366,6 +366,7 @@ Do what is necessary to make Rmail know about the new message. then
 display message number MSG."
   (save-excursion
     (rmail-swap-buffers-maybe)
+    (rmail-modify-format)
     ;; Turn on Auto Save mode, if it's off in this buffer but enabled
     ;; by default.
     (and (not buffer-auto-save-file-name)
@@ -433,7 +434,20 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
   (if noattribute (setq noattribute 'nomsg))
   (let ((babyl-format (and (file-readable-p file-name)
 			   (mail-file-babyl-p file-name)))
-	(cur (current-buffer)))
+	(cur (current-buffer))
+	(buf (find-buffer-visiting file-name)))
+
+    ;; If a babyl file is visited in a buffer, is it visited as babyl
+    ;; or as mbox?
+    (and babyl-format buf
+	 (with-current-buffer buf
+	   (save-restriction
+	     (widen)
+	     (save-excursion
+	       (goto-char (point-min))
+	       (setq babyl-format
+		     (looking-at "BABYL OPTIONS:"))))))
+
     (if not-rmail		 ; eg via message-fcc-handler-function
 	(with-temp-buffer
 	  (insert-buffer-substring cur)

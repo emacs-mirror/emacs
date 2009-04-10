@@ -493,8 +493,8 @@ extern Lisp_Object Qfile_name_handler_alist;
    where CODE1 is a code-point or a cons of code-points specifying a
    range.
 
-   Note that this funciton uses `openp' to open MAPFILE but ignores
-   `file-name-handler-alist to avoid running any Lisp codes.  */
+   Note that this function uses `openp' to open MAPFILE but ignores
+   `file-name-handler-alist' to avoid running any Lisp code.  */
 
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
@@ -522,10 +522,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   unbind_to (count, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
-    {
-      add_to_log ("Failure in loading charset map: %S", mapfile, Qnil);
-      return;
-    }
+    error ("Failure in loading charset map: %S", SDATA (mapfile));
 
   head = entries = ((struct charset_map_entries *)
 		    alloca (sizeof (struct charset_map_entries)));
@@ -731,6 +728,7 @@ map_charset_for_dump (c_function, function, arg, from, to)
 	}
       c++;
     }
+  UNGCPRO;
 }
 
 void
@@ -811,8 +809,8 @@ map_charset_chars (c_function, function, arg,
 
 	  charset = CHARSET_FROM_ID (XFASTINT (XCAR (XCAR (parents))));
 	  offset = XINT (XCDR (XCAR (parents)));
-	  this_from = from - offset;
-	  this_to = to - offset;
+	  this_from = from > offset ? from - offset : 0;
+	  this_to = to > offset ? to - offset : 0;
 	  if (this_from < CHARSET_MIN_CODE (charset))
 	    this_from = CHARSET_MIN_CODE (charset);
 	  if (this_to > CHARSET_MAX_CODE (charset))

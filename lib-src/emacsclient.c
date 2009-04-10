@@ -637,10 +637,10 @@ The following OPTIONS are accepted:\n\
 			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
 			Editor to fallback to if the server is not running\n"
-#ifdef WINDOWSNT
+#ifndef WINDOWSNT
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
-#endif /* WINDOWSNT */
+#endif /* not WINDOWSNT */
 "\n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
@@ -1566,11 +1566,11 @@ main (argc, argv)
           quote_argument (emacs_socket, environ[i]);
           send_to_emacs (emacs_socket, " ");
         }
-      send_to_emacs (emacs_socket, "-dir ");
-      quote_argument (emacs_socket, cwd);
-      send_to_emacs (emacs_socket, "/");
-      send_to_emacs (emacs_socket, " ");
     }
+  send_to_emacs (emacs_socket, "-dir ");
+  quote_argument (emacs_socket, cwd);
+  send_to_emacs (emacs_socket, "/");
+  send_to_emacs (emacs_socket, " ");
 
  retry:
   if (nowait)
@@ -1613,7 +1613,6 @@ main (argc, argv)
     {
       for (i = optind; i < argc; i++)
 	{
-          int relative = 0;
 
 	  if (eval)
             {
@@ -1635,19 +1634,16 @@ main (argc, argv)
                   send_to_emacs (emacs_socket, " ");
                   continue;
                 }
-              else
-                relative = 1;
             }
-	  else if (! file_name_absolute_p (argv[i]))
-#ifndef WINDOWSNT
-	    relative = 1;
-#else
-	    /* Call GetFullPathName so filenames of the form X:Y, where X is
-	       a valid drive designator, are interpreted as drive:path, not
-	       file:stream, and treated as absolute.
-	       The user can still pass a file:stream if desired (for example,
-	       .\X:Y), but it is not very useful, as Emacs currently does a
-	       very bad job of dealing with NTFS streams. */
+#ifdef WINDOWSNT
+	  else if (! file_name_absolute_p (argv[i])
+		   && (isalpha (argv[i][0]) && argv[i][1] == ':'))
+	    /* Windows can have a different default directory for each
+	       drive, so the cwd passed via "-dir" is not sufficient
+	       to account for that.
+	       If the user uses <drive>:<relpath>, we hence need to be
+	       careful to expand <relpath> with the default directory
+	       corresponding to <drive>.  */
 	    {
 	      char *filename = (char *) xmalloc (MAX_PATH);
 	      DWORD size;
@@ -1656,19 +1652,11 @@ main (argc, argv)
 	      if (size > 0 && size < MAX_PATH)
 		argv[i] = filename;
 	      else
-		{
-		  relative = 1;
-		  free (filename);
-		}
+		free (filename);
 	    }
 #endif
 
           send_to_emacs (emacs_socket, "-file ");
-          if (relative)
-            {
-              quote_argument (emacs_socket, cwd);
-              send_to_emacs (emacs_socket, "/");
-            }
           quote_argument (emacs_socket, argv[i]);
           send_to_emacs (emacs_socket, " ");
         }

@@ -746,9 +746,10 @@ completion is over."
                   "-norecurse" folder "-sequence" (symbol-name mh-unseen-seq))
     (goto-char (point-min))
     (multiple-value-bind (folder unseen total)
-        (mh-parse-flist-output-line
-         (buffer-substring (point) (mh-line-end-position)))
-      (values total unseen folder))))
+        (values-list 
+         (mh-parse-flist-output-line
+          (buffer-substring (point) (mh-line-end-position))))
+      (list total unseen folder))))
 
 (defun mh-folder-size-folder (folder)
   "Find size of FOLDER using \"folder\"."
@@ -759,8 +760,8 @@ completion is over."
                     "-norecurse" folder)
       (goto-char (point-min))
       (if (re-search-forward " has \\([0-9]+\\) " nil t)
-          (values (string-to-number (match-string 1)) u folder)
-        (values 0 u folder)))))
+          (list (string-to-number (match-string 1)) u folder)
+        (list 0 u folder)))))
 
 ;;;###mh-autoload
 (defun mh-parse-flist-output-line (line &optional current-folder)
@@ -788,7 +789,7 @@ folders whose names end with a '+' character."
             (when (and (equal (aref folder (1- (length folder))) ?+)
                        (equal current-folder folder))
               (setq folder (substring folder 0 (1- (length folder)))))
-            (values (format "+%s" folder) unseen total)))))))
+            (list (format "+%s" folder) unseen total)))))))
 
 ;;;###mh-autoload
 (defun mh-read-folder-sequences (folder save-refiles)

@@ -1,4 +1,4 @@
-;; leim-ext.el -- extra leim configuration	-*- coding:iso-2022-7bit; -*-
+;; leim-ext.el -- extra leim configuration	-*- coding:utf-8; -*-
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
@@ -30,13 +30,13 @@
 ;;; Code:
 
 (eval-after-load "quail/PY-b5"
-  '(quail-defrule "ling2" ?$(0!r(B nil t))
+  '(quail-defrule "ling2" ?○ nil t))
 
 ;; Enable inputting full-width space (U+3000).
 (eval-after-load "quail/Punct"
-  '(quail-defrule " " ?$A!!(B nil t))
+  '(quail-defrule " " ?　 nil t))
 (eval-after-load "quail/Punct-b5"
-  '(quail-defrule " " ?$(0!!(B nil t))
+  '(quail-defrule " " ?　 nil t))
 
 (autoload 'ucs-input-activate "quail/uni-input"
   "Activate UCS input method.
@@ -57,36 +57,36 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'.")
  "korean-hangul"
  "UTF-8"
  'hangul-input-method-activate
- "$(CGQ(B2"
+ "한2"
  "Hangul 2-Bulsik Input"
  'hangul2-input-method
- "Input method: korean-hangul2 (mode line indicator:$(CGQ(B2)\n\nHangul 2-Bulsik input method.")
+ "Input method: korean-hangul2 (mode line indicator:한2)\n\nHangul 2-Bulsik input method.")
 
 (register-input-method
  "korean-hangul3f"
  "UTF-8"
  'hangul-input-method-activate
- "$(CGQ(B3f"
+ "한3f"
  "Hangul 3-Bulsik final Input"
  'hangul3-input-method
- "Input method: korean-hangul3 (mode line indicator:$(CGQ(B3f)\n\nHangul 3-Bulsik final input method.")
+ "Input method: korean-hangul3 (mode line indicator:한3f)\n\nHangul 3-Bulsik final input method.")
 
 (register-input-method
  "korean-hangul390"
  "UTF-8"
  'hangul-input-method-activate
- "$(CGQ(B390"
+ "한390"
  "Hangul 3-Bulsik 390 Input"
  'hangul390-input-method
- "Input method: korean-hangul390 (mode line indicator:$(CGQ(B390)\n\nHangul 3-Bulsik 390 input method.")
+ "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
 (register-input-method
  "korean-hangul3"
  "UTF-8"
  'hangul-input-method-activate
- "$(CGQ(B390"
+ "한390"
  "Hangul 3-Bulsik 390 Input"
  'hangul390-input-method
- "Input method: korean-hangul390 (mode line indicator:$(CGQ(B390)\n\nHangul 3-Bulsik 390 input method.")
+ "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
 ;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e

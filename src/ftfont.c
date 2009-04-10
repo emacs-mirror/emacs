@@ -381,8 +381,11 @@ static int ftfont_anchor_point P_ ((struct font *, unsigned, int,
 				    int *, int *));
 static Lisp_Object ftfont_otf_capability P_ ((struct font *));
 static Lisp_Object ftfont_shape P_ ((Lisp_Object));
+
+#ifdef HAVE_OTF_GET_VARIATION_GLYPHS
 static int ftfont_variation_glyphs P_ ((struct font *, int c,
 					unsigned variations[256]));
+#endif /* HAVE_OTF_GET_VARIATION_GLYPHS */
 
 struct font_driver ftfont_driver =
   {
@@ -422,6 +425,7 @@ struct font_driver ftfont_driver =
     NULL,
 #endif	/* not (HAVE_M17N_FLT && HAVE_LIBOTF) */
     NULL,			/* check */
+
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
     ftfont_variation_glyphs
 #else
@@ -1126,7 +1130,7 @@ ftfont_open (f, entity, pixel_size)
 
       font->min_width = font->average_width = font->space_width = 0;
       for (i = 32, n = 0; i < 127; i++)
-	if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
+	if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) == 0)
 	  {
 	    int this_width = ft_face->glyph->metrics.horiAdvance >> 6;
 
@@ -1149,7 +1153,7 @@ ftfont_open (f, entity, pixel_size)
   if (scalable)
     {
       font->underline_position = -ft_face->underline_position * size / upEM;
-      font->underline_thickness = -ft_face->underline_thickness * size / upEM;
+      font->underline_thickness = ft_face->underline_thickness * size / upEM;
     }
   else
     {
@@ -1251,7 +1255,7 @@ ftfont_text_extents (font, code, nglyphs, metrics)
 		  metrics->lbearing = m->horiBearingX >> 6;
 		  metrics->rbearing = (m->horiBearingX + m->width) >> 6;
 		  metrics->ascent = m->horiBearingY >> 6;
-		  metrics->descent = (m->horiBearingY + m->height) >> 6;
+		  metrics->descent = (m->height - m->horiBearingY) >> 6;
 		}
 	      first = 0;
 	    }
@@ -1265,8 +1269,8 @@ ftfont_text_extents (font, code, nglyphs, metrics)
 		  = width + ((m->horiBearingX + m->width) >> 6);
 	      if (metrics->ascent < (m->horiBearingY >> 6))
 		metrics->ascent = m->horiBearingY >> 6;
-	      if (metrics->descent > ((m->horiBearingY + m->height) >> 6))
-		metrics->descent = (m->horiBearingY + m->height) >> 6;
+	      if (metrics->descent > ((m->height - m->horiBearingY) >> 6))
+		metrics->descent = (m->height - m->horiBearingY) >> 6;
 	    }
 	  width += m->horiAdvance >> 6;
 	}
@@ -2015,6 +2019,8 @@ ftfont_shape (lgstring)
   return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf);
 }
 
+#endif	/* HAVE_M17N_FLT */
+
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
 
 static int
@@ -2032,7 +2038,6 @@ ftfont_variation_glyphs (font, c, variations)
 }
 
 #endif	/* HAVE_OTF_GET_VARIATION_GLYPHS */
-#endif	/* HAVE_M17N_FLT */
 #endif	/* HAVE_LIBOTF */
 
 Lisp_Object

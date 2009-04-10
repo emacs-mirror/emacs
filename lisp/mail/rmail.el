@@ -371,10 +371,11 @@ If nil, display all header fields except those matched by
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-retry-ignored-headers "^x-authentication-warning:"
+(defcustom rmail-retry-ignored-headers "^x-authentication-warning:\\|content-type:\\|content-transfer-encoding:\\|mime-version:"
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
-  :group 'rmail-headers)
+  :group 'rmail-headers
+  :version "23.1")	   ; added content-type/encoding, mime-version
 
 ;;;###autoload
 (defcustom rmail-highlighted-headers "^From:\\|^Subject:"
@@ -542,6 +543,14 @@ Note that this is only applied in the folder specifed by `rmail-file-name'."
 In an RMAIL buffer, this holds the RMAIL buffer itself.
 In a summary buffer, this holds the RMAIL buffer it is a summary for.")
 (put 'rmail-buffer 'permanent-local t)
+
+(defvar rmail-was-converted nil
+  "Non-nil in an Rmail buffer that was just converted from Babyl format.")
+(put 'rmail-was-converted 'permanent-local t)
+
+(defvar rmail-seriously-modified nil
+  "Non-nil in an Rmail buffer that has been modified in a major way.")
+(put 'rmail-seriously-modified 'permanent-local t)
 
 ;; Message counters and markers.  Deleted flags.
 
@@ -771,7 +780,8 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(From\\|Sender\\|Resent-From\\):"
 	      . 'rmail-header-name)
-	    '("^Reply-To:.*$" . 'rmail-header-name)
+	    '("^\\(Mail-\\)?Reply-To:.*$" . 'rmail-header-name)
+	    ;; FIXME Mail-Followup-To should probably be here too.
 	    '("^Subject:" . 'rmail-header-name)
 	    '("^X-Spam-Status:" . 'rmail-header-name)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
@@ -937,9 +947,6 @@ MSGNUM, if present, indicates the malformed message."
 (defun rmail-convert-babyl-to-mbox ()
   "Convert the mail file from Babyl version 5 to mbox.
 This function also reinitializes local variables used by Rmail."
-  (unless (y-or-n-p "Babyl mail file detected.  Rmail now uses mbox format for mail files.
-Convert Babyl mail file to mbox format? ")
-    (error "Aborted"))
   (let ((old-file (make-temp-file "rmail"))
 	(new-file (make-temp-file "rmail")))
     (unwind-protect
@@ -959,6 +966,7 @@ Convert Babyl mail file to mbox format? ")
 	    (rmail-mode-1)
 	    (rmail-perm-variables)
 	    (rmail-variables)
+	    (setq rmail-was-converted t)
 	    (goto-char (point-max))
 	    (rmail-set-message-counters))
 	  (message "Replacing BABYL format with mbox format...done"))
@@ -1332,6 +1340,24 @@ If so restore the actual mbox message collection."
       (rmail-swap-buffers)
       (setq rmail-buffer-swapped nil))))
 
+(defun rmail-modify-format ()
+  "Warn if important modifications would change Rmail file's format."
+  (with-current-buffer rmail-buffer
+    (and rmail-was-converted
+	 ;; If it's already modified, don't warn again.
+	 (not rmail-seriously-modified)
+	 (not
+	  (yes-or-no-p
+	   (message "After this, %s would be saved in mbox format.  Proceed? "
+		    (buffer-name))))
+	 (error "Aborted"))
+    (setq rmail-seriously-modified t)))
+
+(defun rmail-dont-modify-format ()
+  (when (and rmail-was-converted (not rmail-seriously-modified))
+    (set-buffer-modified-p nil)
+    (message "Marking buffer unmodified to avoid rewriting Babyl file as mbox file")))
+
 (defun rmail-mode-kill-buffer-hook ()
   (if (buffer-live-p rmail-view-buffer) (kill-buffer rmail-view-buffer)))
 
@@ -1340,6 +1366,10 @@ If so restore the actual mbox message collection."
   (make-local-variable 'rmail-last-regexp)
   (make-local-variable 'rmail-deleted-vector)
   (make-local-variable 'rmail-buffer)
+  (make-local-variable 'rmail-was-converted)
+  (setq rmail-was-converted nil)
+  (make-local-variable 'rmail-seriously-modified)
+  (setq rmail-seriously-modified nil)
   (setq rmail-buffer (current-buffer))
   (set-buffer-multibyte nil)
   (with-current-buffer (setq rmail-view-buffer (rmail-generate-viewer-buffer))
@@ -1428,13 +1458,12 @@ If so restore the actual mbox message collection."
   "Expunge and save RMAIL file."
   (interactive)
   (set-buffer rmail-buffer)
-  (rmail-expunge t)
+  (rmail-expunge)
   ;; No need to swap buffers: rmail-write-region-annotate takes care of it.
   ;; (rmail-swap-buffers-maybe)
   (save-buffer)
   (if (rmail-summary-exists)
-      (rmail-select-summary (set-buffer-modified-p nil)))
-  (rmail-show-message))
+      (rmail-select-summary (set-buffer-modified-p nil))))
 
 (defun rmail-quit ()
   "Quit out of RMAIL.
@@ -1447,6 +1476,8 @@ Hook `rmail-quit-hook' is run after expunging."
     (run-hooks 'rmail-quit-hook))
   ;; Don't switch to the summary buffer even if it was recently visible.
   (when rmail-summary-buffer
+    (with-current-buffer rmail-summary-buffer
+      (set-buffer-modified-p nil))
     (replace-buffer-in-windows rmail-summary-buffer)
     (bury-buffer rmail-summary-buffer))
   (if rmail-enable-mime
@@ -1480,6 +1511,7 @@ The duplicate copy goes into the Rmail file just after the original."
   ;; If we are in a summary buffer, switch to the Rmail buffer.
   ;; FIXME simpler to swap the contents, not the buffers?
   (set-buffer rmail-buffer)
+  (rmail-modify-format)
   (let ((buff (current-buffer))
         (n rmail-current-message)
         (beg (rmail-msgbeg rmail-current-message))
@@ -1626,6 +1658,7 @@ not be a new one).  It returns non-nil if it got any new messages."
   (or (verify-visited-file-modtime (current-buffer))
       (find-file (buffer-file-name)))
   (set-buffer rmail-buffer)
+  (rmail-modify-format)
   (rmail-swap-buffers-maybe)
   (rmail-maybe-set-message-counters)
   (widen)
@@ -2046,10 +2079,13 @@ VALUE nil means to remove NAME altogether."
 If MSGNUM is nil, use the current message.  NAME and VALUE are strings.
 VALUE may also be nil, meaning to remove the header."
   (rmail-apply-in-message msgnum 'rmail-set-header-1 name value)
-  ;; Ensure header changes get saved.
-  ;; (Note replacing a header with an identical copy modifies.)
-  (with-current-buffer rmail-buffer (set-buffer-modified-p t)))
-
+  (with-current-buffer rmail-buffer
+    ;; Ensure header changes get saved.
+    ;; (Note replacing a header with an identical copy modifies.)
+    (set-buffer-modified-p t)
+    ;; However: don't save in mbox format over a Babyl file
+    ;; merely because of this.
+    (rmail-dont-modify-format)))
 
 ;;;; *** Rmail Attributes and Keywords ***
 
@@ -2185,10 +2221,9 @@ change; nil means current message."
               (rmail-apply-in-message msgnum 'rmail-set-attribute-1 attr state)
             (if (= msgnum rmail-current-message)
                 (rmail-display-labels)))
-          ;; If we made a significant change in an attribute, mark
-          ;; rmail-buffer modified, so it will be (1) saved and (2)
-          ;; displayed in the mode line.
-          (set-buffer-modified-p t)))))
+	  ;; Don't save in mbox format over a Babyl file
+	  ;; merely because of this.
+	  (rmail-dont-modify-format)))))
 
 (defun rmail-message-attr-p (msg attrs)
   "Return non-nil if message number MSG has attributes matching regexp ATTRS."
@@ -2561,9 +2596,10 @@ The current mail message becomes the message displayed."
 	    (t (setq rmail-current-message msg)))
       (with-current-buffer rmail-buffer
 	(setq header-style rmail-header-style)
-	;; Mark the message as seen, bracket the message in the mail
-	;; buffer and determine the coding system the transfer encoding.
+	;; Mark the message as seen
 	(rmail-set-attribute rmail-unseen-attr-index nil)
+	;; bracket the message in the mail
+	;; buffer and determine the coding system the transfer encoding.
 	(rmail-swap-buffers-maybe)
 	(setq beg (rmail-msgbeg msg)
 	      end (rmail-msgend msg))
@@ -3043,6 +3079,10 @@ and typical reply prefixes such as Re:."
 	(setq subject (substring subject (match-end 0))))
     (if (string-match "[ \t]+\\'" subject)
 	(setq subject (substring subject 0 (match-beginning 0))))
+    ;; If Subject is long, mailers will break it into several lines at
+    ;; arbitrary places, so normalize whitespace by replacing every
+    ;; run of whitespace characters with a single space.
+    (setq subject (replace-regexp-in-string "[ \t\n]+" " " subject))
     subject))
 
 (defun rmail-simplified-subject-regexp ()
@@ -3168,11 +3208,14 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   "Return t if deleted message should be expunged. If necessary, ask the user.
 See also user-option `rmail-confirm-expunge'."
   (set-buffer rmail-buffer)
+  ;; FIXME shouldn't this return nil if there is nothing to expunge?
+  ;; Eg to save rmail-expunge wasting its time?
   (or (not (stringp rmail-deleted-vector))
       (not (string-match "D" rmail-deleted-vector))
-      (null rmail-confirm-expunge)
-      (funcall rmail-confirm-expunge
-	       "Erase deleted messages from Rmail file? ")))
+      (if rmail-confirm-expunge
+	  (funcall rmail-confirm-expunge
+		   "Erase deleted messages from Rmail file? ")
+	(progn (rmail-modify-format) t))))
 
 (defun rmail-only-expunge (&optional dont-show)
   "Actually erase all deleted messages in the file."
@@ -3258,20 +3301,43 @@ See also user-option `rmail-confirm-expunge'."
 	  (goto-char (+ (point-min) opoint))
 	(goto-char (+ (point) opoint))))))
 
+;; The DONT-SHOW argument is new in 23.  Does not seem very important.
 (defun rmail-expunge (&optional dont-show)
-  "Erase deleted messages from Rmail file and summary buffer."
+  "Erase deleted messages from Rmail file and summary buffer.
+This always shows a message (so as not to leave the Rmail buffer
+unswapped), and always updates any summary (so that it remains
+consistent with the Rmail buffer).  If DONT-SHOW is non-nil, it
+does not pop any summary buffer."
   (interactive)
   (when (rmail-expunge-confirmed)
-    (let ((old-total rmail-total-messages)
-	  (opoint (with-current-buffer rmail-buffer
-		    (when (rmail-buffers-swapped-p)
-		      (point)))))
-      (rmail-only-expunge dont-show)
+    (let ((was-deleted (rmail-message-deleted-p rmail-current-message))
+	  (was-swapped (rmail-buffers-swapped-p)))
+      (rmail-only-expunge t)
+      ;; We always update the summary buffer, so that the contents
+      ;; remain consistent with the rmail buffer.
+      ;; The only difference is, in the dont-show case, we use a
+      ;; cut-down version of rmail-select-summary that does not pop
+      ;; the summary buffer.  It's only used by rmail-quit, which is
+      ;; just going to bury any summary immediately after.  If we made
+      ;; rmail-quit bury the summary first, dont-show could be removed.
+      ;; But the expunge might not be confirmed...
       (if (rmail-summary-exists)
-	  (rmail-select-summary (rmail-update-summary))
-	(rmail-show-message-1 rmail-current-message)
-	(if (and (eq old-total rmail-total-messages) opoint)
-	    (goto-char opoint))))))
+	  (if dont-show
+	      (let ((total rmail-total-messages))
+		(with-current-buffer rmail-summary-buffer
+		  (let ((rmail-total-messages total))
+		    (rmail-update-summary))))
+	    (rmail-select-summary (rmail-update-summary))))
+      ;; We always show a message, because (rmail-only-expunge t)
+      ;; leaves the rmail buffer unswapped.
+      ;; If we expunged the current message, a new one is current now,
+      ;; so show it.  If we weren't showing a message, show it.
+      (if (or was-deleted (not was-swapped))
+	  (rmail-show-message-1 rmail-current-message)
+	;; We can just show the same message that was being shown before.
+	(rmail-display-labels)
+	(rmail-swap-buffers)
+	(setq rmail-buffer-swapped t)))))
 
 ;;;; *** Rmail Mailing Commands ***
 

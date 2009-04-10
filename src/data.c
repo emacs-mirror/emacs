@@ -88,6 +88,8 @@ static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
+Lisp_Object Qinteractive_form;
+
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
 Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
@@ -776,7 +778,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
   fun = cmd;
   while (SYMBOLP (fun))
     {
-      Lisp_Object tmp = Fget (fun, intern ("interactive-form"));
+      Lisp_Object tmp = Fget (fun, Qinteractive_form);
       if (!NILP (tmp))
 	return tmp;
       else
@@ -3163,6 +3165,8 @@ syms_of_data ()
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");
   DEFSYM (Qfont_object, "font-object");
+
+  DEFSYM (Qinteractive_form, "interactive-form");
 
   staticpro (&Qinteger);
   staticpro (&Qsymbol);

@@ -1066,12 +1066,6 @@ alsa_configure (sd)
   if (err < 0)
     alsa_sound_perror ("Unable to set avail min for playback", err);
 
-  /* Align all transfers to 1 period */
-  err = snd_pcm_sw_params_set_xfer_align (p->handle, p->swparams,
-                                          p->period_size);
-  if (err < 0)
-    alsa_sound_perror ("Unable to set transfer align for playback", err);
-
   err = snd_pcm_sw_params (p->handle, p->swparams);
   if (err < 0)
     alsa_sound_perror ("Unable to set sw params for playback\n", err);

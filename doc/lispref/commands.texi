@@ -102,12 +102,15 @@ command does.
 @cindex functions, making them interactive
 @cindex interactive function
 
-  A Lisp function becomes a command when its body contains, at top
-level, a form that calls the special form @code{interactive}, or if
-the function's symbol has an @code{interactive-form} property.  This
-form does nothing when actually executed, but its presence serves as a
-flag to indicate that interactive calling is permitted.  Its argument
-controls the reading of arguments for an interactive call.
+  The special form @code{interactive} turns a Lisp function into a
+command.  The @code{interactive} form must be located at top-level in
+the function body (usually as the first form in the body), or in the
+@code{interactive-form} property of the function symbol.  When the
+@code{interactive} form is located in the function body, it does
+nothing when actually executed.  Its presence serves as a flag, which
+tells the Emacs command loop that the function can be called
+interactively.  The argument of the @code{interactive} form controls
+the reading of arguments for an interactive call.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.
@@ -125,28 +128,33 @@ makes a Lisp function an interactively-callable command, and how to
 examine a command's @code{interactive} form.
 
 @defspec interactive arg-descriptor
-This special form declares that the function in which it appears is a
-command, and that it may therefore be called interactively (via
-@kbd{M-x} or by entering a key sequence bound to it).  The argument
-@var{arg-descriptor} declares how to compute the arguments to the
-command when the command is called interactively.
+This special form declares that a function is a command, and that it
+may therefore be called interactively (via @kbd{M-x} or by entering a
+key sequence bound to it).  The argument @var{arg-descriptor} declares
+how to compute the arguments to the command when the command is called
+interactively.
 
 A command may be called from Lisp programs like any other function, but
 then the caller supplies the arguments and @var{arg-descriptor} has no
 effect.
 
-The @code{interactive} form has its effect because the command loop
-(actually, its subroutine @code{call-interactively}) scans through the
-function definition looking for it, before calling the function.  Once
-the function is called, all its body forms including the
-@code{interactive} form are executed, but at this time
-@code{interactive} simply returns @code{nil} without even evaluating its
-argument.
-
 @cindex @code{interactive-form}, function property
-An interactive form can be added to a function post-facto via the
-@code{interactive-form} property of the function's symbol.
-@xref{Symbol Plists}.
+The @code{interactive} form must be located at top-level in the
+function body, or in the function symbol's @code{interactive-form}
+property (@pxref{Symbol Plists}).  It has its effect because the
+command loop looks for it before calling the function
+(@pxref{Interactive Call}).  Once the function is called, all its body
+forms are executed; at this time, if the @code{interactive} form
+occurs within the body, the form simply returns @code{nil} without
+even evaluating its argument.
+
+By convention, you should put the @code{interactive} form in the
+function body, as the first top-level form.  If there is an
+@code{interactive} form in both the @code{interactive-form} symbol
+property and the function body, the former takes precedence.  The
+@code{interactive-form} symbol property can be used to add an
+interactive form to an existing function, or change how its arguments
+are processed interactively, without redefining the function.
 @end defspec
 
 There are three possibilities for the argument @var{arg-descriptor}:
@@ -158,24 +166,22 @@ arguments.  This leads quickly to an error if the command requires one
 or more arguments.
 
 @item
-It may be a string; then its contents should consist of a code character
-followed by a prompt (which some code characters use and some ignore).
-The prompt ends either with the end of the string or with a newline.
-Here is a simple example:
+It may be a string; its contents are a sequence of elements separated
+by newlines, one for each parameter@footnote{Some elements actually
+supply two parameters.}.  Each element consists of a code character
+(@pxref{ Interactive Codes}) optionally followed by a prompt (which
+some code characters use and some ignore).  Here is an example:
 
 @smallexample
-(interactive "bFrobnicate buffer: ")
+(interactive "P\nbFrobnicate buffer: ")
 @end smallexample
 
 @noindent
-The code letter @samp{b} says to read the name of an existing buffer,
-with completion.  The buffer name is the sole argument passed to the
-command.  The rest of the string is a prompt.
-
-If there is a newline character in the string, it terminates the prompt.
-If the string does not end there, then the rest of the string should
-contain another code character and prompt, specifying another argument.
-You can specify any number of arguments in this way.
+The code letter @samp{P} sets the command's first argument to the raw
+command prefix (@pxref{Prefix Command Arguments}).  @samp{bFrobnicate
+buffer: } prompts the user with @samp{Frobnicate buffer: } to enter
+the name of an existing buffer, which becomes the second and final
+argument.
 
 @c Emacs 19 feature
 The prompt string can use @samp{%} to include previous argument values
@@ -555,9 +561,9 @@ Put them into three windows, selecting the last one."
 @section Interactive Call
 @cindex interactive call
 
-  After the command loop has translated a key sequence into a command it
-invokes that command using the function @code{command-execute}.  If the
-command is a function, @code{command-execute} calls
+  After the command loop has translated a key sequence into a command,
+it invokes that command using the function @code{command-execute}.  If
+the command is a function, @code{command-execute} calls
 @code{call-interactively}, which reads the arguments and calls the
 command.  You can also call these functions yourself.
 
@@ -565,14 +571,15 @@ command.  You can also call these functions yourself.
 Returns @code{t} if @var{object} is suitable for calling interactively;
 that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
-The interactively callable objects include strings and vectors (treated
-as keyboard macros), lambda expressions that contain a top-level call to
-@code{interactive}, byte-code function objects made from such lambda
-expressions, autoload objects that are declared as interactive
-(non-@code{nil} fourth argument to @code{autoload}), and some of the
-primitive functions.
+Interactively-callable objects include strings and vectors (which are
+treated as keyboard macros), lambda expressions that contain a
+top-level @code{interactive} form (@pxref{Using Interactive}),
+byte-code function objects made from such lambda expressions, autoload
+objects that are declared as interactive (non-@code{nil} fourth
+argument to @code{autoload}), and some primitive functions.
 
-A symbol satisfies @code{commandp} if its function definition
+A symbol satisfies @code{commandp} if it has a non-@code{nil}
+@code{interactive-form} property, or if its function definition
 satisfies @code{commandp}.  Keys and keymaps are not commands.
 Rather, they are used to look up commands (@pxref{Keymaps}).
 
@@ -774,7 +781,7 @@ the command loop, except when the command has specified a prefix
 argument for the following command.
 
 This variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar real-last-command
@@ -1560,13 +1567,12 @@ Focus events are represented in Lisp as lists that look like this:
 @noindent
 where @var{new-frame} is the frame switched to.
 
-Most X window managers are set up so that just moving the mouse into a
-window is enough to set the focus there.  Emacs appears to do this,
-because it changes the cursor to solid in the new frame.  However, there
-is no need for the Lisp program to know about the focus change until
-some other kind of input arrives.  So Emacs generates a focus event only
-when the user actually types a keyboard key or presses a mouse button in
-the new frame; just moving the mouse between frames does not generate a
+Some X window managers are set up so that just moving the mouse into a
+window is enough to set the focus there.  Usually, there is no need
+for a Lisp program to know about the focus change until some other
+kind of input arrives.  Emacs generates a focus event only when the
+user actually types a keyboard key or presses a mouse button in the
+new frame; just moving the mouse between frames does not generate a
 focus event.
 
 A focus event in the middle of a key sequence would garble the
@@ -3334,7 +3340,7 @@ The commands @code{start-kbd-macro}, @code{kmacro-start-macro} and
 @code{end-kbd-macro} set this variable---do not set it yourself.
 
 The variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar last-kbd-macro
@@ -3342,7 +3348,7 @@ This variable is the definition of the most recently defined keyboard
 macro.  Its value is a string or vector, or @code{nil}.
 
 The variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
+buffer-local.  @xref{Multiple Terminals}.
 @end defvar
 
 @defvar kbd-macro-termination-hook

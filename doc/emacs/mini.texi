@@ -262,8 +262,8 @@ when completion is allowed.
 @table @kbd
 @item @key{TAB}
 @findex minibuffer-complete
-Complete the text before point in the minibuffer as much as possible;
-if unable to complete, display a list of possible completions
+Complete the text in the minibuffer as much as possible; if unable to
+complete, display a list of possible completions
 (@code{minibuffer-complete}).
 @item @key{SPC}
 Complete up to one word from the minibuffer text before point
@@ -284,6 +284,42 @@ Display a list of possible completions of the text before point
 (@code{minibuffer-completion-help}).
 @end table
 
+@kindex TAB
+@findex minibuffer-complete
+  @key{TAB} (@code{minibuffer-complete}) is the most fundamental
+completion command.  It searches for all possible completion
+alternatives that match the existing minibuffer text, and attempts to
+complete as much as it can.  The matching of completion alternatives
+to the minibuffer text is performed according to somewhat intricate
+rules, which are designed so that plausible completions are offered
+under most circumstances.  A valid completion alternative must satisfy
+the following criteria:
+
+@itemize @bullet
+@item
+The minibuffer text before point must be the same as the beginning of
+the completion alternative.  If there is any minibuffer text after
+point, it must be a substring of the remainder of the completion
+alternative.
+
+@item
+If no completion alternative satisfies the above rules, try using
+@dfn{partial completion} rules: divide the minibuffer text into words
+separated by hyphens or spaces, and complete each word separately.
+Thus, when completing command names, @samp{em-l-m} completes to
+@samp{emacs-lisp-mode}.
+
+@item
+If there is still no completion alternative, try the first rule again,
+but ignore the minibuffer text after point (i.e., don't try matching
+it).
+@end itemize
+
+@noindent
+When performing these comparisons, a @samp{*} in the minibuffer text
+acts as a @dfn{wildcard}---it matches any character at the
+corresponding position in the completion alternative.
+
 @kindex SPC
 @findex minibuffer-complete-word
   @key{SPC} (@code{minibuffer-complete-word}) completes like
@@ -293,8 +329,9 @@ completion is @samp{auto-fill-mode}, but it only inserts @samp{ill-},
 giving @samp{auto-fill-}.  Another @key{SPC} at this point completes
 all the way to @samp{auto-fill-mode}.
 
-  When you display a list of possible completions, you can choose
-one from it:
+  If @key{TAB} or @key{SPC} is unable to complete, it displays a list
+of possible completions (if there are any) in a separate window.  You
+can choose a completion from this list using the following commands:
 
 @table @kbd
 @findex mouse-choose-completion
@@ -401,35 +438,29 @@ contents are ignored.  Elements of
 @code{completion-ignored-extensions} that do not end in a slash are
 ordinary file names.
 
-@cindex Partial Completion mode
-@vindex partial-completion-mode
-@findex partial-completion-mode
-  Partial Completion mode implements a more powerful kind of
-completion that can complete multiple words in parallel.  For example,
-it can complete the command name abbreviation @code{p-b} into
-@code{print-buffer} if no other command starts with two words whose
-initials are @samp{p} and @samp{b}.
+@cindex case-sensitivity and completion
+@vindex read-file-name-completion-ignore-case
+@vindex read-buffer-completion-ignore-case
+  When completing file names, Emacs ignores case differences if the
+variable @code{read-file-name-completion-ignore-case} is
+non-@code{nil}.  The default value is @code{nil} on systems that have
+case-sensitive file-names, such as GNU/Linux; it is non-@code{nil} on
+systems that have case-insensitive file-names, such as Microsoft
+Windows.  When completing buffer names, Emacs ignores case differences
+if @code{read-buffer-completion-ignore-case} is non-@code{nil} (the
+default value is @code{nil}).
 
-  To enable this mode, use @kbd{M-x partial-completion-mode} or
-customize the variable @code{partial-completion-mode}.  This mode
-binds special partial completion commands to @key{TAB}, @key{SPC},
-@key{RET}, and @kbd{?} in the minibuffer.  The usual completion
-commands are available on @kbd{M-@key{TAB}} (or @kbd{C-M-i}),
-@kbd{M-@key{SPC}}, @kbd{M-@key{RET}} and @kbd{M-?}.
-
-  Partial completion of directories in file names uses @samp{*} to
-indicate the places for completion; thus, @file{/u*/b*/f*} might
-complete to @file{/usr/bin/foo}.  For remote files, partial completion
-enables completion of methods, user names and host names.
-@xref{Remote Files}.
-
-@vindex PC-include-file-path
-@vindex PC-disable-includes
-  Partial Completion mode also extends @code{find-file} so that
-@samp{<@var{include}>} looks for the file named @var{include} in the
-directories in the path @code{PC-include-file-path}.  If you set
-@code{PC-disable-includes} to non-@code{nil}, this feature is
-disabled.
+@vindex completion-styles
+  You can customize the matching rules for completion alternatives
+using the variable @code{completion-styles}.  Its value should be a
+list of symbols, each representing a @dfn{completion style}; valid
+style symbols are @code{basic}, @code{partial-completion},
+@code{emacs22}, and @code{emacs21}.  When completing, Emacs attempts
+to use the first completion style in the list; if this does not return
+any completion alternatives, it tries the next completion style in the
+list, and so on.  The completion rules described in @ref{Completion
+Commands} correspond to the default value of @code{completion-styles},
+which is @code{(basic partial-completion emacs22)}.
 
 @cindex Icomplete mode
 @findex icomplete-mode

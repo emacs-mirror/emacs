@@ -24,9 +24,8 @@ Property value is one of the following symbols:
   "Unicode decomposition mapping.
 Property value is a list of characters.  The first element may be
 one of these symbols representing compatibility formatting tag:
-  <font>, <noBreak>, <initial>, <medial>, <final>, <isolated>, <circle>,
-  <super>, <sub>, <vertical>, <wide>, <narrow>, <small>, <square>, <fraction>,
-  <compat>")
+  font, noBreak, initial, medial, final, isolated, circle, super,
+  sub, vertical, wide, narrow, small, square, fraction, compat")
 ;; FILE: uni-decimal.el
 (define-char-code-property 'decimal-digit-value "uni-decimal.el"
   "Unicode numeric value (decimal digit).

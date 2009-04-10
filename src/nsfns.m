@@ -1379,17 +1379,6 @@ FRAME nil means use the selected frame.  */)
 }
 
 
-DEFUN ("ns-popup-prefs-panel", Fns_popup_prefs_panel, Sns_popup_prefs_panel,
-       0, 0, "",
-       doc: /* Pop up the preferences panel. */)
-     ()
-{
-  check_ns ();
-  [(EmacsApp *)NSApp showPreferencesWindow: NSApp];
-  return Qnil;
-}
-
-
 DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
        0, 1, "",
        doc: /* Pop up the font panel. */)
@@ -1416,7 +1405,7 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
 }
 
 
-DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel, 
+DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
        0, 1, "",
        doc: /* Pop up the color panel.  */)
      (frame)
@@ -1497,7 +1486,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
 
   if (ret)
     fname = build_string ([[panel filename] UTF8String]);
-  
+
   [[FRAME_NS_VIEW (SELECTED_FRAME ()) window] makeKeyWindow];
   UNBLOCK_INPUT;
 
@@ -1577,11 +1566,11 @@ transparency and 1 is opaque.  */)
   CHECK_NUMBER_OR_FLOAT (alpha);
 
   if (ns_lisp_to_color (color, &col))
-    error ("Unknown color.");
+    error ("Unknown color");
 
   a = XFLOATINT (alpha);
   if (a < 0.0 || a > 1.0)
-    error ("Alpha value should be between 0 and 1 inclusive.");
+    error ("Alpha value should be between 0 and 1 inclusive");
 
   col = [col colorWithAlphaComponent: a];
   return ns_color_to_lisp (col);
@@ -1809,7 +1798,7 @@ Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.  */)
 DEFUN ("x-close-connection", Fx_close_connection, Sx_close_connection,
        1, 1, 0,
        doc: /* Close the connection to the current Nextstep display server.
-The second argument DISPLAY is currently ignored.  */)
+The argument DISPLAY is currently ignored.  */)
      (display)
      Lisp_Object display;
 {
@@ -1839,7 +1828,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 
 DEFUN ("ns-hide-others", Fns_hide_others, Sns_hide_others,
        0, 0, 0,
-       doc: /* Hides all applications other than emacs.  */)
+       doc: /* Hides all applications other than Emacs.  */)
      ()
 {
   check_ns ();
@@ -1849,9 +1838,9 @@ DEFUN ("ns-hide-others", Fns_hide_others, Sns_hide_others,
 
 DEFUN ("ns-hide-emacs", Fns_hide_emacs, Sns_hide_emacs,
        1, 1, 0,
-       doc: /* If ON is non-nil, the entire emacs application is hidden.
-Otherwise if emacs is hidden, it is unhidden.
-If ON is equal to `activate', emacs is unhidden and becomes
+       doc: /* If ON is non-nil, the entire Emacs application is hidden.
+Otherwise if Emacs is hidden, it is unhidden.
+If ON is equal to `activate', Emacs is unhidden and becomes
 the active application.  */)
      (on)
      Lisp_Object on;
@@ -2027,7 +2016,7 @@ there was no result.  */)
 
 DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
        Sns_convert_utf8_nfd_to_nfc, 1, 1, 0,
-       doc: /* Return an NFC string that matches  the UTF-8 NFD string STR.  */)
+       doc: /* Return an NFC string that matches the UTF-8 NFD string STR.  */)
     (str)
     Lisp_Object str;
 {
@@ -2071,9 +2060,9 @@ ns_do_applescript (script, result)
 
   returnDescriptor = [scriptObject executeAndReturnError: &errorDict];
   [scriptObject release];
-  
+
   *result = Qnil;
-  
+
   if (returnDescriptor != NULL)
     {
       // successful execution
@@ -2083,7 +2072,7 @@ ns_do_applescript (script, result)
 	  // script returned an AppleScript result
 	  if ((typeUnicodeText == [returnDescriptor descriptorType]) ||
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
-	      (typeUTF16ExternalRepresentation 
+	      (typeUTF16ExternalRepresentation
 	       == [returnDescriptor descriptorType]) ||
 #endif
 	      (typeUTF8Text == [returnDescriptor descriptorType]) ||
@@ -2112,10 +2101,10 @@ ns_do_applescript (script, result)
 }
 
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
-       doc: /* Execute AppleScript SCRIPT and return the result.  If
-compilation and execution are successful, the resulting script value
-is returned as a string, a number or, in the case of other constructs,
-t.  In case the execution fails, an error is signaled. */)
+       doc: /* Execute AppleScript SCRIPT and return the result.
+If compilation and execution are successful, the resulting script value
+is returned as a string, a number or, in the case of other constructs, t.
+In case the execution fails, an error is signaled. */)
     (script)
     Lisp_Object script;
 {
@@ -2343,7 +2332,7 @@ If omitted or nil, that stands for the selected frame's display. */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Returns the width in pixels of the Nextstep display DISPLAY.
+       doc: /* Return the width in pixels of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -2357,7 +2346,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of the Nextstep display DISPLAY.
+       doc: /* Return the height in pixels of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -2371,7 +2360,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("display-usable-bounds", Fns_display_usable_bounds,
        Sns_display_usable_bounds, 0, 1, 0,
-       doc: /*Return the bounds of the usable part of the screen.
+       doc: /* Return the bounds of the usable part of the screen.
 The return value is a list of integers (LEFT TOP WIDTH HEIGHT), which
 are the boundaries of the usable part of the screen, excluding areas
 reserved for the Mac menu, dock, and so forth.
@@ -2399,7 +2388,7 @@ that stands for the selected frame's display. */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of the Nextstep display DISPLAY.
+       doc: /* Return the number of bitplanes of the Nextstep display DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -2443,7 +2432,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   Lisp_Object left, top;
   EmacsView *view = FRAME_NS_VIEW (f);
   NSPoint pt;
-  
+
   /* Start with user-specified or mouse position.  */
   left = Fcdr (Fassq (Qleft, parms));
   if (INTEGERP (left))
@@ -2488,7 +2477,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
-       doc: /* Show STRING in a "tooltip" window on frame FRAME.
+       doc: /* Show STRING in a \"tooltip\" window on frame FRAME.
 A tooltip window is a small window displaying a string.
 
 FRAME nil or omitted means use the selected frame.
@@ -2662,10 +2651,6 @@ syms_of_nsfns ()
 
   Qnone = intern ("none");
   staticpro (&Qnone);
-  /* FIXME: Because of the typo below, Qbuffered probably never did
-     anything useful, so it might as well be removed. */
-  Qbuffered = intern ("bufferd");
-  staticpro (&Qbuffered);
   Qfontsize = intern ("fontsize");
   staticpro (&Qfontsize);
 
@@ -2733,7 +2718,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_perform_service);
   defsubr (&Sns_convert_utf8_nfd_to_nfc);
   defsubr (&Sx_focus_frame);
-  defsubr (&Sns_popup_prefs_panel);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);
 

@@ -212,9 +212,9 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 		(delete-overlay show-paren-overlay-1))
 	    (let ((from (if (= dir 1)
 			    (point)
-			  (forward-point -1)))
+			  (- (point) 1)))
 		  (to (if (= dir 1)
-			  (forward-point 1)
+			  (+ (point) 1)
 			(point))))
 	      (if show-paren-overlay-1
 		  (move-overlay show-paren-overlay-1 from to (current-buffer))
@@ -238,7 +238,7 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 			  pos
 			(save-excursion
 			  (goto-char pos)
-			  (forward-point (- dir))))))
+			  (- (point) dir)))))
 	    (if show-paren-overlay
 		(move-overlay show-paren-overlay from to (current-buffer))
 	      (setq show-paren-overlay (make-overlay from to nil t))))

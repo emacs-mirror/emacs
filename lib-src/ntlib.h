@@ -35,11 +35,10 @@ char *getwd (char *dir);
 int getppid(void);
 char * getlogin ();
 char * cuserid (char * s);
-int getuid ();
-int setuid (int uid);
-struct passwd * getpwuid (int uid);
+unsigned getuid ();
+int setuid (unsigned uid);
 char * getpass (const char * prompt);
-int fchown (int fd, int uid, int gid);
+int fchown (int fd, unsigned uid, unsigned gid);
 
 #ifndef BSTRING
 #define bzero(b, l) memset(b, 0, l)
