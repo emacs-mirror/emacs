@@ -203,7 +203,7 @@ maps.texi
 markers.texi      -- cyd
 minibuf.texi      -- cyd
 modes.texi        -- cyd
-nonascii.texi
+nonascii.texi     -- cyd
 numbers.texi      -- cyd
 objects.texi      -- cyd
 os.texi
