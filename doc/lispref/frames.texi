@@ -668,8 +668,8 @@ menu bar line; they treat larger values as 1.)
 
 @item tool-bar-lines
 The number of lines to use for the tool bar.  A value of @code{nil}
-means don't display a tool bar.  (GTK allows at most one tool bar line;
-it treats larger values as 1.)
+means don't display a tool bar.  (GTK and Nextstep allow at most one
+tool bar line; they treat larger values as 1.)
 
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive

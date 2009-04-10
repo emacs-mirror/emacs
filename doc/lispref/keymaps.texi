@@ -2703,7 +2703,7 @@ specifies the local map to make the definition in.  The argument
 @code{tool-bar-add-item-from-menu}.
 @end defun
 
-@defvar auto-resize-tool-bar
+@defvar auto-resize-tool-bars
 If this variable is non-@code{nil}, the tool bar automatically resizes to
 show all defined tool bar items---but not larger than a quarter of the
 frame's height.
@@ -2711,6 +2711,9 @@ frame's height.
 If the value is @code{grow-only}, the tool bar expands automatically,
 but does not contract automatically.  To contract the tool bar, the
 user has to redraw the frame by entering @kbd{C-l}.
+
+If Emacs is built with GTK or Nextstep, the tool bar can only show one
+line, so this variable has no effect.
 @end defvar
 
 @defvar auto-raise-tool-bar-buttons

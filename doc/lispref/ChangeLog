@@ -1,5 +1,11 @@
 2009-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* keymaps.texi (Tool Bar): Mention that some platforms do not
+	support multi-line toolbars.  Suggested by Stephen Eglen.
+
+	* frames.texi (Layout Parameters): Mention that Nextstep also
+	allows only one tool-bar line.  Suggested by Stephen Eglen.
+
 	* nonascii.texi (Text Representations): Copyedits.
 	(Coding System Basics): Also mention utf-8-emacs.
 	(Converting Representations, Selecting a Representation)
