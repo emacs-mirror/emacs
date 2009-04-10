@@ -1,3 +1,7 @@
+2009-04-10  Richard M Stallman  <rms@gnu.org>
+
+	* vc-dir.el (vc-dir): Dox fix.
+
 2009-04-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/unrmail.el (unrmail): If "Mail-From" header is found,

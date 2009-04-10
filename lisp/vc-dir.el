@@ -1110,9 +1110,22 @@ outside of VC) and one wants to do some operation on it."
 
 ;;;###autoload
 (defun vc-dir (dir &optional backend)
-  "Show the VC status for DIR.
+  "Show the VC status for \"interesting\" files in and below DIR.
+This allows you to mark files and perform VC operations on them.
+The list omits files which are up to date, with no changes in your copy
+or the repository, if there is nothing in particular to say about them.
+
+Preparing the list of file status takes time; when the buffer
+first appears, it has only the first few lines of summary information.
+The file lines appear later.
+
 Optional second argument BACKEND specifies the VC backend to use.
-Interactively, a prefix argument means to ask for the backend."
+Interactively, a prefix argument means to ask for the backend.
+
+These are the commands available for use in the file status buffer:
+
+\\<vc-dir-mode-map>"
+
   (interactive
    (list
     ;; When you hit C-x v d in a visited VC file,
