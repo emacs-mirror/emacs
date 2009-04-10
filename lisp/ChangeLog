@@ -1,3 +1,10 @@
+2009-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-unrmail-new-mail)
+	(rmail-unrmail-new-mail-maybe): New functions.
+	(rmail-insert-inbox-text): Use rmail-unrmail-new-mail-maybe to
+	convert Babyl-formatted new mail to mbox format.  (Bug#2942)
+
 2009-04-09  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--indent-rectangle): Insert tabs using
