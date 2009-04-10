@@ -162,13 +162,14 @@ The variable `frame-alpha-lower-limit' defines a lower bound for the
 opacity; the default is 20.
 
 ** Internationalization changes
-
++++
 *** The Emacs character set is now a superset of Unicode.
 (It has about four times the code space, which should be plenty).
 
 The internal encoding used for buffers and strings is now
 Unicode-based and called `utf-8-emacs'.  This encoding is backwards
-compatible with Unicode's UTF-8 encoding.  The internal encoding
+compatible with Unicode's UTF-8 encoding.  The encoding
+`emacs-internal' is an alias for this.  The internal encoding
 previously used by Emacs, `emacs-mule', is still available.
 
 During byte-compilation, Emacs 23 uses `utf-8-emacs' to write files.
@@ -1304,8 +1305,6 @@ temporary-file-directory instead.
 
 * Lisp Changes in Emacs 23.1
 
-** New coding system alias `emacs-internal'.
-
 +++
 ** The new variable `generate-autoload-cookie' controls the magic comment
 string used by `update-file-autoloads' to find autoloaded forms.  The
@@ -1508,7 +1507,7 @@ to `automatic-all' and `exit-current' for multi-buffer interactive replacement.
 *** The variable `inhibit-changing-match-data', if non-nil, prevents
 the search and match primitives from changing the match data.
 
----
++++
 *** New functions `word-search-forward-lax' and `word-search-backward-lax'.
 These are like `word-search-forward and `word-search-backward', except
 that the end of the search string need not match a word boundary,
@@ -1602,6 +1601,7 @@ character properties.  They are `name', `general-category',
 `old-name', `iso-10646-comment', `uppercase', `lowercase', and
 `titlecase'.
 
++++
 *** The functions `modify-syntax-entry' and `modify-category-entry' now
 accept a cons of characters as the first argument, and modify all
 entries in that range of characters.
