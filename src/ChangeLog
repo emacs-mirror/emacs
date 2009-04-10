@@ -398,7 +398,7 @@
 
 	* coding.c (CODING_ISO_CMP_STATUS): New macro.
 	(CODING_ISO_EXTSEGMENT_LEN, CODING_ISO_EMBEDDED_UTF_8): New macros.
-	(MAX_ANNOTATION_LENGTH): Defined to 5.
+	(MAX_ANNOTATION_LENGTH): Define to 5.
 	(ADD_COMPOSITION_DATA): New arg nbytes.
 	(emacs_mule_char): New arg cmp_status.
 	(DECODE_EMACS_MULE_COMPOSITION_CHAR): Delete it.
@@ -429,9 +429,9 @@
 	to_nchars.  Callers changed.
 	(produce_chars): Don't modify charbuf.  Adjusted for the change of
 	get_translation.
-	(produce_composition): Adjusted for the new annotation sequence.
+	(produce_composition): Adjust for the new annotation sequence.
 	(handle_composition_annotation): Likewise.
-	(consume_chars): Adjusted for the change of get_translation.
+	(consume_chars): Adjust for the change of get_translation.
 
 2009-03-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -446,7 +446,7 @@
 	restricting of the characters C doen't support C, try to find a
 	font with C restriction.
 
-2009-03-04  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
+2009-03-04  Nikolaj Schumacher  <me@nschum.de>
 
 	* nsfont.m (nsfont_draw): Compare ns_antialias_text against lisp value.
 

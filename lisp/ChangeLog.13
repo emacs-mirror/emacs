@@ -12526,7 +12526,7 @@
 	* startup.el (tutorial-directory): Set with eval-at-startup so it
 	gets the right value in an installed Emacs.
 
-2007-08-24  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2007-08-24  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): New face.
 	(eldoc-highlight-function-argument): Use it.
@@ -16158,7 +16158,7 @@
 	(table--point-left-cell-function):
 	Bind `inhibit-point-motion-hooks' to t.
 
-2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* emacs-lisp/rx.el (rx): Doc fix.
 
@@ -16285,7 +16285,7 @@
 	buffer-file-coding-system to what decode-coding-region actually
 	used to decode the file.
 
-2007-05-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2007-05-23  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* progmodes/compile.el (compilation-handle-exit):
 	`compilation-finish-function' may change the current buffer.
@@ -16418,7 +16418,7 @@
 	* files.el (magic-fallback-mode-alist):
 	Rename from file-start-mode-alist.
 
-2007-05-16  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2007-05-16  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* progmodes/compile.el (compilation-handle-exit): Quote first
 	argument of `run-hook-with-args'.

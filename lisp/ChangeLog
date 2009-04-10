@@ -159,8 +159,8 @@
 
 2009-04-02  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (setup-default-fontset): Specify
-	iso10646-1 font for characters in PUA of BMP.  (Bug#2830)
+	* international/fontset.el (setup-default-fontset):
+	Specify iso10646-1 font for characters in PUA of BMP.  (Bug#2830)
 
 2009-04-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6772,7 +6772,7 @@
 	* vc-cvs.el (vc-cvs-root): Delete.
 	* vc-hooks.el (vc-find-root): Remove `invert' argument.
 
-2008-09-07  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2008-09-07  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* progmodes/flymake.el (flymake-parse-err-lines): Filter out
 	errors occurring in different files.
@@ -8391,7 +8391,7 @@
 
 	* international/mule.el (recode-region): Deactivate mark at the end.
 
-2008-07-23  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+2008-07-23  Nikolaj Schumacher  <n_schumacher@web.de>
 
 	* progmodes/flymake.el (flymake-errline, flymake-warnline):
 	Use more suitable colors on dark displays.
