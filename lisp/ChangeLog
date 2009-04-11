@@ -1,3 +1,10 @@
+2009-04-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule-diag.el (describe-font-internal): Change
+	ignored argument to IGNORED.
+	(describe-font): Elide unnecessary argument to
+	describe-font-internal (Bug#2945).
+
 2009-04-10  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailedit.el (rmail-cease-edit): Call rmail-modify-format.

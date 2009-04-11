@@ -810,8 +810,9 @@ but still contains full information about each coding system."
 
 (declare-function font-info "font.c" (name &optional frame))
 
-(defun describe-font-internal (font-info &optional verbose)
-  "Print information about a font in FONT-INFO."
+(defun describe-font-internal (font-info &optional ignored)
+  "Print information about a font in FONT-INFO.
+The IGNORED argument is ignored."
   (print-list "name (opened by):" (aref font-info 0))
   (print-list "       full name:" (aref font-info 1))
   (print-list "            size:" (format "%2d" (aref font-info 2)))
@@ -839,7 +840,7 @@ The font must be already used by Emacs."
 	    (message "No information about \"%s\"" (font-xlfd-name fontname))
 	  (message "No matching font found"))
       (with-output-to-temp-buffer "*Help*"
-	(describe-font-internal font-info 'verbose)))))
+	(describe-font-internal font-info)))))
 
 (defun print-fontset-element (val)
   ;; VAL has this format:
