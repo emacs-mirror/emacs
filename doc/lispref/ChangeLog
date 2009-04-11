@@ -1,3 +1,8 @@
+2009-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Overlays): Overlays don't scale well.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00243.html.
+
 2009-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* syntax.texi (Syntax Table Functions): Document cons cell
