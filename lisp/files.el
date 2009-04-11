@@ -3185,10 +3185,19 @@ already the major mode."
 ;;; Handling directory-local variables, aka project settings.
 
 (defvar dir-locals-class-alist '()
-  "Alist mapping class names (symbols) to variable lists.")
+  "Alist mapping directory-local variable classes (symbols) to variable lists.")
 
-(defvar dir-locals-directory-alist '()
-  "Alist mapping directory roots to variable classes.")
+(defvar dir-locals-directory-cache '()
+  "List of cached directory roots for directory-local variable classes.
+Each element in this list has the form (DIR CLASS MTIME).
+DIR is the name of the directory.
+CLASS is the name of a variable class (a symbol).
+MTIME is the recorded modification time of the directory-local
+ variables file associated with this entry.  This time is a list
+ of two integers (the same format as `file-attributes'), and is
+ used to test whether the cache entry is still valid.
+ Alternatively, MTIME can be nil, which means the entry is always
+ considered valid.")
 
 (defsubst dir-locals-get-class-variables (class)
   "Return the variable list for CLASS."
@@ -3230,18 +3239,20 @@ Return the new variables list."
 	  (setq variables (dir-locals-collect-mode-variables
 			   (cdr entry) variables))))))))
 
-(defun dir-locals-set-directory-class (directory class)
+(defun dir-locals-set-directory-class (directory class mtime)
   "Declare that the DIRECTORY root is an instance of CLASS.
 DIRECTORY is the name of a directory, a string.
 CLASS is the name of a project class, a symbol.
+MTIME is either the modification time of the directory-local
+variables file that defined this this class, or nil.
 
 When a file beneath DIRECTORY is visited, the mode-specific
-variables from CLASS will be applied to the buffer.  The variables
+variables from CLASS are applied to the buffer.  The variables
 for a class are defined using `dir-locals-set-class-variables'."
   (setq directory (file-name-as-directory (expand-file-name directory)))
   (unless (assq class dir-locals-class-alist)
     (error "No such class `%s'" (symbol-name class)))
-  (push (cons directory class) dir-locals-directory-alist))
+  (push (list directory class mtime) dir-locals-directory-cache))
 
 (defun dir-locals-set-class-variables (class variables)
   "Map the type CLASS to a list of variable settings.
@@ -3284,12 +3295,15 @@ It has to be constant to enforce uniform values
 across different environments and users.")
 
 (defun dir-locals-find-file (file)
-  "Find the directory-local variables FILE.
-This searches upward in the directory tree.
-If a local variables file is found, the file name is returned.
-If the file is already registered, a cons from
-`dir-locals-directory-alist' is returned.
-Otherwise this returns nil."
+  "Find the directory-local variables for FILE.
+This searches upward in the directory tree from FILE.
+If the directory root of FILE has been registered in
+ `dir-locals-directory-cache' and the directory-local variables
+ file has not been modified, return the matching entry in
+ `dir-locals-directory-cache'.
+Otherwise, if a directory-local variables file is found, return
+ the file name.
+Otherwise, return nil."
   (setq file (expand-file-name file))
   (let* ((dir-locals-file-name
 	  (if (eq system-type 'ms-dos)
@@ -3300,19 +3314,31 @@ Otherwise this returns nil."
     ;; `locate-dominating-file' may have abbreviated the name.
     (when locals-file
       (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
-    (dolist (elt dir-locals-directory-alist)
+    ;; Find the best cached value in `dir-locals-directory-cache'.
+    (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
 					(car elt) nil nil
 					(memq system-type
 					      '(windows-nt cygwin ms-dos))))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
-    (if (and locals-file dir-elt)
-	(if (> (length (file-name-directory locals-file))
-	       (length (car dir-elt)))
-	    locals-file
-	  dir-elt)
-      (or locals-file dir-elt))))
+    (let ((use-cache (and dir-elt
+			  (or (null locals-file)
+			      (<= (length (file-name-directory locals-file))
+				  (length (car dir-elt)))))))
+      (if use-cache
+	  ;; Check the validity of the cache.
+	  (if (and (file-readable-p (car dir-elt))
+		   (or (null  (nth 2 dir-elt))
+		       (equal (nth 2 dir-elt)
+			      (nth 5 (file-attributes (car dir-elt))))))
+	      ;; This cache entry is OK.
+	      dir-elt
+	    ;; This cache entry is invalid; clear it.
+	    (setq dir-locals-directory-cache
+		  (delq dir-elt dir-locals-directory-cache))
+	    locals-file)
+	locals-file))))
 
 (defun dir-locals-read-from-file (file)
   "Load a variables FILE and register a new class and instance.
@@ -3320,14 +3346,13 @@ FILE is the name of the file holding the variables to apply.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
   (with-temp-buffer
-    ;; We should probably store the modtime of FILE and then
-    ;; reload it whenever it changes.
     (insert-file-contents file)
     (let* ((dir-name (file-name-directory file))
 	   (class-name (intern dir-name))
 	   (variables (read (current-buffer))))
       (dir-locals-set-class-variables class-name variables)
-      (dir-locals-set-directory-class dir-name class-name)
+      (dir-locals-set-directory-class dir-name class-name
+				      (nth 5 (file-attributes file)))
       class-name)))
 
 (declare-function c-postprocess-file-styles "cc-mode" ())
@@ -3348,8 +3373,8 @@ without applying them."
 	(setq dir-name (file-name-directory (buffer-file-name)))
 	(setq class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
-	(setq dir-name (car variables-file))
-	(setq class (cdr variables-file))))
+	(setq dir-name (nth 0 variables-file))
+	(setq class (nth 1 variables-file))))
       (when class
 	(let ((variables
 	       (dir-locals-collect-variables

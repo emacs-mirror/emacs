@@ -1,5 +1,14 @@
 2009-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (dir-locals-directory-cache): Change format to include
+	the mtime of the directory-local variables file (Bug#2833).
+	(dir-locals-set-directory-class): New arg mtime.  Store it in
+	dir-locals-directory-cache.
+	(dir-locals-find-file): Check cache validity using the mtime.
+	(dir-locals-read-from-file): Save the file mtime in the cache.
+	(hack-dir-local-variables): Adapt to new
+	dir-locals-directory-cache entry format.
+
 	* international/mule-diag.el (describe-font-internal): Change
 	ignored argument to IGNORED.
 	(describe-font): Elide unnecessary argument to
