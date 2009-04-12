@@ -1,3 +1,7 @@
+2009-04-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install): Remove .gitignore files.
+
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* leim-ext.el: Change the encoding to utf-8.
