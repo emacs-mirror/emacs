@@ -1,3 +1,7 @@
+2009-04-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install-arch-indep): Remove .gitignore files.
+
 2009-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* INSTALL: Make the section "Complex Text Layout support
