@@ -3255,8 +3255,8 @@ the uid and gid from FILENAME."
 	   ;; We can do it directly with `tramp-send-command'
 	   ((let (file-name-handler-alist)
 	      (and (file-readable-p (concat prefix localname1))
-		 (file-writable-p
-		  (file-name-directory (concat prefix localname2)))))
+		   (file-writable-p
+		    (file-name-directory (concat prefix localname2)))))
 	    (tramp-do-copy-or-rename-file-directly
 	     op (concat prefix localname1) (concat prefix localname2)
 	     ok-if-already-exists keep-date t)
@@ -3287,11 +3287,11 @@ the uid and gid from FILENAME."
 		     (t2
 		      (if (eq op 'copy)
 			  (tramp-compat-copy-file
-			   localname1 tmpfile ok-if-already-exists
+			   localname1 tmpfile t
 			   keep-date preserve-uid-gid)
 			(tramp-run-real-handler
 			 'rename-file
-			 (list localname1 tmpfile ok-if-already-exists)))
+			 (list localname1 tmpfile t)))
 		      ;; We must change the ownership as local user.
 		      (tramp-set-file-uid-gid
 		       tmpfile
@@ -7758,9 +7758,6 @@ Only works for Bourne-like shells."
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
 ;; dired-uncache -- this will be needed when we do insert-directory caching
-;; file-name-sans-versions -- use primitive?
-;; get-file-buffer -- use primitive
-;; vc-registered
 
 ;; arch-tag: 3a21a994-182b-48fa-b0cd-c1d9fede424a
 ;;; tramp.el ends here
