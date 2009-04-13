@@ -415,7 +415,7 @@ window by typing @kbd{?} again.  The Quick Help commands are detailed below.
 Many Ediff commands take numeric prefix arguments.  For instance, if you
 type a number, say 3, and then @kbd{j} (@code{ediff-jump-to-difference}),
 Ediff moves to the third difference region.  Typing 3 and then @kbd{a}
-(@code{ediff-diff-to-diff}) copies the 3d difference region from variant A
+(@code{ediff-diff-to-diff}) copies the 3rd difference region from variant A
 to variant B.  Likewise, 4 followed by @kbd{ra} restores the 4th difference
 region in buffer A (if it was previously written over via the command
 @kbd{a}).
