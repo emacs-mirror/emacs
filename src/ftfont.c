@@ -187,6 +187,7 @@ get_adstyle_property (FcPattern *p)
       char *p = alloca (end - str + 1);
       memcpy (p, str, end - str);
       p[end - str] = '\0';
+      end = p + (end - str);
       str = p;
     }
   if (xstrcasecmp (str, "Regular") == 0
