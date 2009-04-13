@@ -60,11 +60,11 @@ you call these functions when input is available, they don't redisplay
 immediately, but the requested redisplay does happen
 eventually---after all the input has been processed.
 
-  Normally, suspending and resuming Emacs also refreshes the screen.
-Some terminal emulators record separate contents for display-oriented
-programs such as Emacs and for ordinary sequential display.  If you are
-using such a terminal, you might want to inhibit the redisplay on
-resumption.
+  On text-only terminals, suspending and resuming Emacs normally also
+refreshes the screen.  Some terminal emulators record separate
+contents for display-oriented programs such as Emacs and for ordinary
+sequential display.  If you are using such a terminal, you might want
+to inhibit the redisplay on resumption.
 
 @defvar no-redraw-on-reenter
 @cindex suspend (cf. @code{no-redraw-on-reenter})
@@ -79,13 +79,13 @@ to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
 @cindex forcing redisplay
 
   Emacs normally tries to redisplay the screen whenever it waits for
-input.  With this function you can request an immediate attempt to
-redisplay, in the middle of Lisp code, without actually waiting for
-input.
+input.  With the following function, you can request an immediate
+attempt to redisplay, in the middle of Lisp code, without actually
+waiting for input.
 
 @defun redisplay &optional force
 This function tries immediately to redisplay, provided there are no
-pending input events.  It is equivalent to @code{(sit-for 0)}.
+pending input events.
 
 If the optional argument @var{force} is non-@code{nil}, it does all
 pending redisplay work even if input is available, with no
@@ -166,14 +166,12 @@ truncation; a @samp{\} on the rightmost column indicates a line that
 for this; @pxref{Display Tables}).
 
 @defopt truncate-lines
-This buffer-local variable controls how Emacs displays lines that extend
-beyond the right edge of the window.  The default is @code{nil}, which
-specifies continuation.  If the value is non-@code{nil}, then these
-lines are truncated.
-
-If the variable @code{truncate-partial-width-windows} is non-@code{nil},
-then truncation is always used for side-by-side windows (within one
-frame) regardless of the value of @code{truncate-lines}.
+If this buffer-local variable is non-@code{nil}, lines that extend
+beyond the right edge of the window are truncated; otherwise, they are
+continued.  As a special exception, the variable
+@code{truncate-partial-width-windows} takes precedence in
+@dfn{partial-width} windows (i.e., windows that do not occupy the
+entire frame width).
 @end defopt
 
 @defopt default-truncate-lines
@@ -182,42 +180,50 @@ buffers that do not have buffer-local values for it.
 @end defopt
 
 @defopt truncate-partial-width-windows
-This variable controls display of lines that extend beyond the right
-edge of the window, in side-by-side windows (@pxref{Splitting Windows}).
-If it is non-@code{nil}, these lines are truncated; otherwise,
-@code{truncate-lines} says what to do with them.
+This variable controls line truncation in @dfn{partial-width} windows.
+A partial-width window is one that does not occupy the entire frame
+width (@pxref{Splitting Windows}).  If the value is @code{nil}, line
+truncation is determined by the variable @code{truncate-lines} (see
+above).  If the value is an integer @var{n}, lines are truncated if
+the partial-width window has fewer than @var{n} columns, regardless of
+the value of @code{truncate-lines}; if the partial-width window has
+@var{n} or more columns, line truncation is determined by
+@code{truncate-lines}.  For any other non-@code{nil} value, lines are
+truncated in every partial-width window, regardless of the value of
+@code{truncate-lines}.
 @end defopt
 
   When horizontal scrolling (@pxref{Horizontal Scrolling}) is in use in
 a window, that forces truncation.
 
 @defvar wrap-prefix
-If this buffer-local variable is non-@code{nil}, the prefix it defines
-will be added at display-time to the beginning of every continuation
-line due to text wrapping (so if lines are truncated, the wrap-prefix
-is never used).  It may be a string, an image, or a stretch-glyph such
-as used by the `display' text-property.  @xref{Display Property}.
+If this buffer-local variable is non-@code{nil}, it defines a
+``prefix'' that is added at display-time to the beginning of every
+continuation line.  (If lines are truncated, the wrap-prefix is never
+used.)  It may be a string, an image, or a stretch-glyph, as used by
+the @code{display} text property.  @xref{Display Property}.
 
-A wrap-prefix may also be specified for regions of text using the
-@code{wrap-prefix} text-property (which takes precedence over the
-value of the @code{wrap-prefix} variable).  @xref{Special Properties}.
+A wrap-prefix may also be specified for regions of text, using the
+@code{wrap-prefix} text property.  This takes precedence over the
+value of the @code{wrap-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
 @defvar line-prefix
-If this buffer-local variable is non-@code{nil}, the prefix it defines
-will be added at display-time to the beginning of every
-non-continuation line It may be a string, an image, or a stretch-glyph
-such as used by the `display' text-property.  @xref{Display Property}.
+If this buffer-local variable is non-@code{nil}, it defines a
+``prefix'' that is added at display-time to the beginning of every
+non-continuation line.  It may be a string, an image, or a
+stretch-glyph, as used by the @code{display} text property.
+@xref{Display Property}.
 
 A line-prefix may also be specified for regions of text using the
-@code{line-prefix} text-property (which takes precedence over the
-value of the @code{line-prefix} variable).  @xref{Special Properties}.
+@code{line-prefix} text property.  This takes precedence over the
+value of the @code{line-prefix} variable.  @xref{Special Properties}.
 @end defvar
 
   If your buffer contains @emph{very} long lines, and you use
-continuation to display them, just thinking about them can make Emacs
-redisplay slow.  The column computation and indentation functions also
-become slow.  Then you might find it advisable to set
+continuation to display them, computing the continuation lines can
+make Emacs redisplay slow.  The column computation and indentation
+functions also become slow.  Then you might find it advisable to set
 @code{cache-long-line-scans} to @code{t}.
 
 @defvar cache-long-line-scans
@@ -846,12 +852,25 @@ major mode should use the mode's own name as an element of
 (remove-from-invisibility-spec 'my-symbol)
 @end example
 
+  You can check for invisibility using the following function:
+
+@defun invisible-p pos-or-prop
+If @var{pos-or-prop} is a marker or number, this function returns a
+non-@code{nil} value if the text at that position is invisible.
+
+If @var{pos-or-prop} is any other kind of Lisp object, that is taken
+to mean a possible value of the @code{invisible} text or overlay
+property.  In that case, this function returns a non-@code{nil} value
+if that value would cause text to become invisible, based on the
+current value of @code{buffer-invisibility-spec}.
+@end defun
+
 @vindex line-move-ignore-invisible
   Ordinarily, functions that operate on text or move point do not care
 whether the text is invisible.  The user-level line motion commands
-explicitly ignore invisible newlines if
-@code{line-move-ignore-invisible} is non-@code{nil} (the default), but
-only because they are explicitly programmed to do so.
+ignore invisible newlines if @code{line-move-ignore-invisible} is
+non-@code{nil} (the default), but only because they are explicitly
+programmed to do so.
 
   However, if a command ends with point inside or immediately before
 invisible text, the main editing loop moves point further forward or

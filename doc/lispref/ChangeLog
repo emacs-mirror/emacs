@@ -1,3 +1,13 @@
+2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Refresh Screen): Note that a passage about screen
+	refreshing is text terminal only.
+	(Forcing Redisplay): Delete misleading comment---sit-for calls
+	redisplay, not the other way around.
+	(Truncation): Note new values of truncate-partial-width-windows.
+	Copyedits.
+	(Invisible Text): Document invisible-p.
+
 2009-04-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Overlays): Overlays don't scale well.  See
