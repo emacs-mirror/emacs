@@ -2752,7 +2752,7 @@ font_delete_unmatched (list, spec, size)
       if (prop < FONT_SPEC_MAX)
 	val = Fcons (entity, val);
     }
-  return val;
+  return Fnreverse (val);
 }
 
 
@@ -3223,6 +3223,11 @@ font_select_entity (frame, entities, attrs, pixel_size, c)
       int j;
 
       font_entity = AREF (entities, i);
+#if 0
+      /* The following code is intended to avoid checking of
+	 font_has_char repeatedly for bitmap fonts that differs only
+	 in pixelsize.  But, it doesn't work well if fontconfig is
+	 configured to find BDF/PFC fonts.  */
       if (i > 0)
 	{
 	  for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
@@ -3233,6 +3238,7 @@ font_select_entity (frame, entities, attrs, pixel_size, c)
 	}
       for (j = FONT_FOUNDRY_INDEX; j <= FONT_REGISTRY_INDEX; j++)
 	props[j] = AREF (font_entity, j);
+#endif
       result = font_has_char (f, font_entity, c);
       if (result > 0)
 	return font_entity;
@@ -3455,7 +3461,8 @@ font_load_for_lface (f, attrs, spec)
 {
   Lisp_Object entity;
 
-  entity = font_find_for_lface (f, attrs, spec, -1);
+  /* We assume that a font that supports 'A' supports ASCII chars.  */
+  entity = font_find_for_lface (f, attrs, spec, 'A');
   if (NILP (entity))
     {
       /* No font is listed for SPEC, but each font-backend may have
