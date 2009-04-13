@@ -43,6 +43,9 @@ Lisp_Object Qfreetype;
 /* Fontconfig's generic families and their aliases.  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
+/* Special ADSTYLE properties to avoid fonts used for Latin characters.  */
+static Lisp_Object Qja, Qko;
+
 /* Flag to tell if FcInit is already called or not.  */
 static int fc_initialized;
 
@@ -92,7 +95,7 @@ static struct
   /* set on demand */
   FcCharSet *fc_charset;
 } fc_charset_table[] =
-  { { "iso8859-1", { 0x00A0, 0x00A1, 0x00B4, 0x00BC, 0x00D0 } },
+  { { "iso8859-1", { } },	/* ftfont_get_latin1_charset handles it. */
     { "iso8859-2", { 0x00A0, 0x010E }},
     { "iso8859-3", { 0x00A0, 0x0108 }},
     { "iso8859-4", { 0x00A0, 0x00AF, 0x0128, 0x0156, 0x02C7 }},
@@ -132,7 +135,70 @@ static struct
     { NULL }
   };
 
+/* Return a FcCharSet for iso8859-1 from fc_charset_table[0].  If the
+   charset is not yet ready, create it. */
+static FcCharSet *
+ftfont_get_latin1_charset ()
+{
+  FcCharSet *cs;
+  FcChar32 c;
+
+  if (fc_charset_table[0].fc_charset)
+    return fc_charset_table[0].fc_charset;
+  cs = FcCharSetCreate ();
+  if (! cs)
+    return NULL;
+  for (c = 33; c <= 0xFF; c++)
+    {
+      FcCharSetAddChar (cs, c);
+      if (c == 0x7E)
+	c = 0xA0;
+    }
+  fc_charset_table[0].fc_charset = cs;
+  return cs;
+}
+
 extern Lisp_Object Qc, Qm, Qp, Qd;
+
+/* Dirty hack for handing ADSTYLE property.
+
+   Fontconfig (actually the underlying FreeType) gives such ADSTYLE
+   font property of PCF/BDF fonts in FC_STYLE.  And, "Bold",
+   "Oblique", "Italic", or any non-normal SWIDTH property names
+   (e.g. SemiCondensed) are appended.  In addition, if there's no
+   ADSTYLE property nor non-normal WEIGHT/SLANT/SWIDTH properties,
+   "Regular" is used for FC_STYLE (see the function
+   pcf_interpret_style in src/pcf/pcfread.c of FreeType).
+
+   Unfortunately this behavior is not documented, so the following
+   code may fail if FreeType changes the behavior in the future.  */
+
+static Lisp_Object
+get_adstyle_property (FcPattern *p)
+{
+  char *str, *end;
+  Lisp_Object adstyle;
+
+  if (FcPatternGetString (p, FC_STYLE, 0, (FcChar8 **) &str) != FcResultMatch)
+    return Qnil;
+  for (end = str; *end && *end != ' '; end++);
+  if (*end)
+    {
+      char *p = alloca (end - str + 1);
+      memcpy (p, str, end - str);
+      p[end - str] = '\0';
+      str = p;
+    }
+  if (xstrcasecmp (str, "Regular") == 0
+      || xstrcasecmp (str, "Bold") == 0
+      || xstrcasecmp (str, "Oblique") == 0
+      || xstrcasecmp (str, "Italic") == 0)
+    return Qnil;
+  adstyle = font_intern_prop (str, end - str, 0);
+  if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
+    return Qnil;
+  return adstyle;
+}
 
 static Lisp_Object
 ftfont_pattern_entity (p, extra)
@@ -176,7 +242,14 @@ ftfont_pattern_entity (p, extra)
       FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (numeric));
     }
   if (FcPatternGetDouble (p, FC_PIXEL_SIZE, 0, &dbl) == FcResultMatch)
-    ASET (entity, FONT_SIZE_INDEX, make_number (dbl));
+    {
+      Lisp_Object adstyle;
+
+      ASET (entity, FONT_SIZE_INDEX, make_number (dbl));
+      /* As this font has PIXEL_SIZE property, parhaps this is a BDF
+	 or PCF font. */ 
+      ASET (entity, FONT_ADSTYLE_INDEX, get_adstyle_property (p));
+    }
   else
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
   if (FcPatternGetInteger (p, FC_SPACING, 0, &numeric) == FcResultMatch)
@@ -265,8 +338,18 @@ ftfont_lookup_cache (key, for_face)
      Lisp_Object key;
      int for_face;
 {
-  Lisp_Object cache, val;
+  Lisp_Object cache, val, entity;
   struct ftfont_cache_data *cache_data;
+
+  if (FONT_ENTITY_P (key))
+    {
+      entity = key;
+      val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
+      xassert (CONSP (val));
+      key = XCDR (val);
+    }
+  else
+    entity = Qnil;
 
   cache = assoc_no_quit (key, ft_face_cache);
   if (NILP (cache))
@@ -301,25 +384,56 @@ ftfont_lookup_cache (key, for_face)
 	}
       else
 	{
-	  FcPattern *pat;
-	  FcFontSet *fontset;
-	  FcObjectSet *objset;
-	  FcCharSet *charset;
+	  FcPattern *pat = NULL;
+	  FcFontSet *fontset = NULL;
+	  FcObjectSet *objset = NULL;
+	  FcCharSet *charset = NULL;
 
 	  pat = FcPatternBuild (0, FC_FILE, FcTypeString, (FcChar8 *) filename,
 				FC_INDEX, FcTypeInteger, index, NULL);
-	  objset = FcObjectSetBuild (FC_CHARSET, NULL);
+	  if (! pat)
+	    goto finish;
+	  objset = FcObjectSetBuild (FC_CHARSET, FC_STYLE, NULL);
+	  if (! objset)
+	    goto finish;
 	  fontset = FcFontList (NULL, pat, objset);
-	  if (fontset && fontset->nfont > 0
-	      && (FcPatternGetCharSet (fontset->fonts[0], FC_CHARSET, 0,
+	  if (! fontset)
+	    goto finish;
+	  if (fontset && fontset->nfont > 0)
+	    {
+	      if (FcPatternGetCharSet (fontset->fonts[0], FC_CHARSET, 0,
 				       &charset)
-		  == FcResultMatch))
-	    cache_data->fc_charset = FcCharSetCopy (charset);
+		  == FcResultMatch)
+		{
+		  /* Dirty hack.  Fonts of "ja" and "ko" adstyle are
+		     not suitable for Latin characters.  */
+		  if (! NILP (entity)
+		      && (EQ (AREF (entity, FONT_ADSTYLE_INDEX), Qja)
+			  || EQ (AREF (entity, FONT_ADSTYLE_INDEX), Qko)))
+		    {
+		      FcCharSet *latin1 = ftfont_get_latin1_charset ();
+
+		      if (! latin1)
+			goto finish;
+		      cache_data->fc_charset = FcCharSetSubtract (charset,
+								  latin1);
+		    }
+		  else
+		    cache_data->fc_charset = FcCharSetCopy (charset);
+		}
+	      else
+		cache_data->fc_charset = FcCharSetCreate ();
+	    }
 	  else
 	    cache_data->fc_charset = FcCharSetCreate ();
-	  FcFontSetDestroy (fontset);
-	  FcObjectSetDestroy (objset);
-	  FcPatternDestroy (pat);
+
+	finish:
+	  if (fontset)
+	    FcFontSetDestroy (fontset);
+	  if (objset)
+	    FcObjectSetDestroy (objset);
+	  if (pat)
+	    FcPatternDestroy (pat);
 	}
     }
   return cache;
@@ -332,10 +446,7 @@ ftfont_get_fc_charset (entity)
   Lisp_Object val, cache;
   struct ftfont_cache_data *cache_data;
 
-  val = assq_no_quit (QCfont_entity, AREF (entity, FONT_EXTRA_INDEX));
-  xassert (CONSP (val));
-  val = XCDR (val);
-  cache = ftfont_lookup_cache (val, 0);
+  cache = ftfont_lookup_cache (entity, 0);
   val = XCDR (cache);
   cache_data = XSAVE_VALUE (val)->pointer;
   return cache_data->fc_charset;
@@ -470,18 +581,23 @@ ftfont_get_charset (registry)
     return -1;
   if (! fc_charset_table[i].fc_charset)
     {
-      FcCharSet *charset = FcCharSetCreate ();
-      int *uniquifier = fc_charset_table[i].uniquifier;
+      if (i == 0)
+	ftfont_get_latin1_charset ();
+      else
+	{
+	  FcCharSet *charset = FcCharSetCreate ();
+	  int *uniquifier = fc_charset_table[i].uniquifier;
 
-      if (! charset)
-	return -1;
-      for (j = 0; uniquifier[j]; j++)
-	if (! FcCharSetAddChar (charset, uniquifier[j]))
-	  {
-	    FcCharSetDestroy (charset);
+	  if (! charset)
 	    return -1;
-	  }
-      fc_charset_table[i].fc_charset = charset;
+	  for (j = 0; uniquifier[j]; j++)
+	    if (! FcCharSetAddChar (charset, uniquifier[j]))
+	      {
+		FcCharSetDestroy (charset);
+		return -1;
+	      }
+	  fc_charset_table[i].fc_charset = charset;
+	}
     }
   return i;
 }
@@ -602,10 +718,6 @@ ftfont_spec_pattern (spec, otlayout, otspec)
   Lisp_Object registry;
   int fc_charset_idx;
 
-  if (! NILP (AREF (spec, FONT_ADSTYLE_INDEX))
-      && SBYTES (SYMBOL_NAME (AREF (spec, FONT_ADSTYLE_INDEX))) > 0)
-    /* Fontconfig doesn't support adstyle property.  */
-    return NULL;
   if ((n = FONT_SLANT_NUMERIC (spec)) >= 0
       && n < 100)
     /* Fontconfig doesn't support reverse-italic/obligue.  */
@@ -752,7 +864,7 @@ static Lisp_Object
 ftfont_list (frame, spec)
      Lisp_Object frame, spec;
 {
-  Lisp_Object val = Qnil, family;
+  Lisp_Object val = Qnil, family, adstyle;
   int i;
   FcPattern *pattern;
   FcFontSet *fontset = NULL;
@@ -800,10 +912,12 @@ ftfont_list (frame, spec)
 	    goto err;
 	}
     }
-
+  adstyle = AREF (spec, FONT_ADSTYLE_INDEX);
+  if (! NILP (adstyle) && SBYTES (SYMBOL_NAME (adstyle)) == 0)
+    adstyle = Qnil;
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING, FC_SCALABLE,
-			     FC_FILE, FC_INDEX,
+			     FC_STYLE, FC_FILE, FC_INDEX,
 #ifdef FC_CAPABILITY
 			     FC_CAPABILITY,
 #endif	/* FC_CAPABILITY */
@@ -906,6 +1020,15 @@ ftfont_list (frame, spec)
 		&& FcCharSetHasChar (charset, XFASTINT (AREF (chars, j))))
 	      break;
 	  if (j == ASIZE (chars))
+	    continue;
+	}
+      if (! NILP (adstyle))
+	{
+	  Lisp_Object this_adstyle = get_adstyle_property (fontset->fonts[i]);
+
+	  if (NILP (this_adstyle)
+	      || xstrcasecmp (SDATA (SYMBOL_NAME (adstyle)),
+			      SDATA (SYMBOL_NAME (this_adstyle))) != 0)
 	    continue;
 	}
       entity = ftfont_pattern_entity (fontset->fonts[i],
@@ -1046,7 +1169,7 @@ ftfont_open (f, entity, pixel_size)
   if (! CONSP (val))
     return Qnil;
   val = XCDR (val);
-  cache = ftfont_lookup_cache (val, 1);
+  cache = ftfont_lookup_cache (entity, 1);
   if (NILP (cache))
     return Qnil;
   filename = XCAR (val);
@@ -2091,6 +2214,8 @@ syms_of_ftfont ()
   DEFSYM (Qmono, "mono");
   DEFSYM (Qsans, "sans");
   DEFSYM (Qsans__serif, "sans serif");
+  DEFSYM (Qja, "ja");
+  DEFSYM (Qko, "ko");
 
   staticpro (&freetype_font_cache);
   freetype_font_cache = Fcons (Qt, Qnil);
