@@ -1,3 +1,7 @@
+2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ediff.texi (Session Commands): Fix typo.
+
 2009-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi (FAQ 8-4): Fix wrong group name of
