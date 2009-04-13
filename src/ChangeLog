@@ -1,3 +1,29 @@
+2009-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_delete_unmatched): Preserve the order of list
+	elements.
+	(font_select_entity): Suppress the code to optimize for the same
+	kind of fonts.
+	(font_load_for_lface): Get a font that supports at least ASCII
+	characters.
+
+	* ftfont.c (Qja, Qko): New variables.
+	(fc_charset_table): Delete uniquifier data for iso8859-1.
+	(ftfont_get_latin1_charset): New function.
+	(get_adstyle_property): New function.
+	(ftfont_pattern_entity): Set FONT_ADSTYLE_INDEX of entity for
+	bitmap fonts.
+	(ftfont_lookup_cache): Handle the case that KEY is a font-entity.
+	Delete iso-8859-1 range from the charset of fonts whose adstyle is
+	`ko' or `ja'.
+	(ftfont_get_fc_charset): Call ftfont_lookup_cache with ENTITY.
+	(ftfont_get_charset): For iso8859-1, call
+	ftfont_get_latin1_charset.
+	(ftfont_list): Don't refuse a font spec with non-nil `adstyle'
+	property.
+	(ftfont_open): Call ftfont_lookup_cache with ENTITY.
+	(syms_of_ftfont): DEFSYM Qja and Qko.
+
 2009-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (map_charset_chars): For a charset of `superset'
@@ -443,7 +469,7 @@
 	(font_find_for_lface): Use font_select_entity to select a font.
 
 	* fontset.c (fontset_find_font): If a font found without
-	restricting of the characters C doen't support C, try to find a
+	restricting to the characters C doesn't support C, try to find a
 	font with C restriction.
 
 2009-03-04  Nikolaj Schumacher  <me@nschum.de>
