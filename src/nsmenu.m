@@ -1717,11 +1717,11 @@ void process_dialog (id window, Lisp_Object list)
       item = XCAR (list);
       if (XTYPE (item) == Lisp_String)
         {
-          [window addString: XSTRING (item)->data row: row++];
+          [window addString: SDATA (item) row: row++];
         }
       else if (XTYPE (item) == Lisp_Cons)
         {
-          [window addButton: XSTRING (XCAR (item))->data
+          [window addButton: SDATA (XCAR (item))
                       value: XCDR (item) row: row++];
         }
       else if (NILP (item))
@@ -1811,7 +1811,7 @@ void process_dialog (id window, Lisp_Object list)
 
   if (XTYPE (head) == Lisp_String)
       [title setStringValue:
-                 [NSString stringWithUTF8String: XSTRING (head)->data]];
+                 [NSString stringWithUTF8String: SDATA (head)]];
   else if (isQ == YES)
       [title setStringValue: @"Question"];
   else

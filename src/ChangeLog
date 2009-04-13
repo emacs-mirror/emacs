@@ -1,3 +1,12 @@
+2009-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nsselect.m (symbol_to_nsstring, clean_local_selection_data)
+	(ns_string_to_pasteboard_internal):
+	* nsmenu.m (process_dialog):
+	* nsimage.m (ns_load_image): Use SDATA and ASET where appropriate.
+	* nsfont.m (nsfont_open): Use XHASH to make it compile with LISP_UNION.
+	* lisp.h (Fx_load_color_file): Declare.
+
 2009-04-13  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_delete_unmatched): Preserve the order of list

@@ -62,7 +62,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NSGeneralPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
-  return [NSString stringWithUTF8String: XSTRING (XSYMBOL (sym)->xname)->data];
+  return [NSString stringWithUTF8String: SDATA (XSYMBOL (sym)->xname)];
 }
 
 
@@ -113,7 +113,7 @@ clean_local_selection_data (Lisp_Object obj)
         return clean_local_selection_data (AREF (obj, 0));
       copy = Fmake_vector (make_number (size), Qnil);
       for (i = 0; i < size; i++)
-        AREF (copy, i) = clean_local_selection_data (AREF (obj, i));
+        ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
     }
 
@@ -150,7 +150,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 
       CHECK_STRING (str);
 
-      utfStr = XSTRING (str)->data;
+      utfStr = SDATA (str);
       nsStr = [NSString stringWithUTF8String: utfStr];
 
       if (gtype == nil)
