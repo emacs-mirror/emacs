@@ -1,3 +1,9 @@
+2009-04-13  Jason Rumney  <jasonr@gnu.org>
+
+	* faces.el (frame-set-background-mode): Window system frames
+	default to light. Use default in cases where specified color
+	does not exist (Bug#2969).
+
 2009-04-13  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (cp932): Delete alias for
