@@ -1,3 +1,12 @@
+2009-04-14  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_has_char): The font has C if C is ASCII and the
+	encoding charset is ascii_compatible.
+
+	* charset.c (Fdefine_charset_internal): Make charset
+	ascii-compatible if the method is CHARSET_METHOD_OFFSET, the
+	code_offset is 0, and covers all ASCII characters.
+
 2009-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nsselect.m (symbol_to_nsstring, clean_local_selection_data)
