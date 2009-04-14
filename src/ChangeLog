@@ -1,3 +1,7 @@
+2009-04-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Vwrap_prefix, Vline_prefix): Reflow docstrings.
+
 2009-04-14  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_has_char): The font has C if C is ASCII and the
