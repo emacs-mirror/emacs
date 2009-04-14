@@ -25293,7 +25293,8 @@ To add a prefix to non-continuation lines, use `line-prefix'.  */);
 The value may be a string, an image, or a stretch-glyph; it is
 interpreted in the same way as the value of a `display' text property.
 
-This variable is overridden by any `line-prefix' text property.
+This variable is overridden by any `line-prefix' text or overlay
+property.
 
 To add a prefix to continuation lines, use `wrap-prefix'.  */);
   Vline_prefix = Qnil;
