@@ -798,10 +798,13 @@ xfont_has_char (entity, c)
      int c;
 {
   Lisp_Object registry = AREF (entity, FONT_REGISTRY_INDEX);
+  struct charset *encoding;
   struct charset *repertory;
 
-  if (font_registry_charsets (registry, NULL, &repertory) < 0)
+  if (font_registry_charsets (registry, &encoding, &repertory) < 0)
     return -1;
+  if (ASCII_CHAR_P (c) && encoding->ascii_compatible_p)
+    return 1;
   if (! repertory)
     return -1;
   return (ENCODE_CHAR (repertory, c) != CHARSET_INVALID_CODE (repertory));
