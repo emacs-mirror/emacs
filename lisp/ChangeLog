@@ -1,3 +1,10 @@
+2009-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--try-word-completion): Don't disable
+	`partial-completion' any more.  Mark the added char instead.
+	(completion-pcm--string->pattern): Notice chars added by
+	completion--try-word-completion and treat them specially.
+
 2009-04-13  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (frame-set-background-mode): Window system frames
@@ -6,13 +13,12 @@
 
 2009-04-13  Kenichi Handa  <handa@m17n.org>
 
-	* language/japanese.el (cp932): Delete alias for
-	japanese-shift-jis.
+	* language/japanese.el (cp932): Delete alias for japanese-shift-jis.
 
 2009-04-12  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Overwrite
-	always the tmpfile.  (Bug#2962).
+	* net/tramp.el (tramp-do-copy-or-rename-file-directly):
+	Overwrite always the tmpfile.  (Bug#2962).
 
 2009-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -25,8 +31,8 @@
 	(hack-dir-local-variables): Adapt to new
 	dir-locals-directory-cache entry format.
 
-	* international/mule-diag.el (describe-font-internal): Change
-	ignored argument to IGNORED.
+	* international/mule-diag.el (describe-font-internal):
+	Rename ignored argument to IGNORED.
 	(describe-font): Elide unnecessary argument to
 	describe-font-internal (Bug#2945).
 
@@ -85,8 +91,7 @@
 
 2009-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-file-name-handler-alist): Add
-	`vc-registered'.
+	* net/tramp.el (tramp-file-name-handler-alist): Add `vc-registered'.
 	(tramp-handle-vc-registered ): New defun.  (Bug#1741).
 
 	* net/tramp-cache.el (tramp-flush-directory-property): Use the

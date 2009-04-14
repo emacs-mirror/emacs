@@ -607,13 +607,17 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
       ;; If completion finds next char not unique,
       ;; consider adding a space or a hyphen.
       (when (= (length string) (length (car comp)))
-        (let ((exts '(" " "-"))
+        ;; Mark the added char with the `completion-word' property, so it
+        ;; can be handled specially by completion styles such as
+        ;; partial-completion.
+        ;; We used to remove `partial-completion' from completion-styles
+        ;; instead, but it was too blunt, leading to situations where SPC
+        ;; was the only insertable char at point but minibuffer-complete-word
+        ;; refused inserting it.
+        (let ((exts (mapcar (lambda (str) (propertize str 'completion-try-word t))
+                            '(" " "-")))
               (before (substring string 0 point))
               (after (substring string point))
-	      ;; Disable partial-completion for this.
-	      (completion-styles
-	       (or (remove 'partial-completion completion-styles)
-		   completion-styles))
 	      tem)
 	  (while (and exts (not (consp tem)))
             (setq tem (completion-try-completion
@@ -1381,7 +1385,13 @@ or a symbol chosen among `any', `star', `point'."
           (p 0)
           (p0 0))
 
-      (while (setq p (string-match-p completion-pcm--delim-wild-regex string p))
+      (while (and (setq p (string-match-p completion-pcm--delim-wild-regex
+                                          string p))
+                  ;; If the char was added by minibuffer-complete-word, then
+                  ;; don't treat it as a delimiter, otherwise "M-x SPC"
+                  ;; ends up inserting a "-" rather than listing
+                  ;; all completions.
+                  (not (get-text-property p 'completion-try-word string)))
         (push (substring string p0 p) pattern)
         (if (eq (aref string p) ?*)
             (progn
