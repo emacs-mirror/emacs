@@ -1,3 +1,7 @@
+2009-04-14  Edward Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* jit-lock.el (jit-lock-stealth-chunk-start): Fix typo in docstring.
+
 2009-04-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-dired-recursive-delete-directory):
@@ -104,7 +108,7 @@
 2009-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler-alist): Add `vc-registered'.
-	(tramp-handle-vc-registered ): New defun.  (Bug#1741).
+	(tramp-handle-vc-registered ): New defun.  (Bug#1741)
 
 	* net/tramp-cache.el (tramp-flush-directory-property): Use the
 	localname of KEY for check.
@@ -398,7 +402,7 @@
 	(eshell-ls-dir): Under -l, call eshell-ls-printable-size with last
 	argument nil.
 
-2009-03-21  David Reitter <david.reitter@gmail.com>
+2009-03-21  David Reitter  <david.reitter@gmail.com>
 
 	* cus-start.el (all): Use existing `ns' rather than new `nextstep'
 	group for variables affected by last two changes.
@@ -407,7 +411,7 @@
 
 	* cus-start.el (all): Fix last change.
 
-2009-03-21  David Reitter <david.reitter@gmail.com>
+2009-03-21  David Reitter  <david.reitter@gmail.com>
 
 	* cus-start.el (all): Add ns-control-modifier,
 	ns-command-modifier, ns-alternate-modifier, ns-function-modifier,
@@ -757,7 +761,7 @@
 	(rmail-mime): Doc fix.  Use rmail-apply-in-message.
 	Disable undo in the mime buffer, mark unmodified.
 
-2009-03-04  David Reitter <david.reitter@gmail.com>
+2009-03-04  David Reitter  <david.reitter@gmail.com>
 
 	* menu-bar.el (clipboard-yank): Avoid checking (x-selection-exists-p)
 	if unbound in order to enable the item.
@@ -953,7 +957,7 @@
 
 	* vc-dir.el (vc-dir-update): Make sure ./ is always first in the listing.
 
-2009-02-25  David Reitter <david.reitter@gmail.com>
+2009-02-25  David Reitter  <david.reitter@gmail.com>
 
 	* mail/mailclient.el (clipboard-kill-ring-save): Declare.
 
