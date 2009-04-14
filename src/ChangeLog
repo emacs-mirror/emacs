@@ -1,7 +1,7 @@
 2009-04-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Ffont_info): Fix docstring.  Fix the second element of
-	the returned value.
+	the returned value (bug#2949).
 
 2009-04-14  Chong Yidong  <cyd@stupidchicken.com>
 
