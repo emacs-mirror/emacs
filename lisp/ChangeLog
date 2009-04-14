@@ -1,3 +1,8 @@
+2009-04-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-at-pt.el (help-at-pt-kbd-string): Reflow docstring.
+	(scan-buf-previous-region): Fix typo in docstring.
+
 2009-04-14  Edward Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* jit-lock.el (jit-lock-stealth-chunk-start): Fix typo in docstring.
