@@ -6245,7 +6245,8 @@ cursor's appearance is instead controlled by the variable
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
-The space is measured in pixels, and put below lines on window systems.
+The space is measured in pixels, and put below lines on graphic displays,
+see `display-graphic-p'.
 If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  A value of nil means add no extra space.  */);
 
