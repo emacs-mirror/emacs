@@ -4906,13 +4906,13 @@ Type C-l to recover what previously shown.  */)
 DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
        doc: /* Return information about a font named NAME on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
-The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,
+The returned value is a vector of OPENED-NAME, FULL-NAME, SIZE,
   HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,
 where
   OPENED-NAME is the name used for opening the font,
   FULL-NAME is the full name of the font,
-  SIZE is the maximum bound width of the font,
-  HEIGHT is the height of the font,
+  SIZE is the pixelsize of the font,
+  HEIGHT is the pixel-height of the font (i.e ascent + descent),
   BASELINE-OFFSET is the upward offset pixels from ASCII baseline,
   RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
     how to compose characters.
@@ -4959,7 +4959,7 @@ If the named font is not yet loaded, return nil.  */)
 
   info = Fmake_vector (make_number (7), Qnil);
   XVECTOR (info)->contents[0] = AREF (font_object, FONT_NAME_INDEX);
-  XVECTOR (info)->contents[1] = AREF (font_object, FONT_NAME_INDEX);
+  XVECTOR (info)->contents[1] = AREF (font_object, FONT_FULLNAME_INDEX);
   XVECTOR (info)->contents[2] = make_number (font->pixel_size);
   XVECTOR (info)->contents[3] = make_number (font->height);
   XVECTOR (info)->contents[4] = make_number (font->baseline_offset);
