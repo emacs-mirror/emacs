@@ -1,3 +1,9 @@
+2009-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (src) <gdb.ini>: Don't replace the line with
+	x_error_quitter; instead, append "set environment NAME" to the end.
+	Set NAME and USERNAME in the environment to the same value.
+
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (boot): Don't require b-emacs.exe if not building
