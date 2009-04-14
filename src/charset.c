@@ -1082,6 +1082,8 @@ usage: (define-charset-internal ...)  */)
       i = (i >> 12) << 12;
       for (; i <= charset.max_char; i += 0x1000)
 	CHARSET_FAST_MAP_SET (i, charset.fast_map);
+      if (charset.code_offset == 0 && charset.max_char >= 0x80)
+	charset.ascii_compatible_p = 1;
     }
   else if (! NILP (args[charset_arg_map]))
     {
