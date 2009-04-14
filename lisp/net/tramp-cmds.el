@@ -84,7 +84,7 @@ When called interactively, a Tramp connection has to be selected."
     (tramp-clear-passwd vec)
 
     ;; Flush file cache.
-    (tramp-flush-directory-property vec "/")
+    (tramp-flush-directory-property vec "")
 
     ;; Flush connection cache.
     (tramp-flush-connection-property (tramp-get-connection-process vec))
