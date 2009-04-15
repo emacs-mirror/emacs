@@ -1,3 +1,13 @@
+2009-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Truncation): Overlays can use line-prefix and
+	wrap-prefix too.
+	(Overlay Properties): Document wrap-prefix and line-prefix.
+	(Face Attributes): Document underline-minimum-offset.
+	(Face Remapping): Copyedits.
+	(Low-Level Font): Copyedits.
+	(Image Cache): Note that the image cache is shared between frames.
+
 2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Refresh Screen): Note that a passage about screen
