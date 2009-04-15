@@ -2963,7 +2963,7 @@ DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
 Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
 All the elements are markers or nil (nil if the Nth pair didn't match)
 if the last match was on a buffer; integers or nil if a string was matched.
-Use `store-match-data' to reinstate the data in this list.
+Use `set-match-data' to reinstate the data in this list.
 
 If INTEGERS (the optional first argument) is non-nil, always use
 integers \(rather than markers) to represent buffer positions.  In
