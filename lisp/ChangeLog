@@ -1,3 +1,8 @@
+2009-04-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/browse-url.el (browse-url-filename-alist): Correct file
+	URI (Bug#2922).
+
 2009-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (posn-col-row): Properly compute line spacing.
