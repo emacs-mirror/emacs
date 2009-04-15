@@ -1839,7 +1839,7 @@ deleting a terminal.
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
 ** Redisplay changes
-
++++
 *** For underlined characters, the distance between the underline and
 the baseline is controlled by a new variable, `underline-minimum-offset'.
 +++
