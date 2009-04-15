@@ -1,3 +1,8 @@
+2009-04-15  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-jump): Enable virtual
+	feeds.
+
 2009-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-svn.el (vc-svn-after-dir-status): Fix regexp to allow for
