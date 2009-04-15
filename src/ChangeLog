@@ -1,3 +1,11 @@
+2009-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fileio.c (history_delete_duplicates): Remove unused declaration.
+
+	* callint.c (history_delete_duplicates): New declaration.
+	(Fcall_interactively): Remove command history duplicates when
+	history_delete_duplicates is true.
+
 2009-04-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (syms_of_buffer) <line-spacing>: Doc fix.

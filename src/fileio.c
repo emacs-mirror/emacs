@@ -221,8 +221,6 @@ extern int minibuf_level;
 
 extern int minibuffer_auto_raise;
 
-extern int history_delete_duplicates;
-
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
 
