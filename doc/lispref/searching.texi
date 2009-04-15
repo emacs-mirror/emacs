@@ -654,14 +654,19 @@ occasionally there is a conflict, and that led to the introduction of
 shy groups.
 
 @item \(?: @dots{} \)
+@cindex shy groups
+@cindex non-capturing group
+@cindex unnumbered group
 is the @dfn{shy group} construct.  A shy group serves the first two
 purposes of an ordinary group (controlling the nesting of other
 operators), but it does not get a number, so you cannot refer back to
-its value with @samp{\@var{digit}}.
+its value with @samp{\@var{digit}}.  Shy groups are particularly
+useful for mechanically-constructed regular expressions, because they
+can be added automatically without altering the numbering of ordinary,
+non-shy groups.
 
-Shy groups are particularly useful for mechanically-constructed regular
-expressions because they can be added automatically without altering the
-numbering of any ordinary, non-shy groups.
+Shy groups are also called @dfn{non-capturing} or @dfn{unnumbered
+groups}.
 
 @item \(?@var{num}: @dots{} \)
 is the @dfn{explicitly numbered group} construct.  Normal groups get
@@ -939,8 +944,8 @@ regular expression which is equivalent to the actual value
 
 @defun regexp-opt-depth regexp
 This function returns the total number of grouping constructs
-(parenthesized expressions) in @var{regexp}.  (This does not include
-shy groups.)
+(parenthesized expressions) in @var{regexp}.  This does not include
+shy groups (@pxref{Regexp Backslash}).
 @end defun
 
 @node Regexp Search

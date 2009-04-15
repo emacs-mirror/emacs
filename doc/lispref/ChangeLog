@@ -1,5 +1,9 @@
 2009-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* searching.texi (Regexp Backslash): Also refer to shy groups as
+	non-capturing or unnumbered groups.
+	(Regexp Functions): Add cross-reference to Regexp Backslash.
+
 	* display.texi (Truncation): Overlays can use line-prefix and
 	wrap-prefix too.
 	(Overlay Properties): Document wrap-prefix and line-prefix.
