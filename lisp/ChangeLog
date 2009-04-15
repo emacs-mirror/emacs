@@ -1,3 +1,9 @@
+2009-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp to allow for
+	file names with leading spaces.  Ignore "." if it appears as a
+	filename.
+
 2009-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-at-pt.el (help-at-pt-kbd-string): Reflow docstring.
