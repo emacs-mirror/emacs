@@ -905,6 +905,8 @@ Show the heading too, if it is currently invisible."
                   (goto-char (point-max))
                   ;; Keep empty last line, if available.
                   (if (bolp) (1- (point)) (point)))))
+      (if (< end beg)
+	  (setq beg (prog1 end (setq end beg))))
       ;; First hide everything.
       (outline-flag-region beg end t)
       ;; Then unhide the top level headers.

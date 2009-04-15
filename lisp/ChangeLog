@@ -1,3 +1,8 @@
+2009-04-15  William Xu  <william.xwl@gmail.com>
+
+	* outline.el (hide-sublevels): Ensure that arguments are passed to
+	outline-flag-region in the correct order (Bug#3000).
+
 2009-04-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/browse-url.el (browse-url-filename-alist): Correct file
