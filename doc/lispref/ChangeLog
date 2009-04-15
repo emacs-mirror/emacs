@@ -11,6 +11,8 @@
 	(Face Remapping): Copyedits.
 	(Low-Level Font): Copyedits.
 	(Image Cache): Note that the image cache is shared between frames.
+	(Line Height): Emphasize that line-spacing only takes effect on
+	graphical terminals.
 
 2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
 

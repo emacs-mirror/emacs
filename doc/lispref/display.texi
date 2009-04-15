@@ -1765,20 +1765,20 @@ There are several ways to specify the line spacing for different
 parts of Emacs text.
 
 @vindex default-line-spacing
-  You can specify the line spacing for all lines in a frame with the
-@code{line-spacing} frame parameter (@pxref{Layout Parameters}).
-However, if the variable @code{default-line-spacing} is
-non-@code{nil}, it overrides the frame's @code{line-spacing}
-parameter.  An integer value specifies the number of pixels put below
-lines on graphical displays.  A floating point number specifies the
-spacing relative to the frame's default line height.
+  On graphical terminals, you can specify the line spacing for all
+lines in a frame, using the @code{line-spacing} frame parameter
+(@pxref{Layout Parameters}).  However, if the variable
+@code{default-line-spacing} is non-@code{nil}, it overrides the
+frame's @code{line-spacing} parameter.  An integer value specifies the
+number of pixels put below lines.  A floating point number specifies
+the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
 buffer-local @code{line-spacing} variable.  An integer value specifies
-the number of pixels put below lines on graphical displays.  A floating
-point number specifies the spacing relative to the default frame line
-height.  This overrides line spacings specified for the frame.
+the number of pixels put below lines.  A floating point number
+specifies the spacing relative to the default frame line height.  This
+overrides line spacings specified for the frame.
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
@@ -1791,6 +1791,8 @@ spacing of each line.  The value is a height spec, and it translates
 into a Lisp value as described above.  However, in this case the
 numeric height value specifies the line spacing, rather than the line
 height.
+
+  On text-only terminals, the line spacing cannot be altered.
 
 @node Faces
 @section Faces
