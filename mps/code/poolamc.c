@@ -87,12 +87,27 @@ typedef struct amcNailboardStruct {
 #define amcNailboardSig ((Sig)0x519A3C4B) /* SIGnature AMC Nailboard */
 
 
-/* AMCGSegStruct -- AMC segment structure
+/* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .segtype: AMC segs have a pointer to the type field of either
- * a nailboard or a generation. This initial value is passed
- * as an additional parameter when the segment is allocated.
- * See <design/poolamc/#fix.nail.distinguish>.
+ * .segtype: logically, AMC segs should have pointers to: 
+ *   - the generation (amcGenStruct);
+ *   - the nailboard (or NULL if not present).
+ * But in fact (apparently to save space in the amcSegStruct?) these 
+ * pointers are encoded, so as to use only a single-word "segTypeP" 
+ * field in amcSegStruct, as follows:
+ * The "segTypeP" field is a pointer to (the type field of) either
+ * a nailboard or a generation.  The value stored in the type field 
+ * indicates whether its enclosing struct is a generation or a 
+ * nailboard.  The segTypeP field is initialised by passing an 
+ * additional parameter (the address of the segment's generation) to 
+ * SegAlloc.  See <design/poolamc/#fix.nail.distinguish>.
+ *
+ * .seg-ramp-new: "new" (if true) means this segment was allocated by 
+ * AMCBufferFill while amc->rampMode == RampRAMPING, and therefore 
+ * (I think) the contribution it *should* make to gen->pgen.newSize
+ * is being deferred until the ramping is over.  "new" is set to FALSE
+ * in all other (ie. normal) circumstances.  (The original comment for 
+ * this struct member was "allocated since last GC").  RHSK 2009-04-15.
  */
 
 typedef struct amcSegStruct *amcSeg;
@@ -102,7 +117,7 @@ typedef struct amcSegStruct *amcSeg;
 typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
-  Bool new;                 /* allocated since last GC */
+  Bool new;                 /* .seg-ramp-new */
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
