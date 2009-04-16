@@ -1,5 +1,37 @@
 2009-04-16  Kenichi Handa  <handa@m17n.org>
 
+	* xfont.c (xfont_has_char): Special handling of `ja' and `ko'
+	adstyle.
+
+	* xftfont.c (xftfont_has_char): Special handling of `ja' and `ko'
+	adstyle.
+
+	* ftfont.c (Qja, Qko): Don't make them static.
+	(enum ftfont_cache_for): New enum.
+	(fc_charset_table): Undo the previous change.
+	(ftfont_get_latin1_charset): Delete it.
+	(ftfont_pattern_entity): Check cache by ftfont_lookup_cache.  Set
+	FONT_SIZE_INDEX of the entity to 0 for a scalable font.  For a
+	non-scarable font, try to get AVERAGE_WIDTH.
+	(ftfont_lookup_cache): Argument FOR-FACE is changed to CACHE_FOR.
+	Change ft_face_cache from a list of a hash-table.  Don't check
+	`ja' and `ko' adstyle here.
+	(ftfont_get_fc_charset): Call ftfont_lookup_cache with
+	FTFONT_CACHE_FOR_CHARET.
+	(ftfont_get_charset): Undo the previous change.
+	(ftfont_open): Call ftfont_lookup_cache with
+	FTFONT_CACHE_FOR_FACE.
+	(ftfont_close): Likewise.
+	(ftfont_has_char): Special handling of `ja' and `ko' adstyle.
+
+	* font.c (font_sort_entites): Change the meaning of the arg
+	BEST-ONLY.  Don't optimize for VEC of lenght 1.
+	(font_select_entity): Just return the value of font_sort_entites.
+
+	* xfaces.c (merge_face_vectors): Reflect font properties in
+	to[LFACE_FONT_INDEX] to the other face attributes.  Don't call
+	font_clear_prop if a face attribute doesn't change.
+
 	* charset.h (charset_ksc5601): Extern it.
 
 	* charset.c (charset_ksc5601): New variable.
