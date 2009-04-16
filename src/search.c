@@ -1729,9 +1729,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
-  int infinity, limit, stride_for_teases = 0;
-  register int *BM_tab;
-  int *BM_tab_base;
+  int limit, stride_for_teases = 0;
+  int BM_tab[0400];
   register unsigned char *cursor, *p_limit;
   register int i, j;
   unsigned char *pat, *pat_end;
@@ -1747,37 +1746,28 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int translate_prev_byte3 = 0;
   int translate_prev_byte4 = 0;
 
-  BM_tab = (int *) alloca (0400 * sizeof (int));
+  /* The general approach is that we are going to maintain that we know
+     the first (closest to the present position, in whatever direction
+     we're searching) character that could possibly be the last
+     (furthest from present position) character of a valid match.  We
+     advance the state of our knowledge by looking at that character
+     and seeing whether it indeed matches the last character of the
+     pattern.  If it does, we take a closer look.  If it does not, we
+     move our pointer (to putative last characters) as far as is
+     logically possible.  This amount of movement, which I call a
+     stride, will be the length of the pattern if the actual character
+     appears nowhere in the pattern, otherwise it will be the distance
+     from the last occurrence of that character to the end of the
+     pattern.  If the amount is zero we have a possible match.  */
 
-  /* The general approach is that we are going to maintain that we know */
-  /* the first (closest to the present position, in whatever direction */
-  /* we're searching) character that could possibly be the last */
-  /* (furthest from present position) character of a valid match.  We */
-  /* advance the state of our knowledge by looking at that character */
-  /* and seeing whether it indeed matches the last character of the */
-  /* pattern.  If it does, we take a closer look.  If it does not, we */
-  /* move our pointer (to putative last characters) as far as is */
-  /* logically possible.  This amount of movement, which I call a */
-  /* stride, will be the length of the pattern if the actual character */
-  /* appears nowhere in the pattern, otherwise it will be the distance */
-  /* from the last occurrence of that character to the end of the */
-  /* pattern. */
-  /* As a coding trick, an enormous stride is coded into the table for */
-  /* characters that match the last character.  This allows use of only */
-  /* a single test, a test for having gone past the end of the */
-  /* permissible match region, to test for both possible matches (when */
-  /* the stride goes past the end immediately) and failure to */
-  /* match (where you get nudged past the end one stride at a time). */
-
-  /* Here we make a "mickey mouse" BM table.  The stride of the search */
-  /* is determined only by the last character of the putative match. */
-  /* If that character does not match, we will stride the proper */
-  /* distance to propose a match that superimposes it on the last */
-  /* instance of a character that matches it (per trt), or misses */
-  /* it entirely if there is none. */
+  /* Here we make a "mickey mouse" BM table.  The stride of the search
+     is determined only by the last character of the putative match.
+     If that character does not match, we will stride the proper
+     distance to propose a match that superimposes it on the last
+     instance of a character that matches it (per trt), or misses
+     it entirely if there is none. */
 
   dirlen = len_byte * direction;
-  infinity = dirlen - (lim_byte + pos_byte + len_byte + len_byte) * direction;
 
   /* Record position after the end of the pattern.  */
   pat_end = base_pat + len_byte;
@@ -1787,23 +1777,14 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   if (direction < 0)
     base_pat = pat_end - 1;
 
-  BM_tab_base = BM_tab;
-  BM_tab += 0400;
-  j = dirlen;		/* to get it in a register */
-  /* A character that does not appear in the pattern induces a */
-  /* stride equal to the pattern length. */
-  while (BM_tab_base != BM_tab)
-    {
-      *--BM_tab = j;
-      *--BM_tab = j;
-      *--BM_tab = j;
-      *--BM_tab = j;
-    }
+  /* A character that does not appear in the pattern induces a
+     stride equal to the pattern length.  */
+  for (i = 0; i < 0400; i++)
+    BM_tab[i] = dirlen;
 
   /* We use this for translation, instead of TRT itself.
      We fill this in to handle the characters that actually
      occur in the pattern.  Others don't matter anyway!  */
-  bzero (simple_translate, sizeof simple_translate);
   for (i = 0; i < 0400; i++)
     simple_translate[i] = i;
 
@@ -1828,12 +1809,10 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
     }
 
   i = 0;
-  while (i != infinity)
+  while (i != dirlen)
     {
       unsigned char *ptr = base_pat + i;
       i += direction;
-      if (i == dirlen)
-	i = infinity;
       if (! NILP (trt))
 	{
 	  /* If the byte currently looking at is the last of a
@@ -1861,7 +1840,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  else
 	    j = *ptr;
 
-	  if (i == infinity)
+	  if (i == dirlen)
 	    stride_for_teases = BM_tab[j];
 
 	  BM_tab[j] = dirlen - i;
@@ -1894,17 +1873,16 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	{
 	  j = *ptr;
 
-	  if (i == infinity)
+	  if (i == dirlen)
 	    stride_for_teases = BM_tab[j];
 	  BM_tab[j] = dirlen - i;
 	}
-      /* stride_for_teases tells how much to stride if we get a */
-      /* match on the far character but are subsequently */
-      /* disappointed, by recording what the stride would have been */
-      /* for that character if the last character had been */
-      /* different. */
+      /* stride_for_teases tells how much to stride if we get a
+	 match on the far character but are subsequently
+	 disappointed, by recording what the stride would have been
+	 for that character if the last character had been
+	 different.  */
     }
-  infinity = dirlen - infinity;
   pos_byte += dirlen - ((direction > 0) ? direction : 0);
   /* loop invariant - POS_BYTE points at where last char (first
      char if reverse) of pattern would align in a possible match.  */
@@ -1948,43 +1926,34 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
 	  p_limit = BYTE_POS_ADDR (limit);
 	  p2 = (cursor = BYTE_POS_ADDR (pos_byte));
-	  /* In this loop, pos + cursor - p2 is the surrogate for pos */
+	  /* In this loop, pos + cursor - p2 is the surrogate for pos.  */
 	  while (1)		/* use one cursor setting as long as i can */
 	    {
 	      if (direction > 0) /* worth duplicating */
 		{
-		  /* Use signed comparison if appropriate
-		     to make cursor+infinity sure to be > p_limit.
-		     Assuming that the buffer lies in a range of addresses
-		     that are all "positive" (as ints) or all "negative",
-		     either kind of comparison will work as long
-		     as we don't step by infinity.  So pick the kind
-		     that works when we do step by infinity.  */
-		  if ((EMACS_INT) (p_limit + infinity) > (EMACS_INT) p_limit)
-		    while ((EMACS_INT) cursor <= (EMACS_INT) p_limit)
+		  while (cursor <= p_limit)
+		    {
+		      if (BM_tab[*cursor] == 0)
+			goto hit;
 		      cursor += BM_tab[*cursor];
-		  else
-		    while ((EMACS_UINT) cursor <= (EMACS_UINT) p_limit)
-		      cursor += BM_tab[*cursor];
+		    }
 		}
 	      else
 		{
-		  if ((EMACS_INT) (p_limit + infinity) < (EMACS_INT) p_limit)
-		    while ((EMACS_INT) cursor >= (EMACS_INT) p_limit)
+		  while (cursor >= p_limit)
+		    {
+		      if (BM_tab[*cursor] == 0)
+			goto hit;
 		      cursor += BM_tab[*cursor];
-		  else
-		    while ((EMACS_UINT) cursor >= (EMACS_UINT) p_limit)
-		      cursor += BM_tab[*cursor];
+		    }
 		}
-/* If you are here, cursor is beyond the end of the searched region. */
-/* This can happen if you match on the far character of the pattern, */
-/* because the "stride" of that character is infinity, a number able */
-/* to throw you well beyond the end of the search.  It can also */
-/* happen if you fail to match within the permitted region and would */
-/* otherwise try a character beyond that region */
-	      if ((cursor - p_limit) * direction <= len_byte)
-		break;	/* a small overrun is genuine */
-	      cursor -= infinity; /* large overrun = hit */
+	      /* If you are here, cursor is beyond the end of the
+		 searched region.  You fail to match within the
+		 permitted region and would otherwise try a character
+		 beyond that region.  */
+	      break;
+
+	    hit:
 	      i = dirlen - direction;
 	      if (! NILP (trt))
 		{
@@ -2056,8 +2025,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  pos_byte += cursor - p2;
 	}
       else
-	/* Now we'll pick up a clump that has to be done the hard */
-	/* way because it covers a discontinuity */
+	/* Now we'll pick up a clump that has to be done the hard
+	   way because it covers a discontinuity.  */
 	{
 	  limit = ((direction > 0)
 		   ? BUFFER_CEILING_OF (pos_byte - dirlen + 1)
@@ -2069,19 +2038,21 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	     and still be valid for a possible match.  */
 	  while (1)
 	    {
-	      /* This loop can be coded for space rather than */
-	      /* speed because it will usually run only once. */
-	      /* (the reach is at most len + 21, and typically */
-	      /* does not exceed len) */
+	      /* This loop can be coded for space rather than
+		 speed because it will usually run only once.
+		 (the reach is at most len + 21, and typically
+		 does not exceed len).  */
 	      while ((limit - pos_byte) * direction >= 0)
-		pos_byte += BM_tab[FETCH_BYTE (pos_byte)];
-	      /* now run the same tests to distinguish going off the */
-	      /* end, a match or a phony match. */
-	      if ((pos_byte - limit) * direction <= len_byte)
-		break;	/* ran off the end */
-	      /* Found what might be a match.
-		 Set POS_BYTE back to last (first if reverse) pos.  */
-	      pos_byte -= infinity;
+		{
+		  int ch = FETCH_BYTE (pos_byte);
+		  if (BM_tab[ch] == 0)
+		    goto hit2;
+		  pos_byte += BM_tab[ch];
+		}
+	      break;	/* ran off the end */
+
+	    hit2:
+	      /* Found what might be a match.  */
 	      i = dirlen - direction;
 	      while ((i -= direction) + direction != 0)
 		{
@@ -2110,7 +2081,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      /* Above loop has moved POS_BYTE part or all the way
 		 back to the first pos (last pos if reverse).
 		 Set it once again at the last (first if reverse) char.  */
-	      pos_byte += dirlen - i- direction;
+	      pos_byte += dirlen - i - direction;
 	      if (i + direction == 0)
 		{
 		  int position, start, end;
