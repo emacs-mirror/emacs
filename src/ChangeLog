@@ -1,3 +1,11 @@
+2009-04-16  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (charset_ksc5601): Extern it.
+
+	* charset.c (charset_ksc5601): New variable.
+	(Fdefine_charset_internal): Set charset_ksc5601.
+	(init_charset_once): Initialize charset_ksc5601 to -1.
+
 2009-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fileio.c (history_delete_duplicates): Remove unused declaration.
