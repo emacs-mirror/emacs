@@ -347,12 +347,12 @@ property of the major mode name.")
    (not (save-excursion
 	  (re-search-backward "^[ \t]*%%%[ \t]+Local" nil t)))
    (not (save-excursion
-	  (let ((this (point-marker))
-		(e (progn (end-of-line) (point-marker))))
+	  (let ((this (point)))
 	    (beginning-of-line)
-	    (if (re-search-forward "\\\\\\(cite\\|label\\|ref\\){[^}]*}" e t)
-		(and (>= this (match-beginning 0))
-		     (<= this (match-end 0)) )))))))
+	    (and (re-search-forward "\\\\\\(cite\\|label\\|ref\\){[^}]*}"
+				    (line-end-position) t)
+		 (>= this (match-beginning 0))
+		 (<= this (match-end 0))))))))
 
 ;;*--- sgml mode -------------------------------------------------------*/
 (put 'sgml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
@@ -362,25 +362,10 @@ property of the major mode name.")
 (defun sgml-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate' in SGML mode."
   (not (save-excursion
-	 (let ((this (point-marker))
-	       (s (progn (beginning-of-line) (point-marker)))
-	       (e (progn (end-of-line) (point-marker))))
-	   (or (progn
-		 (goto-char this)
-		 (and (re-search-forward  "[^<]*>" e t)
-		      (= (match-beginning 0) this)))
-	       (progn
-		 (goto-char this)
-		 (and (re-search-backward "<[^>]*" s t)
-		      (= (match-end 0) this)))
-	       (and (progn
-		      (goto-char this)
-		      (and (re-search-forward  "[^&]*;" e t)
-			   (= (match-beginning 0) this)))
-		    (progn
-		      (goto-char this)
-		      (and (re-search-backward "&[^;]*" s t)
-			   (= (match-end 0) this)))))))))
+	 (or (looking-at "[^<\n]*>")
+	     (looking-back "<[^>\n]*")
+	     (and (looking-at "[^&\n]*;")
+		  (looking-back "&[^;\n]*"))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Programming mode                                                 */
@@ -2063,7 +2048,7 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
     (error "Pop-up menus do not work on this terminal"))
   ;; use the correct dictionary
   (flyspell-accept-buffer-local-defs)
-  (or opoint (setq opoint (point-marker)))
+  (or opoint (setq opoint (point)))
   (let ((cursor-location (point))
 	(word (flyspell-get-word nil)))
     (if (consp word)

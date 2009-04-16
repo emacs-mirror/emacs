@@ -1,3 +1,12 @@
+2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	Don't create markers.
+	(tex-mode-flyspell-verify): Don't create markers.  Use
+	line-end-position.
+	(sgml-mode-flyspell-verify): Don't create markers.  Simplify code
+	using looking-at and looking-back.
+
 2009-04-16  Robert Brown  <brown@google.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el: Give `deftype' a doc-string-elt
