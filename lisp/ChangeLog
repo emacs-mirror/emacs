@@ -1,3 +1,8 @@
+2009-04-16  Robert Brown  <brown@google.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el: Give `deftype' a doc-string-elt
+	property (Bug#2984).
+
 2009-04-16  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* ediff-wind.el (ediff-make-wide-display): Fix typo in frame
