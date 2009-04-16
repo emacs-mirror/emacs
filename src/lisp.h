@@ -2969,11 +2969,12 @@ extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, const char *));
 extern int fast_string_match_ignore_case P_ ((Lisp_Object, Lisp_Object));
 extern EMACS_INT fast_looking_at P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
 				      EMACS_INT, EMACS_INT, Lisp_Object));
-extern int scan_buffer P_ ((int, int, int, int, int *, int));
-extern int scan_newline P_ ((int, int, int, int, int, int));
-extern int find_next_newline P_ ((int, int));
-extern int find_next_newline_no_quit P_ ((int, int));
-extern int find_before_next_newline P_ ((int, int, int));
+extern int scan_buffer P_ ((int, EMACS_INT, EMACS_INT, int, int *, int));
+extern int scan_newline P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
+			     int, int));
+extern int find_next_newline P_ ((EMACS_INT, int));
+extern int find_next_newline_no_quit P_ ((EMACS_INT, int));
+extern int find_before_next_newline P_ ((EMACS_INT, EMACS_INT, int));
 extern void syms_of_search P_ ((void));
 extern void clear_regexp_cache P_ ((void));
 

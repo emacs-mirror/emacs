@@ -97,11 +97,18 @@ Lisp_Object Vsearch_spaces_regexp;
    only.  */
 Lisp_Object Vinhibit_changing_match_data;
 
-static void set_search_regs ();
-static void save_search_regs ();
-static int simple_search ();
-static int boyer_moore ();
-static int search_buffer ();
+static void set_search_regs P_ ((EMACS_INT, EMACS_INT));
+static void save_search_regs P_ ((void));
+static EMACS_INT simple_search P_ ((int, unsigned char *, int, int, 
+				    Lisp_Object, EMACS_INT, EMACS_INT,
+				    EMACS_INT, EMACS_INT));
+static EMACS_INT boyer_moore P_ ((int, unsigned char *, int, int, 
+				  Lisp_Object, Lisp_Object,
+				  EMACS_INT, EMACS_INT,
+				  EMACS_INT, EMACS_INT, int));
+static EMACS_INT search_buffer P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
+				    EMACS_INT, EMACS_INT, int, int,
+				    Lisp_Object, Lisp_Object, int));
 static void matcher_overflow () NO_RETURN;
 
 static void
@@ -288,7 +295,7 @@ looking_at_1 (string, posix)
 {
   Lisp_Object val;
   unsigned char *p1, *p2;
-  int s1, s2;
+  EMACS_INT s1, s2;
   register int i;
   struct re_pattern_buffer *bufp;
 
@@ -390,7 +397,7 @@ string_match_1 (regexp, string, start, posix)
 {
   int val;
   struct re_pattern_buffer *bufp;
-  int pos, pos_byte;
+  EMACS_INT pos, pos_byte;
   int i;
 
   if (running_asynch_code)
@@ -572,7 +579,7 @@ fast_looking_at (regexp, pos, pos_byte, limit, limit_byte, string)
   int multibyte;
   struct re_pattern_buffer *buf;
   unsigned char *p1, *p2;
-  int s1, s2;
+  EMACS_INT s1, s2;
   EMACS_INT len;
   
   if (STRINGP (string))
@@ -676,7 +683,7 @@ newline_cache_on_off (buf)
 int
 scan_buffer (target, start, end, count, shortage, allow_quit)
      register int target;
-     int start, end;
+     EMACS_INT start, end;
      int count;
      int *shortage;
      int allow_quit;
@@ -711,9 +718,9 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
            the position of the last character before the next such
            obstacle --- the last character the dumb search loop should
            examine.  */
-	int ceiling_byte = CHAR_TO_BYTE (end) - 1;
-	int start_byte = CHAR_TO_BYTE (start);
-	int tem;
+	EMACS_INT ceiling_byte = CHAR_TO_BYTE (end) - 1;
+	EMACS_INT start_byte = CHAR_TO_BYTE (start);
+	EMACS_INT tem;
 
         /* If we're looking for a newline, consult the newline cache
            to see where we can avoid some scanning.  */
@@ -784,9 +791,9 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
     while (start > end)
       {
         /* The last character to check before the next obstacle.  */
-	int ceiling_byte = CHAR_TO_BYTE (end);
-	int start_byte = CHAR_TO_BYTE (start);
-	int tem;
+	EMACS_INT ceiling_byte = CHAR_TO_BYTE (end);
+	EMACS_INT start_byte = CHAR_TO_BYTE (start);
+	EMACS_INT tem;
 
         /* Consult the newline cache, if appropriate.  */
         if (target == '\n' && newline_cache)
@@ -872,8 +879,8 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
 
 int
 scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
-     int start, start_byte;
-     int limit, limit_byte;
+     EMACS_INT start, start_byte;
+     EMACS_INT limit, limit_byte;
      register int count;
      int allow_quit;
 {
@@ -882,7 +889,7 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
   register unsigned char *cursor;
   unsigned char *base;
 
-  register int ceiling;
+  EMACS_INT ceiling;
   register unsigned char *ceiling_addr;
 
   int old_immediate_quit = immediate_quit;
@@ -970,7 +977,8 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
 
 int
 find_next_newline_no_quit (from, cnt)
-     register int from, cnt;
+     EMACS_INT from;
+     int cnt;
 {
   return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
 }
@@ -981,7 +989,8 @@ find_next_newline_no_quit (from, cnt)
 
 int
 find_before_next_newline (from, to, cnt)
-     int from, to, cnt;
+     EMACS_INT from, to;
+     int cnt;
 {
   int shortage;
   int pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
@@ -1142,14 +1151,14 @@ while (0)
    (i.e. Vinhibit_changing_match_data is non-nil).  */
 static struct re_registers search_regs_1;
 
-static int
+static EMACS_INT
 search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	       RE, trt, inverse_trt, posix)
      Lisp_Object string;
-     int pos;
-     int pos_byte;
-     int lim;
-     int lim_byte;
+     EMACS_INT pos;
+     EMACS_INT pos_byte;
+     EMACS_INT lim;
+     EMACS_INT lim_byte;
      int n;
      int RE;
      Lisp_Object trt;
@@ -1493,14 +1502,14 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
    regardless of what is in TRT.  It is used in cases where
    boyer_moore cannot work.  */
 
-static int
+static EMACS_INT
 simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
      int n;
      unsigned char *pat;
      int len, len_byte;
      Lisp_Object trt;
-     int pos, pos_byte;
-     int lim, lim_byte;
+     EMACS_INT pos, pos_byte;
+     EMACS_INT lim, lim_byte;
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
   int forward = n > 0;
@@ -1514,8 +1523,8 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    int this_pos = pos;
-	    int this_pos_byte = pos_byte;
+	    EMACS_INT this_pos = pos;
+	    EMACS_INT this_pos_byte = pos_byte;
 	    int this_len = len;
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
@@ -1563,7 +1572,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    int this_pos = pos;
+	    EMACS_INT this_pos = pos;
 	    int this_len = len;
 	    unsigned char *p = pat;
 
@@ -1602,8 +1611,8 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    int this_pos = pos - len;
-	    int this_pos_byte;
+	    EMACS_INT this_pos = pos - len;
+	    EMACS_INT this_pos_byte;
 	    int this_len = len;
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
@@ -1652,7 +1661,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	while (1)
 	  {
 	    /* Try matching at position POS.  */
-	    int this_pos = pos - len;
+	    EMACS_INT this_pos = pos - len;
 	    int this_len = len;
 	    unsigned char *p = pat;
 
@@ -1715,7 +1724,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
    If that criterion is not satisfied, do not call this function.  */
 
-static int
+static EMACS_INT
 boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	     pos, pos_byte, lim, lim_byte, char_base)
      int n;
@@ -1723,13 +1732,14 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
      int len, len_byte;
      Lisp_Object trt;
      Lisp_Object inverse_trt;
-     int pos, pos_byte;
-     int lim, lim_byte;
+     EMACS_INT pos, pos_byte;
+     EMACS_INT lim, lim_byte;
      int char_base;
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
-  int limit, stride_for_teases = 0;
+  EMACS_INT limit;
+  int stride_for_teases = 0;
   int BM_tab[0400];
   register unsigned char *cursor, *p_limit;
   register int i, j;
@@ -1888,7 +1898,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
      char if reverse) of pattern would align in a possible match.  */
   while (n != 0)
     {
-      int tail_end;
+      EMACS_INT tail_end;
       unsigned char *tail_end_ptr;
 
       /* It's been reported that some (broken) compiler thinks that
@@ -1992,7 +2002,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      cursor += dirlen - i - direction;	/* fix cursor */
 	      if (i + direction == 0)
 		{
-		  int position, start, end;
+		  EMACS_INT position, start, end;
 
 		  cursor -= direction;
 
@@ -2084,7 +2094,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      pos_byte += dirlen - i - direction;
 	      if (i + direction == 0)
 		{
-		  int position, start, end;
+		  EMACS_INT position, start, end;
 		  pos_byte -= direction;
 
 		  position = pos_byte + ((direction > 0) ? 1 - len_byte : 0);
@@ -2126,7 +2136,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
 static void
 set_search_regs (beg_byte, nbytes)
-     int beg_byte, nbytes;
+     EMACS_INT beg_byte, nbytes;
 {
   int i;
 
@@ -2478,7 +2488,7 @@ since only regular expressions have distinguished subexpressions.  */)
   int some_nonuppercase_initial;
   register int c, prevc;
   int sub;
-  int opoint, newpoint;
+  EMACS_INT opoint, newpoint;
 
   CHECK_STRING (newtext);
 
@@ -2521,7 +2531,7 @@ since only regular expressions have distinguished subexpressions.  */)
   if (NILP (fixedcase))
     {
       /* Decide how to casify by examining the matched text. */
-      int last;
+      EMACS_INT last;
 
       pos = search_regs.start[sub];
       last = search_regs.end[sub];
@@ -2608,8 +2618,8 @@ since only regular expressions have distinguished subexpressions.  */)
 	 if desired.  */
       if (NILP (literal))
 	{
-	  int lastpos = 0;
-	  int lastpos_byte = 0;
+	  EMACS_INT lastpos = 0;
+	  EMACS_INT lastpos_byte = 0;
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
@@ -2799,7 +2809,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	     set up ADD_STUFF and ADD_LEN to point to it.  */
 	  if (idx >= 0)
 	    {
-	      int begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      EMACS_INT begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
 		move_gap (search_regs.start[idx]);
@@ -2853,9 +2863,9 @@ since only regular expressions have distinguished subexpressions.  */)
 
   /* Adjust search data for this change.  */
   {
-    int oldend = search_regs.end[sub];
-    int oldstart = search_regs.start[sub];
-    int change = newpoint - search_regs.end[sub];
+    EMACS_INT oldend = search_regs.end[sub];
+    EMACS_INT oldstart = search_regs.start[sub];
+    EMACS_INT change = newpoint - search_regs.end[sub];
     int i;
 
     for (i = 0; i < search_regs.num_regs; i++)
@@ -3111,7 +3121,7 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 	  }
 	else
 	  {
-	    int from;
+	    EMACS_INT from;
 	    Lisp_Object m;
 
 	    m = marker;

@@ -3,6 +3,9 @@
 	* search.c (boyer_moore): Use zero as marker value for a possible
 	match instead of depending on overflow behavior.  (Bug#2844)
 
+	* search.c: Use EMACS_INT for buffer positions.  Add prototypes.
+	* lisp.h: Adjust prototypes.
+
 2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (adjust_point_for_property): Disable 2009-02-12
