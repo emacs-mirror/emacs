@@ -1,3 +1,8 @@
+2009-04-16  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* ediff-wind.el (ediff-make-wide-display): Fix typo in frame
+	parameter alist.
+
 2009-04-15  William Xu  <william.xwl@gmail.com>
 
 	* outline.el (hide-sublevels): Ensure that arguments are passed to
