@@ -1,7 +1,7 @@
 2009-04-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* search.c (boyer_moore): Use zero as marker value for a possible
-	match instead of depending on overflow behavior.
+	match instead of depending on overflow behavior.  (Bug#2844)
 
 2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
