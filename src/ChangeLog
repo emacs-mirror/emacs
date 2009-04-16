@@ -1,3 +1,8 @@
+2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (adjust_point_for_property): Disable 2009-02-12
+	change (Bug#3003).
+
 2009-04-16  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_has_char): Special handling of `ja' and `ko'
