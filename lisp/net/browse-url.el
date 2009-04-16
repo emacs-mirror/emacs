@@ -466,7 +466,7 @@ address to an HTTP URL:
   :type '(repeat (cons :format "%v"
                        (regexp :tag "Regexp")
                        (string :tag "Replacement")))
-  :version "20.3"
+  :version "23.1"
   :group 'browse-url)
 
 (defcustom browse-url-save-file nil
