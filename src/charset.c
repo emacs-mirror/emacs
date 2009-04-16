@@ -87,6 +87,7 @@ int charset_emacs;
 int charset_jisx0201_roman;
 int charset_jisx0208_1978;
 int charset_jisx0208;
+int charset_ksc5601;
 
 /* Value of charset attribute `charset-iso-plane'.  */
 Lisp_Object Qgl, Qgr;
@@ -1224,6 +1225,8 @@ usage: (define-charset-internal ...)  */)
 	charset_jisx0208_1978 = id;
       else if (ISO_CHARSET_TABLE (2, 0, 'B') == id)
 	charset_jisx0208 = id;
+      else if (ISO_CHARSET_TABLE (2, 0, 'C') == id)
+	charset_ksc5601 = id;
     }
 
   if (charset.emacs_mule_id >= 0)
@@ -2320,6 +2323,7 @@ init_charset_once ()
   charset_jisx0201_roman = -1;
   charset_jisx0208_1978 = -1;
   charset_jisx0208 = -1;
+  charset_ksc5601 = -1;
 
   for (i = 0; i < 128; i++)
     unibyte_to_multibyte_table[i] = i;
