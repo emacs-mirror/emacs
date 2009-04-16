@@ -530,6 +530,7 @@ extern int charset_unicode;
 extern int charset_jisx0201_roman;
 extern int charset_jisx0208_1978;
 extern int charset_jisx0208;
+extern int charset_ksc5601;
 
 extern int charset_unibyte;
 
