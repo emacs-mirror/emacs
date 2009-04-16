@@ -2449,6 +2449,16 @@ merge_face_vectors (f, from, to, named_merge_points)
 	to[i] = Fmerge_font_spec (from[i], to[i]);
       else
 	to[i] = Fcopy_font_spec (from[i]);
+      if (! NILP (AREF (to[i], FONT_FOUNDRY_INDEX)))
+	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FOUNDRY_INDEX));
+      if (! NILP (AREF (to[i], FONT_FAMILY_INDEX)))
+	to[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FAMILY_INDEX));
+      if (! NILP (AREF (to[i], FONT_WEIGHT_INDEX)))
+	to[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (to[i]);
+      if (! NILP (AREF (to[i], FONT_SLANT_INDEX)))
+	to[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (to[i]);
+      if (! NILP (AREF (to[i], FONT_WIDTH_INDEX)))
+	to[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (to[i]);
       ASET (to[i], FONT_SIZE_INDEX, Qnil);
     }
 
@@ -2460,7 +2470,8 @@ merge_face_vectors (f, from, to, named_merge_points)
 	    to[i] = merge_face_heights (from[i], to[i], to[i]);
 	    font_clear_prop (to, FONT_SIZE_INDEX);
 	  }
-	else if (i != LFACE_FONT_INDEX)
+	else if (i != LFACE_FONT_INDEX
+		 && ! EQ (to[i], from[i]))
 	  {
 	    to[i] = from[i];
 	    if (i >= LFACE_FAMILY_INDEX && i <=LFACE_SLANT_INDEX)
