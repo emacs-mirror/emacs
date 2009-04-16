@@ -792,17 +792,33 @@ xfont_prepare_face (f, face)
   return 0;
 }
 
+extern Lisp_Object Qja, Qko;
+
 static int
-xfont_has_char (entity, c)
-     Lisp_Object entity;
+xfont_has_char (font, c)
+     Lisp_Object font;
      int c;
 {
-  Lisp_Object registry = AREF (entity, FONT_REGISTRY_INDEX);
+  Lisp_Object registry = AREF (font, FONT_REGISTRY_INDEX);
   struct charset *encoding;
-  struct charset *repertory;
+  struct charset *repertory = NULL;
 
-  if (font_registry_charsets (registry, &encoding, &repertory) < 0)
-    return -1;
+  if (EQ (registry, Qiso10646_1))
+    {
+      /* We use a font of `ja' and `ko' adstyle only for a character
+	 in JISX0208 and KSC5601 charsets respectively.  */
+      if (EQ (AREF (font, FONT_ADSTYLE_INDEX), Qja)
+	  && charset_jisx0208 >= 0)
+	encoding = repertory = CHARSET_FROM_ID (charset_jisx0208);
+      else if (EQ (AREF (font, FONT_ADSTYLE_INDEX), Qko)
+	       && charset_ksc5601 >= 0)
+	encoding = repertory = CHARSET_FROM_ID (charset_ksc5601);
+      else
+	encoding = CHARSET_FROM_ID (charset_unicode);
+    }
+  else if (font_registry_charsets (registry, &encoding, &repertory) < 0)
+    /* Unknown REGISTRY, not usable.  */
+    return 0;
   if (ASCII_CHAR_P (c) && encoding->ascii_compatible_p)
     return 1;
   if (! repertory)
