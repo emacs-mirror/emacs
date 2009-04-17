@@ -208,7 +208,14 @@ ftfont_pattern_entity (p, extra)
   cache = ftfont_lookup_cache (key, FTFONT_CACHE_FOR_ENTITY);
   entity = XCAR (cache);
   if (! NILP (entity))
-    return entity;
+    {
+      Lisp_Object val = font_make_entity ();
+      int i;
+
+      for (i = 0; i < FONT_OBJLIST_INDEX; i++)
+	ASET (val, i, AREF (entity, i));
+      return val;
+    }
   entity = font_make_entity ();
   XSETCAR (cache, entity);
 
