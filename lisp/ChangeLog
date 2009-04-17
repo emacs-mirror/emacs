@@ -1,3 +1,7 @@
+2009-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-decomposition.el: Re-generated.
+
 2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/flyspell.el (flyspell-correct-word-before-point):
