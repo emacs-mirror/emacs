@@ -137,6 +137,7 @@ int Stream_fputs(const char *s, mps_lib_FILE *stream)
 typedef struct DiagStruct {
   Sig sig;
   const char  *tag;
+  Bool overflow;  /* diag > buf? set flag, truncate, force output */
   Count n;
   char buf[DIAG_BUFFER_SIZE];
 } *Diag;
@@ -159,7 +160,7 @@ static Bool DiagCheck(Diag diag)
  * (or not) when complete.
  */
 
-static struct DiagStruct filterDiagGlobal = { DiagSig, NULL, 0 };
+static struct DiagStruct filterDiagGlobal = { DiagSig, NULL, FALSE, 0 };
 
 static mps_lib_FILE *filterStream(void)
 {
@@ -358,7 +359,7 @@ static void filterStream_Output(Diag diag, Rule rules)
                     " $S$S/$S/$S] ", rule->action, rule->tag, 
                     rule->para, rule->line, NULL);
     }
-    if(rules[ir].action[0] == '+') {
+    if(rules[ir].action[0] == '+' || diag->overflow) {
       if(nolinesyet) {
         res = WriteF(filterStream_under(),
                      DIAG_PREFIX_TAGSTART "$S {", diag->tag, NULL);
@@ -369,6 +370,13 @@ static void filterStream_Output(Diag diag, Rule rules)
     }
   }
 
+  if(diag->overflow) {
+    res = WriteF(filterStream_under(),
+      "\n--- diagnostic too large: "
+      "forced to output, but truncated here ---\n"
+      "--- (for a bigger buffer, change DIAG_BUFFER_SIZE) ---\n", NULL);
+    AVER(res == ResOK);
+  }
   if(!nolinesyet) {
     res = WriteF(filterStream_under(), DIAG_PREFIX_TAGEND "}\n", NULL);
     AVER(res == ResOK);
@@ -409,8 +417,9 @@ static void filterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
     diag->n = 0;
   }
 
-  AVER(diag->n == 0);
   diag->tag = tag;
+  diag->overflow = FALSE;
+  AVER(diag->n == 0);
 }
 
 static void filterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
@@ -448,9 +457,12 @@ static int filterStream_fputc(int c, mps_lib_FILE *stream)
   AVERT(Diag, diag);
   /* @@ when all diags are tagged: AVER(diag->tag != NULL); */
 
-  AVER(diag->n + 1 <= sizeof(diag->buf));
-  if(!(diag->n + 1 <= sizeof(diag->buf)))
-    return mps_lib_EOF;
+  /* AVER(diag->n + 1 <= sizeof(diag->buf)); */
+  if(!(diag->n + 1 <= sizeof(diag->buf))) {
+    diag->overflow = TRUE;
+    /* ignore failure; do not return mps_lib_EOF */
+    return c;
+  }
   
   /* add c to buffer */
   diag->buf[diag->n++] = (char)c;
@@ -472,9 +484,12 @@ static int filterStream_fputs(const char *s, mps_lib_FILE *stream)
 
   l = StringLength(s);
   
-  AVER(diag->n + l <= sizeof(diag->buf));
-  if(!(diag->n + l <= sizeof(diag->buf)))
-    return mps_lib_EOF;
+  /* AVER(diag->n + l <= sizeof(diag->buf)); */
+  if(!(diag->n + l <= sizeof(diag->buf))) {
+    diag->overflow = TRUE;
+    /* ignore failure; do not return mps_lib_EOF */
+    return 1;
+  }
 
   /* add s to buffer */
   for (i = 0; i < l; i++) {
