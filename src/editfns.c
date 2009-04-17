@@ -3147,12 +3147,7 @@ It returns the number of characters changed.  */)
 
 	      if (VECTORP (val))
 		{
-		  int i;
-
-		  string = Fmake_string (make_number (ASIZE (val)),
-					 AREF (val, 0));
-		  for (i = 1; i < ASIZE (val); i++)
-		    Faset (string, make_number (i), AREF (val, i));
+		  string = Fconcat (1, &val);
 		}
 	      else
 		{
