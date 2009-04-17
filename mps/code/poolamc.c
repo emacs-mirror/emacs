@@ -87,6 +87,23 @@ typedef struct amcNailboardStruct {
 #define amcNailboardSig ((Sig)0x519A3C4B) /* SIGnature AMC Nailboard */
 
 
+/* PadStatsStruct
+ * AMC Padding:
+ * 1. remainder available, but request is too big for it;
+ *  size of remainder, (size of request is not seen by BufferEmpty)
+ * 2. large-segment-padding, to prevent remainder being used for small objects;
+ *  size of large-segment-request, size of remainder
+ * 3. pad replacing fwded object on boarded AMC seg.
+ *  Cumulative: number of padded-out fwds; size of padded-out fwds.
+ */
+struct PadStatsStruct {
+  Size BE_pad;    /* Buffer Empty (usually because request does not fit): pad size */
+  Size LSP_pad;   /* LSP (Large Segment Padding): pad size */
+  Size LSP_req;   /* LSP: (large) request size */
+  Size FwdR_pad;  /* FwdR: Forwards Reclaimed by pad on boarded seg */
+  Count FwdR_padCount;  /* FwdR: count */
+};
+
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
  * .segtype: logically, AMC segs should have pointers to: 
@@ -118,6 +135,7 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
   Bool new;                 /* .seg-ramp-new */
+  struct PadStatsStruct padstats;
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
@@ -140,6 +158,10 @@ static Bool amcSegCheck(amcSeg amcseg)
   CHECKL(BoolCheck(amcseg->new));
   return TRUE;
 }
+
+
+/* static => init'd to zero */
+static struct PadStatsStruct padstats_Zero;
 
 
 /* AMCSegInit -- initialise an AMC segment */
@@ -165,6 +187,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   amcseg->segTypeP = segtype; /* .segtype */
   amcseg->new = TRUE;
+  amcseg->padstats = padstats_Zero;  /* structure copy */
   amcseg->sig = amcSegSig;
   AVERT(amcSeg, amcseg);
 
@@ -341,6 +364,16 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
     if(res != ResOK)
       return res;
   }
+
+  res = WriteF(stream,
+    "  BE_pad:   $W\n", amcseg->padstats.BE_pad,
+    "  LSP_pad:  $W\n", amcseg->padstats.LSP_pad,
+    "  LSP_req:  $W\n", amcseg->padstats.LSP_req,
+    "  FwdR_pad: $W  ", amcseg->padstats.FwdR_pad,
+    "  FwdR_padCount: $U\n", amcseg->padstats.FwdR_padCount,
+    NULL);
+  if(res != ResOK)
+    return res;
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
@@ -1110,6 +1143,11 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
       ShieldExpose(arena, seg);
       (*pool->format->pad)(limit, padSize);
       ShieldCover(arena, seg);
+      /* padstats */
+      AVER((Seg2amcSeg(seg))->padstats.LSP_pad == 0);
+      (Seg2amcSeg(seg))->padstats.LSP_pad = padSize;
+      AVER((Seg2amcSeg(seg))->padstats.LSP_req == 0);
+      (Seg2amcSeg(seg))->padstats.LSP_req = size;
     }
   }
   *limitReturn = limit;
@@ -1148,6 +1186,9 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldExpose(arena, seg);
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
+    /* padstats */
+    AVER((Seg2amcSeg(seg))->padstats.BE_pad == 0);
+    (Seg2amcSeg(seg))->padstats.BE_pad = size;
   }
 }
 
@@ -2063,6 +2104,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       Npad += 1;
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
+      /* padstats */
+      (Seg2amcSeg(seg))->padstats.FwdR_pad += length;
+      (Seg2amcSeg(seg))->padstats.FwdR_padCount += 1;
     } else {
       Npip += 1;
       emptySeg = FALSE;
@@ -2316,9 +2360,39 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
       return res;
   }
 
-  RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
-    Seg seg = RING_ELT(Seg, poolRing, node);
-    res = AMCSegDescribe(seg, stream);
+  if(0) {
+    /* SegDescribes */
+    RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
+      Seg seg = RING_ELT(Seg, poolRing, node);
+      res = AMCSegDescribe(seg, stream);
+      if(res != ResOK)
+        return res;
+    }
+  }
+
+  if(1) {
+    struct PadStatsStruct padstats = padstats_Zero;
+    struct PadStatsStruct padsegs = padstats_Zero;
+    RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
+      Seg seg = RING_ELT(Seg, poolRing, node);
+      amcSeg amcseg = Seg2amcSeg(seg);
+      padstats.BE_pad += amcseg->padstats.BE_pad;
+      padstats.LSP_pad += amcseg->padstats.LSP_pad;
+      padstats.LSP_req += amcseg->padstats.LSP_req;
+      padstats.FwdR_pad += amcseg->padstats.FwdR_pad;
+      padstats.FwdR_padCount += amcseg->padstats.FwdR_padCount;
+
+      padsegs.BE_pad += (amcseg->padstats.BE_pad == 0) ? 0 : 1;
+      padsegs.LSP_pad += (amcseg->padstats.LSP_pad == 0) ? 0 : 1;
+      padsegs.FwdR_pad += (amcseg->padstats.FwdR_pad == 0) ? 0 : 1;
+    }
+    res = WriteF(stream,
+      "  PoolSum-BE_pad:   $W   ($U segs)\n", padstats.BE_pad, padsegs.BE_pad,
+      "  PoolSum-LSP_pad:  $W   ($U segs)\n", padstats.LSP_pad, padsegs.LSP_pad,
+      "  PoolSum-LSP_req:  $W\n", padstats.LSP_req,
+      "  PoolSum-FwdR_pad: $W   ($U segs)  ", padstats.FwdR_pad, padsegs.FwdR_pad,
+      "  PoolSum-FwdR_padCount: $U\n", padstats.FwdR_padCount,
+      NULL);
     if(res != ResOK)
       return res;
   }
