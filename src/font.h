@@ -240,6 +240,9 @@ extern Lisp_Object QCavgwidth, QCfont_entity, QCfc_unknown_spec;
 extern Lisp_Object Qascii_0;
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
+/* Special ADSTYLE properties to avoid fonts used for Latin characters.  */
+extern Lisp_Object Qja, Qko;
+
 /* Structure for a font-spec.  */
 
 struct font_spec

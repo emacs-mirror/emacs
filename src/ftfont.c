@@ -43,9 +43,6 @@ Lisp_Object Qfreetype;
 /* Fontconfig's generic families and their aliases.  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 
-/* Special ADSTYLE properties to avoid fonts used for Latin characters.  */
-Lisp_Object Qja, Qko;
-
 /* Flag to tell if FcInit is already called or not.  */
 static int fc_initialized;
 
@@ -2229,8 +2226,6 @@ syms_of_ftfont ()
   DEFSYM (Qmono, "mono");
   DEFSYM (Qsans, "sans");
   DEFSYM (Qsans__serif, "sans serif");
-  DEFSYM (Qja, "ja");
-  DEFSYM (Qko, "ko");
 
   staticpro (&freetype_font_cache);
   freetype_font_cache = Fcons (Qt, Qnil);

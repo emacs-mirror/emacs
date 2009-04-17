@@ -1,3 +1,13 @@
+2009-04-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font.c (Qja, Qko): Move definitions here from ftfont.c.
+
+	* font.h (Qja, Qko): Extern them.
+
+	* ftfont.c (Qja, Qko): Remove declarations.
+
+	* xfont.c (Qja, Qko): Remove declarations.
+
 2009-04-17  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Ftranslate_region_internal): Use Fconcat to make a

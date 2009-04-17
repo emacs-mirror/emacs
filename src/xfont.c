@@ -792,8 +792,6 @@ xfont_prepare_face (f, face)
   return 0;
 }
 
-extern Lisp_Object Qja, Qko;
-
 static int
 xfont_has_char (font, c)
      Lisp_Object font;

@@ -143,6 +143,9 @@ Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;
 Lisp_Object QCantialias, QCfont_entity, QCfc_unknown_spec;
 /* Symbols representing values of font spacing property.  */
 Lisp_Object Qc, Qm, Qp, Qd;
+/* Special ADSTYLE properties to avoid fonts used for Latin
+   characters; used in xfont.c and ftfont.c.  */
+Lisp_Object Qja, Qko;
 
 Lisp_Object Vfont_encoding_alist;
 
@@ -5134,6 +5137,9 @@ syms_of_font ()
   DEFSYM (Qm, "m");
   DEFSYM (Qp, "p");
   DEFSYM (Qd, "d");
+
+  DEFSYM (Qja, "ja");
+  DEFSYM (Qko, "ko");
 
   staticpro (&null_vector);
   null_vector = Fmake_vector (make_number (0), Qnil);
