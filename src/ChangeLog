@@ -1,3 +1,8 @@
+2009-04-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32font.c (Qja, Qko): Remove declarations.
+	(syms_of_w32font): Don't DEFSYM them.
+
 2009-04-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font.c (Qja, Qko): Move definitions here from ftfont.c.

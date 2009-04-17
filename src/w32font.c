@@ -68,7 +68,7 @@ extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* languages */
-static Lisp_Object Qja, Qko, Qzh;
+static Lisp_Object Qzh;
 
 /* scripts */
 static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
@@ -2521,8 +2521,6 @@ syms_of_w32font ()
   DEFSYM (Qnatural, "natural");
 
   /* Languages  */
-  DEFSYM (Qja, "ja");
-  DEFSYM (Qko, "ko");
   DEFSYM (Qzh, "zh");
 
   /* Scripts  */
