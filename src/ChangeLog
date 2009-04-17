@@ -1,5 +1,8 @@
 2009-04-17  Kenichi Handa  <handa@m17n.org>
 
+	* editfns.c (Ftranslate_region_internal): Use Fconcat to make a
+	string from a vector to handle Latin-1 characters correctly.
+
 	* ftfont.c (ftfont_pattern_entity): Return a newly allocated
 	entity even if the cache hits.
 
