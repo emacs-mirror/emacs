@@ -537,8 +537,8 @@ a list of colors that the current display can handle."
 	 (l list))
     (while (cdr l)
       (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
-	       (not (if (boundp 'w32-default-color-map)
-			(not (assoc (car (car l)) w32-default-color-map)))))
+	       (not (if (fboundp 'w32-default-color-map)
+			(not (assoc (car (car l)) (w32-default-color-map))))))
 	  (progn
 	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
 	    (setcdr l (cdr (cdr l))))
