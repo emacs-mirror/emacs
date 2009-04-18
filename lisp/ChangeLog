@@ -1,3 +1,7 @@
+2009-04-18  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
+
+	* net/rcirc.el (rcirc): Use correct property names (Bug#3037).
+
 2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* thingatpt.el (thing-at-point-bounds-of-list-at-point): New

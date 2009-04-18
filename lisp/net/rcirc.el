@@ -375,16 +375,16 @@ If ARG is non-nil, instead prompt for connection parameters."
 	     (server-plist (cdr (assoc-string server rcirc-server-alist)))
 	     (port (read-string "IRC Port: "
 				(number-to-string
-				 (or (plist-get server-plist 'port)
+				 (or (plist-get server-plist :port)
 				     rcirc-default-port))))
 	     (nick (read-string "IRC Nick: "
-				(or (plist-get server-plist 'nick)
+				(or (plist-get server-plist :nick)
 				    rcirc-default-nick)))
 	     (channels (split-string
 			(read-string "IRC Channels: "
 				     (mapconcat 'identity
 						(plist-get server-plist
-							   'channels)
+							   :channels)
 						" "))
 			"[, ]+" t)))
 	(rcirc-connect server port nick rcirc-default-user-name
