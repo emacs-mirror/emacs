@@ -1,3 +1,8 @@
+2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* thingatpt.el (thing-at-point-bounds-of-list-at-point): New
+	function (Bug#3027).
+
 2009-04-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-decomposition.el: Re-generated.
