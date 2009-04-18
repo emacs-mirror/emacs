@@ -1,5 +1,7 @@
 2009-04-18  Juanma Barranquero  <lekktu@gmail.com>
 
+	* msdog.texi (Windows Fonts): Fix typos.
+
 	* files.texi (Save Commands): Fix pxref.
 
 2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
@@ -52,7 +54,7 @@
 	Mention fortune-file.
 	(Mail Methods): Mention read-mail-command.
 
-2009-03-14  David Reitter <david.reitter@gmail.com>
+2009-03-14  David Reitter  <david.reitter@gmail.com>
 
 	* macos.texi (Mac / GNUstep Basics): Remove references to Prefs panel
 	and NS resources following recent changes.
