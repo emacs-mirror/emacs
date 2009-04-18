@@ -440,8 +440,9 @@ View the buffer that you are currently being asked about.  When you exit
 View mode, you get back to @code{save-some-buffers}, which asks the
 question again.
 @item d
-Diff the buffer against its corresponding file, so you can see
-what changes you would be saving.
+Diff the buffer against its corresponding file, so you can see what
+changes you would be saving.  This calls the command
+@code{diff-buffer-with-file} (@xpref{Comparing Files}).
 @item C-h
 Display a help message about these options.
 @end table
@@ -1275,6 +1276,11 @@ called Diff mode.  @xref{Diff Mode}.
 most recent backup.  If you specify the name of a backup file,
 @code{diff-backup} compares it with the source file that it is a
 backup of.  In all other respects, this behaves like @kbd{M-x diff}.
+
+@findex diff-buffer-with-file
+  The command @kbd{M-x diff-buffer-with-file} compares a specified
+buffer with its corresponding file.  This shows you what changes you
+would make to the file if you save the buffer.
 
 @findex compare-windows
   The command @kbd{M-x compare-windows} compares the text in the

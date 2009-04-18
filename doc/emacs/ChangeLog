@@ -1,3 +1,9 @@
+2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Save Commands): Mention diff-buffer-with-file.
+	(Comparing Files): Document diff-buffer-with-file.  Suggested by Magnus
+	Henoch (Bug#3036).
+
 2009-03-15  Glenn Morris  <rgm@gnu.org>
 
 	* sending.texi (Mail Format): Replace "Sender" with "Message-Id", since
