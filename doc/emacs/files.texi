@@ -442,7 +442,7 @@ question again.
 @item d
 Diff the buffer against its corresponding file, so you can see what
 changes you would be saving.  This calls the command
-@code{diff-buffer-with-file} (@xpref{Comparing Files}).
+@code{diff-buffer-with-file} (@pxref{Comparing Files}).
 @item C-h
 Display a help message about these options.
 @end table

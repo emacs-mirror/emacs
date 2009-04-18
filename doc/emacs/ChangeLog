@@ -1,3 +1,7 @@
+2009-04-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.texi (Save Commands): Fix pxref.
+
 2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Save Commands): Mention diff-buffer-with-file.
