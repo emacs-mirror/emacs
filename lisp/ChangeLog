@@ -1,3 +1,9 @@
+2009-04-18  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>
+
+	* epa-file.el (epa-file-decode-and-insert): Use
+	string-to-multibyte instead of set-buffer-multibyte.
+	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
+
 2009-04-18  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
 
 	* net/rcirc.el (rcirc): Use correct property names (Bug#3037).

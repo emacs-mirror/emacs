@@ -86,14 +86,13 @@
   (if (fboundp 'decode-coding-inserted-region)
       (save-restriction
 	(narrow-to-region (point) (point))
-	(let ((multibyte enable-multibyte-characters))
-	  (set-buffer-multibyte nil)
-	  (insert string)
-	  (set-buffer-multibyte multibyte)
+	(insert (if enable-multibyte-characters
+		    (string-to-multibyte string)
+		  string))
 	  (decode-coding-inserted-region
 	   (point-min) (point-max)
 	   (substring file 0 (string-match epa-file-name-regexp file))
-	   visit beg end replace)))
+	 visit beg end replace))
     (insert (epa-file--decode-coding-string string (or coding-system-for-read
 						       'undecided)))))
 
