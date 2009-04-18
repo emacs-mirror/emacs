@@ -1,3 +1,7 @@
+2009-04-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* font.c (font_put_frame_data): Use xfree instead of free.
+
 2009-04-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c (Qja, Qko): Remove declarations.

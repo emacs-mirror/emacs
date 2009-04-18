@@ -3682,7 +3682,7 @@ font_put_frame_data (f, driver, data)
 	    prev->next = list->next;
 	  else
 	    f->font_data_list = list->next;
-	  free (list);
+	  xfree (list);
 	}
       return 0;
     }
