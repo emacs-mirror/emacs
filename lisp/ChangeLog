@@ -1,7 +1,7 @@
 2009-04-18  Jason Rumney  <jasonr@gnu.org>
 
 	* facemenu.el (list-colors-duplicates): w32-default-color-map is
-	a function.
+	a function (Bug#3044).
 
 2009-04-18  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>
 
