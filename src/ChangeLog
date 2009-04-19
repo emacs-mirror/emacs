@@ -1,3 +1,19 @@
+2009-04-19  Jason Rumney  <jasonr@gnu.org>
+
+	The following changes fix Bug#3005 for wide glyphs on each platform,
+	without	reintroducing Bug#1258 for stretch glyphs.
+
+	* xterm.c (x_draw_bar_cursor): Limit cursor width differently for
+	BAR_CURSOR and HBAR_CURSOR.  Calculate width of HBAR_CURSOR using
+	get_phys_cursor_geometry.
+
+	* w32term.c (x_draw_bar_cursor):  Limit cursor width differently
+	for BAR_CURSOR and HBAR_CURSOR.  Calculate width of HBAR_CURSOR
+	using get_phys_cursor_geometry.
+
+	* nsterm.m (ns_draw_window_cursor): HBAR_CURSOR width already
+	correctly calculated.
+
 2009-04-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy, update_frame_tool_bar): Use

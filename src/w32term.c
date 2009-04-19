@@ -4970,8 +4970,6 @@ x_draw_bar_cursor (w, row, width, kind)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
-  int x;
-  HDC hdc;
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -4993,6 +4991,8 @@ x_draw_bar_cursor (w, row, width, kind)
     {
       COLORREF cursor_color = f->output_data.w32->cursor_pixel;
       struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
+      int x;
+      HDC hdc;
 
       /* If the glyph's background equals the color we normally draw
 	 the bar cursor in, the bar cursor in its normal color is
@@ -5004,29 +5004,36 @@ x_draw_bar_cursor (w, row, width, kind)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
 
-      if (width < 0)
-        width = FRAME_CURSOR_WIDTH (f);
-      width = min (cursor_glyph->pixel_width, width);
-
-      w->phys_cursor_width = width;
-
-
       hdc = get_frame_dc (f);
       w32_clip_to_row (w, row, TEXT_AREA, hdc);
 
       if (kind == BAR_CURSOR)
 	{
+	  if (width < 0)
+	    width = FRAME_CURSOR_WIDTH (f);
+	  width = min (cursor_glyph->pixel_width, width);
+
+	  w->phys_cursor_width = width;
+
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			 width, row->height);
 	}
       else
 	{
+	  int dummy_x, dummy_y, dummy_h;
+
+	  if (width < 0)
+	    width = row->height;
+
+	  width = min (row->height, width);
+
+	  get_phys_cursor_geometry (w, row, cursor_glyph, &dummy_x,
+				    &dummy_y, &dummy_h);
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						  row->height - width),
-			 min (FRAME_COLUMN_WIDTH (f), cursor_glyph->pixel_width),
-			 width);
+			 w->phys_cursor_width, width);
 	}
 
       w32_set_clip_rectangle (hdc, NULL);

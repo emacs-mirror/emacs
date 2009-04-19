@@ -7426,7 +7426,7 @@ x_draw_bar_cursor (w, row, width, kind)
       XGCValues xgcv;
 
       /* If the glyph's background equals the color we normally draw
-	 the bar cursor in, the bar cursor in its normal color is
+	 the bars cursor in, the bar cursor in its normal color is
 	 invisible.  Use the glyph's foreground color instead in this
 	 case, on the assumption that the glyph's colors are chosen so
 	 that the glyph is legible.  */
@@ -7444,25 +7444,39 @@ x_draw_bar_cursor (w, row, width, kind)
 	  FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
 	}
 
-      if (width < 0)
-	width = FRAME_CURSOR_WIDTH (f);
-      width = min (cursor_glyph->pixel_width, width);
-
-      w->phys_cursor_width = width;
       x_clip_to_row (w, row, TEXT_AREA, gc);
 
       if (kind == BAR_CURSOR)
+	{
+	  if (width < 0)
+	    width = FRAME_CURSOR_WIDTH (f);
+	  width = min (cursor_glyph->pixel_width, width);
+
+	  w->phys_cursor_width = width;
+
 	  XFillRectangle (dpy, window, gc,
 			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			  width, row->height);
+	}
       else
+	{
+	  int dummy_x, dummy_y, dummy_h;
+
+	  if (width < 0)
+	    width = row->height;
+
+	  width = min (row->height, width);
+
+	  get_phys_cursor_geometry (w, row, cursor_glyph, &dummy_x,
+				    &dummy_y, &dummy_h);
+
 	  XFillRectangle (dpy, window, gc,
 			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						   row->height - width),
-			  min (FRAME_COLUMN_WIDTH (f), cursor_glyph->pixel_width),
-			  width);
+			  w->phys_cursor_width, width);
+	}
 
       XSetClipMask (dpy, gc, None);
     }
