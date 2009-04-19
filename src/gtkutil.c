@@ -3568,7 +3568,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 
   g_signal_connect (G_OBJECT (wmenuitem),
                     "activate",
-                    GTK_SIGNAL_FUNC (xg_tool_bar_proxy_callback),
+                    G_CALLBACK (xg_tool_bar_proxy_callback),
                     user_data);
 
   g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
@@ -4018,11 +4018,11 @@ update_frame_tool_bar (f)
 
           /* The EMACS_INT cast avoids a warning. */
           g_signal_connect (G_OBJECT (ti), "create-menu-proxy",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_menu_proxy),
+                            G_CALLBACK (xg_tool_bar_menu_proxy),
                             (gpointer) (EMACS_INT) i);
 
           g_signal_connect (G_OBJECT (wbutton), "clicked",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_callback),
+                            G_CALLBACK (xg_tool_bar_callback),
                             (gpointer) (EMACS_INT) i);
 
           gtk_widget_show_all (GTK_WIDGET (ti));
@@ -4044,7 +4044,7 @@ update_frame_tool_bar (f)
              no distinction based on modifiers in the activate callback,
              so we have to do it ourselves.  */
           g_signal_connect (wbutton, "button-release-event",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_button_cb),
+                            G_CALLBACK (xg_tool_bar_button_cb),
                             NULL);
 
           g_object_set_data (G_OBJECT (wbutton), XG_FRAME_DATA, (gpointer)f);
@@ -4217,12 +4217,13 @@ xg_initialize ()
 
   /* Make dialogs close on C-g.  Since file dialog inherits from
      dialog, this works for them also.  */
-  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_DIALOG));
+  binding_set = gtk_binding_set_by_class (g_type_class_ref (GTK_TYPE_DIALOG));
   gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
                                 "close", 0);
 
   /* Make menus close on C-g.  */
-  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_MENU_SHELL));
+  binding_set = gtk_binding_set_by_class (g_type_class_ref
+                                          (GTK_TYPE_MENU_SHELL));
   gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
                                 "cancel", 0);
 }

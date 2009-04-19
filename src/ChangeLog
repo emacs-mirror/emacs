@@ -1,3 +1,10 @@
+2009-04-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy, update_frame_tool_bar): Use
+	G_CALLBACK instead of GTK_SIGNAL_FUNC which is deprecated.
+	(xg_initialize): Use g_type_class_ref instead of gtk_type_class which
+	is deprecated.
+
 2009-04-18  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* font.c (font_put_frame_data): Use xfree instead of free.

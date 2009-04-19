@@ -1573,15 +1573,28 @@ if test "${HAVE_GTK}" = "yes"; then
               [Define to 1 if GTK can handle more than one display.])
   fi
 
-  dnl  Check if we have the old file selection dialog.
-  dnl  If gdk_display_open exists, assume all others are there also.
+  dnl  Check if we have the old file selection dialog declared and
+  dnl  in the link library.  In 2.x it may be in the library,
+  dnl  but not declared if deprecated featured has been selected out.
+  dnl  AC_CHECK_DECL checks for a macro, so check for GTK_TYPE_FILE_SELECTION.
   HAVE_GTK_FILE_SELECTION=no
-  AC_CHECK_FUNCS(gtk_file_selection_new, HAVE_GTK_FILE_SELECTION=yes)
+  AC_CHECK_DECL(GTK_TYPE_FILE_SELECTION, HAVE_GTK_FILE_SELECTION=yes,
+                   HAVE_GTK_FILE_SELECTION=no, [AC_INCLUDES_DEFAULT
+#include <gtk/gtk.h>])
+  if test "$HAVE_GTK_FILE_SELECTION" = yes; then
+    AC_CHECK_FUNCS(gtk_file_selection_new, HAVE_GTK_FILE_SELECTION=yes,
+                   HAVE_GTK_FILE_SELECTION=no)
+  fi
 
   dnl  Check if we have the new file chooser dialog
-  dnl  If gdk_display_open exists, assume all others are there also.
   HAVE_GTK_FILE_CHOOSER=no
-  AC_CHECK_FUNCS(gtk_file_chooser_dialog_new, HAVE_GTK_FILE_CHOOSER=yes)
+  AC_CHECK_DECL(GTK_TYPE_FILE_CHOOSER, HAVE_GTK_FILE_CHOOSER=yes,
+                HAVE_GTK_FILE_CHOOSER=no, [AC_INCLUDES_DEFAULT
+#include <gtk/gtk.h>])
+  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
+    AC_CHECK_FUNCS(gtk_file_chooser_dialog_new, HAVE_GTK_FILE_CHOOSER=yes,
+                   HAVE_GTK_FILE_CHOOSER=no)
+  fi
 
   if test "$HAVE_GTK_FILE_SELECTION" = yes \
      && test "$HAVE_GTK_FILE_CHOOSER" = yes;  then
