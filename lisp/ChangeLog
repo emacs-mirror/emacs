@@ -1,3 +1,8 @@
+2009-04-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el (proced-sort): Declare it buffer-local.
+	(proced-send-signal): Handle non-nil signals.
+
 2009-04-18  Jason Rumney  <jasonr@gnu.org>
 
 	* facemenu.el (list-colors-duplicates): w32-default-color-map is
