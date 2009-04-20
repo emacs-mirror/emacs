@@ -1,3 +1,15 @@
+2009-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Startup Summary): Copyedits.  The init file is not
+	necessarily named .emacs now.  Document initial-buffer-choice and
+	initial-scratch-message.  Note where Emacs exits in batch mode.
+	Document inhibit-splash-screen as an alias.
+	(Init File): Be neutral about which init file name to use.
+
+2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (System Interface): Fix Texinfo usage.
+
 2009-04-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* searching.texi (Regexp Backslash): Also refer to shy groups as
