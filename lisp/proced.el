@@ -317,7 +317,7 @@ of `proced-grammar-alist'."
   :group 'proced
   :type '(choice (symbol :tag "Sort Scheme")
                  (repeat :tag "Key List" (symbol :tag "Key"))))
-(make-variable-buffer-local 'proced-format)
+(make-variable-buffer-local 'proced-sort)
 
 (defcustom proced-descend t
   "Non-nil if proced listing is sorted in descending order."
@@ -1737,59 +1737,59 @@ After sending the signal, this command runs the normal hook
                                          proced-signal-list
                                          nil nil nil nil "TERM")))
               (setq signal (if (string-match "^\\(\\S-+\\)\\s-" tmp)
-                               (match-string 1 tmp) tmp))))))
-      ;; send signal
-      (let ((count 0)
-            failures)
-        ;; Why not always use `signal-process'?  See
-        ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
-        (if (functionp proced-signal-function)
-            ;; use built-in `signal-process'
-            (let ((signal (if (stringp signal)
-                              (if (string-match "\\`[0-9]+\\'" signal)
-                                  (string-to-number signal)
-                                (make-symbol signal))
-                            signal)))   ; number
-              (dolist (process process-alist)
-                (condition-case err
-                    (if (zerop (funcall
-                                proced-signal-function (car process) signal))
-                        (setq count (1+ count))
-                      (proced-log "%s\n" (cdr process))
-                      (push (cdr process) failures))
-                  (error ; catch errors from failed signals
-                   (proced-log "%s\n" err)
-                   (proced-log "%s\n" (cdr process))
-                   (push (cdr process) failures)))))
-          ;; use external system call
-          (let ((signal (concat "-" (if (numberp signal)
-                                        (number-to-string signal) signal))))
+                               (match-string 1 tmp) tmp)))))))
+    ;; send signal
+    (let ((count 0)
+          failures)
+      ;; Why not always use `signal-process'?  See
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
+      (if (functionp proced-signal-function)
+          ;; use built-in `signal-process'
+          (let ((signal (if (stringp signal)
+                            (if (string-match "\\`[0-9]+\\'" signal)
+                                (string-to-number signal)
+                              (make-symbol signal))
+                          signal)))   ; number
             (dolist (process process-alist)
-              (with-temp-buffer
-                (condition-case err
-                    (if (zerop (call-process
-                                proced-signal-function nil t nil
-                                signal (number-to-string (car process))))
-                        (setq count (1+ count))
-                      (proced-log (current-buffer))
-                      (proced-log "%s\n" (cdr process))
-                      (push (cdr process) failures))
-                  (error ; catch errors from failed signals
-                   (proced-log (current-buffer))
-                   (proced-log "%s\n" (cdr process))
-                   (push (cdr process) failures)))))))
-        (if failures
-            ;; Proced error message are not always very precise.
-            ;; Can we issue a useful one-line summary in the
-            ;; message area (using FAILURES) if only one signal failed?
-            (proced-log-summary
-             signal
-             (format "%d of %d signal%s failed"
-                     (length failures) (length process-alist)
-                     (if (= 1 (length process-alist)) "" "s")))
-          (proced-success-message "Sent signal to" count)))
-      ;; final clean-up
-      (run-hooks 'proced-after-send-signal-hook))))
+              (condition-case err
+                  (if (zerop (funcall
+                              proced-signal-function (car process) signal))
+                      (setq count (1+ count))
+                    (proced-log "%s\n" (cdr process))
+                    (push (cdr process) failures))
+                (error ; catch errors from failed signals
+                 (proced-log "%s\n" err)
+                 (proced-log "%s\n" (cdr process))
+                 (push (cdr process) failures)))))
+        ;; use external system call
+        (let ((signal (concat "-" (if (numberp signal)
+                                      (number-to-string signal) signal))))
+          (dolist (process process-alist)
+            (with-temp-buffer
+              (condition-case err
+                  (if (zerop (call-process
+                              proced-signal-function nil t nil
+                              signal (number-to-string (car process))))
+                      (setq count (1+ count))
+                    (proced-log (current-buffer))
+                    (proced-log "%s\n" (cdr process))
+                    (push (cdr process) failures))
+                (error ; catch errors from failed signals
+                 (proced-log (current-buffer))
+                 (proced-log "%s\n" (cdr process))
+                 (push (cdr process) failures)))))))
+      (if failures
+          ;; Proced error message are not always very precise.
+          ;; Can we issue a useful one-line summary in the
+          ;; message area (using FAILURES) if only one signal failed?
+          (proced-log-summary
+           signal
+           (format "%d of %d signal%s failed"
+                   (length failures) (length process-alist)
+                   (if (= 1 (length process-alist)) "" "s")))
+        (proced-success-message "Sent signal to" count)))
+    ;; final clean-up
+    (run-hooks 'proced-after-send-signal-hook)))
 
 ;; similar to `dired-why'
 (defun proced-why ()
