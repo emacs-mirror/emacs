@@ -1,3 +1,8 @@
+2009-04-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (print_help_and_exit): Fix typo and tabify (careful
+	spacing is required in the message output, as the comment suggests).
+
 2009-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.c (print_help_and_exit): Clarify argument placement

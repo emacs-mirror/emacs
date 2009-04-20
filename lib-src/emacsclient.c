@@ -625,19 +625,19 @@ The following OPTIONS are accepted:\n\
 -H, --help    		Print this usage information message\n\
 -nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
-                        use the current Emacs frame\n\
+			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
 -d DISPLAY, --display=DISPLAY\n\
-                        Visit the file in the given display\n"
+			Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s SOCKET, --socket-name=SOCKET\n\
-                        Set filename of the UNIX socket for communication\n"
+			Set filename of the UNIX socket for communication\n"
 #endif
 "-f SERVER, --server-file=SERVER\n\
-                        Set filename of the TCP authentication file\n\
+			Set filename of the TCP authentication file\n\
 -a EDITOR, --alternate-editor=EDITOR\n\
-                        Editor to fallback to if the server is not running.\n"
+			Editor to fallback to if the server is not running\n"
 #ifndef WINDOWSNT
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
