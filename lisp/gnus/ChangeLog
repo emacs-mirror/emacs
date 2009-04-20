@@ -1,3 +1,8 @@
+2009-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rfc2047.el (rfc2047-decode-region): Don't skip past `start', which
+	could happen if the text is only composed of spaces and/or tabs.
+
 2009-03-03  Brian Sniffen  <bts@evenmere.org>  (tiny change)
 
 	* gnus-draft.el (gnus-draft-send): Bind gnus-message-setup-hook to nil

@@ -1045,7 +1045,7 @@ other than `\"' and `\\' in quoted strings."
 		(setq start (point))
 		(setq quoted (eq (char-after) ?\"))
 		(goto-char (point-max))
-		(skip-chars-backward " \t")
+		(skip-chars-backward " \t" start)
 		(if (setq quoted (and quoted
 				      (> (point) (1+ start))
 				      (eq (char-before) ?\")))
