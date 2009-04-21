@@ -3437,8 +3437,7 @@ font_load_for_lface (f, attrs, spec)
 {
   Lisp_Object entity;
 
-  /* We assume that a font that supports 'A' supports ASCII chars.  */
-  entity = font_find_for_lface (f, attrs, spec, 'A');
+  entity = font_find_for_lface (f, attrs, spec, -1);
   if (NILP (entity))
     {
       /* No font is listed for SPEC, but each font-backend may have
