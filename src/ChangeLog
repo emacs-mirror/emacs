@@ -1,6 +1,6 @@
 2009-04-21  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_load_for_lface): Cancel previous change.
+	* font.c (font_load_for_lface): Cancel previous change (bug#2994).
 	(font_score): Check AVGWIDTH too.
 
 	* coding.c (decode_coding_utf_16): Reduce charbuf_end for the
