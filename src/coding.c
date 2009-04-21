@@ -1703,7 +1703,8 @@ decode_coding_utf_16 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
-  int *charbuf_end = coding->charbuf + coding->charbuf_size;
+  /* We may produces at most 3 chars in one loop.  */
+  int *charbuf_end = coding->charbuf + coding->charbuf_size - 2;
   int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
@@ -1749,7 +1750,7 @@ decode_coding_utf_16 (coding)
       src_base = src;
       consumed_chars_base = consumed_chars;
 
-      if (charbuf + 2 >= charbuf_end)
+      if (charbuf >= charbuf_end)
 	{
 	  if (byte_after_cr1 >= 0)
 	    src_base -= 2;
@@ -2442,8 +2443,10 @@ decode_coding_emacs_mule (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce two annocations (charset and composition) in one
+     loop and one more charset annocation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list;
@@ -3558,8 +3561,10 @@ decode_coding_iso_2022 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce two annocations (charset and composition) in one
+     loop and one more charset annocation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
@@ -4758,8 +4763,10 @@ decode_coding_sjis (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
@@ -4875,8 +4882,10 @@ decode_coding_big5 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
@@ -5549,8 +5558,10 @@ decode_coding_charset (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list, valids;
