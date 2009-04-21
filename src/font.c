@@ -2270,6 +2270,9 @@ font_score (entity, spec_prop)
       if (! NILP (spec_prop[FONT_DPI_INDEX])
 	  && ! EQ (spec_prop[FONT_DPI_INDEX], AREF (entity, FONT_DPI_INDEX)))
 	diff |= 1;
+      if (! NILP (spec_prop[FONT_AVGWIDTH_INDEX])
+	  && ! EQ (spec_prop[FONT_AVGWIDTH_INDEX], AREF (entity, FONT_AVGWIDTH_INDEX)))
+	diff |= 1;
       score |= min (diff, 127) << sort_shift_bits[FONT_SIZE_INDEX];
     }
 
