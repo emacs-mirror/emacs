@@ -1575,7 +1575,9 @@ NOPROMPT, if non-nil, means not to prompt the user."
            ;; the user may disagree on what constitutes the hunk
            ;; (e.g. because an empty line truncates the hunk mid-course),
            ;; leading to potentially nasty surprises for the user.
-           (_ (diff-sanity-check-hunk))
+	   ;;
+	   ;; Suppress check when NOPROMPT is non-nil (Bug#3030).
+           (_ (unless noprompt (diff-sanity-check-hunk)))
 	   (hunk (buffer-substring
                   (point) (save-excursion (diff-end-of-hunk) (point))))
 	   (old (diff-hunk-text hunk reverse char-offset))

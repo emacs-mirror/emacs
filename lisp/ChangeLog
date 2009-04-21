@@ -1,3 +1,8 @@
+2009-04-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* diff-mode.el (diff-find-source-location): Don't call
+	diff-sanity-check-hunk when NOPROMPT is non-nil.  (Bug#3030)
+
 2009-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-decomposition.el: Re-generated.
