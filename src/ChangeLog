@@ -1,3 +1,11 @@
+2009-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_16): Reduce charbuf_end for the
+	worst case.
+	(decode_coding_emacs_mule, decode_coding_iso_2022)
+	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
+	Likewise.
+
 2009-04-19  Jason Rumney  <jasonr@gnu.org>
 
 	The following changes fix Bug#3005 for wide glyphs on each platform,
