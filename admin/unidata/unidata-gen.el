@@ -828,8 +828,8 @@ Property value is a character."
 	  (L (+ #x1100 (/ char 588)))
 	  ;; V = VBase + (SIndex % NCount) * TCount
 	  (V (+ #x1161 (/ (% char 588) 28)))
-	  ;; LV = SBase + (SIndex / NCount) * NCount
-	  (LV (+ #xAC00 (* (/ char 588) 588)))
+	  ;; LV = SBase + (SIndex / TCount) * TCount
+	  (LV (+ #xAC00 (* (/ char 28) 28)))
 	  ;; T = TBase + SIndex % TCount
 	  (T (+ #x11A7 (% char 28))))
       (if (= T #x11A7)
