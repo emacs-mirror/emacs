@@ -1,3 +1,7 @@
+2009-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-decomposition.el: Re-generated.
+
 2009-04-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el (proced-sort): Declare it buffer-local.
