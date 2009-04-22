@@ -2,8 +2,8 @@
 
 	* term.c (Ftty_display_color_p, Ftty_display_color_cells)
 	(Ftty_type, Fcontrolling_tty_p, Ftty_no_underline, Fsuspend_tty)
-	(Fresume_tty): Doc fixes, replacing "terminal id" with "terminal
-	object".
+	(Fresume_tty, Vsuspend_tty_functions, Vresume_tty_functions): Doc
+	fixes, replacing "terminal id" with "terminal object".
 
 2009-04-21  Kenichi Handa  <handa@m17n.org>
 
