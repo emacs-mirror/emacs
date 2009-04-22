@@ -12020,8 +12020,8 @@ things to work:
 @item
 To handle @acronym{PGP} and @acronym{PGP/MIME} messages, you have to
 install an OpenPGP implementation such as GnuPG.  The Lisp interface
-to GnuPG included with Gnus is called PGG (@pxref{Top, ,PGG, pgg, PGG
-Manual}), but Mailcrypt and gpg.el are also supported.
+to GnuPG included with Gnus is called EasyPG, but PGG (@pxref{Top,
+,PGG, pgg, PGG Manual}), Mailcrypt, and gpg.el are also supported.
 
 @item
 To handle @acronym{S/MIME} message, you need to install OpenSSL.  OpenSSL 0.9.6
@@ -12048,16 +12048,16 @@ protocols.  Otherwise, ask user.
 @item mml1991-use
 @vindex mml1991-use
 Symbol indicating elisp interface to OpenPGP implementation for
-@acronym{PGP} messages.  The default is @code{pgg}, but
-@code{mailcrypt} and @code{gpg} are also supported although
+@acronym{PGP} messages.  The default is @code{epg}, but @code{pgg},
+@code{mailcrypt}, and @code{gpg} are also supported although
 deprecated.
 
 @item mml2015-use
 @vindex mml2015-use
 Symbol indicating elisp interface to OpenPGP implementation for
-@acronym{PGP/MIME} messages.  The default is @code{pgg}, but
-@code{mailcrypt} and @code{gpg} are also supported although
-deprecated.
+@acronym{PGP/MIME} messages.  The default is @code{epg}, but
+@code{pgg}, @code{mailcrypt}, and @code{gpg} are also supported
+although deprecated.
 
 @end table
 

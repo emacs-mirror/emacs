@@ -1,3 +1,7 @@
+2009-04-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus.texi (Security): Mention that EasyPG is the current default.
+
 2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ediff.texi (Session Commands): Fix typo.
