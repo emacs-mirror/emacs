@@ -64,19 +64,27 @@ certain Lisp files, call certain functions, and so forth.  These
 features exist mainly for advanced users.  @xref{Emacs Invocation}.
 
 @vindex inhibit-startup-screen
-  If the value of the variable @code{inhibit-startup-screen} is
-non-@code{nil}, Emacs does not display the startup screen.  In that
-case, if one or more files were specified on the command line, Emacs
-simply displays those files; otherwise, it displays a buffer named
-@samp{*scratch*}, which can be used to evaluate Emacs Lisp expressions
-interactively (@pxref{Lisp Interaction}).  You can set the variable
-@code{inhibit-startup-screen} by using the Customize facility
+  If the variable @code{inhibit-startup-screen} is non-@code{nil},
+Emacs does not display the startup screen.  In that case, if one or
+more files were specified on the command line, Emacs simply displays
+those files; otherwise, it displays a buffer named @samp{*scratch*},
+which can be used to evaluate Emacs Lisp expressions interactively.
+@xref{Lisp Interaction}.  You can set the variable
+@code{inhibit-startup-screen} using the Customize facility
 (@pxref{Easy Customization}), or by editing your initialization file
 (@pxref{Init File}).@footnote{Note that setting
 @code{inhibit-startup-screen} in @file{site-start.el} doesn't work,
 because the startup screen is set up before reading
 @file{site-start.el}.  @xref{Init File}, for information about
 @file{site-start.el}.}
+
+  You can also force Emacs to display a file or directory at startup
+by setting the variable @code{initial-buffer-choice} to a
+non-@code{nil} value.  (In that case, even if you specify one or more
+files on the command line, Emacs opens but does not display them.)
+The value of @code{initial-buffer-choice} can be either the name of
+the desired file or directory, or @code{t}, which means to display the
+@samp{*scratch*} buffer.
 
 @node Exiting, Basic, Entering Emacs, Top
 @section Exiting Emacs

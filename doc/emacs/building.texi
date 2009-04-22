@@ -1404,6 +1404,13 @@ point, evaluates it, and inserts the value in printed representation
 before point.  The result is a complete typescript of the expressions
 you have evaluated and their values.
 
+@vindex initial-scratch-message
+  At startup, the @samp{*scratch*} buffer contains a short message, in
+the form of a Lisp comment, that explains what it is for.  This
+message is controlled by the variable @code{initial-scratch-message},
+which should be either a string or @code{nil}.  If you set it to the
+empty string, or @code{nil}, the initial message is suppressed.
+
 @findex lisp-interaction-mode
   All other commands in Lisp Interaction mode are the same as in Emacs
 Lisp mode.  You can enable Lisp Interaction mode by typing @kbd{M-x

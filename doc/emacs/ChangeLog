@@ -1,3 +1,9 @@
+2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* entering.texi (Entering Emacs): Document initial-buffer-choice.
+
+	* building.texi (Lisp Interaction): Document initial-scratch-message.
+
 2009-04-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* msdog.texi (Windows Fonts): Fix typos.
