@@ -2097,9 +2097,9 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
        doc: /* Return non-nil if the tty device TERMINAL can display colors.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL does not refer to a text-only terminal.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2115,9 +2115,9 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        Stty_display_color_cells, 0, 1, 0,
        doc: /* Return the number of colors supported by the tty device TERMINAL.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns 0 if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns 0 if
+TERMINAL does not refer to a text-only terminal.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2303,8 +2303,8 @@ DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2322,9 +2322,9 @@ frame's terminal).  */)
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
        doc: /* Return non-nil if TERMINAL is the controlling tty of the Emacs process.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL is not on a tty device.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2343,9 +2343,9 @@ This is used to override the terminfo data, for certain terminals that
 do not really do underlining, but say that they do.  This function has
 no effect if used on a non-tty terminal.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL does not refer to a text-only terminal.  */)
   (terminal)
      Lisp_Object terminal;
 {
@@ -2366,8 +2366,8 @@ access to the tty device.  Frames that use the device are not deleted,
 but input is not read from them and if they change, their display is
 not updated.
 
-TTY may be a terminal id, a frame, or nil for the terminal device of
-the currently selected frame.
+TTY may be a terminal object, a frame, or nil for the terminal device
+of the currently selected frame.
 
 This function runs `suspend-tty-functions' after suspending the
 device.  The functions are run with one arg, the id of the suspended
@@ -2442,8 +2442,8 @@ device.
 `resume-tty' does nothing if it is called on a device that is not
 suspended.
 
-TTY may be a terminal id, a frame, or nil for the terminal device of
-the currently selected frame. */)
+TTY may be a terminal object, a frame, or nil (meaning the selected
+frame's terminal). */)
      (tty)
      Lisp_Object tty;
 {
