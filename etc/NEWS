@@ -282,6 +282,7 @@ display of the initial message in the *scratch* buffer.  If you don't
 want to display the initial message in the *scratch* buffer at startup,
 you can set the option `initial-scratch-message' to nil.
 
++++
 ** New user option `initial-buffer-choice' specifies what to display
 after starting Emacs: startup screen, *scratch* buffer, visiting a
 file or directory.
