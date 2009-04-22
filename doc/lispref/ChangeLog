@@ -1,3 +1,12 @@
+2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Command-Line Arguments): Document
+	command-line-args-left.
+	(Suspending Emacs): Adapt text to multi-tty case.  Document use of
+	terminal objects for tty arguments.
+	(Startup Summary): Add xref to Session Management.
+	(Session Management): Mention emacs-session-restore.  Copyedits.
+
 2009-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Startup Summary): Copyedits.  The init file is not

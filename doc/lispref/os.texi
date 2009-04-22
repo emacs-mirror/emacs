@@ -189,7 +189,7 @@ not done if @code{initial-buffer-choice} or
 @item
 If started by the X session manager, it calls
 @code{emacs-session-restore} passing it as argument the ID of the
-previous session.  @c FIXME: add an xref to the Emacs manual!
+previous session.  @xref{Session Management}.
 @end enumerate
 
 @defopt inhibit-startup-screen
@@ -488,6 +488,11 @@ The value of this variable is the list of command-line arguments passed
 to Emacs.
 @end defvar
 
+@defvar command-line-args-left
+The value of this variable is the list of command-line arguments that
+have not yet been processed.  @code{argv} is an alias for this.
+@end defvar
+
 @defvar command-line-functions
 This variable's value is a list of functions for handling an
 unrecognized command-line argument.  Each time the next argument to be
@@ -582,27 +587,23 @@ how Emacs is killed, put it on @code{kill-emacs-hook}.
 @subsection Suspending Emacs
 @cindex suspending Emacs
 
-  @dfn{Suspending Emacs} means stopping Emacs temporarily and returning
-control to its superior process, which is usually the shell.  This
-allows you to resume editing later in the same Emacs process, with the
-same buffers, the same kill ring, the same undo history, and so on.  To
-resume Emacs, use the appropriate command in the parent shell---most
-likely @code{fg}.
+  On text-only terminals, it is possible to @dfn{suspend Emacs}, which
+means stopping Emacs temporarily and returning control to its superior
+process, which is usually the shell.  This allows you to resume
+editing later in the same Emacs process, with the same buffers, the
+same kill ring, the same undo history, and so on.  To resume Emacs,
+use the appropriate command in the parent shell---most likely
+@code{fg}.
 
 @cindex controlling terminal
   Suspending works only on a terminal device from which the Emacs
 session was started.  We call that device the @dfn{controlling
-terminal} of the session.
+terminal} of the session.  Suspending is not allowed if the
+controlling terminal is a graphical terminal.
 
   Some operating systems do not support suspension of jobs; on these
 systems, ``suspension'' actually creates a new shell temporarily as a
 subprocess of Emacs.  Then you would exit the shell to return to Emacs.
-
-  Suspension is not useful with window systems, because the Emacs job
-may not have a parent that can resume it again, and in any case you can
-give input to some other job such as a shell merely by moving to a
-different window.  Therefore, suspending is not allowed when Emacs is using
-a window system (X, MS Windows).
 
 @defun suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
@@ -612,24 +613,23 @@ returns @code{nil} to its caller in Lisp.
 This function works only on the controlling terminal of the Emacs
 session; to relinquish control of other tty devices, use
 @code{suspend-tty} (see below).  If the Emacs session uses more than
-one terminal device, you will need to delete the frames on all the
-other devices before suspending Emacs, otherwise this function signals
-an error.
+one terminal, you must delete the frames on all the other terminals
+before suspending Emacs, or this function signals an error.
+@xref{Multiple Terminals}.
 
-If @var{string} is non-@code{nil}, its characters are sent to be read
-as terminal input by Emacs's superior shell.  The characters in
+If @var{string} is non-@code{nil}, its characters are sent to Emacs's
+superior shell, to be read as terminal input.  The characters in
 @var{string} are not echoed by the superior shell; only the results
 appear.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
-@code{suspend-hook}.
-
-After the user resumes Emacs, @code{suspend-emacs} runs the normal hook
-@code{suspend-resume-hook}.  @xref{Hooks}.
+@code{suspend-hook}.  After the user resumes Emacs,
+@code{suspend-emacs} runs the normal hook @code{suspend-resume-hook}.
+@xref{Hooks}.
 
 The next redisplay after resumption will redraw the entire screen,
-unless the variable @code{no-redraw-on-reenter} is non-@code{nil}
-(@pxref{Refresh Screen}).
+unless the variable @code{no-redraw-on-reenter} is non-@code{nil}.
+@xref{Refresh Screen}.
 
 In the following example, note that @samp{pwd} is not echoed after
 Emacs is suspended.  But it is read and executed by the shell.
@@ -691,25 +691,26 @@ after a suspension.
 If @var{tty} specifies a terminal device used by Emacs, this function
 relinquishes the device and restores it to its prior state.  Frames
 that used the device continue to exist, but are not updated and Emacs
-doesn't read input from them.  If @var{tty} is a frame, it means that
-frame's terminal; if it is @code{nil}, the function uses the selected
-frame's terminal.  If @var{tty} is already suspended, the function
-does nothing.
+doesn't read input from them.  @var{tty} can be a terminal object, a
+frame (meaning the terminal for that frame), or @code{nil} (meaning
+the terminal for the selected frame).  @xref{Multiple Terminals}.
 
-This function runs the hook @code{suspend-tty-functions} (each
-function gets one argument, the terminal that corresponds to
-@var{tty}).
+If @var{tty} is already suspended, this function does nothing.
+
+This function runs the hook @code{suspend-tty-functions}, passing the
+terminal object as an argument to each function.
 @end defun
 
 @defun resume-tty &optional tty
-Resume the previously suspended terminal device @var{tty}.  If
-@var{tty} is a frame, it means resume that frame's terminal;
-@code{nil} means the selected frame.
+This function resumes the previously suspended terminal device
+@var{tty}; @var{tty} can be a terminal object, a frame (meaning the
+terminal for that frame), or @code{nil} (meaning the terminal for the
+selected frame).
 
 This function reopens the terminal device, re-initializes it, and
 redraws its with that terminal's selected frame.  It then runs the
-hook @code{resume-tty-functions}, passing each function the terminal
-which corresponds to @var{tty}.
+hook @code{resume-tty-functions}, passing the terminal object as an
+argument to each function.
 
 If the same device is already used by another Emacs terminal, this
 function signals an error.
@@ -717,7 +718,9 @@ function signals an error.
 
 @defun controlling-tty-p &optional terminal
 This function returns non-@code{nil} if @var{terminal} is the
-controlling terminal device of the Emacs session.
+controlling terminal of the Emacs session; @code{terminal} can be a
+terminal object, a frame (meaning the terminal for that frame), or
+@code{nil} (meaning the terminal for the selected frame).
 @end defun
 
 @deffn Command suspend-frame
@@ -2131,12 +2134,13 @@ This variable is non-@code{nil} when Emacs is running in batch mode.
 @section Session Management
 @cindex session manager
 
-Emacs supports the X Session Management Protocol for suspension and
-restart of applications.  In the X Window System, a program called the
-@dfn{session manager} has the responsibility to keep track of the
-applications that are running.  During shutdown, the session manager
-asks applications to save their state, and delays the actual shutdown
-until they respond.  An application can also cancel the shutdown.
+Emacs supports the X Session Management Protocol, which is used to
+suspend and restart applications.  In the X Window System, a program
+called the @dfn{session manager} is responsible for keeping track of
+the applications that are running.  When the X server shuts down, the
+session manager asks applications to save their state, and delays the
+actual shutdown until they respond.  An application can also cancel
+the shutdown.
 
 When the session manager restarts a suspended session, it directs
 these applications to individually reload their saved state.  It does
@@ -2145,14 +2149,19 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 @var{session}}.
 
 @defvar emacs-save-session-functions
-Emacs supports saving state by using a hook called
-@code{emacs-save-session-functions}.  Each function in this hook is
-called when the session manager tells Emacs that the window system is
-shutting down.  The functions are called with no arguments and with the
-current buffer set to a temporary buffer.  Each function can use
-@code{insert} to add Lisp code to this buffer.  At the end, Emacs
-saves the buffer in a file that a subsequent Emacs invocation will
-load in order to restart the saved session.
+Emacs supports saving state via a hook called
+@code{emacs-save-session-functions}.  Emacs runs this hook when the
+session manager tells it that the window system is shutting down.  The
+functions are called with no arguments, and with the current buffer
+set to a temporary buffer.  Each function can use @code{insert} to add
+Lisp code to this buffer.  At the end, Emacs saves the buffer in a
+file, called the @dfn{session file}.
+
+@findex emacs-session-restore
+Subsequently, when the session manager restarts Emacs, it loads the
+session file automatically (@pxref{Loading}).  This is performed by a
+function named @code{emacs-session-restore}, which is called during
+startup.  @xref{Startup Summary}.
 
 If a function in @code{emacs-save-session-functions} returns
 non-@code{nil}, Emacs tells the session manager to cancel the
