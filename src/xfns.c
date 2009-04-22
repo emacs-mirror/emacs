@@ -247,7 +247,7 @@ check_x_frame (frame)
 }
 
 /* Let the user specify an X display with a Lisp object.
-   OBJECT may be nil, a frame or a terminal id.
+   OBJECT may be nil, a frame or a terminal object.
    nil stands for the selected frame--or, if that is not an X frame,
    the first X display on the list.  */
 
@@ -268,7 +268,7 @@ check_x_display_info (object)
       else
 	error ("X windows are not in use or not initialized");
     }
-  else if (INTEGERP (object))
+  else if (TERMINALP (object))
     {
       struct terminal *t = get_terminal (object, 1);
 
@@ -3639,7 +3639,7 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        doc: /* Return t if the X display supports shades of gray.
 Note that color displays do support shades of gray.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3668,7 +3668,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
        doc: /* Return the width in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3682,7 +3682,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
        doc: /* Return the height in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3696,7 +3696,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
        doc: /* Return the number of bitplanes of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3710,7 +3710,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
        doc: /* Return the number of color cells of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3735,7 +3735,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        0, 1, 0,
        doc: /* Return the maximum request size of the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3750,7 +3750,7 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 \(Labelling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3769,7 +3769,7 @@ version numbers of the X Protocol in use, and the distributor-specific release
 number.  See also the function `x-server-vendor'.
 
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3785,7 +3785,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        doc: /* Return the number of screens on the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3798,7 +3798,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
        doc: /* Return the height in millimeters of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3811,7 +3811,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
        doc: /* Return the width in millimeters of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3826,7 +3826,7 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
        doc: /* Return an indication of whether X display TERMINAL does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3863,7 +3863,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should a terminal id, a frame or a display name (a string).
+TERMINAL should a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3903,7 +3903,7 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
        doc: /* Return t if the X display TERMINAL supports the save-under feature.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -4174,7 +4174,7 @@ An insecure way to solve the problem may be to use `xhost'.\n",
 DEFUN ("x-close-connection", Fx_close_connection,
        Sx_close_connection, 1, 1, 0,
        doc: /* Close the connection to TERMINAL's X server.
-For TERMINAL, specify a terminal id, a frame or a display name (a
+For TERMINAL, specify a terminal object, a frame or a display name (a
 string).  If TERMINAL is nil, that stands for the selected frame's
 terminal.  */)
      (terminal)
@@ -4210,7 +4210,7 @@ Turning on synchronization prohibits the Xlib routines from buffering
 requests and seriously degrades performance, but makes debugging much
 easier.
 The optional second argument TERMINAL specifies which display to act on.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
      (on, terminal)
     Lisp_Object terminal, on;

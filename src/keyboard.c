@@ -11326,8 +11326,8 @@ specially interpreting the top bit.
 This setting only has an effect on tty terminal devices.
 
 Optional parameter TERMINAL specifies the tty terminal device to use.
-It may be a terminal id, a frame, or nil for the terminal used by the
-currently selected frame.
+It may be a terminal object, a frame, or nil for the terminal used by
+the currently selected frame.
 
 See also `current-input-mode'.  */)
        (meta, terminal)

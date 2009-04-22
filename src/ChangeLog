@@ -1,5 +1,25 @@
 2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* keyboard.c (Fset_input_meta_mode): Doc fix.
+
+	* dispnew.c (Fsend_string_to_terminal): Doc fix.
+
+	* data.c (Fterminal_local_value, Fset_terminal_local_value): Doc
+	fixes.
+
+	* coding.c (Fterminal_coding_system): Doc fix.
+
+	* xfns.c (Fx_display_grayscale_p, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_close_connection, Fx_synchronize): Doc
+	fixes, replacing "terminal id" with "terminal object".
+	(check_x_display_info): Handle terminal objects instead of
+	terminal ids.
+
 	* term.c (Ftty_display_color_p, Ftty_display_color_cells)
 	(Ftty_type, Fcontrolling_tty_p, Ftty_no_underline, Fsuspend_tty)
 	(Fresume_tty, Vsuspend_tty_functions, Vresume_tty_functions): Doc

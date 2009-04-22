@@ -9349,7 +9349,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
 DEFUN ("terminal-coding-system", Fterminal_coding_system,
        Sterminal_coding_system, 0, 1, 0,
        doc: /* Return coding system specified for terminal output on the given terminal.
-TERMINAL may be a terminal id, a frame, or nil for the selected
+TERMINAL may be a terminal object, a frame, or nil for the selected
 frame's terminal device.  */)
      (terminal)
      Lisp_Object terminal;
