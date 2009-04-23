@@ -1904,7 +1904,22 @@ the WIDTH times as wide as FACE on FRAME.  */)
       }
     args[0] = Flist_fonts (font_spec, frame, maximum, font_spec);
     for (tail = args[0]; CONSP (tail); tail = XCDR (tail))
-      XSETCAR (tail, Ffont_xlfd_name (XCAR (tail), Qnil));
+      {
+	Lisp_Object font_entity;
+
+	font_entity = XCAR (tail);
+	if ((NILP (AREF (font_entity, FONT_SIZE_INDEX))
+	     || XINT (AREF (font_entity, FONT_SIZE_INDEX)) == 0)
+	    && ! NILP (AREF (font_spec, FONT_SIZE_INDEX)))
+	  {
+	    /* This is a scalable font.  For backward compatibility,
+	       we set the specified size. */
+	    font_entity = Fcopy_font_spec (font_entity);
+	    ASET (font_entity, FONT_SIZE_INDEX,
+		  AREF (font_spec, FONT_SIZE_INDEX));
+	  }
+	XSETCAR (tail, Ffont_xlfd_name (font_entity, Qnil));
+      }
     if (NILP (frame))
       /* We don't have to check fontsets.  */
       return args[0];
