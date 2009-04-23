@@ -564,9 +564,18 @@ not suitable."
            'face-name-history
 	   (cdr hi-lock-face-defaults))))
 
+(defvar hi-lock--inhibit-font-lock-hook nil
+  "Inhibit the action of `hi-lock-font-lock-hook'.
+This is used by `hi-lock-set-pattern'.")
+
 (defun hi-lock-set-pattern (regexp face)
   "Highlight REGEXP with face FACE."
-  (let ((pattern (list regexp (list 0 (list 'quote face) t))))
+  (let ((pattern (list regexp (list 0 (list 'quote face) t)))
+	;; The call to `font-lock-add-keywords' below might disable
+	;; and re-enable font-lock mode.  If so, we don't want
+	;; `hi-lock-font-lock-hook' to run.  This can be removed once
+	;; Bug#635 is fixed. -- cyd
+	(hi-lock--inhibit-font-lock-hook t))
     (unless (member pattern hi-lock-interactive-patterns)
       (font-lock-add-keywords nil (list pattern) t)
       (push pattern hi-lock-interactive-patterns)
@@ -632,11 +641,12 @@ not suitable."
 
 (defun hi-lock-font-lock-hook ()
   "Add hi-lock patterns to font-lock's."
-  (if font-lock-mode
-      (progn
-	(font-lock-add-keywords nil hi-lock-file-patterns t)
-	(font-lock-add-keywords nil hi-lock-interactive-patterns t))
-    (hi-lock-mode -1)))
+  (unless hi-lock--inhibit-font-lock-hook
+    (if font-lock-mode
+	(progn
+	  (font-lock-add-keywords nil hi-lock-file-patterns t)
+	  (font-lock-add-keywords nil hi-lock-interactive-patterns t))
+      (hi-lock-mode -1))))
 
 (defvar hi-lock-string-serialize-hash
   (make-hash-table :test 'equal)

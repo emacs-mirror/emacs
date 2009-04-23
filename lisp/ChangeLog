@@ -1,3 +1,8 @@
+2009-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock--inhibit-font-lock-hook): New var.
+	(hi-lock-set-pattern, hi-lock-font-lock-hook): Use it (Bug#3068).
+
 2009-04-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* diff-mode.el (diff-find-source-location): Don't call
