@@ -1,3 +1,10 @@
+2009-04-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-directory-files-and-attributes-with-stat)
+	(tramp-handle-file-name-all-completions): Don't use "-b" as ls
+	arg.  It does not work on OpenBSD.  Reported by Taylor Venable
+	<taylor@metasyntax.net>.
+
 2009-04-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock--inhibit-font-lock-hook): New var.
