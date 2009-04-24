@@ -2920,7 +2920,7 @@ value of `default-file-modes'."
    vec
    (format
     (concat
-     "cd %s; echo \"(\"; (%s -ab | xargs "
+     "cd %s; echo \"(\"; (%s -a | xargs "
      "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)'); "
      "echo \")\"")
     (tramp-shell-quote-argument localname)
@@ -2962,7 +2962,7 @@ value of `default-file-modes'."
 	   ;; rock.  --daniel@danann.net
 	   (tramp-send-command
 	    v
-	    (format (concat "%s -ab 2>/dev/null | while read f; do "
+	    (format (concat "%s -a 2>/dev/null | while read f; do "
 			    "if %s -d \"$f\" 2>/dev/null; "
 			    "then echo \"$f/\"; else echo \"$f\"; fi; done")
 		    (tramp-get-ls-command v)
@@ -7763,6 +7763,10 @@ Only works for Bourne-like shells."
 ;;   encoding routine.
 ;; * It makes me wonder if tramp couldn't fall back to ssh when scp
 ;;   isn't on the remote host. (Mark A. Hershberger)
+;; * To improve the behavior in case of things like "git status", it
+;;   might be worthwhile to add some way to indicate that a particular
+;;   use of process-file is (supposed to be) free of side-effects.
+;;   (Stefan Monnier)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
