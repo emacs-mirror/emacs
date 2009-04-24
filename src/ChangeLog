@@ -44,13 +44,13 @@
 2009-04-19  Jason Rumney  <jasonr@gnu.org>
 
 	The following changes fix Bug#3005 for wide glyphs on each platform,
-	without	reintroducing Bug#1258 for stretch glyphs.
+	without reintroducing Bug#1258 for stretch glyphs.
 
 	* xterm.c (x_draw_bar_cursor): Limit cursor width differently for
 	BAR_CURSOR and HBAR_CURSOR.  Calculate width of HBAR_CURSOR using
 	get_phys_cursor_geometry.
 
-	* w32term.c (x_draw_bar_cursor):  Limit cursor width differently
+	* w32term.c (x_draw_bar_cursor): Limit cursor width differently
 	for BAR_CURSOR and HBAR_CURSOR.  Calculate width of HBAR_CURSOR
 	using get_phys_cursor_geometry.
 
@@ -1256,7 +1256,7 @@
 	(ns_get_color): Use unsigned long long for scanned hex string value.
 	(ns_term_shutdown): Abort on non SIGTERM signals.
 	(EmacsPrefsController-setDefaultFont:,-setColors:): Raise the frame.
-	(EmacsPrefsController-setPanelFromDefaultValues) New function.
+	(EmacsPrefsController-setPanelFromDefaultValues): New function.
 	(EmacsPrefsController-resetToDefaults:): Use it.  (Bug#1801)
 	(ns_font_to_xlfd, ns_fontname_to_xlfd): Remove, unused.
 	(ns_defined_color): Fix settings of the XColor variable fields:
@@ -2723,7 +2723,7 @@
 
 	* image.c (x_clear_image_1): Under NS, call ns_free_indexed_color with
 	correct arguments.
-	* menu.c (find_and_return_menu_selection) Add cast.
+	* menu.c (find_and_return_menu_selection): Add cast.
 
 2008-10-03  Glenn Morris  <rgm@gnu.org>
 
@@ -6069,7 +6069,7 @@
 	New functions.
 	* w32.c (_sys_read_ahead, sys_read, sys_write): Modify to handle
 	serial ports.
-	(serial_open, serial_configure) New functions.
+	(serial_open, serial_configure): New functions.
 	* w32.h: Add FILE_SERIAL.
 	(struct _child_process): Add ovl_read, ovl_write.
 
