@@ -117,7 +117,7 @@
 2009-04-13  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (frame-set-background-mode): Window system frames
-	default to light. Use default in cases where specified color
+	default to light.  Use default in cases where specified color
 	does not exist (Bug#2969).
 
 2009-04-13  Kenichi Handa  <handa@m17n.org>
@@ -201,7 +201,7 @@
 2009-04-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler-alist): Add `vc-registered'.
-	(tramp-handle-vc-registered ): New defun.  (Bug#1741)
+	(tramp-handle-vc-registered): New defun.  (Bug#1741)
 
 	* net/tramp-cache.el (tramp-flush-directory-property): Use the
 	localname of KEY for check.
@@ -286,7 +286,7 @@
 	`ange-ftp-set-file-modes' (Bug#2865).
 	(ange-ftp-call-chmod): Add error handling.
 
-	* net/tramp.el (tramp-default-file-modes) New defun.  Replace all
+	* net/tramp.el (tramp-default-file-modes): New defun.  Replace all
 	calls of `file-modes' by this (Bug#2869).
 	(tramp-handle-find-backup-file-name): Use `symbol-value' instead
 	of `boundp'.
@@ -1006,7 +1006,7 @@
 
 2009-02-26  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-remote-coding-commands): Add "base64". (Bug#2463)
+	* net/tramp.el (tramp-remote-coding-commands): Add "base64".  (Bug#2463)
 
 2009-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1347,7 +1347,7 @@
 2009-02-17  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (make-directory): Stop recursing if parent is
-	self. (Bug#2309)
+	self.  (Bug#2309)
 
 2009-02-17  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1448,8 +1448,8 @@
 
 2009-02-14  Ian Eure  <ian@digg.com>  (tiny change)
 
-	* progmodes/sql.el (sql-product-alist, sql-connect-sqlite):
-	Remove host, user, password options not applicable to SQlite. (Bug#1904)
+	* progmodes/sql.el (sql-product-alist, sql-connect-sqlite): Remove host,
+	user, password options not applicable to SQlite.  (Bug#1904)
 
 2009-02-14  Richard M Stallman  <rms@gnu.org>
 
@@ -1872,7 +1872,7 @@
 2009-02-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-svn.el (vc-svn-diff): Revert previous change but add a test
-	for newvars is nil. (C-u C-x v = with default values).
+	for newvars is nil.  (C-u C-x v = with default values).
 
 2009-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -2375,7 +2375,7 @@
 	variable to allow the user to choose icalendar UID format.
 	(icalendar--diarytime-to-isotime): Bug fix, now times in the range
 	12:00am-12:59am are correctly converted to 0000-0059, instead of 12pm.
-	(icalendar-export-region,icalendar--create-uid): Use custom
+	(icalendar-export-region, icalendar--create-uid): Use custom
 	function to compute icalendar UID for each entry.
 	(icalendar--parse-summary-and-rest): Bug fix for parsing of lines
 	with description, location, etc. fields (need to keep active count
