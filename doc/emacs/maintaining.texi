@@ -1480,23 +1480,27 @@ Of course, you should substitute the proper years and copyright holder.
 @section Tags Tables
 @cindex tags and tag tables
 
-  A @dfn{tags table} is a description of how a multi-file program is
-broken up into files.  It lists the names of the component files and the
-names and positions of the functions (or other named subunits) in each
-file.  Grouping the related files makes it possible to search or replace
-through all the files with one command.  Recording the function names
-and positions makes possible the @kbd{M-.} command which finds the
-definition of a function by looking up which of the files it is in.
+  A @dfn{tags table} is a description of how program's sources are
+broken up into individual source files.  It lists the names of the
+component files and the names and positions of the functions (or other
+named subunits) in each file.  Commands that search or replace through
+multiple files use the list of source files to know which files to
+search.  Commands such as @kbd{M-.}, which finds the definition of a
+function, uses the recorded information about the function names and
+positions to find the source file and the position within that file
+where the function is defined.
 
   Tags tables are stored in files called @dfn{tags table files}.  The
 conventional name for a tags table file is @file{TAGS}.
 
-  Each entry in the tags table records the name of one tag, the name of the
-file that the tag is defined in (implicitly), and the position in that
-file of the tag's definition.  When a file parsed by @code{etags} is
-generated from a different source file, like a C file generated from a
-Cweb source file, the tags of the parsed file reference the source
-file.
+  Each entry in the tags table records the name of a tag, the name of
+the file that the tag is defined in (implicitly), and the position in
+that file of the tag's definition.  If the file is a generated file,
+the tags for the generated file reference the originating source file.
+Examples of generated files include C files generated from Cweb source
+files or from a Yacc parser or Lex scanner definitions, @file{.i}
+preprocessed C files, and Fortran files produced by preprocessing
+@file{.fpp} source files.
 
   Just what names from the described files are recorded in the tags table
 depends on the programming language of the described file.  They
