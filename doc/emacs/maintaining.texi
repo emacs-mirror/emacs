@@ -1496,11 +1496,10 @@ conventional name for a tags table file is @file{TAGS}.
   Each entry in the tags table records the name of a tag, the name of
 the file that the tag is defined in (implicitly), and the position in
 that file of the tag's definition.  If the file is a generated file,
-the tags for the generated file reference the originating source file.
-Examples of generated files include C files generated from Cweb source
-files or from a Yacc parser or Lex scanner definitions, @file{.i}
-preprocessed C files, and Fortran files produced by preprocessing
-@file{.fpp} source files.
+its tags reference the originating source file.  Examples of generated
+files include C files generated from Cweb source files or from a Yacc
+parser or Lex scanner definitions, @file{.i} preprocessed C files, and
+Fortran files produced by preprocessing @file{.fpp} source files.
 
   Just what names from the described files are recorded in the tags table
 depends on the programming language of the described file.  They
