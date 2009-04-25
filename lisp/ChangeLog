@@ -1,3 +1,9 @@
+2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (normal-top-level): Implement a work-around to handle
+	changes to face-font-rescale-alist during
+	initialization (Bug#1785).
+
 2009-04-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-directory-files-and-attributes-with-stat)

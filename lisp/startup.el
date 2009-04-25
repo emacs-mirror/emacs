@@ -499,7 +499,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		     (delete (concat "PWD=" pwd)
 			     process-environment)))))
     (setq default-directory (abbreviate-file-name default-directory))
-    (let ((menubar-bindings-done nil))
+    (let ((menubar-bindings-done nil)
+	  (old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
 	;; Do this again, in case .emacs defined more abbreviations.
@@ -540,6 +541,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		  (not (and initial-window-system
 			    (not noninteractive)
 			    (not (eq initial-window-system 'pc)))))
+
+	  ;; FIXME: The user's init file may change
+	  ;; face-font-rescale-alist.  However, the default face
+	  ;; already has an assigned font object, which does not take
+	  ;; face-font-rescale-alist into account.  For such
+	  ;; situations, we ought to have a way to find all font
+	  ;; objects and regenerate them; currently we do not.  As a
+	  ;; workaround, we specifically reset te default face's :font
+	  ;; attribute here.  See bug#1785.
+	  (unless (eq face-font-rescale-alist
+		      old-face-font-rescale-alist)
+	    (set-face-attribute 'default nil :font (font-spec)))
+
 	  ;; Modify the initial frame based on what .emacs puts into
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
