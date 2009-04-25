@@ -114,7 +114,6 @@ static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE *));
 static int w32font_full_name P_ ((LOGFONT *, Lisp_Object, int, char *, int));
 static void compute_metrics P_ ((HDC, struct w32font_info *, unsigned int,
 				 struct w32_metric_cache *));
-static void clear_cached_metrics P_ ((struct w32font_info *));
 
 static Lisp_Object w32_registry P_ ((LONG, DWORD));
 
@@ -2388,19 +2387,6 @@ compute_metrics (dc, w32_font, code, metrics)
     }
   else
     metrics->status = W32METRIC_FAIL;
-}
-
-static void
-clear_cached_metrics (w32_font)
-     struct w32font_info *w32_font;
-{
-  int i;
-  for (i = 0; i < w32_font->n_cache_blocks; i++)
-    {
-      if (w32_font->cached_metrics[i])
-        bzero (w32_font->cached_metrics[i],
-               CACHE_BLOCKSIZE * sizeof (struct font_metrics));
-    }
 }
 
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,

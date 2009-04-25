@@ -1,3 +1,7 @@
+2009-04-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (clear_cached_metrics): Remove, unused since 2008-08-02.
+
 2009-04-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* fringe.c (init_fringe_bitmap) [HAVE_X_WINDOWS && WORDS_BIG_ENDIAN]:
