@@ -1,3 +1,8 @@
+2009-04-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (init_fringe_bitmap) [HAVE_X_WINDOWS && WORDS_BIG_ENDIAN]:
+	Swap bytes in short integer if fringe bitmap width > 8.
+
 2009-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fx_list_fonts): If a font size is specified in
