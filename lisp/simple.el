@@ -4056,24 +4056,31 @@ into account variable-width characters and line continuation."
 ;; Arg says how many lines to move.  The value is t if we can move the
 ;; specified number of lines.
 (defun line-move-visual (arg &optional noerror)
-  (unless (and (floatp temporary-goal-column)
-	       (or (memq last-command '(next-line previous-line))
-		   ;; In case we're called from some other command.
-		   (eq last-command this-command)))
-    (let ((posn (posn-at-point))
-	  x)
+  (let ((posn (posn-at-point))
+	(opoint (point))
+	x)
+    ;; Reset temporary-goal-column, unless the previous command was a
+    ;; line-motion command or we were called from some other command.
+    (unless (and (floatp temporary-goal-column)
+		 (memq last-command `(next-line previous-line ,this-command)))
       (cond ((eq (nth 1 posn) 'right-fringe) ; overflow-newline-into-fringe
 	     (setq temporary-goal-column (- (window-width) 1)))
-	    ((setq x (car (nth 2 posn)))
-	     (setq temporary-goal-column (/ (float x) (frame-char-width)))))))
-  (or (= (vertical-motion
-	  (cons (or goal-column (truncate temporary-goal-column)) arg))
-	 arg)
-      (unless noerror
-	(signal (if (< arg 0)
-		    'beginning-of-buffer
-		  'end-of-buffer)
-		nil))))
+	    ((setq x (car (posn-x-y posn)))
+	     (setq temporary-goal-column (/ (float x) (frame-char-width))))))
+    ;; Move using `vertical-motion'.
+    (or (and (= (vertical-motion
+		 (cons (or goal-column (truncate temporary-goal-column)) arg))
+		arg)
+	     (or (>= arg 0)
+		 (/= (point) opoint)
+		 ;; If the goal column lies on a display string,
+		 ;; `vertical-motion' advances the cursor to the end
+		 ;; of the string.  For arg < 0, this can cause the
+		 ;; cursor to get stuck.  (Bug#3020).
+		 (= (vertical-motion arg) arg)))
+	(unless noerror
+	  (signal (if (< arg 0) 'beginning-of-buffer 'end-of-buffer)
+		  nil)))))
 
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.

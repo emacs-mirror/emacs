@@ -1,5 +1,9 @@
 2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (line-move-visual): If point is stuck moving backwards
+	against a display string, temporarily ignore the goal
+	column (Bug#3020).
+
 	* startup.el (normal-top-level): Implement a work-around to handle
 	changes to face-font-rescale-alist during
 	initialization (Bug#1785).
