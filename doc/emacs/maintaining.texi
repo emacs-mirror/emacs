@@ -1480,32 +1480,34 @@ Of course, you should substitute the proper years and copyright holder.
 @section Tags Tables
 @cindex tags and tag tables
 
-  A @dfn{tags table} is a description of how program's sources are
-broken up into individual source files.  It lists the names of the
-component files and the names and positions of the functions (or other
-named subunits) in each file.  Commands that search or replace through
-multiple files use the list of source files to know which files to
-search.  Commands such as @kbd{M-.}, which finds the definition of a
-function, uses the recorded information about the function names and
-positions to find the source file and the position within that file
-where the function is defined.
+  A @dfn{tag} is a named subunit of a program or of a document.  In
+program source code, tags are syntactic elements of the program:
+functions, subroutines, data types, macros, etc.  In a document, tags
+are chapters, sections, appendices, etc.
 
-  Tags tables are stored in files called @dfn{tags table files}.  The
-conventional name for a tags table file is @file{TAGS}.
+  A @dfn{tags table} records the names of the tags extracted from the
+source code of a certain program or from a certain document.  Each tag
+is listed together with the file name on which it is defined, and the
+position of the tag in that file.  Tags extracted from generated files
+reference the original file from which they were generated, rather
+than the file from which these tags were extracted.  Examples of
+generated files include C files generated from Cweb source files, from
+a Yacc parser, or from Lex scanner definitions; @file{.i} preprocessed
+C files; and Fortran files produced by preprocessing @file{.fpp}
+source files.
 
-  Each entry in the tags table records the name of a tag, the name of
-the file that the tag is defined in (implicitly), and the position in
-that file of the tag's definition.  If the file is a generated file,
-its tags reference the originating source file.  Examples of generated
-files include C files generated from Cweb source files or from a Yacc
-parser or Lex scanner definitions, @file{.i} preprocessed C files, and
-Fortran files produced by preprocessing @file{.fpp} source files.
+  Tags tables are produced by scanning a document or the source code
+of a program with a special program called @samp{etags}, and stored in
+files called @dfn{tags table files}.  The conventional name for a tags
+table file is @file{TAGS}.
 
-  Just what names from the described files are recorded in the tags table
-depends on the programming language of the described file.  They
-normally include all file names, functions and subroutines, and may
-also include global variables, data types, and anything else
-convenient.  Each name recorded is called a @dfn{tag}.
+  Emacs uses the information recorded in tags tables in commands that
+search or replace through multiple files: these commands use the names
+of the source files recorded in the tags table to know which files to
+search.  Other commands, such as @kbd{M-.}, which finds the definition
+of a function, use the recorded information about the function names
+and positions to find the source file and the position within that
+file where the function is defined.
 
 @cindex C++ class browser, tags
 @cindex tags, C++
