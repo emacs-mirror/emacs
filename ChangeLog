@@ -1,3 +1,9 @@
+2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate.
+
+	* configure.in: Disable use of FreeType without libXft.
+
 2009-04-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GTK_FILE_SELECTION, HAVE_GTK_FILE_CHOOSER): Check 

@@ -133,7 +133,6 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 
-OPTION_DEFAULT_ON([freetype],[don't use Freetype for local font support])
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
 OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
@@ -1270,7 +1269,6 @@ fi
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
-  with_freetype=no
   # set up packaging dirs
   exec_prefix=${ns_appbindir}
   libexecdir=${ns_appbindir}/libexec
@@ -1844,11 +1842,10 @@ fi
 ### Start of font-backend (under X11) section.
 if test "${HAVE_X11}" = "yes"; then
    PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= 2.2.0, HAVE_FC=yes, HAVE_FC=no)
-   test "${HAVE_FC}" = "no" && with_freetype=no
 
-## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+   ## Use -lXft if available, unless `--with-xft=no'.
    HAVE_XFT=maybe
-    if test "x${with_freetype}" = "xno" || test "x${with_x}" = "xno"; then
+    if test "${HAVE_FC}" = "no" || test "x${with_x}" = "xno"; then
       with_xft="no";
     fi
     if test "x${with_xft}" != "xno"; then
@@ -1890,9 +1887,6 @@ if test "${HAVE_X11}" = "yes"; then
       HAVE_FREETYPE=yes
       FONTCONFIG_CFLAGS=
       FONTCONFIG_LIBS=
-    elif test "x${with_freetype}" != "xno" && test "x${with_x}" != "xno"; then
-
-      PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
     fi
 
     HAVE_LIBOTF=no
