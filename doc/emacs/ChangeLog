@@ -1,3 +1,7 @@
+2009-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* maintaining.texi (Tags): Clarify text.  (Bug#3101)
+
 2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* entering.texi (Entering Emacs): Document initial-buffer-choice.
