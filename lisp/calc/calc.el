@@ -1335,6 +1335,7 @@ Notations:  3.14e6     3.14 * 10^6
   (calc-refresh t)
   (calc-set-mode-line)
   (calc-check-defines)
+  (if calc-buffer-list (setq calc-stack (copy-list calc-stack)))
   (add-to-list 'calc-buffer-list (current-buffer) t))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
@@ -1657,7 +1658,9 @@ See calc-keypad for details."
 	   (figs (nth 1 calc-float-format))
 	   (new-mode-string
 	    (format "Calc%s%s: %d %s %-14s"
-		    (if calc-embedded-info "Embed" "")
+		    (if (and calc-embedded-info
+                             (eq (aref calc-embedded-info 1) (current-buffer)))
+                        "Embed" "")
 		    (if (and (> (length (buffer-name)) 12)
 			     (equal (substring (buffer-name) 0 12)
 				    "*Calculator*"))
