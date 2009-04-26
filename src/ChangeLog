@@ -1,3 +1,7 @@
+2009-04-26  Johan Bockgård  <bojohan@gnu.org>
+
+	* keyboard.c (syms_of_keyboard) <input-decode-map>: Doc fix.
+
 2009-04-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (clear_cached_metrics): Remove, unused since 2008-08-02.
