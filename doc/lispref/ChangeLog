@@ -1,3 +1,12 @@
+2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tips.texi (Coding Conventions): Copyedits.  Add xref to Named
+	Features and Coding System Basics.  Node that "p" stands for
+	"predicate".  Recommend utf-8-emacs instead of emacs-mule.
+	(Key Binding Conventions): Emacs does use S-down-mouse-1, for
+	mouse-appearance-menu.
+	(Programming Tips): Add xref to Progress.
+
 2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Command-Line Arguments): Document
