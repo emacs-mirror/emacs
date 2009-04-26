@@ -1484,22 +1484,22 @@ Of course, you should substitute the proper years and copyright holder.
 document.  In program source code, tags reference syntactic elements
 of the program: functions, subroutines, data types, macros, etc.  In a
 document, tags reference chapters, sections, appendices, etc.  Each
-tag specifies the file name on which the corresponding subunit is
+tag specifies the name of the file where the corresponding subunit is
 defined, and the position of the subunit's definition in that file.
 
   A @dfn{tags table} records the tags extracted by scanning the source
 code of a certain program or a certain document.  Tags extracted from
-generated files reference subunits in the original files, rather than
-the generated files that were scanned during tag extraction.  Examples
-of generated files include C files generated from Cweb source files,
-from a Yacc parser, or from Lex scanner definitions; @file{.i}
-preprocessed C files; and Fortran files produced by preprocessing
-@file{.fpp} source files.
+generated files reference the original files, rather than the
+generated files that were scanned during tag extraction.  Examples of
+generated files include C files generated from Cweb source files, from
+a Yacc parser, or from Lex scanner definitions; @file{.i} preprocessed
+C files; and Fortran files produced by preprocessing @file{.fpp}
+source files.
 
-  To produce tags tables, you use the @samp{etags} command, submitting
-it a document or the source code of a program.  @samp{etags} writes
-the tags to files called @dfn{tags table files}, or @dfn{tags file} in
-short.  The conventional name for a tags file is @file{TAGS}.
+  To produce a tags table, you use the @samp{etags} command,
+submitting it a document or the source code of a program.
+@samp{etags} writes the tags to a @dfn{tags table file}, or @dfn{tags
+file} in short.  The conventional name for a tags file is @file{TAGS}.
 
   Emacs uses the information recorded in tags tables in commands that
 search or replace through multiple source files: these commands use
