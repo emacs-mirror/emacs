@@ -1,3 +1,9 @@
+2009-04-26  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-set-mode-line): Check to make sure that the
+	correct Calc buffer gets "Embed" in the mode line.
+	(calc-mode): Copy stack list for additional Calc buffers.
+
 2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-visual): If point is stuck moving backwards
