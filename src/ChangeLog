@@ -1,3 +1,7 @@
+2009-04-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sysdep.c: Include <ctype.h>.
+
 2009-04-27  David Reitter  <david.reitter@gmail.com>
 
 	* nsfont.m (nsfont_open): remove unused variable shrink.
