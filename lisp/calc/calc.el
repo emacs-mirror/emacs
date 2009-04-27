@@ -1335,7 +1335,7 @@ Notations:  3.14e6     3.14 * 10^6
   (calc-refresh t)
   (calc-set-mode-line)
   (calc-check-defines)
-  (if calc-buffer-list (setq calc-stack (copy-list calc-stack)))
+  (if calc-buffer-list (setq calc-stack (copy-sequence calc-stack)))
   (add-to-list 'calc-buffer-list (current-buffer) t))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
