@@ -1,3 +1,7 @@
+2009-04-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-mode): Replace `copy-list' with `copy-sequence'.
+
 2009-04-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-set-mode-line): Check to make sure that the
