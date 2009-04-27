@@ -1,3 +1,8 @@
+2009-04-27  David Reitter  <david.reitter@gmail.com>
+
+	* nsfont.m (nsfont_open): remove unused variable shrink.
+	Remove commented-out code.
+
 2009-04-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* keyboard.c (syms_of_keyboard) <input-decode-map>: Doc fix.
