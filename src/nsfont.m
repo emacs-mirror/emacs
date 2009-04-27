@@ -630,7 +630,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font->props[FONT_FILE_INDEX] = Qnil;
 
   {
-    double expand, shrink, hshrink;
+    double expand, hshrink;
     float full_height, min_height, hd;
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
@@ -660,20 +660,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     hd = full_height - min_height;
 
     /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
-    expand = 0.0; 
-    shrink = 1.0;
+    expand = 0.0;
     hshrink = 1.0;
-
-    /*
-    if (expand < 0.0)
-      {
-        shrink = 1 + expand;
-        hshrink = 1 + expand / 2.0;
-        expand = 0.0;
-      }
-    else
-      shrink = hshrink = 1.0;
-    */
 
     font_info->underpos = 2; /*[sfont underlinePosition] is often clipped out */
     font_info->underwidth = [sfont underlineThickness];
@@ -691,7 +679,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     font_info->max_bounds.lbearing = lrint (brect.origin.x);
     font_info->max_bounds.rbearing =
       lrint (brect.size.width - font_info->width);
-      /*font_info->width + (font_info->ital ? 0.2 * font_info->height : 0); */
 
 #ifdef NS_IMPL_COCOA
     /* set up synthItal and the CG font */
