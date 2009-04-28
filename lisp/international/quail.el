@@ -1091,7 +1091,10 @@ to the current translations for KEY instead of replacing them."
 
 (defun quail-vunion (v1 v2)
   (apply 'vector
-         (nreverse (delete-dups (nconc (append v1 ()) (append v2 ()))))))
+         ;; No idea why this was here, but it seems to cause the
+         ;; incorrect ordering, according to Nils Anders Danielsson.
+         ;; (nreverse
+         (delete-dups (nconc (append v1 ()) (append v2 ()))))) ;; )
 
 ;;;###autoload
 (defun quail-defrule-internal (key trans map &optional append decode-map props)

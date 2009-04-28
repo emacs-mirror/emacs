@@ -1,3 +1,7 @@
+2009-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-vunion): Remove unexplained nreverse.
+
 2009-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-tooltip-print): Avoid "Non-X frame used"
@@ -61,8 +65,8 @@
 
 2009-04-18  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>
 
-	* epa-file.el (epa-file-decode-and-insert): Use
-	string-to-multibyte instead of set-buffer-multibyte.
+	* epa-file.el (epa-file-decode-and-insert):
+	Use string-to-multibyte instead of set-buffer-multibyte.
 	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=15259>
 
 2009-04-18  Yann Hodique  <yann.hodique@gmail.com>  (tiny change)
@@ -71,8 +75,8 @@
 
 2009-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* thingatpt.el (thing-at-point-bounds-of-list-at-point): New
-	function (Bug#3027).
+	* thingatpt.el (thing-at-point-bounds-of-list-at-point):
+	New function (Bug#3027).
 
 2009-04-17  Kenichi Handa  <handa@m17n.org>
 
@@ -82,8 +86,8 @@
 
 	* textmodes/flyspell.el (flyspell-correct-word-before-point):
 	Don't create markers.
-	(tex-mode-flyspell-verify): Don't create markers.  Use
-	line-end-position.
+	(tex-mode-flyspell-verify): Don't create markers.
+	Use line-end-position.
 	(sgml-mode-flyspell-verify): Don't create markers.  Simplify code
 	using looking-at and looking-back.
 
@@ -119,9 +123,8 @@
 
 2009-04-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-svn.el (vc-svn-after-dir-status): Fix regexp to allow for
-	file names with leading spaces.  Ignore "." if it appears as a
-	filename.
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp to allow for file
+	names with leading spaces.  Ignore "." if it appears as a filename.
 
 2009-04-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -149,7 +152,7 @@
 	* minibuffer.el (completion--try-word-completion): Don't disable
 	`partial-completion' any more.  Mark the added char instead.
 	(completion-pcm--string->pattern): Notice chars added by
-	completion--try-word-completion and treat them specially.
+	completion--try-word-completion and treat them specially. (bug#2957)
 
 2009-04-13  Jason Rumney  <jasonr@gnu.org>
 
