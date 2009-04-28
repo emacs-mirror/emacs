@@ -829,12 +829,11 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
   (locate-file command exec-path exec-suffixes 1))
 
 (defun load-library (library)
-  "Load the library named LIBRARY.
-
-LIBRARY should be a relative file name of the library, a string.
-It can omit the suffix (a.k.a. file-name extension).
-
-This is an interface to the function `load'."
+  "Load the Emacs Lisp library named LIBRARY.
+This is one of two interfaces (the other being `load-file') to the underlying
+function `load'.  The library actually loaded is searched for in `load-path'
+with or without the `load-suffixes' (as well as `load-file-rep-suffixes').
+See Info node `(emacs)Lisp Libraries' for more details."
   (interactive
    (list (completing-read "Load library: "
 			  (apply-partially 'locate-file-completion-table
