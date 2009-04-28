@@ -310,11 +310,8 @@ If no function name is found, return nil."
                                (setq minoffset offset
                                      name (funcall
                                            which-func-imenu-joiner-function
-                                           (reverse (cons (car pair) namestack)))))
-                         ;; Entries in order, so can skip all those after point.
-                         (setq alist nil
-                               imstack nil)))))
-
+					   (reverse (cons (car pair)
+							  namestack)))))))))
             (setq alist     (car imstack)
                   namestack (cdr namestack)
                   imstack   (cdr imstack))))))

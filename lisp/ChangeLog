@@ -1,3 +1,9 @@
+2009-04-28  Geert Kloosterman  <g.j.kloosterman@gmail.com>  (tiny change)
+
+	* progmodes/which-func.el (which-function): Don't assume that
+	entries from `imenu--index-alist' are ordered by buffer position,
+	which fails when submenus are present (Bug#3153).
+
 2009-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/quail.el (quail-vunion): Remove unexplained nreverse.
