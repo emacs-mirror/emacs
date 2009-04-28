@@ -1,3 +1,8 @@
+2009-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print): Avoid "Non-X frame used"
+	error with gud-tooltip-mode in the Linux console.
+
 2009-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tooltip.el (tooltip-show-help): Fall back on
