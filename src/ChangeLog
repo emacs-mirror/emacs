@@ -1,3 +1,10 @@
+2009-04-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fns.c (Flocale_info): Protect vector from GC during decoding.
+
+	* process.c (Fstart_process): Protect argv strings from GC during
+	encoding.
+
 2009-04-27  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* sysdep.c: Include <ctype.h>.

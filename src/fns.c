@@ -3135,8 +3135,10 @@ The data read from the system are decoded using `locale-coding-system'.  */)
   else if (EQ (item, Qdays))	/* e.g. for calendar-day-name-array */
     {
       Lisp_Object v = Fmake_vector (make_number (7), Qnil);
-      int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
+      const int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
       int i;
+      struct gcpro gcpro1;
+      GCPRO1 (v);
       synchronize_system_time_locale ();
       for (i = 0; i < 7; i++)
 	{
@@ -3148,26 +3150,29 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 		 code_convert_string_norecord (val, Vlocale_coding_system,
 					       0));
 	}
+      UNGCPRO;
       return v;
     }
 #endif	/* DAY_1 */
 #ifdef MON_1
   else if (EQ (item, Qmonths))	/* e.g. for calendar-month-name-array */
     {
-      struct Lisp_Vector *p = allocate_vector (12);
-      int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
-			MON_8, MON_9, MON_10, MON_11, MON_12};
+      Lisp_Object v = Fmake_vector (make_number (12), Qnil);
+      const int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
+			      MON_8, MON_9, MON_10, MON_11, MON_12};
       int i;
+      struct gcpro gcpro1;
+      GCPRO1 (v);
       synchronize_system_time_locale ();
       for (i = 0; i < 12; i++)
 	{
 	  str = nl_langinfo (months[i]);
 	  val = make_unibyte_string (str, strlen (str));
-	  p->contents[i] =
-	    code_convert_string_norecord (val, Vlocale_coding_system, 0);
+	  Faset (v, make_number (i),
+		 code_convert_string_norecord (val, Vlocale_coding_system, 0));
 	}
-      XSETVECTOR (val, p);
-      return val;
+      UNGCPRO;
+      return v;
     }
 #endif	/* MON_1 */
 /* LC_PAPER stuff isn't defined as accessible in glibc as of 2.3.1,
