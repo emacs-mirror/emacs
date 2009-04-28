@@ -1,3 +1,8 @@
+2009-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tooltip.el (tooltip-show-help): Fall back on
+	tooltip-show-help-non-mode for text-only displays.
+
 2009-04-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-mode): Replace `copy-list' with `copy-sequence'.
