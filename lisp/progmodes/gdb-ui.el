@@ -504,7 +504,8 @@ otherwise do not."
 	      (buffer-string))))
        ;; remove newline for gud-tooltip-echo-area
        (substring string 0 (- (length string) 1))))
-   (or gud-tooltip-echo-area tooltip-use-echo-area)))
+   (or gud-tooltip-echo-area tooltip-use-echo-area
+   (not (display-graphic-p)))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
