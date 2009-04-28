@@ -1,3 +1,8 @@
+2009-04-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Text-Only Mouse): Mention gpm-mouse-mode instead of
+	t-mouse-mode.  Suggested by Per Starbäck (Bug#3126).
+
 2009-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* maintaining.texi (Tags): Clarify text.  (Bug#3101)
