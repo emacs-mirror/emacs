@@ -194,7 +194,7 @@ in shell buffers.  You set this variable by calling one of:
   (setq ansi-color-for-comint-mode 'filter))
 
 ;;;###autoload
-(defun ansi-color-process-output (string)
+(defun ansi-color-process-output (ignored)
   "Maybe translate SGR control sequences of comint output into text-properties.
 
 Depending on variable `ansi-color-for-comint-mode' the comint output is
