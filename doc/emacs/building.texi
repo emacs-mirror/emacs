@@ -1250,11 +1250,6 @@ recompile it.  Nonetheless, it loads @file{@var{lib}.elc}.  This is
 because people often leave unfinished edits the source file, and don't
 recompile it until they think it is ready to use.
 
-  Because the argument to @code{load-library} is usually not in itself
-a valid file name, file name completion is not available.  Indeed, when
-using this command, you usually do not know exactly what file name
-will be used.
-
 @vindex load-path
   The sequence of directories searched by @kbd{M-x load-library} is
 specified by the variable @code{load-path}, a list of strings that are

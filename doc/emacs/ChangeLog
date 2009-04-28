@@ -1,3 +1,7 @@
+2009-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* building.texi (Lisp Libraries): `load-library' does offer completion.
+
 2009-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Text-Only Mouse): Mention gpm-mouse-mode instead of
