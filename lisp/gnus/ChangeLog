@@ -1,3 +1,8 @@
+2009-04-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam.el: Use dns-query instead of query-dns.  Was renamed on
+	2008-12-25 in dns.el.
+
 2009-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* rfc2047.el (rfc2047-decode-region): Don't skip past `start', which

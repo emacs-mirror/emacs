@@ -73,8 +73,8 @@
 (autoload 'gnus-registry-store-extra-entry "gnus-registry")
 (autoload 'gnus-registry-fetch-extra "gnus-registry")
 
-;; autoload query-dns
-(autoload 'query-dns "dns")
+;; autoload dns-query
+(autoload 'dns-query "dns")
 
 ;;}}}
 
@@ -173,7 +173,7 @@ The regular expression is matched against the address."
   :group 'spam)
 
 (defcustom spam-use-dig t
-  "Whether `query-dig' should be used instead of `query-dns'."
+  "Whether `query-dig' should be used instead of `dns-query'."
   :type 'boolean
   :group 'spam)
 
@@ -2038,9 +2038,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			(push (list ip server query-result)
 			      matches)))
 		  ;; else, if not using dig.el
-		  (when (query-dns query-string)
+		  (when (dns-query query-string)
 		    (gnus-message 6 "positive blackhole check")
-		    (push (list ip server (query-dns query-string 'TXT))
+		    (push (list ip server (dns-query query-string 'TXT))
 			  matches)))))))))
     (when matches
       spam-split-group)))
