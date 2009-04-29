@@ -4,6 +4,9 @@
 
 	* keyboard.c (init_keyboard) [POLL_FOR_INPUT]: Reset poll_timer.
 
+	* process.c (create_process): Clean up merger residues of
+	2008-07-17 change.
+
 2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
 
 	* lread.c (Vread_circle): New variable.
