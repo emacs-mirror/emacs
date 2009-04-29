@@ -1,3 +1,11 @@
+2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* variables.texi (File Local Variables): Note that read-circle is
+	bound to nil when reading file-local variables.
+
+	* streams.texi (Input Functions): Document read-circle.
+	(Output Variables): Add xref to Circular Objects.
+
 2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tips.texi (Coding Conventions): Copyedits.  Add xref to Named

@@ -1539,6 +1539,11 @@ your Emacs.  Emacs protects against this by automatically setting only
 those file-local variables whose specified values are known to be
 safe.  Other file-local variables are set only if the user agrees.
 
+  For additional safety, @code{read-circle} is temporarily bound to
+@code{nil} when Emacs reads file-local variables (@pxref{Input
+Functions}).  This prevents the Lisp reader from recognizing circular
+and shared Lisp structures (@pxref{Circular Objects}).
+
 @defopt enable-local-variables
 This variable controls whether to process file-local variables.
 The possible values are:
