@@ -20,7 +20,7 @@
 
 	* frame.c (x_set_font): When ARG is a font-object, check if the
 	font-object matches with the ASCII font-spec of the frame's
-	fontset.  If not, create a new fontset for the frame.
+	fontset.  If not, create a new fontset for the frame.  (Bug #3075)
 
 2009-04-28  Andreas Schwab  <schwab@linux-m68k.org>
 
