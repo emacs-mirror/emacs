@@ -3418,6 +3418,16 @@ x_set_font (f, arg, oldval)
 	 itself in the future.  */
       arg = AREF (font_object, FONT_NAME_INDEX);
       fontset = FRAME_FONTSET (f);
+      /* Check if we can use the current fontset.  If not, set FONTSET
+	 to -1 to generate a new fontset from FONT-OBJECT.  */
+      if (fontset >= 0)
+	{
+	  Lisp_Object ascii_font = fontset_ascii (fontset);
+	  Lisp_Object spec = font_spec_from_name (ascii_font);
+
+	  if (! font_match_p (spec, font_object))
+	    fontset = -1;
+	}
     }
   else
     signal_error ("Invalid font", arg);
