@@ -1,3 +1,9 @@
+2009-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* atimer.c (init_atimer): Also clear stopped_atimers.
+
+	* keyboard.c (init_keyboard) [POLL_FOR_INPUT]: Reset poll_timer.
+
 2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
 
 	* lread.c (Vread_circle): New variable.
