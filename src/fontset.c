@@ -765,23 +765,6 @@ make_fontset (frame, name, base)
   return fontset;
 }
 
-
-/* Set the ASCII font of the default fontset to FONTNAME if that is
-   not yet set.  */
-void
-set_default_ascii_font (fontname)
-     Lisp_Object fontname;
-{
-  if (! STRINGP (FONTSET_ASCII (Vdefault_fontset)))
-    {
-      int id = fs_query_fontset (fontname, 2);
-
-      if (id >= 0)
-	fontname = FONTSET_ASCII (FONTSET_FROM_ID (id));
-      FONTSET_ASCII (Vdefault_fontset)= fontname;
-    }
-}
-
 
 /********** INTERFACES TO xfaces.c, xfns.c, and dispextern.h **********/
 
