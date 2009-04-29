@@ -1,3 +1,7 @@
+2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (assoc-default): Doc fix.
+
 2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
 
 	* files.el (hack-local-variables-prop-line)
