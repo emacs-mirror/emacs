@@ -11681,6 +11681,7 @@ init_keyboard ()
     (*keyboard_init_hook) ();
 
 #ifdef POLL_FOR_INPUT
+  poll_timer = NULL;
   poll_suppress_count = 1;
   start_polling ();
 #endif
