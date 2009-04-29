@@ -801,7 +801,7 @@ and shared structure:
 
 @defvar print-circle
 If non-@code{nil}, this variable enables detection of circular and
-shared structure in printing.  @xref{Circular Objects}
+shared structure in printing.  @xref{Circular Objects}.
 @end defvar
 
 @defvar print-gensym
