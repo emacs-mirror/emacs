@@ -1,3 +1,8 @@
+2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* lread.c (Vread_circle): New variable.
+	(read1): Disable recursive read if Vread_circle is nil.
+
 2009-04-29  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.h (set_default_ascii_font): Delete extern.

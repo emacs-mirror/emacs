@@ -1931,6 +1931,10 @@ port support (see Emacs changes, above).
 ** Miscellaneous new variables
 
 +++
+*** `read-circle', if nil, disables the reading of recursive Lisp
+structures using the #N= and #N# syntax.
+
++++
 *** `this-command-keys-shift-translated' is non-nil if the key
 sequence invoking the current command was found by shift-translation.
 

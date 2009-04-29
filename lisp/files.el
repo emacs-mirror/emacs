@@ -2898,7 +2898,8 @@ and VAL is the specified value."
 	       (let ((key (intern (match-string 1)))
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
-			    (read (current-buffer)))))
+			    (let ((read-circle nil))
+			      (read (current-buffer))))))
 		 ;; It is traditional to ignore
 		 ;; case when checking for `mode' in set-auto-mode,
 		 ;; so we must do that here as well.
@@ -3044,12 +3045,14 @@ is specified, returning t if it is specified."
 		  (if (eolp) (error "Missing colon in local variables entry"))
 		  (skip-chars-backward " \t")
 		  (let* ((str (buffer-substring beg (point)))
-			 (var (read str))
+			 (var (let ((read-circle nil))
+				(read str)))
 			 val)
 		    ;; Read the variable value.
 		    (skip-chars-forward "^:")
 		    (forward-char 1)
-		    (setq val (read (current-buffer)))
+		    (let ((read-circle nil))
+		      (setq val (read (current-buffer))))
 		    (if mode-only
 			(if (eq var 'mode)
 			    (setq result t))
@@ -3348,7 +3351,8 @@ is found.  Returns the new class name."
     (insert-file-contents file)
     (let* ((dir-name (file-name-directory file))
 	   (class-name (intern dir-name))
-	   (variables (read (current-buffer))))
+	   (variables (let ((read-circle nil))
+			(read (current-buffer)))))
       (dir-locals-set-class-variables class-name variables)
       (dir-locals-set-directory-class dir-name class-name
 				      (nth 5 (file-attributes file)))

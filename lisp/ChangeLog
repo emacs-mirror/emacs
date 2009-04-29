@@ -1,3 +1,9 @@
+2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
+
+	* files.el (hack-local-variables-prop-line)
+	(hack-local-variables, dir-locals-read-from-file): Bind
+	read-circle to nil before reading.
+
 2009-04-28  Geert Kloosterman  <g.j.kloosterman@gmail.com>  (tiny change)
 
 	* progmodes/which-func.el (which-function): Don't assume that

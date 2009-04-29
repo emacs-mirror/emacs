@@ -125,6 +125,9 @@ Lisp_Object Vload_file_name;
 /* Function to use for reading, in `load' and friends.  */
 Lisp_Object Vload_read_function;
 
+/* Non-nil means read recursive structures using #n= and #n# syntax.  */
+Lisp_Object Vread_circle;
+
 /* The association list of objects read with the #n=object form.
    Each member of the list has the form (n . object), and is used to
    look up the object for the corresponding #n# construct.
@@ -2558,7 +2561,7 @@ read1 (readcharfun, pch, first_in_list)
 	      c = READCHAR;
 	    }
 	  /* #n=object returns object, but associates it with n for #n#.  */
-	  if (c == '=')
+	  if (c == '=' && !NILP (Vread_circle))
 	    {
 	      /* Make a placeholder for #n# to use temporarily */
 	      Lisp_Object placeholder;
@@ -2580,7 +2583,7 @@ read1 (readcharfun, pch, first_in_list)
 	      return tem;
 	    }
 	  /* #n# returns a previously read object.  */
-	  if (c == '#')
+	  if (c == '#' && !NILP (Vread_circle))
 	    {
 	      tem = Fassq (make_number (n), read_objects);
 	      if (CONSP (tem))
@@ -4214,6 +4217,10 @@ Note that a symbol will appear multiple times in this list, if it was
 read multiple times.  The list is in the same order as the symbols
 were read in. */);
   Vread_symbol_positions_list = Qnil;
+
+  DEFVAR_LISP ("read-circle", &Vread_circle,
+	       doc: /* Non-nil means read recursive structures using #N= and #N# syntax.  */);
+  Vread_circle = Qt;
 
   DEFVAR_LISP ("load-path", &Vload_path,
 	       doc: /* *List of directories to search for files to load.
