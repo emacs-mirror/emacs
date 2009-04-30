@@ -1,3 +1,8 @@
+2009-04-30  David Reitter  <david.reitter@gmail.com>
+
+	* nsterm.m (convert_ns_to_X_keysym): define function keys f16
+	through f24.
+
 2009-04-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (face_at_buffer_position): New arg base_face_id.
