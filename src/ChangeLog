@@ -1,3 +1,8 @@
+2009-04-30  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): Check if rfont_def is Qnil or
+	not.
+
 2009-04-29  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* callproc.c (Fcall_process): Fix GC protection.  Make sure
