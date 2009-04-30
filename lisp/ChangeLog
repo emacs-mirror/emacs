@@ -1,3 +1,18 @@
+2009-04-30  Alan Mackenzie  <acm@muc.de>
+
+	Enhancements for Objective-C:
+	* progmodes/cc-vars.el (c-objc-method-arg-min-delta-to-bracket)
+	(c-objc-method-arg-unfinished-offset)
+	(c-objc-method-parameter-offset): New variables.
+	(c-offsets-alist): Use c-lineup-ObjC-method-call-colons in entry
+	for objc-method-call-cont.
+
+	* progmodes/cc-langs.el (c-constant-kwds): New ObjC keywords
+	"YES", "NO", "NS_DURING", "NS_HANDLER", "NS_ENDHANDLER".
+
+	* progmodes/cc-align.el (c-lineup-ObjC-method-call-colons): New
+	function.
+
 2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (assoc-default): Doc fix.
