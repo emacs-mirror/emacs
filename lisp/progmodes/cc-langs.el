@@ -2149,7 +2149,7 @@ This construct is \"<keyword> <expression> :\"."
   t       nil
   (c c++) '("NULL" ;; Not a keyword, but practically works as one.
 	    "false" "true")		; Defined in C99.
-  objc    '("nil" "Nil")
+  objc    '("nil" "Nil" "YES" "NO" "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.

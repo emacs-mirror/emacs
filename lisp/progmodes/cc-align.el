@@ -907,8 +907,48 @@ Works with: objc-method-call-cont."
 	   )
       (- target-col open-bracket-col extra))))
 
+(defun c-lineup-ObjC-method-call-colons (langelem)
+  "Line up selector args as Project Builder / XCode: colons of first
+   selector portions on successive lines are aligned.  If no decision can
+   be made return NIL, so that other lineup methods can be tried.  This is
+   typically chained with `c-lineup-ObjC-method-call'.
+
+Works with: objc-method-call-cont."
+  (save-excursion
+    (catch 'no-idea
+      (let* ((method-arg-len (progn
+			       (back-to-indentation)
+			       (if (search-forward ":" (c-point 'eol) 'move)
+				   (- (point) (c-point 'boi))
+				 ; no complete argument to indent yet
+				 (throw 'no-idea nil))))
+
+	     (extra (save-excursion 
+                      ; indent parameter to argument if needed
+		      (back-to-indentation)
+		      (c-backward-syntactic-ws (c-langelem-pos langelem))
+		      (if (eq ?: (char-before))
+			  c-objc-method-parameter-offset 0)))
+
+	     (open-bracket-col (c-langelem-col langelem))
+
+	     (arg-ralign-colon-ofs (progn
+			(forward-char) ; skip over '['
+			; skip over object/class name
+			; and first argument
+			(c-forward-sexp 2)
+			(if (search-forward ":" (c-point 'eol) 'move)
+			    (- (current-column) open-bracket-col
+			       method-arg-len extra)
+			  ; previous arg has no param
+  			  c-objc-method-arg-unfinished-offset))))
+
+	(if (>= arg-ralign-colon-ofs c-objc-method-arg-min-delta-to-bracket)
+	    (+ arg-ralign-colon-ofs extra)
+	  (throw 'no-idea nil))))))
+
 (defun c-lineup-ObjC-method-args (langelem)
-  "Line up the colons that separate args.
+  "Line up the colons that separate args in a method declaration.
 The colon on the current line is aligned with the one on the first
 line.
 
@@ -932,7 +972,7 @@ Works with: objc-method-args-cont."
 	  c-basic-offset)))))
 
 (defun c-lineup-ObjC-method-args-2 (langelem)
-  "Line up the colons that separate args.
+  "Line up the colons that separate args in a method declaration.
 The colon on the current line is aligned with the one on the previous
 line.
 
