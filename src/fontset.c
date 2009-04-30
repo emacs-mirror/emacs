@@ -1876,7 +1876,8 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	return Qnil;
       w = XWINDOW (window);
       f = XFRAME (w->frame);
-      face_id = face_at_buffer_position (w, pos, -1, -1, &dummy, pos + 100, 0);
+      face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
+					 pos + 100, 0, -1);
       charset = Fget_char_property (position, Qcharset, Qnil);
       if (CHARSETP (charset))
 	cs_id = XINT (CHARSET_SYMBOL_ID (charset));

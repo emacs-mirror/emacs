@@ -3780,7 +3780,7 @@ font_at (c, pos, face, w, string)
 					   DEFAULT_FACE_ID, 0);
       else
 	face_id = face_at_buffer_position (w, pos, -1, -1, &endptr,
-					   pos + 100, 0);
+					   pos + 100, 0, -1);
       face = FACE_FROM_ID (f, face_id);
     }
   if (multibyte)
@@ -3827,7 +3827,8 @@ font_range (pos, limit, w, face, string)
 	{
 	  int face_id;
 
-	  face_id = face_at_buffer_position (w, pos, 0, 0, &ignore, *limit, 0);
+	  face_id = face_at_buffer_position (w, pos, 0, 0, &ignore,
+					     *limit, 0, -1);
 	  face = FACE_FROM_ID (XFRAME (w->frame), face_id);
 	}
     }

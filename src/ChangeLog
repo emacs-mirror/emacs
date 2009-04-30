@@ -1,3 +1,20 @@
+2009-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (face_at_buffer_position): New arg base_face_id.
+
+	* xdisp.c (handle_face_prop): Pass base_face_id of iterator to
+	face_at_buffer_position.
+	(face_before_or_after_it_pos, get_next_display_element)
+	(note_mouse_highlight): Update face_at_buffer_position call.
+
+	* term.c (term_mouse_highlight):
+	* msdos.c (IT_note_mouse_highlight):
+	* fontset.c (Finternal_char_font):
+	* font.c (font_at, font_range): Update face_at_buffer_position
+	call.
+
+	* dispextern.h (face_at_buffer_position): Update prototype.
+
 2009-04-30  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): Check if rfont_def is Qnil or

@@ -2851,7 +2851,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1, 1, -1);
 
 		/* Display it as active.  */
 		term_show_mouse_face (DRAW_MOUSE_FACE);
@@ -2886,7 +2886,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1, 1, -1);
 
 		/* Display it as active.  */
 		term_show_mouse_face (DRAW_MOUSE_FACE);
