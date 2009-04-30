@@ -110,6 +110,15 @@ static unsigned convert_ns_to_X_keysym[] =
   NSF13FunctionKey,             0xCA,
   NSF14FunctionKey,             0xCB,
   NSF15FunctionKey,             0xCC,
+  NSF16FunctionKey,             0xCD,
+  NSF17FunctionKey,             0xCE,
+  NSF18FunctionKey,             0xCF,
+  NSF19FunctionKey,             0xD0,
+  NSF20FunctionKey,             0xD1,
+  NSF21FunctionKey,             0xD2,
+  NSF22FunctionKey,             0xD3,
+  NSF23FunctionKey,             0xD4,
+  NSF24FunctionKey,             0xD5,
 
   NSBackspaceCharacter,         0x08,  /* 8: Not on some KBs. */
   NSDeleteCharacter,            0xFF,  /* 127: Big 'delete' key upper right. */
