@@ -1,3 +1,12 @@
+2009-04-30  David Reitter  <david.reitter@gmail.com>
+
+	* term/ns-win.el (ns-make-command-string, ns-grabenv)
+	(ns-extended-platform-support-mode, menu-bar-ns-file-menu)
+	(ns-arrange-all-frames, ns-arrange-visible-frames)
+	(ns-arrange-frames): remove. These functionalities not
+	available on other (free) platforms will be provided to users
+	outside the Emacs project in the "ns-platform-support" package.
+
 2009-04-30  Alan Mackenzie  <acm@muc.de>
 
 	Enhancements for Objective-C:
