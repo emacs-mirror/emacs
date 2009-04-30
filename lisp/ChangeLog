@@ -3,7 +3,7 @@
 	* term/ns-win.el (ns-make-command-string, ns-grabenv)
 	(ns-extended-platform-support-mode, menu-bar-ns-file-menu)
 	(ns-arrange-all-frames, ns-arrange-visible-frames)
-	(ns-arrange-frames): remove. These functionalities not
+	(ns-arrange-frames): Remove.  These functionalities not
 	available on other (free) platforms will be provided to users
 	outside the Emacs project in the "ns-platform-support" package.
 
@@ -8875,8 +8875,7 @@
 
 2008-07-17  David Reitter  <david.reitter@gmail.com>
 
-	* simple.el (kill-visual-line, turn-on-visual-line-mode): New
-	functions.
+	* simple.el (kill-visual-line, turn-on-visual-line-mode): New functions.
 	(visual-line-mode, global-visual-line-mode): New minor mode.
 	(visual-line-mode-map): New variable.
 

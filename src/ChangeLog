@@ -1,6 +1,6 @@
 2009-04-30  David Reitter  <david.reitter@gmail.com>
 
-	* nsterm.m (convert_ns_to_X_keysym): define function keys f16
+	* nsterm.m (convert_ns_to_X_keysym): Define function keys f16
 	through f24.
 
 2009-04-30  Chong Yidong  <cyd@stupidchicken.com>
@@ -15,15 +15,13 @@
 	* term.c (term_mouse_highlight):
 	* msdos.c (IT_note_mouse_highlight):
 	* fontset.c (Finternal_char_font):
-	* font.c (font_at, font_range): Update face_at_buffer_position
-	call.
+	* font.c (font_at, font_range): Update face_at_buffer_position call.
 
 	* dispextern.h (face_at_buffer_position): Update prototype.
 
 2009-04-30  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (fontset_find_font): Check if rfont_def is Qnil or
-	not.
+	* fontset.c (fontset_find_font): Check if rfont_def is Qnil or not.
 
 2009-04-29  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -67,7 +65,7 @@
 
 2009-04-27  David Reitter  <david.reitter@gmail.com>
 
-	* nsfont.m (nsfont_open): remove unused variable shrink.
+	* nsfont.m (nsfont_open): Remove unused variable shrink.
 	Remove commented-out code.
 
 2009-04-26  Johan Bockgård  <bojohan@gnu.org>
