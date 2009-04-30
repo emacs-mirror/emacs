@@ -631,6 +631,8 @@ fontset_find_font (fontset, c, face, id, fallback)
       for (i++; i < ASIZE (vec); i++)
 	{
 	  rfont_def = AREF (vec, i);
+	  if (NILP (rfont_def))
+	    return Qt;
 	  if (! EQ (RFONT_DEF_FONT_DEF (rfont_def), font_def))
 	    break;
 	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
