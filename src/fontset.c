@@ -547,8 +547,11 @@ fontset_find_font (fontset, c, face, id, fallback)
 	for (i = 0; i < ASIZE (vec); i++)
 	  {
 	    Lisp_Object rfont_def = AREF (vec, i);
-	    Lisp_Object repertory
-	      = FONT_DEF_REPERTORY (RFONT_DEF_FONT_DEF (rfont_def));
+	    Lisp_Object repertory;
+
+	    if (NILP (rfont_def))
+	      break;
+	    repertory = FONT_DEF_REPERTORY (RFONT_DEF_FONT_DEF (rfont_def));
 
 	    if (XINT (repertory) == id)
 	      {
