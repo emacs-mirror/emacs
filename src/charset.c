@@ -319,7 +319,6 @@ load_charset_map (charset, entries, n_entries, control_flag)
 	    {
 	      memset (temp_charset_work->table.decoder, -1,
 		      sizeof (int) * 0x10000);
-	      temp_charset_work->for_encoder = 0;
 	    }
 	  else
 	    {
