@@ -1,3 +1,7 @@
+2009-05-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* charset.c (load_charset): Reformat X==Y==Z to (X==Y)==Z.
+
 2009-04-30  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (convert_ns_to_X_keysym): Define function keys f16
