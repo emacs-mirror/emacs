@@ -1,6 +1,7 @@
 2009-05-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* charset.c (load_charset): Reformat X==Y==Z to (X==Y)==Z.
+	(load_charset_map): Remove unnecessary code.
 
 2009-04-30  David Reitter  <david.reitter@gmail.com>
 
