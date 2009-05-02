@@ -5185,7 +5185,6 @@ read_process_output (proc, channel)
   register int nbytes;
   char *chars;
   register Lisp_Object outstream;
-  register struct buffer *old = current_buffer;
   register struct Lisp_Process *p = XPROCESS (proc);
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
@@ -5385,9 +5384,11 @@ read_process_output (proc, channel)
       int opoint_byte;
       Lisp_Object text;
       struct buffer *b;
+      int count = SPECPDL_INDEX ();
 
       odeactivate = Vdeactivate_mark;
 
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (p->buffer);
       opoint = PT;
       opoint_byte = PT_BYTE;
@@ -5490,7 +5491,7 @@ read_process_output (proc, channel)
 
       current_buffer->read_only = old_read_only;
       SET_PT_BOTH (opoint, opoint_byte);
-      set_buffer_internal (old);
+      unbind_to (count, Qnil);
     }
   return nbytes;
 }

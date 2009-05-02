@@ -1,5 +1,8 @@
 2009-05-02  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* process.c (read_process_output): Make sure the current buffer is
+	always restored.
+
 	* coding.c (record_conversion_result): Don't modify
 	Vlast_code_conversion_error for successful result.
 	(alloc_destination): Don't clobber conversion result.  (Bug#1650)
