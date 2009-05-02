@@ -1,3 +1,9 @@
+2009-05-02  Glenn Morris  <rgm@gnu.org>
+
+	* wid-edit.el (widget-specify-field, widget-field-value-get, character):
+	Revert 2009-03-24 change, since it causes a more serious problem than
+	the one it solves.  (Closes Bug#3136, reopens Bug#2689.)
+
 2009-05-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.el (pop-up-frame-function): Remove choice nil since it
@@ -253,7 +259,7 @@
 
 2009-04-09  Richard M Stallman  <rms@gnu.org>
 
-	* mail/rmailkwd.el (rmail-set-label): Warn if multipe labels spec'd.
+	* mail/rmailkwd.el (rmail-set-label): Warn if multiple labels spec'd.
 	(rmail-kill-label, rmail-add-label): Doc fixes.
 
 	* mail/rmailout.el (rmail-output): If file is visited,

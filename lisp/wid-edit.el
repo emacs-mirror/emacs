@@ -342,16 +342,12 @@ new value.")
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (when (and (> to (1+ from))
-	       (= (char-before to) ?\n))
+    (when (= (char-before to) ?\n)
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
       ;; C-n/C-p act more naturally when entering/leaving the field.  We
-      ;; do this by making a small secondary overlay to contain just that
+     ;; do this by making a small secondary overlay to contain just that
       ;; one character.
-      ;; We DON'T do this if the field just consists of a newline, eg
-      ;; when specifying a character, since it breaks things (below
-      ;; does 1- to, which results in to = from).  Bug#2689.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
 	(overlay-put overlay 'field 'boundary)
         ;; We need the real field for tabbing.
@@ -1949,9 +1945,7 @@ the earlier input."
 	  (set-buffer buffer)
 	  (while (and size
 		      (not (zerop size))
-		      ;; Bug#2689.  Don't allow this loop to reduce a
-		      ;; character field to zero size if it contains a space.
-		      (> to (1+ from))
+		      (> to from)
 		      (eq (char-after (1- to)) ?\s))
 	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
@@ -3456,8 +3450,7 @@ To use this type, you must define :match or :match-alternatives."
   :value 0
   :size 1
   :format "%{%t%}: %v\n"
-  ;; `.' does not match newline, but newline is a valid character.
-  :valid-regexp "\\`\\(.\\|\n\\)\\'"
+  :valid-regexp "\\`.\\'"
   :error "This field should contain a single character"
   :value-to-internal (lambda (widget value)
 		       (if (stringp value)
