@@ -37,9 +37,6 @@ future.
 @node Mac / GNUstep Basics, Mac / GNUstep Customization, , Mac OS / GNUstep
 @section Basic Emacs usage under Mac OS and GNUstep
 
-  Redundancy in the menus can be reduced and more shortcuts shown by
-invoking @code{ns-extended-platform-support-mode}.
-
   By default, the @key{alt} and @key{option} keys are the same as
 @key{Meta} when running under Mac OS.  The Mac @key{Cmd} key is the
 same as @key{Super}, and Emacs provides a set of keybindings using
@@ -47,9 +44,8 @@ this modifier key that mimic other Mac / GNUstep applications (@pxref{Mac /
 GNUstep Events}).  You can change these bindings in the usual way (@pxref{Key
 Bindings}).
 
-  The standard Mac / GNUstep font and color panels are accessible via the
-@samp{Windows} menu, or via the standard @key{Cmd-t} and @key{Cmd-C}
-keybindings.  To use the color panel, drag from it to an Emacs frame
+  The standard Mac / GNUstep font and color panels are accessible via Lisp commands.
+  To use the color panel, drag from it to an Emacs frame
 to change the foreground color of the face at that position (if the
 @key{shift} key is held down, it changes the background color
 instead).  To finalize the settings for either color or font, choose
@@ -99,27 +95,9 @@ This will pick up your environment settings and save them into a special file
 set the environment for all launched applications.  The drawback of this
 method is it needs to be run again whenever something changes.
 
-The other approach is to use the @code{ns-grabenv} command inside Emacs.  This
-function will run a subshell and copy its environment variables into Emacs.
-
-Adding this line to your @file{~/.emacs} will grab the csh environment
-whenever emacs runs under a window system.
-
-@lisp
-(if window-system (ns-grabenv))
-@end lisp
-
-If you have a different shell you will have to give @code{ns-grabenv} some
-arguments.  For zsh you would do this.
-
-@lisp
-(if window-system (ns-grabenv "/usr/bin/zsh"
-                           "source /etc/zshenv"
-                           "source ~/.zshenv"))
-@end lisp
-
-The reason that @code{ns-grabenv} is not done by default is that it adds up
-to a second or two to the Emacs startup time.
+As for the PATH and MANPATH variables, a simpler, system-wide method
+of setting PATH is recommended on Mac OS X 10.5 and later, using the
+@file{/etc/paths} files and the @file{/etc/paths.d} directory.
 
 
 @node Mac / GNUstep Customization, Mac / GNUstep Events, Mac / GNUstep Basics, Mac OS / GNUstep
@@ -128,18 +106,15 @@ to a second or two to the Emacs startup time.
 Emacs can be customized in several ways in addition to the standard
 customization buffers and the Options menu.
 
-In addition, redundancy in the menus can be reduced and more shortcuts
-shown by invoking @code{ns-extended-platform-support-mode}.
-
 
 @subsection Font and Color Panels
 
-The Font Panel may be accessed from the Windows menu or by @kbd{Cmd-t}.  It
+The Font Panel may be accessed with M-x ns-popup-font-panel.  It
 will set the default font in the frame most recently used or clicked on.  To
 make the setting permanent, use @samp{Save Options} in the Options menu, or
 run @code{menu-bar-options-save}.
 
-You can bring up a color panel (with @key{Cmd-C} or from the Windows menu) and
+You can bring up a color panel with M-x ns-popup-color-panel. and
 drag the color you want over the emacs face you want to change.  Normal
 dragging will alter the foreground color.  Shift dragging will alter the
 background color.  To make the changes permanent select the "Save Options"
