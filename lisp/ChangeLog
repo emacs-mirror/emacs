@@ -1,3 +1,8 @@
+2009-05-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (pop-up-frame-function): Remove choice nil since it
+	does not represent a valid value.
+
 2009-04-30  David Reitter  <david.reitter@gmail.com>
 
 	* term/ns-win.el (ns-make-command-string, ns-grabenv)

@@ -120,7 +120,7 @@ affected by this variable."
 This function is called with no arguments and should return a new
 frame.  The default value calls `make-frame' with the argument
 `pop-up-frame-alist'."
-  :type '(choice (const nil) (function :tag "function"))
+  :type 'function
   :group 'frames)
 
 (defcustom special-display-frame-alist
