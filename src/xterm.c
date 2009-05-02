@@ -8689,6 +8689,7 @@ x_handle_net_wm_state (f, event)
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_ATOM;
+  Lisp_Object lval;
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
@@ -8718,7 +8719,7 @@ x_handle_net_wm_state (f, event)
         value |= FULLSCREEN_BOTH;
     }
 
-  Lisp_Object lval = Qnil;
+  lval = Qnil;
   switch (value) 
     {
     case FULLSCREEN_WIDTH:

@@ -1,3 +1,8 @@
+2009-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_handle_net_wm_state): Move declaration of lval before
+	any statements.
+
 2009-05-02  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (read_process_output): Make sure the current buffer is
