@@ -992,6 +992,8 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_INSUFFICIENT_MEM:
       Vlast_code_conversion_error = Qinsufficient_memory;
       break;
+    case CODING_RESULT_SUCCESS:
+      break;
     default:
       Vlast_code_conversion_error = intern ("Unknown error");
     }
@@ -1203,7 +1205,6 @@ alloc_destination (coding, nbytes, dst)
     }
   else
     coding_alloc_by_realloc (coding, nbytes);
-  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding_set_destination (coding);
   dst = coding->destination + offset;
   return dst;
