@@ -1,5 +1,8 @@
 2009-05-03  Daiki Ueno  <ueno@unixuser.org>
 
+	* epg.el (epg-wait-for-completion): Sleep after the process
+	exits, to allow process-filter to run (Bug#2412).
+
 	* epa.el (epa--read-signature-type): Fix typo.
 
 2009-05-02  Glenn Morris  <rgm@gnu.org>

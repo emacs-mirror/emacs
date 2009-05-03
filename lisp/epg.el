@@ -1175,7 +1175,8 @@ This function is for internal use only."
 (defun epg-wait-for-completion (context)
   "Wait until the `epg-gpg-program' process completes."
   (while (eq (process-status (epg-context-process context)) 'run)
-    (accept-process-output (epg-context-process context) 1)))
+    (accept-process-output (epg-context-process context) 1))
+  (sleep-for 0.1))
 
 (defun epg-reset (context)
   "Reset the CONTEXT."
