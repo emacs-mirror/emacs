@@ -1,3 +1,12 @@
+2009-05-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/ns-win.el (ns-alternatives-map, ns-insert-working-text)
+	(ns-echo-working-text, ns-utf8-nfd-post-read-conversion)
+	(ns-insert-text, ns-insert-file, ns-find-file, generate-fontset-menu)
+	(mouse-set-font, ns-respond-to-change-font, ns-standard-fontset-spec)
+	(ns-set-background-alpha, ns-set-foreground-at-mouse)
+	(ns-set-background-at-mouse): Fix typos in docstrings.
+
 2009-05-03  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-wait-for-completion): Sleep after the process

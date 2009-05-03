@@ -220,7 +220,7 @@ The properties returned may include `top', `left', `height', and `width'."
     (define-key map [M-return] [?\M-\C-m])
     (define-key map [M-escape] [?\M-\e])
     map)
-  "Keymap of alternative meanings for some keys under NS.")
+  "Keymap of alternative meanings for some keys under Nextstep.")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'customize)
@@ -612,7 +612,7 @@ is currently being used."
   (ns-delete-working-text))
 
 (defun ns-insert-working-text ()
-  "Insert contents of `ns-working-text' as UTF8 string and mark with
+  "Insert contents of `ns-working-text' as UTF-8 string and mark with
 `ns-working-overlay'.  Any previously existing working text is cleared first.
 The overlay is assigned the face `ns-working-text-face'."
   ;; FIXME: if buffer is read-only, don't try to insert anything
@@ -626,7 +626,7 @@ The overlay is assigned the face `ns-working-text-face'."
 		 'face 'ns-working-text-face)))
 
 (defun ns-echo-working-text ()
-  "Echo contents of ns-working-text in message display area.
+  "Echo contents of `ns-working-text' in message display area.
 See `ns-insert-working-text'."
   (ns-delete-working-text)
   (let* ((msg (current-message))
@@ -666,7 +666,7 @@ See `ns-insert-working-text'."
     (progn
 
       (defun ns-utf8-nfd-post-read-conversion (length)
-	"Calls ns-convert-utf8-nfd-to-nfc to compose char sequences."
+	"Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region (point) (+ (point) length))
@@ -695,14 +695,14 @@ See `ns-insert-working-text'."
 (defvar ns-input-text)			; nsterm.m
 
 (defun ns-insert-text ()
-  "Insert contents of ns-input-text at point."
+  "Insert contents of `ns-input-text' at point."
   (interactive)
   (insert ns-input-text)
   (setq ns-input-text nil))
 
 (defun ns-insert-file ()
-  "Insert contents of file ns-input-file like insert-file but with less
-prompting.  If file is a directory perform a find-file on it."
+  "Insert contents of file `ns-input-file' like insert-file but with less
+prompting.  If file is a directory perform a `find-file' on it."
   (interactive)
   (let ((f))
     (setq f (car ns-input-file))
@@ -808,7 +808,7 @@ unless the current buffer is a scratch buffer."
 (declare-function ns-hide-emacs "nsfns.m" (on))
 
 (defun ns-find-file ()
-  "Do a find-file with the ns-input-file as argument."
+  "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
   (let ((f) (file) (bufwin1) (bufwin2))
     (setq f (file-truename (car ns-input-file)))
@@ -864,6 +864,7 @@ unless the current buffer is a scratch buffer."
   "Switch to next visible frame."
   (interactive)
   (other-frame 1))
+
 (defun ns-prev-frame ()
   "Switch to previous visible frame."
   (interactive)
@@ -935,17 +936,17 @@ unless the current buffer is a scratch buffer."
 ;; Set to use font panel instead
 (declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
 (defalias 'generate-fontset-menu 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in NS.")
+This function has been overloaded in Nextstep.")
 (defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in NS.")
+This function has been overloaded in Nextstep.")
 
 ;; nsterm.m
 (defvar ns-input-font)
 (defvar ns-input-fontsize)
 
 (defun ns-respond-to-change-font ()
-  "Respond to changeFont: event, expecting ns-input-font and\n\
-ns-input-fontsize of new font."
+  "Respond to changeFont: event, expecting `ns-input-font' and\n\
+`ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
                            (list (cons 'font ns-input-font)
@@ -955,7 +956,7 @@ ns-input-fontsize of new font."
 
 ;; Default fontset for Mac OS X.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
-;; a font is chosen by 
+;; a font is chosen by
 (defvar ns-standard-fontset-spec
   ;; Only some code supports this so far, so use uglier XLFD version
   ;; "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:Courier,han:Kai"
@@ -967,8 +968,8 @@ ns-input-fontsize of new font."
              ",")
   "String of fontset spec of the standard fontset.
 This defines a fontset consisting of the Courier and other fonts that
-come with OS X\".
-See the documentation of `create-fontset-from-fontset-spec for the format.")
+come with OS X.
+See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
 (if (fboundp 'new-fontset)
@@ -978,7 +979,7 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
       ;; Create the standard fontset.
       (condition-case err
 	  (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-	(error (display-warning 
+	(error (display-warning
 		'initialization
 		(format "Creation of the standard fontset failed: %s" err)
 		:error)))))
@@ -1146,7 +1147,7 @@ The value may be different for frames on different Nextstep displays."
 
 ;; Convenience and work-around for fact that set color fns now require named.
 (defun ns-set-background-alpha (alpha)
-  "Sets alpha (opacity) of background.
+  "Sets ALPHA (opacity) of background.
 Set from 0.0 (fully transparent) to 1.0 (fully opaque; default).
 Note, tranparency works better on Tiger (10.4) and higher."
   (interactive "nSet background alpha to: ")
@@ -1193,7 +1194,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
 (defvar ns-input-color)			; nsterm.m
 
 (defun ns-set-foreground-at-mouse ()
-  "Set the foreground color at the mouse location to ns-input-color."
+  "Set the foreground color at the mouse location to `ns-input-color'."
   (interactive)
   (let* ((pos (mouse-position))
          (frame (car pos))
@@ -1209,7 +1210,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
       (set-face-foreground face ns-input-color frame)))))
 
 (defun ns-set-background-at-mouse ()
-  "Set the background color at the mouse location to ns-input-color."
+  "Set the background color at the mouse location to `ns-input-color'."
   (interactive)
   (let* ((pos (mouse-position))
          (frame (car pos))
