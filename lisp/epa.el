@@ -725,7 +725,8 @@ d - Create a detached signature
 ? - Show this help
 "))))
 	    (t
-	     (setq type 'normal))))))
+	     (setq type 'normal))))
+    type))
 
 ;;;###autoload
 (defun epa-sign-file (file signers mode)
