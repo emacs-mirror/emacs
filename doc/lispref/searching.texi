@@ -657,6 +657,7 @@ shy groups.
 @cindex shy groups
 @cindex non-capturing group
 @cindex unnumbered group
+@cindex @samp{(?:} in regexp
 is the @dfn{shy group} construct.  A shy group serves the first two
 purposes of an ordinary group (controlling the nesting of other
 operators), but it does not get a number, so you cannot refer back to
