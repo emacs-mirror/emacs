@@ -1,3 +1,9 @@
+2009-05-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* internals.texi (Object Internals): Don't assume 32-bit machines
+	are the norm.
+	(Buffer Internals): Consolidate table entries for readability.
+
 2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* variables.texi (File Local Variables): Note that read-circle is
