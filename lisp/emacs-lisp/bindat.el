@@ -609,9 +609,9 @@ Optional fourth arg BINDAT-IDX is the starting offset into BINDAT-RAW."
   (let ((no-return bindat-raw))
     (unless bindat-idx (setq bindat-idx 0))
     (unless bindat-raw
-      (setq bindat-raw (make-vector (+ bindat-idx (bindat-length spec struct)) 0)))
+      (setq bindat-raw (make-string (+ bindat-idx (bindat-length spec struct)) 0)))
     (bindat--pack-group struct spec)
-    (if no-return nil (concat bindat-raw))))
+    (if no-return nil bindat-raw)))
 
 
 ;; Misc. format conversions

@@ -1,3 +1,8 @@
+2009-05-04  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bindat.el (bindat-pack): Allocate and set a string
+	directly (Bug#2878).
+
 2009-05-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/ns-win.el (ns-alternatives-map, ns-insert-working-text)
