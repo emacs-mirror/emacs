@@ -1064,7 +1064,6 @@ when the buffer is not current.
 @itemx fill_column
 @itemx left_margin
 @itemx auto_fill_function
-@itemx buffer_file_type
 @itemx truncate_lines
 @itemx word_wrap
 @itemx ctl_arrow
@@ -1126,47 +1125,40 @@ except to shape their child windows.  Emacs Lisp programs usually have
 no access to the parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
-The following four fields also describe the window tree structure.
-
 @item hchild
-In a window subdivided horizontally by child windows, the leftmost child.
-Otherwise, @code{nil}.
-
-@item vchild
-In a window subdivided vertically by child windows, the topmost child.
-Otherwise, @code{nil}.
+@itemx vchild
+These fields contain the window's leftmost child and its topmost child
+respectively.  @code{hchild} is used if the window is subdivided
+horizontally by child windows, and @code{vchild} if it is subdivided
+vertically.
 
 @item next
-The next sibling of this window.  It is @code{nil} in a window that is
-the rightmost or bottommost of a group of siblings.
+@itemx prev
+The next sibling and previous sibling of this window.  @code{next} is
+@code{nil} if the window is the rightmost or bottommost in its group;
+@code{prev} is @code{nil} if it is the leftmost or topmost in its
+group.
 
-@item prev
-The previous sibling of this window.  It is @code{nil} in a window that
-is the leftmost or topmost of a group of siblings.
+@item left_col
+The left-hand edge of the window, measured in columns, relative to the
+leftmost column in the frame (column 0).
 
-@item left
-This is the left-hand edge of the window, measured in columns.  (The
-leftmost column on the screen is @w{column 0}.)
+@item top_line
+The top edge of the window, measured in lines, relative to the topmost
+line in the frame (line 0).
 
-@item top
-This is the top edge of the window, measured in lines.  (The top line on
-the screen is @w{line 0}.)
-
-@item height
-The height of the window, measured in lines.
-
-@item width
-The width of the window, measured in columns.  This width includes the
-scroll bar and fringes, and/or the separator line on the right of the
-window (if any).
+@item total_cols
+@itemx total_lines
+The width and height of the window, measured in columns and lines
+respectively.  The width includes the scroll bar and fringes, and/or
+the separator line on the right of the window (if any).
 
 @item buffer
-The buffer that the window is displaying.  This may change often during
-the life of the window.
+The buffer that the window is displaying.
 
 @item start
-The position in the buffer that is the first character to be displayed
-in the window.
+A marker pointing to the position in the buffer that is the first
+character displayed in the window.
 
 @item pointm
 @cindex window point internals
@@ -1188,13 +1180,6 @@ gets invisible.
 @item start_at_line_beg
 Non-@code{nil} means current value of @code{start} was the beginning of a line
 when it was chosen.
-
-@item too_small_ok
-Non-@code{nil} means don't delete this window for becoming ``too small.''
-
-@item height_fixed_p
-This field is temporarily set to 1 to fix the height of the selected
-window when the echo area is resized.
 
 @item use_time
 This is the last time that the window was selected.  The function
@@ -1223,18 +1208,10 @@ window was last updated.
 This window's vertical scroll bar.
 
 @item left_margin_width
-The width of the left margin in this window, or @code{nil} not to
-specify it (in which case the buffer's value of @code{left-margin-width}
-is used.
-
-@item right_margin_width
-Likewise for the right margin.
-
-@ignore
-@item last_mark_x
-@item last_mark_y
-???Not used.
-@end ignore
+@itemx right_margin_width
+The widths of the left and right margins in this window.  A value of
+@code{nil} means to use the buffer's value of @code{left-margin-width}
+or @code{right-margin-width}.
 
 @item window_end_pos
 This is computed as @code{z} minus the buffer position of the last glyph
@@ -1257,12 +1234,6 @@ onto the screen.
 @item redisplay_end_trigger
 If redisplay in this window goes beyond this buffer position, it runs
 the @code{redisplay-end-trigger-hook}.
-
-@ignore
-@item orig_height
-@item orig_top
-??? Are temporary storage areas.
-@end ignore
 
 @item cursor
 A structure describing where the cursor is in this window.
@@ -1359,7 +1330,6 @@ The associated buffer of the process.
 An integer, the operating system's process @acronym{ID}.
 
 @item childp
-
 A flag, non-@code{nil} if this is really a child process.
 It is @code{nil} for a network or serial connection.
 
@@ -1369,8 +1339,8 @@ process inserted into the buffer.  This is often but not always the end
 of the buffer.
 
 @item kill_without_query
-If this is non-@code{nil}, killing Emacs while this process is still
-running does not ask for confirmation about killing the process.
+If this is non-zero, killing Emacs while this process is still running
+does not ask for confirmation about killing the process.
 
 @item raw_status_low
 @itemx raw_status_high

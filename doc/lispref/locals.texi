@@ -88,11 +88,11 @@ Minor mode variables will not be listed here.
 @item ctl-arrow
 @xref{Usual Display}.
 
-@item cursor-type
-@xref{Cursor Parameters}.
-
 @item cursor-in-non-selected-windows
 @xref{Basic Windows}.
+
+@item cursor-type
+@xref{Cursor Parameters}.
 
 @item comment-column
 @xref{Comments,,, emacs, The GNU Emacs Manual}.
@@ -199,15 +199,11 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Scroll Bars}.
 
 @item scroll-down-aggressively
-@xref{Textual Scrolling}.
-
-@item scroll-up-aggressively
+@itemx scroll-up-aggressively
 @xref{Textual Scrolling}.
 
 @item selective-display
-@xref{Selective Display}.
-
-@item selective-display-ellipses
+@itemx selective-display-ellipses
 @xref{Selective Display}.
 
 @item tab-width

@@ -1,8 +1,16 @@
 2009-05-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* hooks.texi (Standard Hooks): Add abbrev-expand-functions.
+	Remove obsoleted pre-abbrev-expand-hook.
+
+	* locals.texi (Standard Buffer-Local Variables): Consolidate table
+	entries.
+
 	* internals.texi (Object Internals): Don't assume 32-bit machines
 	are the norm.
 	(Buffer Internals): Consolidate table entries for readability.
+	(Window Internals): Synch field names to window.h.
+	(Process Internals): Synch field names to process.h.
 
 2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
