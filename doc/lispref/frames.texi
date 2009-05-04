@@ -1178,11 +1178,11 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @cindex frames, scanning all
 
 @defun frame-list
-The function @code{frame-list} returns a list of all the frames that
-have not been deleted.  It is analogous to @code{buffer-list} for
-buffers, and includes frames on all terminals.  The list that you get is
-newly created, so modifying the list doesn't have any effect on the
-internals of Emacs.
+The function @code{frame-list} returns a list of all the live frames,
+i.e.@: those that have not been deleted.  It is analogous to
+@code{buffer-list} for buffers, and includes frames on all terminals.
+The list that you get is newly created, so modifying the list doesn't
+have any effect on the internals of Emacs.
 @end defun
 
 @defun visible-frame-list

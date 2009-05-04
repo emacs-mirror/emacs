@@ -1042,7 +1042,7 @@ Return WINDOW.  */)
 
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
-       doc: /* Return a list of all frames.  */)
+       doc: /* Return a list of all live frames.  */)
      ()
 {
   Lisp_Object frames;
