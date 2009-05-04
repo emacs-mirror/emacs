@@ -403,7 +403,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
-MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 ### Install the executables that were compiled specifically for this machine.
 ### It would be nice to do something for a parallel make

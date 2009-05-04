@@ -220,7 +220,7 @@ leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
-MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
