@@ -1312,8 +1312,8 @@ extraclean: distclean
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
 
-ctagsfiles1 = [xyzXYZ]*.[hc]
-ctagsfiles2 = [a-wA-W]*.[hc]
+ctagsfiles1 = [xyzXYZ]*.[hcm]
+ctagsfiles2 = [a-wA-W]*.[hcm]
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	../lib-src/etags --include=TAGS-LISP --include=${lwlibdir}/TAGS \

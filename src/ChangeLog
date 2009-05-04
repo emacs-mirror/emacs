@@ -1,3 +1,7 @@
+2009-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (ctagsfiles1, ctagsfiles2): Include ObjC files in TAGS.
+
 2009-05-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xterm.c (x_handle_net_wm_state): Move declaration of lval before
