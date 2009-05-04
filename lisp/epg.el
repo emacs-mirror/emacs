@@ -1176,6 +1176,7 @@ This function is for internal use only."
   "Wait until the `epg-gpg-program' process completes."
   (while (eq (process-status (epg-context-process context)) 'run)
     (accept-process-output (epg-context-process context) 1))
+  ;; This line is needed to run the process-filter right now.
   (sleep-for 0.1))
 
 (defun epg-reset (context)
