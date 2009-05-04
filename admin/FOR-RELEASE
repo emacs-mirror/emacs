@@ -190,14 +190,14 @@ frames.texi       -- cyd
 functions.texi    -- cyd
 hash.texi         -- cyd
 help.texi         -- cyd
-hooks.texi
+hooks.texi        -- cyd
 index.texi
-internals.texi
+internals.texi    -- cyd
 intro.texi        -- cyd
 keymaps.texi      -- cyd
 lists.texi        -- cyd
 loading.texi      -- cyd
-locals.texi
+locals.texi       -- cyd
 macros.texi       -- cyd
 maps.texi
 markers.texi      -- cyd
