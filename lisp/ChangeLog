@@ -1,3 +1,7 @@
+2009-05-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* vc-svn.el (vc-svn-parse-status): ?D is for removed files (bug#3213).
+
 2009-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-delete-file): Add autoload cookie (bug#3209).
