@@ -1,3 +1,7 @@
+2009-05-05  Per Starbäck  <per@starback.se>  (tiny change)
+
+	* trouble.texi (Lossage): Use new binding of view-emacs-problems.
+
 2009-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* building.texi (Lisp Libraries): `load-library' does offer completion.

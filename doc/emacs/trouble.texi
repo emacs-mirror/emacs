@@ -139,7 +139,7 @@ normally, and how to recognize them and correct them.  For a list of
 additional problems you might encounter, see @ref{Bugs and problems, ,
 Bugs and problems, efaq, GNU Emacs FAQ}, and the file @file{etc/PROBLEMS}
 in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
-@kbd{C-h C-e} to read the @file{PROBLEMS} file.
+@kbd{C-h C-p} to read the @file{PROBLEMS} file.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
