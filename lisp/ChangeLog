@@ -1,3 +1,7 @@
+2009-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-delete-file): Add autoload cookie (bug#3209).
+
 2009-05-04  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bindat.el (bindat-pack): Allocate and set a string

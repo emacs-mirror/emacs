@@ -2138,6 +2138,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	      (throw 'found f)))
        (error "New file lacks a version control directory")))))
 
+;;;###autoload
 (defun vc-delete-file (file)
   "Delete file and mark it as such in the version control system."
   (interactive "fVC delete file: ")
