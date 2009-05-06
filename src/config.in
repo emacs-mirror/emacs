@@ -990,11 +990,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_MOUSE
 #endif
 
-/* Sadly for now, GNUstep dump does not work.  */
-#ifdef NS_IMPL_GNUSTEP
-#define CANNOT_DUMP
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
