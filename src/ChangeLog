@@ -1,3 +1,7 @@
+2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nsterm.m (-windowDidResize:): Avoid inf-loop under GNUStep.
+
 2009-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.h (add_user_signal): Fix typo in extern.
