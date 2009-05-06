@@ -67,6 +67,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>markdown</string>
+				<string>mkdn</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>document.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Markdown document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
 				<string>css</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
