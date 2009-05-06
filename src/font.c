@@ -3655,6 +3655,23 @@ font_update_drivers (f, new_drivers)
 	  next = &(*next)->next;
 	}
       *next = NULL;
+
+      if (! f->font_driver_list->on)
+	{ /* None of the drivers is enabled: enable them all.
+	     Happens if you set the list of drivers to (xft x) in your .emacs
+	     and then use it under w32 or ns.  */
+	  for (list = f->font_driver_list; list; list = list->next)
+	    {
+	      struct font_driver *driver = list->driver;
+	      eassert (! list->on);
+	      if (! driver->start_for_frame
+		  || driver->start_for_frame (f) == 0)
+		{
+		  font_prepare_cache (f, driver);
+		  list->on = 1;
+		}
+	    }
+	}
     }
 
   for (list = f->font_driver_list; list; list = list->next)
