@@ -191,18 +191,18 @@ each dimension is no longer limited to 94 or 96.
 
 **** A dynamic charset priority list is used to infer the charset of
 characters for display.
-
++++
 *** There are new language environments for Chinese-GBK,
 Chinese-GB18030, Khmer, Bengali, Punjabi, Gujarati, Oriya, Telugu,
 Sinhala, and TaiViet.
-
++++
 *** The minor modes unify-8859-on-encoding-mode and
 unify-8859-on-decoding-mode are obsolete.
-
++++
 *** `ucs-insert' is bound to `C-x 8 RET' and in addition to hex numbers
 accepts numbers in hash notation (e.g. #o21430 for octal, or #10r8984 for
 decimal).  It also accepts Unicode character names with completion.
-
+---
 *** The `cyrillic-translit' input method supports many new characters.
 Common typographical characters available from Unicode were added to
 `cyrillic-translit': punctuation marks, accented characters, fractions,
@@ -1268,14 +1268,14 @@ Use the new function font-family-list (see Lisp Changes, below).
 ** Internationalization changes
 
 *** The value of the function `charset-id' is now always 0.
-
++++
 *** The functions `register-char-codings' and `coding-system-spec'
 have been removed.
-
++++
 *** The cpXXX coding systems are now supported automatically.
 The functions cp-...-codepage, which you had to use in Emacs 22 to
 enable support for these coding systems, have been deleted.
-
+---
 *** The following features have been removed.  They were used for
 displaying various scripts with specific fonts, and are no longer
 needed now that OpenType font support is available:
