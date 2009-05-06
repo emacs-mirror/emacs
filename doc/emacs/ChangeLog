@@ -1,3 +1,19 @@
+2009-05-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* basic.texi (Inserting Text): Document ucs-insert.
+
+	* mule.texi (International Chars): Define "multibyte".  Note that
+	internal representation is unicode-based.  Simplify definition of raw
+	bytes.  Mention ucs-insert.
+	(Enabling Multibyte): Remove obsolete discussion.  Copyedits.
+	(Language Environments): Add language environments new to Emacs 23.
+	(Multibyte Conversion): Node deleted.
+	(Coding Systems): Remove obsolete unify-8859-on-decoding-mode.  Don't
+	mention obsolete emacs-mule coding system.
+	(Output Coding): Copyedits.
+
+	* emacs.texi (Top): Update node listing.
+
 2009-05-05  Per Starbäck  <per@starback.se>  (tiny change)
 
 	* trouble.texi (Lossage): Use new binding of view-emacs-problems.
