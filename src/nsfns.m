@@ -203,46 +203,32 @@ ns_get_window (Lisp_Object maybeFrame)
 
 
 static NSScreen *
-ns_get_screen (Lisp_Object anythingUnderTheSun)
+ns_get_screen (Lisp_Object screen)
 {
-  id window =nil;
-  NSScreen *screen = 0;
-
-  struct terminal *terminal;
-  struct ns_display_info *dpyinfo;
-  struct frame *f = NULL;
-  Lisp_Object frame;
-
-  if (INTEGERP (anythingUnderTheSun)) {
-    /* we got a terminal */
-    terminal = get_terminal (anythingUnderTheSun, 1);
-    dpyinfo = terminal->display_info.ns;
-    f = dpyinfo->x_focus_frame;
-    if (!f)
-      f = dpyinfo->x_highlight_frame;
-
-  } else if (FRAMEP (anythingUnderTheSun) &&
-             FRAME_NS_P (XFRAME (anythingUnderTheSun))) {
-    /* we got a frame */
-    f = XFRAME (anythingUnderTheSun);
-
-  } else if (STRINGP (anythingUnderTheSun)) { /* FIXME/cl for multi-display */
-  }
-
-  if (!f)
-    f = SELECTED_FRAME ();
-  if (f)
+  struct terminal *terminal = get_terminal (screen, 1);
+  if (terminal->type != output_ns)
+    // Not sure if this special case for nil is needed.  It does seem to be
+    // important in xfns.c for the make-frame call in frame-initialize,
+    // so let's keep it here for now.
+    return (NILP (screen) ? [NSScreen mainScreen] : NULL);
+  else
     {
-      XSETFRAME (frame, f);
-      window = ns_get_window (frame);
+      struct ns_display_info *dpyinfo = terminal->display_info.ns;
+      struct frame *f = dpyinfo->x_focus_frame;
+      if (!f)
+	f = dpyinfo->x_highlight_frame;
+      if (!f)
+	return NULL;
+      else
+	{
+	  id window = nil;
+	  Lisp_Object frame;
+	  eassert (FRAME_NS_P (f));
+	  XSETFRAME (frame, f);
+	  window = ns_get_window (frame);
+	  return window ? [window screen] : NULL;
+	}
     }
-
-  if (window)
-    screen = [window screen];
-  if (!screen)
-    screen = [NSScreen mainScreen];
-
-  return screen;
 }
 
 

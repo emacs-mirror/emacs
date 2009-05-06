@@ -1,5 +1,8 @@
 2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nsfns.m (ns_get_screen): Rewrite.
+	Don't presume selected-frame is of type `ns'.
+
 	* font.c (font_update_drivers): Sanity fallback to avoid disabling
 	all drivers.
 
