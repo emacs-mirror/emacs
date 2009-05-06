@@ -4491,7 +4491,7 @@ struct input_event last_timer_event;
 
 /* List of elisp functions to call, delayed because they were generated in
    a context where Elisp could not be safely run (e.g. redisplay, signal,
-   ...).  Each lement has the form (FUN . ARGS).  */
+   ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
 
 extern Lisp_Object Qapply;
@@ -11711,6 +11711,7 @@ void
 syms_of_keyboard ()
 {
   pending_funcalls = Qnil;
+  staticpro (&pending_funcalls);
 
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
