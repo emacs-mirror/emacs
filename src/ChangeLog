@@ -1,5 +1,10 @@
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
+	* nsterm.m (ns_dumpglyphs_stretch,ns_dumpglyphs_image):
+	respect mouse face background.
+
+2009-05-07  David Reitter  <david.reitter@gmail.com>
+
 	* nsterm.m (note_mouse_movement,ns_frame_up_to_date):
 	mouse movement/highlight: bracket drawing operations
 	in ns_update_begin and ns_update_end.
