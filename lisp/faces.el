@@ -1924,7 +1924,14 @@ Value is the new parameter list."
   (let* ((name (or (cdr (assq 'name parameters))
 		   (cdr (assq 'name default-frame-alist))))
 	 (x-resource-name name)
-	 (res-geometry (if name (x-get-resource "geometry" "Geometry"))))
+	 (res-geometry (when name
+			 ;; FIXME: x-get-resource fails if the X
+			 ;; connection is not open, e.g. if we call
+			 ;; make-frame-on-display.  We should detect
+			 ;; this case here, and open the connection.
+			 ;; (Bug#3194).
+			 (ignore-errors
+			   (x-get-resource "geometry" "Geometry")))))
     (when res-geometry
       (let ((parsed (x-parse-geometry res-geometry)))
 	;; If the resource specifies a position, call the position

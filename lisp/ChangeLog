@@ -1,3 +1,9 @@
+2009-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (x-handle-named-frame-geometry): Ignore errors from
+	x-get-resource due to not yet opened X connection.  This is a
+	temporary workaround for Bug#3194.
+
 2009-05-05  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* vc-svn.el (vc-svn-parse-status): ?D is for removed files (bug#3213).
