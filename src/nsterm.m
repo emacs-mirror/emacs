@@ -1752,9 +1752,11 @@ note_mouse_movement (struct frame *frame, float x, float y)
       y < last_mouse_glyph.origin.y ||
       y >= (last_mouse_glyph.origin.y + last_mouse_glyph.size.height))
     {
+      ns_update_begin(frame);
       frame->mouse_moved = 1;
       note_mouse_highlight (frame, x, y);
       remember_mouse_glyph (frame, x, y, &last_mouse_glyph);
+      ns_update_end(frame);
       return 1;
     }
 
@@ -1856,11 +1858,13 @@ ns_frame_up_to_date (struct frame *f)
       /*&& dpyinfo->mouse_face_mouse_frame*/)
         {
           BLOCK_INPUT;
+         ns_update_begin(f);
           if (dpyinfo->mouse_face_mouse_frame)
             note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
                                   dpyinfo->mouse_face_mouse_x,
                                   dpyinfo->mouse_face_mouse_y);
           dpyinfo->mouse_face_deferred_gc = 0;
+         ns_update_end(f);
           UNBLOCK_INPUT;
         }
     }
