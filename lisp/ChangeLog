@@ -1,3 +1,18 @@
+2009-05-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (split-window-sensibly): New function.
+	(split-height-threshold, split-width-threshold): State in
+	doc-string that these affect split-window-sensibly.  Change
+	customization subtype from number to integer.
+	(window--splittable-p): Rename to window-splittable-p since it's
+	referred to in doc-string of split-window-sensibly.  Update
+	doc-string.
+	(window--try-to-split-window): Unconditionally call
+	split-window-preferred-function and move splitting functionality
+	to split-window-sensibly (Bug#3142).
+	(split-window-preferred-function): Rewrite doc-string.  Don't
+	allow nil as customization type.
+
 2009-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (x-handle-named-frame-geometry): Ignore errors from
