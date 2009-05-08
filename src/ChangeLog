@@ -1,11 +1,3 @@
-2009-05-08  Kenichi Handa  <handa@m17n.org>
-
-	* xfont.c (xfont_check_char_support)
-	(xfont_check_registry_char_support): New functions.
-	(xfont_list_pattern): Delete unused arg FRAME, add arg CHARS.
-	Callers adjusted.
-	(xfont_list): Handle :script property.
-
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_dumpglyphs_stretch,ns_dumpglyphs_image):
