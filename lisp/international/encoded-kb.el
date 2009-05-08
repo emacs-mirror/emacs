@@ -262,6 +262,14 @@ The following key sequence may cause multilingual text insertion."
 	(setq i (1+ i))))
     8)
 
+   ((eq (coding-system-type coding) 'big5)
+    (let ((i 128))
+      (while (< i 256)
+	(define-key keymap
+	  (vector i) 'encoded-kbd-self-insert-big5)
+	(setq i (1+ i))))
+    8)
+
    ((eq (coding-system-type coding) 'charset)
     (dolist (elt (mapcar
 		  #'(lambda (x) 
