@@ -448,6 +448,7 @@ meanings of these arguments."
 	       (princ " (text with random binary characters)"))
 	      ((eq type 'emacs-mule)
 	       (princ " (Emacs 21 internal encoding)"))
+	      ((eq type 'big5))
 	      (t (princ ": invalid coding-system.")))
 	(princ "\nEOL type: ")
 	(let ((eol-type (coding-system-eol-type coding-system)))
