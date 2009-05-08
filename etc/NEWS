@@ -1426,27 +1426,25 @@ value of `current-time' before and after Emacs loads the init files.
 Emacs initialization.
 
 ** Changes affecting display-buffer
-
 +++
-*** New value nil for split-height-threshold inhibits vertical splitting
-unless there's no other window.
-
-+++
-*** New option split-width-threshold controls horizontal splitting.
-
-+++
-*** A window can be split horizontally even when it's not full-width.
-
-+++
-*** New option split-window-preferred-function can be set to a function
-to override the default splitting mechanism of display-buffer.
+*** display-buffer tries to be smarter when splitting windows.
+The new option split-window-preferred-function lets you specify your own
+function to pop up new windows.  Its default value split-window-sensibly
+can split a window either vertically or horizontally, whichever seems
+more suitable in the current configuration.  You can tune the behavior
+of split-window-sensibly by customizing split-height-threshold and the
+new option split-width-threshold.  Both options now take the value nil
+to inhibit splitting in one direction.  Setting split-width-threshold to
+nil inhibits horizontal splitting and gets you the behavior of Emacs 22
+in this respect.  In any case, display-buffer may now split the largest
+window vertically even when it is not as wide as the containing frame.
 
 +++
 *** If pop-up-frames has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
 
 +++
-*** select-frame and set-frame-selected-window have new optional
+*** select-frame and set-frame-selected-window have a new optional
 argument NORECORD.  If non-nil, this will avoid messing with the order
 of recently selected windows and the buffer list.
 
