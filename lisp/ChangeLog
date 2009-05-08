@@ -1,3 +1,11 @@
+2009-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix for
+	big5.
+
+	* international/mule-diag.el (describe-coding-system): Fix for
+	big5.
+
 2009-05-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (split-window-sensibly): New function.
