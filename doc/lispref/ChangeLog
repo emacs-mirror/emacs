@@ -1,3 +1,10 @@
+2009-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Document
+	find-auto-coding, set-auto-coding, and auto-coding-alist.  Add
+	indexing.
+	(Lisp and Coding Systems): Add index entries.
+
 2009-05-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Choosing Window): Describe split-window-sensibly
