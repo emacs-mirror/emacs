@@ -956,63 +956,84 @@ window.  If the buffer is not already displayed, or
 
 @defopt pop-up-windows
 This variable specifies whether @code{display-buffer} is allowed to
-split (@pxref{Splitting Windows}) an existing window .  If it is
-non-@code{nil}, @code{display-buffer} tries to split the largest
-or least recently used window on the selected frame.  (If the selected
-frame is a minibuffer-only frame, it tries to split a window on
-another frame instead.)  If @code{pop-up-windows} is @code{nil} or the
+split (@pxref{Splitting Windows}) an existing window.  If this variable
+is non-@code{nil}, @code{display-buffer} tries to split the largest or
+least recently used window on the selected frame.  (If the selected
+frame is a minibuffer-only frame, @code{display-buffer} tries to split a
+window on another frame instead.)  If this variable is @code{nil} or the
 variable @code{pop-up-frames} (see below) is non-@code{nil},
 @code{display-buffer} does not split any window.
 @end defopt
 
 @defvar split-window-preferred-function
-This variable specifies how to split a window.  Its value, if
-non-@code{nil}, should be a function of one argument, which is a
-window.  If this variable specifies a function, @code{display-buffer}
-will call it with one or more candidate windows when it looks for a
-window to split.  If the argument window fits, the function is
-expected to split it and return a new window.  If the function returns
-@code{nil}, the argument window will not be split.
+This variable must specify a function with one argument, which is a
+window.  The @code{display-buffer} routines will call this function with
+one or more candidate windows when they look for a window to split.  The
+function is expected to split that window and return the new window.  If
+the function returns @code{nil}, this means that the argument window
+cannot (or shall not) be split.
 
-If the value of this variable is @code{nil}, @code{display-buffer}
-uses the two variables described next to decide whether and which
-window to split.
+The default value of @code{split-window-preferred-function} is the
+function @code{split-window-sensibly} described below.  When you
+customize this option, bear in mind that the @code{display-buffer}
+routines may call your function up to two times when trying to split a
+window.  The argument of the first call is the largest window on the
+chosen frame (as returned by @code{get-largest-window}).  If that call
+fails to return a live window, your function is called a second time
+with the least recently used window on that frame (as returned by
+@code{get-lru-window}).
+
+The function assigned to this option may also try to split any other
+window instead of the argument window.  Note that the window selected at
+the time @code{display-buffer} was invoked is still selected when your
+function is called.  Hence, you can split the selected window (instead
+of the largest or least recently used one) by simply ignoring the window
+argument in the body of your function.  You can even choose to not split
+any window as long as the return value of your function specifies a live
+window or nil, but you are not encouraged to do so unconditionally.  If
+you want @code{display-buffer} to never split any windows, set
+@code{pop-up-windows} to @code{nil}.
 @end defvar
 
-@defopt split-height-threshold
-This variable specifies whether @code{display-buffer} may split a window
-vertically, provided there are multiple windows.  If the value is a
-number, @code{display-buffer} splits a window only if it has at least
-this many lines.  If no window is tall enough, or if the value of this
-variable is @code{nil}, @code{display-buffer} tries to split some window
-horizontally, subject to restrictions of @code{split-width-threshold}
-(see below).  If splitting horizontally is impossible too,
-@code{display-buffer} splits a window vertically only if it's the only
-window on its frame and not the minibuffer window, and only if
-@code{pop-up-windows} is non-@code{nil}.
+@defun split-window-sensibly
+This function takes a window as argument and tries to split that window
+in a suitable way.  The two variables described next are useful for
+tuning the behavior of this function.
+@end defun
 
-A window whose height is fixed (@pxref{Resizing Windows}) cannot be
-split vertically by @code{display-buffer}.  Also, @code{display-buffer}
-splits a window vertically only if it can accommodate two windows that
-are both at least `window-min-height' lines tall.  Moreover, if the
-window that shall be split has a mode line, the window must be at least
-four lines tall in order to make sure that the new window can have a
-mode line as well.  If the original window doesn't have a mode line, a
-height of two lines suffices.
+@defopt split-height-threshold
+This variable specifies whether @code{split-window-sensibly} may split
+its argument window vertically.  If this variable is set to an integer,
+@code{split-window-sensibly} splits the window only if it has at least
+this many lines.  If the value of this variable is @code{nil},
+@code{split-window-sensibly} tries to split the window horizontally,
+subject to restrictions of @code{split-width-threshold} (see below).  If
+splitting horizontally fails too, @code{split-window-sensibly} will try
+to split the window vertically disregarding the value of this variable.
+
+@code{split-window-sensibly} does not split a window vertically whose
+height is fixed (@pxref{Resizing Windows}).  Moreover, it splits a
+window vertically only if the space taken up by that window can
+accommodate two windows one above the other that are both at least
+@code{window-min-height} lines tall.  Finally, if the window that shall
+be split has a mode line, @code{split-window-sensibly} makes sure that
+the new window can accomodate a mode line as well.
 @end defopt
 
 @defopt split-width-threshold
-This variable specifies whether @code{display-buffer} may split a window
-horizontally.  If the value is a number, @code{display-buffer} may split
-a window if it has at least this many columns.  If the value of this
-variable is @code{nil}, @code{display-buffer} will not split any windows
-horizontally.  (It still might split some window vertically, though, see
+This variable specifies whether @code{split-window-sensibly} may split
+its argument window horizontally.  If this variable is set to an
+integer, @code{split-window-sensibly} splits the window only if it has
+at least this many columns.  If the value of this variable is
+@code{nil}, @code{split-window-sensibly} will not split the window
+horizontally.  (It still might split the window vertically, though, see
 above.)
 
-A window whose width is fixed (@pxref{Resizing Windows}) cannot be split
-horizontally by @code{display-buffer}.  Also, @code{display-buffer}
-splits a window horizontally only if it can accommodate two windows that
-are both at least `window-min-width' columns wide.
+@code{split-window-sensibly} does not split a window horizontally if
+that window's width is fixed (@pxref{Resizing Windows}).  Also, it
+splits a window horizontally only if the space that window takes up can
+accommodate two windows side by side that are both at least
+@code{window-min-width} columns wide.
 @end defopt
 
 @defopt even-window-heights
@@ -1535,9 +1556,9 @@ window.  @xref{Current Buffer}.
 
   If the window contains a row which is taller than the height of the
 window (for example in the presence of a large image), the scroll
-functions will adjust the window vscroll to scroll the partially
-visible row.  To disable this feature, Lisp code may bind the variable
-`auto-window-vscroll' to @code{nil} (@pxref{Vertical Scrolling}).
+functions will adjust the window vscroll to scroll the partially visible
+row.  To disable this feature, Lisp code may bind the variable
+@code{auto-window-vscroll} to @code{nil} (@pxref{Vertical Scrolling}).
 
 @deffn Command scroll-up &optional count
 This function scrolls the text in the selected window upward

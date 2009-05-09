@@ -1,3 +1,9 @@
+2009-05-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Describe split-window-sensibly
+	and rewrite section on window splitting accordingly.
+	(Textual Scrolling): Replace `...' by @code{...}.
+
 2009-05-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hooks.texi (Standard Hooks): Add abbrev-expand-functions.
