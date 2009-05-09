@@ -1001,6 +1001,7 @@ new file name for that buffer.
 
   Here are the Lisp facilities for working with coding systems:
 
+@cindex list all coding systems
 @defun coding-system-list &optional base-only
 This function returns a list of all coding system names (symbols).  If
 @var{base-only} is non-@code{nil}, the value includes only the
@@ -1013,6 +1014,8 @@ This function returns @code{t} if @var{object} is a coding system
 name or @code{nil}.
 @end defun
 
+@cindex validity of coding system
+@cindex coding system, validity check
 @defun check-coding-system coding-system
 This function checks the validity of @var{coding-system}.  If that is
 valid, it returns @var{coding-system}.  If @var{coding-system} is
@@ -1021,6 +1024,7 @@ signals an error whose @code{error-symbol} is @code{coding-system-error}
 (@pxref{Signaling Errors, signal}).
 @end defun
 
+@cindex eol type of coding system
 @defun coding-system-eol-type coding-system
 This function returns the type of end-of-line (a.k.a.@: @dfn{eol})
 conversion used by @var{coding-system}.  If @var{coding-system}
@@ -1047,6 +1051,7 @@ taken from the appropriate default coding system (e.g.,
 appropriate for the underlying platform.
 @end defun
 
+@cindex eol conversion of coding system
 @defun coding-system-change-eol-conversion coding-system eol-type
 This function returns a coding system which is like @var{coding-system}
 except for its eol conversion, which is specified by @code{eol-type}.
@@ -1058,6 +1063,7 @@ the end-of-line conversion from the data.
 @code{dos} and @code{mac}, respectively.
 @end defun
 
+@cindex text conversion of coding system
 @defun coding-system-change-text-conversion eol-coding text-coding
 This function returns a coding system which uses the end-of-line
 conversion of @var{eol-coding}, and the text conversion of
@@ -1065,6 +1071,8 @@ conversion of @var{eol-coding}, and the text conversion of
 @code{undecided}, or one of its variants according to @var{eol-coding}.
 @end defun
 
+@cindex safely encode region
+@cindex coding systems for encoding region
 @defun find-coding-systems-region from to
 This function returns a list of coding systems that could be used to
 encode a text between @var{from} and @var{to}.  All coding systems in
@@ -1075,6 +1083,8 @@ If the text contains no multibyte characters, the function returns the
 list @code{(undecided)}.
 @end defun
 
+@cindex safely encode a string
+@cindex coding systems for encoding a string
 @defun find-coding-systems-string string
 This function returns a list of coding systems that could be used to
 encode the text of @var{string}.  All coding systems in the list can
@@ -1083,6 +1093,8 @@ contains no multibyte characters, this returns the list
 @code{(undecided)}.
 @end defun
 
+@cindex charset, coding systems to encode
+@cindex safely encode characters in a charset
 @defun find-coding-systems-for-charsets charsets
 This function returns a list of coding systems that could be used to
 encode all the character sets in the list @var{charsets}.
@@ -1130,6 +1142,7 @@ This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
+@cindex null bytes, and decoding text
 @defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows to
@@ -1146,6 +1159,7 @@ encoding, and all escape sequences become visible in a buffer.
 because many files in the Emacs distribution use ISO-2022 encoding.}
 @end defvar
 
+@cindex charsets supported by a coding system
 @defun coding-system-charset-list coding-system
 This function returns the list of character sets (@pxref{Character
 Sets}) supported by @var{coding-system}.  Some coding systems that
@@ -1255,6 +1269,8 @@ the user tries to enter null input, it asks the user to try again.
 
 @node Default Coding Systems
 @subsection Default Coding Systems
+@cindex default coding system
+@cindex coding system, automatically determined
 
   This section describes variables that specify the default coding
 system for certain files or when running certain subprograms, and the
@@ -1267,6 +1283,7 @@ don't change these variables; instead, override them using
 @code{coding-system-for-read} and @code{coding-system-for-write}
 (@pxref{Specifying Coding Systems}).
 
+@cindex file contents, and default coding system
 @defvar auto-coding-regexp-alist
 This variable is an alist of text patterns and corresponding coding
 systems. Each element has the form @code{(@var{regexp}
@@ -1279,6 +1296,7 @@ so that Emacs automatically recognizes mail files in Babyl format and
 reads them with no code conversions.
 @end defvar
 
+@cindex file name, and default coding system
 @defvar file-coding-system-alist
 This variable is an alist that specifies the coding systems to use for
 reading and writing particular files.  Each element has the form
@@ -1304,6 +1322,14 @@ If @var{coding} (or what returned by the above function) is
 @code{undecided}, the normal code-detection is performed.
 @end defvar
 
+@defvar auto-coding-alist
+This variable is an alist that specifies the coding systems to use for
+reading and writing particular files.  Its form is like that of
+@code{file-coding-system-alist}, but, unlike the latter, this variable
+takes priority over any @code{coding:} tags in the file.
+@end defvar
+
+@cindex program name, and default coding system
 @defvar process-coding-system-alist
 This variable is an alist specifying which coding systems to use for a
 subprocess, depending on which program is running in the subprocess.  It
@@ -1327,6 +1353,8 @@ coding system which determines both the character code conversion and
 the end of line conversion---that is, one like @code{latin-1-unix},
 rather than @code{undecided} or @code{latin-1}.
 
+@cindex port number, and default coding system
+@cindex network service name, and default coding system
 @defvar network-coding-system-alist
 This variable is an alist that specifies the coding system to use for
 network streams.  It works much like @code{file-coding-system-alist},
@@ -1346,6 +1374,7 @@ The value should be a cons cell of the form @code{(@var{input-coding}
 the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
+@cindex default coding system, functions to determine
 @defvar auto-coding-functions
 This variable holds a list of functions that try to determine a
 coding system for a file based on its undecoded contents.
@@ -1361,6 +1390,39 @@ Otherwise, it should return @code{nil}.
 If a file has a @samp{coding:} tag, that takes precedence, so these
 functions won't be called.
 @end defvar
+
+@defun find-auto-coding filename size
+This function tries to determine a suitable coding system for
+@var{filename}.  It examines the buffer visiting the named file, using
+the variables documented above in sequence, until it finds a match for
+one of the rules specified by these variables.  It then returns a cons
+cell of the form @code{(@var{coding} . @var{source})}, where
+@var{coding} is the coding system to use and @var{source} is a symbol,
+one of @code{auto-coding-alist}, @code{auto-coding-regexp-alist},
+@code{:coding}, or @code{auto-coding-functions}, indicating which one
+supplied the matching rule.  The value @code{:coding} means the coding
+system was specified by the @code{coding:} tag in the file
+(@pxref{Specify Coding,, coding tag, emacs, The GNU Emacs Manual}).
+The order of looking for a matching rule is @code{auto-coding-alist}
+first, then @code{auto-coding-regexp-alist}, then the @code{coding:}
+tag, and lastly @code{auto-coding-functions}.  If no matching rule was
+found, the function returns @code{nil}.
+
+The second argument @var{size} is the size of text, in characters,
+following point.  The function examines text only within @var{size}
+characters after point.  Normally, the buffer should be positioned at
+the beginning when this function is called, because one of the places
+for the @code{coding:} tag is the first one or two lines of the file;
+in that case, @var{size} should be the size of the buffer.
+@end defun
+
+@defun set-auto-coding filename size
+This function returns a suitable coding system for file
+@var{filename}.  It uses @code{find-auto-coding} to find the coding
+system.  If no coding system could be determined, the function returns
+@code{nil}.  The meaning of the argument @var{size} is like in
+@code{find-auto-coding}.
+@end defun
 
 @defun find-operation-coding-system operation &rest arguments
 This function returns the coding system to use (by default) for
