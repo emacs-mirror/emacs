@@ -1,3 +1,7 @@
+2009-05-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Ftranspose_regions): Doc fix (Bug#3248).
+
 2009-05-10  Ulrich Mueller  <ulm@gentoo.org>
 
 	* s/gnu-linux.h: Make GCPROs and UNGCPRO no-ops also on SuperH.
