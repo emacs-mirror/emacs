@@ -974,7 +974,7 @@ the function returns @code{nil}, this means that the argument window
 cannot (or shall not) be split.
 
 The default value of @code{split-window-preferred-function} is the
-function @code{split-window-sensibly} described below.  When you
+function @code{split-window-sensibly} described below.  If you
 customize this option, bear in mind that the @code{display-buffer}
 routines may call your function up to two times when trying to split a
 window.  The argument of the first call is the largest window on the
@@ -983,55 +983,59 @@ fails to return a live window, your function is called a second time
 with the least recently used window on that frame (as returned by
 @code{get-lru-window}).
 
-The function assigned to this option may also try to split any other
-window instead of the argument window.  Note that the window selected at
-the time @code{display-buffer} was invoked is still selected when your
+The function specified by this option may try to split any other window
+instead of the argument window.  Note that the window selected at the
+time @code{display-buffer} was invoked is still selected when your
 function is called.  Hence, you can split the selected window (instead
 of the largest or least recently used one) by simply ignoring the window
 argument in the body of your function.  You can even choose to not split
 any window as long as the return value of your function specifies a live
-window or nil, but you are not encouraged to do so unconditionally.  If
-you want @code{display-buffer} to never split any windows, set
-@code{pop-up-windows} to @code{nil}.
+window or @code{nil}, but you are not encouraged to do so
+unconditionally.  If you want @code{display-buffer} to never split any
+windows, set @code{pop-up-windows} to @code{nil}.
 @end defvar
 
-@defun split-window-sensibly
+@defun split-window-sensibly window
 This function takes a window as argument and tries to split that window
 in a suitable way.  The two variables described next are useful for
 tuning the behavior of this function.
 @end defun
 
 @defopt split-height-threshold
-This variable specifies whether @code{split-window-sensibly} may split
-its argument window vertically.  If this variable is set to an integer,
-@code{split-window-sensibly} splits the window only if it has at least
-this many lines.  If the value of this variable is @code{nil},
-@code{split-window-sensibly} tries to split the window horizontally,
-subject to restrictions of @code{split-width-threshold} (see below).  If
-splitting horizontally fails too, @code{split-window-sensibly} will try
-to split the window vertically disregarding the value of this variable.
+This variable specifies whether @code{split-window-sensibly} is allowed
+to vertically split the window passed to it as argument.  If the value
+of this variable is an integer, @code{split-window-sensibly} tries to
+vertically split that window only if it has at least this many lines.
+If the window has less lines, splitting fails, or the value of this
+variable is @code{nil}, @code{split-window-sensibly} will try to split
+the window horizontally, subject to restrictions of
+@code{split-width-threshold} (see below).  If splitting horizontally
+fails too and the window is the only window on its frame,
+@code{split-window-sensibly} will try to split the window vertically
+disregarding the value of @code{split-height-threshold}.  If this fails
+as well, @code{split-window-sensibly} returns @code{nil}.
 
-@code{split-window-sensibly} does not split a window vertically whose
-height is fixed (@pxref{Resizing Windows}).  Moreover, it splits a
-window vertically only if the space taken up by that window can
-accommodate two windows one above the other that are both at least
-@code{window-min-height} lines tall.  Finally, if the window that shall
-be split has a mode line, @code{split-window-sensibly} makes sure that
-the new window can accomodate a mode line as well.
+@code{split-window-sensibly} does not split vertically a window whose
+height is fixed (@pxref{Resizing Windows}).  Also, it vertically splits
+a window only if the space taken up by that window can accommodate two
+windows one above the other that are both at least
+@code{window-min-height} lines tall.  Moreover, if the window that shall
+be split has a mode line, @code{split-window-sensibly} does not split
+the window unless the new window can accomodate a mode line too.
 @end defopt
 
 @defopt split-width-threshold
-This variable specifies whether @code{split-window-sensibly} may split
-its argument window horizontally.  If this variable is set to an
-integer, @code{split-window-sensibly} splits the window only if it has
-at least this many columns.  If the value of this variable is
-@code{nil}, @code{split-window-sensibly} will not split the window
-horizontally.  (It still might split the window vertically, though, see
-above.)
+This variable specifies whether @code{split-window-sensibly} is allowed
+to horizontally split the window passed to it as argument.  If the value
+of this variable is an integer, @code{split-window-sensibly} tries to
+horizontally split that window only if it has at least this many
+columns.  If the value is @code{nil}, @code{split-window-sensibly} will
+not split the window horizontally.  (It still might split the window
+vertically, though, see above.)
 
-@code{split-window-sensibly} does not split a window horizontally if
+@code{split-window-sensibly} does not split horizontally a window if
 that window's width is fixed (@pxref{Resizing Windows}).  Also, it
-splits a window horizontally only if the space that window takes up can
+horizontally splits a window only if the space that window takes up can
 accommodate two windows side by side that are both at least
 @code{window-min-width} columns wide.
 @end defopt
