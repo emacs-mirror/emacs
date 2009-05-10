@@ -1,3 +1,7 @@
+2009-05-10  Ulrich Mueller  <ulm@gentoo.org>
+
+	* s/gnu-linux.h: Make GCPROs and UNGCPRO no-ops also on SuperH.
+
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_dumpglyphs_stretch,ns_dumpglyphs_image):
