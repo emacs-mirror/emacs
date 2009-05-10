@@ -1,3 +1,8 @@
+2009-05-07  David Reitter  <david.reitter@gmail.com>
+
+	* nsfns.m (Fx_display_planes): Compute bitplanes using
+	NSBitsPerPixelFromDepth (Bug#3207).
+
 2009-05-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Ftranspose_regions): Doc fix (Bug#3248).

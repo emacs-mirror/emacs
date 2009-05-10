@@ -2383,7 +2383,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   check_ns ();
   return make_number
-    (NSBitsPerSampleFromDepth ([ns_get_screen (display) depth]));
+    (NSBitsPerPixelFromDepth ([ns_get_screen (display) depth]));
 }
 
 
