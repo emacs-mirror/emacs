@@ -770,7 +770,7 @@ Obsolete.  Set 3rd element of `ido-decorations' instead."
 
 (defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]" " [Too big]" " [Confirm]")
   "List of strings used by ido to display the alternatives in the minibuffer.
-There are 10 elements in this list:
+There are 11 elements in this list:
 1st and 2nd elements are used as brackets around the prospect list,
 3rd element is the separator between prospects (ignored if `ido-separator' is set),
 4th element is the string inserted at the end of a truncated list of prospects,
@@ -4444,7 +4444,7 @@ For details of keybindings, see `ido-find-file'."
     (cond ((null comps)
 	   (cond
 	    (ido-show-confirm-message
-	     (or (nth 11 ido-decorations) " [Confirm]"))
+	     (or (nth 10 ido-decorations) " [Confirm]"))
 	    (ido-directory-nonreadable
 	     (or (nth 8 ido-decorations) " [Not readable]"))
 	    (ido-directory-too-big
