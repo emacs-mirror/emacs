@@ -768,7 +768,7 @@ Obsolete.  Set 3rd element of `ido-decorations' instead."
   :type '(choice string (const nil))
   :group 'ido)
 
-(defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]" " [Too big]")
+(defcustom ido-decorations '( "{" "}" " | " " | ..." "[" "]" " [No match]" " [Matched]" " [Not readable]" " [Too big]" " [Confirm]")
   "List of strings used by ido to display the alternatives in the minibuffer.
 There are 10 elements in this list:
 1st and 2nd elements are used as brackets around the prospect list,
@@ -779,7 +779,8 @@ can be completed using TAB,
 7th element is the string displayed when there are no matches, and
 8th element is displayed if there is a single match (and faces are not used),
 9th element is displayed when the current directory is non-readable,
-10th element is displayed when directory exceeds `ido-max-directory-size'."
+10th element is displayed when directory exceeds `ido-max-directory-size',
+11th element is displayed to confirm creating new file or buffer."
   :type '(repeat string)
   :group 'ido)
 
@@ -1081,6 +1082,9 @@ Value is an integer which is number of chars to right of prompt.")
 
 ;; Non-nil if matching file must be selected.
 (defvar ido-require-match)
+
+;; Non-nil if we should add [confirm] to prompt
+(defvar ido-show-confirm-message)
 
 ;; Stores a temporary version of the file list being created.
 (defvar ido-temp-list)
@@ -1803,10 +1807,6 @@ PROMPT is the prompt to give to the user.
 DEFAULT if given is the default item to start with.
 If REQUIRE-MATCH is non-nil, an existing file must be selected.
 If INITIAL is non-nil, it specifies the initial input string."
-  ;; Ido does not implement the `confirm' and
-  ;; `confirm-after-completion' values of REQUIRE-MATCH.
-  (if (memq require-match '(confirm confirm-after-completion))
-      (setq require-match nil))
   (let
       ((ido-cur-item item)
        (ido-entry-buffer (current-buffer))
@@ -1829,6 +1829,7 @@ If INITIAL is non-nil, it specifies the initial input string."
        (ido-case-fold ido-case-fold)
        (ido-enable-prefix ido-enable-prefix)
        (ido-enable-regexp ido-enable-regexp)
+       (ido-show-confirm-message nil)
        )
 
     (ido-setup-completion-map)
@@ -2067,6 +2068,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        ;; Handling the require-match must be done in a better way.
        ((and require-match
+	     (not (memq require-match '(confirm confirm-after-completion)))
 	     (not (if ido-directory-too-big
 		      (file-exists-p (concat ido-current-directory ido-final-text))
 		    (ido-existing-item-p))))
@@ -2158,7 +2160,9 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
-	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default nil initial)))
+	   (require-match (confirm-nonexistent-file-or-buffer))
+	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
+				   require-match initial)))
 
       ;; Choose the buffer name: either the text typed in, or the head
       ;; of the list of matches
@@ -2195,10 +2199,12 @@ If cursor is not at the end of the user input, move to end of input."
 	  (ido-visit-buffer buf method t)))
 
        ;; buffer doesn't exist
-       ((eq ido-create-new-buffer 'never)
+       ((and (eq ido-create-new-buffer 'never)
+	     (null require-match))
 	(message "No buffer matching `%s'" buf))
 
        ((and (eq ido-create-new-buffer 'prompt)
+	     (null require-match)
 	     (not (y-or-n-p (format "No buffer matching `%s', create one? " buf))))
 	nil)
 
@@ -2307,7 +2313,7 @@ If cursor is not at the end of the user input, move to end of input."
 					    (or prompt "Find file: ")
 					    'ido-file-history
 					    (and (eq method 'alt-file) buffer-file-name)
-					    nil initial))))
+					    (confirm-nonexistent-file-or-buffer) initial))))
 
       ;; Choose the file name: either the text typed in, or the head
       ;; of the list of matches
@@ -2681,6 +2687,12 @@ timestamp has not changed (e.g. with ftp or on Windows)."
   "Exit minibuffer, but make sure we have a match if one is needed."
   (interactive)
   (if (and (or (not ido-require-match)
+	       (if (memq ido-require-match '(confirm confirm-after-completion))
+		   (if (or (eq ido-cur-item 'dir)
+			   (eq last-command this-command))
+		       t
+		     (setq ido-show-confirm-message t)
+		     nil))
                (ido-existing-item-p))
            (not ido-incomplete-regexp))
       (exit-minibuffer)))
@@ -4398,6 +4410,7 @@ For details of keybindings, see `ido-find-file'."
 		    minibuffer-completion-table
 		    minibuffer-completion-predicate
 		    (not minibuffer-completion-confirm))))
+	  (setq ido-show-confirm-message nil)
 	  (ido-trace "inf" inf)
 	  (insert inf))
 	))))
@@ -4430,6 +4443,8 @@ For details of keybindings, see `ido-find-file'."
 
     (cond ((null comps)
 	   (cond
+	    (ido-show-confirm-message
+	     (or (nth 11 ido-decorations) " [Confirm]"))
 	    (ido-directory-nonreadable
 	     (or (nth 8 ido-decorations) " [Not readable]"))
 	    (ido-directory-too-big
