@@ -1,3 +1,15 @@
+2009-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Add proper support for confirm-nonexistent-file-or-buffer
+	values `confirm' and `confirm-after-completion'.
+	(ido-read-internal, ido-buffer-internal, ido-file-internal):
+	Setup and handle require-match arg according to c-n-f-o-b.
+	(ido-show-confirm-message): New dynamic variable.
+	(ido-exit-minibuffer): Request confirmation for non-existing file
+	or buffer according to confirm-nonexistent-file-or-buffer.
+	(ido-decorations): Add 11th element for "confirm" message.
+	(ido-completions): Show confirmation message when requested.
+
 2009-05-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix for
