@@ -1448,8 +1448,10 @@ lexical closures as in Common Lisp.
 ;;;###autoload
 (defmacro lexical-let* (bindings &rest body)
   "Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
+The main visible difference is that lambdas inside BODY, and in
+successive bindings within BINDINGS, will create lexical closures
+as in Common Lisp.  This is similar to the behavior of `let*' in
+Common Lisp.
 \n(fn VARLIST BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
