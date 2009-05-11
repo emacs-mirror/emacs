@@ -1002,13 +1002,12 @@ tuning the behavior of this function.
 @end defun
 
 @defopt split-height-threshold
-This variable specifies whether @code{split-window-sensibly} is allowed
-to vertically split the window passed to it as argument.  If the value
-of this variable is an integer, @code{split-window-sensibly} tries to
-vertically split that window only if it has at least this many lines.
-If the window has less lines, splitting fails, or the value of this
-variable is @code{nil}, @code{split-window-sensibly} will try to split
-the window horizontally, subject to restrictions of
+This variable specifies whether @code{split-window-sensibly} may split
+windows vertically.  If it is an integer, @code{split-window-sensibly}
+tries to vertically split a window only if it has at least this many
+lines.  If the window has less lines, splitting fails, or the value of
+this variable is @code{nil}, @code{split-window-sensibly} will try to
+split the window horizontally, subject to restrictions of
 @code{split-width-threshold} (see below).  If splitting horizontally
 fails too and the window is the only window on its frame,
 @code{split-window-sensibly} will try to split the window vertically
@@ -1025,12 +1024,11 @@ the window unless the new window can accomodate a mode line too.
 @end defopt
 
 @defopt split-width-threshold
-This variable specifies whether @code{split-window-sensibly} is allowed
-to horizontally split the window passed to it as argument.  If the value
-of this variable is an integer, @code{split-window-sensibly} tries to
-horizontally split that window only if it has at least this many
-columns.  If the value is @code{nil}, @code{split-window-sensibly} will
-not split the window horizontally.  (It still might split the window
+This variable specifies whether @code{split-window-sensibly} may split
+windows horizontally.  If it is an integer, @code{split-window-sensibly}
+tries to horizontally split a window only if it has at least this many
+columns.  If it is @code{nil}, @code{split-window-sensibly} will not
+split the window horizontally.  (It still might split the window
 vertically, though, see above.)
 
 @code{split-window-sensibly} does not split horizontally a window if

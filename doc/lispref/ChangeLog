@@ -1,3 +1,9 @@
+2009-05-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Don't explicitly refer to
+	split-window-sensibly's window argument in descriptions of
+	split-height-threshold and split-width-threshold.
+
 2009-05-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Choosing Window): Fix rewrite of window
