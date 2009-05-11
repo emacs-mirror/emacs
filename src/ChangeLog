@@ -3,6 +3,9 @@
 	* gtkutil.c (xg_frame_set_char_size): Set frame pixel width/height to
 	what we expect to get in the next ConfigureNotify event.
 
+	* xftfont.c (xftfont_open): Make sure that Xrender extension is added
+	before Xft one (Bug#1696).
+
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
 	* nsfns.m (Fx_display_planes): Compute bitplanes using
