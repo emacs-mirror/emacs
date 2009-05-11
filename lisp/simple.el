@@ -5851,20 +5851,22 @@ Called from `temp-buffer-show-hook'."
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
   (let* ((mainbuf (current-buffer))
-         (mbuf-contents (minibuffer-completion-contents))
-         common-string-length)
-    ;; When reading a file name in the minibuffer,
-    ;; set default-directory in the minibuffer
-    ;; so it will get copied into the completion list buffer.
-    (if minibuffer-completing-file-name
-	(with-current-buffer mainbuf
-	  (setq default-directory
-                (file-name-directory (expand-file-name mbuf-contents)))))
+         (base-dir
+          ;; When reading a file name in the minibuffer,
+          ;; try and find the right default-directory to set in the
+          ;; completion list buffer.
+          ;; FIXME: Why do we do that, actually?  --Stef
+          (if minibuffer-completing-file-name
+              (file-name-as-directory
+               (expand-file-name
+                (substring (minibuffer-completion-contents)
+                           0 (or completion-base-size 0)))))))
     (with-current-buffer standard-output
       (let ((base-size completion-base-size)) ;Read before killing localvars.
         (completion-list-mode)
         (set (make-local-variable 'completion-base-size) base-size))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
+      (if base-dir (setq default-directory base-dir))
       (unless completion-base-size
         ;; This shouldn't be needed any more, but further analysis is needed
         ;; to make sure it's the case.

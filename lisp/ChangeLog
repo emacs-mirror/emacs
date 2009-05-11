@@ -1,3 +1,9 @@
+2009-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (completion-setup-function):
+	Only modify the default-directory in *Completions* (bug#3250).
+	Take partial-completion into account when setting default-directory.
+
 2009-05-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/cl-macs.el (lexical-let*): Doc fix (Bug#3178).
@@ -16,26 +22,22 @@
 
 2009-05-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix for
-	big5.
-
-	* international/mule-diag.el (describe-coding-system): Fix for
-	big5.
+	* international/encoded-kb.el (encoded-kbd-setup-keymap):
+	* international/mule-diag.el (describe-coding-system): Fix for big5.
 
 2009-05-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (split-window-sensibly): New function.
 	(split-height-threshold, split-width-threshold): State in
-	doc-string that these affect split-window-sensibly.  Change
-	customization subtype from number to integer.
+	doc-string that these affect split-window-sensibly.
+	Change customization subtype from number to integer.
 	(window--splittable-p): Rename to window-splittable-p since it's
-	referred to in doc-string of split-window-sensibly.  Update
-	doc-string.
+	referred to in doc-string of split-window-sensibly.  Update doc-string.
 	(window--try-to-split-window): Unconditionally call
 	split-window-preferred-function and move splitting functionality
 	to split-window-sensibly (Bug#3142).
-	(split-window-preferred-function): Rewrite doc-string.  Don't
-	allow nil as customization type.
+	(split-window-preferred-function): Rewrite doc-string.
+	Don't allow nil as customization type.
 
 2009-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -104,8 +106,8 @@
 	* progmodes/cc-langs.el (c-constant-kwds): New ObjC keywords
 	"YES", "NO", "NS_DURING", "NS_HANDLER", "NS_ENDHANDLER".
 
-	* progmodes/cc-align.el (c-lineup-ObjC-method-call-colons): New
-	function.
+	* progmodes/cc-align.el (c-lineup-ObjC-method-call-colons):
+	New function.
 
 2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -114,8 +116,8 @@
 2009-04-29  Ulrich Mueller  <ulm@gentoo.org>
 
 	* files.el (hack-local-variables-prop-line)
-	(hack-local-variables, dir-locals-read-from-file): Bind
-	read-circle to nil before reading.
+	(hack-local-variables, dir-locals-read-from-file):
+	Bind read-circle to nil before reading.
 
 2009-04-28  Geert Kloosterman  <g.j.kloosterman@gmail.com>  (tiny change)
 
