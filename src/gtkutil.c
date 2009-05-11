@@ -736,6 +736,29 @@ xg_frame_set_char_size (f, cols, rows)
   x_wm_size_hint_off (f);
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      pixelwidth, pixelheight);
+
+  /* Now, strictly speaking, we can't be sure that this is accurate,
+     but the window manager will get around to dealing with the size
+     change request eventually, and we'll hear how it went when the
+     ConfigureNotify event gets here.
+
+     We could just not bother storing any of this information here,
+     and let the ConfigureNotify event set everything up, but that
+     might be kind of confusing to the Lisp code, since size changes
+     wouldn't be reported in the frame parameters until some random
+     point in the future when the ConfigureNotify event arrives.
+
+     We pass 1 for DELAY since we can't run Lisp code inside of
+     a BLOCK_INPUT.  */
+  change_frame_size (f, rows, cols, 0, 1, 0);
+  FRAME_PIXEL_WIDTH (f) = pixelwidth;
+  FRAME_PIXEL_HEIGHT (f) = pixelheight;
+
+  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
+     receive in the ConfigureNotify event; if we get what we asked
+     for, then the event won't cause the screen to become garbaged, so
+     we have to make sure to do it here.  */
+  SET_FRAME_GARBAGED (f);
   flush_and_sync (f);
   x_wm_set_size_hint (f, 0, 0);
 }
