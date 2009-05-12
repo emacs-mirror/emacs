@@ -1,5 +1,8 @@
 2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Interactive Shell, Saving Emacs Sessions)
+	(Shell History Copying, Terminal emulator): Copyedits.
+
 	* xresources.texi (Resources): Simplify descriptions.  Shorten
 	description of editres, which is not very useful these days.
 	(Table of Resources): Document fontBackend resource.
