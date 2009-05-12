@@ -991,7 +991,7 @@ Window Frame Parameters
 * Buffer Parameters::       Which buffers have been or should be shown.
 * Management Parameters::   Communicating with the window manager.
 * Cursor Parameters::       Controlling the cursor appearance.
-* Color Parameters::        Colors of various parts of the frame.
+* Font and Color Parameters:: Colors of various parts of the frame.
 
 Positions
 

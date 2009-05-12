@@ -477,7 +477,7 @@ terminal frames.
 * Buffer Parameters::           Which buffers have been or should be shown.
 * Management Parameters::       Communicating with the window manager.
 * Cursor Parameters::           Controlling the cursor appearance.
-* Color Parameters::            Colors of various parts of the frame.
+* Font and Color Parameters::   Fonts and colors for the frame text.
 @end menu
 
 @node Basic Parameters
@@ -812,12 +812,20 @@ modificatoin of the usual cursor type (solid box becomes hollow box,
 and bar becomes a narrower bar).
 @end defvar
 
-@node Color Parameters
-@subsubsection Color Parameters
+@node Font and Color Parameters
+@subsubsection Font and Color Parameters
 
-  These frame parameters control the use of colors.
+  These frame parameters control the use of fonts and colors.
 
 @table @code
+@item font-backend
+A list of symbols, specifying the @dfn{font backends} to use for
+drawing fonts in the frame, in order of priority.  On X, there are
+currently two available font backends: @code{x} (the X core font
+driver) and @code{xft} (the Xft font driver).  On other systems, there
+is only one available font backend, so it does not make sense to
+modify this frame parameter.
+
 @item background-mode
 This parameter is either @code{dark} or @code{light}, according
 to whether the background color is a light one or a dark one.
@@ -1844,7 +1852,7 @@ is over mouse-sensitive text.
   These variables affect newly created frames.  They do not normally
 affect existing frames; however, if you set the mouse color of a
 frame, that also installs the current value of those two variables.
-@xref{Color Parameters}.
+@xref{Font and Color Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
 defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
