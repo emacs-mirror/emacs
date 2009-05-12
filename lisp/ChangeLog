@@ -1,7 +1,8 @@
 2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el (help-with-tutorial): Don't use text mode, since the
-	tutorial text assume Fundamental mode.
+	tutorial text assume Fundamental mode.  Use TUTORIAL.xx for the
+	tutorial buffer, since that is what the tutorial text assumes.
 
 2009-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
