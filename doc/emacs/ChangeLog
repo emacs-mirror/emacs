@@ -1,5 +1,9 @@
 2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xresources.texi (Resources): Simplify descriptions.  Shorten
+	description of editres, which is not very useful these days.
+	(Table of Resources): Document fontBackend resource.
+
 	* trouble.texi (Quitting): Add other undo bindings to table.
 	(DEL Does Not Delete): Note that the erasure key is usually labelled
 	"Backspace".  Remove discussion of obscure Xmodmap issue.
