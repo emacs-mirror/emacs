@@ -2713,16 +2713,14 @@ typing @kbd{C-g}.  The dissociation output remains in the
 @samp{*Dissociation*} buffer for you to copy elsewhere if you wish.
 
 @cindex presidentagon
-  Dissociated Press operates by jumping at random from one point in the
-buffer to another.  In order to produce plausible output rather than
-gibberish, it insists on a certain amount of overlap between the end of
-one run of consecutive words or characters and the start of the next.
-That is, if it has just output `president' and then decides to jump
-to a different point in the buffer, it might spot the `ent' in `pentagon'
-and continue from there, producing `presidentagon'.@footnote{This
-dissociword actually appeared during the Vietnam War, when it was very
-appropriate.  Bush has made it appropriate again.}  Long sample texts
-produce the best results.
+  Dissociated Press operates by jumping at random from one point in
+the buffer to another.  In order to produce plausible output rather
+than gibberish, it insists on a certain amount of overlap between the
+end of one run of consecutive words or characters and the start of the
+next.  That is, if it has just output `president' and then decides to
+jump to a different point in the buffer, it might spot the `ent' in
+`pentagon' and continue from there, producing `presidentagon'.  Long
+sample texts produce the best results.
 
 @cindex againformation
   A positive argument to @kbd{M-x dissociated-press} tells it to operate
