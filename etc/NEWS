@@ -1731,15 +1731,15 @@ but signals an error if STRING contains a non-ASCII, non-eight-bit
 character.
 
 ** Changes related to the new font backend
-
-Which font backends to use can be specified by the X resource "FontBackend".
-For instance, to use both X core fonts and Xft fonts:
++++
+*** Which font backends to use can be specified by the X resource
+"FontBackend".  For instance, to use both X core fonts and Xft fonts:
 
 Emacs.FontBackend: x,xft
 
 If this resource is not set, Emacs tries to use all font backends
 available on your graphic device.
-
++++
 *** New frame parameter `font-backend' specifies a list of
 font-backends supported by the frame's graphic device.  On X, they are
 currently `x' and `xft'.
