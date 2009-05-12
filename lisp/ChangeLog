@@ -1,3 +1,8 @@
+2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el (help-with-tutorial): Don't use text mode, since the
+	tutorial text assume Fundamental mode.
+
 2009-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (completion-setup-function):
