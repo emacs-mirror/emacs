@@ -1,3 +1,12 @@
+2009-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* abbrevs.texi (Abbrevs): Add xref to Creating Symbols when
+	obarrays are first mentioned.  Define "system abbrev" more
+	prominently, and add it to the index.
+	(Abbrev Mode, Abbrev Tables, Defining Abbrevs, Abbrev Properties):
+	Copyedits.
+	(Abbrev Expansion): Document abbrev-insert.
+
 2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Font and Color Parameters): Rename from Color
