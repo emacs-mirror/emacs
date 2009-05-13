@@ -724,7 +724,7 @@ then ABBREV is looked up in that table only."
   "Insert abbrev ABBREV at point.
 If non-nil, NAME is the name by which this abbrev was found.
 If non-nil, WORDSTART is the place where to insert the abbrev.
-If non-nil, WORDEND the abbrev replaces the previous text between
+If WORDEND is non-nil, the abbrev replaces the previous text between
 WORDSTART and WORDEND.
 Return ABBREV if the expansion should be considered as having taken place."
   (unless name (setq name (symbol-name abbrev)))
