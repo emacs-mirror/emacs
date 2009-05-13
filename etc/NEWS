@@ -1312,6 +1312,7 @@ default fontset.
 This variable was only used by call-process-region, which now uses
 temporary-file-directory instead.
 
++++
 ** The COUNT and SYSTEM-FLAG arguments to define-abbrev have been
 removed.  The function now takes extra arguments for specifying
 arbitrary abbrev properties.
