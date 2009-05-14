@@ -2,6 +2,8 @@
 
 	* frames.texi (Initial Parameters): Clarify what the initial
 	minibuffer frame is.
+	(Buffer Parameters): Note that the minibuffer parameter can not be
+	altered.
 
 	* anti.texi (Antinews): Copyedits.  Rearrange some entries.
 	Document display-buffer changes.

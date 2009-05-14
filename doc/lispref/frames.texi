@@ -687,8 +687,11 @@ with which buffers have been, or should, be displayed in the frame.
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
 yes, @code{nil} means no, @code{only} means this frame is just a
-minibuffer.  If the value is a minibuffer window (in some other frame),
-the new frame uses that minibuffer.
+minibuffer.  If the value is a minibuffer window (in some other
+frame), the frame uses that minibuffer.
+
+This frame parameter takes effect when the frame is created, and can
+not be changed afterwards.
 
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
