@@ -433,9 +433,10 @@ If these parameters specify a separate minibuffer-only frame with
 one for you.
 
 @defvar minibuffer-frame-alist
-This variable's value is an alist of parameter values used when creating
-an initial minibuffer-only frame---if such a frame is needed, according
-to the parameters for the main initial frame.
+This variable's value is an alist of parameter values used when
+creating an initial minibuffer-only frame.  This is the
+minibuffer-only frame that Emacs creates if @code{initial-frame-alist}
+specifies a frame with no minibuffer.
 @end defvar
 
 @defvar default-frame-alist
