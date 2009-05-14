@@ -18,61 +18,80 @@ features.
 
 @itemize @bullet
 @item
-The internal character representation in Emacs is no longer
-Unicode-based; it is known as @code{emacs-mule}.  This representation
-can handle several different variants of the same character, each one
-belonging to its own script.  It marks each character with its script,
-to better discern them from one another.
+The internal character representation used by Emacs is not longer
+based on Unicode.  In this representation, called @code{emacs-mule},
+each character belongs to one and only one script.  Emacs makes no
+attempt to distinguish between ``similar'' characters occurring in
+different scripts.
+
+@item
+The @code{^} interactive spec code, the function
+@code{handle-shift-selection}, and the variable
+@code{this-command-keys-shift-translated} have all been removed.
+Shift-translated keys are no longer treated specially, making Emacs'
+handling of keybindings much more consistent.
+
+@item
+Temporarily-active regions are not created by giving the variable
+@code{transient-mark-mode} values of the form @code{(only
+. @var{oldvar})}.  We instead use a more more complicated scheme:
+setting @code{transient-mark-mode} to @code{only} enables Transient
+Mark mode for the following command only, during which the value of
+@code{transient-mark-mode} is set to @code{identity}; if it is still
+@code{identity} at the end of the command, Transient Mark mode is
+disabled.
+
+@item
+Many minibuffer functions, such as @code{read-file-name} and
+@code{minibuffer-complete}, have been rewritten in C for greater
+speed.  The completion code has been considerably simplified; the
+completion style can no longer be changed via
+@code{completion-styles-alist}, and @code{completing-read} no longer
+recognizes the special values @code{confirm-only} and
+@code{confirm-after-completion} for its @var{require-match} argument.
+
+@item
+Emacs no longer supports explicitly-numbered groups in regular
+expressions.
+
+@item
+The @code{permanent-local-hook} function property has no special
+meaning.
 
 @item
 The @code{functionp} function now returns @code{t} for special forms.
 
 @item
-The @code{^} interactive spec code has been removed, together with the
-function @code{handle-shift-selection} and the variable
-@code{this-command-keys-shift-translated}.  Shift-translated keys are
-no longer treated specially, making Emacs' handling of keybindings
-that much more consistent.
-
-@item
-The @code{interactive-form} symbol property is no longer recognized.
+The @code{interactive-form} symbol property has no special meaning.
 Once you supply a function with an interactive form, the only way to
 change it is to redefine the function.
 
 @item
-Emacs no longer creates temporarily-active regions by giving the
-variable @code{transient-mark-mode} values of the form @code{(only
-. @var{oldvar})}.  Instead, it uses a more slightly more complicated
-scheme: setting @code{transient-mark-mode} to @code{only} enables
-Transient Mark mode for the following command only, during which the
-value of @code{transient-mark-mode} is set to @code{identity}; if it
-is still @code{identity} at the end of the command, Transient Mark
-mode is disabled.
+The @code{ignore-errors} macro has been moved into the @code{cl}
+package.
 
 @item
-Many minibuffer functions, such as @code{read-file-name} and
-@code{minibuffer-complete}, have been rewritten in C.  The completion
-code has been considerably simplified; for instance, the completion
-style cannot be changed via @code{completion-styles-alist}, and
-@code{completing-read} no longer recognizes the special values
-@code{confirm-only} and @code{confirm-after-completion} for its
-@var{require-match} argument.
-
-@item
-Explicitly numbered groups in regular expressions are no longer
-supported.
+Variables can now be both buffer-local and frame-local; buffer-local
+bindings take precedence over frame-local bindings.
 
 @item
 Faces can no longer be remapped.
 
 @item
-Fonts are no longer represented using a special set of ``font'' data
-types.  Lisp programs may only specify fonts by name, as strings
-following the XLFD (X logical font descriptor) format.
+Lisp programs now specify fonts by their names, which are strings
+following the XLFD (X logical font descriptor) format.  Fonts are no
+longer represented using a special set of ``font'' data types.  The
+various functions that act on these data types, such as @code{fontp},
+@code{font-spec}, and @code{list-fonts}, have all been deleted.
+
+@item
+Emacs does not recognize the @code{FontBackend} X resource and the
+@code{font-backend} frame parameter.  On the X Window System, fonts
+are always drawn using the X core font driver.
 
 @item
 Display terminals are no longer represented using a ``terminal'' data
-type.  This data type is not necessary, because Emacs can no longer
+type; this is not necessary, because we have removed the ability to
 display on graphical and text-only terminals simultaneously.  For the
 same reason, the @code{window-system} variable is no longer
 frame-local, and the @code{window-system} function has been removed.
@@ -83,42 +102,43 @@ The functions @code{list-system-processes} and
 system processes, call an external program, such as @command{ps}.
 
 @item
-Variables can now be both buffer-local and frame-local; buffer-local
-bindings take precedence over frame-local bindings.
-
-@item
-Windows no longer have parameters.
-
-@item
 The function @code{locate-user-emacs-file} and the variable
-@code{user-emacs-directory} have been removed.  Programs can instead
-use hard-coded values pointing to @file{~/.emacs.d}.
+@code{user-emacs-directory} have been removed.  Instead, use
+hard-coded values pointing to @file{~/.emacs.d}.
 
 @item
 @code{vertical-motion} can no longer be told to move to a specific
 column; it always puts point on the first column of a line.
 
 @item
-Emacs no longer recognizes the @code{permanent-local-hook} property of
-local hook functions.
+Windows no longer have parameters.
 
 @item
-The @code{ignore-errors} macro has been moved into the @code{cl}
-package.
+The @code{display-buffer} function has been rewritten in C.  Its
+window-splitting heuristics are a little less sophisticated, and a
+little less documented.  Window-splitting is handled internally,
+instead of using @code{split-window-preferred-function} (which has
+been removed).  Windows are never split horizontally; the variable
+@code{split-width-threshold} has been removed.
 
 @item
 The @code{mode-name} variable now accepts only string values, and
 cannot take the form of a mode-line construct.
 
 @item
-Several keymap have been eliminated: @code{input-decode-map},
+The behavior of @code{map-char-table} has changed.  It calls the
+mapping function for every single character in the table, instead of
+using cons cells to represent contiguous character code ranges.
+
+@item
+Several keymaps have been eliminated: @code{input-decode-map},
 @code{local-function-key-map}, @code{search-map},
 @code{multi-query-replace-map}, and
 @code{minibuffer-local-shell-command-map}.
 
 @item
 Many functions have been removed, including @code{emacs-init-time},
-@code{emacs-uptime}, @code{buffer-swap-text}, @code{use-region-p} and
+@code{emacs-uptime}, @code{buffer-swap-text}, @code{use-region-p},
 @code{region-active-p}, @code{start-file-process},
 @code{process-lines}, @code{image-refresh},
 @code{match-substitute-replacement}, @code{word-search-forward-lax},
@@ -129,7 +149,7 @@ Many variables have been removed, including @code{read-circle},
 @code{before-init-time} and @code{after-init-time},
 @code{generate-autoload-cookie}, @code{file-local-variables-alist},
 @code{replace-search-function} and @code{replace-re-search-function},
-@code{inhibit-changing-match-data}, @code{wrap-prefix} and
+@code{inhibit-changing-match-data}, @code{wrap-prefix}, and
 @code{line-prefix},
 @end itemize
 

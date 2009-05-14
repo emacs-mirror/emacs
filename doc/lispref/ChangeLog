@@ -1,3 +1,8 @@
+2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Copyedits.  Rearrange some entries.
+	Document display-buffer changes.
+
 2009-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* anti.texi (Antinews): Rewrite for Emacs 22.
