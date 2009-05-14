@@ -82,14 +82,19 @@ use this three-step process:
   :group 'frames)
 
 (defcustom minibuffer-frame-alist '((width . 80) (height . 2))
-  "Alist of parameters for initial minibuffer frame.
+  "Alist of parameters for the initial minibuffer frame.
+This is the minibuffer frame created if `initial-frame-alist'
+calls for a frame without a minibuffer.  The parameters specified
+here supersede those given in `default-frame-alist', for the
+initial minibuffer frame.
+
 You can set this in your init file; for example,
 
  (setq minibuffer-frame-alist
        '((top . 1) (left . 1) (width . 80) (height . 2)))
 
-Parameters specified here supersede the values given in
-`default-frame-alist', for a minibuffer frame."
+It is not necessary to include (minibuffer . only); that is
+appended when the minibuffer frame is created."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))

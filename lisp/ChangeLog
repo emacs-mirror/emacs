@@ -1,3 +1,7 @@
+2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (minibuffer-frame-alist): Doc fix (Bug#3276).
+
 2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el (help-with-tutorial): Don't use text mode, since the
