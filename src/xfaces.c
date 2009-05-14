@@ -5175,8 +5175,9 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
   /* font weight (bold/dim) */
-  weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
-  if (weight >= 0)
+  val = attrs[LFACE_WEIGHT_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && (weight = FONT_WEIGHT_NAME_NUMERIC (val), weight >= 0))
     {
       int def_weight = FONT_WEIGHT_NAME_NUMERIC (def_attrs[LFACE_WEIGHT_INDEX]);
 
