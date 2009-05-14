@@ -171,7 +171,7 @@ xresources.texi   -- cyd
 
 abbrevs.texi      -- cyd
 advice.texi       -- cyd
-anti.texi
+anti.texi         -- cyd
 back.texi
 backups.texi      -- cyd
 buffers.texi      -- cyd
@@ -183,7 +183,7 @@ debugging.texi    -- cyd
 display.texi      -- cyd
 edebug.texi
 elisp.texi
-errors.texi
+errors.texi       -- cyd
 eval.texi         -- cyd
 files.texi        -- cyd
 frames.texi       -- cyd
@@ -199,7 +199,7 @@ lists.texi        -- cyd
 loading.texi      -- cyd
 locals.texi       -- cyd
 macros.texi       -- cyd
-maps.texi
+maps.texi         -- cyd
 markers.texi      -- cyd
 minibuf.texi      -- cyd
 modes.texi        -- cyd
