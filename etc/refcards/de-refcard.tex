@@ -1,4 +1,4 @@
-% Reference Card for GNU Emacs version 22 on Unix systems
+% Reference Card for GNU Emacs version 23 on Unix systems
 %
 % Translation into German by Sven Joachim <svenjoac@gmx.de>
 %
@@ -71,8 +71,8 @@
 % If there were room, it would be nice to see a section on Dired.
 
 \def\versionnumber{2.3}
-\def\versionyear{2006}          % latest update
-\def\versionemacs{22}
+\def\versionyear{2009}          % latest update
+\def\versionemacs{23}
 \def\year{2009}                 % latest copyright year
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -86,9 +86,10 @@
 \centerline{entworfen von Stephen Gildea}
 % \centerline{deutsche \"Ubersetzung von Sven Joachim}
 
-Es ist gestattet, diese Referenzkarte zu vervielf\"altigen und zu
-verbreiten, vorausgesetzt dass sich der Copyright-Hinweis und der
-Hinweis auf diese Erlaubnis auf allen Kopien befinden.
+Es ist gestattet, ver\"anderte und unver\"anderte Kopien dieser
+Karte her\-zu\-stellen und zu verbreiten, vorausgesetzt dass sich
+der Copyright-Hinweis und der Hinweis auf diese Erlaubnis auf allen
+Kopien befinden.
 
 F\"ur Kopien des Handbuchs zu GNU Emacs schreiben Sie an die Free
 Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -348,7 +349,7 @@ Wenn Emacs sucht, unterbricht \kbd{C-g} nur die jeweils letzte Suche.
 \threecol{Zeile}{C-p}{C-n}
 \threecol{zum Zeilenanfang (oder -ende) springen}{C-a}{C-e}
 \threecol{Satz}{M-a}{M-e}
-\threecol{Paragraph}{M-\{}{M-\}}
+\threecol{Absatz}{M-\{}{M-\}}
 \threecol{Seite}{C-x [}{C-x ]}
 \threecol{Lisp-s-expression}{C-M-b}{C-M-f}
 \threecol{Funktion}{C-M-a}{C-M-e}
@@ -383,7 +384,7 @@ Wenn Emacs sucht, unterbricht \kbd{C-g} nur die jeweils letzte Suche.
 % Leerzeichen statt \thinspace erzeugt overfull \hbox. @#$?*&!
 \key{Cursor und Marke austauschen}{C-x C-x}
 \key{Marke {\it Argument\/} {\bf Worte} entfernt setzen}{M-@}
-\key{{\bf Paragraph} markieren}{M-h}
+\key{{\bf Absatz} markieren}{M-h}
 \key{{\bf Seite} markieren}{C-x C-p}
 \key{{\bf Lisp-s-expression} markieren}{C-M-@}
 \key{{\bf Funktion} markieren}{C-M-h}
@@ -449,8 +450,8 @@ einen Rahmen statt eines Fensters.
 \key{alle Leerzeichen um Cursor-Position l\"oschen}{M-\\}
 \key{genau ein Leerzeichen an Cursor-Position}{M-SPC}
 
-\key{Paragraph auff\"ullen}{M-q}
-\key{Spalte f\"ur Umbruch setzen}{C-x f}
+\key{Absatz auff\"ullen}{M-q}
+\key{Spalte f\"ur Umbruch auf {\it Argument\/} setzen}{C-x f}
 \key{Pr\"afix f\"ur jede Zeile setzen}{C-x .}
 
 \key{Face setzen}{M-o}
@@ -650,11 +651,11 @@ Sonstiges:
 
 % Das ist nur was f\"ur Leute die Lisp beherrschen
 
-Tastenkombinationen definieren (Beispiele):
+Tastenkombinationen definieren (Beispiel):
 
 \beginexample%
-(global-set-key "\\C-cg" 'goto-line)
-(global-set-key "\\M-\#" 'query-replace-regexp)
+(global-set-key (kbd "C-c g") 'search-forward)
+(global-set-key (kbd "M-\#") 'query-replace-regexp)
 \endexample
 
 \section{Eigene Befehle schreiben}
