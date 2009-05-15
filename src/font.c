@@ -4007,7 +4007,12 @@ usage: (font-spec ARGS...)  */)
 
   for (i = 0; i < nargs; i += 2)
     {
-      Lisp_Object key = args[i], val = args[i + 1];
+      Lisp_Object key = args[i], val;
+
+      CHECK_SYMBOL (key);
+      if (i + 1 >= nargs)
+	error ("No value for key `%s'", SDATA (SYMBOL_NAME (key)));
+      val = args[i + 1];
 
       if (EQ (key, QCname))
 	{
