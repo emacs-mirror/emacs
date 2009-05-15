@@ -1,3 +1,7 @@
+2009-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* refcards/refcard.tex: Update Emacs version to 23.
+
 2009-05-15  Sven Joachim  <svenjoac@gmx.de>
 
         * refcards/de-refcard.tex: Merge changes from refcard.tex.
