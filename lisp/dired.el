@@ -2686,8 +2686,14 @@ name, or the marker and a count of marked files."
 
 (defun dired-pop-to-buffer (buf)
   "Pop up buffer BUF in a way suitable for Dired."
-  ;; Don't split window horizontally.  (Bug#1806)
-  (let (split-width-threshold)
+  (let ((split-window-preferred-function
+	 (lambda (window)
+	   (or (and (window-splittable-p (selected-window))
+		    ;; Try to split the selected window vertically if
+		    ;; that's possible.  (Bug#1806)
+		    (split-window-vertically))
+	       ;; Otherwise, try to split WINDOW sensibly.
+	       (split-window-sensibly window)))))
     (pop-to-buffer (get-buffer-create buf)))
   ;; If dired-shrink-to-fit is t, make its window fit its contents.
   (when dired-shrink-to-fit

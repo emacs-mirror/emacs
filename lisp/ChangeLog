@@ -1,3 +1,8 @@
+2009-05-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer): Try to make this behave the
+	Emacs 22 way (Bug#1806).
+
 2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (minibuffer-frame-alist): Doc fix (Bug#3276).
