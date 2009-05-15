@@ -1,3 +1,7 @@
+2009-05-15  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_spec): Check arguments.
+
 2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (tty_supports_face_attributes_p): Recognize unspecified
