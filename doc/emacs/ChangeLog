@@ -1,3 +1,7 @@
+2009-05-16  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* mule.texi (Select Input Method): Fix typo.
+
 2009-05-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* anti.texi (Antinews): Document completion changes.  Some additional

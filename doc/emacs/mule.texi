@@ -635,7 +635,7 @@ automatically.  For example:
 @end lisp
 
 @noindent
-This activates the input emthod ``german-prefix'' automatically in the
+This activates the input method ``german-prefix'' automatically in the
 Text mode.
 
 @findex quail-set-keyboard-layout
