@@ -1,3 +1,8 @@
+2009-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-state-heuristic): Fallback on vc-bzr-state in case
+	of any kind of error (e.g. when "sha1sum" is not found).
+
 2009-05-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer): Try to make this behave the
@@ -434,11 +439,11 @@
 
 2009-04-07  Chong Yidong  <cyd@stupidchicken.com>
 
-	* vc-bzr.el (vc-bzr-log-view-mode): Tweak
-	log-view-message-re (Bug#2872).
+	* vc-bzr.el (vc-bzr-log-view-mode):
+	Tweak log-view-message-re (Bug#2872).
 
-	* descr-text.el (describe-property-list, describe-char): Add
-	follow-link properties to buttons that need them.
+	* descr-text.el (describe-property-list, describe-char):
+	Add follow-link properties to buttons that need them.
 
 	* tooltip.el (tooltip-show-help-non-mode): Don't save the last
 	message if it was also a help message (Bug#2895).
@@ -446,8 +451,7 @@
 2009-04-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry)
-	(bibtex-search-crossref): Allow OPT prefix for name of crossref
-	field.
+	(bibtex-search-crossref): Allow OPT prefix for name of crossref field.
 
 2009-04-06  Sam Steingold  <sds@gnu.org>
 
