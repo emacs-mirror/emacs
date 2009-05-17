@@ -88,6 +88,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (interactive)
   (if (zerop rmail-total-messages)
       (error "No messages in this buffer"))
+  (rmail-modify-format)
   (make-local-variable 'rmail-old-pruned)
   (setq rmail-old-pruned (rmail-msg-is-pruned))
   (rmail-edit-mode)
@@ -117,7 +118,6 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 (defun rmail-cease-edit ()
   "Finish editing message; switch back to Rmail proper."
   (interactive)
-  (rmail-modify-format)
   (if (rmail-summary-exists)
       (with-current-buffer rmail-summary-buffer
 	(rmail-summary-enable)))

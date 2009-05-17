@@ -1,3 +1,9 @@
+2009-05-17  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmailedit.el (rmail-edit-current-message):
+	Call rmail-modify-format here.
+	(rmail-cease-edit): Not here.
+
 2009-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-state-heuristic): Fallback on vc-bzr-state in case
