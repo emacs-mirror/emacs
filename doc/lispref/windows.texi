@@ -436,8 +436,7 @@ This macro selects @var{window}, executes @var{forms} in sequence, then
 restores the previously selected window and current buffer.  The ordering
 of recently selected windows and the buffer list remain unchanged unless
 you deliberately change them within @var{forms}, for example, by calling
-@code{select-window} with argument @var{norecord} @code{nil} or omitted
-there.
+@code{select-window} with argument @var{norecord} @code{nil}.
 @end defmac
 
 @cindex finding windows
@@ -446,14 +445,13 @@ offering various criteria for the choice.
 
 @defun get-lru-window &optional frame dedicated
 This function returns the window least recently ``used'' (that is,
-selected).  If any full-width windows are present, it only considers
-these.
+selected) among a set of candidate windows.  If any full-width windows
+are present, it only considers these.
 
-The selected window can be the least recently used window if it is the
-only window.  A newly created window becomes the least recently used
-window until it is selected.  A minibuffer window is never a candidate.
-A dedicated window (@pxref{Dedicated Windows}) is never a candidate
-unless the optional argument @var{dedicated} is non-@code{nil}.
+The selected window is returned if it is the only candidate.  A
+minibuffer window is never a candidate.  A dedicated window
+(@pxref{Dedicated Windows}) is never a candidate unless the optional
+argument @var{dedicated} is non-@code{nil}.
 
 The optional argument @var{frame} specifies which windows are
 considered.
@@ -514,9 +512,9 @@ some other window, it moves through the windows on the screen in a
 specific order.  For any given configuration of windows, this order
 never varies.  It is called the @dfn{cyclic ordering of windows}.
 
-  This ordering generally goes from top to bottom, and from left to
-right.  But it may go down first or go right first, depending on the
-order in which windows were split.
+  For a particular frame, this ordering generally goes from top to
+bottom, and from left to right.  But it may go down first or go right
+first, depending on the order in which windows were split.
 
   If the first split was vertical (into windows one above each other),
 and then the subwindows were split horizontally, then the ordering is
@@ -795,9 +793,8 @@ that does not identify an existing buffer, then a new buffer by that
 name is created.  The major mode for the new buffer is set according to
 the variable @code{default-major-mode}; see @ref{Auto Major Mode}.
 
-When @code{enable-recursive-minibuffers} is non-@code{nil} and the
-selected window is either the minibuffer window or is dedicated to its
-buffer (@pxref{Dedicated Windows}), @code{switch-to-buffer} calls
+When the selected window is the minibuffer window or is strongly
+dedicated to its buffer (@pxref{Dedicated Windows}), this function calls
 @code{pop-to-buffer} (see below) to display the buffer in some other
 window.
 
@@ -817,15 +814,13 @@ for the described features.
 
 @deffn Command switch-to-buffer-other-window buffer-or-name &optional norecord
 This function makes the buffer specified by @var{buffer-or-name} current
-and displays it in a window not currently selected.  It then selects
-that window.  The handling of the buffer is the same as in
-@code{switch-to-buffer}.
+and displays it in a window not currently selected, using the function
+@code{pop-to-buffer} (see below).
 
 The currently selected window is absolutely never used to do the job.
-If it is the only window, then it is split to make a distinct window for
-this purpose.  If the selected window is already displaying the buffer,
-then it continues to do so, but another window is nonetheless found to
-display it in as well.
+If the selected window already displays @var{buffer-or-name}, then it
+continues to do so, but another window is nonetheless found to display
+it in as well.
 
 This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
@@ -835,8 +830,8 @@ unless @var{norecord} is non-@code{nil}.
 This command makes @var{buffer-or-name} the current buffer and switches
 to it in some window, preferably not the window previously selected.
 The ``popped-to'' window becomes the selected window.  Its frame is
-given the X server's focus, if possible; see @ref{Input Focus}.  The return
-value is the buffer that was switched to.
+given the X server's focus, if possible; see @ref{Input Focus}.  The
+return value is the buffer that was switched to.
 
 If @var{buffer-or-name} is @code{nil}, that means to choose some other
 buffer, but you don't specify which.  If @var{buffer-or-name} is a
@@ -844,16 +839,15 @@ string that does not name an existing buffer, a buffer by that name is
 created.  The major mode for the new buffer is set according to the
 variable @code{default-major-mode}.  @xref{Auto Major Mode}.
 
-If the variable @code{pop-up-frames} is non-@code{nil},
-@code{pop-to-buffer} looks for a window in any visible frame already
-displaying the buffer; if there is one, it selects and returns that
-window.  If no such window exists, it creates a new frame and displays
-the buffer in it.
-
-If @code{pop-up-frames} is @code{nil}, then @code{pop-to-buffer}
-operates entirely within the selected frame.  (If the selected frame has
-just a minibuffer, @code{pop-to-buffer} operates within the most
-recently selected frame that was not just a minibuffer.)
+If either of the variables @code{display-buffer-reuse-frames} or
+@code{pop-up-frames} is non-@code{nil}, @code{pop-to-buffer} looks for a
+window in any visible frame already displaying the buffer; if there is
+one, it selects and returns that window.  If no such window exists and
+@code{pop-up-frames} is non-@code{nil}, it creates a new frame and
+displays the buffer in it.  Otherwise, @code{pop-to-buffer} operates
+entirely within the selected frame.  (If the selected frame has just a
+minibuffer, @code{pop-to-buffer} operates within the most recently
+selected frame that was not just a minibuffer.)
 
 If the variable @code{pop-up-windows} is non-@code{nil}, windows may be
 split to create a new window that is different from the original window.
@@ -946,10 +940,10 @@ the variables described below.
 
 @defopt display-buffer-reuse-frames
 If this variable is non-@code{nil}, @code{display-buffer} searches
-existing frames for a window displaying @var{buffer-or-name}.  If the
-buffer is already displayed in a window in some frame,
-@code{display-buffer} makes the frame visible and raises it, to use that
-window.  If the buffer is not already displayed, or
+visible and iconified frames for a window displaying
+@var{buffer-or-name}.  If there is such a window, @code{display-buffer}
+makes that window's frame visible and raises it if necessary, and
+returns the window.  If there is no such window or
 @code{display-buffer-reuse-frames} is @code{nil}, the behavior of
 @code{display-buffer} is determined by the variables described next.
 @end defopt
@@ -1050,12 +1044,14 @@ window heights will be left alone.
 
 @c Emacs 19 feature
 @defopt pop-up-frames
-This variable specifies whether @code{display-buffer} makes new frames.
-If it is non-@code{nil}, @code{display-buffer} looks for an existing
-window already displaying the desired buffer, on any visible frame.  If
-it finds one, it returns that window.  Otherwise it makes a new frame,
-unless the variable's value is @code{graphic-only} and the selected
-frame is not on a graphic display.  @xref{Frames}, for more information.
+This variable specifies whether @code{display-buffer} should make new
+frames.  If it is non-@code{nil}, @code{display-buffer} looks for a
+window already displaying @var{buffer-or-name} on any visible or
+iconified frame.  If it finds such a window, it makes that window's
+frame visible and raises it if necessary, and returns the window.
+Otherwise it makes a new frame, unless the variable's value is
+@code{graphic-only} and the selected frame is not on a graphic display.
+@xref{Frames}, for more information.
 
 Note that the value of @code{pop-up-windows} does not matter if
 @code{pop-up-frames} is non-@code{nil}.  If @code{pop-up-frames} is
@@ -1068,11 +1064,11 @@ one.
 This variable specifies how to make a new frame if @code{pop-up-frames}
 is non-@code{nil}.
 
-Its value should be a function of no arguments.  When
+The value of this variable must be a function of no arguments.  When
 @code{display-buffer} makes a new frame, it does so by calling that
-function, which should return a frame.  The default value of the
-variable is a function that creates a frame using parameters from
-@code{pop-up-frame-alist}.
+function, which should return a frame.  The default value of this
+variable is a function that creates a frame using the parameters
+specified by @code{pop-up-frame-alist} described next.
 @end defopt
 
 @defopt pop-up-frame-alist
@@ -1232,9 +1228,9 @@ When you kill a buffer (@pxref{Killing Buffers}) displayed in a
 dedicated window, any such window usually gets deleted too, since
 @code{kill-buffer} calls @code{replace-buffer-in-windows} for cleaning
 up windows.  Burying a buffer (@pxref{The Buffer List}) deletes the
-selected window if it is dedicated and shows that buffer.  However, if
-that window is the only window on its frame, another buffer is displayed
-in it and the frame is iconified.
+selected window if it is dedicated to that buffer.  If, however, that
+window is the only window on its frame, @code{bury-buffer} displays
+another buffer in it and iconifies the frame.
 
 @defun window-dedicated-p &optional window
 This function returns non-@code{nil} if @var{window} is dedicated to its
@@ -1253,9 +1249,8 @@ As a special case, if @var{flag} is @code{t}, @var{window} becomes
 @dfn{strongly} dedicated to its buffer.  @code{set-window-buffer}
 signals an error when the window it acts upon is strongly dedicated to
 its buffer and does not already display the buffer it is asked to
-display.  In any other case, @code{set-window-buffer} will display
-another buffer in that window.  Other functions do not treat @code{t}
-differently from any non-@code{nil} value.
+display.  Other functions do not treat @code{t} differently from any
+non-@code{nil} value.
 @end defun
 
 @node Window Point
@@ -1558,9 +1553,10 @@ window.  @xref{Current Buffer}.
 
   If the window contains a row which is taller than the height of the
 window (for example in the presence of a large image), the scroll
-functions will adjust the window vscroll to scroll the partially visible
-row.  To disable this feature, Lisp code may bind the variable
-@code{auto-window-vscroll} to @code{nil} (@pxref{Vertical Scrolling}).
+functions will adjust the window's vertical scroll position to scroll
+the partially visible row.  To disable this feature, Lisp code may bind
+the variable @code{auto-window-vscroll} to @code{nil} (@pxref{Vertical
+Scrolling}).
 
 @deffn Command scroll-up &optional count
 This function scrolls the text in the selected window upward
@@ -1792,7 +1788,7 @@ pixels.  In this case, the return value is @var{lines}.
 @defvar auto-window-vscroll
 If this variable is non-@code{nil}, the line-move, scroll-up, and
 scroll-down functions will automatically modify the vertical scroll
-position to scroll through display rows that are taller that the height
+position to scroll through display rows that are taller than the height
 of the window, for example in the presence of large images.
 @end defvar
 
@@ -2598,9 +2594,9 @@ frame selected.
 @end defvar
 
   In addition, you can use @code{jit-lock-register} to register a Font
-Lock fontification function, which will be called whenever part of the
-buffer needs to be refontified (usually because it has been changed).
-@xref{Other Font Lock Variables}.
+Lock fontification function, which will be called whenever parts of a
+buffer are (re)fontified because a window was scrolled or its size
+changed.  @xref{Other Font Lock Variables}.
 
 @ignore
    arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3

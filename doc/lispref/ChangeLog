@@ -1,3 +1,22 @@
+2009-05-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Selecting Windows): Clarify descriptions of
+	with-selected-window and get-lru-window.
+	(Cyclic Window Ordering): Refer to particular frame when talking
+	about how splitting affects the ordering.
+	(Displaying Buffers): Fix descriptions of switch-to-buffer and
+	switch-to-buffer-other-window.  Explain how setting of
+	display-buffer-reuse-frames affects pop-to-buffer.
+	(Choosing Window): Clarify some details in descriptions of
+	display-buffer-reuse-frames, pop-up-frames, and
+	pop-up-frame-function.
+	(Dedicated Windows): Clarify some details.
+	(Textual Scrolling): Replace term vscroll by term vertical
+	scroll position.
+	(Vertical Scrolling): Fix typo.
+	(Window Hooks): Relate text on jit-lock-register to window
+	scrolling and size changes.
+
 2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Initial Parameters): Clarify what the initial
