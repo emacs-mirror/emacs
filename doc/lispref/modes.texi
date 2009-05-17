@@ -2864,18 +2864,21 @@ wherever they appear.
 @node Precalculated Fontification
 @subsection Precalculated Fontification
 
-  In addition to using @code{font-lock-defaults} for search-based
-fontification, you may use the special character property
-@code{font-lock-face} (@pxref{Special Properties}).  This property
-acts just like the explicit @code{face} property, but its activation
-is toggled when the user calls @kbd{M-x font-lock-mode}.  Using
-@code{font-lock-face} is especially convenient for special modes
-which construct their text programmatically, such as
-@code{list-buffers} and @code{occur}.
+  Some major modes such as @code{list-buffers} and @code{occur}
+construct the buffer text programmatically.  The easiest way for them
+to support Font Lock mode is to specify the faces of text when they
+insert the text in the buffer.
 
-If your mode does not use any of the other machinery of Font Lock
-(i.e. it only uses the @code{font-lock-face} property), it should not
-set the variable @code{font-lock-defaults}.
+  The way to do this is to specify the faces in the text with the
+special text property @code{font-lock-face} (@pxref{Special
+Properties}).  When Font Lock mode is enabled, this property controls
+the display, just like the @code{face} property.  When Font Lock mode
+is disabled, @code{font-lock-face} has no effect on the display.
+
+  It is ok for a mode to use @code{font-lock-face} for some text and
+also use the normal Font Lock machinery.  But if the mode does not use
+the normal Font Lock machinery, it should not set the variable
+@code{font-lock-defaults}.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock

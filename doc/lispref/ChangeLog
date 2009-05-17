@@ -1,3 +1,7 @@
+2009-05-17  Richard M Stallman  <rms@gnu.org>
+
+	* modes.texi (Precalculated Fontification): Clarify text.
+
 2009-05-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Selecting Windows): Clarify descriptions of
