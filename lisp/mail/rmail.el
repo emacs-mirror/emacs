@@ -440,12 +440,15 @@ the frame where you have the RMAIL buffer displayed."
   :group 'rmail-files)
 
 (defcustom rmail-confirm-expunge 'y-or-n-p
-  "Whether and how to ask for confirmation before expunging deleted messages."
+  "Whether and how to ask for confirmation before expunging deleted messages.
+The value, if non-nil is a function to call with a question (string)
+as argument, to ask the user that question."
   :type '(choice (const :tag "No confirmation" nil)
 		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
 		 (const :tag "Confirm with yes-or-no-p" yes-or-no-p))
   :version "21.1"
   :group 'rmail-files)
+(put 'rmail-confirm-expunge 'risky-local-variable t)
 
 ;;;###autoload
 (defvar rmail-mode-hook nil
@@ -967,6 +970,7 @@ This function also reinitializes local variables used by Rmail."
 	    (rmail-perm-variables)
 	    (rmail-variables)
 	    (setq rmail-was-converted t)
+	    (rmail-dont-modify-format)
 	    (goto-char (point-max))
 	    (rmail-set-message-counters))
 	  (message "Replacing BABYL format with mbox format...done"))
@@ -2257,6 +2261,10 @@ change; nil means current message."
       (setq n (1+ n))))
   (if (stringp attr)
       (error "Unknown attribute `%s'" attr))
+  ;; Ask for confirmation before setting any attribute except `unseen'
+  ;; if it would force a format change.
+  (unless (= attr rmail-unseen-attr-index)
+    (rmail-modify-format))
   (with-current-buffer rmail-buffer
     (or msgnum (setq msgnum rmail-current-message))
     (when (> msgnum 0)
@@ -2269,8 +2277,12 @@ change; nil means current message."
             (if (= msgnum rmail-current-message)
                 (rmail-display-labels)))
 	  ;; Don't save in mbox format over a Babyl file
-	  ;; merely because of this.
-	  (rmail-dont-modify-format)))))
+	  ;; merely because of a change in `unseen' attribute.
+	  (if (= attr rmail-unseen-attr-index)
+	      (rmail-dont-modify-format)
+	    ;; Otherwise, if we modified the file text via the view buffer,
+	    ;; mark the main buffer modified too.
+	    (set-buffer-modified-p t))))))
 
 (defun rmail-message-attr-p (msg attrs)
   "Return non-nil if message number MSG has attributes matching regexp ATTRS."
@@ -3252,17 +3264,15 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
       newnum)))
 
 (defun rmail-expunge-confirmed ()
-  "Return t if deleted message should be expunged. If necessary, ask the user.
-See also user-option `rmail-confirm-expunge'."
+  "Return t if expunge is needed and desirable.
+If `rmail-confirm-expunge' is non-nil, ask user to confirm."
   (set-buffer rmail-buffer)
-  ;; FIXME shouldn't this return nil if there is nothing to expunge?
-  ;; Eg to save rmail-expunge wasting its time?
-  (or (not (stringp rmail-deleted-vector))
-      (not (string-match "D" rmail-deleted-vector))
-      (if rmail-confirm-expunge
-	  (funcall rmail-confirm-expunge
-		   "Erase deleted messages from Rmail file? ")
-	(progn (rmail-modify-format) t))))
+  (and (stringp rmail-deleted-vector)
+       (string-match "D" rmail-deleted-vector)
+       (if rmail-confirm-expunge
+	   (funcall rmail-confirm-expunge
+		    "Erase deleted messages from Rmail file? ")
+	 t)))
 
 (defun rmail-only-expunge (&optional dont-show)
   "Actually erase all deleted messages in the file."
@@ -3357,6 +3367,7 @@ consistent with the Rmail buffer).  If DONT-SHOW is non-nil, it
 does not pop any summary buffer."
   (interactive)
   (when (rmail-expunge-confirmed)
+    (rmail-modify-format)
     (let ((was-deleted (rmail-message-deleted-p rmail-current-message))
 	  (was-swapped (rmail-buffers-swapped-p)))
       (rmail-only-expunge t)

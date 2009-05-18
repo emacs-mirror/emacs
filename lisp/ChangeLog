@@ -1,3 +1,14 @@
+2009-05-18  Richard M Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-expunge-confirmed): Return nil if nothing to do.
+	Don't call rmail-modify-format here.
+	(rmail-expunge): Call it here after expunge is confirmed.
+	(rmail-confirm-expunge): Doc fix.  Mark as risky.
+	(rmail-convert-babyl-to-mbox): Call rmail-modify-format.
+	(rmail-set-attribute): Call rmail-dont-modify-format only for `unseen'.
+	For other attributes, call `rmail-modify-format',
+	and propagate the modified flag to rmail-buffer.
+
 2009-05-17  Richard M Stallman  <rms@gnu.org>
 
 	* mail/rmailedit.el (rmail-edit-current-message):
