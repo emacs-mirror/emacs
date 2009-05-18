@@ -867,8 +867,12 @@ do_switch_frame (frame, track, for_deletion, norecord)
   Fselect_window (XFRAME (frame)->selected_window, norecord);
 
 #ifdef NS_IMPL_COCOA
-  /* term gets no other notification of this */
-  if (for_deletion)
+  /* Under NS, there is no system mechanism for choosing a new window to be
+     selected -- it is left to application code.  So the portion of THIS
+     application interfacing with NS needs to know about it. */
+  if (for_deletion && FRAME_VISIBLE_P (XFRAME (selected_frame))
+      && FRAME_LIVE_P (XFRAME (selected_frame))
+      && ! FRAME_ICONIFIED_P (XFRAME (selected_frame)))
     Fraise_frame(Qnil);
 #endif
 
