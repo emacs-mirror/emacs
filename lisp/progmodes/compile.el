@@ -1739,9 +1739,15 @@ and runs `compilation-filter-hook'."
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
             ;; `save-excursion' doesn't use the right insertion-type for us.
-            (pos (copy-marker (point) t)))
+            (pos (copy-marker (point) t))
+	    (min (point-min-marker))
+	    (max (point-max-marker)))
         (unwind-protect
             (progn
+	      ;; If we are inserting at the end of the accessible part
+	      ;; of the buffer, keep the inserted text visible.
+	      (set-marker-insertion-type max t)
+	      (widen)
               (goto-char (process-mark proc))
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
@@ -1751,7 +1757,10 @@ and runs `compilation-filter-hook'."
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               (run-hooks 'compilation-filter-hook))
-          (goto-char pos))))))
+	  (goto-char pos)
+          (narrow-to-region min max)
+	  (set-marker min nil)
+	  (set-marker max nil))))))
 
 ;;; test if a buffer is a compilation buffer, assuming we're in the buffer
 (defsubst compilation-buffer-internal-p ()

@@ -1,5 +1,8 @@
 2009-05-18  Richard M Stallman  <rms@gnu.org>
 
+	* progmodes/compile.el (compilation-filter): If inserting at end
+	of accessible part of buffer, keep end of output visible.
+
 	* mail/rmail.el (rmail-expunge-confirmed): Return nil if nothing to do.
 	Don't call rmail-modify-format here.
 	(rmail-expunge): Call it here after expunge is confirmed.
