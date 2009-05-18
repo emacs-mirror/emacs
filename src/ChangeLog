@@ -1,6 +1,10 @@
 2009-05-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_read_socket): Remove unused variable.
+	* frame.c (do_switch_frame): Under NS_IMPL_COCOA section, check
+	whether selected frame is viable before raising it (based on patch
+	by David Reitter), and improve commentary.
+	* nsfont.m (nsfont_make_fontset_for_font): Avoid a compiler warning.
 
 2009-05-15  Kenichi Handa  <handa@m17n.org>
 
