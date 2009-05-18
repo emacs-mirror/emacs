@@ -3272,6 +3272,7 @@ font_find_for_lface (f, attrs, spec, c)
     }
 
   work = Fcopy_font_spec (spec);
+  ASET (work, FONT_TYPE_INDEX, AREF (spec, FONT_TYPE_INDEX));
   XSETFRAME (frame, f);
   size = AREF (spec, FONT_SIZE_INDEX);
   pixel_size = font_pixel_size (f, spec);
