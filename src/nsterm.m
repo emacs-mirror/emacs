@@ -3153,7 +3153,6 @@ ns_read_socket (struct terminal *terminal, int expected,
 {
   struct input_event ev;
   int nevents;
-  static NSDate *lastCheck = nil;
 
 /* NSTRACE (ns_read_socket); */
 
