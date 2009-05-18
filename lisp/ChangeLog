@@ -1,3 +1,7 @@
+2009-05-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* register.el (register-alist): Doc fix (Bug#3311).
+
 2009-05-18  Richard M Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compilation-filter): If inserting at end

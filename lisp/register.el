@@ -50,9 +50,10 @@
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
 NAME is a character (a number).  CONTENTS is a string, number, marker or list.
 A list of strings represents a rectangle.
-A list of the form (file . NAME) represents the file named NAME.
-A list of the form (file-query NAME POSITION) represents position POSITION
- in the file named NAME, but query before visiting it.
+A list of the form (file . FILE-NAME) represents the file named FILE-NAME.
+A list of the form (file-query FILE-NAME POSITION) represents
+ position POSITION in the file named FILE-NAME, but query before
+ visiting it.
 A list of the form (WINDOW-CONFIGURATION POSITION)
  represents a saved window configuration plus a saved value of point.
 A list of the form (FRAME-CONFIGURATION POSITION)
