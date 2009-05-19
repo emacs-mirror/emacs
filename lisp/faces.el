@@ -725,8 +725,8 @@ like an underlying face would be, with higher priority than underlying faces."
       (when (and (stringp family)
 		 (string-match "\\([^-]*\\)-\\([^-]*\\)" family))
 	(unless foundry
-	  (setq foundry (match-string 2 family)))
-	(setq family (match-string 1 family)))
+	  (setq foundry (match-string 1 family)))
+	(setq family (match-string 2 family)))
       (when (stringp family)
 	(internal-set-lisp-face-attribute face :family (purecopy family)
 					  where))
