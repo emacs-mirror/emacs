@@ -10613,13 +10613,6 @@ x_delete_display (dpyinfo)
 	  tail->next = tail->next->next;
     }
 
-  /* Xt and GTK do this themselves.  */
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-#ifndef AIX		/* On AIX, XCloseDisplay calls this.  */
-  XrmDestroyDatabase (dpyinfo->xrdb);
-#endif
-#endif
-
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
@@ -10739,6 +10732,20 @@ x_delete_terminal (struct terminal *terminal)
     {
       x_destroy_all_bitmaps (dpyinfo);
       XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+      /* Whether or not XCloseDisplay destroys the associated resource
+	 database depends on the version of libX11.  To avoid both
+	 crash and memory leak, we dissociate the database from the
+	 display and then destroy dpyinfo->xrdb ourselves.  */
+#ifdef HAVE_XRMSETDATABASE
+      XrmSetDatabase (dpyinfo->display, NULL);
+#else
+      dpyinfo->display->db = NULL;
+#endif
+      /* We used to call XrmDestroyDatabase from x_delete_display, but
+	 some older versions of libX11 crash if we call it after
+	 closing all the displays.  */
+      XrmDestroyDatabase (dpyinfo->xrdb);
 
 #ifdef USE_GTK
       xg_display_close (dpyinfo->display);
