@@ -1,3 +1,8 @@
+2009-05-19  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (set-face-attribute): Fix handling of :family
+	"FOUNDRY-FAMILY".
+
 2009-05-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* register.el (register-alist): Doc fix (Bug#3311).
