@@ -1,3 +1,9 @@
+2009-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase here.
+	(x_delete_terminal): Dissociate resource database from display and
+	then call XrmDestroyDatabase before closing display.
+
 2009-05-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_read_socket): Remove unused variable.
