@@ -1,3 +1,8 @@
+2009-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (do_switch_frame) [NS_IMPL_COCOA]: Don't raise any window.
+	(delete_frame) [NS_IMPL_COCOA]: Instead, do it here.
+
 2009-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_delete_display): Don't call XrmDestroyDatabase here.

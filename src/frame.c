@@ -866,16 +866,6 @@ do_switch_frame (frame, track, for_deletion, norecord)
 
   Fselect_window (XFRAME (frame)->selected_window, norecord);
 
-#ifdef NS_IMPL_COCOA
-  /* Under NS, there is no system mechanism for choosing a new window to be
-     selected -- it is left to application code.  So the portion of THIS
-     application interfacing with NS needs to know about it. */
-  if (for_deletion && FRAME_VISIBLE_P (XFRAME (selected_frame))
-      && FRAME_LIVE_P (XFRAME (selected_frame))
-      && ! FRAME_ICONIFIED_P (XFRAME (selected_frame)))
-    Fraise_frame(Qnil);
-#endif
-
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
      before you take it out, make sure that evaluating something like
@@ -1423,6 +1413,15 @@ delete_frame (frame, force)
 		break;
 	    }
 	}
+#ifdef NS_IMPL_COCOA
+      else
+	/* Under NS, there is no system mechanism for choosing a new
+	   window to get focus -- it is left to application code.
+	   So the portion of THIS application interfacing with NS
+	   needs to know about it.  We call Fraise_frame, but the
+	   purpose is really to transfer focus.  */
+	Fraise_frame (frame1);
+#endif
 
       do_switch_frame (frame1, 0, 1, Qnil);
       sf = SELECTED_FRAME ();
