@@ -493,12 +493,11 @@
 		3CED88240FC0FE7C005ACB89 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
-			comments = "This script sets up the Emacs.app bundle by copying from Cocoa/Emacs.base, and copying the binary emacs.  It runs the ns-app target in src/Makefile.  This depends on emacs target, so temacs resulting from previous step is dumped into emacs.";
 			files = (
 			);
 			inputPaths = (
 				Emacs.base,
-				../../src/emacs,
+				../../src/temacs,
 			);
 			outputPaths = (
 				../Emacs.app,
@@ -506,7 +505,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ../../src\nif [ ! -x ../nextstep/Emacs.app/Contents/Info.plist ]; then\n\trm -fr ../nextstep/Emacs.app\nfi\nmake ns-app\n";
+			shellScript = "# This script sets up the Emacs.app bundle by copying from Cocoa/Emacs.base,\n# and copying the binary emacs.  It runs the ns-app target in src/Makefile.\n# This depends on emacs target, so temacs resulting from previous step is\n# dumped into emacs.\n\ncd ../../src\n\n# This must be done to force the following script to run.\nif [ ! -r ../nextstep/Emacs.app/Contents/Info.plist ]; then\n\trm -fr ../nextstep/Emacs.app\nfi\n\nmake ns-app\n";
 		};
 		3CED883D0FC0FF6E005ACB89 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
