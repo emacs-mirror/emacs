@@ -2178,7 +2178,7 @@ font_otf_Anchor (anchor)
 
 static unsigned font_score P_ ((Lisp_Object, Lisp_Object *));
 static int font_compare P_ ((const void *, const void *));
-static Lisp_Object font_sort_entites P_ ((Lisp_Object, Lisp_Object,
+static Lisp_Object font_sort_entities P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object, int));
 
 /* Return a rescaling ratio of FONT_ENTITY.  */
@@ -2311,7 +2311,7 @@ struct font_sort_data
    VEC is 1.  The caller should avoid calling this in such a case.  */
 
 static Lisp_Object
-font_sort_entites (vec, prefer, frame, best_only)
+font_sort_entities (vec, prefer, frame, best_only)
      Lisp_Object vec, prefer, frame;
      int best_only;
 {
@@ -3222,7 +3222,7 @@ font_select_entity (frame, entities, attrs, pixel_size, c)
     FONT_SET_STYLE (prefer, FONT_WIDTH_INDEX, attrs[LFACE_SWIDTH_INDEX]);
   ASET (prefer, FONT_SIZE_INDEX, make_number (pixel_size));
 
-  return font_sort_entites (entities, prefer, frame, c);
+  return font_sort_entities (entities, prefer, frame, c);
 }
 
 /* Return a font-entity satisfying SPEC and best matching with face's
@@ -4261,7 +4261,7 @@ how close they are to PREFER.  */)
     return Fcons (AREF (vec, 0), Qnil);
 
   if (! NILP (prefer))
-    vec = font_sort_entites (vec, prefer, frame, 0);
+    vec = font_sort_entities (vec, prefer, frame, 0);
 
   list = tail = Fcons (AREF (vec, 0), Qnil);
   if (n == 0 || n > len)
