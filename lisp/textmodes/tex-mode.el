@@ -1924,7 +1924,11 @@ FILE is typically the output DVI or PDF file."
                          " (.*)\\.")
                  nil t)
 		(> (save-excursion
-		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
+                     ;; Usually page numbers are output as [N], but
+                     ;; I've already seen things like
+                     ;; [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+                     (or (re-search-backward "\\[[0-9]+\\({[^}]*}\\)?\\]"
+                                             nil t)
 			 (point-min)))
 		   (save-excursion
 		     (or (re-search-backward "Rerun" nil t)

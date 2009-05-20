@@ -1,3 +1,8 @@
+2009-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-uptodate-p): Accept [1{/var/foo}] as
+	a page number.
+
 2009-05-20  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (locate-dominating-stop-dir-regexp): Add terminal
@@ -5,19 +10,18 @@
 
 2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* international/encoded-kb.el (encoded-kbd-setup-display): Change
-	DISPLAY arg to TERMINAL.
+	* international/encoded-kb.el (encoded-kbd-setup-display):
+	Change DISPLAY arg to TERMINAL.
 
 	* international/mule.el (set-terminal-coding-system)
 	(set-keyboard-coding-system): Change DISPLAY arg to TERMINAL.
 
 2009-05-19  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-extend-and-neutralize-CPP-line): Renamed
-	from c-neutralize-syntax-in-CPP.  Set the variables c-new-BEG and
-	c-new-END, thus extending the font-lock region.
-	(c-font-lock-init): Don't set obsolete variable
-	font-lock-lines-before.
+	* progmodes/cc-mode.el (c-extend-and-neutralize-CPP-line):
+	Rename from c-neutralize-syntax-in-CPP.  Set the variables c-new-BEG
+	and c-new-END, thus extending the font-lock region.
+	(c-font-lock-init): Don't set obsolete variable font-lock-lines-before.
 
 	* progmodes/cc-langs.el (c-before-font-lock-function): Rename a
 	value to c-extend-and-neutralize-syntax-in-CPP.
