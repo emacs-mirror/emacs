@@ -1,3 +1,8 @@
+2009-05-20  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (locate-dominating-stop-dir-regexp): Add terminal
+	directory separator to UNC path case (Bug#3252).
+
 2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/encoded-kb.el (encoded-kbd-setup-display): Change
