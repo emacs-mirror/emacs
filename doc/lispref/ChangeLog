@@ -1,3 +1,53 @@
+2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.texi (Position Parse): Document rationale for ignored
+	arguments to syntax-ppss-flush-cache.
+
+	* processes.texi (Input to Processes): Mark PROCESS arg to
+	process-running-child-p as optional.
+	(Network Options): Document NO-ERROR arg to
+	set-network-process-option.
+
+	* buffers.texi (Indirect Buffers): Mark clone-indirect-buffer as a
+	command.
+
+	* searching.texi (POSIX Regexps): Mark posix-search-forward and
+	posix-search-backward as commands.
+
+	* os.texi (Killing Emacs): Mark kill-emacs as a command.
+	(Suspending Emacs): Mark suspend-emacs as a command.
+	(Processor Run Time): Mark emacs-uptime and emacs-init-time as
+	commands.
+	(Terminal Output): Remove obsolete function baud-rate.  Document
+	TERMINAL arg for send-string-to-terminal.
+
+	* nonascii.texi (Terminal I/O Encoding): Document TERMINAL arg for
+	terminal-coding-system and set-terminal-coding-system.
+	(Explicit Encoding): Mark DESTINATION arg of decode-coding-region
+	as optional.
+	(Character Sets): Document RESTRICTION arg of char-charset.
+	(Character Codes): Mark POS argument to get-byte as optional.
+
+	* minibuf.texi (Minibuffer Misc): Document ARGS arg for
+	minibuffer-message.
+
+	* files.texi (Create/Delete Dirs): Mark make-directory and
+	delete-directory as commands.
+
+	* abbrevs.texi (Abbrev Tables): Fix arglist for make-abbrev-table.
+
+	* text.texi (Base 64): Mark base64-decode-string and
+	base64-encode-string as commands.
+	(Columns): Mark move-to-column as a command.
+	(Mode-Specific Indent): Document RIGID arg to
+	indent-for-tab-command.
+	(Region Indent): Mark TO-COLUMN arg to indent-region as optional.
+	Mark indent-code-rigidly as a command.
+	(Substitution): Mark translate-region as a command.
+
+	* frames.texi (Size and Position): Remove obsolete functions
+	screen-height and screen-width.
+
 2009-05-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* windows.texi (Cyclic Window Ordering, Cyclic Window Ordering)

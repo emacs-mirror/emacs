@@ -328,7 +328,7 @@ codepoint can have.
 @end example
 @end defun
 
-@defun get-byte pos &optional string
+@defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
 the byte at that position.  If the buffer is multibyte, byte values of
@@ -573,10 +573,15 @@ returns a single character set of the highest priority.
 This function makes @var{charsets} the highest priority character sets.
 @end defun
 
-@defun char-charset character
+@defun char-charset character &optional restriction
 This function returns the name of the character set of highest
 priority that @var{character} belongs to.  @acronym{ASCII} characters
 are an exception: for them, this function always returns @code{ascii}.
+
+If @var{restriction} is non-@code{nil}, it should be a list of
+charsets to search.  Alternatively, it can be a coding system, in
+which case the returned charset must be supported by that coding
+system (@pxref{Coding Systems}).
 @end defun
 
 @defun charset-plist charset
@@ -1621,7 +1626,7 @@ case the function may return @var{string} itself if the encoding
 operation is trivial.  The result of encoding is a unibyte string.
 @end defun
 
-@deffn Command decode-coding-region start end coding-system destination
+@deffn Command decode-coding-region start end coding-system &optional destination
 This command decodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  To make explicit decoding
 useful, the text before decoding ought to be a sequence of byte
@@ -1706,15 +1711,20 @@ if it is @code{nil}, that means the currently selected frame's
 terminal.  @xref{Multiple Terminals}.
 @end deffn
 
-@defun terminal-coding-system
+@defun terminal-coding-system &optional terminal
 This function returns the coding system that is in use for encoding
-terminal output---or @code{nil} for no encoding.
+terminal output from @var{terminal}---or @code{nil} if the output is
+not encoded.  If @var{terminal} is a frame, it means that frame's
+terminal; if it is @code{nil}, that means the currently selected
+frame's terminal.
 @end defun
 
-@deffn Command set-terminal-coding-system coding-system
+@deffn Command set-terminal-coding-system coding-system &optional terminal
 This command specifies @var{coding-system} as the coding system to use
-for encoding terminal output.  If @var{coding-system} is @code{nil},
-that means do not encode terminal output.
+for encoding terminal output from @var{terminal}.  If
+@var{coding-system} is @code{nil}, terminal output is not encoded.  If
+@var{terminal} is a frame, it means that frame's terminal; if it is
+@code{nil}, that means the currently selected frame's terminal.
 @end deffn
 
 @node MS-DOS File Types

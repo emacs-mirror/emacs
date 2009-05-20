@@ -968,13 +968,6 @@ lines and columns.  If you don't supply @var{frame}, they use the
 selected frame.
 @end defun
 
-@defun screen-height
-@defunx screen-width
-These functions are old aliases for @code{frame-height} and
-@code{frame-width}.  When you are using a non-window terminal, the size
-of the frame is normally the same as the size of the terminal screen.
-@end defun
-
 @defun frame-pixel-height &optional frame
 @defunx frame-pixel-width &optional frame
 These functions return the height and width of the main display area

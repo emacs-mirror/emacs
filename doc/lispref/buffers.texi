@@ -1135,7 +1135,7 @@ non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
 @end deffn
 
-@defun clone-indirect-buffer newname display-flag &optional norecord
+@deffn clone-indirect-buffer newname display-flag &optional norecord
 This function creates and returns a new indirect buffer that shares
 the current buffer's base buffer and copies the rest of the current
 buffer's attributes.  (If the current buffer is not indirect, it is
@@ -1145,7 +1145,7 @@ If @var{display-flag} is non-@code{nil}, that means to display the new
 buffer by calling @code{pop-to-buffer}.  If @var{norecord} is
 non-@code{nil}, that means not to put the new buffer to the front of
 the buffer list.
-@end defun
+@end deffn
 
 @defun buffer-base-buffer &optional buffer
 This function returns the base buffer of @var{buffer}, which defaults

@@ -2492,24 +2492,24 @@ with @code{delete-file}.  These special functions exist to create and
 delete directories.
 
 @findex mkdir
-@defun make-directory dirname &optional parents
-This function creates a directory named @var{dirname}.
-If @var{parents} is non-@code{nil}, as is always the case in an
+@deffn Command make-directory dirname &optional parents
+This command creates a directory named @var{dirname}.  If
+@var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
 
-@code{mkdir} is an alias for this fuction.
-@end defun
+@code{mkdir} is an alias for this.
+@end deffn
 
-@defun delete-directory dirname
-This function deletes the directory named @var{dirname}.  The function
+@deffn Command delete-directory dirname
+This command deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
 must use @code{delete-directory} for them.  If the directory contains
 any files, @code{delete-directory} signals an error.
 
-This function only follows symbolic links at the level of parent
-directories.
-@end defun
+@code{delete-directory} only follows symbolic links at the level of
+parent directories.
+@end deffn
 
 @node Magic File Names
 @section Making Certain File Names ``Magic''

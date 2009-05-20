@@ -539,8 +539,8 @@ common.
 parent process normally resumes control.  The low-level primitive for
 killing Emacs is @code{kill-emacs}.
 
-@defun kill-emacs &optional exit-data
-This function exits the Emacs process and kills it.
+@deffn Command kill-emacs &optional exit-data
+This command exits the Emacs process and kills it.
 
 If @var{exit-data} is an integer, then it is used as the exit status
 of the Emacs process.  (This is useful primarily in batch operation; see
@@ -549,7 +549,7 @@ of the Emacs process.  (This is useful primarily in batch operation; see
 If @var{exit-data} is a string, its contents are stuffed into the
 terminal input buffer so that the shell (or whatever program next reads
 input) can read them.
-@end defun
+@end deffn
 
   All the information in the Emacs process, aside from files that have
 been saved, is lost when the Emacs process is killed.  Because killing
@@ -605,7 +605,7 @@ controlling terminal is a graphical terminal.
 systems, ``suspension'' actually creates a new shell temporarily as a
 subprocess of Emacs.  Then you would exit the shell to return to Emacs.
 
-@defun suspend-emacs &optional string
+@deffn Command suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
 If and when the superior process resumes Emacs, @code{suspend-emacs}
 returns @code{nil} to its caller in Lisp.
@@ -676,7 +676,7 @@ lewis@@slug[24] % fg
 Resumed!
 @end group
 @end smallexample
-@end defun
+@end deffn
 
 @defvar suspend-hook
 This variable is a normal hook that Emacs runs before suspending.
@@ -830,7 +830,7 @@ done when Emacs starts up, the value actually used is the one saved when
 Emacs was dumped.  @xref{Building Emacs}.)
 @end defvar
 
-@deffn Command getenv var
+@deffn Command getenv var &optional frame
 @cindex environment variable access
 This function returns the value of the environment variable @var{var},
 as a string.  @var{var} should be a string.  If @var{var} is undefined
@@ -1473,7 +1473,7 @@ most-positive-fixnum}).
   Emacs provides several functions and primitives that return time,
 both elapsed and processor time, used by the Emacs process.
 
-@defun emacs-uptime &optional format
+@deffn Command emacs-uptime &optional format
 This function returns a string representing the Emacs
 @dfn{uptime}---the elapsed wall-clock time this instance of Emacs is
 running.  The string is formatted by @code{format-seconds} according
@@ -1481,7 +1481,9 @@ to the optional argument @var{format}.  For the available format
 descriptors, see @ref{Time Parsing, format-seconds}.  If @var{format}
 is @code{nil} or omitted, it defaults to @code{"%Y, %D, %H, %M,
 %z%S"}.
-@end defun
+
+When called interactively, it prints the uptime in the echo area.
+@end deffn
 
 @defun get-internal-run-time
 This function returns the processor run time used by Emacs as a list
@@ -1508,10 +1510,11 @@ time, @code{get-internal-run-time} returns the same time as
 @code{current-time}.
 @end defun
 
-@defun emacs-init-time
+@deffn Command emacs-init-time
 This function returns the duration of the Emacs initialization
-(@pxref{Startup Summary}) in seconds, as a string.
-@end defun
+(@pxref{Startup Summary}) in seconds, as a string.  When called
+interactively, it prints the duration in the echo area.
+@end deffn
 
 @node Time Calculations
 @section Time Calculations
@@ -1946,15 +1949,12 @@ that Emacs and other programs can get the proper value, but others do
 not.  If Emacs has the wrong value, it makes decisions that are less
 than optimal.  To fix the problem, set @code{baud-rate}.
 
-@defun baud-rate
-This obsolete function returns the value of the variable
-@code{baud-rate}.
-@end defun
-
-@defun send-string-to-terminal string
-This function sends @var{string} to the terminal without alteration.
+@defun send-string-to-terminal string &optional terminal
+This function sends @var{string} to @var{terminal} without alteration.
 Control characters in @var{string} have terminal-dependent effects.
-This function operates only on text terminals.
+This function operates only on text terminals.  @var{terminal} may be
+a terminal object, a frame, or @code{nil} for the selected frame's
+terminal.
 
 One use of this function is to define function keys on terminals that
 have downloadable function key definitions.  For example, this is how (on

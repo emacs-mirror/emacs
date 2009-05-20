@@ -979,8 +979,8 @@ The function returns @var{process}.
 @end smallexample
 @end defun
 
-@defun process-running-child-p process
-This function will tell you whether a subprocess has given control of
+@defun process-running-child-p &optional process
+This function will tell you whether a @var{process} has given control of
 its terminal to its own child process.  The value is @code{t} if this is
 true, or if Emacs cannot tell; it is @code{nil} if Emacs can be certain
 that this is not so.
@@ -1074,7 +1074,6 @@ it the signal @code{SIGCONT}.  This presumes that @var{process} was
 stopped previously.
 @end defun
 
-@c Emacs 19 feature
 @defun signal-process process signal
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer.
@@ -2240,10 +2239,13 @@ process on the host), where it is not possible to make a new server on
 that port.
 @end table
 
-@defun set-network-process-option process option value
+@defun set-network-process-option process option value &optional no-error
 This function sets or modifies a network option for network process
 @var{process}.  See @code{make-network-process} for details of options
-@var{option} and their corresponding values @var{value}.
+@var{option} and their corresponding values @var{value}.  If
+@var{no-error} is non-@code{nil}, this function returns @code{nil}
+instead of signaling an error if @var{option} is not a supported
+option.  If the function successfully completes, it returns @code{t}.
 
 The current setting of an option is available via the
 @code{process-contact} function.

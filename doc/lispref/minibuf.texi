@@ -2125,10 +2125,12 @@ windows.  If a float, it specifies a fraction of the height of the
 frame.  If an integer, it specifies a number of lines.
 @end defopt
 
-@defun minibuffer-message string
+@defun minibuffer-message string &rest args
 This function displays @var{string} temporarily at the end of the
 minibuffer text, for two seconds, or until the next input event
-arrives, whichever comes first.
+arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
+actual message is obtained by passing @var{string} and @var{args}
+through @code{format}.  @xref{Formatting Strings}.
 @end defun
 
 @ignore

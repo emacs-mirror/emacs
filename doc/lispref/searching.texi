@@ -1182,17 +1182,17 @@ non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
 This is because POSIX backtracking conflicts with the semantics of
 non-greedy repetition.
 
-@defun posix-search-forward regexp &optional limit noerror repeat
+@deffn Command posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
-@end defun
+@end deffn
 
-@defun posix-search-backward regexp &optional limit noerror repeat
+@deffn Command posix-search-backward regexp &optional limit noerror repeat
 This is like @code{re-search-backward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
-@end defun
+@end deffn
 
 @defun posix-looking-at regexp
 This is like @code{looking-at} except that it performs the full
