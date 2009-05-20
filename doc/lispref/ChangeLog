@@ -1,5 +1,7 @@
 2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	Fix errors spotted by Martin Rudalics.
+
 	* syntax.texi (Position Parse): Document rationale for ignored
 	arguments to syntax-ppss-flush-cache.
 
