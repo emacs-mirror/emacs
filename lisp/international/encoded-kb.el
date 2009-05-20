@@ -351,11 +351,13 @@ The following key sequence may cause multilingual text insertion."
     nil)))
 
 ;;;###autoload
-(defun encoded-kbd-setup-display (display)
-  "Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
+(defun encoded-kbd-setup-display (terminal)
+  "Set up a `input-decode-map' for `keyboard-coding-system' on TERMINAL.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display."
-  (let ((frame (if (framep display) display (car (frames-on-display-list display)))))
+TERMINAL may be a terminal id, a frame, or nil for the selected frame's terminal."
+  (let ((frame (if (framep terminal)
+		   terminal
+		 (car (frames-on-display-list terminal)))))
     (when frame
       (with-selected-frame frame
 	;; Remove any previous encoded-kb keymap from input-decode-map.

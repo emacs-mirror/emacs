@@ -1,3 +1,11 @@
+2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Change
+	DISPLAY arg to TERMINAL.
+
+	* international/mule.el (set-terminal-coding-system)
+	(set-keyboard-coding-system): Change DISPLAY arg to TERMINAL.
+
 2009-05-19  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-extend-and-neutralize-CPP-line): Renamed

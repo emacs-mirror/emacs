@@ -1233,17 +1233,18 @@ to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system &optional display)
+(defun set-terminal-coding-system (coding-system &optional terminal)
   "Set coding system of terminal output to CODING-SYSTEM.
-All text output to DISPLAY will be encoded
+All text output to TERMINAL will be encoded
 with the specified coding system.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display.
-The setting has no effect on graphical displays."
+TERMINAL may be a terminal object, a frame, or nil for the
+selected frame's terminal.  The setting has no effect on
+graphical terminals."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
@@ -1257,7 +1258,7 @@ The setting has no effect on graphical displays."
       (setq coding-system default-terminal-coding-system))
   (if coding-system
       (setq default-terminal-coding-system coding-system))
-  (set-terminal-coding-system-internal coding-system display)
+  (set-terminal-coding-system-internal coding-system terminal)
   (redraw-frame (selected-frame)))
 
 (defvar default-keyboard-coding-system nil
@@ -1265,8 +1266,8 @@ The setting has no effect on graphical displays."
 This is normally set according to the selected language environment.
 See also the command `set-keyboard-coding-system'.")
 
-(defun set-keyboard-coding-system (coding-system &optional display)
-  "Set coding system for keyboard input on DISPLAY to CODING-SYSTEM.
+(defun set-keyboard-coding-system (coding-system &optional terminal)
+  "Set coding system for keyboard input on TERMINAL to CODING-SYSTEM.
 In addition, this command calls `encoded-kbd-setup-display' to set up the
 translation of keyboard input events to the specified coding system.
 
@@ -1274,8 +1275,9 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display.
-The setting has no effect on graphical displays."
+TERMINAL may be a terminal object, a frame, or nil for the
+selected frame's terminal.  The setting has no effect on
+graphical terminals."
   (interactive
    (list (let ((default (if (and (not (keyboard-coding-system))
 				 default-keyboard-coding-system)
@@ -1293,9 +1295,9 @@ The setting has no effect on graphical displays."
 	   (not (coding-system-get coding-system :ascii-compatible-p))
 	   (not (coding-system-get coding-system :suitable-for-keyboard)))
       (error "%s is not suitable for keyboard" coding-system))
-  (set-keyboard-coding-system-internal coding-system display)
+  (set-keyboard-coding-system-internal coding-system terminal)
   (setq keyboard-coding-system coding-system)
-  (encoded-kbd-setup-display display))
+  (encoded-kbd-setup-display terminal))
 
 (defcustom keyboard-coding-system nil
   "Specify coding system for keyboard input.
