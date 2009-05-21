@@ -1690,20 +1690,20 @@ may involve either inserting or deleting whitespace.)  This function
 is value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
-@defvar left-margin
+@defopt left-margin
 This variable specifies the base left margin column.  In Fundamental
 mode, @kbd{C-j} indents to this column.  This variable automatically
 becomes buffer-local when set in any fashion.
-@end defvar
+@end defopt
 
-@defvar fill-nobreak-predicate
+@defopt fill-nobreak-predicate
 This variable gives major modes a way to specify not to break a line
 at certain places.  Its value should be a list of functions.  Whenever
 filling considers breaking the line at a certain place in the buffer,
 it calls each of these functions with no arguments and with point
 located at that place.  If any of the functions returns
 non-@code{nil}, then the line won't be broken there.
-@end defvar
+@end defopt
 
 @node Adaptive Fill
 @section Adaptive Fill Mode

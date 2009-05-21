@@ -672,7 +672,7 @@ output of the output functions is printed in the echo area.
 @code{eval-current-buffer} is an alias for this command.
 @end deffn
 
-@defvar max-lisp-eval-depth
+@defopt max-lisp-eval-depth
 @anchor{Definition of max-lisp-eval-depth}
 This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
@@ -697,7 +697,7 @@ execute.
 
 @code{max-specpdl-size} provides another limit on nesting.
 @xref{Definition of max-specpdl-size,, Local Variables}.
-@end defvar
+@end defopt
 
 @defvar values
 The value of this variable is a list of the values returned by all the

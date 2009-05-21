@@ -279,12 +279,12 @@ to a non-@code{nil} value, then Emacs does not subsequently load the
 loads this @emph{before} the user's init file.  You can inhibit the
 loading of this file with the option @samp{--no-site-file}.
 
-@defvar site-run-file
+@defopt site-run-file
 This variable specifies the site-customization file to load before the
 user's init file.  Its normal value is @code{"site-start"}.  The only
 way you can change it with real effect is to do so before dumping
 Emacs.
-@end defvar
+@end defopt
 
   @xref{Init Examples,, Init File Examples, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
@@ -821,14 +821,14 @@ fact, the function returns whatever value the variable
 system.  The variable is also useful for constructing frame titles
 (@pxref{Frame Titles}).
 
-@defvar mail-host-address
+@defopt mail-host-address
 If this variable is non-@code{nil}, it is used instead of
 @code{system-name} for purposes of generating email addresses.  For
 example, it is used when constructing the default value of
 @code{user-mail-address}.  @xref{User Identification}.  (Since this is
 done when Emacs starts up, the value actually used is the one saved when
 Emacs was dumped.  @xref{Building Emacs}.)
-@end defvar
+@end defopt
 
 @deffn Command getenv var &optional frame
 @cindex environment variable access
@@ -1009,13 +1009,13 @@ option was used, then Lisp packages should not load any customization
 files or user profile.
 @end defvar
 
-@defvar user-mail-address
+@defopt user-mail-address
 This holds the nominal email address of the user who is using Emacs.
 Emacs normally sets this variable to a default value after reading your
 init files, but not if you have already set it.  So you can set the
 variable to some other value in your init file if you do not
 want to use the default value.
-@end defvar
+@end defopt
 
 @defun user-login-name &optional uid
 If you don't specify @var{uid}, this function returns the name under
@@ -1928,7 +1928,7 @@ trigger an Emacs bug, for the sake of a bug report.
 track of output sent to the terminal.  The variable @code{baud-rate}
 tells you what Emacs thinks is the output speed of the terminal.
 
-@defvar baud-rate
+@defopt baud-rate
 This variable's value is the output speed of the terminal, as far as
 Emacs knows.  Setting this variable does not change the speed of actual
 data transmission, but the value is used for calculations such as
@@ -1939,7 +1939,7 @@ screen or repaint on text terminals.  @xref{Forcing Redisplay},
 for the corresponding functionality on graphical terminals.
 
 The value is measured in baud.
-@end defvar
+@end defopt
 
   If you are running across a network, and different parts of the
 network work at different baud rates, the value returned by Emacs may be

@@ -220,13 +220,13 @@ This function is just like @code{forward-word}, except that it moves
 backward until encountering the front of a word, rather than forward.
 @end deffn
 
-@defvar words-include-escapes
+@defopt words-include-escapes
 @c Emacs 19 feature
 This variable affects the behavior of @code{forward-word} and everything
 that uses it.  If it is non-@code{nil}, then characters in the
 ``escape'' and ``character quote'' syntax classes count as part of
 words.  Otherwise, they do not.
-@end defvar
+@end defopt
 
 @defvar inhibit-field-text-motion
 If this variable is non-@code{nil}, certain motion functions including

@@ -959,7 +959,7 @@ variable @code{pop-up-frames} (see below) is non-@code{nil},
 @code{display-buffer} does not split any window.
 @end defopt
 
-@defvar split-window-preferred-function
+@defopt split-window-preferred-function
 This variable must specify a function with one argument, which is a
 window.  The @code{display-buffer} routines will call this function with
 one or more candidate windows when they look for a window to split.  The
@@ -987,7 +987,7 @@ any window as long as the return value of your function specifies a live
 window or @code{nil}, but you are not encouraged to do so
 unconditionally.  If you want @code{display-buffer} to never split any
 windows, set @code{pop-up-windows} to @code{nil}.
-@end defvar
+@end defopt
 
 @defun split-window-sensibly window
 This function takes a window as argument and tries to split that window
@@ -1130,12 +1130,12 @@ use the default frame parameters, or else the specified list
 of frame parameters.
 @end defun
 
-@defvar special-display-function
+@defopt special-display-function
 This variable holds the function to call to display a buffer specially.
 It receives the buffer as an argument, and should return the window in
 which it is displayed.  The default value of this variable is
 @code{special-display-popup-frame}, see below.
-@end defvar
+@end defopt
 
 @defun special-display-popup-frame buffer &optional args
 This function tries to make @var{buffer} visible in a frame of its own.
@@ -1183,7 +1183,7 @@ put it in the selected window.
 @end defun
 
 @c Emacs 19 feature
-@defvar display-buffer-function
+@defopt display-buffer-function
 This variable is the most flexible way to customize the behavior of
 @code{display-buffer}.  If it is non-@code{nil}, it should be a function
 that @code{display-buffer} calls to do the work.  The function should
@@ -1193,7 +1193,7 @@ buffer in it, and then return the window.
 
 This variable takes precedence over all the other options described
 above.
-@end defvar
+@end defopt
 
 If all options described above fail to produce a suitable window,
 @code{display-buffer} tries to reuse an existing window.  As a last

@@ -557,7 +557,7 @@ follows:
 @end smallexample
 @end deffn
 
-@defvar help-char
+@defopt help-char
 The value of this variable is the help character---the character that
 Emacs recognizes as meaning Help.  By default, its value is 8, which
 stands for @kbd{C-h}.  When Emacs reads this character, if
@@ -574,13 +574,13 @@ The help character is special after prefix keys, too.  If it has no
 binding as a subcommand of the prefix key, it runs
 @code{describe-prefix-bindings}, which displays a list of all the
 subcommands of the prefix key.
-@end defvar
+@end defopt
 
-@defvar help-event-list
+@defopt help-event-list
 The value of this variable is a list of event types that serve as
 alternative ``help characters.''  These events are handled just like the
 event specified by @code{help-char}.
-@end defvar
+@end defopt
 
 @defvar help-form
 If this variable is non-@code{nil}, its value is a form to evaluate

@@ -508,19 +508,19 @@ This lets Lisp programs explicitly manage input history by using
 set to a non-@code{nil} value.
 @end defvar
 
-@defvar history-length
+@defopt history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there no maximum (don't delete old
 elements).  The value of @code{history-length} property of the history
 list variable's symbol, if set, overrides this variable for that
 particular history list.
-@end defvar
+@end defopt
 
-@defvar history-delete-duplicates
+@defopt history-delete-duplicates
 If the value of this variable is @code{t}, that means when adding a
 new history element, all previous identical elements are deleted.
-@end defvar
+@end defopt
 
   Here are some of the standard minibuffer history list variables:
 
@@ -1188,17 +1188,17 @@ Buffer name (default foo): @point{}
 @end example
 @end defun
 
-@defvar read-buffer-function
+@defopt read-buffer-function
 This variable specifies how to read buffer names.  For example, if you
 set this variable to @code{iswitchb-read-buffer}, all Emacs commands
 that call @code{read-buffer} to read a buffer name will actually use the
 @code{iswitchb} package to read it.
-@end defvar
+@end defopt
 
-@defvar read-buffer-completion-ignore-case
+@defopt read-buffer-completion-ignore-case
 If this variable is non-@code{nil}, @code{read-buffer} ignores case
 when performing completion.
-@end defvar
+@end defopt
 
 @defun read-command prompt &optional default
 This function reads the name of a command and returns it as a Lisp
@@ -1442,10 +1442,10 @@ called, it calls this function with the supplied arguments instead of
 doing its usual work.
 @end defvar
 
-@defvar read-file-name-completion-ignore-case
+@defopt read-file-name-completion-ignore-case
 If this variable is non-@code{nil}, @code{read-file-name} ignores case
 when performing completion.
-@end defvar
+@end defopt
 
 @defun read-directory-name prompt &optional directory default require-match initial
 This function is like @code{read-file-name} but allows only directory

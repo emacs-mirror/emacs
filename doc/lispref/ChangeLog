@@ -1,3 +1,91 @@
+2009-05-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* abbrevs.texi (Abbrev Mode): abbrev-mode is an option.
+
+	* backups.texi (Making Backups): backup-directory-alist and
+	make-backup-file-name-function are options.
+	(Auto-Saving): auto-save-list-file-prefix is an option.
+
+	* buffers.texi (Killing Buffers): buffer-offer-save is an
+	option.
+
+	* display.texi (Refresh Screen): no-redraw-on-reenter is an
+	option.
+	(Echo Area Customization): echo-keystrokes is an option.
+	(Selective Display): selective-display-ellipses is an option.
+	(Temporary Displays): temp-buffer-show-function is an option.
+	(Face Attributes): underline-minimum-offset and x-bitmap-file-path
+	are options.
+	(Font Selection): face-font-family-alternatives,
+	face-font-selection-order, face-font-registry-alternatives, and
+	scalable-fonts-allowed are options.
+	(Fringe Indicators): indicate-buffer-boundaries is an option.
+	(Fringe Cursors): overflow-newline-into-fringe is an option.
+	(Scroll Bars): scroll-bar-mode is an option.
+
+	* eval.texi (Eval): max-lisp-eval-depth is an option.
+
+	* files.texi (Visiting Functions): find-file-hook is an option.
+	(Directory Names): directory-abbrev-alist is an option.
+	(Unique File Names): temporary-file-directory and
+	small-temporary-file-directory are options.
+
+	* frames.texi (Initial Parameters): initial-frame-alist,
+	minibuffer-frame-alist and default-frame-alist are options.
+	(Cursor Parameters): blink-cursor-alist and
+	cursor-in-non-selected-windows ar options.
+	(Window System Selections): selection-coding-system is an
+	option.
+	(Display Feature Testing): display-mm-dimensions-alist is an
+	option.
+
+	* help.texi (Help Functions): help-char and help-event-list are
+	options.
+
+	* keymaps.texi (Functions for Key Lookup): meta-prefix-char is
+	an option.
+
+	* minibuf.texi (Minibuffer History): history-length and
+	history-delete-duplicates are options.
+	(High-Level Completion): read-buffer-function and
+	read-buffer-completion-ignore-case are options.
+	(Reading File Names): read-file-name-completion-ignore-case is
+	an option.
+
+	* modes.texi (Mode Line Top): mode-line-format is an option.
+	(Mode Line Variables): mode-line-position and mode-line-modes
+	are options.
+
+	* nonascii.texi (Text Representations):
+	enable-multibyte-characters is an option.
+	(Default Coding Systems): auto-coding-regexp-alist,
+	file-coding-system-alist, auto-coding-alist and
+	auto-coding-functions are options.
+	(Specifying Coding Systems): inhibit-eol-conversion is an
+	option.
+
+	* os.texi (Init File): site-run-file is an option.
+	(System Environment): mail-host-address is an option.
+	(User Identification): user-mail-address is an option.
+	(Terminal Output): baud-rate is an option.
+
+	* positions.texi (Word Motion): words-include-escapes is an
+	option.
+
+	* searching.texi (Standard Regexps): page-delimiter,
+	paragraph-separate, paragraph-separate and sentence-end are
+	options.
+
+	* text.texi (Margins): left-margin and fill-nobreak-predicate
+	are options.
+
+	* variables.texi (Local Variables): max-specpdl-size is an
+	option.
+
+	* windows.texi (Choosing Window):
+	split-window-preferred-function, special-display-function and
+	display-buffer-function are options.
+
 2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	Fix errors spotted by Martin Rudalics.

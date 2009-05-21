@@ -64,13 +64,13 @@ Mode, emacs, The GNU Emacs Manual}.
   Abbrev mode is a minor mode controlled by the variable
 @code{abbrev-mode}.
 
-@defvar abbrev-mode
+@defopt abbrev-mode
 If this variable is non-@code{nil}, abbrevs are automatically expanded
 in the buffer.  If the value is @code{nil}, abbrevs may be defined,
 but they are not expanded automatically.
 
 This variable automatically becomes buffer-local when set in any fashion.
-@end defvar
+@end defopt
 
 @defvar default-abbrev-mode
 This is the value of @code{abbrev-mode} for buffers that do not

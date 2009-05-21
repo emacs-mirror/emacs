@@ -260,7 +260,7 @@ Variables}); a few variables have terminal-local bindings
 like ordinary local bindings, but they are localized depending on
 ``where'' you are in Emacs, rather than localized in time.
 
-@defvar max-specpdl-size
+@defopt max-specpdl-size
 @anchor{Definition of max-specpdl-size}
 @cindex variable limit error
 @cindex evaluation error
@@ -279,7 +279,7 @@ that Lisp avoids infinite recursion on an ill-defined function.
 The default value is 1000.  Entry to the Lisp debugger increases the
 value, if there is little room left, to make sure the debugger itself
 has room to execute.
-@end defvar
+@end defopt
 
 @node Void Variables
 @section When a Variable is ``Void''

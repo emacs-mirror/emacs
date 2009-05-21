@@ -1786,12 +1786,12 @@ arguments: the first 3 arguments of @code{re-search-forward}
   This section describes some variables that hold regular expressions
 used for certain purposes in editing:
 
-@defvar page-delimiter
+@defopt page-delimiter
 This is the regular expression describing line-beginnings that separate
 pages.  The default value is @code{"^\014"} (i.e., @code{"^^L"} or
 @code{"^\C-l"}); this matches a line that starts with a formfeed
 character.
-@end defvar
+@end defopt
 
   The following two regular expressions should @emph{not} assume the
 match always starts at the beginning of a line; they should not use
@@ -1802,22 +1802,22 @@ they accept matches that start after the left margin.  In that case, a
 @samp{^} would be incorrect.  However, a @samp{^} is harmless in modes
 where a left margin is never used.
 
-@defvar paragraph-separate
+@defopt paragraph-separate
 This is the regular expression for recognizing the beginning of a line
 that separates paragraphs.  (If you change this, you may have to
 change @code{paragraph-start} also.)  The default value is
 @w{@code{"[@ \t\f]*$"}}, which matches a line that consists entirely of
 spaces, tabs, and form feeds (after its left margin).
-@end defvar
+@end defopt
 
-@defvar paragraph-start
+@defopt paragraph-start
 This is the regular expression for recognizing the beginning of a line
 that starts @emph{or} separates paragraphs.  The default value is
 @w{@code{"\f\\|[ \t]*$"}}, which matches a line containing only
 whitespace or starting with a form feed (after its left margin).
-@end defvar
+@end defopt
 
-@defvar sentence-end
+@defopt sentence-end
 If non-@code{nil}, the value should be a regular expression describing
 the end of a sentence, including the whitespace following the
 sentence.  (All paragraph boundaries also end sentences, regardless.)
@@ -1826,7 +1826,7 @@ If the value is @code{nil}, the default, then the function
 @code{sentence-end} has to construct the regexp.  That is why you
 should always call the function @code{sentence-end} to obtain the
 regexp to be used to recognize the end of a sentence.
-@end defvar
+@end defopt
 
 @defun sentence-end
 This function returns the value of the variable @code{sentence-end},

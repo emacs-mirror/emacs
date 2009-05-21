@@ -1179,7 +1179,7 @@ The argument @var{accept-defaults} controls checking for default
 bindings, as in @code{lookup-key} (above).
 @end defun
 
-@defvar meta-prefix-char
+@defopt meta-prefix-char
 @cindex @key{ESC}
 This variable is the meta-prefix character code.  It is used for
 translating a meta character to a two-character sequence so it can be
@@ -1225,7 +1225,7 @@ meta-prefix-char                    ; @r{The default value.}
 This translation of one event into two happens only for characters, not
 for other kinds of input events.  Thus, @kbd{M-@key{F1}}, a function
 key, is not converted into @kbd{@key{ESC} @key{F1}}.
-@end defvar
+@end defopt
 
 @node Changing Key Bindings
 @section Changing Key Bindings

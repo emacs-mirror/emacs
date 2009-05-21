@@ -95,14 +95,14 @@ strings except for manipulating encoded text or binary non-text data.
 The representation for a string is determined and recorded in the string
 when the string is constructed.
 
-@defvar enable-multibyte-characters
+@defopt enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
-@end defvar
+@end defopt
 
 @defvar default-enable-multibyte-characters
 This variable's value is entirely equivalent to @code{(default-value
@@ -1289,7 +1289,7 @@ don't change these variables; instead, override them using
 (@pxref{Specifying Coding Systems}).
 
 @cindex file contents, and default coding system
-@defvar auto-coding-regexp-alist
+@defopt auto-coding-regexp-alist
 This variable is an alist of text patterns and corresponding coding
 systems. Each element has the form @code{(@var{regexp}
 . @var{coding-system})}; a file whose first few kilobytes match
@@ -1299,10 +1299,10 @@ read into a buffer.  The settings in this alist take priority over
 @code{file-coding-system-alist} (see below).  The default value is set
 so that Emacs automatically recognizes mail files in Babyl format and
 reads them with no code conversions.
-@end defvar
+@end defopt
 
 @cindex file name, and default coding system
-@defvar file-coding-system-alist
+@defopt file-coding-system-alist
 This variable is an alist that specifies the coding systems to use for
 reading and writing particular files.  Each element has the form
 @code{(@var{pattern} . @var{coding})}, where @var{pattern} is a regular
@@ -1325,14 +1325,14 @@ meaning as described above.
 
 If @var{coding} (or what returned by the above function) is
 @code{undecided}, the normal code-detection is performed.
-@end defvar
+@end defopt
 
-@defvar auto-coding-alist
+@defopt auto-coding-alist
 This variable is an alist that specifies the coding systems to use for
 reading and writing particular files.  Its form is like that of
 @code{file-coding-system-alist}, but, unlike the latter, this variable
 takes priority over any @code{coding:} tags in the file.
-@end defvar
+@end defopt
 
 @cindex program name, and default coding system
 @defvar process-coding-system-alist
@@ -1380,7 +1380,7 @@ the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
 @cindex default coding system, functions to determine
-@defvar auto-coding-functions
+@defopt auto-coding-functions
 This variable holds a list of functions that try to determine a
 coding system for a file based on its undecoded contents.
 
@@ -1394,7 +1394,7 @@ Otherwise, it should return @code{nil}.
 
 If a file has a @samp{coding:} tag, that takes precedence, so these
 functions won't be called.
-@end defvar
+@end defopt
 
 @defun find-auto-coding filename size
 This function tries to determine a suitable coding system for
@@ -1521,12 +1521,12 @@ When a single operation does both input and output, as do
 affect it.
 @end defvar
 
-@defvar inhibit-eol-conversion
+@defopt inhibit-eol-conversion
 When this variable is non-@code{nil}, no end-of-line conversion is done,
 no matter which coding system is specified.  This applies to all the
 Emacs I/O and subprocess primitives, and to the explicit encoding and
 decoding functions (@pxref{Explicit Encoding}).
-@end defvar
+@end defopt
 
 @cindex priority order of coding systems
 @cindex coding systems, priority

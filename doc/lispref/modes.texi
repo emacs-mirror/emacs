@@ -1714,14 +1714,14 @@ the top of the window is to use a list like this: @code{(-3 "%p")}.
   The variable in overall control of the mode line is
 @code{mode-line-format}.
 
-@defvar mode-line-format
+@defopt mode-line-format
 The value of this variable is a mode-line construct that controls the
 contents of the mode-line.  It is always buffer-local in all buffers.
 
 If you set this variable to @code{nil} in a buffer, that buffer does
 not have a mode line.  (A window that is just one line tall never
 displays a mode line.)
-@end defvar
+@end defopt
 
   The default value of @code{mode-line-format} is designed to use the
 values of other variables such as @code{mode-line-position} and
@@ -1821,11 +1821,11 @@ Its default value displays the buffer name, padded with spaces to at
 least 12 columns.
 @end defvar
 
-@defvar mode-line-position
+@defopt mode-line-position
 This variable indicates the position in the buffer.  Its default value
 displays the buffer percentage and, optionally, the buffer size, the
 line number and the column number.
-@end defvar
+@end defopt
 
 @defvar vc-mode
 The variable @code{vc-mode}, buffer-local in each buffer, records
@@ -1834,11 +1834,11 @@ and, if so, which kind.  Its value is a string that appears in the mode
 line, or @code{nil} for no version control.
 @end defvar
 
-@defvar mode-line-modes
+@defopt mode-line-modes
 This variable displays the buffer's major and minor modes.  Its
 default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
-@end defvar
+@end defopt
 
   The following three variables are used in @code{mode-line-modes}:
 

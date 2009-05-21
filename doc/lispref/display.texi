@@ -66,13 +66,13 @@ contents for display-oriented programs such as Emacs and for ordinary
 sequential display.  If you are using such a terminal, you might want
 to inhibit the redisplay on resumption.
 
-@defvar no-redraw-on-reenter
+@defopt no-redraw-on-reenter
 @cindex suspend (cf. @code{no-redraw-on-reenter})
 @cindex resume (cf. @code{no-redraw-on-reenter})
 This variable controls whether Emacs redraws the entire screen after it
 has been suspended and resumed.  Non-@code{nil} means there is no need
 to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
-@end defvar
+@end defopt
 
 @node Forcing Redisplay
 @section Forcing Redisplay
@@ -543,7 +543,7 @@ This normal hook is run whenever the echo area is cleared---either by
 @code{(message nil)} or for any other reason.
 @end defvar
 
-@defvar echo-keystrokes
+@defopt echo-keystrokes
 This variable determines how much time should elapse before command
 characters echo.  Its value must be an integer or floating point number,
 which specifies the
@@ -554,7 +554,7 @@ begins in a key sequence, all subsequent characters in the same key
 sequence are echoed immediately.)
 
 If the value is zero, then command input is not echoed.
-@end defvar
+@end defopt
 
 @defvar message-truncate-lines
 Normally, displaying a long message resizes the echo area to display
@@ -994,7 +994,7 @@ change.
 @end example
 @end defvar
 
-@defvar selective-display-ellipses
+@defopt selective-display-ellipses
 If this buffer-local variable is non-@code{nil}, then Emacs displays
 @samp{@dots{}} at the end of a line that is followed by hidden text.
 This example is a continuation of the previous one.
@@ -1015,7 +1015,7 @@ This example is a continuation of the previous one.
 
 You can use a display table to substitute other text for the ellipsis
 (@samp{@dots{}}).  @xref{Display Tables}.
-@end defvar
+@end defopt
 
 @node Temporary Displays
 @section Temporary Displays
@@ -1078,7 +1078,7 @@ The value of the last form in @var{forms} is returned.
 @end example
 @end defspec
 
-@defvar temp-buffer-show-function
+@defopt temp-buffer-show-function
 If this variable is non-@code{nil}, @code{with-output-to-temp-buffer}
 calls it as a function to do the job of displaying a help buffer.  The
 function gets one argument, which is the buffer it should display.
@@ -1087,7 +1087,7 @@ It is a good idea for this function to run @code{temp-buffer-show-hook}
 just as @code{with-output-to-temp-buffer} normally would, inside of
 @code{save-selected-window} and with the chosen window and buffer
 selected.
-@end defvar
+@end defopt
 
 @defvar temp-buffer-setup-hook
 This normal hook is run by @code{with-output-to-temp-buffer} before
@@ -2162,15 +2162,15 @@ optional argument @var{frame} specifies the frame on which the text is
 to be displayed; if it is @code{nil}, the selected frame is used.
 @end defun
 
-@defvar underline-minimum-offset
+@defopt underline-minimum-offset
 This variable specifies the minimum distance between the baseline and
 the underline, in pixels, when displaying underlined text.
-@end defvar
+@end defopt
 
-@defvar x-bitmap-file-path
+@defopt x-bitmap-file-path
 This variable specifies a list of directories for searching
 for bitmap files, for the @code{:stipple} attribute.
-@end defvar
+@end defopt
 
 @defun bitmap-spec-p object
 This returns @code{t} if @var{object} is a valid bitmap specification,
@@ -2674,7 +2674,7 @@ of characters.  If no available font exactly fits the requirements,
 Emacs looks for the @dfn{closest matching font}.  The variables in
 this section control how Emacs makes this selection.
 
-@defvar face-font-family-alternatives
+@defopt face-font-family-alternatives
 If a given family is specified but does not exist, this variable
 specifies alternative font families to try.  Each element should have
 this form:
@@ -2686,9 +2686,9 @@ this form:
 If @var{family} is specified but not available, Emacs will try the other
 families given in @var{alternate-families}, one by one, until it finds a
 family that does exist.
-@end defvar
+@end defopt
 
-@defvar face-font-selection-order
+@defopt face-font-selection-order
 If there is no font that exactly matches all desired face attributes
 (@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}),
 this variable specifies the order in which these attributes should be
@@ -2714,9 +2714,9 @@ default font has no italic equivalent.  With the default ordering, the
 default one.  But if you put @code{:slant} before @code{:height}, the
 @code{italic} face will use an italic font, even if its height is not
 quite right.
-@end defvar
+@end defopt
 
-@defvar face-font-registry-alternatives
+@defopt face-font-registry-alternatives
 This variable lets you specify alternative font registries to try, if a
 given registry is specified and doesn't exist.  Each element should have
 this form:
@@ -2728,12 +2728,12 @@ this form:
 If @var{registry} is specified but not available, Emacs will try the
 other registries given in @var{alternate-registries}, one by one,
 until it finds a registry that does exist.
-@end defvar
+@end defopt
 
   Emacs can make use of scalable fonts, but by default it does not use
 them.
 
-@defvar scalable-fonts-allowed
+@defopt scalable-fonts-allowed
 This variable controls which scalable fonts to use.  A value of
 @code{nil}, the default, means do not use scalable fonts.  @code{t}
 means to use any scalable font that seems appropriate for the text.
@@ -2748,7 +2748,7 @@ expression in the list.  For example,
 
 @noindent
 allows the use of scalable fonts with registry @code{muleindian-2}.
-@end defvar
+@end defopt
 
 @defvar face-font-rescale-alist
 This variable specifies scaling for certain faces.  Its value should
@@ -3214,7 +3214,7 @@ displays.  @xref{Fringes}.  This variable is automatically
 buffer-local in every buffer.
 @end defopt
 
-@defvar indicate-buffer-boundaries
+@defopt indicate-buffer-boundaries
 This buffer-local variable controls how the buffer boundaries and
 window scrolling are indicated in the window fringes.
 
@@ -3250,7 +3250,7 @@ For example, @code{((top . left) (t . right))} places the top angle
 bitmap in left fringe, and the bottom angle bitmap as well as both
 arrow bitmaps in right fringe.  To show the angle bitmaps in the left
 fringe, and no arrow bitmaps, use @code{((top .  left) (bottom . left))}.
-@end defvar
+@end defopt
 
 @defvar default-indicate-buffer-boundaries
 The value of this variable is the default value for
@@ -3345,12 +3345,12 @@ The @code{hollow-small} type is used instead of @code{hollow} when the
 normal @code{hollow-rectangle} bitmap is too tall to fit on a specific
 display line.
 
-@defvar overflow-newline-into-fringe
+@defopt overflow-newline-into-fringe
 If this is non-@code{nil}, lines exactly as wide as the window (not
 counting the final newline character) are not continued.  Instead,
 when point is at the end of the line, the cursor appears in the right
 fringe.
-@end defvar
+@end defopt
 
 @defvar fringe-cursor-alist
 This variable specifies the mapping from logical cursor type to the
@@ -3587,12 +3587,12 @@ in a buffer that is already visible in a window, you can make the
 window take note of the new values by calling @code{set-window-buffer}
 specifying the same buffer that is already displayed.
 
-@defvar scroll-bar-mode
+@defopt scroll-bar-mode
 This variable, always local in all buffers, controls whether and where
 to put scroll bars in windows displaying the buffer.  The possible values
 are @code{nil} for no scroll bar, @code{left} to put a scroll bar on
 the left, and @code{right} to put a scroll bar on the right.
-@end defvar
+@end defopt
 
 @defun window-current-scroll-bars &optional window
 This function reports the scroll bar type for window @var{window}.
