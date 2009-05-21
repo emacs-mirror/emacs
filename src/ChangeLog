@@ -1,3 +1,27 @@
+2009-05-21  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Qlatin): Don't make it static.
+
+	* xfont.c (xfont_chars_supported, xfont_supported_scripts): New
+	functions.
+	(xfont_scripts_cache, xfont_scratch_props): New variables.
+	(Qlatin, Vscalable_fonts_allowed): Extern it.
+	(xfont_list_pattern): Argument changed.  Callers changed.  Check
+	Vscalable_fonts_allowed.  Check the support of a script.
+	(xfont_list): Don't reject a font spec with :script property.
+	(xfont_has_char): Fix setting of encoding.
+	(syms_of_xfont): Staticpro and initialize xfont_scripts_cache and
+	xfont_scratch_props.
+
+2009-05-19  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_sort_entities): Renamed from font_sort_entites.
+	Callers changed.
+
+2009-05-18  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_find_for_lface): Copy SPEC's FONT_TYPE too.
+
 2009-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (do_switch_frame) [NS_IMPL_COCOA]: Don't raise any window.
