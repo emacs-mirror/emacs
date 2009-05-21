@@ -49,7 +49,6 @@ struct xfont_info
 extern void x_clear_errors P_ ((Display *));
 
 static XCharStruct *xfont_get_pcm P_ ((XFontStruct *, XChar2b *));
-static void xfont_find_ccl_program P_ ((struct font *));
 
 /* Get metrics of character CHAR2B in XFONT.  Value is null if CHAR2B
    is not contained in the font.  */
@@ -117,42 +116,6 @@ xfont_get_pcm (xfont, char2b)
   return ((pcm == NULL
 	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
 	  ? NULL : pcm);
-}
-
-/* Find a CCL program for a font specified by FONTP, and set the member
- `encoder' of the structure.  */
-
-static void
-xfont_find_ccl_program (font)
-     struct font *font;
-{
-  Lisp_Object list, elt;
-
-  elt = Qnil;
-  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCDR (list))
-    {
-      elt = XCAR (list);
-      if (CONSP (elt)
-	  && STRINGP (XCAR (elt))
-	  && ((fast_string_match_ignore_case (XCAR (elt),
-					      font->props[FONT_NAME_INDEX])
-	       >= 0)
-	      || (fast_string_match_ignore_case (XCAR (elt),
-						 font->props[FONT_FULLNAME_INDEX])
-		  >= 0)))
-	break;
-    }
-
-  if (! NILP (list))
-    {
-      struct ccl_program *ccl
-	= (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
-
-      if (setup_ccl_program (ccl, XCDR (elt)) < 0)
-	xfree (ccl);
-      else
-	font->font_encoder = ccl;
-    }
 }
 
 static Lisp_Object xfont_get_cache P_ ((FRAME_PTR));
@@ -408,14 +371,6 @@ xfont_list_pattern (Display *display, char *pattern,
 	  script = Qnil;
 	}
     }
-  if (! repertory && NILP (xfont_scripts_cache))
-    {
-      Lisp_Object args[2];
-
-      args[0] = QCtest;
-      args[1] = Qequal;
-      xfont_scripts_cache = Fmake_hash_table (2, args);
-    }
       
   BLOCK_INPUT;
   x_catch_errors (display);
@@ -439,20 +394,11 @@ xfont_list_pattern (Display *display, char *pattern,
   if (num_fonts > 0)
     {
       char **indices = alloca (sizeof (char *) * num_fonts);
-      Lisp_Object *props;
+      Lisp_Object *props = XVECTOR (xfont_scratch_props)->contents;
       Lisp_Object scripts = Qnil;
 
-      if (NILP (xfont_scratch_props))
-	{
-	  xfont_scratch_props = Fmake_vector (make_number (8), Qnil);
-	  props = XVECTOR (xfont_scratch_props)->contents;
-	}
-      else
-	{
-	  props = XVECTOR (xfont_scratch_props)->contents;
-	  for (i = 0; i < 8; i++)
-	    props[i] = Qnil;
-	}
+      for (i = 0; i < ASIZE (xfont_scratch_props); i++)
+	props[i] = Qnil;
       for (i = 0; i < num_fonts; i++)
 	indices[i] = names[i];
       qsort (indices, num_fonts, sizeof (char *), compare_font_names);
@@ -749,7 +695,6 @@ xfont_open (f, entity, pixel_size)
   Lisp_Object font_object, fullname;
   struct font *font;
   XFontStruct *xfont;
-  int i;
 
   /* At first, check if we know how to encode characters for this
      font.  */
@@ -1176,9 +1121,15 @@ void
 syms_of_xfont ()
 {
   staticpro (&xfont_scripts_cache);
-  xfont_scripts_cache = Qnil;
+  { /* Here we rely on the fact that syms_of_xfont (via syms_of_font)
+       is called fairly late, when QCtest and Qequal are known to be set.  */
+    Lisp_Object args[2];
+    args[0] = QCtest;
+    args[1] = Qequal;
+    xfont_scripts_cache = Fmake_hash_table (2, args);
+  }
   staticpro (&xfont_scratch_props);
-  xfont_scratch_props = Qnil;;
+  xfont_scratch_props = Fmake_vector (make_number (8), Qnil);
   xfont_driver.type = Qx;
   register_font_driver (&xfont_driver, NULL);
 }

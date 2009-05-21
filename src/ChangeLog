@@ -1,13 +1,21 @@
+2009-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfont.c (xfont_list_pattern): Don't initialize xfont_scripts_cache
+	and xfont_scratch_props.
+	(syms_of_xfont): Do it here instead.
+	(xfont_find_ccl_program): Delete, unused.
+	(xfont_open): Delete unused var `i'.
+
 2009-05-21  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Qlatin): Don't make it static.
 
-	* xfont.c (xfont_chars_supported, xfont_supported_scripts): New
-	functions.
+	* xfont.c (xfont_chars_supported, xfont_supported_scripts):
+	New functions.
 	(xfont_scripts_cache, xfont_scratch_props): New variables.
 	(Qlatin, Vscalable_fonts_allowed): Extern it.
-	(xfont_list_pattern): Argument changed.  Callers changed.  Check
-	Vscalable_fonts_allowed.  Check the support of a script.
+	(xfont_list_pattern): Argument changed.  Callers changed.
+	Check Vscalable_fonts_allowed.  Check the support of a script.
 	(xfont_list): Don't reject a font spec with :script property.
 	(xfont_has_char): Fix setting of encoding.
 	(syms_of_xfont): Staticpro and initialize xfont_scripts_cache and
@@ -15,7 +23,7 @@
 
 2009-05-19  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_sort_entities): Renamed from font_sort_entites.
+	* font.c (font_sort_entities): Rename from font_sort_entites.
 	Callers changed.
 
 2009-05-18  Kenichi Handa  <handa@m17n.org>
