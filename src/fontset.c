@@ -180,7 +180,7 @@ extern Lisp_Object Qfont;
 static Lisp_Object Qfontset;
 static Lisp_Object Qfontset_info;
 static Lisp_Object Qprepend, Qappend;
-static Lisp_Object Qlatin;
+Lisp_Object Qlatin;
 
 /* Vector containing all fontsets.  */
 static Lisp_Object Vfontset_table;
