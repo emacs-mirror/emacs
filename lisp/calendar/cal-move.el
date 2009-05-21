@@ -230,14 +230,15 @@ Moves backward if ARG is negative."
              (+ (calendar-absolute-from-gregorian cursor-date) arg)))
            (new-display-month (calendar-extract-month new-cursor-date))
            (new-display-year (calendar-extract-year new-cursor-date)))
-      ;; Put the new month on the screen, if needed, and go to the new date.
-      (if (calendar-date-is-visible-p new-cursor-date)
-          (calendar-cursor-to-visible-date new-cursor-date)
+      ;; Put the new month on the screen, if needed.
+      (unless (calendar-date-is-visible-p new-cursor-date)
         ;; The next line gives smoother scrolling IMO (one month at a
         ;; time rather than two).
         (calendar-increment-month new-display-month new-display-year
                                   (if (< arg 0) 1 -1))
-        (calendar-other-month new-display-month new-display-year))))
+        (calendar-other-month new-display-month new-display-year))
+      ;; Go to the new date.
+      (calendar-cursor-to-visible-date new-cursor-date)))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
