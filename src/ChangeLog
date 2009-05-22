@@ -1,3 +1,7 @@
+2009-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* m/mips.h [GNU_LINUX]: Don't define DATA_START (Bug#2685).
+
 2009-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfont.c (xfont_list_pattern): Don't initialize xfont_scripts_cache

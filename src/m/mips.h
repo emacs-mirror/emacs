@@ -49,7 +49,10 @@ NOTE-END  */
 /* Describe layout of the address space in an executing process.  */
 
 #define TEXT_START      0x00400000
+
+#ifndef GNU_LINUX
 #define DATA_START      0x10000000
+#endif
 
 
 #if 0 /* These definitions were advantageous when not using
