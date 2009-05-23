@@ -1,3 +1,7 @@
+2009-05-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-mode): Doc fix (Bug#3358).
+
 2009-05-23  Johan Bockgård  <bojohan@gnu.org>
 
 	* ediff-vers.el (ediff-vc-latest-version): Use property
