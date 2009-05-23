@@ -934,6 +934,7 @@ Elements of the attribute list are:
  3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
+  (See a note below about FAT-based filesystems.)
  5. Last modification time, likewise.
  6. Last status change time, likewise.
  7. Size in bytes.
@@ -949,7 +950,10 @@ Elements of the attribute list are:
   a cons cell, similar to the inode number.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
-which see.  */)
+which see.
+
+On some FAT-based filesystems, only the date of last access is recorded,
+so last access time will always be midnight of that day.  */)
      (filename, id_format)
      Lisp_Object filename, id_format;
 {
