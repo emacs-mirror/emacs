@@ -1,3 +1,7 @@
+2009-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (Ffile_attributes): Doc fix.
+
 2009-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* m/mips.h [GNU_LINUX]: Don't define DATA_START (Bug#2685).
