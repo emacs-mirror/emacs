@@ -2931,7 +2931,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (18819 46976))
+;;;;;;  (18963 23682))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload 'c-initialize-cc-mode "cc-mode" "\
@@ -3946,8 +3946,8 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-start-hook
-;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (18863
-;;;;;;  60812))
+;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (18961
+;;;;;;  36796))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5982,7 +5982,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (18901 14288))
+;;;;;;  "dired" "dired.el" (18958 9095))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -8367,15 +8367,15 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (encoded-kbd-setup-display) "encoded-kb" "international/encoded-kb.el"
-;;;;;;  (18787 48928))
+;;;;;;  (18963 26564))
 ;;; Generated autoloads from international/encoded-kb.el
 
 (autoload 'encoded-kbd-setup-display "encoded-kb" "\
-Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
+Set up a `input-decode-map' for `keyboard-coding-system' on TERMINAL.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display.
+TERMINAL may be a terminal id, a frame, or nil for the selected frame's terminal.
 
-\(fn DISPLAY)" nil nil)
+\(fn TERMINAL)" nil nil)
 
 ;;;***
 
@@ -8415,8 +8415,8 @@ Not documented
 ;;;;;;  epa-sign-region epa-verify-cleartext-in-region epa-verify-region
 ;;;;;;  epa-decrypt-armor-in-region epa-decrypt-region epa-encrypt-file
 ;;;;;;  epa-sign-file epa-verify-file epa-decrypt-file epa-select-keys
-;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (18787
-;;;;;;  48912))
+;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (18941
+;;;;;;  42892))
 ;;; Generated autoloads from epa.el
 
 (autoload 'epa-list-keys "epa" "\
@@ -8709,7 +8709,7 @@ Minor mode to hook EasyPG into Mail mode.
 ;;;;;;  epg-encrypt-string epg-encrypt-file epg-start-encrypt epg-sign-string
 ;;;;;;  epg-sign-file epg-start-sign epg-verify-string epg-verify-file
 ;;;;;;  epg-start-verify epg-decrypt-string epg-decrypt-file epg-start-decrypt
-;;;;;;  epg-cancel epg-list-keys) "epg" "epg.el" (18787 48912))
+;;;;;;  epg-cancel epg-list-keys) "epg" "epg.el" (18943 4386))
 ;;; Generated autoloads from epg.el
 
 (autoload 'epg-list-keys "epg" "\
@@ -12452,7 +12452,7 @@ Turn on `goto-address-mode', but only in comments and strings.
 
 ;;;### (autoloads (rgrep lgrep grep-find grep grep-mode grep-compute-defaults
 ;;;;;;  grep-process-setup grep-setup-hook grep-find-command grep-command
-;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (18858 55376))
+;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (18967 15987))
 ;;; Generated autoloads from progmodes/grep.el
 
 (defvar grep-window-height nil "\
@@ -12466,17 +12466,19 @@ If the grep program used supports an option to always include file names
 in its output (such as the `-H' option to GNU grep), it's a good idea to
 include it when specifying `grep-command'.
 
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program.")
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'.")
 
-(custom-autoload 'grep-command "grep" t)
+(custom-autoload 'grep-command "grep" nil)
 
 (defvar grep-find-command nil "\
 The default find command for \\[grep-find].
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program.")
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'.")
 
-(custom-autoload 'grep-find-command "grep" t)
+(custom-autoload 'grep-find-command "grep" nil)
 
 (defvar grep-setup-hook nil "\
 List of hook functions run by `grep-process-setup' (see `run-hooks').")
@@ -14632,8 +14634,8 @@ The main features of this mode are
 ;;;;;;  ido-find-alternate-file ido-find-file-other-window ido-find-file
 ;;;;;;  ido-find-file-in-dir ido-switch-buffer-other-frame ido-insert-buffer
 ;;;;;;  ido-kill-buffer ido-display-buffer ido-switch-buffer-other-window
-;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (18787
-;;;;;;  48914))
+;;;;;;  ido-switch-buffer ido-mode ido-mode) "ido" "ido.el" (18951
+;;;;;;  18091))
 ;;; Generated autoloads from ido.el
 
 (defvar ido-mode nil "\
@@ -18540,7 +18542,7 @@ different buffer menu using the function `msb'.
 ;;;;;;  describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-character-set list-charset-chars
 ;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (18912 44112))
+;;;;;;  (18947 41945))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload 'list-character-sets "mule-diag" "\
@@ -23225,7 +23227,7 @@ This means the number of non-shy regexp grouping constructs
 
 ;;;***
 
-;;;### (autoloads nil "register" "register.el" (18873 47505))
+;;;### (autoloads nil "register" "register.el" (18961 38375))
 ;;; Generated autoloads from register.el
  (define-key ctl-x-r-map "\C-@" 'point-to-register)
  (define-key ctl-x-r-map [?\C-\ ] 'point-to-register)
@@ -23458,7 +23460,7 @@ variable.
 ;;;;;;  rmail-secondary-file-directory rmail-primary-inbox-list rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
 ;;;;;;  rmail-dont-reply-to-names rmail-movemail-variant-p) "rmail"
-;;;;;;  "mail/rmail.el" (18911 46082))
+;;;;;;  "mail/rmail.el" (18961 36795))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -23636,7 +23638,7 @@ Set PASSWORD to be used for retrieving mail from a POP or IMAP server.
 ;;;***
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "mail/rmailedit.el"
-;;;;;;  (18911 46082))
+;;;;;;  (18961 36795))
 ;;; Generated autoloads from mail/rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -27452,7 +27454,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-commands tex-start-options slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-;;;;;;  (18850 59927))
+;;;;;;  (18964 39342))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -28880,8 +28882,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (18787
-;;;;;;  48918))
+;;;### (autoloads (help-with-tutorial) "tutorial" "tutorial.el" (18953
+;;;;;;  42629))
 ;;; Generated autoloads from tutorial.el
 
 (autoload 'help-with-tutorial "tutorial" "\
@@ -29903,11 +29905,11 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;***
 
 ;;;### (autoloads (vc-branch-part vc-trunk-p vc-update-change-log
-;;;;;;  vc-rename-file vc-transfer-file vc-switch-backend vc-update
-;;;;;;  vc-rollback vc-revert vc-print-log vc-retrieve-tag vc-create-tag
-;;;;;;  vc-merge vc-insert-headers vc-revision-other-window vc-diff
-;;;;;;  vc-version-diff vc-register vc-next-action vc-before-checkin-hook
-;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18885 3376))
+;;;;;;  vc-rename-file vc-delete-file vc-transfer-file vc-switch-backend
+;;;;;;  vc-update vc-rollback vc-revert vc-print-log vc-retrieve-tag
+;;;;;;  vc-create-tag vc-merge vc-insert-headers vc-revision-other-window
+;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-before-checkin-hook
+;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18944 19956))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -30091,6 +30093,11 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 
 \(fn FILE NEW-BACKEND)" nil nil)
 
+(autoload 'vc-delete-file "vc" "\
+Delete file and mark it as such in the version control system.
+
+\(fn FILE)" t nil)
+
 (autoload 'vc-rename-file "vc" "\
 Rename file OLD to NEW, and rename its master file likewise.
 
@@ -30170,7 +30177,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 
 ;;;***
 
-;;;### (autoloads nil "vc-bzr" "vc-bzr.el" (18906 53490))
+;;;### (autoloads nil "vc-bzr" "vc-bzr.el" (18961 36795))
 ;;; Generated autoloads from vc-bzr.el
 
 (defconst vc-bzr-admin-dirname ".bzr" "\
@@ -30309,7 +30316,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 
 ;;;***
 
-;;;### (autoloads nil "vc-svn" "vc-svn.el" (18918 21795))
+;;;### (autoloads nil "vc-svn" "vc-svn.el" (18944 19874))
 ;;; Generated autoloads from vc-svn.el
  (defun vc-svn-registered (f)
   (let ((admin-dir (cond ((and (eq system-type 'windows-nt)
@@ -32032,8 +32039,8 @@ With arg, turn widget mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (widget-setup widget-insert widget-delete widget-create
-;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (18889
-;;;;;;  1423))
+;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (18941
+;;;;;;  42894))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload 'widgetp "wid-edit" "\
@@ -32601,7 +32608,7 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vt-control.el" "vt100-led.el"
 ;;;;;;  "w32-fns.el" "w32-vars.el" "widget.el" "window.el" "x-dnd.el")
-;;;;;;  (18939 4389 959328))
+;;;;;;  (18967 26407 762906))
 
 ;;;***
 
