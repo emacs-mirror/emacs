@@ -38,6 +38,27 @@
   :group 'tools
   :group 'processes)
 
+(defvar grep-host-defaults-alist nil
+  "Default values depending on target host.
+`grep-compute-defaults' returns default values for every local or
+remote host `grep' runs.  These values can differ from host to
+host.  Once computed, the default values are kept here in order
+to avoid computing them again.")
+
+(defun grep-apply-setting (symbol value)
+  "Set SYMBOL to VALUE, and update `grep-host-defaults-alist'.
+SYMBOL should be one of `grep-command', `grep-template',
+`grep-use-null-device', `grep-find-command',
+`grep-find-template', `grep-find-use-xargs', or
+`grep-highlight-matches'."
+  (when grep-host-defaults-alist
+    (let* ((host-id
+	    (intern (or (file-remote-p default-directory) "localhost")))
+	   (host-defaults (assq host-id grep-host-defaults-alist))
+	   (defaults (assq nil grep-host-defaults-alist)))
+      (setcar (cdr (assq symbol host-defaults)) value)
+      (setcar (cdr (assq symbol defaults)) value)))
+  (set-default symbol value))
 
 ;;;###autoload
 (defcustom grep-window-height nil
@@ -59,11 +80,13 @@ markers for highlighting and GREP_OPTIONS to add the --color
 option in front of any explicit grep options before starting
 the grep.
 
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program."
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (other :tag "Not Set" auto-detect))
+  :set 'grep-apply-setting
   :version "22.1"
   :group 'grep)
 
@@ -84,23 +107,28 @@ If the grep program used supports an option to always include file names
 in its output (such as the `-H' option to GNU grep), it's a good idea to
 include it when specifying `grep-command'.
 
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program."
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
+  :set 'grep-apply-setting
   :group 'grep)
 
 (defcustom grep-template nil
   "The default command to run for \\[lgrep].
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program.
 The following place holders should be present in the string:
  <C> - place to put -i if case insensitive grep.
  <F> - file names and wildcards to search.
  <R> - the regular expression searched for.
- <N> - place to insert null-device."
+ <N> - place to insert null-device.
+
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
+  :set 'grep-apply-setting
   :version "22.1"
   :group 'grep)
 
@@ -110,34 +138,40 @@ This is done to ensure that the output of grep includes the filename of
 any match in the case where only a single file is searched, and is not
 necessary if the grep program used supports the `-H' option.
 
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program."
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice (const :tag "Do Not Append Null Device" nil)
 		 (const :tag "Append Null Device" t)
 		 (other :tag "Not Set" auto-detect))
+  :set 'grep-apply-setting
   :group 'grep)
 
 ;;;###autoload
 (defcustom grep-find-command nil
   "The default find command for \\[grep-find].
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program."
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
+  :set 'grep-apply-setting
   :group 'grep)
 
 (defcustom grep-find-template nil
   "The default command to run for \\[rgrep].
-The default value of this variable is set up by `grep-compute-defaults';
-call that function before using this variable in your program.
 The following place holders should be present in the string:
  <D> - base directory for find
  <X> - find options to restrict or expand the directory list
  <F> - find options to limit the files matched
  <C> - place to put -i if case insensitive grep
- <R> - the regular expression searched for."
+ <R> - the regular expression searched for.
+In interactive usage, the actual value of this variable is set up
+by `grep-compute-defaults'; to change the default value, use
+Customize or call the function `grep-apply-setting'."
   :type '(choice string
 		 (const :tag "Not Set" nil))
+  :set 'grep-apply-setting
   :version "22.1"
   :group 'grep)
 
@@ -387,13 +421,6 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-regexp-history nil)
 (defvar grep-files-history '("ch" "el"))
 
-(defvar grep-host-defaults-alist nil
-  "Default values depending on target host.
-`grep-compute-defaults' returns default values for every local or
-remote host `grep' runs.  These values can differ from host to
-host.  Once computed, the default values are kept here in order
-to avoid computing them again.")
-
 ;;;###autoload
 (defun grep-process-setup ()
   "Setup compilation variables and buffer for `grep'.
@@ -454,33 +481,13 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	 (defaults (assq nil grep-host-defaults-alist)))
     ;; There are different defaults on different hosts.  They must be
     ;; computed for every host once.
-    (setq grep-command
-	  (or (cadr (assq 'grep-command host-defaults))
-	      (cadr (assq 'grep-command defaults)))
-
-	  grep-template
-          (or (cadr (assq 'grep-template host-defaults))
-	      (cadr (assq 'grep-template defaults)))
-
-	  grep-use-null-device
-	  (or (cadr (assq 'grep-use-null-device host-defaults))
-	      (cadr (assq 'grep-use-null-device defaults)))
-
-	  grep-find-command
-	  (or (cadr (assq 'grep-find-command host-defaults))
-	      (cadr (assq 'grep-find-command defaults)))
-
-	  grep-find-template
-	  (or (cadr (assq 'grep-find-template host-defaults))
-	      (cadr (assq 'grep-find-template defaults)))
-
-	  grep-find-use-xargs
-	  (or (cadr (assq 'grep-find-use-xargs host-defaults))
-	      (cadr (assq 'grep-find-use-xargs defaults)))
-
-	  grep-highlight-matches
-	  (or (cadr (assq 'grep-highlight-matches host-defaults))
-	      (cadr (assq 'grep-highlight-matches defaults))))
+    (dolist (setting '(grep-command grep-template
+		       grep-use-null-device grep-find-command
+		       grep-find-template grep-find-use-xargs
+		       grep-highlight-matches))
+      (set setting
+	   (or (cadr (assq setting host-defaults))
+	       (cadr (assq setting defaults)))))
 
     (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
       (setq grep-use-null-device

@@ -1,3 +1,13 @@
+2009-05-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/grep.el (grep-compute-defaults): Simplify how settings
+	are looked up.
+	(grep-apply-setting): New function.
+	(grep-highlight-matches, grep-command, grep-template)
+	(grep-use-null-device, grep-find-command, grep-find-template):
+	Clarify role of grep-compute-defaults in docstrings.  Use
+	grep-apply-setting to apply changes (Bug#3343).
+
 2009-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-move.el (calendar-forward-day): Fix 2008-06-21 change -
