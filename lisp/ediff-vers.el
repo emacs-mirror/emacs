@@ -69,10 +69,10 @@ comparison or merge operations are being performed."
   "Return the version level of the latest version of FILE in repository."
   (if (fboundp 'vc-latest-version)
       (vc-latest-version file)
-    (or (vc-file-getprop file 'vc-latest-version)
+    (or (vc-file-getprop file 'vc-latest-revision)
 	(cond ((vc-backend file)
 	       (vc-call state file)
-	       (vc-file-getprop file 'vc-latest-version))
+	       (vc-file-getprop file 'vc-latest-revision))
 	      (t (error "File %s is not under version control" file))))
     ))
 
