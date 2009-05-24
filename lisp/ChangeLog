@@ -1,3 +1,8 @@
+2009-05-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/ispell.el (ispell-check-version): Handle dashes in
+	version numbers.  Suggested by sdl.web@gmail.com (Bug#3369).
+
 2009-05-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-mode): Doc fix (Bug#3358).

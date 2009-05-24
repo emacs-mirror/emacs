@@ -812,11 +812,11 @@ Otherwise returns the library directory name, if that is defined."
 	(goto-char (point-min))
 	(or (setq ispell-really-aspell
 		  (and (search-forward-regexp
-			"(but really Aspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+			"(but really Aspell \\([0-9]+\\.[0-9\\.-]+\\)?)" nil t)
 		       (match-string 1)))
 	    (setq ispell-really-hunspell
 		  (and (search-forward-regexp
-			"(but really Hunspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+			"(but really Hunspell \\([0-9]+\\.[0-9\\.-]+\\)?)" nil t)
 		       (match-string 1)))))
 
       (let ((aspell-minver    "0.50")
