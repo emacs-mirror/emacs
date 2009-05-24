@@ -151,8 +151,8 @@ major.texi        -- cyd
 mark.texi         -- cyd
 mini.texi         -- cyd
 misc.texi         -- cyd
-msdog.texi
-msdog-xtra.texi
+msdog.texi        -- eliz
+msdog-xtra.texi   -- eliz
 mule.texi         -- cyd
 m-x.texi          -- cyd
 programs.texi     -- cyd
