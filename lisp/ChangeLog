@@ -1,3 +1,7 @@
+2009-05-24  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* mail/smtpmail.el: Indent code properly to make it more readable.
+
 2009-05-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/ispell.el (ispell-check-version): Handle dashes in
