@@ -1,3 +1,9 @@
+2009-05-25  Werner Lemberg  <wl@gnu.org>
+
+	* tutorial/TUTORIAL.de: Updated; synchronize with TUTORIAL.
+	Use reformed Orthography.
+	Minor improvements.
+
 2009-05-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* refcards/survival.tex: Add M-g M-g binding.
