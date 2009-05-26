@@ -557,6 +557,10 @@ run processes remotely.
 *** The new command kill-matching-buffers kills buffers whose name
 matches a regexp.
 ---
+*** The value of comment-style now defaults to `indent'.
+Thefore, comment-start markers are inserted at the current indentation
+of the region to comment, rather than the leftmost column.
+---
 *** The new commands `pp-macroexpand-expression' and
 `pp-macroexpand-last-sexp' pretty-print macro expansions.
 +++
