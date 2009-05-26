@@ -1046,12 +1046,16 @@ the region rather than at left margin."
 With just \\[universal-argument] prefix arg, uncomment each line in region BEG .. END.
 Numeric prefix ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
-By default, comments start at the left margin, are terminated on each line,
-even for syntax in which newline does not end the comment and blank lines
-do not get comments.  This can be changed with `comment-style'.
 
-The strings used as comment starts are built from
-`comment-start' without trailing spaces and `comment-padding'."
+The strings used as comment starts are built from `comment-start'
+and `comment-padding'; the strings used as comment ends are built
+from `comment-end' and `comment-padding'.
+
+By default, the `comment-start' markers are inserted at the
+current indentation of the region, and comments are terminated on
+each line (even for syntaxes in which newline does not end the
+comment and blank lines do not get comments).  This can be
+changed with `comment-style'."
   (interactive "*r\nP")
   (comment-normalize-vars)
   (if (> beg end) (let (mid) (setq mid beg beg end end mid)))

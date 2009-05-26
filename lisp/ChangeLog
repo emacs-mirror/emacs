@@ -1,3 +1,7 @@
+2009-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* newcomment.el (comment-region): Doc fix (Bug#3370).
+
 2009-05-24  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* mail/smtpmail.el: Indent code properly to make it more readable.
