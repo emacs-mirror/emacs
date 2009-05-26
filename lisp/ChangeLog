@@ -1,3 +1,8 @@
+2009-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* view.el (view-recenter): Allow recenter to compute window height
+	normally.
+
 2009-05-26  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/table.el (table--unibyte-char-to-multibyte): Function

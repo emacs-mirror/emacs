@@ -757,8 +757,8 @@ previous state and go to previous buffer or window."
 ;;  (setq this-command view-last-command-entry))
 
 (defun view-recenter ()
-  ;; Center point in window.
-  (recenter (/ (view-window-size) 2)))
+  ;; Recenter point in window and redisplay normally.
+  (recenter '(1)))
 
 (defun view-page-size-default (lines)
   ;; Get page size.
