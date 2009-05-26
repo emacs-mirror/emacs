@@ -212,10 +212,11 @@ All modern systems support terminfo, so even if ncurses is not the
 problem, you should look for a way to configure Emacs so that it uses
 terminfo when built.
 
-** Emacs crashes when using the Exceed 6.0 X server.
+** Emacs crashes when using some version of the Exceed X server.
 
-If you are using Exceed 6.1, upgrade to a later version.  This was
-reported to prevent the crashes.
+Upgrading to a newer version of Exceed has been reported to prevent
+these crashes.  You should consider switching to a free X server, such
+as Xming or Cygwin/X.
 
 ** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
 
