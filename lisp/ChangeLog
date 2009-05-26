@@ -2,6 +2,10 @@
 
 	* view.el (view-recenter): Allow recenter to compute window height
 	normally.
+	(view-window-size): Use window-line-height to find window height.
+	(view-page-size-default): Return nil if LINES is nil, 0, or larger
+	than the window height.
+	(view-scroll-lines): Handle nil value for DEFAULT arg (Bug#3361).
 
 2009-05-26  Kenichi Handa  <handa@m17n.org>
 

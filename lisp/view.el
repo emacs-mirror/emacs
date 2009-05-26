@@ -740,8 +740,14 @@ previous state and go to previous buffer or window."
 ;;; Some help routines.
 
 (defun view-window-size ()
-  ;; Window height excluding mode line.
-  (1- (window-height)))
+  ;; Return the height of the current window, excluding the mode line.
+  ;; Using `window-line-height' accounts for variable-height fonts.
+  (let ((h (window-line-height -1)))
+    (if h
+	(1+ (nth 1 h))
+      ;; This should not happen, but if `window-line-height' returns
+      ;; nil, fall back on `window-height'.
+      (1- (window-height)))))
 
 ;; (defun view-last-command (&optional who what)
 ;;  (setq view-last-command-entry this-command)
@@ -761,11 +767,13 @@ previous state and go to previous buffer or window."
   (recenter '(1)))
 
 (defun view-page-size-default (lines)
-  ;; Get page size.
-  (let ((default (- (view-window-size) next-screen-context-lines)))
-    (if (or (null lines) (zerop (setq lines (prefix-numeric-value lines))))
-	default
-      (min (abs lines) default))))
+  ;; If LINES is nil, 0, or larger than `view-window-size', return nil.
+  ;; Otherwise, return LINES.
+  (and lines
+       (not (zerop (setq lines (prefix-numeric-value lines))))
+       (<= (abs lines)
+	   (abs (- (view-window-size) next-screen-context-lines)))
+       (abs lines)))
 
 (defun view-set-half-page-size-default (lines)
   ;; Get and maybe set half page size.
@@ -825,30 +833,24 @@ invocations return to earlier marks."
 
 (defun view-scroll-lines (lines backward default maxdefault)
   ;; This function does the job for all the scrolling commands.
-  ;; Scroll forward LINES lines.  If BACKWARD is true scroll backwards.
-  ;; If LINES is negative scroll in the other direction.  If LINES is 0 or nil,
-  ;; scroll DEFAULT lines.  If MAXDEFAULT is true then scroll no more than a
-  ;; window full.
+  ;; Scroll forward LINES lines.  If BACKWARD is non-nil, scroll backwards.
+  ;; If LINES is negative scroll in the other direction.
+  ;; If LINES is 0 or nil, scroll DEFAULT lines (if DEFAULT is nil, scroll
+  ;; by one page). If MAXDEFAULT is non-nil, scroll no more than a window.
   (if (or (null lines) (zerop (setq lines (prefix-numeric-value lines))))
       (setq lines default))
-  (when (< lines 0)
-    (setq backward (not backward)) (setq lines (- lines)))
-  (setq default (view-page-size-default nil)) ; Max scrolled at a time.
-  (if maxdefault (setq lines (min lines default)))
-  (cond
-   (backward (scroll-down lines))
-   ((view-really-at-end)
-    (if view-scroll-auto-exit (View-quit)
-      (ding)
-      (view-end-message)))
-   (t (while (> lines default)
-	(scroll-up default)
-	(setq lines (- lines default))
-	(if (view-really-at-end) (setq lines 0)))
-      (scroll-up lines)
-      (if (view-really-at-end) (view-end-message))
-      (move-to-window-line -1)
-      (beginning-of-line))))
+  (when (and lines (< lines 0))
+    (setq backward (not backward) lines (- lines)))
+  (when (and maxdefault lines (> lines (view-window-size)))
+    (setq lines nil))
+  (cond (backward (scroll-down lines))
+	((view-really-at-end)
+	 (if view-scroll-auto-exit
+	     (View-quit)
+	   (ding)
+	   (view-end-message)))
+	(t (scroll-up lines)
+	   (if (view-really-at-end) (view-end-message)))))
 
 (defun view-really-at-end ()
   ;; Return true if buffer end visible.  Maybe revert buffer and test.
