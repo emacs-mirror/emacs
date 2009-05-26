@@ -1,3 +1,10 @@
+2009-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/table.el (table--unibyte-char-to-multibyte): Function
+	deleted.
+	(*table--cell-self-insert-command, *table--cell-quoted-insert):
+	Don't call table--unibyte-char-to-multibyte (Bug#3372).
+
 2009-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* newcomment.el (comment-region): Doc fix (Bug#3370).

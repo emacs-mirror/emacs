@@ -3943,7 +3943,7 @@ converts a table into plain text without frames.  It is a companion to
 (defun *table--cell-self-insert-command ()
   "Table cell version of `self-insert-command'."
   (interactive "*")
-  (let ((char (table--unibyte-char-to-multibyte last-command-event)))
+  (let ((char last-command-event))
     (if (eq buffer-undo-list t) nil
       (if (not (eq last-command this-command))
 	  (setq table-cell-self-insert-command-count 0)
@@ -4048,7 +4048,7 @@ converts a table into plain text without frames.  It is a companion to
 (defun *table--cell-quoted-insert (arg)
   "Table cell version of `quoted-insert'."
   (interactive "*p")
-  (let ((char (table--unibyte-char-to-multibyte (read-quoted-char))))
+  (let ((char (read-quoted-char)))
     (while (> arg 0)
       (table--cell-insert-char char nil)
       (setq arg (1- arg)))))
@@ -4348,19 +4348,6 @@ cdr is the history symbol."
        (set (cdr prompt-history)
 	    (cdr (symbol-value (cdr prompt-history)))))
   (car (symbol-value (cdr prompt-history))))
-
-(defun table--unibyte-char-to-multibyte (char)
-  "Convert CHAR by `unibyte-char-to-multibyte' when possible and necessary."
-  ;; This part is take from `quoted-insert'.
-  ;; Assume character codes 0240 - 0377 stand for characters in some
-  ;; single-byte character set, and convert them to Emacs
-  ;; characters.
-  (if (and enable-multibyte-characters
-	   (fboundp 'unibyte-char-to-multibyte)
-	   (>= char ?\240)
-	   (<= char ?\377))
-      (unibyte-char-to-multibyte char)
-    char))
 
 (defun table--buffer-substring-and-trim (beg end)
   "Extract buffer substring and remove blanks from front and the rear of it."
