@@ -1317,13 +1317,20 @@ be shared by the new frame.  */)
 
   if (! f->output_data.ns->explicit_parent)
     {
-        tem = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_BOOLEAN);
-        if (EQ (tem, Qunbound))
-            tem = Qnil;
-
-        x_set_visibility (f, tem, Qnil);
-        if (EQ (tem, Qt))
-            [[FRAME_NS_VIEW (f) window] makeKeyWindow];
+      tem = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      if (EQ (tem, Qunbound))
+	tem = Qt;
+      x_set_visibility (f, tem, Qnil);
+      if (EQ (tem, Qicon))
+	x_iconify_frame (f);
+      else if (! NILP (tem))
+	{
+	  x_make_frame_visible (f);
+	  f->async_visible = 1;
+	  [[FRAME_NS_VIEW (f) window] makeKeyWindow];
+	}
+      else
+	  f->async_visible = 0;
     }
 
   if (FRAME_HAS_MINIBUF_P (f)

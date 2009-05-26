@@ -1,3 +1,16 @@
+2009-05-25  David Reitter  <david.reitter@gmail.com>
+
+	* nsterm.m (ns_raise_frame): only raise frame if visible.
+	(x_make_frame_visible): move frame to front rather than calling
+	ns_raise_frame().
+	(keyDown:) do not swallow events that aren't re-sent if frame
+	isn't key window.
+	(drawRect:) do not set visibility/iconified flags because
+	drawRect may be called by NSView even if the frame is hidden.
+
+	* nsfns.m (Fx_create_frame): follow other ports in
+	determining visibility; default to t. Ensure async_visible is set.
+
 2009-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Doc fix.
