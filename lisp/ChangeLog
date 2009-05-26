@@ -1,5 +1,8 @@
 2009-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* edmacro.el (edmacro-parse-keys): Fix 2008-08-19
+	change (Bug#3387).
+
 	* view.el (view-recenter): Allow recenter to compute window height
 	normally.
 	(view-window-size): Use window-line-height to find window height.
