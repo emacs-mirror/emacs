@@ -1,3 +1,11 @@
+2009-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hooks.texi (Standard Hooks): Remove mention of obsolete
+	redisplay-end-trigger-functions.
+
+	* internals.texi (Window Internals): Remove mention of obsolete
+	redisplay-end-trigger-functions.
+
 2009-05-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* abbrevs.texi (Abbrev Mode): abbrev-mode is an option.

@@ -289,9 +289,6 @@ Manual}.
 @xref{Diary Customizing,,, emacs}.
 @end ifnottex
 
-@item redisplay-end-trigger-functions
-@xref{Window Hooks}.
-
 @item resume-tty-functions
 @xref{Suspending Emacs}.
 

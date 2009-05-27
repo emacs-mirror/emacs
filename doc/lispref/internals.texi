@@ -1231,10 +1231,6 @@ valid.  This is @code{nil} if nontrivial redisplay is preempted since in that
 case the display that @code{window_end_pos} was computed for did not get
 onto the screen.
 
-@item redisplay_end_trigger
-If redisplay in this window goes beyond this buffer position, it runs
-the @code{redisplay-end-trigger-hook}.
-
 @item cursor
 A structure describing where the cursor is in this window.
 
