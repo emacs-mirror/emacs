@@ -24,6 +24,11 @@ automatically @dfn{deactivates} the mark; this turns off the
 highlighting.  You can also explicitly deactivate the mark at any
 time, by typing @kbd{C-g} (@pxref{Quitting}).
 
+  This default behavior of the mark is known as Transient Mark mode.
+Disabling Transient Mark mode switches Emacs to an alternative
+behavior, in which the mark is always active, which was the default
+prior to Emacs 23.  @xref{Persistent Mark}.
+
 @vindex highlight-nonselected-windows
   Setting the mark in one buffer has no effect on the marks in other
 buffers.  When you return to a buffer with an active mark, the mark is
