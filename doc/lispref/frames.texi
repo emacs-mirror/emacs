@@ -2104,11 +2104,11 @@ are used by Emacs.
 in @ref{Color Names}.
 
   These functions accept a display (either a frame or the name of a
-terminal) as an optional argument.  We hope in the future to make Emacs
-support more than one text-only terminal at one time; then this argument
-will specify which terminal to operate on (the default being the
-selected frame's terminal; @pxref{Input Focus}).  At present, though,
-the @var{frame} argument has no effect.
+terminal) as an optional argument.  We hope in the future to make
+Emacs support different colors on different text-only terminals; then
+this argument will specify which terminal to operate on (the default
+being the selected frame's terminal; @pxref{Input Focus}).  At
+present, though, the @var{frame} argument has no effect.
 
 @defun tty-color-define name number &optional rgb frame
 This function associates the color name @var{name} with
