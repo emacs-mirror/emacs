@@ -16,9 +16,10 @@ The region always extends between point and the mark, no matter which
 one comes earlier in the text; each time you move point, the region
 changes.
 
-  When the mark is @dfn{active}, Emacs indicates the extent of the
-region by highlighting the text within it, using the @code{region}
-face (@pxref{Face Customization}).  After certain non-motion commands,
+  Setting the mark at a position in the text also @dfn{activates} it.
+When the mark is active, Emacs indicates the extent of the region by
+highlighting the text within it, using the @code{region} face
+(@pxref{Face Customization}).  After certain non-motion commands,
 including any command that changes the text in the buffer, Emacs
 automatically @dfn{deactivates} the mark; this turns off the
 highlighting.  You can also explicitly deactivate the mark at any
@@ -56,7 +57,7 @@ non-@code{nil}, each window highlights its own region.
 
 @table @kbd
 @item C-@key{SPC}
-Set the mark at point (@code{set-mark-command}).
+Set the mark at point, and activate it (@code{set-mark-command}).
 @item C-@@
 The same.
 @item C-x C-x
@@ -75,14 +76,14 @@ Set the mark at point if the mark is inactive, then move point.
 @kindex C-@@
 @findex set-mark-command
   The most common way to set the mark is with @kbd{C-@key{SPC}}
-(@code{set-mark-command}), which sets the mark where point
-is@footnote{There is no @kbd{C-@key{SPC}} character in
-@acronym{ASCII}; usually, typing @kbd{C-@key{SPC}} on a text terminal
-gives the character @kbd{C-@@}.  This key is also bound to
-@code{set-mark-command}, so unless you are unlucky enough to have an
-text terminal that behaves differently, you might as well think of
-@kbd{C-@@} as @kbd{C-@key{SPC}}.}. You can then move point away,
-leaving the mark behind.
+(@code{set-mark-command})@footnote{There is no @kbd{C-@key{SPC}}
+character in @acronym{ASCII}; usually, typing @kbd{C-@key{SPC}} on a
+text terminal gives the character @kbd{C-@@}.  This key is also bound
+to @code{set-mark-command}, so unless you are unlucky enough to have
+an text terminal that behaves differently, you might as well think of
+@kbd{C-@@} as @kbd{C-@key{SPC}}.}.  This sets the mark where point is,
+and activates it.  You can then move point away, leaving the mark
+behind.
 
   For example, suppose you wish to convert part of the buffer to upper
 case.  To accomplish this, go to the beginning of the desired text,
@@ -95,7 +96,7 @@ deactivates the mark.
 @findex exchange-point-and-mark
   The command @kbd{C-x C-x} (@code{exchange-point-and-mark}) exchanges
 the positions of point and the mark, keeping the region unchanged.  If
-no mark is active, Emacs first reactivates the mark wherever it was
+the mark is inactive, Emacs first reactivates the mark wherever it was
 last set.  @kbd{C-x C-x} is useful when you are satisfied with the
 position of point but want to move the other end of the region (where
 the mark is).  Using @kbd{C-x C-x} a second time, if necessary, puts
