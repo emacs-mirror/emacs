@@ -1824,64 +1824,68 @@ To quit a partially entered command, type Control-g.\n")
 
   ;; If keys have their default meanings,
   ;; use precomputed string to save lots of time.
-  (if (and (eq (key-binding "\C-h") 'help-command)
-	   (eq (key-binding "\C-xu") 'advertised-undo)
-	   (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
-	   (eq (key-binding "\C-ht") 'help-with-tutorial)
-	   (eq (key-binding "\C-hi") 'info)
-	   (eq (key-binding "\C-hr") 'info-emacs-manual)
-	   (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-      (progn
-	(insert "
-Get help\t   C-h  (Hold down CTRL and press h)
+  (let ((c-h-accessible
+         ;; If normal-erase-is-backspace is used on a tty, there's
+         ;; no way to invoke C-h and you have to use F1 instead.
+         (or (not (char-table-p keyboard-translate-table))
+             (eq (aref keyboard-translate-table ?\C-h) ?\C-h))))
+    (if (and (eq (key-binding "\C-h") 'help-command)
+             (eq (key-binding "\C-xu") 'advertised-undo)
+             (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
+             (eq (key-binding "\C-ht") 'help-with-tutorial)
+             (eq (key-binding "\C-hi") 'info)
+             (eq (key-binding "\C-hr") 'info-emacs-manual)
+             (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+        (let ((help (if c-h-accessible "C-h" "<f1>")))
+          (insert "
+Get help\t   " help "  (Hold down CTRL and press h)
 ")
-	(insert-button "Emacs manual"
-		       'action (lambda (button) (info-emacs-manual))
-		       'follow-link t)
-	(insert "	   C-h r\t")
-	(insert-button "Browse manuals"
-		       'action (lambda (button) (Info-directory))
-		       'follow-link t)
-	(insert "\t   C-h i
+          (insert-button "Emacs manual"
+                         'action (lambda (button) (info-emacs-manual))
+                         'follow-link t)
+          (insert "	   " help " r\t")
+          (insert-button "Browse manuals"
+                         'action (lambda (button) (Info-directory))
+                         'follow-link t)
+          (insert "\t   " help " i
 ")
-	(insert-button "Emacs tutorial"
-		       'action (lambda (button) (help-with-tutorial))
-		       'follow-link t)
-	(insert "	   C-h t\tUndo changes\t   C-x u
+          (insert-button "Emacs tutorial"
+                         'action (lambda (button) (help-with-tutorial))
+                         'follow-link t)
+          (insert "	   " help " t\tUndo changes\t   C-x u
 ")
-	(insert-button "Buy manuals"
-		       'action (lambda (button) (view-order-manuals))
-		       'follow-link t)
-	(insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
+          (insert-button "Buy manuals"
+                         'action (lambda (button) (view-order-manuals))
+                         'follow-link t)
+          (insert "\t   " help " C-m\tExit Emacs\t   C-x C-c"))
 
-    (insert (format "
+      (insert (format "
 Get help\t   %s
 "
-		    (let ((where (where-is-internal
-				  'help-command nil t)))
-		      (if where
-			  (key-description where)
-			"M-x help"))))
-    (insert-button "Emacs manual"
-		   'action (lambda (button) (info-emacs-manual))
-		   'follow-link t)
-    (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
-    (insert-button "Browse manuals"
-		   'action (lambda (button) (Info-directory))
-		   'follow-link t)
-    (insert (substitute-command-keys "\t   \\[info]
+                      (let ((where (where-is-internal 'help-command nil t)))
+                        (if where
+                            (key-description where)
+                          "M-x help"))))
+      (insert-button "Emacs manual"
+                     'action (lambda (button) (info-emacs-manual))
+                     'follow-link t)
+      (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
+      (insert-button "Browse manuals"
+                     'action (lambda (button) (Info-directory))
+                     'follow-link t)
+      (insert (substitute-command-keys "\t   \\[info]
 "))
-    (insert-button "Emacs tutorial"
-		   'action (lambda (button) (help-with-tutorial))
-		   'follow-link t)
-    (insert (substitute-command-keys
-	     "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
+      (insert-button "Emacs tutorial"
+                     'action (lambda (button) (help-with-tutorial))
+                     'follow-link t)
+      (insert (substitute-command-keys
+               "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
 "))
-    (insert-button "Buy manuals"
-		   'action (lambda (button) (view-order-manuals))
-		   'follow-link t)
-    (insert (substitute-command-keys
-	     "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
+      (insert-button "Buy manuals"
+                     'action (lambda (button) (view-order-manuals))
+                     'follow-link t)
+      (insert (substitute-command-keys
+	       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]"))))
 
   ;; Say how to use the menu bar with the keyboard.
   (insert "\n")

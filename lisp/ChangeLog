@@ -1,7 +1,11 @@
+2009-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-no-mouse-startup-screen): Use F1 rather than C-h
+	if C-h is remapped to something else like DEL.
+
 2009-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
-	* edmacro.el (edmacro-parse-keys): Fix 2008-08-19
-	change (Bug#3387).
+	* edmacro.el (edmacro-parse-keys): Fix 2008-08-19 change (Bug#3387).
 
 	* view.el (view-recenter): Allow recenter to compute window height
 	normally.
@@ -12,8 +16,8 @@
 
 2009-05-26  Kenichi Handa  <handa@m17n.org>
 
-	* textmodes/table.el (table--unibyte-char-to-multibyte): Function
-	deleted.
+	* textmodes/table.el (table--unibyte-char-to-multibyte):
+	Delete function.
 	(*table--cell-self-insert-command, *table--cell-quoted-insert):
 	Don't call table--unibyte-char-to-multibyte (Bug#3372).
 
@@ -47,8 +51,8 @@
 	(grep-apply-setting): New function.
 	(grep-highlight-matches, grep-command, grep-template)
 	(grep-use-null-device, grep-find-command, grep-find-template):
-	Clarify role of grep-compute-defaults in docstrings.  Use
-	grep-apply-setting to apply changes (Bug#3343).
+	Clarify role of grep-compute-defaults in docstrings.
+	Use grep-apply-setting to apply changes (Bug#3343).
 
 2009-05-21  Glenn Morris  <rgm@gnu.org>
 
