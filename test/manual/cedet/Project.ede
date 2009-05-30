@@ -9,7 +9,7 @@
     :path ""
     :source '("cedet-integ-test.el" "cit-cpp.el" "cit-el.el" "cit-texi.el" "cit-load.el" "cit-srec.el" "cit-gnustep.el" "cit-uml.el")
     :versionsource '("cedet-integ-test.el")
-    :aux-packages '("inversion" "eieio" "semantic" "semantic-bovine" "semantic-wisent" "srecode" "ede" "ede-gnustep" "speedbar")
+    :aux-packages '("inversion" "eieio" "semantic" "semantic-bovine" "semantic-wisent" "srecode" "ede" "ede-gnustep" "cogre" "speedbar")
     )
    (ede-proj-target-makefile-miscelaneous "templates"
     :name "templates"
