@@ -63,10 +63,17 @@
 ;; 4) Delete the project
 ;;    a Make sure the semanticdb cleans up the dead cache files.
 ;;    b Make sure EDE clears this project from it's project cache.
+;;
+;; 5) Use COGRE to build sources with SRecode
+;;    a Create a COGRE graph.
+;;    b Generate C++ code from the graph.
+;;    c Compile the sources.
+
 (require 'semantic)
 (require 'ede)
 (require 'data-debug)
 (require 'ede-make)
+(require 'cogre)
 
 (eval-and-compile
   (defvar cedet-integ-base "/tmp/CEDET_INTEG"
@@ -74,6 +81,7 @@
   )
 
 (require 'cit-cpp)
+(require 'cit-uml)
 (require 'cit-srec)
 (require 'cit-el)
 (require 'cit-texi)
@@ -93,6 +101,7 @@
   ;; 1 c) make src and include directories
   (cit-make-dir (cit-file "src"))
   (cit-make-dir (cit-file "include"))
+  (cit-make-dir (cit-file "uml"))
   ;;
   ;; 1 b) make a toplevel project
   ;;
@@ -102,6 +111,9 @@
   ;; 2 a) Create sources with SRecode
   ;;
   (cit-srecode-fill-cpp)
+
+  ;; 5 a,b,c) UML code generation test
+  (cit-fill-uml)
 
   ;; 1 e) remove files from a project
   (cit-remove-add-to-project-cpp)
@@ -248,22 +260,25 @@ are found, but don't error if they are not their."
 
 (defun cit-compile-and-wait ()
   "Compile our current project, but wait for it to finish."
-  (find-file (cit-file "Project.ede"))
-  ;; 1 f) Create a build file.
-  (ede-proj-regenerate)
-  ;; 1 g) build the sources.
-  (compile ede-make-command)
+  (let ((bufftokill (find-file (cit-file "Project.ede"))))
+    ;; 1 f) Create a build file.
+    (ede-proj-regenerate)
+    ;; 1 g) build the sources.
+    (compile ede-make-command)
 
-  (while compilation-in-progress
-    (accept-process-output)
-    (sit-for 1))
+    (while compilation-in-progress
+      (accept-process-output)
+      (sit-for 1))
 
-  (save-excursion
-    (set-buffer "*compilation*")
-    (goto-char (point-max))
+    (save-excursion
+      (set-buffer "*compilation*")
+      (goto-char (point-max))
 
-    (when (re-search-backward " Error " nil t)
-      (error "Compilation failed!"))
+      (when (re-search-backward " Error " nil t)
+	(error "Compilation failed!"))
+
+      )
+    (kill-buffer bufftokill)
     ))
 
 (provide 'cedet-integ-test)
