@@ -5454,8 +5454,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->resx = dpyinfo->resx;
   f->resy = dpyinfo->resy;
 
-  /* Perhaps, we must allow frame parameter, say `font-backend',
-     to specify which font backends to use.  */
+  if (uniscribe_available)
+    register_font_driver (&uniscribe_font_driver, f);
   register_font_driver (&w32font_driver, f);
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
