@@ -2234,6 +2234,15 @@ Lisp expressions:
 
 @itemize @bullet
 @item
+Add a directory to the variable @code{load-path}.  You can then put
+Lisp libraries that are not included with Emacs in this directory, and
+load them with @kbd{M-x load-library}.  @xref{Lisp Libraries}.
+
+@example
+(add-to-list 'load-path "/path/to/lisp/libraries")
+@end example
+
+@item
 Make @key{TAB} in C mode just insert a tab if point is in the middle of a
 line.
 

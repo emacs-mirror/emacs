@@ -1,5 +1,7 @@
 2009-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.texi (Init Examples): Add example of changing load-path.
+
 	* building.texi (Lisp Libraries): Add example of changing
 	load-path (Bug#3446).
 
