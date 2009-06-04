@@ -1,3 +1,31 @@
+2009-06-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/README: New file.
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Add copyright notice (Bug#3428).
+
+	* emulation/edt.el (edt-previous-line, edt-next-line): Don't use
+	forward-line, undoing 2007-10-19 change (Bug#3188).
+
+	* textmodes/two-column.el (2C-split): Call move-to-column, to
+	compensate for the 2007-10-19 change from next-line to
+	forward-line (Bug#3435).  Account for fringe and scroll-bar when
+	setting 2C-window-width.
+
 2009-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (normal-no-mouse-startup-screen): Use F1 rather than C-h
