@@ -1485,6 +1485,10 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     (setq frame (selected-frame)))
   (let* ((mini-frame (window-frame (minibuffer-window frame)))
 	 (frames (delq mini-frame (delq frame (frame-list)))))
+    ;; Only consider frames on the same terminal.
+    (dolist (frame (prog1 frames (setq frames nil)))
+      (if (eq (frame-terminal) (frame-terminal frame))
+          (push frame frames)))
     ;; Delete mon-minibuffer-only frames first, because `delete-frame'
     ;; signals an error when trying to delete a mini-frame that's
     ;; still in use by another frame.
