@@ -628,7 +628,8 @@ Argument NUM is the number of lines to move."
   (interactive "p")
   (edt-check-prefix num)
   (let ((beg (edt-current-line)))
-    (forward-line num)
+    ;; We're deliberately using next-line instead of forward-line.
+    (with-no-warnings (next-line num))
     (edt-bottom-check beg num))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
@@ -638,7 +639,8 @@ Argument NUM is the number of lines to move."
   (interactive "p")
   (edt-check-prefix num)
   (let ((beg (edt-current-line)))
-    (forward-line (- num))
+    ;; We're deliberately using previous-line instead of forward-line.
+    (with-no-warnings (previous-line num))
     (edt-top-check beg num))
   (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
