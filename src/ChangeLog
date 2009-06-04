@@ -3,6 +3,11 @@
 	* w32fns.c (x_create_tip_frame): Use the uniscribe font backend if
 	available.  (Bug#3379)
 
+2009-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (get_translation_table): Check
+	Venable_character_translation.
+
 2009-05-25  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (ns_raise_frame): only raise frame if visible.
