@@ -1,5 +1,16 @@
 ;;; eucjp-ms.el -- translation table for eucJP-ms. -*- no-byte-compile: t -*-
-;;; Automatically genrated from eucJP-13th.txt, eucJP-udc.txt, eucJP-ibmext.txt
+
+;; This translation table was originally generated from the code set
+;; conversion rules given in "Problems and Solutions for Unicode and
+;; User/Vendor Defined Characters" (1996), by the TOG/JVC CDE/Motif
+;; Technical Working Group.  The Working Group's website is now
+;; defunct, but the original files specifying these conversion rules
+;; are archived here:
+;;
+;; http://home.m05.itscom.net/numa/cde/ucs-conv-e/eucJP-13th.txt
+;; http://home.m05.itscom.net/numa/cde/ucs-conv-e/eucJP-udc.txt
+;; http://home.m05.itscom.net/numa/cde/ucs-conv-e/eucJP-ibmext.txt
+
 (let ((map
        '(;JISEXT<->UNICODE
 	 (#x2d21 . #x2460)
