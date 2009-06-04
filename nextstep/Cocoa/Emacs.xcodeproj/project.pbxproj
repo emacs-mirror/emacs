@@ -496,32 +496,25 @@
 			files = (
 			);
 			inputPaths = (
-				Emacs.base,
-				../../src/temacs,
 			);
 			outputPaths = (
-				../Emacs.app,
-				../Emacs.app/Contents/MacOS/Emacs,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script sets up the Emacs.app bundle by copying from Cocoa/Emacs.base,\n# and copying the binary emacs.  It runs the ns-app target in src/Makefile.\n# This depends on emacs target, so temacs resulting from previous step is\n# dumped into emacs.\n\ncd ../../src\n\n# This must be done to force the following script to run.\nif [ ! -r ../nextstep/Emacs.app/Contents/Info.plist ]; then\n\trm -fr ../nextstep/Emacs.app\nfi\n\nmake ns-app\n";
+			shellScript = "# This script sets up the Emacs.app bundle by copying from Cocoa/Emacs.base,\n# and copying the binary emacs.  It runs the ns-app target in src/Makefile.\n# This depends on emacs target, so temacs resulting from previous step is\n# dumped into emacs.\n\ncd ../../src\n\nmake ns-app\n";
 		};
 		3CED883D0FC0FF6E005ACB89 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 12;
-			comments = "This script copies the lisp and other files into the bundle (if self-contained configuration was selected at configure time), or the install location (otherwise).";
 			files = (
 			);
 			inputPaths = (
-				../../lisp,
 			);
 			outputPaths = (
-				../Emacs.app/Contents/Resources/lisp,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ../..\nmake install\nln -s $BUILD_ROOT/../../Emacs.app $BUILT_PRODUCTS_DIR/Emacs.app\n";
+			shellScript = "# This script copies the lisp and other files into the bundle\n# (if self-contained configuration was selected at configure time),\n# or the install location (otherwise).\n\n# Xcode was supposed to make this check based on input/output files,\n# but it didn't work for some reason, so run every time and do it ourselves.\nif [ -x ../Emacs.app/Contents/Resources/lisp ]; then\n\texit\nfi\n\ncd ../..\nmake install\nln -sf $BUILD_ROOT/../../Emacs.app $BUILT_PRODUCTS_DIR/Emacs.app\n";
 		};
 		3CED88460FC100EC005ACB89 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -670,7 +663,7 @@
 		3CA1159C0C825A540007AFC2 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Development;
@@ -678,7 +671,7 @@
 		3CA1159D0C825A540007AFC2 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Deployment;
@@ -686,7 +679,7 @@
 		3CA1159E0C825A540007AFC2 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Default;
@@ -696,7 +689,7 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -714,7 +707,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = temacs;
 				WARNING_CFLAGS = "-Wno-pointer-sign";
-				ZERO_LINK = YES;
+				ZERO_LINK = NO;
 			};
 			name = Development;
 		};
