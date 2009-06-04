@@ -6623,6 +6623,12 @@ get_translation_table (attrs, encodep, max_lookup)
   Lisp_Object standard, translation_table;
   Lisp_Object val;
 
+  if (NILP (Venable_character_translation))
+    {
+      if (max_lookup)
+	*max_lookup = 0;
+      return Qnil;
+    }
   if (encodep)
     translation_table = CODING_ATTR_ENCODE_TBL (attrs),
       standard = Vstandard_translation_table_for_encode;
