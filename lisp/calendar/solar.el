@@ -147,16 +147,27 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
   :type 'number
   :group 'calendar)
 
-;;; End of user options.
-
-
-(defconst solar-n-hemi-seasons
+(defcustom solar-n-hemi-seasons
   '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
-  "List of season changes for the northern hemisphere.")
+  "List of season changes for the northern hemisphere."
+  :type '(list
+          (string :tag "Vernal Equinox")
+          (string :tag "Summer Solstice")
+          (string :tag "Autumnal Equinox")
+          (string :tag "Winter Solstice"))
+  :group 'calendar)
 
-(defconst solar-s-hemi-seasons
+(defcustom solar-s-hemi-seasons
   '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
-  "List of season changes for the southern hemisphere.")
+  "List of season changes for the southern hemisphere."
+  :type '(list
+          (string :tag "Autumnal Equinox")
+          (string :tag "Winter Solstice")
+          (string :tag "Vernal Equinox")
+          (string :tag "Summer Solstice"))
+  :group 'calendar)
+
+;;; End of user options.
 
 (defvar solar-sidereal-time-greenwich-midnight nil
   "Sidereal time at Greenwich at midnight (universal time).")
