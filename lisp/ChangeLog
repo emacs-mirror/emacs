@@ -1,3 +1,8 @@
+2009-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-header-block-tokenize): Obey @LongLink even for
+	POSIX tar archives (bug#3410).
+
 2009-06-04  Johan Bockgård  <bojohan@gnu.org>
 
 	* vc.el (vc-revision-other-window): Fix argument to backend

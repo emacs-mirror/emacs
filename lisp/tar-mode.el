@@ -276,7 +276,10 @@ write-date, checksum, link-type, and link-name."
             (setq link-p 5))            ; directory
 
         (if (and (equal name "././@LongLink")
-                 (equal magic-str "ustar ")) ;OLDGNU_MAGIC.
+                 ;; Supposedly @LongLink is only used for GNUTAR
+                 ;; format (i.e. "ustar ") but some POSIX Tar files
+                 ;; (with "ustar\0") have been seen using it as well.
+                 (member magic-str '("ustar " "ustar\0")))
             ;; This is a GNU Tar long-file-name header.
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
