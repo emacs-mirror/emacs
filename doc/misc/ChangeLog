@@ -1,3 +1,7 @@
+2009-06-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus.texi (Security): Fix wording.
+
 2009-06-04  Ryan Yeske  <rcyeske@gmail.com>
 
 	* message.texi (Header Commands): Fix descriptions to match
