@@ -1251,16 +1251,23 @@ because people often leave unfinished edits the source file, and don't
 recompile it until they think it is ready to use.
 
 @vindex load-path
-  The sequence of directories searched by @kbd{M-x load-library} is
-specified by the variable @code{load-path}, a list of strings that are
-directory names.  The default value of the list contains the directories where
+  The variable @code{load-path} specifies the sequence of directories
+searched by @kbd{M-x load-library}.  Its value should be a list of
+strings that are directory names, or @code{nil} for the current
+default directory.  (Generally, it is not a good idea to put
+@code{nil} in the list; if you find yourself wishing that @code{nil}
+were in the list, most likely what you really want is to do @kbd{M-x
+load-file} this once.)
+
+  The default value of @code{load-path} is a list of directories where
 the Lisp code for Emacs itself is stored.  If you have libraries of
-your own, put them in a single directory and add that directory
-to @code{load-path}.  @code{nil} in this list stands for the current default
-directory, but it is probably not a good idea to put @code{nil} in the
-list.  If you find yourself wishing that @code{nil} were in the list,
-most likely what you really want to do is use @kbd{M-x load-file}
-this once.
+your own, put them in a single directory and add that directory to
+@code{load-path}, by adding a line like this to your init file
+(@pxref{Init File}):
+
+@example
+(add-to-list 'load-path "/path/to/lisp/libraries")
+@end example
 
 @cindex autoload
   Often you do not have to give any command to load a library, because
