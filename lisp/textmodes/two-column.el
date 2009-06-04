@@ -412,9 +412,9 @@ First column's text    sSs  Second column's text
 	     (erase-buffer))
 	 (signal 'quit nil)))
   (let ((point (point))
-	; make next-line always come back to same column
-	(goal-column (current-column))
-	; a counter for empty lines in other buffer
+	;; make next-line always come back to same column
+	(column (current-column))
+	;; a counter for empty lines in other buffer
 	(n (1- (count-lines (point-min) (point))))
 	chars other)
     (save-excursion
@@ -423,13 +423,17 @@ First column's text    sSs  Second column's text
       (skip-chars-forward " \t" point)
       (make-local-variable '2C-separator)
       (setq 2C-separator (buffer-substring (point) point)
-	    2C-window-width (current-column)))
+	    2C-window-width (+ (fringe-columns 'left)
+			       (fringe-columns 'right)
+			       (scroll-bar-columns 'left)
+			       (scroll-bar-columns 'right)
+			       (current-column))))
     (2C-two-columns)
     (setq other (2C-other))
-    ; now we're ready to actually split
+    ;; now we're ready to actually split
     (save-excursion
       (while (not (eobp))
-	(if (not (and (= (current-column) goal-column)
+	(if (not (and (= (current-column) column)
 		      (string= chars
 			       (buffer-substring (point)
 						 (save-excursion
@@ -448,7 +452,8 @@ First column's text    sSs  Second column's text
 						 (1+ (point)))))
 	  (delete-region point (point))
 	  (setq n 0))
-	(forward-line 1)))))
+	(forward-line 1)
+	(move-to-column column)))))
 
 
 
