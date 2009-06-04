@@ -1613,7 +1613,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (let ((completion-table
-            (vc-call revision-completion-table buffer-file-name))
+            (vc-call revision-completion-table (list buffer-file-name)))
            (prompt "Revision to visit (default is working revision): "))
        (list
         (if completion-table
