@@ -830,7 +830,8 @@ For example:
       (setq plain (epa--decode-coding-string
 		   plain
 		   (or coding-system-for-read
-		       (get-text-property start 'epa-coding-system-used))))
+		       (get-text-property start 'epa-coding-system-used)
+		       'undecided)))
       (if (y-or-n-p "Replace the original text? ")
 	  (let ((inhibit-read-only t)
 		buffer-read-only)
@@ -919,7 +920,8 @@ For example:
     (setq plain (epa--decode-coding-string
 		 plain
 		 (or coding-system-for-read
-		     (get-text-property start 'epa-coding-system-used))))
+		     (get-text-property start 'epa-coding-system-used)
+		     'undecided)))
     (if (y-or-n-p "Replace the original text? ")
 	(let ((inhibit-read-only t)
 	      buffer-read-only)

@@ -1,3 +1,10 @@
+2009-06-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-decrypt-region): Detect encoding if
+	coding-system-for-read is not specified.
+	<http://sourceforge.jp/ticket/browse.php?group_id=2267&tid=17018>
+	(epa-verify-region): Ditto.
+
 2009-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tar-mode.el (tar-header-block-tokenize): Obey @LongLink even for
