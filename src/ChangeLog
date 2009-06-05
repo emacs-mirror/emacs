@@ -1,3 +1,9 @@
+2009-06-05  David Reitter  <david.reitter@gmail.com>
+
+	* nsselect.m (Fx_own_selection_internal, Fx_selection_exists_p,
+	Fx_selection_owner_p): rename from Fns_own_selection_internal,
+	Fns_selection_exists_p, Fns_selection_owner_p.
+
 2009-06-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_create_tip_frame): Use the uniscribe font backend if

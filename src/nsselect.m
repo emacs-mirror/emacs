@@ -371,8 +371,8 @@ ns_string_to_pasteboard (id pb, Lisp_Object str)
    ========================================================================== */
 
 
-DEFUN ("ns-own-selection-internal", Fns_own_selection_internal,
-       Sns_own_selection_internal, 2, 2, 0,
+DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
+       Sx_own_selection_internal, 2, 2, 0,
        doc: /* Assert a selection.
 SELECTION-NAME is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 VALUE is typically a string, or a cons of two markers, but may be
@@ -426,7 +426,7 @@ DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
 }
 
 
-DEFUN ("ns-selection-exists-p", Fns_selection_exists_p, Sns_selection_exists_p,
+DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
        0, 1, 0, doc: /* Whether there is an owner for the given selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
@@ -449,7 +449,7 @@ and t is the same as `SECONDARY'.)  */)
 }
 
 
-DEFUN ("ns-selection-owner-p", Fns_selection_owner_p, Sns_selection_owner_p,
+DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
        0, 1, 0,
        doc: /* Whether the current Emacs process owns the given selection.
 The arg should be the name of the selection in question, typically one of
@@ -556,9 +556,9 @@ syms_of_nsselect (void)
 
   defsubr (&Sx_disown_selection_internal);
   defsubr (&Sx_get_selection_internal);
-  defsubr (&Sns_own_selection_internal);
-  defsubr (&Sns_selection_exists_p);
-  defsubr (&Sns_selection_owner_p);
+  defsubr (&Sx_own_selection_internal);
+  defsubr (&Sx_selection_exists_p);
+  defsubr (&Sx_selection_owner_p);
 #ifdef CUT_BUFFER_SUPPORT
   defsubr (&Sns_get_cut_buffer_internal);
   defsubr (&Sns_rotate_cut_buffers_internal);
