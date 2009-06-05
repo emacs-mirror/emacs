@@ -1,3 +1,9 @@
+2009-06-05  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org-gnus.el (org-gnus-store-link): Fix bug where
+	org-gnus-store-link used wrong subject when called in an article
+	buffer.  Patch provided by fengli AT gmail DOT com.
+
 2009-03-13  D. Goel  <deego3@gmail.com>
 
 	* org-bbdb.el: When calling (multiple-value-bind/setq .. ls)
