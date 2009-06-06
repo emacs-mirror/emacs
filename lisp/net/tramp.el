@@ -6090,6 +6090,13 @@ process to set up.  VEC specifies the connection."
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
+
+  ;; On OpenSolaris, there is a bug when HISTFILE is changed in place
+  ;; <http://bugs.opensolaris.org/view_bug.do?bug_id=6834184>.  We
+  ;; apply the workaround.
+  (if (string-equal (tramp-get-connection-property vec "uname" "") "SunOS 5.11")
+      (tramp-send-command vec "unset HISTFILE"))
+
   (let ((env (copy-sequence tramp-remote-process-environment))
 	unset item)
     (while env
@@ -7767,6 +7774,7 @@ Only works for Bourne-like shells."
 ;;   might be worthwhile to add some way to indicate that a particular
 ;;   use of process-file is (supposed to be) free of side-effects.
 ;;   (Stefan Monnier)
+;; * Use lsh instead of ssh (Alfred M. Szmidt)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
