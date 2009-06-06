@@ -1,3 +1,8 @@
+2009-06-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-open-connection-setup-interactive-shell): Apply
+	workaround for OpenSolaris bug.
+
 2009-06-05  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-decrypt-region): Detect encoding if
