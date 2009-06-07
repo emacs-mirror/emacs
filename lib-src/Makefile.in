@@ -451,4 +451,4 @@ update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
 
 mac-fix-env: ${srcdir}/mac-fix-env.m
-	$(CC) -o mac-fix-env ${srcdir}/mac-fix-env.m -prebind -framework Foundation
+	$(CC) ${ALL_CFLAGS} -o mac-fix-env ${srcdir}/mac-fix-env.m -prebind -framework Foundation
