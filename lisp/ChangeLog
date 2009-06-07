@@ -1,3 +1,8 @@
+2009-06-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Make direct
+	copy more robust, especially when "chown" is not applicable.
+
 2009-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Fix doc-string.
