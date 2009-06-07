@@ -1,3 +1,9 @@
+2009-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_in_display_line_to): On text-only terminals,
+	account for the overflowing of newlines into the last glyph on the
+	display line (Bug#3482).
+
 2009-06-05  David Reitter  <david.reitter@gmail.com>
 
 	* nsselect.m (Fx_own_selection_internal, Fx_selection_exists_p,

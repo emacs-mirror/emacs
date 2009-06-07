@@ -6918,7 +6918,14 @@ move_it_in_display_line_to (struct it *it,
 
 			  set_iterator_to_next (it, 1);
 #ifdef HAVE_WINDOW_SYSTEM
-			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+			  /* One graphical terminals, newlines may
+			     "overflow" into the fringe if
+			     overflow-newline-into-fringe is non-nil.
+			     On text-only terminals, newlines may
+			     overflow into the last glyph on the
+			     display line.*/
+			  if (!FRAME_WINDOW_P (it->f)
+			      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      if (!get_next_display_element (it))
 				{
@@ -7015,7 +7022,8 @@ move_it_in_display_line_to (struct it *it,
 	  && it->current_x >= it->last_visible_x)
 	{
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	  if (!FRAME_WINDOW_P (it->f)
+	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      if (!get_next_display_element (it)
 		  || BUFFER_POS_REACHED_P ())
