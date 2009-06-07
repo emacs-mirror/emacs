@@ -1317,7 +1317,7 @@ invalid color name was specified, this function signals an error,
 except that empty color names are allowed when @code{allow-empty} is
 non-@code{nil} and the user enters null input.
 
-Interactively, or when @var{display} is non-@code{nill}, the return
+Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 @end deffn
 
@@ -1330,9 +1330,11 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 @cindex read file names
 @cindex prompt for file name
 
-  Here is a couple of other high-level completion functions, designed
-for reading file names and shell commands.  They provide special
-features including automatic insertion of the default directory.
+  The high-level completion functions @code{read-file-name},
+@code{read-directory-name}, and @code{read-shell-command} are designed
+to read file names, directory names, and shell commands respectively.
+They provide special features, including automatic insertion of the
+default directory.
 
 @defun read-file-name prompt &optional directory default require-match initial predicate
 This function reads a file name in the minibuffer, prompting with
