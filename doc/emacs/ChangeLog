@@ -1,3 +1,10 @@
+2009-06-08  David Reitter  <david.reitter@gmail.com>
+
+	* macos.texi (Color panel, Font panel): Remove mention of Save Options,
+	since saving colors and faces set this way is not implemented.
+	(Environment variables): Remove mention of mac-fix-env, which is
+	scheduled to be removed.
+
 2009-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init Examples): Add example of changing load-path.
