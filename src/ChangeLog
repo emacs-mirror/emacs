@@ -23,6 +23,8 @@
 	(nsfont_draw): Handle "automatic" (lookup-table) compositions.
 	(dump_glyphstring): Rename to ns_dump_glyphstring.
 
+	* nsterm.h (dump_glyphstring): Rename to ns_dump_glyphstring.
+
 	* nsfns.m (Fns_popup_font_panel): Use shared font manager.
 
 	* fontset.c (fontset_from_font): Remove NS-specific code.

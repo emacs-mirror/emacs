@@ -682,7 +682,7 @@ extern void nsfont_make_fontset_for_font (Lisp_Object name,
 
 /* In nsfont, for debugging */
 struct glyph_string;
-void dump_glyphstring (struct glyph_string *s);
+void ns_dump_glyphstring (struct glyph_string *s);
 
 /* Implemented in nsterm, published in or needed from nsfns. */
 extern Lisp_Object Qfontsize;
