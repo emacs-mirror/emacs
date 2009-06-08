@@ -4162,7 +4162,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
           else
             obj = Fcons (intern ("ns-unput-working-text"), Qnil);
 	  kbd_fetch_ptr = event + 1;
-	  *used_mouse_menu = 1;
+          if (used_mouse_menu)
+            *used_mouse_menu = 1;
         }
 #endif
 
@@ -4319,7 +4320,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 #ifdef HAVE_NS
 	      /* certain system events are non-key events */
-	      if (event->kind == NS_NONKEY_EVENT)
+	      if (used_mouse_menu
+                  && event->kind == NS_NONKEY_EVENT)
 		*used_mouse_menu = 1;
 #endif
 
