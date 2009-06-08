@@ -1776,10 +1776,6 @@ fontset_from_font (font_object)
 
   FONTSET_ASCII (fontset) = font_name;
 
-#ifdef HAVE_NS
-  nsfont_make_fontset_for_font(name, font_object);
-#endif
-
   return XINT (FONTSET_ID (fontset));
 }
 
