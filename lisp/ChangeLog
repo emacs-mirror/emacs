@@ -1,3 +1,8 @@
+2009-06-08  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (composition-function-table)
+	(script-representative-chars): Don't alter.
+
 2009-06-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Make direct
