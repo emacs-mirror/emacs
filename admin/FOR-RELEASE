@@ -144,8 +144,7 @@ help.texi         -- cyd
 indent.texi       -- cyd
 killing.texi      -- cyd
 kmacro.texi       -- cyd
-macos.texi     -- contents need to be evaluated and see what is still
- relevant after the NS merge.
+macos.texi     -- davidswelt
 maintaining.texi  -- cyd
 major.texi        -- cyd
 mark.texi         -- cyd
