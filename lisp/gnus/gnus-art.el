@@ -4943,7 +4943,7 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    "`----\n"))
 	  (setcdr data
 		  (cdr (mm-make-handle
-			nil `("text/plain") nil nil
+			nil `("text/plain" (charset . gnus-decoded)) nil nil
 			(list "attachment")
 			(format "Deleted attachment (%s bytes)" bsize))))))
       ;; (set-buffer gnus-summary-buffer)

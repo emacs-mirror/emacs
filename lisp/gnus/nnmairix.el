@@ -23,9 +23,6 @@
 
 ;;; Commentary:
 
-;; THIS IS BETA SOFTWARE! This back end should not mess up or
-;; even delete your mails, but having a backup is always a good idea.
-
 ;; This is a back end for using the mairix search engine with
 ;; Gnus.  Mairix is a tool for searching words in locally stored
 ;; mail.  Mairix is very fast which allows using it efficiently for
@@ -35,32 +32,6 @@
 ;;
 ;; Mairix is written by Richard Curnow.  More information can be found at
 ;; http://www.rpcurnow.force9.co.uk/mairix/
-;;
-;; For details about setting up mairix&Gnus&nnmairix.el, look at the
-;; emacswiki:
-;;
-;; http://www.emacswiki.org/cgi-bin/wiki/GnusMairix
-;;
-;; The newest version of nnmairix.el can be found at
-;;
-;; http://www.emacswiki.org/cgi-bin/emacs/nnmairix.el
-
-;; For impatient people, here's the setup in a nutshell:
-;;
-;; This back end requires an installed mairix binary which is
-;; configured to index your mail folder.  You don't have to specify a
-;; search folder (but it does no harm, either).  Visit the man page of
-;; mairix and mairixrc for details.
-;;
-;; Put nnmairix.el into your search path and "(require 'nnmarix)" into
-;; your .gnus.  Then call nnmairix-create-default-group (or 'G b
-;; c'). This function will ask for all necessary information to create
-;; a mairix server in Gnus with the default search folder.  This
-;; default search folder will be used for all temporary searches: call
-;; nnmairix-search ('G b s') and enter a mairix query (like
-;; f:test@example.com). To create a mairix group for one specific
-;; search query, use 'G b g'.  See the emacswiki or the source for more
-;; information.
 
 ;; Commentary on the code: nnmairix sits between Gnus and the "real"
 ;; back end which handles the mail (currently nnml, nnimap and
@@ -522,7 +493,7 @@ Other back ends might or might not work.")
 	(when (eq nnmairix-backend 'nnml)
 	  (when nnmairix-rename-files-for-nnml
 	    (nnmairix-rename-files-consecutively mfolder))
-	  (nnml-generate-nov-databases-directory mfolder))
+	  (nnml-generate-nov-databases-directory mfolder nil t))
 	(nnmairix-call-backend
 	 "request-scan" folder nnmairix-backend-server)
 	(if (and fast allowfast)
@@ -585,8 +556,13 @@ Other back ends might or might not work.")
 	    (mapcar
 	     (lambda (arg) (- arg numcorr))
 	     articles)))
-    (setq rval (nnmairix-call-backend
-		"retrieve-headers" articles folder nnmairix-backend-server fetch-old))
+    (setq rval 
+	  (if (eq nnmairix-backend 'nnimap)
+	      (let ((gnus-nov-is-evil t))
+		(nnmairix-call-backend
+		 "retrieve-headers" articles folder nnmairix-backend-server fetch-old))
+	    (nnmairix-call-backend
+	     "retrieve-headers" articles folder nnmairix-backend-server fetch-old)))
     (when (eq rval 'nov)
       (nnmairix-replace-group-and-numbers articles folder group numcorr)
       rval)))
@@ -1223,7 +1199,8 @@ If UPDATEDB is t, database for SERVERNAME will be updated first."
 	  (unless (and skipdefault
 		       (string= (car cur) default))
 	    (gnus-group-jump-to-group (car cur))
-	    (gnus-group-get-new-news-this-group)))))))
+	    (gnus-group-mark-group 1)))
+	(gnus-group-get-new-news-this-group)))))
 
 (defun nnmairix-remove-tick-mark-original-article ()
   "Remove tick mark from original article.
@@ -1692,6 +1669,11 @@ SERVER."
   (nnmairix-open-server server)
   (while (string-match "[<>]" mid)
     (setq mid (replace-match "" t t mid)))
+  ;; mairix somehow does not like '$' in message-id
+  (when (string-match "\\$" mid)
+    (setq mid (concat mid "=")))
+  (while (string-match "\\$" mid)
+    (setq mid (replace-match "=," t t mid)))
   (let (allgroups)
     (if (zerop (nnmairix-call-mairix-binary-raw
 		(split-string nnmairix-mairix-command)

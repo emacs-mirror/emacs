@@ -1,3 +1,19 @@
+2009-06-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-delete-part): Specify gnus-decoded as charset
+	to deleted part.
+
+2009-05-30  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el: Remove old documentation in the commentary block.
+	(nnmairix-request-group): Do not update active file for nnml back ends.
+	(nnmairix-retrieve-headers): Set gnus-nov-is-evil to t for nnimap back
+	end so that overview files are ignored.
+	(nnmairix-update-groups): Make updating the groups more robust by using
+	marks.
+	(nnmairix-determine-original-group-from-path): Circumvent mairix bug
+	with dollar characters in message-id.
+
 2009-04-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* spam.el: Use dns-query instead of query-dns.  Was renamed on
