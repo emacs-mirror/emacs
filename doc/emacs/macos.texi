@@ -45,12 +45,12 @@ GNUstep Events}).  You can change these bindings in the usual way (@pxref{Key
 Bindings}).
 
   The standard Mac / GNUstep font and color panels are accessible via Lisp commands.
-  To use the color panel, drag from it to an Emacs frame
-to change the foreground color of the face at that position (if the
-@key{shift} key is held down, it changes the background color
-instead).  To finalize the settings for either color or font, choose
-@samp{Save Options} in the @samp{Options} menu.  To discard the
+  To use the color panel, drag from it to an Emacs frame to change the
+foreground color of the face at that position (if the @key{shift} key
+is held down, it changes the background color instead). To discard the
 settings, create a new frame and close the altered one.
+@c [unclear if the following holds.]
+@c  To finalize the settings for either color or font, choose @samp{Save Options} in the @samp{Options} menu. 
 
   @key{S-Mouse-1} (i.e., clicking the left mouse button
 while holding down the @key{Shift} key) adjusts the region to the
@@ -59,7 +59,7 @@ it does not pop up a menu for changing the default face, as
 @key{S-Mouse-1} normally does (@pxref{Temporary Face Changes}).  This
 change makes Emacs behave more like other Mac / GNUstep applications.
 
-  When you open or save files using the menus, or using the standard
+  When you open or save files using the menus, or using the 
 @key{Cmd-o} and @key{Cmd-S} bindings, Emacs uses graphical file
 dialogs to read file names.  However, if you use the regular Emacs key
 sequences, such as @key{C-x C-f}, Emacs uses the minibuffer to read
@@ -83,22 +83,9 @@ is not a descendant of any shell, so its environment variables haven't been
 set which often causes the subprocesses it launches to behave differently than
 they would when launched from the shell.
 
-To solve this problem for Emacs, there are two solutions.  First is to
-run, from the command line:
-
-@example
-.../Emacs.app/Contents/MacOS/bin/mac-fix-env
-@end example
-
-This will pick up your environment settings and save them into a special file
-@file{~/.MacOSX/environment.plist}, which the desktop environment will use to
-set the environment for all launched applications.  The drawback of this
-method is it needs to be run again whenever something changes.
-
-As for the PATH and MANPATH variables, a simpler, system-wide method
+As for the PATH and MANPATH variables, a system-wide method
 of setting PATH is recommended on Mac OS X 10.5 and later, using the
 @file{/etc/paths} files and the @file{/etc/paths.d} directory.
-
 
 @node Mac / GNUstep Customization, Mac / GNUstep Events, Mac / GNUstep Basics, Mac OS / GNUstep
 @section Mac / GNUstep Customization
@@ -110,16 +97,21 @@ customization buffers and the Options menu.
 @subsection Font and Color Panels
 
 The Font Panel may be accessed with M-x ns-popup-font-panel.  It
-will set the default font in the frame most recently used or clicked on.  To
-make the setting permanent, use @samp{Save Options} in the Options menu, or
-run @code{menu-bar-options-save}.
+will set the default font in the frame most recently used or clicked
+on.
+
+@c  To make the setting permanent, use @samp{Save Options} in the
+@c Options menu, or run @code{menu-bar-options-save}.
 
 You can bring up a color panel with M-x ns-popup-color-panel. and
 drag the color you want over the emacs face you want to change.  Normal
 dragging will alter the foreground color.  Shift dragging will alter the
-background color.  To make the changes permanent select the "Save Options"
-item in the "Options" menu, or run @code{menu-bar-options-save}.  Useful in this
-context is the listing of all faces obtained by @key{M-x}
+background color.
+
+@c To make the changes permanent select the "Save Options"
+@c item in the "Options" menu, or run @code{menu-bar-options-save}. 
+
+Useful in this context is the listing of all faces obtained by @key{M-x}
 @code{list-faces-display}.
 
 @subsection Open files by dragging to an Emacs window
