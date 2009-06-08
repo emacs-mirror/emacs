@@ -1382,7 +1382,7 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
   struct frame *f;
 
   check_ns ();
-  fm = [NSFontManager new];
+  fm = [NSFontManager sharedFontManager];
   if (NILP (frame))
     f = SELECTED_FRAME ();
   else
