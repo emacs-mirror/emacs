@@ -182,7 +182,6 @@ float ns_antialias_threshold;
 Lisp_Object ns_use_qd_smoothing;
 
 /* Used to pick up AppleHighlightColor on OS X */
-Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
 /* Confirm on exit. */
@@ -415,7 +414,9 @@ ns_init_paths ()
       resourcePath = [resourceDir stringByAppendingPathComponent: @"info"];
       if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
         if (isDir)
-          setenv ("INFOPATH", [resourcePath UTF8String], 1);
+          setenv ("INFOPATH", [[resourcePath stringByAppendingString: @":"]
+                                             UTF8String], 1);
+      /* Note, extra colon needed to cause merge w/later user additions. */
     }
 }
 
@@ -2359,7 +2360,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   int fx, fy, h;
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
-  int overspill, cursorToDraw;
+  int overspill;
 
   NSTRACE (dumpcursor);
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
@@ -2415,8 +2416,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   NSDisableScreenUpdates ();
 #endif
 
-  cursorToDraw = active_p ? cursor_type : HOLLOW_BOX_CURSOR;
-  switch (cursorToDraw)
+  switch (cursor_type)
     {
     case NO_CURSOR:
       break;
@@ -2444,7 +2444,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   ns_unfocus (f);
 
   /* draw the character under the cursor */
-  if (cursorToDraw != NO_CURSOR)
+  if (cursor_type != NO_CURSOR)
     draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 
 #ifdef NS_IMPL_COCOA
@@ -3051,7 +3051,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       if (s->for_overlaps || (s->cmp_from > 0
 			      && ! s->first_glyph->u.cmp.automatic))
         s->background_filled_p = 1;
-      else      /* 1 */
+      else
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
 
@@ -3594,7 +3594,6 @@ ns_set_default_prefs ()
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
   ns_use_qd_smoothing = Qnil;
-  ns_use_system_highlight_color = Qt;
   ns_confirm_quit = Qnil;
 }
 
@@ -6308,10 +6307,6 @@ allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
                "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
-
-  DEFVAR_LISP ("ns-use-system-highlight-color",
-               &ns_use_system_highlight_color,
-               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
 
   DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
                "Whether to confirm application quit using dialog.");
