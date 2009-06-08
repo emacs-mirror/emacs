@@ -1,3 +1,42 @@
+2009-06-08  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_use_system_highlight_color): Drop, unused.
+
+2009-06-08  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	Changes to support :script/:lang/:otf in NS font driver.
+	* nsfont.m (nsfont_escape_name, nsfont_unescape_name)
+	(nsfont_get_family, nsfont_char_width): Rename to ns_ prefix to
+	indicate not part of font driver interface, and change callers.
+	(ns_get_family): Remove pointless null check.
+	(nsfont_spec_to_traits, nsfont_fmember_to_entity): Replace with
+	ns_spec_to_descriptor, ns_descriptor_to_entity.
+	(nsfont_trait_distance, nsfont_make_fontset_for_font): Remove.
+	(ns_attribute_value, ns_attribute_fvalue, ns_has_attribute)
+	(ns_spec_to_descriptor, ns_descriptor_to_entity)
+	(ns_charset_covers, ns_lang_to_script, ns_otf_to_script)
+	(ns_get_req_script, ns_accumulate_script_ranges)
+	(ns_script_to_charset, ns_get_covering_families, ns_findfonts):
+	New functions.
+	(nsfont_list, nsfont_match): Use ns_findfonts.
+	(nsfont_open): Use font descriptor instead of traits.
+	(nsfont_draw): Handle "automatic" (lookup-table) compositions.
+	(dump_glyphstring): Rename to ns_dump_glyphstring.
+
+	* nsfns.m (Fns_popup_font_panel): Use shared font manager.
+
+	* fontset.c (fontset_from_font): Remove NS-specific code.
+
+2009-06-08  Peter Jones <pjones@pmade.com>  (tiny change)
+
+	* nsterm.m (ns_draw_window_cursor): Respect cursor_type for
+	nonactive windows.
+
+2009-06-08 Felix Mueller  <felix@enqueue.eu>  (tiny change)
+
+	* nsterm.m (ns_init_paths): Append path separator to INFOPATH
+	variable.
+
 2009-06-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_in_display_line_to): On text-only terminals,
