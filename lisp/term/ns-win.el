@@ -684,10 +684,6 @@ See `ns-insert-working-text'."
 	:post-read-conversion 'ns-utf8-nfd-post-read-conversion)
       (set-file-name-coding-system 'utf-8-nfd)))
 
-;; PENDING: disable composition-based display for Indic scripts as it
-;;        is not working well under Nextstep for some reason
-(set-char-table-range composition-function-table
-                      '(#x0900 . #x0DFF) nil)
 
 
 ;;;; Inter-app communications support.
@@ -983,15 +979,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 		'initialization
 		(format "Creation of the standard fontset failed: %s" err)
 		:error)))))
-
-;;(push (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard")
-;;      default-frame-alist)
-
-;; Add some additional scripts to var we use for fontset generation.
-(setq script-representative-chars
-      (cons '(kana #xff8a)
-	    (cons '(symbol #x2295 #x2287 #x25a1)
-                  script-representative-chars)))
 
 
 ;;;; Pasteboard support.
