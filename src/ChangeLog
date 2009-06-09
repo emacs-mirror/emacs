@@ -1,3 +1,11 @@
+2009-06-09  Jim Meyering  <meyering@redhat.com>
+
+	x-load-color-file: avoid array bounds error
+	x-load-color-file expects each line of input to be of the form
+	"R G B name".  But if "name" is missing, it would read name[-1],
+	and if that value is '\n', zero it.
+	* xfaces.c (Fx_load_color_file): Handle missing color name.
+
 2009-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fmap_charset_chars): In docstring, state clearly that

@@ -6630,7 +6630,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 	  {
 	    char *name = buf + num;
 	    num = strlen (name) - 1;
-	    if (name[num] == '\n')
+	    if (num >= 0 && name[num] == '\n')
 	      name[num] = 0;
 	    cmap = Fcons (Fcons (build_string (name),
 #ifdef WINDOWSNT
