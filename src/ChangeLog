@@ -1,3 +1,8 @@
+2009-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fmap_charset_chars): In docstring, state clearly that
+	FROM-CODE and TO-CODE are codepoints of CHARSET.
+
 2009-06-08  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_use_system_highlight_color): Drop, unused.
