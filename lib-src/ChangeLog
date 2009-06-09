@@ -1,3 +1,8 @@
+2006-06-09  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* mac-fix-env.m:
+	* Makefile.in (mac-fix-env): Remove.
+
 2006-06-06  David Reitter  <david.reitter@gmail.com>
 
 	* Makefile.in (mac-fix-env): Compile it using ALL_CFLAGS.
