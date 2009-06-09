@@ -464,13 +464,15 @@ status_message (p)
   if (EQ (symbol, Qsignal) || EQ (symbol, Qstop))
     {
       char *signame;
+      int c;
       synchronize_system_messages_locale ();
       signame = strsignal (code);
       if (signame == 0)
 	signame = "unknown";
       string = build_string (signame);
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
-      SSET (string, 0, DOWNCASE (SREF (string, 0)));
+      c = STRING_CHAR ((char *) SDATA (string), 0);
+      Faset (string, 0, make_number (DOWNCASE (c)));
       return concat2 (string, string2);
     }
   else if (EQ (symbol, Qexit))
