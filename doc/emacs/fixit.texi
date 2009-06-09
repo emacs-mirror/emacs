@@ -374,19 +374,30 @@ necessary, since the process uses no time except when you do spelling
 correction.
 
 @vindex ispell-dictionary
+@vindex ispell-local-dictionary
+@vindex ispell-personal-dictionary
 @vindex ispell-complete-word-dict
   Ispell, Aspell and Hunspell use two dictionaries together for spell checking:
-the standard dictionary and your private dictionary.  The variable
-@code{ispell-dictionary} specifies the file name to use for the
-standard dictionary; a value of @code{nil} selects the default
-dictionary.  The command @kbd{M-x ispell-change-dictionary} sets this
-variable and then restarts the subprocess, so that it will use a
-different standard dictionary.  A separate dictionary is used for word
-completion.  The variable @code{ispell-complete-word-dict} specifies
-the file name of this dictionary.  The completion dictionary must be
-different because it cannot use root and affix information.  For some
-languages, there is a spell checking dictionary but no word completion
-dictionary.
+the standard dictionary and your private dictionary.  The standard
+dictionary is specified by @code{ispell-local-dictionary} or,
+if @code{nil}, by @code{ispell-dictionary}.  If both are @code{nil}
+the default dictionary is selected.  The command
+@kbd{M-x ispell-change-dictionary} sets the standard dictionary for
+the buffer and then restarts the subprocess, so that it will use a
+different standard dictionary.  Personal dictionary is specified by
+@code{ispell-personal-dictionary}.  If @code{nil}, default value is
+used.
+
+  Set variable @code{ispell-dictionary} to select a specific default
+dictionary for all your documents. Set variable
+@code{ispell-local-dictionary} in the local variables section to
+select a specific dictionary for a given document.
+
+  A separate dictionary is used for word completion.  The variable
+@code{ispell-complete-word-dict} specifies the file name of this
+dictionary.  The completion dictionary must be different because it
+cannot use root and affix information.  For some languages, there
+is a spell checking dictionary but no word completion dictionary.
 
 @cindex Flyspell mode
 @findex flyspell-mode

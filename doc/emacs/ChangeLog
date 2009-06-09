@@ -1,3 +1,8 @@
+2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* fixit.texi (Spelling): Set default dictionary. Improve
+	descriptions (Bug#2554)
+
 2009-06-08  David Reitter  <david.reitter@gmail.com>
 
 	* macos.texi (Color panel, Font panel): Remove mention of Save Options,
