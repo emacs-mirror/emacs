@@ -3130,7 +3130,7 @@ With this setup, the command @kbd{C-c C-t} will cycle an entry from TODO
 to FEEDBACK, then to VERIFY, and finally to DONE and DELEGATED.  You may
 also use a numeric prefix argument to quickly select a specific state.  For
 example @kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
-Or you can use @kbd{S-left} to go backward through the sequence.  If you
+Or you can use @kbd{S-@key{left}} to go backward through the sequence.  If you
 define many keywords, you can use in-buffer completion
 (@pxref{Completion}) or even a special one-key selection scheme
 (@pxref{Fast access to TODO states}) to insert these words into the
@@ -6305,9 +6305,9 @@ Toggle the time grid on and off.  See also the variables
 @c
 @kindex r
 @item r
-Recreate the agenda buffer, for example to reflect the changes
-after modification of the time stamps of items with S-@key{left} and
-S-@key{right}.  When the buffer is the global TODO list, a prefix
+Recreate the agenda buffer, for example to reflect the changes after
+modification of the time stamps of items with @kbd{S-@key{left}} and
+@kbd{S-@key{right}}.  When the buffer is the global TODO list, a prefix
 argument is interpreted to create a selective list for a specific TODO
 keyword.
 @kindex g
