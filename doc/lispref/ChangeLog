@@ -1,3 +1,8 @@
+2009-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Character Sets): State clearly that FROM and TO
+	are codepoints of CHARSET.
+
 2009-06-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Reading File Names): Fix introductory text.
