@@ -111,7 +111,7 @@ separate distribution may be more recent.
 For installing the separate distribution, see the @file{README} file
 in the distribution.
 
-To see what version of Ada mode you have installed, do @key{M-x
+To see what version of Ada mode you have installed, do @kbd{M-x
 ada-mode-version}.
 
 The following files are provided with the Ada mode distribution:
@@ -256,7 +256,7 @@ the GNAT compiler for simple projects (single files, or several files
 in a single directory).
 
 Even when no project file is used, the GUI project editor (menu
-@key{Ada | Project | Edit}) shows the settings of the various project
+@samp{Ada | Project | Edit}) shows the settings of the various project
 file variables referenced here.
 
 @menu
@@ -310,7 +310,7 @@ buffer. This runs @code{run_cmd} from the current project. The
 execution buffer allows for interactive input/output.
 
 To modify the run command, in particular to provide or change the
-command line arguments, type @key{C-u} before invoking the command.
+command line arguments, type @kbd{C-u} before invoking the command.
 
 This command is not available for a cross-compilation toolchain.
 
@@ -320,7 +320,7 @@ It is important when using these commands to understand how
 
 Build runs 'gnatmake' on the main unit. During a typical edit/compile
 session, this is the only command you need to invoke, which is why it
-is bound to @key{C-c C-c}. It will compile all files needed by the
+is bound to @kbd{C-c C-c}. It will compile all files needed by the
 main unit, and display compilation errors in any of them.
 
 Note that Build can be invoked from any Ada buffer; typically you will
@@ -328,22 +328,22 @@ be fixing errors in files other than the main, but you don't have to
 switch back to the main to invoke the compiler again.
 
 Novices and students typically work on single-file Ada projects. In
-this case, @key{C-c C-m} will normally be the only command needed; it
+this case, @kbd{C-c C-m} will normally be the only command needed; it
 will build the current file, rather than the last-built main.
 
 There are three ways to change @code{main}:
 
 @enumerate
 @item
-Invoke @key{Ada | Set main and Build}, which sets @code{main} to
+Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @key{Ada | Project | Edit}, edit @code{main} and
-@code{main}, and click @key{[save]}
+Invoke @samp{Ada | Project | Edit}, edit @code{main} and
+@code{main}, and click @samp{[save]}
 
 @item
-Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main}
+Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code{main}
 
 @end enumerate
 
@@ -440,12 +440,12 @@ This algorithm always sets @code{ada-prj-default-project-file}, even
 when the file does not actually exist.
 
 To change the project file before or after the first one is found,
-invoke @key{Ada | Project | Load ...}.
+invoke @samp{Ada | Project | Load ...}.
 
 Or, in lisp, evaluate @code{(ada-set-default-project-file "/path/file.adp")}.
 This sets @code{ada-prj-default-project-file}, and reads the project file.
 
-You can also specify a GNAT project file to @key{Ada | Project | Load
+You can also specify a GNAT project file to @samp{Ada | Project | Load
 ...} or @code{ada-set-default-project-file}. Emacs Ada mode checks the
 file extension; if it is @code{.gpr}, the file is treated as a GNAT
 project file. Any other extension is treated as an Emacs Ada mode
@@ -727,7 +727,7 @@ end Hello_Pkg;
 Yes, this is missing the keyword @code{body}; another compiler error
 example.
 
-In buffer @file{hello.adb}, invoke @key{Ada | Check file}. You should
+In buffer @file{hello.adb}, invoke @samp{Ada | Check file}. You should
 get a @code{*compilation*} buffer containing something like (the
 directory paths will be different):
 
@@ -744,7 +744,7 @@ gnatmake: "c:/Examples/Example_1/hello.adb" compilation error
 If you have enabled font-lock, the lines with actual errors (starting
 with @file{hello.adb}) are highlighted, with the file name in red.
 
-Now type @key{C-x `} (on a PC keyboard, @key{`} is next to @key{1}).
+Now type @kbd{C-x `} (on a PC keyboard, @key{`} is next to @key{1}).
 Or you can click the middle mouse button on the first error line. The
 compilation buffer scrolls to put the first error on the top line, and
 point is put at the place of the error in the @file{hello.adb} buffer.
@@ -755,9 +755,9 @@ To fix the error, change the line to be
     Ada.Text_IO.Put_Line ("hello from hello.adb");
 @end example
 
-Now invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello}.
+Now invoke @samp{Ada | Show main}; this displays @samp{Ada mode main: hello}.
 
-Now (in buffer @file{hello.adb}), invoke @key{Ada | Build}. You are
+Now (in buffer @file{hello.adb}), invoke @samp{Ada | Build}. You are
 prompted to save the file (if you haven't already). Then the
 compilation buffer is displayed again, containing:
 
@@ -772,7 +772,7 @@ gnatlink hello.ali -o hello.exe -g
 The compilation has succeeded without errors; @file{hello.exe} now
 exists in the same directory as @file{hello.adb}.
 
-Now invoke @key{Ada | Run}. A @file{*run*} buffer is displayed,
+Now invoke @samp{Ada | Run}. A @file{*run*} buffer is displayed,
 containing
 
 @example
@@ -784,7 +784,7 @@ Process run finished
 That completes the first part of this example.
 
 Now we will compile a multi-file project. Open the file
-@file{hello_2.adb}, and invoke @key{Ada | Set main and Build}. This
+@file{hello_2.adb}, and invoke @samp{Ada | Set main and Build}. This
 finds an error in @file{hello_pkg.adb}:
 
 @example
@@ -801,39 +801,39 @@ unless you use an Emacs Ada mode project file to specify the other directories;
 @xref{Set source search path}, or a GNAT project file; @ref{Use GNAT
 project file}.
 
-Invoke @key{Ada | Show main}; this displays @file{Ada mode main: hello_2}.
+Invoke @samp{Ada | Show main}; this displays @file{Ada mode main: hello_2}.
 
-Move to the error with @key{C-x `}, and fix the error by adding @code{body}:
+Move to the error with @kbd{C-x `}, and fix the error by adding @code{body}:
 
 @example
 package body Hello_Pkg is
 @end example
 
-Now, while still in @file{hello_pkg.adb}, invoke @key{Ada | Build}.
+Now, while still in @file{hello_pkg.adb}, invoke @samp{Ada | Build}.
 gnatmake successfully builds @file{hello_2}. This demonstrates that
 Emacs has remembered the main file, in the project variable
 @code{main}, and used it for the Build command.
 
-Finally, again while in @file{hello_pkg.adb}, invoke @key{Ada | Run}.
+Finally, again while in @file{hello_pkg.adb}, invoke @samp{Ada | Run}.
 The @code{*run*} buffer displays @code{Hello from hello_pkg.adb}.
 
 One final point. If you switch back to buffer @file{hello.adb}, and
-invoke @key{Ada | Run}, @file{hello_2.exe} will be run. That is
+invoke @samp{Ada | Run}, @file{hello_2.exe} will be run. That is
 because @code{main} is still set to @code{hello_2}, as you can
-see when you invoke @key{Ada | Project | Edit}.
+see when you invoke @samp{Ada | Project | Edit}.
 
 There are three ways to change @code{main}:
 
 @enumerate
 @item
-Invoke @key{Ada | Set main and Build}, which sets @code{main} to
+Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
 the current file.
 
 @item
-Invoke @key{Ada | Project | Edit}, edit @code{main}, and click @key{[save]}
+Invoke @samp{Ada | Project | Edit}, edit @code{main}, and click @samp{[save]}
 
 @item
-Invoke @key{Ada | Project | Load}, and load a project file that specifies @code{main}
+Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code{main}
 
 @end enumerate
 
@@ -844,7 +844,7 @@ This example illustrates using an Emacs Ada mode project file to set a
 compiler option.
 
 If you have files from @file{Example_1} open in Emacs, you should
-close them so you don't get confused. Use menu @key{File | Close
+close them so you don't get confused. Use menu @samp{File | Close
 (current buffer)}.
 
 In directory @file{Example_2}, create these files:
@@ -872,10 +872,10 @@ comp_opt=-gnatyt
 This tells the GNAT compiler to check for token spacing; in
 particular, there must be a space preceding a parenthesis.
 
-In buffer @file{hello.adb}, invoke @key{Ada | Project | Load...}, and
+In buffer @file{hello.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_2/hello.adp}.
 
-Then, again in buffer @file{hello.adb}, invoke @key{Ada | Set main and
+Then, again in buffer @file{hello.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
@@ -956,10 +956,10 @@ comp_opt=-I..
 
 Note that there must be no trailing spaces.
 
-In buffer @file{hello_3.adb}, invoke @key{Ada | Project | Load...}, and
+In buffer @file{hello_3.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_3/Other/other.adp}.
 
-Then, again in @file{hello_3.adb}, invoke @key{Ada | Set main and
+Then, again in @file{hello_3.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
@@ -976,7 +976,7 @@ Compare the @code{-cargs} option to the compiler output in @ref{Set
 compiler options}; this shows that @file{other.adp} is being used to
 set the compiler options.
 
-Move to the error with @key{C-x `}. Ada mode searches the list of
+Move to the error with @kbd{C-x `}. Ada mode searches the list of
 directories given by @code{src_dir} for the file mentioned in the
 compiler error message.
 
@@ -1039,10 +1039,10 @@ Project Hello_4 is
 end Hello_4;
 @end example
 
-In buffer @file{hello_4.adb}, invoke @key{Ada | Project | Load...}, and
+In buffer @file{hello_4.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_4/Gnat_Project/hello_4.gpr}.
 
-Then, again in @file{hello_4.adb}, invoke @key{Ada | Set main and
+Then, again in @file{hello_4.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
@@ -1106,10 +1106,10 @@ Project Hello_5 is
 end Hello_5;
 @end example
 
-In buffer @file{hello_5.adb}, invoke @key{Ada | Project | Load...}, and
+In buffer @file{hello_5.adb}, invoke @samp{Ada | Project | Load...}, and
 select @file{Example_5/hello_5.adp}.
 
-Then, again in @file{hello_5.adb}, invoke @key{Ada | Set main and
+Then, again in @file{hello_5.adb}, invoke @samp{Ada | Set main and
 Build}. You should get a @code{*compilation*} buffer containing
 something like (the directory paths will be different):
 
@@ -1122,7 +1122,7 @@ hello_pkg.adb:2:08: keyword "body" expected here [see file name]
 gnatmake: "c:\examples\example_4\hello_pkg.adb" compilation error
 @end example
 
-Now type @key{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
+Now type @kbd{C-x `}. @file{Example_4/hello_pkg.adb} is shown,
 demonstrating that @file{hello_5.gpr} and @file{hello_4.gpr} are being
 used to set the compilation search path.
 
@@ -1196,17 +1196,17 @@ are the only words starting with @samp{my} in any of the opened files,
 then you will have this scenario:
 
 @example
-You type:  my@key{M-/}
+You type:  my@kbd{M-/}
 Emacs inserts:  @samp{my_identifier}
-If you press @key{M-/} once again, Emacs replaces @samp{my_identifier} with
+If you press @kbd{M-/} once again, Emacs replaces @samp{my_identifier} with
 @samp{my_subprogram}.
-Pressing @key{M-/} once more will bring you back to @samp{my_identifier}.
+Pressing @kbd{M-/} once more will bring you back to @samp{my_identifier}.
 @end example
 
 This is a very fast way to do completion, and the casing of words will
 also be respected.
 
-The second method (@key{C-TAB}) is specific to Ada mode and the GNAT
+The second method (@kbd{C-@key{TAB}}) is specific to Ada mode and the GNAT
 compiler. Emacs will search the cross-information for possible
 completions.
 

@@ -1,3 +1,11 @@
+2009-06-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ada-mode.texi (Installation, Compile commands)
+	(Project File Overview, No project files, Set compiler options)
+	(Use GNAT project file, Use multiple GNAT project files)
+	(Identifier completion): Use @samp for menu items, and @kbd for key
+	sequences (Bug#3504).
+
 2009-06-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* gnus.texi (Security): Fix wording; add a link to epa.info.
