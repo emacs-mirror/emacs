@@ -1,5 +1,7 @@
 2009-06-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* org.texi (Org Plot): Fix tags (Bug#3507).
+
 	* ada-mode.texi (Installation, Compile commands)
 	(Project File Overview, No project files, Set compiler options)
 	(Use GNAT project file, Use multiple GNAT project files)

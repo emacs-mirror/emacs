@@ -2487,7 +2487,7 @@ Specify whether the plot will be @code{2d}, @code{3d}, or @code{grid}.
 @item with
 Specify a @code{with} option to be inserted for every col being plotted
 (e.g. @code{lines}, @code{points}, @code{boxes}, @code{impulses}, etc...).
-Defaults to 'lines'.
+Defaults to @code{lines}.
 
 @item file
 If you want to plot to a file specify the @code{"path/to/desired/output-file"}.
@@ -2505,7 +2505,7 @@ flat mapping rather than a @code{3d} slope.
 
 @item timefmt
 Specify format of org-mode timestamps as they will be parsed by gnuplot.
-Defaults to '%Y-%m-%d-%H:%M:%S'.
+Defaults to @samp{%Y-%m-%d-%H:%M:%S}.
 
 @item script
 If you want total control you can specify a script file (place the file name
