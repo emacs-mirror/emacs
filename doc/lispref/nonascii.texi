@@ -645,11 +645,11 @@ indicate a range of characters contained in charset.  The second
 argument is the optional argument @var{arg}.
 
 By default, the range of codepoints passed to @var{function} includes
-all the characters in @var{charset}, but optional arguments @var{from}
-and @var{to} limit that to the range of characters between these two
-codepoints of @var{charset}.  If either of them is @code{nil}, it
-defaults to the first or last codepoint of @var{charset},
-respectively.
+all the characters in @var{charset}, but optional arguments
+@var{from-code} and @var{to-code} limit that to the range of
+characters between these two codepoints of @var{charset}.  If either
+of them is @code{nil}, it defaults to the first or last codepoint of
+@var{charset}, respectively.
 @end defun
 
 @node Scanning Charsets
