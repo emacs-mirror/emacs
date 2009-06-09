@@ -501,6 +501,12 @@ is automatically set when defined in the file with either
 
 (make-variable-buffer-local 'ispell-local-dictionary)
 
+(defcustom ispell-dictionary nil
+  "Default dictionary to use if `ispell-local-dictionary' is nil."
+  :type '(choice string
+		 (const :tag "default" nil))
+  :group 'ispell)
+
 (defcustom ispell-extra-args nil
   "*If non-nil, a list of extra switches to pass to the Ispell program.
 For example, (\"-W\" \"3\") to cause it to accept all 1-3 character
@@ -1250,9 +1256,6 @@ used as key in `ispell-local-dictionary-alist' and `ispell-dictionary-alist'.")
 (defvar ispell-current-personal-dictionary nil
   "The name of the current personal dictionary, or nil for the default.
 This is passed to the ispell process using the `-p' switch.")
-
-(defvar ispell-dictionary nil
-  "Default dictionary to use if `ispell-local-dictionary' is nil.")
 
 (defun ispell-decode-string (str)
   "Decodes multibyte character strings.

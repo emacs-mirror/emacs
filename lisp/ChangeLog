@@ -1,3 +1,7 @@
+2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
+
+	* ispell.el: Make `ispell-dictionary' customizable (#2555)
+
 2009-06-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ediff-util.el (ediff-compute-custom-diffs-maybe): Handle remote
