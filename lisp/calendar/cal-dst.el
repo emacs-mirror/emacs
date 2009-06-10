@@ -229,7 +229,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
         (setq date (cond ((eq (car rule) 'calendar-nth-named-day)
                           (eval (cons 'calendar-nth-named-absday (cdr rule))))
                          ((eq (car rule) 'calendar-gregorian-from-absolute)
-                          (eval (cdr rule)))
+                          (eval (cadr rule)))
                          (t (calendar-absolute-from-gregorian (eval rule)))))
         (or (equal (current-time-zone
                     (calendar-time-from-absolute date prevday-sec))

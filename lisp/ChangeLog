@@ -1,3 +1,8 @@
+2009-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules):
+	Fix typo in 2008-04-02 change.
+
 2009-06-10  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (compose-gstring-for-terminal): For zero-width
