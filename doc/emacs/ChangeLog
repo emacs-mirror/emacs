@@ -1,3 +1,7 @@
+2009-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Isearch Scroll): Add isearch-allow-scroll to index.
+
 2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
 
 	* fixit.texi (Spelling): Set default dictionary. Improve

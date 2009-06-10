@@ -300,6 +300,7 @@ search string.  It uses the same text that @kbd{C-y} would yank.
 @node Isearch Scroll
 @subsection Scrolling During Incremental Search
 
+@vindex isearch-allow-scroll
   You can enable the use of vertical scrolling during incremental
 search (without exiting the search) by setting the customizable
 variable @code{isearch-allow-scroll} to a non-@code{nil} value.  This
