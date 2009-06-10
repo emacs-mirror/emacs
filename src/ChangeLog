@@ -1,3 +1,8 @@
+2009-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_next_display_element): When handling wrap-prefix
+	and line-prefix, treat \n as a control character (bug#3502).
+
 2009-06-10  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_family_registry): Fix for one-char foundry.

@@ -5733,7 +5733,8 @@ get_next_display_element (it)
 		    ? (it->area != TEXT_AREA
 		       /* In mode line, treat \n, \t like other crl chars.  */
 		       || (it->c != '\t'
-			   && it->glyph_row && it->glyph_row->mode_line_p)
+			   && it->glyph_row
+			   && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
 		       || (it->c != '\n' && it->c != '\t'))
 		    : (it->multibyte_p
 		       ? (!CHAR_PRINTABLE_P (it->c)
