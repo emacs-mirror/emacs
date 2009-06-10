@@ -182,10 +182,11 @@ maximum number of lines; @code{nil} means do not resize the minibuffer
 window automatically.  The default value is 0.25.
 
   The @kbd{C-M-v} command in the minibuffer scrolls the help text from
-commands that display help text of any sort in another window.
-@kbd{M-@key{PAGEUP}} and @kbd{M-@key{PAGEDOWN}} also operate on that
-help text.  This is especially useful with long lists of possible
-completions.  @xref{Other Window}.
+commands that display help text of any sort in another window.  You
+can also scroll the help text with @kbd{M-@key{prior}} and
+@kbd{M-@key{next}} (or, equivalently, @kbd{M-@key{PageUp}} and
+@kbd{M-@key{PageDown}}).  This is especially useful with long lists of
+possible completions.  @xref{Other Window}.
 
 @vindex enable-recursive-minibuffers
   Emacs normally disallows most commands that use the minibuffer while
@@ -343,11 +344,11 @@ completion (@code{mouse-choose-completion}).
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
-@itemx @key{PRIOR}
+@itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list buffer (@code{switch-to-completions}).  This paves
 the way for using the commands below.  Typing @key{PageUp} or
-@key{PRIOR} does the same, as does selecting that window in other
+@key{prior} does the same, as does selecting that window in other
 ways.
 
 @findex choose-completion

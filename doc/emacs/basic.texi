@@ -208,7 +208,7 @@ thing as @key{C-v}.  Scrolling commands are described further in
 Scroll one screen backward, and move point if necessary to put it on
 the screen (@code{scroll-down}).  If your keyboard has a @key{PageUp}
 key (sometimes labelled @key{prior}), it does the same thing as
-@key{M-v}.
+@kbd{M-v}.
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.

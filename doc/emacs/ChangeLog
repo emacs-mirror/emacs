@@ -1,6 +1,19 @@
 2009-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* basic.texi (Moving Point): Fix tag.
+
+	* picture-xtra.texi (Insert in Picture): Use <next> and <prior>.
+
+	* mini.texi (Completion Commands): Decapitalize <next> and <prior>, and
+	use camel-case for PageUp and PageDown.
+
+	* display.texi (Scrolling): Decapitalize <next> and <prior>, and use
+	camel-case for PageUp and PageDown.
+
+	* calendar.texi (Scroll Calendar): Decapitalize <next> and <prior>.
+
 	* search.texi (Isearch Scroll): Add isearch-allow-scroll to index.
+	(Isearch Scroll): Decapitalize <next> and <prior>.
 
 2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
 

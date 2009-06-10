@@ -165,7 +165,7 @@ Move down after insertion (@code{picture-movement-down}).
 @itemx C-c @key{HOME}
 Move up and left (``northwest'') after insertion (@code{picture-movement-nw}).
 @item C-c '
-@itemx C-c @key{PAGEUP}
+@itemx C-c @key{prior}
 Move up and right (``northeast'') after insertion
 (@code{picture-movement-ne}).
 @item C-c /
@@ -173,7 +173,7 @@ Move up and right (``northeast'') after insertion
 Move down and left (``southwest'') after insertion
 @*(@code{picture-movement-sw}).
 @item C-c \
-@itemx C-c @key{PAGEDOWN}
+@itemx C-c @key{next}
 Move down and right (``southeast'') after insertion
 @*(@code{picture-movement-se}).
 @end table

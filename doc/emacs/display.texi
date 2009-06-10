@@ -56,12 +56,12 @@ commands:
 Scroll the selected window to center point vertically within it and
 redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
-@itemx @key{NEXT}
-@itemx @key{PAGEDOWN}
+@itemx @key{next}
+@itemx @key{PageDown}
 Scroll forward by nearly a full window (@code{scroll-up}).
 @item M-v
-@itemx @key{PRIOR}
-@itemx @key{PAGEUP}
+@itemx @key{prior}
+@itemx @key{PageUp}
 Scroll backward (@code{scroll-down}).
 @item C-M-l
 Scroll heuristically to bring useful information onto the screen
@@ -97,10 +97,10 @@ clear the screen or cycle through different screen positions.
 
 @kindex C-v
 @kindex M-v
-@kindex NEXT
-@kindex PRIOR
-@kindex PAGEDOWN
-@kindex PAGEUP
+@kindex next
+@kindex prior
+@kindex PageDown
+@kindex PageUp
 @findex scroll-up
 @findex scroll-down
   To read the buffer a windowful at a time, use @kbd{C-v}
@@ -115,7 +115,7 @@ top, it ends up at the new top of the window.
 @vindex next-screen-context-lines
   The variable @code{next-screen-context-lines} controls the number of
 lines of overlap left by @kbd{C-v} or @kbd{M-v}; by default, it is 2.
-The function keys @key{NEXT} and @key{PRIOR}, or @key{PageDown} and
+The function keys @key{next} and @key{prior}, or @key{PageDown} and
 @key{PageUp}, are equivalent to @kbd{C-v} and @kbd{M-v} respectively.
 
   You can supply @kbd{C-v} or @kbd{M-v} with a numeric prefix argument
