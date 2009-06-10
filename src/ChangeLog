@@ -59,6 +59,10 @@
 	* nsterm.m (ns_init_paths): Append path separator to INFOPATH
 	variable.
 
+2009-06-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* keyboard.c (kbd_buffer_get_event): Null-check used_mouse_menu.
+
 2009-06-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (move_it_in_display_line_to): On text-only terminals,
