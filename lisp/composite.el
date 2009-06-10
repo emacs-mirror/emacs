@@ -681,7 +681,14 @@ a prepending a space before it."
 	      (lglyph-set-from-to glyph i i)
 	      (setq i (1+ i))))
 	(if (= (lglyph-width glyph) 0)
-	    (progn
+	    (if (eq (get-char-code-property (lglyph-char glyph)
+					    'general-category)
+		    'Cf)
+		(progn
+		  ;; Compose by replacing with a space.
+		  (lglyph-set-char glyph 32)
+		  (lglyph-set-width glyph 1)
+		  (setq i (1+ i)))
 	      ;; Compose by prepending a space.
 	      (setq gstring (lgstring-insert-glyph gstring i
 						   (lglyph-copy glyph))
