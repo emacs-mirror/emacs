@@ -1,3 +1,8 @@
+2009-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_family_registry): Fix for one-char foundry.
+	(font_sort_entities): Initialize prefer_prop[FONT_AVGWIDTH_INDEX].
+
 2009-06-09  Dmitry Dzhus  <dima@sphinx.net.ru>  (tiny change)
 
 	* process.c (status_message): Fix handling of multibyte signal
