@@ -1844,7 +1844,7 @@ font_parse_family_registry (family, registry, font_spec)
       p1 = index (p0, '-');
       if (p1)
 	{
-	  if ((*p0 != '*' || p1 - p0 > 1)
+	  if ((*p0 != '*' && p1 - p0 > 0)
 	      && NILP (AREF (font_spec, FONT_FOUNDRY_INDEX)))
 	    Ffont_put (font_spec, QCfoundry, font_intern_prop (p0, p1 - p0, 1));
 	  p1++;
@@ -2326,7 +2326,7 @@ font_sort_entities (vec, prefer, frame, best_only)
   USE_SAFE_ALLOCA;
 
   len = ASIZE (vec);
-  for (i = FONT_WEIGHT_INDEX; i <= FONT_DPI_INDEX; i++)
+  for (i = FONT_WEIGHT_INDEX; i <= FONT_AVGWIDTH_INDEX; i++)
     prefer_prop[i] = AREF (prefer, i);
   if (FLOATP (prefer_prop[FONT_SIZE_INDEX]))
     prefer_prop[FONT_SIZE_INDEX]
