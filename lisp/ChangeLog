@@ -1,3 +1,8 @@
+2009-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-gstring-for-terminal): For zero-width
+	characters of Unicode category `Cf', simply replace it with SPC.
+
 2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
 
 	* ispell.el: Make `ispell-dictionary' customizable (#2555)
