@@ -1194,16 +1194,27 @@ x_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
   if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
+      && (s->first_glyph->type == CHAR_GLYPH
+	  || s->first_glyph->type == COMPOSITE_GLYPH))
     {
-      unsigned *code = alloca (sizeof (unsigned) * s->nchars);
-      struct font *font = s->font;
       struct font_metrics metrics;
-      int i;
 
-      for (i = 0; i < s->nchars; i++)
-	code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
-      font->driver->text_extents (font, code, s->nchars, &metrics);
+      if (s->first_glyph->type == CHAR_GLYPH)
+	{
+	  unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+	  struct font *font = s->font;
+	  int i;
+
+	  for (i = 0; i < s->nchars; i++)
+	    code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+	  font->driver->text_extents (font, code, s->nchars, &metrics);
+	}
+      else
+	{
+	  Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+
+	  composition_gstring_width (gstring, s->cmp_from, s->cmp_to, &metrics);
+	}
       s->right_overhang = (metrics.rbearing > metrics.width
 			   ? metrics.rbearing - metrics.width : 0);
       s->left_overhang = metrics.lbearing < 0 ? - metrics.lbearing : 0;
