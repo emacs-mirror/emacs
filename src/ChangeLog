@@ -77,7 +77,7 @@
 	* nsterm.m (ns_init_paths): Append path separator to INFOPATH
 	variable.
 
-2009-06-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2009-06-08  Wolfgang Lux  <wolfgang.lux@gmail.com>  (tiny change)
 
 	* keyboard.c (kbd_buffer_get_event): Null-check used_mouse_menu.
 
