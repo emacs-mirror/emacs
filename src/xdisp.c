@@ -19915,8 +19915,8 @@ x_get_glyph_overhangs (glyph, f, left, right)
 
 	  if (cmp->rbearing > cmp->pixel_width)
 	    *right = cmp->rbearing - cmp->pixel_width;
-	  if (cmp->lbearing < 0);
-	  *left = - cmp->lbearing;
+	  if (cmp->lbearing < 0)
+	    *left = - cmp->lbearing;
 	}
       else
 	{
