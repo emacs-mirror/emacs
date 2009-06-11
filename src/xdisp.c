@@ -19926,7 +19926,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
 	  composition_gstring_width (gstring, glyph->u.cmp.from,
 				     glyph->u.cmp.to + 1, &metrics);
 	  if (metrics.rbearing > metrics.width)
-	    *right = metrics.rbearing;
+	    *right = metrics.rbearing - metrics.width;
 	  if (metrics.lbearing < 0)
 	    *left = - metrics.lbearing;
 	}
