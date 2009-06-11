@@ -270,10 +270,9 @@ Your system administrator may have removed the @file{src} directory and
 many files from the @file{etc} directory.
 
 @node Common acronyms,  , File-name conventions, FAQ notation
-@section What are FSF, LPF, OSF, GNU, RMS, FTP, and GPL?
+@section What are FSF, LPF, GNU, RMS, FTP, and GPL?
 @cindex FSF, definition of
 @cindex LPF, definition of
-@cindex OSF, definition of
 @cindex GNU, definition of
 @cindex RMS, definition of
 @cindex Stallman, Richard, acronym for
@@ -291,9 +290,6 @@ Free Software Foundation
 @item LPF
 League for Programming Freedom
 
-@item OSF
-Open Software Foundation
-
 @item GNU
 GNU's Not Unix
 
@@ -308,11 +304,9 @@ GNU General Public License
 
 @end table
 
-Avoid confusing the FSF, the LPF, and the OSF.  The LPF opposes
+Avoid confusing the FSF and the LPF.  The LPF opposes
 look-and-feel copyrights and software patents.  The FSF aims to make
-high quality free software available for everyone.  The OSF is a
-consortium of computer vendors which develops commercial software for
-Unix systems.
+high quality free software available for everyone.
 
 The word ``free'' in the title of the Free Software Foundation refers to
 ``freedom,'' not ``zero cost.''  Anyone can charge any price for
@@ -347,14 +341,8 @@ Free Software Foundation, and related organizations.
 @cindex Patents for software, opposition to
 
 The LPF opposes the expanding danger of software patents and
-look-and-feel copyrights.  To get more information, feel free to contact
-the LPF via e-mail or otherwise.  You may also contact
-@email{jbw@@cs.bu.edu, Joe Wells}; he will be happy to talk to you
-about the LPF.
-
-You can find more information about the LPF in the file @file{etc/LPF}.
-More papers describing the LPF's views are available on the Internet and
-also from @uref{http://lpf.ai.mit.edu/, the LPF home page}.
+look-and-feel copyrights.  More information on the LPF's views is
+available at @uref{http://progfree.org/, the LPF home page}.
 
 @node Real meaning of copyleft, Guidelines for newsgroup postings, The LPF, General questions
 @section What is the real legal meaning of the GNU copyleft?
@@ -644,15 +632,15 @@ printed manual}.
 @cindex Reference cards, in other languages
 @item
 You can get a printed reference card listing commands and keys to
-invoke them.  You can order one from the FSF for $1 (or 10 for $5),
+invoke them.  You can order one from the FSF for $2 (or 10 for $18),
 or you can print your own from the @file{etc/refcards/refcard.tex} or
-@file{etc/refcards/refcard.ps} files in the Emacs distribution.
+@file{etc/refcards/refcard.pdf} files in the Emacs distribution.
 Beginning with version 21.1, the Emacs distribution comes with
 translations of the reference card into several languages; look for
 files named @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang}
 is a two-letter code of the language.  For example, the German version
 of the reference card is in the files @file{etc/refcards/de-refcard.tex}
-and @file{etc/recards/de-refcard.ps}.
+and @file{etc/recards/de-refcard.pdf}.
 
 @item
 There are many other commands in Emacs for getting help and
@@ -671,22 +659,13 @@ You can order a printed copy of the Emacs manual from the FSF.  For
 details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}.
 
 @c The number 620 below is version-dependent!
-The full Texinfo source for the manual also comes in the @file{man}
+The full Texinfo source for the manual also comes in the @file{doc/emacs}
 directory of the Emacs distribution, if you're daring enough to try to
-print out this 620-page manual yourself (@pxref{Printing a Texinfo
+print out this several-hundred-page manual yourself (@pxref{Printing a Texinfo
 file}).
 
 If you absolutely have to print your own copy, and you don't have @TeX{},
-you can get a PostScript version from
-
-@uref{http://www.gnu.org/software/emacs/manual/emacs.ps.gz}
-
-@cindex HTML version of Emacs manual, obtaining
-An HTML version of the manual is at
-
-@uref{http://www.gnu.org/software/emacs/manual/emacs.html}
-
-The manual is available in other formats at
+you can get a PostScript or PDF (or HTML) version from
 
 @uref{http://www.gnu.org/software/emacs/manual/}
 
@@ -899,12 +878,10 @@ You can get Tkinfo at
 @cindex @file{FTP}, description of file
 @cindex @file{GNU}, description of file
 @cindex @file{INTERVIEW}, description of file
-@cindex @file{LPF}, description of file
 @cindex @file{MACHINES}, description of file
 @cindex @file{MAILINGLISTS}, description of file
 @cindex @file{NEWS}, description of file
 @cindex @file{SERVICE}, description of file
-@cindex @file{SUN-SUPPORT}, description of file
 
 This isn't a frequently asked question, but it should be!  A variety of
 informational files about Emacs and relevant aspects of the GNU project
@@ -920,11 +897,10 @@ where that is).
 GNU General Public License
 
 @item DISTRIB
-Emacs Availability Information, including the popular Free Software
-Foundation Order Form
+Emacs Availability Information
 
 @item FTP
-How to get GNU Software by Internet FTP or by UUCP
+How to get GNU Software by Internet FTP
 
 @item GNU
 The GNU Manifesto
@@ -932,9 +908,6 @@ The GNU Manifesto
 @item INTERVIEW
 Richard Stallman discusses his public-domain UNIX-compatible software
 system with BYTE editors
-
-@item LPF
-Why you should join the League for Programming Freedom
 
 @item MACHINES
 Status of Emacs on Various Machines and Systems
@@ -947,9 +920,6 @@ Emacs news, a history of recent user-visible changes
 
 @item SERVICE
 GNU Service Directory
-
-@item SUN-SUPPORT
-including ``Using Emacstool with GNU Emacs''
 
 @end table
 
@@ -969,83 +939,20 @@ Bulletin}, are at
 @ref{Problems building Emacs}, or @ref{Linking with -lX11 fails}, if you
 have problems with the installation.
 
-The file @file{etc/SERVICE} (see @ref{File-name conventions}, if you're
-not sure where that is) lists companies and individuals willing to sell
-you help in installing or using Emacs.  An up-to-date version this file
-is available on @samp{ftp.gnu.org} (@pxref{Informational files for
-Emacs}).
+The web-page @uref{http://www.fsf.org/resources/service/} lists
+companies and individuals willing to sell you help in installing or
+using Emacs.
 
 @node Obtaining the FAQ,  , Help installing Emacs, Getting help
 @section Where can I get the latest version of this FAQ?
 @cindex FAQ, obtaining the
 @cindex Latest FAQ version, obtaining the
-@cindex Retrieving the latest FAQ version
-@cindex E-mail, retrieving the FAQ via
-@cindex Web, reading the FAQ on the
 
-The Emacs FAQ is available in several ways:
+The Emacs FAQ is distributed with Emacs in Info format.  You can read it
+by selecting the @samp{Emacs FAQ} option from the @samp{Help} menu of
+the Emacs menu bar at the top of any Emacs frame, or by typing @kbd{C-h
+C-f} (@kbd{M-x view-emacs-FAQ}).
 
-@itemize @bullet
-
-@item
-Inside of Emacs itself.  You can get it from selecting the @samp{Emacs
-FAQ} option from the @samp{Help} menu of the Emacs menu bar at the top
-of any Emacs frame, or by typing @kbd{C-h C-f} (@kbd{M-x view-emacs-FAQ}).
-
-@item
-Via USENET.  If you can read news, the FAQ should be available in your
-news spool, in both the @uref{news:gnu.emacs.help} and
-@uref{news:comp.emacs} newsgroups.  Every news reader should allow you
-to read any news article that is still in the news spool, even if you
-have read the article before.  You may need to read the instructions for
-your news reader to discover how to do this.  In @file{rn}, this command
-will do this for you at the article selection level:
-
-@example
-?GNU Emacs Frequently Asked Questions?rc:m
-@end example
-
-In Gnus, you should type @kbd{C-u C-x C-s} from the @file{*Summary*}
-buffer or @kbd{C-u @key{SPC}} from the @file{*Newsgroup*} buffer to view
-all articles in a newsgroup.
-
-If the FAQ articles have expired and have been deleted from your news
-spool, it might (or might not) do some good to complain to your news
-administrator, because the most recent FAQ should not expire for a
-while.
-
-@item
-In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time
-of release has been part of the Emacs distribution as either
-@file{etc/FAQ}, @file{man/faq.texi}, or (from version 23 onwards)
-@file{doc/misc/faq.texi} (@pxref{File-name conventions}).
-
-@item
-Via anonymous ftp and e-mail from @file{rtfm.mit.edu} (and its mirror in
-Europe), the main repository for FAQs and other items posted to
-news.answers.  The Emacs FAQs are available at
-
-@uref{ftp://rtfm.mit.edu/pub/usenet/comp.emacs/} and
-
-@uref{ftp://ftp.uni-paderborn.de/pub/doc/FAQ/comp/emacs/}
-
-If you do not have access to anonymous FTP, you can access the archives
-using the @file{rtfm.mit.edu} mail server.  The Emacs FAQ can be
-retrieved by sending mail to @email{mail-server@@rtfm.mit.edu} with a
-blank subject and containing
-
-@example
-send usenet/news.answers/GNU-Emacs-FAQ/diffs
-send usenet/news.answers/GNU-Emacs-FAQ/part1
-send usenet/news.answers/GNU-Emacs-FAQ/part2
-send usenet/news.answers/GNU-Emacs-FAQ/part3
-send usenet/news.answers/GNU-Emacs-FAQ/part4
-send usenet/news.answers/GNU-Emacs-FAQ/part5
-@end example
-
-For more information, send email to @email{mail-server@@rtfm.mit.edu}
-with @samp{help} and @samp{index} in the body on separate lines.
-@end itemize
 
 @c ------------------------------------------------------------
 @node    Status of Emacs, Common requests, Getting help, Top
@@ -5050,10 +4957,8 @@ fontset, or you can select it by setting the default font in your
 * Changing the included text prefix::
 * Saving a copy of outgoing mail::
 * Expanding aliases when sending mail::
-* Rmail thinks all messages are one big one::
 * Sorting the messages in an Rmail folder::
 * Rmail writes to /usr/spool/mail::
-* Recovering mail files when Rmail munges them::
 * Replying to the sender of a message::
 * MIME with Emacs mail packages::
 * Automatically starting a mail or news reader::
@@ -5116,7 +5021,7 @@ file:
 @end lisp
 
 The output file will be in Unix mail format, which can be read directly
-by VM, but not always by Rmail.  @xref{Learning how to do something}.
+by VM or Rmail (since Emacs 23).
 
 If you use @code{mh-e}, add an @samp{FCC} or @samp{BCC} field to your
 components file.
@@ -5124,7 +5029,7 @@ components file.
 It does not work to put @samp{set record filename} in the @file{.mailrc}
 file.
 
-@node Expanding aliases when sending mail, Rmail thinks all messages are one big one, Saving a copy of outgoing mail, Mail and news
+@node Expanding aliases when sending mail, Sorting the messages in an Rmail folder, Saving a copy of outgoing mail, Mail and news
 @section Why doesn't Emacs expand my aliases when sending mail?
 @cindex Expanding aliases when sending mail
 @cindex Mail alias expansion
@@ -5166,18 +5071,7 @@ expansion by moving point to the end of the alias and typing @kbd{C-x a e}
 (@kbd{M-x expand-abbrev}).
 @end itemize
 
-@node Rmail thinks all messages are one big one, Sorting the messages in an Rmail folder, Expanding aliases when sending mail, Mail and news
-@section Why does Rmail think all my saved messages are one big message?
-@cindex Rmail thinks all messages are one large message
-
-A file created through the @samp{FCC} field in a message is in Unix mail
-format, not the format that Rmail uses (BABYL format).  Rmail will try
-to convert a Unix mail file into BABYL format on input, but sometimes it
-makes errors.  For guaranteed safety, you can make the
-@file{saved-messages} file be an inbox for your Rmail file by using the
-function @code{set-rmail-inbox-list}.
-
-@node Sorting the messages in an Rmail folder, Rmail writes to /usr/spool/mail, Rmail thinks all messages are one big one, Mail and news
+@node Sorting the messages in an Rmail folder, Rmail writes to /usr/spool/mail, Expanding aliases when sending mail, Mail and news
 @section How can I sort the messages in my Rmail folder?
 @cindex Rmail, sorting messages in
 @cindex Folder, sorting messages in an Rmail
@@ -5186,7 +5080,7 @@ function @code{set-rmail-inbox-list}.
 In Rmail, type @kbd{C-c C-s C-h} to get a list of sorting functions
 and their key bindings.
 
-@node Rmail writes to /usr/spool/mail, Recovering mail files when Rmail munges them, Sorting the messages in an Rmail folder, Mail and news
+@node Rmail writes to /usr/spool/mail, Replying to the sender of a message, Sorting the messages in an Rmail folder, Mail and news
 @section Why does Rmail need to write to @file{/usr/spool/mail}?
 @cindex Rmail and @file{/usr/spool/mail}
 @cindex @file{/usr/spool/mail} and Rmail
@@ -5205,41 +5099,7 @@ Other systems use the @code{flock} system call to interlock access.  On
 these systems, you should configure @code{movemail} to use @code{flock}.
 @end quotation
 
-@node Recovering mail files when Rmail munges them, Replying to the sender of a message, Rmail writes to /usr/spool/mail, Mail and news
-@section How do I recover my mail files after Rmail munges their format?
-@cindex Recovering munged mail files
-@cindex Rmail munged my files
-@cindex Mail files, recovering those munged by Rmail
-
-If you have just done @kbd{M-x rmail-input} on a file and you don't want
-to save it in Rmail's format (called BABYL), just kill the buffer (with
-@kbd{C-x k}).
-
-@cindex Exporting messages as Unix mail files
-If you typed @kbd{M-x rmail} and it read some messages out of your inbox
-and you want to put them in a Unix mail file, use @kbd{C-o} on each
-message.
-
-@cindex Converting from BABYL to Unix mail format
-@cindex @code{unrmail} command
-If you want to convert an existing file from BABYL format to Unix mail
-format, use the command @kbd{M-x unrmail}: it will prompt you for the
-input and output file names.
-
-@pindex b2m
-Alternatively, you could use the @code{b2m} program supplied with
-Emacs.  @code{b2m} is a filter, and is used like this:
-
-@example
- b2m < @var{babyl-file} > @var{mbox-file}
-@end example
-
-@noindent
-where @var{babyl-file} is the name of the BABYL file, and
-@var{mbox-file} is the name of the file where the converted mail will
-be written.
-
-@node Replying to the sender of a message, MIME with Emacs mail packages, Recovering mail files when Rmail munges them, Mail and news
+@node Replying to the sender of a message, MIME with Emacs mail packages, Rmail writes to /usr/spool/mail, Mail and news
 @section How can I force Rmail to reply to the sender of a message, but not the other recipients?
 @cindex Replying only to the sender of a message
 @cindex Sender, replying only to

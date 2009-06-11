@@ -1,3 +1,18 @@
+2009-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Common acronyms): Remove no-longer-existing OSF.
+	(The LPF): Make the updated URL the sole reference point.
+	(Learning how to do something): Update refcard price and format.
+	(Getting a printed manual): Sources in doc/emacs/, not man/.
+	Also available in PDF format.  Since the page count varies, be less
+	precise.
+	(Informational files for Emacs): Remove references to deleted files
+	LPF and SUN-SUPPORT, and to UUCP.
+	(Obtaining the FAQ): Refer to the service web-page rather than SERVICE.
+	Remove many obsolete ways to get the FAQ, which now seems only to be
+	distributed with Emacs.
+	(Mail and news): Remove sections about Rmail Babyl that no longer apply.
+
 2009-06-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* org.texi (Org Plot): Fix tags (Bug#3507).
