@@ -1,4 +1,12 @@
+2009-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (x_get_glyph_overhangs): Fix calculation of right
+	overhang for the static composition case.
+
 2009-06-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (x_get_glyph_overhangs): Fix calculation of right
+	overhang for the automatic composition case.
 
 	* xterm.c (x_compute_glyph_string_overhangs): Handle the automatic
 	composition case.
