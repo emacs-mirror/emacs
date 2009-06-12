@@ -27,7 +27,7 @@ character code separated by a space.  Both code points and Unicode
 character codes are in hexadecimal preceded by "0x".  Comments may be
 used, starting with "#".  Code ranges may also be used, with
 (inclusive) start and end code points separated by "-" followed by the
-unicode of the start of the range
+Unicode of the start of the range
 
 Examples:
 0xA0 0x00A0  # no-break space
@@ -39,4 +39,4 @@ Examples:
 
 All mapping files are generated automatically from data files freely
 available on the Internet (e.g. glibc/localedata/charmaps").  See the
-file ../../admin/charsets/Makefile for the detail.
+file ../../admin/charsets/mapfiles/README for the detail.
