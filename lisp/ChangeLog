@@ -1,3 +1,8 @@
+2009-06-12  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-log-switches): Add defcustom.
+	(vc-hg-print-log): Use it.
+
 2009-06-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/eucjp-ms.el: Re-generated.

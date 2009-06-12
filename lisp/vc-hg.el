@@ -211,6 +211,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; History functions
 
+(defcustom vc-hg-log-switches nil
+  "String or list of strings specifying switches for hg log under VC."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :group 'vc-hg)
+
 (defun vc-hg-print-log (files &optional buffer)
   "Get change log associated with FILES."
   ;; `log-view-mode' needs to have the file names in order to function
@@ -225,7 +232,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (vc-hg-command buffer 0 files "log"))))
+      (apply 'vc-hg-command buffer 0 files "log" vc-hg-log-switches))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
