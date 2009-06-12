@@ -15,6 +15,11 @@
 	(Removing flashing messages): Remove section about non-existent Gnus
 	option.
 
+	* faq.texi (Top): Add @top command.
+	Remove the optional arguments from all @node commands: makeinfo can
+	generate these automatically, and it is easier to edit and rearrange
+	nodes without them.
+
 2009-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Common acronyms): Remove no-longer-existing OSF.
