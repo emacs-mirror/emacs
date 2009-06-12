@@ -1,5 +1,15 @@
 2009-06-12  Kenichi Handa  <handa@m17n.org>
 
+	* charsets/Makefile (JISX213A.map): Make it depend on
+	mapfiles/JISX213A.map.gz.
+	(BIG5-1.map, BIG5-2.map): Prepend "# " to the first comment line.
+
+	* charsets/mapfiles/JISX213A.map.gz: New file.
+
+	* charsets/mapfiles/README: Describe JISX213A.map.gz.
+
+2009-06-12  Kenichi Handa  <handa@m17n.org>
+
 	* charsets/mapfiles/*: New files.
 
 	* charsets/mule-charsets.el: Mostly re-written to generate all
