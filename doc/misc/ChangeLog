@@ -9,8 +9,8 @@
 	(Packages that do not come with Emacs): Update ELL location.
 	Emacs Lisp archive is dead.
 	(Emacs for Windows): Remove reference to old CE port.
-	(Emacs for OS/2, Emacs for Atari ST, Emacs for the Amiga ):
-	Remove old ports.
+	(Emacs for OS/2, Emacs for Atari ST, Emacs for the Amiga)
+	(Emacs for VMS and DECwindows): Remove old ports.
 	(Emacs for GNUstep): Rename from "Emacs for NeXTSTEP" and update.
 	(Removing flashing messages): Remove section about non-existent Gnus
 	option.
