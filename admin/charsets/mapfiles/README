@@ -54,6 +54,12 @@ Created manually by looking at these pages:
 The text in that page is under the terms of the GNU Free Documentation
 License.
 
+* JISX213A.map.gz
+
+Created manually based on the description of the section 33 in "JIS X
+0213:2004 Amendment 1".  It lists 10 characters that are newly added
+to "JIS X 0213:2004".
+
 * MULE-*.map.gz
 
 Created by using ../mule-charsets.el in Emacs 22 as this:
