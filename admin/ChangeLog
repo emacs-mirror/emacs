@@ -1,3 +1,21 @@
+2009-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/mapfiles/*: New files.
+
+	* charsets/mule-charsets.el: Mostly re-written to generate all
+	MULE-*.map files.
+
+	* charsets/mapconv: Mostly re-written to handle "gzip"ed input
+	files.
+
+	* charsets/eucjp-ms.awk: Mostly re-written to handle glibc's
+	EUC-JP-MS.
+
+	* charsets/cp51932.awk (END): Print arch-tag at the tail.
+
+	* charsets/Makefile: Maps depend on files under mapfiles or
+	${GLIBC_CHARMAPS}.
+
 2009-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-get-decomposition): Fix previous
