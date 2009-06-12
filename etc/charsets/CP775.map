@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/CP775
+# Generated from CP775 in localedate/charmaps of glibc
 0x00-0x7F 0x0000
 0x80 0x0106
 0x81 0x00FC

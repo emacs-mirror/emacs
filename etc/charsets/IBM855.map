@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/IBM855
+# Generated from IBM855 in localedate/charmaps of glibc
 0x00-0x7F 0x0000
 0x80 0x0452
 0x81 0x0402

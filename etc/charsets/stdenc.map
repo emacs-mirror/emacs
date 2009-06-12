@@ -1,4 +1,5 @@
-# Generated from http://www.unicode.org/Public/MAPPINGS/.../stdenc.txt
+# Generated from admin/charsets/mapfiles/stdenc.txt.gz which is a copy of
+# http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt
 0x20 0x0020
 0x20 0x00A0
 0x21-0x26 0x0021

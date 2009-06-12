@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/KOI-8
+# Generated from KOI-8 in localedate/charmaps of glibc
 0x00-0x7F 0x0000
 0xC0 0x044E
 0xC1-0xC2 0x0430
