@@ -178,18 +178,9 @@ JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213.gz mapconv
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 > $@
 
-JISX213A.map:
+JISX213A.map: mapfiles/JISX213A.map.gz
 	# Generating $@
-	@(echo "0x2E21 0x4FF1"; \
-	  echo "0x2F7E 0x525D"; \
-	  echo "0x4F54 0x20B9F"; \
-	  echo "0x4F7E 0x541E"; \
-	  echo "0x7427 0x5653"; \
-	  echo "0x7E7A 0x59F8"; \
-	  echo "0x7E7B 0x5C5B"; \
-	  echo "0x7E7C 0x5E77"; \
-	  echo "0x7E7D 0x7626"; \
-	  echo "0x7E7E 0x7E6B") > $@
+	@zcat $< > $@
 
 CP932-2BYTE.map: mapfiles/CP932.TXT.gz mapconv cp932.awk
 	# Generating $@...
@@ -215,12 +206,12 @@ BIG5.map: ${GLIBC_CHARMAPS}/BIG5.gz mapconv compact.awk
 
 BIG5-1.map: BIG5.map mapconv big5.awk
 	# Generating $@...
-	@echo "Generated from $<" > $@
+	@echo "# Generated from $<" > $@
 	@sed -n -e '/0xa140/,/0xc8fe/p' < $< | gawk -f big5.awk >> $@
 
 BIG5-2.map: BIG5.map mapconv big5.awk
 	# Generating $@...
-	@echo "Generated from $<" > $@
+	@echo "# Generated from $<" > $@
 	@sed -n -e '/0xc940/,$$ p' < $< | gawk -f big5.awk >> $@
 
 BIG5-HKSCS.map: ${GLIBC_CHARMAPS}/BIG5-HKSCS.gz mapconv compact.awk
