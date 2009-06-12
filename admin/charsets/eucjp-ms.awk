@@ -21,56 +21,84 @@
 # Commentary:
 
 # eucJP-ms is one of eucJP-open encoding defined at this page:
-#  http://www.opengroup.or.jp/jvc/cde/appendix.html
+#  http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
+# This program reads the mapping file EUC-JP-MS (of glibc) and
+# generates the Elisp file eucjp-ms.el that defines two translation
+# tables `eucjp-ms-decode' and `eucjp-ms-encode'.
 
 BEGIN {
+  FS = "[ \t][ \t]*"
+
+  # STATE: 0/ignore, 1/JISX0208, 2/JISX0208 target range
+  #        3/JISX0212 4/JISX0212 target range
+  state = 0;
+
+  JISX0208_FROM1 = "/xad/xa1";
+  JISX0208_TO1 = "/xad/xfc";
+  JISX0208_FROM2 = "/xf5/xa1";
+  JISX0212_FROM = "/x8f/xf3/xf3";
+
   print ";;; eucjp-ms.el -- translation table for eucJP-ms. -*- no-byte-compile: t -*-";
-  print ";;; Automatically genrated from eucJP-13th.txt, eucJP-udc.txt, eucJP-ibmext.txt";
+  print ";;; Automatically generated from /usr/share/i18n/charmaps/EUC-JP-MS.gz";
   print "(let ((map";
-  printf "       '(;JISEXT<->UNICODE";
-
-  tohex["A"] = 10;
-  tohex["B"] = 11;
-  tohex["C"] = 12;
-  tohex["D"] = 13;
-  tohex["E"] = 14;
-  tohex["F"] = 15;
+  print "       '(;JISEXT<->UNICODE";
 }
 
-function decode_hex(str) {
-  n = 0;
-  len = length(str);
-  for (i = 1; i <= len; i++)
-    {
-      c = substr(str, i, 1);
-      if (c >= "0" && c <= "9")
-	n = n * 16 + (c - "0");
-      else
-	n = n * 16 + tohex[c];
+function write_entry (unicode) {
+    if (state == 1) {
+	if ($2 == JISX0208_FROM1 || $2 == JISX0208_FROM2)
+	    state = 2;
+    } else if (state == 3) {
+	if ($2 == JISX0212_FROM)
+	    state = 4;
     }
-  return n;
+    if (state == 2) {
+	jis = $2
+	gsub("/x", "", jis);
+	printf "\n	 (#x%s . #x%s)", jis, unicode;
+	if ($2 == JISX0208_TO1)
+	    state = 1;
+    } else if (state == 4) {
+	jis = substr($2, 5, 8);
+	gsub("/x", "", jis);
+	printf "\n	 (#x%s #x%s)", jis, unicode;
+    }
 }
 
-/0x8F/ {
-  code = decode_hex(substr($1, 5, 4));
-  code -= 32896;		# code -= 0x8080
-  printf "\n	 (#x%04x #x%s)", code, substr($2, 3, 4);
-  next;
+
+/^% JIS X 0208/ {
+    state = 1;
+    next;
 }
 
-/0x[A-F]/ {
-  code = decode_hex(substr($1, 3, 4));
-  code -= 32896;		# code -= 0x8080
-  printf "\n	 (#x%04x . #x%s)", code, substr($2, 3, 4);
+/^% JIS X 0212/ {
+    state = 3;
+    next;
+}
+
+/^END CHARMAP/ {
+    state = 0;
+    next;
+}
+
+/^<U[0-9A-Z][0-9A-Z][0-9A-Z][0-9A-Z]>/ {
+    if (state > 0)
+	write_entry(substr($1, 3, 4));
+}
+
+/^%IRREVERSIBLE%<U[0-9A-Z][0-9A-Z][0-9A-Z][0-9A-Z]>/ {
+    if (state > 0)
+	write_entry(substr($1, 17, 4));
 }
 
 END {
   print ")))";
   print "  (mapc #'(lambda (x)";
-  print "	    (if (integerp (cdr x))";
-  print "		(setcar x (decode-char 'japanese-jisx0208 (car x)))";
-  print "	      (setcar x (decode-char 'japanese-jisx0212 (car x)))";
-  print "	      (setcdr x (cadr x))))";
+  print "	    (let ((code (logand (car x) #x7F7F)))";
+  print "	      (if (integerp (cdr x))";
+  print "		  (setcar x (decode-char 'japanese-jisx0208 code))";
+  print "		(setcar x (decode-char 'japanese-jisx0212 code))";
+  print "		(setcdr x (cadr x)))))";
   print "	map)";
   print "  (define-translation-table 'eucjp-ms-decode map)";
   print "  (mapc #'(lambda (x)";
@@ -78,6 +106,8 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'eucjp-ms-encode map))";
+  print "";
+  print ";; arch-tag: c4191096-288a-4f13-9b2a-ee7a1f11eb4a";
 }
 
 # arch-tag: d9cc7af7-2d6e-48cd-8eed-a6d25226de7c
