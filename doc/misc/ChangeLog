@@ -1,3 +1,20 @@
+2009-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Viewing Info files outside of Emacs): Xinfo is no more.
+	(Help installing Emacs): Remove reference to deleted X11 node.
+	(Associating modes with files): Interpreter-mode-alist is no longer
+	subservient to auto-mode-alist.
+	(Installing Emacs): Change future Emacs version.
+	(Linking with -lX11 fails): Remove old section.
+	(Packages that do not come with Emacs): Update ELL location.
+	Emacs Lisp archive is dead.
+	(Emacs for Windows): Remove reference to old CE port.
+	(Emacs for OS/2, Emacs for Atari ST, Emacs for the Amiga ):
+	Remove old ports.
+	(Emacs for GNUstep): Rename from "Emacs for NeXTSTEP" and update.
+	(Removing flashing messages): Remove section about non-existent Gnus
+	option.
+
 2009-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Common acronyms): Remove no-longer-existing OSF.

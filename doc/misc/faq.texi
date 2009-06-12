@@ -856,13 +856,6 @@ the Texinfo package.  @xref{Installing Texinfo documentation}, for
 details.
 
 @item
-Xinfo, a stand-alone version of the Info program that runs under X
-Window system.  You can get it at
-@uref{ftp://ftp.gnu.org/pub/gnu/xinfo/xinfo-1.01.01.tar.gz} and all
-mirrors of @samp{ftp.gnu.org} (see @ref{Current GNU distributions}, for a
-list of mirrors).
-
-@item
 Tkinfo, an Info viewer that runs under X Window system and uses Tcl/Tk.
 You can get Tkinfo at
 @uref{http://math-www.uni-paderborn.de/~axel/tkinfo/}.
@@ -936,8 +929,7 @@ Bulletin}, are at
 @cindex Help installing Emacs
 
 @xref{Installing Emacs}, for some basic installation hints, and see
-@ref{Problems building Emacs}, or @ref{Linking with -lX11 fails}, if you
-have problems with the installation.
+@ref{Problems building Emacs}, if you have problems with the installation.
 
 The web-page @uref{http://www.fsf.org/resources/service/} lists
 companies and individuals willing to sell you help in installing or
@@ -1430,9 +1422,8 @@ with @samp{#!}):
 Beginning with Emacs 19, the variable @code{interpreter-mode-alist}
 specifies which mode to use when loading a shell script.  (Emacs
 determines which interpreter you're using by examining the first line of
-the script.)  This feature only applies when the file name doesn't
-indicate which mode to use.  Use @kbd{C-h v} (or @kbd{M-x
-describe-variable}) on @code{interpreter-mode-alist} to learn more.
+the script.)  Use @kbd{C-h v} (or @kbd{M-x describe-variable})
+on @code{interpreter-mode-alist} to learn more.
 
 @node Highlighting a region, Replacing highlighted text, Associating modes with files, Common requests
 @section How can I highlight a region of text in Emacs?
@@ -3223,7 +3214,6 @@ dired, @code{directory-listing-before-filename-regexp}.
 * Installing Emacs::
 * Updating Emacs::
 * Problems building Emacs::
-* Linking with -lX11 fails::
 @end menu
 
 @node Installing Emacs, Updating Emacs, Compiling and installing Emacs, Compiling and installing Emacs
@@ -3254,10 +3244,10 @@ distribution site, sources are available as
 @uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-@value{VER}.tar.gz}
 
 The above will obviously change as new versions of Emacs come out.  For
-instance, when Emacs 22.42 is released, it will most probably be
+instance, when Emacs 24.3 is released, it will most probably be
 available as
 
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-22.42.tar.gz}
+@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-24.3.tar.gz}
 
 Again, you should use one of the GNU mirror sites (see @ref{Current GNU
 distributions}, and adjust the URL accordingly) so as to reduce load on
@@ -3366,7 +3356,7 @@ Upgrading should overwrite only, @file{/usr/local/bin/emacs} (the Emacs
 binary) and documentation in @file{/usr/local/info}.  Back up these
 files before you upgrade, and you shouldn't have too much trouble.
 
-@node Problems building Emacs, Linking with -lX11 fails, Updating Emacs, Compiling and installing Emacs
+@node Problems building Emacs,  , Updating Emacs, Compiling and installing Emacs
 @section What should I do if I have trouble building Emacs?
 @cindex Problems building Emacs
 @cindex Errors when building Emacs
@@ -3386,39 +3376,6 @@ Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
 @email{help-gnu-emacs@@gnu.org}.  For further guidelines, see
 @ref{Guidelines for newsgroup postings} and @ref{Reporting bugs}.
 
-@node Linking with -lX11 fails,  , Problems building Emacs, Compiling and installing Emacs
-@section Why does linking Emacs with -lX11 fail?
-@cindex Linking with -lX11 fails
-@cindex lX11, linking fails with
-
-Emacs needs to be linked with the static version of the X11 library,
-@file{libX11.a}.  This may be missing.
-
-On OpenWindows, you may need to use @code{add_services} to add the
-``OpenWindows Programmers'' optional software category from the CD-ROM.
-
-On HP-UX 8.0, you may need to run @code{update} again to load the
-X11-PRG ``fileset.''  This may be missing even if you specified ``all
-filesets'' the first time.  If @file{libcurses.a} is missing, you may
-need to load the ``Berkeley Development Option.''
-
-@email{zoo@@armadillo.com, David Zuhn} says that MIT X builds shared
-libraries by default, and only shared libraries, on those platforms that
-support them.  These shared libraries can't be used when undumping
-@code{temacs} (the last stage of the Emacs build process).  To get
-regular libraries in addition to shared libraries, add this to
-@file{site.cf}:
-
-@example
-#define ForceNormalLib YES
-@end example
-
-Other systems may have similar problems.  You can always define
-@code{CANNOT_DUMP} and link with the shared libraries instead.
-
-@cindex X Menus don't work
-To get the Xmenu stuff to work, you need to find a copy of MIT's
-@file{liboldX.a}.
 
 @c ------------------------------------------------------------
 @node Finding Emacs and related packages, Major packages and programs, Compiling and installing Emacs, Top
@@ -3434,12 +3391,8 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 * Emacs for minimalists::
 * Emacs for MS-DOS::
 * Emacs for Windows::
-* Emacs for OS/2::
-* Emacs for Atari ST::
-* Emacs for the Amiga ::
-* Emacs for NeXTSTEP::
+* Emacs for GNUstep::
 * Emacs for Apple computers::
-* Emacs for VMS and DECwindows::
 * Modes for various languages::
 @end menu
 
@@ -3493,11 +3446,11 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Emacs Lisp List
 @cindex Emacs Lisp Archive
 
-@uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html, The Emacs Lisp
-List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
+@uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs Lisp
+List (ELL)}, maintained by @email{S.J.Eglen@@damtp.cam.ac.uk, Stephen Eglen},
 aims to provide one compact list with links to all of the current Emacs
 Lisp files on the Internet.  The ELL can be browsed over the web, or
-from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el,
+from Emacs with @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.el,
 the @file{ell} package}.
 
 Many authors post their packages to the @uref{news:gnu.emacs.sources,
@@ -3507,12 +3460,6 @@ or @uref{http://dir.gmane.org/gmane.emacs.sources, Gmane}, for example.
 
 Several packages are stored in
 @uref{http://emacswiki.org/elisp/, the Lisp area of the Emacs Wiki}.
-
-For a long time, the Emacs Lisp Archive provided a central repository
-for Emacs packages.  Sadly, it has not been active for some time,
-although you can still access the old files at
-
-@uref{http://www.club.cc.cmu.edu/pub/gnu/elisp-archive/}
 
 Read the file @file{etc/MORE.STUFF} for more information about
 external packages.
@@ -3666,7 +3613,7 @@ available at
 Note that while many of these programs look similar to Emacs, they often
 lack certain features, such as the Emacs Lisp extension language.
 
-@node Emacs for Windows, Emacs for OS/2, Emacs for MS-DOS, Finding Emacs and related packages
+@node Emacs for Windows, Emacs for GNUstep, Emacs for MS-DOS, Finding Emacs and related packages
 @section Where can I get Emacs for Microsoft Windows?
 @cindex FAQ for NT Emacs
 @cindex Emacs for MS-Windows
@@ -3681,80 +3628,21 @@ by @email{ramprasad@@gnu.org, Ramprasad B}, available at
 
 @xref{Emacs for MS-DOS}, for Windows 3.1.
 
-A port of Emacs 20.7 for Windows CE, based on NTEmacs, is available at
 
-@uref{http://www.rainer-keuchel.de/software.html}
+@node Emacs for GNUstep, Emacs for Apple computers, Emacs for Windows, Finding Emacs and related packages
+@section Where can I get Emacs for GNUstep?
+@cindex GNUSTEP, Emacs for
 
-@noindent
-This port was done by @email{coyxc@@rainer-keuchel.de, Rainer Keuchel},
-and supports all Emacs features except async subprocesses and menus.
-You will need MSVC 6.0 and a Windows CE SDK to build this port.
+Beginning with version 23.1, Emacs supports GNUstep natively.
 
-@node Emacs for OS/2, Emacs for Atari ST, Emacs for Windows, Finding Emacs and related packages
-@section Where can I get Emacs for my PC running OS/2?
-@cindex OS/2, Emacs for
-
-Emacs 20.6 is ported for emx on OS/2 2.0 or 2.1, and is available at
-
-@uref{ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/}
-
-@noindent
-and also at
-
-@uref{http://www.dotemacs.de/os2/emacs.html}
-
-Instructions for installation, basic setup, and other useful information
-for OS/2 users of Emacs can be found at
-
-@uref{http://home.snafu.de/ohei/emacs/emacs206-os2.html}
-
-@node Emacs for Atari ST, Emacs for the Amiga , Emacs for OS/2, Finding Emacs and related packages
-@section Where can I get Emacs for my Atari ST?
-@cindex Atari ST, Emacs for
-@cindex TOS, Emacs for
-
-Roland Sch@"auble reports that Emacs 18.58 running on plain TOS and MiNT
-is available at
-@uref{ftp://atari.archive.umich.edu/Editors/Emacs-18-58/1858b-d3.zoo}.
-
-@node Emacs for the Amiga , Emacs for NeXTSTEP, Emacs for Atari ST, Finding Emacs and related packages
-@section Where can I get Emacs for my Amiga?
-@cindex Amiga, Emacs for
-
-The files you need are available at
-
-@uref{ftp://ftp.wustl.edu/pub/aminet/util/gnu/}
-
-@email{dgilbert@@gamiga.guelphnet.dweomer.org, David Gilbert} has released a
-beta version of Emacs 19.25 for the Amiga.  You can get the binary at
-
-@uref{ftp://ftp.wustl.edu/pub/aminet/util/gnu/a2.0bEmacs-bin.lha}
-
-@node Emacs for NeXTSTEP, Emacs for Apple computers, Emacs for the Amiga , Finding Emacs and related packages
-@section Where can I get Emacs for NeXTSTEP?
-@cindex NeXTSTEP, Emacs for
-
-Emacs.app is a NeXTSTEP version of Emacs 19.34 which supports colors,
-menus, and multiple frames.  You can get it from
-
-@uref{ftp://next-ftp.peak.org/pub/next-ftp/next/apps/emacs/Emacs_for_NeXTstep.4.20a1.NIHS.b.tar.gz}
-
-@node Emacs for Apple computers, Emacs for VMS and DECwindows, Emacs for NeXTSTEP, Finding Emacs and related packages
+@node Emacs for Apple computers, Modes for various languages, Emacs for GNUstep, Finding Emacs and related packages
 @section Where can I get Emacs for my Apple computer?
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
 
 Beginning with version 22.1, Emacs supports Mac OS X natively.
 
-@node Emacs for VMS and DECwindows, Modes for various languages, Emacs for Apple computers, Finding Emacs and related packages
-@section Where do I get Emacs that runs on VMS under DECwindows?
-@cindex DECwindows, Emacs for
-@cindex VMS, Emacs for
-
-Up-to-date information about GNU software (including Emacs) for VMS is
-available at @uref{http://www.lp.se/gnu-vms/}.
-
-@node Modes for various languages,  , Emacs for VMS and DECwindows, Finding Emacs and related packages
+@node Modes for various languages,  , Emacs for Apple computers, Finding Emacs and related packages
 @section Where can I get modes for Lex, Yacc/Bison, Bourne shell, csh, C@t{++}, Objective-C, Pascal, Java, and Awk?
 @cindex Awk, mode for
 @cindex @code{awk-mode}
@@ -4969,7 +4857,6 @@ fontset, or you can select it by setting the default font in your
 * Starting Gnus faster::
 * Catching up in all newsgroups::
 * Killing based on nonstandard headers::
-* Removing flashing messages::
 * Catch-up is slow in Gnus::
 * Gnus hangs for a long time::
 * Learning more about Gnus::
@@ -5293,7 +5180,7 @@ In the @file{*Newsgroup*} buffer, type @kbd{M-< C-x ( c y C-x ) M-0 C-x e}
 Leave off the initial @kbd{M-<} if you only want to catch up from point
 to the end of the @file{*Newsgroup*} buffer.
 
-@node Killing based on nonstandard headers, Removing flashing messages, Catching up in all newsgroups, Mail and news
+@node Killing based on nonstandard headers, Catch-up is slow in Gnus, Catching up in all newsgroups, Mail and news
 @section Why can't I kill in Gnus based on the Newsgroups/Keywords/Control headers?
 @cindex Killing articles based on nonstandard headers
 @cindex Newsgroups header, killing articles based on
@@ -5314,16 +5201,7 @@ this:
 (gnus-kill nil "^Newsgroups: .*\\(bad\\.group\\|worse\\.group\\)")
 @end lisp
 
-@node Removing flashing messages, Catch-up is slow in Gnus, Killing based on nonstandard headers, Mail and news
-@section How do I get rid of flashing messages in Gnus for slow connections?
-@cindex Flashing Gnus messages, removing
-@cindex Removing flashing Gnus messages
-@cindex Slow connections causing flashing messages in Gnus
-@cindex Gnus, flashing messages in
-
-Set @code{nntp-debug-read} to @code{nil}.
-
-@node Catch-up is slow in Gnus, Gnus hangs for a long time, Removing flashing messages, Mail and news
+@node Catch-up is slow in Gnus, Gnus hangs for a long time, Killing based on nonstandard headers, Mail and news
 @section Why is catch up slow in Gnus?
 @cindex Slow catch up in Gnus
 @cindex Gnus is slow when catching up
