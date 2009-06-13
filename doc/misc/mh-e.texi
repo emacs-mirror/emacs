@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.1
+@set VERSION 8.2
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
-@set EDITION , 2nd Edition
-@set UPDATED 2009-01-23
-@set UPDATE-MONTH January, 2009
+@set EDITION
+@set UPDATED 2009-06-13
+@set UPDATE-MONTH June, 2009
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -3412,6 +3412,10 @@ Hook run by @code{mh-folder-mode} when visiting a new folder (default:
 Abnormal hook run at the beginning of @code{mh-kill-folder} (default:
 @code{'mh-search-p}).
 @c -------------------------
+@item mh-pack-folder-hook
+Hook run by @code{mh-pack-folder} after renumbering the messages
+(default: @code{nil}).
+@c -------------------------
 @item mh-quit-hook
 Hook run by q after quitting MH-E (default: @code{nil}).
 @c -------------------------
@@ -3727,6 +3731,13 @@ to rescan the folder, which is useful to grab all messages in your
 @samp{+inbox} after processing your new mail for the first time. If
 you don't want to rescan the entire folder, the commands @kbd{F r} or
 @kbd{F p} will accept a range (@pxref{Ranges}).
+
+@kindex F p
+@vindex mh-pack-folder-hook
+
+The command @kbd{F p} runs @code{mh-pack-folder-hook} after
+renumbering the messages. A variable that is useful with this hook
+is @code{mh-current-folder}.
 
 @kindex @key{TAB}
 @vindex mh-recursive-folders-flag
