@@ -1,3 +1,39 @@
+2009-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi: Remove the term "on-line" (meaning "Info") throughout, since
+	in this day and age the common meaning is "on the web".
+	(copying): Use @copyright in all cases.
+	(Basic keys): Remove reference to deleted manual node "Text Characters".
+	(File-name conventions): Use GNU as an example rather than SERVICE.
+	default.el lives in site-lisp.  Update Info directory location.
+	(Real meaning of copyleft): GPL actions have been brought, but all
+	settled out of court.
+	(Guidelines for newsgroup postings): Shorten section title.
+	Simplify comp.emacs description.
+	(Newsgroup archives): Change Google URL.  Describe Gmane.
+	(Unsubscribing from Emacs lists): Remove discussion of "distribution
+	points".  Mention List-Unsubscribe header.
+	(Contacting the FSF): Update email and URLs.
+	(Basic editing): Mention F1 for help.
+	(Installing Texinfo documentation): Refer to Texinfo website rather
+	than ftp server.
+	(Printing a Texinfo file): Mention texi2pdf.
+	(Informational files for Emacs): Don't describe FTP or SERVICE, they
+	are just stubs nowadays.
+	(Latest version of Emacs): Explain version numbers.
+	(Spell-checkers, Checking TeX and *roff documents): Remove sections.
+	(Turning on syntax highlighting): No need to mention hilit19 any more.
+	(Finding Emacs on the Internet): Refer to URLs rather than DISTRIB, FTP.
+	(Modes for various languages): Remove section.
+	(Major packages and programs): Remove most version and maintainer
+	information - it's hard to keep up-to-date, and adds nothing.
+	Similarly with direct links to mailing lists.
+	(Spell-checkers): Rename node from Ispell.  Mention Aspell and Hunspell.
+	(Mailcrypt): Remove section - mailcrypt has not been updated in mnay
+	years, and Emacs comes with tools for this now.
+	(Patch): Remove section - this is a standard tool.
+	(Using function keys under X): Remove section.
+
 2009-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Viewing Info files outside of Emacs): Xinfo is no more.

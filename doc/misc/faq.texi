@@ -14,9 +14,10 @@
 @copying
 Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 Free Software Foundation, Inc.@*
-Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
-Copyright 1992,1993 Steven Byrnes@*
-Copyright 1990,1991,1992 Joseph Brian Wells@*
+Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
+Reuven M. Lerner@*
+Copyright @copyright{} 1992, 1993 Steven Byrnes@*
+Copyright @copyright{} 1990, 1991, 1992 Joseph Brian Wells@*
 
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
@@ -59,6 +60,7 @@ distribution.]
 @node Top, FAQ notation, (dir), (dir)
 @top The GNU Emacs FAQ
 
+@c FIXME @today is just the day we ran `makeinfo'.
 This is the GNU Emacs FAQ, last updated on @today{}.
 
 This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
@@ -98,7 +100,7 @@ used in the FAQ.
 @menu
 * Basic keys::
 * Extended commands::
-* On-line manual::
+* Emacs manual::
 * File-name conventions::
 * Common acronyms::
 @end menu
@@ -181,10 +183,10 @@ pressed.}.
 @kbd{C-?} (aka @key{DEL}) is @acronym{ASCII} code 127.  It is a misnomer to call
 @kbd{C-?}  a ``control'' key, since 127 has both bits 5 and 6 turned ON.
 Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
+@c FIXME I cannot understand the previous sentence.
 
-@inforef{Text Characters, Text Characters, emacs}, and @inforef{Keys,
-Keys, emacs}, for more information.  (@xref{On-line manual}, for more
-information about Info.)
+@inforef{Keys, Keys, emacs}, for more information.  (@xref{Emacs
+manual}, for more information about Info.)
 
 @node Extended commands
 @section What does @file{M-x @var{command}} mean?
@@ -213,14 +215,14 @@ good candidate for this, on keyboards that have such a key.
 If you need to run non-interactive Emacs functions, see @ref{Evaluating
 Emacs Lisp code}.
 
-@node On-line manual
-@section How do I read topic XXX in the on-line manual?
-@cindex On-line manual, reading topics in
-@cindex Reading topics in the on-line manual
-@cindex Finding topics in the on-line manual
+@node Emacs manual
+@section How do I read topic XXX in the Emacs manual?
+@cindex Emacs manual, reading topics in
+@cindex Reading topics in the Emacs manual
+@cindex Finding topics in the Emacs manual
 @cindex Info, finding topics in
 
-When we refer you to some @var{topic} in the on-line manual, you can
+When we refer you to some @var{topic} in the Emacs manual, you can
 read this manual node inside Emacs (assuming nothing is broken) by
 typing @kbd{C-h i m emacs @key{RET} m @var{topic} @key{RET}}.
 
@@ -238,14 +240,13 @@ improperly.  In this case you should complain.
 Emacs manual.
 
 @node File-name conventions
-@section What are @file{etc/SERVICE}, @file{src/config.h}, and @file{lisp/default.el}?
+@section What are @file{etc/GNU}, @file{src/config.h}, and @file{site-lisp/default.el}?
 @cindex File-name conventions
 @cindex Conventions for file names
 @cindex Directories and files that come with Emacs
 
 These are files that come with Emacs.  The Emacs distribution is divided
-into subdirectories; the important ones are @file{etc}, @file{lisp}, and
-@file{src}.
+into subdirectories; e.g. @file{etc}, @file{lisp}, and @file{src}.
 
 If you use Emacs, but don't know where it is kept on your system, start
 Emacs, then type @kbd{C-h v data-directory @key{RET}}.  The directory
@@ -254,21 +255,18 @@ name displayed by this will be the full pathname of the installed
 @code{data-directory}, and @kbd{C-h v} displays the value and the
 documentation of a variable.)
 
-The location of your Info directory (i.e., where on-line documentation
+The location of your Info directory (i.e., where Info documentation
 is stored) is kept in the variable @code{Info-default-directory-list}.  Use
 @kbd{C-h v Info-default-directory-list @key{RET}} to see the value of
 this variable, which will be a list of directory names.  The last
 directory in that list is probably where most Info files are stored.  By
-default, Info documentation is placed in @file{/usr/local/info}.
+default, Info documentation is placed in @file{/usr/local/share/info}.
 
 Some of these files are available individually via FTP or e-mail; see
 @ref{Informational files for Emacs}.  They all are available in the
 source distribution.  Many of the files in the @file{etc} directory are
 also available via the Emacs @samp{Help} menu, or by typing @kbd{C-h ?}
 (@kbd{M-x help-for-help}).
-
-Your system administrator may have removed the @file{src} directory and
-many files from the @file{etc} directory.
 
 @node Common acronyms
 @section What are FSF, LPF, GNU, RMS, FTP, and GPL?
@@ -355,9 +353,12 @@ available at @uref{http://progfree.org/, the LPF home page}.
 The real legal meaning of the GNU General Public License (copyleft) will
 only be known if and when a judge rules on its validity and scope.
 There has never been a copyright infringement case involving the GPL to
-set any precedents.  Please take any discussion regarding this issue to
-the newsgroup @uref{news:gnu.misc.discuss}, which was created to hold the
-extensive flame wars on the subject.
+set any precedents.  Although legal actions have been brought against
+companies for violating the terms of the GPL, so far all have been
+settled out of court (in favour of the plaintiffs).  Please take any
+discussion regarding this issue to the newsgroup
+@uref{news:gnu.misc.discuss}, which was created to hold the extensive
+flame wars on the subject.
 
 RMS writes:
 
@@ -372,7 +373,7 @@ recipients the same freedom that you enjoyed.
 @end quotation
 
 @node Guidelines for newsgroup postings
-@section  What are appropriate messages for @uref{news:gnu.emacs.help}, @uref{news:gnu.emacs.bug}, @uref{news:comp.emacs}, etc.?
+@section  What are appropriate messages for the various Emacs newsgroups?
 @cindex Newsgroups, appropriate messages for
 @cindex GNU newsgroups, appropriate messages for
 @cindex Usenet groups, appropriate messages for
@@ -386,14 +387,8 @@ of the file.)  For those lists which are gatewayed with newsgroups, it
 lists both the newsgroup name and the mailing list address.
 
 The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
-in general.  This includes Emacs along with various other
-implementations, such as XEmacs, JOVE, MicroEmacs, Freemacs, MG,
-Unipress, CCA, and Epsilon.
-
-Many people post Emacs questions to @uref{news:comp.emacs} because they
-don't receive any of the @code{gnu.*} newsgroups.  Arguments have been
-made both for and against posting GNU-Emacs-specific material to
-@uref{news:comp.emacs}.  You have to decide for yourself.
+in general.  The newsgroup @uref{news:gnu.emacs.help} is specifically
+for GNU Emacs.
 
 Messages advocating ``non-free'' software are considered unacceptable on
 any of the @code{gnu.*} newsgroups except for @uref{news:gnu.misc.discuss},
@@ -423,11 +418,12 @@ The archive can be browsed over the web at
 @uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
-@uref{http://groups.google.com/groups/dir?sel=33592484, Google}, also
+@uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
 archive the @code{gnu.*} groups.
 
 You can read the archives of the @code{gnu.*} groups and post new
-messages at @uref{http://gmane.org/, Gmane}.
+messages at @uref{http://gmane.org/, Gmane}.  Gmane is a service that
+presents mailing lists as newsgroups.
 
 @node Reporting bugs
 @section Where should I report bugs and other problems with Emacs?
@@ -438,7 +434,7 @@ messages at @uref{http://gmane.org/, Gmane}.
 
 The correct way to report Emacs bugs is to use the command
 @kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
-essential information and the correct e-mail address which is
+essential information and the correct e-mail address, which is
 @email{bug-gnu-emacs@@gnu.org} for the released versions of Emacs.
 Anything sent to @email{bug-gnu-emacs@@gnu.org} also appears in the
 newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
@@ -448,7 +444,7 @@ so you can be contacted for further details.
 Be sure to read the ``Bugs'' section of the Emacs manual before reporting
 a bug!  The manual describes in detail how to submit a useful bug
 report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
-(@xref{On-line manual}, if you don't know how to read the manual.)
+(@xref{Emacs manual}, if you don't know how to read the manual.)
 
 RMS says:
 
@@ -481,20 +477,16 @@ does, that is a bug.
 @end quotation
 
 @node Unsubscribing from Emacs lists
-@section  How do I unsubscribe from this mailing list?
+@section  How do I unsubscribe from a mailing list?
 @cindex Unsubscribing from GNU mailing lists
 @cindex Removing yourself from GNU mailing lists
 
-If you are receiving a GNU mailing list named @var{list}, you might be
+If you are receiving a GNU mailing list named @var{list}, you should be
 able to unsubscribe from it by sending a request to the address
-@email{@var{list}-request@@gnu.org}.  However, this will not work if you are
-not listed on the main mailing list, but instead receive the mail from a
-distribution point.  In that case, you will have to track down at which
-distribution point you are listed.  Inspecting the @samp{Received} headers
-on the mail messages may help, along with liberal use of the @samp{EXPN} or
-@samp{VRFY} sendmail commands through @samp{telnet @var{site-address}
-smtp}.  Ask your postmaster for help, if you cannot figure out these
-details.
+@email{@var{list}-request@@gnu.org}.  Mailing lists mails normally
+contain information in either the message header
+(@samp{List-Unsubscribe:}) or as a footer that tells you how to
+unsubscribe.
 
 @node Contacting the FSF
 @section  What is the current address of the FSF?
@@ -506,7 +498,7 @@ details.
 @table @asis
 
 @item E-mail
-gnu@@gnu.org
+info@@fsf.org
 
 @item Telephone
 +1-617-542-5942
@@ -515,7 +507,7 @@ gnu@@gnu.org
 +1-617-542-2652
 
 @item World Wide Web
-@uref{http://www.gnu.org/}
+@uref{http://www.fsf.org/}
 
 @item Postal address
 Free Software Foundation@*
@@ -527,14 +519,14 @@ USA@*
 
 @cindex Ordering GNU software
 For details on how to order items directly from the FSF, see the
-@uref{http://www.gnu.org/order/order.html, GNU Web site}.
+@uref{http://shop.fsf.org/, FSF on-line store}.
 
 @c ------------------------------------------------------------
 @node Getting help
 @chapter Getting help
 @cindex Getting help
 
-This chapter tells you how to get help with Emacs
+This chapter tells you how to get help with Emacs.
 
 @menu
 * Basic editing::
@@ -569,7 +561,8 @@ help-for-help} instead to invoke help.  To discover what key (if any)
 invokes help on your system, type @kbd{M-x where-is @key{RET}
 help-for-help @key{RET}}.  This will print a comma-separated list of key
 sequences in the echo area.  Ignore the last character in each key
-sequence listed.  Each of the resulting key sequences invokes help.
+sequence listed.  Each of the resulting key sequences (e.g. @key{F1} is
+common) invokes help.
 
 Emacs help works best if it is invoked by a single key whose value
 should be stored in the variable @code{help-char}.
@@ -587,7 +580,7 @@ There are several methods for finding out how to do things in Emacs.
 
 @cindex Reading the Emacs manual
 @item
-The complete text of the Emacs manual is available on-line via the Info
+The complete text of the Emacs manual is available via the Info
 hypertext reader.  Type @kbd{C-h r} to display the manual in Info mode.
 Typing @key{h} immediately after entering Info will provide a short
 tutorial on how to use it.
@@ -657,9 +650,8 @@ information.  To get a list of these commands, type @samp{?} after
 @cindex Emacs manual, obtaining a printed or HTML copy of
 
 You can order a printed copy of the Emacs manual from the FSF.  For
-details see the @uref{http://www.gnu.org/order/order.html, GNU Web site}.
+details see the @uref{http://shop.fsf.org/, FSF on-line store}.
 
-@c The number 620 below is version-dependent!
 The full Texinfo source for the manual also comes in the @file{doc/emacs}
 directory of the Emacs distribution, if you're daring enough to try to
 print out this several-hundred-page manual yourself (@pxref{Printing a Texinfo
@@ -670,7 +662,7 @@ you can get a PostScript or PDF (or HTML) version from
 
 @uref{http://www.gnu.org/software/emacs/manual/}
 
-@xref{Learning how to do something}, for how to view the manual on-line.
+@xref{Learning how to do something}, for how to view the manual.
 
 @node Emacs Lisp documentation
 @section Where can I get documentation on Emacs Lisp?
@@ -684,11 +676,11 @@ Within Emacs, you can type @kbd{C-h f} to get the documentation for a
 function, @kbd{C-h v} for a variable.
 
 For more information, the Emacs Lisp Reference Manual is available
-on-line, in Info format.  @xref{Top, Emacs Lisp,, elisp, The
+in Info format.  @xref{Top, Emacs Lisp,, elisp, The
 Emacs Lisp Reference Manual}.
 
 You can also order a hardcopy of the manual, details on ordering it from
-FSF are on the @uref{http://www.gnu.org/order/order.html, GNU Web site}.
+FSF are on the @uref{http://shop.fsf.org/, FSF on-line store}.
 
 An HTML version of the Emacs Lisp Reference Manual is available at
 
@@ -703,17 +695,14 @@ An HTML version of the Emacs Lisp Reference Manual is available at
 @cindex Info files, how to install
 
 First, you must turn the Texinfo files into Info files.  You may do this
-using the stand-alone @file{makeinfo} program, available as part of the latest
+using the stand-alone @file{makeinfo} program, available as part of the
 Texinfo package at
 
-@uref{ftp://ftp.gnu.org/pub/gnu/texinfo/texinfo-4.8.tar.gz}
-
-and all mirrors of @samp{ftp.gnu.org} (for a list, @pxref{Current GNU
-distributions}).
+@uref{http://www.gnu.org/software/texinfo/}
 
 For information about the Texinfo format, read the Texinfo manual which
 comes with the Texinfo package.  This manual also comes installed in
-Info format, so you can read it on-line; type @kbd{C-h i m texinfo
+Info format, so you can read it from Emacs; type @kbd{C-h i m texinfo
 @key{RET}}.
 
 Alternatively, you could use the Emacs command @kbd{M-x
@@ -830,6 +819,8 @@ printed copy.
 The @samp{texi2dvi} script is part of the GNU Texinfo distribution
 (@pxref{Installing Texinfo documentation}).
 
+Alternatively, @samp{texi2pdf} produces PDF files.
+
 @item
 Print the DVI file @file{@var{texinfo-source}.dvi} in the normal way for
 printing DVI files at your site.  For example, if you have a PostScript
@@ -869,13 +860,11 @@ You can get Tkinfo at
 @cindex Files included with Emacs
 @cindex @file{COPYING}, description of file
 @cindex @file{DISTRIB}, description of file
-@cindex @file{FTP}, description of file
 @cindex @file{GNU}, description of file
 @cindex @file{INTERVIEW}, description of file
 @cindex @file{MACHINES}, description of file
 @cindex @file{MAILINGLISTS}, description of file
 @cindex @file{NEWS}, description of file
-@cindex @file{SERVICE}, description of file
 
 This isn't a frequently asked question, but it should be!  A variety of
 informational files about Emacs and relevant aspects of the GNU project
@@ -893,9 +882,6 @@ GNU General Public License
 @item DISTRIB
 Emacs Availability Information
 
-@item FTP
-How to get GNU Software by Internet FTP
-
 @item GNU
 The GNU Manifesto
 
@@ -911,9 +897,6 @@ GNU Project Electronic Mailing Lists
 
 @item NEWS
 Emacs news, a history of recent user-visible changes
-
-@item SERVICE
-GNU Service Directory
 
 @end table
 
@@ -996,7 +979,10 @@ conventions}).
 @cindex Version, latest
 @cindex Latest version of Emacs
 
-Emacs @value{VER} is the current version as of this writing.
+Emacs @value{VER} is the current version as of this writing.  A version
+number with two components (e.g. @samp{22.1}) indicates a released
+version; three components (e.g. @samp{23.0.50}) indicate a development
+version.
 
 @node New in Emacs 20
 @section What is different about Emacs 20?
@@ -1168,8 +1154,6 @@ full list.
 * Yanking text in isearch::
 * Wrapping words automatically::
 * Turning on auto-fill by default::
-* Spell-checkers::
-* Checking TeX and *roff documents::
 * Changing load-path::
 * Using an already running Emacs process::
 * Compiler error messages::
@@ -1600,21 +1584,6 @@ If you want @code{auto-fill} mode on in all major modes, do this:
 @lisp
 (setq-default auto-fill-function 'do-auto-fill)
 @end lisp
-
-@node Spell-checkers
-@section Where can I get a better spelling checker for Emacs?
-@cindex Checking spelling
-@cindex Spelling, checking text documents
-
-Use Ispell.  @xref{Ispell}.
-
-@node Checking TeX and *roff documents
-@section How can I spell-check @TeX{} or *roff documents?
-@cindex Spelling, checking @TeX{} documents
-@cindex @TeX{} documents, checking spelling in
-
-Use Ispell.  Ispell can handle @TeX{} and *roff documents.
-@xref{Ispell}.
 
 @node Changing load-path
 @section How do I change @code{load-path}?
@@ -2495,11 +2464,6 @@ appear in different colors.  For instance, in a programming mode,
 variables will appear in one face, keywords in a second, and comments in
 a third.
 
-@cindex hilit19 is deprecated
-Earlier versions of Emacs supported hilit19, a similar package.  Use of
-hilit19 is now considered non-standard, although @file{hilit19.el} comes
-with the stock Emacs distribution.  It is no longer maintained.
-
 To turn @code{font-lock-mode} off within an existing buffer, use
 @kbd{M-x font-lock-mode @key{RET}}.
 
@@ -2928,7 +2892,7 @@ properly told to do DNS lookups with the correct command line switch.
 @cindex Debugging @file{.emacs} file
 
 An error occurred while loading either your @file{.emacs} file or the
-system-wide file @file{lisp/default.el}.  Emacs 21.1 and later pops the
+system-wide file @file{site-lisp/default.el}.  Emacs 21.1 and later pops the
 @file{*Messages*} buffer, and puts there some additional information
 about the error, to provide some hints for debugging.
 
@@ -3394,7 +3358,6 @@ Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
 * Emacs for Windows::
 * Emacs for GNUstep::
 * Emacs for Apple computers::
-* Modes for various languages::
 @end menu
 
 @node Finding Emacs on the Internet
@@ -3405,9 +3368,11 @@ Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
 @cindex Distribution, retrieving Emacs
 @cindex Internet, retrieving from
 
-Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for
-information on nearby archive sites.  If you don't already have Emacs,
-see @ref{Informational files for Emacs}, for how to get these files.
+Information on downloading Emacs is available at
+@uref{http://www.gnu.org/software/emacs/, the Emacs home-page}.
+
+For an order form for all Emacs and FSF distributions deliverable from
+the USA, see @uref{http://shop.fsf.org/}.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
@@ -3478,9 +3443,6 @@ The most up-to-date official GNU software is normally kept at
 
 @uref{ftp://ftp.gnu.org/pub/gnu}
 
-Read the files @file{etc/DISTRIB} and @file{etc/FTP} for more
-information.
-
 A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
 @uref{http://www.gnu.org/order/ftp.html}
@@ -3540,7 +3502,7 @@ information is available from
 @cindex Emacs for MS-DOS
 @cindex Tools needed to compile Emacs under DOS
 
-A pre-built binary distribution of Emacs is available from the
+A pre-built binary distribution of Emacs 20 is available from the
 SimTel.NET archives.  This version apparently works under MS-DOS and
 Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
 Windows 9X, Windows ME, and Windows 2000.  More information is available
@@ -3643,30 +3605,6 @@ Beginning with version 23.1, Emacs supports GNUstep natively.
 
 Beginning with version 22.1, Emacs supports Mac OS X natively.
 
-@node Modes for various languages
-@section Where can I get modes for Lex, Yacc/Bison, Bourne shell, csh, C@t{++}, Objective-C, Pascal, Java, and Awk?
-@cindex Awk, mode for
-@cindex @code{awk-mode}
-@cindex Bison, mode for
-@cindex Bourne Shell, mode for
-@cindex C@t{++}, mode for
-@cindex Java, mode for
-@cindex Lex mode
-@cindex Objective-C, mode for
-@cindex @code{pascal-mode}
-@cindex Shell mode
-@cindex Yacc mode
-@cindex @file{csh} mode
-@cindex @code{sh-mode}
-@cindex @code{cc-mode}
-
-Most of these modes are now available in standard Emacs distribution.
-To get additional modes, see @ref{Finding a package with particular
-functionality}.
-
-Barry Warsaw's @code{cc-mode} now works for C, C@t{++}, Objective-C, and
-Java code.  It is distributed with Emacs, but has
-@uref{http://cc-mode.sourceforge.net/, its own homepage}.
 
 @c ------------------------------------------------------------
 @node Major packages and programs
@@ -3677,12 +3615,10 @@ Java code.  It is distributed with Emacs, but has
 * VM::
 * AUCTeX::
 * BBDB::
-* Ispell::
+* Spell-checkers::
 * Emacs/W3::
 * EDB::
-* Mailcrypt::
 * JDE::
-* Patch::
 @end menu
 
 @node VM
@@ -3693,12 +3629,6 @@ Java code.  It is distributed with Emacs, but has
 @cindex E-mail reader, VM
 
 @table @b
-
-@item Maintainer
-@email{hack@@robf.de, Robert Widhopf-Fenk}
-
-@item Latest version
-8.0
 
 @item Web site
 @uref{http://www.nongnu.org/viewmail/}
@@ -3732,29 +3662,7 @@ Current versions of AUC@TeX{} include the
 package for WYSIWYG previews of various LaTeX constructs in the Emacs
 source buffer.
 
-@table @b
-
-@item Authors
-@email{krab@@iesd.auc.dk, Kresten Krab Thorup}, @*
-@email{abraham@@dina.kvl.dk, Per Abrahamsen}, @* and others.
-
-@item Maintainer
-@email{dak@@gnu.org, David Kastrup}
-
-@item Latest version
-11.85
-
-@item Distribution
-@uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
-
-@item Web site
-@uref{http://www.gnu.org/software/auctex/}
-
-@item Mailing list:
-Subscription requests to @email{auctex-request@@gnu.org}@*
-Submissions to @email{auctex@@gnu.org}
-
-@end table
+@uref{http://www.gnu.org/software/auctex/, AUCTeX}
 
 @node BBDB
 @section BBDB --- personal Info Rolodex integrated with mail/news readers
@@ -3765,48 +3673,30 @@ Submissions to @email{auctex@@gnu.org}
 @cindex Big Brother Database
 @cindex Address book
 
-@table @b
+@uref{http://bbdb.sourceforge.net/, The Insidious Big Brother Database}
 
-@item Maintainer
-@email{hack@@robf.de, Robert Widhopf-Fenk}
-
-@item Latest version
-2.35
-
-@item Distribution
-@uref{http://bbdb.sourceforge.net/}
-
-@item Mailing lists
-Subscription requests to @email{bbdb-info-request@@lists.sourceforge.net}@*
-Submissions to @email{bbdb-info@@lists.sourceforge.net}@*
-Release announcements: @email{bbdb-announce-request@@lists.sourceforge.net}
-
-@end table
-
-@node Ispell
-@section Ispell --- spell checker in C with interface for Emacs
+@node Spell-checkers
+@section Spell-checkers
 @cindex Spell-checker
 @cindex Checking spelling
 @cindex Ispell
+@cindex Aspell
+@cindex Hunspell
+
+Various spell-checkers are compatible with Emacs, including:
 
 @table @b
 
-@item Author
-@email{geoff@@cs.hmc.edu, Geoff Kuenning}
+@item GNU Aspell
+@uref{http://aspell.net/}
 
-@item Latest version
-3.3.02
-
-@item Distribution
-@uref{http://fmg-www.cs.ucla.edu/geoff/tars/ispell-3.3.02.tar.gz}@*
-
-@item Web site
+@item Ispell
 @uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
 
-@end table
+@item Hunspell
+@uref{http://hunspell.sourceforge.net/}
 
-This Ispell program is distinct from GNU Ispell 4.0. GNU Ispell 4.0 is
-no longer a supported product.
+@end table
 
 @node Emacs/W3
 @section Emacs/W3 --- A World Wide Web browser inside of Emacs
@@ -3815,27 +3705,7 @@ no longer a supported product.
 @cindex HTML browser in Emacs
 @cindex @code{w3-mode}
 
-@table @b
-
-@item Author
-@email{wmperry@@gnu.org, Bill Perry}
-
-@item Maintainer
-Emacs/W3 needs a maintainer. It has lain dormant for several years. If
-you would like to take over the project, please contact
-@email{maintainers@@gnu.org}.
-
-@item Latest version
-4.0pre.47
-
-@item Distribution
-@uref{http://savannah.gnu.org/projects/w3}
-
-@item Mailing lists
-Receive announcements from @email{w3-announce@@gnu.org}@*
-Help to develop Emacs/W3 at @email{w3-dev@@gnu.org}
-
-@end table
+@uref{http://www.gnu.org/software/w3/, Emacs/W3}
 
 @node EDB
 @section EDB --- Database program for Emacs; replaces forms editing modes
@@ -3843,51 +3713,7 @@ Help to develop Emacs/W3 at @email{w3-dev@@gnu.org}
 @cindex Database
 @cindex Forms mode
 
-@table @b
-@item Author
-@email{mernst@@theory.lcs.mit.edu, Michael Ernst}
-
-@item Latest version
-1.21
-
-@item Distribution
-@uref{ftp://theory.lcs.mit.edu/pub/emacs/edb}
-
-@end table
-
-@node Mailcrypt
-@section Mailcrypt --- PGP interface within Emacs mail and news
-@cindex PGP
-@cindex GPG
-@cindex Interface to PGP from Emacs mail and news
-@cindex News, interface to PGP from
-@cindex Mail, interface to PGP from
-@cindex Encryption software, interface to
-
-@table @b
-
-@item Authors
-@email{patl@@lcs.mit.edu, Patrick J. LoPresti} and
-@email{jin@@atype.com, Jin S. Choi}
-
-@item Maintainer
-@email{warner-mailcrypt@@lothar.com, Brian Warner}
-
-@item Latest version
-3.5.8
-
-@item Distribution
-@uref{http://dl.sourceforge.net/sourceforge/mailcrypt/mailcrypt-3.5.8.tar.gz}
-
-@item Web site
-@uref{http://mailcrypt.sourceforge.net/}
-
-@end table
-
-Note that a new package called PGG is bundled with Emacs starting with
-version 22.1.  It is a modern interface to various PGP implementations,
-including @uref{http://www.gnupg.org/, The GNU Privacy Guard} and
-supports symmetric encryption.
+@uref{http://gnuvola.org/software/edb/, the Emacs Database}
 
 @node JDE
 @section JDE --- Integrated development environment for Java
@@ -3895,42 +3721,7 @@ supports symmetric encryption.
 @cindex Integrated Java development environment
 @cindex JDE
 
-@table @b
-
-@item Author
-@email{paulk@@mathworks.com, Paul Kinnucan}
-
-@item Latest version
-2.3.5
-
-@item Web site
-@uref{http://jdee.sunsite.dk/}
-
-@item Mailing lists
-Subscription requests to @email{jde-subscribe@@sunsite.dk}@*
-Receive announcements from @email{jde-announce-subscribe@@sunsite.dk}
-
-@end table
-
-@node Patch
-@section Patch --- program to apply ``diffs'' for updating files
-@cindex Updating files with diffs
-@cindex Patching source files with diffs
-@cindex Diffs and patching
-@cindex @file{patch}
-
-@table @b
-
-@item Author
-@email{lwall@@wall.org, Larry Wall} (with GNU modifications)
-
-@item Latest version
-2.5.4
-
-@item Distribution
-@xref{Current GNU distributions}.
-
-@end table
+@uref{http://jdee.sourceforge.net/, a Java Development Environment for Emacs}
 
 @c ------------------------------------------------------------
 @node Key bindings
@@ -3941,7 +3732,6 @@ Receive announcements from @email{jde-announce-subscribe@@sunsite.dk}
 * Binding keys to commands::
 * Invalid prefix characters::
 * Terminal setup code works after Emacs has begun::
-* Using function keys under X::
 * Working with function and arrow keys::
 * X key translations for Emacs::
 * Handling C-s and C-q with flow control::
@@ -4071,14 +3861,6 @@ variable to this lambda function.  For example,
 For information on what Emacs does every time it is started, see the
 @file{lisp/startup.el} file.
 
-@node Using function keys under X
-@section How do I use function keys under X?
-@cindex Function keys
-@cindex X Window System and function keys
-@cindex Binding function keys
-
-With Emacs 19, functions keys under X are bound like any other key.  @xref{Binding keys to commands}, for details.
-
 @node Working with function and arrow keys
 @section How do I tell what characters or symbols my function or arrow keys emit?
 @cindex Working with arrow keys
@@ -4089,7 +3871,7 @@ With Emacs 19, functions keys under X are bound like any other key.  @xref{Bindi
 
 Type @kbd{C-h c} then the function or arrow keys.  The command will
 return either a function key symbol or character sequence (see the
-Emacs on-line documentation for an explanation).  This works for other
+Emacs documentation for an explanation).  This works for other
 keys as well.
 
 @node X key translations for Emacs
@@ -4501,7 +4283,7 @@ command.
 
 With Emacs 19 and later, you can represent modified function keys in
 vector format by adding prefixes to the function key symbol.  For
-example (from the on-line documentation):
+example (from the Emacs documentation):
 
 @lisp
 (global-set-key [?\C-x right] 'forward-page)
