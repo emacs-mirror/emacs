@@ -1,3 +1,10 @@
+2009-06-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.2.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.2.
+
 2009-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi: Remove the term "on-line" (meaning "Info") throughout, since
