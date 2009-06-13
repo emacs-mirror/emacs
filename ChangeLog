@@ -1,3 +1,8 @@
+2009-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Delete mac-fix-env target, which has been
+	removed (Bug#3531).
+
 2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in: Don't define CANNOT_DUMP for GNUStep any more.

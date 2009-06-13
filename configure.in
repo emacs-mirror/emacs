@@ -2094,7 +2094,6 @@ if test "${HAVE_NS}" = "yes"; then
   if test "${NS_IMPL_COCOA}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
     GNU_OBJC_CFLAGS=
-    LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])

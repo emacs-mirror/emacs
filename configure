@@ -15018,7 +15018,6 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     GNU_OBJC_CFLAGS=
-    LIB_SRC_EXTRA_INSTALLABLES=mac-fix-env
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
 
