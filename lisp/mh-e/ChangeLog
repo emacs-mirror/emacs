@@ -1,3 +1,13 @@
+2009-06-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.
+
+	* mh-seq.el (mh-folder-size-flist)
+	* mh-speed.el (mh-speed-parse-flists-output)
+	* mh-xface.el (mh-face-display-function): Remove trailing space.
+
 2009-03-13  D. Goel  <deego3@gmail.com>
 
 	* mh-seq.el (mh-folder-size-flist): Use (values-list) in m-v call
