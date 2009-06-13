@@ -1,3 +1,9 @@
+2009-06-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.
+
 2009-06-12  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/*.map: All re-generated.
