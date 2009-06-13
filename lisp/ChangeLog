@@ -1,3 +1,8 @@
+2009-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-visual-line): Rewrite (Bug#3437).  Don't try to
+	handle kill-whole-line, as it doesn't make sense in this context.
+
 2009-06-12  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-log-switches): Add defcustom.

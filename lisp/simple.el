@@ -4471,20 +4471,10 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 
 (defun kill-visual-line (&optional arg)
   "Kill the rest of the visual line.
-If there are only whitespace characters there, kill through the
-newline as well.
-
-With prefix argument ARG, kill that many lines from point.
-Negative arguments kill lines backward.
-With zero argument, kill the text before point on the current line.
-
-When calling from a program, nil means \"no arg\",
-a number counts as a prefix arg.
-
-If `kill-whole-line' is non-nil, then this command kills the whole line
-including its terminating newline, when used at the beginning of a line
-with no argument.  As a consequence, you can always kill a whole line
-by typing \\[beginning-of-line] \\[kill-line].
+With prefix argument ARG, kill that many visual lines from point.
+If ARG is negative, kill visual lines backward.
+If ARG is zero, kill the text before point on the current visual
+line.
 
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-line].
@@ -4495,29 +4485,20 @@ you can use this command to copy text from a read-only buffer.
 \(If the variable `kill-read-only-ok' is non-nil, then this won't
 even beep.)"
   (interactive "P")
-  (let ((opoint (point))
-	(line-move-visual t)
-	end)
-    ;; It is better to move point to the other end of the kill before
-    ;; killing.  That way, in a read-only buffer, point moves across
-    ;; the text that is copied to the kill ring.  The choice has no
-    ;; effect on undo now that undo records the value of point from
-    ;; before the command was run.
+  ;; Like in `kill-line', it's better to move point to the other end
+  ;; of the kill before killing.
+  (let ((opoint (point)))
     (if arg
 	(vertical-motion (prefix-numeric-value arg))
-      (if (eobp)
-	  (signal 'end-of-buffer nil))
-      (setq end (save-excursion
-		  (end-of-visual-line) (point)))
-      (if (or (save-excursion
-		;; If trailing whitespace is visible,
-		;; don't treat it as nothing.
-		(unless show-trailing-whitespace
-		  (skip-chars-forward " \t" end))
-		(= (point) end))
-	      (and kill-whole-line (bolp)))
-	  (line-move 1)
-	(goto-char end)))
+      (end-of-visual-line 1)
+      (if (= (point) opoint)
+	  (vertical-motion 1)
+	;; Skip any trailing whitespace at the end of the visual line.
+	;; We used to do this only if `show-trailing-whitespace' is
+	;; nil, but that's wrong; the correct thing would be to check
+	;; whether the trailing whitespace is highlighted.  But, it's
+	;; OK to just do this unconditionally.
+	(skip-chars-forward " \t")))
     (kill-region opoint (point))))
 
 (defun next-logical-line (&optional arg try-vscroll)
