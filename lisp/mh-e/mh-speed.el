@@ -455,7 +455,7 @@ be handled next."
                              (substring output position line-end))
                 mh-speed-partial-line "")
           (multiple-value-setq (folder unseen total)
-            (values-list 
+            (values-list
              (mh-parse-flist-output-line line mh-speed-current-folder)))
           (when (and folder unseen total
                      (let ((old-pair (gethash folder mh-speed-flists-cache)))
