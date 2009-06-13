@@ -935,7 +935,7 @@ history.  See `Minibuffer changes', above.
 +++
 ** MH-E
 
-*** Upgraded to MH-E version 8.1.  See MH-E-NEWS for details.
+*** Upgraded to MH-E version 8.2.  See MH-E-NEWS for details.
 
 ** Python
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
