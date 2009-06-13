@@ -1,3 +1,23 @@
+2009-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Setting up a customization file): Grammar fix.
+	Customize is no longer "new".
+	(Displaying the current line or column): Line-number mode is on by
+	default.  Don't mention `column' package.  Mention linum.el.
+	(Turning on abbrevs by default): Explain how to do it for buffers,
+	modes, and everywhere.
+	(Associating modes with files): Use add-to-list.  Don't mention Emacs
+	19.
+	(Highlighting a region): On by default since 23.1.
+	(Replacing highlighted text): Update doc quote.
+	(Working with unprintable characters): Don't mention search-quote-char.
+	(Using an already running Emacs process): Gnuclient is probably not an
+	enhancement these days.
+	(Indenting switch statements): Remove mention of pre-Emacs 20.
+	(Horizontal scrolling): Abbreviate Emacs 20 description.
+	(Replacing text across multiple files): Fix name of dired command.
+	(Disabling backups): Use require not load.
+
 2009-06-13  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E manual version 8.2.

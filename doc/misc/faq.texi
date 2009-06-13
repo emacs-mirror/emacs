@@ -935,8 +935,8 @@ C-f} (@kbd{M-x view-emacs-FAQ}).
 @chapter Status of Emacs
 @cindex Status of Emacs
 
-This chapter gives you basic information about Emacs, including its
-latest version status.
+This chapter gives you basic information about Emacs, including the
+status of its latest version.
 
 @menu
 * Origin of the term Emacs::
@@ -1199,16 +1199,15 @@ full list.
 
 @inforef{Init File, Init File, emacs}.
 
-In general, new Emacs users should not have @file{.emacs} files, because
-it causes confusing non-standard behavior.  Then they send questions to
-@email{help-gnu-emacs@@gnu.org} asking why Emacs isn't behaving as
-documented.
+In general, new Emacs users should not be provided with @file{.emacs}
+files, because this can cause confusing non-standard behavior.  Then
+they send questions to @email{help-gnu-emacs@@gnu.org} asking why Emacs
+isn't behaving as documented.
 
-Beginning with version 20.1, Emacs includes the new Customize facility
-(@pxref{Using Customize}).  This allows users who are unfamiliar with
-Emacs Lisp to modify their @file{.emacs} files in a relatively
-straightforward way, using menus rather than Lisp code.  Most packages
-support Customize as of this writing.
+Emacs includes the Customize facility (@pxref{Using Customize}).  This
+allows users who are unfamiliar with Emacs Lisp to modify their
+@file{.emacs} files in a relatively straightforward way, using menus
+rather than Lisp code.
 
 While Customize might indeed make it easier to configure Emacs,
 consider taking a bit of time to learn Emacs Lisp and modifying your
@@ -1289,18 +1288,10 @@ variables which you are trying to set or use.
 @cindex Column, displaying the current
 @cindex @code{mode-line-format}
 
-To have Emacs automatically display the current line number of the point
-in the mode line, do @kbd{M-x line-number-mode}.  You can also put the
-form
-
-@lisp
-(setq line-number-mode t)
-@end lisp
-
-@noindent
-in your @file{.emacs} file to achieve this whenever you start Emacs.
-(Line number display is on by default, unless your site-specific
-initialization disables it.) Note that Emacs will not display the line
+By default, Emacs displays the current line number of the point in the
+mode line.  You can toggle this feature off or on with the command
+@kbd{M-x line-number-mode}, or by setting the variable
+@code{line-number-mode}.  Note that Emacs will not display the line
 number if the buffer's size in bytes is larger than the value of the
 variable @code{line-number-display-limit}.
 
@@ -1312,7 +1303,7 @@ You can similarly display the current column with
 @end lisp
 
 @noindent
-in your @file{.emacs} file.
+in your @file{.emacs} file.  This feature is off by default.
 
 The @code{"%c"} format specifier in the variable @code{mode-line-format}
 will insert the current column's value into the mode line.  See the
@@ -1320,17 +1311,12 @@ documentation for @code{mode-line-format} (using @kbd{C-h v
 mode-line-format @key{RET}}) for more information on how to set and use
 this variable.
 
-Users of all Emacs versions can display the current column using the
-@samp{column} package written by @email{abraham@@dina.kvl.dk, Per
-Abrahamsen}.  @xref{Packages that do not come with Emacs}, for
-instructions on how to get it.
-
 @cindex Set number capability in @code{vi} emulators
-None of the @code{vi} emulation modes provide the ``set number''
-capability of @code{vi} (as far as we know).  The @samp{setnu} package
-written by @email{kyle@@wonderworks.com, Kyle Jones} provides this
-feature.  So too does @samp{wb-line-number}, written by
-@email{naoki.y.nakamura@@nifty.com, Naoki Nakamura}.
+The @samp{linum} package (distributed with Emacs since version 23.1)
+displays line numbers in the left margin, like the ``set number''
+capability of @code{vi}.  The packages @samp{setnu} and
+@samp{wb-line-number} (not distributed with Emacs) also implement this
+feature.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -1366,20 +1352,29 @@ in your @file{.emacs}:
 @section How do I turn on abbrevs by default just in mode @var{mymode}?
 @cindex Abbrevs, turning on by default
 
-Put this in your @file{.emacs} file:
+Abbrev mode expands abbreviations as you type them.  To turn it on in a
+specific buffer, use @kbd{M-x abbrev-mode}.  To turn it on in every
+buffer by default, put this in your @file{.emacs} file:
 
 @lisp
-(condition-case ()
-   (quietly-read-abbrev-file)
-  (file-error nil))
+(setq-default abbrev-mode t)
+@end lisp
 
+@noindent To turn it on in a specific mode, use:
+
+@lisp
 (add-hook '@var{mymode}-mode-hook
           (lambda ()
            (setq abbrev-mode t)))
 @end lisp
 
-Starting with Emacs 22, the standard abbrevs file is read automatically
-at startup, so the first of these two forms becomes unnecessary.
+@noindent If your Emacs version is older then 22.1, you will also need to use:
+
+@lisp
+(condition-case ()
+   (quietly-read-abbrev-file)
+  (file-error nil))
+@end lisp
 
 @node Associating modes with files
 @section How do I make Emacs use a certain major mode for certain files?
@@ -1392,10 +1387,10 @@ If you want to use a certain mode @var{foo} for all files whose names end
 with the extension @file{.@var{bar}}, this will do it for you:
 
 @lisp
-(setq auto-mode-alist (cons '("\\.@var{bar}\\'" . @var{foo}-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.@var{bar}\\'" . @var{foo}-mode))
 @end lisp
 
-Otherwise put this somewhere in the first line of any file you want to
+Alternatively, put this somewhere in the first line of any file you want to
 edit in the mode @var{foo} (in the second line, if the first line begins
 with @samp{#!}):
 
@@ -1404,11 +1399,11 @@ with @samp{#!}):
 @end example
 
 @cindex Major mode for shell scripts
-Beginning with Emacs 19, the variable @code{interpreter-mode-alist}
-specifies which mode to use when loading a shell script.  (Emacs
+The variable @code{interpreter-mode-alist} specifies which mode to use
+when loading an interpreted script (e.g. shell, python, etc.).  Emacs
 determines which interpreter you're using by examining the first line of
-the script.)  Use @kbd{C-h v} (or @kbd{M-x describe-variable})
-on @code{interpreter-mode-alist} to learn more.
+the script.  Use @kbd{C-h v} (or @kbd{M-x describe-variable}) on
+@code{interpreter-mode-alist} to learn more.
 
 @node Highlighting a region
 @section How can I highlight a region of text in Emacs?
@@ -1421,11 +1416,11 @@ You can cause the region to be highlighted when the mark is active by
 including
 
 @lisp
-(transient-mark-mode t)
+(transient-mark-mode 1)
 @end lisp
 
 @noindent
-in your @file{.emacs} file.
+in your @file{.emacs} file.  Since Emacs 23.1, this feature is on by default.
 
 @node Replacing highlighted text
 @section How can I replace highlighted text with what I type?
@@ -1445,8 +1440,10 @@ According to the documentation string for @code{delete-selection-mode}
 delete-selection-mode @key{RET}}):
 
 @quotation
-When ON, typed text replaces the selection if the selection is active.
-When OFF, typed text is just inserted at point.
+When Delete Selection mode is enabled, Transient Mark mode is also
+enabled and typed text replaces the selection if the selection is
+active.  Otherwise, typed text is just inserted at point regardless of
+any selection.
 @end quotation
 
 This mode also allows you to delete (not kill) the highlighted region by
@@ -1459,8 +1456,9 @@ pressing @key{DEL}.
 @cindex Searching without case sensitivity
 @cindex Ignoring case in searches
 
-For searching, the value of the variable @code{case-fold-search}
-determines whether they are case sensitive:
+@c FIXME
+The value of the variable @code{case-fold-search} determines whether
+searches are case sensitive:
 
 @lisp
 (setq case-fold-search nil) ; make searches case sensitive
@@ -1494,8 +1492,7 @@ mode's hook.  For example:
 @cindex Regexps and unprintable characters
 
 To search for a single character that appears in the buffer as, for
-example, @samp{\237}, you can type @kbd{C-s C-q 2 3 7}.  (This assumes
-the value of @code{search-quote-char} is 17 (i.e., @kbd{C-q}).)
+example, @samp{\237}, you can type @kbd{C-s C-q 2 3 7}.
 Searching for @strong{all} unprintable characters is best done with a
 regular expression (@dfn{regexp}) search.  The easiest regexp to use for
 the unprintable chars is the complement of the regexp for the printable
@@ -1668,7 +1665,7 @@ requested by @code{emacsclient}, Emacs will switch to it; otherwise
 @code{emacsclient} will exit, signaling the calling program to continue.
 
 @cindex @code{gnuserv}
-There is an enhanced version of @samp{emacsclient} called
+There is an alternative version of @samp{emacsclient} called
 @samp{gnuserv}, written by @email{ange@@hplb.hpl.hp.com, Andy Norman}
 (@pxref{Packages that do not come with Emacs}).  @samp{gnuserv} uses
 Internet domain sockets, so it can work across most network connections.
@@ -1711,19 +1708,11 @@ f()
 @}
 @end example
 
-The solution at first appears to be: set @code{c-indent-level} to 4 and
-@code{c-label-offset} to -2.  However, this will give you an indentation
-spacing of four instead of two.
-
-The @emph{real} solution is to use @code{cc-mode} (the default mode for
-C programming in Emacs 20 and later) and add the following line to your
-@file{.emacs}:
+@noindent To achieve this, add the following line to your @file{.emacs}:
 
 @lisp
 (c-set-offset 'case-label '+)
 @end lisp
-
-There appears to be no way to do this with the old @code{c-mode}.
 
 @node Customizing C and C++ indentation
 @section How to customize indentation in C, C@t{++}, and Java buffers?
@@ -1824,33 +1813,7 @@ Note that this is overridden by the variable
 @code{truncate-partial-width-windows} if that variable is non-nil
 and the current buffer is not full-frame width.
 
-In Emacs 20, use the @code{hscroll-mode}.  Here is some information from
-the documentation, available by typing @kbd{C-h f hscroll-mode @key{RET}}:
-
-Automatically scroll horizontally when the point moves off the
-left or right edge of the window.
-
-@itemize @minus
-@item
-Type @kbd{M-x hscroll-mode} to enable it in the current buffer.
-
-@item
-Type @kbd{M-x hscroll-global-mode} to enable it in every buffer.
-
-@item
-@code{turn-on-hscroll} is useful in mode hooks as in:
-
-@lisp
-(add-hook 'text-mode-hook 'turn-on-hscroll)
-@end lisp
-
-@item
-@code{hscroll-margin} controls how close the cursor can get to the
-edge of the window.
-
-@item
-@code{hscroll-step-percent} controls how far to jump once we decide to do so.
-@end itemize
+In Emacs 20, use @code{hscroll-mode}.
 
 @node Overwrite mode
 @section How do I make Emacs ``typeover'' or ``overwrite'' instead of inserting?
@@ -2204,9 +2167,9 @@ is actually typical for regexp syntax.)
 @cindex Files, replacing strings across multiple
 @cindex Recursive search/replace operations
 
-As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x
-d}) supports the command @code{dired-do-query-replace} (@kbd{Q}), which
-allows users to replace regular expressions in multiple files.
+Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x d}) supports the
+command @code{dired-do-query-replace-regexp} (@kbd{Q}), which allows
+users to replace regular expressions in multiple files.
 
 You can use this command to perform search/replace operations on
 multiple files by following the following steps:
@@ -2257,7 +2220,7 @@ load @code{dired-x} by adding the following to your @file{.emacs} file:
 @lisp
 (add-hook 'dired-load-hook
           (lambda ()
-           (load "dired-x")))
+           (require 'dired-x)))
 @end lisp
 
 With @code{dired-x} loaded, @kbd{M-o} toggles omitting in each dired buffer.
