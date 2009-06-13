@@ -4988,8 +4988,9 @@ most folks as that update propagates around.
 @cindex Gnus FAQ
 @cindex Learning more about Gnus
 
-For more information on Gnus, consult the Gnus manual and FAQ, which are
-part of the Gnus distribution.
+For more information on Gnus, @pxref{Top,, the Gnus Manual, gnus, The
+Gnus Manual}, which includes @ref{Frequently Asked Questions,, the Gnus
+FAQ, gnus}.
 
 @node Concept index
 @unnumbered Concept Index

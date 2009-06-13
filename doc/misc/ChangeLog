@@ -17,6 +17,7 @@
 	(Horizontal scrolling): Abbreviate Emacs 20 description.
 	(Replacing text across multiple files): Fix name of dired command.
 	(Disabling backups): Use require not load.
+	(Learning more about Gnus): Add cross-refs to Gnus manual and FAQ.
 
 2009-06-13  Bill Wohler  <wohler@newt.com>
 
