@@ -1,3 +1,11 @@
+2009-06-14  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (ns_attribute_value): Remove.
+	(ns_attribute_fvalue): Incorporate code from ns_attribute_value.
+	(ns_has_attribute): Shrink the normal range.
+	(ns_findfonts): Don't worry about requested spec in determining
+	need for synthItal.
+
 2009-06-14  Seiji Zenitani  <zenitani@mac.com>
 
 	* xdisp.c [USE_MAC_TOOLBAR]: Remove obsolete definition for Mac Carbon.
