@@ -106,21 +106,15 @@ ns_get_family (Lisp_Object font_spec)
 }
 
 
-/* Return NSNumber or nil if attr is not set. */
-static NSNumber
-*ns_attribute_value (NSFontDescriptor *fdesc, NSString *trait)
-{
-    NSDictionary *tdict = [fdesc objectForKey: NSFontTraitsAttribute];
-    NSNumber *val = [tdict objectForKey: trait];
-    return val;
-}
-
-
-/* Return 0 if attr not set, else value (which might also be 0). */
+/* Return 0 if attr not set, else value (which might also be 0).
+   On Leopard 0 gets returned even on descriptors where the attribute
+   was never set, so there's no way to distinguish between unspecified
+   and set to not have.  Callers should assume 0 means unspecified. */
 static float
 ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
 {
-    NSNumber *val = ns_attribute_value (fdesc, trait);
+    NSDictionary *tdict = [fdesc objectForKey: NSFontTraitsAttribute];
+    NSNumber *val = [tdict objectForKey: trait];
     return val == nil ? 0.0 : [val floatValue];
 }
 
@@ -130,7 +124,7 @@ static BOOL
 ns_has_attribute (NSFontDescriptor *fdesc, NSString *trait)
 {
     float v = ns_attribute_fvalue (fdesc, trait);
-    return v < -0.25 || v > 0.25;
+    return v < -0.05 || v > 0.05;
 }
 
 
@@ -502,9 +496,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
     /* Add synthItal member if needed. */
     family = [fdesc objectForKey: NSFontFamilyAttribute];
-    if (family != nil && !foundItal && XINT (Flength (list)) > 0
-	&& (ns_attribute_value (fdesc, NSFontSlantTrait) == nil
-	    || ns_has_attribute (fdesc, NSFontSlantTrait)))
+    if (family != nil && !foundItal && XINT (Flength (list)) > 0)
       {
 	NSFontDescriptor *sDesc = [[[NSFontDescriptor new]
 	    fontDescriptorWithSymbolicTraits: NSFontItalicTrait]
