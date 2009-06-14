@@ -1,3 +1,7 @@
+2009-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp-intro.texi (edebug): Fix typo.
+
 2009-02-22  Karl Berry  <karl@gnu.org>
 
 	* emacs-lisp-intro.texi (Default Configuration): fix dup word "by by".

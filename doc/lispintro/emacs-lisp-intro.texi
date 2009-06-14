@@ -18790,7 +18790,7 @@ after the function's closing parenthesis and typing @kbd{C-x C-e}
 (@code{eval-last-sexp}) or else by positioning your cursor within the
 definition and typing @kbd{C-M-x} (@code{eval-defun}).  (By default,
 the @code{eval-defun} command works only in Emacs Lisp mode or in Lisp
-Interactive mode.)
+Interaction mode.)
 
 @need 1500
 However, to prepare this function definition for Edebug, you must
