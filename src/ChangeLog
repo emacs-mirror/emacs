@@ -1,3 +1,7 @@
+2009-06-14  Sidney Markowitz <sidney@sidney.com>
+
+	* nsmenu.m (EmacsTooltip: setText): set height of tooltip.
+
 2009-06-14  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (ns_attribute_value): Remove.

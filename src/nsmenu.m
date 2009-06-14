@@ -1439,7 +1439,14 @@ update_frame_tool_bar (FRAME_PTR f)
 {
   NSString *str = [NSString stringWithUTF8String: text];
   NSRect r = [textField frame];
-  r.size.width = [[[textField font] screenFont] widthOfString: str] + 8;
+  NSSize textSize = [str sizeWithAttributes: 
+     [NSDictionary dictionaryWithObject: [[textField font] screenFont]
+				 forKey: NSFontAttributeName]];
+  NSSize padSize = [[[textField font] screenFont] 
+		     boundingRectForFont].size;
+ 
+  r.size.width = textSize.width + padSize.width/2;
+  r.size.height = textSize.height + padSize.height/2;
   [textField setFrame: r];
   [textField setStringValue: str];
 }
