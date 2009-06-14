@@ -1,3 +1,9 @@
+2009-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Status of Emacs): Re-order with most recent releases first.
+	(New in Emacs 23): New section.
+	(Handling C-s and C-q with flow control): Add xref.
+
 2009-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Setting up a customization file): Grammar fix.

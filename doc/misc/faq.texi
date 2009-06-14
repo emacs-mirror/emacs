@@ -941,9 +941,10 @@ status of its latest version.
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
-* New in Emacs 20::
-* New in Emacs 21::
+* New in Emacs 23::
 * New in Emacs 22::
+* New in Emacs 21::
+* New in Emacs 20::
 @end menu
 
 @node Origin of the term Emacs
@@ -981,63 +982,84 @@ conventions}).
 
 Emacs @value{VER} is the current version as of this writing.  A version
 number with two components (e.g. @samp{22.1}) indicates a released
-version; three components (e.g. @samp{23.0.50}) indicate a development
-version.
+version; three components indicate a development
+version (e.g. @samp{23.0.50} is what will eventually become @samp{23.1}).
 
-@node New in Emacs 20
-@section What is different about Emacs 20?
-@cindex Differences between Emacs 19 and Emacs 20
-@cindex Emacs 20, new features in
+Because Emacs undergoes many changes before a release, the version
+number of a development version is not especially meaningful.  It is
+better to refer to the date on which the sources were retrieved from the
+development repository.
 
-To find out what has changed in recent versions, type @kbd{C-h C-n}
-(@kbd{M-x view-emacs-news}).  The oldest changes are at the bottom of
-the file, so you might want to read it starting there, rather than at
-the top.
+The following sections list some of the major new features in the last
+few Emacs releases.  For full details of the changes in any version of
+Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  As of Emacs 22,
+you can give this command a prefix argument to read about which features
+were new in older versions.
 
-The differences between Emacs versions 18 and 19 was rather dramatic;
-the introduction of frames, faces, and colors on windowing systems was
-obvious to even the most casual user.
-
-There are differences between Emacs versions 19 and 20 as well, but many
-are more subtle or harder to find.  Among the changes are the inclusion
-of MULE code for languages that use non-Latin characters and for mixing
-several languages in the same document; the ``Customize'' facility for
-modifying variables without having to use Lisp; and automatic conversion
-of files from Macintosh, Microsoft, and Unix platforms.
-
-A number of older Lisp packages, such as Gnus, Supercite and the
-calendar/diary, have been updated and enhanced to work with Emacs 20,
-and are now included with the standard distribution.
-
-
-@node New in Emacs 21
-@section What is different about Emacs 21?
-@cindex Differences between Emacs 20 and Emacs 21
-@cindex Emacs 21, new features in
+@node New in Emacs 23
+@section What is different about Emacs 23?
+@cindex Differences between Emacs 22 and Emacs 23
+@cindex Emacs 23, new features in
 @cindex Recently introduced features
+@cindex Default features
 
-@cindex Variable-size fonts
-@cindex Toolbar support
-Emacs 21 features a thorough rewrite of the display engine.  The new
-display engine supports variable-size fonts, images, and can play sounds
-on platforms which support that.  As a result, the visual appearance of
-Emacs, when it runs on a windowed display, is much more reminiscent of
-modern GUI programs, and includes 3D widgets (used for the mode line and
-the scroll bars), a configurable and extensible toolbar, tooltips
-(a.k.a.@: balloon help), and other niceties.
+@itemize
 
-@cindex Colors on text-only terminals
-@cindex TTY colors
-In addition, Emacs 21 supports faces on text-only terminals.  This means
-that you can now have colors when you run Emacs on a GNU/Linux console
-and on @code{xterm} with @kbd{emacs -nw}.
+@cindex Anti-aliased fonts
+@cindex Freetype fonts
+@item
+Emacs has a new font code that can use multiple font backends,
+including freetype and fontconfig.  Emacs can use the Xft library for
+anti-aliasing, and the otf and m17n libraries for complex text layout and
+text shaping.
+
+@cindex Unicode
+@cindex Character sets
+@item
+The Emacs character set is now a superset of Unicode.  Several new
+language environments have been added.
+
+@cindex Multi-tty support
+@cindex X and tty displays
+@item
+Emacs now supports using both X displays and ttys in the same session
+(@samp{multi-tty}).
+
+@cindex Daemon mode
+@item
+Emacs can be started as a daemon in the background.
+
+@cindex NeXTSTEP port
+@cindex GNUstep port
+@cindex Mac OS X Cocoa
+@item
+There is a new NeXTSTEP port of Emacs.  This supports GNUstep and Mac OS
+X (via the Cocoa libraries).  The Carbon port of Emacs, which supported
+Mac OS X in Emacs 22, has been removed.
+
+@cindex Directory-local variables
+@item
+Directory-local variables can now be defined, in a similar manner to
+file-local variables.
+
+@item
+Transient Mark mode (@pxref{Highlighting a region}) is on by default.
+
+@end itemize
+
+@noindent
+Other changes include: support for serial port access; D-Bus bindings; a
+new Visual Line mode for line-motion; improved completion; a new mode
+(@samp{DocView}) for viewing of PDF, PostScript, and DVI documents; nXML
+mode (for editing XML documents) is included; VC has been updated for
+newer version control systems; etc.  As always, consult the @file{NEWS}
+file for more information.
+
 
 @node New in Emacs 22
 @section What is different about Emacs 22?
 @cindex Differences between Emacs 21 and Emacs 22
 @cindex Emacs 22, new features in
-@cindex Recently introduced features
-@cindex Default features
 
 @itemize
 @cindex GTK+ Toolkit
@@ -1129,8 +1151,44 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 (@pxref{Emacs Lisp documentation}) and the Emacs Lisp Intro.
 @end itemize
 
-Many other changes have been made in Emacs 22, use @kbd{C-h n} to get a
-full list.
+
+@node New in Emacs 21
+@section What is different about Emacs 21?
+@cindex Differences between Emacs 20 and Emacs 21
+@cindex Emacs 21, new features in
+
+@cindex Variable-size fonts
+@cindex Toolbar support
+Emacs 21 features a thorough rewrite of the display engine.  The new
+display engine supports variable-size fonts, images, and can play sounds
+on platforms which support that.  As a result, the visual appearance of
+Emacs, when it runs on a windowed display, is much more reminiscent of
+modern GUI programs, and includes 3D widgets (used for the mode line and
+the scroll bars), a configurable and extensible toolbar, tooltips
+(a.k.a.@: balloon help), and other niceties.
+
+@cindex Colors on text-only terminals
+@cindex TTY colors
+In addition, Emacs 21 supports faces on text-only terminals.  This means
+that you can now have colors when you run Emacs on a GNU/Linux console
+and on @code{xterm} with @kbd{emacs -nw}.
+
+
+@node New in Emacs 20
+@section What is different about Emacs 20?
+@cindex Differences between Emacs 19 and Emacs 20
+@cindex Emacs 20, new features in
+
+The differences between Emacs versions 18 and 19 were rather dramatic;
+the introduction of frames, faces, and colors on windowing systems was
+obvious to even the most casual user.
+
+There are differences between Emacs versions 19 and 20 as well, but many
+are more subtle or harder to find.  Among the changes are the inclusion
+of MULE code for languages that use non-Latin characters and for mixing
+several languages in the same document; the ``Customize'' facility for
+modifying variables without having to use Lisp; and automatic conversion
+of files from Macintosh, Microsoft, and Unix platforms.
 
 @c ------------------------------------------------------------
 @node Common requests
@@ -3985,7 +4043,7 @@ smart enough to move it to another name).
 @end itemize
 
 For further discussion of this issue, read the file @file{etc/PROBLEMS}
-(in the Emacs source directory when you unpack the Emacs distribution).
+(@pxref{File-name conventions}).
 
 @node Binding C-s and C-q
 @section How do I bind @kbd{C-s} and @kbd{C-q} (or any key) if these keys are filtered out?
