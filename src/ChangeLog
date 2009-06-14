@@ -1,3 +1,7 @@
+2009-06-14  Seiji Zenitani  <zenitani@mac.com>
+
+	* xdisp.c [USE_MAC_TOOLBAR]: Remove obsolete definition for Mac Carbon.
+
 2009-06-11  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_get_glyph_overhangs): Fix calculation of right

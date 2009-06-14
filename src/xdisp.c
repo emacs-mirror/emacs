@@ -9863,7 +9863,7 @@ update_tool_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
-#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS)
   int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
   int do_update = WINDOWP (f->tool_bar_window)
@@ -10337,7 +10337,7 @@ redisplay_tool_bar (f)
   struct it it;
   struct glyph_row *row;
 
-#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS)
   if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
@@ -13968,7 +13968,7 @@ redisplay_window (window, just_this_one_p)
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f))
         {
-#if defined (USE_GTK) || defined (HAVE_NS) || USE_MAC_TOOLBAR
+#if defined (USE_GTK) || defined (HAVE_NS)
           redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
           redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
