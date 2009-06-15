@@ -1,3 +1,8 @@
+2009-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-default-revision-granularity): Remove to let the normal
+	error handling kick in (bug#3570).
+
 2009-06-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (kill-visual-line): Rewrite (Bug#3437).  Don't try to

@@ -2247,11 +2247,6 @@ log entries should be gathered."
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 
-;;; The default back end.  Assumes RCS-like revision numbering.
-
-(defun vc-default-revision-granularity ()
-  (error "Your backend will not work with this version of VC mode."))
-
 ;; functions that operate on RCS revision numbers.  This code should
 ;; also be moved into the backends.  It stays for now, however, since
 ;; it is used in code below.
