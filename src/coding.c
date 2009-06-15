@@ -1682,7 +1682,7 @@ detect_coding_utf_16 (coding, detect_info)
 	    }
 	  if (! o[c2])
 	    {
-	      o[c1] = 1;
+	      o[c2] = 1;
 	      o_num++;
 	      if (o_num >= 128)
 		break;
