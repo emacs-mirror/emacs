@@ -1325,6 +1325,11 @@ temporary-file-directory instead.
 removed.  The function now takes extra arguments for specifying
 arbitrary abbrev properties.
 
+** end-of-defun-function is now guaranteed to work only when called
+from the start of a defun.  It must now leave point exactly at the end
+of defun, since `end-of-defun' now itself moves forward over
+whitespace after calling it.
+
 
 * Lisp Changes in Emacs 23.1
 
@@ -1383,8 +1388,9 @@ like this:
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 
 +++
-** `beginning-of-defun-function' now takes one argument, the count
-given to `beginning-of-defun'.
+** `beginning-of-defun-function' now takes one argument, the count given to
+`beginning-of-defun'.  (N.B. `end-of-defun-function' doesn't take any
+arguments.)
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
