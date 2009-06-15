@@ -3734,7 +3734,7 @@ Various spell-checkers are compatible with Emacs, including:
 @cindex Database
 @cindex Forms mode
 
-@uref{http://gnuvola.org/software/edb/, the Emacs Database}
+@uref{http://gnuvola.org/software/edb/, The Emacs Database}
 
 @node JDE
 @section JDE --- Integrated development environment for Java
@@ -3742,7 +3742,7 @@ Various spell-checkers are compatible with Emacs, including:
 @cindex Integrated Java development environment
 @cindex JDE
 
-@uref{http://jdee.sourceforge.net/, a Java Development Environment for Emacs}
+@uref{http://jdee.sourceforge.net/, A Java Development Environment for Emacs}
 
 @c ------------------------------------------------------------
 @node Key bindings
