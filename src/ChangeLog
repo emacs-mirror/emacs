@@ -1,3 +1,8 @@
+2009-06-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_delete_terminal): Put previous change in #if 0 and
+	add comment explaining why.
+
 2009-06-14  Sidney Markowitz <sidney@sidney.com>
 
 	* nsmenu.m (EmacsTooltip: setText): set height of tooltip.
