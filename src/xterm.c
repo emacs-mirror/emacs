@@ -10747,7 +10747,18 @@ x_delete_terminal (struct terminal *terminal)
       /* Whether or not XCloseDisplay destroys the associated resource
 	 database depends on the version of libX11.  To avoid both
 	 crash and memory leak, we dissociate the database from the
-	 display and then destroy dpyinfo->xrdb ourselves.  */
+	 display and then destroy dpyinfo->xrdb ourselves.
+
+	 Unfortunately, the above strategy does not work in some
+	 situations due to a bug in newer versions of libX11: because
+	 XrmSetDatabase doesn't clear the flag XlibDisplayDfltRMDB if
+	 dpy->db is NULL, XCloseDisplay destroys the associated
+	 database whereas it has not been created by XGetDefault
+	 (Bug#21974 in freedesktop.org Bugzilla).  As a workaround, we
+	 don't destroy the database here in order to avoid the crash
+	 in the above situations for now, though that may cause memory
+	 leaks in other situations.  */
+#if 0
 #ifdef HAVE_XRMSETDATABASE
       XrmSetDatabase (dpyinfo->display, NULL);
 #else
@@ -10757,6 +10768,7 @@ x_delete_terminal (struct terminal *terminal)
 	 some older versions of libX11 crash if we call it after
 	 closing all the displays.  */
       XrmDestroyDatabase (dpyinfo->xrdb);
+#endif
 
 #ifdef USE_GTK
       xg_display_close (dpyinfo->display);
