@@ -9,6 +9,7 @@
 	(ns_has_attribute): Shrink the normal range.
 	(ns_findfonts): Don't worry about requested spec in determining
 	need for synthItal.
+	(ns_get_covering_families): Retain scriptToFamilies.
 
 2009-06-14  Seiji Zenitani  <zenitani@mac.com>
 

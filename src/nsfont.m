@@ -397,7 +397,7 @@ static NSSet
 	NSLog(@"Request covering families for script: '%@'", script);
 
     if (scriptToFamilies == nil)
-	scriptToFamilies = [NSMutableDictionary dictionaryWithCapacity: 30];
+        scriptToFamilies = [[NSMutableDictionary alloc] init];
 
     if ((families = [scriptToFamilies objectForKey: script]) == nil)
       {
