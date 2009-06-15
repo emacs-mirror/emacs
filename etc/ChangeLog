@@ -1,3 +1,8 @@
+2009-06-15  Alan Mackenzie  <acm@muc.de>
+
+	* NEWS: Document changes to end-of-defun-function, clarifying
+	entry for beginning-of-defun-function.
+
 2009-06-13  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.2.
