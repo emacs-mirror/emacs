@@ -1677,14 +1677,14 @@ detect_coding_utf_16 (coding, detect_info)
 	    {
 	      e[c1] = 1;
 	      e_num++;
-	      if (e_num >= 128)
+	      if (e_num >= 128 && o_num >= 128)
 		break;
 	    }
 	  if (! o[c2])
 	    {
 	      o[c2] = 1;
 	      o_num++;
-	      if (o_num >= 128)
+	      if (e_num >= 128 && o_num >= 128)
 		break;
 	    }
 	}
