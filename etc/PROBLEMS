@@ -1504,7 +1504,8 @@ There are three possible reasons why flow control could be taking place:
 
 First of all, many terminals have a set-up mode which controls whether
 they generate XON/XOFF flow control characters.  This must be set to
-"no XON/XOFF" in order for Emacs to work.  Sometimes there is an
+"no XON/XOFF" in order for Emacs to work.  (For example, on a VT220
+you may select "No XOFF" in the setup menu.)  Sometimes there is an
 escape sequence that the computer can send to turn flow control off
 and on.  If so, perhaps the termcap `ti' string should turn flow
 control off, and the `te' string should turn it on.
@@ -1631,12 +1632,14 @@ in termcap.c, tparam.c, term.c, scroll.c, cm.c or dispnew.c.
 Some versions of rlogin (and possibly telnet) do not pass flow
 control characters to the remote system to which they connect.
 On such systems, emacs on the remote system cannot disable flow
-control on the local system.
+control on the local system.  Sometimes `rlogin -8' will avoid this
+problem.
 
 One way to cure this is to disable flow control on the local host
 (the one running rlogin, not the one running rlogind) using the
 stty command, before starting the rlogin process.  On many systems,
-"stty start u stop u" will do this.
+"stty start u stop u" will do this.  On some systems, use
+"stty -ixon" instead. 
 
 Some versions of tcsh will prevent even this from working.  One way
 around this is to start another shell before starting rlogin, and
