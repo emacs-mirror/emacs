@@ -1,3 +1,47 @@
+2009-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Top): Mention which Emacs version this FAQ is about.
+	Recommend the latest release.  Mention how to get older FAQs.
+	Recommend the Emacs manual.
+	(Guidelines for newsgroup postings): Discourage cross-posts.
+	(Underlining paragraphs): Remove.
+	(Editing MS-DOS files): Remove pre-Emacs 20 information.
+	(Bugs and problems): Update key-binding.
+	(Problems with very large files): Mention 64-bit.
+	(Shell process exits abnormally): Remove.
+	(Problems with Shell Mode): Rename and update.
+	(Spontaneous entry into isearch-mode)
+	(Problems talking to certain hosts): Remove.  This is old information,
+	in etc/PROBLEMS if needed.
+	(Emacs takes a long time to visit files, Updating Emacs): Remove.
+	(Dired claims that no file is on this line): Update.
+	(Installing Emacs, Problems building Emacs): Simplify.
+	(Emacs for MS-DOS): Refer to msdos/INSTALL rather than duplicating
+	information.
+	(Emacs for MS-Windows): Rename from "Emacs for Windows".  Simplify.
+	(Emacs for Mac OS X): Rename from "Emacs for Apple computers".
+	(JDEE): "JDEE", not "JDE".
+	(Handling C-s and C-q with flow control, Binding C-s and C-q):
+	Remove.  This is old information, in etc/PROBLEMS if needed.
+	(stty and Backspace key, Kanji and Chinese characters): Remove.
+	(Right-to-left alphabets): Update section.
+	(Changing the included text prefix): Gnus uses message-yank-prefix.
+	Add cross-reference to Supercite manual.
+	(Saving a copy of outgoing mail): Simplify output file description.
+	(Expanding aliases when sending mail): Refer to Emacs manual.
+	Remove old info about RFC822.
+	Correct description of how to rebuild aliases.
+	(Rmail writes to /var/spool/mail): Update location from /usr/spool/mail.
+	(MIME with Emacs mail packages)
+	(Viewing articles with embedded underlining)
+	(Saving a multi-part Gnus posting, Gnus hangs for a long time):
+	Remove old sections.
+	(Killing based on nonstandard headers): Remove.  Scoring is preferable,
+	and is well-documented in the Gnus manual.
+	(Reading news with Emacs): Merge "Learning more about Gnus" into here.
+	(Making Gnus faster): Rename from "Starting Gnus faster".
+	Merge "Catch-up is slow in Gnus" into here.
+
 2009-06-14  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Status of Emacs): Re-order with most recent releases first.
@@ -188,54 +232,18 @@
 
 2009-02-16  Karl Berry  <karl@gnu.org>
 
-	* ada-mode.texi,
-	* auth.texi,
-	* autotype.texi,
-	* calc.texi,
-	* cc-mode.texi,
-	* cl.texi,
-	* dbus.texi,
-	* dired-x.texi,
-	* ebrowse.texi,
-	* ediff.texi,
-	* emacs-mime.texi,
-	* epa.texi,
-	* erc.texi,
-	* eshell.texi,
-	* eudc.texi,
-	* faq.texi,
-	* flymake.texi,
-	* forms.texi,
-	* gnus-coding.texi,
-	* gnus.texi,
-	* idlwave.texi,
-	* info.texi,
-	* mairix-el.texi,
-	* message.texi,
-	* mh-e.texi,
-	* newsticker.texi,
-	* nxml-mode.texi,
-	* org.texi,
-	* pcl-cvs.texi,
-	* pgg.texi,
-	* rcirc.texi,
-	* reftex.texi,
-	* remember.texi,
-	* sasl.texi,
-	* sc.texi,
-	* ses.texi,
-	* sieve.texi,
-	* smtpmail.texi,
-	* speedbar.texi,
-	* tramp.texi,
-	* url.texi,
-	* vip.texi,
-	* viper.texi,
-	* widget.texi,
-	* woman.texi: Consistently use @insertcopying in the Top node,
+	* ada-mode.texi, auth.texi, autotype.texi, calc.texi, cc-mode.texi:
+	* cl.texi, dbus.texi, dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, eshell.texi, eudc.texi:
+	* faq.texi, flymake.texi, forms.texi, gnus-coding.texi, gnus.texi:
+	* idlwave.texi, info.texi, mairix-el.texi, message.texi, mh-e.texi:
+	* newsticker.texi, nxml-mode.texi, org.texi, pcl-cvs.texi:
+	* pgg.texi, rcirc.texi, reftex.texi, remember.texi, sasl.texi:
+	* sc.texi, ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi, woman.texi:
+	Consistently use @insertcopying in the Top node,
 	@contents at the front (after @end titlepage),
-	and @direntry after @copying.
-	(Bug#1988)
+	and @direntry after @copying.  (Bug#1988)
 
 2009-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 

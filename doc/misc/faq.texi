@@ -67,6 +67,19 @@ This FAQ is maintained as a part of GNU Emacs.  If you find any errors,
 or have any suggestions, please use @kbd{M-x report-emacs-bug} to report
 them.
 
+This is the version of the FAQ distributed with Emacs @value{VER}, and
+mainly describes that version.  Although there is some information on
+older versions, details about very old versions (now only of historical
+interest) have been removed.  If you are interested in this, consult
+either the version of the FAQ distributed with older versions of Emacs,
+or the history of this document in the Emacs source repository.
+
+Since Emacs releases are very stable, we recommend always running the
+latest release.
+
+This FAQ is not updated very frequently.  When you have a question about
+Emacs, the Emacs manual is often the best starting point.
+
 @ifnottex
 @insertcopying
 @end ifnottex 
@@ -388,7 +401,8 @@ lists both the newsgroup name and the mailing list address.
 
 The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
 in general.  The newsgroup @uref{news:gnu.emacs.help} is specifically
-for GNU Emacs.
+for GNU Emacs.  It therefore makes no sense to cross-post to both
+groups, since only one can be appropriate to any question.
 
 Messages advocating ``non-free'' software are considered unacceptable on
 any of the @code{gnu.*} newsgroups except for @uref{news:gnu.misc.discuss},
@@ -1229,7 +1243,6 @@ of files from Macintosh, Microsoft, and Unix platforms.
 * Evaluating Emacs Lisp code::
 * Changing the length of a Tab::
 * Inserting text at the beginning of each line::
-* Underlining paragraphs::
 * Forcing the cursor to remain in the same column::
 * Forcing Emacs to iconify itself::
 * Using regular expressions::
@@ -2158,13 +2171,6 @@ buffers, you can even use @kbd{M-;} to cite yanked messages (@kbd{M-;}
 runs the function @code{comment-region}, it is a general-purpose
 mechanism to comment regions) (@pxref{Changing the included text prefix}).
 
-@node Underlining paragraphs
-@section How do I insert @samp{_^H} before each character in a region to get an underlined paragraph?
-@cindex Underlining a region of text
-@cindex @code{underline-region}
-
-Mark the region and then type @kbd{M-x underline-region @key{RET}}.
-
 @node Forcing the cursor to remain in the same column
 @section How do I make Emacs behave like this: when I go up or down, the cursor should stay in the same column even if the line is too short?
 @cindex @code{picture-mode}
@@ -2574,12 +2580,6 @@ the string @samp{(DOS)} will appear near the left edge of the mode line;
 on DOS and Windows, where the DOS end-of-line (EOL) format is the
 default, a backslash (@samp{\}) will appear in the mode line.
 
-If you are running a version of Emacs before 20.1, get @code{crypt++}
-(@pxref{Packages that do not come with Emacs}).  Among other things,
-@code{crypt++} transparently modifies MS-DOS files as they are loaded
-and saved, allowing you to ignore the different conventions that Unix
-and MS-DOS have for delineating the end of a line.
-
 @node Filling paragraphs with a single space
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
 @cindex One space following periods
@@ -2650,20 +2650,16 @@ instructions how to do that.
 
 The file @file{etc/PROBLEMS} in the Emacs distribution lists various
 known problems with building and using Emacs on specific platforms;
-type @kbd{C-h C-e} to read it.
+type @kbd{C-h C-p} to read it.
 
 @menu
 * Problems with very large files::
 * ^M in the shell buffer::
-* Shell process exits abnormally::
-* Problems with Shell Mode on MS-Windows::
+* Problems with Shell Mode::
 * Termcap/Terminfo entries for Emacs::
-* Spontaneous entry into isearch-mode::
-* Problems talking to certain hosts::
 * Errors with init files::
 * Emacs ignores X resources::
 * Emacs ignores frame parameters::
-* Emacs takes a long time to visit files::
 * Editing files with $ in the name::
 * Shell mode loses the current directory::
 * Security risks with Emacs::
@@ -2683,6 +2679,8 @@ files larger than 8 megabytes.  In versions 19.29 and later, the maximum
 buffer size is at least 2^27-1, or 134,217,727 bytes, or 132 MBytes.
 And in Emacs 22, the maximum buffer size has been increased to
 268,435,455 bytes (or 256 MBytes) on 32-bit machines.
+
+Emacs compiled on a 64-bit machine can handle much larger buffers.
 
 @node ^M in the shell buffer
 @section How do I get rid of @samp{^M} or echoed commands in my shell buffer?
@@ -2756,62 +2754,20 @@ shell start-up file:
 stty -icrnl -onlcr -echo susp ^Z
 @end example
 
-@node Shell process exits abnormally
-@section Why do I get ``Process shell exited abnormally with code 1''?
-@cindex Abnormal exits from @code{shell-mode}
-@cindex @code{shell-mode} exits
-@cindex Process shell exited
-
-The most likely reason for this message is that the @samp{env} program
-is not properly installed.  Compile this program for your architecture,
-and install it with @samp{a+x} permission in the architecture-dependent
-Emacs program directory.  (You can find what this directory is at your
-site by inspecting the value of the variable @code{exec-directory} by
-typing @kbd{C-h v exec-directory @key{RET}}.)
-
-You should also check for other programs named @samp{env} in your path
-(e.g., SunOS has a program named @file{/usr/bin/env}).  We don't
-understand why this can cause a failure and don't know a general
-solution for working around the problem in this case.
-
-The @samp{make clean} command will remove @samp{env} and other vital
-programs, so be careful when using it.
-
-It has been reported that this sometimes happened when Emacs was started
-as an X client from an xterm window (i.e., had a controlling tty) but the
-xterm was later terminated.
-
-See also @samp{PROBLEMS} (in the @file{etc} subdirectory of the
-top-level directory when you unpack the Emacs source) for other
-possible causes of this message.
-
-@node Problems with Shell Mode on MS-Windows
+@node Problems with Shell Mode
 @section Why do I get an error message when I try to run @kbd{M-x shell}?
 
-@cindex Shell Mode, and MS-Windows
+@cindex Shell Mode, problems
 @cindex @code{explicit-shell-file-name}
-On MS-Windows, this might happen because Emacs tries to look for the
-shell in a wrong place.  The default file name @file{/bin/sh} is
-usually incorrect for non-Unix systems.  If you know where your shell
-executable is, set the variable @code{explicit-shell-file-name} in
-your @file{.emacs} file to point to its full file name, like this:
-
-@lisp
-(setq explicit-shell-file-name "d:/shells/bash.exe")
-@end lisp
-
-If you don't know what shell does Emacs use, try the @kbd{M-!}
-command; if that works, put the following line into your
-@file{.emacs}:
-
-@lisp
-(setq explicit-shell-file-name shell-file-name)
-@end lisp
+This might happen because Emacs tries to look for the shell in a wrong
+place.  If you know where your shell executable is, set the variable
+@code{explicit-shell-file-name} in your @file{.emacs} file to point to
+its full file name.
 
 @cindex Antivirus programs, and Shell Mode
-Some people have trouble with Shell Mode because of intrusive
-antivirus software; disabling the resident antivirus program solves
-the problems in those cases.
+Some people have trouble with Shell Mode on MS-Windows because of
+intrusive antivirus software; disabling the resident antivirus program
+solves the problems in those cases.
 
 @node Termcap/Terminfo entries for Emacs
 @section Where is the termcap/terminfo entry for terminal type @samp{emacs}?
@@ -2846,63 +2802,6 @@ in your shell start up file.  @code{csh} users could put this in their
 @example
 if ("$term" == emacs) set term=dumb
 @end example
-
-@node Spontaneous entry into isearch-mode
-@section Why does Emacs spontaneously start displaying @samp{I-search:} and beeping?
-@cindex Spontaneous entry into isearch-mode
-@cindex isearch-mode, spontaneous entry into
-@cindex Beeping without obvious reason
-
-Your terminal (or something between your terminal and the computer) is
-sending @kbd{C-s} and @kbd{C-q} for flow control, and Emacs is receiving
-these characters and interpreting them as commands.  (The @kbd{C-s}
-character normally invokes the @code{isearch-forward} command.)  For
-possible solutions, see @ref{Handling C-s and C-q with flow control}.
-
-@node Problems talking to certain hosts
-@section Why can't Emacs talk to certain hosts (or certain hostnames)?
-@cindex Hosts, Emacs cannot talk to
-@cindex @code{gethostbyname}, problematic version
-
-The problem may be that Emacs is linked with a wimpier version of
-@code{gethostbyname} than the rest of the programs on the machine.  This
-is often manifested as a message on startup of ``X server not responding.
-Check your @samp{DISPLAY} environment variable.'' or a message of
-``Unknown host'' from @code{open-network-stream}.
-
-On a Sun, this may be because Emacs had to be linked with the static C
-library.  The version of @code{gethostbyname} in the static C library
-may only look in @file{/etc/hosts} and the NIS (YP) maps, while the
-version in the dynamic C library may be smart enough to check DNS in
-addition to or instead of NIS.  On a Motorola Delta running System V
-R3.6, the version of @code{gethostbyname} in the standard library works,
-but the one that works with NIS doesn't (the one you get with -linet).
-Other operating systems have similar problems.
-
-Try these options:
-
-@itemize @bullet
-
-@item
-Explicitly add the host you want to communicate with to @file{/etc/hosts}.
-
-@item
-Relink Emacs with this line in @file{src/config.h}:
-
-@example
-#define LIBS_SYSTEM -lresolv
-@end example
-
-@item
-Replace @code{gethostbyname} and friends in @file{libc.a} with more
-useful versions such as the ones in @file{libresolv.a}.  Then relink
-Emacs.
-
-@item
-If you are actually running NIS, make sure that @code{ypbind} is
-properly told to do DNS lookups with the correct command line switch.
-
-@end itemize
 
 @node Errors with init files
 @section Why does Emacs say @samp{Error in init file}?
@@ -3019,22 +2918,6 @@ in a special way.  For example, you could determine the position and
 size of the initial frame, but would like to control the geometry of the
 other frames by individually positioning each one of them.
 
-
-@node Emacs takes a long time to visit files
-@section Why does Emacs take 20 seconds to visit a file?
-@cindex Visiting files takes a long time
-@cindex Delay when visiting files
-@cindex Files, take a long time to visit
-
-Old versions of Emacs (i.e., versions before Emacs 20.x) often
-encountered this when the master lock file, @file{!!!SuperLock!!!}, has
-been left in the lock directory somehow.  Delete it.
-
-@email{meuer@@geom.umn.edu, Mark Meuer} says that NeXT NFS has a bug
-where an exclusive create succeeds but returns an error status.  This
-can cause the same problem.  Since Emacs's file locking doesn't work
-over NFS anyway, the best solution is to recompile Emacs with
-@code{CLASH_DETECTION} undefined.
 
 @node Editing files with $ in the name
 @section How do I edit a file with a @samp{$} in its name?
@@ -3172,21 +3055,16 @@ access control enabled, only authorized clients can connect
 @section Dired says, @samp{no file on this line} when I try to do something.
 @cindex Dired does not see a file
 
-@c FIXME: I think this is fixed in Emacs 21, but I didn't have time to
-@c check.
-Chances are you're using a localized version of Unix that doesn't use US
-date format in dired listings.  You can check this by looking at dired
-listings or by typing @kbd{ls -l} to a shell and looking at the dates that
-come out.
-
 Dired uses a regular expression to find the beginning of a file name.
 In a long Unix-style directory listing (@samp{ls -l}), the file name
 starts after the date.  The regexp has thus been written to look for the
-date, the format of which can vary on non-US systems.
+date.  By default, it should understand dates and times regardless of
+the language, but if your directory listing has an unusual format, Dired
+may get confused.
 
 There are two approaches to solving this.  The first one involves
-setting things up so that @samp{ls -l} outputs US date format.  This can
-be done by setting the locale.  See your OS manual for more information.
+setting things up so that @samp{ls -l} outputs a more standard format.
+See your OS manual for more information.
 
 The second approach involves changing the regular expression used by
 dired, @code{directory-listing-before-filename-regexp}.
@@ -3198,7 +3076,6 @@ dired, @code{directory-listing-before-filename-regexp}.
 
 @menu
 * Installing Emacs::
-* Updating Emacs::
 * Problems building Emacs::
 @end menu
 
@@ -3207,92 +3084,53 @@ dired, @code{directory-listing-before-filename-regexp}.
 @cindex Installing Emacs
 @cindex Unix systems, installing Emacs on
 @cindex Downloading and installing Emacs
-@cindex Retrieving and installing Emacs
 @cindex Building Emacs from source
 @cindex Source code, building Emacs from
-@cindex Unpacking and installing Emacs
 
 This answer is meant for users of Unix and Unix-like systems.  Users of
 other operating systems should see the series of questions beginning
 with @ref{Emacs for MS-DOS}, which describe where to get non-Unix source
 and binaries, and how to install Emacs on those systems.
 
-For Unix and Unix-like systems, the easiest way is often to compile it
-from scratch.  You will need:
+Most GNU/Linux distributions provide pre-built Emacs packages.
+If Emacs is not installed already, you can install it by running (as
+root) a command such as @samp{yum install emacs} (Red Hat and
+derivatives) or @samp{apt-get install emacs} (Debian and derivatives).
+
+If you want to compile Emacs yourself, read the file @file{INSTALL} in
+the source distribution.  In brief:
 
 @itemize @bullet
 
 @item
-Emacs sources.  @xref{Current GNU distributions}, for a list of ftp sites
-that make them available.  On @file{ftp.gnu.org}, the main GNU
-distribution site, sources are available as
+First download the Emacs sources.  @xref{Current GNU distributions}, for
+a list of ftp sites that make them available.  On @file{ftp.gnu.org},
+the main GNU distribution site, sources are available as
 
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-@value{VER}.tar.gz}
+@c Don't include VER in the file name, because pretests are not there.
+@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
 
-The above will obviously change as new versions of Emacs come out.  For
-instance, when Emacs 24.3 is released, it will most probably be
-available as
+(Replace @samp{VERSION} with the relevant version number, e.g. @samp{23.1}.)
 
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-24.3.tar.gz}
-
-Again, you should use one of the GNU mirror sites (see @ref{Current GNU
-distributions}, and adjust the URL accordingly) so as to reduce load on
+@item
+Next uncompress and extract the source files.  This requires
+the @code{gzip} and @code{tar} programs, which are standard utilities.
+If your system does not have them, these can also be downloaded from
 @file{ftp.gnu.org}.
 
-@item
-@code{gzip}, the GNU compression utility.  You can get @code{gzip} via
-anonymous ftp at mirrors of @file{ftp.gnu.org} sites; it should compile
-and install without much trouble on most systems.  Once you have
-retrieved the Emacs sources, you will probably be able to uncompress
-them with the command
+GNU @code{tar} can uncompress and extract in a single-step:
 
 @example
-gunzip --verbose emacs-@value{VER}.tar.gz
+tar -zxvf emacs-VERSION.tar.gz
 @end example
-
-@noindent
-changing the Emacs version (@value{VER}), as necessary.  Once
-@code{gunzip} has finished doing its job, a file by the name of
-@file{emacs-@value{VER}.tar} should be in your build directory.
 
 @item
-@code{tar}, the @dfn{tape archiving} program, which moves multiple files
-into and out of archive files, or @dfn{tarfiles}.  All of the files
-comprising the Emacs source come in a single tarfile, and must be
-extracted using @code{tar} before you can build Emacs.  Typically, the
-extraction command would look like
+At this point, the Emacs sources should be sitting in a directory called
+@file{emacs-VERSION}.  On most common Unix and Unix-like systems,
+you should be able to compile Emacs with the following commands:
 
 @example
-tar -xvvf emacs-@value{VER}.tar
-@end example
-
-@noindent
-The @samp{x} indicates that we want to extract files from this tarfile,
-the two @samp{v}s force verbose output, and the @samp{f} tells
-@code{tar} to use a disk file, rather than one on the tape drive.
-
-If you're using GNU @code{tar} (available at mirrors of
-@file{ftp.gnu.org}), you can combine this step and the previous one by
-using the command
-
-@example
-tar -zxvvf emacs-@value{VER}.tar.gz
-@end example
-
-@noindent
-The additional @samp{z} at the beginning of the options list tells GNU
-@code{tar} to uncompress the file with @code{gunzip} before extracting
-the tarfile's components.
-
-@end itemize
-
-At this point, the Emacs sources (all 70+ megabytes of them) should be
-sitting in a directory called @file{emacs-@value{VER}}.  On most common
-Unix and Unix-like systems, you should be able to compile Emacs (with X
-Window system support) with the following commands:
-
-@example
-cd emacs-@value{VER}       # change directory to emacs-@value{VER}
+cd emacs-VERSION
 ./configure         # configure Emacs for your particular system
 make                # use Makefile to build components, then Emacs
 @end example
@@ -3301,46 +3139,18 @@ If the @code{make} completes successfully, the odds are fairly good that
 the build has gone well.  (@xref{Problems building Emacs}, if you weren't
 successful.)
 
-By default, Emacs is installed in the following directories:
-
-@table @file
-@item /usr/local/bin
-binaries.
-
-@item /usr/local/share/emacs/@value{VER}
-Lisp code and support files.
-
-@item /usr/local/info
-Info documentation.
-@end table
-
-To install files in those default directories, become the superuser and
-type
+@item
+By default, Emacs is installed in @file{/usr/local}.  To actually
+install files, become the superuser and type
 
 @example
 make install
 @end example
 
 Note that @samp{make install} will overwrite @file{/usr/local/bin/emacs}
-and any Emacs Info files that might be in @file{/usr/local/info}.
+and any Emacs Info files that might be in @file{/usr/local/share/info/}.
 
-Much more verbose instructions (with many more hints and suggestions)
-come with the Emacs sources, in the file @file{INSTALL}.
-
-@node Updating Emacs
-@section How do I update Emacs to the latest version?
-@cindex Updating Emacs
-
-@xref{Installing Emacs}, and follow the instructions there for
-installation.
-
-Most files are placed in version-specific directories.  Emacs
-@value{VER}, for instance, places files in
-@file{/usr/local/share/emacs/@value{VER}}.
-
-Upgrading should overwrite only, @file{/usr/local/bin/emacs} (the Emacs
-binary) and documentation in @file{/usr/local/info}.  Back up these
-files before you upgrade, and you shouldn't have too much trouble.
+@end itemize
 
 @node Problems building Emacs
 @section What should I do if I have trouble building Emacs?
@@ -3355,12 +3165,8 @@ installation and compilation problems.
 If you'd like to have someone look at your problem and help solve it,
 see @ref{Help installing Emacs}.
 
-If you cannot find a solution in the documentation, send a message to
-@email{bug-gnu-emacs@@gnu.org}.
-
-Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
-@email{help-gnu-emacs@@gnu.org}.  For further guidelines, see
-@ref{Guidelines for newsgroup postings} and @ref{Reporting bugs}.
+If you cannot find a solution in the documentation, please report the
+problem (@pxref{Reporting bugs}).
 
 
 @c ------------------------------------------------------------
@@ -3376,9 +3182,9 @@ Please don't post it to @uref{news:gnu.emacs.help} or send e-mail to
 * Difference between Emacs and XEmacs::
 * Emacs for minimalists::
 * Emacs for MS-DOS::
-* Emacs for Windows::
+* Emacs for MS-Windows::
 * Emacs for GNUstep::
-* Emacs for Apple computers::
+* Emacs for Mac OS X::
 @end menu
 
 @node Finding Emacs on the Internet
@@ -3516,116 +3322,59 @@ information is available from
 
 
 @node Emacs for MS-DOS
-@section Where can I get Emacs for my PC running MS-DOS?
+@section Where can I get Emacs for MS-DOS?
 @cindex MS-DOS, Emacs for
 @cindex DOS, Emacs for
 @cindex Compiling Emacs for DOS
 @cindex Emacs for MS-DOS
-@cindex Tools needed to compile Emacs under DOS
 
-A pre-built binary distribution of Emacs 20 is available from the
-SimTel.NET archives.  This version apparently works under MS-DOS and
-Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
-Windows 9X, Windows ME, and Windows 2000.  More information is available
-from
+To build Emacs from source for MS-DOS, see the instructions in the file
+@file{msdos/INSTALL} in the distribution.  The DOS port builds and runs
+on plain DOS, and also on all versions of MS-Windows from version 3.X
+onwards, including Windows XP and Vista.
+
+The file @file{etc/PROBLEMS} contains some additional information
+regarding Emacs under MS-DOS.
+
+A pre-built binary distribution of the old Emacs 20 is available, as
+described at
 
 @uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
-
-The binary itself is available in the files @file{em*.zip} in the
-directory
-
-@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/}
-
-If you prefer to compile Emacs for yourself, you can do so with the
-current distribution directly.  You will need a 386 (or
-better) processor, and to be running MS-DOS 3.0 or later.  According to
-@email{eliz@@gnu.org, Eli Zaretskii} and
-@email{hankedr@@dms.auburn.edu, Darrel Hankerson}, you will need the
-following:
-
-@table @emph
-
-@item Compiler
-DJGPP version 1.12 maint 1 or later.  Djgpp 2.0 or later is
-recommended, since 1.x is very old an unmaintained.  Djgpp 2 supports
-long file names on Windows 9X/ME/2K.
-
-You can get the latest release of DJGPP by retrieving all of
-the files in
-
-@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2*}
-
-@item Unpacking program
-The easiest way is to use @code{djtar} which comes with DJGPP v2.x,
-because it can open gzip'ed tarfiles (i.e., those ending with
-@file{.tar.gz}) in one step.  @code{Djtar} comes in
-@file{djdev@var{nnn}.zip} archive (where @var{nnn} is the DJGPP version
-number), from the URL mentioned above.
-
-@strong{Warning!}  Do @strong{not} use the popular WinZip program to
-unpack the Emacs distribution!  WinZip is known to corrupt some of the
-files by converting them to the DOS CR-LF format, it doesn't always
-preserve the directory structure recorded in the compressed Emacs
-archive, and commits other atrocities.  Some of these problems could
-actually prevent Emacs from building successfully!
-
-@item make, mv, sed, and rm
-All of these utilities are available at
-
-@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu}
-
-16-bit utilities can be found in GNUish, at
-
-@uref{http://www.simtel.net/pub/gnuish/}
-
-@noindent
-(@code{mv} and @code{rm} are in the Fileutils package, @code{sed} and
-@code{make} are each one in a separate package named after them.)
-
-@end table
-
-The files @file{INSTALL} (near its end) and @file{etc/PROBLEMS} in the
-directory of the Emacs sources contains some additional information
-regarding Emacs under MS-DOS.
 
 For a list of other MS-DOS implementations of Emacs (and Emacs
 look-alikes), consult the list of ``Emacs implementations and literature,''
 available at
 
-@uref{ftp://rtfm.mit.edu/pub/usenet/comp.emacs/}
+@uref{http://www.finseth.com/emacs.html}
 
 Note that while many of these programs look similar to Emacs, they often
 lack certain features, such as the Emacs Lisp extension language.
 
-@node Emacs for Windows
+@node Emacs for MS-Windows
 @section Where can I get Emacs for Microsoft Windows?
-@cindex FAQ for NT Emacs
+@cindex FAQ for Emacs on MS-Windows
 @cindex Emacs for MS-Windows
 @cindex Microsoft Windows, Emacs for
-@cindex Windows 9X, ME, NT, 2K, and CE, Emacs for
 
-For information on Emacs for Windows 95 and NT, read the FAQ produced by
-@email{voelker@@cs.washington.edu, Geoff Voelker} and currently maintained
-by @email{ramprasad@@gnu.org, Ramprasad B}, available at
-
-@uref{http://www.gnu.org/software/emacs/windows/ntemacs.html}
-
-@xref{Emacs for MS-DOS}, for Windows 3.1.
+There is a @uref{http://www.gnu.org/software/emacs/windows/ntemacs.html,
+separate FAQ} for Emacs on MS-Windows.  For MS-DOS, @pxref{Emacs for MS-DOS}.
 
 
 @node Emacs for GNUstep
 @section Where can I get Emacs for GNUstep?
-@cindex GNUSTEP, Emacs for
+@cindex GNUstep, Emacs for
 
 Beginning with version 23.1, Emacs supports GNUstep natively.
+See the file @file{nextstep/INSTALL} in the distribution.
 
-@node Emacs for Apple computers
-@section Where can I get Emacs for my Apple computer?
+@node Emacs for Mac OS X
+@section Where can I get Emacs for Mac OS X?
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
+@cindex Mac OS X, Emacs for
 
 Beginning with version 22.1, Emacs supports Mac OS X natively.
-
+See the file @file{nextstep/INSTALL} in the distribution.
 
 @c ------------------------------------------------------------
 @node Major packages and programs
@@ -3639,7 +3388,7 @@ Beginning with version 22.1, Emacs supports Mac OS X natively.
 * Spell-checkers::
 * Emacs/W3::
 * EDB::
-* JDE::
+* JDEE::
 @end menu
 
 @node VM
@@ -3736,11 +3485,11 @@ Various spell-checkers are compatible with Emacs, including:
 
 @uref{http://gnuvola.org/software/edb/, The Emacs Database}
 
-@node JDE
-@section JDE --- Integrated development environment for Java
+@node JDEE
+@section JDEE --- Integrated development environment for Java
 @cindex Java development environment
 @cindex Integrated Java development environment
-@cindex JDE
+@cindex JDEE
 
 @uref{http://jdee.sourceforge.net/, A Java Development Environment for Emacs}
 
@@ -3755,10 +3504,7 @@ Various spell-checkers are compatible with Emacs, including:
 * Terminal setup code works after Emacs has begun::
 * Working with function and arrow keys::
 * X key translations for Emacs::
-* Handling C-s and C-q with flow control::
-* Binding C-s and C-q::
 * Backspace invokes help::
-* stty and Backspace key::
 * Swapping keys::
 * Producing C-XXX with the keyboard::
 * No Meta key::
@@ -3917,158 +3663,6 @@ The only way to affect the behavior of keys within Emacs is through
 @noindent
 defines the @kbd{M-@key{TAB}} key sequence.
 
-@node Handling C-s and C-q with flow control
-@section How do I handle @kbd{C-s} and @kbd{C-q} being used for flow control?
-@cindex Flow control, @kbd{C-s} and @kbd{C-q} with
-@cindex @kbd{C-s} and @kbd{C-q} with flow control
-
-@kbd{C-s} and @kbd{C-q} are used in the XON/XOFF flow control protocol.
-This messes things up when you're using Emacs over a serial line,
-because Emacs binds these keys to commands by default.  Because Emacs
-won't honor them as flow control characters, too many of these
-characters are not passed on and overwhelm output buffers.  Sometimes,
-intermediate software using XON/XOFF flow control will prevent Emacs
-from ever seeing @kbd{C-s} and @kbd{C-q}.
-
-Possible solutions:
-
-@itemize @bullet
-
-@item
-Disable the use of @kbd{C-s} and @kbd{C-q} for flow control.
-
-You need to determine the cause of the flow control.
-
-@itemize @minus
-
-@item
-your terminal
-
-Your terminal may use XON/XOFF flow control to have time to display
-all the characters it receives.  For example, VT series terminals do
-this.  It may be possible to turn this off from a setup menu.  For
-example, on a VT220 you may select ``No XOFF'' in the setup menu.  This
-is also true for some terminal emulation programs on PCs.
-
-When you turn off flow control at the terminal, you will also need to
-turn it off at the other end, which might be at the computer you are
-logged in to or at some terminal server in between.
-
-If you turn off flow control, characters may be lost; using a printer
-connected to the terminal may fail.  You may be able to get around
-this problem by modifying the @samp{termcap} entry for your terminal to
-include extra NUL padding characters.
-
-@item
-a modem
-
-If you are using a dialup connection, the modems may be using
-XON/XOFF flow control.  It's not clear how to get around this.
-
-@item
-a router or terminal server
-
-Some network box between the terminal and your computer may be using
-XON/XOFF flow control.  It may be possible to make it use some other
-kind of flow control.  You will probably have to ask your local
-network experts for help with this.
-
-@item
-@code{tty} and/or @code{pty} devices
-
-If your connection to Emacs goes through multiple @code{tty} and/or
-@code{pty} devices, they may be using XON/XOFF flow control even when it
-is not necessary.
-
-@email{eirik@@theory.tn.cornell.edu, Eirik Fuller} writes:
-
-@quotation
-Some versions of @code{rlogin} (and possibly @code{telnet}) do not pass
-flow control characters to the remote system to which they connect.  On
-such systems, Emacs on the remote system cannot disable flow control on
-the local system.  Sometimes @samp{rlogin -8} will avoid this problem.
-
-One way to cure this is to disable flow control on the local host (the
-one running @code{rlogin}, not the one running @code{rlogind}) using the
-@code{stty} command, before starting the @code{rlogin} process.  On many
-systems, @samp{stty start u stop u} will do this.
-
-Some versions of @samp{tcsh} will prevent even this from working.  One
-way around this is to start another shell before starting rlogin,
-and issue the @samp{stty} command to disable flow control from that shell.
-@end quotation
-
-Use @samp{stty -ixon} instead of @samp{stty start u stop u} on some systems.
-
-@end itemize
-
-@item
-Make Emacs speak the XON/XOFF flow control protocol.
-
-You can make Emacs treat @kbd{C-s} and @kbd{C-q} as flow control characters by
-evaluating the form
-
-@lisp
-(enable-flow-control)
-@end lisp
-
-@noindent
-to unconditionally enable flow control or
-
-@lisp
-(enable-flow-control-on "vt100" "h19")
-@end lisp
-
-@noindent
-(using your terminal names instead of @samp{vt100} or @samp{h19}) to
-enable selectively.  These commands will automatically swap @kbd{C-s}
-and @kbd{C-q} to @kbd{C-\} and @kbd{C-^}.  Variables can be used to
-change the default swap keys (@code{flow-control-c-s-replacement} and
-@code{flow-control-c-q-replacement}).
-
-If you are fixing this for yourself, simply put the form in your
-@file{.emacs} file.  If you are fixing this for your entire site, the
-best place to put it is in the @file{site-lisp/site-start.el} file.
-(Here @file{site-lisp} is actually a subdirectory of your Emacs
-installation directory, typically @file{/usr/local/share/emacs}.)
-Putting this form in @file{site-lisp/default.el} has the problem that
-if the user's @file{.emacs} file has an error, this will prevent
-@file{default.el} from being loaded and Emacs may be unusable for the
-user, even for correcting their @file{.emacs} file (unless they're
-smart enough to move it to another name).
-
-@code{enable-flow-control} can be invoked interactively as well:
-@kbd{M-x enable-flow-control @key{RET}}.
-
-@end itemize
-
-For further discussion of this issue, read the file @file{etc/PROBLEMS}
-(@pxref{File-name conventions}).
-
-@node Binding C-s and C-q
-@section How do I bind @kbd{C-s} and @kbd{C-q} (or any key) if these keys are filtered out?
-@cindex Binding @kbd{C-s} and @kbd{C-q}
-@cindex @kbd{C-s} and @kbd{C-q}, binding
-
-To bind @kbd{C-s} and @kbd{C-q}, use either @code{enable-flow-control}
-or @code{enable-flow-control-on}.  @xref{Handling C-s and C-q with flow
-control}, for usage and implementation details.
-
-To bind other keys, use @code{keyboard-translate}.  @xref{Swapping
-keys}, for usage details.  To do this for an entire site, you should
-swap the keys in @file{site-lisp/site-start.el}.  @xref{Handling C-s
-and C-q with flow control}, for an explanation of why
-@file{site-lisp/default.el} should not be used.
-
-@itemize @bullet
-
-@item
-If you do this for an entire site, the users will be confused by
-the disparity between what the documentation says and how Emacs
-actually behaves.
-
-@end itemize
-
 @node Backspace invokes help
 @section Why does the @key{Backspace} key invoke help?
 @cindex Backspace key invokes help
@@ -4177,17 +3771,6 @@ make Emacs more consistent with keyboard operation on these systems.
 For more information about troubleshooting this problem, see @ref{DEL
 Does Not Delete, , If @key{DEL} Fails to Delete, emacs, The GNU Emacs
 Manual}.
-
-@node stty and Backspace key
-@section Why doesn't Emacs look at the @file{stty} settings for @key{Backspace} vs. @key{Delete}?
-@cindex @file{stty} and Emacs
-@cindex Backspace and @file{stty}
-@cindex Delete and @file{stty}
-
-Good question!
-
-@c FIXME: RMS explained the reasons for this on emacs-hackers.  It's
-@c probably worth putting that explanation here.
 
 @node Swapping keys
 @section How do I swap two keys?
@@ -4455,7 +4038,6 @@ You can get the old behavior by binding @kbd{SPC} to
 @menu
 * Emacs does not display 8-bit characters::
 * Inputting eight-bit characters::
-* Kanji and Chinese characters::
 * Right-to-left alphabets::
 * How to add fonts::
 @end menu
@@ -4486,40 +4068,19 @@ Various methods are available for input of eight-bit characters.  See
 Support, emacs}.  For more sophisticated methods, @inforef{Input
 Methods, Input Methods, emacs}.
 
-@node Kanji and Chinese characters
-@section Where can I get an Emacs that handles kanji, Chinese, or other Far-Eastern character sets?
-@cindex Kanji, handling with Emacs
-@cindex Chinese, handling with Emacs
-@cindex Japanese, handling with Emacs
-@cindex Korean, handling with Emacs
-
-Emacs 20 and later includes many of the features of MULE, the MULtilingual
-Enhancement to Emacs.  @xref{Installing Emacs}, for information on where
-to find and download the latest version of Emacs.
-
 @node Right-to-left alphabets
 @section Where is an Emacs that can handle Semitic (right-to-left) alphabets?
 @cindex Right-to-left alphabets
 @cindex Hebrew, handling with Emacs
 @cindex Semitic alphabets
 @cindex Arabic alphabets
+@cindex Bidirectional text
 
-Emacs 20 and later supports Hebrew characters (ISO 8859-8), but does not
-yet support right-to-left character entry and display.
+Emacs supports Hebrew characters (ISO 8859-8) since version 20, but does
+not yet support right-to-left character entry and display.  The
+@uref{http://lists.gnu.org/mailman/listinfo/emacs-bidi, emacs-bidi
+mailing list} discusses development of support for this feature.
 
-@email{joel@@exc.com, Joel M. Hoffman} has written a Lisp package called
-@file{hebrew.el} that allows right-to-left editing of Hebrew.  It
-reportedly works out of the box with Emacs 19, but requires patches for
-Emacs 18.  Write to Joel if you want the patches or package.
-
-@c FIXME: Should we mention Ehud Karni's package?
-
-@file{hebrew.el} requires a Hebrew screen font, but no other hardware support.
-Joel has a screen font for PCs running MS-DOS or GNU/Linux.
-
-You might also try querying @code{archie} for files named with
-@file{hebrew}; several ftp sites in Israel may also have the necessary
-files.
 
 @node How to add fonts
 @section How do I add fonts for use with Emacs?
@@ -4650,20 +4211,13 @@ fontset, or you can select it by setting the default font in your
 * Saving a copy of outgoing mail::
 * Expanding aliases when sending mail::
 * Sorting the messages in an Rmail folder::
-* Rmail writes to /usr/spool/mail::
+* Rmail writes to /var/spool/mail::
 * Replying to the sender of a message::
-* MIME with Emacs mail packages::
 * Automatically starting a mail or news reader::
 * Reading news with Emacs::
 * Gnus does not work with NNTP::
-* Viewing articles with embedded underlining::
-* Saving a multi-part Gnus posting::
-* Starting Gnus faster::
+* Making Gnus faster::
 * Catching up in all newsgroups::
-* Killing based on nonstandard headers::
-* Catch-up is slow in Gnus::
-* Gnus hangs for a long time::
-* Learning more about Gnus::
 @end menu
 
 @node Changing the included text prefix
@@ -4673,11 +4227,12 @@ fontset, or you can select it by setting the default font in your
 @cindex Setting the included text character
 @cindex Quoting in mail messages
 
-If you read mail with Rmail or news with Gnus, set the variable
-@code{mail-yank-prefix}.  For VM, set @code{vm-included-text-prefix}.
-For mh-e, set @code{mh-ins-buf-prefix}.
+If you read mail with Rmail, set the variable @code{mail-yank-prefix}.
+For Gnus, set @code{message-yank-prefix}.  For VM, set
+@code{vm-included-text-prefix}.  For mh-e, set @code{mh-ins-buf-prefix}.
 
-For fancier control of citations, use Supercite (part of Emacs).
+For fancier control of citations, use Supercite (@pxref{Top,, the Supercite
+Manual, sc, The Supercite Manual}).
 
 To prevent Emacs from including various headers of the replied-to
 message, set the value of @code{mail-yank-ignored-headers} to an
@@ -4711,8 +4266,7 @@ file:
 (setq mail-archive-file-name (expand-file-name "~/outgoing"))
 @end lisp
 
-The output file will be in Unix mail format, which can be read directly
-by VM or Rmail (since Emacs 23).
+The output file will be in Unix mail format.
 
 If you use @code{mh-e}, add an @samp{FCC} or @samp{BCC} field to your
 components file.
@@ -4726,26 +4280,19 @@ file.
 @cindex Mail alias expansion
 @cindex Sending mail with aliases
 
+@xref{Mail Aliases,, The Emacs Manual, emacs, The Emacs Manual}.
+
 @itemize @bullet
 
 @item
-You must separate multiple addresses in the headers of the mail buffer
-with commas.  This is because Emacs supports RFC822 standard addresses
-like this one:
+Normally, Emacs expands aliases when you send the message.
+To expand them before this, use @kbd{M-x expand-mail-aliases}.
 
-@example
-To: Willy Smith <wks@@xpnsv.lwyrs.com>
-@end example
-
-However, you do not need to---and probably should not, unless your
-system's version of @file{/usr/ucb/mail} (a.k.a.@: @code{mailx})
-supports RFC822---separate addresses with commas in your
-@file{~/.mailrc} file.
-
+@c FIXME there should be an interactive rebuild command for this.
 @item
 Emacs normally only reads the @file{.mailrc} file once per session,
 when you start to compose your first mail message.  If you edit
-@file{.mailrc}, you can type @kbd{M-x rebuild-mail-abbrevs @key{RET}} to
+@file{.mailrc}, you can type @kbd{M-: (build-mail-aliases) @key{RET}} to
 make Emacs reread @file{~/.mailrc}.
 
 @item
@@ -4757,7 +4304,7 @@ type them in.  To enable this feature, execute the following:
 @end lisp
 
 Note that the aliases are expanded automatically only after you type
-@key{RET} or a punctuation character (e.g. @kbd{,}).  You can force their
+a word-separator character (e.g. @key{RET} or @kbd{,}).  You can force their
 expansion by moving point to the end of the alias and typing @kbd{C-x a e}
 (@kbd{M-x expand-abbrev}).
 @end itemize
@@ -4771,10 +4318,10 @@ expansion by moving point to the end of the alias and typing @kbd{C-x a e}
 In Rmail, type @kbd{C-c C-s C-h} to get a list of sorting functions
 and their key bindings.
 
-@node Rmail writes to /usr/spool/mail
-@section Why does Rmail need to write to @file{/usr/spool/mail}?
-@cindex Rmail and @file{/usr/spool/mail}
-@cindex @file{/usr/spool/mail} and Rmail
+@node Rmail writes to /var/spool/mail
+@section Why does Rmail need to write to @file{/var/spool/mail}?
+@cindex Rmail and @file{/var/spool/mail}
+@cindex @file{/var/spool/mail} and Rmail
 
 This is the behavior of the @code{movemail} program which Rmail uses.
 This indicates that @code{movemail} is configured to use lock files.
@@ -4816,16 +4363,6 @@ best fix I've been able to come up with:
     (define-key rmail-mode-map "R" 'rmail-reply)))
 @end lisp
 
-@node MIME with Emacs mail packages
-@section How can I get my favorite Emacs mail package to support MIME?
-@cindex MIME and Emacs mail packages
-@cindex Mail packages and MIME
-@cindex FAQ for MIME and Emacs
-
-Version 6.x of VM supports MIME.  @xref{VM}.  Gnus supports MIME in mail
-and news messages as of version 5.8.1 (Pterodactyl).  Rmail has limited
-support for single-part MIME messages beginning with Emacs 20.3.
-
 @node Automatically starting a mail or news reader
 @section How do I make Emacs automatically start my mail/news reader?
 @cindex Mail reader, starting automatically
@@ -4862,9 +4399,14 @@ you to start Emacs quickly when you needed to.
 @cindex Reading news under Emacs
 @cindex Usenet reader in Emacs
 @cindex Gnus newsreader
+@cindex FAQ for Gnus
+@cindex Gnus FAQ
+@cindex Learning more about Gnus
 
-Use @kbd{M-x gnus}.  It is documented in Info (@pxref{Learning how to do
-something}).
+Use @kbd{M-x gnus}.  For more information on Gnus, @pxref{Top,, the Gnus
+Manual, gnus, The Gnus Manual}, which includes @ref{Frequently Asked
+Questions,, the Gnus FAQ, gnus}.
+
 
 @node Gnus does not work with NNTP
 @section Why doesn't Gnus work via NNTP?
@@ -4887,91 +4429,27 @@ telnetting to the NNTP port (usually 119) on the news server machine
 (i.e., @kbd{telnet server-machine 119}).  The server should give its
 version number in the welcome message.  Type @kbd{quit} to get out.
 
-@xref{Spontaneous entry into isearch-mode}, for some additional ideas.
-
-@node Viewing articles with embedded underlining
-@section How do I view news articles with embedded underlining (e.g., ClariNews)?
-@cindex Underlining, embedded in news articles
-@cindex News articles with embedded underlining
-@cindex Embedded underlining in news articles
-
-Underlining appears like this:
-
-@example
-_^Hu_^Hn_^Hd_^He_^Hr_^Hl_^Hi_^Hn_^Hi_^Hn_^Hg
-@end example
-
-@email{abraham@@dina.kvl.dk, Per Abrahamsen} suggests using the following
-code, which uses the underline face to turn such text into true
-underlining, inconjunction with Gnus:
-
-@lisp
-(defun gnus-article-prepare-overstrike ()
-  ;; Prepare article for overstrike commands.
-  (save-excursion
-    (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil))
-    (goto-char (point-min))
-      (while (search-forward "\b" nil t)
-        (let ((next (following-char))
-              (previous (char-after (- (point) 2))))
-          (cond ((eq next previous)
-                 (delete-region (- (point) 2) (point))
-                 (put-text-property (point) (1+ (point))
-                                    'face 'bold))
-                ((eq next ?_)
-                 (delete-region (1- (point)) (1+ (point)))
-                 (put-text-property (1- (point)) (point)
-                                    'face 'underline))
-                ((eq previous ?_)
-                 (delete-region (- (point) 2) (point))
-                 (put-text-property (point) (1+ (point))
-                                    'face 'underline))))))))
-
-(add-hook 'gnus-article-prepare-hook 'gnus-article-prepare-overstrike)
-@end lisp
-
-Latest versions of Gnus do such a conversion automatically.
-
-If you prefer to do away with underlining altogether, you can
-destructively remove it with @kbd{M-x ununderline-region}; do this
-automatically via
-
-@lisp
-(add-hook 'gnus-article-prepare-hook
-  (lambda () (ununderline-region (point-min) (point-max))))
-@end lisp
-
-@node Saving a multi-part Gnus posting
-@section How do I save all the items of a multi-part posting in Gnus?
-@cindex Multi-part postings in Gnus, saving
-@cindex Saving multi-part postings in Gnus
-@cindex Gnus, saving multi-part postings in
-
-Use @code{gnus-uu}.  Type @kbd{C-c C-v C-h} in the Gnus summary buffer
-to see a list of available commands.
-
-@node Starting Gnus faster
-@section How do I make Gnus start up faster?
+@node Making Gnus faster
+@section How do I make Gnus faster?
 @cindex Faster, starting Gnus
 @cindex Starting Gnus faster
 @cindex Gnus, starting faster
+@cindex Slow catch up in Gnus
+@cindex Gnus is slow when catching up
+@cindex Crosspostings make Gnus catching up slow
 
-From the Gnus FAQ (@pxref{Learning more about Gnus}):
+From the Gnus FAQ (@pxref{Reading news with Emacs}):
 
 @quotation
-@email{pktiwari@@eos.ncsu.edu, Pranav Kumar Tiwari} writes: I posted
-the same query recently and I got an answer to it. I am going to
-repeat the answer. What you need is a newer version of gnus, version
-5.0.4+. I am using 5.0.12 and it works fine with me with the
-following settings:
+If you have a slow machine, or are just really impatient, there are a
+few things you can do to make Gnus run faster.
 
-@lisp
-(setq gnus-check-new-newsgroups nil
-      gnus-read-active-file 'some
-      gnus-nov-is-evil nil
-      gnus-select-method '(nntp gnus-nntp-server))
-@end lisp
+Set @code{gnus-check-new-newsgroups} and
+@code{gnus-check-bogus-newsgroups} to @code{nil} to make startup faster.
+
+Set @code{gnus-show-threads}, @code{gnus-use-cross-reference} and
+@code{gnus-nov-is-evil} to @code{nil} to make entering and exiting the
+summary buffer faster.
 @end quotation
 
 @node Catching up in all newsgroups
@@ -4983,72 +4461,6 @@ In the @file{*Newsgroup*} buffer, type @kbd{M-< C-x ( c y C-x ) M-0 C-x e}
 
 Leave off the initial @kbd{M-<} if you only want to catch up from point
 to the end of the @file{*Newsgroup*} buffer.
-
-@node Killing based on nonstandard headers
-@section Why can't I kill in Gnus based on the Newsgroups/Keywords/Control headers?
-@cindex Killing articles based on nonstandard headers
-@cindex Newsgroups header, killing articles based on
-@cindex Keywords header, killing articles based on
-@cindex Control header, killing articles based on
-
-Gnus will complain that the @samp{Newsgroups}, @samp{Keywords}, and
-@samp{Control} headers are ``Unknown header'' fields.
-
-For the @samp{Newsgroups} header, there is an easy workaround: kill on the
-@samp{Xref} header instead, which will be present on any cross-posted article
-(as long as your site carries the cross-post group).
-
-If you really want to kill on one of these headers, you can do it like
-this:
-
-@lisp
-(gnus-kill nil "^Newsgroups: .*\\(bad\\.group\\|worse\\.group\\)")
-@end lisp
-
-@node Catch-up is slow in Gnus
-@section Why is catch up slow in Gnus?
-@cindex Slow catch up in Gnus
-@cindex Gnus is slow when catching up
-@cindex Crosspostings make Gnus catching up slow
-
-Because Gnus is marking crosspostings read.  You can control this with
-the variable @code{gnus-use-cross-reference}.
-
-@node Gnus hangs for a long time
-@section Why does Gnus hang for a long time when posting?
-@cindex Hangs in Gnus
-@cindex Gnus hangs while posting
-@cindex Posting, Gnus hangs wile
-
-@email{tale@@uunet.uu.net, David Lawrence} explains:
-
-@quotation
-The problem is almost always interaction between NNTP and C News.  NNTP
-POST asks C News's @code{inews} to not background itself but rather hang
-around and give its exit status so it knows whether the post was successful.
-(That wait will on some systems not return the exit status of the
-waited for job is a different sort of problem.)  It ends up taking a
-long time because @code{inews} is calling @code{relaynews}, which often
-waits for another @code{relaynews} to free the lock on the news system
-so it can file the article.
-
-My preferred solution is to change @code{inews} to not call
-@code{relaynews}, but rather use @code{newsspool}.  This loses some
-error-catching functionality, but is for the most part safe as
-@code{inews} will detect a lot of the errors on its own.  The C News
-folks have sped up @code{inews}, too, so speed should look better to
-most folks as that update propagates around.
-@end quotation
-
-@node Learning more about Gnus
-@section Where can I find out more about Gnus?
-@cindex FAQ for Gnus
-@cindex Gnus FAQ
-@cindex Learning more about Gnus
-
-For more information on Gnus, @pxref{Top,, the Gnus Manual, gnus, The
-Gnus Manual}, which includes @ref{Frequently Asked Questions,, the Gnus
-FAQ, gnus}.
 
 @node Concept index
 @unnumbered Concept Index
