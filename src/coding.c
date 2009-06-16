@@ -1665,10 +1665,11 @@ detect_coding_utf_16 (coding, detect_info)
       e[c1] = 1;
       o[c2] = 1;
 
-      detect_info->rejected
-	|= (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_LE);
+      detect_info->rejected |= (CATEGORY_MASK_UTF_16_AUTO
+				|CATEGORY_MASK_UTF_16_BE
+				| CATEGORY_MASK_UTF_16_LE);
 
-      while (1)
+      while (detect_info->rejected != CATEGORY_MASK_UTF_16)
 	{
 	  TWO_MORE_BYTES (c1, c2);
 	  if (c2 < 0)
@@ -1677,18 +1678,17 @@ detect_coding_utf_16 (coding, detect_info)
 	    {
 	      e[c1] = 1;
 	      e_num++;
-	      if (e_num >= 128 && o_num >= 128)
-		break;
+	      if (e_num >= 128)
+		detect_info->rejected |= CATEGORY_MASK_UTF_16_BE_NOSIG;
 	    }
 	  if (! o[c2])
 	    {
 	      o[c2] = 1;
 	      o_num++;
-	      if (e_num >= 128 && o_num >= 128)
-		break;
+	      if (o_num >= 128)
+		detect_info->rejected |= CATEGORY_MASK_UTF_16_LE_NOSIG;
 	    }
 	}
-      detect_info->rejected |= CATEGORY_MASK_UTF_16;
       return 0;
     }
 
