@@ -486,7 +486,19 @@
   :code-offset #x27c218			; ... #x280839
   :unify-map "BIG5-HKSCS")
 
-;; Fixme: Korean cp949/UHC
+(define-charset 'cp949-2-byte
+  "2-byte part of CP949"
+  :dimension 2
+  :map "CP949-2BYTE"
+  :code-space [#x41 #xFE #x81 #xFD]
+  :supplementary-p t)
+
+(define-charset 'cp949
+  "CP949 (Korean)"
+  :short-name "CP949"
+  :long-name  "CP949 (Korean)"
+  :code-space [#x00 #xFE #x00 #xFD]
+  :superset '(ascii cp949-2-byte))
 
 (define-charset 'chinese-sisheng
   "SiSheng characters for PinYin/ZhuYin"
