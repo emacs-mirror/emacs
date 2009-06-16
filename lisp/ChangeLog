@@ -1,3 +1,7 @@
+2009-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region): Improve the docstring.
+
 2009-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-default-revision-granularity): Remove to let the normal
