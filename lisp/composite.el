@@ -185,8 +185,17 @@ RULE is a cons of global and new reference point symbols
 (defun compose-region (start end &optional components modification-func)
   "Compose characters in the current region.
 
-Characters are composed relatively, i.e. composed by overstricking or
-stacking depending on ascent, descent and other properties.
+Characters are composed relatively, i.e. composed by overstriking
+or stacking depending on ascent, descent and other metrics of
+glyphs.
+
+For instance, if the region has three characters \"XYZ\", X is
+regarded as BASE glyph, and Y is displayed:
+  (1) above BASE if Y's descent value is not positive
+  (2) below BASE if Y's ascent value is not positive
+  (3) on BASE (i.e. at the BASE position) otherwise
+and Z is displayed with the same rule while regarding the whole
+XY glyphs as BASE.
 
 When called from a program, expects these four arguments.
 
