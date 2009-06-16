@@ -1,5 +1,29 @@
 2009-06-16  Glenn Morris  <rgm@gnu.org>
 
+	* faq.texi (Top): Language tweak.
+	(Extended commands): Most people have arrow keys.
+	(Emacs manual): Say how to follow info links.
+	(File-name conventions): Change title a bit.  Explain about source
+	versus installed.  Condense etc description.
+	(Guidelines for newsgroup postings): Mention Savannah list page.
+	(Newsgroup archives): Simplify.
+	(Contacting the FSF): Add contact URL.
+	(Emacs Lisp documentation): Printed version not always available.
+	(Installing Texinfo documentation): Explain how by hand installation is
+	not normally needed.  Use add-to-list.  Remove duplicate reference.
+	(Informational files for Emacs): Move info on Help menu here from
+	"File-name conventions".
+	(Help installing Emacs): Tweak uref.
+	(Obtaining the FAQ): Mention repository.
+	(Origin of the term Emacs): Explain "ITS".
+	(Changing load-path): Use add-to-list.
+	(Automatic indentation): Clarify this is for Text mode.
+	Don't mention Indented Text mode.
+	(Finding Emacs on the Internet): The FSF does not seem to offer a
+	deluxe distribution on CD anymore.
+
+2009-06-16  Glenn Morris  <rgm@gnu.org>
+
 	* faq.texi (Top): Mention which Emacs version this FAQ is about.
 	Recommend the latest release.  Mention how to get older FAQs.
 	Recommend the Emacs manual.

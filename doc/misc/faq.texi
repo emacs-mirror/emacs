@@ -69,7 +69,7 @@ them.
 
 This is the version of the FAQ distributed with Emacs @value{VER}, and
 mainly describes that version.  Although there is some information on
-older versions, details about very old versions (now only of historical
+older versions, details about very old releases (now only of historical
 interest) have been removed.  If you are interested in this, consult
 either the version of the FAQ distributed with older versions of Emacs,
 or the history of this document in the Emacs source repository.
@@ -216,9 +216,8 @@ what @kbd{M-x} and @key{RET} mean.)
 Emacs command if you can remember the command's name.  If you can't
 remember the command's name, you can type @key{TAB} and @key{SPC} for
 completion, @key{?} for a list of possibilities, and @kbd{M-p} and
-@kbd{M-n} (or up-arrow and down-arrow on terminals that have these
-editing keys) to see previous commands entered.  An Emacs @dfn{command}
-is an @dfn{interactive} Emacs function.
+@kbd{M-n} (or up-arrow and down-arrow) to see previous commands entered.
+An Emacs @dfn{command} is an @dfn{interactive} Emacs function.
 
 @cindex @key{Do} key
 Your system administrator may have bound other key sequences to invoke
@@ -249,17 +248,23 @@ If these commands don't work as expected, your system administrator may
 not have installed the Info files, or may have installed them
 improperly.  In this case you should complain.
 
+If you are reading this FAQ in Info, you can simply press @key{RET} on a
+reference to follow it.
+
 @xref{Getting a printed manual}, if you would like a paper copy of the
 Emacs manual.
 
 @node File-name conventions
-@section What are @file{etc/GNU}, @file{src/config.h}, and @file{site-lisp/default.el}?
+@section What are @file{etc/GNU}, @file{src/config.h}, @file{site-lisp/default.el}, etc.?
 @cindex File-name conventions
 @cindex Conventions for file names
 @cindex Directories and files that come with Emacs
 
 These are files that come with Emacs.  The Emacs distribution is divided
 into subdirectories; e.g. @file{etc}, @file{lisp}, and @file{src}.
+Some of these (e.g. @file{etc} and @file{lisp}) are present both in
+an installed Emacs and in the sources, but some (e.g. @file{src}) are
+only found in the sources.
 
 If you use Emacs, but don't know where it is kept on your system, start
 Emacs, then type @kbd{C-h v data-directory @key{RET}}.  The directory
@@ -273,13 +278,10 @@ is stored) is kept in the variable @code{Info-default-directory-list}.  Use
 @kbd{C-h v Info-default-directory-list @key{RET}} to see the value of
 this variable, which will be a list of directory names.  The last
 directory in that list is probably where most Info files are stored.  By
-default, Info documentation is placed in @file{/usr/local/share/info}.
+default, Emacs Info documentation is placed in @file{/usr/local/share/info}.
 
-Some of these files are available individually via FTP or e-mail; see
-@ref{Informational files for Emacs}.  They all are available in the
-source distribution.  Many of the files in the @file{etc} directory are
-also available via the Emacs @samp{Help} menu, or by typing @kbd{C-h ?}
-(@kbd{M-x help-for-help}).
+For information on some of the files in the @file{etc} directory,
+@pxref{Informational files for Emacs}.
 
 @node Common acronyms
 @section What are FSF, LPF, GNU, RMS, FTP, and GPL?
@@ -395,9 +397,11 @@ recipients the same freedom that you enjoyed.
 
 @cindex GNU mailing lists
 The file @file{etc/MAILINGLISTS} describes the purpose of each GNU
-mailing list.  (@xref{Informational files for Emacs}, if you want a copy
-of the file.)  For those lists which are gatewayed with newsgroups, it
-lists both the newsgroup name and the mailing list address.
+mailing list (@pxref{Informational files for Emacs}).  For those lists
+which are gatewayed with newsgroups, it lists both the newsgroup name
+and the mailing list address.  The Emacs mailing lists are also
+described at @uref{http://savannah.gnu.org/mail/?group=emacs, the Emacs
+Savannah page}.
 
 The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
 in general.  The newsgroup @uref{news:gnu.emacs.help} is specifically
@@ -423,21 +427,18 @@ posting bug reports to this newsgroup directly (@pxref{Reporting bugs}).
 
 The FSF has maintained archives of all of the GNU mailing lists for many
 years, although there may be some unintentional gaps in coverage.  The
-archive is not particularly well organized or easy to retrieve
-individual postings from, but pretty much everything is there.
-
-The archive is at @uref{ftp://lists.gnu.org/}.
-
-The archive can be browsed over the web at
-@uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.
+archive can be browsed over the web at
+@uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.  Raw
+files can be downloaded from @uref{ftp://lists.gnu.org/}.
 
 Web-based Usenet search services, such as
 @uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
 archive the @code{gnu.*} groups.
 
-You can read the archives of the @code{gnu.*} groups and post new
+You can also read the archives of the @code{gnu.*} groups and post new
 messages at @uref{http://gmane.org/, Gmane}.  Gmane is a service that
-presents mailing lists as newsgroups.
+presents mailing lists as newsgroups (even those without a traditional
+mail-to-news gateway).
 
 @node Reporting bugs
 @section Where should I report bugs and other problems with Emacs?
@@ -508,6 +509,9 @@ unsubscribe.
 @cindex Postal address of the FSF
 @cindex Contracting the FSF
 @cindex Free Software Foundation, contacting
+
+For up-to-date information, see
+@uref{http://www.fsf.org/about/contact.html, the FSF contact web-page}.
 
 @table @asis
 
@@ -676,7 +680,7 @@ you can get a PostScript or PDF (or HTML) version from
 
 @uref{http://www.gnu.org/software/emacs/manual/}
 
-@xref{Learning how to do something}, for how to view the manual.
+@xref{Learning how to do something}, for how to view the manual from Emacs.
 
 @node Emacs Lisp documentation
 @section Where can I get documentation on Emacs Lisp?
@@ -690,11 +694,12 @@ Within Emacs, you can type @kbd{C-h f} to get the documentation for a
 function, @kbd{C-h v} for a variable.
 
 For more information, the Emacs Lisp Reference Manual is available
-in Info format.  @xref{Top, Emacs Lisp,, elisp, The
-Emacs Lisp Reference Manual}.
+in Info format (@pxref{Top, Emacs Lisp,, elisp, The
+Emacs Lisp Reference Manual}).
 
-You can also order a hardcopy of the manual, details on ordering it from
-FSF are on the @uref{http://shop.fsf.org/, FSF on-line store}.
+You can also order a hardcopy of the manual from the FSF, for details
+see the @uref{http://shop.fsf.org/, FSF on-line store}.  (This manual is
+not always in print.)
 
 An HTML version of the Emacs Lisp Reference Manual is available at
 
@@ -708,9 +713,14 @@ An HTML version of the Emacs Lisp Reference Manual is available at
 @cindex Documentation, installing new Texinfo files
 @cindex Info files, how to install
 
-First, you must turn the Texinfo files into Info files.  You may do this
-using the stand-alone @file{makeinfo} program, available as part of the
-Texinfo package at
+Emacs releases come with pre-built Info files, and the normal install
+process places them in the correct location.  This is true for most
+applications that provide Info files.  The following section is only
+relevant if you want to install extra Info files by hand.
+
+First, you must turn the Texinfo source files into Info files.  You may
+do this using the stand-alone @file{makeinfo} program, available as part
+of the Texinfo package at
 
 @uref{http://www.gnu.org/software/texinfo/}
 
@@ -719,6 +729,8 @@ comes with the Texinfo package.  This manual also comes installed in
 Info format, so you can read it from Emacs; type @kbd{C-h i m texinfo
 @key{RET}}.
 
+@c FIXME is this a complete alternative?
+@c Probably not, given that we require makeinfo to build Emacs.
 Alternatively, you could use the Emacs command @kbd{M-x
 texinfo-format-buffer}, after visiting the Texinfo source file of the
 manual you want to convert.
@@ -788,16 +800,16 @@ directory which is a subdirectory of your home directory named @file{Info},
 you could put this in your @file{.emacs} file:
 
 @lisp
-(setq Info-default-directory-list
-      (cons "~/Info" Info-default-directory-list))
+(add-to-list 'Info-default-directory-list "~/Info")
 @end lisp
 
 You will need a top-level Info file named @file{dir} in this directory
-which has everything the system @file{dir} file has in it, except it should
-list only entries for Info files in that directory.  You might not need
-it if all files in this directory were referenced by other @file{dir}
-files.  The node lists from all @file{dir} files in
-@code{Info-default-directory-list} are merged by the Info system.
+which has everything the system @file{dir} file has in it, except it
+should list only entries for Info files in that directory.  You might
+not need it if (fortuitously) all files in this directory were
+referenced by other @file{dir} files.  The node lists from all
+@file{dir} files in @code{Info-default-directory-list} are merged by the
+Info system.
 
 @end itemize
 
@@ -828,10 +840,8 @@ You may need to change @samp{texinfo} to the full pathname of the
 @item
 Type @kbd{texi2dvi @var{texinfo-source}}, where @var{texinfo-source} is
 the name of the Texinfo source file for which you want to produce a
-printed copy.
-
-The @samp{texi2dvi} script is part of the GNU Texinfo distribution
-(@pxref{Installing Texinfo documentation}).
+printed copy.  The @samp{texi2dvi} script is part of the GNU Texinfo
+distribution.
 
 Alternatively, @samp{texi2pdf} produces PDF files.
 
@@ -884,9 +894,11 @@ This isn't a frequently asked question, but it should be!  A variety of
 informational files about Emacs and relevant aspects of the GNU project
 are available for you to read.
 
-The following files are available in the @file{etc} directory of the
-Emacs distribution (see @ref{File-name conventions}, if you're not sure
-where that is).
+The following files (and others) are available in the @file{etc}
+directory of the Emacs distribution (see @ref{File-name conventions}, if
+you're not sure where that is).  Many of these files are available via
+the Emacs @samp{Help} menu, or by typing @kbd{C-h ?} (@kbd{M-x
+help-for-help}).
 
 @table @file
 
@@ -929,9 +941,9 @@ Bulletin}, are at
 @xref{Installing Emacs}, for some basic installation hints, and see
 @ref{Problems building Emacs}, if you have problems with the installation.
 
-The web-page @uref{http://www.fsf.org/resources/service/} lists
-companies and individuals willing to sell you help in installing or
-using Emacs.
+@uref{http://www.fsf.org/resources/service/, The GNU Service directory}
+lists companies and individuals willing to sell you help in installing
+or using Emacs and other GNU software.
 
 @node Obtaining the FAQ
 @section Where can I get the latest version of this FAQ?
@@ -941,8 +953,9 @@ using Emacs.
 The Emacs FAQ is distributed with Emacs in Info format.  You can read it
 by selecting the @samp{Emacs FAQ} option from the @samp{Help} menu of
 the Emacs menu bar at the top of any Emacs frame, or by typing @kbd{C-h
-C-f} (@kbd{M-x view-emacs-FAQ}).
-
+C-f} (@kbd{M-x view-emacs-FAQ}).  The very latest version is available
+in the Emacs development repository.
+@c FIXME add link to a section on that.
 
 @c ------------------------------------------------------------
 @node Status of Emacs
@@ -972,11 +985,12 @@ Emacs originally was an acronym for Editor MACroS.  RMS says he ``picked
 the name Emacs because @key{E} was not in use as an abbreviation on ITS at
 the time.''  The first Emacs was a set of macros written in 1976 at MIT
 by RMS for the editor TECO (Text Editor and COrrector, originally Tape
-Editor and COrrector) under ITS on a PDP-10.  RMS had already extended
-TECO with a ``real-time'' full-screen mode with reprogrammable keys.
-Emacs was started by @email{gls@@east.sun.com, Guy Steele} as a project
-to unify the many divergent TECO command sets and key bindings at MIT,
-and completed by RMS.
+Editor and COrrector) under ITS (the Incompatible Timesharing System) on
+a PDP-10.  RMS had already extended TECO with a ``real-time''
+full-screen mode with reprogrammable keys.  Emacs was started by
+@email{gls@@east.sun.com, Guy Steele} as a project to unify the many
+divergent TECO command sets and key bindings at MIT, and completed by
+RMS.
 
 Many people have said that TECO code looks a lot like line noise; you
 can read more at @uref{news:alt.lang.teco}.  Someone has written a TECO
@@ -1663,13 +1677,13 @@ In general, you should only add to the @code{load-path}.  You can add
 directory @var{/dir/subdir} to the load path like this:
 
 @lisp
-(setq load-path (cons "/dir/subdir/" load-path))
+(add-to-list 'load-path "/dir/subdir/")
 @end lisp
 
 To do this relative to your home directory:
 
 @lisp
-(setq load-path (cons "~/mysubdir/" load-path))
+(add-to-list 'load-path "~/mysubdir/")
 @end lisp
 
 @node Using an already running Emacs process
@@ -1949,7 +1963,7 @@ usage:  xset [-display host:dpy] option ...
 @cindex Previous line, indenting according to
 @cindex Text indentation
 
-Such behavior is automatic in Emacs 20 and later.  From the
+Such behavior is automatic (in Text mode) in Emacs 20 and later.  From the
 @file{etc/NEWS} file for Emacs 20.2:
 
 @example
@@ -1958,9 +1972,6 @@ it possible to get the full benefit of Adaptive Fill mode in Text mode,
 and other modes derived from it (such as Mail mode).  @key{TAB} in Text
 mode now runs the command @code{indent-relative}; this makes a practical
 difference only when you use indented paragraphs.
-
-As a result, the old Indented Text mode is now identical to Text mode,
-and is an alias for it.
 
 If you want spaces at the beginning of a line to start a paragraph, use
 the new mode, Paragraph Indent Text mode.
@@ -3188,18 +3199,12 @@ problem (@pxref{Reporting bugs}).
 @end menu
 
 @node Finding Emacs on the Internet
-@section Where can I get Emacs on the net (or by snail mail)?
+@section Where can I get Emacs on the net?
 @cindex Finding Emacs on the Internet
-@cindex Snail mail, ordering Emacs via
-@cindex Postal service, ordering Emacs via
-@cindex Distribution, retrieving Emacs
-@cindex Internet, retrieving from
+@cindex Downloading Emacs
 
 Information on downloading Emacs is available at
 @uref{http://www.gnu.org/software/emacs/, the Emacs home-page}.
-
-For an order form for all Emacs and FSF distributions deliverable from
-the USA, see @uref{http://shop.fsf.org/}.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
