@@ -1,3 +1,8 @@
+2009-06-17  Tiago Saboga  <tiagosaboga@gmail.com>  (tiny change)
+
+	* files.el (save-some-buffers-action-alist): Fix last
+	change (Bug#3578).
+
 2009-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-set-directory-class): Fix doc typo.

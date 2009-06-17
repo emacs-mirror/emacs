@@ -4358,7 +4358,7 @@ This requires the external program `diff' to be in your `exec-path'."
         nil)
      "view this buffer")
     (?d ,(lambda (buf)
-           (if (null buffer-file-name)
+           (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
              (save-window-excursion (diff-buffer-with-file buf))
              (if (not enable-recursive-minibuffers)
