@@ -3246,7 +3246,7 @@ Return the new variables list."
 DIRECTORY is the name of a directory, a string.
 CLASS is the name of a project class, a symbol.
 MTIME is either the modification time of the directory-local
-variables file that defined this this class, or nil.
+variables file that defined this class, or nil.
 
 When a file beneath DIRECTORY is visited, the mode-specific
 variables from CLASS are applied to the buffer.  The variables
