@@ -1669,7 +1669,8 @@ detect_coding_utf_16 (coding, detect_info)
 				|CATEGORY_MASK_UTF_16_BE
 				| CATEGORY_MASK_UTF_16_LE);
 
-      while (detect_info->rejected != CATEGORY_MASK_UTF_16)
+      while ((detect_info->rejected & CATEGORY_MASK_UTF_16)
+	     != CATEGORY_MASK_UTF_16)
 	{
 	  TWO_MORE_BYTES (c1, c2);
 	  if (c2 < 0)
