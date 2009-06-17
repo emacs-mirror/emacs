@@ -1,3 +1,8 @@
+2009-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Obtaining the FAQ): Add reference to Savannah.
+	(Latest version of Emacs): Mention source code repository.
+
 2009-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Top): Language tweak.
