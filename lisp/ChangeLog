@@ -1,3 +1,11 @@
+2009-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-character-sets): Change
+	"FINAL-CHAR" to "FINAL-BYTE" to follow the official terminology.
+	(list-character-sets-1): Add one line explanation about
+	"supplementary charset".  Make the part "Supplementary Character
+	Sets" clickable.
+
 2009-06-16  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* international/mule-conf.el: Add cp949-2-byte, cp949.
