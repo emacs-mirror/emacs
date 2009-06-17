@@ -1,3 +1,8 @@
+2009-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Charsets): Update the description for the new charset.
+	(list-character-sets): New findex.
+
 2009-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* basic.texi (Moving Point): Fix tag.
