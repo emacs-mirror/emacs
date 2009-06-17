@@ -277,9 +277,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
 	 append)))
 
-    (maven
-     ;; Maven is a popular build tool for Java.  Maven is Free Software.
-     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
+    ;; This regexp is pathologically slow on long lines (Bug#3441).
+    ;; (maven
+    ;;  ;; Maven is a popular build tool for Java.  Maven is Free Software.
+    ;;  "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
 
     ;; Should be lint-1, lint-2 (SysV lint)
     (mips-1
