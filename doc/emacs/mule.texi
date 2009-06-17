@@ -1620,30 +1620,48 @@ Use @kbd{C-x 8 C-h} to list all the available @kbd{C-x 8} translations.
 @section Charsets
 @cindex charsets
 
-  Emacs groups all supported characters into disjoint @dfn{charsets}.
-Each character code belongs to one and only one charset.  For
-historical reasons, Emacs typically divides an 8-bit character code
-for an extended version of @acronym{ASCII} into two charsets:
-@acronym{ASCII}, which covers the codes 0 through 127, plus another
-charset which covers the ``right-hand part'' (the codes 128 and up).
-For instance, the characters of Latin-1 include the Emacs charset
-@code{ascii} plus the Emacs charset @code{latin-iso8859-1}.
+  Emacs defines most of popular character sets (e.g. ascii,
+iso-8859-1, cp1250, big5, unicode) as @dfn{charsets} and a few of its
+own charsets (e.g. emacs, unicode-bmp, eight-bit).  All supported
+characters belong to one or more charsets.  Usually you don't have to
+take care of ``charset'', but knowing about it may help understanding
+the behavior of Emacs in some cases.
 
-  Emacs characters belonging to different charsets may look the same,
-but they are still different characters.  For example, the letter
-@samp{o} with acute accent in charset @code{latin-iso8859-1}, used for
-Latin-1, is different from the letter @samp{o} with acute accent in
-charset @code{latin-iso8859-2}, used for Latin-2.
+  One example is a font selection.  In each language environment,
+charsets have different priorities.  Emacs, at first, tries to use a
+font that matches with charsets of higher priority.  For instance, in
+Japanese language environment, the charset @code{japanese-jisx0208}
+has the highest priority (@xref{describe-language-environment}).  So,
+Emacs tries to use a font whose @code{registry} property is
+``JISX0208.1983-0'' for characters belonging to that charset.
+
+  Another example is a use of @code{charset} text property.  When
+Emacs reads a file encoded in a coding systems that uses escape
+sequences to switch charsets (e.g. iso-2022-int-1), the buffer text
+keep the information of the original charset by @code{charset} text
+property.  By using this information, Emacs can write the file with
+the same byte sequence as the original.
 
 @findex list-charset-chars
 @cindex characters in a certain charset
 @findex describe-character-set
   There are two commands for obtaining information about Emacs
-charsets.  The command @kbd{M-x list-charset-chars} prompts for a name
-of a character set, and displays all the characters in that character
-set.  The command @kbd{M-x describe-character-set} prompts for a
-charset name and displays information about that charset, including
-its internal representation within Emacs.
+charsets.  The command @kbd{M-x list-charset-chars} prompts for a
+charset name, and displays all the characters in that character set.
+The command @kbd{M-x describe-character-set} prompts for a charset
+name and displays information about that charset, including its
+internal representation within Emacs.
+
+@findex list-character-sets
+  To display a list of all the supported charsets, type @kbd{M-x
+list-character-sets}.  The list gives the names of charsets and
+additional information to identity each charset (see ISO/IEC's this
+page <http://www.itscj.ipsj.or.jp/ISO-IR/> for the detail).  In the
+list, charsets are categorized into two; the normal charsets are
+listed first, and the supplementary charsets are listed last.  A
+charset in the latter category is used for defining another charset
+(as a parent or a subset), or was used only in Emacs of the older
+versions.
 
   To find out which charset a character in the buffer belongs to,
 put point before it and type @kbd{C-u C-x =}.
