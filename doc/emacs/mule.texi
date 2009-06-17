@@ -422,6 +422,7 @@ character sets, coding systems, and input methods that go with it.  It
 also shows some sample text to illustrate scripts used in this
 language environment.  If you give an empty input for @var{lang-env},
 this command describes the chosen language environment.
+@anchor{Describe Language Environment}
 
 @vindex set-language-environment-hook
   You can customize any language environment with the normal hook
@@ -1631,7 +1632,7 @@ the behavior of Emacs in some cases.
 charsets have different priorities.  Emacs, at first, tries to use a
 font that matches with charsets of higher priority.  For instance, in
 Japanese language environment, the charset @code{japanese-jisx0208}
-has the highest priority (@xref{describe-language-environment}).  So,
+has the highest priority (@pxref{Describe Language Environment}).  So,
 Emacs tries to use a font whose @code{registry} property is
 ``JISX0208.1983-0'' for characters belonging to that charset.
 
