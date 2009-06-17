@@ -1,3 +1,7 @@
+2009-06-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (detect_coding_utf_16): Fix previous change.
+
 2009-06-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_16): Fix the logic of rejecting
