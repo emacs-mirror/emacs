@@ -2,6 +2,7 @@
 
 	* mule.texi (Charsets): Update the description for the new charset.
 	(list-character-sets): New findex.
+	(Language Environments): Add @anchor{Describe Language Environment}.
 
 2009-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
