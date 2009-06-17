@@ -1,3 +1,8 @@
+2009-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables):
+	Update for 2009-04-11 name-change of dir-locals-directory-alist.
+
 2009-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* nonascii.texi (Character Sets): State clearly that FROM and TO
