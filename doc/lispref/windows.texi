@@ -1205,7 +1205,7 @@ In that case, the value of @code{pop-up-frames} is disregarded.
 @cindex dedicated window
 
 Functions for displaying a buffer can be told to not use specific
-windows by marking these window as @dfn{dedicated} to their buffers.
+windows by marking these windows as @dfn{dedicated} to their buffers.
 @code{display-buffer} (@pxref{Choosing Window}) never uses a dedicated
 window for displaying another buffer in it.  @code{get-lru-window} and
 @code{get-largest-window} (@pxref{Selecting Windows}) do not consider
@@ -2184,8 +2184,8 @@ requested size adjustment, it signals an error.  On success, this
 function returns @code{nil}.
 @end defun
 
-@defun Command fit-window-to-buffer &optional window max-height min-height
-This function makes @var{window} the right height to display its
+@deffn Command fit-window-to-buffer &optional window max-height min-height
+This command makes @var{window} the right height to display its
 contents exactly.  The default for @var{window} is the selected window.
 
 The optional argument @var{max-height} specifies the maximum height the
@@ -2198,7 +2198,7 @@ mode line and/or header line.
 This function can delete windows when their height shrinks below
 @var{min-height}.  It returns non-@code{nil} if it orderly resized
 @var{window}, and @code{nil} otherwise.
-@end defun
+@end deffn
 
 @deffn Command shrink-window-if-larger-than-buffer &optional window
 This command shrinks @var{window} vertically to be as small as possible

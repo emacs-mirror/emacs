@@ -1,3 +1,8 @@
+2009-06-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Dedicated Windows): Fix typo.
+	(Resizing Windows): Replace @defun by @deffn.
+
 2009-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Directory Local Variables):
