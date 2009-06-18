@@ -1,3 +1,8 @@
+2009-06-18  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-set-directory-class): Make mtime argument
+	optional, since it is always unneeded in the non-file case.  (Bug#3577)
+
 2009-06-18  Kenichi Handa  <handa@m17n.org>
 
 	* language/korean.el ("Korean"): Fix `documentation' property of

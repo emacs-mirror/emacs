@@ -3241,7 +3241,7 @@ Return the new variables list."
 	  (setq variables (dir-locals-collect-mode-variables
 			   (cdr entry) variables))))))))
 
-(defun dir-locals-set-directory-class (directory class mtime)
+(defun dir-locals-set-directory-class (directory class &optional mtime)
   "Declare that the DIRECTORY root is an instance of CLASS.
 DIRECTORY is the name of a directory, a string.
 CLASS is the name of a project class, a symbol.
