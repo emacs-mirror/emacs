@@ -1,3 +1,8 @@
+2009-06-18  Ulrich Mueller  <ulm@gentoo.org>
+
+	* pgg-gpg.el (pgg-gpg-lookup-key-owner): Handle colon listings
+	format used by GnuPG 2.0.a11.
+
 2009-06-18  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-set-directory-class): Make mtime argument

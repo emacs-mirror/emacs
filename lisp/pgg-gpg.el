@@ -189,9 +189,9 @@ Optional ALL non-nil means search all keys, including secret keys."
   (let ((args (list "--with-colons" "--no-greeting" "--batch"
 		    (if all "--list-secret-keys" "--list-keys")
 		    string))
-	(key-regexp (concat "^\\(sec\\|pub\\)"
+	(key-regexp (concat "^\\(sec\\|pub\\|uid\\)"
 			    ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):[^:]*"
-			    ":[^:]*:[^:]*:[^:]*:\\([^:]*\\):")))
+			    ":[^:]*:[^:]*:[^:]*:\\([^:]+\\):")))
     (with-temp-buffer
       (apply #'call-process pgg-gpg-program nil t nil args)
       (goto-char (point-min))
