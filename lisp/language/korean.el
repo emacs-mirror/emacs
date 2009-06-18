@@ -43,6 +43,7 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
+(define-coding-system-alias 'cp949 'korean-iso-8bit)
 
 (define-coding-system 'iso-2022-kr
   "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
@@ -56,14 +57,6 @@
   :suitable-for-keyboard t)
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
-
-(define-coding-system 'korean-cp949
-  "CP949 (Microsoft Unified Hangul Code)"
-  :coding-type 'charset
-  :mnemonic ?K
-  :charset-list '(ascii cp949))
-
-(define-coding-system-alias 'cp949 'korean-cp949)
 
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment-internal)
