@@ -1,3 +1,8 @@
+2009-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso_2022): Check MSB of bytes more
+	rigidly.
+
 2009-06-18  Andreas Schwab  <aschwab@redhat.com>
 
 	* xdisp.c (redisplay_internal): Check that the frame is still
