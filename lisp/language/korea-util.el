@@ -97,9 +97,11 @@
 ;; Information for setting and exiting Korean environment.
 (defvar korean-key-bindings
   `((global [?\S- ] toggle-korean-input-method nil)
+    (global [Hangul] toggle-korean-input-method nil)
     (global [C-f9] quail-hangul-switch-symbol-ksc nil)
     (global [f9]  quail-hangul-switch-hanja nil)
     (,isearch-mode-map [?\S- ] isearch-toggle-korean-input-method nil)
+    (,isearch-mode-map [Hangul] isearch-toggle-korean-input-method nil)
     (,isearch-mode-map [C-f9] isearch-hangul-switch-symbol-ksc nil)
     (,isearch-mode-map [f9] isearch-hangul-switch-hanja nil)))
 
@@ -118,7 +120,9 @@
 	  (setq old-def (lookup-key (car this) key))
 	  (define-key (car this) key new-def))
 	(setcar (nthcdr 3 this) old-def))
-      (setq key-bindings (cdr key-bindings)))))
+      (setq key-bindings (cdr key-bindings))))
+  (use-cjk-char-width-table 'ko_KR))
+
 
 (defun exit-korean-environment ()
   "Exit Korean language environment."
@@ -133,7 +137,8 @@
 		(global-set-key key old-def))
 	  (if (eq (lookup-key (car this) key) new-def)
 	      (define-key (car this) key old-def))))
-      (setq key-bindings (cdr key-bindings)))))
+      (setq key-bindings (cdr key-bindings))))
+  (use-default-char-width-table))
 
 ;;
 (provide 'korea-util)
