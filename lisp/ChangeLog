@@ -1,3 +1,8 @@
+2009-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/korean.el (korean-cp949): New coding system.  Set cp949
+	as an alias to it.
+
 2009-06-18  Ulrich Mueller  <ulm@gentoo.org>
 
 	* pgg-gpg.el (pgg-gpg-lookup-key-owner): Handle colon listings
