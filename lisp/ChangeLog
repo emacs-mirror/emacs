@@ -1,3 +1,8 @@
+2009-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/korea-util.el (korean-key-bindings): Add binding for
+	key Hangul.
+
 2009-06-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
