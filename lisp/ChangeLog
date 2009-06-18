@@ -1,5 +1,8 @@
 2009-06-18  Kenichi Handa  <handa@m17n.org>
 
+	* language/korean.el ("Korean"): Fix `documentation' property of
+	this language environment.
+
 	* language/korea-util.el (korean-key-bindings): Add binding for
 	key Hangul.
 
