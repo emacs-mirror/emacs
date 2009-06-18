@@ -91,6 +91,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "\d" 'hangul-delete-backward-char)
     (define-key map [f9] 'hangul-to-hanja-conversion)
+    (define-key map [Hangul_Hanja] 'hangul-to-hanja-conversion)
     map)
   "Keymap for Hangul method.  It is used by all Hangul input methods.")
 
