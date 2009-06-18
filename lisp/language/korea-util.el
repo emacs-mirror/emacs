@@ -120,9 +120,7 @@
 	  (setq old-def (lookup-key (car this) key))
 	  (define-key (car this) key new-def))
 	(setcar (nthcdr 3 this) old-def))
-      (setq key-bindings (cdr key-bindings))))
-  (use-cjk-char-width-table 'ko_KR))
-
+      (setq key-bindings (cdr key-bindings)))))
 
 (defun exit-korean-environment ()
   "Exit Korean language environment."
@@ -137,8 +135,7 @@
 		(global-set-key key old-def))
 	  (if (eq (lookup-key (car this) key) new-def)
 	      (define-key (car this) key old-def))))
-      (setq key-bindings (cdr key-bindings))))
-  (use-default-char-width-table))
+      (setq key-bindings (cdr key-bindings)))))
 
 ;;
 (provide 'korea-util)
