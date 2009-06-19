@@ -1,3 +1,7 @@
+2009-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (open-network-stream): Doc fix.
+
 2009-06-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/fontset.el (setup-default-fontset):
