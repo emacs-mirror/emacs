@@ -2,7 +2,7 @@
 
 	* font-core.el (turn-on-font-lock-if-desired): Correctly handle
 	the case where font-lock-global-modes is a list that doesn't begin
-	with `not'.
+	with `not' (Bug#3611).
 
 2009-06-19  Glenn Morris  <rgm@gnu.org>
 
