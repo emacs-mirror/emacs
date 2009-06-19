@@ -1,3 +1,7 @@
+2009-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* fringe.el: Add coding: utf-8 cookie.
+
 2009-06-18  Kenichi Handa  <handa@m17n.org>
 
 	* language/korean.el (korean-cp949): New coding system.  Set cp949
