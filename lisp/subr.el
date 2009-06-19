@@ -1687,7 +1687,8 @@ Signal an error if the program returns with a non-zero exit status."
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 
-NAME is the name for process.  It is modified if necessary to make it unique.
+NAME is the name for the process.  It is modified if necessary to make
+ it unique.
 BUFFER is the buffer (or buffer name) to associate with the
  process.  Process output goes at end of that buffer.  BUFFER may
  be nil, meaning that this process is not associated with any buffer.
