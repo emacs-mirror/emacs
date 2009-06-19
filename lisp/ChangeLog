@@ -1,5 +1,8 @@
 2009-06-19  Kenichi Handa  <handa@m17n.org>
 
+	* international/fontset.el (setup-default-fontset): Add a spec of
+	non-OTF unicode font for Thai.
+
 	* fringe.el: Add coding: utf-8 cookie.
 
 2009-06-18  Kenichi Handa  <handa@m17n.org>
