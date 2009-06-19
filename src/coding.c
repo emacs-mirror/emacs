@@ -8640,7 +8640,7 @@ DEFUN ("find-coding-systems-region-internal",
   EMACS_INT start_byte, end_byte;
   const unsigned char *p, *pbeg, *pend;
   int c;
-  Lisp_Object tail, elt;
+  Lisp_Object tail, elt, work_table;
 
   if (STRINGP (start))
     {
@@ -8698,6 +8698,7 @@ DEFUN ("find-coding-systems-region-internal",
   while (p < pend && ASCII_BYTE_P (*p)) p++;
   while (p < pend && ASCII_BYTE_P (*(pend - 1))) pend--;
 
+  work_table = Fmake_char_table (Qnil, Qnil);
   while (p < pend)
     {
       if (ASCII_BYTE_P (*p))
@@ -8705,6 +8706,9 @@ DEFUN ("find-coding-systems-region-internal",
       else
 	{
 	  c = STRING_CHAR_ADVANCE (p);
+	  if (!NILP (char_table_ref (work_table, c)))
+	    /* This character was already checked.  Ignore it.  */
+	    continue;
 
 	  charset_map_loaded = 0;
 	  for (tail = coding_attrs_list; CONSP (tail);)
@@ -8736,6 +8740,7 @@ DEFUN ("find-coding-systems-region-internal",
 	      p = pbeg + p_offset;
 	      pend = pbeg + pend_offset;
 	    }
+	  char_table_set (work_table, c, Qt);
 	}
     }
 
