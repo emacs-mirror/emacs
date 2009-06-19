@@ -37,9 +37,9 @@
 	* xterm.c (x_delete_terminal): Put previous change in #if 0 and
 	add comment explaining why.
 
-2009-06-14  Sidney Markowitz <sidney@sidney.com>
+2009-06-14  Sidney Markowitz  <sidney@sidney.com>
 
-	* nsmenu.m (EmacsTooltip: setText): set height of tooltip.
+	* nsmenu.m (EmacsTooltip: setText): Set height of tooltip.
 
 2009-06-14  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -123,7 +123,7 @@
 
 	* fontset.c (fontset_from_font): Remove NS-specific code.
 
-2009-06-08  Peter Jones <pjones@pmade.com>  (tiny change)
+2009-06-08  Peter Jones  <pjones@pmade.com>  (tiny change)
 
 	* nsterm.m (ns_draw_window_cursor): Respect cursor_type for
 	nonactive windows.
@@ -145,8 +145,8 @@
 
 2009-06-05  David Reitter  <david.reitter@gmail.com>
 
-	* nsselect.m (Fx_own_selection_internal, Fx_selection_exists_p,
-	Fx_selection_owner_p): rename from Fns_own_selection_internal,
+	* nsselect.m (Fx_own_selection_internal, Fx_selection_exists_p)
+	(Fx_selection_owner_p): Rename from Fns_own_selection_internal,
 	Fns_selection_exists_p, Fns_selection_owner_p.
 
 2009-06-03  Jason Rumney  <jasonr@gnu.org>
@@ -159,18 +159,18 @@
 	* coding.c (get_translation_table): Check
 	Venable_character_translation.
 
-2009-05-25  David Reitter  <david.reitter@gmail.com>
+2009-05-26  David Reitter  <david.reitter@gmail.com>
 
-	* nsterm.m (ns_raise_frame): only raise frame if visible.
-	(x_make_frame_visible): move frame to front rather than calling
+	* nsterm.m (ns_raise_frame): Only raise frame if visible.
+	(x_make_frame_visible): Move frame to front rather than calling
 	ns_raise_frame().
-	(keyDown:) do not swallow events that aren't re-sent if frame
+	(keyDown:): Do not swallow events that aren't re-sent if frame
 	isn't key window.
-	(drawRect:) do not set visibility/iconified flags because
+	(drawRect:): Do not set visibility/iconified flags because
 	drawRect may be called by NSView even if the frame is hidden.
 
-	* nsfns.m (Fx_create_frame): follow other ports in
-	determining visibility; default to t. Ensure async_visible is set.
+	* nsfns.m (Fx_create_frame): Follow other ports in
+	determining visibility; default to t.  Ensure async_visible is set.
 
 2009-05-23  Eli Zaretskii  <eliz@gnu.org>
 
@@ -263,13 +263,13 @@
 
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
-	* nsterm.m (ns_dumpglyphs_stretch,ns_dumpglyphs_image):
-	respect mouse face background.
+	* nsterm.m (ns_dumpglyphs_stretch, ns_dumpglyphs_image):
+	Respect mouse face background.
 
 2009-05-07  David Reitter  <david.reitter@gmail.com>
 
-	* nsterm.m (note_mouse_movement,ns_frame_up_to_date):
-	mouse movement/highlight: bracket drawing operations
+	* nsterm.m (note_mouse_movement, ns_frame_up_to_date):
+	Mouse movement/highlight: bracket drawing operations
 	in ns_update_begin and ns_update_end.
 
 2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
