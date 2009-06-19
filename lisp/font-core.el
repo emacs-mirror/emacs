@@ -291,7 +291,7 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 	       t)
 	      ((eq (car-safe font-lock-global-modes) 'not)
 	       (not (memq major-mode (cdr font-lock-global-modes))))
-	      (t (memq major-mode (cdr font-lock-global-modes))))
+	      (t (memq major-mode font-lock-global-modes)))
     (let (inhibit-quit)
       (turn-on-font-lock))))
 

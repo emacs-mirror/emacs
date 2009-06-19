@@ -1,3 +1,9 @@
+2009-06-19  David Casperson  <casper@unbc.ca>  (tiny change)
+
+	* font-core.el (turn-on-font-lock-if-desired): Correctly handle
+	the case where font-lock-global-modes is a list that doesn't begin
+	with `not'.
+
 2009-06-19  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (open-network-stream): Doc fix.
