@@ -2685,7 +2685,7 @@ and corresponding effects.
 
 ;;;***
 
-;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (18787 48920))
+;;;### (autoloads nil "cal-dst" "calendar/cal-dst.el" (18991 49069))
 ;;; Generated autoloads from calendar/cal-dst.el
 
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
@@ -3946,8 +3946,8 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-start-hook
-;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (18961
-;;;;;;  36796))
+;;;;;;  compilation-mode-hook) "compile" "progmodes/compile.el" (19001
+;;;;;;  6801))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -4187,8 +4187,8 @@ Enable dynamic word-completion.
 ;;;***
 
 ;;;### (autoloads (global-auto-composition-mode auto-composition-mode
-;;;;;;  encode-composition-rule) "composite" "composite.el" (18890
-;;;;;;  15680))
+;;;;;;  encode-composition-rule) "composite" "composite.el" (18999
+;;;;;;  41411))
 ;;; Generated autoloads from composite.el
 
 (autoload 'encode-composition-rule "composite" "\
@@ -8038,7 +8038,7 @@ Display Ediff's registry.
 ;;;***
 
 ;;;### (autoloads (ediff-toggle-use-toolbar ediff-toggle-multiframe)
-;;;;;;  "ediff-util" "ediff-util.el" (18791 16508))
+;;;;;;  "ediff-util" "ediff-util.el" (18989 18316))
 ;;; Generated autoloads from ediff-util.el
 
 (autoload 'ediff-toggle-multiframe "ediff-util" "\
@@ -8059,7 +8059,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see.
 
 ;;;### (autoloads (format-kbd-macro read-kbd-macro edit-named-kbd-macro
 ;;;;;;  edit-last-kbd-macro edit-kbd-macro) "edmacro" "edmacro.el"
-;;;;;;  (18787 48912))
+;;;;;;  (18972 18135))
 ;;; Generated autoloads from edmacro.el
 
 (defvar edmacro-eight-bits nil "\
@@ -8112,7 +8112,7 @@ or nil, use a compact 80-column format.
 ;;;***
 
 ;;;### (autoloads (edt-emulation-on edt-set-scroll-margins) "edt"
-;;;;;;  "emulation/edt.el" (18787 48923))
+;;;;;;  "emulation/edt.el" (18979 58015))
 ;;; Generated autoloads from emulation/edt.el
 
 (autoload 'edt-set-scroll-margins "edt" "\
@@ -8415,8 +8415,8 @@ Not documented
 ;;;;;;  epa-sign-region epa-verify-cleartext-in-region epa-verify-region
 ;;;;;;  epa-decrypt-armor-in-region epa-decrypt-region epa-encrypt-file
 ;;;;;;  epa-sign-file epa-verify-file epa-decrypt-file epa-select-keys
-;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (18941
-;;;;;;  42892))
+;;;;;;  epa-list-secret-keys epa-list-keys) "epa" "epa.el" (18985
+;;;;;;  38697))
 ;;; Generated autoloads from epa.el
 
 (autoload 'epa-list-keys "epa" "\
@@ -11762,7 +11762,7 @@ If CLEAN, obsolete (ignore).
 ;;;***
 
 ;;;### (autoloads (gnus-article-prepare-display) "gnus-art" "gnus/gnus-art.el"
-;;;;;;  (18841 61157))
+;;;;;;  (18990 41424))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload 'gnus-article-prepare-display "gnus-art" "\
@@ -15567,7 +15567,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;### (autoloads (Info-bookmark-jump Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node Info-mode info-apropos Info-index
 ;;;;;;  Info-directory Info-on-current-buffer info-standalone info-emacs-manual
-;;;;;;  info info-other-window) "info" "info.el" (18799 16231))
+;;;;;;  info info-other-window) "info" "info.el" (18968 34618))
 ;;; Generated autoloads from info.el
 
 (autoload 'info-other-window "info" "\
@@ -15688,8 +15688,6 @@ Advanced commands:
 \\[Info-search]	Search through this Info file for specified regexp,
 	  and select the node in which the next occurrence is found.
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
-\\[Info-search-next]	Search for another occurrence of regexp
-	  from a previous \\<Info-mode-map>\\[Info-search] command.
 \\[isearch-forward], \\[isearch-forward-regexp]	Use Isearch to search through multiple Info nodes.
 \\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
@@ -16003,7 +16001,7 @@ Add submenus to the File menu, to convert to and from various formats.
 ;;;;;;  ispell-complete-word ispell-continue ispell-buffer ispell-comments-and-strings
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-pdict-save ispell-word ispell-personal-dictionary)
-;;;;;;  "ispell" "textmodes/ispell.el" (18875 4272))
+;;;;;;  "ispell" "textmodes/ispell.el" (18990 41424))
 ;;; Generated autoloads from textmodes/ispell.el
 (put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
 
@@ -16564,7 +16562,7 @@ If kbd macro currently being defined end it before activating it.
 ;;;***
 
 ;;;### (autoloads (setup-korean-environment-internal) "korea-util"
-;;;;;;  "language/korea-util.el" (18787 48929))
+;;;;;;  "language/korea-util.el" (19002 15344))
 ;;; Generated autoloads from language/korea-util.el
 
 (defvar default-korean-keyboard (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "") "\
@@ -17979,7 +17977,7 @@ delete the draft message.
 
 ;;;***
 
-;;;### (autoloads (mh-version) "mh-e" "mh-e/mh-e.el" (18815 6890))
+;;;### (autoloads (mh-version) "mh-e" "mh-e/mh-e.el" (18995 59134))
 ;;; Generated autoloads from mh-e/mh-e.el
 
 (put 'mh-progs 'risky-local-variable t)
@@ -18542,7 +18540,7 @@ different buffer menu using the function `msb'.
 ;;;;;;  describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-character-set list-charset-chars
 ;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (18947 41945))
+;;;;;;  (19000 65520))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload 'list-character-sets "mule-diag" "\
@@ -18550,8 +18548,9 @@ Display a list of all character sets.
 
 The D column contains the dimension of this character set.  The CH
 column contains the number of characters in a block of this character
-set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
-for designating this character set in ISO-2022-based coding systems.
+set.  The FINAL-BYTE column contains an ISO-2022 <final-byte> to use
+in the designation escape sequence for this character set in
+ISO-2022-based coding systems.
 
 With prefix ARG, the output format gets more cryptic,
 but still shows the full information.
@@ -18945,7 +18944,7 @@ Open a network connection to HOST on PORT.
 ;;;;;;  uncomment-region comment-kill comment-set-column comment-indent
 ;;;;;;  comment-indent-default comment-normalize-vars comment-multi-line
 ;;;;;;  comment-padding comment-style comment-column) "newcomment"
-;;;;;;  "newcomment.el" (18787 48917))
+;;;;;;  "newcomment.el" (18971 24136))
 ;;; Generated autoloads from newcomment.el
 
 (defalias 'indent-for-comment 'comment-indent)
@@ -19079,12 +19078,16 @@ Comment or uncomment each line in the region.
 With just \\[universal-argument] prefix arg, uncomment each line in region BEG .. END.
 Numeric prefix ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
-By default, comments start at the left margin, are terminated on each line,
-even for syntax in which newline does not end the comment and blank lines
-do not get comments.  This can be changed with `comment-style'.
 
-The strings used as comment starts are built from
-`comment-start' without trailing spaces and `comment-padding'.
+The strings used as comment starts are built from `comment-start'
+and `comment-padding'; the strings used as comment ends are built
+from `comment-end' and `comment-padding'.
+
+By default, the `comment-start' markers are inserted at the
+current indentation of the region, and comments are terminated on
+each line (even for syntaxes in which newline does not end the
+comment and blank lines do not get comments).  This can be
+changed with `comment-style'.
 
 \(fn BEG END &optional ARG)" t nil)
 
@@ -21288,7 +21291,7 @@ Import public keys in the current buffer.
 ;;;***
 
 ;;;### (autoloads (pgg-gpg-symmetric-key-p) "pgg-gpg" "pgg-gpg.el"
-;;;;;;  (18787 48917))
+;;;;;;  (19002 31833))
 ;;; Generated autoloads from pgg-gpg.el
 
 (autoload 'pgg-gpg-symmetric-key-p "pgg-gpg" "\
@@ -24108,7 +24111,7 @@ for modes derived from Text mode, like Mail mode.
 ;;;***
 
 ;;;### (autoloads (ruby-mode) "ruby-mode" "progmodes/ruby-mode.el"
-;;;;;;  (18804 45209))
+;;;;;;  (19001 2148))
 ;;; Generated autoloads from progmodes/ruby-mode.el
 
 (autoload 'ruby-mode "ruby-mode" "\
@@ -25476,7 +25479,7 @@ interactively. If there's no argument, do it at the current buffer
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
-;;;;;;  "mail/smtpmail.el" (18862 237))
+;;;;;;  "mail/smtpmail.el" (18971 23221))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload 'smtpmail-send-it "smtpmail" "\
@@ -25544,8 +25547,8 @@ then `snmpv2-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (18787
-;;;;;;  48920))
+;;;### (autoloads (sunrise-sunset) "solar" "calendar/solar.el" (18983
+;;;;;;  49576))
 ;;; Generated autoloads from calendar/solar.el
 
 (autoload 'sunrise-sunset "solar" "\
@@ -26627,7 +26630,7 @@ The variable `tab-width' controls the spacing of tab stops.
 ;;;;;;  table-recognize table-insert-row-column table-insert-column
 ;;;;;;  table-insert-row table-insert table-point-left-cell-hook
 ;;;;;;  table-point-entered-cell-hook table-load-hook table-cell-map-hook)
-;;;;;;  "table" "textmodes/table.el" (18791 16534))
+;;;;;;  "table" "textmodes/table.el" (18971 25081))
 ;;; Generated autoloads from textmodes/table.el
 
 (defvar table-cell-map-hook nil "\
@@ -27230,7 +27233,7 @@ Connect to the Emacs talk group from the current X display or tty frame.
 
 ;;;***
 
-;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (18875 57174))
+;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (18985 38697))
 ;;; Generated autoloads from tar-mode.el
 
 (autoload 'tar-mode "tar-mode" "\
@@ -28733,7 +28736,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax tramp-mode) "tramp"
-;;;;;;  "net/tramp.el" (18930 26504))
+;;;;;;  "net/tramp.el" (18988 7734))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-mode t "\
@@ -28919,7 +28922,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (2C-split 2C-associate-buffer 2C-two-columns) "two-column"
-;;;;;;  "textmodes/two-column.el" (18791 16534))
+;;;;;;  "textmodes/two-column.el" (18979 8337))
 ;;; Generated autoloads from textmodes/two-column.el
  (autoload '2C-command "two-column" () t 'keymap)
  (global-set-key "\C-x6" '2C-command)
@@ -29909,7 +29912,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-update vc-rollback vc-revert vc-print-log vc-retrieve-tag
 ;;;;;;  vc-create-tag vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-before-checkin-hook
-;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18944 19956))
+;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18999 41411))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -30259,7 +30262,7 @@ that is inserted into the command line before the filename.
 
 ;;;***
 
-;;;### (autoloads nil "vc-hg" "vc-hg.el" (18799 16231))
+;;;### (autoloads nil "vc-hg" "vc-hg.el" (18994 60519))
 ;;; Generated autoloads from vc-hg.el
  (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
@@ -31171,7 +31174,7 @@ Not documented
 ;;;;;;  view-mode view-buffer-other-frame view-buffer-other-window
 ;;;;;;  view-buffer view-file-other-frame view-file-other-window
 ;;;;;;  view-file kill-buffer-if-not-modified view-remove-frame-by-deleting)
-;;;;;;  "view" "view.el" (18787 48919))
+;;;;;;  "view" "view.el" (18972 12900))
 ;;; Generated autoloads from view.el
 
 (defvar view-remove-frame-by-deleting t "\
@@ -32608,7 +32611,7 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vt-control.el" "vt100-led.el"
 ;;;;;;  "w32-fns.el" "w32-vars.el" "widget.el" "window.el" "x-dnd.el")
-;;;;;;  (18967 26407 762906))
+;;;;;;  (19003 49774 168396))
 
 ;;;***
 
