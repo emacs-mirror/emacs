@@ -326,8 +326,8 @@
 	    (nil . "VISCII1.1-1")
 	    ,(font-spec :registry "iso10646-1" :script 'latin))
 
-     (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark))
-	    ,(font-spec :registry "iso10646-1" :script 'thai))
+     (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
+	    ,(font-spec :registry "iso10646-1" :script 'thai)
 	    (nil . "TIS620*")
 	    (nil . "ISO8859-11"))
 

@@ -1,3 +1,8 @@
+2009-06-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/fontset.el (setup-default-fontset):
+	Fix typo in previous change.
+
 2009-06-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Add a spec of
@@ -94,7 +99,7 @@
 	* composite.el (compose-gstring-for-terminal): For zero-width
 	characters of Unicode category `Cf', simply replace it with SPC.
 
-2009-06-09  Agustín Martín <agustin.martin@hispalinux.es>
+2009-06-09  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el: Make `ispell-dictionary' customizable (#2555)
 
