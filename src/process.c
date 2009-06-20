@@ -479,7 +479,7 @@ status_message (p)
 	  c1 = STRING_CHAR ((char *) SDATA (string), 0);
 	  c2 = DOWNCASE (c1);
 	  if (c1 != c2)
-	    Faset (string, 0, make_number (c2));
+	    Faset (string, make_number (0), make_number (c2));
 	}
       string2 = build_string (coredump ? " (core dumped)\n" : "\n");
       return concat2 (string, string2);
