@@ -1,3 +1,8 @@
+2009-06-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-indent.el (lisp-indent-defun-method)
+	(common-lisp-indent-function): Add doc strings.
+
 2009-06-19  David Casperson  <casper@unbc.ca>  (tiny change)
 
 	* font-core.el (turn-on-font-lock-if-desired): Correctly handle
