@@ -6361,8 +6361,8 @@ w32_initialize ()
   Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
 
   {
-    HKL input_locale_id = GetKeyboardLayout (0);
-    keyboard_codepage = codepage_for_locale (input_locale_id & 0xffff);
+    DWORD input_locale_id = (DWORD) GetKeyboardLayout (0);
+    keyboard_codepage = codepage_for_locale ((LCID) (input_locale_id & 0xffff));
   }
 
   /* Create the window thread - it will terminate itself when the app
