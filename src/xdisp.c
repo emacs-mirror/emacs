@@ -354,6 +354,8 @@ extern Lisp_Object Voverflow_newline_into_fringe;
    && it->current_x == it->last_visible_x	\
    && it->line_wrap != WORD_WRAP)
 
+#else /* !HAVE_WINDOW_SYSTEM */
+#define IT_OVERFLOW_NEWLINE_INTO_FRINGE(it) 0
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Test if the display element loaded in IT is a space or tab
@@ -6918,7 +6920,6 @@ move_it_in_display_line_to (struct it *it,
 			    }
 
 			  set_iterator_to_next (it, 1);
-#ifdef HAVE_WINDOW_SYSTEM
 			  /* One graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
@@ -6947,7 +6948,6 @@ move_it_in_display_line_to (struct it *it,
 				  break;
 				}
 			    }
-#endif /* HAVE_WINDOW_SYSTEM */
 			}
 		    }
 		  else
@@ -7022,7 +7022,6 @@ move_it_in_display_line_to (struct it *it,
       if (it->line_wrap == TRUNCATE
 	  && it->current_x >= it->last_visible_x)
 	{
-#ifdef HAVE_WINDOW_SYSTEM
 	  if (!FRAME_WINDOW_P (it->f)
 	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
@@ -7038,7 +7037,6 @@ move_it_in_display_line_to (struct it *it,
 		  break;
 		}
 	    }
-#endif /* HAVE_WINDOW_SYSTEM */
 	  result = MOVE_LINE_TRUNCATED;
 	  break;
 	}
@@ -16622,13 +16620,10 @@ display_line (it)
 	     display the cursor there under X.  Set the charpos of the
 	     first glyph of blank lines not corresponding to any text
 	     to -1.  */
-#ifdef HAVE_WINDOW_SYSTEM
 	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    row->exact_window_width_line_p = 1;
-	  else
-#endif /* HAVE_WINDOW_SYSTEM */
-	  if ((append_space_for_newline (it, 1) && row->used[TEXT_AREA] == 1)
-	      || row->used[TEXT_AREA] == 0)
+	  else if ((append_space_for_newline (it, 1) && row->used[TEXT_AREA] == 1)
+		   || row->used[TEXT_AREA] == 0)
 	    {
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
@@ -16770,7 +16765,6 @@ display_line (it)
 			    goto back_to_wrap;
 
 			  set_iterator_to_next (it, 1);
-#ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
 			      if (!get_next_display_element (it))
@@ -16786,7 +16780,6 @@ display_line (it)
 				  row->exact_window_width_line_p = 1;
 				}
 			    }
-#endif /* HAVE_WINDOW_SYSTEM */
 			}
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
@@ -16923,12 +16916,10 @@ display_line (it)
 
 	  row->ends_in_newline_from_string_p = STRINGP (it->object);
 
-#ifdef HAVE_WINDOW_SYSTEM
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
 	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    append_space_for_newline (it, 0);
-#endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Extend the face to the end of the line.  */
 	  extend_face_to_end_of_line (it);
@@ -16969,27 +16960,22 @@ display_line (it)
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
 	    }
-#ifdef HAVE_WINDOW_SYSTEM
-	  else
+	  else if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      /* Don't truncate if we can overflow newline into fringe.  */
-	      if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
+	      if (!get_next_display_element (it))
 		{
-		  if (!get_next_display_element (it))
-		    {
-		      it->continuation_lines_width = 0;
-		      row->ends_at_zv_p = 1;
-		      row->exact_window_width_line_p = 1;
-		      break;
-		    }
-		  if (ITERATOR_AT_END_OF_LINE_P (it))
-		    {
-		      row->exact_window_width_line_p = 1;
-		      goto at_end_of_line;
-		    }
+		  it->continuation_lines_width = 0;
+		  row->ends_at_zv_p = 1;
+		  row->exact_window_width_line_p = 1;
+		  break;
+		}
+	      if (ITERATOR_AT_END_OF_LINE_P (it))
+		{
+		  row->exact_window_width_line_p = 1;
+		  goto at_end_of_line;
 		}
 	    }
-#endif /* HAVE_WINDOW_SYSTEM */
 
 	  row->truncated_on_right_p = 1;
 	  it->continuation_lines_width = 0;

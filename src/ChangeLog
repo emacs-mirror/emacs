@@ -1,3 +1,10 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (IT_DISPLAYING_WHITESPACE): Define for
+	!HAVE_WINDOW_SYSTEM.
+	(move_it_in_display_line_to, move_it_in_display_line_to)
+	(display_line): Remove #ifdef HAVE_WINDOW_SYSTEM.
+
 2009-06-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (keyboard_codepage): New static variable.
