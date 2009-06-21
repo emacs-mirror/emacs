@@ -1,3 +1,12 @@
+2009-06-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (keyboard_codepage): New static variable.
+	(w32_read_socket) [WM_INPUTLANGCHANGE]: Update it.
+	(w32_read_socket) [WM_CHAR]: Use it to decode character
+	input (bug#3237).
+	(w32_initialize): Initialize it.
+	(codepage_for_locale): New function.
+
 2009-06-20  Ken Raeburn  <raeburn@raeburn.org>
 
 	* process.c (status_message): Pass Faset index argument as a lisp
