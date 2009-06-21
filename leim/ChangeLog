@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-06-18  Kenichi Handa  <handa@m17n.org>
 
 	* quail/hangul.el (hangul-im-keymap): Add binding of key

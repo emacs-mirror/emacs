@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-handler): Save match data.

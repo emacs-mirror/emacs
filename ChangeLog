@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Delete mac-fix-env target, which has been

@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (ALL_CFLAGS): Remove reference to C_SWITCH_SITE.

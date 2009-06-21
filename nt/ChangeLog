@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-03-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (struct stat): Change the types of st_uid and

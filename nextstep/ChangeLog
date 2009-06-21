@@ -1,3 +1,7 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-06-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Cocoa/Emacs.xcodeproj/project.pbxproj: Drop deployment target
