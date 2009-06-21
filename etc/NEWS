@@ -14,6 +14,16 @@ for changes in older Emacs versions.
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
+
+Temporary note:
+ +++ indicates that the appropriate manual has already been updated.
+ --- means no change in the manuals is called for.
+When you add a new item, please add it without either +++ or ---
+so we will look at it and add it to the manual.
+
+
+* Changes in Emacs 23.2
+
 
 * Installation Changes in Emacs 23.1
 
