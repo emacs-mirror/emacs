@@ -880,7 +880,12 @@ which see."
 (put 'lisp-body-indent 'safe-local-variable
      (lambda (x) (or (null x) (integerp x))))
 
-(defvar lisp-indent-function 'lisp-indent-function)
+(defvar lisp-indent-function 'lisp-indent-function
+  "A function to be called by `calculate-lisp-indent'.
+It indents the arguments of a Lisp function call.  This function
+should accept two arguments: the indent-point, and the
+`parse-partial-sexp' state at that position.  One option for this
+function is `common-lisp-indent-function'.")
 
 (defun lisp-indent-line (&optional whole-exp)
   "Indent current line as Lisp code.
