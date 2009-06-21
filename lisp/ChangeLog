@@ -1,3 +1,10 @@
+2009-06-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Replace with ...
+	* progmodes/gdb-ui.el: ... this file.
+	* progmodes/gud.el: Modify for gdb-mi.el.
+	* fadr.el: New file.
+
 2009-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-function)
