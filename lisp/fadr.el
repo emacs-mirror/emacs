@@ -1,4 +1,4 @@
-;;; fadr.el --- convinient access to recursive list structures
+;;; fadr.el --- convenient access to recursive list structures
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
@@ -24,7 +24,7 @@
 ;; plain lists using a compact notation.
 ;;
 ;; Consider the following list:
-;; 
+;;
 ;;     (setq basket '((apples . (((color . green) (taste . delicious)) ((color . red) (taste . disgusting))))))
 ;;
 ;; Its contents may be accessed using `fadr-member':
@@ -159,4 +159,6 @@ OBJECT."
     (fadr-expand new-string object)))
 
 (provide 'fadr)
+
+;; arch-tag: 4edced02-a5c3-4516-b278-3f85a12146ea
 ;;; fadr.el ends here
