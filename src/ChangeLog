@@ -1,5 +1,13 @@
 2009-06-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* w32term.c (x_draw_glyph_string): Use the glyph string's width
+	rather than its background_width for drawing the overline and
+	underline (Bug#489).
+
+	* xterm.c (x_draw_glyph_string): Use the glyph string's width
+	rather than its background_width for drawing the overline and
+	underline (Bug#489).
+
 	* xdisp.c (Qbefore_string, Qafter_string): Add externs.
 	(load_overlay_strings): Remove externs.
 	(fast_find_position): Function deleted.

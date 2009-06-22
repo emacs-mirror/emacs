@@ -2401,12 +2401,12 @@ x_draw_glyph_string (s)
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             y, s->background_width, 1);
+                             y, s->width, 1);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             y, s->background_width, 1);
+                             y, s->width, 1);
             }
         }
       /* Draw overline.  */
@@ -2417,12 +2417,12 @@ x_draw_glyph_string (s)
           if (s->face->overline_color_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             s->y + dy, s->background_width, h);
+                             s->y + dy, s->width, h);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
-                             s->y + dy, s->background_width, h);
+                             s->y + dy, s->width, h);
             }
         }
 
