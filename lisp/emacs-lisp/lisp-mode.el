@@ -877,15 +877,17 @@ which see."
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp
   :type '(choice (const nil) integer))
-(put 'lisp-body-indent 'safe-local-variable
+(put 'lisp-indent-offset 'safe-local-variable
      (lambda (x) (or (null x) (integerp x))))
 
-(defvar lisp-indent-function 'lisp-indent-function
+(defcustom lisp-indent-function 'lisp-indent-function
   "A function to be called by `calculate-lisp-indent'.
 It indents the arguments of a Lisp function call.  This function
 should accept two arguments: the indent-point, and the
 `parse-partial-sexp' state at that position.  One option for this
-function is `common-lisp-indent-function'.")
+function is `common-lisp-indent-function'."
+  :type 'function
+  :group 'lisp)
 
 (defun lisp-indent-line (&optional whole-exp)
   "Indent current line as Lisp code.

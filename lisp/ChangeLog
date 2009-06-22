@@ -1,3 +1,9 @@
+2009-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-offset): Fix safe-local-variable
+	property.
+	(lisp-indent-function): Make it a defcustom.
+
 2009-06-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Replace with ...
