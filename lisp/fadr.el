@@ -75,9 +75,8 @@ FIELD is a symbol."
 
 (defmacro fadr-define-select (name regexp &optional doc filter)
   "Define a function NAME of one string argument which will
-  extract data from it using the first subgroup in REGEXP. If
-  FILTER is specified, it will be called with the resulting
-  string."
+extract data from it using the first subgroup in REGEXP. If
+FILTER is specified, it will be called with the resulting string."
   `(defun ,name (path)
      ,doc
      (let ((string (if (string-match ,regexp path)
@@ -153,8 +152,7 @@ respective values of OBJECT members."
    string))
 
 (defun fadr-format (string object &rest objects)
-  "Format STRING with OBJECTS, then `fadr-expand' the result with
-OBJECT."
+  "Format STRING with OBJECTS, then `fadr-expand' the result with OBJECT."
   (let ((new-string (apply 'format (append (list string) objects))))
     (fadr-expand new-string object)))
 
