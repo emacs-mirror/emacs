@@ -139,7 +139,7 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files-and-attributes . tramp-smb-handle-directory-files-and-attributes)
     (dired-call-process . ignore)
     (dired-compress-file . ignore)
-    ;; `dired-uncache' performed by default handler
+    (dired-uncache . tramp-handle-dired-uncache)
     ;; `expand-file-name' not necessary because we cannot expand "~/"
     (file-accessible-directory-p . tramp-smb-handle-file-directory-p)
     (file-attributes . tramp-smb-handle-file-attributes)
@@ -375,16 +375,18 @@ PRESERVE-UID-GID is completely ignored."
 (defun tramp-smb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
+    (unless (file-exists-p filename)
+      (tramp-error
+       v 'file-error
+       "Cannot make local copy of non-existing file `%s'" filename))
     (let ((file (tramp-smb-get-localname localname t))
 	  (tmpfile (tramp-compat-make-temp-file filename)))
-      (unless (file-exists-p filename)
-	(tramp-error
-	 v 'file-error
-	 "Cannot make local copy of non-existing file `%s'" filename))
       (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
       (if (tramp-smb-send-command v (format "get \"%s\" %s" file tmpfile))
 	  (tramp-message
 	   v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
+	;; Oops, an error.  We shall cleanup.
+	(delete-file tmpfile)
 	(tramp-error
 	 v 'file-error
 	 "Cannot make local copy of file `%s'" filename))
