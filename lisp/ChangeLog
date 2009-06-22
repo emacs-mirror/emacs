@@ -1,6 +1,12 @@
+2009-06-22  Jim Meyering  <meyering@redhat.com>
+
+	automatically handle .xz suffix (XZ-compressed files), too
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add xz.
+	XZ is the successor to LZMA: <http://tukaani.org/xz/>
+
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
 	            Nick Roberts  <nickrob@snap.net.nz>
-	
+
 	* progmodes/gdb-mi.el: Pull further  modified changes from Dmitry's
 	repository (http://sphinx.net.ru/hg/gdb-mi/).
 
