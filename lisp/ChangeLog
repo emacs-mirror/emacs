@@ -1,3 +1,9 @@
+2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
+	            Nick Roberts  <nickrob@snap.net.nz>
+	
+	* progmodes/gdb-mi.el: Pull further  modified changes from Dmitry's
+	repository (http://sphinx.net.ru/hg/gdb-mi/).
+
 2009-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-collect-mode-variables): Allow for any number of
@@ -17,7 +23,7 @@
 2009-06-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Replace with ...
-	* progmodes/gdb-ui.el: ... this file.
+	* progmodes/gdb-mi.el: ... this file.
 	* progmodes/gud.el: Modify for gdb-mi.el.
 
 2009-06-21  Dmitry Dzhus  <dima@sphinx.net.ru>
