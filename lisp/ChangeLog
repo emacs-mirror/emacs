@@ -1,3 +1,63 @@
+2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.16.
+
+	* Makefile.in (ELCFILES): Add net/tramp-gvfs.elc.
+
+	* net/tramp.el (top): Require tramp-gvfs.  Catch `tramp-loading',
+	when a loading of a package fails.  Completion function for rsync
+	is `tramp-completion-function-alist-ssh'.
+	(all): Replace all calls of `split-string' and
+	`tramp-split-string' by `tramp-compat-split-string'.
+	(tramp-default-method): Use `tramp-compat-process-running-p'.
+	(tramp-default-proxies-alist): Allow also Lisp forms.
+	(tramp-remote-path): Add choice "Private Directories".
+	(tramp-wrong-passwd-regexp): Remove "Tramp connection closed"
+	option.
+	(tramp-domain-regexp): Allow also "-", "_" and ".".
+	(tramp-end-of-output): Remove newlines, and add "$" at the end.
+	(tramp-file-name-handler-alist): Add handler for `dired-uncache'.
+	(tramp-debug-message): Insert header line in debug buffer.
+	(tramp-handle-directory-files-and-attributes-with-stat): Care
+	about filenames with spaces, or starting with "-".
+	(tramp-handle-dired-uncache): New defun.
+	(tramp-handle-insert-directory): Don't flush the directory from
+	cache, this is handled by `dired-uncache' now.
+	(tramp-handle-insert-file-contents): Improve error handling.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Quote `tramp-end-of-output'.
+	(tramp-action-password): Improve trace message.
+	(tramp-check-for-regexp): Both echoes must be present, before
+	removing.
+	(tramp-open-connection-setup-interactive-shell): Trace coding
+	system.
+	(tramp-compute-multi-hops): Eval cons cells of
+	`tramp-default-proxies-alist'.
+	(tramp-maybe-open-connection): Use the same command pattern for
+	first hop and further hops.
+	(tramp-wait-for-output): Remove handling of newlines.
+	(tramp-get-remote-path): Handle also `tramp-own-remote-path'.
+	(tramp-split-string): Remove function.  It is handled in
+	tramp-compat now.
+
+	* net/tramp-cmds.el (tramp-bug): Recommend
+	`tramp-cleanup-all-connections' in the bug mail.
+
+	* net/tramp-compat.el (tramp-compat-split-string)
+	(tramp-compat-process-running-p): New defuns.
+
+	* net/tramp-fish.el (tramp-fish-file-name-handler-alist): Add handler
+	for `dired-uncache'.
+
+	* net/tramp-gvfs.el: New package.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add
+	handler for `dired-uncache'.
+	(tramp-smb-handle-file-local-copy): Cleanup in case of error.
+
+	* net/trampver.el: Update release number.  Make version check fit
+	for SXEmacs 22.
+
 2009-06-22  Jim Meyering  <meyering@redhat.com>
 
 	Automatically handle .xz suffix (XZ-compressed files), too.
