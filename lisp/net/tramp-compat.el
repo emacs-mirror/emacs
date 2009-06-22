@@ -233,6 +233,57 @@ Add the extension of FILENAME, if existing."
 	(setq tree (cdr tree)))
       (nconc (nreverse result) tree))))
 
+(defun tramp-compat-split-string (string pattern)
+  "Like `split-string' but omit empty strings.
+In Emacs, (split-string \"/foo/bar\" \"/\") returns (\"foo\" \"bar\").
+This is, the first, empty, element is omitted.  In XEmacs, the first
+element is not omitted."
+  (delete "" (split-string string pattern)))
+
+(defun tramp-compat-process-running-p (process-name)
+  "Returns `t' if system process PROCESS-NAME is running for `user-login-name'."
+  (when (stringp process-name)
+    (cond
+     ;; GNU Emacs 22 on w32.
+     ((fboundp 'w32-window-exists-p)
+      (funcall (symbol-function 'w32-window-exists-p)
+	       process-name process-name))
+
+     ;; GNU Emacs 23.
+     ((and (fboundp 'list-system-processes) (fboundp 'process-attributes))
+      (let (result)
+	(dolist (pid (funcall (symbol-function 'list-system-processes)) result)
+	  (let ((attributes
+		 (funcall (symbol-function 'process-attributes) pid)))
+	    (when
+		(and (string-equal
+		      (cdr (assoc 'user attributes)) (user-login-name))
+		     ;; The returned command name could be truncated
+		     ;; to 15 characters.  Therefore, we cannot check
+		     ;; for `string-equal'.
+		     (string-match
+		      (concat "^" (regexp-quote (cdr (assoc 'comm attributes))))
+		      process-name))
+	      (setq result t))))))
+
+     ;; Fallback, if there is no Lisp support yet.
+     (t (let ((default-directory
+		(if (file-remote-p default-directory)
+		    (tramp-compat-temporary-file-directory)
+		  default-directory))
+	      (unix95 (getenv "UNIX95"))
+	      result)
+	  (setenv "UNIX95" "1")
+	  (when (member
+		 (user-login-name)
+		 (tramp-compat-split-string
+		  (shell-command-to-string
+		   (format "ps -C %s -o user=" process-name))
+		  "[ \f\t\n\r\v]+"))
+	    (setq result t))
+	  (setenv "UNIX95" unix95)
+	  result)))))
+
 (provide 'tramp-compat)
 
 ;;; TODO:
