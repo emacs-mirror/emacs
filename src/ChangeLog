@@ -7,6 +7,9 @@
 	* xterm.c (x_draw_glyph_string): Use the glyph string's width
 	rather than its background_width for drawing the overline and
 	underline (Bug#489).
+	(xg_default_icon_file): New variable.
+	(syms_of_xterm): Initialize it to the Emacs SVG icon file.
+	(x_bitmap_icon): Under GTK, use xg_default_icon_file.
 
 	* xdisp.c (Qbefore_string, Qafter_string): Add externs.
 	(load_overlay_strings): Remove externs.

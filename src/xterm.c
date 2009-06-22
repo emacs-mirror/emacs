@@ -320,6 +320,11 @@ static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 static Lisp_Object Qvendor_specific_keysyms;
 static Lisp_Object Qlatin_1;
 
+#ifdef USE_GTK
+/* The name of the Emacs icon file.  */
+static Lisp_Object xg_default_icon_file;
+#endif
+
 /* Used in x_flush.  */
 
 extern Lisp_Object Vinhibit_redisplay;
@@ -7617,16 +7622,19 @@ x_bitmap_icon (f, file)
 	{
 	  int rc = -1;
 
-#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
 #ifdef USE_GTK
-	  if (xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
+
+	  if (xg_set_icon (f, xg_default_icon_file)
+	      || xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
 	    return 0;
-#else
+
+#elif defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+
 	  rc = x_create_bitmap_from_xpm_data (f, gnu_xpm_bits);
 	  if (rc != -1)
 	    FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id = rc;
-#endif /* USE_GTK */
-#endif /* defined (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
+
+#endif
 
 	  /* If all else fails, use the (black and white) xbm image. */
 	  if (rc == -1)
@@ -10913,6 +10921,11 @@ syms_of_xterm ()
 
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
+
+#ifdef USE_GTK
+  xg_default_icon_file = build_string ("icons/hicolor/scalable/apps/emacs.svg");
+  staticpro (&xg_default_icon_file);
+#endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       &x_use_underline_position_properties,
