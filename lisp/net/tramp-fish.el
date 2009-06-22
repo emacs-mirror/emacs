@@ -209,7 +209,7 @@ Used instead of analyzing error codes of commands.")
     (directory-files-and-attributes . tramp-fish-handle-directory-files-and-attributes)
     ;; `dired-call-process' performed by default handler
     ;; `dired-compress-file' performed by default handler
-    ;; `dired-uncache' performed by default handler
+    (dired-uncache . tramp-handle-dired-uncache)
     (expand-file-name . tramp-fish-handle-expand-file-name)
     ;; `file-accessible-directory-p' performed by default handler
     (file-attributes . tramp-fish-handle-file-attributes)
