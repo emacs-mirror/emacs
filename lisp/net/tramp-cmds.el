@@ -219,7 +219,12 @@ If you can give a simple set of instructions to make this bug
 happen reliably, please include those.  Thank you for helping
 kill bugs in Tramp.
 
-Another useful thing to do is to put
+Before reproducing the bug, you might apply
+
+  M-x tramp-cleanup-all-connections
+
+This allows to investigate from a clean environment.  Another
+useful thing to do is to put
 
   (setq tramp-verbose 8)
 
