@@ -464,6 +464,9 @@ introduced in December 2005.
 @ifset emacsgw
 Support of gateways exists since April 2007.
 @end ifset
+@ifset emacsgvfs
+GVFS integration started in February 2009.
+@end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
 repository.  Being part of the GNU Emacs repository happened in June
@@ -854,11 +857,11 @@ identical to the @option{scp} method.
 
 While @command{rsync} performs much better than @command{scp} when
 transferring files that exist on both hosts, this advantage is lost if
-the file exists only on one side of the connection.
-
-The @command{rsync} based method may be considerably faster than the
-@command{rcp} based methods when writing to the remote system.  Reading
-files to the local machine is no faster than with a direct copy.
+the file exists only on one side of the connection.  A file can exists
+on both the remote and local host, when you copy a file from/to a
+remote host.  When you just open a file from the remote host (or write
+a file there), this is not the case, because on the local side
+temporary files are used.
 
 This method supports the @samp{-p} hack.
 
@@ -1025,7 +1028,44 @@ file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
 
+@ifset emacsgvfs
+@item @option{dav}
+@cindex method dav
+@cindex dav method
+
+This method provides access to WebDAV files and directories.  It is
+available on systems only which run GVFS
+@uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
+filesystem is mounted locally through FUSE.  @value{tramp} uses
+internally this local mounted directory.
+
+The communication with GVFS is implemented via D-Bus messages.
+Therefore, your @value{emacsname} must have D-Bus integration.
+
+There exists also the external method @option{davs}, which uses SSL
+encryption for the access.
+
+Both methods support the port number specification as discussed above.
+
+@item @option{obex}
+@cindex method obex
+@cindex obex method
+
+OBEX is an FTP-like access protocol for simple devices, like cell
+phones.  Like @option{dav} and @option{davs}, it uses GVFS for
+mounting remote files and directories via FUSE.  Until now
+@value{tramp} supports only OBEX over Bluetooth.
+@end ifset
 @end table
+
+@ifset emacsgvfs
+@defopt tramp-gvfs-methods
+This customer option, a list, defines the external methods, which
+shall be used with GVFS.  Per default, these are @option{dav},
+@option{davs} and @option{obex}.  Other possible values are
+@option{ftp}, @option{sftp} and @option{smb}.
+@end defopt
+@end ifset
 
 
 @ifset emacsgw
@@ -1346,6 +1386,19 @@ important to know that the given method is applied on the host which
 has been reached so far.  @code{sudo -u root}, applied on your local
 host, wouldn't be useful here.
 
+@var{host}, @var{user} and @var{proxy} can also be Lisp forms.  These
+forms are evaluated, and must return a string, or @code{nil}.  The
+previous example could be generalized then: For all hosts except my
+local one connect via @code{ssh} first, and apply @code{sudo -u root}
+afterwards:
+
+@lisp
+(add-to-list 'tramp-default-proxies-alist
+             '(nil "\\`root\\'" "@trampfn{ssh, , %h,}"))
+(add-to-list 'tramp-default-proxies-alist
+             '((regexp-quote (system-name)) nil nil))
+@end lisp
+
 This is the recommended configuration to work as @samp{root} on remote
 Ubuntu hosts.
 
@@ -1640,6 +1693,9 @@ available, they are used to improve the performance and accuracy of
 remote file access.
 
 @vindex tramp-remote-path
+@vindex tramp-default-remote-path
+@vindex tramp-own-remote-path
+@defopt tramp-remote-path
 When @value{tramp} connects to the remote machine, it searches for the
 programs that it can use.  The variable @code{tramp-remote-path}
 controls the directories searched on the remote machine.
@@ -1670,6 +1726,17 @@ as:
 @i{;; We have @command{perl} in "/usr/local/perl/bin"}
 (add-to-list 'tramp-remote-path "/usr/local/perl/bin")
 @end lisp
+
+Another possibility is to reuse the path settings of your remote
+account, when you log in.  Usually, these settings are overwritten,
+because they might not be useful for @value{tramp}.  The place holder
+@code{tramp-own-remote-path} preserves these settings.  You can
+activate it via
+
+@lisp
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+@end lisp
+@end defopt
 
 @value{tramp} caches several information, like the Perl binary
 location.  The changed remote search path wouldn't affect these
@@ -2379,6 +2446,28 @@ out-of-the-box on a remote host, please let us know.  We will try to
 integrate them as well.  @xref{Bug Reports}.
 
 
+@subsection Running remote programs that create local X11 windows
+
+If you want to run a remote program, which shall connect the X11
+server you are using with your local host, you can set the
+@var{$DISPLAY} environment variable on the remote host:
+
+@lisp
+(add-to-list 'tramp-remote-process-environment
+             (format "DISPLAY=%s" (getenv "DISPLAY")))
+@end lisp
+
+@noindent
+@code{(getenv "DISPLAY")} shall return a string containing a host
+name, which can be interpreted on the remote host; otherwise you might
+use a fixed host name.  Strings like @code{:0} cannot be used properly
+on the remote host.
+
+Another trick might be that you put @code{ForwardX11 yes} or
+@code{ForwardX11Trusted yes} to your @file{~/.ssh/config} file for
+that host.
+
+
 @subsection Running shell-command on a remote host
 @cindex shell-command
 
@@ -2598,7 +2687,10 @@ under version control, a lot of check operations can be avoided by
 disabling VC.  This can be achieved by
 
 @lisp
-(setq vc-handled-backends nil)
+(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
 @end lisp
 
 Disable excessive traces.  The default trace level of @value{tramp},
