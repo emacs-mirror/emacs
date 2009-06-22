@@ -1,3 +1,20 @@
+2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.16.
+
+	* tramp.texi (History): Add GVFS support.
+	(External methods): Precise `rsync' description.  Add `dav', `davs' and
+	`obex' methods.  Add 'tramp-gvfs-methods' option.
+	(Multi-hops): Cells of `tramp-default-proxies-alist' can also be Lisp
+	forms.
+	(Remote Programs): Introduce `tramp-own-remote-path'.
+	(Remote processes): New subsection "Running remote programs that create
+	local X11 windows".
+	(Frequently Asked Questions): Improve code for disabling vc.
+
+	* trampver.texi: Update release number.  Set default value of
+	`emacsgvfs'.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
