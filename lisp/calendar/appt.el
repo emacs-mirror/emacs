@@ -568,7 +568,7 @@ appointment package (if it is not already active)."
                                  (match-end 0)))
                            ;; Get the whole string for this appointment.
                            (appt-time-string
-                            (substring time-string beg (if end (1- end))))
+                            (substring time-string beg end))
                            (appt-time (list (appt-convert-time only-time)))
                            (time-msg (list appt-time appt-time-string)))
                       ;; Add this appointment to appt-time-msg-list.

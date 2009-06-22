@@ -1,5 +1,8 @@
 2009-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-make-list): Fix off-by-one error caused by
+	differing behavior of \n and ^ in strings.  (Bug#3385)
+
 	* emacs-lisp/cl-indent.el: Remove leading "*" from defcustom docs.
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-offset): Fix safe-local-variable
