@@ -16,6 +16,9 @@
 	* progmodes/gdb-ui.el: Replace with ...
 	* progmodes/gdb-ui.el: ... this file.
 	* progmodes/gud.el: Modify for gdb-mi.el.
+
+2009-06-21  Dmitry Dzhus  <dima@sphinx.net.ru>
+
 	* fadr.el: New file.
 
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
