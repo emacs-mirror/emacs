@@ -1,3 +1,13 @@
+2009-06-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Qbefore_string, Qafter_string): Add externs.
+	(load_overlay_strings): Remove externs.
+	(fast_find_position): Function deleted.
+	(mouse_face_from_buffer_pos): New function, based on
+	fast_find_position.  Correctly handle before-strings,
+	display-strings, and after-strings (Bug#1220).
+	(note_mouse_highlight): Use mouse_face_from_buffer_pos.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (IT_DISPLAYING_WHITESPACE): Define for
