@@ -1,5 +1,8 @@
 2009-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (dir-locals-collect-mode-variables): Allow for any number of
+	`mode' and `eval' entries.  (Bug#3430)
+
 	* Makefile.in (ELCFILES): Add fadr.elc.
 
 	* calendar/appt.el (appt-make-list): Fix off-by-one error caused by

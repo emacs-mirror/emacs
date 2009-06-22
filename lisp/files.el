@@ -3213,7 +3213,9 @@ Returns the new list."
     (let* ((variable (car pair))
 	   (value (cdr pair))
 	   (slot (assq variable variables)))
-      (if slot
+      ;; If variables are specified more than once, only use the last.  (Why?)
+      ;; The pseudo-variables mode and eval are different (bug#3430).
+      (if (and slot (not (memq variable '(mode eval))))
 	  (setcdr slot value)
 	;; Need a new cons in case we setcdr later.
 	(push (cons variable value) variables)))))
