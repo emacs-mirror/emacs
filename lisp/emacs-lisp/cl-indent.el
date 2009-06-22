@@ -53,20 +53,20 @@
 
 
 (defcustom lisp-indent-maximum-backtracking 3
-  "*Maximum depth to backtrack out from a sublist for structured indentation.
+  "Maximum depth to backtrack out from a sublist for structured indentation.
 If this variable is 0, no backtracking will occur and forms such as `flet'
 may not be correctly indented."
   :type 'integer
   :group 'lisp-indent)
 
 (defcustom lisp-tag-indentation 1
-  "*Indentation of tags relative to containing list.
+  "Indentation of tags relative to containing list.
 This variable is used by the function `lisp-indent-tagbody'."
   :type 'integer
   :group 'lisp-indent)
 
 (defcustom lisp-tag-body-indentation 3
-  "*Indentation of non-tagged lines relative to containing list.
+  "Indentation of non-tagged lines relative to containing list.
 This variable is used by the function `lisp-indent-tagbody' to indent normal
 lines (lines without tags).
 The indentation is relative to the indentation of the parenthesis enclosing
@@ -78,31 +78,30 @@ by `lisp-body-indent'."
   :group 'lisp-indent)
 
 (defcustom lisp-backquote-indentation t
-  "*Whether or not to indent backquoted lists as code.
+  "Whether or not to indent backquoted lists as code.
 If nil, indent backquoted lists as data, i.e., like quoted lists."
   :type 'boolean
   :group 'lisp-indent)
 
 
 (defcustom lisp-loop-keyword-indentation 3
-  "*Indentation of loop keywords in extended loop forms."
+  "Indentation of loop keywords in extended loop forms."
   :type 'integer
   :group 'lisp-indent)
 
 
 (defcustom lisp-loop-forms-indentation 5
-  "*Indentation of forms in extended loop forms."
+  "Indentation of forms in extended loop forms."
   :type 'integer
   :group 'lisp-indent)
 
 
 (defcustom lisp-simple-loop-indentation 3
-  "*Indentation of forms in simple loop forms."
+  "Indentation of forms in simple loop forms."
   :type 'integer
   :group 'lisp-indent)
 
 
-(defvar lisp-indent-error-function)
 (defvar lisp-indent-defun-method '(4 &lambda &body)
   "Indentation for function with `common-lisp-indent-function' property `defun'.")
 
@@ -374,6 +373,9 @@ For example, the function `case' has an indent property
       (lisp-indent-259 method path state indent-point
 		       sexp-column normal-indent))))
 
+;; Dynamically bound in common-lisp-indent-call-method.
+(defvar lisp-indent-error-function)
+
 (defun lisp-indent-report-bad-format (m)
   (error "%s has a badly-formed %s property: %s"
          ;; Love those free variable references!!
@@ -558,8 +560,11 @@ For example, the function `case' has an indent property
 
 (let ((l '((block 1)
            (case        (4 &rest (&whole 2 &rest 1)))
-           (ccase . case) (ecase . case)
-           (typecase . case) (etypecase . case) (ctypecase . case)
+           (ccase . case)
+           (ecase . case)
+           (typecase . case)
+           (etypecase . case)
+           (ctypecase . case)
            (catch 1)
            (cond        (&rest (&whole 2 &rest 1)))
            (defvar      (4 2 2))
@@ -574,7 +579,9 @@ For example, the function `case' has an indent property
            (defun       (4 &lambda &body))
            (define-setf-method . defun)
            (define-setf-expander . defun)
-           (defmacro . defun) (defsubst . defun) (deftype . defun)
+           (defmacro . defun)
+           (defsubst . defun)
+           (deftype . defun)
 	   (defmethod	lisp-indent-defmethod)
            (defpackage  (4 2))
            (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
@@ -589,7 +596,8 @@ For example, the function `case' has an indent property
            (flet        ((&whole 4 &rest (&whole 1 &lambda &body)) &body))
            (labels . flet)
            (macrolet . flet)
-           (generic-flet . flet) (generic-labels . flet)
+           (generic-flet . flet)
+           (generic-labels . flet)
            (handler-case (4 &rest (&whole 2 &lambda &body)))
            (restart-case . handler-case)
            ;; `else-body' style
@@ -600,7 +608,8 @@ For example, the function `case' has an indent property
            (let         ((&whole 4 &rest (&whole 1 1 2)) &body))
            (let* . let)
            (compiler-let . let) ;barf
-           (handler-bind . let) (restart-bind . let)
+           (handler-bind . let)
+           (restart-bind . let)
            (locally 1)
            ;(loop         lisp-indent-loop)
            (:method (&lambda &body)) ; in `defgeneric'

@@ -1,5 +1,7 @@
 2009-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-indent.el: Remove leading "*" from defcustom docs.
+
 	* emacs-lisp/lisp-mode.el (lisp-indent-offset): Fix safe-local-variable
 	property.
 	(lisp-indent-function): Make it a defcustom.
