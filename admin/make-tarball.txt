@@ -76,6 +76,10 @@ For each step, check for possible errors.
     After doing this, increase the version number on the trunk as per
     step 4.
 
+    Also, open a Savannah support request asking for commits to the
+    new branch to be sent to the emacs-diffs mailing list (by default,
+    the list normally only gets commits to the trunk).
+
 11. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  Mail <ftp-upload@gnu.org>
