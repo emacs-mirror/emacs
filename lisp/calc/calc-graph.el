@@ -529,10 +529,10 @@
 	     (calc-clear-command-flag 'clear-message)
 	     (message "No data to plot!"))
 	 (setq calc-graph-data-cache-limit (max calc-graph-curve-num
-						calc-graph-data-cache-limit)
-	       filename (calc-temp-file-name 0))
-	 (write-region (point-min) (point-max) filename nil 'quiet)
-	 (calc-gnuplot-command "load" (prin1-to-string filename))
+						calc-graph-data-cache-limit))
+	 (let ((filename (calc-temp-file-name 0)))
+	   (write-region (point-min) (point-max) filename nil 'quiet)
+	   (calc-gnuplot-command "load" (prin1-to-string filename)))
 	 (or (equal output "STDOUT")
 	     calc-gnuplot-keep-outfile
 	     (progn   ; need to close the output file before printing/plotting

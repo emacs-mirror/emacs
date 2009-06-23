@@ -1,5 +1,8 @@
 2009-06-23  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc-graph.el (calc-graph-plot): Avoid assignment to free
+	variable `filename'.
+
 	* comint.el (comint-insert-input): Doc fix.
 
 	* Makefile.in (ELCFILES): Fix typo in previous change.
