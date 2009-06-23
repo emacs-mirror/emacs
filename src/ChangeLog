@@ -1,3 +1,10 @@
+2009-06-23  Jim Meyering  <meyering@redhat.com>
+
+	Don't dereference NULL upon failed malloc and realloc
+	* src/ftfont.c (setup_otf_gstring, ftfont_shape_by_flt): Use xmalloc
+	and xrealloc (not malloc and realloc), so subsequent heap pointer
+	dereferences are guaranteed to be valid.
+
 2009-06-23  Kenichi Handa  <handa@m17n.org>
 
 	* emacs.c (main): Call init_font ().

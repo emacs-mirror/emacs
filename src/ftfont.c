@@ -1700,13 +1700,13 @@ setup_otf_gstring (int size)
 {
   if (otf_gstring.size == 0)
     {
-      otf_gstring.glyphs = (OTF_Glyph *) malloc (sizeof (OTF_Glyph) * size);
+      otf_gstring.glyphs = (OTF_Glyph *) xmalloc (sizeof (OTF_Glyph) * size);
       otf_gstring.size = size;
     }
   else if (otf_gstring.size < size)
     {
-      otf_gstring.glyphs = (OTF_Glyph *) realloc (otf_gstring.glyphs,
-						  sizeof (OTF_Glyph) * size);
+      otf_gstring.glyphs = xrealloc (otf_gstring.glyphs,
+				     sizeof (OTF_Glyph) * size);
       otf_gstring.size = size;
     }
   otf_gstring.used = size;
@@ -2037,13 +2037,13 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
     {
       gstring.allocated = len * 2;
       gstring.glyph_size = sizeof (MFLTGlyph);
-      gstring.glyphs = malloc (sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xmalloc (sizeof (MFLTGlyph) * gstring.allocated);
     }
   else if (gstring.allocated < len * 2)
     {
       gstring.allocated = len * 2;
-      gstring.glyphs = realloc (gstring.glyphs,
-				sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xrealloc (gstring.glyphs,
+				 sizeof (MFLTGlyph) * gstring.allocated);
     }
   memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
   for (i = 0; i < len; i++)
@@ -2092,8 +2092,8 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       if (result != -2)
 	break;
       gstring.allocated += gstring.allocated;
-      gstring.glyphs = realloc (gstring.glyphs,
-				sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xrealloc (gstring.glyphs,
+				 sizeof (MFLTGlyph) * gstring.allocated);
     }
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;
