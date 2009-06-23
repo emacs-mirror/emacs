@@ -391,6 +391,13 @@ revert all subfiles."
     (basic-save-buffer)
     (kill-buffer (current-buffer))))
 
+(defun vc-sccs-find-file-hook ()
+  ;; If the file is locked by some other user, make
+  ;; the buffer read-only.  Like this, even root
+  ;; cannot modify a file that someone else has locked.
+  (stringp (vc-state buffer-file-name 'SCCS))
+  (setq buffer-read-only t))
+
 
 ;;;
 ;;; Internal functions

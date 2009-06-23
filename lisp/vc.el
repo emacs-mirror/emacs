@@ -600,11 +600,6 @@
 ;;   the two branches.  Or you locally add file FOO and then pull a
 ;;   change that also adds a new file FOO, ...
 ;;
-;; - The use of vc-start-logentry in vc-register should be removed.
-;;   It's a remnant from old times when vc-register had an opportunity
-;;   to provide a message linked to the file's addition, but nowadays
-;;   it's just extra baggage that makes the code less readable.
-;;
 ;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
@@ -934,7 +929,7 @@ current buffer."
            ;; FIXME: Why this test?  --Stef
            (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
-				  (eq major-mode 'vc-dir-mode))))
+				  (derived-mode-p 'vc-dir-mode))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset observer allow-unregistered state-model-only-files)))
@@ -1172,7 +1167,7 @@ merge in the changes into your working copy."
 		   ;; show that the file is locked now.
 		   (vc-clear-headers file)
 		   (write-file buffer-file-name)
-		   (vc-mode-line file))
+		   (vc-mode-line file backend))
 	  (if (not (yes-or-no-p
 		    "Revert to checked-in revision, instead? "))
 	      (error "Checkout aborted")
@@ -1232,31 +1227,28 @@ first backend that could register the file is used."
 		       (not (file-exists-p buffer-file-name)))
 	      (set-buffer-modified-p t))
 	    (vc-buffer-sync)))))
-    (lexical-let ((backend backend)
-                  (files files))
-      (vc-start-logentry
-       files
-       (if set-revision
-	   (read-string (format "Initial revision level for %s: " files))
-	 (vc-call-backend backend 'init-revision))
-       (or comment (not vc-initial-comment))
-       nil
-       "Enter initial comment."
-       "*VC-log*"
-       (lambda (files rev comment)
-	 (message "Registering %s... " files)
-	 (mapc 'vc-file-clearprops files)
-	 (vc-call-backend backend 'register files rev comment)
-	 (dolist (file files)
-	   (vc-file-setprop file 'vc-backend backend)
-           ;; FIXME: This is wrong: it should set `backup-inhibited' in all
-           ;; the buffers visiting files affected by this `vc-register', not
-           ;; in the current-buffer.
-	   ;; (unless vc-make-backup-files
-	   ;;   (make-local-variable 'backup-inhibited)
-	   ;;   (setq backup-inhibited t))
-           )
-	 (message "Registering %s... done" files))))))
+    (message "Registering %s... " files)
+    (mapc 'vc-file-clearprops files)
+    (vc-call-backend backend 'register files
+		     (if set-revision
+			 (read-string (format "Initial revision level for %s: " files))
+		       (vc-call-backend backend 'init-revision))
+		     comment)
+    (mapc
+     (lambda (file)
+       (vc-file-setprop file 'vc-backend backend)
+       ;; FIXME: This is wrong: it should set `backup-inhibited' in all
+       ;; the buffers visiting files affected by this `vc-register', not
+       ;; in the current-buffer.
+       ;; (unless vc-make-backup-files
+       ;;   (make-local-variable 'backup-inhibited)
+       ;;   (setq backup-inhibited t))
+
+       (vc-resynch-buffer file vc-keep-workfiles t))
+     files)
+    (when (derived-mode-p 'vc-dir-mode)
+      (vc-dir-move-to-goal-column))
+    (message "Registering %s... done" files)))
 
 (defun vc-register-with (backend)
   "Register the current file with a specified back end."
@@ -2108,7 +2100,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (vc-switch-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
-      (vc-mode-line file)
+      (vc-mode-line file new-backend)
       (vc-checkin file new-backend nil comment (stringp comment)))))
 
 (defun vc-rename-master (oldmaster newfile templates)
@@ -2208,8 +2200,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (with-current-buffer oldbuf
 	(let ((buffer-read-only buffer-read-only))
 	  (set-visited-file-name new))
-	(vc-backend new)
-	(vc-mode-line new)
+	(vc-mode-line new (vc-backend new))
 	(set-buffer-modified-p nil)))))
 
 ;;;###autoload

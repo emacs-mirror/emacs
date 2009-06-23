@@ -828,6 +828,13 @@ systime, or nil if there is none.  Also, reposition point."
   ;; Just move the master file (using vc-rcs-master-templates).
   (vc-rename-master (vc-name old) new vc-rcs-master-templates))
 
+(defun vc-rcs-find-file-hook ()
+  ;; If the file is locked by some other user, make
+  ;; the buffer read-only.  Like this, even root
+  ;; cannot modify a file that someone else has locked.
+  (stringp (vc-state buffer-file-name 'RCS))
+  (setq buffer-read-only t))
+
 
 ;;;
 ;;; Internal functions

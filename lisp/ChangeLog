@@ -1,3 +1,32 @@
+2009-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-stay-local-p, vc-state, vc-working-revision):
+	Add an optional argument for the backend, use it instead of
+	calling vc-backend.
+	(vc-mode-line): Add an optional argument for the backend.  Pass
+	the backend to vc-state and vc-working-revision.  Move code for
+	special handling for vc-state being a buffer to ...
+
+	* vc-rcs.el (vc-rcs-find-file-hook):
+	* vc-sccs.el (vc-sccs-find-file-hook): ... here.  New functions.
+
+	* vc-svn.el (vc-svn-state, vc-svn-dir-status, vc-svn-checkout)
+	(vc-svn-print-log, vc-svn-diff): Pass 'SVN to vc-state,
+	vc-stay-local-p and vc-mode-line calls.
+
+	* vc-cvs.el (vc-cvs-state, vc-cvs-checkout, vc-cvs-print-log)
+	(vc-cvs-diff, vc-cvs-annotate-command)
+	(vc-cvs-make-version-backups-p, vc-cvs-stay-local-p)
+	(vc-cvs-dir-status): Pass 'CVS to vc-state, vc-stay-local-p and
+	vc-mode-line calls.
+
+	* vc.el (vc-deduce-fileset): Use vc-deduce-fileset instead of
+	direct comparison.
+	(vc-next-action, vc-transfer-file, vc-rename-file): Also pass the
+	backend when calling vc-mode-line.
+	(vc-register): Do not create a closure for calling the vc register
+	function, call it directly.
+
 2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/elp.el (elp-output-insert-symname): Add a link face

@@ -216,7 +216,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 
 (defun vc-cvs-state (file)
   "CVS-specific version of `vc-state'."
-  (if (vc-stay-local-p file)
+  (if (vc-stay-local-p file 'CVS)
       (let ((state (vc-file-getprop file 'vc-state)))
         ;; If we should stay local, use the heuristic but only if
         ;; we don't have a more precise state already available.
@@ -402,7 +402,7 @@ REV is the revision to check out."
                      "-A"
                    (concat "-r" rev))))
              (vc-switches 'CVS 'checkout)))
-    (vc-mode-line file))
+    (vc-mode-line file 'CVS))
   (message "Checking out %s...done" file))
 
 (defun vc-cvs-delete-file (file)
@@ -496,7 +496,7 @@ Will fail unless you have administrative privileges on the repo."
   ;; It's just the catenation of the individual logs.
   (vc-cvs-command
    buffer
-   (if (vc-stay-local-p files) 'async 0)
+   (if (vc-stay-local-p files 'CVS) 'async 0)
    files "log"))
 
 (defun vc-cvs-comment-history (file)
@@ -506,7 +506,7 @@ Will fail unless you have administrative privileges on the repo."
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
   (let* ((async (and (not vc-disable-async-diff)
-		     (vc-stay-local-p files)))
+		     (vc-stay-local-p files 'CVS)))
 	 (invoke-cvs-diff-list nil)
 	 status)
     ;; Look through the file list and see if any files have backups
@@ -559,7 +559,7 @@ Will fail unless you have administrative privileges on the repo."
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
   (vc-cvs-command buffer
-                  (if (vc-stay-local-p file)
+                  (if (vc-stay-local-p file 'CVS)
 		      'async 0)
                   file "annotate"
                   (if revision (concat "-r" revision)))
@@ -681,8 +681,9 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Miscellaneous
 ;;;
 
-(defalias 'vc-cvs-make-version-backups-p 'vc-stay-local-p
-  "Return non-nil if version backups should be made for FILE.")
+(defun vc-cvs-make-version-backups-p (file)
+  "Return non-nil if version backups should be made for FILE."
+  (vc-stay-local-p file 'CVS))
 
 (defun vc-cvs-check-headers ()
   "Check if the current file has any headers in it."
@@ -706,7 +707,8 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
            (append vc-cvs-global-switches
                    flags))))
 
-(defalias 'vc-cvs-stay-local-p 'vc-stay-local-p)  ;Back-compatibility.
+(defun vc-cvs-stay-local-p (file)  ;Back-compatibility.
+  (vc-stay-local-p file 'CVS))
 
 (defun vc-cvs-repository-hostname (dirname)
   "Hostname of the CVS server associated to workarea DIRNAME."
@@ -965,7 +967,7 @@ state."
 (defun vc-cvs-dir-status (dir update-function)
   "Create a list of conses (file . state) for DIR."
   ;; FIXME check all files in DIR instead?
-  (let ((local (vc-stay-local-p dir)))
+  (let ((local (vc-stay-local-p dir 'CVS)))
     (if (and local (not (eq local 'only-file)))
 	(vc-cvs-dir-status-heuristic dir update-function)
       (vc-cvs-command (current-buffer) 'async dir "-f" "status")

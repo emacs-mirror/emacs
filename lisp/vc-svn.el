@@ -142,7 +142,7 @@ want to force an empty list of arguments, use t."
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
-  (setq localp (or localp (vc-stay-local-p file)))
+  (setq localp (or localp (vc-stay-local-p file 'SVN)))
   (with-temp-buffer
     (cd (file-name-directory file))
     (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
@@ -189,7 +189,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; calling synchronously (vc-svn-registered DIR) => calling svn status -v DIR
   ;; which is VERY SLOW for big trees and it makes emacs
   ;; completely unresponsive during that time.
-  (let* ((local (and nil (vc-stay-local-p dir)))
+  (let* ((local (and nil (vc-stay-local-p dir 'SVN)))
 	 (remote (or t (not local) (eq local 'only-file))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
@@ -316,7 +316,7 @@ This is only possible if SVN is responsible for FILE's directory.")
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
     (vc-svn-update file editable rev (vc-switches 'SVN 'checkout)))
-  (vc-mode-line file)
+  (vc-mode-line file 'SVN)
   (message "Checking out %s...done" file))
 
 (defun vc-svn-update (file editable rev switches)
@@ -470,7 +470,7 @@ or svn+ssh://."
 		  (vc-svn-command
 		   buffer
 		   'async
-		   ;; (if (and (= (length files) 1) (vc-stay-local-p file)) 'async 0)
+		   ;; (if (and (= (length files) 1) (vc-stay-local-p file 'SVN)) 'async 0)
 		   (list file)
 		   "log"
 		   ;; By default Subversion only shows the log up to the
@@ -502,7 +502,7 @@ or svn+ssh://."
 	      (list "--diff-cmd=diff" "-x"
 		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p files)
+                       (vc-stay-local-p files 'SVN)
 		       (or oldvers newvers)))) ; Svn diffs those locally.
       (apply 'vc-svn-command buffer
 	     (if async 'async 0)
@@ -543,8 +543,9 @@ NAME is assumed to be a URL."
 ;;;
 
 ;; Subversion makes backups for us, so don't bother.
-;; (defalias 'vc-svn-make-version-backups-p 'vc-stay-local-p
-;;   "Return non-nil if version backups should be made for FILE.")
+;; (defun vc-svn-make-version-backups-p (file)
+;;   "Return non-nil if version backups should be made for FILE."
+;;  (vc-stay-local-p file 'SVN))
 
 (defun vc-svn-check-headers ()
   "Check if the current file has any headers in it."

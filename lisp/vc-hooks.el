@@ -168,15 +168,15 @@ by these regular expressions."
   :version "23.1"
   :group 'vc)
 
-(defun vc-stay-local-p (file)
+(defun vc-stay-local-p (file &optional backend)
   "Return non-nil if VC should stay local when handling FILE.
 This uses the `repository-hostname' backend operation.
 If FILE is a list of files, return non-nil if any of them
 individually should stay local."
   (if (listp file)
-      (delq nil (mapcar 'vc-stay-local-p file))
-    (let* ((backend (vc-backend file))
-	   (sym (vc-make-backend-sym backend 'stay-local))
+      (delq nil (mapcar (lambda (arg) (vc-stay-local-p arg backend)) file))
+    (setq backend (or backend (vc-backend file)))
+    (let* ((sym (vc-make-backend-sym backend 'stay-local))
 	   (stay-local (if (boundp sym) (symbol-value sym) vc-stay-local)))
       (if (symbolp stay-local) stay-local
 	(let ((dirname (if (file-directory-p file)
@@ -449,7 +449,7 @@ For registered files, the possible values are:
       ;; if user-login-name is nil, return the UID as a string
       (number-to-string (user-uid))))
 
-(defun vc-state (file)
+(defun vc-state (file &optional backend)
   "Return the version control state of FILE.
 
 If FILE is not registered, this function always returns nil.
@@ -514,11 +514,11 @@ status of this file."
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (when (> (length file) 0)
-        (let ((backend (vc-backend file)))
-          (when backend
-            (vc-file-setprop
-             file 'vc-state
-             (vc-call-backend backend 'state-heuristic file)))))))
+	(setq backend (or backend (vc-backend file)))
+	(when backend
+	  (vc-file-setprop
+	   file 'vc-state
+	   (vc-call-backend backend 'state-heuristic file))))))
 
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
@@ -563,14 +563,15 @@ Return non-nil if FILE is unchanged."
                 (signal (car err) (cdr err))
               (vc-call-backend backend 'diff (list file)))))))
 
-(defun vc-working-revision (file)
+(defun vc-working-revision (file &optional backend)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (let ((backend (vc-backend file)))
-        (when backend
-          (vc-file-setprop file 'vc-working-revision
-                           (vc-call-backend backend 'working-revision file))))))
+      (progn
+	(setq backend (or backend (vc-backend file)))
+	(when backend
+	  (vc-file-setprop file 'vc-working-revision
+			   (vc-call-backend backend 'working-revision file))))))
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -741,9 +742,9 @@ Before doing that, check if there are any old backups and get rid of them."
          (vc-up-to-date-p file)
          (eq (vc-checkout-model backend (list file)) 'implicit)
          (vc-file-setprop file 'vc-state 'edited)
-	 (vc-mode-line file)
-	 ;; Try to avoid unnecessary work, a *vc-dir* buffer is only
-	 ;; present if this is true.
+	 (vc-mode-line file backend)
+	 ;; Try to avoid unnecessary work, a *vc-dir* buffer is
+	 ;; present if and only if this is true.
 	 (when (memq 'vc-dir-resynch-file after-save-hook)
 	   (vc-dir-resynch-file file)))))
 
@@ -787,12 +788,6 @@ If BACKEND is passed use it as the VC backend when computing the result."
 				    backend))
 			"\nmouse-1: Version Control menu")
 		'local-map vc-mode-line-map)))))
-    ;; If the file is locked by some other user, make
-    ;; the buffer read-only.  Like this, even root
-    ;; cannot modify a file that someone else has locked.
-    (and (equal file buffer-file-name)
-	 (stringp (vc-state file))
-	 (setq buffer-read-only t))
     ;; If the user is root, and the file is not owner-writable,
     ;; then pretend that we can't write it
     ;; even though we can (because root can write anything).
@@ -814,37 +809,37 @@ Format:
   \"BACKEND:LOCKER:REV\" if the file is locked by somebody else
 
 This function assumes that the file is registered."
-  (setq backend (symbol-name backend))
-  (let ((state   (vc-state file))
-	(state-echo nil)
-	(rev     (vc-working-revision file)))
+  (let* ((backend-name (symbol-name backend))
+	 (state   (vc-state file backend))
+	 (state-echo nil)
+	 (rev     (vc-working-revision file backend)))
     (propertize
      (cond ((or (eq state 'up-to-date)
 		(eq state 'needs-update))
 	    (setq state-echo "Up to date file")
-	    (concat backend "-" rev))
+	    (concat backend-name "-" rev))
 	   ((stringp state)
 	    (setq state-echo (concat "File locked by" state))
-	    (concat backend ":" state ":" rev))
+	    (concat backend-name ":" state ":" rev))
            ((eq state 'added)
             (setq state-echo "Locally added file")
-            (concat backend "@" rev))
+            (concat backend-name "@" rev))
            ((eq state 'conflict)
             (setq state-echo "File contains conflicts after the last merge")
-            (concat backend "!" rev))
+            (concat backend-name "!" rev))
            ((eq state 'removed)
             (setq state-echo "File removed from the VC system")
-            (concat backend "!" rev))
+            (concat backend-name "!" rev))
            ((eq state 'missing)
             (setq state-echo "File tracked by the VC system, but missing from the file system")
-            (concat backend "?" rev))
+            (concat backend-name "?" rev))
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
 	    ;; for 'needs-update and 'needs-merge.
 	    (setq state-echo "Locally modified file")
-	    (concat backend ":" rev)))
-     'help-echo (concat state-echo " under the " backend
+	    (concat backend-name ":" rev)))
+     'help-echo (concat state-echo " under the " backend-name
 			" version control system"))))
 
 (defun vc-follow-link ()
