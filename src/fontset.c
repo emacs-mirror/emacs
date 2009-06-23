@@ -687,6 +687,7 @@ fontset_font (fontset, c, face, id)
   Lisp_Object base_fontset;
 
   /* Try a font-group of FONTSET. */
+  FONT_DEFERRED_LOG ("current fontset: font for", make_number (c), Qnil);
   rfont_def = fontset_find_font (fontset, c, face, id, 0);
   if (VECTORP (rfont_def))
     return rfont_def;
@@ -700,6 +701,7 @@ fontset_font (fontset, c, face, id)
       if (NILP (FONTSET_DEFAULT (fontset)))
 	FONTSET_DEFAULT (fontset)
 	  = make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset);
+      FONT_DEFERRED_LOG ("default fontset: font for", make_number (c), Qnil);
       rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
       if (VECTORP (rfont_def))
 	return rfont_def;
@@ -708,6 +710,7 @@ fontset_font (fontset, c, face, id)
     }
 
   /* Try a fallback font-group of FONTSET. */
+  FONT_DEFERRED_LOG ("current fallback: font for", make_number (c), Qnil);
   rfont_def = fontset_find_font (fontset, c, face, id, 1);
   if (VECTORP (rfont_def))
     return rfont_def;
@@ -717,6 +720,7 @@ fontset_font (fontset, c, face, id)
   /* Try a fallback font-group of the default fontset . */
   if (! EQ (base_fontset, Vdefault_fontset))
     {
+      FONT_DEFERRED_LOG ("default fallback: font for", make_number (c), Qnil);
       rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 1);
       if (VECTORP (rfont_def))
 	return rfont_def;
@@ -917,7 +921,6 @@ face_for_char (f, face, c, pos, object)
 	id = -1;
     }
 
-  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
     {
@@ -989,7 +992,6 @@ font_for_char (face, c, pos, object)
 	id = -1;
     }
 
-  font_deferred_log ("font for", Fcons (make_number (c), charset), Qnil);
   rfont_def = fontset_font (fontset, c, face, id);
   return (VECTORP (rfont_def)
 	  ? RFONT_DEF_OBJECT (rfont_def)
