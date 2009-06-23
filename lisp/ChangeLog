@@ -1,3 +1,7 @@
+2009-06-23  Miles Bader  <miles@gnu.org>
+
+	* face-remap.el (text-scale-set): New function.
+
 2009-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-rpm.el (pcomplete/rpm): Doc fix.

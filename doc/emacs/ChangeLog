@@ -1,6 +1,7 @@
 2009-06-23  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Scrolling): Document `recenter-redisplay'
+	(Temporary Face Changes): Document `text-scale-set'.
 
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 

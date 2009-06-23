@@ -509,6 +509,12 @@ default face, just like @kbd{C-x C-+} and @kbd{C-x C--} respectively.
 You may find it convenient to bind to these commands, rather than
 @code{text-scale-adjust}.
 
+@cindex set buffer face height
+@findex text-scale-set
+The command @code{text-scale-set} sets the height of the default face
+in the current buffer to an absolute level specified by its prefix
+argument.
+
 @findex text-scale-mode
   The above commands automatically enable or disable the minor mode
 @code{text-scale-mode}, depending on whether the current font scaling
