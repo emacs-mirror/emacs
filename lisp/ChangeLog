@@ -1,5 +1,7 @@
 2009-06-23  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/ispell.el (ispell-local-dictionary): Doc fix.
+
 	* progmodes/gdb-mi.el (gud-remove, gud-break): Update declarations.
 
 	* calendar/cal-dst.el (calendar-time-zone-daylight-rules):
