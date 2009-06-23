@@ -1,5 +1,19 @@
 2009-06-23  Kenichi Handa  <handa@m17n.org>
 
+	* emacs.c (main): Call init_font ().
+
+	* font.h (Vfont_log): Extern it.
+	(FONT_ADD_LOG, FONT_DEFERRED_LOG): New macros.
+
+	* font.c (font_sort_entities, font_list_entities)
+	(font_matching_entity, font_open_entity)
+	(font_close_object): Change font_add_log to FONT_ADD_LOG.
+	(Vfont_log): Delete static.
+	(font_log_env_checked): Delete this variable.
+	(font_add_log): Don't check font_log_env_checked.
+	(font_deferred_log): Check Vfont_log.
+	(init_font): New function.
+
 	* ftfont.c: Change font_add_log to FONT_ADD_LOG.
 
 	* w32font.c: Change font_add_log to FONT_ADD_LOG.
