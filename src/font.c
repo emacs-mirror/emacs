@@ -2372,7 +2372,7 @@ font_sort_entities (vec, prefer, frame, best_only)
     vec = best_entity;
   SAFE_FREE ();
 
-  font_add_log ("sort-by", prefer, vec);
+  FONT_ADD_LOG ("sort-by", prefer, vec);
   return vec;
 }
 
@@ -2832,7 +2832,7 @@ font_list_entities (frame, spec)
       }
 
   val = (i > 0 ? Fvconcat (i, vec) : null_vector);
-  font_add_log ("list", spec, val);
+  FONT_ADD_LOG ("list", spec, val);
   return (val);
 }
 
@@ -2883,7 +2883,7 @@ font_matching_entity (f, attrs, spec)
 	if (! NILP (entity))
 	  break;
       }
-  font_add_log ("match", work, entity);
+  FONT_ADD_LOG ("match", work, entity);
   return entity;
 }
 
@@ -2925,7 +2925,7 @@ font_open_entity (f, entity, pixel_size)
 
   font_object = driver_list->driver->open (f, entity, scaled_pixel_size);
   ASET (font_object, FONT_SIZE_INDEX, make_number (pixel_size));
-  font_add_log ("open", entity, font_object);
+  FONT_ADD_LOG ("open", entity, font_object);
   if (NILP (font_object))
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
@@ -2972,7 +2972,7 @@ font_close_object (f, font_object)
   if (NILP (AREF (font_object, FONT_TYPE_INDEX)))
     /* Already closed.  */
     return;
-  font_add_log ("close", font_object, Qnil);
+  FONT_ADD_LOG ("close", font_object, Qnil);
   font->driver->close (f, font);
 #ifdef HAVE_WINDOW_SYSTEM
   font_assert (FRAME_X_DISPLAY_INFO (f)->n_fonts);
@@ -5003,8 +5003,7 @@ build_style_table (entry, nelement)
   return table;
 }
 
-static Lisp_Object Vfont_log;
-static int font_log_env_checked;
+Lisp_Object Vfont_log;
 
 /* The deferred font-log data of the form [ACTION ARG RESULT].
    If ACTION is not nil, that is added to the log when font_add_log is
@@ -5023,11 +5022,6 @@ font_add_log (action, arg, result)
   Lisp_Object tail, val;
   int i;
 
-  if (! font_log_env_checked)
-    {
-      Vfont_log = egetenv ("EMACS_FONT_LOG") ? Qnil : Qt;
-      font_log_env_checked = 1;
-    }
   if (EQ (Vfont_log, Qt))
     return;
   if (STRINGP (AREF (Vfont_log_deferred, 0)))
@@ -5107,6 +5101,8 @@ font_deferred_log (action, arg, result)
      char *action;
      Lisp_Object arg, result;
 {
+  if (EQ (Vfont_log, Qt))
+    return;
   ASET (Vfont_log_deferred, 0, build_string (action));
   ASET (Vfont_log_deferred, 1, arg);
   ASET (Vfont_log_deferred, 2, result);
@@ -5296,6 +5292,12 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
   syms_of_nsfont ();
 #endif	/* HAVE_NS */
 #endif	/* HAVE_WINDOW_SYSTEM */
+}
+
+void
+init_font ()
+{
+  Vfont_log = egetenv ("EMACS_FONT_LOG") ? Qnil : Qt;
 }
 
 /* arch-tag: 74c9475d-5976-4c93-a327-942ae3072846
