@@ -563,7 +563,9 @@ Postpone undisplaying of viewers for types in
 		ctl (and ct (mail-header-parse-content-type ct))
 		cte (mail-fetch-field "content-transfer-encoding")
 		cd (mail-fetch-field "content-disposition")
-		description (mail-fetch-field "content-description")
+		;; Newlines in description should be stripped so as
+		;; not to break the MIME tag into two or more lines.
+		description (message-fetch-field "content-description")
 		id (mail-fetch-field "content-id"))
 	  (unless from
 	    (setq from (mail-fetch-field "from")))
