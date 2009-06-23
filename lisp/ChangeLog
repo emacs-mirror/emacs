@@ -1,3 +1,9 @@
+2009-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* language/korea-util.el (korean-key-bindings): Change the binding
+	of F9 to hangul-to-hanja-conversion.  Bind Hangul_Hanja to the
+	same command.
+
 2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.16.
