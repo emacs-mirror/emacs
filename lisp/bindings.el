@@ -257,8 +257,8 @@ Normally nil in most modes, since there is no process to display.")
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
-					     "M"
-					   "Not m")))))
+					     "m"
+					   "not m")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))

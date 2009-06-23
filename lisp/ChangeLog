@@ -1,5 +1,7 @@
 2009-06-23  Glenn Morris  <rgm@gnu.org>
 
+	* bindings.el (mode-line-modified): Fix case of "Buffer is modified".
+
 	* textmodes/ispell.el (ispell-local-dictionary): Doc fix.
 
 	* progmodes/gdb-mi.el (gud-remove, gud-break): Update declarations.
