@@ -1,5 +1,8 @@
 2009-06-23  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules):
+	Simplify Persian conditionals.
+
 	* calc/calc-graph.el (calc-graph-plot): Avoid assignment to free
 	variable `filename'.
 

@@ -212,12 +212,12 @@ The result has the proper form for `calendar-daylight-savings-starts'."
              rlist)
            ;; 01-01 and 07-01 for this year's Persian calendar.
            ;; FIXME what does the Persian calendar have to do with this?
-           (if (and (= m 3) (<= 20 d) (<= d 21))
-               '((calendar-gregorian-from-absolute
-                  (calendar-persian-to-absolute `(1 1 ,(- year 621))))))
-           (if (and (= m 9) (<= 22 d) (<= d 23))
-               '((calendar-gregorian-from-absolute
-                  (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
+           (and (= m 3) (memq d '(20 21))
+                '((calendar-gregorian-from-absolute
+                   (calendar-persian-to-absolute `(1 1 ,(- year 621))))))
+           (and (= m 9) (memq d '(22 23))
+                '((calendar-gregorian-from-absolute
+                   (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
          (year (1+ y))
          new-rules)
