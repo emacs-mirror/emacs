@@ -1772,6 +1772,7 @@ main (int argc, char **argv)
   init_sound ();
 #endif
   init_window ();
+  init_font ();
 
   if (!initialized)
     {
