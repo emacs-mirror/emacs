@@ -1046,7 +1046,7 @@ ftfont_list (frame, spec)
   val = Qnil;
 
  finish:
-  font_add_log ("ftfont-list", spec, val);
+  FONT_ADD_LOG ("ftfont-list", spec, val);
   if (objset) FcObjectSetDestroy (objset);
   if (fontset) FcFontSetDestroy (fontset);
   if (pattern) FcPatternDestroy (pattern);
@@ -1099,7 +1099,7 @@ ftfont_match (frame, spec)
     }
   FcPatternDestroy (pattern);
 
-  font_add_log ("ftfont-match", spec, entity);
+  FONT_ADD_LOG ("ftfont-match", spec, entity);
   return entity;
 }
 
