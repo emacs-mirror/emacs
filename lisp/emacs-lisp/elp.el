@@ -554,6 +554,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 		      'elp-symname (intern symname)
 		      'keymap elp-results-symname-map
 		      'mouse-face 'highlight
+		      'face 'link
 		      'help-echo "mouse-2 or RET jumps to definition")))
 
 ;;;###autoload

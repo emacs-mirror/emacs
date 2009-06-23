@@ -1,4 +1,7 @@
-2009-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/elp.el (elp-output-insert-symname): Add a link face
+	to make it obvious item can be clicked.
 
 	* vc-mtn.el (vc-mtn-after-dir-status, vc-mtn-dir-status): New functions.
 
