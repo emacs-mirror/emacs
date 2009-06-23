@@ -578,12 +578,6 @@ child_setup_tty (out)
   /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
      unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
      would force it to 0377.  That looks like duplicated code.  */
-#ifndef SIGNALS_VIA_CHARACTERS
-  /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VQUIT] = CDISABLE;
-  s.main.c_cc[VINTR] = CDISABLE;
-  s.main.c_lflag &= ~ISIG;
-#endif /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
   s.main.c_cc[VEOL] = CDISABLE;
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
