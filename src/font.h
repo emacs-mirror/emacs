@@ -826,8 +826,21 @@ extern struct font_driver nsfont_driver;
 #define FONT_DEBUG
 #endif
 
+extern Lisp_Object Vfont_log;
 extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern void font_deferred_log P_ ((char *, Lisp_Object, Lisp_Object));
+
+#define FONT_ADD_LOG(ACTION, ARG, RESULT)	\
+  do {						\
+    if (! EQ (Vfont_log, Qt))			\
+      font_add_log ((ACTION), (ARG), (RESULT));	\
+  } while (0)
+
+#define FONT_DEFERRED_LOG(ACTION, ARG, RESULT)		\
+  do {							\
+    if (! EQ (Vfont_log, Qt))				\
+      font_deferred_log ((ACTION), (ARG), (RESULT));	\
+  } while (0)
 
 #ifdef FONT_DEBUG
 #define font_assert(X)	do {if (!(X)) abort ();} while (0)
