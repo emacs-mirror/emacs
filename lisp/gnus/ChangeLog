@@ -1,3 +1,9 @@
+2009-06-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-dissect-buffer): Use message-fetch-field instead of
+	mail-fetch-field to fetch Content-Description header in order to
+	exclude newlines.
+
 2009-06-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Specify gnus-decoded as charset
