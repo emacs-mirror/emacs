@@ -1,12 +1,12 @@
 ;;; gdb-mi.el --- User Interface for running GDB
 
-;; Author: Nick Roberts <nickrob@gnu.org>,
+;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+
+;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
-
-; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -1657,8 +1657,8 @@ of the current session."
 	  (with-current-buffer (find-buffer-visiting buffer-file-name)
 	    (gdb-init-buffer)))))
 
-(declare-function gud-remove "gdb-ui" t t) ; gud-def
-(declare-function gud-break  "gdb-ui" t t) ; gud-def
+(declare-function gud-remove "gdb-mi" t t) ; gud-def
+(declare-function gud-break  "gdb-mi" t t) ; gud-def
 (declare-function fringe-bitmaps-at-pos "fringe.c" (&optional pos window))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
