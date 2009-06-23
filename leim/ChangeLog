@@ -1,3 +1,8 @@
+2009-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* quail/hangul.el (hangul-to-hanja-conversion): When it is called
+	while korean input method is off, convert the following character.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
