@@ -1,3 +1,10 @@
+2009-06-23  Miles Bader  <miles@gnu.org>
+
+	* window.c (Vrecenter_redisplay): New variable.
+	(syms_of_window): Initialize it.
+	(Qtty): New extern declaration.
+	(Frecenter): Only do redisplay if Vrecenter_redisplay requests it.
+
 2009-06-23  Jim Meyering  <meyering@redhat.com>
 
 	Don't dereference NULL upon failed malloc and realloc

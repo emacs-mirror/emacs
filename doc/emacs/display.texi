@@ -54,7 +54,7 @@ commands:
 @table @kbd
 @item C-l
 Scroll the selected window to center point vertically within it and
-redisplay the screen (@code{recenter-top-bottom}).
+maybe redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
 @itemx @key{next}
 @itemx @key{PageDown}
@@ -73,9 +73,12 @@ Scroll heuristically to bring useful information onto the screen
   The most basic scrolling command is @kbd{C-l}
 (@code{recenter-top-bottom}).  This @dfn{recenters} the selected
 window, scrolling it so that the current screen line is exactly in the
-center of the window, or as close to the center as possible.  It also
-clears the screen and redisplays all windows; this is useful in case
-the screen becomes garbled for any reason (@pxref{Screen Garbled}).
+center of the window, or as close to the center as possible.  If the
+variable @var{recenter-redisplay} is non-nil, it also clears the
+screen and redisplays all windows; this is useful in case the screen
+becomes garbled for any reason (@pxref{Screen Garbled}).  If
+@var{recenter-redisplay} has the special value @code{tty} (the
+default), then redisplay only happens on tty frames.
 
   Typing @kbd{C-l} twice in a row (@kbd{C-l C-l}) scrolls the window
 so that point is on the topmost screen line.  Typing a third @kbd{C-l}
@@ -94,6 +97,11 @@ lines from the bottom of the window.  For example, @kbd{C-u - 1 C-l}
 puts point on the bottom line, and @kbd{C-u - 5 C-l} puts it five
 lines from the bottom.  When given an argument, @kbd{C-l} does not
 clear the screen or cycle through different screen positions.
+
+@vindex recenter-redisplay
+  When the variable @code{recenter-redisplay} is non-nil, the
+@code{recenter} and @code{recenter-top-bottom} commands redisplay the
+selected frame when they are invoked without a prefix argument.
 
 @kindex C-v
 @kindex M-v

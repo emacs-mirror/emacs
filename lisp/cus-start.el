@@ -307,6 +307,12 @@ since it could result in memory overflow and make Emacs crash."
  		       (const :tag "Off (nil)" :value nil)
  		       (const :tag "Full screen (t)" :value t)
  		       (other :tag "Always" 1)) "22.1")
+	     (recenter-redisplay windows
+				 (choice
+				  (const :tag "Never (nil)" :value nil)
+				  (const :tag "Only on ttys" :value tty)
+				  (other :tag "Always" t))
+				 "23.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
