@@ -1182,4 +1182,5 @@ be used."
 ;;   capability.
 ;; * Implement obex for other serial communication but bluetooth.
 
+;; arch-tag: f7f660ce-77f4-4132-9663-f5c25a47f7ed
 ;;; tramp-gvfs.el ends here

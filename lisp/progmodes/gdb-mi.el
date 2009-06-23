@@ -2828,4 +2828,5 @@ BUFFER nil or omitted means use the current buffer."
 
 (provide 'gdb-mi)
 
+;; arch-tag: 1b41ea2b-f364-4cec-8f35-e02e4fe01912
 ;;; gdb-mi.el ends here
