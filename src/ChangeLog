@@ -1,3 +1,17 @@
+2009-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c: Change font_add_log to FONT_ADD_LOG.
+
+	* w32font.c: Change font_add_log to FONT_ADD_LOG.
+
+	* w32uniscribe.c: Change font_add_log to FONT_ADD_LOG.
+
+	* xfont.c: Change font_add_log to FONT_ADD_LOG.
+
+	* fontset.c (fontset_font): Call FONT_DEFERRED_LOG.
+	(face_for_char): Don't call font_deferred_log here.
+	(font_for_char): Likewise.
+
 2009-06-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* w32term.c (x_draw_glyph_string): Use the glyph string's width
