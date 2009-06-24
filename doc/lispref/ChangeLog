@@ -1,3 +1,7 @@
+2009-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Window Systems): Add ns to the list.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
