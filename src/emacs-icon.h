@@ -20,8 +20,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+/* Note that the GTK port uses gdk to display the icon, so Emacs need
+   not have XPM support compiled in.  */
+#if (defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)) || defined (USE_GTK)
 static char * gnu_xpm_bits[] = {
 /* width height ncolors chars_per_pixel */
 "32 32 255 2",
@@ -314,7 +315,7 @@ static char * gnu_xpm_bits[] = {
 "OPOPOPOPOPOPOPOPILILBIILPKCBJAAHJFBPILILOBOBAIOPOPOPOPOPOPOPOPOP",
 "OPOPOPOPOPOPOPOPOPOPILMIGECABCPKGHAIILOBOBOPOPOPOPOPOPOPOPOPOPOP",
 "OPOPOPOPOPOPOPOPOPOPOPOPOPCAOPOPOPOPOPOPOPOPOPOPOPOPOPOPOPOPOPOP"};
-#endif /* defined (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
+#endif /* (defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)) || defined (USE_GTK) */
 
 #define gnu_xbm_width 50
 #define gnu_xbm_height 50

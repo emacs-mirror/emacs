@@ -1,3 +1,7 @@
+2009-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-icon.h: Always define gnu_xpm_bits on GTK (bug#3671).
+
 2009-06-24  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_get_font_group): Return 0 if no font-group is
