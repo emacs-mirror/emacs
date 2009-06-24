@@ -488,7 +488,7 @@ default dictionary and LANG the two letter language code."
 The value must be a string dictionary name,
 or nil, which means use the global setting in `ispell-dictionary'.
 Dictionary names are defined in `ispell-local-dictionary-alist'
-and `ispell-dictionary-alist',
+and `ispell-dictionary-alist'.
 
 Setting `ispell-local-dictionary' to a value has the same effect as
 calling \\[ispell-change-dictionary] with that value.  This variable
