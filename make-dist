@@ -342,12 +342,10 @@ for subdir in lisp site-lisp \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
-	      nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib \
 	      nextstep/Cocoa/Emacs.xcodeproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
-	      nextstep/GNUstep/Emacs.base/Resources \
-	      nextstep/GNUstep/Emacs.base/Resources/preferences.gorm
+	      nextstep/GNUstep/Emacs.base/Resources
 do
   echo "  ${tempdir}/${subdir}"
   mkdir ${tempdir}/${subdir}

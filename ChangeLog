@@ -1,3 +1,8 @@
+2009-06-24  Yavor Doganov  <yavor@gnu.org>
+
+	* make-dist (tempdir): Don't create directories preferences.gorm
+	and preferences.nib, they are no longer required.
+
 2009-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Delete mac-fix-env target, which has been
