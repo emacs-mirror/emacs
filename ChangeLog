@@ -1,3 +1,10 @@
+2009-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist
+	(nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib)
+	(nextstep/GNUstep/Emacs.base/Resources/preferences.gorm):
+	No longer make links.
+
 2009-06-24  Yavor Doganov  <yavor@gnu.org>
 
 	* make-dist (tempdir): Don't create directories preferences.gorm
