@@ -3,7 +3,7 @@
 	* fontset.c (fontset_get_font_group): Return 0 if no font-group is
 	set for C.
 	(fontset_font): Record the availability of a font for C both in
-	the realized fontset of the current one and the default one.
+	the realized fontsets of the current one and the default one.
 
 2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
