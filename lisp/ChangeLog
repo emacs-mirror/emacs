@@ -1,3 +1,8 @@
+2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-make-directory): Use `dir'
+	but `filename'.
+
 2009-06-23  Miles Bader  <miles@gnu.org>
 
 	* face-remap.el (text-scale-set): New function.
