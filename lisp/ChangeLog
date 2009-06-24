@@ -1,3 +1,11 @@
+2009-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-insert-input): Doc fix.
+
+	* pcmpl-rpm.el (pcomplete/rpm): Doc fix.
+
+	* textmodes/ispell.el (ispell-local-dictionary): Doc fix.
+
 2009-06-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-indent-function)

@@ -814,7 +814,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 (defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point.
 If there is no previous input at point, run the command specified
-by the global keymap (usually `mouse-yank-at-point')."
+by the global keymap (usually `mouse-yank-at-click')."
   (interactive "e")
   (mouse-set-point event)
   (let ((pos (posn-point (event-end event)))
