@@ -531,9 +531,10 @@ fontset_find_font (fontset, c, face, id, fallback)
      int id, fallback;
 {
   Lisp_Object vec, font_group;
-  int i, charset_matched = -1;
+  int i, charset_matched = -1, found_index;
   FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
     ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
+  Lisp_Object rfont_def;
 
   font_group = fontset_get_font_group (fontset, fallback ? -1 : c);
   if (! CONSP (font_group))
@@ -553,9 +554,9 @@ fontset_find_font (fontset, c, face, id, fallback)
 	   first.  */
 	for (i = 0; i < ASIZE (vec); i++)
 	  {
-	    Lisp_Object rfont_def = AREF (vec, i);
 	    Lisp_Object repertory;
 
+	    rfont_def = AREF (vec, i);
 	    if (NILP (rfont_def))
 	      break;
 	    repertory = FONT_DEF_REPERTORY (RFONT_DEF_FONT_DEF (rfont_def));
@@ -571,18 +572,22 @@ fontset_find_font (fontset, c, face, id, fallback)
   /* Find the first available font in the vector of RFONT-DEF.  */
   for (i = 0; i < ASIZE (vec); i++)
     {
-      Lisp_Object rfont_def, font_def;
+      Lisp_Object font_def;
       Lisp_Object font_entity, font_object;
 
       if (i == 0 && charset_matched >= 0)
 	{
 	  /* Try the element matching with the charset ID at first.  */
 	  rfont_def = AREF (vec, charset_matched);
+	  found_index = charset_matched;
 	  charset_matched = -1;
 	  i--;
 	}
       else if (i != charset_matched)
-	rfont_def = AREF (vec, i);
+	{
+	  rfont_def = AREF (vec, i);
+	  found_index = i;
+	}
       else
 	continue;
 
@@ -630,7 +635,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	}
 
       if (font_has_char (f, font_object, c))
-	return rfont_def;
+	goto found;
 
       /* Find a font already opened, maching with the current spec,
 	 and supporting C. */
@@ -644,7 +649,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	    break;
 	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
 	  if (! NILP (font_object) && font_has_char (f, font_object, c))
-	    return rfont_def;
+	    goto found;
 	}
 
       /* Find a font-entity with the current spec and supporting C.  */
@@ -661,6 +666,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 					     Qnil);
 	  if (NILP (font_object))
 	    continue;
+	  found_index = i;
 	  RFONT_DEF_NEW (rfont_def, font_def);
 	  RFONT_DEF_SET_OBJECT (rfont_def, font_object);
 	  RFONT_DEF_SET_SCORE (rfont_def, RFONT_DEF_SCORE (rfont_def));
@@ -668,10 +674,12 @@ fontset_find_font (fontset, c, face, id, fallback)
 	  for (j = 0; j < i; j++)
 	    ASET (new_vec, j, AREF (vec, j));
 	  ASET (new_vec, j, rfont_def);
+	  found_index = j;
 	  for (j++; j < ASIZE (new_vec); j++)
 	    ASET (new_vec, j, AREF (vec, j - 1));
 	  XSETCDR (font_group, new_vec);
-	  return rfont_def;
+	  vec = new_vec;
+	  goto found;
 	}
 
       /* No font of the current spec for C.  Try the next spec.  */
@@ -680,6 +688,19 @@ fontset_find_font (fontset, c, face, id, fallback)
 
   FONTSET_SET (fontset, make_number (c), make_number (0));
   return Qnil;
+
+ found:
+  if (fallback && found_index > 0)
+    {
+      /* The order of fonts in the fallback font-group is not that
+	 important, and it is better to move the found font to the
+	 first of the group so that the next try will find it
+	 quickly. */
+      for (i = found_index; i > 0; i--)
+	ASET (vec, i, AREF (vec, i - 1));
+      ASET (vec, 0, rfont_def);
+    }
+  return rfont_def;
 }
 
 
