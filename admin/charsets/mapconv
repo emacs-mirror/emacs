@@ -30,7 +30,7 @@
 #   $1: source map file
 #   $2: address pattern for sed (optionally with substitution command)
 #   $3: format of source map file
-#	GLIBC-1 GLIBC-2 GLIBC-2-7 CZYBORRA IANA UNICODE YASUOKA
+#	GLIBC-1 GLIBC-2 GLIBC-2-7 CZYBORRA IANA UNICODE UNICODE2 YASUOKA
 #   $4: awk script
 
 FILE="admin/charsets/$1"
@@ -115,9 +115,11 @@ elif [ "$3" = "IANA" ] ; then
 elif [ "$3" = "UNICODE" ] ; then
     # Source format is:
     #   YYYY	XX
+    # We perform reverse sort to prefer the first one in the
+    # duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
     zcat $1 | sed -n -e "$2 p" \
 	| sed -e 's/\([0-9A-F]*\)[^0-9A-F]*\([0-9A-F]*\).*/0x\2 0x\1/' \
-	| sort | ${AWKPROG}
+	| sort -r
 elif [ "$3" = "UNICODE2" ] ; then
     # Source format is:
     #   0xXXXX	0xYYYY	# ...
