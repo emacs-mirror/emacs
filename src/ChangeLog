@@ -1,3 +1,8 @@
+2009-06-25    <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): When a usable rfont_def is found
+	in a fallback font-group, make it the first element of the group.
+
 2009-06-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-icon.h: Always define gnu_xpm_bits on GTK (bug#3671).
