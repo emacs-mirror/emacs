@@ -196,12 +196,13 @@
 ;; Improved message reference matching in `ispell-message'.
 ;; Fixed bug in returning to nroff mode from tex mode.
 
-;;; Compatibility code for xemacs and (not too) older emacsen:
+;;; Compatibility code for XEmacs and (not too) older emacsen:
 
-(eval-and-compile ;; Protect against declare-function undefined in xemacs
+(eval-and-compile ;; Protect against declare-function undefined in XEmacs
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (declare-function ispell-check-minver "ispell" (v1 v2))
+(declare-function ispell-looking-back "ispell" (regexp &optional limit))
 
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
@@ -237,6 +238,21 @@ compatibility function in case `version<=' is not available."
 			    return nil))))
 	    (setq pending nil))))
       return)))
+
+;; XEmacs does not have looking-back
+(if (fboundp 'looking-back)
+    (defalias 'ispell-looking-back 'looking-back)
+  (defun ispell-looking-back (regexp &optional limit &rest ignored)
+    "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except matches before point, and is slower.
+LIMIT if non-nil speeds up the search by specifying a minimum
+starting position, to avoid checking matches that would start
+before LIMIT.
+
+This is a stripped down compatibility function for use when
+full featured `looking-back' function is missing."
+    (save-excursion
+      (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
 
 ;;; Code:
 

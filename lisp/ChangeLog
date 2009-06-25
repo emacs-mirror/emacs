@@ -1,3 +1,11 @@
+2009-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el: Add `ispell-looking-back' XEmacs
+	  compatibility function for `looking-back'
+
+	* textmodes/flyspell.el (sgml-mode-flyspell-verify): Use
+	  `ispell-looking-back'
+
 2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-make-directory): Use `dir'

@@ -363,9 +363,9 @@ property of the major mode name.")
   "Function used for `flyspell-generic-check-word-predicate' in SGML mode."
   (not (save-excursion
 	 (or (looking-at "[^<\n]*>")
-	     (looking-back "<[^>\n]*")
+	     (ispell-looking-back "<[^>\n]*")
 	     (and (looking-at "[^&\n]*;")
-		  (looking-back "&[^;\n]*"))))))
+		  (ispell-looking-back "&[^;\n]*"))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Programming mode                                                 */
