@@ -177,7 +177,7 @@ get_adstyle_property (FcPattern *p)
       || xstrcasecmp (str, "Oblique") == 0
       || xstrcasecmp (str, "Italic") == 0)
     return Qnil;
-  adstyle = font_intern_prop (str, end - str, 0);
+  adstyle = font_intern_prop (str, end - str, 1);
   if (font_style_to_value (FONT_WIDTH_INDEX, adstyle, 0) >= 0)
     return Qnil;
   return adstyle;
