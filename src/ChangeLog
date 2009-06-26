@@ -1,3 +1,16 @@
+2009-06-26  Peter Jolly  <peter@jollys.org>  (tiny change)
+
+	* ftfont.c (get_adstyle_property): Call font_intern_prop with 1 as
+	the arg FORCE_SYMBOL.
+
+2009-06-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_find_font): When a usable rfont_def is found
+	in a fallback font-group, make it the first element of the group.
+	(fontset_get_font_group): Return 0 if no font-group is set for C.
+	(fontset_font): Record the availability of a font for C both in
+	the realized fontsets of the current one and the default one.
+
 2009-06-23  Jim Meyering  <meyering@redhat.com>
 
 	* src/ftfont.c (setup_otf_gstring, ftfont_shape_by_flt): Use
