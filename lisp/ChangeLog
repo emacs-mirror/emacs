@@ -1,3 +1,14 @@
+2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove find-file-not-found-hook VC method.  (Bug#2757)
+	* vc-hooks.el (vc-file-not-found-hook)
+	(vc-default-find-file-not-found-hook): Remove functions.
+	(find-file-not-found-functions): Do not add vc-file-not-found-hook.
+	* vc-rcs.el (vc-rcs-find-file-not-found-hook): Remove function.
+	* vc.el:
+	* vc-hg.el:
+	* vc-git.el: Do not mention find-file-not-found-hook VC method.
+
 2009-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el: Add `ispell-looking-back' XEmacs

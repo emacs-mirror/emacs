@@ -513,11 +513,6 @@
 ;;   Operation called in current buffer when opening a file.  This can
 ;;   be used by the backend to setup some local variables it might need.
 ;;
-;; - find-file-not-found-hook ()
-;;
-;;   Operation called in current buffer when opening a non-existing file.
-;;   By default, this asks the user if she wants to check out the file.
-;;
 ;; - extra-menu ()
 ;;
 ;;   Return a menu keymap, the items in the keymap will appear at the

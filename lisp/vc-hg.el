@@ -92,7 +92,6 @@
 ;; - delete-file (file)                        TEST IT
 ;; - rename-file (old new)                     OK
 ;; - find-file-hook ()                         PROBABLY NOT NEEDED
-;; - find-file-not-found-hook ()               PROBABLY NOT NEEDED
 
 ;; 2) Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state

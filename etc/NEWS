@@ -32,6 +32,10 @@ so we will look at it and add it to the manual.
 On systems which support GVFS-Fuse, Tramp offers the new connection
 methods "dav", "davs" and "obex".
 
+** VC and related modes
+
+*** When a file is not found, VC will not try to check it out of RCS anymore.
+
 
 * Installation Changes in Emacs 23.1
 

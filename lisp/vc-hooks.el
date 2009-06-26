@@ -911,27 +911,6 @@ current, and kill the buffer that visits the link."
 
 (add-hook 'find-file-hook 'vc-find-file-hook)
 
-;; more hooks, this time for file-not-found
-(defun vc-file-not-found-hook ()
-  "When file is not found, try to check it out from version control.
-Returns t if checkout was successful, nil otherwise.
-Used in `find-file-not-found-functions'."
-  ;; When a file does not exist, ignore cached info about it
-  ;; from a previous visit.
-  ;; We check that `buffer-file-name' is non-nil.  It should be always
-  ;; the case, but in conjunction with Tramp, it might be nil.  M. Albinus.
-  (when buffer-file-name
-    (vc-file-clearprops buffer-file-name)
-    (let ((backend (vc-backend buffer-file-name)))
-      (when backend (vc-call-backend backend 'find-file-not-found-hook)))))
-
-(defun vc-default-find-file-not-found-hook (backend)
-  ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
-  ;; really makes sense for RCS.  For other backends, better not do anything.
-  nil)
-
-(add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
-
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
   (when buffer-file-name (vc-file-clearprops buffer-file-name)))

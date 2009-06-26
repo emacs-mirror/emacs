@@ -101,7 +101,6 @@
 ;; - delete-file (file)			   OK
 ;; - rename-file (old new)		   OK
 ;; - find-file-hook ()			   NOT NEEDED
-;; - find-file-not-found-hook ()                NOT NEEDED
 
 (eval-when-compile
   (require 'cl)
