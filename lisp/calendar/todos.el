@@ -282,11 +282,11 @@ show and mark todo entries for today, but may slow down processing of
 the diary file somewhat."
   :type 'string
   :group 'todos)
-(defcustom todos-file-do    (convert-standard-filename "~/.todos-do")
+(defcustom todos-file-do    (convert-standard-filename "~/.emacs.d/.todos-do")
   "TODO mode list file."
   :type 'file
   :group 'todos)
-(defcustom todos-file-done  (convert-standard-filename "~/.todos-done")
+(defcustom todos-file-done  (convert-standard-filename "~/.emacs.d/.todos-done")
   "TODO mode archive file."
   :type 'file
   :group 'todos)
@@ -347,6 +347,10 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
   "Non-nil makes `todos-save' automatically save top-priorities in `todos-file-top'."
   :type 'boolean
   :group 'todos)
+(defcustom todos-completion-ignore-case t ;; FIXME: nil for release
+  "Non-nil means don't consider case significant in todos-completing-read."
+  :type 'boolean
+  :group 'todos)
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
@@ -372,6 +376,29 @@ For details see the variable `time-stamp-format'."
   (let ((time-stamp-format todos-time-string-format))
     (concat (time-stamp-string) " " todos-initials ": ")))
 
+(defface todos-prefix-string
+  '((t
+     :inherit font-lock-variable-name-face
+     ))
+  "Face for Todos prefix string."
+  :group 'todos)
+(defvar todos-prefix-face 'todos-prefix-string)
+
+(defface todos-item-header
+  '((t
+     :inherit font-lock-function-name-face
+     ))
+  "Face for Todos item header string."
+  :group 'todos)
+(defvar todos-item-header-face 'todos-item-header)
+
+(defvar todos-font-lock-keywords
+  (list
+   (list (concat "^" (regexp-quote todos-prefix)) 0 'todos-prefix-face t)
+   (list (concat "^" (regexp-quote todos-prefix) "\\(.*[0-9]+ [A-Ba-z0-9]*\\]?:\\)")
+	 1 'todos-item-header-face t))
+  "Font-locking for Todos mode.")
+
 ;; ---------------------------------------------------------------------------
 
 ;; Set up some helpful context ...
@@ -390,7 +417,10 @@ For details see the variable `time-stamp-format'."
     (suppress-keymap map t)
     (define-key map "+" 'todos-forward-category)
     (define-key map "-" 'todos-backward-category)
+    (define-key map "A" 'todos-add-category)
+    (define-key map "C" 'todos-display-categories)
     (define-key map "d" 'todos-file-item) ;done/delete
+    (define-key map "D" 'todos-delete-category)
     (define-key map "e" 'todos-edit-item)
     (define-key map "E" 'todos-edit-multiline)
     (define-key map "f" 'todos-file-item)
@@ -399,11 +429,13 @@ For details see the variable `time-stamp-format'."
     (define-key map "j" 'todos-jump-to-category)
     (define-key map "k" 'todos-delete-item)
     (define-key map "l" 'todos-lower-item)
+    (define-key map "m" 'todos-move-item)
     (define-key map "n" 'todos-forward-item)
     (define-key map "p" 'todos-backward-item)
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
     (define-key map "r" 'todos-raise-item)
+    (define-key map "R" 'todos-rename-category)
     (define-key map "s" 'todos-save)
     (define-key map "S" 'todos-save-top-priorities)
     (define-key map "t" 'todos-top-priorities)
@@ -422,6 +454,13 @@ For details see the variable `time-stamp-format'."
 
 (defvar todos-category-end "--- End"
   "Separator after a category.")
+
+(defvar todos-window-configuration nil
+  "Variable for storing current window configuration in Todos mode.
+
+Set before leaving Todos mode buffer by todos-display-categories.
+Restored before re-entering Todo mode buffer by todo-kill-buffer
+and todo-jump-to-category-noninteractively.")
 
 ;; ---------------------------------------------------------------------------
 
@@ -584,6 +623,102 @@ For details see the variable `time-stamp-format'."
     (todos-save)
     (message "")))
 
+(defun todos-rename-category (new)
+  "Rename current Todos category."
+  (interactive "sCategory: ")
+  (let ((cat (nth todos-category-number todos-categories))
+	(vec (vconcat todos-categories))
+	prompt)
+    (while (and (cond ((string= "" new)
+		       (setq prompt "Enter a non-empty category name: "))
+		      ((string-match "\\`\\s-+\\'" new)
+		       (setq prompt "Enter a category name that is not only white space: "))
+		      ((member new todos-categories)
+		       (setq prompt "Enter a non-existing category name: ")))
+		(setq new (read-from-minibuffer prompt))))
+      (aset vec todos-category-number new)
+    (setq todos-categories (append vec nil))
+    (save-excursion
+      (widen)
+      (search-backward (concat todos-prefix todos-category-beg))
+      (goto-char (match-end 0))
+      (when (looking-at (regexp-quote cat))
+	(replace-match new t))
+      (goto-char (point-min))
+      (setq mode-line-buffer-identification
+	    (concat "Category:  " new))))
+;;	    (concat "Category: " (format "%18s" new)))))
+  (todos-category-select))
+
+(defun todos-delete-category ()
+  "Delete current Todos category provided it is empty."
+  (interactive)
+  (if (not (eq (point-max) (point-min)))
+      (message "This category is not empty, so it cannot be deleted")
+    (let ((cat (nth todos-category-number todos-categories)) beg end)
+      (when (y-or-n-p (concat "Permanently remove category '" cat "'? "))
+	(widen)
+	(setq beg (re-search-backward
+		   (concat "^" (regexp-quote todos-prefix) todos-category-beg cat)
+		   (point-min) nil)
+	      end (1+ (re-search-forward
+		       (concat "^" todos-category-end "\n"
+			       (regexp-quote todos-prefix) " " todos-category-sep)
+		       (point-max) nil)))
+	(kill-region beg end)
+	(setq todos-categories (delete cat todos-categories))
+	(todos-category-select)
+	(message "Deleted category \"%s\"" cat)))))
+
+(defcustom todos-categories-buffer "*TODOS Categories*"
+  "Name of buffer displayed by `todos-display-categories'"
+  :type 'string
+  :group 'todos)
+
+(defun todos-display-categories ()
+  "Display an alphabetical list of clickable Todos category names.
+Click or type RET on a category name to go to it."
+  (interactive)
+  (setq todos-window-configuration (current-window-configuration))
+  (let ((categories (copy-sequence todos-categories))
+	beg)
+    ;; alphabetize the list case insensitively
+    (setq categories (sort categories (lambda (s1 s2) (let ((cis1 (upcase s1))
+							    (cis2 (upcase s2)))
+							(string< cis1 cis2)))))
+    (require 'widget)
+    (eval-when-compile
+      (require 'wid-edit))
+    (with-current-buffer (get-buffer-create todos-categories-buffer)
+      (pop-to-buffer (current-buffer))
+      (erase-buffer)
+      (kill-all-local-variables)
+      (widget-insert "Press a button to display the corresponding category.\n\n")
+      (setq beg (point))
+      (mapc (lambda (cat)
+	      (widget-create 'push-button
+			     :notify (lambda (widget &rest ignore)
+				       (todos-jump-to-category-noninteractively
+					(widget-get widget :value)))
+			     
+			     cat)
+	      (widget-insert "\n"))
+	    categories)
+      (use-local-map widget-keymap)
+      (widget-setup))))
+
+(defun todos-jump-to-category-noninteractively (cat)
+  (let ((name todos-categories-buffer))
+    (if (string= (buffer-name) name)
+	(kill-buffer name)))
+  (set-window-configuration todos-window-configuration)
+  (switch-to-buffer (file-name-nondirectory todos-file-do))
+  (widen)
+  (goto-char (point-min))
+  (setq todos-category-number (- (length todos-categories)
+				 (length (member cat todos-categories))))
+  (todos-category-select))
+
 ;;;###autoload
 (defun todos-insert-item (arg)
   "Insert new TODO list entry.
@@ -666,6 +801,18 @@ If point is on an empty line, insert the entry there."
         (message ""))
     (error "No TODO list entry to lower")))
 
+(defun todos-move-item ()
+  "Move the current todo item to another, interactively named, category.
+
+If the named category is not one of the current todo categories, then
+it is created and the item becomes the first entry in that category."
+  (interactive)
+  (let ((item (todos-item-string))
+	(inhibit-quit t)
+	(category (todos-completing-read)))
+    (todos-remove-item)
+    (todos-add-item-non-interactively item category)))
+
 (defun todos-file-item (&optional comment)
   "File the current TODO list entry away, annotated with an optional COMMENT."
   (interactive "sComment: ")
@@ -730,9 +877,9 @@ between each category."
         (copy-to-buffer todos-print-buffer-name (point-min) (point-max))
         (set-buffer todos-print-buffer-name)
         (goto-char (point-min))
-        (when (re-search-forward (regexp-quote todos-header) nil t)
-	  (beginning-of-line 1)
-	  (delete-region (point) (line-end-position)))
+        ;; (when (re-search-forward (regexp-quote todos-header) nil t)
+	;;   (beginning-of-line 1)
+	;;   (delete-region (point) (line-end-position)))
         (while (re-search-forward       ;Find category start
                 (regexp-quote (concat todos-prefix todos-category-beg))
                 nil t)
@@ -866,17 +1013,22 @@ Number of entries for each category is given by `todos-print-priorities'."
 
 (defun todos-completing-read ()
   "Return a category name, with completion, for use in Todo mode."
-  ;; make a copy of todos-categories in case history-delete-duplicates is
-  ;; non-nil, which makes completing-read alter todos-categories
-  (let* ((categories (copy-sequence todos-categories))
-	 (history (cons 'todos-categories (1+ todos-category-number)))
-	 (default (nth todos-category-number todos-categories))
-	 (category (completing-read
-		    (concat "Category [" default "]: ")
-		    todos-categories nil nil nil history default)))
-    ;; restore the original value of todos-categories
-    (setq todos-categories categories)
-    category))
+  ;; allow SPC to insert spaces, for adding new category names with
+  ;; todos-move-item
+  (let ((map minibuffer-local-completion-map))
+    (define-key map " " nil)
+    ;; make a copy of todos-categories in case history-delete-duplicates is
+    ;; non-nil, which makes completing-read alter todos-categories
+    (let* ((categories (copy-sequence todos-categories))
+	   (history (cons 'todos-categories (1+ todos-category-number)))
+	   (default (nth todos-category-number todos-categories))
+	   (completion-ignore-case todos-completion-ignore-case)
+	   (category (completing-read
+		      (concat "Category [" default "]: ")
+		      todos-categories nil nil nil history default)))
+      ;; restore the original value of todos-categories
+      (setq todos-categories categories)
+      category)))
 
 ;; ---------------------------------------------------------------------------
 
@@ -915,9 +1067,19 @@ Number of entries for each category is given by `todos-print-priorities'."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'todos-mode)
-  (setq mode-name "TODO")
+  (setq mode-name "TODOS")
   (use-local-map todos-mode-map)
   (easy-menu-add todos-menu)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(todos-font-lock-keywords t))
+  (make-local-variable 'word-wrap)
+  (setq word-wrap t)
+  (make-local-variable 'wrap-prefix)
+  (setq wrap-prefix
+	(make-string (1+ (length (concat todos-prefix
+					 (todos-entry-timestamp-initials)))) 32))
+  (unless (member '(continuation) fringe-indicator-alist)
+    (push '(continuation) fringe-indicator-alist))
   (run-mode-hooks 'todos-mode-hook))
 
 (defvar date)
