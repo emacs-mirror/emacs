@@ -59,6 +59,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the options passed to configure. */
 #undef EMACS_CONFIG_OPTIONS
 
+/* Enable expensive run-time checking of data types? */
+#undef ENABLE_CHECKING
+
+/* Define this to check for errors in cons list. */
+#undef GC_CHECK_CONS_LIST
+
+/* Define this temporarily to hunt a bug. If defined, the size of strings is
+   redundantly recorded in sdata structures so that it can be compared to the
+   sizes recorded in Lisp strings. */
+#undef GC_CHECK_STRING_BYTES
+
+/* Define this to check the string free list. */
+#undef GC_CHECK_STRING_FREE_LIST
+
+/* Define this to check for short string overrun. */
+#undef GC_CHECK_STRING_OVERRUN
+
 /* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
    */
 #undef GETLOADAVG_PRIVILEGED
@@ -897,6 +914,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define this to check for malloc buffer overrun. */
+#undef XMALLOC_OVERRUN_CHECK
+
 /* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
    XPointer or XPointer*. */
 #undef XRegisterIMInstantiateCallback_arg6
@@ -1172,9 +1192,6 @@ typedef unsigned size_t;
 #if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
 #define HAVE_X11R6_XIM
 #endif
-
-/* Should we enable expensive run-time checking of data types?  */
-#undef ENABLE_CHECKING
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))

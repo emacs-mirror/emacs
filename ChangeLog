@@ -1,3 +1,7 @@
+2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (--enable-checking): New option.
+
 2009-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Warn if subdir does not exist in source.
