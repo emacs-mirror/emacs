@@ -1,3 +1,7 @@
+2009-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* redisplay-testsuite.el: New file.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
