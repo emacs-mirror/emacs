@@ -1,3 +1,8 @@
+2009-06-26  Peter Jolly  <peter@jollys.org>  (tiny change)
+
+	* ftfont.c (get_adstyle_property): Call font_intern_prop with 1 as
+	the arg FORCE_SYMBOL.
+
 2009-06-25  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): When a usable rfont_def is found
