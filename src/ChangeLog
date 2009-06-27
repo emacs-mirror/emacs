@@ -1,3 +1,7 @@
+2009-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (x_get_arg): Check if dpyinfo is non-NULL.
+
 2009-06-27  Glenn Morris  <rgm@gnu.org>
 
 	* m/pmax.h: Restore file.
