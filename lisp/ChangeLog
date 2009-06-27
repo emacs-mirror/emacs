@@ -1,3 +1,7 @@
+2009-06-27  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/cl-specs.el (defstruct): Fix :conc-name spec.
+
 2009-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (x-handle-named-frame-geometry): Ensure that we have
