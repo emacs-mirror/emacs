@@ -1,3 +1,7 @@
+2009-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure: Restore netbsd on mips, mipsel, mipseb.
+
 2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (--enable-checking): New option.
