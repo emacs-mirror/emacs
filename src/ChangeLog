@@ -1,3 +1,7 @@
+2009-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* m/pmax.h: Restore file.
+
 2009-06-26  Peter Jolly  <peter@jollys.org>  (tiny change)
 
 	* ftfont.c (get_adstyle_property): Call font_intern_prop with 1 as
