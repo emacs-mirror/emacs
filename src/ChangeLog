@@ -1,3 +1,7 @@
+2009-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* m/pmax.h: Restore file, with only netbsd portions.
+
 2009-06-26  David Reitter <david.reitter@gmail.com>
 
 	* nsterm.m (keydown): avoid infinite loop
