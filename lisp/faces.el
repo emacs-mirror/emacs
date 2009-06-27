@@ -1921,28 +1921,25 @@ according to the `background-mode' and `display-type' frame parameters."
 (defun x-handle-named-frame-geometry (parameters)
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
 Value is the new parameter list."
-  (let* ((name (or (cdr (assq 'name parameters))
-		   (cdr (assq 'name default-frame-alist))))
-	 (x-resource-name name)
-	 (res-geometry (when name
-			 ;; FIXME: x-get-resource fails if the X
-			 ;; connection is not open, e.g. if we call
-			 ;; make-frame-on-display.  We should detect
-			 ;; this case here, and open the connection.
-			 ;; (Bug#3194).
-			 (ignore-errors
-			   (x-get-resource "geometry" "Geometry")))))
-    (when res-geometry
-      (let ((parsed (x-parse-geometry res-geometry)))
-	;; If the resource specifies a position, call the position
-	;; and size "user-specified".
-	(when (or (assq 'top parsed)
-		  (assq 'left parsed))
-	  (setq parsed (append '((user-position . t) (user-size . t)) parsed)))
-	;; Put the geometry parameters at the end.  Copy
-	;; default-frame-alist so that they go after it.
-	(setq parameters (append parameters default-frame-alist parsed))))
-    parameters))
+  ;; Note that `x-resource-name' has a global meaning.
+  (let ((x-resource-name (or (cdr (assq 'name parameters))
+			     (cdr (assq 'name default-frame-alist)))))
+    (when x-resource-name
+      ;; Before checking X resources, we must have an X connection.
+      (or (window-system)
+	  (x-display-list)
+	  (x-open-connection (or (cdr (assq 'display parameters))
+				 x-display-name)))
+      (let (res-geometry parsed)
+	(and (setq res-geometry (x-get-resource "geometry" "Geometry"))
+	     (setq parsed (x-parse-geometry res-geometry))
+	     (setq parameters
+		   (append parameters default-frame-alist parsed
+			   ;; If the resource specifies a position,
+			   ;; take note of that.
+			   (if (or (assq 'top parsed) (assq 'left parsed))
+			       '((user-position . t) (user-size . t)))))))))
+  parameters)
 
 
 (defun x-handle-reverse-video (frame parameters)
