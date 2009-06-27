@@ -1,3 +1,8 @@
+2009-06-27  Chuck Blake  <cblake@pdos.csail.mit.edu>  (tiny change)
+
+	* term.c (turn_on_face): Allow simultaneously bold and dim
+	terminal faces (Bug#3530).
+
 2009-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (x_get_arg): Check if dpyinfo is non-NULL.

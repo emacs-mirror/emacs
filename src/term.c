@@ -1969,14 +1969,11 @@ turn_on_face (f, face_id)
 	}
     }
 
-  if (face->tty_bold_p)
-    {
-      if (MAY_USE_WITH_COLORS_P (tty, NC_BOLD))
-	OUTPUT1_IF (tty, tty->TS_enter_bold_mode);
-    }
-  else if (face->tty_dim_p)
-    if (MAY_USE_WITH_COLORS_P (tty, NC_DIM))
-      OUTPUT1_IF (tty, tty->TS_enter_dim_mode);
+  if (face->tty_bold_p && MAY_USE_WITH_COLORS_P (tty, NC_BOLD))
+    OUTPUT1_IF (tty, tty->TS_enter_bold_mode);
+
+  if (face->tty_dim_p && MAY_USE_WITH_COLORS_P (tty, NC_DIM))
+    OUTPUT1_IF (tty, tty->TS_enter_dim_mode);
 
   /* Alternate charset and blinking not yet used.  */
   if (face->tty_alt_charset_p
@@ -3721,10 +3718,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
                  "Screen size %dx%d is too small"
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
-
-#if 0  /* This is not used anywhere. */
-  tty->terminal->min_padding_speed = tgetnum ("pb");
-#endif
 
   TabWidth (tty) = tgetnum ("tw");
 
