@@ -1,5 +1,7 @@
 2009-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frame.c (x_get_arg): Check if dpyinfo is non-NULL.
+
 	* xdisp.c (mouse_face_from_buffer_pos): Fix detection of
 	truncation glyphs (Bug#3686).
 

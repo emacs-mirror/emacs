@@ -4009,7 +4009,7 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
      look in the X resources.  */
   if (EQ (tem, Qnil))
     {
-      if (attribute)
+      if (attribute && dpyinfo)
 	{
 	  tem = display_x_get_resource (dpyinfo,
 					build_string (attribute),
