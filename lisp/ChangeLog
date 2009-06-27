@@ -1,3 +1,8 @@
+2009-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* play/doctor.el: Remove reference to obsolete website.
+	(make-doctor-variables): Correct grammar mistake (Bug#2633).
+
 2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove find-file-not-found-hook VC method.  (Bug#2757)
