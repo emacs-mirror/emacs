@@ -22991,7 +22991,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 
       /* Skip truncation glyphs at the start of the glyph row.  */
       if (row->displays_text_p)
-	for (; glyph < end && INTEGERP (glyph->object); ++glyph)
+	for (; glyph < end
+	       && INTEGERP (glyph->object)
+	       && glyph->charpos < 0;
+	     ++glyph)
 	  x += glyph->pixel_width;
 
       /* Scan the glyph row, stopping before BEFORE_STRING or
@@ -23039,7 +23042,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 
   /* Skip truncation glyphs at the start of the row.  */
   if (row->displays_text_p)
-    for (; glyph < end && INTEGERP (glyph->object); ++glyph)
+    for (; glyph < end
+	   && INTEGERP (glyph->object)
+	   && glyph->charpos < 0;
+	 ++glyph)
       x += glyph->pixel_width;
 
   /* Scan the glyph row, stopping at END_CHARPOS or when we encounter
