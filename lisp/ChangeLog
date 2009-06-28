@@ -1,3 +1,8 @@
+2009-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* autorevert.el (global-auto-revert-non-file-buffers)
+	(global-auto-revert-mode): Doc fixes.
+
 2009-06-27  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/cl-specs.el (defstruct): Fix :conc-name spec.
@@ -32,7 +37,7 @@
 2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-make-directory): Use `dir'
-	but `filename'.
+	rather than `filename'.
 
 2009-06-23  Miles Bader  <miles@gnu.org>
 
