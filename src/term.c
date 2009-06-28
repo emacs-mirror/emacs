@@ -3181,6 +3181,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 #endif /* HAVE_GPM */
 
 
+#ifndef MSDOS
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -3218,6 +3219,20 @@ tty_free_frame_resources (struct frame *f)
   xfree (f->output_data.tty);
 }
 
+#else  /* MSDOS */
+
+/* Delete frame F's face cache. */
+
+static void
+tty_free_frame_resources (struct frame *f)
+{
+  if (! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f))
+    abort ();
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+}
+#endif	/* MSDOS */
 
 /* Reset the hooks in TERMINAL.  */
 
