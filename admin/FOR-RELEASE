@@ -129,7 +129,7 @@ cmdargs.texi      -- cyd
 commands.texi     -- cyd
 custom.texi       -- cyd
 dired.texi        -- cyd
-dired-xtra.texi
+dired-xtra.texi   -- rgm
 display.texi      -- cyd
 emacs.texi        -- cyd
 emacs-xtra.texi
