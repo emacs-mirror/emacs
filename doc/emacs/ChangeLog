@@ -1,3 +1,7 @@
+2009-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* arevert-xtra.texi: Minor language tweaks.
+
 2009-06-23  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Scrolling): Document `recenter-redisplay'
