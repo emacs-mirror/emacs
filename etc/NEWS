@@ -24,6 +24,12 @@ so we will look at it and add it to the manual.
 
 * Changes in Emacs 23.2
 
+** The default value of `trash-directory' has changed to nil, which
+means that `move-file-to-trash' trashes files according to
+freedesktop.org specifications, the same method used by the Gnome,
+KDE, and XFCE desktops.  (This change has no effect on Windows, which
+uses `system-move-file-to-trash' for trashing.)
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 

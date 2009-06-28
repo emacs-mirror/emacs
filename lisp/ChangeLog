@@ -1,3 +1,15 @@
+2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (trash-directory): Change default to nil.
+	(move-file-to-trash): If trash-directory is nil and
+	system-move-file-to-trash is unbound, perform freedesktop-style
+	trashing.
+
+2009-06-28  David De La Harpe Golden  <david@harpegolden.net>
+
+	* files.el (move-file-to-trash): Add freedesktop trash
+	support (Bug#973).
+
 2009-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* autorevert.el (global-auto-revert-non-file-buffers)

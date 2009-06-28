@@ -6010,47 +6010,152 @@ based on existing mode bits, as in \"og+rX-w\"."
 
 
 ;; Trashcan handling.
-(defcustom trash-directory (convert-standard-filename "~/.Trash")
+(defcustom trash-directory nil
   "Directory for `move-file-to-trash' to move files and directories to.
-This directory is only used when the function `system-move-file-to-trash' is
-not defined.  Relative paths are interpreted relative to `default-directory'.
-See also `delete-by-moving-to-trash'."
+This directory is only used when the function `system-move-file-to-trash'
+is not defined.
+Relative paths are interpreted relative to `default-directory'.
+If the value is nil, Emacs uses a freedesktop.org-style trashcan."
   :type 'directory
   :group 'auto-save
-  :version "23.1")
+  :version "23.2")
+
+(defvar trash--hexify-table)
 
 (declare-function system-move-file-to-trash "w32fns.c" (filename))
 
 (defun move-file-to-trash (filename)
-  "Move file (or directory) name FILENAME to the trash.
-This function is called by `delete-file' and `delete-directory' when
-`delete-by-moving-to-trash' is non-nil.  On platforms that define
-`system-move-file-to-trash', that function is used to move FILENAME to the
-system trash, otherwise FILENAME is moved to `trash-directory'.
-Returns nil on success."
+  "Move the file (or directory) named FILENAME to the trash.
+When `delete-by-moving-to-trash' is non-nil, this function is
+called by `delete-file' and `delete-directory' instead of
+deleting files outright.
+
+If the function `system-move-file-to-trash' is defined, call it
+ with FILENAME as an argument.
+Otherwise, if `trash-directory' is non-nil, move FILENAME to that
+ directory.
+Otherwise, trash FILENAME using the freedesktop.org conventions,
+ like the GNOME, KDE and XFCE desktop environments.  Emacs only
+ moves files to \"home trash\", ignoring per-volume trashcans."
   (interactive "fMove file to trash: ")
-  (cond
-   ((fboundp 'system-move-file-to-trash)
-    (system-move-file-to-trash filename))
-   (t
-    (let* ((trash-dir   (expand-file-name trash-directory))
-           (fn          (directory-file-name (expand-file-name filename)))
-           (fn-nondir   (file-name-nondirectory fn))
-           (new-fn      (expand-file-name fn-nondir trash-dir)))
-      (or (file-directory-p trash-dir)
-          (make-directory trash-dir t))
-      (and (file-exists-p new-fn)
-           ;; make new-fn unique.
-           ;; example: "~/.Trash/abc.txt" -> "~/.Trash/abc.txt.~1~"
-           (let ((version-control t)
-		 (backup-directory-alist nil))
-             (setq new-fn (car (find-backup-file-name new-fn)))))
-      ;; stop processing if fn is same or parent directory of trash-dir.
-      (and (string-match fn trash-dir)
-           (error "Filename `%s' is same or parent directory of trash-directory"
-                  filename))
-      (let ((delete-by-moving-to-trash nil))
-        (rename-file fn new-fn))))))
+  (cond (trash-directory
+	 ;; If `trash-directory' is non-nil, move the file there.
+	 (let* ((trash-dir   (expand-file-name trash-directory))
+		(fn          (directory-file-name (expand-file-name filename)))
+		(new-fn      (expand-file-name (file-name-nondirectory fn)
+					       trash-dir)))
+	   ;; We can't trash a parent directory of trash-directory.
+	   (if (string-match fn trash-dir)
+	       (error "Trash directory `%s' is a subdirectory of `%s'"
+		      trash-dir filename))
+	   (unless (file-directory-p trash-dir)
+	     (make-directory trash-dir t))
+	   ;; Ensure that the trashed file-name is unique.
+	   (if (file-exists-p new-fn)
+	       (let ((version-control t)
+		     (backup-directory-alist nil))
+		 (setq new-fn (car (find-backup-file-name new-fn)))))
+	   (let (delete-by-moving-to-trash)
+	     (rename-file fn new-fn))))
+	;; If `system-move-file-to-trash' is defined, use it.
+	((fboundp 'system-move-file-to-trash)
+	 (system-move-file-to-trash filename))
+	;; Otherwise, use the freedesktop.org method, as specified at
+	;; http://freedesktop.org/wiki/Specifications/trash-spec
+	(t
+	 (let* ((xdg-data-dir
+		 (directory-file-name
+		  (expand-file-name "Trash"
+				    (or (getenv "XDG_DATA_HOME")
+					"~/.local/share"))))
+		(trash-files-dir (expand-file-name "files" xdg-data-dir))
+		(trash-info-dir (expand-file-name "info" xdg-data-dir))
+		(fn (directory-file-name (expand-file-name filename))))
+
+	   ;; Check if we have permissions to delete.
+	   (unless (file-writable-p (directory-file-name
+				     (file-name-directory fn)))
+	     (error "Cannot move %s to trash: Permission denied" filename))
+	   ;; The trashed file cannot be the trash dir or its parent.
+	   (if (string-match fn trash-files-dir)
+	       (error "The trash directory %s is a subdirectory of %s"
+		      trash-files-dir filename))
+	   (if (string-match fn trash-info-dir)
+	       (error "The trash directory %s is a subdirectory of %s"
+		      trash-info-dir filename))
+
+	   ;; Ensure that the trash directory exists; otherwise, create it.
+	   (let ((saved-default-file-modes (default-file-modes)))
+	     (set-default-file-modes ?\700)
+	     (unless (file-exists-p trash-files-dir)
+	       (make-directory trash-files-dir t))
+	     (unless (file-exists-p trash-info-dir)
+	       (make-directory trash-info-dir t))
+	     (set-default-file-modes saved-default-file-modes))
+
+	   ;; Try to move to trash with .trashinfo undo information
+	   (save-excursion
+	     (with-temp-buffer
+	       (set-buffer-file-coding-system 'utf-8-unix)
+	       (insert "[Trash Info]\nPath=")
+	       ;; Perform url-encoding on FN.  For compatibility with
+	       ;; other programs (e.g. XFCE Thunar), allow literal "/"
+	       ;; for path separators.
+	       (unless (boundp 'trash--hexify-table)
+		 (setq trash--hexify-table (make-vector 256 nil))
+		 (let ((unreserved-chars
+			(list ?/ ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m
+			      ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z ?A
+			      ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O
+			      ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z ?0 ?1 ?2
+			      ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?- ?_ ?. ?! ?~ ?* ?'
+			      ?\( ?\))))
+		   (dotimes (byte 256)
+		     (aset trash--hexify-table byte
+			   (if (memq byte unreserved-chars)
+			       (char-to-string byte)
+			     (format "%%%02x" byte))))))
+	       (mapc (lambda (byte)
+		       (insert (aref trash--hexify-table byte)))
+		     (if (multibyte-string-p fn)
+			 (encode-coding-string fn 'utf-8)
+		       fn))
+	       (insert "\nDeletionDate="
+		       (format-time-string "%Y-%m-%dT%T")
+		       "\n")
+
+	       ;; Attempt to make .trashinfo file, trying up to 5
+	       ;; times.  The .trashinfo file is opened with O_EXCL,
+	       ;; as per trash-spec 0.7, even if that can be a problem
+	       ;; on old NFS versions...
+	       (let* ((tries 5)
+		      (base-fn (expand-file-name
+				(file-name-nondirectory fn)
+				trash-files-dir))
+		      (new-fn base-fn)
+		      success info-fn)
+		 (while (> tries 0)
+		   (setq info-fn (expand-file-name
+				  (concat (file-name-nondirectory new-fn)
+					  ".trashinfo")
+				  trash-info-dir))
+		   (unless (condition-case nil
+			       (progn
+				 (write-region nil nil info-fn nil
+					       'quiet info-fn 'excl)
+				 (setq tries 0 success t))
+			     (file-already-exists nil))
+		     (setq tries (1- tries))
+		     ;; Uniqify new-fn.  (Some file managers do not
+		     ;; like Emacs-style backup file names---e.g. bug
+		     ;; 170956 in Konqueror bug tracker.)
+		     (setq new-fn (make-temp-name (concat base-fn "_")))))
+		 (unless success
+		   (error "Cannot move %s to trash: Lock failed" filename))
+
+		 ;; Finally, try to move the file to the trashcan.
+		 (let ((delete-by-moving-to-trash nil))
+		   (rename-file fn new-fn)))))))))
 
 
 (define-key ctl-x-map "\C-f" 'find-file)
