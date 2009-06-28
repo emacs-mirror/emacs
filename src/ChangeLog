@@ -1,3 +1,8 @@
+2009-06-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (create_tty_output) [MSDOS]: #ifdef away.
+	(tty_free_frame_resources) [MSDOS]: Add a DOS-specific version.
+
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_update_window_begin, x_new_focus_frame)
