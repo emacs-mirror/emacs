@@ -1,3 +1,8 @@
+2009-03-28  Juri Linkov  <juri@jurta.org>
+
+	* help-fns.el (describe-function-1): Correctly locate adviced
+	functions in hyperlink (Bug#2438).
+
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (trash-directory): Change default to nil.

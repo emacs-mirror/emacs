@@ -406,7 +406,7 @@ suitable file is found, return nil."
 	(with-current-buffer standard-output
 	  (save-excursion
 	    (re-search-backward "`\\([^`']+\\)'" nil t)
-	    (help-xref-button 1 'help-function-def real-function file-name))))
+	    (help-xref-button 1 'help-function-def function file-name))))
       (princ ".")
       (with-current-buffer (help-buffer)
 	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
