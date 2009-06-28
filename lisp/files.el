@@ -6016,7 +6016,7 @@ This directory is only used when the function `system-move-file-to-trash'
 is not defined.
 Relative paths are interpreted relative to `default-directory'.
 If the value is nil, Emacs uses a freedesktop.org-style trashcan."
-  :type 'directory
+  :type  '(choice (const nil) directory)
   :group 'auto-save
   :version "23.2")
 

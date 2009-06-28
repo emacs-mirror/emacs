@@ -1,3 +1,7 @@
+2009-06-28  David De La Harpe Golden  <david@harpegolden.net>
+
+	* files.el (trash-directory): Fix defcustom type.
+
 2009-03-28  Juri Linkov  <juri@jurta.org>
 
 	* help-fns.el (describe-function-1): Correctly locate adviced
