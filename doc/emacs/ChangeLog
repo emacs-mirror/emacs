@@ -2,6 +2,8 @@
 
 	* arevert-xtra.texi: Minor language tweaks.
 
+	* dired-xtra.texi: Minor revisions.
+
 2009-06-23  Miles Bader  <miles@gnu.org>
 
 	* display.texi (Scrolling): Document `recenter-redisplay'
