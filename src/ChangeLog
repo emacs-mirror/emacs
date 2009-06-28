@@ -1,3 +1,8 @@
+2009-06-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (send_process): Keep decoded string in a local
+	variable and protect it from GC.  (Bug#3521)
+
 2009-06-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (create_tty_output) [MSDOS]: #ifdef away.

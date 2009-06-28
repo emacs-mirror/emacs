@@ -5550,10 +5550,11 @@ send_process (proc, buf, len, object)
   struct Lisp_Process *p = XPROCESS (proc);
   int rv;
   struct coding_system *coding;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   SIGTYPE (*volatile old_sigpipe) ();
+  Lisp_Object dst_object = Qnil;
 
-  GCPRO1 (object);
+  GCPRO2 (object, dst_object);
 
   if (p->raw_status_new)
     update_status (p);
@@ -5632,7 +5633,8 @@ send_process (proc, buf, len, object)
 	}
 
       len = coding->produced;
-      buf = SDATA (coding->dst_object);
+      dst_object = coding->dst_object;
+      buf = SDATA (dst_object);
     }
 
   if (pty_max_bytes == 0)
@@ -5764,7 +5766,7 @@ send_process (proc, buf, len, object)
 		      /* Running filters might relocate buffers or strings.
 			 Arrange to relocate BUF.  */
 		      if (CODING_REQUIRE_ENCODING (coding))
-			offset = buf - SDATA (coding->dst_object);
+			offset = buf - SDATA (dst_object);
 		      else if (BUFFERP (object))
 			offset = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
 		      else if (STRINGP (object))
@@ -5777,7 +5779,7 @@ send_process (proc, buf, len, object)
 #endif
 
 		      if (CODING_REQUIRE_ENCODING (coding))
-			buf = offset + SDATA (coding->dst_object);
+			buf = offset + SDATA (dst_object);
 		      else if (BUFFERP (object))
 			buf = BUF_BYTE_ADDRESS (XBUFFER (object), offset);
 		      else if (STRINGP (object))
