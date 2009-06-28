@@ -1,3 +1,11 @@
+2009-06-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_SYMBOL_TO_DBUS_TYPE): Convert macro into function
+	xd_symbol_to_dbus_type.  With Solaris 2.11, it was said to compile
+	for hours, when optimzation is enabled.
+	(xd_signature, xd_append_arg, xd_retrieve_arg, xd_initialize)
+	(xd_read_message): Make them static.
+
 2009-06-27  Chuck Blake  <cblake@pdos.csail.mit.edu>  (tiny change)
 
 	* term.c (turn_on_face): Allow simultaneously bold and dim
