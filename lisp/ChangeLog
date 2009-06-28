@@ -1,3 +1,8 @@
+2009-06-28  Glenn Morris  <rgm@gnu.org>
+
+	* autorevert.el (global-auto-revert-non-file-buffers)
+	(global-auto-revert-mode): Doc fixes.
+
 2009-06-24  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-insert-input): Doc fix.
