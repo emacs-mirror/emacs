@@ -1,3 +1,136 @@
+2009-06-28  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-beg-of-statement)
+	(verilog-endcomment-reason-re): Support unique case and priority
+	case.
+	(verilog-basic-complete-re): Support localparam lineup.
+	(verilog-beg-of-statement-1): Fix for robustness, unique case.
+	(verilog-set-auto-endcomments): Fix for unique case, always_comb
+	commenting.
+	(verilog-leap-to-case-head): Now support *nested* unique &
+	priority case statements.
+	(verilog-auto-lineup): Make just declarations the default (as it
+	had been).
+	(verilog-leap-to-case-head): Support priority/unique case
+	statements.
+	(verilog-auto-lineup): Rework to give users radio buttons to
+	select the various styles of automatic lineup
+	(verilog-error-regexp-alist): Rework to support the XEmacs style
+	of error regular expressions from compilers, lint tools &
+	simulators.  Note that GNU Emacs has made it impossible for a mode
+	to load such things.
+	(electric-verilog-terminate-line, verilog-indent-declaration)
+	(verilog-auto-wiure): Rework for radio button selection of
+	auto-lineup selection of specification of auto lineup.
+	(verilog-beg-of-statement-1): Redesign to support proper operation
+	in additional code, based on testing with auto-lineup.
+	(verilog-calculate-indent, assignments & declarations)
+	(verilog-backward-token): Enhance to support auto-lineup of
+	assignments & declarations.
+	(verilog-in-directive-p, verilog-at-struct-p): New function for
+	easy test of whether we are.
+	(verilog-pretty-declarations, verilog-pretty-expr): Massive rework
+	to support safe execution at almost anyline.
+	(verilog-calc-1): Properly support indenting deep inside generate
+	blocks.
+	(verilog-init-font) Remove definition & use of verilog-init-font,
+	as it is redundant with font-lock-defaults.
+	(verilog-mode): Alter the definition of verilog-font-lock-defualts
+	to avoid circular calls if syntax-ppss is a function (as is the
+	case now in 22.x GNU Emacs) as that function would sometimes call
+	itself, leading to (nearly) infinite recursion
+	(verilog-ovm-begin-re, verilog-ovm-end-re)
+	(verilog-ovm-statement-re, verilog-leap-to-head)
+	(verilog-backward-token): Add support for OVM macros.  Some are
+	complete statements, and others open and close scopes like begin
+	and end.
+	(verilog-defun-level-not-generate-re, verilog-defun-level-re)
+	(verilog-defun-level-generate-only-re): Really fix the defun-list
+	compilation issue
+	(verilog-calc-1) (verilog-beg-of-statement): Enhance support for
+	coverpoint, constraint and cross statements
+	(verilog-defun-level-list, verilog-generate-defun-level-list)
+	(verilog-all-defun-level-list): Redo these specifications - it is
+	too hard to support eval-when compile aggregation of lists also
+	built at when-compile time.
+	(verilog-defun-level-list): Place defconsts of variables used in
+	building regular expressions which are built in eval-when-compile
+	bodies in the same eval-when-compile body to facilitate compile
+	without load.
+	(verilog-beg-block-re-ordered): Support indenting
+	virtual/protected tasks and functions.
+	(verilog-defun-level-list,verilog-in-generate-region-p)
+	(verilog-backward-ws&directives, verilog-calc-1): Speed up
+	indentation of some module items (generate items).
+	(verilog-forward-sexp, verilog-leap-to-head): Support stepping
+	across virtual/protected tasks and functions.
+
+2009-06-28  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* verilog-mode.el (verilog-auto-arg, verilog-auto-arg-sort): Allow
+	sorting AUTOARG lists.  Suggested by Andrea Fedeli.
+	(verilog-read-sub-decls-line): Fix AUTOWIRE signals getting lost
+	in concatenations.  Reported by Yishay Belkind.
+	(verilog-auto-ascii-enum): Support one-hot state machines in
+	AUTOASCIIENUM.  Suggested by Lloyd Gomez.
+	(verilog-auto-inst, verilog-auto-inst-port): Include interface
+	modport in AUTOINST and add vl-modport for users.  Reported by
+	David Rogoff.
+	(verilog-auto-inout-module, verilog-auto-inst)
+	(verilog-decls-get-interfaces, verilog-insert-definition)
+	(verilog-insert-one-definition, verilog-read-decls)
+	(verilog-read-sub-decls, verilog-read-sub-decls-sig)
+	(verilog-sig-modport, verilog-signals-combine-bus)
+	(verilog-subdecls-get-interfaces): Fix expansion of SystemVerilog
+	interfaces in AUTOINOUTMODULE, AUTOINOUTCOMP, and AUTOINST.
+	Suggested by David Rogoff.
+	(verilog-repair-open-comma): Fix non-insertion of comma when
+	`DEFINE occurs in V2K argument list.  Reported by Lane Brooks.
+	(verilog-make-width-expression): Simplify [A-1:0] expression
+	widths to just {A{1'b0}}.
+	(verilog-mode): Cleanup checkdoc warnings.
+	(verilog-auto-inout-module, verilog-signals-matching-dir-re): Add
+	third optional regexp to AUTOINOUTMODULE to allow selecting only
+	inputs/outputs or data type.  Suggested by Vasu Kandadi.
+	(next-error-last-buffer): Fix byte-compiler warning.
+	(verilog-auto, verilog-auto-insert-lisp, verilog-auto-inst)
+	(verilog-delete-auto): Add AUTOINSERTLISP to insert arbitrary lisp
+	or shell command text during AUTO expansion.  Suggested by Tad
+	Truex.
+	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line)
+	(verilog-read-sub-decls-sig, verilog-symbol-detick-text): Fix
+	dotted nets {a.b,c.d} and excaped identifiers being mis-included
+	in AUTOINOUT. Reported by Matthew Lovell.
+	(verilog-read-always-signals-recurse): Fix AUTORESET "if (a<=b)"
+	causing use of <= assignments.  Reported by Alex Reed.
+	(verilog-read-decls): Fix triand, trior, wand, wor to be
+	recognized by AUTOWIRE.  Reported by Spencer Isaacson.
+	(verilog-extended-complete-re): Support import "DPI-C" functions.
+	(verilog-read-always-signals-recurse): Fix AUTORESET of "x <=
+	y[a+1:a+1]" to not include a in reset list.  Reported by Dan
+	Dever.
+	(verilog-insert-date, verilog-insert-year)
+	(verilog-sk-header-tmpl): Fix verilog-header inserting error on
+	Windows systems.  Reported by Michael Potts.
+	(verilog-read-module-name): Fix AUTOINST when the child module
+	declaration's name is a tick define. Reported by Elliot Mednick.
+	(verilog-read-decls): Fix V2K parameter bit subscripts getting
+	passed to next parameter's definition. Reported by Bruce T.
+	(verilog-read-decls): Fix detecting "parameter int" when using
+	AUTOINSTPARAM.  Reported by Bruce T.
+	(verilog-goto-defun): Fix goto not finding modules unless first
+	perform a verilog-auto expansion. Suggested by Lawrence Butcher.
+        (verilog-mode): Expand -f flag arguments on entry to mode so
+	verilog-goto-defun will work.  Reported by Lawrence Butcher.
+	(verilog-getopt): Expand environment variables in -f file
+	arguments.  Suggested by Lawrence Butcher.
+        (verilog-set-define): Fix "Symbol's value as variable is void"
+	when reading enumerations.
+	(verilog-auto-ascii-enum): Fix duplicate labels in AUTOASCIIENUM.
+	Suggested by Stephen Peltan.
+        (verilog-read-defines): Fix reading of enumerations in include
+	files.  Reported by Steve Peltan.
+
 2009-06-28  David De La Harpe Golden  <david@harpegolden.net>
 
 	* files.el (trash-directory): Fix defcustom type.
