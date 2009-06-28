@@ -155,30 +155,38 @@ int xd_in_read_queued_messages = 0;
    || (type ==  DBUS_TYPE_OBJECT_PATH)					\
    || (type ==  DBUS_TYPE_SIGNATURE))
 
+/* This was a macro.  On Solaris 2.11 it was said to compile for
+   hours, when optimzation is enabled.  So we have transferred it into
+   a function.  */
 /* Determine the DBusType of a given Lisp symbol.  OBJECT must be one
    of the predefined D-Bus type symbols.  */
-#define XD_SYMBOL_TO_DBUS_TYPE(object)					\
-  ((EQ (object, QCdbus_type_byte)) ? DBUS_TYPE_BYTE			\
-   : (EQ (object, QCdbus_type_boolean)) ? DBUS_TYPE_BOOLEAN		\
-   : (EQ (object, QCdbus_type_int16)) ? DBUS_TYPE_INT16			\
-   : (EQ (object, QCdbus_type_uint16)) ? DBUS_TYPE_UINT16		\
-   : (EQ (object, QCdbus_type_int32)) ? DBUS_TYPE_INT32			\
-   : (EQ (object, QCdbus_type_uint32)) ? DBUS_TYPE_UINT32		\
-   : (EQ (object, QCdbus_type_int64)) ? DBUS_TYPE_INT64			\
-   : (EQ (object, QCdbus_type_uint64)) ? DBUS_TYPE_UINT64		\
-   : (EQ (object, QCdbus_type_double)) ? DBUS_TYPE_DOUBLE		\
-   : (EQ (object, QCdbus_type_string)) ? DBUS_TYPE_STRING		\
-   : (EQ (object, QCdbus_type_object_path)) ? DBUS_TYPE_OBJECT_PATH	\
-   : (EQ (object, QCdbus_type_signature)) ? DBUS_TYPE_SIGNATURE		\
-   : (EQ (object, QCdbus_type_array)) ? DBUS_TYPE_ARRAY			\
-   : (EQ (object, QCdbus_type_variant)) ? DBUS_TYPE_VARIANT		\
-   : (EQ (object, QCdbus_type_struct)) ? DBUS_TYPE_STRUCT		\
-   : (EQ (object, QCdbus_type_dict_entry)) ? DBUS_TYPE_DICT_ENTRY	\
-   : DBUS_TYPE_INVALID)
+static int
+xd_symbol_to_dbus_type (object)
+     Lisp_Object object;
+{
+  return
+    ((EQ (object, QCdbus_type_byte)) ? DBUS_TYPE_BYTE
+     : (EQ (object, QCdbus_type_boolean)) ? DBUS_TYPE_BOOLEAN
+     : (EQ (object, QCdbus_type_int16)) ? DBUS_TYPE_INT16
+     : (EQ (object, QCdbus_type_uint16)) ? DBUS_TYPE_UINT16
+     : (EQ (object, QCdbus_type_int32)) ? DBUS_TYPE_INT32
+     : (EQ (object, QCdbus_type_uint32)) ? DBUS_TYPE_UINT32
+     : (EQ (object, QCdbus_type_int64)) ? DBUS_TYPE_INT64
+     : (EQ (object, QCdbus_type_uint64)) ? DBUS_TYPE_UINT64
+     : (EQ (object, QCdbus_type_double)) ? DBUS_TYPE_DOUBLE
+     : (EQ (object, QCdbus_type_string)) ? DBUS_TYPE_STRING
+     : (EQ (object, QCdbus_type_object_path)) ? DBUS_TYPE_OBJECT_PATH
+     : (EQ (object, QCdbus_type_signature)) ? DBUS_TYPE_SIGNATURE
+     : (EQ (object, QCdbus_type_array)) ? DBUS_TYPE_ARRAY
+     : (EQ (object, QCdbus_type_variant)) ? DBUS_TYPE_VARIANT
+     : (EQ (object, QCdbus_type_struct)) ? DBUS_TYPE_STRUCT
+     : (EQ (object, QCdbus_type_dict_entry)) ? DBUS_TYPE_DICT_ENTRY
+     : DBUS_TYPE_INVALID);
+}
 
 /* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
 #define XD_DBUS_TYPE_P(object)						\
-  (SYMBOLP (object) && ((XD_SYMBOL_TO_DBUS_TYPE (object) != DBUS_TYPE_INVALID)))
+  (SYMBOLP (object) && ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID)))
 
 /* Determine the DBusType of a given Lisp OBJECT.  It is used to
    convert Lisp objects, being arguments of `dbus-call-method' or
@@ -190,12 +198,12 @@ int xd_in_read_queued_messages = 0;
    : (INTEGERP (object)) ? DBUS_TYPE_INT32				\
    : (FLOATP (object)) ? DBUS_TYPE_DOUBLE				\
    : (STRINGP (object)) ? DBUS_TYPE_STRING				\
-   : (XD_DBUS_TYPE_P (object)) ? XD_SYMBOL_TO_DBUS_TYPE (object)	\
+   : (XD_DBUS_TYPE_P (object)) ? xd_symbol_to_dbus_type (object)	\
    : (CONSP (object))							\
    ? ((XD_DBUS_TYPE_P (CAR_SAFE (object)))				\
-      ? ((XD_BASIC_DBUS_TYPE (XD_SYMBOL_TO_DBUS_TYPE (CAR_SAFE (object)))) \
+      ? ((XD_BASIC_DBUS_TYPE (xd_symbol_to_dbus_type (CAR_SAFE (object)))) \
 	 ? DBUS_TYPE_ARRAY						\
-	 : XD_SYMBOL_TO_DBUS_TYPE (CAR_SAFE (object)))			\
+	 : xd_symbol_to_dbus_type (CAR_SAFE (object)))			\
       : DBUS_TYPE_ARRAY)						\
    : DBUS_TYPE_INVALID)
 
@@ -210,7 +218,7 @@ int xd_in_read_queued_messages = 0;
    a type symbol.  PARENT_TYPE is the DBusType of a container this
    signature is embedded, or DBUS_TYPE_INVALID.  It is needed for the
    check that DBUS_TYPE_DICT_ENTRY occurs only as array element.  */
-void
+static void
 xd_signature (signature, dtype, parent_type, object)
      char *signature;
      unsigned int dtype, parent_type;
@@ -382,7 +390,7 @@ xd_signature (signature, dtype, parent_type, object)
    objects, being arguments of `dbus-call-method' or
    `dbus-send-signal', into corresponding C values appended as
    arguments to a D-Bus message.  */
-void
+static void
 xd_append_arg (dtype, object, iter)
      unsigned int dtype;
      Lisp_Object object;
@@ -578,7 +586,7 @@ xd_append_arg (dtype, object, iter)
    a converted Lisp object.  The type DTYPE of the argument of the
    D-Bus message must be a valid DBusType.  Compound D-Bus types
    result always in a Lisp list.  */
-Lisp_Object
+static Lisp_Object
 xd_retrieve_arg (dtype, iter)
      unsigned int dtype;
      DBusMessageIter *iter;
@@ -682,7 +690,7 @@ xd_retrieve_arg (dtype, iter)
 
 /* Initialize D-Bus connection.  BUS is a Lisp symbol, either :system
    or :session.  It tells which D-Bus to be initialized.  */
-DBusConnection *
+static DBusConnection *
 xd_initialize (bus)
      Lisp_Object bus;
 {
@@ -1404,7 +1412,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 
 /* Read queued incoming message of the D-Bus BUS.  BUS is a Lisp
    symbol, either :system or :session.  */
-Lisp_Object
+static Lisp_Object
 xd_read_message (bus)
      Lisp_Object bus;
 {
