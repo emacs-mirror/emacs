@@ -2,6 +2,8 @@
 
 	* arevert-xtra.texi: Minor language tweaks.
 
+	* dired-xtra.texi: Minor revisions.
+
 2009-06-17  Kenichi Handa  <handa@m17n.org>
 
 	* mule.texi (Charsets): Update the description for the new charset.
