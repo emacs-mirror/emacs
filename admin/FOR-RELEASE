@@ -119,7 +119,7 @@ etc/TUTORIAL.zh
 abbrevs.texi      -- cyd
 ack.texi          -- rgm
 anti.texi
-arevert-xtra.texi
+arevert-xtra.texi -- rgm
 basic.texi        -- cyd
 buffers.texi      -- cyd
 building.texi     -- cyd
