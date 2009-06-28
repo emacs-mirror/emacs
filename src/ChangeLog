@@ -5,6 +5,11 @@
 
 2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xdisp.c (start_display, handle_face_prop)
+	(move_it_vertically_backward, cursor_row_fully_visible_p)
+	(redisplay_window, try_window_id, produce_image_glyph): Delete
+	some #ifdef-ed out code chunks that are now obsolete.
+
 	* xterm.c (x_update_window_begin, x_new_focus_frame)
 	(x_scroll_bar_handle_click, handle_one_xevent)
 	(handle_one_xevent, XTread_socket, x_focus_on_frame)

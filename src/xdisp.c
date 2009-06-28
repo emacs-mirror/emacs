@@ -2897,16 +2897,6 @@ start_display (it, w, pos)
 	  it->current_x = it->hpos = 0;
 	}
     }
-
-#if 0 /* Don't assert the following because start_display is sometimes
-         called intentionally with a window start that is not at a
-	 line start.  Please leave this code in as a comment.  */
-
-  /* Window start should be on a line start, now.  */
-  xassert (it->continuation_lines_width
-	   || IT_CHARPOS (it) == BEGV
-	   || FETCH_BYTE (IT_BYTEPOS (it) - 1) == '\n');
-#endif /* 0 */
 }
 
 
@@ -3545,14 +3535,6 @@ handle_face_prop (it)
 					     it->region_end_charpos,
 					     &next_stop,
 					     base_face_id, 0);
-
-#if 0 /* This shouldn't be neccessary.  Let's check it.  */
-      /* If IT is used to display a mode line we would really like to
-	 use the mode line face instead of the frame's default face.  */
-      if (it->glyph_row == MATRIX_MODE_LINE_ROW (it->w->desired_matrix)
-	  && new_face_id == DEFAULT_FACE_ID)
-	new_face_id = CURRENT_MODE_LINE_FACE_ID (it->w);
-#endif
 
       /* Is this a start of a run of characters with box?  Caveat:
 	 this can be called for a freshly allocated iterator; face_id
@@ -7414,11 +7396,6 @@ move_it_vertically_backward (it, dy)
 	 value of nlines is > 0 if continuation lines were involved.  */
       if (nlines > 0)
 	move_it_by_lines (it, nlines, 1);
-#if 0
-      /* I think this assert is bogus if buffer contains
-	 invisible text or images.  KFS.  */
-      xassert (IT_CHARPOS (*it) <= start_pos);
-#endif
     }
   else
     {
@@ -7466,12 +7443,6 @@ move_it_vertically_backward (it, dy)
 		}
 	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
 	    }
-
-#if 0
-	  /* I think this assert is bogus if buffer contains
-	     invisible text or images.  KFS.  */
-	  xassert (IT_CHARPOS (*it) >= BEGV);
-#endif
 	}
     }
 }
@@ -11456,7 +11427,6 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
-
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
 
@@ -12589,44 +12559,6 @@ cursor_row_fully_visible_p (w, force_p, current_matrix_p)
 	return 1;
     }
   return 0;
-
-#if 0
-  /* This code used to try to scroll the window just enough to make
-     the line visible.  It returned 0 to say that the caller should
-     allocate larger glyph matrices.  */
-
-  if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
-    {
-      int dy = row->height - row->visible_height;
-      w->vscroll = 0;
-      w->cursor.y += dy;
-      shift_glyph_matrix (w, matrix, 0, matrix->nrows, dy);
-    }
-  else /* MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row)) */
-    {
-      int dy = - (row->height - row->visible_height);
-      w->vscroll = dy;
-      w->cursor.y += dy;
-      shift_glyph_matrix (w, matrix, 0, matrix->nrows, dy);
-    }
-
-  /* When we change the cursor y-position of the selected window,
-     change this_line_y as well so that the display optimization for
-     the cursor line of the selected window in redisplay_internal uses
-     the correct y-position.  */
-  if (w == XWINDOW (selected_window))
-    this_line_y = w->cursor.y;
-
-  /* If vscrolling requires a larger glyph matrix, arrange for a fresh
-     redisplay with larger matrices.  */
-  if (matrix->nrows < required_matrix_height (w))
-    {
-      fonts_changed_p = 1;
-      return 0;
-    }
-
-  return 1;
-#endif /* 0 */
 }
 
 
@@ -13594,11 +13526,6 @@ redisplay_window (window, just_this_one_p)
 	case CURSOR_MOVEMENT_SUCCESS:
 	  used_current_matrix_p = 1;
 	  goto done;
-
-#if 0  /* try_cursor_movement never returns this value.  */
-	case CURSOR_MOVEMENT_NEED_LARGER_MATRICES:
-	  goto need_larger_matrices;
-#endif
 
 	case CURSOR_MOVEMENT_MUST_SCROLL:
 	  goto try_to_scroll;
@@ -15568,15 +15495,6 @@ try_window_id (w)
     }
   else
     abort ();
-
-#if 0 /* This leads to problems, for instance when the cursor is
-	 at ZV, and the cursor line displays no text.  */
-  /* Disable rows below what's displayed in the window.  This makes
-     debugging easier.  */
-  enable_glyph_matrix_rows (current_matrix,
-			    XFASTINT (w->window_end_vpos) + 1,
-			    bottom_vpos, 0);
-#endif
 
   IF_DEBUG (debug_end_pos = XFASTINT (w->window_end_pos);
 	    debug_end_vpos = XFASTINT (w->window_end_vpos));
@@ -20794,13 +20712,6 @@ produce_image_glyph (it)
      their height, so don't get confused in that case.  */
   if (it->descent < 0)
     it->descent = 0;
-
-#if 0  /* this breaks image tiling */
-  /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
-  int face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
-  if (face_ascent > it->ascent)
-    it->ascent = it->phys_ascent = face_ascent;
-#endif
 
   it->nglyphs = 1;
 
