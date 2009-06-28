@@ -592,32 +592,6 @@ x_update_window_begin (w)
 	 highlighting.  */
       if (FRAME_GARBAGED_P (f))
 	display_info->mouse_face_window = Qnil;
-
-#if 0 /* Rows in a current matrix containing glyphs in mouse-face have
-	 their mouse_face_p flag set, which means that they are always
-	 unequal to rows in a desired matrix which never have that
-	 flag set.  So, rows containing mouse-face glyphs are never
-	 scrolled, and we don't have to switch the mouse highlight off
-	 here to prevent it from being scrolled.  */
-
-      /* Can we tell that this update does not affect the window
-	 where the mouse highlight is?  If so, no need to turn off.
-	 Likewise, don't do anything if the frame is garbaged;
-	 in that case, the frame's current matrix that we would use
-	 is all wrong, and we will redisplay that line anyway.  */
-      if (!NILP (display_info->mouse_face_window)
-	  && w == XWINDOW (display_info->mouse_face_window))
-	{
-	  int i;
-
-	  for (i = 0; i < w->desired_matrix->nrows; ++i)
-	    if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
-	      break;
-
-	  if (i < w->desired_matrix->nrows)
-	    clear_mouse_face (display_info);
-	}
-#endif /* 0 */
     }
 
   UNBLOCK_INPUT;
@@ -3323,14 +3297,6 @@ x_new_focus_frame (dpyinfo, frame)
       if (old_focus && old_focus->auto_lower)
 	x_lower_frame (old_focus);
 
-#if 0
-      selected_frame = frame;
-      XSETFRAME (XWINDOW (selected_frame->selected_window)->frame,
-		 selected_frame);
-      Fselect_window (selected_frame->selected_window, Qnil);
-      choose_minibuf_frame ();
-#endif /* ! 0 */
-
       if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
 	pending_autoraise_frame = dpyinfo->x_focus_frame;
       else
@@ -5493,11 +5459,6 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
   emacs_event->arg = Qnil;
   emacs_event->timestamp = event->xbutton.time;
   {
-#if 0
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-    int internal_height
-      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
-#endif
     int top_range
       = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
     int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
@@ -5512,17 +5473,6 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
     else
       emacs_event->part = scroll_bar_below_handle;
 
-    /* Just because the user has clicked on the handle doesn't mean
-       they want to drag it.  Lisp code needs to be able to decide
-       whether or not we're dragging.  */
-#if 0
-    /* If the user has just clicked on the handle, record where they're
-       holding it.  */
-    if (event->type == ButtonPress
-	&& emacs_event->part == scroll_bar_handle)
-      XSETINT (bar->dragging, y - bar->start);
-#endif
-
 #ifndef USE_TOOLKIT_SCROLL_BARS
     /* If the user has released the handle, set it to its final position.  */
     if (event->type == ButtonRelease
@@ -5536,18 +5486,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
       }
 #endif
 
-    /* Same deal here as the other #if 0.  */
-#if 0
-    /* Clicks on the handle are always reported as occurring at the top of
-       the handle.  */
-    if (emacs_event->part == scroll_bar_handle)
-      emacs_event->x = bar->start;
-    else
-      XSETINT (emacs_event->x, y);
-#else
     XSETINT (emacs_event->x, y);
-#endif
-
     XSETINT (emacs_event->y, top_range);
   }
 }
@@ -5625,10 +5564,6 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
     ;
   else
     {
-#if 0
-      int inside_height
-	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
-#endif
       int top_range
 	= VERTICAL_SCROLL_BAR_TOP_RANGE     (f, bar->height);
 
@@ -5693,14 +5628,6 @@ x_scroll_bar_clear (f)
 
 
 /* The main X event-reading loop - XTread_socket.  */
-
-#if 0
-/* Time stamp of enter window event.  This is only used by XTread_socket,
-   but we have to put it out here, since static variables within functions
-   sometimes don't work.  */
-
-static Time enter_timestamp;
-#endif
 
 /* This holds the state XLookupString needs to implement dead keys
    and other tricks known as "compose processing".  _X Window System_
@@ -6105,14 +6032,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
     case PropertyNotify:
       last_user_time = event.xproperty.time;
-#if 0 /* This is plain wrong.  In the case that we are waiting for a
-	 PropertyNotify used as an ACK in incremental selection
-	 transfer, the property will be on the receiver's window.  */
-#if defined USE_X_TOOLKIT
-      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
-        goto OTHER;
-#endif
-#endif
       f = x_top_window_to_frame (dpyinfo, event.xproperty.window);
       if (f && event.xproperty.atom == dpyinfo->Xatom_net_wm_state)
         x_handle_net_wm_state (f, &event.xproperty);
@@ -6399,27 +6318,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                                             &status_return);
                 }
               /* Xutf8LookupString is a new but already deprecated interface.  -stef  */
-#if 0 && defined X_HAVE_UTF8_STRING
-              else if (status_return == XLookupKeySym)
-                {  /* Try again but with utf-8.  */
-                  coding_system = Qutf_8;
-                  nbytes = Xutf8LookupString (FRAME_XIC (f),
-                                              &event.xkey, copy_bufptr,
-                                              copy_bufsiz, &keysym,
-                                              &status_return);
-                  if (status_return == XBufferOverflow)
-                    {
-                      copy_bufsiz = nbytes + 1;
-                      copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
-                      nbytes = Xutf8LookupString (FRAME_XIC (f),
-                                                  &event.xkey,
-                                                  copy_bufptr,
-                                                  copy_bufsiz, &keysym,
-                                                  &status_return);
-                    }
-                }
-#endif
-
               if (status_return == XLookupNone)
                 break;
               else if (status_return == XLookupChars)
@@ -6664,22 +6562,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
       if (f && x_mouse_click_focus_ignore_position)
 	ignore_next_mouse_click_timeout = event.xmotion.time + 200;
-
-#if 0
-      if (event.xcrossing.focus)
-	{
-	  /* Avoid nasty pop/raise loops.  */
-	  if (f && (!(f->auto_raise)
-		    || !(f->auto_lower)
-		    || (event.xcrossing.time - enter_timestamp) > 500))
-	    {
-	      x_new_focus_frame (dpyinfo, f);
-	      enter_timestamp = event.xcrossing.time;
-	    }
-	}
-      else if (f == dpyinfo->x_focus_frame)
-	x_new_focus_frame (dpyinfo, 0);
-#endif
 
       /* EnterNotify counts as mouse movement,
 	 so update things that depend on mouse position.  */
@@ -7152,9 +7034,6 @@ XTread_socket (terminal, expected, hold_quit)
   int count = 0;
   XEvent event;
   int event_found = 0;
-#if 0
-  struct x_display_info *dpyinfo;
-#endif
 
   if (interrupt_input_blocked)
     {
@@ -7199,40 +7078,6 @@ XTread_socket (terminal, expected, hold_quit)
       XTread_socket_fake_io_error = 0;
       x_io_error_quitter (terminal->display_info.x->display);
     }
-
-#if 0 /* This loop is a noop now.  */
-  /* Find the display we are supposed to read input for.
-     It's the one communicating on descriptor SD.  */
-  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-    {
-#if 0 /* This ought to be unnecessary; let's verify it.  */
-#ifdef FIOSNBIO
-      /* If available, Xlib uses FIOSNBIO to make the socket
-	 non-blocking, and then looks for EWOULDBLOCK.  If O_NDELAY is set,
-	 FIOSNBIO is ignored, and instead of signaling EWOULDBLOCK,
-	 a read returns 0, which Xlib interprets as equivalent to EPIPE.  */
-      fcntl (dpyinfo->connection, F_SETFL, 0);
-#endif /* ! defined (FIOSNBIO) */
-#endif
-
-#if 0 /* This code can't be made to work, with multiple displays,
-	 and appears not to be used on any system any more.
-	 Also keyboard.c doesn't turn O_NDELAY on and off
-	 for X connections.  */
-#ifndef SIGIO
-#ifndef HAVE_SELECT
-      if (! (fcntl (dpyinfo->connection, F_GETFL, 0) & O_NDELAY))
-	{
-	  extern int read_alarm_should_throw;
-	  read_alarm_should_throw = 1;
-	  XPeekEvent (dpyinfo->display, &event);
-	  read_alarm_should_throw = 0;
-	}
-#endif /* HAVE_SELECT */
-#endif /* SIGIO */
-#endif
-    }
-#endif
 
 #ifndef USE_GTK
   while (XPending (terminal->display_info.x->display))
@@ -9043,9 +8888,6 @@ void
 x_focus_on_frame (f)
      struct frame *f;
 {
-#if 0  /* This proves to be unpleasant.  */
-  x_raise_frame (f);
-#endif
 #if 0
   /* I don't think that the ICCCM allows programs to do things like this
      without the interaction of the window manager.  Whatever you end up
@@ -9234,12 +9076,6 @@ x_make_frame_visible (f)
 	XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
-#if 0 /* This seems to bring back scroll bars in the wrong places
-	 if the window configuration has changed.  They seem
-	 to come back ok without this.  */
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-	XMapSubwindows (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-#endif
     }
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -9366,11 +9202,6 @@ x_make_frame_invisible (f)
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
-
-#if 0/* This might add unreliability; I don't trust it -- rms.  */
-  if (! f->async_visible && ! f->async_iconified)
-    return;
-#endif
 
   BLOCK_INPUT;
 
@@ -9865,19 +9696,9 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     }
   else
     {
-      /* It seems there is no way to turn off use of an icon pixmap.
-	 The following line does it, only if no icon has yet been created,
-	 for some window managers.  But with mwm it crashes.
-	 Some people say it should clear the IconPixmapHint bit in this case,
-	 but that doesn't work, and the X consortium said it isn't the
-	 right thing at all.  Since there is no way to win,
-	 best to explicitly give up.  */
-#if 0
-      f->output_data.x->wm_hints.icon_pixmap = None;
-      f->output_data.x->wm_hints.icon_mask = None;
-#else
+      /* It seems there is no way to turn off use of an icon
+	 pixmap.  */
       return;
-#endif
     }
 
 
@@ -10890,13 +10711,6 @@ x_initialize ()
      original error handler.  */
   XSetErrorHandler (x_error_handler);
   XSetIOErrorHandler (x_io_error_quitter);
-
-  /* Disable Window Change signals;  they are handled by X events.  */
-#if 0              /* Don't.  We may want to open tty frames later. */
-#ifdef SIGWINCH
-  signal (SIGWINCH, SIG_DFL);
-#endif /* SIGWINCH */
-#endif
 
   signal (SIGPIPE, x_connection_signal);
 }

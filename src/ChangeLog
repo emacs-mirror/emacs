@@ -1,3 +1,12 @@
+2009-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_update_window_begin, x_new_focus_frame)
+	(x_scroll_bar_handle_click, handle_one_xevent)
+	(handle_one_xevent, XTread_socket, x_focus_on_frame)
+	(x_make_frame_visible, x_make_frame_invisible)
+	(x_wm_set_icon_pixmap, x_initialize): Delete some #ifdef-ed out
+	code chunks that are now obsolete.
+
 2009-06-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_SYMBOL_TO_DBUS_TYPE): Convert macro into function
