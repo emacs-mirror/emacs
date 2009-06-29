@@ -1,3 +1,8 @@
+2009-06-29  Jim Meyering  <meyering@redhat.com>
+
+	Remove useless if-before-free test.
+	* make-docfile.c (scan_lisp_file): Remove useless test.
+
 2009-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (movemail.o): Don't pass -Demacs, unused.
