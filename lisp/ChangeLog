@@ -1,3 +1,9 @@
+2009-06-29  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Remove a spurious
+	correction between the visible width of TABs and their number of
+	bytes.
+	
 2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Set file
