@@ -289,8 +289,7 @@ w32font_close (f, font)
     {
       for (i = 0; i < w32_font->n_cache_blocks; i++)
         {
-          if (w32_font->cached_metrics[i])
-            xfree (w32_font->cached_metrics[i]);
+          xfree (w32_font->cached_metrics[i]);
         }
       xfree (w32_font->cached_metrics);
       w32_font->cached_metrics = NULL;

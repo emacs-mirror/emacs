@@ -868,10 +868,8 @@ nsfont_close (FRAME_PTR f, struct font *font)
 
   for (i =0; i<0x100; i++)
     {
-      if (font_info->glyphs[i])
-        xfree (font_info->glyphs[i]);
-      if (font_info->metrics[i])
-        xfree (font_info->metrics[i]);
+      xfree (font_info->glyphs[i]);
+      xfree (font_info->metrics[i]);
     }
   [font_info->nsfont release];
 #ifdef NS_IMPL_COCOA

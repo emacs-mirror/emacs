@@ -3995,8 +3995,7 @@ system_process_attributes (pid)
 		}
 	    }
 	}
-      if (buf)
-	xfree (buf);
+      xfree (buf);
     }
   if (!result)
     {

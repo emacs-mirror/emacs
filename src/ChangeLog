@@ -1,3 +1,13 @@
+2009-06-29  Jim Meyering  <meyering@redhat.com>
+
+	Remove useless if-before-xfree test.
+	* nsfont.m (nsfont_close): Remove useless test.
+	* term.c (delete_tty): Likewise.
+	* w32.c (system_process_attributes): Likewise.
+	* w32font.c (w32font_close): Likewise.
+	* xfaces.c (x_free_gc): Likewise.
+	* xselect.c (buffer): Likewise.
+
 2009-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (send_process): Keep decoded string in a local

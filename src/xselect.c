@@ -2395,8 +2395,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 
   if (!data || !format)
     {
-      if (data)
-	xfree (data);
+      xfree (data);
       return Qnil;
     }
 

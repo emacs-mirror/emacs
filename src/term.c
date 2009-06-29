@@ -4018,10 +4018,8 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);
-  if (tty->termcap_strings_buffer)
-    xfree (tty->termcap_strings_buffer);
-  if (tty->termcap_term_buffer)
-    xfree (tty->termcap_term_buffer);
+  xfree (tty->termcap_strings_buffer);
+  xfree (tty->termcap_term_buffer);
 
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);

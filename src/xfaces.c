@@ -785,8 +785,7 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  if (gc)
-      xfree (gc);
+  xfree (gc);
 }
 #endif  /* HAVE_NS */
 
