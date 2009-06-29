@@ -3362,9 +3362,8 @@ the uid and gid from FILENAME."
 		  (error)))))))))
 
       ;; Set the time and mode. Mask possible errors.
-      ;; Won't be applied for 'rename.
       (condition-case nil
-	  (when (and keep-date (not preserve-uid-gid))
+	  (when keep-date
 	    (set-file-times newname (nth 5 (file-attributes filename)))
 	    (set-file-modes newname (tramp-default-file-modes filename)))
 	(error)))))
