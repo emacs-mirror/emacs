@@ -1202,10 +1202,15 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 			 (not server-existing-buffer)))
 	      (setq killed t)
 	      (bury-buffer buffer)
+	      ;; Prevent kill-buffer from prompting (Bug#3696).
+	      (with-current-buffer buffer
+		(set-buffer-modified-p nil))
 	      (kill-buffer buffer))
 	    (unless killed
 	      (if (server-temp-file-p buffer)
 		  (progn
+		    (with-current-buffer buffer
+		      (set-buffer-modified-p nil))
 		    (kill-buffer buffer)
 		    (setq killed t))
 		(bury-buffer buffer)))))))
