@@ -703,7 +703,7 @@ to not print any shell prompt, which confuses @value{tramp} mightily.
 For reasons unknown, some Windows ports for @command{ssh} require the
 doubled @samp{-t} option.
 
-This supports the @samp{-p} kludge.
+This supports the @samp{-p} argument.
 
 
 @item @option{krlogin}
@@ -723,7 +723,7 @@ This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
-This supports the @samp{-P} kludge.
+This supports the @samp{-P} argument.
 
 Additionally, the methods @option{plink1} and @option{plink2} are
 provided, which call @samp{plink -1 -ssh} or @samp{plink -2 -ssh} in
@@ -822,9 +822,9 @@ Two other variants, @option{scp1_old} and @option{scp2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
 know what these are, you do not need these options.
 
-All the @command{ssh} based methods support the kludgy @samp{-p}
-feature where you can specify a port number to connect to in the host
-name.  For example, the host name @file{host#42} tells @value{tramp} to
+All the @command{ssh} based methods support the @samp{-p} feature
+where you can specify a port number to connect to in the host name.
+For example, the host name @file{host#42} tells @value{tramp} to
 specify @samp{-p 42} in the argument list for @command{ssh}, and to
 specify @samp{-P 42} in the argument list for @command{scp}.
 
@@ -842,7 +842,7 @@ This command does not work like @value{ftppackagename}, where
 @command{ftp} is called interactively, and all commands are send from
 within this session.  Instead of, @command{ssh} is used for login.
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{rsync}  ---  @command{ssh} and @command{rsync}
@@ -863,7 +863,7 @@ remote host.  When you just open a file from the remote host (or write
 a file there), this is not the case, because on the local side
 temporary files are used.
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{scpx} --- @command{ssh} and @command{scp}
@@ -886,7 +886,7 @@ invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{scpc} --- @command{ssh} and @command{scp}
@@ -906,7 +906,7 @@ implementation does support this option.  Try from the command line
 ssh localhost -o ControlMaster=yes
 @end example
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{pscp} --- @command{plink} and @command{pscp}
@@ -921,7 +921,7 @@ This method is similar to @option{scp}, but it uses the
 @command{pscp} for transferring the files.  These programs are part
 of PuTTY, an SSH implementation for Windows.
 
-This method supports the @samp{-P} hack.
+This method supports the @samp{-P} argument.
 
 
 @item @option{psftp} --- @command{plink} and @command{psftp}
@@ -936,7 +936,7 @@ uses the @command{plink} command to connect to the remote host, and it
 uses @command{psftp} for transferring the files.  These programs are
 part of PuTTY, an SSH implementation for Windows.
 
-This method supports the @samp{-P} hack.
+This method supports the @samp{-P} argument.
 
 
 @item @option{fcp} --- @command{fsh} and @command{fcp}
@@ -1020,7 +1020,7 @@ name is specified at all, the anonymous user (without password
 prompting) is assumed.  This is different from all other @value{tramp}
 methods, where in such a case the local user name is taken.
 
-The @option{smb} method supports the @samp{-p} hack.
+The @option{smb} method supports the @samp{-p} argument.
 
 @strong{Please note:} If @value{emacsname} runs locally under MS
 Windows, this method isn't available.  Instead of, you can use UNC
@@ -1055,6 +1055,14 @@ OBEX is an FTP-like access protocol for simple devices, like cell
 phones.  Like @option{dav} and @option{davs}, it uses GVFS for
 mounting remote files and directories via FUSE.  Until now
 @value{tramp} supports only OBEX over Bluetooth.
+
+@item @option{synce}
+@cindex method synce
+@cindex synce method
+
+SYNCE allows communication with Windows Mobile devices.  Beside GVFS
+for mounting remote files and directories via FUSE, it needs also the
+SYNCE-GVFS plugin.
 @end ifset
 @end table
 
@@ -1062,8 +1070,8 @@ mounting remote files and directories via FUSE.  Until now
 @defopt tramp-gvfs-methods
 This customer option, a list, defines the external methods, which
 shall be used with GVFS.  Per default, these are @option{dav},
-@option{davs} and @option{obex}.  Other possible values are
-@option{ftp}, @option{sftp} and @option{smb}.
+@option{davs}, @option{obex} and @option{synce}.  Other possible
+values are @option{ftp}, @option{sftp} and @option{smb}.
 @end defopt
 @end ifset
 
@@ -1080,10 +1088,9 @@ Therefore, they can be used for proxy host declarations
 (@pxref{Multi-hops}) only.
 
 A gateway method must come always along with a method who supports
-port setting (referred to as @samp{-p} kludge).  This is because
-@value{tramp} targets the accompanied method to
-@file{localhost#random_port}, from where the firewall or proxy server
-is accessed to.
+port setting.  This is because @value{tramp} targets the accompanied
+method to @file{localhost#random_port}, from where the firewall or
+proxy server is accessed to.
 
 Gateway methods support user name and password declarations.  These
 are used to authenticate towards the corresponding firewall or proxy
