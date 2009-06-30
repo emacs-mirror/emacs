@@ -36,11 +36,11 @@
 ;; development time, is given in respective comments.
 
 ;; The customer option `tramp-gvfs-methods' contains the list of
-;; supported connection methods.  Per default, these are "dav", "davs"
-;; and "obex".  Note that with "obex" it might be necessary to pair
-;; with the other bluetooth device, if it hasn't been done already.
-;; There might be also some few seconds delay in discovering available
-;; bluetooth devices.
+;; supported connection methods.  Per default, these are "dav",
+;; "davs", "obex" and "synce".  Note that with "obex" it might be
+;; necessary to pair with the other bluetooth device, if it hasn't
+;; been done already.  There might be also some few seconds delay in
+;; discovering available bluetooth devices.
 
 ;; Other possible connection methods are "ftp", "sftp" and "smb".
 ;; When one of these methods is added to the list, the remote access
@@ -65,11 +65,12 @@
 ;; drop me a note.
 
 ;; For hostname completion, information is retrieved either from the
-;; bluez daemon (for the "obex" method), or from the zeroconf daemon
-;; (for the "dav", "davs", and "sftp" methods).  The zeroconf daemon
-;; is pre-configured to discover services in the "local" domain.  If
-;; another domain shall be used for discovering services, the customer
-;; option `tramp-gvfs-zeroconf-domain' can be set accordingly.
+;; bluez daemon (for the "obex" method), the hal daemon (for the
+;; "synce" method), or from the zeroconf daemon (for the "dav",
+;; "davs", and "sftp" methods).  The zeroconf daemon is pre-configured
+;; to discover services in the "local" domain.  If another domain
+;; shall be used for discovering services, the customer option
+;; `tramp-gvfs-zeroconf-domain' can be set accordingly.
 
 ;; Restrictions:
 
@@ -108,6 +109,11 @@
 			 (const "sftp")
 			 (const "smb")
 			 (const "synce"))))
+
+;; Add a default for `tramp-default-user-alist'.  Rule: For the SYNCE
+;; method, no user is chosen.
+(add-to-list 'tramp-default-user-alist
+	     '("synce" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
@@ -337,6 +343,19 @@ It keeps the timestamp of last discovery.")
   "Alist of detected bluetooth devices.
 Every entry is a list (NAME ADDRESS).")
 
+(defconst tramp-hal-service "org.freedesktop.Hal"
+  "The well known name of the HAL service.")
+
+(defconst tramp-hal-path-manager "/org/freedesktop/Hal/Manager"
+  "The object path of the HAL daemon manager.")
+
+(defconst tramp-hal-interface-manager "org.freedesktop.Hal.Manager"
+  "The manager interface of the HAL daemon.")
+
+(defconst tramp-hal-interface-device "org.freedesktop.Hal.Device"
+  "The device interface of the HAL daemon.")
+
+
 ;; New handlers should be added here.
 (defconst tramp-gvfs-file-name-handler-alist
   '(
@@ -1178,22 +1197,24 @@ be used."
 ;; D-Bus SYNCE functions.
 
 (defun tramp-synce-list-devices ()
-  "Returns all discovered synce devices as list."
+  "Returns all discovered synce devices as list.
+They are retrieved from the hal daemon."
   (let (tramp-synce-devices)
     (dolist (device
 	     (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-	      :system "org.freedesktop.Hal"
-	      "/org/freedesktop/Hal/Manager"
-	      "org.freedesktop.Hal.Manager" "GetAllDevices"))
-      (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-	      :system "org.freedesktop.Hal" device
-	      "org.freedesktop.Hal.Device" "PropertyExists" "sync.plugin")
+	       :system tramp-hal-service tramp-hal-path-manager
+	       tramp-hal-interface-manager "GetAllDevices"))
+      (when (and (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+		   :system tramp-hal-service device tramp-hal-interface-device
+		   "PropertyExists" "sync.plugin")
+		 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+		   :system tramp-hal-service device tramp-hal-interface-device
+		   "PropertyExists" "pda.pocketpc.name"))
 	(add-to-list
 	 'tramp-synce-devices
 	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-	   :system "org.freedesktop.Hal" device
-	     "org.freedesktop.Hal.Device"
-	     "GetPropertyString" "pda.pocketpc.name"))))
+	   :system tramp-hal-service device tramp-hal-interface-device
+	   "GetPropertyString" "pda.pocketpc.name"))))
     (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
     tramp-synce-devices))
 
