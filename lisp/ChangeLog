@@ -2,6 +2,7 @@
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Handle
 	also the 'rename case, when setting file modes.  (Bug#3712)
+	(tramp-default-file-modes) Remove execute permissions.
 
 	* net/tramp-gvfs.el (tramp-gvfs-methods): Add "synce" method.
 	(tramp-gvfs-connection-mounted-p): Handle empty user name for
