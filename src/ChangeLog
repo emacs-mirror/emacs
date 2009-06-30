@@ -1,3 +1,8 @@
+2009-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xftfont.c (xftfont_open): Avoid passing NULL argument to
+	XftLockFace.
+
 2009-06-28  David Reitter <david.reitter@gmail.com>
 
 	* nsterm.m (keydown): Avoid infinite loop.
