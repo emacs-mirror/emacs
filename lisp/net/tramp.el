@@ -7746,13 +7746,6 @@ Only works for Bourne-like shells."
 
 ;;; TODO:
 
-;; * Allow putting passwords in the filename.
-;;   This should be implemented via a general mechanism to add
-;;   parameters in filenames.  There is currently a kludge for
-;;   putting the port number into the filename for ssh and ftp
-;;   files.  This could be subsumed by the new mechanism as well.
-;;   Another approach is to read a netrc file like ~/.authinfo
-;;   from Gnus.
 ;; * Handle nonlocal exits such as C-g.
 ;; * But it would probably be better to use with-local-quit at the
 ;;   place where it's actually needed: around any potentially
@@ -7767,8 +7760,6 @@ Only works for Bourne-like shells."
 ;;   by the files in that directory.  Add this here.
 ;; * Avoid screen blanking when hitting `g' in dired.  (Eli Tziperman)
 ;; * Make ffap.el grok Tramp filenames.  (Eli Tziperman)
-;; * When logging in, keep looking for questions according to an alist
-;;   and then invoke the right function.
 ;; * Case-insensitive filename completion.  (Norbert Goevert.)
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
