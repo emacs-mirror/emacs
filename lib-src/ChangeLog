@@ -1,3 +1,10 @@
+2009-06-30  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (w32_give_focus): Use GetModuleHandle for library
+	that is already loaded.
+	(w32_set_user_model_id): New function.
+	(main): Use it to associate emacsclient with emacs (bug#1849).
+
 2009-06-29  Jim Meyering  <meyering@redhat.com>
 
 	Remove useless if-before-free test.

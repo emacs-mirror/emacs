@@ -1,3 +1,9 @@
+2009-06-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_initialize): Use GetModuleHandle for library that
+	is already loaded.
+	Set user model ID if supported (bug#1849).
+
 2009-06-29  Jim Meyering  <meyering@redhat.com>
 
 	Remove useless if-before-xfree test.

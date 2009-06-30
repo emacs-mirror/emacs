@@ -138,7 +138,7 @@ typedef struct tagGLYPHSET
 #endif
 
 /* Dynamic linking to SetLayeredWindowAttribute (only since 2000).  */
-BOOL (PASCAL *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
+BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -6340,12 +6340,34 @@ DWORD WINAPI w32_msg_worker (void * arg);
 static void
 w32_initialize ()
 {
+  HANDLE shell;
+  HRESULT (WINAPI * set_user_model) (PCWSTR);
+
   baud_rate = 19200;
 
   w32_system_caret_hwnd = NULL;
   w32_system_caret_height = 0;
   w32_system_caret_x = 0;
   w32_system_caret_y = 0;
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = GetModuleHandle ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+    }
 
   /* Initialize w32_use_visible_system_caret based on whether a screen
      reader is in use.  */
@@ -6400,15 +6422,13 @@ w32_initialize ()
 
   /* Dynamically link to optional system components.  */
   {
-    HANDLE user_lib = LoadLibrary ("user32.dll");
+    HMODULE user_lib = GetModuleHandle ("user32.dll");
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     LOAD_PROC (user_lib, SetLayeredWindowAttributes);
 
 #undef LOAD_PROC
-
-    FreeLibrary (user_lib);
 
     /* Ensure scrollbar handle is at least 5 pixels.  */
     vertical_scroll_bar_min_handle = 5;

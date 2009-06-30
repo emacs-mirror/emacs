@@ -1,3 +1,8 @@
+2009-06-30  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (set_user_model_id): New function.
+	(WinMain): Use it.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
