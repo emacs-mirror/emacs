@@ -108,6 +108,7 @@
 
 ;;;###autoload
 (defun setup-korean-environment-internal ()
+  (use-cjk-char-width-table 'ko_KR)
   (let ((key-bindings korean-key-bindings))
     (while key-bindings
       (let* ((this (car key-bindings))
@@ -125,6 +126,7 @@
 
 (defun exit-korean-environment ()
   "Exit Korean language environment."
+  (use-default-char-width-table)
   (let ((key-bindings korean-key-bindings))
     (while key-bindings
       (let* ((this (car key-bindings))
