@@ -4469,6 +4469,8 @@ extern void update_window_cursor (struct window *w, int on);
 
  if (![[self window] isKeyWindow]
      && [[theEvent window] isKindOfClass: [EmacsWindow class]])
+     /* we must avoid an infinite loop here. */
+     && (EmacsView *)[[theEvent window] delegate] != self)
    {
      /* XXX: There is an occasional condition in which, when Emacs display
          updates a different frame from the current one, and temporarily

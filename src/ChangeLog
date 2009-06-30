@@ -1,3 +1,7 @@
+2009-06-28  David Reitter <david.reitter@gmail.com>
+
+	* nsterm.m (keydown): Avoid infinite loop.
+
 2009-06-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* process.c (send_process): Keep decoded string in a local
