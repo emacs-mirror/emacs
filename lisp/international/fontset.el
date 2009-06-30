@@ -565,6 +565,20 @@
      (cons (car math-subgroup) (nth 1 math-subgroup))
      (font-spec :registry "iso10646-1" :script (nth 2 math-subgroup))))
 
+  ;; Append CJK fonts for characters other than han, kana, cjk-misc.
+  ;;             CHARSET-REGISTRY  CHARSET            FROM-CODE TO-CODE
+  (let ((list '(("JISX0208.1983-0" japanese-jisx0208  #x2121    #x287E)
+		("GB2312.1980-0"   chinese-gb2312     #x2121    #x297E)
+		("BIG5-0"          big5               #xA140    #xA3FE)
+		("CNS11643.1992-1" chinese-cns11643-1 #x2121    #x427E)
+		("KSC5601.1987-0"  korean-ksc5601     #x2121    #x2C7E))))
+    (dolist (elt list)
+      (map-charset-chars
+       #'(lambda (range arg)
+	   (set-fontset-font "fontset-default" range
+			     (cons nil (car elt)) nil 'append))
+       (nth 1 elt) nil (nth 2 elt) (nth 3 elt))))
+
   ;; Append Unicode fonts.
   ;; This may find fonts with more variants (bold, italic) but which
   ;; don't cover many characters.
