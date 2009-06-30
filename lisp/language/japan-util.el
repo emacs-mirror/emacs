@@ -35,7 +35,7 @@
   (if (memq system-type '(windows-nt ms-dos cygwin))
       (prefer-coding-system 'japanese-shift-jis)
     (prefer-coding-system 'japanese-iso-8bit))
-  (use-cjk-char-width-table))
+  (use-cjk-char-width-table 'ja_JP))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
