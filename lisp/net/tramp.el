@@ -2789,8 +2789,9 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 (defun tramp-default-file-modes (filename)
   "Return file modes of FILENAME as integer.
 If the file modes of FILENAME cannot be determined, return the
-value of `default-file-modes'."
-  (or (file-modes filename) (default-file-modes)))
+value of `default-file-modes', without execute permissions."
+  (or (file-modes filename)
+      (logand (default-file-modes) (tramp-octal-to-decimal "0666"))))
 
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
