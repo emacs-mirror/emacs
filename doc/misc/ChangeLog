@@ -1,3 +1,11 @@
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods, External methods, Gateway methods): Avoid
+	the words "kludge" and hack".
+	(External methods): Add `synce' method.
+
+	* trampver.texi: Update release number.
+
 2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.16.
@@ -463,7 +471,7 @@
 
 2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
-	* trampver.texi.in (top): Declare ipv6prefix and ipv6postfix.
+	* trampver.texi (top): Declare ipv6prefix and ipv6postfix.
 
 	* tramp.texi (Filename Syntax, Filename completion): Handle IPv6
 	addresses.
