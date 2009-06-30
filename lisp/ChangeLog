@@ -1,3 +1,8 @@
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Handle
+	also the 'rename case, when setting file modes.  (Bug#3712)
+
 2009-06-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Add CJK fonts
