@@ -1028,27 +1028,55 @@ Combining diacritic or mark (Unicode General Category M)")
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
-(defvar cjk-char-width-table
-  (let ((table (make-char-table nil)))
-    (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1
-			    japanese-jisx0208 cp932-2-byte korean-ksc5601))
-      (map-charset-chars #'(lambda (range arg)
-			     (set-char-table-range table range 2))
-			 charset))
-    (optimize-char-table table)
-    (set-char-table-parent table char-width-table)
-    table)
-  "Character width table used in CJK language environment.")
+;; Internal use only.
+;; Alist of locale symbol vs charsets.  In a language environment
+;; corresponding to the locale, width of characters in the charsets is
+;; set to 2.  Each element has the form:
+;;   (LOCALE TABLE (CHARSET (FROM-CODE . TO-CODE) ...) ...)
+;; LOCALE: locale symbol
+;; TABLE: char-table used for char-width-table, initially nil.
+;; CAHRSET: character set
+;; FROM-CODE, TO-CODE: range of code-points in CHARSET
 
-(defun use-cjk-char-width-table ()
-  "Internal use only.
-Setup char-width-table appropriate for CJK language environment."
-  (setq char-width-table cjk-char-width-table))
+(defvar cjk-char-width-table-list
+  '((ja_JP nil (japanese-jisx0208 (#x2121 . #x287E))
+	       (cp932-2-byte (#x8140 . #x879F)))
+    (zh_CN nil (chinese-gb2312 (#x2121 . #x297E)))
+    (zh_HK nil (big5-hkscs (#xA140 . #xA3FE) (#xC6A0 . #xC8FE)))
+    (zh_TW nil (big5 (#xA140 . #xA3FE))
+	       (chinese-cns11643-1 (#x2121 . #x427E)))
+    (ko_KR nil (korean-ksc5601 (#x2121 . #x2C7E)))))
+
+;; Internal use only.
+;; Setup char-width-table appropriate for a language environment
+;; corresponding to LOCALE-NAME (symbol).
+
+(defun use-cjk-char-width-table (locale-name)
+  (while (char-table-parent char-width-table)
+    (setq char-width-table (char-table-parent char-width-table)))
+  (let ((slot (assq locale-name cjk-char-width-table-list))
+	table)
+    (or slot (error "Unknown locale for CJK language environment: %s"
+		    locale-name))
+    (unless (nth 1 slot)
+      (let ((table (make-char-table nil)))
+	(dolist (charset-info (nthcdr 2 slot))
+	  (let ((charset (car charset-info)))
+	    (dolist (code-range (cdr charset-info))
+	      (map-charset-chars #'(lambda (range arg)
+				     (set-char-table-range table range 2))
+				 charset nil
+				 (car code-range) (cdr code-range)))))
+	(optimize-char-table table)
+	(set-char-table-parent table char-width-table)
+	(setcar (cdr slot) table)))
+    (setq char-width-table (nth 1 slot))))
 
 (defun use-default-char-width-table ()
   "Internal use only.
 Setup char-width-table appropriate for non-CJK language environment."
-  (setq char-width-table (char-table-parent cjk-char-width-table)))
+  (while (char-table-parent char-width-table)
+    (setq char-width-table (char-table-parent char-width-table))))
 
 (optimize-char-table (standard-case-table))
 (optimize-char-table (standard-syntax-table))
