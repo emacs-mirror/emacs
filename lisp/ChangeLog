@@ -3,6 +3,13 @@
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Handle
 	also the 'rename case, when setting file modes.  (Bug#3712)
 
+	* net/tramp-gvfs.el (tramp-gvfs-methods): Add "synce" method.
+	(tramp-gvfs-connection-mounted-p): Handle empty user name for
+	synce.
+	(tramp-synce-list-devices, tramp-synce-parse-device-names): New
+	defuns.
+	(top): Add completion function for "synce" method.
+
 2009-06-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Add CJK fonts
