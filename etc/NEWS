@@ -36,7 +36,7 @@ uses `system-move-file-to-trash' for trashing.)
 +++
 ** New connection methods in Tramp.
 On systems which support GVFS-Fuse, Tramp offers the new connection
-methods "dav", "davs" and "obex".
+methods "dav", "davs", "obex" and "synce".
 
 ** VC and related modes
 
