@@ -98,7 +98,7 @@
 (require 'url-parse)
 (require 'zeroconf)
 
-(defcustom tramp-gvfs-methods '("dav" "davs" "obex")
+(defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
   "*List of methods for remote files, accessed with GVFS."
   :group 'tramp
   :type '(repeat (choice (const "dav")
@@ -106,7 +106,8 @@
 			 (const "ftp")
 			 (const "obex")
 			 (const "sftp")
-			 (const "smb"))))
+			 (const "smb")
+			 (const "synce"))))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
@@ -898,6 +899,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (setq host (tramp-bluez-device host)))
 	(when (and (string-equal "dav" method) (string-equal "true" ssl))
 	  (setq method "davs"))
+	(when (and (string-equal "synce" method) (zerop (length user)))
+	  (setq user (or (tramp-file-name-user vec) "")))
 	(unless (zerop (length domain))
 	  (setq user (concat user tramp-prefix-domain-format domain)))
 	(unless (zerop (length port))
@@ -1170,6 +1173,39 @@ be used."
    "dav" '((tramp-zeroconf-parse-webdav-device-names "")))
   (tramp-set-completion-function
    "davs" '((tramp-zeroconf-parse-webdav-device-names ""))))
+
+
+;; D-Bus SYNCE functions.
+
+(defun tramp-synce-list-devices ()
+  "Returns all discovered synce devices as list."
+  (let (tramp-synce-devices)
+    (dolist (device
+	     (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	      :system "org.freedesktop.Hal"
+	      "/org/freedesktop/Hal/Manager"
+	      "org.freedesktop.Hal.Manager" "GetAllDevices"))
+      (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	      :system "org.freedesktop.Hal" device
+	      "org.freedesktop.Hal.Device" "PropertyExists" "sync.plugin")
+	(add-to-list
+	 'tramp-synce-devices
+	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	   :system "org.freedesktop.Hal" device
+	     "org.freedesktop.Hal.Device"
+	     "GetPropertyString" "pda.pocketpc.name"))))
+    (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
+    tramp-synce-devices))
+
+(defun tramp-synce-parse-device-names (ignore)
+  "Return a list of (nil host) tuples allowed to access."
+  (mapcar
+   (lambda (x) (list nil x))
+   (tramp-synce-list-devices)))
+
+;; Add completion function for SYNCE method.
+(tramp-set-completion-function
+ "synce" '((tramp-synce-parse-device-names "")))
 
 (provide 'tramp-gvfs)
 
