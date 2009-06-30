@@ -3225,7 +3225,9 @@ KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid from FILENAME."
   (let ((t1 (tramp-tramp-file-p filename))
-	(t2 (tramp-tramp-file-p newname)))
+	(t2 (tramp-tramp-file-p newname))
+	(file-times (nth 5 (file-attributes filename)))
+	(file-modes (tramp-default-file-modes filename)))
     (with-parsed-tramp-file-name (if t1 filename newname) nil
       (let* ((cmd (cond ((and (eq op 'copy) preserve-uid-gid) "cp -f -p")
 			((eq op 'copy) "cp -f")
@@ -3364,8 +3366,8 @@ the uid and gid from FILENAME."
       ;; Set the time and mode. Mask possible errors.
       (condition-case nil
 	  (when keep-date
-	    (set-file-times newname (nth 5 (file-attributes filename)))
-	    (set-file-modes newname (tramp-default-file-modes filename)))
+	    (set-file-times newname file-times)
+	    (set-file-modes newname file-modes))
 	(error)))))
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
