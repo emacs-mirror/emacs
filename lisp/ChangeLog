@@ -1,3 +1,26 @@
+2009-06-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (setup-default-fontset): Add CJK fonts
+	for symbols and the other miscellaneous characters.
+
+	* language/korea-util.el (setup-korean-environment-internal): Make
+	char-widht-table suitable for Korean environments.
+	(exit-korean-environment): Cancel above.
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5")
+	("Chinese-CNS", "Chinese-EUC-TW", "Chinese-GBK"): Add a
+	setup-funcion to make char-widht-table suitable for respective
+	environments, and an exit-function to cancel that.
+
+	* language/japan-util.el (setup-japanese-environment-internal):
+	Call use-cjk-char-width-table with arg `ja_JP'.
+
+	* international/characters.el (cjk-char-width-table): Delete it.
+	(cjk-char-width-table-list): New variable.
+	(use-cjk-char-width-table): New arg local-name.
+	(use-default-char-width-table): Fix for the case that Emacs is
+	already using the default char-width-table.
+
 2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Set file
