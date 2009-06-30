@@ -2,6 +2,7 @@
 
 	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Handle
 	also the 'rename case, when setting file modes.  (Bug#3712)
+	(tramp-default-file-modes) Remove execute permissions.
 
 2009-06-29  Alan Mackenzie  <acm@muc.de>
 
