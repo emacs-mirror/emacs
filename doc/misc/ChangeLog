@@ -1,3 +1,7 @@
+2009-07-01  Andreas Schwab  <aschwab@redhat.com>
+
+	* dbus.texi (Type Conversion): Don't use literal control character.
+
 2009-06-17  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Obtaining the FAQ): Add reference to Savannah.
