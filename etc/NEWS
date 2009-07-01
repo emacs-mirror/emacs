@@ -35,6 +35,9 @@ uses `system-move-file-to-trash' for trashing.)
 The command line arguments -mm/--maximized and the value maximized to the
 frame parameter fullscreen makes the Emacs frame maximized.
 
++++
+** New frame parameter sticky makes Emacs frames sticky in virtual desktops.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
