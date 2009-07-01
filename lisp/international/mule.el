@@ -1268,36 +1268,57 @@ See also the command `set-keyboard-coding-system'.")
 
 (defun set-keyboard-coding-system (coding-system &optional terminal)
   "Set coding system for keyboard input on TERMINAL to CODING-SYSTEM.
-In addition, this command calls `encoded-kbd-setup-display' to set up the
-translation of keyboard input events to the specified coding system.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
+If CODING-SYSTEM is nil or the coding-type of CODING-SYSTEM is
+`raw-text', the decoding of keyboard input is disabled.
+
 TERMINAL may be a terminal object, a frame, or nil for the
 selected frame's terminal.  The setting has no effect on
 graphical terminals."
   (interactive
-   (list (let ((default (if (and (not (keyboard-coding-system))
-				 default-keyboard-coding-system)
-			    default-keyboard-coding-system)))
+   (list (let* ((coding (keyboard-coding-system nil))
+		(default (if (eq (coding-system-type coding) 'raw-text)
+			     default-keyboard-coding-system)))
 	   (read-coding-system
 	    (format "Coding system for keyboard input (default %s): "
 		    default)
 	    default))))
-  (if (and (not coding-system)
-	   (not (keyboard-coding-system)))
-      (setq coding-system default-keyboard-coding-system))
-  (if coding-system
-      (setq default-keyboard-coding-system coding-system))
-  (if (and coding-system
-	   (not (coding-system-get coding-system :ascii-compatible-p))
-	   (not (coding-system-get coding-system :suitable-for-keyboard)))
-      (error "%s is not suitable for keyboard" coding-system))
+  (let ((coding-type (coding-system-type coding-system))
+	(saved-meta-mode
+	 (terminal-parameter terminal 'keyboard-coding-saved-meta-mode)))
+    (if (not (eq coding-type 'raw-text))
+	(let (accept-8-bit)
+	  (if (not (or (coding-system-get coding-system :suitable-for-keyboard)
+		       (coding-system-get coding-system :ascii-compatible-p)))
+	      (error "Unsuitable coding system for keyboard: %s" coding-system))
+	  (cond ((memq coding-type '(charset utf-8 shift-jis big5 ccl))
+		 (setq accept-8-bit t))
+		((eq coding-type 'iso-2022)
+		 (let ((flags (coding-system-get coding-system :flags)))
+		   (or (memq '7-bit flags)
+		       (setq accept-8-bit t))))
+		(t
+		 (error "Unsupported coding system for keyboard: %s"
+			coding-system)))
+	  (when accept-8-bit
+	    (or saved-meta-mode
+		(set-terminal-parameter terminal
+					'keyboard-coding-saved-meta-mode
+					(cons (nth 2 (current-input-mode))
+					      nil)))
+	    (set-input-meta-mode 8)))
+
+      (when saved-meta-mode
+	(set-input-meta-mode (car saved-meta-mode))
+	(set-terminal-parameter terminal
+				'keyboard-coding-saved-meta-mode
+				nil))))
   (set-keyboard-coding-system-internal coding-system terminal)
-  (setq keyboard-coding-system coding-system)
-  (encoded-kbd-setup-display terminal))
+  (setq keyboard-coding-system coding-system))
 
 (defcustom keyboard-coding-system nil
   "Specify coding system for keyboard input.
