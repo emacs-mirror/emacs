@@ -401,7 +401,7 @@ TERMINAL may be a terminal id, a frame, or nil for the selected frame's terminal
             (set-keymap-parent keymap (keymap-parent input-decode-map))
             (set-keymap-parent input-decode-map keymap)
             (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
-              (set-terminal-parameter nil 'encoded-kbd-saved-input-mode
+              (set-terminal-parameter nil 'encoded-kbd-saved-input-meta-mode
                                       (nth 2 cim)))
             (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
             (if result
