@@ -1,3 +1,12 @@
+2009-07-01  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (ELCFILES): Delete encoded-kb.elc.
+
+	* international/encoded-kb.el: Deleted.
+
+	* international/mule.el (set-keyboard-coding-system): Perform the
+	necessary setup here instead of calling encoded-kbd-setup-display.
+
 2009-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-break-delimiters, f90-no-break-re): Doc fixes.
