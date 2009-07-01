@@ -127,10 +127,9 @@ Emacs can no longer be started as a daemon.  You can be sure that if
 you don't see Emacs, then it's not running.
 
 @item
-Emacs has added support for some soon-to-be-non-obsolete platforms.
-These include GNU/Linux systems based on libc version 5, BSD systems
-based on the COFF executable format, Solaris versions less than 2.6,
-and many more.
+Emacs has added support for many soon-to-be-non-obsolete platforms,
+including VMS, DECstation, SCO Unix, and systems lacking alloca.
+Support for Sun windows has been added.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
