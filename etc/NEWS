@@ -30,6 +30,11 @@ freedesktop.org specifications, the same method used by the Gnome,
 KDE, and XFCE desktops.  (This change has no effect on Windows, which
 uses `system-move-file-to-trash' for trashing.)
 
++++
+** Emacs frames can be maximized.
+The command line arguments -mm/--maximized and the value maximized to the
+frame parameter fullscreen makes the Emacs frame maximized.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 

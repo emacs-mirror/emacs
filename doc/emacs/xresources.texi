@@ -217,8 +217,8 @@ all frames.
 @ifnottex
 @item @code{fullscreen} (class @code{Fullscreen})
 The desired fullscreen size.  The value can be one of @code{fullboth},
-@code{fullwidth} or @code{fullheight}, which correspond to
-the command-line options @samp{-fs}, @samp{-fw}, and @samp{-fh}
+@code{maximized}, @code{fullwidth} or @code{fullheight}, which correspond to
+the command-line options @samp{-fs}, @samp{-mm}, @samp{-fw}, and @samp{-fh}
 (@pxref{Window Size X}).
 
 Note that this applies to the initial frame only.

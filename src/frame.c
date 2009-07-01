@@ -120,7 +120,7 @@ Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 
-Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
+Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth, Qmaximized;
 Lisp_Object Qfont_backend;
 Lisp_Object Qalpha;
 
@@ -2930,11 +2930,7 @@ x_set_frame_parameters (f, alist)
   int i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
-  int fullscreen_is_being_set = 0;
-  int height_for_full_width = 0;
-  int width_for_full_height = 0;
-  enum fullscreen_type fullscreen_wanted = FULLSCREEN_NONE;
-
+  int size_changed = 0;
   struct gcpro gcpro1, gcpro2;
 
   i = 0;
@@ -2976,7 +2972,6 @@ x_set_frame_parameters (f, alist)
      They are independent of other properties, but other properties (e.g.,
      cursor_color) are dependent upon them.  */
   /* Process default font as well, since fringe widths depends on it.  */
-  /* Also, process fullscreen, width and height depend upon that.  */
   for (p = 0; p < i; p++)
     {
       Lisp_Object prop, val;
@@ -2985,26 +2980,11 @@ x_set_frame_parameters (f, alist)
       val = values[p];
       if (EQ (prop, Qforeground_color)
 	  || EQ (prop, Qbackground_color)
-	  || EQ (prop, Qfont)
-          || EQ (prop, Qfullscreen))
+	  || EQ (prop, Qfont))
 	{
 	  register Lisp_Object param_index, old_value;
 
-	  if (EQ (prop, Qfullscreen))
-	    {
-	      /* The parameter handler can reset f->want_fullscreen to
-	         FULLSCREEN_NONE.  But we need the requested value later
-	         to decide whether a height or width parameter shall be
-	         applied.  Therefore, we remember the requested value in
-	         fullscreen_wanted for the following two cases.  */ 
-	      if (EQ (val, Qfullheight))
-		fullscreen_wanted = FULLSCREEN_HEIGHT;
-	      else if (EQ (val, Qfullwidth))
-		fullscreen_wanted = FULLSCREEN_WIDTH;
-	    }
-
 	  old_value = get_frame_param (f, prop);
- 	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
 	  if (NILP (Fequal (val, old_value)))
 	    {
 	      store_frame_param (f, prop, val);
@@ -3028,9 +3008,15 @@ x_set_frame_parameters (f, alist)
       val = values[i];
 
       if (EQ (prop, Qwidth) && NATNUMP (val))
-	width_for_full_height = width = XFASTINT (val);
+        {
+          size_changed = 1;
+          width = XFASTINT (val);
+        }
       else if (EQ (prop, Qheight) && NATNUMP (val))
-	height_for_full_width = height = XFASTINT (val);
+        {
+          size_changed = 1;
+          height = XFASTINT (val);
+        }
       else if (EQ (prop, Qtop))
 	top = val;
       else if (EQ (prop, Qleft))
@@ -3041,8 +3027,7 @@ x_set_frame_parameters (f, alist)
 	icon_left = val;
       else if (EQ (prop, Qforeground_color)
 	       || EQ (prop, Qbackground_color)
-	       || EQ (prop, Qfont)
-               || EQ (prop, Qfullscreen))
+	       || EQ (prop, Qfont))
 	/* Processed above.  */
 	continue;
       else
@@ -3096,31 +3081,6 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
-  if (FRAME_VISIBLE_P (f) && fullscreen_is_being_set)
-    {
-      /* If the frame is visible already and the fullscreen parameter is
-         being set, it is too late to set WM manager hints to specify
-         size and position.
-         Here we first get the width, height and position that applies to
-         fullscreen.  We then move the frame to the appropriate
-         position.  Resize of the frame is taken care of in the code after
-         this if-statement. */
-      int new_left, new_top;
-
-      x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
-      if (new_top != f->top_pos || new_left != f->left_pos)
-        x_set_offset (f, new_left, new_top, 1);
-
-      /* When both height and fullwidth were requested, make sure the
-	 requested value for height gets applied.  */
-      if (height_for_full_width && fullscreen_wanted == FULLSCREEN_WIDTH)
-	height = height_for_full_width;
-      /* When both width and fullheight were requested, make sure the
-	 requested value for width gets applied.  */
-      if (width_for_full_height && fullscreen_wanted == FULLSCREEN_HEIGHT)
-	width = width_for_full_height;
-    }
-
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
@@ -3136,10 +3096,11 @@ x_set_frame_parameters (f, alist)
 
     XSETFRAME (frame, f);
 
-    if (width != FRAME_COLS (f)
-	|| height != FRAME_LINES (f)
-	|| f->new_text_lines || f->new_text_cols)
-      Fset_frame_size (frame, make_number (width), make_number (height));
+    if (size_changed
+        && (width != FRAME_COLS (f)
+            || height != FRAME_LINES (f)
+            || f->new_text_lines || f->new_text_cols))
+        Fset_frame_size (frame, make_number (width), make_number (height));
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
@@ -3299,12 +3260,14 @@ x_set_fullscreen (f, new_value, old_value)
 {
   if (NILP (new_value))
     f->want_fullscreen = FULLSCREEN_NONE;
-  else if (EQ (new_value, Qfullboth))
+  else if (EQ (new_value, Qfullboth) || EQ (new_value, Qfullscreen))
     f->want_fullscreen = FULLSCREEN_BOTH;
   else if (EQ (new_value, Qfullwidth))
     f->want_fullscreen = FULLSCREEN_WIDTH;
   else if (EQ (new_value, Qfullheight))
     f->want_fullscreen = FULLSCREEN_HEIGHT;
+  else if (EQ (new_value, Qmaximized))
+    f->want_fullscreen = FULLSCREEN_MAXIMIZED;
 
   if (FRAME_TERMINAL (f)->fullscreen_hook != NULL)
     FRAME_TERMINAL (f)->fullscreen_hook (f);
@@ -3443,19 +3406,6 @@ x_set_font (f, arg, oldval)
   if (CONSP (lval)) lval = CDR (lval);
 
   x_new_font (f, font_object, fontset);
-  /* If the fullscreen property is non-nil, adjust lines and columns so we
-     keep the same pixel height and width.  */
-  if (! NILP (lval))
-    {
-      int height = FRAME_LINES (f), width = FRAME_COLS (f);
-      if (EQ (lval, Qfullboth) || EQ (lval, Qfullwidth))
-        width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, FRAME_PIXEL_WIDTH (f));
-      if (EQ (lval, Qfullboth) || EQ (lval, Qfullheight))
-        height = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, FRAME_PIXEL_HEIGHT (f));
-      
-      change_frame_size (f, height, width, 0, 0, 1);
-    }
-
   store_frame_param (f, Qfont, arg);
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
@@ -4374,22 +4324,6 @@ x_figure_window_size (f, parms, toolbar_p)
 	window_prompting |= PPosition;
     }
 
-  if (f->want_fullscreen != FULLSCREEN_NONE)
-    {
-      int left, top;
-      int width, height;
-
-      /* It takes both for some WM:s to place it where we want */
-      window_prompting |= USPosition | PPosition;
-      x_fullscreen_adjust (f, &width, &height, &top, &left);
-      FRAME_COLS (f) = width;
-      FRAME_LINES (f) = height;
-      FRAME_PIXEL_WIDTH (f) = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
-      FRAME_PIXEL_HEIGHT (f) = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
-      f->left_pos = left;
-      f->top_pos = top;
-    }
-
   if (window_prompting & XNegative)
     {
       if (window_prompting & YNegative)
@@ -4503,6 +4437,8 @@ syms_of_frame ()
   staticpro (&Qfullheight);
   Qfullboth = intern ("fullboth");
   staticpro (&Qfullboth);
+  Qmaximized = intern ("maximized");
+  staticpro (&Qmaximized);
   Qx_resource_name = intern ("x-resource-name");
   staticpro (&Qx_resource_name);
 

@@ -1,3 +1,40 @@
+2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs.c (USAGE3, standard_args): Add -mm and --maximized.
+
+	* frame.c: Qmaximized is new.
+	(x_set_frame_parameters): Do not handle fullscreen specially.
+	Only set width and height if explicitly set.
+	(x_set_fullscreen): Handle Qmaximized.
+	(x_set_font, x_figure_window_size): Do not handle fullscreen specially.
+	(syms_of_frame): Initialize Qmaximized.
+
+	* frame.h (fullscreen_type): Add FULLSCREEN_MAXIMIZED.  Declare
+	Qfullwidth, Qfullheight, Qfullboth, Qmaximized.
+
+	* xterm.c (handle_one_xevent): Remove call to x_check_fullscreen
+	for Expose event. Add call to x_check_fullscreen for MapNotify event.
+	Remove all code w.r.t. fullscreen from ConfigureNotify event. Do not
+	set gravity to NorthWestGravity when USE_GTK.
+	(set_wm_state): New function.
+	(do_ewmh_fullscreen): Use set_wm_state. Also handle FULLSCREEN_MAXIMIZED.
+	(x_handle_net_wm_state): Handle FULLSCREEN_MAXIMIZED.
+	(x_check_fullscreen): Simplify so we only handle EMWH type of fullscreen
+	or the case when no window manager is running. That means remove calls
+	to x_real_positions and x_fullscreen_adjust.
+
+	* gtkutil.c (flush_and_sync, x_wm_size_hint_off): Remove.
+	(xg_frame_set_char_size): Remove calls to x_wm_size_hint_off and
+	flush_and_sync.
+	(xg_height_changed): New function.
+	(xg_create_frame_widgets): Remove call to gtk_widget_set_size_request
+	and gtk_window_set_policy.  Set frame gravity after parsing the geometry
+	string.
+	(xg_update_frame_menubar, free_frame_menubar)
+	(xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
+	(update_frame_tool_bar, free_frame_tool_bar): Call xg_height_changed.
+	Remove calls to xg_frame_set_char_size.
+
 2009-07-01  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (decode_keyboard_code): New function.

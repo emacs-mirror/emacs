@@ -321,6 +321,7 @@ Display options:\n\
 --fullheight, -fh               make the first frame high as the screen\n\
 --fullscreen, -fs               make first frame fullscreen\n\
 --fullwidth, -fw                make the first frame wide as the screen\n\
+--maximized, -mm                make the first frame maximized\n\
 --geometry, -g GEOMETRY         window geometry\n\
 --no-bitmap-icon, -nbi          do not use picture of gnu for Emacs icon\n\
 --iconic                        start Emacs in iconified state\n\
@@ -1917,6 +1918,7 @@ struct standard_args standard_args[] =
   { "-fs", "--fullscreen", 10, 0 },
   { "-fw", "--fullwidth", 10, 0 },
   { "-fh", "--fullheight", 10, 0 },
+  { "-mm", "--maximized", 10, 0 },
   { "-g", "--geometry", 10, 1 },
   { "-geometry", 0, 10, 1 },
   { "-T", "--title", 10, 1 },

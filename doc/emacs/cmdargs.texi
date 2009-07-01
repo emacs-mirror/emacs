@@ -1184,7 +1184,16 @@ the initial frame.
 @itemx --fullscreen
 @opindex --fullscreen
 @cindex fullscreen, command-line argument
-Specify that width and height shall be the size of the screen.
+Specify that width and height shall be the size of the screen. Normally
+no window manager decorations are shown.
+
+@item -mm
+@opindex -mm
+@itemx --maximized
+@opindex --maximized
+@cindex maximized, command-line argument
+Specify that the Emacs frame shall be maximized.  This normally
+means that the frame has window manager decorations.
 
 @item -fh
 @opindex -fh
@@ -1258,8 +1267,8 @@ size with no tool bar, use an X resource to specify ``no tool bar''
 (@pxref{Table of Resources}); then Emacs will already know there's no
 tool bar when it processes the specified geometry.
 
-  When using one of @samp{--fullscreen}, @samp{--fullwidth} or
-@samp{--fullheight} there may be some space around the frame
+  When using one of @samp{--fullscreen}, @samp{--maximized}, @samp{--fullwidth}
+or @samp{--fullheight} there may be some space around the frame
 anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.
 

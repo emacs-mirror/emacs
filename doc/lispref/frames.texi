@@ -609,11 +609,15 @@ the @code{user-position} parameter (see above) does for the position
 parameters @code{top} and @code{left}.
 
 @item fullscreen
-Specify that width, height or both shall be set to the size of the screen.
-The value @code{fullwidth} specifies that width shall be the size of the
-screen.  The value @code{fullheight} specifies that height shall be the
-size of the screen.  The value @code{fullboth} specifies that both the
+Specify that width, height or both shall be maximized.
+The value @code{fullwidth} specifies that width shall as wide as possible.
+The value @code{fullheight} specifies that height shall be as tall as
+possible.  The value @code{fullboth} specifies that both the
 width and the height shall be set to the size of the screen.
+The value @code{maximized} specifies that the frame shall be maximized.
+The difference between @code{maximized} and @code{fullboth} is that
+the first does have window manager decorations but the second does not
+and thus really covers the whole screen.
 @end table
 
 @node Layout Parameters

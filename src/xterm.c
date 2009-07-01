@@ -6059,8 +6059,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       f = x_window_to_frame (dpyinfo, event.xexpose.window);
       if (f)
         {
-          x_check_fullscreen (f);
-
 #ifdef USE_GTK
           /* This seems to be needed for GTK 2.6.  */
           x_clear_area (event.xexpose.display,
@@ -6205,6 +6203,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                to update the frame titles
                in case this is the second frame.  */
             record_asynch_buffer_change ();
+
+          /* Check if fullscreen was specified before we where mapped. */
+          x_check_fullscreen (f);
         }
       goto OTHER;
 
@@ -6705,18 +6706,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         {
 #ifndef USE_X_TOOLKIT
 #ifndef USE_GTK
-          /* If there is a pending resize for fullscreen, don't
-             do this one, the right one will come later.
-             The toolkit version doesn't seem to need this, but we
-             need to reset it below.  */
-          int dont_resize
-	    = ((f->want_fullscreen & FULLSCREEN_WAIT)
-	       && f->new_text_cols != 0);
           int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, event.xconfigure.height);
           int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, event.xconfigure.width);
-
-          if (dont_resize)
-            goto OTHER;
 
           /* In the toolkit version, change_frame_size
              is called by the code that handles resizing
@@ -6748,9 +6739,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif
             {
 	      x_real_positions (f, &f->left_pos, &f->top_pos);
-
-	      if (f->want_fullscreen & FULLSCREEN_WAIT)
-		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
             }
 
 #ifdef HAVE_X_I18N
@@ -6758,6 +6746,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
             xic_set_statusarea (f);
 #endif
 
+#ifndef USE_GTK
           if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
             {
               /* Since the WM decorations come below top_pos now,
@@ -6765,6 +6754,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               f->win_gravity = NorthWestGravity;
               x_wm_set_size_hint (f, (long) 0, 0);
             }
+#endif
         }
       goto OTHER;
 
@@ -8444,6 +8434,28 @@ wm_supports (f, atomname)
   return rc;
 }
 
+static void
+set_wm_state (frame, add, what, what2)
+     Lisp_Object frame;
+     int add;
+     const char *what;
+     const char *what2;
+{
+  const char *atom = "_NET_WM_STATE";
+  Fx_send_client_event (frame, make_number (0), frame,
+                        make_unibyte_string (atom, strlen (atom)),
+                        make_number (32),
+                        /* 1 = add, 0 = remove */
+                        Fcons
+                        (make_number (add ? 1 : 0),
+                         Fcons
+                         (make_unibyte_string (what, strlen (what)),
+                          what2 != 0
+                          ? Fcons (make_unibyte_string (what2, strlen (what2)),
+                                   Qnil)
+                          : Qnil)));
+}
+
 /* Do fullscreen as specified in extended window manager hints */
 
 static int
@@ -8460,66 +8472,36 @@ do_ewmh_fullscreen (f)
   if (have_net_atom)
     {
       Lisp_Object frame;
-      const char *atom = "_NET_WM_STATE";
       const char *fs = "_NET_WM_STATE_FULLSCREEN";
       const char *fw = "_NET_WM_STATE_MAXIMIZED_HORZ";
       const char *fh = "_NET_WM_STATE_MAXIMIZED_VERT";
-      const char *what = NULL;
 
       XSETFRAME (frame, f);
 
+      set_wm_state (frame, 0, fs, NULL);
+      set_wm_state (frame, 0, fh, NULL);
+      set_wm_state (frame, 0, fw, NULL);
+      
       /* If there are _NET_ atoms we assume we have extended window manager
          hints.  */
       switch (f->want_fullscreen)
         {
         case FULLSCREEN_BOTH:
-          what = fs;
+          set_wm_state (frame, 1, fs, NULL);
           break;
         case FULLSCREEN_WIDTH:
-          what = fw;
+          set_wm_state (frame, 1, fw, NULL);
           break;
         case FULLSCREEN_HEIGHT:
-          what = fh;
+          set_wm_state (frame, 1, fh, NULL);
+          break;
+        case FULLSCREEN_MAXIMIZED:
+          set_wm_state (frame, 1, fw, fh);
           break;
         }
 
-      if (what != NULL && !wm_supports (f, what)) return 0;
-
-
-      Fx_send_client_event (frame, make_number (0), frame,
-                            make_unibyte_string (atom, strlen (atom)),
-                            make_number (32),
-                            Fcons (make_number (0), /* Remove */
-                                   Fcons
-                                   (make_unibyte_string (fs,
-                                                         strlen (fs)),
-                                    Qnil)));
-      Fx_send_client_event (frame, make_number (0), frame,
-                            make_unibyte_string (atom, strlen (atom)),
-                            make_number (32),
-                            Fcons (make_number (0), /* Remove */
-                                   Fcons
-                                   (make_unibyte_string (fh,
-                                                         strlen (fh)),
-                                    Qnil)));
-      Fx_send_client_event (frame, make_number (0), frame,
-                            make_unibyte_string (atom, strlen (atom)),
-                            make_number (32),
-                            Fcons (make_number (0), /* Remove */
-                                   Fcons
-                                   (make_unibyte_string (fw,
-                                                         strlen (fw)),
-                                    Qnil)));
       f->want_fullscreen = FULLSCREEN_NONE;
-      if (what != NULL)
-        Fx_send_client_event (frame, make_number (0), frame,
-                              make_unibyte_string (atom, strlen (atom)),
-                              make_number (32),
-                              Fcons (make_number (1), /* Add */
-                                     Fcons
-                                     (make_unibyte_string (what,
-                                                           strlen (what)),
-                                      Qnil)));
+
     }
 
   return have_net_atom;
@@ -8532,14 +8514,13 @@ XTfullscreen_hook (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
-      do_ewmh_fullscreen (f);
+      x_check_fullscreen (f);
       x_sync (f);
       UNBLOCK_INPUT;
     }
 }
 
 
-extern Lisp_Object Qfullwidth, Qfullheight, Qfullboth;
 static void
 x_handle_net_wm_state (f, event)
      struct frame *f;
@@ -8547,7 +8528,7 @@ x_handle_net_wm_state (f, event)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
-  int i, rc, actual_format, value = 0;
+  int i, rc, actual_format, value = FULLSCREEN_NONE;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   long max_len = 65536;
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -8575,12 +8556,22 @@ x_handle_net_wm_state (f, event)
   for (i = 0; i < actual_size; ++i)
     {
       Atom a = ((Atom*)tmp_data)[i];
-      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
-        value |= FULLSCREEN_WIDTH;
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz) 
+        {
+          if (value == FULLSCREEN_HEIGHT)
+            value = FULLSCREEN_MAXIMIZED;
+          else
+            value = FULLSCREEN_WIDTH;
+        }
       else if (a == dpyinfo->Xatom_net_wm_state_maximized_vert)
-        value |= FULLSCREEN_HEIGHT;
+        {
+          if (value == FULLSCREEN_WIDTH)
+            value = FULLSCREEN_MAXIMIZED;
+          else
+            value = FULLSCREEN_HEIGHT;
+        }
       else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
-        value |= FULLSCREEN_BOTH;
+        value = FULLSCREEN_BOTH;
     }
 
   lval = Qnil;
@@ -8594,6 +8585,9 @@ x_handle_net_wm_state (f, event)
       break;
     case FULLSCREEN_BOTH:
       lval = Qfullboth;
+      break;
+    case FULLSCREEN_MAXIMIZED:
+      lval = Qmaximized;
       break;
     }
       
@@ -8609,29 +8603,37 @@ static void
 x_check_fullscreen (f)
      struct frame *f;
 {
-  if (f->want_fullscreen & FULLSCREEN_BOTH)
+  if (do_ewmh_fullscreen (f))
+    return;
+
+  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+    return; // Only fullscreen without WM or with EWM hints (above).
+
+  if (f->want_fullscreen != FULLSCREEN_NONE)
     {
-      int width, height, ign;
+      int width = FRAME_COLS (f), height = FRAME_LINES (f);
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
-      if (do_ewmh_fullscreen (f))
-        return;
-
-      x_real_positions (f, &f->left_pos, &f->top_pos);
-
-      x_fullscreen_adjust (f, &width, &height, &ign, &ign);
-
-      /* We do not need to move the window, it shall be taken care of
-         when setting WM manager hints.
-         If the frame is visible already, the position is checked by
-         x_check_expected_move. */
+      switch (f->want_fullscreen)
+        {
+          /* No difference between these two when there is no WM */
+        case FULLSCREEN_BOTH:
+        case FULLSCREEN_MAXIMIZED:
+          width = x_display_pixel_width (dpyinfo);
+          height = x_display_pixel_height (dpyinfo);
+          break;
+        case FULLSCREEN_WIDTH:
+          width = x_display_pixel_width (dpyinfo);
+          break;
+        case FULLSCREEN_HEIGHT:
+          height = x_display_pixel_height (dpyinfo);
+        }
+      
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
           SET_FRAME_GARBAGED (f);
           cancel_mouse_face (f);
-
-          /* Wait for the change of frame size to occur */
-          f->want_fullscreen |= FULLSCREEN_WAIT;
         }
     }
 }
@@ -8658,7 +8660,7 @@ x_check_expected_move (f, expected_left, expected_top)
   x_real_positions (f, &current_left, &current_top);
 
   if (current_left != expected_left || current_top != expected_top)
-      {
+    {
       /* It's a "Type A" window manager. */
 
       int adjusted_left;
@@ -8677,7 +8679,7 @@ x_check_expected_move (f, expected_left, expected_top)
                    adjusted_left, adjusted_top);
 
       x_sync_with_move (f, expected_left, expected_top, 0);
-      }
+    }
   else
     /* It's a "Type B" window manager.  We don't have to adjust the
        frame's position. */

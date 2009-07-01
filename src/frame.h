@@ -75,12 +75,12 @@ enum text_cursor_kinds
 
 enum fullscreen_type
 {
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4
+  FULLSCREEN_NONE,
+  FULLSCREEN_WIDTH     = 0x001,
+  FULLSCREEN_HEIGHT    = 0x002,
+  FULLSCREEN_BOTH      = 0x003,
+  FULLSCREEN_MAXIMIZED = 0x013,
+  FULLSCREEN_WAIT      = 0x100
 };
 
 
@@ -1038,6 +1038,7 @@ extern Lisp_Object Qscreen_gamma;
 extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
+extern Lisp_Object Qfullwidth, Qfullheight, Qfullboth, Qmaximized;
 extern Lisp_Object Qfont_backend;
 extern Lisp_Object Qalpha;
 
