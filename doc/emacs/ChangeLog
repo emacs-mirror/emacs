@@ -1,3 +1,7 @@
+2009-07-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Correct the list of removed platforms.
+
 2009-06-28  Glenn Morris  <rgm@gnu.org>
 
 	* arevert-xtra.texi: Minor language tweaks.
