@@ -610,7 +610,7 @@ parameters @code{top} and @code{left}.
 
 @item fullscreen
 Specify that width, height or both shall be maximized.
-The value @code{fullwidth} specifies that width shall as wide as possible.
+The value @code{fullwidth} specifies that width shall be as wide as possible.
 The value @code{fullheight} specifies that height shall be as tall as
 possible.  The value @code{fullboth} specifies that both the
 width and the height shall be set to the size of the screen.
