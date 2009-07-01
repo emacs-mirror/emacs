@@ -121,6 +121,7 @@ Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth, Qmaximized;
+Lisp_Object Qsticky;
 Lisp_Object Qfont_backend;
 Lisp_Object Qalpha;
 
@@ -2844,7 +2845,8 @@ static struct frame_parm_table frame_parms[] =
   {"wait-for-wm",		&Qwait_for_wm},
   {"fullscreen",                &Qfullscreen},
   {"font-backend",		&Qfont_backend},
-  {"alpha",			&Qalpha}
+  {"alpha",			&Qalpha},
+  {"sticky",			&Qsticky},
 };
 
 #ifdef HAVE_WINDOW_SYSTEM

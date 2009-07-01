@@ -1,5 +1,18 @@
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* w32fns.c (w32_frame_parm_handlers): Set 0 for sticky.
+
+	* nsfns.m (ns_frame_parm_handlers): Ditto.
+
+	* frame.c: Declare Qsticky.
+	(frame_parms): Add sticky.
+
+	* xfns.c (x_frame_parm_handlers): Let x_set_sticky handle sticky.
+
+	* xterm.h: Declare x_set_sticky.
+
+	* xterm.c (x_set_sticky): New function.
+
 	* gtkutil.c (xg_tool_bar_proxy_help_callback): New function.
 	(xg_tool_bar_menu_proxy): Attach enter/leave events to
 	xg_tool_bar_proxy_help_callback.

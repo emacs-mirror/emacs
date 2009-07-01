@@ -8456,6 +8456,18 @@ set_wm_state (frame, add, what, what2)
                           : Qnil)));
 }
 
+void
+x_set_sticky (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  Lisp_Object frame;
+
+  XSETFRAME (frame, f);
+  set_wm_state (frame, NILP (new_value) ? 0 : 1,
+                "_NET_WM_STATE_STICKY", NULL);
+}
+
 /* Do fullscreen as specified in extended window manager hints */
 
 static int

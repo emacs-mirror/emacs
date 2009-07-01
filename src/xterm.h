@@ -964,6 +964,8 @@ extern unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
 extern int x_display_pixel_height P_ ((struct x_display_info *));
 extern int x_display_pixel_width P_ ((struct x_display_info *));
 
+extern void x_set_sticky P_ ((struct frame *, Lisp_Object, Lisp_Object));
+
 /* Defined in xselect.c */
 
 extern void x_handle_property_notify P_ ((XPropertyEvent *));
