@@ -7137,6 +7137,47 @@ read_avail_input (expected)
   return nread;
 }
 
+static void
+decode_keyboard_code (struct tty_display_info *tty,
+		      struct coding_system *coding,
+		      unsigned char *buf, int nbytes)
+{
+  unsigned char *src = buf;
+  const unsigned char *p;
+  int i;
+
+  if (nbytes == 0)
+    return;
+  if (tty->meta_key != 2)
+    for (i = 0; i < nbytes; i++)
+      buf[i] &= ~0x80;
+  if (coding->carryover_bytes > 0)
+    {
+      src = alloca (coding->carryover_bytes + nbytes);
+      memcpy (src, coding->carryover, coding->carryover_bytes);
+      memcpy (src + coding->carryover_bytes, buf, nbytes);
+      nbytes += coding->carryover_bytes;
+    }
+  coding->destination = alloca (nbytes * 4);
+  coding->dst_bytes = nbytes * 4;
+  decode_coding_c_string (coding, src, nbytes, Qnil);
+  if (coding->produced_char == 0)
+    return;
+  for (i = 0, p = coding->destination; i < coding->produced_char; i++)
+    {
+      struct input_event buf;
+
+      EVENT_INIT (buf);
+      buf.code = STRING_CHAR_ADVANCE (p);
+      buf.kind = (ASCII_CHAR_P (buf.code)
+		  ? ASCII_KEYSTROKE_EVENT : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      /* See the comment in tty_read_avail_input.  */
+      buf.frame_or_window = tty->top_frame;
+      buf.arg = Qnil;
+      kbd_buffer_store_event (&buf);
+    }
+}
+
 /* This is the tty way of reading available input.
 
    Note that each terminal device has its own `struct terminal' object,
@@ -7287,6 +7328,36 @@ tty_read_avail_input (struct terminal *terminal,
 
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
+
+  if (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+      & CODING_REQUIRE_DECODING_MASK)
+    {
+      struct coding_system *coding = TERMINAL_KEYBOARD_CODING (terminal);
+      int from;
+      
+      /* Decode the key sequence except for those with meta
+	 modifiers.  */
+      for (i = from = 0; ; i++)
+	if (i == nread || (tty->meta_key == 1 && (cbuf[i] & 0x80)))
+	  {
+	    struct input_event buf;
+
+	    decode_keyboard_code (tty, coding, cbuf + from, i - from);
+	    if (i == nread)
+	      break;
+
+	    EVENT_INIT (buf);
+	    buf.kind = ASCII_KEYSTROKE_EVENT;
+	    buf.modifiers = meta_modifier;
+	    buf.code = cbuf[i] & ~0x80;
+	    /* See the comment below.  */
+	    buf.frame_or_window = tty->top_frame;
+	    buf.arg = Qnil;
+	    kbd_buffer_store_event (&buf);
+	    from = i + 1;
+	  }
+      return nread;
+    }
 
   for (i = 0; i < nread; i++)
     {
