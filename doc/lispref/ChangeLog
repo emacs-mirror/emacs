@@ -1,3 +1,8 @@
+2009-07-01  Andreas Schwab  <aschwab@redhat.com>
+
+	* help.texi (Help Functions): Fix description of help-buffer and
+	help-setup-xref to use @defun instead of @deffn.
+
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Size Parameters): Mention maximized for fullscreen.

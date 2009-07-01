@@ -637,10 +637,10 @@ This variable holds the name of the directory in which Emacs finds
 certain documentation and text files that come with Emacs.
 @end defvar
 
-@deffn help-buffer
+@defun help-buffer
 This function returns the name of the help buffer, which is normally
 @samp{*Help*}; if such a buffer does not exist, it is first created.
-@end deffn
+@end defun
 
 @defmac with-help-window buffer-name body@dots{}
 This macro evaluates the @var{body} forms, inserting any output they
@@ -652,7 +652,7 @@ Help mode and displays a message telling the user how to quit and
 scroll the help window.
 @end defmac
 
-@deffn help-setup-xref item interactive-p
+@defun help-setup-xref item interactive-p
 This function updates the cross reference data in the @samp{*Help*}
 buffer, which is used to regenerate the help information when the user
 clicks on the @samp{Back} or @samp{Forward} buttons.  Most commands
@@ -663,7 +663,7 @@ to call, with argument list @var{args}, to regenerate the help buffer.
 The @var{interactive-p} argument is non-@code{nil} if the calling
 command was invoked interactively; in that case, the stack of items
 for the @samp{*Help*} buffer's @samp{Back} buttons is cleared.
-@end deffn
+@end defun
 
 @xref{describe-symbols example}, for an example of using
 @code{help-buffer}, @code{with-help-window}, and
