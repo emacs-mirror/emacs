@@ -3459,9 +3459,29 @@ xg_tool_bar_proxy_callback (w, client_data)
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
   xg_tool_bar_callback (wbutton, client_data);
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (wbutton),
-                                               XG_FRAME_DATA);
 }
+
+
+static gboolean
+xg_tool_bar_help_callback P_ ((GtkWidget *w,
+                               GdkEventCrossing *event,
+                               gpointer client_data));
+
+/* This callback is called when a help is to be shown for an item in
+   the detached tool bar when the detached tool bar it is not expanded.  */
+
+static gboolean
+xg_tool_bar_proxy_help_callback (w, event, client_data)
+     GtkWidget *w;
+     GdkEventCrossing *event;
+     gpointer client_data;
+{
+  GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
+                                                      XG_TOOL_BAR_PROXY_BUTTON));
+  
+  xg_tool_bar_help_callback (wbutton, event, client_data);
+}
+
 
 /* This callback is called when a tool item should create a proxy item,
    such as for the overflow menu.  Also called when the tool bar is detached.
@@ -3475,7 +3495,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 {
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (toolitem));
   GtkButton *wbutton = GTK_BUTTON (gtk_bin_get_child (GTK_BIN (weventbox)));
-  GtkWidget *wmenuitem = gtk_image_menu_item_new ();
+  GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label ("");
   GtkWidget *wmenuimage;
 
   if (gtk_button_get_use_stock (wbutton))
@@ -3545,9 +3565,24 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
                     G_CALLBACK (xg_tool_bar_proxy_callback),
                     user_data);
 
+  
   g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
                      (gpointer) wbutton);
   gtk_tool_item_set_proxy_menu_item (toolitem, "Emacs toolbar item", wmenuitem);
+  gtk_widget_set_sensitive (wmenuitem, GTK_WIDGET_SENSITIVE (wbutton));
+
+  /* Use enter/leave notify to show help.  We use the events
+     rather than the GtkButton specific signals "enter" and
+     "leave", so we can have only one callback.  The event
+     will tell us what kind of event it is.  */
+  g_signal_connect (G_OBJECT (wmenuitem),
+                    "enter-notify-event",
+                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
+                    user_data);
+  g_signal_connect (G_OBJECT (wmenuitem),
+                    "leave-notify-event",
+                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
+                    user_data);
 
   return TRUE;
 }
@@ -4016,7 +4051,7 @@ update_frame_tool_bar (f)
                             NULL);
 
           g_object_set_data (G_OBJECT (wbutton), XG_FRAME_DATA, (gpointer)f);
-
+          
           /* Use enter/leave notify to show help.  We use the events
              rather than the GtkButton specific signals "enter" and
              "leave", so we can have only one callback.  The event
