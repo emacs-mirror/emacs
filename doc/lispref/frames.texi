@@ -755,6 +755,10 @@ geometry changes.  Some window managers, including versions of Fvwm2
 and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
 prevent hanging with those window managers.
 
+@item sticky
+If non-@code{nil}, the frame is visible on all virtual desktops on systems
+with virtual desktops.
+
 @ignore
 @item parent-id
 @c ??? Not yet working.

@@ -1,3 +1,7 @@
+2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Management Parameters): Mention sticky.
+
 2009-07-01  Andreas Schwab  <aschwab@redhat.com>
 
 	* help.texi (Help Functions): Fix description of help-buffer and
