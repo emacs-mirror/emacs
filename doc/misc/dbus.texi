@@ -1045,7 +1045,12 @@ Retrieve the original string from the encoded @var{string}.
 @lisp
 (dbus-unescape-from-identifier "_30123abc_5fxyz_01_ff")
 
-@result{} "0123abc_xyzÿ"
+@ifinfo
+@result{} "0123abc_xyz^Aÿ"
+@end ifinfo
+@ifnotinfo
+@result{} "0123abc_xyz^A@"y"
+@end ifnotinfo
 @end lisp
 @end defun
 
