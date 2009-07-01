@@ -5793,6 +5793,7 @@ setup_coding_system (coding_system, coding)
   coding->max_charset_id = SCHARS (val) - 1;
   coding->safe_charsets = SDATA (val);
   coding->default_char = XINT (CODING_ATTR_DEFAULT_CHAR (attrs));
+  coding->carryover_bytes = 0;
 
   coding_type = CODING_ATTR_TYPE (attrs);
   if (EQ (coding_type, Qundecided))
@@ -9386,8 +9387,11 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
 {
   struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
-  setup_coding_system (Fcheck_coding_system (coding_system),
-		       TERMINAL_KEYBOARD_CODING (t));
+  if (NILP (coding_system))
+    coding_system = Qno_conversion;
+  else
+    Fcheck_coding_system (coding_system);
+  setup_coding_system (coding_system, TERMINAL_KEYBOARD_CODING (t));
   /* Characer composition should be disabled.  */
   TERMINAL_KEYBOARD_CODING (t)->common_flags
     &= ~CODING_ANNOTATE_COMPOSITION_MASK;
