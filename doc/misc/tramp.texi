@@ -181,6 +181,9 @@ Configuring @value{tramp} for use
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
+@ifset emacsgvfs
+* GVFS based methods::          GVFS based external methods.
+@end ifset
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -510,6 +513,9 @@ Method}.
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
+@ifset emacsgvfs
+* GVFS based methods::          GVFS based external methods.
+@end ifset
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -1027,22 +1033,32 @@ Windows, this method isn't available.  Instead of, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
+@end table
+
 
 @ifset emacsgvfs
-@item @option{dav}
-@cindex method dav
-@cindex dav method
+@node GVFS based methods
+@section GVFS based external methods
+@cindex methods, gvfs
+@cindex gvfs based methods
+@cindex dbus
 
-This method provides access to WebDAV files and directories.  It is
-available on systems only which run GVFS
+The connection methods described in this section are based on GVFS
 @uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
 filesystem is mounted locally through FUSE.  @value{tramp} uses
 internally this local mounted directory.
 
 The communication with GVFS is implemented via D-Bus messages.
-Therefore, your @value{emacsname} must have D-Bus integration.
+Therefore, your @value{emacsname} must have D-Bus integration,
+@pxref{Top, , D-Bus, dbus}.
 
-There exists also the external method @option{davs}, which uses SSL
+@table @asis
+@item @option{dav}
+@cindex method dav
+@cindex dav method
+
+This method provides access to WebDAV files and directories.  There
+exists also the external method @option{davs}, which uses SSL
 encryption for the access.
 
 Both methods support the port number specification as discussed above.
@@ -1052,21 +1068,17 @@ Both methods support the port number specification as discussed above.
 @cindex obex method
 
 OBEX is an FTP-like access protocol for simple devices, like cell
-phones.  Like @option{dav} and @option{davs}, it uses GVFS for
-mounting remote files and directories via FUSE.  Until now
-@value{tramp} supports only OBEX over Bluetooth.
+phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
 
 @item @option{synce}
 @cindex method synce
 @cindex synce method
 
-SYNCE allows communication with Windows Mobile devices.  Beside GVFS
-for mounting remote files and directories via FUSE, it needs also the
-SYNCE-GVFS plugin.
-@end ifset
+The @option{synce} method allows communication with Windows Mobile
+devices.  Beside GVFS for mounting remote files and directories via
+FUSE, it needs also the SYNCE-GVFS plugin.
 @end table
 
-@ifset emacsgvfs
 @defopt tramp-gvfs-methods
 This customer option, a list, defines the external methods, which
 shall be used with GVFS.  Per default, these are @option{dav},
@@ -2403,6 +2415,14 @@ always cached values for the directory contents.
 allows to exploit @value{emacsname} packages without modification for
 remote file names.  It does not work for the @option{ftp} and
 @option{smb} methods.
+
+@ifset emacsgvfs
+If the remote host is mounted via GVFS (see @ref{GVFS based methods}),
+the remote filesystem is mounted locally.  Therefore, there are no
+remote processes; all processes run still locally on your machine with
+an adapted @code{default-directory}.  This section does not apply for
+such connection methods.
+@end ifset
 
 Remote processes are started when a corresponding command is executed
 from a buffer belonging to a remote file or directory.  Up to now, the
