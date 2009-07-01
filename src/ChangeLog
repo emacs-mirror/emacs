@@ -1,5 +1,12 @@
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.h (struct x_display_info): Add Xatom_net_wm_state_sticky
+
+	* xterm.c (x_handle_net_wm_state): Also look for sticky.
+	(x_term_init): Initialize Xatom_net_wm_state_sticky.
+
+	* frame.h: Declare Qsticky.
+
 	* w32fns.c (w32_frame_parm_handlers): Set 0 for sticky.
 
 	* nsfns.m (ns_frame_parm_handlers): Ditto.

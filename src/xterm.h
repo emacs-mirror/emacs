@@ -359,7 +359,8 @@ struct x_display_info
 
   /* Atoms dealing with maximization and fullscreen */
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen_atom,
-    Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert;
+    Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
+    Xatom_net_wm_state_sticky;
 };
 
 #ifdef HAVE_X_I18N

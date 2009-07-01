@@ -8547,6 +8547,7 @@ x_handle_net_wm_state (f, event)
   unsigned char *tmp_data = NULL;
   Atom target_type = XA_ATOM;
   Lisp_Object lval;
+  int sticky = 0;
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
@@ -8584,6 +8585,8 @@ x_handle_net_wm_state (f, event)
         }
       else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
         value = FULLSCREEN_BOTH;
+      else if (a == dpyinfo->Xatom_net_wm_state_sticky)
+        sticky = 1;
     }
 
   lval = Qnil;
@@ -8604,7 +8607,8 @@ x_handle_net_wm_state (f, event)
     }
       
   store_frame_param (f, Qfullscreen, lval);
-  
+  store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
+
   if (tmp_data) XFree (tmp_data);
   UNBLOCK_INPUT;
 }
@@ -10295,6 +10299,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
   dpyinfo->Xatom_net_wm_state_maximized_vert
     = XInternAtom (dpyinfo->display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+  dpyinfo->Xatom_net_wm_state_sticky
+    = XInternAtom (dpyinfo->display, "_NET_WM_STATE_STICKY", False);
 
   dpyinfo->cut_buffers_initialized = 0;
 

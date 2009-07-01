@@ -1039,6 +1039,7 @@ extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
 extern Lisp_Object Qfullwidth, Qfullheight, Qfullboth, Qmaximized;
+extern Lisp_Object Qsticky;
 extern Lisp_Object Qfont_backend;
 extern Lisp_Object Qalpha;
 
