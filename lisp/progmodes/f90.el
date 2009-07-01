@@ -823,7 +823,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   "Regexp matching a CLASS/TYPE IS statement.")
 
 (defconst f90-no-break-re
-  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=") 'paren)
+  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=" "(/" "/)") 'paren)
   "Regexp specifying where not to break lines when filling.
 This regexp matches certain tokens comprised entirely of
 characters matching the regexp `f90-break-delimiters' that should
