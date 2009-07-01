@@ -361,11 +361,11 @@ Every entry is a list (NAME ADDRESS).")
   '(
     (access-file . ignore)
     (add-name-to-file . tramp-gvfs-handle-copy-file)
-    ;; `byte-compiler-base-file-name' performed by default handler
+    ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-file . tramp-gvfs-handle-copy-file)
     (delete-directory . tramp-gvfs-handle-delete-directory)
     (delete-file . tramp-gvfs-handle-delete-file)
-    ;; `diff-latest-backup-file' performed by default handler
+    ;; `diff-latest-backup-file' performed by default handler.
     (directory-file-name . tramp-handle-directory-file-name)
     (directory-files . tramp-gvfs-handle-directory-files)
     (directory-files-and-attributes
@@ -373,41 +373,44 @@ Every entry is a list (NAME ADDRESS).")
     (dired-call-process . ignore)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
+    ;; `executable-find' is not official yet. performed by default handler.
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
-    ;; `file-accessible-directory-p' performed by default handler
+    ;; `file-accessible-directory-p' performed by default handler.
     (file-attributes . tramp-gvfs-handle-file-attributes)
     (file-directory-p . tramp-smb-handle-file-directory-p)
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-gvfs-handle-file-exists-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
     (file-remote-p . tramp-handle-file-remote-p)
-    ;; `file-modes' performed by default handler
+    ;; `file-modes' performed by default handler.
     (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-completion . tramp-handle-file-name-completion)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
-    ;; `file-name-sans-versions' performed by default handler
+    ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-symlink-p . tramp-handle-file-symlink-p)
-    ;; `file-truename' performed by default handler
+    ;; `file-truename' performed by default handler.
     (file-writable-p . tramp-gvfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
-    ;; `find-file-noselect' performed by default handler
-    ;; `get-file-buffer' performed by default handler
+    ;; `find-file-noselect' performed by default handler.
+    ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-gvfs-handle-insert-directory)
     (insert-file-contents . tramp-gvfs-handle-insert-file-contents)
     (load . tramp-handle-load)
     (make-directory . tramp-gvfs-handle-make-directory)
     (make-directory-internal . ignore)
     (make-symbolic-link . ignore)
+    (process-file . tramp-gvfs-handle-process-file)
     (rename-file . tramp-gvfs-handle-rename-file)
     (set-file-modes . tramp-gvfs-handle-set-file-modes)
     (set-visited-file-modtime . tramp-gvfs-handle-set-visited-file-modtime)
-    (shell-command . ignore)
+    (shell-command . tramp-gvfs-handle-shell-command)
+    (start-file-process . tramp-gvfs-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (vc-registered . ignore)
@@ -649,6 +652,12 @@ is no information where to trace the message.")
 	     (tramp-gvfs-url-file-name dir)))
 	 (signal (car err) (cdr err)))))))
 
+(defun tramp-gvfs-handle-process-file
+  (program &optional infile destination display &rest args)
+  "Like `process-file' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (apply 'call-process program infile destination display args)))
+
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)
   "Like `rename-file' for Tramp files."
@@ -670,6 +679,17 @@ is no information where to trace the message.")
   "Like `set-visited-file-modtime' for Tramp files."
   (let ((buffer-file-name (tramp-gvfs-fuse-file-name (buffer-file-name))))
     (set-visited-file-modtime time-list)))
+
+(defun tramp-gvfs-handle-shell-command
+  (command &optional output-buffer error-buffer)
+  "Like `shell-command' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (shell-command command output-buffer error-buffer)))
+
+(defun tramp-gvfs-handle-start-file-process (name buffer program &rest args)
+  "Like `start-file-process' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (apply 'start-process name buffer program args)))
 
 (defun tramp-gvfs-handle-verify-visited-file-modtime (buf)
   "Like `verify-visited-file-modtime' for Tramp files."
@@ -1083,7 +1103,7 @@ connection if a previous connection has died for some reason."
 ;; D-Bus BLUEZ functions.
 
 (defun tramp-bluez-list-devices ()
-  "Returns all discovered bluetooth devices as list.
+  "Return all discovered bluetooth devices as list.
 Every entry is a list (NAME ADDRESS).
 
 If `tramp-bluez-discover-devices-timeout' is an integer, and the last
@@ -1197,19 +1217,16 @@ be used."
 ;; D-Bus SYNCE functions.
 
 (defun tramp-synce-list-devices ()
-  "Returns all discovered synce devices as list.
+  "Return all discovered synce devices as list.
 They are retrieved from the hal daemon."
   (let (tramp-synce-devices)
     (dolist (device
 	     (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
 	       :system tramp-hal-service tramp-hal-path-manager
 	       tramp-hal-interface-manager "GetAllDevices"))
-      (when (and (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-		   :system tramp-hal-service device tramp-hal-interface-device
-		   "PropertyExists" "sync.plugin")
-		 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
-		   :system tramp-hal-service device tramp-hal-interface-device
-		   "PropertyExists" "pda.pocketpc.name"))
+      (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	      :system tramp-hal-service device tramp-hal-interface-device
+	      "PropertyExists" "sync.plugin")
 	(add-to-list
 	 'tramp-synce-devices
 	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
@@ -1232,8 +1249,6 @@ They are retrieved from the hal daemon."
 
 ;;; TODO:
 
-;; * process-file and start-file-process on the local machine, but
-;;   with remote files.
 ;; * Host name completion via smb-server or smb-network.
 ;; * Check, how two shares of the same SMB server can be mounted in
 ;;   parallel.
