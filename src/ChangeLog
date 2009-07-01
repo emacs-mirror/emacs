@@ -1,3 +1,7 @@
+2009-07-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (SOME_MACHINE_LISP): Add ../lisp/term/common-win.elc.
+
 2009-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xftfont.c (xftfont_open): Avoid passing NULL argument to
