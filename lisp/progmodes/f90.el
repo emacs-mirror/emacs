@@ -254,9 +254,10 @@ additionally blinks the cursor to the start of the block."
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
   "Regexp matching delimiter characters at which lines may be broken.
-There are certain tokens comprised entirely of characters
-matching this regexp that should not be split, and these are
-specified by the constant `f90-no-break-re'."
+There are some common two-character tokens where one or more of
+the members matches this regexp.  Although Fortran allows breaks
+within lexical tokens (provided the next line has a beginning ampersand),
+the constant `f90-no-break-re' ensures that such tokens are not split."
   :type  'regexp
   :group 'f90)
 (put 'f90-break-delimiters 'safe-local-variable 'stringp)
@@ -824,11 +825,11 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 (defconst f90-no-break-re
   (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=") 'paren)
-  "Regexp specifying where not to break lines when filling.
-This regexp matches certain tokens comprised entirely of
-characters matching the regexp `f90-break-delimiters' that should
-not be split by filling.  Each element is assumed to be two
-characters long.")
+  "Regexp specifying two-character tokens not to split when breaking lines.
+Each token has one or more of the characters from `f90-break-delimiters'.
+Note that if only one of the characters is from that variable,
+then the presence of the token here allows a line-break before or
+after the other character, where a break would not normally be allowed.")
 
 (defvar f90-cache-position nil
   "Temporary position used to speed up region operations.")
