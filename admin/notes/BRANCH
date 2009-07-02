@@ -2,29 +2,4 @@ This file describes the CVS branch in which it is maintained.
 Everything below the line is branch-specific.
 ________________________________________________________________________
 
-This is the trunk (sometimes mistakenly called "HEAD").
-When people say "use CVS emacs", this is the branch they are talking
-about.  Likewise, a "cvs checkout" without the "-r" option results in
-this branch.
-
-Emacs development takes place on the trunk.  Most of the time, Emacs
-hackers add to it relatively free of constraint (aside from proper
-legal / accounting practices), although sometimes there is related
-discussion on the emacs-devel mailing list.
-
-Sometime before the release of a new major version of Emacs (eg 22.1),
-a "feature freeze" is imposed on the trunk.  No new features may be
-added after this point.  This is usually many months before the release.
-During this time, there is no official place for development of new features.
-
-Shortly before the release, a release branch is created.  For example,
-EMACS_22_BASE or EMACS_21_1_RC for Emacs 22.x and 21.x, respectively.
-(Unfortunately the naming scheme has not always been consistent.)
-
-The release branch is used to make the release (22.1), and all later
-members of the series (22.2, 22.3, etc).  Generally, only bug-fixes have
-been allowed in the minor releases, although in 22.x, self-contained
-new features were allowed on a case-by-case basis.
-
-From the point that a release branch is created, the trunk is free for
-development for the next major version.
+This is EMACS_23_1_RC branch, intended to be used for the 23.1 release.
