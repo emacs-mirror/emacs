@@ -636,7 +636,6 @@ xg_frame_resized (f, pixelwidth, pixelheight)
      FRAME_PTR f;
      int pixelwidth, pixelheight;
 {
-  fprintf(stderr, "%s: %d/%d\n", __func__, pixelwidth, pixelheight);
   int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
   int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
 
