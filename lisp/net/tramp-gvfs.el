@@ -925,7 +925,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	 nil)
       ;; The interface of mount-info has been changed.  We must handle
       ;; both cases.
-      (let* ((last-nth (if (nth 9 mount-info) 9 8))
+      (let* ((last-nth (if (nth 9 elt) 9 8))
 	     (mount-spec (nth 1 (nth last-nth elt)))
 	     (method (dbus-byte-array-to-string
 		      (cadr (assoc "type" mount-spec))))
