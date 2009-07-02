@@ -869,7 +869,10 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 \"org.gtk.vfs.MountTracker.unmounted\" signals."
   (ignore-errors
     (let* ((signal-name (dbus-event-member-name last-input-event))
-	   (mount-spec (nth 1 (nth 9 mount-info)))
+	   ;; The interface of mount-info has been changed.  We must
+	   ;; handle both cases.
+	   (last-nth (if (nth 9 mount-info) 9 8))
+	   (mount-spec (nth 1 (nth last-nth mount-info)))
 	   (method (dbus-byte-array-to-string (cadr (assoc "type" mount-spec))))
 	   (user (dbus-byte-array-to-string (cadr (assoc "user" mount-spec))))
 	   (domain (dbus-byte-array-to-string
@@ -898,7 +901,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (tramp-set-file-property
 	   v "/" "fuse-mountpoint"
 	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (nth 8 mount-info)))))))))
+	    (dbus-byte-array-to-string (nth (1- last-nth) mount-info)))))))))
 
 (dbus-register-signal
  :session nil tramp-gvfs-path-mounttracker
@@ -920,7 +923,10 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	     :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	     tramp-gvfs-interface-mounttracker "listMounts"))
 	 nil)
-      (let* ((mount-spec (nth 1 (nth 9 elt)))
+      ;; The interface of mount-info has been changed.  We must handle
+      ;; both cases.
+      (let* ((last-nth (if (nth 9 mount-info) 9 8))
+	     (mount-spec (nth 1 (nth last-nth elt)))
 	     (method (dbus-byte-array-to-string
 		      (cadr (assoc "type" mount-spec))))
 	     (user (dbus-byte-array-to-string
@@ -950,7 +956,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	       (string-equal host (tramp-file-name-host vec)))
 	  (tramp-set-file-property
 	   vec "/" "fuse-mountpoint"
-	   (file-name-nondirectory (dbus-byte-array-to-string (nth 8 elt))))
+	   (file-name-nondirectory
+	    (dbus-byte-array-to-string (nth (1- last-nth) elt))))
 	  (throw 'mounted t))))))
 
 (defun tramp-gvfs-mount-spec (vec)
