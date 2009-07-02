@@ -1,3 +1,15 @@
+2009-07-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (def-gdb-auto-update-handler)
+	(gdb-data-list-register-values-handler)
+	(gdb-stack-list-locals-handler): Preserve point when switching buffers
+	using tabs.
+	(gdb-propertize-header): Inline temporary global variable.
+
+	* progmodes/gud.el (gud-minor-mode-map): Make "stop" button visible in
+	text mode when program is running.
+	(gud-tooltip-mode): Autoload so that it can be set by customize.
+
 2009-07-01  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* language/korean.el (set-language-info-alist): Add korean-cp949,
