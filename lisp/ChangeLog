@@ -27,9 +27,10 @@
 
 2009-07-01  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-init-2): Move to ...
-	(gdb-starting): ... here because GDB 7.0 requires execution to have
-	started when using MI command -data-list-register-names.
+	* progmodes/gdb-ui.el (gdb-init-2): Move sending
+	-data-list-register-names to ...
+	(gdb-starting): ... here because GDB 7.0 requires execution to
+	have started when using this MI command.
 	(gdb-propertize-header): New macro.
 	(gdb-breakpoints-header, gdb-locals-header): Use it.
 
