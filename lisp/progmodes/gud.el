@@ -251,8 +251,8 @@ Used to grey out relevant toolbar icons.")
 		      (eq gud-minor-mode 'gdba)))
        ([menu-bar stop] menu-item
 	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
-	:visible (or gud-running
-		     (not (eq gud-minor-mode 'gdba))))
+	:visible (and gud-running
+		     (eq gud-minor-mode 'gdba)))
        ([menu-bar print]
 	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
        ([menu-bar tools] . undefined)
@@ -3239,6 +3239,7 @@ Treats actions as defuns."
 
 ;;; Customizable settings
 
+;;;###autoload
 (define-minor-mode gud-tooltip-mode
   "Toggle the display of GUD tooltips."
   :global t
