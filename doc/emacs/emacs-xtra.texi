@@ -2,6 +2,7 @@
 @comment %**start of header
 @setfilename ../../info/emacs-xtra
 @settitle Specialized Emacs Features
+@c Merge all functions, variables, and keys into the concept index.
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
@@ -82,12 +83,26 @@ However, certain sections may be intended for a more specialized
 audience, such as Elisp authors.  This should be clearly pointed out
 at the beginning of these sections.
 
-Certain packages, or collections of related features, have their own
-manuals, separate from the main Emacs User's manual.  This manual is
+@c Note to authors - you need to be careful about cross-references to
+@c topics in the Emacs manual.  As a printed document, the xtra files
+@c are separate from the Emacs manual; but as an info document, they
+@c are part of the Emacs manual.  Hence you need to use something like:
+@c @iftex
+@c @ref{Comparing Files,,, emacs, the Emacs Manual},
+@c @end iftex
+@c @ifnottex
+@c @ref{Comparing Files},
+@c @end ifnottex
+
+Certain packages (or collections of related features) have their own
+manuals, separate from the main Emacs manual.  This manual is
 intended as a complement, rather than an alternative, to reading those
-additional manuals; in a nutshell, it is a collection of smaller
-specialized features, too small or too obscure to justify their own
-manual.
+additional manuals.  In a nutshell, it is a collection of smaller
+specialized features (or extra detail about standard features), too
+small or too obscure to justify their own manual, or inclusion in the
+printed Emacs manual.  The chapters in this manual are, however,
+included (at the relevant places) in the main Emacs manual when it is
+formatted as an Info document.
 
 Sections intended specifically for Elisp programmers can follow the
 style of the Elisp manual.  Other sections should follow the style of
