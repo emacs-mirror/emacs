@@ -1813,13 +1813,16 @@ happens to be appropriate."
 	    (with-current-buffer buf
 	      (let* ((window (get-buffer-window buf 0))
 		     (start (window-start window))
-		     (p (window-point window))
+		     (p (if window (window-point window) (point)))
 		    (buffer-read-only nil))
 		(erase-buffer)
 		(insert-buffer-substring (gdb-get-buffer-create
 					  'gdb-partial-output-buffer))
-		(set-window-start window start)
-		(set-window-point window p)))))
+		(if window
+		    (progn
+		      (set-window-start window start)
+		      (set-window-point window p))
+		  (goto-char p))))))
      ;; put customisation here
      (,custom-defun)))
 
@@ -2170,9 +2173,8 @@ corresponding to the mode line clicked."
 		    (set-window-dedicated-p (selected-window) nil)
 		    (switch-to-buffer
 		     (gdb-get-buffer-create ',buffer))
-		     (setq gdb-header (gdb-set-header ',buffer))
-		     (setq header-line-format gdb-header))
-		  (set-window-dedicated-p (selected-window) t)))))
+		    (setq header-line-format(gdb-set-header ',buffer))
+		    (set-window-dedicated-p (selected-window) t))))))
 
 (defun gdb-set-header (buffer)
   (cond ((eq buffer 'gdb-locals-buffer)
@@ -3823,12 +3825,15 @@ in_scope=\"\\(.*?\\)\".*?}")
 	(with-current-buffer buf
 	  (let* ((window (get-buffer-window buf 0))
 		 (start (window-start window))
-		 (p (window-point window))
+		 (p (if window (window-point window) (point)))
 		 (buffer-read-only nil))
 	    (erase-buffer)
 	    (insert register-values)
-	    (set-window-start window start)
-	    (set-window-point window p))))))
+	    (if window
+		(progn
+		  (set-window-start window start)
+		  (set-window-point window p))
+	      (goto-char p)))))))
   (gdb-data-list-register-values-custom))
 
 (defun gdb-data-list-register-values-custom ()
@@ -3944,7 +3949,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 	(and buf (with-current-buffer buf
 		   (let* ((window (get-buffer-window buf 0))
 			  (start (window-start window))
-			  (p (window-point window))
+			  (p (if window (window-point window) (point)))
 			  (buffer-read-only nil) (name) (value))
 		     (erase-buffer)
 		     (dolist (local locals-list)
@@ -3965,8 +3970,11 @@ in_scope=\"\\(.*?\\)\".*?}")
 		       (insert
 			(concat name "\t" (nth 1 local)
 				"\t" value "\n")))
-		     (set-window-start window start)
-		     (set-window-point window p))))))))
+		     (if window
+			 (progn
+			   (set-window-start window start)
+			   (set-window-point window p))
+		       (goto-char p)))))))))
 
 (defun gdb-get-register-names ()
   "Create a list of register names."
