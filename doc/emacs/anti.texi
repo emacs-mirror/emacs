@@ -15,8 +15,8 @@ greater simplicity that results from the absence of many Emacs
 
 @item
 We have switched to a character representation specially designed for
-Emacs.  Rather than forcing all the widely used scripts artificially
-into alignment, as Unicode does, Emacs treats them all equally, giving
+Emacs.  Rather than forcing all the widely used scripts into artificial
+alignment, as Unicode does, Emacs treats them all equally, giving
 each one a place in the space of character codes.  We have eliminated
 the confusing practice, in Emacs 23, whereby one character can belong
 to multiple character sets.  Now each script has its own variant, and
@@ -111,16 +111,16 @@ will remove DVCS support entirely, so you should migrate your projects
 to CVS.
 
 @item
-Rmail now uses a special file format, Babyl format, designed specially
+Rmail now uses a special file format, Babyl format, specifically designed
 for storing and editing mail.  When you visit a file in Rmail, or get new
 mail, Rmail converts it automatically to Babyl format.
 
 @item
 Emacs can no longer display frames on X windows and text terminals
-(ttys) simultaneously.  If you start Emacs as an X application, the
-Emacs job can only create X frames; if you start Emacs on a tty, the
-Emacs job can only use that tty.  No more confusion about which type
-of frame @command{emacsclient} will use in any given Emacs session!
+(ttys) simultaneously.  If you start Emacs as an X application, it
+can only create X frames; if you start Emacs on a tty, it can only use
+that tty.  No more confusion about which type of frame
+@command{emacsclient} will use in any given Emacs session!
 
 @item
 Emacs can no longer be started as a daemon.  You can be sure that if

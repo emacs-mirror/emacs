@@ -1,3 +1,16 @@
+2009-07-02  Glenn Morris  <rgm@gnu.org>
+
+	* anti.texi (Antinews): Minor changes in phrasing.
+
+	* cal-xtra.texi, fortran-xtra.texi: Re-order a few things to reduce
+	some underfull lines in dvi output.
+
+	* emacs-xtra.texi (Introduction): Mention included in info Emacs manual.
+
+	* sending.texi (Mail Sending): Add a tiny bit on mailclient.
+
+	* vc-xtra.texi (Advanced VC Usage): End all menu items with a period.
+
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Mention maximized for
