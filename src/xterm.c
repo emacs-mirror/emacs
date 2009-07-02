@@ -6206,6 +6206,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
           /* Check if fullscreen was specified before we where mapped. */
           x_check_fullscreen (f);
+#ifdef USE_GTK
+          xg_frame_resized (f, -1, -1);
+#endif
         }
       goto OTHER;
 

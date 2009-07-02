@@ -1,5 +1,13 @@
 2009-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_frame_set_char_size): Do set width/height if the
+	frame isn't visible.
+	(xg_frame_resized): If width/height is -1, get size of window
+	from X server.
+
+	* xterm.c (handle_one_xevent): Call xg_frame_resized for USE_GTK
+	for MapNotify.
+
 	* gtkutil.c (xg_frame_set_char_size): Do not set pixel width/height
 	here or	call change_frame_size. Just call flush_and_sync.
 	(flush_and_sync): Reintroduced.

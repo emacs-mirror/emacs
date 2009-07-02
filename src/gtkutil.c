@@ -636,14 +636,24 @@ xg_frame_resized (f, pixelwidth, pixelheight)
      FRAME_PTR f;
      int pixelwidth, pixelheight;
 {
-  int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
-  int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+  int rows, columns;
 
-  if (FRAME_GTK_WIDGET (f)
-      && (columns != FRAME_COLS (f)
-	  || rows != FRAME_LINES (f)
-          || pixelwidth != FRAME_PIXEL_WIDTH (f)
-	  || pixelheight != FRAME_PIXEL_HEIGHT (f)))
+  if (pixelwidth == -1 && pixelheight == -1)
+    {
+      if (FRAME_GTK_WIDGET (f) && GTK_WIDGET_MAPPED (FRAME_GTK_WIDGET (f)))
+          gdk_window_get_geometry(FRAME_GTK_WIDGET (f)->window, 0, 0,
+                                  &pixelwidth, &pixelheight, 0);
+      else return;
+    }
+  
+
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
+  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+
+  if (columns != FRAME_COLS (f)
+      || rows != FRAME_LINES (f)
+      || pixelwidth != FRAME_PIXEL_WIDTH (f)
+      || pixelheight != FRAME_PIXEL_HEIGHT (f))
     {
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
@@ -704,14 +714,23 @@ xg_frame_set_char_size (f, cols, rows)
                      pixelwidth, pixelheight);
   x_wm_set_size_hint (f, 0, 0);
 
-  SET_FRAME_GARBAGED (f);
-
-  /* We can not call change_frame_size here, we can not set pixel 
-     width/height either.  The window manager may override our resize
-     request, XMonad does this all the time.  The best we can do
-     is try to sync, so lisp code sees the updated size as fast as
-     possible.  */
-  flush_and_sync (f);
+  /* We can not call change_frame_size for a mapped frame,
+     we can not set pixel width/height either.  The window manager may
+     override our resize request, XMonad does this all the time.
+     The best we can do is try to sync, so lisp code sees the updated
+     size as fast as possible.
+     For unmapped windows, we can set rows/cols.  When
+     the frame is mapped again we will (hopefully) get the correct size.  */
+  if (f->async_visible)
+      flush_and_sync (f);
+  else
+    {
+      FRAME_PIXEL_WIDTH (f) = pixelwidth;
+      FRAME_PIXEL_HEIGHT (f) = pixelheight;
+      change_frame_size (f, rows, cols, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+     }
 }
 
 /* Handle height changes (i.e. add/remove menu/toolbar).
