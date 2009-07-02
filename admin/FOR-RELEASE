@@ -118,7 +118,7 @@ etc/TUTORIAL.zh
 
 abbrevs.texi      -- cyd
 ack.texi          -- rgm
-anti.texi
+anti.texi         -- rgm
 arevert-xtra.texi -- rgm
 basic.texi        -- cyd
 buffers.texi      -- cyd
@@ -132,7 +132,7 @@ dired.texi        -- cyd
 dired-xtra.texi   -- rgm
 display.texi      -- cyd
 emacs.texi        -- cyd
-emacs-xtra.texi
+emacs-xtra.texi   -- rgm
 emerge-xtra.texi
 entering.texi     -- cyd
 files.texi        -- cyd
@@ -159,8 +159,7 @@ regs.texi         -- cyd
 rmail.texi        -- rgm
 screen.texi       -- cyd
 search.texi       -- cyd
-sending.texi      -- rgm (maybe needs some brief mailclient.el details in
-                          "Mail Sending" section?)
+sending.texi      -- rgm
 text.texi         -- cyd
 trouble.texi      -- cyd
 windows.texi      -- rudalics
