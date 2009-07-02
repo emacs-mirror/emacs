@@ -1,3 +1,9 @@
+2009-07-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Handle changed mount-info
+	interface.
+
 2009-07-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (set-keyboard-coding-system): Force *-unix
