@@ -1310,7 +1310,10 @@ graphical terminals."
 					'keyboard-coding-saved-meta-mode
 					(cons (nth 2 (current-input-mode))
 					      nil)))
-	    (set-input-meta-mode 8)))
+	    (set-input-meta-mode 8))
+	  ;; Avoid end-of-line conversion.
+	  (setq coding-system
+		(coding-system-change-eol-conversion coding-system 'unix)))
 
       (when saved-meta-mode
 	(set-input-meta-mode (car saved-meta-mode))
