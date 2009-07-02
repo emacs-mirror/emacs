@@ -756,6 +756,7 @@ language you are using."
 
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
+(define-key esc-map "&" 'async-shell-command)
 
 (define-key ctl-x-map [right] 'next-buffer)
 (define-key ctl-x-map [C-right] 'next-buffer)
