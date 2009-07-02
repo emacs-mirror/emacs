@@ -636,6 +636,7 @@ xg_frame_resized (f, pixelwidth, pixelheight)
      FRAME_PTR f;
      int pixelwidth, pixelheight;
 {
+  fprintf(stderr, "%s: %d/%d\n", __func__, pixelwidth, pixelheight);
   int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
   int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
 
@@ -651,6 +652,20 @@ xg_frame_resized (f, pixelwidth, pixelheight)
       change_frame_size (f, rows, columns, 0, 1, 0);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
+    }
+}
+
+static void
+flush_and_sync (f)
+     FRAME_PTR f;
+{
+  gdk_window_process_all_updates ();
+  x_sync (f);
+  while (gtk_events_pending ())
+    {
+      gtk_main_iteration ();
+      gdk_window_process_all_updates ();
+      x_sync (f);
     }
 }
 
@@ -697,8 +712,7 @@ xg_frame_set_char_size (f, cols, rows)
      request, XMonad does this all the time.  The best we can do
      is try to sync, so lisp code sees the updated size as fast as
      possible.  */
-  gdk_window_process_all_updates ();
-  x_sync (f);
+  flush_and_sync (f);
 }
 
 /* Handle height changes (i.e. add/remove menu/toolbar).

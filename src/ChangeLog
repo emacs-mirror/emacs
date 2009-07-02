@@ -1,7 +1,8 @@
 2009-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_frame_set_char_size): Do not set pixel width/height here or
-	call change_frame_size.
+	* gtkutil.c (xg_frame_set_char_size): Do not set pixel width/height
+	here or	call change_frame_size. Just call flush_and_sync.
+	(flush_and_sync): Reintroduced.
 
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
