@@ -625,7 +625,6 @@ xg_set_geometry (f)
                      f->left_pos, f->top_pos);
 }
 
-
 /* Function to handle resize of our frame.  As we have a Gtk+ tool bar
    and a Gtk+ menu bar, we get resize events for the edit part of the
    frame only.  We let Gtk+ deal with the Gtk+ parts.
@@ -656,7 +655,6 @@ xg_frame_resized (f, pixelwidth, pixelheight)
 }
 
 /* Resize the outer window of frame F after chainging the height.
-   This happend when the menu bar or the tool bar is added or removed.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
@@ -692,28 +690,15 @@ xg_frame_set_char_size (f, cols, rows)
                      pixelwidth, pixelheight);
   x_wm_set_size_hint (f, 0, 0);
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
-     but the window manager will get around to dealing with the size
-     change request eventually, and we'll hear how it went when the
-     ConfigureNotify event gets here.
-
-     We could just not bother storing any of this information here,
-     and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the Lisp code, since size changes
-     wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.
-
-     We pass 1 for DELAY since we can't run Lisp code inside of
-     a BLOCK_INPUT.  */
-  change_frame_size (f, rows, cols, 0, 1, 0);
-  FRAME_PIXEL_WIDTH (f) = pixelwidth;
-  FRAME_PIXEL_HEIGHT (f) = pixelheight;
-
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
   SET_FRAME_GARBAGED (f);
+
+  /* We can not call change_frame_size here, we can not set pixel 
+     width/height either.  The window manager may override our resize
+     request, XMonad does this all the time.  The best we can do
+     is try to sync, so lisp code sees the updated size as fast as
+     possible.  */
+  gdk_window_process_all_updates ();
+  x_sync (f);
 }
 
 /* Handle height changes (i.e. add/remove menu/toolbar).
