@@ -2054,6 +2054,23 @@ to `shell-command-history'."
 	   (or hist 'shell-command-history)
 	   args)))
 
+(defun async-shell-command (command &optional output-buffer error-buffer)
+  "Execute string COMMAND asynchronously in background.
+
+Like `shell-command' but if COMMAND doesn't end in ampersand, adds `&'
+surrounded by whitespace and executes the command asynchronously.
+The output appears in the buffer `*Async Shell Command*'."
+  (interactive
+   (list
+    (read-shell-command "Async shell command: " nil nil
+			(and buffer-file-name
+			     (file-relative-name buffer-file-name)))
+    current-prefix-arg
+    shell-command-default-error-buffer))
+  (unless (string-match "&[ \t]*\\'" command)
+    (setq command (concat command " &")))
+  (shell-command command output-buffer error-buffer))
+
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
