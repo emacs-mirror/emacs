@@ -1,4 +1,4 @@
-;;; redisplay-testsuite.el --- Test suite for newsticker.
+;;; redisplay-testsuite.el --- Test suite for redisplay.
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
