@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included in emacs-xtra.texi when producing the printed
@@ -14,7 +15,7 @@ the Emacs Manual}).  This chapter describes more advanced VC usage.
 
 @menu
 * Remote Repositories::     Efficient access to remote VCS servers.
-* Revision Tags::           Symbolic names for revisions
+* Revision Tags::           Symbolic names for revisions.
 * Miscellaneous VC::        Various other commands and features of VC.
 * Customizing VC::          Variables that change VC's behavior.
 @end menu
