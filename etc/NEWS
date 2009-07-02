@@ -41,6 +41,11 @@ frame parameter fullscreen makes the Emacs frame maximized.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** Info
+
+*** The new command `Info-virtual-index' bound to "I" displays a menu of
+matched topics found in the index.
+
 +++
 ** New connection methods in Tramp.
 On systems which support GVFS-Fuse, Tramp offers the new connection
@@ -49,6 +54,13 @@ methods "dav", "davs", "obex" and "synce".
 ** VC and related modes
 
 *** When a file is not found, VC will not try to check it out of RCS anymore.
+
+** Miscellaneous
+
+*** The new command `async-shell-command' bound globally to `M-&' executes
+the command asynchronously without the need to manually add ampersand to
+the end of the command.  Its output appears in the buffer `*Async Shell
+Command*'.
 
 
 * Installation Changes in Emacs 23.1
