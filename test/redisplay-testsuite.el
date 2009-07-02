@@ -118,3 +118,5 @@
   (test-redisplay-1)
   (test-redisplay-2)
   (goto-char (point-min)))
+
+;; arch-tag: fcee53c8-024f-403d-9154-61ae3ce0bfb8
