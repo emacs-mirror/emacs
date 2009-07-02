@@ -1,3 +1,62 @@
+2009-07-02  Juri Linkov  <juri@jurta.org>
+
+	* info.el: Virtual Info files and nodes.
+	(Info-virtual-files, Info-virtual-nodes): New variables.
+	(Info-current-node-virtual): New variable.
+	(Info-virtual-file-p, Info-virtual-fun, Info-virtual-call):
+	New functions.
+	(Info-file-supports-index-cookies): Use Info-virtual-file-p
+	to check for a virtual file instead of checking a fixed list
+	of node names.
+	(Info-find-file): Use Info-virtual-fun and Info-virtual-call
+	instead of ad-hoc processing of "dir" and (apropos history toc).
+	(Info-find-node-2): Use Info-virtual-fun and Info-virtual-call
+	instead of ad-hoc processing of "dir" and (apropos history toc).
+	Reread a file when moving from a virtual node.
+	(add-to-list)<Info-virtual-files>: Add "\\`dir\\'".
+	(Info-directory-toc-nodes, Info-directory-find-file)
+	(Info-directory-find-node): New functions.
+	(add-to-list)<Info-virtual-files>: Add "\\`\\*History\\*\\'".
+	(Info-history): Move part of code to
+	`Info-history-find-node'.
+	(Info-history-toc-nodes, Info-history-find-file)
+	(Info-history-find-node): New functions.
+	(add-to-list)<Info-virtual-nodes>: Add "\\`\\*TOC\\*\\'".
+	(Info-toc): Move part of code to `Info-toc-find-node'.
+	(Info-toc-find-node): New function.
+	(Info-toc-insert): Renamed from `Info-insert-toc'.  Don't insert
+	the current Info file name to references because now the node
+	"*TOC*" belongs to the same Info manual.
+	(Info-toc-build): Renamed from `Info-build-toc'.
+	(Info-toc-nodes): Rename input argument `file' to `filename'.
+	Use Info-virtual-fun, Info-virtual-call and Info-virtual-file-p
+	instead of ad-hoc processing of ("dir" apropos history toc).
+	(Info-index-nodes): Use Info-virtual-file-p
+	to check for a virtual file instead of checking a fixed list
+	of node names.
+	(Info-index-node): Add check for `Info-current-node-virtual'.
+	Raise `save-match-data' higher up the tree to contain
+	`search-forward' too (bug fix).
+	(add-to-list)<Info-virtual-nodes>: Add "\\`\\*Index.*\\*\\'".
+	(Info-virtual-index-nodes): New variable.
+	(Info-virtual-index-find-node, Info-virtual-index): New functions.
+	(add-to-list)<Info-virtual-files>: Add "\\`\\*Apropos\\*\\'".
+	(Info-apropos-file, Info-apropos-nodes): New variables.
+	(Info-apropos-toc-nodes, Info-apropos-find-file)
+	(Info-apropos-find-node, Info-apropos-matches): New functions.
+	(info-apropos): Move part of code to `Info-apropos-find-node' and
+	`Info-apropos-matches'.
+	(Info-mode-map): Bind "I" to `Info-virtual-index'.
+	(Info-desktop-buffer-misc-data): Use Info-virtual-file-p to check
+	for a virtual file instead of checking a fixed list of node names.
+
+	* simple.el (async-shell-command): New command.
+
+	* bindings.el (esc-map): Bind "&" to `async-shell-command'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-connection-mounted-p): Use `elt'
+	instead of `mount-info'.
+
 2009-07-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (tramp-gvfs-handler-mounted-unmounted)
@@ -235,7 +294,7 @@
 
 	* files.el (trash-directory): Fix defcustom type.
 
-2009-03-28  Juri Linkov  <juri@jurta.org>
+2009-06-28  Juri Linkov  <juri@jurta.org>
 
 	* help-fns.el (describe-function-1): Correctly locate adviced
 	functions in hyperlink (Bug#2438).
