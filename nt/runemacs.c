@@ -177,7 +177,7 @@ error:
 void set_user_model_id ()
 {
   HMODULE shell;
-  HRESULT (WINAPI * set_user_model) (PCWSTR);
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
 
   /* On Windows 7 and later, we need to set the user model ID
      to associate emacsclient launched files with Emacs frames
