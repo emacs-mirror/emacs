@@ -133,18 +133,19 @@ dired-xtra.texi   -- rgm
 display.texi      -- cyd
 emacs.texi        -- cyd
 emacs-xtra.texi   -- rgm
-emerge-xtra.texi
+emerge-xtra.texi  -- rgm
 entering.texi     -- cyd
 files.texi        -- cyd
 fixit.texi        -- cyd
 fortran-xtra.texi -- rgm
 frames.texi       -- cyd
-glossary.texi
+glossary.texi     -- rgm  Are "MULE" & "Multibyte Character" still appropriate?
+                          Add "Unicode"?
 help.texi         -- cyd
 indent.texi       -- cyd
 killing.texi      -- cyd
 kmacro.texi       -- cyd
-macos.texi     -- davidswelt
+macos.texi        -- davidswelt
 maintaining.texi  -- cyd
 major.texi        -- cyd
 mark.texi         -- cyd
