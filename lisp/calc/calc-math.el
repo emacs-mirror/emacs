@@ -106,7 +106,11 @@ If this can't be done, return NIL."
                (number-to-string
                 (funcall fn 
 			 (string-to-number 
-			  (let ((calc-number-radix 10))
+			  (let 
+                              ((calc-number-radix 10)
+                               (calc-float-format (list 'float calc-internal-prec))
+                               (calc-group-digits nil)
+                               (calc-point-char "."))
 			    (math-format-number (math-float x)))))))
             (error nil))))))
 

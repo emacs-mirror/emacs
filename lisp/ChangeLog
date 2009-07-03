@@ -1,3 +1,8 @@
+2009-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc-math.el (math-use-emacs-fn): Make sure that the number is
+	formatted correctly.
+
 2009-07-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (def-gdb-auto-update-handler)
