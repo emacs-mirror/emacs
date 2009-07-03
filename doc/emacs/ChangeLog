@@ -1,3 +1,24 @@
+2009-07-03  Glenn Morris  <rgm@gnu.org>
+
+	* emerge-xtra.texi (Emerge): Tweak Misc menu description.
+	(Submodes of Emerge): Skip Prefers is only relevant with an ancestor.
+	(Merge Commands): `.' does not seem to work in A or B buffer.
+	`l' can recreate the 3-window display.
+
+	* glossary.texi (Glossary): Minor phrasing changes throughout.
+	Add more internal cross-references.
+	<Autoloading>: You can't really autoload a variable.
+	<C-M->: Move details here from `M-C-' item.
+	<Continuation Line>: Refer to `Truncation.'
+	<Daemon, Free Software, Free Software Foundation, FSF, GNU>:
+	<Home Directory, Unix>: New entries.
+	<Deletion of Files>: Mention recycle bins.
+	<Directory>: Mention ``folders.''
+	<Error>: Don't mention ``type-ahead.''
+	<Fringe>: Refer to the manual node.
+	<Minor Mode>: Can be global or local.
+	<Spell Checking>: There are other checkers besides Ispell.
+
 2009-07-02  Glenn Morris  <rgm@gnu.org>
 
 	* anti.texi (Antinews): Minor changes in phrasing.
