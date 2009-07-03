@@ -623,18 +623,11 @@ sys_suspend ()
   }
 
 #else /* No SIGTSTP */
-#ifdef USG_JOBCTRL /* If you don't know what this is don't mess with it */
-  ptrace (0, 0, 0, 0);		/* set for ptrace - caught by csh */
-  kill (getpid (), SIGQUIT);
-
-#else /* No SIGTSTP or USG_JOBCTRL */
-
 /* On a system where suspending is not implemented,
    instead fork a subshell and let it talk directly to the terminal
    while we wait.  */
   sys_subshell ();
 
-#endif /* no USG_JOBCTRL */
 #endif /* no SIGTSTP */
 }
 
@@ -2782,14 +2775,10 @@ set_file_times (filename, atime, mtime)
 /*
  * Make a directory.
  */
-#ifdef MKDIR_PROTOTYPE
-MKDIR_PROTOTYPE
-#else
 int
 mkdir (dpath, dmode)
      char *dpath;
      int dmode;
-#endif
 {
   int cpid, status, fd;
   struct stat statbuf;
@@ -3211,8 +3200,8 @@ list_system_processes ()
   return proclist;
 }
 
-/* The WINDOWSNT implementation is on w32.c.
-   The MSDOS implementation is on dosfns.c.  */
+/* The WINDOWSNT implementation is in w32.c.
+   The MSDOS implementation is in dosfns.c.  */
 #elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
@@ -3754,8 +3743,8 @@ system_process_attributes (Lisp_Object pid)
   return attrs;
 }
 
-/* The WINDOWSNT implementation is on w32.c.
-   The MSDOS implementation is on dosfns.c.  */
+/* The WINDOWSNT implementation is in w32.c.
+   The MSDOS implementation is in dosfns.c.  */
 #elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object

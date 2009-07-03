@@ -3464,9 +3464,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   tty->type = xstrdup (terminal_type);
 
-#ifdef subprocesses
   add_keyboard_wait_descriptor (fileno (tty->input));
-#endif
 
 #endif	/* !DOS_NT */
 

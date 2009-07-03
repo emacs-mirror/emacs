@@ -1,5 +1,12 @@
 2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* sysdep.c (sys_suspend): Remove USG_JOBCTRL #ifdef, unused.
+	(mkdir): Remove MKDIR_PROTOTYPE #ifdef, unused.
+
+	* callproc.c (child_setup): Use #else instead of a separate #ifdef.
+
+	* term.c (init_tty): Remove spurious #ifdef.
+
 	* m/mips.h: Mention this file is also used for netbsd.
 	* m/pmax.h: Remove file.
 

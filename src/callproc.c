@@ -1127,16 +1127,14 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        at least check.  */
     if (chdir (temp) < 0)
       _exit (errno);
-#endif
-
-#ifdef DOS_NT
+#else /* DOS_NT */
     /* Get past the drive letter, so that d:/ is left alone.  */
     if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
       {
 	temp += 2;
 	i -= 2;
       }
-#endif
+#endif /* DOS_NT */
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
     while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
