@@ -1,10 +1,11 @@
 2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (--enable-profiling): New option.
+	(mips-*-netbsd*, mipsel-*-netbsd*, mipseb-*-netbsd*): Use machine=mips.
 
 2009-06-27  Glenn Morris  <rgm@gnu.org>
 
-	* configure: Restore netbsd on mips, mipsel, mipseb.
+	* configure.in: Restore netbsd on mips, mipsel, mipseb.
 
 2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
 

@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    USUAL-OPSYS="note"
 
 NOTE-START
-This is only used on GNU/Linux.
+This is used on GNU/Linux and netbsd.
 NOTE-END  */
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word

@@ -2535,9 +2535,9 @@ _ACEOF
     case "${canonical}" in
       alpha*-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
-      mips-*-netbsd*)	machine=pmax ;;
-      mipsel-*-netbsd*)	machine=pmax ;;
-      mipseb-*-netbsd*)	machine=pmax ;;
+      mips-*-netbsd*)	machine=mips ;;
+      mipsel-*-netbsd*)	machine=mips ;;
+      mipseb-*-netbsd*)	machine=mips ;;
       powerpc-*-netbsd*) machine=macppc ;;
       sparc*-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
