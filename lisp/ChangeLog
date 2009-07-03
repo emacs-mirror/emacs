@@ -1,3 +1,12 @@
+2009-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-methods)
+	(tramp-gvfs-zeroconf-domain)
+	(tramp-bluez-discover-devices-timeout): Add version flag.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Polish handling of
+	incompatibilities between GVFS 0.2 and 1.0.
+
 2009-07-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Added make-pointer-invisible.
