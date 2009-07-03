@@ -1,3 +1,8 @@
+2009-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (WINNT_SUPPORT): Add common-win.elc, like
+	src/Makefile.in did.
+
 2009-06-30  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (w32_give_focus): Use GetModuleHandle for library
