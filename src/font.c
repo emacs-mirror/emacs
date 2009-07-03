@@ -2763,6 +2763,33 @@ font_delete_unmatched (list, spec, size)
   return Fnreverse (val);
 }
 
+static Lisp_Object font_entity_vector_cache;
+
+/* Concatenate lists of font-entities in VEC_ENTITY_LIST or length LEN.  */
+
+static Lisp_Object
+font_concat_entities (Lisp_Object *vec_entity_list, int len)
+{
+  int i, j, num;
+  Lisp_Object vec, tail;
+  
+  for (i = 0, num = 0; i < len; i++)
+    num += XINT (Flength (vec_entity_list[i]));
+  vec = Fgethash (make_number (num), font_entity_vector_cache, Qnil);
+  if (NILP (vec))
+    {
+      vec = Fvconcat (len, vec_entity_list);
+      Fputhash (make_number (num), vec, font_entity_vector_cache);
+    }
+  else
+    {
+      for (i = 0, j = 0; i < len; i++)
+	for (tail = vec_entity_list[i]; CONSP (tail); tail = XCDR (tail), j++)
+	  ASET (vec, j, XCAR (tail));
+    }
+  return vec;
+}
+
 
 /* Return a vector of font-entities matching with SPEC on FRAME.  */
 
@@ -2831,7 +2858,7 @@ font_list_entities (frame, spec)
 	  vec[i++] = val;
       }
 
-  val = (i > 0 ? Fvconcat (i, vec) : null_vector);
+  val = (i > 0 ? font_concat_entities (vec, i) : null_vector);
   font_add_log ("list", spec, val);
   return (val);
 }
@@ -5178,6 +5205,14 @@ syms_of_font ()
   staticpro (&Vfont_log_deferred);
   Vfont_log_deferred = Fmake_vector (make_number (3), Qnil);
 
+  staticpro (&font_entity_vector_cache);
+  { /* Here we rely on the fact that syms_of_font is called fairly
+       late, when QCweakness is known to be set.  */
+    Lisp_Object args[2];
+    args[0] = QCweakness;
+    args[1] = Qt;
+    font_entity_vector_cache = Fmake_hash_table (2, args);
+  }
 #if 0
 #ifdef HAVE_LIBOTF
   staticpro (&otf_list);
