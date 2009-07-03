@@ -23,12 +23,15 @@
 ;;; Commentary:
 
 ;; Access functions for the GVFS daemon from Tramp.  Tested with GVFS
-;; 1.0.2 (Ubuntu 8.10, Gnome 2.24).
+;; 1.0.2 (Ubuntu 8.10, Gnome 2.24).  It has been reported also to run
+;; with GVFS 0.2.5 (Ubuntu 8.04, Gnome 2.22), but there is an
+;; incompatibility with the mount_info structure, which has been
+;; worked around.
 
 ;; All actions to mount a remote location, and to retrieve mount
 ;; information, are performed by D-Bus messages.  File operations
 ;; themselves are performed via the mounted filesystem in ~/.gvfs.
-;; Consequently, GNU Emacs 23.0.90 with enabled D-Bus bindings is a
+;; Consequently, GNU Emacs 23.1 with enabled D-Bus bindings is a
 ;; precondition.
 
 ;; The GVFS D-Bus interface is said to be instable.  There are even no
@@ -102,6 +105,7 @@
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
   "*List of methods for remote files, accessed with GVFS."
   :group 'tramp
+  :version "23.2"
   :type '(repeat (choice (const "dav")
 			 (const "davs")
 			 (const "ftp")
@@ -118,6 +122,7 @@
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
+  :version "23.2"
   :type 'string)
 
 ;; Add the methods to `tramp-methods', in order to allow minibuffer
@@ -175,7 +180,7 @@
 ;;   OBJECT_PATH	  object_path
 ;;   STRING		  display_name
 ;;   STRING		  stable_name
-;;   STRING		  x_content_types
+;;   STRING		  x_content_types	Since GVFS 1.0 only !!!
 ;;   STRING		  icon
 ;;   STRING		  prefered_filename_encoding
 ;;   BOOLEAN		  user_visible
@@ -333,6 +338,7 @@ A value of 0 would require an immediate discovery during hostname
 completion, nil means to use always cached values for discovered
 devices."
   :group 'tramp
+  :version "23.2"
   :type '(choice (const nil) integer))
 
 (defvar tramp-bluez-discovery nil
@@ -869,10 +875,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 \"org.gtk.vfs.MountTracker.unmounted\" signals."
   (ignore-errors
     (let* ((signal-name (dbus-event-member-name last-input-event))
-	   ;; The interface of mount-info has been changed.  We must
-	   ;; handle both cases.
-	   (last-nth (if (nth 9 mount-info) 9 8))
-	   (mount-spec (nth 1 (nth last-nth mount-info)))
+	   (mount-spec (cadar (last mount-info)))
 	   (method (dbus-byte-array-to-string (cadr (assoc "type" mount-spec))))
 	   (user (dbus-byte-array-to-string (cadr (assoc "user" mount-spec))))
 	   (domain (dbus-byte-array-to-string
@@ -901,7 +904,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (tramp-set-file-property
 	   v "/" "fuse-mountpoint"
 	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (nth (1- last-nth) mount-info)))))))))
+	    (dbus-byte-array-to-string (car (last mount-info 2))))))))))
 
 (dbus-register-signal
  :session nil tramp-gvfs-path-mounttracker
@@ -923,10 +926,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	     :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	     tramp-gvfs-interface-mounttracker "listMounts"))
 	 nil)
-      ;; The interface of mount-info has been changed.  We must handle
-      ;; both cases.
-      (let* ((last-nth (if (nth 9 elt) 9 8))
-	     (mount-spec (nth 1 (nth last-nth elt)))
+      (let* ((mount-spec (cadar (last elt)))
 	     (method (dbus-byte-array-to-string
 		      (cadr (assoc "type" mount-spec))))
 	     (user (dbus-byte-array-to-string
@@ -957,7 +957,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (tramp-set-file-property
 	   vec "/" "fuse-mountpoint"
 	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (nth (1- last-nth) elt))))
+	    (dbus-byte-array-to-string (car (last elt 2)))))
 	  (throw 'mounted t))))))
 
 (defun tramp-gvfs-mount-spec (vec)
