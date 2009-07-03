@@ -525,6 +525,8 @@ fontset_find_font (fontset, c, face, id, fallback)
 {
   Lisp_Object vec, font_group;
   int i, charset_matched = -1;
+  Lisp_Object rfont_def;
+  int found_index;
   FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
     ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
 
@@ -564,21 +566,22 @@ fontset_find_font (fontset, c, face, id, fallback)
   /* Find the first available font in the vector of RFONT-DEF.  */
   for (i = 0; i < ASIZE (vec); i++)
     {
-      Lisp_Object rfont_def, font_def;
+      Lisp_Object font_def;
       Lisp_Object font_entity, font_object;
 
       if (i == 0 && charset_matched >= 0)
 	{
 	  /* Try the element matching with the charset ID at first.  */
-	  rfont_def = AREF (vec, charset_matched);
+	  found_index = charset_matched;
 	  charset_matched = -1;
 	  i--;
 	}
       else if (i != charset_matched)
-	rfont_def = AREF (vec, i);
+	found_index = i;
       else
 	continue;
 
+      rfont_def = AREF (vec, found_index);
       if (NILP (rfont_def))
 	/* This is a sign of not to try the other fonts.  */
 	return Qt;
@@ -623,7 +626,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	}
 
       if (font_has_char (f, font_object, c))
-	return rfont_def;
+	goto found;
 
       /* Find a font already opened, maching with the current spec,
 	 and supporting C. */
@@ -637,7 +640,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	    break;
 	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
 	  if (! NILP (font_object) && font_has_char (f, font_object, c))
-	    return rfont_def;
+	    goto found;
 	}
 
       /* Find a font-entity with the current spec and supporting C.  */
@@ -661,10 +664,12 @@ fontset_find_font (fontset, c, face, id, fallback)
 	  for (j = 0; j < i; j++)
 	    ASET (new_vec, j, AREF (vec, j));
 	  ASET (new_vec, j, rfont_def);
+	  found_index = j;
 	  for (j++; j < ASIZE (new_vec); j++)
 	    ASET (new_vec, j, AREF (vec, j - 1));
 	  XSETCDR (font_group, new_vec);
-	  return rfont_def;
+	  vec = new_vec;
+	  goto found;
 	}
 
       /* No font of the current spec for C.  Try the next spec.  */
@@ -673,6 +678,20 @@ fontset_find_font (fontset, c, face, id, fallback)
 
   FONTSET_SET (fontset, make_number (c), make_number (0));
   return Qnil;
+
+ found:
+  if (fallback && found_index > 0)
+    {
+      /* The order of fonts in the fallback font-group is not that
+	 important, and it is better to move the found font to the
+	 first of the group so that the next try will find it
+	 quickly. */
+      for (i = found_index; i > 0; i--)
+	ASET (vec, i, AREF (vec, i - 1));
+      ASET (vec, 0, rfont_def);
+      found_index = 0;
+    }
+  return rfont_def;
 }
 
 
@@ -685,13 +704,14 @@ fontset_font (fontset, c, face, id)
 {
   Lisp_Object rfont_def;
   Lisp_Object base_fontset;
+  int try_fallback = 0, try_default_fallback = 0;
 
   /* Try a font-group of FONTSET. */
   rfont_def = fontset_find_font (fontset, c, face, id, 0);
   if (VECTORP (rfont_def))
     return rfont_def;
-  if (EQ (rfont_def, Qt))
-    goto no_font;
+  if (! EQ (rfont_def, Qt))
+    try_fallback = 1;
 
   /* Try a font-group of the default fontset. */
   base_fontset = FONTSET_BASE (fontset);
@@ -703,28 +723,29 @@ fontset_font (fontset, c, face, id)
       rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
       if (VECTORP (rfont_def))
 	return rfont_def;
-      if (EQ (rfont_def, Qt))
-	goto no_font;
+      if (! EQ (rfont_def, Qt))
+	try_default_fallback = 1;
     }
 
   /* Try a fallback font-group of FONTSET. */
-  rfont_def = fontset_find_font (fontset, c, face, id, 1);
-  if (VECTORP (rfont_def))
-    return rfont_def;
-  if (EQ (rfont_def, Qt))
-    goto no_font;
+  if (try_fallback)
+    {
+      rfont_def = fontset_find_font (fontset, c, face, id, 1);
+      if (VECTORP (rfont_def))
+	return rfont_def;
+      /* Remember that FONTSET has no font for C.  */
+      FONTSET_SET (fontset, make_number (c), Qt);
+    }
 
   /* Try a fallback font-group of the default fontset . */
-  if (! EQ (base_fontset, Vdefault_fontset))
+  if (try_default_fallback)
     {
       rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 1);
       if (VECTORP (rfont_def))
 	return rfont_def;
+      /* Remember that the default fontset has no font for C.  */
+      FONTSET_SET (FONTSET_DEFAULT (fontset), make_number (c), Qt);
     }
-
- no_font:
-  /* Remember that we have no font for C.  */
-  FONTSET_SET (fontset, make_number (c), Qt);
 
   return Qnil;
 }
