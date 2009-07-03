@@ -1012,11 +1012,11 @@ so last access time will always be midnight of that day.  */)
       UNBLOCK_INPUT;
     }
   if (uname)
-    values[2] = build_string (uname);
+    values[2] = DECODE_SYSTEM (build_string (uname));
   else
     values[2] = make_uid (&s);
   if (gname)
-    values[3] = build_string (gname);
+    values[3] = DECODE_SYSTEM (build_string (gname));
   else
     values[3] = make_gid (&s);
 
