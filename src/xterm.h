@@ -166,6 +166,9 @@ struct x_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
+  /* The invisible cursor used for pointer blanking.  */
+  Cursor invisible_cursor;
+
 #ifdef USE_GTK
   /* The GDK cursor for scroll bars and popup menus.  */
   GdkCursor *xg_cursor;
@@ -522,6 +525,7 @@ struct x_output
   Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor current_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display an hourglass cursor.  */

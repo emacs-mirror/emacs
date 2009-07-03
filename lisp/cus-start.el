@@ -179,6 +179,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1))
 			      "22.1")
+	     (make-pointer-invisible mouse boolean "23.2")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c

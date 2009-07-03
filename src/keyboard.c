@@ -1867,6 +1867,8 @@ command_loop_1 ()
 		  if (value == 2)
 		    nonundocount = 0;
 
+                  frame_make_pointer_invisible ();
+
 		  if (! NILP (Vpost_command_hook))
 		    /* Put this before calling adjust_point_for_property
 		       so it will only get called once in any case.  */
@@ -7133,6 +7135,8 @@ read_avail_input (expected)
 
   if (err && !nread)
     nread = -1;
+
+  frame_make_pointer_visible ();
 
   return nread;
 }

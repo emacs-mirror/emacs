@@ -3128,6 +3128,25 @@ XTflash (f)
 #endif /* defined (HAVE_TIMEVAL) && defined (HAVE_SELECT) */
 
 
+static void
+XTtoggle_invisible_pointer (f, invisible)
+     FRAME_PTR f;
+     int invisible;
+{
+  BLOCK_INPUT;
+  if (invisible) 
+    {
+      if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor != 0)
+        XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                       FRAME_X_DISPLAY_INFO (f)->invisible_cursor);
+    }
+  else
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                   f->output_data.x->current_cursor);
+  UNBLOCK_INPUT;
+}
+
+
 /* Make audible bell.  */
 
 void
@@ -4568,7 +4587,7 @@ x_create_toolkit_scroll_bar (f, bar)
   /* Set the cursor to an arrow.  I didn't find a resource to do that.
      And I'm wondering why it hasn't an arrow cursor by default.  */
   XDefineCursor (XtDisplay (widget), XtWindow (widget),
-		 f->output_data.x->nontext_cursor);
+                 f->output_data.x->nontext_cursor);
 
 #else /* !USE_MOTIF i.e. use Xaw */
 
@@ -7344,7 +7363,10 @@ x_define_frame_cursor (f, cursor)
      struct frame *f;
      Cursor cursor;
 {
-  XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
+  if (!f->pointer_invisible
+      && f->output_data.x->current_cursor != cursor)
+    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
+  f->output_data.x->current_cursor = cursor;
 }
 
 
@@ -10657,6 +10679,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
   terminal->ins_del_lines_hook = x_ins_del_lines;
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = XTring_bell;
+  terminal->toggle_invisible_pointer_hook = XTtoggle_invisible_pointer;
   terminal->reset_terminal_modes_hook = XTreset_terminal_modes;
   terminal->set_terminal_modes_hook = XTset_terminal_modes;
   terminal->update_begin_hook = x_update_begin;

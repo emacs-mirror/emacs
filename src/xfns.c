@@ -941,6 +941,35 @@ x_set_background_color (f, arg, oldval)
     }
 }
 
+static Cursor
+make_invisible_cursor (f)
+     struct frame *f;
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+  static char const no_data[] = { 0 };
+  Pixmap pix;
+  XColor col;
+  Cursor c;
+
+  x_catch_errors (dpy);
+  pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
+                               no_data, 1, 1);
+  if (! x_had_errors_p (dpy) && pix != None)
+    {
+      col.pixel = 0;
+      col.red = col.green = col.blue = 0;
+      col.flags = DoRed | DoGreen | DoBlue;
+      c = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (x_had_errors_p (dpy) || c == None)
+        c = 0;
+      XFreePixmap (dpy, pix);
+    }
+
+  x_uncatch_errors ();
+
+  return c;
+}
+
 void
 x_set_mouse_color (f, arg, oldval)
      struct frame *f;
@@ -1046,8 +1075,12 @@ x_set_mouse_color (f, arg, oldval)
   }
 
   if (FRAME_X_WINDOW (f) != 0)
-    XDefineCursor (dpy, FRAME_X_WINDOW (f), cursor);
+    XDefineCursor (dpy, FRAME_X_WINDOW (f),
+                   f->output_data.x->current_cursor = cursor);
 
+  if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
+    FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
+  
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
     XFreeCursor (dpy, x->text_cursor);
@@ -2671,7 +2704,7 @@ x_window (f, window_prompting, minibuffer_only)
   }
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 f->output_data.x->text_cursor);
+		 f->output.x->current_cursor = f->output_data.x->text_cursor);
 
   UNBLOCK_INPUT;
 
@@ -2816,7 +2849,7 @@ x_window (f)
   }
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 f->output_data.x->text_cursor);
+		 f->output.x->current_cursor = f->output_data.x->text_cursor);
 
   UNBLOCK_INPUT;
 

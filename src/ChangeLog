@@ -1,3 +1,33 @@
+2009-07-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Add invisible_cursor.
+	(struct x_output): Add current_cursor.
+
+	* xterm.c (XTtoggle_invisible_pointer): New function.
+	(x_define_frame_cursor): Don't define cursor if invisible or the
+	same as before.  Set current_cursor.
+	(x_create_terminal): Set toggle_invisible_pointer_hook.
+
+	* xfns.c (make_invisible_cursor): New function.
+	(x_set_mouse_color): Call make_invisible_cursor.
+	Set current_cursor.
+	(x_window): Set current_cursor.
+
+	* termhooks.h (struct terminal): Add toggle_invisible_pointer_hook.
+
+	* keyboard.c (command_loop_1): Call frame_make_pointer_invisible after
+	inserting a character.
+	(read_avail_input): Call frame_make_pointer_visible.
+
+	* frame.c (Vmake_pointer_invisible): New variable.
+	(frame_make_pointer_invisible, frame_make_pointer_visible): New
+	functions.
+	(syms_of_frame): DEFVAR make-pointer-invisible, initialize to Qt.
+
+	* frame.h: Declare frame_make_pointer_invisible and
+	frame_make_pointer_visible.
+	(struct frame): Add pointer_invisible.
+
 2009-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_set_char_size): Do set width/height if the

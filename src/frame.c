@@ -52,6 +52,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 
+/* If we shall make pointer invisible when typing or not.  */
+Lisp_Object Vmake_pointer_invisible;
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The name we're using in resource queries.  Most often "emacs".  */
@@ -4350,6 +4353,37 @@ x_figure_window_size (f, parms, toolbar_p)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+void
+frame_make_pointer_invisible ()
+{
+  if (! NILP (Vmake_pointer_invisible))
+    {
+      struct frame *f = SELECTED_FRAME ();
+      if (f && !f->pointer_invisible
+          && FRAME_TERMINAL (f)->toggle_invisible_pointer_hook)
+        {
+          f->mouse_moved = 0;
+          FRAME_TERMINAL (f)->toggle_invisible_pointer_hook (f, 1);
+          f->pointer_invisible = 1;
+        }
+    }
+}
+
+void
+frame_make_pointer_visible ()
+{
+  /* We don't check Vmake_pointer_invisible here in case the
+     pointer was invisible when Vmake_pointer_invisible was set to nil.  */
+
+  struct frame *f = SELECTED_FRAME ();
+  if (f && f->pointer_invisible && f->mouse_moved
+      && FRAME_TERMINAL (f)->toggle_invisible_pointer_hook)
+    {
+      FRAME_TERMINAL (f)->toggle_invisible_pointer_hook (f, 0);
+      f->pointer_invisible = 0;
+    }
+}
+
 
 
 /***********************************************************************
@@ -4551,6 +4585,11 @@ mouse, while keyboard input turns off the highlight even when the mouse
 is over the clickable text.  However, the mouse shape still indicates
 when the mouse is over clickable text.  */);
   Vmouse_highlight = Qt;
+
+  DEFVAR_LISP ("make-pointer-invisible", &Vmake_pointer_invisible,
+               doc: /* If non-nil, make pointer invisible while typing.
+The pointer becomes visible again when the mouse is moved.  */);
+  Vmake_pointer_invisible = Qt;
 
   DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
 	       doc: /* Functions to be run before deleting a frame.

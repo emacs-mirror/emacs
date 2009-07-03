@@ -38,6 +38,9 @@ frame parameter fullscreen makes the Emacs frame maximized.
 +++
 ** New frame parameter sticky makes Emacs frames sticky in virtual desktops.
 
+** The pointer now becomes invisible when typing.
+Customize make-pointer-invisible to turn it off.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 

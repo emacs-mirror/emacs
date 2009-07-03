@@ -440,6 +440,9 @@ struct frame
      since the last time we checked.  */
   unsigned char mouse_moved :1;
 
+  /* Nonzero means that the pointer is invisible. */
+  unsigned char pointer_invisible :1;
+
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
@@ -830,6 +833,8 @@ extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
 							Lisp_Object));
 #endif /* HAVE_WINDOW_SYSTEM */
 extern int other_visible_frames P_ ((struct frame *));
+extern void frame_make_pointer_invisible P_ ((void));
+extern void frame_make_pointer_visible P_ ((void));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
@@ -1110,7 +1115,7 @@ extern Lisp_Object Vframe_alpha_lower_limit;
 extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 extern void validate_x_resource_name P_ ((void));
-
+                                           
 extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object attribute,
 					   Lisp_Object class,
