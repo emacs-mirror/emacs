@@ -31,7 +31,7 @@ and @ref{Top, Ediff,, ediff, The Ediff Manual}.
 			  changing states of differences, etc.
 * Exiting Emerge::	What to do when you've finished the merge.
 * Combining in Emerge::	    How to keep both alternatives for a difference.
-* Fine Points of Emerge::   Misc.
+* Fine Points of Emerge::   Miscellaneous issues.
 @end menu
 
 @node Overview of Emerge
@@ -149,17 +149,18 @@ faster as long as you simply choose one of the alternatives from the
 input.  The mode line indicates Auto Advance mode with @samp{A}.
 
   If Skip Prefers mode is in effect, the @kbd{n} and @kbd{p} commands
-skip over differences in states prefer-A and prefer-B (@pxref{State of
-Difference}).  Thus you see only differences for which neither version
-is presumed ``correct.''  The mode line indicates Skip Prefers mode with
-@samp{S}.
+skip over differences in states ``prefer-A'' and ``prefer-B''
+(@pxref{State of Difference}).  Thus you see only differences for
+which neither version is presumed ``correct.''  The mode line
+indicates Skip Prefers mode with @samp{S}.  This mode is only relevant
+when there is an ancestor.
 
 @findex emerge-auto-advance-mode
 @findex emerge-skip-prefers-mode
   Use the command @kbd{s a} (@code{emerge-auto-advance-mode}) to set or
 clear Auto Advance mode.  Use @kbd{s s}
 (@code{emerge-skip-prefers-mode}) to set or clear Skip Prefers mode.
-These commands turn on the mode with a positive argument, turns it off
+These commands turn on the mode with a positive argument, turn it off
 with a negative or zero argument, and toggle the mode with no argument.
 
 @node State of Difference
@@ -191,7 +192,7 @@ the mode line.
 
 The command @kbd{d a} chooses default-A as the default state, and @kbd{d
 b} chooses default-B.  This chosen default applies to all differences
-which you haven't ever selected and for which no alternative is preferred.
+that you have never selected and for which no alternative is preferred.
 If you are moving through the merge sequentially, the differences you
 haven't selected are those following the selected one.  Thus, while
 moving sequentially, you can effectively make the A version the default
@@ -242,8 +243,9 @@ Choose the B version of this difference.
 Select difference number @var{n}.
 
 @item .
-Select the difference containing point.  You can use this command in the
-merge buffer or in the A or B buffer.
+Select the difference containing point.
+@c [Does not work in the A or B buffer?]
+@c You can use this command in the merge buffer or in the A or B buffer.
 
 @item q
 Quit---finish the merge.
@@ -258,7 +260,8 @@ Go into Fast mode.  (In Edit mode, this is actually @kbd{C-c C-c f}.)
 Go into Edit mode.
 
 @item l
-Recenter (like @kbd{C-l}) all three windows.
+Recenter (like @kbd{C-l}) all three windows.  With an argument,
+reestablish the default three-window display.
 
 @item -
 Specify part of a prefix numeric argument.
