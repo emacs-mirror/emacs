@@ -1352,6 +1352,9 @@ Optional Features:
 			  Categories are: all,yes,no.
 			  Flags are: stringbytes, stringoverrun, stringfreelist,
 			  xmallocoverrun, conslist
+  --enable-profiling
+			  Build emacs with profiling support.
+			  This might not work on all platforms.
   --disable-largefile     omit support for large files
 
 Optional Packages:
@@ -2284,6 +2287,19 @@ cat >>confdefs.h <<\_ACEOF
 #define GC_CHECK_CONS_LIST 1
 _ACEOF
 
+fi
+
+# Check whether --enable-profiling was given.
+if test "${enable_profiling+set}" = set; then
+  enableval=$enable_profiling; ac_enable_profiling="${enableval}"
+fi
+
+if test x$ac_enable_profiling != x ; then
+   PROFILING_CFLAGS="-DPROFILING=1 -pg"
+   PROFILING_LDFLAGS="-pg"
+else
+   PROFILING_CFLAGS=
+   PROFILING_LDFLAGS=
 fi
 
 #### Make srcdir absolute, if it isn't already.  It's important to
@@ -5599,13 +5615,15 @@ configure___ CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 #endif
 
 #endif /* not THIS_IS_CONFIGURE */
 ' > ${tempcname}
+
+LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
 
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
