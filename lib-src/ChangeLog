@@ -1,3 +1,8 @@
+2009-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (WINNT_SUPPORT): Add term/common-win.elc, like
+	src/Makefile.in did.
+
 2006-06-09  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* mac-fix-env.m:

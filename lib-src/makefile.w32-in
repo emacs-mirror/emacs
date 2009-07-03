@@ -176,6 +176,7 @@ WINNT_SUPPORT = \
 	$(lispsource)w32-fns.elc \
 	$(lispsource)dos-w32.elc \
 	$(lispsource)w32-vars.elc \
+	$(lispsource)term/common-win.elc \
 	$(lispsource)term/w32-win.elc
 TOOLTIP_SUPPORT = $(lispsource)tooltip.elc
 WINDOW_SUPPORT = \
