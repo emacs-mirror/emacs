@@ -2704,7 +2704,8 @@ x_window (f, window_prompting, minibuffer_only)
   }
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 f->output.x->current_cursor = f->output_data.x->text_cursor);
+		 f->output_data.x->current_cursor
+                 = f->output_data.x->text_cursor);
 
   UNBLOCK_INPUT;
 
