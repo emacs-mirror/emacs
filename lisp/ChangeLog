@@ -1,5 +1,18 @@
 2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el (todos-window-configuration): Comment out.
+	(todos-display-categories): Comment out use of
+	todos-window-configuration; use switch-to-buffer instead of
+	pop-to-buffer.
+	(todos-jump-to-category-noninteractively): Comment out use of
+	todos-window-configuration.
+	(todos-edit-item): Don't allow editing of date/time item header.
+	(todos-insert-item, todos-insert-item-here): Insert date/time
+	header in front of new item string.
+	(todos-mode): Tweak wrap-prefix.
+
+2012-09-12  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el (todos-file-do, todos-file-done):
 	Change default location to directory "~/.emacs.d/".
 	(todos-completion-ignore-case, todos-categories-buffer):

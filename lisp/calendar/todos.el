@@ -455,12 +455,12 @@ For details see the variable `time-stamp-format'."
 (defvar todos-category-end "--- End"
   "Separator after a category.")
 
-(defvar todos-window-configuration nil
-  "Variable for storing current window configuration in Todos mode.
+;; (defvar todos-window-configuration nil
+;;   "Variable for storing current window configuration in Todos mode.
 
-Set before leaving Todos mode buffer by todos-display-categories.
-Restored before re-entering Todo mode buffer by todo-kill-buffer
-and todo-jump-to-category-noninteractively.")
+;; Set before leaving Todos mode buffer by todos-display-categories.
+;; Restored before re-entering Todo mode buffer by todo-kill-buffer
+;; and todo-jump-to-category-noninteractively.")
 
 ;; ---------------------------------------------------------------------------
 
@@ -530,10 +530,15 @@ and todo-jump-to-category-noninteractively.")
 (defun todos-edit-item ()
   "Edit current TODO list entry."
   (interactive)
-  (let ((item (todos-item-string)))
+  (let* ((prefix (concat todos-prefix " " (todos-entry-timestamp-initials)))
+	 ;; don't allow editing of Todos prefix string
+	 ;; FIXME: or should this be automatically updated upon editing?
+	 (item (substring (todos-item-string) (length prefix))))
+        ;; FIXME: disable minibuffer-history ??
+	;; (minibuffer-history))
     (if (todos-string-multiline-p item)
         (todos-edit-multiline)
-      (let ((new (read-from-minibuffer "Edit: " item)))
+      (let ((new (concat prefix (read-from-minibuffer "Edit: " item))))
         (todos-remove-item)
         (insert new "\n")
         (todos-backward-item)
@@ -679,7 +684,7 @@ and todo-jump-to-category-noninteractively.")
   "Display an alphabetical list of clickable Todos category names.
 Click or type RET on a category name to go to it."
   (interactive)
-  (setq todos-window-configuration (current-window-configuration))
+  ;; (setq todos-window-configuration (current-window-configuration))
   (let ((categories (copy-sequence todos-categories))
 	beg)
     ;; alphabetize the list case insensitively
@@ -690,7 +695,7 @@ Click or type RET on a category name to go to it."
     (eval-when-compile
       (require 'wid-edit))
     (with-current-buffer (get-buffer-create todos-categories-buffer)
-      (pop-to-buffer (current-buffer))
+      (switch-to-buffer (current-buffer))
       (erase-buffer)
       (kill-all-local-variables)
       (widget-insert "Press a button to display the corresponding category.\n\n")
@@ -711,7 +716,7 @@ Click or type RET on a category name to go to it."
   (let ((name todos-categories-buffer))
     (if (string= (buffer-name) name)
 	(kill-buffer name)))
-  (set-window-configuration todos-window-configuration)
+  ;; (set-window-configuration todos-window-configuration)
   (switch-to-buffer (file-name-nondirectory todos-file-do))
   (widen)
   (goto-char (point-min))
@@ -728,10 +733,9 @@ category."
   (save-excursion
     (if (not (derived-mode-p 'todos-mode)) (todos-show))
     (let* ((new-item (concat todos-prefix " "
-			     (read-from-minibuffer
-			      "New TODO entry: "
-			      (if todos-entry-prefix-function
-				  (funcall todos-entry-prefix-function)))))
+			     (if todos-entry-prefix-function
+				 (funcall todos-entry-prefix-function))
+			     (read-from-minibuffer "New TODO entry: ")))
 	   (current-category (nth todos-category-number todos-categories))
 	   (category (if arg (todos-completing-read) current-category)))
       (todos-add-item-non-interactively new-item category))))
@@ -742,10 +746,9 @@ If point is on an empty line, insert the entry there."
   (interactive)
   (if (not (derived-mode-p 'todos-mode)) (todos-show))
   (let ((new-item (concat todos-prefix " "
-			  (read-from-minibuffer
-			   "New TODO entry: "
-			   (if todos-entry-prefix-function
-			       (funcall todos-entry-prefix-function))))))
+			  (if todos-entry-prefix-function
+			      (funcall todos-entry-prefix-function))
+			  (read-from-minibuffer "New TODO entry: "))))
     (unless (and (bolp) (eolp)) (goto-char (todos-item-start)))
     (insert (concat new-item "\n"))
     (backward-char)
@@ -1076,8 +1079,8 @@ Number of entries for each category is given by `todos-print-priorities'."
   (setq word-wrap t)
   (make-local-variable 'wrap-prefix)
   (setq wrap-prefix
-	(make-string (1+ (length (concat todos-prefix
-					 (todos-entry-timestamp-initials)))) 32))
+	(make-string (length (concat todos-prefix " "
+				     (todos-entry-timestamp-initials))) 32))
   (unless (member '(continuation) fringe-indicator-alist)
     (push '(continuation) fringe-indicator-alist))
   (run-mode-hooks 'todos-mode-hook))
