@@ -1,3 +1,15 @@
+2009-07-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Emulation of `getloadavg' on MS-Windows.
+	* w32.c: Include float.h
+	(g_b_init_get_native_system_info, g_b_init_get_system_times)
+	(GetNativeSystemInfo_Proc, GetSystemTimes_Proc): Declare.
+	(get_native_system_info, get_system_times): New functions.
+	(buf_next, buf_prev, sample_system_load, getavg): New subroutines.
+	(getloadavg): Rewrite using GetSystemTimes and GetNativeSystemInfo.
+	(globals_of_w32): Initialize g_b_init_get_native_system_info,
+	g_b_init_get_system_times, and num_of_processors.
+
 2009-07-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Use standard types.
