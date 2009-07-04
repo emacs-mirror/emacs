@@ -41,6 +41,10 @@ frame parameter fullscreen makes the Emacs frame maximized.
 ** The pointer now becomes invisible when typing.
 Customize make-pointer-invisible to turn it off.
 
+---
+** On MS-Windows, `display-time' now displays the system load average
+as well as the time, as it does on GNU and Unix.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
