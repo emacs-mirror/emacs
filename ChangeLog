@@ -1,3 +1,8 @@
+2009-07-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (--enable-checking, --enable-profiling): Use
+	AS_HELP_STRING.
+
 2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (--enable-profiling): New option.

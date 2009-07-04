@@ -1346,15 +1346,13 @@ Optional Features:
   --enable-locallisppath=PATH
                           directories Emacs should search for lisp files
                           specific to this site
-  --enable-checking=LIST
-			  enable expensive run-time checks.  With LIST,
-			  enable only specific categories of checks.
-			  Categories are: all,yes,no.
-			  Flags are: stringbytes, stringoverrun, stringfreelist,
-			  xmallocoverrun, conslist
-  --enable-profiling
-			  Build emacs with profiling support.
-			  This might not work on all platforms.
+  --enable-checking[=LIST]
+                          enable expensive run-time checks. With LIST, enable
+                          only specific categories of checks. Categories are:
+                          all,yes,no. Flags are: stringbytes, stringoverrun,
+                          stringfreelist, xmallocoverrun, conslist
+  --enable-profiling      build emacs with profiling support. This might not
+                          work on all platforms
   --disable-largefile     omit support for large files
 
 Optional Packages:

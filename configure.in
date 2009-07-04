@@ -210,12 +210,12 @@ elif test "${enableval}" != "yes"; then
 fi)
 
 AC_ARG_ENABLE(checking,
-[  --enable-checking[=LIST]
-			  enable expensive run-time checks.  With LIST,
-			  enable only specific categories of checks.
-			  Categories are: all,yes,no.
-			  Flags are: stringbytes, stringoverrun, stringfreelist,
-			  xmallocoverrun, conslist],
+[AS_HELP_STRING([--enable-checking@<:@=LIST@:>@],
+		[enable expensive run-time checks.  With LIST,
+		 enable only specific categories of checks.
+		 Categories are: all,yes,no.
+		 Flags are: stringbytes, stringoverrun, stringfreelist,
+		 xmallocoverrun, conslist])],
 [ac_checking_flags="${enableval}"],[])
 IFS="${IFS= 	}"; ac_save_IFS="$IFS"; IFS="$IFS,"
 for check in $ac_checking_flags
@@ -274,9 +274,9 @@ if test x$ac_gc_check_cons_list != x ; then
 fi
 
 AC_ARG_ENABLE(profiling,
-[  --enable-profiling
-			  Build emacs with profiling support.
-			  This might not work on all platforms.],
+[AS_HELP_STRING([--enable-profiling],
+		[build emacs with profiling support.
+		 This might not work on all platforms])],
 [ac_enable_profiling="${enableval}"],[])
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
