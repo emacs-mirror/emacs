@@ -1095,7 +1095,9 @@ Prefix arg means justify as well."
 
 (defcustom add-log-current-defun-header-regexp
   "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"
-  "Heuristic regexp used by `add-log-current-defun' for unknown major modes."
+  "Heuristic regexp used by `add-log-current-defun' for unknown major modes.
+The regexp's first submatch is placed in the ChangeLog entry, in
+parentheses."
   :type 'regexp
   :group 'change-log)
 
