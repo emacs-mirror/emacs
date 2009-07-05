@@ -276,7 +276,8 @@ for example."
     tags-table-list
     search-ring
     regexp-search-ring
-    register-alist)
+    register-alist
+    file-name-history)
   "List of global variables saved by `desktop-save'.
 An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . MAX-SIZE), which means to truncate VAR's value to at most
