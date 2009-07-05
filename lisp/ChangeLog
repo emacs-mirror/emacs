@@ -1,3 +1,8 @@
+2009-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-alternate-file-other-window, find-alternate-file):
+	Obey confirm-nonexistent-file-or-buffer.
+
 2009-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc-math.el (math-use-emacs-fn): Make sure that the number is
@@ -23,8 +28,8 @@
 2009-07-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-header): New function.
-	(gdb-propertize-header): Use it to distinguish select and unselected tabs
-	in gdb buffers.
+	(gdb-propertize-header): Use it to distinguish select and unselected
+	tabs in gdb buffers.
 
 2009-07-01  Glenn Morris  <rgm@gnu.org>
 
@@ -41,21 +46,20 @@
 
 2009-07-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/encoded-kb.el (encoded-kbd-setup-display): Fix
-	typo (encoded-kbd-saved-input-mode ->
+	* international/encoded-kb.el (encoded-kbd-setup-display):
+	Fix typo (encoded-kbd-saved-input-mode ->
 	encoded-kbd-saved-input-meta-mode).
 
 2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-do-copy-or-rename-file-directly): Handle
-	also the 'rename case, when setting file modes.  (Bug#3712)
+	* net/tramp.el (tramp-do-copy-or-rename-file-directly):
+	Handle also the 'rename case, when setting file modes.  (Bug#3712)
 	(tramp-default-file-modes) Remove execute permissions.
 
 2009-06-29  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph): Remove a spurious
-	correction between the visible width of TABs and their number of
-	bytes.
+	correction between the visible width of TABs and their number of bytes.
 
 2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -149,8 +153,8 @@
 
 2009-06-17  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-diag.el (list-character-sets): Change
-	"FINAL-CHAR" to "FINAL-BYTE" to follow the official terminology.
+	* international/mule-diag.el (list-character-sets):
+	Change "FINAL-CHAR" to "FINAL-BYTE" to follow the official terminology.
 	(list-character-sets-1): Add one line explanation about
 	"supplementary charset".  Make the part "Supplementary Character
 	Sets" clickable.
