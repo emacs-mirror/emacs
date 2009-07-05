@@ -1,3 +1,7 @@
+2009-07-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired-aux.el (dired-show-file-type): Handle remote files.
+
 2009-03-22  Jari Aalto  <jari.aalto@cante.net>
 
         * desktop.el (desktop-globals-to-save): Add
@@ -146,11 +150,17 @@
 	(tramp-default-file-modes) Remove execute permissions.
 
 	* net/tramp-gvfs.el (tramp-gvfs-methods): Add "synce" method.
+	(top): Add a default for "synce" in `tramp-default-user-alist'.
+	Add completion function for "synce" method.
+	(tramp-hal-service, tramp-hal-path-manager)
+	(tramp-hal-interface-manager, tramp-hal-interface-device): New
+	defconst.
 	(tramp-gvfs-connection-mounted-p): Handle empty user name for
 	synce.
 	(tramp-synce-list-devices, tramp-synce-parse-device-names): New
 	defuns.
-	(top): Add completion function for "synce" method.
+
+	* net/trampver.el: Update release number.
 
 2009-06-30  Kenichi Handa  <handa@m17n.org>
 
