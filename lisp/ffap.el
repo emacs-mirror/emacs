@@ -110,7 +110,8 @@
 
 (defgroup ffap nil
   "Find file or URL at point."
-  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
+  ;; Dead 2009/07/05.
+;;  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
   :group 'matching
   :group 'convenience)
 
