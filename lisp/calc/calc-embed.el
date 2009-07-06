@@ -821,7 +821,7 @@ The command \\[yank] can retrieve it from there."
                                       calc-embed-outer-top calc-embed-outer-bot)
   (let* ((bufentry (assq (current-buffer) calc-embedded-active))
 	 (found bufentry)
-	 (force (and fresh calc-embed-top))
+	 (force (and fresh calc-embed-top (null (equal calc-embed-top '(t)))))
 	 (fixed calc-embed-top)
 	 (new-info nil)
 	 info str)
