@@ -4403,9 +4403,11 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (tramp-run-real-handler
-	   'write-region
-	   (list start end localname append 'no-message lockname confirm))
+	  (prog1
+	      (tramp-run-real-handler
+	       'write-region
+	       (list start end localname append 'no-message lockname confirm))
+	    (tramp-flush-file-property v localname))
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
 	      (loc-enc (tramp-get-local-coding v "local-encoding"))
@@ -7836,7 +7838,13 @@ Only works for Bourne-like shells."
 ;;   might be worthwhile to add some way to indicate that a particular
 ;;   use of process-file is (supposed to be) free of side-effects.
 ;;   (Stefan Monnier)
-;; * Use lsh instead of ssh (Alfred M. Szmidt)
+;; * Use lsh instead of ssh. (Alfred M. Szmidt)
+;; * Implement a general server-local-variable mechanism, as there are
+;;   probably other variables that need different values for different
+;;   servers too.  The user could then configure a variable (such as
+;;   tramp-server-local-variable-alist) to define any such variables
+;;   that they need to, which would then be let bound as appropriate
+;;   in tramp functions. (Jason Rumney)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
