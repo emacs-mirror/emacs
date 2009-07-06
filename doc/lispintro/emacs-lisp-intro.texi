@@ -9465,9 +9465,9 @@ the Customization commands.  (@xref{defcustom, , Specifying Variables
 using @code{defcustom}}.)
 
 When you specified a variable using the @code{defvar} special form,
-you could distinguish a readily settable variable from others by
-typing an asterisk, @samp{*}, in the first column of its documentation
-string.  For example:
+you could distinguish a variable that a user might want to change from
+others by typing an asterisk, @samp{*}, in the first column of its
+documentation string.  For example:
 
 @smallexample
 @group
