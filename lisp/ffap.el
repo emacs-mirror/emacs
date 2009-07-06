@@ -106,12 +106,7 @@
 
 ;;; Code:
 
-(provide 'ffap)
-
-;; Please do not delete this variable, it is checked in bug reports.
-(defconst ffap-version "1.9-fsf <97/06/25 13:21:41 mic>"
-  "The version of ffap: \"Major.Minor-Build <Timestamp>\"")
-
+(define-obsolete-variable-alias 'ffap-version 'emacs-version "23.2")
 
 (defgroup ffap nil
   "Find file or URL at point."
@@ -1917,6 +1912,7 @@ Of course if you do not like these bindings, just roll your own!")
   (eval (cons 'progn ffap-bindings)))
 
 
+(provide 'ffap)
 
 ;; arch-tag: 9dd3e88a-5dec-4607-bd57-60ae9ede8ebc
 ;;; ffap.el ends here
