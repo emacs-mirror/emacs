@@ -1,3 +1,11 @@
+2009-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-version): Make it an obsolete alias for emacs-version.
+	(top-level): Move provide to the end.
+	(ffap): Remove defunct URL from custom group.
+
+	* subr.el (eval-after-load): Doc fix.
+
 2009-07-06  Vincent Belaïche <vincent.belaiche@gmail.com>
 
 	* calc/calc-embed.el (calc-embedded-make-info): Don't force when
