@@ -4468,7 +4468,7 @@ extern void update_window_cursor (struct window *w, int on);
     return;
 
  if (![[self window] isKeyWindow]
-     && [[theEvent window] isKindOfClass: [EmacsWindow class]])
+     && [[theEvent window] isKindOfClass: [EmacsWindow class]]
      /* we must avoid an infinite loop here. */
      && (EmacsView *)[[theEvent window] delegate] != self)
    {
