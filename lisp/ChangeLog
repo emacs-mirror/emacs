@@ -1,3 +1,14 @@
+2009-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el: Remove stand-alone closing parentheses.
+	(woman-file-name, woman2-format-paragraphs)
+	(woman-leave-blank-lines): Code cleanup.
+	(woman-use-own-frame): Change default to nil.
+	(woman-italic, woman-bold, woman-unknown, woman-addition): Change
+	defaults to inherit from default faces.
+	(woman2-process-escapes): Consume the newline after a stand-alone
+	filler character (Bug#3651).
+
 2009-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-version): Make it an obsolete alias for emacs-version.
