@@ -1,3 +1,8 @@
+2009-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/hideshow.el (hs-hide-block-at-point): Don't move point
+	to the end of the line when locating the block (Bug#700).
+
 2009-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-write-region): Flush file properties

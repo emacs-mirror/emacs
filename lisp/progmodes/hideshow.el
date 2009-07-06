@@ -565,29 +565,28 @@ and then further adjusted to be at the end of the line."
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (when (looking-at hs-block-start-regexp)
       (let* ((mdata (match-data t))
-             (pure-p (match-end 0))
+	     (header-beg (match-beginning 0))
+             (header-end (match-end 0))
              (p
               ;; `p' is the point at the end of the block beginning,
               ;; which may need to be adjusted
               (save-excursion
-                (goto-char (funcall (or hs-adjust-block-beginning
-                                        'identity)
-                                    pure-p))
-                ;; whatever the adjustment, we move to eol
-                (line-end-position)))
+		(if hs-adjust-block-beginning
+		    (goto-char (funcall hs-adjust-block-beginning
+					header-end))
+		  (goto-char header-beg))))
              (q
               ;; `q' is the point at the end of the block
               (progn (hs-forward-sexp mdata 1)
-                     (end-of-line)
-                     (point)))
-             ov)
+		     (point)))
+	     ov)
         (when (and (< p (point)) (> (count-lines p q) 1))
           (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
                  (delete-overlay ov))
                 ((not hs-allow-nesting)
                  (hs-discard-overlays p q)))
-          (hs-make-overlay p q 'code (- pure-p p)))
-        (goto-char (if end q (min p pure-p)))))))
+          (hs-make-overlay p q 'code (- header-end p)))
+        (goto-char (if end q (min p header-end)))))))
 
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.
