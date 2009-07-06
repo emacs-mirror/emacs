@@ -118,9 +118,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "520"
+(defconst verilog-mode-version "525"
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2009-06-12-GNU"
+(defconst verilog-mode-release-date "2009-07-02-GNU"
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -627,50 +627,81 @@ always be saved."
 (defvar verilog-auto-last-file-locals nil
   "Text from file-local-variables during last evaluation.")
 
-(defvar verilog-error-regexp-add-didit nil)
-(defvar verilog-error-regexp nil)
 ;;; Compile support
 (require 'compile)
-(make-variable-buffer-local 'compilation-error-regexp-systems-list)
-(defvar compilation-error-regexp-alist) ; in case not
-(make-variable-buffer-local 'compilation-error-regexp-alist)
-
+(defvar verilog-error-regexp-added nil)
 ; List of regexps for Verilog compilers, like verilint. See compilation-error-regexp-alist
 ;   for the formatting.
-(defvar verilog-error-regexp-alist
-      '(verilog
-; SureLint
-	("[^\n]*\\[\\([^:]+\\):\\([0-9]+\\)\\]" 1 2)
-	("\\(WARNING\\|ERROR\\|INFO\\)[^:]*: \\([^,]+\\), \\(line \\|\\)\\([0-9]+\\):" 2 4 )
-	("\
+; Here is the version for Emacs 22:
+(defvar verilog-error-regexp-emacs-alist
+  '(
+    (verilog-xl-1
+     "\\(Error\\|Warning\\)!.*\n?.*\"\\([^\"]+\\)\", \\([0-9]+\\)" 2 3)
+    (verilog-xl-2
+     "([WE][0-9A-Z]+)[ \t]+\\([^ \t\n,]+\\)[, \t]+\\(line[ \t]+\\)?\\([0-9]+\\):.*$" 1 3)
+    (verilog-IES
+     ".*\\*[WE],[0-9A-Z]+ (\\([^ \t,]+\\),\\([0-9]+\\)" 1 2)
+    (verilog-surefire-1
+     "[^\n]*\\[\\([^:]+\\):\\([0-9]+\\)\\]" 1 2)
+    (verilog-surefire-2
+     "\\(WARNING\\|ERROR\\|INFO\\)[^:]*: \\([^,]+\\),\\s-+\\(line \\)?\\([0-9]+\\):" 2 4 )
+    (verilog-verbose
+     "\
+\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
+:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
+    (verilog-xsim
+     "\\(Error\\|Warning\\).*in file (\\([^ \t]+\\) at line *\\([0-9]+\\))" 2 3)
+    (verilog-vcs-1
+     "\\(Error\\|Warning\\):[^(]*(\\([^ \t]+\\) line *\\([0-9]+\\))" 2 3)
+    (verilog-vcs-2
+     "Warning:.*(port.*(\\([^ \t]+\\) line \\([0-9]+\\))" 1 2)
+    (verilog-vcs-3
+     "\\(Error\\|Warning\\):[\n.]*\\([^ \t]+\\) *\\([0-9]+\\):" 2 3)
+    (verilog-vcs-4
+     "syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 1 2)
+    (verilog-verilator
+     "%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 4)
+    (verilog-leda
+     "In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):
+.*
+.*
+.*
+\\(Warning\\|Error\\|Failure\\)" 1 2)
+    ))
+;; And the version for XEmacs:
+(defvar verilog-error-regexp-xemacs-alist
+  '(verilog
+    ("[^\n]*\\[\\([^:]+\\):\\([0-9]+\\)\\]" 1 2)
+    ("\\(WARNING\\|ERROR\\|INFO\\)[^:]*: \\([^,]+\\),\\s-+\\(line \\)?\\([0-9]+\\):" 2 4 )
+    ("\
 \\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
 :\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
 ; xsim
 ; Error! in file /homes/mac/Axis/Xsim/test.v at line 13		[OBJ_NOT_DECLARED]
-	("\\(Error\\|Warning\\).*in file (\\([^ \t]+\\) at line *\\([0-9]+\\))" 2 3)
+    ("\\(Error\\|Warning\\).*in file (\\([^ \t]+\\) at line *\\([0-9]+\\))" 2 3)
 ; vcs
-	("\\(Error\\|Warning\\):[^(]*(\\([^ \t]+\\) line *\\([0-9]+\\))" 2 3)
-	("Warning:.*(port.*(\\([^ \t]+\\) line \\([0-9]+\\))" 1 2)
-	("\\(Error\\|Warning\\):[\n.]*\\([^ \t]+\\) *\\([0-9]+\\):" 2 3)
-	("syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 1 2)
+    ("\\(Error\\|Warning\\):[^(]*(\\([^ \t]+\\) line *\\([0-9]+\\))" 2 3)
+    ("Warning:.*(port.*(\\([^ \t]+\\) line \\([0-9]+\\))" 1 2)
+    ("\\(Error\\|Warning\\):[\n.]*\\([^ \t]+\\) *\\([0-9]+\\):" 2 3)
+    ("syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 1 2)
 ; Verilator
-	("%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 4)
-	("%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 4)
+    ("%?\\(Error\\|Warning\\)\\(-[^:]+\\|\\):[\n ]*\\([^ \t:]+\\):\\([0-9]+\\):" 3 4)
 ; verilog-xl
-	("\\(Error\\|Warning\\)!.*\n?.*\"\\([^\"]+\\)\", \\([0-9]+\\)" 2 3)
-	("([WE][0-9A-Z]+)[ \t]+\\([^ \t\n,]+\\)[, \t]+\\([0-9]+\\):.*$" 1 2)	       ; vxl
-	("([WE][0-9A-Z]+)[ \t]+\\([^ \t\n,]+\\)[, \t]+line[ \t]+\\([0-9]+\\):.*$" 1 2)
+    ("\\(Error\\|Warning\\)!.*\n?.*\"\\([^\"]+\\)\", \\([0-9]+\\)" 2 3)
+    ("([WE][0-9A-Z]+)[ \t]+\\([^ \t\n,]+\\)[, \t]+\\([0-9]+\\):.*$" 1 2)	       ; vxl
+    ("([WE][0-9A-Z]+)[ \t]+\\([^ \t\n,]+\\)[, \t]+line[ \t]+\\([0-9]+\\):.*$" 1 2)
 ; nc-verilog
-	(".*\\*[WE],[0-9A-Z]+ (\\([^ \t,]+\\),\\([0-9]+\\)|" 1 2)
+    (".*\\*[WE],[0-9A-Z]+ (\\([^ \t,]+\\),\\([0-9]+\\)|" 1 2)
 ; Leda
-	("In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):\n[^\n]*\n[^\n]*\n\\[\\(Warning\\|Error\\|Failure\\)\\][^\n]*" 1 2)
-	))
+    ("In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):\n[^\n]*\n[^\n]*\n\\[\\(Warning\\|Error\\|Failure\\)\\][^\n]*" 1 2)
+    )
+  )
 
 (defvar verilog-error-font-lock-keywords
   '(
     ("[^\n]*\\[\\([^:]+\\):\\([0-9]+\\)\\]" 1 bold t)
     ("[^\n]*\\[\\([^:]+\\):\\([0-9]+\\)\\]" 2 bold t)
-
+    
     ("\\(WARNING\\|ERROR\\|INFO\\): \\([^,]+\\), line \\([0-9]+\\):" 2 bold t)
     ("\\(WARNING\\|ERROR\\|INFO\\): \\([^,]+\\), line \\([0-9]+\\):" 3 bold t)
 
@@ -1424,46 +1455,49 @@ without the directory portion, will be substituted."
 	   t t compile-command))))
 
 ;; Following code only gets called from compilation-mode-hook on XEmacs to add error handling.
-;; There is no way to add this on the fly to Emacs; instead we must update compile.el
-(if (featurep 'xemacs)
-    (defun verilog-error-regexp-add-xemacs ()
-      "Teach XEmacs about verilog errors.
+(defun verilog-error-regexp-add-xemacs ()
+  "Teach XEmacs about verilog errors.
 Called by `compilation-mode-hook'.  This allows \\[next-error] to
 find the errors."
-      (interactive)
-      (if 't ; (not verilog-error-regexp-add-didit)
-	  (progn
-	    (if (or (equal compilation-error-regexp-systems-list 'all)
-		    (not (member 'verilog compilation-error-regexp-systems-list)))
-		(setq compilation-error-regexp-systems-list
-		      (if (listp compilation-error-regexp-systems-list)
-			  (nconc compilation-error-regexp-systems-list 'verilog)
-			'verilog)))
-	    (if (not (assoc 'verilog compilation-error-regexp-alist-alist))
-		(setcdr compilation-error-regexp-alist-alist
-			(cons verilog-error-regexp-alist
-			      (cdr compilation-error-regexp-alist-alist))))
-	    ;; Need to re-run compilation-error-regexp builder
-	    (compilation-build-compilation-error-regexp-alist))))
+  (interactive)
+  (if (boundp 'compilation-error-regexp-systems-alist)
+      (if (and 
+           (not (equal compilation-error-regexp-systems-list 'all))
+           (not (member compilation-error-regexp-systems-list 'verilog)))
+	  (push 'verilog compilation-error-regexp-systems-list)))
+  (if (boundp 'compilation-error-regexp-alist-alist)
+      (if (not (assoc 'verilog compilation-error-regexp-alist-alist))
+          (setcdr compilation-error-regexp-alist-alist
+                  (cons verilog-error-regexp-xemacs-alist
+                        (cdr compilation-error-regexp-alist-alist)))))
+  (if (boundp 'compilation-font-lock-keywords)
+      (progn
+        (make-variable-buffer-local 'compilation-font-lock-keywords)
+        (setq compilation-font-lock-keywords  verilog-error-font-lock-keywords)
+        (font-lock-set-defaults)))
+  ;; Need to re-run compilation-error-regexp builder
+  (if (fboundp 'compilation-build-compilation-error-regexp-alist)
+      (compilation-build-compilation-error-regexp-alist))
   )
+
+;; Following code only gets called from compilation-mode-hook on Emacs to add error handling.
 (defun verilog-error-regexp-add-emacs ()
    "Tell Emacs compile that we are Verilog.
 Called by `compilation-mode-hook'.  This allows \\[next-error] to
 find the errors."
    (interactive)
-;;  Turned off because there seems no way to do this outside of compile.el
-;;
-;;   (if (or (equal compilation-error-regexp-alist 'all)
-;; 	  (not (member 'verilog compilation-error-regexp-alist)))
-;;       (setq compilation-error-regexp-alist
-;; 	    (if (listp compilation-error-regexp-alist)
-;; 		(append '(verilog) compilation-error-regexp-alist)
-;; 	      '(verilog) )))
-   )
+   (if (boundp 'compilation-error-regexp-alist-alist)
+       (progn
+         (if (not (assoc 'verilog-xl-1 compilation-error-regexp-alist-alist))
+             (mapcar
+              (lambda (item)
+                (push (car item) compilation-error-regexp-alist)
+                (push item compilation-error-regexp-alist-alist)
+                )
+              verilog-error-regexp-emacs-alist)))))
 
-(if (featurep 'xemacs)
-    (add-hook 'compilation-mode-hook 'verilog-error-regexp-add-xemacs)
-  (add-hook 'compilation-mode-hook 'verilog-error-regexp-add-emacs))
+(if (featurep 'xemacs) (add-hook 'compilation-mode-hook 'verilog-error-regexp-add-xemacs))
+(if (featurep 'emacs) (add-hook 'compilation-mode-hook 'verilog-error-regexp-add-emacs))
 
 (defconst verilog-directive-re
   ;; "`case" "`default" "`define" "`define" "`else" "`endfor" "`endif"

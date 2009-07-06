@@ -1,3 +1,15 @@
+2009-07-07  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-error-regexp-emacs-alist): Coded custom
+	representation of verilog error regular expressions to work with
+	Emacs-22's new format.
+	(verilog-error-regexp-xemacs-alist): Coded custom representation
+	of verilog error regular expressions to work with XEmacs format
+	(verilog-error-regexp-add-xemacs): Hook routine to install verilog
+	error recognition into XEmacs.
+	(verilog-error-regexp-add-emacs): Hook routine to install verilog
+	error recognition into Emacs-22.
+
 2009-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* woman.el: Remove stand-alone closing parentheses.
