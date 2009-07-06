@@ -4364,9 +4364,11 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (tramp-run-real-handler
-	   'write-region
-	   (list start end localname append 'no-message lockname confirm))
+	  (prog1
+	      (tramp-run-real-handler
+	       'write-region
+	       (list start end localname append 'no-message lockname confirm))
+	    (tramp-flush-file-property v localname))
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
 	      (loc-enc (tramp-get-local-coding v "local-encoding"))
