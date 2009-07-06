@@ -1615,7 +1615,11 @@ extension for a compressed format \(e.g. \".gz\") on FILE will not affect
 this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
-is evaluated whenever that feature is `provide'd.
+is evaluated whenever that feature is `provide'd.  Note that although
+provide statements are usually at the end of files, this is not always
+the case (e.g., sometimes they are at the start to avoid a recursive
+load error).  If your FORM should not be evaluated until the code in
+FILE has been, do not use the symbol form for FILE in such cases.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
