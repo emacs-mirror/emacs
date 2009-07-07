@@ -90,10 +90,6 @@ Lisp_Object Vunicode_category_table;
 /* Mapping table from unibyte chars to multibyte chars.  */
 int unibyte_to_multibyte_table[256];
 
-/* Nth element is 1 iff unibyte char N can be mapped to a multibyte
-   char.  */
-char unibyte_has_multibyte_table[256];
-
 
 
 /* If character code C has modifier masks, reflect them to the
@@ -270,9 +266,8 @@ translate_char (table, c)
   return c;
 }
 
-/* Convert the multibyte character C to unibyte 8-bit character based
-   on the current value of charset_unibyte.  If dimension of
-   charset_unibyte is more than one, return (C & 0xFF).
+/* Convert ASCII or 8-bit character C to unibyte.  If C is none of
+   them, return (C & 0xFF).
 
    The argument REV_TBL is now ignored.  It will be removed in the
    future.  */
@@ -282,14 +277,11 @@ multibyte_char_to_unibyte (c, rev_tbl)
      int c;
      Lisp_Object rev_tbl;
 {
-  struct charset *charset;
-  unsigned c1;
-
+  if (c < 0x80)
+    return c;
   if (CHAR_BYTE8_P (c))
     return CHAR_TO_BYTE8 (c);
-  charset = CHARSET_FROM_ID (charset_unibyte);
-  c1 = ENCODE_CHAR (charset, c);
-  return ((c1 != CHARSET_INVALID_CODE (charset)) ? c1 : c & 0xFF);
+  return (c & 0xFF);
 }
 
 /* Like multibyte_char_to_unibyte, but return -1 if C is not supported
@@ -299,14 +291,11 @@ int
 multibyte_char_to_unibyte_safe (c)
      int c;
 {
-  struct charset *charset;
-  unsigned c1;
-
+  if (c < 0x80)
+    return c;
   if (CHAR_BYTE8_P (c))
     return CHAR_TO_BYTE8 (c);
-  charset = CHARSET_FROM_ID (charset_unibyte);
-  c1 = ENCODE_CHAR (charset, c);
-  return ((c1 != CHARSET_INVALID_CODE (charset)) ? c1 : -1);
+  return -1;
 }
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
@@ -331,16 +320,13 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
      Lisp_Object ch;
 {
   int c;
-  struct charset *charset;
 
   CHECK_CHARACTER (ch);
   c = XFASTINT (ch);
-  if (c >= 0400)
-    error ("Invalid unibyte character: %d", c);
-  charset = CHARSET_FROM_ID (charset_unibyte);
-  c = DECODE_CHAR (charset, c);
-  if (c < 0)
-    c = BYTE8_TO_CHAR (XFASTINT (ch));
+  if (c >= 0x100)
+    error ("Not a unibyte character: %d", c);
+  if (c >= 0x80)
+    c = BYTE8_TO_CHAR (c);
   return make_number (c);
 }
 
