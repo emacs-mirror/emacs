@@ -1,5 +1,7 @@
 2009-07-07  Dmitry Dzhus  <dima@sphinx.net.ru>
 
+	* fadr.el: Removed.
+
 	* progmodes/gdb-mi.el: Port memory buffer from gdb-ui.el
 	(gdb-memory-address): New variable which holds top address of
 	memory page shown in memory buffer
