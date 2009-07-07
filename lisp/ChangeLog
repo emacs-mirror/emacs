@@ -1,3 +1,8 @@
+2009-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (reset-language-environment): Put
+	the highset priority to the charset iso-8859-1.
+
 2009-07-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-write-region): Flush file properties
