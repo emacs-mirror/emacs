@@ -1,3 +1,27 @@
+2009-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* .gdbinit (xcharset): Fix the treating $arg0.
+
+	* character.h (unibyte_has_multibyte_table): Delete extern.
+	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): Delete it.
+	(charset_unibyte_decoder): Extern it.
+	(DECODE_UNIBYTE): New macro.
+
+	* charset.c (Fset_charset_priority): Update charset_unibyte and
+	charset_unibyte_decoder.
+	(init_charset_once): Initialize charset_unibyte_decoder.
+	(syms_of_charset): Initialize charset_unibyte.
+
+	* character.c (unibyte_has_multibyte_table): Delete it.
+	(charset_unibyte_decoder): New variable.
+	(multibyte_char_to_unibyte): Use CHAR_TO_BYTE8 instead of checking
+	charset_unibyte.
+	(multibyte_char_to_unibyte_safe): Likewise.
+	(Funibyte_char_to_multibyte): Don't check charset_unibyte.
+
+	* xdisp.c (get_next_display_element): Use DECODE_BYTE.
+	(x_produce_glyphs): Likewise.
+
 2009-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes): Decode user and group name by the
