@@ -5674,6 +5674,7 @@ get_next_display_element (it)
       if (success_p && it->dpvec == NULL)
 	{
 	  Lisp_Object dv;
+	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
 
 	  if (it->dp
 	      && (dv = DISP_CHAR_VECTOR (it->dp, it->c),
@@ -5728,7 +5729,7 @@ get_next_display_element (it)
 				  || it->c == 0xAD /* SOFT HYPHEN */)))
 		       : (it->c >= 127
 			  && (! unibyte_display_via_language_environment
-			      || (UNIBYTE_CHAR_HAS_MULTIBYTE_P (it->c)))))))
+			      || (DECODE_CHAR (unibyte, it->c) <= 0xA0))))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -21094,9 +21095,12 @@ x_produce_glyphs (it)
 	{
 	  if (SINGLE_BYTE_CHAR_P (it->c)
 	      && unibyte_display_via_language_environment)
-	    it->char_to_display = unibyte_char_to_multibyte (it->c);
-	  if (! SINGLE_BYTE_CHAR_P (it->char_to_display))
 	    {
+	      struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
+
+	      /* get_next_display_element assures that this decoding
+		 never fails.  */
+	      it->char_to_display = DECODE_CHAR (unibyte, it->c);
 	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
 					   -1, Qnil);
