@@ -2477,10 +2477,11 @@ breakpoints buffer."
 		      'gdb-stack-buffer-name
 		      'gdb-frames-mode)
 
-(def-gdb-auto-update-trigger gdb-invalidate-frames
-  (gdb-get-buffer 'gdb-stack-buffer)
+(def-gdb-auto-updated-buffer gdb-stack-buffer
+  gdb-invalidate-frames
   "-stack-list-frames\n"
-  gdb-stack-list-frames-handler)
+  gdb-stack-list-frames-handler
+  gdb-stack-list-frames-custom)
 
 (defun gdb-insert-frame-location (frame)
   "Insert \"of file:line\" button or library name for structure FRAME.
@@ -2498,45 +2499,32 @@ member."
           ;; Library
           (from (insert (format " of %s" from))))))
 
-(defun gdb-stack-list-frames-handler ()
-  (setq gdb-pending-triggers (delq 'gdb-invalidate-frames
-				  gdb-pending-triggers))
-  (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
-    (let* ((res (json-partial-output "frame"))
-           (stack (gdb-get-field res 'stack))
-           (buf (gdb-get-buffer 'gdb-stack-buffer)))
-      (and buf 
-           (with-current-buffer buf
-             (let ((buffer-read-only nil))
-               (erase-buffer)
-               (dolist (frame (nreverse stack))
-                 (insert (apply 'format `("%s in %s" ,@(gdb-get-many-fields frame 'level 'func))))
-                 (gdb-insert-frame-location frame)
-                 (newline))
-               (gdb-stack-list-frames-custom)))))))
-
 (defun gdb-stack-list-frames-custom ()
-  (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
-    (save-excursion
-      (let ((buffer-read-only nil))
-	(goto-char (point-min))
-	(forward-line 1)
-	(while (< (point) (point-max))
-	  (add-text-properties (point-at-bol) (1+ (point-at-bol))
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: Select frame"))
-	  (beginning-of-line)
-	  (when (and (looking-at "^[0-9]+\\s-+\\S-+\\s-+\\(\\S-+\\)")
-		     (equal (match-string 1) gdb-selected-frame))
-		(if (> (car (window-fringes)) 0)
-		    (progn
-		      (or gdb-stack-position
-			  (setq gdb-stack-position (make-marker)))
-		      (set-marker gdb-stack-position (point)))
-		  (let ((bl (point-at-bol)))
-		    (put-text-property bl (+ bl 4)
-				       'face '(:inverse-video t)))))
-	  (forward-line 1))))))
+  (let* ((res (json-partial-output "frame"))
+         (stack (gdb-get-field res 'stack)))
+         (dolist (frame (nreverse stack))
+           (insert (apply 'format `("%s in %s" ,@(gdb-get-many-fields frame 'level 'func))))
+           (gdb-insert-frame-location frame)
+           (newline))
+         (save-excursion
+           (goto-char (point-min))
+           (forward-line 1)
+           (while (< (point) (point-max))
+             (add-text-properties (point-at-bol) (1+ (point-at-bol))
+                                  '(mouse-face highlight
+                                               help-echo "mouse-2, RET: Select frame"))
+             (beginning-of-line)
+             (when (and (looking-at "^[0-9]+\\s-+\\S-+\\s-+\\(\\S-+\\)")
+                        (equal (match-string 1) gdb-selected-frame))
+               (if (> (car (window-fringes)) 0)
+                   (progn
+                     (or gdb-stack-position
+                         (setq gdb-stack-position (make-marker)))
+                     (set-marker gdb-stack-position (point)))
+                 (let ((bl (point-at-bol)))
+                   (put-text-property bl (+ bl 4)
+                                      'face '(:inverse-video t)))))
+             (forward-line 1)))))
 
 (defun gdb-stack-buffer-name ()
   (with-current-buffer gud-comint-buffer

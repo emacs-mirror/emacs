@@ -14,6 +14,7 @@
 	end of line, too.
 	(gdb-frame-handler): Match convention to for disassembly buffer
 	mode name.
+	(gdb-stack-list-frames-handler): Rewritten without regexps.
 
 	* progmodes/gdb-mi.el (gdb-init-1): Set mode name for disassembly
 	buffer properly.
