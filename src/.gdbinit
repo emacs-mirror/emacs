@@ -1009,7 +1009,7 @@ end
 define xcharset
   set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & $valmask) | gdb_data_seg_bits)
   set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
-  p $tmp->contents[$arg0->hash_index * 2]
+  p $tmp->contents[charset_table[$arg0].hash_index * 2]
   pr
 end
 document xcharset
