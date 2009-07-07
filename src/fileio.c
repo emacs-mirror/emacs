@@ -422,9 +422,11 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     return call2 (handler, Qfile_name_directory, filename);
 
   filename = FILE_SYSTEM_CASE (filename);
-  beg = SDATA (filename);
 #ifdef DOS_NT
-  beg = strcpy (alloca (strlen (beg) + 1), beg);
+  beg = (unsigned char *) alloca (SBYTES (filename) + 1);
+  bcopy (SDATA (filename), beg, SBYTES (filename) + 1);
+#else
+  beg = SDATA (filename);
 #endif
   p = beg + SBYTES (filename);
 
@@ -939,10 +941,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
     }
 
-  nm = SDATA (name);
-
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
-  nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm = (unsigned char *) alloca (SBYTES (name) + 1);
+  bcopy (SDATA (name), nm, SBYTES (name) + 1);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1641,11 +1642,12 @@ those `/' is discarded.  */)
   if (!NILP (handler))
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
-  nm = SDATA (filename);
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm = (unsigned char *) alloca (SBYTES (filename) + 1);
+  bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
+
 #ifdef DOS_NT
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
