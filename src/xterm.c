@@ -6207,6 +6207,11 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (! f->async_iconified)
             SET_FRAME_GARBAGED (f);
 
+          /* Check if fullscreen was specified before we where mapped the
+             first time, i.e. from the command line. */
+          if (!f->output_data.x->has_been_visible)
+            x_check_fullscreen (f);
+
           f->async_visible = 1;
           f->async_iconified = 0;
           f->output_data.x->has_been_visible = 1;
@@ -6223,8 +6228,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                in case this is the second frame.  */
             record_asynch_buffer_change ();
 
-          /* Check if fullscreen was specified before we where mapped. */
-          x_check_fullscreen (f);
 #ifdef USE_GTK
           xg_frame_resized (f, -1, -1);
 #endif
