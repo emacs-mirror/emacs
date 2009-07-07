@@ -457,7 +457,8 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
             0 ;; there were no news; indicate success
           (if (re-search-forward
                (concat "^\\([CMUP] \\)?"
-                       (regexp-quote (file-name-nondirectory file))
+                       (regexp-quote
+                        (substring file (length default-directory)))
                        "\\( already contains the differences between \\)?")
                nil t)
               (cond
