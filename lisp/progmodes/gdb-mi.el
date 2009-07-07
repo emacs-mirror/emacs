@@ -8,6 +8,8 @@
 
 ;; This file is part of GNU Emacs.
 
+;; Homepage: http://www.emacswiki.org/emacs/GDB-MI
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -388,7 +390,7 @@ detailed description of this mode.
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
-  (gud-def gud-break (if (not (string-equal mode-name "Disassembly"))
+  (gud-def gud-break (if (not (string-match "Disassembly" mode-name))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
 			 (beginning-of-line)
@@ -396,7 +398,7 @@ detailed description of this mode.
 			 (gud-call "break *%a" arg)))
 	   "\C-b" "Set breakpoint at current line or address.")
   ;;
-  (gud-def gud-remove (if (not (string-equal mode-name "Disassembly"))
+  (gud-def gud-remove (if (not (string-match "Disassembly" mode-name))
 			  (gud-call "clear %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
@@ -404,7 +406,7 @@ detailed description of this mode.
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
-  (gud-def gud-until  (if (not (string-equal mode-name "Disassembly"))
+  (gud-def gud-until  (if (not (string-match "Disassembly" mode-name))
 			  (gud-call "-exec-until %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
@@ -1220,7 +1222,6 @@ static char *magick[] = {
   (gdb-get-changed-registers)
   (gdb-invalidate-registers)
   (gdb-invalidate-locals)
-  (gdb-invalidate-disassembly)
   (gdb-invalidate-memory)
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     (dolist (var gdb-var-list)
@@ -1466,6 +1467,9 @@ are not guaranteed."
     (let ((json-array-type 'list))
       (json-read))))
 
+(defun gdb-pad-string (string padding)
+  (format (concat "%" (number-to-string padding) "s") string))
+
 (defalias 'gdb-get-field 'bindat-get-field)
 
 (defun gdb-get-many-fields (struct &rest fields)
@@ -1502,13 +1506,8 @@ CUSTOM-DEFUN."
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
 	    (with-current-buffer buf
-	      (let* ((window (get-buffer-window buf 0))
-		     (start (window-start window))
-		     (p (window-point window))
-                     (buffer-read-only nil))
+	      (let*((buffer-read-only nil))
 		(erase-buffer)
-		(set-window-start window start)
-		(set-window-point window p)
                 (,custom-defun)))))))
 
 (defmacro def-gdb-auto-updated-buffer (buf-key
@@ -1569,7 +1568,7 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
                           (propertize (gdb-get-field breakpoint 'func)
                                       'face font-lock-function-name-face)))
                  (gdb-insert-frame-location breakpoint)))
-              (at (insert at))
+              (at (insert (concat " " at)))
               (t (insert (gdb-get-field breakpoint 'original-location)))))
       (add-text-properties (line-beginning-position)
                            (line-end-position)
@@ -1903,6 +1902,26 @@ FILE is a full path."
   gdb-read-memory-handler
   gdb-read-memory-custom)
 
+(defun gdb-memory-column-width (size format)
+  "Return length of string with memory unit of SIZE in FORMAT.
+
+SIZE is in bytes, as in `gdb-memory-unit'. FORMAT is a string as
+in `gdb-memory-format'."
+  (let ((format-base (cdr (assoc format
+                                 '(("x" . 16)
+                                   ("d" . 10) ("u" . 10)
+                                   ("o" . 8)
+                                   ("t" . 2))))))
+    (if format-base
+        (let ((res (ceiling (log (expt 2.0 (* size 8)) format-base))))
+          (cond ((string-equal format "x")
+                 (+ 2 res)) ; hexadecimal numbers have 0x in front
+                ((or (string-equal format "d")
+                     (string-equal format "o"))
+                 (1+ res))
+                (t res)))
+      (error "Unknown format"))))
+
 (defun gdb-read-memory-custom ()
   (let* ((res (json-partial-output))
          (err-msg (gdb-get-field res 'msg)))
@@ -1913,9 +1932,12 @@ FILE is a full path."
           (setq gdb-memory-prev-page (gdb-get-field res 'prev-page))
           (setq gdb-memory-last-address gdb-memory-address)
         (dolist (row memory)
-          (insert (concat (gdb-get-field row 'addr) ": "))
+          (insert (concat (gdb-get-field row 'addr) ":"))
           (dolist (column (gdb-get-field row 'data))
-            (insert (concat column "\t")))
+            (insert (gdb-pad-string column
+                                    (+ 2 (gdb-memory-column-width
+                                          gdb-memory-unit
+                                          gdb-memory-format)))))
           (newline)))
       ;; Show last page instead of empty buffer when out of bounds
       (progn
@@ -2255,12 +2277,11 @@ corresponding to the mode line clicked."
                       'gdb-disassembly-mode)
 
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
-  (gdb-get-buffer-create 'gdb-disassembly-buffer)
+  (gdb-get-buffer 'gdb-disassembly-buffer)
   (let ((file (or gdb-selected-file gdb-main-file))
         (line (or gdb-selected-line 1)))
-    (if file
-        (format "-data-disassemble -f %s -l %d -n -1 -- 0\n" file line)
-      ""))
+    (if (not file) (error "Disassembly invalidated with no file selected.")
+      (format "-data-disassemble -f %s -l %d -n -1 -- 0\n" file line)))
   gdb-disassembly-handler)
 
 (def-gdb-auto-update-handler
@@ -2308,22 +2329,38 @@ corresponding to the mode line clicked."
 
 (defun gdb-disassembly-handler-custom ()
   (let* ((res (json-partial-output))
-         (instructions (gdb-get-field res 'asm_insns)))
-    (dolist (instr instructions)
+         (instructions (gdb-get-field res 'asm_insns))
+         (pos 1))
+    (let* ((last-instr (car (last instructions)))
+           (column-padding (+ 2 (string-width
+                                 (apply 'format
+                                        `("<%s+%s>:"
+                                          ,@(gdb-get-many-fields last-instr 'func-name 'offset)))))))
+      (dolist (instr instructions)
       ;; Put overlay arrow
       (when (string-equal (gdb-get-field instr 'address)
                           gdb-pc-address)
         (progn
+          (setq pos (point))
           (setq fringe-indicator-alist
                 (if (string-equal gdb-frame-number "0")
                     nil
                   '((overlay-arrow . hollow-right-triangle))))
           (set-marker gdb-overlay-arrow-position (point))))
-      (insert (apply 'format `("%s <%s+%s>:\t%s\n" 
-                               ,@(gdb-get-many-fields instr 'address 'func-name 'offset 'inst))))))
-  (gdb-disassembly-place-breakpoints))
+      (insert 
+       (concat
+        (gdb-get-field instr 'address)
+        " "
+        (gdb-pad-string (apply 'format `("<%s+%s>:"  ,@(gdb-get-many-fields instr 'func-name 'offset)))
+                        (- column-padding))
+        (gdb-get-field instr 'inst)
+        "\n")))
+      (gdb-disassembly-place-breakpoints)
+      (let ((window (get-buffer-window (current-buffer) 0)))
+        (set-window-point window pos)))))
 
 (defun gdb-disassembly-place-breakpoints ()
+  (gdb-remove-breakpoint-icons (point-min) (point-max))
   (dolist (breakpoint gdb-breakpoints-list)
     (let ((bptno (gdb-get-field breakpoint 'number))
           (flag (gdb-get-field breakpoint 'enabled))
@@ -2386,6 +2423,7 @@ corresponding to the mode line clicked."
   "Enable/disable breakpoint at current line of breakpoints buffer."
   (interactive)
   (save-excursion
+    (beginning-of-line)
     (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
       (if breakpoint
           (gud-basic-call
@@ -2398,11 +2436,13 @@ corresponding to the mode line clicked."
 (defun gdb-delete-breakpoint ()
   "Delete the breakpoint at current line of breakpoints buffer."
   (interactive)
+  (save-excursion
+  (beginning-of-line)
   (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
     (if breakpoint
         (gud-basic-call (concat "-break-delete " (gdb-get-field breakpoint 'number)))
-      (error "Not recognized as break/watchpoint line"))))
-
+      (error "Not recognized as break/watchpoint line")))))
+  
 (defun gdb-goto-breakpoint (&optional event)
   "Go to the location of breakpoint at current line of
 breakpoints buffer."
@@ -2411,6 +2451,8 @@ breakpoints buffer."
   ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
   (let ((window (get-buffer-window gud-comint-buffer)))
     (if window (save-selected-window  (select-window window))))
+  (save-excursion
+  (beginning-of-line)
   (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
     (if breakpoint
 	(let ((bptno (gdb-get-field breakpoint 'number))
@@ -2426,7 +2468,7 @@ breakpoints buffer."
 	      (with-current-buffer buffer
 		(goto-line (string-to-number line))
 		(set-window-point window (point))))))
-      (error "Not recognized as break/watchpoint line"))))
+      (error "Not recognized as break/watchpoint line")))))
 
 
 ;; Frames buffer.  This displays a perpetually correct bactrack trace.
@@ -2872,7 +2914,7 @@ is set in them."
             (setq mode-name (concat "Locals:" gdb-selected-frame))))
       (if (gdb-get-buffer 'gdb-disassembly-buffer)
           (with-current-buffer (gdb-get-buffer 'gdb-disassembly-buffer)
-            (setq mode-name (concat "Machine:" gdb-selected-frame))))
+            (setq mode-name (concat "Disassembly:" gdb-selected-frame))))
       (if gud-overlay-arrow-position
           (let ((buffer (marker-buffer gud-overlay-arrow-position))
                 (position (marker-position gud-overlay-arrow-position)))

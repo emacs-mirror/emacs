@@ -1,21 +1,37 @@
 2009-07-07  Dmitry Dzhus  <dima@sphinx.net.ru>
 
+	* progmodes/gdb-mi.el (gdb-init-1): Disassembly buffer mode name
+	may contain frame information, so `string-match' should be used.
+	(gdb-update): Disassembly is invalidated through
+	`gdb-get-selected-frame'.
+	(gdb-pad-string): New function to pad string with spaces.
+	(gdb-invalidate-disassembly): Invalidate only if the buffer
+	exists.
+	(gdb-disassembly-handler-custom): Column alignment.
+	(gdb-disassembly-place-breakpoints): Clear old breakpoints before
+	placing new ones.
+	(gdb-toggle-breakpoint, gdb-delete-breakpoint): Now work from the
+	end of line, too.
+	(gdb-frame-handler): Match convention to for disassembly buffer
+	mode name.
+
 	* progmodes/gdb-mi.el (gdb-init-1): Set mode name for disassembly
 	buffer properly.
 	(gdb-breakpoints-list-handler-custom): Replacement for
-	gdb-break-list-handler. Using real parser instead of regexps now.
-	(gdb-place-breakpoints): Replacement for gdb-break-list-custom.
-	Use gdb-breakpoints-list instead of parsing breakpoints buffer to
-	place breakpoints.
+	`gdb-break-list-handler'. Using real parser instead of regexps
+	now.
+	(gdb-place-breakpoints): Replacement for `gdb-break-list-custom'.
+	Use `gdb-breakpoints-list' instead of parsing breakpoints buffer
+	to place breakpoints.
 	(def-gdb-memory-unit): A new macro to define gdb-memory-unit-..
 	functions.
 	(gdb-disassembly-handler-custom): Show overlay arrow.
 	(gdb-disassembly-place-breakpoints): Show breakpoints in
 	disassembly buffer.
 	(gdb-toggle-breakpoint, gdb-delete-breakpoint)
-	(gdb-goto-breakpoint): Using gdb-breakpoint text properties
-	instead of parsing breakpoints buffer.
-	Fixed old menu references in gud-menu-map.
+	(gdb-goto-breakpoint): Using `gdb-breakpoint' text properties
+	instead of parsing breakpoints buffer. Fixed old menu references
+	in `gud-menu-map'.
 
 	* fadr.el: Removed.
 
