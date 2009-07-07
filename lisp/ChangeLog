@@ -17,6 +17,7 @@
 	(gdb-stack-list-frames-handler): Rewritten without regexps.
 	(gdb-breakpoints-list-handler-custom): y/n instead of on/off; do
 	not highlight breakpoints without line information.
+	(gdb-input): Add trailing newline to command.
 
 	* progmodes/gdb-mi.el (gdb-init-1): Set mode name for disassembly
 	buffer properly.

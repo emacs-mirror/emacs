@@ -487,23 +487,23 @@ detailed description of this mode.
     (gdb-input
      ;; Needs GDB 6.4 onwards
      (list (concat "-inferior-tty-set "
-		   (process-tty-name (get-process "gdb-inferior")) "\n")
+		   (process-tty-name (get-process "gdb-inferior")))
 	   'ignore)))
   (if (eq window-system 'w32)
-      (gdb-input (list "-gdb-set new-console off\n" 'ignore)))
-  (gdb-input (list "-gdb-set height 0\n" 'ignore))
+      (gdb-input (list "-gdb-set new-console off" 'ignore)))
+  (gdb-input (list "-gdb-set height 0" 'ignore))
   ;; find source file and compilation directory here
   (gdb-input
    ; Needs GDB 6.2 onwards.
-   (list "-file-list-exec-source-files\n" 'gdb-get-source-file-list))
+   (list "-file-list-exec-source-files" 'gdb-get-source-file-list))
   (if gdb-create-source-file-list
       (gdb-input
         ; Needs GDB 6.0 onwards.
-       (list "-file-list-exec-source-file\n" 'gdb-get-source-file)))
+       (list "-file-list-exec-source-file" 'gdb-get-source-file)))
   (gdb-input
-   (list "-data-list-register-names\n" 'gdb-get-register-names))
+   (list "-data-list-register-names" 'gdb-get-register-names))
   (gdb-input
-   (list "-gdb-show prompt\n" 'gdb-get-prompt)))
+   (list "-gdb-show prompt" 'gdb-get-prompt)))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
@@ -553,7 +553,7 @@ detailed description of this mode.
     (if (search-forward "expands to: " nil t)
 	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-input
-	   (list  (concat "print " expr "\n")
+	   (list  (concat "print " expr)
 		  `(lambda () (gdb-tooltip-print ,expr))))))))
 
 (defun gdb-init-buffer ()
@@ -683,7 +683,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 			       (tooltip-identifier-from-point (point)))))))
 	      (set-text-properties 0 (length expr) nil expr)
 	      (gdb-input
-	       (list (concat"-var-create - * "  expr "\n")
+	       (list (concat"-var-create - * "  expr "")
 		     `(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
@@ -710,7 +710,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  (speedbar-change-initial-expansion-list "GUD"))
 	(gdb-input
 	 (list
-	  (concat "-var-evaluate-expression " (car var) "\n")
+	  (concat "-var-evaluate-expression " (car var))
 	  `(lambda () (gdb-var-evaluate-expression-handler
 		       ,(car var) nil)))))
     (message-box "No symbol \"%s\" in current context." expr)))
@@ -719,7 +719,7 @@ With arg, enter name of variable to be watched in the minibuffer."
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame)
 	     (not (member 'gdb-speedbar-timer gdb-pending-triggers)))
     ;; Dummy command to update speedbar even when idle.
-    (gdb-input (list "-environment-pwd\n" 'gdb-speedbar-timer-fn))
+    (gdb-input (list "-environment-pwd" 'gdb-speedbar-timer-fn))
     ;; Keep gdb-pending-triggers non-nil till end.
     (push 'gdb-speedbar-timer gdb-pending-triggers)))
 
@@ -742,10 +742,10 @@ With arg, enter name of variable to be watched in the minibuffer."
 ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children (varnum)
   (gdb-input
-   (list (concat "-var-update " varnum "\n") 'ignore))
+   (list (concat "-var-update " varnum) 'ignore))
   (gdb-input
    (list (concat "-var-list-children --all-values "
-		varnum "\n")
+		varnum)
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
@@ -779,12 +779,12 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (car var)))
     (gdb-input
-     (list (concat "-var-set-format " varnum " " format "\n") 'ignore))
+     (list (concat "-var-set-format " varnum " " format) 'ignore))
     (gdb-var-update)))
 
 (defun gdb-var-delete-1 (varnum)
   (gdb-input
-   (list (concat "-var-delete " varnum "\n") 'ignore))
+   (list (concat "-var-delete " varnum) 'ignore))
   (setq gdb-var-list (delq var gdb-var-list))
   (dolist (varchild gdb-var-list)
     (if (string-match (concat (car var) "\\.") (car varchild))
@@ -804,7 +804,7 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
 (defun gdb-var-delete-children (varnum)
   "Delete children of variable object at point from the speedbar."
   (gdb-input
-   (list (concat "-var-delete -c " varnum "\n") 'ignore)))
+   (list (concat "-var-delete -c " varnum) 'ignore)))
 
 (defun gdb-edit-value (text token indent)
   "Assign a value to a variable displayed in the speedbar."
@@ -812,7 +812,7 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
 	 (varnum (car var)) (value))
     (setq value (read-string "New value: "))
     (gdb-input
-     (list (concat "-var-assign " varnum " " value "\n")
+     (list (concat "-var-assign " varnum " " value)
 	   `(lambda () (gdb-edit-value-handler ,value))))))
 
 (defconst gdb-error-regexp "\\^error,msg=\\(\".+\"\\)")
@@ -826,7 +826,7 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
 (defun gdb-var-update ()
   (if (not (member 'gdb-var-update gdb-pending-triggers))
       (gdb-input
-       (list "-var-update --all-values *\n" 'gdb-var-update-handler)))
+       (list "-var-update --all-values *" 'gdb-var-update-handler)))
   (push 'gdb-var-update gdb-pending-triggers))
 
 (defconst gdb-var-update-regexp
@@ -1193,7 +1193,7 @@ static char *magick[] = {
   (setcar item (concat (number-to-string gdb-token-number) (car item)))
   (push (cons gdb-token-number (car (cdr item))) gdb-handler-alist)
   (process-send-string (get-buffer-process gud-comint-buffer)
-		       (car item)))
+		       (concat (car item) "\n")))
 
 
 (defcustom gud-gdb-command-name "gdb -i=mi"
@@ -1537,7 +1537,7 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
 		      'gdb-breakpoints-mode)
 
 (def-gdb-auto-updated-buffer gdb-breakpoints-buffer
-  gdb-invalidate-breakpoints "-break-list\n"
+  gdb-invalidate-breakpoints "-break-list"
   gdb-breakpoints-list-handler gdb-breakpoints-list-handler-custom)
 
 (defun gdb-breakpoints-list-handler-custom ()
@@ -1607,10 +1607,10 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
                     (goto-line (string-to-number line))
                     (gdb-put-breakpoint-icon (string-equal flag "y") bptno)))
               (gdb-input
-               (list (concat "list " file ":1\n")
+               (list (concat "list " file ":1")
                      'ignore))
               (gdb-input
-               (list "-file-list-exec-source-file\n"
+               (list "-file-list-exec-source-file"
                      `(lambda () (gdb-get-location
                                   ,bptno ,line ,flag)))))))))))
 
@@ -1691,7 +1691,7 @@ If not in a source or disassembly buffer just set point."
 			 0 'gdb-enabled (car (posn-string posn)))
 			"-break-disable "
 		      "-break-enable ")
-		    bptno "\n")))))))))
+		    bptno)))))))))
 
 (defun gdb-mouse-toggle-breakpoint-fringe (event)
   "Enable/disable breakpoint in left fringe with mouse click."
@@ -1714,7 +1714,7 @@ If not in a source or disassembly buffer just set point."
 	      (if (get-text-property 0 'gdb-enabled obj)
 		  "-break-disable "
 		"-break-enable ")
-	       (get-text-property 0 'gdb-bptno obj) "\n"))))))))
+	       (get-text-property 0 'gdb-bptno obj)))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1808,7 +1808,7 @@ FILE is a full path."
                       'gdb-threads-mode)
 
 (def-gdb-auto-updated-buffer gdb-threads-buffer
-  gdb-invalidate-threads "-thread-info\n"
+  gdb-invalidate-threads "-thread-info"
   gdb-thread-list-handler gdb-thread-list-handler-custom)
 
 
@@ -1895,7 +1895,7 @@ FILE is a full path."
 
 (def-gdb-auto-updated-buffer gdb-memory-buffer
   gdb-invalidate-memory
-  (format "-data-read-memory %s %s %d %d %d\n" 
+  (format "-data-read-memory %s %s %d %d %d" 
           gdb-memory-address
           gdb-memory-format
           gdb-memory-unit
@@ -2283,7 +2283,7 @@ corresponding to the mode line clicked."
   (let ((file (or gdb-selected-file gdb-main-file))
         (line (or gdb-selected-line 1)))
     (if (not file) (error "Disassembly invalidated with no file selected.")
-      (format "-data-disassemble -f %s -l %d -n -1 -- 0\n" file line)))
+      (format "-data-disassemble -f %s -l %d -n -1 -- 0" file line)))
   gdb-disassembly-handler)
 
 (def-gdb-auto-update-handler
@@ -2481,7 +2481,7 @@ breakpoints buffer."
 
 (def-gdb-auto-updated-buffer gdb-stack-buffer
   gdb-invalidate-frames
-  "-stack-list-frames\n"
+  "-stack-list-frames"
   gdb-stack-list-frames-handler
   gdb-stack-list-frames-custom)
 
@@ -2595,7 +2595,7 @@ member."
 
 (def-gdb-auto-update-trigger gdb-invalidate-locals
   (gdb-get-buffer 'gdb-locals-buffer)
-  "-stack-list-locals --simple-values\n"
+  "-stack-list-locals --simple-values"
   gdb-stack-list-locals-handler)
 
 (defconst gdb-stack-list-locals-regexp
@@ -2746,7 +2746,7 @@ member."
 
 (def-gdb-auto-update-trigger gdb-invalidate-registers
   (gdb-get-buffer 'gdb-registers-buffer)
-  "-data-list-register-values x\n"
+  "-data-list-register-values x"
   gdb-data-list-register-values-handler)
 
 (defconst gdb-data-list-register-values-regexp
@@ -2840,7 +2840,7 @@ member."
       (progn
 	(gdb-input
 	 (list
-	  "-data-list-changed-registers\n"
+	  "-data-list-changed-registers"
 	  'gdb-get-changed-registers-handler))
 	(push 'gdb-get-changed-registers gdb-pending-triggers))))
 
@@ -2880,7 +2880,7 @@ is set in them."
   (if (not (member 'gdb-get-selected-frame gdb-pending-triggers))
       (progn
 	(gdb-input
-	 (list "-stack-info-frame\n" 'gdb-frame-handler))
+	 (list "-stack-info-frame" 'gdb-frame-handler))
 	(push 'gdb-get-selected-frame
 	       gdb-pending-triggers))))
 
