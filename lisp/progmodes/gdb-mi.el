@@ -1556,8 +1556,8 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
         (gdb-get-field breakpoint 'disp) "\t"
         (let ((flag (gdb-get-field breakpoint 'enabled)))
           (if (string-equal flag "y")
-              (propertize "on" 'face  font-lock-warning-face)
-            (propertize "off" 'face  font-lock-type-face))) "\t"
+              (propertize "y" 'face  font-lock-warning-face)
+            (propertize "n" 'face  font-lock-type-face))) "\t"
         (gdb-get-field breakpoint 'times) "\t"
         (gdb-get-field breakpoint 'addr)))
       (let ((at (gdb-get-field breakpoint 'at)))
@@ -1567,14 +1567,16 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
                   (concat " in "
                           (propertize (gdb-get-field breakpoint 'func)
                                       'face font-lock-function-name-face)))
-                 (gdb-insert-frame-location breakpoint)))
+                 (gdb-insert-frame-location breakpoint)
+                 (add-text-properties (line-beginning-position)
+                                      (line-end-position)
+                                      '(mouse-face highlight
+                                        help-echo "mouse-2, RET: visit breakpoint"))))
               (at (insert (concat " " at)))
               (t (insert (gdb-get-field breakpoint 'original-location)))))
       (add-text-properties (line-beginning-position)
                            (line-end-position)
-                           `(gdb-breakpoint ,breakpoint
-                             mouse-face highlight
-                             help-echo "mouse-2, RET: visit breakpoint"))
+                           `(gdb-breakpoint ,breakpoint))
       (newline))
     (gdb-place-breakpoints)))
 
