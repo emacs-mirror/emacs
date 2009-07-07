@@ -1795,6 +1795,12 @@ The default status is as follows:
     (setq default-process-coding-system
 	  (cons output-coding input-coding)))
 
+  ;; Put the highest priority to the charset iso-8859-1 to prefer the
+  ;; registry iso8859-1 over iso8859-2 in font selection.  It also
+  ;; makes unibyte-display-via-language-environment to use iso-8859-1
+  ;; as the unibyte charset.
+  (set-charset-priority 'iso-8859-1)
+
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
   ;; that it supported a minute ago.
