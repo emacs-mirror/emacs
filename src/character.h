@@ -87,12 +87,6 @@ extern int unibyte_to_multibyte_table[256];
 #define unibyte_char_to_multibyte(c)	\
   ((c) < 256 ? unibyte_to_multibyte_table[(c)] : (c))
 
-/* Nth element is 1 iff unibyte char N can be mapped to a multibyte
-   char.  */
-extern char unibyte_has_multibyte_table[256];
-
-#define UNIBYTE_CHAR_HAS_MULTIBYTE_P(c) (unibyte_has_multibyte_table[(c)])
-
 /* If C is not ASCII, make it unibyte. */
 #define MAKE_CHAR_UNIBYTE(c)	\
   do {				\
