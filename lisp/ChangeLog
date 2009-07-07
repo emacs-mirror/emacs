@@ -19,6 +19,7 @@
 	unit size used in memory buffer.
 	(gdb-memory-show-next-page, gdb-memory-show-previous-page): Switch
 	to next/previous page of memory buffer.
+	Now using (bindat-get-field) instead of fadr functions.
 
 2009-07-07  Sam Steingold  <sds@gnu.org>
 

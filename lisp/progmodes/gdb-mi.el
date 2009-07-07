@@ -99,7 +99,7 @@
 
 (require 'gud)
 (require 'json)
-(require 'fadr)
+(require 'bindat)
 
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
@@ -1459,6 +1459,14 @@ are not guaranteed."
     (let ((json-array-type 'list))
       (json-read))))
 
+(defalias 'gdb-get-field 'bindat-get-field)
+
+(defun gdb-get-many-fields (struct &rest fields)
+  "Return a list of FIELDS values from STRUCT."
+  (let ((values))
+    (dolist (field fields values)
+      (setq values (append values (list (gdb-get-field struct field)))))))
+
 ;; NAME is the function name. DEMAND-PREDICATE tests if output is really needed.
 ;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
 ;; current input.
@@ -1854,18 +1862,20 @@ FILE is a full path."
 
 (defun gdb-thread-list-handler-custom ()
   (let* ((res (json-partial-output))
-         (threads-list (fadr-q "res.threads")))
+         (threads-list (gdb-get-field res 'threads)))
     (dolist (thread threads-list)
-      (insert (fadr-format "~.id (~.target-id) ~.state in ~.frame.func " thread))
+      (insert (apply 'format `("%s (%s) %s in %s "
+                               ,@(gdb-get-many-fields thread 'id 'target-id 'state)
+                               ,(gdb-get-field thread 'frame 'func))))
       ;; Arguments
       (insert "(")
-      (let ((args (fadr-q "thread.frame.args")))
+      (let ((args (gdb-get-field thread 'frame 'args)))
         (dolist (arg args)
-          (insert (fadr-format "~.name=~.value," arg)))
+          (insert (apply 'format `("%s=%s" ,@(gdb-get-many-fields arg 'name 'value)))))
         (when args (kill-backward-chars 1)))
       (insert ")")
-      (gdb-insert-frame-location (fadr-q "thread.frame"))
-      (insert (fadr-format " at ~.frame.addr\n" thread)))))
+      (gdb-insert-frame-location (gdb-get-field thread 'frame))
+      (insert (format " at %s\n" (gdb-get-field thread 'frame 'addr))))))
 
 
 ;;; Memory view
@@ -1918,18 +1928,19 @@ FILE is a full path."
 
 (defun gdb-read-memory-custom ()
   (let* ((res (json-partial-output))
-         (err-msg (fadr-q "res.msg")))
+         (err-msg (gdb-get-field res 'msg)))
     (if (not err-msg)
-      (let ((memory (fadr-q "res.memory")))
-        (setq gdb-memory-address (fadr-q "res.addr"))
-        (setq gdb-memory-next-page (fadr-q "res.next-page"))
-        (setq gdb-memory-prev-page (fadr-q "res.prev-page"))
-        (setq gdb-memory-last-address gdb-memory-address)
+        (let ((memory (gdb-get-field res 'memory)))
+          (setq gdb-memory-address (gdb-get-field res 'addr))
+          (setq gdb-memory-next-page (gdb-get-field res 'next-page))
+          (setq gdb-memory-prev-page (gdb-get-field res 'prev-page))
+          (setq gdb-memory-last-address gdb-memory-address)
         (dolist (row memory)
-          (insert (concat (fadr-q "row.addr") ": "))
-          (dolist (column (fadr-q "row.data"))
+          (insert (concat (gdb-get-field row 'addr) ": "))
+          (dolist (column (gdb-get-field row 'data))
             (insert (concat column "\t")))
           (newline)))
+      ;; Show last page instead of empty buffer when out of bounds
       (progn
         (let ((gdb-memory-address gdb-memory-last-address))
           (gdb-invalidate-memory)
@@ -2319,9 +2330,10 @@ corresponding to the mode line clicked."
 
 (defun gdb-disassembly-handler-custom ()
   (let* ((res (json-partial-output))
-         (instructions (fadr-member res ".asm_insns")))
+         (instructions (gdb-get-field res 'asm_insns)))
     (dolist (instr instructions)
-      (insert (fadr-format "~.address <~.func-name+~.offset>:\t~.inst\n" instr)))))
+      (insert (apply 'format `("%s <%s+%s>:\t%s\n" 
+                               ,@(gdb-get-many-fields instr 'address 'func-name 'offset 'inst)))))))
 
 
 ;;; Breakpoints view
@@ -2436,9 +2448,9 @@ corresponding to the mode line clicked."
 
 (defun gdb-insert-frame-location (frame)
   "Insert \"file:line\" button or library name for FRAME object."
-  (let ((file (fadr-q "frame.fullname"))
-        (line (fadr-q "frame.line"))
-        (from (fadr-q "frame.from")))
+  (let ((file (gdb-get-field frame 'fullname))
+        (line (gdb-get-field frame 'line))
+        (from (gdb-get-field frame 'from)))
     (cond (file
            ;; Filename with line number
            (insert " of ")
@@ -2452,14 +2464,14 @@ corresponding to the mode line clicked."
 				  gdb-pending-triggers))
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (let* ((res (json-partial-output "frame"))
-           (stack (fadr-q "res.stack"))
+           (stack (gdb-get-field res 'stack))
            (buf (gdb-get-buffer 'gdb-stack-buffer)))
       (and buf 
            (with-current-buffer buf
              (let ((buffer-read-only nil))
                (erase-buffer)
                (dolist (frame (nreverse stack))
-                 (insert (fadr-expand "~.level in ~.func" frame))
+                 (insert (apply 'format `("%s in %s" ,@(gdb-get-many-fields frame 'level 'func))))
                  (gdb-insert-frame-location frame)
                  (newline))
                (gdb-stack-list-frames-custom)))))))
@@ -2846,13 +2858,13 @@ is set in them."
 (defun gdb-frame-handler ()
   (setq gdb-pending-triggers
 	(delq 'gdb-get-selected-frame gdb-pending-triggers))
-  (let ((frame (fadr-member (json-partial-output) ".frame")))
+  (let ((frame (gdb-get-field (json-partial-output) 'frame)))
     (when frame
-      (setq gdb-frame-number (fadr-q "frame.level"))
-      (setq gdb-pc-address (fadr-q "frame.addr"))
-      (setq gdb-selected-frame (fadr-q "frame.func"))
-      (setq gdb-selected-file (fadr-q "frame.fullname"))
-      (let ((line (fadr-q "frame.line")))
+      (setq gdb-frame-number (gdb-get-field frame 'level))
+      (setq gdb-pc-address (gdb-get-field frame addr))
+      (setq gdb-selected-frame (gdb-get-field frame 'func))
+      (setq gdb-selected-file (gdb-get-field frame 'fullname))
+      (let ((line (gdb-get-field frame 'line)))
         (setq gdb-selected-line (or (and line (string-to-number line))
                                     nil)) ; don't fail if line is nil
         (when line ; obey the current file only if we have line info
