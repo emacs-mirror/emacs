@@ -1641,11 +1641,12 @@ those `/' is discarded.  */)
   if (!NILP (handler))
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
-  nm = SDATA (filename);
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm = (unsigned char *) alloca (SBYTES (filename) + 1);
+  bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
+
 #ifdef DOS_NT
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
