@@ -1,3 +1,23 @@
+2009-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (unibyte_has_multibyte_table): Delete extern.
+	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): Delete it.
+
+	* charset.c (Fset_charset_priority): Update charset_unibyte.
+	(syms_of_charset): Initialize charset_unibyte.
+
+	* character.c (unibyte_has_multibyte_table): Delete it.
+	(multibyte_char_to_unibyte): Use CHAR_TO_BYTE8 instead of checking
+	charset_unibyte.
+	(multibyte_char_to_unibyte_safe): Likewise.
+	(Funibyte_char_to_multibyte): Don't check charset_unibyte.
+
+	* xdisp.c (get_next_display_element): Decode it->c by
+	charset_unibyte.
+	(x_produce_glyphs): Likewise.
+
+	* .gdbinit (xcharset): Fix the treating $arg0.
+
 2009-07-04  Eli Zaretskii  <eliz@gnu.org>
 
 	Emulation of `getloadavg' on MS-Windows.
