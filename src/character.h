@@ -88,7 +88,7 @@ extern int unibyte_to_multibyte_table[256];
   ((c) < 256 ? unibyte_to_multibyte_table[(c)] : (c))
 
 /* Decoding table for 8-bit byte codes of the charset charset_unibyte.
-   Nth element is for the code (N-0x80).  */
+   Nth element is for the code (N+0x80).  */
 extern int charset_unibyte_decoder[128];
 
 /* Return a character correspoinding to the code BYTE of
