@@ -1,6 +1,6 @@
 2009-07-07  Kenichi Handa  <handa@m17n.org>
 
-	* .gdbinit (xcharset): Fix the treating $arg0.
+	* .gdbinit (xcharset): Fix the treating of $arg0.
 
 	* character.h (unibyte_has_multibyte_table): Delete extern.
 	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): Delete it.
