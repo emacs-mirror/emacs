@@ -87,11 +87,15 @@ extern int unibyte_to_multibyte_table[256];
 #define unibyte_char_to_multibyte(c)	\
   ((c) < 256 ? unibyte_to_multibyte_table[(c)] : (c))
 
-/* Nth element is 1 iff unibyte char N can be mapped to a multibyte
-   char.  */
-extern char unibyte_has_multibyte_table[256];
+/* Decoding table for 8-bit byte codes of the charset charset_unibyte.
+   Nth element is for the code (N-0x80).  */
+extern int charset_unibyte_decoder[128];
 
-#define UNIBYTE_CHAR_HAS_MULTIBYTE_P(c) (unibyte_has_multibyte_table[(c)])
+/* Return a character correspoinding to the code BYTE of
+   charset_unibyte.  BYTE must be a byte; i.e. less than 0x100.  If
+   BYTE is not a valid code of charset_unibyte, return -1.  */
+#define DECODE_UNIBYTE(BYTE)	\
+  ((BYTE) < 0x80 ? (int) (BYTE) : charset_unibyte_decoder[(BYTE) - 0x80])
 
 /* If C is not ASCII, make it unibyte. */
 #define MAKE_CHAR_UNIBYTE(c)	\
