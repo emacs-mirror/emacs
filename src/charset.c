@@ -1798,7 +1798,7 @@ encode_char (charset, c)
 
   if (CHARSET_UNIFIED_P (charset))
     {
-      Lisp_Object deunifier, deunified;
+      Lisp_Object deunifier;
       int code_index = -1;
 
       deunifier = CHARSET_DEUNIFIER (charset);
@@ -2196,10 +2196,6 @@ Clear temporary charset mapping tables.
 It should be called only from temacs invoked for dumping.  */)
      ()
 {
-  int i;
-  struct charset *charset;
-  Lisp_Object attrs;
-
   if (temp_charset_work)
     {
       free (temp_charset_work);
@@ -2260,6 +2256,7 @@ usage: (set-charset-priority &rest charsets)  */)
   Vcharset_ordered_list = Fnconc (2, arglist);
   charset_ordered_list_tick++;
 
+  charset_unibyte = -1;
   for (old_list = Vcharset_ordered_list, list_2022 = list_emacs_mule = Qnil;
        CONSP (old_list); old_list = XCDR (old_list))
     {
@@ -2267,9 +2264,20 @@ usage: (set-charset-priority &rest charsets)  */)
 	list_2022 = Fcons (XCAR (old_list), list_2022);
       if (! NILP (Fmemq (XCAR (old_list), Vemacs_mule_charset_list)))
 	list_emacs_mule = Fcons (XCAR (old_list), list_emacs_mule);
+      if (charset_unibyte < 0)
+	{
+	  struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (old_list)));
+
+	  if (CHARSET_DIMENSION (charset) == 1
+	      && CHARSET_ASCII_COMPATIBLE_P (charset)
+	      && CHARSET_MAX_CHAR (charset) >= 0x80)
+	    charset_unibyte = CHARSET_ID (charset);
+	}
     }
   Viso_2022_charset_list = Fnreverse (list_2022);
   Vemacs_mule_charset_list = Fnreverse (list_emacs_mule);
+  if (charset_unibyte < 0)
+    charset_unibyte = charset_iso_8859_1;
 
   return Qnil;
 }
@@ -2293,7 +2301,7 @@ init_charset ()
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (access (SDATA (tempdir), 0) < 0)
+  if (access ((char *) SDATA (tempdir), 0) < 0)
     {
       dir_warning ("Error: charsets directory (%s) does not exist.\n\
 Emacs will not function correctly without the character map files.\n\
@@ -2429,6 +2437,7 @@ the value may be a list of mnemonics.  */);
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
 			       128, 255, -1, 0, -1, 0, 1,
 			       MAX_5_BYTE_CHAR + 1);
+  charset_unibyte = charset_iso_8859_1;
 }
 
 #endif /* emacs */
