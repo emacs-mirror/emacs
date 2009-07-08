@@ -1,3 +1,10 @@
+2009-07-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (JIS_TO_SJIS2): Fix the code range check.
+
+	* coding.c (detect_coding_sjis): Handle shift_jis-2004 correctly.
+	(encode_coding_sjis): Fix the code range check.
+
 2009-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Fsubstitute_in_file_name, Ffile_name_directory)
