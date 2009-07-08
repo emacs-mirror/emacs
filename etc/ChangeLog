@@ -1,3 +1,28 @@
+2009-07-08  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL: Standardize the way M-x commands are written:
+	dashes inside command names, not spaces; spaces before <Return>.
+	(Summary): Describe the new behavior of C-l.
+	(Basic Cursor Control): Don't say that files "ought" to end in newlines.
+	Try to distinguish scroll bar from fringes.
+	You can also scroll with a wheel mouse.
+	(If Emacs Stops Responding): Rename from "When Emacs is hung".
+	(Inserting And Deleting): Continuation marks appear in the fringe.
+	Clarify that deletion can be undone.  Mention cut and paste, and
+	the Glossary.
+	(Files, Mode Line): Update mode-line format.
+	(Extending The Command Set): Downplay C-z, since using Emacs on a
+	text-only terminal is less common these days.
+	(Searching): Incremental searching is no longer atypical.
+	Downplay flow control issues, remove reference to deleted FAQ node.
+	(Multiple Windows): Mention frames.
+	(Multiple Frames): New section.
+	(Getting More Help): Downplay C-h having a different binding.
+	Don't say help is "on-line", since the meaning has changed.
+	(More Features): Replace "on-line".  Use C-h rather than F10 h.
+	Say a little more about completion.
+	(Conclusion): Don't mention C-z again here.
+
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention maximized.
