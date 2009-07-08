@@ -1,3 +1,8 @@
+2009-07-08  E. Jay Berkenbilt  <ejb@ql.org>  (tiny change)
+
+	* mail/unrmail.el (unrmail): Make sure the message ends with two
+	newlines (Bug#3769).
+
 2009-07-08  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (japanese-shift-jis-2004): Fix typo in the
