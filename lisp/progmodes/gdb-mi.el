@@ -304,10 +304,8 @@ it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the inferior.
 
 If `gdb-many-windows' is t, regardless of the value of
-`gdb-show-main', the layout below will appear unless
-`gdb-use-separate-io-buffer' is nil when the source buffer
-occupies the full width of the frame.  Keybindings are shown in
-some of the buffers.
+`gdb-show-main', the layout below will appear.  Keybindings are
+shown in some of the buffers.
 
 Watch expressions appear in the speedbar/slowbar.
 
@@ -2963,8 +2961,7 @@ is set in them."
     '("Disassembly" . gdb-display-disassembly-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
   (define-key menu [inferior]
-    '(menu-item "Separate IO" gdb-display-separate-io-buffer
-		:enable gdb-use-separate-io-buffer))
+    '("Separate IO" . gdb-display-separate-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints]
@@ -2980,8 +2977,7 @@ is set in them."
   (define-key menu [disassembly] '("Disassembly" . gdb-frame-disassembly-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
   (define-key menu [inferior]
-    '(menu-item "Separate IO" gdb-frame-separate-io-buffer
-		:enable gdb-use-separate-io-buffer))
+    '("Separate IO" . gdb-frame-separate-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints]
@@ -2993,10 +2989,6 @@ is set in them."
   (define-key menu [gdb-customize]
   '(menu-item "Customize" (lambda () (interactive) (customize-group 'gdb))
 	      :help "Customize Gdb Graphical Mode options."))
-  (define-key menu [gdb-use-separate-io]
-  '(menu-item "Separate IO" gdb-use-separate-io-buffer
-	      :help "Toggle separate IO for debugged program."
-	      :button (:toggle . gdb-use-separate-io-buffer)))
   (define-key menu [gdb-many-windows]
   '(menu-item "Display Other Windows" gdb-many-windows
 	      :help "Toggle display of locals, stack and breakpoint information"
