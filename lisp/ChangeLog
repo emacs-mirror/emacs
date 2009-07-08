@@ -1,3 +1,9 @@
+2009-07-08  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (tutorial--describe-nonstandard-key):
+	Adjust the message for when a key has been unbound.
+	(help-with-tutorial): Hide the arch-tag.
+
 2009-07-08  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (japanese-shift-jis-2004): Fix typo in the
