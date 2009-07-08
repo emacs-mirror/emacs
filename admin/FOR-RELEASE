@@ -92,7 +92,7 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-etc/TUTORIAL             
+etc/TUTORIAL             rgm (but see Bug#3783)
 etc/TUTORIAL.bg          
 etc/TUTORIAL.cn
 etc/TUTORIAL.cs          
