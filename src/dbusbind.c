@@ -716,6 +716,9 @@ xd_initialize (bus)
   if (connection == NULL)
     XD_SIGNAL2 (build_string ("No connection"), bus);
 
+  /* Cleanup.  */
+  dbus_error_free (&derror);
+
   /* Return the result.  */
   return connection;
 }
@@ -935,6 +938,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
     }
 
   /* Cleanup.  */
+  dbus_error_free (&derror);
   dbus_message_unref (dmessage);
   dbus_message_unref (reply);
 
@@ -1562,8 +1566,10 @@ xd_read_message (bus)
   XD_DEBUG_MESSAGE ("Event stored: %s",
 		    SDATA (format2 ("%s", event.arg, Qnil)));
 
+  /* Cleanup.  */
  cleanup:
   dbus_message_unref (dmessage);
+
   RETURN_UNGCPRO (Qnil);
 }
 
@@ -1716,6 +1722,9 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 	  XD_ERROR (derror);
 	}
 
+      /* Cleanup.  */
+      dbus_error_free (&derror);
+
       XD_DEBUG_MESSAGE ("Matching rule \"%s\" created", rule);
     }
 
@@ -1783,6 +1792,9 @@ used for composing the returning D-Bus message.  */)
      called from everybody.  */
   if (NILP (Fmember (key1, value)))
     Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
+
+  /* Cleanup.  */
+  dbus_error_free (&derror);
 
   /* Return object.  */
   return list2 (key, list3 (service, path, handler));
