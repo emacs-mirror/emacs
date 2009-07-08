@@ -194,7 +194,9 @@ Customize or call the function `grep-apply-setting'."
 
 (defcustom grep-find-ignored-directories
   vc-directory-exclusion-list
-  "*List of names of sub-directories which `rgrep' shall not recurse into."
+  "*List of names of sub-directories which `rgrep' shall not recurse into.
+If an element is a cons cell, the car is called on the search directory
+to determine whether cdr should not be recursed into."
   :type '(repeat string)
   :group 'grep)
 
@@ -891,11 +893,18 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 			    (concat (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -path "
-				    (mapconcat #'(lambda (dir)
-						   (shell-quote-argument
-						    (concat "*/" dir)))
-					       grep-find-ignored-directories
-					       " -o -path ")
+				    (mapconcat
+                                     #'(lambda (ignore)
+                                         (cond ((stringp ignore)
+                                                (shell-quote-argument
+                                                 (concat "*/" ignore)))
+                                               ((consp ignore)
+                                                (and (funcall (car ignore) dir)
+                                                     (shell-quote-argument
+                                                      (concat "*/"
+                                                              (cdr ignore)))))))
+                                     grep-find-ignored-directories
+                                     " -o -path ")
 				    " "
 				    (shell-quote-argument ")")
 				    " -prune -o ")))))

@@ -1,3 +1,9 @@
+2009-07-08  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/grep.el (rgrep): Allow grep-find-ignored-directories
+	to be a cons cell (test . ignored-directory) to selectively ignore
+	some directories depending on the location of the search.
+
 2009-07-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-set-file-uid-gid): Handle the case the
