@@ -501,8 +501,6 @@ detailed description of this mode.
         ; Needs GDB 6.0 onwards.
        (list "-file-list-exec-source-file" 'gdb-get-source-file)))
   (gdb-input
-   (list "-data-list-register-names" 'gdb-get-register-names))
-  (gdb-input
    (list "-gdb-show prompt" 'gdb-get-prompt)))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
@@ -1327,6 +1325,8 @@ static char *magick[] = {
 
 (defun gdb-starting (output-field)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
+  (gdb-input
+   (list "-data-list-register-names" 'gdb-get-register-names))
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
@@ -1763,6 +1763,53 @@ corresponding to the mode line clicked."
     (define-key map (vector 'header-line mouse) function)
     (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
     map))
+
+(defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
+  `(propertize ,name
+	       'help-echo ,help-echo 
+	       'mouse-face ',mouse-face
+	       'face ',face
+	       'local-map
+	       (gdb-make-header-line-mouse-map
+		'mouse-1
+		(lambda (event) (interactive "e")
+		  (save-selected-window
+		    (select-window (posn-window (event-start event)))
+		    (set-window-dedicated-p (selected-window) nil)
+		    (switch-to-buffer
+		     (gdb-get-buffer-create ',buffer))
+		    (setq header-line-format(gdb-set-header ',buffer))
+		    (set-window-dedicated-p (selected-window) t))))))
+
+(defun gdb-set-header (buffer)
+  (cond ((eq buffer 'gdb-locals-buffer)
+	 (list
+	  (gdb-propertize-header "Locals" gdb-locals-buffer
+				 nil nil mode-line)
+	  " "
+	  (gdb-propertize-header "Registers" gdb-registers-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
+	((eq buffer 'gdb-registers-buffer)
+	 (list
+	  (gdb-propertize-header "Locals" gdb-locals-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)
+	  " "
+	  (gdb-propertize-header "Registers" gdb-registers-buffer
+				 nil nil mode-line)))
+	((eq buffer 'gdb-breakpoints-buffer)
+	 (list
+	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+				 nil nil mode-line)
+	  " "
+	  (gdb-propertize-header "Threads" gdb-threads-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
+	((eq buffer 'gdb-threads-buffer)
+	 (list
+	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)
+	  " "
+	  (gdb-propertize-header "Threads" gdb-threads-buffer
+				 nil nil mode-line)))))
 
 
 ;; uses "-thread-info". Needs GDB 7.0 onwards.
@@ -2309,7 +2356,10 @@ corresponding to the mode line clicked."
 
 (defvar gdb-disassembly-mode-map
   ;; TODO
-  (make-sparse-keymap))
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'kill-this-buffer)
+     map))
 
 (defun gdb-disassembly-mode ()
   "Major mode for GDB disassembly information.
@@ -2375,37 +2425,12 @@ corresponding to the mode line clicked."
 
 ;;; Breakpoints view
 (defvar gdb-breakpoints-header
- `(,(propertize "Breakpoints"
-		'help-echo "mouse-1: select"
-		'mouse-face 'mode-line-highlight
-		'face 'mode-line
-		'local-map
-		(gdb-make-header-line-mouse-map
-		 'mouse-1
-		 (lambda (event) (interactive "e")
-		   (save-selected-window
-		     (select-window (posn-window (event-start event)))
-		     (set-window-dedicated-p (selected-window) nil)
-		     (switch-to-buffer
-		      (gdb-get-buffer-create 'gdb-breakpoints-buffer))
-		     (set-window-dedicated-p (selected-window) t)))))
+  (list
+   (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+			  nil nil mode-line)
    " "
-   ,(propertize "Threads"
-		'help-echo "mouse-1: select"
-		'mouse-face 'mode-line-highlight
-		'face 'mode-line
-		'local-map
-		(gdb-make-header-line-mouse-map
-		 'mouse-1
-                 ;; TODO: same code few lines above
-		 (lambda (event) (interactive "e")
-		   (save-selected-window
-		     (select-window (posn-window (event-start event)))
-		     (set-window-dedicated-p (selected-window) nil)
-		     (switch-to-buffer
-		      (gdb-get-buffer-create 'gdb-threads-buffer))
-		     (set-window-dedicated-p (selected-window) t)))
-))))
+   (gdb-propertize-header "Threads" gdb-threads-buffer
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
 
 (defun gdb-breakpoints-mode ()
   "Major mode for gdb breakpoints.
@@ -2671,35 +2696,12 @@ member."
 		   (set-window-point window p)))))))
 
 (defvar gdb-locals-header
- `(,(propertize "Locals"
-		'help-echo "mouse-1: select"
-		'mouse-face 'mode-line-highlight
-		'face 'mode-line
-		'local-map
-		(gdb-make-header-line-mouse-map
-		 'mouse-1
-		 (lambda (event) (interactive "e")
-		   (save-selected-window
-		     (select-window (posn-window (event-start event)))
-		     (set-window-dedicated-p (selected-window) nil)
-		     (switch-to-buffer
-		      (gdb-get-buffer-create 'gdb-locals-buffer))
-		     (set-window-dedicated-p (selected-window) t)))))
+  (list
+   (gdb-propertize-header "Locals" gdb-locals-buffer
+			  nil nil mode-line)
    " "
-   ,(propertize "Registers"
-		'help-echo "mouse-1: select"
-		'mouse-face 'mode-line-highlight
-		'face 'mode-line
-		'local-map
-		(gdb-make-header-line-mouse-map
-		 'mouse-1
-		 (lambda (event) (interactive "e")
-		   (save-selected-window
-		     (select-window (posn-window (event-start event)))
-		     (set-window-dedicated-p (selected-window) nil)
-		     (switch-to-buffer
-		      (gdb-get-buffer-create 'gdb-registers-buffer))
-		     (set-window-dedicated-p (selected-window) t)))))))
+   (gdb-propertize-header "Registers" gdb-registers-buffer
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
 
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
