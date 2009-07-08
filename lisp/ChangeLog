@@ -1,3 +1,8 @@
+2009-07-08  Ed Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/calendar.el (calendar-current-date):
+	Add an optional argument giving an offset from today.
+
 2009-07-08  Glenn Morris  <rgm@gnu.org>
 
 	* tutorial.el (tutorial--describe-nonstandard-key):
