@@ -42,7 +42,6 @@
 	(gdb-breakpoints-header, gdb-locals-header): Use it.
 	(gdb-disassembly-mode-map): Add keybinding to kill buffer.
 
-
 2009-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Remove fadr.elc.
