@@ -45,8 +45,12 @@ Customize make-pointer-invisible to turn it off.
 ** On MS-Windows, `display-time' now displays the system load average
 as well as the time, as it does on GNU and Unix.
 
+** FIXME new configure options --enable-checking, profiling
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
+
+** FIXME gdb-mi
 
 ** Info
 
@@ -61,6 +65,12 @@ methods "dav", "davs", "obex" and "synce".
 ** VC and related modes
 
 *** When a file is not found, VC will not try to check it out of RCS anymore.
+
+** Calendar and diary
+
+---
+*** The command `calendar-current-date' accepts an optional argument
+giving an offset from today.
 
 ** Miscellaneous
 
