@@ -1,5 +1,10 @@
 2009-07-08  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (fontset_find_font): Fix the logic of handling
+	charset_matched.
+	(font_for_char): Delete unused var.
+	(generate_ascii_font_name): Delete it.
+
 	* coding.h (JIS_TO_SJIS2): Fix the code range check.
 
 	* coding.c (detect_coding_sjis): Handle shift_jis-2004 correctly.
