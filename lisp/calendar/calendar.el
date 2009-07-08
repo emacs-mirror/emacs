@@ -1786,12 +1786,13 @@ the STRINGS are just concatenated and the result truncated."
 
 (defun calendar-current-date (&optional offset)
   "Return the current date in a list (month day year).
-Optional OFFSET is number of days from current date."
-  (let ((now (decode-time)))
-    (calendar-gregorian-from-absolute
-     (+ (calendar-absolute-from-gregorian
-         (list (nth 4 now) (nth 3 now) (nth 5 now)))
-        (if offset offset 0)))))
+Optional integer OFFSET is a number of days from the current date."
+  (let* ((now (decode-time))
+         (now (list (nth 4 now) (nth 3 now) (nth 5 now))))
+    (if (zerop (or offset 0))
+        now
+      (calendar-gregorian-from-absolute
+       (+ offset (calendar-absolute-from-gregorian now))))))
 
 (defun calendar-column-to-segment ()
   "Convert current column to calendar month \"segment\".
