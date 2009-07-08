@@ -2709,14 +2709,17 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   ;; the majority of cases.
   (if (file-remote-p filename)
       (with-parsed-tramp-file-name filename nil
-	(let ((uid (or (and (integerp uid) uid)
-		       (tramp-get-remote-uid v 'integer)))
-	      (gid (or (and (integerp gid) gid)
-		       (tramp-get-remote-gid v 'integer))))
-	  (tramp-send-command
-	   v (format
-	      "chown %d:%d %s" uid gid
-	      (tramp-shell-quote-argument localname)))))
+	(if (and (zerop (user-uid)) (tramp-local-host-p v))
+	    ;; If we are root on the local host, we can do it directly.
+	    (tramp-set-file-uid-gid localname uid gid)
+	  (let ((uid (or (and (integerp uid) uid)
+			 (tramp-get-remote-uid v 'integer)))
+		(gid (or (and (integerp gid) gid)
+			 (tramp-get-remote-gid v 'integer))))
+	    (tramp-send-command
+	     v (format
+		"chown %d:%d %s" uid gid
+		(tramp-shell-quote-argument localname))))))
 
     ;; We handle also the local part, because there doesn't exist
     ;; `set-file-uid-gid'.  On W32 "chown" might not work.
@@ -4395,7 +4398,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		   (tramp-get-remote-gid v 'integer))))
 
       (if (and (tramp-local-host-p v)
-	       ;; `file-writable-p' calls 'file-expand-file-name'.  We
+	       ;; `file-writable-p' calls `file-expand-file-name'.  We
 	       ;; cannot use `tramp-run-real-handler' therefore.
 	       (let (file-name-handler-alist)
 		 (and
@@ -4403,10 +4406,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		  (or (file-directory-p localname)
 		      (file-writable-p localname)))))
 	  ;; Short track: if we are on the local host, we can run directly.
-	  (prog1
-	      (tramp-run-real-handler
-	       'write-region
-	       (list start end localname append 'no-message lockname confirm))
+	  (progn
+	    (tramp-run-real-handler
+	     'write-region
+	     (list start end localname append 'no-message lockname confirm))
 	    (tramp-flush-file-property v localname))
 
 	(let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
@@ -7190,7 +7193,10 @@ necessary only.  This function will be used in file name completion."
        (tramp-file-name-method vec)
        (tramp-file-name-user vec)
        host
-       (tramp-compat-temporary-file-directory))))))
+       (tramp-compat-temporary-file-directory)))
+     ;; On some systems, chown runs only for root.
+     (or (zerop (user-uid))
+	 (zerop (tramp-get-remote-uid vec 'integer))))))
 
 ;; Variables local to connection.
 
