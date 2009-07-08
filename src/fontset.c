@@ -531,7 +531,7 @@ fontset_find_font (fontset, c, face, id, fallback)
      int id, fallback;
 {
   Lisp_Object vec, font_group;
-  int i, charset_matched = -1, found_index;
+  int i, charset_matched = 0, found_index;
   FRAME_PTR f = (FRAMEP (FONTSET_FRAME (fontset)))
     ? XFRAME (selected_frame) : XFRAME (FONTSET_FRAME (fontset));
   Lisp_Object rfont_def;
@@ -575,25 +575,46 @@ fontset_find_font (fontset, c, face, id, fallback)
       Lisp_Object font_def;
       Lisp_Object font_entity, font_object;
 
-      if (i == 0 && charset_matched >= 0)
+      if (i == 0)
 	{
 	  /* Try the element matching with the charset ID at first.  */
-	  rfont_def = AREF (vec, charset_matched);
 	  found_index = charset_matched;
-	  charset_matched = -1;
-	  i--;
+	  if (charset_matched > 0)
+	    {
+	      charset_matched = - charset_matched;
+	      i--;
+	    }
 	}
-      else if (i != charset_matched)
+      else if (i != - charset_matched)
 	{
-	  rfont_def = AREF (vec, i);
 	  found_index = i;
 	}
       else
-	continue;
+	{
+	  /* We have already tried this element and the followings
+	     that have the same font specifications.  So, skip them
+	     all.  */
+	  rfont_def = AREF (vec, i);
+	  font_def = RFONT_DEF_FONT_DEF (rfont_def);
+	  for (; i + 1 < ASIZE (vec); i++)
+	    {
+	      rfont_def = AREF (vec, i + 1);
+	      if (NILP (rfont_def))
+		break;
+	      if (! EQ (RFONT_DEF_FONT_DEF (rfont_def), font_def))
+		break;
+	    }
+	  continue;
+	}
 
+      rfont_def = AREF (vec, found_index);
       if (NILP (rfont_def))
-	/* This is a sign of not to try the other fonts.  */
-	return Qt;
+	{
+	  if (charset_matched < 0)
+	    continue;
+	  /* This is a sign of not to try the other fonts.  */
+	  return Qt;
+	}
       if (INTEGERP (RFONT_DEF_FACE (rfont_def))
 	  && XINT (RFONT_DEF_FACE (rfont_def)) < 0)
 	/* We couldn't open this font last time.  */
@@ -640,16 +661,19 @@ fontset_find_font (fontset, c, face, id, fallback)
       /* Find a font already opened, maching with the current spec,
 	 and supporting C. */
       font_def = RFONT_DEF_FONT_DEF (rfont_def);
-      for (i++; i < ASIZE (vec); i++)
+      for (; found_index + 1 < ASIZE (vec); found_index++)
 	{
-	  rfont_def = AREF (vec, i);
+	  rfont_def = AREF (vec, found_index + 1);
 	  if (NILP (rfont_def))
-	    return Qt;
+	    break;
 	  if (! EQ (RFONT_DEF_FONT_DEF (rfont_def), font_def))
 	    break;
-	  font_object = RFONT_DEF_OBJECT (AREF (vec, i));
+	  font_object = RFONT_DEF_OBJECT (rfont_def);
 	  if (! NILP (font_object) && font_has_char (f, font_object, c))
-	    goto found;
+	    {
+	      found_index++;
+	      goto found;
+	    }
 	}
 
       /* Find a font-entity with the current spec and supporting C.  */
@@ -666,24 +690,22 @@ fontset_find_font (fontset, c, face, id, fallback)
 					     Qnil);
 	  if (NILP (font_object))
 	    continue;
-	  found_index = i;
 	  RFONT_DEF_NEW (rfont_def, font_def);
 	  RFONT_DEF_SET_OBJECT (rfont_def, font_object);
 	  RFONT_DEF_SET_SCORE (rfont_def, RFONT_DEF_SCORE (rfont_def));
 	  new_vec = Fmake_vector (make_number (ASIZE (vec) + 1), Qnil);
-	  for (j = 0; j < i; j++)
+	  found_index++;
+	  for (j = 0; j < found_index; j++)
 	    ASET (new_vec, j, AREF (vec, j));
 	  ASET (new_vec, j, rfont_def);
-	  found_index = j;
 	  for (j++; j < ASIZE (new_vec); j++)
 	    ASET (new_vec, j, AREF (vec, j - 1));
 	  XSETCDR (font_group, new_vec);
 	  vec = new_vec;
 	  goto found;
 	}
-
-      /* No font of the current spec for C.  Try the next spec.  */
-      i--;
+      if (i >= 0)
+	i = found_index;
     }
 
   FONTSET_SET (fontset, make_number (c), make_number (0));
@@ -989,7 +1011,6 @@ font_for_char (face, c, pos, object)
      Lisp_Object object;
 {
   Lisp_Object fontset, rfont_def, charset;
-  int face_id;
   int id;
 
   if (ASCII_CHAR_P (c))
@@ -1363,28 +1384,6 @@ accumulate_script_ranges (arg, range, val)
     }
 }
 
-
-/* Return an ASCII font name generated from fontset name NAME and
-   font-spec ASCII_SPEC.  NAME is a string conforming to XLFD.  */
-
-static INLINE Lisp_Object
-generate_ascii_font_name (name, ascii_spec)
-     Lisp_Object name, ascii_spec;
-{
-  Lisp_Object font_spec = Ffont_spec (0, NULL);
-  int i;
-  char xlfd[256];
-
-  if (font_parse_xlfd ((char *) SDATA (name), font_spec) < 0)
-    error ("Not an XLFD font name: %s", SDATA (name));
-  for (i = FONT_FOUNDRY_INDEX; i < FONT_EXTRA_INDEX; i++)
-    if (! NILP (AREF (ascii_spec, i)))
-      ASET (font_spec, i, AREF (ascii_spec, i));
-  i = font_unparse_xlfd (font_spec, 0, xlfd, 256);
-  if (i < 0)
-    error ("Not an XLFD font name: %s", SDATA (name));
-  return make_unibyte_string (xlfd, i);
-}
 
 /* Callback function for map_charset_chars in Fset_fontset_font.
    ARG is a vector [ FONTSET FONT_DEF ADD ASCII SCRIPT_RANGE_LIST ].
@@ -1770,7 +1769,6 @@ fontset_from_font (font_object)
   Lisp_Object registry = AREF (font_spec, FONT_REGISTRY_INDEX);
   Lisp_Object fontset_spec, alias, name, fontset;
   Lisp_Object val;
-  int i;
 
   val = assoc_no_quit (font_spec, auto_fontset_alist);
   if (CONSP (val))
