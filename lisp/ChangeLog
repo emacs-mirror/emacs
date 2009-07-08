@@ -1,3 +1,10 @@
+2009-07-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb): Remove description of
+	gdb-use-separate-io-buffer.
+	(menu): Don't allow toggling of or enable 
+	gdb-use-separate-io-buffer from menubar.
+
 2009-07-08  E. Jay Berkenbilt  <ejb@ql.org>  (tiny change)
 
 	* mail/unrmail.el (unrmail): Make sure the message ends with two
@@ -33,6 +40,8 @@
 	unselected tabs in gdb buffers.
 	(gdb-propertize-header): New macro that uses gdb-set-header.
 	(gdb-breakpoints-header, gdb-locals-header): Use it.
+	(gdb-disassembly-mode-map): Add keybinding to kill buffer.
+
 
 2009-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
