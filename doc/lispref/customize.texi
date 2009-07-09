@@ -397,12 +397,12 @@ variables and functions will be defined, so there will not be an error.
 
 @item :risky @var{value}
 @kindex risky@r{, @code{defcustom} keyword}
-Set this variable's @code{risky-local-variable} property to
+Set the variable's @code{risky-local-variable} property to
 @var{value} (@pxref{File Local Variables}).
 
 @item :safe @var{function}
 @kindex safe@r{, @code{defcustom} keyword}
-Set this variable's @code{safe-local-variable} property to
+Set the variable's @code{safe-local-variable} property to
 @var{function} (@pxref{File Local Variables}).
 
 @item :set-after @var{variables}
