@@ -1,13 +1,15 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2002, 2003, 2004, 2005,
-@c   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+@c   2009  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @c This node must have no pointers.
 
 @node Antinews, GNU Free Documentation License, System Interface, Top
 @appendix Emacs 22 Antinews
+@c Update the elisp.texi, vol1.texi, vol2.texi Antinews menu entries
+@c with the above version number.
 
 For those users who live backwards in time, here is information about
 downgrading to Emacs version 22.3.  We hope you will enjoy the greater
@@ -137,8 +139,8 @@ Several keymaps have been eliminated: @code{input-decode-map},
 @code{minibuffer-local-shell-command-map}.
 
 @item
-Many functions have been removed, including @code{emacs-init-time},
-@code{emacs-uptime}, @code{buffer-swap-text}, @code{use-region-p},
+Many functions have been removed, including: @code{buffer-swap-text},
+@code{emacs-init-time}, @code{emacs-uptime}, @code{use-region-p},
 @code{region-active-p}, @code{start-file-process},
 @code{process-lines}, @code{image-refresh},
 @code{match-substitute-replacement}, @code{word-search-forward-lax},
@@ -146,7 +148,7 @@ and @code{word-search-backward-lax}.
 
 @item
 Many variables have been removed, including @code{read-circle},
-@code{before-init-time} and @code{after-init-time},
+@code{after-init-time} and @code{before-init-time},
 @code{generate-autoload-cookie}, @code{file-local-variables-alist},
 @code{replace-search-function} and @code{replace-re-search-function},
 @code{inhibit-changing-match-data}, @code{wrap-prefix}, and
