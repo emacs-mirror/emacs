@@ -1028,9 +1028,15 @@ need to merge them with the work file before you can check it in.
 @vindex vc-cvs-stay-local
   In the above, if the repository were on a remote machine, VC only
 contacts it when the variable @code{vc-stay-local} (or
-@code{vc-cvs-stay-local}) is @code{nil} (@pxref{CVS Options}).  This is
-because access to the repository may be slow, or you may be working
-offline and not have access to the repository at all.  As a
+@code{vc-cvs-stay-local}) is @code{nil}
+@iftex
+(@pxref{CVS Options,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{CVS Options}).
+@end ifnottex
+This is because access to the repository may be slow, or you may be
+working offline and not have access to the repository at all.  As a
 consequence, VC would not be able to tell you that @samp{file3.c} is
 in the ``merge'' state; you would learn that only when you try to
 check-in your modified copy of the file, or use a command such as
