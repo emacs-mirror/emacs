@@ -1068,7 +1068,8 @@ MS-DOS (also called MS-DOG), Microsoft Windows, and Macintosh systems.
 Those systems use different file name syntax; in addition
 MS-DOS does not support all GNU Emacs features.  @xref{Microsoft
 Windows}, for information about using Emacs on Windows.
-@xref{Mac OS}, for information about using Emacs on Macintosh.
+@xref{Mac OS / GNUstep}, for information about using Emacs on
+Macintosh and GNUstep.
 @end iftex
 
 @node Distrib, Intro, Top, Top
