@@ -3018,7 +3018,7 @@ time you want to specify a particular attribute for certain text.
 
 @item
 A cons cell with the form @code{(foreground-color . @var{color-name})}
-or @code{(background-color . @var{color-name})}.  These are older,
+or @code{(background-color . @var{color-name})}.  These are old,
 deprecated equivalents for @code{(:foreground @var{color-name})} and
 @code{(:background @var{color-name})}.  Please convert code that uses
 them.
