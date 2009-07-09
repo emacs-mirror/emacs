@@ -6,8 +6,10 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
+@c And also the copies in vol1.texi and vol2.texi.
 @set VERSION  3.0
 @set EMACSVER 23.1.50
+@set DATE July 2009
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
@@ -69,7 +71,7 @@ developing GNU and promoting software freedom.''
 @titlepage
 @title GNU Emacs Lisp Reference Manual
 @subtitle For Emacs Version @value{EMACSVER}
-@subtitle Revision @value{VERSION}, April 2007
+@subtitle Revision @value{VERSION}, @value{DATE}
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -102,6 +104,7 @@ This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 @end ifnottex
 
+@c Copy any updates to vol1.texi and vol2.texi.
 @menu
 * Introduction::            Introduction and conventions used.
 
@@ -159,7 +162,7 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 21.
+* Antinews::                Info for users downgrading to Emacs 22.
 * GNU Free Documentation License:: The license for this documentation
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -182,6 +185,7 @@ Appendices
 @c be correctly identified by `texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
 @c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+@c Copy any updates to vol1.texi and vol2.texi.
 
 @detailmenu
  --- The Detailed Node Listing ---
