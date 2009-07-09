@@ -1,3 +1,38 @@
+2009-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* back.texi: Don't hard-code texinfo location.
+
+	* two-volume.make (texinfodir): New, with location of texinfo.tex.
+	(tex): Add texinfodir to TEXINPUTS.
+	(elisp1med-init, elisp2med-init): Use texinfodir.
+
+	* Makefile.in (texinfodir): Rename from usermanualdir, and update.
+	(clean): Add two-volume.make intermediate files.
+
+	* elisp.texi, vol1.texi, vol2.texi:
+	Use a DATE variable with the publication date, and update it.
+	Fix antinews menu description.
+
+	* vol1.texi, vol2.texi: Update VERSION to match elisp.texi.
+	Update the detailed node listing to match elisp.texi.
+
+	* README: Update edition to match elisp.texi.
+
+	* objects.texi (General Escape Syntax):
+	* nonascii.texi (Character Sets):
+	Use consistent case for "Unicode Standard".
+
+	* anti.texi (Antinews):
+	* customize.texi (Variable Definitions):
+	* functions.texi (Declaring Functions):
+	* nonascii.texi (Character Properties):
+	* processes.texi (Serial Ports):
+	* text.texi (Special Properties):
+	* tips.texi (Coding Conventions):
+	Minor rearrangements to improve TeX line-filling.
+
+	* commands.texi (Using Interactive): Fix cross-reference.
+
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Management Parameters): Mention sticky.
