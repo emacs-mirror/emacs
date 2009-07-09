@@ -1,3 +1,14 @@
+2009-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (texinfodir): New variable, with location of texinfo.tex.
+	(ENVADD): Add texinfodir to TEXINPUTS.
+
+	* emacs.texi (Top): Fix cross-reference.
+
+	* maintaining.texi (VC Directory Buffer): Fix cross-reference.
+
+	* vc1-xtra.texi (Revision Tags): Fix typo.
+
 2009-07-03  Glenn Morris  <rgm@gnu.org>
 
 	* emerge-xtra.texi (Emerge): Tweak Misc menu description.

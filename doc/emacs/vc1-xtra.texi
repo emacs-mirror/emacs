@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in vc-xtra.texi (when producing the
@@ -213,7 +214,7 @@ repository using @kbd{C-u C-x v v cvs @key{RET}}.
 @dfn{tag} is a named set of file versions (one for each registered
 file) that you can treat as a unit.  In a VCS with per-repository
 version numbers (Subversion and most later ones) a tag is simply
-a symbolic name for a revsion.
+a symbolic name for a revision.
 
    One important kind of tag is a @dfn{release}, a (theoretically)
 stable version of the system that is ready for distribution to users.
