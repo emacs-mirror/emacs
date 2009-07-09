@@ -31,6 +31,8 @@ VPATH=@srcdir@
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 infodir=../../info
+# Directory with the (customized) texinfo.tex file.
+texinfodir = $(srcdir)/../misc
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
@@ -47,7 +49,7 @@ TEXI2DVI = texi2dvi
 .texi.dvi:
 	$(TEXI2DVI) $<
 
-ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 
 EMACS_XTRA=\
