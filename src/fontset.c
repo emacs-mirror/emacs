@@ -575,25 +575,25 @@ fontset_find_font (fontset, c, face, id, fallback)
       Lisp_Object font_def;
       Lisp_Object font_entity, font_object;
 
+      found_index = i;
       if (i == 0)
 	{
-	  /* Try the element matching with the charset ID at first.  */
-	  found_index = charset_matched;
 	  if (charset_matched > 0)
 	    {
+	      /* Try the element matching with the charset ID at first.  */
+	      found_index = charset_matched;
+	      /* Make this negative so that we don't come here in the
+		 next loop.  */
 	      charset_matched = - charset_matched;
+	      /* We must try the first element in the next loop.  */
 	      i--;
 	    }
 	}
-      else if (i != - charset_matched)
-	{
-	  found_index = i;
-	}
-      else
+      else if (i == - charset_matched)
 	{
 	  /* We have already tried this element and the followings
-	     that have the same font specifications.  So, skip them
-	     all.  */
+	     that have the same font specifications in the first
+	     iteration.  So, skip them all.  */
 	  rfont_def = AREF (vec, i);
 	  font_def = RFONT_DEF_FONT_DEF (rfont_def);
 	  for (; i + 1 < ASIZE (vec); i++)
@@ -610,7 +610,7 @@ fontset_find_font (fontset, c, face, id, fallback)
       rfont_def = AREF (vec, found_index);
       if (NILP (rfont_def))
 	{
-	  if (charset_matched < 0)
+	  if (i < 0)
 	    continue;
 	  /* This is a sign of not to try the other fonts.  */
 	  return Qt;
