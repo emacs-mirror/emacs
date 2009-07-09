@@ -25,8 +25,9 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
-@set VERSION  2.9
+@set VERSION  3.0
 @set EMACSVER 23.1.50
+@set DATE July 2009
 
 @dircategory Emacs
 @direntry
@@ -89,7 +90,7 @@ developing GNU and promoting software freedom.''
 @title GNU Emacs Lisp Reference Manual
 @subtitle Volume 1
 @subtitle For Emacs Version @value{EMACSVER}
-@subtitle Revision @value{VERSION}, June 2007
+@subtitle Revision @value{VERSION}, @value{DATE}
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -180,7 +181,7 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 21.
+* Antinews::                Info for users downgrading to Emacs 22.
 * GNU Free Documentation License:: The license for this documentation
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -296,13 +297,15 @@ Editing Types
 * Buffer Type::             The basic object of editing.
 * Marker Type::             A position in a buffer.
 * Window Type::             What makes buffers visible.
-* Frame Type::		    Windows subdivide frames.
+* Frame Type::              Windows subdivide frames.
+* Terminal Type::           A terminal device displays frames.
 * Window Configuration Type::  Recording the way a frame is subdivided.
 * Frame Configuration Type::   Recording the status of all frames.
-* Process Type::            A process running on the underlying OS.
+* Process Type::            A subprocess of Emacs running on the underlying OS.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
 * Overlay Type::            How an overlay is represented.
+* Font Type::               Fonts for displaying text.
 
 Numbers
 
@@ -441,8 +444,9 @@ Variables
 * Setting Variables::       Storing new values in variables.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
-* Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::    Handling local variable lists in files.
+* Directory Local Variables:: Local variables common to all files in a directory.
+* Frame-Local Variables::   Frame-local bindings for variables.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -650,7 +654,9 @@ Completion
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
                               (reading buffer name, file name, etc.)
-* Reading File Names::      Using completion to read file names.
+* Reading File Names::      Using completion to read file names and
+                              shell commands.
+* Completion Styles::       Specifying rules for performing completion.
 * Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
@@ -658,6 +664,7 @@ Command Loop
 * Command Overview::    How the command loop reads commands.
 * Defining Commands::   Specifying how a function should read arguments.
 * Interactive Call::    Calling a command, so that it will read arguments.
+* Distinguish Interactive::     Making a command distinguish interactive calls.
 * Command Loop Info::   Variables set by the command loop for you to examine.
 * Adjusting Point::     Adjustment of point after a command.
 * Input Events::	What input looks like when you read it.
@@ -693,7 +700,8 @@ Input Events
 * Misc Events::             Other events the system can generate.
 * Event Examples::          Examples of the lists for mouse events.
 * Classifying Events::      Finding the modifier keys in an event symbol.
-* Accessing Events::        Functions to extract info from events.
+* Accessing Mouse::	    Functions to extract info from mouse events.
+* Accessing Scroll::        Functions to get info from scroll bar events.
 * Strings of Events::       Special considerations for putting
                               keyboard character events in a string.
 
@@ -917,6 +925,7 @@ Buffers
 * Killing Buffers::         Buffers exist until explicitly killed.
 * Indirect Buffers::        An indirect buffer shares text with some
                               other buffer.
+* Swapping Text::           Swapping text between two buffers.
 * Buffer Gap::              The gap in the buffer.
 
 Windows
@@ -930,9 +939,11 @@ Windows
 * Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
 * Choosing Window::	    How to choose a window for displaying a buffer.
+* Dedicated Windows::	    How to avoid displaying another buffer in
+                              a specific window.          
 * Window Point::            Each window has its own location of point.
-* Window Start::            The display-start position controls which text
-                              is on-screen in the window.
+* Window Start and End::    Buffer positions indicating which text is
+                              on-screen in a window.
 * Textual Scrolling::       Moving text up and down through the window.
 * Vertical Scrolling::      Moving the contents up and down on the window.
 * Horizontal Scrolling::    Moving the contents sideways on the window.
@@ -941,6 +952,7 @@ Windows
 * Coordinates and Windows:: Converting coordinates to windows.
 * Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
+* Window Parameters::       Associating additional information with windows.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
@@ -948,8 +960,9 @@ Windows
 Frames
 
 * Creating Frames::	    Creating additional frames.
-* Multiple Terminals::       Creating frames on other displays.
+* Multiple Terminals::      Displaying on several different devices.
 * Frame Parameters::	    Controlling frame size, position, font, etc.
+* Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::	    Frames last until explicitly deleted.
 * Finding All Frames::	    How to examine all existing frames.
@@ -1083,13 +1096,10 @@ Text Properties
 * Format Properties::       Properties for representing formatting of text.
 * Sticky Properties::       How inserted text gets properties from
                               neighboring text.
-* Saving Properties::       Saving text properties in files, and reading
-                              them back.
 * Lazy Properties::         Computing text properties in a lazy fashion
                               only when text is examined.
 * Clickable Text::          Using text properties to make regions of text
                               do something when you click on them.
-* Links and Mouse-1::       How to make @key{Mouse-1} follow a link.
 * Fields::                  The @code{field} property defines
                               fields within the buffer.
 * Not Intervals::	    Why text properties do not use
@@ -1102,10 +1112,10 @@ Non-ASCII Characters
 * Selecting a Representation::  Treating a byte sequence as unibyte or multi.
 * Character Codes::         How unibyte and multibyte relate to
                                 codes of individual characters.
+* Character Properties::    Character attributes that define their
+                                behavior and handling.
 * Character Sets::          The space of possible character codes
                                 is divided into various character sets.
-* Chars and Bytes::         More information about multibyte encodings.
-* Splitting Characters::    Converting a character to its byte sequence.
 * Scanning Charsets::       Which character sets are used in a buffer?
 * Translation of Characters::   Translation tables are used for conversion.
 * Coding Systems::          Coding systems are conversions for saving files.
@@ -1208,6 +1218,7 @@ Processes
 * Output from Processes::   Collecting output from an asynchronous subprocess.
 * Sentinels::               Sentinels run when process run-status changes.
 * Query Before Exit::       Whether to query if exiting will kill a process.
+* System Processes::        Accessing other processes running on your system.
 * Transaction Queues::      Transaction-based communication with subprocesses.
 * Network::                 Opening network connections.
 * Network Servers::         Network servers let Emacs accept net connections.
@@ -1215,6 +1226,7 @@ Processes
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
 * Misc Network::            Additional relevant functions for network connections.
+* Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes
@@ -1292,13 +1304,15 @@ Faces
 * Attribute Functions::     Functions to examine and set face attributes.
 * Displaying Faces::        How Emacs combines the faces specified for
                               a character.
-* Font Selection::          Finding the best available font for a face.
+* Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
+* Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.
 * Fontsets::                A fontset is a collection of fonts
                               that handle a range of character sets.
+* Low-Level Font::          Lisp representation of character display fonts.
 
 Fringes
 
