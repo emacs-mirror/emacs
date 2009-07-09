@@ -356,7 +356,7 @@ code point @samp{U+@var{nnnn}} (by convention, Unicode code points are
 given in hexadecimal).  There is a slightly different syntax for
 specifying characters with code points higher than
 @code{U+@var{ffff}}: @code{\U00@var{nnnnnn}} represents the character
-whose code point is @samp{U+@var{nnnnnn}}.  The Unicode standard only
+whose code point is @samp{U+@var{nnnnnn}}.  The Unicode Standard only
 defines code points up to @samp{U+@var{10ffff}}, so if you specify a
 code point higher than that, Emacs signals an error.
 
