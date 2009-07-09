@@ -3347,11 +3347,13 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
-  /* GetDriveType needs the root directory of NAME's drive.  */
-  if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
-    devtype = GetDriveType (NULL); /* use root of current diectory */
+  if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
+    devtype = DRIVE_REMOTE;	   /* assume UNC name is remote */
+  else if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
+    devtype = GetDriveType (NULL); /* use root of current drive */
   else
     {
+      /* GetDriveType needs the root directory of NAME's drive.  */
       strncpy (drive_root, name, 3);
       drive_root[3] = '\0';
       devtype = GetDriveType (drive_root);
