@@ -1,3 +1,8 @@
+2009-07-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-rss-group): Strip newlines and
+	excessive whitespace from the default values of title and description.
+
 2009-06-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-dissect-buffer): Use message-fetch-field instead of
