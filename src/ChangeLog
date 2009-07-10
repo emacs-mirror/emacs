@@ -1,3 +1,7 @@
+2009-07-10  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Fix typo: FC_RGBA->FC_HINT_STYLE.
+
 2009-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (syms_of_ntproc) <w32-get-true-file-attributes>: Doc

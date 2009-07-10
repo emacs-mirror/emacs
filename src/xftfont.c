@@ -256,7 +256,7 @@ xftfont_open (f, entity, pixel_size)
       else if (EQ (key, QChintstyle))
 	{
 	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	    FcPatternAddInteger (pat, FC_HINT_STYLE, XINT (val));
 	}
       else if (EQ (key, QCrgba))
 	{
