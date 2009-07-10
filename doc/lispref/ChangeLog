@@ -2,6 +2,7 @@
 
 	* customize.texi (Customization Types):
 	* display.texi (Abstract Display):
+	* objects.texi (Character Type, String Type):
 	Merge in some menu descriptions from elisp.texi.
 
 	* hash.texi (Hash Tables):
