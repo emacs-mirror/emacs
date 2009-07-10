@@ -256,7 +256,7 @@ xftfont_open (f, entity, pixel_size)
       else if (EQ (key, QChintstyle))
 	{
 	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	    FcPatternAddInteger (pat, FC_HINT_STYLE, XINT (val));
 	}
       else if (EQ (key, QCrgba))
 	{
@@ -488,9 +488,6 @@ xftfont_has_char (font, c)
   struct xftfont_info *xftfont_info;
   struct charset *cs = NULL;
 
-  if (FONT_ENTITY_P (font))
-    return ftfont_driver.has_char (font, c);
-
   if (EQ (AREF (font, FONT_ADSTYLE_INDEX), Qja)
       && charset_jisx0208 >= 0)
     cs = CHARSET_FROM_ID (charset_jisx0208);
@@ -500,6 +497,8 @@ xftfont_has_char (font, c)
   if (cs)
     return (ENCODE_CHAR (cs, c) != CHARSET_INVALID_CODE (cs));
 
+  if (FONT_ENTITY_P (font))
+    return ftfont_driver.has_char (font, c);
   xftfont_info = (struct xftfont_info *) XFONT_OBJECT (font);
   return (XftCharExists (xftfont_info->display, xftfont_info->xftfont,
 			 (FcChar32) c) == FcTrue);
