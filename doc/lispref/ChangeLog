@@ -7,6 +7,7 @@
 	* objects.texi (Character Type, String Type):
 	Merge in some menu descriptions from elisp.texi.
 
+	* files.texi (Format Conversion):
 	* hash.texi (Hash Tables):
 	* modes.texi (Multiline Font Lock):
 	End menu description with period.

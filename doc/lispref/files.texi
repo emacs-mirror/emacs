@@ -2836,7 +2836,7 @@ namely @code{insert-file-contents} for reading a file into a buffer,
 and @code{write-region} for writing a buffer into a file.
 
 @menu
-* Overview: Format Conversion Overview.     @code{insert-file-contents} and @code{write-region}
+* Overview: Format Conversion Overview.     @code{insert-file-contents} and @code{write-region}.
 * Round-Trip: Format Conversion Round-Trip. Using @code{format-alist}.
 * Piecemeal: Format Conversion Piecemeal.   Specifying non-paired conversion.
 @end menu
