@@ -1,7 +1,8 @@
 2009-07-10  Glenn Morris  <rgm@gnu.org>
 
-	* customize.texi (Customization Types): Merge in some menu
-	descriptions from elisp.texi.
+	* customize.texi (Customization Types):
+	* display.texi (Abstract Display):
+	Merge in some menu descriptions from elisp.texi.
 
 2009-07-09  Glenn Morris  <rgm@gnu.org>
 
