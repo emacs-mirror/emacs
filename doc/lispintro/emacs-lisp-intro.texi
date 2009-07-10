@@ -783,6 +783,7 @@ Handling the Kill Ring
 
 The @code{current-kill} Function
 
+* Code for current-kill::
 * Understanding current-kill::
 
 @code{current-kill} in Outline
