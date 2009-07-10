@@ -171,7 +171,7 @@ xresources.texi   -- cyd
 abbrevs.texi      -- cyd
 advice.texi       -- cyd
 anti.texi         -- cyd
-back.texi
+back.texi         -- rgm
 backups.texi      -- cyd
 buffers.texi      -- cyd
 commands.texi     -- cyd
@@ -181,7 +181,7 @@ customize.texi    -- cyd
 debugging.texi    -- cyd
 display.texi      -- cyd
 edebug.texi
-elisp.texi
+elisp.texi        -- rgm
 errors.texi       -- cyd
 eval.texi         -- cyd
 files.texi        -- cyd
@@ -190,7 +190,7 @@ functions.texi    -- cyd
 hash.texi         -- cyd
 help.texi         -- cyd
 hooks.texi        -- cyd
-index.texi
+index.texi        -- rgm
 internals.texi    -- cyd
 intro.texi        -- cyd
 keymaps.texi      -- cyd
