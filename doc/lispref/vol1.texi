@@ -673,7 +673,7 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.)
+                              (reading buffer name, file name, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
 * Completion Styles::       Specifying rules for performing completion.
@@ -903,7 +903,7 @@ File Names
 
 File Format Conversion
 
-* Format Conversion Overview::   @code{insert-file-contents} and @code{write-region}
+* Format Conversion Overview::   @code{insert-file-contents} and @code{write-region}.
 * Format Conversion Round-Trip:: Using @code{format-alist}.
 * Format Conversion Piecemeal::  Specifying non-paired conversion.
 
@@ -1410,7 +1410,7 @@ Operating System Interface
 * Terminal Input::          Accessing and recording terminal input.
 * Terminal Output::         Controlling and recording terminal output.
 * Sound Output::            Playing sounds on the computer's speaker.
-* X11 Keysyms::             Operating on key symbols for X Windows
+* X11 Keysyms::             Operating on key symbols for X Windows.
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
