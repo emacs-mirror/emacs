@@ -9,6 +9,7 @@
 
 	* files.texi (Format Conversion):
 	* hash.texi (Hash Tables):
+	* minibuf.texi (Completion):
 	* modes.texi (Multiline Font Lock):
 	End menu description with period.
 

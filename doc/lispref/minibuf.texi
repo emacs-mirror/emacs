@@ -630,7 +630,7 @@ for reading certain kinds of names with completion.
 * Minibuffer Completion::  Invoking the minibuffer with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
-                             (reading buffer name, file name, etc.)
+                             (reading buffer name, file name, etc.).
 * Reading File Names::     Using completion to read file names and
                              shell commands.
 * Completion Styles::      Specifying rules for performing completion.
