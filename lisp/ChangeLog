@@ -1,3 +1,9 @@
+2009-07-10  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Omake sometimes indents the errors it prints, so allow all
+	regexps to start with spaces.
+
 2009-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-edit.el (customize-changed-options-previous-release): Bump

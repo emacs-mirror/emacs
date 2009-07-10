@@ -975,7 +975,17 @@ FMTS is a list of format specs for transforming the file name.
 	      (line (nth 2 item))
 	      (col (nth 3 item))
 	      (type (nth 4 item))
+              (pat (car item))
 	      end-line end-col fmt)
+          ;; omake reports some error indented, so skip the indentation.
+          ;; another solution is to modify (some?) regexps in
+          ;; `compilation-error-regexp-alist'.
+          ;; note that omake usage is not limited to ocaml and C (for stubs).
+          (unless (string-match (concat "^" (regexp-quote "^ *")) pat)
+            (setq pat (concat "^ *"
+                              (if (= ?^ (aref pat 0))
+                                  (substring pat 1)
+                                  pat))))
 	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
 	  (if (consp line)	(setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
@@ -984,7 +994,7 @@ FMTS is a list of format specs for transforming the file name.
 	      ;; The old compile.el had here an undocumented hook that
 	      ;; allowed `line' to be a function that computed the actual
 	      ;; error location.  Let's do our best.
-	      `(,(car item)
+	      `(,pat
 		(0 (save-match-data
 		     (compilation-compat-error-properties
 		      (funcall ',line (cons (match-string ,file)
@@ -996,7 +1006,7 @@ FMTS is a list of format specs for transforming the file name.
 	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
 	      (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
-	    `(,(nth 0 item)
+	    `(,pat
 
 	      ,@(when (integerp file)
 		  `((,file ,(if (consp type)
