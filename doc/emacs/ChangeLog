@@ -1,3 +1,8 @@
+2009-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Files) <w32-get-true-file-attributes>: Don't be
+	so categorical in saying that the option is only useful on NTFS.
+
 2009-07-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (texinfodir): New variable, with location of texinfo.tex.

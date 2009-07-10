@@ -187,8 +187,9 @@ will issue these additional system calls only for files on local fixed
 drives.  Any other non-@code{nil} value means do this even for
 removable and remote volumes, where this could potentially slow down
 Dired and other related features.  The value of @code{nil} means never
-issue those system calls.  Non-@code{nil} values are only useful on
-NTFS volumes, which support hard links and file security.
+issue those system calls.  Non-@code{nil} values are more useful on
+NTFS volumes, which support hard links and file security, than on FAT,
+FAT32, and XFAT volumes.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
