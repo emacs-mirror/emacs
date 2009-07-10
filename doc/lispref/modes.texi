@@ -3148,7 +3148,7 @@ subsequent lines.
 @end itemize
 
 @menu
-* Font Lock Multiline::         Marking multiline chunks with a text property
+* Font Lock Multiline::         Marking multiline chunks with a text property.
 * Region to Fontify::           Controlling which region gets refontified
                                   after a buffer change.
 @end menu
