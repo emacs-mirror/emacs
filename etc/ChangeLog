@@ -1,3 +1,8 @@
+2009-07-10  Kenichi Handa  <handa@m17n.org>
+
+	* PROBLEMS: Show the workaround for single<->double width problem
+	of font selection in CJK environment.
+
 2009-07-08  Glenn Morris  <rgm@gnu.org>
 
 	* tutorials/TUTORIAL: Standardize the way M-x commands are written:

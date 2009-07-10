@@ -904,6 +904,26 @@ the following variables: tex-font-script-display (how much to
 lower/raise); tex-suscript-height-ratio (how much smaller than
 normal); tex-suscript-height-minimum (minimum height).
 
+** Some characters are displayed by single width glyphs.
+
+In Emacs 23.1, even in a CJK environment, several characters
+(e.g. U+00D7, MULTIPLICATION SIGN) are displayed by a single width
+glyph even if they belong to one of CJK charsets.  This is a known
+problem and will be fixed in the next version.  The workaround at the
+moment is to put something like this in your .emacs.
+
+(if (display-graphic-p)
+    (let ((fontset (face-attribute 'default :fontset)))
+      (set-fontset-font fontset '(#x80 . #xFF)
+			(font-spec :registry "iso8859-1" :script 'latin))
+      (set-fontset-font fontset 'greek  '(nil . "iso8859-7"))
+      (set-fontset-font fontset 'cyrillic  '(nil . "iso8859-5"))
+      (set-fontset-font fontset '(#x80 . #xFFFF) '(nil . "jisx0208.1983-0") 
+			nil 'append)))
+
+You may change "jisx0208.1983-0" to "gb2312.1980-0" if you are in
+Chinese language environment.
+
 * Internationalization problems
 
 ** M-{ does not work on a Spanish PC keyboard.
