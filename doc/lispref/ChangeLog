@@ -11,6 +11,7 @@
 	* hash.texi (Hash Tables):
 	* minibuf.texi (Completion):
 	* modes.texi (Multiline Font Lock):
+	* os.texi (System Interface):
 	End menu description with period.
 
 2009-07-09  Glenn Morris  <rgm@gnu.org>

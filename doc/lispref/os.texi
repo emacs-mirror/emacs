@@ -33,7 +33,7 @@ terminal and the screen.
 * Terminal Input::      Accessing and recording terminal input.
 * Terminal Output::     Controlling and recording terminal output.
 * Sound Output::        Playing sounds on the computer's speaker.
-* X11 Keysyms::         Operating on key symbols for X Windows
+* X11 Keysyms::         Operating on key symbols for X Windows.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
 @end menu
