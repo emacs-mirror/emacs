@@ -1,3 +1,9 @@
+2009-07-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_select_font): Remember last font selected in
+	x_last_font_name and use that the next time. Also try the frame
+	parameter font-parameter as default to the font dialog.
+
 2009-07-10  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Fix typo: FC_RGBA->FC_HINT_STYLE.

@@ -208,6 +208,9 @@ extern Lisp_Object Vwindow_system_version;
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
+#if defined (USE_GTK) && defined (HAVE_FREETYPE)
+char *x_last_font_name;
+#endif
 
 
 /* Error if we are not connected to X.  */
@@ -5629,6 +5632,9 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   FRAME_PTR f = check_x_frame (frame);
   char *name;
   Lisp_Object default_font, font = Qnil;
+  Lisp_Object font_param;
+  char *default_name = NULL;
+  struct gcpro gcpro1;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5642,21 +5648,28 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  XSETFONT (default_font, FRAME_FONT (f));
-  if (FONTP (default_font))
+  GCPRO1(font_param);
+  font_param = Fframe_parameter (frame, Qfont_param);
+
+  if (x_last_font_name != NULL)
+    default_name = x_last_font_name;
+  else if (STRINGP (font_param))
+    default_name = SDATA (font_param);
+  else if (FONTP (default_font))
     {
-      char *default_name = alloca (256);
+      XSETFONT (default_font, FRAME_FONT (f));
+      default_name = alloca (256);
       if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
 	default_name = NULL;
-      name = xg_get_font_name (f, default_name);
     }
-  else
-    name = xg_get_font_name (f, NULL);
+
+  name = xg_get_font_name (f, default_name);
 
   if (name)
     {
       font = build_string (name);
-      xfree (name);
+      g_free (x_last_font_name);
+      x_last_font_name = name;
     }
 
   UNBLOCK_INPUT;
@@ -6028,6 +6041,7 @@ the tool bar buttons.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
+  x_last_font_name = NULL;
 #endif
 }
 
