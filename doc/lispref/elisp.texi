@@ -225,7 +225,7 @@ Lisp Data Types
 * Comments::                Comments and their formatting conventions.
 * Programming Types::       Types found in all Lisp systems.
 * Editing Types::           Types specific to Emacs.
-* Circular Objects::            Read syntax for circular structure.
+* Circular Objects::        Read syntax for circular structure.
 * Type Predicates::         Tests related to types.
 * Equality Predicates::     Tests of equality between any two objects.
 
@@ -307,7 +307,7 @@ Strings and Characters
 * String Basics::           Basic properties of strings and characters.
 * Predicates for Strings::  Testing whether an object is a string or char.
 * Creating Strings::        Functions to allocate new strings.
-* Modifying Strings::         Altering the contents of an existing string.
+* Modifying Strings::       Altering the contents of an existing string.
 * Text Comparison::         Comparing characters or strings.
 * String Conversion::       Converting to and from characters and strings.
 * Formatting Strings::      @code{format}: Emacs's analogue of @code{printf}.
@@ -654,7 +654,7 @@ Completion
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
-                              (reading buffer name, file name, etc.)
+                              (reading buffer name, file name, etc.).
 * Reading File Names::      Using completion to read file names and
                               shell commands.
 * Completion Styles::       Specifying rules for performing completion.
@@ -884,7 +884,7 @@ File Names
 
 File Format Conversion
 
-* Format Conversion Overview::   @code{insert-file-contents} and @code{write-region}
+* Format Conversion Overview::   @code{insert-file-contents} and @code{write-region}.
 * Format Conversion Round-Trip:: Using @code{format-alist}.
 * Format Conversion Piecemeal::  Specifying non-paired conversion.
 
@@ -1391,7 +1391,7 @@ Operating System Interface
 * Terminal Input::          Accessing and recording terminal input.
 * Terminal Output::         Controlling and recording terminal output.
 * Sound Output::            Playing sounds on the computer's speaker.
-* X11 Keysyms::             Operating on key symbols for X Windows
+* X11 Keysyms::             Operating on key symbols for X Windows.
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
