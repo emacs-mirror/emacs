@@ -243,11 +243,11 @@ description of a character for the sake of messages.  @xref{Describing
 Characters}.
 
 @menu
-* Basic Char Syntax::
-* General Escape Syntax::
-* Ctl-Char Syntax::
-* Meta-Char Syntax::
-* Other Char Bits::
+* Basic Char Syntax::      Syntax for regular characters.
+* General Escape Syntax::  How to specify characters by their codes.
+* Ctl-Char Syntax::        Syntax for control characters.
+* Meta-Char Syntax::       Syntax for meta-characters.
+* Other Char Bits::        Syntax for hyper-, super-, and alt-characters.
 @end menu
 
 @node Basic Char Syntax
@@ -975,10 +975,10 @@ of a string returns the same string.
   @xref{Strings and Characters}, for functions that operate on strings.
 
 @menu
-* Syntax for Strings::
-* Non-ASCII in Strings::
-* Nonprinting Characters::
-* Text Props and Strings::
+* Syntax for Strings::      How to specify Lisp strings.
+* Non-ASCII in Strings::    International characters in strings.
+* Nonprinting Characters::  Literal unprintable characters in strings.
+* Text Props and Strings::  Strings with text properties.
 @end menu
 
 @node Syntax for Strings
