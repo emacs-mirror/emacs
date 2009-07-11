@@ -332,8 +332,6 @@ meanings of these arguments."
 	(when (> char 0)
 	  (insert "Final char of ISO2022 designation sequence: ")
 	  (insert (format "`%c'\n" char))))
-      (insert (format "Width (how many columns on screen): %d\n"
-		      (aref char-width-table (make-char charset))))
       (let (aliases)
 	(dolist (c charset-list)
 	  (if (and (not (eq c charset))
