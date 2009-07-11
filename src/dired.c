@@ -104,6 +104,7 @@ extern void filemodestring P_ ((struct stat *, char *));
 extern int completion_ignore_case;
 extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
+extern Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qdirectory_files;
@@ -115,6 +116,14 @@ Lisp_Object Qfile_attributes_lessp;
 
 static int scmp P_ ((unsigned char *, unsigned char *, int));
 
+#ifdef WINDOWSNT
+Lisp_Object
+directory_files_internal_w32_unwind (Lisp_Object arg)
+{
+  Vw32_get_true_file_attributes = arg;
+  return Qnil;
+}
+#endif
 
 Lisp_Object
 directory_files_internal_unwind (dh)
@@ -146,6 +155,9 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
+#ifdef WINDOWSNT
+  Lisp_Object w32_save = Qnil;
+#endif
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
@@ -193,6 +205,34 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
      do a proper unwind-protect.  */
   record_unwind_protect (directory_files_internal_unwind,
 			 make_save_value (d, 0));
+
+#ifdef WINDOWSNT
+  if (attrs)
+    {
+      extern Lisp_Object Qlocal;
+      extern int is_slow_fs (const char *);
+
+      /* Do this only once to avoid doing it (in w32.c:stat) for each
+	 file in the directory, when we call Ffile_attributes below.  */
+      record_unwind_protect (directory_files_internal_w32_unwind,
+			     Vw32_get_true_file_attributes);
+      w32_save = Vw32_get_true_file_attributes;
+      if (EQ (Vw32_get_true_file_attributes, Qlocal))
+	{
+	  char *dirnm = SDATA (dirfilename);
+	  char *fn = alloca (SBYTES (dirfilename) + 1);
+
+	  strncpy (fn, SDATA (dirfilename), SBYTES (dirfilename));
+	  fn[SBYTES (dirfilename)] = '\0';
+	  /* w32.c:stat will notice these bindings and avoid calling
+	     GetDriveType for each file.  */
+	  if (is_slow_fs (fn))
+	    Vw32_get_true_file_attributes = Qnil;
+	  else
+	    Vw32_get_true_file_attributes = Qt;
+	}
+    }
+#endif
 
   directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
@@ -310,6 +350,10 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   BLOCK_INPUT;
   closedir (d);
   UNBLOCK_INPUT;
+#ifdef WINDOWSNT
+  if (attrs)
+    Vw32_get_true_file_attributes = w32_save;
+#endif
 
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
