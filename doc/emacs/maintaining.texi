@@ -54,7 +54,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Branches::            Multiple lines of development.
 @ifnottex
 * Remote Repositories:: Efficient access to remote CVS servers.
-* Revision Tags::       Symbolic names for revisions
+* Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
 @end ifnottex
@@ -77,7 +77,7 @@ this section if you are already familiar with the version control system
 you want to use.
 
 @menu
-* Why Version Control?::    Understanding the problems it addresses
+* Why Version Control?::    Understanding the problems it addresses.
 * Version Control Systems:: Supported version control back-end systems.
 * VCS Concepts::            Words and concepts related to version control.
 * Types of Log File::       The VCS log in contrast to the ChangeLog.
