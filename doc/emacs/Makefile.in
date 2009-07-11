@@ -43,6 +43,7 @@ DVI_TARGETS  = emacs.dvi
 
 
 TEXI2DVI = texi2dvi
+TEXI2PDF = texi2pdf
 
 # The following rule does not work with all versions of `make'.
 .SUFFIXES: .texi .dvi
@@ -130,9 +131,15 @@ $(infodir)/emacs: ${EMACSSOURCES}
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
 
+emacs.pdf: ${EMACSSOURCES}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
+
 
 emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+
+emacs-xtra.pdf: emacs-xtra.texi $(EMACS_XTRA)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
 
 
 mostlyclean:
