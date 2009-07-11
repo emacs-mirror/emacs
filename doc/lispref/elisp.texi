@@ -102,6 +102,8 @@ Cover art by Etienne Suvasa.
 
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
+
+@insertcopying
 @end ifnottex
 
 @c Copy any updates to vol1.texi and vol2.texi.
