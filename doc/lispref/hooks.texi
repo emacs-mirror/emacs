@@ -259,18 +259,18 @@ Manual}.
 
 @item nongregorian-diary-listing-hook
 @iftex
-@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+@inforef{Non-Gregorian Diary,, emacs-xtra}.
 @end iftex
 @ifnottex
-@xref{Hebrew/Islamic Entries,,, emacs}.
+@xref{Non-Gregorian Diary,,, emacs}.
 @end ifnottex
 
 @item nongregorian-diary-marking-hook
 @iftex
-@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
+@inforef{Non-Gregorian Diary,, emacs-xtra}.
 @end iftex
 @ifnottex
-@xref{Hebrew/Islamic Entries,,, emacs}.
+@xref{Non-Gregorian Diary,,, emacs}.
 @end ifnottex
 
 @item occur-hook
