@@ -708,7 +708,7 @@ If a particular grouping construct in the regular expression was never
 matched---for instance, if it appears inside of an alternative that
 wasn't used, or inside of a repetition that repeated zero times---then
 the corresponding @samp{\@var{digit}} construct never matches
-anything.  To use an artificial example,, @samp{\(foo\(b*\)\|lose\)\2}
+anything.  To use an artificial example, @samp{\(foo\(b*\)\|lose\)\2}
 cannot match @samp{lose}: the second alternative inside the larger
 group matches it, but then @samp{\2} is undefined and can't match
 anything.  But it can match @samp{foobb}, because the first
