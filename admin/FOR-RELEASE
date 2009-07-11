@@ -19,9 +19,14 @@ the menu-entry name (if there is one) as well as the node name - using
 only the latter looks better.  Also, it doesn't seem to handle nested
 includes, so will miss edebug.texi etc.
 
-Check for widow and orphan lines; make sure all the pages really look
-ok in the manual as formatted.  (AFAIK, there is no way to do this
-except paging through the whole manual.)
+Check for widow and orphan lines in the printed manual; make sure all
+the pages really look ok in the manual as formatted.  Orphans/widows
+are cases where the first/last line of a paragraph is on its own at
+the end/start of a page, or where the last word in a paragraph is on
+its own at the start of a line.  It looks better if you reword/respace
+things to avoid these.  (AFAIK, there is no way to find these except
+paging through the whole manual.)  This should be the very last thing
+you do, since any change can alter the layout.
 
 ** Regenerate the pdf versions of the reference cards in etc/refcards/.
 
