@@ -6,6 +6,9 @@
 
 2009-07-11  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (TEXI2PDF): New.
+	(elisp.pdf): New target.
+
 	* searching.texi (Regexp Backslash): Fix typo.
 
 	* elisp.texi (Top): Display copyright notice at start of non-TeX.

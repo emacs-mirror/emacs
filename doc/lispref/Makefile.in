@@ -31,6 +31,7 @@ infodir = ../../info
 texinfodir = $(srcdir)/../misc
 
 TEXI2DVI = texi2dvi
+TEXI2PDF = texi2pdf
 SHELL = /bin/sh
 INSTALL_INFO = install-info
 MAKEINFO = makeinfo --force
@@ -102,6 +103,9 @@ $(infodir)/elisp: $(srcs)
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
+
+elisp.pdf: $(srcs)
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
 
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
