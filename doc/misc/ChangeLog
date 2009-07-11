@@ -1,3 +1,9 @@
+2009-07-11  Kevin Ryde  <user42@zip.com.au>
+
+	* pcl-cvs.texi (About PCL-CVS):
+	* widget.texi (Basic Types):
+	Fix cross-references.
+
 2009-07-01  Andreas Schwab  <aschwab@redhat.com>
 
 	* dbus.texi (Type Conversion): Don't use literal control character.
