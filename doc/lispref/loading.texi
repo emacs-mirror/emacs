@@ -733,10 +733,11 @@ loaded, into the current Emacs session.  This means that the facilities
 associated with @var{feature} are or will be available for other Lisp
 programs.
 
-The direct effect of calling @code{provide} is to add @var{feature} to
-the front of the list @code{features} if it is not already in the list.
-The argument @var{feature} must be a symbol.  @code{provide} returns
-@var{feature}.
+The direct effect of calling @code{provide} is if not already in
+@var{features} then to add @var{feature} to the front of that list and
+call any @code{eval-after-load} code waiting for it (@pxref{Hooks for
+Loading}).  The argument @var{feature} must be a symbol.
+@code{provide} returns @var{feature}.
 
 If provided, @var{subfeatures} should be a list of symbols indicating
 a set of specific subfeatures provided by this version of
