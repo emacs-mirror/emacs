@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+@c   2009  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep, Microsoft Windows, Antinews, Top
 @appendix Emacs and Mac OS / GNUstep
@@ -21,17 +21,16 @@ internally, instead of ``Cocoa'' or ``Mac OS X''; for instance, most of the
 commands and variables described in the following sections begin with
 @samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep was an application
 interface released by NeXT Inc during the 1980s, of which Cocoa is a direct
-descendent.  Apart from Cocoa, there is another NeXTstep-style system:
+descendant.  Apart from Cocoa, there is another NeXTstep-style system:
 GNUstep, which is free software.  As of this writing, the GNUstep support is
-alpha status (see @pxref{GNUstep Support}), but we hope to improve it in the
+alpha status (@pxref{GNUstep Support}), but we hope to improve it in the
 future.
 
 @menu
 * Mac / GNUstep Basics::        Basic Emacs usage under GNUstep or Mac OS.
 * Mac / GNUstep Customization:: Customizations under GNUstep or Mac OS.
 * Mac / GNUstep Events::        How window system events are handled.
-* GNUstep Support::             Details on status of GNUstep support
-* 
+* GNUstep Support::             Details on status of GNUstep support.
 @end menu
 
 @node Mac / GNUstep Basics, Mac / GNUstep Customization, , Mac OS / GNUstep
@@ -75,15 +74,17 @@ clipboard.
 
 @subsection Grabbing environment variables
 
-Many programs which may run under Emacs like latex or man depend on the
+@c How is this any different to launching from a window manager menu
+@c in GNU/Linux?  These are sometimes not login shells either.
+Many programs which may run under Emacs, like latex or man, depend on the
 settings of environment variables.  If Emacs is launched from the shell, it
 will automatically inherit these environment variables and its subprocesses
 will inherit them from it.  But if Emacs is launched from the Finder it
 is not a descendant of any shell, so its environment variables haven't been
-set which often causes the subprocesses it launches to behave differently than
+set, which often causes the subprocesses it launches to behave differently than
 they would when launched from the shell.
 
-As for the PATH and MANPATH variables, a system-wide method
+For the PATH and MANPATH variables, a system-wide method
 of setting PATH is recommended on Mac OS X 10.5 and later, using the
 @file{/etc/paths} files and the @file{/etc/paths.d} directory.
 
@@ -142,7 +143,7 @@ This event occurs when another Nextstep application requests that
 Emacs open a file.  A typical reason for this would be a user
 double-clicking a file in the Finder application.  By default, Emacs
 responds to this event by opening a new frame and visiting the file in
-that frame (@code{ns-find-file}), As an exception, if the selected
+that frame (@code{ns-find-file}).  As an exception, if the selected
 buffer is the @samp{*scratch*} buffer, Emacs visits the file in the
 selected frame.
 
@@ -189,7 +190,7 @@ panel (which can be opened with @kbd{Cmd-t}).  The default behavior is
 to adjust the font of the selected frame
 (@code{ns-respond-to-changefont}).  The name and size of the selected
 font are stored in the variables @code{ns-input-font} and
-@code{ns-input-fontsize} respectively.
+@code{ns-input-fontsize}, respectively.
 
 @item ns-power-off
 This event occurs when the user logs out and Emacs is still running, or when 
@@ -211,15 +212,21 @@ restart Emacs to access newly-available services.
 @node GNUstep Support, , Mac / GNUstep Events, Mac OS / GNUstep
 @section GNUstep Support
 
-Emacs can be built and run under GNUstep however building is difficult and
-there are some limitations to functionality.  In particular, it may be
-necessary to run @samp{make bootstrap} with a plain X configuration, then
-@samp{make clean} and @samp{./configure --with-ns} followed by @samp{make
-install}.
+Emacs can be built and run under GNUstep, however there are still some
+issues to be addressed.  Interested developers should contact
+@email{emacs-devel@@gnu.org}.
+
+@c Presumably no longer relevant since CANNOT_DUMP removed 2009-05-06:
+@ignore
+In particular, it may be necessary to run @samp{make bootstrap} with a
+plain X configuration, then @samp{make clean} and @samp{./configure
+--with-ns} followed by @samp{make install}.
 
 Currently CANNOT_DUMP is automatically enabled in GNUstep configurations,
 because the unex file(s) for GNUstep, mainly @samp{unexelf.c}, have not been
 updated yet with the ``zone'' code in and related to @samp{unexmacosx.c}.
+@end ignore
+
 
 @ignore
    arch-tag: a822c2ab-4273-4997-927e-c153bb71dcf6
