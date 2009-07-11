@@ -1,14 +1,14 @@
-2009-07-11  Glenn Morris  <rgm@gnu.org>
-
-	* searching.texi (Regexp Backslash): Fix typo.
-
 2009-07-11  Kevin Ryde  <user42@zip.com.au>
 
 	* hooks.texi (Standard Hooks): Fix cross-references.
 
+	* loading.texi (Named Features): Refer to eval-after-load.
+
 2009-07-11  Glenn Morris  <rgm@gnu.org>
 
-	* elisp.texi (Top):  Display copyright notice at start of non-TeX.
+	* searching.texi (Regexp Backslash): Fix typo.
+
+	* elisp.texi (Top): Display copyright notice at start of non-TeX.
 
 2009-07-10  Glenn Morris  <rgm@gnu.org>
 
