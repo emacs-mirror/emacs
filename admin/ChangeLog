@@ -1,3 +1,8 @@
+2009-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-tarball.txt: Add a note about bumping the value of
+	customize-changed-options-previous-release.
+
 2009-06-24  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/mapconv: For the UNICODE format files, do reverse sort
