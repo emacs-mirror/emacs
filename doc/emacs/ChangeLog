@@ -1,3 +1,30 @@
+2009-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* arevert-xtra.texi (Autorevert): Add menu descriptions.
+
+	* display.texi (Horizontal Scrolling): Re-word to remove widow.
+
+	* emacs.texi (Top): Info can be read from other places than Emacs.
+	Don't print the copying notice twice in the printed version.
+	Update the menu and detailmenu.
+	(Preface): The meaning of "on-line" has changed.
+	Correct name for "Common Problems" chapter.
+	(Distrib): Update FSF shop URL.
+	(Intro): Showing two files at once is not so exciting.
+
+	* macos.texi (Mac OS / GNUstep): Fix spelling and cross-reference.
+	(Mac / GNUstep Basics): Minor grammar changes.
+	(Mac / GNUstep Events): Fix typo.
+	(GNUstep Support): CANNOT_DUMP no longer applies.
+
+	* misc.texi (Document View): Fix typos.
+
+	* dired.texi (Dired):
+	* help.texi (Help):
+	* macos.texi (Mac OS / GNUstep):
+	* maintaining.texi (Version Control, Introduction to VC):
+	End menu descriptions with a period.
+
 2009-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Files) <w32-get-true-file-attributes>: Don't be
