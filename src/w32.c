@@ -3381,7 +3381,7 @@ stat (const char * path, struct stat * buf)
     }
 
   if (!(NILP (Vw32_get_true_file_attributes)
-	|| (EQ (Vw32_get_true_file_attributes, Qlocal) && !is_slow_fs (name)))
+	|| (EQ (Vw32_get_true_file_attributes, Qlocal) && is_slow_fs (name)))
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
