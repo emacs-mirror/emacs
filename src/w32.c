@@ -2555,12 +2555,23 @@ logon_network_drive (const char *path)
   char share[MAX_PATH];
   int i, n_slashes;
   char drive[4];
+  UINT drvtype;
 
-  sprintf (drive, "%c:\\", path[0]);
+  if (IS_DIRECTORY_SEP (path[0]) && IS_DIRECTORY_SEP (path[1]))
+    drvtype = DRIVE_REMOTE;
+  else if (path[0] == '\0' || path[1] != ':')
+    drvtype = GetDriveType (NULL);
+  else
+    {
+      drive[0] = path[0];
+      drive[1] = ':';
+      drive[2] = '\\';
+      drive[3] = '\0';
+      drvtype = GetDriveType (drive);
+    }
 
   /* Only logon to networked drives.  */
-  if ((!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
-      && GetDriveType (drive) != DRIVE_REMOTE)
+  if (drvtype != DRIVE_REMOTE)
     return;
 
   n_slashes = 2;
@@ -3234,6 +3245,28 @@ get_file_owner_and_group (
     }
 }
 
+/* Return non-zero if NAME is a potentially slow filesystem.  */
+int
+is_slow_fs (const char *name)
+{
+  char drive_root[4];
+  UINT devtype;
+
+  if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
+    devtype = DRIVE_REMOTE;	   /* assume UNC name is remote */
+  else if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
+    devtype = GetDriveType (NULL); /* use root of current drive */
+  else
+    {
+      /* GetDriveType needs the root directory of the drive.  */
+      strncpy (drive_root, name, 2);
+      drive_root[2] = '\\';
+      drive_root[3] = '\0';
+      devtype = GetDriveType (drive_root);
+    }
+  return !(devtype == DRIVE_FIXED || devtype == DRIVE_RAMDISK);
+}
+
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
    inode values without hacks in the main Emacs code. */
@@ -3347,21 +3380,8 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
-  if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
-    devtype = DRIVE_REMOTE;	   /* assume UNC name is remote */
-  else if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
-    devtype = GetDriveType (NULL); /* use root of current drive */
-  else
-    {
-      /* GetDriveType needs the root directory of NAME's drive.  */
-      strncpy (drive_root, name, 3);
-      drive_root[3] = '\0';
-      devtype = GetDriveType (drive_root);
-    }
-
   if (!(NILP (Vw32_get_true_file_attributes)
-	|| (EQ (Vw32_get_true_file_attributes, Qlocal)
-	    && devtype != DRIVE_FIXED && devtype != DRIVE_RAMDISK))
+	|| (EQ (Vw32_get_true_file_attributes, Qlocal) && !is_slow_fs (name)))
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
