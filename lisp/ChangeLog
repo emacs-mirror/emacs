@@ -1,3 +1,11 @@
+2009-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (temporary-goal-column): Change the value for
+	line-move-visual to a cons cell.
+	(line-move-visual): Record or set the window hscroll, if
+	necessary (Bug#3494).
+	(line-move-1): Handle cons value of temporary-goal-column.
+
 2009-07-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (describe-character-set): Don't show

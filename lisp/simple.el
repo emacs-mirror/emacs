@@ -3973,10 +3973,14 @@ This has no effect when `line-move-visual' is non-nil."
 (defvar temporary-goal-column 0
   "Current goal column for vertical motion.
 It is the column where point was at the start of the current run
-of vertical motion commands.  It is a floating point number when
-moving by visual lines via `line-move-visual'; this is the
-x-position, in pixels, divided by the default column width.  When
-the `track-eol' feature is doing its job, the value is
+of vertical motion commands.
+
+When moving by visual lines via `line-move-visual', it is a cons
+cell (COL . HSCROLL), where COL is the x-position, in pixels,
+divided by the default column width, and HSCROLL is the number of
+columns by which window is scrolled from left margin.
+
+When the `track-eol' feature is doing its job, the value is
 `most-positive-fixnum'.")
 
 (defcustom line-move-ignore-invisible t
@@ -4075,18 +4079,33 @@ into account variable-width characters and line continuation."
 (defun line-move-visual (arg &optional noerror)
   (let ((posn (posn-at-point))
 	(opoint (point))
+	(hscroll (window-hscroll))
 	x)
-    ;; Reset temporary-goal-column, unless the previous command was a
-    ;; line-motion command or we were called from some other command.
-    (unless (and (floatp temporary-goal-column)
-		 (memq last-command `(next-line previous-line ,this-command)))
-      (cond ((eq (nth 1 posn) 'right-fringe) ; overflow-newline-into-fringe
-	     (setq temporary-goal-column (- (window-width) 1)))
-	    ((setq x (car (posn-x-y posn)))
-	     (setq temporary-goal-column (/ (float x) (frame-char-width))))))
+    ;; Check if the previous command was a line-motion command, or if
+    ;; we were called from some other command.
+    (cond ((and (consp temporary-goal-column)
+		(memq last-command `(next-line previous-line ,this-command)))
+	   ;; If so, there's no need to reset `temporary-goal-column',
+	   ;; unless the window hscroll has changed.
+	   (when (/= hscroll (cdr temporary-goal-column))
+	     (set-window-hscroll nil 0)
+	     (setq temporary-goal-column
+		   (cons (+ (car temporary-goal-column)
+			    (cdr temporary-goal-column)) 0))))
+	  ;; Otherwise, we should reset `temporary-goal-column'.
+	  ;; Handle the `overflow-newline-into-fringe' case:
+	  ((eq (nth 1 posn) 'right-fringe)
+	   (setq temporary-goal-column (cons (- (window-width) 1) hscroll)))
+	  ((setq x (car (posn-x-y posn)))
+	   (setq temporary-goal-column
+		 (cons (/ (float x) (frame-char-width)) hscroll))))
     ;; Move using `vertical-motion'.
     (or (and (= (vertical-motion
-		 (cons (or goal-column (truncate temporary-goal-column)) arg))
+		 (cons (or goal-column
+			   (if (consp temporary-goal-column)
+			       (truncate (car temporary-goal-column))
+			     temporary-goal-column))
+		       arg))
 		arg)
 	     (or (>= arg 0)
 		 (/= (point) opoint)
@@ -4108,8 +4127,9 @@ into account variable-width characters and line continuation."
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
 	(orig-arg arg))
-    (if (floatp temporary-goal-column)
-	(setq temporary-goal-column (truncate temporary-goal-column)))
+    (if (consp temporary-goal-column)
+	(setq temporary-goal-column (+ (car temporary-goal-column)
+				       (cdr temporary-goal-column))))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
