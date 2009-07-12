@@ -716,7 +716,7 @@ archive.
   ;; The funny [] here make it unlikely that the .elc file will be treated
   ;; as an archive by other software.
   (let (case-fold-search)
-    (cond ((looking-at "[P]K\003\004") 'zip)
+    (cond ((looking-at "\\(PK00\\)?[P]K\003\004") 'zip)
 	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO
