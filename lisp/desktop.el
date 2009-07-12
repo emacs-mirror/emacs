@@ -336,7 +336,7 @@ modes are restored automatically; they should not be listed here."
 ;; We skip .log files because they are normally temporary.
 ;;         (ftp) files because they require passwords and whatnot.
 (defcustom desktop-buffers-not-to-save
-  "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\)$"
+  "\\(^nn\\.a[0-9]+\\|(ftp)\\)$"
   "Regexp identifying buffers that are to be excluded from saving."
   :type 'regexp
   :group 'desktop)
