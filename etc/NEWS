@@ -72,6 +72,12 @@ methods "dav", "davs", "obex" and "synce".
 *** The command `calendar-current-date' accepts an optional argument
 giving an offset from today.
 
+** Desktop
+
+---
+*** The default value for `desktop-buffers-not-to-save' no longer matches
+buffers whose name ends in a ".log".
+
 ** Miscellaneous
 
 *** The new command `async-shell-command' bound globally to `M-&' executes
