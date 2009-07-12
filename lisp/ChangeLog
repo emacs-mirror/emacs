@@ -1,3 +1,7 @@
+2009-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* desktop.el (desktop-buffers-not-to-save): Remove ".log". (Bug#3833)
+
 2009-07-12  Peter Jolly  <peter@jollys.org>  (tiny change)
 
 	* arc-mode.el (archive-find-type): Allow for a PK00 string before
