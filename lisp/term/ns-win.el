@@ -931,7 +931,7 @@ unless the current buffer is a scratch buffer."
 
 ;; Set to use font panel instead
 (declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'generate-fontset-menu 'ns-popup-font-panel "Pop up the font panel.
+(defalias 'x-select-font 'ns-popup-font-panel "Pop up the font panel.
 This function has been overloaded in Nextstep.")
 (defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
 This function has been overloaded in Nextstep.")
