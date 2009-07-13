@@ -257,7 +257,7 @@ sub_char_table_ref_and_range (table, c, from, to, defalt)
 	  break;
 	}
     }
-  while ((c = min_char + (index + 1) * chartab_chars[depth]) < max_char
+  while ((c = min_char + (index + 1) * chartab_chars[depth]) <= max_char
 	 && *to >= c)
     {
       Lisp_Object this_val;
