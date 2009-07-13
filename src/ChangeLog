@@ -1,3 +1,8 @@
+2009-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (directory_files_internal) [WINDOWSNT]: Don't make a
+	local copy of dirfilename.
+
 2009-07-13  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (sub_char_table_ref_and_range): Fix the range check
