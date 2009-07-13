@@ -219,14 +219,9 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
       w32_save = Vw32_get_true_file_attributes;
       if (EQ (Vw32_get_true_file_attributes, Qlocal))
 	{
-	  char *dirnm = SDATA (dirfilename);
-	  char *fn = alloca (SBYTES (dirfilename) + 1);
-
-	  strncpy (fn, SDATA (dirfilename), SBYTES (dirfilename));
-	  fn[SBYTES (dirfilename)] = '\0';
 	  /* w32.c:stat will notice these bindings and avoid calling
 	     GetDriveType for each file.  */
-	  if (is_slow_fs (fn))
+	  if (is_slow_fs (SDATA (dirfilename)))
 	    Vw32_get_true_file_attributes = Qnil;
 	  else
 	    Vw32_get_true_file_attributes = Qt;
