@@ -492,7 +492,7 @@ internal_self_insert (c, noautofill)
       /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
-      if (! NILP (sym) && ! NILP (XSYMBOL (sym)->function)
+      if (SYMBOLP (sym) && ! NILP (sym) && ! NILP (XSYMBOL (sym)->function)
 	  && SYMBOLP (XSYMBOL (sym)->function))
 	{
 	  Lisp_Object prop;

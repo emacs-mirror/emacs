@@ -1,3 +1,8 @@
+2009-07-13  Kenichi Handa  <handa@m17n.org>
+
+	* cmds.c (internal_self_insert): Check sym by SYMBOLP before
+	calling XSYMBOL (sym).
+
 2009-07-10  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Fix typo: FC_RGBA->FC_HINT_STYLE.
