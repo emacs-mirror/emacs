@@ -1,3 +1,13 @@
+2009-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el (x-set-selection): Doc fix.
+	(x-valid-simple-selection-p): Disallow selection data consisting
+	of a list or cons of integers, since that is not used.
+	(xselect--selection-bounds, xselect--int-to-cons): New functions.
+	(xselect-convert-to-string, xselect-convert-to-length)
+	(xselect-convert-to-filename, xselect-convert-to-charpos)
+	(xselect-convert-to-lineno, xselect-convert-to-colno): Use them.
+
 2009-07-14  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (json-partial-output): Fix broken GDB/MI
