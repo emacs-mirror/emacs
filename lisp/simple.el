@@ -5425,7 +5425,7 @@ See also `mail-user-agent' concerning sending mail."
   :version "21.1"
   :group 'mail)
 
-(defcustom mail-user-agent 'sendmail-user-agent
+(defcustom mail-user-agent 'message-user-agent
   "Your preference for a mail composition package.
 Various Emacs Lisp packages (e.g. Reporter) require you to compose an
 outgoing email message.  This variable lets you specify which
