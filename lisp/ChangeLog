@@ -1,3 +1,7 @@
+2009-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix setting of category ?C.
+
 2009-07-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/ns-win.el (x-select-font): defailias x-select-font to
