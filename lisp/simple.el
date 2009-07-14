@@ -4048,7 +4048,12 @@ into account variable-width characters and line continuation."
 	       (not executing-kbd-macro)
 	       (line-move-partial arg noerror to-end))
     (set-window-vscroll nil 0 t)
-    (if line-move-visual
+    (if (and line-move-visual
+	     ;; Currently, line-move-visual does not work well with
+	     ;; truncation/hscrolling.  This is a stop-gap measure for
+	     ;; Emacs 23.1.
+	     (null truncate-lines)
+	     (null (truncated-partial-width-window-p)))
 	(line-move-visual arg noerror)
       (line-move-1 arg noerror to-end))))
 
