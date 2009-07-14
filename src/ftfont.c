@@ -700,13 +700,15 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
 }
 
 static FcPattern *ftfont_spec_pattern P_ ((Lisp_Object, char *,
-					   struct OpenTypeSpec **));
+					   struct OpenTypeSpec **,
+					   char **langname));
 
 static FcPattern *
-ftfont_spec_pattern (spec, otlayout, otspec)
+ftfont_spec_pattern (spec, otlayout, otspec, langname)
      Lisp_Object spec;
      char *otlayout;
      struct OpenTypeSpec **otspec;
+     char **langname;
 {
   Lisp_Object tmp, extra;
   FcPattern *pattern = NULL;
@@ -744,7 +746,8 @@ ftfont_spec_pattern (spec, otlayout, otspec)
       if (fc_charset_idx < 0)
 	return NULL;
       charset = fc_charset_table[fc_charset_idx].fc_charset;
-      lang = (FcChar8 *) fc_charset_table[fc_charset_idx].lang;
+      *langname = fc_charset_table[fc_charset_idx].lang;
+      lang = (FcChar8 *) *langname;
       if (lang)
 	{
 	  langset = FcLangSetCreate ();
@@ -876,6 +879,7 @@ ftfont_list (frame, spec)
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
   int spacing = -1;
+  char *langname = NULL;
 
   if (! fc_initialized)
     {
@@ -883,7 +887,7 @@ ftfont_list (frame, spec)
       fc_initialized = 1;
     }
 
-  pattern = ftfont_spec_pattern (spec, otlayout, &otspec);
+  pattern = ftfont_spec_pattern (spec, otlayout, &otspec, &langname);
   if (! pattern)
     return Qnil;
   if (FcPatternGetCharSet (pattern, FC_CHARSET, 0, &charset) != FcResultMatch)
@@ -1023,13 +1027,18 @@ ftfont_list (frame, spec)
 	  if (j == ASIZE (chars))
 	    continue;
 	}
-      if (! NILP (adstyle))
+      if (! NILP (adstyle) || langname)
 	{
 	  Lisp_Object this_adstyle = get_adstyle_property (fontset->fonts[i]);
 
-	  if (NILP (this_adstyle)
-	      || xstrcasecmp (SDATA (SYMBOL_NAME (adstyle)),
-			      SDATA (SYMBOL_NAME (this_adstyle))) != 0)
+	  if (! NILP (adstyle)
+	      && (NILP (this_adstyle)
+		  || xstrcasecmp (SDATA (SYMBOL_NAME (adstyle)),
+				  SDATA (SYMBOL_NAME (this_adstyle))) != 0))
+	    continue;
+	  if (langname
+	      && ! NILP (this_adstyle)
+	      && xstrcasecmp (langname, SDATA (SYMBOL_NAME (this_adstyle))))
 	    continue;
 	}
       entity = ftfont_pattern_entity (fontset->fonts[i],
@@ -1062,6 +1071,7 @@ ftfont_match (frame, spec)
   FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
+  char *langname = NULL;
 
   if (! fc_initialized)
     {
@@ -1069,7 +1079,7 @@ ftfont_match (frame, spec)
       fc_initialized = 1;
     }
 
-  pattern = ftfont_spec_pattern (spec, otlayout, &otspec);
+  pattern = ftfont_spec_pattern (spec, otlayout, &otspec, &langname);
   if (! pattern)
     return Qnil;
 
