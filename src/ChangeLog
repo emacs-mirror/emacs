@@ -1,3 +1,8 @@
+2009-07-14  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (ns_has_attribute): Remove.
+	(ns_findfonts, nsfont_open): Use ns_attribute_fvalue() instead.
+
 2009-07-13  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (sub_char_table_ref_and_range): Fix the range check
