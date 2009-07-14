@@ -1436,7 +1436,7 @@ static char *magick[] = {
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (erase-buffer)))
 
-(defun json-partial-output (&optional fix-key)
+(defun json-partial-output (&optional fix-key fix-list)
   "Parse gdb-partial-output-buffer with `json-read'.
 
 If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurences from
@@ -1445,15 +1445,37 @@ in MI messages, e.g.: [key=.., key=..]. -stack-list-frames and
 -break-info are examples of MI commands which issue such
 responses.
 
+If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
+\"FIX-LIST=[..]\" prior to parsing. This is used to fix broken
+-break-info output when it contains breakpoint script field
+incompatible with GDB/MI output syntax.
+
 Note that GDB/MI output syntax is different from JSON both
 cosmetically and (in some cases) structurally, so correct results
 are not guaranteed."
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
-      (replace-match "" nil nil nil 1))
-     (goto-char (point-min))
-     (insert "{")
+    (when fix-key
+      (save-excursion
+        (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
+          (replace-match "" nil nil nil 1))))
+    (when fix-list
+      (save-excursion
+        ;; Find positions of brackets which enclose broken list
+        (while (re-search-forward (concat fix-list "={\"") nil t)
+          (let ((p1 (goto-char (- (point) 2)))
+                (p2 (progn (forward-sexp)
+                           (1- (point)))))
+            ;; Replace braces with brackets
+            (save-excursion
+              (goto-char p1)
+              (delete-char 1)
+              (insert "[")
+              (goto-char p2)
+              (delete-char 1)
+              (insert "]"))))))
+    (goto-char (point-min))
+    (insert "{")
     ;; Wrap field names in double quotes and replace equal sign with
     ;; semicolon.
     ;; TODO: This breaks badly with foo= inside constants
@@ -1542,7 +1564,7 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
   (setq gdb-pending-triggers (delq 'gdb-invalidate-breakpoints
 				  gdb-pending-triggers))
   (let ((breakpoints-list (gdb-get-field 
-                           (json-partial-output "bkpt")
+                           (json-partial-output "bkpt" "script")
                            'BreakpointTable 'body)))
     (setq gdb-breakpoints-list breakpoints-list)
     (insert "Num\tType\t\tDisp\tEnb\tHits\tAddr       What\n")

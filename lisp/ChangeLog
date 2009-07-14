@@ -1,3 +1,8 @@
+2009-07-14  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el (json-partial-output): Fix broken GDB/MI
+	output in -break-info command (Emacs bug #3794).
+
 2009-07-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-setup-hook, edebug-all-forms)
