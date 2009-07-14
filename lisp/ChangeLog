@@ -1,3 +1,7 @@
+2009-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix setting of category ?C.
+
 2009-07-12  Guanpeng Xu  <herberteuler@hotmail.com>
 
 	* pcomplete.el (pcomplete-comint-setup): Check for
