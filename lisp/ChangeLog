@@ -1,5 +1,15 @@
 2009-07-14  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/edebug.el (edebug-setup-hook, edebug-all-forms)
+	(edebug-eval-macro-args, edebug-save-displayed-buffer-points)
+	(edebug-print-length, edebug-print-level, edebug-print-circle)
+	(edebug-sit-for-seconds, edebug-view-outside)
+	(edebug-bounce-point, edebug-set-global-break-condition)
+	(edebug-Go-nonstop-mode, edebug-trace-mode)
+	(edebug-Trace-fast-mode, edebug-continue-mode)
+	(edebug-Continue-fast-mode, edebug-forward-sexp, edebug-help)
+	(edebug-visit-eval-list): Doc fixes.
+
 	* subr.el (def-edebug-spec): Doc fix.
 
 2009-07-14  Kenichi Handa  <handa@m17n.org>

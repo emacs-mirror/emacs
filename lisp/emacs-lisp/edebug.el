@@ -67,9 +67,9 @@
 (defcustom edebug-setup-hook nil
   "Functions to call before edebug is used.
 Each time it is set to a new value, Edebug will call those functions
-once and then `edebug-setup-hook' is reset to nil.  You could use this
+once and then reset `edebug-setup-hook' to nil.  You could use this
 to load up Edebug specifications associated with a package you are
-using but only when you also use Edebug."
+using, but only when you also use Edebug."
   :type 'hook
   :group 'edebug)
 
@@ -97,7 +97,7 @@ variable.  You may wish to make it local to each buffer with
 
 ;;;###autoload
 (defcustom edebug-all-forms nil
-  "Non-nil evaluation of all forms will instrument for Edebug.
+  "Non-nil means evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
 Use the command `edebug-all-forms' to toggle the value of this option."
   :type 'boolean
@@ -107,9 +107,9 @@ Use the command `edebug-all-forms' to toggle the value of this option."
   "Non-nil means all macro call arguments may be evaluated.
 If this variable is nil, the default, Edebug will *not* wrap
 macro call arguments as if they will be evaluated.
-For each macro, a `edebug-form-spec' overrides this option.
+For each macro, an `edebug-form-spec' overrides this option.
 So to specify exceptions for macros that have some arguments evaluated
-and some not, you should specify an `edebug-form-spec'."
+and some not, use `def-edebug-spec' to specify an `edebug-form-spec'."
   :type 'boolean
   :group 'edebug)
 
@@ -129,13 +129,13 @@ restored.
   "If non-nil, save and restore point in all displayed buffers.
 
 Saving and restoring point in other buffers is necessary if you are
-debugging code that changes the point of a buffer which is displayed
+debugging code that changes the point of a buffer that is displayed
 in a non-selected window.  If Edebug or the user then selects the
 window, the buffer's point will be changed to the window's point.
 
 Saving and restoring point in all buffers is expensive, since it
-requires selecting each window twice, so enable this only if you need
-it."
+requires selecting each window twice, so enable this only if you
+need it."
   :type 'boolean
   :group 'edebug)
 
@@ -179,15 +179,15 @@ Use this with caution since it is not debugged."
 
 
 (defcustom edebug-print-length 50
-  "Default value of `print-length' for printing results in Edebug."
+  "If non-nil, default value of `print-length' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-level 50
-  "Default value of `print-level' for printing results in Edebug."
+  "If non-nil, default value of `print-level' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-circle t
-  "Default value of `print-circle' for printing results in Edebug."
+  "If non-nil, default value of `print-circle' for printing results in Edebug."
   :type 'boolean
   :group 'edebug)
 
@@ -228,7 +228,7 @@ If the result is non-nil, then break.  Errors are ignored."
   :group 'edebug)
 
 (defcustom edebug-sit-for-seconds 1
-  "Number of seconds to pause when execution mode is `trace'."
+  "Number of seconds to pause when execution mode is `trace' or `continue'."
   :type 'number
   :group 'edebug)
 
@@ -2003,6 +2003,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 	   [&optional stringp]
 	   [&optional ("interactive" interactive)]
 	   def-body))
+;; FIXME? Isn't this missing the doc-string?  Cf defun.
 (def-edebug-spec defmacro
   (&define name lambda-list [&optional ("declare" &rest sexp)] def-body))
 
@@ -2046,6 +2047,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec apply (function-form &rest form))
 (def-edebug-spec funcall (function-form &rest form))
 
+;; FIXME? The manual has a gate here.
 (def-edebug-spec let
   ((&rest &or (symbolp &optional form) symbolp)
    body))
@@ -2822,7 +2824,7 @@ MSG is printed after `::::} '."
 ;; Each defvar makes a difference
 ;; in versions where the variable is *not* built-in.
 
-;; Emacs 18
+;; Emacs 18  FIXME
 (defvar edebug-outside-unread-command-char)
 
 ;; Emacs 19.
@@ -2837,7 +2839,7 @@ MSG is printed after `::::} '."
 ;; (maybe works with byte-compile-version 2.22 at least)
 (defvar edebug-unread-command-char-warning)
 (defvar edebug-unread-command-event-warning)
-(eval-when-compile
+(eval-when-compile			; FIXME
   (setq edebug-unread-command-char-warning
 	(get 'unread-command-char 'byte-obsolete-variable))
   (put 'unread-command-char 'byte-obsolete-variable nil))
@@ -2871,7 +2873,7 @@ MSG is printed after `::::} '."
 	(edebug-outside-last-command last-command)
 	(edebug-outside-this-command this-command)
 
-	(edebug-outside-unread-command-char unread-command-char)
+	(edebug-outside-unread-command-char unread-command-char) ; FIXME
 	(edebug-outside-current-prefix-arg current-prefix-arg)
 
 	(edebug-outside-last-input-event last-input-event)
@@ -3091,7 +3093,8 @@ Otherwise, toggle for all windows."
   (goto-char edebug-point))
 
 (defun edebug-view-outside ()
-  "Change to the outside window configuration."
+  "Change to the outside window configuration.
+Use `edebug-where' to return."
   (interactive)
   (if (not edebug-active)
       (error "Edebug is not active"))
@@ -3105,8 +3108,8 @@ Otherwise, toggle for all windows."
 
 (defun edebug-bounce-point (arg)
   "Bounce the point in the outside current buffer.
-If prefix arg is supplied, sit for that many seconds before returning.
-The default is one second."
+If prefix argument ARG is supplied, sit for that many seconds
+before returning.  The default is one second."
   (interactive "p")
   (if (not edebug-active)
       (error "Edebug is not active"))
@@ -3267,6 +3270,7 @@ With prefix argument, make it a temporary breakpoint."
 
 
 (defun edebug-set-global-break-condition (expression)
+  "Set `edebug-global-break-condition' to EXPRESSION."
   (interactive
    (list
     (let ((initial (and edebug-global-break-condition
@@ -3316,31 +3320,36 @@ With prefix ARG, set temporary break at current point and go."
   (edebug-set-mode 'go "Go..." "Edebug will go until break."))
 
 (defun edebug-Go-nonstop-mode ()
-  "Go, evaluating without debugging."
+  "Go, evaluating without debugging.
+You can use `edebug-stop', or any editing command, to stop."
   (interactive)
   (edebug-set-mode 'Go-nonstop "Go-Nonstop..."
 		   "Edebug will not stop at breaks."))
 
 
 (defun edebug-trace-mode ()
-  "Begin trace mode."
+  "Begin trace mode.
+Pauses for `edebug-sit-for-seconds' at each stop point."
   (interactive)
   (edebug-set-mode 'trace "Tracing..." "Edebug will trace with pause."))
 
 (defun edebug-Trace-fast-mode ()
-  "Trace with no wait at each step."
+  "Trace with no wait at each step.
+Updates the display at each stop point, but does not pause."
   (interactive)
   (edebug-set-mode 'Trace-fast
 		   "Trace fast..." "Edebug will trace without pause."))
 
 (defun edebug-continue-mode ()
-  "Begin continue mode."
+  "Begin continue mode.
+Pauses for `edebug-sit-for-seconds' at each break point."
   (interactive)
   (edebug-set-mode 'continue "Continue..."
 		   "Edebug will pause at breakpoints."))
 
 (defun edebug-Continue-fast-mode ()
-  "Trace with no wait at each step."
+  "Trace with no wait at each step.
+Updates the display at each break point, but does not pause."
   (interactive)
   (edebug-set-mode 'Continue-fast "Continue fast..."
 		   "Edebug will stop and go at breakpoints."))
@@ -3372,7 +3381,7 @@ Useful for exiting from trace or continue loop."
 
 (defun edebug-forward-sexp (arg)
   "Proceed from the current point to the end of the ARGth sexp ahead.
-If there are not ARG sexps ahead, then do edebug-step-out."
+If there are not ARG sexps ahead, then do `edebug-step-out'."
   (interactive "p")
   (condition-case nil
       (let ((parse-sexp-ignore-comments t))
@@ -3870,6 +3879,7 @@ This prints the value into current buffer."
 
 
 (defun edebug-help ()
+  "Describe `edebug-mode'."
   (interactive)
   (describe-function 'edebug-mode))
 
@@ -3976,6 +3986,7 @@ May only be called from within `edebug-recursive-edit'."
    ))
 
 (defun edebug-visit-eval-list ()
+  "Switch to the evaluation list buffer \"*edebug*\"."
   (interactive)
   (edebug-eval-redisplay)
   (edebug-pop-to-buffer edebug-eval-buffer))
@@ -4101,7 +4112,7 @@ Otherwise call `debug' normally."
   (with-output-to-temp-buffer (buffer-name edebug-backtrace-buffer)
     (setq edebug-backtrace-buffer standard-output)
     (let ((print-escape-newlines t)
-	  (print-length 50)
+	  (print-length 50)	; FIXME cf edebug-safe-prin1-to-string
 	  last-ok-point)
       (backtrace)
 
@@ -4169,6 +4180,7 @@ You must include newlines in FMT to break lines, but one newline is appended."
 
 ;;; Frequency count and coverage
 
+;; FIXME should this use overlays instead?
 (defun edebug-display-freq-count ()
   "Display the frequency count data for each line of the current definition.
 The frequency counts are inserted as comment lines after each line,
