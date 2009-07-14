@@ -1,3 +1,12 @@
+2009-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_spec_pattern): New arg langname.  Caller
+	changed.
+	(ftfont_list): Adjusted for the change of ftfont_spec_pattern.
+	Reject a font who has adstyle property that is different from a
+	langname derived from registry property.
+	(ftfont_match): Adjusted for the change of ftfont_spec_pattern.
+
 2009-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (directory_files_internal) [WINDOWSNT]: Don't make a
