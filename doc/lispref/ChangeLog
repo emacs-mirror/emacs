@@ -1,3 +1,16 @@
+2009-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi: Minor re-phrasings throughout.
+	(Edebug Execution Modes): Sit-for affects continue mode too.
+	(Jumping): Use `forward-sexp' rather than its keybinding.
+	(Edebug Misc): Fix Q binding.
+	(Edebug Eval): Remove cl version.
+	(Printing in Edebug): Clarify print-length etc.
+	(Instrumenting Macro Calls): Defopt edebug-eval-macro-args.
+	(Specification List): Remove edebug-unwrap findex entry.
+	(Specification Examples): defmacro is actually not the same as defun.
+	Escape "`" in example.
+
 2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* markers.texi (The Mark): Document optional arg to
