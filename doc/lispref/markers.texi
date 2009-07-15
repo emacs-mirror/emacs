@@ -576,9 +576,10 @@ modification.  For example:
 @end example
 @end defvar
 
-@defun deactivate-mark
-This function deactivates the mark, if Transient Mark mode is enabled.
-Otherwise it does nothing.
+@defun deactivate-mark &optional force
+This function deactivates the mark, provided Transient Mark mode is
+enabled or @var{force} is non-@code{nil}.  Deactivating the mark also
+runs @code{deactivate-mark-hook}, described below.
 @end defun
 
 @defvar mark-active
