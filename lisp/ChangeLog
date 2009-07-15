@@ -1,3 +1,8 @@
+2009-07-15  Kenichi Handa  <handa@m17n.org>
+
+	* language/misc-lang.el ("IPA"): Change coding systems to utf-8.
+	Delete unibyte-display.
+
 2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (kill-visual-line): Obey kill-whole-line (Bug#3695).
