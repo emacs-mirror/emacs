@@ -56,6 +56,9 @@ app will be built (containing all lisp).  To install/share lisp with
 other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
 nextstep/README and nextstep/INSTALL in the Emacs source directory.
 
+Currently, the Nextstep port is not as stable as the other existing
+ports; we hope to improve it in future releases.
+
 ** Mac OS X is no longer supported via Carbon.
 Use the NeXTSTEP port, described above.
 
