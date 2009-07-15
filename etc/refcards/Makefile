@@ -66,8 +66,8 @@ pl-refcard.pdf: %.pdf: %.tex
 ru-refcard.pdf: %.pdf: %.tex
 	pdflatex $<
 
-gnus-logo.pdf: %.pdf: %.eps
-	ps2pdf $<
+#gnus-logo.pdf: %.pdf: %.eps
+#	ps2pdf $<
 
 gnus-refcard.pdf: %.pdf: %.tex gnus-logo.pdf 
 	pdflatex $<

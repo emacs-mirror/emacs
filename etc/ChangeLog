@@ -14,6 +14,7 @@
 	* refcards/Makefile (gnus-booklet.pdf): Use jobname rather than
 	clobbering gnus-refcard.pdf.
 	(clean): Remove .aux files.
+	(gnus-logo.pdf): Remove rule, since this file is distributed.
 
 2009-07-10  Kenichi Handa  <handa@m17n.org>
 
