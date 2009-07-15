@@ -6,7 +6,8 @@ Nextstep-based platforms, including GNUstep and Mac OS X.
 
 The Nextstep support code works on many POSIX systems (and possibly
 W32) using the GNUstep libraries, and on MacOS X systems using the
-Cocoa libraries.
+Cocoa libraries.  As of the Emacs 23.1 release, it is usable but not
+as stable as other platforms; we will improve it in future releases.
 
 See the INSTALL file in this directory for compilation instructions.
 
