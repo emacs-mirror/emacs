@@ -180,7 +180,7 @@ control.texi      -- cyd
 customize.texi    -- cyd
 debugging.texi    -- cyd
 display.texi      -- cyd
-edebug.texi
+edebug.texi       -- rgm
 elisp.texi        -- rgm
 errors.texi       -- cyd
 eval.texi         -- cyd
