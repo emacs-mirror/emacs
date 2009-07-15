@@ -2758,15 +2758,19 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
             }
           else
             face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+#if 0
           if (!face->stipple)
+#endif
             [(NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)) set];
+#if 0				/* This is tiling, not stippling.  */
           else
             {
               struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (s->f);
               [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
             }
+#endif
 
           if (s->hl != DRAW_CURSOR)
             {
