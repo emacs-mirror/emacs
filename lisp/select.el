@@ -122,15 +122,16 @@ equivalent to `PRIMARY'.  (It can also be a string, which stands
 for the symbol with that name, but this usage is obsolete.)
 
 DATA is a selection value.  It should be one of the following:
- - a vector of non-vector selection values
- - a string
- - an integer
- - a cons cell of two markers pointing to the same buffer
- - an overlay
-In the latter two cases, the selection is considered to be the
-text between the markers at whatever time the selection is
-examined.  Thus, editing done in the buffer after you specify the
-selection can alter the effective value of the selection.
+ - A vector of non-vector selection values.
+ - A string.
+ - An integer.
+ - A cons cell of two markers pointing to the same buffer
+   (the data consists of the text between the markers).
+ - An overlay (the data consists of the text within the overlay).
+ - A buffer (the data consists of the text in the region).
+For the last three cases, the actual selection data is computed
+only when the selection is requested.  Thus, it includes any
+changes made to the buffer after `x-set-selection' is called.
 
 The return value is DATA.
 
@@ -158,7 +159,8 @@ prefix argument, it uses the text of the region as the selection value ."
   data)
 
 (defun x-valid-simple-selection-p (data)
-  (or (and (consp data)
+  (or (bufferp data)
+      (and (consp data)
 	   (markerp (car data))
 	   (markerp (cdr data))
 	   (marker-buffer (car data))
@@ -210,7 +212,11 @@ Cut buffers are considered obsolete; you should use selections instead."
   "Return bounds of X selection value VALUE.
 The return value is a list (BEG END BUF) if VALUE is a cons of
 two markers or an overlay.  Otherwise, it is nil."
-  (cond ((and (consp value)
+  (cond ((bufferp value)
+	 (with-current-buffer value
+	   (when (mark t)
+	     (list (mark t) (point) value))))
+	((and (consp value)
 	      (markerp (car value))
 	      (markerp (cdr value)))
 	 (when (and (marker-buffer (car value))

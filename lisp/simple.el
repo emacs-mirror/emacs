@@ -3472,16 +3472,31 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
+(defcustom select-active-regions nil
+  "If non-nil, an active region automatically becomes the window selection."
+  :type 'boolean
+  :group 'killing
+  :version "23.1")
+
 ;; Many places set mark-active directly, and several of them failed to also
 ;; run deactivate-mark-hook.  This shorthand should simplify.
-(defsubst deactivate-mark ()
+(defsubst deactivate-mark (&optional force)
   "Deactivate the mark by setting `mark-active' to nil.
-\(That makes a difference only in Transient Mark mode.)
-Also runs the hook `deactivate-mark-hook'."
-  (when transient-mark-mode
-    (if (or (eq transient-mark-mode 'lambda)
-	    (and (eq (car-safe transient-mark-mode) 'only)
-		 (null (cdr transient-mark-mode))))
+Unless FORCE is non-nil, this function does nothing if Transient
+Mark mode is disabled.
+This function also runs `deactivate-mark-hook'."
+  (when (or transient-mark-mode force)
+    ;; Copy the latest region into the primary selection, if desired.
+    (and select-active-regions
+	 mark-active
+	 (x-set-selection 'PRIMARY (buffer-substring-no-properties
+				    (region-beginning) (region-end))))
+    (if (and (null force)
+	     (or (eq transient-mark-mode 'lambda)
+		 (and (eq (car-safe transient-mark-mode) 'only)
+		      (null (cdr transient-mark-mode)))))
+	;; When deactivating a temporary region, don't change
+	;; `mark-active' or run `deactivate-mark-hook'.
 	(setq transient-mark-mode nil)
       (if (eq (car-safe transient-mark-mode) 'only)
 	  (setq transient-mark-mode (cdr transient-mark-mode)))
@@ -3493,13 +3508,9 @@ Also runs the hook `deactivate-mark-hook'."
   (when (mark t)
     (setq mark-active t)
     (unless transient-mark-mode
-      (setq transient-mark-mode 'lambda))))
-
-(defcustom select-active-regions nil
-  "If non-nil, an active region automatically becomes the window selection."
-  :type 'boolean
-  :group 'killing
-  :version "23.1")
+      (setq transient-mark-mode 'lambda))
+    (when select-active-regions
+      (x-set-selection 'PRIMARY (current-buffer)))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -3522,15 +3533,13 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(and select-active-regions
-	     (x-set-selection
-	      nil (buffer-substring (region-beginning) (region-end))))
+	(when select-active-regions
+	  (x-set-selection 'PRIMARY (current-buffer)))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
-    ;; But when we actually clear out the mark value too,
-    ;; we must clear mark-active in any mode.
-    (setq mark-active nil)
-    (run-hooks 'deactivate-mark-hook)
+    ;; But when we actually clear out the mark value too, we must
+    ;; clear mark-active in any mode.
+    (deactivate-mark t)
     (set-marker (mark-marker) nil)))
 
 (defcustom use-empty-active-region nil

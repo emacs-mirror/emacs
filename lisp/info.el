@@ -1693,8 +1693,7 @@ If DIRECTION is `backward', search in the reverse direction."
 			(format "Regexp search%s: "
 				(if case-fold-search "" " case-sensitively")))
 		      nil 'Info-search-history)))
-  (when transient-mark-mode
-    (deactivate-mark))
+  (deactivate-mark)
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
