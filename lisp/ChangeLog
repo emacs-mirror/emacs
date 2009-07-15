@@ -1,5 +1,9 @@
 2009-07-15  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-cmds.el (set-language-environment-charset):
+	If coding-system-charset-list returns `iso-2022' or `emacs-mule',
+	ignore them.
+
 	* language/misc-lang.el ("IPA"): Change coding systems to utf-8.
 	Delete unibyte-display.
 
