@@ -189,7 +189,6 @@ size.  The current page is converted first.
 Gnus is an Emacs package primarily designed for reading and posting
 Usenet news.  It can also be used to read and respond to messages from a
 number of other sources---mail, remote directories, digests, and so on.
-
 Here we introduce Gnus and describe several basic features.
 @ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
