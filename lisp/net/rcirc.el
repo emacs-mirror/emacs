@@ -359,6 +359,15 @@ and the cdr part is used for encoding."
 
 (defvar rcirc-startup-channels nil)
 
+(defvar rcirc-server-name-history nil
+  "History variable for \\[rcirc] call.")
+
+(defvar rcirc-server-port-history nil
+  "History variable for \\[rcirc] call.")
+
+(defvar rcirc-nick-name-history nil
+  "History variable for \\[rcirc] call.")
+
 ;;;###autoload
 (defun rcirc (arg)
   "Connect to all servers in `rcirc-server-alist'.
@@ -371,15 +380,18 @@ If ARG is non-nil, instead prompt for connection parameters."
       (let* ((server (completing-read "IRC Server: "
 				      rcirc-server-alist
 				      nil nil
-				      (caar rcirc-server-alist)))
+				      (caar rcirc-server-alist)
+				      'rcirc-server-name-history))
 	     (server-plist (cdr (assoc-string server rcirc-server-alist)))
 	     (port (read-string "IRC Port: "
 				(number-to-string
 				 (or (plist-get server-plist :port)
-				     rcirc-default-port))))
+				     rcirc-default-port))
+				'rcirc-server-port-history))
 	     (nick (read-string "IRC Nick: "
 				(or (plist-get server-plist :nick)
-				    rcirc-default-nick)))
+				    rcirc-default-nick)
+				'rcirc-nick-name-history))
 	     (channels (split-string
 			(read-string "IRC Channels: "
 				     (mapconcat 'identity
