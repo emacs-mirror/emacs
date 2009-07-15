@@ -15,16 +15,19 @@ without window system support, with X11, or with the Cocoa interface.  This
 section only applies to the Cocoa build.  Emacs 23 does not support Mac OS
 Classic.
 
-  Emacs, when built on Mac OS X, uses the Cocoa application interface.  For
-various historical and technical reasons, Emacs uses the term @samp{Nextstep}
-internally, instead of ``Cocoa'' or ``Mac OS X''; for instance, most of the
-commands and variables described in the following sections begin with
-@samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep was an application
-interface released by NeXT Inc during the 1980s, of which Cocoa is a direct
-descendant.  Apart from Cocoa, there is another NeXTstep-style system:
-GNUstep, which is free software.  As of this writing, the GNUstep support is
-alpha status (@pxref{GNUstep Support}), but we hope to improve it in the
-future.
+  Emacs, when built on Mac OS X, uses the Cocoa application interface.
+For historical and technical reasons, Emacs uses the term
+@samp{Nextstep} internally, instead of ``Cocoa'' or ``Mac OS X''; for
+instance, most of the commands and variables described in the
+following sections begin with @samp{ns-}, which is short for
+@samp{Nextstep}.  NeXTstep was an application interface released by
+NeXT Inc during the 1980s, of which Cocoa is a direct descendant.
+Apart from Cocoa, there is one other NeXTstep-style system: GNUstep,
+which is free software.  At the moment, Emacs has only incomplete
+support for GNUstep (@pxref{GNUstep Support}).
+
+  As of the 23.1 release, Emacs is not as stable on Cocoa as on other
+platforms.  We hope to improve this in future releases.
 
 @menu
 * Mac / GNUstep Basics::        Basic Emacs usage under GNUstep or Mac OS.

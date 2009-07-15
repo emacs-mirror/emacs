@@ -1,3 +1,7 @@
+2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* macos.texi (Mac OS / GNUstep): Add note about stability.
+
 2009-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Gnus): Remove widow.
