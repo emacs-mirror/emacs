@@ -4533,7 +4533,8 @@ even beep.)"
   (interactive "P")
   ;; Like in `kill-line', it's better to move point to the other end
   ;; of the kill before killing.
-  (let ((opoint (point)))
+  (let ((opoint (point))
+	(kill-whole-line (and kill-whole-line (bolp))))
     (if arg
 	(vertical-motion (prefix-numeric-value arg))
       (end-of-visual-line 1)
@@ -4545,7 +4546,9 @@ even beep.)"
 	;; whether the trailing whitespace is highlighted.  But, it's
 	;; OK to just do this unconditionally.
 	(skip-chars-forward " \t")))
-    (kill-region opoint (point))))
+    (kill-region opoint (if (and kill-whole-line (looking-at "\n"))
+			    (1+ (point))
+			  (point)))))
 
 (defun next-logical-line (&optional arg try-vscroll)
   "Move cursor vertically down ARG lines.

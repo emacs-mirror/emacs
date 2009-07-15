@@ -1,5 +1,9 @@
 2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (kill-visual-line): Obey kill-whole-line (Bug#3695).
+
+2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
+
 	* simple.el (deactivate-mark): Optional argument FORCE.
 	(set-mark): Use deactivate-mark.
 
