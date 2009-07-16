@@ -45,7 +45,14 @@ Customize make-pointer-invisible to turn it off.
 ** On MS-Windows, `display-time' now displays the system load average
 as well as the time, as it does on GNU and Unix.
 
-** FIXME new configure options --enable-checking, profiling
+
+** configure options for emacs developers
+*** --enable-profiling will build emacs with profiling enabled.
+This might not work on all platforms.  It is not a new feature, just
+the configure flag is new.
+
+*** --enable-checking[=OPTIONS] will build emacs with various extra runtime checks.
+It is not a new feature, just the configure flag is new.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
