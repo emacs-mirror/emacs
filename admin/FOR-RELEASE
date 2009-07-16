@@ -6,6 +6,7 @@ Tasks needed before the next release.
 make sure all the pages really look ok in the manual as formatted.
 
 ** Regenerate the pdf versions of the reference cards in etc/refcards/.
+Done.
 
 ** Ask maintainers of refcard translations to update them.
 
