@@ -1,3 +1,9 @@
+2009-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/gnus-refcard.tex: Condense a few sentences in order to
+	make them fit on one line, and add some page breaks, to improve the
+	layout in the pdfs.
+
 2009-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/dired-ref.tex: Change from A4 to letter paper.
