@@ -32,7 +32,9 @@ things to avoid these.  (AFAIK, there is no way to find these except
 paging through the whole manual.)  This should be the very last thing
 you do, since any change can alter the layout.
 
-** Regenerate the pdf versions of the reference cards in etc/refcards/.
+** Check the keybindings in the refcards are correct, and add any new ones.
+Regenerate the pdf versions in etc/refcards/.
+What paper size are the English versions supposed to be on?
 On Debian testing, the packages texlive-lang-czechslovak and
 texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
 The Makefile rules did not work for me, I had to use something like:
