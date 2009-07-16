@@ -1,3 +1,11 @@
+2009-07-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* nsfns.m (Fns_set_alpha): Remove function.
+	(syms_of_nsfns): Don't defsubr it.
+
+	* nsterm.m (ns_get_color): Remove incompatible color formats.
+	(ns_color_to_lisp): Generate #rrggbb color format string.
+
 2009-07-16  Richard Stallman  <rms@gnu.org>
 
 	* fileio.c (Fwrite_region, Fdo_auto_save): Handle save_length = -2.
