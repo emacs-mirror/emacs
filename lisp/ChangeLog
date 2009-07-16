@@ -1,3 +1,8 @@
+2009-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-rcs.el (vc-rcs-find-file-hook):
+	* vc-sccs.el (vc-sccs-find-file-hook): Fix cut and paste error.
+
 2009-07-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-wait-for-output): Handle the case when

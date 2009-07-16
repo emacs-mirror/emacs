@@ -824,8 +824,8 @@ systime, or nil if there is none.  Also, reposition point."
   ;; If the file is locked by some other user, make
   ;; the buffer read-only.  Like this, even root
   ;; cannot modify a file that someone else has locked.
-  (stringp (vc-state buffer-file-name 'RCS))
-  (setq buffer-read-only t))
+  (and (stringp (vc-state buffer-file-name 'RCS))
+       (setq buffer-read-only t)))
 
 
 ;;;
