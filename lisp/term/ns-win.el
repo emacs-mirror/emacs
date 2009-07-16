@@ -1130,18 +1130,6 @@ The value may be different for frames on different Nextstep displays."
       (setq defined-colors (cons this-color defined-colors))) ;;)
     defined-colors))
 
-(declare-function ns-set-alpha "nsfns.m" (color alpha))
-
-;; Convenience and work-around for fact that set color fns now require named.
-(defun ns-set-background-alpha (alpha)
-  "Sets ALPHA (opacity) of background.
-Set from 0.0 (fully transparent) to 1.0 (fully opaque; default).
-Note, tranparency works better on Tiger (10.4) and higher."
-  (interactive "nSet background alpha to: ")
-  (let ((bgcolor (cdr (assq 'background-color (frame-parameters)))))
-    (set-frame-parameter (selected-frame)
-			 'background-color (ns-set-alpha bgcolor alpha))))
-
 ;; Functions for color panel + drag
 (defun ns-face-at-pos (pos)
   (let* ((frame (car pos))
