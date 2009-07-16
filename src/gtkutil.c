@@ -3827,6 +3827,8 @@ find_rtl_image (f, image, rtl)
 
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
+extern Lisp_Object Qx_gtk_map_stock;
+
 void
 update_frame_tool_bar (f)
      FRAME_PTR f;
@@ -3878,7 +3880,6 @@ update_frame_tool_bar (f)
 
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
-
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
@@ -3893,7 +3894,6 @@ update_frame_tool_bar (f)
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
-      Lisp_Object func = intern ("x-gtk-map-stock");
       Lisp_Object specified_file;
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
@@ -3914,10 +3914,10 @@ update_frame_tool_bar (f)
         }
 
       specified_file = file_for_image (image);
-      if (!NILP (specified_file) && EQ (Qt, Ffboundp (func)))
-        stock = call1 (func, specified_file);
+      if (!NILP (specified_file) && !NILP (Ffboundp (Qx_gtk_map_stock)))
+        stock = call1 (Qx_gtk_map_stock, specified_file);
 
-      if (! NILP (stock) && STRINGP (stock))
+      if (STRINGP (stock))
         {
           stock_name = SSDATA (stock);
           if (stock_name[0] == 'n' && stock_name[1] == ':')

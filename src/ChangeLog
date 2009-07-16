@@ -1,3 +1,10 @@
+2009-07-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (Qx_gtk_map_stock): New var.
+
+	* gtkutil.c (update_frame_tool_bar): Use Qx_gtk_map_stock instead
+	of calling intern each time.
+
 2009-07-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* nsfont.m (nsfont_draw): Remove code for stippling, which actually
