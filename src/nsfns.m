@@ -1545,32 +1545,6 @@ If VALUE is nil, the default is removed.  */)
 }
 
 
-DEFUN ("ns-set-alpha", Fns_set_alpha, Sns_set_alpha, 2, 2, 0,
-       doc: /* Return a color equivalent to COLOR with alpha setting ALPHA.
-The argument ALPHA should be a number between 0 and 1, where 0 is full
-transparency and 1 is opaque.  */)
-     (color, alpha)
-     Lisp_Object color;
-     Lisp_Object alpha;
-{
-  NSColor *col;
-  float a;
-
-  CHECK_STRING (color);
-  CHECK_NUMBER_OR_FLOAT (alpha);
-
-  if (ns_lisp_to_color (color, &col))
-    error ("Unknown color");
-
-  a = XFLOATINT (alpha);
-  if (a < 0.0 || a > 1.0)
-    error ("Alpha value should be between 0 and 1 inclusive");
-
-  col = [col colorWithAlphaComponent: a];
-  return ns_color_to_lisp (col);
-}
-
-
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
@@ -2700,7 +2674,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
   defsubr (&Sx_create_frame);
-  defsubr (&Sns_set_alpha);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
