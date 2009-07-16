@@ -5853,7 +5853,12 @@ Backing up is done before the first time the file is saved.  */);
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
 		     make_number (Lisp_Int),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
-0 initially.  */);
+0 initially.
+-1 means auto-saving turned off until next real save.
+
+If you set this to -2, that means don't turn off auto-saving in this buffer
+if its text size shrinks.   If you use `buffer-swap-text' on a buffer,
+you probably should set this to -2 in that buffer.  */);
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,

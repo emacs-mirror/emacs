@@ -4492,7 +4492,8 @@ This calls `write-region-annotate-functions' at the start, and
       if (visiting)
 	{
 	  SAVE_MODIFF = MODIFF;
-	  XSETFASTINT (current_buffer->save_length, Z - BEG);
+	  if (XINT (current_buffer->save_length) != -2)
+	    XSETFASTINT (current_buffer->save_length, Z - BEG);
 	  current_buffer->filename = visit_file;
 	}
       UNGCPRO;
@@ -4703,7 +4704,8 @@ This calls `write-region-annotate-functions' at the start, and
   if (visiting)
     {
       SAVE_MODIFF = MODIFF;
-      XSETFASTINT (current_buffer->save_length, Z - BEG);
+      if (XINT (current_buffer->save_length) != -2)
+	XSETFASTINT (current_buffer->save_length, Z - BEG);
       current_buffer->filename = visit_file;
       update_mode_lines++;
     }
@@ -5307,7 +5309,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
 	    && b->auto_save_modified < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
-	    && XINT (b->save_length) >= 0
+	    && XINT (b->save_length) != -1
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (b->auto_save_file_name,
 						  Qwrite_region))))
@@ -5321,8 +5323,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
 	      continue;
 
-	    if ((XFASTINT (b->save_length) * 10
-		 > (BUF_Z (b) - BUF_BEG (b)) * 13)
+	    if (XINT (b->save_length) != -2
+		/* -2 is a magic flag turning off this feature in a buffer.  */
+		&& (XFASTINT (b->save_length) * 10
+		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
 		   spare the user annoying messages.  */
 		&& XFASTINT (b->save_length) > 5000
@@ -5347,7 +5351,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
 	    auto_saved++;
 	    b->auto_save_modified = BUF_MODIFF (b);
-	    XSETFASTINT (current_buffer->save_length, Z - BEG);
+	    if (XINT (current_buffer->save_length) != -2)
+	      XSETFASTINT (current_buffer->save_length, Z - BEG);
 	    set_buffer_internal (old);
 
 	    EMACS_GET_TIME (after_time);
@@ -5392,7 +5397,8 @@ No auto-save file will be written until the buffer changes again.  */)
      ()
 {
   current_buffer->auto_save_modified = MODIFF;
-  XSETFASTINT (current_buffer->save_length, Z - BEG);
+  if (XINT (current_buffer->save_length) != -2)
+    XSETFASTINT (current_buffer->save_length, Z - BEG);
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }

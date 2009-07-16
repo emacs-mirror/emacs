@@ -584,6 +584,9 @@ struct buffer
   /* This isn't really used by the C code, so could be deleted.  */
   Lisp_Object backed_up;
   /* Length of file when last read or saved.
+     -1 means auto saving turned off because buffer shrank a lot.
+     -2 means don't turn off auto saving if buffer shrinks.
+       (That value is used with buffer-swap-text.)
      This is not in the  struct buffer_text
      because it's not used in indirect buffers at all.  */
   Lisp_Object save_length;
