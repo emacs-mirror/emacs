@@ -3898,15 +3898,15 @@ beginning of local filename are not substituted."
 
       ;; Determine output.
       (cond
-       ;; Just a buffer
+       ;; Just a buffer.
        ((bufferp destination)
 	(setq outbuf destination))
-       ;; A buffer name
+       ;; A buffer name.
        ((stringp destination)
 	(setq outbuf (get-buffer-create destination)))
        ;; (REAL-DESTINATION ERROR-DESTINATION)
        ((consp destination)
-	;; output
+	;; output.
 	(cond
 	 ((bufferp (car destination))
 	  (setq outbuf (car destination)))
@@ -3914,7 +3914,7 @@ beginning of local filename are not substituted."
 	  (setq outbuf (get-buffer-create (car destination))))
 	 ((car destination)
 	  (setq outbuf (current-buffer))))
-	;; stderr
+	;; stderr.
 	(cond
 	 ((stringp (cadr destination))
 	  (setcar (cdr destination) (expand-file-name (cadr destination)))
@@ -3927,7 +3927,7 @@ beginning of local filename are not substituted."
 	    (setq stderr (tramp-make-tramp-temp-file v)
 		  tmpstderr (tramp-make-tramp-file-name
 			     method user host stderr))))
-	 ;; stderr to be discarded
+	 ;; stderr to be discarded.
 	 ((null (cadr destination))
 	  (setq stderr "/dev/null"))))
        ;; 't
@@ -6660,10 +6660,14 @@ function waits for output unless NOOUTPUT is set."
 (defun tramp-wait-for-output (proc &optional timeout)
   "Wait for output from remote rsh command."
   (with-current-buffer (process-buffer proc)
-    ;; Initially, `tramp-end-of-output' is "$ ".  There might be
-    ;; leading escape sequences, which must be ignored.
-    (let* ((regexp (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
-	   (found (tramp-wait-for-regexp proc timeout regexp)))
+    (let* (;; Initially, `tramp-end-of-output' is "$ ".  There might
+	   ;; be leading escape sequences, which must be ignored.
+	   (regexp (format "[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
+	   ;; Sometimes, the commands do not return a newline but a
+	   ;; null byte before the shell prompt, for example "git
+	   ;; ls-files -c -z ...".
+	   (regexp1 (format "\\(^\\|\000\\)%s" regexp))
+	   (found (tramp-wait-for-regexp proc timeout regexp1)))
       (if found
 	  (let (buffer-read-only)
 	    (goto-char (point-max))
