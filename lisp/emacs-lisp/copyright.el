@@ -223,8 +223,9 @@ version \\([0-9]+\\), or (at"
                (< (string-to-number (match-string 3))
                   (string-to-number copyright-current-gpl-version))
 	       (or noquery
-		   (y-or-n-p (format "Replace GPL version by %s? "
-				     copyright-current-gpl-version)))
+                   (save-match-data
+                     (y-or-n-p (format "Replace GPL version by %s? "
+                                       copyright-current-gpl-version))))
 	       (progn
 		 (if (match-end 2)
 		     ;; Esperanto bilingual comment in two-column.el
