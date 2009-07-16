@@ -1,5 +1,10 @@
 2009-07-16  Glenn Morris  <rgm@gnu.org>
 
+	* refcards/cs-dired-ref.tex, refcards/fr-dired-ref.tex:
+	* refcards/sk-dired-ref.tex:
+	Remove non-existent (?) bindings: w, C-u o, U, delete.
+	Fix bindings: delete marked files = D, not X; flag garbage = % &, not &.
+
 	* refcards/gnus-refcard.tex: Condense a few sentences in order to
 	make them fit on one line, and add some page breaks, to improve the
 	layout in the pdfs.
