@@ -632,6 +632,10 @@ this buffer due to a substantial decrease in size.  Explicitly saving
 the buffer stores a positive value in this variable, thus reenabling
 auto-saving.  Turning auto-save mode off or on also updates this
 variable, so that the substantial decrease in size is forgotten.
+
+If it is @minus{}2, that means this buffer should disregard changes in
+buffer size; in particular, it should not shut off auto-saving
+temporarily due to changes in buffer size.
 @end defvar
 
 @defvar auto-save-list-file-name

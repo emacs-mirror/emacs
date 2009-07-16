@@ -1192,6 +1192,13 @@ overlays, the text properties, the undo list, the value of the
 enable-multibyte-characters}), etc.
 @end defun
 
+  If you use @code{buffer-swap-text} on a file-visiting buffer, you
+should set up a hook to save the buffer's original text rather than
+what it was swapped with.  @code{write-region-annotate-functions}
+works for this purpose.  You should probably set
+@code{buffer-saved-size} to @minus{}2 in the buffer, so that changes
+in the text it is swapped with will not interfere with auto-saving.
+
 @node Buffer Gap
 @section The Buffer Gap
 
