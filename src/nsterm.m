@@ -1345,15 +1345,11 @@ ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
 /* On *Step, we recognize several color formats, in addition to a catalog
    of colors found in the file Emacs.clr. Color formats include:
-   - #rrggbb or RGBrrggbb where rr, gg, bb specify red, green and blue in hex
-   - ARGBaarrggbb is similar, with aa being the alpha channel (FF = opaque)
-   - HSVhhssvv and AHSVaahhssvv (or HSB/AHSB) are similar for hue, saturation,
-     value;
-   - CMYKccmmyykk is similar for cyan, magenta, yellow, black. */
+   - #rrggbb where rr, gg, bb specify red, green and blue in hex. */
 {
   NSColor * new = nil;
   const char *hex = NULL;
-  enum { rgb, argb, hsv, ahsv, cmyk, gray } color_space;
+  enum { rgb } color_space;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
@@ -1378,45 +1374,10 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
-  /*  FIXME: emacs seems to downcase everything before passing it here,
-        which we can work around, except for GRAY, since gray##, where ## is
-        decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
       color_space = rgb;
-    }
-  else if (!memcmp (name, "RGB", 3) || !memcmp (name, "rgb", 3))
-    {
-      hex = name + 3;
-      color_space = rgb;
-    }
-  else if (!memcmp (name, "ARGB", 4) || !memcmp (name, "argb", 4))
-    {
-      hex = name + 4;
-      color_space = argb;
-    }
-  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3) || 
-           !memcmp (name, "HSB", 3) || !memcmp (name, "hsb", 3))
-    {
-      hex = name + 3;
-      color_space = hsv;
-    }
-  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4) ||
-           !memcmp (name, "AHSB", 4) || !memcmp (name, "ahsb", 4))
-    {
-      hex = name + 4;
-      color_space = ahsv;
-    }
-  else if (!memcmp (name, "CMYK", 4) || !memcmp (name, "cmyk", 4))
-    {
-      hex = name + 4;
-      color_space = cmyk;
-    }
-  else if (!memcmp (name, "GRAY", 4) /*|| !memcmp (name, "gray", 4)*/)
-    {
-      hex = name + 4;
-      color_space = gray;
     }
 
   /* Direct colors (hex values) */
@@ -1446,34 +1407,6 @@ ns_get_color (const char *name, NSColor **col)
                                                green: f3
                                                 blue: f4
                                                alpha: 1.0];
-              break;
-            case argb:
-              *col = [NSColor colorWithCalibratedRed: f2
-                                               green: f3
-                                                blue: f4
-                                               alpha: f1];
-              break;
-            case hsv:
-              *col = [NSColor colorWithCalibratedHue: f2
-                                          saturation: f3
-                                          brightness: f4
-                                               alpha: 1.0];
-              break;
-            case ahsv:
-              *col = [NSColor colorWithCalibratedHue: f2
-                                          saturation: f3
-                                          brightness: f4
-                                               alpha: f1];
-              break;
-            case gray:
-              *col = [NSColor colorWithCalibratedWhite: f3 alpha: f4];
-              break;
-            case cmyk:
-              *col = [NSColor colorWithDeviceCyan: f1
-                                          magenta: f2
-                                           yellow: f3
-                                            black: f4
-                                            alpha: 1.0];
               break;
             }
           *col = [*col colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
@@ -1573,14 +1506,13 @@ ns_color_to_lisp (NSColor *col)
     {
       [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
             getWhite: &gray alpha: &alpha];
-      snprintf (buf, sizeof (buf), "GRAY%02.2lx%02.2lx",
-               lrint (gray * 0xff), lrint (alpha * 0xff));
+      snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
+		lrint (gray * 0xff), lrint (gray * 0xff), lrint (gray * 0xff));
       UNBLOCK_INPUT;
       return build_string (buf);
     }
 
-  snprintf (buf, sizeof (buf), "ARGB%02.2lx%02.2lx%02.2lx%02.2lx",
-            lrint (alpha*0xff),
+  snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
             lrint (red*0xff), lrint (green*0xff), lrint (blue*0xff));
 
   UNBLOCK_INPUT;
