@@ -1078,15 +1078,14 @@ If BACKWARD is non-nil, jump to the previous match."
 		  "editing or viewing the document."))))
     (message
      "%s"
-     (substitute-command-keys
-      (concat "No PNG support available or some conversion utility for "
-	      (file-name-extension doc-view-buffer-file-name)" files is missing.  "
-	      "Type \\[doc-view-toggle-display] to switch to "
-	      (if (eq doc-view-doc-type 'ps)
-		  "ps-mode"
-		"fundamental-mode")
-	      ", \\[doc-view-open-text] to show the doc as text in a separate buffer "
-	      " or \\[doc-view-kill-proc-and-buffer] to kill this buffer.")))))
+     (concat "No PNG support is available, or some conversion utility for "
+	     (file-name-extension doc-view-buffer-file-name)
+	     " files is missing."))
+    (if (and (executable-find doc-view-pdftotext-program)
+	     (y-or-n-p
+	      "Unable to render file.  View extracted text instead? "))
+	(doc-view-open-text)
+      (doc-view-toggle-display))))
 
 (defvar bookmark-make-record-function)
 

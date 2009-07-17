@@ -1,3 +1,9 @@
+2009-07-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-initiate-display): Add yes-or-no-p if
+	rendering of pngs is not possible instead of messaging a long
+	description.
+
 2009-07-17  David De La Harpe Golden  <david@harpegolden.net>
 
 	* w32-fns.el (x-selection-owner-p): New function.
