@@ -229,7 +229,6 @@ shuffle (table, c, elt)
 {
   if (NATNUMP (elt))
     {
-      Lisp_Object tem = Faref (table, elt);
       int from, to;
 
       if (CONSP (c))
@@ -241,11 +240,11 @@ shuffle (table, c, elt)
 	from = to = XINT (c);
 
       for (; from <= to; from++)
-	if (from != XINT (elt))
-	  {
-	    Faset (table, elt, make_number (from));
-	    Faset (table, make_number (from), tem);
-	  }
+	{
+	  Lisp_Object tem = Faref (table, elt);
+	  Faset (table, elt, make_number (from));
+	  Faset (table, make_number (from), tem);
+	}
     }
 }
 
