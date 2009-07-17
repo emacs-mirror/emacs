@@ -1,3 +1,18 @@
+2009-07-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Allow mml-to-mime to generate MIME
+	article without making inquiry to a user for unknown encoding.
+
+	* nnmaildir.el (nnmaildir--group-maxnum, nnmaildir--new-number)
+	(nnmaildir--scan): Assume i-node and device number that file-attributes
+	returns might be cons-cell.
+
+2009-07-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Remove docs now in auth.texi.  Don't use
+	`gnus-message' for logging.  Add new variables `auth-source-debug' and
+	`auth-source-hide-passwords' and use them.
+
 2009-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-spec.el (gnus-make-format-preserve-properties): Doc fix.

@@ -270,8 +270,8 @@ by nnmaildir-request-article.")
 	(setq attr (file-attributes
 		    (concat dir (number-to-string number-linked))))
 	(or attr (throw 'return (1- number-linked)))
-	(if (/= ino-opened (nth 10 attr))
-	    (setq number-opened number-linked))))))
+	(unless (equal ino-opened (nth 10 attr))
+	  (setq number-opened number-linked))))))
 
 ;; Make the given server, if non-nil, be the current server.  Then make the
 ;; given group, if non-nil, be the current group of the current server.  Then
@@ -361,9 +361,9 @@ by nnmaildir-request-article.")
 		  number-open number-link))
 	   ((nnmaildir--eexist-p err)
 	    (let ((attr (file-attributes path-link)))
-	      (if (/= (nth 10 attr) ino-open)
-		  (setq number-open number-link
-			number-link 0))))
+	      (unless (equal (nth 10 attr) ino-open)
+		(setq number-open number-link
+		      number-link 0))))
 	   (t (signal (car err) (cdr err)))))))))
 
 (defun nnmaildir--update-nov (server group article)
@@ -744,7 +744,7 @@ by nnmaildir-request-article.")
 	    ls (or (nnmaildir--param pgname 'directory-files) srv-ls))
       (unless read-only
 	(setq x (nth 11 (file-attributes tdir)))
-	(unless (and (= x (nth 11 nattr)) (= x (nth 11 cattr)))
+	(unless (and (equal x (nth 11 nattr)) (equal x (nth 11 cattr)))
 	  (setf (nnmaildir--srv-error nnmaildir--cur-server)
 		(concat "Maildir spans filesystems: " absdir))
 	  (throw 'return nil))
