@@ -310,7 +310,11 @@ used to render text.  If it is nil, text will simply be folded.")
 		    "<#/part>\n"
 		    "<#/multipart>\n"))
 	  (condition-case nil
-	      (mml-to-mime)
+	      ;; Allow `mml-to-mime' to generate MIME article without
+	      ;; making inquiry to a user for unknown encoding.
+	      (let ((mml-confirmation-set
+		     (cons 'unknown-encoding mml-confirmation-set)))
+		(mml-to-mime))
 	    (error
 	     (erase-buffer)
 	     (insert header
