@@ -1,4 +1,3 @@
-<<<<<<< ChangeLog
 2009-07-17  Kenichi Handa  <handa@m17n.org>
 
 	* casetab.c (shuffle): Fix the logic of setting up the cycle.
