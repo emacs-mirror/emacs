@@ -9,8 +9,9 @@
 	* w32-fns.el (x-selection-owner-p): New function.
 
 	* mouse.el (mouse-drag-track): Call deactivate-mark earlier.
-	(mouse-yank-at-click): If select-active-regions is non-nil,
-	deactivate the mark before insertion.
+	(mouse-yank-at-click, mouse-yank-primary): If
+	select-active-regions is non-nil, deactivate the mark before
+	insertion.
 
 	* simple.el (deactivate-mark, set-mark): Only save selection if we
 	own it.

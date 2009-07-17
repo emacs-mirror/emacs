@@ -1387,6 +1387,10 @@ regardless of where you click."
   (interactive "e")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
+  (when select-active-regions
+    ;; Without this, confusing things happen upon e.g. inserting into
+    ;; the middle of an active region.
+    (deactivate-mark t))
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary (x-get-selection 'PRIMARY)))
     (if primary
