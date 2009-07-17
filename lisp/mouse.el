@@ -1373,7 +1373,7 @@ before inserting the text."
   (when select-active-regions
     ;; Without this, confusing things happen upon e.g. inserting into
     ;; the middle of an active region.
-    (deactivate-mark t))
+    (deactivate-mark))
   (or mouse-yank-at-point (mouse-set-point click))
   (setq this-command 'yank)
   (setq mouse-selection-click-count 0)
@@ -1390,7 +1390,7 @@ regardless of where you click."
   (when select-active-regions
     ;; Without this, confusing things happen upon e.g. inserting into
     ;; the middle of an active region.
-    (deactivate-mark t))
+    (deactivate-mark))
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary (x-get-selection 'PRIMARY)))
     (if primary
