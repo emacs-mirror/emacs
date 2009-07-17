@@ -927,6 +927,11 @@ will be deleted after return.  DO-MOUSE-DRAG-REGION-POST-PROCESS
 should only be used by mouse-drag-region."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
+  ;; We must call deactivate-mark before repositioning point.
+  ;; Otherwise, for select-active-regions non-nil, we get the wrong
+  ;; selection if the user drags a region, clicks elsewhere to
+  ;; reposition point, then middle-clicks to paste the selection.
+  (deactivate-mark)
   (let* ((original-window (selected-window))
          ;; We've recorded what we needed from the current buffer and
          ;; window, now let's jump to the place of the event, where things
@@ -971,7 +976,6 @@ should only be used by mouse-drag-region."
     (mouse-move-drag-overlay mouse-drag-overlay start-point start-point
                              click-count)
     (overlay-put mouse-drag-overlay 'window start-window)
-    (deactivate-mark)
     (let (event end end-point last-end-point)
       (track-mouse
 	(while (progn
@@ -1360,10 +1364,16 @@ Also move point to one end of the text thus inserted (normally the end),
 and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
-regardless of where you click."
+regardless of where you click.
+If `select-active-regions' is non-nil, the mark is deactivated
+before inserting the text."
   (interactive "e\nP")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
+  (when select-active-regions
+    ;; Without this, confusing things happen upon e.g. inserting into
+    ;; the middle of an active region.
+    (deactivate-mark t))
   (or mouse-yank-at-point (mouse-set-point click))
   (setq this-command 'yank)
   (setq mouse-selection-click-count 0)

@@ -294,12 +294,15 @@ shell requires it (see `w32-shell-dos-semantics')."
 
 ;;; Fix interface to (X-specific) mouse.el
 (defun x-set-selection (type data)
-  (or type (setq type 'PRIMARY))
-  (put 'x-selections type data))
+  (put 'x-selections (or type 'PRIMARY) data))
 
 (defun x-get-selection (&optional type data-type)
-  (or type (setq type 'PRIMARY))
-  (get 'x-selections type))
+  (get 'x-selections (or type 'PRIMARY)))
+
+;; x-selection-owner-p is used in simple.el
+(defun x-selection-owner-p (&optional type)
+  (and (memq type '(nil PRIMARY SECONDARY))
+       (get 'x-selections (or type 'PRIMARY))))
 
 (defun set-w32-system-coding-system (coding-system)
   "Set the coding system used by the Windows system to CODING-SYSTEM.

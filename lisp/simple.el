@@ -3489,6 +3489,7 @@ This function also runs `deactivate-mark-hook'."
     ;; Copy the latest region into the primary selection, if desired.
     (and select-active-regions
 	 mark-active
+	 (x-selection-owner-p 'PRIMARY)
 	 (x-set-selection 'PRIMARY (buffer-substring-no-properties
 				    (region-beginning) (region-end))))
     (if (and (null force)
@@ -3533,8 +3534,12 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(when select-active-regions
-	  (x-set-selection 'PRIMARY (current-buffer)))
+	(and select-active-regions
+	     ;; Only set the selection if we already own PRIMARY.  The
+	     ;; initial selection grab happens in `activate-mark', but
+	     ;; it is necessary to update it here.
+	     (x-selection-owner-p 'PRIMARY)
+	     (x-set-selection 'PRIMARY (current-buffer)))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
