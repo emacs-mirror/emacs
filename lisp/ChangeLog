@@ -1,5 +1,14 @@
 2009-07-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* desktop.el (desktop-buffers-not-to-save): Default value is nil.
+	Accept nil in addition to a regexp.
+	(desktop-files-not-to-save): Add "(ftp)$" to the default regexp.
+	Accept nil in addition to a regexp.
+	(desktop-save-buffer-p): Don't use desktop-buffers-not-to-save for
+	buffers that have an associated file.  Handle nil values of
+	desktop-buffers-not-to-save and desktop-files-not-to-save.
+	(Bug#3833)
+
 	* term/pc-win.el (x-selection-owner-p, x-own-selection-internal)
 	(x-disown-selection-internal): New functions.
 
