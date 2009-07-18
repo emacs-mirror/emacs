@@ -1722,6 +1722,16 @@ Value is t if a query was formerly required."
     (set-process-query-on-exit-flag process nil)
     old))
 
+(defun process-kill-buffer-query-function ()
+  "Ask before killing a buffer that has a running process."
+  (let ((process (get-buffer-process (current-buffer))))
+    (or (not process)
+        (not (memq (process-status process) '(run stop open listen)))
+        (not (process-query-on-exit-flag process))
+        (yes-or-no-p "Buffer has a running process; kill it? "))))
+
+(add-hook 'kill-buffer-query-functions 'process-kill-buffer-query-function)
+
 ;; process plist management
 
 (defun process-get (process propname)
