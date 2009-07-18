@@ -82,8 +82,12 @@ giving an offset from today.
 ** Desktop
 
 ---
-*** The default value for `desktop-buffers-not-to-save' no longer matches
-buffers whose name ends in a ".log".
+*** The default value for `desktop-buffers-not-to-save' is nil.
+This means Desktop will try restoring all buffers, when you restart
+your Emacs session.  Also, `desktop-buffers-not-to-save' is only
+effective for buffers that have no associated file.  If you want to
+exempt buffers that do correspond to files, customize the value of
+`desktop-files-not-to-save' instead.
 
 ** Miscellaneous
 
