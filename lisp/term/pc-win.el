@@ -227,6 +227,47 @@ support other types of selections."
 	 (t
 	  (setq x-last-selected-text text))))))
 
+;; x-selection-owner-p is used in simple.el.
+(defun x-selection-owner-p (&optional type)
+  "Whether the current Emacs process owns the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'."
+    (if x-select-enable-clipboard
+      (let (text)
+	;; Don't die if w16-get-clipboard-data signals an error.
+	(ignore-errors
+	  (setq text (w16-get-clipboard-data)))
+	;; We consider ourselves the owner of the selection if it does
+	;; not exist, or exists and compares equal with the last text
+	;; we've put into the Windows clipboard.
+	(cond
+	 ((not text) t)
+	 ((or (eq text x-last-selected-text)
+	      (string= text x-last-selected-text))
+	  text)
+	 (t nil)))))
+
+;; x-own-selection-internal and x-disown-selection-internal are used
+;; in select.el:x-set-selection.
+(defun x-own-selection-internal (type value)
+  "Assert an X selection of the given TYPE with the given VALUE.
+TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+VALUE is typically a string, or a cons of two markers, but may be
+anything that the functions on `selection-converter-alist' know about."
+  (ignore-errors
+    (x-select-text value))
+  value)
+
+(defun x-disown-selection-internal (selection &optional time)
+  "If we own the selection SELECTION, disown it.
+Disowning it means there is no such selection."
+  (if (x-selection-owner-p selection)
+      t))
+
 ;; From lisp/faces.el: we only have one font, so always return
 ;; it, no matter which variety they've asked for.
 (defun x-frob-font-slant (font which)
