@@ -64,6 +64,10 @@ It is not a new feature, just the configure flag is new.
 *** The new command `Info-virtual-index' bound to "I" displays a menu of
 matched topics found in the index.
 
+*** The new command `info-finder' replaces finder.el with a virtual Info
+manual that generates an Info file which gives the same information
+through a menu structure.
+
 +++
 ** New connection methods in Tramp.
 On systems which support GVFS-Fuse, Tramp offers the new connection
