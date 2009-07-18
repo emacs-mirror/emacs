@@ -2550,7 +2550,7 @@ we don't actually set it to the same mode the buffer already has."
 		       (cadr mode))
 		  (setq mode (car mode)
 			name (substring name 0 (match-beginning 0)))
-		(setq name))
+		(setq name nil))
 	      (when mode
 		(set-auto-mode-0 mode keep-mode-if-same)
 		(setq done t))))))
