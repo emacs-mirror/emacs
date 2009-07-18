@@ -3323,6 +3323,88 @@ Build a menu of the possible matches."
 	      Info-apropos-nodes)
 	(Info-find-node Info-apropos-file nodename)))))
 
+(add-to-list 'Info-virtual-files
+	     '("\\`\\*Finder.*\\*\\'"
+	       (find-file . Info-finder-find-file)
+	       (find-node . Info-finder-find-node)
+	       ))
+
+(defvar Info-finder-file "*Finder*"
+  "Info file name of the virtual Info keyword finder manual.")
+
+(defun Info-finder-find-file (filename &optional noerror)
+  "Finder-specific implementation of Info-find-file."
+  filename)
+
+(defvar finder-known-keywords)
+(defvar finder-package-info)
+(declare-function find-library-name "find-func" (library))
+(declare-function lm-commentary "lisp-mnt" (&optional file))
+
+(defun Info-finder-find-node (filename nodename &optional no-going-back)
+  "Finder-specific implementation of Info-find-node-2."
+  (cond
+   ((equal nodename "Top")
+    ;; Display Top menu with descriptions of the keywords
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Keywords\n")
+    (insert "***************\n\n")
+    (insert "* Menu:\n\n")
+    (mapc
+     (lambda (assoc)
+       (let ((keyword (car assoc)))
+	 (insert (format "* %-14s %s.\n"
+			 (concat (symbol-name keyword) "::")
+			 (cdr assoc)))))
+     finder-known-keywords))
+   ((string-match-p "\\.el\\'" nodename)
+    ;; Display commentary section
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Commentary\n")
+    (insert "*****************\n\n")
+    (insert
+     "Commentary section of the package `" nodename "':\n\n")
+    (let ((str (lm-commentary (find-library-name nodename))))
+      (if (null str)
+	  (insert "Can't find any Commentary section\n\n")
+	(insert
+	 (with-temp-buffer
+	   (insert str)
+	   (goto-char (point-min))
+	   (delete-blank-lines)
+	   (goto-char (point-max))
+	   (delete-blank-lines)
+	   (goto-char (point-min))
+	   (while (re-search-forward "^;+ ?" nil t)
+	     (replace-match "" nil nil))
+	   (buffer-string))))))
+   (t
+    ;; Display packages that match the keyword
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Packages\n")
+    (insert "***************\n\n")
+    (insert
+     "The following packages match the keyword `" nodename "':\n\n")
+    (insert "* Menu:\n\n")
+    (let ((id (intern nodename)))
+      (mapc
+       (lambda (x)
+	 (when (memq id (cadr (cdr x)))
+	   (insert (format "* %-16s %s.\n"
+			   (concat (car x) "::")
+			   (cadr x)))))
+       finder-package-info)))))
+
+;;;###autoload
+(defun info-finder ()
+  "Display descriptions of the keywords in the Finder virtual manual."
+  (interactive)
+  (require 'finder)
+  (Info-find-node Info-finder-file "Top"))
+
 (defun Info-undefined ()
   "Make command be undefined in Info."
   (interactive)
