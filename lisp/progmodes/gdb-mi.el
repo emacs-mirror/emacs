@@ -105,6 +105,7 @@
 
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
+(defvar speedbar-frame)
 
 (defvar gdb-pc-address nil "Initialization for Assembler buffer.
 Set to \"main\" at start if `gdb-show-main' is t.")
@@ -1889,6 +1890,14 @@ FILE is a full path."
   ;; TODO
   (make-sparse-keymap))
 
+(defvar gdb-breakpoints-header
+  (list
+   (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+			  nil nil mode-line)
+   " "
+   (gdb-propertize-header "Threads" gdb-threads-buffer
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
+
 (defun gdb-threads-mode ()
   "Major mode for GDB threads.
 
@@ -2217,16 +2226,6 @@ DOC is an optional documentation string."
 					       (vector (car selection))))))
       (if binding (call-interactively binding)))))
 
-;;from make-mode-line-mouse-map
-(defun gdb-make-header-line-mouse-map (mouse function) "\
-Return a keymap with single entry for mouse key MOUSE on the header line.
-MOUSE is defined to run function FUNCTION with no args in the buffer
-corresponding to the mode line clicked."
-  (let ((map (make-sparse-keymap)))
-    (define-key map (vector 'header-line mouse) function)
-    (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
-    map))
-
 (defvar gdb-memory-font-lock-keywords
   '(;; <__function.name+n>
     ("<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>" (1 font-lock-function-name-face))
@@ -2444,14 +2443,6 @@ corresponding to the mode line clicked."
 
 
 ;;; Breakpoints view
-(defvar gdb-breakpoints-header
-  (list
-   (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-			  nil nil mode-line)
-   " "
-   (gdb-propertize-header "Threads" gdb-threads-buffer
-			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
-
 (defun gdb-breakpoints-mode ()
   "Major mode for gdb breakpoints.
 
