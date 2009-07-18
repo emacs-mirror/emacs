@@ -1133,7 +1133,7 @@ DEFUN ("set-process-query-on-exit-flag",
        2, 2, 0,
        doc: /* Specify if query is needed for PROCESS when Emacs is exited.
 If the second argument FLAG is non-nil, Emacs will query the user before
-exiting if PROCESS is running.  */)
+exiting or killing a buffer if PROCESS is running.  */)
      (process, flag)
      register Lisp_Object process, flag;
 {
