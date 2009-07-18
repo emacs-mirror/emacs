@@ -625,7 +625,7 @@ But this would add multiple elements if the library is reloaded.  To
 avoid the problem, use @code{add-to-list} (@pxref{List Variables}):
 
 @example
-(add-to-list '(leif-mode " Leif") minor-mode-alist)
+(add-to-list 'minor-mode-alist '(leif-mode " Leif"))
 @end example
 
   Occasionally you will want to test explicitly whether a library has
