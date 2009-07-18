@@ -1,7 +1,16 @@
 2009-07-18  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-mode.el (c-before-hack-hook),
+	(c-postprocess-file-styles): Give invocation of `c-set-style'
+	DONT-OVERRIDE parameter of t.  Already set style variables will
+	thus not be overridden by style settings given by `c-file-syle'.
+
+	* files.el (hack-local-variables-filter): Remove entries with
+	duplicate keys from `file-local-variables-alist'.
+
 	* files.el (set-auto-mode): (setq name) -> (setq name nil).
 
+	
 2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (region-active-p, use-region-p): Doc fix (Bug#3873).
