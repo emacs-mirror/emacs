@@ -1,3 +1,7 @@
+2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (region-active-p, use-region-p): Doc fix (Bug#3873).
+
 2009-07-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* desktop.el (desktop-buffers-not-to-save): Default value is nil.
