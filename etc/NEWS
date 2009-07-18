@@ -45,7 +45,6 @@ Customize make-pointer-invisible to turn it off.
 ** On MS-Windows, `display-time' now displays the system load average
 as well as the time, as it does on GNU and Unix.
 
-
 ** configure options for emacs developers
 *** --enable-profiling will build emacs with profiling enabled.
 This might not work on all platforms.  It is not a new feature, just
@@ -53,6 +52,11 @@ the configure flag is new.
 
 *** --enable-checking[=OPTIONS] will build emacs with various extra runtime checks.
 It is not a new feature, just the configure flag is new.
+
+** Killing a buffer with a running process now asks a confirmation.
+You can remove this query in two ways: either removing
+`process-kill-buffer-query-function' from `kill-buffer-query-functions' or
+setting the appropriate process flag with `set-process-query-on-exit-flag'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
