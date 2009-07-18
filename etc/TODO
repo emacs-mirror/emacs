@@ -370,10 +370,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Give desktop.el a feature to switch between different named
   desktops.
 
-** Replace finder.el with something that generates an Info file
-  which gives the same information through a menu structure.  [Dave
-  Love started on this.]
-
 ** Add a cpio mode, more or less like tar mode.
 
 ** Save undo information in special temporary files, and reload it
