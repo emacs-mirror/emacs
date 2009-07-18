@@ -1,3 +1,7 @@
+2009-07-18  David De La Harpe Golden  <david@harpegolden.net>
+
+	* simple.el (set-mark): Revert last change.
+
 2009-07-17  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-initiate-display): Add yes-or-no-p if

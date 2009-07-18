@@ -3534,12 +3534,8 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(and select-active-regions
-	     ;; Only set the selection if we already own PRIMARY.  The
-	     ;; initial selection grab happens in `activate-mark', but
-	     ;; it is necessary to update it here.
-	     (x-selection-owner-p 'PRIMARY)
-	     (x-set-selection 'PRIMARY (current-buffer)))
+	(when select-active-regions
+	  (x-set-selection 'PRIMARY (current-buffer)))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
