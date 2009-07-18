@@ -1,3 +1,10 @@
+2009-07-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (speedbar-frame): Declare to avoid compiler
+	warning.
+	(gdb-breakpoints-header): Move forward to avoid compiler warning.
+	(gdb-make-header-line-mouse-map): Remove duplicate definition.
+
 2009-07-18  David De La Harpe Golden  <david@harpegolden.net>
 
 	* simple.el (set-mark): Revert last change.
