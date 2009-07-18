@@ -1,3 +1,7 @@
+2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (region-active-p, use-region-p): Doc fix (Bug#3873).
+
 2009-07-17  Kenichi Handa  <handa@m17n.org>
 
 	* case-table.el (describe-buffer-case-table): Fix for the case
