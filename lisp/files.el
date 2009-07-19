@@ -2960,11 +2960,7 @@ DIR-NAME is a directory name if these settings come from
 	  (dolist (elt variables)
 	    (unless (or (member elt unsafe-vars)
 			(member elt risky-vars))
-	      (let ((var (car elt)))
-		(unless (eq var 'eval)
-		  (setq file-local-variables-alist
-			(assq-delete-all var file-local-variables-alist)))
-		(push elt file-local-variables-alist))))
+	      (push elt file-local-variables-alist)))
 	;; Query, unless all are known safe or the user wants no
 	;; querying.
 	(if (or (and (eq enable-local-variables t)
@@ -2974,12 +2970,7 @@ DIR-NAME is a directory name if these settings come from
 		(hack-local-variables-confirm
 		 variables unsafe-vars risky-vars dir-name))
 	    (dolist (elt variables)
-	      (let ((var (car elt)))
-		(unless (eq var 'eval)
-		  (setq file-local-variables-alist
-			(assq-delete-all var file-local-variables-alist)))
-		(push elt file-local-variables-alist))))))))
-
+	      (push elt file-local-variables-alist)))))))
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
@@ -3082,7 +3073,6 @@ is specified, returning t if it is specified."
 	  (enable-local-variables
 	   (hack-local-variables-filter result nil)
 	   (when file-local-variables-alist
-	     ;; Any 'evals must run in the Right sequence.
 	     (setq file-local-variables-alist
 		   (nreverse file-local-variables-alist))
 	     (run-hooks 'before-hack-local-variables-hook)
