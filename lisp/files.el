@@ -2637,7 +2637,7 @@ Otherwise, return nil; point may be changed."
 
 (defvar ignored-local-variables
   '(ignored-local-variables safe-local-variable-values
-    file-local-variables-alist)
+    file-local-variables-alist dir-local-variables-alist)
   "Variables to be ignored in a file's local variable spec.")
 
 (defvar hack-local-variables-hook nil
@@ -2759,6 +2759,15 @@ is a file-local variable (a symbol) and VALUE is the value
 specified.  The actual value in the buffer may differ from VALUE,
 if it is changed by the major or minor modes, or by the user.")
 (make-variable-buffer-local 'file-local-variables-alist)
+
+(defvar dir-local-variables-alist nil
+  "Alist of directory-local variable settings in the current buffer.
+Each element in this list has the form (VAR . VALUE), where VAR
+is a directory-local variable (a symbol) and VALUE is the value
+specified in .dir-locals.el.  The actual value in the buffer
+may differ from VALUE, if it is changed by the major or minor modes,
+or by the user.")
+(make-variable-buffer-local 'dir-local-variables-alist)
 
 (defvar before-hack-local-variables-hook nil
   "Normal hook run before setting file-local variables.
@@ -2969,6 +2978,9 @@ DIR-NAME is a directory name if these settings come from
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)
 	   (unless (eq (car elt) 'eval)
+	     (unless dir-name
+	       (setq dir-local-variables-alist
+		     (assq-delete-all (car elt) dir-local-variables-alist)))
 	     (setq file-local-variables-alist
 		   (assq-delete-all (car elt) file-local-variables-alist)))
 	   (push elt file-local-variables-alist)))))
@@ -3364,12 +3376,10 @@ is found.  Returns the new class name."
 				      (nth 5 (file-attributes file)))
       class-name)))
 
-(declare-function c-postprocess-file-styles "cc-mode" ())
-
 (defun hack-dir-local-variables ()
   "Read per-directory local variables for the current buffer.
-Store the directory-local variables in `file-local-variables-alist',
-without applying them."
+Store the directory-local variables in `dir-local-variables-alist'
+and `file-local-variables-alist', without applying them."
   (when (and enable-local-variables
 	     (buffer-file-name)
 	     (not (file-remote-p (buffer-file-name))))
@@ -3389,6 +3399,11 @@ without applying them."
 	       (dir-locals-collect-variables
 		(dir-locals-get-class-variables class) dir-name nil)))
 	  (when variables
+	    (dolist (elt variables)
+	      (unless (eq (car elt) 'eval)
+		(setq dir-local-variables-alist
+		      (assq-delete-all (car elt) dir-local-variables-alist)))
+	      (push elt dir-local-variables-alist))
 	    (hack-local-variables-filter variables dir-name)))))))
 
 
