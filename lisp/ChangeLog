@@ -1,5 +1,8 @@
 2009-07-19  Glenn Morris  <rgm@gnu.org>
 
+	* international/mule.el (auto-coding-regexp-alist): Only match
+	BABYL... at the start of buffer, not of lines.  (Bug#3790)
+
 	* calendar/cal-menu.el (cal-menu-set-date-title): Handle calls from
 	non-calendar buffers (Bug#3862).  Restore "not on a date" message.
 	(cal-menu-context-mouse-menu): Doc fix.
