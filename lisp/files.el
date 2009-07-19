@@ -2931,55 +2931,47 @@ VARIABLES is the alist of variable-value settings.  This alist is
  `file-local-variables-alist', without applying them.
 DIR-NAME is a directory name if these settings come from
  directory-local variables, or nil otherwise."
-  ;; Strip any variables that are in `ignored-local-variables'.
-  (dolist (ignored ignored-local-variables)
-    (setq variables (assq-delete-all ignored variables)))
-  ;; If `enable-local-eval' is nil, strip eval "variables".
-  (if (null enable-local-eval)
-      (setq variables (assq-delete-all 'eval variables)))
-  (setq variables (nreverse variables))
-  (when variables
-    ;; Find those variables that we may want to save to
-    ;; `safe-local-variable-values'.
-    (let (risky-vars unsafe-vars)
-      (dolist (elt variables)
-	(let ((var (car elt))
-	      (val (cdr elt)))
-	  ;; Don't query about the fake variables.
-	  (or (memq var '(mode unibyte coding))
-	      (and (eq var 'eval)
-		   (or (eq enable-local-eval t)
-		       (hack-one-local-variable-eval-safep
-			(eval (quote val)))))
-	      (safe-local-variable-p var val)
-	      (and (risky-local-variable-p var val)
-		   (push elt risky-vars))
-	      (push elt unsafe-vars))))
-      (if (eq enable-local-variables :safe)
-	  ;; If caller wants only safe variables, store only these.
-	  (dolist (elt variables)
-	    (unless (or (member elt unsafe-vars)
-			(member elt risky-vars))
-	      (let ((var (car elt)))
-		(unless (eq var 'eval)
-		  (setq file-local-variables-alist
-			(assq-delete-all var file-local-variables-alist)))
-		(push elt file-local-variables-alist))))
-	;; Query, unless all are known safe or the user wants no
-	;; querying.
-	(if (or (and (eq enable-local-variables t)
-		     (null unsafe-vars)
-		     (null risky-vars))
-		(eq enable-local-variables :all)
-		(hack-local-variables-confirm
-		 variables unsafe-vars risky-vars dir-name))
-	    (dolist (elt variables)
-	      (let ((var (car elt)))
-		(unless (eq var 'eval)
-		  (setq file-local-variables-alist
-			(assq-delete-all var file-local-variables-alist)))
-		(push elt file-local-variables-alist))))))))
-
+  ;; Find those variables that we may want to save to
+  ;; `safe-local-variable-values'.
+  (let (all-vars risky-vars unsafe-vars)
+    (dolist (elt variables)
+      (let ((var (car elt))
+	    (val (cdr elt)))
+	(cond ((memq var ignored-local-variables)
+	       ;; Ignore any variable in `ignored-local-variables'.
+	       nil)
+	      ;; Obey `enable-local-eval'.
+	      ((eq var 'eval)
+	       (when enable-local-eval
+		 (push elt all-vars)
+		 (or (eq enable-local-eval t)
+		     (hack-one-local-variable-eval-safep (eval (quote val)))
+		     (push elt unsafe-vars))))
+	      ;; Ignore duplicates in the present list.
+	      ((assq var all-vars) nil)
+	      ;; Accept known-safe variables.
+	      ((or (memq var '(mode unibyte coding))
+		   (safe-local-variable-p var val))
+	       (push elt all-vars))
+	      ;; The variable is either risky or unsafe:
+	      ((not (eq enable-local-variables :safe))
+	       (push elt all-vars)
+	       (if (risky-local-variable-p var val)
+		   (push elt risky-vars)
+		 (push elt unsafe-vars))))))
+    (and all-vars
+	 ;; Query, unless all vars are safe or user wants no querying.
+	 (or (and (eq enable-local-variables t)
+		  (null unsafe-vars)
+		  (null risky-vars))
+	     (eq enable-local-variables :all)
+	     (hack-local-variables-confirm all-vars unsafe-vars
+					   risky-vars dir-name))
+	 (dolist (elt all-vars)
+	   (unless (eq (car elt) 'eval)
+	     (setq file-local-variables-alist
+		   (assq-delete-all (car elt) file-local-variables-alist)))
+	   (push elt file-local-variables-alist)))))
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
