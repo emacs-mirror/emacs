@@ -1082,7 +1082,7 @@ first line:
 @end example
 
 @noindent
-You can specify any number of variables/value pairs in this way, each
+You can specify any number of variable/value pairs in this way, each
 pair with a colon and semicolon as shown above.  @code{mode:
 @var{modename};} specifies the major mode; this should come first in the
 line.  The @var{value}s are not evaluated; they are used literally.
@@ -1214,7 +1214,7 @@ effect, or @kbd{n} to ignore it.  When Emacs is run in batch mode
 (@pxref{Initial Options}), it can't really ask you, so it assumes the
 answer @kbd{n}.
 
-  Emacs normally recognizes certain variables/value pairs as safe.
+  Emacs normally recognizes certain variable/value pairs as safe.
 For instance, it is safe to give @code{comment-column} or
 @code{fill-column} any integer value.  If a file specifies only
 known-safe variable/value pairs, Emacs does not ask for confirmation
