@@ -61,6 +61,9 @@ setting the appropriate process flag with `set-process-query-on-exit-flag'.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** FIXME mail-user-agent change
+This probably affects a lot of documentation.
+
 ** FIXME gdb-mi
 
 ** Info
