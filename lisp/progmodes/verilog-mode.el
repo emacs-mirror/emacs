@@ -1454,31 +1454,32 @@ without the directory portion, will be substituted."
 	   "\\b__FILE__\\b" (file-name-nondirectory (buffer-file-name))
 	   t t compile-command))))
 
-;; Following code only gets called from compilation-mode-hook on XEmacs to add error handling.
-(defun verilog-error-regexp-add-xemacs ()
-  "Teach XEmacs about verilog errors.
+(if (featurep 'xemacs)
+    ;; Following code only gets called from compilation-mode-hook on XEmacs to add error handling.
+    (defun verilog-error-regexp-add-xemacs ()
+      "Teach XEmacs about verilog errors.
 Called by `compilation-mode-hook'.  This allows \\[next-error] to
 find the errors."
-  (interactive)
-  (if (boundp 'compilation-error-regexp-systems-alist)
-      (if (and 
-           (not (equal compilation-error-regexp-systems-list 'all))
-           (not (member compilation-error-regexp-systems-list 'verilog)))
-	  (push 'verilog compilation-error-regexp-systems-list)))
-  (if (boundp 'compilation-error-regexp-alist-alist)
-      (if (not (assoc 'verilog compilation-error-regexp-alist-alist))
-          (setcdr compilation-error-regexp-alist-alist
-                  (cons verilog-error-regexp-xemacs-alist
-                        (cdr compilation-error-regexp-alist-alist)))))
-  (if (boundp 'compilation-font-lock-keywords)
-      (progn
-        (make-variable-buffer-local 'compilation-font-lock-keywords)
-        (setq compilation-font-lock-keywords  verilog-error-font-lock-keywords)
-        (font-lock-set-defaults)))
-  ;; Need to re-run compilation-error-regexp builder
-  (if (fboundp 'compilation-build-compilation-error-regexp-alist)
-      (compilation-build-compilation-error-regexp-alist))
-  )
+      (interactive)
+      (if (boundp 'compilation-error-regexp-systems-alist)
+	  (if (and
+	       (not (equal compilation-error-regexp-systems-list 'all))
+	       (not (member compilation-error-regexp-systems-list 'verilog)))
+	      (push 'verilog compilation-error-regexp-systems-list)))
+      (if (boundp 'compilation-error-regexp-alist-alist)
+	  (if (not (assoc 'verilog compilation-error-regexp-alist-alist))
+	      (setcdr compilation-error-regexp-alist-alist
+		      (cons verilog-error-regexp-xemacs-alist
+			    (cdr compilation-error-regexp-alist-alist)))))
+      (if (boundp 'compilation-font-lock-keywords)
+	  (progn
+	    (make-variable-buffer-local 'compilation-font-lock-keywords)
+	    (setq compilation-font-lock-keywords  verilog-error-font-lock-keywords)
+	    (font-lock-set-defaults)))
+      ;; Need to re-run compilation-error-regexp builder
+      (if (fboundp 'compilation-build-compilation-error-regexp-alist)
+	  (compilation-build-compilation-error-regexp-alist))
+      ))
 
 ;; Following code only gets called from compilation-mode-hook on Emacs to add error handling.
 (defun verilog-error-regexp-add-emacs ()
