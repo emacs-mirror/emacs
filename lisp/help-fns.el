@@ -710,6 +710,18 @@ it is displayed along with the global value."
 			     (use (format ";\n  use `%s' instead." (car obsolete)))
 			     (t ".")))
                 (terpri))
+
+	      (when (member (cons variable val) file-local-variables-alist)
+		(setq extra-line t)
+		(if (member (cons variable val) dir-local-variables-alist)
+		    (let ((file (and (buffer-file-name)
+				     (not (file-remote-p (buffer-file-name)))
+				     (dir-locals-find-file (buffer-file-name)))))
+		      (princ "  This variable is a directory local variable")
+		      (if file (princ (concat "\n  from the file \"" file "\"")))
+		      (princ ".\n"))
+		  (princ "  This variable is a file local variable.\n")))
+
 	      (when safe-var
                 (setq extra-line t)
 		(princ "  This variable is safe as a file local variable ")
