@@ -5451,12 +5451,12 @@ mail-sending package you prefer.
 
 Valid values include:
 
-  `sendmail-user-agent' -- use the default Emacs Mail package.
+  `message-user-agent'  -- use the Message package.
+                           See Info node `(message)'.
+  `sendmail-user-agent' -- use the Mail package.
                            See Info node `(emacs)Sending Mail'.
   `mh-e-user-agent'     -- use the Emacs interface to the MH mail system.
                            See Info node `(mh-e)'.
-  `message-user-agent'  -- use the Gnus Message package.
-                           See Info node `(message)'.
   `gnus-user-agent'     -- like `message-user-agent', but with Gnus
                            paraphernalia, particularly the Gcc: header for
                            archiving.
@@ -5466,19 +5466,20 @@ your package for details.  The function should return non-nil if it
 succeeds.
 
 See also `read-mail-command' concerning reading mail."
-  :type '(radio (function-item :tag "Default Emacs mail"
+  :type '(radio (function-item :tag "Message package"
+			       :format "%t\n"
+			       message-user-agent)
+		(function-item :tag "Mail package"
 			       :format "%t\n"
 			       sendmail-user-agent)
 		(function-item :tag "Emacs interface to MH"
 			       :format "%t\n"
 			       mh-e-user-agent)
-		(function-item :tag "Gnus Message package"
-			       :format "%t\n"
-			       message-user-agent)
-		(function-item :tag "Gnus Message with full Gnus features"
+		(function-item :tag "Message with full Gnus features"
 			       :format "%t\n"
 			       gnus-user-agent)
 		(function :tag "Other"))
+  :version "23.2"                       ; sendmail->message
   :group 'mail)
 
 (define-mail-user-agent 'sendmail-user-agent
