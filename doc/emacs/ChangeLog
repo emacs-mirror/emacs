@@ -1,3 +1,8 @@
+2009-07-19  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Specifying File Variables, Safe File Variables):
+	"variables/value pairs" -> "variable/value pairs".
+
 2009-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Gnus): Remove widow.
