@@ -337,6 +337,7 @@ modes are restored automatically; they should not be listed here."
   "Regexp identifying buffers that are to be excluded from saving."
   :type '(choice (const :tag "None" nil)
 		 regexp)
+  :version "23.2"                       ; set to nil
   :group 'desktop)
 
 ;; Skip tramp and ange-ftp files

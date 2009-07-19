@@ -1,3 +1,13 @@
+2009-07-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-set-date-title): Handle calls from
+	non-calendar buffers (Bug#3862).  Restore "not on a date" message.
+	(cal-menu-context-mouse-menu): Doc fix.
+
+	* desktop.el (desktop-buffers-not-to-save): Set :version tag.
+
+	* simple.el (mail-user-agent): Doc fix.  Set :version tag.
+
 2009-07-18  Juri Linkov  <juri@jurta.org>
 
 	* info.el: Virtual Info keyword finder.
