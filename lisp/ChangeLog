@@ -1,3 +1,7 @@
+2009-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/vt420.el (terminal-init-vt420): Fix typo.
+
 2009-07-20  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/ada-mode.el (compile-auto-highlight): Remove the
