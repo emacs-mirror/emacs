@@ -128,7 +128,6 @@
 (require 'which-func nil t)
 (require 'compile nil t)
 
-(defvar compile-auto-highlight)
 (defvar ispell-check-comments)
 (defvar skeleton-further-elements)
 
@@ -1160,7 +1159,6 @@ the file name."
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
 	    (lambda()
-	      (set (make-local-variable 'compile-auto-highlight) 40)
 	      ;; FIXME: This has global impact!  -stef
 	      (define-key compilation-minor-mode-map [mouse-2]
 		'ada-compile-mouse-goto-error)
