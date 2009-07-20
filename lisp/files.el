@@ -2973,7 +2973,7 @@ DIR-NAME is a directory name if these settings come from
 	 (or (and (eq enable-local-variables t)
 		  (null unsafe-vars)
 		  (null risky-vars))
-	     (eq enable-local-variables :all)
+	     (memq enable-local-variables '(:all :safe))
 	     (hack-local-variables-confirm all-vars unsafe-vars
 					   risky-vars dir-name))
 	 (dolist (elt all-vars)
