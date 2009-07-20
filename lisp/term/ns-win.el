@@ -99,9 +99,10 @@
   (setq initial-frame-alist (cons (cons 'name (pop ns-invocation-args))
                                   initial-frame-alist)))
 
-;; Set (but not used?) in frame.el.
 (defvar x-display-name nil
-  "The name of the Nextstep display on which Emacs was started.")
+  "The name of the window display on which Emacs was started.
+On X, the display name of individual X frames is recorded in the
+`display' frame parameter.")
 
 ;; nsterm.m.
 (defvar ns-input-file)
@@ -309,7 +310,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defalias 'do-applescript 'ns-do-applescript)
 
 (defun x-setup-function-keys (frame)
-  "Set up function Keys for Nextstep for frame FRAME."
+  "Set up function keys on the graphical frame FRAME."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
@@ -1003,7 +1004,19 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar ns-last-selected-text nil)
 
 (defun x-select-text (text &optional push)
-  "Put TEXT, a string, on the pasteboard."
+  "Select TEXT, a string, according to the window system.
+
+On X, put TEXT in the primary X selection.  For backward
+compatibility with older X applications, set the value of X cut
+buffer 0 as well, and if the optional argument PUSH is non-nil,
+rotate the cut buffers.  If `x-select-enable-clipboard' is
+non-nil, copy the text to the X clipboard as well.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.  The argument PUSH is ignored.
+
+On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
   (ns-set-pasteboard text)
@@ -1113,12 +1126,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function ns-list-colors "nsfns.m" (&optional frame))
 
 (defvar x-colors (ns-list-colors)
-  "The list of colors defined in non-PANTONE color files.")
+  "List of available colors for graphical frames.
+For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
+For Nextstep, this is a list of non-PANTONE colors returned by
+the operating system.")
 
+;; The argument FRAME specifies which frame to try.
+;; The value may be different for frames on different Nextstep displays.
 (defun xw-defined-colors (&optional frame)
-  "Return a list of colors supported for a particular frame.
-The argument FRAME specifies which frame to try.
-The value may be different for frames on different Nextstep displays."
+  "Internal function called by `defined-colors'."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)

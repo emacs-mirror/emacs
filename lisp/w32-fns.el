@@ -55,7 +55,7 @@
   "Keymap of possible alternative meanings for some keys.")
 
 (defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on FRAME for w32."
+  "Set up `function-key-map' on the graphical frame FRAME."
   ;; Don't do this twice on the same display, or it would break
   ;; normal-erase-is-backspace-mode.
   (unless (terminal-parameter frame 'x-setup-function-keys)
@@ -415,9 +415,19 @@ bit output with no translation."
   "Max number of characters to put in the cut buffer.")
 
 (defun x-select-text (text &optional push)
-  "Make TEXT the last selected text.
-If `x-select-enable-clipboard' is non-nil, copy the text to the system
-clipboard as well.  Optional PUSH is ignored on Windows."
+  "Select TEXT, a string, according to the window system.
+
+On X, put TEXT in the primary X selection.  For backward
+compatibility with older X applications, set the value of X cut
+buffer 0 as well, and if the optional argument PUSH is non-nil,
+rotate the cut buffers.  If `x-select-enable-clipboard' is
+non-nil, copy the text to the X clipboard as well.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.  The argument PUSH is ignored.
+
+On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   (if x-select-enable-clipboard
       (w32-set-clipboard-data text))
   (setq x-last-selected-text text))

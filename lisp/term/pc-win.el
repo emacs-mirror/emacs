@@ -181,9 +181,14 @@ created."
 
 ;; From lisp/term/x-win.el
 (defvar x-display-name "pc"
-  "The display name specifying the MS-DOS display and frame type.")
+  "The name of the window display on which Emacs was started.
+On X, the display name of individual X frames is recorded in the
+`display' frame parameter.")
 (defvar x-colors (mapcar 'car msdos-color-values)
-  "The list of colors available on a PC display under MS-DOS.")
+  "List of available colors for graphical frames.
+For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
+For Nextstep, this is a list of non-PANTONE colors returned by
+the operating system.")
 
 ;; From lisp/term/w32-win.el
 ;
@@ -196,8 +201,7 @@ created."
 
 (defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is the default on this system, since MS-Windows does not
-support other types of selections."
+This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 

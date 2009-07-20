@@ -149,7 +149,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 
 (defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to the primary selection."
+This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 

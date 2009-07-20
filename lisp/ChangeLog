@@ -1,3 +1,20 @@
+2009-07-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/pc-win.el (x-display-name, x-colors)
+	(x-select-enable-clipboard): Doc fix.
+
+	* term/common-win.el (x-display-name, x-colors): Doc fix.
+
+	* w32-vars.el (x-select-enable-clipboard): Doc fix.
+
+	* term/ns-win.el (x-select-text, x-setup-function-keys, x-colors)
+	(xw-defined-colors): Doc fix.
+
+	* w32-fns.el (x-select-text, x-setup-function-keys): Doc fix.
+
+	* term/x-win.el (x-select-text, x-setup-function-keys)
+	(x-select-enable-clipboard, xw-defined-colors): Doc fix.
+
 2009-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/vt420.el (terminal-init-vt420): Fix typo.
