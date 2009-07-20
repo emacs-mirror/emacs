@@ -18,7 +18,6 @@
 
 	* files.el (set-auto-mode): (setq name) -> (setq name nil).
 
-	
 2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (region-active-p, use-region-p): Doc fix (Bug#3873).
