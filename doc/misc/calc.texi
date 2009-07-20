@@ -293,8 +293,8 @@ this manual ought to be readable even if you don't know or use Emacs
 regularly.
 
 This manual is divided into three major parts:@: the ``Getting
-Started'' chapter you are reading now, the Calc tutorial (chapter 2),
-and the Calc reference manual (the remaining chapters and appendices).
+Started'' chapter you are reading now, the Calc tutorial, and the Calc
+reference manual.
 @c [when-split]
 @c This manual has been printed in two volumes, the @dfn{Tutorial} and the
 @c @dfn{Reference}.  Both volumes include a copy of the ``Getting Started''
