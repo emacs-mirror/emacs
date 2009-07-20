@@ -119,15 +119,6 @@ ns_attribute_fvalue (NSFontDescriptor *fdesc, NSString *trait)
 }
 
 
-/* Return whether font has attribute set to non-standard value. */
-static BOOL
-ns_has_attribute (NSFontDescriptor *fdesc, NSString *trait)
-{
-    float v = ns_attribute_fvalue (fdesc, trait);
-    return v < -0.05 || v > 0.05;
-}
-
-
 /* Converts FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, plus family and script/lang
    to NSFont descriptor.  Information under extra only needed for matching. */
 #define STYLE_REF 100
@@ -490,7 +481,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 	list = Fcons (ns_descriptor_to_entity (desc,
 					 AREF (font_spec, FONT_EXTRA_INDEX),
 					 NULL), list);
-	if (ns_has_attribute (desc, NSFontSlantTrait))
+	if (fabs (ns_attribute_fvalue (desc, NSFontSlantTrait)) > 0.05)
 	    foundItal = YES;
       }
 
@@ -666,9 +657,11 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   synthItal = !NILP (tem) && !strncmp ("synthItal", SDATA (SYMBOL_NAME (tem)),
                                        9);
   family = ns_get_family (font_entity);
-  if (ns_has_attribute (fontDesc, NSFontWeightTrait))
+  /* Should be > 0.23 as some font descriptors (e.g. Terminus) set to that
+     when setting family in ns_spec_to_descriptor(). */
+  if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50)
       traits |= NSBoldFontMask;
-  if (ns_has_attribute (fontDesc, NSFontSlantTrait))
+  if (fabs (ns_attribute_fvalue (fontDesc, NSFontSlantTrait) > 0.05))
       traits |= NSItalicFontMask;
 
   /* see http://cocoadev.com/forums/comments.php?DiscussionID=74 */
