@@ -930,7 +930,7 @@ Number of entries for each category is given by `todo-print-priorities'."
 (defvar entry)
 
 ;; t-c should be used from diary code, which requires calendar.
-(declare-function calendar-current-date "calendar" nil)
+(declare-function calendar-current-date "calendar" (&optional offset))
 
 ;; Read about this function in the setup instructions above!
 ;;;###autoload
