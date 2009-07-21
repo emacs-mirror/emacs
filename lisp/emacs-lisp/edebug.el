@@ -3653,11 +3653,11 @@ Return the result of the last expression."
 	 ))				; let
      ))
 
-(defvar cl-debug-env nil) ;; defined in cl; non-nil when lexical env used.
+(defvar cl-debug-env)  ; defined in cl; non-nil when lexical env used.
 
 (defun edebug-eval (edebug-expr)
   ;; Are there cl lexical variables active?
-  (if cl-debug-env
+  (if (bound-and-true-p cl-debug-env)
       (eval (cl-macroexpand-all edebug-expr cl-debug-env))
     (eval edebug-expr)))
 
@@ -3685,10 +3685,7 @@ Return the result of the last expression."
 				  (prin1-to-string edebug-arg)))
 		      (cdr edebug-value) ", ")))
 
-;; Define here in case they are not already defined.
-(defvar print-level nil)
-(defvar print-circle nil)
-(defvar print-readably) ;; defined by lemacs
+(defvar print-readably) ; defined by lemacs
 ;; Alternatively, we could change the definition of
 ;; edebug-safe-prin1-to-string to only use these if defined.
 
@@ -3697,7 +3694,7 @@ Return the result of the last expression."
 	(print-length (or edebug-print-length print-length))
 	(print-level (or edebug-print-level print-level))
 	(print-circle (or edebug-print-circle print-circle))
-	(print-readably nil)) ;; lemacs uses this.
+	(print-readably nil)) ; lemacs uses this.
     (condition-case nil
 	(edebug-prin1-to-string value)
       (error "#Apparently circular structure#"))))
@@ -3760,6 +3757,7 @@ This prints the value into current buffer."
 
 ;;; Edebug Minor Mode
 
+;; FIXME eh?
 (defvar gud-inhibit-global-bindings
   "*Non-nil means don't do global rebindings of C-x C-a subcommands.")
 
