@@ -1,3 +1,9 @@
+2009-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Undoing Mistakes): Mention that the undo list will be
+	truncated when Calc is quit.
+	(Customizing Calc): Document `calc-undo-length'.
+
 2009-07-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calc.texi (About This Manual): Don't mention chapter numbers in text.
