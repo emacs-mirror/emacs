@@ -5005,7 +5005,7 @@ With prefix argument ARG, turn auto-saving on if positive, else off."
 		 (or (not buffer-auto-save-file-name)
 		     ;; If auto-save is off because buffer has shrunk,
 		     ;; then toggling should turn it on.
-		     (= buffer-saved-size -1))
+		     (< buffer-saved-size 0))
 	       (or (eq arg t) (listp arg) (and (integerp arg) (> arg 0))))
 	     (if (and buffer-file-name auto-save-visited-file-name
 		      (not buffer-read-only))
@@ -5013,7 +5013,7 @@ With prefix argument ARG, turn auto-saving on if positive, else off."
 	       (make-auto-save-file-name))))
   ;; If -1 was stored here, to temporarily turn off saving,
   ;; turn it back on.
-  (and (= buffer-saved-size -1)
+  (and (< buffer-saved-size 0)
        (setq buffer-saved-size 0))
   (if (interactive-p)
       (message "Auto-save %s (in this buffer)"

@@ -1412,7 +1412,8 @@ If so restore the actual mbox message collection."
   (setq local-enable-local-variables nil)
   ;; Don't turn off auto-saving based on the size of the buffer
   ;; because that code does not understand buffer-swapping.
-  (setq buffer-saved-size -2)
+  (make-local-variable 'auto-save-include-big-deletions)
+  (setq auto-save-include-big-deletions t)
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
   (make-local-variable 'font-lock-defaults)
