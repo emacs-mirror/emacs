@@ -1,3 +1,28 @@
+2009-07-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (abort-if-file-too-large): Explicitly pass `filename'
+	as an argument.
+	(find-file-noselect, insert-file-1): Update for above change.
+
+	* mail/rmail.el (rmail-retry-ignored-headers): Bump :version.
+
+	* mail/mailclient.el (mailclient-send-it): Fix message.
+
+	* emacs-lisp/edebug.el (cl-debug-env): Only define for compiler.
+	(edebug-eval): Check cl-debug-env is bound.
+	(print-level, print-circle): Don't redefine built-in variables.
+
+	* emacs-lisp/cust-print.el: Remove leading * from defcustom docs.
+	(custom-print-vectors): Remove old comments from doc.
+
+	* emerge.el (menu-bar-emerge-menu): Remove unused variable.
+	(emerge-version): Make the variable an obsolete alias for the
+	emacs-version variable.  Make the function obsolete.
+	(emerge-fast-keymap, emerge-edit-keymap): Make a separate menu for
+	Emerge options, rather than merging in into the main Options menu.
+	(emerge-options-menu): Adjust menu text.  Use buttons for skip prefers
+	and auto advance modes.  Disable edit/fast items when not relevant.
+
 2009-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/vt420.el (terminal-init-vt420): Fix typo.

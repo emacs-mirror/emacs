@@ -375,7 +375,7 @@ If nil, display all header fields except those matched by
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers
-  :version "23.1")	   ; added content-type/encoding, mime-version
+  :version "23.2")	   ; added x-detected-operating-system, x-spam
 
 ;;;###autoload
 (defcustom rmail-highlighted-headers "^From:\\|^Subject:"
