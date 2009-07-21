@@ -1,5 +1,7 @@
 2009-07-21  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/ispell.el (ispell-looking-back): Update declaration.
+
 	* calendar/todo-mode.el (calendar-current-date): Update declaration.
 
 	* ps-print.el (ps-jitify, ps-lazify): Remove aliases only used to

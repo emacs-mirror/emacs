@@ -202,7 +202,8 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (declare-function ispell-check-minver "ispell" (v1 v2))
-(declare-function ispell-looking-back "ispell" (regexp &optional limit))
+(declare-function ispell-looking-back "ispell"
+		  (regexp &optional limit &rest ignored))
 
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
