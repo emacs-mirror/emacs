@@ -193,6 +193,9 @@ Lisp_Object Vauto_save_list_file_name;
 /* Whether or not files are auto-saved into themselves.  */
 Lisp_Object Vauto_save_visited_file_name;
 
+/* Whether or not to continue auto-saving after a large deletion.  */
+Lisp_Object Vauto_save_include_big_deletions;
+
 /* On NT, specifies the directory separator character, used (eg.) when
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
@@ -4492,8 +4495,7 @@ This calls `write-region-annotate-functions' at the start, and
       if (visiting)
 	{
 	  SAVE_MODIFF = MODIFF;
-	  if (XINT (current_buffer->save_length) != -2)
-	    XSETFASTINT (current_buffer->save_length, Z - BEG);
+	  XSETFASTINT (current_buffer->save_length, Z - BEG);
 	  current_buffer->filename = visit_file;
 	}
       UNGCPRO;
@@ -4704,8 +4706,7 @@ This calls `write-region-annotate-functions' at the start, and
   if (visiting)
     {
       SAVE_MODIFF = MODIFF;
-      if (XINT (current_buffer->save_length) != -2)
-	XSETFASTINT (current_buffer->save_length, Z - BEG);
+      XSETFASTINT (current_buffer->save_length, Z - BEG);
       current_buffer->filename = visit_file;
       update_mode_lines++;
     }
@@ -5309,7 +5310,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
 	    && b->auto_save_modified < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
-	    && XINT (b->save_length) != -1
+	    && XINT (b->save_length) >= 0
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (b->auto_save_file_name,
 						  Qwrite_region))))
@@ -5323,8 +5324,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
 	      continue;
 
-	    if (XINT (b->save_length) != -2
-		/* -2 is a magic flag turning off this feature in a buffer.  */
+	    set_buffer_internal (b);
+	    if (NILP (Vauto_save_include_big_deletions)
 		&& (XFASTINT (b->save_length) * 10
 		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
@@ -5345,14 +5346,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		Fsleep_for (make_number (1), Qnil);
 		continue;
 	      }
-	    set_buffer_internal (b);
 	    if (!auto_saved && NILP (no_message))
 	      message1 ("Auto-saving...");
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
 	    auto_saved++;
 	    b->auto_save_modified = BUF_MODIFF (b);
-	    if (XINT (current_buffer->save_length) != -2)
-	      XSETFASTINT (current_buffer->save_length, Z - BEG);
+	    XSETFASTINT (current_buffer->save_length, Z - BEG);
 	    set_buffer_internal (old);
 
 	    EMACS_GET_TIME (after_time);
@@ -5397,8 +5396,7 @@ No auto-save file will be written until the buffer changes again.  */)
      ()
 {
   current_buffer->auto_save_modified = MODIFF;
-  if (XINT (current_buffer->save_length) != -2)
-    XSETFASTINT (current_buffer->save_length, Z - BEG);
+  XSETFASTINT (current_buffer->save_length, Z - BEG);
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
 }
@@ -5709,6 +5707,13 @@ a non-nil value.  */);
 	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names.  */);
   Vauto_save_visited_file_name = Qnil;
+
+  DEFVAR_LISP ("auto-save-include-big-deletions", &Vauto_save_include_big_deletions,
+	       doc: /* If non-nil, auto-save even if a large part of the text is deleted.
+If nil, deleting a substantial portion of the text disables auto-save
+in the buffer; this is the default behavior, because the auto-save
+file is usually more useful if it contains the deleted text.  */);
+  Vauto_save_include_big_deletions = Qnil;
 
 #ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,

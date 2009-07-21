@@ -1,5 +1,12 @@
 2009-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* fileio.c: Revert 2009-07-16 changes.
+	(Vauto_save_include_big_deletions): New variable.
+	(Fdo_auto_save): Disable auto-save only if
+	auto-save-include-big-deletions is nil.
+
+2009-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
 	* xdisp.c (move_it_to): For continued lines ending in a tab, take
 	the overflowed pixels into account (Bug#3879).
 
