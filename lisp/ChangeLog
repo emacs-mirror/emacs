@@ -1,5 +1,12 @@
 2009-07-21  Glenn Morris  <rgm@gnu.org>
 
+	* printing.el (pr-mh-get-msg-num, pr-mh-show)
+	(pr-mh-start-of-uncleaned-message): Remove aliases only used to
+	silence compiler.  Instead...
+	(mh-get-msg-num, mh-show, mh-start-of-uncleaned-message): ...Declare.
+	(mh-show-buffer): Only define for compiler.
+	(pr-mh-current-message): Update for above function name changes.
+
 	* files.el (abort-if-file-too-large): Explicitly pass `filename'
 	as an argument.
 	(find-file-noselect, insert-file-1): Update for above change.
