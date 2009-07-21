@@ -164,7 +164,7 @@ The mail client is taken to be the handler of mailto URLs."
 		       (+ 1 delimline) (point-max))
 		      (concat
 		       "*** E-Mail body has been placed on clipboard, "
-		       "please paste them here! ***"))
+		       "please paste it here! ***"))
 		  ;; else
 		  (buffer-substring (+ 1 delimline) (point-max))))))))))))
 
