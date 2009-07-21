@@ -417,6 +417,12 @@ in normal mode."
   :group 'calc
   :type 'boolean)
 
+(defcustom calc-undo-length 
+  100
+  "The number of undo steps that will be preserved when Calc is quit."
+  :group 'calc
+  :type 'integer)
+
 (defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
@@ -1485,7 +1491,14 @@ commands given here will actually operate on the *Calculator* stack."
       (unless (eq major-mode 'calc-mode)
         (calc-create-buffer))
       (run-hooks 'calc-end-hook)
-      (setq calc-undo-list nil calc-redo-list nil)
+      (if (integerp calc-undo-length)
+          (cond
+           ((= calc-undo-length 0)
+            (setq calc-undo-list nil calc-redo-list nil))
+           ((> calc-undo-length 0)
+            (let ((tail (nthcdr (1- calc-undo-length) calc-undo-list)))
+              (if tail (setcdr tail nil)))
+            (setq calc-redo-list nil))))
       (mapc (function (lambda (v) (set-default v (symbol-value v))))
 	    calc-local-var-list)
       (let ((buf (current-buffer))
