@@ -1892,6 +1892,9 @@ port support (see Emacs changes, above).
 
 ** Miscellaneous new variables
 
+*** `auto-save-include-big-deletions', if non-nil, means auto-save is
+not turned off automatically after a big deletion.
+
 *** `read-circle', if nil, disables the reading of recursive Lisp
 structures using the #N= and #N# syntax.
 
