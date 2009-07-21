@@ -7090,8 +7090,7 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
      int op;
 {
   enum move_it_result skip, skip2 = MOVE_X_REACHED;
-  int line_height;
-  int reached = 0;
+  int line_height, line_start_x = 0, reached = 0;
 
   for (;;)
     {
@@ -7274,7 +7273,11 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	      if (it->current_x != it->last_visible_x
 		  && (op & MOVE_TO_VPOS)
 	      	  && !(op & (MOVE_TO_X | MOVE_TO_POS)))
-	      	set_iterator_to_next (it, 0);
+		{
+		  line_start_x = it->current_x + it->pixel_width
+		    - it->last_visible_x;
+		  set_iterator_to_next (it, 0);
+		}
 	    }
 	  else
 	    it->continuation_lines_width += it->current_x;
@@ -7286,7 +7289,9 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 
       /* Reset/increment for the next run.  */
       recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
-      it->current_x = it->hpos = 0;
+      it->current_x = line_start_x;
+      line_start_x = 0;
+      it->hpos = 0;
       it->current_y += it->max_ascent + it->max_descent;
       ++it->vpos;
       last_height = it->max_ascent + it->max_descent;
