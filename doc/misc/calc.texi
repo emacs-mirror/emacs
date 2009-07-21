@@ -10280,10 +10280,13 @@ are removed or restored.  If it was a ``store'' operation, you are
 queried whether or not to restore the variable to its original value.
 The @kbd{U} key may be pressed any number of times to undo successively
 farther back in time; with a numeric prefix argument it undoes a
-specified number of operations.  The undo history is cleared only by the
-@kbd{q} (@code{calc-quit}) command.  (Recall that @kbd{C-x * c} is
-synonymous with @code{calc-quit} while inside the Calculator; this
-also clears the undo history.)
+specified number of operations.  When the Calculator is quit, as with
+the @kbd{q} (@code{calc-quit}) command, the undo history will be
+truncated to the length of the customizable variable
+@code{calc-undo-length} (@pxref{Customizing Calc}), which by default
+is @expr{100}. (Recall that @kbd{C-x * c} is synonymous with
+@code{calc-quit} while inside the Calculator; this also truncates the
+undo history.)
 
 Currently the mode-setting commands (like @code{calc-precision}) are not
 undoable.  You can undo past a point where you changed a mode, but you
@@ -35045,6 +35048,15 @@ as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
 (and, like division, is left associative), and so for example
 @samp{a/b*c} will be interpreted as @samp{(a/b)*c}.  The default value
 of @code{calc-multiplication-has-precedence} is @code{t}.
+@end defvar
+
+@defvar calc-undo-length
+The variable @code{calc-undo-length} determines the number of undo
+steps that Calc will keep track of when @code{calc-quit} is called.
+If @code{calc-undo-length} is a non-negative integer, then this is the
+number of undo steps that will be preserved; if
+@code{calc-undo-length} has any other value, then all undo steps will
+be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizing Calc, Top
