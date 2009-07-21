@@ -1410,6 +1410,10 @@ If so restore the actual mbox message collection."
   ;; Don't let a local variables list in a message cause confusion.
   (make-local-variable 'local-enable-local-variables)
   (setq local-enable-local-variables nil)
+  ;; Don't turn off auto-saving based on the size of the buffer
+  ;; because that code does not understand buffer-swapping.
+  (make-local-variable 'auto-save-include-big-deletions)
+  (setq auto-save-include-big-deletions t)
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
   (make-local-variable 'font-lock-defaults)

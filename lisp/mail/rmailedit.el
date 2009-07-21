@@ -64,6 +64,10 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (if (boundp 'mode-line-modified)
 	(setq mode-line-modified (default-value 'mode-line-modified))
       (setq mode-line-format (default-value 'mode-line-format)))
+    ;; Don't turn off auto-saving based on the size of the buffer
+    ;; because that code does not understand buffer-swapping.
+    (make-local-variable 'auto-save-include-big-deletions)
+    (setq auto-save-include-big-deletions t)
     ;; If someone uses C-x C-s, don't clobber the rmail file (bug#2625).
     (add-hook 'write-region-annotate-functions
 	      'rmail-write-region-annotate nil t)
