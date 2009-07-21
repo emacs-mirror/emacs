@@ -1,3 +1,8 @@
+2009-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Cut/Paste Other App): Remove discussion of
+	select-active-regions for 23.1, as it is not fully functional.
+
 2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* macos.texi (Mac OS / GNUstep): Add note about stability.
