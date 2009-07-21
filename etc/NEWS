@@ -58,6 +58,7 @@ You can remove this query in two ways: either removing
 `process-kill-buffer-query-function' from `kill-buffer-query-functions' or
 setting the appropriate process flag with `set-process-query-on-exit-flag'.
 
++++
 ** If `select-active-regions' is t, any active region automatically
 becomes the primary selection (for interaction with other window
 applications).  If you enable this, you might want to bind
