@@ -58,6 +58,11 @@ You can remove this query in two ways: either removing
 `process-kill-buffer-query-function' from `kill-buffer-query-functions' or
 setting the appropriate process flag with `set-process-query-on-exit-flag'.
 
+** If `select-active-regions' is t, any active region automatically
+becomes the primary selection (for interaction with other window
+applications).  If you enable this, you might want to bind
+`mouse-yank-primary' to Mouse-2.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
@@ -557,11 +562,6 @@ remap the default face in the current buffer.  See "Buffer Face mode",
 under New Modes and Packages.
 
 ** Primary selection changes
-
-*** If `select-active-regions' is t, setting the mark automatically
-makes the new region into the primary selection (for interaction with
-other window applications).  If you enable this, you might want to
-bind `mouse-yank-primary' to Mouse-2.
 
 *** You can disable kill ring commands from accessing the primary
 selection by setting `x-select-enable-primary' to nil.
