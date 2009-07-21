@@ -1659,7 +1659,7 @@ When nil, never request confirmation."
   :version "22.1"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
-(defun abort-if-file-too-large (size op-type)
+(defun abort-if-file-too-large (size op-type filename)
   "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
 OP-TYPE specifies the file operation being performed (for message to user)."
   (when (and large-file-warning-threshold size
@@ -1722,7 +1722,7 @@ the various files."
 		  (setq buf other))))
 	;; Check to see if the file looks uncommonly large.
 	(when (not (or buf nowarn))
-	  (abort-if-file-too-large (nth 7 attributes) "open"))
+	  (abort-if-file-too-large (nth 7 attributes) "open" filename))
 	(if buf
 	    ;; We are using an existing buffer.
 	    (let (nonexistent)
@@ -1943,7 +1943,7 @@ This function ensures that none of these modifications will take place."
       (signal 'file-error (list "Opening input file" "file is a directory"
                                 filename)))
   ;; Check whether the file is uncommonly large
-  (abort-if-file-too-large (nth 7 (file-attributes filename)) "insert")
+  (abort-if-file-too-large (nth 7 (file-attributes filename)) "insert" filename)
   (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
                                        #'buffer-modified-p))
          (tem (funcall insert-func filename)))
