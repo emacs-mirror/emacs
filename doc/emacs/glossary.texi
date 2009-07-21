@@ -302,7 +302,7 @@ or by rebinding key sequences (@pxref{Keymaps}).
 See `killing' and `yanking.'
 
 @item Daemon
-A daemon is a standard term for a Unix process that runs in the
+A daemon is a standard term for a system-level process that runs in the
 background.  Daemons are often started when the system first starts up.
 When Emacs runs in daemon-mode, it runs in the background and does not
 open a display.  You can then connect to it with the
@@ -585,9 +585,10 @@ that do not have their own local (q.v.@:) values for the variable.
 @xref{Variables}.
 
 @item GNU
-GNU is a recursive acronym for GNU's Not Unix.  The GNU project aims
-to develop a complete operating system that is free software (q.v.@:).
-@xref{Manifesto}.  For more information, see
+GNU is a recursive acronym for GNU's Not Unix, and it refers to a
+Unix-compatible operating system which is free software (q.v.@:).
+@xref{Manifesto}.  GNU is normally used with Linux as the kernel since
+Linux works better than the GNU kernel.  For more information, see
 @uref{http://www.gnu.org/, the GNU website}.
 
 @item Graphic Character
