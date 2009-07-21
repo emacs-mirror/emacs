@@ -1,3 +1,10 @@
+2009-07-21  Ken Raeburn  <raeburn@raeburn.org>
+
+	* lread.c (load_depth): New variable.
+	(Fload, load_unwind, init_lread): Set it to the load recursion
+	depth; set load_in_progress as a simple boolean based on the
+	current load_depth.  (Bug#3892)
+
 2009-07-20  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (ns_has_attribute): Remove.
