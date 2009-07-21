@@ -1,6 +1,9 @@
 % Reference Card for Dired
-% Copyright (C) 2000, 2001, 2002, 2003, 2004,
-%   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+
+% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+%   2009  Free Software Foundation, Inc.
+
+% Author: Evgeny Roubinchtein <eroubinc@u.washington.edu>
 
 % This file is part of GNU Emacs.
 
@@ -17,57 +20,53 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-% This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  
-%**start of header
 
-\newcount\columnsperpage
-
-\columnsperpage=2
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(1)
-
-% Nothing else needs to be changed.
 % This file is intended to be processed by plain TeX (TeX82).
-% The reference card looks OK with 2 columns per page, portrait mode.
-% I haven't tried it with 3 columns per page.
 
 % This is a bit of a dirty hack on the GNU Emacs reference card
 % to produce a Dired reference card instead.
 
-% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together
-% because I wanted a Dired reference card,
-% but couldn't find anything on the 'net.
-% Based mostly off Dired's describe-mode.
+% I put this together because I wanted a Dired reference card, but
+% couldn't find anything on the 'net.  Based mostly off Dired's
+% describe-mode.
 
+%**start of header
+\newcount\columnsperpage
 
-\def\versionnumber{0.1}
+% This file can be printed with 1, 2, or 3 columns per page.
+% Specify how many you want here.  
+% The reference card looks OK with 2 columns per page, portrait mode.
+% I haven't tried it with 3 columns per page.
+\columnsperpage=2
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(1)
+
+\def\versionemacs{23}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
-\def\version{May 2006\ v\versionnumber}
+
+% Nothing else needs to be changed.
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions on back.  v\versionnumber}}
+  Permissions on back.}}
 
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{designed by Stephen Gildea, \version}
-\centerline{for GNU Emacs version 19 on Unix systems}
-\centerline{Updated for Dired in May 2000 by Evgeny Roubinchtein}
+\centerline{For GNU Emacs version \versionemacs}
+\centerline{Originally written May 2000 by Evgeny Roubinchtein,}
+\centerline{using refcard layout designed by Stephen Gildea.}
 
 Permission is granted to make and distribute copies of
 this card provided the copyright notice and this permission notice
 are preserved on all copies.
 
-For copies of the GNU Emacs manual, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
+For copies of the GNU Emacs manual, see:
 
+{\tt http://www.gnu.org/software/emacs/\#Manuals}
 \endgroup}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
@@ -255,7 +254,7 @@ MA 02110-1301, USA.
 
 \title{Dired Reference Card}
 
-\centerline{(based on Dired in GNU Emacs 23)}
+\centerline{(based on Dired in GNU Emacs \versionemacs)}
 \centerline{Commands marked with \dx{} require dired-x}
 
 % trim this down to fit everything on one page

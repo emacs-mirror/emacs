@@ -1,46 +1,11 @@
 %&mex
-%=====================================================================
-% Reference Card for GNU Emacs version 20 on Unix systems was
-% translated into Polish language by W{\l}odek Bzyl (matwb@univ.gda.pl)
-% who also added new section on `Dired' and added info about Polish
-% support in Emacs to section `International Character Sets'.
+% Reference Card for GNU Emacs
 
-% This file uses macros and fonts defined in the mex format.
-% These macros and fonts are part of a current WEB2C
-% distribution of TeX, for example teTeX (unix) fpTeX (windows).
-% TeTeX comes with texconfig utility which could be used in
-% particular to generate formats. Just run it and follow instructions.
-%
-% Note that the original Emacs refcard.tex uses macros and fonts
-% defined in plain format. This file uses mex format which is
-% a Polish adaptation of plain.
+% Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+%   2009  Free Software Foundation, Inc.
 
-%**start of header
-
-\ifx\MeX\undefined
-  \errmessage{This file requires `mex' format to be typeset correctly.
-    See head of this file for the comments how to generate mex format}
- \endinput
-\else
-  \prefixing
-\fi
-
-\newcount\columnsperpage
-
-% This file can be printed with 1, or 2 columns per page (see below).
-% Specify how many you want here.
-
-\columnsperpage=2
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(0)
-
-% Nothing else needs to be changed.
-% Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005,
-%   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+% Author: Stephen Gildea <gildea@stop.mail-abuse.org>
+% Polish translation: W{\l}odek Bzyl <matwb@univ.gda.pl>
 
 % This file is part of GNU Emacs.
 
@@ -57,6 +22,7 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+
 % This file is intended to be processed by plain TeX (TeX82).
 %
 % The final reference card has six columns, three on each side.
@@ -67,31 +33,56 @@
 % 2 columns per page
 %    produces three already-reduced pages.
 %    You will still need to cut and paste.
-% Which mode to use is controlled by setting \columnsperpage above.
-%
-% Author:
-%  Stephen Gildea
-%  Internet: gildea@stop.mail-abuse.org
-%
-% Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
-% for their many good ideas.
+% Which mode to use is controlled by setting \columnsperpage.
 
-% If there were room, it would be nice to see a section on Dired.
+% Translated into Polish language by W{\l}odek Bzyl (matwb@univ.gda.pl)
+% who also added new section on `Dired' and added info about Polish
+% support in Emacs to section `International Character Sets'.
 
-\def\versionnumber{1.2}
-\def\versionemacs{23}
-\def\versiondate{czerwiec 2006} % latest update
+% This file uses macros and fonts defined in the mex format.
+% These macros and fonts are part of a current WEB2C
+% distribution of TeX, for example teTeX (unix) fpTeX (windows).
+% TeTeX comes with texconfig utility which could be used in
+% particular to generate formats. Just run it and follow instructions.
+%
+% Note that the original Emacs refcard.tex uses macros and fonts
+% defined in plain format. This file uses mex format which is
+% a Polish adaptation of plain.
+
+
+%**start of header
+
+\ifx\MeX\undefined
+  \errmessage{This file requires `mex' format to be typeset correctly.
+    See head of this file for the comments how to generate mex format}
+ \endinput
+\else
+  \prefixing
+\fi
+
+% This file can be printed with 1, or 2 columns per page.
+% Specify how many you want here.
+\newcount\columnsperpage
+\columnsperpage=2
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(0)
+
+\def\versionemacs{23}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
+
+% Nothing else needs to be changed.
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions on back.  Version \versionnumber}}
+  Permissions on back.}}
 
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{Wersja \versionnumber{} dla GNU Emacsa \versionemacs,
-  \versiondate}
+\centerline{dla GNU Emacsa \versionemacs}
 \centerline{projekt Stephen Gildea}
 \centerline{t/lumaczenie W/lodek Bzyl}
 
@@ -99,9 +90,9 @@ Permission is granted to make and distribute copies of
 this card provided the copyright notice and this permission notice
 are preserved on all copies.
 
-For copies of the GNU Emacs manual, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+For copies of the GNU Emacs manual, see:
 
+{\tt http://www.gnu.org/software/emacs/\#Manuals}
 \endgroup}
 
 % make \bye not \outer so that the \def\bye in the \else clause below

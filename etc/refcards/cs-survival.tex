@@ -1,34 +1,10 @@
-%
 % Title:  GNU Emacs Survival Card
+
+% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+%   2009  Free Software Foundation, Inc.
+
 % Author: Wlodek Bzyl <matwb@univ.gda.pl>
-%
-%**start of header
-
-% User interface is `plain.tex' and macros described below
-%
-% \title{CARD TITLE}{for version 21}
-% \section{NAME}
-% optional paragraphs separated with \askip amount of vertical space
-% \key{KEY-NAME} description of key or
-% \mkey{M-x LONG-LISP-NAME} description of Elisp function
-%
-% \kbd{ARG} -- argument is typed literally
-
-\def\plainfmtname{plain}
-\ifx\fmtname\plainfmtname
-\else
-  \errmessage{This file requires `plain' format to be typeset correctly}
-  \endinput
-\fi
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(0)
-
-% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-%   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+% Czech translation: Pavel Janík <Pavel@Janik.cz>, March 2001
 
 % This file is part of GNU Emacs.
 
@@ -45,23 +21,47 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-% Czech hyphenation rules applied
-\chyph
 
-% Translated to Czech by Pavel Janík <Pavel@Janik.cz> in March 2001
+% See survival.tex.
 
 % Process the file with `csplain' from the `CSTeX' distribution (included
 % e.g. in the TeX Live CD).
 
-\def\versionnumber{1.0}
-\def\versionemacs{23}
-\def\versiondate{duben 2000}    % latest update
+% User interface is `plain.tex' and macros described below
+%
+% \title{CARD TITLE}{for version 21}
+% \section{NAME}
+% optional paragraphs separated with \askip amount of vertical space
+% \key{KEY-NAME} description of key or
+% \mkey{M-x LONG-LISP-NAME} description of Elisp function
+%
+% \kbd{ARG} -- argument is typed literally
+
+
+%**start of header
+
+\def\plainfmtname{plain}
+\ifx\fmtname\plainfmtname
+\else
+  \errmessage{This file requires `plain' format to be typeset correctly}
+  \endinput
+\fi
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(0)
+
+% Czech hyphenation rules applied
+\chyph
+
+\def\versionemacs{23}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
 
 \def\copyrightnotice{\penalty-1\vfill
   \vbox{\smallfont\baselineskip=0.8\baselineskip\raggedcenter
-    Copyright \year\ Free Software Foundation, Inc.\break
-    Verze \versionnumber{} pro GNU Emacs \versionemacs, \versiondate\break
+    Copyright \copyright\ \year\ Free Software Foundation, Inc.\break
+    Pro GNU Emacs \versionemacs\break
     W{\l}odek Bzyl (matwb@univ.gda.pl)\break
     Do èe¹tiny pøelo¾il Pavel Janík (Pavel@Janik.cz)
 

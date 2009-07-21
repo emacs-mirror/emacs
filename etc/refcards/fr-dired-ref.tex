@@ -1,6 +1,10 @@
 % Reference Card for Dired
+
 % Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
 %   2009  Free Software Foundation, Inc.
+
+% Author: Evgeny Roubinchtein <eroubinc@u.washington.edu>
+% French translation: Eric Jacoboni
 
 % This file is part of GNU Emacs.
 
@@ -17,47 +21,35 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-% This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.
+
+% See dired-ref.tex.
+
 %**start of header
 
+% This file can be printed with 1, 2, or 3 columns per page.
+% Specify how many you want here.
 \newcount\columnsperpage
-
 \columnsperpage=2
 
 % PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
 % a landscape layout.
-
 \input pdflayout.sty
 \pdflayout=(0)
 
-% Nothing else needs to be changed.
-% This file is intended to be processed by plain TeX (TeX82).
-% The reference card looks OK with 2 columns per page, portrait mode.
-% I haven't tried it with 3 columns per page.
-
-% This is a bit of a dirty hack on the GNU Emacs reference card
-% to produce a Dired reference card instead.
-
-% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together
-% because I wanted a Dired reference card,
-% but couldn't find anything on the 'net.
-% Based mostly off Dired's describe-mode.
-
-
-\def\versionnumber{0.1}
+\def\versionemacs{23}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
-\def\version{Mai 2006\ v\versionnumber}
+
+% Nothing else needs to be changed.
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions au dos.  v\versionnumber}}
+  Permissions au dos.}}
 
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{conception de Stephen Gildea, \version}
-\centerline{pour GNU Emacs version 19 sur syst\`emes Unix}
+\centerline{Pour GNU Emacs version  \versionemacs}
+\centerline{Conception de Stephen Gildea}
 \centerline{Mis \`a jour pour Dired en Mai 2000 par Evgeny Roubinchtein}
 \centerline{Traduction fran\c{c}aise d'\'Eric Jacoboni}
 
@@ -65,9 +57,9 @@ Vous pouvez faire et distribuer des copies de cette carte, pourvu que
 la notice de copyright et cette note de permission soient pr\'eserv\'ees
 sur toutes les copies.
 
-Pour obtenir des copies du manuel de GNU Emacs, \'ecrivez \`a la Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+Pour obtenir des copies du manuel de GNU Emacs:
 
+{\tt http://www.gnu.org/software/emacs/\#Manuals}
 \endgroup}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
@@ -258,7 +250,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 \title{Carte de r\'ef\'erence de Dired}
 
-\centerline{(bas\'e sur Dired de GNU Emacs 23.x)}
+\centerline{(bas\'e sur Dired de GNU Emacs \versionemacs)}
 \centerline{Les commandes marqu\'ees par \dx{} n\'ecessitent dired-x}
 
 % trim this down to fit everything on one page
