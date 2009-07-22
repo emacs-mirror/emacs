@@ -206,6 +206,18 @@ usually do not have translators to read other languages for them.\n\n")
 	      (setq beg-pos (point)))
 	    (insert "\n\nRecent messages:\n")
 	    (insert-buffer-substring message-buf beg-pos end-pos))))
+    ;; After Recent messages, to avoid the messages produced by
+    ;; list-load-path-shadows.
+    (unless (looking-back "\n")
+      (insert "\n"))
+    (insert "\n")
+    (insert "Load-path shadows:\n")
+    (message "Checking for load-path shadows...")
+    (let ((shadows (list-load-path-shadows t)))
+      (message "Checking for load-path shadows...done")
+      (insert (if (zerop (length shadows))
+                  "None found.\n"
+                shadows)))
     ;; This is so the user has to type something
     ;; in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
