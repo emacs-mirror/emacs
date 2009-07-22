@@ -3095,7 +3095,7 @@ to send.
 If only one word is given, display the mode of that target.
 
 A list of valid mode strings for Freenode may be found at
-`http://freenode.net/using_the_network.shtml'."
+URL `http://freenode.net/using_the_network.shtml'."
   (cond
    ((string-match "^\\s-\\(.*\\)$" line)
     (let ((s (match-string 1 line)))
