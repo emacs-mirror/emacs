@@ -1,3 +1,13 @@
+2009-07-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) [WM_IME_STARTCOMPOSITION]: Position
+	IME window at cursor (Bug#2570).
+	(w32_wnd_proc) [WM_IME_CHAR]: Release context when finished.
+	(globals_of_w32fns): Dynamically load functions required above.
+
+	* w32term.c (w32_draw_window_cursor): Send message to reposition
+	any IME window.
+
 2009-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c: Revert 2009-07-16 changes.

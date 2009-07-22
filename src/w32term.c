@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <imm.h>
 
 #include "charset.h"
 #include "character.h"
@@ -5127,6 +5128,8 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	  w32_system_caret_y
 	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
 	       + glyph_row->ascent - w->phys_cursor_ascent);
+
+	  PostMessage (hwnd, WM_IME_STARTCOMPOSITION, 0, 0);
 
 	  /* If the size of the active cursor changed, destroy the old
 	     system caret.  */
