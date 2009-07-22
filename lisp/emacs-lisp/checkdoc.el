@@ -183,7 +183,7 @@
   :version "20.3")
 
 (defcustom checkdoc-minor-mode-string " CDoc"
-  "*String to display in mode line when Checkdoc mode is enabled; nil for none."
+  "String to display in mode line when Checkdoc mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
   :group 'checkdoc
   :version "23.1")

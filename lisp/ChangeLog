@@ -1,5 +1,10 @@
 2009-07-22  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/advice.el, emacs-lisp/checkdoc.el:
+	* emacs-lisp/debug.el, emacs-lisp/elp.el, emacs-lisp/gulp.el:
+	* emacs-lisp/lisp.el, emacs-lisp/pp.el, emacs-lisp/trace.el:
+	Remove leading * from defcustom docs.
+
 	* simple.el (blink-matching-paren-distance): Bump to 100k.  (Bug#3889)
 
 	* emacs-lisp/shadow.el (shadows-compare-text-p): Remove leading * from

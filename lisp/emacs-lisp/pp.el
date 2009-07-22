@@ -33,7 +33,7 @@
   :group 'lisp)
 
 (defcustom pp-escape-newlines t
-  "*Value of `print-escape-newlines' used by pp-* functions."
+  "Value of `print-escape-newlines' used by pp-* functions."
   :type 'boolean
   :group 'pp)
 

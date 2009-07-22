@@ -35,13 +35,13 @@
   :group 'debug)
 
 (defcustom debugger-mode-hook nil
-  "*Hooks run when `debugger-mode' is turned on."
+  "Hooks run when `debugger-mode' is turned on."
   :type 'hook
   :group 'debugger
   :version "20.3")
 
 (defcustom debugger-batch-max-lines 40
-  "*Maximum lines to show in debugger buffer in a noninteractive Emacs.
+  "Maximum lines to show in debugger buffer in a noninteractive Emacs.
 When the debugger is entered and Emacs is running in batch mode,
 if the backtrace text has more than this many lines,
 the middle is discarded, and just the beginning and end are displayed."
@@ -674,7 +674,7 @@ Complete list of commands:
   (run-mode-hooks 'debugger-mode-hook))
 
 (defcustom debugger-record-buffer "*Debugger-record*"
-  "*Buffer name for expression values, for \\[debugger-record-expression]."
+  "Buffer name for expression values, for \\[debugger-record-expression]."
   :type 'string
   :group 'debugger
   :version "20.3")

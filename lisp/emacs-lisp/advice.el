@@ -1834,7 +1834,7 @@
 
 ;;;###autoload
 (defcustom ad-redefinition-action 'warn
-  "*Defines what to do with redefinitions during Advice de/activation.
+  "Defines what to do with redefinitions during Advice de/activation.
 Redefinition occurs if a previously activated function that already has an
 original definition associated with it gets redefined and then de/activated.
 In such a case we can either accept the current definition as the new
@@ -1849,7 +1849,7 @@ interpreted as `error'."
 
 ;;;###autoload
 (defcustom ad-default-compilation-action 'maybe
-  "*Defines whether to compile advised definitions during activation.
+  "Defines whether to compile advised definitions during activation.
 A value of `always' will result in unconditional compilation, `never' will
 always avoid compilation, `maybe' will compile if the byte-compiler is already
 loaded, and `like-original' will compile if the original definition of the
