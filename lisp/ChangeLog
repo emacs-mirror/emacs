@@ -1,3 +1,13 @@
+2009-07-22  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (blink-matching-paren-distance): Bump to 100k.  (Bug#3889)
+
+	* emacs-lisp/shadow.el (shadows-compare-text-p): Remove leading * from
+	defcustom doc.
+	(list-load-path-shadows): Optionally, just return shadows as a string.
+
+	* mail/emacsbug.el (report-emacs-bug): Include any load-path shadows.
+
 2009-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/rmailedit.el (rmail-edit-mode): Use
