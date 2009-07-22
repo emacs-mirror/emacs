@@ -1,3 +1,17 @@
+2009-07-22  Kevin Ryde  <user42@zip.com.au>
+
+	* net/newst-backend.el (newsticker--parse-atom-1.0)
+	(newsticker--parse-rss-0.91, newsticker--parse-rss-0.92)
+	(newsticker--parse-rss-1.0):
+	* progmodes/idlwave.el (idlwave-mode):
+	* progmodes/idlw-shell.el (idlwave-shell-mode):
+	* progmodes/vera-mode.el (vera-mode):
+	* progmodes/verilog-mode.el (verilog-auto-inst, verilog-auto):
+	* progmodes/vhdl-mode.el (vhdl-mode):
+	* textmodes/table.el (table-generate-source)
+	(table--warn-incompatibility):
+	Hyperlink urls in docstrings with URL `...'.
+
 2009-07-22  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/advice.el, emacs-lisp/checkdoc.el:

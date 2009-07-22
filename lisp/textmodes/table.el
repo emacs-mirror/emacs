@@ -3002,14 +3002,14 @@ untouched.
 References used for this implementation:
 
 HTML:
-        http://www.w3.org
+        URL `http://www.w3.org'
 
 LaTeX:
-        http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html
+        URL `http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
 
 CALS (DocBook DTD):
-        http://www.oasis-open.org/html/a502.htm
-        http://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751
+        URL `http://www.oasis-open.org/html/a502.htm'
+        URL `http://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751'
 "
   (interactive
    (let* ((dummy (unless (table--probe-cell) (error "Table not found here")))
@@ -5369,7 +5369,7 @@ aware of this.
 *** Warning ***
 
 Flyspell minor mode is known to be incompatible with this table
-package.  The flyspell version 1.5d at http://kaolin.unice.fr/~serrano
+package.  The flyspell version 1.5d at URL `http://kaolin.unice.fr/~serrano'
 works better than the previous versions however not fully compatible.
 
 "

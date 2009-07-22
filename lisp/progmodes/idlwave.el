@@ -1883,7 +1883,7 @@ The main features of this mode are
    Info documentation for this package is available.  Use
    \\[idlwave-info] to display (complain to your sysadmin if that does
    not work).  For Postscript, PDF, and HTML versions of the
-   documentation, check IDLWAVE's homepage at `http://idlwave.org'.
+   documentation, check IDLWAVE's homepage at URL `http://idlwave.org'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 10.Keybindings

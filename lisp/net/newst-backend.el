@@ -1130,7 +1130,7 @@ system time at which the data have been retrieved.  TOPNODE
 contains the feed data as returned by the xml parser.
 
 For the Atom 1.0 specification see
-http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html"
+URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
   (newsticker--debug-msg "Parsing Atom 1.0 feed %s" name)
   (let (new-feed new-item)
     (setq new-feed (newsticker--parse-generic-feed
@@ -1184,8 +1184,8 @@ http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html"
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 0.91 specification see http://backend.userland.com/rss091 or
-http://my.netscape.com/publish/formats/rss-spec-0.91.html."
+For the RSS 0.91 specification see URL `http://backend.userland.com/rss091'
+or URL `http://my.netscape.com/publish/formats/rss-spec-0.91.html'."
   (newsticker--debug-msg "Parsing RSS 0.91 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          (pub-date (newsticker--decode-rfc822-date
@@ -1238,7 +1238,7 @@ http://my.netscape.com/publish/formats/rss-spec-0.91.html."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 0.92 specification see http://backend.userland.com/rss092."
+For the RSS 0.92 specification see URL `http://backend.userland.com/rss092'."
   (newsticker--debug-msg "Parsing RSS 0.92 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          (pub-date (newsticker--decode-rfc822-date
@@ -1291,7 +1291,7 @@ For the RSS 0.92 specification see http://backend.userland.com/rss092."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 1.0 specification see http://web.resource.org/rss/1.0/spec."
+For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
   (newsticker--debug-msg "Parsing RSS 1.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)
@@ -1342,7 +1342,7 @@ For the RSS 1.0 specification see http://web.resource.org/rss/1.0/spec."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 2.0 specification see http://blogs.law.harvard.edu/tech/rss."
+For the RSS 2.0 specification see URL `http://blogs.law.harvard.edu/tech/rss'."
   (newsticker--debug-msg "Parsing RSS 2.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)

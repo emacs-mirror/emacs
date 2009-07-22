@@ -8812,7 +8812,7 @@ Exceptions:
   Unless you are instantiating a module multiple times, or the module is
   something trivial like an adder, DO NOT CHANGE SIGNAL NAMES ACROSS HIERARCHY.
   It just makes for unmaintainable code.  To sanitize signal names, try
-  vrename from http://www.veripool.org.
+  vrename from URL `http://www.veripool.org'.
 
   When you need to violate this suggestion there are two ways to list
   exceptions, placing them before the AUTOINST, or using templates.
@@ -10504,7 +10504,7 @@ Using \\[describe-function], see also:
     `verilog-read-includes'     for reading `includes
 
 If you have bugs with these autos, please file an issue at
-http://www.veripool.org/verilog-mode or contact the AUTOAUTHOR
+URL `http://www.veripool.org/verilog-mode' or contact the AUTOAUTHOR
 Wilson Snyder (wsnyder@wsnyder.org)."
   (interactive)
   (unless noninteractive (message "Updating AUTOs..."))
