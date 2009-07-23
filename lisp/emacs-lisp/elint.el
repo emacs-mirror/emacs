@@ -24,23 +24,21 @@
 
 ;;; Commentary:
 
-;; This is a linter for Emacs Lisp. Currently, it mainly catches
-;; mispellings and undefined variables, although it can also catch
+;; This is a linter for Emacs Lisp.  Currently, it mainly catches
+;; misspellings and undefined variables, although it can also catch
 ;; function calls with the wrong number of arguments.
 
 ;; Before using, call `elint-initialize' to set up some argument
-;; data. This takes a while. Then call elint-current-buffer or
+;; data.  This takes a while.  Then call elint-current-buffer or
 ;; elint-defun to lint a buffer or a defun.
 
 ;; The linter will try to "include" any require'd libraries to find
-;; the variables defined in those. There is a fair amount of voodoo
+;; the variables defined in those.  There is a fair amount of voodoo
 ;; involved in this, but it seems to work in normal situations.
-
-;;; History:
 
 ;;; To do:
 
-;; * A list of all standard Emacs variables would be nice to have...
+;; * List of variables and functions defined in dumped lisp files.
 ;; * Adding type checking. (Stop that sniggering!)
 
 ;;; Code:
@@ -52,80 +50,24 @@
 ;;; Data
 ;;;
 
-(defconst elint-standard-variables
-  '(abbrev-mode auto-fill-function buffer-auto-save-file-name
-     buffer-backed-up buffer-display-count buffer-display-table buffer-display-time buffer-file-coding-system buffer-file-format
-     buffer-file-name buffer-file-number buffer-file-truename
-     buffer-file-type buffer-invisibility-spec buffer-offer-save
-     buffer-read-only buffer-saved-size buffer-undo-list
-     cache-long-line-scans case-fold-search ctl-arrow cursor-type comment-column
-     default-directory defun-prompt-regexp desktop-save-buffer enable-multibyte-characters fill-column fringes-outside-margins goal-column
-     header-line-format indicate-buffer-boundaries indicate-empty-lines
-     left-fringe-width
-     left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
-     mark-active mark-ring mode-line-buffer-identification
-     mode-line-format mode-line-modified mode-line-process mode-name
-     overwrite-mode
-     point-before-scroll right-fringe-width right-margin-width
-     scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
-     selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
-  "Standard buffer local vars.")
 
-(defconst elint-unknown-builtin-args
-  '((while test &rest forms)
-    (insert-before-markers-and-inherit &rest text)
-    (catch tag &rest body)
-    (and &rest args)
-    (funcall func &rest args)
-    (insert &rest args)
-    (vconcat &rest args)
-    (run-hook-with-args hook &rest args)
-    (message-or-box string &rest args)
-    (save-window-excursion &rest body)
-    (append &rest args)
-    (logior &rest args)
-    (progn &rest body)
-    (insert-and-inherit &rest args)
-    (message-box string &rest args)
-    (prog2 x y &rest body)
-    (prog1 first &rest body)
-    (insert-before-markers &rest args)
-    (call-process-region start end program &optional delete
-			 destination display &rest args)
-    (concat &rest args)
-    (vector &rest args)
-    (run-hook-with-args-until-success hook &rest args)
-    (track-mouse &rest body)
-    (unwind-protect bodyform &rest unwindforms)
-    (save-restriction &rest body)
-    (quote arg)
-    (make-byte-code &rest args)
-    (or &rest args)
-    (cond &rest clauses)
-    (start-process name buffer program &rest args)
-    (run-hook-with-args-until-failure hook &rest args)
-    (if cond then &rest else)
-    (apply function &rest args)
-    (format string &rest args)
-    (encode-time second minute hour day month year &optional zone)
-    (min &rest args)
-    (logand &rest args)
-    (logxor &rest args)
-    (max &rest args)
-    (list &rest args)
-    (message string &rest args)
-    (defvar symbol init doc)
-    (call-process program &optional infile destination display &rest args)
-    (with-output-to-temp-buffer bufname &rest body)
-    (nconc &rest args)
-    (save-excursion &rest body)
-    (run-hooks &rest hooks)
-    (/ x y &rest zs)
-    (- x &rest y)
-    (+ &rest args)
-    (* &rest args)
-    (interactive &optional args))
-  "Those built-ins for which we can't find arguments.")
+;; FIXME does this serve any useful purpose now elint-builtin-variables exists?
+(defconst elint-standard-variables '(local-write-file-hooks vc-mode)
+  "Standard buffer local variables, excluding `elint-builtin-variables'.")
+
+(defvar elint-builtin-variables nil
+  "List of built-in variables.  Set by `elint-initialize'.")
+
+(defvar elint-autoloaded-variables nil
+  "List of `loaddefs.el' variables.  Set by `elint-initialize'.")
+
+;; FIXME dumped variables and functions.
+
+(defconst elint-unknown-builtin-args nil
+  "Those built-ins for which we can't find arguments, if any.")
+
+(defconst elint-extra-errors '(file-locked file-supersession ftp-error)
+  "Errors without error-message or error-confitions properties.")
 
 ;;;
 ;;; ADT: top-form
@@ -156,7 +98,7 @@ FORM is the form, and POS is the point where it starts in the buffer."
   "Augment ENV with NEWENV.
 None of them is modified, and the new env is returned."
   (list (append (car env) (car newenv))
-	(append (car (cdr env)) (car (cdr newenv)))
+	(append (cadr env) (cadr newenv))
 	(append (car (cdr (cdr env))) (car (cdr (cdr newenv))))))
 
 (defsubst elint-env-add-var (env var)
@@ -180,20 +122,20 @@ Actually, a list with VAR as a single element is returned."
   "Augment ENV with the function FUNC, which has the arguments ARGS.
 The new environment is returned, the old is unmodified."
   (list (car env)
-	(cons (list func args) (car (cdr env)))
+	(cons (list func args) (cadr env))
 	(car (cdr (cdr env)))))
 
 (defsubst elint-env-find-func (env func)
   "Non-nil if ENV contains the function FUNC.
 Actually, a list of (FUNC ARGS) is returned."
-  (assq func (car (cdr env))))
+  (assq func (cadr env)))
 
 (defsubst elint-env-add-macro (env macro def)
   "Augment ENV with the macro named MACRO.
 DEF is the macro definition (a lambda expression or similar).
 The new environment is returned, the old is unmodified."
   (list (car env)
-	(car (cdr env))
+	(cadr env)
 	(cons (cons macro def) (car (cdr (cdr env))))))
 
 (defsubst elint-env-macro-env (env)
@@ -212,29 +154,24 @@ This environment can be passed to `macroexpand'."
 (defun elint-current-buffer ()
   "Lint the current buffer."
   (interactive)
-  (elint-clear-log (format "Linting %s" (if (buffer-file-name)
-					    (buffer-file-name)
-					  (buffer-name))))
+  (elint-clear-log (format "Linting %s" (or (buffer-file-name)
+					    (buffer-name))))
   (elint-display-log)
   (mapc 'elint-top-form (elint-update-env))
-
-  ;; Tell the user we're finished. This is terribly klugy: we set
+  ;; Tell the user we're finished.  This is terribly klugy: we set
   ;; elint-top-form-logged so elint-log-message doesn't print the
   ;; ** top form ** header...
   (let ((elint-top-form-logged t))
-    (elint-log-message "\nLinting complete.\n")))
+    (elint-log-message "\nLinting finished.\n")))
 
 (defun elint-defun ()
   "Lint the function at point."
   (interactive)
   (save-excursion
-    (if (not (beginning-of-defun))
-	(error "Lint what?"))
-
+    (or (beginning-of-defun) (error "Lint what?"))
     (let ((pos (point))
 	  (def (read (current-buffer))))
       (elint-display-log)
-
       (elint-update-env)
       (elint-top-form (elint-make-top-form def pos)))))
 
@@ -285,9 +222,8 @@ Returns the forms."
 			  tops))
 	    (end-of-file
 	     (goto-char pos)
-	     (end-of-line)
-	     (error "Missing ')' in top form: %s" (buffer-substring pos (point)))))
-	  ))
+	     (error "Missing ')' in top form: %s"
+		    (buffer-substring pos (line-end-position)))))))
       (nreverse tops))))
 
 (defun elint-find-next-top-form ()
@@ -306,29 +242,39 @@ Return nil if there are no more forms, t otherwise."
       (cond
        ;; Add defined variable
        ((memq (car form) '(defvar defconst defcustom))
-	(setq env (elint-env-add-var env (car (cdr form)))))
+	(setq env (elint-env-add-var env (cadr form))))
        ;; Add function
        ((memq (car form) '(defun defsubst))
-	(setq env (elint-env-add-func env (car (cdr form))
-				      (car (cdr (cdr form))))))
+	(setq env (elint-env-add-func env (cadr form) (nth 2 form))))
+       ;; FIXME it would be nice to check the autoloads are correct.
+       ((eq (car form) 'autoload)
+	(setq env (elint-env-add-func env (cadr (cadr form)) 'unknown)))
+       ((eq (car form) 'declare-function)
+	(setq env (elint-env-add-func env (cadr form)
+				      (if (> (length form) 3)
+					  (nth 3 form)
+					'unknown))))
+       ((eq (car form) 'defalias)
+	;; If the alias points to something already in the environment,
+	;; add the alias to the environment with the same arguments.
+	(let ((def (elint-env-find-func env (cadr (nth 2 form)))))
+	  ;; FIXME warn if the alias target is unknown.
+	  (setq env (elint-env-add-func env (cadr (cadr form))
+					(if def (cadr def) 'unknown)))))
        ;; Add macro, both as a macro and as a function
        ((eq (car form) 'defmacro)
-	(setq env (elint-env-add-macro env (car (cdr form))
-				       (cons 'lambda
-					     (cdr (cdr form))))
-	      env (elint-env-add-func env (car (cdr form))
-				      (car (cdr (cdr form))))))
-
+	(setq env (elint-env-add-macro env (cadr form)
+				       (cons 'lambda (cddr form)))
+	      env (elint-env-add-func env (cadr form) (nth 2 form))))
        ;; Import variable definitions
        ((eq (car form) 'require)
-	(let ((name (eval (car (cdr form))))
-	      (file (eval (car (cdr (cdr form))))))
-	  (setq env (elint-add-required-env env name file))))
-       ))
+	(let ((name (eval (cadr form)))
+	      (file (eval (nth 2 form))))
+	  (setq env (elint-add-required-env env name file))))))
     env))
 
 (defun elint-add-required-env (env name file)
-  "Augment ENV with the variables definied by feature NAME in FILE."
+  "Augment ENV with the variables defined by feature NAME in FILE."
   (condition-case nil
       (let* ((libname (if (stringp file)
 			  file
@@ -336,7 +282,7 @@ Return nil if there are no more forms, t otherwise."
 
 	     ;; First try to find .el files, then the raw name
 	     (lib1 (locate-library (concat libname ".el") t))
-	     (lib (if lib1 lib1 (locate-library libname t))))
+	     (lib (or lib1 (locate-library libname t))))
 	;; Clear the messages :-/
 	(message nil)
 	(if lib
@@ -344,21 +290,11 @@ Return nil if there are no more forms, t otherwise."
 	      (set-buffer (find-file-noselect lib))
 	      (elint-update-env)
 	      (setq env (elint-env-add-env env elint-buffer-env)))
-	  (error "dummy error...")))
+	  (error "Dummy error")))
     (error
      (ding)
      (message "Can't get variables from require'd library %s" name)))
   env)
-
-(defun regexp-assoc (regexp alist)
-  "Search for a key matching REGEXP in ALIST."
-  (let ((res nil))
-    (while (and alist (not res))
-      (if (and (stringp (car (car alist)))
-	       (string-match regexp (car (car alist))))
-	  (setq res (car alist))
-	(setq alist (cdr alist))))
-    res))
 
 (defvar elint-top-form nil
   "The currently linted top form, or nil.")
@@ -369,7 +305,8 @@ Return nil if there are no more forms, t otherwise."
 (defun elint-top-form (form)
   "Lint a top FORM."
   (let ((elint-top-form form)
-	(elint-top-form-logged nil))
+	(elint-top-form-logged nil)
+	(elint-current-pos (elint-top-form-pos form)))
     (elint-form (elint-top-form-form form) elint-buffer-env)))
 
 ;;;
@@ -421,13 +358,17 @@ The environment created by the form is returned."
 	  (if (elint-env-macrop env func)
 	      ;; Macro defined in buffer, expand it
 	      (if argsok
-		  (elint-form (macroexpand form (elint-env-macro-env env)) env)
+		  ;; FIXME error if macro uses macro, eg bytecomp.el.
+		  (condition-case nil
+		      (elint-form
+		       (macroexpand form (elint-env-macro-env env)) env)
+		    (error
+		     (elint-error "Elint failed to expand macro: %s" form)))
 		env)
 
 	    (let ((fcode (if (symbolp func)
 			     (if (fboundp func)
-				 (indirect-function func)
-			       nil)
+				 (indirect-function func))
 			   func)))
 	      (if (and (listp fcode) (eq (car fcode) 'macro))
 		  ;; Macro defined outside buffer
@@ -435,9 +376,7 @@ The environment created by the form is returned."
 		      (elint-form (macroexpand form) env)
 		    env)
 		;; Function, lint its parameters
-		(elint-forms (cdr form) env))))
-	  ))
-      ))
+		(elint-forms (cdr form) env))))))))
    ((symbolp form)
     ;; :foo variables are quoted
     (if (and (/= (aref (symbol-name form) 0) ?:)
@@ -445,22 +384,20 @@ The environment created by the form is returned."
 	(elint-warning "Reference to unbound symbol: %s" form))
     env)
 
-   (t env)
-   ))
+   (t env)))
 
 (defun elint-forms (forms env)
   "Lint the FORMS, accumulating an environment, starting with ENV."
   ;; grumblegrumbletailrecursiongrumblegrumble
-  (while forms
-    (setq env (elint-form (car forms) env)
-	  forms (cdr forms)))
-  env)
+  (dolist (f forms env)
+    (setq env (elint-form f env))))
 
 (defun elint-unbound-variable (var env)
   "T if VAR is unbound in ENV."
-  (not (or (eq var nil)
-	   (eq var t)
+  (not (or (memq var '(nil t))
 	   (elint-env-find-var env var)
+	   (memq var elint-builtin-variables)
+	   (memq var elint-autoloaded-variables)
 	   (memq var elint-standard-variables))))
 
 ;;;
@@ -469,7 +406,6 @@ The environment created by the form is returned."
 
 (defun elint-match-args (arglist argpattern)
   "Match ARGLIST against ARGPATTERN."
-
   (let ((state 'all)
 	(al (cdr arglist))
 	(ap argpattern)
@@ -500,14 +436,13 @@ The environment created by the form is returned."
 Returns `unknown' if we couldn't find arguments."
   (let ((f (elint-env-find-func env func)))
     (if f
-	(car (cdr f))
+	(cadr f)
       (if (symbolp func)
 	  (if (fboundp func)
 	      (let ((fcode (indirect-function func)))
 		(if (subrp fcode)
-		    (let ((args (get func 'elint-args)))
-		      ;; FIXME builtins with no args have args = nil.
-		      (if args args 'unknown))
+		    ;; FIXME builtins with no args have args = nil.
+		    (or (get func 'elint-args) 'unknown)
 		  (elint-find-args-in-code fcode)))
 	    'undefined)
 	(elint-find-args-in-code func)))))
@@ -530,66 +465,57 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 
 (defun elint-check-cond-form (form env)
   "Lint a cond FORM in ENV."
-  (setq form (cdr form))
-  (while form
-    (if (consp (car form))
-	(elint-forms  (car form) env)
-      (elint-error "cond clause should be a list: %s" (car form)))
-    (setq form (cdr form)))
-  env)
+  (dolist (f (cdr form) env)
+    (if (consp f)
+	(elint-forms f env)
+      (elint-error "cond clause should be a list: %s" f))))
 
 (defun elint-check-defun-form (form env)
   "Lint a defun/defmacro/lambda FORM in ENV."
-  (setq form (if (eq (car form) 'lambda) (cdr form) (cdr (cdr form))))
-  (mapc (function (lambda (p)
-		    (or (memq p '(&optional &rest))
-			(setq env (elint-env-add-var env p)))
-		    ))
+  (setq form (if (eq (car form) 'lambda) (cdr form) (cddr form)))
+  (mapc (lambda (p)
+	  (or (memq p '(&optional &rest))
+	      (setq env (elint-env-add-var env p))))
 	(car form))
   (elint-forms (cdr form) env))
 
 (defun elint-check-let-form (form env)
   "Lint the let/let* FORM in ENV."
-  (let ((varlist (car (cdr form))))
+  (let ((varlist (cadr form)))
     (if (not varlist)
 	(progn
 	  (elint-error "Missing varlist in let: %s" form)
 	  env)
-
       ;; Check for (let (a (car b)) ...) type of error
       (if (and (= (length varlist) 2)
 	       (symbolp (car varlist))
 	       (listp (car (cdr varlist)))
 	       (fboundp (car (car (cdr varlist)))))
 	  (elint-warning "Suspect varlist: %s" form))
-
       ;; Add variables to environment, and check the init values
       (let ((newenv env))
-	(mapc (function (lambda (s)
-			  (cond
-			   ((symbolp s)
-			    (setq newenv (elint-env-add-var newenv s)))
-			   ((and (consp s) (<= (length s) 2))
-			    (elint-form (car (cdr s))
-					(if (eq (car form) 'let)
-					    env
-					  newenv))
-			    (setq newenv
-				  (elint-env-add-var newenv (car s))))
-			   (t (elint-error
-			       "Malformed `let' declaration: %s" s))
-			   )))
+	(mapc (lambda (s)
+		(cond
+		 ((symbolp s)
+		  (setq newenv (elint-env-add-var newenv s)))
+		 ((and (consp s) (<= (length s) 2))
+		  (elint-form (cadr s)
+			      (if (eq (car form) 'let)
+				  env
+				newenv))
+		  (setq newenv
+			(elint-env-add-var newenv (car s))))
+		 (t (elint-error
+		     "Malformed `let' declaration: %s" s))))
 	      varlist)
 
 	;; Lint the body forms
-	(elint-forms (cdr (cdr form)) newenv)
-	))))
+	(elint-forms (cddr form) newenv)))))
 
 (defun elint-check-setq-form (form env)
   "Lint the setq FORM in ENV."
   (or (= (mod (length form) 2) 1)
       (elint-error "Missing value in setq: %s" form))
-
   (let ((newenv env)
 	sym val)
     (setq form (cdr form))
@@ -639,8 +565,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
       (elint-form func env))
      ((stringp func) env)
      (t (elint-error "Not a function object: %s" form)
-	env)
-     )))
+	env))))
 
 (defun elint-check-quote-form (form env)
   "Lint the quote FORM in ENV."
@@ -651,94 +576,89 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
   (elint-check-function-form (list (car form) (cdr form)) env))
 
 (defun elint-check-condition-case-form (form env)
-  "Check the condition-case FORM in ENV."
+  "Check the `condition-case' FORM in ENV."
   (let ((resenv env))
     (if (< (length form) 3)
 	(elint-error "Malformed condition-case: %s" form)
-      (or (symbolp (car (cdr form)))
+      (or (symbolp (cadr form))
 	  (elint-warning "First parameter should be a symbol: %s" form))
       (setq resenv (elint-form (nth 2 form) env))
-
-      (let ((newenv (elint-env-add-var env (car (cdr form))))
-	    (errforms (nthcdr 3 form))
+      (let ((newenv (elint-env-add-var env (cadr form)))
 	    errlist)
-	(while errforms
-	  (setq errlist (car (car errforms)))
-	  (mapc (function (lambda (s)
-			    (or (get s 'error-conditions)
-				(get s 'error-message)
-				(elint-warning
-				 "Not an error symbol in error handler: %s" s))))
+	(dolist (err (nthcdr 3 form))
+	  (setq errlist (car err))
+	  (mapc (lambda (s)
+		  (or (get s 'error-conditions)
+		      (get s 'error-message)
+		      (memq s elint-extra-errors)
+		      (elint-warning
+		       "Not an error symbol in error handler: %s" s)))
 		(cond
-		  ((symbolp errlist) (list errlist))
-		  ((listp errlist) errlist)
-		  (t (elint-error "Bad error list in error handler: %s"
-				  errlist)
-		     nil))
-		)
-	  (elint-forms (cdr (car errforms)) newenv)
-	  (setq errforms (cdr errforms))
-	  )))
+		 ((symbolp errlist) (list errlist))
+		 ((listp errlist) errlist)
+		 (t (elint-error "Bad error list in error handler: %s"
+				 errlist)
+		    nil)))
+	  (elint-forms (cdr err) newenv))))
     resenv))
 
 ;;;
 ;;; Message functions
 ;;;
 
-;; elint-error and elint-warning are identical, but they might change
-;; to reflect different seriousness of linting errors
+(defvar elint-current-pos)	 ; dynamically bound in elint-top-form
+
+(defun elint-log (type string args)
+  (elint-log-message (format "%s:%d:%s: %s"
+			     (file-name-nondirectory (buffer-file-name))
+			     (save-excursion
+			       (goto-char elint-current-pos)
+			       (1+ (count-lines (point-min)
+						(line-beginning-position))))
+			     type
+			     (apply 'format string args))))
 
 (defun elint-error (string &rest args)
   "Report a linting error.
 STRING and ARGS are thrown on `format' to get the message."
-  (let ((errstr (apply 'format string args)))
-    (elint-log-message errstr)
-    ))
+  (elint-log "Error" string args))
 
 (defun elint-warning (string &rest args)
   "Report a linting warning.
-STRING and ARGS are thrown on `format' to get the message."
-  (let ((errstr (apply 'format string args)))
-    (elint-log-message errstr)
-    ))
+See `elint-error'."
+  (elint-log "Warning" string args))
 
 (defun elint-log-message (errstr)
   "Insert ERRSTR last in the lint log buffer."
-  (save-excursion
-    (set-buffer (elint-get-log-buffer))
+  (with-current-buffer (elint-get-log-buffer)
     (goto-char (point-max))
-    (or (bolp) (newline))
-
-    ;; Do we have to say where we are?
-    (if elint-top-form-logged
-	nil
-      (insert
-       (let* ((form (elint-top-form-form elint-top-form))
-	      (top (car form)))
-	 (cond
-	  ((memq top '(defun defsubst))
-	   (format "\n** function %s **\n" (car (cdr form))))
-	  ((eq top 'defmacro)
-	   (format "\n** macro %s **\n" (car (cdr form))))
-	  ((memq top '(defvar defconst))
-	   (format "\n** variable %s **\n" (car (cdr form))))
-	  (t "\n** top level expression **\n"))))
-      (setq elint-top-form-logged t))
-
-    (insert errstr)
-    (newline)))
+    (let ((inhibit-read-only t))
+      (or (bolp) (newline))
+      ;; Do we have to say where we are?
+      (unless elint-top-form-logged
+	(insert
+	 (let* ((form (elint-top-form-form elint-top-form))
+		(top (car form)))
+	   (cond
+	    ((memq top '(defun defsubst))
+	     (format "\nIn function %s:\n" (cadr form)))
+	    ((eq top 'defmacro)
+	     (format "\nIn macro %s:\n" (cadr form)))
+	    ((memq top '(defvar defconst))
+	     (format "\nIn variable %s:\n" (cadr form)))
+	    (t "\nIn top level expression:\n"))))
+	(setq elint-top-form-logged t))
+      (insert errstr "\n"))))
 
 (defun elint-clear-log (&optional header)
   "Clear the lint log buffer.
 Insert HEADER followed by a blank line if non-nil."
-  (save-excursion
-    (set-buffer (elint-get-log-buffer))
-    (erase-buffer)
-    (if header
-	(progn
-	  (insert header)
-	  (newline))
-      )))
+  (let ((dir default-directory))
+    (with-current-buffer (elint-get-log-buffer)
+      (setq default-directory dir)
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(if header (insert header "\n"))))))
 
 (defun elint-display-log ()
   "Display the lint log buffer."
@@ -748,15 +668,12 @@ Insert HEADER followed by a blank line if non-nil."
 
 (defun elint-get-log-buffer ()
   "Return a log buffer for elint."
-  (let ((buf (get-buffer elint-log-buffer)))
-    (if buf
-	buf
-      (let ((oldbuf (current-buffer)))
-	(prog1
-	    (set-buffer (get-buffer-create elint-log-buffer))
-	  (setq truncate-lines t)
-	  (set-buffer oldbuf)))
-      )))
+  (or (get-buffer elint-log-buffer)
+      (with-current-buffer (get-buffer-create elint-log-buffer)
+	(or (eq major-mode 'compilation-mode)
+	    (compilation-mode))
+	(setq buffer-undo-list t)
+	(current-buffer))))
 
 ;;;
 ;;; Initializing code
@@ -766,31 +683,60 @@ Insert HEADER followed by a blank line if non-nil."
 (defun elint-initialize ()
   "Initialize elint."
   (interactive)
-  (mapc (function (lambda (x)
-		    (or (not (symbolp (car x)))
+  (setq elint-builtin-variables (elint-find-builtin-variables)
+	elint-autoloaded-variables (elint-find-autoloaded-variables))
+  (mapc (lambda (x) (or (not (symbolp (car x)))
 			(eq (cdr x) 'unknown)
-			(put (car x) 'elint-args (cdr x)))))
+			(put (car x) 'elint-args (cdr x))))
 	(elint-find-builtin-args))
-  (mapcar (function (lambda (x)
-		      (put (car x) 'elint-args (cdr x))))
-	  elint-unknown-builtin-args))
+  (if elint-unknown-builtin-args
+      (mapc (lambda (x) (put (car x) 'elint-args (cdr x)))
+	    elint-unknown-builtin-args)))
 
+
+(defun elint-find-builtin-variables ()
+  "Return a list of all built-in variables."
+  ;; Cribbed from help-fns.el.
+  (let ((docbuf " *DOC*")
+	vars var)
+    (if (get-buffer docbuf)
+	(progn
+	  (set-buffer docbuf)
+	  (goto-char (point-min)))
+      (set-buffer (get-buffer-create docbuf))
+      (insert-file-contents-literally
+       (expand-file-name internal-doc-file-name doc-directory)))
+    (while (search-forward "V" nil t)
+      (and (setq var (intern-soft
+		      (buffer-substring (point) (line-end-position))))
+	   (boundp var)
+	   (setq vars (cons var vars))))
+    vars))
+
+(defun elint-find-autoloaded-variables ()
+  "Return a list of all autoloaded variables."
+  (let (var vars)
+    (with-temp-buffer
+      (insert-file-contents (locate-library "loaddefs.el"))
+      (while (re-search-forward "^(defvar \\([[:alnum:]_-]+\\)" nil t)
+	(and (setq var (intern-soft (match-string 1)))
+	     (boundp var)
+	     (setq vars (cons var vars)))))
+    vars))
 
 (defun elint-find-builtins ()
-  "Returns a list of all built-in functions."
-  (let ((subrs nil))
-    (mapatoms (lambda (s) (if (and (fboundp s) (subrp (symbol-function s)))
-			      (setq subrs (cons s subrs)))))
-    subrs
-    ))
+  "Return a list of all built-in functions."
+  (let (subrs)
+    (mapatoms (lambda (s) (and (fboundp s) (subrp (symbol-function s))
+			       (setq subrs (cons s subrs)))))
+    subrs))
 
 (defun elint-find-builtin-args (&optional list)
-  "Returns a list of the built-in functions and their arguments.
-
+  "Return a list of the built-in functions and their arguments.
 If LIST is nil, call `elint-find-builtins' to get a list of all built-in
 functions, otherwise use LIST.
 
-Each functions is represented by a cons cell:
+Each function is represented by a cons cell:
 \(function-symbol . args)
 If no documentation could be found args will be `unknown'."
   (mapcar (lambda (f)
@@ -798,7 +744,10 @@ If no documentation could be found args will be `unknown'."
 	      (or (and doc
 		       (string-match "\n\n(fn\\(.*)\\)\\'" doc)
 		       (ignore-errors
-			(read (format "(%s %s" f (match-string 1 doc)))))
+			;; "BODY...)" -> "&rest BODY)".
+			(read (replace-regexp-in-string
+			       "\\([^ ]+\\)\\.\\.\\.)\\'" "&rest \\1)"
+			       (format "(%s %s" f (match-string 1 doc)) t))))
 		  (cons f 'unknown))))
 	  (or list (elint-find-builtins))))
 
