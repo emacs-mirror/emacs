@@ -1249,6 +1249,8 @@ NSColor *
 ns_lookup_indexed_color (unsigned long idx, struct frame *f)
 {
   struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  if (idx < 1 || idx >= color_table->avail)
+    return nil;
   return color_table->colors[idx];
 }
 
@@ -1266,6 +1268,7 @@ ns_index_color (NSColor *color, struct frame *f)
       color_table->avail = 1; /* skip idx=0 as marker */
       color_table->colors
 	= (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
+      color_table->colors[0] = nil;
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
 
@@ -2650,9 +2653,8 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
     r = ns_fix_rect_ibw (r, FRAME_INTERNAL_BORDER_WIDTH (s->f),
                         FRAME_PIXEL_WIDTH (s->f));
 
-  if (s->face->box == FACE_SIMPLE_BOX)
+  /* TODO: Sometimes box_color is 0 and this seems wrong; should investigate. */  if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
-      xassert (s->face->box_color != nil);
       ns_draw_box (r, abs (thickness),
                    ns_lookup_indexed_color (face->box_color, s->f),
                   left_p, right_p);
