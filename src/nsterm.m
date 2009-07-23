@@ -4561,12 +4561,14 @@ extern void update_window_cursor (struct window *w, int on);
 /* Needed to pick up Ctrl-tab and possibly other events that OS X has
    decided not to send key-down for.
    See http://osdir.com/ml/editors.vim.mac/2007-10/msg00141.html
+   This only applies on Tiger and earlier.
    If it matches one of these, send it on to keyDown. */
 -(void)keyUp: (NSEvent *)theEvent
 {
   int flags = [theEvent modifierFlags];
   int code = [theEvent keyCode];
-  if (code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
+  if (floor (NSAppKitVersionNumber) <= 824 /*NSAppKitVersionNumber10_4*/ &&
+      code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
     {
       if (NS_KEYLOG)
         fprintf (stderr, "keyUp: passed test");

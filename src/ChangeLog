@@ -1,3 +1,7 @@
+2009-07-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsView-keyUp:): Only act when running under Tiger.
+
 2009-07-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) [WM_IME_STARTCOMPOSITION]: Position
