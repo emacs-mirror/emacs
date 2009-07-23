@@ -1864,10 +1864,10 @@ With argument ARG, insert value in current buffer after the form."
 	    ((message "%s" (prin1-to-string value)))))))
 
 
-(defun byte-compile-from-buffer (inbuffer &optional filename)
+(defun byte-compile-from-buffer (bytecomp-inbuffer &optional bytecomp-filename)
   ;; Filename is used for the loading-into-Emacs-18 error message.
-  (let (outbuffer
-	(byte-compile-current-buffer inbuffer)
+  (let (bytecomp-outbuffer
+	(byte-compile-current-buffer bytecomp-inbuffer)
 	(byte-compile-read-position nil)
 	(byte-compile-last-position nil)
 	;; Prevent truncation of flonums and lists as we read and print them
@@ -1888,14 +1888,14 @@ With argument ARG, insert value in current buffer after the form."
 	(byte-compile-output nil)
 	;; This allows us to get the positions of symbols read; it's
 	;; new in Emacs 22.1.
-	(read-with-symbol-positions inbuffer)
+	(read-with-symbol-positions bytecomp-inbuffer)
 	(read-symbol-positions-list nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings byte-compile-warnings)
 	)
     (byte-compile-close-variables
      (with-current-buffer
-         (setq outbuffer (get-buffer-create " *Compiler Output*"))
+         (setq bytecomp-outbuffer (get-buffer-create " *Compiler Output*"))
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
@@ -1908,8 +1908,10 @@ With argument ARG, insert value in current buffer after the form."
        ;; need to be written carefully.
        (setq overwrite-mode 'overwrite-mode-binary))
      (displaying-byte-compile-warnings
-      (and filename (byte-compile-insert-header filename inbuffer outbuffer))
-      (with-current-buffer inbuffer
+      (and bytecomp-filename
+	   (byte-compile-insert-header bytecomp-filename bytecomp-inbuffer
+				       bytecomp-outbuffer))
+      (with-current-buffer bytecomp-inbuffer
 	(goto-char (point-min))
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have been
@@ -1926,7 +1928,7 @@ With argument ARG, insert value in current buffer after the form."
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
 	  (let* ((old-style-backquotes nil)
-                 (form (read inbuffer)))
+                 (form (read bytecomp-inbuffer)))
             ;; Warn about the use of old-style backquotes.
             (when old-style-backquotes
               (byte-compile-warn "!! The file uses old-style backquotes !!
@@ -1941,8 +1943,10 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	(byte-compile-warn-about-unresolved-functions))
       ;; Fix up the header at the front of the output
       ;; if the buffer contains multibyte characters.
-      (and filename (byte-compile-fix-header filename inbuffer outbuffer))))
-    outbuffer))
+      (and bytecomp-filename
+	   (byte-compile-fix-header bytecomp-filename bytecomp-inbuffer
+				    bytecomp-outbuffer))))
+    bytecomp-outbuffer))
 
 (defun byte-compile-fix-header (filename inbuffer outbuffer)
   (with-current-buffer outbuffer
@@ -2064,6 +2068,10 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
 		"\n")))))
 
+;; Dynamically bound in byte-compile-from-buffer.
+;; NB also used in cl.el and cl-macs.el.
+(defvar bytecomp-outbuffer)
+
 (defun byte-compile-output-file-form (form)
   ;; writes the given form to the output buffer, being careful of docstrings
   ;; in defun, defmacro, defvar, defconst, autoload and
@@ -2084,8 +2092,8 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	  (print-gensym t)
 	  (print-circle		     ; handle circular data structures
 	   (not byte-compile-disable-print-circle)))
-      (princ "\n" outbuffer)
-      (prin1 form outbuffer)
+      (princ "\n" bytecomp-outbuffer)
+      (prin1 form bytecomp-outbuffer)
       nil)))
 
 (defvar print-gensym-alist)		;Used before print-circle existed.
@@ -2104,7 +2112,7 @@ list that represents a doc string reference.
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
-    (with-current-buffer outbuffer
+    (with-current-buffer bytecomp-outbuffer
       (let (position)
 
         ;; Insert the doc string, and make it a comment with #@LENGTH.
@@ -2129,7 +2137,7 @@ list that represents a doc string reference.
         (if preface
             (progn
               (insert preface)
-              (prin1 name outbuffer)))
+              (prin1 name bytecomp-outbuffer)))
         (insert (car info))
         (let ((print-escape-newlines t)
               (print-quoted t)
@@ -2144,7 +2152,7 @@ list that represents a doc string reference.
               (print-continuous-numbering t)
               print-number-table
               (index 0))
-          (prin1 (car form) outbuffer)
+          (prin1 (car form) bytecomp-outbuffer)
           (while (setq form (cdr form))
             (setq index (1+ index))
             (insert " ")
@@ -2165,21 +2173,21 @@ list that represents a doc string reference.
                            (cons (car form) (nth 1 form))
                            t)))
                      (setq position (- (position-bytes position) (point-min) -1))
-                     (princ (format "(#$ . %d) nil" position) outbuffer)
+                     (princ (format "(#$ . %d) nil" position) bytecomp-outbuffer)
                      (setq form (cdr form))
                      (setq index (1+ index))))
                   ((= index (nth 1 info))
                    (if position
                        (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
                                       position)
-                              outbuffer)
+                              bytecomp-outbuffer)
                      (let ((print-escape-newlines nil))
                        (goto-char (prog1 (1+ (point))
-                                    (prin1 (car form) outbuffer)))
+                                    (prin1 (car form) bytecomp-outbuffer)))
                        (insert "\\\n")
                        (goto-char (point-max)))))
                   (t
-                   (prin1 (car form) outbuffer)))))
+                   (prin1 (car form) bytecomp-outbuffer)))))
         (insert (nth 2 info)))))
   nil)
 
@@ -2342,29 +2350,32 @@ list that represents a doc string reference.
   (byte-compile-file-form-defmumble form t))
 
 (defun byte-compile-file-form-defmumble (form macrop)
-  (let* ((name (car (cdr form)))
-	 (this-kind (if macrop 'byte-compile-macro-environment
+  (let* ((bytecomp-name (car (cdr form)))
+	 (bytecomp-this-kind (if macrop 'byte-compile-macro-environment
 		      'byte-compile-function-environment))
-	 (that-kind (if macrop 'byte-compile-function-environment
+	 (bytecomp-that-kind (if macrop 'byte-compile-function-environment
 		      'byte-compile-macro-environment))
-	 (this-one (assq name (symbol-value this-kind)))
-	 (that-one (assq name (symbol-value that-kind)))
+	 (bytecomp-this-one (assq bytecomp-name
+				  (symbol-value bytecomp-this-kind)))
+	 (bytecomp-that-one (assq bytecomp-name
+				  (symbol-value bytecomp-that-kind)))
 	 (byte-compile-free-references nil)
 	 (byte-compile-free-assignments nil))
-    (byte-compile-set-symbol-position name)
+    (byte-compile-set-symbol-position bytecomp-name)
     ;; When a function or macro is defined, add it to the call tree so that
     ;; we can tell when functions are not used.
     (if byte-compile-generate-call-tree
-	(or (assq name byte-compile-call-tree)
+	(or (assq bytecomp-name byte-compile-call-tree)
 	    (setq byte-compile-call-tree
-		  (cons (list name nil nil) byte-compile-call-tree))))
+		  (cons (list bytecomp-name nil nil) byte-compile-call-tree))))
 
-    (setq byte-compile-current-form name) ; for warnings
+    (setq byte-compile-current-form bytecomp-name) ; for warnings
     (if (byte-compile-warning-enabled-p 'redefine)
 	(byte-compile-arglist-warn form macrop))
     (if byte-compile-verbose
-	(message "Compiling %s... (%s)" (or filename "") (nth 1 form)))
-    (cond (that-one
+	;; bytecomp-filename is from byte-compile-from-buffer.
+	(message "Compiling %s... (%s)" (or bytecomp-filename "") (nth 1 form)))
+    (cond (bytecomp-that-one
 	   (if (and (byte-compile-warning-enabled-p 'redefine)
 		    ;; don't warn when compiling the stubs in byte-run...
 		    (not (assq (nth 1 form)
@@ -2372,8 +2383,8 @@ list that represents a doc string reference.
 	       (byte-compile-warn
 		 "`%s' defined multiple times, as both function and macro"
 		 (nth 1 form)))
-	   (setcdr that-one nil))
-	  (this-one
+	   (setcdr bytecomp-that-one nil))
+	  (bytecomp-this-one
 	   (when (and (byte-compile-warning-enabled-p 'redefine)
 		    ;; hack: don't warn when compiling the magic internal
 		    ;; byte-compiler macros in byte-run.el...
@@ -2382,8 +2393,8 @@ list that represents a doc string reference.
 	     (byte-compile-warn "%s `%s' defined multiple times in this file"
 				(if macrop "macro" "function")
 				(nth 1 form))))
-	  ((and (fboundp name)
-		(eq (car-safe (symbol-function name))
+	  ((and (fboundp bytecomp-name)
+		(eq (car-safe (symbol-function bytecomp-name))
 		    (if macrop 'lambda 'macro)))
 	   (when (byte-compile-warning-enabled-p 'redefine)
 	     (byte-compile-warn "%s `%s' being redefined as a %s"
@@ -2391,8 +2402,9 @@ list that represents a doc string reference.
 				(nth 1 form)
 				(if macrop "macro" "function")))
 	   ;; shadow existing definition
-	   (set this-kind
-		(cons (cons name nil) (symbol-value this-kind))))
+	   (set bytecomp-this-kind
+		(cons (cons bytecomp-name nil)
+		      (symbol-value bytecomp-this-kind))))
 	  )
     (let ((body (nthcdr 3 form)))
       (when (and (stringp (car body))
@@ -2415,20 +2427,21 @@ list that represents a doc string reference.
 	    (setcdr tail (cdr (cdr tail)))
 	    (prin1 `(if macro-declaration-function
 			(funcall macro-declaration-function
-				 ',name ',declaration))
-		   outbuffer)))))
+				 ',bytecomp-name ',declaration))
+		   bytecomp-outbuffer)))))
 
     (let* ((new-one (byte-compile-lambda (nthcdr 2 form) t))
 	   (code (byte-compile-byte-code-maker new-one)))
-      (if this-one
-	  (setcdr this-one new-one)
-	(set this-kind
-	     (cons (cons name new-one) (symbol-value this-kind))))
+      (if bytecomp-this-one
+	  (setcdr bytecomp-this-one new-one)
+	(set bytecomp-this-kind
+	     (cons (cons bytecomp-name new-one)
+		   (symbol-value bytecomp-this-kind))))
       (if (and (stringp (nth 3 form))
 	       (eq 'quote (car-safe code))
 	       (eq 'lambda (car-safe (nth 1 code))))
 	  (cons (car form)
-		(cons name (cdr (nth 1 code))))
+		(cons bytecomp-name (cdr (nth 1 code))))
 	(byte-compile-flush-pending)
 	(if (not (stringp (nth 3 form)))
 	    ;; No doc string.  Provide -1 as the "doc string index"
@@ -2436,7 +2449,7 @@ list that represents a doc string reference.
 	    (byte-compile-output-docform
 	     (if (byte-compile-version-cond byte-compile-compatibility)
 		 "\n(fset '" "\n(defalias '")
-	     name
+	     bytecomp-name
 	     (cond ((atom code)
 		    (if macrop '(" '(macro . #[" -1 "])") '(" #[" -1 "]")))
 		   ((eq (car code) 'quote)
@@ -2452,7 +2465,7 @@ list that represents a doc string reference.
 	  (byte-compile-output-docform
 	   (if (byte-compile-version-cond byte-compile-compatibility)
 	       "\n(fset '" "\n(defalias '")
-	   name
+	   bytecomp-name
 	   (cond ((atom code)
 		  (if macrop '(" '(macro . #[" 4 "])") '(" #[" 4 "]")))
 		 ((eq (car code) 'quote)
@@ -2463,7 +2476,7 @@ list that represents a doc string reference.
 	   (and (atom code) byte-compile-dynamic
 		1)
 	   nil))
-	(princ ")" outbuffer)
+	(princ ")" bytecomp-outbuffer)
 	nil))))
 
 ;; Print Lisp object EXP in the output file, inside a comment,
@@ -2471,13 +2484,13 @@ list that represents a doc string reference.
 ;; If QUOTED is non-nil, print with quoting; otherwise, print without quoting.
 (defun byte-compile-output-as-comment (exp quoted)
   (let ((position (point)))
-    (with-current-buffer outbuffer
+    (with-current-buffer bytecomp-outbuffer
 
       ;; Insert EXP, and make it a comment with #@LENGTH.
       (insert " ")
       (if quoted
-          (prin1 exp outbuffer)
-        (princ exp outbuffer))
+          (prin1 exp bytecomp-outbuffer)
+        (princ exp bytecomp-outbuffer))
       (goto-char position)
       ;; Quote certain special characters as needed.
       ;; get_doc_string in doc.c does the unquoting.
@@ -3973,7 +3986,7 @@ that suppresses all warnings during execution of BODY."
 	(push (cons (nth 1 (nth 1 form))
 		    (if constant (nth 1 (nth 2 form)) t))
 	      byte-compile-function-environment)))
-  ;; We used to jus do: (byte-compile-normal-call form)
+  ;; We used to just do: (byte-compile-normal-call form)
   ;; But it turns out that this fails to optimize the code.
   ;; So instead we now do the same as what other byte-hunk-handlers do,
   ;; which is to call back byte-compile-file-form and then return nil.
