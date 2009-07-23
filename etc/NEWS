@@ -72,6 +72,12 @@ to be corrupted once the outer load completed.  Most code doesn't care
 about this, but some (like c-mode) may check it.
 
 
+* Editing Changes in Emacs 23.2
+
++++
+** The default value for `blink-matching-paren-distance' has been increased.
+
+
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
 ** FIXME mail-user-agent change
@@ -119,6 +125,10 @@ exempt buffers that do correspond to files, customize the value of
 the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
+
+---
+*** Elint now uses compilation-mode, and recognizes more built-in
+functions and variables.
 
 
 * Installation Changes in Emacs 23.1
