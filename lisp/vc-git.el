@@ -118,6 +118,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-git-add-signoff nil
+  "Add a Signed-off-by line when committing."
+  :type 'boolean
+  :version "23.2"
+  :group 'vc)
+
+
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
@@ -420,7 +427,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git-command nil 0 files "commit" "-m" comment "--only" "--")))
+    (vc-git-command nil 0 files "commit"
+		    (if vc-git-add-signoff "-s" "") "-m" comment "--only" "--")))
 
 (defun vc-git-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
@@ -633,11 +641,19 @@ or BRANCH^ (where \"^\" can be repeated)."
     (define-key map [git-grep]
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
+    (define-key map [git-sig]
+      '(menu-item "Add Signed-off-by on commit" vc-git-toggle-signoff
+	      :help "Add Add Signed-off-by when commiting (i.e. add the -s flag)"
+	      :button (:toggle . vc-git-add-signoff)))
     map))
 
 (defun vc-git-extra-menu () vc-git-extra-menu-map)
 
 (defun vc-git-extra-status-menu () vc-git-extra-menu-map)
+
+(defun vc-git-toggle-signoff ()
+  (interactive)
+  (setq vc-git-add-signoff (not vc-git-add-signoff)))
 
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)
