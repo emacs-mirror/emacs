@@ -64,6 +64,13 @@ becomes the primary selection (for interaction with other window
 applications).  If you enable this, you might want to bind
 `mouse-yank-primary' to Mouse-2.
 
+** The variable `load-in-progress' won't get corrupted by binding it
+with `let'.  In certain situations, loading an Emacs Lisp file from
+source while in the midst of loading another file (e.g., with
+`require' or `autoload') could cause the value of `load-in-progress'
+to be corrupted once the outer load completed.  Most code doesn't care
+about this, but some (like c-mode) may check it.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
