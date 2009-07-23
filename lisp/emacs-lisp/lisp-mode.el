@@ -273,6 +273,7 @@ font-lock keywords will not be case sensitive."
 (defvar emacs-lisp-mode-map
   (let ((map (make-sparse-keymap "Emacs-Lisp"))
 	(menu-map (make-sparse-keymap "Emacs-Lisp"))
+	(lint-map (make-sparse-keymap))
 	(prof-map (make-sparse-keymap))
 	(tracing-map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
@@ -328,6 +329,16 @@ font-lock keywords will not be case sensitive."
     (define-key prof-map [prof-func]
       '(menu-item "Instrument Function..." elp-instrument-function
 		  :help "Instrument a function for profiling"))
+    (define-key menu-map [lint] (cons "Lint" lint-map))
+    (define-key lint-map [lint-b]
+      '(menu-item "Lint Buffer" elint-current-buffer
+		  :help "Lint the current buffer"))
+    (define-key lint-map [lint-d]
+      '(menu-item "Lint Defun" elint-defun
+		  :help "Lint the function at point"))
+    (define-key lint-map [lint-in]
+      '(menu-item "Lint Initialize" elint-initialize
+		  :help "Lint Initialize"))
     (define-key menu-map [edebug-defun]
       '(menu-item "Instrument Function for Debugging" edebug-defun
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
