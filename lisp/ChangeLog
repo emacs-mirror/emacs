@@ -1,3 +1,53 @@
+2009-07-23  Glenn Morris  <rgm@gnu.org>
+
+	* help-fns.el (describe-variable): Describe ignored and risky local
+	variables in a similar way to that in which we describe safe ones.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer)
+	(byte-compile-output-file-form, byte-compile-output-docform)
+	(byte-compile-file-form-defmumble, byte-compile-output-as-comment):
+	Give some more local variables with common names a "bytecomp-" prefix,
+	so as not to shadow things during compilation.
+	* emacs-lisp/cl-macs.el (load-time-value)
+	* emacs-lisp/cl.el (cl-compiling-file): Update for the name-change
+	`outbuffer' to `bytecomp-outbuffer'.
+
+	* emacs-lisp/elint.el (elint-standard-variables): Remove most members,
+	since the next two variables cover them automatically now.
+	(elint-builtin-variables, elint-autoloaded-variables): New.
+	(elint-unknown-builtin-args): Remove all members, since they can be
+	parsed automatically now.
+	(elint-extra-errors): New.
+	(elint-env-add-env, elint-env-add-macro): Use cadr.
+	(elint-current-buffer): Use or.  Change final message.
+	(elint-get-top-forms): Use line-end-position.
+	(elint-init-env): Use cadr.  Handle autoload, declare-function,
+	and defalias.
+	(elint-add-required-env): Doc fix.  Use or.  Standardize error.
+	(regexp-assoc): Remove unused function.
+	(elint-top-form): Set elint-current-pos, to record the start of the
+	top-level form, for compilation-mode.
+	(elint-form): Trap errors in macro expansion.  Use dolist.
+	(elint-unbound-variable): Use elint-builtin-variables and
+	elint-autoloaded-variables.
+	(elint-get-args): Use cadr, or.
+	(elint-check-cond-form): Use dolist, cadr.
+	(elint-check-condition-case-form): Doc fix.  Use cadr.
+	Use elint-extra-errors.
+	(elint-log): New function.
+	(elint-error, elint-warning): Use elint-log for a bytecomp-style format.
+	Distinguish errors and warnings.
+	(elint-log-message): Use with-current-buffer.  Inhibit read-only.
+	Use a bytecomp-style format.
+	(elint-clear-log): Preserve default-directory.  Inhibit read-only.
+	(elint-get-log-buffer): Use compilation mode.  Disable undo.
+	Don't truncate lines.
+	(elint-initialize): Set builtin and autoloaded variable lists.
+	Only process elint-unknown-builtin-args if non-nil.
+	(elint-find-builtin-variables, elint-find-autoloaded-variables):
+	New functions.
+	(elint-find-builtin-args): Doc fix.  Handle "BODY...)".
+
 2009-07-22  Kevin Ryde  <user42@zip.com.au>
 
 	* net/newst-backend.el (newsticker--parse-atom-1.0)

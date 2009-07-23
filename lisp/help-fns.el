@@ -1,7 +1,8 @@
 ;;; help-fns.el --- Complex help functions
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -721,6 +722,20 @@ it is displayed along with the global value."
 		      (if file (princ (concat "\n  from the file \"" file "\"")))
 		      (princ ".\n"))
 		  (princ "  This variable is a file local variable.\n")))
+
+	      (when (memq variable ignored-local-variables)
+		(setq extra-line t)
+		(princ "  This variable is ignored when used as a file local \
+variable.\n"))
+
+	      ;; Can be both risky and safe, eg auto-fill-function.
+	      (when (risky-local-variable-p variable)
+		(setq extra-line t)
+		(princ "  This variable is potentially risky when used as a \
+file local variable.\n")
+		(when (assq variable safe-local-variable-values)
+		  (princ "  However, you have added it to \
+`safe-local-variable-values'.\n")))
 
 	      (when safe-var
                 (setq extra-line t)
