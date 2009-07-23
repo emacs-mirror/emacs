@@ -1,5 +1,8 @@
 2009-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-print-log-internal): New function, split out from ...
+	(vc-print-log): ... here.
+
 	* vc-git.el (vc-git-add-signoff): New variable.
 	(vc-git-checkin): Use it.
 	(vc-git-toggle-signoff): New function.

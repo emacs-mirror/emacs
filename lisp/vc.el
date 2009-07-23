@@ -1815,6 +1815,35 @@ allowed and simply skipped)."
 
 ;; Miscellaneous other entry points
 
+(defun vc-print-log-internal (backend files working-revision)
+  ;; Don't switch to the output buffer before running the command,
+  ;; so that any buffer-local settings in the vc-controlled
+  ;; buffer can be accessed by the command.
+  (vc-call-backend backend 'print-log files "*vc-change-log*")
+  (pop-to-buffer "*vc-change-log*")
+  (vc-exec-after
+   `(let ((inhibit-read-only t))
+      (vc-call-backend ',backend 'log-view-mode)
+      (set (make-local-variable 'log-view-vc-backend) ',backend)
+      (set (make-local-variable 'log-view-vc-fileset) ',files)
+      
+      ;; FIXME: this seems to apply only to RCS/CVS, it doesn't quite
+      ;; belong here in the generic code.
+      (goto-char (point-max))
+      (forward-line -1)
+      (while (looking-at "=*\n")
+      	(delete-char (- (match-end 0) (match-beginning 0)))
+      	(forward-line -1))
+      (goto-char (point-min))
+      (when (looking-at "[\b\t\n\v\f\r ]+")
+      	(delete-char (- (match-end 0) (match-beginning 0))))
+
+      (shrink-window-if-larger-than-buffer)
+      ;; move point to the log entry for the working revision
+      (vc-call-backend ',backend 'show-log-entry ',working-revision)
+      (setq vc-sentinel-movepoint (point))
+      (set-buffer-modified-p nil))))
+
 ;;;###autoload
 (defun vc-print-log (&optional working-revision)
   "List the change log of the current fileset in a window.
@@ -1824,28 +1853,7 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
-    ;; Don't switch to the output buffer before running the command,
-    ;; so that any buffer-local settings in the vc-controlled
-    ;; buffer can be accessed by the command.
-    (vc-call-backend backend 'print-log files "*vc-change-log*")
-    (pop-to-buffer "*vc-change-log*")
-    (vc-exec-after
-     `(let ((inhibit-read-only t))
-    	(vc-call-backend ',backend 'log-view-mode)
-	(set (make-local-variable 'log-view-vc-backend) ',backend)
-	(set (make-local-variable 'log-view-vc-fileset) ',files)
-	(goto-char (point-max)) (forward-line -1)
-	(while (looking-at "=*\n")
-	  (delete-char (- (match-end 0) (match-beginning 0)))
-	  (forward-line -1))
-	(goto-char (point-min))
-	(when (looking-at "[\b\t\n\v\f\r ]+")
-	  (delete-char (- (match-end 0) (match-beginning 0))))
-	(shrink-window-if-larger-than-buffer)
-	;; move point to the log entry for the working revision
-	(vc-call-backend ',backend 'show-log-entry ',working-revision)
-        (setq vc-sentinel-movepoint (point))
-        (set-buffer-modified-p nil)))))
+    (vc-print-log-internal backend files working-revision)))
 
 ;;;###autoload
 (defun vc-revert ()
