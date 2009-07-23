@@ -1,7 +1,7 @@
 ;;; cl.el --- Common Lisp extensions for Emacs
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -272,8 +272,9 @@ definitions to shadow the loaded ones for use in file byte-compilation.
 (defvar cl-compiling-file nil)
 (defun cl-compiling-file ()
   (or cl-compiling-file
-      (and (boundp 'outbuffer) (bufferp (symbol-value 'outbuffer))
-	   (equal (buffer-name (symbol-value 'outbuffer))
+      (and (boundp 'bytecomp-outbuffer)
+           (bufferp (symbol-value 'bytecomp-outbuffer))
+	   (equal (buffer-name (symbol-value 'bytecomp-outbuffer))
 		  " *Compiler Output*"))))
 
 (defvar cl-proclaims-deferred nil)
