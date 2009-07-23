@@ -2,6 +2,7 @@
 
 	* vc.el (vc-print-log-internal): New function, split out from ...
 	(vc-print-log): ... here.
+	(vc-dir-move-to-goal-column): Declare.
 
 	* vc-git.el (vc-git-add-signoff): New variable.
 	(vc-git-checkin): Use it.

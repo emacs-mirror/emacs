@@ -1184,6 +1184,8 @@ merge in the changes into your working copy."
        nil t)))))
   (vc-call-backend backend 'create-repo))
 
+(declare-function vc-dir-move-to-goal-column "vc-dir" ())
+
 ;;;###autoload
 (defun vc-register (&optional set-revision vc-fileset comment)
   "Register into a version control system.
