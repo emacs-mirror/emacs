@@ -400,13 +400,21 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-git-dir-extra-headers (dir)
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
-                 (vc-git--out-ok "symbolic-ref" "HEAD")))))
+                 (vc-git--out-ok "symbolic-ref" "HEAD"))))
+	(stash (vc-git-stash-list)))
+    ;; FIXME: maybe use a different face when nothing is stashed.
+    (when (string= stash "") (setq stash "Nothing stashed"))
     (concat
      (propertize "Branch     : " 'face 'font-lock-type-face)
      (propertize 
       (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
 	  (match-string 2 str)
 	"not (detached HEAD)")
+       'face 'font-lock-variable-name-face)
+     "\n"
+     (propertize "Stash      : " 'face 'font-lock-type-face)
+     (propertize
+      stash
        'face 'font-lock-variable-name-face))))
 
 ;;; STATE-CHANGING FUNCTIONS
@@ -708,6 +716,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	  (compilation-start command 'grep-mode))
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
+
+(defun vc-git-stash-list ()
+  (replace-regexp-in-string
+   "\n" "\n             "
+   (replace-regexp-in-string
+    "^stash@" "" (vc-git--run-command-string nil "stash" "list"))))
+
 
 ;;; Internal commands
 
@@ -733,13 +748,16 @@ The difference to vc-do-command is that this function always invokes `git'."
   (zerop (apply 'vc-git--call '(t nil) command args)))
 
 (defun vc-git--run-command-string (file &rest args)
-  "Run a git command on FILE and return its output as string."
+  "Run a git command on FILE and return its output as string.
+FILE can be nil."
   (let* ((ok t)
          (str (with-output-to-string
                 (with-current-buffer standard-output
                   (unless (apply 'vc-git--out-ok
-                                 (append args (list (file-relative-name
-                                                     file))))
+				 (if file
+				     (append args (list (file-relative-name
+							 file)))
+				   args))
                     (setq ok nil))))))
     (and ok str)))
 

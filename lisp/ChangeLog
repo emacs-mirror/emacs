@@ -8,6 +8,9 @@
 	(vc-git-checkin): Use it.
 	(vc-git-toggle-signoff): New function.
 	(vc-git-extra-menu-map): Bind it to menu.
+	(vc-git--run-command-string): Accept a nil FILE argument.
+	(vc-git-stash-list): New function.
+	(vc-git-dir-extra-headers): Use it.
 
 2009-07-23  Glenn Morris  <rgm@gnu.org>
 
