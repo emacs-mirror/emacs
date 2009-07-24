@@ -196,6 +196,7 @@ Combining diacritic or mark (Unicode General Category M)")
 ;; Katakana block
 (modify-category-entry '(#x3099 . #x309C) ?K)
 (modify-category-entry '(#x30A0 . #x30FF) ?K)
+(modify-category-entry '(#x31F0 . #x31FF) ?K)
 (modify-category-entry '(#x30A0 . #x30FA) ?\|)
 (modify-category-entry #x30FF ?\|)
 
