@@ -1,3 +1,12 @@
+2009-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dispatcher.el (vc-resynch-buffers-in-directory): Make sure
+	the buffer we try to sync is current when calling
+	vc-resynch-buffer.
+
+	* vc-dir.el (vc-dir-resynch-file): Make sure vc-dir-update does
+	not show up to date files.
+
 2009-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/elint.el (elint-current-buffer, elint-defun):

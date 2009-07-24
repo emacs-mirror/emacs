@@ -866,9 +866,10 @@ If it is a file, return the corresponding cons for the file itself."
 	    (when (vc-string-prefix-p ddir file)
 	      (if (file-directory-p file)
 		  (vc-dir-resync-directory-files file)
-		(vc-dir-update
-		 (list (vc-dir-recompute-file-state file ddir))
-		 status-buf)))))))
+		(let ((state (vc-dir-recompute-file-state file ddir)))
+		  (vc-dir-update
+		   (list state)
+		   status-buf (eq (cadr state) 'up-to-date)))))))))
     ;; We didn't find any vc-dir buffers, remove the hook, it is
     ;; not needed.
     (unless found-vc-dir-buf

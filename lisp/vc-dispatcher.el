@@ -484,7 +484,8 @@ editing!"
   (dolist (buffer (buffer-list))
     (let ((fname (buffer-file-name buffer)))
       (when (and fname (vc-string-prefix-p directory fname))
-	(vc-resynch-buffer fname keep noquery)))))
+	(with-current-buffer buffer
+	  (vc-resynch-buffer fname keep noquery))))))
 
 (defun vc-resynch-buffer (file &optional keep noquery)
   "If FILE is currently visited, resynch its buffer."
