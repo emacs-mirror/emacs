@@ -1,3 +1,19 @@
+2009-07-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/pc-win.el (x-select-text): Add a doc string.
+
+	* select.el (x-set-selection): Doc fix.
+
+	* w32-fns.el (x-get-selection, x-set-selection): Add doc strings.
+
+	* term/ns-win.el (x-colors): Doc fix.
+
+	* term/common-win.el (x-colors): Doc fix.
+
+	* term/x-win.el (x-select-enable-clipboard): Doc fix.
+
+	* term/pc-win.el (x-select-enable-clipboard, x-colors): Doc fix.
+
 2009-07-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Fix setting of category ?C, ?|, ?K,
