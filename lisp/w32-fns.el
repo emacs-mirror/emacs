@@ -294,10 +294,45 @@ shell requires it (see `w32-shell-dos-semantics')."
 
 ;;; Fix interface to (X-specific) mouse.el
 (defun x-set-selection (type data)
+  "Make an X Windows selection of type TYPE and value DATA.
+The argument TYPE (nil means `PRIMARY') says which selection, and
+DATA specifies the contents.  TYPE must be a symbol.  \(It can also
+be a string, which stands for the symbol with that name, but this
+is considered obsolete.)  DATA may be a string, a symbol, an
+integer (or a cons of two integers or list of two integers).
+
+The selection may also be a cons of two markers pointing to the same buffer,
+or an overlay.  In these cases, the selection is considered to be the text
+between the markers *at whatever time the selection is examined*.
+Thus, editing done in the buffer after you specify the selection
+can alter the effective value of the selection.
+
+The data may also be a vector of valid non-vector selection values.
+
+The return value is DATA.
+
+Interactively, this command sets the primary selection.  Without
+prefix argument, it reads the selection in the minibuffer.  With
+prefix argument, it uses the text of the region as the selection value.
+
+Note that on MS-Windows, primary and secondary selections set by Emacs
+are not available to other programs."
   (or type (setq type 'PRIMARY))
   (put 'x-selections type data))
 
 (defun x-get-selection (&optional type data-type)
+  "Return the value of an X Windows selection.
+The argument TYPE (default `PRIMARY') says which selection,
+and the argument DATA-TYPE (default `STRING') says
+how to convert the data.
+
+TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
+only a few symbols are commonly used.  They conventionally have
+all upper-case names.  The most often used ones, in addition to
+`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
+
+DATA-TYPE is usually `STRING', but can also be one of the symbols
+in `selection-converter-alist', which see."
   (or type (setq type 'PRIMARY))
   (get 'x-selections type))
 
