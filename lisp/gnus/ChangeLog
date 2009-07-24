@@ -1,3 +1,8 @@
+2009-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-demon.el (gnus-demon-add-nntp-close-connection):
+	Fix typo.  (Bug#3903)
+
 2009-07-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el (nnrss-request-article): Allow mml-to-mime to generate MIME
