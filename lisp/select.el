@@ -134,7 +134,10 @@ The return value is DATA.
 
 Interactively, this command sets the primary selection.  Without
 prefix argument, it reads the selection in the minibuffer.  With
-prefix argument, it uses the text of the region as the selection value ."
+prefix argument, it uses the text of the region as the selection value.
+
+Note that on MS-Windows, primary and secondary selections set by Emacs
+are not available to other programs."
   (interactive (if (not current-prefix-arg)
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
 		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
