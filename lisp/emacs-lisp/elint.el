@@ -28,9 +28,9 @@
 ;; misspellings and undefined variables, although it can also catch
 ;; function calls with the wrong number of arguments.
 
-;; Before using, call `elint-initialize' to set up some argument
-;; data.  This takes a while.  Then call elint-current-buffer or
-;; elint-defun to lint a buffer or a defun.
+;; To use, call elint-current-buffer or elint-defun to lint a buffer
+;; or defun.  The first call runs `elint-initialize' to set up some
+;; argument data, which may take a while.
 
 ;; The linter will try to "include" any require'd libraries to find
 ;; the variables defined in those.  There is a fair amount of voodoo
@@ -151,9 +151,13 @@ This environment can be passed to `macroexpand'."
 ;;; User interface
 ;;;
 
+;;;###autoload
 (defun elint-current-buffer ()
-  "Lint the current buffer."
+  "Lint the current buffer.
+If necessary, this first calls `elint-initalize'."
   (interactive)
+  (or elint-builtin-variables
+      (elint-initialize))
   (elint-clear-log (format "Linting %s" (or (buffer-file-name)
 					    (buffer-name))))
   (elint-display-log)
@@ -164,9 +168,13 @@ This environment can be passed to `macroexpand'."
   (let ((elint-top-form-logged t))
     (elint-log-message "\nLinting finished.\n")))
 
+;;;###autoload
 (defun elint-defun ()
-  "Lint the function at point."
+  "Lint the function at point.
+If necessary, this first calls `elint-initalize'."
   (interactive)
+  (or elint-builtin-variables
+      (elint-initialize))
   (save-excursion
     (or (beginning-of-defun) (error "Lint what?"))
     (let ((pos (point))
@@ -610,7 +618,10 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 
 (defun elint-log (type string args)
   (elint-log-message (format "%s:%d:%s: %s"
-			     (file-name-nondirectory (buffer-file-name))
+			     (let ((f (buffer-file-name)))
+			       (if f
+				   (file-name-nondirectory f)
+				 (buffer-name)))
 			     (save-excursion
 			       (goto-char elint-current-pos)
 			       (1+ (count-lines (point-min)
@@ -680,18 +691,24 @@ Insert HEADER followed by a blank line if non-nil."
 ;;;
 
 ;;;###autoload
-(defun elint-initialize ()
-  "Initialize elint."
-  (interactive)
-  (setq elint-builtin-variables (elint-find-builtin-variables)
-	elint-autoloaded-variables (elint-find-autoloaded-variables))
-  (mapc (lambda (x) (or (not (symbolp (car x)))
-			(eq (cdr x) 'unknown)
-			(put (car x) 'elint-args (cdr x))))
-	(elint-find-builtin-args))
-  (if elint-unknown-builtin-args
-      (mapc (lambda (x) (put (car x) 'elint-args (cdr x)))
-	    elint-unknown-builtin-args)))
+(defun elint-initialize (&optional reinit)
+  "Initialize elint.
+If elint is already initialized, this does nothing, unless
+optional prefix argument REINIT is non-nil."
+  (interactive "P")
+  (if (and elint-builtin-variables (not reinit))
+      (message "Elint is already initialized")
+    (message "Initializing elint...")
+    (setq elint-builtin-variables (elint-find-builtin-variables)
+	  elint-autoloaded-variables (elint-find-autoloaded-variables))
+    (mapc (lambda (x) (or (not (symbolp (car x)))
+			  (eq (cdr x) 'unknown)
+			  (put (car x) 'elint-args (cdr x))))
+	  (elint-find-builtin-args))
+    (if elint-unknown-builtin-args
+	(mapc (lambda (x) (put (car x) 'elint-args (cdr x)))
+	      elint-unknown-builtin-args))
+    (message "Initializing elint...done")))
 
 
 (defun elint-find-builtin-variables ()
@@ -699,19 +716,20 @@ Insert HEADER followed by a blank line if non-nil."
   ;; Cribbed from help-fns.el.
   (let ((docbuf " *DOC*")
 	vars var)
-    (if (get-buffer docbuf)
-	(progn
-	  (set-buffer docbuf)
-	  (goto-char (point-min)))
-      (set-buffer (get-buffer-create docbuf))
-      (insert-file-contents-literally
-       (expand-file-name internal-doc-file-name doc-directory)))
-    (while (search-forward "V" nil t)
-      (and (setq var (intern-soft
-		      (buffer-substring (point) (line-end-position))))
-	   (boundp var)
-	   (setq vars (cons var vars))))
-    vars))
+    (save-excursion
+      (if (get-buffer docbuf)
+	  (progn
+	    (set-buffer docbuf)
+	    (goto-char (point-min)))
+	(set-buffer (get-buffer-create docbuf))
+	(insert-file-contents-literally
+	 (expand-file-name internal-doc-file-name doc-directory)))
+      (while (search-forward "V" nil t)
+	(and (setq var (intern-soft
+			(buffer-substring (point) (line-end-position))))
+	     (boundp var)
+	     (setq vars (cons var vars))))
+      vars)))
 
 (defun elint-find-autoloaded-variables ()
   "Return a list of all autoloaded variables."
