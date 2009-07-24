@@ -2186,9 +2186,10 @@ that takes precedence is the one that appears latest in this list:
 @item
 @table @asis
 @item Style
+@itemx File Style@footnote{In earlier versions of @ccmode{}, a File Style setting took precedence over any other setting apart from a File Local Variable setting.}
 @itemx Top-level command or ``customization interface''
 @itemx Hook
-@itemx File Style
+@itemx File Local Variable setting
 @end table
 @end itemize
 
@@ -2275,11 +2276,18 @@ in your @file{.emacs} file:
 See @ref{Styles} for fuller details on using @ccmode{} styles and how
 to create them.
 
+@item File Local Variable setting
+A @dfn{file local variable setting} is a setting which applies to an
+individual source file.  You put this in a @dfn{local variables list},
+a special block at the end of the source file (@pxref{Specifying File
+Variables,,, @emacsman{}}).
+
 @item File Styles
 A @dfn{file style} is a rarely used variant of the ``style'' mechanism
-described above, which applies to an individual source file.  To use
-it, you set certain Emacs local variables in a special block at the
-end of the source file.  @xref{File Styles}.
+described above, which applies to an individual source file.
+@xref{File Styles}.  You use this by setting certain special variables
+in a local variables list (@pxref{Specifying File Variables,,,
+@emacsman{}}).
 
 @item Hooks with Styles
 For ultimate flexibility, you can use hooks and styles together.  For
@@ -2782,13 +2790,11 @@ made local to that buffer, even if
 variable is virtually always non-@code{nil} anyhow, you're unlikely to
 notice this effect.}.
 
-If you set any variables, including style variables, by the file local
-variables mechanism, these settings take priority over all other
-settings, even those in your mode hooks (@pxref{CC Hooks}).  If you
-use @code{c-file-style} or @code{c-file-offsets} and also explicitly
-set a style variable in a local variable block, the explicit setting
-will take priority.
-
+If you set any variable by the file local variables mechanism, that
+setting takes priority over all other settings, even those in your
+mode hooks (@pxref{CC Hooks}).  Any individual setting of a variable
+will override one made through @code{c-file-style} or
+@code{c-file-offsets}.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Custom Filling and Breaking, Custom Auto-newlines, Config Basics, Top
 @comment node-name, next, previous, up
