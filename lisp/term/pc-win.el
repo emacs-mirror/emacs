@@ -185,7 +185,7 @@ created."
 On X, the display name of individual X frames is recorded in the
 `display' frame parameter.")
 (defvar x-colors (mapcar 'car msdos-color-values)
-  "List of available colors for graphical frames.
+  "List of basic colors available on color displays.
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
@@ -201,7 +201,11 @@ the operating system.")
 
 (defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection."
+This is in addition to, but in preference to, the primary selection.
+
+On MS-Windows, this is non-nil by default, since Windows does not
+support other types of selections.  \(The primary selection that is
+set by Emacs is not accessible to other programs on Windows.\)"
   :type 'boolean
   :group 'killing)
 

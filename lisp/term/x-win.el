@@ -1239,7 +1239,11 @@ It is said that overlarge strings are slow to put into the cut buffer.")
 
 (defcustom x-select-enable-clipboard nil
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection."
+This is in addition to, but in preference to, the primary selection.
+
+On MS-Windows, this is non-nil by default, since Windows does not
+support other types of selections.  \(The primary selection that is
+set by Emacs is not accessible to other programs on Windows.\)"
   :type 'boolean
   :group 'killing)
 

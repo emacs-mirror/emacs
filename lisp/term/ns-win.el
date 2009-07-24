@@ -1126,7 +1126,7 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
 (declare-function ns-list-colors "nsfns.m" (&optional frame))
 
 (defvar x-colors (ns-list-colors)
-  "List of available colors for graphical frames.
+  "List of basic colors available on color displays.
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")

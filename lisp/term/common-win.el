@@ -287,7 +287,7 @@ This function returns ARGS minus the arguments that have been processed."
     "cyan" "medium spring green" "spring green" "green" "lawn green" "chartreuse"
     "yellow" "gold" "orange" "dark orange" "orange red" "red" "white" "white smoke"
     "gainsboro" "light grey" "gray" "dark grey" "dim gray" "black" )
-  "List of available colors for graphical frames.
+  "List of basic colors available on color displays.
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by
 the operating system.")
