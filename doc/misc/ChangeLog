@@ -1,3 +1,9 @@
+2009-07-24  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Config Basics, File Styles): Document that at mode
+	initialization, any individual variable setting now takes precedence
+	over one done via c-file-style/c-file-offsets.
+
 2009-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Undoing Mistakes): Mention that the undo list will be
