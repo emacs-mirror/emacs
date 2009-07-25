@@ -1,3 +1,13 @@
+2009-07-25  Ken Raeburn  <raeburn@raeburn.org>
+
+	* lread.c: Rewrite 2009-07-21 changes.
+	(load_depth): Deleted.
+	(Qload_in_progress): New variable.
+	(load_unwind): Don't reference load_depth or load_in_progress.
+	(Fload): Likewise; specbind Qload_in_progress instead.
+	(init_lread): Don't initialize load_depth.
+	(syms_of_lread): Initialize and protect Qload_in_progress.
+
 2009-07-24  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (ns_findfonts): Correctly return fallback in match case.

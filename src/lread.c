@@ -99,9 +99,7 @@ extern Lisp_Object Qfile_exists_p;
 
 /* non-zero if inside `load' */
 int load_in_progress;
-
-/* Depth of nested `load' invocations.  */
-int load_depth;
+static Lisp_Object Qload_in_progress;
 
 /* Directory in which the sources were found.  */
 Lisp_Object Vsource_directory;
@@ -1253,8 +1251,7 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qinhibit_file_name_operation, Qnil);
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
-  load_depth++;
-  load_in_progress = 1;
+  specbind (Qload_in_progress, Qt);
   if (! version || version >= 22)
     readevalloop (Qget_file_char, stream, hist_file_name,
 		  Feval, 0, Qnil, Qnil, Qnil, Qnil);
@@ -1316,8 +1313,6 @@ load_unwind (arg)  /* used as unwind-protect function in load */
       fclose (stream);
       UNBLOCK_INPUT;
     }
-  if (--load_depth < 0) load_depth = 0;
-  load_in_progress = load_depth > 0;
   return Qnil;
 }
 
@@ -4134,7 +4129,6 @@ init_lread ()
   Vvalues = Qnil;
 
   load_in_progress = 0;
-  load_depth = 0;
   Vload_file_name = Qnil;
 
   load_descriptor_list = Qnil;
@@ -4258,6 +4252,8 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
+  Qload_in_progress = intern ("load-in-progress");
+  staticpro (&Qload_in_progress);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.
