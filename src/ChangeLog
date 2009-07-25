@@ -1,5 +1,8 @@
 2009-07-25  Ken Raeburn  <raeburn@raeburn.org>
 
+	* coding.h (decode_coding_string, encode_coding_string): Use
+	SCHARS macro.
+
 	* lread.c: Rewrite 2009-07-21 changes.
 	(load_depth): Deleted.
 	(Qload_in_progress): New variable.
