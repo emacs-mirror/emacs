@@ -26,8 +26,8 @@ byte-compiled form as well.  As for bootstrapping, you will only need
 that if you check-out development sources from the Emacs source
 repository.  (Note: If you are checking out of CVS, use the -kb option
 of the `checkout' and `update' commands, to preserve the original
-Unix-style EOL format of the files.  If some Lisp files are converted
-to DOS format, the build might fail.)
+Unix-style EOL format of the files.  If some files are converted to
+DOS EOL format by the default operation of CVS, the build might fail.)
 
 If you are building the DJGPP version of Emacs on a DOS-like system
 which supports long file names (e.g. Windows 9X or Windows XP), you
@@ -46,7 +46,7 @@ is set to `n' during both unpacking and compiling.
 distribution, but if the explanations above imply that you should have
 done it differently, it's safer to delete the directory tree created
 by the unpacking program and unpack Emacs again, than to risk running
-into problems during the build process.)
+into strange problems during the build process.)
 
 It is important to understand that the runtime support of long file
 names by the Emacs binary is NOT affected by the LFN setting during
@@ -67,17 +67,25 @@ To unpack Emacs with djtar, type this command:
 (This assumes that the Emacs distribution is called `emacs.tgz' on
 your system.)
 
+When unpacking Emacs is done, a directory called `emacs-XX.YY' will be
+created, where XX.YY is the Emacs version.
+
+On plain DOS, unpacking can complain about several directories and
+files in the `nextstep' subdirectory of the `emacs-XX.YY' top-level
+directory.  This is because the names of these files overflow the
+67-character limit on the file-name length imposed by DOS filesystems.
+When prompted by `djtar' for a different name for these files, just
+press [Enter] to skip them: they are not needed for the DJGPP build.
+
 If you want to print international characters, install the intlfonts
 distribution.  For this, create a directory called `fonts' under the
-Emacs top-level directory (usually called `emacs-XX.YY') created by
-unpacking emacs.tgz, chdir into the directory emacs-XX.YY/fonts, and
-type this:
+`emacs-XX.YY' top-level directory created by unpacking emacs.tgz,
+chdir into the directory `emacs-XX.YY/fonts', and type this:
 
     djtar -x intlfonts.tgz
 
-When unpacking Emacs is done, a directory called `emacs-XX.YY' will be
-created, where XX.YY is the Emacs version.  To build and install
-Emacs, chdir to that directory and type these commands:
+To build and install Emacs, chdir to the `emacs-XX.YY' directory and
+type these commands:
 
     config msdos
     make install
