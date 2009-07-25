@@ -135,9 +135,6 @@
 On X, the display name of individual X frames is recorded in the
 `display' frame parameter.")
 
-For the X display name of individual frames, see the `display'
-frame parameter.")
-
 (defun x-handle-display (switch)
   "Handle -display DISPLAY option."
   (setq x-display-name (car x-invocation-args)
