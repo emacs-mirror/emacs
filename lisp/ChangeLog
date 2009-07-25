@@ -1,3 +1,25 @@
+2009-07-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Bug#3888:
+
+	* w32-vars.el (x-select-enable-clipboard): Doc fix.
+
+	* term/pc-win.el (x-display-name, x-colors)
+	(x-select-enable-clipboard, x-select-text): Doc fix.
+
+	* term/common-win.el (x-display-name, x-colors): Doc fix.
+
+	* term/ns-win.el (x-select-text, x-setup-function-keys, x-colors)
+	(xw-defined-colors): Doc fix.
+
+	* w32-fns.el (x-select-text, x-setup-function-keys)
+	(x-get-selection, x-set-selection): Doc fix.
+
+	* term/x-win.el (x-select-text, x-setup-function-keys)
+	(x-select-enable-clipboard, xw-defined-colors): Doc fix.
+
+	* select.el (x-set-selection): Doc fix.
+
 2009-07-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/zeroconf.el (zeroconf-init): Check for "GetVersionString"

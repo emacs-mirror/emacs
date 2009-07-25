@@ -55,7 +55,7 @@
   "Keymap of possible alternative meanings for some keys.")
 
 (defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on FRAME for w32."
+  "Set up `function-key-map' on the graphical frame FRAME."
   ;; Don't do this twice on the same display, or it would break
   ;; normal-erase-is-backspace-mode.
   (unless (terminal-parameter frame 'x-setup-function-keys)
@@ -294,9 +294,44 @@ shell requires it (see `w32-shell-dos-semantics')."
 
 ;;; Fix interface to (X-specific) mouse.el
 (defun x-set-selection (type data)
+  "Make an X Windows selection of type TYPE and value DATA.
+The argument TYPE (nil means `PRIMARY') says which selection, and
+DATA specifies the contents.  TYPE must be a symbol.  \(It can also
+be a string, which stands for the symbol with that name, but this
+is considered obsolete.)  DATA may be a string, a symbol, an
+integer (or a cons of two integers or list of two integers).
+
+The selection may also be a cons of two markers pointing to the same buffer,
+or an overlay.  In these cases, the selection is considered to be the text
+between the markers *at whatever time the selection is examined*.
+Thus, editing done in the buffer after you specify the selection
+can alter the effective value of the selection.
+
+The data may also be a vector of valid non-vector selection values.
+
+The return value is DATA.
+
+Interactively, this command sets the primary selection.  Without
+prefix argument, it reads the selection in the minibuffer.  With
+prefix argument, it uses the text of the region as the selection value.
+
+Note that on MS-Windows, primary and secondary selections set by Emacs
+are not available to other programs."
   (put 'x-selections (or type 'PRIMARY) data))
 
 (defun x-get-selection (&optional type data-type)
+  "Return the value of an X Windows selection.
+The argument TYPE (default `PRIMARY') says which selection,
+and the argument DATA-TYPE (default `STRING') says
+how to convert the data.
+
+TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
+only a few symbols are commonly used.  They conventionally have
+all upper-case names.  The most often used ones, in addition to
+`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
+
+DATA-TYPE is usually `STRING', but can also be one of the symbols
+in `selection-converter-alist', which see."
   (get 'x-selections (or type 'PRIMARY)))
 
 ;; x-selection-owner-p is used in simple.el
@@ -418,9 +453,19 @@ bit output with no translation."
   "Max number of characters to put in the cut buffer.")
 
 (defun x-select-text (text &optional push)
-  "Make TEXT the last selected text.
-If `x-select-enable-clipboard' is non-nil, copy the text to the system
-clipboard as well.  Optional PUSH is ignored on Windows."
+  "Select TEXT, a string, according to the window system.
+
+On X, put TEXT in the primary X selection.  For backward
+compatibility with older X applications, set the value of X cut
+buffer 0 as well, and if the optional argument PUSH is non-nil,
+rotate the cut buffers.  If `x-select-enable-clipboard' is
+non-nil, copy the text to the X clipboard as well.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.  The argument PUSH is ignored.
+
+On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   (if x-select-enable-clipboard
       (w32-set-clipboard-data text))
   (setq x-last-selected-text text))

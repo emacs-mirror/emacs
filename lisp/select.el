@@ -116,28 +116,28 @@ in `selection-converter-alist', which see."
 
 (defun x-set-selection (type data)
   "Make an X Windows selection of type TYPE and value DATA.
-TYPE is a symbol specifying the selection type.  This is normally
-one of `PRIMARY', `SECONDARY', or `CLIPBOARD'; or nil, which is
-equivalent to `PRIMARY'.  (It can also be a string, which stands
-for the symbol with that name, but this usage is obsolete.)
+The argument TYPE (nil means `PRIMARY') says which selection, and
+DATA specifies the contents.  TYPE must be a symbol.  \(It can also
+be a string, which stands for the symbol with that name, but this
+is considered obsolete.)  DATA may be a string, a symbol, an
+integer (or a cons of two integers or list of two integers).
 
-DATA is a selection value.  It should be one of the following:
- - A vector of non-vector selection values.
- - A string.
- - An integer.
- - A cons cell of two markers pointing to the same buffer
-   (the data consists of the text between the markers).
- - An overlay (the data consists of the text within the overlay).
- - A buffer (the data consists of the text in the region).
-For the last three cases, the actual selection data is computed
-only when the selection is requested.  Thus, it includes any
-changes made to the buffer after `x-set-selection' is called.
+The selection may also be a cons of two markers pointing to the same buffer,
+or an overlay.  In these cases, the selection is considered to be the text
+between the markers *at whatever time the selection is examined*.
+Thus, editing done in the buffer after you specify the selection
+can alter the effective value of the selection.
+
+The data may also be a vector of valid non-vector selection values.
 
 The return value is DATA.
 
 Interactively, this command sets the primary selection.  Without
 prefix argument, it reads the selection in the minibuffer.  With
-prefix argument, it uses the text of the region as the selection value ."
+prefix argument, it uses the text of the region as the selection value.
+
+Note that on MS-Windows, primary and secondary selections set by Emacs
+are not available to other programs."
   (interactive (if (not current-prefix-arg)
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
 		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
