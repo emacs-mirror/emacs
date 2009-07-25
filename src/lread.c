@@ -214,6 +214,10 @@ static Lisp_Object Vloads_in_progress;
 
 int load_dangerous_libraries;
 
+/* Non-zero means force printing messages when loading Lisp files.  */
+
+int force_load_messages;
+
 /* A regular expression used to detect files compiled with Emacs.  */
 
 static Lisp_Object Vbytecomp_version_regexp;
@@ -970,7 +974,8 @@ This function searches the directories in `load-path'.
 If optional second arg NOERROR is non-nil,
 report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
-optional third arg NOMESSAGE is non-nil.
+optional third arg NOMESSAGE is non-nil (but `force-load-messages'
+overrides that).
 If optional fourth arg NOSUFFIX is non-nil, don't try adding
 suffixes `.elc' or `.el' to the specified name FILE.
 If optional fifth arg MUST-SUFFIX is non-nil, insist on
@@ -1164,7 +1169,7 @@ Return t if the file exists and loads successfully.  */)
 		  error ("File `%s' was not compiled in Emacs",
 			 SDATA (found));
 		}
-	      else if (!NILP (nomessage))
+	      else if (!NILP (nomessage) && !force_load_messages)
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
 
@@ -1186,7 +1191,7 @@ Return t if the file exists and loads successfully.  */)
 	      newer = 1;
 
 	      /* If we won't print another message, mention this anyway.  */
-	      if (!NILP (nomessage))
+	      if (!NILP (nomessage) && !force_load_messages)
 		{
 		  Lisp_Object msg_file;
 		  msg_file = Fsubstring (found, make_number (0), make_number (-1));
@@ -1208,7 +1213,7 @@ Return t if the file exists and loads successfully.  */)
 	    emacs_close (fd);
 	  val = call4 (Vload_source_file_function, found, hist_file_name,
 		       NILP (noerror) ? Qnil : Qt,
-		       NILP (nomessage) ? Qnil : Qt);
+		       (NILP (nomessage) || force_load_messages) ? Qnil : Qt);
 	  return unbind_to (count, val);
 	}
     }
@@ -1231,7 +1236,7 @@ Return t if the file exists and loads successfully.  */)
   if (! NILP (Vpurify_flag))
     Vpreloaded_file_list = Fcons (file, Vpreloaded_file_list);
 
-  if (NILP (nomessage))
+  if (NILP (nomessage) || force_load_messages)
     {
       if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...",
@@ -1280,7 +1285,7 @@ Return t if the file exists and loads successfully.  */)
   prev_saved_doc_string = 0;
   prev_saved_doc_string_size = 0;
 
-  if (!noninteractive && NILP (nomessage))
+  if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
       if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...done",
@@ -4353,6 +4358,11 @@ Some versions of XEmacs use different byte codes than Emacs.  These
 incompatible byte codes can make Emacs crash when it tries to execute
 them.  */);
   load_dangerous_libraries = 0;
+
+  DEFVAR_BOOL ("force-load-messages", &force_load_messages,
+	       doc: /* Non-nil means force printing messages when loading Lisp files.
+This overrides the value of the NOMESSAGE argument to `load'.  */);
+  force_load_messages = 0;
 
   DEFVAR_LISP ("bytecomp-version-regexp", &Vbytecomp_version_regexp,
 	       doc: /* Regular expression matching safe to load compiled Lisp files.
