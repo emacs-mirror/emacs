@@ -863,7 +863,7 @@ the user during startup."
 
 (defun select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible.
-If `mouse-autoselect-window' is non-nil, also move mouse cursor
+If `mouse-autoselect-window' is non-nil, also move mouse pointer
 to FRAME's selected window.  Otherwise, if `focus-follows-mouse'
 is non-nil, move mouse cursor to FRAME."
   (select-frame frame)
