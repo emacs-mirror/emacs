@@ -196,9 +196,6 @@ scroll bars are extensible.
   by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
 
-** Implement something better than the current Refill mode.  This
-  probably needs some primitive support.
-
 ** Add a command to make a "Local Variables" section in the current buffer
   and/or add a variable to the list.
 
