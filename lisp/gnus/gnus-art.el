@@ -4270,7 +4270,6 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   "s" gnus-article-show-summary
   "\C-c\C-m" gnus-article-mail
   "?" gnus-article-describe-briefly
-  "e" gnus-summary-edit-article
   "<" beginning-of-buffer
   ">" end-of-buffer
   "\C-c\C-i" gnus-info-find-node
@@ -4281,6 +4280,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   "\C-hc" gnus-article-describe-key-briefly
   "\C-hb" gnus-article-describe-bindings
 
+  "e" gnus-article-read-summary-keys
   "\C-d" gnus-article-read-summary-keys
   "\M-*" gnus-article-read-summary-keys
   "\M-#" gnus-article-read-summary-keys
@@ -6277,27 +6277,6 @@ not have a face in `gnus-article-boring-faces'."
   (interactive)
   (gnus-message 6 (substitute-command-keys "\\<gnus-article-mode-map>\\[gnus-article-goto-next-page]:Next page	 \\[gnus-article-goto-prev-page]:Prev page  \\[gnus-article-show-summary]:Show summary  \\[gnus-info-find-node]:Run Info  \\[gnus-article-describe-briefly]:This help")))
 
-(defun gnus-article-summary-command ()
-  "Execute the last keystroke in the summary buffer."
-  (interactive)
-  (let ((obuf (current-buffer))
-	(owin (current-window-configuration))
-	func)
-    (switch-to-buffer gnus-article-current-summary 'norecord)
-    (setq func (lookup-key (current-local-map) (this-command-keys)))
-    (call-interactively func)
-    (set-buffer obuf)
-    (set-window-configuration owin)
-    (set-window-point (get-buffer-window (current-buffer)) (point))))
-
-(defun gnus-article-summary-command-nosave ()
-  "Execute the last keystroke in the summary buffer."
-  (interactive)
-  (let (func)
-    (pop-to-buffer gnus-article-current-summary)
-    (setq func (lookup-key (current-local-map) (this-command-keys)))
-    (call-interactively func)))
-
 (defun gnus-article-check-buffer ()
   "Beep if not in an article buffer."
   (unless (equal major-mode 'gnus-article-mode)
@@ -6340,7 +6319,7 @@ not have a face in `gnus-article-boring-faces'."
 	  (pop-to-buffer gnus-article-current-summary)
 	  ;; We disable the pick minor mode commands.
 	  (let (gnus-pick-mode)
-	    (setq func (lookup-key (current-local-map) keys))))
+	    (setq func (key-binding keys t))))
 	(if (or (not func)
 		(numberp func))
 	    (ding)
@@ -6375,7 +6354,7 @@ not have a face in `gnus-article-boring-faces'."
 	(setq in-buffer (current-buffer))
 	;; We disable the pick minor mode commands.
 	(if (and (setq func (let (gnus-pick-mode)
-			      (lookup-key (current-local-map) keys)))
+			      (key-binding keys t)))
 		 (functionp func)
 		 (condition-case code
 		     (progn
