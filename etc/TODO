@@ -59,9 +59,6 @@ Use emacsclient later to open frames.
 ** Make it possible to reliably turn on minor modes using "mode:" in the local 
 variables section.
 
-** "Options -> Save Options" should save the font set via "Set Font/Fontset"
-I.e. mouse-set-font should use customize-face.
-
 ** Compute the list of active keymaps *after* reading the first event.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
