@@ -300,11 +300,15 @@ PCC-02151: line 21 column 40 file /usr/src/sb/ODBI_BHP.hpp:
 
 symbol: perl
 
+The second sample, from the Perl-Glib module, is a Glib message put
+through Perl warn() to get "at FILENAME line N".
+
 syntax error at automake line 922, near "':'"
 Died at test.pl line 27.
 store::odrecall('File_A', 'x2') called at store.pm line 90
 	(in cleanup) something bad at foo.pl line 3 during global destruction.
 
+GLib-GObject-WARNING **: /build/buildd/glib2.0-2.14.5/gobject/gsignal.c:1741: instance `0x8206790' has no handler with id `1234' at t-compilation-perl-gtk.pl line 3.
 
 * PHP
 
