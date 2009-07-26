@@ -1348,11 +1348,15 @@ ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
 /* On *Step, we recognize several color formats, in addition to a catalog
    of colors found in the file Emacs.clr. Color formats include:
-   - #rrggbb where rr, gg, bb specify red, green and blue in hex. */
+   - #rrggbb or RGBrrggbb where rr, gg, bb specify red, green and blue in hex
+   - ARGBaarrggbb is similar, with aa being the alpha channel (FF = opaque)
+   - HSVhhssvv and AHSVaahhssvv (or HSB/AHSB) are similar for hue, saturation,
+     value;
+   - CMYKccmmyykk is similar for cyan, magenta, yellow, black. */
 {
   NSColor * new = nil;
   const char *hex = NULL;
-  enum { rgb } color_space;
+  enum { rgb, argb, hsv, ahsv, cmyk, gray } color_space;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
@@ -1377,10 +1381,45 @@ ns_get_color (const char *name, NSColor **col)
       return 0;
     }
 
+  /*  FIXME: emacs seems to downcase everything before passing it here,
+        which we can work around, except for GRAY, since gray##, where ## is
+        decimal between 0 and 99, is also an X11 colorname. */
   if (name[0] == '#')             /* X11 format */
     {
       hex = name + 1;
       color_space = rgb;
+    }
+  else if (!memcmp (name, "RGB", 3) || !memcmp (name, "rgb", 3))
+    {
+      hex = name + 3;
+      color_space = rgb;
+    }
+  else if (!memcmp (name, "ARGB", 4) || !memcmp (name, "argb", 4))
+    {
+      hex = name + 4;
+      color_space = argb;
+    }
+  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3) ||
+           !memcmp (name, "HSB", 3) || !memcmp (name, "hsb", 3))
+    {
+      hex = name + 3;
+      color_space = hsv;
+    }
+  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4) ||
+           !memcmp (name, "AHSB", 4) || !memcmp (name, "ahsb", 4))
+    {
+      hex = name + 4;
+      color_space = ahsv;
+    }
+  else if (!memcmp (name, "CMYK", 4) || !memcmp (name, "cmyk", 4))
+    {
+      hex = name + 4;
+      color_space = cmyk;
+    }
+  else if (!memcmp (name, "GRAY", 4) /*|| !memcmp (name, "gray", 4)*/)
+    {
+      hex = name + 4;
+      color_space = gray;
     }
 
   /* Direct colors (hex values) */
@@ -1410,6 +1449,34 @@ ns_get_color (const char *name, NSColor **col)
                                                green: f3
                                                 blue: f4
                                                alpha: 1.0];
+              break;
+            case argb:
+              *col = [NSColor colorWithCalibratedRed: f2
+                                               green: f3
+                                                blue: f4
+                                               alpha: f1];
+              break;
+            case hsv:
+              *col = [NSColor colorWithCalibratedHue: f2
+                                          saturation: f3
+                                          brightness: f4
+                                               alpha: 1.0];
+              break;
+            case ahsv:
+              *col = [NSColor colorWithCalibratedHue: f2
+                                          saturation: f3
+                                          brightness: f4
+                                               alpha: f1];
+              break;
+            case gray:
+              *col = [NSColor colorWithCalibratedWhite: f3 alpha: f4];
+              break;
+            case cmyk:
+              *col = [NSColor colorWithDeviceCyan: f1
+                                          magenta: f2
+                                           yellow: f3
+                                            black: f4
+                                            alpha: 1.0];
               break;
             }
           *col = [*col colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
@@ -2693,19 +2760,15 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
             }
           else
             face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
-#if 0
           if (!face->stipple)
-#endif
             [(NS_FACE_BACKGROUND (face) != 0
               ? ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f)
               : FRAME_BACKGROUND_COLOR (s->f)) set];
-#if 0				/* This is tiling, not stippling.  */
           else
             {
               struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (s->f);
               [[dpyinfo->bitmaps[face->stipple-1].img stippleMask] set];
             }
-#endif
 
           if (s->hl != DRAW_CURSOR)
             {
