@@ -1,3 +1,8 @@
+2009-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* view.el (view-mode-enable): Don't define Helper-return-blurb if
+	it's not needed.
+
 2009-07-25  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix Bug#3888:
