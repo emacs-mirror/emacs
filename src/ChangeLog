@@ -1,3 +1,11 @@
+2009-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfont.m (nsfont_draw): Revert 2009-07-15 change.
+
+	* nsterm.m (ns_maybe_dumpglyphs_background): Revert 2009-07-15
+	change.
+	(ns_get_color): Revert 2009-07-16 change.
+
 2009-07-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* lread.c (syms_of_lread) <force_load_messages>: New variable.
