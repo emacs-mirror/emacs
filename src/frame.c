@@ -891,9 +891,9 @@ The selection of FRAME lasts until the next time the user does
 something to select a different frame, or until the next time
 this function is called.  If you are using a window system, the
 previously selected frame may be restored as the selected frame
-after return to the command loop, because it still may have the
-window system's input focus.  On a text-only terminal, the next
-redisplay will display FRAME.
+when returning to the command loop, because it still may have 
+the window system's input focus.  On a text-only terminal, the 
+next redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
      (frame, norecord)
