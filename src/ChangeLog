@@ -1,5 +1,9 @@
 2009-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dispnew.c (init_display): Use Qx, Qw32, and Qns.
+
+	* xterm.c (x_term_init): Use Qx.
+
 	* nsfont.m (nsfont_draw): Revert 2009-07-15 change.
 
 	* nsterm.m (ns_maybe_dumpglyphs_background): Revert 2009-07-15

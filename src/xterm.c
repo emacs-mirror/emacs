@@ -9977,7 +9977,7 @@ x_term_init (display_name, xrm_option, resource_name)
     GdkAtom atom;
 
 #ifndef HAVE_GTK_MULTIDISPLAY
-    if (!EQ (Vinitial_window_system, intern ("x")))
+    if (!EQ (Vinitial_window_system, Qx))
       error ("Sorry, you cannot connect to X servers with the GTK toolkit");
 #endif
 
@@ -10107,7 +10107,7 @@ x_term_init (display_name, xrm_option, resource_name)
       {
 	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
-	terminal->kboard->Vwindow_system = intern ("x");
+	terminal->kboard->Vwindow_system = Qx;
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
