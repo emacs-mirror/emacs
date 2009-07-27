@@ -4958,6 +4958,7 @@ face_with_height (f, face_id, height)
   face = FACE_FROM_ID (f, face_id);
   bcopy (face->lface, attrs, sizeof attrs);
   attrs[LFACE_HEIGHT_INDEX] = make_number (height);
+  font_clear_prop (attrs, FONT_SIZE_INDEX);
   face_id = lookup_face (f, attrs);
 #endif /* HAVE_WINDOW_SYSTEM */
 
