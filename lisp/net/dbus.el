@@ -184,7 +184,7 @@ usage: (dbus-call-method-non-blocking
 	  'dbus-call-method-non-blocking-handler args)))
     ;; Wait until `dbus-call-method-non-blocking-handler' has put the
     ;; result into `dbus-return-values-table'.
-    (while (not (gethash key dbus-return-values-table nil))
+    (while (eq (gethash key dbus-return-values-table :ignore) :ignore)
       (read-event nil nil 0.1))
 
     ;; Cleanup `dbus-return-values-table'.  Return the result.
@@ -368,9 +368,12 @@ If the HANDLER returns an `dbus-error', it is propagated as return message."
 	;; Return a message when it is a message call.
 	(when (= dbus-message-type-method-call (nth 2 event))
 	  (dbus-ignore-errors
-	    (apply 'dbus-method-return-internal
-	     (nth 1 event) (nth 3 event) (nth 4 event)
-	     (if (consp result) result (list result))))))
+	    (if (eq result :ignore)
+		(dbus-method-return-internal
+		 (nth 1 event) (nth 3 event) (nth 4 event))
+	      (apply 'dbus-method-return-internal
+		     (nth 1 event) (nth 3 event) (nth 4 event)
+		     (if (consp result) result (list result)))))))
     ;; Error handling.
     (dbus-error
      ;; Return an error message when it is a message call.
