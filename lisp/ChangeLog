@@ -1,5 +1,8 @@
 2009-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-bzr.el (vc-bzr-print-log): Pass multiple arguments to bzr log.
+	(vc-bzr-log-view-mode): Adjust log-view-file-re.
+
 	* add-log.el (change-log-mode-map): Add a menu.
 
 2009-07-27  Michael Albinus  <michael.albinus@gmx.de>

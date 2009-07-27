@@ -457,7 +457,7 @@ REV non-nil gets an error."
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
+  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
        "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
@@ -481,16 +481,11 @@ REV non-nil gets an error."
   ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
   ;; the log display may not what the user wants - but I see no other
   ;; way of getting the above regexps working.
-  (dolist (file files)
-    (vc-exec-after
-     `(let ((inhibit-read-only t))
-        (with-current-buffer buffer
-          ;; Insert the file name so that log-view.el can find it.
-          (insert "Working file: " ',file "\n")) ;; Like RCS/CVS.
-        (apply 'vc-bzr-command "log" ',buffer 'async ',file
-               ',(if (stringp vc-bzr-log-switches)
-                     (list vc-bzr-log-switches)
-                   vc-bzr-log-switches))))))
+  (with-current-buffer buffer
+    (apply 'vc-bzr-command "log" buffer 'async files
+	   (if (stringp vc-bzr-log-switches)
+	       (list vc-bzr-log-switches)
+	     vc-bzr-log-switches))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
