@@ -1273,6 +1273,9 @@ If @var{handler} wants to return just one Lisp object and it is not a
 cons cell, @var{handler} can return this object directly, instead of
 returning a list containing the object.
 
+In case @var{handler} shall return a reply message with an empty
+argument list, @var{handler} must return the symbol @code{:ignore}.
+
 The default D-Bus timeout when waiting for a message reply is 25
 seconds.  This value could be even smaller, depending on the calling
 client.  Therefore, @var{handler} shall not last longer than
