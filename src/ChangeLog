@@ -1,3 +1,7 @@
+2009-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/netbsd.h (SIGNALS_VIA_CHARACTERS): Remove, already defined in bsd-common.h
+
 2009-07-27  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (face_with_height): Call font_clear_prop.
