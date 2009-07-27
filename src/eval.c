@@ -609,7 +609,7 @@ unconditionally for that argument.  (`p' is a good way to do this.)  */)
 
 
 DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
-       doc: /* Return t if the function using this was called with `call-interactively'.
+       doc: /* Return t if it is in a function called with `call-interactively'.
 This is used for implementing advice and other function-modifying
 features of Emacs.
 
