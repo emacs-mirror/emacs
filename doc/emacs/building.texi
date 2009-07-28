@@ -1272,11 +1272,11 @@ your own, put them in a single directory and add that directory to
 @cindex autoload
   Some commands are @dfn{autoloaded}: when you run them, Emacs will
 automatically load the associated library first.  For instance, the
-@code{compile} and @code{compilation-mode} commands are autoloaded; if
-you call either command, Emacs automatically loads @file{compile.elc}
-or @file{compile.el}.  (In contrast, the command @code{recompile} is
-not autoloaded, and thus unavailable until you load @file{compile.elc}
-or @file{compile.el}.)
+@code{compile} and @code{compilation-mode} commands
+(@pxref{Compilation}) are autoloaded; if you call either command,
+Emacs automatically loads the @code{compile} library.  In contrast,
+the command @code{recompile} is not autoloaded, so it is unavailable
+until you load the @code{compile} library.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
