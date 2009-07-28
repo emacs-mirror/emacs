@@ -1270,11 +1270,13 @@ your own, put them in a single directory and add that directory to
 @end example
 
 @cindex autoload
-  Often you do not have to give any command to load a library, because
-the commands defined in the library are set up to @dfn{autoload} that
-library.  Trying to run any of those commands calls @code{load} to load
-the library; this replaces the autoload definitions with the real ones
-from the library.
+  Some commands are @dfn{autoloaded}: when you run them, Emacs will
+automatically load the associated library first.  For instance, the
+@code{compile} and @code{compilation-mode} commands
+(@pxref{Compilation}) are autoloaded; if you call either command,
+Emacs automatically loads the @code{compile} library.  In contrast,
+the command @code{recompile} is not autoloaded, so it is unavailable
+until you load the @code{compile} library.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
