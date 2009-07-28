@@ -3118,6 +3118,9 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	(tramp-error
 	 v 'file-already-exists "File %s already exists" newname)))
 
+    (with-parsed-tramp-file-name (if t1 filename newname) nil
+      (tramp-message v 0 "Transferring %s to %s..." filename newname))
+
     (prog1
 	(cond
 	 ;; Both are Tramp files.
@@ -3133,13 +3136,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 		 op filename newname
 		 ok-if-already-exists keep-date preserve-uid-gid))
 
-	       ;; If both source and target are Tramp files,
-	       ;; both are using the same copy-program, then we
-	       ;; can invoke rcp directly.  Note that
-	       ;; default-directory should point to a local
-	       ;; directory if we want to invoke rcp.
-	       ((and (equal v1-method v2-method)
-		     (tramp-method-out-of-band-p v1)
+	       ;; Try out-of-band operation.
+	       ((and (tramp-method-out-of-band-p v1)
 		     (> (nth 7 (file-attributes filename))
 			tramp-copy-size-limit))
 		(tramp-do-copy-or-rename-file-out-of-band
@@ -3192,7 +3190,10 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
       ;; When newname did exist, we have wrong cached values.
       (when t2
 	(with-parsed-tramp-file-name newname nil
-	  (tramp-flush-file-property v localname))))))
+	  (tramp-flush-file-property v localname)))
+
+      (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(tramp-message v 0 "Transferring %s to %s...done" filename newname)))))
 
 (defun tramp-do-copy-or-rename-file-via-buffer (op filename newname keep-date)
   "Use an Emacs buffer to copy or rename a file.
@@ -3376,106 +3377,117 @@ the uid and gid from FILENAME."
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
   "Invoke rcp program to copy.
-One of FILENAME and NEWNAME must be a Tramp name, the other must
-be a local filename.  The method used must be an out-of-band method."
+The method used must be an out-of-band method."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
 	copy-program copy-args copy-keep-date port spec
 	source target)
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
+      (if (and t1 t2)
 
-      ;; Expand hops.  Might be necessary for gateway methods.
-      (setq v (car (tramp-compute-multi-hops v)))
-      (aset v 3 localname)
+	  ;; Both are Tramp files.  We shall optimize it, when the
+	  ;; methods for filename and newname are the same.
+	  (let ((tmpfile (tramp-compat-make-temp-file localname)))
+	    (unwind-protect
+		(progn
+		  (tramp-do-copy-or-rename-file-out-of-band
+		   op filename tmpfile keep-date)
+		  (tramp-do-copy-or-rename-file-out-of-band
+		   'rename tmpfile newname keep-date))
+	      ;; Save exit.
+	      (condition-case nil
+		  (delete-file tmpfile)
+		(error))))
 
-      ;; Check which ones of source and target are Tramp files.
-      (setq source (if t1 (tramp-make-copy-program-file-name v) filename)
-	    target (if t2 (tramp-make-copy-program-file-name v) newname))
+	;; Expand hops.  Might be necessary for gateway methods.
+	(setq v (car (tramp-compute-multi-hops v)))
+	(aset v 3 localname)
 
-      ;; Check for port number.  Until now, there's no need for handling
-      ;; like method, user, host.
-      (setq host (tramp-file-name-real-host v)
-	    port (tramp-file-name-port v)
-	    port (or (and port (number-to-string port)) ""))
+	;; Check which ones of source and target are Tramp files.
+	(setq source (if t1 (tramp-make-copy-program-file-name v) filename)
+	      target (if t2 (tramp-make-copy-program-file-name v) newname))
 
-      ;; Compose copy command.
-      (setq spec `((?h . ,host) (?u . ,user) (?p . ,port)
-		   (?t . ,(tramp-get-connection-property
-			   (tramp-get-connection-process v) "temp-file" ""))
-		   (?k . ,(if keep-date " " "")))
-	    copy-program (tramp-get-method-parameter
-			  method 'tramp-copy-program)
-	    copy-keep-date (tramp-get-method-parameter
-			    method 'tramp-copy-keep-date)
-	    copy-args
-	    (delq
-	     nil
-	     (mapcar
-	      '(lambda (x)
-		 (setq
-		  ;; " " is indication for keep-date argument.
-		  x (delete " " (mapcar '(lambda (y) (format-spec y spec)) x)))
-		 (unless (member "" x) (mapconcat 'identity x " ")))
-	      (tramp-get-method-parameter method 'tramp-copy-args))))
+	;; Check for port number.  Until now, there's no need for handling
+	;; like method, user, host.
+	(setq host (tramp-file-name-real-host v)
+	      port (tramp-file-name-port v)
+	      port (or (and port (number-to-string port)) ""))
 
-      ;; Check for program.
-      (when (and (fboundp 'executable-find)
-		 (not (let ((default-directory
-			      (tramp-compat-temporary-file-directory)))
-			(executable-find copy-program))))
-	(tramp-error
-	 v 'file-error "Cannot find copy program: %s" copy-program))
+	;; Compose copy command.
+	(setq spec `((?h . ,host) (?u . ,user) (?p . ,port)
+		     (?t . ,(tramp-get-connection-property
+			     (tramp-get-connection-process v) "temp-file" ""))
+		     (?k . ,(if keep-date " " "")))
+	      copy-program (tramp-get-method-parameter
+			    method 'tramp-copy-program)
+	      copy-keep-date (tramp-get-method-parameter
+			      method 'tramp-copy-keep-date)
+	      copy-args
+	      (delq
+	       nil
+	       (mapcar
+		'(lambda (x)
+		   (setq
+		    x
+		    ;; " " is indication for keep-date argument.
+		    (delete " " (mapcar '(lambda (y) (format-spec y spec)) x)))
+		   (unless (member "" x) (mapconcat 'identity x " ")))
+		(tramp-get-method-parameter method 'tramp-copy-args))))
 
-      (tramp-message v 0 "Transferring %s to %s..." filename newname)
+	;; Check for program.
+	(when (and (fboundp 'executable-find)
+		   (not (let ((default-directory
+				(tramp-compat-temporary-file-directory)))
+			  (executable-find copy-program))))
+	  (tramp-error
+	   v 'file-error "Cannot find copy program: %s" copy-program))
 
-      (unwind-protect
-	  (with-temp-buffer
-	    ;; The default directory must be remote.
-	    (let ((default-directory
-		    (file-name-directory (if t1 filename newname))))
-	      ;; Set the transfer process properties.
-	      (tramp-set-connection-property
-	       v "process-name" (buffer-name (current-buffer)))
-	      (tramp-set-connection-property
-	       v "process-buffer" (current-buffer))
+	(unwind-protect
+	    (with-temp-buffer
+	      ;; The default directory must be remote.
+	      (let ((default-directory
+		      (file-name-directory (if t1 filename newname))))
+		;; Set the transfer process properties.
+		(tramp-set-connection-property
+		 v "process-name" (buffer-name (current-buffer)))
+		(tramp-set-connection-property
+		 v "process-buffer" (current-buffer))
 
-	      ;; Use an asynchronous process.  By this, password can
-	      ;; be handled.  The default directory must be local, in
-	      ;; order to apply the correct `copy-program'.  We don't
-	      ;; set a timeout, because the copying of large files can
-	      ;; last longer than 60 secs.
-	      (let ((p (let ((default-directory
-			       (tramp-compat-temporary-file-directory)))
-			 (apply 'start-process
-				(tramp-get-connection-property
-				 v "process-name" nil)
-				(tramp-get-connection-property
-				 v "process-buffer" nil)
-				copy-program
-				(append copy-args (list source target))))))
-		(tramp-message
-		 v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		(tramp-set-process-query-on-exit-flag p nil)
-		(tramp-process-actions p v tramp-actions-copy-out-of-band))))
+		;; Use an asynchronous process.  By this, password can
+		;; be handled.  The default directory must be local, in
+		;; order to apply the correct `copy-program'.  We don't
+		;; set a timeout, because the copying of large files can
+		;; last longer than 60 secs.
+		(let ((p (let ((default-directory
+				 (tramp-compat-temporary-file-directory)))
+			   (apply 'start-process
+				  (tramp-get-connection-property
+				   v "process-name" nil)
+				  (tramp-get-connection-property
+				   v "process-buffer" nil)
+				  copy-program
+				  (append copy-args (list source target))))))
+		  (tramp-message
+		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
+		  (tramp-set-process-query-on-exit-flag p nil)
+		  (tramp-process-actions p v tramp-actions-copy-out-of-band))))
 
-	;; Reset the transfer process properties.
-	(tramp-set-connection-property v "process-name" nil)
-	(tramp-set-connection-property v "process-buffer" nil))
+	  ;; Reset the transfer process properties.
+	  (tramp-set-connection-property v "process-name" nil)
+	  (tramp-set-connection-property v "process-buffer" nil))
 
-      (tramp-message v 0 "Transferring %s to %s...done" filename newname)
+	;; Handle KEEP-DATE argument.
+	(when (and keep-date (not copy-keep-date))
+	  (set-file-times newname (nth 5 (file-attributes filename))))
 
-      ;; Handle KEEP-DATE argument.
-      (when (and keep-date (not copy-keep-date))
-	(set-file-times newname (nth 5 (file-attributes filename))))
+	;; Set the mode.
+	(unless (and keep-date copy-keep-date)
+	  (set-file-modes newname (tramp-default-file-modes filename))))
 
-      ;; Set the mode.
-      (unless (and keep-date copy-keep-date)
-	(set-file-modes newname (tramp-default-file-modes filename))))
-
-    ;; If the operation was `rename', delete the original file.
-    (unless (eq op 'copy)
-      (delete-file filename))))
+      ;; If the operation was `rename', delete the original file.
+      (unless (eq op 'copy)
+	(delete-file filename)))))
 
 (defun tramp-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -7855,6 +7867,7 @@ Only works for Bourne-like shells."
 ;;   tramp-server-local-variable-alist) to define any such variables
 ;;   that they need to, which would then be let bound as appropriate
 ;;   in tramp functions. (Jason Rumney)
+;; * Optimize out-of-band copying, when both methods are scp-like.
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
