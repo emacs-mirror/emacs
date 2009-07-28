@@ -1,3 +1,11 @@
+2009-07-28  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): Check DPI and AVGWIDTH properties more
+	rigidly.
+
+	* xfont.c (xfont_list_pattern): Don't ignore the return value of
+	font_parse_xlfd.  Check font properties more rigidly.
+
 2009-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/netbsd.h (SIGNALS_VIA_CHARACTERS): Remove, already defined in bsd-common.h
