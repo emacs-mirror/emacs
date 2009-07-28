@@ -17921,18 +17921,18 @@ Your Init File, emacs, The GNU Emacs Manual}.
 @cindex Conditional 'twixt two versions of Emacs
 @cindex Version of Emacs, choosing
 @cindex Emacs version, choosing
-If you run two versions of GNU Emacs, such as versions 21 and 22, and
+If you run two versions of GNU Emacs, such as versions 22 and 23, and
 use one @file{.emacs} file, you can select which code to evaluate with
 the following conditional:
 
 @smallexample
 @group
 (cond
- (= 21 emacs-major-version)
-  ;; evaluate version 21 code
-  ( @dots{} ))
- (= 22 emacs-major-version)
+ ((= 22 emacs-major-version)
   ;; evaluate version 22 code
+  ( @dots{} ))
+ ((= 23 emacs-major-version)
+  ;; evaluate version 23 code
   ( @dots{} )))
 @end group
 @end smallexample
@@ -17954,52 +17954,36 @@ emacs -Q - D
 
 @smallexample
 @group
-(when (or (= 21 emacs-major-version)
-          (= 22 emacs-major-version))
-      (blink-cursor-mode 0)
-      ;; Insert newline when you press `C-n' (next-line)
-      ;; at the end of the buffer
-      (setq next-line-add-newlines t)
-@end group
-@group
-      ;; Turn on image viewing
-      (auto-image-file-mode t)
-@end group
-@group
-      ;; Turn on menu bar (this bar has text)
-      ;; (Use numeric argument to turn on)
-      (menu-bar-mode 1)
-@end group
-@group
-      ;; Turn off tool bar (this bar has icons)
-      ;; (Use numeric argument to turn on)
-      (tool-bar-mode nil)
-@end group
-@group
-      ;; Turn off tooltip mode for tool bar
-      ;; (This mode causes icon explanations to pop up)
-      ;; (Use numeric argument to turn on)
-      (tooltip-mode nil)
-      ;; If tooltips turned on, make tips appear promptly
-      (setq tooltip-delay 0.1)  ; default is 0.7 second
-       )
-@end group
-@end smallexample
-
-@need 1250
-Alternatively, since @code{blink-cursor-mode} has existed since Emacs
-version 21 and is likely to continue, you could write
-
-@smallexample
-@group
 (when (>= emacs-major-version 21)
   (blink-cursor-mode 0)
+  ;; Insert newline when you press `C-n' (next-line)
+  ;; at the end of the buffer
+  (setq next-line-add-newlines t)
+@end group
+@group
+  ;; Turn on image viewing
+  (auto-image-file-mode t)
+@end group
+@group
+  ;; Turn on menu bar (this bar has text)
+  ;; (Use numeric argument to turn on)
+  (menu-bar-mode 1)
+@end group
+@group
+  ;; Turn off tool bar (this bar has icons)
+  ;; (Use numeric argument to turn on)
+  (tool-bar-mode nil)
+@end group
+@group
+  ;; Turn off tooltip mode for tool bar
+  ;; (This mode causes icon explanations to pop up)
+  ;; (Use numeric argument to turn on)
+  (tooltip-mode nil)
+  ;; If tooltips turned on, make tips appear promptly
+  (setq tooltip-delay 0.1)  ; default is 0.7 second
+   )
 @end group
 @end smallexample
-
-@noindent
-and add other expressions, too.
-
 
 @node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
 @section X11 Colors
