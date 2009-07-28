@@ -1,3 +1,15 @@
+2009-07-28  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): Check DPI and AVGWIDTH properties more
+	rigidly.
+
+	* xfont.c (xfont_list_pattern): Don't ignore the return value of
+	font_parse_xlfd.  Check font properties more rigidly.
+
+2009-07-27  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (face_with_height): Call font_clear_prop.
+
 2009-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfont.m (nsfont_draw): Revert 2009-07-15 change.
