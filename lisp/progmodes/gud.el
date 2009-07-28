@@ -191,9 +191,11 @@ Used to grey out relevant toolbar icons.")
 				 (buffer-local-value
 				  'gud-target-name gud-comint-buffer) "emacs")
 				(eq gud-minor-mode 'gdbmi)))
-    ([print*]	menu-item "Print Dereference" gud-pstar
+    ([print*]	menu-item (if (eq gud-minor-mode 'jdb)
+			      "Dump object"
+			    "Print Dereference") gud-pstar
                   :enable (not gud-running)
-		  :visible (memq gud-minor-mode '(gdbmi gdb)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb jdb)))
     ([print]	menu-item "Print Expression" gud-print
                   :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
@@ -2296,7 +2298,8 @@ gud, see `gud-mode'."
   (gud-def gud-up     "up\C-Mwhere"   "<"    "Up one stack frame.")
   (gud-def gud-down   "down\C-Mwhere" ">"    "Up one stack frame.")
   (gud-def gud-run    "run"           nil    "Run the program.") ;if VM start using jdb
-  (gud-def gud-print  "print %e"  "\C-p" "Evaluate Java expression at point.")
+  (gud-def gud-print  "print %e"  "\C-p" "Print value of expression at point.")
+  (gud-def gud-pstar  "dump %e"  nil "Print all object information at point.")
 
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
