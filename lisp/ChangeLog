@@ -1,3 +1,7 @@
+2009-07-28  Steve Yegge  <steve.yegge@gmail.com>>
+
+	* progmodes/js2-mode.el: New file.
+
 2009-07-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (jdb): Add gud-pstar to dump object information.

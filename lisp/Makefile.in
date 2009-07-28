@@ -1051,6 +1051,7 @@ ELCFILES = \
 	$(lisp)/progmodes/idlw-toolbar.elc \
 	$(lisp)/progmodes/idlwave.elc \
 	$(lisp)/progmodes/inf-lisp.elc \
+	$(lisp)/progmodes/js2-mode.elc \
 	$(lisp)/progmodes/ld-script.elc \
 	$(lisp)/progmodes/m4-mode.elc \
 	$(lisp)/progmodes/make-mode.elc \
