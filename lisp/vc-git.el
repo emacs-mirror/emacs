@@ -436,7 +436,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
     (vc-git-command nil 0 files "commit"
-		    (if vc-git-add-signoff "-s" "") "-m" comment "--only" "--")))
+		    (if vc-git-add-signoff "-s") "-m" comment "--only" "--")))
 
 (defun vc-git-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
