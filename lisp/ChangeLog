@@ -1,3 +1,8 @@
+2009-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (jdb): Add gud-pstar to dump object information.
+	(gud-menu-map): Adjust tooltip accordingly.
+
 2009-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-print-log): Pass multiple arguments to bzr log.
