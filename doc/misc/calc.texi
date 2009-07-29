@@ -11845,11 +11845,28 @@ which copies instead of moving the element in level @var{n}.)
 With a negative argument @mathit{-@var{n}}, @key{TAB} rotates the stack
 to move the object in level @var{n} to the deepest place in the
 stack, and the object in level @mathit{@var{n}+1} to the top.  @kbd{M-@key{TAB}}
-rotates the deepest stack element to be in level @mathit{n}, also
+rotates the deepest stack element to be in level @var{n}, also
 putting the top stack element in level @mathit{@var{n}+1}.
 
 @xref{Selecting Subformulas}, for a way to apply these commands to
 any portion of a vector or formula on the stack.
+
+@kindex C-xC-t
+@pindex calc-transpose-lines
+@cindex Moving stack entries
+The command @kbd{C-x C-t} (@code{calc-transpose-lines}) will transpose
+the stack object determined by the point with the stack object at the
+next higher level. For example, with @samp{10 20 30 40 50} on the
+stack and the point on the line containing @samp{30}, @kbd{C-x C-t}
+creates @samp{10 20 40 30 50}.  More generally, @kbd{C-x C-t} acts on
+the stack objects determined by the current point (and mark) similar
+to how the text-mode command @code{transpose-lines} acts on 
+lines.  With argument @var{n}, @kbd{C-x C-t} will move the stack object
+at the level above the current point and move it past N other objects;
+for example, with @samp{10 20 30 40 50} on the stack and the point on
+the line containing @samp{30}, @kbd{C-u 2 C-x C-t} creates 
+@samp{10 40 20 30 50}. With an argument of 0, @kbd{C-x C-t} will switch
+the stack objects at the levels determined by the point and the mark. 
 
 @node Editing Stack Entries, Trail Commands, Stack Manipulation, Stack and Trail
 @section Editing Stack Entries
