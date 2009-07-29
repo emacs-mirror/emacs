@@ -2494,7 +2494,7 @@ breakpoints buffer."
   (let ((breakpoint (get-text-property (point) 'gdb-breakpoint)))
     (if breakpoint
 	(let ((bptno (gdb-get-field breakpoint 'number))
-	      (file  (gdb-get-field breakpoint 'file))
+	      (file  (gdb-get-field breakpoint 'fullname))
 	      (line  (gdb-get-field breakpoint 'line)))
 	  (save-selected-window
 	    (let* ((buffer (find-file-noselect
