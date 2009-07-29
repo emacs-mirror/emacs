@@ -1,3 +1,7 @@
+2009-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.1 released.
+
 2009-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-handler): Save match data.
