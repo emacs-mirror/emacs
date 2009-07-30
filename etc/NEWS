@@ -230,16 +230,13 @@ mode menus have been improved to include more functionality.
 *** The mode-line displays a `@', instead of `-', if the
 default-directory for the current buffer is on a remote machine.
 
-*** The mode-line displays a mode menu when mouse-1 is clicked on a
-minor mode, in the same way as it already did for major modes.
+*** The VC, line/colum number and minor mode indicators on the mode
+line are now interactive: mouse-1 can be used on them to pop up a menu.
 
 *** The `mode-line-emphasis' face is used to highlight certain
 mode-line information (e.g. waiting for a VC command to finish).
 
 *** The mode-line tooltips have been improved to provide more details.
-
-*** The VC, line/colum number and minor mode indicators on the mode
-line are now interactive: mouse-1 can be used on them to pop up a menu.
 
 ** File deletion can make use of the Recycle Bin or system Trash folder.
 Set `delete-by-moving-to-trash' non-nil to use this.  Deleted files
@@ -883,6 +880,7 @@ history.  See `Minibuffer changes', above.
 *** Upgraded to MH-E version 8.2.  See MH-E-NEWS for details.
 
 ** Python
+
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
 that either version can be used as inferior Python by python.el.
 
@@ -1244,22 +1242,22 @@ the fontset of the selected frame and t is for the default fontset.
 Now, nil is for the fontset of the selected frame and t is for the
 default fontset.
 
-** If a function in write-region-annotate-functions returns with a
+** If a function in `write-region-annotate-functions' returns with a
 different buffer current, Emacs no longer kills that buffer
 automatically.  This behavior existed in previous versions of Emacs,
 but was undocumented.  To kill a buffer after write-region, give the
 variable `write-region-post-annotation-function' a buffer-local value
 of `kill-buffer'.
 
-** The variable temp-file-name-pattern has been removed.
-This variable was only used by call-process-region, which now uses
-temporary-file-directory instead.
+** The variable `temp-file-name-pattern' has been removed.
+This variable was only used by `call-process-region', which now uses
+`temporary-file-directory' instead.
 
-** The COUNT and SYSTEM-FLAG arguments to define-abbrev have been
+** The COUNT and SYSTEM-FLAG arguments to `define-abbrev' have been
 removed.  The function now takes extra arguments for specifying
 arbitrary abbrev properties.
 
-** end-of-defun-function is now guaranteed to work only when called
+** `end-of-defun-function' is now guaranteed to work only when called
 from the start of a defun.  It must now leave point exactly at the end
 of defun, since `end-of-defun' now itself moves forward over
 whitespace after calling it.
@@ -1309,7 +1307,7 @@ like this:
 	(foo bar)
       ((debug error) nil))
 
-** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
+** `clone-indirect-buffer' now runs the `clone-indirect-buffer-hook'.
 
 ** `beginning-of-defun-function' now takes one argument, the count given to
 `beginning-of-defun'.  (N.B. `end-of-defun-function' doesn't take any
@@ -1366,22 +1364,22 @@ Emacs initialization.
 
 ** Changes affecting display-buffer
 
-*** display-buffer tries to be smarter when splitting windows.
-The new option split-window-preferred-function lets you specify your own
-function to pop up new windows.  Its default value split-window-sensibly
+*** `display-buffer' tries to be smarter when splitting windows.
+The new option `split-window-preferred-function' lets you specify your own
+function to pop up new windows.  Its default value `split-window-sensibly'
 can split a window either vertically or horizontally, whichever seems
 more suitable in the current configuration.  You can tune the behavior
-of split-window-sensibly by customizing split-height-threshold and the
-new option split-width-threshold.  Both options now take the value nil
+of split-window-sensibly by customizing `split-height-threshold' and the
+new option `split-width-threshold'.  Both options now take the value nil
 to inhibit splitting in one direction.  Setting split-width-threshold to
 nil inhibits horizontal splitting and gets you the behavior of Emacs 22
 in this respect.  In any case, display-buffer may now split the largest
 window vertically even when it is not as wide as the containing frame.
 
-*** If pop-up-frames has the value `graphic-only', display-buffer only
+*** If `pop-up-frames' has the value `graphic-only', display-buffer only
 makes a separate frame on graphic displays.
 
-*** select-frame and set-frame-selected-window have a new optional
+*** `select-frame' and `set-frame-selected-window' have a new optional
 argument NORECORD.  If non-nil, this will avoid messing with the order
 of recently selected windows and the buffer list.
 
@@ -1389,8 +1387,8 @@ of recently selected windows and the buffer list.
 These are analogous to frame parameters, but are associated with
 individual windows.
 
-*** The new functions window-parameters, window-parameter, and
-set-window-parameter are used to query and set window parameters.
+*** The new functions `window-parameters', `window-parameter', and
+`set-window-parameter' are used to query and set window parameters.
 
 ** Minibuffer and completion changes
 
@@ -1404,8 +1402,8 @@ For empty input these functions return the first element of this list.
 regexp defaults (string at point, last Isearch/replacement regexp/string)
 via M-n when reading a regexp in the minibuffer.
 
-*** minibuffer-local-must-match-filename-map is now named
-minibuffer-local-filename-must-match-map.
+*** `minibuffer-local-must-match-filename-map' is now named
+`minibuffer-local-filename-must-match-map'.
 
 *** The `require-match' argument to `completing-read' accepts the new
 values `confirm-only' and `confirm-after-completion'.
@@ -1444,11 +1442,11 @@ unless it ends in whitespace.
 
 ** File handling changes
 
-*** set-file-modes is now interactive and can take the mode value in
+*** `set-file-modes' is now interactive and can take the mode value in
 symbolic notation thanks to auxiliary functions.
 
-*** file-local-variables-alist stores an alist of file-local
-variables defined in the current buffer.
+*** `file-local-variables-alist' stores an alist of file-local variables
+defined in the current buffer.
 
 ** Face-remapping
 
@@ -1468,7 +1466,7 @@ Editing Changes, above).
 **** `face-remap-add-relative' adds a face remapping entry to the
 current buffer.
 
-**** ``face-remap-remove-relative' removes a face remapping entry from
+**** `face-remap-remove-relative' removes a face remapping entry from
 the current buffer.
 
 **** `face-remap-reset-base' restores a face to its global definition.
@@ -1737,8 +1735,8 @@ It now accepts a cons cell (COLS . LINES) in its first argument, which
 says to stop, where possible, at a pixel x-position equal to COLS
 times the default column width.
 
-*** redisplay-end-trigger-functions, set-window-redisplay-end-trigger,
-and window-redisplay-end-trigger are obsolete.  Use `jit-lock-register'
+*** `redisplay-end-trigger-functions', `set-window-redisplay-end-trigger',
+and `window-redisplay-end-trigger' are obsolete.  Use `jit-lock-register'
 instead.
 
 *** The new variables `wrap-prefix' and `line-prefix' specify display
