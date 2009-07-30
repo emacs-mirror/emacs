@@ -9819,6 +9819,23 @@ stack but resets everything else to its default state.
 @noindent
 @cindex Help commands
 @kindex ?
+@kindex a ?
+@kindex b ?
+@kindex c ?
+@kindex d ?
+@kindex f ?
+@kindex g ?
+@kindex j ?
+@kindex k ?
+@kindex m ?
+@kindex r ?
+@kindex s ?
+@kindex t ?
+@kindex u ?
+@kindex v ?
+@kindex V ?
+@kindex z ?
+@kindex Z ?
 @pindex calc-help
 The @kbd{?} key (@code{calc-help}) displays a series of brief help messages.
 Some keys (such as @kbd{b} and @kbd{d}) are prefix keys, like Emacs'
