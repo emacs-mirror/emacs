@@ -8,8 +8,8 @@
 
 2009-07-29  Dmitry Dzhus  <dima@sphinx.net.ru>
 
-	* progmodes/gdb-mi.el (gdb-goto-breakpoint): Use full path when
-	setting breakpoints.
+	* progmodes/gdb-mi.el (gdb-goto-breakpoint)
+	(gdb-place-breakpoints): Use full path when setting breakpoints.
 
 2009-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
 

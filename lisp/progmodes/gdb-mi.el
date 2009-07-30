@@ -1613,7 +1613,7 @@ OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
     (dolist (breakpoint gdb-breakpoints-list)
       (let ((line (gdb-get-field breakpoint 'line)))
         (when line
-          (let ((file (gdb-get-field breakpoint 'file))
+          (let ((file (gdb-get-field breakpoint 'fullname))
                 (flag (gdb-get-field breakpoint 'enabled))
                 (bptno (gdb-get-field breakpoint 'number)))
             (unless (file-exists-p file)
