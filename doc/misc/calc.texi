@@ -16553,6 +16553,7 @@ or matrix argument, these functions operate element-wise.
 @mindex v p
 @end ignore
 @kindex v p (complex)
+@kindex V p (complex)
 @pindex calc-pack
 The @kbd{v p} (@code{calc-pack}) command can pack the top two numbers on
 the stack into a composite object such as a complex number.  With
@@ -16564,6 +16565,7 @@ with an argument of @mathit{-2}, it produces a polar complex number.
 @mindex v u
 @end ignore
 @kindex v u (complex)
+@kindex V u (complex)
 @pindex calc-unpack
 The @kbd{v u} (@code{calc-unpack}) command takes the complex number
 (or other composite object) on the top of the stack and unpacks it
@@ -19365,6 +19367,7 @@ described in this chapter because they are most often used to build
 vectors.
 
 @kindex v p
+@kindex V p
 @pindex calc-pack
 The @kbd{v p} (@code{calc-pack}) [@code{pack}] command collects several
 elements from the stack into a matrix, complex number, HMS form, error
@@ -19497,6 +19500,7 @@ number of data items does not match the number of items required
 by the mode.
 
 @kindex v u
+@kindex V u
 @pindex calc-unpack
 The @kbd{v u} (@code{calc-unpack}) command takes the vector, complex
 number, HMS form, or other composite object on the top of the stack and
@@ -19614,6 +19618,7 @@ two stack arguments in the opposite order.  Thus @kbd{I |} is equivalent
 to @kbd{@key{TAB} |}, but possibly more convenient and also a bit faster.
 
 @kindex v d
+@kindex V d
 @pindex calc-diag
 @tindex diag
 The @kbd{v d} (@code{calc-diag}) [@code{diag}] function builds a diagonal
@@ -19632,6 +19637,7 @@ matrix first and then add a constant value to that matrix.  (Another
 alternative would be to use @kbd{v b} and @kbd{v a}; see below.)
 
 @kindex v i
+@kindex V i
 @pindex calc-ident
 @tindex idn
 The @kbd{v i} (@code{calc-ident}) [@code{idn}] function builds an identity
@@ -19652,6 +19658,7 @@ identity matrices are immediately expanded to the current default
 dimensions.
 
 @kindex v x
+@kindex V x
 @pindex calc-index
 @tindex index
 The @kbd{v x} (@code{calc-index}) [@code{index}] function builds a vector
@@ -19676,6 +19683,7 @@ sequence to be generated.  For example, @samp{index(-3, a, b)} produces
 is one for positive @var{n} or two for negative @var{n}.
 
 @kindex v b
+@kindex V b
 @pindex calc-build-vector
 @tindex cvec
 The @kbd{v b} (@code{calc-build-vector}) [@code{cvec}] function builds a
@@ -19686,7 +19694,9 @@ can also be used to build an @var{n}-by-@var{m} matrix of copies of @var{x}.
 to build a matrix of copies of that row.)
 
 @kindex v h
+@kindex V h
 @kindex I v h
+@kindex I V h
 @pindex calc-head
 @pindex calc-tail
 @tindex head
@@ -19697,6 +19707,7 @@ function returns the vector with its first element removed.  In both
 cases, the argument must be a non-empty vector.
 
 @kindex v k
+@kindex V k
 @pindex calc-cons
 @tindex cons
 The @kbd{v k} (@code{calc-cons}) [@code{cons}] function takes a value @var{h}
@@ -19706,15 +19717,18 @@ if @var{h} is itself a vector, @kbd{|} will concatenate the two vectors
 whereas @code{cons} will insert @var{h} at the front of the vector @var{t}.
 
 @kindex H v h
+@kindex H V h
 @tindex rhead
 @ignore
 @mindex @idots
 @end ignore
 @kindex H I v h
+@kindex H I V h
 @ignore
 @mindex @null
 @end ignore
 @kindex H v k
+@kindex H V k
 @ignore
 @mindex @null
 @end ignore
@@ -19736,6 +19750,7 @@ Also, @samp{head([a, b, c, d]) = a}, @samp{tail([a, b, c, d]) = [b, c, d]},
 
 @noindent
 @kindex v r
+@kindex V r
 @pindex calc-mrow
 @tindex mrow
 The @kbd{v r} (@code{calc-mrow}) [@code{mrow}] command extracts one row of
@@ -19786,6 +19801,7 @@ of a square matrix in the form of a vector.  In algebraic form this
 function is called @code{getdiag}.
 
 @kindex v c
+@kindex V c
 @pindex calc-mcol
 @tindex mcol
 @tindex mrcol
@@ -19803,6 +19819,7 @@ use subscript notation:  @samp{m_i_j} gives row @expr{i}, column @expr{j}
 of matrix @expr{m}.
 
 @kindex v s
+@kindex V s
 @pindex calc-subvector
 @tindex subvec
 The @kbd{v s} (@code{calc-subvector}) [@code{subvec}] command extracts
@@ -19823,6 +19840,7 @@ end of the vector are used.  The infinity symbol, @code{inf}, also
 has this effect when used as the ending index.
 
 @kindex I v s
+@kindex I V s
 @tindex rsubvec
 With the Inverse flag, @kbd{I v s} [@code{rsubvec}] removes a subvector
 from a vector.  The arguments are interpreted the same as for the
@@ -19838,6 +19856,7 @@ vectors one element at a time.
 
 @noindent
 @kindex v l
+@kindex V l
 @pindex calc-vlength
 @tindex vlen
 The @kbd{v l} (@code{calc-vlength}) [@code{vlen}] command computes the
@@ -19846,6 +19865,7 @@ Note that matrices are just vectors of vectors for the purposes of this
 command.
 
 @kindex H v l
+@kindex H V l
 @tindex mdims
 With the Hyperbolic flag, @kbd{H v l} [@code{mdims}] computes a vector
 of the dimensions of a vector, matrix, or higher-order object.  For
@@ -19856,6 +19876,7 @@ its argument is a
 matrix.
 
 @kindex v f
+@kindex V f
 @pindex calc-vector-find
 @tindex find
 The @kbd{v f} (@code{calc-vector-find}) [@code{find}] command searches
@@ -19866,6 +19887,7 @@ Otherwise, the result is zero.  The numeric prefix argument, if given,
 allows you to select any starting index for the search.
 
 @kindex v a
+@kindex V a
 @pindex calc-arrange-vector
 @tindex arrange
 @cindex Arranging a matrix
@@ -19896,7 +19918,9 @@ matrix), and @kbd{v a 0} produces the flattened list
 @samp{[1, 2, @w{3, 4}]}.
 
 @cindex Sorting data
+@kindex v S
 @kindex V S
+@kindex I v S
 @kindex I V S
 @pindex calc-sort
 @tindex sort
@@ -19919,7 +19943,9 @@ The @kbd{I V S} [@code{rsort}] command sorts a vector into decreasing order.
 @cindex Inverse of permutation
 @cindex Index tables
 @cindex Rank tables
+@kindex v G
 @kindex V G
+@kindex I v G
 @kindex I V G
 @pindex calc-grade
 @tindex grade
@@ -19951,6 +19977,7 @@ by phone numbers.  Because the sort is stable, any two rows with equal
 phone numbers will remain sorted by name even after the second sort.
 
 @cindex Histograms
+@kindex v H
 @kindex V H
 @pindex calc-histogram
 @ignore
@@ -19968,6 +19995,7 @@ range are ignored.  (You can tell if elements have been ignored by noting
 that the counts in the result vector don't add up to the length of the
 input vector.)
 
+@kindex H v H
 @kindex H V H
 With the Hyperbolic flag, @kbd{H V H} pulls two vectors from the stack.
 The second-to-top vector is the list of numbers as before.  The top
@@ -19977,6 +20005,7 @@ the first weight is 10, then 10 will be added to bin 4 of the result
 vector.  Without the hyperbolic flag, every element has a weight of one.
 
 @kindex v t
+@kindex V t
 @pindex calc-transpose
 @tindex trn
 The @kbd{v t} (@code{calc-transpose}) [@code{trn}] command computes
@@ -19985,6 +20014,7 @@ is a plain vector, it is treated as a row vector and transposed into
 a one-column matrix.
 
 @kindex v v
+@kindex V v
 @pindex calc-reverse-vector
 @tindex rev
 The @kbd{v v} (@code{calc-reverse-vector}) [@code{rev}] command reverses
@@ -19994,6 +20024,7 @@ principle can be used to apply other vector commands to the columns of
 a matrix.)
 
 @kindex v m
+@kindex V m
 @pindex calc-mask-vector
 @tindex vmask
 The @kbd{v m} (@code{calc-mask-vector}) [@code{vmask}] command uses
@@ -20006,6 +20037,7 @@ to zeros in the mask vector deleted.  Thus, for example,
 @xref{Logical Operations}.
 
 @kindex v e
+@kindex V e
 @pindex calc-expand-vector
 @tindex vexp
 The @kbd{v e} (@code{calc-expand-vector}) [@code{vexp}] command
@@ -20019,6 +20051,7 @@ unreplaced in the result.  Thus @samp{vexp([2, 0, 3, 0, 7], [a, b])}
 produces @samp{[a, 0, b, 0, 7]}.
 
 @kindex H v e
+@kindex H V e
 With the Hyperbolic flag, @kbd{H v e} takes a filler value from the
 top of the stack; the mask and target vectors come from the third and
 second elements of the stack.  This filler is used where the mask is
@@ -20051,6 +20084,7 @@ vectors or matrices: @code{change-sign}, @code{conj}, @code{arg},
 @code{re}, @code{im}, @code{polar}, @code{rect}, @code{clean},
 @code{float}, @code{frac}.  @xref{Function Index}.
 
+@kindex v J
 @kindex V J
 @pindex calc-conj-transpose
 @tindex ctrn
@@ -20074,6 +20108,7 @@ a point in two- or three-dimensional space, this is the distance
 from that point to the origin.
 
 @kindex v n
+@kindex V n
 @pindex calc-rnorm
 @tindex rnorm
 The @kbd{v n} (@code{calc-rnorm}) [@code{rnorm}] command computes the
@@ -20082,6 +20117,7 @@ vector, this is the maximum of the absolute values of the elements.  For
 a matrix, this is the maximum of the row-absolute-value-sums, i.e., of
 the sums of the absolute values of the elements along the various rows.
 
+@kindex v N
 @kindex V N
 @pindex calc-cnorm
 @tindex cnorm
@@ -20093,6 +20129,7 @@ General @expr{k}-norms for @expr{k} other than one or infinity are
 not provided.  However, the 2-norm (or Frobenius norm) is provided for
 vectors by the @kbd{A} (@code{calc-abs}) command.
 
+@kindex v C
 @kindex V C
 @pindex calc-cross
 @tindex cross
@@ -20121,12 +20158,14 @@ command simply computes @expr{1/x}.  This is okay, because the
 @samp{/} operator also does a matrix inversion when dividing one
 by a matrix.
 
+@kindex v D
 @kindex V D
 @pindex calc-mdet
 @tindex det
 The @kbd{V D} (@code{calc-mdet}) [@code{det}] command computes the
 determinant of a square matrix.
 
+@kindex v L
 @kindex V L
 @pindex calc-mlud
 @tindex lud
@@ -20137,6 +20176,7 @@ The first is a permutation matrix that arises from pivoting in the
 algorithm, the second is lower-triangular with ones on the diagonal,
 and the third is upper-triangular.
 
+@kindex v T
 @kindex V T
 @pindex calc-mtrace
 @tindex tr
@@ -20144,6 +20184,7 @@ The @kbd{V T} (@code{calc-mtrace}) [@code{tr}] command computes the
 trace of a square matrix.  This is defined as the sum of the diagonal
 elements of the matrix.
 
+@kindex v K
 @kindex V K
 @pindex calc-kron
 @tindex kron
@@ -20184,6 +20225,7 @@ single interval, the interval itself is returned instead.
 a certain value is a member of a given set.  To test if the set @expr{A}
 is a subset of the set @expr{B}, use @samp{vdiff(A, B) = []}.
 
+@kindex v +
 @kindex V +
 @pindex calc-remove-duplicates
 @tindex rdup
@@ -20196,6 +20238,7 @@ necessary.  You rarely need to use @kbd{V +} explicitly, since all the
 other set-based commands apply @kbd{V +} to their inputs before using
 them.
 
+@kindex v V
 @kindex V V
 @pindex calc-set-union
 @tindex vunion
@@ -20205,6 +20248,7 @@ only if it is in either (or both) of the input sets.  (You could
 accomplish the same thing by concatenating the sets with @kbd{|},
 then using @kbd{V +}.)
 
+@kindex v ^
 @kindex V ^
 @pindex calc-set-intersect
 @tindex vint
@@ -20221,6 +20265,7 @@ and
 @texline intersection@tie{}(@math{A \cap B}).
 @infoline intersection.
 
+@kindex v -
 @kindex V -
 @pindex calc-set-difference
 @tindex vdiff
@@ -20235,6 +20280,7 @@ Obviously this is only practical if the set of all possible values in
 your problem is small enough to list in a Calc vector (or simple
 enough to express in a few intervals).
 
+@kindex v X
 @kindex V X
 @pindex calc-set-xor
 @tindex vxor
@@ -20244,6 +20290,7 @@ An object is in the symmetric difference of two sets if and only
 if it is in one, but @emph{not} both, of the sets.  Objects that
 occur in both sets ``cancel out.''
 
+@kindex v ~
 @kindex V ~
 @pindex calc-set-complement
 @tindex vcompl
@@ -20253,6 +20300,7 @@ Thus @samp{vcompl(x)} is equivalent to @samp{vdiff([-inf .. inf], x)}.
 For example, @samp{vcompl([2, (3 .. 4]])} evaluates to
 @samp{[[-inf .. 2), (2 .. 3], (4 .. inf]]}.
 
+@kindex v F
 @kindex V F
 @pindex calc-set-floor
 @tindex vfloor
@@ -20265,6 +20313,7 @@ complement of the set @samp{[2, 6, 7, 8]} is messy, but if you wanted
 the complement with respect to the set of integers you could type
 @kbd{V ~ V F} to get @samp{[[-inf .. 1], [3 .. 5], [9 .. inf]]}.
 
+@kindex v E
 @kindex V E
 @pindex calc-set-enumerate
 @tindex venum
@@ -20274,6 +20323,7 @@ the set are expanded out to lists of all integers encompassed by
 the intervals.  This only works for finite sets (i.e., sets which
 do not involve @samp{-inf} or @samp{inf}).
 
+@kindex v :
 @kindex V :
 @pindex calc-set-span
 @tindex vspan
@@ -20283,6 +20333,7 @@ The lower limit will be the smallest element in the set; the upper
 limit will be the largest element.  For an empty set, @samp{vspan([])}
 returns the empty interval @w{@samp{[0 .. 0)}}.
 
+@kindex v #
 @kindex V #
 @pindex calc-set-cardinality
 @tindex vcard
@@ -20702,6 +20753,7 @@ $$ r_{x\!y} = { \sigma_{x\!y}^2 \over \sigma_x^2 \sigma_y^2 } $$
 The commands in this section allow for more general operations on the
 elements of vectors.
 
+@kindex v A
 @kindex V A
 @pindex calc-apply
 @tindex apply
@@ -20879,6 +20931,7 @@ about it.)
 @subsection Mapping
 
 @noindent
+@kindex v M
 @kindex V M
 @pindex calc-map
 @tindex map
@@ -20975,6 +21028,7 @@ variable's stored value using a @kbd{V M}-like operator.
 @subsection Reducing
 
 @noindent
+@kindex v R
 @kindex V R
 @pindex calc-reduce
 @tindex reduce
@@ -20987,6 +21041,7 @@ the remaining elements.  Reducing @code{max} computes the maximum element
 and so on.  In general, reducing @code{f} over the vector @samp{[a, b, c, d]}
 produces @samp{f(f(f(a, b), c), d)}.
 
+@kindex I v R
 @kindex I V R
 @tindex rreduce
 The @kbd{I V R} [@code{rreduce}] command is similar to @kbd{V R} except
@@ -20996,6 +21051,7 @@ but @kbd{I V R -} on the same vector produces @samp{a - (b - (c - d))},
 or @samp{a - b + c - d}.  This ``alternating sum'' occurs frequently
 in power series expansions.
 
+@kindex v U
 @kindex V U
 @tindex accum
 The @kbd{V U} (@code{calc-accumulate}) [@code{accum}] command does an
@@ -21005,6 +21061,7 @@ a vector of all the intermediate results.  Accumulating @code{+} over
 the vector @samp{[a, b, c, d]} produces the vector
 @samp{[a, a + b, a + b + c, a + b + c + d]}.
 
+@kindex I v U
 @kindex I V U
 @tindex raccum
 The @kbd{I V U} [@code{raccum}] command does a right-to-left accumulation.
@@ -21052,6 +21109,7 @@ rows of the matrix.  @xref{Grabbing From Buffers}.
 @subsection Nesting and Fixed Points
 
 @noindent
+@kindex H v R
 @kindex H V R
 @tindex nest
 The @kbd{H V R} [@code{nest}] command applies a function to a given
@@ -21062,6 +21120,7 @@ is 3, the result is @samp{f(f(f(a)))}.  The number @samp{n} may be
 negative if Calc knows an inverse for the function @samp{f}; for
 example, @samp{nest(sin, a, -2)} returns @samp{arcsin(arcsin(a))}.
 
+@kindex H v U
 @kindex H V U
 @tindex anest
 The @kbd{H V U} [@code{anest}] command is an accumulating version of
@@ -21070,6 +21129,7 @@ The @kbd{H V U} [@code{anest}] command is an accumulating version of
 @samp{F} is the inverse of @samp{f}, then the result is of the
 form @samp{[a, F(a), F(F(a)), F(F(F(a)))]}.
 
+@kindex H I v R
 @kindex H I V R
 @tindex fixp
 @cindex Fixed points
@@ -21078,6 +21138,7 @@ that it takes only an @samp{a} value from the stack; the function is
 applied until it reaches a ``fixed point,'' i.e., until the result
 no longer changes.
 
+@kindex H I v U
 @kindex H I V U
 @tindex afixp
 The @kbd{H I V U} [@code{afixp}] command is an accumulating @code{fixp}.
@@ -21127,6 +21188,7 @@ when 20 steps have been taken, whichever is sooner.
 @node Generalized Products,  , Nesting and Fixed Points, Reducing and Mapping
 @subsection Generalized Products
 
+@kindex v O
 @kindex V O
 @pindex calc-outer-product
 @tindex outer
@@ -21138,6 +21200,7 @@ and @samp{[x, y, z]} on the stack produces a multiplication table:
 the result matrix is obtained by applying the operator to element @var{r}
 of the lefthand vector and element @var{c} of the righthand vector.
 
+@kindex v I
 @kindex V I
 @pindex calc-inner-product
 @tindex inner
@@ -21170,10 +21233,13 @@ in the same way (@pxref{Display Modes}).  Matrix display is also
 influenced by the @kbd{d O} (@code{calc-flat-language}) mode;
 @pxref{Normal Language Modes}.
 
+@kindex v <
 @kindex V <
 @pindex calc-matrix-left-justify
+@kindex v =
 @kindex V =
 @pindex calc-matrix-center-justify
+@kindex v >
 @kindex V >
 @pindex calc-matrix-right-justify
 The commands @kbd{v <} (@code{calc-matrix-left-justify}), @kbd{v >}
@@ -21181,10 +21247,13 @@ The commands @kbd{v <} (@code{calc-matrix-left-justify}), @kbd{v >}
 (@code{calc-matrix-center-justify}) control whether matrix elements
 are justified to the left, right, or center of their columns.
 
+@kindex v [
 @kindex V [
 @pindex calc-vector-brackets
+@kindex v @{
 @kindex V @{
 @pindex calc-vector-braces
+@kindex v (
 @kindex V (
 @pindex calc-vector-parens
 The @kbd{v [} (@code{calc-vector-brackets}) command turns the square
@@ -21199,15 +21268,21 @@ display mode, either brackets or braces may be used to enter vectors,
 and parentheses may never be used for this purpose.
 
 @kindex V ]
+@kindex v ]
+@kindex V )
+@kindex v )
+@kindex V @}
+@kindex v @}
 @pindex calc-matrix-brackets
 The @kbd{v ]} (@code{calc-matrix-brackets}) command controls the
-``big'' style display of matrices.  It prompts for a string of code
-letters; currently implemented letters are @code{R}, which enables
-brackets on each row of the matrix; @code{O}, which enables outer
-brackets in opposite corners of the matrix; and @code{C}, which
-enables commas or semicolons at the ends of all rows but the last.
-The default format is @samp{RO}.  (Before Calc 2.00, the format
-was fixed at @samp{ROC}.)  Here are some example matrices:
+``big'' style display of matrices, for matrices which have more than
+one row.  It prompts for a string of code letters; currently
+implemented letters are @code{R}, which enables brackets on each row
+of the matrix; @code{O}, which enables outer brackets in opposite
+corners of the matrix; and @code{C}, which enables commas or
+semicolons at the ends of all rows but the last.  The default format
+is @samp{RO}.  (Before Calc 2.00, the format was fixed at @samp{ROC}.)
+Here are some example matrices:
 
 @example
 @group
@@ -21246,6 +21321,7 @@ Note that of the formats shown here, @samp{RO}, @samp{ROC}, and
 @samp{OC} are all recognized as matrices during reading, while
 the others are useful for display only.
 
+@kindex v ,
 @kindex V ,
 @pindex calc-vector-commas
 The @kbd{v ,} (@code{calc-vector-commas}) command turns commas on and
@@ -21261,6 +21337,7 @@ case as @samp{[(a b)]}.  You can disable these extra parentheses
 ambiguity) by adding the letter @code{P} to the control string you
 give to @kbd{v ]} (as described above).
 
+@kindex v .
 @kindex V .
 @pindex calc-full-vectors
 The @kbd{v .} (@code{calc-full-vectors}) command turns abbreviated
@@ -21282,6 +21359,7 @@ unable to recover those vectors.  If you are working with very
 large vectors, this mode will improve the speed of all operations
 that involve the trail.
 
+@kindex v /
 @kindex V /
 @pindex calc-break-vectors
 The @kbd{v /} (@code{calc-break-vectors}) command turns multi-line
