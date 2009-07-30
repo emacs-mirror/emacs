@@ -3,6 +3,7 @@
 	* calc.texi (Vector/Matrix Functions): Add index entries for both
 	"v" and "V" key bindings.  Mention that `calc-matrix-brackets' only
 	affects matrices with more than one row.
+	(Help Commands): Add index entries for "prefix ?" keybindings.
 
 2009-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
