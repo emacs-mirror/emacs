@@ -664,7 +664,7 @@
      (message "Not surrounding vectors with brackets"))))
 
 (defun calc-matrix-brackets (arg)
-  (interactive "sCode letters (R, O, C, P): ")
+  (interactive "sCode letters (R, O, C): ")
   (calc-wrapper
    (let ((code (append (and (string-match "[rR]" arg) '(R))
 		       (and (string-match "[oO]" arg) '(O))
