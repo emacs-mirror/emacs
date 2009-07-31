@@ -4285,7 +4285,7 @@ into account variable-width characters and line continuation."
 	       (point))))
 
 	;; Move to the desired column.
-	(line-move-to-column column)
+	(line-move-to-column (truncate column))
 
 	;; Corner case: suppose we start out in a field boundary in
 	;; the middle of a continued line.  When we get to
