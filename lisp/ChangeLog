@@ -2,6 +2,7 @@
 
 	* simple.el (line-move-finish): Pass whole number to
 	line-move-to-column.
+	(line-move-visual): Perform hscroll to the recorded position.
 
 2009-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
 

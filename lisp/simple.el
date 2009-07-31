@@ -4092,29 +4092,30 @@ into account variable-width characters and line continuation."
 ;; Arg says how many lines to move.  The value is t if we can move the
 ;; specified number of lines.
 (defun line-move-visual (arg &optional noerror)
-  (let ((posn (posn-at-point))
-	(opoint (point))
+  (let ((opoint (point))
 	(hscroll (window-hscroll))
-	x)
+	target-hscroll)
     ;; Check if the previous command was a line-motion command, or if
     ;; we were called from some other command.
-    (cond ((and (consp temporary-goal-column)
-		(memq last-command `(next-line previous-line ,this-command)))
-	   ;; If so, there's no need to reset `temporary-goal-column',
-	   ;; unless the window hscroll has changed.
-	   (when (/= hscroll (cdr temporary-goal-column))
-	     (set-window-hscroll nil 0)
-	     (setq temporary-goal-column
-		   (cons (+ (car temporary-goal-column)
-			    (cdr temporary-goal-column)) 0))))
-	  ;; Otherwise, we should reset `temporary-goal-column'.
-	  ;; Handle the `overflow-newline-into-fringe' case:
-	  ((eq (nth 1 posn) 'right-fringe)
-	   (setq temporary-goal-column (cons (- (window-width) 1) hscroll)))
-	  ((setq x (car (posn-x-y posn)))
-	   (setq temporary-goal-column
-		 (cons (/ (float x) (frame-char-width)) hscroll))))
-    ;; Move using `vertical-motion'.
+    (if (and (consp temporary-goal-column)
+	     (memq last-command `(next-line previous-line ,this-command)))
+	;; If so, there's no need to reset `temporary-goal-column',
+	;; but we may need to hscroll.
+	(if (or (/= (cdr temporary-goal-column) hscroll)
+		(>  (cdr temporary-goal-column) 0))
+	    (setq target-hscroll (cdr temporary-goal-column)))
+      ;; Otherwise, we should reset `temporary-goal-column'.
+      (let ((posn (posn-at-point)))
+	(cond
+	 ;; Handle the `overflow-newline-into-fringe' case:
+	 ((eq (nth 1 posn) 'right-fringe)
+	  (setq temporary-goal-column (cons (- (window-width) 1) hscroll)))
+	 ((car (posn-x-y posn))
+	  (setq temporary-goal-column
+		(cons (/ (float (car (posn-x-y posn)))
+			 (frame-char-width)) hscroll))))))
+    (if target-hscroll
+	(set-window-hscroll (selected-window) target-hscroll))
     (or (and (= (vertical-motion
 		 (cons (or goal-column
 			   (if (consp temporary-goal-column)
