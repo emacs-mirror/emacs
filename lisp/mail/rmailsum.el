@@ -518,16 +518,19 @@ the message being processed."
    (concat (save-excursion
 	     (if (not (re-search-forward "^Date:" nil t))
 		 "      "
-	       (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
-		       (line-end-position) t)
+	       ;; Match month names case-insensitively
+	       (cond ((let ((case-fold-search t))
+			(re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
+					   (line-end-position) t))
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 2)
 						 (match-end 2)))
 			      (buffer-substring
 			       (match-beginning 4) (match-end 4))))
-		     ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
-		       (line-end-position) t)
+		     ((let ((case-fold-search t))
+			(re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
+					   (line-end-position) t))
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 4)
