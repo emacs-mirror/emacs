@@ -11355,4 +11355,5 @@ it marks the next defun after the ones already marked."
 
 (provide 'js2-mode)
 
+;; arch-tag: 1dd56864-a3ef-4682-a63f-6341f6a42738
 ;;; js2-mode.el ends here
