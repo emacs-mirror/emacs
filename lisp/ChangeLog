@@ -1,3 +1,8 @@
+2009-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailsum.el (rmail-header-summary): Ignore letter-case of
+	month names.  (Bug#3987)
+
 2009-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-finish): Pass whole number to
