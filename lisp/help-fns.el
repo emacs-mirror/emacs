@@ -719,7 +719,12 @@ it is displayed along with the global value."
 				     (not (file-remote-p (buffer-file-name)))
 				     (dir-locals-find-file (buffer-file-name)))))
 		      (princ "  This variable is a directory local variable")
-		      (if file (princ (concat "\n  from the file \"" file "\"")))
+		      (when file
+			(princ (concat "\n  from the file \""
+				       (if (consp file)
+					   (car file)
+					 file)
+				       "\"")))
 		      (princ ".\n"))
 		  (princ "  This variable is a file local variable.\n")))
 

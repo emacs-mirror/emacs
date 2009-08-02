@@ -1,3 +1,8 @@
+2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-fns.el (describe-variable): Treat list return values from
+	dir-locals-find-file properly (Bug#4005).
+
 2009-08-02  Julian Scheid <julians37@googlemail.com>  (tiny change)
 
 	* net/tramp.el (tramp-debug-message): Print also microseconds.
