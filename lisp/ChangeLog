@@ -1,3 +1,8 @@
+2009-08-02  Jason Rumney  <jasonr@gnu.org>
+
+	* minibuffer.el (read-file-name): Treat confirm options to
+ 	MUSTMATCH as nil when invoking x-file-dialog.  (Bug#3969)
+
 2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font-lock.el (font-lock-string-face, font-lock-builtin-face)

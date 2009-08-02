@@ -1134,7 +1134,8 @@ DIR should be an absolute directory name.  It defaults to the value of
 If this command was invoked with the mouse, use a graphical file
 dialog if `use-dialog-box' is non-nil, and the window system or X
 toolkit in use provides a file dialog box.  For graphical file
-dialogs, any non-nil value of MUSTMATCH is equivalent to t.
+dialogs, any the special values of MUSTMATCH; `confirm' and
+`confirm-after-completion' are treated as equivalent to nil.
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
@@ -1180,7 +1181,16 @@ and `read-file-name-function'."
                                          default-filename)))
                   ;; If DEFAULT-FILENAME not supplied and DIR contains
                   ;; a file name, split it.
-                  (let ((file (file-name-nondirectory dir)))
+                  (let ((file (file-name-nondirectory dir))
+			;; When using a dialog, revert to nil and non-nil
+			;; interpretation of mustmatch. confirm options
+			;; need to be interpreted as nil, otherwise
+			;; it is impossible to create new files using
+			;; dialogs with the default settings.
+			(dialog-mustmatch
+			 (and (not (eq mustmatch 'confirm))
+			      (not (eq mustmatch 'confirm-after-completion))
+			      mustmatch)))
                     (when (and (not default-filename)
 			       (not (zerop (length file))))
                       (setq default-filename file)
@@ -1189,7 +1199,8 @@ and `read-file-name-function'."
                         (setq default-filename
                               (expand-file-name default-filename dir)))
                     (setq add-to-history t)
-                    (x-file-dialog prompt dir default-filename mustmatch
+                    (x-file-dialog prompt dir default-filename
+				   dialog-mustmatch
                                    (eq predicate 'file-directory-p)))))
 
                (replace-in-history (eq (car-safe file-name-history) val)))
