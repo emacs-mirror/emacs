@@ -79,13 +79,11 @@ considered to be running if the newsticker timer list is not empty."
     nil
     3600)
     ("Freshmeat.net"
-    "http://freshmeat.net/backend/fm.rdf")
+    "http://freshmeat.net/index.atom")
     ("Kuro5hin.org"
     "http://www.kuro5hin.org/backend.rdf")
     ("LWN (Linux Weekly News)"
     "http://lwn.net/headlines/rss")
-    ("NewsForge"
-    "http://newsforge.com/index.rss")
     ("NY Times: Technology"
     "http://partners.userland.com/nytRss/technology.xml")
     ("NY Times"
