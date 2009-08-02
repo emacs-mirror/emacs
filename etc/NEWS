@@ -99,6 +99,10 @@ through a menu structure.
 On systems which support GVFS-Fuse, Tramp offers the new connection
 methods "dav", "davs", "obex" and "synce".
 
++++
+** Autorevert Tail mode
+Autorevert Tail mode works now for remote files.
+
 ** VC and related modes
 
 *** When a file is not found, VC will not try to check it out of RCS anymore.
