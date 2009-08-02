@@ -1903,7 +1903,9 @@ ARGS to actually emit the message (if applicable)."
       (unless (bolp)
 	(insert "\n"))
       ;; Timestamp.
-      (insert (format-time-string "%T "))
+      (let ((now (current-time)))
+        (insert (format-time-string "%T." now))
+        (insert (format "%06d " (nth 2 now))))
       ;; Calling function.
       (let ((btn 1) btf fn)
 	(while (not fn)
@@ -4204,7 +4206,7 @@ coding system might not be determined.  This function repairs it."
   "Like `insert-file-contents' for Tramp files."
   (barf-if-buffer-read-only)
   (setq filename (expand-file-name filename))
-  (let (coding-system-used result local-copy)
+  (let (coding-system-used result local-copy remote-copy)
     (unwind-protect
 	(with-parsed-tramp-file-name filename nil
 
@@ -4224,6 +4226,26 @@ coding system might not be determined.  This function repairs it."
 		       'insert-file-contents
 		       (list localname visit beg end replace)))
 
+	      ;; When we shall insert only a part of the file, we copy
+	      ;; this part.
+	      (when (or beg end)
+		(setq remote-copy (tramp-make-tramp-temp-file v))
+		(tramp-send-command
+		 v
+		 (cond
+		  ((and beg end)
+		   (format "tail -c +%d %s | head -c +%d >%s"
+			   (1+ beg) (tramp-shell-quote-argument localname)
+			   (- end beg) remote-copy))
+		  (beg
+		   (format "tail -c +%d %s >%s"
+			   (1+ beg) (tramp-shell-quote-argument localname)
+			   remote-copy))
+		  (end
+		   (format "head -c +%d %s >%s"
+			   (1+ end) (tramp-shell-quote-argument localname)
+			   remote-copy)))))
+
 	      ;; `insert-file-contents-literally' takes care to avoid
 	      ;; calling jka-compr.  By let-binding
 	      ;; `inhibit-file-name-operation', we propagate that care
@@ -4233,7 +4255,11 @@ coding system might not be determined.  This function repairs it."
 			   (when (eq inhibit-file-name-operation
 				     'insert-file-contents)
 			     'file-local-copy)))
-		      (file-local-copy filename)))
+		      (file-local-copy
+		       (if (stringp remote-copy)
+			   (tramp-make-tramp-file-name
+			    method user host remote-copy)
+			 filename))))
 	      (tramp-message
 	       v 4 "Inserting local temp file `%s'..." local-copy)
 
@@ -4244,7 +4270,7 @@ coding system might not be determined.  This function repairs it."
 		      filename local-copy)))
 		(setq result
 		      (insert-file-contents
-		       local-copy nil beg end replace))
+		       local-copy nil nil nil replace))
 		;; Now `last-coding-system-used' has right value.
 		;; Remember it.
 		(when (boundp 'last-coding-system-used)
@@ -4264,7 +4290,10 @@ coding system might not be determined.  This function repairs it."
 	  (set-visited-file-modtime)
 	  (set-buffer-modified-p nil))
 	(when (stringp local-copy)
-	  (delete-file local-copy))))
+	  (delete-file local-copy))
+	(when (stringp remote-copy)
+	  (delete-file
+	   (tramp-make-tramp-file-name method user host remote-copy)))))
 
     ;; Result.
     (list (expand-file-name filename)
@@ -4605,8 +4634,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 (defun tramp-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
   ;; There could be new files, created by the vc backend.  We disable
-  ;; the cache therefore, by providing a temporary one.
-  (let ((tramp-cache-data (make-hash-table :test 'equal)))
+  ;; the file cache therefore.
+  (let ((tramp-cache-inhibit-cache t))
     (tramp-run-real-handler 'vc-registered (list file))))
 
 ;;;###autoload
@@ -5601,7 +5630,7 @@ from the default one."
       (let ((default-directory (tramp-compat-temporary-file-directory)))
 	(outline-mode))
       (set (make-local-variable 'outline-regexp)
-	   "[0-9]+:[0-9]+:[0-9]+ [a-z0-9-]+ (\\([0-9]+\\)) #")
+	   "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ [a-z0-9-]+ (\\([0-9]+\\)) #")
 ;      (set (make-local-variable 'outline-regexp)
 ;	   "[a-z.-]+:[0-9]+: [a-z0-9-]+ (\\([0-9]+\\)) #")
       (set (make-local-variable 'outline-level) 'tramp-outline-level))
