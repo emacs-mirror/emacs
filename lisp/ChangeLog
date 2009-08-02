@@ -1,3 +1,9 @@
+2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-string-face, font-lock-builtin-face)
+	(font-lock-variable-name-face, font-lock-constant-face): Darken
+	the colors for light backgrounds.
+
 2009-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailsum.el (rmail-header-summary): Ignore letter-case of
