@@ -962,6 +962,7 @@ the buffer, and it will stay there as the file contents change.
 However, if you are sure that the file will only change by growing at
 the end, use Auto-Revert Tail mode instead
 (@code{auto-revert-tail-mode}).  It is more efficient for this.
+Auto-Revert Tail mode works also for remote files.
 
   @xref{VC Mode Line}, for Auto Revert peculiarities in buffers that
 visit files under version control.
