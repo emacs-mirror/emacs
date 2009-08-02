@@ -1,3 +1,21 @@
+2009-08-02  Julian Scheid <julians37@googlemail.com>  (tiny change)
+
+	* net/tramp.el (tramp-debug-message): Print also microseconds.
+
+2009-08-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Optimize, when BEG
+	or END is non-nil.
+	(tramp-handle-vc-registered): Use `tramp-cache-inhibit-cache'.
+	(tramp-get-debug-buffer): Change `outline-regexp' according to new
+	format.
+
+	* net/tramp-cache.el (tramp-cache-inhibit-cache ): New defvar.
+	(tramp-get-file-property): Use it.
+
+	* autorevert.el (auto-revert-handler): Allow
+	`auto-revert-tail-mode' for remote files.
+
 2009-08-02  Jason Rumney  <jasonr@gnu.org>
 
 	* minibuffer.el (read-file-name): Treat confirm options to
