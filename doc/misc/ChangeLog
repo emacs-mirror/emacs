@@ -1,3 +1,7 @@
+2009-08-02  Eric Yu  <sucode@gmail.com>  (tiny change)
+
+	* speedbar.texi (Basic Key Bindings): Fix typo.
+
 2009-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Vector/Matrix Functions): Add index entries for both

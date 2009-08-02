@@ -164,7 +164,7 @@ Move to the next or previous item in a restricted fashion.  If a list is
 open, the cursor will skip over it.  If the cursor is in an open list,
 it will not leave it.
 @item C-M-n
-@itemx C-M-n
+@itemx C-M-p
 Move forwards and backwards across extended groups.  This lets you
 quickly skip over all files, directories, or other common sub-items at
 the same current depth.
