@@ -115,7 +115,7 @@ in `selection-converter-alist', which see."
 		  (selection &optional time))
 
 (defun x-set-selection (type data)
-  "Make an X Windows selection of type TYPE and value DATA.
+  "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
 DATA specifies the contents.  TYPE must be a symbol.  \(It can also
 be a string, which stands for the symbol with that name, but this

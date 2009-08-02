@@ -1,5 +1,9 @@
 2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* select.el (x-set-selection): Doc fix (Bug#4021).
+
+	* w32-fns.el (x-set-selection): Doc fix (Bug#4021).
+
 	* help-fns.el (describe-variable): Treat list return values from
 	dir-locals-find-file properly (Bug#4005).
 
