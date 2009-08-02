@@ -166,9 +166,16 @@ ns_descriptor_to_entity (NSFontDescriptor *desc, Lisp_Object extra, char *style)
     Lisp_Object font_entity = font_make_entity ();
     /*   NSString *psName = [desc postscriptName]; */
     NSString *family = [desc objectForKey: NSFontFamilyAttribute];
-    char *escapedFamily = strdup ([family UTF8String]);
     unsigned int traits = [desc symbolicTraits];
+    char *escapedFamily;
 
+    /* Shouldn't happen, but on Tiger fallback desc gets name but no family. */
+    if (family == nil)
+      family = [desc objectForKey: NSFontNameAttribute];
+    if (family == nil)
+      family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
+
+    escapedFamily = strdup ([family UTF8String]);
     ns_escape_name (escapedFamily);
 
     ASET (font_entity, FONT_TYPE_INDEX, Qns);
@@ -669,6 +676,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   synthItal = !NILP (tem) && !strncmp ("synthItal", SDATA (SYMBOL_NAME (tem)),
                                        9);
   family = ns_get_family (font_entity);
+  if (family == nil)
+    family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
   /* Should be > 0.23 as some font descriptors (e.g. Terminus) set to that
      when setting family in ns_spec_to_descriptor(). */
   if (ns_attribute_fvalue (fontDesc, NSFontWeightTrait) > 0.50)

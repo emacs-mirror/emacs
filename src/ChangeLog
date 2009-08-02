@@ -1,3 +1,9 @@
+2009-08-02  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsfont.m (ns_descriptor_to_entity): Handle case when descriptor has
+	no family set.
+	(nsfont_open): Handle case when entity has no family.
+
 2009-07-29  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (ns_findfonts): Fix 2009-07-24 change to return only one
