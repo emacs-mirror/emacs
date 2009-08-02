@@ -69,6 +69,9 @@
 (defvar tramp-cache-data (make-hash-table :test 'equal)
   "Hash table for remote files properties.")
 
+(defvar tramp-cache-inhibit-cache nil
+  "Inhibit cache read access, when non-nil.")
+
 (defcustom tramp-persistency-file-name
   (cond
    ;; GNU Emacs.
@@ -103,7 +106,7 @@ Returns DEFAULT if not set."
   (let* ((hash (or (gethash vec tramp-cache-data)
 		   (puthash vec (make-hash-table :test 'equal)
 			    tramp-cache-data)))
-	 (value (if (hash-table-p hash)
+	 (value (if (and (null tramp-cache-inhibit-cache) (hash-table-p hash))
 		    (gethash property hash default)
 		  default)))
     (tramp-message vec 8 "%s %s %s" file property value)
@@ -182,8 +185,8 @@ If the value is not set for the connection, returns DEFAULT."
     (aset key 3 nil))
   (let* ((hash (gethash key tramp-cache-data))
 	 (value (if (hash-table-p hash)
-		   (gethash property hash default)
-		 default)))
+		    (gethash property hash default)
+		  default)))
     (tramp-message key 7 "%s %s" property value)
     value))
 
