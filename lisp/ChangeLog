@@ -2,7 +2,7 @@
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay-regexp) New
 	defconst.
-	(tramp-rfn-eshadow-update-overlay): Use it.
+	(tramp-rfn-eshadow-update-overlay): Use it.  (Bug#4004)
 
 2009-08-02  Kevin Ryde  <user42@zip.com.au>
 
