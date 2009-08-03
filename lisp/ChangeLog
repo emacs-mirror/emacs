@@ -1,3 +1,8 @@
+2009-08-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (jdb): Set gud-jdb-classpath-string to current
+	directory if CLASSPATH is not set.
+
 2009-08-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay-regexp) New
