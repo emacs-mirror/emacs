@@ -2269,7 +2269,7 @@ gud, see `gud-mode'."
 
   ;; Set gud-jdb-classpath from the CLASSPATH environment variable,
   ;; if CLASSPATH is set.
-  (setq gud-jdb-classpath-string (getenv "CLASSPATH"))
+  (setq gud-jdb-classpath-string (or (getenv "CLASSPATH") "."))
   (if gud-jdb-classpath-string
       (setq gud-jdb-classpath
 	    (gud-jdb-parse-classpath-string gud-jdb-classpath-string)))
