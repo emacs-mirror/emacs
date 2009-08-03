@@ -1,10 +1,15 @@
+2009-08-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay-regexp) New
+	defconst.
+	(tramp-rfn-eshadow-update-overlay): Use it.
+
 2009-08-02  Kevin Ryde  <user42@zip.com.au>
 
 	* net/newst-backend.el (newsticker--raw-url-list-defaults): Update
 	freshmeat link.  Delete newsforge.com as it seems gone.
 
 2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
-
 
 	* select.el (x-set-selection): Doc fix (Bug#4021).
 
