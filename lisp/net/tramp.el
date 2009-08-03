@@ -2196,6 +2196,9 @@ special handling of `substitute-in-file-name'."
 	       (remove-hook 'rfn-eshadow-setup-minibuffer-hook
 			    'tramp-rfn-eshadow-setup-minibuffer))))
 
+(defconst tramp-rfn-eshadow-update-overlay-regexp
+  (format "[^%s/~]*\\(/\\|~\\)" tramp-postfix-host-format))
+
 (defun tramp-rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
 This is intended to be used as a minibuffer `post-command-hook' for
@@ -2209,7 +2212,10 @@ been set up by `rfn-eshadow-setup-minibuffer'."
       (save-excursion
 	(save-restriction
 	  (narrow-to-region
-	   (1+ (or (string-match "/" (buffer-string) end) end)) (point-max))
+	   (1+ (or (string-match
+		    tramp-rfn-eshadow-update-overlay-regexp (buffer-string) end)
+		   end))
+	   (point-max))
 	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
 		(rfn-eshadow-update-overlay-hook nil))
 	    (move-overlay rfn-eshadow-overlay (point-max) (point-max))
