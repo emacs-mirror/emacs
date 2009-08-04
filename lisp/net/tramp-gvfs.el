@@ -145,7 +145,6 @@
 
 ;; Check that GVFS is available.
 (unless (dbus-ping :session tramp-gvfs-service-daemon)
-  (message "GVFS daemon not running")
   (throw 'tramp-loading nil))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
