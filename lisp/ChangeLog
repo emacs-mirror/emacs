@@ -26,6 +26,15 @@
 	(def-gdb-trigger-and-handler): New macro to define trigger-handler
 	pair for GDB buffer.
 	(gdb-stack-buffer-name): Add thread information.
+	(gdb-add-pending, gdb-pending-p, gdb-delete-pending): Macros to
+	handle pending triggers.
+	(gdb-threads-mode-map, def-gdb-thread-buffer-command)
+	(def-gdb-thread-buffer-simple-command)
+	(gdb-display-stack-for-thread, gdb-display-locals-for-thread)
+	(gdb-display-registers-for-thread, gdb-frame-stack-for-thread)
+	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread): New
+	commands which show buffers bound to thread.
+	(gdb-stack-list-locals-regexp): Removed unused regexp.
 
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
