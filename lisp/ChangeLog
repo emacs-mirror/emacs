@@ -1,24 +1,52 @@
 2009-08-04  Dmitry Dzhus  <dima@sphinx.net.ru>
 
-	* progmodes/gdb-mi.el Basic thread selection support.
-	(gdb-thread-number): New variable.
-	(gdb-current-context-command): New macro which adds --thread
-	option to command.
-	(gdb-threads-mode-map): Select thread with SPC
-	(gdb-thread-list-handler-custom): Mark current thread with overlay
-	arrow. Synchronize GDB thread and Emacs thread.
-	(gdb-select-thread): New command which selects current thread.
-	(gdb-invalidate-frames, gdb-invalidate-locals)
-	(gdb-invalidate-registers): Use --thread option.
-	(gdb-breakpoints-buffer-name,gdb-locals-buffer-name)
-	(gdb-registers-buffer-name)
-	(gdb-memory-buffer-name, gdb-stack-buffer-name): Do not switch
-	to (gud-comint-buffer) in *-buffer-name functions
-	because (gdb-get-target-string) already does that.
-	(gdb-locals-handler-custom, gdb-registers-handler-custom)
-	(gdb-changed-registers-handler): Rewritten without regexps.
-	(gdb-get-buffer, gdb-get-buffer-create, gdb-init-1)
-	(gdb-bind-function-to-buffer, gdb-add-subscriber)
+	* progmodes/gud.el (gud-stop-subjob, gud-menu-map): Respect GDB
+	non-stop settings.
+
+	* progmodes/gdb-mi.el (gdb-thread-number): Initialize with nil.
+	(gdb-current-context-command): Do not append --thread if
+	`gdb-thread-number' is nil.
+	(gdb-running-threads-count, gdb-stopped-threads-count): New
+	variables.
+	(gdb-non-stop, gdb-gud-control-all-threads, gdb-switch-reasons)
+	(gdb-stopped-hooks, gdb-switch-when-another-stopped): New
+	customization options.
+	(gdb-gud-context-command, gdb-gud-context-call): New wrappers for
+	GUD commands.
+	(gdb): `gud-def' definitions changed to use `gdb-gud-context-call'
+	(gdb-init-1): Activate non-stop mode if `gdb-non-stop' is enabled.
+	(gdb-setq-thread-number, gdb-update-gud-running): New functions to
+	set `gdb-thread-number' and update `gud-running' properly.
+	(gdb-running): Update threads list when new threads appear.
+	(gdb-stopped): Support non-stop operation and new thread switching
+	logic.
+	(gdb-jsonify-buffer, gdb-json-read-buffer, gdb-json-string)
+	(gdb-json-partial-output): New set of JSON routines.
+	(def-gdb-auto-update-trigger): New `signal-list' optional
+	argument.
+	(gdb-thread-list-handler-custom): Update `gud-running',
+	`gdb-stopped-threads-count' and `gdb-running-threads-count'.
+	(def-gdb-thread-buffer-gdb-command, gdb-interrupt-thread)
+	(gdb-continue-thread, gdb-step-thread): New commands for fine
+	thread execution control.
+	(gud-menu-map): New menu items to switch non-stop options.
+	(gdb-reset): Cleanup `gdb-thread-position' overlay arrow marker.
+
+	* progmodes/gdb-mi.el (gdb-rules-name-maker)
+	(gdb-rules-buffer-mode, gdb-rules-update-trigger): Accessors for
+	gdb-buffer-rules.
+	(def-gdb-auto-update-handler): New nopreserve optional argument.
+	(gdb-stack-list-frames-custom): Print stack from top to bottom.
+
+	* progmodes/gdb-mi.el (gdb-pc-address): Removed unused variable.
+	(gdb-threads-list, gdb-breakpoints-list): New assoc lists.
+	(gdb-parent-mode): New mode to derive other GDB modes from.
+	(gdb-display-disassembly-for-thread)
+	(gdb-frame-disassembly-for-thread): New commands for threads
+	buffer.
+
+	* progmodes/gdb-mi.el (gdb-get-buffer, gdb-get-buffer-create)
+	(gdb-init-1, gdb-bind-function-to-buffer, gdb-add-subscriber)
 	(gdb-get-subscribers, gdb-emit-signal, gdb-buf-publisher)
 	(gdb-update): We now store all GDB buffers in a list so that they
 	can be updated by traversing a list instead of calling invalidate
@@ -35,16 +63,25 @@
 	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread): New
 	commands which show buffers bound to thread.
 	(gdb-stack-list-locals-regexp): Removed unused regexp.
-	(gdb-pc-address): Removed unused variable.
-	(gdb-threads-list, gdb-breakpoints-list): New assoc lists.
-	(gdb-parent-mode): New mode to derive other GDB modes from.
-	(gdb-display-disassembly-for-thread)
-	(gdb-frame-disassembly-for-thread): New commands for threads
-	buffer.
-	(gdb-rules-name-maker, gdb-rules-buffer-mode)
-	(gdb-rules-update-trigger): Accessors for gdb-buffer-rules.
-	(def-gdb-auto-update-handler): New nopreserve optional argument.
-	(gdb-stack-list-frames-custom): Print stack from top to bottom.
+
+	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name,gdb-locals-buffer-name)
+	(gdb-registers-buffer-name)
+	(gdb-memory-buffer-name, gdb-stack-buffer-name): Do not switch
+	to (gud-comint-buffer) in *-buffer-name functions
+	because (gdb-get-target-string) already does that.
+	(gdb-locals-handler-custom, gdb-registers-handler-custom)
+	(gdb-changed-registers-handler): Rewritten without regexps.
+
+	* progmodes/gdb-mi.el Basic thread selection support.
+	(gdb-thread-number): New variable.
+	(gdb-current-context-command): New macro which adds --thread
+	option to command.
+	(gdb-threads-mode-map): Select thread with SPC
+	(gdb-thread-list-handler-custom): Mark current thread with overlay
+	arrow. Synchronize GDB thread and Emacs thread.
+	(gdb-select-thread): New command which selects current thread.
+	(gdb-invalidate-frames, gdb-invalidate-locals)
+	(gdb-invalidate-registers): Use --thread option.
 
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
