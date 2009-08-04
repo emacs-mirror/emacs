@@ -1,3 +1,16 @@
+2009-08-04  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el Basic thread selection support.
+	(gdb-thread-number): New variable.
+	(gdb-current-context-command): New macro which adds --thread
+	option to command.
+	(gdb-threads-mode-map): Select thread with SPC
+	(gdb-thread-list-handler-custom): Mark current thread with overlay
+	arrow. Synchronize GDB thread and Emacs thread.
+	(gdb-select-thread): New command which selects current thread.
+	(gdb-invalidate-frames, gdb-invalidate-locals)
+	(gdb-invalidate-registers): Use --thread option.
+
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Make check for tramp-gvfs loading more

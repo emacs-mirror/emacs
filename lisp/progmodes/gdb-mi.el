@@ -117,10 +117,20 @@ Set to \"main\" at start if `gdb-show-main' is t.")
 (defvar	gdb-memory-prev-page nil
   "Address of previous memory page for program memory buffer.")
 
+(defvar gdb-frame-number "0")
+(defvar gdb-thread-number "1"
+  "Main current thread.
+
+Invalidation triggers use this variable to query GDB for
+information on the specified thread.
+
+This variable may be updated implicitly by GDB via
+`gdb-thread-list-handler-custom' or explicitly by
+`gdb-select-thread'.")
+
 (defvar gdb-selected-frame nil)
 (defvar gdb-selected-file nil)
 (defvar gdb-selected-line nil)
-(defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
   "List of variables in watch window.
@@ -1191,6 +1201,12 @@ static char *magick[] = {
   (push (cons gdb-token-number (car (cdr item))) gdb-handler-alist)
   (process-send-string (get-buffer-process gud-comint-buffer)
 		       (concat (car item) "\n")))
+
+(defmacro gdb-current-context-command (command)
+  "Add --thread option to gdb COMMAND.
+
+Option value is taken from `gdb-thread-number'."
+  (concat command " --thread " gdb-thread-number))
 
 
 (defcustom gud-gdb-command-name "gdb -i=mi"
@@ -1210,12 +1226,14 @@ static char *magick[] = {
      (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
+  ;; We may need to update gdb-thread-number, so we call threads buffer
+  (gdb-get-buffer-create 'gdb-threads-buffer)
+  (gdb-invalidate-threads)
   (gdb-get-selected-frame)
   (gdb-invalidate-frames)
   ;; Regenerate breakpoints buffer in case it has been inadvertantly deleted.
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
   (gdb-invalidate-breakpoints)
-  (gdb-invalidate-threads)
   (gdb-get-changed-registers)
   (gdb-invalidate-registers)
   (gdb-invalidate-locals)
@@ -1887,8 +1905,9 @@ FILE is a full path."
   "Font lock keywords used in `gdb-threads-mode'.")
 
 (defvar gdb-threads-mode-map
-  ;; TODO
-  (make-sparse-keymap))
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " 'gdb-select-thread)
+    map))
 
 (defvar gdb-breakpoints-header
   (list
@@ -1908,6 +1927,8 @@ FILE is a full path."
   (use-local-map gdb-threads-mode-map)
   (setq buffer-read-only t)
   (buffer-disable-undo)
+  (setq gdb-thread-position (make-marker))
+  (add-to-list 'overlay-arrow-variable-list 'gdb-thread-position)
   (setq header-line-format gdb-breakpoints-header)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-threads-font-lock-keywords))
@@ -1916,7 +1937,14 @@ FILE is a full path."
 
 (defun gdb-thread-list-handler-custom ()
   (let* ((res (json-partial-output))
-         (threads-list (gdb-get-field res 'threads)))
+         (threads-list (gdb-get-field res 'threads))
+         (current-thread (gdb-get-field res 'current-thread-id)))
+    (when (and current-thread
+               (not (string-equal current-thread gdb-thread-number)))
+      ;; Implicitly switch thread (in case previous one dies)
+      (message (concat "GDB switched to another thread: " current-thread))
+      (setq gdb-thread-number current-thread))
+    (set-marker gdb-thread-position nil)
     (dolist (thread threads-list)
       (insert (apply 'format `("%s (%s) %s in %s "
                                ,@(gdb-get-many-fields thread 'id 'target-id 'state)
@@ -1929,7 +1957,28 @@ FILE is a full path."
         (when args (kill-backward-chars 1)))
       (insert ")")
       (gdb-insert-frame-location (gdb-get-field thread 'frame))
-      (insert (format " at %s\n" (gdb-get-field thread 'frame 'addr))))))
+      (insert (format " at %s" (gdb-get-field thread 'frame 'addr)))
+      (add-text-properties (line-beginning-position)
+                           (line-end-position)
+                           `(gdb-thread ,thread))
+      (when (string-equal gdb-thread-number
+                          (gdb-get-field thread 'id))
+        (set-marker gdb-thread-position (line-beginning-position)))
+      (newline))))
+
+(defun gdb-select-thread ()
+  "Select the thread at current line of threads buffer."
+  (interactive)
+  (save-excursion
+  (beginning-of-line)
+  (let ((thread (get-text-property (point) 'gdb-thread)))
+    (if thread
+        (if (string-equal (gdb-get-field thread 'state) "running")
+            (error "Cannot select running thread")
+          (let ((new-id (gdb-get-field thread 'id)))
+            (setq gdb-thread-number new-id)
+            (gud-basic-call (concat "-thread-select " new-id))))
+      (error "Not recognized as thread line")))))
 
 
 ;;; Memory view
@@ -2517,7 +2566,7 @@ breakpoints buffer."
 
 (def-gdb-auto-updated-buffer gdb-stack-buffer
   gdb-invalidate-frames
-  "-stack-list-frames"
+  (gdb-current-context-command "-stack-list-frames")
   gdb-stack-list-frames-handler
   gdb-stack-list-frames-custom)
 
@@ -2631,7 +2680,7 @@ member."
 
 (def-gdb-auto-update-trigger gdb-invalidate-locals
   (gdb-get-buffer 'gdb-locals-buffer)
-  "-stack-list-locals --simple-values"
+  (concat (gdb-current-context-command "-stack-list-locals") " --simple-values")
   gdb-stack-list-locals-handler)
 
 (defconst gdb-stack-list-locals-regexp
@@ -2759,7 +2808,7 @@ member."
 
 (def-gdb-auto-update-trigger gdb-invalidate-registers
   (gdb-get-buffer 'gdb-registers-buffer)
-  "-data-list-register-values x"
+  (concat (gdb-current-context-command "-data-list-register-values") " x")
   gdb-data-list-register-values-handler)
 
 (defconst gdb-data-list-register-values-regexp
@@ -2893,7 +2942,7 @@ is set in them."
   (if (not (member 'gdb-get-selected-frame gdb-pending-triggers))
       (progn
 	(gdb-input
-	 (list "-stack-info-frame" 'gdb-frame-handler))
+	 (list (gdb-current-context-command "-stack-info-frame") 'gdb-frame-handler))
 	(push 'gdb-get-selected-frame
 	       gdb-pending-triggers))))
 
