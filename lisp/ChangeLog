@@ -31,6 +31,7 @@
 	thread execution control.
 	(gud-menu-map): New menu items to switch non-stop options.
 	(gdb-reset): Cleanup `gdb-thread-position' overlay arrow marker.
+	(gdb-send): Mimic RET properly (bug 3794).
 
 	* progmodes/gdb-mi.el (gdb-rules-name-maker)
 	(gdb-rules-buffer-mode, gdb-rules-update-trigger): Accessors for
