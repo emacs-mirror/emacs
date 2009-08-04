@@ -1,3 +1,13 @@
+2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Make check for tramp-gvfs loading more
+	robust.
+	(tramp-handle-insert-file-contents): `unwind-protect' must be
+	inside `with-parsed-tramp-file-name'.
+
+	* net/tramp-gvfs.el (top): Remove superfluous message when loading
+	fails.
+
 2009-08-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (jdb): Set gud-jdb-classpath-string to current
