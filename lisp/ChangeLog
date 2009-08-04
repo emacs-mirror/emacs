@@ -1,5 +1,73 @@
 2009-08-04  Dmitry Dzhus  <dima@sphinx.net.ru>
 
+	* progmodes/gdb-mi.el (gdb-frame-number): Initialize with nil.
+	(gdb-overlay-arrow-position): Renamed to
+	`gdb-disassembly-position'.
+	(gdb-overlay-arrow-position, gdb-thread-position)
+	(gdb-disassembly-position): Declare variables.
+	(gdb-wait-for-pending): Function now.
+	(gdb-add-subscriber, gdb-delete-subscriber, gdb-get-subscribers)
+	(gdb-emit-signal, gdb-buf-publisher): Declare before first use so
+	compilation goes smoothly.
+	(gdb, gdb-non-stop, gdb-buffers): New customization groups.
+	(gdb-non-stop-setting): New customization setting which replaces
+	`gdb-non-stop' so changing it doesn't break active GDB session.
+	(gdb-stack-buffer-locations, gdb-stack-buffer-addresses)
+	(gdb-thread-buffer-verbose-names, gdb-thread-buffer-arguments)
+	(gdb-thread-buffer-locations, gdb-thread-buffer-addresses)
+	(gdb-show-threads-by-default): New customization options.
+	(gdb-buffer-type, gdb-buffer-shows-main-thread-p): New helper
+	routines.
+	(gdb-get-buffer-create): Send buffers update signal when they are
+	created.
+	(gdb-invalidate-locals, gdb-invalidate-registers)
+	(gdb-invalidate-breakpoints)
+	(gdb-invalidate-threads, gdb-invalidate-disassembly)
+	(gdb-invalidate-memory): Accept update signal.
+	(gdb-current-context-command): Use --frame option.
+	(gdb-update-gud-running, gdb-running, gdb-setq-thread-number):
+	Implement `gdb-frame-number' selection logic.
+	(gdb-show-run-p, gdb-show-stop-p): Helper functions which decide
+	whether to show GUD toolbar buttons.
+	(gdb-thread-exited): Unselect current thread when it exits.
+	(gdb-stopped): Typo fixed (now really runs `gdb-stopped-hooks').
+	(gdb-mark-line): Routine which sets overlay arrow or inverses
+	video on fringeless displays.
+	(gdb-table, gdb-table-add-row, gdb-table-string): Structure used
+	to build aligned columns of data in GDB buffers and set text
+	properties line-by-line.
+	(gdb-invalidate-breakpoints)
+	(gdb-breakpoints-list-handler-custom)
+	(gdb-thread-list-handler-custom, gdb-disassembly-handler-custom)
+	(gdb-stack-list-frames-custom, gdb-locals-handler-custom)
+	(gdb-registers-handler-custom): Align data columns.
+	(gdb-locals-handler-custom): Now prints data like in variable
+	declarations.
+	(gdb-jump-to, gdb-file-button, gdb-insert-file-location-button):
+	Removed confusing buttons.
+	(gdb-invalidate-threads): Append --frame.
+	(gdb-threads-mode-map, gdb-breakpoints-mode-map): TAB to switch
+	between breakpoints/threads buffers.
+	(gdb-set-window-buffer): Now can ignore dedicated windows.
+	(gdb-propertize-header): Use `gdb-set-window-buffer'.
+	(def-gdb-thread-buffer-simple-command): Numerous typos fixed.
+	(def-gdb-thread-buffer-gud-command): Replaces
+	`def-gdb-thread-buffer-gdb-command' and uses standard GUD commands
+	for fine thread control.
+	(gdb-preempt-existing-or-display-buffer): New function used to
+	display bound buffers without breaking window layout.
+	(gdb-frame-location): Replaces `gdb-insert-frame-location'.
+	(gdb-select-frame): New version of `gdb-frames-select' which now
+	sets `gdb-frame-number' so commands may use --frame option instead
+	of inner debugger state.
+	(gdb-frame-handler): Do not set `gdb-frame-number'.
+	(gdb-threads-mode-map): Select threads with mouse.
+
+	* progmodes/gud.el (gdb-gud-context-call): Declare function to
+	avoid compilation warning.
+	(gud-menu-map, gud-minor-mode-map): Use `gdb-show-run-p` and
+	`gdb-show-stop-p`.
+
 	* progmodes/gdb-mi.el (gdb-get-buffer, gdb-get-buffer-create):
 	Argument `key' renamed to `buffer-type'.
 	(gdb-current-context-buffer-name): Do not add thread info to
