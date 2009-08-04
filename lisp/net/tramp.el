@@ -143,6 +143,9 @@
 	 ;; tramp-gvfs needs D-Bus messages.  Available since Emacs 23
 	 ;; on some system types.
 	 (when (and (featurep 'dbusbind)
+		    (condition-case nil
+			(funcall 'dbus-get-unique-name :session)
+		      (error nil))
 		    (tramp-compat-process-running-p "gvfs-fuse-daemon"))
 	   'tramp-gvfs)
 
@@ -4213,9 +4216,8 @@ coding system might not be determined.  This function repairs it."
   (barf-if-buffer-read-only)
   (setq filename (expand-file-name filename))
   (let (coding-system-used result local-copy remote-copy)
-    (unwind-protect
-	(with-parsed-tramp-file-name filename nil
-
+    (with-parsed-tramp-file-name filename nil
+      (unwind-protect
 	  (if (not (file-exists-p filename))
 	      ;; We don't raise a Tramp error, because it might be
 	      ;; suppressed, like in `find-file-noselect-1'.
@@ -4286,20 +4288,20 @@ coding system might not be determined.  This function repairs it."
 	      (tramp-message
 	       v 4 "Inserting local temp file `%s'...done" local-copy)
 	      (when (boundp 'last-coding-system-used)
-		(set 'last-coding-system-used coding-system-used)))))
+		(set 'last-coding-system-used coding-system-used))))
 
-      ;; Save exit.
-      (progn
-	(when visit
-	  (setq buffer-file-name filename)
-	  (setq buffer-read-only (not (file-writable-p filename)))
-	  (set-visited-file-modtime)
-	  (set-buffer-modified-p nil))
-	(when (stringp local-copy)
-	  (delete-file local-copy))
-	(when (stringp remote-copy)
-	  (delete-file
-	   (tramp-make-tramp-file-name method user host remote-copy)))))
+	;; Save exit.
+	(progn
+	  (when visit
+	    (setq buffer-file-name filename)
+	    (setq buffer-read-only (not (file-writable-p filename)))
+	    (set-visited-file-modtime)
+	    (set-buffer-modified-p nil))
+	  (when (stringp local-copy)
+	    (delete-file local-copy))
+	  (when (stringp remote-copy)
+	    (delete-file
+	     (tramp-make-tramp-file-name method user host remote-copy))))))
 
     ;; Result.
     (list (expand-file-name filename)
@@ -4919,7 +4921,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	    (cons jka (delete jka file-name-handler-alist))))))
 
 ;; During autoload, it shall be checked whether
-;; `partial-completion-mode' is active.  Therefore registering of
+;; `partial-completion-mode' is active.  Therefore, registering of
 ;; `tramp-completion-file-name-handler' will be delayed.
 ;;;###autoload(add-hook
 ;;;###autoload 'after-init-hook
