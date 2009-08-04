@@ -1,5 +1,20 @@
 2009-08-04  Dmitry Dzhus  <dima@sphinx.net.ru>
 
+	* progmodes/gdb-mi.el (gdb-get-buffer, gdb-get-buffer-create):
+	Argument `key' renamed to `buffer-type'.
+	(gdb-current-context-buffer-name): Do not add thread info to
+	buffer name when no thread is selected.
+	(gdbmi-record-list, gdb-shell): Try to handle GDB `shell'
+	command (bug 3794).
+	(gdb-thread-selected): Handle `=thread-selected' notification.
+	(gdb-wait-for-pending): New macro to deal with congestion problems.
+	(gdb-breakpoints-list-handler-custom): Don't fail on pending
+	breakpoints.
+	(gdb-invalidate-disassembly): Use 'fullname instead of 'file. This
+	fixes problem similar to one described in bug 3947.
+	(gud-menu-map): More menu items.
+	(gdb-init-1): Reset `gdb-thread-number' to nil.
+
 	* progmodes/gud.el (gud-stop-subjob, gud-menu-map): Respect GDB
 	non-stop settings.
 

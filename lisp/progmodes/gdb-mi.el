@@ -233,6 +233,21 @@ Elements are either function names or pairs (buffer . function)")
   `(setq gdb-pending-triggers
          (delete ,item gdb-pending-triggers)))
 
+(defvar gdb-wait-for-pending-timeout 0.5)
+
+(defmacro gdb-wait-for-pending (&rest body)
+  "Wait until `gdb-pending-triggers' is empty and execute BODY.
+
+This function checks `gdb-pending-triggers' value every
+`gdb-wait-for-pending' seconds."
+  (run-with-timer 
+   gdb-wait-for-pending-timeout nil
+   `(lambda ()
+      (if (not gdb-pending-triggers)
+          (progn
+            ,@body)
+        (gdb-wait-for-pending ,@body)))))
+  
 (defcustom gdb-debug-log-max 128
   "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
   :group 'gdb
@@ -619,6 +634,7 @@ detailed description of this mode.
   ;; (re-)initialise
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
+        gdb-thread-number nil
 	gdb-var-list nil
 	gdb-pending-triggers nil
 	gdb-output-sink 'user
@@ -1088,35 +1104,35 @@ thread."
   "Get current stack frame object for thread of current buffer."
   (gdb-get-field (gdb-current-buffer-thread) 'frame))
 
-(defun gdb-get-buffer (key &optional thread)
+(defun gdb-get-buffer (buffer-type &optional thread)
   "Get a specific GDB buffer.
 
-In that buffer, `gdb-buffer-type' must be equal to KEY and
-`gdb-thread-number' (if provided) must be equal to THREAD."
+In that buffer, `gdb-buffer-type' must be equal to BUFFER-TYPE
+and `gdb-thread-number' (if provided) must be equal to THREAD."
   (catch 'found
     (dolist (buffer (buffer-list) nil)
       (with-current-buffer buffer
-        (when (and (eq gdb-buffer-type key)
+        (when (and (eq gdb-buffer-type buffer-type)
                    (or (not thread)
                        (equal gdb-thread-number thread)))
           (throw 'found buffer))))))
 
-(defun gdb-get-buffer-create (key &optional thread)
-  "Create a new GDB buffer of the type specified by KEY.
-The key should be one of the cars in `gdb-buffer-rules'.
+(defun gdb-get-buffer-create (buffer-type &optional thread)
+  "Create a new GDB buffer of the type specified by BUFFER-TYPE.
+The buffer-type should be one of the cars in `gdb-buffer-rules'.
 
 If THREAD is non-nil, it is assigned to `gdb-thread-number'
 buffer-local variable of the new buffer.
 
 If buffer's mode returns a symbol, it's used to register "
-  (or (gdb-get-buffer key thread)
-      (let ((rules (assoc key gdb-buffer-rules))
+  (or (gdb-get-buffer buffer-type thread)
+      (let ((rules (assoc buffer-type gdb-buffer-rules))
 	     (new (generate-new-buffer "limbo")))
 	(with-current-buffer new
 	  (let ((mode (gdb-rules-buffer-mode rules))
                 (trigger (gdb-rules-update-trigger rules)))
 	    (when mode (funcall mode))
-	    (setq gdb-buffer-type key)
+	    (setq gdb-buffer-type buffer-type)
             (when thread
               (set (make-local-variable 'gdb-thread-number) thread))
 	    (set (make-local-variable 'gud-minor-mode)
@@ -1430,12 +1446,16 @@ Option value is taken from `gdb-thread-number'. If
     command))
 
 (defun gdb-current-context-buffer-name (name)
-  "Add thread information and asterisks to string NAME."
+  "Add thread information and asterisks to string NAME.
+
+If `gdb-thread-number' is nil, just wrap NAME in asterisks."
   (concat "*" name
-          (if (local-variable-p 'gdb-thread-number) 
-              " (bound to thread "
-            " (current thread ")
-          gdb-thread-number ")*"))
+          (format
+           (cond ((local-variable-p 'gdb-thread-number) " (bound to thread %s)")
+                 (gdb-thread-number " (current thread %s)")
+                 (t ""))
+           gdb-thread-number)
+          "*"))
 
 
 (defcustom gud-gdb-command-name "gdb -i=mi"
@@ -1517,7 +1537,8 @@ control buttons should be shown in menu or toolbar. Use
 `gdb-running-threads-count' and `gdb-stopped-threads-count'
 instead.
 
-For all-stop mode, thread information is unavailable while target is running"
+For all-stop mode, thread information is unavailable while target
+is running."
   (setq gud-running
         (string= (gdb-get-field (gdb-current-buffer-thread) 'state)
                  "running")))
@@ -1551,7 +1572,10 @@ For all-stop mode, thread information is unavailable while target is running"
     (gdb-stopped . "\\*stopped,?\\(.*?\\)\n")
     (gdb-running . "\\*running,\\(.*?\n\\)")
     (gdb-thread-created . "=thread-created,\\(.*?\n\\)")
-    (gdb-thread-exited . "=thread-exited,\\(.*?\n\\)")))
+    (gdb-thread-selected . "=thread-selected,\\(.*?\\)\n")
+    (gdb-thread-exited . "=thread-exited,\\(.*?\n\\)")
+    (gdb-ignored-notification . "=[-[:alpha:]]+,?\\(.*?\\)\n")
+    (gdb-shell . "\\(\\(?:^.+\n\\)+\\)")))
 
 (defun gud-gdbmi-marker-filter (string)
   "Filter GDB/MI output."
@@ -1610,10 +1634,27 @@ For all-stop mode, thread information is unavailable while target is running"
 
 (defun gdb-gdb (output-field))
 
+(defun gdb-shell (output-field)
+  (let ((gdb-output-sink gdb-output-sink))
+    (setq gdb-filter-output
+          (concat output-field gdb-filter-output))))
+
+(defun gdb-ignored-notification (output-field))
+
 ;; gdb-invalidate-threads is defined to accept 'update-threads signal
 (defun gdb-thread-created (output-field))
 (defun gdb-thread-exited (output-field)
   (gdb-emit-signal gdb-buf-publisher 'update-threads))
+
+(defun gdb-thread-selected (output-field)
+  "Handler for =thread-selected MI output record.
+
+Sets `gdb-thread-number' to new id."
+  (let* ((result (gdb-json-string output-field))
+         (thread-id (gdb-get-field result 'id)))
+    (gdb-setq-thread-number thread-id)
+    (gdb-wait-for-pending
+     (gdb-update))))
 
 (defun gdb-running (output-field)
   (setq gdb-inferior-status "running")
@@ -1955,8 +1996,11 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
             (propertize "n" 'face  font-lock-comment-face))) "\t"
         (gdb-get-field breakpoint 'times) "\t"
         (gdb-get-field breakpoint 'addr)))
-      (let ((at (gdb-get-field breakpoint 'at)))
-        (cond ((not at)
+      (let ((at (gdb-get-field breakpoint 'at))
+            (pending (gdb-get-field breakpoint 'pending)))
+        (cond (pending (insert "  " pending))
+              (at (insert " " at))
+              (t
                (progn
                  (insert 
                   (concat " in "
@@ -1966,14 +2010,12 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
                  (add-text-properties (line-beginning-position)
                                       (line-end-position)
                                       '(mouse-face highlight
-                                        help-echo "mouse-2, RET: visit breakpoint"))))
-              (at (insert (concat " " at)))
-              (t (insert (gdb-get-field breakpoint 'original-location)))))
+                                                   help-echo "mouse-2, RET: visit breakpoint")))))
       (add-text-properties (line-beginning-position)
                            (line-end-position)
                            `(gdb-breakpoint ,breakpoint))
       (newline))
-    (gdb-place-breakpoints)))
+    (gdb-place-breakpoints))))
 
 ;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-place-breakpoints ()
@@ -2160,53 +2202,6 @@ corresponding to the mode line clicked."
     (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
     map))
 
-(defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
-  `(propertize ,name
-	       'help-echo ,help-echo 
-	       'mouse-face ',mouse-face
-	       'face ',face
-	       'local-map
-	       (gdb-make-header-line-mouse-map
-		'mouse-1
-		(lambda (event) (interactive "e")
-		  (save-selected-window
-		    (select-window (posn-window (event-start event)))
-		    (set-window-dedicated-p (selected-window) nil)
-		    (switch-to-buffer
-		     (gdb-get-buffer-create ',buffer))
-		    (setq header-line-format(gdb-set-header ',buffer))
-		    (set-window-dedicated-p (selected-window) t))))))
-
-(defun gdb-set-header (buffer)
-  (cond ((eq buffer 'gdb-locals-buffer)
-	 (list
-	  (gdb-propertize-header "Locals" gdb-locals-buffer
-				 nil nil mode-line)
-	  " "
-	  (gdb-propertize-header "Registers" gdb-registers-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
-	((eq buffer 'gdb-registers-buffer)
-	 (list
-	  (gdb-propertize-header "Locals" gdb-locals-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)
-	  " "
-	  (gdb-propertize-header "Registers" gdb-registers-buffer
-				 nil nil mode-line)))
-	((eq buffer 'gdb-breakpoints-buffer)
-	 (list
-	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-				 nil nil mode-line)
-	  " "
-	  (gdb-propertize-header "Threads" gdb-threads-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
-	((eq buffer 'gdb-threads-buffer)
-	 (list
-	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)
-	  " "
-	  (gdb-propertize-header "Threads" gdb-threads-buffer
-				 nil nil mode-line)))))
-
 
 ;; uses "-thread-info". Needs GDB 7.0 onwards.
 ;;; Threads view
@@ -2279,6 +2274,23 @@ FILE is a full path."
     (define-key map "c" 'gdb-continue-thread)
     (define-key map "s" 'gdb-step-thread)
     map))
+
+(defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
+  `(propertize ,name
+	       'help-echo ,help-echo 
+	       'mouse-face ',mouse-face
+	       'face ',face
+	       'local-map
+	       (gdb-make-header-line-mouse-map
+		'mouse-1
+		(lambda (event) (interactive "e")
+		  (save-selected-window
+		    (select-window (posn-window (event-start event)))
+		    (set-window-dedicated-p (selected-window) nil)
+		    (switch-to-buffer
+		     (gdb-get-buffer-create ',buffer))
+		    (setq header-line-format(gdb-set-header ',buffer))
+		    (set-window-dedicated-p (selected-window) t))))))
 
 (defvar gdb-breakpoints-header
   (list
@@ -2442,6 +2454,36 @@ line."
   gdb-step-thread
   "-exec-step"
   "Step thread at current line.")
+
+(defun gdb-set-header (buffer)
+  (cond ((eq buffer 'gdb-locals-buffer)
+	 (list
+	  (gdb-propertize-header "Locals" gdb-locals-buffer
+				 nil nil mode-line)
+	  " "
+	  (gdb-propertize-header "Registers" gdb-registers-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
+	((eq buffer 'gdb-registers-buffer)
+	 (list
+	  (gdb-propertize-header "Locals" gdb-locals-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)
+	  " "
+	  (gdb-propertize-header "Registers" gdb-registers-buffer
+				 nil nil mode-line)))
+	((eq buffer 'gdb-breakpoints-buffer)
+	 (list
+	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+				 nil nil mode-line)
+	  " "
+	  (gdb-propertize-header "Threads" gdb-threads-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
+	((eq buffer 'gdb-threads-buffer)
+	 (list
+	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+				 "mouse-1: select" mode-line-highlight mode-line-inactive)
+	  " "
+	  (gdb-propertize-header "Threads" gdb-threads-buffer
+				 nil nil mode-line)))))
 
 
 ;;; Memory view
@@ -2851,7 +2893,7 @@ DOC is an optional documentation string."
 
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
   (let* ((frame (gdb-current-buffer-frame))
-         (file (gdb-get-field frame 'file))
+         (file (gdb-get-field frame 'fullname))
          (line (gdb-get-field frame 'line)))
     (when file
       (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)))
@@ -3375,6 +3417,12 @@ thread. Called from `gdb-update'."
 
 ;;;; Window management
 (defun gdb-display-buffer (buf dedicated &optional frame)
+  "Show buffer BUF.
+
+If BUF is already displayed in some window, show it, deiconifying
+the frame if necessary. Otherwise, find least recently used
+window and show BUF there, if the window is not used for GDB
+already, in which case that window is splitted first."
   (let ((answer (get-buffer-window buf (or frame 0))))
     (if answer
 	(display-buffer buf nil (or frame 0)) ;Deiconify the frame if necessary.
@@ -3426,8 +3474,7 @@ thread. Called from `gdb-update'."
   (define-key menu [breakpoints]
     '("Breakpoints" . gdb-frame-breakpoints-buffer)))
 
-(let ((menu (make-sparse-keymap "GDB-MI"))
-      (submenu (make-sparse-keymap "GUD thread control mode")))
+(let ((menu (make-sparse-keymap "GDB-MI")))
   (define-key menu [gdb-customize]
   '(menu-item "Customize" (lambda () (interactive) (customize-group 'gdb))
 	      :help "Customize Gdb Graphical Mode options."))
@@ -3440,34 +3487,34 @@ thread. Called from `gdb-update'."
 	      :help "Restore standard layout for debug session."))
   (define-key menu [sep1]
     '(menu-item "--"))
-  (define-key submenu [all-threads]
-    '(menu-item "All threads"
+  (define-key menu [all-threads]
+    '(menu-item "GUD controls all threads"
                 (lambda ()
                   (interactive)
                   (setq gdb-gud-control-all-threads t))
                 :help "GUD start/stop commands apply to all threads"
                 :button (:radio . gdb-gud-control-all-threads)))
-  (define-key submenu [current-thread]
-    '(menu-item "Current thread"
+  (define-key menu [current-thread]
+    '(menu-item "GUD controls current thread"
                 (lambda ()
                   (interactive)
                   (setq gdb-gud-control-all-threads nil))
                 :help "GUD start/stop commands apply to current thread only"
                 :button (:radio . (not gdb-gud-control-all-threads))))
-  (define-key menu [thread-control]
-      `("GUD thread control mode" . ,submenu))
-  (define-key gud-menu-map [mi]
-    `(menu-item "GDB-MI" ,menu :visible (eq gud-minor-mode 'gdbmi)))
+  (define-key menu [sep2]
+    '(menu-item "--"))
+  (define-key menu [gdb-customize-reasons]
+    '(menu-item "Customize switching..."
+                (lambda ()
+                  (interactive)
+                  (customize-option 'gdb-switch-reasons))))
   (define-key menu [gdb-switch-when-another-stopped]
     (menu-bar-make-toggle gdb-toggle-switch-when-another-stopped gdb-switch-when-another-stopped
                           "Automatically switch to stopped thread"
                           "GDB thread switching %s"
                           "Switch to stopped thread"))
-  (define-key menu [gdb-non-stop]
-    (menu-bar-make-toggle gdb-toggle-non-stop gdb-non-stop
-                          "Non-stop mode"
-                          "GDB non-stop mode %s"
-                          "Allow examining stopped threads while others continue to execute")))
+  (define-key gud-menu-map [mi]
+    `(menu-item "GDB-MI" ,menu :visible (eq gud-minor-mode 'gdbmi))))
 
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
