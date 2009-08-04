@@ -133,6 +133,8 @@ Used to grey out relevant toolbar icons.")
 	   (and (eq gud-minor-mode 'gdbmi)
 		(> (car (window-fringes)) 0)))))
 
+(declare-function gdb-gud-context-call "gdb-mi.el")
+
 (defun gud-stop-subjob ()
   (interactive)
   (with-current-buffer gud-comint-buffer
@@ -160,21 +162,10 @@ Used to grey out relevant toolbar icons.")
 		  :visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
     ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
 		  :visible (and (eq gud-minor-mode 'gdbmi)
-                                (or (and (or
-                                          (not gdb-gud-control-all-threads)
-                                          (not gdb-non-stop))
-                                         (not gud-running))
-                                    (and gdb-gud-control-all-threads
-                                         (> gdb-stopped-threads-count 0)))))
+                                (gdb-show-run-p)))
     ([stop]	menu-item "Stop" gud-stop-subjob
 		  :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
-			       (and (eq gud-minor-mode 'gdbmi)
-                                    (or (and (or
-                                              (not gdb-gud-control-all-threads)
-                                              (not gdb-non-stop))
-                                             gud-running)
-                                        (and gdb-gud-control-all-threads
-                                             (> gdb-running-threads-count 0))))))
+			       (gdb-show-stop-p)))
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (not gud-running)
 		  :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
@@ -262,21 +253,11 @@ Used to grey out relevant toolbar icons.")
        ([menu-bar go] menu-item
 	,(propertize " go " 'face 'font-lock-doc-face) gud-go
 	:visible (and (eq gud-minor-mode 'gdbmi)
-                      (or (and (or
-                                (not gdb-gud-control-all-threads)
-                                (not gdb-non-stop))
-                               (not gud-running))
-                          (and gdb-gud-control-all-threads
-                               (> gdb-stopped-threads-count 0)))))
+                      (gdb-show-run-p)))
        ([menu-bar stop] menu-item
 	,(propertize "stop" 'face 'font-lock-doc-face) gud-stop-subjob
 	:visible (or (and (eq gud-minor-mode 'gdbmi)
-                          (or (and (or
-                                    (not gdb-gud-control-all-threads)
-                                    (not gdb-non-stop))
-                                   gud-running)
-                              (and gdb-gud-control-all-threads
-                                   (> gdb-running-threads-count 0))))
+                          (gdb-show-stop-p))
 		     (not (eq gud-minor-mode 'gdbmi))))
        ([menu-bar print]
 	. (,(propertize "print" 'face 'font-lock-doc-face) . gud-print))
