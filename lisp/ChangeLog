@@ -11,6 +11,14 @@
 	(gdb-invalidate-frames, gdb-invalidate-locals)
 	(gdb-invalidate-registers): Use --thread option.
 
+	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name)
+	(gdb-locals-buffer-name, gdb-registers-buffer-name)
+	(gdb-memory-buffer-name, gdb-stack-buffer-name): Do not switch
+	to (gud-comint-buffer) in *-buffer-name functions
+	because (gdb-get-target-string) already does that.
+	(gdb-locals-handler-custom, gdb-registers-handler-custom)
+	(gdb-changed-registers-handler): Rewritten without regexps.
+
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Make check for tramp-gvfs loading more

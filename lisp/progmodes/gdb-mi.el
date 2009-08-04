@@ -1756,8 +1756,7 @@ If not in a source or disassembly buffer just set point."
 	       (get-text-property 0 'gdb-bptno obj)))))))))
 
 (defun gdb-breakpoints-buffer-name ()
-  (with-current-buffer gud-comint-buffer
-    (concat "*breakpoints of " (gdb-get-target-string) "*")))
+  (concat "*breakpoints of " (gdb-get-target-string) "*"))
 
 (def-gdb-display-buffer
  gdb-display-breakpoints-buffer
@@ -2354,8 +2353,7 @@ DOC is an optional documentation string."
   'gdb-invalidate-memory)
 
 (defun gdb-memory-buffer-name ()
-  (with-current-buffer gud-comint-buffer
-    (concat "*memory of " (gdb-get-target-string) "*")))
+  (concat "*memory of " (gdb-get-target-string) "*"))
 
 (def-gdb-display-buffer
   gdb-display-memory-buffer
@@ -2614,8 +2612,7 @@ member."
              (forward-line 1)))))
 
 (defun gdb-stack-buffer-name ()
-  (with-current-buffer gud-comint-buffer
-    (concat "*stack frames of " (gdb-get-target-string) "*")))
+  (concat "*stack frames of " (gdb-get-target-string) "*"))
 
 (def-gdb-display-buffer
  gdb-display-stack-buffer
@@ -2678,10 +2675,10 @@ member."
 		      'gdb-locals-buffer-name
 		      'gdb-locals-mode)
 
-(def-gdb-auto-update-trigger gdb-invalidate-locals
-  (gdb-get-buffer 'gdb-locals-buffer)
+(def-gdb-auto-updated-buffer gdb-locals-buffer
+  gdb-invalidate-locals
   (concat (gdb-current-context-command "-stack-list-locals") " --simple-values")
-  gdb-stack-list-locals-handler)
+  gdb-locals-handler gdb-locals-handler-custom)
 
 (defconst gdb-stack-list-locals-regexp
   (concat "name=\"\\(.*?\\)\",type=\"\\(.*?\\)\""))
@@ -2715,45 +2712,27 @@ member."
 
 ;; Dont display values of arrays or structures.
 ;; These can be expanded using gud-watch.
-(defun gdb-stack-list-locals-handler nil
-  (setq gdb-pending-triggers (delq 'gdb-invalidate-locals
-				  gdb-pending-triggers))
-   (let (local locals-list)
-    (goto-char (point-min))
-    (while (re-search-forward gdb-stack-list-locals-regexp nil t)
-      (let ((local (list (match-string 1)
-			 (match-string 2)
-			 nil)))
-	(if (looking-at ",value=\\(\".*\"\\)}")
-	    (setcar (nthcdr 2 local) (read (match-string 1))))
-	(push local locals-list)))
-    (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-      (and buf (with-current-buffer buf
-		 (let* ((window (get-buffer-window buf 0))
-			(start (window-start window))
-			(p (window-point window))
-			(buffer-read-only nil) (name) (value))
-		   (erase-buffer)
-		   (dolist (local locals-list)
-		     (setq name (car local))
-		     (setq value (nth 2 local))
-		     (if (or (not value)
-			     (string-match "\\0x" value))
-		       (add-text-properties 0 (length name)
+(defun gdb-locals-handler-custom ()
+  (let ((locals-list (gdb-get-field (json-partial-output) 'locals)))
+    (dolist (local locals-list)
+      (let ((name (gdb-get-field local 'name))
+            (value (gdb-get-field local 'value))
+            (type (gdb-get-field local 'type)))
+        (if (or (not value)
+                (string-match "\\0x" value))
+            (add-text-properties 0 (length name)
 			    `(mouse-face highlight
 			      help-echo "mouse-2: create watch expression"
 			      local-map ,gdb-locals-watch-map)
 			    name)
-			 (add-text-properties 0 (length value)
-			      `(mouse-face highlight
+          (add-text-properties 0 (length value)
+                               `(mouse-face highlight
 			        help-echo "mouse-2: edit value"
 			        local-map ,gdb-edit-locals-map-1)
 			      value))
 		       (insert
-			(concat name "\t" (nth 1 local)
-				"\t" (nth 2 local) "\n")))
-		   (set-window-start window start)
-		   (set-window-point window p)))))))
+			(concat name "\t" type
+				"\t" value "\n"))))))
 
 (defvar gdb-locals-header
   (list
@@ -2786,8 +2765,7 @@ member."
   'gdb-invalidate-locals)
 
 (defun gdb-locals-buffer-name ()
-  (with-current-buffer gud-comint-buffer
-    (concat "*locals of " (gdb-get-target-string) "*")))
+  (concat "*locals of " (gdb-get-target-string) "*"))
 
 (def-gdb-display-buffer
  gdb-display-locals-buffer
@@ -2806,60 +2784,28 @@ member."
 		      'gdb-registers-buffer-name
 		      'gdb-registers-mode)
 
-(def-gdb-auto-update-trigger gdb-invalidate-registers
-  (gdb-get-buffer 'gdb-registers-buffer)
+(def-gdb-auto-updated-buffer gdb-registers-buffer
+  gdb-invalidate-registers
   (concat (gdb-current-context-command "-data-list-register-values") " x")
-  gdb-data-list-register-values-handler)
+  gdb-registers-handler
+  gdb-registers-handler-custom)
 
-(defconst gdb-data-list-register-values-regexp
-  "number=\"\\(.*?\\)\",value=\"\\(.*?\\)\"")
-
-(defun gdb-data-list-register-values-handler ()
-  (setq gdb-pending-triggers (delq 'gdb-invalidate-registers
-				   gdb-pending-triggers))
-  (goto-char (point-min))
-  (if (re-search-forward gdb-error-regexp nil t)
-      (progn
-	(let ((match nil))
-	  (setq match (match-string 1))
-	  (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-	    (let ((buffer-read-only nil))
-	      (erase-buffer)
-	      (insert match)
-	      (goto-char (point-min))))))
-    (let ((register-list (reverse gdb-register-names))
-	  (register nil) (register-string nil) (register-values nil))
-      (goto-char (point-min))
-      (while (re-search-forward gdb-data-list-register-values-regexp nil t)
-	(setq register (pop register-list))
-	(setq register-string (concat register "\t" (match-string 2) "\n"))
-	(if (member (match-string 1) gdb-changed-registers)
-	    (put-text-property 0 (length register-string)
-			       'face 'font-lock-warning-face
-			       register-string))
-	(setq register-values
-	      (concat register-values register-string)))
-      (let ((buf (gdb-get-buffer 'gdb-registers-buffer)))
-	(with-current-buffer buf
-	  (let ((p (window-point (get-buffer-window buf 0)))
-		(buffer-read-only nil))
-	    (erase-buffer)
-	    (insert register-values)
-	    (set-window-point (get-buffer-window buf 0) p))))))
-  (gdb-data-list-register-values-custom))
-
-(defun gdb-data-list-register-values-custom ()
-  (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-    (save-excursion
-      (let ((buffer-read-only nil)
-	    bl)
-	(goto-char (point-min))
-	(while (< (point) (point-max))
-	  (setq bl (line-beginning-position))
-	  (when (looking-at "^[^\t]+")
-	    (put-text-property bl (match-end 0)
-			       'face font-lock-variable-name-face))
-	  (forward-line 1))))))
+(defun gdb-registers-handler-custom ()
+  (let ((register-values (gdb-get-field (json-partial-output) 'register-values))
+        (register-names-list (reverse gdb-register-names)))
+    (dolist (register register-values)
+      (let* ((register-number (gdb-get-field register 'number))
+             (value (gdb-get-field register 'value))
+             (register-name (nth (string-to-number register-number) 
+                                 register-names-list)))
+        (insert 
+         (concat
+          (propertize register-name 'face font-lock-variable-name-face) 
+          "\t"
+          (if (member register-number gdb-changed-registers)
+              (propertize value 'face font-lock-warning-face)
+            value)
+          "\n"))))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2882,8 +2828,7 @@ member."
   'gdb-invalidate-registers)
 
 (defun gdb-registers-buffer-name ()
-  (with-current-buffer gud-comint-buffer
-    (concat "*registers of " (gdb-get-target-string) "*")))
+  (concat "*registers of " (gdb-get-target-string) "*"))
 
 (def-gdb-display-buffer
  gdb-display-registers-buffer
@@ -2903,25 +2848,23 @@ member."
 	(gdb-input
 	 (list
 	  "-data-list-changed-registers"
-	  'gdb-get-changed-registers-handler))
+	  'gdb-changed-registers-handler))
 	(push 'gdb-get-changed-registers gdb-pending-triggers))))
 
-(defconst gdb-data-list-register-names-regexp "\"\\(.*?\\)\"")
-
-(defun gdb-get-changed-registers-handler ()
+(defun gdb-changed-registers-handler ()
   (setq gdb-pending-triggers
-	(delq 'gdb-get-changed-registers gdb-pending-triggers))
+        (delq 'gdb-get-changed-registers gdb-pending-triggers))
   (setq gdb-changed-registers nil)
-  (goto-char (point-min))
-  (while (re-search-forward gdb-data-list-register-names-regexp nil t)
-    (push (match-string 1) gdb-changed-registers)))
+  (dolist (register-number (gdb-get-field (json-partial-output) 'changed-registers))
+    (push register-number gdb-changed-registers)))
 
-(defun gdb-get-register-names ()
-  "Create a list of register names."
-  (goto-char (point-min))
+(defun gdb-register-names-handler ()
+  ;; Don't use gdb-pending-triggers because this handler is called
+  ;; only once (in gdb-init-1)
   (setq gdb-register-names nil)
-  (while (re-search-forward gdb-data-list-register-names-regexp nil t)
-    (push (match-string 1) gdb-register-names)))
+  (dolist (register-name (gdb-get-field (json-partial-output) 'register-names))
+    (push register-name gdb-register-names))
+  (setq gdb-register-names (reverse gdb-register-names)))
 
 
 (defun gdb-get-source-file-list ()
