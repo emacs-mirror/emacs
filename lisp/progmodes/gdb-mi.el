@@ -926,9 +926,13 @@ INDENT is the current indentation depth."
 ;; named according to the rules set forth in the gdb-buffer-rules
 
 (defvar gdb-buffer-rules '())
-(defalias 'gdb-rules-name-maker 'second)
-(defalias 'gdb-rules-buffer-mode 'third)
-(defalias 'gdb-rules-update-trigger 'fourth)
+
+(defun gdb-rules-name-maker (rules-entry)
+  (cadr rules-entry))
+(defun gdb-rules-buffer-mode (rules-entry)
+  (nth 2 rules-entry))
+(defun gdb-rules-update-trigger (rules-entry)
+  (nth 3 rules-entry))
 
 (defun gdb-update-buffer-name ()
   (let ((f (gdb-rules-name-maker (assoc gdb-buffer-type
@@ -1048,14 +1052,15 @@ DOC is an optional documentation string."
    (function
     (lambda ()
       (let ((trigger (gdb-rules-update-trigger
-                      (gdb-get-current-buffer-rules))))
+                      (gdb-current-buffer-rules))))
         (when trigger
           (gdb-delete-subscriber 
            gdb-buf-publisher
            ;; This should match gdb-add-subscriber done in
            ;; gdb-get-buffer-create
            (cons (current-buffer)
-                 (gdb-bind-function-to-buffer trigger (current-buffer))))))))))
+                 (gdb-bind-function-to-buffer trigger (current-buffer))))))))
+   nil t))
 
 ;; GUD buffers are an exception to the rules
 (gdb-set-buffer-rules 'gdbmi 'error)
@@ -1454,7 +1459,7 @@ valid signal handlers.")
 (defun gdb-starting (output-field)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
   (gdb-input
-   (list "-data-list-register-names" 'gdb-get-register-names))
+   (list "-data-list-register-names" 'gdb-register-names-handler))
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
@@ -1655,17 +1660,28 @@ trigger argument when describing buffer types with
 
 ;; Used by disassembly buffer only, the rest use
 ;; def-gdb-trigger-and-handler
-(defmacro def-gdb-auto-update-handler (handler-name trigger-name custom-defun)
+(defmacro def-gdb-auto-update-handler (handler-name trigger-name custom-defun &optional nopreserve)
   "Define a handler HANDLER-NAME for TRIGGER-NAME with CUSTOM-DEFUN.
 
+Handlers are normally called from the buffers they put output in.
+
 Delete ((current-buffer) . TRIGGER) from `gdb-pending-triggers',
-erase current buffer and evaluate CUSTOM-DEFUN."
+erase current buffer and evaluate CUSTOM-DEFUN. Then
+`gdb-update-buffer-name' is called.
+
+If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
   `(defun ,handler-name ()
      (gdb-delete-pending (cons (current-buffer) ',trigger-name))
-     (let* ((buffer-read-only nil))
+     (let* ((buffer-read-only nil)
+            (window (get-buffer-window (current-buffer) 0))
+            (start (window-start window))
+            (p (window-point window)))
        (erase-buffer)
        (,custom-defun)
-       (gdb-update-buffer-name))))
+       (gdb-update-buffer-name)
+       ,(when (not nopreserve)
+          '(set-window-start window start)
+          '(set-window-point window p)))))
 
 (defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
 				       handler-name custom-defun)
@@ -2026,7 +2042,7 @@ FILE is a full path."
 
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map " " 'gdb-select-thread)
+    (define-key map "\r" 'gdb-select-thread)
     (define-key map "s" 'gdb-display-stack-for-thread)
     (define-key map "S" 'gdb-frame-stack-for-thread)
     (define-key map "l" 'gdb-display-locals-for-thread)
@@ -2119,7 +2135,8 @@ on the current line."
       (error "Cannot select running thread")
     (let ((new-id (gdb-get-field thread 'id)))
       (setq gdb-thread-number new-id)
-      (gud-basic-call (concat "-thread-select " new-id))))
+      (gdb-input (list (concat "-thread-select " new-id) 'ignore))
+      (gdb-update)))
   "Select the thread at current line of threads buffer.")
 
 (def-gdb-thread-simple-buffer-command
@@ -2583,7 +2600,8 @@ DOC is an optional documentation string."
 (def-gdb-auto-update-handler
   gdb-disassembly-handler
   gdb-invalidate-disassembly
-  gdb-disassembly-handler-custom)
+  gdb-disassembly-handler-custom
+  t)
 
 (gdb-set-buffer-rules
  'gdb-disassembly-buffer
@@ -2767,13 +2785,12 @@ member."
 (defun gdb-stack-list-frames-custom ()
   (let* ((res (json-partial-output "frame"))
          (stack (gdb-get-field res 'stack)))
-         (dolist (frame (nreverse stack))
+         (dolist (frame stack)
            (insert (apply 'format `("%s in %s" ,@(gdb-get-many-fields frame 'level 'func))))
            (gdb-insert-frame-location frame)
            (newline))
          (save-excursion
            (goto-char (point-min))
-           (forward-line 1)
            (while (< (point) (point-max))
              (add-text-properties (point-at-bol) (1+ (point-at-bol))
                                   '(mouse-face highlight

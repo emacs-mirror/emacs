@@ -41,6 +41,10 @@
 	(gdb-display-disassembly-for-thread)
 	(gdb-frame-disassembly-for-thread): New commands for threads
 	buffer.
+	(gdb-rules-name-maker, gdb-rules-buffer-mode)
+	(gdb-rules-update-trigger): Accessors for gdb-buffer-rules.
+	(def-gdb-auto-update-handler): New nopreserve optional argument.
+	(gdb-stack-list-frames-custom): Print stack from top to bottom.
 
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
