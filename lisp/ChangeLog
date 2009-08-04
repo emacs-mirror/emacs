@@ -35,6 +35,12 @@
 	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread): New
 	commands which show buffers bound to thread.
 	(gdb-stack-list-locals-regexp): Removed unused regexp.
+	(gdb-pc-address): Removed unused variable.
+	(gdb-threads-list, gdb-breakpoints-list): New assoc lists.
+	(gdb-parent-mode): New mode to derive other GDB modes from.
+	(gdb-display-disassembly-for-thread)
+	(gdb-frame-disassembly-for-thread): New commands for threads
+	buffer.
 
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 

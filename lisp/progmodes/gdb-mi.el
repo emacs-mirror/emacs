@@ -107,8 +107,6 @@
 (defvar speedbar-initial-expansion-list-name)
 (defvar speedbar-frame)
 
-(defvar gdb-pc-address nil "Initialization for Assembler buffer.
-Set to \"main\" at start if `gdb-show-main' is t.")
 (defvar	gdb-memory-address "main")
 (defvar	gdb-memory-last-address nil
   "Last successfully accessed memory address.")
@@ -122,15 +120,38 @@ Set to \"main\" at start if `gdb-show-main' is t.")
   "Main current thread.
 
 Invalidation triggers use this variable to query GDB for
-information on the specified thread.
+information on the specified thread by wrapping GDB/MI commands
+in `gdb-current-context-command'.
 
 This variable may be updated implicitly by GDB via
 `gdb-thread-list-handler-custom' or explicitly by
 `gdb-select-thread'.")
 
-(defvar gdb-selected-frame nil)
-(defvar gdb-selected-file nil)
-(defvar gdb-selected-line nil)
+;; Used to show overlay arrow in source buffer. All set in
+;; gdb-get-main-selected-frame. Disassembly buffer should not use
+;; these but rely on buffer-local thread information instead.
+(defvar gdb-selected-frame nil
+  "Name of selected function for main current thread.")
+(defvar gdb-selected-file nil
+  "Name of selected file for main current thread.")
+(defvar gdb-selected-line nil
+  "Number of selected line for main current thread.")
+
+(defvar gdb-threads-list nil
+  "Associative list of threads provided by \"-thread-info\" MI command.
+
+Keys are thread numbers (in strings) and values are structures as
+returned from -thread-info by `json-partial-output'. Updated in
+`gdb-thread-list-handler-custom'.")
+
+(defvar gdb-breakpoints-list nil
+  "Associative list of breakpoints provided by \"-break-list\" MI command.
+
+Keys are breakpoint numbers (in string) and values are structures
+as returned from \"-break-list\" by `json-partial-output'
+\(\"body\" field is used). Updated in
+`gdb-breakpoints-list-handler-custom'.")
+
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
   "List of variables in watch window.
@@ -139,12 +160,7 @@ STATUS is nil (unchanged), `changed' or `out-of-scope'.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-stack-position nil)
-(defvar gdb-breakpoints-list nil
-  "List of breakpoints.
 
-`gdb-get-field' is used to access breakpoints data stored in this
-variable. Each element contains the same fields as \"body\"
-member of \"-break-info\".")
 (defvar gdb-location-alist nil
   "Alist of breakpoint numbers and full filenames.  Only used for files that
 Emacs can't find.")
@@ -474,7 +490,6 @@ detailed description of this mode.
     'gdb-mouse-jump)
   ;;
   ;; (re-)initialise
-  (setq gdb-pc-address (if gdb-show-main "main" nil))
   (setq gdb-selected-frame nil
 	gdb-frame-number nil
 	gdb-var-list nil
@@ -920,19 +935,29 @@ INDENT is the current indentation depth."
                                         gdb-buffer-rules))))
     (when f (rename-buffer (funcall f)))))
 
+(defun gdb-current-buffer-rules ()
+  "Get `gdb-buffer-rules' entry for current buffer type."
+  (assoc gdb-buffer-type gdb-buffer-rules))
+
+(defun gdb-current-buffer-thread ()
+  "Get thread of current buffer from `gdb-threads-list'."
+  (cdr (assoc gdb-thread-number gdb-threads-list)))
+
+(defun gdb-current-buffer-frame ()
+  "Get current stack frame for thread of current buffer."
+  (gdb-get-field (gdb-current-buffer-thread) 'frame))
+
 (defun gdb-get-buffer (key &optional thread)
   "Get a specific GDB buffer.
 
 In that buffer, `gdb-buffer-type' must be equal to KEY and
-`gdb-thread-number' (if provided) must be equal to THREAD.
-
-When THREAD is nil, global `gdb-thread-number' value is used."
-  (when (not thread) (setq thread gdb-thread-number))
+`gdb-thread-number' (if provided) must be equal to THREAD."
   (catch 'found
     (dolist (buffer (buffer-list) nil)
       (with-current-buffer buffer
         (when (and (eq gdb-buffer-type key)
-                   (equal gdb-thread-number thread))
+                   (or (not thread)
+                       (equal gdb-thread-number thread)))
           (throw 'found buffer))))))
 
 (defun gdb-get-buffer-create (key &optional thread)
@@ -1011,6 +1036,26 @@ DOC is an optional documentation string."
 	(setcdr binding rules)
       (push (cons buffer-type rules)
 	    gdb-buffer-rules))))
+
+(defun gdb-parent-mode ()
+  "Generic mode to derive all other GDB buffer modes from."
+  (setq buffer-read-only t)
+  (buffer-disable-undo)
+  ;; Delete buffer from gdb-buf-publisher when it's killed
+  ;; (if it has an associated update trigger)
+  (add-hook 
+   'kill-buffer-hook
+   (function
+    (lambda ()
+      (let ((trigger (gdb-rules-update-trigger
+                      (gdb-get-current-buffer-rules))))
+        (when trigger
+          (gdb-delete-subscriber 
+           gdb-buf-publisher
+           ;; This should match gdb-add-subscriber done in
+           ;; gdb-get-buffer-create
+           (cons (current-buffer)
+                 (gdb-bind-function-to-buffer trigger (current-buffer))))))))))
 
 ;; GUD buffers are an exception to the rules
 (gdb-set-buffer-rules 'gdbmi 'error)
@@ -1264,7 +1309,12 @@ Option value is taken from `gdb-thread-number'."
 
 SUBSCRIBER must be a pair, where cdr is a function of one
 argument (see `gdb-emit-signal')."
-  `(add-to-list ',publisher ,subscriber))
+  `(add-to-list ',publisher ,subscriber t))
+
+(defmacro gdb-delete-subscriber (publisher subscriber)
+  "Unregister SUBSCRIBER from PUBLISHER."
+  `(setq ,publisher (delete ,subscriber
+                            ,publisher)))
 
 (defun gdb-get-subscribers (publisher)
   publisher)
@@ -1288,13 +1338,15 @@ valid signal handlers.")
      (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
-  ;; We may need to update gdb-thread-number, so we call threads buffer
+  ;; We may need to update gdb-thread-number and gdb-threads-list
   (gdb-get-buffer-create 'gdb-threads-buffer)
-  ;; Regenerate breakpoints buffer in case it has been inadvertantly deleted.
+  ;; gdb-break-list is maintained in breakpoints handler
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)  
   
+  (gdb-get-main-selected-frame)
+
   (gdb-emit-signal gdb-buf-publisher 'update)
-  (gdb-get-selected-frame)
+
   (gdb-get-changed-registers)
 
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1576,14 +1628,22 @@ are not guaranteed."
     (dolist (field fields values)
       (setq values (append values (list (gdb-get-field struct field)))))))
 
-;; NAME is the function name.
-;; GDB-COMMAND is a string of such.  HANDLER-NAME is the function bound to the
-;; current input and buffer which recieved the trigger signal.
-;; Trigger must be bound to buffer via gdb-bind-function-to-buffer before use!
-;; See how it's done in gdb-get-buffer-create.
-
 (defmacro def-gdb-auto-update-trigger (trigger-name gdb-command
                                                     handler-name)
+  "Define a trigger TRIGGER-NAME which sends GDB-COMMAND and sets
+HANDLER-NAME as its handler. HANDLER-NAME is bound to current
+buffer with `gdb-bind-function-to-buffer'.
+
+Normally the trigger defined by this command must be called from
+the buffer where HANDLER-NAME must work. This should be done so
+that buffer-local thread number may be used in GDB-COMMAND (by
+calling `gdb-current-context-command').
+`gdb-bind-function-to-buffer' is used to achieve this, see how
+it's done in `gdb-get-buffer-create'.
+
+Triggers defined by this command are meant to be used as a
+trigger argument when describing buffer types with
+`gdb-set-buffer-rules'."
   `(defun ,trigger-name (&optional signal)
      (if (not (gdb-pending-p
                (cons (current-buffer) ',trigger-name)))
@@ -1611,9 +1671,11 @@ erase current buffer and evaluate CUSTOM-DEFUN."
 				       handler-name custom-defun)
   "Define trigger and handler.
 
-TRIGGER-NAME trigger is defined to send GDB-COMMAND.
+TRIGGER-NAME trigger is defined to send GDB-COMMAND. See
+`def-gdb-auto-update-trigger'.
 
-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
+HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
+`def-gdb-auto-update-handler'."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ,gdb-command
@@ -1638,9 +1700,12 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
   (let ((breakpoints-list (gdb-get-field 
                            (json-partial-output "bkpt" "script")
                            'BreakpointTable 'body)))
-    (setq gdb-breakpoints-list breakpoints-list)
+    (setq gdb-breakpoints-list nil)
     (insert "Num\tType\t\tDisp\tEnb\tHits\tAddr       What\n")
     (dolist (breakpoint breakpoints-list)
+      (add-to-list 'gdb-breakpoints-list 
+                   (cons (gdb-get-field breakpoint 'number)
+                         breakpoint))
       (insert
        (concat
         (gdb-get-field breakpoint 'number) "\t"
@@ -1682,7 +1747,9 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
 		 (not (string-match "\\` ?\\*.+\\*\\'" (buffer-name))))
 	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (dolist (breakpoint gdb-breakpoints-list)
-      (let ((line (gdb-get-field breakpoint 'line)))
+      (let* ((breakpoint (cdr breakpoint)) ; gdb-breakpoints-list is
+                                           ; an associative list
+             (line (gdb-get-field breakpoint 'line)))
         (when line
           (let ((file (gdb-get-field breakpoint 'fullname))
                 (flag (gdb-get-field breakpoint 'enabled))
@@ -1966,6 +2033,8 @@ FILE is a full path."
     (define-key map "L" 'gdb-frame-locals-for-thread)
     (define-key map "r" 'gdb-display-registers-for-thread)
     (define-key map "R" 'gdb-frame-registers-for-thread)
+    (define-key map "d" 'gdb-display-disassembly-for-thread)
+    (define-key map "D" 'gdb-frame-disassembly-for-thread)
     map))
 
 (defvar gdb-breakpoints-header
@@ -1975,17 +2044,10 @@ FILE is a full path."
    " "
    (gdb-propertize-header "Threads" gdb-threads-buffer
 			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
-
-(defun gdb-threads-mode ()
+(define-derived-mode gdb-threads-mode gdb-parent-mode "Threads"
   "Major mode for GDB threads.
 
 \\{gdb-threads-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-threads-mode)
-  (setq mode-name "Threads")
-  (use-local-map gdb-threads-mode-map)
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
   (setq gdb-thread-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-thread-position)
   (setq header-line-format gdb-breakpoints-header)
@@ -1998,6 +2060,7 @@ FILE is a full path."
   (let* ((res (json-partial-output))
          (threads-list (gdb-get-field res 'threads))
          (current-thread (gdb-get-field res 'current-thread-id)))
+    (setq gdb-threads-list nil)
     (when (and current-thread
                (not (string-equal current-thread gdb-thread-number)))
       ;; Implicitly switch thread (in case previous one dies)
@@ -2005,6 +2068,9 @@ FILE is a full path."
       (setq gdb-thread-number current-thread))
     (set-marker gdb-thread-position nil)
     (dolist (thread threads-list)
+      (add-to-list 'gdb-threads-list
+                   (cons (gdb-get-field thread 'id)
+                         thread))
       (insert (apply 'format `("%s (%s) %s in %s "
                                ,@(gdb-get-many-fields thread 'id 'target-id 'state)
                                ,(gdb-get-field thread 'frame 'func))))
@@ -2071,6 +2137,11 @@ on the current line."
   gdb-display-registers-buffer
   "Display registers buffer for the thread at current line.")
 
+(def-gdb-thread-buffer-simple-command
+  gdb-display-disassembly-for-thread
+  gdb-display-disassembly-buffer
+  "Display disassembly buffer for the thread at current line.")
+
 (def-gdb-thread-simple-buffer-command
   gdb-frame-stack-for-thread
   gdb-frame-stack-buffer
@@ -2087,6 +2158,12 @@ current line.")
   gdb-frame-registers-for-thread
   gdb-frame-registers-buffer
   "Display a new frame with registers buffer for the thread at
+current line.")
+
+(def-gdb-thread-buffer-simple-command
+  gdb-frame-disassembly-for-thread
+  gdb-frame-disassembly-buffer
+  "Display a new frame with disassembly buffer for the thread at
 current line.")
 
 
@@ -2449,15 +2526,10 @@ DOC is an optional documentation string."
                  'local-map gdb-memory-unit-map)))
   "Header line used in `gdb-memory-mode'.")
 
-(defun gdb-memory-mode ()
+(define-derived-mode gdb-memory-mode gdb-parent-mode "Memory"
   "Major mode for examining memory.
 
 \\{gdb-memory-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-memory-mode)
-  (setq mode-name "Memory")
-  (use-local-map gdb-memory-mode-map)
-  (setq buffer-read-only t)
   (setq header-line-format gdb-memory-header)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-memory-font-lock-keywords))
@@ -2487,7 +2559,8 @@ DOC is an optional documentation string."
 ;;; Disassembly view
 
 (defun gdb-disassembly-buffer-name ()
-  (concat "*disassembly of " (gdb-get-target-string) "*"))
+  (gdb-current-context-buffer-name
+   (concat "disassembly of " (gdb-get-target-string))))
 
 (def-gdb-display-buffer
  gdb-display-disassembly-buffer
@@ -2500,10 +2573,11 @@ DOC is an optional documentation string."
  "Display disassembly in a new frame.")
 
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
-  (let ((file (or gdb-selected-file gdb-main-file))
-        (line (or gdb-selected-line 1)))
-    (if (not file) (error "Disassembly invalidated with no file selected.")
-      (format "-data-disassemble -f %s -l %d -n -1 -- 0" file line)))
+  (let* ((frame (gdb-current-buffer-frame))
+         (file (gdb-get-field frame 'file))
+         (line (gdb-get-field frame 'line)))
+    (when file
+      (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)))
   gdb-disassembly-handler)
 
 (def-gdb-auto-update-handler
@@ -2539,37 +2613,32 @@ DOC is an optional documentation string."
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defun gdb-disassembly-mode ()
+(define-derived-mode gdb-disassembly-mode gdb-parent-mode "Disassembly"
   "Major mode for GDB disassembly information.
 
 \\{gdb-disassembly-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-disassembly-mode)
-  (setq mode-name "Disassembly")
   (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
   (setq fringes-outside-margins t)
   (setq gdb-overlay-arrow-position (make-marker))
-  (use-local-map gdb-disassembly-mode-map)
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-disassembly-font-lock-keywords))
   (run-mode-hooks 'gdb-disassembly-mode-hook)
   'gdb-invalidate-disassembly)
 
 (defun gdb-disassembly-handler-custom ()
-  (let* ((res (json-partial-output))
+  (let* ((pos 1)
+         (address (gdb-get-field (gdb-current-buffer-frame) 'addr))
+         (res (json-partial-output))
          (instructions (gdb-get-field res 'asm_insns))
-         (pos 1))
-    (let* ((last-instr (car (last instructions)))
-           (column-padding (+ 2 (string-width
-                                 (apply 'format
-                                        `("<%s+%s>:"
-                                          ,@(gdb-get-many-fields last-instr 'func-name 'offset)))))))
+         (last-instr (car (last instructions)))
+         (column-padding (+ 2 (string-width
+                               (apply 'format
+                                      `("<%s+%s>:"
+                                        ,@(gdb-get-many-fields last-instr 'func-name 'offset)))))))
       (dolist (instr instructions)
       ;; Put overlay arrow
       (when (string-equal (gdb-get-field instr 'address)
-                          gdb-pc-address)
+                          address)
         (progn
           (setq pos (point))
           (setq fringe-indicator-alist
@@ -2581,20 +2650,24 @@ DOC is an optional documentation string."
        (concat
         (gdb-get-field instr 'address)
         " "
-        (gdb-pad-string (apply 'format `("<%s+%s>:"  ,@(gdb-get-many-fields instr 'func-name 'offset)))
+        (gdb-pad-string (apply 'format `("<%s+%s>:" ,@(gdb-get-many-fields instr 'func-name 'offset)))
                         (- column-padding))
         (gdb-get-field instr 'inst)
         "\n")))
       (gdb-disassembly-place-breakpoints)
       (let ((window (get-buffer-window (current-buffer) 0)))
-        (set-window-point window pos)))))
+        (set-window-point window pos))
+      (setq mode-name
+            (concat "Disassembly: " 
+                    (gdb-get-field (gdb-current-buffer-frame) 'func)))))
 
 (defun gdb-disassembly-place-breakpoints ()
   (gdb-remove-breakpoint-icons (point-min) (point-max))
   (dolist (breakpoint gdb-breakpoints-list)
-    (let ((bptno (gdb-get-field breakpoint 'number))
-          (flag (gdb-get-field breakpoint 'enabled))
-          (address (gdb-get-field breakpoint 'addr)))
+    (let* ((breakpoint (cdr breakpoint))
+           (bptno (gdb-get-field breakpoint 'number))
+           (flag (gdb-get-field breakpoint 'enabled))
+           (address (gdb-get-field breakpoint 'addr)))
       (save-excursion
         (goto-char (point-min))
         (if (re-search-forward (concat "^" address) nil t)
@@ -2602,16 +2675,11 @@ DOC is an optional documentation string."
 
 
 ;;; Breakpoints view
-(defun gdb-breakpoints-mode ()
+
+(define-derived-mode gdb-breakpoints-mode gdb-parent-mode "Breakpoints"
   "Major mode for gdb breakpoints.
 
 \\{gdb-breakpoints-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-breakpoints-mode)
-  (setq mode-name "Breakpoints")
-  (use-local-map gdb-breakpoints-mode-map)
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
   (setq header-line-format gdb-breakpoints-header)
   (run-mode-hooks 'gdb-breakpoints-mode-hook)
   'gdb-invalidate-breakpoints)
@@ -2750,19 +2818,13 @@ member."
   '(("in \\([^ ]+\\) of "  (1 font-lock-function-name-face)))
   "Font lock keywords used in `gdb-frames-mode'.")
 
-(defun gdb-frames-mode ()
+(define-derived-mode gdb-frames-mode gdb-parent-mode "Frames"
   "Major mode for gdb call stack.
 
 \\{gdb-frames-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-frames-mode)
-  (setq mode-name "Frames")
   (setq gdb-stack-position nil)
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
-  (use-local-map gdb-frames-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-frames-font-lock-keywords))
   (run-mode-hooks 'gdb-frames-mode-hook)
@@ -2844,7 +2906,9 @@ member."
 			      value))
 		       (insert
 			(concat name "\t" type
-				"\t" value "\n"))))))
+				"\t" value "\n"))))
+    (setq mode-name
+          (concat "Locals: " (gdb-get-field (gdb-current-buffer-frame) 'func)))))
 
 (defvar gdb-locals-header
   (list
@@ -2860,17 +2924,11 @@ member."
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defun gdb-locals-mode ()
+(define-derived-mode gdb-locals-mode gdb-parent-mode "Locals"
   "Major mode for gdb locals.
 
 \\{gdb-locals-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-locals-mode)
-  (setq mode-name (concat "Locals:" gdb-selected-frame))
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
   (setq header-line-format gdb-locals-header)
-  (use-local-map gdb-locals-mode-map)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-locals-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
@@ -2928,17 +2986,11 @@ member."
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defun gdb-registers-mode ()
+(define-derived-mode gdb-registers-mode gdb-parent-mode "Registers"
   "Major mode for gdb registers.
 
 \\{gdb-registers-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'gdb-registers-mode)
-  (setq mode-name "Registers")
   (setq header-line-format gdb-locals-header)
-  (setq buffer-read-only t)
-  (buffer-disable-undo)
-  (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
   'gdb-invalidate-registers)
 
@@ -2996,20 +3048,22 @@ is set in them."
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 
-(defun gdb-get-selected-frame ()
-  (if (not (gdb-pending-p 'gdb-get-selected-frame))
+(defun gdb-get-main-selected-frame ()
+  "Trigger for `gdb-frame-handler' which uses main current
+thread. Called from `gdb-update'."
+  (if (not (gdb-pending-p 'gdb-get-main-selected-frame))
       (progn
 	(gdb-input
 	 (list (gdb-current-context-command "-stack-info-frame") 'gdb-frame-handler))
-	(push 'gdb-get-selected-frame
-	       gdb-pending-triggers))))
+	(gdb-add-pending 'gdb-get-main-selected-frame))))
 
 (defun gdb-frame-handler ()
-  (gdb-delete-pending 'gdb-get-selected-frame)
+  "Sets `gdb-pc-address', `gdb-selected-frame' and
+  `gdb-selected-file' to show overlay arrow in source buffer."
+  (gdb-delete-pending 'gdb-get-main-selected-frame)
   (let ((frame (gdb-get-field (json-partial-output) 'frame)))
     (when frame
       (setq gdb-frame-number (gdb-get-field frame 'level))
-      (setq gdb-pc-address (gdb-get-field frame 'addr))
       (setq gdb-selected-frame (gdb-get-field frame 'func))
       (setq gdb-selected-file (gdb-get-field frame 'fullname))
       (let ((line (gdb-get-field frame 'line)))
@@ -3018,12 +3072,6 @@ is set in them."
         (when line ; obey the current file only if we have line info
           (setq gud-last-frame (cons gdb-selected-file gdb-selected-line))
           (gud-display-frame)))
-      (if (gdb-get-buffer 'gdb-locals-buffer)
-          (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
-            (setq mode-name (concat "Locals:" gdb-selected-frame))))
-      (if (gdb-get-buffer 'gdb-disassembly-buffer)
-          (with-current-buffer (gdb-get-buffer 'gdb-disassembly-buffer)
-            (setq mode-name (concat "Disassembly:" gdb-selected-frame))))
       (if gud-overlay-arrow-position
           (let ((buffer (marker-buffer gud-overlay-arrow-position))
                 (position (marker-position gud-overlay-arrow-position)))
@@ -3034,9 +3082,7 @@ is set in them."
                           nil
                         '((overlay-arrow . hollow-right-triangle))))
                 (setq gud-overlay-arrow-position (make-marker))
-                (set-marker gud-overlay-arrow-position position)))))
-      (when gdb-selected-line
-            (gdb-invalidate-disassembly)))))
+                (set-marker gud-overlay-arrow-position position))))))))
   
 (defvar gdb-prompt-name-regexp "value=\"\\(.*?\\)\"")
 
