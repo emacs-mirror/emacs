@@ -196,9 +196,6 @@ scroll bars are extensible.
   by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
 
-** Add a command to make a "Local Variables" section in the current buffer
-  and/or add a variable to the list.
-
 ** Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
 
