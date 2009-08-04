@@ -488,7 +488,7 @@ detailed description of this mode.
   ;;
   (gdb-force-mode-line-update
    (propertize "initializing..." 'face font-lock-variable-name-face))
-
+  (setq gdb-buf-publisher '())
   (when gdb-use-separate-io-buffer
     (gdb-get-buffer-create 'gdb-inferior-io)
     (gdb-clear-inferior-io)
@@ -900,44 +900,65 @@ INDENT is the current indentation depth."
 ;; is constructed specially.
 ;;
 ;; Others are constructed by gdb-get-buffer-create and
-;; named according to the rules set forth in the gdb-buffer-rules-assoc
+;; named according to the rules set forth in the gdb-buffer-rules
 
-(defvar gdb-buffer-rules-assoc '())
+(defvar gdb-buffer-rules '())
+(defalias 'gdb-rules-name-maker 'second)
+(defalias 'gdb-rules-buffer-mode 'third)
+(defalias 'gdb-rules-update-trigger 'fourth)
 
-(defun gdb-get-buffer (key)
-  "Return the gdb buffer tagged with type KEY.
-The key should be one of the cars in `gdb-buffer-rules-assoc'."
-  (save-excursion
-    (gdb-look-for-tagged-buffer key (buffer-list))))
+(defun gdb-update-buffer-name ()
+  (let ((f (gdb-rules-name-maker (assoc gdb-buffer-type
+                                        gdb-buffer-rules))))
+    (when f (rename-buffer (funcall f)))))
 
-(defun gdb-get-buffer-create (key)
-  "Create a new gdb buffer of the type specified by KEY.
-The key should be one of the cars in `gdb-buffer-rules-assoc'."
-  (or (gdb-get-buffer key)
-      (let* ((rules (assoc key gdb-buffer-rules-assoc))
-	     (name (funcall (gdb-rules-name-maker rules)))
-	     (new (get-buffer-create name)))
+(defun gdb-get-buffer (key &optional thread)
+  "Get a specific GDB buffer.
+
+In that buffer, `gdb-buffer-type' must be equal to KEY and
+`gdb-thread-number' (if provided) must be equal to THREAD."
+  (catch 'found
+    (dolist (buffer (buffer-list) nil)
+      (with-current-buffer buffer
+        (when (and (eq gdb-buffer-type key)
+                   (or (not thread)
+                       (equal gdb-thread-number thread)))
+          (throw 'found buffer))))))
+
+(defun gdb-get-buffer-create (key &optional thread)
+  "Create a new GDB buffer of the type specified by KEY.
+The key should be one of the cars in `gdb-buffer-rules'.
+
+If THREAD is non-nil, it is assigned to `gdb-thread-number'
+buffer-local variable of the new buffer.
+
+If buffer's mode returns a symbol, it's used to register "
+  (or (gdb-get-buffer key thread)
+      (let ((rules (assoc key gdb-buffer-rules))
+	     (new (generate-new-buffer "limbo")))
 	(with-current-buffer new
-	  (let ((trigger))
-	    (if (cdr (cdr rules))
-		(setq trigger (funcall (car (cdr (cdr rules))))))
+	  (let ((mode (gdb-rules-buffer-mode rules))
+                (trigger (gdb-rules-update-trigger rules)))
+	    (when mode (funcall mode))
 	    (setq gdb-buffer-type key)
+            (when thread
+              (set (make-local-variable 'gdb-thread-number) thread))
 	    (set (make-local-variable 'gud-minor-mode)
 		 (buffer-local-value 'gud-minor-mode gud-comint-buffer))
 	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-	    (if trigger (funcall trigger)))
-	  new))))
+            (rename-buffer (funcall (gdb-rules-name-maker rules)))
+	    (when trigger
+              (gdb-add-subscriber gdb-buf-publisher
+                                  (cons (current-buffer)
+                                        (gdb-bind-function-to-buffer trigger (current-buffer))))
+              (funcall trigger))
+            (current-buffer))))))
 
-(defun gdb-rules-name-maker (rules) (car (cdr rules)))
-
-(defun gdb-look-for-tagged-buffer (key bufs)
-  (let ((retval nil))
-    (while (and (not retval) bufs)
-      (set-buffer (car bufs))
-      (if (eq gdb-buffer-type key)
-	  (setq retval (car bufs)))
-      (setq bufs (cdr bufs)))
-    retval))
+(defun gdb-bind-function-to-buffer (expr buffer)
+  "Return a function which will evaluate EXPR in BUFFER."
+  `(lambda (&rest args)
+     (with-current-buffer ,buffer
+       (apply ',expr args))))
 
 ;; Used to define all gdb-frame-*-buffer functions except
 ;; `gdb-frame-separate-io-buffer'
@@ -945,24 +966,23 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   "Define a function NAME which shows gdb BUFFER in a separate frame.
 
 DOC is an optional documentation string."
-  `(defun ,name ()
+  `(defun ,name (&optional thread)
      ,(when doc doc)
      (interactive)
      (let ((special-display-regexps (append special-display-regexps '(".*")))
            (special-display-frame-alist gdb-frame-parameters))
-       (display-buffer (gdb-get-buffer-create ,buffer)))))
+       (display-buffer (gdb-get-buffer-create ,buffer thread)))))
 
 (defmacro def-gdb-display-buffer (name buffer &optional doc)
   "Define a function NAME which shows gdb BUFFER.
 
 DOC is an optional documentation string."
-  `(defun ,name ()
+  `(defun ,name (&optional thread)
      ,(when doc doc)
      (interactive)
      (gdb-display-buffer
-      (gdb-get-buffer-create ,buffer) t)))
+      (gdb-get-buffer-create ,buffer thread) t)))
 
-;;
 ;; This assoc maps buffer type symbols to rules.  Each rule is a list of
 ;; at least one and possible more functions.  The functions have these
 ;; roles in defining a buffer type:
@@ -976,11 +996,11 @@ DOC is an optional documentation string."
 ;;
 
 (defun gdb-set-buffer-rules (buffer-type &rest rules)
-  (let ((binding (assoc buffer-type gdb-buffer-rules-assoc)))
+  (let ((binding (assoc buffer-type gdb-buffer-rules)))
     (if binding
 	(setcdr binding rules)
       (push (cons buffer-type rules)
-	    gdb-buffer-rules-assoc))))
+	    gdb-buffer-rules))))
 
 ;; GUD buffers are an exception to the rules
 (gdb-set-buffer-rules 'gdbmi 'error)
@@ -1219,6 +1239,30 @@ Option value is taken from `gdb-thread-number'."
   (setq gdb-output-sink 'user)
   (setq gdb-pending-triggers nil))
 
+;; Publish-subscribe
+
+(defmacro gdb-add-subscriber (publisher subscriber)
+  "Register new PUBLISHER's SUBSCRIBER.
+
+SUBSCRIBER must be a pair, where cdr is a function of one
+argument (see `gdb-emit-signal')."
+  `(add-to-list ',publisher ,subscriber))
+
+(defun gdb-get-subscribers (publisher)
+  publisher)
+
+(defun gdb-emit-signal (publisher &optional signal)
+  "Call cdr for each subscriber of PUBLISHER with SIGNAL as argument."
+  (dolist (subscriber (gdb-get-subscribers publisher))
+    (funcall (cdr subscriber) signal)))
+
+(defvar gdb-buf-publisher '() 
+  "Used to invalidate GDB buffers by emitting a signal in
+`gdb-update'.
+
+Must be a list of pairs with cars being buffers and cdr's being
+valid signal handlers.")
+
 (defun gdb-update ()
   "Update buffers showing status of debug session."
   (when gdb-first-prompt
@@ -1228,16 +1272,13 @@ Option value is taken from `gdb-thread-number'."
     (setq gdb-first-prompt nil))
   ;; We may need to update gdb-thread-number, so we call threads buffer
   (gdb-get-buffer-create 'gdb-threads-buffer)
-  (gdb-invalidate-threads)
-  (gdb-get-selected-frame)
-  (gdb-invalidate-frames)
   ;; Regenerate breakpoints buffer in case it has been inadvertantly deleted.
-  (gdb-get-buffer-create 'gdb-breakpoints-buffer)
-  (gdb-invalidate-breakpoints)
+  (gdb-get-buffer-create 'gdb-breakpoints-buffer)  
+  
+  (gdb-emit-signal gdb-buf-publisher 'update)
+  (gdb-get-selected-frame)
   (gdb-get-changed-registers)
-  (gdb-invalidate-registers)
-  (gdb-invalidate-locals)
-  (gdb-invalidate-memory)
+
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     (dolist (var gdb-var-list)
       (setcar (nthcdr 5 var) nil))
@@ -1517,67 +1558,65 @@ are not guaranteed."
     (dolist (field fields values)
       (setq values (append values (list (gdb-get-field struct field)))))))
 
-;; NAME is the function name. DEMAND-PREDICATE tests if output is really needed.
-;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
-;; current input.
+;; NAME is the function name.
+;; GDB-COMMAND is a string of such.  HANDLER-NAME is the function bound to the
+;; current input and buffer which recieved the trigger signal.
+;; Trigger must be bound to buffer via gdb-bind-function-to-buffer before use!
+;; See how it's done in gdb-get-buffer-create.
 
-(defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command
-					    output-handler)
-  `(defun ,name (&optional ignored)
-     (if (and ,demand-predicate
-	      (not (member ',name
-			   gdb-pending-triggers)))
-	 (progn
-	   (gdb-input
-	    (list ,gdb-command ',output-handler))
-	   (push ',name gdb-pending-triggers)))))
+(defmacro def-gdb-auto-update-trigger (trigger-name gdb-command
+                                                    handler-name)
+  `(defun ,trigger-name (&optional signal)
+     (if (not (member (cons (current-buffer) ',trigger-name)
+                      gdb-pending-triggers))
+         (progn
+           (gdb-input
+            (list ,gdb-command
+                  (gdb-bind-function-to-buffer ',handler-name (current-buffer))))
+           (push (cons (current-buffer) ',trigger-name) gdb-pending-triggers)))))
 
-(defmacro def-gdb-auto-update-handler (name trigger buf-key custom-defun)
-  "Define a handler NAME for TRIGGER acting in BUF-KEY with CUSTOM-DEFUN.
+;; Used by disassembly buffer only, the rest use
+;; def-gdb-trigger-and-handler
+(defmacro def-gdb-auto-update-handler (handler-name trigger-name custom-defun)
+  "Define a handler HANDLER-NAME for TRIGGER-NAME with CUSTOM-DEFUN.
 
-Delete TRIGGER from `gdb-pending-triggers', switch to gdb BUF-KEY
-buffer using `gdb-get-buffer', erase it and evalueat
-CUSTOM-DEFUN."
-  `(defun ,name ()
+Delete ((current-buffer) . TRIGGER) from `gdb-pending-triggers',
+erase current buffer and evaluate CUSTOM-DEFUN."
+  `(defun ,handler-name ()
      (setq gdb-pending-triggers
-      (delq ',trigger
-	    gdb-pending-triggers))
-     (let ((buf (gdb-get-buffer ',buf-key)))
-       (and buf
-	    (with-current-buffer buf
-	      (let*((buffer-read-only nil))
-		(erase-buffer)
-                (,custom-defun)))))))
+           (delq (cons (current-buffer) ',trigger-name)
+                 gdb-pending-triggers))
+     (let* ((buffer-read-only nil))
+       (erase-buffer)
+       (,custom-defun)
+       (gdb-update-buffer-name))))
 
-(defmacro def-gdb-auto-updated-buffer (buf-key
-				       trigger-name gdb-command
-				       output-handler-name custom-defun)
-  "Define a trigger and its handler for buffers of type BUF-KEY.
+(defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
+				       handler-name custom-defun)
+  "Define trigger and handler.
 
-TRIGGER-NAME trigger is defined to send GDB-COMMAND if BUF-KEY
-exists.
+TRIGGER-NAME trigger is defined to send GDB-COMMAND.
 
-OUTPUT-HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
+HANDLER-NAME handler uses customization of CUSTOM-DEFUN."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
-       ;; The demand predicate:
-       (gdb-get-buffer ',buf-key)
        ,gdb-command
-       ,output-handler-name)
-     (def-gdb-auto-update-handler ,output-handler-name
-       ,trigger-name ,buf-key ,custom-defun)))
+       ,handler-name)
+     (def-gdb-auto-update-handler ,handler-name
+       ,trigger-name ,custom-defun)))
 
 
 
 ;; Breakpoint buffer : This displays the output of `-break-list'.
-;;
-(gdb-set-buffer-rules 'gdb-breakpoints-buffer
-		      'gdb-breakpoints-buffer-name
-		      'gdb-breakpoints-mode)
-
-(def-gdb-auto-updated-buffer gdb-breakpoints-buffer
+(def-gdb-trigger-and-handler
   gdb-invalidate-breakpoints "-break-list"
   gdb-breakpoints-list-handler gdb-breakpoints-list-handler-custom)
+
+(gdb-set-buffer-rules 
+ 'gdb-breakpoints-buffer
+ 'gdb-breakpoints-buffer-name 
+ 'gdb-breakpoints-mode
+ 'gdb-invalidate-breakpoints)
 
 (defun gdb-breakpoints-list-handler-custom ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-breakpoints
@@ -1888,14 +1927,15 @@ FILE is a full path."
  'gdb-threads-buffer
  "Display GDB threads in a new frame.")
 
-(gdb-set-buffer-rules 'gdb-threads-buffer
-                      'gdb-threads-buffer-name
-                      'gdb-threads-mode)
-
-(def-gdb-auto-updated-buffer gdb-threads-buffer
+(def-gdb-trigger-and-handler
   gdb-invalidate-threads "-thread-info"
   gdb-thread-list-handler gdb-thread-list-handler-custom)
 
+(gdb-set-buffer-rules
+ 'gdb-threads-buffer 
+ 'gdb-threads-buffer-name
+ 'gdb-threads-mode
+ 'gdb-invalidate-threads)
 
 (defvar gdb-threads-font-lock-keywords
   '(("in \\([^ ]+\\) ("  (1 font-lock-function-name-face))
@@ -2013,11 +2053,7 @@ FILE is a full path."
   :group 'gud
   :version "23.2")
 
-(gdb-set-buffer-rules 'gdb-memory-buffer
-		      'gdb-memory-buffer-name
-		      'gdb-memory-mode)
-
-(def-gdb-auto-updated-buffer gdb-memory-buffer
+(def-gdb-trigger-and-handler
   gdb-invalidate-memory
   (format "-data-read-memory %s %s %d %d %d" 
           gdb-memory-address
@@ -2027,6 +2063,12 @@ FILE is a full path."
           gdb-memory-columns)
   gdb-read-memory-handler
   gdb-read-memory-custom)
+
+(gdb-set-buffer-rules
+ 'gdb-memory-buffer
+ 'gdb-memory-buffer-name
+ 'gdb-memory-mode
+ 'gdb-invalidate-memory)
 
 (defun gdb-memory-column-width (size format)
   "Return length of string with memory unit of SIZE in FORMAT.
@@ -2387,12 +2429,7 @@ DOC is an optional documentation string."
  'gdb-disassembly-buffer
  "Display disassembly in a new frame.")
 
-(gdb-set-buffer-rules 'gdb-disassembly-buffer
-                      'gdb-disassembly-buffer-name
-                      'gdb-disassembly-mode)
-
 (def-gdb-auto-update-trigger gdb-invalidate-disassembly
-  (gdb-get-buffer 'gdb-disassembly-buffer)
   (let ((file (or gdb-selected-file gdb-main-file))
         (line (or gdb-selected-line 1)))
     (if (not file) (error "Disassembly invalidated with no file selected.")
@@ -2402,8 +2439,13 @@ DOC is an optional documentation string."
 (def-gdb-auto-update-handler
   gdb-disassembly-handler
   gdb-invalidate-disassembly
-  gdb-disassembly-buffer
   gdb-disassembly-handler-custom)
+
+(gdb-set-buffer-rules
+ 'gdb-disassembly-buffer
+ 'gdb-disassembly-buffer-name
+ 'gdb-disassembly-mode
+ 'gdb-invalidate-disassembly)
 
 (defvar gdb-disassembly-font-lock-keywords
   '(;; <__function.name+n>
@@ -2558,15 +2600,15 @@ breakpoints buffer."
 
 ;; Frames buffer.  This displays a perpetually correct bactrack trace.
 ;;
-(gdb-set-buffer-rules 'gdb-stack-buffer
-		      'gdb-stack-buffer-name
-		      'gdb-frames-mode)
+(def-gdb-trigger-and-handler
+  gdb-invalidate-frames (gdb-current-context-command "-stack-list-frames")
+  gdb-stack-list-frames-handler gdb-stack-list-frames-custom)
 
-(def-gdb-auto-updated-buffer gdb-stack-buffer
-  gdb-invalidate-frames
-  (gdb-current-context-command "-stack-list-frames")
-  gdb-stack-list-frames-handler
-  gdb-stack-list-frames-custom)
+(gdb-set-buffer-rules
+ 'gdb-stack-buffer
+ 'gdb-stack-buffer-name
+ 'gdb-frames-mode
+ 'gdb-invalidate-frames)
 
 (defun gdb-insert-frame-location (frame)
   "Insert \"of file:line\" button or library name for structure FRAME.
@@ -2612,7 +2654,7 @@ member."
              (forward-line 1)))))
 
 (defun gdb-stack-buffer-name ()
-  (concat "*stack frames of " (gdb-get-target-string) "*"))
+  (concat "*stack frames of " (gdb-get-target-string) " (thread " gdb-thread-number ")*"))
 
 (def-gdb-display-buffer
  gdb-display-stack-buffer
@@ -2671,14 +2713,16 @@ member."
 
 ;; Locals buffer.
 ;; uses "-stack-list-locals --simple-values". Needs GDB 6.1 onwards.
-(gdb-set-buffer-rules 'gdb-locals-buffer
-		      'gdb-locals-buffer-name
-		      'gdb-locals-mode)
-
-(def-gdb-auto-updated-buffer gdb-locals-buffer
+(def-gdb-trigger-and-handler
   gdb-invalidate-locals
   (concat (gdb-current-context-command "-stack-list-locals") " --simple-values")
   gdb-locals-handler gdb-locals-handler-custom)
+
+(gdb-set-buffer-rules
+ 'gdb-locals-buffer
+ 'gdb-locals-buffer-name
+ 'gdb-locals-mode
+ 'gdb-invalidate-locals)
 
 (defconst gdb-stack-list-locals-regexp
   (concat "name=\"\\(.*?\\)\",type=\"\\(.*?\\)\""))
@@ -2779,16 +2823,18 @@ member."
 
 
 ;; Registers buffer.
-;;
-(gdb-set-buffer-rules 'gdb-registers-buffer
-		      'gdb-registers-buffer-name
-		      'gdb-registers-mode)
 
-(def-gdb-auto-updated-buffer gdb-registers-buffer
+(def-gdb-trigger-and-handler
   gdb-invalidate-registers
   (concat (gdb-current-context-command "-data-list-register-values") " x")
   gdb-registers-handler
   gdb-registers-handler-custom)
+
+(gdb-set-buffer-rules
+ 'gdb-registers-buffer
+ 'gdb-registers-buffer-name
+ 'gdb-registers-mode
+ 'gdb-invalidate-registers)
 
 (defun gdb-registers-handler-custom ()
   (let ((register-values (gdb-get-field (json-partial-output) 'register-values))

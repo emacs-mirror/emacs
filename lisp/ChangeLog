@@ -10,14 +10,22 @@
 	(gdb-select-thread): New command which selects current thread.
 	(gdb-invalidate-frames, gdb-invalidate-locals)
 	(gdb-invalidate-registers): Use --thread option.
-
-	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name)
-	(gdb-locals-buffer-name, gdb-registers-buffer-name)
+	(gdb-breakpoints-buffer-name,gdb-locals-buffer-name)
+	(gdb-registers-buffer-name)
 	(gdb-memory-buffer-name, gdb-stack-buffer-name): Do not switch
 	to (gud-comint-buffer) in *-buffer-name functions
 	because (gdb-get-target-string) already does that.
 	(gdb-locals-handler-custom, gdb-registers-handler-custom)
 	(gdb-changed-registers-handler): Rewritten without regexps.
+	(gdb-get-buffer, gdb-get-buffer-create, gdb-init-1)
+	(gdb-bind-function-to-buffer, gdb-add-subscriber)
+	(gdb-get-subscribers, gdb-emit-signal, gdb-buf-publisher)
+	(gdb-update): We now store all GDB buffers in a list so that they
+	can be updated by traversing a list instead of calling invalidate
+	triggers explicitly
+	(def-gdb-trigger-and-handler): New macro to define trigger-handler
+	pair for GDB buffer.
+	(gdb-stack-buffer-name): Add thread information.
 
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
