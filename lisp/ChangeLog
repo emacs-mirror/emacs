@@ -1,3 +1,16 @@
+2009-08-04  Juri Linkov  <juri@jurta.org>
+
+	* files.el: Commands to add/delete file/directory-local variables.
+	(read-file-local-variable, read-file-local-variable-value)
+	(read-file-local-variable-mode, modify-file-local-variable)
+	(modify-file-local-variable-prop-line)
+	(modify-dir-local-variable): New functions.
+	(add-file-local-variable, delete-file-local-variable)
+	(add-file-local-variable-prop-line, delete-file-local-variable-prop-line)
+	(add-dir-local-variable, delete-dir-local-variable)
+	(copy-file-locals-to-dir-locals, copy-dir-locals-to-file-locals)
+	(copy-dir-locals-to-file-locals-prop-line): New commands.
+
 2009-08-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* abbrev.el (insert-abbrev-table-description): Prettify output.
