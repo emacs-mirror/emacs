@@ -8031,7 +8031,7 @@ But if @w{@samp{17 inf = inf}}, then @samp{17 inf / inf = inf / inf = 17}, too.
 
 @samp{exp(inf) = inf}.  It's tempting to say that the exponential
 of infinity must be ``bigger'' than ``regular'' infinity, but as
-far as Calc is concerned all infinities are as just as big.
+far as Calc is concerned all infinities are the same size.
 In other words, as @expr{x} goes to infinity, @expr{e^x} also goes
 to infinity, but the fact the @expr{e^x} grows much faster than
 @expr{x} is not relevant here.
