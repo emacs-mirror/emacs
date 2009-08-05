@@ -1341,6 +1341,7 @@ print_preprocess (obj)
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
@@ -1536,6 +1537,7 @@ print_object (obj, printcharfun, escapeflag)
   /* Detect circularities and truncate them.  */
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
@@ -2031,6 +2033,7 @@ print_object (obj, printcharfun, escapeflag)
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+#if 0
 	  strout ("#<hash-table", -1, -1, printcharfun, 0);
 	  if (SYMBOLP (h->test))
 	    {
@@ -2047,6 +2050,67 @@ print_object (obj, printcharfun, escapeflag)
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('>');
+#endif
+	  /* Implement a readable output, e.g.:
+	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
+	  /* Always print the size. */
+	  sprintf (buf, "#s(hash-table size %ld",
+		   (long) XVECTOR (h->next)->size);
+	  strout (buf, -1, -1, printcharfun, 0);
+
+	  if (!NILP (h->test))
+	    {
+	      strout (" test ", -1, -1, printcharfun, 0);
+	      print_object (h->test, printcharfun, 0);
+	    }
+
+	  if (!NILP (h->weak))
+	    {
+	      strout (" weakness ", -1, -1, printcharfun, 0);
+	      print_object (h->weak, printcharfun, 0);
+	    }
+
+	  if (!NILP (h->rehash_size))
+	    {
+	      strout (" rehash-size ", -1, -1, printcharfun, 0);
+	      print_object (h->rehash_size, printcharfun, 0);
+	    }
+
+	  if (!NILP (h->rehash_threshold))
+	    {
+	      strout (" rehash-threshold ", -1, -1, printcharfun, 0);
+	      print_object (h->rehash_threshold, printcharfun, 0);
+	    }
+
+	  strout (" data ", -1, -1, printcharfun, 0);
+
+	  /* Print the data here as a plist. */
+	  int i;
+
+	  int real_size = HASH_TABLE_SIZE (h);
+	  int size = real_size;
+
+	  /* Don't print more elements than the specified maximum.  */
+	  if (NATNUMP (Vprint_length)
+	      && XFASTINT (Vprint_length) < size)
+	    size = XFASTINT (Vprint_length);
+	  
+	  PRINTCHAR ('(');
+	  for (i = 0; i < size; i++)
+	    if (!NILP (HASH_HASH (h, i)))
+	      {
+		if (i) PRINTCHAR (' ');
+		print_object (HASH_KEY (h, i), printcharfun, 0);
+		PRINTCHAR (' ');
+		print_object (HASH_VALUE (h, i), printcharfun, 0);
+	      }
+
+	  if (size < real_size)
+	    strout (" ...", 4, 4, printcharfun, 0);
+
+	  PRINTCHAR (')');
+	  PRINTCHAR (')');
+
 	}
       else if (BUFFERP (obj))
 	{
@@ -2354,6 +2418,8 @@ that represents the number without losing information.  */);
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
 
+  Fprovide (intern ("hashtable-print-readable"), Qnil);
+  
   DEFVAR_LISP ("print-length", &Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.
 A value of nil means no limit.  See also `eval-expression-print-length'.  */);

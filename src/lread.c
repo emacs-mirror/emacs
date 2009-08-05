@@ -80,6 +80,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern int errno;
 #endif
 
+/* hash table read constants */
+Lisp_Object Qhash_table, Qdata;
+Lisp_Object Qtest, Qsize;
+Lisp_Object Qweakness;
+Lisp_Object Qrehash_size;
+Lisp_Object Qrehash_threshold;
+extern Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
+
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
@@ -2346,6 +2354,78 @@ read1 (readcharfun, pch, first_in_list)
 
     case '#':
       c = READCHAR;
+      if (c == 's')
+	{
+	  c = READCHAR;
+	  if (c == '(')
+	    {
+	      /* Accept extended format for hashtables (extensible to
+		 other types), e.g.
+		 #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
+	      Lisp_Object tmp = read_list (0, readcharfun);
+	      Lisp_Object head = CAR_SAFE (tmp);
+	      Lisp_Object data = Qnil;
+	      Lisp_Object val = Qnil;
+	      /* The size is 2 * number of allowed keywords to
+		 make-hash-table. */
+	      Lisp_Object params[10]; 
+	      Lisp_Object ht;
+	      Lisp_Object key = Qnil;
+	      int param_count = 0;
+	      int i;
+	      
+	      if (!EQ (head, Qhash_table))
+		error ("Invalid extended read marker at head of #s list "
+		       "(only hash-table allowed)");
+	      
+	      tmp = CDR_SAFE (tmp);
+
+	      /* This is repetitive but fast and simple. */
+	      params[param_count] = QCsize;
+	      params[param_count+1] = Fplist_get (tmp, Qsize);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCtest;
+	      params[param_count+1] = Fplist_get (tmp, Qtest);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCweakness;
+	      params[param_count+1] = Fplist_get (tmp, Qweakness);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCrehash_size;
+	      params[param_count+1] = Fplist_get (tmp, Qrehash_size);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCrehash_threshold;
+	      params[param_count+1] = Fplist_get (tmp, Qrehash_threshold);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      /* This is the hashtable data. */
+	      data = Fplist_get (tmp, Qdata);
+
+	      /* Now use params to make a new hashtable and fill it. */
+	      ht = Fmake_hash_table (param_count, params);
+	      
+	      while (CONSP (data))
+	      	{
+	      	  key = XCAR (data);
+	      	  data = XCDR (data);
+	      	  if (!CONSP (data))
+	      	    error ("Odd number of elements in hashtable data");
+	      	  val = XCAR (data);
+	      	  data = XCDR (data);
+	      	  Fputhash (key, val, ht);
+	      	}
+	      
+	      return ht;
+	    }
+	}
       if (c == '^')
 	{
 	  c = READCHAR;
@@ -4448,6 +4528,21 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
+
+  Qhash_table = intern ("hash-table");
+  staticpro (&Qhash_table);
+  Qdata = intern ("data");
+  staticpro (&Qdata);
+  Qtest = intern ("test");
+  staticpro (&Qtest);
+  Qsize = intern ("size");
+  staticpro (&Qsize);
+  Qweakness = intern ("weakness");
+  staticpro (&Qweakness);
+  Qrehash_size = intern ("rehash-size");
+  staticpro (&Qrehash_size);
+  Qrehash_threshold = intern ("rehash-threshold");
+  staticpro (&Qrehash_threshold);
 }
 
 /* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
