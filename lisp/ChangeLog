@@ -1,3 +1,15 @@
+2009-08-06  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
+	(gdb-var-create-handler): Rewritten using JSON parser.
+	(gdb-propertize-header): Moved earlier.
+	(gdb-set-header): Removed to avoid duplication.
+	(gdb-thread-list-handler-custom, gdb-invalidate-disassembly):
+	Refresh disassembly buffers only after threads list have been
+	update.
+	(gdb-threads-header, gdb-registers-header): Per-buffer header line
+	variables.
+
 2009-08-04  Juri Linkov  <juri@jurta.org>
 
 	* files.el: Commands to add/delete file/directory-local variables.

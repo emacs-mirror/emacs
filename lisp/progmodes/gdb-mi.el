@@ -972,23 +972,22 @@ With arg, enter name of variable to be watched in the minibuffer."
 		     `(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
-(defconst gdb-var-create-regexp
-  "name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",\\(?:.*value=\\(\".*\"\\),\\)?.*type=\"\\(.*?\\)\"")
-
 (defun gdb-var-create-handler (expr)
-  (goto-char (point-min))
-  (if (re-search-forward gdb-var-create-regexp nil t)
-      (let ((var (list
-		  (match-string 1)
-		  (if (and (string-equal gdb-current-language "c")
-			   gdb-use-colon-colon-notation gdb-selected-frame)
-		      (setq expr (concat gdb-selected-frame "::" expr))
-		    expr)
-		  (match-string 2)
-		  (match-string 4)
-		  (if (match-string 3) (read (match-string 3)))
-		  nil)))
-	(push var gdb-var-list)
+  (let* ((result (gdb-json-partial-output)))
+    (if (not (gdb-get-field result 'msg))
+        (let
+            ((var
+              (list
+               (gdb-get-field result 'name)
+               (if (and (string-equal gdb-current-language "c")
+                        gdb-use-colon-colon-notation gdb-selected-frame)
+                   (setq expr (concat gdb-selected-frame "::" expr))
+                 expr)
+               (gdb-get-field result 'numchild)
+               (gdb-get-field result 'type)
+               (gdb-get-field result 'value)
+               nil)))
+        (push var gdb-var-list)
 	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
@@ -998,7 +997,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  (concat "-var-evaluate-expression " (car var))
 	  `(lambda () (gdb-var-evaluate-expression-handler
 		       ,(car var) nil)))))
-    (message-box "No symbol \"%s\" in current context." expr)))
+    (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame)
@@ -2089,7 +2088,7 @@ calling `gdb-table-string'."
     (setf (gdb-table-column-sizes table)
           (mapcar* (lambda (x s)
                      (let ((new-x
-                            (max (abs x) (string-width s))))
+                            (max (abs x) (string-width (or s "")))))
                        (if right-align new-x (- new-x))))
                    (gdb-table-column-sizes table)
                    row))
@@ -2439,6 +2438,20 @@ corresponding to the mode line clicked."
     (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
     map))
 
+(defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
+  `(propertize ,name
+	       'help-echo ,help-echo 
+	       'mouse-face ',mouse-face
+	       'face ',face
+	       'local-map
+	       (gdb-make-header-line-mouse-map
+		'mouse-1
+		(lambda (event) (interactive "e")
+		  (save-selected-window
+		    (select-window (posn-window (event-start event)))
+                    (gdb-set-window-buffer 
+                     (gdb-get-buffer-create ',buffer) t) )))))
+
 
 ;; uses "-thread-info". Needs GDB 7.0 onwards.
 ;;; Threads view
@@ -2495,28 +2508,13 @@ corresponding to the mode line clicked."
     (define-key map [follow-link] 'mouse-face)
     map))
 
-(defmacro gdb-propertize-header (name buffer help-echo mouse-face face)
-  `(propertize ,name
-	       'help-echo ,help-echo 
-	       'mouse-face ',mouse-face
-	       'face ',face
-	       'local-map
-	       (gdb-make-header-line-mouse-map
-		'mouse-1
-		(lambda (event) (interactive "e")
-		  (save-selected-window
-		    (select-window (posn-window (event-start event)))
-                    (gdb-set-window-buffer 
-                     (gdb-get-buffer-create ',buffer) t)
-		    (setq header-line-format (gdb-set-header ',buffer)))))))
-
-(defvar gdb-breakpoints-header
+(defvar gdb-threads-header
   (list
    (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-			  nil nil mode-line)
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)
    " "
    (gdb-propertize-header "Threads" gdb-threads-buffer
-			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
+			  nil nil mode-line)))
 
 (define-derived-mode gdb-threads-mode gdb-parent-mode "Threads"
   "Major mode for GDB threads.
@@ -2524,7 +2522,7 @@ corresponding to the mode line clicked."
 \\{gdb-threads-mode-map}"
   (setq gdb-thread-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-thread-position)
-  (setq header-line-format gdb-breakpoints-header)
+  (setq header-line-format gdb-threads-header)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-threads-font-lock-keywords))
   (run-mode-hooks 'gdb-threads-mode-hook)
@@ -2586,7 +2584,8 @@ corresponding to the mode line clicked."
       (gdb-mark-line marked-line gdb-thread-position)))
   ;; We update gud-running here because we need to make sure that
   ;; gdb-threads-list is up-to-date
-  (gdb-update-gud-running))
+  (gdb-update-gud-running)
+  (gdb-emit-signal gdb-buf-publisher 'update-disassembly))
 
 (defmacro def-gdb-thread-buffer-command (name custom-defun &optional doc)
   "Define a NAME command which will act upon thread on the current line.
@@ -2689,36 +2688,6 @@ line."
   gdb-step-thread
   gud-step
   "Step thread at current line.")
-
-(defun gdb-set-header (buffer)
-  (cond ((eq buffer 'gdb-locals-buffer)
-	 (list
-	  (gdb-propertize-header "Locals" gdb-locals-buffer
-				 nil nil mode-line)
-	  " "
-	  (gdb-propertize-header "Registers" gdb-registers-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
-	((eq buffer 'gdb-registers-buffer)
-	 (list
-	  (gdb-propertize-header "Locals" gdb-locals-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)
-	  " "
-	  (gdb-propertize-header "Registers" gdb-registers-buffer
-				 nil nil mode-line)))
-	((eq buffer 'gdb-breakpoints-buffer)
-	 (list
-	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-				 nil nil mode-line)
-	  " "
-	  (gdb-propertize-header "Threads" gdb-threads-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)))
-	((eq buffer 'gdb-threads-buffer)
-	 (list
-	  (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
-				 "mouse-1: select" mode-line-highlight mode-line-inactive)
-	  " "
-	  (gdb-propertize-header "Threads" gdb-threads-buffer
-				 nil nil mode-line)))))
 
 
 ;;; Memory view
@@ -3138,7 +3107,9 @@ DOC is an optional documentation string."
     (when file
       (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)))
   gdb-disassembly-handler
-  '(update))
+  ;; We update disassembly only after we have actual frame information
+  ;; about all threads
+  '(update-disassembly))
 
 (def-gdb-auto-update-handler
   gdb-disassembly-handler
@@ -3231,6 +3202,14 @@ DOC is an optional documentation string."
             (gdb-put-breakpoint-icon (string-equal flag "y") bptno))))))
 
 
+(defvar gdb-breakpoints-header
+  (list
+   (gdb-propertize-header "Breakpoints" gdb-breakpoints-buffer
+			  nil nil mode-line)
+   " "
+   (gdb-propertize-header "Threads" gdb-threads-buffer
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)))
+
 ;;; Breakpoints view
 (define-derived-mode gdb-breakpoints-mode gdb-parent-mode "Breakpoints"
   "Major mode for gdb breakpoints.
@@ -3553,11 +3532,19 @@ member."
     (define-key map "q" 'kill-this-buffer)
      map))
 
+(defvar gdb-registers-header
+  (list
+   (gdb-propertize-header "Locals" gdb-locals-buffer
+			  "mouse-1: select" mode-line-highlight mode-line-inactive)
+   " "
+   (gdb-propertize-header "Registers" gdb-registers-buffer
+			  nil nil mode-line)))
+
 (define-derived-mode gdb-registers-mode gdb-parent-mode "Registers"
   "Major mode for gdb registers.
 
 \\{gdb-registers-mode-map}"
-  (setq header-line-format gdb-locals-header)
+  (setq header-line-format gdb-registers-header)
   (run-mode-hooks 'gdb-registers-mode-hook)
   'gdb-invalidate-registers)
 
