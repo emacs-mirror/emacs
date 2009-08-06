@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.29c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -28,6 +28,9 @@
 ;; This file contains the relative timer code for Org-mode
 
 (require 'org)
+
+(declare-function org-show-notification "org-clock" (parameters))
+(declare-function org-agenda-error "org-agenda" ())
 
 (defvar org-timer-start-time nil
   "t=0 for the running timer.")
@@ -252,6 +255,74 @@ VALUE can be `on', `off', or `pause'."
     (setq org-timer-mode-line-string
 	  (concat " <" (substring (org-timer-value-string) 0 -1) ">"))
     (force-mode-line-update)))
+
+(defvar org-timer-timer1 nil)
+(defvar org-timer-timer2 nil)
+(defvar org-timer-timer3 nil)
+(defvar org-timer-last-timer nil)
+
+(defun org-timer-cancel-timers ()
+  "Reset all timers."
+  (interactive)
+  (mapc (lambda(timer)
+	  (when (eval timer)
+	    (cancel-timer timer)
+	    (setq timer nil)))
+	'(org-timer-timer1
+	  org-timer-timer2
+	  org-timer-timer3))
+  (message "All timers reset"))
+
+(defun org-timer-show-remaining-time ()
+  "Display the remaining time before the timer ends."
+  (interactive)
+  (require 'time)
+  (if (and (not org-timer-timer1)
+	   (not org-timer-timer2)
+	   (not org-timer-timer3))
+      (message "No timer set")
+    (let* ((rtime (decode-time
+		   (time-subtract (timer--time org-timer-last-timer)
+				  (current-time))))
+	   (rsecs (nth 0 rtime))
+	   (rmins (nth 1 rtime)))
+      (message "%d minutes %d secondes left before next time out"
+	       rmins rsecs))))
+
+;;;###autoload
+(defun org-timer-set-timer (minutes)
+  "Set a timer."
+  (interactive "sTime out in (min)? ")
+  (if (not (string-match "[0-9]+" minutes))
+      (org-timer-show-remaining-time)
+    (let* ((mins (string-to-number (match-string 0 minutes)))
+	   (secs (* mins 60))
+	   (hl (cond
+		((string-match "Org Agenda" (buffer-name))
+		 (let* ((marker (or (get-text-property (point) 'org-marker)
+				    (org-agenda-error)))
+			(hdmarker (or (get-text-property (point) 'org-hd-marker)
+				      marker))
+			(pos (marker-position marker)))
+		   (with-current-buffer (marker-buffer marker)
+		     (widen)
+		     (goto-char pos)
+		     (org-show-entry)
+		     (org-get-heading))))
+		((eq major-mode 'org-mode)
+		 (org-get-heading))
+		(t (error "Not in an Org buffer"))))
+	   timer-set)
+      (mapcar (lambda(timer)
+		(if (not (or (eval timer) timer-set))
+		    (setq timer-set t
+			  timer
+			  (run-with-timer secs nil 'org-show-notification
+					  (format "%s: time out" hl))
+			  org-timer-last-timer timer)))
+	      '(org-timer-timer1
+		org-timer-timer2
+		org-timer-timer3)))))
 
 (provide 'org-timer)
 

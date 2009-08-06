@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.29c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,14 +33,24 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (unless (fboundp 'declare-function)
+    (defmacro declare-function (fn file &optional arglist fileonly))))
+
+(declare-function org-add-props "org-compat" (string plist &rest props))
+
 (defmacro org-bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
 (defmacro org-unmodified (&rest body)
-  "Execute body without changing `buffer-modified-p'."
+  "Execute body without changing `buffer-modified-p'.
+Also, do not record undo information."
   `(set-buffer-modified-p
-    (prog1 (buffer-modified-p) ,@body)))
+    (prog1 (buffer-modified-p)
+      (let ((buffer-undo-list t)
+	    before-change-functions after-change-functions)
+	,@body))))
 
 (defmacro org-re (s)
   "Replace posix classes in regular expression."
@@ -73,10 +83,6 @@
 	   ,@body)
        (if pc-mode (partial-completion-mode 1)))))
 
-(eval-and-compile
-  (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly))))
-
 (defmacro org-maybe-intangible (props)
   "Add '(intangible t) to PROPS if Emacs version is earlier than Emacs 22.
 In emacs 21, invisible text is not avoided by the command loop, so the
@@ -108,6 +114,11 @@ We use a macro so that the test can happen at compilation time."
 (defmacro org-if-unprotected-1 (&rest body)
   "Execute BODY if there is no `org-protected' text property at point-1."
   `(unless (get-text-property (1- (point)) 'org-protected)
+     ,@body))
+
+(defmacro org-if-unprotected-at (pos &rest body)
+  "Execute BODY if there is no `org-protected' text property at point-1."
+  `(unless (get-text-property ,pos 'org-protected)
      ,@body))
 
 (defmacro org-with-remote-undo (_buffer &rest _body)
@@ -160,6 +171,18 @@ We use a macro so that the test can happen at compilation time."
 	((assoc key option) (cdr (assoc key option)))
 	(t (cdr (assq 'default option)))))
 
+(defsubst org-check-external-command (cmd &optional use no-error)
+  "Check if external progam CMD for USE exists, error if not.
+When the program does exist, return it's path.
+When it does not exist and NO-ERROR is set, return nil.
+Otherwise, throw an error.  The optional argument USE can describe what this
+program is needed for, so that the error message can be more informative."
+  (or (executable-find cmd)
+      (if no-error
+	  nil
+	(error "Can't find `%s'%s" cmd
+	       (if use (format " (%s)" use) "")))))
+
 (defsubst org-inhibit-invisibility ()
   "Modified `buffer-invisibility-spec' for Emacs 21.
 Some ops with invisible text do not work correctly on Emacs 21.  For these
@@ -168,7 +191,7 @@ we turn off invisibility temporarily.  Use this in a `let' form."
 
 (defsubst org-set-local (var value)
   "Make VAR local in current buffer and set it to VALUE."
-  (set (make-variable-buffer-local var) value))
+  (set (make-local-variable var) value))
 
 (defsubst org-mode-p ()
   "Check if the current buffer is in Org-mode."
@@ -227,6 +250,31 @@ This is in contrast to merely setting it to 0."
 	  (setq p (plist-put p (car plist) (nth 1 plist))))
       (setq plist (cddr plist)))
     p))
+
+
+(defun org-replace-match-keep-properties (newtext &optional fixedcase
+						  literal string)
+  "Like `replace-match', but add the text properties found original text."
+  (setq newtext (org-add-props newtext (text-properties-at
+					(match-beginning 0) string)))
+  (replace-match newtext fixedcase literal string))
+
+(defmacro org-with-limited-levels (&rest body)
+  "Execute BODY with limited number of outline levels."
+  `(let* ((outline-regexp (org-get-limited-outline-regexp)))
+     ,@body))
+
+(defvar org-odd-levels-only) ; defined in org.el
+(defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
+(defun org-get-limited-outline-regexp ()
+  "Return outline-regexp with limited number of levels.
+The number of levels is controlled by "
+  (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
+
+      outline-regexp
+    (let* ((limit-level (1- org-inlinetask-min-level))
+	   (nstars (if org-odd-levels-only (1- (* limit-level 2)) limit-level)))
+      (format "\\*\\{1,%d\\} " nstars))))
 
 (provide 'org-macs)
 

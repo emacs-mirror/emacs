@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 6.21b
+;; Version: 6.29c
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -26,7 +26,7 @@
 ;; See the Org-mode manual for information on how to use it.
 ;;
 ;; Attachments are managed in a special directory called "data", which
-;; lives in the directory given by `org-directory'.  If this data
+;; lives in the same directory as the org file itself.  If this data
 ;; directory is initialized as a Git repository, then org-attach will
 ;; automatically commit changes when it sees them.
 ;;
@@ -95,7 +95,7 @@ ln    create a hard link.  Note that this is not supported
   "Non-nil means, allow attachment directories be inherited."
   :group 'org-attach
   :type 'boolean)
-  
+
 
 (defvar org-attach-inherited nil
   "Indicates if the last access to the attachment directory was inherited.")

@@ -7,7 +7,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.29c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -53,6 +53,9 @@ negates this setting for the duration of the command."
 ;; Declare external functions and variables
 (declare-function gnus-article-show-summary "gnus-art" ())
 (declare-function gnus-summary-last-subject "gnus-sum" ())
+(declare-function message-fetch-field "message" (header &optional not-all))
+(declare-function message-narrow-to-head-1 "message" nil)
+
 (defvar gnus-other-frame-object)
 (defvar gnus-group-name)
 (defvar gnus-article-current)
@@ -125,6 +128,11 @@ If `org-store-link' was called with a prefix arg the meaning of
 	   (header (with-current-buffer gnus-article-buffer
 		     (gnus-summary-toggle-header 1)
 		     (goto-char (point-min))
+		     ;; mbox files may contain a first line starting with
+		     ;; "From" followed by a space, which cannot be parsed as
+		     ;; header line, so we skip it.
+                     (when (looking-at "From ")
+		       (beginning-of-line 2))
 		     (mail-header-extract-no-properties)))
 	   (from (mail-header 'from header))
 	   (message-id (org-remove-angle-brackets
@@ -134,7 +142,10 @@ If `org-store-link' was called with a prefix arg the meaning of
 	   (newsgroups (mail-header 'newsgroups header))
 	   (x-no-archive (mail-header 'x-no-archive header))
 	   (subject (if (eq major-mode 'gnus-article-mode)
-			(message-fetch-field "subject")
+			(save-restriction
+			  (require 'message)
+			  (message-narrow-to-head-1)
+			  (message-fetch-field "subject"))
 		      (gnus-summary-subject-string)))
 	   desc link)
       (org-store-link-props :type "gnus" :from from :subject subject

@@ -1,3 +1,86 @@
+2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Publishing action): Improve documentation of file
+	names when publishing to the source directory.
+	(Clean view): Document `org-indent-mode'.
+	(Clocking work time): Add documentation for the
+	new :timetamp option when creating a clock report.
+	(Paragraphs): Fix many typos.
+	(Plain lists): Remove duplicate explanation about the
+	`C-c *' command.
+	(Literal examples): Update to reflect the new behavior
+	of the -n -r -k switches when exporting source code examples.
+	(Structure editing): Add information about `C-c *',
+	converting a plain list into a list of Org items.
+	(Remember): Small rephrasing of the paragraph
+	describing remember.el.  Also mentioned that remember.el is part
+	of Emacs 23, not Emacs 22.
+	(Clocking work time): Add documentation about
+	displaying the current clocking time against the effort estimate.
+	Also add a footnote about using `org-clock-in-prepare-hook' to add
+	an effort estimate on the fly, just before clocking it.
+	(Footnotes): Document automatic renumbering and
+	sorting.
+	(Agenda commands): Document new bulk commands.
+	(Plain lists): Document new behavior of
+	`org-cycle-include-plain-lists'.
+	 Hyphenation only in TeX.
+	(Clocking work time): Document the key to update effort
+	estimates.
+	(Clocking work time): Document the clock time display.
+	(Structure editing, TODO basics): Document new
+	variables.
+	(Column attributes): Document new colciew operators.
+	(Publishing options): Document :xml-declaration.
+	(Tracking TODO state changes): Document the
+	LOG_INTO_DRAWER property.
+	(Literal examples): Document the new implementation for
+	editing source code.
+	(Publishing action): Mention the new publishing
+	function, to publish an Org source file.
+	(Publishing links): Mention how to link to an Org source file.
+	(Macro replacement): Document new macros.
+	(Handling links): Document type-specific completion
+	when inserting links.
+	(Structure editing, Plain lists): Improve documentation
+	on sorting.
+	(Internal links): Document custom ids for links.
+	(Handling links): Document custom ids for links.
+	(CSS support): Document new class.
+	(Refiling notes): Document the possibility to create new nodes
+	during refiling.
+	(Agenda commands): Document the "?" operator to find
+	tasks without effort setting.
+	(Exporting agenda information): Section moved.
+	(RSS Feeds): New section.
+	(Built-in table editor): Document M-e and M-a navigate
+	inside table field.
+	(Stuck projects): Docment that projects identified as
+	un-stuck will still be searchd for stuck sub-projects.
+	(Paragraphs): Document centering.
+	(Creating timestamps, Agenda commands): Document new
+	behavior when changing time stamps.
+	(Structure editing): Document the new command
+	`org-clone-subtree-with-time-shift'.
+	(Publishing): Refresh this chapter.
+	(Export options, Export options, In-buffer settings):
+	Document the new keywords.
+	(Matching tags and properties): Collect all
+	documentation about tags/property matches here.
+	(Setting tags): Document `org-tag-persistent-alist'.
+	(Weekly/daily agenda): New section.
+	(Orgstruct mode): Describe `orgstruct++-mode'.
+	(Drawers): Mention the LOGBOOK drawer.
+	(Export options, Sectioning structure): Document the
+	#+LEATEX_HEADER in-buffer setting.
+	(Bugs): Section removed.
+	(Hooks): New section.
+	(Add-on packages): Moved here from old location.
+	(Context-sensitive commands): New section.
+	(Setting tags): Document newline option.
+	(Global TODO list, Matching tags and properties):
+	Mention more variables.
+	(Checkboxes): Update to changed command behavior.
 2009-08-02  Eric Yu  <sucode@gmail.com>  (tiny change)
 
 	* speedbar.texi (Basic Key Bindings): Fix typo.
