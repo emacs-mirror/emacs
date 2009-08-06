@@ -1,3 +1,11 @@
+2009-08-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* etc/images/gud/record-start.xpm, etc/images/gud/record-stop.xpm,
+	* etc/images/gud/reverse-continue.xpm, etc/images/gud/reverse-next.xpm
+	* etc/images/gud/reverse-finish.xpm, etc/images/gud/reverse-nexti.xpm,
+	* etc/images/gud/reverse-step.xpm, etc/images/gud/reverse-stepi.xpm:
+	Icons for reverse debugging.
+
 2009-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.1 released.
