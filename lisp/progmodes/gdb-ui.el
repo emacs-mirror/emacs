@@ -141,6 +141,8 @@ address for root variables.")
 Emacs can't find.")
 (defvar gdb-active-process nil
   "GUD tooltips display variable values when t, and macro definitions otherwise.")
+(defvar gdb-recording nil
+  "If t, then record session for playback and reverse execution")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
@@ -295,11 +297,18 @@ session."
   (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
   (gud-def gud-nexti  "nexti %p" nil   "Step one instruction (skip functions).")
-  (gud-def gud-cont   "cont"     "\C-r" "Continue with display.")
+  (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")
   (gud-def gud-finish "finish"   "\C-f" "Finish executing current function.")
   (gud-def gud-jump
 	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
 	   "\C-j" "Set execution address to current line.")
+
+  (gud-def gud-rstep   "reverse-step %p"  nil "Reverse step one source line with display.")
+  (gud-def gud-rstepi  "reverse-stepi %p" nil "Reverse step one instruction with display.")
+  (gud-def gud-rnext   "reverse-next %p"  nil "Reverse step one line (skip functions).")
+  (gud-def gud-rnexti  "reverse-nexti %p" nil "Reverse step one instruction (skip functions).")
+  (gud-def gud-rcont   "reverse-continue" nil "Reverse continue with display.")
+  (gud-def gud-rfinish "reverse-finish"   nil "Reverse finish executing current function.")
 
   (gud-def gud-up     "up %p"     "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"   ">" "Down N stack frames (numeric arg).")
@@ -563,6 +572,33 @@ otherwise do not."
 	(setq varnumlet (concat varnumlet "." component)))
       expr)))
 
+(defun gdb-toggle-recording ()
+"Start/stop recording of debug session."
+  (interactive)
+  (if gud-running
+      (message-box "Recording cannot be started or stopped while your program is still running")
+      (gdb-enqueue-input
+       (list (concat gdb-server-prefix
+		     (if gdb-recording "record stop\n" "target record\n"))
+	     'gdb-recording-handler))))
+
+;; Convenience function for tool bar.
+(defalias 'gdb-toggle-recording-1 'gdb-toggle-recording)
+
+(defun gdb-recording-handler ()
+  (goto-char (point-min))
+  (if (re-search-forward "current architecture doesn't support record function" nil t)
+      (message-box "Not enabled.  The current architecture doesn't support the process record function.")
+    (goto-char (point-min))
+    (if (re-search-forward "Undefined target command" nil t)
+	(message-box "Not enabled.  Process record requires GDB 7.0 onwards.")
+      (goto-char (point-min))
+      (if (re-search-forward "the program is not being run" nil t)
+	  (message-box "Not enabled.  Starting process recording requires an active target (running process).")
+	(setq gdb-recording (not gdb-recording))
+	;; Actually forcing the tool-bar to update.
+	(force-mode-line-update)))))
+
 (defun gdb-init-1 ()
   (gud-def gud-break (if (not (string-match "Machine" mode-name))
 			 (gud-call "break %f:%l" arg)
@@ -659,7 +695,8 @@ otherwise do not."
 	gdb-printing t
 	gud-old-arrow nil
 	gdb-thread-indicator nil
-	gdb-register-names nil)
+	gdb-register-names nil
+	gdb-recording nil)
 
   (setq gdb-buffer-type 'gdba)
 
