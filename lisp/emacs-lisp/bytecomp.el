@@ -1971,8 +1971,8 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 				      (beginning-of-line)
 				      (point)))
 	(insert ";;; This file contains utf-8 non-ASCII characters\n"
-		";;; and therefore cannot be loaded into Emacs 21 or earlier.\n")
-	;; Replace "19" or "19.29" with "22", twice.
+		";;; and therefore cannot be loaded into Emacs 22 or earlier.\n")
+	;; Replace "19" or "19.29" with "23", twice.
 	(re-search-forward "19\\(\\.[0-9]+\\)")
 	(replace-match "23")
 	(re-search-forward "19\\(\\.[0-9]+\\)")
