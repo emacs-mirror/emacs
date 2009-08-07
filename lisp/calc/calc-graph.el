@@ -375,12 +375,19 @@
 	       (setq output (car (read-from-string output)))
 	     (setq output calc-gnuplot-default-output)))
 	 (if (or (equal device "") (equal device "default"))
-	     (setq device (if printing
-			      "postscript"
-			    (if (or (eq window-system 'x) (getenv "DISPLAY"))
-				"x11"
-			      (if (>= calc-gnuplot-version 3)
-				  "dumb" "postscript")))))
+	     (setq device
+		   (cond
+		    (printing "postscript")
+		    ;; Check MS-Windows before X, in case they have
+		    ;; $DISPLAY set for some reason (e.g., Cygwin or
+		    ;; whatever)
+		    ((string= calc-gnuplot-name "pgnuplot")
+		     "windows")
+		    ((or (eq window-system 'x) (getenv "DISPLAY"))
+		     "x11")
+		    ((>= calc-gnuplot-version 3)
+		     "dumb")
+		    (t "postscript"))))
 	 (if (equal device "dumb")
 	     (setq device (format "dumb %d %d"
 				  (1- (frame-width)) (1- (frame-height)))))
@@ -1324,8 +1331,10 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
    (calc-graph-init)
    (calc-graph-view-trail)
    (calc-gnuplot-command cmd)
-   (accept-process-output)
-   (calc-graph-view-trail)))
+   (or (string= calc-gnuplot-name "pgnuplot")
+       (progn
+	 (accept-process-output)
+	 (calc-graph-view-trail)))))
 
 (defun calc-graph-kill (&optional no-view)
   (interactive)
@@ -1407,7 +1416,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 (defun calc-gnuplot-command (&rest args)
   (calc-graph-init)
   (let ((cmd (concat (mapconcat 'identity args " ") "\n")))
-    (accept-process-output)
+    (or (string= calc-gnuplot-name "pgnuplot")
+	(accept-process-output))
     (save-excursion
       (set-buffer calc-gnuplot-buffer)
       (calc-gnuplot-check-for-errors)
@@ -1419,8 +1429,9 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (process-send-string calc-gnuplot-process cmd)
       (if (get-buffer-window calc-gnuplot-buffer)
 	  (calc-graph-view-trail))
-      (accept-process-output (and (not calc-graph-no-wait)
-				  calc-gnuplot-process))
+      (or (string= calc-gnuplot-name "pgnuplot")
+	  (accept-process-output (and (not calc-graph-no-wait)
+				      calc-gnuplot-process)))
       (calc-gnuplot-check-for-errors)
       (if (get-buffer-window calc-gnuplot-buffer)
 	  (calc-graph-view-trail)))))
@@ -1448,13 +1459,23 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (setq origin (point)))
 	(setq calc-graph-last-device nil)
 	(setq calc-graph-last-output nil)
+	(if (string= calc-gnuplot-name "pgnuplot")
+	    (let ((version-str (shell-command-to-string "pgnuplot -V")))
+	      (if (string-match "gnuplot \\([0-9]+\\)\\." version-str)
+		  (setq calc-gnuplot-version (string-to-number
+					      (substring version-str
+							 (match-beginning 1)
+							 (match-end 1))))
+		(setq calc-gnuplot-version 1))))
 	(condition-case err
 	    (let ((args (append (and calc-gnuplot-display
 				     (not (equal calc-gnuplot-display
 						 (getenv "DISPLAY")))
+				     (not (string= calc-gnuplot-name "pgnuplot"))
 				     (list "-display"
 					   calc-gnuplot-display))
 				(and calc-gnuplot-geometry
+				     (not (string= calc-gnuplot-name "pgnuplot"))
 				     (list "-geometry"
 					   calc-gnuplot-geometry)))))
 	      (setq calc-gnuplot-process
@@ -1469,21 +1490,24 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 		  calc-gnuplot-name)))
 	(save-excursion
 	  (set-buffer calc-gnuplot-buffer)
-	  (while (and (not (save-excursion
+	  (while (and (not (string= calc-gnuplot-name "pgnuplot"))
+		      (not (save-excursion
 			     (goto-char origin)
 			     (search-forward "gnuplot> " nil t)))
 		      (memq (process-status calc-gnuplot-process) '(run stop)))
 	    (accept-process-output calc-gnuplot-process))
 	  (or (memq (process-status calc-gnuplot-process) '(run stop))
 	      (error "Unable to start GNUPLOT process"))
-	  (if (save-excursion
-		(goto-char origin)
-		(re-search-forward
-		 "G N U P L O T.*\n.*version \\([0-9]+\\)\\." nil t))
-	      (setq calc-gnuplot-version (string-to-number (buffer-substring
-							 (match-beginning 1)
-							 (match-end 1))))
-	    (setq calc-gnuplot-version 1))
+	  (if (not (string= calc-gnuplot-name "pgnuplot"))
+	      (if (save-excursion
+		    (goto-char origin)
+		    (re-search-forward
+		     "G N U P L O T.*\n.*version \\([0-9]+\\)\\." nil t))
+		  (setq calc-gnuplot-version
+			(string-to-number (buffer-substring
+					   (match-beginning 1)
+					   (match-end 1))))
+		(setq calc-gnuplot-version 1)))
 	  (goto-char (point-max)))))
   (save-excursion
     (set-buffer calc-gnuplot-input)
