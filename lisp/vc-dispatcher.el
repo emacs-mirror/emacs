@@ -462,9 +462,10 @@ editing!"
        (if keep
 	   (progn
 	     (vc-revert-buffer-internal t noquery)
-             ;; TODO: Adjusting view mode might no longer be necessary
-             ;; after RMS change to files.el of 1999-08-08.  Investigate
-             ;; this when we install the new VC.
+
+	     ;; VC operations might toggle the read-only state.  In
+	     ;; that case we need to adjust the `view-mode' status
+	     ;; when `view-read-only' is non-nil.
              (and view-read-only
                   (if (file-writable-p file)
                       (and view-mode
@@ -473,6 +474,7 @@ editing!"
                     (and (not view-mode)
                          (not (eq (get major-mode 'mode-class) 'special))
                          (view-mode-enter))))
+
 	     (run-hook-with-args 'mode-line-hook buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 

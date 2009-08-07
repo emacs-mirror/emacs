@@ -1,5 +1,7 @@
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dispatcher.el (vc-resynch-window): Update comment.
+
 	* term.el (term-handle-ansi-escape): Add comments with the
 	terminfo capabilities implemented.
 
