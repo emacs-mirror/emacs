@@ -81,6 +81,7 @@
 	(Global TODO list, Matching tags and properties):
 	Mention more variables.
 	(Checkboxes): Update to changed command behavior.
+
 2009-08-02  Eric Yu  <sucode@gmail.com>  (tiny change)
 
 	* speedbar.texi (Basic Key Bindings): Fix typo.
