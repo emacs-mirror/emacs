@@ -918,7 +918,7 @@ ELCFILES = \
 	$(lisp)/org/org-colview.elc \
 	$(lisp)/org/org-compat.elc \
 	$(lisp)/org/org-exp.elc \
-	$(lisp)/org/org-export-latex.elc \
+	$(lisp)/org/org-latex.elc \
 	$(lisp)/org/org-faces.elc \
 	$(lisp)/org/org-footnote.elc \
 	$(lisp)/org/org-gnus.elc \
