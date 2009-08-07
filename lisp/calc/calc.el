@@ -393,7 +393,7 @@ This is not required to be present for user-written mode annotations."
                                   (string :tag "Closing annotation delimiter"))))
 
 (defcustom calc-gnuplot-name
-  "gnuplot"
+  (if (eq system-type 'windows-nt) "pgnuplot" "gnuplot")
   "Name of GNUPLOT program, for calc-graph features."
   :group 'calc
   :type '(string))
