@@ -1,3 +1,7 @@
+2009-08-07  Juri Linkov  <juri@jurta.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1270000.
+
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* print.c (syms_of_print): Undo previous change.
