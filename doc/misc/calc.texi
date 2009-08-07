@@ -28661,14 +28661,15 @@ However, it is free software.   It can be obtained from
 
 @vindex calc-gnuplot-name
 If you have GNUPLOT installed on your system but Calc is unable to
-find it, you may need to set the @code{calc-gnuplot-name} variable
-in your Calc init file or @file{.emacs}.  You may also need to set some Lisp
-variables to show Calc how to run GNUPLOT on your system; these
-are described under @kbd{g D} and @kbd{g O} below.  If you are
-using the X window system, Calc will configure GNUPLOT for you
-automatically.  If you have GNUPLOT 3.0 or later and you are not using X,
-Calc will configure GNUPLOT to display graphs using simple character
-graphics that will work on any terminal.
+find it, you may need to set the @code{calc-gnuplot-name} variable in
+your Calc init file or @file{.emacs}.  You may also need to set some
+Lisp variables to show Calc how to run GNUPLOT on your system; these
+are described under @kbd{g D} and @kbd{g O} below.  If you are using
+the X window system or MS-Windows, Calc will configure GNUPLOT for you
+automatically.  If you have GNUPLOT 3.0 or later and you are using a
+Unix or GNU system without X, Calc will configure GNUPLOT to display
+graphs using simple character graphics that will work on any
+Posix-compatible terminal.
 
 @menu
 * Basic Graphics::
@@ -29175,9 +29176,10 @@ not override it with a plain @kbd{g D} command.  If you enter a
 blank line this command shows you the current default.  The special
 name @code{default} signifies that Calc should choose @code{x11} if
 the X window system is in use (as indicated by the presence of a
-@code{DISPLAY} environment variable), or otherwise @code{dumb} under
-GNUPLOT 3.0 and later, or @code{postscript} under GNUPLOT 2.0.
-This is the initial default value.
+@code{DISPLAY} environment variable), @code{windows} on MS-Windows, or
+otherwise @code{dumb} under GNUPLOT 3.0 and later, or
+@code{postscript} under GNUPLOT 2.0.  This is the initial default
+value.
 
 The @code{dumb} device is an interface to ``dumb terminals,'' i.e.,
 terminals with no special graphics facilities.  It writes a crude
@@ -29209,14 +29211,14 @@ plot on any text-only printer.
 
 @kindex g O
 @pindex calc-graph-output
-The @kbd{g O} (@code{calc-graph-output}) command sets the name of
-the output file used by GNUPLOT.  For some devices, notably @code{x11},
-there is no output file and this information is not used.  Many other
-``devices'' are really file formats like @code{postscript}; in these
-cases the output in the desired format goes into the file you name
-with @kbd{g O}.  Type @kbd{g O stdout @key{RET}} to set GNUPLOT to write
-to its standard output stream, i.e., to @samp{*Gnuplot Trail*}.
-This is the default setting.
+The @kbd{g O} (@code{calc-graph-output}) command sets the name of the
+output file used by GNUPLOT.  For some devices, notably @code{x11} and
+@code{windows}, there is no output file and this information is not
+used.  Many other ``devices'' are really file formats like
+@code{postscript}; in these cases the output in the desired format
+goes into the file you name with @kbd{g O}.  Type @kbd{g O stdout
+@key{RET}} to set GNUPLOT to write to its standard output stream,
+i.e., to @samp{*Gnuplot Trail*}.  This is the default setting.
 
 Another special output name is @code{tty}, which means that GNUPLOT
 is going to write graphics commands directly to its standard output,
@@ -29278,14 +29280,21 @@ command for specifying the position and size of the X window.
 The normal value is @code{default}, which generally means your
 window manager will let you place the window interactively.
 Entering @samp{800x500+0+0} would create an 800-by-500 pixel
-window in the upper-left corner of the screen.
+window in the upper-left corner of the screen.  This command has no
+effect if the current device is @code{windows}.
 
 The buffer called @samp{*Gnuplot Trail*} holds a transcript of the
 session with GNUPLOT.  This shows the commands Calc has ``typed'' to
 GNUPLOT and the responses it has received.  Calc tries to notice when an
 error message has appeared here and display the buffer for you when
 this happens.  You can check this buffer yourself if you suspect
-something has gone wrong.
+something has gone wrong@footnote{
+On MS-Windows, due to the peculiarities of how the Windows version of
+GNUPLOT (called @command{wgnuplot}) works, the GNUPLOT responses are
+not communicated back to Calc.  Instead, you need to look them up in
+the GNUPLOT command window that is displayed as in normal interactive
+usage of GNUPLOT.
+}.
 
 @kindex g C
 @pindex calc-graph-command
@@ -29305,7 +29314,9 @@ and @samp{*Gnuplot Trail*} buffers, respectively, in another window.
 This happens automatically when Calc thinks there is something you
 will want to see in either of these buffers.  If you type @kbd{g v}
 or @kbd{g V} when the relevant buffer is already displayed, the
-buffer is hidden again.
+buffer is hidden again.  (Note that on MS-Windows, the @samp{*Gnuplot
+Trail*} buffer will usually show nothing of interest, because
+GNUPLOT's responses are not communicated back to Calc.)
 
 One reason to use @kbd{g v} is to add your own commands to the
 @samp{*Gnuplot Commands*} buffer.  Press @kbd{g v}, then use
