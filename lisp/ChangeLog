@@ -1,5 +1,9 @@
 2009-08-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/sendmail.el (mail-yank-original): Set
+	buffer-file-coding-system from the one used by the message whose
+	text is yanked.
+
 	* calc/calc-graph.el (calc-graph-plot): Set calc-graph-last-device
 	to "windows" when "pgnuplot" is used.
 	(calc-graph-command, calc-gnuplot-command, calc-graph-init): Don't
