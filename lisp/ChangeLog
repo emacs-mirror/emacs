@@ -1,3 +1,8 @@
+2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-handle-ansi-escape): Add comments with the
+	terminfo capabilities implemented.
+
 2009-08-06  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.

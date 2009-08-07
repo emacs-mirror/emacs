@@ -3363,10 +3363,11 @@ See `term-prompt-regexp'."
       (term-handle-colors-array term-terminal-previous-parameter))
     (term-handle-colors-array term-terminal-parameter))
 
-   ;; \E[6n - Report cursor position
+   ;; \E[6n - Report cursor position (terminfo: u7)
    ((eq char ?n)
     (term-handle-deferred-scroll)
     (process-send-string proc
+			 ;; (terminfo: u6)
 			 (format "\e[%s;%sR"
 				 (1+ (term-current-row))
 				 (1+ (term-horizontal-column)))))

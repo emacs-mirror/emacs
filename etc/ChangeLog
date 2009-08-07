@@ -1,3 +1,7 @@
+2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti (msgr, u6, u7): New capabilities.
+
 2009-08-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Autorevert Tail mode works now for remote files.
