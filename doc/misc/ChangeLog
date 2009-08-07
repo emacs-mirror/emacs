@@ -1,3 +1,8 @@
+2009-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* calc.texi (Graphics, Devices): Update with the peculiarities of
+	operation on MS-Windows.
+
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Publishing action): Improve documentation of file
