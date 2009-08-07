@@ -1,3 +1,8 @@
+2009-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (ELCFILES): org/org-export-latex.elc renames to
+	org/org-latex.elc.
+
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dispatcher.el (vc-resynch-window): Update comment.
