@@ -94,6 +94,10 @@ variables to file-local variables in the "Local Variables" list or the
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** Calc graphing commands (`g f' etc.) now work on MS-Windows,
+if you have the native Windows port of Gnuplot version 3.8 or later
+installed.
+
 ** FIXME mail-user-agent change
 This probably affects a lot of documentation.
 
