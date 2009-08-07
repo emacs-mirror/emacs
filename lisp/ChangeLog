@@ -1,6 +1,19 @@
 2009-08-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (ELCFILES): org/org-export-latex.elc renames to
+	* calc/calc-graph.el (calc-graph-plot): Set calc-graph-last-device
+	to "windows" when "pgnuplot" is used.
+	(calc-graph-command, calc-gnuplot-command, calc-graph-init): Don't
+	call accept-process-output if "pgnuplot" is used.
+	(calc-graph-init): Don't send -display and -geometry to
+	"pgnuplot".  If "pgnuplot" is used, glean gnuplot version by
+	running "pgnuplot -V" with shell-command-to-string.
+
+	* calc/calc.el (calc-gnuplot-name) [windows-nt]: Use "pgnuplot" as
+	the default.
+
+2009-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (ELCFILES): org/org-export-latex.elc renamed to
 	org/org-latex.elc.
 
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
