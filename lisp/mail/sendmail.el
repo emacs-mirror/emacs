@@ -1506,7 +1506,19 @@ and don't delete any header fields."
 	  (delete-windows-on original t)
 	  (with-no-warnings
 	    ;; We really want this to set mark.
-	    (insert-buffer original))
+	    (insert-buffer original)
+	    ;; If they yank the original text, the encoding of the
+	    ;; original message is a better default than
+	    ;; default-buffer-file-coding-system.
+	    (and (coding-system-equal
+		  (default-value 'buffer-file-coding-system)
+		  buffer-file-coding-system)
+		 (setq buffer-file-coding-system
+		       (coding-system-change-text-conversion
+			buffer-file-coding-system
+			(coding-system-base
+			 (with-current-buffer original
+			   buffer-file-coding-system))))))
 	  (set-text-properties (point) (mark t) nil))
 	(if (consp arg)
 	    nil
