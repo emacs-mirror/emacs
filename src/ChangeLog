@@ -1,3 +1,7 @@
+2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* print.c (syms_of_print): Undo previous change.
+
 2009-08-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* lread.c (read1, syms_of_lread): Read hashtables back from the

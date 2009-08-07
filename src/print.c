@@ -2418,8 +2418,6 @@ that represents the number without losing information.  */);
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
 
-  Fprovide (intern ("hashtable-print-readable"), Qnil);
-  
   DEFVAR_LISP ("print-length", &Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.
 A value of nil means no limit.  See also `eval-expression-print-length'.  */);
