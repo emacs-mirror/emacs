@@ -1183,14 +1183,15 @@ takes a long time to reproduce the conditions where your program fails
 or for transient problems, like race conditions in multi-threaded
 problems, where a failure might otherwise be hard to reproduce.
 
-To use reverse debugging set a breakpoint near the location of
-interest and run your program to that point.  Process recording is
-enabled by clicking on the record button.  At this point a new set of
-buttons appear that allow execution in the reverse direction.  Execute
-over the code where the problem occurs and then use the new set of
-buttons to retrace your steps, examine values and analyse the problem.
-When analysis is complete then turn off process recording by clicking
-on the record button again.
+To use reverse debugging, set a breakpoint slightly before the
+location of interest and run your program to that point.  Enable
+process recording by clicking on the record button.  At this point, a
+new set of buttons appear.  These buttons allow program execution in
+the reverse direction.  Run your program over the code where the
+problem occurs, and then use the new set of buttons to retrace your
+steps, examine values, and analyze the problem.  When analysis is
+complete, turn off process recording by clicking on the record button
+again.
 
 @node Executing Lisp
 @section Executing Lisp Expressions
