@@ -166,7 +166,13 @@ Argument STYLE is the type of build done."
     (erase-buffer)
     (insert "\n\n  PASSED!\n\n  Make Style: ")
     (insert (format "%S" style) "\n")
+    (insert "\n\nWaiting 5 seconds before exiting with positive exit status.\n")
     (switch-to-buffer b)
+    ;; Now wait.
+    (sit-for 5)
+    ;; 1 means GOOD to the shell script, since any other emacs exit
+    ;; mechanism will be 0. (ie - click on the X in the corner.)
+    (kill-emacs 1)
     ))
 
 (defun cit-make-dir (dir)
