@@ -1,3 +1,12 @@
+2009-08-08  Yoni Rabkin  <yoni@rabkins.net>
+
+	* net/net-utils.el (net-utils-font-lock-keywords): New var.
+	(nslookup-font-lock-keywords): Make it a variable.
+        (net-utils-mode): New mode for viewing diagnostic network output.
+        (net-utils-remove-ctrl-m-filter): Set inhibit-read-only.
+        (net-utils-run-simple): New function.
+        (ifconfig, iwconfig, netstat, arp, route): Use it.
+
 2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-read-memory-custom)
