@@ -1,3 +1,17 @@
+2009-08-08  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-docbook.el: Add arch-tag.
+
+	* org-exp-blocks.el:  Add arch-tag.
+
+	* org-id.el:  Add arch-tag.
+
+	* org-indent.el:  Add arch-tag.
+
+	* org-inlinetask.el:  Add arch-tag.
+
+	* org-protocol.el:  Add arch-tag.
+
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-create-formula-image): Remove the -E option for
