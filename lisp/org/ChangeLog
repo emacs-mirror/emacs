@@ -556,9 +556,11 @@
 	* org.el (org-clone-subtree-with-time-shift): Also shift inactive
 	time stamps.
 
-2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
+2009-08-06  Eric Schulte  <schulte.eric@gmail.com>
 
 	* org-exp-blocks.el: New file.
+
+2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-remember.el (org-remember-templates): Allow the headline
 	element to be a function.
@@ -618,7 +620,7 @@
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-src.el: New file, split out of org.el
+	* org-src.el: New file, split out of org.el.
 
 	* org-macs.el (org-replace-match-keep-properties): New function.
 
@@ -1334,9 +1336,20 @@
 
 	* org-exp.el (org-export-splice-attributes): New function.
 
+2009-08-06  Bastien Guerry  <bzg@altern.org>
+	Daniel M German  <dmg@uvic.org>
+	Sebastian Rose  <sebastian_rose@gmx.de>
+	Ross Patterson  <me@rpatterson.net>
+
+	* org-protocol.el: New file.
+
+2009-08-06  Baoqiu Cui  <cbaoqiu@yahoo.com>
+
+	* org-docbook.el: New file.
+
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-mouse.el: XEmacs compatibility fixes
+	* org-mouse.el: XEmacs compatibility fixes.
 
 	* org.el (org-modules): Add org-inlinetasks.el
 	(org-cycle): Implement limiting level on cycling.
@@ -1345,8 +1358,6 @@
 
 	* org-inlinetask.el: New file.
 
-	* org-protocol.el: New file.
-
 	* org.el (org-emphasis-regexp-components): Allow braces in
 	emphasis pre and post match.
 
@@ -1354,8 +1365,6 @@
 	not insert inline notes at the end.
 
 	* org.el (org-require-autoloaded-modules): Add org-docbook.el.
-
-	* org-docbook.el: New file.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -3444,14 +3453,18 @@
 
 2008-10-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* org.el (org-default-notes-file): 
-	* org-publish.el (org-publish-timestamp-directory): 
+	* org.el (org-default-notes-file):
+	* org-publish.el (org-publish-timestamp-directory):
 	* org-id.el (org-id-locations-file): Run file names that begin
 	with a period thru `convert-standard-filename'.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-plot.el: Switch coding system to unix.
+
+2008-10-12  John Wiegley  <johnw@newartisans.com>
+
+	* org-attach.el: New file.
 
 2008-10-12  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -3494,8 +3507,6 @@
 	(org-attach-attach, org-attach-new, org-attach-sync): Call
 	`org-attach-tag'.
 	(org-attach-delete): Call `org-attach-untag'.
-
-	* org-attach.el: New file.
 
 	* org-table.el (orgtbl-self-insert-command): Make this work for
 	the keypad as well.
@@ -3592,9 +3603,12 @@
 	against all agenda files.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
+	Bastien Guerry  <bzg@altern.org>
 
 	* org-list.el: New file, aggregating list functions from org.el
 	and org-export-latex.el.
+
+2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-edit-src-region-extra): New option.
 
@@ -3660,6 +3674,10 @@
 	`org-list-beginning-re'
 	(org-list-item-begin): Rename to `org-list-item-beginning'
 
+2008-10-12  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-plot.el: New file.
+
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-refile): Allow refiling to the last entry in the
@@ -3707,8 +3725,6 @@
 	* org-exp.el (org-export-handle-export-tags): New function.
 	(org-export-preprocess-string): Call
 	`org-export-handle-export-tags'.
-
-	* org-plot.el: New file.
 
 	* org-publish.el (org-publish-expand-components): Function removed.
 	(org-publish-expand-projects): Allow components to have components.
