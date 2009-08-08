@@ -1,7 +1,7 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
-;; Copyright (c) 2008, 2009
-;;          Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009
+;;   Free Software Foundation, Inc.
 ;;
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Author: Daniel M German <dmg AT uvic DOT org>
@@ -633,4 +633,5 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
       (customize-save-variable 'org-protocol-project-alist org-protocol-project-alist))))
 
 (provide 'org-protocol)
+
 ;;; org-protocol.el ends here
