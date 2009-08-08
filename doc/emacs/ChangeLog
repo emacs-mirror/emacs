@@ -1,3 +1,10 @@
+2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* emacs.texi (Top): Add new menu items for GDB-UI.
+
+	* building.texi (GDB Graphical Interface): Add Multithreaded debugging
+	section. Threads buffer is in separate section now.
+
 2009-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
