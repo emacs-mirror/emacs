@@ -2096,7 +2096,8 @@ new messages.  Return the number of new messages."
 		    (setq stop t)
 		  (goto-char (match-beginning 0))
 		  (forward-char 2))
-		(setq start (point)))))
+		(setq start (point)))
+	    (rmail-error-bad-format)))
 	count))))
 
 (defun rmail-get-header-1 (name)
