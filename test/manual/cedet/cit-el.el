@@ -1,9 +1,9 @@
 ;;; cit-el.el --- Elisp code generation for integration tests
 
-;; Copyright (C) 2008 Eric M. Ludlam
+;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-el.el,v 1.1 2008-02-24 02:58:10 zappo Exp $
+;; X-RCS: $Id: cit-el.el,v 1.2 2009-08-08 21:52:08 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -80,8 +80,9 @@
    )
   "Tags to be inserted into a header file.")
 
-(defun cit-srecode-fill-el ()
-  "Fill up a base set of files with some base tags."
+(defun cit-srecode-fill-el (make-type)
+  "Fill up a base set of files with some base tags.
+MAKE-TYPE indicates the makefile type being used."
   ;;(interactive)
 
   ;; 2 b) Test various templates.
@@ -91,7 +92,8 @@
 
   ;; Making the autoloads first should PREPEND, but Lisp should append.
   ;; going in this order makes sure that happens.
-  (ede-new-target "Auto" "emacs lisp autoloads" "n")
+  (when (string= make-type "Make")
+    (ede-new-target "Auto" "emacs lisp autoloads" "n"))
   (ede-new-target "Lisp" "emacs lisp" "n")
   (ede-add-file "Lisp")
 
