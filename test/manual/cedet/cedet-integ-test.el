@@ -91,9 +91,25 @@
   "Root of the EDE project integration tests.")
 
 ;;; Code:
-(defun cedet-integ-test ()
-  "Run the full CEDET integration test."
+(defun cedet-integ-test-Make ()
+  "Run the full CEDET integration test using a Make style project."
+  (cedet-integ-test-proj "Make"))
+
+(defun cedet-integ-test-Automake ()
+  "Run the full CEDET integration test using a Automake style project."
+  (let ((ede-pconf-create-file-query nil))
+    (cedet-integ-test-proj "Automake")))
+
+(defun cedet-integ-test-proj (&optional make-type)
+  "Run the full CEDET integration test.
+Optional argument MAKE-TYPE is the style of EDE project to test."
   (interactive)
+
+  ;; Input check
+  (if (not (member make-type '("Make" "Automake")))
+      (error "Invalid make-type for test: %S" make-type))
+  (message "Running integration test of style %S" make-type)
+
   ;; 1 a) build directories
   ;;
   (cit-make-dir cedet-integ-base)
@@ -106,14 +122,14 @@
   ;; 1 b) make a toplevel project
   ;;
   (find-file (expand-file-name "README" cedet-integ-target))
-  (ede-new "Make" "CEDET Integ Test Project")
+  (ede-new make-type "CEDET_Integ_Test_Project")
   ;; 1 d) Put C++ src into the right directories.
   ;; 2 a) Create sources with SRecode
   ;;
-  (cit-srecode-fill-cpp)
+  (cit-srecode-fill-cpp make-type)
 
   ;; 5 a,b,c) UML code generation test
-  (cit-fill-uml)
+  (cit-fill-uml make-type)
 
   ;; 1 e) remove files from a project
   (cit-remove-add-to-project-cpp)
@@ -122,10 +138,17 @@
   (cit-srecode-map-test)
 
   ;; Do some more with Emacs Lisp.
-  (cit-srecode-fill-el)
+  (cit-srecode-fill-el make-type)
 
   ;; Do some texinfo documentation.
   (cit-srecode-fill-texi)
+
+  (cit-finish-message "PASSED" make-type)
+  )
+
+(defun cedet-integ-test-GNUStep ()
+  "Run the CEDET integration test using GNUStep style project."
+  (interactive)
 
   ;; Do a EDE GNUstep-Make Project
   (make-directory (concat cedet-integ-target "_ede_GSMake") t)
@@ -133,13 +156,18 @@
   (let ((ede-auto-add-method 'always))
     (cit-ede-step-test))
 
-  ;; Leave a message
+  (cit-finish-message "PASSED" "GNUStep")
+  )
+
+(defun cit-finish-message (message style)
+  "Display a MESSAGE that some test is now finished.
+Argument STYLE is the type of build done."
   (let ((b (set-buffer (get-buffer-create "*PASSED*"))))
     (erase-buffer)
-    (insert "\n\n  PASSED!\n")
+    (insert "\n\n  PASSED!\n\n  Make Style: ")
+    (insert (format "%S" style) "\n")
     (switch-to-buffer b)
-    )
-  )
+    ))
 
 (defun cit-make-dir (dir)
   "Make directory DIR if it doesn't exist."
