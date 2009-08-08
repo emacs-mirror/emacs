@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.4 2009-03-12 02:04:35 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.5 2009-08-08 21:51:27 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -108,19 +108,19 @@
   "Tags to be inserted into main.")
 
 
-(defun cit-srecode-fill-cpp ()
+(defun cit-srecode-fill-cpp (make-type)
   "Fill up a base set of files with some base tags."
 
   ;; 2 b) Test various templates.
 
   (cit-srecode-fill-with-stuff "include/foo.hh" cit-header-cpp-tags)
-  (ede-new "Make" "Includes")
+  (ede-new make-type "Includes")
   ;; 1 e) Tell EDE where the srcs are
   (ede-new-target "Includes" "miscellaneous" "n")
   (ede-add-file "Includes")
 
   (cit-srecode-fill-with-stuff "src/foo.cpp" cit-src-cpp-tags)
-  (ede-new "Make" "Src")
+  (ede-new make-type "Src")
   ;; 1 e) Tell EDE where the srcs are
   (ede-new-target "Prog" "program" "n")
   (ede-add-file "Prog")
@@ -130,7 +130,9 @@
   (ede-add-file "Prog")
 
   (let ((p (ede-current-project)))
-    (oset p :variables '( ( "CPPFLAGS" . "-I../include") ))
+    (if (string= make-type "Automake")
+	(oset p :variables '( ( "AM_CPPFLAGS" . "-I../include") ))
+      (oset p :variables '( ( "CPPFLAGS" . "-I../include") )))
     (ede-commit-project p)
     )
 
