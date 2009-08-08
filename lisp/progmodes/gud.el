@@ -43,6 +43,7 @@
 (require 'comint)
 
 (defvar gdb-active-process)
+(defvar gdb-recording)
 (defvar gdb-define-alist)
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
@@ -145,6 +146,36 @@ Used to grey out relevant toolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info (debugger)" . gud-goto-info)
+    ([rfinish]	menu-item "Reverse Finish Function" gud-rfinish
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([rstepi]	menu-item "Reverse Step Instruction" gud-rstepi
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([rnexti]	menu-item "Reverse Next Instruction" gud-rnexti
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([rstep]	menu-item "Reverse Step Line" gud-rstep
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([rnext]	menu-item "Reverse Next Line" gud-rnext
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([rcont]	menu-item "Reverse Continue" gud-rcont
+                  :enable (not gud-running)
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
+    ([recstart] menu-item "Start Recording" gdb-toggle-recording-1
+		  :visible (and (not gdb-recording)
+				(eq gud-minor-mode 'gdba)))
+    ([recstop] menu-item "Stop Recording" gdb-toggle-recording
+		  :visible (and gdb-recording
+				(eq gud-minor-mode 'gdba)))
     ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
@@ -291,6 +322,14 @@ Used to grey out relevant toolbar icons.")
 		 (gud-stepi . "gud/stepi")
 		 (gud-up . "gud/up")
 		 (gud-down . "gud/down")
+		 (gdb-toggle-recording-1 . "gud/record-start")
+		 (gdb-toggle-recording . "gud/record-stop")
+		 (gud-rcont . "gud/reverse-continue")
+		 (gud-rnext . "gud/reverse-next")
+		 (gud-rstep . "gud/reverse-step")
+		 (gud-rfinish . "gud/reverse-finish")
+		 (gud-rnexti . "gud/reverse-nexti")
+		 (gud-rstepi . "gud/reverse-stepi")
 		 (gud-goto-info . "info"))
 	       map)
       (tool-bar-local-item-from-menu
