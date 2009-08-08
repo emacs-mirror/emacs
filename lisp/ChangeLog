@@ -1,3 +1,7 @@
+2009-08-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Add reverse-execution commands.
+
 2009-08-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-recording): New variable.
