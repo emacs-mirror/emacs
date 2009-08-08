@@ -9,10 +9,10 @@
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
 ;; Description: Converts an org-mode buffer into DocBook
-;; $Id: org-docbook.el 35 2009-03-23 01:03:21Z baoqiu $
+;; $Id: org-docbook.el,v 1.1 2009/08/06 09:14:12 cdominik Exp $
 ;; URL:
 
-;; This file is NOT part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
