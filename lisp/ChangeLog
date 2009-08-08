@@ -1,3 +1,14 @@
+2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el (gdb-read-memory-custom)
+	(gdb-memory-set-address, def-gdb-set-positive-number)
+	(def-gdb-memory-format, def-gdb-memory-unit): Update memory buffer
+	after changing settings.
+	(gdb-invalidate-disassembly): Update when first shown.
+	(gdb-edit-locals-value): Fixed.
+	(gdb-registers-handler-custom): Print registers in right order and
+	allow changing register values (only for current thread yet).
+
 2009-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-add-mbox-headers)

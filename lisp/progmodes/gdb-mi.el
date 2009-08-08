@@ -252,19 +252,16 @@ Elements are either function names or pairs (buffer . function)")
   `(setq gdb-pending-triggers
          (delete ,item gdb-pending-triggers)))
 
-(defvar gdb-wait-for-pending-timeout 0.5)
-
-(defun gdb-wait-for-pending (&rest body)
-  "Wait until `gdb-pending-triggers' is empty and execute BODY.
+(defmacro gdb-wait-for-pending (&rest body)
+  "Wait until `gdb-pending-triggers' is empty and evaluate FORM.
 
 This function checks `gdb-pending-triggers' value every
 `gdb-wait-for-pending' seconds."
-  `(run-with-timer 
-    gdb-wait-for-pending-timeout nil
-    (lambda ()
+  (run-with-timer 
+   0.5 nil
+   `(lambda ()
       (if (not gdb-pending-triggers)
-          (progn
-            ,@body)
+          (progn ,@body)
         (gdb-wait-for-pending ,@body)))))
 
 ;; Publish-subscribe
@@ -2781,7 +2778,7 @@ in `gdb-memory-format'."
       ;; Show last page instead of empty buffer when out of bounds
       (progn
         (let ((gdb-memory-address gdb-memory-last-address))
-          (gdb-invalidate-memory)
+          (gdb-invalidate-memory 'update)
           (error err-msg))))))
 
 (defvar gdb-memory-mode-map
@@ -2817,7 +2814,7 @@ in `gdb-memory-format'."
   (interactive)
   (let ((arg (read-from-minibuffer "Memory address: ")))
     (setq gdb-memory-address arg))
-  (gdb-invalidate-memory))
+  (gdb-invalidate-memory 'update))
 
 (defmacro def-gdb-set-positive-number (name variable echo-string &optional doc)
   "Define a function NAME which reads new VAR value from minibuffer."
@@ -2831,7 +2828,7 @@ in `gdb-memory-format'."
          (if (<= count 0)
              (error "Positive number only")
            (customize-set-variable ',variable count)
-           (gdb-invalidate-memory))))))
+           (gdb-invalidate-memory 'update))))))
 
 (def-gdb-set-positive-number
   gdb-memory-set-rows
@@ -2852,7 +2849,7 @@ DOC is an optional documentation string."
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-format ,format)
-     (gdb-invalidate-memory)))
+     (gdb-invalidate-memory 'update)))
 
 (def-gdb-memory-format
   gdb-memory-format-binary "t"
@@ -2919,7 +2916,7 @@ DOC is an optional documentation string."
   `(defun ,name () ,(when doc doc)
      (interactive)
      (customize-set-variable 'gdb-memory-unit ,unit-size)
-     (gdb-invalidate-memory)))
+     (gdb-invalidate-memory 'update)))
 
 (def-gdb-memory-unit gdb-memory-unit-giant 8
   "Set the unit size to giant words (eight bytes).")
@@ -3109,7 +3106,7 @@ DOC is an optional documentation string."
   gdb-disassembly-handler
   ;; We update disassembly only after we have actual frame information
   ;; about all threads
-  '(update-disassembly))
+  '(update update-disassembly))
 
 (def-gdb-auto-update-handler
   gdb-disassembly-handler
@@ -3414,7 +3411,8 @@ member."
   (save-excursion
     (if event (posn-set-point (event-end event)))
     (beginning-of-line)
-    (let* ((var (current-word))
+    (let* ((var (gdb-get-field
+                 (get-text-property (point) 'gdb-local-variable) 'name))
 	   (value (read-string (format "New value (%s): " var))))
       (gud-basic-call
        (concat  "-gdb-set variable " var " = " value)))))
@@ -3446,7 +3444,7 @@ member."
           (propertize type 'font-lock-face font-lock-type-face)
           (propertize name 'font-lock-face font-lock-variable-name-face)
           value)
-         '(mouse-face highlight))))
+         `(gdb-local-variable ,local))))
     (insert (gdb-table-string table " "))
     (setq mode-name
           (concat "Locals: " (gdb-get-field (gdb-current-buffer-frame) 'func)))))
@@ -3509,13 +3507,12 @@ member."
 
 (defun gdb-registers-handler-custom ()
   (let ((register-values (gdb-get-field (gdb-json-partial-output) 'register-values))
-        (register-names-list (reverse gdb-register-names))
         (table (make-gdb-table)))
     (dolist (register register-values)
       (let* ((register-number (gdb-get-field register 'number))
              (value (gdb-get-field register 'value))
              (register-name (nth (string-to-number register-number) 
-                                 register-names-list)))
+                                 gdb-register-names)))
         (gdb-table-add-row
          table
          (list
@@ -3523,14 +3520,30 @@ member."
           (if (member register-number gdb-changed-registers)
               (propertize value 'font-lock-face font-lock-warning-face)
             value))
-         '(mouse-face highlight))))
+         `(mouse-face highlight
+           help-echo "mouse-2: edit value"
+           gdb-register-name ,register-name))))
     (insert (gdb-table-string table " "))))
+
+(defun gdb-edit-register-value (&optional event)
+  "Assign a value to a register displayed in the registers buffer."
+  (interactive (list last-input-event))
+  (save-excursion
+    (if event (posn-set-point (event-end event)))
+    (beginning-of-line)
+    (let* ((var (gdb-get-field
+                 (get-text-property (point) 'gdb-register-name)))
+	   (value (read-string (format "New value (%s): " var))))
+      (gud-basic-call
+       (concat  "-gdb-set variable $" var " = " value)))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "\r" 'gdb-edit-register-value)
+    (define-key map [mouse-2] 'gdb-edit-register-value)
     (define-key map "q" 'kill-this-buffer)
-     map))
+    map))
 
 (defvar gdb-registers-header
   (list
