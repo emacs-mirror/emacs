@@ -1,3 +1,8 @@
+2009-08-08  Dmitry Dzhus <dima@sphinx.net.ru>
+
+	* images/gud/all.xpm, images/gud/thread.xpm: New icons for
+	gdb-mi.el
+
 2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti (msgr, u6, u7): New capabilities.
