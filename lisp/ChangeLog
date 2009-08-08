@@ -1,3 +1,9 @@
+2009-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-add-mbox-headers)
+	(rmail-set-message-counters-counter): Search for
+	rmail-unix-mail-delimiter instead of just "From ".  (Bug#4076)
+
 2009-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Update.
