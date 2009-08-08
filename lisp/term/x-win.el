@@ -1653,6 +1653,10 @@ The value nil is the same as this list:
     ("images/mail/save-draft" . "gtk-mail-handling")
     ("images/mail/send" . "gtk-mail-send")
     ("images/mail/spam" . "gtk-spam")
+    ;; Used for GDB Graphical Interface
+    ("images/gud/break" . "gtk-no")
+    ("images/gud/record-start" . "gtk-media-record")
+    ("images/gud/record-stop" . "gtk-media-stop")
     ;; No themed versions available:
     ;; mail/preview (combining stock_mail and stock_zoom)
     ;; mail/save    (combining stock_mail, stock_save and stock_convert)

@@ -1,3 +1,8 @@
+2009-08-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/README (License): Add entries for icons for reverse
+	execution.
+
 2009-08-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* etc/images/gud/record-start.xpm, etc/images/gud/record-stop.xpm,
