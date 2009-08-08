@@ -519,6 +519,19 @@ the list) is deleted every time a new one is added (at the front)."
   (message (format "Logging of transaction %sabled"
 		   (if gdb-enable-debug "en" "dis"))))
 
+;; These two are used for menu and toolbar
+(defun gdb-control-all-threads ()
+  "Switch to non-stop/A mode."
+  (interactive)
+  (setq gdb-gud-control-all-threads t)
+  (message "Now in non-stop/A mode."))
+
+(defun gdb-control-current-thread ()
+  "Switch to non-stop/T mode."
+  (interactive)
+  (setq gdb-gud-control-all-threads nil)
+  (message "Now in non-stop/T mode."))
+
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
 	 (varnum (car var)) expr array)
@@ -1669,7 +1682,8 @@ is running."
 
 (defun gdb-show-run-p ()
   "Return t if \"Run/continue\" should be shown on the toolbar."
-  (or (and (or
+  (or (not gdb-active-process)
+      (and (or
             (not gdb-gud-control-all-threads)
             (not gdb-non-stop))
            (not gud-running))
@@ -3823,6 +3837,27 @@ SPLIT-HORIZONTAL and show BUF in the new window."
                           "Switch to stopped thread"))
   (define-key gud-menu-map [mi]
     `(menu-item "GDB-MI" ,menu :visible (eq gud-minor-mode 'gdbmi))))
+
+;; TODO Fit these into tool-bar-local-item-from-menu call in gud.el.
+;; GDB-MI menu will need to be moved to gud.el. We can't use
+;; tool-bar-local-item-from-menu here because it appends new buttons
+;; to toolbar from right to left while we want our A/T throttle to
+;; show up right before Run button.
+(define-key-after gud-tool-bar-map [all-threads]
+  '(menu-item "Switch to non-stop/A mode" gdb-control-all-threads
+              :image (find-image '((:type xpm :file "gud/thread.xpm")))
+              :visible (and (eq gud-minor-mode 'gdbmi)
+                            gdb-non-stop
+                            (not gdb-gud-control-all-threads)))
+  'run)
+
+(define-key-after gud-tool-bar-map [current-thread]
+  '(menu-item "Switch to non-stop/T mode" gdb-control-current-thread
+              :image (find-image '((:type xpm :file "gud/all.xpm")))
+              :visible (and (eq gud-minor-mode 'gdbmi)
+                            gdb-non-stop
+                            gdb-gud-control-all-threads))
+  'all-threads)
 
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."

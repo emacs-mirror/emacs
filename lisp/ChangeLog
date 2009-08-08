@@ -1,3 +1,12 @@
+2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el (gdb-control-all-threads)
+	(gdb-control-current-thread): Interactive setters for
+	`gdb-gud-control-all-threads' to use in menu.
+	(gdb-show-run-p): Show «Go» when process is not active.
+	(gud-tool-bar-map): Add non-stop/A,T indicator. Uses
+	gud/thread.xpm and gud/all.xpm.
+
 2009-08-08  Yoni Rabkin  <yoni@rabkins.net>
 
 	* net/net-utils.el (net-utils-font-lock-keywords): New var.
