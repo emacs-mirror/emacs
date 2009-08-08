@@ -165,6 +165,13 @@ functions and variables.
 ** js2-mode.el is a new major mode for JavaScript files.
 
 
+* Lisp changes in Emacs 23.2
+
+** Hash tables have a new printed representation that is readable.
+The feature `hashtable-print-readable' identifies this new
+functionality.
+
+
 * Installation Changes in Emacs 23.1
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
