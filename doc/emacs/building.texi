@@ -858,6 +858,7 @@ multiple programs within one Emacs session.
 * Other GDB-UI Buffers::        Input/output, locals, registers,
                                 assembler, threads and memory buffers.
 * Watch Expressions::           Monitor variable values in the speedbar.
+* Reverse Debugging::           Execute and reverse debug your program.
 @end menu
 
 @node GDB-UI Layout
@@ -882,7 +883,7 @@ displays the following frame layout:
 |--------------------------------+--------------------------------+
 |   Primary Source buffer        |   I/O buffer for debugged pgm  |
 |--------------------------------+--------------------------------+
-|   Stack buffer                 |   Breakpoints/thread buffer    |
+|   Stack buffer                 |   Breakpoints/Threads buffer   |
 +--------------------------------+--------------------------------+
 @end group
 @end smallexample
@@ -1050,7 +1051,7 @@ as are the commands to send signals to the debugged program.
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
-Information on a frame, gdb, The GNU debugger}). Press @key{RET} or
+Information on a frame, gdb, The GNU debugger}).  Press @key{RET} or
 click @kbd{Mouse-2} on the value if you want to edit it.
 
 Arrays and structures display their type only.  With GDB 6.4 or later,
@@ -1170,6 +1171,26 @@ To automatically raise the speedbar every time the display of watch
 expressions updates, set @code{gdb-speedbar-auto-raise} to
 non-@code{nil}.  This can be useful if you are debugging with a full
 screen Emacs frame.
+
+@node Reverse Debugging
+@subsubsection Reverse Debugging
+
+  The GDB tool bar shares many buttons with the other GUD debuggers
+for tasks like stepping and printing expressions.  It also has a
+further set of buttons that allow reverse debugging (@pxref{Process
+Record and Replay, , ,gdb, The GNU debugger}).  This is useful when it
+takes a long time to reproduce the conditions where your program fails
+or for transient problems, like race conditions in multi-threaded
+problems, where a failure might otherwise be hard to reproduce.
+
+To use reverse debugging set a breakpoint near the location of
+interest and run your program to that point.  Process recording is
+enabled by clicking on the record button.  At this point a new set of
+buttons appear that allow execution in the reverse direction.  Execute
+over the code where the problem occurs and then use the new set of
+buttons to retrace your steps, examine values and analyse the problem.
+When analysis is complete then turn off process recording by clicking
+on the record button again.
 
 @node Executing Lisp
 @section Executing Lisp Expressions
