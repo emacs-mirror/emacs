@@ -1587,6 +1587,14 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
               (format " (bound to thread %s)" gdb-thread-number)
             "")
           "*"))
+
+(defun gdb-current-context-mode-name (mode)
+  "Add thread information to MODE which is to be used as
+`mode-name'."
+  (concat mode
+          (if gdb-thread-number
+              (format " [thread %s]" gdb-thread-number)
+            "")))
 
 
 (defcustom gud-gdb-command-name "gdb -i=mi"
@@ -1653,9 +1661,9 @@ is running."
           (string= (gdb-get-field (gdb-current-buffer-thread) 'state)
                    "running"))
     ;; We change frame number only if the state of current thread has
-    ;; changed.
+    ;; changed or there's no current thread.
     (when (not (eq gud-running old-value))
-      (if gud-running
+      (if (or gud-running (not (gdb-current-buffer-thread)))
           (setq gdb-frame-number nil)
         (setq gdb-frame-number "0")))))
 
@@ -1832,8 +1840,11 @@ Sets `gdb-thread-number' to new id."
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
   (setq gdb-active-process t)
-  (when (not gdb-non-stop)
-    (setq gud-running t)))
+  (setq gud-running t)
+  ;; GDB doesn't seem to respond to -thread-info before first stop or
+  ;; thread exit (even in non-stop mode), so this is useless.
+  ;; Behaviour may change in the future.
+  (gdb-emit-signal gdb-buf-publisher 'update-threads))
 
 ;; -break-insert -t didn't give a reason before gdb 6.9
 
@@ -2414,7 +2425,8 @@ If not in a source or disassembly buffer just set point."
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map "\t" '(lambda () 
                             (interactive) 
-                            (gdb-set-window-buffer (gdb-threads-buffer-name) t)))
+                            (gdb-set-window-buffer
+                             (gdb-get-buffer-create 'gdb-threads-buffer) t)))
     (define-key map [mouse-2] 'gdb-goto-breakpoint)
     (define-key map [follow-link] 'mouse-face)
     map))
@@ -2500,7 +2512,8 @@ corresponding to the mode line clicked."
     (define-key map "s" 'gdb-step-thread)
     (define-key map "\t" '(lambda () 
                             (interactive) 
-                            (gdb-set-window-buffer (gdb-breakpoints-buffer-name) t)))
+                            (gdb-set-window-buffer 
+                             (gdb-get-buffer-create 'gdb-breakpoints-buffer) t)))
     (define-key map [mouse-2] 'gdb-select-thread)
     (define-key map [follow-link] 'mouse-face)
     map))
@@ -3183,8 +3196,9 @@ DOC is an optional documentation string."
         (let ((window (get-buffer-window (current-buffer) 0)))
           (set-window-point window (gdb-mark-line marked-line gdb-disassembly-position))))
       (setq mode-name
+            (gdb-current-context-mode-name
             (concat "Disassembly: " 
-                    (gdb-get-field (gdb-current-buffer-frame) 'func)))))
+                    (gdb-get-field (gdb-current-buffer-frame) 'func))))))
 
 (defun gdb-disassembly-place-breakpoints ()
   (gdb-remove-breakpoint-icons (point-min) (point-max))
@@ -3315,7 +3329,9 @@ member."
   (when (and gdb-frame-number
              (gdb-buffer-shows-main-thread-p))
     (gdb-mark-line (1+ (string-to-number gdb-frame-number))
-                   gdb-stack-position)))
+                   gdb-stack-position))
+  (setq mode-name
+        (gdb-current-context-mode-name "Frames")))
 
 (defun gdb-stack-buffer-name ()
   (gdb-current-context-buffer-name
@@ -3447,7 +3463,8 @@ member."
          `(gdb-local-variable ,local))))
     (insert (gdb-table-string table " "))
     (setq mode-name
-          (concat "Locals: " (gdb-get-field (gdb-current-buffer-frame) 'func)))))
+          (gdb-current-context-mode-name
+          (concat "Locals: " (gdb-get-field (gdb-current-buffer-frame) 'func))))))
 
 (defvar gdb-locals-header
   (list
@@ -3461,6 +3478,12 @@ member."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
+    (define-key map "\t" '(lambda () 
+                            (interactive) 
+                            (gdb-set-window-buffer
+                             (gdb-get-buffer-create
+                              'gdb-registers-buffer
+                              gdb-thread-number) t)))
      map))
 
 (define-derived-mode gdb-locals-mode gdb-parent-mode "Locals"
@@ -3523,7 +3546,9 @@ member."
          `(mouse-face highlight
            help-echo "mouse-2: edit value"
            gdb-register-name ,register-name))))
-    (insert (gdb-table-string table " "))))
+    (insert (gdb-table-string table " "))
+    (setq mode-name
+          (gdb-current-context-mode-name "Registers"))))
 
 (defun gdb-edit-register-value (&optional event)
   "Assign a value to a register displayed in the registers buffer."
@@ -3543,6 +3568,12 @@ member."
     (define-key map "\r" 'gdb-edit-register-value)
     (define-key map [mouse-2] 'gdb-edit-register-value)
     (define-key map "q" 'kill-this-buffer)
+    (define-key map "\t" '(lambda () 
+                            (interactive) 
+                            (gdb-set-window-buffer
+                             (gdb-get-buffer-create
+                              'gdb-locals-buffer
+                              gdb-thread-number) t)))
     map))
 
 (defvar gdb-registers-header

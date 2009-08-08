@@ -8,6 +8,12 @@
 	(gdb-edit-locals-value): Fixed.
 	(gdb-registers-handler-custom): Print registers in right order and
 	allow changing register values (only for current thread yet).
+	(gdb-breakpoints-mode-map): Don't assume threads buffer is present.
+	(gdb-threads-mode-map): Don't assume breakpoints buffer is present.
+	(gdb-disassembly-handler-custom, gdb-stack-list-frames-custom)
+	(gdb-locals-handler-custom, gdb-registers-handler-custom): Thread
+	info in mode name.
+	(gdb-registers-mode-map): TAB to switch to locals.
 
 2009-08-08  Eli Zaretskii  <eliz@gnu.org>
 
