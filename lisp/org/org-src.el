@@ -467,5 +467,4 @@ the language, a switch telling of the content should be in a single line."
 (provide 'org-src)
 
 ;; arch-tag: 6a1fc84f-dec7-47be-a416-64be56bea5d8
-
 ;;; org-src.el ends here
