@@ -22,6 +22,16 @@ When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
 
+* Installation Changes in Emacs 23.2
+
+** New configure options for Emacs developers
+These are not new features; only the configure flags are new.
+
+*** --enable-profiling builds Emacs with profiling enabled.
+This might not work on all platforms.
+
+*** --enable-checking[=OPTIONS] builds emacs with extra runtime checks.
+
 * Changes in Emacs 23.2
 
 ** The default value of `trash-directory' has changed to nil, which
@@ -44,14 +54,6 @@ Customize make-pointer-invisible to turn it off.
 ---
 ** On MS-Windows, `display-time' now displays the system load average
 as well as the time, as it does on GNU and Unix.
-
-** configure options for emacs developers
-*** --enable-profiling will build emacs with profiling enabled.
-This might not work on all platforms.  It is not a new feature, just
-the configure flag is new.
-
-*** --enable-checking[=OPTIONS] will build emacs with various extra runtime checks.
-It is not a new feature, just the configure flag is new.
 
 ** Killing a buffer with a running process now asks a confirmation.
 You can remove this query in two ways: either removing
