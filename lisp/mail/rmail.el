@@ -2072,27 +2072,32 @@ new messages.  Return the number of new messages."
 	    (start (point))
 	    (value "------U-")
 	    (case-fold-search nil)
-	    limit)
+	    (delim (concat "\n\n" rmail-unix-mail-delimiter))
+	    limit stop)
 	;; Detect an empty inbox file.
 	(unless (= start (point-max))
 	  ;; Scan the new messages to establish a count and to ensure that
 	  ;; an attribute header is present.
-	  (while (looking-at "From ")
-	    ;; Determine if a new attribute header needs to be added to
-	    ;; the message.
-	    (if (search-forward "\n\n" nil t)
-		(progn
-		  (setq count (1+ count))
-		  (narrow-to-region start (point))
-		  (unless (mail-fetch-field rmail-attribute-header)
-		    (backward-char 1)
-		    (insert rmail-attribute-header ": " value "\n"))
-		  (widen))
-	      (rmail-error-bad-format))
-	    ;; Move to the next message.
-	    (if (search-forward "\n\nFrom " nil 'move)
-		(forward-char -5))
-	    (setq start (point))))
+	  (if (looking-at rmail-unix-mail-delimiter)
+	      (while (not stop)
+		;; Determine if a new attribute header needs to be
+		;; added to the message.
+		(if (search-forward "\n\n" nil t)
+		    (progn
+		      (setq count (1+ count))
+		      (narrow-to-region start (point))
+		      (unless (mail-fetch-field rmail-attribute-header)
+			(backward-char 1)
+			(insert rmail-attribute-header ": " value "\n"))
+		      (widen))
+		  (rmail-error-bad-format))
+		;; Move to the next message.
+		(if (not (re-search-forward delim nil 'move))
+		    (setq stop t)
+		  (goto-char (match-beginning 0))
+		  (forward-char 2))
+		(setq start (point)))
+	    (rmail-error-bad-format)))
 	count))))
 
 (defun rmail-get-header-1 (name)
@@ -2480,18 +2485,19 @@ the message.  Point is at the beginning of the message."
   (let ((start (point)))
     (while (search-backward "\n\nFrom " stop t)
       (forward-char 2)
-      (rmail-collect-deleted start)
-      (setq messages-head (cons (point-marker) messages-head)
-	    total-messages (1+ total-messages)
-	    start (point))
-      ;; Show progress after every 20 messages or so.
-      (if (zerop (% total-messages 20))
-	  (message "Counting messages...%d" total-messages)))
+      (when (looking-at rmail-unix-mail-delimiter)
+	(rmail-collect-deleted start)
+	(setq messages-head (cons (point-marker) messages-head)
+	      total-messages (1+ total-messages)
+	      start (point))
+	;; Show progress after every 20 messages or so.
+	(if (zerop (% total-messages 20))
+	    (message "Counting messages...%d" total-messages))))
     ;; Handle the first message, maybe.
     (if stop
 	(goto-char stop)
       (goto-char (point-min)))
-    (unless (not (looking-at "From "))
+    (unless (not (looking-at rmail-unix-mail-delimiter))
       (rmail-collect-deleted start)
       (setq messages-head (cons (point-marker) messages-head)
 	    total-messages (1+ total-messages)))))
