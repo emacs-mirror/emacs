@@ -1,3 +1,7 @@
+2009-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi (Agenda commands): Restore clobbered change.
+
 2009-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* calc.texi (Graphics, Devices): Update with the peculiarities of
