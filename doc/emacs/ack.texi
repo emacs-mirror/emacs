@@ -981,8 +981,10 @@ and @file{vt-control.el}, providing some control functions for the DEC
 VT line of terminals.
 
 @item
-Nick Roberts wrote @file{gdb-ui.el}, the graphical user interface to
-GDB; and @file{t-mouse.el}, mouse support in text terminals.
+Nick Roberts wrote @file{t-mouse.el}, for mouse support in text
+terminals; and @file{gdb-ui.el}, a graphical user interface to GDB.
+Together with Dmitry Dzhus, he wrote @file{gdb-mi.el}, the successor to
+@file{gdb-ui.el}.
 
 @item
 Danny Roozendaal implemented @file{handwrite.el}, which converts text

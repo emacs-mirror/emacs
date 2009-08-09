@@ -1350,8 +1350,8 @@ Cederqvist, Hans Chalupsky, Chong Yidong, Chris Chase, Bob Chassell,
 Andrew Choi, Sacha Chua, James Clark, Mike Clarkson, Glynn Clements,
 Andrew Csillag, Baoqiu Cui, Doug Cutting, Mathias Dahl, Satyaki Das,
 Michael DeCorte, Gary Delp, Matthieu Devin, Eri Ding, Jan Dj@"{a}rv,
-Carsten Dominik, Scott Draves, Benjamin Drieu, Viktor Dukhovni, John
-Eaton, Rolf Ebert, Paul Eggert, Stephen Eglen, Torbj@"orn Einarsson,
+Carsten Dominik, Scott Draves, Benjamin Drieu, Viktor Dukhovni, Dmitry Dzhus,
+John Eaton, Rolf Ebert, Paul Eggert, Stephen Eglen, Torbj@"orn Einarsson,
 Tsugutomo Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
 Frederick Farnbach, Oscar Figueiredo, Fred Fish, Karl Fogel, Gary
 Foster, Romain Francoise, Noah Friedman, Andreas Fuchs, Hallvard

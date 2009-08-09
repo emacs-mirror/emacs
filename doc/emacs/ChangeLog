@@ -1,3 +1,8 @@
+2009-08-09  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Add gdb-mi entry.
+
 2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* emacs.texi (Top): Add new menu items for GDB-UI.
