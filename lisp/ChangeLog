@@ -1,3 +1,10 @@
+2009-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/hideshow.el (hs-special-modes-alist): Don't use
+	hs-c-like-adjust-block-beginning.
+	(hs-hide-block-at-point): Stop hiding at the beginning of
+	hs-block-end-regexp (Bug#700).
+
 2009-08-09  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-gud-context-call): Does not need to be
