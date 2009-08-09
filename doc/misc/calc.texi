@@ -11093,29 +11093,29 @@ days 0 and @mathit{-1} respectively in Calc's internal numbering scheme.
 
 @cindex Julian day counting
 Another day counting system in common use is, confusingly, also called
-``Julian.''  The Julian day number is the numbers of days since 
-12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT) 
+``Julian.''  The Julian day number is the numbers of days since
+12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT)
 is @mathit{-1721423.5} (recall that Calc starts at midnight instead
 of noon).  Thus to convert a Calc date code obtained by unpacking a
 date form into a Julian day number, simply add 1721423.5 after
 compensating for the time zone difference.  The built-in @kbd{t J}
 command performs this conversion for you.
 
-The Julian day number is based on the Julian cycle, which was invented 
+The Julian day number is based on the Julian cycle, which was invented
 in 1583 by Joseph Justus Scaliger.  Scaliger named it the Julian cycle
-since it is involves the Julian calendar, but some have suggested that
+since it involves the Julian calendar, but some have suggested that
 Scaliger named it in honor of his father, Julius Caesar Scaliger.  The
-Julian cycle is based it on three other cycles: the indiction cycle,
-the Metonic cycle, and the solar cycle.  The indiction cycle is a 15
-year cycle originally used by the Romans for tax purposes but later
-used to date medieval documents.  The Metonic cycle is a 19 year
-cycle; 19 years is close to being a common multiple of a solar year
-and a lunar month, and so every 19 years the phases of the moon will
-occur on the same days of the year.  The solar cycle is a 28 year
-cycle; the Julian calendar repeats itself every 28 years.  The
-smallest time period which contains multiples of all three cycles is
-the least common multiple of 15 years, 19 years and 28 years, which
-(since they're pairwise relatively prime) is 
+Julian cycle is based on three other cycles: the indiction cycle, the
+Metonic cycle, and the solar cycle.  The indiction cycle is a 15 year
+cycle originally used by the Romans for tax purposes but later used to
+date medieval documents.  The Metonic cycle is a 19 year cycle; 19
+years is close to being a common multiple of a solar year and a lunar
+month, and so every 19 years the phases of the moon will occur on the
+same days of the year.  The solar cycle is a 28 year cycle; the Julian
+calendar repeats itself every 28 years.  The smallest time period
+which contains multiples of all three cycles is the least common
+multiple of 15 years, 19 years and 28 years, which (since they're
+pairwise relatively prime) is
 @texline @math{15\times 19\times 28 = 7980} years.
 @infoline 15*19*28 = 7980 years.
 This is the length of a Julian cycle.  Working backwards, the previous

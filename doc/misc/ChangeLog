@@ -1,3 +1,7 @@
+2009-08-09  Colin Williams  <lackita@gmail.com>  (tiny change)
+
+	* calc.texi (Date Forms): Fix typos.
+
 2009-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* org.texi (Agenda commands): Restore clobbered change.
