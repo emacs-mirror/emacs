@@ -1,7 +1,12 @@
+2009-08-10  Bill Wohler  <wohler@newt.com>
+
+	* mh-junk.el (mh-spamassassin-blacklist, mh-bogofilter-blacklist)
+	(mh-spamprobe-blacklist): Sync docstring with manual.
+
 2009-07-22  Kevin Ryde  <user42@zip.com.au>
 
 	* mh-junk.el (mh-spamassassin-blacklist, mh-bogofilter-blacklist)
-	(mh-spamprobe-blacklist): Hyperlink urls in docstrings with URL `...'.
+	(mh-spamprobe-blacklist): Hyperlink URLs in docstrings with URL `...'.
 
 2009-06-13  Bill Wohler  <wohler@newt.com>
 
