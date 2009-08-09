@@ -1,3 +1,8 @@
+2009-08-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command-with-dired): New defun.
+	(tramp-handle-insert-directory): Handle "--dired".  (Bug#4075)
+
 2009-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el: Provide hashtable-print-readable.
@@ -290,7 +295,7 @@
 2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Make check for tramp-gvfs loading more
-	robust.
+	robust.  (Bug#3977)
 	(tramp-handle-insert-file-contents): `unwind-protect' must be
 	inside `with-parsed-tramp-file-name'.
 
