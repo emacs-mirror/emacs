@@ -1,5 +1,7 @@
 2009-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* subr.el: Provide hashtable-print-readable.
+
 	* progmodes/hideshow.el (hs-special-modes-alist): Don't use
 	hs-c-like-adjust-block-beginning.
 	(hs-hide-block-at-point): Stop hiding at the beginning of

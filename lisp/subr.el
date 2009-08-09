@@ -3647,5 +3647,14 @@ is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
+
+;;; Misc.
+
+;; The following statement ought to be in print.c, but `provide' can't
+;; be used there.
+(when (hash-table-p (car (read-from-string
+			  (prin1-to-string (make-hash-table)))))
+  (provide 'hashtable-print-readable))
+
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here
