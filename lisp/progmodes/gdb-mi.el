@@ -566,11 +566,11 @@ When `gdb-non-stop' is nil, return COMMAND unchanged."
     command))
 
 ;; TODO Document this. We use noarg when not in gud-def
-(defmacro gdb-gud-context-call (cmd1 &optional cmd2 noall noarg)
-  `(gud-call
-    (concat
-     (gdb-gud-context-command ,cmd1 ,noall)
-     ,cmd2) ,(when (not noarg) 'arg)))
+(defun gdb-gud-context-call (cmd1 &optional cmd2 noall noarg)
+  (gud-call
+   (concat
+    (gdb-gud-context-command cmd1 noall)
+    cmd2) (when (not noarg) 'arg)))
 
 ;;;###autoload
 (defun gdb (command-line)
@@ -3550,6 +3550,7 @@ member."
              (value (gdb-get-field register 'value))
              (register-name (nth (string-to-number register-number) 
                                  gdb-register-names)))
+        (when register-name
         (gdb-table-add-row
          table
          (list
@@ -3559,7 +3560,7 @@ member."
             value))
          `(mouse-face highlight
            help-echo "mouse-2: edit value"
-           gdb-register-name ,register-name))))
+           gdb-register-name ,register-name)))))
     (insert (gdb-table-string table " "))
     (setq mode-name
           (gdb-current-context-mode-name "Registers"))))

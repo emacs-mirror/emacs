@@ -1,3 +1,10 @@
+2009-08-09  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gdb-mi.el (gdb-gud-context-call): Does not need to be
+	a macro.
+	(gdb-registers-handler-custom): Do not fail when register names
+	are unavailable.
+
 2009-08-08  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-control-all-threads)
