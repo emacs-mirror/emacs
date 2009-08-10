@@ -1,3 +1,13 @@
+2009-08-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* Rename icons for 8+3 DOS filesystems, added on 2009-08-06, to:
+	* etc/images/gud/recstart.xpm, etc/images/gud/recstop.xpm,
+	* etc/images/gud/rcont.xpm, etc/images/gud/rnext.xpm
+	* etc/images/gud/rfinish.xpm, etc/images/gud/rnexti.xpm,
+	* etc/images/gud/rstep.xpm, etc/images/gud/rstepi.xpm:
+
+	* images/gud/README (License): Use new filenames.
+
 2009-08-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/README (License): Add entries for icons for reverse
