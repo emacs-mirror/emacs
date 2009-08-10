@@ -234,11 +234,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      (2 (compilation-face '(3))))
 
     (gnu
-     ;; I have no idea what this first line is supposed to match, but it
-     ;; makes things ambiguous with output such as "foo:344:50:blabla" since
-     ;; the "foo" part can match this first line (in which case the file
-     ;; name as "344").  To avoid this, the second line disallows filenames
-     ;; exclusively composed of digits.  --Stef
+     ;; The first line matches the program name for
+
+     ;;     PROGRAM:SOURCE-FILE-NAME:LINENO: MESSAGE
+
+     ;; format, which is used for non-interactive programs other than
+     ;; compilers (e.g. the "jade:" entry in compilation.txt).
+
+     ;; This first line makes things ambiguous with output such as
+     ;; "foo:344:50:blabla" since the "foo" part can match this first
+     ;; line (in which case the file name as "344").  To avoid this,
+     ;; the second line disallows filenames exclusively composed of
+     ;; digits.
+
      ;; Similarly, we get lots of false positives with messages including
      ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
      ;; the last line tries to rule out message where the info after the
