@@ -68,34 +68,6 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
      int nargs;
      char **args;
 {
-  return doprnt1 (0, buffer, bufsize, format, format_end, nargs, args);
-}
-
-/* Like doprnt except that strings in ARGS are passed
-   as Lisp_Object.  */
-
-int
-doprnt_lisp (buffer, bufsize, format, format_end, nargs, args)
-     char *buffer;
-     register int bufsize;
-     char *format;
-     char *format_end;
-     int nargs;
-     char **args;
-{
-  return doprnt1 (1, buffer, bufsize, format, format_end, nargs, args);
-}
-
-static int
-doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
-     int lispstrings;
-     char *buffer;
-     register int bufsize;
-     char *format;
-     char *format_end;
-     int nargs;
-     char **args;
-{
   int cnt = 0;			/* Number of arg to gobble next */
   register char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
@@ -235,17 +207,8 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 		error ("Not enough arguments for format string");
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
-	      if (lispstrings)
-		{
-		  string = ((struct Lisp_String *) args[cnt])->data;
-		  tem = STRING_BYTES ((struct Lisp_String *) args[cnt]);
-		  cnt++;
-		}
-	      else
-		{
-		  string = (unsigned char *) args[cnt++];
-		  tem = strlen (string);
-		}
+	      string = (unsigned char *) args[cnt++];
+	      tem = strlen (string);
 	      width = strwidth (string, tem);
 	      goto doit1;
 

@@ -2681,7 +2681,6 @@ extern void syms_of_print P_ ((void));
 
 /* Defined in doprnt.c */
 extern int doprnt P_ ((char *, int, char *, char *, int, char **));
-extern int doprnt_lisp P_ ((char *, int, char *, char *, int, char **));
 
 /* Defined in lread.c */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;

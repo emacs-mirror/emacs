@@ -1,3 +1,9 @@
+2009-08-10  Ken Raeburn  <raeburn@raeburn.org>
+
+	* doprnt.c (doprnt_lisp): Unused function deleted.
+	(doprnt): Merge with doprnt1, discarding lispstrings code.
+	* lisp.h (doprnt_lisp): Don't declare.
+
 2009-08-07  Juri Linkov  <juri@jurta.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1270000.
