@@ -38,144 +38,121 @@
 
 ;;; MULE related key bindings and menus.
 
-(defvar mule-keymap (make-sparse-keymap)
+(defvar mule-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map "f" 'set-buffer-file-coding-system)
+    (define-key map "r" 'revert-buffer-with-coding-system)
+    (define-key map "F" 'set-file-name-coding-system)
+    (define-key map "t" 'set-terminal-coding-system)
+    (define-key map "k" 'set-keyboard-coding-system)
+    (define-key map "p" 'set-buffer-process-coding-system)
+    (define-key map "x" 'set-selection-coding-system)
+    (define-key map "X" 'set-next-selection-coding-system)
+    (define-key map "\C-\\" 'set-input-method)
+    (define-key map "c" 'universal-coding-system-argument)
+    (define-key map "l" 'set-language-environment)
+    map)
   "Keymap for Mule (Multilingual environment) specific commands.")
 
 ;; Keep "C-x C-m ..." for mule specific commands.
 (define-key ctl-x-map "\C-m" mule-keymap)
 
-(define-key mule-keymap "f" 'set-buffer-file-coding-system)
-(define-key mule-keymap "r" 'revert-buffer-with-coding-system)
-(define-key mule-keymap "F" 'set-file-name-coding-system)
-(define-key mule-keymap "t" 'set-terminal-coding-system)
-(define-key mule-keymap "k" 'set-keyboard-coding-system)
-(define-key mule-keymap "p" 'set-buffer-process-coding-system)
-(define-key mule-keymap "x" 'set-selection-coding-system)
-(define-key mule-keymap "X" 'set-next-selection-coding-system)
-(define-key mule-keymap "\C-\\" 'set-input-method)
-(define-key mule-keymap "c" 'universal-coding-system-argument)
-(define-key mule-keymap "l" 'set-language-environment)
-
-(defvar mule-menu-keymap
-  (make-sparse-keymap "Mule (Multilingual Environment)")
-  "Keymap for Mule (Multilingual environment) menu specific commands.")
-
 (defvar describe-language-environment-map
-  (make-sparse-keymap "Describe Language Environment"))
+  (let ((map (make-sparse-keymap "Describe Language Environment")))
+    (define-key map
+      [Default] '(menu-item "Default" describe-specified-language-support))
+    map))
 
 (defvar setup-language-environment-map
-  (make-sparse-keymap "Set Language Environment"))
+  (let ((map (make-sparse-keymap "Set Language Environment")))
+    (define-key map
+      [Default] '(menu-item "Default" setup-specified-language-environment))
+    map))
 
 (defvar set-coding-system-map
-  (make-sparse-keymap "Set Coding System"))
+  (let ((map (make-sparse-keymap "Set Coding System")))
+    (define-key-after map [universal-coding-system-argument]
+      '(menu-item "For Next Command" universal-coding-system-argument
+        :help "Coding system to be used by next command"))
+    (define-key-after map [separator-1] '("--"))
+    (define-key-after map [set-buffer-file-coding-system]
+      '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
+        :help "How to encode this buffer when saved"))
+    (define-key-after map [revert-buffer-with-coding-system]
+      '(menu-item "For Reverting This File Now"
+        revert-buffer-with-coding-system
+        :enable buffer-file-name
+        :help "Revisit this file immediately using specified coding system"))
+    (define-key-after map [set-file-name-coding-system]
+      '(menu-item "For File Name" set-file-name-coding-system
+        :help "How to decode/encode file names"))
+    (define-key-after map [separator-2] '("--"))
 
-(define-key-after mule-menu-keymap [set-language-environment]
-  (list 'menu-item  "Set Language Environment" setup-language-environment-map))
-(define-key-after mule-menu-keymap [separator-mule]
-  '("--")
-  t)
-(define-key-after mule-menu-keymap [toggle-input-method]
-  '(menu-item "Toggle Input Method" toggle-input-method)
-  t)
-(define-key-after mule-menu-keymap [set-input-method]
-  '(menu-item "Select Input Method..." set-input-method)
-  t)
-(define-key-after mule-menu-keymap [describe-input-method]
-  '(menu-item "Describe Input Method"  describe-input-method))
-(define-key-after mule-menu-keymap [separator-input-method]
-  '("--")
-  t)
-(define-key-after mule-menu-keymap [set-various-coding-system]
-  (list 'menu-item "Set Coding Systems" set-coding-system-map
-	:enable 'default-enable-multibyte-characters))
-(define-key-after mule-menu-keymap [view-hello-file]
-  '(menu-item "Show Multi-lingual Text" view-hello-file
-	      :enable (file-readable-p
-		       (expand-file-name "HELLO" data-directory))
-	      :help "Display file which says HELLO in many languages")
-  t)
-(define-key-after mule-menu-keymap [separator-coding-system]
-  '("--")
-  t)
-(define-key-after mule-menu-keymap [describe-language-environment]
-  (list 'menu-item "Describe Language Environment"
-	describe-language-environment-map
-	:help "Show multilingual settings for a specific language")
-  t)
-(define-key-after mule-menu-keymap [describe-input-method]
-  '(menu-item "Describe Input Method..." describe-input-method
-	      :help "Keyboard layout for a specific input method")
-  t)
-(define-key-after mule-menu-keymap [describe-coding-system]
-  '(menu-item "Describe Coding System..." describe-coding-system)
-  t)
-(define-key-after mule-menu-keymap [list-character-sets]
-  '(menu-item "List Character Sets" list-character-sets
-	      :help "Show table of available character sets"))
-(define-key-after mule-menu-keymap [mule-diag]
-  '(menu-item "Show All of Mule Status" mule-diag
-	      :help "Display multilingual environment settings")
-  t)
+    (define-key-after map [set-keyboard-coding-system]
+      '(menu-item "For Keyboard" set-keyboard-coding-system
+        :help "How to decode keyboard input"))
+    (define-key-after map [set-terminal-coding-system]
+      '(menu-item "For Terminal" set-terminal-coding-system
+        :enable (null (memq initial-window-system '(x w32 ns)))
+        :help "How to encode terminal output"))
+    (define-key-after map [separator-3] '("--"))
 
-(define-key-after set-coding-system-map [universal-coding-system-argument]
-  '(menu-item "For Next Command" universal-coding-system-argument
-	      :help "Coding system to be used by next command")
-  t)
-(define-key-after set-coding-system-map [separator-1]
-  '("--")
-  t)
-(define-key-after set-coding-system-map [set-buffer-file-coding-system]
-  '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
-	      :help "How to encode this buffer when saved")
-  t)
-(define-key-after set-coding-system-map [revert-buffer-with-coding-system]
-  '(menu-item "For Reverting This File Now" revert-buffer-with-coding-system
-	      :enable buffer-file-name
-	      :help "Revisit this file immediately using specified coding system")
-  t)
-(define-key-after set-coding-system-map [set-file-name-coding-system]
-  '(menu-item "For File Name" set-file-name-coding-system
-	      :help "How to decode/encode file names")
-  t)
-(define-key-after set-coding-system-map [separator-2]
-  '("--")
-  t)
+    (define-key-after map [set-selection-coding-system]
+      '(menu-item "For X Selections/Clipboard" set-selection-coding-system
+        :visible (display-selections-p)
+        :help "How to en/decode data to/from selection/clipboard"))
+    (define-key-after map [set-next-selection-coding-system]
+      '(menu-item "For Next X Selection" set-next-selection-coding-system
+        :visible (display-selections-p)
+        :help "How to en/decode next selection/clipboard operation"))
+    (define-key-after map [set-buffer-process-coding-system]
+      '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
+        :visible (fboundp 'start-process)
+        :enable (get-buffer-process (current-buffer))
+        :help "How to en/decode I/O from/to subprocess connected to this buffer"))
+    map))
 
-(define-key-after set-coding-system-map [set-keyboard-coding-system]
-  '(menu-item "For Keyboard" set-keyboard-coding-system
-	      :help "How to decode keyboard input")
-  t)
-(define-key-after set-coding-system-map [set-terminal-coding-system]
-  '(menu-item "For Terminal" set-terminal-coding-system
-	      :enable (null (memq initial-window-system '(x w32 ns)))
-	      :help "How to encode terminal output")
-  t)
-(define-key-after set-coding-system-map [separator-3]
-  '("--")
-  t)
-(define-key-after set-coding-system-map [set-selection-coding-system]
-  '(menu-item "For X Selections/Clipboard" set-selection-coding-system
-	      :visible (display-selections-p)
-	      :help "How to en/decode data to/from selection/clipboard")
-  t)
-(define-key-after set-coding-system-map [set-next-selection-coding-system]
-  '(menu-item "For Next X Selection" set-next-selection-coding-system
-	      :visible (display-selections-p)
-	      :help "How to en/decode next selection/clipboard operation")
-  t)
-(define-key-after set-coding-system-map [set-buffer-process-coding-system]
-  '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
-	      :visible (fboundp 'start-process)
-	      :enable (get-buffer-process (current-buffer))
-	      :help "How to en/decode I/O from/to subprocess connected to this buffer")
-  t)
+(defvar mule-menu-keymap
+  (let ((map (make-sparse-keymap "Mule (Multilingual Environment)")))
+    (define-key-after map [set-language-environment]
+      `(menu-item  "Set Language Environment" ,setup-language-environment-map))
+    (define-key-after map [separator-mule] '("--"))
 
+    (define-key-after map [toggle-input-method]
+      '(menu-item "Toggle Input Method" toggle-input-method))
+    (define-key-after map [set-input-method]
+      '(menu-item "Select Input Method..." set-input-method))
+    (define-key-after map [describe-input-method]
+      '(menu-item "Describe Input Method"  describe-input-method))
+    (define-key-after map [separator-input-method] '("--"))
 
-(define-key setup-language-environment-map
-  [Default] '(menu-item "Default" setup-specified-language-environment))
+    (define-key-after map [set-various-coding-system]
+      (list 'menu-item "Set Coding Systems" set-coding-system-map
+            :enable 'default-enable-multibyte-characters))
+    (define-key-after map [view-hello-file]
+      '(menu-item "Show Multi-lingual Text" view-hello-file
+        :enable (file-readable-p
+                 (expand-file-name "HELLO" data-directory))
+        :help "Display file which says HELLO in many languages"))
+    (define-key-after map [separator-coding-system] '("--"))
 
-(define-key describe-language-environment-map
-  [Default] '(menu-item "Default" describe-specified-language-support))
+    (define-key-after map [describe-language-environment]
+      (list 'menu-item "Describe Language Environment"
+            describe-language-environment-map
+            :help "Show multilingual settings for a specific language"))
+    (define-key-after map [describe-input-method]
+      '(menu-item "Describe Input Method..." describe-input-method
+        :help "Keyboard layout for a specific input method"))
+    (define-key-after map [describe-coding-system]
+      '(menu-item "Describe Coding System..." describe-coding-system))
+    (define-key-after map [list-character-sets]
+      '(menu-item "List Character Sets" list-character-sets
+        :help "Show table of available character sets"))
+    (define-key-after map [mule-diag]
+      '(menu-item "Show All of Mule Status" mule-diag
+        :help "Display multilingual environment settings"))
+    map)
+  "Keymap for Mule (Multilingual environment) menu specific commands.")
 
 ;; This should be a single character key binding because users use it
 ;; very frequently while editing multilingual text.  Now we can use
@@ -869,8 +846,7 @@ overrides ACCEPT-DEFAULT-P.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
-  (if (and default-coding-system
-	   (not (listp default-coding-system)))
+  (if (not (listp default-coding-system))
       (setq default-coding-system (list default-coding-system)))
 
   (let ((no-other-defaults nil)
@@ -1215,7 +1191,7 @@ in the European submenu in each of those two menus."
 					    (downcase parent))))
 		  (define-prefix-command map nil prompt)
 		  (define-key-after describe-map (vector parent-symbol)
-		    (cons parent map) t)))
+		    (cons parent map))))
 	    (setq describe-map (symbol-value map))
 	    (setq map (lookup-key setup-map (vector parent-symbol)))
 	    (if (not map)
@@ -1224,7 +1200,7 @@ in the European submenu in each of those two menus."
 					    (downcase parent))))
 		  (define-prefix-command map nil prompt)
 		  (define-key-after setup-map (vector parent-symbol)
-		    (cons parent map) t)))
+		    (cons parent map))))
 	    (setq setup-map (symbol-value map))
 	    (setq l (cdr l)))))
 
@@ -1232,9 +1208,9 @@ in the European submenu in each of those two menus."
     (let ((doc (assq 'documentation alist)))
       (when doc
 	(define-key-after describe-map (vector (intern lang-env))
-	  (cons lang-env 'describe-specified-language-support) t)))
+	  (cons lang-env 'describe-specified-language-support))))
     (define-key-after setup-map (vector (intern lang-env))
-      (cons lang-env 'setup-specified-language-environment) t)
+      (cons lang-env 'setup-specified-language-environment))
 
     (dolist (elt alist)
       (set-language-info-internal lang-env (car elt) (cdr elt)))
