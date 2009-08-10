@@ -847,12 +847,15 @@ that uses or sets the mark."
   "Goto LINE, counting from line 1 at beginning of buffer.
 Normally, move point in the current buffer, and leave mark at the
 previous position.  With just \\[universal-argument] as argument,
-move point in the most recently selected other buffer, and switch
-to it.  When called from Lisp code, the optional argument BUFFER
-specifies a buffer to switch to.
+move point in the most recently selected other buffer, and switch to it.
 
-If there's a number in the buffer at point, it is the default for
-LINE."
+If there's a number in the buffer at point, it is the default for LINE.
+
+This function is usually the wrong thing to use in a Lisp program.
+What you probably want instead is something like:
+  (goto-char (point-min)) (forward-line (1- N))
+If at all possible, an even better solution is to use char counts
+rather than line counts."
   (interactive
    (if (and current-prefix-arg (not (consp current-prefix-arg)))
        (list (prefix-numeric-value current-prefix-arg))
@@ -892,7 +895,7 @@ LINE."
   ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
-    (goto-char 1)
+    (goto-char (point-min))
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- line))
       (forward-line (1- line)))))
