@@ -735,11 +735,11 @@ extern void encode_coding_object P_ ((struct coding_system *,
 
 #define decode_coding_string(coding, string, nocopy)			\
   decode_coding_object (coding, string, 0, 0, SCHARS (string),		\
-			STRING_BYTES (XSTRING (string)), Qt)
+			SBYTES (string), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
   (encode_coding_object (coding, string, 0, 0, SCHARS (string),		\
-			 STRING_BYTES (XSTRING (string)), Qt),		\
+			 SBYTES (string), Qt),				\
    (coding)->dst_object)
 
 

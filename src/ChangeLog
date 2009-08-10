@@ -1,5 +1,8 @@
 2009-08-10  Ken Raeburn  <raeburn@raeburn.org>
 
+	* coding.h (decode_coding_string, encode_coding_string): Use
+	SBYTES macro.
+
 	* doprnt.c (doprnt_lisp): Unused function deleted.
 	(doprnt): Merge with doprnt1, discarding lispstrings code.
 	* lisp.h (doprnt_lisp): Don't declare.
