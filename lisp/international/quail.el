@@ -54,6 +54,7 @@
 ;;; Code:
 
 (require 'help-mode)
+(eval-when-compile (require 'cl))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -1020,9 +1021,8 @@ the following annotation types are supported.
 	(while l
 	  (setq key (car (car l)) trans (car (cdr (car l))) l (cdr l))
 	  (quail-defrule-internal key trans map t decode-map props))
-	`(if (not (quail-decode-map))
-	     (quail-install-map ',map)
-	   (quail-install-map ',map)
+	`(if (prog1 (quail-decode-map)
+	       (quail-install-map ',map))
 	   (quail-install-decode-map ',decode-map))))))
 
 ;;;###autoload
@@ -2188,7 +2188,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   (setq this-command 'quail-completion))
 
 (defun quail-completion-1 (key map indent)
-"List all completions of KEY in MAP with indentation INDENT."
+  "List all completions of KEY in MAP with indentation INDENT."
   (let ((len (length key)))
     (quail-indent-to indent)
     (insert key ":")
@@ -2199,20 +2199,12 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
       (insert " -\n"))
     (setq indent (+ indent 2))
     (if (and (cdr map) (< (/ (1- indent) 2) quail-completion-max-depth))
-	(let ((l (cdr map))
-	      (newkey (make-string (1+ len) 0))
-	      (i 0))
+	(let ((l (cdr map)))
 	  (if (functionp l)
 	      (setq l (funcall l)))
-	  ;; Set KEY in the first LEN characters of NEWKEY.
-	  (while (< i len)
-	    (aset newkey i (aref key i))
-	    (setq i (1+ i)))
-	  (setq l (reverse l))
-	  (while l			; L = ((CHAR . DEFN) ....) ;
-	    (aset newkey len (car (car l)))
-	    (quail-completion-1 newkey (cdr (car l)) indent)
-	    (setq l (cdr l)))))))
+	  (dolist (elt (reverse l))     ; L = ((CHAR . DEFN) ....) ;
+	    (quail-completion-1 (concat key (string (car elt)))
+                                (cdr elt) indent))))))
 
 (defun quail-completion-list-translations (map key indent)
   "List all possible translations of KEY in Quail MAP with indentation INDENT."
@@ -2378,38 +2370,62 @@ should be made by `quail-build-decode-map' (which see)."
           (if (> width single-trans-width)
               (setq single-trans-width width)))))
     (when single-list
-      ;; Since decode-map is sorted, we known the longest key is at the end.
-      (let* ((max-key-width (max 3 (length (caar (last single-list)))))
+      ;; Figure out how many columns can fit.
+      (let* ((len (length single-list))
+             ;; The longest key is at the end, by virtue of the above `sort'.
+             (max-key-width (max 3 (length (caar (last single-list)))))
+             ;; Starting point: worst case.
              (col-width (+ max-key-width 1 single-trans-width 1))
              (cols (/ window-width col-width))
-             (rows (/ (+ (length single-list) (1- cols)) cols)) ; Round up.
-             col pos row)
-        (insert "key")
-        (quail-indent-to (1+ max-key-width))
-        (insert "char")
-        (quail-indent-to (1+ col-width))
+             rows)
+        ;; Now, let's see if we can pack in a few more columns since
+        ;; the first columns can often be made narrower thanks to the
+        ;; length-sorting.
+        (while (let ((newrows (/ (+ len cols) (1+ cols))) ;Round up.
+                     (width 0))
+                 (dotimes (col (1+ cols))
+                   (let ((last-col-elt (or (nth (1- (* (1+ col) newrows))
+                                                single-list)
+                                           (car (last single-list)))))
+                     (incf width (+ (max 3 (length (car last-col-elt)))
+                                    1 single-trans-width 1))))
+                 (< width window-width))
+          (incf cols))
+        (setq rows (/ (+ len cols -1) cols)) ;Round up.
+        (let ((key-width (max 3 (length (car (nth (1- rows) single-list))))))
+          (insert "key")
+          (quail-indent-to (1+ key-width))
+          (insert "char")
+          (quail-indent-to (+ 1 key-width 1 single-trans-width 1)))
         (insert "[type a key sequence to insert the corresponding character]\n")
-        (setq pos (point))
-        (insert-char ?\n (+ rows 2))
-        (goto-char pos)
-        (setq col (- col-width) row 0)
-        (dolist (elt single-list)
-          (when (= (% row rows) 0)
+        (let ((pos (point))
+              (col 0))
+          (insert-char ?\n (+ rows 2))
+          (while single-list
             (goto-char pos)
-            (setq col (+ col col-width))
-            (move-to-column col)
-            (quail-indent-to col)
-            (insert-char ?- max-key-width)
-            (insert ? )
-            (insert-char ?- single-trans-width)
-            (forward-line 1))
-          (move-to-column col)
-          (quail-indent-to col)
-          (insert (car elt))
-          (quail-indent-to (+ col max-key-width 1))
-          (insert (cdr elt))
-          (forward-line 1)
-          (setq row (1+ row)))
+            (let* ((key-width (max 3 (length
+                                      (car (or (nth (1- rows) single-list)
+                                               (car (last single-list)))))))
+                   (col-width (+ key-width 1 single-trans-width 1)))
+              ;; Insert the header-line.
+              (move-to-column col)
+              (quail-indent-to col)
+              (insert-char ?- key-width)
+              (insert ?\s)
+              (insert-char ?- single-trans-width)
+              (forward-line 1)
+              ;; Insert the key-tran pairs.
+              (dotimes (row rows)
+                (let ((elt (pop single-list)))
+                  (when elt
+                    (move-to-column col)
+                    (quail-indent-to col)
+                    (insert (propertize (car elt)
+                                        'face 'font-lock-comment-face))
+                    (quail-indent-to (+ col key-width 1))
+                    (insert (cdr elt))
+                    (forward-line 1))))
+              (setq col (+ col col-width)))))
         (goto-char (point-max))))
 
     (when multiple-list
@@ -2421,7 +2437,8 @@ should be made by `quail-build-decode-map' (which see)."
         (insert-char ?- max-key-width)
         (insert " ------------\n")
         (dolist (elt multiple-list)
-          (insert (car elt))
+          (insert (propertize (car elt)
+                              'face 'font-lock-comment-face))
           (quail-indent-to max-key-width)
           (if (vectorp (cdr elt))
               (mapc (function

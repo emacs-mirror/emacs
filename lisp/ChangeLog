@@ -1,5 +1,14 @@
 2009-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/mule-cmds.el (mule-keymap, mule-menu-keymap)
+	(describe-language-environment-map, setup-language-environment-map)
+	(set-coding-system-map): Move initialization into declaration.
+	(set-language-info-alist): Last arg to define-key-after can be skipped.
+
+	* international/quail.el (quail-completion-1): Simplify.
+	(quail-define-rules): Use slightly more compact code.
+	(quail-insert-decode-map): Propertize keys, compact columns.
+
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
 	Add goto-line.
 
