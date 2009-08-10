@@ -8,8 +8,8 @@ License: GNU General Public License version 3 or later (see COPYING)
   break.pbm, nexti.pbm, go.pbm, pp.pbm, print.pbm, pstar.pbm, remove.pbm
   break.xpm, nexti.xpm, go.xpm, pp.xpm, print.xpm, pstar.xpm, remove.xpm
   stepi.pbm, until.pbm, stepi.xpm, until.xpm
-  reverse-nexti.xpm reverse-stepi.xpm 
-  record-start.xpm record-stop.xpm
+  rnexti.xpm rstepi.xpm 
+  recstart.xpm recstop.xpm
 
 
 Some icons are derived from Red Hat's Insight Debugger:
@@ -53,5 +53,5 @@ Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
   Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
-  reverse-continue.xpm reverse-finish.xpm
-  reverse-next.xpm  reverse-step.xpm
+  rcont.xpm rfinish.xpm
+  rnext.xpm  rstep.xpm
