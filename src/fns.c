@@ -661,7 +661,6 @@ concat (nargs, args, target_type, last_special)
 	    }
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
-	  STRING_SET_CHARS (val, SCHARS (val));
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))

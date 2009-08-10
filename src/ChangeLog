@@ -1,5 +1,8 @@
 2009-08-10  Ken Raeburn  <raeburn@raeburn.org>
 
+	* fns.c (concat): Don't re-set string length to its current
+	value.
+
 	* coding.h (decode_coding_string, encode_coding_string): Use
 	SBYTES macro.
 
