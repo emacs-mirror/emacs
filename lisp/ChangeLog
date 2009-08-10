@@ -1,3 +1,8 @@
+2009-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add goto-line.
+
 2009-08-10  Miles Bader  <miles@gnu.org>
 
 	* progmodes/js2-mode.el (js2-warning, js2-error, js2-jsdoc-tag)

@@ -425,7 +425,8 @@ else the global value will be modified."
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
-    insert-file insert-buffer insert-file-literally previous-line next-line)
+    insert-file insert-buffer insert-file-literally previous-line next-line
+    goto-line)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-var nil
