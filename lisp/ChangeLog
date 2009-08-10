@@ -1,3 +1,17 @@
+2009-08-10  Miles Bader  <miles@gnu.org>
+
+	* progmodes/js2-mode.el (js2-warning, js2-error, js2-jsdoc-tag)
+	(js2-jsdoc-type, js2-jsdoc-value, js2-function-param)
+	(js2-instance-member, js2-private-member, js2-private-function-call)
+	(js2-jsdoc-html-tag-name, js2-jsdoc-html-tag-delimiter)
+	(js2-magic-paren, js2-external-variable):
+	Remove "-face" suffix from face names.
+	(js2-jsdoc-highlight-helper, js2-highlight-jsdoc)
+	(js2-highlight-undeclared-vars, js2-peek-token)
+	(js2-parse-function-params, js2-mode-show-errors)
+	(js2-mode-show-warnings, js2-make-magic-delimiter)
+	(js2-mode-highlight-magic-parens): Update to use new face names.
+
 2009-08-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-ls-command-with-dired): New defun.
