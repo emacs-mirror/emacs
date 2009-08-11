@@ -159,7 +159,7 @@ FixEmergency may introduce new marks into the nail board.
 Buffers
 
 <a id="buffer.class" name="buffer.class">.buffer.class</a>: AMC uses buffer of class AMCBufClass (a subclass of SegBufClass) 
-<a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: Each buffer allocates into exactly one generation.  <a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: 
+<a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: Each buffer allocates into exactly one generation.  <a id="buffer.field.gen" name="buffer.field.gen">.buffer.field.gen</a>: 
 AMCBuf buffer contain a gen field which points to the generation that the 
 buffer allocates into.  <a id="buffer.fill.gen" name="buffer.fill.gen">.buffer.fill.gen</a>: AMCBufferFill uses the generation 
 (obtained from the gen field) to initialise the segment's segTypeP field which 
@@ -408,7 +408,7 @@ AMCBufferFill
    187   * for the new object and attach it to the buffer.
    188   *
 <a id="fill.expose" name="fill.expose">.fill.expose</a>:
-   189   * <a id="fill.expose" name="fill.expose">.fill.expose</a>: If the buffer is being used for forwarding it may
+   189   * .fill.expose: If the buffer is being used for forwarding it may
    190   * be exposed, in which case the group attached to it should be
    191   * exposed.  See .flush.cover.
 
@@ -578,13 +578,15 @@ Group Scanning
 <table>
 
 <tr valign="top">
-
   <td>2002-06-07</td>
-
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
   <td>Converted from MMInfo database design document.</td>
+</tr>
 
+<tr valign="top">
+  <td>2009-08-11</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Fix HTML duplicated anchor names (caused by auto-conversion to HTML).</td>
 </tr>
 
 </table>
