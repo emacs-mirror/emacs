@@ -6,7 +6,7 @@
 
 <head>
 
-<title>The design of the automatic mostly-copying memory pool class</title>
+<title>MPS AMC pool class</title>
 
 </head>
 
@@ -26,7 +26,26 @@
 
 <hr />
 
+<h1>MPS AMC pool class</h1>
+
 </div>
+
+<p>This document contains a <a href="#guide">guide</a> to the MPS AMC pool class, followed by the historical <a href="#initial-design">initial design</a>.  References, History, Copyright and License are <a href="#section-A">at the end</a>.</p>
+
+<hr />
+
+<h1> <a id="guide">Guide</a> </h1>
+
+<p> Readership: any MPS developer.  Not confidential. </p>
+
+<h2> Introduction </h2>
+<p>The AMC pool class is a general-purpose automatic (collecting) pool class. It is intended for most client objects.  AMC is "Automatic, Mostly Copying": it uses copying collection except when prevented by ambiguous references. It is generational.  Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
+</p>
+
+
+<hr />
+
+<h1> <a id="initial-design">Initial Design</a> </h1>
 
 <pre>
       THE DESIGN OF THE AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
@@ -159,7 +178,7 @@ FixEmergency may introduce new marks into the nail board.
 Buffers
 
 <a id="buffer.class" name="buffer.class">.buffer.class</a>: AMC uses buffer of class AMCBufClass (a subclass of SegBufClass) 
-<a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: Each buffer allocates into exactly one generation.  <a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: 
+<a id="buffer.gen" name="buffer.gen">.buffer.gen</a>: Each buffer allocates into exactly one generation.  <a id="buffer.field.gen" name="buffer.field.gen">.buffer.field.gen</a>: 
 AMCBuf buffer contain a gen field which points to the generation that the 
 buffer allocates into.  <a id="buffer.fill.gen" name="buffer.fill.gen">.buffer.fill.gen</a>: AMCBufferFill uses the generation 
 (obtained from the gen field) to initialise the segment's segTypeP field which 
@@ -408,7 +427,7 @@ AMCBufferFill
    187   * for the new object and attach it to the buffer.
    188   *
 <a id="fill.expose" name="fill.expose">.fill.expose</a>:
-   189   * <a id="fill.expose" name="fill.expose">.fill.expose</a>: If the buffer is being used for forwarding it may
+   189   * .fill.expose: If the buffer is being used for forwarding it may
    190   * be exposed, in which case the group attached to it should be
    191   * exposed.  See .flush.cover.
 
@@ -548,6 +567,8 @@ Group Scanning
 
 </pre>
 
+<hr />
+
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 
@@ -578,13 +599,21 @@ Group Scanning
 <table>
 
 <tr valign="top">
-
   <td>2002-06-07</td>
-
   <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
-
   <td>Converted from MMInfo database design document.</td>
+</tr>
 
+<tr valign="top">
+  <td>2009-08-11</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Fix HTML duplicated anchor names (caused by auto-conversion to HTML).</td>
+</tr>
+
+<tr valign="top">
+  <td>2009-08-11</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Prepend Guide, using design/template-with-guide.html.</td>
 </tr>
 
 </table>
@@ -592,7 +621,7 @@ Group Scanning
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 1995-2002, 2009 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
