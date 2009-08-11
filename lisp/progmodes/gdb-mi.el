@@ -749,7 +749,16 @@ detailed description of this mode.
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq gdb-first-prompt t)
   (setq gud-running nil)
+
   (gdb-update)
+
+  (add-hook
+   'kill-buffer-hook
+   (function
+    (lambda ()
+      (gdb-input (list "-target-detach" 'ignore))))
+   nil t)
+
   (run-hooks 'gdb-mode-hook))
             
 (defun gdb-init-1 ()
@@ -776,6 +785,7 @@ detailed description of this mode.
         gdb-buf-publisher '()
         gdb-threads-list '()
         gdb-breakpoints-list '()
+        gdb-register-names '()
         gdb-non-stop gdb-non-stop-setting)
   ;;
   (setq gdb-buffer-type 'gdbmi)
@@ -1854,8 +1864,6 @@ Sets `gdb-thread-number' to new id."
 
 (defun gdb-starting (output-field)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
-  (gdb-input
-   (list "-data-list-register-names" 'gdb-register-names-handler))
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
    (propertize gdb-inferior-status 'face font-lock-type-face))
@@ -1875,6 +1883,13 @@ current thread and update GDB buffers."
   (let* ((result (gdb-json-string output-field))
          (reason (gdb-get-field result 'reason))
          (thread-id (gdb-get-field result 'thread-id)))
+
+    ;; -data-list-register-names needs to be issued for any stopped
+    ;; thread
+    (when (not gdb-register-names)
+      (gdb-input
+       (list (concat "-data-list-register-names --thread " thread-id)
+             'gdb-register-names-handler)))
 
 ;;; Don't set gud-last-frame here as it's currently done in gdb-frame-handler
 ;;; because synchronous GDB doesn't give these fields with CLI.
@@ -3553,25 +3568,25 @@ member."
  'gdb-invalidate-registers)
 
 (defun gdb-registers-handler-custom ()
-  (let ((register-values (gdb-get-field (gdb-json-partial-output) 'register-values))
-        (table (make-gdb-table)))
-    (dolist (register register-values)
-      (let* ((register-number (gdb-get-field register 'number))
-             (value (gdb-get-field register 'value))
-             (register-name (nth (string-to-number register-number) 
-                                 gdb-register-names)))
-        (when register-name
-        (gdb-table-add-row
-         table
-         (list
-          (propertize register-name 'font-lock-face font-lock-variable-name-face)
-          (if (member register-number gdb-changed-registers)
-              (propertize value 'font-lock-face font-lock-warning-face)
-            value))
-         `(mouse-face highlight
-           help-echo "mouse-2: edit value"
-           gdb-register-name ,register-name)))))
-    (insert (gdb-table-string table " "))
+  (when gdb-register-names
+    (let ((register-values (gdb-get-field (gdb-json-partial-output) 'register-values))
+          (table (make-gdb-table)))
+      (dolist (register register-values)
+        (let* ((register-number (gdb-get-field register 'number))
+               (value (gdb-get-field register 'value))
+               (register-name (nth (string-to-number register-number) 
+                                   gdb-register-names)))
+          (gdb-table-add-row
+           table
+           (list
+            (propertize register-name 'font-lock-face font-lock-variable-name-face)
+            (if (member register-number gdb-changed-registers)
+                (propertize value 'font-lock-face font-lock-warning-face)
+              value))
+           `(mouse-face highlight
+                        help-echo "mouse-2: edit value"
+                        gdb-register-name ,register-name))))
+      (insert (gdb-table-string table " ")))
     (setq mode-name
           (gdb-current-context-mode-name "Registers"))))
 

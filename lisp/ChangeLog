@@ -7,6 +7,11 @@
 	(gdb-invalidate-disassembly): Do not refresh upon receiving
 	'update signal. Instead, update all disassembly buffers only after
 	threads list.
+	(gdb): Send -target-detach when buffer is killed (#3794).
+	(gdb-starting): Moved -data-list-register-names...
+	(gdb-stopped): ...here so it's sent when first thread stops.
+	(gdb-registers-handler-custom): Do nothing if register names are
+	unknown yet.
 
 	* progmodes/gud.el (gud-stop-subjob): Rewritten without macros
 	from `gdb-mi.el' to avoid extra tangling.
