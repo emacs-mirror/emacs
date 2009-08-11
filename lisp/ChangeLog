@@ -1,5 +1,13 @@
 2009-08-11  Dmitry Dzhus  <dima@sphinx.net.ru>
 
+	* progmodes/gdb-mi.el (gdb-line-posns): New helper which helps not
+	to use `goto-line'.
+	(gdb-place-breakpoints, gdb-get-location): Rewritten without
+	`goto-line'.
+	(gdb-invalidate-disassembly): Do not refresh upon receiving
+	'update signal. Instead, update all disassembly buffers only after
+	threads list.
+
 	* progmodes/gud.el (gud-stop-subjob): Rewritten without macros
 	from `gdb-mi.el' to avoid extra tangling.
 

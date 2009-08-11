@@ -1282,7 +1282,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
               (gdb-add-subscriber gdb-buf-publisher
                                   (cons (current-buffer)
                                         (gdb-bind-function-to-buffer trigger (current-buffer))))
-              (funcall trigger 'update))
+              (funcall trigger 'start))
             (current-buffer))))))
 
 (defun gdb-bind-function-to-buffer (expr buffer)
@@ -2068,6 +2068,13 @@ FIX-KEY and FIX-KEY work as in `gdb-jsonify-buffer'."
   (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
     (gdb-json-read-buffer fix-key fix-list)))
 
+(defun gdb-line-posns (line)
+  "Return a pair of LINE beginning and end positions."
+  (let ((offset (1+ (- line (line-number-at-pos)))))
+    (cons
+     (line-beginning-position offset)
+     (line-end-position offset))))    
+
 (defmacro gdb-mark-line (line variable)
   "Set VARIABLE marker to point at beginning of LINE.
 
@@ -2075,9 +2082,9 @@ If current window has no fringes, inverse colors on LINE.
 
 Return position where LINE begins."
   `(save-excursion
-     (let* ((offset (1+ (- ,line (line-number-at-pos))))
-            (start-posn (line-beginning-position offset))
-            (end-posn (line-end-position offset)))
+     (let* ((posns (gdb-line-posns ,line))
+            (start-posn (car posns))
+            (end-posn (cdr posns)))
        (set-marker ,variable (copy-marker start-posn))
        (when (not (> (car (window-fringes)) 0))
          (put-text-property start-posn end-posn
@@ -2233,7 +2240,7 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
 (def-gdb-trigger-and-handler
   gdb-invalidate-breakpoints "-break-list"
   gdb-breakpoints-list-handler gdb-breakpoints-list-handler-custom
-  '(update))
+  '(start update))
 
 (gdb-set-buffer-rules 
  'gdb-breakpoints-buffer
@@ -2303,9 +2310,8 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
                     (find-file-noselect file 'nowarn)
                   (gdb-init-buffer)
                   ;; Only want one breakpoint icon at each location.
-                  (save-excursion
-                    (goto-line (string-to-number line))
-                    (gdb-put-breakpoint-icon (string-equal flag "y") bptno)))
+                  (gdb-put-breakpoint-icon (string-equal flag "y") bptno
+                                           (string-to-number line)))
               (gdb-input
                (list (concat "list " file ":1")
                      'ignore))
@@ -2333,9 +2339,7 @@ Add directory to search path for source files using the GDB command, dir."))
     (with-current-buffer (find-file-noselect (match-string 1))
       (gdb-init-buffer)
       ;; only want one breakpoint icon at each location
-      (save-excursion
-	(goto-line (string-to-number line))
-	(gdb-put-breakpoint-icon (eq flag ?y) bptno)))))
+      (gdb-put-breakpoint-icon (eq flag ?y) bptno (string-to-number line)))))
 
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 
@@ -2501,7 +2505,7 @@ corresponding to the mode line clicked."
 (def-gdb-trigger-and-handler
   gdb-invalidate-threads (gdb-current-context-command "-thread-info" gud-running)
   gdb-thread-list-handler gdb-thread-list-handler-custom
-  '(update update-threads))
+  '(start update update-threads))
 
 (gdb-set-buffer-rules
  'gdb-threads-buffer 
@@ -2763,7 +2767,7 @@ line."
           gdb-memory-columns)
   gdb-read-memory-handler
   gdb-read-memory-custom
-  '(update))
+  '(start update))
 
 (gdb-set-buffer-rules
  'gdb-memory-buffer
@@ -3138,8 +3142,8 @@ DOC is an optional documentation string."
       (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)))
   gdb-disassembly-handler
   ;; We update disassembly only after we have actual frame information
-  ;; about all threads
-  '(update update-disassembly))
+  ;; about all threads, so no there's `update' signal in this list
+  '(start update-disassembly))
 
 (def-gdb-auto-update-handler
   gdb-disassembly-handler
@@ -3307,7 +3311,7 @@ breakpoints buffer."
 (def-gdb-trigger-and-handler
   gdb-invalidate-frames (gdb-current-context-command "-stack-list-frames")
   gdb-stack-list-frames-handler gdb-stack-list-frames-custom
-  '(update))
+  '(start update))
 
 (gdb-set-buffer-rules
  'gdb-stack-buffer
@@ -3417,7 +3421,7 @@ member."
   gdb-invalidate-locals
   (concat (gdb-current-context-command "-stack-list-locals") " --simple-values")
   gdb-locals-handler gdb-locals-handler-custom
-  '(update))
+  '(start update))
 
 (gdb-set-buffer-rules
  'gdb-locals-buffer
@@ -3540,7 +3544,7 @@ member."
   (concat (gdb-current-context-command "-data-list-register-values") " x")
   gdb-registers-handler
   gdb-registers-handler-custom
-  '(update))
+  '(start update))
 
 (gdb-set-buffer-rules
  'gdb-registers-buffer
@@ -4044,11 +4048,12 @@ BUFFER nil or omitted means use the current buffer."
     (when (overlay-get overlay 'put-break)
 	  (delete-overlay overlay))))
 
-(defun gdb-put-breakpoint-icon (enabled bptno)
-  (let ((start (- (line-beginning-position) 1))
-	(end (+ (line-end-position) 1))
-	(putstring (if enabled "B" "b"))
-	(source-window (get-buffer-window (current-buffer) 0)))
+(defun gdb-put-breakpoint-icon (enabled bptno &optional line)
+  (let* ((posns (gdb-line-posns (or line (line-number-at-pos))))
+         (start (- (car posns) 1))
+         (end (+ (cdr posns) 1))
+         (putstring (if enabled "B" "b"))
+         (source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
