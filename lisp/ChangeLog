@@ -1,3 +1,12 @@
+2009-08-11  Dmitry Dzhus  <dima@sphinx.net.ru>
+
+	* progmodes/gud.el (gud-stop-subjob): Rewritten without macros
+	from `gdb-mi.el' to avoid extra tangling.
+
+	* progmodes/gdb-mi.el (gdb-gud-context-call): Reverting previous
+	change which breaks `gud-def' definitions. used in `gdb'.
+	(gdb-update-gud-running): No extra fuss for updating frame number.
+
 2009-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (mule-keymap, mule-menu-keymap)

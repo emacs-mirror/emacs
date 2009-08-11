@@ -133,7 +133,7 @@ Used to grey out relevant toolbar icons.")
 	   (and (eq gud-minor-mode 'gdbmi)
 		(> (car (window-fringes)) 0)))))
 
-(declare-function gdb-gud-context-call "gdb-mi.el")
+(declare-function gdb-gud-context-command "gdb-mi.el")
 
 (defun gud-stop-subjob ()
   (interactive)
@@ -143,7 +143,7 @@ Used to grey out relevant toolbar icons.")
           ((eq gud-minor-mode 'jdb)
            (gud-call "suspend"))
           ((eq gud-minor-mode 'gdbmi)
-           (gdb-gud-context-call "-exec-interrupt" nil nil t))
+           (gud-call (gdb-gud-context-command "-exec-interrupt")))
           (t 
            (comint-interrupt-subjob)))))
 
