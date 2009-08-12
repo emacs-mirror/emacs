@@ -1,3 +1,12 @@
+2009-08-12  Juri Linkov  <juri@jurta.org>
+
+	* files-x.el: New file.
+
+	* files.el: Move code that deals with adding/deleting
+	file/directory-local variables to files-x.el.
+
+	* Makefile.in (ELCFILES): Add files-x.elc.
+
 2009-08-11  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-line-posns): New helper which helps not
