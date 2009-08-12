@@ -1,5 +1,13 @@
 2009-08-12  Juri Linkov  <juri@jurta.org>
 
+	* international/mule-cmds.el (ucs-insert): Change arguments
+	from `arg' to `character', `count', `inherit' to be the same
+	as in `insert-char'.  Doc fix.  (Bug#4039)
+
+	* international/mule-conf.el (utf-16be-with-signature): Doc fix.
+
+2009-08-12  Juri Linkov  <juri@jurta.org>
+
 	* files-x.el: New file.
 
 	* files.el: Move code that deals with adding/deleting
