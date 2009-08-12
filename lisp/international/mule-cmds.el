@@ -2917,19 +2917,28 @@ for decimal.  Returns a character as a number."
      (t
       (cdr (assoc-string input (ucs-names) t))))))
 
-(defun ucs-insert (arg)
-  "Insert a character of the given Unicode code point.
+(defun ucs-insert (character &optional count inherit)
+  "Insert COUNT copies of CHARACTER of the given Unicode code point.
 Interactively, prompts for a Unicode character name or a hex number
-using `read-char-by-name'."
-  (interactive (list (read-char-by-name "Unicode (name or hex): ")))
-  (if (stringp arg)
-      (setq arg (string-to-number arg 16)))
+using `read-char-by-name'.
+The optional third arg INHERIT (non-nil when called interactively),
+says to inherit text properties from adjoining text, if those
+properties are sticky."
+  (interactive
+   (list (read-char-by-name "Unicode (name or hex): ")
+	 (prefix-numeric-value current-prefix-arg)
+	 t))
+  (unless count (setq count 1))
+  (if (stringp character)
+      (setq character (string-to-number character 16)))
   (cond
-   ((not (integerp arg))
-    (error "Not a Unicode character code: %S" arg))
-   ((or (< arg 0) (> arg #x10FFFF))
-    (error "Not a Unicode character code: 0x%X" arg)))
-  (insert-and-inherit arg))
+   ((not (integerp character))
+    (error "Not a Unicode character code: %S" character))
+   ((or (< character 0) (> character #x10FFFF))
+    (error "Not a Unicode character code: 0x%X" character)))
+  (if inherit
+      (dotimes (i count) (insert-and-inherit character))
+    (dotimes (i count) (insert character))))
 
 (define-key ctl-x-map "8\r" 'ucs-insert)
 
