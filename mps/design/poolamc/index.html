@@ -42,6 +42,37 @@
 <p>The AMC pool class is a general-purpose automatic (collecting) pool class. It is intended for most client objects.  AMC is "Automatic, Mostly Copying": it uses copying collection except when prevented by ambiguous references. It is generational.  Chain: specify capacity and mortality of generations 0..N-1. Survivors from N-1 get promoted into an arena-wide topGen (often anachronistically called the "dynamic" generation).
 </p>
 
+<p>Design documentation for AMC is rather incomplete.  There is some in the wiki.</p>
+
+
+<h2> Pads </h2>
+
+<p>(See also job001809 and job001811, and mps/branch/2009-03-31/padding)</p>
+
+<p>Background on AMC Seg states: AMC Segs are in one of three states: mobile, boarded, or stuck.  (This is new terminology, not used in the initial design or source code).  Segs are normally "mobile", meaning that all objects on the seg are un-nailed, and thus may be preserved by copying.  In normal (non-emergency) tracing, if MPS fixes an ambiguous reference to any address within an AMC seg, that seg becomes "boarded": a nailboard is allocated for it, to record this (and subsequent) nails.</p>
+
+<p>A pad is logically a trivial client object.  Pads are created by the MPS asking the client's format code to create them, to fill up a space in a seg.  Thereafter, the pad appears to the MPS as a normal client object (that is: the MPS cannot distinguish a pad from a client object).</p>
+
+<p>AMC creates pads for three reasons: buffer empty, LSP, fwded from boarded seg.</p>
+
+<p>Buffer empty pads are made by AMCBufferEmpty whenever it detaches a non-empty buffer from an AMC segment.  Most commonly this happens because the buffer is too small for the current allocation (which may be either a client requested or a forwarding allocation).  It also happens if the buffer is detached for another reason, such as trace flip.</p>
+
+<p>LSP pads (Large Segment Padding) may be made by AMCBufferFill.  When the requested fill size is 'large', AMCBufferFill fills the buffer to exactly the size requested (ie. does not round up to the whole segment size), to prevent subsequent small objects being placed on the same segment as a single very large object.  It fills any remainder with a pad; this is an "LSP pad".</p>
+
+<p>NMR pads (Non-Mobile Reclaim) are made by amcReclaimNailed, when performing reclaim on a boarded or stuck segment.</p>
+
+<p>The more common NMR scenario is reclaim of a boarded seg after a non-emergency trace.  Ambiguous refs into the seg are recorded as nails.  Subsequent exact refs to a nailed object do nothing further, but exact refs that do not match a nail cause preserve-by-copy and leave a forwarding object.  Unreachable objects are not touched during the scan+fix part of the trace.  On reclaim, only nailed objects need to be preserved; others (namely forwarding pointers and unreachable objects) are replaced by an NMR pad.</p>
+
+<p>The less common NMR scenario is after emergency tracing.  Boarded segs still occur; they may have nailed objects from ambiguous refs, forwarding objects from pre-emergency exact fixes, nailed objects from mid-emergency exact fixes, and unpreserved objects; reclaim is as in the non-emergency case.  Stuck segs may have forwarding objects from pre-emergency exact fixes, objects from mid-emergency fixes, and unreachable objects -- but the latter two are not distinguishable because there is no nailboard.  On reclaim, all objects except forwarding pointers are preserved; each forwarding object is replaced by an NMR pad.</p>
+
+
+<h2> Retained Pads </h2>
+
+<p>Pads in to-space are to be expected, as a cost of AMC's naive approach to fitting objects into segments.  This is normally not a severe problem.</p>
+
+<p>Pads in retained from-space, namely a non-mobile segment with preserved objects that therefore cannot be freed by amcReclaimNailed, can become a problem: the cost here can be much worse than AMC's usual naive fitting policy cost.</p>
+
+<p>[Incomplete RHSK 2009-08-12]</p>
 
 <hr />
 
