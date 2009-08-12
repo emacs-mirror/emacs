@@ -500,6 +500,7 @@ ELCFILES = \
 	$(lisp)/ffap.elc \
 	$(lisp)/filecache.elc \
 	$(lisp)/files.elc \
+	$(lisp)/files-x.elc \
 	$(lisp)/filesets.elc \
 	$(lisp)/find-cmd.elc \
 	$(lisp)/find-dired.elc \
