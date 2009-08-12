@@ -1519,12 +1519,13 @@ cancel_hourglass_unwind (arg)
 }
 #endif
 
+extern int nonundocount;	/* Declared in cmds.c.  */
+
 Lisp_Object
 command_loop_1 ()
 {
   Lisp_Object cmd;
   int lose;
-  int nonundocount;
   Lisp_Object keybuf[30];
   int i;
   int prev_modiff = 0;
@@ -1540,7 +1541,6 @@ command_loop_1 ()
   waiting_for_input = 0;
   cancel_echoing ();
 
-  nonundocount = 0;
   this_command_key_count = 0;
   this_command_key_count_reset = 0;
   this_single_command_key_start = 0;
@@ -1898,7 +1898,7 @@ command_loop_1 ()
 #endif
 
             nonundocount = 0;
-            if (NILP (current_kboard->Vprefix_arg))
+            if (NILP (current_kboard->Vprefix_arg)) /* FIXME: Why?  --Stef  */
               Fundo_boundary ();
             Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 

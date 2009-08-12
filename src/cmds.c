@@ -315,15 +315,42 @@ N was explicitly specified.  */)
   return value;
 }
 
+int nonundocount;
+
 /* Note that there's code in command_loop_1 which typically avoids
    calling this.  */
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
        doc: /* Insert the character you type.
-Whichever character you type to run this command is inserted.  */)
+Whichever character you type to run this command is inserted.
+Before insertion, `expand-abbrev' is executed if the inserted character does
+not have word syntax and the previous character in the buffer does.
+After insertion, the value of `auto-fill-function' is called if the
+`auto-fill-chars' table has a non-nil value for the inserted character.  */)
      (n)
      Lisp_Object n;
 {
   CHECK_NUMBER (n);
+  int remove_boundary = 1;
+
+  if (!EQ (Vthis_command, current_kboard->Vlast_command))
+    nonundocount = 0;
+
+  if (NILP (Vexecuting_kbd_macro)
+      && !EQ (minibuf_window, selected_window))
+    {
+      if (nonundocount <= 0 || nonundocount >= 20)
+	{
+	  remove_boundary = 0;
+	  nonundocount = 0;
+	}
+      nonundocount++;
+    }
+
+  if (remove_boundary
+      && CONSP (current_buffer->undo_list)
+      && NILP (XCAR (current_buffer->undo_list)))
+    /* Remove the undo_boundary that was just pushed.  */
+    current_buffer->undo_list = XCDR (current_buffer->undo_list);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -353,9 +380,13 @@ Whichever character you type to run this command is inserted.  */)
     else
       while (XINT (n) > 0)
 	{
+	  int val;
 	  /* Ok since old and new vals both nonneg */
 	  XSETFASTINT (n, XFASTINT (n) - 1);
-	  internal_self_insert (character, XFASTINT (n) != 0);
+	  val = internal_self_insert (character, XFASTINT (n) != 0);
+	  if (val == 2)
+	    nonundocount = 0;
+	  frame_make_pointer_invisible ();
 	}
   }
 
@@ -611,6 +642,7 @@ keys_of_cmds ()
 {
   int n;
 
+  nonundocount = 0;
   initial_define_key (global_map, Ctl ('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");
