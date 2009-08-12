@@ -556,7 +556,7 @@ regexp, the last isearch string, and the last replacement regexp."
 	     (format "%s: " prompt))
 	   nil nil nil 'regexp-history defaults t)))
     (if (equal input "")
-	default-value
+	(or default-value input)
       (prog1 input
 	(add-to-history 'regexp-history input)))))
 
@@ -570,7 +570,7 @@ regexp, the last isearch string, and the last replacement regexp."
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
-  (list (read-regexp prompt "") nil nil t))
+  (list (read-regexp prompt) nil nil t))
 
 (defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.
