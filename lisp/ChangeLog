@@ -1,5 +1,15 @@
 2009-08-12  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (lgrep): Ensure that `default-directory' is
+	always non-nil.  (Bug#4052)
+
+	* replace.el (read-regexp): Return empty string when
+	`default-value' is nil.
+	(keep-lines-read-args): Don't use empty string as the
+	default value for `read-regexp'.  (Bug#2495)
+
+2009-08-12  Juri Linkov  <juri@jurta.org>
+
 	* international/mule-cmds.el (ucs-insert): Change arguments
 	from `arg' to `character', `count', `inherit' to be the same
 	as in `insert-char'.  Doc fix.  (Bug#4039)
