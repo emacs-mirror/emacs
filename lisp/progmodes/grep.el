@@ -827,7 +827,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 					  command nil nil 'grep-history))
 	    (add-to-history 'grep-history command))))
       (when command
-	(let ((default-directory dir))
+	(let ((default-directory (or dir default-directory)))
 	  ;; Setting process-setup-function makes exit-message-function work
 	  ;; even when async processes aren't supported.
 	  (compilation-start (if (and grep-use-null-device null-device)
