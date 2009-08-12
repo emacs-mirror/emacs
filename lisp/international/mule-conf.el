@@ -1245,7 +1245,7 @@ is treated as a character."
   :coding-type 'raw-text
   :eol-type 'unix
   :mnemonic ?=)
-  
+
 (define-coding-system 'iso-latin-1
   "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
   :coding-type 'charset
@@ -1327,7 +1327,7 @@ is treated as a character."
   :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16be-with-signature
-  "UTF-16 (big endian, with signature)."
+  "UTF-16 (big endian, with signature (BOM))."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
