@@ -1,3 +1,7 @@
+2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Meta-Char Syntax): Add xref to Strings of Events.
+
 2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* processes.texi (Shell Arguments): Copyedits.

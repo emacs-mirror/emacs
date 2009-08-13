@@ -472,8 +472,8 @@ possible a wide range of basic character codes.
 bit attached to an @acronym{ASCII} character indicates a meta
 character; thus, the meta characters that can fit in a string have
 codes in the range from 128 to 255, and are the meta versions of the
-ordinary @acronym{ASCII} characters.  (In Emacs versions 18 and older,
-this convention was used for characters outside of strings as well.)
+ordinary @acronym{ASCII} characters.  @xref{Strings of Events}, for
+details about @key{META}-handling in strings.
 
   The read syntax for meta characters uses @samp{\M-}.  For example,
 @samp{?\M-A} stands for @kbd{M-A}.  You can use @samp{\M-} together with
