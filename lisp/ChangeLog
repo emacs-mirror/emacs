@@ -3,6 +3,9 @@
 	* mail/rmail.el (rmail-get-attr-names):
 	Accept an attribute header that is too short.
 
+	* mail/rmail.el (rmail-forget-messages):
+	Ignore nil elt in rmail-message-vector.  Use dotimes.
+
 	* progmodes/compile.el (compilation-goto-locus):
 	Use next-error-move-function.
 
