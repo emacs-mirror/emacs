@@ -1,3 +1,8 @@
+2009-08-13  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Mention the new coding systme `utf-8-hfs' and many
+	functions for Unicode normalization.
+
 2009-08-09  CHENG Gao  <chenggao@gmail.com>
 
 	* MORE.STUFF: Update Etags and Ispell URLs.
