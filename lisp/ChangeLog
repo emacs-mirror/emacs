@@ -1,3 +1,7 @@
+2009-08-13  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (next-error-move-function): New variable.
+
 2009-08-12  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (lgrep): Ensure that `default-directory' is

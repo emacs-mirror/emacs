@@ -183,8 +183,15 @@ of the errors before moving.
 Major modes providing compile-like functionality should set this variable
 to indicate to `next-error' that this is a candidate buffer and how
 to navigate in it.")
-
 (make-variable-buffer-local 'next-error-function)
+
+(defvar next-error-move-function nil
+  "Function to use to move to an error locus.
+It takes two arguments, a buffer position in the error buffer
+and a buffer position in the error locus buffer.
+The buffer for the error locus should already be current.
+nil means use goto-char using the second argument position.")
+(make-variable-buffer-local 'next-error-move-function)
 
 (defsubst next-error-buffer-p (buffer
 			       &optional avoid-current
