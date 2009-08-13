@@ -2,7 +2,7 @@
 
 	* image.c (xbm_read_bitmap_data): New arg inhibit_image_error.
 	(xbm_load_image): Caller changed.
-	(xbm_file_p): Avoid signalling an image_error.
+	(xbm_file_p): Avoid signalling an image_error (Bug#4107).
 
 2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
