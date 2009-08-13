@@ -1,3 +1,9 @@
+2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (xbm_read_bitmap_data): New arg inhibit_image_error.
+	(xbm_load_image): Caller changed.
+	(xbm_file_p): Avoid signalling an image_error.
+
 2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* process.c (create_pty): New function.
