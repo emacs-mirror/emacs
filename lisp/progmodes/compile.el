@@ -2078,10 +2078,12 @@ and overlay is highlighted between MK and END-MK."
       (if (window-dedicated-p (selected-window))
           (pop-to-buffer (marker-buffer mk))
         (switch-to-buffer (marker-buffer mk))))
-    ;; If narrowing gets in the way of going to the right place, widen.
     (unless (eq (goto-char mk) (point))
+      ;; If narrowing gets in the way of going to the right place, widen.
       (widen)
-      (goto-char mk))
+      (if next-error-move-function
+	  (funcall next-error-move-function msg mk)
+	(goto-char mk)))
     (if end-mk
         (push-mark end-mk t)
       (if mark-active (setq mark-active)))

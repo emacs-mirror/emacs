@@ -1,5 +1,8 @@
 2009-08-13  Richard Stallman  <rms@gnu.org>
 
+	* progmodes/compile.el (compilation-goto-locus):
+	Use next-error-move-function.
+
 	* simple.el (next-error-move-function): New variable.
 
 2009-08-12  Juri Linkov  <juri@jurta.org>
