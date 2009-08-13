@@ -284,6 +284,7 @@ static int keyboard_bit_set P_ ((SELECT_TYPE *));
 static void deactivate_process P_ ((Lisp_Object));
 static void status_notify P_ ((struct Lisp_Process *));
 static int read_process_output P_ ((Lisp_Object, int));
+static void create_pty P_ ((Lisp_Object));
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
@@ -1530,6 +1531,8 @@ list_processes_1 (query_only)
 	  while (1)
 	    {
 	      tem1 = Fcar (tem);
+	      if (NILP (tem1))
+		break;
 	      Finsert (1, &tem1);
 	      tem = Fcdr (tem);
 	      if (NILP (tem))
@@ -1579,8 +1582,9 @@ at end of BUFFER, unless you specify an output stream or filter
 function to handle the output.  BUFFER may also be nil, meaning that
 this process is not associated with any buffer.
 
-PROGRAM is the program file name.  It is searched for in PATH.
-Remaining arguments are strings to give program as arguments.
+PROGRAM is the program file name.  It is searched for in PATH.  If
+nil, just associate a pty with the buffer.  Remaining arguments are
+strings to give program as arguments.
 
 If you want to separate standard output from standard error, invoke
 the command through a shell and redirect one of them using the shell
@@ -1634,7 +1638,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
   program = args[2];
 
-  CHECK_STRING (program);
+  if (!NILP (program))
+    CHECK_STRING (program);
 
   proc = make_process (name);
   /* If an error occurs and we can't start the process, we want to
@@ -1680,7 +1685,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	args2[0] = Qstart_process;
 	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	GCPRO2 (proc, current_dir);
-	coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	if (!NILP (program))
+	  coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	UNGCPRO;
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -1698,7 +1704,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
-	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	    if (!NILP (program))
+	      coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
@@ -1709,71 +1716,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     XPROCESS (proc)->encode_coding_system = val;
   }
 
-  /* If program file name is not absolute, search our path for it.
-     Put the name we will really use in TEM.  */
-  if (!IS_DIRECTORY_SEP (SREF (program, 0))
-      && !(SCHARS (program) > 1
-	   && IS_DEVICE_SEP (SREF (program, 1))))
-    {
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-      tem = Qnil;
-      GCPRO4 (name, program, buffer, current_dir);
-      openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK));
-      UNGCPRO;
-      if (NILP (tem))
-	report_file_error ("Searching for program", Fcons (program, Qnil));
-      tem = Fexpand_file_name (tem, Qnil);
-    }
-  else
-    {
-      if (!NILP (Ffile_directory_p (program)))
-	error ("Specified program for new process is a directory");
-      tem = program;
-    }
-
-  /* If program file name starts with /: for quoting a magic name,
-     discard that.  */
-  if (SBYTES (tem) > 2 && SREF (tem, 0) == '/'
-      && SREF (tem, 1) == ':')
-    tem = Fsubstring (tem, make_number (2), Qnil);
-
-  {
-    struct gcpro gcpro1;
-    GCPRO1 (tem);
-
-    /* Encode the file name and put it in NEW_ARGV.
-       That's where the child will use it to execute the program.  */
-    tem = Fcons (ENCODE_FILE (tem), Qnil);
-
-    /* Here we encode arguments by the coding system used for sending
-       data to the process.  We don't support using different coding
-       systems for encoding arguments and for encoding data sent to the
-       process.  */
-
-    for (i = 3; i < nargs; i++)
-      {
-	tem = Fcons (args[i], tem);
-	CHECK_STRING (XCAR (tem));
-	if (STRING_MULTIBYTE (XCAR (tem)))
-	  XSETCAR (tem,
-		   code_convert_string_norecord
-		   (XCAR (tem), XPROCESS (proc)->encode_coding_system, 1));
-      }
-
-    UNGCPRO;
-  }
-
-  /* Now that everything is encoded we can collect the strings into
-     NEW_ARGV.  */
-  new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
-  new_argv[nargs - 2] = 0;
-
-  for (i = nargs - 3; i >= 0; i--)
-    {
-      new_argv[i] = SDATA (XCAR (tem));
-      tem = XCDR (tem);
-    }
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->decoding_carryover = 0;
@@ -1782,7 +1724,78 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->inherit_coding_system_flag
     = !(NILP (buffer) || !inherit_process_coding_system);
 
-  create_process (proc, (char **) new_argv, current_dir);
+  if (!NILP (program))
+    {
+      /* If program file name is not absolute, search our path for it.
+	 Put the name we will really use in TEM.  */
+      if (!IS_DIRECTORY_SEP (SREF (program, 0))
+	  && !(SCHARS (program) > 1
+	       && IS_DEVICE_SEP (SREF (program, 1))))
+	{
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+	  tem = Qnil;
+	  GCPRO4 (name, program, buffer, current_dir);
+	  openp (Vexec_path, program, Vexec_suffixes, &tem, make_number (X_OK));
+	  UNGCPRO;
+	  if (NILP (tem))
+	    report_file_error ("Searching for program", Fcons (program, Qnil));
+	  tem = Fexpand_file_name (tem, Qnil);
+	}
+      else
+	{
+	  if (!NILP (Ffile_directory_p (program)))
+	    error ("Specified program for new process is a directory");
+	  tem = program;
+	}
+
+      /* If program file name starts with /: for quoting a magic name,
+	 discard that.  */
+      if (SBYTES (tem) > 2 && SREF (tem, 0) == '/'
+	  && SREF (tem, 1) == ':')
+	tem = Fsubstring (tem, make_number (2), Qnil);
+
+      {
+	struct gcpro gcpro1;
+	GCPRO1 (tem);
+
+	/* Encode the file name and put it in NEW_ARGV.
+	   That's where the child will use it to execute the program.  */
+	tem = Fcons (ENCODE_FILE (tem), Qnil);
+
+	/* Here we encode arguments by the coding system used for sending
+	   data to the process.  We don't support using different coding
+	   systems for encoding arguments and for encoding data sent to the
+	   process.  */
+
+	for (i = 3; i < nargs; i++)
+	  {
+	    tem = Fcons (args[i], tem);
+	    CHECK_STRING (XCAR (tem));
+	    if (STRING_MULTIBYTE (XCAR (tem)))
+	      XSETCAR (tem,
+		       code_convert_string_norecord
+		       (XCAR (tem), XPROCESS (proc)->encode_coding_system, 1));
+	  }
+
+	UNGCPRO;
+      }
+
+      /* Now that everything is encoded we can collect the strings into
+	 NEW_ARGV.  */
+      new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
+      new_argv[nargs - 2] = 0;
+
+      for (i = nargs - 3; i >= 0; i--)
+	{
+	  new_argv[i] = SDATA (XCAR (tem));
+	  tem = XCDR (tem);
+	}
+
+      create_process (proc, (char **) new_argv, current_dir);
+    }
+  else
+    create_pty (proc);
 
   return unbind_to (count, proc);
 }
@@ -1799,7 +1812,7 @@ start_process_unwind (proc)
     abort ();
 
   /* Was PROC started successfully?  */
-  if (XPROCESS (proc)->pid <= 0)
+  if (XPROCESS (proc)->pid == -1)
     remove_process (proc);
 
   return Qnil;
@@ -2266,6 +2279,83 @@ create_process (process, new_argv, current_dir)
   /* Now generate the error if vfork failed.  */
   if (pid < 0)
     report_file_error ("Doing vfork", Qnil);
+}
+
+void
+create_pty (process)
+     Lisp_Object process;
+{
+  int inchannel, outchannel;
+
+  /* Use volatile to protect variables from being clobbered by longjmp.  */
+  volatile int forkin, forkout;
+  volatile int pty_flag = 0;
+
+  inchannel = outchannel = -1;
+
+#ifdef HAVE_PTYS
+  if (!NILP (Vprocess_connection_type))
+    outchannel = inchannel = allocate_pty ();
+
+  if (inchannel >= 0)
+    {
+#if ! defined (USG) || defined (USG_SUBTTY_WORKS)
+      /* On most USG systems it does not work to open the pty's tty here,
+	 then close it and reopen it in the child.  */
+#ifdef O_NOCTTY
+      /* Don't let this terminal become our controlling terminal
+	 (in case we don't have one).  */
+      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+#else
+      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
+#endif
+      if (forkin < 0)
+	report_file_error ("Opening pty", Qnil);
+#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
+      /* In the case that vfork is defined as fork, the parent process
+	 (Emacs) may send some data before the child process completes
+	 tty options setup.  So we setup tty before forking.  */
+      child_setup_tty (forkout);
+#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
+#else
+      forkin = forkout = -1;
+#endif /* not USG, or USG_SUBTTY_WORKS */
+      pty_flag = 1;
+    }
+#endif /* HAVE_PTYS */
+
+#ifdef O_NONBLOCK
+  fcntl (inchannel, F_SETFL, O_NONBLOCK);
+  fcntl (outchannel, F_SETFL, O_NONBLOCK);
+#else
+#ifdef O_NDELAY
+  fcntl (inchannel, F_SETFL, O_NDELAY);
+  fcntl (outchannel, F_SETFL, O_NDELAY);
+#endif
+#endif
+
+  /* Record this as an active process, with its channels.
+     As a result, child_setup will close Emacs's side of the pipes.  */
+  chan_process[inchannel] = process;
+  XPROCESS (process)->infd = inchannel;
+  XPROCESS (process)->outfd = outchannel;
+
+  /* Previously we recorded the tty descriptor used in the subprocess.
+     It was only used for getting the foreground tty process, so now
+     we just reopen the device (see emacs_get_tty_pgrp) as this is
+     more portable (see USG_SUBTTY_WORKS above).  */
+
+  XPROCESS (process)->pty_flag = pty_flag;
+  XPROCESS (process)->status = Qrun;
+  setup_process_coding_systems (process);
+
+  FD_SET (inchannel, &input_wait_mask);
+  FD_SET (inchannel, &non_keyboard_wait_mask);
+  if (inchannel > max_process_desc)
+    max_process_desc = inchannel;
+
+  XPROCESS (process)->pid = -2;
+  XPROCESS (process)->tty_name = build_string (pty_name);
 }
 
 
