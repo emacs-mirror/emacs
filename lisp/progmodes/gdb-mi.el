@@ -1432,11 +1432,11 @@ DOC is an optional documentation string."
 (define-derived-mode gdb-inferior-io-mode comint-mode "Inferior I/O"
   "Major mode for gdb inferior-io."
   :syntax-table nil :abbrev-table nil
-  ;; We want to use comint because it has various nifty and familiar
-  ;; features.  We don't need a process, but comint wants one, so create
-  ;; a dummy one.
-  (make-comint-in-buffer
-   "gdb-inferior" (current-buffer) "sleep" nil "1000000000"))
+  ;; We want to use comint because it has various nifty and familiar features.
+  (start-process "gdb-inferior" 
+;;		 (concat "*input/output of " (gdb-get-target-string) "*")
+		 (current-buffer)
+		 nil))
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
