@@ -2506,6 +2506,9 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'menu
   :group 'basic-faces)
 
+(defface help-argument-name '((((supports :slant italic)) :inherit italic))
+  "Face to highlight argument names in *Help* buffers."
+  :group 'help)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

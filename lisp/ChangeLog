@@ -1,3 +1,11 @@
+2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (help-argument-name): Define it here instead of
+	help-fns.el, because in daemon mode help-fns.el may be loaded when
+	faces are still uninitialized (Bug#1078).
+
+	* help-fns.el (help-argument-name): Move defface to faces.el.
+
 2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-inferior-io-mode): Use start-process to
