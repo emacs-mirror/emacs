@@ -87,6 +87,10 @@ variables to file-local variables in the "Local Variables" list or the
 `copy-dir-locals-to-file-locals-prop-line' and
 `copy-file-locals-to-dir-locals'.
 
+** New coding system `utf-8-hfs' is available in
+international/ucs-normalize.el.  It is suitable for
+default-file-name-coding-system on Mac OS X.
+
 
 * Editing Changes in Emacs 23.2
 
@@ -172,6 +176,14 @@ functions and variables.
 ** Hash tables have a new printed representation that is readable.
 The feature `hashtable-print-readable' identifies this new
 functionality.
+
+** Functions performing Unicode normalization are added.  They are:
+ucs-normalize-NFD-region, ucs-normalize-NFD-string,
+ucs-normalize-NFC-region, ucs-normalize-NFC-string,
+ucs-normalize-NFKD-region, ucs-normalize-NFKD-string,
+ucs-normalize-NFKC-region, ucs-normalize-NFKC-string,
+ucs-normalize-HFS-NFD-region, ucs-normalize-HFS-NFD-string,
+ucs-normalize-HFS-NFC-region, ucs-normalize-HFS-NFC-string.
 
 
 * Installation Changes in Emacs 23.1
