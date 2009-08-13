@@ -1,3 +1,9 @@
+2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-inferior-io-mode): Use start-process to
+	create buffer with a pty but no process so that GDB can make the
+	inferior the controlling process.
+
 2009-08-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/ucs-normalize.el: New file.
