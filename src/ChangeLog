@@ -1,3 +1,11 @@
+2009-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* process.c (create_pty): New function.
+	(Fstart_process): Use it to allow Emacs to just associate a pty
+	with the buffer.  See associated change in gdb-mi.el.
+	(list_processes_1): Deal with no program name.
+	(start_process_unwind): Use pid == -2 to mean no process.
+
 2009-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmds.c (nonundocount): New global variable.
