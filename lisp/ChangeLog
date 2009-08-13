@@ -1,5 +1,8 @@
 2009-08-13  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-get-attr-names):
+	Accept an attribute header that is too short.
+
 	* progmodes/compile.el (compilation-goto-locus):
 	Use next-error-move-function.
 

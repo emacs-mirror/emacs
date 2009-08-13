@@ -2157,9 +2157,9 @@ If MSG is nil, use the current message."
 	(nmax (length rmail-attr-array))
 	result temp)
     (when value
-      (if (/= (length value) nmax)
+      (if (> (length value) nmax)
           (message "Warning: corrupt attribute header in message")
-        (dotimes (index nmax)
+        (dotimes (index (length value))
           (setq temp (and (not (= ?- (aref value index)))
                           (nth 1 (aref rmail-attr-array index)))
                 result
