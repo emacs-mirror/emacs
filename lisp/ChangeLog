@@ -1,3 +1,7 @@
+2009-08-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-normalize.el: New file.
+
 2009-08-13  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-get-attr-names):
