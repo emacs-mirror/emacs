@@ -1,3 +1,7 @@
+2009-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (create_pty): Fix last change.
+
 2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (xbm_read_bitmap_data): New arg inhibit_image_error.
