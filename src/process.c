@@ -2355,7 +2355,12 @@ create_pty (process)
     max_process_desc = inchannel;
 
   XPROCESS (process)->pid = -2;
-  XPROCESS (process)->tty_name = build_string (pty_name);
+#ifdef HAVE_PTYS
+  if (pty_flag)
+    XPROCESS (process)->tty_name = build_string (pty_name);
+  else
+#endif
+    XPROCESS (process)->tty_name = Qnil;
 }
 
 
