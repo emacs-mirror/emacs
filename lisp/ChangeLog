@@ -1,3 +1,9 @@
+2009-08-14  Mark A. Hershberger  <mah@everybody.org>
+
+	* timezone.el (timezone-parse-date): Add ability to understand ISO
+	basic format (minimal separators) dates in addition to the
+	already-supported extended format dates.
+
 2009-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/ucs-normalize.el: Add a `coding' file variable.
