@@ -1,5 +1,7 @@
 2009-08-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/ucs-normalize.el: Add a `coding' file variable.
+
 	* Makefile.in (ELCFILES): Add international/ucs-normalize.elc.
 
 2009-08-14  Sam Steingold  <sds@gnu.org>
