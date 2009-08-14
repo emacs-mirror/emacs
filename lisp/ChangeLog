@@ -1,5 +1,7 @@
 2009-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (auto-mode-alist): Use js-mode for .js files.
+
 	* progmodes/js2-mode.el: File removed.
 
 	* Makefile.in (ELCFILES): Add js.el, and remove js2-mode.el.
