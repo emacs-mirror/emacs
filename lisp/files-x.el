@@ -458,4 +458,6 @@ from the the MODE alist ignoring the input argument VALUE."
 
 
 (provide 'files-x)
+
+;; arch-tag: 949d263c-30a8-4b49-af26-cda97c7c5477
 ;;; files-x.el ends here
