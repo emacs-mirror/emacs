@@ -606,5 +606,9 @@ be decomposed.  It doesn't perform normalization on encoding."
 
 (provide 'ucs-normalize)
 
+;; Local Variables:
+;; coding: utf-8
+;; End:
+
 ;; arch-tag: cef65ae7-71ad-4e19-8da8-56ab4d42aaa4
 ;;; ucs-normalize.el ends here
