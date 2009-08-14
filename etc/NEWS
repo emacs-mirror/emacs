@@ -168,7 +168,7 @@ functions and variables.
 
 * New Modes and Packages in Emacs 23.2
 
-** js2-mode.el is a new major mode for JavaScript files.
+** js.el is a new major mode for JavaScript files.
 
 
 * Lisp changes in Emacs 23.2
