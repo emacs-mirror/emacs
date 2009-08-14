@@ -270,7 +270,8 @@ This has effect only if `search-invisible' is set to `open'."
   '((c-mode "{" "}" "/[*/]" nil nil)
     (c++-mode "{" "}" "/[*/]" nil nil)
     (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
-    (java-mode "{" "}" "/[*/]" nil nil))
+    (java-mode "{" "}" "/[*/]" nil nil)
+    (js-mode "{" "}" "/[*/]" nil))
   "*Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).

@@ -690,7 +690,7 @@ function `speedbar-extension-list-to-regex'.")
 ;; change in the future.
 (defcustom speedbar-supported-extension-expressions
   (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
-	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".f\\(90\\|77\\|or\\)?")
+	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
 	      '(".ada" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
 		;; html is not supported by default, but an imenu tags package

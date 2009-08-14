@@ -1,3 +1,18 @@
+2009-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js2-mode.el: File removed.
+
+	* Makefile.in (ELCFILES): Add js.el, and remove js2-mode.el.
+
+	* speedbar.el (speedbar-supported-extension-expressions): Add .js.
+
+	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode
+	entry.
+
+2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* progmodes/js.el: New file.
+
 2009-08-14  Mark A. Hershberger  <mah@everybody.org>
 
 	* timezone.el (timezone-parse-date): Add ability to understand ISO
