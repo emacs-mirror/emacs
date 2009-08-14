@@ -701,6 +701,7 @@ ELCFILES = \
 	$(lisp)/international/robin.elc \
 	$(lisp)/international/titdic-cnv.elc \
 	$(lisp)/international/utf-7.elc \
+	$(lisp)/international/ucs-normalize.elc \
 	$(lisp)/isearch.elc \
 	$(lisp)/isearchb.elc \
 	$(lisp)/iswitchb.elc \
