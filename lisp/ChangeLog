@@ -1,6 +1,6 @@
 2009-08-14  Sam Steingold  <sds@gnu.org>
 
-	* vc-cvs.el (vc-cvs-merge-news): Yet annother fix of message parsing.
+	* vc-cvs.el (vc-cvs-merge-news): Yet another fix of message parsing.
 
 2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
