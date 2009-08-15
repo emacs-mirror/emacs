@@ -1414,6 +1414,41 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   return Qt;
 }
 
+/* Check, whether there is pending input in the message queue of the
+   D-Bus BUS.  BUS is a Lisp symbol, either :system or :session.  */
+int
+xd_get_dispatch_status (bus)
+     Lisp_Object bus;
+{
+  DBusConnection *connection;
+
+  /* Open a connection to the bus.  */
+  connection = xd_initialize (bus);
+
+  /* Non blocking read of the next available message.  */
+  dbus_connection_read_write (connection, 0);
+
+  /* Return.  */
+  return
+    (dbus_connection_get_dispatch_status (connection)
+     == DBUS_DISPATCH_DATA_REMAINS)
+    ? TRUE : FALSE;
+}
+
+/* Check for queued incoming messages from the system and session buses.  */
+int
+xd_pending_messages ()
+{
+
+  /* Vdbus_registered_functions_table will be initialized as hash
+     table in dbus.el.  When this package isn't loaded yet, it doesn't
+     make sense to handle D-Bus messages.  */
+  return (HASH_TABLE_P (Vdbus_registered_functions_table)
+	  ? ((xd_get_dispatch_status (QCdbus_system_bus)
+	      || (xd_get_dispatch_status (QCdbus_session_bus))))
+	  : FALSE);
+}
+
 /* Read queued incoming message of the D-Bus BUS.  BUS is a Lisp
    symbol, either :system or :session.  */
 static Lisp_Object
