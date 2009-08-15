@@ -1,3 +1,10 @@
+2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* customize.texi (Common Keywords): Add xref to Loading.
+
+	* loading.texi (How Programs Do Loading): Add xref to Lisp
+	Libraries node in the Emacs manual.
+
 2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* objects.texi (Meta-Char Syntax): Add xref to Strings of Events.

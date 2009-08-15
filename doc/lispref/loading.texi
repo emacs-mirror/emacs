@@ -147,7 +147,8 @@ precisely the file name to load.
 
 @deffn Command load-library library
 This command loads the library named @var{library}.  It is equivalent to
-@code{load}, except in how it reads its argument interactively.
+@code{load}, except for the way it reads its argument interactively.
+@xref{Lisp Libraries,,,emacs, The GNU Emacs Manual}.
 @end deffn
 
 @defvar load-in-progress

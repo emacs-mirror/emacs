@@ -115,8 +115,8 @@ none at all.
 @item :load @var{file}
 @kindex load@r{, customization keyword}
 Load file @var{file} (a string) before displaying this customization
-item.  Loading is done with @code{load-library}, and only if the file is
-not already loaded.
+item (@pxref{Loading}).  Loading is done with @code{load}, and only if
+the file is not already loaded.
 
 @item :require @var{feature}
 @kindex require@r{, customization keyword}
