@@ -2020,12 +2020,18 @@ set width.  This should be one of the symbols @code{ultra-condensed},
 @code{extra-expanded}, or @code{ultra-expanded}.
 
 @item :height
-Font height---either an integer in units of 1/10 point, or a floating
-point number specifying the amount by which to scale the height of any
-underlying face, or a function that is called with one argument (the
-height of the underlying face) and returns the height of the new face.
-If the function is passed an integer argument, it must return an
-integer.
+The height of the font.  In the simplest case, this is an integer in
+units of 1/10 point.
+
+The value can also be a floating point number or a function, which
+specifies the height relative to an @dfn{underlying face} (i.e., a
+face that has a lower priority in the list described in
+@ref{Displaying Faces}).  If the value is a floating point number,
+that specifies the amount by which to scale the height of the
+underlying face.  If the value is a function, that function is called
+with one argument, the height of the underlying face, and returns the
+height of the new face.  If the function is passed an integer
+argument, it must return an integer.
 
 The height of the default face must be specified using an integer;
 floating point and function values are not allowed.
@@ -2143,8 +2149,9 @@ this attribute also changes the values of the @code{:family},
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like
 an underlying face would be, with higher priority than underlying
-faces.  If a list of faces is used, attributes from faces earlier in
-the list override those from later faces.
+faces (@pxref{Displaying Faces}).  If a list of faces is used,
+attributes from faces earlier in the list override those from later
+faces.
 @end table
 
 For compatibility with Emacs 20, you can also specify values for two

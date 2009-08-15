@@ -1,5 +1,8 @@
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (Face Attributes): Add xref to Displaying Faces for
+	explanation of "underlying face".
+
 	* customize.texi (Common Keywords): Add xref to Loading.
 
 	* loading.texi (How Programs Do Loading): Add xref to Lisp
