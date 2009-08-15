@@ -694,8 +694,7 @@ message when called from a keyboard macro.
 
   The above method with the additional argument is usually best,
 because it allows callers to say ``treat this call as interactive.''
-But you can also do the job in a simpler way by testing
-@code{called-interactively-p}.
+But you can also do the job by testing @code{called-interactively-p}.
 
 @defun called-interactively-p
 This function returns @code{t} when the calling function was called

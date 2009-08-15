@@ -1,5 +1,7 @@
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* commands.texi (Distinguish Interactive): Minor copyedit.
+
 	* display.texi (Face Attributes): Add xref to Displaying Faces for
 	explanation of "underlying face".
 
