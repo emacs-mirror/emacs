@@ -3364,6 +3364,7 @@ extern int have_menus_p P_ ((void));
 
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c */
+int xd_pending_messages P_ ((void));
 void xd_read_queued_messages P_ ((void));
 void syms_of_dbusbind P_ ((void));
 #endif
