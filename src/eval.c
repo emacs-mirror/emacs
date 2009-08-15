@@ -586,10 +586,10 @@ usage: (function ARG)  */)
 
 
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
-       doc: /* Return t if the function was run directly by user input.
+       doc: /* Return t if the containing function was run directly by user input.
 This means that the function was called with `call-interactively'
 \(which includes being called as the binding of a key)
-and input is currently coming from the keyboard (not in keyboard macro),
+and input is currently coming from the keyboard (not a keyboard macro),
 and Emacs is not running in batch mode (`noninteractive' is nil).
 
 The only known proper use of `interactive-p' is in deciding whether to
@@ -598,10 +598,10 @@ of using it for any other purpose, it is quite likely that you're
 making a mistake.  Think: what do you want to do when the command is
 called from a keyboard macro?
 
-If you want to test whether your function was called with
-`call-interactively', the way to do that is by adding an extra
-optional argument, and making the `interactive' spec specify non-nil
-unconditionally for that argument.  (`p' is a good way to do this.)  */)
+To test whether your function was called with `call-interactively',
+either (i) add an extra optional argument and give it an `interactive'
+spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
+use `called-interactively-p'.  */)
      ()
 {
   return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
@@ -609,14 +609,15 @@ unconditionally for that argument.  (`p' is a good way to do this.)  */)
 
 
 DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
-       doc: /* Return t if it is in a function called with `call-interactively'.
-This is used for implementing advice and other function-modifying
-features of Emacs.
+       doc: /* Return t if the containing function was called by `call-interactively'.
+This includes being called as the binding of a key, or called from a
+keyboard macro (unlike `interactive-p').
 
-The cleanest way to test whether your function was called with
-`call-interactively' is by adding an extra optional argument,
-and making the `interactive' spec specify non-nil unconditionally
-for that argument.  (`p' is a good way to do this.)  */)
+This function is meant for implementing advice and other
+function-modifying features.  Instead of using this, it is sometimes
+cleaner to give your function an extra optional argument whose
+`interactive' spec specifies non-nil unconditionally (\"p\" is a good
+way to do this).  */)
      ()
 {
   return interactive_p (1) ? Qt : Qnil;

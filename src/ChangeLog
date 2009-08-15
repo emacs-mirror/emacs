@@ -9,6 +9,9 @@
 
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* eval.c (Fcalled_interactively_p, Finteractive_p): Doc
+	fix (Bug#3936).
+
 	* xdisp.c (pop_it): Don't pop into a display vector (Bug#4131).
 
 	* buffer.c (set_buffer_internal_1)
