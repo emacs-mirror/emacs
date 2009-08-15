@@ -1,4 +1,17 @@
+2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el: Edit docstrings throughout to follow Emacs
+	conventions.
+	(js-insert-and-indent): Function deleted.
+	(js-mode-map): Don't bind keys to js-insert-and-indent.
+	(js-beginning-of-defun): Rename from js--beginning-of-defun.
+	(js-end-of-defun): Rename from js--end-of-defun.
+	(js-auto-indent-flag): Variable deleted.
+
 2009-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/js.el: Remove proclaim statement.  Defvar
+	which-func-imenu-joiner-function to silence compiler.
 
 	* files.el (auto-mode-alist): Use js-mode for .js files.
 

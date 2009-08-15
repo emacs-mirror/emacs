@@ -1,4 +1,4 @@
-;;; js.el --- Major mode for editing JavaScript source text
+;;; js.el --- Major mode for editing JavaScript
 
 ;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
@@ -59,9 +59,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'comint)
-  (require 'ido)
-  ;; Swap the speed and safety values for debugging
-  (proclaim '(optimize (speed 3) (safety 0))))
+  (require 'ido))
 
 (defvar inferior-moz-buffer)
 (defvar moz-repl-name)
@@ -72,55 +70,56 @@
 ;;; Constants
 
 (defconst js--name-start-re "[a-zA-Z_$]"
-  "Matches the first character of a Javascript identifier. No grouping")
+  "Regexp matching the start of a JavaScript identifier, without grouping.")
 
 (defconst js--stmt-delim-chars "^;{}?:")
 
 (defconst js--name-re (concat js--name-start-re
                               "\\(?:\\s_\\|\\sw\\)*")
-  "Matches a Javascript identifier. No grouping.")
+  "Regexp matching a JavaScript identifier, without grouping.")
 
 (defconst js--objfield-re (concat js--name-re ":")
-  "Matches a Javascript object field start")
+  "Regexp matching the start of a JavaScript object field.")
 
 (defconst js--dotted-name-re
   (concat js--name-re "\\(?:\\." js--name-re "\\)*")
-  "Matches a dot-separated sequence of Javascript names")
+  "Regexp matching a dot-separated sequence of JavaScript names.")
 
 (defconst js--cpp-name-re js--name-re
-  "Matches a C preprocessor name")
+  "Regexp matching a C preprocessor name.")
 
 (defconst js--opt-cpp-start "^\\s-*#\\s-*\\([[:alnum:]]+\\)"
-  "Regexp matching the prefix of a cpp directive including the directive
-name, or nil in languages without preprocessor support.  The first
-submatch surrounds the directive name.")
+  "Regexp matching the prefix of a cpp directive.
+This includes the directive name, or nil in languages without
+preprocessor support.  The first submatch surrounds the directive
+name.")
 
 (defconst js--plain-method-re
   (concat "^\\s-*?\\(" js--dotted-name-re "\\)\\.prototype"
           "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
-  "Regexp matching an old-fashioned explicit prototype \"method\"
-  declaration. Group 1 is a (possibly-dotted) class name, group 2
-  is a method name, and group 3 is the 'function' keyword." )
+  "Regexp matching an explicit JavaScript prototype \"method\" declaration.
+Group 1 is a (possibly-dotted) class name, group 2 is a method
+name, and group 3 is the 'function' keyword." )
 
 (defconst js--plain-class-re
   (concat "^\\s-*\\(" js--dotted-name-re "\\)\\.prototype"
           "\\s-*=\\s-*{")
-  "Regexp matching an old-fashioned explicit prototype \"class\"
-  declaration, as in Class.prototype = { method1: ...} ")
+  "Regexp matching a JavaScript explicit prototype \"class\" declaration.
+An example of this is \"Class.prototype = { method1: ...}\".")
 
+;; var NewClass = BaseClass.extend(
 (defconst js--mp-class-decl-re
   (concat "^\\s-*var\\s-+"
           "\\(" js--name-re "\\)"
           "\\s-*=\\s-*"
           "\\(" js--dotted-name-re
-          "\\)\\.extend\\(?:Final\\)?\\s-*(\\s-*{?\\s-*$")
-  "var NewClass = BaseClass.extend(")
+          "\\)\\.extend\\(?:Final\\)?\\s-*(\\s-*{?\\s-*$"))
 
+;; var NewClass = Class.create()
 (defconst js--prototype-obsolete-class-decl-re
   (concat "^\\s-*\\(?:var\\s-+\\)?"
           "\\(" js--dotted-name-re "\\)"
-          "\\s-*=\\s-*Class\\.create()")
-  "var NewClass = Class.create()")
+          "\\s-*=\\s-*Class\\.create()"))
 
 (defconst js--prototype-objextend-class-decl-re-1
   (concat "^\\s-*Object\\.extend\\s-*("
@@ -132,14 +131,14 @@ submatch surrounds the directive name.")
           "\\(" js--dotted-name-re "\\)"
           "\\s-*=\\s-*Object\\.extend\\s-*\("))
 
+;; var NewClass = Class.create({
 (defconst js--prototype-class-decl-re
   (concat "^\\s-*\\(?:var\\s-+\\)?"
           "\\(" js--name-re "\\)"
           "\\s-*=\\s-*Class\\.create\\s-*(\\s-*"
-          "\\(?:\\(" js--dotted-name-re "\\)\\s-*,\\s-*\\)?{?")
-  "var NewClass = Class.create({")
+          "\\(?:\\(" js--dotted-name-re "\\)\\s-*,\\s-*\\)?{?"))
 
-;; Parent class name(s) (yes, multiple inheritance in Javascript) are
+;; Parent class name(s) (yes, multiple inheritance in JavaScript) are
 ;; matched with dedicated font-lock matchers
 (defconst js--dojo-class-decl-re
   (concat "^\\s-*dojo\\.declare\\s-*(\"\\(" js--dotted-name-re "\\)"))
@@ -148,19 +147,19 @@ submatch surrounds the directive name.")
   (concat "^\\s-*Ext\\.extend\\s-*("
           "\\s-*\\(" js--dotted-name-re "\\)"
           "\\s-*,\\s-*\\(" js--dotted-name-re "\\)")
-  "ExtJS class declaration (style 1)")
+  "Regexp matching an ExtJS class declaration (style 1).")
 
 (defconst js--extjs-class-decl-re-2
   (concat "^\\s-*\\(?:var\\s-+\\)?"
           "\\(" js--name-re "\\)"
           "\\s-*=\\s-*Ext\\.extend\\s-*(\\s-*"
           "\\(" js--dotted-name-re "\\)")
-  "ExtJS class declaration (style 2)")
+  "Regexp matching an ExtJS class declaration (style 2).")
 
 (defconst js--mochikit-class-re
   (concat "^\\s-*MochiKit\\.Base\\.update\\s-*(\\s-*"
           "\\(" js--dotted-name-re "\\)")
-  "MochiKit class declaration?")
+  "Regexp matching a MochiKit class declaration.")
 
 (defconst js--dummy-class-style
   '(:name "[Automatically Generated Class]"))
@@ -221,7 +220,7 @@ submatch surrounds the directive name.")
      :contexts        (toplevel)
      :framework       merrillpress))
 
-  "A list of class definition styles.
+  "List of JavaScript class definition styles.
 
 A class definition style is a plist with the following keys:
 
@@ -249,36 +248,34 @@ name as matched contains
         unless (memq framework available-frameworks)
         collect framework into available-frameworks
         finally return available-frameworks)
-
-  "List of available frameworks symbols")
+  "List of available JavaScript frameworks symbols.")
 
 (defconst js--function-heading-1-re
   (concat
    "^\\s-*function\\s-+\\(" js--name-re "\\)")
-  "Regular expression matching the start of a function header. Match group 1
-is the name of the function.")
+  "Regexp matching the start of a JavaScript function header.
+Match group 1 is the name of the function.")
 
 (defconst js--function-heading-2-re
   (concat
    "^\\s-*\\(" js--name-re "\\)\\s-*:\\s-*function\\_>")
-  "Regular expression matching the start of a function entry in
-  an associative array. Match group 1 is the name of the function.")
+  "Regexp matching the start of a function entry in an associative array.
+Match group 1 is the name of the function.")
 
 (defconst js--function-heading-3-re
   (concat
    "^\\s-*\\(?:var\\s-+\\)?\\(" js--dotted-name-re "\\)"
    "\\s-*=\\s-*function\\_>")
-  "Matches a line in the form var MUMBLE = function. Match group
-  1 is MUMBLE.")
+  "Regexp matching a line in the JavaScript form \"var MUMBLE = function\".
+Match group 1 is MUMBLE.")
 
 (defconst js--macro-decl-re
   (concat "^\\s-*#\\s-*define\\s-+\\(" js--cpp-name-re "\\)\\s-*(")
-  "Regular expression matching a CPP macro definition up to the opening
-parenthesis. Match group 1 is the name of the function.")
+  "Regexp matching a CPP macro definition, up to the opening parenthesis.
+Match group 1 is the name of the function.")
 
 (defun js--regexp-opt-symbol (list)
-  "Like regexp-opt, but surround the optimized regular expression
-with `\\\\_<' and `\\\\_>'."
+  "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
   (concat "\\_<" (regexp-opt list t) "\\_>"))
 
 (defconst js--keyword-re
@@ -292,7 +289,7 @@ with `\\\\_<' and `\\\\_>'."
      "super" "switch" "synchronized" "throw"
      "throws" "transient" "try" "typeof" "var" "void" "let"
      "yield" "volatile" "while" "with"))
-  "Regular expression matching any JavaScript keyword.")
+  "Regexp matching any JavaScript keyword.")
 
 (defconst js--basic-type-re
   (js--regexp-opt-symbol
@@ -312,7 +309,7 @@ with `\\\\_<' and `\\\\_>'."
    "\\_<import\\_>"
    (list js--function-heading-1-re 1 font-lock-function-name-face)
    (list js--function-heading-2-re 1 font-lock-function-name-face))
-  "Level one font lock.")
+  "Level one font lock keywords for `js-mode'.")
 
 (defconst js--font-lock-keywords-2
   (append js--font-lock-keywords-1
@@ -322,7 +319,7 @@ with `\\\\_<' and `\\\\_>'."
                       (list 1 'font-lock-keyword-face))
                 (cons js--basic-type-re font-lock-type-face)
                 (cons js--constant-re font-lock-constant-face)))
-  "Level two font lock.")
+  "Level two font lock keywords for `js-mode'.")
 
 ;; js--pitem is the basic building block of the lexical
 ;; database. When one refers to a real part of the buffer, the region
@@ -415,55 +412,45 @@ with `\\\\_<' and `\\\\_>'."
   ;;
   (b-end nil))
 
+;; The pitem we start parsing with.
 (defconst js--initial-pitem
   (make-js--pitem
    :paren-depth most-negative-fixnum
-   :type 'toplevel)
-
-  "The pitem we start parsing with")
+   :type 'toplevel))
 
 ;;; User Customization
 
 (defgroup js nil
-  "Customization variables for `js-mode'."
+  "Customization variables for JavaScript mode."
   :tag "JavaScript"
   :group 'languages)
 
 (defcustom js-indent-level 4
-  "Number of spaces for each indentation step."
+  "Number of spaces for each indentation step in `js-mode'."
   :type 'integer
   :group 'js)
 
 (defcustom js-expr-indent-offset 0
-  "Number of additional spaces used for indentation of continued
-expressions. The value must be no less than minus
-`js-indent-level'."
+  "Number of additional spaces used for indentation of continued expressions.
+The value must be no less than minus `js-indent-level'."
   :type 'integer
   :group 'js)
 
-(defcustom js-auto-indent-flag t
-  "Automatic indentation with punctuation characters. If non-nil, the
-current line is indented when certain punctuations are inserted."
-  :type 'boolean
-  :group 'js)
-
 (defcustom js-flat-functions nil
-  "Treat nested functions as if they were top-level functions for
-function movement, marking, and so on."
+  "Treat nested functions as top-level functions in `js-mode'.
+This applies to function movement, marking, and so on."
   :type 'boolean
   :group 'js)
 
 (defcustom js-comment-lineup-func #'c-lineup-C-comments
-  "cc-mode-style lineup function for C comments"
+  "Lineup function for `cc-mode-style', for C comments in `js-mode'."
   :type 'function
   :group 'js)
 
 (defcustom js-enabled-frameworks js--available-frameworks
-  "Select which frameworks js-mode will recognize.
-
-Turn off some frameworks you seldom use to improve performance.
-The set of recognized frameworks can also be overriden on a
-per-buffer basis."
+  "Frameworks recognized by `js-mode'.
+To improve performance, you may turn off some frameworks you
+seldom use, either globally or on a per-buffer basis."
   :type (cons 'set (mapcar (lambda (x)
                              (list 'const x))
                            js--available-frameworks))
@@ -471,23 +458,24 @@ per-buffer basis."
 
 (defcustom js-js-switch-tabs
   (and (memq system-type '(darwin)) t)
-  "Non-nil if Emacs should display tabs while selecting them.
-  Useful only if the windowing system has a good mechanism for
-  preventing Firefox from stealing the keyboard focus."
+  "Whether `js-mode' should display tabs while selecting them.
+This is useful only if the windowing system has a good mechanism
+for preventing Firefox from stealing the keyboard focus."
   :type 'boolean
   :group 'js)
 
 (defcustom js-js-tmpdir
   "~/.emacs.d/js/js"
-  "Temporary directory used for communicating with Mozilla. It
-  must be readable and writable by both Mozilla and Emacs."
+  "Temporary directory used by `js-mode' to communicate with Mozilla.
+This directory must be readable and writable by both Mozilla and
+Emacs."
   :type 'directory
   :group 'js)
 
 (defcustom js-js-timeout 5
-  "Wait this many seconds for a reply from Mozilla when executing
-commands. Increase this value if you are getting timeout
-messages."
+  "Reply timeout for executing commands in Mozilla via `js-mode'.
+The value is given in seconds.  Increase this value if you are
+getting timeout messages."
   :type 'integer
   :group 'js)
 
@@ -495,14 +483,10 @@ messages."
 
 (defvar js-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (mapc (lambda (key)
-            (define-key keymap key #'js-insert-and-indent))
-          '("+" "-" "*" "{" "}" "(" ")" ":" ";" ","))
     (define-key keymap [(control ?c) (meta ?:)] #'js-eval)
     (define-key keymap [(control ?c) (control ?j)] #'js-set-js-context)
     (define-key keymap [(control meta ?x)] #'js-eval-defun)
     (define-key keymap [(meta ?.)] #'js-find-symbol)
-
     (easy-menu-define nil keymap "Javascript Menu"
       '("Javascript"
         ["Select new Mozilla context…" js-set-js-context
@@ -510,26 +494,9 @@ messages."
         ["Evaluate expression in Mozilla context…" js-eval
          (fboundp #'inferior-moz-process)]
         ["Send current function to Mozilla…" js-eval-defun
-         (fboundp #'inferior-moz-process)]
-        )
-      )
-
+         (fboundp #'inferior-moz-process)]))
     keymap)
-  "Keymap for js-mode")
-
-(defun js-insert-and-indent (key)
-  "Runs the command bound to KEY in the global keymap, and if
-we're not in a string or comment, indents the current line."
-  (interactive (list (this-command-keys)))
-  (call-interactively (lookup-key (current-global-map) key))
-  (let ((syntax (save-restriction (widen) (syntax-ppss))))
-    (when (or (and (not (nth 8 syntax))
-                   js-auto-indent-flag)
-              (and (nth 4 syntax)
-                   (eq (current-column)
-                       (1+ (current-indentation)))))
-
-         (indent-according-to-mode))))
+  "Keymap for `js-mode'.")
 
 ;;; Syntax table and parsing
 
@@ -538,50 +505,50 @@ we're not in a string or comment, indents the current line."
     (c-populate-syntax-table table)
     (modify-syntax-entry ?$ "_" table)
     table)
-  "Syntax table used in JS mode.")
+  "Syntax table for `js-mode'.")
 
 (defvar js--quick-match-re nil
-  "Autogenerated regular expression to match buffer constructs")
+  "Autogenerated regexp used by `js-mode' to match buffer constructs.")
 
 (defvar js--quick-match-re-func nil
-  "Autogenerated regular expression to match buffer constructs
-and functions")
+  "Autogenerated regexp used by `js-mode' to match constructs and functions.")
 
 (make-variable-buffer-local 'js--quick-match-re)
 (make-variable-buffer-local 'js--quick-match-re-func)
 
 (defvar js--cache-end 1
-  "Last place in the buffer the function cache is valid")
+  "Last valid buffer position for the `js-mode' function cache.")
 (make-variable-buffer-local 'js--cache-end)
 
 (defvar js--last-parse-pos nil
-  "Last place we parsed up to in js--ensure-cache")
+  "Latest parse position reached by `js--ensure-cache'.")
 (make-variable-buffer-local 'js--last-parse-pos)
 
 (defvar js--state-at-last-parse-pos nil
-  "pstate at js--last-parse-pos")
+  "Parse state at `js--last-parse-pos'.")
 (make-variable-buffer-local 'js--state-at-last-parse-pos)
 
 (defun js--flatten-list (list)
   (loop for item in list
         nconc (cond ((consp item)
                      (js--flatten-list item))
-
                     (item (list item)))))
 
 (defun js--maybe-join (prefix separator suffix &rest list)
-  "If LIST contains any element that is not nil, return its
-non-nil elements, separated by SEPARATOR, prefixed by PREFIX, and
-ended with SUFFIX as with `concat'. Otherwise, if LIST is empty,
-return nil. If any element in LIST is itself a list, flatten that
+  "Helper function for `js--update-quick-match-re'.
+If LIST contains any element that is not nil, return its non-nil
+elements, separated by SEPARATOR, prefixed by PREFIX, and ended
+with SUFFIX as with `concat'. Otherwise, if LIST is empty, return
+nil. If any element in LIST is itself a list, flatten that
 element."
   (setq list (js--flatten-list list))
   (when list
     (concat prefix (mapconcat #'identity list separator) suffix)))
 
 (defun js--update-quick-match-re ()
-  "Update js--quick-match-re based on the current set of
-enabled frameworks"
+  "Internal function used by `js-mode' for caching buffer constructs.
+This updates `js--quick-match-re', based on the current set of
+enabled frameworks."
   (setq js--quick-match-re
         (js--maybe-join
          "^[ \t]*\\(?:" "\\|" "\\)"
@@ -631,9 +598,9 @@ enabled frameworks"
         (concat "function\\|" js--quick-match-re)))
 
 (defun js--forward-text-property (propname)
-  "Move over the next value of PROPNAME in the buffer. If found,
-return that value and leave point after the character having that
-value, otherwise return nil and leave point at EOB."
+  "Move over the next value of PROPNAME in the buffer.
+If found, return that value and leave point after the character
+having that value; otherwise, return nil and leave point at EOB."
   (let ((next-value (get-text-property (point) propname)))
     (if next-value
         (forward-char)
@@ -647,9 +614,10 @@ value, otherwise return nil and leave point at EOB."
     next-value))
 
 (defun js--backward-text-property (propname)
-    "Move over the previous value of PROPNAME in the buffer. If found,
-return that value and leave point just before the character that
-has that value, otherwise return nil and leave point at BOB."
+  "Move over the previous value of PROPNAME in the buffer.
+If found, return that value and leave point just before the
+character that has that value, otherwise return nil and leave
+point at BOB."
     (unless (bobp)
       (let ((prev-value (get-text-property (1- (point)) propname)))
         (if prev-value
@@ -675,7 +643,7 @@ has that value, otherwise return nil and leave point at BOB."
   (js--forward-pstate))
 
 (defun js--re-search-forward-inner (regexp &optional bound count)
-  "Auxiliary function for `js--re-search-forward'."
+  "Helper function for `js--re-search-forward'."
   (let ((parse)
         str-terminator
         (orig-macro-end (save-excursion
@@ -706,14 +674,12 @@ has that value, otherwise return nil and leave point at BOB."
 
 
 (defun js--re-search-forward (regexp &optional bound noerror count)
-  "Search forward but ignore strings, cpp macros, and comments.
-Invokes `re-search-forward' but treats the buffer as if strings,
-cpp macros, and comments have been removed.
+  "Search forward, ignoring strings, cpp macros, and comments.
+This function invokes `re-search-forward', but treats the buffer
+as if strings, cpp macros, and comments have been removed.
 
-If invoked while inside a macro, treat the contents of the macro
-as normal text.
-
-"
+If invoked while inside a macro, it treats the contents of the
+macro as normal text."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
@@ -764,12 +730,13 @@ as normal text.
 
 
 (defun js--re-search-backward (regexp &optional bound noerror count)
-  "Search backward but ignore strings, preprocessor macros, and
-comments. Invokes `re-search-backward' but treats the buffer as
-if strings, preprocessor macros, and comments have been removed.
+  "Search backward, ignoring strings, preprocessor macros, and comments.
 
-If inside a macro when called, treat the macro as normal text.
-"
+This function invokes `re-search-backward' but treats the buffer
+as if strings, preprocessor macros, and comments have been
+removed.
+
+If invoked while inside a macro, treat the macro as normal text."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
@@ -786,8 +753,9 @@ If inside a macro when called, treat the macro as normal text.
          (error (error-message-string err)))))))
 
 (defun js--forward-expression ()
-  "Move forward over a whole expression. Doesn't move over
-expressions continued across lines, but we don't actually care"
+  "Move forward over a whole JavaScript expression.
+This function doesn't move over expressions continued across
+lines."
   (loop
    ;; non-continued case; simplistic, but good enough?
    do (loop until (or (eolp)
@@ -802,11 +770,12 @@ expressions continued across lines, but we don't actually care"
                 (js--continued-expression-p)))))
 
 (defun js--forward-function-decl ()
-  "Move forward over a function declaration with point at the
-'function' keyword. Return non-nil if this is a
-syntactically-correct non-expression function, nil otherwise.
-Specifically, return the name of the function, or t if the name
-could not be determined."
+  "Move forward over a JavaScript function declaration.
+This puts point at the 'function' keyword.
+
+If this is a syntactically-correct non-expression function,
+return the name of the function, or t if the name could not be
+determined.  Otherwise, return nil."
   (assert (looking-at "\\_<function\\_>"))
   (let ((name t))
     (forward-word)
@@ -822,11 +791,10 @@ could not be determined."
                      name)))))
 
 (defun js--function-prologue-beginning (&optional pos)
-  "Return the start of the function prologue that contains POS,
-or nil if we're not in a function prologue. A function prologue
-is everything from start of the definition up to and including
-the opening brace. POS defaults to point."
-
+  "Return the start of the JavaScript function prologue containing POS.
+A function prologue is everything from start of the definition up
+to and including the opening brace. POS defaults to point.
+If POS is not in a function prologue, return nil."
   (let (prologue-begin)
     (save-excursion
       (if pos
@@ -853,9 +821,10 @@ the opening brace. POS defaults to point."
            (or prologue-begin (match-beginning 0))))))
 
 (defun js--beginning-of-defun-raw ()
-  "Internal helper for js--beginning-of-defun. Go to
-previous defun-beginning and return the parse state for it, or
-nil if we went all the way back to bob and don't find anything."
+  "Helper function for `js-beginning-of-defun'.
+Go to previous defun-beginning and return the parse state for it,
+or nil if we went all the way back to bob and don't find
+anything."
   (js--ensure-cache)
   (let (pstate)
     (while (and (setq pstate (js--backward-pstate))
@@ -863,8 +832,9 @@ nil if we went all the way back to bob and don't find anything."
     (and (not (bobp)) pstate)))
 
 (defun js--pstate-is-toplevel-defun (pstate)
-  "If PSTATE represents a non-empty top-level defun, return the
-top-most pitem. Otherwise, return nil."
+  "Helper function for `js--beginning-of-defun-nested'.
+If PSTATE represents a non-empty top-level defun, return the
+top-most pitem.  Otherwise, return nil."
   (loop for pitem in pstate
         with func-depth = 0
         with func-pitem
@@ -874,9 +844,8 @@ top-most pitem. Otherwise, return nil."
         finally return (if (eq func-depth 1) func-pitem)))
 
 (defun js--beginning-of-defun-nested ()
-  "Internal helper for js--beginning-of-defun. Returns the
-pitem of the function we went to the beginning of."
-
+  "Helper function for `js--beginning-of-defun'.
+Return the pitem of the function we went to the beginning of."
   (or
    ;; Look for the smallest function that encloses point...
    (loop for pitem in (js--parse-state-at-point)
@@ -894,22 +863,20 @@ pitem of the function we went to the beginning of."
          and return it)))
 
 (defun js--beginning-of-defun-flat ()
-  "Internal helper for js--beginning-of-defun"
-
+  "Helper function for `js-beginning-of-defun'."
   (let ((pstate (js--beginning-of-defun-raw)))
     (when pstate
       (goto-char (js--pitem-h-begin (car pstate))))))
 
-(defun js--beginning-of-defun (&optional arg)
-  "Used as beginning-of-defun-function"
-
+(defun js-beginning-of-defun (&optional arg)
+  "Value of `beginning-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
   (while (and (not (eobp)) (< arg 0))
     (incf arg)
     (when (and (not js-flat-functions)
                (or (eq (js-syntactic-context) 'function)
                    (js--function-prologue-beginning)))
-      (js--end-of-defun))
+      (js-end-of-defun))
 
     (if (js--re-search-forward
          "\\_<function\\_>" nil t)
@@ -933,8 +900,8 @@ pitem of the function we went to the beginning of."
              (js--beginning-of-defun-nested))))))
 
 (defun js--flush-caches (&optional beg ignored)
-  "Flush syntax cache info after position BEG. BEG defaults to
-point-min, flushing the entire cache."
+  "Flush the `js-mode' syntax cache after position BEG.
+BEG defaults to point-min, meaning to flush the entire cache."
   (interactive)
   (setq beg (or beg (save-restriction (widen) (point-min))))
   (setq js--cache-end (min js--cache-end beg)))
@@ -955,14 +922,13 @@ point-min, flushing the entire cache."
             ;; that assumption holds.
             (cons (js--pitem-add-child (second open-items) top-item)
                   (cddr open-items)))))
-
   open-items)
 
 (defmacro js--ensure-cache--update-parse ()
-  "Helper for use inside js--ensure-cache. Updates parsing
-information up to point. Refers to parse, prev-parse-point,
-goal-point, and open-items bound lexically in the body of
-`js--ensure-cache'."
+  "Helper function for `js--ensure-cache'.
+Update parsing information up to point, referring to parse,
+prev-parse-point, goal-point, and open-items bound lexically in
+the body of `js--ensure-cache'."
   `(progn
      (setq goal-point (point))
      (goto-char prev-parse-point)
@@ -1001,9 +967,9 @@ goal-point, and open-items bound lexically in the body of
       (pp prop))))
 
 (defun js--split-name (string)
-  "Splits a name into its dot-separated parts. Also removes any
-prototype parts from the split name (unless the name is just
-\"prototype\" to start with, that is)."
+  "Split a JavaScript name into its dot-separated parts.
+This also removes any prototype parts from the split name (unless
+the name is just \"prototype\" to start with)."
   (let ((name (save-match-data
                 (split-string string "\\." t))))
     (unless (and (= (length name) 1)
@@ -1011,17 +977,18 @@ prototype parts from the split name (unless the name is just
 
       (setq name (remove "prototype" name)))))
 
-(defvar js--guess-function-name-start nil
-  "Secondary out-variable for js--guess-function-name")
+(defvar js--guess-function-name-start nil)
 
 (defun js--guess-function-name (position)
-  "Guess the name of the function at POSITION, which should be
-the just after the end of the word 'function'. Return the name of
-the function or nil if the name could not be guessed. Clobbers
-match data. If in guessing the function name we find the preamble
-begins earlier than expected, set `js--guess-function-name-start'
-to that position, otherwise set that variable to nil."
+  "Guess the name of the JavaScript function at POSITION.
+POSITION should be just after the end of the word \"function\".
+Return the name of the function, or nil if the name could not be
+guessed.
 
+This function clobbers match data.  If we find the preamble
+begins earlier than expected while guessing the function name,
+set `js--guess-function-name-start' to that position; otherwise,
+set that variable to nil."
   (setq js--guess-function-name-start nil)
   (save-excursion
     (goto-char position)
@@ -1206,7 +1173,7 @@ LIMIT defaults to point."
           )))))
 
 (defun js--end-of-defun-flat ()
-  "Internal helper for js--end-of-defun"
+  "Helper function for `js-end-of-defun'."
   (loop while (js--re-search-forward "}" nil t)
         do (js--ensure-cache)
         if (get-text-property (1- (point)) 'js--pend)
@@ -1215,7 +1182,7 @@ LIMIT defaults to point."
         finally do (goto-char (point-max))))
 
 (defun js--end-of-defun-nested ()
-  "Internal helper for js--end-of-defun"
+  "Helper function for `js-end-of-defun'."
   (message "test")
   (let* (pitem
          (this-end (save-excursion
@@ -1240,16 +1207,16 @@ LIMIT defaults to point."
         ;; ... or eob.
         (goto-char (point-max))))))
 
-(defun js--end-of-defun (&optional arg)
-  "Used as end-of-defun-function"
+(defun js-end-of-defun (&optional arg)
+  "Value of `end-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
   (while (and (not (bobp)) (< arg 0))
     (let (orig-pos (point))
       (incf arg)
-      (js--beginning-of-defun)
-      (js--beginning-of-defun)
+      (js-beginning-of-defun)
+      (js-beginning-of-defun)
       (unless (bobp)
-        (js--end-of-defun))))
+        (js-end-of-defun))))
 
   (while (> arg 0)
     (decf arg)
@@ -1287,7 +1254,7 @@ LIMIT defaults to point."
         nil))))
 
 (defun js--backward-syntactic-ws (&optional lim)
-  "Simple implementation of `c-backward-syntactic-ws'"
+  "Simple implementation of `c-backward-syntactic-ws' for `js-mode'."
   (save-restriction
     (when lim (narrow-to-region lim (point-max)))
 
@@ -1302,7 +1269,7 @@ LIMIT defaults to point."
                           (setq pos (point)))))))))
 
 (defun js--forward-syntactic-ws (&optional lim)
-  "Simple implementation of `c-forward-syntactic-ws'"
+  "Simple implementation of `c-forward-syntactic-ws' for `js-mode'."
   (save-restriction
     (when lim (narrow-to-region (point-min) lim))
     (let ((pos (point)))
@@ -1315,8 +1282,8 @@ LIMIT defaults to point."
                        pos
                      (setq pos (point)))))))))
 
+;; Like (up-list -1), but only considers lists that end nearby"
 (defun js--up-nearby-list ()
-  "Like (up-list -1), but only considers lists that end nearby"
   (save-restriction
     ;; Look at a very small region so our compuation time doesn't
     ;; explode in pathological cases.
@@ -1324,7 +1291,7 @@ LIMIT defaults to point."
     (up-list -1)))
 
 (defun js--inside-param-list-p ()
-  "Return non-nil iff point is inside a function parameter list."
+  "Return non-nil iff point is in a function parameter list."
   (ignore-errors
     (save-excursion
       (js--up-nearby-list)
@@ -1335,8 +1302,7 @@ LIMIT defaults to point."
                              (looking-at "function"))))))))
 
 (defun js--inside-dojo-class-list-p ()
-  "Return non-nil iff point is inside a Dojo multiple-inheritance
-class block."
+  "Return non-nil iff point is in a Dojo multiple-inheritance class block."
   (ignore-errors
     (save-excursion
       (js--up-nearby-list)
@@ -1360,10 +1326,9 @@ class block."
 
 ;;; Font Lock
 (defun js--make-framework-matcher (framework &rest regexps)
-  "Create a byte-compiled function that only matches the given
-regular expressions (that concatenation of REGEXPS) if FRAMEWORK
-is in js-enabled-frameworks"
-
+  "Helper function for building `js--font-lock-keywords'.
+Create a byte-compiled function for matching a concatenation of
+REGEXPS, but only if FRAMEWORK is in `js-enabled-frameworks'."
   (setq regexps (apply #'concat regexps))
   (byte-compile
    `(lambda (limit)
@@ -1374,11 +1339,10 @@ is in js-enabled-frameworks"
 (make-variable-buffer-local 'js--tmp-location)
 
 (defun js--forward-destructuring-spec (&optional func)
-  "Move forward over a destructuring spec. If FUNC is supplied,
-call it with no arguments before every variable name in the spec.
-Return true iff this was actually a spec. FUNC must preserve the
-match data."
-
+  "Move forward over a JavaScript destructuring spec.
+If FUNC is supplied, call it with no arguments before every
+variable name in the spec.  Return true iff this was actually a
+spec.  FUNC must preserve the match data."
   (case (char-after)
     (?\[
      (forward-char)
@@ -1423,11 +1387,10 @@ match data."
        t))))
 
 (defun js--variable-decl-matcher (limit)
-  "Font-lock matcher for variable names in a variable
-declaration. This is a cc-mode-style matcher that *always* fails,
-from the point of view of font-lock. It applies highlighting
-directly with `font-lock-apply-higlight'."
-
+  "Font-lock matcher for variable names in a variable declaration.
+This is a cc-mode-style matcher that *always* fails, from the
+point of view of font-lock. It applies highlighting directly with
+`font-lock-apply-higlight'."
   (condition-case nil
       (save-restriction
         (narrow-to-region (point-min) limit)
@@ -1580,8 +1543,7 @@ directly with `font-lock-apply-higlight'."
                (end-of-line))
             '(end-of-line)
             '(0 font-lock-variable-name-face))))
-
-  "Level three font lock.")
+  "Level three font lock for `js-mode'.")
 
 (defun js--inside-pitem-p (pitem)
   "Return whether point is inside the given pitem's header or body"
@@ -1594,10 +1556,10 @@ directly with `font-lock-apply-higlight'."
            (> (js--pitem-b-end pitem) (point)))))
 
 (defun js--parse-state-at-point ()
-  "Get a list of js--pitem instances that apply to point,
-most specific first. In the worst case, the current toplevel
-instance will be returned."
-
+  "Parse the JavaScript program state at point.
+Return a list of `js--pitem' instances that apply to point, most
+specific first. In the worst case, the current toplevel instance
+will be returned."
   (save-excursion
     (save-restriction
       (widen)
@@ -1618,19 +1580,18 @@ instance will be returned."
         pstate))))
 
 (defun js--syntactic-context-from-pstate (pstate)
-  "Return the syntactic context corresponding to PSTATE"
+  "Return the JavaScript syntactic context corresponding to PSTATE."
   (let ((type (js--pitem-type (car pstate))))
     (cond ((memq type '(function macro))
            type)
-
           ((consp type)
            'class)
-
           (t 'toplevel))))
 
 (defun js-syntactic-context ()
-  "Get the current syntactic context of point. When called
-interatively, also display a message with that context."
+  "Return the JavaScript syntactic context at point.
+When called interatively, also display a message with that
+context."
   (interactive)
   (let* ((syntactic-context (js--syntactic-context-from-pstate
                              (js--parse-state-at-point))))
@@ -1641,7 +1602,8 @@ interatively, also display a message with that context."
     syntactic-context))
 
 (defun js--class-decl-matcher (limit)
-  "Fontifies according to js--class-styles"
+  "Font lock function used by `js-mode'.
+This performs fontification according to `js--class-styles'."
   (loop initially (js--ensure-cache limit)
         while (re-search-forward js--quick-match-re limit t)
         for orig-end = (match-end 0)
@@ -1663,22 +1625,23 @@ interatively, also display a message with that context."
   '(js--font-lock-keywords-3 js--font-lock-keywords-1
                                    js--font-lock-keywords-2
                                    js--font-lock-keywords-3)
-  "See `font-lock-keywords'.")
+  "Font lock keywords for `js-mode'.  See `font-lock-keywords'.")
 
 ;; XXX: Javascript can continue a regexp literal across lines so long
 ;; as the newline is escaped with \. Account for that in the regexp
 ;; below.
 (defconst js--regexp-literal
   "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
-  "Match a regular expression literal. Match groups 1 and 2 are
-the characters forming the beginning and end of the literal")
+  "Regexp matching a JavaScript regular expression literal.
+Match groups 1 and 2 are the characters forming the beginning and
+end of the literal.")
 
 ;; we want to match regular expressions only at the beginning of
 ;; expressions
-(defconst js--font-lock-syntactic-keywords
+(defconst js-font-lock-syntactic-keywords
   `((,js--regexp-literal (1 "|") (2 "|")))
-  "Highlighting of regular expressions. See also the variable
-  `font-lock-keywords'.")
+  "Syntactic font lock keywords matching regexps in JavaScript.
+See `font-lock-keywords'.")
 
 ;;; Indentation
 
@@ -1686,19 +1649,16 @@ the characters forming the beginning and end of the literal")
   (js--regexp-opt-symbol
    '("catch" "do" "else" "finally" "for" "if" "try" "while" "with"
      "each"))
-  "Regular expression matching keywords that are optionally
-  followed by an opening brace.")
+  "Regexp matching keywords optionally followed by an opening brace.")
 
 (defconst js--indent-operator-re
   (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|"
           (js--regexp-opt-symbol '("in" "instanceof")))
-  "Regular expression matching operators that affect indentation
-  of continued expressions.")
+  "Regexp matching operators that affect indentation of continued expressions.")
 
 
 (defun js--looking-at-operator-p ()
-  "Return non-nil if text after point is an operator (that is not
-a comma)."
+  "Return non-nil if point is on a JavaScript operator, other than a comma."
   (save-match-data
     (and (looking-at js--indent-operator-re)
          (or (not (looking-at ":"))
@@ -1708,7 +1668,7 @@ a comma)."
 
 
 (defun js--continued-expression-p ()
-  "Returns non-nil if the current line continues an expression."
+  "Return non-nil if the current line continues an expression."
   (save-excursion
     (back-to-indentation)
     (or (js--looking-at-operator-p)
@@ -1724,10 +1684,10 @@ a comma)."
 
 
 (defun js--end-of-do-while-loop-p ()
-  "Returns non-nil if word after point is `while' of a do-while
-statement, else returns nil. A braceless do-while statement
-spanning several lines requires that the start of the loop is
-indented to the same column as the current line."
+  "Return non-nil if point is on the \"while\" of a do-while statement.
+Otherwise, return nil.  A braceless do-while statement spanning
+several lines requires that the start of the loop is indented to
+the same column as the current line."
   (interactive)
   (save-excursion
     (save-match-data
@@ -1749,9 +1709,10 @@ indented to the same column as the current line."
 
 
 (defun js--ctrl-statement-indentation ()
-  "Returns the proper indentation of the current line if it
-starts the body of a control statement without braces, else
-returns nil."
+  "Helper function for `js--proper-indentation'.
+Return the proper indentation of the current line if it starts
+the body of a control statement without braces; otherwise, return
+nil."
   (save-excursion
     (back-to-indentation)
     (when (save-excursion
@@ -1811,35 +1772,30 @@ returns nil."
           (t 0))))
 
 (defun js-indent-line ()
-  "Indent the current line as JavaScript source text."
+  "Indent the current line as JavaScript."
   (interactive)
   (save-restriction
     (widen)
     (let* ((parse-status
             (save-excursion (syntax-ppss (point-at-bol))))
            (offset (- (current-column) (current-indentation))))
-
       (indent-line-to (js--proper-indentation parse-status))
       (when (> offset 0) (forward-char offset)))))
 
 ;;; Filling
 
 (defun js-c-fill-paragraph (&optional justify)
-  "Fill the paragraph with c-fill-paragraph"
+  "Fill the paragraph with `c-fill-paragraph'."
   (interactive "*P")
-
   (flet ((c-forward-sws
           (&optional limit)
           (js--forward-syntactic-ws limit))
-
          (c-backward-sws
           (&optional limit)
           (js--backward-syntactic-ws limit))
-
          (c-beginning-of-macro
           (&optional limit)
           (js--beginning-of-macro limit)))
-
     (let ((fill-paragraph-function 'c-fill-paragraph))
       (c-fill-paragraph justify))))
 
@@ -1869,11 +1825,10 @@ returns nil."
               (plist-get type :name)))))
 
 (defun js--make-merged-item (item child name-parts)
-  "Internal helper for js--splice-into-items. Return a new
-item that is the result of merging CHILD into ITEM. NAME-PARTS is
-a list of parts of the name of CHILD that we haven't consumed
-yet."
-
+  "Helper function for `js--splice-into-items'.
+Return a new item that is the result of merging CHILD into
+ITEM. NAME-PARTS is a list of parts of the name of CHILD that we
+haven't consumed yet."
   (js--debug "js--make-merged-item: {%s} into {%s}"
                    (js--pitem-format child)
                    (js--pitem-format item))
@@ -1915,18 +1870,17 @@ yet."
         (cdr item)))
 
 (defun js--pitem-strname (pitem)
-  "Last part of the name of PITEM as a string or symbol"
+  "Last part of the name of PITEM, as a string or symbol."
   (let ((name (js--pitem-name pitem)))
     (if (consp name)
         (car (last name))
       name)))
 
 (defun js--splice-into-items (items child name-parts)
-  "Non-destructively inserts CHILD into the item list ITEMS in
-the proper place as given by NAME-PARTS. If a class doesn't
-exist in the tree, create it. Return the new items list.
-NAME-PARTS is a list of strings given the broken-down class
-name of the item to insert."
+  "Splice CHILD into the `js--pitem' ITEMS at NAME-PARTS.
+If a class doesn't exist in the tree, create it. Return the new
+items list.  NAME-PARTS is a list of strings given the
+broken-down class name of the item to insert."
 
   (let ((top-name (car name-parts))
         (item-ptr items)
@@ -2001,9 +1955,7 @@ name of the item to insert."
             items))))
 
 (defun js--pitem-add-child (pitem child)
-  "Copy js--pitem PITEM and while copying, push CHILD onto
-its list of children."
-
+  "Copy `js--pitem' PITEM, and push CHILD onto its list of children."
   (assert (integerp (js--pitem-h-begin child)))
   (assert (if (consp (js--pitem-name child))
               (loop for part in (js--pitem-name child)
@@ -2039,13 +1991,13 @@ its list of children."
    (cdr pitem)))
 
 (defun js--maybe-make-marker (location)
-  "Make LOCATION into a marker if imenu-use-markers"
+  "Return a marker for LOCATION if `imenu-use-markers' is non-nil."
   (if imenu-use-markers
       (set-marker (make-marker) location)
     location))
 
 (defun js--pitems-to-imenu (pitems unknown-ctr)
-  "Convert list of pitems PITEMS to imenu format"
+  "Convert PITEMS, a list of `js--pitem' structures, to imenu format."
 
   (let (imenu-items pitem pitem-type pitem-name subitems)
 
@@ -2086,7 +2038,7 @@ its list of children."
     imenu-items))
 
 (defun js--imenu-create-index ()
-  "Creates an imenu index for the current buffer"
+  "Return an imenu index for the current buffer."
   (save-excursion
     (save-restriction
       (widen)
@@ -2111,6 +2063,9 @@ its list of children."
            (car (js--pitem-children state))
            unknown-ctr))))))
 
+;; Silence the compiler.
+(defvar which-func-imenu-joiner-function)
+
 (defun js--which-func-joiner (parts)
   (mapconcat #'identity parts "."))
 
@@ -2131,10 +2086,10 @@ its list of children."
              (puthash name2 (cdr item) symbols))))
 
 (defun js--get-all-known-symbols ()
-  "Get a hash table of all relevant Javascript symbols across all
-js-mode buffers. Each key is the name of a symbol (possibly
-disambiguated with <N>, where N > 1), and each value is a marker
-giving the location of that symbol."
+  "Return a hash table of all Javascript symbols.
+This searches all existing `js-mode' buffers. Each key is the
+name of a symbol (possibly disambiguated with <N>, where N > 1),
+and each value is a marker giving the location of that symbol."
   (loop with symbols = (make-hash-table :test 'equal)
         with imenu-use-markers = t
         for buffer being the buffers
@@ -2148,15 +2103,12 @@ giving the location of that symbol."
   "History of entered Javascript symbols")
 
 (defun js--read-symbol (symbols-table prompt &optional initial-input)
-  "Read a symbol from SYMBOLS-TABLE, which is a hash table like
-the one from `js--get-all-known-symbols'. Return value is a
-cons of (SYMBOL-NAME . LOCATION), where SYMBOL-NAME is a string
-and LOCATION is a marker.
-
-Prompt is PROMPT.
-
-If INITIAL-INPUT is not nil, use it as the initial input"
-
+  "Helper function for `js-find-symbol'.
+Read a symbol from SYMBOLS-TABLE, which is a hash table like the
+one from `js--get-all-known-symbols', using prompt PROMPT and
+initial input INITIAL-INPUT.  Return a cons of (SYMBOL-NAME
+. LOCATION), where SYMBOL-NAME is a string and LOCATION is a
+marker."
   (unless ido-mode
     (ido-mode t)
     (ido-mode nil))
@@ -2179,10 +2131,10 @@ If INITIAL-INPUT is not nil, use it as the initial input"
       (buffer-substring (car bounds) (cdr bounds)))))
 
 (defun js-find-symbol (&optional arg)
-  "Jump to a Javascript symbol we read in from the user. With
-prefix argument, restrict symbols to those from the current
-buffer. Pushes a mark onto the tag ring just like `find-tag'."
-
+  "Read a Javascript symbol and jump to it.
+With a prefix argument, restrict symbols to those from the
+current buffer. Pushes a mark onto the tag ring just like
+`find-tag'."
   (interactive "P")
   (let (symbols marker)
     (if (not arg)
@@ -2210,10 +2162,10 @@ buffer. Pushes a mark onto the tag ring just like `find-tag'."
 
 (defun js--wait-for-matching-output
   (process regexp timeout &optional start)
-  "Wait TIMEOUT seconds for PROCESS to output something that
-matches REGEXP. On timeout, return nil. On success, return t with
-match data set. If START is non-nil, look for output starting
-from START. Otherwise, use the current value of `process-mark'."
+  "Wait TIMEOUT seconds for PROCESS to output a match for REGEXP.
+On timeout, return nil.  On success, return t with match data
+set.  If START is non-nil, look for output starting from START.
+Otherwise, use the current value of `process-mark'."
   (with-current-buffer (process-buffer process)
     (loop with start-pos = (or start
                                (marker-position (process-mark process)))
@@ -2243,13 +2195,12 @@ from START. Otherwise, use the current value of `process-mark'."
   "Maps Elisp Javascript proxy objects to their Javascript IDs.")
 
 (defvar js--js-process nil
-  "The last MozRepl process object we saw")
+  "The most recent MozRepl process object.")
 
 (defvar js--js-gc-idle-timer nil
-  "Idle timer for cleaning up JS object references")
+  "Idle timer for cleaning up JS object references.")
 
-(defvar js--js-last-gcs-done nil
-  "Last number of gcs we GCed with")
+(defvar js--js-last-gcs-done nil)
 
 (defconst js--moz-interactor
   (replace-regexp-in-string
@@ -2564,11 +2515,10 @@ from START. Otherwise, use the current value of `process-mark'."
   "String to set MozRepl up into a simple-minded evaluation mode")
 
 (defun js--js-encode-value (x)
-  "Marshall the given value for JS. Strings and numbers get
-JSON-encoded. Lists (including nil) are made into Javascript
-array literals and their contents encoded with
-js--js-encode-value."
-
+  "Marshall the given value for JS.
+Strings and numbers are JSON-encoded.  Lists (including nil) are
+made into Javascript array literals and their contents encoded
+with `js--js-encode-value'."
   (cond ((stringp x) (json-encode-string x))
         ((numberp x) (json-encode-number x))
         ((symbolp x) (format "{objid:%S}" (symbol-name x)))
@@ -2661,7 +2611,7 @@ js--js-encode-value."
 
 (eval-and-compile
   (defun js--optimize-arglist (arglist)
-    "Convert immediate js< and js! references to deferred ones"
+    "Convert immediate js< and js! references to deferred ones."
     (loop for item in arglist
           if (eq (car-safe item) 'js<)
           collect (append (list 'list ''js--funcall
@@ -2703,7 +2653,7 @@ js--js-encode-value."
         (js< "Components" "interfaces" ,interface-name)))
 
 (defmacro with-js (&rest forms)
-  "Runs FORMS with the Mozilla repl set up for js commands.
+  "Run FORMS with the Mozilla repl set up for js commands.
 Inside the lexical scope of `with-js', `js?', `js!',
 `js-new', `js-eval', `js-list', `js<', `js>', `js-get-service',
 `js-create-instance', and `js-qi' are defined."
@@ -2765,9 +2715,8 @@ Inside the lexical scope of `with-js', `js?', `js!',
        (js--js-leave-repl))))
 
 (defvar js--js-array-as-list nil
-"If bound to t and a function returns an Array, return the
-elements of that Array as a list instead of returning the whole
-Array as a JS symbol" )
+  "Whether to listify any Array returned by a Mozilla function.
+If nil, the whole Array is treated as a JS symbol.")
 
 (defun js--js-decode-retval (result)
   (ecase (intern (first result))
@@ -2789,12 +2738,13 @@ Array as a JS symbol" )
 (defun js--js-funcall (function &rest arguments)
   "Call the Mozilla function FUNCTION with arguments ARGUMENTS.
 If function is a string, look it up as a property on the global
-object and use the global object for `this'; if FUNCTION is a
-list with one element, use that element as the function with the
-global object for `this', except that if that single element is a
-string, look it up on the global object. If FUNCTION is a list
-with more than one argument, use the list up to the last value as
-a property descriptor and the last argument as a function."
+object and use the global object for `this'.
+If FUNCTION is a list with one element, use that element as the
+function with the global object for `this', except that if that
+single element is a string, look it up on the global object.
+If FUNCTION is a list with more than one argument, use the list
+up to the last value as a property descriptor and the last
+argument as a function."
 
   (with-js
    (let ((argstr (js--js-encode-value
@@ -2818,10 +2768,8 @@ a property descriptor and the last argument as a function."
          (js--js-decode-retval result))))))
 
 (defun js--js-new (constructor &rest arguments)
-  "Call CONSTRUCTOR as a constructor (as with new), with the
-given arguments ARGUMENTS. CONSTRUCTOR is a JS handle, a string,
-or a list of these things."
-
+  "Call CONSTRUCTOR as a constructor, with arguments ARGUMENTS.
+CONSTRUCTOR is a JS handle, a string, or a list of these things."
   (apply #'js--js-funcall
          '(interactor "_callNew")
          constructor arguments))
@@ -2830,9 +2778,7 @@ or a list of these things."
   (js--js-funcall '(interactor "_callEval") thisobj js))
 
 (defun js--js-list (&rest arguments)
-  "Return a Lisp array that is the result of evaluating each of
-  the elements of ARGUMENTS"
-
+  "Return a Lisp array resulting from evaluating each of ARGUMENTS."
   (let ((js--js-array-as-list t))
     (apply #'js--js-funcall '(interactor "_mkArray")
            arguments)))
@@ -2884,29 +2830,25 @@ With argument, run even if no intervening GC has happened."
 (run-with-idle-timer 30 t #'js-gc)
 
 (defun js-eval (js)
-  "Evaluate the Javascript contained in JS and return the
-JSON-decoded result. eval must be called using this function
-because it is special to the Javascript interpreter."
+  "Evaluate the JavaScript in JS and return JSON-decoded result."
   (interactive "MJavascript to evaluate: ")
   (with-js
    (let* ((content-window (js--js-content-window
                            (js--get-js-context)))
           (result (js-eval content-window js)))
-
      (when (interactive-p)
        (message "%s" (js! "String" result)))
      result)))
 
 (defun js--get-tabs ()
-  "Enumerate all the contexts available. Each one is a list:
+  "Enumerate all JavaScript contexts available.
+Each context is a list:
+   (TITLE URL BROWSER TAB TABBROWSER) for content documents
+   (TITLE URL WINDOW) for windows
 
-   The list is (TITLE URL BROWSER TAB TABBROWSER) for content documents
-   The list is (TITLE URL WINDOW) for windows
-
-   All tabs of a given window are grouped together. The most
-   recent window is first. Within each window, the tabs are
-   returned left-to-right.
-"
+All tabs of a given window are grouped together.  The most recent
+window is first.  Within each window, the tabs are returned
+left-to-right."
   (with-js
    (let (windows)
 
@@ -2966,9 +2908,10 @@ because it is special to the Javascript interpreter."
 (defvar js-read-tab-history nil)
 
 (defun js--read-tab (prompt)
-  "Read a Mozilla tab with prompt PROMPT. Return a cons of (TYPE . OBJECT).
-TYPE is either 'window or 'tab, and OBJECT is a Javascript handle
-to a ChromeWindow or a browser, respectively."
+  "Read a Mozilla tab with prompt PROMPT.
+Return a cons of (TYPE . OBJECT).  TYPE is either 'window or
+'tab, and OBJECT is a Javascript handle to a ChromeWindow or a
+browser, respectively."
 
   ;; Prime IDO
   (unless ido-mode
@@ -3108,9 +3051,10 @@ to a ChromeWindow or a browser, respectively."
          (cons 'window (third selected-tab)))))))
 
 (defun js--guess-eval-defun-info (pstate)
-  "Internal helper for `js-eval-defun'. Returns a list (NAME . CLASSPARTS),
-where CLASSPARTS is a list of strings making up the class name
-and NAME is the name of the function part."
+  "Helper function for `js-eval-defun'.
+Return a list (NAME . CLASSPARTS), where CLASSPARTS is a list of
+strings making up the class name and NAME is the name of the
+function part."
   (cond ((and (= (length pstate) 3)
               (eq (js--pitem-type (first pstate)) 'function)
               (= (length (js--pitem-name (first pstate))) 1)
@@ -3129,9 +3073,9 @@ and NAME is the name of the function part."
         (t (error "Function not a toplevel defun or class member"))))
 
 (defvar js--js-context nil
-  "The current JS context. This is a cons like the one returned
-from `js--read-tab'. Change with
-`js-set-js-context'.")
+  "The current JavaScript context.
+This is a cons like the one returned from `js--read-tab'.
+Change with `js-set-js-context'.")
 
 (defconst js--js-inserter
   "(function(func_info,func) {
@@ -3157,15 +3101,14 @@ from `js--read-tab'. Change with
   })")
 
 (defun js-set-js-context (context)
-  "Set the Javascript context to CONTEXT, reading from the user
-if interactive"
+  "Set the JavaScript context to CONTEXT.
+When called interactively, prompt for CONTEXT."
   (interactive (list (js--read-tab "Javascript Context: ")))
   (setq js--js-context context))
 
 (defun js--get-js-context ()
-  "Return a valid JS context. If one hasn't been set, or if it's
-stale, ask the user for a new one."
-
+  "Return a valid JavaScript context.
+If one hasn't been set, or if it's stale, prompt for a new one."
   (with-js
    (when (or (null js--js-context)
              (js--js-handle-expired-p (cdr js--js-context))
@@ -3174,7 +3117,6 @@ stale, ask the user for a new one."
                (browser (not (js? (js< (cdr js--js-context)
                                        "contentDocument"))))))
      (setq js--js-context (js--read-tab "Javascript Context: ")))
-
    js--js-context))
 
 (defun js--js-content-window (context)
@@ -3202,8 +3144,7 @@ stale, ask the user for a new one."
      (js! (res-prot "setSubstitution") alias path-uri))))
 
 (defun* js-eval-defun ()
-  "Update some Mozilla tab with defun containing point or after
-point"
+  "Update a Mozilla tab using the JavaScript defun at point."
   (interactive)
 
   ;; This function works by generating a temporary file that contains
@@ -3218,10 +3159,10 @@ point"
 
   (save-excursion
     (let (begin end pstate defun-info temp-name defun-body)
-      (js--end-of-defun)
+      (js-end-of-defun)
       (setq end (point))
       (js--ensure-cache)
-      (js--beginning-of-defun)
+      (js-beginning-of-defun)
       (re-search-forward "\\_<function\\_>")
       (setq begin (match-beginning 0))
       (setq pstate (js--forward-pstate))
@@ -3305,7 +3246,7 @@ point"
 
 ;;;###autoload
 (define-derived-mode js-mode nil "js"
-  "Major mode for editing JavaScript source text.
+  "Major mode for editing JavaScript.
 
 Key bindings:
 
@@ -3316,16 +3257,16 @@ Key bindings:
 
   (set (make-local-variable 'indent-line-function) 'js-indent-line)
   (set (make-local-variable 'beginning-of-defun-function)
-       'js--beginning-of-defun)
+       'js-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function)
-       'js--end-of-defun)
+       'js-end-of-defun)
 
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
   (set (make-local-variable 'font-lock-defaults)
        (list js--font-lock-keywords
 	     nil nil nil nil
 	     '(font-lock-syntactic-keywords
-               . js--font-lock-syntactic-keywords)))
+               . js-font-lock-syntactic-keywords)))
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
