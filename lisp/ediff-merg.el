@@ -97,23 +97,25 @@ Buffer B."
 
 ;; check if there is no clash between the ancestor and one of the variants.
 ;; if it is not a merge job then return true
-(defsubst ediff-merge-region-is-non-clash (n)
+(defun ediff-merge-region-is-non-clash (n)
   (if (ediff-merge-job)
       (string-match "prefer" (or (ediff-get-state-of-merge n) ""))
     t))
 
 ;; If ediff-show-clashes-only, check if there is no clash between the ancestor
 ;; and one of the variants.
-(defsubst ediff-merge-region-is-non-clash-to-skip (n)
-  (and ediff-show-clashes-only
+(defun ediff-merge-region-is-non-clash-to-skip (n)
+  (and (ediff-merge-job)
+       ediff-show-clashes-only
        (ediff-merge-region-is-non-clash n)))
 
 ;; If ediff-skip-changed-regions, check if the merge region differs from
 ;; the current default. If a region is different from the default, it means
 ;; that the user has made determination as to how to merge for this particular
 ;; region.
-(defsubst ediff-skip-merge-region-if-changed-from-default-p (n)
-  (and ediff-skip-merge-regions-that-differ-from-default
+(defun ediff-skip-merge-region-if-changed-from-default-p (n)
+  (and (ediff-merge-job)
+       ediff-skip-merge-regions-that-differ-from-default
        (ediff-merge-changed-from-default-p n 'prefers-too)))
 
 

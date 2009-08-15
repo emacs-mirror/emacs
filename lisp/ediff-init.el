@@ -727,7 +727,9 @@ work."
   :type 'symbol
   :group 'ediff)
 
-(defcustom ediff-coding-system-for-write 'emacs-internal
+(defcustom ediff-coding-system-for-write (if (featurep 'xemacs)
+					     'escape-quoted
+					   'emacs-internal)
   "The coding system for write to use when writing out difference regions
 to temp files in buffer jobs and when Ediff needs to find fine differences."
   :type 'symbol
