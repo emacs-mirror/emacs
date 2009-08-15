@@ -1921,12 +1921,14 @@ set_buffer_internal_1 (b)
 
   for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
     {
-      valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-      if ((BUFFER_LOCAL_VALUEP (valcontents))
+      if (CONSP (XCAR (tail))
+	  && SYMBOLP (XCAR (XCAR (tail)))
+	  && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
+	      (BUFFER_LOCAL_VALUEP (valcontents)))
 	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	/* Just reference the variable
-	     to cause it to become set for this buffer.  */
+	/* Just reference the variable to cause it to become set for
+	   this buffer.  */
 	Fsymbol_value (XCAR (XCAR (tail)));
     }
 
@@ -1935,12 +1937,14 @@ set_buffer_internal_1 (b)
   if (old_buf)
     for (tail = old_buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
       {
-	valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-	if ((BUFFER_LOCAL_VALUEP (valcontents))
+	if (CONSP (tail)
+	    && SYMBOLP (XCAR (XCAR (tail)))
+	    && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
+		(BUFFER_LOCAL_VALUEP (valcontents)))
 	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	  /* Just reference the variable
-               to cause it to become set for this buffer.  */
+	  /* Just reference the variable to cause it to become set for
+	     this buffer.  */
 	  Fsymbol_value (XCAR (XCAR (tail)));
       }
 }
@@ -2653,18 +2657,19 @@ static void
 swap_out_buffer_local_variables (b)
      struct buffer *b;
 {
-  Lisp_Object oalist, alist, sym, tem, buffer;
+  Lisp_Object oalist, alist, sym, buffer;
 
   XSETBUFFER (buffer, b);
   oalist = b->local_var_alist;
 
   for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
-      sym = XCAR (XCAR (alist));
-
-      /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer;
-      if (EQ (tem, buffer))
+      if (CONSP (XCAR (alist))
+	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
+	  /* Need not do anything if some other buffer's binding is
+	     now encached.  */
+	  && EQ (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer,
+		 buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:
 	     swap it out!  */

@@ -1,3 +1,9 @@
+2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (set_buffer_internal_1)
+	(swap_out_buffer_local_variables): Check for unbound local
+	variables (Bug#4138).
+
 2009-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (create_pty): Fix last change.
