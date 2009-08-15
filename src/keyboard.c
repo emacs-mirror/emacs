@@ -3660,6 +3660,12 @@ static int
 readable_events (flags)
      int flags;
 {
+#ifdef HAVE_DBUS
+  /* Check whether a D-Bus message has arrived.  */
+  if (xd_pending_messages () > 0)
+    return 1;
+#endif /* HAVE_DBUS */
+
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check (1);
 
@@ -6982,7 +6988,7 @@ gobble_input (expected)
      int expected;
 {
 #ifdef HAVE_DBUS
-  /* Check whether a D-Bus message has arrived.  */
+  /* Read D-Bus messages.  */
   xd_read_queued_messages ();
 #endif /* HAVE_DBUS */
 
@@ -7338,7 +7344,7 @@ tty_read_avail_input (struct terminal *terminal,
     {
       struct coding_system *coding = TERMINAL_KEYBOARD_CODING (terminal);
       int from;
-      
+
       /* Decode the key sequence except for those with meta
 	 modifiers.  */
       for (i = from = 0; ; i++)
