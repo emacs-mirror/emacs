@@ -1,3 +1,12 @@
+2009-08-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_get_dispatch_status, xd_pending_messages): New
+	functions.
+
+	* lisp.h (xd_pending_messages): Declare.
+
+	* keyboard.c (readable_events): Call xd_pending_messages.
+
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pop_it): Don't pop into a display vector (Bug#4131).
