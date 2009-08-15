@@ -1,5 +1,7 @@
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xdisp.c (pop_it): Don't pop into a display vector (Bug#4131).
+
 	* buffer.c (set_buffer_internal_1)
 	(swap_out_buffer_local_variables): Check for unbound local
 	variables (Bug#4138).

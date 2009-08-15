@@ -5167,6 +5167,16 @@ pop_it (it)
     case GET_FROM_STRING:
       it->object = it->string;
       break;
+    case GET_FROM_DISPLAY_VECTOR:
+      if (it->s)
+	it->method = GET_FROM_C_STRING;
+      else if (STRINGP (it->string))
+	it->method = GET_FROM_STRING;
+      else
+	{
+	  it->method = GET_FROM_BUFFER;
+	  it->object = it->w->buffer;
+	}
     }
   it->end_charpos = p->end_charpos;
   it->string_nchars = p->string_nchars;
