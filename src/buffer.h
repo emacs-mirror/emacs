@@ -601,8 +601,9 @@ struct buffer
      point into this buffer or may point nowhere.  */
   Lisp_Object mark;
 
-  /* Alist of elements (SYMBOL . VALUE-IN-THIS-BUFFER)
-     for all per-buffer variables of this buffer.  */
+  /* Alist of elements (SYMBOL . VALUE-IN-THIS-BUFFER) for all
+     per-buffer variables of this buffer.  For locally unbound
+     symbols, just the symbol appears as the element.  */
   Lisp_Object local_var_alist;
 
   /* Symbol naming major mode (eg, lisp-mode).  */
