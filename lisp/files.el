@@ -830,10 +830,12 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 
 (defun load-library (library)
   "Load the Emacs Lisp library named LIBRARY.
-This is one of two interfaces (the other being `load-file') to the underlying
-function `load'.  The library actually loaded is searched for in `load-path'
-with or without the `load-suffixes' (as well as `load-file-rep-suffixes').
-See Info node `(emacs)Lisp Libraries' for more details."
+This is an interface to the function `load'.  LIBRARY is searched
+for in `load-path', both with and without `load-suffixes' (as
+well as `load-file-rep-suffixes').
+
+See Info node `(emacs)Lisp Libraries' for more details.
+See `load-file' for a different interface to `load'."
   (interactive
    (list (completing-read "Load library: "
 			  (apply-partially 'locate-file-completion-table

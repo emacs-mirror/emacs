@@ -1,19 +1,23 @@
+2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (load-library): Doc fix.
+
 2009-08-15  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-cmd.el (viper-insert-isearch-string): new function.
 	(viper-if-string): redefine C-s in the minibuffer to insert the last
 	incremental search string.
-	
+
 	* ediff-init.el (ediff-coding-system): use escape-quoted in case of
 	XEmacs.
-	
+
 	* ediff-merg.el (ediff-merge-region-is-non-clash-to-skip,
 	ediff-merge-region-is-non-clash,
 	ediff-skip-merge-region-if-changed-from-default-p): use defun.
 	Also check if the job is really a merge job.
-	
+
 	* ediff.el (ediff-current-file): new function.
-	
+
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/js.el: Edit docstrings throughout to follow Emacs
