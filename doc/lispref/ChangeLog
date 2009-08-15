@@ -1,5 +1,8 @@
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* advice.texi (Argument Access in Advice): Note that argument
+	positions are zero-based (Bug#3932).
+
 	* commands.texi (Distinguish Interactive): Minor copyedit.
 
 	* display.texi (Face Attributes): Add xref to Displaying Faces for
