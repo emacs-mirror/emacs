@@ -1,5 +1,8 @@
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* calendar/parse-time.el (parse-time-string-chars): Compute using
+	character classes (Bug#3190).
+
 	* progmodes/sh-script.el (sh-maybe-here-document): Avoid inserting
 	another heredoc if the user adds another < (Bug#3226).
 
