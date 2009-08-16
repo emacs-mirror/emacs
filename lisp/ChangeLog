@@ -1,3 +1,7 @@
+2009-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.el: Fix commenting convention, turn comments into docstrings.
+
 2009-08-16  E. Jay Berkenbilt  <ejb@ql.org>  (tiny change)
 
 	* whitespace.el (whitespace-style): Doc fix (Bug#3661).
@@ -12,8 +16,8 @@
 	* progmodes/sh-script.el (sh-maybe-here-document): Avoid inserting
 	another heredoc if the user adds another < (Bug#3226).
 
-	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Don't
-	initialize based on window-system (Bug#4124).
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Don't initialize based on window-system (Bug#4124).
 
 	* facemenu.el (facemenu-read-color): Use a completion function
 	that accepts any defined color, such as RGB triplets (Bug#3677).
@@ -28,45 +32,44 @@
 
 2009-08-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-insert-isearch-string): new function.
-	(viper-if-string): redefine C-s in the minibuffer to insert the last
+	* viper-cmd.el (viper-insert-isearch-string): New function.
+	(viper-if-string): Redefine C-s in the minibuffer to insert the last
 	incremental search string.
 
-	* ediff-init.el (ediff-coding-system): use escape-quoted in case of
+	* ediff-init.el (ediff-coding-system): Use escape-quoted in case of
 	XEmacs.
 
-	* ediff-merg.el (ediff-merge-region-is-non-clash-to-skip,
-	ediff-merge-region-is-non-clash,
-	ediff-skip-merge-region-if-changed-from-default-p): use defun.
+	* ediff-merg.el (ediff-merge-region-is-non-clash-to-skip)
+	(ediff-merge-region-is-non-clash)
+	(ediff-skip-merge-region-if-changed-from-default-p): Use defun.
 	Also check if the job is really a merge job.
 
-	* ediff.el (ediff-current-file): new function.
+	* ediff.el (ediff-current-file): New function.
 
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/js.el: Edit docstrings throughout to follow Emacs
 	conventions.
-	(js-insert-and-indent): Function deleted.
+	(js-insert-and-indent): Delete function.
 	(js-mode-map): Don't bind keys to js-insert-and-indent.
 	(js-beginning-of-defun): Rename from js--beginning-of-defun.
 	(js-end-of-defun): Rename from js--end-of-defun.
-	(js-auto-indent-flag): Variable deleted.
+	(js-auto-indent-flag): Delete variable.
 
 2009-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/js.el: Remove proclaim statement.  Defvar
-	which-func-imenu-joiner-function to silence compiler.
+	* progmodes/js.el: Remove proclaim statement.
+	Defvar which-func-imenu-joiner-function to silence compiler.
 
 	* files.el (auto-mode-alist): Use js-mode for .js files.
 
-	* progmodes/js2-mode.el: File removed.
+	* progmodes/js2-mode.el: Remove file.
 
 	* Makefile.in (ELCFILES): Add js.el, and remove js2-mode.el.
 
 	* speedbar.el (speedbar-supported-extension-expressions): Add .js.
 
-	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode
-	entry.
+	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode entry.
 
 2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
 
