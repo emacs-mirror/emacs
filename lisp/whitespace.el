@@ -426,8 +426,8 @@ It's a list containing some or all of the following values:
    space-after-tab::tab		8 or more SPACEs after a TAB are
 				visualized via faces.
 
-   space-after-tab::space	TABs are visualized when occurs 8 or
-				more SPACEs after a TAB via faces.
+   space-after-tab::space	TABs are visualized when 8 or more
+				SPACEs occur after a TAB, via faces.
 
    space-after-tab		8 or more SPACEs after a TAB are
 				visualized, if `indent-tabs-mode'
@@ -437,8 +437,8 @@ It's a list containing some or all of the following values:
    space-before-tab::tab	SPACEs before TAB are visualized via
 				faces.
 
-   space-before-tab::space	TABs are visualized when occurs SPACEs
-				before TAB via faces.
+   space-before-tab::space	TABs are visualized when SPACEs occur
+				before TAB, via faces.
 
    space-before-tab		SPACEs before TAB are visualized, if
 				`indent-tabs-mode' (which see) is

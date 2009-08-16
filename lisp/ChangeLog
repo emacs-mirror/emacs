@@ -1,3 +1,7 @@
+2009-08-16  E. Jay Berkenbilt  <ejb@ql.org>  (tiny change)
+
+	* whitespace.el (whitespace-style): Doc fix (Bug#3661).
+
 2009-08-16  Jan Seeger <jan.seeger@thenybble.de>  (tiny change)
 
 	* calendar/parse-time.el (parse-time-string-chars): Compute using
