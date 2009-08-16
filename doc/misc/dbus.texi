@@ -1189,7 +1189,8 @@ D-Bus object path, @var{service} is registered at.  @var{interface} is
 an interface offered by @var{service}.  It must provide @var{method}.
 
 @var{handler} is a Lisp function, which is called when the
-corresponding return message has arrived.
+corresponding return message has arrived.  If @var{handler} is
+@code{nil}, no return message will be expected.
 
 If the parameter @code{:timeout} is given, the following integer
 @var{timeout} specifies the maximum number of milliseconds a reply
@@ -1201,10 +1202,10 @@ All other arguments args are passed to @var{method} as arguments.
 They are converted into D-Bus types as described in @ref{Type
 Conversion}.
 
-The function returns a key into the hash table
-@code{dbus-registered-functions-table}.  The corresponding entry in
-the hash table is removed, when the return message has been arrived,
-and @var{handler} is called.  Example:
+Unless @var{handler} is @code{nil}, the function returns a key into
+the hash table @code{dbus-registered-functions-table}.  The
+corresponding entry in the hash table is removed, when the return
+message has been arrived, and @var{handler} is called.  Example:
 
 @lisp
 (dbus-call-method-asynchronously
