@@ -1,3 +1,21 @@
+2007-10-08  Ilya Zakharevich  <ilyaz@cpan.org>
+
+	* progmodes/cperl-mode.el: Merge upstream 6.2.
+	(cperl-mode-syntax-table): Modify syntax entry for ["'`].
+	(cperl-forward-re): Check cperl-brace-recursing.
+	(cperl-highlight-charclass): New function.
+	(cperl-find-pods-heres): Use it.
+	(cperl-fill-paragraph): Synch to save-excursion placement used
+	upstream.
+	(cperl-beautify-regexp-piece): Fix column calculation.
+	(cperl-make-regexp-x): Handle case where point is between "q" and
+	"rs".
+	(cperl-beautify-level): Don't process entire regexp.
+	(cperl-build-manpage, cperl-perldoc): Bind Man-switches before
+	calling man.
+	(cperl-tips-faces, cperl-mode, cperl-electric-backspace): Doc fix.
+	(cperl-init-faces): Build a list in the normal way.
+
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* calendar/parse-time.el (parse-time-string-chars): Save match
