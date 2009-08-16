@@ -3,6 +3,7 @@
 	* dbusbind.c (xd_initialize): Add connection file descriptor to
 	input_wait_mask, in order to let select() detect, whether a new
 	message has been arrived.
+	(Fdbus_call_method_asynchronously): Allow nil HANDLER.
 
 2009-08-15  Michael Albinus  <michael.albinus@gmx.de>
 
