@@ -5386,7 +5386,7 @@ fail.  It returns also nil when DIR is a remote directory.
 
 This function calls `file-system-info' if it is available, or invokes the
 program specified by `directory-free-space-program' if that is non-nil."
-  (when (not (file-remote-p dir))
+  (unless (file-remote-p dir)
     ;; Try to find the number of free blocks.  Non-Posix systems don't
     ;; always have df, but might have an equivalent system call.
     (if (fboundp 'file-system-info)
@@ -5396,12 +5396,14 @@ program specified by `directory-free-space-program' if that is non-nil."
       (save-match-data
 	(with-temp-buffer
 	  (when (and directory-free-space-program
-		     (let ((default-directory
-			     (if (and (not (file-remote-p default-directory))
-				      (file-directory-p default-directory)
-				      (file-readable-p default-directory))
-				 default-directory
-			       (expand-file-name "~/"))))
+		     ;; Avoid failure if the default directory does
+		     ;; not exist (Bug#2631, Bug#3911).
+		     (let ((default-directory default-directory))
+		       (setq dir (expand-file-name dir))
+		       (unless (and (not (file-remote-p default-directory))
+				    (file-directory-p default-directory)
+				    (file-readable-p default-directory))
+			 (setq default-directory "/"))
 		       (eq (call-process directory-free-space-program
 					 nil t nil
 					 directory-free-space-args

@@ -1,3 +1,9 @@
+2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (get-free-disk-space): Change fallback default
+	directory to /.  Expand DIR argument before switching to fallback.
+	Suggested by Kevin Ryde (Bug#2631, Bug#3911).
+
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (load-library): Doc fix.
