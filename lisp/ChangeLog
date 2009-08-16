@@ -1,5 +1,8 @@
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Don't
+	initialize based on window-system (Bug#4124).
+
 	* facemenu.el (facemenu-read-color): Use a completion function
 	that accepts any defined color, such as RGB triplets (Bug#3677).
 

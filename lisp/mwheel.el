@@ -57,11 +57,9 @@
                         'mouse-wheel-down-event
 			"22.1")
 (defcustom mouse-wheel-down-event
-  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (memq window-system '(w32 ns))
+  (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-up
-    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		    mouse-wheel-down-button)))
+    (intern (format "mouse-%s" mouse-wheel-down-button)))
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
@@ -72,11 +70,9 @@
                         'mouse-wheel-up-event
 			"22.1")
 (defcustom mouse-wheel-up-event
-  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (if (memq window-system '(w32 ns))
+  (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-down
-    (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		    mouse-wheel-up-button)))
+    (intern (format "mouse-%s" mouse-wheel-up-button)))
   "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
@@ -87,9 +83,7 @@
                         'mouse-wheel-click-event
 			"22.1")
 (defcustom mouse-wheel-click-event
-  ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
-  (intern (format (if (featurep 'xemacs) "button%s" "mouse-%s")
-		  mouse-wheel-click-button))
+  (intern (format "mouse-%s" mouse-wheel-click-button))
   "Event that should be temporarily inhibited after mouse scrolling.
 The mouse wheel is typically on the mouse-2 button, so it may easily
 happen that text is accidentally yanked into the buffer when
