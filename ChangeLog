@@ -1,3 +1,7 @@
+2009-08-15  CHENG Gao  <chenggao@gmail.com>
+
+	* Makefile.in (install-arch-indep): Remove .DS_Store files (MacOSX).
+
 2009-08-02  Kevin Ryde <user42@zip.com.au>
 
 	* INSTALL: Fix free fonts URL.

@@ -489,6 +489,7 @@ install-arch-indep: mkdir info install-etc
 		rm -f  $${subdir}/.cvsignore ; \
 		rm -f  $${subdir}/.gitignore ; \
 		rm -f  $${subdir}/.arch-inventory ; \
+		rm -f  $${subdir}/.DS_Store ; \
 		rm -f  $${subdir}/\#* ; \
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
