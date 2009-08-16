@@ -1,5 +1,8 @@
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* facemenu.el (facemenu-read-color): Use a completion function
+	that accepts any defined color, such as RGB triplets (Bug#3677).
+
 	* files.el (get-free-disk-space): Change fallback default
 	directory to /.  Expand DIR argument before switching to fallback.
 	Suggested by Kevin Ryde (Bug#2631, Bug#3911).

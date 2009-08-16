@@ -460,11 +460,17 @@ These special properties include `invisible', `intangible' and `read-only'."
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
   (let* ((completion-ignore-case t)
-	 (require-match (not (eq window-system 'ns)))
-	 (col (completing-read (or prompt "Color: ")
-			       (or facemenu-color-alist
-				   (defined-colors))
-			       nil require-match)))
+	 (color-list (or facemenu-color-alist (defined-colors)))
+	 (completer
+	  (lambda (string pred all-completions)
+	    (if all-completions
+		(or (all-completions string color-list pred)
+		    (if (color-defined-p string)
+			(list string)))
+	      (or (try-completion string color-list pred)
+		  (if (color-defined-p string)
+		      string)))))
+	 (col (completing-read (or prompt "Color: ") completer nil t)))
     (if (equal "" col)
 	nil
       col)))
