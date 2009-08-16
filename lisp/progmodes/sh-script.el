@@ -3749,7 +3749,7 @@ The document is bounded by `sh-here-document-word'."
   (interactive "*P")
   (self-insert-command (prefix-numeric-value arg))
   (or arg
-      (not (eq (char-after (- (point) 2)) last-command-event))
+      (not (looking-back "[^<]<<"))
       (save-excursion
 	(backward-char 2)
 	(sh-quoted-p))

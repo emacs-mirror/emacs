@@ -1,5 +1,8 @@
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/sh-script.el (sh-maybe-here-document): Avoid inserting
+	another heredoc if the user adds another < (Bug#3226).
+
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Don't
 	initialize based on window-system (Bug#4124).
 
