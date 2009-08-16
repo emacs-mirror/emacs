@@ -696,6 +696,7 @@ xd_initialize (bus)
 {
   DBusConnection *connection;
   DBusError derror;
+  int fd;
 
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
@@ -715,6 +716,11 @@ xd_initialize (bus)
 
   if (connection == NULL)
     XD_SIGNAL2 (build_string ("No connection"), bus);
+
+  /* Add connection file descriptor to input_wait_mask, in order to
+     let select() detect, whether a new message has been arrived.  */
+  if (dbus_connection_get_unix_fd (connection, &fd))
+    add_keyboard_wait_descriptor (fd);
 
   /* Cleanup.  */
   dbus_error_free (&derror);
