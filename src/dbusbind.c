@@ -967,7 +967,8 @@ object path SERVICE is registered at.  INTERFACE is an interface
 offered by SERVICE.  It must provide METHOD.
 
 HANDLER is a Lisp function, which is called when the corresponding
-return message has arrived.
+return message has arrived.  If HANDLER is nil, no return message will
+be expected.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
 specifies the maximun number of milliseconds the method call must
@@ -987,7 +988,7 @@ converted into D-Bus types via the following rules:
 All arguments can be preceded by a type symbol.  For details about
 type symbols, see Info node `(dbus)Type Conversion'.
 
-The function returns a key into the hash table
+Unless HANDLER is nil, the function returns a key into the hash table
 `dbus-registered-functions-table'.  The corresponding entry in the
 hash table is removed, when the return message has been arrived, and
 HANDLER is called.
@@ -1032,7 +1033,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   CHECK_STRING (path);
   CHECK_STRING (interface);
   CHECK_STRING (method);
-  if (!FUNCTIONP (handler))
+  if (!NILP (handler) && !FUNCTIONP (handler))
     wrong_type_argument (intern ("functionp"), handler);
   GCPRO6 (bus, service, path, interface, method, handler);
 
@@ -1091,18 +1092,34 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
       xd_append_arg (dtype, args[i], &iter);
     }
 
-  /* Send the message.  The message is just added to the outgoing
-     message queue.  */
-  if (!dbus_connection_send_with_reply (connection, dmessage, NULL, timeout))
-    XD_SIGNAL1 (build_string ("Cannot send message"));
+  if (!NILP (handler))
+    {
+      /* Send the message.  The message is just added to the outgoing
+	 message queue.  */
+      if (!dbus_connection_send_with_reply (connection, dmessage,
+					    NULL, timeout))
+	XD_SIGNAL1 (build_string ("Cannot send message"));
+
+      /* The result is the key in Vdbus_registered_functions_table.  */
+      result = (list2 (bus, make_number (dbus_message_get_serial (dmessage))));
+
+      /* Create a hash table entry.  */
+      Fputhash (result, handler, Vdbus_registered_functions_table);
+    }
+  else
+    {
+      /* Send the message.  The message is just added to the outgoing
+	 message queue.  */
+      if (!dbus_connection_send (connection, dmessage, NULL))
+	XD_SIGNAL1 (build_string ("Cannot send message"));
+
+      result = Qnil;
+    }
+
+  /* Flush connection to ensure the message is handled.  */
+  dbus_connection_flush (connection);
 
   XD_DEBUG_MESSAGE ("Message sent");
-
-  /* The result is the key in Vdbus_registered_functions_table.  */
-  result = (list2 (bus, make_number (dbus_message_get_serial (dmessage))));
-
-  /* Create a hash table entry.  */
-  Fputhash (result, handler, Vdbus_registered_functions_table);
 
   /* Cleanup.  */
   dbus_message_unref (dmessage);
