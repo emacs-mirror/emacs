@@ -1,5 +1,22 @@
 2009-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sql.el (sql-product-alist): Add :name tag to entries.
+	(sql-product): Use it.
+	(sql-mode-menu): Auto-generate the menu based on sql-product-alist.
+	(sql-set-product): Add completion.
+	(sql-highlight-oracle-keywords, sql-highlight-postgres-keywords)
+	(sql-highlight-linter-keywords, sql-highlight-ms-keywords)
+	(sql-highlight-ansi-keywords, sql-highlight-sybase-keywords)
+	(sql-highlight-informix-keywords, sql-highlight-interbase-keywords)
+	(sql-highlight-ingres-keywords, sql-highlight-solid-keywords)
+	(sql-highlight-mysql-keywords, sql-highlight-sqlite-keywords)
+	(sql-highlight-db2-keywords): Remove.
+	(sql-find-sqli-buffer, sql-set-sqli-buffer-generally)
+	(sql-highlight-product): Use derived-mode-p.
+	(sql-set-sqli-buffer): Use with-current-buffer.
+	(sql-connect-informix, sql-connect-ingres, sql-connect-oracle):
+	Simplify.
+
 	* emacs-lisp/lisp-mode.el (lisp-indent-region): Remove unused function.
 
 	* term.el: Fix commenting convention, turn comments into docstrings.

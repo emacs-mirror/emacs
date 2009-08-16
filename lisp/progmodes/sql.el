@@ -268,31 +268,16 @@ Customizing your password will store it in your ~/.emacs file."
   :group 'SQL)
 
 ;; SQL Product support
-(defcustom sql-product 'ansi
-  "*Select the SQL database product used so that buffers can be
-highlighted properly when you open them."
-  :type '(choice (const :tag "ANSI" ansi)
-		 (const :tag "DB2" db2)
-		 (const :tag "Informix" informix)
-		 (const :tag "Ingres" ingres)
-		 (const :tag "Interbase" interbase)
-		 (const :tag "Linter" linter)
-		 (const :tag "Microsoft" ms)
-		 (const :tag "MySQL" mysql)
-		 (const :tag "Oracle" oracle)
-		 (const :tag "PostGres" postgres)
-		 (const :tag "Solid" solid)
-		 (const :tag "SQLite" sqlite)
-		 (const :tag "Sybase" sybase))
-  :group 'SQL)
 
 (defvar sql-interactive-product nil
   "Product under `sql-interactive-mode'.")
 
 (defvar sql-product-alist
   '((ansi
+     :name "ANSI"
      :font-lock sql-mode-ansi-font-lock-keywords)
     (db2
+     :name "DB2"
      :font-lock sql-mode-db2-font-lock-keywords
      :sqli-login nil
      :sqli-connect sql-connect-db2
@@ -323,6 +308,7 @@ highlighted properly when you open them."
      :sqli-prompt-regexp "^SQL>"
      :sqli-prompt-length 4)
     (ms
+     :name "MS SQLServer"
      :font-lock sql-mode-ms-font-lock-keywords
      :sqli-login (user password server database)
      :sqli-connect sql-connect-ms
@@ -330,6 +316,7 @@ highlighted properly when you open them."
      :sqli-prompt-length 5
      :syntax-alist ((?@ . "w")))
     (mysql
+     :name "MySQL"
      :font-lock sql-mode-mysql-font-lock-keywords
      :sqli-login (user password database server)
      :sqli-connect sql-connect-mysql
@@ -355,6 +342,7 @@ highlighted properly when you open them."
      :sqli-prompt-regexp "^"
      :sqli-prompt-length 0)
     (sqlite
+     :name "SQLite"
      :font-lock sql-mode-sqlite-font-lock-keywords
      :sqli-login (database)
      :sqli-connect sql-connect-sqlite
@@ -407,6 +395,18 @@ following:
  :syntax-alist          an alist of syntax table entries to enable
                         special character treatment by font-lock and
                         imenu. ")
+
+(defcustom sql-product 'ansi
+  "*Select the SQL database product used so that buffers can be
+highlighted properly when you open them."
+  :type `(choice
+          ,@(mapcar (lambda (prod-info)
+                      `(const :tag
+                              ,(or (plist-get (cdr prod-info) :name)
+                                   (capitalize (symbol-name (car prod-info))))
+                              ,(car prod-info)))
+                    sql-product-alist))
+  :group 'SQL)
 
 ;; misc customization of sql.el behavior
 
@@ -783,7 +783,7 @@ Based on `comint-mode-map'.")
 (easy-menu-define
  sql-mode-menu sql-mode-map
  "Menu for `sql-mode'."
- '("SQL"
+ `("SQL"
    ["Send Paragraph" sql-send-paragraph (and (buffer-live-p sql-buffer)
 					     (get-buffer-process sql-buffer))]
    ["Send Region" sql-send-region (and (or (and (boundp 'mark-active); Emacs
@@ -804,46 +804,18 @@ Based on `comint-mode-map'.")
     :selected sql-pop-to-buffer-after-send-region]
    ["--" nil nil]
    ("Product"
-    ["ANSI" sql-highlight-ansi-keywords
-     :style radio
-     :selected (eq sql-product 'ansi)]
-    ["DB2" sql-highlight-db2-keywords
-     :style radio
-     :selected (eq sql-product 'db2)]
-    ["Informix" sql-highlight-informix-keywords
-     :style radio
-     :selected (eq sql-product 'informix)]
-    ["Ingres" sql-highlight-ingres-keywords
-     :style radio
-     :selected (eq sql-product 'ingres)]
-    ["Interbase" sql-highlight-interbase-keywords
-     :style radio
-     :selected (eq sql-product 'interbase)]
-    ["Linter" sql-highlight-linter-keywords
-     :style radio
-     :selected (eq sql-product 'linter)]
-    ["MS SQLServer" sql-highlight-ms-keywords
-     :style radio
-     :selected (eq sql-product 'ms)]
-    ["MySQL" sql-highlight-mysql-keywords
-     :style radio
-     :selected (eq sql-product 'mysql)]
-    ["Oracle" sql-highlight-oracle-keywords
-     :style radio
-     :selected (eq sql-product 'oracle)]
-    ["Postgres" sql-highlight-postgres-keywords
-     :style radio
-     :selected (eq sql-product 'postgres)]
-    ["Solid" sql-highlight-solid-keywords
-     :style radio
-     :selected (eq sql-product 'solid)]
-    ["SQLite" sql-highlight-sqlite-keywords
-     :style radio
-     :selected (eq sql-product 'sqlite)]
-    ["Sybase" sql-highlight-sybase-keywords
-     :style radio
-     :selected (eq sql-product 'sybase)]
-    )))
+    ,@(mapcar (lambda (prod-info)
+                (let* ((prod (pop prod-info))
+                       (name (or (plist-get prod-info :name)
+                                 (capitalize (symbol-name prod))))
+                       (cmd (intern (format "sql-highlight-%s-keywords" prod))))
+                  (fset cmd `(lambda () ,(format "Highlight %s SQL keywords." name)
+                               (interactive)
+                               (sql-set-product ',prod)))
+                  (vector name cmd
+                          :style 'radio
+                          :selected `(eq sql-product ',prod))))
+              sql-product-alist))))
 
 ;; easy menu for sql-interactive-mode.
 
@@ -1750,8 +1722,7 @@ adds a fontification pattern to fontify identifiers ending in
 (defun sql-highlight-product ()
   "Turns on the appropriate font highlighting for the SQL product
 selected."
-
-  (when (eq major-mode 'sql-mode)
+  (when (derived-mode-p 'sql-mode)
     ;; Setup font-lock
     (sql-product-font-lock nil t)
 
@@ -1761,7 +1732,12 @@ selected."
 (defun sql-set-product (product)
   "Set `sql-product' to product and enable appropriate
 highlighting."
-  (interactive "SEnter SQL product: ")
+  (interactive
+   (list (completing-read "Enter SQL product: "
+                          (mapcar (lambda (info) (symbol-name (car info)))
+                                  sql-product-alist)
+                          nil 'require-match)))
+  (if (stringp product) (setq product (intern product)))
   (when (not (assoc product sql-product-alist))
     (error "SQL product %s is not supported; treated as ANSI" product)
     (setq product 'ansi))
@@ -1769,72 +1745,6 @@ highlighting."
   ;; Save product setting and fontify.
   (setq sql-product product)
   (sql-highlight-product))
-
-(defun sql-highlight-oracle-keywords ()
-  "Highlight Oracle keywords."
-  (interactive)
-  (sql-set-product 'oracle))
-
-(defun sql-highlight-postgres-keywords ()
-  "Highlight Postgres keywords."
-  (interactive)
-  (sql-set-product 'postgres))
-
-(defun sql-highlight-linter-keywords ()
-  "Highlight LINTER keywords."
-  (interactive)
-  (sql-set-product 'linter))
-
-(defun sql-highlight-ms-keywords ()
-  "Highlight Microsoft SQLServer keywords."
-  (interactive)
-  (sql-set-product 'ms))
-
-(defun sql-highlight-ansi-keywords ()
-  "Highlight ANSI SQL keywords."
-  (interactive)
-  (sql-set-product 'ansi))
-
-(defun sql-highlight-sybase-keywords ()
-  "Highlight Sybase SQL keywords."
-  (interactive)
-  (sql-set-product 'sybase))
-
-(defun sql-highlight-informix-keywords ()
-  "Highlight Informix SQL keywords."
-  (interactive)
-  (sql-set-product 'informix))
-
-(defun sql-highlight-interbase-keywords ()
-  "Highlight Interbase SQL keywords."
-  (interactive)
-  (sql-set-product 'interbase))
-
-(defun sql-highlight-ingres-keywords ()
-  "Highlight Ingres SQL keywords."
-  (interactive)
-  (sql-set-product 'ingres))
-
-(defun sql-highlight-solid-keywords ()
-  "Highlight Solid SQL keywords."
-  (interactive)
-  (sql-set-product 'solid))
-
-(defun sql-highlight-mysql-keywords ()
-  "Highlight MySQL SQL keywords."
-  (interactive)
-  (sql-set-product 'mysql))
-
-(defun sql-highlight-sqlite-keywords ()
-  "Highlight SQLite SQL keywords."
-  (interactive)
-  (sql-set-product 'sqlite))
-
-(defun sql-highlight-db2-keywords ()
-  "Highlight DB2 SQL keywords."
-  (interactive)
-  (sql-set-product 'db2))
-
 
 
 ;;; Compatibility functions
@@ -1971,14 +1881,14 @@ be in `sql-interactive-mode' and have a process."
     (if (and (buffer-live-p default-buffer)
 	     (get-buffer-process default-buffer))
 	default-buffer
-      (save-excursion
+      (save-current-buffer
 	(let ((buflist (buffer-list))
 	      (found))
 	  (while (not (or (null buflist)
 			  found))
 	    (let ((candidate (car buflist)))
 	      (set-buffer candidate)
-	      (if (and (equal major-mode 'sql-interactive-mode)
+	      (if (and (derived-mode-p 'sql-interactive-mode)
 		       (get-buffer-process candidate))
 		  (setq found candidate))
 	      (setq buflist (cdr buflist))))
@@ -1999,7 +1909,7 @@ using `sql-find-sqli-buffer'.  If `sql-buffer' is set,
       (while (not (null buflist))
 	(let ((candidate (car buflist)))
 	  (set-buffer candidate)
-	  (if (and (equal major-mode 'sql-mode)
+	  (if (and (derived-mode-p 'sql-mode)
 		   (not (buffer-live-p sql-buffer)))
 	      (progn
 		(setq sql-buffer default-sqli-buffer)
@@ -2027,8 +1937,7 @@ If you call it from anywhere else, it sets the global copy of
 	    (read-buffer "New SQLi buffer: " default-buffer t))))
       (if (null (get-buffer-process new-buffer))
 	  (error "Buffer %s has no process" (buffer-name new-buffer)))
-      (if (null (save-excursion
-		  (set-buffer new-buffer)
+      (if (null (with-current-buffer new-buffer
 		  (equal major-mode 'sql-interactive-mode)))
 	  (error "Buffer %s is no SQLi buffer" (buffer-name new-buffer)))
       (if new-buffer
@@ -2417,8 +2326,7 @@ Sentinels will always get the two parameters PROCESS and EVENT."
   "Run product interpreter as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
-If buffer exists and a process is running, just switch to buffer
-`*SQL*'.
+If buffer exists and a process is running, just switch to buffer `*SQL*'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
   (interactive)
@@ -2473,20 +2381,17 @@ parameters and command options."
   ;; is meaningless; database without user/password is meaningless,
   ;; because "@param" will ask sqlplus to interpret the script
   ;; "param".
-  (let ((parameter nil))
-    (if (not (string= "" sql-user))
-	(if (not (string= "" sql-password))
-	    (setq parameter (concat sql-user "/" sql-password))
-	  (setq parameter sql-user)))
+  (let ((parameter
+         (if (not (string= "" sql-user))
+             (if (not (string= "" sql-password))
+                 (concat sql-user "/" sql-password)
+               sql-user))))
     (if (and parameter (not (string= "" sql-database)))
 	(setq parameter (concat parameter "@" sql-database)))
-    (if parameter
-	(setq parameter (nconc (list parameter) sql-oracle-options))
-      (setq parameter sql-oracle-options))
-    (if parameter
-	(set-buffer (apply 'make-comint "SQL" sql-oracle-program nil
-			   parameter))
-      (set-buffer (make-comint "SQL" sql-oracle-program nil)))
+    (setq parameter (if parameter
+                        (nconc (list parameter) sql-oracle-options)
+                      sql-oracle-options))
+    (set-buffer (apply 'make-comint "SQL" sql-oracle-program nil parameter))
     ;; SQL*Plus is buffered on WindowsNT; this handles &placeholders.
     (if (eq window-system 'w32)
 	(setq comint-input-sender 'sql-query-placeholders-and-send))))
@@ -2568,9 +2473,9 @@ The default comes from `process-coding-system-alist' and
   "Create comint buffer and connect to Informix using the login
 parameters and command options."
   ;; username and password are ignored.
-  (if (string= "" sql-database)
-      (set-buffer (make-comint "SQL" sql-informix-program nil))
-    (set-buffer (make-comint "SQL" sql-informix-program nil sql-database "-"))))
+  (set-buffer (if (string= "" sql-database)
+                  (make-comint "SQL" sql-informix-program nil)
+                (make-comint "SQL" sql-informix-program nil sql-database "-"))))
 
 
 
@@ -2740,9 +2645,9 @@ The default comes from `process-coding-system-alist' and
   "Create comint buffer and connect to Ingres using the login
 parameters and command options."
   ;; username and password are ignored.
-  (if (string= "" sql-database)
-      (set-buffer (make-comint "SQL" sql-ingres-program nil))
-    (set-buffer (make-comint "SQL" sql-ingres-program nil sql-database))))
+  (set-buffer (if (string= "" sql-database)
+                  (make-comint "SQL" sql-ingres-program nil)
+                (make-comint "SQL" sql-ingres-program nil sql-database))))
 
 
 
