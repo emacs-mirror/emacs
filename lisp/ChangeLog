@@ -1,3 +1,8 @@
+2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calendar/parse-time.el (parse-time-string-chars): Save match
+	data.
+
 2009-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sql.el (sql-product-alist): Add :name tag to entries.

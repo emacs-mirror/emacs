@@ -51,13 +51,14 @@
   (aref parse-time-digits char))
 
 (defsubst parse-time-string-chars (char)
-  (let (case-fold-search str)
-    (cond ((eq char ?+) 1)
-	  ((eq char ?-) -1)
-	  ((eq char ?:) ?d)
-	  ((string-match "[[:upper:]]" (setq str (string char))) ?A)
-	  ((string-match "[[:lower:]]" str) ?a)
-	  ((string-match "[[:digit:]]" str) ?0))))
+  (save-match-data
+    (let (case-fold-search str)
+      (cond ((eq char ?+) 1)
+	    ((eq char ?-) -1)
+	    ((eq char ?:) ?d)
+	    ((string-match "[[:upper:]]" (setq str (string char))) ?A)
+	    ((string-match "[[:lower:]]" str) ?a)
+	    ((string-match "[[:digit:]]" str) ?0)))))
 
 (put 'parse-error 'error-conditions '(parse-error error))
 (put 'parse-error 'error-message "Parsing error")
