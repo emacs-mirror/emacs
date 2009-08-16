@@ -2154,8 +2154,9 @@ See `cperl-electric-parens'."
 	     ;;(not (save-excursion (search-backward "#" beg t)))
 	     (if (eq last-command-event ?<)
 		 (progn
-		   (and abbrev-mode ; later it is too late, may be after `for'
-			(expand-abbrev))
+		   ;; This code is too electric, see Bug#3943.
+		   ;; (and abbrev-mode ; later it is too late, may be after `for'
+		   ;; 	(expand-abbrev))
 		   (cperl-after-expr-p nil "{;(,:="))
 	       1))
 	(progn

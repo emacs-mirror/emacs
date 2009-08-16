@@ -1,3 +1,8 @@
+2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cperl-mode.el (cperl-electric-paren): Don't expand
+	abbrev (Bug#3943).
+
 2007-10-08  Ilya Zakharevich  <ilyaz@cpan.org>
 
 	* progmodes/cperl-mode.el: Merge upstream 6.2.
