@@ -1340,16 +1340,6 @@ ENDPOS is encountered."
 	    (setq outer-loop-done (= (point) last-point))
 	    (setq last-point (point)))))))
 
-(defun lisp-indent-region (start end)
-  "Indent every line whose first char is between START and END inclusive."
-  (save-excursion
-    (let ((endmark (copy-marker end)))
-      (goto-char start)
-      (and (bolp) (not (eolp))
-	   (lisp-indent-line))
-      (indent-sexp endmark)
-      (set-marker endmark nil))))
-
 (defun indent-pp-sexp (&optional arg)
   "Indent each line of the list starting just after point, or prettyprint it.
 A prefix argument specifies pretty-printing."
