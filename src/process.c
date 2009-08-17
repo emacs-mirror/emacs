@@ -786,6 +786,7 @@ nil, indicating the current buffer's process.  */)
       p->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       p->tick = ++process_tick;
       status_notify (p);
+      redisplay_preserve_echo_area (13);
     }
   else if (p->infd >= 0)
     {
@@ -817,6 +818,7 @@ nil, indicating the current buffer's process.  */)
 	    = Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
 	  p->tick = ++process_tick;
 	  status_notify (p);
+	  redisplay_preserve_echo_area (13);
 	}
     }
   remove_process (process);
@@ -1543,7 +1545,10 @@ list_processes_1 (query_only)
        }
     }
   if (exited)
-    status_notify (NULL);
+    {
+      status_notify (NULL);
+      redisplay_preserve_echo_area (13);
+    }
   return Qnil;
 }
 
@@ -4756,11 +4761,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       /* If status of something has changed, and no input is
 	 available, notify the user of the change right away.  After
 	 this explicit check, we'll let the SIGCHLD handler zap
-	 timeout to get our attention.  When Emacs is run
-	 interactively, only do this with a nonzero DO_DISPLAY
-	 argument, because status_notify triggers redisplay.  */
-      if (update_tick != process_tick
-	  && (do_display || noninteractive))
+	 timeout to get our attention.  */
+      if (update_tick != process_tick)
 	{
 	  SELECT_TYPE Atemp;
 #ifdef NON_BLOCKING_CONNECT
@@ -4786,6 +4788,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 the loop, since timeout has already been zeroed out.  */
 	      clear_waiting_for_input ();
 	      status_notify (NULL);
+	      if (do_display) redisplay_preserve_echo_area (13);
 	    }
 	}
 
@@ -6201,7 +6204,10 @@ process_send_signal (process, signo, current_group, nomsg)
       p->status = Qrun;
       p->tick = ++process_tick;
       if (!nomsg)
-	status_notify (NULL);
+	{
+	  status_notify (NULL);
+	  redisplay_preserve_echo_area (13);
+	}
       break;
 #endif /* ! defined (SIGCONT) */
     case SIGINT:
@@ -7015,8 +7021,6 @@ status_notify (deleting_process)
     } /* end for */
 
   update_mode_lines++;  /* in case buffers use %s in mode-line-format */
-  redisplay_preserve_echo_area (13);
-
   UNGCPRO;
 }
 

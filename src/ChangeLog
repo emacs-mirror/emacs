@@ -1,3 +1,11 @@
+2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (status_notify): Don't perform redisplay.
+	(Fdelete_process, list_processes_1, process_send_signal):
+	Expliticly perform redisplay.
+	(wait_reading_process_output): Always check process status, but
+	don't perform redisplay unless DO_DISPLAY is non-zero (Bug#2930).
+
 2009-08-17  Ken Raeburn  <raeburn@raeburn.org>
 
 	* lisp.h (XFLOAT_DATA): Produce an rvalue by adding 0 to the
