@@ -4925,13 +4925,17 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   (let ((a1 (rassq
 	     'tramp-completion-file-name-handler file-name-handler-alist)))
     (setq file-name-handler-alist (delete a1 file-name-handler-alist)))
-  ;; `partial-completion-mode' is unknown in XEmacs.  So we should
-  ;; load it unconditionally there.  In the GNU Emacs case, method/
-  ;; user/host name completion shall be bound to `partial-completion-mode'.
-  ;; `ido-mode' and `icy-mode' are other packages which extend file
-  ;; name completion.
-  (when (or (not (boundp 'partial-completion-mode))
-	    (symbol-value 'partial-completion-mode)
+  ;; In XEmacs, there is another Tramp syntax, so we can enable this
+  ;; unconditionally.  In GNU Emacs <= 22, method/user/host name
+  ;; completion shall be bound to `partial-completion-mode'.  Starting
+  ;; with GNU Emacs 23, this is replaced by `completion-styles',
+  ;; containing symbol `partial-completion'.  `ido-mode' and
+  ;; `icy-mode' are other packages which extend file name completion.
+  (when (or (and (boundp 'partial-completion-mode)
+		 (symbol-value 'partial-completion-mode))
+	    (and (boundp 'completion-styles)
+		 (member 'partial-completion (symbol-value 'completion-styles)))
+	    (featurep 'xemacs)
 	    (featurep 'ido)
 	    (featurep 'icicles))
     (add-to-list 'file-name-handler-alist
