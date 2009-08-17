@@ -1,3 +1,8 @@
+2009-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-register-completion-file-name-handler):
+	Check also for (member 'partial-completion completion-styles).
+
 2009-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cperl-mode.el (cperl-electric-paren): Don't expand
