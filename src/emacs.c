@@ -1630,10 +1630,8 @@ main (int argc, char **argv)
 
   if (!initialized)
     {
-      /* The basic levels of Lisp must come first.  */
-      /* And data must come first of all
-	 for the sake of symbols like error-message.  */
-      syms_of_data ();
+      /* The basic levels of Lisp must come first.  Note that
+	 syms_of_data and some others have already been called.  */
       syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
