@@ -73,17 +73,21 @@ source while in the midst of loading another file (e.g., with
 to be corrupted once the outer load completed.  Most code doesn't care
 about this, but some (like c-mode) may check it.
 
-** New command to add a file-local variable to the "Local Variables" list
-in the current buffer is `add-file-local-variable'.  New command to remove
-a file-local variable from the "Local Variables" list is
-`delete-file-local-variable'.  New commands to add/remove a file-local
-variable to/from the -*- line at the beginning of the buffer are
-`add-file-local-variable-prop-line' and `delete-file-local-variable-prop-line'.
-New commands to add/remove a directory-local variable to/from the
-.dir-locals.el file are `add-dir-local-variable' and
-`delete-dir-local-variable'.  New commands to copy directory-local
-variables to file-local variables in the "Local Variables" list or the
--*- line and vice versa are `copy-dir-locals-to-file-locals',
+** File-local variable changes
+
+*** Specifying a minor mode as a local variables enables that mode,
+unconditionally.  The previous behavior, toggling the mode, was
+neither reliable nor generally desirable.
+
+*** New commands for adding and removing file-local variables:
+`add-file-local-variable', `delete-file-local-variable',
+`add-file-local-variable-prop-line', and
+`delete-file-local-variable-prop-line'.
+
+*** New commands for adding and removing directory-local variables,
+and copying them to and from file-local variable lists:
+`add-dir-local-variable', `delete-dir-local-variable',
+`copy-dir-locals-to-file-locals',
 `copy-dir-locals-to-file-locals-prop-line' and
 `copy-file-locals-to-dir-locals'.
 
