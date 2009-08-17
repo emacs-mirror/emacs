@@ -3191,7 +3191,12 @@ already the major mode."
 				     "-mode"))))
 	   (unless (eq (indirect-function mode)
 		       (indirect-function major-mode))
-	     (funcall mode))))
+	     (if (memq mode minor-mode-list)
+		 ;; A minor mode must be passed an argument.
+		 ;; Otherwise, if the user enables the minor mode in a
+		 ;; major mode hook, this would toggle it off.
+		 (funcall mode 1)
+	       (funcall mode)))))
 	((eq var 'eval)
 	 (save-excursion (eval val)))
 	(t

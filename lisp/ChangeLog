@@ -1,3 +1,8 @@
+2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-one-local-variable): If the mode function is for
+	a minor mode, pass it an argument (Bug#4148).
+
 2009-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-register-completion-file-name-handler):
