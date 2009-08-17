@@ -2643,7 +2643,7 @@ make_float (float_value)
 
   MALLOC_UNBLOCK_INPUT;
 
-  XFLOAT_DATA (val) = float_value;
+  XFLOAT_INIT (val, float_value);
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
@@ -4850,7 +4850,7 @@ make_pure_float (num)
 
   p = (struct Lisp_Float *) pure_alloc (sizeof *p, Lisp_Float);
   XSETFLOAT (new, p);
-  XFLOAT_DATA (new) = num;
+  XFLOAT_INIT (new, num);
   return new;
 }
 

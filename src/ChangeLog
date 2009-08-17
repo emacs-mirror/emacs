@@ -1,5 +1,13 @@
 2009-08-17  Ken Raeburn  <raeburn@raeburn.org>
 
+	* lisp.h (XFLOAT_DATA): Produce an rvalue by adding 0 to the
+	value.
+	(XFLOAT_INIT): New macro for storing a float value.
+	* alloc.c (make_float, make_pure_float): Use XFLOAT_INIT.
+	* fns.c (sxhash): Copy out the value of a float in order to
+	examine its bytes.
+	* dbusbind.c (xd_append_arg): Likewise.
+
 	* emacs.c (main): Don't call syms_of_data twice.
 
 2009-08-16  Michael Albinus  <michael.albinus@gmx.de>

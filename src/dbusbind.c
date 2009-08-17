@@ -475,11 +475,13 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_DOUBLE:
-	XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT_DATA (object));
-	if (!dbus_message_iter_append_basic (iter, dtype,
-					     &XFLOAT_DATA (object)))
-	  XD_SIGNAL2 (build_string ("Unable to append argument"), object);
-	return;
+	{
+	  double val = XFLOAT_DATA (object);
+	  XD_DEBUG_MESSAGE ("%c %f", dtype, val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
+	  return;
+	}
 
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:

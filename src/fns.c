@@ -4604,8 +4604,9 @@ sxhash (obj, depth)
 
     case Lisp_Float:
       {
-	unsigned char *p = (unsigned char *) &XFLOAT_DATA (obj);
-	unsigned char *e = p + sizeof XFLOAT_DATA (obj);
+	double val = XFLOAT_DATA (obj);
+	unsigned char *p = (unsigned char *) &val;
+	unsigned char *e = p + sizeof val;
 	for (hash = 0; p < e; ++p)
 	  hash = SXHASH_COMBINE (hash, *p);
 	break;

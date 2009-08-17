@@ -1377,9 +1377,12 @@ struct Lisp_Float
   };
 
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_ + 0)
 #else
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data + 0)
+/* This should be used only in alloc.c, which always disables
+   HIDE_LISP_IMPLEMENTATION.  */
+#define XFLOAT_INIT(f,n) (XFLOAT (f)->u.data = (n))
 #endif
 
 /* A character, declared with the following typedef, is a member
