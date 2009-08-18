@@ -1,3 +1,9 @@
+2009-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/paragraphs.el: Change to utf-8.  Adjust coding cookie.
+	(sentence-end-without-space): Delete duplicated chars.
+	(sentence-end-base): Likewise.
+
 2009-08-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tool-bar-map): Use new 8+3 filenames.
