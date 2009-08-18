@@ -146,6 +146,7 @@
 	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode entry.
 
 2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
+	Karl Landstrom  <karl.landstrom@brgeight.se>
 
 	* progmodes/js.el: New file.
 
