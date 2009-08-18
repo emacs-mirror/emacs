@@ -2083,6 +2083,7 @@ format is the same as above.  */)
 DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 3, 0,
        doc: /* Return a font name pattern for character CH in fontset NAME.
 If NAME is t, find a pattern in the default fontset.
+If NAME is nil, find a pattern in the fontset of the selected frame.
 
 The value has the form (FAMILY . REGISTRY), where FAMILY is a font
 family name and REGISTRY is a font registry name.  This is actually
@@ -2115,6 +2116,8 @@ patterns.  */)
 	      Lisp_Object family, registry;
 
 	      val = AREF (elt, j);
+	      if (NILP (val))
+		break;
 	      repertory = AREF (val, 1);
 	      if (INTEGERP (repertory))
 		{
