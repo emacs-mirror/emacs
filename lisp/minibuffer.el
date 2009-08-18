@@ -308,7 +308,8 @@ TRY-COMPLETION is the function that does the completion, and
 ALL-COMPLETIONS is the function that lists the completions.")
 
 (defcustom completion-styles '(basic partial-completion emacs22)
-  "List of completion styles to use."
+  "List of completion styles to use.
+The available styles are listed in `completion-styles-alist'."
   :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
                                    completion-styles-alist)))
   :group 'minibuffer
@@ -388,7 +389,9 @@ E = after completion we now have an Exact match.
     (cond
      ((null comp)
       (ding) (minibuffer-message "No match") (minibuffer--bitset nil nil nil))
-     ((eq t comp) (minibuffer--bitset nil nil t)) ;Exact and unique match.
+     ((eq t comp)
+      (goto-char (field-end))
+      (minibuffer--bitset nil nil t)) ;Exact and unique match.
      (t
       ;; `completed' should be t if some completion was done, which doesn't
       ;; include simply changing the case of the entered string.  However,
@@ -462,11 +465,9 @@ scroll the window of possible completions."
 
       (case (completion--do-completion)
         (#b000 nil)
-        (#b001 (goto-char (field-end))
-               (minibuffer-message "Sole completion")
+        (#b001 (minibuffer-message "Sole completion")
                t)
-        (#b011 (goto-char (field-end))
-               (minibuffer-message "Complete, but not unique")
+        (#b011 (minibuffer-message "Complete, but not unique")
                t)
         (t     t)))))
 
@@ -694,11 +695,9 @@ Return nil if there is no valid completion, else t."
   (interactive)
   (case (completion--do-completion 'completion--try-word-completion)
     (#b000 nil)
-    (#b001 (goto-char (field-end))
-           (minibuffer-message "Sole completion")
+    (#b001 (minibuffer-message "Sole completion")
            t)
-    (#b011 (goto-char (field-end))
-           (minibuffer-message "Complete, but not unique")
+    (#b011 (minibuffer-message "Complete, but not unique")
            t)
     (t     t)))
 
