@@ -1,3 +1,8 @@
+2009-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-init-bus): Declare.  Apply it for the :system
+	and :session buses.
+
 2009-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* international/ucs-normalize.el (ucs-normalize-version): Changed
