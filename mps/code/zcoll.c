@@ -81,15 +81,12 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 100, 0.85 }, { 170, 0.45 } };
 
 
-/* myroot -- array of exact references that are the root */
-/* (note: static, so pointers are auto-initialised to NULL) */
-#define myrootCOUNT 30000
-static void *myroot[myrootCOUNT];
-
-/*
-#define myrootAmbigCOUNT 10
+/* myroot -- arrays of references that are the root */
+#define myrootAmbigCOUNT 30000
 static void *myrootAmbig[myrootAmbigCOUNT];
-*/
+#define myrootExactCOUNT 30000
+static void *myrootExact[myrootExactCOUNT];
+
 
 static unsigned long cols(size_t bytes)
 {
@@ -294,7 +291,7 @@ static void CatalogCheck(void)
   int i, j, k;
 
   /* retrieve Catalog from root */
-  Catalog = myroot[CatalogRootIndex];
+  Catalog = myrootExact[CatalogRootIndex];
   if(!Catalog)
     return;
   Insist(DYLAN_VECTOR_SLOT(Catalog, 0) == DYLAN_INT(CatalogSig));
@@ -356,7 +353,7 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
   Catalog = (void *)v;
   
   /* store Catalog in root */
-  myroot[CatalogRootIndex] = Catalog;
+  myrootExact[CatalogRootIndex] = Catalog;
   get(arena);
 
   fflush(stdout);
@@ -399,11 +396,10 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 }
 
 
-static void MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
+static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
 {
   mps_word_t v;
   size_t minsize;
-  static unsigned long objCount = 0;
   unsigned slots;
   
   minsize = 2 * sizeof(mps_word_t);
@@ -415,17 +411,20 @@ static void MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
 
   /* printf("size(requested):%lu, slots: %u, size(will be):%lu\n", size, slots, (2 + slots) * sizeof(mps_word_t)); */
   die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
-  DYLAN_VECTOR_SLOT(v, 0) = DYLAN_INT(objCount);
-  objCount++;
-  myroot[objCount % myrootCOUNT] = (void*)v;
   get(arena);
+  
+  return (void *)v;
 }
 
-static void BigSmall(mps_arena_t arena, mps_ap_t ap)
+static void BigdropSmallambig(mps_arena_t arena, mps_ap_t ap)
 {
-  MakeThing(arena, ap, 1);
-  MakeThing(arena, ap, 40000);
-  MakeThing(arena, ap, 1);
+  static unsigned long keepCount = 0;
+  unsigned long i;
+  
+  for(i = 0; i < 100; i++) {
+    (void) MakeThing(arena, ap, 40000);
+    myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
+  }
 }
 
 
@@ -469,12 +468,12 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       case 'B': {
-        si = sscanf(script, "BigSmall()%n",
+        si = sscanf(script, "BigdropSmallambig()%n",
                        &sb);
         checksi(si, 0, script, scriptAll);
         script += sb;
-        printf("  BigSmall()\n");
-        BigSmall(arena, ap);
+        printf("  BigdropSmallambig()\n");
+        BigdropSmallambig(arena, ap);
         break;
       }
       case 'M': {
@@ -491,7 +490,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         printf("  Make(keep-1-in %u, keep %u, rootspace %u, sizemethod %u).\n",
                keep1in, keepTotal, keepRootspace, sizemethod);
         
-        Insist(keepRootspace <= myrootCOUNT);
+        Insist(keepRootspace <= myrootExactCOUNT);
 
         objCount = 0;
         while(keepCount < keepTotal) {
@@ -524,7 +523,7 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
           objCount++;
           if(rnd() % keep1in == 0) {
             /* keep this one */
-            myroot[rnd() % keepRootspace] = (void*)v;
+            myrootExact[rnd() % keepRootspace] = (void*)v;
             keepCount++;
           }
           get(arena);
@@ -593,12 +592,21 @@ static void *testscriptB(void *arg, size_t s)
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&amc, arena, mps_class_amc(), fmt, chain),
       "pool_create amc");
-  for(i = 0; i < myrootCOUNT; ++i) {
-    myroot[i] = NULL;
+
+  for(i = 0; i < myrootAmbigCOUNT; ++i) {
+    myrootAmbig[i] = NULL;
   }
   die(mps_root_create_table(&root_table, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
-                            myroot, (size_t)myrootCOUNT),
-      "root_create");
+                            myrootAmbig, (size_t)myrootAmbigCOUNT),
+      "root_create - ambig");
+
+  for(i = 0; i < myrootExactCOUNT; ++i) {
+    myrootExact[i] = NULL;
+  }
+  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+                            myrootExact, (size_t)myrootExactCOUNT),
+      "root_create - exact");
+
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create");
   
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
@@ -679,7 +687,7 @@ int main(int argc, char **argv)
   /*testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");*/
 
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), BigSmall(), Collect.");
+  testscriptA("Arena(size 524288), BigdropSmallambig(), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.
