@@ -4,6 +4,12 @@
 	(sentence-end-without-space): Delete duplicated chars.
 	(sentence-end-base): Likewise.
 
+	* textmodes/sgml-mode.el: Change to utf-8.  Adjust coding cookie.
+	(html-mode): Delete duplicated chars from sentence-end-base.
+
+	* textmodes/texinfo.el: Change to utf-8.  Adjust coding cookie.
+	(texinfo-mode): Delete duplicated chars from sentence-end-base.
+
 2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-one-local-variable): If the mode function is for
