@@ -656,7 +656,8 @@ files.
 
 @item
 Juri Linkov wrote @file{misearch.el}, extending isearch to multi-buffer
-searches.
+searches; and the code in @file{files-x.el} for handling file- and
+directory-local variables.
 
 @item
 K@'{a}roly L@"{o}rentey wrote the ``multi-terminal'' code, which

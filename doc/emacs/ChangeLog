@@ -3,7 +3,7 @@
 	* ack.texi (Acknowledgments):
 	* emacs.texi (Acknowledgments): Update for js.el replacing js2-mode.el.
 
-	* ack.texi (Acknowledgments): Add ucs-normalize.el.
+	* ack.texi (Acknowledgments): Add ucs-normalize.el and files-x.el.
 
 2009-08-09  Glenn Morris  <rgm@gnu.org>
 
