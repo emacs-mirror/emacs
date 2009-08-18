@@ -1,7 +1,7 @@
-2009-08-17  Kenichi Handa  <handa@m17n.org>
+2009-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Ffontset_font): If a nil element is found in a
-	font-group vector, break the loop.
+	font-group vector, return nil.
 
 2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
