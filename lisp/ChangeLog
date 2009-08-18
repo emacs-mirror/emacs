@@ -1,3 +1,9 @@
+2009-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/paragraphs.el: Change to utf-8.  Adjust coding cookie.
+	(sentence-end-without-space): Delete duplicated chars.
+	(sentence-end-base): Likewise.
+
 2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (hack-one-local-variable): If the mode function is for
