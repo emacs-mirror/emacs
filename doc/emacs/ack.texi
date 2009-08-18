@@ -540,7 +540,7 @@ those databases to the format used by the LaTeX text formatting package.
 
 @item
 Taichi Kawabata added support for Devanagari script and the Indian
-languages.
+languages, and wrote @file{ucs-normalize.el} for Unicode normalization.
 
 @item
 Taro Kawagishi implented the MD4 Message Digest Algorithm in Lisp; and
