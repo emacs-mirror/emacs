@@ -1,5 +1,10 @@
 2009-08-18  Kenichi Handa  <handa@m17n.org>
 
+	* international/ucs-normalize.el (ucs-normalize-version): Changed
+	to 1.1.
+	(ucs-normalize-hfs-nfd-pre-write-conversion): New function.
+	(utf-8-hfs): Make it perform normalization on encoding too.
+
 	* textmodes/paragraphs.el: Change to utf-8.  Adjust coding cookie.
 	(sentence-end-without-space): Delete duplicated chars.
 	(sentence-end-base): Likewise.
