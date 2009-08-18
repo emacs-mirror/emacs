@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Subroutines.  */
+Lisp_Object Qdbus_init_bus;
 Lisp_Object Qdbus_get_unique_name;
 Lisp_Object Qdbus_call_method;
 Lisp_Object Qdbus_call_method_asynchronously;
@@ -698,7 +699,6 @@ xd_initialize (bus)
 {
   DBusConnection *connection;
   DBusError derror;
-  int fd;
 
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
@@ -719,16 +719,88 @@ xd_initialize (bus)
   if (connection == NULL)
     XD_SIGNAL2 (build_string ("No connection"), bus);
 
-  /* Add connection file descriptor to input_wait_mask, in order to
-     let select() detect, whether a new message has been arrived.  */
-  if (dbus_connection_get_unix_fd (connection, &fd))
-    add_keyboard_wait_descriptor (fd);
-
   /* Cleanup.  */
   dbus_error_free (&derror);
 
   /* Return the result.  */
   return connection;
+}
+
+
+/* Add connection file descriptor to input_wait_mask, in order to
+   let select() detect, whether a new message has been arrived.  */
+dbus_bool_t
+xd_add_watch (watch, data)
+     DBusWatch *watch;
+     void *data;
+{
+  /* We check only for incoming data.  */
+  if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
+    {
+      /* TODO: Reverse these on Win32, which prefers the opposite. */
+      int fd = dbus_watch_get_unix_fd(watch);
+      if (fd == -1)
+	fd = dbus_watch_get_socket(watch);
+      if (fd == -1)
+	return FALSE;
+
+      //printf ("xd_add_watch: %d\n", fd);
+      /* Add the file descriptor to input_wait_mask.  */
+      add_keyboard_wait_descriptor (fd);
+    }
+
+  /* Return.  */
+  return TRUE;
+}
+
+/* Remove connection file descriptor from input_wait_mask.  */
+void
+xd_remove_watch (watch, data)
+     DBusWatch *watch;
+     void *data;
+{
+  /* We check only for incoming data.  */
+  if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
+    {
+      /* TODO: Reverse these on Win32, which prefers the opposite. */
+      int fd = dbus_watch_get_unix_fd(watch);
+      if (fd == -1)
+	fd = dbus_watch_get_socket(watch);
+      if (fd == -1)
+	return;
+
+      //printf ("xd_remove_watch: %d\n", fd);
+      /* Remove the file descriptor from input_wait_mask.  */
+      delete_keyboard_wait_descriptor (fd);
+    }
+
+  /* Return.  */
+  return;
+}
+
+DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
+       doc: /* Initialize connection to D-Bus BUS.
+This is an internal function, it shall not be used outside dbus.el.  */)
+     (bus)
+     Lisp_Object bus;
+{
+  DBusConnection *connection;
+
+  /* Check parameters.  */
+  CHECK_SYMBOL (bus);
+
+  /* Open a connection to the bus.  */
+  connection = xd_initialize (bus);
+
+  /* Add the watch functions.  */
+  if (!dbus_connection_set_watch_functions (connection,
+					    xd_add_watch,
+					    xd_remove_watch,
+					    NULL, NULL, NULL))
+    XD_SIGNAL1 (build_string ("Cannot add watch functions"));
+
+  /* Return.  */
+  return Qnil;
 }
 
 DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
@@ -1864,6 +1936,10 @@ used for composing the returning D-Bus message.  */)
 void
 syms_of_dbusbind ()
 {
+
+  Qdbus_init_bus = intern ("dbus-init-bus");
+  staticpro (&Qdbus_init_bus);
+  defsubr (&Sdbus_init_bus);
 
   Qdbus_get_unique_name = intern ("dbus-get-unique-name");
   staticpro (&Qdbus_get_unique_name);
