@@ -585,9 +585,8 @@ COMPOSITION-PREDICATE will be used to compose region."
   (save-excursion
     (save-restriction
       (narrow-to-region (point) (+ (point) len))
-      (let ((buffer-modified-p (buffer-modified-p)))
-        (ucs-normalize-HFS-NFC-region (point-min) (point-max))
-        (- (point-max) (point-min))))))
+      (ucs-normalize-HFS-NFC-region (point-min) (point-max))
+      (- (point-max) (point-min)))))
 
 ;; Pre-write conversion for `utf-8-hfs'.
 (defun ucs-normalize-hfs-nfd-pre-write-conversion (from to)

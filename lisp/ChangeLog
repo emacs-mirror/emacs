@@ -1,5 +1,8 @@
 2009-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/ucs-normalize.el (ucs-normalize-hfs-nfd-post-read-conversion):
+	Remove unused var `buffer-modified-p'.
+
 	* minibuffer.el (completion--do-completion): Move point for the #b001
 	case as well (bug#4176).
 	(minibuffer-complete, minibuffer-complete-word): Don't move point.
