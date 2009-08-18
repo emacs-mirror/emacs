@@ -2117,7 +2117,7 @@ patterns.  */)
 
 	      val = AREF (elt, j);
 	      if (NILP (val))
-		break;
+		return Qnil;
 	      repertory = AREF (val, 1);
 	      if (INTEGERP (repertory))
 		{
