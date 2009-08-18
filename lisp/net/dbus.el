@@ -34,11 +34,21 @@
 ;; option "--without-dbus".  Declare used subroutines and variables.
 (declare-function dbus-call-method "dbusbind.c")
 (declare-function dbus-call-method-asynchronously "dbusbind.c")
+(declare-function dbus-init-bus "dbusbind.c")
 (declare-function dbus-method-return-internal "dbusbind.c")
 (declare-function dbus-method-error-internal "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
 (defvar dbus-debug)
 (defvar dbus-registered-functions-table)
+
+;; Initialize :system and :session buses.  This adds their file
+;; descriptors to input_wait_mask, in order to detect incoming
+;; messages immediately.
+;; We must avoid to call the function twice for a bus, because the
+;; DBusWatch will be removed then.
+(when (and (featurep 'dbusbind) (not (featurep 'dbus)))
+  (dbus-init-bus :system)
+  (dbus-init-bus :session))
 
 ;; Pacify byte compiler.
 (eval-when-compile
