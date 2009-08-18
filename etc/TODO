@@ -53,9 +53,6 @@ I suggest totally rewriting that part of Flymake, using the simplest
 mechanism that sufficies for the specific needs.  That will be easy
 for users to customize.
 
-** Make "emacs --daemon" start emacs without showing any frame. 
-Use emacsclient later to open frames.
-
 ** Compute the list of active keymaps *after* reading the first event.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
