@@ -1,3 +1,8 @@
+2009-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Update for js.el replacing js2-mode.el.
+
 2009-08-09  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

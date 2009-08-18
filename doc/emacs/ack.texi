@@ -616,6 +616,10 @@ objects; and @file{isearch.el}, Emacs's incremental search minor mode.
 He also co-wrote @file{hideif.el} (q.v.@:).
 
 @item
+Karl Landstrom and Daniel Colascione wrote @file{js.el}, a mode for
+editing JavaScript.
+
+@item
 Vinicius Jose Latorre wrote the Emacs printing facilities, as well as
 @code{ps-print} (with Jim Thompson, Jacques Duthen, and Kenichi Handa),
 a package for pretty-printing Emacs buffers to PostScript printers;
@@ -1339,9 +1343,6 @@ linker scripts, and contributed subword handling in CC mode.
 Jonathan Yavner wrote @file{testcover.el}, a package for keeping track
 of the testing status of Emacs Lisp code; @file{unsafep.el} to determine
 if a Lisp form is safe; and the SES spreadsheet package.
-
-@item
-Steve Yegge wrote @file{js2-mode.el}, a mode for editing JavaScript.
 
 @item
 Ryan Yeske wrote @file{rcirc.el} a simple Internet Relay Chat client.
