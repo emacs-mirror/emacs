@@ -1,3 +1,8 @@
+2009-08-17  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Ffontset_font): If a nil element is found in a
+	font-group vector, break the loop.
+
 2009-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (status_notify): Don't perform redisplay.
