@@ -1,3 +1,9 @@
+2009-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_add_watch, xd_remove_watch, Fdbus_init_bus): New
+	functions.
+	(xd_initialize): Revert change from 2009-08-16.
+
 2009-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Ffontset_font): If a nil element is found in a
