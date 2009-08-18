@@ -108,7 +108,7 @@
 
 ;;; Code:
 
-(defconst ucs-normalize-version "1.1beta2")
+(defconst ucs-normalize-version "1.1")
 
 (eval-when-compile (require 'cl))
 
@@ -589,19 +589,26 @@ COMPOSITION-PREDICATE will be used to compose region."
         (ucs-normalize-HFS-NFC-region (point-min) (point-max))
         (- (point-max) (point-min))))))
 
+;; Pre-write conversion for `utf-8-hfs'.
+(defun ucs-normalize-hfs-nfd-pre-write-conversion (from to)
+  (let ((old-buf (current-buffer)))
+    (set-buffer (generate-new-buffer " *temp*"))
+    (if (stringp from) 
+        (insert from)
+      (insert-buffer-substring old-buf from to))
+    (ucs-normalize-HFS-NFD-region (point-min) (point-max))
+    nil))
+
 ;;; coding-system definition
 (define-coding-system 'utf-8-hfs
-  "UTF-8 base coding system with normalization on decoding.
+  "UTF-8 based coding system for MacOS HFS file names.
 The singleton characters in HFS normalization exclusion will not
-be decomposed.  It doesn't perform normalization on encoding."
+be decomposed."
   :coding-type 'utf-8
   :mnemonic ?U
   :charset-list '(unicode)
-  ;; :decode-translation-table (not necessary)
   :post-read-conversion 'ucs-normalize-hfs-nfd-post-read-conversion
-  ;; NFD encoder is not necessary because MacOS will automatically do it.
-  ;; :encode-translation-table 'nfd-encode-translation-table
-  ;; :pre-write-conversion 'nfd-encode-function
+  :pre-write-conversion 'ucs-normalize-hfs-nfd-pre-write-conversion
   )
 
 (provide 'ucs-normalize)
