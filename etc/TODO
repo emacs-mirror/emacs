@@ -56,9 +56,6 @@ for users to customize.
 ** Make "emacs --daemon" start emacs without showing any frame. 
 Use emacsclient later to open frames.
 
-** Make it possible to reliably turn on minor modes using "mode:" in the local 
-variables section.
-
 ** Compute the list of active keymaps *after* reading the first event.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
