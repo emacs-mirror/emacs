@@ -1,3 +1,16 @@
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (listify-key-sequence-1): Use normal syntax since those
+	integers are nowadays always represented by the same (positive) number
+	on all platforms.
+	(read-key-empty-map): New const.
+	(read-key-delay): New var.
+	(read-key): New function.
+	(force-mode-line-update): Use with-current-buffer.
+	(locate-user-emacs-file): Don't forget to abbreviate the file name.
+	(start-process-shell-command, start-file-process-shell-command):
+	Discourage the use of command-args.
+
 2009-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries): Remove cvtmail.

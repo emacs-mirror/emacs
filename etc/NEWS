@@ -177,6 +177,10 @@ functions and variables.
 
 * Lisp changes in Emacs 23.2
 
+** read-key is a function halfway between read-event and read-key-sequence.
+It reads a single key, but obeys input and escape sequence decoding.
+** start-process-shell-command start-file-process-shell-command only
+take a single `command' argument any more.
 ** Hash tables have a new printed representation that is readable.
 The feature `hashtable-print-readable' identifies this new
 functionality.

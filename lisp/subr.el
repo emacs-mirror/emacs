@@ -225,7 +225,9 @@ This function accepts any number of arguments, but ignores them."
   "Signal an error, making error message by passing all args to `format'.
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+\(fn STRING &rest ARGS)"
   (while t
     (signal 'error (list (apply 'format args)))))
 
@@ -753,10 +755,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 ;;;; Event manipulation functions.
 
-;; The call to `read' is to ensure that the value is computed at load time
-;; and not compiled into the .elc file.  The value is negative on most
-;; machines, but not on all!
-(defconst listify-key-sequence-1 (logior 128 (read "?\\M-\\^@")))
+(defconst listify-key-sequence-1 (logior 128 ?\M-\C-@))
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
@@ -1759,6 +1758,48 @@ Legitimate radix values are 8, 10 and 16."
  :type '(choice (const 8) (const 10) (const 16))
  :group 'editing-basics)
 
+(defconst read-key-empty-map (make-sparse-keymap))
+
+(defvar read-key-delay 0.1)
+
+(defun read-key (&optional prompt)
+  "Read a key from the keyboard.
+Contrary to `read-event' this will not return a raw event but instead will
+obey the input decoding and translations usually done by `read-key-sequence'.
+So escape sequences and keyboard encoding are taken into account.
+When there's an ambiguity because the key looks like the prefix of
+some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
+  (let ((overriding-terminal-local-map read-key-empty-map)
+	(overriding-local-map nil)
+	(old-global-map (current-global-map))
+        (timer (run-with-idle-timer
+                ;; Wait long enough that Emacs has the time to receive and
+                ;; process all the raw events associated with the single-key.
+                ;; But don't wait too long, or the user may find the delay
+                ;; annoying (or keep hitting more keys which may then get
+                ;; lost or misinterpreted).
+                ;; This is only relevant for keys which Emacs perceives as
+                ;; "prefixes", such as C-x (because of the C-x 8 map in
+                ;; key-translate-table and the C-x @ map in function-key-map)
+                ;; or ESC (because of terminal escape sequences in
+                ;; input-decode-map).
+                read-key-delay t
+                (lambda ()
+                  (let ((keys (this-command-keys-vector)))
+                    (unless (zerop (length keys))
+                      ;; `keys' is non-empty, so the user has hit at least
+                      ;; one key; there's no point waiting any longer, even
+                      ;; though read-key-sequence thinks we should wait
+                      ;; for more input to decide how to interpret the
+                      ;; current input.
+                      (throw 'read-key keys)))))))
+    (unwind-protect
+        (progn
+	  (use-global-map read-key-empty-map)
+	  (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
+      (cancel-timer timer)
+      (use-global-map old-global-map))))
+
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
 Also, if the first character read is an octal digit,
@@ -2095,7 +2136,7 @@ This finishes the change group by reverting all of its changes."
 With optional non-nil ALL, force redisplay of all mode lines and
 header lines.  This function also forces recomputation of the
 menu bar menus and the frame title."
-  (if all (save-excursion (set-buffer (other-buffer))))
+  (if all (with-current-buffer (other-buffer)))
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun momentary-string-display (string pos &optional exit-char message)
@@ -2240,7 +2281,8 @@ directory if it does not exist."
 	   purify-flag
 	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
 	   (make-directory user-emacs-directory))
-       (expand-file-name new-name user-emacs-directory)))))
+       (abbreviate-file-name
+        (expand-file-name new-name user-emacs-directory))))))
 
 
 ;;;; Misc. useful functions.
@@ -2491,13 +2533,13 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-COMMAND is the name of a shell command.
-Remaining arguments are the arguments for the command; they are all
-spliced together with blanks separating between each two of them, before
-passing the command to the shell.
-Wildcards and redirection are handled as usual in the shell.
+COMMAND is the shell command to run.
 
-\(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
+An old calling convention accepted any number of arguments after COMMAND,
+which were just concatenated to COMMAND.  This is still supported but strongly
+discouraged.
+
+\(fn NAME BUFFER COMMAND)"
    ;; We used to use `exec' to replace the shell with the command,
    ;; but that failed to handle (...) and semicolon, etc.
   (start-process name buffer shell-file-name shell-command-switch
@@ -2505,7 +2547,9 @@ Wildcards and redirection are handled as usual in the shell.
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
-Similar to `start-process-shell-command', but calls `start-file-process'."
+Similar to `start-process-shell-command', but calls `start-file-process'.
+
+\(fn NAME BUFFER COMMAND)"
   (start-file-process
    name buffer
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)

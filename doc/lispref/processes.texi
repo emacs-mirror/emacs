@@ -581,11 +581,10 @@ example @code{ange-ftp-hook-function}).  In such cases, the function
 does nothing and returns @code{nil}.
 @end defun
 
-@defun start-process-shell-command name buffer-or-name command &rest command-args
+@defun start-process-shell-command name buffer-or-name command
 This function is like @code{start-process} except that it uses a shell
 to execute the specified command.  The argument @var{command} is a shell
-command name, and @var{command-args} are the arguments for the shell
-command.  The variable @code{shell-file-name} specifies which shell to
+command name.  The variable @code{shell-file-name} specifies which shell to
 use.
 
 The point of running a program through the shell, rather than directly
@@ -597,7 +596,7 @@ characters do @emph{not} have their special shell meanings.  @xref{Shell
 Arguments}.
 @end defun
 
-@defun start-file-process-shell-command name buffer-or-name command &rest command-args
+@defun start-file-process-shell-command name buffer-or-name command
 This function is like @code{start-process-shell-command}, but uses
 @code{start-file-process} internally.  By this, @var{command} can be
 executed also on remote hosts, depending on @code{default-directory}.

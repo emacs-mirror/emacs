@@ -1,3 +1,8 @@
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* processes.texi (Asynchronous Processes): Adjust arglist of
+	start-process-shell-command and start-file-process-shell-command.
+
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* advice.texi (Argument Access in Advice): Note that argument
