@@ -1,3 +1,7 @@
+2009-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove cvtmail.
+
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (choose-completion-string): Don't rely on
