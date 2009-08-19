@@ -310,6 +310,7 @@ Don't move point."
 	  (end (progn (forward-sexp) (point))))
       (cons (buffer-substring beg end)
 	    beg))))
+(make-obsolete 'imenu-example--name-and-position "your own" "23.2")
 
 ;;;
 ;;; Lisp
@@ -328,6 +329,7 @@ Don't move point."
 		     (end (progn (forward-sexp -1) (point))))
 		 (buffer-substring beg end)))
 	   (error nil)))))
+(make-obsolete 'imenu-example--lisp-extract-index-name "your own" "23.2")
 
 (defun imenu-example--create-lisp-index ()
   ;; Example of a candidate for `imenu-create-index-function'.
@@ -379,6 +381,7 @@ Don't move point."
 	 (push (cons "Syntax-unknown" index-unknown-alist)
 	       index-alist))
     index-alist))
+(make-obsolete 'imenu-example--create-lisp-index "your own" "23.2")
 
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
@@ -410,7 +413,7 @@ Don't move point."
 	    (push (imenu-example--name-and-position) index-alist))))
     (imenu-progress-message prev-pos 100)
     (nreverse index-alist)))
-
+(make-obsolete 'imenu-example--create-c-index "your own" "23.2")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

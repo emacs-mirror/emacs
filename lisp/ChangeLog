@@ -1,5 +1,10 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* imenu.el (imenu-example--name-and-position)
+	(imenu-example--lisp-extract-index-name)
+	(imenu-example--create-lisp-index, imenu-example--create-c-index):
+	Mark as obsolete.
+
 	* progmodes/prolog.el (inferior-prolog-error-regexp-alist): New var.
 	(inferior-prolog-mode): Use it.
 	(inferior-prolog-load-file): Reset list of errors.
