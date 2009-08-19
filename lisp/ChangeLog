@@ -1,3 +1,13 @@
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-hide-completions): New function.
+	(completion--do-completion): Use it.
+	(completions-annotations): New face.
+	(completion--insert-strings): Use it.
+	(completion-pcm--delim-wild-regex): Add docstring.
+	(completion-pcm--string->pattern): Add support for 0-width delimiters
+	in completion-pcm--delim-wild-regex.
+
 2009-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/ucs-normalize.el (ucs-normalize-hfs-nfd-post-read-conversion):

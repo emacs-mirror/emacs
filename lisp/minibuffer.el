@@ -388,8 +388,10 @@ E = after completion we now have an Exact match.
 			(- (point) beg))))
     (cond
      ((null comp)
+      (minibuffer-hide-completions)
       (ding) (minibuffer-message "No match") (minibuffer--bitset nil nil nil))
      ((eq t comp)
+      (minibuffer-hide-completions)
       (goto-char (field-end))
       (minibuffer--bitset nil nil t)) ;Exact and unique match.
      (t
@@ -422,7 +424,11 @@ E = after completion we now have an Exact match.
           (let ((exact (test-completion completion
 					minibuffer-completion-table
 					minibuffer-completion-predicate)))
-            (unless completed
+            (if completed
+                ;; We could also decide to refresh the completions,
+                ;; if they're displayed (and assuming there are
+                ;; completions left).
+                (minibuffer-hide-completions)
               ;; Show the completion table, if requested.
               (cond
                ((not exact)
@@ -431,9 +437,9 @@ E = after completion we now have an Exact match.
                       (t completion-auto-help))
                     (minibuffer-completion-help)
                   (minibuffer-message "Next char not unique")))
-               ;; If the last exact completion and this one were the same,
-               ;; it means we've already given a "Complete but not unique"
-               ;; message and the user's hit TAB again, so now we give him help.
+               ;; If the last exact completion and this one were the same, it
+               ;; means we've already given a "Next char not unique" message
+               ;; and the user's hit TAB again, so now we give him help.
                ((eq this-command last-command)
                 (if completion-auto-help (minibuffer-completion-help)))))
 
@@ -701,6 +707,9 @@ Return nil if there is no valid completion, else t."
            t)
     (t     t)))
 
+(defface completions-annotations '((t :inherit italic))
+  "Face to use for annotations in the *Completions* buffer.")
+
 (defun completion--insert-strings (strings)
   "Insert a list of STRINGS into the current buffer.
 Uses columns to keep the listing readable but compact.
@@ -752,8 +761,9 @@ It also eliminates runs of equal strings."
                                    'mouse-face 'highlight)
               (put-text-property (point) (progn (insert (car str)) (point))
                                  'mouse-face 'highlight)
-              (put-text-property (point) (progn (insert (cadr str)) (point))
-                                 'mouse-face nil))
+              (add-text-properties (point) (progn (insert (cadr str)) (point))
+                                   '(mouse-face nil
+                                     face completions-annotations)))
             ;; Next column to align to.
             (setq column (+ column
                             ;; Round up to a whole number of columns.
@@ -897,6 +907,13 @@ the completions buffer."
       (minibuffer-message
        (if completions "Sole completion" "No completions")))
     nil))
+
+(defun minibuffer-hide-completions ()
+  "Get rid of an out-of-date *Completions* buffer."
+  ;; FIXME: We could/should use minibuffer-scroll-window here, but it
+  ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
+  (let ((win (get-buffer-window "*Completions*" 0)))
+    (if win (with-selected-window win (bury-buffer)))))
 
 (defun exit-minibuffer ()
   "Terminate this minibuffer argument."
@@ -1351,7 +1368,13 @@ Return the new suffix."
 
 ;;; Partial-completion-mode style completion.
 
-(defvar completion-pcm--delim-wild-regex nil)
+(defvar completion-pcm--delim-wild-regex nil
+  "Regular expression matching delimiters controlling the partial-completion.
+Typically, this regular expression simply matches a delimiter, meaning
+that completion can add something at (match-beginning 0), but if it has
+a submatch 1, then completion can add something at (match-end 1).
+This is used when the delimiter needs to be of size zero (e.g. the transition
+from lowercase to uppercase characters).")
 
 (defun completion-pcm--prepare-delim-re (delims)
   (setq completion-pcm--delim-wild-regex (concat "[" delims "*]")))
@@ -1395,13 +1418,20 @@ or a symbol chosen among `any', `star', `point'."
           (p 0)
           (p0 0))
 
-      (while (and (setq p (string-match-p completion-pcm--delim-wild-regex
-                                          string p))
+      (while (and (setq p (string-match completion-pcm--delim-wild-regex
+                                        string p))
                   ;; If the char was added by minibuffer-complete-word, then
                   ;; don't treat it as a delimiter, otherwise "M-x SPC"
                   ;; ends up inserting a "-" rather than listing
                   ;; all completions.
                   (not (get-text-property p 'completion-try-word string)))
+        ;; Usually, completion-pcm--delim-wild-regex matches a delimiter,
+        ;; meaning that something can be added *before* it, but it can also
+        ;; match a prefix and postfix, in which case something can be added
+        ;; in-between (e.g. match [[:lower:]][[:upper:]]).
+        ;; This is determined by the presence of a submatch-1 which delimits
+        ;; the prefix.
+        (if (match-end 1) (setq p (match-end 1)))
         (push (substring string p0 p) pattern)
         (if (eq (aref string p) ?*)
             (progn
