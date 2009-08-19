@@ -1,3 +1,9 @@
+2009-08-19  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* language/tibetan.el ("Tibetan"): Fix sample-text entry.
+
+	* language/tai-viet.el ("TaiViet"): Fix sample-text entry.
+
 2009-08-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (top): Apply `dbus-init-bus' only if the session bus
