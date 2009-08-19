@@ -2,7 +2,6 @@ DOC
 Makefile.c
 b2m
 ctags*
-cvtmail
 digest-doc
 ebrowse
 emacsclient
