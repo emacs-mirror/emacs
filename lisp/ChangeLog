@@ -1,5 +1,9 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-view.el (log-view-mode-map): Remove `q' binding, and unreliable
+	cvs-mode-map parent hack.
+	(log-view-mode): Derive from special-mode.
+
 	* linum.el (linum-mode): window-size-change-functions is redundant.
 	Adapt to new window-configuration-change-hook behavior.
 	(linum-after-size, linum-after-config): Remove.

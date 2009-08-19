@@ -123,8 +123,7 @@
   :prefix "log-view-")
 
 (easy-mmode-defmap log-view-mode-map
-  '(("q" . quit-window)
-    ("z" . kill-this-buffer)
+  '(("z" . kill-this-buffer)
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
@@ -140,10 +139,7 @@
     ("\M-n" . log-view-file-next)
     ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
-  :group 'log-view
-  ;; Here I really need either buffer-local keymap-inheritance
-  ;; or a minor-mode-map with lower precedence than the local map.
-  :inherit (if (boundp 'cvs-mode-map) cvs-mode-map))
+  :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu"
@@ -246,7 +242,7 @@ The match group number 1 should match the revision number itself.")
 ;;;;
 
 ;;;###autoload
-(define-derived-mode log-view-mode fundamental-mode "Log-View"
+(define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
