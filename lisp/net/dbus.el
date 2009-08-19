@@ -41,15 +41,6 @@
 (defvar dbus-debug)
 (defvar dbus-registered-functions-table)
 
-;; Initialize :system and :session buses.  This adds their file
-;; descriptors to input_wait_mask, in order to detect incoming
-;; messages immediately.
-;; We must avoid to call the function twice for a bus, because the
-;; DBusWatch will be removed then.
-(when (and (featurep 'dbusbind) (not (featurep 'dbus)))
-  (dbus-init-bus :system)
-  (dbus-init-bus :session))
-
 ;; Pacify byte compiler.
 (eval-when-compile
   (require 'cl))
@@ -840,6 +831,14 @@ name of the property, and its value.  If there are no properties,
 	 'result
 	 (cons property (dbus-get-property bus service path interface property))
 	 'append)))))
+
+;; Initialize :system and :session buses.  This adds their file
+;; descriptors to input_wait_mask, in order to detect incoming
+;; messages immediately.
+(dbus-ignore-errors
+  (dbus-init-bus :system)
+  (when (getenv "DBUS_SESSION_BUS_ADDRESS")
+    (dbus-init-bus :session)))
 
 (provide 'dbus)
 
