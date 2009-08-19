@@ -1,7 +1,7 @@
 2009-08-19  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (top): Apply `dbus-init-bus' for the :session bus
-	only if it is running already.
+	* net/dbus.el (top): Apply `dbus-init-bus' only if the session bus
+	is running already.
 
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
