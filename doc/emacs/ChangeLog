@@ -1,3 +1,7 @@
+2009-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Remove cvtmail.  Mention info-finder.
+
 2009-08-18  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):

@@ -578,10 +578,6 @@ Pavel Kobyakov wrote @file{flymake.el}, a minor mode for performing
 on-the-fly syntax checking.
 
 @item
-Larry K.@: Kolodney wrote @file{cvtmail.c}, a program to convert the mail
-directories used by Gosling Emacs into RMAIL format.
-
-@item
 David M.@: Koppelman wrote @file{hi-lock.el}, a minor mode for
 interactive automatic highlighting of parts of the buffer text.
 
@@ -656,8 +652,9 @@ files.
 
 @item
 Juri Linkov wrote @file{misearch.el}, extending isearch to multi-buffer
-searches; and the code in @file{files-x.el} for handling file- and
-directory-local variables.
+searches; the code in @file{files-x.el} for handling file- and
+directory-local variables; and the @code{info-finder} feature that
+creates a virtual Info manual of package keywords.
 
 @item
 K@'{a}roly L@"{o}rentey wrote the ``multi-terminal'' code, which
