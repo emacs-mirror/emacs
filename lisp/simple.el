@@ -368,7 +368,7 @@ select the source buffer."
   (interactive "p")
   (next-error-no-select (- (or n 1))))
 
-;;; Internal variable for `next-error-follow-mode-post-command-hook'.
+;; Internal variable for `next-error-follow-mode-post-command-hook'.
 (defvar next-error-follow-last-line nil)
 
 (define-minor-mode next-error-follow-minor-mode
@@ -382,8 +382,8 @@ location."
     (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
     (make-local-variable 'next-error-follow-last-line)))
 
-;;; Used as a `post-command-hook' by `next-error-follow-mode'
-;;; for the *Compilation* *grep* and *Occur* buffers.
+;; Used as a `post-command-hook' by `next-error-follow-mode'
+;; for the *Compilation* *grep* and *Occur* buffers.
 (defun next-error-follow-mode-post-command-hook ()
   (unless (equal next-error-follow-last-line (line-number-at-pos))
     (setq next-error-follow-last-line (line-number-at-pos))
@@ -4475,8 +4475,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 				     (/= arg 1) t nil)))))
 
 
-;;; Many people have said they rarely use this feature, and often type
-;;; it by accident.  Maybe it shouldn't even be on a key.
+;; Many people have said they rarely use this feature, and often type
+;; it by accident.  Maybe it shouldn't even be on a key.
 (put 'set-goal-column 'disabled t)
 
 (defun set-goal-column (arg)
@@ -5855,13 +5855,19 @@ to decide what to delete."
 	     minibuffer-completion-table
 	     ;; If this is reading a file name, and the file name chosen
 	     ;; is a directory, don't exit the minibuffer.
-	     (if (and minibuffer-completing-file-name
-		      (file-directory-p (field-string (point-max))))
-		 (let ((mini (active-minibuffer-window)))
-		   (select-window mini)
-		   (when minibuffer-auto-raise
-		     (raise-frame (window-frame mini))))
-	       (exit-minibuffer)))))))
+             (let* ((result (buffer-substring (field-beginning) (point)))
+                    (bounds
+                     (completion-boundaries result minibuffer-completion-table
+                                            minibuffer-completion-predicate
+                                            "")))
+               (if (eq (car bounds) (length result))
+                   ;; The completion chosen leads to a new set of completions
+                   ;; (e.g. it's a directory): don't exit the minibuffer yet.
+                   (let ((mini (active-minibuffer-window)))
+                     (select-window mini)
+                     (when minibuffer-auto-raise
+                       (raise-frame (window-frame mini))))
+                 (exit-minibuffer))))))))
 
 (define-derived-mode completion-list-mode nil "Completion List"
   "Major mode for buffers showing lists of possible completions.
@@ -6319,8 +6325,8 @@ have both Backspace, Delete and F1 keys.
 See also `normal-erase-is-backspace'."
   (interactive "P")
   (let ((enabled (or (and arg (> (prefix-numeric-value arg) 0))
-		     (and (not arg)
-			  (not (eq 1 (terminal-parameter
+		     (not (or arg
+                              (eq 1 (terminal-parameter
 				      nil 'normal-erase-is-backspace)))))))
     (set-terminal-parameter nil 'normal-erase-is-backspace
 			    (if enabled 1 0))

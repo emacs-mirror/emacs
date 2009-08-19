@@ -1,5 +1,9 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (choose-completion-string): Don't rely on
+	minibuffer-completing-file-name and ad-hoc checks to decide whether
+	to continue completion or not.
+
 	* minibuffer.el (minibuffer-hide-completions): New function.
 	(completion--do-completion): Use it.
 	(completions-annotations): New face.
