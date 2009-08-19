@@ -1,5 +1,6 @@
 2009-08-19  Glenn Morris  <rgm@gnu.org>
 
+	* cvtmail.c: Remove file.
 	* Makefile.in (UTILITIES): Remove cvtmail.
 	(cvtmail${EXEEXT}): Remove.
 
