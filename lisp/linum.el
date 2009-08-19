@@ -82,17 +82,22 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
                                            'linum-update-current) nil t)
           (add-hook 'after-change-functions 'linum-after-change nil t))
         (add-hook 'window-scroll-functions 'linum-after-scroll nil t)
-        (add-hook 'window-size-change-functions 'linum-after-size nil t)
+        ;; Using both window-size-change-functions and
+        ;; window-configuration-change-hook seems redundant. --Stef
+        ;; (add-hook 'window-size-change-functions 'linum-after-size nil t)
         (add-hook 'change-major-mode-hook 'linum-delete-overlays nil t)
         (add-hook 'window-configuration-change-hook
-                  'linum-after-config nil t)
+                  ;; FIXME: If the buffer is shown in N windows, this
+                  ;; will be called N times rather than once.  We should use
+                  ;; something like linum-update-window instead.
+                  'linum-update-current nil t)
         (linum-update-current))
     (remove-hook 'post-command-hook 'linum-update-current t)
     (remove-hook 'post-command-hook 'linum-schedule t)
-    (remove-hook 'window-size-change-functions 'linum-after-size t)
+    ;; (remove-hook 'window-size-change-functions 'linum-after-size t)
     (remove-hook 'window-scroll-functions 'linum-after-scroll t)
     (remove-hook 'after-change-functions 'linum-after-change t)
-    (remove-hook 'window-configuration-change-hook 'linum-after-config t)
+    (remove-hook 'window-configuration-change-hook 'linum-update-current t)
     (remove-hook 'change-major-mode-hook 'linum-delete-overlays t)
     (linum-delete-overlays)))
 
@@ -175,15 +180,15 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
 (defun linum-after-scroll (win start)
   (linum-update (window-buffer win)))
 
-(defun linum-after-size (frame)
-  (linum-after-config))
+;; (defun linum-after-size (frame)
+;;   (linum-after-config))
 
 (defun linum-schedule ()
   ;; schedule an update; the delay gives Emacs a chance for display changes
   (run-with-idle-timer 0 nil #'linum-update-current))
 
-(defun linum-after-config ()
-  (walk-windows (lambda (w) (linum-update (window-buffer w))) nil 'visible))
+;; (defun linum-after-config ()
+;;   (walk-windows (lambda (w) (linum-update (window-buffer w))) nil 'visible))
 
 (defun linum-unload-function ()
   "Unload the Linum library."

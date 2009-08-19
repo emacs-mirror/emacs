@@ -1,5 +1,9 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* linum.el (linum-mode): window-size-change-functions is redundant.
+	Adapt to new window-configuration-change-hook behavior.
+	(linum-after-size, linum-after-config): Remove.
+
 	* imenu.el (imenu-example--name-and-position)
 	(imenu-example--lisp-extract-index-name)
 	(imenu-example--create-lisp-index, imenu-example--create-c-index):
