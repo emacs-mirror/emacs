@@ -1,6 +1,12 @@
+2009-08-19  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* log-edit.el (log-edit-strip-single-file-name): New var.
+	(log-edit-insert-changelog): Use it.
+
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd): Use read-key so keypad keys work as well.
+	Bug#3287
 
 	* help.el (help-print-return-message): Rename from
 	print-help-return-message.

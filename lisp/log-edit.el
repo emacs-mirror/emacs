@@ -148,6 +148,10 @@ can be obtained from `log-edit-files'."
   :type '(hook :options (log-edit-set-common-indentation
 			 log-edit-add-to-changelog)))
 
+(defcustom log-edit-strip-single-file-name t
+  "If non-nil, remove file name from single-file log entries."
+  :type 'boolean)
+
 (defvar cvs-changelog-full-paragraphs t)
 (make-obsolete-variable 'cvs-changelog-full-paragraphs
                         'log-edit-changelog-full-paragraphs
@@ -521,7 +525,7 @@ regardless of user name or time."
     (log-edit-insert-changelog-entries (log-edit-files)))
   (log-edit-set-common-indentation)
   (goto-char (point-min))
-  (when (looking-at "\\*\\s-+")
+  (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
     (forward-line 1)
     (when (not (re-search-forward "^\\*\\s-+" nil t))
       (goto-char (point-min))

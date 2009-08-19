@@ -142,6 +142,9 @@ Signed-off-by line when committing.
 
 **** vc-dir displays the stash status
 
+*** log-edit-strip-single-file-name controls whether or not single filenames
+are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
+
 ** Calendar and diary
 
 ---
