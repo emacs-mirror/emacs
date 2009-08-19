@@ -1,5 +1,7 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (read-passwd): Use read-key so keypad keys work as well.
+
 	* help.el (help-print-return-message): Rename from
 	print-help-return-message.
 

@@ -1905,10 +1905,7 @@ by doing (clear-string STRING)."
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))
-		      ;; We used to use read-char-exclusive, but that
-		      ;; gives funny behavior when the user presses,
-		      ;; e.g., the arrow keys.
-		      (setq c (read-event nil t))
+		      (setq c (read-key))
 		      (not (memq c stop-keys)))
 	  (clear-this-command-keys)
 	  (cond ((memq c rubout-keys) ; rubout
@@ -1916,6 +1913,7 @@ by doing (clear-string STRING)."
 		   (let ((new-pass (substring pass 0 -1)))
 		     (and (arrayp pass) (clear-string pass))
 		     (setq pass new-pass))))
+                ((eq c ?\C-g) (keyboard-quit))
 		((not (numberp c)))
 		((= c ?\C-u) ; kill line
 		 (and (arrayp pass) (clear-string pass))
