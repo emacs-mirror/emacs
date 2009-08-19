@@ -1,5 +1,8 @@
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help.el (help-print-return-message): Rename from
+	print-help-return-message.
+
 	* log-view.el (log-view-mode-map): Remove `q' binding, and unreliable
 	cvs-mode-map parent hack.
 	(log-view-mode): Derive from special-mode.
