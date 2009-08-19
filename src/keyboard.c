@@ -11973,9 +11973,9 @@ syms_of_keyboard ()
       }
   }
 
-  button_down_location = Fmake_vector (make_number (1), Qnil);
+  button_down_location = Fmake_vector (make_number (5), Qnil);
   staticpro (&button_down_location);
-  mouse_syms = Fmake_vector (make_number (1), Qnil);
+  mouse_syms = Fmake_vector (make_number (5), Qnil);
   staticpro (&mouse_syms);
   wheel_syms = Fmake_vector (make_number (4), Qnil);
   staticpro (&wheel_syms);
@@ -12330,7 +12330,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
   staticpro (&Qecho_area_clear_hook);
-  SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
+  Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
 	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);

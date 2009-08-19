@@ -1,7 +1,12 @@
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (syms_of_keyboard): Default to 5 buttons, which should be
+	enough for the most common situations.  Avoid SET_SYMBOL_VALUE.
+
 2009-08-18  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (xd_add_watch, xd_remove_watch, Fdbus_init_bus): New
-	functions.
+	* dbusbind.c (xd_add_watch, xd_remove_watch, Fdbus_init_bus):
+	New functions.
 	(xd_initialize): Revert change from 2009-08-16.
 
 2009-08-18  Kenichi Handa  <handa@m17n.org>
@@ -19,8 +24,7 @@
 
 2009-08-17  Ken Raeburn  <raeburn@raeburn.org>
 
-	* lisp.h (XFLOAT_DATA): Produce an rvalue by adding 0 to the
-	value.
+	* lisp.h (XFLOAT_DATA): Produce an rvalue by adding 0 to the value.
 	(XFLOAT_INIT): New macro for storing a float value.
 	* alloc.c (make_float, make_pure_float): Use XFLOAT_INIT.
 	* fns.c (sxhash): Copy out the value of a float in order to
@@ -38,8 +42,8 @@
 
 2009-08-15  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (xd_get_dispatch_status, xd_pending_messages): New
-	functions.
+	* dbusbind.c (xd_get_dispatch_status, xd_pending_messages):
+	New functions.
 
 	* lisp.h (xd_pending_messages): Declare.
 
@@ -47,8 +51,7 @@
 
 2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* eval.c (Fcalled_interactively_p, Finteractive_p): Doc
-	fix (Bug#3936).
+	* eval.c (Fcalled_interactively_p, Finteractive_p): Doc fix (Bug#3936).
 
 	* xdisp.c (pop_it): Don't pop into a display vector (Bug#4131).
 
