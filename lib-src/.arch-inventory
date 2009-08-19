@@ -1,5 +1,5 @@
 # Ignore binaries
-backup ^(test-distrib|make-docfile|profile|digest-doc|movemail|cvtmail|fakemail|blessmail|yow|emacsserver|hexl|update-game-score|etags|ctags|emacsclient|b2m|ebrowse|sorted-doc)$
+backup ^(test-distrib|make-docfile|profile|digest-doc|movemail|fakemail|blessmail|hexl|update-game-score|etags|ctags|emacsclient|b2m|ebrowse|sorted-doc)$
 
 # Building actually makes a copy/link of the source file
 precious ^(ctags\.c)$
