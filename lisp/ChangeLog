@@ -1,3 +1,9 @@
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el (inferior-prolog-error-regexp-alist): New var.
+	(inferior-prolog-mode): Use it.
+	(inferior-prolog-load-file): Reset list of errors.
+
 2009-08-19  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
 	* language/tibetan.el ("Tibetan"): Fix sample-text entry.
