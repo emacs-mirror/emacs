@@ -1,3 +1,8 @@
+2009-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (UTILITIES): Remove cvtmail.
+	(cvtmail${EXEEXT}): Remove.
+
 2009-07-08  E. Jay Berkenbilt  <ejb@ql.org>  (tiny change)
 
 	* b2m.c (main): Ensure that each message ends in two newlines.
