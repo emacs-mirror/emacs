@@ -2232,16 +2232,12 @@ The optional argument FRAME is currently ignored.  */)
 
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
-       doc: /* Return a description of the color named COLOR.
-The value is a list of integer RGBA values--(RED GREEN BLUE ALPHA).
-These values appear to range from 0 to 65280; white is (65280 65280 65280 0).
-The optional argument FRAME is currently ignored.  */)
+       doc: /* Internal function called by `color-values', which see.  */)
      (color, frame)
      Lisp_Object color, frame;
 {
   NSColor * col;
   float red, green, blue, alpha;
-  Lisp_Object rgba[4];
 
   check_ns ();
   CHECK_STRING (color);
@@ -2251,12 +2247,9 @@ The optional argument FRAME is currently ignored.  */)
 
   [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  rgba[0] = make_number (lrint (red*65280));
-  rgba[1] = make_number (lrint (green*65280));
-  rgba[2] = make_number (lrint (blue*65280));
-  rgba[3] = make_number (lrint (alpha*65280));
-
-  return Flist (4, rgba);
+  return list3 (make_number (lrint (red*65280)),
+		make_number (lrint (green*65280)),
+		make_number (lrint (blue*65280)));
 }
 
 
