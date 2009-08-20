@@ -1,3 +1,7 @@
+2009-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (system-type): Doc fix.
+
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (syms_of_keyboard): Default to 5 buttons, which should be
