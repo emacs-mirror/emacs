@@ -1,3 +1,10 @@
+2009-08-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_WITH_DBUS_WATCH_GET_UNIX_FD): New macro.
+	(xd_add_watch, xd_remove_watch): Use it.  Print debug messages.
+	(xd_initialize, xd_pending_messages): Check, whether
+	$DBUS_SESSION_BUS_ADDRESS is set.
+
 2009-08-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* nsfns.m (Fxw_color_values): Return 3-element list.  Doc fix.
