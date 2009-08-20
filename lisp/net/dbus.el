@@ -836,9 +836,8 @@ name of the property, and its value.  If there are no properties,
 ;; descriptors to input_wait_mask, in order to detect incoming
 ;; messages immediately.
 (dbus-ignore-errors
-  (when (getenv "DBUS_SESSION_BUS_ADDRESS")
-    (dbus-init-bus :system)
-    (dbus-init-bus :session)))
+ (dbus-init-bus :system)
+ (dbus-init-bus :session))
 
 (provide 'dbus)
 
