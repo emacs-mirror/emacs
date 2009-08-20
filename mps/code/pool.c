@@ -461,6 +461,23 @@ void PoolReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* PoolTraceEnd -- do end-of-trace work
+ *
+ * This method is for a pool class to do final end-of-trace work, 
+ * after all reclaiming is complete.  For example, emitting 
+ * diagnostics about what happened during the trace.
+ */
+
+void PoolTraceEnd(Pool pool, Trace trace)
+{
+  AVERT(Pool, pool);
+  AVERT(Trace, trace);
+  AVER(pool->arena == trace->arena);
+
+  (*pool->class->traceEnd)(pool, trace);
+}
+
+
 /* PoolWalk -- walk objects in this segment */
 
 void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,

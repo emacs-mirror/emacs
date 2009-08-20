@@ -2232,6 +2232,24 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
+/* AMCTraceEnd -- emit end-of-trace diagnostics
+ *
+ */
+static void AMCTraceEnd(Pool pool, Trace trace)
+{
+  AMC amc;
+
+  AVERT(Pool, pool);
+  amc = Pool2AMC(pool);
+  AVERT(AMC, amc);
+  AVERT(Trace, trace);
+  
+  DIAG_SINGLEF(( "AMCTraceEnd",
+      "  pool: $P\n", pool,
+      NULL ));
+}
+
+
 /* AMCWalk -- Apply function to (black) objects in segment */
 
 static void AMCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
@@ -2424,6 +2442,7 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
   this->fix = AMCFix;
   this->fixEmergency = AMCFixEmergency;
   this->reclaim = AMCReclaim;
+  this->traceEnd = AMCTraceEnd;
   this->rampBegin = AMCRampBegin;
   this->rampEnd = AMCRampEnd;
   this->walk = AMCWalk;
