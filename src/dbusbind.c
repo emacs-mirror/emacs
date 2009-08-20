@@ -71,6 +71,16 @@ int xd_in_read_queued_messages = 0;
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
    we don't want to poison other namespaces with "dbus_".  */
 
+/* Since D-Bus 1.1.1, dbus_watch_get_fd() was replaced by
+   dbus_watch_get_unix_fd and dbus_watch_get_socket.  We must check
+   this.  */
+#ifdef DBUS_VERSION
+#define XD_WITH_DBUS_WATCH_GET_UNIX_FD		\
+  ((1 << 16) | (1 << 8) | (1)) <= DBUS_VERSION
+#else
+#define XD_WITH_DBUS_WATCH_GET_UNIX_FD 0
+#endif
+
 /* Raise a signal.  If we are reading events, we cannot signal; we
    throw to xd_read_queued_messages then.  */
 #define XD_SIGNAL1(arg)							\
@@ -702,8 +712,13 @@ xd_initialize (bus)
 
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
-  if (!((EQ (bus, QCdbus_system_bus)) || (EQ (bus, QCdbus_session_bus))))
+  if (!(EQ (bus, QCdbus_system_bus) || EQ (bus, QCdbus_session_bus)))
     XD_SIGNAL2 (build_string ("Wrong bus name"), bus);
+
+  /* We do not want to have an autolaunch for the session bus.  */
+  if (EQ (bus, QCdbus_session_bus)
+      && getenv ("DBUS_SESSION_BUS_ADDRESS") == NULL)
+    XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
   /* Open a connection to the bus.  */
   dbus_error_init (&derror);
@@ -717,7 +732,7 @@ xd_initialize (bus)
     XD_ERROR (derror);
 
   if (connection == NULL)
-    XD_SIGNAL2 (build_string ("No connection"), bus);
+    XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
   /* Cleanup.  */
   dbus_error_free (&derror);
@@ -737,14 +752,19 @@ xd_add_watch (watch, data)
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
+#if XD_WITH_DBUS_WATCH_GET_UNIX_FD
       /* TODO: Reverse these on Win32, which prefers the opposite. */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
 	fd = dbus_watch_get_socket(watch);
+#else
+      int fd = dbus_watch_get_fd(watch);
+#endif
+      XD_DEBUG_MESSAGE ("%d", fd);
+
       if (fd == -1)
 	return FALSE;
 
-      //printf ("xd_add_watch: %d\n", fd);
       /* Add the file descriptor to input_wait_mask.  */
       add_keyboard_wait_descriptor (fd);
     }
@@ -762,14 +782,19 @@ xd_remove_watch (watch, data)
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
+#if XD_WITH_DBUS_WATCH_GET_UNIX_FD
       /* TODO: Reverse these on Win32, which prefers the opposite. */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
 	fd = dbus_watch_get_socket(watch);
+#else
+      int fd = dbus_watch_get_fd(watch);
+#endif
+      XD_DEBUG_MESSAGE ("%d", fd);
+
       if (fd == -1)
 	return;
 
-      //printf ("xd_remove_watch: %d\n", fd);
       /* Remove the file descriptor from input_wait_mask.  */
       delete_keyboard_wait_descriptor (fd);
     }
@@ -1541,8 +1566,10 @@ xd_pending_messages ()
      table in dbus.el.  When this package isn't loaded yet, it doesn't
      make sense to handle D-Bus messages.  */
   return (HASH_TABLE_P (Vdbus_registered_functions_table)
-	  ? ((xd_get_dispatch_status (QCdbus_system_bus)
-	      || (xd_get_dispatch_status (QCdbus_session_bus))))
+	  ? (xd_get_dispatch_status (QCdbus_system_bus)
+	     || ((getenv ("DBUS_SESSION_BUS_ADDRESS") != NULL)
+		 ? xd_get_dispatch_status (QCdbus_session_bus)
+		 : FALSE))
 	  : FALSE);
 }
 
