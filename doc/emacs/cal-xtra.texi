@@ -465,8 +465,9 @@ must precede a Baha'i date, @code{diary-hebrew-entry-symbol} (default
 @samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
 @samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
 be abbreviated (because the first three letters are often not unique).
-For example, a diary entry for the Hebrew date Heshvan 25 could look
-like this:
+(Note also that you must use ``Adar I'' if you want Adar of a common
+Hebrew year.)  For example, a diary entry for the Hebrew date Heshvan 25
+could look like this:
 
 @smallexample
 HHeshvan 25 Happy Hebrew birthday!
