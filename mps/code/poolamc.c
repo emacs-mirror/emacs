@@ -463,6 +463,11 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcGen afterRampGen;     /* the generation after rampGen */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
+
+  /* watching the efficiency of an in-progress trace */
+  STATISTIC_DECL(Count whitenCount[TraceLIMIT]);  /* segs whitened */
+  STATISTIC_DECL(Count reclaimCount[TraceLIMIT]);  /* segs reclaimed */
+
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
@@ -894,6 +899,16 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 }
 
 
+static void amcResetTraceIdStats(AMC amc, TraceId ti)
+{
+  AVERT(AMC, amc);
+  AVER(TraceIdCheck(ti));
+
+  STATISTIC(amc->whitenCount[ti] = 0);
+  STATISTIC(amc->reclaimCount[ti] = 0);
+}
+
+
 /* amcInitComm -- initialize AMC/Z pool
  *
  * See <design/poolamc/#init>.
@@ -904,6 +919,8 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   AMC amc;
   Res res;
   Arena arena;
+  TraceId ti;
+  Trace trace;
   Index i;
   size_t genArraySize;
   size_t genCount;
@@ -931,6 +948,10 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
 
   amc->rampCount = 0;
   amc->rampMode = RampOUTSIDE;
+
+  TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
+    amcResetTraceIdStats(amc, ti);
+  TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   if(pool->format->headerSize == 0) {
     pool->fix = AMCFix;
@@ -1375,6 +1396,9 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
 
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
+
+  STATISTIC(amc->whitenCount[trace->ti] += 1);
+
   /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
   AVER(TraceSetIsSingle(PoolArena(pool)->busyTraces));
@@ -2190,6 +2214,8 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   EVENT_PPP(AMCReclaim, gen, trace, seg);
 
+  STATISTIC(amc->reclaimCount[trace->ti] += 1);
+
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
   if(amc->rampMode == RampCOLLECTING) {
@@ -2238,15 +2264,22 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 static void AMCTraceEnd(Pool pool, Trace trace)
 {
   AMC amc;
+  TraceId ti;
 
   AVERT(Pool, pool);
+  AVERT(Trace, trace);
+
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
-  AVERT(Trace, trace);
+  ti = trace->ti;
   
   DIAG_SINGLEF(( "AMCTraceEnd",
       "  pool: $P\n", pool,
+      "  whitenCount: $U\n", amc->whitenCount[ti],
+      "  reclaimCount: $U\n", amc->reclaimCount[ti],
       NULL ));
+
+  amcResetTraceIdStats(amc, ti);
 }
 
 
