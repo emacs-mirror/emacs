@@ -1,3 +1,7 @@
+2009-08-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (top): Initialize only when `dbusbind' is loaded.
+
 2009-08-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* loadup.el: Remove leftover macos code.
