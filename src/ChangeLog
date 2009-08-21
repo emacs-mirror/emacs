@@ -1,3 +1,12 @@
+2009-08-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_get_color): Update documentation properly for last
+	change, and clean up loose ends in the code left by it.  Fix
+	longstanding bug with 16-bit hex parsing, and add support for
+	yet another X11 format (rgb:r/g/b) for compatibility.
+	* nsfns.m (EmacsDialogPanel-runDialogAt): Add declaration of
+	timer_check() to avoid crash on Leopard/PPC.  Bug #2154.
+
 2009-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 500 for js.el.
