@@ -65,7 +65,7 @@
 (defvar moz-repl-name)
 (defvar ido-cur-list)
 (declare-function ido-mode "ido")
-(declare-function inferior-moz-process "mozrepl")
+(declare-function inferior-moz-process "ext:mozrepl" ())
 
 ;;; Constants
 
