@@ -1346,13 +1346,14 @@ ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
      Parse a color name
 /* --------------------------------------------------------------------------
-/* On *Step, we recognize several color formats, in addition to a catalog
-   of colors found in the file Emacs.clr. Color formats include:
-   - #rrggbb where rr, gg, bb specify red, green and blue in hex. */
+/* On *Step, we attempt to mimic the X11 platform here, down to installing an
+   X11 rgb.txt-compatible color list in Emacs.clr (see ns_term_init()).
+   See: http://thread.gmane.org/gmane.emacs.devel/113050/focus=113272). */
 {
-  NSColor * new = nil;
-  const char *hex = NULL;
-  enum { rgb } color_space;
+  NSColor *new = nil;
+  static char hex[20];
+  int scaling;
+  float r = -1.0, g, b;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
@@ -1364,58 +1365,51 @@ ns_get_color (const char *name, NSColor **col)
       name = [ns_selection_color UTF8String];
     }
 
-  if (name[0] == '0' || name[0] == '1' || name[0] == '.')
+  /* First, check for some sort of numeric specification. */
+  hex[0] = '\0';
+
+  if (name[0] == '0' || name[0] == '1' || name[0] == '.')  /* RGB decimal */
     {
-      /* RGB decimal */
       NSScanner *scanner = [NSScanner scannerWithString: nsname];
-      float r, g, b;
       [scanner scanFloat: &r];
       [scanner scanFloat: &g];
       [scanner scanFloat: &b];
+    }
+  else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
+    {
+      strcpy(hex, name + 4);
+      scaling = (strlen(hex) - 2) / 4;
+    }
+  else if (name[0] == '#')        /* An old X11 format; convert to newer */
+    {
+      int len = (strlen(name) - 1);
+      int start = (len % 3 == 0) ? 1 : len / 4 + 1;
+      int i;
+      scaling = strlen(name+start) / 3;
+      for (i=0; i<3; i++) {
+        strncpy(hex + i * (scaling + 1), name + start + i * scaling, scaling);
+        hex[(i+1) * (scaling + 1) - 1] = '/';
+      }
+      hex[3 * (scaling + 1) - 1] = '\0';
+    }
+
+  if (hex[0])
+    {
+      int rr, gg, bb;
+      float fscale = scaling == 4 ? 65535.0 : (scaling == 2 ? 255.0 : 15.0);
+      if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
+        {
+          r = rr / fscale;
+          g = gg / fscale;
+          b = bb / fscale;
+        }
+    }
+
+  if (r >= 0.0)
+    {
       *col = [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0];
       UNBLOCK_INPUT;
       return 0;
-    }
-
-  if (name[0] == '#')             /* X11 format */
-    {
-      hex = name + 1;
-      color_space = rgb;
-    }
-
-  /* Direct colors (hex values) */
-  if (hex)
-    {
-      unsigned long long color = 0;
-      if (sscanf (hex, "%x", &color))
-        {
-          float f1, f2, f3, f4;
-          /* Assume it's either 1 byte or 2 per channel... */
-          if (strlen(hex) > 8) {
-            f1 = ((color >> 48) & 0xffff) / 65535.0;
-            f2 = ((color >> 32) & 0xffff) / 65535.0;
-            f3 = ((color >> 16) & 0xffff) / 65535.0;
-            f4 = ((color      ) & 0xffff) / 65535.0;
-          } else {
-            f1 = ((color >> 24) & 0xff) / 255.0;
-            f2 = ((color >> 16) & 0xff) / 255.0;
-            f3 = ((color >>  8) & 0xff) / 255.0;
-            f4 = ((color      ) & 0xff) / 255.0;
-          }
-
-          switch (color_space)
-            {
-            case rgb:
-              *col = [NSColor colorWithCalibratedRed: f2
-                                               green: f3
-                                                blue: f4
-                                               alpha: 1.0];
-              break;
-            }
-          *col = [*col colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-          UNBLOCK_INPUT;
-          return 0;
-        }
     }
 
   /* Otherwise, color is expected to be from a list */
@@ -1444,10 +1438,8 @@ ns_get_color (const char *name, NSColor **col)
       }
   }
 
-  if ( new )
+  if (new)
     *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-/*     else
-       NSLog (@"Failed to find color '%@'", nsname); */
   UNBLOCK_INPUT;
   return new ? 0 : 1;
 }
