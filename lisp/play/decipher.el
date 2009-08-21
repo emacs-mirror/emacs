@@ -274,7 +274,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ   -*-decipher-*-\n)\n\n")
             (insert ">\n")))))          ;Mark plaintext line
     (delete-blank-lines)                ;Remove any blank lines
     (delete-blank-lines))               ; at end of buffer
-  (goto-line 4)
+  (goto-char (point-min))
+  (forward-line 3)
   (decipher-mode))
 
 ;;;###autoload

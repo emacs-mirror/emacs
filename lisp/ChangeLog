@@ -26,7 +26,14 @@
 	Use help-print-return-message rather than the now obsolete alias.
 
 	* calendar/cal-move.el (calendar-cursor-to-nearest-date)
-	(calendar-cursor-to-visible-date): Use forward-line, not goto-line.
+	(calendar-cursor-to-visible-date):
+	* play/5x5.el (5x5-position-cursor):
+	* play/decipher.el (decipher):
+	* play/gomoku.el (gomoku-goto-xy):
+	* play/landmark.el (lm-goto-xy):
+	* play/mpuz.el (mpuz-paint-errors, mpuz-paint-statistics)
+	(mpuz-paint-digit):
+	Use forward-line, not goto-line.
 
 	* mail/rmail.el (rmail-obsolete): Delete custom group.
 	(rmail-pop-password, rmail-pop-password-required): Make into aliases.

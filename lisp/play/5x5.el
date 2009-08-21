@@ -300,7 +300,8 @@ Quit current game         \\[5x5-quit-game]"
 
 (defun 5x5-position-cursor ()
   "Position the cursor on the grid."
-  (goto-line (+ (* 5x5-y-pos 5x5-y-scale) 2))
+  (goto-char (point-min))
+  (forward-line (1+ (* 5x5-y-pos 5x5-y-scale)))
   (goto-char (+ (point) (* 5x5-x-pos 5x5-x-scale) (+ 5x5-x-pos 1) 1)))
 
 (defun 5x5-made-move ()

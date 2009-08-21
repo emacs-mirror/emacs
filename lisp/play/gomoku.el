@@ -989,7 +989,8 @@ If the game is finished, this command requests for another game."
 (defun gomoku-goto-xy (x y)
   "Move point to square at X, Y coords."
   (let ((inhibit-point-motion-hooks t))
-    (goto-line (+ 1 gomoku-y-offset (* gomoku-square-height (1- y)))))
+    (goto-char (point-min))
+    (forward-line (+ gomoku-y-offset (* gomoku-square-height (1- y)))))
   (move-to-column (+ gomoku-x-offset (* gomoku-square-width (1- x)))))
 
 (defun gomoku-plot-square (square value)

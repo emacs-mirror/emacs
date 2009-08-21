@@ -320,12 +320,14 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defun mpuz-paint-errors ()
   "Paint error count on the puzzle screen."
   (mpuz-switch-to-window)
-  (goto-line 3)
+  (goto-char (point-min))
+  (forward-line 2)
   (mpuz-paint-number (prin1-to-string mpuz-nb-errors)))
 
 (defun mpuz-paint-statistics ()
   "Paint statistics about previous games on the puzzle screen."
-  (goto-line 7)
+  (goto-char (point-min))
+  (forward-line 6)
   (mpuz-paint-number (prin1-to-string mpuz-nb-completed-games))
   (mpuz-paint-number
    (format "%.2f"
@@ -352,7 +354,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		       ('mpuz-unsolved))))
 	buffer-read-only)
     (mapc (lambda (square)
-	    (goto-line (car square))	; line before column!
+	    (goto-char (point-min))
+	    (forward-line (1- (car square)))	; line before column!
 	    (move-to-column (cdr square))
 	    (insert char)
 	    (set-text-properties (1- (point)) (point) face)
