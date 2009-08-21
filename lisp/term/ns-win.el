@@ -728,18 +728,21 @@ Lines are highlighted according to `ns-input-line'."
                  ns-input-line)))
    (ns-input-line
     (if (not ns-select-overlay)
-        (overlay-put (setq ns-select-overlay (make-overlay (point-min) (point-min)))
+        (overlay-put (setq ns-select-overlay (make-overlay (point-min)
+                                                           (point-min)))
                      'face 'highlight))
     (let ((beg (save-excursion
-                 (goto-line (if (consp ns-input-line)
-                                (min (car ns-input-line) (cdr ns-input-line))
-                              ns-input-line))
-                 (point)))
+                 (goto-char (point-min))
+                 (line-beginning-position
+                  (if (consp ns-input-line)
+                      (min (car ns-input-line) (cdr ns-input-line))
+                    ns-input-line))))
           (end (save-excursion
-                 (goto-line (+ 1 (if (consp ns-input-line)
-                                     (max (car ns-input-line) (cdr ns-input-line))
-                                   ns-input-line)))
-                 (point))))
+                 (goto-char (point-min))
+                 (line-beginning-position
+                  (1+ (if (consp ns-input-line)
+                          (max (car ns-input-line) (cdr ns-input-line))
+                        ns-input-line))))))
       (move-overlay ns-select-overlay beg end)
       (deactivate-mark)
       (goto-char beg)))

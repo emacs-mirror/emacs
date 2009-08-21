@@ -1,5 +1,8 @@
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-open-file-select-line):
+	Use line-beginning-position rather than goto-line.
+
 	* apropos.el (apropos-command):
 	* ehelp.el (electric-helpify):
 	* printing.el (pr-show-setup):
