@@ -1,5 +1,9 @@
 2009-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/remember.el (remember-buffer):
+	* progmodes/cperl-mode.el (cperl-vc-header-alist):
+	* calendar/icalendar.el (icalendar-convert-diary-to-ical)
+	(icalendar-extract-ical-from-buffer):
 	* net/newst-treeview.el (newsticker-groups-filename):
 	* net/newst-backend.el (newsticker-cache-filename):
 	* speedbar.el (speedbar-update-speed, speedbar-navigating-speed)
