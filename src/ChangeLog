@@ -1,3 +1,7 @@
+2009-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 500 for js.el.
+
 2009-08-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_WITH_DBUS_WATCH_GET_UNIX_FD): New macro.
