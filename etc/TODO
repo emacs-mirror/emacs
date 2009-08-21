@@ -17,8 +17,6 @@ suitable for anyone from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead.
 
-** make emacsclient accept -nw as a synonym to -t.
-
 ** Replace some uses of the preprocessor code in Makefile.in with the equivalent autoconf.
 
 ** Major modes should have a menu entry.  Examples of modes that do
