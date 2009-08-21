@@ -1681,7 +1681,7 @@ This function is for internal use only."
 	   (format "Passphrase for %s: " key-id)))))))
 
 (make-obsolete 'epg-passphrase-callback-function
-	       'epa-passphrase-callback-function)
+	       'epa-passphrase-callback-function "23.1")
 
 (defun epg--list-keys-1 (context name mode)
   (let ((args (append (if epg-gpg-home-directory
@@ -2491,7 +2491,7 @@ If you are unsure, use synchronous version of this function
 			      (epg-sub-key-id
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
-(make-obsolete 'epg-start-sign-keys "do not use.")
+(make-obsolete 'epg-start-sign-keys "do not use." "23.1")
 
 ;;;###autoload
 (defun epg-sign-keys (context keys &optional local)
@@ -2504,7 +2504,7 @@ If you are unsure, use synchronous version of this function
 	    (error "Sign keys failed: %S"
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
-(make-obsolete 'epg-sign-keys "do not use.")
+(make-obsolete 'epg-sign-keys "do not use." "23.1")
 
 ;;;###autoload
 (defun epg-start-generate-key (context parameters)

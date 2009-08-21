@@ -1,3 +1,17 @@
+2009-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/newst-treeview.el (newsticker-groups-filename):
+	* net/newst-backend.el (newsticker-cache-filename):
+	* speedbar.el (speedbar-update-speed, speedbar-navigating-speed)
+	(speedbar-ignored-path-expressions, speedbar-ignored-path-regexp)
+	(speedbar-add-ignored-path-regexp, speedbar-line-path)
+	(speedbar-buffers-line-path, speedbar-path-line)
+	(speedbar-buffers-line-path):
+	* epg.el (epg-passphrase-callback-function, epg-start-sign-keys)
+	(epg-sign-keys):
+	* epa.el (epa-display-verify-result):
+	* progmodes/pascal.el (pascal-outline): Add version of obsolescence.
+
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/js.el (inferior-moz-process): Fix declaration.
@@ -62,7 +76,7 @@
 2009-08-19  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* log-edit.el (log-edit-strip-single-file-name): New var.
-	(log-edit-insert-changelog): Use it.
+	(log-edit-insert-changelog): Use it.  Bug#3571
 
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
