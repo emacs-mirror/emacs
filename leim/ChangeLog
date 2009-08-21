@@ -1,3 +1,10 @@
+2009-08-21  Thamer Mahmoud  <thamer.mahmoud@gmail.com>  (tiny change)
+
+	* quail/arabic.el: Add missing keys that exist on the Arabic X
+	keyboard.  Don't insert Lam-alef ligatures from the Arabic
+	Presentation Forms ranges; instead, separate Lam-Alef ligatures
+	into a list of two letters (Lam and a suitable Alef).
+
 2009-06-23  Kenichi Handa  <handa@m17n.org>
 
 	* quail/hangul.el (hangul-to-hanja-conversion): When it is called
