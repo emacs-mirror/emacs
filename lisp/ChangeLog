@@ -1,5 +1,8 @@
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date)
+	(calendar-cursor-to-visible-date): Use forward-line, not goto-line.
+
 	* mail/rmail.el (rmail-obsolete): Delete custom group.
 	(rmail-pop-password, rmail-pop-password-required): Make into aliases.
 	(rmail-remote-password, rmail-remote-password-required):
