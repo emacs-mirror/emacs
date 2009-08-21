@@ -835,9 +835,10 @@ name of the property, and its value.  If there are no properties,
 ;; Initialize :system and :session buses.  This adds their file
 ;; descriptors to input_wait_mask, in order to detect incoming
 ;; messages immediately.
-(dbus-ignore-errors
- (dbus-init-bus :system)
- (dbus-init-bus :session))
+(when (featurep 'dbusbind)
+  (dbus-ignore-errors
+    (dbus-init-bus :system)
+    (dbus-init-bus :session)))
 
 (provide 'dbus)
 
