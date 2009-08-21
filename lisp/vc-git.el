@@ -553,7 +553,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-command (file buf &optional rev)
   (let ((name (file-relative-name file)))
-    (vc-git-command buf 0 name "blame" rev)))
+    (vc-git-command buf 'async name "blame" "--date=iso" rev)))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
