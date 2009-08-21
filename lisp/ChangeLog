@@ -1,5 +1,7 @@
 2009-08-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* loadup.el: Remove leftover macos code.
+
 	* vc-git.el (vc-git-annotate-command): Run asynchronously.
 	Explicitly pass the date format to git blame so that user local
 	so that the output format can be parsed.

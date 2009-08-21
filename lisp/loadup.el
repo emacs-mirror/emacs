@@ -209,9 +209,6 @@
       (load "term/pc-win")
       (load "ls-lisp")
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
-(if (eq system-type 'macos)
-    (progn
-      (load "ls-lisp")))
 (if (featurep 'ns)
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
