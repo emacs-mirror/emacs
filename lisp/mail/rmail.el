@@ -139,57 +139,28 @@ its character representation and its display representation.")
   :prefix "rmail-edit-"
   :group 'rmail)
 
-(defgroup rmail-obsolete nil
-  "Rmail obsolete customization variables."
-  :group 'rmail)
-
 (defcustom rmail-movemail-program nil
   "If non-nil, the file name of the `movemail' program."
   :group 'rmail-retrieve
   :type '(choice (const nil) string))
 
-(defcustom rmail-pop-password nil
-  "Password to use when reading mail from POP server.
-Please use `rmail-remote-password' instead."
-  :type '(choice (string :tag "Password")
-		 (const :tag "Not Required" nil))
-  :group 'rmail-obsolete)
-
-(defcustom rmail-pop-password-required nil
-  "Non-nil if a password is required when reading mail from a POP server.
-Please use rmail-remote-password-required instead."
-  :type 'boolean
-  :group 'rmail-obsolete)
+(define-obsolete-variable-alias 'rmail-pop-password
+  'rmail-remote-password "22.1")
 
 (defcustom rmail-remote-password nil
   "Password to use when reading mail from a remote server.
 This setting is ignored for mailboxes whose URL already contains a password."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
-  :set-after '(rmail-pop-password)
-  :set #'(lambda (symbol value)
-	   (set-default symbol
-			(if (and (not value)
-                                 (boundp 'rmail-pop-password)
-				 rmail-pop-password)
-			    rmail-pop-password
-			  value))
-	   (setq rmail-pop-password nil))
   :group 'rmail-retrieve
   :version "22.1")
+
+(define-obsolete-variable-alias 'rmail-pop-password-required
+  'rmail-remote-password-required "22.1")
 
 (defcustom rmail-remote-password-required nil
   "Non-nil if a password is required when reading mail from a remote server."
   :type 'boolean
-  :set-after '(rmail-pop-password-required)
-  :set #'(lambda (symbol value)
-	   (set-default symbol
-			(if (and (not value)
-                                 (boundp 'rmail-pop-password-required)
-				 rmail-pop-password-required)
-			    rmail-pop-password-required
-			  value))
-	   (setq rmail-pop-password-required nil))
   :group 'rmail-retrieve
   :version "22.1")
 

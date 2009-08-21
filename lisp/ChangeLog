@@ -1,3 +1,10 @@
+2009-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-obsolete): Delete custom group.
+	(rmail-pop-password, rmail-pop-password-required): Make into aliases.
+	(rmail-remote-password, rmail-remote-password-required):
+	Remove unneeded :set-after and :set properties.
+
 2009-08-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (top): Initialize only when `dbusbind' is loaded.
