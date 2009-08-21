@@ -310,7 +310,8 @@ Don't move point."
 	  (end (progn (forward-sexp) (point))))
       (cons (buffer-substring beg end)
 	    beg))))
-(make-obsolete 'imenu-example--name-and-position "your own" "23.2")
+(make-obsolete 'imenu-example--name-and-position
+	       "use your own function instead." "23.2")
 
 ;;;
 ;;; Lisp

@@ -1,5 +1,7 @@
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* imenu.el (imenu-example--name-and-position): Fix obsolescence message.
+
 	* obsolete/rnewspost.el (news-mail-reply):
 	Use goto-char rather than goto-line.
 
