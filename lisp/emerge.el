@@ -3023,7 +3023,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 ;;    (save-excursion
 ;;      (set-buffer standard-output)
 ;;      (help-mode))
-;;    (print-help-return-message)))
+;;    (help-print-return-message)))
 
 ;; This goes with the redefinition of describe-mode.
 ;;;; Adjust things so that keyboard macro definitions are documented correctly.

@@ -1,7 +1,7 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -1028,7 +1028,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   by customizing the group `strokes' via \\[customize-group]."))
     (set-buffer standard-output)
     (help-mode)
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 (defalias 'strokes-report-bug 'report-emacs-bug)
 

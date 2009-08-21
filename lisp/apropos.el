@@ -466,7 +466,7 @@ while a list of strings is used as a word list."
   (apropos-parse-pattern pattern)
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
-	   (print-help-return-message 'identity))))
+	   (help-print-return-message 'identity))))
     (or do-all (setq do-all apropos-do-all))
     (setq apropos-accumulator
 	  (apropos-internal apropos-regexp

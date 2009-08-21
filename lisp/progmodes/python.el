@@ -1787,7 +1787,7 @@ will."
  	;; Fixme: Is this actually useful?
 	(help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
-	(print-help-return-message))))
+	(help-print-return-message))))
   (comint-redirect-send-command-to-process (format "emacs.ehelp(%S, %s)"
 						   symbol python-imports)
    "*Help*" (python-proc) nil nil))

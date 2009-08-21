@@ -292,7 +292,7 @@ will select it.)"
   (let ((name (or name "*Help*")))
     (if (save-window-excursion
 	  ;; kludge-o-rama
-	  (let* ((p (symbol-function 'print-help-return-message))
+	  (let* ((p (symbol-function 'help-print-return-message))
 		 (b (get-buffer name))
 		 (m (buffer-modified-p b)))
 	    (and b (not (get-buffer-window b))
@@ -325,14 +325,14 @@ will select it.)"
 		       (save-excursion
 			 (set-buffer b)
 			 (set-buffer-modified-p t)))
-		  (fset 'print-help-return-message 'ignore)
+		  (fset 'help-print-return-message 'ignore)
 		  (call-interactively fun)
 		  (and (get-buffer name)
 		       (get-buffer-window (get-buffer name))
 		       (or (not b)
 			   (not (eq b (get-buffer name)))
 			   (not (buffer-modified-p b)))))
-	      (fset 'print-help-return-message p)
+	      (fset 'help-print-return-message p)
 	      (and b (buffer-name b)
 		   (save-excursion
 		     (set-buffer b)

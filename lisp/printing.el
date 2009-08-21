@@ -1,7 +1,7 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -5506,7 +5506,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-show-setup (settings buffer-name)
   (with-output-to-temp-buffer buffer-name
     (princ settings)
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 
 (defun pr-complete-alist (prompt alist default)

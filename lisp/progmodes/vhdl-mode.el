@@ -16979,7 +16979,7 @@ to visually support naming conventions.")
     (princ (documentation-property variable 'variable-documentation))
     (with-current-buffer standard-output
       (help-mode))
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 (defun vhdl-doc-mode ()
   "Display VHDL Mode documentation in *Help* buffer."
@@ -16993,7 +16993,7 @@ to visually support naming conventions.")
     (princ (documentation 'vhdl-mode))
     (with-current-buffer standard-output
       (help-mode))
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

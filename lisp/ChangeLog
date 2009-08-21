@@ -1,5 +1,22 @@
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* apropos.el (apropos-command):
+	* ehelp.el (electric-helpify):
+	* printing.el (pr-show-setup):
+	* strokes.el (strokes-help):
+	* tutorial.el (tutorial--describe-nonstandard-key)
+	(tutorial--detailed-help):
+	* woman.el (woman-mini-help, woman-display-extended-fonts):
+	* calc/calc-help.el (calc-describe-key):
+	* emulation/edt.el (edt-electric-helpify):
+	* international/mule-diag.el (mule-diag):
+	* play/yow.el (apropos-zippy):
+	* progmodes/python.el (python-describe-symbol):
+	* progmodes/vhdl-mode.el (vhdl-doc-variable, vhdl-doc-mode):
+	* textmodes/table.el (*table--cell-describe-mode)
+	(*table--cell-describe-bindings):
+	Use help-print-return-message rather than the now obsolete alias.
+
 	* calendar/cal-move.el (calendar-cursor-to-nearest-date)
 	(calendar-cursor-to-visible-date): Use forward-line, not goto-line.
 

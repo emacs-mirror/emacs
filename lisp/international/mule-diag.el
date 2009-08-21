@@ -1130,7 +1130,7 @@ system which uses fontsets)."
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(dolist (fontset (fontset-list))
 	  (print-fontset fontset t)))
-      (print-help-return-message))))
+      (help-print-return-message))))
 
 ;;;###autoload
 (defun font-show-log (&optional limit)

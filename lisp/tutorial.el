@@ -163,7 +163,7 @@ options:
                       (format "%s" db)
                       "'.")))
           (fill-region (point-min) (point)))))
-      (print-help-return-message))))
+      (help-print-return-message))))
 
 (defun tutorial--sort-keys (left right)
   "Sort predicate for use with `tutorial--default-keys'.
@@ -388,7 +388,7 @@ from the Emacs default:\n\n" )
         (insert "
 It is OK to change key bindings, but changed bindings do not
 correspond to what the tutorial says.\n\n")
-        (print-help-return-message)))))
+        (help-print-return-message)))))
 
 (defun tutorial--find-changed-keys (default-keys)
   "Find the key bindings used in the tutorial that have changed.

@@ -1,7 +1,7 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -1970,7 +1970,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (require 'apropos)
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
-	   (print-help-return-message 'identity))))
+	   (help-print-return-message 'identity))))
     (setq apropos-accumulator
 	  (apropos-internal "woman"
 			    (lambda (symbol)
@@ -2973,7 +2973,7 @@ Useful for constructing the alist variable `woman-special-characters'."
 	  (setq i (1+ i))
 	  (when (= i 128) (setq i 160) (insert "\n"))
 	  (if (zerop (% i 8)) (insert "\n")))))
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 
 ;;; Formatting macros that do not cause a break:
