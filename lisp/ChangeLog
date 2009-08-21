@@ -1,5 +1,8 @@
 2009-08-21  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/rnewspost.el (news-mail-reply):
+	Use goto-char rather than goto-line.
+
 	* term/ns-win.el (ns-open-file-select-line):
 	Use line-beginning-position rather than goto-line.
 
