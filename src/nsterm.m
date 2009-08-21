@@ -1378,7 +1378,7 @@ ns_get_color (const char *name, NSColor **col)
   else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
     {
       strcpy(hex, name + 4);
-      scaling = (strlen(hex) - 2) / 4;
+      scaling = (strlen(hex) - 2) / 3;
     }
   else if (name[0] == '#')        /* An old X11 format; convert to newer */
     {
