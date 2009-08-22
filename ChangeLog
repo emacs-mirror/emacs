@@ -1,3 +1,9 @@
+2009-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: AC_CHECK_FUNCS dbus_watch_get_unix_fd.
+
+	* configure: Regenerate.
+
 2009-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: Remove reference to cvtmail.
