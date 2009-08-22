@@ -1,5 +1,14 @@
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/lunar.el (lunar-phase-names): New option.
+	(lunar-phase): Doc fix.
+	(lunar-cycles-per-year): New constant.
+	(lunar-index): New function.
+	(lunar-phase-list, diary-lunar-phases): Use lunar-index.
+	(lunar-phase-name): Use lunar-phase-names.
+	(calendar-lunar-phases): Use format.
+	(lunar-new-moon-on-or-after): Use lunar-cycles-per-year.
+
 	* progmodes/cperl-mode.el (cperl-imenu-name-and-position):
 	Copy imenu-example--name-and-position function here for own use.
 	(cperl-xsub-scan): Use cperl-imenu-name-and-position.
