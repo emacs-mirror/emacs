@@ -452,9 +452,10 @@ Creates the directory if necessary and makes sure:
     (unless attrs
       (letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir)))
-    ;; Check that it's safe for use.
-    (unless (and (eq t (car attrs)) (eql (nth 2 attrs) (user-uid))
-                 (or (eq system-type 'windows-nt)
+    ;; Check that it's safe for use.  Windows doesn't support
+    ;; Posix-style file security, so don't check there.
+    (unless (or (eq system-type 'windows-nt)
+		(and (eq t (car attrs)) (eql (nth 2 attrs) (user-uid))
                      (zerop (logand ?\077 (file-modes dir)))))
       (error "The directory %s is unsafe" dir))))
 

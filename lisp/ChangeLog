@@ -1,3 +1,8 @@
+2009-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* server.el (server-ensure-safe-dir): Disable the security check
+	for Windows.
+
 2009-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/paragraphs.el: Change to utf-8.  Adjust coding cookie.
