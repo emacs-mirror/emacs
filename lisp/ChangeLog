@@ -51,10 +51,9 @@
 	* emulation/vi.el (vi-goto-line): Don't warn about non-interactive
 	goto-line.
 
-	* international/ucs-normalize.el (nfd)
-	(decomposition-translation-alist, decomposition-char-recursively)
-	(alist-list-to-vector, quick-check-list, quick-check-list-to-regexp):
-	Declare.
+	* international/ucs-normalize.el (nfd, decomposition-translation-alist)
+	(decomposition-char-recursively, alist-list-to-vector, quick-check-list)
+	(quick-check-list-to-regexp): Declare.
 
 	* progmodes/make-mode.el (makefile-browser-insert-selection): Use
 	goto-char rather than goto-line.
