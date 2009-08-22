@@ -738,10 +738,10 @@ extern void encode_coding_object P_ ((struct coding_system *,
 			STRING_BYTES (XSTRING (string)), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
-  (encode_coding_object (coding, string, 0, 0, XSTRING (string)->size,	\
-			 STRING_BYTES (XSTRING (string)), Qt),		\
-   (coding)->dst_object)
-
+  (STRING_MULTIBYTE(string) ?						\
+    (encode_coding_object (coding, string, 0, 0, SCHARS (string),	\
+			   SBYTES (string), Qt),			\
+     (coding)->dst_object) : (string))
 
 #define decode_coding_c_string(coding, src, bytes, dst_object)		\
   do {									\
