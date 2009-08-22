@@ -1,3 +1,13 @@
+2009-08-22  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (lgrep, rgrep): At the beginning
+	set `dir' to `default-directory' unless `dir' is a non-nil
+	readable directory.  (Bug#4052)
+	(lgrep, rgrep): Change a weird way to report an error
+	from using `read-string' to using `error'.
+	Instead of using interactive arguments in the function body,
+	add new argument `confirm'.
+
 2009-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/remember.el (remember-buffer):
