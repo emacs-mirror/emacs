@@ -52,6 +52,9 @@ ROOT-CLASS, INDEXSTRING, and SKIPLIST are the same as `eieiodoc-class'."
   (sit-for 0)
   (eieiodoc-class root-class indexstring skiplist))
 
+(defvar eieiodoc--class-indexstring)
+(defvar eieiodoc--class-root)
+
 (defun eieiodoc-class (root-class indexstring &optional skiplist)
   "Create documentation starting with ROOT-CLASS.
 The first job is to create an indented menu of all the classes
@@ -89,7 +92,9 @@ into any menus, nodes or lists."
   (save-excursion
     (eieiodoc-main-menu root-class skiplist)
     (insert "\n")
-    (eieiodoc-recurse root-class 'eieiodoc-one-node nil skiplist)))
+    (let ((eieiodoc--class-indexstring indexstring)
+	  (eieiodoc--class-root root-class))
+      (eieiodoc-recurse root-class 'eieiodoc-one-node nil skiplist))))
 
 (defun eieiodoc-main-menu (class skiplist)
   "Create a menu of all classes under CLASS indented the correct amount.
@@ -113,8 +118,8 @@ Argument LEVEL is the current level of recursion we have hit."
 	  eieiodoc-currently-in-node "\n"
 	  "@comment  node-name,  next,  previous,  up\n"
 	  "@" eieiodoc-current-section-level " " (symbol-name class) "\n"
-	  ;; indexstring is grabbed from parent calling function
-	  "@" indexstring "index " (symbol-name class) "\n\n")
+	  "@" eieiodoc--class-indexstring
+	  "index " (symbol-name class) "\n\n")
   ;; Now lets create a nifty little inheritance tree
   (let ((cl class)
 	(revlist nil)
@@ -124,17 +129,15 @@ Argument LEVEL is the current level of recursion we have hit."
 	    cl (class-parent cl)))
     (insert "@table @asis\n@item Inheritance Tree:\n")
     (while revlist
-      ;; root-class is dragged in from the top-level function
       (insert "@table @code\n@item "
-	      (if (and (child-of-class-p (car revlist) root-class)
+	      (if (and (child-of-class-p (car revlist) eieiodoc--class-root)
 		       (not (eq class (car revlist))))
 		  (concat "@w{@xref{" (symbol-name (car revlist)) "}.}")
 		(symbol-name (car revlist)))
 	      "\n")
       (setq revlist (cdr revlist)
 	    depth (1+ depth)))
-    ;; the value of rclass is brought in from caller
-    (let ((clist (reverse (aref (class-v rclass) class-children))))
+    (let ((clist (reverse (aref (class-v class) class-children))))
       (if (not clist)
 	  (insert "No children")
 	(insert "@table @asis\n@item Children:\n")
