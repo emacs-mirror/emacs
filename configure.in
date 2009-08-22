@@ -12,12 +12,12 @@ dnl  GNU Emacs is free software: you can redistribute it and/or modify
 dnl  it under the terms of the GNU General Public License as published by
 dnl  the Free Software Foundation, either version 3 of the License, or
 dnl  (at your option) any later version.
-dnl  
+dnl
 dnl  GNU Emacs is distributed in the hope that it will be useful,
 dnl  but WITHOUT ANY WARRANTY; without even the implied warranty of
 dnl  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 dnl  GNU General Public License for more details.
-dnl  
+dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -1254,7 +1254,7 @@ fi
 ## No need to do anything special for these standard directories.
 ## This is an experiment, take it out if it causes problems.
 if test -n "${x_libraries}" && test x"${x_libraries}" != xNONE; then
-   
+
    x_libraries=`echo :${x_libraries}: | sed -e 's|:/usr/lib64:|:|g' -e 's|:/lib64:|:|g' -e 's|^:||' -e 's|:$||'`
 
 fi
@@ -1708,7 +1708,9 @@ HAVE_DBUS=no
 if test "${with_dbus}" = "yes"; then
    PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
-      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
+     LIBS="$LIBS $DBUS_LIBS"
+     AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
+     AC_CHECK_FUNCS([dbus_watch_get_unix_fd])
    fi
 fi
 
@@ -1977,7 +1979,7 @@ if test "${HAVE_X11}" = "yes"; then
       AC_DEFINE(HAVE_FREETYPE, 1,
 		[Define to 1 if using the freetype and fontconfig libraries.])
       if test "${with_libotf}" != "no"; then
-	PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
+	PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes,
 			  HAVE_LIBOTF=no)
 	if test "$HAVE_LIBOTF" = "yes"; then
 	  AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
