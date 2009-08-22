@@ -88,8 +88,8 @@
 ;;        with previous character, then the beginning of the block is
 ;;        the searched character.  If searched character is combining
 ;;        character, then previous character will be the target
-;;        character 
-;;    (2) end of the block 
+;;        character
+;;    (2) end of the block
 ;;        Block ends at non-composable starter character.
 ;;
 ;; C. Decomposition  (`ucs-normalize-block')
@@ -111,6 +111,8 @@
 (defconst ucs-normalize-version "1.1")
 
 (eval-when-compile (require 'cl))
+
+(declare-function nfd "ucs-normalize" (char))
 
 (eval-when-compile
 
@@ -166,7 +168,7 @@
 
 (eval-when-compile
 
-  (defvar combining-chars nil) 
+  (defvar combining-chars nil)
     (setq combining-chars nil)
   (defvar decomposition-pair-to-composition nil)
     (setq decomposition-pair-to-composition nil)
@@ -199,9 +201,9 @@
      check-range))
 
   (setq combining-chars
-        (append combining-chars 
+        (append combining-chars
                 '(?ᅡ ?ᅢ ?ᅣ ?ᅤ ?ᅥ ?ᅦ ?ᅧ ?ᅨ ?ᅩ ?ᅪ
-                ?ᅫ ?ᅬ ?ᅭ ?ᅮ ?ᅯ ?ᅰ ?ᅱ ?ᅲ ?ᅳ ?ᅴ ?ᅵ 
+                ?ᅫ ?ᅬ ?ᅭ ?ᅮ ?ᅯ ?ᅰ ?ᅱ ?ᅲ ?ᅳ ?ᅴ ?ᅵ
                 ?ᆨ ?ᆩ ?ᆪ ?ᆫ ?ᆬ ?ᆭ ?ᆮ ?ᆯ ?ᆰ ?ᆱ ?ᆲ ?ᆳ ?ᆴ
                 ?ᆵ ?ᆶ ?ᆷ ?ᆸ ?ᆹ ?ᆺ ?ᆻ ?ᆼ ?ᆽ ?ᆾ ?ᆿ ?ᇀ ?ᇁ ?ᇂ)))
   )
@@ -251,6 +253,12 @@ Note that Hangul are excluded.")
   (setq ucs-normalize-combining-chars-regexp
   (eval-when-compile (concat (regexp-opt (mapcar 'char-to-string combining-chars)) "+")))
 
+(declare-function decomposition-translation-alist "ucs-normalize"
+                  (decomposition-function))
+(declare-function decomposition-char-recursively "ucs-normalize"
+                  (char decomposition-function))
+(declare-function alist-list-to-vector "ucs-normalize" (alist))
+
 (eval-when-compile
 
   (defun decomposition-translation-alist (decomposition-function)
@@ -262,7 +270,7 @@ Note that Hangul are excluded.")
            (if decomposition
                (setq alist (cons (cons char
                                        (apply 'append
-                                              (mapcar (lambda (x) 
+                                              (mapcar (lambda (x)
                                                         (decomposition-char-recursively
                                                          x decomposition-function))
                                                       decomposition)))
@@ -274,7 +282,7 @@ Note that Hangul are excluded.")
     (let ((decomposition (funcall decomposition-function char)))
       (if decomposition
           (apply 'append
-                 (mapcar (lambda (x) 
+                 (mapcar (lambda (x)
                            (decomposition-char-recursively x decomposition-function))
                          decomposition))
         (list char))))
@@ -295,8 +303,8 @@ Note that Hangul are excluded.")
   (setq ucs-normalize-hangul-translation-alist
         (let ((i 0) entries)
           (while (< i 11172)
-            (setq entries 
-                  (cons (cons (+ #xac00 i) 
+            (setq entries
+                  (cons (cons (+ #xac00 i)
                               (if (= 0 (% i 28))
                                   (vector (+ #x1100 (/ i 588))
                                           (+ #x1161 (/ (% i 588) 28)))
@@ -307,7 +315,7 @@ Note that Hangul are excluded.")
                   i (1+ i))) entries))
 
 (defun ucs-normalize-make-translation-table-from-alist (alist)
-  (make-translation-table-from-alist 
+  (make-translation-table-from-alist
      (append alist ucs-normalize-hangul-translation-alist)))
 
 (define-translation-table 'ucs-normalize-nfd-table
@@ -364,6 +372,10 @@ If COMPOSITION-PREDICATE is not given, then do nothing."
       chars)))
 )
 
+(declare-function quick-check-list "ucs-normalize"
+                  (decomposition-translation &optional composition-predicate))
+(declare-function quick-check-list-to-regexp "ucs-normalize" (quick-check-list))
+
 (eval-when-compile
 
   (defun quick-check-list (decomposition-translation
@@ -377,7 +389,7 @@ decomposition.  "
          (do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
            (setq decomposition
                  (string-to-list
-                  (with-temp-buffer 
+                  (with-temp-buffer
                     (insert i)
                     (translate-region 1 2 decomposition-translation)
                     (buffer-string))))
