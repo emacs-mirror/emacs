@@ -68,7 +68,6 @@
 
 ;;; GENERIC STUFF
 ;;
-;;;###autoload
 (defun data-debug-insert-property-list (proplist prefix &optional parent)
   "Insert the property list PROPLIST.
 Each line starts with PREFIX.
@@ -410,7 +409,6 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 ;;; Hash-table
 ;;
 
-;;;###autoload
 (defun data-debug-insert-hash-table (hash-table prefix)
   "Insert the contents of HASH-TABLE inserting PREFIX before each element."
   (maphash
@@ -460,7 +458,6 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 ;;; Widget
 ;;
 ;; Widgets have a long list of properties
-;;;###autoload
 (defun data-debug-insert-widget-properties (widget prefix)
   "Insert the contents of WIDGET inserting PREFIX before each element."
   (let ((type (car widget))
@@ -511,7 +508,6 @@ PREBUTTONTEXT is some text between prefix and the thing."
 ;;; list of stuff
 ;;
 ;; just a list.  random stuff inside.
-;;;###autoload
 (defun data-debug-insert-stuff-list (stufflist prefix)
   "Insert all the parts of STUFFLIST.
 PREFIX specifies what to insert at the start of each line."
@@ -573,7 +569,6 @@ PREBUTTONTEXT is some text between prefix and the stuff list button."
 ;;; vector of stuff
 ;;
 ;; just a vector.  random stuff inside.
-;;;###autoload
 (defun data-debug-insert-stuff-vector (stuffvector prefix)
   "Insert all the parts of STUFFVECTOR.
 PREFIX specifies what to insert at the start of each line."
@@ -830,7 +825,6 @@ FACE is the face to use."
   "Alist of methods used to insert things into an Ddebug buffer.")
 
 ;; uber insert method
-;;;###autoload
 (defun data-debug-insert-thing (thing prefix prebuttontext &optional parent)
   "Insert THING with PREFIX.
 PREBUTTONTEXT is some text to insert between prefix and the thing
@@ -891,7 +885,6 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   :group 'data-debug
   :type 'hook)
 
-;;;###autoload
 (defun data-debug-mode ()
   "Major-mode for the Analyzer debugger.
 
@@ -914,7 +907,7 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
 
 ;;;###autoload
 (defun data-debug-new-buffer (name)
-  "Create a new ddebug buffer with NAME."
+  "Create a new data-debug buffer with NAME."
   (let ((b (get-buffer-create name)))
     (pop-to-buffer b)
     (set-buffer b)
@@ -1036,7 +1029,6 @@ Do nothing if already expanded."
 
 ;;; GENERIC STRUCTURE DUMP
 ;;
-;;;###autoload
 (defun data-debug-show-stuff (stuff name)
   "Data debug STUFF in a buffer named *NAME DDebug*."
   (data-debug-new-buffer (concat "*" name " DDebug*"))
@@ -1049,7 +1041,6 @@ Do nothing if already expanded."
 ;;
 ;; Various commands to output aspects of the current semantic environment.
 
-;;;###autoload
 (defun data-debug-edebug-expr (expr)
   "Dump out the contets of some expression EXPR in edebug with ddebug."
   (interactive
@@ -1063,7 +1054,6 @@ Do nothing if already expanded."
 	(message "Expression %s is nil." expr)
       (data-debug-show-stuff v "expression"))))
 
-;;;###autoload
 (defun data-debug-eval-expression (expr)
   "Evaluate EXPR and display the value.
 If the result is something simple, show it in the echo area.
