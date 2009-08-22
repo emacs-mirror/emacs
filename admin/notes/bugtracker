@@ -179,8 +179,9 @@ tags 123 + wontfix
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
-Bugs must all be in the same state (e.g. same package(s) and severity),
-but need not have the same tags (tags are merged). E.g.:
+Bugs must all be in the same state (e.g. same package(s) and severity
+-- see `reassign' and `severity' below), but need not have the same
+tags (tags are merged). E.g.:
 
 merge 123 124 125 ...
 
@@ -189,7 +190,8 @@ of merged bugs only affects individual bugs, not all of them.
 
 *** Forcing a merge:
 Like `merge', but bugs need not be in the same state.  The packages
-must still match though.  The first one listed is the master.  E.g.:
+must still match though (see `reassign' below).  The first one listed
+is the master.  E.g.:
 
 forcemerge 123 124 125 ...
 
@@ -237,6 +239,9 @@ fixed 123 23.0.60
 
 *** To remove a "fixed" mark:
 notfixed 123 23.0.60
+
+*** To assign or reassign a bug to a package or list of packages:
+reassign 1234 emacs,cc-mode
 
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam
