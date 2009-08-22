@@ -247,6 +247,7 @@ rigidly along with this one (not yet)."
 (declare-function comint-send-string "comint" (process string))
 (declare-function comint-send-region "comint" (process start end))
 (declare-function comint-send-eof "comint" ())
+(defvar compilation-error-regexp-alist)
 
 (define-derived-mode inferior-prolog-mode comint-mode "Inferior Prolog"
   "Major mode for interacting with an inferior Prolog process.
@@ -393,6 +394,9 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (prolog-consult-region compile beg end)
   (pop-to-buffer inferior-prolog-buffer))
+
+;; inferior-prolog-mode uses the autoloaded compilation-shell-minor-mode.
+(declare-function compilation-forget-errors "compile" ())
 
 (defun inferior-prolog-load-file ()
   "Pass the current buffer's file to the inferior prolog process."
