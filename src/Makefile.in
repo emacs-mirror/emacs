@@ -63,6 +63,8 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
+bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -1361,13 +1363,13 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
    With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
 .el.elc:
 	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
-	                     THEFILE=$< EMACS=../src/bootstrap-emacs${EXEEXT}
+	                     THEFILE=$< EMACS=${bootstrap_exe}
 
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
 ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
@@ -1381,4 +1383,4 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	@: Compile some files earlier to speed up further compilation.
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=../src/bootstrap-emacs${EXEEXT}
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}
