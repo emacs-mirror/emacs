@@ -1,5 +1,9 @@
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-imenu-name-and-position):
+	Copy imenu-example--name-and-position function here for own use.
+	(cperl-xsub-scan): Use cperl-imenu-name-and-position.
+
 	* bs.el (bs--redisplay):
 	* cus-edit.el (custom-redraw):
 	* ibuffer.el (ibuffer-bury-buffer):
@@ -13,6 +17,7 @@
 	* progmodes/ada-mode.el (ada-compile-goto-error):
 	* progmodes/ada-xref.el (ada-xref-find-in-modified-ali):
 	(ebrowse-select-1st-to-9nth):
+	* progmodes/cperl-mode.el (cperl-time-fontification):
 	* progmodes/ebrowse.el (ebrowse-toggle-file-name-display)
 	* progmodes/gud.el (gud-display-line):
 	(idlwave-shell-display-line):

@@ -6874,6 +6874,19 @@ by CPerl."
 	;; Do not introduce variable if not needed, we check it!
 	(set 'parse-sexp-lookup-properties t))))
 
+;; Copied from imenu-example--name-and-position.
+(defvar imenu-use-markers)
+
+(defun cperl-imenu-name-and-position ()
+  "Return the current/previous sexp and its (beginning) location.
+Does not move point."
+  (save-excursion
+    (forward-sexp -1)
+    (let ((beg (if imenu-use-markers (point-marker) (point)))
+	  (end (progn (forward-sexp) (point))))
+      (cons (buffer-substring beg end)
+	    beg))))
+
 (defun cperl-xsub-scan ()
   (require 'imenu)
   (let ((index-alist '())
@@ -6896,7 +6909,7 @@ by CPerl."
 	 ((not package) nil)		; C language section
 	 ((match-beginning 3)		; XSUB
 	  (goto-char (1+ (match-beginning 3)))
-	  (setq index (imenu-example--name-and-position))
+	  (setq index (cperl-imenu-name-and-position))
 	  (setq name (buffer-substring (match-beginning 3) (match-end 3)))
 	  (if (and prefix (string-match (concat "^" prefix) name))
 	      (setq name (substring name (length prefix))))
@@ -6908,7 +6921,7 @@ by CPerl."
 	  (push index index-alist))
 	 (t				; BOOT: section
 	  ;; (beginning-of-line)
-	  (setq index (imenu-example--name-and-position))
+	  (setq index (cperl-imenu-name-and-position))
 	  (setcar index (concat package "::BOOT:"))
 	  (push index index-alist)))))
     index-alist))
@@ -8758,7 +8771,8 @@ start with default arguments, then refine the slowdown regions."
 			     (let ((tt (current-time)))
 			       (+ (* 1000 (nth 1 tt)) (/ (nth 2 tt) 1000))))))
 	 (tt (funcall timems)) (c 0) delta tot)
-    (goto-line l)
+    (goto-char (point-min))
+    (forward-line (1- l))
     (cperl-mode)
     (setq tot (- (- tt (setq tt (funcall timems)))))
     (message "cperl-mode at %s: %s" l tot)
