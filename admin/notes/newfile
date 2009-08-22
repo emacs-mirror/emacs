@@ -6,6 +6,14 @@ CHECKLIST FOR ADDING A NEW FILE TO EMACS -*- outline -*-
 format, copyright and license notice, etc).
 
 ** Make sure the filename does not cause the DOS port any problems (8+3).
+Run the `doschk' program like this:
+
+    find /path/to/emacs -print | doshck
+
+and examine the output for DOS-related problems.  The sections of
+output under the headings "The following files are not valid DOS file
+names:" and "The following resolve to the same DOS file names:" should
+not include any files that end up in the release tarball.
 
 ** Make the ChangeLog entry in the name of the author(s), not your own name.
 
