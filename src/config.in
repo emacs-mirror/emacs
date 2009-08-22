@@ -138,6 +138,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
 
+/* Define to 1 if you have the `dbus_watch_get_unix_fd' function. */
+#undef HAVE_DBUS_WATCH_GET_UNIX_FD
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
