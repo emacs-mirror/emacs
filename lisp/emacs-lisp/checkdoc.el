@@ -223,6 +223,7 @@ have doc strings."
 This helps document the evolution of, and recent changes to, the package."
   :group 'checkdoc
   :type 'boolean)
+;;;###autoload(put 'checkdoc-force-history-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-permit-comma-termination-flag nil
   "Non-nil means the first line of a docstring may end with a comma.
@@ -270,6 +271,7 @@ the same order as they appear in the argument list.  No mention is
 made in the style guide relating to order."
   :group 'checkdoc
   :type 'boolean)
+;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
 
 (defvar checkdoc-style-hooks nil
   "Hooks called after the standard style check is completed.
@@ -307,11 +309,19 @@ Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
 (defcustom checkdoc-symbol-words nil
-  "A list of symbols which also happen to make good words.
-These symbol-words are ignored when unquoted symbols are searched for.
+  "A list of symbol names (strings) which also happen to make good words.
+These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
   :group 'checkdoc
   :type '(repeat (symbol :tag "Word")))
+;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable 'checkdoc-list-of-strings-p)
+
+;;;###autoload
+(defun checkdoc-list-of-strings-p (obj)
+  ;; this is a function so it might be shared by checkdoc-proper-noun-list
+  ;; and/or checkdoc-ispell-lisp-words in the future
+  (and (listp obj)
+       (not (memq nil (mapcar 'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
   '("ispell" "xemacs" "emacs" "lisp")

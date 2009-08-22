@@ -1,3 +1,11 @@
+2009-08-22  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/checkdoc.el (checkdoc-force-history-flag)
+	(checkdoc-arguments-in-order-flag): Add safe-local-variable booleanp.
+	(checkdoc-symbol-words): Add safe-local-variable for list of strings.
+	Clarify docstring that the value is strings not symbols.
+	(checkdoc-list-of-strings-p): New function.
+
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* hippie-exp.el (he-concat-directory-file-name):
