@@ -778,7 +778,7 @@ substitution string.  Note dynamic scoping of variables.")
 	     files))))
 
 ;;;###autoload
-(defun lgrep (regexp &optional files dir)
+(defun lgrep (regexp &optional files dir confirm)
   "Run grep, searching for REGEXP in FILES in directory DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
@@ -800,17 +800,18 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
      (cond
       ((and grep-command (equal current-prefix-arg '(16)))
        (list (read-from-minibuffer "Run: " grep-command
-				   nil nil 'grep-history)
-	     nil))
+				   nil nil 'grep-history)))
       ((not grep-template)
-       (list nil
-	     (read-string "grep.el: No `grep-template' available. Press RET.")))
+       (error "grep.el: No `grep-template' available."))
       (t (let* ((regexp (grep-read-regexp))
 		(files (grep-read-files regexp))
 		(dir (read-directory-name "In directory: "
-					  nil default-directory t)))
-	   (list regexp files dir))))))
+					  nil default-directory t))
+		(confirm (equal current-prefix-arg '(4))))
+	   (list regexp files dir confirm))))))
   (when (and (stringp regexp) (> (length regexp) 0))
+    (unless (and dir (file-directory-p dir) (file-readable-p dir))
+      (setq dir default-directory))
     (let ((command regexp))
       (if (null files)
 	  (if (string= command grep-command)
@@ -821,13 +822,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 		       regexp
 		       files))
 	(when command
-	  (if (equal current-prefix-arg '(4))
+	  (if confirm
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-history))
 	    (add-to-history 'grep-history command))))
       (when command
-	(let ((default-directory (or dir default-directory)))
+	(let ((default-directory dir))
 	  ;; Setting process-setup-function makes exit-message-function work
 	  ;; even when async processes aren't supported.
 	  (compilation-start (if (and grep-use-null-device null-device)
@@ -841,7 +842,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 (defvar find-name-arg)                  ; autoloaded
 
 ;;;###autoload
-(defun rgrep (regexp &optional files dir)
+(defun rgrep (regexp &optional files dir confirm)
   "Recursively grep for REGEXP in FILES in directory tree rooted at DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
@@ -863,17 +864,18 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
      (cond
       ((and grep-find-command (equal current-prefix-arg '(16)))
        (list (read-from-minibuffer "Run: " grep-find-command
-				   nil nil 'grep-find-history)
-	     nil))
+				   nil nil 'grep-find-history)))
       ((not grep-find-template)
-       (list nil nil
-	     (read-string "grep.el: No `grep-find-template' available. Press RET.")))
+       (error "grep.el: No `grep-find-template' available."))
       (t (let* ((regexp (grep-read-regexp))
 		(files (grep-read-files regexp))
 		(dir (read-directory-name "Base directory: "
-					  nil default-directory t)))
-	   (list regexp files dir))))))
+					  nil default-directory t))
+		(confirm (equal current-prefix-arg '(4))))
+	   (list regexp files dir confirm))))))
   (when (and (stringp regexp) (> (length regexp) 0))
+    (unless (and dir (file-directory-p dir) (file-readable-p dir))
+      (setq dir default-directory))
     (if (null files)
 	(if (not (string= regexp grep-find-command))
 	    (compilation-start regexp 'grep-mode))
@@ -909,7 +911,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 				    (shell-quote-argument ")")
 				    " -prune -o ")))))
 	(when command
-	  (if current-prefix-arg
+	  (if confirm
 	      (setq command
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
