@@ -45,17 +45,8 @@
 (defvar eieio-version "1.2"
   "Current version of EIEIO.")
 
-(when (featurep 'eieio)
-  (error "Do not load EIEIO twice."))
-
-(eval-when-compile
-  (when (featurep 'eieio)
-    (error "Do not byte-compile EIEIO if EIEIO is already loaded.")))
-
 (require 'cl)
-;;(load "cl-macs" nil t) ; No provide in this file.
 
-;;; Code:
 (defun eieio-version ()
   "Display the current version of EIEIO."
   (interactive)
