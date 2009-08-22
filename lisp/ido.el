@@ -3660,6 +3660,7 @@ for first matching file."
              matches (cdr error))))
     (when prefix-matches
       (ido-trace "prefix match" prefix-matches)
+      ;; Bug#2042.
       (setq matches (nconc prefix-matches matches)))
     (when suffix-matches
       (ido-trace "suffix match" (list text suffix-re suffix-matches))
