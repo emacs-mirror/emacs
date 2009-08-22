@@ -1,3 +1,11 @@
+2009-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* config.in (HAVE_DBUS_WATCH_GET_UNIX_FD): Add.
+
+	* dbusbind.c (XD_WITH_DBUS_WATCH_GET_UNIX_FD): Remove.  It was
+	intended as hotfix only.
+	(xd_add_watch, xd_remove_watch): Use HAVE_DBUS_WATCH_GET_UNIX_FD.
+
 2009-08-21  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (ns_get_color): Update documentation properly for last
