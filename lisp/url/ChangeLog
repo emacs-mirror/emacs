@@ -1,3 +1,9 @@
+2009-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* url-file.el (url-file-build-filename):
+	* url-privacy.el (url-setup-privacy-info): Remove code for defunct
+	system-types Apple-Macintosh, emx, ms-windows, next-mach.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
