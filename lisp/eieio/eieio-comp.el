@@ -32,6 +32,67 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (progn
+	;; XEmacs compatibility settings.
+	(if (not (fboundp 'byte-compile-compiled-obj-to-list))
+	    (defun byte-compile-compiled-obj-to-list (moose) nil))
+	(if (not (boundp 'byte-compile-outbuffer))
+	    (defvar byte-compile-outbuffer nil))
+	(defmacro eieio-byte-compile-princ-code (code outbuffer)
+	  `(progn (if (atom ,code)
+		      (princ "#[" ,outbuffer)
+		    (princ "'(" ,outbuffer))
+		  (let ((codelist (if (byte-code-function-p ,code)
+				      (byte-compile-compiled-obj-to-list ,code)
+				    (append ,code nil))))
+		    (while codelist
+		      (eieio-prin1 (car codelist) ,outbuffer)
+		      (princ " " ,outbuffer)
+		      (setq codelist (cdr codelist))))
+		  (if (atom ,code)
+		      (princ "]" ,outbuffer)
+		    (princ ")" ,outbuffer))))
+	(defun eieio-prin1 (code outbuffer)
+	  (cond ((byte-code-function-p code)
+		 (let ((codelist (byte-compile-compiled-obj-to-list code)))
+		   (princ "#[" outbuffer)
+		   (while codelist
+		     (eieio-prin1 (car codelist) outbuffer)
+		     (princ " " outbuffer)
+		     (setq codelist (cdr codelist)))
+		   (princ "]" outbuffer)))
+		((vectorp code)
+		 (let ((i 0) (ln (length code)))
+		   (princ "[" outbuffer)
+		   (while (< i ln)
+		     (eieio-prin1 (aref code i) outbuffer)
+		     (princ " " outbuffer)
+		     (setq i (1+ i)))
+		   (princ "]" outbuffer)))
+		(t (prin1 code outbuffer)))))
+    ;; Emacs:
+    (defmacro eieio-byte-compile-princ-code (code outbuffer)
+      (list 'prin1 code outbuffer))
+    ;; Dynamically bound in byte-compile-from-buffer.
+    (defvar bytecomp-outbuffer)
+    (defvar bytecomp-filename)))
+
+(declare-function eieio-defgeneric-form "eieio" (method doc-string))
+
+(defun byte-compile-defmethod-param-convert (paramlist)
+  "Convert method params into the params used by the defmethod thingy.
+Argument PARAMLIST is the paramter list to convert."
+  (let ((argfix nil))
+    (while paramlist
+      (setq argfix (cons (if (listp (car paramlist))
+			     (car (car paramlist))
+			   (car paramlist))
+			 argfix))
+      (setq paramlist (cdr paramlist)))
+    (nreverse argfix)))
+
 ;; This teaches the byte compiler how to do this sort of thing.
 (put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
 
@@ -65,19 +126,14 @@ that is called but rarely.  Argument FORM is the body of the method."
 	 (lamparams (byte-compile-defmethod-param-convert params))
 	 (arg1 (car params))
 	 (class (if (listp arg1) (nth 1 arg1) nil))
-	 (my-outbuffer (if (eval-when-compile
-			     (string-match "XEmacs" emacs-version))
+	 (my-outbuffer (if (featurep 'xemacs)
 			   byte-compile-outbuffer
-			 (condition-case nil
-			     bytecomp-outbuffer
-			   (error outbuffer))))
-	 )
+			 bytecomp-outbuffer)))
     (let ((name (format "%s::%s" (or class "#<generic>") meth)))
       (if byte-compile-verbose
-	  ;; #### filename used free
-	  (message "Compiling %s... (%s)" (or filename "") name))
-      (setq byte-compile-current-form name) ; for warnings
-      )
+	  ;; bytecomp-filename is from byte-compile-from-buffer.
+	  (message "Compiling %s... (%s)" (or bytecomp-filename "") name))
+      (setq byte-compile-current-form name)) ; for warnings
     ;; Flush any pending output
     (byte-compile-flush-pending)
     ;; Byte compile the body.  For the byte compiled forms, add the
@@ -93,7 +149,7 @@ that is called but rarely.  Argument FORM is the body of the method."
       (princ key my-outbuffer)
       (prin1 params my-outbuffer)
       (princ " " my-outbuffer)
-      (prin1 code my-outbuffer)
+      (eieio-byte-compile-princ-code code my-outbuffer)
       (princ "))" my-outbuffer))
     ;; Now add this function to the list of known functions.
     ;; Don't bother with a doc string.   Not relevant here.
@@ -108,18 +164,6 @@ that is called but rarely.  Argument FORM is the body of the method."
 
     ;; nil prevents cruft from appearing in the output buffer.
     nil))
-
-(defun byte-compile-defmethod-param-convert (paramlist)
-  "Convert method params into the params used by the defmethod thingy.
-Argument PARAMLIST is the paramter list to convert."
-  (let ((argfix nil))
-    (while paramlist
-      (setq argfix (cons (if (listp (car paramlist))
-			     (car (car paramlist))
-			   (car paramlist))
-			 argfix))
-      (setq paramlist (cdr paramlist)))
-    (nreverse argfix)))
 
 (provide 'eieio-comp)
 
