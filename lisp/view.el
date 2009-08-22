@@ -817,7 +817,8 @@ Display is centered at LINE.
 Also set the mark at the position where point was."
   (interactive "p")
   (push-mark)
-  (goto-line line)
+  (goto-char (point-min))
+  (forward-line (1- line))
   (view-recenter))
 
 (defun View-back-to-mark (&optional ignore)

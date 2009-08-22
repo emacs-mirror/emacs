@@ -1,7 +1,7 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;; 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;; Free Software Foundation Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
@@ -1337,7 +1337,8 @@ With PREFIX, insert that many filenames."
   (setf ebrowse--show-file-names-flag (not ebrowse--show-file-names-flag))
   (let ((old-line (count-lines (point-min) (point))))
     (ebrowse-redraw-tree)
-    (goto-line old-line)))
+    (goto-char (point-min))
+    (forward-line (1- old-line))))
 
 
 
@@ -4316,7 +4317,8 @@ NUMBER-OF-STATIC-VARIABLES:"
   (interactive)
   (let* ((maxlin (count-lines (point-min) (point-max)))
 	 (n (min maxlin (+ 2 (string-to-number (this-command-keys))))))
-    (goto-line n)
+    (goto-char (point-min))
+    (forward-line (1- n))
     (throw 'electric-buffer-menu-select (point))))
 
 

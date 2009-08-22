@@ -1,7 +1,7 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;               2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -1901,7 +1901,8 @@ This function is disabled for operators, and only works for identifiers."
 		   (ada-name-of identlist)))
 	   ;; one => should be the right one
 	   ((= len 1)
-	    (goto-line (caar declist)))
+	    (goto-char (point-min))
+	    (forward-line (1- (caar declist))))
 
 	   ;; more than one => display choice list
 	   (t
@@ -1937,7 +1938,8 @@ This function is disabled for operators, and only works for identifiers."
 		       (read-from-minibuffer "Enter No. of your choice: "))))
 	      )
 	    (set-buffer ali-buffer)
-	    (goto-line (car (nth (1- choice) declist)))
+	    (goto-char (point-min))
+	    (forward-line (1- (car (nth (1- choice) declist))))
 	    ))))))
 
 
@@ -2166,7 +2168,8 @@ If OTHER-FRAME is non-nil, creates a new frame to show the file."
 
     ;; move the cursor to the correct position
     (push-mark)
-    (goto-line line)
+    (goto-char (point-min))
+    (forward-line (1- line))
     (move-to-column column)
 
     ;; If we are not on the identifier, the ali file was not up-to-date.

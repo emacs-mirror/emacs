@@ -1,11 +1,11 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers
 
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
+;;  2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
-
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2715,7 +2715,8 @@ Obeying it means displaying in another window the specified file and line."
 		    (setq gud-keep-buffer t)))
 	    (save-restriction
 	      (widen)
-	      (goto-line line)
+	      (goto-char (point-min))
+	      (forward-line (1- line))
 	      (setq pos (point))
 	      (or gud-overlay-arrow-position
 		  (setq gud-overlay-arrow-position (make-marker)))

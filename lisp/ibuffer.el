@@ -1,7 +1,7 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1093,7 +1093,8 @@ one window."
 	(line (+ 1 (count-lines 1 (point)))))
     (bury-buffer buf)
     (ibuffer-update nil t)
-    (goto-line line)))
+    (goto-char (point-min))
+    (forward-line (1- line))))
 
 (defun ibuffer-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."

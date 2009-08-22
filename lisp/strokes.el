@@ -1187,14 +1187,16 @@ the stroke as a character in some language."
 		       (let ((char (or (car rainbow-chars) ?\.)))
 			 (loop for i from 0 to 2 do
 			       (loop for j from 0 to 2 do
-				     (goto-line (+ 16 i y))
+				     (goto-char (point-min))
+				     (forward-line (+ 15 i y))
 				     (forward-char (+ 1 j x))
 				     (delete-char 1)
 				     (insert char)))
 			 (setq rainbow-chars (cdr rainbow-chars)
 			       lift-flag nil))
 		     ;; Otherwise, just plot the point...
-		     (goto-line (+ 17 y))
+		     (goto-char (point-min))
+		     (forward-line (+ 16 y))
 		     (forward-char (+ 2 x))
 		     (subst-char-in-region (point) (1+ (point)) ?\s ?\*)))
 		  ((strokes-lift-p point)

@@ -537,7 +537,8 @@ off trailing spaces with \\[delete-trailing-whitespace]."
     (if (get-buffer-window (2C-other t))
 	(select-window (get-buffer-window (2C-other)))
       (switch-to-buffer (2C-other)))
-    (newline (goto-line line))
+    (goto-char (point-min))
+    (newline (forward-line (1- line)))
     (if col
 	(move-to-column col)
       (end-of-line 1))))

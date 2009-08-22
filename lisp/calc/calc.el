@@ -1,7 +1,7 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1615,11 +1615,13 @@ See calc-keypad for details."
       (and (memq 'position-point calc-command-flags)
 	   (if (eq major-mode 'calc-mode)
 	       (progn
-		 (goto-line calc-final-point-line)
+		 (goto-char (point-min))
+		 (forward-line (1- calc-final-point-line))
 		 (move-to-column calc-final-point-column))
 	     (save-current-buffer
 	       (calc-select-buffer)
-	       (goto-line calc-final-point-line)
+	       (goto-char (point-min))
+	       (forward-line (1- calc-final-point-line))
 	       (move-to-column calc-final-point-column))))
       (unless (memq 'keep-flags calc-command-flags)
 	(save-excursion
@@ -2019,7 +2021,8 @@ See calc-keypad for details."
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (save-excursion
 	(set-buffer calc-trail-buffer)
-	(goto-line 2)
+	(goto-char (point-min))
+	(forward-line 1)
 	(setq calc-trail-pointer (point-marker))))
   calc-trail-buffer)
 

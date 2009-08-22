@@ -2192,9 +2192,10 @@ and `face'."
     (when (and (>= pos from) (<= pos to))
       (condition-case nil
 	  (progn
-	    (if (> column 0)
-		(goto-line line)
-	      (goto-line (1+ line)))
+	    (goto-char (point-min))
+	    (forward-line (if (> column 0)
+			      (1- line)
+			    line))
 	    (move-to-column column))
 	(error nil)))))
 

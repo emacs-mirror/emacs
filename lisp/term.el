@@ -3465,7 +3465,8 @@ The top-most line is line 0."
       (set-buffer buffer)
       (save-restriction
 	(widen)
-	(goto-line line)
+	(goto-char (point-min))
+	(forward-line (1- line))
 	(setq pos (point))
 	(setq overlay-arrow-string "=>")
 	(or overlay-arrow-position

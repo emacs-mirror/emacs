@@ -15152,7 +15152,8 @@ is already shown in a buffer."
     (let ((buffer (get-file-buffer (car token))))
       (speedbar-find-file-in-frame (car token))
       (when (or vhdl-speedbar-jump-to-unit buffer)
-	(goto-line (cdr token))
+	(goto-char (point-min))
+	(forward-line (1- (cdr token)))
 	(recenter))
       (vhdl-speedbar-update-current-unit t t)
       (speedbar-set-timer dframe-update-speed)
@@ -15170,7 +15171,8 @@ is already shown in a buffer."
 	      (let ((token (get-text-property
 			    (match-beginning 3) 'speedbar-token)))
 		(vhdl-visit-file (car token) t
-				 (progn (goto-line (cdr token))
+				 (progn (goto-char (point-min))
+					(forward-line (1- (cdr token)))
 					(end-of-line)
 					(if is-entity
 					    (vhdl-port-copy)
@@ -15919,7 +15921,8 @@ current project/directory."
     ;; insert component declarations
     (while ent-alist
       (vhdl-visit-file (nth 2 (car ent-alist)) nil
-		       (progn (goto-line (nth 3 (car ent-alist)))
+		       (progn (goto-char (point-min))
+			      (forward-line (1- (nth 3 (car ent-alist))))
 			      (end-of-line)
 			      (vhdl-port-copy)))
       (goto-char component-pos)

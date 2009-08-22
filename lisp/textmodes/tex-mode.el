@@ -2210,7 +2210,7 @@ for the error messages."
 		    (with-syntax-table tex-error-parse-syntax-table
 		      (backward-up-list 1)
 		      (skip-syntax-forward "(_")
-		      (while (not 
+		      (while (not
 			      (and (setq try-filename (thing-at-point
 						       'filename))
 				   (not (string= "" try-filename))
@@ -2229,7 +2229,10 @@ for the error messages."
 		    (find-file-noselect filename))
 		(save-excursion
 		  (if new-file
-		      (progn (goto-line linenum) (setq last-position nil))
+		      (progn
+			(goto-char (point-min))
+			(forward-line (1- linenum))
+			(setq last-position nil))
 		    (goto-char last-position)
 		    (forward-line (- linenum last-linenum)))
 		  ;; first try a forward search for the error text,

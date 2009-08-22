@@ -1,3 +1,50 @@
+2009-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* bs.el (bs--redisplay):
+	* cus-edit.el (custom-redraw):
+	* ibuffer.el (ibuffer-bury-buffer):
+	* server.el (server-goto-line-column):
+	* startup.el (command-line-1):
+	* strokes.el (strokes-xpm-for-stroke):
+	* term.el (term-display-buffer-line):
+	* view.el (View-goto-line):
+	* calc/calc.el (calc-do, calc-trail-buffer):
+	* play/gamegrid.el (gamegrid-add-score-insecure):
+	* progmodes/ada-mode.el (ada-compile-goto-error):
+	* progmodes/ada-xref.el (ada-xref-find-in-modified-ali):
+	(ebrowse-select-1st-to-9nth):
+	* progmodes/ebrowse.el (ebrowse-toggle-file-name-display)
+	* progmodes/gud.el (gud-display-line):
+	(idlwave-shell-display-line):
+	* progmodes/idlw-shell.el (idlwave-shell-goto-frame)
+	* progmodes/make-mode.el (makefile-browser-toggle):
+	(vhdl-speedbar-port-copy, vhdl-compose-components-package):
+	* progmodes/vhdl-mode.el (vhdl-speedbar-find-file)
+	* textmodes/picture.el (picture-draw-rectangle):
+	* textmodes/reftex-index.el (reftex-index-goto-letter):
+	(reftex-select-jump-to-previous):
+	* textmodes/reftex-sel.el (reftex-find-start-point)
+	* textmodes/reftex-toc.el (reftex-toc, reftex-toc-restore-region):
+	(rst-straighten-deco-spacing, rst-section-tree, rst-toc):
+	* textmodes/rst.el (rst-promote-region, rst-straighten-decorations)
+	* textmodes/tex-mode.el (tex-compilation-parse-errors):
+	* textmodes/two-column.el (2C-associated-buffer):
+	Use forward-line rather than goto-line.
+
+	* emulation/vi.el (vi-goto-line): Don't warn about non-interactive
+	goto-line.
+
+	* international/ucs-normalize.el (nfd)
+	(decomposition-translation-alist, decomposition-char-recursively)
+	(alist-list-to-vector, quick-check-list, quick-check-list-to-regexp):
+	Declare.
+
+	* progmodes/make-mode.el (makefile-browser-insert-selection): Use
+	goto-char rather than goto-line.
+
+	* progmodes/prolog.el (compilation-error-regexp-alist)
+	(compilation-forget-errors): Declare.
+
 2009-08-22  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (lgrep, rgrep): At the beginning

@@ -1088,7 +1088,8 @@ When index is restricted, select the previous section as restriction criterion."
   "Go to the CHAR section in the index."
   (let ((pos (point))
         (case-fold-search nil))
-    (goto-line 3)
+    (goto-char (point-min))
+    (forward-line 2)
     (if (re-search-forward (concat "^" (char-to-string char)) nil t)
         (progn
           (beginning-of-line)
