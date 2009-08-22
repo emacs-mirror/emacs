@@ -1486,9 +1486,10 @@ definition and conveniently use this command."
   (let ((this-line (count-lines (point-min) (point))))
     (setq this-line (max 1 this-line))
     (makefile-browser-toggle-state-for-line this-line)
-    (goto-line this-line)
+    (goto-char (point-min))
+    (forward-line (1- this-line))
     (let ((inhibit-read-only t))
-      (beginning-of-line)
+      (beginning-of-line)		; redundant?
       (if (makefile-browser-on-macro-line-p)
 	  (let ((macro-name (makefile-browser-this-line-macro-name)))
 	    (delete-region (point) (progn (end-of-line) (point)))
@@ -1528,7 +1529,7 @@ large dependencies from the browser to the client buffer.
 Insertion takes place at point."
   (interactive)
   (save-excursion
-    (goto-line 1)
+    (goto-char (point-min))
     (let ((current-line 1))
       (while (not (eobp))
 	(if (makefile-browser-get-state-for-line current-line)
