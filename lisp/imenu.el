@@ -297,9 +297,9 @@ The function in this variable is called when selecting a normal index-item.")
 ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; FIXME: This is the only imenu-example-* definition that's actually used,
-;; and it seems to only be used by cperl-mode.el.  We should just move it to
-;; cperl-mode.el and remove the rest.
+;; FIXME: This was the only imenu-example-* definition actually used,
+;; by cperl-mode.el.  Now cperl-mode has its own copy, so these can
+;; all be removed.
 (defun imenu-example--name-and-position ()
   "Return the current/previous sexp and its (beginning) location.
 Don't move point."
