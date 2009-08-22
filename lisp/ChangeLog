@@ -1,5 +1,8 @@
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-mark-entries-1): Only mark all days of a
+	given name if the pattern is not more specific.
+
 	* calendar/lunar.el (lunar-phase-names): New option.
 	(lunar-phase): Doc fix.
 	(lunar-cycles-per-year): New constant.

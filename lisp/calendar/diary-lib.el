@@ -1246,7 +1246,9 @@ function that converts absolute dates to dates of the appropriate type.  "
                                (buffer-substring-no-properties
                                 (point) (line-end-position))
                                file-glob-attrs)))
-            (if dd-name
+            ;; Only mark all days of a given name if the pattern
+            ;; contains no more specific elements.
+            (if (and dd-name (not (or d-pos m-pos y-pos)))
                 (calendar-mark-days-named
                  (cdr (assoc-string dd-name
                                     (calendar-make-alist
