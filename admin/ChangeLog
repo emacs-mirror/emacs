@@ -1,5 +1,7 @@
 2009-08-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* notes/bugtracker: How to reassign a bug to a list of packages.
+
 	* notes/newfile: Details of how to check for problems with DOS 8+3
 	file-name restrictions.
 
