@@ -71,16 +71,6 @@ int xd_in_read_queued_messages = 0;
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
    we don't want to poison other namespaces with "dbus_".  */
 
-/* Since D-Bus 1.1.1, dbus_watch_get_fd() was replaced by
-   dbus_watch_get_unix_fd and dbus_watch_get_socket.  We must check
-   this.  */
-#ifdef DBUS_VERSION
-#define XD_WITH_DBUS_WATCH_GET_UNIX_FD		\
-  ((1 << 16) | (1 << 8) | (1)) <= DBUS_VERSION
-#else
-#define XD_WITH_DBUS_WATCH_GET_UNIX_FD 0
-#endif
-
 /* Raise a signal.  If we are reading events, we cannot signal; we
    throw to xd_read_queued_messages then.  */
 #define XD_SIGNAL1(arg)							\
@@ -752,7 +742,7 @@ xd_add_watch (watch, data)
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
-#if XD_WITH_DBUS_WATCH_GET_UNIX_FD
+#if HAVE_DBUS_WATCH_GET_UNIX_FD
       /* TODO: Reverse these on Win32, which prefers the opposite. */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
@@ -782,7 +772,7 @@ xd_remove_watch (watch, data)
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
     {
-#if XD_WITH_DBUS_WATCH_GET_UNIX_FD
+#if HAVE_DBUS_WATCH_GET_UNIX_FD
       /* TODO: Reverse these on Win32, which prefers the opposite. */
       int fd = dbus_watch_get_unix_fd(watch);
       if (fd == -1)
