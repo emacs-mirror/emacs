@@ -7908,7 +7908,8 @@ url is put as the `gnus-button-url' overlay property on the button."
     (unless file
       (error "Couldn't find library %s" library))
     (find-file file)
-    (goto-line (string-to-number line))))
+    (goto-char (point-min))
+    (forward-line (1- (string-to-number line)))))
 
 (defun gnus-button-handle-man (url)
   "Fetch a man page."
