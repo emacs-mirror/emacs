@@ -1968,7 +1968,6 @@ See `set-language-info-alist' for use in programs."
 	 (eol-type
 	  (if (null default-buffer-file-coding-system)
 	      (cond ((memq system-type '(windows-nt ms-dos)) 1)
-		    ((eq system-type 'macos) 2)
 		    (t 0))
 	    (coding-system-eol-type default-buffer-file-coding-system))))
     (when priority

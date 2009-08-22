@@ -549,7 +549,7 @@ See `fast-lock-cache-directory'."
       (concat buffer-file-name ".flc")
     (let* ((bufile (expand-file-name buffer-file-truename))
 	   (chars-alist
-	    (if (memq system-type '(emx windows-nt cygwin))
+	    (if (memq system-type '(windows-nt cygwin))
 		'((?/ . (?#)) (?# . (?# ?#)) (?: . (?\;)) (?\; . (?\; ?\;)))
 	      '((?/ . (?#)) (?# . (?# ?#)))))
 	   (mapchars

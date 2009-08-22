@@ -1,5 +1,17 @@
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* hippie-exp.el (he-concat-directory-file-name):
+	* lpr.el (lpr-windows-system, printer-name):
+	* ls-lisp.el (ls-lisp-emulation, ls-lisp-use-insert-directory-program):
+	* ps-print.el (ps-windows-system):
+	* startup.el (command-line):
+	* emulation/viper-ex.el (viper-glob-function):
+	* international/mule-cmds.el (set-language-environment-coding-systems):
+	* net/ange-ftp.el (ange-ftp-write-region):
+	* obsolete/fast-lock.el (fast-lock-cache-name):
+	Remove code for defunct system-types emx, macos, mswindows,
+	unisoft-unix, vax-vms, win32, w32.
+
 	* calendar/diary-lib.el (diary-mark-entries-1): Only mark all days of a
 	given name if the pattern is not more specific.
 

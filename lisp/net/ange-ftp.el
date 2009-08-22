@@ -1,7 +1,8 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
 ;; Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -3220,7 +3221,7 @@ system TYPE.")
 	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
 			   (and (not (memq system-type
-					   '(ms-dos windows-nt macos vax-vms)))
+					   '(ms-dos windows-nt)))
 				(memq (ange-ftp-host-type host user)
 				      '(unix dumb-unix)))))
 	       (cmd (if append 'append 'put))

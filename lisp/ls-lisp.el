@@ -70,10 +70,9 @@
   :group 'dired)
 
 (defcustom ls-lisp-emulation
-  (cond ((eq system-type 'macos) 'MacOS)
-	;; ((eq system-type 'windows-nt) 'MS-Windows)
+  (cond ;; ((eq system-type 'windows-nt) 'MS-Windows)
 	((memq system-type
-	       '(hpux usg-unix-v unisoft-unix irix berkeley-unix))
+	       '(hpux usg-unix-v irix berkeley-unix))
 	 'UNIX))			; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
   "Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.
@@ -129,7 +128,7 @@ if emulation is GNU then default is `(links uid gid)'."
   :group 'ls-lisp)
 
 (defcustom ls-lisp-use-insert-directory-program
-  (not (memq system-type '(macos ms-dos windows-nt)))
+  (not (memq system-type '(ms-dos windows-nt)))
   "Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
 This is useful on platforms where ls-lisp is dumped into Emacs, such as
 Microsoft Windows, but you would still like to use a program to list

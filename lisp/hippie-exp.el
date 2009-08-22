@@ -1,7 +1,7 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998
@@ -519,7 +519,7 @@ otherwise."
 (defun he-concat-directory-file-name (dir-part name-part)
   "Try to slam together two parts of a file specification, system dependently."
   (cond ((null dir-part) name-part)
-	((memq system-type '(ms-dos w32))
+	((eq system-type 'ms-dos)
 	 (if (and (string-match "\\\\" dir-part)
 		  (not (string-match "/" dir-part))
 		  (= (aref name-part (1- (length name-part))) ?/))

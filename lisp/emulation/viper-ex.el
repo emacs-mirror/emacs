@@ -329,7 +329,6 @@ Don't put `-c' here, as it is added automatically."
 
 (defcustom viper-glob-function
   (cond (ex-unix-type-shell 'viper-glob-unix-files)
-	((eq system-type 'emx) 'viper-glob-mswindows-files) ; OS/2
 	(viper-ms-style-os-p 'viper-glob-mswindows-files) ; Microsoft OS
 	(t  'viper-glob-unix-files) ; presumably UNIX
 	)
