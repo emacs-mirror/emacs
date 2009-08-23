@@ -303,9 +303,12 @@ Encrypt marked files.
 @node Mail-mode integration
 @section Mail-mode integration
 
-EasyPG Assistant provides a minor mode to help user compose inline PGP
-messages.  Inline PGP is sending the OpenPGP blobs directly inside a
-mail message and it is not recommended and you should consider to use
+EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
+user compose inline PGP messages.  Inline PGP is a traditional style
+of sending signed/encrypted emails by embedding raw OpenPGP blobs
+inside a message body, not using modern MIME format.
+
+NOTE: Inline PGP is not recommended and you should consider to use
 PGP/MIME.  See
 @uref{http://josefsson.org/inline-openpgp-considered-harmful.html,
 Inline PGP in E-mail is bad, Mm'kay?}.
@@ -344,12 +347,12 @@ key in the recipient list, use @samp{encrypt-to} option in
 
 @node Encrypting/decrypting *.gpg files
 @section Encrypting/decrypting *.gpg files
-Once @code{epa-setup} is loaded, every file whose extension is
-@samp{.gpg} will be treated as encrypted.  That is, when you attempt
-to open such a file which already exists, the decrypted text is
-inserted in the buffer rather than encrypted one.  On the other hand,
-when you attempt to save the buffer to a file whose extension is
-@samp{.gpg}, encrypted data is written.
+By default, every file whose extension is @samp{.gpg} will be treated
+as encrypted.  That is, when you attempt to open such a file which
+already exists, the decrypted text is inserted in the buffer rather
+than encrypted one.  On the other hand, when you attempt to save the
+buffer to a file whose extension is @samp{.gpg}, encrypted data is
+written.
 
 If you want to temporarily disable this behavior, use @kbd{M-x
 epa-file-disable}, and then to enable this behavior use @kbd{M-x
