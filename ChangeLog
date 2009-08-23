@@ -1,4 +1,8 @@
-2009-08-23  Ken Raeburn  <raeburn@mit.edu>
+2009-08-23  Ken Raeburn  <raeburn@raeburn.org>
+
+	* Makefile.in (install-arch-indep): If the versioned DOC-####
+	generated during loadup+dump isn't found, install the plain DOC
+	file that always gets generated, in case CANNOT_DUMP is set.
 
 	* configure.in: Warn if package version specified here doesn't
 	match the version in version.el.

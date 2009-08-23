@@ -526,7 +526,7 @@ install-arch-indep: mkdir info install-etc
 	   then \
 	     docfile="DOC-$${fullversion}"; \
 	   else \
-	     docfile="DOC-${version}*"; \
+	     docfile="DOC"; \
 	   fi; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   (cd ./etc; tar -chf - $${docfile}) \
