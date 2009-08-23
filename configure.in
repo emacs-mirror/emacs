@@ -2551,6 +2551,9 @@ CPPFLAGS="$REAL_CPPFLAGS"
 if test x"${version}" = x; then
   AC_MSG_ERROR([can't find current emacs version in `${srcdir}/lisp/version.el'.])
 fi
+if test x"${version}" != x"$PACKAGE_VERSION"; then
+  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/lisp/version.el'.])
+fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.

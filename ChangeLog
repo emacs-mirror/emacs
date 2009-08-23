@@ -1,3 +1,9 @@
+2009-08-23  Ken Raeburn  <raeburn@mit.edu>
+
+	* configure.in: Warn if package version specified here doesn't
+	match the version in version.el.
+	* configure: Regenerate.
+
 2009-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* configure.in: AC_CHECK_FUNCS dbus_watch_get_unix_fd.
