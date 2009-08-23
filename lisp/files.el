@@ -2157,7 +2157,7 @@ since only a single case-insensitive search through the alist is made."
      ("Imakefile\\'" . makefile-imake-mode)
      ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
      ("\\.makepp\\'" . makefile-makepp-mode)
-     ,@(if (memq system-type '(berkeley-unix next-mach darwin))
+     ,@(if (memq system-type '(berkeley-unix darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
 	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
