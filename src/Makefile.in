@@ -908,13 +908,14 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
+	-EMACSLOADPATH=${lispsource} ./emacs -q -batch -f list-load-path-shadows
 #else
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
 	@: This new Emacs is as functional and more efficient then
 	@: bootstrap-emacs, so let us replace it.
 	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
-#endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
+#endif /* ! defined (CANNOT_DUMP) */
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
