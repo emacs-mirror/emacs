@@ -1,3 +1,9 @@
+2009-08-23  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Quick start): Don't refer to nonexistent epa-mode.
+	(Mail-mode integration): Mention epa-mail-mode and
+	epa-global-mail-mode.  Reported by Jari Aalto (Bug#4211).
+
 2009-08-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Asynchronous Methods): Allow nil handler.

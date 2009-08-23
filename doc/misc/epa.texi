@@ -99,9 +99,6 @@ EasyPG Assistant provides several cryptographic features which can be
 integrated into other Emacs functionalities.  For example, automatic
 encryption/decryption of @samp{*.gpg} files.
 
-To install these features, do @kbd{C-u 1 M-x epa-mode}.  It can also
-be turned on by customize.  Try @kbd{M-x customize-variable epa-mode}.
-
 @node Commands
 @chapter Commands
 
@@ -314,7 +311,9 @@ PGP/MIME.  See
 Inline PGP in E-mail is bad, Mm'kay?}.
 
 @noindent
-The following keys are assigned.
+Once @code{epa-mail-mode} is enabled, the following keys are assigned.
+You can do it by @kbd{C-u 1 M-x epa-mail-mode} or through the Customize
+interface.  Try @kbd{M-x customize-variable epa-global-mail-mode}.
 
 @table @kbd
 @item C-c C-e d
