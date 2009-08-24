@@ -1,3 +1,7 @@
+2009-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-find-source-location): Avoid goto-line.
+
 2009-08-24  Kenichi Handa  <handa@m17n.org>
 
 	* language/ind-util.el (mapthread): Delete it.

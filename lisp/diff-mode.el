@@ -1598,7 +1598,7 @@ NOPROMPT, if non-nil, means not to prompt the user."
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file other))
       (with-current-buffer buf
-	(goto-line (string-to-number line))
+        (goto-char (point-min)) (forward-line (1- (string-to-number line)))
 	(let* ((orig-pos (point))
 	       (switched nil)
 	       ;; FIXME: Check for case where both OLD and NEW are found.
