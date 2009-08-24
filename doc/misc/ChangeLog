@@ -1,8 +1,9 @@
 2009-08-23  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Quick start): Don't refer to nonexistent epa-mode.
+	Reported by Jari Aalto (Bug#4211).
 	(Mail-mode integration): Mention epa-mail-mode and
-	epa-global-mail-mode.  Reported by Jari Aalto (Bug#4211).
+	epa-global-mail-mode.
 	(Encrypting/decrypting *.gpg files): Don't refer to nonexistent
 	epa-setup.
 
