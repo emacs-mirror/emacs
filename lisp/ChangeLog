@@ -1,3 +1,9 @@
+2009-08-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-alg.el (math-trig-rewrite)
+	(math-hyperbolic-trig-rewrite): New functions.
+	(calc-simplify): Simplify trig functions when asked.
+
 2009-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-find-source-location): Avoid goto-line.
