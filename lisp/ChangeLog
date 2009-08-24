@@ -1,3 +1,9 @@
+2009-08-24  Kenichi Handa  <handa@m17n.org>
+
+	* language/ind-util.el (mapthread): Delete it.
+	(combinatorial): New function.
+	(indian--puthash-cv): Use combinatorial instead of mapthread.
+
 2009-08-22  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/checkdoc.el (checkdoc-force-history-flag)
