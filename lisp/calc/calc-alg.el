@@ -51,8 +51,17 @@
 (defun calc-simplify ()
   (interactive)
   (calc-slow-wrapper
-   (calc-with-default-simplification
-    (calc-enter-result 1 "simp" (math-simplify (calc-top-n 1))))))
+   (let ((top (calc-top-n 1)))
+     (if (calc-is-inverse)
+         (setq top 
+               (let ((calc-simplify-mode nil))
+                 (math-normalize (math-trig-rewrite top)))))
+     (if (calc-is-hyperbolic)
+         (setq top 
+               (let ((calc-simplify-mode nil))
+                 (math-normalize (math-hyperbolic-trig-rewrite top)))))
+     (calc-with-default-simplification
+      (calc-enter-result 1 "simp" (math-simplify top))))))
 
 (defun calc-simplify-extended ()
   (interactive)
@@ -302,6 +311,47 @@
     (math-simplify a)))
 
 (defalias 'calcFunc-esimplify 'math-simplify-extended)
+
+;;; Rewrite the trig functions in a form easier to simplify.
+(defun math-trig-rewrite (fn)
+  "Rewrite trigonometric functions in terms of sines and cosines."
+  (cond
+   ((not (consp fn))
+    fn)
+   ((eq (car-safe fn) 'calcFunc-sec)
+    (list '/ 1 (cons 'calcFunc-cos (math-trig-rewrite (cdr fn)))))
+   ((eq (car-safe fn) 'calcFunc-csc)
+    (list '/ 1 (cons 'calcFunc-sin (math-trig-rewrite (cdr fn)))))
+   ((eq (car-safe fn) 'calcFunc-tan)
+    (let ((newfn (math-trig-rewrite (cdr fn))))
+      (list '/ (cons 'calcFunc-sin newfn)
+            (cons 'calcFunc-cos newfn))))
+   ((eq (car-safe fn) 'calcFunc-cot)
+    (let ((newfn (math-trig-rewrite (cdr fn))))
+      (list '/ (cons 'calcFunc-cos newfn)
+            (cons 'calcFunc-sin newfn))))
+   (t
+    (mapcar 'math-trig-rewrite fn))))
+
+(defun math-hyperbolic-trig-rewrite (fn)
+  "Rewrite hyperbolic functions in terms of sinhs and coshs."
+  (cond
+   ((not (consp fn))
+    fn)
+   ((eq (car-safe fn) 'calcFunc-sech)
+    (list '/ 1 (cons 'calcFunc-cosh (math-hyperbolic-trig-rewrite (cdr fn)))))
+   ((eq (car-safe fn) 'calcFunc-csch)
+    (list '/ 1 (cons 'calcFunc-sinh (math-hyperbolic-trig-rewrite (cdr fn)))))
+   ((eq (car-safe fn) 'calcFunc-tanh)
+    (let ((newfn (math-hyperbolic-trig-rewrite (cdr fn))))
+      (list '/ (cons 'calcFunc-sinh newfn)
+            (cons 'calcFunc-cosh newfn))))
+   ((eq (car-safe fn) 'calcFunc-coth)
+    (let ((newfn (math-hyperbolic-trig-rewrite (cdr fn))))
+      (list '/ (cons 'calcFunc-cosh newfn)
+            (cons 'calcFunc-sinh newfn))))
+   (t
+    (mapcar 'math-hyperbolic-trig-rewrite fn))))
 
 ;; math-top-only is local to math-simplify, but is used by 
 ;; math-simplify-step, which is called by math-simplify.
