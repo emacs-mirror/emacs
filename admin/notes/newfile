@@ -8,7 +8,7 @@ format, copyright and license notice, etc).
 ** Make sure the filename does not cause the DOS port any problems (8+3).
 Run the `doschk' program like this:
 
-    find /path/to/emacs -print | doshck
+    find /path/to/emacs -print | doschk
 
 and examine the output for DOS-related problems.  The sections of
 output under the headings "The following files are not valid DOS file
