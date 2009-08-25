@@ -2513,6 +2513,17 @@ value passed."
       (when stderr-file (delete-file stderr-file))
       (when lc (delete-file lc)))))
 
+(defvar process-file-side-effects t
+  "Whether a call of `process-file' changes remote files.
+
+Per default, this variable is always set to `t', meaning that a
+call of `process-file' could potentially change any file on a
+remote host.  When set to `nil', a file handler could optimize
+its behaviour with respect to remote file attributes caching.
+
+This variable should never be changed by `setq'.  Instead of, it
+shall be set only by let-binding.")
+
 (defun start-file-process (name buffer program &rest program-args)
   "Start a program in a subprocess.  Return the process object for it.
 
