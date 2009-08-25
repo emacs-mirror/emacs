@@ -225,7 +225,8 @@ See also variable `vc-cvs-sticky-date-format-string'."
 	  state))
     (with-temp-buffer
       (cd (file-name-directory file))
-      (vc-cvs-command t 0 file "status")
+      (let (process-file-side-effects)
+	(vc-cvs-command t 0 file "status"))
       (vc-cvs-parse-status t))))
 
 (defun vc-cvs-state-heuristic (file)
@@ -507,7 +508,8 @@ Will fail unless you have administrative privileges on the repo."
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
-  (let* ((async (and (not vc-disable-async-diff)
+  (let* (process-file-side-effects
+	 (async (and (not vc-disable-async-diff)
 		     (vc-stay-local-p files 'CVS)))
 	 (invoke-cvs-diff-list nil)
 	 status)
@@ -1166,7 +1168,8 @@ is non-nil."
 ;; tag names.
 
 (defun vc-cvs-revision-table (file)
-  (let ((default-directory (file-name-directory file))
+  (let (process-file-side-effects
+	(default-directory (file-name-directory file))
         (res nil))
     (with-temp-buffer
       (vc-cvs-command t nil file "log")
