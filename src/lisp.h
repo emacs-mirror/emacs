@@ -793,13 +793,37 @@ struct Lisp_Vector
 #define CHAR_TABLE_EXTRA_SLOTS(CT)	\
   (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
 
+#ifdef __GNUC__
+
+#define CHAR_TABLE_REF_ASCII(CT, IDX)					\
+  ({struct Lisp_Char_Table *_tbl = NULL;				\
+    Lisp_Object _val;							\
+    do {								\
+      _tbl = _tbl ? XCHAR_TABLE (_tbl->parent) : XCHAR_TABLE (CT);	\
+      _val = (! SUB_CHAR_TABLE_P (_tbl->ascii) ? _tbl->ascii		\
+	      : XSUB_CHAR_TABLE (_tbl->ascii)->contents[IDX]);		\
+      if (NILP (_val))							\
+	_val = _tbl->defalt;						\
+    } while (NILP (_val) && ! NILP (_tbl->parent));			\
+    _val; })
+      
+#else  /* not __GNUC__ */
+
+#define CHAR_TABLE_REF_ASCII(CT, IDX)					  \
+  (! NILP (XCHAR_TABLE (CT)->ascii)					  \
+   ? (! SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)			  \
+      ? XCHAR_TABLE (CT)->ascii						  \
+      : ! NILP (XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]) \
+      ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]	  \
+      : char_table_ref ((CT), (IDX)))					  \
+   :  char_table_ref ((CT), (IDX)))
+
+#endif	/* not __GNUC__ */
+
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
-#define CHAR_TABLE_REF(CT, IDX)						 \
-  ((ASCII_CHAR_P (IDX)							 \
-    && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)			 \
-    && !NILP (XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX])) \
-   ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]		 \
+#define CHAR_TABLE_REF(CT, IDX)					\
+  (ASCII_CHAR_P (IDX) ? CHAR_TABLE_REF_ASCII ((CT), (IDX))	\
    : char_table_ref ((CT), (IDX)))
 
 /* Almost equivalent to Faref (CT, IDX).  However, if the result is
