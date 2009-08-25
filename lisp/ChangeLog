@@ -1,3 +1,27 @@
+2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (process-file-side-effects): New defvar.
+
+	* dired-aux.el (dired-show-file-type):
+	* vc.el (vc-diff-internal):
+	* vc-arch.el (vc-arch-diff):
+	* vc-bzr.el (vc-bzr-sha1, vc-bzr-revision-completion-table):
+	* vc-cvs.el (vc-cvs-state, vc-cvs-diff, vc-cvs-revision-table):
+	* vc-git.el (vc-git-registered, vc-git-working-revision)
+	(vc-git-find-revision, vc-git-diff, vc-git-revision-table)
+	(vc-git--empty-db-p):
+	* vc-hooks.el (vc-user-login-name):
+	* vc-svn.el (vc-svn-registered, vc-svn-state)
+	(vc-svn-dir-extra-headers, vc-svn-find-revision):
+	* progmodes/grep.el (grep-probe): Let-bind
+	`process-file-side-effects' with nil.
+
+	* net/dbus.el (dbus-ping): Add optional parameter TIMEOUT.
+
+	* net/tramp-gvfs.el (top): Use timeout of 100 msec pinging GVFS
+	daemon.  Replace ping by checking for running service for bluez
+	and zeroconf.  (Bug#4239)
+
 2009-08-25  Kevin Ryde  <user42@zip.com.au>
 
 	* net/dig.el (dig): Add autoload cookie.
