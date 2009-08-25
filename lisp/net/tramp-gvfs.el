@@ -144,7 +144,7 @@
   "The well known name of the GVFS daemon.")
 
 ;; Check that GVFS is available.
-(unless (dbus-ping :session tramp-gvfs-service-daemon)
+(unless (dbus-ping :session tramp-gvfs-service-daemon 100)
   (throw 'tramp-loading nil))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
@@ -1177,7 +1177,7 @@ be used."
    (tramp-bluez-list-devices)))
 
 ;; Add completion function for OBEX method.
-(when (dbus-ping :system tramp-bluez-service)
+(when (member tramp-bluez-service (dbus-list-known-names :system))
   (tramp-set-completion-function
    "obex" '((tramp-bluez-parse-device-names ""))))
 
@@ -1210,7 +1210,7 @@ be used."
    (zeroconf-list-services "_webdav._tcp")))
 
 ;; Add completion function for DAV and DAVS methods.
-(when (dbus-ping :system zeroconf-service-avahi)
+(when (member zeroconf-service-avahi (dbus-list-known-names :system))
   (zeroconf-init tramp-gvfs-zeroconf-domain)
   (tramp-set-completion-function
    "sftp" '((tramp-zeroconf-parse-workstation-device-names "")))
