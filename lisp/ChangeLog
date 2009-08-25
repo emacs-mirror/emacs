@@ -1,3 +1,7 @@
+2009-08-25  Kevin Ryde  <user42@zip.com.au>
+
+	* net/dig.el (dig): Add autoload cookie.
+
 2009-08-25  Glenn Morris  <rgm@gnu.org>
 
 	* format.el (format-alist): Doc fix.
