@@ -146,7 +146,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Check whether FILE is registered with git."
   (when (vc-git-root file)
     (with-temp-buffer
-      (let* ((dir (file-name-directory file))
+      (let* (process-file-side-effects
+	     (dir (file-name-directory file))
              (name (file-relative-name file dir))
              (str (ignore-errors
                     (when dir (cd dir))
@@ -183,9 +184,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."
-  (let ((str (with-output-to-string
-               (with-current-buffer standard-output
-                 (vc-git--out-ok "symbolic-ref" "HEAD")))))
+  (let* (process-file-side-effects
+	 (str (with-output-to-string
+		(with-current-buffer standard-output
+		  (vc-git--out-ok "symbolic-ref" "HEAD")))))
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
         (match-string 2 str)
       str)))
@@ -260,7 +262,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-git-rename-as-string (state extra)
   "Return a string describing the copy or rename associated with INFO, or an empty string if none."
-  (let ((rename-state (when extra 
+  (let ((rename-state (when extra
 			(vc-git-extra-fileinfo->rename-state extra))))
     (if rename-state
         (propertize
@@ -406,7 +408,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (when (string= stash "") (setq stash "Nothing stashed"))
     (concat
      (propertize "Branch     : " 'face 'font-lock-type-face)
-     (propertize 
+     (propertize
       (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
 	  (match-string 2 str)
 	"not (detached HEAD)")
@@ -439,12 +441,13 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		    (if vc-git-add-signoff "-s") "-m" comment "--only" "--")))
 
 (defun vc-git-find-revision (file rev buffer)
-  (let ((coding-system-for-read 'binary)
-        (coding-system-for-write 'binary)
-	(fullname (substring
-		   (vc-git--run-command-string
-		    file "ls-files" "-z" "--full-name" "--")
-		   0 -1)))
+  (let* (process-file-side-effects
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 (fullname (substring
+		    (vc-git--run-command-string
+		     file "ls-files" "-z" "--full-name" "--")
+		    0 -1)))
     (vc-git-command
      buffer 0
      (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
@@ -528,15 +531,17 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."
-  (apply #'vc-git-command (or buffer "*vc-diff*") 1 files
-	 (if (and rev1 rev2) "diff-tree" "diff-index")
-	 "--exit-code"
-	 (append (vc-switches 'git 'diff)
-		 (list "-p" (or rev1 "HEAD") rev2 "--"))))
+  (let (process-file-side-effects)
+    (apply #'vc-git-command (or buffer "*vc-diff*") 1 files
+	   (if (and rev1 rev2) "diff-tree" "diff-index")
+	   "--exit-code"
+	   (append (vc-switches 'git 'diff)
+		   (list "-p" (or rev1 "HEAD") rev2 "--")))))
 
 (defun vc-git-revision-table (files)
   ;; What about `files'?!?  --Stef
-  (let ((table (list "HEAD")))
+  (let (process-file-side-effects
+	(table (list "HEAD")))
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
       (goto-char (point-min))
@@ -736,7 +741,8 @@ The difference to vc-do-command is that this function always invokes `git'."
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
-  (not (eq 0 (vc-git--call nil "rev-parse" "--verify" "HEAD"))))
+  (let (process-file-side-effects)
+    (not (eq 0 (vc-git--call nil "rev-parse" "--verify" "HEAD")))))
 
 (defun vc-git--call (buffer command &rest args)
   ;; We don't need to care the arguments.  If there is a file name, it
