@@ -1,3 +1,13 @@
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* nnir.el (top-level): Don't require cl at run-time.
+	(nnir-run-waissearch, nnir-run-swish-e, nnir-run-hyrex):
+	Replace cl-function substitute with gnus-replace-in-string.
+	(nnir-run-waissearch, nnir-run-swish++, nnir-run-swish-e)
+	(nnir-run-hyrex, nnir-run-namazu): Replace cl-function sort* with sort.
+	(nnir-run-find-grep): Replace cl-functions find-if and subseq with
+	simplified expansions.
+
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (gnus-button-patch): Use forward-line rather than
