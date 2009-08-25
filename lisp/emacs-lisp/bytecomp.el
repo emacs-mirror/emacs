@@ -902,8 +902,10 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	  (while (and hist-new (not (eq hist-new hist-orig)))
 	    (let ((xs (pop hist-new)))
 	      ;; Make sure the file was not already loaded before.
-	      (when (and (equal (car xs) "cl") (not (assoc (car xs) hist-orig)))
-		(byte-compile-find-cl-functions)))))))))
+	      (and (stringp (car xs))
+		   (string-match "^cl\\>" (file-name-nondirectory (car xs)))
+		   (not (assoc (car xs) hist-orig))
+		   (byte-compile-find-cl-functions)))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."
@@ -2322,8 +2324,10 @@ list that represents a doc string reference.
   (let ((args (mapcar 'eval (cdr form))))
     (apply 'require args)
     ;; Detect (require 'cl) in a way that works even if cl is already loaded.
-    (if (member (car args) '("cl" cl))
-        (byte-compile-disable-warning 'cl-functions)))
+    (when (member (car args) '("cl" cl))
+      (if (byte-compile-warning-enabled-p 'cl-functions)
+	  (byte-compile-warn "cl package required at runtime"))
+      (byte-compile-disable-warning 'cl-functions)))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)

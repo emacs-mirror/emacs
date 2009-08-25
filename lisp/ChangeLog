@@ -4,6 +4,10 @@
 
 2009-08-25  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Fix test for cl in
+	load-history for absolute file-names.
+	(byte-compile-file-form-require): Warn about use of the cl package.
+
 	* format.el (format-alist): Doc fix.
 
 	* play/bubbles.el (top-level): Don't require cl at run-time.
