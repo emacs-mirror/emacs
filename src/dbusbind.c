@@ -853,7 +853,7 @@ offered by SERVICE.  It must provide METHOD.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
 specifies the maximun number of milliseconds the method call must
-return.  The default value is 25.000.  If the method call doesn't
+return.  The default value is 25,000.  If the method call doesn't
 return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
@@ -1061,7 +1061,7 @@ be expected.
 
 If the parameter `:timeout' is given, the following integer TIMEOUT
 specifies the maximun number of milliseconds the method call must
-return.  The default value is 25.000.  If the method call doesn't
+return.  The default value is 25,000.  If the method call doesn't
 return in time, a D-Bus error is raised.
 
 All other arguments ARGS are passed to METHOD as arguments.  They are
