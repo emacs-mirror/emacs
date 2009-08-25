@@ -180,21 +180,30 @@ result is a string, or @code{nil} when there exist no name owner of
 string.
 @end defun
 
-@defun dbus-ping bus service
+@defun dbus-ping bus service &optional timeout
 Check whether the service name @var{service} is registered at D-Bus
-@var{bus}.  @var{service} might not have been started yet.  The result
-is either @code{t} or @code{nil}.
+@var{bus}.  @var{service} might not have been started yet, it is
+autostarted if possible.  The result is either @code{t} or @code{nil}.
 
 @var{bus} must be either the symbol @code{:system} or the symbol
-@code{:session}.  @var{service} must be a string.  Example:
+@code{:session}.  @var{service} must be a string.  @var{timeout}, a
+nonnegative integer, specifies the maximum number of milliseconds
+@code{dbus-ping} must return.  The default value is 25,000.  Example:
 
 @lisp
 (message
    "%s screensaver on board."
    (cond
-     ((dbus-ping :session "org.gnome.ScreenSaver") "Gnome")
-     ((dbus-ping :session "org.freedesktop.ScreenSaver") "KDE")
+     ((dbus-ping :session "org.gnome.ScreenSaver" 100) "Gnome")
+     ((dbus-ping :session "org.freedesktop.ScreenSaver" 100) "KDE")
      (t "No")))
+@end lisp
+
+If it shall be checked whether @var{service} is already running
+without autostarting it, one shall apply
+
+@lisp
+(member service (dbus-list-known-names bus))
 @end lisp
 @end defun
 
@@ -1078,7 +1087,7 @@ an interface offered by @var{service}.  It must provide @var{method}.
 
 If the parameter @code{:timeout} is given, the following integer
 @var{timeout} specifies the maximum number of milliseconds the method
-call must return.  The default value is 25.000.  If the method call
+call must return.  The default value is 25,000.  If the method call
 doesn't return in time, a D-Bus error is raised (@pxref{Errors and
 Events}).
 
@@ -1194,7 +1203,7 @@ corresponding return message has arrived.  If @var{handler} is
 
 If the parameter @code{:timeout} is given, the following integer
 @var{timeout} specifies the maximum number of milliseconds a reply
-message must arrive.  The default value is 25.000.  If there is no
+message must arrive.  The default value is 25,000.  If there is no
 reply message in time, a D-Bus error is raised (@pxref{Errors and
 Events}).
 
