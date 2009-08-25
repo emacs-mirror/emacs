@@ -1,3 +1,9 @@
+2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_call_method)
+	(Fdbus_call_method_asynchronously): Use English numeric format for
+	timeout values in doc string.
+
 2009-08-25  Kenichi Handa  <handa@m17n.org>
 
 	* lisp.h (CHAR_TABLE_REF_ASCII): New macro.
