@@ -2427,13 +2427,14 @@ with the command \\[tags-loop-continue]."
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
 true then the type of the file linked to by FILE is printed instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
-  (with-temp-buffer
-    (if deref-symlinks
-	(process-file "file" nil t t "-L" "--" file)
-      (process-file "file" nil t t "--" file))
-    (when (bolp)
-      (backward-delete-char 1))
-    (message "%s" (buffer-string))))
+  (let (process-file-side-effects)
+    (with-temp-buffer
+      (if deref-symlinks
+	  (process-file "file" nil t t "-L" "--" file)
+	(process-file "file" nil t t "--" file))
+      (when (bolp)
+	(backward-delete-char 1))
+      (message "%s" (buffer-string)))))
 
 (provide 'dired-aux)
 
