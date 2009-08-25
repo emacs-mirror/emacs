@@ -456,7 +456,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
         (setq newvers nil))
     (if newvers
         (error "Diffing specific revisions not implemented")
-      (let* ((async (not vc-disable-async-diff))
+      (let* (process-file-side-effects
+	     (async (not vc-disable-async-diff))
              ;; Run the command from the root dir.
              (default-directory (vc-arch-root file))
              (status
