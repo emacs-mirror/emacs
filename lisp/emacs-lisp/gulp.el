@@ -5,7 +5,7 @@
 
 ;; Author: Sam Shteingold <shteingd@math.ucla.edu>
 ;; Maintainer: FSF
-;; Keywords: maintenance
+;; Keywords: maint
 
 ;; This file is part of GNU Emacs.
 
