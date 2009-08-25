@@ -4,6 +4,8 @@
 	Describe autostart behaviour of dbus-ping.
 	(Synchronous Methods, Asynchronous Methods): Use English numeric format
 	for timeout values.
+	(Top): Remove footnote saying D-Bus is not enabled by
+	default.  (Bug#4256)
 
 2009-08-23  Daiki Ueno  <ueno@unixuser.org>
 
