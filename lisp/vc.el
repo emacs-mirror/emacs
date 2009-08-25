@@ -1481,7 +1481,8 @@ returns t if the buffer had changes, nil otherwise."
     ;; I made it conditional on vc-diff-added-files but it should probably
     ;; just be removed (or copied/moved to specific backends).  --Stef.
     (when vc-diff-added-files
-      (let ((filtered '()))
+      (let ((filtered '())
+	    process-file-side-effects)
         (dolist (file files)
           (if (or (file-directory-p file)
                   (not (string= (vc-working-revision file) "0")))
@@ -1828,7 +1829,7 @@ allowed and simply skipped)."
       (vc-call-backend ',backend 'log-view-mode)
       (set (make-local-variable 'log-view-vc-backend) ',backend)
       (set (make-local-variable 'log-view-vc-fileset) ',files)
-      
+
       ;; FIXME: this seems to apply only to RCS/CVS, it doesn't quite
       ;; belong here in the generic code.
       (goto-char (point-max))
