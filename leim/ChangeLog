@@ -1,3 +1,7 @@
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* quail/hangul.el (top-level): Don't require cl at run-time.
+
 2009-08-21  Thamer Mahmoud  <thamer.mahmoud@gmail.com>  (tiny change)
 
 	* quail/arabic.el: Add missing keys that exist on the Arabic X

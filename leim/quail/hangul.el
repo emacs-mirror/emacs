@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'quail)
-(require 'cl)
+(eval-when-compile (require 'cl))       ; for setf
 (require 'hanja-util)
 
 ;; Hangul double Jamo table.
