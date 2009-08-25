@@ -2324,9 +2324,9 @@ list that represents a doc string reference.
   (let ((args (mapcar 'eval (cdr form))))
     (apply 'require args)
     ;; Detect (require 'cl) in a way that works even if cl is already loaded.
-    (when (member (car args) '("cl" cl))
-      (if (byte-compile-warning-enabled-p 'cl-functions)
-	  (byte-compile-warn "cl package required at runtime"))
+    (when (and (member (car args) '("cl" cl))
+	       (byte-compile-warning-enabled-p 'cl-functions))
+      (byte-compile-warn "cl package required at runtime")
       (byte-compile-disable-warning 'cl-functions)))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
