@@ -1,3 +1,8 @@
+2009-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (CHAR_TABLE_REF_ASCII): New macro.
+	(CHAR_TABLE_REF): Use it.
+
 2009-08-23  Ken Raeburn  <raeburn@raeburn.org>
 
 	* Makefile.in (emacs${EXEEXT}) [CANNOT_DUMP]: Set EMACSLOADPATH
