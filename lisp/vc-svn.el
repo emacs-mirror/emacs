@@ -126,7 +126,8 @@ want to force an empty list of arguments, use t."
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
-      (let ((status
+      (let* (process-file-side-effects
+	     (status
              (condition-case nil
                  ;; Ignore all errors.
                  (vc-svn-command t t file "status" "-v")
@@ -142,11 +143,12 @@ want to force an empty list of arguments, use t."
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
-  (setq localp (or localp (vc-stay-local-p file 'SVN)))
-  (with-temp-buffer
-    (cd (file-name-directory file))
-    (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
-    (vc-svn-parse-status file)))
+  (let (process-file-side-effects)
+    (setq localp (or localp (vc-stay-local-p file 'SVN)))
+    (with-temp-buffer
+      (cd (file-name-directory file))
+      (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
+      (vc-svn-parse-status file))))
 
 (defun vc-svn-state-heuristic (file)
   "SVN-specific state heuristic."
@@ -203,7 +205,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 (defun vc-svn-dir-extra-headers (dir)
   "Generate extra status headers for a Subversion working copy."
-  (vc-svn-command "*vc*" 0 nil "info")
+  (let (process-file-side-effects)
+    (vc-svn-command "*vc*" 0 nil "info"))
   (let ((repo
 	 (save-excursion
 	   (and (progn
@@ -305,12 +308,13 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-find-revision (file rev buffer)
   "SVN-specific retrieval of a specified version into a buffer."
-  (apply 'vc-svn-command
-	 buffer 0 file
-	 "cat"
-	 (and rev (not (string= rev ""))
-	      (concat "-r" rev))
-	 (vc-switches 'SVN 'checkout)))
+  (let (process-file-side-effects)
+    (apply 'vc-svn-command
+	   buffer 0 file
+	   "cat"
+	   (and rev (not (string= rev ""))
+		(concat "-r" rev))
+	   (vc-switches 'SVN 'checkout))))
 
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
