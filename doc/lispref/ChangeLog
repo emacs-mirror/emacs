@@ -2,6 +2,8 @@
 
 	* display.texi (Fontsets): Fix typo.
 
+	* files.texi (Format Conversion Round-Trip): Mention nil regexp.
+
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* processes.texi (Asynchronous Processes): Adjust arglist of

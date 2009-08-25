@@ -2901,7 +2901,7 @@ A documentation string for the format.
 
 @item regexp
 A regular expression which is used to recognize files represented in
-this format.
+this format.  If @code{nil}, the format is never applied automatically.
 
 @item from-fn
 A shell command or function to decode data in this format (to convert
