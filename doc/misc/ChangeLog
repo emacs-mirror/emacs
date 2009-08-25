@@ -1,3 +1,10 @@
+2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Bus names): Add optional parameter TIMEOUT to dbus-ping.
+	Describe autostart behaviour of dbus-ping.
+	(Synchronous Methods, Asynchronous Methods): Use English numeric format
+	for timeout values.
+
 2009-08-23  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Quick start): Don't refer to nonexistent epa-mode.
