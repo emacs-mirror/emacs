@@ -8,6 +8,9 @@
 
 	* play/bubbles.el (top-level): Don't require cl at run-time.
 
+	* progmodes/verilog-mode.el (top-level): Don't require lucid (and hence
+	run-time cl).
+
 2009-08-24  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-mapcar*): Replacement for `mapcar*'
