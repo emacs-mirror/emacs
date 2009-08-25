@@ -1,3 +1,7 @@
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Fontsets): Fix typo.
+
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* processes.texi (Asynchronous Processes): Adjust arglist of

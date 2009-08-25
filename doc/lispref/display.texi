@@ -2953,7 +2953,7 @@ fontset, whose short name is @samp{fontset-default}.
 @var{character} may be a charset.  In that case, use
 @var{font-spec} for all character in the charsets.
 
-@var{character} may be a script anme.  In that case, use
+@var{character} may be a script name.  In that case, use
 @var{font-spec} for all character in the charsets.
 
 @var{font-spec} may be a cons; @code{(@var{family} . @var{registry})},
