@@ -493,13 +493,26 @@ The result is either a string, or `nil' if there is no name owner."
      bus dbus-service-dbus dbus-path-dbus
      dbus-interface-dbus "GetNameOwner" service)))
 
-(defun dbus-ping (bus service)
-  "Check whether SERVICE is registered for D-Bus BUS."
+(defun dbus-ping (bus service &optional timeout)
+  "Check whether SERVICE is registered for D-Bus BUS.
+TIMEOUT, a nonnegative integer, specifies the maximum number of
+milliseconds `dbus-ping' must return.  The default value is 25,000.
+
+Note, that this autoloads SERVICE if it is not running yet.  If
+it shall be checked whether SERVICE is already running, one shall
+apply
+
+  \(member service \(dbus-list-known-names bus))"
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
   ;; Otherwise, it returns silently with `nil'.
   (condition-case nil
       (not
-       (dbus-call-method bus service dbus-path-dbus dbus-interface-peer "Ping"))
+       (if (natnump timeout)
+	   (dbus-call-method
+	    bus service dbus-path-dbus dbus-interface-peer
+	    "Ping" :timeout timeout)
+	 (dbus-call-method
+	  bus service dbus-path-dbus dbus-interface-peer "Ping")))
     (dbus-error nil)))
 
 
