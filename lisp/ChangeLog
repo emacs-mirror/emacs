@@ -1,3 +1,7 @@
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* format.el (format-alist): Doc fix.
+
 2009-08-24  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-mapcar*): Replacement for `mapcar*'
