@@ -134,7 +134,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (let ((prog sha1-program)
-          (args nil))
+          (args nil)
+	  process-file-side-effects)
       (when (consp prog)
 	(setq args (cdr prog))
         (setq prog (car prog)))
@@ -751,7 +752,8 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(tag\\):" string)
         (let ((prefix (substring string 0 (match-end 0)))
               (tag (substring string (match-end 0)))
-              (table nil))
+              (table nil)
+	      process-file-side-effects)
           (with-temp-buffer
             ;; "bzr-1.2 tags" is much faster with --show-ids.
             (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")
