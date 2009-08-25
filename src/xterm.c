@@ -8654,7 +8654,7 @@ x_check_fullscreen (f)
     return;
 
   if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-    return; // Only fullscreen without WM or with EWM hints (above).
+    return; /* Only fullscreen without WM or with EWM hints (above). */
 
   if (f->want_fullscreen != FULLSCREEN_NONE)
     {

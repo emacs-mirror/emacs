@@ -5097,7 +5097,7 @@ x_disable_image (f, img)
       Display *dpy = FRAME_X_DISPLAY (f);
       GC gc;
 
-#ifndef HAVE_NS  //TODO: NS support, however this not needed for toolbars
+#ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 
