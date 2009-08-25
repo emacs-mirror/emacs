@@ -5,7 +5,7 @@
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
-;; Keywords: gomoku, neural network, adaptive search, chemotaxis
+;; Keywords: games, gomoku, neural network, adaptive search, chemotaxis
 
 ;;;_* Usage
 ;;; Just type
