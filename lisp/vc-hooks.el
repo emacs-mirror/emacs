@@ -436,7 +436,8 @@ For registered files, the possible values are:
   "Return the name under which the user accesses the given FILE."
   (or (and (eq (string-match tramp-file-name-regexp file) 0)
            ;; tramp case: execute "whoami" via tramp
-           (let ((default-directory (file-name-directory file)))
+           (let ((default-directory (file-name-directory file))
+		 process-file-side-effects)
              (with-temp-buffer
                (if (not (zerop (process-file "whoami" nil t)))
                    ;; fall through if "whoami" didn't work
