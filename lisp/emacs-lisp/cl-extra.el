@@ -1,7 +1,7 @@
-;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
+;;; cl-extra.el --- Common Lisp features, part 2
 
-;; Copyright (C) 1993, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -820,6 +820,8 @@ This also does some trivial optimizations to make the form prettier."
 (run-hooks 'cl-extra-load-hook)
 
 ;; Local variables:
+;; byte-compile-dynamic: t
+;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
