@@ -82,7 +82,7 @@
 (defconst bubbles-version "0.5" "Version number of bubbles.el.")
 
 (require 'gamegrid)
-(require 'cl)
+(eval-when-compile (require 'cl))       ; for 'case
 
 ;; User options
 

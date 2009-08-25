@@ -6,6 +6,8 @@
 
 	* format.el (format-alist): Doc fix.
 
+	* play/bubbles.el (top-level): Don't require cl at run-time.
+
 2009-08-24  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-mapcar*): Replacement for `mapcar*'
