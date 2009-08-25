@@ -32,12 +32,10 @@ developing GNU and promoting software freedom.''
 @node Top, Overview, (dir), (dir)
 @top D-Bus integration in Emacs
 
-This manual documents an API for usage of D-Bus in
-Emacs.@footnote{D-Bus is not enabled by default.  You must run
-@command{./configure --with-dbus} in Emacs' top level directory,
-before you compile Emacs.}  D-Bus is a message bus system, a simple
-way for applications to talk to one another.  An overview of D-Bus can
-be found at @uref{http://dbus.freedesktop.org/}.
+This manual documents an API for usage of D-Bus in Emacs.  D-Bus is a
+message bus system, a simple way for applications to talk to one
+another.  An overview of D-Bus can be found at
+@uref{http://dbus.freedesktop.org/}.
 
 @ifnottex
 @insertcopying
