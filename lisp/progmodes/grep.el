@@ -458,10 +458,11 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (run-hooks 'grep-setup-hook))
 
 (defun grep-probe (command args &optional func result)
-  (equal (condition-case nil
-	     (apply (or func 'process-file) command args)
-	   (error nil))
-	 (or result 0)))
+  (let (process-file-side-effects)
+    (equal (condition-case nil
+	       (apply (or func 'process-file) command args)
+	     (error nil))
+	   (or result 0))))
 
 ;;;###autoload
 (defun grep-compute-defaults ()
