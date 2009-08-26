@@ -1,3 +1,7 @@
+2009-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Fix up last change.
+
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-register): Use "git add" for directories.
