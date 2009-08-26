@@ -43,64 +43,64 @@
 ;; beginning of vc.el. The current status is:
 ;; ("??" means: "figure out what to do about it")
 ;;
-;; FUNCTION NAME                        STATUS
+;; FUNCTION NAME                                   STATUS
 ;; BACKEND PROPERTIES
-;; * revision-granularity                      OK
+;; * revision-granularity                          OK
 ;; STATE-QUERYING FUNCTIONS
-;; * registered (file)			   OK
-;; * state (file)				   OK
-;; - state-heuristic (file)			   NOT NEEDED
-;; * working-revision (file)		   OK
-;; - latest-on-branch-p (file)		   NOT NEEDED
-;; * checkout-model (files)		   OK
-;; - workfile-unchanged-p (file)		   OK
-;; - mode-line-string (file)			   OK
+;; * registered (file)                             OK
+;; * state (file)                                  OK
+;; - state-heuristic (file)                        NOT NEEDED
+;; * working-revision (file)                       OK
+;; - latest-on-branch-p (file)                     NOT NEEDED
+;; * checkout-model (files)                        OK
+;; - workfile-unchanged-p (file)                   OK
+;; - mode-line-string (file)                       OK
 ;; STATE-CHANGING FUNCTIONS
-;; * create-repo ()			   OK
-;; * register (files &optional rev comment)    OK
-;; - init-revision (file)			   NOT NEEDED
-;; - responsible-p (file)			   OK
-;; - could-register (file)			   NOT NEEDED, DEFAULT IS GOOD
-;; - receive-file (file rev)			   NOT NEEDED
-;; - unregister (file)			   OK
-;; * checkin (files rev comment)		   OK
-;; * find-revision (file rev buffer)		   OK
-;; * checkout (file &optional editable rev)	   OK
-;; * revert (file &optional contents-done)	   OK
-;; - rollback (files)			   COULD BE SUPPORTED
+;; * create-repo ()                                OK
+;; * register (files &optional rev comment)        OK
+;; - init-revision (file)                          NOT NEEDED
+;; - responsible-p (file)                          OK
+;; - could-register (file)                         NOT NEEDED, DEFAULT IS GOOD
+;; - receive-file (file rev)                       NOT NEEDED
+;; - unregister (file)                             OK
+;; * checkin (files rev comment)                   OK
+;; * find-revision (file rev buffer)               OK
+;; * checkout (file &optional editable rev)        OK
+;; * revert (file &optional contents-done)         OK
+;; - rollback (files)                              COULD BE SUPPORTED
 ;; - merge (file rev1 rev2)                   It would be possible to merge
 ;;                                          changes into a single file, but when
 ;;                                          committing they wouldn't
 ;;                                          be identified as a merge
 ;;                                          by git, so it's probably
 ;;                                          not a good idea.
-;; - merge-news (file)			   see `merge'
-;; - steal-lock (file &optional revision)	   NOT NEEDED
+;; - merge-news (file)                     see `merge'
+;; - steal-lock (file &optional revision)          NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files &optional buffer)		   OK
-;; - log-view-mode ()				   OK
-;; - show-log-entry (revision)			   OK
-;; - comment-history (file)			   ??
-;; - update-changelog (files)			   COULD BE SUPPORTED
-;; * diff (file &optional rev1 rev2 buffer)	           OK
-;; - revision-completion-table (files)		   OK
-;; - annotate-command (file buf &optional rev)	   OK
-;; - annotate-time ()				   OK
-;; - annotate-current-time ()			   NOT NEEDED
-;; - annotate-extract-revision-at-line ()	           OK
+;; * print-log (files &optional buffer shortlog)   OK
+;; - log-view-mode ()                              OK
+;; - show-log-entry (revision)                     OK
+;; - comment-history (file)                        ??
+;; - update-changelog (files)                      COULD BE SUPPORTED
+;; * diff (file &optional rev1 rev2 buffer)        OK
+;; - revision-completion-table (files)             OK
+;; - annotate-command (file buf &optional rev)     OK
+;; - annotate-time ()                              OK
+;; - annotate-current-time ()                      NOT NEEDED
+;; - annotate-extract-revision-at-line ()          OK
 ;; TAG SYSTEM
-;; - create-tag (dir name branchp)	   OK
-;; - retrieve-tag (dir name update)	   OK, needs to update buffers
+;; - create-tag (dir name branchp)                 OK
+;; - retrieve-tag (dir name update)                OK
 ;; MISCELLANEOUS
-;; - make-version-backups-p (file)	   NOT NEEDED
-;; - repository-hostname (dirname)	   NOT NEEDED
-;; - previous-revision (file rev)		   OK
-;; - next-revision (file rev)		   OK
-;; - check-headers ()			   COULD BE SUPPORTED
-;; - clear-headers ()			   NOT NEEDED
-;; - delete-file (file)			   OK
-;; - rename-file (old new)		   OK
-;; - find-file-hook ()			   NOT NEEDED
+;; - make-version-backups-p (file)                 NOT NEEDED
+;; - repository-hostname (dirname)                 NOT NEEDED
+;; - previous-revision (file rev)                  OK
+;; - next-revision (file rev)                      OK
+;; - check-headers ()                              COULD BE SUPPORTED
+;; - clear-headers ()                              NOT NEEDED
+;; - delete-file (file)                            OK
+;; - rename-file (old new)                         OK
+;; - find-file-hook ()                             NOT NEEDED
 
 (eval-when-compile
   (require 'cl)
@@ -426,8 +426,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (vc-git-command nil 0 nil "init"))
 
 (defun vc-git-register (files &optional rev comment)
-  "Register FILE into the git version-control system."
-  (vc-git-command nil 0 files "update-index" "--add" "--"))
+  "Register FILES into the git version-control system."
+  (let (flist dlist)
+    (dolist (crt files)
+      (if (file-directory-p crt)
+	  (push crt dlist)
+	(push crt flist)))
+    (when flist
+      (vc-git-command nil 0 flist "update-index" "--add" "--"))
+    (when dlist
+      (vc-git-command nil 0 dlist "add"))))
 
 (defalias 'vc-git-responsible-p 'vc-git-root)
 
