@@ -16,6 +16,8 @@ SRCID(poolamc, "$Id$");
 
 Size bigseg = 1UL << 20;
 
+Count largeSeg = 8;
+
 /* PType enumeration -- distinguishes AMCGen and AMCNailboard */
 enum {AMCPTypeGen = 1, AMCPTypeNailboard};
 
@@ -97,6 +99,7 @@ typedef struct amcNailboardStruct {
  *  Cumulative: number of padded-out fwds; size of padded-out fwds.
  */
 struct PadStatsStruct {
+  Size cb1;       /* size of initial object */
   Size BE_pad;    /* Buffer Empty (usually because request does not fit): pad size */
   Size LSP_pad;   /* LSP (Large Segment Padding): pad size */
   Size LSP_req;   /* LSP: (large) request size */
@@ -465,8 +468,16 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
 
   /* watching the efficiency of an in-progress trace */
-  STATISTIC_DECL(Count whitenCount[TraceLIMIT]);  /* segs whitened */
-  STATISTIC_DECL(Count reclaimCount[TraceLIMIT]);  /* segs reclaimed */
+  STATISTIC_DECL(Count cSegsWhiten[TraceLIMIT]);  /* segs whitened */
+  STATISTIC_DECL(Count cSegsReclaim[TraceLIMIT]);  /* segs reclaimed */
+  STATISTIC_DECL(Count cPagesWhiten[TraceLIMIT]);
+  STATISTIC_DECL(Count cPagesReclaim[TraceLIMIT]);
+  STATISTIC_DECL(Count cPagesRet[TraceLIMIT]);
+
+  /* Medium segs */
+  STATISTIC_DECL(Count cbM1[TraceLIMIT]);
+  STATISTIC_DECL(Count cbMRestFreed[TraceLIMIT]);
+  STATISTIC_DECL(Count cbMPagesBarOneRRet[TraceLIMIT]);
 
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
@@ -901,11 +912,18 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 
 static void amcResetTraceIdStats(AMC amc, TraceId ti)
 {
-  AVERT(AMC, amc);
+  /* AVERT(AMC, amc); -- except when called during AMCInit */
   AVER(TraceIdCheck(ti));
 
-  STATISTIC(amc->whitenCount[ti] = 0);
-  STATISTIC(amc->reclaimCount[ti] = 0);
+  STATISTIC(amc->cSegsWhiten[ti] = 0);
+  STATISTIC(amc->cSegsReclaim[ti] = 0);
+  STATISTIC(amc->cPagesWhiten[ti] = 0);
+  STATISTIC(amc->cPagesReclaim[ti] = 0);
+  STATISTIC(amc->cPagesRet[ti] = 0);
+
+  STATISTIC(amc->cbM1[ti] = 0);
+  STATISTIC(amc->cbMRestFreed[ti] = 0);
+  STATISTIC(amc->cbMPagesBarOneRRet[ti] = 0);
 }
 
 
@@ -1142,15 +1160,17 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   PoolGenUpdateZones(&gen->pgen, seg);
 
+  (Seg2amcSeg(seg))->padstats.cb1 = size;
+
   base = SegBase(seg);
   *baseReturn = base;
-  if(size < 8 * ArenaAlign(arena)) {
-    /* Small segment: give the buffer the entire seg to allocate in. */
+  if(alignedSize < largeSeg * ArenaAlign(arena)) {
+    /* Small or Medium segment: give the buffer the entire seg. */
     limit = AddrAdd(base, alignedSize);
     AVER(limit == SegLimit(seg));
   } else {
-    /* Big segment: ONLY give the buffer the size requested, and pad */
-    /* the remainder of the segment: see job001811. */
+    /* Large segment: ONLY give the buffer the size requested, and */
+    /* pad the remainder of the segment: see job001811. */
     Size padSize;
 
     limit = AddrAdd(base, size);
@@ -1397,7 +1417,8 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
 
-  STATISTIC(amc->whitenCount[trace->ti] += 1);
+  STATISTIC(amc->cSegsWhiten[trace->ti] += 1);
+  STATISTIC(amc->cPagesWhiten[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
 
   /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
@@ -2090,6 +2111,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size headerSize;
   Bool emptySeg = TRUE;  /* seg has no preserved-in-place objects */
 
+  Index sizeclass = 0;
+  Addr p1;  /* first obj in seg */
+  Bool obj1dead = FALSE;  /* first obj dead? */
+
   /* All arguments AVERed by AMCReclaim */
 
   amc = Pool2AMC(pool);
@@ -2100,6 +2125,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   AVERT(Arena, arena);
 
   segSize = SegSize(seg);
+  sizeclass =
+    segSize < ArenaAlign(arena) ? 1 :
+    segSize < largeSeg * ArenaAlign(arena) ? 2 :
+    3;
   base = SegBase(seg);
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
@@ -2113,6 +2142,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     limit = SegLimit(seg);
   }
   limit = AddrAdd(limit, headerSize);
+  p1 = p;
   while(p < limit) {
     Addr q;
     Size length;
@@ -2137,6 +2167,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
     }
+    
+    if(p == p1)
+      obj1dead = emptySeg;  /* empty after obj1 => obj1 dead */
 
     AVER(p < q);
     p = q;
@@ -2172,8 +2205,18 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
     --gen->segs;
     gen->pgen.totalSize -= SegSize(seg);
+    if(sizeclass == 2)
+      STATISTIC(amc->cbMRestFreed[trace->ti] += SegSize(seg) - (Seg2amcSeg(seg))->padstats.cb1);
     SegFree(seg);
     freed = TRUE;
+  } else {
+    STATISTIC(amc->cPagesRet[trace->ti] += segSize / ArenaAlign(pool->arena));
+    if(obj1dead) {
+      /* seg retained by ref into Rest */
+      Count cbPagesBarOne = SegSize(seg) - ArenaAlign(pool->arena);
+      if(sizeclass == 2)
+        STATISTIC(amc->cbMPagesBarOneRRet[trace->ti] += cbPagesBarOne);
+    }
   }
 
   if(segSize >= bigseg)
@@ -2202,6 +2245,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   AMC amc;
   amcGen gen;
   Size size;
+  Index sizeclass = 0;
 
   AVERT_CRITICAL(Pool, pool);
   amc = Pool2AMC(pool);
@@ -2214,7 +2258,14 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   EVENT_PPP(AMCReclaim, gen, trace, seg);
 
-  STATISTIC(amc->reclaimCount[trace->ti] += 1);
+  STATISTIC(amc->cSegsReclaim[trace->ti] += 1);
+  STATISTIC(amc->cPagesReclaim[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
+  sizeclass =
+    SegSize(seg) < ArenaAlign(pool->arena) ? 1 :
+    SegSize(seg) < largeSeg * ArenaAlign(pool->arena) ? 2 :
+    3;
+  if(sizeclass == 2)
+    STATISTIC(amc->cbM1[trace->ti] += (Seg2amcSeg(seg))->padstats.cb1);
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
@@ -2245,6 +2296,8 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   gen->pgen.totalSize -= size;
 
   trace->reclaimSize += size;
+  if(sizeclass == 2)
+    STATISTIC(amc->cbMRestFreed[trace->ti] += size - (Seg2amcSeg(seg))->padstats.cb1);
 
   SegFree(seg);
 
@@ -2265,6 +2318,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
 {
   AMC amc;
   TraceId ti;
+  Count perc;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -2275,9 +2329,31 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   
   DIAG_SINGLEF(( "AMCTraceEnd",
       "  pool: $P\n", pool,
-      "  whitenCount: $U\n", amc->whitenCount[ti],
-      "  reclaimCount: $U\n", amc->reclaimCount[ti],
+      "  cSegsWhiten: $U\n",  amc->cSegsWhiten[ti],
+      "  cSegsReclaim: $U\n", amc->cSegsReclaim[ti],
+      "  cPagesWhiten: $U\n",  amc->cPagesWhiten[ti],
+      "  cPagesReclaim: $U\n", amc->cPagesReclaim[ti],
+      "  cPagesRet: $U\n", amc->cPagesRet[ti],
       NULL ));
+  
+  if(amc->cPagesReclaim[ti] >= 10) {
+    perc = (100 * amc->cPagesRet[ti]) / amc->cPagesReclaim[ti];
+    DIAG_SINGLEF(( "AMCTraceEnd_perc",
+      "  of pages condemned, $U / $U retained by ambiguous refs = $U%\n", 
+      amc->cPagesRet[ti], amc->cPagesReclaim[ti], perc,
+      NULL ));
+    
+  }
+  if(amc->cbM1[ti] >= 1 * ArenaAlign(pool->arena)) {
+    DIAG_SINGLEF(( "AMCTraceEnd_pad_med",
+      "  Medium segs (2 .. $U pages) -- after multi-page initial object ('1'), we choose to _use_ rest of seg:\n",
+      largeSeg - 1,
+      "    Space Gained (seg was not retained, so use of rest was okay) = extra $U% (of size of all '1' objs);\n",
+      (100 * amc->cbMRestFreed[ti]) / amc->cbM1[ti],
+      "    Extra Space Retained (use of rest caused multi-page seg to be retained) = $U% (of size of all '1' objs).\n",
+      (100 * amc->cbMPagesBarOneRRet[ti]) / amc->cbM1[ti],
+      NULL ));
+  }
 
   amcResetTraceIdStats(amc, ti);
 }
