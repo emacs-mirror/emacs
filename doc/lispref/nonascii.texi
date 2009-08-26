@@ -283,7 +283,7 @@ character codes.  The valid character codes for unibyte representation
 range from 0 to 255---the values that can fit in one byte.  The valid
 character codes for multibyte representation range from 0 to 4194303
 (#x3FFFFF).  In this code space, values 0 through 127 are for
-@acronym{ASCII} charcters, and values 129 through 4194175 (#x3FFF7F)
+@acronym{ASCII} characters, and values 128 through 4194175 (#x3FFF7F)
 are for non-@acronym{ASCII} characters.  Values 0 through 1114111
 (#10FFFF) correspond to Unicode characters of the same codepoint;
 values 1114112 (#110000) through 4194175 (#x3FFF7F) represent

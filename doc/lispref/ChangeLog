@@ -1,3 +1,7 @@
+2009-08-26  Ulrich Mueller  <ulm@gentoo.org>
+
+	* nonascii.texi (Character Codes): Fix typos.
+
 2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* processes.texi (Synchronous Processes): New defvar
