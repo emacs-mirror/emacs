@@ -9,6 +9,9 @@
 
 	* vc.el: Document the desired behavior for reverted files in the
 	`added' state.
+	(vc-default-prettify-state-info): Remove function, unused.
+
+	* vc-bzr.el (vc-bzr-prettify-state-info): Remove function, unused.
 
 2009-08-26  Glenn Morris  <rgm@gnu.org>
 

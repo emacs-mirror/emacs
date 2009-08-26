@@ -594,14 +594,6 @@ stream.  Standard error output is discarded."
      (apply #'process-file command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
 
-(defun vc-bzr-prettify-state-info (file)
-  "Bzr-specific version of `vc-prettify-state-info'."
-  (if (eq 'edited (vc-state file))
-        (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state)
-                                     'edited)) ")")
-    ;; else fall back to default vc.el representation
-    (vc-default-prettify-state-info 'Bzr file)))
-
 (defstruct (vc-bzr-extra-fileinfo
             (:copier nil)
             (:constructor vc-bzr-create-extra-fileinfo (extra-name))

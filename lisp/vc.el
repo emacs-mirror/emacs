@@ -225,12 +225,6 @@
 ;;   The default implementation deals well with all states that
 ;;   `vc-state' can return.
 ;;
-;; - prettify-state-info (file)
-;;
-;;   Translate the `vc-state' property of FILE into a string that can be
-;;   used in a human-readable buffer.  The default implementation deals well
-;;   with all states that `vc-state' can return.
-;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
 ;; * create-repo (backend)
@@ -2388,26 +2382,6 @@ to provide the `find-revision' operation instead."
 	  (with-current-buffer buffer
 	    (insert-file-contents-literally tmpfile)))
       (delete-file tmpfile))))
-
-(defun vc-default-prettify-state-info (backend file)
-  (let* ((state (vc-state file))
-	(statestring
-	 (cond
-	  ((stringp state) (concat "(locked:" state ")"))
-	  ((eq state 'edited) "(modified)")
-	  ((eq state 'needs-merge) "(merge)")
-	  ((eq state 'needs-update) "(update)")
-	  ((eq state 'added) "(added)")
-	  ((eq state 'removed) "(removed)")
-          ((eq state 'ignored) "(ignored)")
-          ((eq state 'unregistered) "(unregistered)")
-	  ((eq state 'unlocked-changes) "(stale)")
-	  (t (format "(unknown:%s)" state))))
-	(buffer
-	 (get-file-buffer file))
-	(modflag
-	 (if (and buffer (buffer-modified-p buffer)) "+" "")))
-    (concat statestring modflag)))
 
 (defun vc-default-rename-file (backend old new)
   (condition-case nil
