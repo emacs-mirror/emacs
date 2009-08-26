@@ -493,6 +493,7 @@ a -*- line.
 The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable."
+  :risky t
   :type '(choice (const :tag "Query Unsafe" t)
 		 (const :tag "Safe Only" :safe)
 		 (const :tag "Do all" :all)
@@ -514,6 +515,7 @@ specified in a -*- line.")
 The value can be t, nil or something else.
 A value of t means obey `eval' variables.
 A value of nil means ignore them; anything else means query."
+  :risky t
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
@@ -2306,6 +2308,7 @@ appear in `auto-coding-alist' with `no-conversion' coding system.
 See also `interpreter-mode-alist', which detects executable script modes
 based on the interpreters they specify to run,
 and `magic-mode-alist', which determines modes based on file contents.")
+(put 'auto-mode-alist 'risky-local-variable t)
 
 (defun conf-mode-maybe ()
   "Select Conf mode or XML mode according to start of file."
@@ -2641,6 +2644,7 @@ Otherwise, return nil; point may be changed."
   '(ignored-local-variables safe-local-variable-values
     file-local-variables-alist dir-local-variables-alist)
   "Variables to be ignored in a file's local variable spec.")
+(put 'ignored-local-variables 'risky-local-variable t)
 
 (defvar hack-local-variables-hook nil
   "Normal hook run after processing a file's local variables specs.
@@ -2651,6 +2655,7 @@ in order to initialize other data structure based on them.")
   "List variable-value pairs that are considered safe.
 Each element is a cons cell (VAR . VAL), where VAR is a variable
 symbol and VAL is a value that is considered safe."
+  :risky t
   :group 'find-file
   :type 'alist)
 
@@ -2659,6 +2664,7 @@ symbol and VAL is a value that is considered safe."
 Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first
 asking you for confirmation."
+  :risky t
   :group 'find-file
   :version "22.2"
   :type '(repeat sexp))
@@ -2666,63 +2672,34 @@ asking you for confirmation."
 ;; Risky local variables:
 (mapc (lambda (var) (put var 'risky-local-variable t))
       '(after-load-alist
-	auto-mode-alist
 	buffer-auto-save-file-name
 	buffer-file-name
 	buffer-file-truename
 	buffer-undo-list
-	dabbrev-case-fold-search
-	dabbrev-case-replace
 	debugger
 	default-text-properties
-	display-time-string
-	enable-local-eval
-	enable-local-variables
 	eval
 	exec-directory
 	exec-path
 	file-name-handler-alist
-	font-lock-defaults
-	format-alist
 	frame-title-format
 	global-mode-string
 	header-line-format
 	icon-title-format
-	ignored-local-variables
-	imenu--index-alist
-	imenu-generic-expression
 	inhibit-quit
-	input-method-alist
 	load-path
 	max-lisp-eval-depth
 	max-specpdl-size
-	minor-mode-alist
 	minor-mode-map-alist
 	minor-mode-overriding-map-alist
-	mode-line-buffer-identification
 	mode-line-format
-	mode-line-client
-	mode-line-modes
-	mode-line-modified
-	mode-line-mule-info
-	mode-line-position
-	mode-line-process
-	mode-line-remote
 	mode-name
-	outline-level
 	overriding-local-map
 	overriding-terminal-local-map
-	parse-time-rules
 	process-environment
-	rmail-output-file-alist
-	safe-local-variable-values
-	safe-local-eval-forms
-	save-some-buffers-action-alist
-	special-display-buffer-names
 	standard-input
 	standard-output
-	unread-command-events
-	vc-mode))
+	unread-command-events))
 
 ;; Safe local variables:
 ;;
@@ -4399,6 +4376,7 @@ This requires the external program `diff' to be in your `exec-path'."
            nil)
 	"view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
+(put 'save-some-buffers-action-alist 'risky-local-variable t)
 
 (defvar buffer-save-without-query nil
   "Non-nil means `save-some-buffers' should save this buffer without asking.")

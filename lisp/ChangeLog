@@ -3,6 +3,38 @@
 	* bindings.el (standard-mode-line-format): Reposition dashes in
 	which-func entry.  (Bug#4217)
 
+	* files.el (enable-local-variables, enable-local-eval)
+	(safe-local-variable-values, safe-local-eval-forms): Mark as risky in
+	the defcustoms.
+	(auto-mode-alist, ignored-local-variables)
+	(save-some-buffers-action-alist): Move risky declarations to the
+	definitions.
+	(dabbrev-case-fold-search, dabbrev-case-replace, display-time-string)
+	(font-lock-defaults, format-alist, imenu--index-alist)
+	(imenu-generic-expression, input-method-alist, minor-mode-alist)
+	(mode-line-buffer-identification, mode-line-client, mode-line-modes)
+	(mode-line-modified, mode-line-mule-info, mode-line-position)
+	(mode-line-process, mode-line-remote, outline-level)
+	(parse-time-rules, rmail-output-file-alist)
+	(special-display-buffer-names, vc-mode):
+	Move risky declarations to the relevant files.
+	* bindings.el (mode-line-client, mode-line-mule-info, mode-line-process)
+	(mode-line-modified, mode-line-remote, mode-line-position)
+	(mode-line-modes, mode-line-buffer-identification, minor-mode-alist)
+	* font-core.el (font-lock-defaults):
+	* format.el (format-alist):
+	* vc-hooks.el (vc-mode):
+	* window.el (special-display-buffer-names):
+	* international/mule-cmds.el (input-method-alist):
+	Define riskiness here (dumped file) rather than in files.el.
+	* dabbrev.el (dabbrev-case-fold-search, dabbrev-case-replace):
+	* imenu.el (imenu-generic-expression, imenu--index-alist):
+	* outline.el (outline-level):
+	* time.el (display-time-string):
+	* calendar/parse-time.el (parse-time-rules):
+	* mail/rmailout.el (rmail-output-file-alist):
+	Autoload riskiness here, rather than placing in files.el.
+
 2009-08-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Signal overflow.
