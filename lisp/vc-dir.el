@@ -326,8 +326,9 @@ If BODY uses EVENT, it should be a variable,
     (or (vc-dir-fileinfo->directory data)
 	;; Otherwise compute it from the file name.
 	(file-name-directory
-	 (expand-file-name
-	  (vc-dir-fileinfo->name data))))))
+	 (directory-file-name
+	  (expand-file-name
+	   (vc-dir-fileinfo->name data)))))))
 
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's ewoc from the list of ENTRIES.
@@ -343,8 +344,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	  ;; names too many times
 	  (sort entries
 		(lambda (entry1 entry2)
-		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
-			(dir2 (file-name-directory (expand-file-name (car entry2)))))
+		  (let ((dir1 (file-name-directory
+			        (directory-file-name (expand-file-name (car entry1)))))
+			(dir2 (file-name-directory
+			       (directory-file-name (expand-file-name (car entry2))))))
 		    (cond
 		     ((string< dir1 dir2) t)
 		     ((not (string= dir1 dir2)) nil)
@@ -362,8 +365,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 
       (while (and entry node)
 	(let* ((entryfile (car entry))
-	       (entrydir (file-name-directory (expand-file-name entryfile)))
+	       (entrydir (file-name-directory (directory-file-name
+					       (expand-file-name entryfile))))
 	       (nodedir (vc-dir-node-directory node)))
+	  (message "entryfile %s entrydir %s" entryfile entrydir)
 	  (cond
 	   ;; First try to find the directory.
 	   ((string-lessp nodedir entrydir)
@@ -406,7 +411,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
       (unless (or node noinsert)
 	(let ((lastdir (vc-dir-node-directory (ewoc-nth vc-ewoc -1))))
 	  (dolist (entry entries)
-	    (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
+	    (let ((entrydir (file-name-directory
+			     (directory-file-name (expand-file-name (car entry))))))
 	      ;; Insert a directory node if needed.
 	      (unless (string-equal lastdir entrydir)
 		(setq lastdir entrydir)

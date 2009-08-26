@@ -1,5 +1,8 @@
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dir.el (vc-dir-node-directory, vc-dir-update): Get the parent
+	directory correctly in case the item is a directory itself.
+
 	* vc.el: Document the desired behavior for reverted files in the
 	`added' state.
 
