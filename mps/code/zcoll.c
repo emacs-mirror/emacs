@@ -416,14 +416,21 @@ static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
   return (void *)v;
 }
 
-static void BigdropSmallambig(mps_arena_t arena, mps_ap_t ap)
+static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small)
 {
   static unsigned long keepCount = 0;
   unsigned long i;
   
+  mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
-    (void) MakeThing(arena, ap, 40000);
-    myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
+    (void) MakeThing(arena, ap, big);
+    if(small == 'A') {
+      myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
+    } else if(small == 'E') {
+      myrootExact[keepCount++ % myrootExactCOUNT] = MakeThing(arena, ap, 1);
+    } else {
+      cdie(0, "BigdropSmall: small must be 'A' or 'E'.\n");
+    }
   }
 }
 
@@ -468,12 +475,14 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
         break;
       }
       case 'B': {
-        si = sscanf(script, "BigdropSmallambig()%n",
-                       &sb);
-        checksi(si, 0, script, scriptAll);
+        size_t big = 0;
+        char small = ' ';
+        si = sscanf(script, "BigdropSmall(big %lu, small %c)%n",
+                       &big, &small, &sb);
+        checksi(si, 2, script, scriptAll);
         script += sb;
-        printf("  BigdropSmallambig()\n");
-        BigdropSmallambig(arena, ap);
+        printf("  BigdropSmall(big %lu, small %c)\n", big, small);
+        BigdropSmall(arena, ap, big, small);
         break;
       }
       case 'M': {
@@ -680,14 +689,42 @@ int main(int argc, char **argv)
 {
 
   randomize(argc, argv);
-
-  /* The most basic scripts */
-
   /* 1<<19 == 524288 == 1/2 Mebibyte */
-  /*testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");*/
+  /* 16<<20 == 16777216 == 16 Mebibyte */
 
-  /* 1<<19 == 524288 == 1/2 Mebibyte */
-  testscriptA("Arena(size 524288), BigdropSmallambig(), Collect.");
+  /* LSP -- Large Segment Padding (job001811)
+   *
+   * BigdropSmall creates a big object & drops ref to it, 
+   * then a small object but keeps a ref to it.  Do this 100 
+   * times.  (It also parks the arena, to avoid incremental 
+   * collections).
+   *
+   * If big is 28000, it is <= 28672 bytes and therefore fits on a seg 
+   * of 7 pages.  AMC classes this as a Medium Segment and uses the 
+   * remainder, placing the subsequent small object there.  If the ref 
+   * to small is "A" = ambig, the entire 7-page seg is retained.
+   *
+   * If big is > 28672 bytes (7 pages), it requires a seg of >= 8 
+   * pages.  AMC classes this as a Large Segment, and does LSP (Large 
+   * Segment Padding), to prevent the subsequent small object being 
+   * placed in the remainder.  If the ref to small is "A" = ambig, 
+   * only its 1-page seg is retained.  This greatly reduces the 
+   * retention page-count.
+   *
+   * If the ref to small is "E" = exact, then the small object is 
+   * preserved-by-copy onto a new seg.  In this case there is no 
+   * seg/page retention, so LSP does not help.  It has a small cost:
+   * total pages increase from 700 to 900.  So in this case (no ambig 
+   * retention at all, pessimal allocation pattern) LSP would slightly 
+   * increase the frequency of minor collections.
+   */
+  /* 7p = 28672b; 8p = 32768b */
+  /* 28000 = Medium segment */
+  /* 29000 = Large segment */
+  testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small A), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small A), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 28000, small E), Collect.");
+  testscriptA("Arena(size 16777216), BigdropSmall(big 29000, small E), Collect.");
 
   /* 16<<20 == 16777216 == 16 Mebibyte */
   /* See .catalog.broken.

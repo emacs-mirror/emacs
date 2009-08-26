@@ -42,11 +42,12 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "TraceStart", "*", "alignment" },
   { "+", "TraceStart", "*", "genZoneSet" },
   { "-", "*", "*", "*" },
-  { "+", "TraceStart", "*", "because code " },
   { "+", "TraceStart", "*", "  PoolSum-" },
   { "+", "TraceStart", "*", "MutatorSize " }, /* fillMutatorSize, emptyMutatorSize, fillInternalSize, emptyInternalSize */
   { "+", "TraceStart", "*", "   segs" }, /* amcGen 0..N segs 3, totalSize 49152, newSize 0 */
-  { "+", "AMCTraceEnd", "*", "*" },
+  { "-", "*", "*", "*" },
+  { "+", "AMCTraceEnd_perc", "*", "*" },
+  { "+", "AMCTraceEnd_pad_med", "*", "*" },
   /* ----v---- always on please (RHSK) ----v---- */
   { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }
