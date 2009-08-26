@@ -1,3 +1,7 @@
+2009-08-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Signal overflow.
+
 2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* simple.el (process-file-side-effects): New defvar.

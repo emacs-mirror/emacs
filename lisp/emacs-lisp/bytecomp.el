@@ -854,7 +854,9 @@ otherwise pop it")
 	      (t			; Absolute jump
 	       (setq pc (car (cdr (car bytes))))	; Pick PC from tag
 	       (setcar (cdr bytes) (logand pc 255))
-	       (setcar bytes (lsh pc -8))))
+	       (setcar bytes (lsh pc -8))
+               ;; FIXME: Replace this by some workaround.
+               (if (> (car bytes) 255) (error "Bytecode overflow"))))))
 	(setq patchlist (cdr patchlist))))
     (apply 'unibyte-string (nreverse bytes))))
 
