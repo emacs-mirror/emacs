@@ -1,3 +1,29 @@
+2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-trunk-p): Rename to vc-rcs-trunk-p and move to vc-rcs.el.
+	(vc-minor-part): Rename to vc-rcs-minor-part and move to vc-rcs.el.
+	(vc-default-previous-revision): Rename to vc-rcs-previous-revision
+	and move to vc-rcs.el.
+	(vc-default-next-revision): Rename to vc-rcs-next-revision and
+	move to vc-rcs.el.
+	(vc-cvs-update-changelog): Move to vc-cvs.el, use vc-call-backend.
+	(vc-rcs-update-changelog): Remove.
+	(vc-update-changelog-rcs2log): Rename to vc-rcs-update-changelog
+	and move to vc-rcs.el.
+
+	* vc-rcs.el (vc-rcs-latest-on-branch-p, vc-rcs-checkin)
+	(vc-rcs-checkout, vc-rcs-rollback): Adjust for the vc-rcs-trunk-p
+	renaming.
+	(vc-rcs-trunk-p, vc-rcs-minor-part, vc-rcs-previous-revision)
+	(vc-rcs-next-revision, vc-rcs-update-changelog): Moved here from
+	vc.el, renamed to be RCS specific.
+
+	* vc-cvs.el (vc-cvs-previous-revision, vc-cvs-next-revision): New functions.
+	(vc-cvs-update-changelog): Moved here from vc.el.
+
+	* vc-sccs.el (vc-sccs-previous-revision, vc-sccs-next-revision):
+	New functions.
+
 2009-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Fix up last change.

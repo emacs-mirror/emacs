@@ -2243,11 +2243,6 @@ log entries should be gathered."
 ;; functions that operate on RCS revision numbers.  This code should
 ;; also be moved into the backends.  It stays for now, however, since
 ;; it is used in code below.
-;;;###autoload
-(defun vc-trunk-p (rev)
-  "Return t if REV is a revision on the trunk."
-  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
-
 (defun vc-branch-p (rev)
   "Return t if REV is a branch revision."
   (not (eq nil (string-match "\\`[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*\\'" rev))))
@@ -2259,42 +2254,8 @@ log entries should be gathered."
     (when index
       (substring rev 0 index))))
 
-(defun vc-minor-part (rev)
-  "Return the minor revision number of a revision number REV."
-  (string-match "[0-9]+\\'" rev)
-  (substring rev (match-beginning 0) (match-end 0)))
-
 (define-obsolete-function-alias
   'vc-default-previous-version 'vc-default-previous-revision "23.1")
-
-(defun vc-default-previous-revision (backend file rev)
-  "Return the revision number immediately preceding REV for FILE,
-or nil if there is no previous revision.  This default
-implementation works for MAJOR.MINOR-style revision numbers as
-used by RCS and CVS."
-  (let ((branch (vc-branch-part rev))
-        (minor-num (string-to-number (vc-minor-part rev))))
-    (when branch
-      (if (> minor-num 1)
-          ;; revision does probably not start a branch or release
-          (concat branch "." (number-to-string (1- minor-num)))
-        (if (vc-trunk-p rev)
-            ;; we are at the beginning of the trunk --
-            ;; don't know anything to return here
-            nil
-          ;; we are at the beginning of a branch --
-          ;; return revision of starting point
-          (vc-branch-part branch))))))
-
-(defun vc-default-next-revision (backend file rev)
-  "Return the revision number immediately following REV for FILE,
-or nil if there is no next revision.  This default implementation
-works for MAJOR.MINOR-style revision numbers as used by RCS
-and CVS."
-  (when (not (string= rev (vc-working-revision file)))
-    (let ((branch (vc-branch-part rev))
-	  (minor-num (string-to-number (vc-minor-part rev))))
-      (concat branch "." (number-to-string (1+ minor-num))))))
 
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.
@@ -2313,63 +2274,6 @@ editing non-current revisions is not supported by default."
   t)
 
 (defun vc-default-init-revision (backend) vc-default-init-revision)
-
-(defalias 'vc-cvs-update-changelog 'vc-update-changelog-rcs2log)
-
-(defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
-
-;; FIXME: This should probably be moved to vc-rcs.el and replaced in
-;; vc-cvs.el by code using cvs2cl.
-(defun vc-update-changelog-rcs2log (files)
-  "Default implementation of update-changelog.
-Uses `rcs2log' which only works for RCS and CVS."
-  ;; FIXME: We (c|sh)ould add support for cvs2cl
-  (let ((odefault default-directory)
-	(changelog (find-change-log))
-	;; Presumably not portable to non-Unixy systems, along with rcs2log:
-	(tempfile (make-temp-file
-		   (expand-file-name "vc"
-				     (or small-temporary-file-directory
-					 temporary-file-directory))))
-        (login-name (or user-login-name
-                        (format "uid%d" (number-to-string (user-uid)))))
-	(full-name (or add-log-full-name
-		       (user-full-name)
-		       (user-login-name)
-		       (format "uid%d" (number-to-string (user-uid)))))
-	(mailing-address (or add-log-mailing-address
-			     user-mail-address)))
-    (find-file-other-window changelog)
-    (barf-if-buffer-read-only)
-    (vc-buffer-sync)
-    (undo-boundary)
-    (goto-char (point-min))
-    (push-mark)
-    (message "Computing change log entries...")
-    (message "Computing change log entries... %s"
-	     (unwind-protect
-		 (progn
-		   (setq default-directory odefault)
-		   (if (eq 0 (apply 'call-process
-                                    (expand-file-name "rcs2log"
-                                                      exec-directory)
-                                    nil (list t tempfile) nil
-                                    "-c" changelog
-                                    "-u" (concat login-name
-                                                 "\t" full-name
-                                                 "\t" mailing-address)
-                                    (mapcar
-                                     (lambda (f)
-                                       (file-relative-name
-					(expand-file-name f odefault)))
-                                     files)))
-                       "done"
-		     (pop-to-buffer (get-buffer-create "*vc*"))
-		     (erase-buffer)
-		     (insert-file-contents tempfile)
-		     "failed"))
-	       (setq default-directory (file-name-directory changelog))
-	       (delete-file tempfile)))))
 
 (defun vc-default-find-revision (backend file rev buffer)
   "Provide the new `find-revision' op based on the old `checkout' op.

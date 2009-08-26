@@ -370,6 +370,12 @@ revert all subfiles."
 ;;; Miscellaneous
 ;;;
 
+(defun vc-sccs-previous-revision (file rev)
+  (vc-call-backend 'RCS 'previous-revision file rev))
+
+(defun vc-sccs-next-revision (file rev)
+  (vc-call-backend 'RCS 'next-revision file rev))
+
 (defun vc-sccs-check-headers ()
   "Check if the current file has any headers in it."
   (save-excursion
