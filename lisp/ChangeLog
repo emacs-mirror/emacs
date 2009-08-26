@@ -1,3 +1,8 @@
+2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Document the desired behavior for reverted files in the
+	`added' state.
+
 2009-08-26  Glenn Morris  <rgm@gnu.org>
 
 	* bindings.el (standard-mode-line-format): Reposition dashes in

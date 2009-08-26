@@ -313,6 +313,8 @@
 ;;   arg CONTENTS-DONE is non-nil, then the contents of FILE have
 ;;   already been reverted from a version backup, and this function
 ;;   only needs to update the status of FILE within the backend.
+;;   If FILE is in the `added' state it should be returned to the
+;;   `unregistered' state.
 ;;
 ;; - rollback (files)
 ;;
