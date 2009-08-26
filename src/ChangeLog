@@ -1,3 +1,19 @@
+2009-08-26  Ken Raeburn  <raeburn@raeburn.org>
+
+	* Makefile.in (buildobj.h): New target.
+	(doc.o): Depend on it.
+	(temacs${EXEEXT}): Don't generate buildobj.lst.
+	(mostlyclean): Delete buildobj.h, not buildobj.lst.
+	* makefile.w32-in ($(SRC)/buildobj.h): New target.
+	($(BLD)/doc.$(O)): Depend on it.
+	(make-buildobj-CMD, make-buildobj-SH): New targets.  (Syntax help
+	provided by Eli Zaretskii.)
+	($(TEMACS)): Don't generate buildobj.lst.
+	* doc.c: Include buildobj.h.
+	(buildobj): New static variable.
+	(Fsnarf_documentation): Use it, instead of opening and reading
+	buildobj.lst.
+
 2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_call_method)

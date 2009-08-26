@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "character.h"
 #include "keymap.h"
+#include "buildobj.h"
 
 #ifdef HAVE_INDEX
 extern char *index P_ ((const char *, int));
@@ -552,6 +553,7 @@ store_function_docstring (fun, offset)
     }
 }
 
+static const char buildobj[] = BUILDOBJ;
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
        1, 1, 0,
@@ -598,32 +600,9 @@ the same file name is found in the `doc-directory'.  */)
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
   {
-    size_t cp_size = 0;
-    size_t to_read;
-    int nr_read;
-    char *cp = NULL;
-    char *beg, *end;
+    const char *beg, *end;
 
-    fd = emacs_open ("buildobj.lst", O_RDONLY, 0);
-    if (fd < 0)
-      report_file_error ("Opening file buildobj.lst", Qnil);
-
-    filled = 0;
-    for (;;)
-      {
-        cp_size += 1024;
-        to_read = cp_size - 1 - filled;
-        cp = xrealloc (cp, cp_size);
-        nr_read = emacs_read (fd, &cp[filled], to_read);
-        filled += nr_read;
-        if (nr_read < to_read)
-          break;
-      }
-
-    emacs_close (fd);
-    cp[filled] = 0;
-
-    for (beg = cp; *beg; beg = end)
+    for (beg = buildobj; *beg; beg = end)
       {
         int len;
 
@@ -639,8 +618,6 @@ the same file name is found in the `doc-directory'.  */)
         if (len > 0)
           Vbuild_files = Fcons (make_string (beg, len), Vbuild_files);
       }
-
-    xfree (cp);
   }
 
   fd = emacs_open (name, O_RDONLY, 0);

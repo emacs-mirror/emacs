@@ -938,8 +938,10 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${lisp} ${SOME_MACHINE_LISP}
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
+buildobj.h: Makefile
+	echo "#define BUILDOBJ \"${obj} ${otherobj} " OBJECTS_MACHINE "\"" > buildobj.h
+
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
-	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
 	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
@@ -1064,7 +1066,8 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    disptab.h indent.h $(INTERVALS_H) \
    xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
    syssignal.h $(config_h)
-doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
+doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h \
+   buildobj.h
 doprnt.o: doprnt.c character.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
@@ -1284,7 +1287,7 @@ mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
-	rm -f buildobj.lst
+	rm -f buildobj.h
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 #ifdef HAVE_NS

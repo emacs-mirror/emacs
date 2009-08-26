@@ -178,10 +178,24 @@ $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
-	echo $(OBJ0) > $(BLD)/buildobj.lst
-	echo $(OBJ1) >> $(BLD)/buildobj.lst
-	echo $(WIN32OBJ) >> $(BLD)/buildobj.lst
-	echo $(FONTOBJ) >> $(BLD)/buildobj.lst
+
+# These omit firstfile.${O}, but there's no documentation in there
+# anyways.
+$(SRC)/buildobj.h: make-buildobj-$(SHELLTYPE)
+make-buildobj-CMD: Makefile
+	echo #define BUILDOBJ ^"\  > $(SRC)/buildobj.h
+	echo $(OBJ0)            \ >> $(SRC)/buildobj.h
+	echo $(OBJ1)            \ >> $(SRC)/buildobj.h
+	echo $(WIN32OBJ)        \ >> $(SRC)/buildobj.h
+	echo $(FONTOBJ)         \ >> $(SRC)/buildobj.h
+	echo ^"                   >> $(SRC)/buildobj.h
+make-buildobj-SH: Makefile
+	echo '#define BUILDOBJ $(DQUOTE)\\'  > $(SRC)/buildobj.h
+	echo $(OBJ0)                   '\\' >> $(SRC)/buildobj.h
+	echo $(OBJ1)                   '\\' >> $(SRC)/buildobj.h
+	echo $(WIN32OBJ)               '\\' >> $(SRC)/buildobj.h
+	echo $(FONTOBJ)                '\\' >> $(SRC)/buildobj.h
+	echo '$(DQUOTE)'                    >> $(SRC)/buildobj.h
 
 bootstrap: bootstrap-emacs
 
@@ -580,6 +594,7 @@ $(BLD)/dispnew.$(O) : \
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
 	$(CONFIG_H) \
+	$(SRC)/buildobj.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
