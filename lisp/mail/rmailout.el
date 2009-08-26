@@ -46,6 +46,7 @@ a file name as a string."
 			       (string :tag "File Name")
 			       sexp)))
   :group 'rmail-output)
+;;;###autoload(put 'rmail-output-file-alist 'risky-local-variable t)
 
 (defcustom rmail-fields-not-to-output nil
   "Regexp describing fields to exclude when outputting a message to a file.

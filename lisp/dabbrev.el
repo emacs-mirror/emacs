@@ -145,6 +145,7 @@ Any other non-nil version means case is not significant."
 		 (const :tag "like search" case-fold-search)
 		 (other :tag "on" t))
   :group 'dabbrev)
+;;;###autoload(put 'dabbrev-case-fold-search 'risky-local-variable t)
 
 (defcustom dabbrev-upcase-means-case-search nil
   "The significance of an uppercase character in an abbreviation.
@@ -185,6 +186,7 @@ This variable has an effect only when the value of
 		 (const :tag "based on `case-replace'" case-replace)
 		 (other :tag "on" t))
   :group 'dabbrev)
+;;;###autoload(put 'dabbrev-case-replace 'risky-local-variable t)
 
 (defcustom dabbrev-abbrev-char-regexp nil
   "Regexp to recognize a character in an abbreviation or expansion.

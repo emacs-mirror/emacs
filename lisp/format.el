@@ -136,6 +136,8 @@ MODE-FN, if specified, is called when visiting a file with that format.
 
 PRESERVE, if non-nil, means that `format-write-file' should not remove
           this format from `buffer-file-format'.")
+;; Autoload if this file no longer dumped.
+(put 'format-alist 'risky-local-variable t)
 
 ;;; Basic Functions (called from Lisp)
 

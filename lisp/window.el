@@ -591,6 +591,8 @@ and `same-window-regexps'.  Those variables take precedence over
 this one.
 
 See also `special-display-regexps'."
+  ;; Autoload if this file no longer dumped.
+  :risky t
   :type '(repeat
 	  (choice :tag "Buffer"
 		  :value ""

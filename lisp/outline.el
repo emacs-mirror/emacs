@@ -380,6 +380,7 @@ See the command `outline-mode' for more information on this mode."
   "*Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line and that the match
 data reflects the `outline-regexp'.")
+;;;###autoload(put 'outline-level 'risky-local-variable t)
 
 (defvar outline-heading-alist ()
   "Alist associating a heading for every possible level.

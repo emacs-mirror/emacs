@@ -175,6 +175,7 @@
     ((5) (50 110) ,#'(lambda () (+ 1900 parse-time-elt)))
     ((5) (0 49) ,#'(lambda () (+ 2000 parse-time-elt))))
   "(slots predicate extractor...)")
+;;;###autoload(put 'parse-time-rules 'risky-local-variable t)
 
 ;;;###autoload
 (defun parse-time-string (string)

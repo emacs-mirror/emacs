@@ -198,6 +198,7 @@ For example, see the value of `fortran-imenu-generic-expression' used by
 `fortran-mode' with `imenu-syntax-alist' set locally to give the
 characters which normally have \"symbol\" syntax \"word\" syntax
 during matching.")
+;;;###autoload(put 'imenu-generic-expression 'risky-local-variable t)
 
 ;;;###autoload
 (make-variable-buffer-local 'imenu-generic-expression)
@@ -444,6 +445,7 @@ if it is a sub-alist.
 
 There is one simple element with negative POSITION; selecting that
 element recalculates the buffer's index alist.")
+;;;###autoload(put 'imenu--index-alist 'risky-local-variable t)
 
 (make-variable-buffer-local 'imenu--index-alist)
 

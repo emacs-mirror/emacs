@@ -105,6 +105,7 @@ A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :group 'display-time)
 
 (defvar display-time-string nil)
+;;;###autoload(put 'display-time-string 'risky-local-variable t)
 
 (defcustom display-time-hook nil
   "List of functions to be called when the time is updated on the mode line."

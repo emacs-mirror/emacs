@@ -1337,6 +1337,8 @@ This function is called with no argument.")
 Each element has the form:
    (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
 See the function `register-input-method' for the meanings of the elements.")
+;; Autoload if this file no longer dumped.
+(put 'input-method-alist 'risky-local-variable t)
 
 (defun register-input-method (input-method lang-env &rest args)
   "Register INPUT-METHOD as an input method for language environment LANG-ENV.
