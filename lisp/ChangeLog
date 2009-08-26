@@ -1,6 +1,8 @@
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-register): Use "git add" for directories.
+	(vc-git-stash, vc-git-stash-show): New functions.
+	(vc-git-extra-menu-map): Bind them.
 
 	* vc-dir.el (vc-dir-node-directory, vc-dir-update): Get the parent
 	directory correctly in case the item is a directory itself.

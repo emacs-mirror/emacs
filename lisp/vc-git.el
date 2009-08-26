@@ -662,6 +662,12 @@ or BRANCH^ (where \"^\" can be repeated)."
     (define-key map [git-grep]
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
+    (define-key map [git-st]
+      '(menu-item "Stash..." vc-git-stash
+		  :help "Stash away changes"))
+    (define-key map [git-ss]
+      '(menu-item "Show Stash..." vc-git-stash-show
+		  :help "Show stash contents"))
     (define-key map [git-sig]
       '(menu-item "Add Signed-off-by on commit" vc-git-toggle-signoff
 	      :help "Add Add Signed-off-by when commiting (i.e. add the -s flag)"
@@ -729,6 +735,24 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	  (compilation-start command 'grep-mode))
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
+
+(defun vc-git-stash (name)
+  "Create a stash."
+  (interactive "sStash name: ")
+  (let ((root (vc-git-root default-directory)))
+    (when root
+      (vc-git--call nil "stash" "save" name)
+      (vc-resynch-buffer root t t))))
+
+(defun vc-git-stash-show (name)
+  "Show the contents of stash NAME."
+  (interactive "sStash name: ")
+  (vc-setup-buffer "*vc-git-stash*")
+  (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
+  (set-buffer "*vc-git-stash*")
+  (diff-mode)
+  (setq buffer-read-only t)
+  (pop-to-buffer (current-buffer)))
 
 (defun vc-git-stash-list ()
   (replace-regexp-in-string
