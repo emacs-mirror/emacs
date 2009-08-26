@@ -1,3 +1,10 @@
+2009-08-26  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (save-interprogram-paste-before-kill): New user option.
+	(kill-new): When `save-interprogram-paste-before-kill' is non-nil,
+	save the interprogram-paste into kill-ring before overriding it
+	with the Emacs kill.
+
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-trunk-p): Rename to vc-rcs-trunk-p and move to vc-rcs.el.
