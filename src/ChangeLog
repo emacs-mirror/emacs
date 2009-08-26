@@ -1,3 +1,11 @@
+2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Replace #if 0 code for checking with text pointing to
+	the --enable-checking configure flag.
+
+	* emacs.c (main): Mention the --enable-profiling configure flag
+	instead of using CFLAGS.
+
 2009-08-26  Ken Raeburn  <raeburn@raeburn.org>
 
 	* Makefile.in (buildobj.h): New target.

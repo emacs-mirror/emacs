@@ -28,29 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define P_(proto) ()
 #endif
 
-#if 0
-/* Define this temporarily to hunt a bug.  If defined, the size of
-   strings is redundantly recorded in sdata structures so that it can
-   be compared to the sizes recorded in Lisp strings.  */
-
-#define GC_CHECK_STRING_BYTES 1
-
-/* Define this to check for short string overrun.  */
-
-#define GC_CHECK_STRING_OVERRUN 1
-
-/* Define this to check the string free list.  */
-
-#define GC_CHECK_STRING_FREE_LIST 1
-
-/* Define this to check for malloc buffer overrun.  */
-
-#define XMALLOC_OVERRUN_CHECK 1
-
-/* Define this to check for errors in cons list.  */
-/* #define GC_CHECK_CONS_LIST 1 */
-
-#endif /* 0 */
+/* Use the configure flag --enable-checking[=LIST] to enable various
+   types of run time checks for Lisp objects.  */
 
 #ifdef GC_CHECK_CONS_LIST
 #define CHECK_CONS_LIST() check_cons_list()
