@@ -1,5 +1,7 @@
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* callproc.c (Fcall_process): Remove always true #if.
+
 	* lisp.h: Replace #if 0 code for checking with text pointing to
 	the --enable-checking configure flag.
 

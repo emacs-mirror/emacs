@@ -793,13 +793,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
 	  break;
 
-#if (CALLPROC_BUFFER_SIZE_MIN != CALLPROC_BUFFER_SIZE_MAX)
 	/* Make the buffer bigger as we continue to read more data,
 	   but not past CALLPROC_BUFFER_SIZE_MAX.  */
 	if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
 	  if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
 	    bufsize = CALLPROC_BUFFER_SIZE_MAX;
-#endif
 
 	if (display_p)
 	  {
