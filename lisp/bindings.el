@@ -1,7 +1,8 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -356,7 +357,7 @@ mouse-3: Remove current window from display")
 	 (propertize "  " 'help-echo help-echo)
 	 'mode-line-modes
 	 `(which-func-mode ("" which-func-format ,dashes))
-	 `(global-mode-string (,dashes global-mode-string))
+	 `(global-mode-string ("" global-mode-string ,dashes))
 	 (propertize "-%-" 'help-echo help-echo)))
        (standard-mode-line-modes
 	(list
