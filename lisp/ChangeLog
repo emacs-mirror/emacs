@@ -1,3 +1,39 @@
+2009-08-19  Julian Scheid  <julians37@gmail.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-process-file): Do not flush all
+	caches when `process-file-side-effects' is set.
+	(tramp-handle-vc-registered): Use `tramp-get-file-exists-command'
+	instead of `tramp-find-file-exists-command'.  Unset
+	`process-file-side-effects'.
+
+2009-08-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): New method "rsyncc".
+	(top): Add completion function for "rsyncc".
+	(tramp-message-show-message): New defvar.
+	(tramp-message, tramp-error): Use it.
+	(tramp-do-copy-or-rename-file-directly): Extend check for direct
+	remote copying.
+	(tramp-do-copy-or-rename-file-out-of-band): Handle new
+	`tramp-methods' entry `copy-env' of "rsyncc".
+	(tramp-vc-registered-read-file-names): New defconst.
+	(tramp-vc-registered-file-names): New defvar.
+	(tramp-handle-vc-registered): Implement optimization strategy.
+	(tramp-run-real-handler): Add `tramp-vc-file-name-handler'.
+	(tramp-vc-file-name-handler): New defun.
+	(tramp-get-ls-command, tramp-get-test-command)
+	(tramp-get-file-exists-command, tramp-get-remote-ln)
+	(tramp-get-remote-perl, tramp-get-remote-stat)
+	(tramp-get-remote-id): Remove
+	superfluous `with-current-buffer'.
+
+	* net/tramp-cache.el (top): Autoload `tramp-time-less-p'.
+	(tramp-cache-inhibit-cache): Extend doc string.  It allows also
+	timestamps.
+	(tramp-get-file-property): Check for timestamps in
+	`tramp-cache-inhibit-cache'.
+	(tramp-set-file-property): Write timestamp.
+
 2009-08-27  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
 
 	* language/japan-util.el (japanese-symbol-table): Add entries for
