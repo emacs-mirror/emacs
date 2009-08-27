@@ -308,6 +308,74 @@
 (declare-function set-fontset-font "fontset.c"
 		  (name target font-spec &optional frame add))
 
+(eval-when-compile
+
+;; Build a data to initialize the default fontset at compile time to
+;; avoid loading charsets that won't be necessary at runtime.
+
+;; The value is (CJK-REGISTRY-VECTOR TARGET-SPEC ...), where
+;; CJK-REGISTRY-VECTOR is ["JISX0208.1983-0" "GB2312.1980-0" ...],
+;; TARGET-SPEC is (TARGET . BITMASK) or (TARGET SPEC ...),
+;; TARGET is CHAR or (FROM-CHAR . TO-CHAR),
+;; BITMASK is a bitmask of indices to CJK-REGISTRY-VECTOR,
+;; SPEC is a list of arguments to font-spec.
+
+(defmacro build-default-fontset-data ()
+  (let* (;;       CHARSET-REGISTRY  CHARSET            FROM-CODE TO-CODE
+	 (cjk '(("JISX0208.1983-0" japanese-jisx0208  #x2121    #x287E)
+		("GB2312.1980-0"   chinese-gb2312     #x2121    #x297E)
+		("BIG5-0"          big5               #xA140    #xA3FE)
+		("CNS11643.1992-1" chinese-cns11643-1 #x2121    #x427E)
+		("KSC5601.1987-0"  korean-ksc5601     #x2121    #x2C7E)))
+	 (scripts '((tibetan
+		     (:registry "iso10646-1" :otf (tibt nil (ccmp blws abvs)))
+		     (:family "mtib" :registry "iso10646-1")
+		     (:registry "muletibetan-2"))
+		    (ethiopic
+		     (:registry "iso10646-1" :script ethiopic)
+		     (:registry "ethiopic-unicode"))
+		    (phonetic
+		     (:registry "iso10646-1" :script phonetic)
+		     (:registry "MuleIPA-1")
+		     (:registry "iso10646-1"))))
+	 (cjk-table (make-char-table nil))
+	 (script-coverage
+	  #'(lambda (script)
+	      (let ((coverage))
+		(map-char-table
+		 #'(lambda (range val)
+		     (when (eq val script)
+		       (if (consp range)
+			   (setq range (cons (car range) (cdr range))))
+		       (push range coverage)))
+		 char-script-table)
+		coverage)))
+	 (data (list (vconcat (mapcar 'car cjk))))
+	 (i 0))
+    (dolist (elt cjk)
+      (let ((mask (lsh 1 i)))
+	(map-charset-chars
+	 #'(lambda (range arg)
+	     (let ((from (car range)) (to (cdr range)))
+	       (if (< to #x110000)
+		   (while (<= from to)
+		     (aset cjk-table from
+			   (logior (or (aref cjk-table from) 0) mask))
+		     (setq from (1+ from))))))
+	 (nth 1 elt) nil (nth 2 elt) (nth 3 elt)))
+      (setq i (1+ i)))
+    (map-char-table
+     #'(lambda (range val)
+	 (if (consp range)
+	     (setq range (cons (car range) (cdr range))))
+	 (push (cons range val) data))
+     cjk-table)
+    (dolist (script scripts)
+      (dolist (range (funcall script-coverage (car script)))
+	(push (cons range (cdr script)) data)))
+    `(quote ,(nreverse data))))
+)
+
 (defun setup-default-fontset ()
   "Setup the default fontset."
   (new-fontset
@@ -348,16 +416,6 @@
 	  (nil . "MuleLao-1"))
 
      (tai-viet ("TaiViet" . "iso10646-1"))
-
-     ;; both for script and charset.
-     (tibetan ,(font-spec :registry "iso10646-1"
-			  :otf '(tibt nil (ccmp blws abvs)))
-	      ,(font-spec :family "mtib" :registry "iso10646-1")
-	      (nil . "muletibetan-2"))
-
-     ;; both for script and charset.
-     (ethiopic ,(font-spec :registry "iso10646-1" :script 'ethiopic)
-	       (nil . "ethiopic-unicode"))
 
      (greek ,(font-spec :registry "iso10646-1" :script 'greek)
 	    (nil . "ISO8859-7"))
@@ -461,11 +519,6 @@
      (telugu-akruti (nil . "Telugu-Akruti"))
      (kannada-akruti (nil . "Kannada-Akruti"))
      (malayalam-akruti (nil . "Malayalam-Akruti"))
-     ;;(devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
-     ;;(malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
-     (ipa ,(font-spec :registry "iso10646-1" :script 'phonetic)
-	  (nil . "MuleIPA-1")
-	  (nil . "iso10646-1"))
 
      ;; Fallback fonts
      (nil (nil . "gb2312.1980")
@@ -567,18 +620,21 @@
      (font-spec :registry "iso10646-1" :script (nth 2 math-subgroup))))
 
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
-  ;;             CHARSET-REGISTRY  CHARSET            FROM-CODE TO-CODE
-  (let ((list '(("JISX0208.1983-0" japanese-jisx0208  #x2121    #x287E)
-		("GB2312.1980-0"   chinese-gb2312     #x2121    #x297E)
-		("BIG5-0"          big5               #xA140    #xA3FE)
-		("CNS11643.1992-1" chinese-cns11643-1 #x2121    #x427E)
-		("KSC5601.1987-0"  korean-ksc5601     #x2121    #x2C7E))))
-    (dolist (elt list)
-      (map-charset-chars
-       #'(lambda (range arg)
-	   (set-fontset-font "fontset-default" range
-			     (cons nil (car elt)) nil 'append))
-       (nth 1 elt) nil (nth 2 elt) (nth 3 elt))))
+  ;; Append fonts for scripts whose name is also a charset name.
+  (let* ((data (build-default-fontset-data))
+	 (registries (car data)))
+    (dolist (target-spec (cdr data))
+      (let ((target (car target-spec))
+	    (spec (cdr target-spec)))
+	(if (integerp spec)
+	    (dotimes (i (length registries))
+	      (if (> (logand spec (lsh 1 i)) 0)
+		  (set-fontset-font "fontset-default" target
+				    (cons nil (aref registries i))
+				    nil 'append)))
+	(dolist (args spec)
+	  (set-fontset-font "fontset-default" target
+			    (apply 'font-spec args) nil 'append))))))
 
   ;; Append Unicode fonts.
   ;; This may find fonts with more variants (bold, italic) but which
