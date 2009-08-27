@@ -1,3 +1,7 @@
+2009-08-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-update-changelog): Fix typo.
+
 2009-08-26  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (save-interprogram-paste-before-kill): New user option.

@@ -633,6 +633,16 @@ systime, or nil if there is none."
 	(match-string-no-properties 1)
       nil)))
 
+(defun vc-cvs-previous-revision (file rev)
+  (vc-call-backend 'RCS 'previous-revision file rev))
+
+(defun vc-cvs-next-revision (file rev)
+  (vc-call-backend 'RCS 'next-revision file rev))
+
+;; FIXME: This should probably be replaced by code using cvs2cl.
+(defun vc-cvs-update-changelog (files)
+  (vc-call-backend 'RCS 'update-changelog files))
+
 ;;;
 ;;; Tag system
 ;;;
