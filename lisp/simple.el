@@ -2805,6 +2805,12 @@ before the Emacs kill and one can still paste it using \\[yank] \\[yank-pop]."
   :group 'killing
   :version "23.2")
 
+(defcustom kill-do-not-save-duplicates nil
+  "Do not add a new string to `kill-ring' when it is the same as the last one."
+  :type 'boolean
+  :group 'killing
+  :version "23.2")
+
 (defun kill-new (string &optional replace yank-handler)
   "Make STRING the latest kill in the kill ring.
 Set `kill-ring-yank-pointer' to point to it.
@@ -2832,6 +2838,9 @@ argument should still be a \"useful\" string for such uses."
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
+  (when (and kill-do-not-save-duplicates
+             (equal string (car kill-ring)))
+    (setq replace t))
   (if (fboundp 'menu-bar-update-yank-menu)
       (menu-bar-update-yank-menu string (and replace (car kill-ring))))
   (when save-interprogram-paste-before-kill

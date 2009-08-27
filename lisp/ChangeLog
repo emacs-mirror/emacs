@@ -1,3 +1,9 @@
+2009-08-27  Sam Steingold  <sds@gnu.org>
+
+	* simple.el (kill-do-not-save-duplicates): New user option.
+	(kill-new): When it is non-nil, and the new string is the same as
+	the latest kill, set replace to t to avoid duplicates in kill-ring.
+
 2009-08-19  Julian Scheid  <julians37@gmail.com>  (tiny change)
 
 	* net/tramp.el (tramp-handle-process-file): Do not flush all
