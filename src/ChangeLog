@@ -1,3 +1,11 @@
+2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read_integer): Use doubles (and potentially return a float
+	number) as we do in string-to-number.
+	(read1): Use strtol to read integers, signal errors on strtol's
+	overflow and use floats if strtol's output is too large for
+	Elisp integers.
+
 2009-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(SRC)/buildobj.h, make-buildobj-CMD)
