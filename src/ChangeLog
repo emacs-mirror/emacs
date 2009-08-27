@@ -1,3 +1,8 @@
+2009-08-27  Kenichi Handa  <handa@m17n.org>
+
+	* cmds.c (Fself_insert_command): Avoid unnecessay
+	unibyte->multibyte conversion.
+
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (Fcall_process): Remove always true #if.
@@ -31,6 +36,9 @@
 	timeout values in doc string.
 
 2009-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* alloc.c (mark_char_table): New function.
+	(mark_object): Use mark_char_table for a char-table.
 
 	* lisp.h (CHAR_TABLE_REF_ASCII): New macro.
 	(CHAR_TABLE_REF): Use it.
