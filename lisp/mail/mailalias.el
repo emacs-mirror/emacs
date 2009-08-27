@@ -244,61 +244,53 @@ By default, this is the file specified by `mail-personal-alias-file'."
   ;; In case mail-aliases is t, make sure define-mail-alias
   ;; does not recursively call build-mail-aliases.
   (setq mail-aliases nil)
-  (let ((buffer nil)
-	(obuf (current-buffer)))
-    (unwind-protect
-	(progn
-	  (setq buffer (generate-new-buffer " mailrc"))
-	  (set-buffer buffer)
-	  (while file
-	    (cond ((get-file-buffer file)
-		   (insert (save-excursion
-			     (set-buffer (get-file-buffer file))
-			     (buffer-substring-no-properties
-			      (point-min) (point-max)))))
-		  ((file-exists-p file) (insert-file-contents file))
-		  ((file-exists-p (setq file (concat "~/" file)))
-		   (insert-file-contents file))
-		  (t (setq file nil)))
-	    (goto-char (point-min))
-	    ;; Delete comments from the contents.
-	    (while (search-forward "# " nil t)
-	      (let ((p (- (point) 2)))
-		(end-of-line)
-		(delete-region p (point))))
-	    ;; Don't lose if no final newline.
-	    (goto-char (point-max))
-	    (or (eq (preceding-char) ?\n) (newline))
-	    (goto-char (point-min))
-	    ;; handle "\\\n" continuation lines
-	    (while (not (eobp))
-	      (end-of-line)
-	      (if (= (preceding-char) ?\\)
-		  (progn (delete-char -1) (delete-char 1) (insert ?\ ))
-	        (forward-char 1)))
-	    (goto-char (point-min))
-	    ;; handle `source' directives -- Eddy/1994/May/25
-	    (cond ((re-search-forward "^source[ \t]+" nil t)
-		   (re-search-forward "\\S-+")
-		   (setq file (buffer-substring-no-properties
-			       (match-beginning 0) (match-end 0)))
-		   (beginning-of-line)
-		   (insert "# ") ; to ensure we don't re-process this file
-		   (beginning-of-line))
-		  (t (setq file nil))))
-	  (goto-char (point-min))
-	  (while (re-search-forward
-		  "^\\(a\\|alias\\|g\\|group\\)[ \t]+\\([^ \t\n]+\\)" nil t)
-	    (let* ((name (match-string 2))
-		   (start (progn (skip-chars-forward " \t") (point)))
-		   value)
-	      (end-of-line)
-	      (setq value (buffer-substring-no-properties start (point)))
-	      (unless (equal value "")
-		(define-mail-alias name value t))))
-	  mail-aliases)
-      (if buffer (kill-buffer buffer))
-      (set-buffer obuf))))
+  (with-temp-buffer
+    (while file
+      (cond ((get-file-buffer file)
+             (insert (with-current-buffer (get-file-buffer file)
+                       (buffer-substring-no-properties
+                        (point-min) (point-max)))))
+            ((file-exists-p file) (insert-file-contents file))
+            ((file-exists-p (setq file (expand-file-name file "~/")))
+             (insert-file-contents file))
+            (t (setq file nil)))
+      (goto-char (point-min))
+      ;; Delete comments from the contents.
+      (while (search-forward "# " nil t)
+        (let ((p (- (point) 2)))
+          (end-of-line)
+          (delete-region p (point))))
+      ;; Don't lose if no final newline.
+      (goto-char (point-max))
+      (or (eq (preceding-char) ?\n) (newline))
+      (goto-char (point-min))
+      ;; handle "\\\n" continuation lines
+      (while (not (eobp))
+        (end-of-line)
+        (if (= (preceding-char) ?\\)
+            (progn (delete-char -1) (delete-char 1) (insert ?\ ))
+          (forward-char 1)))
+      (goto-char (point-min))
+      ;; handle `source' directives -- Eddy/1994/May/25
+      (cond ((re-search-forward "^source[ \t]+" nil t)
+             (re-search-forward "\\S-+")
+             (setq file (buffer-substring-no-properties
+                         (match-beginning 0) (match-end 0)))
+             (beginning-of-line)
+             (insert "# ")   ; to ensure we don't re-process this file
+             (beginning-of-line))
+            (t (setq file nil))))
+    (goto-char (point-min))
+    (while (re-search-forward
+            "^\\(a\\|alias\\|g\\|group\\)[ \t]+\\([^ \t\n]+\\)" nil t)
+      (let* ((name (match-string 2))
+             (start (progn (skip-chars-forward " \t") (point)))
+             value)
+        (end-of-line)
+        (setq value (buffer-substring-no-properties start (point)))
+        (unless (equal value "")
+          (define-mail-alias name value t))))
+    mail-aliases))
 
 ;; Always autoloadable in case the user wants to define aliases
 ;; interactively or in .emacs.
@@ -452,8 +444,7 @@ Consults `/etc/passwd' and a directory service if one is set up via
 `mail-directory-function'.
 PATTERN is the string we want to complete."
   (if (eq mail-local-names t)
-      (save-excursion
-	(set-buffer (generate-new-buffer " passwd"))
+      (with-current-buffer (generate-new-buffer " passwd")
 	(let ((files mail-passwd-files))
 	  (while files
 	    (insert-file-contents (car files) nil nil nil t)
@@ -511,11 +502,10 @@ PATTERN is the string we want to complete."
 If PATTERN is nil, get all the defined user names.
 This function calls `mail-directory-function' to query the directory,
 then uses `mail-directory-parser' to parse the output it returns."
-  (save-excursion
-    (message "Querying directory...")
-    (set-buffer (generate-new-buffer " *mail-directory*"))
+  (message "Querying directory...")
+  (with-current-buffer (generate-new-buffer " *mail-directory*")
     (funcall mail-directory-function pattern)
-    (goto-char 1)
+    (goto-char (point-min))
     (let (directory)
       (if (stringp mail-directory-parser)
 	  (while (re-search-forward mail-directory-parser nil t)

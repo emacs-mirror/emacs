@@ -1,5 +1,9 @@
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/mailalias.el (build-mail-aliases): Use with-temp-buffer,
+	expand-file-name and with-current-buffer.
+	(mail-get-names, mail-directory): Use with-current-buffer.
+
 	* vc.el (vc-read-revision): New function.
 	(vc-version-diff, vc-merge): Use it.
 
