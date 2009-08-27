@@ -1000,6 +1000,45 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
+;; Special "default-FOO" variables which contain the default value of
+;; the "FOO" variable are nasty.  Their implementation is brittle, and
+;; slows down several unrelated variable operations; furthermore, they
+;; can lead to really odd behavior if you decide to make them
+;; buffer-local.
+
+;; Not used at all in Emacs, last time I checked:
+(make-obsolete-variable 'default-mode-line-format 'mode-line-format "23.2")
+(make-obsolete-variable 'default-header-line-format 'header-line-format "23.2")
+(make-obsolete-variable 'default-line-spacing 'line-spacing "23.2")
+(make-obsolete-variable 'default-abbrev-mode 'abbrev-mode "23.2")
+(make-obsolete-variable 'default-ctl-arrow 'ctl-arrow "23.2")
+(make-obsolete-variable 'default-direction-reversed 'direction-reversed "23.2")
+(make-obsolete-variable 'default-truncate-lines 'truncate-lines "23.2")
+(make-obsolete-variable 'default-left-margin 'left-margin "23.2")
+(make-obsolete-variable 'default-tab-width 'tab-width "23.2")
+(make-obsolete-variable 'default-case-fold-search 'case-fold-search "23.2")
+(make-obsolete-variable 'default-left-margin-width 'left-margin-width "23.2")
+(make-obsolete-variable 'default-right-margin-width 'right-margin-width "23.2")
+(make-obsolete-variable 'default-left-fringe-width 'left-fringe-width "23.2")
+(make-obsolete-variable 'default-right-fringe-width 'right-fringe-width "23.2")
+(make-obsolete-variable 'default-fringes-outside-margins 'fringes-outside-margins "23.2")
+(make-obsolete-variable 'default-scroll-bar-width 'scroll-bar-width "23.2")
+(make-obsolete-variable 'default-vertical-scroll-bar 'vertical-scroll-bar "23.2")
+(make-obsolete-variable 'default-indicate-empty-lines 'indicate-empty-lines "23.2")
+(make-obsolete-variable 'default-indicate-buffer-boundaries 'indicate-buffer-boundaries "23.2")
+(make-obsolete-variable 'default-fringe-indicator-alist 'fringe-indicator-alist "23.2")
+(make-obsolete-variable 'default-fringe-cursor-alist 'fringe-cursor-alist "23.2")
+(make-obsolete-variable 'default-scroll-up-aggressively 'scroll-up-aggressively "23.2")
+(make-obsolete-variable 'default-scroll-down-aggressively 'scroll-down-aggressively "23.2")
+(make-obsolete-variable 'default-fill-column 'fill-column "23.2")
+(make-obsolete-variable 'default-cursor-type 'cursor-type "23.2")
+(make-obsolete-variable 'default-buffer-file-type 'buffer-file-type "23.2")
+(make-obsolete-variable 'default-cursor-in-non-selected-windows 'cursor-in-non-selected-windows "23.2")
+(make-obsolete-variable 'default-buffer-file-coding-system 'buffer-file-coding-system "23.2")
+(make-obsolete-variable 'default-major-mode 'major-mode "23.2")
+(make-obsolete-variable 'default-enable-multibyte-characters
+      "use enable-multibyte-characters or set-buffer-multibyte instead" "23.2")
+
 (define-obsolete-function-alias 'window-dot 'window-point "22.1")
 (define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
 (define-obsolete-function-alias 'read-input 'read-string "22.1")

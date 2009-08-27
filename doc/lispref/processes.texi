@@ -2157,12 +2157,6 @@ Initialize the process query flag to @var{query-flag}.
 @item :filter @var{filter}
 Initialize the process filter to @var{filter}.
 
-@item :filter-multibyte @var{bool}
-If @var{bool} is non-@code{nil}, strings given to the process filter
-are multibyte, otherwise they are unibyte.  If you don't specify this
-keyword at all, the default is that the strings are multibyte if
-@code{default-enable-multibyte-characters} is non-@code{nil}.
-
 @item :sentinel @var{sentinel}
 Initialize the process sentinel to @var{sentinel}.
 

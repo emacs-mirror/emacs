@@ -72,11 +72,6 @@ but they are not expanded automatically.
 This variable automatically becomes buffer-local when set in any fashion.
 @end defopt
 
-@defvar default-abbrev-mode
-This is the value of @code{abbrev-mode} for buffers that do not
-override it.  It is the same as @code{(default-value 'abbrev-mode)}.
-@end defvar
-
 @node Abbrev Tables, Defining Abbrevs, Abbrev Mode, Abbrevs
 @section Abbrev Tables
 

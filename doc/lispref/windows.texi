@@ -791,7 +791,7 @@ If @var{buffer-or-name} is @code{nil}, @code{switch-to-buffer} chooses a
 buffer using @code{other-buffer}.  If @var{buffer-or-name} is a string
 that does not identify an existing buffer, then a new buffer by that
 name is created.  The major mode for the new buffer is set according to
-the variable @code{default-major-mode}; see @ref{Auto Major Mode}.
+the variable @code{major-mode}; see @ref{Auto Major Mode}.
 
 When the selected window is the minibuffer window or is strongly
 dedicated to its buffer (@pxref{Dedicated Windows}), this function calls
@@ -837,7 +837,7 @@ If @var{buffer-or-name} is @code{nil}, that means to choose some other
 buffer, but you don't specify which.  If @var{buffer-or-name} is a
 string that does not name an existing buffer, a buffer by that name is
 created.  The major mode for the new buffer is set according to the
-variable @code{default-major-mode}.  @xref{Auto Major Mode}.
+variable @code{major-mode}.  @xref{Auto Major Mode}.
 
 If either of the variables @code{display-buffer-reuse-frames} or
 @code{pop-up-frames} is non-@code{nil}, @code{pop-to-buffer} looks for a

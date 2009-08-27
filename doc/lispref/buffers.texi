@@ -936,8 +936,8 @@ a string, it is returned as given, even if it is dead.
 @end example
 
 The major mode for a newly created buffer is set to Fundamental mode.
-(The variable @code{default-major-mode} is handled at a higher level;
-see @ref{Auto Major Mode}.)  If the name begins with a space, the
+(The default value of the variable @code{major-mode} is handled at a higher
+level; see @ref{Auto Major Mode}.)  If the name begins with a space, the
 buffer initially disables undo information recording (@pxref{Undo}).
 @end defun
 
@@ -966,8 +966,8 @@ An error is signaled if @var{name} is not a string.
 @end group
 @end example
 
-The major mode for the new buffer is set to Fundamental mode.  The
-variable @code{default-major-mode} is handled at a higher level.
+The major mode for the new buffer is set to Fundamental mode.  The default
+value of the variable @code{major-mode} is handled at a higher level.
 @xref{Auto Major Mode}.
 
 See the related function @code{generate-new-buffer-name} in @ref{Buffer

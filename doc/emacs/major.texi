@@ -196,13 +196,12 @@ only after @code{auto-mode-alist}.  By default,
 @code{magic-fallback-mode-alist} contains forms that check for image
 files, HTML/XML/SGML files, and Postscript files.
 
-@vindex default-major-mode
   When you visit a file that does not specify a major mode to use, or
-when you create a new buffer with @kbd{C-x b}, the variable
-@code{default-major-mode} specifies which major mode to use.  Normally
+when you create a new buffer with @kbd{C-x b}, the default value of
+the variable @code{major-mode} specifies which major mode to use.  Normally
 its value is the symbol @code{fundamental-mode}, which specifies
-Fundamental mode.  If @code{default-major-mode} is @code{nil}, the
-major mode is taken from the previously current buffer.
+Fundamental mode.  If the default value of @code{major-mode} is @code{nil},
+the major mode is taken from the previously current buffer.
 
 @findex normal-mode
   If you change the major mode of a buffer, you can go back to the major

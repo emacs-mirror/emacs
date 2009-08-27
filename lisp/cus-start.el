@@ -38,8 +38,7 @@
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format mode-line sexp) ;Hard to do right.
-	     (default-major-mode internal function)
-	     (enable-multibyte-characters mule boolean)
+	     (major-mode internal function)
 	     (case-fold-search matching boolean)
 	     (fill-column fill integer)
 	     (left-margin fill integer)

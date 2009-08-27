@@ -484,8 +484,8 @@ with value @code{special}, put on as follows:
 
 @noindent
 This tells Emacs that new buffers created while the current buffer is
-in Funny mode should not inherit Funny mode, in case
-@code{default-major-mode} is @code{nil}.  Modes such as Dired, Rmail,
+in Funny mode should not inherit Funny mode, in case the default value
+of @code{major-mode} is @code{nil}.  Modes such as Dired, Rmail,
 and Buffer List use this feature.
 
 The @code{define-derived-mode} macro automatically marks the derived
@@ -559,7 +559,8 @@ If @code{normal-mode} processes the local variables list and this list
 specifies a major mode, that mode overrides any mode chosen by
 @code{set-auto-mode}.  If neither @code{set-auto-mode} nor
 @code{hack-local-variables} specify a major mode, the buffer stays in
-the major mode determined by @code{default-major-mode} (see below).
+the major mode determined by the default value of @code{major-mode}
+(see below).
 
 @cindex file mode specification error
 @code{normal-mode} uses @code{condition-case} around the call to the
@@ -588,11 +589,13 @@ mode.  For instance, @code{set-visited-file-name} sets this to
 have set.
 @end defun
 
-@defopt default-major-mode
-This variable holds the default major mode for new buffers.  The
-standard value is @code{fundamental-mode}.
+@defopt major-mode
+The buffer-local value of this variable holds the major mode
+currently active.  The default value of this variable holds the
+default major mode for new buffers.  The standard default value is
+@code{fundamental-mode}.
 
-If the value of @code{default-major-mode} is @code{nil}, Emacs uses
+If the default value of @code{major-mode} is @code{nil}, Emacs uses
 the (previously) current buffer's major mode as the default major mode
 of a new buffer.  However, if that major mode symbol has a @code{mode-class}
 property with value @code{special}, then it is not used for new buffers;
@@ -602,8 +605,8 @@ been specially prepared.
 @end defopt
 
 @defun set-buffer-major-mode buffer
-This function sets the major mode of @var{buffer} to the value of
-@code{default-major-mode}; if that variable is @code{nil}, it uses the
+This function sets the major mode of @var{buffer} to the default value of
+@code{major-mode}; if that is @code{nil}, it uses the
 current buffer's major mode (if that is suitable).  As an exception,
 if @var{buffer}'s name is @samp{*scratch*}, it sets the mode to
 @code{initial-major-mode}.
@@ -1897,16 +1900,8 @@ The @samp{%M} construct substitutes the value of
 included in the mode line from @code{mode-line-format}.
 @end defvar
 
-  The variable @code{default-mode-line-format} is where
-@code{mode-line-format} usually gets its value:
-
-@defvar default-mode-line-format
-This variable holds the default @code{mode-line-format} for buffers
-that do not override it.  This is the same as @code{(default-value
-'mode-line-format)}.
-
 Here is a simplified version of the default value of
-@code{default-mode-line-format}.  The real default value also
+@code{mode-line-format}.  The real default value also
 specifies addition of text properties.
 
 @example
@@ -2103,13 +2098,6 @@ controlled by different variables.
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
-@end defvar
-
-@defvar default-header-line-format
-This variable holds the default @code{header-line-format} for buffers
-that do not override it.  This is the same as @code{(default-value
-'header-line-format)}.
-
 It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 

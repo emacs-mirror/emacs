@@ -175,11 +175,6 @@ continued.  As a special exception, the variable
 entire frame width).
 @end defopt
 
-@defopt default-truncate-lines
-This variable is the default value for @code{truncate-lines}, for
-buffers that do not have buffer-local values for it.
-@end defopt
-
 @defopt truncate-partial-width-windows
 This variable controls line truncation in @dfn{partial-width} windows.
 A partial-width window is one that does not occupy the entire frame
@@ -1768,8 +1763,8 @@ parts of Emacs text.
 @vindex default-line-spacing
   On graphical terminals, you can specify the line spacing for all
 lines in a frame, using the @code{line-spacing} frame parameter
-(@pxref{Layout Parameters}).  However, if the variable
-@code{default-line-spacing} is non-@code{nil}, it overrides the
+(@pxref{Layout Parameters}).  However, if the default value of
+@code{line-spacing} is non-@code{nil}, it overrides the
 frame's @code{line-spacing} parameter.  An integer value specifies the
 number of pixels put below lines.  A floating point number specifies
 the spacing relative to the frame's default line height.
@@ -3260,11 +3255,6 @@ arrow bitmaps in right fringe.  To show the angle bitmaps in the left
 fringe, and no arrow bitmaps, use @code{((top .  left) (bottom . left))}.
 @end defopt
 
-@defvar default-indicate-buffer-boundaries
-The value of this variable is the default value for
-@code{indicate-buffer-boundaries} in buffers that do not override it.
-@end defvar
-
 @defvar fringe-indicator-alist
 This buffer-local variable specifies the mapping from logical fringe
 indicators to the actual bitmaps displayed in the window fringes.
@@ -3308,15 +3298,10 @@ used in both left and right fringes.
 
 When @code{fringe-indicator-alist} has a buffer-local value, and there
 is no bitmap defined for a logical indicator, or the bitmap is
-@code{t}, the corresponding value from the (non-local)
-@code{default-fringe-indicator-alist} is used.
+@code{t}, the corresponding value from the default value of
+@code{fringe-indicator-alist} is used.
 
 To completely hide a specific indicator, set the bitmap to @code{nil}.
-@end defvar
-
-@defvar default-fringe-indicator-alist
-The value of this variable is the default value for
-@code{fringe-indicator-alist} in buffers that do not override it.
 @end defvar
 
 Standard fringe bitmaps for indicators:
@@ -3371,12 +3356,7 @@ for that logical cursor type.
 
 When @code{fringe-cursor-alist} has a buffer-local value, and there is
 no bitmap defined for a cursor type, the corresponding value from the
-(non-local) @code{default-fringes-indicator-alist} is used.
-@end defvar
-
-@defvar default-fringes-cursor-alist
-The value of this variable is the default value for
-@code{fringe-cursor-alist} in buffers that do not override it.
+default value of @code{fringes-indicator-alist} is used.
 @end defvar
 
 Standard bitmaps for displaying the cursor in right fringe:
@@ -5544,12 +5524,6 @@ displayed.  If it is non-@code{nil}, they are displayed as a caret
 followed by the character: @samp{^A}.  If it is @code{nil}, they are
 displayed as a backslash followed by three octal digits: @samp{\001}.
 @end defopt
-
-@c Following may have overfull hbox.
-@defvar default-ctl-arrow
-The value of this variable is the default value for @code{ctl-arrow} in
-buffers that do not override it.  @xref{Default Value}.
-@end defvar
 
 @defopt tab-width
 The value of this buffer-local variable is the spacing between tab

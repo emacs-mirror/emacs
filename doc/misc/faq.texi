@@ -2154,14 +2154,13 @@ about them.
 @section How do I change Emacs's idea of the @key{TAB} character's length?
 @cindex Tab length
 @cindex Length of tab character
-@cindex @code{default-tab-width}
 
-Set the variable @code{default-tab-width}.  For example, to set
+Set the default value of the variable @code{tab-width}.  For example, to set
 @key{TAB} stops every 10 characters, insert the following in your
 @file{.emacs} file:
 
 @lisp
-(setq default-tab-width 10)
+(setq-default tab-width 10)
 @end lisp
 
 Do not confuse variable @code{tab-width} with variable

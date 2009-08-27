@@ -822,11 +822,6 @@ both arrow bitmaps in right fringe.  To show just the angle bitmaps in
 the left fringe, but no arrow bitmaps, use @code{((top .  left)
 (bottom . left))}.
 
-@vindex default-indicate-buffer-boundaries
-  The value of the variable @code{default-indicate-buffer-boundaries}
-is the default value for @code{indicate-buffer-boundaries} in buffers
-that do not override it.
-
 @node Useless Whitespace
 @section Useless Whitespace
 

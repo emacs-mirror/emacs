@@ -1629,15 +1629,9 @@ As a practical matter, if you are writing text for other people to
 read, you should set @code{fill-column} to no more than 70.  Otherwise
 the line will be too long for people to read comfortably, and this can
 make the text seem clumsy.
+
+The default value for @code{fill-column} is 70.
 @end defopt
-
-@defvar default-fill-column
-The value of this variable is the default value for @code{fill-column} in
-buffers that do not override it.  This is the same as
-@code{(default-value 'fill-column)}.
-
-The default value for @code{default-fill-column} is 70.
-@end defvar
 
 @deffn Command set-left-margin from to margin
 This sets the @code{left-margin} property on the text from @var{from} to

@@ -376,10 +376,7 @@ decoding.
   The reason Emacs is designed this way is so that Lisp programs give
 predictable results, regardless of how Emacs was started.  In addition,
 this enables programs that depend on using multibyte text to work even
-in a unibyte Emacs.  Of course, such programs should be designed to
-notice whether the user prefers unibyte or multibyte text, by checking
-@code{default-enable-multibyte-characters}, and convert representations
-appropriately.
+in a unibyte Emacs.
 
   In most Emacs Lisp programs, the fact that non-@acronym{ASCII} strings are
 multibyte strings should not be noticeable, since inserting them in

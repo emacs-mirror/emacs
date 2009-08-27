@@ -180,6 +180,9 @@ functions and variables.
 
 * Lisp changes in Emacs 23.2
 
+** All the default-FOO variables that hold the default value of the FOO
+variable, are now declared obsolete.
+
 ** read-key is a function halfway between read-event and read-key-sequence.
 It reads a single key, but obeys input and escape sequence decoding.
 ** start-process-shell-command start-file-process-shell-command only

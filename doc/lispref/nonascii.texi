@@ -102,19 +102,10 @@ it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
-@end defopt
-
-@defvar default-enable-multibyte-characters
-This variable's value is entirely equivalent to @code{(default-value
-'enable-multibyte-characters)}, and setting this variable changes that
-default value.  Setting the local binding of
-@code{enable-multibyte-characters} in a specific buffer is not allowed,
-but changing the default value is supported, and it is a reasonable
-thing to do, because it has no effect on existing buffers.
 
 The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
-@end defvar
+@end defopt
 
 @defun position-bytes position
 Buffer positions are measured in character units.  This function
@@ -1052,7 +1043,7 @@ decoding, the end-of-line format of the text is auto-detected, and the
 eol conversion is set to match it (e.g., DOS-style CRLF format will
 imply @code{dos} eol conversion).  For encoding, the eol conversion is
 taken from the appropriate default coding system (e.g.,
-@code{default-buffer-file-coding-system} for
+default value of @code{buffer-file-coding-system} for
 @code{buffer-file-coding-system}), or from the default eol conversion
 appropriate for the underlying platform.
 @end defun
@@ -1212,8 +1203,8 @@ coding system to try; if that can handle the text,
 also be a list of coding systems; then the function tries each of them
 one by one.  After trying all of them, it next tries the current
 buffer's value of @code{buffer-file-coding-system} (if it is not
-@code{undecided}), then the value of
-@code{default-buffer-file-coding-system} and finally the user's most
+@code{undecided}), then the default value of
+@code{buffer-file-coding-system} and finally the user's most
 preferred coding system, which the user can set using the command
 @code{prefer-coding-system} (@pxref{Recognize Coding,, Recognizing
 Coding Systems, emacs, The GNU Emacs Manual}).
@@ -1758,6 +1749,13 @@ Otherwise, @code{undecided-dos} is used.
 
 Normally this variable is set by visiting a file; it is set to
 @code{nil} if the file was visited without any actual conversion.
+
+Its default value is used to decide how to handle files for which
+@code{file-name-buffer-file-type-alist} says nothing about the type:
+If the default value is non-@code{nil}, then these files are treated as
+binary: the coding system @code{no-conversion} is used.  Otherwise,
+nothing special is done for them---the coding system is deduced solely
+from the file contents, in the usual Emacs fashion.
 @end defvar
 
 @defopt file-name-buffer-file-type-alist
@@ -1774,17 +1772,7 @@ which coding system to use when reading a file.  For a text file,
 is used.
 
 If no element in this alist matches a given file name, then
-@code{default-buffer-file-type} says how to treat the file.
-@end defopt
-
-@defopt default-buffer-file-type
-This variable says how to handle files for which
-@code{file-name-buffer-file-type-alist} says nothing about the type.
-
-If this variable is non-@code{nil}, then these files are treated as
-binary: the coding system @code{no-conversion} is used.  Otherwise,
-nothing special is done for them---the coding system is deduced solely
-from the file contents, in the usual Emacs fashion.
+the default value of @code{buffer-file-type} says how to treat the file.
 @end defopt
 
 @node Input Methods

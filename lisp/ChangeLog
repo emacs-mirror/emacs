@@ -1,3 +1,24 @@
+2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-start.el (default-major-mode): Customize `major-mode' instead.
+	(enable-multibyte-characters): Not customizable any more.
+
+	* subr.el (default-mode-line-format, default-header-line-format)
+	(default-line-spacing, default-abbrev-mode, default-ctl-arrow)
+	(default-direction-reversed, default-truncate-lines)
+	(default-left-margin, default-tab-width, default-case-fold-search)
+	(default-left-margin-width, default-right-margin-width)
+	(default-left-fringe-width, default-right-fringe-width)
+	(default-fringes-outside-margins, default-scroll-bar-width)
+	(default-vertical-scroll-bar, default-indicate-empty-lines)
+	(default-indicate-buffer-boundaries, default-fringe-indicator-alist)
+	(default-fringe-cursor-alist, default-scroll-up-aggressively)
+	(default-scroll-down-aggressively, default-fill-column)
+	(default-cursor-type, default-buffer-file-type)
+	(default-cursor-in-non-selected-windows)
+	(default-buffer-file-coding-system, default-major-mode)
+	(default-enable-multibyte-characters): Mark as obsolete.
+
 2009-08-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-cvs.el (vc-cvs-update-changelog): Fix typo.

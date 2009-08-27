@@ -187,9 +187,8 @@ regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
 @code{case-fold-search} to @code{nil}.  Then all letters must match
 exactly, including case.  This is a buffer-local variable; altering the
 variable affects only the current buffer.  (@xref{Intro to
-Buffer-Local}.)  Alternatively, you may change the value of
-@code{default-case-fold-search}, which is the default value of
-@code{case-fold-search} for buffers that do not override it.
+Buffer-Local}.)  Alternatively, you may change the default value of
+@code{case-fold-search}.
 
   Note that the user-level incremental search feature handles case
 distinctions differently.  When the search string contains only lower
@@ -203,12 +202,6 @@ This buffer-local variable determines whether searches should ignore
 case.  If the variable is @code{nil} they do not ignore case; otherwise
 they do ignore case.
 @end defopt
-
-@defvar default-case-fold-search
-The value of this variable is the default value for
-@code{case-fold-search} in buffers that do not override it.  This is the
-same as @code{(default-value 'case-fold-search)}.
-@end defvar
 
 @defopt case-replace
 This variable determines whether the higher level replacement

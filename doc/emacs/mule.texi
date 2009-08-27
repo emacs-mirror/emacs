@@ -269,14 +269,10 @@ Coding}.  Unlike @code{find-file-literally}, finding a file as
 auto mode selection.
 
 @vindex enable-multibyte-characters
-@vindex default-enable-multibyte-characters
 @cindex environment variables, and non-@acronym{ASCII} characters
   To turn off multibyte character support by default, start Emacs with
 the @samp{--unibyte} option (@pxref{Initial Options}), or set the
-environment variable @env{EMACS_UNIBYTE}.  You can also customize
-@code{enable-multibyte-characters} or, equivalently, directly set the
-variable @code{default-enable-multibyte-characters} to @code{nil} in
-your init file to have basically the same effect as @samp{--unibyte}.
+environment variable @env{EMACS_UNIBYTE}.
 With @samp{--unibyte}, multibyte strings are not created during
 initialization from the values of environment variables,
 @file{/etc/passwd} entries etc., even if those contain
@@ -307,12 +303,8 @@ are not enabled, nothing precedes the colon except a single dash.
 @xref{Mode Line}, for more details about this.
 
 @findex toggle-enable-multibyte-characters
-  To convert a unibyte session to a multibyte session, set
-@code{default-enable-multibyte-characters} to @code{t}.  Buffers which
-were created in the unibyte session before you turn on multibyte
-support will stay unibyte.  You can turn on multibyte support in a
-specific buffer by invoking the command
-@code{toggle-enable-multibyte-characters} in that buffer.
+You can turn on multibyte support in a specific buffer by invoking the
+command @code{toggle-enable-multibyte-characters} in that buffer.
 
 @node Language Environments
 @section Language Environments
@@ -1058,12 +1050,11 @@ immediately following command does not use the coding system, then
   An easy way to visit a file with no conversion is with the @kbd{M-x
 find-file-literally} command.  @xref{Visiting}.
 
-@vindex default-buffer-file-coding-system
-  The variable @code{default-buffer-file-coding-system} specifies the
-choice of coding system to use when you create a new file.  It applies
-when you find a new file, and when you create a buffer and then save it
-in a file.  Selecting a language environment typically sets this
-variable to a good choice of default coding system for that language
+  The default value of the variable @code{buffer-file-coding-system}
+specifies the choice of coding system to use when you create a new file.
+It applies when you find a new file, and when you create a buffer and
+then save it in a file.  Selecting a language environment typically sets
+this variable to a good choice of default coding system for that language
 environment.
 
 @kindex C-x RET r
