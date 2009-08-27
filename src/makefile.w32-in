@@ -31,6 +31,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 #
 LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
+SRC             = .
 EMACS           = $(BLD)/emacs.exe
 TEMACS          = $(BLD)/temacs.exe
 TEMACS_TMP      = $(BLD)/temacs.bin
@@ -181,21 +182,24 @@ $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 
 # These omit firstfile.${O}, but there's no documentation in there
 # anyways.
-$(SRC)/buildobj.h: make-buildobj-$(SHELLTYPE)
-make-buildobj-CMD: Makefile
-	echo #define BUILDOBJ ^"\  > $(SRC)/buildobj.h
-	echo $(OBJ0)            \ >> $(SRC)/buildobj.h
-	echo $(OBJ1)            \ >> $(SRC)/buildobj.h
-	echo $(WIN32OBJ)        \ >> $(SRC)/buildobj.h
-	echo $(FONTOBJ)         \ >> $(SRC)/buildobj.h
-	echo ^"                   >> $(SRC)/buildobj.h
-make-buildobj-SH: Makefile
-	echo '#define BUILDOBJ $(DQUOTE)\\'  > $(SRC)/buildobj.h
-	echo $(OBJ0)                   '\\' >> $(SRC)/buildobj.h
-	echo $(OBJ1)                   '\\' >> $(SRC)/buildobj.h
-	echo $(WIN32OBJ)               '\\' >> $(SRC)/buildobj.h
-	echo $(FONTOBJ)                '\\' >> $(SRC)/buildobj.h
-	echo '$(DQUOTE)'                    >> $(SRC)/buildobj.h
+$(SRC)/buildobj.h: $(SRC)/makefile.w32-in
+	$(MAKE) $(MFLAGS) make-buildobj-$(SHELLTYPE)
+
+make-buildobj-CMD:
+	echo #define BUILDOBJ ^"\> $(SRC)/buildobj.h
+	echo $(OBJ0)            \>> $(SRC)/buildobj.h
+	echo $(OBJ1)            \>> $(SRC)/buildobj.h
+	echo $(WIN32OBJ)        \>> $(SRC)/buildobj.h
+	echo $(FONTOBJ)         \>> $(SRC)/buildobj.h
+	echo ^">> $(SRC)/buildobj.h
+
+make-buildobj-SH:
+	echo '#define BUILDOBJ $(DQUOTE)\'  > $(SRC)/buildobj.h
+	echo $(OBJ0)                   '\' >> $(SRC)/buildobj.h
+	echo $(OBJ1)                   '\' >> $(SRC)/buildobj.h
+	echo $(WIN32OBJ)               '\' >> $(SRC)/buildobj.h
+	echo $(FONTOBJ)                '\' >> $(SRC)/buildobj.h
+	echo '$(DQUOTE)'                   >> $(SRC)/buildobj.h
 
 bootstrap: bootstrap-emacs
 
@@ -290,7 +294,6 @@ cleanall:	clean
 ### DEPENDENCIES ###
 
 EMACS_ROOT = ..
-SRC	   = .
 CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
 	     $(EMACS_ROOT)/src/config.h \
