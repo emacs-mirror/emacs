@@ -73,6 +73,10 @@ source while in the midst of loading another file (e.g., with
 to be corrupted once the outer load completed.  Most code doesn't care
 about this, but some (like c-mode) may check it.
 
+** FIXME save-interprogram-paste-before-kill
+
+** FIXME kill-do-not-save-duplicates
+
 ** File-local variable changes
 
 *** Specifying a minor mode as a local variables enables that mode,
