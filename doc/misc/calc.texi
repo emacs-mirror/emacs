@@ -5287,25 +5287,25 @@ Suppose we want to simplify this trigonometric formula:
 
 @smallexample
 @group
-1:  1 / cos(x) - sin(x) tan(x)
+1:  2 / cos(x)^2 - 2 tan(x)^2
     .
 
-    ' 1/cos(x) - sin(x) tan(x) @key{RET}   s 1
+    ' 2/cos(x)^2 - 2tan(x)^2 @key{RET}   s 1
 @end group
 @end smallexample
 
 @noindent
 If we were simplifying this by hand, we'd probably replace the
 @samp{tan} with a @samp{sin/cos} first, then combine over a common
-denominator.  There is no Calc command to do the former; the @kbd{a n}
-algebra command will do the latter but we'll do both with rewrite
+denominator.  The @kbd{I a s} command will do the former and the @kbd{a n}
+algebra command will do the latter, but we'll do both with rewrite
 rules just for practice.
 
 Rewrite rules are written with the @samp{:=} symbol.
 
 @smallexample
 @group
-1:  1 / cos(x) - sin(x)^2 / cos(x)
+1:  2 / cos(x)^2 - 2 sin(x)^2 / cos(x)^2
     .
 
     a r tan(a) := sin(a)/cos(a) @key{RET}
@@ -5335,7 +5335,7 @@ To merge over a common denominator, we can use another simple rule:
 
 @smallexample
 @group
-1:  (1 - sin(x)^2) / cos(x)
+1:  (2 - 2 sin(x)^2) / cos(x)^2
     .
 
     a r a/x + b/x := (a+b)/x @key{RET}
@@ -5350,13 +5350,13 @@ denominators.
 
 Second, meta-variable names are independent from variables in the
 target formula.  Notice that the meta-variable @samp{x} here matches
-the subformula @samp{cos(x)}; Calc never confuses the two meanings of
+the subformula @samp{cos(x)^2}; Calc never confuses the two meanings of
 @samp{x}.
 
 And third, rewrite patterns know a little bit about the algebraic
 properties of formulas.  The pattern called for a sum of two quotients;
 Calc was able to match a difference of two quotients by matching
-@samp{a = 1}, @samp{b = -sin(x)^2}, and @samp{x = cos(x)}.
+@samp{a = 2}, @samp{b = -2 sin(x)^2}, and @samp{x = cos(x)^2}.
 
 @c [fix-ref Algebraic Properties of Rewrite Rules]
 We could just as easily have written @samp{a/x - b/x := (a-b)/x} for
@@ -5368,15 +5368,15 @@ of Rewrite Rules}, for some examples of this.)
 One more rewrite will complete the job.  We want to use the identity
 @samp{sin(x)^2 + cos(x)^2 = 1}, but of course we must first rearrange
 the identity in a way that matches our formula.  The obvious rule
-would be @samp{@w{1 - sin(x)^2} := cos(x)^2}, but a little thought shows
+would be @samp{@w{2 - 2 sin(x)^2} := 2 cos(x)^2}, but a little thought shows
 that the rule @samp{sin(x)^2 := 1 - cos(x)^2} will also work.  The
 latter rule has a more general pattern so it will work in many other
 situations, too.
 
 @smallexample
 @group
-1:  (1 + cos(x)^2 - 1) / cos(x)           1:  cos(x)
-    .                                         .
+1:  (2 + 2 cos(x)^2 - 2) / cos(x)^2           1:  2
+    .                                            .
 
     a r sin(x)^2 := 1 - cos(x)^2 @key{RET}          a s
 @end group
@@ -5397,7 +5397,7 @@ having to retype it.
 ' a/x + b/x := (a+b)/x @key{RET}         s t merge @key{RET}
 ' sin(x)^2 := 1 - cos(x)^2 @key{RET}     s t sinsqr @key{RET}
 
-1:  1 / cos(x) - sin(x) tan(x)     1:  cos(x)
+1:  2 / cos(x)^2 - 2 tan(x)^2      1:  2
     .                                  .
 
     r 1                a r tsc @key{RET}  a r merge @key{RET}  a r sinsqr @key{RET}  a s
@@ -22294,6 +22294,8 @@ turn the default simplifications off first (with @kbd{m O}).
 
 @noindent
 @kindex a s
+@kindex I a s
+@kindex H a s
 @pindex calc-simplify
 @tindex simplify
 The @kbd{a s} (@code{calc-simplify}) [@code{simplify}] command applies
@@ -22316,6 +22318,23 @@ and rewrite rules.  @xref{Rearranging with Selections}.
 @xref{Simplification Modes}, for commands to control what level of
 simplification occurs automatically.  Normally only the ``default
 simplifications'' occur.
+
+There are some simplifications that, while sometimes useful, are never
+done automatically.  For example, the @kbd{I} prefix can be given to
+@kbd{a s}; the @kbd{I a s} command will change any trigonometric
+function to the appropriate combination of @samp{sin}s and @samp{cos}s
+before simplifying.  This can be useful in simplifying even mildly
+complicated trigonometric expressions.  For example, while @kbd{a s}
+can reduce @samp{sin(x) csc(x)} to @samp{1}, it will not simplify
+@samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
+simplify this latter expression; it will transform @samp{sin(x)^2
+csc(x)} into @samp{sin(x)}.  However, @kbd{I a s} will also perform some
+``simplifications'' which may not be desired; for example, it will
+transform @samp{tan(x)^2} into @samp{sin(x)^2 / cos(x)^2}.
+Similar to the @kbd{I} prefix, the Hyperbolic prefix @kbd{H} will
+replace any hyperbolic functions in the formula with the appropriate
+combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
+
 
 @menu
 * Default Simplifications::
