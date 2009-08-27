@@ -1,3 +1,8 @@
+2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-read-revision): New function.
+	(vc-version-diff, vc-merge): Use it.
+
 2009-08-27  Sam Steingold  <sds@gnu.org>
 
 	* simple.el (kill-do-not-save-duplicates): New user option.
@@ -9,8 +14,8 @@
 	* net/tramp.el (tramp-handle-process-file): Do not flush all
 	caches when `process-file-side-effects' is set.
 	(tramp-handle-vc-registered): Use `tramp-get-file-exists-command'
-	instead of `tramp-find-file-exists-command'.  Unset
-	`process-file-side-effects'.
+	instead of `tramp-find-file-exists-command'.
+	Unset `process-file-side-effects'.
 
 2009-08-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -30,8 +35,7 @@
 	(tramp-get-ls-command, tramp-get-test-command)
 	(tramp-get-file-exists-command, tramp-get-remote-ln)
 	(tramp-get-remote-perl, tramp-get-remote-stat)
-	(tramp-get-remote-id): Remove
-	superfluous `with-current-buffer'.
+	(tramp-get-remote-id): Remove superfluous `with-current-buffer'.
 
 	* net/tramp-cache.el (top): Autoload `tramp-time-less-p'.
 	(tramp-cache-inhibit-cache): Extend doc string.  It allows also

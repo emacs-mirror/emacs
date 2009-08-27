@@ -1515,6 +1515,20 @@ returns t if the buffer had changes, nil otherwise."
       ;; because we don't know that yet.
       t)))
 
+(defun vc-read-revision (prompt &optional files backend default initial-input)
+  (cond
+   ((null files)
+    (let ((vc-fileset (vc-deduce-fileset t))) ;FIXME: why t?  --Stef
+      (setq files (cadr vc-fileset))
+      (setq backend (car vc-fileset))))
+   ((null backend) (setq backend (vc-backend (car files)))))
+  (let ((completion-table
+         (vc-call-backend backend 'revision-completion-table files)))
+    (if completion-table
+        (completing-read prompt completion-table
+                         nil nil initial-input nil default)
+      (read-string prompt initial-input nil default))))
+
 ;;;###autoload
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
@@ -1523,8 +1537,6 @@ returns t if the buffer had changes, nil otherwise."
 	  (files (cadr vc-fileset))
           (backend (car vc-fileset))
 	  (first (car files))
-	  (completion-table
-	   (vc-call-backend backend 'revision-completion-table files))
 	  (rev1-default nil)
 	  (rev2-default nil))
      (cond
@@ -1551,14 +1563,8 @@ returns t if the buffer had changes, nil otherwise."
 			   "Older revision: "))
 	    (rev2-prompt (concat "Newer revision (default "
 				 (or rev2-default "current source") "): "))
-	    (rev1 (if completion-table
-		      (completing-read rev1-prompt completion-table
-				       nil nil nil nil rev1-default)
-		    (read-string rev1-prompt nil nil rev1-default)))
-	    (rev2 (if completion-table
-		      (completing-read rev2-prompt completion-table
-				       nil nil nil nil rev2-default)
-		    (read-string rev2-prompt nil nil rev2-default))))
+	    (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
+	    (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
        (when (string= rev1 "") (setq rev1 nil))
        (when (string= rev2 "") (setq rev2 nil))
        (list files rev1 rev2))))
@@ -1598,13 +1604,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
   (interactive
    (save-current-buffer
      (vc-ensure-vc-buffer)
-     (let ((completion-table
-            (vc-call revision-completion-table (list buffer-file-name)))
-           (prompt "Revision to visit (default is working revision): "))
-       (list
-        (if completion-table
-            (completing-read prompt completion-table)
-          (read-string prompt))))))
+     (list
+      (vc-read-revision "Revision to visit (default is working revision): "
+                        (list buffer-file-name)))))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
 	 (revision (if (string-equal rev "")
@@ -1730,16 +1732,22 @@ See Info node `Merging'."
 	  (vc-checkout file t)
 	(error "Merge aborted"))))
     (setq first-revision
-	  (read-string (concat "Branch or revision to merge from "
-			       "(default news on current branch): ")))
+	  (vc-read-revision
+           (concat "Branch or revision to merge from "
+                   "(default news on current branch): ")
+           (list file)
+           backend))
     (if (string= first-revision "")
         (setq status (vc-call-backend backend 'merge-news file))
       (if (not (vc-find-backend-function backend 'merge))
 	  (error "Sorry, merging is not implemented for %s" backend)
 	(if (not (vc-branch-p first-revision))
 	    (setq second-revision
-		  (read-string "Second revision: "
-			       (concat (vc-branch-part first-revision) ".")))
+		  (vc-read-revision
+                   "Second revision: "
+                   (list file) backend nil
+                   ;; FIXME: This is CVS/RCS/SCCS specific.
+                   (concat (vc-branch-part first-revision) ".")))
 	  ;; We want to merge an entire branch.  Set revisions
 	  ;; accordingly, so that vc-BACKEND-merge understands us.
 	  (setq second-revision first-revision)
