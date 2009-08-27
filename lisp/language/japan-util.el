@@ -106,7 +106,9 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣) 
     (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
     (?′ ?') (?″ ?\") (?￥ ?\\) (?＄ ?$) (?％ ?%) (?＃ ?#) (?＆ ?&) (?＊ ?*)
-    (?＠ ?@))
+    (?＠ ?@)
+    ;; cp932-2-byte
+    (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
   "Japanese JISX0208 symbol character table.
   Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
 belongs to `japanese-jisx0208', ASCII belongs to `ascii', and HANKAKU
