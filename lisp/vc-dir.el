@@ -368,7 +368,6 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	       (entrydir (file-name-directory (directory-file-name
 					       (expand-file-name entryfile))))
 	       (nodedir (vc-dir-node-directory node)))
-	  (message "entryfile %s entrydir %s" entryfile entrydir)
 	  (cond
 	   ;; First try to find the directory.
 	   ((string-lessp nodedir entrydir)
