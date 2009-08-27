@@ -184,7 +184,8 @@ Combining diacritic or mark (Unicode General Category M)")
 (map-charset-chars #'modify-category-entry 'latin-jisx0201 ?r)
 
 (dolist (l '(katakana-jisx0201 japanese-jisx0208 japanese-jisx0212
-			       japanese-jisx0213-1 japanese-jisx0213-2))
+			       japanese-jisx0213-1 japanese-jisx0213-2
+			       cp932-2-byte))
   (map-charset-chars #'modify-category-entry l ?j))
 
 ;; Unicode equivalents of JISX0201-kana
