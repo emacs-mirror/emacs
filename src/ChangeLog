@@ -1,5 +1,8 @@
 2009-08-27  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (encode_coding_utf_16): Fix checking of a Unicode
+	character.
+
 	* cmds.c (Fself_insert_command): Avoid unnecessay
 	unibyte->multibyte conversion.
 
