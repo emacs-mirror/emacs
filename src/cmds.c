@@ -360,20 +360,13 @@ After insertion, the value of `auto-fill-function' is called if the
 				    XINT (last_command_event));
     if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
       {
-	int modified_char = character;
-	/* Add the offset to the character, for Finsert_char.
-	   We pass internal_self_insert the unmodified character
-	   because it itself does this offsetting.  */
-	if (! NILP (current_buffer->enable_multibyte_characters))
-	  modified_char = unibyte_char_to_multibyte (modified_char);
-
 	XSETFASTINT (n, XFASTINT (n) - 2);
 	/* The first one might want to expand an abbrev.  */
 	internal_self_insert (character, 1);
 	/* The bulk of the copies of this char can be inserted simply.
 	   We don't have to handle a user-specified face specially
 	   because it will get inherited from the first char inserted.  */
-	Finsert_char (make_number (modified_char), n, Qt);
+	Finsert_char (make_number (character), n, Qt);
 	/* The last one might want to auto-fill.  */
 	internal_self_insert (character, 0);
       }
