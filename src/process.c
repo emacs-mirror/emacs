@@ -5721,7 +5721,8 @@ send_process (proc, buf, len, object)
 	}
       else if (STRINGP (object))
 	{
-	  encode_coding_string (coding, object, 1);
+	  encode_coding_object (coding, object, 0, 0, SCHARS (object),
+				SBYTES (object), Qt);
 	}
       else
 	{
