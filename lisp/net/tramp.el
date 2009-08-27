@@ -375,6 +375,21 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-copy-args            (("-e" "ssh") ("-t" "%k")))
 	     (tramp-copy-keep-date       t)
 	     (tramp-password-end-of-line nil))
+    ("rsyncc" (tramp-login-program        "ssh")
+             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
+					  ("-o" "ControlMaster=yes")
+					  ("-e" "none")))
+	     (tramp-remote-sh            "/bin/sh")
+	     (tramp-copy-program         "rsync")
+	     (tramp-copy-args            (("-t" "%k")))
+	     (tramp-copy-env             (("RSYNC_RSH")
+					  (,(concat
+					     "ssh"
+					     " -o ControlPath=%t.%%r@%%h:%%p"
+					     " -o ControlMaster=auto"))))
+	     (tramp-copy-keep-date       t)
+	     (tramp-password-end-of-line nil))
     ("remcp" (tramp-login-program        "remsh")
              (tramp-login-args           (("%h") ("-l" "%u")))
 	     (tramp-remote-sh            "/bin/sh")
@@ -849,6 +864,8 @@ the info pages.")
       "scp2_old" tramp-completion-function-alist-ssh)
      (tramp-set-completion-function
       "rsync" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "rsyncc" tramp-completion-function-alist-ssh)
      (tramp-set-completion-function
       "remcp" tramp-completion-function-alist-rsh)
      (tramp-set-completion-function
@@ -1788,6 +1805,25 @@ while (my $data = <STDIN>) {
 Escape sequence %s is replaced with name of Perl binary.
 This string is passed to `format', so percent characters need to be doubled.")
 
+(defconst tramp-vc-registered-read-file-names
+  "echo \"(\"
+for file in \"$@\"; do
+    if %s $file; then
+	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" t)\"
+    else
+	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" nil)\"
+    fi
+    if %s $file; then
+	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" t)\"
+    else
+	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" nil)\"
+    fi
+done
+echo \")\""
+  "Script to check existence of VC related files.
+It must be send formatted with two strings; the tests for file
+existence, and file readability.")
+
 (defconst tramp-file-mode-type-map
   '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
     (1  . "p")  ; fifo
@@ -1938,6 +1974,11 @@ ARGS to actually emit the message (if applicable)."
       ;; The message.
       (insert (apply 'format fmt-string args)))))
 
+(defvar tramp-message-show-message t
+  "Show Tramp message in the minibuffer.
+This variable is used to disable messages from `tramp-error'.
+The messages are visible anyway, because an error is raised.")
+
 (defsubst tramp-message (vec-or-proc level fmt-string &rest args)
   "Emit a message depending on verbosity level.
 VEC-OR-PROC identifies the Tramp buffer to use.  It can be either a
@@ -1956,7 +1997,7 @@ applicable)."
 	;; Match data must be preserved!
 	(save-match-data
 	  ;; Display only when there is a minimum level.
-	  (when (<= level 3)
+	  (when (and tramp-message-show-message (<= level 3))
 	    (apply 'message
 		   (concat
 		    (cond
@@ -1987,11 +2028,14 @@ applicable)."
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining args passed to
 `tramp-message'.  Finally, signal SIGNAL is raised."
-  (tramp-message
-   vec-or-proc 1 "%s"
-   (error-message-string
-    (list signal (get signal 'error-message) (apply 'format fmt-string args))))
-  (signal signal (list (apply 'format fmt-string args))))
+  (let (tramp-message-show-message)
+    (tramp-message
+     vec-or-proc 1 "%s"
+     (error-message-string
+      (list signal
+	    (get signal 'error-message)
+	    (apply 'format fmt-string args))))
+    (signal signal (list (apply 'format fmt-string args)))))
 
 (defsubst tramp-error-with-buffer
   (buffer vec-or-proc signal fmt-string &rest args)
@@ -3298,10 +3342,11 @@ the uid and gid from FILENAME."
 	       'rename-file (list localname1 localname2 ok-if-already-exists))))
 
 	   ;; We can do it directly with `tramp-send-command'
-	   ((let (file-name-handler-alist)
-	      (and (file-readable-p (concat prefix localname1))
-		   (file-writable-p
-		    (file-name-directory (concat prefix localname2)))))
+	   ((and (file-readable-p (concat prefix localname1))
+		 (file-writable-p
+		  (file-name-directory (concat prefix localname2)))
+		 (or (file-directory-p (concat prefix localname2))
+		     (file-writable-p (concat prefix localname2))))
 	    (tramp-do-copy-or-rename-file-directly
 	     op (concat prefix localname1) (concat prefix localname2)
 	     ok-if-already-exists keep-date t)
@@ -3392,7 +3437,7 @@ the uid and gid from FILENAME."
 The method used must be an out-of-band method."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
-	copy-program copy-args copy-keep-date port spec
+	copy-program copy-args copy-env copy-keep-date port spec
 	source target)
 
     (with-parsed-tramp-file-name (if t1 filename newname) nil
@@ -3445,7 +3490,15 @@ The method used must be an out-of-band method."
 		    ;; " " is indication for keep-date argument.
 		    (delete " " (mapcar '(lambda (y) (format-spec y spec)) x)))
 		   (unless (member "" x) (mapconcat 'identity x " ")))
-		(tramp-get-method-parameter method 'tramp-copy-args))))
+		(tramp-get-method-parameter method 'tramp-copy-args)))
+	      copy-env
+	      (delq
+	       nil
+	       (mapcar
+		'(lambda (x)
+		   (setq x (mapcar '(lambda (y) (format-spec y spec)) x))
+		   (unless (member "" x) (mapconcat 'identity x " ")))
+		(tramp-get-method-parameter method 'tramp-copy-env))))
 
 	;; Check for program.
 	(when (and (fboundp 'executable-find)
@@ -3459,12 +3512,16 @@ The method used must be an out-of-band method."
 	    (with-temp-buffer
 	      ;; The default directory must be remote.
 	      (let ((default-directory
-		      (file-name-directory (if t1 filename newname))))
+		      (file-name-directory (if t1 filename newname)))
+		    (process-environment (copy-sequence process-environment)))
 		;; Set the transfer process properties.
 		(tramp-set-connection-property
 		 v "process-name" (buffer-name (current-buffer)))
 		(tramp-set-connection-property
 		 v "process-buffer" (current-buffer))
+		(while copy-env
+		  (tramp-message v 5 "%s=\"%s\"" (car copy-env) (cadr copy-env))
+		  (setenv (pop copy-env) (pop copy-env)))
 
 		;; Use an asynchronous process.  By this, password can
 		;; be handled.  The default directory must be local, in
@@ -4015,7 +4072,15 @@ beginning of local filename are not substituted."
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.
       (when tmpinput (delete-file tmpinput))
-      (tramp-flush-directory-property v "")
+
+      ;; `process-file-side-effects' has been introduced with GNU
+      ;; Emacs 23.2.  If set to `nil', no remote file will be changed
+      ;; by `program'.  If it doesn't exist, we assume its default
+      ;; value 't'.
+      (unless (and (boundp 'process-file-side-effects)
+		   (not (symbol-value 'process-file-side-effects)))
+        (tramp-flush-directory-property v ""))
+
       ;; Return exit status.
       (if (equal ret -1)
 	  (keyboard-quit)
@@ -4664,12 +4729,61 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  (tramp-message v 0 "Wrote %s" filename))
 	(run-hooks 'tramp-handle-write-region-hook)))))
 
+(defvar tramp-vc-registered-file-names nil
+  "List used to collect file names, which are checked during `vc-registered'.")
+
+;; VC backends check for the existence of various different special
+;; files.  This is very time consuming, because every single check
+;; requires a remote command (the file cache must be invalidated).
+;; Therefore, we apply a kind of optimization.  We install the file
+;; name handler `tramp-vc-file-name-handler', which does nothing but
+;; remembers all file names for which `file-exists-p' or
+;; `file-readable-p' has been applied.  A first run of `vc-registered'
+;; is performed.  Afterwards, a script is applied for all collected
+;; file names, using just one remote command.  The result of this
+;; script is used to fill the file cache with actual values.  Now we
+;; can reset the file name handlers, and we make a second run of
+;; `vc-registered', which returns the expected result without sending
+;; any other remote command.
 (defun tramp-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
-  ;; There could be new files, created by the vc backend.  We disable
-  ;; the file cache therefore.
-  (let ((tramp-cache-inhibit-cache t))
-    (tramp-run-real-handler 'vc-registered (list file))))
+  ;; There could be new files, created by the vc backend.  We cannot
+  ;; reuse the old cache entries, therefore.
+  (with-parsed-tramp-file-name file nil
+    (let (tramp-vc-registered-file-names
+	  (tramp-cache-inhibit-cache (current-time))
+	  (file-name-handler-alist
+	   `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
+
+      ;; Here we collect only file names, which need an operation.
+      (tramp-run-real-handler 'vc-registered (list file))
+      (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
+
+      ;; Send just one command, in order to fill the cache.
+      (tramp-maybe-send-script
+       v
+       (format tramp-vc-registered-read-file-names
+	       (tramp-get-file-exists-command v)
+	       (format "%s -r" (tramp-get-test-command v)))
+       "tramp_vc_registered_read_file_names")
+
+      (dolist
+	  (elt
+	   (tramp-send-command-and-read
+	    v
+	    (format
+	     "tramp_vc_registered_read_file_names %s"
+	     (mapconcat 'tramp-shell-quote-argument
+			tramp-vc-registered-file-names
+			" "))))
+
+	(tramp-set-file-property v (car elt) (cadr elt)   (cadr (cdr elt)))))
+
+    ;; Second run. Now all requests shall be answered from the file
+    ;; cache.  We unset `process-file-side-effects' in order to keep
+    ;; the cache when `process-file' calls appear.
+    (let (process-file-side-effects)
+      (tramp-run-real-handler 'vc-registered (list file)))))
 
 ;;;###autoload
 (progn (defun tramp-run-real-handler (operation args)
@@ -4678,6 +4792,7 @@ First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (let* ((inhibit-file-name-handlers
 	  `(tramp-file-name-handler
+	    tramp-vc-file-name-handler
 	    tramp-completion-file-name-handler
 	    cygwin-mount-name-hook-function
 	    cygwin-mount-map-drive-hook-function
@@ -4880,6 +4995,30 @@ Fall back to normal file name handler if no Tramp handler exists."
 		    (apply (cdr fn) args)
 		  (tramp-run-real-handler operation args))))))
       (setq tramp-locked tl))))
+
+(defun tramp-vc-file-name-handler (operation &rest args)
+  "Invoke special file name handler, which collects files to be handled."
+  (save-match-data
+    (let ((filename
+	   (tramp-replace-environment-variables
+	    (apply 'tramp-file-name-for-operation operation args)))
+	  (fn (assoc operation tramp-file-name-handler-alist)))
+      (with-parsed-tramp-file-name filename nil
+	(cond
+	 ;; That's what we want: file names, for which checks are
+	 ;; applied.  We assume, that VC uses only `file-exists-p' and
+	 ;; `file-readable-p' checks; otherwise we must extend the
+	 ;; list.  We do not perform any action, but return nil, in
+	 ;; order to keep `vc-registered' running.
+	 ((and fn (memq operation '(file-exists-p file-readable-p)))
+	  (add-to-list 'tramp-vc-registered-file-names localname 'append)
+	  nil)
+	 ;; Tramp file name handlers like `expand-file-name'.  They
+	 ;; must still work.
+	 (fn
+	  (save-match-data (apply (cdr fn) args)))
+	 ;; Default file name handlers, we don't care.
+	 (t (tramp-run-real-handler operation args)))))))
 
 ;;;###autoload
 (progn (defun tramp-completion-file-name-handler (operation &rest args)
@@ -7369,24 +7508,19 @@ necessary only.  This function will be used in file name completion."
 
 (defun tramp-get-ls-command (vec)
   (with-connection-property vec "ls"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding a suitable `ls' command")
-      (or
-       (catch 'ls-found
-	 (dolist (cmd '("ls" "gnuls" "gls"))
-	   (let ((dl (tramp-get-remote-path vec))
-		 result)
-	     (while
-		 (and
-		  dl
-		  (setq result
-			(tramp-find-executable vec cmd dl t t)))
-	       ;; Check parameter.
-	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s -lnd /" result)))
-		 (throw 'ls-found result))
-	       (setq dl (cdr dl))))))
-       (tramp-error vec 'file-error "Couldn't find a proper `ls' command")))))
+    (tramp-message vec 5 "Finding a suitable `ls' command")
+    (or
+     (catch 'ls-found
+       (dolist (cmd '("ls" "gnuls" "gls"))
+	 (let ((dl (tramp-get-remote-path vec))
+	       result)
+	   (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
+	     ;; Check parameter.
+	     (when (zerop (tramp-send-command-and-check
+			   vec (format "%s -lnd /" result)))
+	       (throw 'ls-found result))
+	     (setq dl (cdr dl))))))
+     (tramp-error vec 'file-error "Couldn't find a proper `ls' command"))))
 
 (defun tramp-get-ls-command-with-dired (vec)
   (save-match-data
@@ -7397,11 +7531,10 @@ necessary only.  This function will be used in file name completion."
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding a suitable `test' command")
-      (if (zerop (tramp-send-command-and-check vec "test 0"))
-	  "test"
-	(tramp-find-executable vec "test" (tramp-get-remote-path vec))))))
+    (tramp-message vec 5 "Finding a suitable `test' command")
+    (if (zerop (tramp-send-command-and-check vec "test 0"))
+	"test"
+      (tramp-find-executable vec "test" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-test-nt-command (vec)
   ;; Does `test A -nt B' work?  Use abominable `find' construct if it
@@ -7426,65 +7559,56 @@ necessary only.  This function will be used in file name completion."
 
 (defun tramp-get-file-exists-command (vec)
   (with-connection-property vec "file-exists"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding command to check if file exists")
-      (tramp-find-file-exists-command vec))))
+    (tramp-message vec 5 "Finding command to check if file exists")
+    (tramp-find-file-exists-command vec)))
 
 (defun tramp-get-remote-ln (vec)
   (with-connection-property vec "ln"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding a suitable `ln' command")
-      (tramp-find-executable vec "ln" (tramp-get-remote-path vec)))))
+    (tramp-message vec 5 "Finding a suitable `ln' command")
+    (tramp-find-executable vec "ln" (tramp-get-remote-path vec))))
 
 (defun tramp-get-remote-perl (vec)
   (with-connection-property vec "perl"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding a suitable `perl' command")
-      (or (tramp-find-executable vec "perl5" (tramp-get-remote-path vec))
-	  (tramp-find-executable vec "perl" (tramp-get-remote-path vec))))))
+    (tramp-message vec 5 "Finding a suitable `perl' command")
+    (or (tramp-find-executable vec "perl5" (tramp-get-remote-path vec))
+	(tramp-find-executable vec "perl" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-remote-stat (vec)
   (with-connection-property vec "stat"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding a suitable `stat' command")
-      (let ((result (tramp-find-executable
-		     vec "stat" (tramp-get-remote-path vec)))
-	    tmp)
-	;; Check whether stat(1) returns usable syntax.  %s does not
-	;; work on older AIX systems.
-	(when result
-	  (setq tmp
-		;; We don't want to display an error message.
-		(with-temp-message (or (current-message) "")
-		  (condition-case nil
-		      (tramp-send-command-and-read
-		       vec (format "%s -c '(\"%%N\" %%s)' /" result))
-		    (error nil))))
-	  (unless (and (listp tmp) (stringp (car tmp))
-		       (string-match "^./.$" (car tmp))
-		       (integerp (cadr tmp)))
-	    (setq result nil)))
-	result))))
+    (tramp-message vec 5 "Finding a suitable `stat' command")
+    (let ((result (tramp-find-executable
+		   vec "stat" (tramp-get-remote-path vec)))
+	  tmp)
+      ;; Check whether stat(1) returns usable syntax.  %s does not
+      ;; work on older AIX systems.
+      (when result
+	(setq tmp
+	      ;; We don't want to display an error message.
+	      (with-temp-message (or (current-message) "")
+		(condition-case nil
+		    (tramp-send-command-and-read
+		     vec (format "%s -c '(\"%%N\" %%s)' /" result))
+		  (error nil))))
+	(unless (and (listp tmp) (stringp (car tmp))
+		     (string-match "^./.$" (car tmp))
+		     (integerp (cadr tmp)))
+	  (setq result nil)))
+      result)))
 
 (defun tramp-get-remote-id (vec)
   (with-connection-property vec "id"
-    (with-current-buffer (tramp-get-buffer vec)
-      (tramp-message vec 5 "Finding POSIX `id' command")
-      (or
-       (catch 'id-found
-	 (let ((dl (tramp-get-remote-path vec))
-	       result)
-	   (while
-	       (and
-		dl
-		(setq result
-		      (tramp-find-executable vec "id" dl t t)))
-	     ;; Check POSIX parameter.
-	     (when (zerop (tramp-send-command-and-check
-			   vec (format "%s -u" result)))
-	       (throw 'id-found result))
-	     (setq dl (cdr dl)))))
-       (tramp-error vec 'file-error "Couldn't find a POSIX `id' command")))))
+    (tramp-message vec 5 "Finding POSIX `id' command")
+    (or
+     (catch 'id-found
+       (let ((dl (tramp-get-remote-path vec))
+	     result)
+	 (while (and dl (setq result (tramp-find-executable vec "id" dl t t)))
+	   ;; Check POSIX parameter.
+	   (when (zerop (tramp-send-command-and-check
+			 vec (format "%s -u" result)))
+	     (throw 'id-found result))
+	   (setq dl (cdr dl)))))
+     (tramp-error vec 'file-error "Couldn't find a POSIX `id' command"))))
 
 (defun tramp-get-remote-uid (vec id-format)
   (with-connection-property vec (format "uid-%s" id-format)
@@ -7939,7 +8063,15 @@ Only works for Bourne-like shells."
 ;;   tramp-server-local-variable-alist) to define any such variables
 ;;   that they need to, which would then be let bound as appropriate
 ;;   in tramp functions. (Jason Rumney)
-;; * Optimize out-of-band copying, when both methods are scp-like.
+;; * Optimize out-of-band copying, when both methods are scp-like (not
+;;   rsync).
+;; * Keep a second connection open for out-of-band methods like scp or
+;;   rsync.
+;; * Partial completion completes word constituents.  I find it
+;;   acceptable if method completion works only after :, so that we
+;;   have "/s: TAB" offer completion for the method first, filenames
+;;   afterwards. (David Kastrup)
+
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
