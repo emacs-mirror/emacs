@@ -1923,7 +1923,6 @@ specifies addition of text properties.
  "-%-")
 @end group
 @end example
-@end defvar
 
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
