@@ -1,3 +1,10 @@
+2009-08-27  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* language/japan-util.el (japanese-symbol-table): Add entries for
+	cp932-2-byte.
+
+	* international/characters.el: Add category `j' to cp932-2-byte.
+
 2009-08-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (build-default-fontset-data): New macro.
