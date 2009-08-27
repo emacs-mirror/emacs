@@ -1,3 +1,9 @@
+2009-08-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (build-default-fontset-data): New macro.
+	(setup-default-fontset): Use build-default-fontset-data for CJK,
+	tibetan, ethiopic, and ipa
+
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cus-start.el (default-major-mode): Customize `major-mode' instead.
