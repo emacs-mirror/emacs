@@ -251,7 +251,8 @@
 
 2009-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* s/netbsd.h (SIGNALS_VIA_CHARACTERS): Remove, already defined in bsd-common.h
+	* s/netbsd.h (SIGNALS_VIA_CHARACTERS): Remove, already defined in
+	bsd-common.h.
 
 2009-07-27  Kenichi Handa  <handa@m17n.org>
 
@@ -423,7 +424,7 @@
 2009-07-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_select_font): Remember last font selected in
-	x_last_font_name and use that the next time. Also try the frame
+	x_last_font_name and use that the next time.  Also try the frame
 	parameter font-parameter as default to the font dialog.
 
 2009-07-10  Kenichi Handa  <handa@m17n.org>
@@ -562,12 +563,12 @@
 	for MapNotify.
 
 	* gtkutil.c (xg_frame_set_char_size): Do not set pixel width/height
-	here or	call change_frame_size. Just call flush_and_sync.
+	here or call change_frame_size.  Just call flush_and_sync.
 	(flush_and_sync): Reintroduce.
 
 2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xterm.h (struct x_display_info): Add Xatom_net_wm_state_sticky
+	* xterm.h (struct x_display_info): Add Xatom_net_wm_state_sticky.
 
 	* xterm.c (x_handle_net_wm_state): Also look for sticky.
 	(x_term_init): Initialize Xatom_net_wm_state_sticky.
@@ -604,14 +605,14 @@
 	Declare Qfullwidth, Qfullheight, Qfullboth, Qmaximized.
 
 	* xterm.c (handle_one_xevent): Remove call to x_check_fullscreen
-	for Expose event. Add call to x_check_fullscreen for MapNotify event.
-	Remove all code w.r.t. fullscreen from ConfigureNotify event. Do not
+	for Expose event.  Add call to x_check_fullscreen for MapNotify event.
+	Remove all code w.r.t. fullscreen from ConfigureNotify event.  Do not
 	set gravity to NorthWestGravity when USE_GTK.
 	(set_wm_state): New function.
-	(do_ewmh_fullscreen): Use set_wm_state. Also handle FULLSCREEN_MAXIMIZED.
+	(do_ewmh_fullscreen): Use set_wm_state.  Also handle FULLSCREEN_MAXIMIZED.
 	(x_handle_net_wm_state): Handle FULLSCREEN_MAXIMIZED.
 	(x_check_fullscreen): Simplify so we only handle EMWH type of fullscreen
-	or the case when no window manager is running. That means remove calls
+	or the case when no window manager is running.  That means remove calls
 	to x_real_positions and x_fullscreen_adjust.
 
 	* gtkutil.c (flush_and_sync, x_wm_size_hint_off): Remove.
@@ -708,7 +709,7 @@
 
 	* m/pmax.h: Restore file, with only netbsd portions.
 
-2009-06-26  David Reitter <david.reitter@gmail.com>
+2009-06-26  David Reitter  <david.reitter@gmail.com>
 
 	* nsterm.m (keydown): Avoid infinite loop.
 
@@ -953,7 +954,7 @@
 	* nsterm.m (ns_draw_window_cursor): Respect cursor_type for
 	nonactive windows.
 
-2009-06-08 Felix Mueller  <felix@enqueue.eu>  (tiny change)
+2009-06-08  Felix Mueller  <felix@enqueue.eu>  (tiny change)
 
 	* nsterm.m (ns_init_paths): Append path separator to INFOPATH variable.
 
@@ -2185,7 +2186,7 @@
 	handling_signal is set.
 	(EmacsMenu-fillWithWidgetValue:): Set submenu title.
 
-	* config.in: Get rid of COCOA_EXPERIMENTAL_CTRL_G
+	* config.in: Get rid of COCOA_EXPERIMENTAL_CTRL_G.
 
 	* s/darwin.h: Same and NO_SOCK_SIGIO as well.
 
