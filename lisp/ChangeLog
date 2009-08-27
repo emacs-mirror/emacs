@@ -61,7 +61,7 @@
 
 	* international/fontset.el (build-default-fontset-data): New macro.
 	(setup-default-fontset): Use build-default-fontset-data for CJK,
-	tibetan, ethiopic, and ipa
+	tibetan, ethiopic, and ipa.
 
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -587,7 +587,7 @@
 
 	* whitespace.el (whitespace-style): Doc fix (Bug#3661).
 
-2009-08-16  Jan Seeger <jan.seeger@thenybble.de>  (tiny change)
+2009-08-16  Jan Seeger  <jan.seeger@thenybble.de>  (tiny change)
 
 	* calendar/parse-time.el (parse-time-string-chars): Compute using
 	character classes, to handle non-ascii characters (Bug#3190).
@@ -653,7 +653,7 @@
 	* progmodes/hideshow.el (hs-special-modes-alist): Add js-mode entry.
 
 2009-08-14  Daniel Colascione  <dan.colascione@gmail.com>
-	Karl Landstrom  <karl.landstrom@brgeight.se>
+	    Karl Landstrom  <karl.landstrom@brgeight.se>
 
 	* progmodes/js.el: New file.
 
@@ -738,7 +738,7 @@
 	(gdb-place-breakpoints, gdb-get-location): Rewritten without
 	`goto-line'.
 	(gdb-invalidate-disassembly): Do not refresh upon receiving
-	'update signal. Instead, update all disassembly buffers only after
+	'update signal.  Instead, update all disassembly buffers only after
 	threads list.
 	(gdb): Send -target-detach when buffer is killed (#3794).
 	(gdb-starting): Moved -data-list-register-names...
@@ -750,7 +750,7 @@
 	from `gdb-mi.el' to avoid extra tangling.
 
 	* progmodes/gdb-mi.el (gdb-gud-context-call): Reverting previous
-	change which breaks `gud-def' definitions. used in `gdb'.
+	change which breaks `gud-def' definitions used in `gdb'.
 	(gdb-update-gud-running): No extra fuss for updating frame number.
 
 2009-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -808,7 +808,7 @@
 	(gdb-control-current-thread): Interactive setters for
 	`gdb-gud-control-all-threads' to use in menu.
 	(gdb-show-run-p): Show «Go» when process is not active.
-	(gud-tool-bar-map): Add non-stop/A,T indicator. Uses
+	(gud-tool-bar-map): Add non-stop/A,T indicator.  Uses
 	gud/thread.xpm and gud/all.xpm.
 
 2009-08-08  Yoni Rabkin  <yoni@rabkins.net>
@@ -909,8 +909,7 @@
 2009-08-04  Dmitry Dzhus  <dima@sphinx.net.ru>
 
 	* progmodes/gdb-mi.el (gdb-frame-number): Initialize with nil.
-	(gdb-overlay-arrow-position): Renamed to
-	`gdb-disassembly-position'.
+	(gdb-overlay-arrow-position): Rename to `gdb-disassembly-position'.
 	(gdb-overlay-arrow-position, gdb-thread-position)
 	(gdb-disassembly-position): Declare variables.
 	(gdb-wait-for-pending): Function now.
@@ -986,8 +985,8 @@
 	(gdb-wait-for-pending): New macro to deal with congestion problems.
 	(gdb-breakpoints-list-handler-custom): Don't fail on pending
 	breakpoints.
-	(gdb-invalidate-disassembly): Use 'fullname instead of 'file. This
-	fixes problem similar to one described in bug 3947.
+	(gdb-invalidate-disassembly): Use 'fullname instead of 'file.
+	This fixes problem similar to one described in bug 3947.
 	(gud-menu-map): More menu items.
 	(gdb-init-1): Reset `gdb-thread-number' to nil.
 
@@ -1004,7 +1003,7 @@
 	customization options.
 	(gdb-gud-context-command, gdb-gud-context-call): New wrappers for
 	GUD commands.
-	(gdb): `gud-def' definitions changed to use `gdb-gud-context-call'
+	(gdb): `gud-def' definitions changed to use `gdb-gud-context-call'.
 	(gdb-init-1): Activate non-stop mode if `gdb-non-stop' is enabled.
 	(gdb-setq-thread-number, gdb-update-gud-running): New functions to
 	set `gdb-thread-number' and update `gud-running' properly.
@@ -1042,7 +1041,7 @@
 	(gdb-get-subscribers, gdb-emit-signal, gdb-buf-publisher)
 	(gdb-update): We now store all GDB buffers in a list so that they
 	can be updated by traversing a list instead of calling invalidate
-	triggers explicitly
+	triggers explicitly.
 	(def-gdb-trigger-and-handler): New macro to define trigger-handler
 	pair for GDB buffer.
 	(gdb-stack-buffer-name): Add thread information.
@@ -1052,12 +1051,12 @@
 	(def-gdb-thread-buffer-simple-command)
 	(gdb-display-stack-for-thread, gdb-display-locals-for-thread)
 	(gdb-display-registers-for-thread, gdb-frame-stack-for-thread)
-	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread): New
-	commands which show buffers bound to thread.
+	(gdb-frame-locals-for-thread, gdb-frame-registers-for-thread):
+	New commands which show buffers bound to thread.
 	(gdb-stack-list-locals-regexp): Removed unused regexp.
 
-	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name,gdb-locals-buffer-name)
-	(gdb-registers-buffer-name)
+	* progmodes/gdb-mi.el (gdb-breakpoints-buffer-name)
+	(gdb-locals-buffer-name, gdb-registers-buffer-name)
 	(gdb-memory-buffer-name, gdb-stack-buffer-name): Do not switch
 	to (gud-comint-buffer) in *-buffer-name functions
 	because (gdb-get-target-string) already does that.
@@ -1068,9 +1067,9 @@
 	(gdb-thread-number): New variable.
 	(gdb-current-context-command): New macro which adds --thread
 	option to command.
-	(gdb-threads-mode-map): Select thread with SPC
+	(gdb-threads-mode-map): Select thread with SPC.
 	(gdb-thread-list-handler-custom): Mark current thread with overlay
-	arrow. Synchronize GDB thread and Emacs thread.
+	arrow.  Synchronize GDB thread and Emacs thread.
 	(gdb-select-thread): New command which selects current thread.
 	(gdb-invalidate-frames, gdb-invalidate-locals)
 	(gdb-invalidate-registers): Use --thread option.
@@ -1092,14 +1091,14 @@
 
 2009-08-03  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-rfn-eshadow-update-overlay-regexp) New
-	defconst.
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay-regexp):
+	New defconst.
 	(tramp-rfn-eshadow-update-overlay): Use it.  (Bug#4004)
 
 2009-08-02  Kevin Ryde  <user42@zip.com.au>
 
-	* net/newst-backend.el (newsticker--raw-url-list-defaults): Update
-	freshmeat link.  Delete newsforge.com as it seems gone.
+	* net/newst-backend.el (newsticker--raw-url-list-defaults):
+	Update freshmeat link.  Delete newsforge.com as it seems gone.
 
 2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1110,7 +1109,7 @@
 	* help-fns.el (describe-variable): Treat list return values from
 	dir-locals-find-file properly (Bug#4005).
 
-2009-08-02  Julian Scheid <julians37@googlemail.com>  (tiny change)
+2009-08-02  Julian Scheid  <julians37@googlemail.com>  (tiny change)
 
 	* net/tramp.el (tramp-debug-message): Print also microseconds.
 
@@ -1131,7 +1130,7 @@
 2009-08-02  Jason Rumney  <jasonr@gnu.org>
 
 	* minibuffer.el (read-file-name): Treat confirm options to
- 	MUSTMATCH as nil when invoking x-file-dialog.  (Bug#3969)
+	MUSTMATCH as nil when invoking x-file-dialog.  (Bug#3969)
 
 2009-08-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1168,7 +1167,7 @@
 	* calc/calc.el (calc-mode-map): Add keybinding for
 	`calc-transpose-lines'.
 
-2009-07-29  Vincent Belaïche <vincent.belaiche@gmail.com>
+2009-07-29  Vincent Belaïche  <vincent.belaiche@gmail.com>
 
 	* calc/calc-misc.el (calc-transpose-lines): New function.
 
@@ -1243,8 +1242,7 @@
 2009-07-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Fix setting of category ?C, ?|, ?K,
-	and ?H.  Fix setting of case for Latin Extended and Greek
-	Extended.
+	and ?H.  Fix setting of case for Latin Extended and Greek Extended.
 	(build-unicode-category-table): Fix range checks.
 
 2009-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -1490,7 +1488,7 @@
 
 2009-07-18  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-before-hack-hook),
+	* progmodes/cc-mode.el (c-before-hack-hook)
 	(c-postprocess-file-styles): Give invocation of `c-set-style'
 	DONT-OVERRIDE parameter of t.  Already set style variables will
 	thus not be overridden by style settings given by `c-file-syle'.
@@ -1671,12 +1669,12 @@
 
 2009-07-13  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* term/ns-win.el (x-select-font): defailias x-select-font to
+	* term/ns-win.el (x-select-font): defalias x-select-font to
 	ns-popup-font-panel instead of generate-fontset-menu.
 
 2009-07-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* desktop.el (desktop-buffers-not-to-save): Remove ".log". (Bug#3833)
+	* desktop.el (desktop-buffers-not-to-save): Remove ".log".  (Bug#3833)
 
 2009-07-12  Peter Jolly  <peter@jollys.org>  (tiny change)
 
@@ -1800,7 +1798,7 @@
 	* progmodes/gdb-mi.el (gdb-init-1): Set mode name for disassembly
 	buffer properly.
 	(gdb-breakpoints-list-handler-custom): Replacement for
-	`gdb-break-list-handler'. Using real parser instead of regexps
+	`gdb-break-list-handler'.  Using real parser instead of regexps
 	now.
 	(gdb-place-breakpoints): Replacement for `gdb-break-list-custom'.
 	Use `gdb-breakpoints-list' instead of parsing breakpoints buffer
@@ -1812,14 +1810,14 @@
 	disassembly buffer.
 	(gdb-toggle-breakpoint, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint): Using `gdb-breakpoint' text properties
-	instead of parsing breakpoints buffer. Fixed old menu references
+	instead of parsing breakpoints buffer.  Fixed old menu references
 	in `gud-menu-map'.
 
 	* fadr.el: Remove.
 
-	* progmodes/gdb-mi.el: Port memory buffer from gdb-ui.el
+	* progmodes/gdb-mi.el: Port memory buffer from gdb-ui.el.
 	(gdb-memory-address): New variable which holds top address of
-	memory page shown in memory buffer
+	memory page shown in memory buffer.
 	(gdb-memory-repeat-count, gdb-memory-format, gdb-memory-unit): New
 	customization variables.
 	New functions:
@@ -1864,7 +1862,7 @@
 	representation of verilog error regular expressions to work with
 	Emacs-22's new format.
 	(verilog-error-regexp-xemacs-alist): Coded custom representation
-	of verilog error regular expressions to work with XEmacs format
+	of verilog error regular expressions to work with XEmacs format.
 	(verilog-error-regexp-add-xemacs): Hook routine to install verilog
 	error recognition into XEmacs.
 	(verilog-error-regexp-add-emacs): Hook routine to install verilog
@@ -1889,7 +1887,7 @@
 
 	* subr.el (eval-after-load): Doc fix.
 
-2009-07-06  Vincent Belaïche <vincent.belaiche@gmail.com>
+2009-07-06  Vincent Belaïche  <vincent.belaiche@gmail.com>
 
 	* calc/calc-embed.el (calc-embedded-make-info): Don't force when
 	`calc-embedded-word' is called twice.
@@ -2111,7 +2109,7 @@
 	had been).
 	(verilog-leap-to-case-head): Support priority/unique case statements.
 	(verilog-auto-lineup): Rework to give users radio buttons to
-	select the various styles of automatic lineup
+	select the various styles of automatic lineup.
 	(verilog-error-regexp-alist): Rework to support the XEmacs style
 	of error regular expressions from compilers, lint tools &
 	simulators.  Note that GNU Emacs has made it impossible for a mode
@@ -2135,7 +2133,7 @@
 	(verilog-mode): Alter the definition of verilog-font-lock-defualts
 	to avoid circular calls if syntax-ppss is a function (as is the
 	case now in 22.x GNU Emacs) as that function would sometimes call
-	itself, leading to (nearly) infinite recursion
+	itself, leading to (nearly) infinite recursion.
 	(verilog-ovm-begin-re, verilog-ovm-end-re)
 	(verilog-ovm-statement-re, verilog-leap-to-head)
 	(verilog-backward-token): Add support for OVM macros.  Some are
@@ -2143,9 +2141,9 @@
 	and end.
 	(verilog-defun-level-not-generate-re, verilog-defun-level-re)
 	(verilog-defun-level-generate-only-re): Really fix the defun-list
-	compilation issue
+	compilation issue.
 	(verilog-calc-1) (verilog-beg-of-statement): Enhance support for
-	coverpoint, constraint and cross statements
+	coverpoint, constraint and cross statements.
 	(verilog-defun-level-list, verilog-generate-defun-level-list)
 	(verilog-all-defun-level-list): Redo these specifications - it is
 	too hard to support eval-when compile aggregation of lists also
@@ -2156,7 +2154,7 @@
 	without load.
 	(verilog-beg-block-re-ordered): Support indenting
 	virtual/protected tasks and functions.
-	(verilog-defun-level-list,verilog-in-generate-region-p)
+	(verilog-defun-level-list, verilog-in-generate-region-p)
 	(verilog-backward-ws&directives, verilog-calc-1): Speed up
 	indentation of some module items (generate items).
 	(verilog-forward-sexp, verilog-leap-to-head): Support stepping
@@ -2196,7 +2194,7 @@
 	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line)
 	(verilog-read-sub-decls-sig, verilog-symbol-detick-text):
 	Fix dotted nets {a.b,c.d} and excaped identifiers being mis-included
-	in AUTOINOUT. Reported by Matthew Lovell.
+	in AUTOINOUT.  Reported by Matthew Lovell.
 	(verilog-read-always-signals-recurse): Fix AUTORESET "if (a<=b)"
 	causing use of <= assignments.  Reported by Alex Reed.
 	(verilog-read-decls): Fix triand, trior, wand, wor to be
@@ -2208,13 +2206,13 @@
 	(verilog-sk-header-tmpl): Fix verilog-header inserting error on
 	Windows systems.  Reported by Michael Potts.
 	(verilog-read-module-name): Fix AUTOINST when the child module
-	declaration's name is a tick define. Reported by Elliot Mednick.
+	declaration's name is a tick define.  Reported by Elliot Mednick.
 	(verilog-read-decls): Fix V2K parameter bit subscripts getting
-	passed to next parameter's definition. Reported by Bruce T.
+	passed to next parameter's definition.  Reported by Bruce T.
 	(verilog-read-decls): Fix detecting "parameter int" when using
 	AUTOINSTPARAM.  Reported by Bruce T.
 	(verilog-goto-defun): Fix goto not finding modules unless first
-	perform a verilog-auto expansion. Suggested by Lawrence Butcher.
+	perform a verilog-auto expansion.  Suggested by Lawrence Butcher.
 	(verilog-mode): Expand -f flag arguments on entry to mode so
 	verilog-goto-defun will work.  Reported by Lawrence Butcher.
 	(verilog-getopt): Expand environment variables in -f file
@@ -2278,10 +2276,10 @@
 2009-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el: Add `ispell-looking-back' XEmacs
-	  compatibility function for `looking-back'
+	  compatibility function for `looking-back'.
 
 	* textmodes/flyspell.el (sgml-mode-flyspell-verify):
-	Use `ispell-looking-back'
+	Use `ispell-looking-back'.
 
 2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
 
