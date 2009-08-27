@@ -272,7 +272,7 @@ used to render text.  If it is nil, text will simply be folded.")
 		      (replace-match "\n")
 		    (replace-match "\n\n")))
 		(unless (eobp)
-		  (let ((fill-column default-fill-column)
+		  (let ((fill-column (default-value 'fill-column))
 			(window (get-buffer-window nntp-server-buffer)))
 		    (when window
 		      (setq fill-column

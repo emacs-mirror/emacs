@@ -1,3 +1,7 @@
+2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnrss.el (nnrss-request-article): Avoid default-fill-column.
+
 2009-08-25  Glenn Morris  <rgm@gnu.org>
 
 	* nnir.el (top-level): Don't require cl at run-time.
