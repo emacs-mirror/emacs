@@ -1,5 +1,9 @@
 2009-08-27  Kenichi Handa  <handa@m17n.org>
 
+	* process.c (send_process): Use encode_coding_object instead of
+	encode_coding_string to perform eol-conversion even if the string
+	is unibyte.
+
 	* coding.c (encode_coding_utf_16): Fix checking of a Unicode
 	character.
 
