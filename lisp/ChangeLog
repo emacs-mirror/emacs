@@ -1,5 +1,7 @@
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in (update-elcfiles): Report left over elc files.
+
 	* mail/mailalias.el (build-mail-aliases): Use with-temp-buffer,
 	expand-file-name and with-current-buffer.
 	(mail-get-names, mail-directory): Use with-current-buffer.

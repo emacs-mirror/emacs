@@ -183,6 +183,12 @@ update-elclist:
 	  chmod +w $(lisp)/Makefile.in; \
 	  mv -f temp-elcfiles $(lisp)/Makefile.in; \
 	fi
+	-(COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc | sed 's/elc$$/el/';  \
+	  COLLATE=C ls $(lisp)/*.el  $(lisp)/*/*.el;   			   \
+	  COLLATE=C ls $(lisp)/*.el  $(lisp)/*/*.el) | 			   \
+	     sort | uniq -u | while read extra; do 			   \
+	         echo "Found left over byte-compiled file: $${extra}c !!" ;\
+	     done
 
 ## Explicitly list the .elc files, for the sake of parallel builds.
 ## http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-05/msg00016.html
