@@ -1,3 +1,7 @@
+2009-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (buildobj.h): Replace "echo" with "djecho".
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
