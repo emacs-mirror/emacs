@@ -1858,7 +1858,7 @@ encode_coding_utf_16 (coding)
     {
       ASSURE_DESTINATION (safe_room);
       c = *charbuf++;
-      if (c >= MAX_UNICODE_CHAR)
+      if (c > MAX_UNICODE_CHAR)
 	c = coding->default_char;
 
       if (c < 0x10000)
