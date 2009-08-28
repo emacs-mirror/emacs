@@ -1,3 +1,12 @@
+2009-08-28  Juri Linkov  <juri@jurta.org>
+
+	* files.el (magic-fallback-mode-alist): Add ZIP magic number
+	associated with `archive-mode'.
+
+	* image.el (image-type-header-regexps): Use only JPEG magic number
+	to determine JPEG images, and don't use `image-jpeg-p' because
+	Emacs can display non-JFIF non-Exif JPEG images.
+
 2009-08-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* arc-mode.el (archive-mode):
