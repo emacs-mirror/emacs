@@ -69,15 +69,15 @@
 ;; The Tramp version number and bug report address, as prepared by configure.
 (require 'trampver)
 (add-hook 'tramp-unload-hook
-	  '(lambda ()
-	     (when (featurep 'trampver)
-	       (unload-feature 'trampver 'force))))
+	  (lambda ()
+	    (when (featurep 'trampver)
+	      (unload-feature 'trampver 'force))))
 
 (require 'tramp-compat)
 (add-hook 'tramp-unload-hook
-	  '(lambda ()
-	     (when (featurep 'tramp-compat)
-	       (unload-feature 'tramp-compat 'force))))
+	  (lambda ()
+	    (when (featurep 'tramp-compat)
+	      (unload-feature 'tramp-compat 'force))))
 
 (require 'format-spec)                  ; from Gnus 5.8, also in tar ball
 ;; As long as password.el is not part of (X)Emacs, it shouldn't
@@ -105,16 +105,16 @@
 (autoload 'tramp-flush-connection-property "tramp-cache")
 (autoload 'tramp-parse-connection-properties "tramp-cache")
 (add-hook 'tramp-unload-hook
-	  '(lambda ()
-	     (when (featurep 'tramp-cache)
-	       (unload-feature 'tramp-cache 'force))))
+	  (lambda ()
+	    (when (featurep 'tramp-cache)
+	      (unload-feature 'tramp-cache 'force))))
 
 (autoload 'tramp-uuencode-region "tramp-uu"
   "Implementation of `uuencode' in Lisp.")
 (add-hook 'tramp-unload-hook
-	  '(lambda ()
-	     (when (featurep 'tramp-uu)
-	       (unload-feature 'tramp-uu 'force))))
+	  (lambda ()
+	    (when (featurep 'tramp-uu)
+	      (unload-feature 'tramp-uu 'force))))
 
 (autoload 'uudecode-decode-region "uudecode")
 
@@ -1004,7 +1004,9 @@ Sometimes the prompt is reported to look like \"login as:\"."
   :type 'regexp)
 
 (defcustom tramp-shell-prompt-pattern
-  "^[^#$%>\n]*[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
+  ;; Allow a prompt to start right after a ^M since it indeed would be
+  ;; displayed at the beginning of the line (and Zsh uses it).
+  "\\(?:^\\|\\)[^#$%>\n]*[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -1386,29 +1388,29 @@ Also see `tramp-file-name-structure'.")
 ;;;###autoload
 (defconst tramp-root-regexp
   (if (memq system-type '(cygwin windows-nt))
-      "^\\([a-zA-Z]:\\)?/"
-    "^/")
+      "\\`\\([a-zA-Z]:\\)?/"
+    "\\`/")
   "Beginning of an incomplete Tramp file name.
-Usually, it is just \"^/\".  On W32 systems, there might be a
+Usually, it is just \"\\\\`/\".  On W32 systems, there might be a
 volume letter, which will be removed by `tramp-drop-volume-letter'.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
-  (concat tramp-root-regexp "[^/]*$")
+  (concat tramp-root-regexp "[^/]*\\'")
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
-  (concat tramp-root-regexp "\\([[][^]]*\\)?$")
+  (concat tramp-root-regexp "\\([[][^]]*\\)?\\'")
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 XEmacs uses a separate filename syntax for Tramp and EFS.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-url
-  (concat tramp-root-regexp "[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?$")
+  (concat tramp-root-regexp "[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?\\'")
   "Value for `tramp-completion-file-name-regexp' for URL-like remoting.
 See `tramp-file-name-structure' for more explanations.")
 
@@ -2240,9 +2242,9 @@ special handling of `substitute-in-file-name'."
   (add-hook 'rfn-eshadow-setup-minibuffer-hook
 	    'tramp-rfn-eshadow-setup-minibuffer)
   (add-hook 'tramp-unload-hook
-	    '(lambda ()
-	       (remove-hook 'rfn-eshadow-setup-minibuffer-hook
-			    'tramp-rfn-eshadow-setup-minibuffer))))
+	    (lambda ()
+	      (remove-hook 'rfn-eshadow-setup-minibuffer-hook
+			   'tramp-rfn-eshadow-setup-minibuffer))))
 
 (defconst tramp-rfn-eshadow-update-overlay-regexp
   (format "[^%s/~]*\\(/\\|~\\)" tramp-postfix-host-format))
@@ -2498,19 +2500,23 @@ target of the symlink differ."
 (defun tramp-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (unless id-format (setq id-format 'integer))
-  (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (with-file-property v localname (format "file-attributes-%s" id-format)
-      (when (file-exists-p filename)
-	;; file exists, find out stuff
-	(save-excursion
-	  (tramp-convert-file-attributes
-	   v
-	   (if (tramp-get-remote-stat v)
-	       (tramp-handle-file-attributes-with-stat v localname id-format)
-	     (if (tramp-get-remote-perl v)
-		 (tramp-handle-file-attributes-with-perl v localname id-format)
-	       (tramp-handle-file-attributes-with-ls
-		v localname id-format)))))))))
+  ;; Don't modify `last-coding-system-used' by accident.
+  (let ((last-coding-system-used last-coding-system-used))
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
+      (with-file-property v localname (format "file-attributes-%s" id-format)
+	(when (file-exists-p filename)
+	  ;; file exists, find out stuff
+	  (save-excursion
+	    (tramp-convert-file-attributes
+	     v
+	     (if (tramp-get-remote-stat v)
+		 (tramp-handle-file-attributes-with-stat
+		  v localname id-format)
+	       (if (tramp-get-remote-perl v)
+		   (tramp-handle-file-attributes-with-perl
+		    v localname id-format)
+		 (tramp-handle-file-attributes-with-ls
+                  v localname id-format))))))))))
 
 (defun tramp-handle-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
@@ -2763,27 +2769,29 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   ;; another implementation, see `dired-do-chown'.  OTOH, it is mostly
   ;; working with su(do)? when it is needed, so it shall succeed in
   ;; the majority of cases.
-  (if (file-remote-p filename)
-      (with-parsed-tramp-file-name filename nil
-	(if (and (zerop (user-uid)) (tramp-local-host-p v))
-	    ;; If we are root on the local host, we can do it directly.
-	    (tramp-set-file-uid-gid localname uid gid)
-	  (let ((uid (or (and (integerp uid) uid)
-			 (tramp-get-remote-uid v 'integer)))
-		(gid (or (and (integerp gid) gid)
-			 (tramp-get-remote-gid v 'integer))))
-	    (tramp-send-command
-	     v (format
-		"chown %d:%d %s" uid gid
-		(tramp-shell-quote-argument localname))))))
+  ;; Don't modify `last-coding-system-used' by accident.
+  (let ((last-coding-system-used last-coding-system-used))
+    (if (file-remote-p filename)
+	(with-parsed-tramp-file-name filename nil
+	  (if (and (zerop (user-uid)) (tramp-local-host-p v))
+	      ;; If we are root on the local host, we can do it directly.
+	      (tramp-set-file-uid-gid localname uid gid)
+	    (let ((uid (or (and (integerp uid) uid)
+			   (tramp-get-remote-uid v 'integer)))
+		  (gid (or (and (integerp gid) gid)
+			   (tramp-get-remote-gid v 'integer))))
+	      (tramp-send-command
+	       v (format
+		  "chown %d:%d %s" uid gid
+		  (tramp-shell-quote-argument localname))))))
 
-    ;; We handle also the local part, because there doesn't exist
-    ;; `set-file-uid-gid'.  On W32 "chown" might not work.
-    (let ((uid (or (and (integerp uid) uid) (tramp-get-local-uid 'integer)))
-	  (gid (or (and (integerp gid) gid) (tramp-get-local-gid 'integer))))
-      (tramp-local-call-process
-       "chown" nil nil nil
-       (format "%d:%d" uid gid) (tramp-shell-quote-argument filename)))))
+      ;; We handle also the local part, because there doesn't exist
+      ;; `set-file-uid-gid'.  On W32 "chown" might not work.
+      (let ((uid (or (and (integerp uid) uid) (tramp-get-local-uid 'integer)))
+	    (gid (or (and (integerp gid) gid) (tramp-get-local-gid 'integer))))
+	(tramp-local-call-process
+	 "chown" nil nil nil
+         (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))))))
 
 ;; Simple functions using the `test' command.
 
@@ -2957,9 +2965,9 @@ value of `default-file-modes', without execute permissions."
 		   (format "directory-files-and-attributes-%s" id-format)
 		 (save-excursion
 		   (mapcar
-		    '(lambda (x)
-		       (cons (car x)
-			     (tramp-convert-file-attributes v (cdr x))))
+		    (lambda (x)
+		      (cons (car x)
+			    (tramp-convert-file-attributes v (cdr x))))
 		    (if (tramp-get-remote-stat v)
 			(tramp-handle-directory-files-and-attributes-with-stat
 			 v localname id-format)
@@ -3484,20 +3492,20 @@ The method used must be an out-of-band method."
 	      (delq
 	       nil
 	       (mapcar
-		'(lambda (x)
-		   (setq
-		    x
-		    ;; " " is indication for keep-date argument.
-		    (delete " " (mapcar '(lambda (y) (format-spec y spec)) x)))
-		   (unless (member "" x) (mapconcat 'identity x " ")))
+		(lambda (x)
+		  (setq
+		   x
+		   ;; " " is indication for keep-date argument.
+		   (delete " " (mapcar (lambda (y) (format-spec y spec)) x)))
+		  (unless (member "" x) (mapconcat 'identity x " ")))
 		(tramp-get-method-parameter method 'tramp-copy-args)))
 	      copy-env
 	      (delq
 	       nil
 	       (mapcar
-		'(lambda (x)
-		   (setq x (mapcar '(lambda (y) (format-spec y spec)) x))
-		   (unless (member "" x) (mapconcat 'identity x " ")))
+		(lambda (x)
+		  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+		  (unless (member "" x) (mapconcat 'identity x " ")))
 		(tramp-get-method-parameter method 'tramp-copy-env))))
 
 	;; Check for program.
@@ -3632,10 +3640,10 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	       ;; XEmacs has `dired-compression-method-alist', which is
 	       ;; transformed into `dired-compress-file-suffixes' structure.
 	       (mapcar
-		'(lambda (x)
-		   (list (concat (regexp-quote (nth 1 x)) "\\'")
-			 nil
-			 (mapconcat 'identity (nth 3 x) " ")))
+		(lambda (x)
+		  (list (concat (regexp-quote (nth 1 x)) "\\'")
+			nil
+			(mapconcat 'identity (nth 3 x) " ")))
 		(symbol-value 'dired-compression-method-alist))))
 	    suffix)
 	;; See if any suffix rule matches this file name.
@@ -3896,21 +3904,21 @@ beginning of local filename are not substituted."
 ;; which calls corresponding functions (see minibuf.el).
 (when (fboundp 'minibuffer-electric-separator)
   (mapc
-   '(lambda (x)
-      (eval
-       `(defadvice ,x
-	  (around ,(intern (format "tramp-advice-%s" x)) activate)
-	  "Invoke `substitute-in-file-name' for Tramp files."
-	  (if (and (symbol-value 'minibuffer-electric-file-name-behavior)
-		   (tramp-tramp-file-p (buffer-substring)))
-	      ;; We don't need to handle `last-input-event', because
-	      ;; due to the key map we know it must be ?/ or ?~.
-	      (let ((s (concat (buffer-substring (point-min) (point))
-			       (string last-command-char))))
-		(delete-region (point-min) (point))
-		(insert (substitute-in-file-name s))
-		(setq ad-return-value last-command-char))
-	    ad-do-it))))
+   (lambda (x)
+     (eval
+      `(defadvice ,x
+	 (around ,(intern (format "tramp-advice-%s" x)) activate)
+	 "Invoke `substitute-in-file-name' for Tramp files."
+	 (if (and (symbol-value 'minibuffer-electric-file-name-behavior)
+		  (tramp-tramp-file-p (buffer-substring)))
+	     ;; We don't need to handle `last-input-event', because
+	     ;; due to the key map we know it must be ?/ or ?~.
+	     (let ((s (concat (buffer-substring (point-min) (point))
+			      (string last-command-char))))
+	       (delete-region (point-min) (point))
+	       (insert (substitute-in-file-name s))
+	       (setq ad-return-value last-command-char))
+	   ad-do-it))))
 
    '(minibuffer-electric-separator
      minibuffer-electric-tilde)))
@@ -4238,13 +4246,19 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 		     v 5 "Decoding remote file %s with function %s..."
 		     filename loc-dec)
 		    (funcall loc-dec (point-min) (point-max))
-		    (let ((coding-system-for-write 'binary))
+		    ;; Unset `file-name-handler-alist'.  Otherwise,
+		    ;; epa-file gets confused.
+		    (let (file-name-handler-alist
+			  (coding-system-for-write 'binary))
 		      (write-region (point-min) (point-max) tmpfile)))
 
 		;; If tramp-decoding-function is not defined for this
 		;; method, we invoke tramp-decoding-command instead.
 		(let ((tmpfile2 (tramp-compat-make-temp-file filename)))
-		  (let ((coding-system-for-write 'binary))
+		  ;; Unset `file-name-handler-alist'.  Otherwise,
+		  ;; epa-file gets confused.
+		  (let (file-name-handler-alist
+			(coding-system-for-write 'binary))
 		    (write-region (point-min) (point-max) tmpfile2))
 		  (tramp-message
 		   v 5 "Decoding remote file %s with command %s..."
@@ -4430,14 +4444,14 @@ coding system might not be determined.  This function repairs it."
 	   (when (boundp 'backup-directory-alist)
 	     (if (symbol-value 'tramp-backup-directory-alist)
 		 (mapcar
-		  '(lambda (x)
-		     (cons
-		      (car x)
-		      (if (and (stringp (cdr x))
-			       (file-name-absolute-p (cdr x))
-			       (not (tramp-file-name-p (cdr x))))
-			  (tramp-make-tramp-file-name method user host (cdr x))
-			(cdr x))))
+		  (lambda (x)
+		    (cons
+		     (car x)
+		     (if (and (stringp (cdr x))
+			      (file-name-absolute-p (cdr x))
+			      (not (tramp-file-name-p (cdr x))))
+			 (tramp-make-tramp-file-name method user host (cdr x))
+		       (cdr x))))
 		  (symbol-value 'tramp-backup-directory-alist))
 	       (symbol-value 'backup-directory-alist))))
 
@@ -4446,17 +4460,17 @@ coding system might not be determined.  This function repairs it."
 	   (when (boundp 'bkup-backup-directory-info)
 	     (if (symbol-value 'tramp-bkup-backup-directory-info)
 		 (mapcar
-		  '(lambda (x)
-		     (nconc
-		      (list (car x))
-		      (list
-		       (if (and (stringp (car (cdr x)))
-				(file-name-absolute-p (car (cdr x)))
-				(not (tramp-file-name-p (car (cdr x)))))
-			   (tramp-make-tramp-file-name
-			    method user host (car (cdr x)))
-			 (car (cdr x))))
-		      (cdr (cdr x))))
+		  (lambda (x)
+		    (nconc
+		     (list (car x))
+		     (list
+		      (if (and (stringp (car (cdr x)))
+			       (file-name-absolute-p (car (cdr x)))
+			       (not (tramp-file-name-p (car (cdr x)))))
+			  (tramp-make-tramp-file-name
+			   method user host (car (cdr x)))
+			(car (cdr x))))
+		     (cdr (cdr x))))
 		  (symbol-value 'tramp-bkup-backup-directory-info))
 	       (symbol-value 'bkup-backup-directory-info)))))
 
@@ -4480,12 +4494,12 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
     ;; all other cases we must do it ourselves.
     (when (boundp 'auto-save-file-name-transforms)
       (mapc
-       '(lambda (x)
-	  (when (and (string-match (car x) buffer-file-name)
-		     (not (car (cddr x))))
-	    (setq tramp-auto-save-directory
-		  (or tramp-auto-save-directory
-		      (tramp-compat-temporary-file-directory)))))
+       (lambda (x)
+	 (when (and (string-match (car x) buffer-file-name)
+		    (not (car (cddr x))))
+	   (setq tramp-auto-save-directory
+		 (or tramp-auto-save-directory
+		     (tramp-compat-temporary-file-directory)))))
        (symbol-value 'auto-save-file-name-transforms)))
     ;; Create directory.
     (when tramp-auto-save-directory
@@ -5028,73 +5042,54 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   ;; would otherwise use backslash.
   (let ((directory-sep-char ?/)
 	(fn (assoc operation tramp-completion-file-name-handler-alist)))
-    ;; When `tramp-mode' is not enabled, we don't do anything.
-    (if (and fn tramp-mode)
+    (if (and
+	 ;; When `tramp-mode' is not enabled, we don't do anything.
+         fn tramp-mode
+         ;; For other syntaxes than `sep', the regexp matches many common
+         ;; situations where the user doesn't actually want to use Tramp.
+         ;; So to avoid autoloading Tramp after typing just "/s", we
+         ;; disable this part of the completion, unless the user implicitly
+         ;; indicated his interest in using a fancier completion system.
+         (or (eq tramp-syntax 'sep)
+             (featurep 'tramp) ; If it's loaded, we may as well use it.
+             (and (boundp 'partial-completion-mode) partial-completion-mode)
+             ;; FIXME: These may have been loaded even if the user never
+             ;; intended to use them.
+             (featurep 'ido)
+             (featurep 'icicles)))
 	(save-match-data (apply (cdr fn) args))
       (tramp-completion-run-real-handler operation args)))))
 
 ;;;###autoload
-(defsubst tramp-register-file-name-handler ()
-  "Add Tramp file name handler to `file-name-handler-alist'."
-  ;; Remove autoloaded handler from file name handler alist.  Useful,
+(progn (defun tramp-register-file-name-handlers ()
+  "Add Tramp file name handlers to `file-name-handler-alist'."
+  ;; Remove autoloaded handlers from file name handler alist.  Useful,
   ;; if `tramp-syntax' has been changed.
   (let ((a1 (rassq 'tramp-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delete a1 file-name-handler-alist)))
-  ;; Add the handler.
+    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
+  (let ((a1 (rassq
+	     'tramp-completion-file-name-handler file-name-handler-alist)))
+    (setq file-name-handler-alist (delq a1 file-name-handler-alist)))
+  ;; Add the handlers.
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
-  ;; If jka-compr is already loaded, move it to the front of
-  ;; `file-name-handler-alist'.
-  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
-    (when jka
-      (setq file-name-handler-alist
-	    (cons jka (delete jka file-name-handler-alist))))))
+  (add-to-list 'file-name-handler-alist
+	       (cons tramp-completion-file-name-regexp
+		     'tramp-completion-file-name-handler))
+  (put 'tramp-completion-file-name-handler 'safe-magic t)
+  ;; If jka-compr or epa-file are already loaded, move them to the
+  ;; front of `file-name-handler-alist'.
+  (dolist (fnh '(epa-file-handler jka-compr-handler))
+    (let ((entry (rassoc fnh file-name-handler-alist)))
+      (when entry
+	(setq file-name-handler-alist
+	      (cons entry (delete entry file-name-handler-alist))))))))
 
 ;; `tramp-file-name-handler' must be registered before evaluation of
 ;; site-start and init files, because there might exist remote files
 ;; already, f.e. files kept via recentf-mode.
-;;;###autoload(tramp-register-file-name-handler)
-(tramp-register-file-name-handler)
-
-;;;###autoload
-(defsubst tramp-register-completion-file-name-handler ()
-  "Add Tramp completion file name handler to `file-name-handler-alist'."
-  ;; Remove autoloaded handler from file name handler alist.  Useful,
-  ;; if `tramp-syntax' has been changed.
-  (let ((a1 (rassq
-	     'tramp-completion-file-name-handler file-name-handler-alist)))
-    (setq file-name-handler-alist (delete a1 file-name-handler-alist)))
-  ;; In XEmacs, there is another Tramp syntax, so we can enable this
-  ;; unconditionally.  In GNU Emacs <= 22, method/user/host name
-  ;; completion shall be bound to `partial-completion-mode'.  Starting
-  ;; with GNU Emacs 23, this is replaced by `completion-styles',
-  ;; containing symbol `partial-completion'.  `ido-mode' and
-  ;; `icy-mode' are other packages which extend file name completion.
-  (when (or (and (boundp 'partial-completion-mode)
-		 (symbol-value 'partial-completion-mode))
-	    (and (boundp 'completion-styles)
-		 (member 'partial-completion (symbol-value 'completion-styles)))
-	    (featurep 'xemacs)
-	    (featurep 'ido)
-	    (featurep 'icicles))
-    (add-to-list 'file-name-handler-alist
-		 (cons tramp-completion-file-name-regexp
-		       'tramp-completion-file-name-handler))
-    (put 'tramp-completion-file-name-handler 'safe-magic t))
-  ;; If jka-compr is already loaded, move it to the front of
-  ;; `file-name-handler-alist'.
-  (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
-    (when jka
-      (setq file-name-handler-alist
-	    (cons jka (delete jka file-name-handler-alist))))))
-
-;; During autoload, it shall be checked whether
-;; `partial-completion-mode' is active.  Therefore, registering of
-;; `tramp-completion-file-name-handler' will be delayed.
-;;;###autoload(add-hook
-;;;###autoload 'after-init-hook
-;;;###autoload 'tramp-register-completion-file-name-handler)
-(tramp-register-completion-file-name-handler)
+;;;###autoload(tramp-register-file-name-handlers)
+(tramp-register-file-name-handlers)
 
 ;;;###autoload
 (defun tramp-unload-file-name-handlers ()
@@ -5708,8 +5703,8 @@ Only send the definition if it has not already been done."
     (auto-save-mode 1)))
 (add-hook 'find-file-hooks 'tramp-set-auto-save t)
 (add-hook 'tramp-unload-hook
-	  '(lambda ()
-	     (remove-hook 'find-file-hooks 'tramp-set-auto-save)))
+	  (lambda ()
+	    (remove-hook 'find-file-hooks 'tramp-set-auto-save)))
 
 (defun tramp-run-test (switch filename)
   "Run `test' on the remote system, given a SWITCH and a FILENAME.
@@ -6838,9 +6833,9 @@ connection if a previous connection has died for some reason."
 	       (concat
 		command " "
 		(mapconcat
-		 '(lambda (x)
-		    (setq x (mapcar '(lambda (y) (format-spec y spec)) x))
-		    (unless (member "" x) (mapconcat 'identity x " ")))
+		 (lambda (x)
+		   (setq x (mapcar (lambda (y) (format-spec y spec)) x))
+		   (unless (member "" x) (mapconcat 'identity x " ")))
 		 login-args " ")
 		;; Local shell could be a Windows COMSPEC.  It doesn't
 		;; know the ";" syntax, but we must exit always for
@@ -7683,12 +7678,12 @@ If the `tramp-methods' entry does not exist, return NIL."
 	     (file-name-handler-alist
 	      (list
 	       (cons "/"
-		     '(lambda (operation &rest args)
-			"Returns OPERATION if it is the one to be checked."
-			(if (equal check-file-name-operation operation)
-			    operation
-			  (let ((file-name-handler-alist fnha))
-			    (apply operation args))))))))
+		     (lambda (operation &rest args)
+		       "Returns OPERATION if it is the one to be checked."
+		       (if (equal check-file-name-operation operation)
+			   operation
+			 (let ((file-name-handler-alist fnha))
+			   (apply operation args))))))))
 	(equal (apply operation args) operation))
     (error nil)))
 
@@ -7700,7 +7695,7 @@ If the `tramp-methods' entry does not exist, return NIL."
 	(setq ad-return-value (tramp-handle-make-auto-save-file-name))
       ad-do-it))
   (add-hook 'tramp-unload-hook
-	    '(lambda () (ad-unadvise 'make-auto-save-file-name))))
+	    (lambda () (ad-unadvise 'make-auto-save-file-name))))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
 ;; permission 0666 minus umask. This is a security threat.
@@ -7727,8 +7722,8 @@ If the `tramp-methods' entry does not exist, return NIL."
 		 (> emacs-minor-version 4)))
   (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes)
   (add-hook 'tramp-unload-hook
-	    '(lambda ()
-	       (remove-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))))
+	    (lambda ()
+	      (remove-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))))
 
 (defun tramp-subst-strs-in-string (alist string)
   "Replace all occurrences of the string FROM with TO in STRING.
@@ -7937,7 +7932,7 @@ Only works for Bourne-like shells."
 	;; If it is not a Tramp file, just run the original function.
 	(setq ad-return-value (or ad-do-it (list name))))))
   (add-hook 'tramp-unload-hook
-	    '(lambda () (ad-unadvise 'file-expand-wildcards))))
+	    (lambda () (ad-unadvise 'file-expand-wildcards))))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
@@ -8034,8 +8029,6 @@ Only works for Bourne-like shells."
 ;;   reasonably unproblematic.  And maybe trampclient should have some
 ;;   way of passing credentials, like by using an SSL socket or
 ;;   something. (David Kastrup)
-;; * Could Tramp reasonably look for a prompt after ^M rather than
-;;   only after ^J ? (Stefan Monnier)
 ;; * Reconnect directly to a compliant shell without first going
 ;;   through the user's default shell. (Pete Forman)
 ;; * Make `tramp-default-user' obsolete.
