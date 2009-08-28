@@ -1,5 +1,9 @@
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/viper-init.el (viper-restore-cursor-type):
+	* emulation/cua-base.el (cua--update-indications):
+	Replace default-cursor-type with (default-value 'cursor-type).
+
 	* mail/sendmail.el (mail-recover-1):
 	* international/mule-diag.el (describe-current-coding-system-briefly)
 	(describe-current-coding-system):

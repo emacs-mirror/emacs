@@ -1196,8 +1196,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(set-cursor-color color))
     (if (and type
 	     (symbolp type)
-	     (not (eq type default-cursor-type)))
-	(setq default-cursor-type type))))
+	     (not (eq type (default-value 'cursor-type))))
+	(setq-default cursor-type type))))
 
 
 ;;; Pre-command hook
