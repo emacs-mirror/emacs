@@ -2100,9 +2100,9 @@ print_object (obj, printcharfun, escapeflag)
 	    if (!NILP (HASH_HASH (h, i)))
 	      {
 		if (i) PRINTCHAR (' ');
-		print_object (HASH_KEY (h, i), printcharfun, 0);
+		print_object (HASH_KEY (h, i), printcharfun, 1);
 		PRINTCHAR (' ');
-		print_object (HASH_VALUE (h, i), printcharfun, 0);
+		print_object (HASH_VALUE (h, i), printcharfun, 1);
 	      }
 
 	  if (size < real_size)

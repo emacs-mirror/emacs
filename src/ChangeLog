@@ -1,3 +1,8 @@
+2009-08-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* print.c (print_object): Set escapeflag to 1 when printing
+	hashtable keys and values.
+
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read_integer): Use doubles (and potentially return a float
