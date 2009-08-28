@@ -307,12 +307,9 @@ Return t if file exists."
 	   (signal 'file-error (list "Cannot open load file" file)))
     ;; Read file with code conversion, and then eval.
     (let* ((buffer
-	    ;; To avoid any autoloading, set default-major-mode to
-	    ;; fundamental-mode.
-	    (let ((default-major-mode 'fundamental-mode))
-	      ;; We can't use `generate-new-buffer' because files.el
-	      ;; is not yet loaded.
-	      (get-buffer-create (generate-new-buffer-name " *load*"))))
+            ;; We can't use `generate-new-buffer' because files.el
+            ;; is not yet loaded.
+            (get-buffer-create (generate-new-buffer-name " *load*")))
 	   (load-in-progress t)
 	   (source (save-match-data (string-match "\\.el\\'" fullname))))
       (unless nomessage

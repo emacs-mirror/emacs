@@ -785,9 +785,7 @@ Otherwise returns the library directory name, if that is defined."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (let (;; avoid bugs when syntax of `.' changes in various default modes
-	(default-major-mode 'fundamental-mode)
-	(default-directory (or (and (boundp 'temporary-file-directory)
+  (let ((default-directory (or (and (boundp 'temporary-file-directory)
 				    temporary-file-directory)
 			       default-directory))
 	result status ispell-program-version)
@@ -814,7 +812,7 @@ Otherwise returns the library directory name, if that is defined."
 	    (message "%s" result))
 	;; return library directory.
 	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
-	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
+	    (setq result (match-string 1))))
       (goto-char (point-min))
       (if (not (memq status '(0 nil)))
 	  (error "%s exited with %s %s" ispell-program-name
@@ -839,7 +837,8 @@ Otherwise returns the library directory name, if that is defined."
 		       (match-string 1)))
 	    (setq ispell-really-hunspell
 		  (and (search-forward-regexp
-			"(but really Hunspell \\([0-9]+\\.[0-9\\.-]+\\)?)" nil t)
+			"(but really Hunspell \\([0-9]+\\.[0-9\\.-]+\\)?)"
+                        nil t)
 		       (match-string 1)))))
 
       (let ((aspell-minver    "0.50")
@@ -887,10 +886,9 @@ Otherwise returns the library directory name, if that is defined."
 
 
 
-;;; The preparation of the menu bar menu must be autoloaded
-;;; because otherwise this file gets autoloaded every time Emacs starts
-;;; so that it can set up the menus and determine keyboard equivalents.
-
+;; The preparation of the menu bar menu must be autoloaded
+;; because otherwise this file gets autoloaded every time Emacs starts
+;; so that it can set up the menus and determine keyboard equivalents.
 
 ;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu.")
@@ -1553,14 +1551,12 @@ This allows it to improve the suggestion list based on actual misspellings."
 	  ;; The following commands are not passed to Ispell until
 	  ;; we have a *real* reason to invoke it.
 	  (cmds-to-defer '(?* ?@ ?~ ?+ ?- ?! ?%))
-	  (default-major-mode 'fundamental-mode)
 	  (session-buf ispell-session-buffer)
 	  (output-buf ispell-output-buffer)
 	  (ispell-args ispell-cmd-args)
 	  (defdir ispell-process-directory)
 	  prev-pos)
-      (save-excursion
-	(set-buffer session-buf)
+      (with-current-buffer session-buf
 	(setq prev-pos (point))
 	(setq default-directory defdir)
 	(insert string)

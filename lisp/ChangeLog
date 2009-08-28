@@ -1,3 +1,13 @@
+2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-check-version, ispell-send-string):
+	* international/mule.el (load-with-code-conversion):
+	* emacs-lisp/debug.el (debug):
+	* ediff-vers.el (ediff-rcs-get-output-buffer):
+	* dired.el (dired-internal-noselect): Don't let-bind
+	default-major-mode around code that doesn't use it.
+	E.g. buffer creation via get-buffer-create doesn't use it.
+
 2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (all): Replace "'(lambda" by "(lambda".
@@ -13,19 +23,19 @@
 	(tramp-root-regexp, tramp-completion-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Use \\` and \\'.
-	(tramp-handle-file-attributes, tramp-set-file-uid-gid): Don't
-	modify last-coding-system-used by accident.
+	(tramp-handle-file-attributes, tramp-set-file-uid-gid):
+	Don't modify last-coding-system-used by accident.
 	(tramp-completion-file-name-handler): Apply the checks here,
 	instead during registration.
 	(tramp-register-file-name-handlers) Renamed from
 	`tramp-register-file-name-handler'.  Register both
 	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
-	(tramp-register-completion-file-name-handler): Removed.  (Bug#4260)
+	(tramp-register-completion-file-name-handler): Remove.  (Bug#4260)
 
 2009-08-28  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-mi.el (gdb-use-separate-io-buffer): Remove
-	variable ...
+	* progmodes/gdb-mi.el (gdb-use-separate-io-buffer):
+	Remove variable ...
 	(gdb-init-1, gdb-display-separate-io-buffer)
 	(gdb-frame-separate-io-buffer, gdb-setup-windows): ... and
 	references to it.
@@ -183,11 +193,12 @@
 	(vc-rcs-checkout, vc-rcs-rollback): Adjust for the vc-rcs-trunk-p
 	renaming.
 	(vc-rcs-trunk-p, vc-rcs-minor-part, vc-rcs-previous-revision)
-	(vc-rcs-next-revision, vc-rcs-update-changelog): Moved here from
+	(vc-rcs-next-revision, vc-rcs-update-changelog): Move here from
 	vc.el, renamed to be RCS specific.
 
-	* vc-cvs.el (vc-cvs-previous-revision, vc-cvs-next-revision): New functions.
-	(vc-cvs-update-changelog): Moved here from vc.el.
+	* vc-cvs.el (vc-cvs-previous-revision, vc-cvs-next-revision):
+	New functions.
+	(vc-cvs-update-changelog): Move here from vc.el.
 
 	* vc-sccs.el (vc-sccs-previous-revision, vc-sccs-next-revision):
 	New functions.
@@ -231,8 +242,8 @@
 	(parse-time-rules, rmail-output-file-alist)
 	(special-display-buffer-names, vc-mode):
 	Move risky declarations to the relevant files.
-	* bindings.el (mode-line-client, mode-line-mule-info, mode-line-process)
-	(mode-line-modified, mode-line-remote, mode-line-position)
+	* bindings.el (mode-line-client, mode-line-mule-info, mode-line-remote)
+	(mode-line-modified, mode-line-process, mode-line-position)
 	(mode-line-modes, mode-line-buffer-identification, minor-mode-alist)
 	* font-core.el (font-lock-defaults):
 	* format.el (format-alist):
@@ -393,8 +404,8 @@
 	(decomposition-char-recursively, alist-list-to-vector, quick-check-list)
 	(quick-check-list-to-regexp): Declare.
 
-	* progmodes/make-mode.el (makefile-browser-insert-selection): Use
-	goto-char rather than goto-line.
+	* progmodes/make-mode.el (makefile-browser-insert-selection):
+	Use goto-char rather than goto-line.
 
 	* progmodes/prolog.el (compilation-error-regexp-alist)
 	(compilation-forget-errors): Declare.

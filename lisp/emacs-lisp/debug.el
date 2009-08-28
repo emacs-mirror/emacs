@@ -119,8 +119,7 @@ first will be printed into the backtrace buffer."
     (let (debugger-value
 	  (debug-on-error nil)
 	  (debug-on-quit nil)
-	  (debugger-buffer (let ((default-major-mode 'fundamental-mode))
-			     (get-buffer-create "*Backtrace*")))
+	  (debugger-buffer (get-buffer-create "*Backtrace*"))
 	  (debugger-old-buffer (current-buffer))
 	  (debugger-step-after-exit nil)
           (debugger-will-be-back nil)

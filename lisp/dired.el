@@ -765,23 +765,14 @@ for a remote directory.  This feature is used by Auto Revert Mode."
   ;; like find-file does.
   ;; Optional argument MODE is passed to dired-find-buffer-nocreate,
   ;; see there.
-  (let* (dirname
-	 buffer
-	 ;; note that buffer already is in dired-mode, if found
-	 new-buffer-p
-	 (old-buf (current-buffer)))
-    (if (consp dir-or-list)
-	(setq dirname (car dir-or-list))
-      (setq dirname dir-or-list))
-    ;; Look for an existing buffer.
-    (setq buffer (dired-find-buffer-nocreate dirname mode)
-	  new-buffer-p (null buffer))
+  (let* ((old-buf (current-buffer))
+	 (dirname (if (consp dir-or-list) (car dir-or-list) dir-or-list))
+         ;; Look for an existing buffer.
+         (buffer (dired-find-buffer-nocreate dirname mode))
+	 ;; Note that buffer already is in dired-mode, if found.
+	 (new-buffer-p (null buffer)))
     (or buffer
-	(let ((default-major-mode 'fundamental-mode))
-	  ;; We don't want default-major-mode to run hooks and set auto-fill
-	  ;; or whatever, now that dired-mode does not
-	  ;; kill-all-local-variables any longer.
-	  (setq buffer (create-file-buffer (directory-file-name dirname)))))
+        (setq buffer (create-file-buffer (directory-file-name dirname))))
     (set-buffer buffer)
     (if (not new-buffer-p)		; existing buffer ...
 	(cond (switches			; ... but new switches
