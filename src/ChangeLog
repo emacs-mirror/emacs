@@ -22,7 +22,7 @@
 	character.
 
 	* cmds.c (Fself_insert_command): Avoid unnecessay
-	unibyte->multibyte conversion.
+	unibyte->multibyte conversion.  (Bug#4240)  (Bug#4037)
 
 2009-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
