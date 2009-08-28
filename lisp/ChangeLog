@@ -1,5 +1,11 @@
 2009-08-28  Juanma Barranquero  <lekktu@gmail.com>
 
+	* arc-mode.el (archive-mode):
+	* emacs-lisp/re-builder.el (re-builder-unload-function):
+	Protect against the default value of `major-mode' being nil.
+
+2009-08-28  Juanma Barranquero  <lekktu@gmail.com>
+
 	* international/ucs-normalize.el (ucs-normalize-sort, quick-check-list):
 	Fix typos in docstrings.
 
