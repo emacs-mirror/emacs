@@ -498,9 +498,6 @@ Also display the main routine in the disassembly buffer if present."
   :group 'gdb
   :version "22.1")
 
-; Note: This mode requires a separate buffer for inferior IO.
-(defconst gdb-use-separate-io-buffer t)
-
 (defun gdb-force-mode-line-update (status)
   (let ((buffer gud-comint-buffer))
     (if (and buffer (buffer-name buffer))
@@ -792,15 +789,15 @@ detailed description of this mode.
   ;;
   (gdb-force-mode-line-update
    (propertize "initializing..." 'face font-lock-variable-name-face))
-  (when gdb-use-separate-io-buffer
-    (gdb-get-buffer-create 'gdb-inferior-io)
-    (gdb-clear-inferior-io)
-    (set-process-filter (get-process "gdb-inferior") 'gdb-inferior-filter)
-    (gdb-input
-     ;; Needs GDB 6.4 onwards
-     (list (concat "-inferior-tty-set "
-		   (process-tty-name (get-process "gdb-inferior")))
-	   'ignore)))
+
+  (gdb-get-buffer-create 'gdb-inferior-io)
+  (gdb-clear-inferior-io)
+  (set-process-filter (get-process "gdb-inferior") 'gdb-inferior-filter)
+  (gdb-input
+   ;; Needs GDB 6.4 onwards
+   (list (concat "-inferior-tty-set "
+		 (process-tty-name (get-process "gdb-inferior")))
+	 'ignore))
   (if (eq window-system 'w32)
       (gdb-input (list "-gdb-set new-console off" 'ignore)))
   (gdb-input (list "-gdb-set height 0" 'ignore))
@@ -1325,7 +1322,8 @@ DOC is an optional documentation string."
       (gdb-get-buffer-create ,buffer thread) t)))
 
 ;; Used to display windows with thread-bound buffers
-(defmacro def-gdb-preempt-display-buffer (name buffer &optional doc split-horizontal)
+(defmacro def-gdb-preempt-display-buffer (name buffer &optional doc
+					       split-horizontal)
   `(defun ,name (&optional thread)
      ,(when doc doc)
      (message thread)
@@ -1401,9 +1399,8 @@ DOC is an optional documentation string."
 (defun gdb-display-separate-io-buffer ()
   "Display IO of debugged program in a separate window."
   (interactive)
-  (if gdb-use-separate-io-buffer
-      (gdb-display-buffer
-       (gdb-get-buffer-create 'gdb-inferior-io) t)))
+  (gdb-display-buffer
+   (gdb-get-buffer-create 'gdb-inferior-io) t))
 
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
@@ -1415,10 +1412,9 @@ DOC is an optional documentation string."
 (defun gdb-frame-separate-io-buffer ()
   "Display IO of debugged program in a new frame."
   (interactive)
-  (if gdb-use-separate-io-buffer
-      (let ((special-display-regexps (append special-display-regexps '(".*")))
-	    (special-display-frame-alist gdb-frame-parameters))
-	(display-buffer (gdb-get-buffer-create 'gdb-inferior-io)))))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-buffer-create 'gdb-inferior-io))))
 
 (defvar gdb-inferior-io-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1429,20 +1425,22 @@ DOC is an optional documentation string."
     (define-key map "\C-d" 'gdb-separate-io-eof)
     map))
 
+;; We want to use comint because it has various nifty and familiar features.
 (define-derived-mode gdb-inferior-io-mode comint-mode "Inferior I/O"
-  "Major mode for gdb inferior-io."
+  "Major mode for gdb inferior-io.
+
+The following commands are available:
+\\{gdb-inferior-io-mode-map}"
+
   :syntax-table nil :abbrev-table nil
-  ;; We want to use comint because it has various nifty and familiar features.
-  (start-process "gdb-inferior" 
-;;		 (concat "*input/output of " (gdb-get-target-string) "*")
-		 (current-buffer)
-		 nil))
+
+(make-comint-in-buffer "gdb-inferior" (current-buffer)  nil))
 
 (defun gdb-inferior-filter (proc string)
   (unless (string-equal string "")
     (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io) t))
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
-    (insert-before-markers string)))
+    (comint-output-filter proc string)))
 
 (defun gdb-separate-io-interrupt ()
   "Interrupt the program being debugged."
@@ -3949,11 +3947,10 @@ window is dedicated."
 	   ;; can't find a source file.
 	   (list-buffers-noselect))))
   (setq gdb-source-window (selected-window))
-  (when gdb-use-separate-io-buffer
-    (split-window-horizontally)
-    (other-window 1)
-    (gdb-set-window-buffer
-     (gdb-get-buffer-create 'gdb-inferior-io)))
+  (split-window-horizontally)
+  (other-window 1)
+  (gdb-set-window-buffer
+   (gdb-get-buffer-create 'gdb-inferior-io))
   (other-window 1)
   (gdb-set-window-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
