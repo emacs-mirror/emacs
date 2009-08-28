@@ -1,3 +1,14 @@
+2009-08-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-use-separate-io-buffer): Remove
+	variable ...
+	(gdb-init-1, gdb-display-separate-io-buffer)
+	(gdb-frame-separate-io-buffer, gdb-setup-windows): ... and
+	references to it.
+	(gdb-inferior-io-mode): Use make-comint-in-buffer.
+	(gdb-inferior-filter): Use comint-output-filter to stop
+	echoing and remove ^M characters.
+
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/viper-init.el (viper-restore-cursor-type):
