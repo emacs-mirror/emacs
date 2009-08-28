@@ -73,9 +73,12 @@ source while in the midst of loading another file (e.g., with
 to be corrupted once the outer load completed.  Most code doesn't care
 about this, but some (like c-mode) may check it.
 
-** FIXME save-interprogram-paste-before-kill
+** When `save-interprogram-paste-before-kill' is non-nil, emacs will not
+clobber the the interprogram paste when something is killed in it by
+saving the former in the `kill-ring' before the latter.
 
-** FIXME kill-do-not-save-duplicates
+** When `kill-do-not-save-duplicates' is non-nil, identical subsequent
+kills are not duplicated in the `kill-ring'.
 
 ** File-local variable changes
 
