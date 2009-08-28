@@ -586,7 +586,8 @@ static void *testscriptB(void *arg, size_t s)
   mps_chain_t chain;
   mps_pool_t amc;
   int i;
-  mps_root_t root_table;
+  mps_root_t root_table_Ambig;
+  mps_root_t root_table_Exact;
   mps_ap_t ap;
   mps_root_t root_stackreg;
   void *stack_starts_here;  /* stack scanning starts here */
@@ -605,14 +606,14 @@ static void *testscriptB(void *arg, size_t s)
   for(i = 0; i < myrootAmbigCOUNT; ++i) {
     myrootAmbig[i] = NULL;
   }
-  die(mps_root_create_table(&root_table, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
+  die(mps_root_create_table(&root_table_Ambig, arena, MPS_RANK_AMBIG, (mps_rm_t)0,
                             myrootAmbig, (size_t)myrootAmbigCOUNT),
       "root_create - ambig");
 
   for(i = 0; i < myrootExactCOUNT; ++i) {
     myrootExact[i] = NULL;
   }
-  die(mps_root_create_table(&root_table, arena, MPS_RANK_EXACT, (mps_rm_t)0,
+  die(mps_root_create_table(&root_table_Exact, arena, MPS_RANK_EXACT, (mps_rm_t)0,
                             myrootExact, (size_t)myrootExactCOUNT),
       "root_create - exact");
 
@@ -633,7 +634,8 @@ static void *testscriptB(void *arg, size_t s)
 
   mps_root_destroy(root_stackreg);
   mps_ap_destroy(ap);
-  mps_root_destroy(root_table);
+  mps_root_destroy(root_table_Exact);
+  mps_root_destroy(root_table_Ambig);
   mps_pool_destroy(amc);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
