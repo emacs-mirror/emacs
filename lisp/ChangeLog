@@ -1,3 +1,9 @@
+2009-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries, diary-goto-entry)
+	(diary-show-all-entries, diary-mark-entries, diary-make-entry):
+	Use default-value of major-mode rather than default-major-mode.
+
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (update-elcfiles): Report left over elc files.
