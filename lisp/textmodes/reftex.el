@@ -2063,11 +2063,11 @@ When DIE is non-nil, throw an error if file not found."
              ;;       with limited Magic
 
              ;; The magic goes away
-             (let ((format-alist nil)
-                   (auto-mode-alist (reftex-auto-mode-alist))
-                   (default-major-mode 'fundamental-mode)
-                   (enable-local-variables nil)
-                   (after-insert-file-functions nil))
+             (letf ((format-alist nil)
+                    (auto-mode-alist (reftex-auto-mode-alist))
+                    ((default-value 'major-mode) 'fundamental-mode)
+                    (enable-local-variables nil)
+                    (after-insert-file-functions nil))
                (setq buf (find-file-noselect file)))
 
              ;; Is there a hook to run?

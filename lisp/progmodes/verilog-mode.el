@@ -4136,18 +4136,18 @@ This lets programs calling batch mode to easily extract error messages."
 (defun verilog-batch-execute-func (funref)
   "Internal processing of a batch command, running FUNREF on all command arguments."
   (verilog-batch-error-wrapper
+   ;; !!! FIXME: Setting global variables like that is *VERY NASTY* !!!  --Stef
    ;; General globals needed
    (setq make-backup-files nil)
    (setq-default make-backup-files nil)
    (setq enable-local-variables t)
    (setq enable-local-eval t)
    ;; Make sure any sub-files we read get proper mode
-   (setq default-major-mode `verilog-mode)
+   (setq-default major-mode 'verilog-mode)
    ;; Ditto files already read in
    (mapc (lambda (buf)
 	   (when (buffer-file-name buf)
-	     (save-excursion
-	       (set-buffer buf)
+	     (with-current-buffer buf
 	       (verilog-mode))))
 	 (buffer-list))
    ;; Process the files

@@ -277,7 +277,7 @@ searching for `mh-mail-header-separator' in the buffer."
 ;; Shush compiler.
 (defvar font-lock-defaults)             ; XEmacs
 
-;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
 
 ;;;###mh-autoload

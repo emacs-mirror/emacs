@@ -1308,24 +1308,24 @@ to advanced Emacs features, such as file-name-handlers, format decoding,
 `find-file-hooks', etc.
 If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
   This function ensures that none of these modifications will take place."
-  (let* ((format-alist nil)
-	 (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
-	 (default-major-mode 'fundamental-mode)
-	 (enable-local-variables nil)
-	 (after-insert-file-functions nil)
-	 (enable-local-eval nil)
-	 (inhibit-file-name-operation (if inhibit
-					  'insert-file-contents
-					inhibit-file-name-operation))
-	 (inhibit-file-name-handlers
-	  (if inhibit
-	      (append mm-inhibit-file-name-handlers
-		      inhibit-file-name-handlers)
-	    inhibit-file-name-handlers))
-	 (ffh (if (boundp 'find-file-hook)
-		  'find-file-hook
-		'find-file-hooks))
-	 (val (symbol-value ffh)))
+  (letf* ((format-alist nil)
+          (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
+          ((default-value 'major-mode) 'fundamental-mode)
+          (enable-local-variables nil)
+          (after-insert-file-functions nil)
+          (enable-local-eval nil)
+          (inhibit-file-name-operation (if inhibit
+                                           'insert-file-contents
+                                         inhibit-file-name-operation))
+          (inhibit-file-name-handlers
+           (if inhibit
+               (append mm-inhibit-file-name-handlers
+                       inhibit-file-name-handlers)
+             inhibit-file-name-handlers))
+          (ffh (if (boundp 'find-file-hook)
+                   'find-file-hook
+                 'find-file-hooks))
+          (val (symbol-value ffh)))
     (set ffh nil)
     (unwind-protect
 	(insert-file-contents filename visit beg end replace)

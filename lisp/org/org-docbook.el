@@ -9,7 +9,7 @@
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
 ;; Description: Converts an org-mode buffer into DocBook
-;; $Id: org-docbook.el,v 1.2 2009/08/08 02:33:22 gm Exp $
+;; $Id: org-docbook.el,v 1.3 2009/08/08 12:18:56 cdominik Exp $
 ;; URL:
 
 ;; This file is part of GNU Emacs.
@@ -1102,7 +1102,7 @@ publishing directory."
 
       (unless (plist-get opt-plist :buffer-will-be-killed)
 	(normal-mode)
-	(if (eq major-mode default-major-mode)
+	(if (eq major-mode (default-value 'major-mode))
 	    (nxml-mode)))
 
       ;; Remove empty paragraphs and lists.  Replace them with a

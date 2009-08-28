@@ -1,3 +1,9 @@
+2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-html.el (org-export-as-html):
+	* org-docbook.el (org-export-as-docbook):
+	Use (default-value 'major-mode) instead of default-major-mode.
+
 2009-08-08  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-docbook.el: Add arch-tag.

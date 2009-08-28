@@ -1,3 +1,9 @@
+2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnheader.el (nnheader-find-file-noselect):
+	* mm-util.el (mm-insert-file-contents):
+	Use (default-value 'major-mode) instead of default-major-mode.
+
 2009-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnrss.el (nnrss-request-article): Avoid default-fill-column.

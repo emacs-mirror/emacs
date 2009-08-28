@@ -42,6 +42,7 @@
 ;;; Code:
 
 (require 'eldoc)
+(eval-when-compile (require 'cl))
 
 ;;
 ;; vars here
@@ -365,8 +366,8 @@ and edit the file in `hexl-mode'."
    (list
     (let ((completion-ignored-extensions nil))
       (read-file-name "Filename: " nil nil 'ret-must-match))))
-  ;; Ignore the user's setting of default-major-mode.
-  (let ((default-major-mode 'fundamental-mode))
+  ;; Ignore the user's setting of default major-mode.
+  (letf (((default-value 'major-mode) 'fundamental-mode))
     (find-file-literally filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))

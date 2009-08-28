@@ -128,7 +128,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (("/bin/.*[^/]\\'" . "Shell-Script mode magic number")
      lambda ()
-       (if (eq major-mode default-major-mode)
+       (if (eq major-mode (default-value 'major-mode))
 	 (sh-mode)))
 
     (ada-mode . ada-header)

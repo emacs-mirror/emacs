@@ -720,7 +720,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
       (remove-hook 'kill-buffer-hook 'reb-kill-buffer t)
       (when (reb-mode-buffer-p)
 	(reb-delete-overlays)
-	(funcall default-major-mode))))
+	(funcall (default-value 'major-mode)))))
   ;; continue standard unloading
   nil)
 

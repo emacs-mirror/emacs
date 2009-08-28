@@ -1,5 +1,18 @@
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/reftex.el (reftex-get-file-buffer-force):
+	* progmodes/verilog-mode.el (verilog-batch-execute-func):
+	* emulation/viper.el (viper-go-away, viper-set-hooks):
+	* emacs-lisp/re-builder.el (re-builder-unload-function):
+	* emacs-lisp/bytecomp.el (byte-compile-file):
+	* ses.el (ses-unload-function):
+	* hexl.el (hexl-find-file):
+	* files.el (normal-mode):
+	* ehelp.el (with-electric-help):
+	* autoinsert.el (auto-insert-alist):
+	* arc-mode.el (archive-mode):
+	Use (default-value 'major-mode) instead of default-major-mode.
+
 	* textmodes/ispell.el (ispell-check-version, ispell-send-string):
 	* international/mule.el (load-with-code-conversion):
 	* emacs-lisp/debug.el (debug):

@@ -638,7 +638,7 @@ archive.
   ;; mode on and off.  You can corrupt things that way.
   (if (zerop (buffer-size))
       ;; At present we cannot create archives from scratch
-      (funcall default-major-mode)
+      (funcall (default-value 'major-mode))
     (if (and (not force) archive-files) nil
       (let* ((type (archive-find-type))
 	     (typename (capitalize (symbol-name type))))

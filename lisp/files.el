@@ -2100,7 +2100,7 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (funcall (or default-major-mode 'fundamental-mode))
+  (funcall (or (default-value 'major-mode) 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
