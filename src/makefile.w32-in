@@ -182,24 +182,26 @@ $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 
 # These omit firstfile.${O}, but there's no documentation in there
 # anyways.
-$(SRC)/buildobj.h: $(SRC)/makefile.w32-in
+buildobj.h: $(SRC)/makefile.w32-in
 	$(MAKE) $(MFLAGS) make-buildobj-$(SHELLTYPE)
 
+# Cannot have blanks between the backslash and the redirection
+# characters, because CMD's `echo' will put them in buildobj.h.
 make-buildobj-CMD:
-	echo #define BUILDOBJ ^"\> $(SRC)/buildobj.h
-	echo $(OBJ0)            \>> $(SRC)/buildobj.h
-	echo $(OBJ1)            \>> $(SRC)/buildobj.h
-	echo $(WIN32OBJ)        \>> $(SRC)/buildobj.h
-	echo $(FONTOBJ)         \>> $(SRC)/buildobj.h
-	echo ^">> $(SRC)/buildobj.h
+	echo #define BUILDOBJ ^"\> buildobj.h
+	echo $(OBJ0)            \>> buildobj.h
+	echo $(OBJ1)            \>> buildobj.h
+	echo $(WIN32OBJ)        \>> buildobj.h
+	echo $(FONTOBJ)         \>> buildobj.h
+	echo ^">> buildobj.h
 
 make-buildobj-SH:
-	echo '#define BUILDOBJ $(DQUOTE)\'  > $(SRC)/buildobj.h
-	echo $(OBJ0)                   '\' >> $(SRC)/buildobj.h
-	echo $(OBJ1)                   '\' >> $(SRC)/buildobj.h
-	echo $(WIN32OBJ)               '\' >> $(SRC)/buildobj.h
-	echo $(FONTOBJ)                '\' >> $(SRC)/buildobj.h
-	echo '$(DQUOTE)'                   >> $(SRC)/buildobj.h
+	echo '#define BUILDOBJ $(DQUOTE)\'  > buildobj.h
+	echo $(OBJ0)                   '\' >> buildobj.h
+	echo $(OBJ1)                   '\' >> buildobj.h
+	echo $(WIN32OBJ)               '\' >> buildobj.h
+	echo $(FONTOBJ)                '\' >> buildobj.h
+	echo '$(DQUOTE)'                   >> buildobj.h
 
 bootstrap: bootstrap-emacs
 
@@ -597,7 +599,7 @@ $(BLD)/dispnew.$(O) : \
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
 	$(CONFIG_H) \
-	$(SRC)/buildobj.h \
+	buildobj.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
