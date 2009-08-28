@@ -1,3 +1,13 @@
+2009-08-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (print_load_command_name) [LC_DYLD_INFO]: Add cases
+	LC_DYLD_INFO and LC_DYLD_INFO_ONLY.
+	(copy_data_segment): Also copy __program_vars section.
+	(copy_dyld_info) [LC_DYLD_INFO]: New function.
+	(dump_it) [LC_DYLD_INFO]: Use it.
+
+	* s/darwin.h [temacs]: Undef HAVE_POSIX_MEMALIGN.
+
 2009-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/doc.$(O)): Depend on buildobj.h, not on
