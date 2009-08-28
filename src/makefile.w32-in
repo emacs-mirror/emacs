@@ -280,6 +280,7 @@ clean:
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD
+	- $(DEL) buildobj.h
 
 distclean:	cleanall
 	- $(DEL) config.h epaths.h Makefile
