@@ -2402,6 +2402,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 
 (defvar magic-fallback-mode-alist
   `((image-type-auto-detected-p . image-mode)
+    ("\\(PK00\\)?[P]K\003\004" . archive-mode) ; zip
     ;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
     ;; We use [ \t\r\n] instead of `\\s ' to make regex overflow less likely.
