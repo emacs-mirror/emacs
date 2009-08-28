@@ -931,7 +931,7 @@ This function uses `mail-envelope-from'."
 ;;;###autoload
 (defvar sendmail-coding-system nil
   "*Coding system for encoding the outgoing mail.
-This has higher priority than `default-buffer-file-coding-system'
+This has higher priority than the default `buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-message-coding-system'.")
@@ -1509,7 +1509,7 @@ and don't delete any header fields."
 	    (insert-buffer original)
 	    ;; If they yank the original text, the encoding of the
 	    ;; original message is a better default than
-	    ;; default-buffer-file-coding-system.
+	    ;; the default buffer-file-coding-system.
 	    (and (coding-system-equal
 		  (default-value 'buffer-file-coding-system)
 		  buffer-file-coding-system)
@@ -1855,7 +1855,7 @@ The seventh argument ACTIONS is a list of actions to take
 	      ;; TRT, or the user will get prompted for the right
 	      ;; encoding when they send the message.
 	      (setq buffer-file-coding-system
-		    default-buffer-file-coding-system))))))))
+		    (default-value 'buffer-file-coding-system)))))))))
 
 (declare-function dired-move-to-filename "dired" (&optional raise-error eol))
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))

@@ -102,7 +102,7 @@ and whether the file exists:
     If the match is nil (for dos-text):			`undecided-dos'
   Otherwise:
     If the file exists:					`undecided'
-    If the file does not exist:	       default-buffer-file-coding-system
+    If the file does not exist   default value of `buffer-file-coding-system'
 
 Note that the CAR of arguments to `insert-file-contents' operation could
 be a cons cell of the form \(FILENAME . BUFFER\), where BUFFER is a buffer
@@ -169,8 +169,8 @@ set to the appropriate coding system, and the value of
 		 (text '(undecided-dos . undecided-dos))
 		 (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
-		 (t (cons default-buffer-file-coding-system
-			  default-buffer-file-coding-system))))
+		 (t (cons (default-value 'buffer-file-coding-system)
+			  (default-value 'buffer-file-coding-system)))))
 	  ((eq op 'write-region)
 	   (if buffer-file-coding-system
 	       (cons buffer-file-coding-system

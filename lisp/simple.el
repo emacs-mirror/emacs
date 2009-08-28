@@ -999,7 +999,7 @@ in *Help* buffer.  See also the command `describe-char'."
 	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
-	    (setq coding default-buffer-file-coding-system))
+	    (setq coding (default-value 'buffer-file-coding-system)))
 	(if (eq (char-charset char) 'eight-bit)
 	    (setq encoding-msg
 		  (format "(%d, #o%o, #x%x, raw-byte)" char char char))

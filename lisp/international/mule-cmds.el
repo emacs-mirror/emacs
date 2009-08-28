@@ -813,7 +813,7 @@ between FROM and TO are shown in a popup window.  Among them, the most
 proper one is suggested as the default.
 
 The list of `buffer-file-coding-system' of the current buffer, the
-`default-buffer-file-coding-system', and the most preferred coding
+default `buffer-file-coding-system', and the most preferred coding
 system (if it corresponds to a MIME charset) is treated as the
 default coding system list.  Among them, the first one that safely
 encodes the text is normally selected silently and returned without
@@ -829,7 +829,7 @@ Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
 list.  However, if DEFAULT-CODING-SYSTEM is a list and the first
 element is t, the cdr part is used as the default coding system list,
-i.e. `buffer-file-coding-system', `default-buffer-file-coding-system',
+i.e. current `buffer-file-coding-system', default `buffer-file-coding-system',
 and the most preferred coding system are not used.
 
 Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
@@ -908,16 +908,18 @@ It is highly recommended to fix it before writing to a file."
 
       (unless (and buffer-file-coding-system-explicit
 		   (cdr buffer-file-coding-system-explicit))
-	;; If default-buffer-file-coding-system is not nil nor undecided,
+	;; If default buffer-file-coding-system is not nil nor undecided,
 	;; append it to the defaults.
-	(if default-buffer-file-coding-system
-	    (let ((base (coding-system-base default-buffer-file-coding-system)))
-	      (or (eq base 'undecided)
-		  (rassq base default-coding-system)
-		  (setq default-coding-system
-			(append default-coding-system
-				(list (cons default-buffer-file-coding-system
-					    base)))))))
+	(when (default-value 'buffer-file-coding-system)
+          (let ((base (coding-system-base
+                       (default-value 'buffer-file-coding-system))))
+            (or (eq base 'undecided)
+                (rassq base default-coding-system)
+                (setq default-coding-system
+                      (append default-coding-system
+                              (list (cons (default-value
+                                            'buffer-file-coding-system)
+                                          base)))))))
 
 	;; If the most preferred coding system has the property mime-charset,
 	;; append it to the defaults.
@@ -935,17 +937,18 @@ It is highly recommended to fix it before writing to a file."
 	(setq accept-default-p select-safe-coding-system-accept-default-p))
 
     ;; Decide the eol-type from the top of the default codings,
-    ;; buffer-file-coding-system, or
-    ;; default-buffer-file-coding-system.
+    ;; current buffer-file-coding-system, or default buffer-file-coding-system.
     (if default-coding-system
 	(let ((default-eol-type (coding-system-eol-type
 				 (caar default-coding-system))))
 	  (if (and (vectorp default-eol-type) buffer-file-coding-system)
 	      (setq default-eol-type (coding-system-eol-type
 				      buffer-file-coding-system)))
-	  (if (and (vectorp default-eol-type) default-buffer-file-coding-system)
-	      (setq default-eol-type (coding-system-eol-type
-				      default-buffer-file-coding-system)))
+	  (if (and (vectorp default-eol-type)
+                   (default-value 'buffer-file-coding-system))
+	      (setq default-eol-type
+                    (coding-system-eol-type
+                     (default-value 'buffer-file-coding-system))))
 	  (if (and default-eol-type (not (vectorp default-eol-type)))
 	      (dolist (elt default-coding-system)
 		(setcar elt (coding-system-change-eol-conversion
@@ -1032,7 +1035,7 @@ in this order:
   (1) local value of `buffer-file-coding-system'
   (2) value of `sendmail-coding-system'
   (3) value of `default-sendmail-coding-system'
-  (4) value of `default-buffer-file-coding-system'
+  (4) default value of `buffer-file-coding-system'
 If the found coding system can't encode the current buffer,
 or none of them are bound to a coding system,
 it asks the user to select a proper coding system."
@@ -1040,7 +1043,7 @@ it asks the user to select a proper coding system."
 			  buffer-file-coding-system)
 		     sendmail-coding-system
 		     default-sendmail-coding-system
-		     default-buffer-file-coding-system)))
+		     (default-value 'buffer-file-coding-system))))
     (if (eq coding 'no-conversion)
 	;; We should never use no-conversion for outgoing mail.
 	(setq coding nil))
@@ -1954,9 +1957,9 @@ See `set-language-info-alist' for use in programs."
   "Do various coding system setups for language environment LANGUAGE-NAME."
   (let* ((priority (get-language-info language-name 'coding-priority))
 	 (default-coding (car priority))
-	 ;; If default-buffer-file-coding-system is nil, don't use
+	 ;; If the default buffer-file-coding-system is nil, don't use
 	 ;; coding-system-eol-type, because it treats nil as
-	 ;; `no-conversion'.  default-buffer-file-coding-system is set
+	 ;; `no-conversion'.  The default buffer-file-coding-system is set
 	 ;; to nil by reset-language-environment, and in that case we
 	 ;; want to have here the native EOL type for each platform.
 	 ;; FIXME: there should be a common code that runs both on
@@ -1965,13 +1968,12 @@ See `set-language-info-alist' for use in programs."
 	 ;; which works only as long as the order of loading files at
 	 ;; dump time and calling functions at startup is not modified
 	 ;; significantly, i.e. as long as this function is called
-	 ;; _after_ default-buffer-file-coding-system was set by
+	 ;; _after_ the default buffer-file-coding-system was set by
 	 ;; dos-w32.el.
 	 (eol-type
-	  (if (null default-buffer-file-coding-system)
-	      (cond ((memq system-type '(windows-nt ms-dos)) 1)
-		    (t 0))
-	    (coding-system-eol-type default-buffer-file-coding-system))))
+          (coding-system-eol-type
+           (or (default-value 'buffer-file-coding-system)
+               (if (memq system-type '(windows-nt ms-dos)) 'dos 'unix)))))
     (when priority
       (set-default-coding-systems
        (if (memq eol-type '(0 1 2 unix dos mac))
@@ -2564,7 +2566,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
 	    (default-eol-type (coding-system-eol-type
-			       default-buffer-file-coding-system))
+			       (default-value 'buffer-file-coding-system)))
 	    (coding-system
 	     (or (locale-name-match locale locale-preferred-coding-systems)
 		 (when locale

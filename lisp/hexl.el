@@ -795,7 +795,7 @@ and their encoded form is inserted byte by byte."
 	(coding (if (or (null buffer-file-coding-system)
 			;; coding-system-type equals t means undecided.
 			(eq (coding-system-type buffer-file-coding-system) t))
-		    default-buffer-file-coding-system
+		    (default-value 'buffer-file-coding-system)
 		  buffer-file-coding-system)))
     (cond ((and (> ch 0) (< ch 256))
 	   (hexl-insert-char ch num))

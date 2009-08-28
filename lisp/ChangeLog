@@ -1,5 +1,17 @@
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/sendmail.el (mail-recover-1):
+	* international/mule-diag.el (describe-current-coding-system-briefly)
+	(describe-current-coding-system):
+	* international/mule-cmds.el (select-safe-coding-system)
+	(select-message-coding-system)
+	(set-language-environment-coding-systems, set-locale-environment):
+	* hexl.el (hexl-insert-multibyte-char):
+	* dos-w32.el (find-buffer-file-type-coding-system):
+	* simple.el (what-cursor-position):
+	Replace uses of default-buffer-file-coding-system
+	with (default-value 'buffer-file-coding-system).
+
 	* emacs-lisp/edebug.el (edebug-display, edebug-outside-excursion):
 	Replace uses of default-cursor-in-non-selected-windows
 	with (default-value 'cursor-in-non-selected-windows).
