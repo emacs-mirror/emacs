@@ -1,5 +1,10 @@
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/edebug.el (edebug-display, edebug-outside-excursion):
+	Replace uses of default-cursor-in-non-selected-windows
+	with (default-value 'cursor-in-non-selected-windows).
+	Use with-current-buffer.
+
 	* mail/feedmail.el: Use CL macros.
 	(feedmail-run-the-queue, feedmail-send-it-immediately):
 	* dos-w32.el (find-buffer-file-type): Replace uses of

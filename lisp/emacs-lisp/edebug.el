@@ -352,8 +352,7 @@ Return the result of the last expression in BODY."
 	 (edebug:s-r-end (point-max-marker)))
      (unwind-protect
 	 (progn ,@body)
-       (save-excursion
-	 (set-buffer (marker-buffer edebug:s-r-beg))
+       (with-current-buffer (marker-buffer edebug:s-r-beg)
 	 (narrow-to-region edebug:s-r-beg edebug:s-r-end)))))
 
 ;;; Display
@@ -2579,15 +2578,16 @@ MSG is printed after `::::} '."
 	(edebug-outside-o-a-p overlay-arrow-position)
 	(edebug-outside-o-a-s overlay-arrow-string)
 	(edebug-outside-c-i-e-a cursor-in-echo-area)
-	(edebug-outside-d-c-i-n-s-w default-cursor-in-non-selected-windows))
+	(edebug-outside-d-c-i-n-s-w
+         (default-value 'cursor-in-non-selected-windows)))
     (unwind-protect
 	(let ((overlay-arrow-position overlay-arrow-position)
 	      (overlay-arrow-string overlay-arrow-string)
 	      (cursor-in-echo-area nil)
-	      (default-cursor-in-non-selected-windows t)
 	      (unread-command-events unread-command-events)
 	      ;; any others??
 	      )
+          (setq-default cursor-in-non-selected-windows t)
 	  (if (not (buffer-name edebug-buffer))
 	      (let ((debug-on-error nil))
 		(error "Buffer defining %s not found" edebug-function)))
@@ -2782,10 +2782,8 @@ MSG is printed after `::::} '."
 	  ;; Restore edebug-buffer's outside point.
 	  ;;    (edebug-trace "restore edebug-buffer point: %s"
 	  ;;		  edebug-buffer-outside-point)
-	  (let ((current-buffer (current-buffer)))
-	    (set-buffer edebug-buffer)
-	    (goto-char edebug-buffer-outside-point)
-	    (set-buffer current-buffer))
+	  (with-current-buffer edebug-buffer
+	    (goto-char edebug-buffer-outside-point))
 	  ;; ... nothing more.
 	  )
       (with-timeout-unsuspend edebug-with-timeout-suspend)
@@ -2794,8 +2792,8 @@ MSG is printed after `::::} '."
        unread-command-events edebug-outside-unread-command-events
        overlay-arrow-position edebug-outside-o-a-p
        overlay-arrow-string edebug-outside-o-a-s
-       cursor-in-echo-area edebug-outside-c-i-e-a
-       default-cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
+       cursor-in-echo-area edebug-outside-c-i-e-a)
+      (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
       )))
 
 
@@ -2851,8 +2849,7 @@ MSG is printed after `::::} '."
   (let ((edebug-buffer-read-only buffer-read-only)
 	;; match-data must be done in the outside buffer
 	(edebug-outside-match-data
-	 (save-excursion  ; might be unnecessary now??
-	   (set-buffer edebug-outside-buffer)  ; in case match buffer different
+	 (with-current-buffer edebug-outside-buffer ; in case match buffer different
 	   (match-data)))
 
 	;;(edebug-number-of-recursions (1+ edebug-number-of-recursions))
@@ -3605,8 +3602,8 @@ Return the result of the last expression."
 	   (overlay-arrow-position edebug-outside-o-a-p)
 	   (overlay-arrow-string edebug-outside-o-a-s)
 	   (cursor-in-echo-area edebug-outside-c-i-e-a)
-	   (default-cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
 	   )
+       (setq-default cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
        (unwind-protect
 	   (save-excursion		; of edebug-buffer
 	     (set-buffer edebug-outside-buffer)
@@ -3642,14 +3639,16 @@ Return the result of the last expression."
 	  edebug-outside-o-a-p overlay-arrow-position
 	  edebug-outside-o-a-s overlay-arrow-string
 	  edebug-outside-c-i-e-a cursor-in-echo-area
-	  edebug-outside-d-c-i-n-s-w default-cursor-in-non-selected-windows
-	  )
+	  edebug-outside-d-c-i-n-s-w (default-value
+                                       'cursor-in-non-selected-windows)
+          )
 
 	 ;; Restore the outside saved values; don't alter
 	 ;; the outside binding loci.
 	 (setcdr edebug-outside-pre-command-hook pre-command-hook)
 	 (setcdr edebug-outside-post-command-hook post-command-hook)
 
+         (setq-default cursor-in-non-selected-windows t)
 	 ))				; let
      ))
 
