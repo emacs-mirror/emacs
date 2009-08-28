@@ -36,8 +36,8 @@
 
 ;; (require 'working)
 (require 'assoc)
-(require 'semantic-tag)
-(require 'semantic-lex)
+(require 'semantic/tag)
+(require 'semantic/lex)
 
 (declare-function inversion-test "inversion")
 
@@ -66,7 +66,7 @@ introduced."
   "Faces used for Semantic enabled tools."
   :group 'semantic)
 
-(require 'semantic-fw)
+(require 'semantic/fw)
 
 ;;; Code:
 ;;
@@ -842,4 +842,4 @@ a START and END part."
 
 ;; Semantic-util is a part of the semantic API.  Include it last
 ;; because it depends on semantic.
-(require 'semantic-util)
+(require 'semantic/util)
