@@ -1,3 +1,27 @@
+2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (all): Replace "'(lambda" by "(lambda".
+	(tramp-handle-file-local-copy): Unset `file-name-handler-alist'
+	when writing the temp file.  Otherwise, epa-file gets confused.
+	(tramp-register-file-name-handlers): Make it a defun.  Move also
+	`epa-file-handler' to the front of `file-name-handler-alist'.
+
+2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/tramp.el (tramp-shell-prompt-pattern): Allow a prompt to
+	start right after a ^M.
+	(tramp-root-regexp, tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp-url): Use \\` and \\'.
+	(tramp-handle-file-attributes, tramp-set-file-uid-gid): Don't
+	modify last-coding-system-used by accident.
+	(tramp-completion-file-name-handler): Apply the checks here,
+	instead during registration.
+	(tramp-register-file-name-handlers) Renamed from
+	`tramp-register-file-name-handler'.  Register both
+	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
+	(tramp-register-completion-file-name-handler): Removed.
+
 2009-08-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-use-separate-io-buffer): Remove
