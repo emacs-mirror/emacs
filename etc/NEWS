@@ -128,8 +128,9 @@ through a menu structure.
 
 +++
 ** New connection methods in Tramp.
-On systems which support GVFS-Fuse, Tramp offers the new connection
-methods "dav", "davs", "obex" and "synce".
+The new connection method "rsyncc" has been introduced.  On systems
+which support GVFS-Fuse, Tramp offers also the new connection methods
+"dav", "davs", "obex" and "synce".
 
 +++
 ** Autorevert Tail mode
@@ -189,8 +190,14 @@ variable, are now declared obsolete.
 
 ** read-key is a function halfway between read-event and read-key-sequence.
 It reads a single key, but obeys input and escape sequence decoding.
+
 ** start-process-shell-command start-file-process-shell-command only
 take a single `command' argument any more.
+
+** The variable `process-file-side-effects' shall be bound to nil, if
+a `process-file' call does not change a remote file.  By this, file
+name handlers like Tramp can apply optimizations.
+
 ** Hash tables have a new printed representation that is readable.
 The feature `hashtable-print-readable' identifies this new
 functionality.
