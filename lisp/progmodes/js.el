@@ -98,8 +98,8 @@ name.")
   (concat "^\\s-*?\\(" js--dotted-name-re "\\)\\.prototype"
           "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
   "Regexp matching an explicit JavaScript prototype \"method\" declaration.
-Group 1 is a (possibly-dotted) class name, group 2 is a method
-name, and group 3 is the 'function' keyword." )
+Group 1 is a (possibly-dotted) class name, group 2 is a method name,
+and group 3 is the 'function' keyword.")
 
 (defconst js--plain-class-re
   (concat "^\\s-*\\(" js--dotted-name-re "\\)\\.prototype"
@@ -227,14 +227,14 @@ A class definition style is a plist with the following keys:
 :name is a human-readable name of the class type
 
 :class-decl is a regular expression giving the start of the
-class. Its first group must match the name of its class. If there
-is a parent class, the second group should match, and it should
-be the name of the class.
+class.  Its first group must match the name of its class.  If there
+is a parent class, the second group should match, and it should be
+the name of the class.
 
 If :prototype is present and non-nil, the parser will merge
 declarations for this constructs with others at the same lexical
-level that have the same name. Otherwise, multiple definitions
-will create multiple top-level entries. Don't use :prototype
+level that have the same name.  Otherwise, multiple definitions
+will create multiple top-level entries.  Don't use :prototype
 unnecessarily: it has an associated cost in performance.
 
 If :strip-prototype is present and non-nil, then if the class
@@ -272,7 +272,7 @@ Match group 1 is MUMBLE.")
 (defconst js--macro-decl-re
   (concat "^\\s-*#\\s-*define\\s-+\\(" js--cpp-name-re "\\)\\s-*(")
   "Regexp matching a CPP macro definition, up to the opening parenthesis.
-Match group 1 is the name of the function.")
+Match group 1 is the name of the macro.")
 
 (defun js--regexp-opt-symbol (list)
   "Like `regexp-opt', but surround the result with `\\\\_<' and `\\\\_>'."
@@ -538,8 +538,8 @@ getting timeout messages."
   "Helper function for `js--update-quick-match-re'.
 If LIST contains any element that is not nil, return its non-nil
 elements, separated by SEPARATOR, prefixed by PREFIX, and ended
-with SUFFIX as with `concat'. Otherwise, if LIST is empty, return
-nil. If any element in LIST is itself a list, flatten that
+with SUFFIX as with `concat'.  Otherwise, if LIST is empty, return
+nil.  If any element in LIST is itself a list, flatten that
 element."
   (setq list (js--flatten-list list))
   (when list
@@ -793,7 +793,7 @@ determined.  Otherwise, return nil."
 (defun js--function-prologue-beginning (&optional pos)
   "Return the start of the JavaScript function prologue containing POS.
 A function prologue is everything from start of the definition up
-to and including the opening brace. POS defaults to point.
+to and including the opening brace.  POS defaults to point.
 If POS is not in a function prologue, return nil."
   (let (prologue-begin)
     (save-excursion
@@ -901,7 +901,7 @@ Return the pitem of the function we went to the beginning of."
 
 (defun js--flush-caches (&optional beg ignored)
   "Flush the `js-mode' syntax cache after position BEG.
-BEG defaults to point-min, meaning to flush the entire cache."
+BEG defaults to `point-min', meaning to flush the entire cache."
   (interactive)
   (setq beg (or beg (save-restriction (widen) (point-min))))
   (setq js--cache-end (min js--cache-end beg)))
@@ -968,8 +968,8 @@ the body of `js--ensure-cache'."
 
 (defun js--split-name (string)
   "Split a JavaScript name into its dot-separated parts.
-This also removes any prototype parts from the split name (unless
-the name is just \"prototype\" to start with)."
+This also removes any prototype parts from the split name
+\(unless the name is just \"prototype\" to start with)."
   (let ((name (save-match-data
                 (split-string string "\\." t))))
     (unless (and (= (length name) 1)
@@ -1389,8 +1389,8 @@ spec.  FUNC must preserve the match data."
 (defun js--variable-decl-matcher (limit)
   "Font-lock matcher for variable names in a variable declaration.
 This is a cc-mode-style matcher that *always* fails, from the
-point of view of font-lock. It applies highlighting directly with
-`font-lock-apply-higlight'."
+point of view of font-lock.  It applies highlighting directly with
+`font-lock-apply-highlight'."
   (condition-case nil
       (save-restriction
         (narrow-to-region (point-min) limit)
@@ -1546,7 +1546,7 @@ point of view of font-lock. It applies highlighting directly with
   "Level three font lock for `js-mode'.")
 
 (defun js--inside-pitem-p (pitem)
-  "Return whether point is inside the given pitem's header or body"
+  "Return whether point is inside the given pitem's header or body."
   (js--ensure-cache)
   (assert (js--pitem-h-begin pitem))
   (assert (js--pitem-paren-depth pitem))
@@ -1558,7 +1558,7 @@ point of view of font-lock. It applies highlighting directly with
 (defun js--parse-state-at-point ()
   "Parse the JavaScript program state at point.
 Return a list of `js--pitem' instances that apply to point, most
-specific first. In the worst case, the current toplevel instance
+specific first.  In the worst case, the current toplevel instance
 will be returned."
   (save-excursion
     (save-restriction
@@ -1827,8 +1827,8 @@ nil."
 (defun js--make-merged-item (item child name-parts)
   "Helper function for `js--splice-into-items'.
 Return a new item that is the result of merging CHILD into
-ITEM. NAME-PARTS is a list of parts of the name of CHILD that we
-haven't consumed yet."
+ITEM.  NAME-PARTS is a list of parts of the name of CHILD
+that we haven't consumed yet."
   (js--debug "js--make-merged-item: {%s} into {%s}"
                    (js--pitem-format child)
                    (js--pitem-format item))
@@ -1878,9 +1878,9 @@ haven't consumed yet."
 
 (defun js--splice-into-items (items child name-parts)
   "Splice CHILD into the `js--pitem' ITEMS at NAME-PARTS.
-If a class doesn't exist in the tree, create it. Return the new
-items list.  NAME-PARTS is a list of strings given the
-broken-down class name of the item to insert."
+If a class doesn't exist in the tree, create it.  Return
+the new items list.  NAME-PARTS is a list of strings given
+the broken-down class name of the item to insert."
 
   (let ((top-name (car name-parts))
         (item-ptr items)
@@ -2086,7 +2086,7 @@ broken-down class name of the item to insert."
              (puthash name2 (cdr item) symbols))))
 
 (defun js--get-all-known-symbols ()
-  "Return a hash table of all Javascript symbols.
+  "Return a hash table of all JavaScript symbols.
 This searches all existing `js-mode' buffers. Each key is the
 name of a symbol (possibly disambiguated with <N>, where N > 1),
 and each value is a marker giving the location of that symbol."
@@ -2100,7 +2100,7 @@ and each value is a marker giving the location of that symbol."
         finally return symbols))
 
 (defvar js--symbol-history nil
-  "History of entered Javascript symbols")
+  "History of entered JavaScript symbols.")
 
 (defun js--read-symbol (symbols-table prompt &optional initial-input)
   "Helper function for `js-find-symbol'.
@@ -2131,9 +2131,9 @@ marker."
       (buffer-substring (car bounds) (cdr bounds)))))
 
 (defun js-find-symbol (&optional arg)
-  "Read a Javascript symbol and jump to it.
+  "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
-current buffer. Pushes a mark onto the tag ring just like
+current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
   (let (symbols marker)
@@ -2192,7 +2192,7 @@ Otherwise, use the current value of `process-mark'."
            (inferior-moz-process))))
 
 (defvar js--js-references nil
-  "Maps Elisp Javascript proxy objects to their Javascript IDs.")
+  "Maps Elisp JavaScript proxy objects to their JavaScript IDs.")
 
 (defvar js--js-process nil
   "The most recent MozRepl process object.")
@@ -2512,12 +2512,12 @@ Otherwise, use the current value of `process-mark'."
 })
 ")
 
-  "String to set MozRepl up into a simple-minded evaluation mode")
+  "String to set MozRepl up into a simple-minded evaluation mode.")
 
 (defun js--js-encode-value (x)
   "Marshall the given value for JS.
 Strings and numbers are JSON-encoded.  Lists (including nil) are
-made into Javascript array literals and their contents encoded
+made into JavaScript array literals and their contents encoded
 with `js--js-encode-value'."
   (cond ((stringp x) (json-encode-string x))
         ((numberp x) (json-encode-number x))
@@ -2910,7 +2910,7 @@ left-to-right."
 (defun js--read-tab (prompt)
   "Read a Mozilla tab with prompt PROMPT.
 Return a cons of (TYPE . OBJECT).  TYPE is either 'window or
-'tab, and OBJECT is a Javascript handle to a ChromeWindow or a
+'tab, and OBJECT is a JavaScript handle to a ChromeWindow or a
 browser, respectively."
 
   ;; Prime IDO

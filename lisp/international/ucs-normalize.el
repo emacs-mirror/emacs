@@ -326,7 +326,7 @@ Note that Hangul are excluded.")
   (ucs-normalize-make-translation-table-from-alist (eval-when-compile hfs-nfd-alist)))
 
 (defun ucs-normalize-sort (chars)
-  "Sort by canonical combining class of chars."
+  "Sort by canonical combining class of CHARS."
   (sort chars
         (lambda (ch1 ch2)
           (< (ucs-normalize-ccc ch1) (ucs-normalize-ccc ch2)))))
@@ -382,7 +382,7 @@ If COMPOSITION-PREDICATE is not given, then do nothing."
                            &optional composition-predicate)
     "Quick-Check List for DECOMPOSITION-TRANSLATION and COMPOSITION-PREDICATE.
 It includes Singletons, CompositionExclusions, and Non-Starter
-decomposition.  "
+decomposition."
     (let (entries decomposition composition)
       (mapc
        (lambda (start-end)
@@ -604,7 +604,7 @@ COMPOSITION-PREDICATE will be used to compose region."
 (defun ucs-normalize-hfs-nfd-pre-write-conversion (from to)
   (let ((old-buf (current-buffer)))
     (set-buffer (generate-new-buffer " *temp*"))
-    (if (stringp from) 
+    (if (stringp from)
         (insert from)
       (insert-buffer-substring old-buf from to))
     (ucs-normalize-HFS-NFD-region (point-min) (point-max))

@@ -1,3 +1,19 @@
+2009-08-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/ucs-normalize.el (ucs-normalize-sort, quick-check-list):
+	Fix typos in docstrings.
+
+	* progmodes/js.el (js--macro-decl-re): Doc fix.
+	(js--plain-method-re, js--split-name): Refloc docstring.
+	(js--class-styles, js--make-merged-item, js--splice-into-items):
+	Fix typos in docstrings; reflow docstrings.
+	(js--maybe-join, js--function-prologue-beginning, js--flush-caches)
+	(js--variable-decl-matcher, js--inside-pitem-p)
+	(js--parse-state-at-point, js--get-all-known-symbols)
+	(js--symbol-history, js-find-symbol, js--js-references)
+	(js--moz-interactor, js--js-encode-value, js--read-tab):
+	Fix typos in docstrings.
+
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/reftex.el (reftex-get-file-buffer-force):
