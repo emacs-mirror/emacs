@@ -1,4 +1,5 @@
 *.elc
+*.el~
 *-loaddefs.el
 loaddefs.el
 subdirs.el
