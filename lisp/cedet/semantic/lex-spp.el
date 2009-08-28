@@ -1,4 +1,4 @@
-;;; semantic-lex-spp.el --- Semantic Lexical Pre-processor
+;;; lex-spp.el --- Semantic Lexical Pre-processor
 
 ;;; Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 

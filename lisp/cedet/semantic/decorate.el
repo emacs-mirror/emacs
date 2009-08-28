@@ -1,4 +1,4 @@
-;;; semantic-decorate.el --- Utilities for decorating/highlighting tokens.
+;;; decorate.el --- Utilities for decorating/highlighting tokens.
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2006, 2007, 2009
 ;;; Free Software Foundation, Inc.
