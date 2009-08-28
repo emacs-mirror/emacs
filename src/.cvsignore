@@ -10,6 +10,7 @@ TAGS-LISP
 _gdbinit
 _dbxinit
 bootstrap-emacs
+buildobj.h
 config.h
 config.stamp
 emacs
@@ -21,5 +22,4 @@ oo
 prefix-args
 stamp-oldxmenu
 temacs
-buildobj.lst
 stamp_BLD
