@@ -5383,7 +5383,7 @@ program specified by `directory-free-space-program' if that is non-nil."
 	  (when (and directory-free-space-program
 		     ;; Avoid failure if the default directory does
 		     ;; not exist (Bug#2631, Bug#3911).
-		     (let ((default-directory "/")
+		     (let ((default-directory "/"))
 		       (eq (call-process directory-free-space-program
 					 nil t nil
 					 directory-free-space-args
