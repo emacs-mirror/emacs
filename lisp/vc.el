@@ -1834,17 +1834,6 @@ allowed and simply skipped)."
       (set (make-local-variable 'log-view-vc-backend) ',backend)
       (set (make-local-variable 'log-view-vc-fileset) ',files)
 
-      ;; FIXME: this seems to apply only to RCS/CVS, it doesn't quite
-      ;; belong here in the generic code.
-      (goto-char (point-max))
-      (forward-line -1)
-      (while (looking-at "=*\n")
-      	(delete-char (- (match-end 0) (match-beginning 0)))
-      	(forward-line -1))
-      (goto-char (point-min))
-      (when (looking-at "[\b\t\n\v\f\r ]+")
-      	(delete-char (- (match-end 0) (match-beginning 0))))
-
       (shrink-window-if-larger-than-buffer)
       ;; move point to the log entry for the working revision
       (vc-call-backend ',backend 'show-log-entry ',working-revision)

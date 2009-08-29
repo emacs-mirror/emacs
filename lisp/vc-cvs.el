@@ -494,13 +494,18 @@ Will fail unless you have administrative privileges on the repo."
 ;;; History functions
 ;;;
 
+(declare-function vc-rcs-print-log-cleanup "vc-rcs" ())
+
 (defun vc-cvs-print-log (files &optional buffer)
   "Get change logs associated with FILES."
+  (require 'vc-rcs)
   ;; It's just the catenation of the individual logs.
   (vc-cvs-command
    buffer
    (if (vc-stay-local-p files 'CVS) 'async 0)
-   files "log"))
+   files "log")
+  (with-current-buffer buffer
+    (vc-exec-after (vc-rcs-print-log-cleanup))))
 
 (defun vc-cvs-comment-history (file)
   "Get comment history of a file."

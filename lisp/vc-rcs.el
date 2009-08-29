@@ -538,10 +538,23 @@ directory the operation is applied to all registered files beneath it."
 ;;; History functions
 ;;;
 
+(defun vc-rcs-print-log-cleanup ()
+  (let ((inhibit-read-only t))
+    (goto-char (point-max))
+    (forward-line -1)
+    (while (looking-at "=*\n")
+      (delete-char (- (match-end 0) (match-beginning 0)))
+      (forward-line -1))
+    (goto-char (point-min))
+    (when (looking-at "[\b\t\n\v\f\r ]+")
+      (delete-char (- (match-end 0) (match-beginning 0))))))
+
 (defun vc-rcs-print-log (files &optional buffer)
   "Get change log associated with FILE.  If FILE is a
 directory the operation is applied to all registered files beneath it."
-  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files))))
+  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
+  (with-current-buffer (or buffer "*vc*")
+    (vc-rcs-print-log-cleanup)))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."

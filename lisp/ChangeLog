@@ -1,3 +1,12 @@
+2009-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-print-log-internal): Move RCS/CVS specific code ...
+
+	* vc-rcs.el (vc-rcs-print-log-cleanup): ... here.  New function.
+	(vc-rcs-print-log): Use it.
+
+	* vc-cvs.el (vc-cvs-print-log): Use vc-rcs-print-log-cleanup.
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (get-free-disk-space): Use / for default-directory.
