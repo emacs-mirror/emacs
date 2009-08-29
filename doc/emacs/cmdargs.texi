@@ -332,6 +332,7 @@ own@footnote{This option has no effect on MS-Windows.}.
 Enable the Emacs Lisp debugger for errors in the init file.
 @xref{Error Debugging,, Entering the Debugger on an Error, elisp, The
 GNU Emacs Lisp Reference Manual}.
+@end table
 
 @node Command Example
 @appendixsec Command Argument Example
