@@ -1688,16 +1688,11 @@ This function makes or adds to an entry on `after-load-alist'."
 (defun do-after-load-evaluation (abs-file)
   "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
 ABS-FILE, a string, should be the absolute true name of a file just loaded."
-  (let ((after-load-elts after-load-alist)
-	a-l-element file-elements file-element form)
-    (while after-load-elts
-      (setq a-l-element (car after-load-elts)
-	    after-load-elts (cdr after-load-elts))
-      (when (and (stringp (car a-l-element))
-		 (string-match (car a-l-element) abs-file))
-	(while (setq a-l-element (cdr a-l-element)) ; discard the file name
-	  (setq form (car a-l-element))
-	  (eval form))))))
+  (dolist (a-l-element after-load-alist)
+    (when (and (stringp (car a-l-element))
+	       (string-match-p (car a-l-element) abs-file))
+      ;; discard the file name regexp
+      (mapc #'eval (cdr a-l-element)))))
 
 (defun eval-next-after-load (file)
   "Read the following input sexp, and run it whenever FILE is loaded.

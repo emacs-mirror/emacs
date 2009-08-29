@@ -1,3 +1,7 @@
+2009-08-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (do-after-load-evaluation): Simplify.
+
 2009-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-print-log-internal): Move RCS/CVS specific code ...
