@@ -9,6 +9,21 @@
 
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* paths.el (abbrev-file-name): Move to abbrev.el.
+	* abbrev.el (abbrev-file-name): Move from paths.el.
+	Obey user-emacs-directory.
+	* calc/calc.el (calc-settings-file): Don't autoload and instead obey
+	user-emacs-directory.
+	* dos-fns.el (dos-reevaluate-defcustoms): Don't reevaluate
+	abbrev-file-name and calc-settings-file any more.
+	* startup.el (command-line): Recompute abbrev-file-name and
+	abbreviated-home-dir.
+	(normal-no-mouse-startup-screen): Improve the generic code and get rid
+	of the special code for when C-h bindings haven't been changed.
+	(display-startup-echo-area-message): Use with-current-buffer.
+	(command-line-1): Use a list of strings, rather than a list of lists
+	of strings for longopts.
+
 	* files.el (get-free-disk-space): Use / for default-directory.
 
 	* textmodes/ispell.el (ispell-accept-output, ispell-command-loop):

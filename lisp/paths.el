@@ -181,9 +181,5 @@ If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\"))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-(defvar abbrev-file-name
-  (convert-standard-filename "~/.abbrev_defs")
-  "*Default name of file to read abbrevs from.")
-
 ;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1
 ;;; paths.el ends here

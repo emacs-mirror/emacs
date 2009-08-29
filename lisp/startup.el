@@ -721,6 +721,9 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'temporary-file-directory)
   (custom-reevaluate-setting 'small-temporary-file-directory)
   (custom-reevaluate-setting 'auto-save-file-name-transforms)
+  (custom-reevaluate-setting 'abbrev-file-name)
+  ;; Force recomputation, in case it was computed during the dump.
+  (setq abbreviated-home-dir nil)
 
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
@@ -1822,68 +1825,45 @@ To quit a partially entered command, type Control-g.\n")
 
   ;; If keys have their default meanings,
   ;; use precomputed string to save lots of time.
-  (let ((c-h-accessible
-         ;; If normal-erase-is-backspace is used on a tty, there's
-         ;; no way to invoke C-h and you have to use F1 instead.
-         (or (not (char-table-p keyboard-translate-table))
-             (eq (aref keyboard-translate-table ?\C-h) ?\C-h))))
-    (if (and (eq (key-binding "\C-h") 'help-command)
-             (eq (key-binding "\C-xu") 'advertised-undo)
-             (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
-             (eq (key-binding "\C-ht") 'help-with-tutorial)
-             (eq (key-binding "\C-hi") 'info)
-             (eq (key-binding "\C-hr") 'info-emacs-manual)
-             (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-        (let ((help (if c-h-accessible "C-h" "<f1>")))
-          (insert "
-Get help\t   " help "  (Hold down CTRL and press h)
-")
-          (insert-button "Emacs manual"
-                         'action (lambda (button) (info-emacs-manual))
-                         'follow-link t)
-          (insert "	   " help " r\t")
-          (insert-button "Browse manuals"
-                         'action (lambda (button) (Info-directory))
-                         'follow-link t)
-          (insert "\t   " help " i
-")
-          (insert-button "Emacs tutorial"
-                         'action (lambda (button) (help-with-tutorial))
-                         'follow-link t)
-          (insert "	   " help " t\tUndo changes\t   C-x u
-")
-          (insert-button "Buy manuals"
-                         'action (lambda (button) (view-order-manuals))
-                         'follow-link t)
-          (insert "\t   " help " C-m\tExit Emacs\t   C-x C-c"))
+  (let* ((c-h-accessible
+          ;; If normal-erase-is-backspace is used on a tty, there's
+          ;; no way to invoke C-h and you have to use F1 instead.
+          (or (not (char-table-p keyboard-translate-table))
+              (eq (aref keyboard-translate-table ?\C-h) ?\C-h)))
+         (minor-mode-overriding-map-alist
+          (cons (cons (not c-h-accessible)
+                      ;; If C-h can't be invoked, temporarily disable its
+                      ;; binding, so where-is uses alternative bindings.
+                      (let ((map (make-sparse-keymap)))
+                        (define-key map [?\C-h] 'undefined)
+                        map))
+                minor-mode-overriding-map-alist)))
 
-      (insert (format "
-Get help\t   %s
-"
-                      (let ((where (where-is-internal 'help-command nil t)))
-                        (if where
-                            (key-description where)
-                          "M-x help"))))
-      (insert-button "Emacs manual"
-                     'action (lambda (button) (info-emacs-manual))
-                     'follow-link t)
-      (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
-      (insert-button "Browse manuals"
-                     'action (lambda (button) (Info-directory))
-                     'follow-link t)
-      (insert (substitute-command-keys "\t   \\[info]
-"))
-      (insert-button "Emacs tutorial"
-                     'action (lambda (button) (help-with-tutorial))
-                     'follow-link t)
-      (insert (substitute-command-keys
-               "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
-"))
-      (insert-button "Buy manuals"
-                     'action (lambda (button) (view-order-manuals))
-                     'follow-link t)
-      (insert (substitute-command-keys
-	       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]"))))
+    (insert (format "\nGet help\t   %s\n"
+                    (let ((where (where-is-internal 'help-command nil t)))
+                      (cond
+                       ((equal where [?\C-h])
+                        "C-h  (Hold down CTRL and press h)")
+                       (where (key-description where))
+                       (t "M-x help")))))
+    (insert-button "Emacs manual"
+                   'action (lambda (button) (info-emacs-manual))
+                   'follow-link t)
+    (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
+    (insert-button "Browse manuals"
+                   'action (lambda (button) (Info-directory))
+                   'follow-link t)
+    (insert (substitute-command-keys "\t   \\[info]\n"))
+    (insert-button "Emacs tutorial"
+                   'action (lambda (button) (help-with-tutorial))
+                   'follow-link t)
+    (insert (substitute-command-keys
+             "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]\n"))
+    (insert-button "Buy manuals"
+                   'action (lambda (button) (view-order-manuals))
+                   'follow-link t)
+    (insert (substitute-command-keys
+             "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
 
   ;; Say how to use the menu bar with the keyboard.
   (insert "\n")
@@ -2035,8 +2015,7 @@ Type \\[describe-distribution] for information on "))
 		 (let ((buffer (get-buffer-create " *temp*")))
 		   (prog1
 		       (condition-case nil
-			   (save-excursion
-			     (set-buffer buffer)
+			   (with-current-buffer buffer
 			     (insert-file-contents user-init-file)
 			     (re-search-forward
 			      (concat
@@ -2109,11 +2088,10 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; This includes our standard options' long versions
 	    ;; and long versions of what's on command-switch-alist.
 	    (longopts
-	     (append '(("--funcall") ("--load") ("--insert") ("--kill")
-		       ("--directory") ("--eval") ("--execute") ("--no-splash")
-		       ("--find-file") ("--visit") ("--file") ("--no-desktop"))
-		     (mapcar (lambda (elt)
-			       (list (concat "-" (car elt))))
+           (append '("--funcall" "--load" "--insert" "--kill"
+                     "--directory" "--eval" "--execute" "--no-splash"
+                     "--find-file" "--visit" "--file" "--no-desktop")
+                   (mapcar (lambda (elt) (concat "-" (car elt)))
 			     command-switch-alist)))
 	    (line 0)
 	    (column 0))
@@ -2121,7 +2099,7 @@ A fancy display is used on graphic displays, normal otherwise."
 	;; Add the long X options to longopts.
 	(dolist (tem command-line-x-option-alist)
 	  (if (string-match "^--" (car tem))
-	      (push (list (car tem)) longopts)))
+            (push (car tem) longopts)))
 
 	;; Add the long NS options to longopts.
 	(dolist (tem command-line-ns-option-alist)
@@ -2149,7 +2127,7 @@ A fancy display is used on graphic displays, normal otherwise."
 		(if (eq completion t)
 		    (setq argi (substring argi 1))
 		  (if (stringp completion)
-		      (let ((elt (assoc completion longopts)))
+                  (let ((elt (member completion longopts)))
 			(or elt
 			    (error "Option `%s' is ambiguous" argi))
 			(setq argi (substring (car elt) 1)))

@@ -227,9 +227,10 @@
   :tag    "Calc"
   :group  'applications)
 
-;;;###autoload
+;; Do not autoload, so it is evaluated at run-time rather than at dump time.
+;; ;;;###autoload
 (defcustom calc-settings-file
-  (convert-standard-filename "~/.calc.el")
+  (locate-user-emacs-file "calc.el" ".calc.el")
   "File in which to record permanent settings."
   :group 'calc
   :type '(file))

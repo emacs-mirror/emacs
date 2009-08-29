@@ -224,16 +224,7 @@ returned unaltered."
 ;; see if the list of defcustom's below is up to date, run the command
 ;; "M-x apropos-value RET ~/\. RET".
 (defun dos-reevaluate-defcustoms ()
-  ;; This was computed in paths.el, but that was at dump time.
-  (setq abbrev-file-name
-	(if (msdos-long-file-names)
-	    "~/.abbrev_defs"
-	  "~/_abbrev.defs"))
-  ;; This was computed in loaddefs.el, but that was at dump time.
-  (setq calc-settings-file
-	(if (msdos-long-file-names)
-	    "~/.calc.el"
-	  "~/_calc.el"))
+  ;; This was computed at dump time.
   (custom-reevaluate-setting 'trash-directory))
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)

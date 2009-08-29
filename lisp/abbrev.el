@@ -27,7 +27,6 @@
 
 ;; Todo:
 
-;; - Make abbrev-file-name obey user-emacs-directory.
 ;; - Cleanup name space.
 
 ;;; Code:
@@ -38,6 +37,11 @@
   "Word abbreviations mode."
   :link '(custom-manual "(emacs)Abbrevs")
   :group 'abbrev)
+
+(defcustom abbrev-file-name
+  (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
+  "Default name of file to read abbrevs from."
+  :type 'file)
 
 (defcustom only-global-abbrevs nil
   "Non-nil means user plans to use global abbrevs only.

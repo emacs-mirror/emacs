@@ -117,6 +117,8 @@ default-file-name-coding-system on Mac OS X.
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
 
+** .calc.el and .abbrev_defs obey user-emacs-directory.
+
 ** Calc graphing commands (`g f' etc.) now work on MS-Windows,
 if you have the native Windows port of Gnuplot version 3.8 or later
 installed.
