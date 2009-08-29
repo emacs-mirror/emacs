@@ -1,3 +1,7 @@
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Declare unibyte sessions obsolete.
+
 2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Mention Tramp connection method "rsyncc" and variable
