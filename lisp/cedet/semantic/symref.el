@@ -65,7 +65,7 @@
 ;; Your tool should then create an instance of `semantic-symref-result'.
 
 (require 'semantic/fw)
-(require 'ede)
+;; (require 'ede)
 (eval-when-compile (require 'data-debug)
 		   (require 'eieio-datadebug))
 
