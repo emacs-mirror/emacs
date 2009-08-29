@@ -249,8 +249,8 @@ limitations.
 
 @cindex turn multibyte support on or off
   Under very special circumstances, you may want to disable multibyte
-character support, either for Emacs as a whole, or for a single
-buffer.  When multibyte characters are disabled in a buffer, we call
+character support, for a specific buffer.
+When multibyte characters are disabled in a buffer, we call
 that @dfn{unibyte mode}.  In unibyte mode, each character in the
 buffer has a character code ranging from 0 through 255 (0377 octal); 0
 through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
@@ -268,22 +268,12 @@ Coding}.  Unlike @code{find-file-literally}, finding a file as
 @samp{raw-text} doesn't disable format conversion, uncompression, or
 auto mode selection.
 
-@vindex enable-multibyte-characters
-@cindex environment variables, and non-@acronym{ASCII} characters
-  To turn off multibyte character support by default, start Emacs with
-the @samp{--unibyte} option (@pxref{Initial Options}), or set the
-environment variable @env{EMACS_UNIBYTE}.
-With @samp{--unibyte}, multibyte strings are not created during
-initialization from the values of environment variables,
-@file{/etc/passwd} entries etc., even if those contain
-non-@acronym{ASCII} characters.
-
 @cindex Lisp files, and multibyte operation
 @cindex multibyte operation, and Lisp files
 @cindex unibyte operation, and Lisp files
 @cindex init file, and non-@acronym{ASCII} characters
-  Emacs normally loads Lisp files as multibyte, regardless of whether
-you used @samp{--unibyte}.  This includes the Emacs initialization
+  Emacs normally loads Lisp files as multibyte.
+This includes the Emacs initialization
 file, @file{.emacs}, and the initialization files of Emacs packages
 such as Gnus.  However, you can specify unibyte loading for a
 particular Lisp file, by putting @w{@samp{-*-unibyte: t;-*-}} in a

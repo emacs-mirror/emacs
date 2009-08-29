@@ -271,7 +271,6 @@ Initialization options:\n\
 --daemon                    start a server in the background\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
---multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
 --no-desktop                do not load a saved desktop\n\
 --no-init-file, -q          load neither ~/.emacs nor default.el\n\
 --no-shared-memory, -nl     do not use shared memory\n\
@@ -281,7 +280,6 @@ Initialization options:\n\
 --quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
---unibyte, --no-multibyte   run Emacs in unibyte mode\n\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
 \n%s"
 
@@ -1439,8 +1437,8 @@ main (int argc, char **argv)
 	  Lisp_Object old_log_max;
 	  Lisp_Object symbol, tail;
 
-	  symbol = intern ("default-enable-multibyte-characters");
-	  Fset (symbol, Qnil);
+	  symbol = intern ("enable-multibyte-characters");
+	  Fset_default (symbol, Qnil);
 
 	  if (initialized)
 	    {
@@ -1467,6 +1465,7 @@ main (int argc, char **argv)
 		  set_buffer_temp (current);
 		}
 	    }
+	  message ("Warning: unibyte sessions are obsolete and will disappear");
 	}
     }
 

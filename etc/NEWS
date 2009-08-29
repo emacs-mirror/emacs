@@ -34,6 +34,12 @@ This might not work on all platforms.
 
 * Changes in Emacs 23.2
 
+** Unibyte sessions are declared obsolete.
+I.e. the use of the environment variable EMACS_UNIBYTE, or command line
+arguments --unibyte, --multibyte, --no-multibyte, and --no-unibyte
+is deprecated.  Similarly for custom-izing enable-multibyte-characters, or
+setting default-enable-multibyte-characters.
+
 ** The default value of `trash-directory' has changed to nil, which
 means that `move-file-to-trash' trashes files according to
 freedesktop.org specifications, the same method used by the Gnome,

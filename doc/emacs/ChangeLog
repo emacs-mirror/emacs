@@ -1,3 +1,9 @@
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mule.texi (Enabling Multibyte):
+	* cmdargs.texi (General Variables): Remove EMACS_UNIBYTE.
+	(Initial Options): Remove --(no-)multibyte, --(no-)unibyte.
+
 2009-08-20  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Non-Gregorian Diary): Mention ``Adar I'' special case.
