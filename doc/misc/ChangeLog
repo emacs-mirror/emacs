@@ -1,3 +1,19 @@
+2009-08-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi: Rewritten for coverage and clarity.
+
+2009-08-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Expiring Mail): Mention
+	gnus-mark-copied-or-moved-articles-as-expirable.
+	(Various Various): Mention gnus-safe-html-newsgroups.
+
+	* gnus-news.texi: Mention
+	gnus-mark-copied-or-moved-articles-as-expirable.
+
+	* emacs-mime.texi (Display Customization): Add xref to
+	gnus-safe-html-newsgroups.
+
 2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Version Control): Remove.

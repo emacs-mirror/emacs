@@ -668,6 +668,17 @@ string with the suggested prefix."
   :group 'gnus-summary
   :type 'boolean)
 
+(defcustom gnus-mark-copied-or-moved-articles-as-expirable nil
+  "If non-nil, mark articles copied or moved to auto-expire group as expirable.
+If nil, the expirable marks will be unchanged except that the marks
+will be removed when copying or moving articles to a group that has
+not turned auto-expire on.  If non-nil, articles that have been read
+will be marked as expirable when being copied or moved to a group in
+which auto-expire is turned on."
+  :version "23.2"
+  :type 'boolean
+  :group 'gnus-summary-marks)
+
 (defcustom gnus-view-pseudos nil
   "*If `automatic', pseudo-articles will be viewed automatically.
 If `not-confirm', pseudos will be viewed automatically, and the user
@@ -9753,11 +9764,12 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 				       (list (cdr art-group)))))
 
 	    ;; See whether the article is to be put in the cache.
-	    (let ((marks (if (gnus-group-auto-expirable-p to-group)
-			     gnus-article-mark-lists
-			   (delete '(expirable . expire)
-				   (copy-sequence gnus-article-mark-lists))))
-		  (to-article (cdr art-group)))
+	    (let* ((expirable (gnus-group-auto-expirable-p to-group))
+		   (marks (if expirable
+			      gnus-article-mark-lists
+			    (delete '(expirable . expire)
+				    (copy-sequence gnus-article-mark-lists))))
+		   (to-article (cdr art-group)))
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
@@ -9795,6 +9807,17 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		      (gnus-add-marked-articles
 		       to-group (cdar marks) (list to-article) info)))
 		  (setq marks (cdr marks)))
+
+		(when (and expirable
+			   gnus-mark-copied-or-moved-articles-as-expirable
+			   (not (memq 'expire to-marks)))
+		  ;; Mark this article as expirable.
+		  (push 'expire to-marks)
+		  (when (equal to-group gnus-newsgroup-name)
+		    (push to-article gnus-newsgroup-expirable))
+		  ;; Copy the expirable mark to other group.
+		  (gnus-add-marked-articles
+		   to-group 'expire (list to-article) info))
 
 		(gnus-request-set-mark
 		 to-group (list (list (list to-article) 'add to-marks))))

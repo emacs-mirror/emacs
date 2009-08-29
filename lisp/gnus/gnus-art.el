@@ -4740,6 +4740,23 @@ General format specifiers can also be used.  See Info node
 		(vector (caddr c) (car c) :active t))
 	      gnus-mime-button-commands)))
 
+(defmacro gnus-bind-safe-url-regexp (&rest body)
+  "Bind `mm-w3m-safe-url-regexp' according to `gnus-safe-html-newsgroups'."
+  `(let ((mm-w3m-safe-url-regexp
+	  (let ((group (if (and (eq major-mode 'gnus-article-mode)
+				(gnus-buffer-live-p
+				 gnus-article-current-summary))
+			   (with-current-buffer gnus-article-current-summary
+			     gnus-newsgroup-name)
+			 gnus-newsgroup-name)))
+	    (if (cond ((stringp gnus-safe-html-newsgroups)
+		       (string-match gnus-safe-html-newsgroups group))
+		      ((consp gnus-safe-html-newsgroups)
+		       (member group gnus-safe-html-newsgroups)))
+		nil
+	      mm-w3m-safe-url-regexp))))
+     ,@body))
+
 (defun gnus-mime-button-menu (event prefix)
  "Construct a context-sensitive menu of MIME commands."
  (interactive "e\nP")
@@ -4765,7 +4782,7 @@ General format specifiers can also be used.  See Info node
 	(or (search-forward "\n\n") (goto-char (point-max)))
 	(let ((inhibit-read-only t))
 	  (delete-region (point) (point-max))
-	  (mm-display-parts handles))))))
+	  (gnus-bind-safe-url-regexp (mm-display-parts handles)))))))
 
 (defun gnus-article-jump-to-part (n)
   "Jump to MIME part N."
@@ -5267,7 +5284,7 @@ If no internal viewer is available, use an external viewer."
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
-	  (mm-display-part handle))))))
+	  (gnus-bind-safe-url-regexp (mm-display-part handle)))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
@@ -5488,7 +5505,7 @@ N is the numerical prefix."
 		    (save-restriction
 		      (narrow-to-region (point)
 					(if (eobp) (point) (1+ (point))))
-		      (mm-display-part handle)
+		      (gnus-bind-safe-url-regexp (mm-display-part handle))
 		      ;; We narrow to the part itself and
 		      ;; then call the treatment functions.
 		      (goto-char (point-min))
@@ -5767,7 +5784,7 @@ If displaying \"text/html\" is discouraged \(see
 				       (set-buffer gnus-summary-buffer)
 				     (error))
 				   gnus-newsgroup-ignored-charsets)))
-	      (mm-display-part handle t))
+	      (gnus-bind-safe-url-regexp (mm-display-part handle t)))
 	    (goto-char (point-max)))
 	   ((and text not-attachment)
 	    (when move
@@ -5903,7 +5920,7 @@ If displaying \"text/html\" is discouraged \(see
 		  (mail-parse-ignored-charsets
 		   (with-current-buffer gnus-summary-buffer
 		     gnus-newsgroup-ignored-charsets)))
-	      (mm-display-part preferred)
+	      (gnus-bind-safe-url-regexp (mm-display-part preferred))
 	      ;; Do highlighting.
 	      (save-excursion
 		(save-restriction

@@ -311,6 +311,15 @@ intermediate host @samp{bar.example.com} from next time.
 @item The @file{all.SCORE} file can be edited from the group buffer
 using @kbd{W e}.
 
+@item You can set @code{gnus-mark-copied-or-moved-articles-as-expirable}
+to a non-@code{nil} value so that articles that have been read may be
+marked as expirable automatically when copying or moving them to a group
+that has auto-expire turned on.  The default is @code{nil} and copying
+and moving of articles behave as before; i.e., the expirable marks will
+be unchanged except that the marks will be removed when copying or
+moving articles to a group that has not turned auto-expire on.
+@xref{Expiring Mail}.
+
 @end itemize
 
 @end itemize

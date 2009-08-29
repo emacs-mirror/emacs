@@ -110,6 +110,18 @@ If nil, no groups are permanently visible."
   :group 'gnus-group-listing
   :type '(choice regexp (const nil)))
 
+(defcustom gnus-safe-html-newsgroups "\\`nnrss[+:]"
+  "Groups in which links in html articles are considered all safe.
+The value may be a regexp matching those groups, a list of group names,
+or nil.  This overrides `mm-w3m-safe-url-regexp' (which see).  This is
+effective only when emacs-w3m renders html articles, i.e., in the case
+`mm-text-html-renderer' is set to `w3m'."
+  :version "23.2"
+  :group 'gnus-group-various
+  :type '(choice regexp
+		 (repeat :tag "List of group names" (string :tag "Group"))
+		 (const nil)))
+
 (defcustom gnus-list-groups-with-ticked-articles t
   "*If non-nil, list groups that have only ticked articles.
 If nil, only list groups that have unread articles."

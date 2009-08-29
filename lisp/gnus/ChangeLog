@@ -1,3 +1,8 @@
+2009-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-attach-file, mml-attach-buffer, mml-attach-external):
+	Don't save excursion.
+
 2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnheader.el (nnheader-find-file-noselect):
@@ -22,6 +27,21 @@
 
 	* gnus-art.el (gnus-button-patch): Use forward-line rather than
 	goto-line.
+
+2009-08-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-safe-html-newsgroups): New user option.
+
+	* gnus-art.el (gnus-bind-safe-url-regexp): New macro.
+	(gnus-mime-view-all-parts, gnus-mime-view-part-internally)
+	(gnus-mm-display-part, gnus-mime-display-single)
+	(gnus-mime-display-alternative): Use gnus-bind-safe-url-regexp to
+	override mm-w3m-safe-url-regexp according to gnus-safe-html-newsgroups.
+
+	* gnus-sum.el
+	(gnus-mark-copied-or-moved-articles-as-expirable): New user option.
+	(gnus-summary-move-article): Add expirable mark to articles copied or
+	moved to group that has auto-expire turned on if the option is non-nil.
 
 2009-07-24  Glenn Morris  <rgm@gnu.org>
 

@@ -1292,15 +1292,14 @@ body) or \"attachment\" (separate from the body)."
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil file)))
      (list file type description disposition)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
-    (mml-insert-empty-tag 'part
-			  'type type
-			  ;; icicles redefines read-file-name and returns a
-			  ;; string w/ text properties :-/
-			  'filename (mm-substring-no-properties file)
-			  'disposition (or disposition "attachment")
-			  'description description)))
+  (unless (message-in-body-p) (goto-char (point-max)))
+  (mml-insert-empty-tag 'part
+			'type type
+			;; icicles redefines read-file-name and returns a
+			;; string w/ text properties :-/
+			'filename (mm-substring-no-properties file)
+			'disposition (or disposition "attachment")
+			'description description))
 
 (defun mml-dnd-attach-file (uri action)
   "Attach a drag and drop file.
@@ -1336,11 +1335,10 @@ BUFFER is the name of the buffer to attach.  See
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil)))
      (list buffer type description disposition)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
-    (mml-insert-empty-tag 'part 'type type 'buffer buffer
-			  'disposition disposition
-			  'description description)))
+  (unless (message-in-body-p) (goto-char (point-max)))
+  (mml-insert-empty-tag 'part 'type type 'buffer buffer
+			'disposition disposition
+			'description description))
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
@@ -1351,10 +1349,9 @@ TYPE is the MIME type to use."
 	  (type (mml-minibuffer-read-type file))
 	  (description (mml-minibuffer-read-description)))
      (list file type description)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
-    (mml-insert-empty-tag 'external 'type type 'name file
-			  'disposition "attachment" 'description description)))
+  (unless (message-in-body-p) (goto-char (point-max)))
+  (mml-insert-empty-tag 'external 'type type 'name file
+			'disposition "attachment" 'description description))
 
 (defun mml-insert-multipart (&optional type)
   (interactive (list (completing-read "Multipart type (default mixed): "

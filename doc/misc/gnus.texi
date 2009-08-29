@@ -16299,6 +16299,23 @@ If @code{gnus-inhibit-user-auto-expire} is non-@code{nil}, user marking
 commands will not mark an article as expirable, even if the group has
 auto-expire turned on.
 
+@vindex gnus-mark-copied-or-moved-articles-as-expirable
+The expirable marks of articles will be removed when copying or moving
+them to a group in which auto-expire is not turned on.  This is for
+preventing articles from being expired unintentionally.  On the other
+hand, to a group that has turned auto-expire on, the expirable marks of
+articles that are copied or moved will not be changed by default.  I.e.,
+when copying or moving to such a group, articles that were expirable
+will be left expirable and ones that were not expirable will not be
+marked as expirable.  So, even though in auto-expire groups, some
+articles will never get expired (unless you read them again).  If you
+don't side with that behavior that unexpirable articles may be mixed
+into auto-expire groups, you can set
+@code{gnus-mark-copied-or-moved-articles-as-expirable} to a
+non-@code{nil} value.  In that case, articles that have been read will
+be marked as expirable automatically when being copied or moved to a
+group that has auto-expire turned on.  The default value is @code{nil}.
+
 
 @node Washing Mail
 @subsection Washing Mail
@@ -26926,6 +26943,15 @@ group).
 
 @acronym{IMAP} users might want to allow @samp{/} in group names though.
 
+@item gnus-safe-html-newsgroups
+@vindex gnus-safe-html-newsgroups
+Groups in which links in html articles are considered all safe.  The
+value may be a regexp matching those groups, a list of group names, or
+@code{nil}.  This overrides @code{mm-w3m-safe-url-regexp}.  The default
+value is @code{"\\`nnrss[+:]"}.  This is effective only when emacs-w3m
+renders html articles, i.e., in the case @code{mm-text-html-renderer} is
+set to @code{w3m}.  @xref{Display Customization, ,Display Customization,
+emacs-mime, The Emacs MIME Manual}.
 
 @end table
 
