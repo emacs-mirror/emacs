@@ -315,6 +315,42 @@ PROPERTY set."
      #'(lambda (symbol) (setq keywords (cons symbol keywords)))
      property)
     keywords))
+
+;;; Inline functions:
+
+(defvar semantic-lex-unterminated-syntax-end-function)
+(defvar semantic-lex-analysis-bounds)
+(defvar semantic-lex-end-point)
+
+(defsubst semantic-lex-token-bounds (token)
+  "Fetch the start and end locations of the lexical token TOKEN.
+Return a pair (START . END)."
+  (if (not (numberp (car (cdr token))))
+      (cdr (cdr token))
+    (cdr token)))
+
+(defsubst semantic-lex-token-start (token)
+  "Fetch the start position of the lexical token TOKEN.
+See also the function `semantic-lex-token'."
+  (car (semantic-lex-token-bounds token)))
+
+(defsubst semantic-lex-token-end (token)
+  "Fetch the end position of the lexical token TOKEN.
+See also the function `semantic-lex-token'."
+  (cdr (semantic-lex-token-bounds token)))
+
+(defsubst semantic-lex-unterminated-syntax-detected (syntax)
+  "Inside a lexical analyzer, use this when unterminated syntax was found.
+Argument SYNTAX indicates the type of syntax that is unterminated.
+The job of this function is to move (point) to a new logical location
+so that analysis can continue, if possible."
+  (goto-char
+   (funcall semantic-lex-unterminated-syntax-end-function
+	    syntax
+	    (car semantic-lex-analysis-bounds)
+	    (cdr semantic-lex-analysis-bounds)
+	    ))
+  (setq semantic-lex-end-point (point)))
 
 ;;; Type table handling.
 ;;
@@ -1012,23 +1048,6 @@ variable after calling `semantic-lex-push-token'."
 See also the function `semantic-lex-token'."
   (car token))
 
-(defsubst semantic-lex-token-bounds (token)
-  "Fetch the start and end locations of the lexical token TOKEN.
-Return a pair (START . END)."
-  (if (not (numberp (car (cdr token))))
-      (cdr (cdr token))
-    (cdr token)))
-
-(defsubst semantic-lex-token-start (token)
-  "Fetch the start position of the lexical token TOKEN.
-See also the function `semantic-lex-token'."
-  (car (semantic-lex-token-bounds token)))
-
-(defsubst semantic-lex-token-end (token)
-  "Fetch the end position of the lexical token TOKEN.
-See also the function `semantic-lex-token'."
-  (cdr (semantic-lex-token-bounds token)))
-
 (defsubst semantic-lex-token-text (token)
   "Fetch the text associated with the lexical token TOKEN.
 See also the function `semantic-lex-token'."
@@ -1084,19 +1103,6 @@ Optional argument DEPTH is the depth to scan into lists."
 ;; Created analyzers become variables with the code associated with them
 ;; as the symbol value.  These analyzers are assembled into a lexer
 ;; to create new lexical analyzers.
-;;
-(defsubst semantic-lex-unterminated-syntax-detected (syntax)
-  "Inside a lexical analyzer, use this when unterminated syntax was found.
-Argument SYNTAX indicates the type of syntax that is unterminated.
-The job of this function is to move (point) to a new logical location
-so that analysis can continue, if possible."
-  (goto-char
-   (funcall semantic-lex-unterminated-syntax-end-function
-	    syntax
-	    (car semantic-lex-analysis-bounds)
-	    (cdr semantic-lex-analysis-bounds)
-	    ))
-  (setq semantic-lex-end-point (point)))
 
 (defcustom semantic-lex-debug-analyzers nil
   "Non nil means to debug analyzers with syntax protection.
