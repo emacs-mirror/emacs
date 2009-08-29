@@ -115,11 +115,11 @@ is specified by `semanticdb-default-save-directory'."
       ;; to get the file names.
 
 
-      (mapcar (lambda (f)
-		(when (semanticdb-ebrowse-C-file-p f)
-		  (insert f)
-		  (insert "\n")))
-	      files)
+      (mapc (lambda (f)
+	      (when (semanticdb-ebrowse-C-file-p f)
+		(insert f)
+		(insert "\n")))
+	    files)
       ;; Cleanup the ebrowse output buffer.
       (save-excursion
 	(set-buffer (get-buffer-create "*EBROWSE OUTPUT*"))
