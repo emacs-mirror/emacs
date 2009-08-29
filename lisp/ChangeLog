@@ -1,5 +1,8 @@
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/ispell.el (ispell-accept-output, ispell-command-loop):
+	Use with-current-buffer.
+
 	* emacs-lisp/bytecomp.el (byte-compile-const-symbol-p):
 	Recognize immutable variables like most-positive-fixnum.
 	(byte-compile-setq-default): Check and warn if trying to assign

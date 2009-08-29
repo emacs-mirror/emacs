@@ -1522,13 +1522,11 @@ pass it the output of the last ispell invocation."
 	    ispell-output)
 	(if (not (bufferp buf))
 	    (setq ispell-filter nil)
-	  (save-excursion
-	    (set-buffer buf)
+	  (with-current-buffer buf
 	    (setq ispell-output (buffer-substring-no-properties
 				 (point-min) (point-max))))
 	  (ispell-filter t ispell-output)
-	  (save-excursion
-	    (set-buffer buf)
+	  (with-current-buffer buf
 	    (erase-buffer)))))))
 
 (defun ispell-send-replacement (misspelled replacement)
@@ -1871,8 +1869,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	char num result textwin dedicated-win)
 
     ;; setup the *Choices* buffer with valid data.
-    (save-excursion
-      (set-buffer (get-buffer-create ispell-choices-buffer))
+    (with-current-buffer (get-buffer-create ispell-choices-buffer)
       (setq mode-line-format
 	    (concat "--  %b  --  word: " word
 		    "  --  dict: " (or ispell-current-dictionary "default")
@@ -2038,9 +2035,8 @@ Global `ispell-quit' set to start location to continue spell session."
 				     word)))
 		      (if new-word
 			  (progn
-			    (save-excursion
-			      (set-buffer (get-buffer-create
-					   ispell-choices-buffer))
+			    (with-current-buffer (get-buffer-create
+                                                  ispell-choices-buffer)
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
