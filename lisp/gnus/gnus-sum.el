@@ -8284,7 +8284,7 @@ articles that are younger than AGE days."
 
 (defalias 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
 (make-obsolete
- 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
+ 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread "Emacs 20.4")
 
 (defun gnus-summary-limit-to-unread (&optional all)
   "Limit the summary buffer to articles that are not marked as read.
@@ -8379,7 +8379,7 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 
 (defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
 (make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exclude-marks)
+	       'gnus-summary-limit-exclude-marks "Emacs 20.4")
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").
@@ -10821,7 +10821,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 (defalias 'gnus-summary-mark-as-unread-forward
   'gnus-summary-tick-article-forward)
 (make-obsolete 'gnus-summary-mark-as-unread-forward
-	       'gnus-summary-tick-article-forward)
+	       'gnus-summary-tick-article-forward "Emacs 20.4")
 (defun gnus-summary-tick-article-forward (n)
   "Tick N articles forwards.
 If N is negative, tick backwards instead.
@@ -10832,7 +10832,7 @@ The difference between N and the number of articles ticked is returned."
 (defalias 'gnus-summary-mark-as-unread-backward
   'gnus-summary-tick-article-backward)
 (make-obsolete 'gnus-summary-mark-as-unread-backward
-	       'gnus-summary-tick-article-backward)
+	       'gnus-summary-tick-article-backward "Emacs 20.4")
 (defun gnus-summary-tick-article-backward (n)
   "Tick N articles backwards.
 The difference between N and the number of articles ticked is returned."
@@ -10840,7 +10840,7 @@ The difference between N and the number of articles ticked is returned."
   (gnus-summary-mark-forward (- n) gnus-ticked-mark))
 
 (defalias 'gnus-summary-mark-as-unread 'gnus-summary-tick-article)
-(make-obsolete 'gnus-summary-mark-as-unread 'gnus-summary-tick-article)
+(make-obsolete 'gnus-summary-mark-as-unread 'gnus-summary-tick-article "Emacs 20.4")
 (defun gnus-summary-tick-article (&optional article clear-mark)
   "Mark current article as unread.
 Optional 1st argument ARTICLE specifies article number to be marked as unread.

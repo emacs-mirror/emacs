@@ -1,3 +1,16 @@
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* spam.el (spam-ifile-path, spam-bogofilter-path, spam-sa-learn-path)
+	(spam-ifile-database-path, spam-bsfilter-path, spam-spamassassin-path):
+	* nnmail.el (nnmail-spool-file, nnmail-fix-eudora-headers):
+	* nnir.el (nnir-swish-e-index-file):
+	* gnus-sum.el (gnus-summary-delete-marked-as-read)
+	(gnus-summary-delete-marked-with, gnus-summary-mark-as-unread-forward)
+	(gnus-summary-mark-as-unread-backward, gnus-summary-mark-as-unread):
+	* gnus-msg.el (gnus-inews-mark-gcc-as-read):
+	* gnus-art.el (gnus-article-hide-pgp-hook, gnus-treat-strip-pgp)
+	(gnus-treat-display-xface): Add Emacs version of obsolescence.
+
 2009-08-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-attach-file, mml-attach-buffer, mml-attach-external):

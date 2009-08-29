@@ -149,7 +149,7 @@ See Info node `(gnus)Posting Styles'."
   :type 'boolean)
 
 (make-obsolete-variable 'gnus-inews-mark-gcc-as-read
-			'gnus-gcc-mark-as-read)
+			'gnus-gcc-mark-as-read "Emacs 22.1")
 
 (defcustom gnus-gcc-externalize-attachments nil
   "Should local-file attachments be included as external parts in Gcc copies?

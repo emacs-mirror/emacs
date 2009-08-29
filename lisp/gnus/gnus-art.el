@@ -727,8 +727,8 @@ Each element is a regular expression."
   :type '(repeat regexp)
   :group 'gnus-article-various)
 
-(make-obsolete-variable 'gnus-article-hide-pgp-hook
-			"This variable is obsolete in Gnus 5.10.")
+(make-obsolete-variable 'gnus-article-hide-pgp-hook nil
+			"Gnus 5.10 (Emacs-22.1)")
 
 (defface gnus-button
   '((t (:weight bold)))
@@ -1217,8 +1217,8 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
-(make-obsolete-variable 'gnus-treat-strip-pgp
-			"This option is obsolete in Gnus 5.10.")
+(make-obsolete-variable 'gnus-treat-strip-pgp nil
+			"Gnus 5.10 (Emacs 22.1)")
 
 (defcustom gnus-treat-strip-pem nil
   "Strip PEM signatures.
@@ -1409,7 +1409,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 
 (make-obsolete-variable 'gnus-treat-display-xface
-			'gnus-treat-display-x-face)
+			'gnus-treat-display-x-face "22.1")
 
 (defcustom gnus-treat-display-x-face
   (and (not noninteractive)
