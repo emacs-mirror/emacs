@@ -1,3 +1,8 @@
+2009-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Remove redundant test and collapse
+	both branches into one.
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs.c (USAGE1): Remove --(no-)multibyte, --(no-)unibyte.
