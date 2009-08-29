@@ -451,7 +451,7 @@ comment-only lines."
   :group 'c)
 
 (make-obsolete-variable 'c-comment-continuation-stars
-			'c-block-comment-prefix)
+			'c-block-comment-prefix "21.1")
 
 ;; Although c-comment-continuation-stars is obsolete, we look at it in
 ;; some places in CC Mode anyway, so make the compiler ignore it

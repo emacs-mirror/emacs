@@ -1,3 +1,11 @@
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-vars.el (c-comment-continuation-stars):
+	* progmodes/cc-engine.el (c-looking-at-bos):
+	* progmodes/cc-cmds.el (c-toggle-auto-state)
+	(c-forward-into-nomenclature, c-backward-into-nomenclature)
+	(c-comment-line-break-function): Add version of obsolescence.
+
 2009-08-28  Juri Linkov  <juri@jurta.org>
 
 	* files.el (magic-fallback-mode-alist): Add ZIP magic number
