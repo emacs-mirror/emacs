@@ -170,7 +170,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
-;;; Override setting chosen at startup.
+;; Override setting chosen at startup.
 (defun set-default-process-coding-system ()
   ;; Most programs on Windows will accept Unix line endings on input
   ;; (and some programs ported from Unix require it) but most will
@@ -201,8 +201,8 @@ You should set this to t when using a non-system shell.\n\n"))))
 (defvar w32-valid-locales nil
   "List of locale ids known to be supported.")
 
-;;; This is the brute-force version; an efficient version is now
-;;; built-in though.
+;; This is the brute-force version; an efficient version is now
+;; built-in though.
 (if (not (fboundp 'w32-get-valid-locale-ids))
     (defun w32-get-valid-locale-ids ()
       "Return list of all valid Windows locale ids."
@@ -227,11 +227,11 @@ You should set this to t when using a non-system shell.\n\n"))))
 		     (w32-get-locale-info locale)
 		     (w32-get-locale-info locale t))))))
 
-;;; Setup Info-default-directory-list to include the info directory
-;;; near where Emacs executable was installed.  We used to set INFOPATH,
-;;; but when this is set Info-default-directory-list is ignored.  We
-;;; also cannot rely upon what is set in paths.el because they assume
-;;; that configuration during build time is correct for runtime.
+;; Setup Info-default-directory-list to include the info directory
+;; near where Emacs executable was installed.  We used to set INFOPATH,
+;; but when this is set Info-default-directory-list is ignored.  We
+;; also cannot rely upon what is set in paths.el because they assume
+;; that configuration during build time is correct for runtime.
 (defun w32-init-info ()
   (let* ((instdir (file-name-directory invocation-directory))
 	 (dir1 (expand-file-name "../info/" instdir))
@@ -245,20 +245,20 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'before-init-hook 'w32-init-info)
 
-;;; The variable source-directory is used to initialize Info-directory-list.
-;;; However, the common case is that Emacs is being used from a binary
-;;; distribution, and the value of source-directory is meaningless in that
-;;; case.  Even worse, source-directory can refer to a directory on a drive
-;;; on the build machine that happens to be a removable drive on the user's
-;;; machine.  When this happens, Emacs tries to access the removable drive
-;;; and produces the abort/retry/ignore dialog.  Since we do not use
-;;; source-directory, set it to something that is a reasonable approximation
-;;; on the user's machine.
+;; The variable source-directory is used to initialize Info-directory-list.
+;; However, the common case is that Emacs is being used from a binary
+;; distribution, and the value of source-directory is meaningless in that
+;; case.  Even worse, source-directory can refer to a directory on a drive
+;; on the build machine that happens to be a removable drive on the user's
+;; machine.  When this happens, Emacs tries to access the removable drive
+;; and produces the abort/retry/ignore dialog.  Since we do not use
+;; source-directory, set it to something that is a reasonable approximation
+;; on the user's machine.
 
-;(add-hook 'before-init-hook
-;	  '(lambda ()
-;	     (setq source-directory (file-name-as-directory
-;				     (expand-file-name ".." exec-directory)))))
+;;(add-hook 'before-init-hook
+;;	  (lambda ()
+;;	    (setq source-directory (file-name-as-directory
+;;				     (expand-file-name ".." exec-directory)))))
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
@@ -360,12 +360,12 @@ This function is provided for backward compatibility, since
 ;; w32-system-coding-system. Use that instead.
 (defvaralias 'w32-system-coding-system 'locale-coding-system)
 
-;;; Set to a system sound if you want a fancy bell.
+;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
 
-;;; The "Windows" keys on newer keyboards bring up the Start menu
-;;; whether you want it or not - make Emacs ignore these keystrokes
-;;; rather than beep.
+;; The "Windows" keys on newer keyboards bring up the Start menu
+;; whether you want it or not - make Emacs ignore these keystrokes
+;; rather than beep.
 (global-set-key [lwindow] 'ignore)
 (global-set-key [rwindow] 'ignore)
 
@@ -442,13 +442,13 @@ bit output with no translation."
 
 ;;;; Selections and cut buffers
 
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from x-cut-buffer-or-selection-value.
+;; We keep track of the last text selected here, so we can check the
+;; current selection against it, and avoid passing back our own text
+;; from x-cut-buffer-or-selection-value.
 (defvar x-last-selected-text nil)
 
-;;; It is said that overlarge strings are slow to put into the cut buffer.
-;;; Note this value is overridden below.
+;; It is said that overlarge strings are slow to put into the cut buffer.
+;; Note this value is overridden below.
 (defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
 
@@ -493,7 +493,7 @@ they were unset."
 
 (defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
 
-;;; Arrange for the kill and yank functions to set and check the clipboard.
+;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
