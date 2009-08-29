@@ -1,3 +1,9 @@
+2009-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (info-real): Don't ignore errors from doc Makefiles.
+	(info): Don't give an error in the absence of makeinfo - let the doc
+	Makefiles do that, if the info files need rebuilding.  (Bug#3982)
+
 2009-08-23  Ken Raeburn  <raeburn@raeburn.org>
 
 	* Makefile.in (install-arch-indep): If the versioned DOC-####

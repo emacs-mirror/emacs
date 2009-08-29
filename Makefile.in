@@ -807,21 +807,26 @@ dist:
 .PHONY: info dvi dist check html
 
 info-real: 
-	-(cd doc/emacs; $(MAKE) $(MFLAGS) info)
-	-(cd doc/misc; $(MAKE) $(MFLAGS) info)
-	-(cd doc/lispref; $(MAKE) $(MFLAGS) info)
-	-(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
+	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
+	(cd doc/misc; $(MAKE) $(MFLAGS) info)
+	(cd doc/lispref; $(MAKE) $(MFLAGS) info)
+	(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
 
 force-info:
-# Note that man/Makefile knows how to
-# put the info files in $(srcdir),
+# Note that man/Makefile knows how to put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
+# This used to have a clause that exited with an error if MAKEINFO = no.
+# But it is inappropriate to do so without checking if makeinfo is
+# actually needed - it is not if the info files are up-to-date.  (Bug#3982)
+# Only the doc/*/Makefiles can decide that, so we let those rules run
+# and give a standard error if makeinfo is needed but missing.
+# While it would be nice to give a more detailed error message, that
+# would require changing every rule in doc/ that builds an info file,
+# and it's not worth it. This case is only relevant if you download a
+# release, then change the .texi files.
 info: force-info
 	@if test "$(MAKEINFO)" = "off"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
-	elif test "$(MAKEINFO)" = "no"; then \
-	  echo "makeinfo is missing - cannot build manuals" ; \
-	  exit 1 ; \
 	else \
 	  $(MAKE) $(MFLAGS) info-real ; \
 	fi
