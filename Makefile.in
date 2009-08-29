@@ -822,7 +822,7 @@ force-info:
 # and give a standard error if makeinfo is needed but missing.
 # While it would be nice to give a more detailed error message, that
 # would require changing every rule in doc/ that builds an info file,
-# and it's not worth it. This case is only relevant if you download a
+# and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
 info: force-info
 	@if test "$(MAKEINFO)" = "off"; then \
