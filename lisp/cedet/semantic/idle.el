@@ -119,7 +119,6 @@ unlikely the user would be ready to type again right away."
   :set (lambda (sym val)
          (global-semantic-idle-scheduler-mode (if val 1 -1))))
 
-;;;###autoload
 (defun global-semantic-idle-scheduler-mode (&optional arg)
   "Toggle global use of option `semantic-idle-scheduler-mode'.
 The idle scheduler with automatically reparse buffers in idle time,
@@ -136,7 +135,6 @@ If ARG is nil, then toggle."
   :group 'semantic
   :type 'hook)
 
-;;;###autoload
 (defvar semantic-idle-scheduler-mode nil
   "Non-nil if idle-scheduler minor mode is enabled.
 Use the command `semantic-idle-scheduler-mode' to change this variable.")
@@ -175,7 +173,6 @@ minor mode is enabled."
         (semantic-idle-scheduler-setup-timers)))
   semantic-idle-scheduler-mode)
 
-;;;###autoload
 (defun semantic-idle-scheduler-mode (&optional arg)
   "Minor mode to auto parse buffer following a change.
 When this mode is off, a buffer is only rescanned for tokens when
@@ -225,12 +222,10 @@ buffer has had its tags made up to date.  These functions
 will not be called if there are errors parsing the
 current buffer.")
 
-;;;###autoload
 (defun semantic-idle-scheduler-add (function)
   "Schedule FUNCTION to occur during idle time."
   (add-to-list 'semantic-idle-scheduler-queue function))
 
-;;;###autoload
 (defun semantic-idle-scheduler-remove (function)
   "Unschedule FUNCTION to occur during idle time."
   (setq semantic-idle-scheduler-queue
@@ -659,7 +654,6 @@ Return non-nil if the minor mode is enabled.")
 	   )
 	 ,mode)
 
-;;;###autoload
        (defun ,mode (&optional arg)
 	 ,(concat doc "
 This is a minor mode which performs actions during idle time.
