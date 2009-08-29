@@ -1,3 +1,7 @@
+2009-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Initial Options): Fix last change.
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mule.texi (Enabling Multibyte):
