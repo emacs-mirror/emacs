@@ -5377,17 +5377,13 @@ program specified by `directory-free-space-program' if that is non-nil."
 	(let ((fsinfo (file-system-info dir)))
 	  (if fsinfo
 	      (format "%.0f" (/ (nth 2 fsinfo) 1024))))
+      (setq dir (expand-file-name dir))
       (save-match-data
 	(with-temp-buffer
 	  (when (and directory-free-space-program
 		     ;; Avoid failure if the default directory does
 		     ;; not exist (Bug#2631, Bug#3911).
-		     (let ((default-directory default-directory))
-		       (setq dir (expand-file-name dir))
-		       (unless (and (not (file-remote-p default-directory))
-				    (file-directory-p default-directory)
-				    (file-readable-p default-directory))
-			 (setq default-directory "/"))
+		     (let ((default-directory "/")
 		       (eq (call-process directory-free-space-program
 					 nil t nil
 					 directory-free-space-args

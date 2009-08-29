@@ -1,5 +1,7 @@
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (get-free-disk-space): Use / for default-directory.
+
 	* textmodes/ispell.el (ispell-accept-output, ispell-command-loop):
 	Use with-current-buffer.
 
