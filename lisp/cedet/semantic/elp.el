@@ -1,9 +1,8 @@
-;;; semantic-elp.el --- Bind ELP to measure Semantic
+;;; semantic/elp.el --- Bind ELP to measure Semantic
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: semantic-elp.el,v 1.16 2009/04/02 01:18:33 zappo Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -769,4 +768,4 @@ The expectation is that you will edit this fcn with different
   (data-debug-show semantic-elp-last-run))
 
 (provide 'semantic/elp)
-;;; semantic-elp.el ends here
+;;; semantic/elp.el ends here
