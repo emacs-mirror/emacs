@@ -13508,7 +13508,9 @@ the buffer and restores the previous window configuration."
 	(while (setq b (find-buffer-visiting f)) (kill-buffer b))
 	(with-temp-file f
 	  (insert (mapconcat 'identity list "\n") "\n")))
-    (let ((org-mode-hook nil) (default-major-mode 'fundamental-mode))
+    (let ((org-mode-hook nil)
+          ;; FIXME: What is this for??  --Stef
+          (default-major-mode 'fundamental-mode))
       (setq org-agenda-files list)
       (customize-save-variable 'org-agenda-files org-agenda-files))))
 

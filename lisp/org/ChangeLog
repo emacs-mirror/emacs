@@ -45,7 +45,7 @@
 	* org.el (org-ido-completing-read): Accept straight lists for
 	completion as well as alists.
 
-	* org-timer.el (org-timer-cancel-timers): Renamed from
+	* org-timer.el (org-timer-cancel-timers): Rename from
 	`org-timer-cancel-timers'.
 
 	* org.el (org-cycle-internal-local): Fix problem with finding next
@@ -772,7 +772,7 @@
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org-exp.el (org-export-replace-src-segments-and-examples): FInd
+	* org-exp.el (org-export-replace-src-segments-and-examples): Find
 	indented blocks.
 	(org-export-format-source-code-or-example): Fix indentation of
 	blocks.
@@ -868,7 +868,7 @@
 	dependent.
 
 	* org.el (org-hierarchical-todo-statistics): New option.
-	(org-update-parent-todo-statistics): Modified to handle recursive
+	(org-update-parent-todo-statistics): Modify to handle recursive
 	statistics.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -1020,7 +1020,7 @@
 	(org-export-normalize-links): Do not protect the description if it
 	is explicitly given.
 
-	* org-list.el (org-reset-checkbox-state-subtree): Moved here from
+	* org-list.el (org-reset-checkbox-state-subtree): Move here from
 	org-checklist.el.
 	(org-reset-checkbox-state-subtree): Call
 	`org-reset-checkbox-state-subtree'.
@@ -1306,7 +1306,7 @@
 	* org-agenda.el (org-agenda-get-progress): Fix regexp bug.
 
 	* org.el (org-block-todo-from-children-or-siblings-or-parent):
-	Renamed from org-block-todo-from-children-or-siblings, and
+	Rename from org-block-todo-from-children-or-siblings, and
 	enhanced to look for the parent's status as well.
 
 	* org-agenda.el (org-agenda-log-mode-add-notes): New option.
@@ -1547,7 +1547,7 @@
 	* org-latex.el (org-export-latex-preprocess): Implement the
 	centering markup.
 
-	* org-exp.el (org-export-mark-blockquote-verse-center): Renamed
+	* org-exp.el (org-export-mark-blockquote-verse-center): Rename
 	from `org-export-mark-blockquote-and-verse'.
 	(org-export-as-html): Implement the centering markup.
 
@@ -1709,7 +1709,7 @@
 
 	* org-agenda.el (org-agenda-fontify-priorities): New default value
 	`cookies'.
-	(org-agenda-fontify-priorities): Renamed from
+	(org-agenda-fontify-priorities): Rename from
 	org-fontify-priorities.
 
 	* org.el (org-set-font-lock-defaults): Call
@@ -1725,7 +1725,7 @@
 	(org-export-html-validation-link): New variable.
 	(org-export-as-html): Add validation link to exported page.
 
-	* org.el (org-match-sparse-tree): Renamed from
+	* org.el (org-match-sparse-tree): Rename from
 	`org-tags-sparse-tree'.
 	(org-tags-sparse-tree): New alias.
 
@@ -2021,7 +2021,7 @@
 
 	* org.el (org-todo): Return correct state type even if the blocker
 	throws an error.
-	(org-modifier-cursor-error): Renamed from
+	(org-modifier-cursor-error): Rename from
 	`org-shiftcursor-error'.
 	(org-shiftmetaleft, org-shiftmetaright, org-shiftmetaup)
 	(org-shiftmetadown): Call `org-modifier-cursor-error'.
@@ -2134,14 +2134,14 @@
 	* org-exp.el (org-get-current-options): Include the option for
 	publishing time stamps.
 
-	* org.el (org-toggle-heading): Renamed from
+	* org.el (org-toggle-heading): Rename from
 	`org-toggel-region-headings'.
 	No longer needs a region defined, but will use it if there is one.
-	(org-ctrl-c-star): Simplified, relying more on the internal
+	(org-ctrl-c-star): Simplify, relying more on the internal
 	workings of `org-toggle-heading'.
-	(org-toggle-item): Renamed from `org-toggle-region-items'.
+	(org-toggle-item): Rename from `org-toggle-region-items'.
 	No longer needs a region defined, but will use it if there is one.
-	(org-ctrl-c-minus): Simplified, relying more on the inernal
+	(org-ctrl-c-minus): Simplify, relying more on the inernal
 	workings of `org-toggle-item'.
 
 	* org-export-latex.el (org-export-latex-preprocess): Fix bug in
@@ -2292,12 +2292,12 @@
 
 	* org-timer.el (org-timer-mode-line-string): New variable.
 
-	* org-clock.el (org-clock-mode-line-map): Renamed from
+	* org-clock.el (org-clock-mode-line-map): Rename from
 	`org-clock-mode-map'.
-	(org-clock-mode-line-timer): Renamed from `org-mode-line-timer'.
-	(org-clock-update-mode-line): Renamed from `org-update-mode-line'.
-	(org-clock-put-overlay): Renamed from `org-put-clock-overlay'.
-	(org-clock-remove-overlays): Renamed from
+	(org-clock-mode-line-timer): Rename from `org-mode-line-timer'.
+	(org-clock-update-mode-line): Rename from `org-update-mode-line'.
+	(org-clock-put-overlay): Rename from `org-put-clock-overlay'.
+	(org-clock-remove-overlays): Rename from
 	`org-remove-clock-overlays'.
 
 	* org-timer.el (org-timer-pause-or-continue): Implement stopping
@@ -2426,7 +2426,7 @@
 
 	* org-exp.el (org-export-preprocess-string): Call
 	`org-export-protect-colon-examples'.
-	(org-export-protect-colon-examples): Renamed from
+	(org-export-protect-colon-examples): Rename from
 	`org-export-protect-examples', and scope limited to lines starting
 	with a colon.
 
@@ -2482,9 +2482,9 @@
 	No longer call `org-export-protect-examples'.
 	(org-export-target-internal-links): Take care of coderef targets.
 	(org-export-last-code-line-counter-value): New variable.
-	(org-export-replace-src-segments-and-examples): Renamed from
+	(org-export-replace-src-segments-and-examples): Rename from
 	`org-export-replace-src-segments', and modified.
-	(org-export-format-source-code-or-example): Renamed from
+	(org-export-format-source-code-or-example): Rename from
 	`org-export-format-source-code'.
 	(org-export-number-lines): New function.
 	(org-export-as-ascii, org-export-as-html): Handle coderef links.
@@ -2713,12 +2713,12 @@
 	* org-agenda.el (org-agenda-goto-calendar): Remove duplicate let
 	bindings of calendar variables.
 
-	* org-table.el (org-table-find-row-type): Renamed from
+	* org-table.el (org-table-find-row-type): Rename from
 	`org-find-row-type'.
-	(org-table-rewrite-old-row-references): Renamed from
+	(org-table-rewrite-old-row-references): Rename from
 	`org-rewrite-old-row-references'.
-	(org-table-shift-refpart): Renamed from `org-shift-refpart'.
-	(org-table-cleanup-narrow-column-properties): Renamed from
+	(org-table-shift-refpart): Rename from `org-shift-refpart'.
+	(org-table-cleanup-narrow-column-properties): Rename from
 	`org-cleanup-narrow-column-properties'.
 
 2008-12-07  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -3154,7 +3154,7 @@
 	* org-attach.el (org-attach-expand-link, org-attach-expand): New
 	functions.
 
-	* org-agenda.el (org-agenda-get-progress): Renamed from
+	* org-agenda.el (org-agenda-get-progress): Rename from
 	`org-get-closed'.  Implement searching for state changes as well.
 	(org-agenda-log-mode-items): New option.
 	(org-agenda-log-mode): New option prefix argument, interpreted as
@@ -3383,12 +3383,12 @@
 
 2008-10-26  Bastien Guerry  <bzg@altern.org>
 
-	* org-export-latex.el (org-export-latex-classes): Added
+	* org-export-latex.el (org-export-latex-classes): Add
 	\usepackage{graphicx} to the default list of packages.
 
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org-agenda.el (org-agenda-filter): Renamed from
+	* org-agenda.el (org-agenda-filter): Rename from
 	`org-agenda-filter-tags'.
 
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
@@ -3501,7 +3501,7 @@
 	modifications, to make sure links are prepared before the LaTeX
 	conversions do happen.
 
-	* org-attach.el (org-attach-delete-all): Renamed from
+	* org-attach.el (org-attach-delete-all): Rename from
 	`org-attch-delete'.  Add a security query before deleting the
 	entire directory.  New optional argument FORCE can overrule the
 	security query.
@@ -3577,14 +3577,14 @@
 
 	* org-id.el (org-id-int-to-b36-one-digit)
 	(org-id-b36-to-int-one-digit, org-id-int-to-b36)
-	(org-id-b36-to-int, org-id-time-to-b36): Modified from b62 to
+	(org-id-b36-to-int, org-id-time-to-b36): Modify from b62 to
 	b36.
 
 	* org-id.el (org-id-reverse-string): New function.
 	(org-id-new): Use `org-id-reverse-string' to make sure the
 	beginning chars of the ID are mutating fast.  This allows to use a
 	directory structure to spread things better.
-	(org-id-prefix): Changed default to nil.
+	(org-id-prefix): Change default to nil.
 
 	* org-list.el (org-move-item-down, org-move-item-up): Remember and
 	restore the column of the cursor position.
@@ -3788,7 +3788,7 @@
 
 2008-10-12  Bastien Guerry  <bzg@altern.org>
 
-	* org.el (org-additional-option-like-keywords): Added keywords for
+	* org.el (org-additional-option-like-keywords): Add keywords for
 	the _QUOTE, _VERSE and _SRC environments.
 
 	* org-export-latex.el (org-export-latex-preprocess): Fix bug when
@@ -3834,7 +3834,7 @@
 	* org-gnus.el (org-gnus-store-link): Support for :to information
 	in gnus links.
 
-	* org-exp.el (org-export-as-html): Fixed typo in creator
+	* org-exp.el (org-export-as-html): Fix typo in creator
 	information.
 	(org-export-protect-examples): New parameter indent.  Insert extra
 	spaces only when this parameter is specified.
@@ -3845,7 +3845,7 @@
 	(org-remember-apply-template): Allow the file component to be a
 	function.
 
-	* org.el (org-goto-local-search-headings): Renamed from
+	* org.el (org-goto-local-search-headings): Rename from
 	`org-goto-local-search-forward-headings'.  Added the possibility
 	to search backwards.
 
@@ -3948,10 +3948,10 @@
 	* org.el (org-narrow-to-subtree): Do not include the final newline
 	into the narrowed region.
 
-	* org-agenda.el (org-agenda-custom-commands-local-options): Fixed
+	* org-agenda.el (org-agenda-custom-commands-local-options): Fix
 	bug with user-define skipping condition.
 
-	* org-agenda.el (org-agenda-get-restriction-and-command): Fixed typo.
+	* org-agenda.el (org-agenda-get-restriction-and-command): Fix typo.
 
 	* org-exp.el (org-export-html-style-default): Automatic overflow
 	handling for pre fields.
@@ -4129,7 +4129,7 @@
 	text property, so that the agenda knows where this entry comes
 	from.
 
-	* org-agenda.el (org-agenda-clock-in): Fixed bug in the
+	* org-agenda.el (org-agenda-clock-in): Fix bug in the
 	interaction between clocking-in from the agenda, and  automatic
 	task state switching.
 
@@ -4200,7 +4200,7 @@
 	(org-columns-cleanup-item): Call `org-columns-compact-links'.
 	(org-columns-display-here): Call `org-agenda-columns-cleanup-item'
 	when in agenda.
-	(org-columns-edit-value): Fixed bug with editing values from
+	(org-columns-edit-value): Fix bug with editing values from
 	agenda column view.
 	(org-columns-redo): Also redo the agenda itself.
 
@@ -4211,7 +4211,7 @@
 
 	* org-colview.el (org-agenda-columns-cleanup-item): New function.
 
-	* org-exp.el (org-export-ascii-preprocess): Renamed from
+	* org-exp.el (org-export-ascii-preprocess): Rename from
 	`org-export-ascii-clean-string'.
 	(org-export-kill-licensed-text)
 	(org-export-define-heading-targets)
@@ -4239,7 +4239,7 @@
 	* org-archive.el (org-archive-save-context-info): Fix bugs in
 	customization setup and docstring.
 
-	* org-exp.el (org-export-html-style): Changed the size of in the
+	* org-exp.el (org-export-html-style): Change the size of in the
 	<pre> element to 90%.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
@@ -4279,8 +4279,7 @@
 
 	* org-exp.el (org-export-get-title-from-subtree)
 	(org-export-as-ascii, org-export-as-html): Make sure the original
-	region-beginning and region-end are used, even after moving
-	point.
+	region-beginning and region-end are used, even after moving point.
 	(org-export-get-title-from-subtree): Also try the EXPORT_TITLE
 	property.
 
@@ -4293,12 +4292,11 @@
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.el (org-file-properties): Renamed from `org-local-properties'.
+	* org.el (org-file-properties): Rename from `org-local-properties'.
 	(org-scan-tags): Take file tags into account.
 	(org-tags-match-list-sublevels): Default changed to t.
 
-	* org-exp.el (org-export-as-html): Close paragraph after a
-	footnote.
+	* org-exp.el (org-export-as-html): Close paragraph after a footnote.
 
 	* org.el (org-update-parent-todo-statistics): New function.
 
@@ -4345,8 +4343,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-print-icalendar-entries): Make sure DTEND is
-	shifted by one day if there is a date range without an end
-	time.
+	shifted by one day if there is a date range without an end time.
 
 	* org.el (org-try-structure-completion): New function.
 
@@ -4445,8 +4442,8 @@
 
 2008-06-17  Bastien Guerry  <bzg@altern.org>
 
-	* org-export-latex.el (org-export-latex-preprocess): Added
-	support for blockquotes.
+	* org-export-latex.el (org-export-latex-preprocess):
+	Add support for blockquotes.
 
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -4529,8 +4526,7 @@
 2008-06-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org-exp.el (org-export-preprocess-hook): New hook.
-	(org-export-preprocess-string): Call
-	`org-export-preprocess-hook'.
+	(org-export-preprocess-string): Call `org-export-preprocess-hook'.
 
 	* org.el (org-font-lock-hook): New variable.
 	(org-font-lock-hook): New function.
