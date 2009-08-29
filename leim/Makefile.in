@@ -208,7 +208,7 @@ changed.misc: ${MISC-SOURCES}
 	  echo "changed" > $@
 
 leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
-	rm -rf leim-list.el
+	rm -f leim-list.el
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
@@ -227,7 +227,7 @@ install: all
           ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
 	else true; fi
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
-	  rm -rf ${INSTALLDIR}/leim-list.el; \
+	  rm -f ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \

@@ -1,3 +1,7 @@
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (leim-list.el, install): Don't use -r to remove files.
+
 2009-08-25  Glenn Morris  <rgm@gnu.org>
 
 	* quail/hangul.el (top-level): Don't require cl at run-time.
