@@ -26,7 +26,7 @@
 ;; Support IDUtils use in the Semantic Symref tool.
 
 (require 'cedet-idutils)
-(require 'semantic-symref)
+(require 'semantic/symref)
 
 ;;; Code:
 (defclass semantic-symref-tool-idutils (semantic-symref-tool-baseclass)
