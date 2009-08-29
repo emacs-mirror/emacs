@@ -1506,7 +1506,14 @@ If ANY-VALUE is nil, only return non-nil if the value of the symbol is the
 symbol itself."
   (or (memq symbol '(nil t))
       (keywordp symbol)
-      (if any-value (memq symbol byte-compile-const-variables))))
+      (if any-value
+	  (or (memq symbol byte-compile-const-variables)
+	      ;; FIXME: We should provide a less intrusive way to find out
+	      ;; is a variable is "constant".
+	      (and (boundp symbol)
+		   (condition-case nil
+		       (progn (set symbol (symbol-value symbol)) nil)
+		     (setting-constant t)))))))
 
 (defmacro byte-compile-constp (form)
   "Return non-nil if FORM is a constant."
@@ -3483,9 +3490,15 @@ That command is designed for interactive use only" fn))
   (let ((args (cdr form))
 	setters)
     (while args
-      (setq setters
-	    (cons (list 'set-default (list 'quote (car args)) (car (cdr args)))
-		  setters))
+      (let ((var (car args)))
+	(if (or (not (symbolp var))
+		(byte-compile-const-symbol-p var t))
+	    (byte-compile-warn
+	     "variable assignment to %s `%s'"
+	     (if (symbolp var) "constant" "nonvariable")
+	     (prin1-to-string var)))
+	(push (list 'set-default (list 'quote var) (car (cdr args)))
+	      setters))
       (setq args (cdr (cdr args))))
     (byte-compile-form (cons 'progn (nreverse setters)))))
 

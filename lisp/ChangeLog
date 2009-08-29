@@ -1,5 +1,10 @@
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-const-symbol-p):
+	Recognize immutable variables like most-positive-fixnum.
+	(byte-compile-setq-default): Check and warn if trying to assign
+	to an immutable variable, or a non-variable.
+
 	* progmodes/cc-vars.el (c-comment-continuation-stars):
 	* progmodes/cc-engine.el (c-looking-at-bos):
 	* progmodes/cc-cmds.el (c-toggle-auto-state)
