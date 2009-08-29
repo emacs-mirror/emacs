@@ -35,7 +35,7 @@
 ;; fast-jump.  For a virtual method, offer some of the possible
 ;; implementations in various sub-classes.
 
-(require 'senator)
+;; (require 'senator)
 (require 'semantic/analyze)
 (require 'pulse)
 (eval-when-compile
