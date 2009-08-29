@@ -50,6 +50,18 @@
 
 ;; Keep this only so long as we have obsolete fcns.
 (require 'semantic/fw)
+(require 'semantic/lex)
+
+(declare-function semantic-current-tag "semantic/find")
+(declare-function semantic-find-first-tag-by-name "semantic/find")
+(declare-function semantic-ctxt-current-mode "semantic/ctxt")
+(declare-function semantic-analyze-split-name "semantic/analyze/fcn")
+(declare-function semantic-fetch-tags "semantic")
+(declare-function semantic-clear-toplevel-cache "semantic")
+(declare-function semantic-documentation-for-tag "semantic/doc")
+(declare-function semantic-format-tag-prototype "semantic/format")
+(declare-function semantic-format-tag-summarize "semantic/format")
+(declare-function semantic-format-tag-name "semantic/format")
 
 (defconst semantic-tag-version semantic-version
   "Version string of semantic tags made with this code.")
@@ -207,6 +219,7 @@ If TAG has a :mode property return it.
 If point is inside TAG bounds, return the major mode active at point.
 Return the major mode active at beginning of TAG otherwise.
 See also the function `semantic-ctxt-current-mode'."
+  (require 'semantic/find)
   (or tag (setq tag (semantic-current-tag)))
   (or (semantic--tag-get-property tag :mode)
       (let ((buffer (semantic-tag-buffer tag))
@@ -308,8 +321,6 @@ If TAG is unlinked, but has a :filename property, then that is used."
       (semantic--tag-get-property tag :filename))))
 
 ;;; Tag tests and comparisons.
-;;
-;;;###autoload
 (defsubst semantic-tag-p (tag)
   "Return non-nil if TAG is most likely a semantic tag."
   (condition-case nil
@@ -810,10 +821,12 @@ refers to that parent by name, then the :parent attribute should be used."
   "Find the superclass NAME in the list of SUPERS.
 If a simple search doesn't do it, try splitting up the names
 in SUPERS."
+  (require 'semantic/find)
   (let ((stag nil))
     (setq stag (semantic-find-first-tag-by-name name supers))
 
     (when (not stag)
+      (require 'semantic/analyze/fcn)
       (dolist (S supers)
 	(let* ((sname (semantic-tag-name S))
 	       (splitparts (semantic-analyze-split-name sname))
@@ -947,7 +960,6 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
   "Return the class of tag TAG is an alias."
   (semantic-tag-get-attribute tag :aliasclass))
 
-;;;###autoload
 (define-overloadable-function semantic-tag-alias-definition (tag)
   "Return the definition TAG is an alias.
 The returned value is a tag of the class that
@@ -960,7 +972,6 @@ Return nil if TAG is not of class 'alias."
 
 ;;; Language Specific Tag access via overload
 ;;
-;;;###autoload
 (define-overloadable-function semantic-tag-components (tag)
   "Return a list of components for TAG.
 A Component is a part of TAG which itself may be a TAG.
@@ -978,7 +989,6 @@ Perform the described task in `semantic-tag-components'."
 	 (semantic-tag-function-arguments tag))
 	(t nil)))
 
-;;;###autoload
 (define-overloadable-function semantic-tag-components-with-overlays (tag)
   "Return the list of top level components belonging to TAG.
 Children are any sub-tags which contain overlays.
@@ -1160,6 +1170,7 @@ This function is for internal use only."
 (defun semantic--tag-unlink-cache-from-buffer ()
   "Convert all tags in the current cache to use overlay proxys.
 This function is for internal use only."
+  (require 'semantic)
   (semantic--tag-unlink-list-from-buffer
    ;; @todo- use fetch-tags-fast?
    (semantic-fetch-tags)))
@@ -1169,6 +1180,7 @@ This function is for internal use only."
 (defun semantic--tag-link-cache-to-buffer ()
   "Convert all tags in the current cache to use overlays.
 This function is for internal use only."
+  (require 'semantic)
   (condition-case nil
       ;; In this unique case, we cannot call the usual toplevel fn.
       ;; because we don't want a reparse, we want the old overlays.
@@ -1289,6 +1301,7 @@ Signal an error if not."
   "Return a copy of TAG as a foreign tag, or nil if it can't be done.
 TAG defaults to the tag at point in current buffer.
 See also `semantic-foreign-tag-p'."
+  (require 'semantic/doc)
   (or tag (setq tag (semantic-current-tag)))
   (when (semantic-tag-p tag)
     (let ((ftag (semantic-tag-copy tag nil t))
@@ -1305,8 +1318,6 @@ See also `semantic-foreign-tag-p'."
         ftag))))
 
 ;; High level obtain/insert foreign tag overloads
-;;
-;;;###autoload
 (define-overloadable-function semantic-obtain-foreign-tag (&optional tag)
   "Obtain a foreign tag from TAG.
 TAG defaults to the tag at point in current buffer.
@@ -1319,13 +1330,14 @@ The default behavior assumes the current buffer is a language file,
 and attempts to insert a prototype/function call."
   ;; Long term goal: Have a mechanism for a tempo-like template insert
   ;; for the given tag.
+  (require 'semantic/format)
   (insert (semantic-format-tag-prototype foreign-tag)))
 
-;;;###autoload
 (define-overloadable-function semantic-insert-foreign-tag (foreign-tag)
   "Insert FOREIGN-TAG into the current buffer.
 Signal an error if FOREIGN-TAG is not a valid foreign tag.
 This function is overridable with the symbol `insert-foreign-tag'."
+  (require 'semantic/format)
   (semantic-foreign-tag-check foreign-tag)
   (:override)
   (message (semantic-format-tag-summarize foreign-tag)))
@@ -1334,11 +1346,13 @@ This function is overridable with the symbol `insert-foreign-tag'."
 (define-mode-local-override semantic-insert-foreign-tag
   log-edit-mode (foreign-tag)
   "Insert foreign tags into log-edit mode."
+  (require 'semantic/format)
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 (define-mode-local-override semantic-insert-foreign-tag
   change-log-mode (foreign-tag)
   "Insert foreign tags into log-edit mode."
+  (require 'semantic/format)
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 
