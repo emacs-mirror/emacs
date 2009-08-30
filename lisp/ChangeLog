@@ -1,5 +1,8 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calc/calc.el: Improve commenting convention.
+	(calc-digit-map, toplevel): Simplify.
+
 	* comint.el (comint-insert-input): Be careful to only set point if we
 	don't delegate to some other command.
 
