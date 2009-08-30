@@ -5150,11 +5150,16 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		 It can't hurt.  */
 	      else if (nread == -1 && errno == EIO)
 		{
-		  /* Clear the descriptor now, so we only raise the signal once.  */
-		  FD_CLR (channel, &input_wait_mask);
-		  FD_CLR (channel, &non_keyboard_wait_mask);
+		  /* Clear the descriptor now, so we only raise the
+		     signal once.  Don't do this is `process' is only
+		     a pty.  */
+		  if (XPROCESS (proc)->pid != -2)
+		    {
+		      FD_CLR (channel, &input_wait_mask);
+		      FD_CLR (channel, &non_keyboard_wait_mask);
 
-		  kill (getpid (), SIGCHLD);
+		      kill (getpid (), SIGCHLD);
+		    }
 		}
 #endif /* HAVE_PTYS */
 	      /* If we can detect process termination, don't consider the process
