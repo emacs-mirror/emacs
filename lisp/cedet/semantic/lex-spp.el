@@ -377,42 +377,53 @@ ARGVALUES are values for any arg list, or nil."
 ;; Argument lists are saved as a lexical token at the beginning
 ;; of a replacement value.
 
-(defun semantic-lex-spp-one-token-to-txt (tok)
+(defun semantic-lex-spp-one-token-to-txt (tok &optional blocktok)
   "Convert the token TOK into a string.
 If TOK is made of multiple tokens, convert those to text.  This
 conversion is needed if a macro has a merge symbol in it that
 combines the text of two previously distinct symbols.  For
 exampe, in c:
 
-#define (a,b) a ## b;"
+#define (a,b) a ## b;
+
+If optional string BLOCKTOK matches the expanded value, then do not
+continue processing recursively."
   (let ((txt (semantic-lex-token-text tok))
 	(sym nil)
 	)
-    (cond ((and (eq (car tok) 'symbol)
-		(setq sym (semantic-lex-spp-symbol txt))
-		(not (semantic-lex-spp-macro-with-args (symbol-value sym)))
-		)
-	   ;; Now that we have a symbol,
-	   (let ((val (symbol-value sym)))
-	     (cond ((and (consp val)
-			 (symbolp (car val)))
-		    (semantic-lex-spp-one-token-to-txt val))
-		   ((and (consp val)
-			 (consp (car val))
-			 (symbolp (car (car val))))
-		    (mapconcat (lambda (subtok)
-				 (semantic-lex-spp-one-token-to-txt subtok))
-			       val
-			       ""))
-		   ;; If val is nil, that's probably wrong.
-		   ;; Found a system header case where this was true.
-		   ((null val) "")
-		   ;; Debug wierd stuff.
-		   (t (debug)))
-	     ))
-	  ((stringp txt)
-	   txt)
-	  (t nil))
+    (cond
+     ;; Recursion prevention
+     ((and (stringp blocktok) (string= txt blocktok))
+      blocktok)
+     ;; A complex symbol
+     ((and (eq (car tok) 'symbol)
+	   (setq sym (semantic-lex-spp-symbol txt))
+	   (not (semantic-lex-spp-macro-with-args (symbol-value sym)))
+	   )
+      ;; Now that we have a symbol,
+      (let ((val (symbol-value sym)))
+	(cond
+	 ;; This is another lexical token.
+	 ((and (consp val)
+	       (symbolp (car val)))
+	  (semantic-lex-spp-one-token-to-txt val txt))
+	 ;; This is a list of tokens.
+	 ((and (consp val)
+	       (consp (car val))
+	       (symbolp (car (car val))))
+	  (mapconcat (lambda (subtok)
+		       (semantic-lex-spp-one-token-to-txt subtok))
+		     val
+		     ""))
+	 ;; If val is nil, that's probably wrong.
+	 ;; Found a system header case where this was true.
+	 ((null val) "")
+	 ;; Debug wierd stuff.
+	 (t (debug)))
+	))
+     ((stringp txt)
+      txt)
+     (t nil))
     ))
 
 (defun semantic-lex-spp-macro-with-args (val)
@@ -828,6 +839,7 @@ Use this to parse text extracted from a macro as if it came from
 the current buffer.  Since the lexer is designed to only work in
 a buffer, we need to create a new buffer, and populate it with rules
 and variable state from the current buffer."
+  ;; @TODO - will this fcn recurse?
   (let* ((buf (get-buffer-create " *SPP parse hack*"))
 	 (mode major-mode)
 	 (fresh-toks nil)
@@ -840,30 +852,34 @@ and variable state from the current buffer."
 			   semantic-lex-spp-expanded-macro-stack
 			   ))
 	 )
-    (set-buffer buf)
-    (erase-buffer)
-    ;; Below is a painful hack to make sure everything is setup correctly.
-    (when (not (eq major-mode mode))
-      (funcall mode)
-      ;; Hack in mode-local
-      (activate-mode-local-bindings)
-      ;; CHEATER!  The following 3 lines are from
-      ;; `semantic-new-buffer-fcn', but we don't want to turn
-      ;; on all the other annoying modes for this little task.
-      (setq semantic-new-buffer-fcn-was-run t)
-      (semantic-lex-init)
-      (semantic-clear-toplevel-cache)
-      (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		   t)
+    (save-excursion
+      (set-buffer buf)
+      (erase-buffer)
+      ;; Below is a painful hack to make sure everything is setup correctly.
+      (when (not (eq major-mode mode))
+	(funcall mode)
+	;; Hack in mode-local
+	(activate-mode-local-bindings)
+	;; CHEATER!  The following 3 lines are from
+	;; `semantic-new-buffer-fcn', but we don't want to turn
+	;; on all the other annoying modes for this little task.
+	(setq semantic-new-buffer-fcn-was-run t)
+	(semantic-lex-init)
+	(semantic-clear-toplevel-cache)
+	(remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+		     t)
+	)
+
       ;; Second Cheat: copy key variables reguarding macro state from the
-      ;; the originating buffer we are parsing.
+      ;; the originating buffer we are parsing.  We need to do this every time
+      ;; since the state changes.
       (dolist (V important-vars)
 	(set V (semantic-buffer-local-value V origbuff)))
-      )
-    (insert text)
-    (goto-char (point-min))
+      (insert text)
+      (goto-char (point-min))
 
-    (setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max)))
+      (setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max))))
+
     (dolist (tok fresh-toks)
       (when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
 	(setq toks (cons tok toks))))
