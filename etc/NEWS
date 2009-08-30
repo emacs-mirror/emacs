@@ -221,6 +221,9 @@ ucs-normalize-NFKC-region, ucs-normalize-NFKC-string,
 ucs-normalize-HFS-NFD-region, ucs-normalize-HFS-NFD-string,
 ucs-normalize-HFS-NFC-region, ucs-normalize-HFS-NFC-string.
 
+** completion-annotate-function specifies how to compute annotations
+for completions displayed in *Completions*.
+
 
 * Installation Changes in Emacs 23.1
 
