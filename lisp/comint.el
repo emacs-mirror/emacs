@@ -816,7 +816,9 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 If there is no previous input at point, run the command specified
 by the global keymap (usually `mouse-yank-at-click')."
   (interactive "e")
-  (mouse-set-point event)
+  ;; Don't set the mouse here, since it may otherwise change the behavior
+  ;; of the command on which we fallback if there's no field at point.
+  ;; (mouse-set-point event)
   (let ((pos (posn-point (event-end event)))
 	field input)
     (with-selected-window (posn-window (event-end event))
@@ -833,15 +835,16 @@ by the global keymap (usually `mouse-yank-at-click')."
 	       (fun (and last-key (lookup-key global-map (vector last-key)))))
 	  (and fun (not (eq fun 'comint-insert-input))
 	       (call-interactively fun)))
-      ;; Otherwise, insert the previous input.
-      (goto-char (point-max))
-      ;; First delete any old unsent input at the end
-      (delete-region
-       (or (marker-position comint-accum-marker)
-	   (process-mark (get-buffer-process (current-buffer))))
-       (point))
-      ;; Insert the input at point
-      (insert input))))
+      (with-selected-window (posn-window (event-end event))
+        ;; Otherwise, insert the previous input.
+        (goto-char (point-max))
+        ;; First delete any old unsent input at the end
+        (delete-region
+         (or (marker-position comint-accum-marker)
+             (process-mark (get-buffer-process (current-buffer))))
+         (point))
+        ;; Insert the input at point
+        (insert input)))))
 
 ;; Input history processing in a buffer
 ;; ===========================================================================
