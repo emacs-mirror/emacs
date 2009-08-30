@@ -1,3 +1,12 @@
+2009-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-start-prog-re): New constant, extracted
+	from fortran-current-defun.
+	(fortran-beginning-of-subprogram): Be more precise about finding the
+	start, to avoid an infinite loop in end-of-defun.  (Bug#4259)
+	(fortran-end-of-subprogram): Simplify.
+	(fortran-current-defun): Use fortran-start-prog-re.
+
 2009-08-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (do-after-load-evaluation): Simplify.

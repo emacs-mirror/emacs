@@ -1,8 +1,8 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;               2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;;               Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -329,6 +329,13 @@ characters long.")
 
 (defconst fortran-if-start-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?if[ \t]*("
   "Regexp matching the start of an IF statement.")
+
+;; Note fortran-current-defun uses the subgroups.
+(defconst fortran-start-prog-re
+  "^[ \t]*\\(program\\|subroutine\\|function\
+\\|[ \ta-z0-9*()]*[ \t]+function\\|\
+\\(block[ \t]*data\\)\\)"
+  "Regexp matching the start of a subprogram, from the line start.")
 
 (defconst fortran-end-prog-re1
   "end\
@@ -1182,37 +1189,47 @@ Auto-indent does not happen if a numeric ARG is used."
                                          (+ fortran-line-length
                                             (line-beginning-position)))))))
 
-;; Note that you can't just check backwards for `subroutine' &c in
-;; case of un-marked main programs not at the start of the file.
+;; This is more complex than first expected because the beginning of a
+;; main program may be implicit (ie not marked by a PROGRAM statement).
+;; This would be fine (we could just go to bob in the absence of a match),
+;; except it need not even be the first subprogram in the file (eg it
+;; could follow a subroutine).  Hence we have to search for END
+;; statements instead.
+;; cf fortran-beginning-of-block, f90-beginning-of-subprogram
+;; Note that unlike the latter, we don't have to worry about nested
+;; subprograms (?).
+;; FIXME push-mark?
 (defun fortran-beginning-of-subprogram ()
   "Move point to the beginning of the current Fortran subprogram."
   (interactive)
-  (save-match-data
-    (let ((case-fold-search t))
-      (beginning-of-line -1)
-      (if (catch 'ok
-            (while (re-search-backward fortran-end-prog-re nil 'move)
-              (if (fortran-check-end-prog-re)
-                  (throw 'ok t))))
-          (forward-line)))))
+  (let ((case-fold-search t))
+    ;; If called already at the start of subprogram, go to the previous.
+    (beginning-of-line (if (bolp) 0 1))
+    (save-match-data
+      (or (looking-at fortran-start-prog-re)
+          ;; This leaves us at bob if before the first subprogram.
+          (eq (fortran-previous-statement) 'first-statement)
+          (if (or (catch 'ok
+                    (while (re-search-backward fortran-end-prog-re nil 'move)
+                      (if (fortran-check-end-prog-re) (throw 'ok t))))
+                  ;; If the search failed, must be at bob.
+                  ;; First code line is the start of the subprogram.
+                  ;; FIXME use a more rigorous test, cf fortran-next-statement?
+                  ;; Though that needs to handle continuations too.
+                  (not (looking-at "^\\([ \t]*[0-9]\\|[ \t]+[^!#]\\)")))
+              (fortran-next-statement))))))
 
+;; This is simpler than f-beginning-of-s because the end of a
+;; subprogram is never implicit.
 (defun fortran-end-of-subprogram ()
   "Move point to the end of the current Fortran subprogram."
   (interactive)
-  (save-match-data
-    (let ((case-fold-search t))
-      (if (save-excursion               ; on END
-            (beginning-of-line)
-            (and (looking-at fortran-end-prog-re)
-                 (fortran-check-end-prog-re)))
-          (forward-line)
-        (beginning-of-line 2)
-        (when (catch 'ok
-                (while (re-search-forward fortran-end-prog-re nil 'move)
-                  (if (fortran-check-end-prog-re)
-                      (throw 'ok t))))
-          (goto-char (match-beginning 0))
-          (forward-line))))))
+  (let ((case-fold-search t))
+    (beginning-of-line)
+    (save-match-data
+      (while (and (re-search-forward fortran-end-prog-re nil 'move)
+                  (not (fortran-check-end-prog-re))))
+      (forward-line))))
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
@@ -2137,19 +2154,16 @@ arg DO-SPACE prevents stripping the whitespace."
       (replace-match "" nil nil nil 1)
       (unless do-space (delete-horizontal-space)))))
 
-;; This code used to live in add-log.el, but this is a better place
-;; for it.
+;; This code used to live in add-log.el, but this is a better place for it.
 (defun fortran-current-defun ()
   "Function to use for `add-log-current-defun-function' in Fortran mode."
   (save-excursion
     ;; We must be inside function body for this to work.
     (fortran-beginning-of-subprogram)
-    (let ((case-fold-search t))         ; case-insensitive
+    (let ((case-fold-search t))
       ;; Search for fortran subprogram start.
       (if (re-search-forward
-           (concat "^[ \t]*\\(program\\|subroutine\\|function"
-                   "\\|[ \ta-z0-9*()]*[ \t]+function\\|"
-                   "\\(block[ \t]*data\\)\\)")
+           fortran-start-prog-re
            (save-excursion (fortran-end-of-subprogram)
                            (point))
            t)
