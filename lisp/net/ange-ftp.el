@@ -1968,16 +1968,10 @@ on the gateway machine to do the FTP instead."
     (accept-process-output proc)	;wait for ftp startup message
     proc))
 
-(put 'internal-ange-ftp-mode 'mode-class 'special)
-
-(defun internal-ange-ftp-mode ()
+(define-derived-mode internal-ange-ftp-mode comint-mode "Internal Ange-ftp"
   "Major mode for interacting with the FTP process.
 
 \\{comint-mode-map}"
-  (interactive)
-  (delay-mode-hooks (comint-mode))
-  (setq major-mode 'internal-ange-ftp-mode)
-  (setq mode-name "Internal Ange-ftp")
   (make-local-variable 'ange-ftp-process-string)
   (setq ange-ftp-process-string "")
   (make-local-variable 'ange-ftp-process-busy)
@@ -2001,8 +1995,7 @@ on the gateway machine to do the FTP instead."
   ;; ange-ftp has its own ways of handling passwords.
   (setq comint-password-prompt-regexp "\\`a\\`")
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start comint-prompt-regexp)
-  (run-mode-hooks 'internal-ange-ftp-mode-hook))
+  (setq paragraph-start comint-prompt-regexp))
 
 (defcustom ange-ftp-raw-login nil
   "Use raw FTP commands for login, if account password is not nil.
