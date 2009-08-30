@@ -1,3 +1,8 @@
+2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* quail/ipa.el: Recode the file as UTF-8, for better
+	interoperability with other applications.
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el (\circ): Use the `ring operator' rather than
