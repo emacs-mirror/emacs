@@ -1,4 +1,4 @@
-;;; complete.el --- Routines for performing tag completion
+;;; semantic/complete.el --- Routines for performing tag completion
 
 ;;; Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -108,15 +108,19 @@
 ;; a buffer.
 
 (require 'eieio)
-(require 'semantic/tag)
+(require 'eieio-opt)
+(require 'semantic/tag-file)
 (require 'semantic/find)
 (require 'semantic/analyze)
 (require 'semantic/format)
 (require 'semantic/ctxt)
 ;; Keep semanticdb optional.
-(eval-when-compile
-  (require 'semantic/db)
-  (require 'semantic/db-find))
+;; (eval-when-compile
+;;   (require 'semantic/db)
+;;   (require 'semantic/db-find))
+(require 'semantic/decorate)
+(require 'semantic/analyze/complete)
+
 
 (eval-when-compile
   (condition-case nil
@@ -324,6 +328,11 @@ HISTORY is a symbol representing a variable to story the history in."
 ;; the focused tag is calculated... preferably once.
 (defvar semantic-complete-current-matched-tag nil
   "Variable used to pass the tags being matched to the prompt.")
+
+;; semantic-displayor-focus-abstract-child-p is part of the
+;; semantic-displayor-focus-abstract class, defined later in this
+;; file.
+(declare-function semantic-displayor-focus-abstract-child-p "semantic/complete")
 
 (defun semantic-complete-current-match ()
   "Calculate a match from the current completion environment.
@@ -1759,6 +1768,29 @@ completion text in ghost text."
 ;;; ------------------------------------------------------------
 ;;; Specific queries
 ;;
+(defvar semantic-complete-inline-custom-type
+  (append '(radio)
+	  (mapcar
+	   (lambda (class)
+	     (let* ((C (intern (car class)))
+		    (doc (documentation-property C 'variable-documentation))
+		    (doc1 (car (split-string doc "\n")))
+		    )
+	       (list 'const
+		     :tag doc1
+		     C)))
+	   (eieio-build-class-alist semantic-displayor-abstract t))
+	  )
+  "Possible options for inlince completion displayors.
+Use this to enable custom editing.")
+
+(defcustom semantic-complete-inline-analyzer-displayor-class
+  'semantic-displayor-traditional
+  "*Class for displayor to use with inline completion."
+  :group 'semantic
+  :type semantic-complete-inline-custom-type
+  )
+
 (defun semantic-complete-read-tag-buffer-deep (prompt &optional
 						      default-tag
 						      initial-input
@@ -1884,30 +1916,6 @@ prompts.  these are calculated from the CONTEXT variable passed in."
      nil
      inp
      history)))
-
-(defvar semantic-complete-inline-custom-type
-  (append '(radio)
-	  (mapcar
-	   (lambda (class)
-	     (let* ((C (intern (car class)))
-		    (doc (documentation-property C 'variable-documentation))
-		    (doc1 (car (split-string doc "\n")))
-		    )
-	       (list 'const
-		     :tag doc1
-		     C)))
-	   (eieio-build-class-alist semantic-displayor-abstract t))
-	  )
-  "Possible options for inlince completion displayors.
-Use this to enable custom editing.")
-
-(defcustom semantic-complete-inline-analyzer-displayor-class
-  'semantic-displayor-traditional
-  "*Class for displayor to use with inline completion."
-  :group 'semantic
-  :type semantic-complete-inline-custom-type
-  )
-
 
 (defun semantic-complete-inline-analyzer (context)
   "Complete a symbol name by name based on the current context.
@@ -2125,4 +2133,4 @@ use `semantic-complete-analyze-inline' to complete."
 ;; End
 (provide 'semantic/complete)
 
-;;; semantic-complete.el ends here
+;;; semantic/complete.el ends here

@@ -1,4 +1,4 @@
-;;; adebug.el --- Semantic Application Debugger
+;;; semantic/adebug.el --- Semantic Application Debugger
 
 ;;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -420,4 +420,4 @@ Optional argument CTXT is the context to show."
 
 (provide 'semantic/adebug)
 
-;;; semantic-adebug.el ends here
+;;; semantic/adebug.el ends here

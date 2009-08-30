@@ -1,4 +1,4 @@
-;;; db-debug.el --- Extra level debugging routines for Semantic
+;;; semantic/db-debug.el --- Extra level debugging routines for Semantic
 
 ;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
@@ -24,7 +24,10 @@
 ;; Various routines for debugging SemanticDB issues, or viewing
 ;; semanticdb state.
 
+(require 'data-debug)
 (require 'semantic/db)
+(require 'semantic/db-mode)
+(require 'semantic/format)
 
 ;;; Code:
 ;;
@@ -105,4 +108,5 @@
 
 
 (provide 'semantic/db-debug)
-;;; semanticdb-debug.el ends here
+
+;;; semantic/db-debug.el ends here

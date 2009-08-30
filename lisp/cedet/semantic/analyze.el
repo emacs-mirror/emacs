@@ -1,4 +1,4 @@
-;;; analyze.el --- Analyze semantic tags against local context
+;;; semantic/analyze.el --- Analyze semantic tags against local context
 
 ;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -65,18 +65,18 @@
 ;;       other possible completions.
 ;;
 (require 'eieio)
-;; (require 'inversion)
-;; (eval-and-compile
-;;   (inversion-require 'eieio "1.0"))
 (require 'semantic)
 (require 'semantic/format)
 (require 'semantic/ctxt)
 (require 'semantic/sort)
-(eval-when-compile (require 'semantic/db)
-		   (require 'semantic/db-find))
-
+(eval-when-compile (require 'semantic/find))
 (require 'semantic/scope)
 (require 'semantic/analyze/fcn)
+
+;; `semanticdb-typecache-find' autoloads from semantic/db-typecache,
+;; which requires semantic/db-find.
+(declare-function semanticdb-strip-find-results "semantic/db-find")
+(declare-function semanticdb-find-tags-by-name "semantic/db-find")
 
 ;;; Code:
 (defvar semantic-analyze-error-stack nil
@@ -684,8 +684,11 @@ Returns an object based on symbol `semantic-analyze-context'."
 ;;
 ;; Friendly output of a context analysis.
 ;;
+(declare-function pulse-momentary-highlight-region "pulse")
+
 (defmethod semantic-analyze-pulse ((context semantic-analyze-context))
   "Pulse the region that CONTEXT affects."
+  (require 'pulse)
   (save-excursion
     (set-buffer (oref context :buffer))
     (let ((bounds (oref context :bounds)))
@@ -766,4 +769,4 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
 
 (provide 'semantic/analyze)
 
-;;; semantic-analyze.el ends here
+;;; semantic/analyze.el ends here

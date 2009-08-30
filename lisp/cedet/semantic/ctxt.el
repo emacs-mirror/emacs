@@ -1,4 +1,4 @@
-;;; ctxt.el --- Context calculations for Semantic tools.
+;;; semantic/ctxt.el --- Context calculations for Semantic tools.
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;; 2007, 2008, 2009 Free Software Foundation, Inc.
@@ -31,7 +31,7 @@
 ;; the current context is calculated.
 ;;
 (require 'semantic)
-(eval-when-compile (require 'semantic/db))
+(require 'semantic/find)
 
 ;;; Code:
 (defvar semantic-command-separation-character
@@ -155,16 +155,15 @@ Return non-nil if there is no upper context."
 Local variables are returned in Semantic tag format.
 This can be overriden with `get-local-variables'."
   ;; The working status is to let the parser work properly
-  (working-status-forms
-   (semantic-parser-working-message "Local")
-   "done"
-   (save-excursion
-     (if point (goto-char point))
-     (let* ((semantic-working-type nil)
-	    ;; Disable parsing messages
-	    (working-status-dynamic-type nil)
-	    (case-fold-search semantic-case-fold))
-       (:override-with-args ())))))
+  (let ((semantic--progress-reporter
+	 (make-progress-reporter (semantic-parser-working-message "Local")
+				 0 100)))
+    (save-excursion
+      (if point (goto-char point))
+      (let* ((semantic-working-type nil)
+	     ;; Disable parsing messages
+	     (case-fold-search semantic-case-fold))
+	(:override-with-args ())))))
 
 (defun semantic-get-local-variables-default ()
   "Get local values from a specific context.
@@ -610,4 +609,4 @@ overriden."
 
 (provide 'semantic/ctxt)
 
-;;; semantic-ctxt.el ends here
+;;; semantic/ctxt.el ends here

@@ -42,6 +42,11 @@
 ;;     stuff))
 
 (require 'font-lock)
+(require 'ring)
+(require 'eieio)
+(eval-when-compile
+  (require 'semantic))
+
 ;;; Code:
 
 ;;; Compatibility

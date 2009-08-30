@@ -35,9 +35,10 @@
   (require 'semantic/db)
   (require 'semantic/db-find)
   (require 'semantic/ctxt)
-  (require 'semantic/imenu)
+;;  (require 'semantic/imenu)
   (require 'semantic/doc)
-  (require 'senator))
+;;  (require 'senator)
+)
 
 (defvar semantic-texi-super-regex
   "^@\\(top\\|chapter\\|\\(sub\\)*section\\|unnumbered\\(\\(sub\\)*sec\\)?\\|\

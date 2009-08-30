@@ -63,7 +63,7 @@
 (declare-function semantic-format-tag-summarize "semantic/format")
 (declare-function semantic-format-tag-name "semantic/format")
 
-(defconst semantic-tag-version semantic-version
+(defconst semantic-tag-version "2.0pre7"
   "Version string of semantic tags made with this code.")
 
 (defconst semantic-tag-incompatible-version "1.0"

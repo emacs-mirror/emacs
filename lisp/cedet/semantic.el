@@ -586,19 +586,6 @@ was marked unparseable, then do nothing, and return the cache."
 
 ;;;; Parse the whole system.
      ((semantic-parse-tree-needs-rebuild-p)
-      ;; (let ((working-status-dynamic-type
-      ;; 	     (if (< (point-max) semantic-minimum-working-buffer-size)
-      ;; 		 nil
-      ;; 	       working-status-dynamic-type))
-      ;; 	    (working-status-percentage-type
-      ;; 	     (if (< (point-max) semantic-minimum-working-buffer-size)
-      ;; 		 nil
-      ;; 	       working-status-percentage-type)))
-      ;; 	(working-status-forms
-      ;; 	 (semantic-parser-working-message (buffer-name)) "done"
-      ;; 	 (setq res (semantic-parse-region (point-min) (point-max)))
-      ;; 	 (working-status t)))
-
       ;; Use Emacs' built-in progress-reporter
       (let ((semantic--progress-reporter
 	     (and (>= (point-max) semantic-minimum-working-buffer-size)
@@ -737,15 +724,10 @@ This function returns semantic tags without overlays."
       ;; Designated to ignore.
       (setq stream (car nontermsym))
       (if stream
-	  ;; (if (eq semantic-working-type 'percent)
-	  ;;     (working-status
-	  ;;      (/ (* 100 (semantic-lex-token-start (car stream)))
-	  ;; 	  (point-max)))
-	  ;;   (working-dynamic-status))
-
 	  ;; Use Emacs' built-in progress reporter:
 	  (and (boundp 'semantic--progress-reporter)
 	       semantic--progress-reporter
+	       (eq semantic-working-type 'percent)
 	       (progress-reporter-update
 		semantic--progress-reporter
 		(/ (* 100 (semantic-lex-token-start (car stream)))

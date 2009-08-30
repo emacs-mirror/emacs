@@ -1,4 +1,4 @@
-;;; chart.el --- Utilities for use with semantic tag tables
+;;; semantic/chart.el --- Utilities for use with semantic tag tables
 
 ;;; Copyright (C) 1999, 2000, 2001, 2003, 2005, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -26,8 +26,12 @@
 ;; the output of the semantic parser.
 ;;
 
-(require 'semantic)
 (require 'chart)
+(require 'semantic)
+(require 'semantic/find)
+(require 'semantic/db-mode)
+(require 'semantic/db-typecache)
+(require 'semantic/scope)
 
 ;;; Code:
 
@@ -164,4 +168,4 @@ items are charted.  TAGTABLE is passedto
 
 (provide 'semantic/chart)
 
-;;; semantic-chart.el ends here
+;;; semantic/chart.el ends here

@@ -1,4 +1,4 @@
-;;; db-ebrowse.el --- Semanticdb backend using ebrowse.
+;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.
 
 ;;; Copyright (C) 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -56,6 +56,12 @@
   (require 'eieio-opt)
   )
 (require 'semantic/db-file)
+(require 'semantic/db-mode)
+(require 'semantic/find)
+(require 'semantic/sort)
+(require 'data-debug)
+
+(declare-function semantic-add-system-include "semantic/dep")
 
 (eval-and-compile
   ;; Hopefully, this will allow semanticdb-ebrowse to compile under
@@ -76,6 +82,41 @@ is only for searching via semanticdb, and thus only headers would
 be searched."
   :group 'semanticdb
   :type 'string)
+
+;;; SEMANTIC Database related Code
+;;; Classes:
+(defclass semanticdb-table-ebrowse (semanticdb-table)
+  ((major-mode :initform c++-mode)
+   (ebrowse-tree :initform nil
+		 :initarg :ebrowse-tree
+		 :documentation
+		 "The raw ebrowse tree for this file."
+		 )
+   (global-extract :initform nil
+		   :initarg :global-extract
+		   :documentation
+		   "Table of ebrowse tags specific to this file.
+This table is compisited from the ebrowse *Globals* section.")
+   )
+  "A table for returning search results from ebrowse.")
+
+(defclass semanticdb-project-database-ebrowse
+  (semanticdb-project-database)
+  ((new-table-class :initform semanticdb-table-ebrowse
+		    :type class
+		    :documentation
+		    "New tables created for this database are of this class.")
+   (system-include-p :initform nil
+		     :initarg :system-include
+		     :documentation
+		     "Flag indicating this database represents a system include directory.")
+   (ebrowse-struct :initform nil
+		   :initarg :ebrowse-struct
+		   )
+   )
+  "Semantic Database deriving tags using the EBROWSE tool.
+EBROWSE is a C/C++ parser for use with `ebrowse' Emacs program.")
+
 
 (defun semanticdb-ebrowse-C-file-p (file)
   "Is FILE a C or C++ file?"
@@ -187,40 +228,6 @@ warn instead."
 	    (delete-file BFLB))
 	  )))))
 
-;;; SEMANTIC Database related Code
-;;; Classes:
-(defclass semanticdb-table-ebrowse (semanticdb-table)
-  ((major-mode :initform c++-mode)
-   (ebrowse-tree :initform nil
-		 :initarg :ebrowse-tree
-		 :documentation
-		 "The raw ebrowse tree for this file."
-		 )
-   (global-extract :initform nil
-		   :initarg :global-extract
-		   :documentation
-		   "Table of ebrowse tags specific to this file.
-This table is compisited from the ebrowse *Globals* section.")
-   )
-  "A table for returning search results from ebrowse.")
-
-(defclass semanticdb-project-database-ebrowse
-  (semanticdb-project-database)
-  ((new-table-class :initform semanticdb-table-ebrowse
-		    :type class
-		    :documentation
-		    "New tables created for this database are of this class.")
-   (system-include-p :initform nil
-		     :initarg :system-include
-		     :documentation
-		     "Flag indicating this database represents a system include directory.")
-   (ebrowse-struct :initform nil
-		   :initarg :ebrowse-struct
-		   )
-   )
-  "Semantic Database deriving tags using the EBROWSE tool.
-EBROWSE is a C/C++ parser for use with `ebrowse' Emacs program.")
-
 ;JAVE this just instantiates a default empty ebrowse struct?
 ; how would new instances wind up here?
 ; the ebrowse class isnt singleton, unlike the emacs lisp one
@@ -292,6 +299,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
 If there is no database for DIRECTORY available, then
 {not implemented yet} create one.  Return nil if that is not possible."
   ;; MAKE SURE THAT THE FILE LOADED DOESN'T ALREADY EXIST.
+  (require 'semantic/dep)
   (let ((dbs semanticdb-database-list)
 	(found nil))
     (while (and (not found) dbs)
@@ -425,7 +433,7 @@ Optional argument BASECLASSES specifyies a baseclass to the tree being provided.
 		  (semanticdb-create-table dbe fname)))
 	 (class (ebrowse-ts-class tree))
 	 (scope (ebrowse-cs-scope class))
-	 (ns (when scope (cedet-split-string scope ":" t)))
+	 (ns (when scope (split-string scope ":" t)))
 	 (nst nil)
 	 (cls nil)
 	 )
@@ -703,4 +711,4 @@ run the test again..")
 
 (provide 'semantic/db-ebrowse)
 
-;;; semanticdb-ebrowse.el ends here
+;;; semantic/db-ebrowse.el ends here

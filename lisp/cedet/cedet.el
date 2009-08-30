@@ -63,7 +63,7 @@
     (cedet         ,cedet-version)
     (eieio         "1.2")
     (semantic      "2.0pre7")
-    (srecode       "0.2")
+    (srecode       "1.0pre7")
     (ede           "1.0pre7")
     (speedbar      "1.0.3"))
   "Table of CEDET packages to install.")
