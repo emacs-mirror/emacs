@@ -1,5 +1,8 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/imap.el (imap-send-command): Simplify.
+	(imap-wait-for-tag): point-max - buffer-size.
+
 	* net/ange-ftp.el (internal-ange-ftp-mode): Use define-derived-mode.
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't use symbol-value
