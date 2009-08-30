@@ -524,8 +524,7 @@ an alist of attribute/value pairs."
 	    (equal "" filter))
 	(error "No search filter"))
     (setq filter (cons filter attributes))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (erase-buffer)
       (if (and host
 	       (not (equal "" host)))
@@ -597,8 +596,7 @@ an alist of attribute/value pairs."
 	    ;; Do not try to open non-existent files
 	    (if (equal value "")
 		(setq value " ")
-	      (save-excursion
-		(set-buffer bufval)
+	      (with-current-buffer bufval
 		(erase-buffer)
 		(set-buffer-multibyte nil)
 		(insert-file-contents-literally value)
@@ -607,9 +605,9 @@ an alist of attribute/value pairs."
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))
-	  (setq result (cons (if withdn
-				 (cons dn (nreverse record))
-			       (nreverse record)) result))
+	  (push (if withdn
+		    (cons dn (nreverse record))
+		  (nreverse record)) result)
 	  (setq record nil)
 	  (skip-chars-forward " \t\n")
 	  (message "Parsing results... %d" numres)

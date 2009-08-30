@@ -1,5 +1,7 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/ldap.el (ldap-search-internal): Use with-current-buffer and push.
+
 	* net/imap.el (imap-send-command): Simplify.
 	(imap-wait-for-tag): point-max - buffer-size.
 
