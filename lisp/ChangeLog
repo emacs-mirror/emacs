@@ -1,3 +1,8 @@
+2009-08-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
+
+	* progmodes/grep.el (grep-read-files): Strip trailing <N> from
+	buffer names not visiting a file (e.g. cloned buffers).
+
 2009-08-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* comint.el (comint-exec-1): Check command is non-null first.
