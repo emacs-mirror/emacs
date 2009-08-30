@@ -1,3 +1,9 @@
+2009-08-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* process.c (wait_reading_process_output): Keep the descriptor
+	when pty is used by a non-child process, e.g., in I/O buffer of
+	GDB this allows inferior to be restarted.
+
 2009-08-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): Remove redundant test and collapse
