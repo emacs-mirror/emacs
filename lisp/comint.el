@@ -790,7 +790,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	      default-directory
 	    "/"))
 	proc decoding encoding changed)
-    (let ((exec-path (if (file-name-directory command)
+    (let ((exec-path (if (and command (file-name-directory command))
 			 ;; If the command has slashes, make sure we
 			 ;; first look relative to the current directory.
 			 (cons default-directory exec-path) exec-path)))
