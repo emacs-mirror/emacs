@@ -246,7 +246,7 @@ one value."
 
 ;;; Macros.
 
-(defvar cl-macro-environment nil)
+(defvar cl-macro-environment)
 (defvar cl-old-macroexpand (prog1 (symbol-function 'macroexpand)
 			     (defalias 'macroexpand 'cl-macroexpand)))
 
