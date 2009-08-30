@@ -748,7 +748,8 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-files (regexp)
   "Read files arg for interactive grep."
-  (let* ((bn (or (buffer-file-name) (buffer-name)))
+  (let* ((bn (or (buffer-file-name)
+		 (replace-regexp-in-string "<[0-9]+>\\'" "" (buffer-name))))
 	 (fn (and bn
 		  (stringp bn)
 		  (file-name-nondirectory bn)))
