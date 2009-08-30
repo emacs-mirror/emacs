@@ -1,5 +1,10 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/checkdoc.el (checkdoc-force-history-flag):
+	Change default, since most of our files don't have a history.
+	(checkdoc-display-status-buffer): Don't use a hidden buffer to show to
+	the user.
+
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
 	Add comint-run.
 

@@ -218,7 +218,7 @@ have doc strings."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
 
-(defcustom checkdoc-force-history-flag t
+(defcustom checkdoc-force-history-flag nil
   "Non-nil means that files should have a History section or ChangeLog file.
 This helps document the evolution of, and recent changes to, the package."
   :group 'checkdoc
@@ -511,7 +511,7 @@ the users will view as each check is completed."
 CHECK is a list of four strings stating the current status of each
 test; the nth string describes the status of the nth test."
   (let (temp-buffer-setup-hook)
-    (with-output-to-temp-buffer " *Checkdoc Status*"
+    (with-output-to-temp-buffer "*Checkdoc Status*"
       (princ-list
        "Buffer comments and tags:  " (nth 0 check) "\n"
        "Documentation style:       " (nth 1 check) "\n"
@@ -519,7 +519,7 @@ test; the nth string describes the status of the nth test."
        "Unwanted Spaces:           " (nth 3 check)
        )))
   (shrink-window-if-larger-than-buffer
-   (get-buffer-window " *Checkdoc Status*"))
+   (get-buffer-window "*Checkdoc Status*"))
   (message nil)
   (sit-for 0))
 
