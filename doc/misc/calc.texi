@@ -22328,10 +22328,10 @@ complicated trigonometric expressions.  For example, while @kbd{a s}
 can reduce @samp{sin(x) csc(x)} to @samp{1}, it will not simplify
 @samp{sin(x)^2 csc(x)}.  The command @kbd{I a s} can be used to
 simplify this latter expression; it will transform @samp{sin(x)^2
-csc(x)} into @samp{sin(x)}.  However, @kbd{I a s} will also perform some
-``simplifications'' which may not be desired; for example, it will
-transform @samp{tan(x)^2} into @samp{sin(x)^2 / cos(x)^2}.
-Similar to the @kbd{I} prefix, the Hyperbolic prefix @kbd{H} will
+csc(x)} into @samp{sin(x)}.  However, @kbd{I a s} will also perform
+some ``simplifications'' which may not be desired; for example, it
+will transform @samp{tan(x)^2} into @samp{sin(x)^2 / cos(x)^2}.  The
+Hyperbolic prefix @kbd{H} can be used similarly; the @kbd{H a s} will
 replace any hyperbolic functions in the formula with the appropriate
 combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
 
