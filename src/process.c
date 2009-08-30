@@ -5151,7 +5151,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      else if (nread == -1 && errno == EIO)
 		{
 		  /* Clear the descriptor now, so we only raise the
-		     signal once.  Don't do this is `process' is only
+		     signal once.  Don't do this if `process' is only
 		     a pty.  */
 		  if (XPROCESS (proc)->pid != -2)
 		    {
