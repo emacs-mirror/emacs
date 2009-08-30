@@ -222,7 +222,11 @@ its argument list allows full Common Lisp conventions."
 (defconst lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 
-(defvar cl-macro-environment nil)
+(defvar cl-macro-environment nil
+  "Keep the list of currently active macros.
+It is a list of elements of the form either:
+- (SYMBOL . FUNCTION) where FUNCTION is the macro expansion function.
+- (SYMBOL-NAME . EXPANSION) where SYMBOL-NAME is the name of a symbol macro.")
 (defvar bind-block) (defvar bind-defs) (defvar bind-enquote)
 (defvar bind-inits) (defvar bind-lets) (defvar bind-forms)
 
