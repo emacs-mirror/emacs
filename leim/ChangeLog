@@ -1,5 +1,18 @@
 2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
 
+	* quail/ipa.el ("kirshenbaum-ipa", "x-sampa-ipa"):
+	Two new input methods, both following widely-used Usenet
+	conventions for mapping ASCII to the IPA. Kirshenbaum is common in
+	sci.lang and alt.usage.english, X-SAMPA in various (mostly
+	European) non-English language fora. X-SAMPA is slightly more
+	complex to support in Quail that Kirshenbaum, whence the two extra
+	function and one extra submap to support it.
+	(x-sampa-prepend-to-keymap-entry): New function.
+	(x-sampa-underscore-implosive): New function.
+	(x-sampa-implosive-submap): New Quail submap.
+
+2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
+
 	* quail/ipa.el: Recode the file as UTF-8, for better
 	interoperability with other applications.
 
