@@ -64,22 +64,23 @@ the external command (usually \"kill\")."
 
 (defcustom proced-signal-list
   '( ;; signals supported on all POSIX compliant systems
-    ("HUP   (1.  Hangup)")
-    ("INT   (2.  Terminal interrupt)")
-    ("QUIT  (3.  Terminal quit)")
-    ("ABRT  (6.  Process abort)")
-    ("KILL  (9.  Kill - cannot be caught or ignored)")
-    ("ALRM  (14. Alarm Clock)")
-    ("TERM  (15. Termination)")
+    ("HUP" . "   (1.  Hangup)")
+    ("INT" . "   (2.  Terminal interrupt)")
+    ("QUIT" . "  (3.  Terminal quit)")
+    ("ABRT" . "  (6.  Process abort)")
+    ("KILL" . "  (9.  Kill - cannot be caught or ignored)")
+    ("ALRM" . "  (14. Alarm Clock)")
+    ("TERM" . "  (15. Termination)")
     ;; POSIX 1003.1-2001
     ;; Which systems do not support these signals so that we can
     ;; exclude them from `proced-signal-list'?
-    ("CONT (Continue executing)")
-    ("STOP (Stop executing / pause - cannot be caught or ignored)")
-    ("TSTP (Terminal stop / pause)"))
+    ("CONT" . "  (Continue executing)")
+    ("STOP" . "  (Stop executing / pause - cannot be caught or ignored)")
+    ("TSTP" . "  (Terminal stop / pause)"))
   "List of signals, used for minibuffer completion."
   :group 'proced
-  :type '(repeat (string :tag "signal")))
+  :type '(repeat (cons (string :tag "signal name")
+                       (string :tag "description"))))
 
 ;; For which attributes can we use a fixed width of the output field?
 ;; A fixed width speeds up formatting, yet it can make
@@ -96,45 +97,45 @@ the external command (usually \"kill\")."
 (defcustom proced-grammar-alist
   '( ;; attributes defined in `process-attributes'
     (euid    "EUID"    "%d" right proced-< nil (euid pid) (nil t nil))
-    (user    "USER"    nil left proced-string-lessp nil (user pid) (nil t nil))
+    (user    "User"    nil left proced-string-lessp nil (user pid) (nil t nil))
     (egid    "EGID"    "%d" right proced-< nil (egid euid pid) (nil t nil))
-    (group   "GROUP"   nil left proced-string-lessp nil (group user pid) (nil t nil))
-    (comm    "COMMAND" nil left proced-string-lessp nil (comm pid) (nil t nil))
-    (state   "STAT"    nil left proced-string-lessp nil (state pid) (nil t nil))
+    (group   "Group"   nil left proced-string-lessp nil (group user pid) (nil t nil))
+    (comm    "Command" nil left proced-string-lessp nil (comm pid) (nil t nil))
+    (state   "Stat"    nil left proced-string-lessp nil (state pid) (nil t nil))
     (ppid    "PPID"    "%d" right proced-< nil (ppid pid)
              ((lambda (ppid) (proced-filter-parents proced-process-alist ppid))
               "refine to process parents"))
-    (pgrp    "PGRP"    "%d" right proced-< nil (pgrp euid pid) (nil t nil))
-    (sess    "SESS"    "%d" right proced-< nil (sess pid) (nil t nil))
+    (pgrp    "PGrp"    "%d" right proced-< nil (pgrp euid pid) (nil t nil))
+    (sess    "Sess"    "%d" right proced-< nil (sess pid) (nil t nil))
     (ttname  "TTY"     proced-format-ttname left proced-string-lessp nil (ttname pid) (nil t nil))
     (tpgid   "TPGID"   "%d" right proced-< nil (tpgid pid) (nil t nil))
-    (minflt  "MINFLT"  "%d" right proced-< nil (minflt pid) (nil t t))
-    (majflt  "MAJFLT"  "%d" right proced-< nil (majflt pid) (nil t t))
-    (cminflt "CMINFLT" "%d" right proced-< nil (cminflt pid) (nil t t))
-    (cmajflt "CMAJFLT" "%d" right proced-< nil (cmajflt pid) (nil t t))
-    (utime   "UTIME"   proced-format-time right proced-time-lessp t (utime pid) (nil t t))
-    (stime   "STIME"   proced-format-time right proced-time-lessp t (stime pid) (nil t t))
-    (time    "TIME"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
-    (cutime  "CUTIME"  proced-format-time right proced-time-lessp t (cutime pid) (nil t t))
-    (cstime  "CSTIME"  proced-format-time right proced-time-lessp t (cstime pid) (nil t t))
-    (ctime   "CTIME"  proced-format-time right proced-time-lessp t (ctime pid) (nil t t))
-    (pri     "PR"      "%d" right proced-< t (pri pid) (nil t t))
-    (nice    "NI"      "%3d" 3 proced-< t (nice pid) (t t nil))
-    (thcount "THCOUNT" "%d" right proced-< t (thcount pid) (nil t t))
-    (start   "START"   proced-format-start 6 proced-time-lessp nil (start pid) (t t nil))
-    (vsize   "VSIZE"   "%d" right proced-< t (vsize pid) (nil t t))
+    (minflt  "MinFlt"  "%d" right proced-< nil (minflt pid) (nil t t))
+    (majflt  "MajFlt"  "%d" right proced-< nil (majflt pid) (nil t t))
+    (cminflt "CMinFlt" "%d" right proced-< nil (cminflt pid) (nil t t))
+    (cmajflt "CMajFlt" "%d" right proced-< nil (cmajflt pid) (nil t t))
+    (utime   "UTime"   proced-format-time right proced-time-lessp t (utime pid) (nil t t))
+    (stime   "STime"   proced-format-time right proced-time-lessp t (stime pid) (nil t t))
+    (time    "Time"   proced-format-time right proced-time-lessp t (time pid) (nil t t))
+    (cutime  "CUTime"  proced-format-time right proced-time-lessp t (cutime pid) (nil t t))
+    (cstime  "CSTime"  proced-format-time right proced-time-lessp t (cstime pid) (nil t t))
+    (ctime   "CTime"  proced-format-time right proced-time-lessp t (ctime pid) (nil t t))
+    (pri     "Pr"      "%d" right proced-< t (pri pid) (nil t t))
+    (nice    "Ni"      "%3d" 3 proced-< t (nice pid) (t t nil))
+    (thcount "THCount" "%d" right proced-< t (thcount pid) (nil t t))
+    (start   "Start"   proced-format-start 6 proced-time-lessp nil (start pid) (t t nil))
+    (vsize   "VSize"   "%d" right proced-< t (vsize pid) (nil t t))
     (rss     "RSS"     "%d" right proced-< t (rss pid) (nil t t))
-    (etime   "ETIME"   proced-format-time right proced-time-lessp t (etime pid) (nil t t))
+    (etime   "ETime"   proced-format-time right proced-time-lessp t (etime pid) (nil t t))
     (pcpu    "%CPU"    "%.1f" right proced-< t (pcpu pid) (nil t t))
-    (pmem    "%MEM"    "%.1f" right proced-< t (pmem pid) (nil t t))
-    (args    "ARGS"    proced-format-args left proced-string-lessp nil (args pid) (nil t nil))
+    (pmem    "%Mem"    "%.1f" right proced-< t (pmem pid) (nil t t))
+    (args    "Args"    proced-format-args left proced-string-lessp nil (args pid) (nil t nil))
     ;;
     ;; attributes defined by proced (see `proced-process-attributes')
     (pid     "PID"     "%d" right proced-< nil (pid)
              ((lambda (ppid) (proced-filter-children proced-process-alist ppid))
               "refine to process children"))
     ;; process tree
-    (tree    "TREE"   proced-format-tree left nil nil nil nil))
+    (tree    "Tree"   proced-format-tree left nil nil nil nil))
   "Alist of rules for handling Proced attributes.
 
 Each element has the form
@@ -1709,16 +1710,19 @@ After sending the signal, this command runs the normal hook
                          (line-end-position))))))
     (unless signal
       ;; Display marked processes (code taken from `dired-mark-pop-up').
-      (let ((bufname  " *Marked Processes*")
+      (let ((bufname  "*Marked Processes*")
             (header-line (substring-no-properties proced-header-line)))
         (with-current-buffer (get-buffer-create bufname)
           (setq truncate-lines t
                 proced-header-line header-line ; inherit header line
                 header-line-format '(:eval (proced-header-line)))
           (add-hook 'post-command-hook 'force-mode-line-update nil t)
-          (erase-buffer)
-          (dolist (process process-alist)
-            (insert "  " (cdr process) "\n"))
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (buffer-disable-undo)
+            (setq buffer-read-only t)
+            (dolist (process process-alist)
+              (insert "  " (cdr process) "\n")))
           (save-window-excursion
             ;; Analogous to `dired-pop-to-buffer'
             ;; Don't split window horizontally.  (Bug#1806)
@@ -1729,15 +1733,13 @@ After sending the signal, this command runs the normal hook
                    (pnum (if (= 1 (length process-alist))
                              "1 process"
                            (format "%d processes" (length process-alist))))
-                   ;; The following is an ugly hack.  Is there a better way
-                   ;; to help people like me to remember the signals and
-                   ;; their meanings?
-                   (tmp (completing-read (concat "Send signal [" pnum
-                                                 "] (default TERM): ")
-                                         proced-signal-list
-                                         nil nil nil nil "TERM")))
-              (setq signal (if (string-match "^\\(\\S-+\\)\\s-" tmp)
-                               (match-string 1 tmp) tmp)))))))
+                   (completion-annotate-function
+                    (lambda (s) (cdr (assoc s proced-signal-list)))))
+              (setq signal
+                    (completing-read (concat "Send signal [" pnum
+                                             "] (default TERM): ")
+                                     proced-signal-list
+                                     nil nil nil nil "TERM")))))))
     ;; send signal
     (let ((count 0)
           failures)

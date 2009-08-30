@@ -1,5 +1,11 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* proced.el (proced-signal-list): Make it an alist.
+	(proced-grammar-alist): Capitalize names.
+	(proced-send-signal): Use a non-hidden buffer (since it's displayed).
+	Disable undo manually and make it read-only.
+	Use completion-annotate-function.
+
 	* minibuffer.el (minibuffer-message): If the current buffer is not
 	a minibuffer, insert the message in the echo area rather than at the
 	end of the buffer.
