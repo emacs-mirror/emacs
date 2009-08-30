@@ -1,3 +1,7 @@
+2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Use minibuffer-complete.
+
 2009-08-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (do-after-load-evaluation): Fix last change: use `mapc'
