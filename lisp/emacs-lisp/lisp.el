@@ -597,43 +597,16 @@ character."
   		(error "Unmatched bracket or quote"))))
 
 (defun field-complete (table &optional predicate)
-  (let* ((pattern (field-string-no-properties))
-         (completion (try-completion pattern table predicate)))
-    (cond ((eq completion t))
-          ((null completion)
-           (message "Can't find completion for \"%s\"" pattern)
-           (ding))
-          ((not (string= pattern completion))
-           (delete-region (field-beginning) (field-end))
-           (insert completion)
-           ;; Don't leave around a completions buffer that's out of date.
-           (let ((win (get-buffer-window "*Completions*" 0)))
-             (if win (with-selected-window win (bury-buffer)))))
-          (t
-           (let ((minibuf-is-in-use
-                  (eq (minibuffer-window) (selected-window))))
-             (unless minibuf-is-in-use
-               (message "Making completion list..."))
-             (let ((list (all-completions pattern table predicate)))
-               (setq list (sort list 'string<))
-               (or (eq predicate 'fboundp)
-                   (let (new)
-                     (while list
-                       (setq new (cons (if (fboundp (intern (car list)))
-                                           (list (car list) " <f>")
-                                         (car list))
-                                       new))
-                       (setq list (cdr list)))
-                     (setq list (nreverse new))))
-               (if (> (length list) 1)
-                   (with-output-to-temp-buffer "*Completions*"
-                     (display-completion-list list pattern))
-                 ;; Don't leave around a completions buffer that's
-                 ;; out of date.
-                 (let ((win (get-buffer-window "*Completions*" 0)))
-                   (if win (with-selected-window win (bury-buffer))))))
-             (unless minibuf-is-in-use
-               (message "Making completion list...%s" "done")))))))
+  (let ((minibuffer-completion-table table)
+        (minibuffer-completion-predicate predicate)
+        ;; This made sense for lisp-complete-symbol, but for
+        ;; field-complete, this is out of place.  --Stef
+        ;; (completion-annotate-function
+        ;;  (unless (eq predicate 'fboundp)
+        ;;    (lambda (str)
+        ;;      (if (fboundp (intern-soft str)) " <f>"))))
+        )
+    (call-interactively 'minibuffer-complete)))
 
 (defun lisp-complete-symbol (&optional predicate)
   "Perform completion on Lisp symbol preceding point.
