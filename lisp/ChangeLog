@@ -1,3 +1,8 @@
+2009-08-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-exec-1): Check command is non-null first.
+	Part of gdb-mi.el change (2009-08-28).
+
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Use minibuffer-complete.
