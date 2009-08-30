@@ -1,5 +1,8 @@
 2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add comint-run.
+
 	* calc/calc.el: Improve commenting convention.
 	(calc-digit-map, toplevel): Simplify.
 
