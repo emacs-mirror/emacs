@@ -266,7 +266,7 @@ first will be printed into the backtrace buffer."
 That buffer should be current already."
   (setq buffer-read-only nil)
   (erase-buffer)
-  (set-buffer-multibyte nil)
+  (set-buffer-multibyte t)		;Why was it nil ?  -stef
   (setq buffer-undo-list t)
   (let ((standard-output (current-buffer))
 	(print-escape-newlines t)
