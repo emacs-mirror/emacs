@@ -263,8 +263,7 @@ With zero or negative ARG turn mode off.
 
        (add-minor-mode ',mode ',lighter
 		       ,(if keymap keymap-sym
-			  `(if (boundp ',keymap-sym)
-			       (symbol-value ',keymap-sym)))))))
+			  `(if (boundp ',keymap-sym) ,keymap-sym))))))
 
 ;;;
 ;;; make global minor mode
