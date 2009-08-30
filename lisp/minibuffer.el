@@ -30,7 +30,6 @@
 ;;   (boundaries START . END).  See `completion-boundaries'.
 ;;   Any other return value should be ignored (so we ignore values returned
 ;;   from completion tables that don't know about this new `action' form).
-;;   See `completion-boundaries'.
 
 ;;; Bugs:
 
@@ -40,9 +39,22 @@
 ;; - choose-completion can't automatically figure out the boundaries
 ;;   corresponding to the displayed completions.  `base-size' gives the left
 ;;   boundary, but not the righthand one.  So we need to add
-;;   completion-extra-size (and also completion-no-auto-exit).
+;;   completion-extra-size.
 
 ;;; Todo:
+
+;; - make partial-complete-mode obsolete:
+;;   - make M-x lch TAB expand to list-command-history.
+;;     (not sure how/where it's implemented in complete.el)
+;;   - (?) <foo.h> style completion for file names.
+
+;; - case-sensitivity is currently confuses two issues:
+;;   - whether or not a particular completion table should be case-sensitive
+;;     (i.e. whether strings that different only by case are semantically
+;;     equivalent)
+;;   - whether the user wants completion to pay attention to case.
+;;   e.g. we may want to make it possible for the user to say "first try
+;;   completion case-sensitively, and if that fails, try to ignore case".
 
 ;; - make lisp-complete-symbol and sym-comp use it.
 ;; - add support for ** to pcm.
@@ -248,31 +260,38 @@ The text is displayed for `minibuffer-message-timeout' seconds,
 or until the next input event arrives, whichever comes first.
 Enclose MESSAGE in [...] if this is not yet the case.
 If ARGS are provided, then pass MESSAGE through `format'."
-  ;; Clear out any old echo-area message to make way for our new thing.
-  (message nil)
-  (setq message (if (and (null args) (string-match-p "\\` *\\[.+\\]\\'" message))
-                    ;; Make sure we can put-text-property.
-                    (copy-sequence message)
-                  (concat " [" message "]")))
-  (when args (setq message (apply 'format message args)))
-  (let ((ol (make-overlay (point-max) (point-max) nil t t))
-	;; A quit during sit-for normally only interrupts the sit-for,
-        ;; but since minibuffer-message is used at the end of a command,
-        ;; at a time when the command has virtually finished already, a C-g
-        ;; should really cause an abort-recursive-edit instead (i.e. as if
-        ;; the C-g had been typed at top-level).  Binding inhibit-quit here
-        ;; is an attempt to get that behavior.
-	(inhibit-quit t))
-    (unwind-protect
-        (progn
-          (unless (zerop (length message))
-            ;; The current C cursor code doesn't know to use the overlay's
-            ;; marker's stickiness to figure out whether to place the cursor
-            ;; before or after the string, so let's spoon-feed it the pos.
-            (put-text-property 0 1 'cursor t message))
-          (overlay-put ol 'after-string message)
-          (sit-for (or minibuffer-message-timeout 1000000)))
-      (delete-overlay ol))))
+  (if (not (minibufferp (current-buffer)))
+      (progn
+        (if args
+            (apply 'message message args)
+          (message "%s" message))
+        (prog1 (sit-for (or minibuffer-message-timeout 1000000))
+          (message nil)))
+    ;; Clear out any old echo-area message to make way for our new thing.
+    (message nil)
+    (setq message (if (and (null args) (string-match-p "\\` *\\[.+\\]\\'" message))
+                      ;; Make sure we can put-text-property.
+                      (copy-sequence message)
+                    (concat " [" message "]")))
+    (when args (setq message (apply 'format message args)))
+    (let ((ol (make-overlay (point-max) (point-max) nil t t))
+          ;; A quit during sit-for normally only interrupts the sit-for,
+          ;; but since minibuffer-message is used at the end of a command,
+          ;; at a time when the command has virtually finished already, a C-g
+          ;; should really cause an abort-recursive-edit instead (i.e. as if
+          ;; the C-g had been typed at top-level).  Binding inhibit-quit here
+          ;; is an attempt to get that behavior.
+          (inhibit-quit t))
+      (unwind-protect
+          (progn
+            (unless (zerop (length message))
+              ;; The current C cursor code doesn't know to use the overlay's
+              ;; marker's stickiness to figure out whether to place the cursor
+              ;; before or after the string, so let's spoon-feed it the pos.
+              (put-text-property 0 1 'cursor t message))
+            (overlay-put ol 'after-string message)
+            (sit-for (or minibuffer-message-timeout 1000000)))
+        (delete-overlay ol)))))
 
 (defun minibuffer-completion-contents ()
   "Return the user input in a minibuffer before point as a string.
@@ -343,6 +362,8 @@ Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
 The return value is a list of completions and may contain the base-size
 in the last `cdr'."
+  ;; FIXME: We need to additionally return completion-extra-size (similar
+  ;; to completion-base-size but for the text after point).
   ;; The property `completion-styles' indicates that this functional
   ;; completion-table claims to take care of completion styles itself.
   ;; [I.e. It will most likely call us back at some point. ]
@@ -872,6 +893,23 @@ the completions buffer."
       (run-hooks 'completion-setup-hook)))
   nil)
 
+(defvar completion-annotate-function
+  nil
+  ;; Note: there's a lot of scope as for when to add annotations and
+  ;; what annotations to add.  E.g. completing-help.el allowed adding
+  ;; the first line of docstrings to M-x completion.  But there's
+  ;; a tension, since such annotations, while useful at times, can
+  ;; actually drown the useful information.
+  ;; So completion-annotate-function should be used parsimoniously, or
+  ;; else only used upon a user's request (e.g. we could add a command
+  ;; to completion-list-mode to add annotations to the current
+  ;; completions).
+  "Function to add annotations in the *Completions* buffer.
+The function takes a completion and should either return nil, or a string that
+will be displayed next to the completion.  The function can access the
+completion table and predicates via `minibuffer-completion-table' and related
+variables.")
+
 (defun minibuffer-completion-help ()
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
@@ -892,8 +930,15 @@ the completions buffer."
             ;; Remove the base-size tail because `sort' requires a properly
             ;; nil-terminated list.
             (when last (setcdr last nil))
-            (display-completion-list (nconc (sort completions 'string-lessp)
-                                            base-size))))
+            (setq completions (sort completions 'string-lessp))
+            (when completion-annotate-function
+              (setq completions
+                    (mapcar (lambda (s)
+                              (let ((ann
+                                     (funcall completion-annotate-function s)))
+                                (if ann (list s ann) s)))
+                            completions)))
+            (display-completion-list (nconc completions base-size))))
 
       ;; If there are no completions, or if the current input is already the
       ;; only possible completion, then hide (previous&stale) completions.
@@ -998,8 +1043,11 @@ the completions buffer."
         (if (eq (aref string (1- beg)) ?{)
             (setq table (apply-partially 'completion-table-with-terminator
                                          "}" table)))
-        (completion-table-with-context
-         prefix table (substring string beg) pred action)))))
+        ;; Even if file-name completion is case-insensitive, we want
+        ;; envvar completion to be case-sensitive.
+        (let ((completion-ignore-case nil))
+          (completion-table-with-context
+           prefix table (substring string beg) pred action))))))
 
 (defun completion--file-name-table (string pred action)
   "Internal subroutine for `read-file-name'.  Do not call this."
@@ -1447,15 +1495,15 @@ or a symbol chosen among `any', `star', `point'."
 
 (defun completion-pcm--pattern->regex (pattern &optional group)
   (let ((re
-  (concat "\\`"
-          (mapconcat
-           (lambda (x)
-             (case x
+         (concat "\\`"
+                 (mapconcat
+                  (lambda (x)
+                    (case x
                       ((star any point)
                        (if (if (consp group) (memq x group) group)
-                                     "\\(.*?\\)" ".*?"))
-               (t (regexp-quote x))))
-           pattern
+                           "\\(.*?\\)" ".*?"))
+                      (t (regexp-quote x))))
+                  pattern
                   ""))))
     ;; Avoid pathological backtracking.
     (while (string-match "\\.\\*\\?\\(?:\\\\[()]\\)*\\(\\.\\*\\?\\)" re)

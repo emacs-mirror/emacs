@@ -1,3 +1,13 @@
+2009-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-message): If the current buffer is not
+	a minibuffer, insert the message in the echo area rather than at the
+	end of the buffer.
+	(completion-annotate-function): New variable.
+	(minibuffer-completion-help): Use it.
+	(completion--embedded-envvar-table): Environment vars are
+	always case-sensitive.
+
 2009-08-30  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/fortran.el (fortran-start-prog-re): New constant, extracted
