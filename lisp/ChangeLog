@@ -1,3 +1,8 @@
+2009-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sym-comp.el (displayed-completions): Remove.
+	(symbol-complete): Use minibuffer-complete.
+
 2009-08-31  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (define-obsolete-face-alias): New macro.

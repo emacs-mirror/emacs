@@ -57,7 +57,12 @@ point."
 (defvar symbol-completion-symbol-function 'symbol-completion-symbol
   "Function to return a partial symbol before point for completion.
 The value it returns should be a string (or nil).
-Major modes may set this locally if the default isn't appropriate.")
+Major modes may set this locally if the default isn't appropriate.
+
+Beware: the length of the string STR returned need to be equal to the length
+of text before point that's subject to completion.  Typically, this amounts
+to saying that STR is equal to
+\(buffer-substring (- (point) (length STR)) (point)).")
 
 (defvar symbol-completion-completions-function nil
   "Function to return possible symbol completions.
@@ -97,7 +102,7 @@ The predicate being used for selecting completions (from
 dynamically-bound as `symbol-completion-predicate' in case the
 transform needs it.")
 
-(defvar displayed-completions)
+(defvar symbol-completion-predicate)
 
 ;;;###autoload
 (defun symbol-complete (&optional predicate)
@@ -119,63 +124,33 @@ to be set buffer-locally.  Variables `symbol-completion-symbol-function',
   ;; Fixme: Punt to `complete-symbol' in this case?
   (unless (functionp symbol-completion-completions-function)
     (error "symbol-completion-completions-function not defined"))
-  (let ((window (get-buffer-window "*Completions*")))
-    (let* ((pattern (or (funcall symbol-completion-symbol-function)
-			(error "No preceding symbol to complete")))
-	   (predicate (or predicate
-			  (if symbol-completion-predicate-function
-			      (funcall symbol-completion-predicate-function
-				       (- (point) (length pattern))
-				       (point)))))
-	   (completions (funcall symbol-completion-completions-function
-				 pattern))
-	   (completion (try-completion pattern completions predicate)))
-      ;; If this command was repeated, and there's a fresh completion
-      ;; window with a live buffer and a displayed completion list
-      ;; matching the current completions, then scroll the window.
-      (unless (and (eq last-command this-command)
-		   window (window-live-p window) (window-buffer window)
-		   (buffer-name (window-buffer window))
-		   (with-current-buffer (window-buffer window)
-		     (if (equal displayed-completions
-				(all-completions pattern completions predicate))
-			 (progn
-			   (if (pos-visible-in-window-p (point-max) window)
-			       (set-window-start window (point-min))
-			     (save-selected-window
-			       (select-window window)
-			       (scroll-up)))
-			   t))))
-	;; Otherwise, do completion.
-	(cond ((eq completion t))
-	      ((null completion)
-	       (message "Can't find completion for \"%s\"" pattern)
-	       (ding))
-	      ((not (string= pattern completion))
-	       (delete-region (- (point) (length pattern)) (point))
-	       (insert completion))
-	      (t
-	       (message "Making completion list...")
-	       (let* ((list (all-completions pattern completions predicate))
-		      ;; In case the transform needs to access it.
-		      (symbol-completion-predicate predicate)
-		      ;; Copy since list is side-effected by sorting.
-		      (copy (copy-sequence list)))
-		 (setq list (sort list 'string<))
-		 (if (functionp symbol-completion-transform-function)
-		     (setq list
-			   (mapcar (funcall
-				    symbol-completion-transform-function)
-				   list)))
-		 (with-output-to-temp-buffer "*Completions*"
-		   (condition-case ()
-		       (display-completion-list list pattern) ; Emacs 22
-		     (error (display-completion-list list))))
-		 ;; Record the list for determining whether to scroll
-		 ;; (above).
-		 (with-current-buffer "*Completions*"
-		   (set (make-local-variable 'displayed-completions) copy)))
-	       (message "Making completion list...%s" "done")))))))
+  (let* ((pattern (or (funcall symbol-completion-symbol-function)
+                      (error "No preceding symbol to complete")))
+         ;; FIXME: We assume below that `pattern' holds the text just
+         ;; before point.  This is a problem in the way
+         ;; symbol-completion-symbol-function was defined.
+         (predicate (or predicate
+                        (if symbol-completion-predicate-function
+                            (funcall symbol-completion-predicate-function
+                                     (- (point) (length pattern))
+                                     (point)))))
+         (completions (funcall symbol-completion-completions-function
+                               pattern))
+         ;; In case the transform needs to access it.
+         (symbol-completion-predicate predicate)
+         (completion-annotate-function
+          (if (functionp symbol-completion-transform-function)
+              (lambda (str)
+                (car-safe (cdr-safe
+                           (funcall symbol-completion-transform-function
+                                    str))))))
+         (minibuffer-completion-table completions)
+         (minibuffer-completion-predicate predicate)
+         (ol (make-overlay (- (point) (length pattern)) (point) nil nil t)))
+      (overlay-put ol 'field 'sym-comp)
+      (unwind-protect
+          (call-interactively 'minibuffer-complete)
+        (delete-overlay ol))))
 
 (eval-when-compile (require 'hippie-exp))
 
@@ -245,8 +220,6 @@ completion:
 	  nil
 	;; Else, we assume that a function name is expected.
 	'fboundp))))
-
-(defvar symbol-completion-predicate)
 
 (defun lisp-symbol-completion-transform ()
   "`symbol-completion-transform-function' for Lisp."
