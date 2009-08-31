@@ -121,7 +121,20 @@
   (require 'eieio)
   )
 
+(require 'semantic/find)
+
+(require 'semantic/tag-file)
+(require 'semantic/sort)
+
 ;;; Code:
+
+(defvar data-debug-thing-alist)
+(declare-function data-debug-insert-stuff-list "data-debug")
+(declare-function data-debug-insert-tag-list "data-debug")
+(declare-function semantic-scope-reset-cache "semantic/scope")
+(declare-function semanticdb-typecache-notify-reset "semantic/db-typecache")
+(declare-function ede-current-project "ede")
+
 (defvar semanticdb-find-throttle-custom-list
   '(repeat (radio (const 'local)
 		  (const 'project)
@@ -132,6 +145,7 @@
   "Customization values for semanticdb find throttle.
 See `semanticdb-find-throttle' for details.")
 
+;;;###autoload
 (defcustom semanticdb-find-default-throttle
   '(local project unloaded system recursive)
   "The default throttle for `semanticdb-find' routines.
@@ -188,6 +202,7 @@ This class will cache data derived during various searches.")
 
 (defmethod semantic-reset ((idx semanticdb-find-search-index))
   "Reset the object IDX."
+  (require 'semantic/scope)
   ;; Clear the include path.
   (oset idx include-path nil)
   (when (oref idx type-cache)
@@ -233,6 +248,7 @@ This class will cache data derived during various searches.")
 	   (let ((tab-idx (semanticdb-get-table-index tab)))
 	     ;; Not a full reset?
 	     (when (oref tab-idx type-cache)
+	       (require 'db-typecache)
 	       (semanticdb-typecache-notify-reset
 		(oref tab-idx type-cache)))
 	     )))
@@ -299,6 +315,13 @@ Default action as described in `semanticdb-find-translate-path'."
     (if brutish
 	(semanticdb-find-translate-path-brutish-default path)
       (semanticdb-find-translate-path-includes-default path))))
+
+(define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
+  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
+INCLUDETAG is a semantic TAG of class 'include.
+TABLE is a semanticdb table that identifies where INCLUDETAG came from.
+TABLE is optional if INCLUDETAG has an overlay of :filename attribute."
+  )
 
 (defun semanticdb-find-translate-path-brutish-default (path)
   "Translate PATH into a list of semantic tables.
@@ -581,13 +604,6 @@ isn't in memory yet."
 (defun semanticdb-find-load-unloaded-default (filename)
   "Load an unloaded file in FILENAME using the default semanticdb loader."
   (semanticdb-file-table-object filename))
-
-(define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
-  "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
-INCLUDETAG is a semantic TAG of class 'include.
-TABLE is a semanticdb table that identifies where INCLUDETAG came from.
-TABLE is optional if INCLUDETAG has an overlay of :filename attribute."
-  )
 
 (defun semanticdb-find-table-for-include-default (includetag &optional table)
   "Default implementation of `semanticdb-find-table-for-include'.
@@ -1079,7 +1095,6 @@ Returns result."
     (semanticdb-find-log-move-to-end)))
 
 ;;; Semanticdb find API functions
-;;
 ;; These are the routines actually used to perform searches.
 ;;
 (defun semanticdb-find-tags-collector (function &optional path find-file-match

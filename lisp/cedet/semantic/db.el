@@ -1,4 +1,4 @@
-;;; db.el --- Semantic tag database manager
+;;; semantic/db.el --- Semantic tag database manager
 
 ;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;; 2008, 2009 Free Software Foundation, Inc.
@@ -59,6 +59,13 @@ mechanism.")
 This can be changed to try out new types of search indicies.")
 (make-variable-buffer-local 'semanticdb-default-find=index-class)
 
+(defvar semanticdb-current-database nil
+  "For a given buffer, this is the currently active database.")
+(make-variable-buffer-local 'semanticdb-current-database)
+
+(defvar semanticdb-current-table nil
+  "For a given buffer, this is the currently active database table.")
+(make-variable-buffer-local 'semanticdb-current-table)
 
 ;;; ABSTRACT CLASSES
 ;;
@@ -150,6 +157,17 @@ Adds the number of tags in this file to the object print name."
 		       (length (semanticdb-get-tags obj))
 		       )
 	       strings)))
+
+(defclass semanticdb-search-results-table (semanticdb-abstract-table)
+  ( )
+  "Table used for search results when there is no file or table association.
+Examples include search results from external sources such as from
+Emacs' own symbol table, or from external libraries.")
+
+(defmethod semanticdb-refresh-table ((obj semanticdb-search-results-table) &optional force)
+  "If the tag list associated with OBJ is loaded, refresh it.
+This will call `semantic-fetch-tags' if that file is in memory."
+  nil)
 
 ;;; Index Cache
 ;;
@@ -986,4 +1004,4 @@ If file does not have tags available, then load the file, and create them."
 
 (provide 'semantic/db)
 
-;;; semanticdb.el ends here
+;;; semantic/db.el ends here

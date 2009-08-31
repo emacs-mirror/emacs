@@ -29,7 +29,7 @@
 ;;
 
 (require 'cedet-global)
-(require 'semantic/db-search)
+(require 'semantic/db-find)
 (require 'semantic/symref/global)
 
 (eval-when-compile
@@ -37,7 +37,13 @@
   (require 'eieio)
   (require 'eieio-opt)
   )
+
 ;;; Code:
+
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-thing result "data-debug")
+
+
 (defun semanticdb-enable-gnu-global-databases (mode)
   "Enable the use of the GNU Global SemanticDB back end for all files of MODE.
 This will add an instance of a GNU Global database to each buffer
@@ -67,6 +73,12 @@ in a GNU Global supported hierarchy."
 MODE is the major mode to support."
   (semanticdb-enable-gnu-global-in-buffer t))
 
+(defclass semanticdb-project-database-global
+  ;; @todo - convert to one DB per directory.
+  (semanticdb-project-database eieio-instance-tracker)
+  ()
+  "Database representing a GNU Global tags file.")
+
 (defun semanticdb-enable-gnu-global-in-buffer (&optional dont-err-if-not-available)
   "Enable a GNU Global database in the current buffer.
 Argument DONT-ERR-IF-NOT-AVAILABLE will throw an error if GNU Global
@@ -93,12 +105,6 @@ is not available for this directory."
   ((major-mode :initform nil)
    )
   "A table for returning search results from GNU Global.")
-
-(defclass semanticdb-project-database-global
-  ;; @todo - convert to one DB per directory.
-  (semanticdb-project-database eieio-instance-tracker)
-  ()
-  "Database representing a GNU Global tags file.")
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.

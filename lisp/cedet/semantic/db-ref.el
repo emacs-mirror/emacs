@@ -1,4 +1,4 @@
-;;; db-ref.el --- Handle cross-db file references
+;;; semantic/db-ref.el --- Handle cross-db file references
 
 ;;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -36,6 +36,16 @@
 
 
 ;;; Code:
+(require 'eieio)
+(require 'semantic/db)
+(require 'semantic/util)
+
+(defvar semanticdb-find-default-throttle)
+
+;; For the semantic-find-tags-by-name-regexp macro.
+(eval-when-compile (require 'semantic/find))
+(defvar semantic-case-fold)
+
 (defmethod semanticdb-add-reference ((dbt semanticdb-abstract-table)
 				     include-tag)
   "Add a reference for the database table DBT based on INCLUDE-TAG.
@@ -137,11 +147,17 @@ DBT, the second argument is DBT."
    (i-include :initarg :i-include))
   "Simple class to allow ADEBUG to show a nice list.")
 
+(defvar semanticdb-current-table)
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-object-slots "data-debug")
+
 (defun semanticdb-ref-test (refresh)
   "Dump out the list of references for the current buffer.
 If REFRESH is non-nil, cause the current table to have it's references
 refreshed before dumping the result."
   (interactive "p")
+  (require 'data-debug)
+  (require 'semantic/db)
   ;; If we need to refresh... then do so.
   (when refresh
     (semanticdb-refresh-references semanticdb-current-table))
@@ -158,4 +174,4 @@ refreshed before dumping the result."
   )
 
 (provide 'semantic/db-ref)
-;;; semanticdb-ref.el ends here
+;;; semantic/db-ref.el ends here

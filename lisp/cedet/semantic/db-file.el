@@ -1,4 +1,4 @@
-;;; db-file.el --- Save a semanticdb to a cache file.
+;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
 ;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -147,9 +147,11 @@ If DIRECTORY doesn't exist, create a new one."
     db))
 
 ;;; File IO
+
+(declare-function inversion-test "inversion")
+
 (defun semanticdb-load-database (filename)
   "Load the database FILENAME."
-  (require 'inversion)
   (condition-case foo
       (let* ((r (eieio-persistent-read filename))
 	     (c (semanticdb-get-database-tables r))
@@ -160,23 +162,26 @@ If DIRECTORY doesn't exist, create a new one."
 	(while c
 	  (oset (car c) parent-db r)
 	  (setq c (cdr c)))
-	(if (not (inversion-test 'semanticdb-file fv))
-	    (when (inversion-test 'semantic-tag tv)
-	      ;; Incompatible version.  Flush tables.
-	      (semanticdb-flush-database-tables r)
-	      ;; Reset the version to new version.
-	      (oset r semantic-tag-version semantic-tag-version)
-	      ;; Warn user
-	      (message "Semanticdb file is old.  Starting over for %s"
-		       filename)
-	      )
-	  ;; Version is not ok.  Flush whole system
-	  (message "semanticdb file is old.  Starting over for %s"
-		   filename)
-	  ;; This database is so old, we need to replace it.
-	  ;; We also need to delete it from the instance tracker.
-	  (delete-instance r)
-	  (setq r nil))
+	(unless (and (equal semanticdb-file-version fv)
+		     (equal semantic-tag-version tv))
+	  ;; Try not to load inversion unless we need it:
+	  (require 'inversion)
+	  (if (not (inversion-test 'semanticdb-file fv))
+	      (when (inversion-test 'semantic-tag tv)
+		;; Incompatible version.  Flush tables.
+		(semanticdb-flush-database-tables r)
+		;; Reset the version to new version.
+		(oset r semantic-tag-version semantic-tag-version)
+		;; Warn user
+		(message "Semanticdb file is old.  Starting over for %s"
+			 filename))
+	    ;; Version is not ok.  Flush whole system
+	    (message "semanticdb file is old.  Starting over for %s"
+		     filename)
+	    ;; This database is so old, we need to replace it.
+	    ;; We also need to delete it from the instance tracker.
+	    (delete-instance r)
+	    (setq r nil)))
 	r)
     (error (message "Cache Error: [%s] %s, Restart"
 		    filename foo)
@@ -261,6 +266,8 @@ Live files are either buffers in Emacs, or files existing on the filesystem."
   "Run the data debugger on tables that issue errors.
 This variable is set to nil after the first error is encountered
 to prevent overload.")
+
+(declare-function data-debug-insert-thing "data-debug")
 
 (defmethod object-write ((obj semanticdb-table))
   "When writing a table, we have to make sure we deoverlay it first.
@@ -435,4 +442,4 @@ Optional NOERROR prevents errors from being displayed."
 
 (provide 'semantic/db-file)
 
-;;; semanticdb-file.el ends here
+;;; semantic/db-file.el ends here

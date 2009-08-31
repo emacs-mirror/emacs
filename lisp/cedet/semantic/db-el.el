@@ -1,4 +1,4 @@
-;;; db-el.el --- Semantic database extensions for Emacs Lisp
+;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
 
 ;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -31,7 +31,8 @@
 ;; to also work in Emacs Lisp with no compromises.
 ;;
 
-(require 'semantic/db-search)
+(require 'semantic/db)
+
 (eval-when-compile
   ;; For generic function searching.
   (require 'eieio)
@@ -340,4 +341,4 @@ Return a list of tags."
 
 (provide 'semantic/db-el)
 
-;;; semanticdb-el.el ends here
+;;; semantic/db-el.el ends here

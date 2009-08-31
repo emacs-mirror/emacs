@@ -56,7 +56,6 @@
   (require 'eieio-opt)
   )
 (require 'semantic/db-file)
-(require 'semantic/db-mode)
 (require 'semantic/find)
 (require 'semantic/sort)
 (require 'data-debug)

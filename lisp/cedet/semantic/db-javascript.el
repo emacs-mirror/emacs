@@ -1,4 +1,4 @@
-;;; db-javascript.el --- Semantic database extensions for javascript
+;;; semantic/db-javascript.el --- Semantic database extensions for javascript
 
 ;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;; Free Software Foundation, Inc.
@@ -29,7 +29,9 @@
 ;; the list of tags.
 ;;
 
-(require 'semantic/db-search)
+(require 'semantic/db)
+(require 'semantic/db-find)
+
 (eval-when-compile
   ;; For generic function searching.
   (require 'eieio)
@@ -305,6 +307,6 @@ Return a list of tags."
 ;; function encodeURIComponent (uriComponent){}
 
 
-(provide 'semantic/db-el)
+(provide 'semantic/db-javascript)
 
-;;; semanticdb-el.el ends here
+;;; semantic/db-javascript.el ends here

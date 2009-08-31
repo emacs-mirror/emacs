@@ -30,6 +30,12 @@
 
 (require 'semantic/db)
 (require 'semantic/db-find)
+(require 'semantic/tag-ls)
+(require 'semantic/analyze/fcn)
+(require 'semantic/scope)
+
+(declare-function data-debug-insert-thing "data-debug")
+(declare-function data-debug-new-buffer "data-debug")
 
 ;;; Code:
 

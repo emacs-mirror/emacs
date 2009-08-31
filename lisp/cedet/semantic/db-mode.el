@@ -25,13 +25,17 @@
 
 (require 'semantic/db)
 ;;; Code:
-(defvar semanticdb-current-database nil
-  "For a given buffer, this is the currently active database.")
-(make-variable-buffer-local 'semanticdb-current-database)
 
-(defvar semanticdb-current-table nil
-  "For a given buffer, this is the currently active database table.")
-(make-variable-buffer-local 'semanticdb-current-table)
+;; Moved into semantic/db.el:
+;; (defvar semanticdb-current-database nil
+;;   "For a given buffer, this is the currently active database.")
+;; (make-variable-buffer-local 'semanticdb-current-database)
+
+;; (defvar semanticdb-current-table nil
+;;   "For a given buffer, this is the currently active database table.")
+;; (make-variable-buffer-local 'semanticdb-current-table)
+
+(declare-function semantic-lex-spp-set-dynamic-table "semantic/lex-spp")
 
 (defcustom semanticdb-global-mode nil
   "*If non-nil enable the use of `semanticdb-minor-mode'."

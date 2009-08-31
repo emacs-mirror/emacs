@@ -26,7 +26,6 @@
 
 (require 'data-debug)
 (require 'semantic/db)
-(require 'semantic/db-mode)
 (require 'semantic/format)
 
 ;;; Code:
