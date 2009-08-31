@@ -112,7 +112,7 @@ Upside-down characters are obtained by a preceding slash (/)."
  (":" ?ː))
 
 (quail-define-package
- "kirshenbaum-ipa" "IPA" "IPA-K" t
+ "ipa-kirshenbaum" "IPA" "IPA-K" t
  "The International Phonetic Alphabet, using Kirshenbaum ASCII translit.
 
 Kirshenbaum IPA is an ASCII transliteration of the phonetic alphabet, common
@@ -241,6 +241,19 @@ incorrectly, as separate from the modified glyphs.")
  ("o-" "ɤ")	;; Upper-mid back unrounded vowel	U+0264
  ("A." "ɒ"))	;; Lower back rounded vowel		U+0252
 
+
+(defconst ipa-x-sampa-implosive-submap
+  '(("b_<"   ?ɓ)   ;; Voiced bilabial implosive U+0253
+    ("d_<"   ?ɗ)   ;; Voiced alveolar implosive U+0257
+    ("g_<"   ?ɠ)   ;; Voiced velar implosive    U+0260
+    ("G\\_<" ?ʛ)   ;; Voiced uvular implosive   U+029B
+    ("J\\_<" ?ʄ))  ;; Voiced palatal implosive  U+0284
+  "A map from the X-SAMPA for some implosive consonants to characters.
+This is used because their X-SAMPA syntax is quasi-diacritic, but the
+corresponding Unicode characters themselves don't have diacritics, they are
+separate code points.  So we need to implement some extra logic that isn't
+normally provided by Quail.")
+
 ;; On XEmacs, with the supplied X-SAMPA data, this function is capably
 ;; implemented with:
 ;;
@@ -248,7 +261,7 @@ incorrectly, as separate from the modified glyphs.")
 ;;
 ;; Supporting GNU Emacs too makes it a good deal more complicated.
 
-(defun x-sampa-prepend-to-keymap-entry (to-prepend quail-keymap)
+(defun ipa-x-sampa-prepend-to-keymap-entry (to-prepend quail-keymap)
   "Return QUAIL-KEYMAP with TO-PREPEND at the beginning of each result.
 
 QUAIL-KEYMAP is a cons that satisfies `quail-map-p'; TO-PREPEND is a
@@ -270,7 +283,7 @@ string."
                        (if (integerp entry) (string entry) entry)))
 	   quail-keymap))))
 
-(defun x-sampa-underscore-implosive (input-string length)
+(defun ipa-x-sampa-underscore-implosive (input-string length)
   "Return keymap with IPA implosives, for INPUT-STRING, length LENGTH.
 
 The implosive consonants in X-SAMPA are represented with more or less a
@@ -290,7 +303,7 @@ particular sequence of keys, and the result will be cached by Quail."
 	 (pre-underscore (car split-input))
 	 (pre-underscore-map (quail-lookup-key pre-underscore))
 	 (x-sampa-submap-entry
-	  (assoc (format "%s<" input-string) x-sampa-implosive-submap))
+	  (assoc (format "%s<" input-string) ipa-x-sampa-implosive-submap))
 	 underscore-map-entry)
     (if (and (consp pre-underscore-map) (car pre-underscore-map))
 	(setq pre-underscore-map (car pre-underscore-map))
@@ -301,12 +314,12 @@ particular sequence of keys, and the result will be cached by Quail."
       (cond ((null underscoring))
 	    ((eq (length underscoring) 2)
 	     (setq underscore-map-entry (second underscoring))
-	     (setcdr underscoring (x-sampa-prepend-to-keymap-entry
+	     (setcdr underscoring (ipa-x-sampa-prepend-to-keymap-entry
 				   pre-underscore-map underscore-map-entry)))
 	    ((eq (length underscoring) 3)
 	     (setq underscore-map-entry (second (third underscoring)))
 	     (setcdr (third underscoring)
-		     (x-sampa-prepend-to-keymap-entry
+		     (ipa-x-sampa-prepend-to-keymap-entry
 		      pre-underscore-map underscore-map-entry)))
 	    (t
 	     (assert (null t) t
@@ -314,7 +327,7 @@ particular sequence of keys, and the result will be cached by Quail."
     (append underscore-map (list (list ?< (second x-sampa-submap-entry))))))
 
 (quail-define-package
- "x-sampa-ipa" "IPA" "IPA-X" t
+ "ipa-x-sampa" "IPA" "IPA-X" t
  "The International Phonetic Alphabet, using J.C. Wells' X-SAMPA.
 
 X-SAMPA is an ASCII transliteration of the IPA, normally used for data
@@ -488,28 +501,16 @@ displays them, incorrectly, as separate from the modified glyphs." nil t t)
  ("_X" "̆")	;; Extra-short				U+0306
  ("_x" "̽"))	;; Mid-centralised			U+033D
 
-(defconst x-sampa-implosive-submap
-  '(("b_<"   ?ɓ)   ;; Voiced bilabial implosive U+0253
-    ("d_<"   ?ɗ)   ;; Voiced alveolar implosive U+0257
-    ("g_<"   ?ɠ)   ;; Voiced velar implosive    U+0260
-    ("G\\_<" ?ʛ)   ;; Voiced uvular implosive   U+029B
-    ("J\\_<" ?ʄ))  ;; Voiced palatal implosive  U+0284
-  "A map from the X-SAMPA for some implosive consonants to characters.
-This is used because their X-SAMPA syntax is quasi-diacritic, but the
-corresponding Unicode characters themselves don't have diacritics, they are
-separate code points.  So we need to implement some extra logic that isn't
-normally provided by Quail.")
-
 ;; Putting in place rules for the implosives like for the others above
 ;; breaks the "_<diacritic>" rules for b, d, g, G and J a little--you need
 ;; to interrupt Quail before typing the underscore if you want the
 ;; diacritic. To avoid this, handle the input specially with the function
-;; x-sampa-underscore-implosive.
+;; ipa-x-sampa-underscore-implosive.
 
-(dolist (implosive-x-sampa (mapcar 'car x-sampa-implosive-submap))
+(dolist (implosive-x-sampa (mapcar 'car ipa-x-sampa-implosive-submap))
   (setq implosive-x-sampa (car (split-string implosive-x-sampa "_")))
   (quail-defrule (format "%s_" implosive-x-sampa)
-		 'x-sampa-underscore-implosive))
+		 'ipa-x-sampa-underscore-implosive))
 
 ;; arch-tag: cf2614cc-ecce-4ef5-ba51-37faeed41691
 ;;; ipa.el ends here
