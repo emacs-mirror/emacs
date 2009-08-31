@@ -2594,6 +2594,7 @@ another GDB command e.g pwd, to see new frames")
   "Select the thread and display the relevant source."
   (interactive (list last-input-event))
   (if event (posn-set-point (event-end event)))
+  (setq gdb-stack-update t)
   (gdb-enqueue-input
    (list (concat gdb-server-prefix "thread "
 		 (gdb-get-thread-number) "\n") 'ignore))
