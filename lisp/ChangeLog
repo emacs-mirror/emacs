@@ -1,3 +1,11 @@
+2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-control-all-threads)
+	(gdb-control-current-thread): Force tool bar update.
+	(gdb-non-stop-handler): New function.
+	(gdb-init-1): Use it to test if non-stop mode is supported.
+	Remove unused gdbmi buffer type.
+
 2009-08-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
 
 	* progmodes/grep.el (grep-read-files): Strip trailing <N> from
