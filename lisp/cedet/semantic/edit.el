@@ -1,4 +1,4 @@
-;;; semantic-edit.el --- Edit Management for Semantic
+;;; semantic/edit.el --- Edit Management for Semantic
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;; 2007, 2008, 2009 Free Software Foundation, Inc.
@@ -59,7 +59,8 @@
 
 ;;
 (require 'semantic)
-;; (require 'working)
+(require 'semantic/find)
+(require 'semantic/format)
 
 ;;; Code:
 (defvar semantic-after-partial-cache-change-hook nil
@@ -962,4 +963,4 @@ lost if not transferred into NEWTAG."
 
 (provide 'semantic/edit)
 
-;;; semantic-edit.el ends here
+;;; semantic/edit.el ends here

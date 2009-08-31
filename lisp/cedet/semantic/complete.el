@@ -110,7 +110,6 @@
 (require 'eieio)
 (require 'eieio-opt)
 (require 'semantic/tag-file)
-(require 'semantic/find)
 (require 'semantic/analyze)
 (require 'semantic/format)
 (require 'semantic/ctxt)

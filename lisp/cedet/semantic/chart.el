@@ -28,7 +28,6 @@
 
 (require 'chart)
 (require 'semantic)
-(require 'semantic/find)
 (require 'semantic/db-mode)
 (require 'semantic/db-typecache)
 (require 'semantic/scope)

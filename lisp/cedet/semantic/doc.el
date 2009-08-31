@@ -1,4 +1,4 @@
-;;; doc.el --- Routines for documentation strings
+;;; semantic/doc.el --- Routines for documentation strings
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -30,6 +30,8 @@
 ;; the symbol on the same line.
 
 (require 'semantic/tag)
+(require 'semantic/tag-file)
+(require 'semantic/find)
 
 ;;; Code:
 
@@ -125,4 +127,4 @@ If NOSNARF is 'lex, then return the lex token."
 
 (provide 'semantic/doc)
 
-;;; semantic-doc.el ends here
+;;; semantic/doc.el ends here

@@ -29,6 +29,7 @@
 ;;
 
 (require 'semantic)
+(require 'semantic/tag-file)
 (require 'pulse)
 
 ;;; Code:
@@ -304,9 +305,12 @@ nil implies the tag should be fully shown."
 		       'semantic-set-tag-folded-isearch)))
 	  ))
 
+(declare-function semantic-current-tag "semantic/find")
+
 (defun semantic-set-tag-folded-isearch (overlay)
   "Called by isearch if it discovers text in the folded region.
 OVERLAY is passed in by isearch."
+  (require 'semantic/find)
   (semantic-set-tag-folded (semantic-current-tag) nil)
   )
 

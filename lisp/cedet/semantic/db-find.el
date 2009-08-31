@@ -119,9 +119,7 @@
 (require 'semantic/db-ref)
 (eval-when-compile
   (require 'eieio)
-  )
-
-(require 'semantic/find)
+  (require 'semantic/find))
 
 (require 'semantic/tag-file)
 (require 'semantic/sort)

@@ -1,4 +1,4 @@
-;;; dep.el --- Methods for tracking dependencies (include files)
+;;; semantic/dep.el --- Methods for tracking dependencies (include files)
 
 ;;; Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
@@ -178,25 +178,21 @@ macro `defcustom-mode-local-semantic-dependency-system-include-path'."
 ;;; PATH SEARCH
 ;;
 ;; methods for finding files on a provided path.
-(if (fboundp 'locate-file)
-    (defsubst semantic--dependency-find-file-on-path (file path)
-      "Return an expanded file name for FILE on PATH."
-      (locate-file file path))
+(defmacro semantic--dependency-find-file-on-path (file path)
+  (if (fboundp 'locate-file)
+      `(locate-file ,file ,path)
+    `(let ((p ,path)
+	   (found nil))
+       (while (and p (not found))
+	 (let ((f (expand-file-name ,file (car p))))
+	   (if (file-exists-p f)
+	       (setq found f)))
+	 (setq p (cdr p)))
+       found)))
 
-  ;; Else, older version of Emacs.
-
-  (defsubst semantic--dependency-find-file-on-path (file path)
-    "Return an expanded file name for FILE on PATH."
-    (let ((p path)
-	  (found nil))
-      (while (and p (not found))
-        (let ((f (expand-file-name file (car p))))
-	  (if (file-exists-p f)
-	      (setq found f)))
-        (setq p (cdr p)))
-      found))
-
-  )
+(defvar ede-minor-mode)
+(defvar ede-object)
+(declare-function ede-system-include-path "ede")
 
 (defun semantic-dependency-find-file-on-path (file systemp &optional mode)
   "Return an expanded file name for FILE on available paths.
@@ -225,4 +221,4 @@ provided mode, not from the current major mode."
 
 (provide 'semantic/dep)
 
-;;; semantic-dep.el ends here
+;;; semantic/dep.el ends here

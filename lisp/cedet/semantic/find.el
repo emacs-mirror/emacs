@@ -1,4 +1,4 @@
-;;; find.el --- Search routines for Semantic
+;;; semantic/find.el --- Search routines for Semantic
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -44,6 +44,7 @@
 ;;
 ;; 4) ...
 
+(require 'semantic)
 (require 'semantic/tag)
 
 ;;; Code:
@@ -335,6 +336,8 @@ See `semantic-tag-protected-p' for details on which tags are returned."
 				     semantic-tag-class type))
     (:override)))
 
+(declare-function semantic-tag-protected-p "semantic/tag-ls")
+
 (defun semantic-find-tags-by-scope-protection-default
   (scopeprotection parent &optional table)
   "Find all tags accessable by SCOPEPROTECTION.
@@ -348,6 +351,7 @@ See `semantic-tag-protected-p' for details on which tags are returned."
     (if (not table) (setq table (semantic-tag-type-members parent)))
     (if (null scopeprotection)
 	table
+      (require 'semantic/tag-ls)
       (semantic--find-tags-by-macro
        (not (semantic-tag-protected-p (car tags) scopeprotection parent))
        table)))
@@ -389,10 +393,13 @@ attempting to do completions."
 
 ;;; Specialty Searches
 ;;
+(declare-function semantic-tag-external-member-parent "semantic/sort")
+
 (defun semantic-find-tags-external-children-of-type (type &optional table)
   "Find all tags in whose parent is TYPE in TABLE.
 These tags are defined outside the scope of the original TYPE declaration.
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
+  (require 'semantic/sort)
   (semantic--find-tags-by-macro
    (equal (semantic-tag-external-member-parent (car tags))
 	  type)
@@ -792,4 +799,4 @@ Optional argument ARG is the number of iterations to run."
 
 (provide 'semantic/find)
 
-;;; semantic-find.el ends here
+;;; semantic/find.el ends here
