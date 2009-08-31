@@ -36,7 +36,7 @@
  "International Phonetic Alphabet for English, French, German and Italian
 
 Upside-down characters are obtained by a preceding slash (/)."
- nil t nil nil nil nil nil nil nil nil t)
+ nil nil nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("i" ?i)
@@ -79,7 +79,7 @@ Upside-down characters are obtained by a preceding slash (/)."
  ("t" ?t)
  ("d" ?d)
  ("k" ?k)
- ("g" ?g)
+ ("g" ?ɡ)
  ("f" ?f)
  ("v" ?v)
  ("th" ?θ)
@@ -87,6 +87,7 @@ Upside-down characters are obtained by a preceding slash (/)."
  ("s" ?s)
  ("z" ?z)
  ("sh" ?ʃ)
+ ("tsh" ["ʧ" "tʃ" "t⁀ʃ"])
  ("zh" ?ʒ)
  ("3" ?ʒ)
  ("c," ?ç)
@@ -128,6 +129,7 @@ Unicode diacritics on reading and emitting them, it displays them,
 incorrectly, as separate from the modified glyphs.")
 
 (quail-define-rules
+ ("g" "ɡ")	;; Voiced velar plosive			U+0261
  ("r" "ɹ")	;; Alveolar approximant			U+0279
  ("A" "ɑ")	;; Low back unrounded vowel		U+0251
  ("B" "β")	;; Voiced bilabial fricative		U+03B2
@@ -149,8 +151,11 @@ incorrectly, as separate from the modified glyphs.")
  ("R" ["ʀ"	;; Alveolar trill			U+0280
        "ɚ"])    ;; Rhotacised schwa			U+025A
  ("@<r>" "ɚ")	;; Mid central rhotacised vowel		U+025A
- ("S" "ʃ")	;; Voiced postalveolar fricative	U+0283
- ("T" "θ")	;; Voiced dental fricative		U+03B8
+ ("S" "ʃ")	;; Voiceless postalveolar fricative	U+0283
+ ("tS" ["ʧ"	;; Voiceless postalveolar affricate	U+02A7
+	"tʃ"	;;                               U+0074 U+0283
+	"t⁀ʃ"]) ;;                        U+0074 U+2040 U+0283
+ ("T" "θ")	;; Voiceless dental fricative		U+03B8
  ("U" "ʊ")	;; Semi-high back rounded vowel		U+028A
  ("V" "ʌ")	;; Low-mid back unrounded vowel		U+028C
  ("W" "œ")	;; Low-mid front rounded vowel		U+0153
@@ -338,18 +343,14 @@ with a keyboard that's limited to ASCII.
 See http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
 of the mapping. A caveat with regard to that document; while XEmacs
 currently preserves Unicode diacritics on reading and emitting them, it
-displays them, incorrectly, as separate from the modified glyphs." nil t t)
+displays them, incorrectly, as separate from the modified glyphs.")
 
 (quail-define-rules
  ;; Table taken from http://en.wikipedia.org/wiki/X-SAMPA, checked with
  ;; http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
 
  ("d`" "ɖ")	;; Voiced retroflex plosive		U+0256
-
- ;; In the Wikipedia article, they list ASCII g as mapping to U+0261, LATIN
- ;; SMALL LETTER SCRIPT G. The typeset g is equally acceptable as the voiced
- ;; velar plosive, however, and we don't override the identity mapping here.
-
+ ("g" "ɡ")	;; Voiced velar plosive			U+0261
  ("h\\" "ɦ")	;; Voiced glottal fricative		U+0266
  ("j\\" "ʝ")	;; Voiced palatal fricative		U+029D
  ("l`" "ɭ")	;; Retroflex lateral approximant	U+026D
@@ -396,6 +397,9 @@ displays them, incorrectly, as separate from the modified glyphs." nil t t)
  ("R" "ʁ")	;; Voiced uvular fricative		U+0281
  ("R\\" "ʀ")	;; Uvular trill				U+0280
  ("S" "ʃ")	;; Voiceless postalveolar fricative	U+0283
+ ("tS" ["ʧ"	;; Voiceless postalveolar affricate	U+02A7
+	"tʃ"	;;                               U+0074 U+0283
+	"t⁀ʃ"]) ;;                        U+0074 U+2040 U+0283
  ("T" "θ")	;; Voiceless dental fricative		U+03B8
  ("U" "ʊ")	;; Near-close near-back rounded vowel	U+028A
  ("U\\" ["ʊ̵"])	;; Central lax close rounded vowel, U+028A U+0335
