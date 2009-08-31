@@ -1,5 +1,16 @@
 2009-08-31  Juri Linkov  <juri@jurta.org>
 
+	* quail/ipa.el ("ipa"): Set `forget-last-selection' to nil.
+	("ipa-x-sampa"): Set `forget-last-selection' to nil.
+	Set `deterministic' to nil.
+	("ipa"): Bind "g" to U+0261, and "tsh" to a list of "U+02A7",
+	"U+0074 U+0283", "U+0074 U+2040 U+0283".
+	("ipa-kirshenbaum", ipa-x-sampa"): Bind "g" to U+0261, and "tS"
+	to a list of "U+02A7", "U+0074 U+0283", "U+0074 U+2040 U+0283".
+	Fix comments.
+
+2009-08-31  Juri Linkov  <juri@jurta.org>
+
 	* quail/ipa.el ("ipa-kirshenbaum"): Rename from "kirshenbaum-ipa".
 	("ipa-x-sampa"): Rename from "x-sampa-ipa".
 	(ipa-x-sampa-implosive-submap): Rename from
