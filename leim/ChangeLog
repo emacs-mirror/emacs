@@ -1,3 +1,15 @@
+2009-08-31  Juri Linkov  <juri@jurta.org>
+
+	* quail/ipa.el ("ipa-kirshenbaum"): Rename from "kirshenbaum-ipa".
+	("ipa-x-sampa"): Rename from "x-sampa-ipa".
+	(ipa-x-sampa-implosive-submap): Rename from
+	x-sampa-implosive-submap.
+	(ipa-x-sampa-prepend-to-keymap-entry): Rename from
+	x-sampa-prepend-to-keymap-entry.
+	(ipa-x-sampa-underscore-implosive): Rename from
+	x-sampa-underscore-implosive.
+	(ipa-x-sampa-implosive-submap): Move before first use.
+
 2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* quail/ipa.el ("kirshenbaum-ipa", "x-sampa-ipa"):
