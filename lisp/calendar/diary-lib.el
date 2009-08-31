@@ -71,8 +71,8 @@ are holidays."
   "Face used for buttons in the fancy diary display."
   :version "22.1"
   :group 'calendar-faces)
-;; Backward-compatibility alias. FIXME make obsolete.
-(put 'diary-button-face 'face-alias 'diary-button)
+
+(define-obsolete-face-alias 'diary-button-face 'diary-button "22.1")
 
 ;; Face markup of calendar and diary displays: Any entry line that
 ;; ends with [foo:value] where foo is a face attribute (except :box
