@@ -1,7 +1,7 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -179,6 +179,21 @@ Info node `(elisp)Variable Aliases' for more details."
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
+
+;; FIXME This is only defined in this file because the variable- and
+;; function- versions are too.  Unlike those two, this one is not used
+;; by the byte-compiler (would be nice if it could warn about obsolete
+;; faces, but it doesn't really do anything special with faces).
+;; It only really affects M-x describe-face output.
+(defmacro define-obsolete-face-alias (obsolete-face current-face
+						    &optional when)
+  "Make OBSOLETE-FACE a face alias for CURRENT-FACE and mark it obsolete.
+The optional string WHEN gives the Emacs version where OBSOLETE-FACE
+became obsolete."
+  `(progn
+     (put ,obsolete-face 'face-alias ,current-face)
+     ;; Used by M-x describe-face.
+     (put ,obsolete-face 'obsolete-face (or ,when t))))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).
