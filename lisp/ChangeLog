@@ -1,3 +1,8 @@
+2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-threads-select): Ensure stack is
+	redisplayed if user changes thread.
+
 2009-08-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* server.el (server-ensure-safe-dir): Disable the security check
