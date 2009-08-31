@@ -1,3 +1,19 @@
+2009-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-run.el (define-obsolete-face-alias): New macro.
+
+	* apropos.el (apropos-symbols-internal): Handle (obsolete) face aliases.
+
+	* faces.el (describe-face): Adjust the output format to be more like
+	describe-variable, and to mention (obsolete) face aliases.
+	Adjust the whitespace so that help-setup-xref works.
+
+	* calendar/calendar.el (calendar-today-face, diary-face, holiday-face):
+	* calendar/diary-lib.el (diary-button-face):
+	Mark these face aliases as obsolete.
+
+	* calendar/calendar.el (calendar-today): Doc fix.
+
 2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-control-all-threads)
@@ -6,7 +22,7 @@
 	(gdb-init-1): Use it to test if non-stop mode is supported.
 	Remove unused gdbmi buffer type.
 
-2009-08-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>  (tiny change)
+2009-08-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* progmodes/grep.el (grep-read-files): Strip trailing <N> from
 	buffer names not visiting a file (e.g. cloned buffers).
