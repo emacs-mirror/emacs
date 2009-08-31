@@ -1611,10 +1611,7 @@ then no --frame option is added."
   ;; gdb-frame-number may be nil while gdb-thread-number is non-nil
   ;; (when current thread is running)
   (if gdb-thread-number
-      (concat command " --thread " gdb-thread-number
-              (if (not (or noframe (not gdb-frame-number)))
-                  (concat " --frame " gdb-frame-number) "")
-              " ")
+      (concat command " --thread " gdb-thread-number " ")
     command))
 
 (defun gdb-current-context-buffer-name (name)
@@ -1653,14 +1650,14 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
      (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
+
+  (gdb-get-main-selected-frame)
   ;; We may need to update gdb-threads-list so we can use
   (gdb-get-buffer-create 'gdb-threads-buffer)
   ;; gdb-break-list is maintained in breakpoints handler
   (gdb-get-buffer-create 'gdb-breakpoints-buffer)
 
   (gdb-emit-signal gdb-buf-publisher 'update)
-
-  (gdb-get-main-selected-frame)
 
   (gdb-get-changed-registers)
 
@@ -2290,29 +2287,32 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
                            'BreakpointTable 'body))
         (table (make-gdb-table)))
     (setq gdb-breakpoints-list nil)
-    (gdb-table-add-row table '("Num" "Type" "Disp" "Enb" "Hits" "Addr" "What"))
+    (gdb-table-add-row table '("Num" "Type" "Disp" "Enb" "Addr" "Hits" "What"))
     (dolist (breakpoint breakpoints-list)
       (add-to-list 'gdb-breakpoints-list
                    (cons (gdb-get-field breakpoint 'number)
                          breakpoint))
       (let ((at (gdb-get-field breakpoint 'at))
             (pending (gdb-get-field breakpoint 'pending))
-            (func (gdb-get-field breakpoint 'func)))
+            (func (gdb-get-field breakpoint 'func))
+	    (type (gdb-get-field breakpoint 'type)))
       (gdb-table-add-row table
        (list
         (gdb-get-field breakpoint 'number)
-        (gdb-get-field breakpoint 'type)
+        type
         (gdb-get-field breakpoint 'disp)
         (let ((flag (gdb-get-field breakpoint 'enabled)))
           (if (string-equal flag "y")
               (propertize "y" 'font-lock-face  font-lock-warning-face)
             (propertize "n" 'font-lock-face  font-lock-comment-face)))
-        (gdb-get-field breakpoint 'times)
         (gdb-get-field breakpoint 'addr)
-          (or pending at
-              (concat "in "
-                      (propertize func 'font-lock-face font-lock-function-name-face)
-                      (gdb-frame-location breakpoint))))
+        (gdb-get-field breakpoint 'times)
+	(if (string-match ".*watchpoint" type)
+	    (gdb-get-field breakpoint 'what)
+	  (or pending at
+	      (concat "in "
+		      (propertize func 'font-lock-face font-lock-function-name-face)
+		      (gdb-frame-location breakpoint)))))
        ;; Add clickable properties only for breakpoints with file:line
        ;; information
        (append (list 'gdb-breakpoint breakpoint)
@@ -2665,7 +2665,7 @@ be the value of 'gdb-thread property of the current line. If
 'gdb-thread is nil, error is signaled."
   `(defun ,name (&optional event)
      ,(when doc doc)
-     (interactive)
+     (interactive (list last-input-event))
      (if event (posn-set-point (event-end event)))
      (save-excursion
        (beginning-of-line)
@@ -3728,6 +3728,7 @@ overlay arrow in source buffer."
     (when frame
       (setq gdb-selected-frame (gdb-get-field frame 'func))
       (setq gdb-selected-file (gdb-get-field frame 'fullname))
+      (setq gdb-frame-number (gdb-get-field frame 'level))
       (let ((line (gdb-get-field frame 'line)))
         (setq gdb-selected-line (or (and line (string-to-number line))
                                     nil)) ; don't fail if line is nil
