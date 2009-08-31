@@ -528,12 +528,16 @@ the list) is deleted every time a new one is added (at the front)."
   "Switch to non-stop/A mode."
   (interactive)
   (setq gdb-gud-control-all-threads t)
+  ;; Actually forcing the tool-bar to update.
+  (force-mode-line-update)
   (message "Now in non-stop/A mode."))
 
 (defun gdb-control-current-thread ()
   "Switch to non-stop/T mode."
   (interactive)
   (setq gdb-gud-control-all-threads nil)
+  ;; Actually forcing the tool-bar to update.
+  (force-mode-line-update)
   (message "Now in non-stop/T mode."))
 
 (defun gdb-find-watch-expression ()
@@ -803,8 +807,7 @@ detailed description of this mode.
   (gdb-input (list "-gdb-set height 0" 'ignore))
 
   (when gdb-non-stop
-    (gdb-input (list "-gdb-set non-stop 1" 'ignore))
-    (gdb-input (list "-gdb-set target-async 1" 'ignore)))
+    (gdb-input (list "-gdb-set non-stop 1" 'gdb-non-stop-handler)))
 
   ;; find source file and compilation directory here
   (gdb-input
@@ -816,6 +819,14 @@ detailed description of this mode.
        (list "-file-list-exec-source-file" 'gdb-get-source-file)))
   (gdb-input
    (list "-gdb-show prompt" 'gdb-get-prompt)))
+
+(defun gdb-non-stop-handler ()
+  (goto-char (point-min))
+  (if (re-search-forward "No symbol" nil t)
+      (progn
+	(message "This version of GDB doesn't support non-stop mode.  Turning it off.")
+	(setq gdb-non-stop nil))
+    (gdb-input (list "-gdb-set target-async 1" 'ignore))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
@@ -1372,9 +1383,6 @@ DOC is an optional documentation string."
                  (gdb-bind-function-to-buffer trigger (current-buffer))))))))
    nil t))
 
-;; GUD buffers are an exception to the rules
-(gdb-set-buffer-rules 'gdbmi 'error)
-
 ;; Partial-output buffer : This accumulates output from a command executed on
 ;; behalf of emacs (rather than the user).
 ;;
@@ -1668,7 +1676,8 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
   "Only this function must be used to change `gdb-thread-number'
 value to NUMBER, because `gud-running' and `gdb-frame-number'
 need to be updated appropriately when current thread changes."
-  (setq gdb-thread-number number)
+  ;; GDB 6.8 and earlier always output thread-id="0" when stopping.
+  (unless (string-equal number "0") (setq gdb-thread-number number))
   (setq gdb-frame-number "0")
   (gdb-update-gud-running))
 
