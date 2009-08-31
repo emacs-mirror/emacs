@@ -649,8 +649,19 @@ thus be found in `load-history'."
 		   (apropos-documentation-property
 		    symbol 'widget-documentation t))
 	       (when (facep symbol)
-		 (apropos-documentation-property
-		  symbol 'face-documentation t))
+		 (let ((alias (get symbol 'face-alias)))
+		   (if alias
+		       (if (facep alias)
+			   (format "%slias for the face `%s'."
+				   (if (get symbol 'obsolete-face)
+				       "Obsolete a"
+				     "A")
+				   alias)
+			 ;; Never happens in practice because fails
+			 ;; (facep symbol) test.
+			 "(alias for undefined face)")
+		     (apropos-documentation-property
+		      symbol 'face-documentation t))))
 	       (when (get symbol 'custom-group)
 		   (apropos-documentation-property
 		    symbol 'group-documentation t)))))
