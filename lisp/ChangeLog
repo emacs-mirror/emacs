@@ -1,3 +1,14 @@
+2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-breakpoints-list-handler-custom):
+	Handle watchpoints (bug#4282).
+	(def-gdb-thread-buffer-command): Enable thread to be selected by
+	clicking without selecting threads buffer first.
+	(gdb-current-context-command): Use selected frame so that "up",
+	"down" etc work in the GUD buffer.
+	(gdb-update): Find selected frame before rendering stack buffer.
+	(gdb-frame-handler): Set gdb-frame-number for stack buffer.
+
 2009-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sym-comp.el (displayed-completions): Remove.
