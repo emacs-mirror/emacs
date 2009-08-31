@@ -1,7 +1,8 @@
 ;;; faces.el --- Lisp faces
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -552,7 +553,7 @@ If FACE is a face-alias, get the documentation for the target face."
     (if alias
         (progn
           (setq doc (get alias 'face-documentation))
-          (format "%s is an alias for the face `%s'.%s" face alias
+	  (format "%s is an alias for the face `%s'.%s" face alias
                   (if doc (format "\n%s" doc)
                     "")))
       (get face 'face-documentation))))
@@ -1368,10 +1369,29 @@ If FRAME is omitted or nil, use the selected frame."
 		    file-name)
 		(insert (concat " (" (propertize "sample" 'font-lock-face f) ")"))
 		(princ (concat " (" customize-label ")\n"))
-		(insert "Documentation: "
-			(or (face-documentation f)
-			    "Not documented as a face.")
-			"\n")
+		;; FIXME not sure how much of this belongs here, and
+		;; how much in `face-documentation'.  The latter is
+		;; not used much, but needs to return nil for
+		;; undocumented faces.
+		(let ((alias (get f 'face-alias))
+		      (face f)
+		      obsolete)
+		  (when alias
+		    (setq face alias)
+		    (insert
+		     (format "\n  %s is an alias for the face `%s'.\n%s"
+			     f alias
+			     (if (setq obsolete (get f 'obsolete-face))
+				 (format "  This face is obsolete%s; use `%s' instead.\n"
+					 (if (stringp obsolete)
+					     (format " since %s" obsolete)
+					   "")
+					 alias)
+			       ""))))
+		  (insert "\nDocumentation:\n"
+			  (or (face-documentation face)
+			      "Not documented as a face.")
+			  "\n\n"))
 		(with-current-buffer standard-output
 		  (save-excursion
 		    (re-search-backward
