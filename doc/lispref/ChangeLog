@@ -1,3 +1,7 @@
+2009-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Functions): Mention define-obsolete-face-alias.
+
 2009-08-26  Ulrich Mueller  <ulm@gentoo.org>
 
 	* nonascii.texi (Character Codes): Fix typos.
