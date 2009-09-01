@@ -1031,12 +1031,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	(speedbar 1)
 	(unless (string-equal
 		 speedbar-initial-expansion-list-name "GUD")
-	  (speedbar-change-initial-expansion-list "GUD"))
-	(gdb-input
-	 (list
-	  (concat "-var-evaluate-expression " (car var))
-	  `(lambda () (gdb-var-evaluate-expression-handler
-		       ,(car var) nil)))))
+	  (speedbar-change-initial-expansion-list "GUD")))
     (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
@@ -1073,7 +1068,8 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defconst gdb-var-list-children-regexp
   "child={.*?name=\"\\(.+?\\)\".*?,exp=\"\\(.+?\\)\".*?,\
-numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
+numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
+\\(}\\|.*?,\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
 
 (defun gdb-var-list-children-handler (varnum)
   (goto-char (point-min))
@@ -1087,7 +1083,7 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\).*?,type=\"\\(.+?\\)\".*?}")
 		(let ((varchild (list (match-string 1)
 				      (match-string 2)
 				      (match-string 3)
-				      (match-string 5)
+				      (match-string 7)
 				      (read (match-string 4))
 				      nil)))
 		  (if (assoc (car varchild) gdb-var-list)
