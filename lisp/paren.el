@@ -1,7 +1,7 @@
 ;;; paren.el --- highlight matching paren
 
-;; Copyright (C) 1993, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: FSF
@@ -87,16 +87,15 @@ otherwise)."
      :background "gray"))
   "Show Paren mode face used for a matching paren."
   :group 'paren-showing-faces)
-;; backward-compatibility alias
-(put 'show-paren-match-face 'face-alias 'show-paren-match)
+(define-obsolete-face-alias 'show-paren-match-face 'show-paren-match "22.1")
 
 (defface show-paren-mismatch
   '((((class color)) (:foreground "white" :background "purple"))
     (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
   :group 'paren-showing-faces)
-;; backward-compatibility alias
-(put 'show-paren-mismatch-face 'face-alias 'show-paren-mismatch)
+(define-obsolete-face-alias 'show-paren-mismatch-face
+  'show-paren-mismatch "22.1")
 
 (defvar show-paren-highlight-openparen t
   "*Non-nil turns on openparen highlighting when matching forward.")

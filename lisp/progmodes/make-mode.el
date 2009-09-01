@@ -104,7 +104,7 @@
     (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'makefile)
-(put 'makefile-space-face 'face-alias 'makefile-space)
+(define-obsolete-face-alias 'makefile-space-face 'makefile-space "22.1")
 
 (defface makefile-targets
   ;; This needs to go along both with foreground and background colors (i.e. shell)

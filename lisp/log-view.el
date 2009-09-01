@@ -1,7 +1,7 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs sccs cvs log version-control
@@ -178,8 +178,7 @@
     (t (:weight bold)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
-;; backward-compatibility alias
-(put 'log-view-file-face 'face-alias 'log-view-file)
+(define-obsolete-face-alias 'log-view-file-face 'log-view-file "22.1")
 (defvar log-view-file-face 'log-view-file)
 
 (defface log-view-message
@@ -189,7 +188,7 @@
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 ;; backward-compatibility alias
-(put 'log-view-message-face 'face-alias 'log-view-message)
+(define-obsolete-face-alias 'log-view-message-face 'log-view-message "22.1")
 (defvar log-view-message-face 'log-view-message)
 
 (defvar log-view-file-re

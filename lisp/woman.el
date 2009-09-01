@@ -946,25 +946,25 @@ or different fonts."
   '((t :inherit italic))
   "Face for italic font in man pages."
   :group 'woman-faces)
-(put 'woman-italic-face 'face-alias 'woman-italic)
+(define-obsolete-face-alias 'woman-italic-face 'woman-italic "22.1")
 
 (defface woman-bold
   '((t :inherit bold))
   "Face for bold font in man pages."
   :group 'woman-faces)
-(put 'woman-bold-face 'face-alias 'woman-bold)
+(define-obsolete-face-alias 'woman-bold-face 'woman-bold "22.1")
 
 (defface woman-unknown
   '((t :inherit font-lock-warning-face))
   "Face for all unknown fonts in man pages."
   :group 'woman-faces)
-(put 'woman-unknown-face 'face-alias 'woman-unknown)
+(define-obsolete-face-alias 'woman-unknown-face 'woman-unknown "22.1")
 
 (defface woman-addition
   '((t :inherit font-lock-builtin-face))
   "Face for all WoMan additions to man pages."
   :group 'woman-faces)
-(put 'woman-addition-face 'face-alias 'woman-addition)
+(define-obsolete-face-alias 'woman-addition-face 'woman-addition "22.1")
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."

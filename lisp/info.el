@@ -83,32 +83,28 @@ The Lisp code is executed when the node is selected.")
     (t :height 1.2 :inherit info-title-2))
   "Face for info titles at level 1."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-1-face 'face-alias 'info-title-1)
+(define-obsolete-face-alias 'Info-title-1-face 'info-title-1 "22.1")
 
 (defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
     (t :height 1.2 :inherit info-title-3))
   "Face for info titles at level 2."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-2-face 'face-alias 'info-title-2)
+(define-obsolete-face-alias 'Info-title-2-face 'info-title-2 "22.1")
 
 (defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
     (t :height 1.2 :inherit info-title-4))
   "Face for info titles at level 3."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-3-face 'face-alias 'info-title-3)
+(define-obsolete-face-alias 'Info-title-3-face 'info-title-3 "22.1")
 
 (defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
   "Face for info titles at level 4."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-4-face 'face-alias 'info-title-4)
+(define-obsolete-face-alias 'Info-title-4-face 'info-title-4 "22.1")
 
 (defface info-menu-header
   '((((type tty pc))

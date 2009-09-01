@@ -89,8 +89,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "cyan")))
   "Face for your code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-mine-face 'face-alias 'smerge-mine)
+(define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
 (defface smerge-other
@@ -100,8 +99,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "lightgreen")))
   "Face for the other code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-other-face 'face-alias 'smerge-other)
+(define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
 (defface smerge-base
@@ -113,8 +111,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "orange")))
   "Face for the base code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-base-face 'face-alias 'smerge-base)
+(define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
 (defvar smerge-base-face 'smerge-base)
 
 (defface smerge-markers
@@ -124,8 +121,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:background "grey30")))
   "Face for the conflict markers."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-markers-face 'face-alias 'smerge-markers)
+(define-obsolete-face-alias 'smerge-markers-face 'smerge-markers "22.1")
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change

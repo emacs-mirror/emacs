@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff
@@ -242,8 +242,7 @@ try to refine the current hunk, as well."
     (t :weight bold))
   "`diff-mode' face inherited by hunk and index header faces."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-header-face 'face-alias 'diff-header)
+(define-obsolete-face-alias 'diff-header-face 'diff-header "22.1")
 (defvar diff-header-face 'diff-header)
 
 (defface diff-file-header
@@ -258,40 +257,35 @@ try to refine the current hunk, as well."
     (t :weight bold))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-file-header-face 'face-alias 'diff-file-header)
+(define-obsolete-face-alias 'diff-file-header-face 'diff-file-header "22.1")
 (defvar diff-file-header-face 'diff-file-header)
 
 (defface diff-index
   '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight index header lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-index-face 'face-alias 'diff-index)
+(define-obsolete-face-alias 'diff-index-face 'diff-index "22.1")
 (defvar diff-index-face 'diff-index)
 
 (defface diff-hunk-header
   '((t :inherit diff-header))
   "`diff-mode' face used to highlight hunk header lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-hunk-header-face 'face-alias 'diff-hunk-header)
+(define-obsolete-face-alias 'diff-hunk-header-face 'diff-hunk-header "22.1")
 (defvar diff-hunk-header-face 'diff-hunk-header)
 
 (defface diff-removed
   '((t :inherit diff-changed))
   "`diff-mode' face used to highlight removed lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-removed-face 'face-alias 'diff-removed)
+(define-obsolete-face-alias 'diff-removed-face 'diff-removed "22.1")
 (defvar diff-removed-face 'diff-removed)
 
 (defface diff-added
   '((t :inherit diff-changed))
   "`diff-mode' face used to highlight added lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-added-face 'face-alias 'diff-added)
+(define-obsolete-face-alias 'diff-added-face 'diff-added "22.1")
 (defvar diff-added-face 'diff-added)
 
 (defface diff-changed
@@ -301,8 +295,7 @@ try to refine the current hunk, as well."
      :foreground "yellow" :weight bold :slant italic))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-changed-face 'face-alias 'diff-changed)
+(define-obsolete-face-alias 'diff-changed-face 'diff-changed "22.1")
 (defvar diff-changed-face 'diff-changed)
 
 (defface diff-indicator-removed
@@ -330,24 +323,21 @@ try to refine the current hunk, as well."
   '((t :inherit diff-header))
   "`diff-mode' face used to highlight function names produced by \"diff -p\"."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-function-face 'face-alias 'diff-function)
+(define-obsolete-face-alias 'diff-function-face 'diff-function "22.1")
 (defvar diff-function-face 'diff-function)
 
 (defface diff-context
   '((((class color grayscale) (min-colors 88)) :inherit shadow))
   "`diff-mode' face used to highlight context and other side-information."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-context-face 'face-alias 'diff-context)
+(define-obsolete-face-alias 'diff-context-face 'diff-context "22.1")
 (defvar diff-context-face 'diff-context)
 
 (defface diff-nonexistent
   '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight nonexistent files in recursive diffs."
   :group 'diff-mode)
-;; backward-compatibility alias
-(put 'diff-nonexistent-face 'face-alias 'diff-nonexistent)
+(define-obsolete-face-alias 'diff-nonexistent-face 'diff-nonexistent "22.1")
 (defvar diff-nonexistent-face 'diff-nonexistent)
 
 (defconst diff-yank-handler '(diff-yank-function))

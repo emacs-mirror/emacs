@@ -1,7 +1,7 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -195,8 +195,8 @@
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
-;; backward-compatibility alias
-(put 'highlight-changes-face 'face-alias 'highlight-changes)
+(define-obsolete-face-alias 'highlight-changes-face
+  'highlight-changes "22.1")
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
 (defface highlight-changes-delete
@@ -205,13 +205,11 @@
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)
-;; backward-compatibility alias
-(put 'highlight-changes-delete-face 'face-alias 'highlight-changes-delete)
-
+(define-obsolete-face-alias 'highlight-changes-delete-face
+  'highlight-changes-delete "22.1")
 
 
 ;; A (not very good) default list of colors to rotate through.
-;;
 (define-obsolete-variable-alias 'highlight-changes-colours
                                 'highlight-changes-colors "22.1")
 

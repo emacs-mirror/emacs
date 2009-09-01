@@ -1,5 +1,49 @@
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
+	* add-log.el (change-log-date-face, change-log-name-face)
+	(change-log-email-face, change-log-file-face, change-log-list-face)
+	(change-log-conditionals-face, change-log-function-face)
+	(change-log-acknowledgement-face):
+	* cus-edit.el (custom-invalid-face, custom-rogue-face)
+	(custom-modified-face, custom-set-face, custom-changed-face)
+	(custom-saved-face, custom-button-face, custom-button-pressed-face)
+	(custom-documentation-face, custom-state-face, custom-comment-face)
+	(custom-comment-tag-face, custom-variable-tag-face)
+	(custom-variable-button-face, custom-face-tag-face)
+	(custom-group-tag-face-1, custom-group-tag-face):
+	* diff-mode.el (diff-header-face, diff-file-header-face)
+	(diff-index-face, diff-hunk-header-face, diff-removed-face)
+	(diff-added-face, diff-changed-face, diff-function-face)
+	(diff-context-face, diff-nonexistent-face):
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face):
+	* hilit-chg.el (highlight-changes-face, highlight-changes-delete-face):
+	* info.el (Info-title-1-face, Info-title-2-face, Info-title-3-face)
+	(Info-title-4-face):
+	* isearch.el (isearch-lazy-highlight-face):
+	* log-view.el (log-view-file-face, log-view-message-face):
+	* paren.el (show-paren-match-face, show-paren-mismatch-face):
+	* pcvs-info.el (cvs-header-face, cvs-filename-face, cvs-unknown-face)
+	(cvs-handled-face, cvs-need-action-face, cvs-marked-face)
+	(cvs-msg-face):
+	* smerge-mode.el (smerge-mine-face, smerge-other-face)
+	(smerge-base-face, smerge-markers-face):
+	* wid-edit.el (widget-documentation-face, widget-button-face)
+	(widget-field-face, widget-single-line-field-face)
+	(widget-inactive-face, widget-button-pressed-face):
+	* woman.el (woman-italic-face, woman-bold-face, woman-unknown-face)
+	(woman-addition-face):
+	* obsolete/old-whitespace.el (whitespace-highlight-face):
+	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
+	(ebrowse-root-class-face, ebrowse-file-name-face)
+	(ebrowse-default-face, ebrowse-member-attribute-face)
+	(ebrowse-member-class-face, ebrowse-progress-face):
+	* progmodes/make-mode.el (makefile-space-face):
+	* progmodes/sh-script.el (sh-heredoc-face):
+	* textmodes/flyspell.el (flyspell-incorrect-face)
+	(flyspell-duplicate-face):
+	* textmodes/tex-mode.el (tex-math-face, tex-verbatim-face):
+	Mark face aliases with "-face" suffix as obsolete.
+
 	* mail/feedmail.el (file-name-buffer-file-type-alist): Define for
 	compiler.
 

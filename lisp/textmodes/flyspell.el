@@ -1,7 +1,7 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -440,8 +440,7 @@ property of the major mode name.")
     (t (:bold t)))
   "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
-;; backward-compatibility alias
-(put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect)
+(define-obsolete-face-alias 'flyspell-incorrect-face 'flyspell-incorrect "22.1")
 
 (defface flyspell-duplicate
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
@@ -449,8 +448,7 @@ property of the major mode name.")
   "Face used for marking a misspelled word that appears twice in the buffer.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
-;; backward-compatibility alias
-(put 'flyspell-duplicate-face 'face-alias 'flyspell-duplicate)
+(define-obsolete-face-alias 'flyspell-duplicate-face 'flyspell-duplicate "22.1")
 
 (defvar flyspell-overlay nil)
 

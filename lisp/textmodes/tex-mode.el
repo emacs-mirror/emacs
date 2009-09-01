@@ -719,8 +719,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
   '((t :inherit font-lock-string-face))
   "Face used to highlight TeX math expressions."
   :group 'tex)
-;; backward-compatibility alias
-(put 'tex-math-face 'face-alias 'tex-math)
+(define-obsolete-face-alias 'tex-math-face 'tex-math "22.1")
 (defvar tex-math-face 'tex-math)
 
 (defface tex-verbatim
@@ -728,8 +727,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
   '((t :family "courier"))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
-;; backward-compatibility alias
-(put 'tex-verbatim-face 'face-alias 'tex-verbatim)
+(define-obsolete-face-alias 'tex-verbatim-face 'tex-verbatim "22.1")
 (defvar tex-verbatim-face 'tex-verbatim)
 
 (defun tex-font-lock-verb (end)

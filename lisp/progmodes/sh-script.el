@@ -1,7 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;  2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002, 2003,
+;;  2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -889,9 +889,7 @@ See `sh-feature'.")
      (:weight bold)))
   "Face to show quoted execs like ``"
   :group 'sh-indentation)
-
-;; backward-compatibility alias
-(put 'sh-heredoc-face 'face-alias 'sh-heredoc)
+(define-obsolete-face-alias 'sh-heredoc-face 'sh-heredoc "22.1")
 (defvar sh-heredoc-face 'sh-heredoc)
 
 (defface sh-escaped-newline '((t :inherit font-lock-string-face))

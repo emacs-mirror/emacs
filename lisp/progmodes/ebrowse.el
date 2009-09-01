@@ -162,8 +162,7 @@ This space is used to display markers."
     (t (:foreground "red")))
   "*The face used for the mark character in the tree."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-tree-mark-face 'face-alias 'ebrowse-tree-mark)
+(define-obsolete-face-alias 'ebrowse-tree-mark-face 'ebrowse-tree-mark "22.1")
 
 
 (defface ebrowse-root-class
@@ -171,24 +170,21 @@ This space is used to display markers."
     (t (:weight bold :foreground "blue")))
   "*The face used for root classes in the tree."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-root-class-face 'face-alias 'ebrowse-root-class)
+(define-obsolete-face-alias 'ebrowse-root-class-face 'ebrowse-root-class "22.1")
 
 
 (defface ebrowse-file-name
   '((t (:italic t)))
   "*The face for filenames displayed in the tree."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-file-name-face 'face-alias 'ebrowse-file-name)
+(define-obsolete-face-alias 'ebrowse-file-name-face 'ebrowse-file-name "22.1")
 
 
 (defface ebrowse-default
   '((t nil))
   "*Face for everything else in the tree not having other faces."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-default-face 'face-alias 'ebrowse-default)
+(define-obsolete-face-alias 'ebrowse-default-face 'ebrowse-default "22.1")
 
 
 (defface ebrowse-member-attribute
@@ -196,16 +192,16 @@ This space is used to display markers."
     (t (:foreground "red")))
   "*Face used to display member attributes."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-member-attribute-face 'face-alias 'ebrowse-member-attribute)
+(define-obsolete-face-alias 'ebrowse-member-attribute-face
+  'ebrowse-member-attribute "22.1")
 
 
 (defface ebrowse-member-class
   '((t (:foreground "purple")))
   "*Face used to display the class title in member buffers."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-member-class-face 'face-alias 'ebrowse-member-class)
+(define-obsolete-face-alias 'ebrowse-member-class-face
+  'ebrowse-member-class "22.1")
 
 
 (defface ebrowse-progress
@@ -213,8 +209,7 @@ This space is used to display markers."
     (t (:background "blue")))
   "*Face for progress indicator."
   :group 'ebrowse-faces)
-;; backward-compatibility alias
-(put 'ebrowse-progress-face 'face-alias 'ebrowse-progress)
+(define-obsolete-face-alias 'ebrowse-progress-face 'ebrowse-progress "22.1")
 
 
 
