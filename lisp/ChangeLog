@@ -1,3 +1,12 @@
+2009-09-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-current-context-command): Move the
+	space ...
+	(gdb-gud-context-call): ... to here for pre GDB 7.0 when there is
+	no "--thread" option.
+	(gdb-stopped): Don't print "Switched to thread" message when it is
+	unchanged.
+
 2009-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-try-completion)
