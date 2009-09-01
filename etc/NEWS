@@ -34,6 +34,8 @@ This might not work on all platforms.
 
 * Changes in Emacs 23.2
 
+** New completion-style `initials' to complete M-x lch to list-command-history.
+
 ** Unibyte sessions are declared obsolete.
 I.e. the use of the environment variable EMACS_UNIBYTE, or command line
 arguments --unibyte, --multibyte, --no-multibyte, and --no-unibyte

@@ -1,3 +1,14 @@
+2009-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-try-completion)
+	(completion-all-completions): Remove ill-defined (and
+	mistakenly installed and luckily never used nor documented)
+	`completion-styles' property.
+	(completion-initials-expand, completion-initials-all-completions)
+	(completion-initials-try-completion): New functions.
+	(completion-styles-alist): Add doc to each entry.
+	Add new `initials' entry.
+
 2009-09-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-var-create-handler): Remove redundant

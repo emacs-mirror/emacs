@@ -315,16 +315,33 @@ the second failed attempt to complete."
   :group 'minibuffer)
 
 (defvar completion-styles-alist
-  '((basic completion-basic-try-completion completion-basic-all-completions)
-    (emacs22 completion-emacs22-try-completion completion-emacs22-all-completions)
-    (emacs21 completion-emacs21-try-completion completion-emacs21-all-completions)
+  '((emacs21
+     completion-emacs21-try-completion completion-emacs21-all-completions
+     "Simple prefix-based completion.")
+    (emacs22
+     completion-emacs22-try-completion completion-emacs22-all-completions
+     "Prefix completion that only operates on the text before point.")
+    (basic
+     completion-basic-try-completion completion-basic-all-completions
+     "Completion of the prefix before point and the suffix after point.")
     (partial-completion
-     completion-pcm-try-completion completion-pcm-all-completions))
+     completion-pcm-try-completion completion-pcm-all-completions
+     "Completion of multiple words, each one taken as a prefix.
+E.g. M-x l-c-h can complete to list-command-history
+and C-x C-f /u/m/s to /usr/monnier/src.")
+    (initials
+     completion-initials-try-completion completion-initials-all-completions
+     "Completion of acronyms and initialisms.
+E.g. can complete M-x lch to list-command-history
+and C-x C-f ~/sew to ~/src/emacs/work."))
   "List of available completion styles.
-Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS)
+Each element has the form (NAME TRY-COMPLETION ALL-COMPLETIONS DOC):
 where NAME is the name that should be used in `completion-styles',
-TRY-COMPLETION is the function that does the completion, and
-ALL-COMPLETIONS is the function that lists the completions.")
+TRY-COMPLETION is the function that does the completion (it should
+follow the same calling convention as `completion-try-completion'),
+ALL-COMPLETIONS is the function that lists the completions (it should
+follow the calling convention of `completion-all-completions'),
+and DOC describes the way this style of completion works.")
 
 (defcustom completion-styles '(basic partial-completion emacs22)
   "List of completion styles to use.
@@ -342,19 +359,10 @@ The return value can be either nil to indicate that there is no completion,
 t to indicate that STRING is the only possible completion,
 or a pair (STRING . NEWPOINT) of the completed result string together with
 a new position for point."
-  ;; The property `completion-styles' indicates that this functional
-  ;; completion-table claims to take care of completion styles itself.
-  ;; [I.e. It will most likely call us back at some point. ]
-  (if (and (symbolp table) (get table 'completion-styles))
-      ;; Extended semantics for functional completion-tables:
-      ;; They accept a 4th argument `point' and when called with action=nil
-      ;; and this 4th argument (a position inside `string'), they should
-      ;; return instead of a string a pair (STRING . NEWPOINT).
-      (funcall table string pred nil point)
-    (completion--some (lambda (style)
-                        (funcall (nth 1 (assq style completion-styles-alist))
-                                 string table pred point))
-                      completion-styles)))
+  (completion--some (lambda (style)
+                      (funcall (nth 1 (assq style completion-styles-alist))
+                               string table pred point))
+                    completion-styles))
 
 (defun completion-all-completions (string table pred point)
   "List the possible completions of STRING in completion table TABLE.
@@ -364,19 +372,10 @@ The return value is a list of completions and may contain the base-size
 in the last `cdr'."
   ;; FIXME: We need to additionally return completion-extra-size (similar
   ;; to completion-base-size but for the text after point).
-  ;; The property `completion-styles' indicates that this functional
-  ;; completion-table claims to take care of completion styles itself.
-  ;; [I.e. It will most likely call us back at some point. ]
-  (if (and (symbolp table) (get table 'completion-styles))
-      ;; Extended semantics for functional completion-tables:
-      ;; They accept a 4th argument `point' and when called with action=t
-      ;; and this 4th argument (a position inside `string'), they may
-      ;; return BASE-SIZE in the last `cdr'.
-      (funcall table string pred t point)
-    (completion--some (lambda (style)
-                        (funcall (nth 2 (assq style completion-styles-alist))
-                                 string table pred point))
-                      completion-styles)))
+  (completion--some (lambda (style)
+                      (funcall (nth 2 (assq style completion-styles-alist))
+                               string table pred point))
+                    completion-styles))
 
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)
@@ -1768,6 +1767,44 @@ filter out additional entries (because TABLE migth not obey PRED)."
        (if minibuffer-completing-file-name
            'completion-pcm--filename-try-filter))
     (completion-pcm--merge-try pattern all prefix suffix)))
+
+;;; Initials completion
+;; Complete /ums to /usr/monnier/src or lch to list-command-history.
+
+(defun completion-initials-expand (str table pred)
+  (unless (or (zerop (length str))
+              (string-match completion-pcm--delim-wild-regex string))
+    (let ((bounds (completion-boundaries str table pred "")))
+      (if (zerop (car bounds))
+          (mapconcat 'string str "-")
+        ;; If there's a boundary, it's trickier.  The main use-case
+        ;; we consider here is file-name completion.  We'd like
+        ;; to expand ~/eee to ~/e/e/e and /eee to /e/e/e.
+        ;; But at the same time, we don't want /usr/share/ae to expand
+        ;; to /usr/share/a/e just because we mistyped "ae" for "ar",
+        ;; so we probably don't want initials to touch anything that
+        ;; looks like /usr/share/foo.  As a heuristic, we just check that
+        ;; the text before the boundary char is at most 1 char.
+        ;; This allows both ~/eee and /eee and not much more.
+        ;; FIXME: It sadly also disallows the use of ~/eee when that's
+        ;; embedded within something else (e.g. "(~/eee" in Info node
+        ;; completion or "ancestor:/eee" in bzr-revision completion).
+        (when (< (car bounds) 3)
+          (let ((sep (substring str (1- (car bounds)) (car bounds))))
+            ;; FIXME: the above string-match checks the whole string, whereas
+            ;; we end up only caring about the after-boundary part.
+            (concat (substring str 0 (car bounds))
+                    (mapconcat 'string (substring str (car bounds)) sep))))))))
+
+(defun completion-initials-all-completions (string table pred point)
+  (let ((newstr (completion-initials-expand string table pred)))
+    (when newstr
+      (completion-pcm-all-completions newstr table pred (length newstr)))))
+
+(defun completion-initials-try-completion (string table pred point)
+  (let ((newstr (completion-initials-expand string table pred)))
+    (when newstr
+      (completion-pcm-try-completion newstr table pred (length newstr)))))
 
 
 (provide 'minibuffer)
