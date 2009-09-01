@@ -1,5 +1,27 @@
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
+	* net/eudc-bob.el (eudc-bob-generic-menu, eudc-bob-image-menu)
+	(eudc-bob-sound-menu): Use defvar rather than defconst, since
+	easy-menu-define wants to modify these.
+
+	* net/net-utils.el (nslookup): Use make-comint rather than comint-run.
+
+	* net/browse-url.el (browse-url-file-url):
+	* term/internal.el (dos-codepage-setup):
+	Use default-value rather than default-enable-multibyte-characters.
+
+	* progmodes/flymake.el (flymake-highlight-line)
+	(flymake-goto-file-and-line, flymake-goto-line):
+	* progmodes/gdb-mi.el (gdb-mouse-until, gdb-mouse-jump)
+	(gdb-goto-breakpoint):
+	* progmodes/idlw-shell.el (idlwave-shell-move-to-bp):
+	* progmodes/python.el (python-find-function)
+	(python-pdbtrack-track-stack-file):
+	* progmodes/verilog-mode.el (verilog-surelint-off):
+	* term/ns-win.el (ns-open-file-select-line):
+	* textmodes/bibtex.el (bibtex-validate, bibtex-validate-globally):
+	Use forward-line rather than goto-line.
+
 	* textmodes/reftex-cite.el (reftex-offer-bib-menu):
 	* textmodes/reftex-index.el (reftex-display-index):
 	* textmodes/reftex-ref.el (reftex-offer-label-menu):

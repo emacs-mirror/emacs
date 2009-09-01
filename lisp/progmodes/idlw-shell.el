@@ -2790,7 +2790,8 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     (or (not bp-line) (funcall closer-func cur-line bp-line)))
 	    (setq bp-line cur-line))))
     (unless bp-line (error "No further breakpoints"))
-    (goto-line bp-line)))
+    (goto-char (point-min))
+    (forward-line (1- bp-line))))
 
 ;; Examine Commands ------------------------------------------------------
 

@@ -4071,7 +4071,8 @@ becomes:
                               (and (file-exists-p name)
                                    (find-file-noselect name))))))))
             (switch-to-buffer buffer)
-            (goto-line (string-to-number line))
+            (goto-char (point-min))
+            (forward-line (- (string-to-number line)))
             (end-of-line)
             (catch 'already
               (cond

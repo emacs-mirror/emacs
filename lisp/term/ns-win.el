@@ -723,9 +723,10 @@ Lines are highlighted according to `ns-input-line'."
     (if ns-select-overlay
         (setq ns-select-overlay (delete-overlay ns-select-overlay)))
     (deactivate-mark)
-    (goto-line (if (consp ns-input-line)
-                   (min (car ns-input-line) (cdr ns-input-line))
-                 ns-input-line)))
+    (goto-char (point-min))
+    (forward-line (1- (if (consp ns-input-line)
+                          (min (car ns-input-line) (cdr ns-input-line))
+                        ns-input-line))))
    (ns-input-line
     (if (not ns-select-overlay)
         (overlay-put (setq ns-select-overlay (make-overlay (point-min)

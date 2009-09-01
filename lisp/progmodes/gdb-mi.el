@@ -910,7 +910,8 @@ with mouse-1 (default bindings)."
 		  (gud-call (concat "until " (number-to-string line))))
     (gdb-if-arrow gdb-disassembly-position
 		  (save-excursion
-		    (goto-line (line-number-at-pos (posn-point end)))
+		    (goto-char (point-min))
+		    (forward-line (1- (line-number-at-pos (posn-point end))))
 		    (forward-char 2)
 		    (gud-call (concat "until *%a"))))))
 
@@ -930,7 +931,8 @@ line, and no execution takes place."
 		    (gud-call (concat "jump " (number-to-string line)))))
     (gdb-if-arrow gdb-disassembly-position
 		  (save-excursion
-		    (goto-line (line-number-at-pos (posn-point end)))
+		    (goto-char (point-min))
+		    (forward-line (1- (line-number-at-pos (posn-point end))))
 		    (forward-char 2)
 		    (progn
 		      (gud-call (concat "tbreak *%a"))
@@ -3337,7 +3339,8 @@ breakpoints buffer."
 			       (display-buffer buffer))))
 	      (setq gdb-source-window window)
 	      (with-current-buffer buffer
-		(goto-line (string-to-number line))
+		(goto-char (point-min))
+		(forward-line (1- (string-to-number line)))
 		(set-window-point window (point))))))
       (error "Not recognized as break/watchpoint line")))))
 
