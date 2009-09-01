@@ -41,6 +41,14 @@
 	(widget-inactive-face, widget-button-pressed-face):
 	* woman.el (woman-italic-face, woman-bold-face, woman-unknown-face)
 	(woman-addition-face):
+	* eshell/em-ls.el (eshell-ls-directory-face, eshell-ls-symlink-face)
+	(eshell-ls-executable-face, eshell-ls-readonly-face)
+	(eshell-ls-unreadable-face, eshell-ls-special-face)
+	(eshell-ls-missing-face, eshell-ls-archive-face)
+	(eshell-ls-backup-face, eshell-ls-product-face)
+	(eshell-ls-clutter-face):
+	* eshell/em-prompt.el (eshell-prompt-face):
+	* eshell/esh-test.el (eshell-test-ok-face, eshell-test-failed-face):
 	* obsolete/old-whitespace.el (whitespace-highlight-face):
 	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
 	(ebrowse-root-class-face, ebrowse-file-name-face)
