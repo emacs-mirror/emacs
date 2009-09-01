@@ -44,8 +44,6 @@
 ;;; Todo:
 
 ;; - make partial-complete-mode obsolete:
-;;   - make M-x lch TAB expand to list-command-history.
-;;     (not sure how/where it's implemented in complete.el)
 ;;   - (?) <foo.h> style completion for file names.
 
 ;; - case-sensitivity is currently confuses two issues:
