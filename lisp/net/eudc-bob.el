@@ -1,7 +1,7 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -46,20 +46,20 @@
 (defvar eudc-bob-mail-keymap nil
   "Keymap for inline e-mail addresses.")
 
-(defconst eudc-bob-generic-menu
+(defvar eudc-bob-generic-menu
   '("EUDC Binary Object Menu"
     ["---" nil nil]
     ["Pipe to external program" eudc-bob-pipe-object-to-external-program t]
     ["Save object" eudc-bob-save-object t]))
 
-(defconst eudc-bob-image-menu
+(defvar eudc-bob-image-menu
   `("EUDC Image Menu"
     ["---" nil nil]
     ["Toggle inline display" eudc-bob-toggle-inline-display
      (eudc-bob-can-display-inline-images)]
     ,@(cdr (cdr eudc-bob-generic-menu))))
 
-(defconst eudc-bob-sound-menu
+(defvar eudc-bob-sound-menu
   `("EUDC Sound Menu"
     ["---" nil nil]
     ["Play sound" eudc-bob-play-sound-at-point
@@ -317,6 +317,8 @@ display a button."
 (set-keymap-parent eudc-bob-image-keymap eudc-bob-generic-keymap)
 (set-keymap-parent eudc-bob-sound-keymap eudc-bob-generic-keymap)
 
+;; If the first arguments can be nil here, then these 3 can be
+;; defconsts once more.
 (when (not (featurep 'xemacs))
   (easy-menu-define eudc-bob-generic-menu
     eudc-bob-generic-keymap
