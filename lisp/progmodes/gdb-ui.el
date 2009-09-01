@@ -3755,7 +3755,7 @@ from=\"\\(.*?\\)\"\\)")
 
 (defconst gdb-var-list-children-regexp-1
   "child={.*?name=\"\\(.+?\\)\".*?,exp=\"\\(.+?\\)\".*?,\
-numchild=\"\\(.+?\\)\".*?,value=\\(\".*?\"\\)\
+numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
 \\(}\\|.*?,\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
 
 (defun gdb-var-list-children-handler-1 (varnum)
