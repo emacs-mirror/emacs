@@ -424,8 +424,7 @@ With prefix 3, restrict index to region."
 
     (if (get-buffer-window buffer-name)
         (select-window (get-buffer-window buffer-name))
-      (let ((default-major-mode 'reftex-index-mode))
-        (switch-to-buffer buffer-name)))
+      (switch-to-buffer buffer-name))
 
     (or (eq major-mode 'reftex-index-mode) (reftex-index-mode))
 

@@ -170,8 +170,7 @@ When called with a raw C-u prefix, rescan the document first."
            (floor (* (window-height)
                      reftex-toc-split-windows-fraction)))))
 
-      (let ((default-major-mode 'reftex-toc-mode))
-        (switch-to-buffer "*toc*")))
+      (switch-to-buffer "*toc*"))
 
     (or (eq major-mode 'reftex-toc-mode) (reftex-toc-mode))
     (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)

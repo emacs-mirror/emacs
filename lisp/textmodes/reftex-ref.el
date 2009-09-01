@@ -536,14 +536,13 @@ When called with 2 C-u prefix args, disable magic word recognition."
               (delete-other-windows)
               (setq reftex-call-back-to-this-buffer buf
                     reftex-latex-syntax-table (syntax-table))
-              (let ((default-major-mode 'reftex-select-label-mode))
-                (if reftex-use-multiple-selection-buffers
-                    (switch-to-buffer-other-window
-                     (save-excursion
-                       (set-buffer buf)
-                       (reftex-make-selection-buffer-name typekey)))
-                  (switch-to-buffer-other-window "*RefTeX Select*")
-                  (reftex-erase-buffer)))
+              (if reftex-use-multiple-selection-buffers
+                  (switch-to-buffer-other-window
+                   (save-excursion
+                     (set-buffer buf)
+                     (reftex-make-selection-buffer-name typekey)))
+                (switch-to-buffer-other-window "*RefTeX Select*")
+                (reftex-erase-buffer))
               (unless (eq major-mode 'reftex-select-label-mode)
                 (reftex-select-label-mode))
               (add-to-list 'selection-buffers (current-buffer))
