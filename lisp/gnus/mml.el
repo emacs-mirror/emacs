@@ -1292,14 +1292,24 @@ body) or \"attachment\" (separate from the body)."
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil file)))
      (list file type description disposition)))
-  (unless (message-in-body-p) (goto-char (point-max)))
-  (mml-insert-empty-tag 'part
-			'type type
-			;; icicles redefines read-file-name and returns a
-			;; string w/ text properties :-/
-			'filename (mm-substring-no-properties file)
-			'disposition (or disposition "attachment")
-			'description description))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
+    (mml-insert-empty-tag 'part
+			  'type type
+			  ;; icicles redefines read-file-name and returns a
+			  ;; string w/ text properties :-/
+			  'filename (mm-substring-no-properties file)
+			  'disposition (or disposition "attachment")
+			  'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message "The file \"%s\" has been attached at the end of the message"
+		 (file-name-nondirectory file))))))
 
 (defun mml-dnd-attach-file (uri action)
   "Attach a drag and drop file.
@@ -1335,10 +1345,21 @@ BUFFER is the name of the buffer to attach.  See
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil)))
      (list buffer type description disposition)))
-  (unless (message-in-body-p) (goto-char (point-max)))
-  (mml-insert-empty-tag 'part 'type type 'buffer buffer
-			'disposition disposition
-			'description description))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
+    (mml-insert-empty-tag 'part 'type type 'buffer buffer
+			  'disposition disposition
+			  'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message
+	 "The buffer \"%s\" has been attached at the end of the message"
+	 buffer)))))
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
@@ -1349,9 +1370,19 @@ TYPE is the MIME type to use."
 	  (type (mml-minibuffer-read-type file))
 	  (description (mml-minibuffer-read-description)))
      (list file type description)))
-  (unless (message-in-body-p) (goto-char (point-max)))
-  (mml-insert-empty-tag 'external 'type type 'name file
-			'disposition "attachment" 'description description))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
+    (mml-insert-empty-tag 'external 'type type 'name file
+			  'disposition "attachment" 'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message "The file \"%s\" has been attached at the end of the message"
+		 (file-name-nondirectory file))))))
 
 (defun mml-insert-multipart (&optional type)
   (interactive (list (completing-read "Multipart type (default mixed): "

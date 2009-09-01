@@ -3,6 +3,11 @@
 	* gnus-salt.el (gnus-pick-mouse-pick-region): Use forward-line rather
 	than goto-line.
 
+2009-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-attach-file, mml-attach-buffer, mml-attach-external):
+	Don't move point if the command is invoked inside the message header.
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* spam.el (spam-ifile-path, spam-bogofilter-path, spam-sa-learn-path)
