@@ -579,9 +579,8 @@ CMD1 and CMD2. NOALL is the same as in `gdb-gud-context-command'.
 
 NOARG must be t when this macro is used outside `gud-def'"
   `(gud-call
-    (concat
-     (gdb-gud-context-command ,cmd1 ,noall)
-     ,cmd2) ,(when (not noarg) 'arg)))
+    (concat (gdb-gud-context-command ,cmd1 ,noall) " " ,cmd2)
+    ,(when (not noarg) 'arg)))
 
 ;;;###autoload
 (defun gdb (command-line)
@@ -1609,7 +1608,7 @@ then no --frame option is added."
   ;; gdb-frame-number may be nil while gdb-thread-number is non-nil
   ;; (when current thread is running)
   (if gdb-thread-number
-      (concat command " --thread " gdb-thread-number " ")
+      (concat command " --thread " gdb-thread-number)
     command))
 
 (defun gdb-current-context-buffer-name (name)
@@ -1921,9 +1920,9 @@ current thread and update GDB buffers."
         ;; reasons
         (if (or (eq gdb-switch-reasons t)
                 (member reason gdb-switch-reasons))
-            (progn
-              (gdb-setq-thread-number thread-id)
-              (message (concat "Switched to thread " thread-id)))
+	      (when (not (string-equal gdb-thread-number thread-id))
+		(message (concat "Switched to thread " thread-id))
+		(gdb-setq-thread-number thread-id))
           (message (format "Thread %s stopped" thread-id)))))
 
   ;; Print "(gdb)" to GUD console
