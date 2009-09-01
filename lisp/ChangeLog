@@ -50,6 +50,11 @@
 	* eshell/em-prompt.el (eshell-prompt-face):
 	* eshell/esh-test.el (eshell-test-ok-face, eshell-test-failed-face):
 	* obsolete/old-whitespace.el (whitespace-highlight-face):
+	* progmodes/antlr-mode.el (antlr-font-lock-default-face)
+	(antlr-font-lock-keyword-face, antlr-font-lock-syntax-face)
+	(antlr-font-lock-ruledef-face, antlr-font-lock-tokendef-face)
+	(antlr-font-lock-ruleref-face, antlr-font-lock-tokenref-face)
+	(antlr-font-lock-literal-face):
 	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
 	(ebrowse-root-class-face, ebrowse-file-name-face)
 	(ebrowse-default-face, ebrowse-member-attribute-face)
