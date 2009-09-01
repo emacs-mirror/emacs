@@ -1,3 +1,8 @@
+2009-09-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-regexp-1): Tweak for
+	case of string child.
+
 2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-threads-select): Ensure stack is
