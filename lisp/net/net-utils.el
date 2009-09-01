@@ -1,7 +1,7 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
@@ -484,7 +484,7 @@ If your system's ping continues until interrupted, you can try setting
 (defun nslookup ()
   "Run nslookup program."
   (interactive)
-  (comint-run nslookup-program)
+  (switch-to-buffer (make-comint "nslookup" nslookup-program))
   (nslookup-mode))
 
 (defvar comint-prompt-regexp)
