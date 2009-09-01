@@ -1,5 +1,8 @@
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
+	* mail/feedmail.el (file-name-buffer-file-type-alist): Define for
+	compiler.
+
 	* net/eudc-bob.el (eudc-bob-generic-menu, eudc-bob-image-menu)
 	(eudc-bob-sound-menu): Use defvar rather than defconst, since
 	easy-menu-define wants to modify these.
@@ -10,6 +13,7 @@
 	* term/internal.el (dos-codepage-setup):
 	Use default-value rather than default-enable-multibyte-characters.
 
+	* progmodes/etags.el (etags-goto-tag-location):
 	* progmodes/flymake.el (flymake-highlight-line)
 	(flymake-goto-file-and-line, flymake-goto-line):
 	* progmodes/gdb-mi.el (gdb-mouse-until, gdb-mouse-jump)
