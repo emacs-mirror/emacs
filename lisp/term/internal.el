@@ -1,7 +1,7 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 
@@ -609,7 +609,7 @@ list.  You can (and should) also run it if and when the value of
     (set-selection-coding-system coding-dos)
     (IT-setup-unicode-display coding-unix)
     (prefer-coding-system coding-dos)
-    (and default-enable-multibyte-characters
+    (and (default-value 'enable-multibyte-characters)
 	 (setq unibyte-display-via-language-environment t))
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
