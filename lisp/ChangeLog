@@ -42,6 +42,7 @@
 	* textmodes/flyspell.el (flyspell-incorrect-face)
 	(flyspell-duplicate-face):
 	* textmodes/tex-mode.el (tex-math-face, tex-verbatim-face):
+	* textmodes/texinfo.el (texinfo-heading-face):
 	Mark face aliases with "-face" suffix as obsolete.
 
 	* mail/feedmail.el (file-name-buffer-file-type-alist): Define for
