@@ -1521,6 +1521,9 @@ bail out with an appropriate answer to the global confirmation prompt."
   (interactive "p")
   (let ((feedmail-queue-runner-confirm-global t)) (feedmail-run-the-queue arg)))
 
+;; letf fools the byte-compiler.
+(defvar file-name-buffer-file-type-alist)
+
 ;;;###autoload
 (defun feedmail-run-the-queue (&optional arg)
   "Visit each message in the feedmail queue directory and send it out.
