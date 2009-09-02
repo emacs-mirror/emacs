@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.29c}
+\def\orgversionnumber{6.30c}
 \def\versionyear{2009}          % latest update
 \def\year{2009}                 % latest copyright year
 
@@ -549,7 +549,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \section{Properties and Column View}
 
-\key{set property}{C-c C-x p}
+\key{set property/effort}{C-c C-x p/e}
 \key{special commands in property lines}{C-c C-c}
 \key{next/previous allowed value}{S-left/right}
 \key{turn on column view}{C-c C-x C-c}
@@ -593,8 +593,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 {\bf Clocking time}
 
 \key{start clock on current item}{C-c C-x C-i}
-\key{stop clock on current item}{C-c C-x C-o}
-\key{cancel current clock}{C-c C-x C-x}
+\key{stop/cancel clock on current item}{C-c C-x C-o/x}
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
@@ -627,21 +626,22 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{goto original location in other window}{TAB/mouse-2}
 %\key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
-\key{show subtree in indirect buffer, ded.\ frame}{b}
-\key{toggle follow-mode}{f}
+\key{show subtree in indirect buffer, ded.\ frame}{C-c C-x b}
+\key{toggle follow-mode}{F}
 
 {\bf Change display}
 
 \key{delete other windows}{o}
+\key{view mode dipatcher}{v}
 \key{switch to day/week/month/year view}{d w vm vy}
-\key{toggle inclusion of diary entries}{D}
-\key{toggle time grid for daily schedule}{G}
-\key{toggle display of logbook entries}{l}
-\key{toggle inclusion of archived trees/files}{v / C-u v}
+\key{toggle diary entries / time grid}{D / G}
+\key{toggle entry text / clock report}{E / R}
+\key{toggle display of logbook entries}{l / v l/L}
+\key{toggle inclusion of archived trees/files}{v a/A}
 \key{refresh agenda buffer with any changes}{r / g}
 \key{filter with repect to a tag}{/}
 \key{save all org-mode buffers}{s}
-\key{display next/previous day,week,...}{RIGHT/LEFT}
+\key{display next/previous day,week,...}{f / b}
 \key{goto today / some date (prompt)}{. / j}
 
 {\bf Remote editing}
@@ -651,9 +651,9 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{kill item and source}{C-k}
 \key{archive the subtree (file/tag/sibling)}{\$ / a / A}
 \key{refile the subtree}{C-c C-w}
-\key{show tags of current headline}{T}
-\key{set tags for current headline/region}{:}
-\key{set / compute priority of current item}{p / P}
+\key{set/show tags of current headline}{: / T}
+\key{set effort property (prefix=nth)}{e}
+\key{set / compute priority of current item}{, / P}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
 \key{run an attachment command}{C-c C-a}
 \key{schedule/set deadline for this item}{C-c C-s/d}
@@ -667,7 +667,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 {\bf Misc}
 
-\key{open link in current line}{C-c C-o}
+\key{follow one or offer all links in current entry}{C-c C-o}
 
 {\bf Calendar commands}
 
