@@ -1581,7 +1581,8 @@ These are the functions available:
 Take a date and return a time.
 
 @item time-to-seconds
-Take a time and return seconds.
+Take a time and return seconds.  Note that Emacs has a built-in
+function, @code{float-time}, that does this.
 
 @item seconds-to-time
 Take seconds and return a time.
