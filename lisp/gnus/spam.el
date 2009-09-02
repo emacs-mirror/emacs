@@ -371,6 +371,7 @@ Only meaningful if you enable `spam-use-blackholes'."
   :group 'spam)
 ;; backward-compatibility alias
 (put 'spam-face 'face-alias 'spam)
+(put 'spam-face 'obsolete-face "22.1")
 
 (defcustom spam-face 'spam
   "Face for spam-marked articles."

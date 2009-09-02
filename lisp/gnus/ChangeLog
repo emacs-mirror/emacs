@@ -1,3 +1,50 @@
+2009-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (gnus-signature-face, gnus-header-from-face)
+	(gnus-header-subject-face, gnus-header-newsgroups-face)
+	(gnus-header-name-face, gnus-header-content-face):
+	* gnus-cite.el (gnus-cite-attribution-face, gnus-cite-face-1)
+	(gnus-cite-face-2, gnus-cite-face-3, gnus-cite-face-4)
+	(gnus-cite-face-5, gnus-cite-face-6, gnus-cite-face-7)
+	(gnus-cite-face-8, gnus-cite-face-9, gnus-cite-face-10)
+	(gnus-cite-face-11):
+	* gnus-picon.el (gnus-picon-xbm-face, gnus-picon-face):
+	* gnus-srvr.el (gnus-server-agent-face, gnus-server-opened-face)
+	(gnus-server-closed-face, gnus-server-denied-face)
+	(gnus-server-offline-face):
+	* gnus.el (gnus-group-news-1-face, gnus-group-news-1-empty-face)
+	(gnus-group-news-2-face, gnus-group-news-2-empty-face)
+	(gnus-group-news-3-face, gnus-group-news-3-empty-face)
+	(gnus-group-news-4-face, gnus-group-news-4-empty-face)
+	(gnus-group-news-5-face, gnus-group-news-5-empty-face)
+	(gnus-group-news-6-face, gnus-group-news-6-empty-face)
+	(gnus-group-news-low-face, gnus-group-news-low-empty-face)
+	(gnus-group-mail-1-face, gnus-group-mail-1-empty-face)
+	(gnus-group-mail-2-face, gnus-group-mail-2-empty-face)
+	(gnus-group-mail-3-face, gnus-group-mail-3-empty-face)
+	(gnus-group-mail-low-face, gnus-group-mail-low-empty-face)
+	(gnus-summary-selected-face, gnus-summary-cancelled-face)
+	(gnus-summary-high-ticked-face, gnus-summary-low-ticked-face)
+	(gnus-summary-normal-ticked-face, gnus-summary-high-ancient-face)
+	(gnus-summary-low-ancient-face, gnus-summary-normal-ancient-face)
+	(gnus-summary-high-undownloaded-face)
+	(gnus-summary-low-undownloaded-face)
+	(gnus-summary-normal-undownloaded-face)
+	(gnus-summary-high-unread-face, gnus-summary-low-unread-face)
+	(gnus-summary-normal-unread-face, gnus-summary-high-read-face)
+	(gnus-summary-low-read-face, gnus-summary-normal-read-face)
+	(gnus-splash-face):
+	* message.el (message-header-to-face, message-header-cc-face)
+	(message-header-subject-face, message-header-newsgroups-face)
+	(message-header-other-face, message-header-name-face)
+	(message-header-xheader-face, message-separator-face)
+	(message-cited-text-face, message-mml-face):
+	* sieve-mode.el (sieve-control-commands-face)
+	(sieve-action-commands-face, sieve-test-commands-face)
+	(sieve-tagged-arguments-face):
+	* spam.el (spam-face):
+	Mark face aliases with "-face" in the name as obsolete.
+
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-salt.el (gnus-pick-mouse-pick-region): Use forward-line rather

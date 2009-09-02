@@ -90,12 +90,14 @@ added right to the textual representation."
   :group 'gnus-picon)
 ;; backward-compatibility alias
 (put 'gnus-picon-xbm-face 'face-alias 'gnus-picon-xbm)
+(put 'gnus-picon-xbm-face 'obsolete-face "22.1")
 
 (defface gnus-picon '((t (:foreground "black" :background "white")))
   "Face to show picon in."
   :group 'gnus-picon)
 ;; backward-compatibility alias
 (put 'gnus-picon-face 'face-alias 'gnus-picon)
+(put 'gnus-picon-face 'obsolete-face "22.1")
 
 ;;; Internal variables:
 

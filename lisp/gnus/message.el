@@ -1317,6 +1317,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-to-face 'face-alias 'message-header-to)
+(put 'message-header-to-face 'obsolete-face "22.1")
 
 (defface message-header-cc
   '((((class color)
@@ -1331,6 +1332,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-cc-face 'face-alias 'message-header-cc)
+(put 'message-header-cc-face 'obsolete-face "22.1")
 
 (defface message-header-subject
   '((((class color)
@@ -1345,6 +1347,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-subject-face 'face-alias 'message-header-subject)
+(put 'message-header-subject-face 'obsolete-face "22.1")
 
 (defface message-header-newsgroups
   '((((class color)
@@ -1359,6 +1362,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-newsgroups-face 'face-alias 'message-header-newsgroups)
+(put 'message-header-newsgroups-face 'obsolete-face "22.1")
 
 (defface message-header-other
   '((((class color)
@@ -1373,6 +1377,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-other-face 'face-alias 'message-header-other)
+(put 'message-header-other-face 'obsolete-face "22.1")
 
 (defface message-header-name
   '((((class color)
@@ -1387,6 +1392,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-name-face 'face-alias 'message-header-name)
+(put 'message-header-name-face 'obsolete-face "22.1")
 
 (defface message-header-xheader
   '((((class color)
@@ -1401,6 +1407,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-header-xheader-face 'face-alias 'message-header-xheader)
+(put 'message-header-xheader-face 'obsolete-face "22.1")
 
 (defface message-separator
   '((((class color)
@@ -1415,6 +1422,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-separator-face 'face-alias 'message-separator)
+(put 'message-separator-face 'obsolete-face "22.1")
 
 (defface message-cited-text
   '((((class color)
@@ -1429,6 +1437,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-cited-text-face 'face-alias 'message-cited-text)
+(put 'message-cited-text-face 'obsolete-face "22.1")
 
 (defface message-mml
   '((((class color)
@@ -1443,6 +1452,7 @@ starting with `not' and followed by regexps."
   :group 'message-faces)
 ;; backward-compatibility alias
 (put 'message-mml-face 'face-alias 'message-mml)
+(put 'message-mml-face 'obsolete-face "22.1")
 
 (defun message-font-lock-make-header-matcher (regexp)
   (let ((form
