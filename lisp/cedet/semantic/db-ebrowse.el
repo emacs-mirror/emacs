@@ -57,10 +57,10 @@
   )
 (require 'semantic/db-file)
 (require 'semantic/find)
-(require 'semantic/sort)
-(require 'data-debug)
 
 (declare-function semantic-add-system-include "semantic/dep")
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-thing "data-debug")
 
 (eval-and-compile
   ;; Hopefully, this will allow semanticdb-ebrowse to compile under
@@ -698,6 +698,7 @@ run the test again..")
 (defun semanticdb-ebrowse-dump ()
   "Find the first loaded ebrowse table, and dump out the contents."
   (interactive)
+  (require 'data-debug)
   (let ((db semanticdb-database-list)
 	(ab nil))
     (while db

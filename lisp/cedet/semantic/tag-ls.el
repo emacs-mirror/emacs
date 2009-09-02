@@ -194,6 +194,7 @@ See `semantic-tag-static-p'."
       (setq mods (cdr mods)))
     static))
 
+;;;###autoload
 (define-overloadable-function semantic-tag-prototype-p (tag)
   "Return non nil if TAG is a prototype.
 For some laguages, such as C, a prototype is a declaration of
@@ -270,7 +271,11 @@ Return the name of TAG found in the toplevel STREAM."
 (semantic-alias-obsolete 'semantic-tag-leaf 'semantic-tag-leaf-p)
 (semantic-alias-obsolete 'semantic-tag-abstract 'semantic-tag-abstract-p)
 
-
 (provide 'semantic/tag-ls)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic-tag-ls.el ends here

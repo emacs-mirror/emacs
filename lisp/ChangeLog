@@ -1,4 +1,10 @@
-2009-08-22  Chong Yidong  <cyd@stupidchicken.com>
+2009-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-feature): New var.
+	(autoload-rubric): Use it.
+
+	* Makefile.in (setwins): Ignore CEDET subdirectories when making
+	subdirs.el.
 
 	* emacs-lisp/cl-loaddefs.el (deftype): Add autoload for deftype.
 

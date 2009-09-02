@@ -236,6 +236,7 @@ typecaching system, see `semanticdb-typecache-merge-streams'."
 ;; of commands would be better off with a flattened list, where all
 ;; tags appear at the top level.
 
+;;;###autoload
 (defun semantic-flatten-tags-table (&optional table)
   "Flatten the tags table TABLE.
 All tags in TABLE, and all components of top level tags
@@ -463,7 +464,8 @@ buckets with the bucket function."
 ;;
 ;; In order to adopt external children, we need a few overload methods
 ;; to enable the feature.
-;;
+
+;;;###autoload
 (define-overloadable-function semantic-tag-external-member-parent (tag)
   "Return a parent for TAG when TAG is an external member.
 TAG is an external member if it is defined at a toplevel and
@@ -588,5 +590,10 @@ See `semantic-tag-external-class' for details."
 			 'semantic-tag-external-member-children)
 
 (provide 'semantic/sort)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic-sort.el ends here

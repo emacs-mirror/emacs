@@ -71,12 +71,8 @@
 (require 'semantic/sort)
 (eval-when-compile (require 'semantic/find))
 (require 'semantic/scope)
+(require 'semantic/tag)
 (require 'semantic/analyze/fcn)
-
-;; `semanticdb-typecache-find' autoloads from semantic/db-typecache,
-;; which requires semantic/db-find.
-(declare-function semanticdb-strip-find-results "semantic/db-find")
-(declare-function semanticdb-find-tags-by-name "semantic/db-find")
 
 ;;; Code:
 (defvar semantic-analyze-error-stack nil

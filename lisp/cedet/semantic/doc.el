@@ -30,11 +30,10 @@
 ;; the symbol on the same line.
 
 (require 'semantic/tag)
-(require 'semantic/tag-file)
-(require 'semantic/find)
 
 ;;; Code:
 
+;;;###autoload
 (define-overloadable-function semantic-documentation-for-tag (&optional tag nosnarf)
   "Find documentation from TAG and return it as a clean string.
 TAG might have DOCUMENTATION set in it already.  If not, there may be
@@ -126,5 +125,10 @@ If NOSNARF is 'lex, then return the lex token."
                          'semantic-documentation-for-tag)
 
 (provide 'semantic/doc)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/doc.el ends here

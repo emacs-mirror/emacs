@@ -31,6 +31,7 @@
 ;;
 (require 'mode-local)
 (require 'eieio)
+(require 'semantic/loaddefs)
 
 ;;; Compatibility
 ;;

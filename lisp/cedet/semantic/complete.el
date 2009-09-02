@@ -109,17 +109,16 @@
 
 (require 'eieio)
 (require 'eieio-opt)
-(require 'semantic/tag-file)
+(require 'semantic)
 (require 'semantic/analyze)
-(require 'semantic/format)
 (require 'semantic/ctxt)
-;; Keep semanticdb optional.
-;; (eval-when-compile
-;;   (require 'semantic/db)
-;;   (require 'semantic/db-find))
 (require 'semantic/decorate)
-(require 'semantic/analyze/complete)
+(require 'semantic/format)
+(require 'semantic/tag)
 
+(eval-when-compile
+  ;; For the semantic-find-tags-for-completion macro.
+  (require 'semantic/find))
 
 (eval-when-compile
   (condition-case nil
@@ -1211,9 +1210,13 @@ Uses semanticdb for searching all tags in the current project."
   ()
   "Completion engine for tags in a project.")
 
+(declare-function semanticdb-brute-deep-find-tags-for-completion
+		  "semantic/db-find")
+
 (defmethod semantic-collector-calculate-completions-raw
   ((obj semantic-collector-project-brutish) prefix completionlist)
   "Calculate the completions for prefix from completionlist."
+  (require 'semantic/db-find)
   (semanticdb-brute-deep-find-tags-for-completion prefix (oref obj path)))
 
 (defclass semantic-collector-analyze-completions (semantic-collector-abstract)

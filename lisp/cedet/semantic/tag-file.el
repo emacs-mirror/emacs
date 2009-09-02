@@ -32,6 +32,7 @@
 
 ;;; Location a TAG came from.
 ;;
+;;;###autoload
 (define-overloadable-function semantic-go-to-tag (tag &optional parent)
   "Go to the location of TAG.
 TAG may be a stripped element, in which case PARENT specifies a
@@ -101,6 +102,7 @@ PARENT can also be a `semanticdb-table' object."
 ;; Dependencies usually represent a file of some sort.
 ;; Find the file described by a dependency.
 
+;;;###autoload
 (define-overloadable-function semantic-dependency-tag-file (&optional tag)
   "Find the filename represented from TAG.
 Depends on `semantic-dependency-include-path' for searching.  Always searches
@@ -198,5 +200,10 @@ file prototypes belong in."
 
 
 (provide 'semantic/tag-file)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic-tag-file.el ends here

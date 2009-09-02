@@ -121,9 +121,6 @@
   (require 'eieio)
   (require 'semantic/find))
 
-(require 'semantic/tag-file)
-(require 'semantic/sort)
-
 ;;; Code:
 
 (defvar data-debug-thing-alist)
@@ -261,6 +258,7 @@ This class will cache data derived during various searches.")
 ;; These routines needed to be overloaded by specific language modes.
 ;; They are needed for translating an INCLUDE tag into a semanticdb
 ;; TABLE object.
+;;;###autoload
 (define-overloadable-function semanticdb-find-translate-path (path brutish)
   "Translate PATH into a list of semantic tables.
 Path translation involves identifying the PATH input argument
@@ -314,6 +312,7 @@ Default action as described in `semanticdb-find-translate-path'."
 	(semanticdb-find-translate-path-brutish-default path)
       (semanticdb-find-translate-path-includes-default path))))
 
+;;;###autoload
 (define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
   "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
 INCLUDETAG is a semantic TAG of class 'include.
@@ -855,6 +854,7 @@ Examines the variable `semanticdb-find-lost-includes'."
 ;; Once you have a search result, use these routines to operate
 ;; on the search results at a higher level
 
+;;;###autoload
 (defun semanticdb-strip-find-results (results &optional find-file-match)
   "Strip a semanticdb search RESULTS to exclude objects.
 This makes it appear more like the results of a `semantic-find-' call.
@@ -952,6 +952,7 @@ but should be good enough for debugging assertions."
 		      (null tag-to-test))))
 	 )))
 
+;;;###autoload
 (defun semanticdb-find-result-length (result)
   "Number of tags found in RESULT."
   (let ((count 0))
@@ -960,6 +961,7 @@ but should be good enough for debugging assertions."
 	  result)
     count))
 
+;;;###autoload
 (defun semanticdb-find-result-nth (result n)
   "In RESULT, return the Nth search result.
 This is a 0 based search result, with the first match being element 0.
@@ -996,6 +998,7 @@ the TAG was found.  Sometimes TABLE can be nil."
 	    (error "%d entry is not a tag" i)))
       (setq i (1+ i)))))
 
+;;;###autoload
 (defun semanticdb-find-result-nth-in-buffer (result n)
   "In RESULT, return the Nth search result.
 Like `semanticdb-find-result-nth', except that only the TAG
@@ -1160,6 +1163,7 @@ and search all tables in this project tree."
     ;; It must be reversed.
     (nreverse found)))
 
+;;;###autoload
 (defun semanticdb-find-tags-by-name (name &optional path find-file-match)
   "Search for all tags matching NAME on PATH.
 See `semanticdb-find-translate-path' for details on PATH.
@@ -1170,6 +1174,7 @@ associated with that tag should be loaded into a buffer."
      (semanticdb-find-tags-by-name-method table name tags))
    path find-file-match))
 
+;;;###autoload
 (defun semanticdb-find-tags-by-name-regexp (regexp &optional path find-file-match)
   "Search for all tags matching REGEXP on PATH.
 See `semanticdb-find-translate-path' for details on PATH.
@@ -1180,6 +1185,7 @@ associated with that tag should be loaded into a buffer."
      (semanticdb-find-tags-by-name-regexp-method table regexp tags))
    path find-file-match))
 
+;;;###autoload
 (defun semanticdb-find-tags-for-completion (prefix &optional path find-file-match)
   "Search for all tags matching PREFIX on PATH.
 See `semanticdb-find-translate-path' for details on PATH.
@@ -1190,6 +1196,7 @@ associated with that tag should be loaded into a buffer."
      (semanticdb-find-tags-for-completion-method table prefix tags))
    path find-file-match))
 
+;;;###autoload
 (defun semanticdb-find-tags-by-class (class &optional path find-file-match)
   "Search for all tags of CLASS on PATH.
 See `semanticdb-find-translate-path' for details on PATH.
@@ -1235,6 +1242,7 @@ associated with that tag should be loaded into a buffer."
    path find-file-match))
 
 ;;; Brutish Search Routines
+;;
 (defun semanticdb-brute-deep-find-tags-by-name (name &optional path find-file-match)
   "Search for all tags matching NAME on PATH.
 See `semanticdb-find-translate-path' for details on PATH.
@@ -1362,5 +1370,10 @@ Return a table of all matching tags."
   (semantic-find-tags-for-completion prefix (semantic-flatten-tags-table (or tags (semanticdb-get-tags table)))))
 
 (provide 'semantic/db-find)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/db-find.el ends here

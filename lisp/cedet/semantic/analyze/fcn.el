@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'mode-local)
+
 ;;; Small Mode Specific Options
 ;;
 ;; These queries allow a major mode to help the analyzer make decisions.

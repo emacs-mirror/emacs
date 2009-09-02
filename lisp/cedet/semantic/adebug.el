@@ -206,10 +206,13 @@ PARENT is the tag that represents the parent of all the tags."
     (goto-char start)
     ))
 
+(declare-function semanticdb-find-result-prin1-to-string "semantic/db-find")
+
 (defun data-debug-insert-find-results-button (findres prefix prebuttontext)
   "Insert a single summary of a find results FINDRES.
 PREFIX is the text that preceeds the button.
 PREBUTTONTEXT is some text between prefix and the find results button."
+  (require 'semantic/db-find)
   (let ((start (point))
 	(end nil)
 	(str (semanticdb-find-result-prin1-to-string findres))

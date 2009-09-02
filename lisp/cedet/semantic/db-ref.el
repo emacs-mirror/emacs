@@ -37,13 +37,14 @@
 
 ;;; Code:
 (require 'eieio)
-(require 'semantic/db)
-(require 'semantic/util)
+(require 'semantic)
+(require 'semantic/tag)
 
 (defvar semanticdb-find-default-throttle)
 
 ;; For the semantic-find-tags-by-name-regexp macro.
 (eval-when-compile (require 'semantic/find))
+
 (defvar semantic-case-fold)
 
 (defmethod semanticdb-add-reference ((dbt semanticdb-abstract-table)
@@ -157,7 +158,6 @@ If REFRESH is non-nil, cause the current table to have it's references
 refreshed before dumping the result."
   (interactive "p")
   (require 'data-debug)
-  (require 'semantic/db)
   ;; If we need to refresh... then do so.
   (when refresh
     (semanticdb-refresh-references semanticdb-current-table))

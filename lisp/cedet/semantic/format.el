@@ -45,6 +45,7 @@
 ;;; Tag to text overload functions
 ;;
 ;; abbreviations, prototypes, and coloring support.
+;;;###autoload
 (defvar semantic-format-tag-functions
   '(semantic-format-tag-name
     semantic-format-tag-canonical-name
@@ -70,6 +71,7 @@ COLOR indicates that the generated text should be colored using
 
 (semantic-varalias-obsolete 'semantic-token->text-functions
                             'semantic-format-tag-functions)
+;;;###autoload
 (defvar semantic-format-tag-custom-list
   (append '(radio)
 	  (mapcar (lambda (f) (list 'const f))
@@ -95,6 +97,7 @@ Images can be used as icons instead of some types of text strings."
   "Text used to separate names when between namespaces/classes and functions.")
 (make-variable-buffer-local 'semantic-format-parent-separator)
 
+;;;###autoload
 (define-overloadable-function semantic-format-tag-name (tag &optional parent color)
   "Return the name string describing TAG.
 The name is the shortest possible representation.
@@ -784,5 +787,10 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 
 
 (provide 'semantic/format)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/format.el ends here

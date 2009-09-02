@@ -1,4 +1,4 @@
-;;; html.el --- Semantic details for html files
+;;; semantic/html.el --- Semantic details for html files
 
 ;;; Copyright (C) 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
 
@@ -184,8 +184,8 @@ tag with greater section value than LEVEL is found."
 	  (goto-char (car oldl))
 	  (if (looking-at "<\\(\\w+\\)")
 	      (let* ((word (match-string 1))
-		     (levelmatch (assoc-ignore-case
-                                  word semantic-html-section-list))
+		     (levelmatch (assoc-string
+                                  word semantic-html-section-list t))
 		     text begin tmp
 		     )
 		(when (not levelmatch)
@@ -260,4 +260,4 @@ tag with greater section value than LEVEL is found."
 
 (provide 'semantic/html)
 
-;;; semantic-html.el ends here
+;;; semantic/html.el ends here

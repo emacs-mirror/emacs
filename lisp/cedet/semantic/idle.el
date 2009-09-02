@@ -37,8 +37,17 @@
 ;; automatically caches the created context, so it is shared amongst
 ;; all idle modes that will need it.
 
-(require 'semantic/util-modes)
+(require 'semantic)
+(require 'semantic/ctxt)
+(require 'semantic/tag)
+;(require 'semantic/util-modes)
 (require 'timer)
+
+;; For the semantic-find-tags-by-name macro.
+(eval-when-compile (require 'semantic/find))
+
+(declare-function semanticdb-typecache-refresh-for-buffer "semantic/db-typecache")
+(declare-function eldoc-message "eldoc")
 
 ;;; Code:
 
@@ -152,7 +161,8 @@ all buffers regardless of their size."
 idle-scheduler is disabled when debugging or if the buffer size
 exceeds the `semantic-idle-scheduler-max-buffer-size' threshold."
   (and semantic-idle-scheduler-mode
-       (not semantic-debug-enabled)
+       (not (and (boundp 'semantic-debug-enabled)
+		 semantic-debug-enabled))
        (not semantic-lex-debug)
        (or (<= semantic-idle-scheduler-max-buffer-size 0)
 	   (< (buffer-size) semantic-idle-scheduler-max-buffer-size))))
@@ -694,7 +704,6 @@ minor mode is enabled.")
 ;;; SUMMARY MODE
 ;;
 ;; A mode similar to eldoc using semantic
-(require 'semantic/ctxt)
 
 (defcustom semantic-idle-summary-function
   'semantic-format-tag-summarize-with-file

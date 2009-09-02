@@ -31,7 +31,6 @@
 ;; the current context is calculated.
 ;;
 (require 'semantic)
-(require 'semantic/find)
 
 ;;; Code:
 (defvar semantic-command-separation-character
@@ -50,6 +49,8 @@ Used for identifying arguments to functions.")
 ;;
 ;; These context are nested blocks of code, such as code in an
 ;; if clause
+(declare-function semantic-current-tag-of-class "semantic/find")
+
 (define-overloadable-function semantic-up-context (&optional point bounds-type)
   "Move point up one context from POINT.
 Return non-nil if there are no more context levels.
@@ -59,6 +60,7 @@ movement to.  If this is nil, 'function is used.
 This will find the smallest tag of that class (function, variable,
 type, etc) and make sure non-nil is returned if you cannot
 go up past the bounds of that tag."
+  (require 'semantic/find)
   (if point (goto-char point))
   (let ((nar (semantic-current-tag-of-class (or bounds-type 'function))))
     (if nar

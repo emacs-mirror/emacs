@@ -28,9 +28,14 @@
 
 (require 'chart)
 (require 'semantic)
-(require 'semantic/db-mode)
-(require 'semantic/db-typecache)
-(require 'semantic/scope)
+(require 'semantic/db)
+(require 'semantic/tag)
+
+(eval-when-compile (require 'semantic/find))
+
+;; (require 'semantic/db-mode)
+;; (require 'semantic/db-typecache)
+;; (require 'semantic/scope)
 
 ;;; Code:
 
@@ -63,9 +68,9 @@ Each bar represents how many toplevel tags in TAGTABLE
 exist in each database entry.
 TAGTABLE is passed to `semantic-something-to-tag-table'."
   (interactive)
-  (if (or (not (fboundp 'semanticdb-minor-mode-p))
-	  (not (semanticdb-minor-mode-p)))
-      (error "Semanticdb is not enabled"))
+  (unless (and (fboundp 'semanticdb-minor-mode-p)
+	       (semanticdb-minor-mode-p))
+    (error "Semanticdb is not enabled"))
   (let* ((db semanticdb-current-database)
 	 (dbt (semanticdb-get-database-tables db))
 	 (names (mapcar 'car
@@ -142,9 +147,14 @@ items are charted.  TAGTABLE is passedto
 		       nums "Complexity (Lines of code)")
     ))
 
+(declare-function semanticdb-get-typecache "semantic/db-typecache")
+(declare-function semantic-calculate-scope "semantic/scope")
+
 (defun semantic-chart-analyzer ()
   "Chart the extent of the context analysis."
   (interactive)
+  (require 'semantic/db-typecache)
+  (require 'semantic/scope)
   (let* ((p (semanticdb-find-translate-path nil nil))
 	 (plen (length p))
 	 (tab semanticdb-current-table)

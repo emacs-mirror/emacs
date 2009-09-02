@@ -42,6 +42,8 @@
   (require 'semantic/analyze)
   (require 'semantic/analyze/refs))
 
+(declare-function imenu--mouse-menu "imenu")
+
 ;;; Code:
 
 ;;; COMPLETION
@@ -62,6 +64,30 @@ buffer where the completion was requested.  COMPLETONS is the list
 of semantic tag names that provide logical completions from that
 location.")
 (make-variable-buffer-local 'semantic-ia-cache)
+
+;;; COMPLETION HELPER
+;;
+;; This overload function handles inserting a tag
+;; into a buffer for these local completion routines.
+;;
+;; By creating the functions as overloadable, it can be
+;; customized.  For example, the default will put a paren "("
+;; character after function names.  For Lisp, it might check
+;; to put a "(" in front of a function name.
+
+(define-overloadable-function semantic-ia-insert-tag (tag)
+  "Insert TAG into the current buffer based on completion.")
+
+(defun semantic-ia-insert-tag-default (tag)
+  "Insert TAG into the current buffer based on completion."
+  (insert (semantic-tag-name tag))
+  (let ((tt (semantic-tag-class tag)))
+    (cond ((eq tt 'function)
+	   (insert "("))
+	  (t nil))))
+
+(declare-function semantic-analyze-possible-completions
+		  "semantic/analyze/complete")
 
 (defun semantic-ia-get-completions (context point)
   "Fetch the completion of CONTEXT at POINT.
@@ -143,6 +169,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   "Complete the current symbol via a menu based at POINT.
 Completion options are calculated with `semantic-analyze-possible-completions'."
   (interactive "d")
+  (require 'imenu)
   (let* ((a (semantic-analyze-current-context point))
 	 (syms (semantic-ia-get-completions a point))
 	 )
@@ -175,27 +202,6 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	  (delete-region (car (oref a bounds)) (cdr (oref a bounds)))
 	  (semantic-ia-insert-tag ans))
 	))))
-
-;;; COMPLETION HELPER
-;;
-;; This overload function handles inserting a tag
-;; into a buffer for these local completion routines.
-;;
-;; By creating the functions as overloadable, it can be
-;; customized.  For example, the default will put a paren "("
-;; character after function names.  For Lisp, it might check
-;; to put a "(" in front of a function name.
-
-(define-overloadable-function semantic-ia-insert-tag (tag)
-  "Insert TAG into the current buffer based on completion.")
-
-(defun semantic-ia-insert-tag-default (tag)
-  "Insert TAG into the current buffer based on completion."
-  (insert (semantic-tag-name tag))
-  (let ((tt (semantic-tag-class tag)))
-    (cond ((eq tt 'function)
-	   (insert "("))
-	  (t nil))))
 
 ;;; Completions Tip
 ;;
@@ -290,6 +296,8 @@ This helper manages the mark, buffer switching, and pulsing."
   (pulse-momentary-highlight-one-line (point))
   )
 
+(declare-function semantic-decoration-include-visit "semantic/decorate/include")
+
 (defun semantic-ia-fast-jump (point)
   "Jump to the tag referred to by the code at POINT.
 Uses `semantic-analyze-current-context' output to identify an accurate
@@ -338,6 +346,7 @@ origin of the code at point."
 
      ((semantic-tag-of-class-p (semantic-current-tag) 'include)
       ;; Just borrow this cool fcn.
+      (require 'semantic/decorate/include)
       (semantic-decoration-include-visit)
       )
 

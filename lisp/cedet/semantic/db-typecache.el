@@ -28,14 +28,21 @@
 ;;
 ;; It is likely this feature will only be needed for C/C++.
 
+(require 'semantic)
 (require 'semantic/db)
 (require 'semantic/db-find)
-(require 'semantic/tag-ls)
+(require 'semantic/tag)
 (require 'semantic/analyze/fcn)
-(require 'semantic/scope)
+
+;; For semantic-find-tags-by-* macros
+(eval-when-compile (require 'semantic/find))
+
+;; (require 'semantic/scope)
 
 (declare-function data-debug-insert-thing "data-debug")
 (declare-function data-debug-new-buffer "data-debug")
+(declare-function semantic-sort-tags-by-name-then-type-increasing "semantic/sort")
+(declare-function semantic-scope-tag-clone-with-scope "semantic/scope")
 
 ;;; Code:
 
@@ -225,6 +232,7 @@ Adds a filename and copies the tags."
 
     ;; Assume we always have datatypes, as this typecache isn't really
     ;; useful without a typed language.
+    (require 'semantic/sort)
     (let ((S (semantic-sort-tags-by-name-then-type-increasing
 	      ;; I used to use append, but it copied cache1 but not cache2.
 	      ;; Since sort was permuting cache2, I already had to make sure
@@ -365,7 +373,7 @@ a master list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Search Routines
-;;
+;;;###autoload
 (define-overloadable-function semanticdb-typecache-find (type &optional path find-file-match)
   "Search the typecache for TYPE in PATH.
 If type is a string, split the string, and search for the parts.
@@ -496,8 +504,10 @@ found tag to be loaded."
       (if (and lastans calculated-scope)
 
 	  ;; Put our discovered scope into the tag if we have a tag
-	  (semantic-scope-tag-clone-with-scope
-	   lastans (reverse (cdr calculated-scope)))
+	  (progn
+	    (require 'semantic/scope)
+	    (semantic-scope-tag-clone-with-scope
+	     lastans (reverse (cdr calculated-scope))))
 
 	;; Else, just return
 	lastans
@@ -586,6 +596,11 @@ If there isn't one, create it.
 
     ))
 
-
 (provide 'semantic/db-typecache)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
+
 ;;; semanticdb-typecache.el ends here

@@ -76,7 +76,7 @@ Used as options when completing.")
 
 ;;; MAIN completion calculator
 ;;
-;;
+;;;###autoload
 (define-overloadable-function semantic-analyze-possible-completions (context)
   "Return a list of semantic tags which are possible completions.
 CONTEXT is either a position (such as point), or a precalculated
@@ -266,8 +266,11 @@ Argument CONTEXT is an object specifying the locally derived context."
 
     c))
 
-
-
 (provide 'semantic/analyze/complete)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/analyze/complete.el ends here

@@ -42,6 +42,12 @@ trailer starting with a FormFeed character.")
 ;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
+(defvar generated-autoload-feature nil
+   "*Feature that `generated-autoload-file' should provide.
+If nil, this defaults to `generated-autoload-file', sans extension.")
+;;;###autoload
+(put 'generated-autoload-feature 'safe-local-variable 'symbolp)
+
 ;; This feels like it should be a defconst, but MH-E sets it to
 ;; ";;;###mh-autoload" for the autoloads that are to go into mh-loaddefs.el.
 (defvar generate-autoload-cookie ";;;###autoload"
@@ -245,7 +251,11 @@ information contained in FILE."
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    "\n"
-	    "(provide '" (file-name-sans-extension basename) ")\n"
+	    "(provide '"
+	    (if (symbolp generated-autoload-feature)
+		(format "%s" generated-autoload-feature)
+	      (file-name-sans-extension basename))
+	    ")\n"
 	    ";; Local Variables:\n"
 	    ";; version-control: never\n"
 	    ";; no-byte-compile: t\n"

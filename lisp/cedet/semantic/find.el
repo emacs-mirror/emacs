@@ -53,6 +53,8 @@
 ;;
 ;; These routines provide fast access to tokens based on a buffer that
 ;; has parsed tokens in it.  Uses overlays to perform the hard work.
+
+;;;###autoload
 (defun semantic-find-tag-by-overlay (&optional positionormarker buffer)
   "Find all tags covering POSITIONORMARKER by using overlays.
 If POSITIONORMARKER is nil, use the current point.
@@ -79,6 +81,7 @@ from largest to smallest via the start location."
       (sort ret (lambda (a b) (< (semantic-tag-start a)
 				 (semantic-tag-start b)))))))
 
+;;;###autoload
 (defun semantic-find-tag-by-overlay-in-region (start end &optional buffer)
   "Find all tags which exist in whole or in part between START and END.
 Uses overlays to determine positin.
@@ -97,6 +100,7 @@ Optional BUFFER argument specifies the buffer to use."
       (sort ret (lambda (a b) (< (semantic-tag-start a)
 				 (semantic-tag-start b)))))))
 
+;;;###autoload
 (defun semantic-find-tag-by-overlay-next (&optional start buffer)
   "Find the next tag after START in BUFFER.
 If START is in an overlay, find the tag which starts next,
@@ -123,6 +127,7 @@ not the current tag."
       (when (and ol (semantic-tag-p (semantic-overlay-get ol 'semantic)))
 	(semantic-overlay-get ol 'semantic)))))
 
+;;;###autoload
 (defun semantic-find-tag-by-overlay-prev (&optional start buffer)
   "Find the next tag before START in BUFFER.
 If START is in an overlay, find the tag which starts next,
@@ -152,6 +157,7 @@ not the current tag."
 		 (semantic-tag-p (semantic-overlay-get ol 'semantic)))
 	(semantic-overlay-get ol 'semantic)))))
 
+;;;###autoload
 (defun semantic-find-tag-parent-by-overlay (tag)
   "Find the parent of TAG by overlays.
 Overlays are a fast way of finding this information for active buffers."
@@ -162,6 +168,7 @@ Overlays are a fast way of finding this information for active buffers."
     ;; the same start unless they are siblings.
     (car (cdr tag))))
 
+;;;###autoload
 (defun semantic-current-tag ()
   "Return the current tag in the current buffer.
 If there are more than one in the same location, return the
@@ -249,8 +256,9 @@ TABLE is a semantic tags table.  See `semantic-something-to-tag-table'."
      (nreverse result)))
 
 ;;; Top level Searches
-;;
-(defsubst semantic-find-first-tag-by-name (name &optional table)
+
+;;;###autoload
+(defun semantic-find-first-tag-by-name (name &optional table)
   "Find the first tag with NAME in TABLE.
 NAME is a string.
 TABLE is a semantic tags table.  See `semantic-something-to-tag-table'.
@@ -399,7 +407,6 @@ attempting to do completions."
   "Find all tags in whose parent is TYPE in TABLE.
 These tags are defined outside the scope of the original TYPE declaration.
 TABLE is a tag table.  See `semantic-something-to-tag-table'."
-  (require 'semantic/sort)
   (semantic--find-tags-by-macro
    (equal (semantic-tag-external-member-parent (car tags))
 	  type)
@@ -796,7 +803,11 @@ Optional argument ARG is the number of iterations to run."
 	     (car b-comp))
   ))
 
-
 (provide 'semantic/find)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/find.el ends here

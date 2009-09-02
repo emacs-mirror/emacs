@@ -52,8 +52,6 @@
 (require 'semantic/fw)
 (require 'semantic/lex)
 
-(declare-function semantic-current-tag "semantic/find")
-(declare-function semantic-find-first-tag-by-name "semantic/find")
 (declare-function semantic-ctxt-current-mode "semantic/ctxt")
 (declare-function semantic-analyze-split-name "semantic/analyze/fcn")
 (declare-function semantic-fetch-tags "semantic")
@@ -821,10 +819,8 @@ refers to that parent by name, then the :parent attribute should be used."
   "Find the superclass NAME in the list of SUPERS.
 If a simple search doesn't do it, try splitting up the names
 in SUPERS."
-  (require 'semantic/find)
   (let ((stag nil))
     (setq stag (semantic-find-first-tag-by-name name supers))
-
     (when (not stag)
       (require 'semantic/analyze/fcn)
       (dolist (S supers)

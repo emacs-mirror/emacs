@@ -59,8 +59,6 @@
 
 ;;
 (require 'semantic)
-(require 'semantic/find)
-(require 'semantic/format)
 
 ;;; Code:
 (defvar semantic-after-partial-cache-change-hook nil

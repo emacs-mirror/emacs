@@ -59,10 +59,12 @@ mechanism.")
 This can be changed to try out new types of search indicies.")
 (make-variable-buffer-local 'semanticdb-default-find=index-class)
 
+;;;###autoload
 (defvar semanticdb-current-database nil
   "For a given buffer, this is the currently active database.")
 (make-variable-buffer-local 'semanticdb-current-database)
 
+;;;###autoload
 (defvar semanticdb-current-table nil
   "For a given buffer, this is the currently active database table.")
 (make-variable-buffer-local 'semanticdb-current-table)
@@ -849,6 +851,7 @@ Does not use `file-truename'."
   "For FILE, associate DBTABLE in the hash table."
   (puthash file dbtable semanticdb-file-table-hash))
 
+;;;###autoload
 (defun semanticdb-file-table-object (file &optional dontload)
   "Return a semanticdb table belonging to FILE, make it up to date.
 If file has database tags available in the database, return it.
@@ -1009,5 +1012,10 @@ If file does not have tags available, then load the file, and create them."
       (semanticdb-get-tags table))))
 
 (provide 'semantic/db)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/db.el ends here
