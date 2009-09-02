@@ -1,7 +1,7 @@
 ;;; timer.el --- run a function with args at some time in future
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -284,7 +284,7 @@ how many will really happen.")
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  ;; FIXME: (time-to-seconds (time-subtract (timer--time timer) time))
+  ;; FIXME: (float-time (time-subtract (timer--time timer) time))
   (let ((high (- (car time) (timer--high-seconds timer)))
 	(low (- (nth 1 time) (timer--low-seconds timer))))
     (+ low (* high 65536))))
