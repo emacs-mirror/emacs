@@ -252,7 +252,8 @@ information contained in FILE."
 	    ";;; Code:\n\n"
 	    "\n"
 	    "(provide '"
-	    (if (symbolp generated-autoload-feature)
+	    (if (and (symbolp generated-autoload-feature)
+		     generated-autoload-feature)
 		(format "%s" generated-autoload-feature)
 	      (file-name-sans-extension basename))
 	    ")\n"
