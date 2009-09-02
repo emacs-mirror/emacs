@@ -1,5 +1,14 @@
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/time-date.el (time-to-seconds): In Emacs, make it an obsolete
+	alias for float-time.
+	(time-to-number-of-days): In Emacs, use float-time.
+	* net/newst-backend.el (time-add): Suppress warnings from compat
+	function.
+	* time.el (emacs-uptime, emacs-init-time):
+	* net/rcirc.el (rcirc-keepalive, rcirc-handler-ctcp-KEEPALIVE):
+	Use float-time rather than time-to-seconds.
+
 	* minibuffer.el (completion-initials-expand): Fix typo.
 
 	* faces.el (modeline, modeline-inactive, modeline-highlight)
