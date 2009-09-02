@@ -56,7 +56,9 @@
 (defun ecomplete-add-item (type key text)
   (let ((elems (assq type ecomplete-database))
 	(now (string-to-number
-	      (format "%.0f" (time-to-seconds (current-time)))))
+	      (format "%.0f" (if (featurep 'xemacs)
+				 (time-to-seconds (current-time))
+			       (float-time)))))
 	entry)
     (unless elems
       (push (setq elems (list type)) ecomplete-database))
