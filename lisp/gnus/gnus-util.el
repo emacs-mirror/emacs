@@ -285,10 +285,11 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
-(defun gnus-float-time (time)
-  "Convert time value TIME to a floating point number."
+(defun gnus-float-time (&optional time)
+  "Convert time value TIME to a floating point number.
+TIME defaults to the current time."
   (if (featurep 'xemacs)
-      (time-to-seconds time)
+      (time-to-seconds (or time (current-time)))
     (float-time time)))
 
 ;;; Keymap macros.
