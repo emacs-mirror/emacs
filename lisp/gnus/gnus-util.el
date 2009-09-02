@@ -451,7 +451,7 @@ Returns \"  ?  \" if there's bad input or if an other error occurs.
 Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   (condition-case ()
       (let* ((messy-date (gnus-float-time (safe-date-to-time messy-date)))
-	     (now (gnus-float-time (current-time)))
+	     (now (gnus-float-time))
 	     ;;If we don't find something suitable we'll use this one
 	     (my-format "%b %d '%y"))
 	(let* ((difference (- now messy-date))
