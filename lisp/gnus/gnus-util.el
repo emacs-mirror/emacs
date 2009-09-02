@@ -285,6 +285,12 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
+(defun gnus-float-time (time)
+  "Convert time value TIME to a floating point number."
+  (if (featurep 'xemacs)
+      (time-to-seconds time)
+    (float-time time)))
+
 ;;; Keymap macros.
 
 (defmacro gnus-local-set-keys (&rest plist)
@@ -443,8 +449,8 @@ respectively.")
 Returns \"  ?  \" if there's bad input or if an other error occurs.
 Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   (condition-case ()
-      (let* ((messy-date (time-to-seconds (safe-date-to-time messy-date)))
-	     (now (time-to-seconds (current-time)))
+      (let* ((messy-date (gnus-float-time (safe-date-to-time messy-date)))
+	     (now (gnus-float-time (current-time)))
 	     ;;If we don't find something suitable we'll use this one
 	     (my-format "%b %d '%y"))
 	(let* ((difference (- now messy-date))
