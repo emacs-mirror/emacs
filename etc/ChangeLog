@@ -3,7 +3,7 @@
 	* refcards/orgcard.tex: Document new effort setting commands.
 	Document the new keys for agenda time motion.
 	Document the `E' key in the agenda.
-	
+
 2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* NEWS: Declare unibyte sessions obsolete.
