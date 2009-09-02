@@ -396,20 +396,29 @@ static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 }
 
 
+/* MakeThing -- make an object of the size requested (in bytes)
+ *
+ * Any size is accepted.  MakeThing may round it up (MakeThing always 
+ * makes a dylan vector, which has a minimum size of 8 bytes).  Vector 
+ * slots, if any, are initialized to DYLAN_INT(0).
+ *
+ * After making the object, calls get(), to retrieve MPS messages.
+ *
+ * make_dylan_vector [fmtdytst.c] says:
+ *   size = (slots + 2) * sizeof(mps_word_t);
+ * That is: a dylan vector has two header words before the first slot.
+ */
 static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
 {
   mps_word_t v;
-  size_t minsize;
-  unsigned slots;
-  
-  minsize = 2 * sizeof(mps_word_t);
-  if(size <= minsize) {
-    slots = 0;
-  } else {
-    slots = (size - minsize) / sizeof(mps_word_t);
-  }
+  unsigned long words;
+  unsigned long slots;
 
-  /* printf("size(requested):%lu, slots: %u, size(will be):%lu\n", size, slots, (2 + slots) * sizeof(mps_word_t)); */
+  words = (size + (sizeof(mps_word_t) - 1) ) / sizeof(mps_word_t);
+  if(words < 2)
+    words = 2;
+
+  slots = words - 2;
   die(make_dylan_vector(&v, ap, slots), "make_dylan_vector");
   get(arena);
   
