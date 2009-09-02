@@ -5002,7 +5002,7 @@ Unscored articles will be counted as having a score of zero."
 	    (lambda (header)
 	      (setq previous-time
 		    (condition-case ()
-			(time-to-seconds (mail-header-parse-date
+			(gnus-float-time (mail-header-parse-date
 					  (mail-header-date header)))
 		      (error previous-time))))
 	    (sort

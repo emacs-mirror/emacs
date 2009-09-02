@@ -1,5 +1,13 @@
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-util.el (gnus-float-time): New function.
+	* gnus-delay.el (gnus-delay-article):
+	* gnus-sum.el (gnus-thread-latest-date):
+	* gnus-util.el (gnus-user-date): Use gnus-float-time.
+	* nnspool.el (nnspool-request-newgroups):
+	Use gnus-float-time rather than time-to-seconds.
+	* ecomplete.el (ecomplete-add-item): In Emacs, use float-time.
+
 	* gnus-art.el (gnus-signature-face, gnus-header-from-face)
 	(gnus-header-subject-face, gnus-header-newsgroups-face)
 	(gnus-header-name-face, gnus-header-content-face):
