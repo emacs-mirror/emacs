@@ -1,3 +1,33 @@
+2009-09-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-attributes-with-ls)
+	(tramp-do-file-attributes-with-perl)
+	(tramp-do-file-attributes-with-stat): Rename from
+	`tramp-handle-file-attributes-with-*'.
+	(tramp-handle-file-attributes): Use them.
+	(tramp-do-directory-files-and-attributes-with-perl)
+	(tramp-do-directory-files-and-attributes-with-stat): Rename from
+	`tramp-handle-directory-files-and-attributes-with-*'.
+	(tramp-handle-directory-files-and-attributes): Use them.
+	(tramp-method-out-of-band-p): Additional parameter SIZE.
+	(tramp-do-copy-or-rename-file, tramp-handle-file-local-copy)
+	(tramp-handle-write-region): Use it.
+	(tramp-handle-insert-directory): Use "?\ " for compatibility
+	reasons.
+	(tramp-handle-vc-registered): Check, whether the first run did
+	return files to be tested.
+	(tramp-advice-make-auto-save-file-name): Do not call directly
+	`tramp-handle-make-auto-save-file-name', because this would bypass
+	the locking mechanism.
+
+	* net/tramp-compat.el (top): Autoload used functions from
+	tramp.el.
+	(file-remote-p, process-file, start-file-process, set-file-times)
+	(tramp-compat-file-attributes): Compatibility functions shall not
+	call directly `tramp-handle-*', because this would bypass the
+	locking mechanism.
+	(tramp-compat-number-sequence): New defun.
+
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/time-date.el (time-to-seconds): In Emacs, make it an obsolete
