@@ -1771,7 +1771,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
 
 (defun completion-initials-expand (str table pred)
   (unless (or (zerop (length str))
-              (string-match completion-pcm--delim-wild-regex string))
+              (string-match completion-pcm--delim-wild-regex str))
     (let ((bounds (completion-boundaries str table pred "")))
       (if (zerop (car bounds))
           (mapconcat 'string str "-")

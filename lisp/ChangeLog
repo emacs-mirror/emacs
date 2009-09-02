@@ -1,3 +1,11 @@
+2009-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* minibuffer.el (completion-initials-expand): Fix typo.
+
+	* faces.el (modeline, modeline-inactive, modeline-highlight)
+	(modeline-buffer-id):
+	* info.el (info-menu-5): Mark these face aliases as obsolete.
+
 2009-09-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-current-context-command): Move the
