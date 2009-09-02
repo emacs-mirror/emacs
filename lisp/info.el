@@ -121,7 +121,7 @@ The Lisp code is executed when the node is selected.")
     (t :underline t))
   "Face for every third `*' in an Info menu."
   :group 'info)
-(put 'info-menu-5 'face-alias 'info-menu-star)
+(define-obsolete-face-alias 'info-menu-5 'info-menu-star "22.1")
 
 (defface info-xref
   '((t :inherit link))
