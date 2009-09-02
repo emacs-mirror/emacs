@@ -538,8 +538,10 @@ last ping."
 		  (rcirc-send-string process
 				     (format "PRIVMSG %s :\C-aKEEPALIVE %f\C-a"
 					     rcirc-nick
-					     (time-to-seconds
-					      (current-time)))))))
+                                             (if (featurep 'xemacs)
+                                                 (time-to-seconds
+                                                  (current-time))
+                                               (float-time)))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
@@ -547,7 +549,10 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (time-to-seconds (current-time))
+    (setq header-line-format (format "%f" (- (if (featurep 'xemacs)
+                                                 (time-to-seconds
+                                                  (current-time))
+                                               (float-time))
 					     (string-to-number message))))))
 
 (defvar rcirc-debug-buffer " *rcirc debug*")
