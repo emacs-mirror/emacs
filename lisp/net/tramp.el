@@ -2504,21 +2504,18 @@ target of the symlink differ."
   (let ((last-coding-system-used last-coding-system-used))
     (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-file-property v localname (format "file-attributes-%s" id-format)
-	(when (file-exists-p filename)
-	  ;; file exists, find out stuff
-	  (save-excursion
-	    (tramp-convert-file-attributes
-	     v
-	     (if (tramp-get-remote-stat v)
-		 (tramp-handle-file-attributes-with-stat
-		  v localname id-format)
-	       (if (tramp-get-remote-perl v)
-		   (tramp-handle-file-attributes-with-perl
-		    v localname id-format)
-		 (tramp-handle-file-attributes-with-ls
-                  v localname id-format))))))))))
+	(save-excursion
+	  (tramp-convert-file-attributes
+	   v
+	   (cond
+	    ((tramp-get-remote-stat v)
+	     (tramp-do-file-attributes-with-stat v localname id-format))
+	    ((tramp-get-remote-perl v)
+	     (tramp-do-file-attributes-with-perl v localname id-format))
+	    (t
+	     (tramp-do-file-attributes-with-ls v localname id-format)))))))))
 
-(defun tramp-handle-file-attributes-with-ls (vec localname &optional id-format)
+(defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
   (let (symlinkp dirp
 		 res-inode res-filemodes res-numlinks
@@ -2603,7 +2600,7 @@ target of the symlink differ."
        -1
        ))))
 
-(defun tramp-handle-file-attributes-with-perl
+(defun tramp-do-file-attributes-with-perl
   (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using a Perl script."
   (tramp-message vec 5 "file attributes with perl: %s" localname)
@@ -2614,7 +2611,7 @@ target of the symlink differ."
    (format "tramp_perl_file_attributes %s %s"
 	   (tramp-shell-quote-argument localname) id-format)))
 
-(defun tramp-handle-file-attributes-with-stat
+(defun tramp-do-file-attributes-with-stat
   (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using stat(1) command."
   (tramp-message vec 5 "file attributes with stat: %s" localname)
@@ -2643,7 +2640,7 @@ target of the symlink differ."
 	  (when (boundp 'last-coding-system-used)
 	    (setq coding-system-used (symbol-value 'last-coding-system-used)))
 	  ;; We use '(0 0) as a don't-know value.  See also
-	  ;; `tramp-handle-file-attributes-with-ls'.
+	  ;; `tramp-do-file-attributes-with-ls'.
 	  (if (not (equal modtime '(0 0)))
 	      (tramp-run-real-handler 'set-visited-file-modtime (list modtime))
 	    (progn
@@ -2968,12 +2965,13 @@ value of `default-file-modes', without execute permissions."
 		    (lambda (x)
 		      (cons (car x)
 			    (tramp-convert-file-attributes v (cdr x))))
-		    (if (tramp-get-remote-stat v)
-			(tramp-handle-directory-files-and-attributes-with-stat
-			 v localname id-format)
-		      (if (tramp-get-remote-perl v)
-			  (tramp-handle-directory-files-and-attributes-with-perl
-			   v localname id-format)))))))))
+		    (cond
+		     ((tramp-get-remote-stat v)
+		      (tramp-do-directory-files-and-attributes-with-stat
+		       v localname id-format))
+		     ((tramp-get-remote-perl v)
+		      (tramp-do-directory-files-and-attributes-with-perl
+		       v localname id-format)))))))))
 	   result item)
 
       (while temp
@@ -2987,7 +2985,7 @@ value of `default-file-modes', without execute permissions."
 	  result
 	(sort result (lambda (x y) (string< (car x) (car y))))))))
 
-(defun tramp-handle-directory-files-and-attributes-with-perl
+(defun tramp-do-directory-files-and-attributes-with-perl
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using a Perl script."
   (tramp-message vec 5 "directory-files-and-attributes with perl: %s" localname)
@@ -3002,7 +3000,7 @@ value of `default-file-modes', without execute permissions."
     (when (stringp object) (tramp-error vec 'file-error object))
     object))
 
-(defun tramp-handle-directory-files-and-attributes-with-stat
+(defun tramp-do-directory-files-and-attributes-with-stat
   (vec localname &optional id-format)
   "Implement `directory-files-and-attributes' for Tramp files using stat(1) command."
   (tramp-message vec 5 "directory-files-and-attributes with stat: %s" localname)
@@ -3201,9 +3199,8 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 		 ok-if-already-exists keep-date preserve-uid-gid))
 
 	       ;; Try out-of-band operation.
-	       ((and (tramp-method-out-of-band-p v1)
-		     (> (nth 7 (file-attributes filename))
-			tramp-copy-size-limit))
+	       ((tramp-method-out-of-band-p
+		 v1 (nth 7 (file-attributes filename)))
 		(tramp-do-copy-or-rename-file-out-of-band
 		 op filename newname keep-date))
 
@@ -3232,9 +3229,7 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 
 	     ;; If the Tramp file has an out-of-band method, the corresponding
 	     ;; copy-program can be invoked.
-	     ((and (tramp-method-out-of-band-p v)
-		   (> (nth 7 (file-attributes filename))
-		      tramp-copy-size-limit))
+	     ((tramp-method-out-of-band-p v (nth 7 (file-attributes filename)))
 	      (tramp-do-copy-or-rename-file-out-of-band
 	       op filename newname keep-date))
 
@@ -3778,7 +3773,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	    (while (< (point) end)
 	      (let ((start (+ beg (read (current-buffer))))
 		    (end (+ beg (read (current-buffer)))))
-		(if (memq (char-after end) '(?\n ?\s))
+		(if (memq (char-after end) '(?\n ?\ ))
 		    ;; End is followed by \n or by " -> ".
 		    (put-text-property start end 'dired-filename t)))))
 	  ;; Reove training lines.
@@ -4219,9 +4214,8 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	  (cond
 	   ;; `copy-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
-		(and (tramp-method-out-of-band-p v)
-		     (> (nth 7 (file-attributes filename))
-			tramp-copy-size-limit)))
+		(tramp-method-out-of-band-p
+		 v (nth 7 (file-attributes filename))))
 	    (copy-file filename tmpfile t t))
 
 	   ;; Use inline encoding for file transfer.
@@ -4619,9 +4613,8 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  (cond
 	   ;; `rename-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
-		(and (tramp-method-out-of-band-p v)
-		     (> (- (or end (point-max)) (or start (point-min)))
-			tramp-copy-size-limit)))
+		(tramp-method-out-of-band-p
+		 v (- (or end (point-max)) (or start (point-min)))))
 	    (condition-case err
 		(rename-file tmpfile filename t)
 	      ((error quit)
@@ -4761,9 +4754,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 ;; any other remote command.
 (defun tramp-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
-  ;; There could be new files, created by the vc backend.  We cannot
-  ;; reuse the old cache entries, therefore.
   (with-parsed-tramp-file-name file nil
+
+    ;; There could be new files, created by the vc backend.  We cannot
+    ;; reuse the old cache entries, therefore.
     (let (tramp-vc-registered-file-names
 	  (tramp-cache-inhibit-cache (current-time))
 	  (file-name-handler-alist
@@ -4774,28 +4768,30 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
       (tramp-message v 10 "\n%s" tramp-vc-registered-file-names)
 
       ;; Send just one command, in order to fill the cache.
-      (tramp-maybe-send-script
-       v
-       (format tramp-vc-registered-read-file-names
-	       (tramp-get-file-exists-command v)
-	       (format "%s -r" (tramp-get-test-command v)))
-       "tramp_vc_registered_read_file_names")
+      (when tramp-vc-registered-file-names
+	(tramp-maybe-send-script
+	 v
+	 (format tramp-vc-registered-read-file-names
+		 (tramp-get-file-exists-command v)
+		 (format "%s -r" (tramp-get-test-command v)))
+	 "tramp_vc_registered_read_file_names")
 
-      (dolist
-	  (elt
-	   (tramp-send-command-and-read
-	    v
-	    (format
-	     "tramp_vc_registered_read_file_names %s"
-	     (mapconcat 'tramp-shell-quote-argument
-			tramp-vc-registered-file-names
-			" "))))
+	(dolist
+	    (elt
+	     (tramp-send-command-and-read
+	      v
+	      (format
+	       "tramp_vc_registered_read_file_names %s"
+	       (mapconcat 'tramp-shell-quote-argument
+			  tramp-vc-registered-file-names
+			  " "))))
 
-	(tramp-set-file-property v (car elt) (cadr elt)   (cadr (cdr elt)))))
+	  (tramp-set-file-property v (car elt) (cadr elt) (cadr (cdr elt))))))
 
-    ;; Second run. Now all requests shall be answered from the file
-    ;; cache.  We unset `process-file-side-effects' in order to keep
-    ;; the cache when `process-file' calls appear.
+    ;; Second run.  Now all `file-exists-p' or `file-readable-p' calls
+    ;; shall be answered from the file cache.
+    ;; We unset `process-file-side-effects' in order to keep the cache
+    ;; when `process-file' calls appear.
     (let (process-file-side-effects)
       (tramp-run-real-handler 'vc-registered (list file)))))
 
@@ -7391,9 +7387,15 @@ necessary only.  This function will be used in file name completion."
         (format "%s@%s:%s" user host localname)
       (format "%s:%s" host localname))))
 
-(defun tramp-method-out-of-band-p (vec)
+(defun tramp-method-out-of-band-p (vec size)
   "Return t if this is an out-of-band method, nil otherwise."
-  (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-copy-program))
+  (and
+   ;; It shall be an out-of-band method.
+   (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-copy-program)
+   ;; Either the file size is large enough, or (in rare cases) there
+   ;; does not exist a remote encoding.
+   (or (> size tramp-copy-size-limit)
+       (null (tramp-get-remote-coding vec "remote-encoding")))))
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise."
@@ -7522,7 +7524,7 @@ necessary only.  This function will be used in file name completion."
     (with-connection-property vec "ls-dired"
       (tramp-message vec 5 "Checking, whether `ls --dired' works")
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --diredd /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired /" (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
@@ -7692,7 +7694,10 @@ If the `tramp-methods' entry does not exist, return NIL."
     (around tramp-advice-make-auto-save-file-name () activate)
     "Invoke `tramp-handle-make-auto-save-file-name' for Tramp files."
     (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name)))
-	(setq ad-return-value (tramp-handle-make-auto-save-file-name))
+	;; We cannot call `tramp-handle-make-auto-save-file-name'
+	;; directly, because this would bypass the locking mechanism.
+	(setq ad-return-value
+	      (tramp-file-name-handler 'make-auto-save-file-name))
       ad-do-it))
   (add-hook 'tramp-unload-hook
 	    (lambda () (ad-unadvise 'make-auto-save-file-name))))
@@ -8041,14 +8046,8 @@ Only works for Bourne-like shells."
 ;;   SSH instance, would correctly be propagated to the remote process
 ;;   automatically; possibly SSH would have to be started with
 ;;   "-t". (Markus Triska)
-;; * Set `tramp-copy-size-limit' to 0, when there is no remote
-;;   encoding routine.
 ;; * It makes me wonder if tramp couldn't fall back to ssh when scp
 ;;   isn't on the remote host. (Mark A. Hershberger)
-;; * To improve the behavior in case of things like "git status", it
-;;   might be worthwhile to add some way to indicate that a particular
-;;   use of process-file is (supposed to be) free of side-effects.
-;;   (Stefan Monnier)
 ;; * Use lsh instead of ssh. (Alfred M. Szmidt)
 ;; * Implement a general server-local-variable mechanism, as there are
 ;;   probably other variables that need different values for different
@@ -8060,11 +8059,6 @@ Only works for Bourne-like shells."
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
-;; * Partial completion completes word constituents.  I find it
-;;   acceptable if method completion works only after :, so that we
-;;   have "/s: TAB" offer completion for the method first, filenames
-;;   afterwards. (David Kastrup)
-
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
