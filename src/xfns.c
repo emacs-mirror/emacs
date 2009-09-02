@@ -377,10 +377,7 @@ x_any_window_to_frame (dpyinfo, wdesc)
 #ifdef USE_GTK
               GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
               if (gwdesc != 0
-                  && (gwdesc == x->widget
-                      || gwdesc == x->edit_widget
-                      || gwdesc == x->vbox_widget
-                      || gwdesc == x->menubar_widget))
+                  && gtk_widget_get_toplevel (gwdesc) == x->widget)
                 found = f;
 #else
 	      if (wdesc == XtWindow (x->widget)
@@ -399,54 +396,6 @@ x_any_window_to_frame (dpyinfo, wdesc)
     }
 
   return found;
-}
-
-/* Likewise, but exclude the menu bar widget.  */
-
-struct frame *
-x_non_menubar_window_to_frame (dpyinfo, wdesc)
-     struct x_display_info *dpyinfo;
-     int wdesc;
-{
-  Lisp_Object tail, frame;
-  struct frame *f;
-  struct x_output *x;
-
-  if (wdesc == None) return 0;
-
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-      f = XFRAME (frame);
-      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
-	continue;
-      x = f->output_data.x;
-      /* This frame matches if the window is any of its widgets.  */
-      if (x->hourglass_window == wdesc)
-	return f;
-      else if (x->widget)
-	{
-#ifdef USE_GTK
-          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
-          if (gwdesc != 0
-              && (gwdesc == x->widget
-                  || gwdesc == x->edit_widget
-                  || gwdesc == x->vbox_widget))
-            return f;
-#else
-	  if (wdesc == XtWindow (x->widget)
-	      || wdesc == XtWindow (x->column_widget)
-	      || wdesc == XtWindow (x->edit_widget))
-	    return f;
-#endif
-	}
-      else if (FRAME_X_WINDOW (f) == wdesc)
-	/* A tooltip frame.  */
-	return f;
-    }
-  return 0;
 }
 
 /* Likewise, but consider only the menu bar widget.  */
@@ -476,15 +425,14 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
       if (x->menubar_widget)
         {
           GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
-          int found = 0;
 
-          BLOCK_INPUT;
+	  /* This gives false positives, but the rectangle check in xterm.c
+	     where this is called takes care of that.  */
           if (gwdesc != 0
               && (gwdesc == x->menubar_widget
-                  || gtk_widget_get_parent (gwdesc) == x->menubar_widget))
-            found = 1;
-          UNBLOCK_INPUT;
-          if (found) return f;
+                  || gtk_widget_is_ancestor (x->menubar_widget, gwdesc)
+		  || gtk_widget_is_ancestor (gwdesc, x->menubar_widget)))
+            return f;
         }
 #else
       if (x->menubar_widget

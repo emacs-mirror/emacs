@@ -1,3 +1,19 @@
+2009-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Rename x_non_menubar_window_to_frame to
+	x_menubar_window_to_frame
+
+	* xterm.c: Remove declarations also in xterm.h
+	(XTmouse_position): Do not return valid positions
+	for clicks in the menubar and the toolbar for Gtk+.
+
+	* xfns.c (x_any_window_to_frame): Assume less about Gtk+ internals,
+	if the widget for the event has the same top level as a frame,
+	return the frame.
+	(x_menubar_window_to_frame): Detect menu bar even with Gtk+
+	internal windows, bug #4122.
+	(x_non_menubar_window_to_frame): Remove.
+
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (default-major-mode): Move most of the doc from here...

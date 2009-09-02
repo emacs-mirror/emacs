@@ -109,8 +109,6 @@ extern void xlwmenu_redisplay P_ ((Widget));
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
 extern void free_frame_menubar P_ ((struct frame *));
-extern struct frame *x_menubar_window_to_frame P_ ((struct x_display_info *,
-						    int));
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -142,11 +140,6 @@ extern void _XEditResCheckMessages ();
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 #endif /* USE_X_TOOLKIT */
-
-#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-#define x_any_window_to_frame x_window_to_frame
-#define x_top_window_to_frame x_window_to_frame
-#endif
 
 #ifdef USE_X_TOOLKIT
 #include "widget.h"
@@ -3908,7 +3901,14 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
 		if (child == None || child == win)
 		  break;
-
+#ifdef USE_GTK
+		/* We don't wan't to know the innermost window.  We
+		   want the edit window.  For non-Gtk+ the innermost
+		   window is the edit window.  For Gtk+ it might not
+		   be.  It might be the tool bar for example.  */
+		if (x_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win))
+		  break;
+#endif
 		win = child;
 		parent_x = win_x;
 		parent_y = win_y;
@@ -3925,8 +3925,14 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       parent_{x,y} are invalid, but that's okay, because we'll
 	       never use them in that case.)  */
 
+#ifdef USE_GTK
+	    /* We don't wan't to know the innermost window.  We
+	       want the edit window.  */
+	    f1 = x_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win);
+#else
 	    /* Is win one of our frames?  */
 	    f1 = x_any_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win);
+#endif
 
 #ifdef USE_X_TOOLKIT
 	    /* If we end up with the menu bar window, say it's not
