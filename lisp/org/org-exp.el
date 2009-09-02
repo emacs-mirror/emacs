@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -29,7 +29,7 @@
 (require 'org)
 (require 'org-agenda)
 (require 'org-exp-blocks)
-(eval-and-compile
+(eval-when-compile
   (require 'cl))
 
 (declare-function org-export-latex-preprocess "org-latex" (parameters))
@@ -574,6 +574,7 @@ much faster."
     (:priority		      "pri"	  org-export-with-priority)
     (:TeX-macros	      "TeX"	  org-export-with-TeX-macros)
     (:LaTeX-fragments	      "LaTeX"	  org-export-with-LaTeX-fragments)
+    (:latex-listings	      nil         org-export-latex-listings)
     (:skip-before-1st-heading "skip"	  org-export-skip-text-before-1st-heading)
     (:fixed-width	      ":"	  org-export-with-fixed-width)
     (:timestamps	      "<"	  org-export-with-timestamps)
@@ -741,8 +742,13 @@ modified) list.")
 	    (setq p (plist-put
 		     p (intern
 			(concat ":macro-" (downcase (match-string 1 val))))
-		     (match-string 2 val)))))
+		     (org-export-interpolate-newlines (match-string 2 val))))))
 	p))))
+
+(defun org-export-interpolate-newlines (s)
+  (while (string-match "\\\\n" s)
+    (setq s (replace-match "\n" t t s)))
+  s)
 
 (defvar org-export-allow-BIND-local nil)
 (defun org-export-confirm-letbind ()
@@ -1695,7 +1701,7 @@ from the buffer."
 	   (ascii "ASCII" "BEGIN_ASCII" "END_ASCII")
 	   (latex "LaTeX" "BEGIN_LaTeX" "END_LaTeX")))
 	(case-fold-search t)
-	fmt)
+	fmt beg beg-content end end-content)
 
     (while formatters
       (setq fmt (pop formatters))
@@ -1709,16 +1715,17 @@ from the buffer."
 	   (point-at-bol) (min (1+ (point-at-eol)) (point-max))
 	   '(org-protected t))))
       (goto-char (point-min))
-      (while (re-search-forward
-	      (concat "^[ \t]*#\\+" (caddr fmt)
-		      "\\>.*\\(\\(\n.*\\)*?\n\\)[ \t]*#\\+" (cadddr fmt)
-		      "\\>.*\n?") nil t)
-	(if (eq (car fmt) backend)
-	    ;; yes, keep this
-	    (add-text-properties (match-beginning 1) (1+ (match-end 1))
-				 '(org-protected t))
-	  ;; No, this is for a different backend, kill it
-	  (delete-region (match-beginning 0) (match-end 0)))))))
+      (while (re-search-forward (concat "^[ \t]*#\\+" (caddr fmt) "\\>.*\n?")
+				nil t)
+	(setq beg (match-beginning 0) beg-content (match-end 0))
+	(when (re-search-forward (concat "^[ \t]*#\\+" (cadddr fmt) "\\>.*\n?")
+				 nil t)
+	  (setq end (match-end 0) end-content (match-beginning 0))
+	  (if (eq (car fmt) backend)
+	      ;; yes, keep this
+	      (add-text-properties beg-content end-content '(org-protected t))
+	    ;; No, this is for a different backend, kill it
+	    (delete-region beg end)))))))
 
 (defun org-export-mark-blockquote-verse-center ()
   "Mark block quote and verse environments with special cookies.
@@ -1834,11 +1841,17 @@ When it is nil, all comments will be removed."
   (while (re-search-forward "^[ \t]*|" nil t)
     (beginning-of-line 1)
     (if (or (looking-at "[ \t]*| *[!_^] *|")
-	    (and (looking-at ".*?| *<[0-9]+> *|")
-		 (not (looking-at ".*?| *[^ <|]"))))
+	    (and (looking-at "[ \t]*|\\( *\\(<[0-9]+>\\|<[rl]>\\|<[rl][0-9]+>\\)? *|\\)+[ \t]*$")
+		 (not (looking-at ".*?| *[^ <|\n]"))))
 	(delete-region (max (point-min) (1- (point-at-bol)))
 		       (point-at-eol))
       (end-of-line 1))))
+
+(defun org-export-protect-sub-super (s)
+  (save-match-data
+    (while (string-match "\\([^\\\\]\\)\\([_^]\\)" s)
+      (setq s (replace-match "\\1\\\\\\2" nil nil s)))
+    s))
 
 (defun org-export-normalize-links ()
   "Convert all links to bracket links, and expand link abbreviations."
@@ -1849,8 +1862,11 @@ When it is nil, all comments will be removed."
     (while (re-search-forward re-plain-link nil t)
       (goto-char (1- (match-end 0)))
       (org-if-unprotected-at (1+ (match-beginning 0))
-       (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			 ":" (match-string 3) "]]")))
+       (let* ((s (concat (match-string 1)
+			 "[[" (match-string 2) ":" (match-string 3)
+			 "][" (match-string 2) ":" (org-export-protect-sub-super
+						    (match-string 3))
+			 "]]")))
 	 ;; added 'org-link face to links
 	 (put-text-property 0 (length s) 'face 'org-link s)
 	 (replace-match s t t))))
@@ -1858,8 +1874,11 @@ When it is nil, all comments will be removed."
     (while (re-search-forward re-angle-link nil t)
       (goto-char (1- (match-end 0)))
       (org-if-unprotected
-       (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			 ":" (match-string 3) "]]")))
+       (let* ((s (concat (match-string 1)
+			 "[[" (match-string 2) ":" (match-string 3)
+			 "][" (match-string 2) ":" (org-export-protect-sub-super
+						    (match-string 3))
+			 "]]")))
 	 (put-text-property 0 (length s) 'face 'org-link s)
 	 (replace-match s t t))))
     (goto-char (point-min))
@@ -2056,7 +2075,7 @@ TYPE must be a string, any of:
   (goto-char (point-min))
   (let (sy val key args args2 s n)
     (while (re-search-forward
-	    "{{{\\([a-zA-Z][-a-zA-Z0-9_]*\\)\\((\\(.*?\\))\\)?}}}"
+	    "{{{\\([a-zA-Z][-a-zA-Z0-9_]*\\)\\(([ \t\n]*\\([^\000]*?\\))\\)?}}}"
 	    nil t)
       (setq key (downcase (match-string 1))
 	    args (match-string 3))
@@ -2066,7 +2085,8 @@ TYPE must be a string, any of:
 				     (intern (concat ":" key)))))
 	(save-match-data
 	  (when args
-	    (setq args (org-split-string args ",[ \t]*") args2 nil)
+	    (setq args (org-split-string args ",[ \t\n]*") args2 nil)
+	    (setq args (mapcar 'org-trim args))
 	    (while args
 	      (while (string-match "\\\\\\'" (car args))
 		;; repair bad splits
@@ -2111,7 +2131,8 @@ TYPE must be a string, any of:
 	    markup (org-symname-or-string (pop params))
 	    lang (and (member markup '("src" "SRC"))
 		      (org-symname-or-string (pop params)))
-	    switches (mapconcat '(lambda (x) (format "%s" x)) params " "))
+	    switches (mapconcat '(lambda (x) (format "%s" x)) params " ")
+	    start nil end nil)
       (delete-region (match-beginning 0) (match-end 0))
       (if (or (not file)
 	      (not (file-exists-p file))
@@ -2126,7 +2147,8 @@ TYPE must be a string, any of:
 	    (setq start (format "#+begin_%s %s\n" markup switches)
 		  end  (format "#+end_%s" markup))))
 	(insert (or start ""))
-	(insert (org-get-file-contents (expand-file-name file) prefix prefix1 markup))
+	(insert (org-get-file-contents (expand-file-name file)
+				       prefix prefix1 markup))
 	(or (bolp) (newline))
 	(insert (or end ""))))))
 
@@ -2136,6 +2158,7 @@ If PREFIX is a string, prepend it to each line.  If PREFIX1
 is a string, prepend it to the first line instead of PREFIX.
 If MARKUP, don't protect org-like lines, the exporter will
 take care of the block they are in."
+  (if (stringp markup) (setq markup (downcase markup)))
   (with-temp-buffer
     (insert-file-contents file)
     (when (or prefix prefix1)
@@ -2145,9 +2168,9 @@ take care of the block they are in."
 	(setq prefix1 nil)
 	(beginning-of-line 2)))
     (buffer-string)
-    (unless markup
+    (when (member markup '("src" "example"))
       (goto-char (point-min))
-      (while (re-search-forward "^\\(\\*\\|[ \t]*#\\)" nil t)
+      (while (re-search-forward "^\\([*#]\\|[ \t]*#\\+\\)" nil t)
 	(goto-char (match-beginning 0))
 	(insert ",")
 	(end-of-line 1)))
@@ -2203,6 +2226,8 @@ in the list) and remove property and value from the list in LISTVAR."
 (defvar htmlp)  ;; dynamically scoped
 (defvar latexp)  ;; dynamically scoped
 (defvar org-export-latex-verbatim-wrap) ;; defined in org-latex.el
+(defvar org-export-latex-listings) ;; defined in org-latex.el
+(defvar org-export-latex-listings-langs) ;; defined in org-latex.el
 
 (defun org-export-format-source-code-or-example
   (backend lang code &optional opts indent)
@@ -2268,7 +2293,15 @@ INDENT was the original indentation of the block."
 		   "htmlize.el 1.34 or later is needed for source code formatting")))
 
 	      (if lang
-		  (let* ((mode (and lang (intern (concat lang "-mode"))))
+		  (let* ((lang-m (when lang
+                                   (or (cdr (assoc lang org-src-lang-modes))
+                                       lang)))
+                         (mode (and lang-m (intern
+					    (concat
+					     (if (symbolp lang-m)
+						 (symbol-name lang-m)
+					       lang-m)
+					     "-mode"))))
 			 (org-inhibit-startup t)
 			 (org-startup-folded nil))
 		    (setq rtn
@@ -2309,8 +2342,24 @@ INDENT was the original indentation of the block."
 	     ((eq backend 'latex)
 	      (setq rtn (org-export-number-lines rtn 'latex 0 0 num cont rpllbl fmt))
 	      (concat "\n#+BEGIN_LaTeX\n"
-		      (org-add-props (concat (car org-export-latex-verbatim-wrap)
-					     rtn (cdr org-export-latex-verbatim-wrap))
+		      (org-add-props
+                          (if org-export-latex-listings
+                              (concat
+                               (if lang
+                                   (let*
+				       ((lang-sym (intern lang))
+					(lstlang
+					 (or (cadr
+					      (assq
+					       lang-sym
+					       org-export-latex-listings-langs))
+					     lang)))
+                                     (format "\\lstset{language=%s}\n" lstlang))
+                                 "")
+                               "\\begin{lstlisting}\n"
+                               rtn "\\end{lstlisting}\n")
+                            (concat (car org-export-latex-verbatim-wrap)
+                                    rtn (cdr org-export-latex-verbatim-wrap)))
 			  '(org-protected t))
 		      "#+END_LaTeX\n\n"))
 	     ((eq backend 'ascii)
@@ -2367,7 +2416,7 @@ INDENT was the original indentation of the block."
 	     "\\)\\)"))
 	   ref)
 
-      (goto-line (1+ skip1))
+      (org-goto-line (1+ skip1))
       (while (and (re-search-forward "^" nil t) (not (eobp)) (< n nmax))
 	(if number
 	    (insert (format fm (incf n)))

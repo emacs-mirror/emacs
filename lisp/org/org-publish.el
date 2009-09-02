@@ -4,7 +4,7 @@
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
 ;; Keywords: hypermedia, outlines, wp
-;; Version: 6.29c
+;; Version: 6.30c
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -632,7 +632,7 @@ Default for INDEX-FILENAME is 'sitemap.org'."
   "Publish PROJECT."
   (interactive
    (list
-    (assoc (org-ido-completing-read
+    (assoc (org-icompleting-read
 	    "Publish project: "
 	    org-publish-project-alist nil t)
 	   org-publish-project-alist)

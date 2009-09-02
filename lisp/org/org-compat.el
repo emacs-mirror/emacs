@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,7 +36,8 @@
 
 (require 'org-macs)
 
-(declare-function find-library-name             "find-func"  (library))
+(declare-function find-library-name "find-func"  (library))
+(declare-function w32-focus-frame   "w32-win" (frame))
 
 (defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p
@@ -331,6 +332,35 @@ that can be added."
   (remove-text-properties 0 (length string) '(line-prefix t wrap-prefix t)
 			  string)
   (apply 'kill-new string args))
+
+(defun org-select-frame-set-input-focus (frame)
+  "Select FRAME, raise it, and set input focus, if possible."
+  (cond ((featurep 'xemacs)
+	 (if (fboundp 'select-frame-set-input-focus)
+	     (select-frame-set-input-focus frame)
+	   (raise-frame frame)
+	   (select-frame frame)
+	   (focus-frame frame)))
+	;; `select-frame-set-input-focus' defined in Emacs 21 will not
+	;; set the input focus.
+	((>= emacs-major-version 22)
+	 (select-frame-set-input-focus frame))
+	(t
+	 (raise-frame frame)
+	 (select-frame frame)
+	 (cond ((memq window-system '(x ns mac))
+		(x-focus-frame frame))
+	       ((eq window-system 'w32)
+		(w32-focus-frame frame)))
+	 (when focus-follows-mouse
+	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
+
+(defun org-float-time (&optional time)
+  "Convert time value TIME to a floating point number.
+TIME defaults to the current time."
+  (if (featurep 'xemacs)
+      (time-to-seconds (or time (current-time)))
+    (float-time time)))
 
 (provide 'org-compat)
 

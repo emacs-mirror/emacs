@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -446,7 +446,7 @@ Where possible, use the standard interface for changing this line."
      (t
       (setq allowed (org-property-get-allowed-values pom key 'table))
       (if allowed
-	  (setq nval (org-ido-completing-read "Value: " allowed nil t))
+	  (setq nval (org-icompleting-read "Value: " allowed nil t))
 	(setq nval (read-string "Edit: " value)))
       (setq nval (org-trim nval))
       (when (not (equal nval value))
@@ -694,7 +694,7 @@ around it."
 			 truncate-lines))
 	(setq truncate-lines t)
 	(mapc (lambda (x)
-		(goto-line (car x))
+		(org-goto-line (car x))
 		(org-columns-display-here (cdr x)))
 	      cache)))))
 
@@ -721,7 +721,7 @@ interactive function org-columns-new.")
   (interactive)
   (let ((editp (and prop (assoc prop org-columns-current-fmt-compiled)))
 	cell)
-    (setq prop (org-ido-completing-read
+    (setq prop (org-icompleting-read
 		"Property: " (mapcar 'list (org-buffer-property-keys t nil t))
 		nil nil prop))
     (setq title (read-string (concat "Column title [" prop "]: ") (or title prop)))
@@ -729,7 +729,7 @@ interactive function org-columns-new.")
     (if (string-match "\\S-" width)
 	(setq width (string-to-number width))
       (setq width nil))
-    (setq fmt (org-ido-completing-read
+    (setq fmt (org-icompleting-read
 	       "Summary [none]: "
 	       (mapcar (lambda (x) (list (symbol-name (cadr x))))
 		       org-columns-compile-map)
@@ -959,7 +959,7 @@ Don't set this, this is meant for dynamic scoping.")
 	  (call-interactively 'org-columns)
 	(org-agenda-redo)
 	(call-interactively 'org-agenda-columns)))
-    (goto-line line)
+    (org-goto-line line)
     (move-to-column col))
   (message "Recomputing columns...done"))
 
@@ -1228,7 +1228,7 @@ and tailing newline characters."
   "Create a dynamic block capturing a column view table."
   (interactive)
   (let ((defaults '(:name "columnview" :hlines 1))
-	(id (org-ido-completing-read
+	(id (org-icompleting-read
 	     "Capture columns (local, global, entry with :ID: property) [local]: "
 	     (append '(("global") ("local"))
 		     (mapcar 'list (org-property-values "ID"))))))
@@ -1303,7 +1303,7 @@ and tailing newline characters."
 			     (org-bound-and-true-p flyspell-mode))
 	  (flyspell-mode 0))
 	(mapc (lambda (x)
-		(goto-line (car x))
+		(org-goto-line (car x))
 		(org-columns-display-here (cdr x)))
 	      cache)
 	(when org-agenda-columns-show-summaries

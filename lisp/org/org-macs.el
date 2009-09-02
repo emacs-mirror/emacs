@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -71,7 +71,7 @@ Also, do not record undo information."
 	 (_col (current-column)))
      (unwind-protect
 	 (progn ,@body)
-       (goto-line _line)
+       (org-goto-line _line)
        (org-move-to-column _col))))
 
 (defmacro org-without-partial-completion (&rest body)
@@ -173,7 +173,7 @@ We use a macro so that the test can happen at compilation time."
 
 (defsubst org-check-external-command (cmd &optional use no-error)
   "Check if external progam CMD for USE exists, error if not.
-When the program does exist, return it's path.
+When the program does exist, return its path.
 When it does not exist and NO-ERROR is set, return nil.
 Otherwise, throw an error.  The optional argument USE can describe what this
 program is needed for, so that the error message can be more informative."
@@ -218,6 +218,12 @@ we turn off invisibility temporarily.  Use this in a `let' form."
     (and pos (goto-char pos))
     ;; works also in narrowed buffer, because we start at 1, not point-min
     (+ (if (bolp) 1 0) (count-lines 1 (point)))))
+
+(defsubst org-goto-line (N)
+  (save-restriction
+    (widen)
+    (goto-char (point-min))
+    (forward-line (1- N))))
 
 (defsubst org-current-line-string (&optional to-here)
   (buffer-substring (point-at-bol) (if to-here (point) (point-at-eol))))

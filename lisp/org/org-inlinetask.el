@@ -5,11 +5,12 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
+
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
@@ -195,5 +196,4 @@ Either remove headline and meta data, or do special formatting."
 
 (provide 'org-inlinetask)
 
-;; arch-tag: b76736bc-9f4a-43cd-977c-ecfd6689846a
 ;;; org-inlinetask.el ends here

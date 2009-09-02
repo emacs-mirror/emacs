@@ -1,7 +1,7 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
 ;; Copyright (C) 2008, 2009
-;;   Free Software Foundation, Inc.
+;;          Free Software Foundation, Inc.
 ;;
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Author: Daniel M German <dmg AT uvic DOT org>
@@ -9,7 +9,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 6.29c
+;; Version: 6.30c
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -393,6 +393,7 @@ function transforms it into a flat list."
 
 ;;; Standard protocol handlers:
 
+;;;###autoload
 (defun org-protocol-store-link (fname)
   "Process an org-protocol://store-link:// style url
 and store a browser URL as an org link. Also pushes the links URL to the
@@ -422,7 +423,7 @@ The sub-protocol used to reach this function is set in
              uri))
   nil)
 
-
+;;;###autoload
 (defun org-protocol-remember  (info)
   "Process an org-protocol://remember:// style url.
 
@@ -470,7 +471,7 @@ Now template ?b will be used."
     (message "Org-mode not loaded."))
   nil)
 
-
+;;;###autoload
 (defun org-protocol-open-source (fname)
   "Process an org-protocol://open-source:// style url.
 
@@ -633,7 +634,5 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
       (customize-save-variable 'org-protocol-project-alist org-protocol-project-alist))))
 
 (provide 'org-protocol)
-
-;; arch-tag: b5c5c2ac-77cf-4a94-a649-2163dff95846
 
 ;;; org-protocol.el ends here

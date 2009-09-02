@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -277,6 +277,7 @@ of a different task.")
 (defun org-clock-save-markers-for-cut-and-paste (beg end)
   "Save relative positions of markers in region."
   (org-check-and-save-marker org-clock-marker beg end)
+  (org-check-and-save-marker org-clock-hd-marker beg end)
   (org-check-and-save-marker org-clock-default-task beg end)
   (org-check-and-save-marker org-clock-interrupted-task beg end)
   (mapc (lambda (m) (org-check-and-save-marker m beg end))
@@ -389,8 +390,8 @@ If not, show simply the clocked time like 01:50."
 The time returned includes the the time spent on this task in
 previous clocking intervals."
   (let ((currently-clocked-time
-	 (floor (- (time-to-seconds (current-time))
-		   (time-to-seconds org-clock-start-time)) 60)))
+	 (floor (- (org-float-time)
+		   (org-float-time org-clock-start-time)) 60)))
     (+ currently-clocked-time (or org-clock-total-time 0))))
 
 (defun org-clock-modify-effort-estimate (&optional value)
@@ -424,7 +425,8 @@ the mode line."
      (setq value (max 0 value)
 	   org-clock-effort (org-minutes-to-hh:mm-string value))
      (org-entry-put org-clock-marker "Effort" org-clock-effort)
-     (org-clock-update-mode-line))))
+     (org-clock-update-mode-line)
+     (message "Effort is now %s" org-clock-effort))))
 
 (defvar org-clock-notification-was-shown nil
   "Shows if we have shown notification already.")
@@ -438,11 +440,15 @@ Notification is shown only once."
       (if (>= clocked-time effort-in-minutes)
 	  (unless org-clock-notification-was-shown
 	    (setq org-clock-notification-was-shown t)
-	    (org-clock-play-sound)
-	    (org-show-notification
+	    (org-notify
 	     (format "Task '%s' should be finished by now. (%s)"
-		     org-clock-heading org-clock-effort)))
+		     org-clock-heading org-clock-effort) t))
 	(setq org-clock-notification-was-shown nil)))))
+
+(defun org-notify (notification &optional play-sound)
+  "Send a NOTIFICATION and maybe PLAY-SOUND."
+  (org-show-notification notification)
+  (if play-sound (org-clock-play-sound)))
 
 (defun org-show-notification (notification)
   "Show notification.
@@ -592,6 +598,9 @@ the clocking selection, associated with the letter `d'."
 	      (setq ts (org-insert-time-stamp org-clock-start-time
 					      'with-hm 'inactive))))
 	    (move-marker org-clock-marker (point) (buffer-base-buffer))
+	    (move-marker org-clock-hd-marker
+			 (save-excursion (org-back-to-heading t) (point))
+			 (buffer-base-buffer))
 	    (or global-mode-string (setq global-mode-string '("")))
 	    (or (memq 'org-mode-line-string global-mode-string)
 		(setq global-mode-string
@@ -751,8 +760,8 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	  (delete-region (point) (point-at-eol))
 	  (insert "--")
 	  (setq te (org-insert-time-stamp (current-time) 'with-hm 'inactive))
-	  (setq s (- (time-to-seconds (apply 'encode-time (org-parse-time-string te)))
-		     (time-to-seconds (apply 'encode-time (org-parse-time-string ts))))
+	  (setq s (- (org-float-time (apply 'encode-time (org-parse-time-string te)))
+		     (org-float-time (apply 'encode-time (org-parse-time-string ts))))
 		h (floor (/ s 3600))
 		s (- s (* 3600 h))
 		m (floor (/ s 60))
@@ -765,6 +774,7 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
 	    (and (looking-at "\n") (> (point-max) (1+ (point)))
 		 (delete-char 1)))
 	  (move-marker org-clock-marker nil)
+	  (move-marker org-clock-hd-marker nil)
 	  (when org-log-note-clock-out
 	    (org-add-log-setup 'clock-out nil nil nil nil
 			       (concat "# Task: " (org-get-heading t) "\n\n")))
@@ -802,6 +812,8 @@ If there is no running clock, throw an error, unless FAIL-QUIETLY is set."
     (set-buffer (marker-buffer org-clock-marker))
     (goto-char org-clock-marker)
     (delete-region (1- (point-at-bol)) (point-at-eol)))
+  (move-marker 'org-clock-marker nil)
+  (move-marker 'org-clock-hd-marker nil)
   (setq global-mode-string
 	(delq 'org-mode-line-string global-mode-string))
   (force-mode-line-update)
@@ -856,8 +868,8 @@ TSTART and TEND can mark a time range to be considered."
 	 time)
     (if (stringp tstart) (setq tstart (org-time-string-to-seconds tstart)))
     (if (stringp tend) (setq tend (org-time-string-to-seconds tend)))
-    (if (consp tstart) (setq tstart (time-to-seconds tstart)))
-    (if (consp tend) (setq tend (time-to-seconds tend)))
+    (if (consp tstart) (setq tstart (org-float-time tstart)))
+    (if (consp tend) (setq tend (org-float-time tend)))
     (remove-text-properties (point-min) (point-max) '(:org-clock-minutes t))
     (save-excursion
       (goto-char (point-max))
@@ -867,9 +879,9 @@ TSTART and TEND can mark a time range to be considered."
 	  ;; Two time stamps
 	  (setq ts (match-string 2)
 		te (match-string 3)
-		ts (time-to-seconds
+		ts (org-float-time
 		    (apply 'encode-time (org-parse-time-string ts)))
-		te (time-to-seconds
+		te (org-float-time
 		    (apply 'encode-time (org-parse-time-string te)))
 		ts (if tstart (max ts tstart) ts)
 		te (if tend (min te tend) te)
@@ -1210,9 +1222,9 @@ the currently selected interval size."
       (when (and te (listp te))
 	(setq te (format "%4d-%02d-%02d" (nth 2 te) (car te) (nth 1 te))))
       ;; Now the times are strings we can parse.
-      (if ts (setq ts (time-to-seconds
+      (if ts (setq ts (org-float-time
 		       (apply 'encode-time (org-parse-time-string ts)))))
-      (if te (setq te (time-to-seconds
+      (if te (setq te (org-float-time
 		       (apply 'encode-time (org-parse-time-string te)))))
       (move-marker ins (point))
       (setq ipos (point))
@@ -1390,9 +1402,9 @@ the currently selected interval size."
     (when block
       (setq cc (org-clock-special-range block nil t)
 	    ts (car cc) te (nth 1 cc) range-text (nth 2 cc)))
-    (if ts (setq ts (time-to-seconds
+    (if ts (setq ts (org-float-time
 		     (apply 'encode-time (org-parse-time-string ts)))))
-    (if te (setq te (time-to-seconds
+    (if te (setq te (org-float-time
 		     (apply 'encode-time (org-parse-time-string te)))))
     (setq p1 (plist-put p1 :header ""))
     (setq p1 (plist-put p1 :step nil))

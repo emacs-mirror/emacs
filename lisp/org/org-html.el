@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,7 @@
 ;;; Commentary:
 
 (require 'org-exp)
+(eval-when-compile (require 'cl))
 
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function htmlize-region "ext:htmlize" (beg end))
@@ -1161,7 +1162,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	  ;; Does this contain a reference to a footnote?
 	  (when org-export-with-footnotes
 	    (setq start 0)
-	    (while (string-match "\\([^* \t].*\\)?\\[\\([0-9]+\\)\\]" line start)
+	    (while (string-match "\\([^* \t].*?\\)\\[\\([0-9]+\\)\\]" line start)
 	      (if (get-text-property (match-beginning 2) 'org-protected line)
 		  (setq start (match-end 2))
 		(let ((n (match-string 2 line)) extra a)
@@ -1174,10 +1175,10 @@ lang=\"%s\" xml:lang=\"%s\">
 		  (setq line
 			(replace-match
 			 (format
-			  (concat (if (match-string 1 line) "%s" "")
+			  (concat "%s"
 			 	  (format org-export-html-footnote-format
 			 		  "<a class=\"footref\" name=\"fnr.%s%s\" href=\"#fn.%s\">%s</a>"))
-			  (match-string 1 line) n extra n n)
+			  (or (match-string 1 line) "") n extra n n)
 			 t t line))))))
 
 	  (cond
@@ -1331,10 +1332,11 @@ lang=\"%s\" xml:lang=\"%s\">
 		(let ((n (match-string 1 line)))
 		  (setq org-par-open t
 			line (replace-match
-			      (concat "<p class=\"footnote\">"
-				      (format org-export-html-footnote-format
-					      "<a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a>"
-					      n n n) t t line))))))
+			      (format
+			       (concat "<p class=\"footnote\">"
+				       (format org-export-html-footnote-format
+					       "<a class=\"footnum\" name=\"fn.%s\" href=\"#fnr.%s\">%s</a>"))
+			       n n n) t t line)))))
 	    ;; Check if the line break needs to be conserved
 	    (cond
 	     ((string-match "\\\\\\\\[ \t]*$" line)
@@ -1419,7 +1421,8 @@ lang=\"%s\" xml:lang=\"%s\">
 
       (unless (plist-get opt-plist :buffer-will-be-killed)
 	(normal-mode)
-	(if (eq major-mode (default-value 'major-mode)) (html-mode)))
+	(if (eq major-mode (default-value 'major-mode))
+	    (html-mode)))
 
       ;; insert the table of contents
       (goto-char (point-min))
@@ -1641,7 +1644,7 @@ lang=\"%s\" xml:lang=\"%s\">
       (push (mapconcat
 	     (lambda (x)
 	       (setq gr (pop org-table-colgroup-info))
-	       (format "%s<col align=\"%s\"></col>%s"
+	       (format "%s<col align=\"%s\" />%s"
 		       (if (memq gr '(:start :startend))
 			   (prog1
 			       (if colgropen "</colgroup>\n<colgroup>" "<colgroup>")
@@ -1882,13 +1885,6 @@ If there are links in the string, don't modify these."
 				       t t s))
 	      (setq start (+ start (length wd))))))))
   s)
-
-(defconst org-export-html-special-string-regexps
-  '(("\\\\-" . "&shy;")
-    ("---\\([^-]\\)" . "&mdash;\\1")
-    ("--\\([^-]\\)" . "&ndash;\\1")
-    ("\\.\\.\\." . "&hellip;"))
-  "Regular expressions for special string conversion.")
 
 (defun org-export-html-convert-special-strings (string)
   "Convert special characters in STRING to HTML."

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -266,11 +266,13 @@ publishing directory."
 
     ;; File header
     (unless body-only
-      (if title (org-insert-centered title ?=))
-      (insert "\n")
+      (when (and title (not (string= "" title)))
+	(org-insert-centered title ?=)
+	(insert "\n"))
+
       (if (and (or author email)
 	       org-export-author-info)
-	  (insert (concat (nth 1 lang-words) ": " (or author "")
+	  (insert(concat (nth 1 lang-words) ": " (or author "")
 			  (if email (concat " <" email ">") "")
 			  "\n")))
 
@@ -283,7 +285,8 @@ publishing directory."
       (if (and date org-export-time-stamp-file)
 	  (insert (concat (nth 2 lang-words) ": " date"\n")))
 
-      (insert "\n\n"))
+      (unless (= (point) (point-min))
+	(insert "\n\n")))
 
     (if (and org-export-with-toc (not body-only))
 	(progn

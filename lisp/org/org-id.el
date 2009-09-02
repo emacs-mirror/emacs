@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -563,7 +563,7 @@ optional argument MARKERP, return the position as a new marker."
 ;; so we do have to add it to `org-store-link-functions'.
 
 (defun org-id-store-link ()
-  "Store a link to the current entry, using it's ID."
+  "Store a link to the current entry, using its ID."
   (interactive)
   (let* ((link (org-make-link "id:" (org-id-get-create)))
 	 (desc (save-excursion
@@ -601,9 +601,8 @@ optional argument MARKERP, return the position as a new marker."
 
 (provide 'org-id)
 
-;; arch-tag: e5abaca4-e16f-4b25-832a-540cfb63a712
 ;;; org-id.el ends here
 
-
+;; arch-tag: e5abaca4-e16f-4b25-832a-540cfb63a712
 
 

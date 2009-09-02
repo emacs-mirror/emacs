@@ -7,7 +7,7 @@
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -149,7 +149,9 @@ toggle a checkbox with \\[org-ctrl-c-ctrl-c]."
 
 (defcustom org-hierarchical-checkbox-statistics t
   "Non-nil means, checkbox statistics counts only the state of direct children.
-When nil, all boxes below the cookie are counted."
+When nil, all boxes below the cookie are counted.
+This can be set to nil on a per-node basis using a COCKIE_DATA property
+with the word \"recursive\" in the value."
   :group 'org-plain-lists
   :type 'boolean)
 
@@ -834,7 +836,7 @@ with something like \"1.\" or \"2)\"."
 	  (goto-char (match-beginning 2))
 	  (insert (setq new (format fmt (setq n (1+ n)))))
 	  (org-shift-item-indentation (- (length new) (length old))))))
-    (goto-line line)
+    (org-goto-line line)
     (org-move-to-column col)))
 
 (defun org-fix-bullet-type (&optional force-bullet)
@@ -872,7 +874,7 @@ Also, fix the indentation."
 	  (setq oldbullet (match-string 0))
 	  (unless (equal bullet oldbullet) (replace-match bullet))
 	  (org-shift-item-indentation (- (length bullet) (length oldbullet))))))
-    (goto-line line)
+    (org-goto-line line)
     (org-move-to-column col)
     (if (string-match "[0-9]" bullet)
 	(org-renumber-ordered-list 1))))

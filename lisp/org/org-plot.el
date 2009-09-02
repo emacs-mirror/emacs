@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,7 +33,7 @@
 (require 'org)
 (require 'org-exp)
 (require 'org-table)
-(eval-and-compile
+(eval-when-compile
   (require 'cl))
 
 (declare-function gnuplot-delchar-or-maybe-eof "ext:gnuplot" (arg))

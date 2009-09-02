@@ -4,12 +4,11 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 6.29c
+;; Version: 6.30c
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
 ;; Description: Converts an org-mode buffer into DocBook
-;; $Id: org-docbook.el,v 1.3 2009/08/08 12:18:56 cdominik Exp $
 ;; URL:
 
 ;; This file is part of GNU Emacs.
@@ -1402,5 +1401,4 @@ that need to be preserved in later phase of DocBook exporting."
 
 (provide 'org-docbook)
 
-;; arch-tag: a24a127c-d365-4c2a-9e9b-f7dcb0ebfdc3
 ;;; org-docbook.el ends here

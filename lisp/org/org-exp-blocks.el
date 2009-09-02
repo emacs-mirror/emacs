@@ -203,9 +203,8 @@ specified in BLOCKS which default to the value of
                                      ""
                                    (apply func (save-match-data (org-remove-indentation (match-string 4)))
                                           (split-string (match-string 3) " ")))) t t)
-                ;; indent the replaced match
-                (indent-region (match-beginning 0) (match-end 0) indentation)
-                ))
+                ;; indent block
+                (indent-code-rigidly (match-beginning 0) (match-end 0) indentation)))
 	  (setf start (save-match-data (match-end 0))))
 	(mapcar (lambda (type)
 		  (interblock start (point-max) type))
@@ -370,7 +369,7 @@ with their values as determined by R."
 
 (defun org-export-interblocks-format-R (start end)
   "This is run over parts of the org-file which are between R
-blocks.  It's main use is to expand the \R{stuff} chunks for
+blocks.  Its main use is to expand the \R{stuff} chunks for
 export."
   (save-excursion
     (goto-char start)
@@ -437,5 +436,4 @@ export."
 
 (provide 'org-exp-blocks)
 
-;; arch-tag: 1c365fe9-8808-4f72-bb15-0b00f36d8024
 ;;; org-exp-blocks.el ends here

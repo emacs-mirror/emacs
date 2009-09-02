@@ -4,7 +4,7 @@
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
-;; Version: 6.29c
+;; Version: 6.30c
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -93,6 +93,7 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{soul}
 \\usepackage{hyperref}"
      ("\\section{%s}" . "\\section*{%s}")
      ("\\subsection{%s}" . "\\subsection*{%s}")
@@ -105,6 +106,7 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{soul}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -117,6 +119,7 @@
 \\usepackage[T1]{fontenc}
 \\usepackage{graphicx}
 \\usepackage{longtable}
+\\usepackage{soul}
 \\usepackage{hyperref}"
      ("\\part{%s}" . "\\part*{%s}")
      ("\\chapter{%s}" . "\\chapter*{%s}")
@@ -166,7 +169,7 @@ to represent the section title."
   '(("*" "\\textbf{%s}" nil)
     ("/" "\\emph{%s}" nil)
     ("_" "\\underline{%s}" nil)
-    ("+" "\\texttt{%s}" nil)
+    ("+" "\\st{%s}" nil)
     ("=" "\\verb" t)
     ("~" "\\verb" t))
   "Alist of LaTeX expressions to convert emphasis fontifiers.
@@ -245,9 +248,12 @@ When nil, grouping causes only separation lines between groups."
 
 (defcustom org-export-latex-packages-alist nil
   "Alist of packages to be inserted in the header.
-Each cell is of the forma \( \"option\" . \"package\" \)."
+Each cell is of the format \( \"option\" . \"package\" \)."
   :group 'org-export-latex
-  :type 'alist)
+  :type '(repeat
+	  (list
+	   (string :tag "option")
+	   (string :tag "package"))))
 
 (defcustom org-export-latex-low-levels 'itemize
   "How to convert sections below the current level of sectioning.
@@ -296,6 +302,43 @@ Defaults to \\begin{verbatim} and \\end{verbatim}."
   :group 'org-export-latex
   :type '(cons (string :tag "Open")
 	       (string :tag "Close")))
+
+(defcustom org-export-latex-listings nil
+  "Non-nil means, export source code using the listings package.
+This package will fontify source code, possibly even with color.
+If you want to use this, you also need to make LaTeX use the
+listings package, and if you want to have color, the color
+package.  Just add these to `org-export-latex-packages-alist',
+for example using customize, or with something like
+
+  (require 'org-latex)
+  (add-to-list 'org-export-latex-packages-alist '(\"\" \"listings\"))
+  (add-to-list 'org-export-latex-packages-alist '(\"\" \"color\"))"
+  :group 'org-export-latex
+  :type 'boolean)
+
+(defcustom org-export-latex-listings-langs
+  '((emacs-lisp "Lisp") (lisp "Lisp")
+    (c "C") (cc "C++")
+    (fortran "fortran")
+    (perl "Perl") (cperl "Perl") (python "Python") (ruby "Ruby")
+    (html "HTML") (xml "XML")
+    (tex "TeX") (latex "TeX")
+    (shell-script "bash")
+    (gnuplot "Gnuplot")
+    (ocaml "Caml") (caml "Caml")
+    (sql "SQL"))
+  "Alist mapping languages to their listing language counterpart.
+The key is a symbol, the major mode symbol without the \"-mode\".
+The value is the string that should be inserted as the language parameter
+for the listings package.  If the mode name and the listings name are
+the same, the language does not need an entry in this list - but it does not
+hurt if it is present."
+  :group 'org-export-latex
+  :type '(repeat
+	  (list
+	   (symbol :tag "Major mode       ")
+	   (string :tag "Listings language"))))
 
 (defcustom org-export-latex-remove-from-headlines
   '(:todo nil :priority nil :tags nil)
@@ -960,10 +1003,11 @@ If BEG is non-nil, it is the beginning of the region.
 If END is non-nil, it is the end of the region."
   (save-excursion
     (goto-char (or beg (point-min)))
-    (let* ((pt (point))
-	   (end (if (re-search-forward "^\\*+ " end t)
-		    (goto-char (match-beginning 0))
-		  (goto-char end))))
+    (let* ((pt (point)))
+      (or end
+	  (and (re-search-forward "^\\*+ " end t)
+	       (setq end (match-beginning 0)))
+	  (setq end (point-max)))
       (prog1
 	  (org-export-latex-content
 	   (org-export-preprocess-string
@@ -1276,16 +1320,19 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 
 
 (defvar org-table-last-alignment) ; defined in org-table.el
+(defvar org-table-last-column-widths) ; defined in org-table.el
 (declare-function orgtbl-to-latex "org-table" (table params) t)
 (defun org-export-latex-tables (insert)
   "Convert tables to LaTeX and INSERT it."
   (goto-char (point-min))
   (while (re-search-forward "^\\([ \t]*\\)|" nil t)
-    ;; FIXME really need to save-excursion?
-    (save-excursion (org-table-align))
+    (org-table-align)
     (let* ((beg (org-table-begin))
 	   (end (org-table-end))
 	   (raw-table (buffer-substring beg end))
+	   (org-table-last-alignment (copy-sequence org-table-last-alignment))
+	   (org-table-last-column-widths (copy-sequence
+					  org-table-last-column-widths))
 	   fnum fields line lines olines gr colgropen line-fmt align
 	   caption label attr floatp longtblp)
       (if org-export-latex-tables-verbatim
@@ -1310,6 +1357,9 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	  (apply 'delete-region (list beg end))
 	  (when org-export-table-remove-special-lines
 	    (setq lines (org-table-clean-before-export lines 'maybe-quoted)))
+	  (when org-table-clean-did-remove-column
+	      (pop org-table-last-alignment)
+	      (pop org-table-last-column-widths))
 	  ;; make a formatting string to reflect aligment
 	  (setq olines lines)
 	  (while (and (not line-fmt) (setq line (pop olines)))
@@ -1521,9 +1571,23 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 	     ((not type)
 	      (insert (format "\\hyperref[%s]{%s}"
 			      (org-remove-initial-hash
-			       (org-solidify-link-text raw-path)) desc)))
-	     (path (insert (format "\\href{%s}{%s}" path desc)))
+			       (org-solidify-link-text raw-path))
+			      desc)))
+	     (path 
+	      (when (org-at-table-p)
+		;; There is a strange problem when we have a link in a table,
+		;; ampersands then cause a problem.  I think this must be
+		;; a LaTeX issue, but we here implement a work-around anyway.
+		(setq path (org-export-latex-protect-amp path)
+		      desc (org-export-latex-protect-amp desc)))
+	      (insert (format "\\href{%s}{%s}" path desc)))
 	     (t (insert "\\texttt{" desc "}")))))))
+
+(defun org-export-latex-protect-amp (s)
+  (while (string-match "\\([^\\\\]\\)\\(&\\)" s)
+    (setq s (replace-match (concat (match-string 1 s) "\\" (match-string 2 s))
+			   t t s)))
+  s)
 
 (defun org-remove-initial-hash (s)
   (if (string-match "\\`#" s)

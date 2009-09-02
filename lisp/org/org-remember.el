@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.29c
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -130,8 +130,8 @@ Furthermore, the following %-escapes will be replaced with content:
               You may define a prompt like %^{Please specify birthday
   %n          user name (taken from `user-full-name')
   %a          annotation, normally the link created with org-store-link
-  %i          initial content, the region active.  If %i is indented,
-              the entire inserted text will be indented as well.
+  %i          initial content, copied from the active region.  If %i is 
+              indented, the entire inserted text will be indented as well.
   %c          current kill ring head
   %x          content of the X clipboard
   %^C         Interactive selection of which kill or clip to use
@@ -253,6 +253,18 @@ and show a message about remaining backup files, from previous, unfinished
 remember sessions.
 Backup files will only be made at all, when `org-remember-backup-directory'
 is set."
+  :group 'org-remember
+  :type 'boolean)
+
+(defcustom org-remember-warn-about-backups t
+  "Non-nil means warn about backup files in `org-remember-backup-directory'.
+
+Set this to nil if you find that you don't need the warning.
+
+If you cancel remember calls frequently and know when they
+contain useful information (because you know that you made an
+error or emacs crashed, for example) nil is more useful.  In the
+opposite case, the default, t, is more useful."
   :group 'org-remember
   :type 'boolean)
 
@@ -468,49 +480,53 @@ to be run from that hook to function properly."
 
 	;; Simple %-escapes
 	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
-	  (when (and initial (equal (match-string 0) "%i"))
-	    (save-match-data
-	      (let* ((lead (buffer-substring
-			    (point-at-bol) (match-beginning 0))))
-		(setq v-i (mapconcat 'identity
-				     (org-split-string initial "\n")
-				     (concat "\n" lead))))))
-	  (replace-match
-	   (or (eval (intern (concat "v-" (match-string 1)))) "")
-	   t t))
+	  (unless (org-remember-escaped-%)
+	    (when (and initial (equal (match-string 0) "%i"))
+	      (save-match-data
+		(let* ((lead (buffer-substring
+			      (point-at-bol) (match-beginning 0))))
+		  (setq v-i (mapconcat 'identity
+				       (org-split-string initial "\n")
+				       (concat "\n" lead))))))
+	    (replace-match
+	     (or (eval (intern (concat "v-" (match-string 1)))) "")
+	     t t)))
 
 	;; %[] Insert contents of a file.
 	(goto-char (point-min))
 	(while (re-search-forward "%\\[\\(.+\\)\\]" nil t)
-	  (let ((start (match-beginning 0))
-		(end (match-end 0))
-		(filename (expand-file-name (match-string 1))))
-	    (goto-char start)
-	    (delete-region start end)
-	    (condition-case error
-		(insert-file-contents filename)
-	      (error (insert (format "%%![Couldn't insert %s: %s]"
-				     filename error))))))
+	  (unless (org-remember-escaped-%)
+	    (let ((start (match-beginning 0))
+		  (end (match-end 0))
+		  (filename (expand-file-name (match-string 1))))
+	      (goto-char start)
+	      (delete-region start end)
+	      (condition-case error
+		  (insert-file-contents filename)
+		(error (insert (format "%%![Couldn't insert %s: %s]"
+				       filename error)))))))
 	;; %() embedded elisp
 	(goto-char (point-min))
 	(while (re-search-forward "%\\((.+)\\)" nil t)
-	  (goto-char (match-beginning 0))
-	  (let ((template-start (point)))
-	    (forward-char 1)
-	    (let ((result
-		   (condition-case error
-		       (eval (read (current-buffer)))
-		     (error (format "%%![Error: %s]" error)))))
-	      (delete-region template-start (point))
-	      (insert result))))
+	  (unless (org-remember-escaped-%)
+	    (goto-char (match-beginning 0))
+	    (let ((template-start (point)))
+	      (forward-char 1)
+	      (let ((result
+		     (condition-case error
+			 (eval (read (current-buffer)))
+		       (error (format "%%![Error: %s]" error)))))
+		(delete-region template-start (point))
+		(insert result)))))
 
 	;; From the property list
 	(when plist-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "%\\(:[-a-zA-Z]+\\)" nil t)
+	  (unless (org-remember-escaped-%)
 	    (and (setq x (or (plist-get org-store-link-plist
 					(intern (match-string 1))) ""))
-		 (replace-match x t t))))
+		 (replace-match x t t)))))
 
 	;; Turn on org-mode in the remember buffer, set local variables
 	(let ((org-inhibit-startup t)) (org-mode) (org-remember-mode 1))
@@ -521,87 +537,89 @@ to be run from that hook to function properly."
 	;; Interactive template entries
 	(goto-char (point-min))
 	(while (re-search-forward "%^\\({\\([^}]*\\)}\\)?\\([gGtTuUCLp]\\)?" nil t)
-	  (setq char (if (match-end 3) (match-string 3))
-		prompt (if (match-end 2) (match-string 2)))
-	  (goto-char (match-beginning 0))
-	  (replace-match "")
-	  (setq completions nil default nil)
-	  (when prompt
-	    (setq completions (org-split-string prompt "|")
-		  prompt (pop completions)
-		  default (car completions)
-		  histvar (intern (concat
-				   "org-remember-template-prompt-history::"
-				   (or prompt "")))
-		  completions (mapcar 'list completions)))
-	  (cond
-	   ((member char '("G" "g"))
-	    (let* ((org-last-tags-completion-table
-		    (org-global-tags-completion-table
-		     (if (equal char "G") (org-agenda-files) (and file (list file)))))
-		   (org-add-colon-after-tag-completion t)
-		   (ins (org-ido-completing-read
-			 (if prompt (concat prompt ": ") "Tags: ")
-			 'org-tags-completion-function nil nil nil
-			 'org-tags-history)))
-	      (setq ins (mapconcat 'identity
-				  (org-split-string ins (org-re "[^[:alnum:]_@]+"))
-				  ":"))
-	      (when (string-match "\\S-" ins)
-		(or (equal (char-before) ?:) (insert ":"))
-		(insert ins)
-		(or (equal (char-after) ?:) (insert ":")))))
-	   ((equal char "C")
-	    (cond ((= (length clipboards) 1) (insert (car clipboards)))
-		  ((> (length clipboards) 1)
-		   (insert (read-string "Clipboard/kill value: "
-					(car clipboards) '(clipboards . 1)
-					(car clipboards))))))
-	   ((equal char "L")
-	    (cond ((= (length clipboards) 1)
-		   (org-insert-link 0 (car clipboards)))
-		  ((> (length clipboards) 1)
-		   (org-insert-link 0 (read-string "Clipboard/kill value: "
-						   (car clipboards)
-						   '(clipboards . 1)
-						   (car clipboards))))))
-	   ((equal char "p")
-	    (let*
-		((prop (org-substring-no-properties prompt))
-		 (pall (concat prop "_ALL"))
-		 (allowed
-		  (with-current-buffer
-		      (get-buffer (file-name-nondirectory file))
-		    (or (cdr (assoc pall org-file-properties))
-			(cdr (assoc pall org-global-properties))
-			(cdr (assoc pall org-global-properties-fixed)))))
-		 (existing (with-current-buffer
-			       (get-buffer (file-name-nondirectory file))
-			     (mapcar 'list (org-property-values prop))))
-		 (propprompt (concat "Value for " prop ": "))
-		 (val (if allowed
-			  (org-completing-read
-			   propprompt
-			   (mapcar 'list (org-split-string allowed "[ \t]+"))
-			   nil 'req-match)
-			(org-completing-read-no-ido propprompt existing nil nil
-					     "" nil ""))))
-	      (org-set-property prop val)))
-	   (char
-	    ;; These are the date/time related ones
-	    (setq org-time-was-given (equal (upcase char) char))
-	    (setq time (org-read-date (equal (upcase char) "U") t nil
-				      prompt))
-	    (org-insert-time-stamp time org-time-was-given
-				   (member char '("u" "U"))
-				   nil nil (list org-end-time-was-given)))
-	   (t
-	    (let (org-completion-use-ido)
-	      (insert (org-completing-read-no-ido
-		       (concat (if prompt prompt "Enter string")
-			       (if default (concat " [" default "]"))
-			       ": ")
-		       completions nil nil nil histvar default))))))
+	  (unless (org-remember-escaped-%)
+	    (setq char (if (match-end 3) (match-string 3))
+		  prompt (if (match-end 2) (match-string 2)))
+	    (goto-char (match-beginning 0))
+	    (replace-match "")
+	    (setq completions nil default nil)
+	    (when prompt
+	      (setq completions (org-split-string prompt "|")
+		    prompt (pop completions)
+		    default (car completions)
+		    histvar (intern (concat
+				     "org-remember-template-prompt-history::"
+				     (or prompt "")))
+		    completions (mapcar 'list completions)))
+	    (cond
+	     ((member char '("G" "g"))
+	      (let* ((org-last-tags-completion-table
+		      (org-global-tags-completion-table
+		       (if (equal char "G") (org-agenda-files) (and file (list file)))))
+		     (org-add-colon-after-tag-completion t)
+		     (ins (org-icompleting-read
+			   (if prompt (concat prompt ": ") "Tags: ")
+			   'org-tags-completion-function nil nil nil
+			   'org-tags-history)))
+		(setq ins (mapconcat 'identity
+				     (org-split-string ins (org-re "[^[:alnum:]_@]+"))
+				     ":"))
+		(when (string-match "\\S-" ins)
+		  (or (equal (char-before) ?:) (insert ":"))
+		  (insert ins)
+		  (or (equal (char-after) ?:) (insert ":")))))
+	     ((equal char "C")
+	      (cond ((= (length clipboards) 1) (insert (car clipboards)))
+		    ((> (length clipboards) 1)
+		     (insert (read-string "Clipboard/kill value: "
+					  (car clipboards) '(clipboards . 1)
+					  (car clipboards))))))
+	     ((equal char "L")
+	      (cond ((= (length clipboards) 1)
+		     (org-insert-link 0 (car clipboards)))
+		    ((> (length clipboards) 1)
+		     (org-insert-link 0 (read-string "Clipboard/kill value: "
+						     (car clipboards)
+						     '(clipboards . 1)
+						     (car clipboards))))))
+	     ((equal char "p")
+	      (let*
+		  ((prop (org-substring-no-properties prompt))
+		   (pall (concat prop "_ALL"))
+		   (allowed
+		    (with-current-buffer
+			(get-buffer (file-name-nondirectory file))
+		      (or (cdr (assoc pall org-file-properties))
+			  (cdr (assoc pall org-global-properties))
+			  (cdr (assoc pall org-global-properties-fixed)))))
+		   (existing (with-current-buffer
+				 (get-buffer (file-name-nondirectory file))
+			       (mapcar 'list (org-property-values prop))))
+		   (propprompt (concat "Value for " prop ": "))
+		   (val (if allowed
+			    (org-completing-read
+			     propprompt
+			     (mapcar 'list (org-split-string allowed "[ \t]+"))
+			     nil 'req-match)
+			  (org-completing-read-no-i propprompt existing nil nil
+						    "" nil ""))))
+		(org-set-property prop val)))
+	     (char
+	      ;; These are the date/time related ones
+	      (setq org-time-was-given (equal (upcase char) char))
+	      (setq time (org-read-date (equal (upcase char) "U") t nil
+					prompt))
+	      (org-insert-time-stamp time org-time-was-given
+				     (member char '("u" "U"))
+				     nil nil (list org-end-time-was-given)))
+	     (t
+	      (let (org-completion-use-ido)
+		(insert (org-completing-read-no-i
+			 (concat (if prompt prompt "Enter string")
+				 (if default (concat " [" default "]"))
+				 ": ")
+			 completions nil nil nil histvar default)))))))
+
 	(goto-char (point-min))
 	(if (re-search-forward "%\\?" nil t)
 	    (replace-match "")
@@ -628,6 +646,14 @@ to be run from that hook to function properly."
 	  (re-search-forward "%!" nil t))
     (replace-match "")
     (add-hook 'post-command-hook 'org-remember-finish-immediately 'append)))
+
+(defun org-remember-escaped-% ()
+  (if (equal (char-before (match-beginning 0)) ?\\)
+      (progn
+	(delete-region (1- (match-beginning 0)) (match-beginning 0))
+	t)
+    nil))
+
 
 (defun org-remember-finish-immediately ()
   "File remember note immediately.
@@ -1050,7 +1076,8 @@ See also the variable `org-reverse-note-order'."
 			  (directory-files
 			   org-remember-backup-directory nil
 			   "^remember-.*[0-9]$"))))
-		  (when (> n 0)
+		  (when (and org-remember-warn-about-backups
+                             (> n 0))
 		    (message
 		     "%d backup files (unfinished remember calls) in %s"
 		     n org-remember-backup-directory))))))))))
