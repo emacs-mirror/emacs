@@ -1,3 +1,8 @@
+2009-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (default-major-mode): Move most of the doc from here...
+	(major-mode): ... to here.
+
 2009-08-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* process.c (wait_reading_process_output): Keep the descriptor
