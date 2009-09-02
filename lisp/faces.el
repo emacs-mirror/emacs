@@ -2358,6 +2358,8 @@ terminal type to a different value."
   :version "21.1"
   :group 'mode-line-faces
   :group 'basic-faces)
+;; No need to define aliases of this form for new faces.
+(define-obsolete-face-alias 'modeline 'mode-line "21.1")
 
 (defface mode-line-inactive
   '((default
@@ -2374,6 +2376,7 @@ terminal type to a different value."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
+(define-obsolete-face-alias 'modeline-inactive 'mode-line-inactive "22.1")
 
 (defface mode-line-highlight
   '((((class color) (min-colors 88))
@@ -2384,6 +2387,7 @@ terminal type to a different value."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
+(define-obsolete-face-alias 'modeline-highlight 'mode-line-highlight "22.1")
 
 (defface mode-line-emphasis
   '((t (:weight bold)))
@@ -2399,12 +2403,7 @@ Use the face `mode-line-highlight' for features that can be selected."
   :version "22.1"
   :group 'mode-line-faces
   :group 'basic-faces)
-
-;; Make `modeline' an alias for `mode-line', for compatibility.
-(put 'modeline 'face-alias 'mode-line)
-(put 'modeline-inactive 'face-alias 'mode-line-inactive)
-(put 'modeline-highlight 'face-alias 'mode-line-highlight)
-(put 'modeline-buffer-id 'face-alias 'mode-line-buffer-id)
+(define-obsolete-face-alias 'modeline-buffer-id 'mode-line-buffer-id "22.1")
 
 (defface header-line
   '((default
