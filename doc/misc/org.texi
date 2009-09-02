@@ -3,8 +3,8 @@
 @setfilename ../../info/org
 @settitle The Org Manual
 
-@set VERSION 6.29c
-@set DATE August 2009
+@set VERSION 6.30c
+@set DATE September 2009
 
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://orgmode.org,maintainers webpage}
@@ -415,7 +415,7 @@ Hacking
 
 Tables and lists in arbitrary syntax
 
-* Radio tables::                Sending and receiving
+* Radio tables::                Sending and receiving radio tables
 * A LaTeX example::             Step by step, almost a tutorial
 * Translator functions::        Copy and modify
 * Radio lists::                 Doing the same for lists
@@ -646,15 +646,23 @@ active region by using the mouse to select a region, or pressing
 
 If you find problems with Org, or if you have questions, remarks, or ideas
 about it, please mail to the Org mailing list @email{emacs-orgmode@@gnu.org}.
-If you are not a member of the mailing list, your mail will be reviewed by a
-moderator and then passed through to the list.
+If you are not a member of the mailing list, your mail will be passed to the
+list after a moderator has approved it.
 
-For bug reports, please provide as much information as possible,
-including the version information of Emacs (@kbd{C-h v emacs-version
-@key{RET}}) and Org (@kbd{C-h v org-version @key{RET}}), as well as
-the Org related setup in @file{.emacs}.  If an error occurs, a
-backtrace can be very useful (see below on how to create one).  Often a
-small example file helps, along with clear information about:
+For bug reports, please provide as much information as possible, including
+the version information of Emacs (@kbd{M-x emacs-version @key{RET}}) and Org
+(@kbd{M-x org-version @key{RET}}), as well as the Org related setup in
+@file{.emacs}.  The easiest way to do this is to use the command
+@example
+@kbd{M-x org-submit-bug-report}
+@end example
+@noindent which will put all this information into an Emacs mail buffer so
+that you only need to add your description.  If you re not sending the Email
+from within Emacs, please copy and paste the content into your Email program.
+
+If an error occurs, a backtrace can be very useful (see below on how to
+create one).  Often a small example file helps, along with clear information
+about:
 
 @enumerate
 @item What exactly did you do?
@@ -957,6 +965,7 @@ See also the variable @code{org-goto-interface}.
 @cindex pasting, of subtrees
 @cindex cutting, of subtrees
 @cindex copying, of subtrees
+@cindex sorting, of subtrees
 @cindex subtrees, cut and paste
 
 @table @kbd
@@ -2586,7 +2595,7 @@ All lines that should be recalculated should be marked with @samp{#}
 or @samp{*}.
 @item /
 Do not export this line.  Useful for lines that contain the narrowing
-@samp{<N>} markers.
+@samp{<N>} markers or column group markers.
 @end table
 
 Finally, just to whet your appetite for what can be done with the
@@ -3027,7 +3036,9 @@ with Emacs and select a suitable application for local non-text files.
 Classification of files is based on file extension only.  See option
 @code{org-file-apps}.  If you want to override the default application and
 visit the file with Emacs, use a @kbd{C-u} prefix.  If you want to avoid
-opening in Emacs, use a @kbd{C-u C-u} prefix.
+opening in Emacs, use a @kbd{C-u C-u} prefix.@*
+If the cursor is on a headline, but not on a link, offer all links in the
+headline and entry text.
 @c
 @kindex mouse-2
 @kindex mouse-1
@@ -3802,6 +3813,7 @@ priority):
 @node Breaking down tasks, Checkboxes, Priorities, TODO Items
 @section Breaking tasks down into subtasks
 @cindex tasks, breaking down
+@cindex statistics, for TODO items
 
 @vindex org-agenda-todo-list-sublevels
 It is often advisable to break down large tasks into smaller, manageable
@@ -3810,7 +3822,8 @@ with detailed subtasks on the tree@footnote{To keep subtasks out of the
 global TODO list, see the @code{org-agenda-todo-list-sublevels}.}.  To keep
 the overview over the fraction of subtasks that are already completed, insert
 either @samp{[/]} or @samp{[%]} anywhere in the headline.  These cookies will
-be updates each time the todo status of a child changes.  For example:
+be updates each time the todo status of a child changes, or when pressing
+@kbd{C-c C-c} on the cookie.  For example:
 
 @example
 * Organize Party [33%]
@@ -3826,6 +3839,20 @@ If a heading has both checkboxes and TODO children below it, the meaning of
 the statistics cookie become ambiguous.  Set the property
 @code{COOKIE_DATA} to either @samp{checkbox} or @samp{todo} to resolve
 this issue.
+
+@vindex org-hierarchical-todo-statistics
+If you would like to have the statistics cookie count any TODO entries in the
+subtree (not just direct children), confgure the variable
+@code{org-hierarchical-todo-statistics}.  To do this for a single subtree,
+include the word @samp{recursive} into the value of the @code{COOKIE_DATA}
+property.
+
+@example
+* Parent capturing statistics [2/20]
+  :PROPERTIES:
+  :COOKIE_DATA: todo recursive
+  :END:
+@end example
 
 If you would like a TODO entry to automatically change to DONE
 when all children are done, you can use the following setup:
@@ -3877,6 +3904,7 @@ checked.
 @cindex statistics, for checkboxes
 @cindex checkbox statistics
 @cindex property, COOKIE_DATA
+@vindex org-hierarchical-checkbox-statistics
 The @samp{[2/4]} and @samp{[1/3]} in the first and second line are cookies
 indicating how many checkboxes present in this entry have been checked off,
 and the total number of checkboxes present.  This can give you an idea on how
@@ -3884,7 +3912,7 @@ many checkboxes remain, even without opening a folded entry.  The cookies can
 be placed into a headline or into (the first line of) a plain list item.
 Each cookie covers checkboxes of direct children structurally below the
 headline/item on which the cookie appears@footnote{Set the variable
-@code{org-recursive-checkbox-statistics} if you want such cookies to
+@code{org-hierarchical-checkbox-statistics} if you want such cookies to
 represent the all checkboxes below the cookie, not just the direct
 children.}.  You have to insert the cookie yourself by typing either
 @samp{[/]} or @samp{[%]}.  With @samp{[/]} you get an @samp{n out of m}
@@ -3943,12 +3971,13 @@ for better visibility, customize the variable
 @code{org-track-ordered-property-with-tag}.
 @kindex C-c #
 @item C-c #
-Update the checkbox statistics in the current outline entry.  When
-called with a @kbd{C-u} prefix, update the entire file.  Checkbox
-statistic cookies are updated automatically if you toggle checkboxes
-with @kbd{C-c C-c} and make new ones with @kbd{M-S-@key{RET}}.  If you
-delete boxes or add/change them by hand, use this command to get things
-back into sync.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
+Update the statistics cookie in the current outline entry.  When called with
+a @kbd{C-u} prefix, update the entire file.  Checkbox statistic cookies are
+updated automatically if you toggle checkboxes with @kbd{C-c C-c} and make
+new ones with @kbd{M-S-@key{RET}}.  TODO statistics cookies update when
+changing TODO states.  If you delete boxes/entries or add/change them by
+hand, use this command to get things back into sync.  Or simply toggle any
+entry twice (checkboxes with @kbd{C-c C-c}).
 @end table
 
 @node Tags, Properties and Columns, TODO Items, Top
@@ -5501,11 +5530,25 @@ assign effort estimates to entries.  If you are also clocking your work, you
 may later want to compare the planned effort with the actual working time, a
 great way to improve planning estimates.  Effort estimates are stored in a
 special property @samp{Effort}@footnote{You may change the property being
-used with the variable @code{org-effort-property}.}.  Clearly the best way to
-work with effort estimates is through column view (@pxref{Column view}).  You
-should start by setting up discrete values for effort estimates, and a
-@code{COLUMNS} format that displays these values together with clock sums (if
-you want to clock your time).  For a specific buffer you can use
+used with the variable @code{org-effort-property}.}.  You can set the effort
+for an entry with the following commands:
+
+@table @kbd
+@kindex C-c C-x e
+@item C-c C-x e
+Set the effort estimate for the current entry.  With a numeric prefix
+argument, set it to the NTH allowed value (see below).  This command is also
+accessible from the agenda with the @kbd{e} key.
+@kindex C-c C-x C-e
+@item C-c C-x C-e
+Modify the effort estimate of the item currently being clocked.
+@end table
+
+Clearly the best way to work with effort estimates is through column view
+(@pxref{Column view}).  You should start by setting up discrete values for
+effort estimates, and a @code{COLUMNS} format that displays these values
+together with clock sums (if you want to clock your time).  For a specific
+buffer you can use
 
 @example
 #+PROPERTY: Effort_ALL 0 0:10 0:30 1:00 2:00 3:00 4:00 5:00 6:00 7:00 8:00
@@ -5717,8 +5760,9 @@ more than one template) and then prepare the buffer like
 @end example
 
 @noindent
-During expansion of the template, special @kbd{%}-escapes allow dynamic
-insertion of content:
+During expansion of the template, special @kbd{%}-escapes@footnote{If you
+need one of these sequences literally, escape the @kbd{%} with a backslash.}
+allow dynamic insertion of content:
 @example
 %^@{@var{prompt}@}  @r{prompt the user for a string and replace this sequence with it.}
             @r{You may specify a default value and a completion table with}
@@ -6882,8 +6926,8 @@ Go to the original location of the item in another window.  Under Emacs
 @itemx @key{RET}
 Go to the original location of the item and delete other windows.
 @c
-@kindex f
-@item f
+@kindex F
+@item F
 @vindex org-agenda-start-with-follow-mode
 Toggle Follow mode.  In Follow mode, as you move the cursor through
 the agenda buffer, the other window always shows the corresponding
@@ -6891,43 +6935,18 @@ location in the Org file.  The initial setting for this mode in new
 agenda buffers can be set with the variable
 @code{org-agenda-start-with-follow-mode}.
 @c
-@kindex b
-@item b
+@kindex C-c C-x b
+@item C-c C-x b
 Display the entire subtree of the current item in an indirect buffer.  With a
 numeric prefix argument N, go up to level N and then take that tree.  If N is
 negative, go up that many levels.  With a @kbd{C-u} prefix, do not remove the
 previously used indirect buffer.
-@c
-@kindex v l
-@kindex l
-@item v l @ @r{or short} @ l
-@vindex org-log-done
-@vindex org-agenda-log-mode-items
-Toggle Logbook mode.  In Logbook mode, entries that were marked DONE while
-logging was on (variable @code{org-log-done}) are shown in the agenda, as are
-entries that have been clocked on that day.  You can configure the entry
-types that should be included in log mode using the variable
-@code{org-agenda-log-mode-items}.  When called with a @kbd{C-u} prefix, show
-all possible logbook entries, including state changes.  When called with two
-prefix args @kbd{C-u C-u}, show only logging information, nothing else.
-@c
-@kindex v a
-@kindex v A
-@item v a
-@itemx v A
-Toggle Archives mode.  In Archives mode, trees that are marked
-@code{ARCHIVED} are also scanned when producing the agenda.  When you use the
-capital @kbd{A}, even all archive files are included.  To exit archives mode,
-press @kbd{v a} again.
-@c
-@kindex R
-@item R
-@vindex org-agenda-start-with-clockreport-mode
-Toggle Clockreport mode.  In Clockreport mode, the daily/weekly agenda will
-always show a table with the clocked times for the timespan and file scope
-covered by the current agenda view.  The initial setting for this mode in new
-agenda buffers can be set with the variable
-@code{org-agenda-start-with-clockreport-mode}.
+
+@kindex C-c C-o
+@item C-c C-o
+Follow a link in the entry.  This will offer a selection of any links in the
+text belonging to the referenced Org node.  If there is only one link, it
+will be followed without a selection prompt.
 
 @tsubheading{Change display}
 @cindex display changing, in agenda
@@ -6956,9 +6975,77 @@ argument as well.  For example, @kbd{200712 w} will jump to week 12 in
 2007.  If such a year specification has only one or two digits, it will
 be mapped to the interval 1938-2037.
 @c
+@kindex f
+@item f
+@vindex org-agenda-ndays
+Go forward in time to display the following @code{org-agenda-ndays} days.
+For example, if the display covers a week, switch to the following week.
+With prefix arg, go forward that many times @code{org-agenda-ndays} days.
+@c
+@kindex b
+@item b
+Go backward in time to display earlier dates.
+@c
+@kindex .
+@item .
+Go to today.
+@c
+@kindex j
+@item j
+Prompt for a date and go there.
+@c
 @kindex D
 @item D
 Toggle the inclusion of diary entries.  See @ref{Weekly/daily agenda}.
+@c
+@kindex v l
+@kindex l
+@item v l @ @r{or short} @ l
+@vindex org-log-done
+@vindex org-agenda-log-mode-items
+Toggle Logbook mode.  In Logbook mode, entries that were marked DONE while
+logging was on (variable @code{org-log-done}) are shown in the agenda, as are
+entries that have been clocked on that day.  You can configure the entry
+types that should be included in log mode using the variable
+@code{org-agenda-log-mode-items}.  When called with a @kbd{C-u} prefix, show
+all possible logbook entries, including state changes.  When called with two
+prefix args @kbd{C-u C-u}, show only logging information, nothing else.
+@c
+@kindex v [
+@kindex [
+@item v [ @ @r{or short} @ [
+Include inactive timestamps into the current view.  Only for weekly/daily
+agenda and timeline views.
+@c
+@kindex v a
+@kindex v A
+@item v a
+@itemx v A
+Toggle Archives mode.  In Archives mode, trees that are marked
+@code{ARCHIVED} are also scanned when producing the agenda.  When you use the
+capital @kbd{A}, even all archive files are included.  To exit archives mode,
+press @kbd{v a} again.
+@c
+@kindex v R
+@kindex R
+@item v R @ @r{or short} @ R
+@vindex org-agenda-start-with-clockreport-mode
+Toggle Clockreport mode.  In Clockreport mode, the daily/weekly agenda will
+always show a table with the clocked times for the timespan and file scope
+covered by the current agenda view.  The initial setting for this mode in new
+agenda buffers can be set with the variable
+@code{org-agenda-start-with-clockreport-mode}.
+@c
+@kindex v E
+@kindex E
+@item v E @ @r{or short} @ E
+@vindex org-agenda-start-with-entry-text-mode
+@vindex org-agenda-entry-text-maxlines
+Toggle entry text mode.  In entry text mode, a number of lines from the Org
+outline node referenced by an agenda line will be displayed below the line.
+The maximum number of lines is given by the variable
+@code{org-agenda-entry-text-maxlines}.  Calling this command with a numeric
+prefix argument will temporarily modify that number to the prefix value.
 @c
 @kindex G
 @item G
@@ -6984,25 +7071,6 @@ Same as @kbd{r}.
 @itemx C-x C-s
 Save all Org buffers in the current Emacs session, and also the locations of
 IDs.
-@c
-@kindex @key{right}
-@item @key{right}
-@vindex org-agenda-ndays
-Display the following @code{org-agenda-ndays} days.  For example, if
-the display covers a week, switch to the following week.  With prefix
-arg, go forward that many times @code{org-agenda-ndays} days.
-@c
-@kindex @key{left}
-@item @key{left}
-Display the previous dates.
-@c
-@kindex .
-@item .
-Go to today.
-@c
-@kindex j
-@item j
-Prompt for a date and go there.
 @c
 @kindex C-c C-x C-c
 @item C-c C-x C-c
@@ -7077,14 +7145,15 @@ the effort criterion.  You can achieve the same effect by pressing @kbd{+} or
 @kindex @{
 @kindex @}
 @item [ ] @{ @}
-In the @i{search view} (@pxref{Keyword search}), these keys add new search
-words (@kbd{[} and @kbd{]}) or new regular expressions (@kbd{@{} and
-@kbd{@}}) to the query string.  The opening bracket/brace will add a positive
-search term prefixed by @samp{+}, indicating that this search term @i{must}
-occur/match in the entry.  The closing bracket/brace will add a negative
-search term which @i{must not} occur/match in the entry for it to be
+@table @i
+@item @r{in} search view
+add new search words (@kbd{[} and @kbd{]}) or new regular expressions
+(@kbd{@{} and @kbd{@}}) to the query string.  The opening bracket/brace will
+add a positive search term prefixed by @samp{+}, indicating that this search
+term @i{must} occur/match in the entry.  The closing bracket/brace will add a
+negative search term which @i{must not} occur/match in the entry for it to be
 selected.
-
+@end table
 
 @tsubheading{Remote editing}
 @cindex remote editing, from agenda
@@ -8178,11 +8247,13 @@ Here is an example
 @cindex formatting source code, markup rules
 If the example is source code from a programming language, or any other text
 that can be marked up by font-lock in Emacs, you can ask for the example to
-look like the fontified Emacs buffer@footnote{Currently this works only for
-the HTML backend, and requires the @file{htmlize.el} package version 1.34 or
-later.}.  This is done with the @samp{src} block, where you also need to
-specify the name of the major mode that should be used to fontify the
-example:
+look like the fontified Emacs buffer@footnote{Currently this works for the
+HTML backend, and requires the @file{htmlize.el} package version 1.34 or
+later.  It also works for LaTeX with the listings package, if you turn on the
+option @code{org-export-latex-listings} and make sure that the listings
+package is included by the LaTeX header.}.  This is done with the @samp{src}
+block, where you also need to specify the name of the major mode that should
+be used to fontify the example:
 @cindex #+BEGIN_SRC
 
 @example
@@ -8265,7 +8336,7 @@ include your @file{.emacs} file, you could use:
 #+INCLUDE: "~/.emacs" src emacs-lisp
 @end example
 @noindent
-The optional second and third parameter are the markup (@samp{quote},
+The optional second and third parameter are the markup (e.g. @samp{quote},
 @samp{example}, or @samp{src}), and, if the markup is @samp{src}, the
 language for formatting the contents.  The markup is optional, if it is not
 given, the text will be assumed to be in Org mode format and will be
@@ -9664,6 +9735,7 @@ respective variable for details.
 @item @code{:priority}              @tab @code{org-export-with-priority}
 @item @code{:TeX-macros}            @tab @code{org-export-with-TeX-macros}
 @item @code{:LaTeX-fragments}       @tab @code{org-export-with-LaTeX-fragments}
+@item @code{:latex-listings}        @tab @code{org-export-latex-listings}
 @item @code{:skip-before-1st-heading} @tab @code{org-export-skip-text-before-1st-heading}
 @item @code{:fixed-width}           @tab @code{org-export-with-fixed-width}
 @item @code{:timestamps}            @tab @code{org-export-with-timestamps}
@@ -9937,6 +10009,12 @@ This may be necessary in particular if files include other files via
 @cindex option keyword completion
 @cindex tag completion
 @cindex link abbreviations, completion of
+
+Emacs would not be Emacs without completion, and Org-mode uses it whenever it
+makes sense.  If you prefer an @i{iswitchb}- or @i{ido}-like interface for
+some of the completion prompts, you can specify your preferece by setting at
+most one of the variables @code{org-completion-use-iswitchb}
+@code{org-completion-use-ido}.
 
 Org supports in-buffer completion.  This type of completion does
 not make use of the minibuffer.  You simply type a few letters into
@@ -10259,6 +10337,8 @@ drawer, offer property commands.
 If the cursor is at a footnote reference, go to the corresponding
 definition, and vice versa.
 @item
+If the cursor is on a statistics cookie, update it.
+@item
 If the cursor is in a plain list item with a checkbox, toggle the status
 of the checkbox.
 @item
@@ -10278,9 +10358,9 @@ block is updated.
 
 Some people find it noisy and distracting that the Org headlines start with a
 potentially large number of stars, and that text below the headlines is not
-indented.  While this is no problem when writing a book where the outline
-headings are really section headlines, in a more list-oriented outline,
-indented structure is a lot cleaner:
+indented.  While this is no problem when writing a @emph{book-like} document
+where the outline headings are really section headings, in a more
+@emph{list-oriented} outline, indented structure is a lot cleaner:
 
 @example
 @group
@@ -10295,19 +10375,19 @@ more text                        |          more text
 @end example
 
 @noindent
-If you are using Emacs 23 and at least version 6.29 of Org, this kind of view
-can be achieved dynamically at display time using @code{org-indent-mode}.  In
-this minor mode, all lines are prefixed for display with the necessary amount
-of space.  Also headlines are prefixed with additional stars, so that the
-amount of indentation shifts by two@footnote{See the variable
-@code{org-indent-indentation-per-level}.}  spaces per level.  All headline
-stars but the last one are made invisible using the @code{org-hide}
-face@footnote{Turning on @code{org-indent-mode} sets
-@code{org-hide-leading-stars} to @code{t} and @code{org-adapt-indentation} to
-@code{nil}.} - see below under @samp{2.} for more information on how this
-works.  You can turn on @code{org-indent-mode} for all files by customizing
-the variable @code{org-startup-indented}, or you can turn it on for
-individual files using
+If you are using at least Emacs 23.1.50.3 and version 6.29 of Org, this kind
+of view can be achieved dynamically at display time using
+@code{org-indent-mode}.  In this minor mode, all lines are prefixed for
+display with the necessary amount of space.  Also headlines are prefixed with
+additional stars, so that the amount of indentation shifts by
+two@footnote{See the variable @code{org-indent-indentation-per-level}.}
+spaces per level.  All headline stars but the last one are made invisible
+using the @code{org-hide} face@footnote{Turning on @code{org-indent-mode}
+sets @code{org-hide-leading-stars} to @code{t} and
+@code{org-adapt-indentation} to @code{nil}.} - see below under @samp{2.} for
+more information on how this works.  You can turn on @code{org-indent-mode}
+for all files by customizing the variable @code{org-startup-indented}, or you
+can turn it on for individual files using
 
 @example
 #+STARTUP: indent
@@ -10808,7 +10888,7 @@ or Texinfo.)
 
 
 @menu
-* Radio tables::                Sending and receiving
+* Radio tables::                Sending and receiving radio tables
 * A LaTeX example::             Step by step, almost a tutorial
 * Translator functions::        Copy and modify
 * Radio lists::                 Doing the same for lists
@@ -11070,12 +11150,10 @@ others can benefit from your work.
 @cindex radio lists
 @cindex org-list-insert-radio-list
 
-Sending and receiving radio lists works exactly the same way than
-sending and receiving radio tables (@pxref{Radio tables}) @footnote{You
-need to load the @code{org-export-latex.el} package to use radio lists
-since the relevant code is there for now.}.  As for radio tables, you
-can insert radio lists templates in HTML, La@TeX{} and Texinfo modes by
-calling @code{org-list-insert-radio-list}.
+Sending and receiving radio lists works exactly the same way than sending and
+receiving radio tables (@pxref{Radio tables}).  As for radio tables, you can
+insert radio lists templates in HTML, La@TeX{} and Texinfo modes by calling
+@code{org-list-insert-radio-list}.
 
 Here are the differences with radio tables:
 

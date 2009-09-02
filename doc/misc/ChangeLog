@@ -1,3 +1,12 @@
+2009-09-02  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Effort estimates): Document new effort setting commands.
+	(Agenda commands): Document the new keys fro agenda time motion.
+	Document entry text mode.  Improve documentation of the keys to include
+	inactive time stamps into the agenda view.
+	(Feedback): Document the new bug report command.
+	(Structure editing): Added an index entry for the sorting of subtrees.
+
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-mime.texi (time-date): Mention float-time.
