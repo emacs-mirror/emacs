@@ -1,7 +1,7 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -282,8 +282,8 @@ Should be called narrowed to the head of the message."
 		(rfc2047-encode-region (point) (point-max))))
 	     ((eq method 'default)
 	      (if (and (featurep 'mule)
-		       (if (boundp 'default-enable-multibyte-characters)
-			   default-enable-multibyte-characters)
+		       (if (boundp 'enable-multibyte-characters)
+			   (default-value 'enable-multibyte-characters))
 		       mail-parse-charset)
 		  (mm-encode-coding-region (point) (point-max)
 					   mail-parse-charset)))
@@ -309,8 +309,8 @@ Should be called narrowed to the head of the message."
 ;;; 		(error "Cannot send unencoded text")))
 	     ((mm-coding-system-p method)
 	      (if (or (and (featurep 'mule)
-			   (if (boundp 'default-enable-multibyte-characters)
-			       default-enable-multibyte-characters))
+			   (if (boundp 'enable-multibyte-characters)
+			       (default-value 'enable-multibyte-characters)))
 		      (featurep 'file-coding))
 		  (mm-encode-coding-region (point) (point-max) method)))
 	     ;; Hm.

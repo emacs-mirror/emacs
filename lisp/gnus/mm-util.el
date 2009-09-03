@@ -1,7 +1,7 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -900,8 +900,8 @@ mail with multiple parts is preferred to sending a Unicode one.")
 
 (eval-and-compile
   (defvar mm-emacs-mule (and (not (featurep 'xemacs))
-			     (boundp 'default-enable-multibyte-characters)
-			     default-enable-multibyte-characters
+			     (boundp 'enable-multibyte-characters)
+			     (default-value 'enable-multibyte-characters)
 			     (fboundp 'set-buffer-multibyte))
     "True in Emacs with Mule.")
 
@@ -1013,8 +1013,8 @@ This is a compatibility function for Emacsen without `delete-dups'."
   "Return non-nil if the session is multibyte.
 This affects whether coding conversion should be attempted generally."
   (if (featurep 'mule)
-      (if (boundp 'default-enable-multibyte-characters)
-	  default-enable-multibyte-characters
+      (if (boundp 'enable-multibyte-characters)
+	  (default-value 'enable-multibyte-characters)
 	t)))
 
 (defun mm-iso-8859-x-to-15-region (&optional b e)
