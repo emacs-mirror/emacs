@@ -1345,7 +1345,7 @@ static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
      Parse a color name
-/* --------------------------------------------------------------------------
+   -------------------------------------------------------------------------- */
 /* On *Step, we attempt to mimic the X11 platform here, down to installing an
    X11 rgb.txt-compatible color list in Emacs.clr (see ns_term_init()).
    See: http://thread.gmane.org/gmane.emacs.devel/113050/focus=113272). */
