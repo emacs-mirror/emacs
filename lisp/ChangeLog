@@ -1,3 +1,13 @@
+2009-09-03  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-check):
+	* calendar/diary-lib.el (diary-set-header, diary-live-p)
+	(diary-check-diary-file, diary-list-entries)
+	(diary-include-other-diary-files, diary-simple-display)
+	(diary-fancy-display, diary-print-entries)
+	(diary-mark-included-diary-files, diary-make-entry):
+	Don't call substitute-in-file-name on diary-file.
+
 2009-09-03  Eduard Wiebe  <usenet@pusto.de>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
 

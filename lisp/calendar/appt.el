@@ -331,8 +331,7 @@ displayed in a window:
                              (cons 'appt-make-list diary-hook))))
                       (diary))
                   (let* ((diary-display-function 'appt-make-list)
-                         (d-buff (find-buffer-visiting
-                                  (substitute-in-file-name diary-file)))
+                         (d-buff (find-buffer-visiting diary-file))
                          (selective
                           (if d-buff    ; diary buffer exists
                               (with-current-buffer d-buff
@@ -343,8 +342,7 @@ displayed in a window:
                     (if d-buff
                         ;; Displays the diary buffer.
                         (or selective (diary-show-all-entries))
-                      (and (setq d-buff (find-buffer-visiting
-                                         (substitute-in-file-name diary-file)))
+                      (and (setq d-buff (find-buffer-visiting diary-file))
                            (kill-buffer d-buff)))))
               (error nil)))
         (setq appt-prev-comp-time cur-comp-time
