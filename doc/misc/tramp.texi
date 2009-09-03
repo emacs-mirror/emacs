@@ -3211,6 +3211,40 @@ I would like to thank all @value{tramp} users, who have contributed to
 the different recipes!
 
 
+@ifset emacs
+@item
+How can I use @value{tramp} to connect to a remote @value{emacsname}
+session?
+
+You can configure Emacs Client doing this.
+@ifinfo
+@xref{Emacs Server, , , @value{emacsdir}}.
+@end ifinfo
+
+On the remote host, you start the Emacs Server:
+
+@lisp
+(require 'server)
+(setq server-host (system-name)
+      server-use-tcp t)
+(server-start)
+@end lisp
+
+Make sure, that the result of @code{(system-name)} can be resolved on
+your local host; otherwise you might use a hard coded IP address.
+
+The resulting file @file{~/.emacs.d/server/server} must be copied to
+your local host, at the same location.  You can call then the Emacs
+Client from the command line:
+
+@example
+emacsclient @trampfn{ssh, user, host, /file/to/edit}
+@end example
+
+@code{user} and @code{host} shall be related to your local host.
+@end ifset
+
+
 @item
 How can I disable @value{tramp}?
 
