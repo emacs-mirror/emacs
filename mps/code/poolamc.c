@@ -2415,8 +2415,6 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   TraceId ti;
   Count perc;
   
-  PageRetStruct *pageret;
-
   AVERT(Pool, pool);
   AVERT(Trace, trace);
 
@@ -2452,24 +2450,23 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       NULL ));
   }
   
-  pageret = &amc->pageretstruct[ti];
   DIAG_SINGLEF(( "AMCTraceEnd_pageret",
     "$U ", ArenaEpoch(pool->arena),
     "$U ", trace->why,
     "$S ", trace->emergency ? "Emergency" : "-",
-    "$U ", pageret->pCond,
-    "$U ", pageret->pRet,
-    "$U ", pageret->pCS,
-    "$U ", pageret->pRS,
-    "$U ", pageret->pCM,
-    "$U ", pageret->pCMx,
-    "$U ", pageret->pRM,
-    "$U ", pageret->pRM1,
-    "$U ", pageret->pRMrr,
-    "$U ", pageret->pRMr1,
-    "$U ", pageret->pCL,
-    "$U ", pageret->pRL,
-    "$U ", pageret->pRLr,
+    "$U ", amc->pageretstruct[ti].pCond,
+    "$U ", amc->pageretstruct[ti].pRet,
+    "$U ", amc->pageretstruct[ti].pCS,
+    "$U ", amc->pageretstruct[ti].pRS,
+    "$U ", amc->pageretstruct[ti].pCM,
+    "$U ", amc->pageretstruct[ti].pCMx,
+    "$U ", amc->pageretstruct[ti].pRM,
+    "$U ", amc->pageretstruct[ti].pRM1,
+    "$U ", amc->pageretstruct[ti].pRMrr,
+    "$U ", amc->pageretstruct[ti].pRMr1,
+    "$U ", amc->pageretstruct[ti].pCL,
+    "$U ", amc->pageretstruct[ti].pRL,
+    "$U ", amc->pageretstruct[ti].pRLr,
     NULL ));
 
   amcResetTraceIdStats(amc, ti);
