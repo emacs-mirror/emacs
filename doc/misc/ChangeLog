@@ -1,3 +1,8 @@
+2009-09-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for
+	emacsclient.
+
 2009-09-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (Effort estimates): Document new effort setting commands.
