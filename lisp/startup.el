@@ -1015,7 +1015,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	  debug-on-error-should-be-set
 	  (debug-on-error-initial
 	   (if (eq init-file-debug t) 'startup init-file-debug))
-	  (orig-enable-multibyte default-enable-multibyte-characters))
+	  (orig-enable-multibyte (default-value 'enable-multibyte-characters)))
       (let ((debug-on-error debug-on-error-initial)
 	    ;; This function actually reads the init files.
 	    (inner
@@ -1125,8 +1125,9 @@ the `--debug-init' option to view a complete error backtrace."
 		  debug-on-error-from-init-file debug-on-error)))
       (if debug-on-error-should-be-set
 	  (setq debug-on-error debug-on-error-from-init-file))
-      (unless (or default-enable-multibyte-characters
-		  (eq orig-enable-multibyte default-enable-multibyte-characters))
+      (unless (or (default-value 'enable-multibyte-characters)
+		  (eq orig-enable-multibyte (default-value
+					      'enable-multibyte-characters)))
 	;; Init file changed to unibyte.  Reset existing multibyte
 	;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
 	;; Arguably this should only be done if they're free of
@@ -1192,7 +1193,7 @@ the `--debug-init' option to view a complete error backtrace."
   (run-hooks 'after-init-hook)
 
   ;; Decode all default-directory.
-  (if (and default-enable-multibyte-characters locale-coding-system)
+  (if (and (default-value 'enable-multibyte-characters) locale-coding-system)
       (save-excursion
 	(dolist (elt (buffer-list))
 	  (set-buffer elt)

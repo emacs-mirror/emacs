@@ -1,6 +1,7 @@
 ;;; x-dnd.el --- drag and drop support for X.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jan Dj,Ad(Brv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -263,7 +264,7 @@ STRING is the uri-list as a string.  The URIs are separated by \\r\\n."
 WINDOW is the window where the drop happened.
 STRING is the file names as a string, separated by nulls."
   (let ((uri-list (split-string string "[\0\r\n]" t))
-	(coding (and default-enable-multibyte-characters
+	(coding (and (default-value 'enable-multibyte-characters)
 		     (or file-name-coding-system
 			 default-file-name-coding-system)))
 	retval)

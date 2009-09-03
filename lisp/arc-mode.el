@@ -1,7 +1,7 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
@@ -698,7 +698,7 @@ archive.
 	    (or file-name-coding-system
 		default-file-name-coding-system
 		locale-coding-system))
-      (if default-enable-multibyte-characters
+      (if (default-value 'enable-multibyte-characters)
 	  (set-buffer-multibyte 'to))
       (archive-summarize nil)
       (setq buffer-read-only t))))

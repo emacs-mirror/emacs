@@ -982,7 +982,7 @@ mail status in mode line"))
   (list 'menu-item "Mule (Multilingual Environment)" mule-menu-keymap
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
-;;;	':visible 'default-enable-multibyte-characters
+;;;	:visible '(default-value 'enable-multibyte-characters)
 	))
 ;(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 ;(define-key menu-bar-options-menu [preferences]
@@ -1354,18 +1354,18 @@ mail status in mode line"))
 
 (define-key menu-bar-describe-menu [mule-diag]
   '(menu-item "Show All of Mule Status" mule-diag
-	      :visible default-enable-multibyte-characters
+	      :visible (default-value 'enable-multibyte-characters)
 	      :help "Display multilingual environment settings"))
 (define-key menu-bar-describe-menu [describe-coding-system-briefly]
   '(menu-item "Describe Coding System (Briefly)"
               describe-current-coding-system-briefly
-              :visible default-enable-multibyte-characters))
+              :visible (default-value 'enable-multibyte-characters)))
 (define-key menu-bar-describe-menu [describe-coding-system]
   '(menu-item "Describe Coding System..." describe-coding-system
-	      :visible default-enable-multibyte-characters))
+	      :visible (default-value 'enable-multibyte-characters)))
 (define-key menu-bar-describe-menu [describe-input-method]
   '(menu-item "Describe Input Method..." describe-input-method
-	      :visible default-enable-multibyte-characters
+	      :visible (default-value 'enable-multibyte-characters)
 	      :help "Keyboard layout for specific input method"))
 (define-key menu-bar-describe-menu [describe-language-environment]
   (list 'menu-item "Describe Language Environment"

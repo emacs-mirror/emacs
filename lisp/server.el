@@ -869,7 +869,7 @@ The following commands are accepted by the client:
           ;; supported any more.
           (assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
-		(coding-system (and default-enable-multibyte-characters
+		(coding-system (and (default-value 'enable-multibyte-characters)
 				    (or file-name-coding-system
 					default-file-name-coding-system)))
 		nowait ; t if emacsclient does not want to wait for us.

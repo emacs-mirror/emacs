@@ -1,5 +1,24 @@
 2009-09-03  Glenn Morris  <rgm@gnu.org>
 
+	* arc-mode.el (archive-mode):
+	* dos-fns.el (set-default-process-coding-system):
+	* man.el (Man-getpage-in-background):
+	* menu-bar.el (menu-bar-describe-menu):
+	* server.el (server-process-filter):
+	* startup.el (command-line):
+	* tar-mode.el (tar-header-block-tokenize, tar-extract):
+	* w32-fns.el (set-default-process-coding-system):
+	* x-dnd.el (x-dnd-handle-file-name):
+	* international/mule-cmds.el (mule-menu-keymap)
+	(set-default-coding-systems, language-info-alist, set-language-info)
+	(set-language-environment, standard-display-european-internal)
+	(set-locale-environment):
+	* international/mule-diag.el (mule-diag):
+	* mail/emacsbug.el (report-emacs-bug):
+	* mail/rmail.el (rmail-mode):
+	* mail/sendmail.el (mail-setup):
+	Use default-value rather than default-enable-multibyte-characters.
+
 	* progmodes/f90.el: Move all safe properties into the defcustoms.
 	(f90-get-correct-indent, f90-indent-region, f90-abbrev-start): Use memq.
 

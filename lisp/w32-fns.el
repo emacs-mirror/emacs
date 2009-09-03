@@ -1,7 +1,7 @@
 ;;; w32-fns.el --- Lisp routines for Windows NT
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -176,20 +176,20 @@ You should set this to t when using a non-system shell.\n\n"))))
   ;; (and some programs ported from Unix require it) but most will
   ;; produce DOS line endings on output.
   (setq default-process-coding-system
-	(if default-enable-multibyte-characters
+	(if (default-value 'enable-multibyte-characters)
 	    '(undecided-dos . undecided-unix)
 	  '(raw-text-dos . raw-text-unix)))
   ;; Make cmdproxy default to using DOS line endings for input,
   ;; because some Windows programs (including command.com) require it.
   (add-to-list 'process-coding-system-alist
 	       `("[cC][mM][dD][pP][rR][oO][xX][yY]"
-		 . ,(if default-enable-multibyte-characters
+		 . ,(if (default-value 'enable-multibyte-characters)
 			'(undecided-dos . undecided-dos)
 		      '(raw-text-dos . raw-text-dos))))
   ;; plink needs DOS input when entering the password.
   (add-to-list 'process-coding-system-alist
 	       `("[pP][lL][iI][nN][kK]"
-		 . ,(if default-enable-multibyte-characters
+		 . ,(if (default-value 'enable-multibyte-characters)
 			'(undecided-dos . undecided-dos)
 		      '(raw-text-dos . raw-text-dos)))))
 

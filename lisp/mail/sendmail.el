@@ -552,7 +552,7 @@ actually occur.")
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
   ;; (kill-local-variable 'enable-multibyte-characters)
-  (set-buffer-multibyte default-enable-multibyte-characters)
+  (set-buffer-multibyte (default-value 'enable-multibyte-characters))
   (if current-input-method
       (inactivate-input-method))
   (setq mail-send-actions actions)

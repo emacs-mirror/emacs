@@ -1,7 +1,7 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 1995, 1996, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: Morten Welinder <terra@diku.dk>
 ;; Keywords: internal
@@ -211,7 +211,7 @@ returned unaltered."
 ;; Override settings chosen at startup.
 (defun set-default-process-coding-system ()
   (setq default-process-coding-system
-	(if default-enable-multibyte-characters
+	(if (default-value 'enable-multibyte-characters)
 	    '(undecided-dos . undecided-dos)
 	  '(raw-text-dos . raw-text-dos))))
 

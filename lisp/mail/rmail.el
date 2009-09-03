@@ -1234,7 +1234,7 @@ Instead, these commands are available:
     (rmail-mode-2)
     (when (and finding-rmail-file
 	       (null coding-system-for-read)
-	       default-enable-multibyte-characters)
+	       (default-value 'enable-multibyte-characters))
       (let ((rmail-enable-multibyte t))
 	(rmail-require-mime-maybe)
 	(rmail-convert-file-maybe)

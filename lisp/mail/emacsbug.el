@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -166,8 +166,8 @@ usually do not have translators to read other languages for them.\n\n")
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
-    (insert (format "  default-enable-multibyte-characters: %s\n"
-		    default-enable-multibyte-characters))
+    (insert (format "  default enable-multibyte-characters: %s\n"
+		    (default-value 'enable-multibyte-characters)))
     (insert "\n")
     (insert (format "Major mode: %s\n"
 		    (format-mode-line

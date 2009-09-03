@@ -127,8 +127,8 @@
     (define-key-after map [separator-input-method] '("--"))
 
     (define-key-after map [set-various-coding-system]
-      (list 'menu-item "Set Coding Systems" set-coding-system-map
-            :enable 'default-enable-multibyte-characters))
+      `(menu-item "Set Coding Systems" ,set-coding-system-map
+		  :enable (default-value 'enable-multibyte-characters)))
     (define-key-after map [view-hello-file]
       '(menu-item "Show Multi-lingual Text" view-hello-file
         :enable (file-readable-p
@@ -358,7 +358,7 @@ This also sets the following values:
   (if (eq system-type 'darwin)
       ;; The file-name coding system on Darwin systems is always utf-8.
       (setq default-file-name-coding-system 'utf-8)
-    (if (and default-enable-multibyte-characters
+    (if (and (default-value 'enable-multibyte-characters)
 	     (or (not coding-system)
 		 (coding-system-get coding-system 'ascii-compatible-p)))
 	(setq default-file-name-coding-system coding-system)))
@@ -1097,7 +1097,7 @@ Meaningful values for KEY include
 			`ctext-non-standard-encodings' for more detail.
 
 The following keys take effect only when multibyte characters are
-globally disabled, i.e. the value of `default-enable-multibyte-characters'
+globally disabled, i.e. the default value of `enable-multibyte-characters'
 is nil.
 
   unibyte-display    value is a coding system to encode characters for
@@ -1138,7 +1138,7 @@ see `language-info-alist'."
 	     (set-language-environment-nonascii-translation lang-env))
 	    ((eq key 'charset)
 	     (set-language-environment-charset lang-env))
-	    ((and (not default-enable-multibyte-characters)
+	    ((and (not (default-value 'enable-multibyte-characters))
 		  (or (eq key 'unibyte-syntax) (eq key 'unibyte-display)))
 	     (set-language-environment-unibyte lang-env)))))
 
@@ -1849,7 +1849,7 @@ specifies the character set for the major languages of Western Europe."
   (set-language-environment-nonascii-translation language-name)
   (set-language-environment-charset language-name)
   ;; Unibyte setups if necessary.
-  (unless default-enable-multibyte-characters
+  (unless (default-value 'enable-multibyte-characters)
     (set-language-environment-unibyte language-name))
 
   (let ((func (get-language-info language-name 'setup-function)))
@@ -1934,7 +1934,8 @@ See `set-language-info-alist' for use in programs."
   ;; Unibyte Emacs on MS-DOS wants to display all 8-bit characters with
   ;; the native font, and codes 160 and 146 stand for something very
   ;; different there.
-  (or (and (eq window-system 'pc) (not default-enable-multibyte-characters))
+  (or (and (eq window-system 'pc) (not (default-value
+					 'enable-multibyte-characters)))
       (progn
 	;; Most X fonts used to do the wrong thing for latin-1 code 160.
 	(unless (and (eq window-system 'x)
@@ -2602,10 +2603,10 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (unless frame
 	    (set-language-environment language-name))
 
-	  ;; If default-enable-multibyte-characters is nil,
+	  ;; If the default enable-multibyte-characters is nil,
 	  ;; we are using single-byte characters,
 	  ;; so the display table and terminal coding system are irrelevant.
-	  (when default-enable-multibyte-characters
+	  (when (default-value 'enable-multibyte-characters)
 	    (set-display-table-and-terminal-coding-system
 	     language-name coding-system frame))
 

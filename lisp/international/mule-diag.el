@@ -1088,7 +1088,8 @@ system which uses fontsets)."
       (insert "Version of this emacs:\n  " (emacs-version) "\n\n")
       (insert "Configuration options:\n  " system-configuration-options "\n\n")
       (insert "Multibyte characters awareness:\n"
-	      (format "  default: %S\n" default-enable-multibyte-characters)
+	      (format "  default: %S\n" (default-value
+					  'enable-multibyte-characters))
 	      (format "  current-buffer: %S\n\n" enable-multibyte-characters))
       (insert "Current language environment: " current-language-environment
 	      "\n\n")
