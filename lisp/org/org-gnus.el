@@ -34,8 +34,7 @@
 ;;; Code:
 
 (require 'org)
-(eval-when-compile
-  (require 'gnus-sum))
+(require 'gnus-sum)
 
 ;; Customization variables
 
@@ -51,9 +50,6 @@ negates this setting for the duration of the command."
   :type 'boolean)
 
 ;; Declare external functions and variables
-(declare-function gnus-summary-article-header "gnus-sum" (&optional number))
-(declare-function message-fetch-field "message" (header &optional not-all))
-(declare-function message-narrow-to-head-1 "message" nil)
 
 (defvar gnus-other-frame-object)
 (defvar gnus-group-name)
