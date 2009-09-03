@@ -393,7 +393,6 @@ function transforms it into a flat list."
 
 ;;; Standard protocol handlers:
 
-;;;###autoload
 (defun org-protocol-store-link (fname)
   "Process an org-protocol://store-link:// style url
 and store a browser URL as an org link. Also pushes the links URL to the
@@ -423,7 +422,6 @@ The sub-protocol used to reach this function is set in
              uri))
   nil)
 
-;;;###autoload
 (defun org-protocol-remember  (info)
   "Process an org-protocol://remember:// style url.
 
@@ -471,7 +469,6 @@ Now template ?b will be used."
     (message "Org-mode not loaded."))
   nil)
 
-;;;###autoload
 (defun org-protocol-open-source (fname)
   "Process an org-protocol://open-source:// style url.
 
