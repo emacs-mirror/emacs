@@ -2178,11 +2178,10 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
   Size headerSize;
-  Bool emptySeg = TRUE;  /* seg has no preserved-in-place objects */
 
   Index sizeclass = 0;
   Addr p1;  /* first obj in seg */
-  Bool obj1dead = FALSE;  /* first obj dead? */
+  Bool obj1pip = FALSE;  /* first obj was preserved in place */
 
   /* All arguments AVERed by AMCReclaim */
 
@@ -2232,13 +2231,14 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       (Seg2amcSeg(seg))->padstats.FwdR_padCount += 1;
     } else {
       Npip += 1;
-      emptySeg = FALSE;
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
     }
     
-    if(p == p1)
-      obj1dead = emptySeg;  /* empty after obj1 => obj1 dead */
+    if(p == p1) {
+      obj1pip = preservedInPlaceCount;
+      AVER(obj1pip == 0 || obj1pip == 1);
+    }
 
     AVER(p < q);
     p = q;
@@ -2259,11 +2259,11 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   /* (char) casts needed for VC6.0 compiler on platform.w3i3mv */
-  cond[0] = (char)(emptySeg ? 'E' : 'e');
+  cond[0] = (char)((preservedInPlaceCount == 0) ? 'E' : 'e');
   cond[1] = (char)((SegBuffer(seg) == NULL) ? 'b' : 'B');
   cond[2] = (char)((SegNailed(seg) == TraceSetEMPTY) ? 'n' : 'N');
   cond[3] = '\0';
-  if(emptySeg
+  if(preservedInPlaceCount == 0
      && (SegBuffer(seg) == NULL)
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
@@ -2288,17 +2288,17 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         amc->pageretstruct[trace->ti].pRS += pages;
       } else if(pages < largeSeg) {
         amc->pageretstruct[trace->ti].pRM += pages;
-        if(obj1dead) {
+        if(obj1pip) {
+          amc->pageretstruct[trace->ti].pRM1 += pages;
+        } else {
           /* Seg retained by a rest obj.  Cost: one rest page, */
           /* plus pages-1 pages of pure padding. */
           amc->pageretstruct[trace->ti].pRMrr += 1;
           amc->pageretstruct[trace->ti].pRMr1 += pages - 1;
-        } else {
-          amc->pageretstruct[trace->ti].pRM1 += pages;
         }
       } else {
         amc->pageretstruct[trace->ti].pRL += pages;
-        if(obj1dead) {
+        if(!obj1pip) {
           /* Seg retained by a rest obj */
           amc->pageretstruct[trace->ti].pRLr += pages;
         }
@@ -2306,7 +2306,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     } );
 
     STATISTIC(amc->cPagesRet[trace->ti] += segSize / ArenaAlign(pool->arena));
-    if(obj1dead) {
+    if(!obj1pip) {
       /* seg retained by ref into Rest */
       Count cbPagesBarOne = SegSize(seg) - ArenaAlign(pool->arena);
       if(sizeclass == 2)
