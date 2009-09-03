@@ -1,3 +1,8 @@
+2009-09-03  Carsten Dominik  <dominik@u016822.science.uva.nl>
+
+	* org-gnus.el: Remove unnecessary declare-function forms.
+	(gnus-sum): Always require gnus-sum.
+
 2009-09-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-protocol.el (org-protocol-store-link)
