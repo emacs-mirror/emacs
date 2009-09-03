@@ -2573,7 +2573,9 @@ bind it in the options section.")
 				       :from 'todo
 				       :to 'done)))))))
 	    (if org-blocked-by-checkboxes (setq invis1 nil))
-	    (setq b (if invis1 (max (point-min) (1- (point))) (point))
+	    (setq b (if invis1
+			(max (point-min) (1- (point-at-bol)))
+		      (point-at-bol))
 		  e (point-at-eol)
 		  ov (org-make-overlay b e))
 	    (if invis1
