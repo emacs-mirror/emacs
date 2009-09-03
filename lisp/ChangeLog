@@ -1,5 +1,8 @@
 2009-09-03  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el: Move all safe properties into the defcustoms.
+	(f90-get-correct-indent, f90-indent-region, f90-abbrev-start): Use memq.
+
 	* calendar/appt.el (appt-check):
 	* calendar/diary-lib.el (diary-set-header, diary-live-p)
 	(diary-check-diary-file, diary-list-entries)
