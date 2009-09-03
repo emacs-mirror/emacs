@@ -1,5 +1,9 @@
 2009-09-03  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
+	* org-protocol.el (org-protocol-store-link)
+	(org-protocol-remember, org-protocol-open-source): Remove autoload
+	cookies again.
+
 	* org-agenda.el (org-agenda-dim-blocked-tasks): Make sure we are
 	referencing the start of the line.
 
