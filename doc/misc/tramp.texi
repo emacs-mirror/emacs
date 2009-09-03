@@ -3242,6 +3242,21 @@ emacsclient @trampfn{ssh, user, host, /file/to/edit}
 @end example
 
 @code{user} and @code{host} shall be related to your local host.
+
+If you want to use Emacs Client also as editor for other programs, you
+could write a script @file{emacsclient.sh}:
+
+@example
+#!/bin/sh
+emacsclient @trampfn{ssh, `whoami`, `hostname --fqdn`, $1}
+@end example
+
+Then you must set the environment variable @code{EDITOR} pointing to
+that script:
+
+@example
+export EDITOR=/path/to/emacsclient.sh
+@end example
 @end ifset
 
 
