@@ -1,3 +1,11 @@
+2009-09-03  Eduard Wiebe  <usenet@pusto.de>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/footnote.el (footnote-prefix): Make it a defcustom.
+	(footnote-mode-map): Move initialization into the declaration.
+	(footnote-minor-mode-map): Define it rather than changing global-map.
+	(footnote-mode): Use define-minor-mode.
+
 2009-09-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-attributes-with-ls)
@@ -12,16 +20,14 @@
 	(tramp-method-out-of-band-p): Additional parameter SIZE.
 	(tramp-do-copy-or-rename-file, tramp-handle-file-local-copy)
 	(tramp-handle-write-region): Use it.
-	(tramp-handle-insert-directory): Use "?\ " for compatibility
-	reasons.
+	(tramp-handle-insert-directory): Use "?\ " for compatibility reasons.
 	(tramp-handle-vc-registered): Check, whether the first run did
 	return files to be tested.
 	(tramp-advice-make-auto-save-file-name): Do not call directly
 	`tramp-handle-make-auto-save-file-name', because this would bypass
 	the locking mechanism.
 
-	* net/tramp-compat.el (top): Autoload used functions from
-	tramp.el.
+	* net/tramp-compat.el (top): Autoload used functions from tramp.el.
 	(file-remote-p, process-file, start-file-process, set-file-times)
 	(tramp-compat-file-attributes): Compatibility functions shall not
 	call directly `tramp-handle-*', because this would bypass the
@@ -71,8 +77,7 @@
 	MI command -var-evaluate-expression.
 	(gdb-var-list-children-regexp): Update from regexp-1 in gdb-ui.el
 	and tweak for case of string child.
-	(gdb-var-list-children-handler): Update from handler-1 in
-	gdb-ui.el.
+	(gdb-var-list-children-handler): Update from handler-1 in gdb-ui.el.
 
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
@@ -187,7 +192,8 @@
 
 	* emacs-lisp/byte-run.el (define-obsolete-face-alias): New macro.
 
-	* apropos.el (apropos-symbols-internal): Handle (obsolete) face aliases.
+	* apropos.el (apropos-symbols-internal):
+	Handle (obsolete) face aliases.
 
 	* faces.el (describe-face): Adjust the output format to be more like
 	describe-variable, and to mention (obsolete) face aliases.
@@ -233,7 +239,7 @@
 	* net/ldap.el (ldap-search-internal): Use with-current-buffer and push.
 
 	* net/imap.el (imap-send-command): Simplify.
-	(imap-wait-for-tag): point-max - buffer-size.
+	(imap-wait-for-tag): point-max -> buffer-size.
 
 	* net/ange-ftp.el (internal-ange-ftp-mode): Use define-derived-mode.
 
