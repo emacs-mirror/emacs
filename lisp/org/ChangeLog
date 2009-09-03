@@ -1,5 +1,8 @@
 2009-09-03  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
+	* org-agenda.el (org-agenda-dim-blocked-tasks): Make sure we are
+	referencing the start of the line.
+
 	* org-gnus.el: Remove unnecessary declare-function forms.
 	(gnus-sum): Always require gnus-sum.
 
