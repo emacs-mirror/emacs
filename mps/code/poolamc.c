@@ -453,6 +453,56 @@ static amcGen amcSegGen(Seg seg)
 
 #define AMCSig          ((Sig)0x519A3C99) /* SIGnature AMC */
 
+typedef struct PageRetStruct {
+  Count pCond;     /* pages Condemned */
+  Count pRet;      /* pages Retained (in place) */
+  Count pCS;       /* pages Condemned in Small segments */
+  Count pRS;       /* pages Retained in Small segments */
+  Count pCM;       /* pages Condemned in Medium segments */
+  Count pCMx;      /* ...and upper bound of how many extra pages it */
+                   /*    would have cost, had we chosen to LSP-pad all */
+                   /*    these */
+  Count pRM;       /* pages Retained in Medium segments: */
+  Count pRM1;      /*   ...because obj 1 was preserved in place */
+                   /*   ...because a rest obj was pip, causing: */
+  Count pRMrr;     /*     ...retained rest pages (page where rest obj is) */
+  Count pRMr1;     /*     ...retained obj 1 pages (purely NMR pad) */
+  Count pCL;       /* pages Condemned in Large segments */
+  Count pRL;       /* pages Retained in Large segments */
+  Count pRLr;      /*   ...because a rest obj (actually LSP) was pip */
+
+  /* The interesting things about this report are:
+   *   - How many pages are actually being retained? (pRet)
+   *   - Percentage? (pRet/pCond)
+   *   - Is the major contribution from Small, Medium, or Large segs?
+   *
+   * Generally, pages retained because obj 1 needed to be preserved in 
+   * place are ok (because no alternative placement could have retained 
+   * fewer pages), but pages retained by a rest obj are unfortunate 
+   * (better placement, putting the small rest objs in their own seg, 
+   * would have retained fewer pages).  In particular:
+   *
+   * The LSP threshold is a payoff between the wasted space from 
+   * LSP-padding, versus the risk of increased page-retention (due to 
+   * rest objs) from not LSP-padding.
+   *
+   * For Medium segs, where we do not do LSP-padding:
+   *   - it would have cost at most pCMx to LSP-pad all Medium segs;
+   *   - the cost incurred is pRMr1.
+   * A high pRMr1 => lots of Medium segs getting retained by the rest 
+   * objs tacked on after obj 1.  Consider lowering LSP-threshold.
+   *
+   * For Large segs we do LSP padding, so the only rest obj is the LSP 
+   * pad.  We expect that ambig refs to this are very rare, so currently 
+   * we do not implement .large.lsp-no-retain.  But we do record the 
+   * occurrence of pages retained by a ref to an LSP pad: pPLr.  A high 
+   * pRLr => perhaps .large.lsp-no-retain should be implemented?
+   */
+} PageRetStruct;
+
+/* static => init'd to zero */
+static struct PageRetStruct pageretstruct_Zero;
+
 typedef struct AMCStruct { /* <design/poolamc/#struct> */
   PoolStruct poolStruct;   /* generic pool structure */
   RankSet rankSet;         /* rankSet for entire pool */
@@ -478,6 +528,9 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   STATISTIC_DECL(Count cbM1[TraceLIMIT]);
   STATISTIC_DECL(Count cbMRestFreed[TraceLIMIT]);
   STATISTIC_DECL(Count cbMPagesBarOneRRet[TraceLIMIT]);
+
+  /* page retention in an in-progress trace */
+  STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
 
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
@@ -924,6 +977,8 @@ static void amcResetTraceIdStats(AMC amc, TraceId ti)
   STATISTIC(amc->cbM1[ti] = 0);
   STATISTIC(amc->cbMRestFreed[ti] = 0);
   STATISTIC(amc->cbMPagesBarOneRRet[ti] = 0);
+
+  STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
 }
 
 
@@ -1405,6 +1460,26 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   trace->condemned += SegSize(seg);
 
+  amc = Pool2AMC(pool);
+  AVERT(AMC, amc);
+
+  STATISTIC(amc->cSegsWhiten[trace->ti] += 1);
+  STATISTIC(amc->cPagesWhiten[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
+
+  STATISTIC_STAT( {
+    Count pages;
+    pages = SegSize(seg) / ArenaAlign(pool->arena);
+    amc->pageretstruct[trace->ti].pCond += pages;
+    if(pages == 1) {
+      amc->pageretstruct[trace->ti].pCS += pages;
+    } else if(pages < largeSeg) {
+      amc->pageretstruct[trace->ti].pCM += pages;
+      amc->pageretstruct[trace->ti].pCMx += 1;
+    } else {
+      amc->pageretstruct[trace->ti].pCL += pages;
+    }
+  } );
+
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if(Seg2amcSeg(seg)->new) {
@@ -1413,12 +1488,6 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
   }
 
   /* Ensure we are forwarding into the right generation. */
-
-  amc = Pool2AMC(pool);
-  AVERT(AMC, amc);
-
-  STATISTIC(amc->cSegsWhiten[trace->ti] += 1);
-  STATISTIC(amc->cPagesWhiten[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
 
   /* see <design/poolamc/#gen.ramp> */
   /* This switching needs to be more complex for multiple traces. */
@@ -2210,6 +2279,32 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     SegFree(seg);
     freed = TRUE;
   } else {
+    /* Seg retained */
+    STATISTIC_STAT( {
+      Count pages;
+      pages = SegSize(seg) / ArenaAlign(pool->arena);
+      amc->pageretstruct[trace->ti].pRet += pages;
+      if(pages == 1) {
+        amc->pageretstruct[trace->ti].pRS += pages;
+      } else if(pages < largeSeg) {
+        amc->pageretstruct[trace->ti].pRM += pages;
+        if(obj1dead) {
+          /* Seg retained by a rest obj.  Cost: one rest page, */
+          /* plus pages-1 pages of pure padding. */
+          amc->pageretstruct[trace->ti].pRMrr += 1;
+          amc->pageretstruct[trace->ti].pRMr1 += pages - 1;
+        } else {
+          amc->pageretstruct[trace->ti].pRM1 += pages;
+        }
+      } else {
+        amc->pageretstruct[trace->ti].pRL += pages;
+        if(obj1dead) {
+          /* Seg retained by a rest obj */
+          amc->pageretstruct[trace->ti].pRLr += pages;
+        }
+      }
+    } );
+
     STATISTIC(amc->cPagesRet[trace->ti] += segSize / ArenaAlign(pool->arena));
     if(obj1dead) {
       /* seg retained by ref into Rest */
@@ -2319,6 +2414,8 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   AMC amc;
   TraceId ti;
   Count perc;
+  
+  PageRetStruct *pageret;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -2354,6 +2451,26 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       (100 * amc->cbMPagesBarOneRRet[ti]) / amc->cbM1[ti],
       NULL ));
   }
+  
+  pageret = &amc->pageretstruct[ti];
+  DIAG_SINGLEF(( "AMCTraceEnd_pageret",
+    "$U ", ArenaEpoch(pool->arena),
+    "$U ", trace->why,
+    "$S ", trace->emergency ? "Emergency" : "-",
+    "$U ", pageret->pCond,
+    "$U ", pageret->pRet,
+    "$U ", pageret->pCS,
+    "$U ", pageret->pRS,
+    "$U ", pageret->pCM,
+    "$U ", pageret->pCMx,
+    "$U ", pageret->pRM,
+    "$U ", pageret->pRM1,
+    "$U ", pageret->pRMrr,
+    "$U ", pageret->pRMr1,
+    "$U ", pageret->pCL,
+    "$U ", pageret->pRL,
+    "$U ", pageret->pRLr,
+    NULL ));
 
   amcResetTraceIdStats(amc, ti);
 }
