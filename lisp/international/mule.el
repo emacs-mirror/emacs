@@ -348,7 +348,7 @@ Return t if file exists."
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.
-;;			 (not default-enable-multibyte-characters)
+;;			 (not (default-value 'enable-multibyte-characters))
 			 nil t
 			 ))
 	(let (kill-buffer-hook kill-buffer-query-functions)
