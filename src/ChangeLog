@@ -1,7 +1,12 @@
+2009-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (Fsend_string_to_terminal): Make it work again on the
+	initial terminal as well.
+
 2009-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Rename x_non_menubar_window_to_frame to
-	x_menubar_window_to_frame
+	x_menubar_window_to_frame.
 
 	* xterm.c: Remove declarations also in xterm.h
 	(XTmouse_position): Do not return valid positions

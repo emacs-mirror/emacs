@@ -6475,8 +6475,8 @@ currently selected frame.  */)
      Lisp_Object string;
      Lisp_Object terminal;
 {
-  struct terminal *t = get_tty_terminal (terminal, 1);
-  struct tty_display_info *tty;
+  struct terminal *t = get_terminal (terminal, 1);
+  FILE *out;
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
@@ -6485,18 +6485,26 @@ currently selected frame.  */)
   if (!t)
     error ("Unknown terminal device");
 
-  tty = t->display_info.tty;
-
-  if (! tty->output)
-    error ("Terminal is currently suspended");
-
-  if (tty->termscript)
+  if (t->type == output_initial)
+    out = stdout;
+  else if (t->type != output_termcap && t->type != output_msdos_raw)
+    error ("Device %d is not a termcap terminal device", t->id);
+  else
     {
-      fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
-      fflush (tty->termscript);
+      struct tty_display_info *tty = t->display_info.tty;
+
+      if (! tty->output)
+	error ("Terminal is currently suspended");
+
+      if (tty->termscript)
+	{
+	  fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+	  fflush (tty->termscript);
+	}
+      out = tty->output;
     }
-  fwrite (SDATA (string), 1, SBYTES (string), tty->output);
-  fflush (tty->output);
+  fwrite (SDATA (string), 1, SBYTES (string), out);
+  fflush (out);
   UNBLOCK_INPUT;
   return Qnil;
 }
