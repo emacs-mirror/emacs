@@ -52,14 +52,9 @@
 (require 'semantic/fw)
 (require 'semantic/lex)
 
-(declare-function semantic-ctxt-current-mode "semantic/ctxt")
 (declare-function semantic-analyze-split-name "semantic/analyze/fcn")
 (declare-function semantic-fetch-tags "semantic")
 (declare-function semantic-clear-toplevel-cache "semantic")
-(declare-function semantic-documentation-for-tag "semantic/doc")
-(declare-function semantic-format-tag-prototype "semantic/format")
-(declare-function semantic-format-tag-summarize "semantic/format")
-(declare-function semantic-format-tag-name "semantic/format")
 
 (defconst semantic-tag-version "2.0pre7"
   "Version string of semantic tags made with this code.")
@@ -217,7 +212,6 @@ If TAG has a :mode property return it.
 If point is inside TAG bounds, return the major mode active at point.
 Return the major mode active at beginning of TAG otherwise.
 See also the function `semantic-ctxt-current-mode'."
-  (require 'semantic/find)
   (or tag (setq tag (semantic-current-tag)))
   (or (semantic--tag-get-property tag :mode)
       (let ((buffer (semantic-tag-buffer tag))
@@ -229,7 +223,6 @@ See also the function `semantic-ctxt-current-mode'."
           ;; beginning of TAG.
           (or (and (>= (point) start) (< (point) end))
               (goto-char start))
-          (require 'semantic/ctxt)
           (semantic-ctxt-current-mode)))))
 
 (defsubst semantic--tag-attributes-cdr (tag)
@@ -968,6 +961,7 @@ Return nil if TAG is not of class 'alias."
 
 ;;; Language Specific Tag access via overload
 ;;
+;;;###autoload
 (define-overloadable-function semantic-tag-components (tag)
   "Return a list of components for TAG.
 A Component is a part of TAG which itself may be a TAG.
@@ -1297,7 +1291,6 @@ Signal an error if not."
   "Return a copy of TAG as a foreign tag, or nil if it can't be done.
 TAG defaults to the tag at point in current buffer.
 See also `semantic-foreign-tag-p'."
-  (require 'semantic/doc)
   (or tag (setq tag (semantic-current-tag)))
   (when (semantic-tag-p tag)
     (let ((ftag (semantic-tag-copy tag nil t))
@@ -1326,14 +1319,12 @@ The default behavior assumes the current buffer is a language file,
 and attempts to insert a prototype/function call."
   ;; Long term goal: Have a mechanism for a tempo-like template insert
   ;; for the given tag.
-  (require 'semantic/format)
   (insert (semantic-format-tag-prototype foreign-tag)))
 
 (define-overloadable-function semantic-insert-foreign-tag (foreign-tag)
   "Insert FOREIGN-TAG into the current buffer.
 Signal an error if FOREIGN-TAG is not a valid foreign tag.
 This function is overridable with the symbol `insert-foreign-tag'."
-  (require 'semantic/format)
   (semantic-foreign-tag-check foreign-tag)
   (:override)
   (message (semantic-format-tag-summarize foreign-tag)))
@@ -1342,13 +1333,11 @@ This function is overridable with the symbol `insert-foreign-tag'."
 (define-mode-local-override semantic-insert-foreign-tag
   log-edit-mode (foreign-tag)
   "Insert foreign tags into log-edit mode."
-  (require 'semantic/format)
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 (define-mode-local-override semantic-insert-foreign-tag
   change-log-mode (foreign-tag)
   "Insert foreign tags into log-edit mode."
-  (require 'semantic/format)
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 
@@ -1575,5 +1564,10 @@ and `semantic-tag-type-interfaces' instead")
                          'semantic-equivalent-tag-p)
 
 (provide 'semantic/tag)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic-tag.el ends here

@@ -67,6 +67,7 @@
 ;; NN_END
 ;;
 
+(require 'semantic)
 (require 'semantic/lex)
 
 ;;; Code:
@@ -719,7 +720,7 @@ Disable this only to prevent recursive expansion issues.")
 (defun semantic-lex-spp-analyzer-push-tokens-for-symbol (str beg end)
   "Push lexical tokens for the symbol or keyword STR.
 STR occurs in the current buffer between BEG and END."
-  (let (sym val)
+  (let (sym val count)
     (cond
      ;;
      ;; It is a macro.  Prepare for a replacement.
@@ -785,8 +786,8 @@ STR occurs in the current buffer between BEG and END."
 	     (symbolp (car token))
 	     (eq 'semantic-list (car token)))
     ;; Convert TOKEN in place.
-    (let ((argsplit (cedet-split-string (semantic-lex-token-text token)
-					"[(), ]" t)))
+    (let ((argsplit (split-string (semantic-lex-token-text token)
+				  "[(), ]" t)))
       (setcar token 'spp-arg-list)
       (setcar (nthcdr 1 token) argsplit))
     ))

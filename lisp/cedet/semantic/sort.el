@@ -35,8 +35,10 @@
 (require 'semantic)
 (require 'semantic/db)
 (eval-when-compile
-  (require 'semantic/find)
-  (require 'semantic/db-find))
+  (require 'semantic/find))
+
+(declare-function semanticdb-find-tags-external-children-of-type
+		  "semantic/db-find")
 
 ;;; Alphanumeric sorting
 ;;
@@ -547,7 +549,8 @@ Optional argument USEDB specifies if the semantic database is used.
 See `semantic-tag-external-member-children' for details."
   (if (and usedb
 	   (fboundp 'semanticdb-minor-mode-p)
-	   (semanticdb-minor-mode-p))
+	   (semanticdb-minor-mode-p)
+	   (require 'semantic/db-find))
       (let ((m (semanticdb-find-tags-external-children-of-type
 		(semantic-tag-name tag))))
 	(if m (apply #'append (mapcar #'cdr m))))

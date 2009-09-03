@@ -46,8 +46,17 @@
 ;; For the semantic-find-tags-by-name macro.
 (eval-when-compile (require 'semantic/find))
 
-(declare-function semanticdb-typecache-refresh-for-buffer "semantic/db-typecache")
 (declare-function eldoc-message "eldoc")
+(declare-function semantic-analyze-interesting-tag "semantic/analyze")
+(declare-function semantic-complete-analyze-inline-idle "semantic/complete")
+(declare-function semanticdb-deep-find-tags-by-name "semantic/db-find")
+(declare-function semanticdb-minor-mode-p "semantic/db-mode")
+(declare-function semanticdb-save-all-db-idle "semantic/db")
+(declare-function semanticdb-typecache-refresh-for-buffer "semantic/db-typecache")
+(declare-function semantic-decorate-flush-pending-decorations
+		  "semantic/decorate/mode")
+(declare-function pulse-momentary-highlight-region "pulse")
+(declare-function pulse-momentary-highlight-overlay "pulse")
 
 ;;; Code:
 
@@ -358,6 +367,7 @@ Returns t of all processing succeeded."
 	  (semantic-safe "Idle Work Including Error: %S"
 	    ;; Get the include related path.
 	    (when (and (featurep 'semantic/db)
+		       (require 'semantic/db-mode)
 		       (semanticdb-minor-mode-p))
 	      (require 'semantic/db-find)
 	      (semanticdb-find-translate-path buffer nil)
@@ -408,21 +418,22 @@ Uses `semantic-idle-work-for-on-buffer' to do the work."
 		   ))
 	       )
 
-	     ;; Save everything.
-	     (semanticdb-save-all-db-idle)
+	     (when (and (featurep 'semantic/db)
+			(require 'semantic/db-mode)
+			(semanticdb-minor-mode-p))
+	       ;; Save everything.
+	       (semanticdb-save-all-db-idle)
 
-	     ;; Parse up files near our active buffer
-	     (when semantic-idle-work-parse-neighboring-files-flag
-	       (semantic-safe "Idle Work Parse Neighboring Files: %S"
-		 (when (and (featurep 'semantic/db)
-			    (semanticdb-minor-mode-p))
+	       ;; Parse up files near our active buffer
+	       (when semantic-idle-work-parse-neighboring-files-flag
+		 (semantic-safe "Idle Work Parse Neighboring Files: %S"
 		   (set-buffer cb)
 		   (semantic-idle-scheduler-work-parse-neighboring-files))
 		 t)
-	       )
 
-	     ;; Save everything... again
-	     (semanticdb-save-all-db-idle)
+	       ;; Save everything... again
+	       (semanticdb-save-all-db-idle)
+	       )
 
 	     ;; Done w/ processing
 	     nil))))
@@ -582,6 +593,7 @@ Does nothing if the current buffer doesn't need reparsing."
 
     ;; After updating the tags, handle any pending decorations for this
     ;; buffer.
+    (require 'semantic/decorate/mode)
     (semantic-decorate-flush-pending-decorations (current-buffer))
     ))
 
@@ -716,7 +728,9 @@ Some useful functions are found in `semantic-format-tag-functions'."
   "Search for a semantic tag with name SYM in database tables.
 Return the tag found or nil if not found.
 If semanticdb is not in use, use the current buffer only."
-  (car (if (and (featurep 'semantic/db) semanticdb-current-database)
+  (car (if (and (featurep 'semantic/db)
+		semanticdb-current-database
+		(require 'semantic/db-find))
            (cdar (semanticdb-deep-find-tags-by-name sym))
          (semantic-deep-find-tags-by-name sym (current-buffer)))))
 
@@ -744,6 +758,7 @@ Use the semantic analyzer to find the symbol information."
 		      (semantic-analyze-current-context (point))
 		    (error nil))))
     (when analysis
+      (require 'semantic/analyze)
       (semantic-analyze-interesting-tag analysis))))
 
 (defun semantic-idle-summary-current-symbol-info-default ()
@@ -844,6 +859,7 @@ current tag to display information."
   "Perhaps add highlighting onto TAG.
 TAG was found as the thing under point.  If it happens to be
 visible, then highlight it."
+  (require 'pulse)
   (let* ((region (when (and (semantic-tag-p tag)
 			    (semantic-tag-with-position-p tag))
 		   (semantic-tag-overlay tag)))
@@ -896,6 +912,7 @@ visible, then highlight it."
   "Highlight the tag, and references of the symbol under point.
 Call `semantic-analyze-current-context' to find the reference tag.
 Call `semantic-symref-hits-in-region' to identify local references."
+  (require 'pulse)
   (when (semantic-idle-summary-useful-context-p)
     (let* ((ctxt (semantic-analyze-current-context))
 	   (Hbounds (when ctxt (oref ctxt bounds)))
@@ -945,6 +962,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 		 nil))
 	      )
 	  ;; Use idle version.
+	  (require 'semantic/complete)
 	  (semantic-complete-analyze-inline-idle)
 	  )
       (error nil))

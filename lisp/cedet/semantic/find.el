@@ -175,6 +175,7 @@ If there are more than one in the same location, return the
 smallest tag.  Return nil if there is no tag here."
   (car (nreverse (semantic-find-tag-by-overlay))))
 
+;;;###autoload
 (defun semantic-current-tag-parent ()
   "Return the current tags parent in the current buffer.
 A tag's parent would be a containing structure, such as a type
@@ -329,6 +330,7 @@ Used in completion."
     (semantic-tag-type-compound-p (car tags))
     ,table))
 
+;;;###autoload
 (define-overloadable-function semantic-find-tags-by-scope-protection (scopeprotection parent &optional table)
   "Find all tags accessable by SCOPEPROTECTION.
 SCOPEPROTECTION is a symbol which can be returned by the method

@@ -37,6 +37,7 @@
 ;;; Helper Fcns
 ;;
 ;;
+;;;###autoload
 (define-overloadable-function semantic-analyze-type-constants (type)
   "For the tag TYPE, return any constant symbols of TYPE.
 Used as options when completing.")

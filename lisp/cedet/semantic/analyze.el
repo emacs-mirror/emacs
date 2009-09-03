@@ -466,6 +466,7 @@ to provide a large number of non-cached analysis for filtering symbols."
 ;;
 ;; Create a full-up context analysis.
 ;;
+;;;###autoload
 (define-overloadable-function semantic-analyze-current-context (&optional position)
   "Analyze the current context at optional POSITION.
 If called interactively, display interesting information about POSITION
@@ -764,5 +765,10 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
   )
 
 (provide 'semantic/analyze)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/analyze.el ends here

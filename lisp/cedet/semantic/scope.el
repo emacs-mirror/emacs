@@ -49,6 +49,13 @@
 (require 'semantic/analyze/fcn)
 (require 'semantic/ctxt)
 
+(eval-when-compile (require 'semantic/find)) ; For semantic-find-* macros
+
+(declare-function data-debug-show "eieio-datadebug")
+(declare-function semantic-analyze-find-tag "semantic/analyze")
+(declare-function semantic-analyze-princ-sequence "semantic/analyze")
+(declare-function semanticdb-typecache-merge-streams "semantic/db-typecache")
+(declare-function semanticdb-typecache-add-dependant "semantic/db-typecache")
 
 ;;; Code:
 
@@ -175,6 +182,7 @@ types available.")
 (defun semantic-analyze-scoped-types-default (position)
   "Return a list of types currently in scope at POSITION.
 Use `semantic-ctxt-scoped-types' to find types."
+  (require 'semantic/db-typecache)
   (save-excursion
     (goto-char position)
     (let ((code-scoped-types nil))
@@ -221,6 +229,7 @@ Optional SCOPETYPES are additional scoped entities in which our parent might
 be found.
 This only finds ONE immediate parent by name.  All other parents returned
 are from nesting data types."
+  (require 'semantic/analyze)
   (save-excursion
     (if position (goto-char position))
     (let* ((stack (reverse (semantic-find-tag-by-overlay (point))))
@@ -576,6 +585,7 @@ type."
   "Map all parents of TYPE to FCN.  Return tags of all the types.
 Argument SCOPE specify additional tags that are in scope
 whose tags can be searched when needed, OR it may be a scope object."
+  (require 'semantic/analyze)
   (let* (;; PARENTS specifies only the superclasses and not
 	 ;; interfaces.  Inheriting from an interfaces implies
 	 ;; you have a copy of all methods locally.  I think.
@@ -647,8 +657,9 @@ If POINT is not provided, then use the current location of point.
 The class returned from the scope calculation is variable
 `semantic-scope-cache'."
   (interactive)
-  (if (not (and (featurep 'semanticdb) semanticdb-current-database))
+  (if (not (and (featurep 'semantic/db) semanticdb-current-database))
       nil ;; Don't do anything...
+    (require 'semantic/db-typecache)
     (if (not point) (setq point (point)))
     (when (interactive-p)
       (semantic-fetch-tags)
@@ -714,6 +725,7 @@ The class returned from the scope calculation is variable
 	(semanticdb-typecache-add-dependant scopecache)
 	;; Handy debug output.
 	(when (interactive-p)
+	  (require 'eieio-datadebug)
 	  (data-debug-show scopecache)
 	  )
 	;; Return ourselves
@@ -783,6 +795,7 @@ hits in order, with the first tag being in the closest scope."
 ;;
 (defmethod semantic-analyze-show ((context semantic-scope-cache))
   "Insert CONTEXT into the current buffer in a nice way."
+  (require 'semantic-analyze)
   (semantic-analyze-princ-sequence (oref context scopetypes) "-> ScopeTypes: " )
   (semantic-analyze-princ-sequence (oref context parents) "-> Parents: " )
   (semantic-analyze-princ-sequence (oref context scope) "-> Scope: " )

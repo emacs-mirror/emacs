@@ -1,4 +1,4 @@
-;;; texi.el --- Semantic details for Texinfo files
+;;; semantic/texi.el --- Semantic details for Texinfo files
 
 ;;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -35,10 +35,13 @@
   (require 'semantic/db)
   (require 'semantic/db-find)
   (require 'semantic/ctxt)
+  (require 'semantic/find)
 ;;  (require 'semantic/imenu)
   (require 'semantic/doc)
 ;;  (require 'senator)
 )
+
+(declare-function lookup-words "ispell")
 
 (defvar semantic-texi-super-regex
   "^@\\(top\\|chapter\\|\\(sub\\)*section\\|unnumbered\\(\\(sub\\)*sec\\)?\\|\
@@ -379,7 +382,7 @@ Optional argument POINT is where to look for the environment."
 	 (prefixclass (semantic-ctxt-current-class-list))
 	 )
     (when prefix
-      (require 'semantic-analyze)
+      (require 'semantic/analyze)
       (semantic-analyze-context
        "Context-for-texinfo"
        :buffer (current-buffer)
@@ -487,7 +490,7 @@ that start with that symbol."
 	   ;; When EDE is active, ask it.
 	   (ede-documentation-files)
 	   )
-	  ((and (featurep 'semanticdb) (semanticdb-minor-mode-p))
+	  ((and (featurep 'semantic/db) (semanticdb-minor-mode-p))
 	   ;; See what texinfo files we have loaded in the database
 	   (let ((tabs (semanticdb-get-database-tables
 			semanticdb-current-database))
@@ -528,7 +531,7 @@ Note: TYPE not yet implemented."
 The current buffer must be a texinfo file containing TAG.
 If TAG is nil, determine a tag based on the current position."
   (interactive)
-  (unless (or (featurep 'semanticdb) (semanticdb-minor-mode-p))
+  (unless (or (featurep 'semantic/db) (semanticdb-minor-mode-p))
     (error "Texinfo updating only works when `semanticdb' is being used"))
   (semantic-fetch-tags)
   (unless tag
@@ -645,7 +648,7 @@ manual, and update that."
   "Jump to the source for the definition in the texinfo file TAG.
 If TAG is nil, it is derived from the deffn under POINT."
   (interactive)
-  (unless (or (featurep 'semanticdb) (semanticdb-minor-mode-p))
+  (unless (or (featurep 'semantic/db) (semanticdb-minor-mode-p))
     (error "Texinfo updating only works when `semanticdb' is being used"))
   (semantic-fetch-tags)
   (unless tag
@@ -675,4 +678,4 @@ If TAG is nil, it is derived from the deffn under POINT."
 
 (provide 'semantic/texi)
 
-;;; semantic-texi.el ends here
+;;; semantic/texi.el ends here

@@ -64,10 +64,11 @@
 ;;
 ;; Your tool should then create an instance of `semantic-symref-result'.
 
-(require 'semantic/fw)
+(require 'semantic)
 ;; (require 'ede)
-(eval-when-compile (require 'data-debug)
-		   (require 'eieio-datadebug))
+
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-object-slots "eieio-datadebug")
 
 ;;; Code:
 (defvar semantic-symref-tool 'detect
@@ -134,6 +135,7 @@ ARGS are the initialization arguments to pass to the created class."
 (defun semantic-symref-data-debug-last-result ()
   "Run the last symref data result in Data Debug."
   (interactive)
+  (require 'eieio-datadebug)
   (if semantic-symref-last-result
       (progn
 	(data-debug-new-buffer "*Symbol Reference ADEBUG*")

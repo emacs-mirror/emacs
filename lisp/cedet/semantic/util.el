@@ -1,4 +1,4 @@
-;;; util.el --- Utilities for use with semantic tag tables
+;;; semantic/util.el --- Utilities for use with semantic tag tables
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
 ;;; 2008, 2009 Free Software Foundation, Inc.
@@ -434,4 +434,4 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 ;;
 (require 'semantic/util-modes)
 
-;;; semantic-util.el ends here
+;;; semantic/util.el ends here

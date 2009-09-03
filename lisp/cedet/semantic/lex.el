@@ -672,10 +672,13 @@ when finding unterminated syntax.")
 
 ;;; Interactive testing commands
 
+(declare-function semantic-elapsed-time "semantic")
+
 (defun semantic-lex-test (arg)
   "Test the semantic lexer in the current buffer.
 If universal argument ARG, then try the whole buffer."
   (interactive "P")
+  (require 'semantic)
   (let* ((start (current-time))
 	 (result (semantic-lex
 		  (if arg (point-min) (point))
@@ -996,6 +999,8 @@ This is an exhaustively robust check."
        (numberp (nth 2 thing)))
   )
 
+(eval-and-compile
+
 (defun semantic-lex-expand-block-specs (specs)
   "Expand block specifications SPECS into a Lisp form.
 SPECS is a list of (BLOCK BEGIN END) elements where BLOCK, BEGIN, and
@@ -1024,6 +1029,7 @@ an END token class is encountered."
                        (car semantic-lex-token-stream))))
           (cond ,@(nreverse form))))
       )))
+)
 
 (defmacro semantic-lex-push-token (token &rest blockspecs)
   "Push TOKEN in the lexical analyzer token stream.
@@ -1070,6 +1076,7 @@ See also the function `semantic-lex-token'."
     (modify-syntax-entry
      (car mod) (nth 1 mod) semantic-lex-syntax-table)))
 
+;;;###autoload
 (define-overloadable-function semantic-lex (start end &optional depth length)
   "Lexically analyze text in the current buffer between START and END.
 Optional argument DEPTH indicates at what level to scan over entire
@@ -1975,7 +1982,7 @@ return LENGTH tokens."
          ((looking-at "\\(\\sw\\|\\s_\\)+")
           (setq ts (cons (cons
                           ;; Get info on if this is a keyword or not
-                          (or (semantic-flex-keyword-p (match-string 0))
+                          (or (semantic-lex-keyword-p (match-string 0))
                               'symbol)
                           (cons (match-beginning 0) (match-end 0)))
                          ts)))
@@ -2091,5 +2098,10 @@ return LENGTH tokens."
     (nreverse ts)))
 
 (provide 'semantic/lex)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic-lex.el ends here

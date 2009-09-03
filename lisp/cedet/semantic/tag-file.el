@@ -1,4 +1,4 @@
-;;; tag-file.el --- Routines that find files based on tags.
+;;; semantic/tag-file.el --- Routines that find files based on tags.
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
 ;;; 2008, 2009 Free Software Foundation, Inc.
@@ -28,6 +28,10 @@
 
 (require 'semantic/tag)
 
+(declare-function semanticdb-table-child-p "semantic/db")
+(declare-function semanticdb-get-buffer "semantic/db")
+(declare-function semantic-dependency-find-file-on-path "semantic/dep")
+
 ;;; Code:
 
 ;;; Location a TAG came from.
@@ -55,7 +59,8 @@ PARENT can also be a `semanticdb-table' object."
 	  ;; Tag had nothing, and the parent only has a file-name, then
 	  ;; find that file, and switch to that buffer.
 	  (set-buffer (find-file-noselect (semantic-tag-file-name parent))))
-	 ((and parent (semanticdb-table-child-p parent))
+	 ((and parent (featurep 'semantic/db)
+	       (semanticdb-table-child-p parent))
 	  (set-buffer (semanticdb-get-buffer parent)))
 	 (t
 	  ;; Well, just assume things are in the current buffer.
@@ -151,6 +156,7 @@ Depends on `semantic-dependency-include-path' for searching.  Always searches
 		;;  (semantic--tag-get-property tag 'dependency-file)
 		(:override
 		 (save-excursion
+		   (require 'semantic/dep)
 		   (semantic-dependency-find-file-on-path
 		    tag-fname (semantic-tag-include-system-p tag))))
 		;; )
@@ -206,4 +212,4 @@ file prototypes belong in."
 ;; generated-autoload-feature: semantic/loaddefs
 ;; End:
 
-;;; semantic-tag-file.el ends here
+;;; semantic/tag-file.el ends here

@@ -104,6 +104,7 @@ The name is the shortest possible representation.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
 
+;;;###autoload
 (define-overloadable-function semantic-format-tag-prototype (tag &optional parent color)
   "Return a prototype for TAG.
 This function should be overloaded, though it need not be used.
@@ -420,6 +421,7 @@ This is a simple C like default."
 (semantic-alias-obsolete
  'semantic-summerize-nonterminal 'semantic-format-tag-summarize)
 
+;;;###autoload
 (define-overloadable-function semantic-format-tag-summarize (tag &optional parent color)
   "Summarize TAG in a reasonable way.
 Optional argument PARENT is the parent type if TAG is a detail.

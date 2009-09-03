@@ -34,9 +34,9 @@
 (require 'semantic)
 (require 'semantic/util)
 (require 'speedbar)
-;; (require 'inversion)
-;; (eval-and-compile
-;;   (inversion-require 'speedbar "0.15beta1"))
+(require 'semantic/sort)
+
+(declare-function semanticdb-minor-mode-p "semantic/db-mode")
 
 (defcustom semantic-sb-autoexpand-length 1
   "*Length of a semantic bucket to autoexpand in place.
@@ -382,7 +382,9 @@ to create much wiser decisions about how to sort and group these items."
   "Load FILE into a buffer, and generate tags using the Semantic parser.
 Returns the tag list, or t for an error."
   (let ((out nil))
-    (if (and (featurep 'semanticdb) (semanticdb-minor-mode-p)
+    (if (and (featurep 'semantic/db)
+	     (require 'semantic/db-mode)
+	     (semanticdb-minor-mode-p)
 	     (not speedbar-power-click)
 	     ;; If the database is loaded and running, try to get
 	     ;; tokens from it.

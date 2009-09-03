@@ -576,6 +576,7 @@ Assume a functional typed language.  Uses very simple rules."
 	'(type)
 	))))
 
+;;;###autoload
 (define-overloadable-function semantic-ctxt-current-mode (&optional point)
   "Return the major mode active at POINT.
 POINT defaults to the value of point in current buffer.
@@ -610,5 +611,10 @@ overriden."
     ))
 
 (provide 'semantic/ctxt)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; End:
 
 ;;; semantic/ctxt.el ends here

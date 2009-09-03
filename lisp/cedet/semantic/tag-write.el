@@ -1,4 +1,4 @@
-;;; tag-write.el --- Write tags to a text stream
+;;; semantic/tag-write.el --- Write tags to a text stream
 
 ;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
@@ -31,7 +31,7 @@
 ;; that they conform to good semantic tag hygene.
 ;;
 
-(require 'semantic/tag)
+(require 'semantic)
 
 ;;; Code:
 (defun semantic-tag-write-one-tag (tag &optional indent)
@@ -183,4 +183,4 @@ The VALUE is a list of tags."
 
 
 (provide 'semantic/tag-write)
-;;; semantic-tag-write.el ends here
+;;; semantic/tag-write.el ends here

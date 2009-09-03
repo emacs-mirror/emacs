@@ -1,4 +1,4 @@
-;;; tag-ls.el --- Language Specific override functions for tags
+;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
 ;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
 ;;; Free Software Foundation, Inc.
@@ -30,7 +30,7 @@
 ;; itself.  These are the functions that languages can use to derive
 ;; the information.
 
-(require 'semantic/tag)
+(require 'semantic)
 
 ;;; Code:
 
@@ -278,4 +278,4 @@ Return the name of TAG found in the toplevel STREAM."
 ;; generated-autoload-feature: semantic/loaddefs
 ;; End:
 
-;;; semantic-tag-ls.el ends here
+;;; semantic/tag-ls.el ends here
