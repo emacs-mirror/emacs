@@ -1,3 +1,14 @@
+2009-09-04  Glenn Morris  <rgm@gnu.org>
+
+	* qp.el (quoted-printable-encode-string): Use mm-enable-multibyte, or
+	mm-disable-multibyte, rather than default-enable-multibyte-characters.
+	* utf7.el (utf7-encode, utf7-decode): Use mm-with-multibyte-buffer, or
+	mm-with-unibyte-buffer, rather than default-enable-multibyte-characters.
+	* mm-util.el (mm-with-unibyte-current-buffer)
+	(mm-find-buffer-file-coding-system):
+	* yenc.el (yenc-decode-region): Use default-value rather than
+	default-enable-multibyte-characters.
+
 2009-09-03  Glenn Morris  <rgm@gnu.org>
 
 	* mm-util.el (mm-emacs-mule, mm-default-multibyte-p):

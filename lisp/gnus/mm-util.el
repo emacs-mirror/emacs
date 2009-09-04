@@ -1227,7 +1227,7 @@ Use multibyte mode for this."
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
   "Evaluate FORMS with current buffer temporarily made unibyte.
-Also bind `default-enable-multibyte-characters' to nil.
+Also bind the default-value of `enable-multibyte-characters' to nil.
 Equivalent to `progn' in XEmacs
 
 NOTE: Use this macro with caution in multibyte buffers (it is not
@@ -1242,12 +1242,12 @@ Emacs 23 (unicode)."
 	 (let ((,multibyte enable-multibyte-characters)
 	       (,buffer (current-buffer)))
 	   (unwind-protect
-	       (let (default-enable-multibyte-characters)
+	       (letf (((default-value 'enable-multibyte-characters) nil))
 		 (set-buffer-multibyte nil)
 		 ,@forms)
 	     (set-buffer ,buffer)
 	     (set-buffer-multibyte ,multibyte)))
-       (let (default-enable-multibyte-characters)
+       (letf (((default-value 'enable-multibyte-characters) nil))
 	 ,@forms))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
@@ -1590,8 +1590,8 @@ gzip, bzip2, etc. are allowed."
 			    filename))
 		    (mm-decompress-buffer filename nil t))))
       (when decomp
-	(set-buffer (let (default-enable-multibyte-characters)
-		      (generate-new-buffer " *temp*")))
+	(set-buffer (letf (((default-value 'enable-multibyte-characters) nil))
+			  (generate-new-buffer " *temp*")))
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))
