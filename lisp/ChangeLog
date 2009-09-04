@@ -1,3 +1,8 @@
+2009-09-04  Glenn Morris  <rgm@gnu.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command): Use forward-line rather than
+	goto-line.
+
 2009-09-03  Glenn Morris  <rgm@gnu.org>
 
 	* arc-mode.el (archive-mode):

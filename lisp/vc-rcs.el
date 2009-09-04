@@ -686,7 +686,8 @@ Optional arg REVISION is a revision to annotate from."
         ;; property of this approach is ability to push instructions
         ;; onto `path' directly, w/o need to maintain rev boundaries.
         (dolist (insn (cdr (assq :insn meta)))
-          (goto-line (pop insn))
+          (goto-char (point-min))
+          (forward-line (1- (pop insn)))
           (setq p (point))
           (case (pop insn)
             (k (setq s (buffer-substring-no-properties
@@ -718,7 +719,8 @@ Optional arg REVISION is a revision to annotate from."
                  (setq meta (cdr (assoc pre revisions))
                        prda nil)
                  (dolist (insn (cdr (assq :insn meta)))
-                   (goto-line (pop insn))
+                   (goto-char (point-min))
+                   (forward-line (1- (pop insn)))
                    (case (pop insn)
                      (k (delete-region
                          (point) (progn (forward-line (car insn))
