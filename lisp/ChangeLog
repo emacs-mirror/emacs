@@ -1,5 +1,11 @@
 2009-09-04  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-fancy-display): Only switch modes if
+	necessary.
+	(diary-fancy-overriding-map): New variable.
+	(diary-fancy-display-mode): Set minor-mode-overriding-map-alist.
+	Use view-mode.
+
 	* vc-rcs.el (vc-rcs-annotate-command): Use forward-line rather than
 	goto-line.
 

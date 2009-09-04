@@ -1019,7 +1019,8 @@ This is an option for `diary-display-function'."
                      (overlay-put
                       (make-overlay (match-beginning 0) (match-end 0))
                       'face temp-face)))))))
-      (diary-fancy-display-mode)
+      (or (eq major-mode 'diary-fancy-display-mode)
+          (diary-fancy-display-mode))
       (calendar-set-mode-line date-string)
       (message "Preparing diary...done"))))
 
@@ -2348,6 +2349,11 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
+(defvar diary-fancy-overriding-map (let ((map (make-sparse-keymap)))
+                                     (define-key map "q" 'quit-window)
+                                     map)
+  "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
+
 (define-derived-mode diary-fancy-display-mode fundamental-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
@@ -2356,7 +2362,9 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
          t nil nil nil
          (font-lock-fontify-region-function
           . diary-fancy-font-lock-fontify-region-function)))
-  (local-set-key "q" 'quit-window))
+  (set (make-local-variable 'minor-mode-overriding-map-alist)
+       (list (cons t diary-fancy-overriding-map)))
+  (view-mode 1))
 
 (define-obsolete-function-alias 'fancy-diary-display-mode
   'diary-fancy-display-mode "23.1")
