@@ -458,15 +458,19 @@ typedef struct PageRetStruct {
   Count pRet;      /* pages Retained (in place) */
   Count pCS;       /* pages Condemned in Small segments */
   Count pRS;       /* pages Retained in Small segments */
+  Count sCM;       /* segments Condemned: Medium */
+                   /* ...= upper bound of how many extra pages it */
+                   /*    would have cost, had we chosen to LSP-pad */
+                   /*    all these segments. */
   Count pCM;       /* pages Condemned in Medium segments */
-  Count pCMx;      /* ...and upper bound of how many extra pages it */
-                   /*    would have cost, had we chosen to LSP-pad all */
-                   /*    these */
   Count pRM;       /* pages Retained in Medium segments: */
   Count pRM1;      /*   ...because obj 1 was preserved in place */
                    /*   ...because a rest obj was pip, causing: */
   Count pRMrr;     /*     ...retained rest pages (page where rest obj is) */
   Count pRMr1;     /*     ...retained obj 1 pages (purely NMR pad) */
+  Count sCL;       /* segments Condemned: Large */
+                   /* ...= upper bound of how many extra pages it */
+                   /*    has cost to LSP-pad all these segments. */
   Count pCL;       /* pages Condemned in Large segments */
   Count pRL;       /* pages Retained in Large segments */
   Count pRLr;      /*   ...because a rest obj (actually LSP) was pip */
@@ -487,13 +491,15 @@ typedef struct PageRetStruct {
    * rest objs) from not LSP-padding.
    *
    * For Medium segs, where we do not do LSP-padding:
-   *   - it would have cost at most pCMx to LSP-pad all Medium segs;
-   *   - the cost incurred is pRMr1.
+   *   - LSP would have required at most sCM extra pages;
+   *   - the extra retention incurred by not LSP-padding is pRMr1.
    * A high pRMr1 => lots of Medium segs getting retained by the rest 
    * objs tacked on after obj 1.  Consider lowering LSP-threshold.
    *
-   * For Large segs we do LSP padding, so the only rest obj is the LSP 
-   * pad.  We expect that ambig refs to this are very rare, so currently 
+   * For Large segs we do LSP padding.  This has a cost; upper bound is 
+   * sCL extra pages.  But the benefit should be greatly reduced ambig 
+   * refs to rest objs.  With LSP, the only rest obj is the LSP pad 
+   * itself.  We expect that ambig refs to this are rare, so currently 
    * we do not implement .large.lsp-no-retain.  But we do record the 
    * occurrence of pages retained by a ref to an LSP pad: pPLr.  A high 
    * pRLr => perhaps .large.lsp-no-retain should be implemented?
@@ -1233,7 +1239,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     
     padSize = alignedSize - size;
     DIAG_SINGLEF(( "AMCBufferFill_big", NULL ));
-    AVER(SizeIsAligned(padSize, pool->alignment));
+    AVER(SizeIsAligned(padSize, PoolAlignment(pool)));
     AVER(AddrAdd(limit, padSize) == SegLimit(seg));
     if(padSize > 0) {
       ShieldExpose(arena, seg);
@@ -1473,9 +1479,10 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
     if(pages == 1) {
       amc->pageretstruct[trace->ti].pCS += pages;
     } else if(pages < largeSeg) {
+      amc->pageretstruct[trace->ti].sCM += 1;
       amc->pageretstruct[trace->ti].pCM += pages;
-      amc->pageretstruct[trace->ti].pCMx += 1;
     } else {
+      amc->pageretstruct[trace->ti].sCL += 1;
       amc->pageretstruct[trace->ti].pCL += pages;
     }
   } );
@@ -2451,22 +2458,23 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   }
   
   DIAG_SINGLEF(( "AMCTraceEnd_pageret",
-    "$U ", ArenaEpoch(pool->arena),
-    "$U ", trace->why,
-    "$S ", trace->emergency ? "Emergency" : "-",
-    "$U ", amc->pageretstruct[ti].pCond,
-    "$U ", amc->pageretstruct[ti].pRet,
-    "$U ", amc->pageretstruct[ti].pCS,
-    "$U ", amc->pageretstruct[ti].pRS,
-    "$U ", amc->pageretstruct[ti].pCM,
-    "$U ", amc->pageretstruct[ti].pCMx,
-    "$U ", amc->pageretstruct[ti].pRM,
-    "$U ", amc->pageretstruct[ti].pRM1,
-    "$U ", amc->pageretstruct[ti].pRMrr,
-    "$U ", amc->pageretstruct[ti].pRMr1,
-    "$U ", amc->pageretstruct[ti].pCL,
-    "$U ", amc->pageretstruct[ti].pRL,
-    "$U ", amc->pageretstruct[ti].pRLr,
+    " $U", ArenaEpoch(pool->arena),
+    " $U", trace->why,
+    " $S", trace->emergency ? "Emergency" : "-",
+    " $U", amc->pageretstruct[ti].pCond,
+    " $U", amc->pageretstruct[ti].pRet, ",",
+    " $U", amc->pageretstruct[ti].pCS,
+    " $U", amc->pageretstruct[ti].pRS, ",",
+    " $U", amc->pageretstruct[ti].sCM,
+    " $U", amc->pageretstruct[ti].pCM,
+    " $U", amc->pageretstruct[ti].pRM,
+    " $U", amc->pageretstruct[ti].pRM1,
+    " $U", amc->pageretstruct[ti].pRMrr,
+    " $U", amc->pageretstruct[ti].pRMr1, ",",
+    " $U", amc->pageretstruct[ti].sCL,
+    " $U", amc->pageretstruct[ti].pCL,
+    " $U", amc->pageretstruct[ti].pRL,
+    " $U", amc->pageretstruct[ti].pRLr,
     NULL ));
 
   amcResetTraceIdStats(amc, ti);
