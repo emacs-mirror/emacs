@@ -6,7 +6,7 @@
 
 ; Author (a) 1985, Damon Anton Permezel
 ; This is in the public domain
-; since he distributed it without copyright notice in 1985.
+; since he distributed it in 1985 without copyright notice.
 ;; This file is part of GNU Emacs.
 ;
 ; Support for horizontal poles, large numbers of rings, real-time,
@@ -71,33 +71,33 @@
   :group 'games)
 
 (defcustom hanoi-horizontal-flag nil
-  "*If non-nil, hanoi poles are oriented horizontally."
+  "If non-nil, hanoi poles are oriented horizontally."
   :group 'hanoi :type 'boolean)
 
 (defcustom hanoi-move-period 1.0
-  "*Time, in seconds, for each pole-to-pole move of a ring.
+  "Time, in seconds, for each pole-to-pole move of a ring.
 If nil, move rings as fast as possible while displaying all
 intermediate positions."
   :group 'hanoi :type '(restricted-sexp :match-alternatives (numberp 'nil)))
 
 (defcustom hanoi-use-faces nil
-  "*If nil, all hanoi-*-face variables are ignored."
+  "If nil, all hanoi-*-face variables are ignored."
   :group 'hanoi :type 'boolean)
 
 (defcustom hanoi-pole-face 'highlight
-  "*Face for poles.  Ignored if hanoi-use-faces is nil."
+  "Face for poles.  Ignored if hanoi-use-faces is nil."
   :group 'hanoi :type 'face)
 
 (defcustom hanoi-base-face 'highlight
-  "*Face for base.  Ignored if hanoi-use-faces is nil."
+  "Face for base.  Ignored if hanoi-use-faces is nil."
   :group 'hanoi :type 'face)
 
 (defcustom hanoi-even-ring-face 'region
-  "*Face for even-numbered rings.  Ignored if hanoi-use-faces is nil."
+  "Face for even-numbered rings.  Ignored if hanoi-use-faces is nil."
   :group 'hanoi :type 'face)
 
 (defcustom hanoi-odd-ring-face 'secondary-selection
-  "*Face for odd-numbered rings.  Ignored if hanoi-use-faces is nil."
+  "Face for odd-numbered rings.  Ignored if hanoi-use-faces is nil."
   :group 'hanoi :type 'face)
 
 
