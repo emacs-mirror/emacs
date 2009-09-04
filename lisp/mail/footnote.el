@@ -566,7 +566,8 @@ a footnote."
 		   (Footnote-narrow-to-footnotes)
 		   (and (>= old-point (point-min))
 			(<= old-point (point-max))))))
-	     (>= (point) (cdar footnote-text-marker-alist)))
+	     footnote-text-marker-alist
+             (>= (point) (cdar footnote-text-marker-alist)))
     (let ((i 1)
 	  alist-txt rc)
       (while (and (setq alist-txt (nth i footnote-text-marker-alist))

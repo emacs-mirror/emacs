@@ -1,3 +1,8 @@
+2009-09-04  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* mail/footnote.el (Footnote-text-under-cursor):
+	Check footnote-text-marker-alist before using it (bug#4324).
+
 2009-09-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-fancy-display): Only switch modes if
