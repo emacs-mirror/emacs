@@ -10,6 +10,11 @@
 
 2009-09-04  Glenn Morris  <rgm@gnu.org>
 
+	* play/5x5.el, play/decipher.el, play/gametree.el, play/handwrite.el:
+	* play/hanoi.el, play/landmark.el, play/mpuz.el, play/pong.el:
+	* play/solitaire.el, play/tetris.el:
+	Remove leading * from defcustom and defface docs.
+
 	* calendar/diary-lib.el (diary-fancy-display): Only switch modes if
 	necessary.
 	(diary-fancy-overriding-map): New variable.
