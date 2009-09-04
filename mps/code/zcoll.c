@@ -432,7 +432,15 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small)
   
   mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
-    (void) MakeThing(arena, ap, big);
+    /* Hack to demonstrate pRLr in AMCTraceEnd_pageret diag:
+     * Make ambig ref to bigLimit, which for large segs will point to 
+     * the LSP-pad.  This will make pRLr (pages of Large segs retained 
+     * by a rest-obj ref) non-zero.
+     * With this hack, pRLr in AMCTraceEnd_pageret does indeed do this.
+     */
+    char *bigLimit = MakeThing(arena, ap, big);
+    bigLimit += big;
+    myrootAmbig[keepCount++ % myrootAmbigCOUNT] = bigLimit;
     if(small == 'A') {
       myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
     } else if(small == 'E') {
