@@ -1,5 +1,8 @@
 2009-09-04  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_focus_changed): If we get a focusout and pointer
+	is invisible, make it visible.
+
 	* xterm.h: Remove condition for declaration of
 	x_*_window_to_frame.
 
