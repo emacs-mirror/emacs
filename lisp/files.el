@@ -716,24 +716,34 @@ one or more of those symbols."
 
 (defun locate-file-completion-table (dirs suffixes string pred action)
   "Do completion for file names passed to `locate-file'."
-  (if (file-name-absolute-p string)
-      (let ((read-file-name-predicate pred))
-        (read-file-name-internal string nil action))
+  (cond
+   ((file-name-absolute-p string)
+    (let ((read-file-name-predicate pred))
+      (read-file-name-internal string nil action)))
+   ((eq (car-safe action) 'boundaries)
+    (let ((suffix (cdr action)))
+      (list* 'boundaries 
+             (length (file-name-directory string))
+             (let ((x (file-name-directory suffix)))
+               (if x (1- (length x)) (length suffix))))))
+   (t
     (let ((names nil)
 	  (suffix (concat (regexp-opt suffixes t) "\\'"))
-	  (string-dir (file-name-directory string)))
+	  (string-dir (file-name-directory string))
+          (string-file (file-name-nondirectory string)))
       (dolist (dir dirs)
 	(unless dir
 	  (setq dir default-directory))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
 	(when (file-directory-p dir)
 	  (dolist (file (file-name-all-completions
-			 (file-name-nondirectory string) dir))
-	    (add-to-list 'names (if string-dir (concat string-dir file) file))
+			 string-file dir))
+	    (push file names)
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
-	      (push (if string-dir (concat string-dir file) file) names)))))
-      (complete-with-action action names string pred))))
+              (push file names)))))
+      (completion-table-with-context
+       string-dir names string-file pred action)))))
 
 (defun locate-file-completion (string path-and-suffixes action)
   "Do completion for file names passed to `locate-file'.

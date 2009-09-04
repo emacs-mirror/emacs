@@ -1,3 +1,8 @@
+2009-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-file-completion-table): Make it provide boundary
+	information, so partial-completion works better.
+
 2009-09-04  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* mail/footnote.el (Footnote-text-under-cursor):
