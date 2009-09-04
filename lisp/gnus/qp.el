@@ -1,7 +1,7 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -154,11 +154,13 @@ encode lines starting with \"From\"."
 
 (defun quoted-printable-encode-string (string)
   "Encode the STRING as quoted-printable and return the result."
-  (let ((default-enable-multibyte-characters (mm-multibyte-string-p string)))
-    (with-temp-buffer
-      (insert string)
-      (quoted-printable-encode-region (point-min) (point-max))
-      (buffer-string))))
+  (with-temp-buffer
+    (if (mm-multibyte-string-p string)
+	(mm-enable-multibyte)
+      (mm-disable-multibyte))
+    (insert string)
+    (quoted-printable-encode-region (point-min) (point-max))
+    (buffer-string)))
 
 (provide 'qp)
 
