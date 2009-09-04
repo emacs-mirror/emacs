@@ -3139,6 +3139,7 @@ XTtoggle_invisible_pointer (f, invisible)
   else
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
                    f->output_data.x->current_cursor);
+  f->pointer_invisible = invisible;
   UNBLOCK_INPUT;
 }
 
@@ -3372,6 +3373,8 @@ x_focus_changed (type, state, dpyinfo, frame, bufp)
       if (FRAME_XIC (frame))
         XUnsetICFocus (FRAME_XIC (frame));
 #endif
+      if (frame->pointer_invisible)
+        XTtoggle_invisible_pointer (frame, 0);
     }
 }
 
