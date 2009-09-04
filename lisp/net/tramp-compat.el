@@ -143,6 +143,16 @@
 	  (tramp-file-name-handler
 	   'set-file-times filename time))))))
 
+(defsubst tramp-compat-line-beginning-position ()
+  "Return point at beginning of line (compat function).
+Calls `line-beginning-position' or `point-at-bol' if defined, else
+own implementation."
+  (cond
+   ((fboundp 'line-beginning-position)
+    (funcall (symbol-function 'line-beginning-position)))
+   ((fboundp 'point-at-bol) (funcall (symbol-function 'point-at-bol)))
+   (t (save-excursion (beginning-of-line) (point)))))
+
 (defsubst tramp-compat-line-end-position ()
   "Return point at end of line (compat function).
 Calls `line-end-position' or `point-at-eol' if defined, else
