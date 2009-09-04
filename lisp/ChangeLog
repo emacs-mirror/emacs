@@ -1,3 +1,11 @@
+2009-09-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-directory): Handle "--dired"
+	also when adding a new directory.
+
+	* net/tramp-compat.el (tramp-compat-line-beginning-position): New
+	defun.
+
 2009-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-file-completion-table): Make it provide boundary
