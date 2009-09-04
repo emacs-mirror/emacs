@@ -1,0 +1,4528 @@
+.
+=== Tests: {[amcss, amsss, finalcv, awlut, awluthe, mpsicv, zmess, messtest]} {[we, hi, di, ci]} ===
+--- amcss {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/amcss
+randomize(): choosing initial seed: 1251993153.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 1 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 4971
+
+  Collection 1 finished:
+    live 21664
+    condemned 192512
+    not_condemned 4096
+    clock: 5522
+}
+10689 objects (mps_collections says: 1)
+0x2f71fc is in the arena
+0x2f6d3b is in the arena
+0x2d592e is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 2 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 16983
+
+  Collection 2 finished:
+    live 21656
+    condemned 200700
+    not_condemned 28672
+    clock: 17547
+}
+21599 objects (mps_collections says: 2)
+0x2d712f is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 3 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 27711
+
+  Collection 3 finished:
+    live 25344
+    condemned 204796
+    not_condemned 49152
+    clock: 28376
+}
+32470 objects (mps_collections says: 3)
+0x3e1221 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 4 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 37916
+
+  Collection 4 finished:
+    live 16056
+    condemned 208884
+    not_condemned 73728
+    clock: 38410
+}
+43363 objects (mps_collections says: 4)
+0x3d5a30 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 5 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 47653
+
+  Collection 5 finished:
+    live 19896
+    condemned 204800
+    not_condemned 90112
+    clock: 48237
+}
+54279 objects (mps_collections says: 5)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 6 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 56997
+
+  Collection 6 finished:
+    live 23280
+    condemned 204776
+    not_condemned 106496
+    clock: 57625
+}
+65224 objects (mps_collections says: 6)
+0x3d54db is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 7 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 65950
+
+  Collection 7 finished:
+    live 18072
+    condemned 204780
+    not_condemned 131072
+    clock: 66496
+}
+76165 objects (mps_collections says: 7)
+0x3e326f is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 8 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 74573
+
+  Collection 8 finished:
+    live 23464
+    condemned 208888
+    not_condemned 147456
+    clock: 75207
+}
+87044 objects (mps_collections says: 8)
+0x2cdc9c is in the arena
+0x2cb805 is in the arena
+0x2c96fd is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 9 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 82948
+
+  Collection 9 finished:
+    live 23092
+    condemned 204792
+    not_condemned 172032
+    clock: 83537
+}
+97907 objects (mps_collections says: 9)
+0x3d0dbb is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 10 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 91040
+
+  Collection 10 finished:
+    live 70432
+    condemned 389104
+    not_condemned 4096
+    clock: 93033
+}
+108830 objects (mps_collections says: 10)
+0x3bc711 is in the arena
+0x2ba4a6 is in the arena
+0x3bf098 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 11 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 99771
+
+  Collection 11 finished:
+    live 27320
+    condemned 200692
+    not_condemned 77824
+    clock: 100401
+}
+119782 objects (mps_collections says: 11)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 12 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 107198
+
+  Collection 12 finished:
+    live 15284
+    condemned 204788
+    not_condemned 106496
+    clock: 107639
+}
+130679 objects (mps_collections says: 12)
+0x3be9c1 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 13 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 114353
+
+  Collection 13 finished:
+    live 25928
+    condemned 204792
+    not_condemned 118784
+    clock: 114969
+}
+141586 objects (mps_collections says: 13)
+0x2d1061 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 14 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 121671
+
+  Collection 14 finished:
+    live 24476
+    condemned 208892
+    not_condemned 143360
+    clock: 122269
+}
+152513 objects (mps_collections says: 14)
+0x3e1de7 is in the arena
+0x2c6ecc is in the arena
+0x2ce1c4 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 15 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 129006
+
+  Collection 15 finished:
+    live 21756
+    condemned 204792
+    not_condemned 167936
+    clock: 129586
+}
+163466 objects (mps_collections says: 15)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 16 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 136346
+
+  Collection 16 finished:
+    live 20668
+    condemned 204796
+    not_condemned 192512
+    clock: 136890
+}
+174397 objects (mps_collections says: 16)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 17 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 143647
+
+  Collection 17 finished:
+    live 25976
+    condemned 204784
+    not_condemned 208896
+    clock: 144261
+}
+185333 objects (mps_collections says: 17)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 18 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 151049
+
+  Collection 18 finished:
+    live 22432
+    condemned 438252
+    not_condemned 4096
+    clock: 151760
+}
+196264 objects (mps_collections says: 18)
+stepped on 1677 objects.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 19 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 158591
+
+  Collection 19 finished:
+    live 19956
+    condemned 204800
+    not_condemned 32768
+    clock: 159136
+}
+207155 objects (mps_collections says: 19)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 20 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 165866
+
+  Collection 20 finished:
+    live 24688
+    condemned 204800
+    not_condemned 53248
+    clock: 166468
+}
+218007 objects (mps_collections says: 20)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 21 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 173260
+
+  Collection 21 finished:
+    live 22976
+    condemned 204784
+    not_condemned 73728
+    clock: 173811
+}
+228951 objects (mps_collections says: 21)
+0x2cec89 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 22 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 180596
+
+  Collection 22 finished:
+    live 22292
+    condemned 204796
+    not_condemned 98304
+    clock: 181193
+}
+239829 objects (mps_collections says: 22)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+
+{
+  Collection 23 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 188035
+250712 objects (mps_collections says: 23)
+0x3c7a1d is in the arena
+0x3c7c24 is in the arena
+....vvvvvv END (why: 1)  vvvvvv
+
+  Collection 23 finished:
+    live 26484
+    condemned 204792
+    not_condemned 118784
+    clock: 194331
+}
+.......
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 24 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 195818
+
+  Collection 24 finished:
+    live 23836
+    condemned 204796
+    not_condemned 147456
+    clock: 196405
+}
+261604 objects (mps_collections says: 24)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 25 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 202803
+
+  Collection 25 finished:
+    live 25140
+    condemned 204788
+    not_condemned 167936
+    clock: 203411
+}
+272473 objects (mps_collections says: 25)
+0x2b7d1e is in the arena
+0x3d357e is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+
+{
+  Collection 26 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 209516
+283386 objects (mps_collections says: 26)
+0x2f40dd is in the arena
+0x2dd51a is in the arena
+0x2a141e is in the arena
+....vvvvvv END (why: 1)  vvvvvv
+
+  Collection 26 finished:
+    live 163516
+    condemned 393200
+    not_condemned 4096
+    clock: 217879
+}
+.......
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 27 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 219290
+
+  Collection 27 finished:
+    live 21248
+    condemned 204792
+    not_condemned 172032
+    clock: 219823
+}
+294274 objects (mps_collections says: 27)
+0x2f7d06 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 28 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 225094
+
+  Collection 28 finished:
+    live 21520
+    condemned 204800
+    not_condemned 192512
+    clock: 225601
+}
+305166 objects (mps_collections says: 28)
+0x2d65ed is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 29 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 230876
+
+  Collection 29 finished:
+    live 22588
+    condemned 204800
+    not_condemned 212992
+    clock: 231409
+}
+316064 objects (mps_collections says: 29)
+0x3f3559 is in the arena
+0x2cde1a is in the arena
+0x3cb594 is in the arena
+0x3d0f6c is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 30 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 236673
+
+  Collection 30 finished:
+    live 24536
+    condemned 204800
+    not_condemned 233472
+    clock: 237263
+}
+326954 objects (mps_collections says: 30)
+0x2afd14 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 31 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 242574
+
+  Collection 31 finished:
+    live 23340
+    condemned 204800
+    not_condemned 258048
+    clock: 243165
+}
+337783 objects (mps_collections says: 31)
+0x2c3375 is in the arena
+0x3d0a33 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 32 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 248542
+
+  Collection 32 finished:
+    live 19816
+    condemned 204792
+    not_condemned 278528
+    clock: 249116
+}
+348650 objects (mps_collections says: 32)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 33 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 254480
+
+  Collection 33 finished:
+    live 25224
+    condemned 200696
+    not_condemned 299008
+    clock: 255110
+}
+359540 objects (mps_collections says: 33)
+0x3d0885 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 34 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 260439
+
+  Collection 34 finished:
+    live 20364
+    condemned 385024
+    not_condemned 143360
+    clock: 261163
+}
+370488 objects (mps_collections says: 34)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 35 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 266464
+
+  Collection 35 finished:
+    live 19184
+    condemned 204800
+    not_condemned 167936
+    clock: 266979
+}
+381411 objects (mps_collections says: 35)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 36 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 272290
+
+  Collection 36 finished:
+    live 24300
+    condemned 204792
+    not_condemned 184320
+    clock: 272907
+}
+392314 objects (mps_collections says: 36)
+0x2a50ed is in the arena
+0x3ac05c is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 37 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 278213
+
+  Collection 37 finished:
+    live 27884
+    condemned 204800
+    not_condemned 208896
+    clock: 278856
+}
+403216 objects (mps_collections says: 37)
+--- amcss {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/amcss
+randomize(): choosing initial seed: 1251993154.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 1 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 5559
+
+  Collection 1 finished:
+    live 27172
+    condemned 192488
+    not_condemned 4096
+    clock: 6666
+}
+10615 objects (mps_collections says: 1)
+0x2f6254 is in the arena
+0x2d7b2f is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 2 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 27343
+
+  Collection 2 finished:
+    live 18492
+    condemned 204780
+    not_condemned 32768
+    clock: 28212
+}
+21486 objects (mps_collections says: 2)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 3 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 46830
+
+  Collection 3 finished:
+    live 20800
+    condemned 204792
+    not_condemned 49152
+    clock: 47837
+}
+32386 objects (mps_collections says: 3)
+0x3e4338 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 4 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 65370
+
+  Collection 4 finished:
+    live 24424
+    condemned 204800
+    not_condemned 69632
+    clock: 66457
+}
+43260 objects (mps_collections says: 4)
+0x2d248b is in the arena
+0x2d468d is in the arena
+0x2ce068 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 5 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 82980
+
+  Collection 5 finished:
+    live 26744
+    condemned 204792
+    not_condemned 94208
+    clock: 84190
+}
+54175 objects (mps_collections says: 5)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 6 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 99592
+
+  Collection 6 finished:
+    live 23668
+    condemned 204784
+    not_condemned 118784
+    clock: 100663
+}
+65118 objects (mps_collections says: 6)
+0x2cb610 is in the arena
+0x3d0e44 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 7 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 115282
+
+  Collection 7 finished:
+    live 16460
+    condemned 204792
+    not_condemned 143360
+    clock: 116123
+}
+76015 objects (mps_collections says: 7)
+0x2d248d is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 8 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 130279
+
+  Collection 8 finished:
+    live 27724
+    condemned 208884
+    not_condemned 159744
+    clock: 131535
+}
+86846 objects (mps_collections says: 8)
+0x3c6b9d is in the arena
+0x2c49e3 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 9 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 144956
+
+  Collection 9 finished:
+    live 57368
+    condemned 389116
+    not_condemned 4096
+    clock: 147621
+}
+97810 objects (mps_collections says: 9)
+0x2bd334 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 10 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 159649
+
+  Collection 10 finished:
+    live 20852
+    condemned 204796
+    not_condemned 65536
+    clock: 160523
+}
+108776 objects (mps_collections says: 10)
+0x2bdecd is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 11 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 172520
+
+  Collection 11 finished:
+    live 23096
+    condemned 204792
+    not_condemned 86016
+    clock: 173508
+}
+119678 objects (mps_collections says: 11)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 12 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 185495
+
+  Collection 12 finished:
+    live 21508
+    condemned 204788
+    not_condemned 106496
+    clock: 186417
+}
+130554 objects (mps_collections says: 12)
+0x2c9474 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 13 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 198446
+
+  Collection 13 finished:
+    live 21476
+    condemned 204800
+    not_condemned 131072
+    clock: 199325
+}
+141476 objects (mps_collections says: 13)
+0x2c6eb9 is in the arena
+0x3bdea2 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 14 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 211284
+
+  Collection 14 finished:
+    live 25192
+    condemned 204796
+    not_condemned 151552
+    clock: 212253
+}
+152360 objects (mps_collections says: 14)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 15 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 224227
+
+  Collection 15 finished:
+    live 22332
+    condemned 204800
+    not_condemned 176128
+    clock: 225160
+}
+163319 objects (mps_collections says: 15)
+0x2c5544 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 16 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 237242
+
+  Collection 16 finished:
+    live 85956
+    condemned 397300
+    not_condemned 4096
+    clock: 241000
+}
+174208 objects (mps_collections says: 16)
+0x3b711f is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 17 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 251950
+
+  Collection 17 finished:
+    live 19904
+    condemned 200696
+    not_condemned 90112
+    clock: 252810
+}
+185120 objects (mps_collections says: 17)
+0x2d332d is in the arena
+0x3cd836 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 18 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 263801
+
+  Collection 18 finished:
+    live 20656
+    condemned 204796
+    not_condemned 110592
+    clock: 264688
+}
+195981 objects (mps_collections says: 18)
+stepped on 7367 objects.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 19 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 276474
+
+  Collection 19 finished:
+    live 10920
+    condemned 204796
+    not_condemned 131072
+    clock: 277084
+}
+206874 objects (mps_collections says: 19)
+0x3b2a1d is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 20 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 288056
+
+  Collection 20 finished:
+    live 15956
+    condemned 204792
+    not_condemned 143360
+    clock: 288873
+}
+217871 objects (mps_collections says: 20)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 21 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 299787
+
+  Collection 21 finished:
+    live 23788
+    condemned 204800
+    not_condemned 155648
+    clock: 300751
+}
+228760 objects (mps_collections says: 21)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 22 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 311724
+
+  Collection 22 finished:
+    live 21376
+    condemned 200700
+    not_condemned 180224
+    clock: 312593
+}
+239613 objects (mps_collections says: 22)
+0x2c13a1 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 23 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 323506
+
+  Collection 23 finished:
+    live 28472
+    condemned 200700
+    not_condemned 200704
+    clock: 324633
+}
+250525 objects (mps_collections says: 23)
+0x2ba9b0 is in the arena
+0x2c30f6 is in the arena
+0x3e47c7 is in the arena
+0x2f761c is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 24 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 335735
+
+  Collection 24 finished:
+    live 23188
+    condemned 204800
+    not_condemned 229376
+    clock: 336780
+}
+261374 objects (mps_collections says: 24)
+0x2d4a6c is in the arena
+0x3d3462 is in the arena
+0x2c7d62 is in the arena
+0x2d7ebc is in the arena
+0x2c4075 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 25 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 347846
+
+  Collection 25 finished:
+    live 106036
+    condemned 385024
+    not_condemned 69632
+    clock: 352597
+}
+272286 objects (mps_collections says: 25)
+0x3b1d2e is in the arena
+0x2aebf2 is in the arena
+0x2ab32c is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 26 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 362347
+
+  Collection 26 finished:
+    live 24252
+    condemned 204796
+    not_condemned 180224
+    clock: 363382
+}
+283158 objects (mps_collections says: 26)
+0x3a9c42 is in the arena
+0x3e27bd is in the arena
+0x3a9df6 is in the arena
+0x3e2dbf is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 27 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 373074
+
+  Collection 27 finished:
+    live 22264
+    condemned 204796
+    not_condemned 204800
+    clock: 374029
+}
+294015 objects (mps_collections says: 27)
+0x3b457a is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 28 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 383802
+
+  Collection 28 finished:
+    live 22624
+    condemned 204796
+    not_condemned 225280
+    clock: 384782
+}
+304932 objects (mps_collections says: 28)
+0x2f7c53 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 29 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 394652
+
+  Collection 29 finished:
+    live 16388
+    condemned 204800
+    not_condemned 249856
+    clock: 395422
+}
+315786 objects (mps_collections says: 29)
+0x2d7273 is in the arena
+0x2b3c01 is in the arena
+0x2a8162 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 30 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 405158
+
+  Collection 30 finished:
+    live 20544
+    condemned 204788
+    not_condemned 262144
+    clock: 406021
+}
+326676 objects (mps_collections says: 30)
+0x2a3abc is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 31 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 415687
+
+  Collection 31 finished:
+    live 24156
+    condemned 204796
+    not_condemned 282624
+    clock: 416689
+}
+337592 objects (mps_collections says: 31)
+0x2ae4b3 is in the arena
+0x2f6187 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 32 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 426490
+
+  Collection 32 finished:
+    live 18076
+    condemned 204784
+    not_condemned 307200
+    clock: 427278
+}
+348488 objects (mps_collections says: 32)
+0x2ca8cd is in the arena
+0x2a7a11 is in the arena
+0x2c0495 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 33 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 437056
+
+  Collection 33 finished:
+    live 9576
+    condemned 204800
+    not_condemned 323584
+    clock: 437701
+}
+359380 objects (mps_collections says: 33)
+0x2acfad is in the arena
+0x3d71ea is in the arena
+0x2d2080 is in the arena
+...........
+^^^^^^ BEGIN (why: 2) ^^^^^^
+vvvvvv END (why: 2)  vvvvvv
+
+{
+  Collection 34 started.  Because:
+    Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+    clock: 447554
+
+  Collection 34 finished:
+    live 23660
+    condemned 536564
+    not_condemned 4096
+    clock: 448950
+}
+370296 objects (mps_collections says: 34)
+0x3ccb99 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 35 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 458688
+
+  Collection 35 finished:
+    live 24856
+    condemned 204796
+    not_condemned 32768
+    clock: 459758
+}
+381187 objects (mps_collections says: 35)
+0x2d5370 is in the arena
+0x3cc481 is in the arena
+0x2d33fe is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 36 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 469656
+
+  Collection 36 finished:
+    live 19548
+    condemned 200684
+    not_condemned 57344
+    clock: 470641
+}
+392068 objects (mps_collections says: 36)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 37 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 480501
+
+  Collection 37 finished:
+    live 22296
+    condemned 208896
+    not_condemned 77824
+    clock: 481471
+}
+402999 objects (mps_collections says: 37)
+0x2d5256 is in the arena
+--- amcss {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/amcss
+randomize(): choosing initial seed: 1251993154.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 1 1 - 47 2 47 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 1 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 6426
+
+  Collection 1 finished:
+    live 27172
+    condemned 192488
+    not_condemned 4096
+    clock: 7563
+}
+10615 objects (mps_collections says: 1)
+0x2f6254 is in the arena
+0x2d7b2f is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 2 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 2 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 28797
+
+  Collection 2 finished:
+    live 18492
+    condemned 204780
+    not_condemned 32768
+    clock: 29735
+}
+21486 objects (mps_collections says: 2)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 3 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 3 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 48805
+
+  Collection 3 finished:
+    live 20800
+    condemned 204792
+    not_condemned 49152
+    clock: 49855
+}
+32386 objects (mps_collections says: 3)
+0x3e4338 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 4 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 4 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 67868
+
+  Collection 4 finished:
+    live 24424
+    condemned 204800
+    not_condemned 69632
+    clock: 68986
+}
+43260 objects (mps_collections says: 4)
+0x2d248b is in the arena
+0x2d468d is in the arena
+0x2ce068 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 5 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 5 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 85981
+
+  Collection 5 finished:
+    live 26744
+    condemned 204792
+    not_condemned 94208
+    clock: 87197
+}
+54175 objects (mps_collections says: 5)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 6 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 6 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 102996
+
+  Collection 6 finished:
+    live 23668
+    condemned 204784
+    not_condemned 118784
+    clock: 104081
+}
+65118 objects (mps_collections says: 6)
+0x2cb610 is in the arena
+0x3d0e44 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 7 1 - 50 3 50 3 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 7 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 119292
+
+  Collection 7 finished:
+    live 16460
+    condemned 204792
+    not_condemned 143360
+    clock: 120153
+}
+76015 objects (mps_collections says: 7)
+0x2d248d is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 8 1 - 51 2 51 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 8 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 134667
+
+  Collection 8 finished:
+    live 27724
+    condemned 208884
+    not_condemned 159744
+    clock: 135913
+}
+86846 objects (mps_collections says: 8)
+0x3c6b9d is in the arena
+0x2c49e3 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 9 1 - 95 2 95 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 9 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 149650
+
+  Collection 9 finished:
+    live 57368
+    condemned 389116
+    not_condemned 4096
+    clock: 152309
+}
+97810 objects (mps_collections says: 9)
+0x2bd334 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 10 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 10 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 164714
+
+  Collection 10 finished:
+    live 20852
+    condemned 204796
+    not_condemned 65536
+    clock: 165620
+}
+108776 objects (mps_collections says: 10)
+0x2bdecd is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 11 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 11 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 178049
+
+  Collection 11 finished:
+    live 23096
+    condemned 204792
+    not_condemned 86016
+    clock: 179067
+}
+119678 objects (mps_collections says: 11)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 12 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 12 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 191396
+
+  Collection 12 finished:
+    live 21508
+    condemned 204788
+    not_condemned 106496
+    clock: 192338
+}
+130554 objects (mps_collections says: 12)
+0x2c9474 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 13 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 13 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 204669
+
+  Collection 13 finished:
+    live 21476
+    condemned 204800
+    not_condemned 131072
+    clock: 205566
+}
+141476 objects (mps_collections says: 13)
+0x2c6eb9 is in the arena
+0x3bdea2 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 14 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 14 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 217910
+
+  Collection 14 finished:
+    live 25192
+    condemned 204796
+    not_condemned 151552
+    clock: 218933
+}
+152360 objects (mps_collections says: 14)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 15 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 15 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 231296
+
+  Collection 15 finished:
+    live 22332
+    condemned 204800
+    not_condemned 176128
+    clock: 232256
+}
+163319 objects (mps_collections says: 15)
+0x2c5544 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 16 1 - 97 1 97 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 16 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 244695
+
+  Collection 16 finished:
+    live 85956
+    condemned 397300
+    not_condemned 4096
+    clock: 248535
+}
+174208 objects (mps_collections says: 16)
+0x3b711f is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 17 1 - 49 2 49 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 17 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 259774
+
+  Collection 17 finished:
+    live 19904
+    condemned 200696
+    not_condemned 90112
+    clock: 260637
+}
+185120 objects (mps_collections says: 17)
+0x2d332d is in the arena
+0x3cd836 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 18 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 18 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 271970
+
+  Collection 18 finished:
+    live 20656
+    condemned 204796
+    not_condemned 110592
+    clock: 272913
+}
+195981 objects (mps_collections says: 18)
+stepped on 7367 objects.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 19 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 19 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 285069
+
+  Collection 19 finished:
+    live 10920
+    condemned 204796
+    not_condemned 131072
+    clock: 285723
+}
+206874 objects (mps_collections says: 19)
+0x3b2a1d is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 20 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 20 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 296975
+
+  Collection 20 finished:
+    live 15956
+    condemned 204792
+    not_condemned 143360
+    clock: 297773
+}
+217871 objects (mps_collections says: 20)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 21 1 - 50 1 50 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 21 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 308980
+
+  Collection 21 finished:
+    live 23788
+    condemned 204800
+    not_condemned 155648
+    clock: 309959
+}
+228760 objects (mps_collections says: 21)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 22 1 - 49 1 49 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 22 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 321205
+
+  Collection 22 finished:
+    live 21376
+    condemned 200700
+    not_condemned 180224
+    clock: 322108
+}
+239613 objects (mps_collections says: 22)
+0x2c13a1 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 23 1 - 49 2 49 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 23 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 333366
+
+  Collection 23 finished:
+    live 28472
+    condemned 200700
+    not_condemned 200704
+    clock: 334531
+}
+250525 objects (mps_collections says: 23)
+0x2ba9b0 is in the arena
+0x2c30f6 is in the arena
+0x3e47c7 is in the arena
+0x2f761c is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 24 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 24 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 345810
+
+  Collection 24 finished:
+    live 23188
+    condemned 204800
+    not_condemned 229376
+    clock: 346804
+}
+261374 objects (mps_collections says: 24)
+0x2d4a6c is in the arena
+0x3d3462 is in the arena
+0x2c7d62 is in the arena
+0x2d7ebc is in the arena
+0x2c4075 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 25 1 - 94 2 94 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 25 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 358121
+
+  Collection 25 finished:
+    live 106036
+    condemned 385024
+    not_condemned 69632
+    clock: 362853
+}
+272286 objects (mps_collections says: 25)
+0x3b1d2e is in the arena
+0x2aebf2 is in the arena
+0x2ab32c is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 26 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 26 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 373049
+
+  Collection 26 finished:
+    live 24252
+    condemned 204796
+    not_condemned 180224
+    clock: 374136
+}
+283158 objects (mps_collections says: 26)
+0x3a9c42 is in the arena
+0x3e27bd is in the arena
+0x3a9df6 is in the arena
+0x3e2dbf is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 27 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 27 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 384305
+
+  Collection 27 finished:
+    live 22264
+    condemned 204796
+    not_condemned 204800
+    clock: 385329
+}
+294015 objects (mps_collections says: 27)
+0x3b457a is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 28 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 28 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 395512
+
+  Collection 28 finished:
+    live 22624
+    condemned 204796
+    not_condemned 225280
+    clock: 396537
+}
+304932 objects (mps_collections says: 28)
+0x2f7c53 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 29 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 29 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 406682
+
+  Collection 29 finished:
+    live 16388
+    condemned 204800
+    not_condemned 249856
+    clock: 407436
+}
+315786 objects (mps_collections says: 29)
+0x2d7273 is in the arena
+0x2b3c01 is in the arena
+0x2a8162 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 30 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 30 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 417483
+
+  Collection 30 finished:
+    live 20544
+    condemned 204788
+    not_condemned 262144
+    clock: 418369
+}
+326676 objects (mps_collections says: 30)
+0x2a3abc is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 31 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 31 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 428458
+
+  Collection 31 finished:
+    live 24156
+    condemned 204796
+    not_condemned 282624
+    clock: 429503
+}
+337592 objects (mps_collections says: 31)
+0x2ae4b3 is in the arena
+0x2f6187 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 32 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 32 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 439528
+
+  Collection 32 finished:
+    live 18076
+    condemned 204784
+    not_condemned 307200
+    clock: 440341
+}
+348488 objects (mps_collections says: 32)
+0x2ca8cd is in the arena
+0x2a7a11 is in the arena
+0x2c0495 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 33 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 33 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 450424
+
+  Collection 33 finished:
+    live 9576
+    condemned 204800
+    not_condemned 323584
+    clock: 451095
+}
+359380 objects (mps_collections says: 33)
+0x2acfad is in the arena
+0x3d71ea is in the arena
+0x2d2080 is in the arena
+...........
+^^^^^^ BEGIN (why: 2) ^^^^^^
+MPS.AMCTraceEnd_pageret { 34 2 - 131 2 131 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 2)  vvvvvv
+
+{
+  Collection 34 started.  Because:
+    Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+    clock: 461175
+
+  Collection 34 finished:
+    live 23660
+    condemned 536564
+    not_condemned 4096
+    clock: 462582
+}
+370296 objects (mps_collections says: 34)
+0x3ccb99 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 35 1 - 50 1 50 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 35 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 472711
+
+  Collection 35 finished:
+    live 24856
+    condemned 204796
+    not_condemned 32768
+    clock: 473743
+}
+381187 objects (mps_collections says: 35)
+0x2d5370 is in the arena
+0x3cc481 is in the arena
+0x2d33fe is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 36 1 - 49 3 49 3 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 36 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 483781
+
+  Collection 36 finished:
+    live 19548
+    condemned 200684
+    not_condemned 57344
+    clock: 484717
+}
+392068 objects (mps_collections says: 36)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 37 1 - 51 2 51 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 37 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 494741
+
+  Collection 37 finished:
+    live 22296
+    condemned 208896
+    not_condemned 77824
+    clock: 495689
+}
+402999 objects (mps_collections says: 37)
+0x2d5256 is in the arena
+--- amcss {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/amcss
+randomize(): choosing initial seed: 1251993155.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 1 1 - 47 2 47 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 1 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 9524
+
+  Collection 1 finished:
+    live 21328
+    condemned 192512
+    not_condemned 4096
+    clock: 20667
+}
+10736 objects (mps_collections says: 1)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 2 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 2 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 124230
+
+  Collection 2 finished:
+    live 22972
+    condemned 204784
+    not_condemned 28672
+    clock: 136038
+}
+21608 objects (mps_collections says: 2)
+0x2d12f0 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 3 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 3 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 227277
+
+  Collection 3 finished:
+    live 18000
+    condemned 204800
+    not_condemned 49152
+    clock: 237295
+}
+32562 objects (mps_collections says: 3)
+0x2f7cbc is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 4 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 4 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 324171
+
+  Collection 4 finished:
+    live 27840
+    condemned 204800
+    not_condemned 65536
+    clock: 338265
+}
+43459 objects (mps_collections says: 4)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 5 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 5 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 418300
+
+  Collection 5 finished:
+    live 26164
+    condemned 204788
+    not_condemned 94208
+    clock: 431850
+}
+54368 objects (mps_collections says: 5)
+0x2d5052 is in the arena
+0x2f7673 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 6 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 6 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 506033
+
+  Collection 6 finished:
+    live 24340
+    condemned 204800
+    not_condemned 118784
+    clock: 518930
+}
+65235 objects (mps_collections says: 6)
+0x2ce18f is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 7 1 - 50 1 50 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 7 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 588998
+
+  Collection 7 finished:
+    live 24420
+    condemned 204800
+    not_condemned 143360
+    clock: 601796
+}
+76136 objects (mps_collections says: 7)
+0x2cc483 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 8 1 - 49 2 49 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 8 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 667833
+
+  Collection 8 finished:
+    live 25752
+    condemned 200684
+    not_condemned 167936
+    clock: 681417
+}
+87044 objects (mps_collections says: 8)
+0x2c52f5 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 9 1 - 96 1 96 1 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 9 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 745067
+
+  Collection 9 finished:
+    live 138692
+    condemned 393200
+    not_condemned 4096
+    clock: 810972
+}
+97935 objects (mps_collections says: 9)
+0x2b4ad8 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 10 1 - 49 2 49 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 10 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 859865
+
+  Collection 10 finished:
+    live 11028
+    condemned 200684
+    not_condemned 147456
+    clock: 866653
+}
+108791 objects (mps_collections says: 10)
+0x3e42ae is in the arena
+0x3b2d25 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 11 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 11 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 915295
+
+  Collection 11 finished:
+    live 25044
+    condemned 204792
+    not_condemned 159744
+    clock: 928246
+}
+119659 objects (mps_collections says: 11)
+0x2b0485 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 12 1 - 93 2 93 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 12 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 977480
+
+  Collection 12 finished:
+    live 16876
+    condemned 380920
+    not_condemned 4096
+    clock: 987535
+}
+130583 objects (mps_collections says: 12)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 13 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 13 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1036142
+
+  Collection 13 finished:
+    live 24372
+    condemned 204800
+    not_condemned 20480
+    clock: 1048830
+}
+141442 objects (mps_collections says: 13)
+0x2d2b9c is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 14 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 14 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1097767
+
+  Collection 14 finished:
+    live 23304
+    condemned 204792
+    not_condemned 45056
+    clock: 1109950
+}
+152353 objects (mps_collections says: 14)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 15 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 15 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1158417
+
+  Collection 15 finished:
+    live 19164
+    condemned 204800
+    not_condemned 69632
+    clock: 1168725
+}
+163301 objects (mps_collections says: 15)
+0x2d3e17 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+
+{
+  Collection 16 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1217292
+174247 objects (mps_collections says: 16)
+0x2d297e is in the arena
+0x2c52d1 is in the arena
+...MPS.AMCTraceEnd_pageret { 16 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+  Collection 16 finished:
+    live 22812
+    condemned 204784
+    not_condemned 86016
+    clock: 1273821
+}
+.......
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 17 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 17 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1278415
+
+  Collection 17 finished:
+    live 20196
+    condemned 204792
+    not_condemned 110592
+    clock: 1289346
+}
+185196 objects (mps_collections says: 17)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 18 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 18 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1334015
+
+  Collection 18 finished:
+    live 24868
+    condemned 204796
+    not_condemned 131072
+    clock: 1347054
+}
+196172 objects (mps_collections says: 18)
+stepped on 8672 objects.
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 19 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 19 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1393652
+
+  Collection 19 finished:
+    live 22436
+    condemned 204784
+    not_condemned 155648
+    clock: 1405111
+}
+207069 objects (mps_collections says: 19)
+0x2b7bf1 is in the arena
+0x2b1b7c is in the arena
+0x2c9765 is in the arena
+0x2cbff8 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 20 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 20 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1447377
+
+  Collection 20 finished:
+    live 19904
+    condemned 204792
+    not_condemned 176128
+    clock: 1458251
+}
+218034 objects (mps_collections says: 20)
+0x2bb65a is in the arena
+0x2c3b1d is in the arena
+0x2f79d7 is in the arena
+0x2aa366 is in the arena
+0x2d5df2 is in the arena
+0x2d1288 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 21 1 - 97 2 97 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 21 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1500392
+
+  Collection 21 finished:
+    live 18056
+    condemned 397304
+    not_condemned 4096
+    clock: 1511163
+}
+228895 objects (mps_collections says: 21)
+0x2f7768 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+
+{
+  Collection 22 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1552162
+239810 objects (mps_collections says: 22)
+0x2d22ef is in the arena
+...MPS.AMCTraceEnd_pageret { 22 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+  Collection 22 finished:
+    live 27632
+    condemned 204796
+    not_condemned 24576
+    clock: 1602855
+}
+.......
+^^^^^^ BEGIN (why: 1) ^^^^^^
+
+{
+  Collection 23 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1607304
+250717 objects (mps_collections says: 23)
+0x3ef2de is in the arena
+0x3e9d21 is in the arena
+....MPS.AMCTraceEnd_pageret { 23 1 - 50 3 50 3 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+  Collection 23 finished:
+    live 21352
+    condemned 204776
+    not_condemned 49152
+    clock: 1655672
+}
+.......
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 24 1 - 51 2 51 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 24 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1660204
+
+  Collection 24 finished:
+    live 23716
+    condemned 208880
+    not_condemned 69632
+    clock: 1672686
+}
+261640 objects (mps_collections says: 24)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 25 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 25 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1713839
+
+  Collection 25 finished:
+    live 21608
+    condemned 204776
+    not_condemned 94208
+    clock: 1725329
+}
+272595 objects (mps_collections says: 25)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 26 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 26 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1766356
+
+  Collection 26 finished:
+    live 23948
+    condemned 204796
+    not_condemned 114688
+    clock: 1778746
+}
+283487 objects (mps_collections says: 26)
+0x2d669d is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 27 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 27 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1819846
+
+  Collection 27 finished:
+    live 14484
+    condemned 204792
+    not_condemned 139264
+    clock: 1828177
+}
+294435 objects (mps_collections says: 27)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 28 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 28 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1869218
+
+  Collection 28 finished:
+    live 23932
+    condemned 204784
+    not_condemned 151552
+    clock: 1881866
+}
+305343 objects (mps_collections says: 28)
+0x2cb75d is in the arena
+0x2ca4e1 is in the arena
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 29 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 29 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1923224
+
+  Collection 29 finished:
+    live 22340
+    condemned 204796
+    not_condemned 176128
+    clock: 1935090
+}
+316294 objects (mps_collections says: 29)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 30 1 - 97 2 97 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 30 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 1976955
+
+  Collection 30 finished:
+    live 63044
+    condemned 397300
+    not_condemned 4096
+    clock: 2008024
+}
+327167 objects (mps_collections says: 30)
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 31 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 31 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2049148
+
+  Collection 31 finished:
+    live 13988
+    condemned 204792
+    not_condemned 69632
+    clock: 2057298
+}
+338130 objects (mps_collections says: 31)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 32 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 32 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2098584
+
+  Collection 32 finished:
+    live 18140
+    condemned 204796
+    not_condemned 86016
+    clock: 2108850
+}
+348982 objects (mps_collections says: 32)
+0x3f1b57 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 33 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 33 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2150334
+
+  Collection 33 finished:
+    live 22396
+    condemned 204788
+    not_condemned 102400
+    clock: 2162217
+}
+359908 objects (mps_collections says: 33)
+0x2ac8a1 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 34 1 - 50 2 50 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 34 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2203542
+
+  Collection 34 finished:
+    live 17256
+    condemned 204800
+    not_condemned 122880
+    clock: 2213232
+}
+370833 objects (mps_collections says: 34)
+..........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 35 1 - 50 3 50 3 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 35 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2254456
+
+  Collection 35 finished:
+    live 23984
+    condemned 204788
+    not_condemned 139264
+    clock: 2267098
+}
+381722 objects (mps_collections says: 35)
+0x2c5e77 is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 36 1 - 51 2 51 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 36 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2308216
+
+  Collection 36 finished:
+    live 21824
+    condemned 208880
+    not_condemned 163840
+    clock: 2319892
+}
+392675 objects (mps_collections says: 36)
+0x2aaebf is in the arena
+...........
+^^^^^^ BEGIN (why: 1) ^^^^^^
+MPS.AMCTraceEnd_pageret { 37 1 - 94 2 94 2 0 0 0 0 0 0 0 0 0 }
+vvvvvv END (why: 1)  vvvvvv
+
+{
+  Collection 37 started.  Because:
+    Generation 0 of a chain has reached capacity: start a minor collection.
+    clock: 2361628
+
+  Collection 37 finished:
+    live 62808
+    condemned 385024
+    not_condemned 4096
+    clock: 2392746
+}
+403615 objects (mps_collections says: 37)
+0x2980a1 is in the arena
+--- amsss {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/amsss
+randomize(): choosing initial seed: 1251993158.
+
+
+****************************** Testing AMS Debug
+................
+Collection start 1.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+Size 204852 bytes, 4482 objects.
+..................
+Size 409664 bytes, 8979 objects.
+.................
+Collection complete 1:
+live 146804
+condemned 180208
+not_condemned 0
+
+Size 614520 bytes, 13413 objects.
+......
+Collection start 2.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...........
+
+****************************** Testing AMS Debug
+...
+Collection complete 2:
+live 0
+condemned 638964
+not_condemned 0
+..............
+Size 204856 bytes, 4447 objects.
+.
+Collection start 3.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+................
+Collection complete 3:
+live 88340
+condemned 208852
+not_condemned 0
+
+Size 409708 bytes, 8917 objects.
+.....
+Collection start 4.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 4:
+live 185252
+condemned 393164
+not_condemned 0
+........
+Size 614552 bytes, 13339 objects.
+..
+Collection start 5.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 5:
+live 253756
+condemned 454624
+not_condemned 0
+..............
+Collection start 6.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+
+****************************** Testing AMS
+...
+Collection complete 6:
+live 0
+condemned 454656
+not_condemned 0
+..............
+Size 204832 bytes, 4453 objects.
+..
+Collection start 7.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...............
+Collection complete 7:
+live 91356
+condemned 217076
+not_condemned 0
+
+Size 409660 bytes, 8867 objects.
+.....
+Collection start 8.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 8:
+live 187744
+condemned 401372
+not_condemned 0
+.......
+Size 614492 bytes, 13286 objects.
+...
+Collection start 9.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 9:
+live 255156
+condemned 462780
+not_condemned 0
+...............
+Collection start 10.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+
+****************************** Testing AMS
+....
+Collection complete 10:
+live 0
+condemned 462816
+not_condemned 0
+...........
+Collection start 11.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+..
+Size 204840 bytes, 4423 objects.
+.................
+Size 409652 bytes, 8840 objects.
+.................
+Collection complete 11:
+live 135504
+condemned 167912
+not_condemned 0
+.
+Size 614516 bytes, 13337 objects.
+....
+Collection start 12.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.............--- amsss {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/amsss
+randomize(): choosing initial seed: 1251993158.
+
+
+****************************** Testing AMS Debug
+................
+Collection start 1.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+Size 204852 bytes, 4482 objects.
+..................
+Size 409664 bytes, 8979 objects.
+.................
+Collection complete 1:
+live 146804
+condemned 180208
+not_condemned 0
+
+Size 614520 bytes, 13413 objects.
+......
+Collection start 2.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...........
+
+****************************** Testing AMS Debug
+...
+Collection complete 2:
+live 0
+condemned 638964
+not_condemned 0
+..............
+Size 204856 bytes, 4447 objects.
+.
+Collection start 3.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+................
+Collection complete 3:
+live 88340
+condemned 208852
+not_condemned 0
+
+Size 409708 bytes, 8917 objects.
+.....
+Collection start 4.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 4:
+live 185252
+condemned 393164
+not_condemned 0
+........
+Size 614552 bytes, 13339 objects.
+..
+Collection start 5.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 5:
+live 253756
+condemned 454624
+not_condemned 0
+..............
+Collection start 6.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+
+****************************** Testing AMS
+...
+Collection complete 6:
+live 0
+condemned 454656
+not_condemned 0
+..............
+Size 204832 bytes, 4453 objects.
+..
+Collection start 7.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...............
+Collection complete 7:
+live 91356
+condemned 217076
+not_condemned 0
+
+Size 409660 bytes, 8867 objects.
+.....
+Collection start 8.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 8:
+live 187744
+condemned 401372
+not_condemned 0
+.......
+Size 614492 bytes, 13286 objects.
+...
+Collection start 9.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 9:
+live 255156
+condemned 462780
+not_condemned 0
+...............
+Collection start 10.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+
+****************************** Testing AMS
+....
+Collection complete 10:
+live 0
+condemned 462816
+not_condemned 0
+...........
+Collection start 11.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+..
+Size 204840 bytes, 4423 objects.
+.................
+Size 409652 bytes, 8840 objects.
+.................
+Collection complete 11:
+live 135504
+condemned 167912
+not_condemned 0
+.
+Size 614516 bytes, 13337 objects.
+....
+Collection start 12.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.............--- amsss {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/amsss
+randomize(): choosing initial seed: 1251993159.
+
+
+****************************** Testing AMS Debug
+................
+Collection start 1.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+Size 204804 bytes, 4404 objects.
+.................
+Size 409620 bytes, 8869 objects.
+..................
+Collection complete 1:
+live 148064
+condemned 180168
+not_condemned 0
+
+Size 614432 bytes, 13322 objects.
+.....
+Collection start 2.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+............
+
+****************************** Testing AMS Debug
+...
+Collection complete 2:
+live 0
+condemned 638944
+not_condemned 0
+..............
+Size 204884 bytes, 4433 objects.
+.
+Collection start 3.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+................
+Collection complete 3:
+live 88824
+condemned 208848
+not_condemned 0
+
+Size 409712 bytes, 8895 objects.
+.....
+Collection start 4.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 4:
+live 183216
+condemned 393164
+not_condemned 0
+........
+Size 614556 bytes, 13384 objects.
+..
+Collection start 5.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 5:
+live 253948
+condemned 454656
+not_condemned 0
+..............
+Collection start 6.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+
+****************************** Testing AMS
+...
+Collection complete 6:
+live 0
+condemned 454640
+not_condemned 0
+..............
+Size 204832 bytes, 4458 objects.
+..
+Collection start 7.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...............
+Collection complete 7:
+live 91512
+condemned 212924
+not_condemned 0
+
+Size 409636 bytes, 8930 objects.
+.....
+Collection start 8.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 8:
+live 188904
+condemned 397284
+not_condemned 0
+........
+Size 614468 bytes, 13372 objects.
+..
+Collection start 9.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 9:
+live 257344
+condemned 458724
+not_condemned 0
+..............
+Collection start 10.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+
+****************************** Testing AMS
+....
+Collection complete 10:
+live 0
+condemned 458724
+not_condemned 0
+.............
+Size 204856 bytes, 4488 objects.
+..
+Collection start 11.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...............
+Size 409676 bytes, 8931 objects.
+..................
+Size 614480 bytes, 13342 objects.
+....
+Collection complete 11:
+live 179384
+condemned 221180
+not_condemned 0
+.....
+Collection start 12.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+........--- amsss {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/amsss
+randomize(): choosing initial seed: 1251993160.
+
+
+****************************** Testing AMS Debug
+................
+Collection start 1.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+Size 204868 bytes, 4432 objects.
+.................
+Size 409716 bytes, 8890 objects.
+.............
+Collection complete 1:
+live 144876
+condemned 180184
+not_condemned 0
+....
+Size 614552 bytes, 13311 objects.
+.
+Collection start 2.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.................
+
+****************************** Testing AMS Debug
+...
+Collection complete 2:
+live 0
+condemned 573388
+not_condemned 0
+..............
+Size 204820 bytes, 4455 objects.
+.
+Collection start 3.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+................
+Collection complete 3:
+live 87684
+condemned 208896
+not_condemned 0
+
+Size 409660 bytes, 8880 objects.
+.....
+Collection start 4.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 4:
+live 185084
+condemned 393212
+not_condemned 0
+........
+Size 614484 bytes, 13349 objects.
+..
+Collection start 5.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 5:
+live 254304
+condemned 454652
+not_condemned 0
+..............
+Collection start 6.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.
+
+****************************** Testing AMS
+...
+Collection complete 6:
+live 0
+condemned 454592
+not_condemned 0
+..............
+Size 204816 bytes, 4444 objects.
+..
+Collection start 7.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+................
+Collection complete 7:
+live 91896
+condemned 217036
+not_condemned 0
+
+Size 409664 bytes, 8960 objects.
+.....
+Collection start 8.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.....
+Collection complete 8:
+live 183892
+condemned 401388
+not_condemned 0
+.......
+Size 614472 bytes, 13450 objects.
+...
+Collection start 9.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection complete 9:
+live 254344
+condemned 462792
+not_condemned 0
+..............
+Collection start 10.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+
+****************************** Testing AMS
+....
+Collection complete 10:
+live 0
+condemned 462844
+not_condemned 0
+...........
+Collection start 11.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+..
+Size 204828 bytes, 4431 objects.
+.................
+Size 409684 bytes, 8870 objects.
+.................
+Collection complete 11:
+live 136956
+condemned 167932
+not_condemned 0
+.
+Size 614512 bytes, 13312 objects.
+....
+Collection start 12.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+.............--- finalcv {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/finalcv
+randomize(): choosing initial seed: 1251993163.
+Finalizing: object 8 at 0x1eff084
+Finalizing: object 9 at 0x1eff090
+Finalizing: object 12 at 0x1eff09c
+Finalizing: object 14 at 0x1eff0a8
+--- finalcv {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/finalcv
+randomize(): choosing initial seed: 1251993163.
+Finalizing: object 8 at 0x1eff084
+Finalizing: object 9 at 0x1eff090
+Finalizing: object 12 at 0x1eff09c
+Finalizing: object 14 at 0x1eff0a8
+--- finalcv {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/finalcv
+randomize(): choosing initial seed: 1251993163.
+MPS.AMCTraceEnd_pageret { 1 1 - 48 1 48 1 0 0 0 0 0 0 0 0 0 }
+Finalizing: object 8 at 0x1eff084
+Finalizing: object 9 at 0x1eff090
+Finalizing: object 12 at 0x1eff09c
+Finalizing: object 14 at 0x1eff0a8
+MPS.AMCTraceEnd_pageret { 2 1 - 49 1 49 1 0 0 0 0 0 0 0 0 0 }
+MPS.AMCTraceEnd_pageret { 3 1 - 49 1 49 1 0 0 0 0 0 0 0 0 0 }
+--- finalcv {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/finalcv
+randomize(): choosing initial seed: 1251993164.
+MPS.AMCTraceEnd_pageret { 1 1 - 48 1 48 1 0 0 0 0 0 0 0 0 0 }
+Finalizing: object 5 at 0x1eff078
+Finalizing: object 6 at 0x1eff084
+Finalizing: object 9 at 0x1eff090
+Finalizing: object 10 at 0x1eff09c
+MPS.AMCTraceEnd_pageret { 2 1 - 49 1 49 1 0 0 0 0 0 0 0 0 0 }
+MPS.AMCTraceEnd_pageret { 3 1 - 49 1 49 1 0 0 0 0 0 0 0 0 0 }
+--- awlut {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/awlut
+randomize(): choosing initial seed: 1251993164.
+--- awlut {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/awlut
+randomize(): choosing initial seed: 1251993164.
+--- awlut {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/awlut
+randomize(): choosing initial seed: 1251993164.
+--- awlut {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/awlut
+randomize(): choosing initial seed: 1251993165.
+--- awluthe {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/awluthe
+randomize(): choosing initial seed: 1251993166.
+--- awluthe {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/awluthe
+randomize(): choosing initial seed: 1251993166.
+--- awluthe {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/awluthe
+randomize(): choosing initial seed: 1251993166.
+--- awluthe {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/awluthe
+randomize(): choosing initial seed: 1251993167.
+--- mpsicv {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/mpsicv
+randomize(): choosing initial seed: 1251993168.
+Using auto_header format.
+
+Collection 1, 2469 objects.
+
+Collection 2, 14108 objects.
+
+Collection 3, 16598 objects.
+
+Collection 4, 19036 objects.
+
+Collection 5, 21422 objects.
+
+Collection 6, 23800 objects.
+
+Collection 7, 26169 objects.
+
+Collection 8, 32000 objects.
+
+Collection 9, 34239 objects.
+
+Collection 10, 36555 objects.
+
+Collection 11, 38776 objects.
+
+Collection 12, 40994 objects.
+
+Collection 13, 43220 objects.
+
+Collection 14, 52385 objects.
+
+Collection 15, 54504 objects.
+
+Collection 16, 56580 objects.
+
+Collection 17, 58668 objects.
+
+Collection 18, 60735 objects.
+
+Collection 19, 62813 objects.
+
+Collection 20, 76968 objects.
+
+Collection 21, 79730 objects.
+
+Collection 22, 82358 objects.
+
+Collection 23, 84967 objects.
+
+Collection 24, 87734 objects.
+
+Collection 25, 90472 objects.
+
+Collection 26, 111301 objects.
+
+Collection 27, 113788 objects.
+
+Collection 28, 116307 objects.
+
+Collection 29, 118870 objects.
+
+Collection 30, 121345 objects.
+
+Collection 31, 123888 objects.
+
+Collection 32, 150553 objects.
+
+Collection 33, 153103 objects.
+
+Collection 34, 155650 objects.
+
+Collection 35, 158207 objects.
+
+Collection 36, 160721 objects.
+
+Collection 37, 163226 objects.
+
+Collection 38, 199040 objects.
+Using normal format (no implicit object header: client pointers point at start of storage).
+--- mpsicv {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/mpsicv
+randomize(): choosing initial seed: 1251993175.
+Using auto_header format.
+
+Collection 1, 2471 objects.
+
+Collection 2, 13308 objects.
+
+Collection 3, 15727 objects.
+
+Collection 4, 18159 objects.
+
+Collection 5, 20543 objects.
+
+Collection 6, 22945 objects.
+
+Collection 7, 25323 objects.
+
+Collection 8, 31187 objects.
+
+Collection 9, 33464 objects.
+
+Collection 10, 35760 objects.
+
+Collection 11, 37966 objects.
+
+Collection 12, 40196 objects.
+
+Collection 13, 42435 objects.
+
+Collection 14, 51632 objects.
+
+Collection 15, 53794 objects.
+
+Collection 16, 55866 objects.
+
+Collection 17, 57895 objects.
+
+Collection 18, 60034 objects.
+
+Collection 19, 62115 objects.
+
+Collection 20, 75466 objects.
+
+Collection 21, 78235 objects.
+
+Collection 22, 80959 objects.
+
+Collection 23, 83673 objects.
+
+Collection 24, 86365 objects.
+
+Collection 25, 89030 objects.
+
+Collection 26, 109009 objects.
+
+Collection 27, 111535 objects.
+
+Collection 28, 114081 objects.
+
+Collection 29, 116618 objects.
+
+Collection 30, 119154 objects.
+
+Collection 31, 121696 objects.
+
+Collection 32, 149044 objects.
+
+Collection 33, 151573 objects.
+
+Collection 34, 154091 objects.
+
+Collection 35, 156605 objects.
+
+Collection 36, 159147 objects.
+
+Collection 37, 161696 objects.
+
+Collection 38, 196644 objects.
+
+Collection 39, 199152 objects.
+Using normal format (no implicit object header: client pointers point at start of storage).
+--- mpsicv {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/mpsicv
+randomize(): choosing initial seed: 1251993183.
+Using normal format (no implicit object header: client pointers point at start of storage).
+
+Collection 1, 4272 objects.
+MPS.AMCTraceEnd_pageret { 1 1 - 48 5 48 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 2, 17151 objects.
+MPS.AMCTraceEnd_pageret { 2 1 - 150 6 150 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 3, 21325 objects.
+MPS.AMCTraceEnd_pageret { 3 1 - 129 5 129 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 4, 25428 objects.
+MPS.AMCTraceEnd_pageret { 4 1 - 146 7 146 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 5, 29641 objects.
+MPS.AMCTraceEnd_pageret { 5 1 - 167 8 167 8 0 0 0 0 0 0 0 0 0 }
+
+Collection 6, 33839 objects.
+MPS.AMCTraceEnd_pageret { 6 1 - 186 6 186 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 7, 37881 objects.
+MPS.AMCTraceEnd_pageret { 7 1 - 203 7 203 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 8, 47828 objects.
+MPS.AMCTraceEnd_pageret { 8 1 - 288 7 288 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 9, 51763 objects.
+MPS.AMCTraceEnd_pageret { 9 1 - 265 6 265 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 10, 55700 objects.
+MPS.AMCTraceEnd_pageret { 10 1 - 280 5 280 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 11, 59542 objects.
+MPS.AMCTraceEnd_pageret { 11 1 - 297 7 297 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 12, 63481 objects.
+MPS.AMCTraceEnd_pageret { 12 1 - 317 5 317 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 13, 67398 objects.
+MPS.AMCTraceEnd_pageret { 13 1 - 333 6 333 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 14, 83010 objects.
+MPS.AMCTraceEnd_pageret { 14 1 - 482 7 482 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 15, 86687 objects.
+MPS.AMCTraceEnd_pageret { 15 1 - 419 6 419 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 16, 90259 objects.
+MPS.AMCTraceEnd_pageret { 16 1 - 433 5 433 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 17, 93819 objects.
+MPS.AMCTraceEnd_pageret { 17 1 - 448 7 448 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 18, 97460 objects.
+MPS.AMCTraceEnd_pageret { 18 1 - 467 5 467 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 19, 100998 objects.
+MPS.AMCTraceEnd_pageret { 19 1 - 479 7 479 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 20, 122239 objects.
+MPS.AMCTraceEnd_pageret { 20 1 - 696 8 696 8 0 0 0 0 0 0 0 0 0 }
+
+Collection 21, 125630 objects.
+MPS.AMCTraceEnd_pageret { 21 1 - 590 6 590 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 22, 130284 objects.
+MPS.AMCTraceEnd_pageret { 22 1 - 618 6 618 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 23, 134969 objects.
+MPS.AMCTraceEnd_pageret { 23 1 - 638 7 638 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 24, 139635 objects.
+MPS.AMCTraceEnd_pageret { 24 1 - 661 7 661 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 25, 144450 objects.
+MPS.AMCTraceEnd_pageret { 25 1 - 681 5 681 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 26, 175429 objects.
+MPS.AMCTraceEnd_pageret { 26 1 - 1000 6 1000 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 27, 179793 objects.
+MPS.AMCTraceEnd_pageret { 27 1 - 837 5 837 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 28, 184121 objects.
+MPS.AMCTraceEnd_pageret { 28 1 - 856 6 856 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 29, 188424 objects.
+MPS.AMCTraceEnd_pageret { 29 1 - 876 6 876 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 30, 192677 objects.
+MPS.AMCTraceEnd_pageret { 30 1 - 894 6 894 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 31, 196988 objects.
+MPS.AMCTraceEnd_pageret { 31 1 - 912 6 912 6 0 0 0 0 0 0 0 0 0 }
+MPS.AMCTraceEnd_pageret { 32 5 - 918 7 918 7 0 0 0 0 0 0 0 0 0 }
+Using normal format (no implicit object header: client pointers point at start of storage).
+MPS.AMCTraceEnd_pageret { 33 5 - 2260 6 2260 6 0 0 0 0 0 0 0 0 0 }
+--- mpsicv {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/mpsicv
+randomize(): choosing initial seed: 1251993187.
+Using normal format (no implicit object header: client pointers point at start of storage).
+
+Collection 1, 4189 objects.
+MPS.AMCTraceEnd_pageret { 1 1 - 48 7 48 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 2, 17062 objects.
+MPS.AMCTraceEnd_pageret { 2 1 - 152 5 152 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 3, 21291 objects.
+MPS.AMCTraceEnd_pageret { 3 1 - 130 6 130 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 4, 25397 objects.
+MPS.AMCTraceEnd_pageret { 4 1 - 150 7 150 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 5, 29536 objects.
+MPS.AMCTraceEnd_pageret { 5 1 - 170 7 170 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 6, 33728 objects.
+MPS.AMCTraceEnd_pageret { 6 1 - 188 9 188 9 0 0 0 0 0 0 0 0 0 }
+
+Collection 7, 37807 objects.
+MPS.AMCTraceEnd_pageret { 7 1 - 208 7 208 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 8, 47793 objects.
+MPS.AMCTraceEnd_pageret { 8 1 - 290 5 290 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 9, 51755 objects.
+MPS.AMCTraceEnd_pageret { 9 1 - 265 8 265 8 0 0 0 0 0 0 0 0 0 }
+
+Collection 10, 55657 objects.
+MPS.AMCTraceEnd_pageret { 10 1 - 284 6 284 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 11, 59582 objects.
+MPS.AMCTraceEnd_pageret { 11 1 - 300 7 300 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 12, 63458 objects.
+MPS.AMCTraceEnd_pageret { 12 1 - 318 7 318 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 13, 67361 objects.
+MPS.AMCTraceEnd_pageret { 13 1 - 336 5 336 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 14, 82865 objects.
+MPS.AMCTraceEnd_pageret { 14 1 - 484 7 484 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 15, 86543 objects.
+MPS.AMCTraceEnd_pageret { 15 1 - 420 5 420 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 16, 90246 objects.
+MPS.AMCTraceEnd_pageret { 16 1 - 434 6 434 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 17, 93775 objects.
+MPS.AMCTraceEnd_pageret { 17 1 - 449 5 449 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 18, 97453 objects.
+MPS.AMCTraceEnd_pageret { 18 1 - 465 6 465 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 19, 100935 objects.
+MPS.AMCTraceEnd_pageret { 19 1 - 481 6 481 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 20, 122091 objects.
+MPS.AMCTraceEnd_pageret { 20 1 - 697 8 697 8 0 0 0 0 0 0 0 0 0 }
+
+Collection 21, 125530 objects.
+MPS.AMCTraceEnd_pageret { 21 1 - 593 5 593 5 0 0 0 0 0 0 0 0 0 }
+
+Collection 22, 130234 objects.
+MPS.AMCTraceEnd_pageret { 22 1 - 619 7 619 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 23, 134788 objects.
+MPS.AMCTraceEnd_pageret { 23 1 - 641 6 641 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 24, 139471 objects.
+MPS.AMCTraceEnd_pageret { 24 1 - 661 7 661 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 25, 144104 objects.
+MPS.AMCTraceEnd_pageret { 25 1 - 683 7 683 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 26, 175212 objects.
+MPS.AMCTraceEnd_pageret { 26 1 - 1003 8 1003 8 0 0 0 0 0 0 0 0 0 }
+
+Collection 27, 179595 objects.
+MPS.AMCTraceEnd_pageret { 27 1 - 842 7 842 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 28, 183951 objects.
+MPS.AMCTraceEnd_pageret { 28 1 - 861 6 861 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 29, 188318 objects.
+MPS.AMCTraceEnd_pageret { 29 1 - 880 7 880 7 0 0 0 0 0 0 0 0 0 }
+
+Collection 30, 192605 objects.
+MPS.AMCTraceEnd_pageret { 30 1 - 899 6 899 6 0 0 0 0 0 0 0 0 0 }
+
+Collection 31, 196811 objects.
+MPS.traceSetSignalEmergency { traceSet: 00000000000000000000000000000001}
+MPS.AMCTraceEnd_pageret { 31 1 Emergency 918 68 918 68 0 0 0 0 0 0 0 0 0 }
+MPS.traceSetSignalEmergency { traceSet: 00000000000000000000000000000001}
+MPS.AMCTraceEnd_pageret { 32 2 Emergency 980 933 980 933 0 0 0 0 0 0 0 0 0 }
+MPS.traceSetSignalEmergency { traceSet: 00000000000000000000000000000001}
+MPS.AMCTraceEnd_pageret { 33 2 Emergency 1512 1484 1512 1484 0 0 0 0 0 0 0 0 0 }
+MPS.traceSetSignalEmergency { traceSet: 00000000000000000000000000000001}
+MPS.AMCTraceEnd_pageret { 34 2 Emergency 1515 1504 1515 1504 0 0 0 0 0 0 0 0 0 }
+MPS.AMCTraceEnd_pageret { 35 5 - 1515 7 1515 7 0 0 0 0 0 0 0 0 0 }
+Using normal format (no implicit object header: client pointers point at start of storage).
+MPS.AMCTraceEnd_pageret { 36 5 - 2259 6 2259 6 0 0 0 0 0 0 0 0 0 }
+--- zmess {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/zmess
+randomize(): choosing initial seed: 1251993225.
+Script: "."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe."
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.Cbe."
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: ".Cbe.CbeCbeCbe."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Collect
+  Collect
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe"
+  Create arena etc.
+  Collect
+  Destroy arena etc.
+
+Script: "Cbe.CbeCbeCbe"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Collect
+  Collect
+  Destroy arena etc.
+
+Script: "Cbe!"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "Cbe!CbeCbeCbe!"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Collect
+  Collect
+  Collect
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e74b40
+    Finalization for object 2998 at 0x1e74b50
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e68b40
+    Finalization for object 2998 at 0x1e68b50
+    End Collection
+  ...done.
+  Drop myroot ref to object 2 -- this might make it Finalizable
+  Drop myroot ref to object 2997 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bfe")...
+    Begin Collection
+    Finalization for object 2997 at 0x1e74b30
+    End Collection
+  ...done.
+  Drop myroot ref to object 3 -- this might make it Finalizable
+  Drop myroot ref to object 2996 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "bfffe")...
+    Begin Collection
+    Finalization for object 2 at 0x1e68b00
+    Finalization for object 3 at 0x1e68b10
+    Finalization for object 2996 at 0x1e68b20
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.FFCbffe.Cbe"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1e74b60
+    Finalization for object 2999 at 0x1e74b70
+    End Collection
+  ...done.
+  Collect
+  Destroy arena etc.
+
+--- zmess {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/zmess
+randomize(): choosing initial seed: 1251993226.
+Script: "."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe."
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.Cbe."
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: ".Cbe.CbeCbeCbe."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Collect
+  Collect
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe"
+  Create arena etc.
+  Collect
+  Destroy arena etc.
+
+Script: "Cbe.CbeCbeCbe"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+  Collect
+  Collect
+  Destroy arena etc.
+
+Script: "Cbe!"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "Cbe!CbeCbeCbe!"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Collect
+  Collect
+  Collect
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e74b40
+    Finalization for object 2998 at 0x1e74b50
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e68b40
+    Finalization for object 2998 at 0x1e68b50
+    End Collection
+  ...done.
+  Drop myroot ref to object 2 -- this might make it Finalizable
+  Drop myroot ref to object 2997 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bfe")...
+    Begin Collection
+    Finalization for object 2997 at 0x1e74b30
+    End Collection
+  ...done.
+  Drop myroot ref to object 3 -- this might make it Finalizable
+  Drop myroot ref to object 2996 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+  Getting messages (expecting "bfffe")...
+    Begin Collection
+    Finalization for object 2 at 0x1e68b00
+    Finalization for object 3 at 0x1e68b10
+    Finalization for object 2996 at 0x1e68b20
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.FFCbffe.Cbe"
+  Create arena etc.
+  Collect
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1e74b60
+    Finalization for object 2999 at 0x1e74b70
+    End Collection
+  ...done.
+  Collect
+  Destroy arena etc.
+
+--- zmess {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/zmess
+randomize(): choosing initial seed: 1251993227.
+Script: "."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe."
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.Cbe."
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: ".Cbe.CbeCbeCbe."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+Script: "Cbe.CbeCbeCbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+Script: "Cbe!"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "Cbe!CbeCbeCbe!"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e74b40
+    Finalization for object 2998 at 0x1e74b50
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e68b40
+    Finalization for object 2998 at 0x1e68b50
+    End Collection
+  ...done.
+  Drop myroot ref to object 2 -- this might make it Finalizable
+  Drop myroot ref to object 2997 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bfe")...
+    Begin Collection
+    Finalization for object 2997 at 0x1e74b30
+    End Collection
+  ...done.
+  Drop myroot ref to object 3 -- this might make it Finalizable
+  Drop myroot ref to object 2996 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 5 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bfffe")...
+    Begin Collection
+    Finalization for object 2 at 0x1e68b00
+    Finalization for object 3 at 0x1e68b10
+    Finalization for object 2996 at 0x1e68b20
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.FFCbffe.Cbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1e74b60
+    Finalization for object 2999 at 0x1e74b70
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+--- zmess {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/zmess
+randomize(): choosing initial seed: 1251993227.
+Script: "."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe."
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.Cbe."
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: ".Cbe.CbeCbeCbe."
+  Create arena etc.
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+Script: "Cbe.CbeCbeCbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+Script: "Cbe!"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "Cbe!CbeCbeCbe!"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bebebe")...
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+    Begin Collection
+    End Collection
+  ...done.
+  NOTE: DELIBERATELY FAILING TO DISCARD MESSAGES, TO SEE HOW MPS COPES.
+  Destroy arena etc.
+
+Script: "FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FFCbffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e74b40
+    Finalization for object 2998 at 0x1e74b50
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "FFCbffe.FCbe.F.Cbffe.FFCbfe.FF.Cbfffe."
+  Create arena etc.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1ef4b60
+    Finalization for object 2999 at 0x1ef4b70
+    End Collection
+  ...done.
+  Drop myroot ref to object 1 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 2998 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 1 at 0x1e68b40
+    Finalization for object 2998 at 0x1e68b50
+    End Collection
+  ...done.
+  Drop myroot ref to object 2 -- this might make it Finalizable
+  Drop myroot ref to object 2997 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 4 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bfe")...
+    Begin Collection
+    Finalization for object 2997 at 0x1e74b30
+    End Collection
+  ...done.
+  Drop myroot ref to object 3 -- this might make it Finalizable
+  Drop myroot ref to object 2996 -- this might make it Finalizable
+  Getting messages (expecting "")...
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 5 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bfffe")...
+    Begin Collection
+    Finalization for object 2 at 0x1e68b00
+    Finalization for object 3 at 0x1e68b10
+    Finalization for object 2996 at 0x1e68b20
+    End Collection
+  ...done.
+  Destroy arena etc.
+
+Script: "Cbe.FFCbffe.Cbe"
+  Create arena etc.
+  Collect
+MPS.AMCTraceEnd_pageret { 1 5 - 12 1 12 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "be")...
+    Begin Collection
+    End Collection
+  ...done.
+  Drop myroot ref to object 0 -- this might make it Finalizable
+  Drop myroot ref to object 2999 -- this might make it Finalizable
+  Collect
+MPS.AMCTraceEnd_pageret { 2 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Getting messages (expecting "bffe")...
+    Begin Collection
+    Finalization for object 0 at 0x1e74b60
+    Finalization for object 2999 at 0x1e74b70
+    End Collection
+  ...done.
+  Collect
+MPS.AMCTraceEnd_pageret { 3 5 - 13 1 13 1 0 0 0 0 0 0 0 0 0 }
+  Destroy arena etc.
+
+--- messtest {we} ---
+xci3gc: xci3gc/we/version.o
+xci3gc: xci3gc/we/messtest
+
+No problems detected.
+--- messtest {hi} ---
+xci3gc: xci3gc/hi/version.o
+xci3gc: xci3gc/hi/messtest
+
+No problems detected.
+--- messtest {di} ---
+xci3gc: xci3gc/di/version.o
+xci3gc: xci3gc/di/messtest
+
+No problems detected.
+--- messtest {ci} ---
+xci3gc: xci3gc/ci/version.o
+xci3gc: xci3gc/ci/messtest
+
+No problems detected.
