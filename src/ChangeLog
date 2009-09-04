@@ -1,3 +1,8 @@
+2009-09-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Remove condition for declaration of
+	x_*_window_to_frame.
+
 2009-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dispnew.c (Fsend_string_to_terminal): Make it work again on the

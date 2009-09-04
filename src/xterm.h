@@ -376,11 +376,9 @@ extern void check_x P_ ((void));
 
 extern struct frame *x_window_to_frame P_ ((struct x_display_info *, int));
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 extern struct frame *x_any_window_to_frame P_ ((struct x_display_info *, int));
 extern struct frame *x_menubar_window_to_frame P_ ((struct x_display_info *, int));
 extern struct frame *x_top_window_to_frame P_ ((struct x_display_info *, int));
-#endif
 
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
