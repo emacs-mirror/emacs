@@ -3761,10 +3761,9 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	   (buffer-string)))
 
 	;; Check for "--dired" output.
-	(goto-char (point-max))
 	(forward-line -2)
 	(when (looking-at "//DIRED//")
-	  (let ((end (line-end-position))
+	  (let ((end (tramp-compat-line-end-position))
 		(linebeg (point)))
 	    ;; Now read the numeric positions of file names.
 	    (goto-char linebeg)
@@ -3777,12 +3776,10 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 		    ;; End is followed by \n or by " -> ".
 		    (put-text-property start end 'dired-filename t)))))
 	  ;; Reove training lines.
-	  (goto-char (point-max))
-	  (forward-line -1)
+	  (goto-char (tramp-compat-line-beginning-position))
 	  (while (looking-at "//")
 	    (forward-line 1)
-	    (delete-region (match-beginning 0) (point))
-	    (forward-line -1))))
+	    (delete-region (match-beginning 0) (point)))))
       (goto-char (point-max)))))
 
 (defun tramp-handle-unhandled-file-name-directory (filename)
