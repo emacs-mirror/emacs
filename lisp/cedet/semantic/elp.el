@@ -36,6 +36,9 @@
 (require 'semantic/analyze)
 (require 'semantic/analyze/complete)
 
+(declare-function semantic-idle-scheduler-work-parse-neighboring-files
+		  "semantic/idle")
+
 ;;; Code:
 (defvar semantic-elp-emacs-core-list
   '(
@@ -644,6 +647,7 @@ Argument NAME is the name to give the ELP data object."
 (defun semantic-elp-idle-work ()
   "Run the idle work scheduler, using ELP to measure performance."
   (interactive)
+  (require 'semantic/idle)
   (let ((elp-recycle-buffers-p nil)
 	(totalstart nil)
 	(totalstop nil)
