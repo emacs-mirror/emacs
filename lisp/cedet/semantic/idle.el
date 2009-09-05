@@ -128,6 +128,7 @@ unlikely the user would be ready to type again right away."
 ;; The minor mode portion of this code just sets up the minor mode
 ;; which does the initial scheduling of the idle timers.
 ;;
+;;;###autoload
 (defcustom global-semantic-idle-scheduler-mode nil
   "*If non-nil, enable global use of idle-scheduler mode."
   :group 'semantic
@@ -138,6 +139,7 @@ unlikely the user would be ready to type again right away."
   :set (lambda (sym val)
          (global-semantic-idle-scheduler-mode (if val 1 -1))))
 
+;;;###autoload
 (defun global-semantic-idle-scheduler-mode (&optional arg)
   "Toggle global use of option `semantic-idle-scheduler-mode'.
 The idle scheduler with automatically reparse buffers in idle time,
@@ -193,6 +195,7 @@ minor mode is enabled."
         (semantic-idle-scheduler-setup-timers)))
   semantic-idle-scheduler-mode)
 
+;;;###autoload
 (defun semantic-idle-scheduler-mode (&optional arg)
   "Minor mode to auto parse buffer following a change.
 When this mode is off, a buffer is only rescanned for tokens when
@@ -972,5 +975,11 @@ Call `semantic-symref-hits-in-region' to identify local references."
   (semantic-idle-completion-list-default))
 
 (provide 'semantic/idle)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/idle"
+;; End:
 
 ;;; semantic-idle.el ends here
