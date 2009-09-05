@@ -818,6 +818,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
     changed-tags))
 
 ;; Make it the default changes parser
+;;;###autoload
 (defalias 'semantic-parse-changes-default
   'semantic-edits-incremental-parser)
 
@@ -960,5 +961,11 @@ lost if not transferred into NEWTAG."
           #'semantic-edits-flush-changes)
 
 (provide 'semantic/edit)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/edit"
+;; End:
 
 ;;; semantic/edit.el ends here

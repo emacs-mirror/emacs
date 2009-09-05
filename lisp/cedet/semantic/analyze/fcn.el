@@ -26,6 +26,8 @@
 ;;; Code:
 
 (require 'mode-local)
+(require 'semantic)
+(require 'semantic/tag)
 
 ;;; Small Mode Specific Options
 ;;

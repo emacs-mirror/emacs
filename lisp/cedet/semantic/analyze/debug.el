@@ -24,8 +24,13 @@
 ;; Provide a top-order debugging tool for figuring out what's going on with
 ;; smart completion and analyzer mode.
 
+(require 'semantic)
 (require 'semantic/analyze)
+(require 'semantic/analyze/complete)
 (require 'semantic/db-typecache)
+
+;; For semantic-find-tags-by-class:
+(eval-when-compile (require 'semantic/find))
 
 ;;; Code:
 
@@ -375,8 +380,11 @@ or implementing a version specific to ")
       (princ "\n"))
     (princ "\n")))
 
+(defvar semantic-dependency-system-include-path)
+
 (defun semantic-analyzer-debug-insert-include-summary (table)
   "Display a summary of includes for the semanticdb TABLE."
+  (require 'semantic/dep)
   (semantic-fetch-tags)
   (let ((inc (semantic-find-tags-by-class 'include table))
 	;;(path (semanticdb-find-test-translate-path-no-loading))

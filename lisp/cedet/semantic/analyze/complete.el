@@ -32,6 +32,9 @@
 
 (require 'semantic/analyze)
 
+;; For semantic-find-* macros:
+(eval-when-compile (require 'semantic/find))
+
 ;;; Code:
 
 ;;; Helper Fcns
@@ -272,6 +275,7 @@ Argument CONTEXT is an object specifying the locally derived context."
 ;; Local variables:
 ;; generated-autoload-file: "../loaddefs.el"
 ;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/analyze/complete"
 ;; End:
 
 ;;; semantic/analyze/complete.el ends here
