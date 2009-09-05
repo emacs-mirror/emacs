@@ -200,10 +200,17 @@
 
 (defcustom emacs-lisp-file-regexp "\\.el\\'"
   "Regexp which matches Emacs Lisp source files.
-You may want to redefine the function `byte-compile-dest-file'
-if you change this variable."
+If you change this, you might want to set `byte-compile-dest-file-function'."
   :group 'bytecomp
   :type 'regexp)
+
+(defcustom byte-compile-dest-file-function nil
+  "Function for the function `byte-compile-dest-file' to call.
+It should take one argument, the name of an Emacs Lisp source
+file name, and return the name of the compiled file."
+  :group 'bytecomp
+  :type '(choice (const nil) function)
+  :version "23.2")
 
 ;; This enables file name handlers such as jka-compr
 ;; to remove parts of the file name that should not be copied
@@ -218,15 +225,21 @@ if you change this variable."
 (or (fboundp 'byte-compile-dest-file)
     ;; The user may want to redefine this along with emacs-lisp-file-regexp,
     ;; so only define it if it is undefined.
+    ;; Note - redefining this function is obsolete as of 23.2.
+    ;; Customize byte-compile-dest-file-function instead.
     (defun byte-compile-dest-file (filename)
       "Convert an Emacs Lisp source file name to a compiled file name.
-If FILENAME matches `emacs-lisp-file-regexp' (by default, files
-with the extension `.el'), add `c' to it; otherwise add `.elc'."
-      (setq filename (byte-compiler-base-file-name filename))
-      (setq filename (file-name-sans-versions filename))
-      (cond ((string-match emacs-lisp-file-regexp filename)
-	     (concat (substring filename 0 (match-beginning 0)) ".elc"))
-	    (t (concat filename ".elc")))))
+If `byte-compile-dest-file-function' is non-nil, uses that
+function to do the work.  Otherwise, if FILENAME matches
+`emacs-lisp-file-regexp' (by default, files with the extension `.el'),
+adds `c' to it; otherwise adds `.elc'."
+      (if byte-compile-dest-file-function
+	  (funcall byte-compile-dest-file-function filename)
+	(setq filename (file-name-sans-versions
+			(byte-compiler-base-file-name filename)))
+	(cond ((string-match emacs-lisp-file-regexp filename)
+	       (concat (substring filename 0 (match-beginning 0)) ".elc"))
+	      (t (concat filename ".elc"))))))
 
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
@@ -864,6 +877,11 @@ otherwise pop it")
 
 ;;; compile-time evaluation
 
+(defun byte-compile-cl-file-p (file)
+  "Return non-nil if FILE is one of the CL files."
+  (and (stringp file)
+       (string-match "^cl\\>" (file-name-nondirectory file))))
+
 (defun byte-compile-eval (form)
   "Eval FORM and mark the functions defined therein.
 Each function's symbol gets added to `byte-compile-noruntime-functions'."
@@ -880,7 +898,15 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		  old-autoloads)
 	      ;; Make sure the file was not already loaded before.
 	      (unless (or (assoc (car xs) hist-orig)
-			  (equal (car xs) "cl"))
+			  ;; Don't give both the "noruntime" and
+			  ;; "cl-functions" warning for the same function.
+			  ;; FIXME This seems incorrect - these are two
+			  ;; independent warnings.  For example, you may be
+			  ;; choosing to see the cl warnings but ignore them.
+			  ;; You probably don't want to ignore noruntime in the
+			  ;; same way.
+			  (and (byte-compile-warning-enabled-p 'cl-functions)
+			       (byte-compile-cl-file-p (car xs))))
 		(dolist (s xs)
 		  (cond
 		   ((symbolp s)
@@ -900,21 +926,23 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		  (push (cdr s) old-autoloads)))))))
       (when (byte-compile-warning-enabled-p 'cl-functions)
 	(let ((hist-new load-history))
-	  ;; Go through load-history, look for newly loaded files
-	  ;; and mark all the functions defined therein.
-	  (while (and hist-new (not (eq hist-new hist-orig)))
-	    (let ((xs (pop hist-new)))
-	      ;; Make sure the file was not already loaded before.
-	      (and (stringp (car xs))
-		   (string-match "^cl\\>" (file-name-nondirectory (car xs)))
-		   (not (assoc (car xs) hist-orig))
-		   (byte-compile-find-cl-functions)))))))))
+	  ;; Go through load-history, looking for the cl files.
+	  ;; Since new files are added at the start of load-history,
+	  ;; we scan the new history until the tail matches the old.
+	  (while (and (not byte-compile-cl-functions)
+		      hist-new (not (eq hist-new hist-orig)))
+	    ;; We used to check if the file had already been loaded,
+	    ;; but it is better to check non-nil byte-compile-cl-functions.
+	    (and (byte-compile-cl-file-p (car (pop hist-new)))
+		 (byte-compile-find-cl-functions))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."
   (let ((hist-nil-orig current-load-list))
     (prog1 (eval form)
       ;; (eval-and-compile (require 'cl) turns off warnings for cl functions.
+      ;; FIXME Why does it do that - just as a hack?
+      ;; There are other ways to do this nowadays.
       (let ((tem current-load-list))
 	(while (not (eq tem hist-nil-orig))
 	  (when (equal (car tem) '(require . cl))
@@ -1409,15 +1437,16 @@ extra args."
 (defvar byte-compile-cl-functions nil
   "List of functions defined in CL.")
 
+;; Can't just add this to cl-load-hook, because that runs just before
+;; the forms from cl.el get added to load-history.
 (defun byte-compile-find-cl-functions ()
   (unless byte-compile-cl-functions
     (dolist (elt load-history)
-      (when (and (stringp (car elt))
-		 (string-match
-		  "^cl\\>" (file-name-nondirectory (car elt))))
-	(dolist (e (cdr elt))
-          (when (memq (car-safe e) '(autoload defun))
-            (push (cdr e) byte-compile-cl-functions)))))))
+      (and (byte-compile-cl-file-p (car elt))
+	   (dolist (e (cdr elt))
+	     ;; Includes the cl-foo functions that cl autoloads.
+	     (when (memq (car-safe e) '(autoload defun))
+	       (push (cdr e) byte-compile-cl-functions)))))))
 
 (defun byte-compile-cl-warn (form)
   "Warn if FORM is a call of a function from the CL package."
@@ -2331,13 +2360,23 @@ list that represents a doc string reference.
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
 (defun byte-compile-file-form-require (form)
-  (let ((args (mapcar 'eval (cdr form))))
+  (let ((args (mapcar 'eval (cdr form)))
+	(hist-orig load-history)
+	hist-new)
     (apply 'require args)
-    ;; Detect (require 'cl) in a way that works even if cl is already loaded.
-    (when (and (member (car args) '("cl" cl))
-	       (byte-compile-warning-enabled-p 'cl-functions))
-      (byte-compile-warn "cl package required at runtime")
-      (byte-compile-disable-warning 'cl-functions)))
+    (when (byte-compile-warning-enabled-p 'cl-functions)
+      ;; Detect (require 'cl) in a way that works even if cl is already loaded.
+      (if (member (car args) '("cl" cl))
+	  (progn
+	    (byte-compile-warn "cl package required at runtime")
+	    (byte-compile-disable-warning 'cl-functions))
+	;; We may have required something that causes cl to be loaded, eg
+	;; the uncompiled version of a file that requires cl when compiling.
+	(setq hist-new load-history)
+	(while (and (not byte-compile-cl-functions)
+		    hist-new (not (eq hist-new hist-orig)))
+	  (and (byte-compile-cl-file-p (car (pop hist-new)))
+	       (byte-compile-find-cl-functions))))))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)

@@ -1,3 +1,18 @@
+2009-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (emacs-lisp-file-regexp): Doc fix.
+	(byte-compile-dest-file-function): New option.
+	(byte-compile-dest-file): Doc fix.
+	Obey byte-compile-dest-file-function.
+	(byte-compile-cl-file-p): New function.
+	(byte-compile-eval): Only suppress noruntime warnings about cl functions
+	if the cl-functions warning is enabled.  Use byte-compile-cl-file-p.
+	(byte-compile-eval): Check for non-nil byte-compile-cl-functions rather
+	than for file being previously loaded.
+	(byte-compile-find-cl-functions): Use byte-compile-cl-file-p.
+	(byte-compile-file-form-require): Handle the case where requiring a file
+	indirectly causes CL to be loaded.
+
 2009-09-05  Karl Fogel  <kfogel@red-bean.com>
 
 	* files.el (find-alternate-file): Run `kill-buffer-hook' manually
