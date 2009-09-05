@@ -148,6 +148,7 @@ ARGS are the initialization arguments to pass to the created class."
 ;;; EXTERNAL API
 ;;
 
+;;;###autoload
 (defun semantic-symref-find-references-by-name (name &optional scope tool-return)
   "Find a list of references to NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
@@ -171,6 +172,7 @@ to perform the search.  This was added for use by a test harness."
 	(semantic-symref-data-debug-last-result))))
   )
 
+;;;###autoload
 (defun semantic-symref-find-tags-by-name (name &optional scope)
   "Find a list of references to NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
@@ -190,6 +192,7 @@ Returns an object of class `semantic-symref-result'."
 	(semantic-symref-data-debug-last-result))))
   )
 
+;;;###autoload
 (defun semantic-symref-find-tags-by-regexp (name &optional scope)
   "Find a list of references to NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
@@ -209,6 +212,7 @@ Returns an object of class `semantic-symref-result'."
 	(semantic-symref-data-debug-last-result))))
   )
 
+;;;###autoload
 (defun semantic-symref-find-tags-by-completion (name &optional scope)
   "Find a list of references to NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
@@ -228,6 +232,7 @@ Returns an object of class `semantic-symref-result'."
 	(semantic-symref-data-debug-last-result))))
   )
 
+;;;###autoload
 (defun semantic-symref-find-file-references-by-name (name &optional scope)
   "Find a list of references to NAME in the current project.
 Optional SCOPE specifies which file set to search.  Defaults to 'project.
@@ -247,6 +252,7 @@ Returns an object of class `semantic-symref-result'."
 	(semantic-symref-data-debug-last-result))))
   )
 
+;;;###autoload
 (defun semantic-symref-find-text (text &optional scope)
   "Find a list of occurances of TEXT in the current project.
 TEXT is a regexp formatted for use with egrep.
@@ -486,5 +492,11 @@ over until it returns nil."
   (error "Symref tool objects must implement `semantic-symref-parse-tool-output-one-line'"))
 
 (provide 'semantic/symref)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/symref"
+;; End:
 
 ;;; semantic/symref.el ends here
