@@ -115,6 +115,7 @@ keep semantic data structures up to date."
 ;;; PATH MANAGEMENT
 ;;
 ;; Some fcns to manage paths for a give mode.
+;;;###autoload
 (defun semantic-add-system-include (dir &optional mode)
   "Add a system include DIR to path for MODE.
 Modifies a mode-local version of `semantic-dependency-system-include-path'.
@@ -131,6 +132,7 @@ Changes made by this function are not persistent."
 			    semantic-dependency-system-include-path value))
     ))
 
+;;;###autoload
 (defun semantic-remove-system-include (dir &optional mode)
   "Add a system include DIR to path for MODE.
 Modifies a mode-local version of`semantic-dependency-system-include-path'.
@@ -151,6 +153,7 @@ Changes made by this function are not persistent."
 			    value))
     ))
 
+;;;###autoload
 (defun semantic-reset-system-include (&optional mode)
   "Reset the system include list to empty for MODE.
 Modifies a mode-local version of
@@ -161,6 +164,7 @@ Modifies a mode-local version of
 			  nil))
   )
 
+;;;###autoload
 (defun semantic-customize-system-include-path (&optional mode)
   "Customize the include path for this `major-mode'.
 To create a customizable include path for a major MODE, use the
@@ -220,5 +224,11 @@ provided mode, not from the current major mode."
 
 
 (provide 'semantic/dep)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/dep"
+;; End:
 
 ;;; semantic/dep.el ends here
