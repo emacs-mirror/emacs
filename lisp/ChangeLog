@@ -1,3 +1,12 @@
+2009-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-load-name): New var.
+	(autoload-generate-file-autoloads): Use it.
+	(make-autoload): Handle define-overloadable-function.
+
+	* emacs-lisp/lisp-mode.el (define-overloadable-function): Add
+	doc-string-elt property for define-overloadable-function.
+
 2009-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (generated-autoload-feature): New var.

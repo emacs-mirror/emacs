@@ -39,6 +39,7 @@
 
 (require 'semantic)
 (require 'semantic/ctxt)
+(require 'semantic/format)
 (require 'semantic/tag)
 ;(require 'semantic/util-modes)
 (require 'timer)
@@ -50,7 +51,6 @@
 (declare-function semantic-analyze-interesting-tag "semantic/analyze")
 (declare-function semantic-complete-analyze-inline-idle "semantic/complete")
 (declare-function semanticdb-deep-find-tags-by-name "semantic/db-find")
-(declare-function semanticdb-minor-mode-p "semantic/db-mode")
 (declare-function semanticdb-save-all-db-idle "semantic/db")
 (declare-function semanticdb-typecache-refresh-for-buffer "semantic/db-typecache")
 (declare-function semantic-decorate-flush-pending-decorations
@@ -366,9 +366,7 @@ Returns t of all processing succeeded."
 	  ;; summary information
 	  (semantic-safe "Idle Work Including Error: %S"
 	    ;; Get the include related path.
-	    (when (and (featurep 'semantic/db)
-		       (require 'semantic/db-mode)
-		       (semanticdb-minor-mode-p))
+	    (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
 	      (require 'semantic/db-find)
 	      (semanticdb-find-translate-path buffer nil)
 	      )
@@ -418,9 +416,7 @@ Uses `semantic-idle-work-for-on-buffer' to do the work."
 		   ))
 	       )
 
-	     (when (and (featurep 'semantic/db)
-			(require 'semantic/db-mode)
-			(semanticdb-minor-mode-p))
+	     (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
 	       ;; Save everything.
 	       (semanticdb-save-all-db-idle)
 

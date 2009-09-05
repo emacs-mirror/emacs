@@ -469,7 +469,7 @@ that start with that symbol."
 	senator-step-at-start-end-tag-classes '(section)
 	semantic-stickyfunc-sticky-classes '(section)
 	)
-  (local-set-key [(f9)] 'semantic-texi-update-doc-from-texi)
+  ;; (local-set-key [(f9)] 'semantic-texi-update-doc-from-texi)
   )
 
 (add-hook 'texinfo-mode-hook 'semantic-default-texi-setup)
@@ -526,123 +526,125 @@ Note: TYPE not yet implemented."
 	(goto-char (semantic-tag-start match)))
       (setq f (cdr f)))))
 
-(defun semantic-texi-update-doc-from-texi (&optional tag)
-  "Update the documentation in the texinfo deffn class tag TAG.
-The current buffer must be a texinfo file containing TAG.
-If TAG is nil, determine a tag based on the current position."
-  (interactive)
-  (unless (or (featurep 'semantic/db) (semanticdb-minor-mode-p))
-    (error "Texinfo updating only works when `semanticdb' is being used"))
-  (semantic-fetch-tags)
-  (unless tag
-    (beginning-of-line)
-    (setq tag (semantic-current-tag)))
-  (unless (semantic-tag-of-class-p tag 'def)
-    (error "Only deffns (or defun or defvar) can be updated"))
-  (let* ((name (semantic-tag-name tag))
-	 (tags (semanticdb-strip-find-results
-		(semanticdb-with-match-any-mode
-		  (semanticdb-brute-deep-find-tags-by-name name))
-		'name))
-	 (docstring nil)
-	 (docstringproto nil)
-	 (docstringvar nil)
-	 (doctag nil)
-	 (doctagproto nil)
-	 (doctagvar nil)
-	 )
-    (save-excursion
-      (while (and tags (not docstring))
-	(let ((sourcetag (car tags)))
-	  ;; There could be more than one!  Come up with a better
-	  ;; solution someday.
-	  (when (semantic-tag-buffer sourcetag)
-	    (set-buffer (semantic-tag-buffer sourcetag))
-	    (unless (eq major-mode 'texinfo-mode)
-	    (cond ((semantic-tag-get-attribute sourcetag :prototype-flag)
-		   ;; If we found a match with doc that is a prototype, then store
-		   ;; that, but don't exit till we find the real deal.
-		   (setq docstringproto (semantic-documentation-for-tag sourcetag)
-			 doctagproto sourcetag))
-		  ((eq (semantic-tag-class sourcetag) 'variable)
-		   (setq docstringvar (semantic-documentation-for-tag sourcetag)
-			 doctagvar sourcetag))
-		  ((semantic-tag-get-attribute sourcetag :override-function-flag)
-		   nil)
-		  (t
-		   (setq docstring (semantic-documentation-for-tag sourcetag))))
-	    (setq doctag (if docstring sourcetag nil))))
-	  (setq tags (cdr tags)))))
-    ;; If we found a prototype of the function that has some doc, but not the
-    ;; actual function, lets make due with that.
-    (if (not docstring)
-	(cond ((stringp docstringvar)
-	       (setq docstring docstringvar
-		     doctag doctagvar))
-	      ((stringp docstringproto)
-	       (setq docstring docstringproto
-		     doctag doctagproto))))
-    ;; Test for doc string
-    (unless docstring
-      (error "Could not find documentation for %s" (semantic-tag-name tag)))
-    ;; If we have a string, do the replacement.
-    (delete-region (semantic-tag-start tag)
-		   (semantic-tag-end tag))
-    ;; Use useful functions from the docaument library.
-    (require 'document)
-    (document-insert-texinfo doctag (semantic-tag-buffer doctag))
-    ))
+;; (defun semantic-texi-update-doc-from-texi (&optional tag)
+;;   "Update the documentation in the texinfo deffn class tag TAG.
+;; The current buffer must be a texinfo file containing TAG.
+;; If TAG is nil, determine a tag based on the current position."
+;;   (interactive)
+;;   (unless (or (featurep 'semantic/db)
+;; 	      (require 'semantic/db-mode)
+;; 	      (semanticdb-minor-mode-p))
+;;     (error "Texinfo updating only works when `semanticdb' is being used"))
+;;   (semantic-fetch-tags)
+;;   (unless tag
+;;     (beginning-of-line)
+;;     (setq tag (semantic-current-tag)))
+;;   (unless (semantic-tag-of-class-p tag 'def)
+;;     (error "Only deffns (or defun or defvar) can be updated"))
+;;   (let* ((name (semantic-tag-name tag))
+;; 	 (tags (semanticdb-strip-find-results
+;; 		(semanticdb-with-match-any-mode
+;; 		  (semanticdb-brute-deep-find-tags-by-name name))
+;; 		'name))
+;; 	 (docstring nil)
+;; 	 (docstringproto nil)
+;; 	 (docstringvar nil)
+;; 	 (doctag nil)
+;; 	 (doctagproto nil)
+;; 	 (doctagvar nil)
+;; 	 )
+;;     (save-excursion
+;;       (while (and tags (not docstring))
+;; 	(let ((sourcetag (car tags)))
+;; 	  ;; There could be more than one!  Come up with a better
+;; 	  ;; solution someday.
+;; 	  (when (semantic-tag-buffer sourcetag)
+;; 	    (set-buffer (semantic-tag-buffer sourcetag))
+;; 	    (unless (eq major-mode 'texinfo-mode)
+;; 	    (cond ((semantic-tag-get-attribute sourcetag :prototype-flag)
+;; 		   ;; If we found a match with doc that is a prototype, then store
+;; 		   ;; that, but don't exit till we find the real deal.
+;; 		   (setq docstringproto (semantic-documentation-for-tag sourcetag)
+;; 			 doctagproto sourcetag))
+;; 		  ((eq (semantic-tag-class sourcetag) 'variable)
+;; 		   (setq docstringvar (semantic-documentation-for-tag sourcetag)
+;; 			 doctagvar sourcetag))
+;; 		  ((semantic-tag-get-attribute sourcetag :override-function-flag)
+;; 		   nil)
+;; 		  (t
+;; 		   (setq docstring (semantic-documentation-for-tag sourcetag))))
+;; 	    (setq doctag (if docstring sourcetag nil))))
+;; 	  (setq tags (cdr tags)))))
+;;     ;; If we found a prototype of the function that has some doc, but not the
+;;     ;; actual function, lets make due with that.
+;;     (if (not docstring)
+;; 	(cond ((stringp docstringvar)
+;; 	       (setq docstring docstringvar
+;; 		     doctag doctagvar))
+;; 	      ((stringp docstringproto)
+;; 	       (setq docstring docstringproto
+;; 		     doctag doctagproto))))
+;;     ;; Test for doc string
+;;     (unless docstring
+;;       (error "Could not find documentation for %s" (semantic-tag-name tag)))
+;;     ;; If we have a string, do the replacement.
+;;     (delete-region (semantic-tag-start tag)
+;; 		   (semantic-tag-end tag))
+;;     ;; Use useful functions from the docaument library.
+;;     (require 'document)
+;;     (document-insert-texinfo doctag (semantic-tag-buffer doctag))
+;;     ))
 
-(defun semantic-texi-update-doc-from-source (&optional tag)
-  "Update the documentation for the source TAG.
-The current buffer must be a non-texinfo source file containing TAG.
-If TAG is nil, determine the tag based on the current position.
-The current buffer must include TAG."
-  (interactive)
-  (when (eq major-mode 'texinfo-mode)
-    (error "Not a source file"))
-  (semantic-fetch-tags)
-  (unless tag
-    (setq tag (semantic-current-tag)))
-  (unless (semantic-documentation-for-tag tag)
-    (error "Cannot find interesting documentation to use for %s"
-	   (semantic-tag-name tag)))
-  (let* ((name (semantic-tag-name tag))
-	 (texi (semantic-texi-associated-files))
-	 (doctag nil)
-	 (docbuff nil))
-    (while (and texi (not doctag))
-      (set-buffer (find-file-noselect (car texi)))
-      (setq doctag (car (semantic-deep-find-tags-by-name
-			 name (semantic-fetch-tags)))
-	    docbuff (if doctag (current-buffer) nil))
-      (setq texi (cdr texi)))
-    (unless doctag
-      (error "Tag %s is not yet documented.  Use the `document' command"
-             name))
-    ;; Ok, we should have everything we need.  Do the deed.
-    (if (get-buffer-window docbuff)
-	(set-buffer docbuff)
-      (switch-to-buffer docbuff))
-    (goto-char (semantic-tag-start doctag))
-    (delete-region (semantic-tag-start doctag)
-		   (semantic-tag-end doctag))
-    ;; Use useful functions from the document library.
-    (require 'document)
-    (document-insert-texinfo tag (semantic-tag-buffer tag))
-    ))
+;; (defun semantic-texi-update-doc-from-source (&optional tag)
+;;   "Update the documentation for the source TAG.
+;; The current buffer must be a non-texinfo source file containing TAG.
+;; If TAG is nil, determine the tag based on the current position.
+;; The current buffer must include TAG."
+;;   (interactive)
+;;   (when (eq major-mode 'texinfo-mode)
+;;     (error "Not a source file"))
+;;   (semantic-fetch-tags)
+;;   (unless tag
+;;     (setq tag (semantic-current-tag)))
+;;   (unless (semantic-documentation-for-tag tag)
+;;     (error "Cannot find interesting documentation to use for %s"
+;; 	   (semantic-tag-name tag)))
+;;   (let* ((name (semantic-tag-name tag))
+;; 	 (texi (semantic-texi-associated-files))
+;; 	 (doctag nil)
+;; 	 (docbuff nil))
+;;     (while (and texi (not doctag))
+;;       (set-buffer (find-file-noselect (car texi)))
+;;       (setq doctag (car (semantic-deep-find-tags-by-name
+;; 			 name (semantic-fetch-tags)))
+;; 	    docbuff (if doctag (current-buffer) nil))
+;;       (setq texi (cdr texi)))
+;;     (unless doctag
+;;       (error "Tag %s is not yet documented.  Use the `document' command"
+;;              name))
+;;     ;; Ok, we should have everything we need.  Do the deed.
+;;     (if (get-buffer-window docbuff)
+;; 	(set-buffer docbuff)
+;;       (switch-to-buffer docbuff))
+;;     (goto-char (semantic-tag-start doctag))
+;;     (delete-region (semantic-tag-start doctag)
+;; 		   (semantic-tag-end doctag))
+;;     ;; Use useful functions from the document library.
+;;     (require 'document)
+;;     (document-insert-texinfo tag (semantic-tag-buffer tag))
+;;     ))
 
-(defun semantic-texi-update-doc (&optional tag)
-  "Update the documentation for TAG.
-If the current buffer is a texinfo file, then find the source doc, and
-update it.  If the current buffer is a source file, then get the
-documentation for this item, find the existing doc in the associated
-manual, and update that."
-  (interactive)
-  (cond ((eq major-mode 'texinfo-mode)
-	 (semantic-texi-update-doc-from-texi tag))
-	(t
-	 (semantic-texi-update-doc-from-source tag))))
+;; (defun semantic-texi-update-doc (&optional tag)
+;;   "Update the documentation for TAG.
+;; If the current buffer is a texinfo file, then find the source doc, and
+;; update it.  If the current buffer is a source file, then get the
+;; documentation for this item, find the existing doc in the associated
+;; manual, and update that."
+;;   (interactive)
+;;   (cond ;;((eq major-mode 'texinfo-mode)
+;; 	;; (semantic-texi-update-doc-from-texi tag))
+;; 	(t
+;; 	 (semantic-texi-update-doc-from-source tag))))
 
 (defun semantic-texi-goto-source (&optional tag)
   "Jump to the source for the definition in the texinfo file TAG.

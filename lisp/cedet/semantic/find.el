@@ -810,6 +810,7 @@ Optional argument ARG is the number of iterations to run."
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
 ;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/find"
 ;; End:
 
 ;;; semantic/find.el ends here

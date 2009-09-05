@@ -28,14 +28,18 @@
 
 (require 'assoc)
 (require 'semantic)
-(eval-when-compile
-  ;; Emacs 21
-  (condition-case nil
-      (require 'newcomment)
-    (error nil))
-  ;; Semanticdb calls
-  (require 'semantic/db)
-  )
+
+(declare-function data-debug-insert-stuff-list "data-debug")
+(declare-function data-debug-insert-thing "data-debug")
+(declare-function semanticdb-file-stream "semantic/db")
+(declare-function semanticdb-abstract-table-child-p "semantic/db")
+(declare-function semanticdb-refresh-table "semantic/db")
+(declare-function semanticdb-get-tags "semantic/db")
+(declare-function semanticdb-find-results-p "semantic/db-find")
+
+;; For semantic-find-tags-by-class, semantic--find-tags-by-function,
+;; and semantic-brute-find-tag-standard:
+(eval-when-compile (require 'semantic/find))
 
 ;;; Code:
 
@@ -112,14 +116,15 @@ buffer, or a filename.  If SOMETHING is nil return nil."
 	 (file-exists-p something))
     (semantic-file-tag-table something))
    ;; A Semanticdb table
-   ((and (featurep 'semanticdb)
+   ((and (featurep 'semantic/db)
 	 (semanticdb-minor-mode-p)
 	 (semanticdb-abstract-table-child-p something))
     (semanticdb-refresh-table something)
     (semanticdb-get-tags something))
    ;; Semanticdb find-results
-   ((and (featurep 'semanticdb)
+   ((and (featurep 'semantic/db)
 	 (semanticdb-minor-mode-p)
+	 (require 'semantic/db-find)
 	 (semanticdb-find-results-p something))
     (semanticdb-strip-find-results something))
    ;; NOTE: This commented out since if a search result returns
@@ -350,6 +355,7 @@ If TAG is not specified, use the tag at point."
   "Display the current token.
 Argument P is the point to search from in the current buffer."
   (interactive "d")
+  (require 'semantic/find)
   (let ((tok (semantic-brute-find-innermost-tag-by-position
 	      p (current-buffer))))
     (message (mapconcat 'semantic-abbreviate-nonterminal tok ","))
@@ -359,6 +365,7 @@ Argument P is the point to search from in the current buffer."
 (defun semantic-hack-search ()
   "Display info about something under the cursor using generic methods."
   (interactive)
+  (require 'semantic/find)
   (let (
 	;(name (thing-at-point 'symbol))
 	(strm (cdr (semantic-fetch-tags)))

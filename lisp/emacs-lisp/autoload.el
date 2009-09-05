@@ -48,6 +48,12 @@ If nil, this defaults to `generated-autoload-file', sans extension.")
 ;;;###autoload
 (put 'generated-autoload-feature 'safe-local-variable 'symbolp)
 
+(defvar generated-autoload-load-name nil
+  "Load name for `autoload' statements generated from autoload cookies.
+If nil, this defaults to the file name, sans extension.")
+;;;###autoload
+(put 'generated-autoload-load-name 'safe-local-variable 'stringp)
+
 ;; This feels like it should be a defconst, but MH-E sets it to
 ;; ";;;###mh-autoload" for the autoloads that are to go into mh-loaddefs.el.
 (defvar generate-autoload-cookie ";;;###autoload"
@@ -101,11 +107,12 @@ or macro definition or a defcustom)."
 		   easy-mmode-define-global-mode define-global-minor-mode
 		   define-globalized-minor-mode
 		   easy-mmode-define-minor-mode define-minor-mode
-		   defun* defmacro*))
+		   defun* defmacro* define-overloadable-function))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (case car
-		    ((defun defmacro defun* defmacro*) (nth 2 form))
+		    ((defun defmacro defun* defmacro*
+		       define-overloadable-function) (nth 2 form))
 		    ((define-skeleton) '(&optional str arg))
 		    ((define-generic-mode define-derived-mode
                        define-compilation-mode) nil)
@@ -347,7 +354,7 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 \(or OUTBUF if OUTFILE is nil)."
   (catch 'done
     (let ((autoloads-done '())
-          (load-name (autoload-file-load-name file))
+	  load-name
           (print-length nil)
 	  (print-level nil)
           (print-readably t)           ; This does something in Lucid Emacs.
@@ -365,6 +372,10 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
         ;; Obey the no-update-autoloads file local variable.
         (unless no-update-autoloads
           (message "Generating autoloads for %s..." file)
+	  (setq load-name
+		(if (stringp generated-autoload-load-name)
+		    generated-autoload-load-name
+		  (autoload-file-load-name file)))
           (save-excursion
             (save-restriction
               (widen)

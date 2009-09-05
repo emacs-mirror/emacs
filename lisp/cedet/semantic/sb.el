@@ -32,11 +32,10 @@
 ;; children with the new `with-mode-local' instead.
 
 (require 'semantic)
+(require 'semantic/format)
+(require 'semantic/sort)
 (require 'semantic/util)
 (require 'speedbar)
-(require 'semantic/sort)
-
-(declare-function semanticdb-minor-mode-p "semantic/db-mode")
 
 (defcustom semantic-sb-autoexpand-length 1
   "*Length of a semantic bucket to autoexpand in place.
@@ -383,7 +382,6 @@ to create much wiser decisions about how to sort and group these items."
 Returns the tag list, or t for an error."
   (let ((out nil))
     (if (and (featurep 'semantic/db)
-	     (require 'semantic/db-mode)
 	     (semanticdb-minor-mode-p)
 	     (not speedbar-power-click)
 	     ;; If the database is loaded and running, try to get

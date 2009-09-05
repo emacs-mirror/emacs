@@ -70,6 +70,7 @@ on or off."
 
 ;;; SEMANTICDB-MODE
 ;;
+;;;###autoload
 (defun semanticdb-minor-mode-p ()
   "Return non-nil if `semanticdb-minor-mode' is active."
   (member (car (car semanticdb-hooks))
@@ -239,5 +240,11 @@ Argument NEW-TABLE is the new table of tags."
 
 
 (provide 'semantic/db-mode)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/db-mode"
+;; End:
 
 ;;; semantic/db-mode.el ends here

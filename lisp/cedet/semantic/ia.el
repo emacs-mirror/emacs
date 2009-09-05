@@ -37,6 +37,7 @@
 
 ;; (require 'senator)
 (require 'semantic/analyze)
+(require 'semantic/format)
 (require 'pulse)
 (eval-when-compile
   (require 'semantic/analyze)

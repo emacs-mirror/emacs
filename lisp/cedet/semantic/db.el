@@ -1016,6 +1016,7 @@ If file does not have tags available, then load the file, and create them."
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
 ;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/db"
 ;; End:
 
 ;;; semantic/db.el ends here
