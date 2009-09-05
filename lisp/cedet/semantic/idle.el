@@ -57,6 +57,7 @@
 		  "semantic/decorate/mode")
 (declare-function pulse-momentary-highlight-region "pulse")
 (declare-function pulse-momentary-highlight-overlay "pulse")
+(declare-function semantic-symref-hits-in-region "semantic/symref/filter")
 
 ;;; Code:
 
@@ -924,6 +925,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	  (error nil))
 	;; Identify all hits in this current tag.
 	(when (semantic-tag-p target)
+	  (require 'semantic/symref/filter)
 	  (semantic-symref-hits-in-region
 	   target (lambda (start end prefix)
 		    (when (/= start (car Hbounds))
