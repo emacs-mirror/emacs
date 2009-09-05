@@ -1,4 +1,4 @@
-;;; ia.el --- Interactive Analysis functions
+;;; semantic/ia.el --- Interactive Analysis functions
 
 ;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;; 2008, 2009 Free Software Foundation, Inc.
@@ -105,6 +105,7 @@ Supports caching."
     (setq semantic-ia-cache (cons point symbols))
     symbols))
 
+;;;###autoload
 (defun semantic-ia-complete-symbol (point)
   "Complete the current symbol at POINT.
 Completion options are calculated with `semantic-analyze-possible-completions'."
@@ -166,6 +167,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
+;;;###autoload
 (defun semantic-ia-complete-symbol-menu (point)
   "Complete the current symbol via a menu based at POINT.
 Completion options are calculated with `semantic-analyze-possible-completions'."
@@ -209,6 +211,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 ;; This functions shows how to get the list of completions,
 ;; to place in a tooltip.  It doesn't actually do any completion.
 
+;;;###autoload
 (defun semantic-ia-complete-tip (point)
   "Pop up a tooltip for completion at POINT."
   (interactive "d")
@@ -241,6 +244,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 ;; Like idle-summary-mode, this shows how to get something to
 ;; show a summary on.
 
+;;;###autoload
 (defun semantic-ia-show-summary (point)
   "Display a summary for the symbol under POINT."
   (interactive "P")
@@ -299,6 +303,7 @@ This helper manages the mark, buffer switching, and pulsing."
 
 (declare-function semantic-decoration-include-visit "semantic/decorate/include")
 
+;;;###autoload
 (defun semantic-ia-fast-jump (point)
   "Jump to the tag referred to by the code at POINT.
 Uses `semantic-analyze-current-context' output to identify an accurate
@@ -356,6 +361,7 @@ origin of the code at point."
 	     first))
      )))
 
+;;;###autoload
 (defun semantic-ia-fast-mouse-jump (evt)
   "Jump to the tag referred to by the point clicked on.
 See `semantic-ia-fast-jump' for details on how it works.
@@ -370,6 +376,7 @@ See `semantic-ia-fast-jump' for details on how it works.
 ;;
 ;; These routines show how to get additional information about a tag
 ;; for purposes of describing or showing documentation about them.
+;;;###autoload
 (defun semantic-ia-show-doc (point)
   "Display the code-level documentation for the symbol at POINT."
   (interactive "d")
@@ -406,6 +413,7 @@ See `semantic-ia-fast-jump' for details on how it works.
       (message "Unknown tag.")))
     ))
 
+;;;###autoload
 (defun semantic-ia-describe-class (typename)
   "Display all known parts for the datatype TYPENAME.
 If the type in question is a class, all methods and other accessible
@@ -446,4 +454,10 @@ parts of the parent classes are displayed."
 
 (provide 'semantic/ia)
 
-;;; semantic-ia.el ends here
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/ia"
+;; End:
+
+;;; semantic/ia.el ends here
