@@ -34,7 +34,7 @@
 ;;; Code:
 
 (require 'org)
-(require 'gnus-sum)
+(eval-when-compile (require 'gnus-sum))
 
 ;; Customization variables
 
