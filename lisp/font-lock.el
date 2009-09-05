@@ -2283,7 +2283,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "restart-bind" "restart-case" "in-package"
 		 "break" "ignore-errors"
 		 "loop" "do" "do*" "dotimes" "dolist" "the" "locally"
-		 "proclaim" "declaim" "declare" "symbol-macrolet"
+		 "proclaim" "declaim" "declare" "symbol-macrolet" "letf"
 		 "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
 		 "destructuring-bind" "macrolet" "tagbody" "block" "go"
 		 "multiple-value-bind" "multiple-value-prog1"

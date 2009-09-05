@@ -1,5 +1,7 @@
 2009-09-05  Glenn Morris  <rgm@gnu.org>
 
+	* font-lock.el (lisp-font-lock-keywords-2): Add letf.
+
 	* emacs-lisp/bytecomp.el (emacs-lisp-file-regexp): Doc fix.
 	(byte-compile-dest-file-function): New option.
 	(byte-compile-dest-file): Doc fix.
