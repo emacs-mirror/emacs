@@ -908,9 +908,9 @@ in the mode line.  This is an option for `diary-display-function'."
 (define-obsolete-function-alias 'simple-diary-display
   'diary-simple-display "23.1")
 
-(define-button-type 'diary-entry
-  'action #'diary-goto-entry
-  'face 'diary-button)
+(define-button-type 'diary-entry 'action #'diary-goto-entry
+  'face 'diary-button 'help-echo "Find this diary entry"
+  'follow-link t)
 
 (defun diary-goto-entry (button)
   "Jump to the diary entry for the BUTTON at point."
@@ -1000,7 +1000,7 @@ This is an option for `diary-display-function'."
                 this-loc marks temp-face)
             (unless (zerop (length this-entry))
               (if (setq this-loc (nth 3 entry))
-                  (insert-button (concat this-entry "\n")
+                  (insert-button this-entry
                                  ;; (MARKER FILENAME SPECIFIER LITERAL)
                                  'locator (list (car this-loc)
                                                 (cadr this-loc)
@@ -1008,7 +1008,8 @@ This is an option for `diary-display-function'."
                                                 (or (nth 2 this-loc)
                                                     (nth 1 entry)))
                                  :type 'diary-entry)
-                (insert this-entry ?\n))
+                (insert this-entry))
+              (insert ?\n)
               ;; Doesn't make sense to check font-lock-mode - see
               ;; comments above diary-entry-marker in calendar.el.
               (and ; font-lock-mode
@@ -2362,6 +2363,7 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
          t nil nil nil
          (font-lock-fontify-region-function
           . diary-fancy-font-lock-fontify-region-function)))
+  (local-set-key "q" 'quit-window)
   (set (make-local-variable 'minor-mode-overriding-map-alist)
        (list (cons t diary-fancy-overriding-map)))
   (view-mode 1))

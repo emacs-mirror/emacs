@@ -1,5 +1,10 @@
 2009-09-05  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-entry): Add help-echo and follow-link
+	properties to this button.
+	(diary-fancy-display): Don't extend the button to the final newline.
+	(diary-fancy-display-mode): Continue to define "q" as a local key.
+
 	* calendar/cal-china.el (holiday-chinese): Make it slightly more
 	efficient.
 
