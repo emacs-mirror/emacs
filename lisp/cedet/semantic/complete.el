@@ -2004,6 +2004,7 @@ completion works."
     (semantic-complete-read-tag-project "Symbol: ")
     )))
 
+;;;###autoload
 (defun semantic-complete-jump-local ()
   "Jump to a semantic symbol."
   (interactive)
@@ -2016,6 +2017,7 @@ completion works."
 	       (semantic-tag-class tag)
 	       (semantic-tag-name  tag)))))
 
+;;;###autoload
 (defun semantic-complete-jump ()
   "Jump to a semantic symbol."
   (interactive)
@@ -2029,6 +2031,7 @@ completion works."
 	       (semantic-tag-class tag)
 	       (semantic-tag-name  tag)))))
 
+;;;###autoload
 (defun semantic-complete-analyze-and-replace ()
   "Perform prompt completion to do in buffer completion.
 `semantic-analyze-possible-completions' is used to determine the
@@ -2044,6 +2047,7 @@ The result is inserted as a replacement of the text that was there."
     (insert (semantic-tag-name tag))
     (message "%S" (semantic-format-tag-summarize tag))))
 
+;;;###autoload
 (defun semantic-complete-analyze-inline ()
   "Perform prompt completion to do in buffer completion.
 `semantic-analyze-possible-completions' is used to determine the
@@ -2066,6 +2070,7 @@ how completion options are displayed."
     (semantic-complete-inline-TAB)
     ))
 
+;;;###autoload
 (defun semantic-complete-analyze-inline-idle ()
   "Perform prompt completion to do in buffer completion.
 `semantic-analyze-possible-completions' is used to determine the
@@ -2085,6 +2090,7 @@ to change how completion options are displayed."
       (message "Inline completion not needed."))
   )
 
+;;;###autoload
 (defun semantic-complete-self-insert (arg)
   "Like `self-insert-command', but does completion afterwards.
 ARG is passed to `self-insert-command'.  If ARG is nil,
@@ -2134,5 +2140,11 @@ use `semantic-complete-analyze-inline' to complete."
 
 ;; End
 (provide 'semantic/complete)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/complete"
+;; End:
 
 ;;; semantic/complete.el ends here
