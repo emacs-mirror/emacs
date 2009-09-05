@@ -1,4 +1,4 @@
-;;; util-modes.el --- Semantic minor modes
+;;; semantic/util-modes.el --- Semantic minor modes
 
 ;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009
 ;;; Free Software Foundation, Inc.
@@ -204,6 +204,7 @@ function used to toggle the mode."
 ;;;; Minor mode to highlight areas that a user edits.
 ;;;;
 
+;;;###autoload
 (defun global-semantic-highlight-edits-mode (&optional arg)
   "Toggle global use of option `semantic-highlight-edits-mode'.
 If ARG is positive, enable, if it is negative, disable.
@@ -213,6 +214,7 @@ If ARG is nil, then toggle."
         (semantic-toggle-minor-mode-globally
          'semantic-highlight-edits-mode arg)))
 
+;;;###autoload
 (defcustom global-semantic-highlight-edits-mode nil
   "*If non-nil enable global use of variable `semantic-highlight-edits-mode'.
 When this mode is enabled, changes made to a buffer are highlighted
@@ -278,6 +280,7 @@ minor mode is enabled."
     )
   semantic-highlight-edits-mode)
 
+;;;###autoload
 (defun semantic-highlight-edits-mode (&optional arg)
   "Minor mode for highlighting changes made in a buffer.
 Changes are tracked by semantic so that the incremental parser can work
@@ -313,6 +316,8 @@ minor mode is enabled."
 ;;;;
 ;;;; Minor mode to show unmatched-syntax elements
 ;;;;
+
+;;;###autoload
 (defun global-semantic-show-unmatched-syntax-mode (&optional arg)
   "Toggle global use of option `semantic-show-unmatched-syntax-mode'.
 If ARG is positive, enable, if it is negative, disable.
@@ -322,6 +327,7 @@ If ARG is nil, then toggle."
         (semantic-toggle-minor-mode-globally
          'semantic-show-unmatched-syntax-mode arg)))
 
+;;;###autoload
 (defcustom global-semantic-show-unmatched-syntax-mode nil
   "*If non-nil, enable global use of `semantic-show-unmatched-syntax-mode'.
 When this mode is enabled, syntax in the current buffer which the
@@ -479,6 +485,7 @@ minor mode is enabled."
     (semantic-clean-unmatched-syntax-in-buffer))
   semantic-show-unmatched-syntax-mode)
 
+;;;###autoload
 (defun semantic-show-unmatched-syntax-mode (&optional arg)
   "Minor mode to highlight unmatched lexical syntax tokens.
 When a parser executes, some elements in the buffer may not match any
@@ -525,6 +532,7 @@ minor mode is enabled.
 ;;;; Minor mode to display the parser state in the modeline.
 ;;;;
 
+;;;###autoload
 (defcustom global-semantic-show-parser-state-mode nil
   "*If non-nil enable global use of `semantic-show-parser-state-mode'.
 When enabled, the current parse state of the current buffer is displayed
@@ -537,6 +545,7 @@ on what is displayed."
   :set (lambda (sym val)
          (global-semantic-show-parser-state-mode (if val 1 -1))))
 
+;;;###autoload
 (defun global-semantic-show-parser-state-mode (&optional arg)
   "Toggle global use of option `semantic-show-parser-state-mode'.
 If ARG is positive, enable, if it is negative, disable.
@@ -635,6 +644,7 @@ minor mode is enabled."
     )
   semantic-show-parser-state-mode)
 
+;;;###autoload
 (defun semantic-show-parser-state-mode (&optional arg)
   "Minor mode for displaying parser cache state in the modeline.
 The cache can be in one of three states.  They are
@@ -713,6 +723,7 @@ to indicate a parse in progress."
 ;;;; Minor mode to make function decls sticky.
 ;;;;
 
+;;;###autoload
 (defun global-semantic-stickyfunc-mode (&optional arg)
   "Toggle global use of option `semantic-stickyfunc-mode'.
 If ARG is positive, enable, if it is negative, disable.
@@ -722,6 +733,7 @@ If ARG is nil, then toggle."
         (semantic-toggle-minor-mode-globally
          'semantic-stickyfunc-mode arg)))
 
+;;;###autoload
 (defcustom global-semantic-stickyfunc-mode nil
   "*If non-nil, enable global use of `semantic-stickyfunc-mode'.
 This minor mode only works for Emacs 21 or later.
@@ -906,6 +918,7 @@ text for that function in Emacs 21's header line."
 	(kill-local-variable 'semantic-stickyfunc-old-hlf))))
   semantic-stickyfunc-mode)
 
+;;;###autoload
 (defun semantic-stickyfunc-mode (&optional arg)
   "Minor mode to show the title of a tag in the header line.
 Enables/disables making the header line of functions sticky.
@@ -1024,6 +1037,8 @@ Argument EVENT describes the event that caused this function to be called."
 
 ;; Highlight the first like of the function we are in if it is different
 ;; from the the tag going off the top of the screen.
+
+;;;###autoload
 (defun global-semantic-highlight-func-mode (&optional arg)
   "Toggle global use of option `semantic-highlight-func-mode'.
 If ARG is positive, enable, if it is negative, disable.
@@ -1033,6 +1048,7 @@ If ARG is nil, then toggle."
         (semantic-toggle-minor-mode-globally
          'semantic-highlight-func-mode arg)))
 
+;;;###autoload
 (defcustom global-semantic-highlight-func-mode nil
   "*If non-nil, enable global use of `semantic-highlight-func-mode'.
 When enabled, the first line of the current tag is highlighted."
@@ -1144,6 +1160,7 @@ current tag declaration."
     )
   semantic-highlight-func-mode)
 
+;;;###autoload
 (defun semantic-highlight-func-mode (&optional arg)
   "Minor mode to highlight the first line of the current tag.
 Enables/disables making the header line of functions sticky.
@@ -1225,4 +1242,10 @@ function was called, move the overlay."
 
 (provide 'semantic/util-modes)
 
-;;; semantic-util-modes.el ends here
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/util-modes"
+;; End:
+
+;;; semantic/util-modes.el ends here
