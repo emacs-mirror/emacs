@@ -36,6 +36,8 @@
   (require 'semantic/find))
 
 (defvar semantic-dependency-system-include-path)
+(declare-function ede-get-locator-object "ede/files")
+(declare-function ede-system-include-path "ede/cpp-root")
 
 ;;; Code:
 
@@ -623,7 +625,9 @@ Argument EVENT describes the event that caused this function to be called."
 	)
 
       (princ "\nInclude Path Summary:\n\n")
-      (when ede-object
+      (when (and (boundp 'ede-object)
+		 (boundp 'ede-object-project)
+		 ede-object)
 	(princ "  This file's project include search is handled by the EDE object:\n")
 	(princ "    Buffer Target:  ")
 	(princ (object-print ede-object))

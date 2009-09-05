@@ -34,6 +34,15 @@
 ;; Once the raw data is available, queries for impl, prototype, or
 ;; perhaps other things become cheap.
 
+(require 'semantic)
+(require 'semantic/analyze)
+(require 'semantic/db-find)
+(eval-when-compile (require 'semantic/find))
+
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-object-slots "eieio-datadebug")
+(declare-function semantic-momentary-highlight-tag "semantic/decorate")
+
 ;;; Code:
 (defclass semantic-analyze-references ()
   ((tag :initarg :tag
@@ -270,6 +279,7 @@ Only works for tags in the global namespace."
 
 ;;; USER COMMANDS
 ;;
+;;;###autoload
 (defun semantic-analyze-current-tag ()
   "Analyze the tag under point."
   (interactive)
@@ -281,13 +291,16 @@ Only works for tags in the global namespace."
     (message "Analysis took %.2f seconds." (semantic-elapsed-time start end))
     (if sac
 	(progn
+	  (require 'eieio-datadebug)
 	  (data-debug-new-buffer "*Analyzer Reference ADEBUG*")
 	  (data-debug-insert-object-slots sac "]"))
       (message "No Context to analyze here."))))
 
+;;;###autoload
 (defun semantic-analyze-proto-impl-toggle ()
   "Toggle between the implementation, and a prototype of tag under point."
   (interactive)
+  (require 'semantic/decorate)
   (semantic-fetch-tags)
   (let* ((tag (semantic-current-tag))
 	 (sar (if tag
@@ -311,5 +324,11 @@ Only works for tags in the global namespace."
 
 
 (provide 'semantic/analyze/refs)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/analyze/refs"
+;; End:
 
 ;;; semantic/analyze/refs.el ends here

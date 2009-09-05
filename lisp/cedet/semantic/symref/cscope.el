@@ -26,6 +26,10 @@
 (require 'cedet-cscope)
 (require 'semantic/symref)
 
+(defvar ede-minor-mode)
+(declare-function ede-toplevel "ede/files")
+(declare-function ede-project-root-directory "ede/files")
+
 ;;; Code:
 (defclass semantic-symref-tool-cscope (semantic-symref-tool-baseclass)
   (

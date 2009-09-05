@@ -44,6 +44,7 @@
 (declare-function semanticdb-file-table-object "semantic/db")
 (declare-function semanticdb-needs-refresh-p "semantic/db")
 (declare-function c-forward-conditional "cc-cmds")
+(declare-function ede-system-include-path "ede")
 
 ;;; Compatibility
 ;;
@@ -1645,7 +1646,7 @@ DO NOT return the list of tags encompassing point."
 	)
 
       (princ "\n\nInclude Path Summary:\n")
-      (when ede-object
+      (when (and (boundp 'ede-object) ede-object)
 	(princ "\n  This file's project include is handled by:\n")
 	(princ "   ")
 	(princ (object-print ede-object))

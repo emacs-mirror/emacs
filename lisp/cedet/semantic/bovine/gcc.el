@@ -26,6 +26,8 @@
 
 (require 'semantic/dep)
 
+(defvar semantic-lex-c-preprocessor-symbol-file)
+(defvar semantic-lex-c-preprocessor-symbol-map)
 (declare-function semantic-c-reset-preprocessor-symbol-map
 		  "semantic/bovine/gcc")
 
@@ -142,6 +144,7 @@ This is an alist, and should include keys of:
   '--prefix - Where GCC was installed.
 It should also include other symbols GCC was compiled with.")
 
+;;;###autoload
 (defun semantic-gcc-setup ()
   "Setup Semantic C/C++ parsing based on GCC output."
   (interactive)
@@ -316,4 +319,11 @@ gcc version 2.95.2 19991024 (release)"
   )
 
 (provide 'semantic/bovine/gcc)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/bovine/gcc"
+;; End:
+
 ;;; semantic/bovine/gcc.el ends here

@@ -34,6 +34,11 @@
 ;;; Code:
 
 (require 'semantic)
+(declare-function srecode-active-template-region "srecode/fields")
+(declare-function srecode-delete "srecode/fields")
+(declare-function srecode-field "srecode/fields")
+(declare-function srecode-template-inserted-region "srecode/fields")
+(declare-function srecode-overlaid-activate "srecode/fields")
 
 ;;; FILTERS
 ;;
@@ -123,7 +128,7 @@ Depends on the SRecode Field editing API."
 
     ;; I think we're good for this example.  Give it a go through
     ;; our fancy interface from SRecode.
-    (require 'srecode-fields)
+    (require 'srecode/fields)
 
     ;; Make sure there is nothing active.
     (let ((ar (srecode-active-template-region)))

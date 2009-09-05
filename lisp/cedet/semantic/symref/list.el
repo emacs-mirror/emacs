@@ -38,6 +38,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun semantic-symref ()
   "Find references to the current tag.
 This command uses the currently configured references tool within the
@@ -60,6 +61,7 @@ Display the references in`semantic-symref-results-mode'"
     (setq res (semantic-symref-find-references-by-name (semantic-tag-name ct)))
     (semantic-symref-produce-list-on-results res (semantic-tag-name ct))))
 
+;;;###autoload
 (defun semantic-symref-symbol (sym)
   "Find references to the symbol SYM.
 This command uses the currently configured references tool within the
@@ -276,7 +278,7 @@ BUTTON is the button that was clicked."
 	 )
     (switch-to-buffer-other-window buff)
     (pulse-momentary-highlight-one-line (point))
-    (when (eq last-command-char ? ) (select-window win))
+    (when (eq last-command-event ?\s) (select-window win))
     ))
 
 
@@ -291,7 +293,7 @@ BUTTON is the button that was clicked."
     (switch-to-buffer-other-window buff)
     (semantic-go-to-tag tag)
     (pulse-momentary-highlight-one-line (point))
-    (when (eq last-command-char ? ) (select-window win))
+    (when (eq last-command-event ?\s) (select-window win))
     )
   )
 
@@ -305,9 +307,9 @@ BUTTON is the button that was clicked."
 	 (win (selected-window))
 	 )
     (switch-to-buffer-other-window buff)
-    (goto-line line)
+    (with-no-warnings (goto-line line))
     (pulse-momentary-highlight-one-line (point))
-    (when (eq last-command-char ? ) (select-window win))
+    (when (eq last-command-event ?\s) (select-window win))
     )
   )
 
@@ -324,5 +326,11 @@ BUTTON is the button that was clicked."
   (back-to-indentation))
 
 (provide 'semantic/symref/list)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/symref/list"
+;; End:
 
 ;;; semantic/symref/list.el ends here

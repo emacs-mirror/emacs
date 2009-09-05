@@ -38,6 +38,7 @@
 ;;; Code:
 (require 'eieio)
 (require 'semantic)
+(require 'semantic/db)
 (require 'semantic/tag)
 
 (defvar semanticdb-find-default-throttle)
@@ -55,7 +56,7 @@ will be added to the database that INCLUDE-TAG refers to."
   ;; NOTE: I should add a check to make sure include-tag is in DB.
   ;;       but I'm too lazy.
   (let* ((semanticdb-find-default-throttle
-	       (if (featurep 'semanticdb-find)
+	       (if (featurep 'semantic/db-find)
 		   (remq 'unloaded semanticdb-find-default-throttle)
 		 nil))
 	 (refdbt (semanticdb-find-table-for-include include-tag dbt))
@@ -150,14 +151,14 @@ DBT, the second argument is DBT."
 
 (defvar semanticdb-current-table)
 (declare-function data-debug-new-buffer "data-debug")
-(declare-function data-debug-insert-object-slots "data-debug")
+(declare-function data-debug-insert-object-slots "eieio-datadebug")
 
 (defun semanticdb-ref-test (refresh)
   "Dump out the list of references for the current buffer.
 If REFRESH is non-nil, cause the current table to have it's references
 refreshed before dumping the result."
   (interactive "p")
-  (require 'data-debug)
+  (require 'eieio-datadebug)
   ;; If we need to refresh... then do so.
   (when refresh
     (semanticdb-refresh-references semanticdb-current-table))

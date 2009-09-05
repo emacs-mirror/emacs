@@ -32,6 +32,8 @@
 ;; For semantic-find-tags-by-class:
 (eval-when-compile (require 'semantic/find))
 
+(declare-function ede-get-locator-object "ede/files")
+
 ;;; Code:
 
 (defun semantic-analyze-debug-assist ()
@@ -399,12 +401,13 @@ or implementing a version specific to ")
 	(edeobj
 	 (save-excursion
 	   (set-buffer (semanticdb-get-buffer table))
-	   ede-object))
+	   (and (boundp 'ede-object)
+		ede-object)))
 	(edeproj
 	 (save-excursion
 	   (set-buffer (semanticdb-get-buffer table))
-	   ede-object-project))
-	)
+	   (and (boundp 'ede-object-project)
+		ede-object-project))))
 
     (princ "\n\nInclude Path Summary:")
     (when edeobj
