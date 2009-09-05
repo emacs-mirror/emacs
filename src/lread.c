@@ -2042,7 +2042,7 @@ read_escape (readcharfun, stringp)
      int stringp;
 {
   register int c = READCHAR;
-  /* \u allows up to four hex digits, \U up to eight. Default to the
+  /* \u allows up to four hex digits, \U up to eight.  Default to the
      behavior for \u, and change this value in the case that \U is seen. */
   int unicode_hex_count = 4;
 
@@ -2216,7 +2216,7 @@ read_escape (readcharfun, stringp)
       unicode_hex_count = 8;
     case 'u':
 
-      /* A Unicode escape. We only permit them in strings and characters,
+      /* A Unicode escape.  We only permit them in strings and characters,
 	 not arbitrarily in the source code, as in some other languages.  */
       {
 	unsigned int i = 0;
@@ -2369,15 +2369,15 @@ read1 (readcharfun, pch, first_in_list)
 	      Lisp_Object val = Qnil;
 	      /* The size is 2 * number of allowed keywords to
 		 make-hash-table. */
-	      Lisp_Object params[10]; 
+	      Lisp_Object params[10];
 	      Lisp_Object ht;
 	      Lisp_Object key = Qnil;
 	      int param_count = 0;
-	      
+
 	      if (!EQ (head, Qhash_table))
 		error ("Invalid extended read marker at head of #s list "
 		       "(only hash-table allowed)");
-	      
+
 	      tmp = CDR_SAFE (tmp);
 
 	      /* This is repetitive but fast and simple. */
@@ -2411,7 +2411,7 @@ read1 (readcharfun, pch, first_in_list)
 
 	      /* Now use params to make a new hashtable and fill it. */
 	      ht = Fmake_hash_table (param_count, params);
-	      
+
 	      while (CONSP (data))
 	      	{
 	      	  key = XCAR (data);
@@ -2422,7 +2422,7 @@ read1 (readcharfun, pch, first_in_list)
 	      	  data = XCDR (data);
 	      	  Fputhash (key, val, ht);
 	      	}
-	      
+
 	      return ht;
 	    }
 	}
@@ -2652,7 +2652,7 @@ read1 (readcharfun, pch, first_in_list)
 	      Lisp_Object placeholder;
 	      Lisp_Object cell;
 
-	      placeholder = Fcons(Qnil, Qnil);
+	      placeholder = Fcons (Qnil, Qnil);
 	      cell = Fcons (make_number (n), placeholder);
 	      read_objects = Fcons (cell, read_objects);
 
@@ -3239,7 +3239,7 @@ substitute_in_interval (interval, arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE(interval->plist, interval->plist = true_value);
+  SUBSTITUTE (interval->plist, interval->plist = true_value);
 }
 
 
@@ -4180,7 +4180,7 @@ init_lread ()
     }
 #endif
 
-#if (!(defined(WINDOWSNT) || (defined(HAVE_NS))))
+#if (!(defined (WINDOWSNT) || (defined (HAVE_NS))))
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
