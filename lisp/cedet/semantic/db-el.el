@@ -37,8 +37,10 @@
   ;; For generic function searching.
   (require 'eieio)
   (require 'eieio-opt)
-  (require 'eieio-base)
-  )
+  (require 'eieio-base))
+
+(declare-function semantic-elisp-desymbolify "semantic/bovine/el")
+
 ;;; Code:
 
 ;;; Classes:
@@ -205,6 +207,7 @@ TOKTYPE is a hint to the type of tag desired."
       (setq sym (intern-soft sym)))
   (when sym
     (cond ((and (eq toktype 'function) (fboundp sym))
+	   (require 'semantic/bovine/el)
 	   (semantic-tag-new-function
 	    (symbol-name sym)
 	    nil	;; return type

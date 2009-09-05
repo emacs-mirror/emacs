@@ -41,7 +41,9 @@
 ;;  (require 'senator)
 )
 
+(defvar ede-minor-mode)
 (declare-function lookup-words "ispell")
+(declare-function ede-current-project "ede")
 
 (defvar semantic-texi-super-regex
   "^@\\(top\\|chapter\\|\\(sub\\)*section\\|unnumbered\\(\\(sub\\)*sec\\)?\\|\

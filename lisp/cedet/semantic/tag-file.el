@@ -28,9 +28,11 @@
 
 (require 'semantic/tag)
 
+(defvar ede-minor-mode)
 (declare-function semanticdb-table-child-p "semantic/db")
 (declare-function semanticdb-get-buffer "semantic/db")
 (declare-function semantic-dependency-find-file-on-path "semantic/dep")
+(declare-function ede-toplevel "ede/files")
 
 ;;; Code:
 
