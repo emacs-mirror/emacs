@@ -651,6 +651,7 @@ whose tags can be searched when needed, OR it may be a scope object."
 ;;
 ;; Create the scope structure for use in the Analyzer.
 ;;
+;;;###autoload
 (defun semantic-calculate-scope (&optional point)
   "Calculate the scope at POINT.
 If POINT is not provided, then use the current location of point.
@@ -805,5 +806,11 @@ hits in order, with the first tag being in the closest scope."
   )
 
 (provide 'semantic/scope)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/scope"
+;; End:
 
 ;;; semantic/scope.el ends here
