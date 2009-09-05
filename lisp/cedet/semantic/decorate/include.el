@@ -380,7 +380,7 @@ its contents.
 	(princ (oref r file)))
       )))
 
-;;;;###autoload
+;;;###autoload
 (defun semantic-decoration-include-visit ()
   "Visit the included file at point."
   (interactive)
@@ -749,7 +749,7 @@ If TABLE is not in a buffer, do nothing."
        buf)
       )))
 
-;;;;###autoload
+;;;###autoload
 (defun semantic-decoration-unparsed-include-do-reset ()
   "Do a reset of unparsed includes in the current buffer."
   (let* ((style (assoc "semantic-decoration-on-includes"
@@ -764,5 +764,11 @@ If TABLE is not in a buffer, do nothing."
 
 
 (provide 'semantic/decorate/include)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/decorate/include"
+;; End:
 
 ;;; semantic/decorate/include.el ends here
