@@ -43,7 +43,7 @@
 (declare-function data-debug-new-buffer "data-debug")
 (declare-function data-debug-insert-thing result "data-debug")
 
-
+;;;###autoload
 (defun semanticdb-enable-gnu-global-databases (mode)
   "Enable the use of the GNU Global SemanticDB back end for all files of MODE.
 This will add an instance of a GNU Global database to each buffer
@@ -250,5 +250,11 @@ If optional arg STANDARDFILE is non nil, use a standard file w/ global enabled."
       )))
 
 (provide 'semantic/db-global)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/db-global"
+;; End:
 
 ;;; semantic/db-global.el ends here
