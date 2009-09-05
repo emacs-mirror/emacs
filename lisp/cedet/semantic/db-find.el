@@ -720,6 +720,7 @@ Included databases are filtered based on `semanticdb-find-default-throttle'."
 
 ;;; Perform interactive tests on the path/search mechanisms.
 ;;
+;;;###autoload
 (defun semanticdb-find-test-translate-path (&optional arg)
   "Call and output results of `semanticdb-find-translate-path'.
 With ARG non-nil, specify a BRUTISH translation.
@@ -760,6 +761,7 @@ for details on how this list is derived."
 
     (data-debug-insert-stuff-list p "*")))
 
+;;;###autoload
 (defun semanticdb-find-adebug-lost-includes ()
   "Translate the current path, then display the lost includes.
 Examines the variable `semanticdb-find-lost-includes'."
