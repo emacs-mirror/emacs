@@ -498,9 +498,10 @@ is requested."
 (defun semantic--set-buffer-cache (tagtable)
   "Set the toplevel cache cache to TAGTABLE."
   (setq semantic--buffer-cache tagtable
-        semantic-unmatched-syntax-cache-check nil
-	;; This is specific to the bovine parser.
-        semantic-bovinate-nonterminal-check-obarray nil)
+        semantic-unmatched-syntax-cache-check nil)
+  ;; This is specific to the bovine parser.
+  (set (make-local-variable 'semantic-bovinate-nonterminal-check-obarray)
+       nil)
   (semantic-parse-tree-set-up-to-date)
   (semantic-make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'semantic-change-function nil t)
