@@ -63,6 +63,7 @@
        ;;'(speedbar-item-info . eieio-speedbar-item-info)
        '(speedbar-line-directory . semantic-ia-sb-line-path)))
 
+;;;###autoload
 (defun semantic-speedbar-analysis ()
   "Start Speedbar in semantic analysis mode.
 The analyzer displays information about the current context, plus a smart
@@ -363,5 +364,11 @@ TEXT TAG and INDENT are the details."
     (select-frame speedbar-frame)))
 
 (provide 'semantic/ia-sb)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/ia-sb"
+;; End:
 
 ;;; semantic/ia-sb.el ends here
