@@ -1,7 +1,7 @@
 2009-09-05  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
 	* org-gnus.el (require): Wrap (require gnus-sum) into
-	eval-when-compils.
+	eval-when-compile.
 
 2009-09-03  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
@@ -28,14 +28,14 @@
 	(org-closed-in-range): Use `org-float-time'.
 
 	* org-timer.el (org-timer-start, org-timer-pause-or-continue)
-	(org-timer-seconds):  Use `org-float-time'.
+	(org-timer-seconds): Use `org-float-time'.
 
 	* org-clock.el (org-clock-get-clocked-time, org-clock-out)
 	(org-clock-sum, org-dblock-write:clocktable)
-	(org-clocktable-steps):  Use `org-float-time'.
+	(org-clocktable-steps): Use `org-float-time'.
 
 	* org-agenda.el (org-agenda-last-marker-time)
-	(org-agenda-new-marker, org-diary):  Use `org-float-time'.
+	(org-agenda-new-marker, org-diary): Use `org-float-time'.
 
 	* org-compat.el (w32-focus-frame): Declare the w32-focus-frame
 	function.
@@ -45,7 +45,7 @@
 
 	* org-html.el (require): Require cl for compilation.
 
-	* org.el:  Avoid using `default-major-mode'.
+	* org.el: Avoid using `default-major-mode'.
 
 	* org-plot.el (require): Require CL only at compile time.
 
@@ -268,7 +268,7 @@
 
 	* org.el (org-hide-block-toggle): Make folded blocks searchable.
 
-2009-09-02  Friedrich Delgado Friedrichs <friedel@nomaden.org>  (tiny change)
+2009-09-02  Friedrich Delgado Friedrichs  <friedel@nomaden.org>  (tiny change)
 
 	* org.el (org-flag-drawer): More useful error.
 
@@ -354,7 +354,7 @@
 2009-09-02  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.el (org-export-html-special-string-regexps): Definition
-	moved into org.el
+	moved into org.el.
 
 	* org-exp.el (org-export-preprocess-apply-macros): Allow newlines
 	in macro calls.
@@ -426,15 +426,15 @@
 
 	* org-docbook.el: Add arch-tag.
 
-	* org-exp-blocks.el:  Add arch-tag.
+	* org-exp-blocks.el: Add arch-tag.
 
-	* org-id.el:  Add arch-tag.
+	* org-id.el: Add arch-tag.
 
-	* org-indent.el:  Add arch-tag.
+	* org-indent.el: Add arch-tag.
 
-	* org-inlinetask.el:  Add arch-tag.
+	* org-inlinetask.el: Add arch-tag.
 
-	* org-protocol.el:  Add arch-tag.
+	* org-protocol.el: Add arch-tag.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -617,7 +617,7 @@
 	(org-cycle): Update the docstring to document the new behavior of
 	`org-cycle-internal-local'.
 
-2009-08-06  Nicolas Goaziou <n.goaziou@neuf.fr>  (tiny change)
+2009-08-06  Nicolas Goaziou  <n.goaziou@neuf.fr>  (tiny change)
 
 	* org-clock.el (org-clock-in): Bugfix: recognize timestamps with
 	an abbreviated format for days.
@@ -769,7 +769,7 @@
 	(org-special-properties): Add SINCE, SINCE_IA.
 	(org-tags-sort-function): Add custom declaration for tags
 	sorting function.
-	(org-set-tags): Sort tags if org-tags-sort-function is set
+	(org-set-tags): Sort tags if org-tags-sort-function is set.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -1205,7 +1205,7 @@
 	function.
 
 	* org-faces.el (org-meta-line): New face
-	(org-block):  New face.
+	(org-block): New face.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -1615,7 +1615,7 @@
 	* org-remember.el (org-remember-handler): Allow filing to non-org
 	files.
 
-2009-08-06  Magnus Henoch <magnus.henoch@gmail.com>
+2009-08-06  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* org-table.el (org-table-fix-formulas): Do not change references
 	to remote tables.
@@ -1672,7 +1672,7 @@
 	* org-agenda.el (org-agenda-dim-blocked-tasks): Honor the
 	NOBLOCKING property.
 
-	* org.el (org-scan-tags): Fix bug in tag scanner
+	* org.el (org-scan-tags): Fix bug in tag scanner.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2233,9 +2233,9 @@
 	(org-export-latex-fontify): Catch error when org-emph-alist has
 	entries that are not defined for LaTeX export.
 
-	* org-export-latex.el: renamed to org-latex.el
+	* org-export-latex.el: renamed to org-latex.el.
 
-	* org-latex.el: renamed from org-export-latex.el
+	* org-latex.el: renamed from org-export-latex.el.
 
 	* org.el (orgstruct++-mode): New function.
 	(turn-on-orgstruct++): Call `orgstruct++-mode'.
@@ -2361,7 +2361,8 @@
 	* org-agenda.el (org-agenda-dim-blocked-tasks): No tagging when
 	only checking for blocks.
 
-	* org-exp.el (org-export-html-footnotes-section): Make the div id consistent
+	* org-exp.el (org-export-html-footnotes-section): Make the div id
+	consistent.
 
 	* org-export-latex.el (org-export-latex-classes): Remove
 	paper size option from LaTeX classes.
@@ -2610,7 +2611,7 @@
 	`window-full-width-p'.
 
 	* org-exp.el (org-export-as-html): Only check for images files
-	that really can be inlined
+	that really can be inlined.
 
 	* org.el (org-image-file-name-regexp, org-file-image-p): Allow the
 	list of extensions to be a parameter.
@@ -2726,7 +2727,7 @@
 	(org-timer-set-mode-line, org-timer-update-mode-line): New
 	functions.
 
-	* org.el (org-insert-heading):  Handle new value `auto' for
+	* org.el (org-insert-heading): Handle new value `auto' for
 	`org-blank-before-new-entry'.
 	(org-org-menu): Add new items for timer functions.
 
@@ -3742,7 +3743,7 @@
 	tree.
 
 	* org-publish.el (org-publish-get-base-files-1): Deal correctly
-	with broken symlinks
+	with broken symlinks.
 
 2008-11-12  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -4092,7 +4093,7 @@
 	the currently clocked task.
 	(org-clock-string-limit): Add a custom value for the maximum
 	length of the clock string in the modeline.
-	(org-clock-mode-map): Add a keymap for the modeline string
+	(org-clock-mode-map): Add a keymap for the modeline string.
 
 2008-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -4110,7 +4111,7 @@
 	(org-export-latex-keywords-maybe): Use `replace-regexp-in-string'.
 	(org-export-latex-list-beginning-re): Rename to
 	`org-list-beginning-re'
-	(org-list-item-begin): Rename to `org-list-item-beginning'
+	(org-list-item-begin): Rename to `org-list-item-beginning'.
 
 2008-10-12  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -4273,7 +4274,7 @@
 	* org-agenda.el (org-write-agenda): Erase buffer for txt export.
 
 	* org-exp.el (org-html-do-expand): Allow {} to terminate
-	tex macro
+	tex macro.
 
 	* org.el (org-buffer-list): Select buffers based on major mode,
 	not on file name.
@@ -4288,7 +4289,6 @@
 	`org-columns-modify-value-for-display-function'.
 
 	* org.el (org-columns-modify-value-for-display-function): New option.
-
 
 	* org-publish.el (org-publish-file): Make sure the directory match
 	for the publishing directory works correctly.
