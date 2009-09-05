@@ -1,5 +1,12 @@
 2009-09-05  Karl Fogel  <kfogel@red-bean.com>
 
+	* files.el (find-alternate-file): Run `kill-buffer-hook' manually
+	before killing the old buffer, since by the time `kill-buffer' is
+	run so many buffer variables have been set to nil that it may not
+	behave as expected.  (Bug#4061)
+
+2009-09-05  Karl Fogel  <kfogel@red-bean.com>
+
 	* files.el (find-alternate-file): If the old buffer is modified
 	and visiting a file, behave similarly to `kill-buffer' when
 	killing it, thus reverting to the pre-1.878 behavior; see

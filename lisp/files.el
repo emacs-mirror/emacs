@@ -1493,6 +1493,17 @@ killed."
 	(odir dired-directory)
 	(otrue buffer-file-truename)
 	(oname (buffer-name)))
+    ;; Run `kill-buffer-hook' here.  It needs to happen before
+    ;; variables like `buffer-file-name' etc are set to nil below,
+    ;; because some of the hooks that could be invoked
+    ;; (e.g., `save-place-to-alist') depend on those variables.
+    ;;
+    ;; Note that `kill-buffer-hook' is not what queries whether to
+    ;; save a modified buffer visiting a file.  Rather, `kill-buffer'
+    ;; asks that itself.  Thus, there's no need to temporarily do
+    ;; `(set-buffer-modified-p nil)' before running this hook.
+    (run-hooks 'kill-buffer-hook)
+    ;; Okay, now we can end-of-life the old buffer.
     (if (get-buffer " **lose**")
 	(kill-buffer " **lose**"))
     (rename-buffer " **lose**")
@@ -1520,8 +1531,8 @@ killed."
 	(rename-buffer oname)))
     (unless (eq (current-buffer) obuf)
       (with-current-buffer obuf
-	;; We already asked; don't ask again.
-	(let ((kill-buffer-query-functions))
+	;; We already ran these; don't run them again.
+	(let (kill-buffer-query-functions kill-buffer-hook)
 	  (kill-buffer obuf))))))
 
 (defun create-file-buffer (filename)
