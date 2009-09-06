@@ -153,7 +153,7 @@ We never have local variables in Makefiles."
 	 )
     (cond ((eq class 'function)
 	   (concat name ": "
-		   (semantic--format-tag-arguments 
+		   (semantic--format-tag-arguments
 		    (semantic-tag-function-arguments tag)
 		    #'semantic-format-tag-prototype
 		    color)))
@@ -205,6 +205,7 @@ Uses default implementation, and also gets a list of filenames."
   nil
   "The system include path used by Makefiles langauge.")
 
+;;;###autoload
 (defun semantic-default-make-setup ()
   "Set up a Makefile buffer for parsing with semantic."
   (semantic-make-by--install-parser)
@@ -229,8 +230,15 @@ Uses default implementation, and also gets a list of filenames."
   (setq semantic-lex-analyzer #'semantic-make-lexer)
   )
 
+;;;###autoload
 (add-hook 'makefile-mode-hook 'semantic-default-make-setup)
 
 (provide 'semantic/bovine/make)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/bovine/make"
+;; End:
 
 ;;; semantic/bovine/make.el ends here

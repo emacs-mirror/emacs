@@ -668,7 +668,7 @@ Argument EVENT describes the event that caused this function to be called."
 	  ))
 
       (let* ((semanticdb-find-default-throttle
-	      (if (featurep 'semanticdb-find)
+	      (if (featurep 'semantic/db-find)
 		  (remq 'unloaded semanticdb-find-default-throttle)
 		nil))
 	     (path (semanticdb-find-translate-path nil nil)))

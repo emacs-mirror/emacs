@@ -34,7 +34,6 @@
 
 ;;; Code:
 (require 'semantic)
-(require 'semantic/tag)
 (require 'semantic/tag-ls)
 (require 'ezimage)
 
@@ -102,6 +101,20 @@ Images can be used as icons instead of some types of text strings."
 The name is the shortest possible representation.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
+
+(defun semantic-format-tag-name-default (tag &optional parent color)
+  "Return an abbreviated string describing TAG.
+Optional argument PARENT is the parent type if TAG is a detail.
+Optional argument COLOR means highlight the prototype with font-lock colors."
+  (let ((name (semantic-tag-name tag))
+	(destructor
+	 (if (eq (semantic-tag-class tag) 'function)
+	     (semantic-tag-function-destructor-p tag))))
+    (when destructor
+      (setq name (concat "~" name)))
+    (if color
+	(setq name (semantic--format-colorize-text name (semantic-tag-class tag))))
+    name))
 
 ;;;###autoload
 (define-overloadable-function semantic-format-tag-prototype (tag &optional parent color)
@@ -298,20 +311,6 @@ of FACE-CLASS for which this is used."
 	      (stringp (car anything)))
 	 (semantic--format-colorize-text (car anything) colorhint))))
 
-(defun semantic-format-tag-name-default (tag &optional parent color)
-  "Return an abbreviated string describing TAG.
-Optional argument PARENT is the parent type if TAG is a detail.
-Optional argument COLOR means highlight the prototype with font-lock colors."
-  (let ((name (semantic-tag-name tag))
-	(destructor
-	 (if (eq (semantic-tag-class tag) 'function)
-	     (semantic-tag-function-destructor-p tag))))
-    (when destructor
-      (setq name (concat "~" name)))
-    (if color
-	(setq name (semantic--format-colorize-text name (semantic-tag-class tag))))
-    name))
-
 (declare-function semantic-go-to-tag "semantic/tag-file")
 
 (defun semantic--format-tag-parent-tree (tag parent)
@@ -477,7 +476,6 @@ Optional argument COLOR means highlight the prototype with font-lock colors.")
   "Display a short form of TAG's documentation.  (Comments, or docstring.)
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors."
-
   (let* ((fname (or (semantic-tag-file-name tag)
 		    (when parent (semantic-tag-file-name parent))))
 	 (buf (or (semantic-tag-buffer tag)
@@ -507,7 +505,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
     ))
 
 ;;; Prototype generation
-;;
+
 (defun semantic-format-tag-prototype-default (tag &optional parent color)
   "Default method for returning a prototype for TAG.
 This will work for C like languages.

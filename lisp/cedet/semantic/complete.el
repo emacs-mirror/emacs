@@ -114,7 +114,6 @@
 (require 'semantic/ctxt)
 (require 'semantic/decorate)
 (require 'semantic/format)
-(require 'semantic/tag)
 
 (eval-when-compile
   ;; For the semantic-find-tags-for-completion macro.

@@ -34,7 +34,6 @@
   (defvar semantic-version "2.0pre7"
     "Current version of Semantic."))
 
-;; (require 'working)
 (require 'assoc)
 (require 'semantic/tag)
 (require 'semantic/lex)
@@ -821,8 +820,8 @@ a START and END part."
 
 (provide 'semantic)
 
-;;; semantic.el ends here
-
 ;; Semantic-util is a part of the semantic API.  Include it last
 ;; because it depends on semantic.
 (require 'semantic/util)
+
+;;; semantic.el ends here

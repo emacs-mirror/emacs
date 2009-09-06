@@ -306,7 +306,6 @@ Return a list of tags."
 ;; function encodeURI (uri){}
 ;; function encodeURIComponent (uriComponent){}
 
-
 (provide 'semantic/db-javascript)
 
 ;;; semantic/db-javascript.el ends here

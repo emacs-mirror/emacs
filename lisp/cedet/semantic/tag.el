@@ -333,6 +333,14 @@ If TAG is unlinked, but has a :filename property, then that is used."
 That is the value of the `:members' attribute."
   (semantic-tag-get-attribute tag :members))
 
+(defsubst semantic-tag-type (tag)
+  "Return the value of the `:type' attribute of TAG.
+For a function it would be the data type of the return value.
+For a variable, it is the storage type of that variable.
+For a data type, the type is the style of datatype, such as
+struct or union."
+  (semantic-tag-get-attribute tag :type))
+
 (defun semantic-tag-with-position-p (tag)
   "Return non-nil if TAG has positional information."
   (and (semantic-tag-p tag)
@@ -355,14 +363,6 @@ of different cons cells."
 		(semantic-tag-overlay tag2)
 		(equal (semantic-tag-bounds tag1)
 		       (semantic-tag-bounds tag2))))))
-
-(defsubst semantic-tag-type (tag)
-  "Return the value of the `:type' attribute of TAG.
-For a function it would be the data type of the return value.
-For a variable, it is the storage type of that variable.
-For a data type, the type is the style of datatype, such as
-struct or union."
-  (semantic-tag-get-attribute tag :type))
 
 (defun semantic-tag-similar-p (tag1 tag2 &rest ignorable-attributes)
   "Test to see if TAG1 and TAG2 are similar.
@@ -752,7 +752,6 @@ It is safe for FILTER to modify the input tag and return it."
 
 ;;; Common
 ;;
-
 (defsubst semantic-tag-modifiers (tag)
   "Return the value of the `:typemodifiers' attribute of TAG."
   (semantic-tag-get-attribute tag :typemodifiers))
@@ -814,6 +813,7 @@ If a simple search doesn't do it, try splitting up the names
 in SUPERS."
   (let ((stag nil))
     (setq stag (semantic-find-first-tag-by-name name supers))
+
     (when (not stag)
       (require 'semantic/analyze/fcn)
       (dolist (S supers)
@@ -1112,7 +1112,6 @@ For any given situation, additional ARGS may be passed."
 ;; Overlays are used so that we can quickly identify tags from
 ;; buffer positions and regions using built in Emacs commands.
 ;;
-
 (defsubst semantic--tag-unlink-list-from-buffer (tags)
   "Convert TAGS from using an overlay to using an overlay proxy.
 This function is for internal use only."

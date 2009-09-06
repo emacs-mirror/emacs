@@ -122,7 +122,7 @@ part of the preprocessor map.")
 
 (defun semantic-c-reset-preprocessor-symbol-map ()
   "Reset the C preprocessor symbol map based on all input variables."
-  (when (featurep 'semantic-c)
+  (when (featurep 'semantic/bovine/c)
     (let ((filemap nil)
 	  )
       (when (and (not semantic-c-in-reset-preprocessor-table)
@@ -1592,6 +1592,7 @@ DO NOT return the list of tags encompassing point."
 (defvar-mode-local c-mode senator-step-at-tag-classes '(function variable)
   "Tag classes where senator will stop at the end.")
 
+;;;###autoload
 (defun semantic-default-c-setup ()
   "Set up a buffer for semantic parsing of the C language."
   (semantic-c-by--install-parser)
@@ -1604,6 +1605,7 @@ DO NOT return the list of tags encompassing point."
   (add-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook nil t)
   )
 
+;;;###autoload
 (defun semantic-c-add-preprocessor-symbol (sym replacement)
   "Add a preprocessor symbol SYM with a REPLACEMENT value."
   (interactive "sSymbol: \nsReplacement: ")
@@ -1619,7 +1621,9 @@ DO NOT return the list of tags encompassing point."
   (semantic-c-reset-preprocessor-symbol-map)
   )
 
+;;;###autoload
 (add-hook 'c-mode-hook 'semantic-default-c-setup)
+;;;###autoload
 (add-hook 'c++-mode-hook 'semantic-default-c-setup)
 
 ;;; SETUP QUERY
@@ -1711,5 +1715,11 @@ DO NOT return the list of tags encompassing point."
 (provide 'semantic/bovine/c)
 
 (semantic-c-reset-preprocessor-symbol-map)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/bovine/c"
+;; End:
 
 ;;; semantic/bovine/c.el ends here

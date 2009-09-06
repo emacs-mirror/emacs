@@ -41,7 +41,6 @@
 (require 'semantic/ctxt)
 (require 'semantic/format)
 (require 'semantic/tag)
-;(require 'semantic/util-modes)
 (require 'timer)
 
 ;; For the semantic-find-tags-by-name macro.

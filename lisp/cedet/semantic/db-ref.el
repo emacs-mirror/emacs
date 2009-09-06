@@ -41,12 +41,8 @@
 (require 'semantic/db)
 (require 'semantic/tag)
 
-(defvar semanticdb-find-default-throttle)
-
 ;; For the semantic-find-tags-by-name-regexp macro.
 (eval-when-compile (require 'semantic/find))
-
-(defvar semantic-case-fold)
 
 (defmethod semanticdb-add-reference ((dbt semanticdb-abstract-table)
 				     include-tag)
@@ -149,7 +145,6 @@ DBT, the second argument is DBT."
    (i-include :initarg :i-include))
   "Simple class to allow ADEBUG to show a nice list.")
 
-(defvar semanticdb-current-table)
 (declare-function data-debug-new-buffer "data-debug")
 (declare-function data-debug-insert-object-slots "eieio-datadebug")
 

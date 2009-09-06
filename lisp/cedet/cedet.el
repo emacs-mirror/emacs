@@ -52,7 +52,7 @@
   "Current version of CEDET.")
 
 (require 'eieio)
-;; (require 'semantic)
+(require 'semantic)
 ;; (require 'srecode)
 ;; (require 'ede)
 (require 'speedbar)

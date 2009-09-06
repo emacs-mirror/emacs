@@ -95,31 +95,29 @@ See `cedet-edebug-prin1-extensions' for the official list."
   ;; whack the old implementation to force a rebuild.
   (fmakunbound 'cedet-edebug-prin1-to-string-inner))
 
-;; ;;; NOTE TO SELF.  Make this system used as an extension
-;; ;;; and then autoload the below.
-;; ;;;###autoload
-;; (add-hook 'edebug-setup-hook
-;; 	  (lambda ()
-;; 	    (require 'cedet-edebug)
-;; 	    ;; I suspect this isn't the best way to do this, but when
-;; 	    ;; cust-print was used on my system all my objects
-;; 	    ;; appeared as "#1 =" which was not useful.  This allows
-;; 	    ;; edebug to print my objects in the nice way they were
-;; 	    ;; meant to with `object-print' and `class-name'
-;; 	    (defalias 'edebug-prin1-to-string 'cedet-edebug-prin1-to-string)
-;; 	    ;; Add a fancy binding into EDEBUG's keymap for ADEBUG.
-;; 	    (define-key edebug-mode-map "A" 'data-debug-edebug-expr)
-;; 	    ))
+;;; NOTE TO SELF.  Make this system used as an extension
+;;; and then autoload the below.
+(add-hook 'edebug-setup-hook
+	  (lambda ()
+	    (require 'cedet-edebug)
+	    ;; I suspect this isn't the best way to do this, but when
+	    ;; cust-print was used on my system all my objects
+	    ;; appeared as "#1 =" which was not useful.  This allows
+	    ;; edebug to print my objects in the nice way they were
+	    ;; meant to with `object-print' and `class-name'
+	    (defalias 'edebug-prin1-to-string 'cedet-edebug-prin1-to-string)
+	    ;; Add a fancy binding into EDEBUG's keymap for ADEBUG.
+	    (define-key edebug-mode-map "A" 'data-debug-edebug-expr)
+	    ))
 
-;; ;;; DEBUG MODE TOO
-;; ;; This seems like as good a place as any to stick this hack.
-;; ;;;###autoload
-;; (add-hook 'debugger-mode-hook
-;; 	  (lambda ()
-;; 	    (require 'cedet-edebug)
-;; 	    ;; Add a fancy binding into the debug mode map for ADEBUG.
-;; 	    (define-key debugger-mode-map "A" 'data-debug-edebug-expr)
-;; 	    ))
+;;; DEBUG MODE TOO
+;; This seems like as good a place as any to stick this hack.
+(add-hook 'debugger-mode-hook
+	  (lambda ()
+	    (require 'cedet-edebug)
+	    ;; Add a fancy binding into the debug mode map for ADEBUG.
+	    (define-key debugger-mode-map "A" 'data-debug-edebug-expr)
+	    ))
 
 (provide 'cedet-edebug)
 

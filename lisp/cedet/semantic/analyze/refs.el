@@ -321,8 +321,6 @@ Only works for tags in the global namespace."
     (semantic-momentary-highlight-tag target))
   )
 
-
-
 (provide 'semantic/analyze/refs)
 
 ;; Local variables:

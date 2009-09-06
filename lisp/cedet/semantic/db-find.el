@@ -748,7 +748,7 @@ for details on how this list is derived."
   (semantic-fetch-tags)
   (require 'data-debug)
   (let* ((semanticdb-find-default-throttle
-	  (if (featurep 'semanticdb-find)
+	  (if (featurep 'semantic/db-find)
 	      (remq 'unloaded semanticdb-find-default-throttle)
 	    nil))
 	 (start (current-time))

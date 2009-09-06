@@ -64,14 +64,12 @@
 ;;       constant.  These need to be returned as there would be no
 ;;       other possible completions.
 ;;
-(require 'eieio)
 (require 'semantic)
 (require 'semantic/format)
 (require 'semantic/ctxt)
 (require 'semantic/sort)
 (eval-when-compile (require 'semantic/find))
 (require 'semantic/scope)
-(require 'semantic/tag)
 (require 'semantic/analyze/fcn)
 
 ;;; Code:

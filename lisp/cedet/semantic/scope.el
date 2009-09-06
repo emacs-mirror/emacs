@@ -49,7 +49,7 @@
 (require 'semantic/analyze/fcn)
 (require 'semantic/ctxt)
 
-(eval-when-compile (require 'semantic/find)) ; For semantic-find-* macros
+(eval-when-compile (require 'semantic/find))
 
 (declare-function data-debug-show "eieio-datadebug")
 (declare-function semantic-analyze-find-tag "semantic/analyze")

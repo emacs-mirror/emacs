@@ -463,7 +463,7 @@ Return a bovination list to use."
       (condition-case nil
 	  ;; Try an Emacs 22 fcn.  This throws errors.
 	  (find-library-name (semantic-tag-name tag))
-	(error 
+	(error
 	 (message "semantic: connot find source file %s"
 		  (semantic-tag-name tag))))
     ;; No handy function available.  (Older Emacsen)
@@ -533,14 +533,14 @@ Optional argument NOSNARF is ignored."
 	       (cond ((eq (semantic-tag-class tag) 'function)
 		      (setq d (documentation sym)))
 		     (t
-		      (setq d (documentation-property 
+		      (setq d (documentation-property
 			       sym 'variable-documentation)))))
 	     ;; Label it as system doc.. perhaps just for debugging
 	     ;; purposes.
 	     (if d (setq d (concat "Sytem Doc: \n" d)))
 	     ))
       )
-    
+
     (when d
       (concat
        (substitute-command-keys

@@ -31,13 +31,10 @@
 (require 'semantic)
 (require 'semantic/db)
 (require 'semantic/db-find)
-(require 'semantic/tag)
 (require 'semantic/analyze/fcn)
 
 ;; For semantic-find-tags-by-* macros
 (eval-when-compile (require 'semantic/find))
-
-;; (require 'semantic/scope)
 
 (declare-function data-debug-insert-thing "data-debug")
 (declare-function data-debug-new-buffer "data-debug")

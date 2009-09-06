@@ -30,9 +30,6 @@
 ;;
 
 (require 'eieio)
-;; (require 'inversion)
-;; (eval-and-compile
-;;   (inversion-require 'eieio "1.0"))
 (require 'eieio-base)
 (require 'semantic)
 (eval-when-compile
@@ -590,7 +587,7 @@ The file associated with OBJ does not need to be in a buffer."
   ;; Assume it is now up to date.
   (oset table unmatched-syntax semantic-unmatched-syntax-cache)
   ;; The lexical table should be good too.
-  (when (featurep 'semantic-lex-spp)
+  (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
   ;; this implies dirtyness
   (semanticdb-set-dirty table)
@@ -619,7 +616,7 @@ The file associated with OBJ does not need to be in a buffer."
   (semanticdb-set-dirty table)
 
   ;; The lexical table may be modified.
-  (when (featurep 'semantic-lex-spp)
+  (when (featurep 'semantic/lex-spp)
     (oset table lexical-table (semantic-lex-spp-save-table)))
 
   ;; Incremental parser doesn't mokey around with this.

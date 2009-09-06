@@ -26,16 +26,12 @@
 ;; the output of the semantic parser.
 ;;
 
-(require 'chart)
 (require 'semantic)
+(require 'chart)
 (require 'semantic/db)
 (require 'semantic/tag)
 
 (eval-when-compile (require 'semantic/find))
-
-;; (require 'semantic/db-mode)
-;; (require 'semantic/db-typecache)
-;; (require 'semantic/scope)
 
 ;;; Code:
 
@@ -172,8 +168,6 @@ items are charted.  TAGTABLE is passedto
 		       (list plen tclen fslen lvarlen)
 		       "Number of tags")
     ))
-
-
 
 (provide 'semantic/chart)
 

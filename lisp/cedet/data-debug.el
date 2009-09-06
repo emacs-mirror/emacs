@@ -45,7 +45,7 @@
 (require 'ring)
 (require 'eieio)
 (eval-when-compile
-  (require 'semantic))
+  (require 'semantic/tag))
 
 ;;; Code:
 

@@ -95,6 +95,7 @@ syntax as specified by the syntax table."
   semantic-lex-number
   semantic-lex-default-action)
 
+;;;###autoload
 (defun semantic-default-scheme-setup ()
   "Setup hook function for Emacs Lisp files and Semantic."
   (semantic-scm-by--install-parser)
@@ -109,6 +110,7 @@ syntax as specified by the syntax table."
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
   )
 
+;;;###autoload
 (add-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
 
 (provide 'semantic/bovine/scm)

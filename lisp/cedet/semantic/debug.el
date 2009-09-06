@@ -38,16 +38,22 @@
 
 (require 'semantic)
 (require 'eieio)
+(eval-when-compile (require 'semantic/find))
 
 ;;; Code:
+
+;;;###autoload
 (defvar semantic-debug-parser-source nil
   "For any buffer, the file name (no path) of the parser.
 This would be a parser for a specific language, not the source
 to one of the parser generators.")
+;;;###autoload
 (make-variable-buffer-local 'semantic-debug-parser-source)
 
+;;;###autoload
 (defvar semantic-debug-parser-class nil
   "Class to create when building a debug parser object.")
+;;;###autoload
 (make-variable-buffer-local 'semantic-debug-parser-class)
 
 (defvar semantic-debug-enabled nil
@@ -560,5 +566,11 @@ A frame is of the form:
 
 
 (provide 'semantic/debug)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/debug"
+;; End:
 
 ;;; semantic/debug.el ends here
