@@ -609,7 +609,7 @@ Return nil if point is not on a process line."
 ;; proced mode
 
 (define-derived-mode proced-mode special-mode "Proced"
-  "Mode for displaying UNIX system processes and sending signals to them.
+  "Mode for displaying system processes and sending signals to them.
 Type \\[proced] to start a Proced session.  In a Proced buffer
 type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
