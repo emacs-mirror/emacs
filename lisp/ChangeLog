@@ -1,3 +1,8 @@
+2009-09-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc-git.el (vc-git-annotate-command): Use separator to parse
+	arguments correctly.
+
 2009-09-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* proced.el (proced-mode): Doc fix.
