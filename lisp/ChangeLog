@@ -1,3 +1,7 @@
+2009-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* proced.el (proced-mode): Doc fix.
+
 2009-09-06  Julian Scheid  <julians37@gmail.com>  (tiny change)
 
 	* net/tramp.el (tramp-perl-file-attributes): Print "nil" when
