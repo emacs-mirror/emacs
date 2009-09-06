@@ -1593,6 +1593,10 @@ we have this shell function.")
 (defconst tramp-perl-file-attributes
   "%s -e '
 @stat = lstat($ARGV[0]);
+if (!@stat) {
+    print \"nil\\n\";
+    exit 0;
+}
 if (($stat[2] & 0170000) == 0120000)
 {
     $type = readlink($ARGV[0]);
@@ -2523,82 +2527,87 @@ target of the symlink differ."
     (tramp-message vec 5 "file attributes with ls: %s" localname)
     (tramp-send-command
      vec
-     (format "%s %s %s"
+     (format "(%s %s || %s -h %s) && %s %s %s"
+	     (tramp-get-file-exists-command vec)
+	     (tramp-shell-quote-argument localname)
+	     (tramp-get-test-command vec)
+	     (tramp-shell-quote-argument localname)
 	     (tramp-get-ls-command vec)
 	     (if (eq id-format 'integer) "-ildn" "-ild")
 	     (tramp-shell-quote-argument localname)))
     ;; parse `ls -l' output ...
     (with-current-buffer (tramp-get-buffer vec)
-      (goto-char (point-min))
-      ;; ... inode
-      (setq res-inode
-	    (condition-case err
-		(read (current-buffer))
-	      (invalid-read-syntax
-	       (when (and (equal (cadr err)
-				 "Integer constant overflow in reader")
-			  (string-match
-			   "^[0-9]+\\([0-9][0-9][0-9][0-9][0-9]\\)\\'"
-			   (car (cddr err))))
-		 (let* ((big (read (substring (car (cddr err)) 0
-					      (match-beginning 1))))
-			(small (read (match-string 1 (car (cddr err)))))
-			(twiddle (/ small 65536)))
-		   (cons (+ big twiddle)
-			 (- small (* twiddle 65536))))))))
-      ;; ... file mode flags
-      (setq res-filemodes (symbol-name (read (current-buffer))))
-      ;; ... number links
-      (setq res-numlinks (read (current-buffer)))
-      ;; ... uid and gid
-      (setq res-uid (read (current-buffer)))
-      (setq res-gid (read (current-buffer)))
-      (if (eq id-format 'integer)
-	  (progn
-	    (unless (numberp res-uid) (setq res-uid -1))
-	    (unless (numberp res-gid) (setq res-gid -1)))
-	(progn
-	  (unless (stringp res-uid) (setq res-uid (symbol-name res-uid)))
-	  (unless (stringp res-gid) (setq res-gid (symbol-name res-gid)))))
-      ;; ... size
-      (setq res-size (read (current-buffer)))
-      ;; From the file modes, figure out other stuff.
-      (setq symlinkp (eq ?l (aref res-filemodes 0)))
-      (setq dirp (eq ?d (aref res-filemodes 0)))
-      ;; if symlink, find out file name pointed to
-      (when symlinkp
-	(search-forward "-> ")
-	(setq res-symlink-target
-	      (buffer-substring (point) (tramp-compat-line-end-position))))
-      ;; return data gathered
-      (list
-       ;; 0. t for directory, string (name linked to) for symbolic
-       ;; link, or nil.
-       (or dirp res-symlink-target)
-       ;; 1. Number of links to file.
-       res-numlinks
-       ;; 2. File uid.
-       res-uid
-       ;; 3. File gid.
-       res-gid
-       ;; 4. Last access time, as a list of two integers. First
-       ;; integer has high-order 16 bits of time, second has low 16
-       ;; bits.
-       ;; 5. Last modification time, likewise.
-       ;; 6. Last status change time, likewise.
-       '(0 0) '(0 0) '(0 0)		;CCC how to find out?
-       ;; 7. Size in bytes (-1, if number is out of range).
-       res-size
-       ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
-       res-filemodes
-       ;; 9. t if file's gid would change if file were deleted and
-       ;; recreated.  Will be set in `tramp-convert-file-attributes'
-       t
-       ;; 10. inode number.
-       res-inode
-       ;; 11. Device number.  Will be replaced by a virtual device number.
-       -1
-       ))))
+      (when (> (buffer-size) 0)
+        (goto-char (point-min))
+        ;; ... inode
+        (setq res-inode
+              (condition-case err
+                  (read (current-buffer))
+                (invalid-read-syntax
+                 (when (and (equal (cadr err)
+                                   "Integer constant overflow in reader")
+                            (string-match
+                             "^[0-9]+\\([0-9][0-9][0-9][0-9][0-9]\\)\\'"
+                             (car (cddr err))))
+                   (let* ((big (read (substring (car (cddr err)) 0
+                                                (match-beginning 1))))
+                          (small (read (match-string 1 (car (cddr err)))))
+                          (twiddle (/ small 65536)))
+                     (cons (+ big twiddle)
+                           (- small (* twiddle 65536))))))))
+        ;; ... file mode flags
+        (setq res-filemodes (symbol-name (read (current-buffer))))
+        ;; ... number links
+        (setq res-numlinks (read (current-buffer)))
+        ;; ... uid and gid
+        (setq res-uid (read (current-buffer)))
+        (setq res-gid (read (current-buffer)))
+        (if (eq id-format 'integer)
+            (progn
+              (unless (numberp res-uid) (setq res-uid -1))
+              (unless (numberp res-gid) (setq res-gid -1)))
+          (progn
+            (unless (stringp res-uid) (setq res-uid (symbol-name res-uid)))
+            (unless (stringp res-gid) (setq res-gid (symbol-name res-gid)))))
+        ;; ... size
+        (setq res-size (read (current-buffer)))
+        ;; From the file modes, figure out other stuff.
+        (setq symlinkp (eq ?l (aref res-filemodes 0)))
+        (setq dirp (eq ?d (aref res-filemodes 0)))
+        ;; if symlink, find out file name pointed to
+        (when symlinkp
+          (search-forward "-> ")
+          (setq res-symlink-target
+                (buffer-substring (point) (tramp-compat-line-end-position))))
+        ;; return data gathered
+        (list
+         ;; 0. t for directory, string (name linked to) for symbolic
+         ;; link, or nil.
+         (or dirp res-symlink-target)
+         ;; 1. Number of links to file.
+         res-numlinks
+         ;; 2. File uid.
+         res-uid
+         ;; 3. File gid.
+         res-gid
+         ;; 4. Last access time, as a list of two integers. First
+         ;; integer has high-order 16 bits of time, second has low 16
+         ;; bits.
+         ;; 5. Last modification time, likewise.
+         ;; 6. Last status change time, likewise.
+         '(0 0) '(0 0) '(0 0)		;CCC how to find out?
+         ;; 7. Size in bytes (-1, if number is out of range).
+         res-size
+         ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
+         res-filemodes
+         ;; 9. t if file's gid would change if file were deleted and
+         ;; recreated.  Will be set in `tramp-convert-file-attributes'
+         t
+         ;; 10. inode number.
+         res-inode
+         ;; 11. Device number.  Will be replaced by a virtual device number.
+         -1
+         )))))
 
 (defun tramp-do-file-attributes-with-perl
   (vec localname &optional id-format)
@@ -2618,7 +2627,11 @@ target of the symlink differ."
   (tramp-send-command-and-read
    vec
    (format
-    "%s -c '((\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s"
+    "((%s %s || %s -h %s) && %s -c '((\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s || echo nil)"
+    (tramp-get-file-exists-command vec)
+    (tramp-shell-quote-argument localname)
+    (tramp-get-test-command vec)
+    (tramp-shell-quote-argument localname)
     (tramp-get-remote-stat vec)
     (if (eq id-format 'integer) "%u" "\"%U\"")
     (if (eq id-format 'integer) "%g" "\"%G\"")
@@ -7054,61 +7067,62 @@ the remote host use line-endings as defined in the variable
   "Convert file-attributes ATTR generated by perl script, stat or ls.
 Convert file mode bits to string and set virtual device number.
 Return ATTR."
-  ;; Convert last access time.
-  (unless (listp (nth 4 attr))
-    (setcar (nthcdr 4 attr)
-	    (list (floor (nth 4 attr) 65536)
-		  (floor (mod (nth 4 attr) 65536)))))
-  ;; Convert last modification time.
-  (unless (listp (nth 5 attr))
-    (setcar (nthcdr 5 attr)
-	    (list (floor (nth 5 attr) 65536)
-		  (floor (mod (nth 5 attr) 65536)))))
-  ;; Convert last status change time.
-  (unless (listp (nth 6 attr))
-    (setcar (nthcdr 6 attr)
-	    (list (floor (nth 6 attr) 65536)
-		  (floor (mod (nth 6 attr) 65536)))))
-  ;; Convert file size.
-  (when (< (nth 7 attr) 0)
-    (setcar (nthcdr 7 attr) -1))
-  (when (and (floatp (nth 7 attr))
-	     (<= (nth 7 attr) (tramp-compat-most-positive-fixnum)))
-    (setcar (nthcdr 7 attr) (round (nth 7 attr))))
-  ;; Convert file mode bits to string.
-  (unless (stringp (nth 8 attr))
-    (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
-    (when (stringp (car attr))
-      (aset (nth 8 attr) 0 ?l)))
-  ;; Convert directory indication bit.
-  (when (string-match "^d" (nth 8 attr))
-    (setcar attr t))
-  ;; Convert symlink from `tramp-handle-file-attributes-with-stat'.
-  (when (consp (car attr))
-    (if (and (stringp (caar attr))
-	     (string-match ".+ -> .\\(.+\\)." (caar attr)))
-	(setcar attr (match-string 1 (caar attr)))
-      (setcar attr nil)))
-  ;; Set file's gid change bit.
-  (setcar (nthcdr 9 attr)
-	  (if (numberp (nth 3 attr))
-	      (not (= (nth 3 attr)
-		      (tramp-get-remote-gid vec 'integer)))
-	    (not (string-equal
-		  (nth 3 attr)
-		  (tramp-get-remote-gid vec 'string)))))
-  ;; Convert inode.
-  (unless (listp (nth 10 attr))
-    (setcar (nthcdr 10 attr)
-	    (condition-case nil
-		(cons (floor (nth 10 attr) 65536)
-		      (floor (mod (nth 10 attr) 65536)))
-	      ;; Inodes can be incredible huge.  We must hide this.
-	      (error (tramp-get-inode vec)))))
-  ;; Set virtual device number.
-  (setcar (nthcdr 11 attr)
-          (tramp-get-device vec))
-  attr)
+  (when attr
+    ;; Convert last access time.
+    (unless (listp (nth 4 attr))
+      (setcar (nthcdr 4 attr)
+              (list (floor (nth 4 attr) 65536)
+                    (floor (mod (nth 4 attr) 65536)))))
+    ;; Convert last modification time.
+    (unless (listp (nth 5 attr))
+      (setcar (nthcdr 5 attr)
+              (list (floor (nth 5 attr) 65536)
+                    (floor (mod (nth 5 attr) 65536)))))
+    ;; Convert last status change time.
+    (unless (listp (nth 6 attr))
+      (setcar (nthcdr 6 attr)
+              (list (floor (nth 6 attr) 65536)
+                    (floor (mod (nth 6 attr) 65536)))))
+    ;; Convert file size.
+    (when (< (nth 7 attr) 0)
+      (setcar (nthcdr 7 attr) -1))
+    (when (and (floatp (nth 7 attr))
+               (<= (nth 7 attr) (tramp-compat-most-positive-fixnum)))
+      (setcar (nthcdr 7 attr) (round (nth 7 attr))))
+    ;; Convert file mode bits to string.
+    (unless (stringp (nth 8 attr))
+      (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
+      (when (stringp (car attr))
+        (aset (nth 8 attr) 0 ?l)))
+    ;; Convert directory indication bit.
+    (when (string-match "^d" (nth 8 attr))
+      (setcar attr t))
+    ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
+    (when (consp (car attr))
+      (if (and (stringp (caar attr))
+               (string-match ".+ -> .\\(.+\\)." (caar attr)))
+          (setcar attr (match-string 1 (caar attr)))
+        (setcar attr nil)))
+    ;; Set file's gid change bit.
+    (setcar (nthcdr 9 attr)
+            (if (numberp (nth 3 attr))
+                (not (= (nth 3 attr)
+                        (tramp-get-remote-gid vec 'integer)))
+              (not (string-equal
+                    (nth 3 attr)
+                    (tramp-get-remote-gid vec 'string)))))
+    ;; Convert inode.
+    (unless (listp (nth 10 attr))
+      (setcar (nthcdr 10 attr)
+              (condition-case nil
+                  (cons (floor (nth 10 attr) 65536)
+                        (floor (mod (nth 10 attr) 65536)))
+                ;; Inodes can be incredible huge.  We must hide this.
+                (error (tramp-get-inode vec)))))
+    ;; Set virtual device number.
+    (setcar (nthcdr 11 attr)
+            (tramp-get-device vec))
+    attr))
 
 (defun tramp-get-inode (vec)
   "Returns the virtual inode number.
