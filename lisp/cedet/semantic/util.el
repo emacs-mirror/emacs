@@ -73,7 +73,7 @@ If FILE is not loaded, and semanticdb is not available, find the file
 	(set-buffer (find-buffer-visiting file))
 	(semantic-fetch-tags))
     ;; File not loaded
-    (if (and (fboundp 'semanticdb-minor-mode-p)
+    (if (and (require 'semantic/db-mode)
 	     (semanticdb-minor-mode-p))
 	;; semanticdb is around, use it.
 	(semanticdb-file-stream file)
