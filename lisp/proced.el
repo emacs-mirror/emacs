@@ -459,7 +459,7 @@ Important: the match ends just after the marker.")
     (define-key km [down] 'next-line)
     (define-key km [up] 'previous-line)
     ;; marking
-    (define-key km "d" 'proced-mark) ; Dired compatibility ("delete")
+    (define-key km "d" 'proced-mark-alt) ; Dired compatibility ("delete")
     (define-key km "m" 'proced-mark)
     (define-key km "u" 'proced-unmark)
     (define-key km "\177" 'proced-unmark-backward)
@@ -715,6 +715,10 @@ The time interval for updates is specified via `proced-auto-update-interval'."
   "Mark the current (or next COUNT) processes."
   (interactive "p")
   (proced-do-mark t count))
+
+;; So we can preferentially advertise the "m" binding in the mode help,
+;; rather than the "d" one.
+(defalias 'proced-mark-alt 'proced-mark)
 
 (defun proced-unmark (&optional count)
   "Unmark the current (or next COUNT) processes."

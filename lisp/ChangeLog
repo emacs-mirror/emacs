@@ -2,6 +2,9 @@
 
 	* files.el (auto-mode-alist): Use delphi-mode for .dpr files.
 
+	* proced.el (proced-mode-map): Bind "d" to proced-mark-alt.
+	(proced-mark-alt): New alias, to control the advertised key.  (Bug#4362)
+
 2009-09-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-git.el (vc-git-annotate-command): Use separator to parse
