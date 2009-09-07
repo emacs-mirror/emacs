@@ -249,7 +249,7 @@
 	* Makefile.in (INSTALLABLES): Add LIB_SRC_EXTRA_INSTALLABLES.
 	Do not special case for NS_IMPL_COCOA.
 
-2008-07-16  Adrian Robert  <Adrian.B.Robert@gmail.com>
+2008-08-06  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* Makefile.in (CFLAGS): Drop -universal under NS_IMPL_COCOA.
 	(.m.o): Dispense with GNUstep-specific flags.
@@ -1028,7 +1028,7 @@
 	* etags.c (TEX_mode): Check getc returns EOF.
 	File ended without newline causes infinite loop.
 
-2002-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)
+2006-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)
 
 	* etags.c: It's XEmacs, not Xemacs: change all the occurrences.
 
@@ -1086,7 +1086,7 @@
 	[WINDOWSNT] <top level>: Don't redeclare malloc.
 	(main) [DOS_NT]: Switch stdin to binary mode, if it is not a
 	terminal device.
-	(main): Initialize bp, to avoid compiler warnings
+	(main): Initialize bp, to avoid compiler warnings.
 
 	* makefile.w32-in: Delete traces of leditcfns.c.
 
@@ -2951,7 +2951,7 @@
 
 	* etags.c (print_help): Change email address to send bugs to.
 
-1999-11-01  Francesco Potortì  <pot@gnu.org>>
+1999-11-01  Francesco Potortì  <pot@gnu.org>
 
 	* etags.c: Add suffix psw for PSWrap.
 	(L_getit): Generalize a "cp!=' '" into "!isspace(*cp)".
@@ -3796,7 +3796,7 @@
 	(<stdlib.h>, <string.h>) [STDC_HEADERS]: New #include's.
 	(Prolog_functions): prolog_skip_comment was called with wrong
 	number of arguments.
-	(xrealloc): fatal was called with wrong number of arguments
+	(xrealloc): fatal was called with wrong number of arguments.
 
 1996-11-08  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
@@ -4033,7 +4033,7 @@
 1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* makefile.nt (LOCAL_FLAGS): Include path to NT shadow includes.
-	(movemail.exe, fakemail.exe): Now built under Win32.o
+	(movemail.exe, fakemail.exe): Now built under Win32.o.
 
 	* ntlib.c: Include ntlib.h.
 	(nt_sleep): Rename to sleep.
@@ -5824,7 +5824,7 @@
 
 	* Makefile.in (install): Get the scripts from ${srcdir},
 	unlike the executables.
-	(ALL_CFLAGS): Add -I../src
+	(ALL_CFLAGS): Add -I../src.
 
 1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -6727,7 +6727,7 @@
 
 1989-02-15  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* etags.c: Prolog support from Sunichirou Sugou
+	* etags.c: Prolog support from Sunichirou Sugou.
 
 1989-02-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -6751,7 +6751,7 @@
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
 	* env.c: Add decl for my-index
-	* etags.c (file-entries): .oak => scheme
+	* etags.c (file-entries): .oak => scheme.
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 

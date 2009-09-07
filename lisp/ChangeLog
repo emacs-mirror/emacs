@@ -1766,7 +1766,7 @@
 
 	* vc-git.el (vc-git-checkin): Fix typo.
 
-2009-07-28  Steve Yegge  <steve.yegge@gmail.com>>
+2009-07-28  Steve Yegge  <steve.yegge@gmail.com>
 
 	* progmodes/js2-mode.el: New file.
 
