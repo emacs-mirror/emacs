@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar font-lock-keywords)
 
 (defgroup backup nil
@@ -722,7 +724,7 @@ one or more of those symbols."
       (read-file-name-internal string nil action)))
    ((eq (car-safe action) 'boundaries)
     (let ((suffix (cdr action)))
-      (list* 'boundaries 
+      (list* 'boundaries
              (length (file-name-directory string))
              (let ((x (file-name-directory suffix)))
                (if x (1- (length x)) (length suffix))))))

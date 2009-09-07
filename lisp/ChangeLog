@@ -1,3 +1,7 @@
+2009-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (top-level): Require `cl' when compiling.
+
 2009-09-07  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (auto-mode-alist): Use delphi-mode for .dpr files.
