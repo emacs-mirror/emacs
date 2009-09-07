@@ -45,6 +45,7 @@
 
 
 ;;; TABLE TYPECACHE
+;;;###autoload
 (defclass semanticdb-typecache ()
   ((filestream :initform nil
 	       :documentation
@@ -153,6 +154,7 @@ If there is no table, create one, and fill it in."
 ;; Unlike file based caches, this one is a bit simpler, and just needs
 ;; to get reset when a table gets updated.
 
+;;;###autoload
 (defclass semanticdb-database-typecache (semanticdb-abstract-db-cache)
   ((stream :initform nil
 	   :documentation
