@@ -95,6 +95,7 @@ NOTE: This should get deleted from semantic soon."
 
 ;;; Classes
 ;;
+;;;###autoload
 (defclass semanticdb-project-database-file (semanticdb-project-database
 					    eieio-persistent)
   ((file-header-line :initform ";; SEMANTICDB Tags save file")
@@ -441,5 +442,11 @@ Optional NOERROR prevents errors from being displayed."
 	))))
 
 (provide 'semantic/db-file)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/db-file"
+;; End:
 
 ;;; semantic/db-file.el ends here
