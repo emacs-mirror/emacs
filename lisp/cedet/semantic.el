@@ -594,7 +594,8 @@ was marked unparseable, then do nothing, and return the cache."
 		   (semantic-parser-working-message (buffer-name))
 		   0 100))))
 	(setq res (semantic-parse-region (point-min) (point-max)))
-	(progress-reporter-done semantic--progress-reporter))
+	(if semantic--progress-reporter
+	    (progress-reporter-done semantic--progress-reporter)))
 
       ;; Clear the caches when we see there were no errors.
       ;; But preserve the unmatched syntax cache and warnings!
