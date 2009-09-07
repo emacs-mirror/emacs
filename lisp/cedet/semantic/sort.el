@@ -548,7 +548,7 @@ include the default behavior, and merely extend your own."
 Optional argument USEDB specifies if the semantic database is used.
 See `semantic-tag-external-member-children' for details."
   (if (and usedb
-	   (fboundp 'semanticdb-minor-mode-p)
+	   (require 'semantic/db-mode)
 	   (semanticdb-minor-mode-p)
 	   (require 'semantic/db-find))
       (let ((m (semanticdb-find-tags-external-children-of-type
@@ -578,7 +578,7 @@ likely derived, then this function is needed."
 (defun semantic-tag-external-class-default (tag)
   "Return a list of real tags that faux TAG might represent.
 See `semantic-tag-external-class' for details."
-  (if (and (fboundp 'semanticdb-minor-mode-p)
+  (if (and (require 'semantic/db-mode)
 	   (semanticdb-minor-mode-p))
       (let* ((semanticdb-search-system-databases nil)
 	     (m (semanticdb-find-tags-by-class
