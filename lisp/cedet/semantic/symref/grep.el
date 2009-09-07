@@ -37,7 +37,7 @@
 ;;; Code:
 
 ;;; GREP
-
+;;;###autoload
 (defclass semantic-symref-tool-grep (semantic-symref-tool-baseclass)
   (
    )
@@ -192,5 +192,11 @@ Moves cursor to end of the match."
 	   ))))
 
 (provide 'semantic/symref/grep)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/symref/grep"
+;; End:
 
 ;;; semantic/symref/grep.el ends here

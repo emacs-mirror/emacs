@@ -29,6 +29,7 @@
 (require 'semantic/symref)
 
 ;;; Code:
+;;;###autoload
 (defclass semantic-symref-tool-idutils (semantic-symref-tool-baseclass)
   (
    )
@@ -67,5 +68,11 @@ Moves cursor to end of the match."
 	   ))))
 
 (provide 'semantic/symref/idutils)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/symref/idutils"
+;; End:
 
 ;;; semantic/symref/idutils.el ends here

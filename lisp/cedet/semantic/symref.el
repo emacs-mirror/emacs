@@ -492,47 +492,6 @@ over until it returns nil."
   "Base tool output parser is not implemented."
   (error "Symref tool objects must implement `semantic-symref-parse-tool-output-one-line'"))
 
-
-;;; Autoload subclasses for semantic-symref-tool-baseclass:
-
-(eieio-defclass-autoload
- 'semantic-symref-tool-cscope '(semantic-symref-tool-baseclass)
- "semantic/symref/cscope"
- "A symref tool implementation using CScope.
-The CScope command can be used to generate lists of tags in a way
-similar to that of `grep'.  This tool will parse the output to generate
-the hit list.
-
-See the function `cedet-cscope-search' for more details.")
-
-(eieio-defclass-autoload
- 'semantic-symref-tool-global '(semantic-symref-tool-baseclass)
- "semantic/symref/global"
- "A symref tool implementation using GNU Global.
-The GNU Global command can be used to generate lists of tags in a way
-similar to that of `grep'.  This tool will parse the output to generate
-the hit list.
-
-See the function `cedet-gnu-global-search' for more details.")
-
-(eieio-defclass-autoload
- 'semantic-symref-tool-grep '(semantic-symref-tool-baseclass)
- "semantic/symref/grep"
- "A symref tool implementation using grep.
-This tool uses EDE to find he root of the project, then executes
-find-grep in the project.  The output is parsed for hits
-and those hits returned.")
-
-(eieio-defclass-autoload
- 'semantic-symref-tool-idutils '(semantic-symref-tool-baseclass)
- "semantic/symref/idutils"
-  "A symref tool implementation using ID Utils.
-The udutils command set can be used to generate lists of tags in a way
-similar to that of `grep'.  This tool will parse the output to generate
-the hit list.
-
-See the function `cedet-idutils-search' for more details.")
-
 (provide 'semantic/symref)
 
 ;; Local variables:

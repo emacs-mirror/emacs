@@ -31,6 +31,7 @@
 (declare-function ede-project-root-directory "ede/files")
 
 ;;; Code:
+;;;###autoload
 (defclass semantic-symref-tool-cscope (semantic-symref-tool-baseclass)
   (
    )
@@ -84,5 +85,11 @@ Moves cursor to end of the match."
 	   ))))
 
 (provide 'semantic/symref/cscope)
+
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/symref/cscope"
+;; End:
 
 ;;; semantic/symref/cscope.el ends here
