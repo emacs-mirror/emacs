@@ -125,6 +125,7 @@ If nil, errors are still displayed, but informative messages are not."
 ;;
 ;; Manage a series of overlays that define changes recently
 ;; made to the current buffer.
+;;;###autoload
 (defun semantic-change-function (start end length)
   "Provide a mechanism for semantic tag management.
 Argument START, END, and LENGTH specify the bounds of the change."
