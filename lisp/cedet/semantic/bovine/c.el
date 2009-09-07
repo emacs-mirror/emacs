@@ -41,7 +41,6 @@
 
 (declare-function semantic-brute-find-tag-by-attribute "semantic/find")
 (declare-function semanticdb-minor-mode-p "semantic/db-mode")
-(declare-function semanticdb-file-table-object "semantic/db")
 (declare-function semanticdb-needs-refresh-p "semantic/db")
 (declare-function c-forward-conditional "cc-cmds")
 (declare-function ede-system-include-path "ede")
