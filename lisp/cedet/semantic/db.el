@@ -1010,9 +1010,6 @@ If file does not have tags available, then load the file, and create them."
 
 (provide 'semantic/db)
 
-;; Pull in the semanticdb-project-database-file class:
-(require 'semantic/db-file)
-
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"
 ;; generated-autoload-feature: semantic/loaddefs
