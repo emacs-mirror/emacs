@@ -1,3 +1,7 @@
+2009-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/.gitignore: New file.
+
 2009-08-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* notes/bugtracker: How to reassign a bug to a list of packages.
