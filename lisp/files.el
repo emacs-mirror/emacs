@@ -2174,6 +2174,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.for\\'" . fortran-mode)
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
+     ("\\.\\(dpr\\|DPR\\)\\'" . delphi-mode)
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)

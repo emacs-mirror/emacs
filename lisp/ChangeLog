@@ -1,3 +1,7 @@
+2009-09-07  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist): Use delphi-mode for .dpr files.
+
 2009-09-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc-git.el (vc-git-annotate-command): Use separator to parse
