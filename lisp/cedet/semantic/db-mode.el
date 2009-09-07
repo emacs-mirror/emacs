@@ -76,6 +76,7 @@ on or off."
   (member (car (car semanticdb-hooks))
 	  (symbol-value (car (cdr (car semanticdb-hooks))))))
 
+;;;###autoload
 (defun global-semanticdb-minor-mode (&optional arg)
   "Toggle the use of `semanticdb-minor-mode'.
 If ARG is positive, enable, if it is negative, disable.
