@@ -68,7 +68,7 @@
 	a string with a composition property to disable combining
 	characters being composed.
 
-2009-03-11  Miles Bader  <Miles Bader <miles@gnu.org>>
+2009-03-11  Miles Bader  <miles@gnu.org>>
 
 	* quick-install-emacs: Be more clever about locating info directory.
 
