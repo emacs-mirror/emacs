@@ -331,6 +331,7 @@ wish, and reference them using the function `class-option'."
 (defvar eieio-defclass-autoload-map (make-vector 7 nil)
   "Symbol map of superclasses we find in autoloads.")
 
+;;;###autoload
 (defun eieio-defclass-autoload (cname superclasses filename doc)
   "Create autoload symbols for the EIEIO class CNAME.
 SUPERCLASSES are the superclasses that CNAME inherites from.

@@ -135,6 +135,14 @@ or macro definition or a defcustom)."
 		  (eq (car-safe (car body)) 'interactive))
 	      (if macrop (list 'quote 'macro) nil))))
 
+     ;; For defclass forms, use `eieio-defclass-autoload'.
+     ((eq car 'defclass)
+      (let ((name (nth 1 form))
+	    (superclasses (nth 2 form))
+	    (doc (nth 4 form)))
+	(list 'eieio-defclass-autoload (list 'quote name)
+	      (list 'quote superclasses) file doc)))
+
      ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
       (let ((varname (car-safe (cdr-safe form)))

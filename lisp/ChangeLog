@@ -1,3 +1,9 @@
+2009-09-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (make-autoload): Handle defclass form.
+
+	* emacs-lisp/eieio.el (eieio-defclass-autoload): Autoload.
+
 2009-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (generated-autoload-load-name): New var.
