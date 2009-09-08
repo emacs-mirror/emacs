@@ -1,5 +1,8 @@
 2009-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* smerge-mode.el (smerge-remove-props, smerge-refine):
+	Use with-silent-modifications (bug#4342).
+
 	* subr.el (with-silent-modifications): New macro.
 
 2009-09-07  Juanma Barranquero  <lekktu@gmail.com>

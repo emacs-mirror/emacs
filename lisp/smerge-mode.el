@@ -367,9 +367,8 @@ according to `smerge-match-conflict'.")
   ;; during font-locking so inhibit-modification-hooks is non-nil, so we
   ;; can't just modify the buffer and expect font-lock to be triggered as in:
   ;; (put-text-property beg end 'smerge-force-highlighting nil)
-  (let ((modified (buffer-modified-p)))
-    (remove-text-properties beg end '(fontified nil))
-    (restore-buffer-modified-p modified)))
+  (with-silent-modifications
+    (remove-text-properties beg end '(fontified nil))))
 
 (defun smerge-popup-context-menu (event)
   "Pop up the Smerge mode context menu under mouse."
@@ -1015,9 +1014,10 @@ repeating the command will highlight other 2 parts."
         (n2 (if (eq part 3) 2 3)))
     (smerge-ensure-match n1)
     (smerge-ensure-match n2)
-    (put-text-property (match-beginning 0) (1+ (match-beginning 0))
-                       'smerge-refine-part
-                       (cons (buffer-chars-modified-tick) part))
+    (with-silent-modifications
+      (put-text-property (match-beginning 0) (1+ (match-beginning 0))
+                         'smerge-refine-part
+                         (cons (buffer-chars-modified-tick) part)))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
                          (match-beginning n2)  (match-end n2)
                          '((smerge . refine)
