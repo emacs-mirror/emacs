@@ -334,7 +334,7 @@ static void mark_buffer P_ ((Lisp_Object));
 static void mark_terminals P_ ((void));
 extern void mark_kboards P_ ((void));
 extern void mark_ttys P_ ((void));
-extern void mark_backtrace P_ ((void));
+extern void mark_threads P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
@@ -436,10 +436,6 @@ struct mem_node
   enum mem_type type;
 };
 
-/* Base address of stack.  Set in main.  */
-
-Lisp_Object *stack_base;
-
 /* Root of the tree describing allocated Lisp memory.  */
 
 static struct mem_node *mem_root;
@@ -456,7 +452,6 @@ static struct mem_node mem_z;
 static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
 static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT));
 static void lisp_free P_ ((POINTER_TYPE *));
-static void mark_stack P_ ((void));
 static int live_vector_p P_ ((struct mem_node *, void *));
 static int live_buffer_p P_ ((struct mem_node *, void *));
 static int live_string_p P_ ((struct mem_node *, void *));
@@ -481,10 +476,6 @@ static void check_gcpros P_ ((void));
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
-
-/* Recording what needs to be marked for gc.  */
-
-struct gcpro *gcprolist;
 
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
@@ -4460,16 +4451,49 @@ dump_zombies ()
    The current code assumes by default that Lisp_Objects are aligned
    equally on the stack.  */
 
-static void
-mark_stack ()
+void
+mark_stack (bottom, end)
+     char *bottom;
+     char *end;
 {
   int i;
+
+  /* This assumes that the stack is a contiguous region in memory.  If
+     that's not the case, something has to be done here to iterate
+     over the stack segments.  */
+#ifndef GC_LISP_OBJECT_ALIGNMENT
+#ifdef __GNUC__
+#define GC_LISP_OBJECT_ALIGNMENT __alignof__ (Lisp_Object)
+#else
+#define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
+#endif
+#endif
+  for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
+    mark_memory (bottom, end, i);
+  /* Allow for marking a secondary stack, like the register stack on the
+     ia64.  */
+#ifdef GC_MARK_SECONDARY_STACK
+  GC_MARK_SECONDARY_STACK ();
+#endif
+
+#if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
+  check_gcpros ();
+#endif
+}
+
+#endif /* GC_MARK_STACK != 0 */
+
+void
+flush_stack_call_func (func)
+     void (*func) P_ ((char *end));
+{
+#if GC_MARK_STACK
   /* jmp_buf may not be aligned enough on darwin-ppc64 */
   union aligned_jmpbuf {
     Lisp_Object o;
     jmp_buf j;
   } j;
-  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
+  volatile int stack_grows_down_p = (char *) &j > (char *) current_thread->stack_bottom;
   void *end;
 
   /* This trick flushes the register windows so that all the state of
@@ -4507,31 +4531,10 @@ mark_stack ()
   setjmp (j.j);
   end = stack_grows_down_p ? (char *) &j + sizeof j : (char *) &j;
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
-
-  /* This assumes that the stack is a contiguous region in memory.  If
-     that's not the case, something has to be done here to iterate
-     over the stack segments.  */
-#ifndef GC_LISP_OBJECT_ALIGNMENT
-#ifdef __GNUC__
-#define GC_LISP_OBJECT_ALIGNMENT __alignof__ (Lisp_Object)
-#else
-#define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
-#endif
-#endif
-  for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
-    mark_memory (stack_base, end, i);
-  /* Allow for marking a secondary stack, like the register stack on the
-     ia64.  */
-#ifdef GC_MARK_SECONDARY_STACK
-  GC_MARK_SECONDARY_STACK ();
-#endif
-
-#if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
-  check_gcpros ();
-#endif
-}
-
 #endif /* GC_MARK_STACK != 0 */
+
+  (*func) (end);
+}
 
 
 /* Determine whether it is safe to access memory at address P.  */
@@ -4979,8 +4982,6 @@ returns nil, because real GC can't be done.  */)
      ()
 {
   register struct specbinding *bind;
-  struct catchtag *catch;
-  struct handler *handler;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -5048,7 +5049,7 @@ returns nil, because real GC can't be done.  */)
 #if MAX_SAVE_STACK > 0
   if (NILP (Vpurify_flag))
     {
-      i = &stack_top_variable - stack_bottom;
+      i = &stack_top_variable - /*FIXME*/current_thread->stack_bottom;
       if (i < 0) i = -i;
       if (i < MAX_SAVE_STACK)
 	{
@@ -5058,8 +5059,8 @@ returns nil, because real GC can't be done.  */)
 	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
 	  if (stack_copy)
 	    {
-	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
-		bcopy (stack_bottom, stack_copy, i);
+	      if ((EMACS_INT) (&stack_top_variable - /*FIXME*/current_thread->stack_bottom) > 0)
+		bcopy (/*FIXME*/current_thread->stack_bottom, stack_copy, i);
 	      else
 		bcopy (&stack_top_variable, stack_copy, i);
 	    }
@@ -5083,11 +5084,7 @@ returns nil, because real GC can't be done.  */)
   for (i = 0; i < staticidx; i++)
     mark_object (*staticvec[i]);
 
-  for (bind = specpdl; bind != specpdl_ptr; bind++)
-    {
-      mark_object (bind->symbol);
-      mark_object (bind->old_value);
-    }
+  mark_threads ();
   mark_terminals ();
   mark_kboards ();
   mark_ttys ();
@@ -5099,36 +5096,12 @@ returns nil, because real GC can't be done.  */)
   }
 #endif
 
-#if (GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS \
-     || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
-  mark_stack ();
-#else
-  {
-    register struct gcpro *tail;
-    for (tail = gcprolist; tail; tail = tail->next)
-      for (i = 0; i < tail->nvars; i++)
-	mark_object (tail->var[i]);
-  }
-#endif
-
-  mark_byte_stack ();
-  for (catch = catchlist; catch; catch = catch->next)
-    {
-      mark_object (catch->tag);
-      mark_object (catch->val);
-    }
-  for (handler = handlerlist; handler; handler = handler->next)
-    {
-      mark_object (handler->handler);
-      mark_object (handler->var);
-    }
-  mark_backtrace ();
-
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
 #endif
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+  FIXME;
   mark_stack ();
 #endif
 
@@ -5184,7 +5157,7 @@ returns nil, because real GC can't be done.  */)
 
   /* Clear the mark bits that we set in certain root slots.  */
 
-  unmark_byte_stack ();
+  unmark_threads ();
   VECTOR_UNMARK (&buffer_defaults);
   VECTOR_UNMARK (&buffer_local_symbols);
 

@@ -1859,10 +1859,6 @@ struct specbinding
     Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
   };
 
-extern struct specbinding *specpdl;
-extern struct specbinding *specpdl_ptr;
-extern int specpdl_size;
-
 extern EMACS_INT max_specpdl_size;
 
 #define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
@@ -1931,10 +1927,6 @@ extern struct catchtag *catchlist;
 extern struct backtrace *backtrace_list;
 
 extern Lisp_Object memory_signal_data;
-
-/* An address near the bottom of the stack.
-   Tells GC how to save a copy of the stack.  */
-extern char *stack_bottom;
 
 /* Check quit-flag and quit if it is non-nil.
    Typing C-g does not directly cause a quit; it only sets Vquit_flag.
@@ -2049,8 +2041,6 @@ extern EMACS_INT memory_full_cons_threshold;
  Every function that can call Feval must protect in this fashion all
  Lisp_Object variables whose contents will be used again.  */
 
-extern struct gcpro *gcprolist;
-
 struct gcpro
 {
   struct gcpro *next;
@@ -2148,8 +2138,6 @@ struct gcpro
 #define UNGCPRO (gcprolist = gcpro1.next)
 
 #else
-
-extern int gcpro_level;
 
 #define GCPRO1(varname) \
  {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
@@ -3294,9 +3282,6 @@ extern int read_bytecode_char P_ ((int));
 extern Lisp_Object Qbytecode;
 EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode P_ ((void));
-extern struct byte_stack *byte_stack_list;
-extern void mark_byte_stack P_ ((void));
-extern void unmark_byte_stack P_ ((void));
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
@@ -3647,6 +3632,8 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 
 #include "globals.h"
+
+#include "thread.h"
 
 #endif /* EMACS_LISP_H */
 

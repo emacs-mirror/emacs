@@ -260,24 +260,15 @@ struct byte_stack
   struct byte_stack *next;
 };
 
-/* A list of currently active byte-code execution value stacks.
-   Fbyte_code adds an entry to the head of this list before it starts
-   processing byte-code, and it removed the entry again when it is
-   done.  Signalling an error truncates the list analoguous to
-   gcprolist.  */
-
-struct byte_stack *byte_stack_list;
-
 
 /* Mark objects on byte_stack_list.  Called during GC.  */
 
 void
-mark_byte_stack ()
+mark_byte_stack (struct byte_stack *stack)
 {
-  struct byte_stack *stack;
   Lisp_Object *obj;
 
-  for (stack = byte_stack_list; stack; stack = stack->next)
+  for (; stack; stack = stack->next)
     {
       /* If STACK->top is null here, this means there's an opcode in
 	 Fbyte_code that wasn't expected to GC, but did.  To find out
@@ -301,11 +292,9 @@ mark_byte_stack ()
    counters.  Called when GC has completed.  */
 
 void
-unmark_byte_stack ()
+unmark_byte_stack (struct byte_stack *stack)
 {
-  struct byte_stack *stack;
-
-  for (stack = byte_stack_list; stack; stack = stack->next)
+  for (; stack; stack = stack->next)
     {
       if (stack->byte_string_start != SDATA (stack->byte_string))
 	{

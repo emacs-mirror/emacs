@@ -203,9 +203,9 @@ extern int inherited_pgroup;
 int display_arg;
 #endif
 
-/* An address near the bottom of the stack.
-   Tells GC how to save a copy of the stack.  */
-char *stack_bottom;
+#ifdef HAVE_NS
+extern char ns_no_defaults;
+#endif
 
 /* The address where the heap starts (from the first sbrk (0) call).  */
 static void *my_heap_start;
@@ -750,9 +750,6 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 int
 main (int argc, char **argv)
 {
-#if GC_MARK_STACK
-  Lisp_Object dummy;
-#endif
   char stack_bottom_variable;
   int do_initial_setlocale;
   int skip_args = 0;
@@ -769,10 +766,8 @@ main (int argc, char **argv)
   char dname_arg2[80];
 #endif
 
-#if GC_MARK_STACK
-  extern Lisp_Object *stack_base;
-  stack_base = &dummy;
-#endif
+  /* Record (approximately) where the stack begins.  */
+  current_thread->stack_bottom = &stack_bottom_variable;
 
 #if defined (USE_GTK) && defined (G_SLICE_ALWAYS_MALLOC)
   /* This is used by the Cygwin build.  */
@@ -914,9 +909,6 @@ main (int argc, char **argv)
       setrlimit (RLIMIT_STACK, &rlim);
     }
 #endif /* HAVE_SETRLIMIT and RLIMIT_STACK */
-
-  /* Record (approximately) where the stack begins.  */
-  stack_bottom = &stack_bottom_variable;
 
   clearerr (stdin);
 
@@ -1567,6 +1559,8 @@ main (int argc, char **argv)
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
 
+  init_threads ();
+
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
 
@@ -1676,6 +1670,8 @@ main (int argc, char **argv)
 #ifdef SYMS_MACHINE
       SYMS_MACHINE;
 #endif
+
+      syms_of_threads ();
 
       keys_of_casefiddle ();
       keys_of_cmds ();
