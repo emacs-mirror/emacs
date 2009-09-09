@@ -7,7 +7,7 @@ void mark_byte_stack P_ ((struct byte_stack *));
 void mark_backtrace P_ ((struct backtrace *));
 void mark_catchlist P_ ((struct catchtag *));
 void mark_stack P_ ((char *, char *));
-void flush_stack_call_func P_ ((void (*) (char *)));
+void flush_stack_call_func P_ ((void (*) (char *, void *), void *));
 
 
 static struct thread_state primary_thread;
@@ -16,13 +16,14 @@ static struct thread_state *all_threads = &primary_thread;
 
 __thread struct thread_state *current_thread = &primary_thread;
 
-static pthread_mutex_t global_lock;
+pthread_mutex_t global_lock;
 
 static void
 mark_one_thread (struct thread_state *thread)
 {
   register struct specbinding *bind;
   struct handler *handler;
+  Lisp_Object tem;
 
   for (bind = thread->m_specpdl; bind != thread->m_specpdl_ptr; bind++)
     {
@@ -54,24 +55,29 @@ mark_one_thread (struct thread_state *thread)
 
   mark_backtrace (thread->m_backtrace_list);
 
-  if (thread->func)
-    mark_object (thread->func);
+  XSETBUFFER (tem, thread->m_current_buffer);
+  mark_object (tem);
 }
 
 static void
-mark_threads_continuation (char *end)
+mark_threads_callback (char *end, void *ignore)
 {
   struct thread_state *iter;
 
   current_thread->stack_top = end;
-  for (iter = all_threads; iter; iter = iter->next)
-    mark_one_thread (iter);
+  for (iter = all_threads; iter; iter = iter->next_thread)
+    {
+      Lisp_Object thread_obj;
+      XSETTHREAD (thread_obj, iter);
+      mark_object (thread_obj);
+      mark_one_thread (iter);
+    }
 }
 
 void
 mark_threads (void)
 {
-  flush_stack_call_func (mark_threads_continuation);
+  flush_stack_call_func (mark_threads_callback, NULL);
 }
 
 void
@@ -79,12 +85,12 @@ unmark_threads (void)
 {
   struct thread_state *iter;
 
-  for (iter = all_threads; iter; iter = iter->next)
+  for (iter = all_threads; iter; iter = iter->next_thread)
     unmark_byte_stack (iter->m_byte_stack_list);
 }
 
 static void
-thread_yield_continuation (char *end)
+thread_yield_callback (char *end, void *ignore)
 {
   current_thread->stack_top = end;
   pthread_mutex_unlock (&global_lock);
@@ -98,8 +104,8 @@ thread_yield (void)
   /* Note: currently it is safe to check this here, but eventually it
      will require a lock to ensure non-racy operation.  */
   /* Only yield if there is another thread to yield to.  */
-  if (all_threads->next)
-    flush_stack_call_func (thread_yield_continuation);
+  if (all_threads->next_thread)
+    flush_stack_call_func (thread_yield_callback, NULL);
 }
 
 DEFUN ("yield", Fyield, Syield, 0, 0, 0,
@@ -109,12 +115,43 @@ DEFUN ("yield", Fyield, Syield, 0, 0, 0,
   thread_yield ();
 }
 
+static Lisp_Object
+invoke_thread_function (void)
+{
+  Lisp_Object iter;
+
+  int count = SPECPDL_INDEX ();
+
+  /* Set up specpdl.  */
+  for (iter = current_thread->initial_specpdl;
+       !EQ (iter, Qnil);
+       iter = XCDR (iter))
+    {
+      /* We may bind a variable twice -- but it doesn't matter because
+	 there is no way to undo these bindings without exiting the
+	 thread.  */
+      specbind (XCAR (XCAR (iter)), XCDR (XCAR (iter)));
+    }
+  current_thread->initial_specpdl = Qnil;
+
+  Ffuncall (1, &current_thread->func);
+  return unbind_to (count, Qnil);
+}
+
+static Lisp_Object
+do_nothing (Lisp_Object whatever)
+{
+  return whatever;
+}
+
 static void *
 run_thread (void *state)
 {
   char stack_bottom_variable;
   struct thread_state *self = state;
   struct thread_state **iter;
+  struct gcpro gcpro1;
+  Lisp_Object buffer;
 
   self->stack_bottom = &stack_bottom_variable;
 
@@ -128,16 +165,23 @@ run_thread (void *state)
 
   pthread_mutex_lock (&global_lock);
 
-  /* FIXME: unwind protect here.  */
-  Ffuncall (1, &self->func);
+  /* We need special handling to set the initial buffer.  Our parent
+     thread is very likely to be using this same buffer so we will
+     typically wait for the parent thread to release it first.  */
+  XSETBUFFER (buffer, self->m_current_buffer);
+  GCPRO1 (buffer);
+  self->m_current_buffer = 0;
+  set_buffer_internal (XBUFFER (buffer));
+
+  /* It might be nice to do something with errors here.  */
+  internal_condition_case (invoke_thread_function, Qt, do_nothing);
 
   /* Unlink this thread from the list of all threads.  */
-  for (iter = &all_threads; *iter != self; iter = &(*iter)->next)
+  for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
     ;
-  *iter = (*iter)->next;
+  *iter = (*iter)->next_thread;
 
   xfree (self->m_specpdl);
-  /* FIXME: other cleanups here.  */
   xfree (self);
 
   pthread_mutex_unlock (&global_lock);
@@ -153,22 +197,67 @@ When the function exits, the thread dies.  */)
 {
   pthread_t thr;
   struct thread_state *new_thread;
+  struct specbinding *p;
 
   /* Can't start a thread in temacs.  */
   if (!initialized)
     abort ();
 
-  new_thread = xmalloc (sizeof (struct thread_state));
-  memset (new_thread, 0, sizeof (struct thread_state));
+  new_thread = (struct thread_state *) allocate_pseudovector (VECSIZE (struct thread_state),
+							      2, PVEC_THREAD);
+  memset (new_thread, OFFSETOF (struct thread_state,
+				m_gcprolist),
+	  sizeof (struct thread_state) - OFFSETOF (struct thread_state,
+						   m_gcprolist));
 
   new_thread->func = function;
+  new_thread->initial_specpdl = Qnil;
+
+  for (p = specpdl; p != specpdl_ptr; ++p)
+    {
+      if (p->func)
+	{
+	  Lisp_Object sym = p->symbol;
+	  if (!SYMBOLP (sym))
+	    sym = XCAR (sym);
+	  new_thread->initial_specpdl
+	    = Fcons (Fcons (sym, find_symbol_value (sym)),
+		     new_thread->initial_specpdl);
+	}
+    }
 
   /* We'll need locking here.  */
-  new_thread->next = all_threads;
+  new_thread->next_thread = all_threads;
   all_threads = new_thread;
 
   /* FIXME check result */
   pthread_create (&thr, NULL, run_thread, new_thread);
+
+  return Qnil;
+}
+
+/* Get the current thread as a lisp object.  */
+Lisp_Object
+get_current_thread (void)
+{
+  Lisp_Object result;
+  XSETTHREAD (result, current_thread);
+  return result;
+}
+
+/* Get the main thread as a lisp object.  */
+Lisp_Object
+get_main_thread (void)
+{
+  Lisp_Object result;
+  XSETTHREAD (result, &primary_thread);
+  return result;
+}
+
+int
+other_threads_p (void)
+{
+  return all_threads->next_thread != NULL;
 }
 
 void

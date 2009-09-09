@@ -4484,8 +4484,9 @@ mark_stack (bottom, end)
 #endif /* GC_MARK_STACK != 0 */
 
 void
-flush_stack_call_func (func)
-     void (*func) P_ ((char *end));
+flush_stack_call_func (func, arg)
+     void (*func) P_ ((char *end, void *arg));
+     void *arg;
 {
 #if GC_MARK_STACK
   /* jmp_buf may not be aligned enough on darwin-ppc64 */
@@ -4533,7 +4534,7 @@ flush_stack_call_func (func)
 #endif /* not GC_SAVE_REGISTERS_ON_STACK */
 #endif /* GC_MARK_STACK != 0 */
 
-  (*func) (end);
+  (*func) (end, arg);
 }
 
 

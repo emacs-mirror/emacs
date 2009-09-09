@@ -800,12 +800,12 @@ struct buffer
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
   Lisp_Object cursor_in_non_selected_windows;
+
+  /* If non-nil, the thread holding a lock on this buffer.  */
+  Lisp_Object owner;
 };
 
 
-/* This points to the current buffer.  */
-
-extern struct buffer *current_buffer;
 
 /* This structure holds the default values of the buffer-local variables
    that have special slots in each buffer.

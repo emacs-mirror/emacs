@@ -3218,7 +3218,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
   return object;
 }
 
-void
+static void
 grow_specpdl ()
 {
   register int count = SPECPDL_INDEX ();
@@ -3268,14 +3268,14 @@ specbind (symbol, value)
       if (BUFFER_LOCAL_VALUEP (valcontents)
 	  || BUFFER_OBJFWDP (valcontents))
 	{
-	  Lisp_Object where, current_buffer;
+	  Lisp_Object where, self_buffer;
 
-	  current_buffer = Fcurrent_buffer ();
+	  self_buffer = Fcurrent_buffer ();
 
 	  /* For a local variable, record both the symbol and which
 	     buffer's or frame's value we are saving.  */
 	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
-	    where = current_buffer;
+	    where = self_buffer;
 	  else if (BUFFER_LOCAL_VALUEP (valcontents)
 		   && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
 	    where = XBUFFER_LOCAL_VALUE (valcontents)->frame;
@@ -3285,7 +3285,7 @@ specbind (symbol, value)
 	  /* We're not using the `unused' slot in the specbinding
 	     structure because this would mean we have to do more
 	     work for simple variables.  */
-	  specpdl_ptr->symbol = Fcons (symbol, Fcons (where, current_buffer));
+	  specpdl_ptr->symbol = Fcons (symbol, Fcons (where, self_buffer));
 
 	  /* If SYMBOL is a per-buffer variable which doesn't have a
 	     buffer-local value here, make the `let' change the global

@@ -5915,7 +5915,7 @@ struct save_window_data
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
-    Lisp_Object current_buffer;
+    Lisp_Object m_current_buffer;
     Lisp_Object minibuf_scroll_window;
     Lisp_Object minibuf_selected_window;
     Lisp_Object root_window;
@@ -6001,7 +6001,7 @@ the return value is nil.  Otherwise the value is t.  */)
   data = (struct save_window_data *) XVECTOR (configuration);
   saved_windows = XVECTOR (data->saved_windows);
 
-  new_current_buffer = data->current_buffer;
+  new_current_buffer = data->m_current_buffer;
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
   else
@@ -6526,7 +6526,7 @@ redirection (see `redirect-frame-focus').  */)
   data->frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
   data->selected_frame = selected_frame;
   data->current_window = FRAME_SELECTED_WINDOW (f);
-  XSETBUFFER (data->current_buffer, current_buffer);
+  XSETBUFFER (data->m_current_buffer, current_buffer);
   data->minibuf_scroll_window = minibuf_level > 0 ? Vminibuf_scroll_window : Qnil;
   data->minibuf_selected_window = minibuf_level > 0 ? minibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
@@ -7047,7 +7047,7 @@ compare_window_configurations (c1, c2, ignore_positions)
     return 0;
   /* Don't compare the current_window field directly.
      Instead see w1_is_current and w2_is_current, below.  */
-  if (! EQ (d1->current_buffer, d2->current_buffer))
+  if (! EQ (d1->m_current_buffer, d2->m_current_buffer))
     return 0;
   if (! ignore_positions)
     {

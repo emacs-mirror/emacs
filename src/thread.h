@@ -1,6 +1,16 @@
 
 struct thread_state
 {
+  EMACS_UINT size;
+  struct Lisp_Vector *next;
+
+  /* The function we are evaluating, or 0 in the main thread.  */
+  Lisp_Object func;
+
+  /* An alias of symbols and values that we use to populate the
+     initial specpdl.  */
+  Lisp_Object initial_specpdl;
+
   /* Recording what needs to be marked for gc.  */
   struct gcpro *m_gcprolist;
 #define gcprolist (current_thread->m_gcprolist)
@@ -54,10 +64,11 @@ struct thread_state
   int m_lisp_eval_depth;
 #define lisp_eval_depth (current_thread->m_lisp_eval_depth)
 
-  /* The function we are evaluating, or 0 in the main thread.  */
-  Lisp_Object func;
+  /* This points to the current buffer.  */
+  struct buffer *m_current_buffer;
+#define current_buffer (current_thread->m_current_buffer)
 
-  struct thread_state *next;
+  struct thread_state *next_thread;
 };
 
 extern __thread struct thread_state *current_thread;
@@ -67,3 +78,11 @@ extern void init_threads P_ ((void));
 extern void thread_yield P_ ((void));
 
 extern void syms_of_threads P_ ((void));
+
+extern Lisp_Object get_current_thread P_ ((void));
+
+extern Lisp_Object get_main_thread P_ ((void));
+
+extern pthread_mutex_t global_lock;
+
+extern int other_threads_p P_ ((void));
