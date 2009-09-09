@@ -102,8 +102,6 @@ ns_get_family (Lisp_Object font_spec)
       char *tmp = strdup (SDATA (SYMBOL_NAME (tem)));
       NSString *family;
       ns_unescape_name (tmp);
-      /* For names hard-coded into emacs, like 'helvetica' for splash. */
-      tmp[0] = toupper (tmp[0]);
       family = [NSString stringWithUTF8String: tmp];
       free (tmp);
       return family;
