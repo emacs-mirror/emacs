@@ -585,7 +585,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			(unless raw
 			  (setq charset	(mm-encode-body charset))))
 		    (insert contents)))))
-	      (setq encoding (mm-encode-buffer type)
+	      (if (setq encoding (cdr (assq 'encoding cont)))
+		  (setq encoding (intern (downcase encoding))))
+	      (setq encoding (mm-encode-buffer type encoding)
 		    coded (mm-string-as-multibyte (buffer-string))))
 	    (mml-insert-mime-headers cont type charset encoding nil)
 	    (insert "\n" coded))))

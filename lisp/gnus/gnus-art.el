@@ -6367,9 +6367,9 @@ not have a face in `gnus-article-boring-faces'."
 		 (gnus-configure-windows 'article)
 		 (unless (setq win (get-buffer-window summary-buffer 'visible))
 		   (let ((gnus-buffer-configuration
-			  '(article ((vertical 1.0
-					       (summary 0.25 point)
-					       (article 1.0))))))
+			  '((article ((vertical 1.0
+						(summary 0.25 point)
+						(article 1.0)))))))
 		     (gnus-configure-windows 'article))
 		   (setq win (get-buffer-window summary-buffer 'visible)))
 		 (gnus-select-frame-set-input-focus (window-frame win))

@@ -1,3 +1,20 @@
+2009-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-float-time): Alias to float-time if it exists.
+
+	* ecomplete.el (with-no-warnings): Define it for old Emacsen.
+	(ecomplete-add-item): Don't use (featurep 'xemacs) to check if
+	float-time is available; suppress compile warning for time-to-seconds.
+
+2009-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-encode.el (mm-encode-buffer): Don't force 7bit encoding since MTA
+	may break data.  Suggested by Dmitri Paduchikh <dpaduch@k66.ru>.
+	Add the optional argument `encoding' that overrides the default.
+
+	* mml.el (mml-generate-mime-1): Pass encoding defined by a user to
+	mm-encode-buffer.
+
 2009-09-04  Glenn Morris  <rgm@gnu.org>
 
 	* qp.el (quoted-printable-encode-string): Use mm-enable-multibyte, or
@@ -14,6 +31,11 @@
 	* mm-util.el (mm-emacs-mule, mm-default-multibyte-p):
 	* rfc2047.el (rfc2047-encode-message-header): Use default-value rather
 	than default-enable-multibyte-characters.
+
+2009-09-02  Karl Kleinpaste  <karl@kleinpaste.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys):
+	Fix gnus-buffer-configuration's value temporarily used.
 
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
