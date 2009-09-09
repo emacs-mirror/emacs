@@ -234,6 +234,7 @@ enum Lisp_Misc_Type
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
+    Lisp_Misc_ThreadLocal,
     /* This is not a type code.  It is for range checking.  */
     Lisp_Misc_Limit
   };
@@ -351,7 +352,8 @@ enum pvec_type
   PVEC_SUB_CHAR_TABLE = 0x100000,
   PVEC_FONT = 0x200000,
   PVEC_OTHER = 0x400000,
-  PVEC_TYPE_MASK = 0x7ffe00
+  PVEC_THREAD = 0x800000,
+  PVEC_TYPE_MASK = 0xfffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -577,6 +579,8 @@ extern size_t pure_size;
   (eassert (BUFFER_LOCAL_VALUEP (a)), &(XMISC(a)->u_buffer_local_value))
 #define XKBOARD_OBJFWD(a) \
   (eassert (KBOARD_OBJFWDP (a)), &(XMISC(a)->u_kboard_objfwd))
+#define XTHREADLOCAL(a) \
+  (eassert (THREADLOCALP (a)), &(XMISC(a)->u_threadlocal))
 
 /* Pseudovector types.  */
 
@@ -602,6 +606,8 @@ extern size_t pure_size;
 
 #define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
 #define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
+#define XSETTHREADLOCAL(a, b) \
+  (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_ThreadLocal)
 
 /* Pseudovector types.  */
 
@@ -621,6 +627,7 @@ extern size_t pure_size;
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
 #define XSETSUB_CHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUB_CHAR_TABLE))
+#define XSETTHREAD(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_THREAD))
 
 /* Convenience macros for dealing with Lisp arrays.  */
 
@@ -1390,6 +1397,15 @@ struct Lisp_Save_Value
     int integer;
   };
 
+struct Lisp_ThreadLocal
+  {
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_ThreadLocal */
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
+    Lisp_Object global;
+    Lisp_Object thread_alist;
+  };
+
 
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
@@ -1423,6 +1439,7 @@ union Lisp_Misc
     struct Lisp_Overlay u_overlay;
     struct Lisp_Kboard_Objfwd u_kboard_objfwd;
     struct Lisp_Save_Value u_save_value;
+    struct Lisp_ThreadLocal u_threadlocal;
   };
 
 /* Lisp floating point type */
@@ -1572,6 +1589,7 @@ typedef struct {
 #define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
 #define KBOARD_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
+#define THREADLOCALP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_ThreadLocal)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */
@@ -1592,6 +1610,7 @@ typedef struct {
 #define SUB_CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_SUB_CHAR_TABLE)
 #define BOOL_VECTOR_P(x) PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
+#define THREADP(x) PSEUDOVECTORP (x, PVEC_THREAD)
 
 /* Test for image (image . spec)  */
 #define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))

@@ -815,6 +815,12 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 Lisp_Object *
 find_variable_location (Lisp_Object *root)
 {
+  if (THREADLOCALP (*root))
+    {
+      struct Lisp_ThreadLocal *thr = XTHREADLOCAL (*root);
+      return &thr->global;
+    }
+
   return root;
 }
 

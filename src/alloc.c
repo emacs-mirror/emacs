@@ -5664,6 +5664,14 @@ mark_object (arg)
 	  }
 	  break;
 
+	case Lisp_Misc_ThreadLocal:
+	  {
+	    struct Lisp_ThreadLocal *ptr = XTHREADLOCAL (obj);
+	    mark_object (ptr->global);
+	    mark_object (ptr->thread_alist);
+	  }
+	  break;
+
 	default:
 	  abort ();
 	}
