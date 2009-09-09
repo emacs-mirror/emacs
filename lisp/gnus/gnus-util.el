@@ -38,6 +38,12 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+
+(eval-when-compile
+  (unless (fboundp 'with-no-warnings)
+    (defmacro with-no-warnings (&rest body)
+      `(progn ,@body))))
+
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
 (defvar nnmail-active-file-coding-system)

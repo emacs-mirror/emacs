@@ -1,6 +1,7 @@
 2009-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-util.el (gnus-float-time): Alias to float-time if it exists.
+	* gnus-util.el (with-no-warnings): Define it for old Emacsen.
+	(gnus-float-time): Alias to float-time if it exists.
 
 	* ecomplete.el (with-no-warnings): Define it for old Emacsen.
 	(ecomplete-add-item): Don't use (featurep 'xemacs) to check if
