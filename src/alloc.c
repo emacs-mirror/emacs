@@ -198,7 +198,7 @@ EMACS_INT gc_cons_threshold;
 
 EMACS_INT gc_relative_threshold;
 
-static Lisp_Object Vgc_cons_percentage;
+static Lisp_Object impl_Vgc_cons_percentage;
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -251,11 +251,11 @@ static int malloc_hysteresis;
 
 /* Non-nil means defun should do purecopy on the function definition.  */
 
-Lisp_Object Vpurify_flag;
+Lisp_Object impl_Vpurify_flag;
 
 /* Non-nil means we are handling a memory-full error.  */
 
-Lisp_Object Vmemory_full;
+Lisp_Object impl_Vmemory_full;
 
 /* Initialize it to a nonzero value to force it into data space
    (rather than bss space).  That way unexec will remap it into text
@@ -303,7 +303,7 @@ char *pending_malloc_warning;
 
 /* Pre-computed signal argument for use when memory is exhausted.  */
 
-Lisp_Object Vmemory_signal_data;
+Lisp_Object impl_Vmemory_signal_data;
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -325,9 +325,9 @@ Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
 
-Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
+Lisp_Object impl_Vpost_gc_hook, Qpost_gc_hook;
 
-Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
+Lisp_Object impl_Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
@@ -490,7 +490,8 @@ struct gcpro *gcprolist;
    value; otherwise some compilers put it into BSS.  */
 
 #define NSTATICS 0x640
-static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
+static Lisp_Object placeholder;
+static Lisp_Object *staticvec[NSTATICS] = {&placeholder};
 
 /* Index of next unused slot in staticvec.  */
 

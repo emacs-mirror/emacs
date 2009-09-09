@@ -194,13 +194,13 @@ static int next_fontset_id;
    font for each character.  */
 static Lisp_Object Vdefault_fontset;
 
-Lisp_Object Vfont_encoding_charset_alist;
-Lisp_Object Vuse_default_ascent;
-Lisp_Object Vignore_relative_composition;
-Lisp_Object Valternate_fontname_alist;
-Lisp_Object Vfontset_alias_alist;
-Lisp_Object Vvertical_centering_font_regexp;
-Lisp_Object Votf_script_alist;
+Lisp_Object impl_Vfont_encoding_charset_alist;
+Lisp_Object impl_Vuse_default_ascent;
+Lisp_Object impl_Vignore_relative_composition;
+Lisp_Object impl_Valternate_fontname_alist;
+Lisp_Object impl_Vfontset_alias_alist;
+Lisp_Object impl_Vvertical_centering_font_regexp;
+Lisp_Object impl_Votf_script_alist;
 
 /* Check if any window system is used now.  */
 void (*check_window_system_func) P_ ((void));

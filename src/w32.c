@@ -151,9 +151,9 @@ typedef HRESULT (WINAPI * ShGetFolderPath_fn)
 void globals_of_w32 ();
 static DWORD get_rid (PSID);
 
-extern Lisp_Object Vw32_downcase_file_names;
-extern Lisp_Object Vw32_generate_fake_inodes;
-extern Lisp_Object Vw32_get_true_file_attributes;
+extern Lisp_Object impl_Vw32_downcase_file_names;
+extern Lisp_Object impl_Vw32_generate_fake_inodes;
+extern Lisp_Object impl_Vw32_get_true_file_attributes;
 /* Defined in process.c for its own purpose.  */
 extern Lisp_Object Qlocal;
 
@@ -1545,7 +1545,7 @@ w32_get_resource (key, lpdwtype)
 }
 
 char *get_emacs_configuration (void);
-extern Lisp_Object Vsystem_configuration;
+extern Lisp_Object impl_Vsystem_configuration;
 
 void
 init_environment (char ** argv)

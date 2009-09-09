@@ -58,7 +58,7 @@ by Hallvard:
 
 #ifdef BYTE_CODE_METER
 
-Lisp_Object Vbyte_code_meter, Qbyte_code_meter;
+Lisp_Object impl_Vbyte_code_meter, Qbyte_code_meter;
 int byte_metering_on;
 
 #define METER_2(code1, code2) \

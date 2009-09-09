@@ -33,10 +33,10 @@ extern EMACS_INT dos_timezone_offset;
 #define DOS_COUNTRY_INFO 34	/* no of bytes returned by dos int 38h */
 extern unsigned char dos_country_info[DOS_COUNTRY_INFO];
 
-extern Lisp_Object Vdos_version;
-extern Lisp_Object Vdos_windows_version;
+extern Lisp_Object impl_Vdos_version;
+extern Lisp_Object impl_Vdos_windows_version;
 #ifndef HAVE_X_WINDOWS
-extern Lisp_Object Vdos_display_scancodes;
+extern Lisp_Object impl_Vdos_display_scancodes;
 
 extern int         msdos_stdcolor_idx  P_ ((const char *));
 extern Lisp_Object msdos_stdcolor_name P_ ((int));

@@ -52,10 +52,10 @@ Lisp_Object Qcharacterp;
 
 /* Vector of translation table ever defined.
    ID of a translation table is used to index this vector.  */
-Lisp_Object Vtranslation_table_vector;
+Lisp_Object impl_Vtranslation_table_vector;
 
 /* A char-table for characters which may invoke auto-filling.  */
-Lisp_Object Vauto_fill_chars;
+Lisp_Object impl_Vauto_fill_chars;
 
 Lisp_Object Qauto_fill_chars;
 
@@ -65,28 +65,29 @@ Lisp_Object Vchar_unify_table;
 
 /* A char-table.  An element is non-nil iff the corresponding
    character has a printable glyph.  */
-Lisp_Object Vprintable_chars;
+Lisp_Object impl_Vprintable_chars;
 
 /* A char-table.  An elemnent is a column-width of the corresponding
    character.  */
-Lisp_Object Vchar_width_table;
+Lisp_Object impl_Vchar_width_table;
 
 /* A char-table.  An element is a symbol indicating the direction
    property of corresponding character.  */
-Lisp_Object Vchar_direction_table;
+Lisp_Object impl_Vchar_direction_table;
 
 /* Variable used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
 
 /* Char table of scripts.  */
-Lisp_Object Vchar_script_table;
+Lisp_Object impl_Vchar_script_table;
 
 /* Alist of scripts vs representative characters.  */
-Lisp_Object Vscript_representative_chars;
+Lisp_Object impl_Vscript_representative_chars;
 
 static Lisp_Object Qchar_script_table;
 
-Lisp_Object Vunicode_category_table;
+Lisp_Object impl_Vunicode_category_table;
+
 
 
 /* If character code C has modifier masks, reflect them to the

@@ -117,15 +117,15 @@ Lisp_Object minibuf_selected_window;
 /* Non-nil means it is the window for C-M-v to scroll
    when the mini-buffer is selected.  */
 
-Lisp_Object Vminibuf_scroll_window;
+Lisp_Object impl_Vminibuf_scroll_window;
 
 /* Non-nil means this is the buffer whose window C-M-v should scroll.  */
 
-Lisp_Object Vother_window_scroll_buffer;
+Lisp_Object impl_Vother_window_scroll_buffer;
 
 /* Non-nil means it's function to call to display temp buffers.  */
 
-Lisp_Object Vtemp_buffer_show_function;
+Lisp_Object impl_Vtemp_buffer_show_function;
 
 /* Non-zero means line and page scrolling on tall lines (with images)
    does partial scrolling by modifying window-vscroll.  */
@@ -161,16 +161,16 @@ static int window_initialized;
 /* Hook to run when window config changes.  */
 
 static Lisp_Object Qwindow_configuration_change_hook;
-static Lisp_Object Vwindow_configuration_change_hook;
+static Lisp_Object impl_Vwindow_configuration_change_hook;
 
 /* Non-nil means scroll commands try to put point
    at the same screen height as previously.  */
 
-Lisp_Object Vscroll_preserve_screen_position;
+Lisp_Object impl_Vscroll_preserve_screen_position;
 
 /* Non-nil means that text is inserted before window's markers.  */
 
-Lisp_Object Vwindow_point_insertion_type;
+Lisp_Object impl_Vwindow_point_insertion_type;
 
 /* Incremented by 1 whenever a window is deleted.  */
 
@@ -193,13 +193,13 @@ static int inhibit_frame_unsplittable;
 
 extern EMACS_INT scroll_margin;
 
-extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+extern Lisp_Object Qwindow_scroll_functions, impl_Vwindow_scroll_functions;
 
 /* If non-nil, then the `recenter' command with a nil argument
    the entire frame to be redrawn; the special value `tty' causes the
    frame to be redrawn only if it is a tty frame.  */
 
-static Lisp_Object Vrecenter_redisplay;
+static Lisp_Object impl_Vrecenter_redisplay;
 extern Lisp_Object Qtty;
 
 

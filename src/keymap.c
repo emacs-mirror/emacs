@@ -55,47 +55,47 @@ Lisp_Object control_x_map;	/* The keymap used for globally bound
 				   C-x-prefixed default commands */
 
 /* was MinibufLocalMap */
-Lisp_Object Vminibuffer_local_map;
+Lisp_Object impl_Vminibuffer_local_map;
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are allowed in the
 				   minibuf */
 
 /* was MinibufLocalNSMap */
-Lisp_Object Vminibuffer_local_ns_map;
+Lisp_Object impl_Vminibuffer_local_ns_map;
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are not encouraged
 				   in the minibuf */
 
 /* keymap used for minibuffers when doing completion */
 /* was MinibufLocalCompletionMap */
-Lisp_Object Vminibuffer_local_completion_map;
+Lisp_Object impl_Vminibuffer_local_completion_map;
 
 /* keymap used for minibuffers when doing completion in filenames */
-Lisp_Object Vminibuffer_local_filename_completion_map;
+Lisp_Object impl_Vminibuffer_local_filename_completion_map;
 
 /* keymap used for minibuffers when doing completion in filenames
    with require-match*/
-Lisp_Object Vminibuffer_local_filename_must_match_map;
+Lisp_Object impl_Vminibuffer_local_filename_must_match_map;
 
 /* keymap used for minibuffers when doing completion and require a match */
 /* was MinibufLocalMustMatchMap */
-Lisp_Object Vminibuffer_local_must_match_map;
+Lisp_Object impl_Vminibuffer_local_must_match_map;
 
 /* Alist of minor mode variables and keymaps.  */
-Lisp_Object Vminor_mode_map_alist;
+Lisp_Object impl_Vminor_mode_map_alist;
 
 /* Alist of major-mode-specific overrides for
    minor mode variables and keymaps.  */
-Lisp_Object Vminor_mode_overriding_map_alist;
+Lisp_Object impl_Vminor_mode_overriding_map_alist;
 
 /* List of emulation mode keymap alists.  */
-Lisp_Object Vemulation_mode_map_alists;
+Lisp_Object impl_Vemulation_mode_map_alists;
 
 /* A list of all commands given new bindings since a certain time
    when nil was stored here.
    This is used to speed up recomputation of menu key equivalents
    when Emacs starts up.   t means don't record anything here.  */
-Lisp_Object Vdefine_key_rebound_commands;
+Lisp_Object impl_Vdefine_key_rebound_commands;
 
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
 Lisp_Object QCadvertised_binding;
@@ -109,9 +109,9 @@ static Lisp_Object command_remapping_vector;
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
    character.  */
-extern Lisp_Object meta_prefix_char;
+extern Lisp_Object impl_meta_prefix_char;
 
-extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object impl_Voverriding_local_map;
 
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
@@ -2792,7 +2792,7 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
     return data.sequences;
 }
 
-static Lisp_Object Vwhere_is_preferred_modifier;
+static Lisp_Object impl_Vwhere_is_preferred_modifier;
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 

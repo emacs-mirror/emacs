@@ -71,10 +71,10 @@ Lisp_Object QCLIPBOARD, QPRIMARY;
 
 /* Coding system for communicating with other Windows programs via the
    clipboard.  */
-static Lisp_Object Vselection_coding_system;
+static Lisp_Object impl_Vselection_coding_system;
 
 /* Coding system for the next communicating with other Windows programs.  */
-static Lisp_Object Vnext_selection_coding_system;
+static Lisp_Object impl_Vnext_selection_coding_system;
 
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */

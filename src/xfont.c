@@ -342,7 +342,7 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
   return scripts;
 }
 
-extern Lisp_Object Vscalable_fonts_allowed;
+extern Lisp_Object impl_Vscalable_fonts_allowed;
 
 static Lisp_Object
 xfont_list_pattern (Display *display, char *pattern,

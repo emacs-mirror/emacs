@@ -112,10 +112,10 @@ Lisp_Object QCLIPBOARD;
 
 /* Coding system for communicating with other programs via the
    clipboard.  */
-static Lisp_Object Vselection_coding_system;
+static Lisp_Object impl_Vselection_coding_system;
 
 /* Coding system for the next communication with other programs.  */
-static Lisp_Object Vnext_selection_coding_system;
+static Lisp_Object impl_Vnext_selection_coding_system;
 
 /* Internal pseudo-constants, initialized in globals_of_w32select()
    based on current system parameters. */

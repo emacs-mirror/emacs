@@ -753,16 +753,16 @@ extern Lisp_Object minibuf_selected_window;
 /* Non-nil => window to for C-M-v to scroll when the minibuffer is
    selected.  */
 
-extern Lisp_Object Vminibuf_scroll_window;
+extern Lisp_Object impl_Vminibuf_scroll_window;
 
 /* Nil or a symbol naming the window system under which emacs is
    running ('x is the only current possibility) */
 
-extern Lisp_Object Vinitial_window_system;
+extern Lisp_Object impl_Vinitial_window_system;
 
 /* Version number of X windows: 10, 11 or nil.  */
 
-extern Lisp_Object Vwindow_system_version;
+extern Lisp_Object impl_Vwindow_system_version;
 
 /* Window that the mouse is over (nil if no mouse support).  */
 

@@ -38,7 +38,7 @@ extern Lisp_Object Qup, Qdown, Qleft, Qright;
 
 /* Non-nil means that newline may flow into the right fringe.  */
 
-Lisp_Object Voverflow_newline_into_fringe;
+Lisp_Object impl_Voverflow_newline_into_fringe;
 
 /* List of known fringe bitmap symbols.
 
@@ -47,7 +47,7 @@ Lisp_Object Voverflow_newline_into_fringe;
    loading fringe.el.
  */
 
-Lisp_Object Vfringe_bitmaps;
+Lisp_Object impl_Vfringe_bitmaps;
 
 /* Fringe bitmaps are represented in three different ways:
 

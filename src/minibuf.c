@@ -56,7 +56,7 @@ int minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
-Lisp_Object Qhistory_length, Vhistory_length;
+Lisp_Object Qhistory_length, impl_Vhistory_length;
 
 /* No duplicates in history.  */
 
@@ -64,7 +64,7 @@ int history_delete_duplicates;
 
 /* Non-nil means add new input to history.  */
 
-Lisp_Object Vhistory_add_new_input;
+Lisp_Object impl_Vhistory_add_new_input;
 
 /* Fread_minibuffer leaves the input here as a string. */
 
@@ -82,21 +82,21 @@ int minibuffer_allow_text_properties;
 
 /* help-form is bound to this while in the minibuffer.  */
 
-Lisp_Object Vminibuffer_help_form;
+Lisp_Object impl_Vminibuffer_help_form;
 
 /* Variable which is the history list to add minibuffer values to.  */
 
-Lisp_Object Vminibuffer_history_variable;
+Lisp_Object impl_Vminibuffer_history_variable;
 
 /* Current position in the history list (adjusted by M-n and M-p).  */
 
-Lisp_Object Vminibuffer_history_position;
+Lisp_Object impl_Vminibuffer_history_position;
 
 /* Text properties that are added to minibuffer prompts.
    These are in addition to the basic `field' property, and stickiness
    properties.  */
 
-Lisp_Object Vminibuffer_prompt_properties;
+Lisp_Object impl_Vminibuffer_prompt_properties;
 
 Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
@@ -104,11 +104,11 @@ Lisp_Object Qread_file_name_internal;
 
 /* Normal hooks for entry to and exit from minibuffer.  */
 
-Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
-Lisp_Object Qminibuffer_exit_hook, Vminibuffer_exit_hook;
+Lisp_Object Qminibuffer_setup_hook, impl_Vminibuffer_setup_hook;
+Lisp_Object Qminibuffer_exit_hook, impl_Vminibuffer_exit_hook;
 
 /* Function to call to read a buffer name.  */
-Lisp_Object Vread_buffer_function;
+Lisp_Object impl_Vread_buffer_function;
 
 /* Nonzero means completion ignores case.  */
 
@@ -118,7 +118,7 @@ int read_buffer_completion_ignore_case;
 
 /* List of regexps that should restrict possible completions.  */
 
-Lisp_Object Vcompletion_regexp_list;
+Lisp_Object impl_Vcompletion_regexp_list;
 
 /* Nonzero means raise the minibuffer frame when the minibuffer
    is entered.  */
@@ -126,12 +126,12 @@ Lisp_Object Vcompletion_regexp_list;
 int minibuffer_auto_raise;
 
 /* Keymap for reading expressions.  */
-Lisp_Object Vread_expression_map;
+Lisp_Object impl_Vread_expression_map;
 
-Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
-Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
-Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
-Lisp_Object Vminibuffer_completing_file_name;
+Lisp_Object impl_Vminibuffer_completion_table, Qminibuffer_completion_table;
+Lisp_Object impl_Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
+Lisp_Object impl_Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
+Lisp_Object impl_Vminibuffer_completing_file_name;
 
 Lisp_Object Quser_variable_p;
 
@@ -143,7 +143,7 @@ Lisp_Object Qcase_fold_search;
 
 Lisp_Object Qread_expression_history;
 
-extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object impl_Voverriding_local_map;
 
 extern Lisp_Object Qmouse_face;
 

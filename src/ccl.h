@@ -93,7 +93,7 @@ struct ccl_spec {
 #define CODING_SPEC_CCL_PROGRAM(coding) ((coding)->spec.ccl.ccl)
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
-extern Lisp_Object Vfont_ccl_encoder_alist;
+extern Lisp_Object impl_Vfont_ccl_encoder_alist;
 
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of ccl program CCL_PROG (symbol or vector).  */

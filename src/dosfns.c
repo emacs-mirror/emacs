@@ -265,12 +265,12 @@ EMACS_INT dos_hyper_key;
 EMACS_INT dos_super_key;
 EMACS_INT dos_keypad_mode;
 
-Lisp_Object Vdos_version;
-Lisp_Object Vdos_display_scancodes;
+Lisp_Object impl_Vdos_version;
+Lisp_Object impl_Vdos_display_scancodes;
 
 #ifndef HAVE_X_WINDOWS
 static unsigned dos_windows_version;
-Lisp_Object Vdos_windows_version;
+Lisp_Object impl_Vdos_windows_version;
 
 char parent_vm_title[50];	/* Ralf Brown says 30 is enough */
 int w95_set_virtual_machine_title (const char *);

@@ -163,7 +163,7 @@ int use_xim = 0;  /* configure --without-xim */
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
-Lisp_Object Vx_toolkit_scroll_bars;
+Lisp_Object impl_Vx_toolkit_scroll_bars;
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -301,11 +301,11 @@ static int x_noop_count;
 extern char **initial_argv;
 extern int initial_argc;
 
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
+extern Lisp_Object impl_Vcommand_line_args, impl_Vsystem_name;
 
 /* Tells if a window manager is present or not.  */
 
-extern Lisp_Object Vx_no_window_manager;
+extern Lisp_Object impl_Vx_no_window_manager;
 
 extern Lisp_Object Qeql;
 
@@ -317,8 +317,8 @@ extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
-Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
-Lisp_Object Vx_keysym_table;
+Lisp_Object impl_Vx_alt_keysym, impl_Vx_hyper_keysym, impl_Vx_meta_keysym, impl_Vx_super_keysym;
+Lisp_Object impl_Vx_keysym_table;
 static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 
 static Lisp_Object Qvendor_specific_keysyms;
@@ -334,7 +334,7 @@ Lisp_Object Qx_gtk_map_stock;
 
 /* Used in x_flush.  */
 
-extern Lisp_Object Vinhibit_redisplay;
+extern Lisp_Object impl_Vinhibit_redisplay;
 
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 extern int x_bitmap_mask P_ ((FRAME_PTR, int));

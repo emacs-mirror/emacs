@@ -251,13 +251,13 @@ extern Lisp_Object Vcharset_non_preferred_head;
 /* Incremented everytime we change the priority of charsets.  */
 extern unsigned short charset_ordered_list_tick;
 
-extern Lisp_Object Vcharset_list;
+extern Lisp_Object impl_Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
 extern Lisp_Object Vemacs_mule_charset_list;
 
 extern struct charset *emacs_mule_charset[256];
 
-extern Lisp_Object Vcurrent_iso639_language;
+extern Lisp_Object impl_Vcurrent_iso639_language;
 
 /* Macros to access information about charset.  */
 

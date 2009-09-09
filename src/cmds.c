@@ -32,19 +32,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "frame.h"
 
-Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
+Lisp_Object Qkill_forward_chars, Qkill_backward_chars, impl_Vblink_paren_function;
 
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
 
 /* Non-nil means put this face on the next self-inserting character.  */
-Lisp_Object Vself_insert_face;
+Lisp_Object impl_Vself_insert_face;
 
 /* This is the command that set up Vself_insert_face.  */
-Lisp_Object Vself_insert_face_command;
+Lisp_Object impl_Vself_insert_face_command;
 
 extern Lisp_Object Qface;
-extern Lisp_Object Vtranslation_table_for_input;
+extern Lisp_Object impl_Vtranslation_table_for_input;
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
        doc: /* Return buffer position N characters after (before if N negative) point.  */)

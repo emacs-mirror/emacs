@@ -104,10 +104,10 @@ extern void filemodestring P_ ((struct stat *, char *));
 
 extern int completion_ignore_case;
 extern Lisp_Object Qcompletion_ignore_case;
-extern Lisp_Object Vcompletion_regexp_list;
-extern Lisp_Object Vw32_get_true_file_attributes;
+extern Lisp_Object impl_Vcompletion_regexp_list;
+extern Lisp_Object impl_Vw32_get_true_file_attributes;
 
-Lisp_Object Vcompletion_ignored_extensions;
+Lisp_Object impl_Vcompletion_ignored_extensions;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;

@@ -112,23 +112,23 @@ static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
 extern char *index P_ ((const char *, int));
 #endif
 
-Lisp_Object Vbuffer_access_fontify_functions;
+Lisp_Object impl_Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
-Lisp_Object Vbuffer_access_fontified_property;
+Lisp_Object impl_Vbuffer_access_fontified_property;
 
 Lisp_Object Fuser_full_name P_ ((Lisp_Object));
 
 /* Non-nil means don't stop at field boundary in text motion commands.  */
 
-Lisp_Object Vinhibit_field_text_motion;
+Lisp_Object impl_Vinhibit_field_text_motion;
 
 /* Some static data, and a function to initialize it for each run */
 
-Lisp_Object Vsystem_name;
-Lisp_Object Vuser_real_login_name;	/* login name of current user ID */
-Lisp_Object Vuser_full_name;		/* full name of current user */
-Lisp_Object Vuser_login_name;		/* user name from LOGNAME or USER */
-Lisp_Object Voperating_system_release;  /* Operating System Release */
+Lisp_Object impl_Vsystem_name;
+Lisp_Object impl_Vuser_real_login_name;	/* login name of current user ID */
+Lisp_Object impl_Vuser_full_name;		/* full name of current user */
+Lisp_Object impl_Vuser_login_name;		/* user name from LOGNAME or USER */
+Lisp_Object impl_Voperating_system_release;  /* Operating System Release */
 
 /* Symbol for the text property used to mark fields.  */
 
@@ -319,7 +319,6 @@ static Lisp_Object
 region_limit (beginningp)
      int beginningp;
 {
-  extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
 
   if (!NILP (Vtransient_mark_mode)
@@ -3467,7 +3466,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
     }
 }
 #ifdef HAVE_MENUS
-extern Lisp_Object last_nonmenu_event;
+extern Lisp_Object impl_last_nonmenu_event;
 #endif
 
 DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,

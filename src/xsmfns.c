@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The user login name.  */
 
-extern Lisp_Object Vuser_login_name;
+extern Lisp_Object impl_Vuser_login_name;
 
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
@@ -72,12 +72,12 @@ static char *emacs_program;
 
 /* The client session id for this session as a lisp object.  */
 
-Lisp_Object Vx_session_id;
+Lisp_Object impl_Vx_session_id;
 
 /* The id we had the previous session.  This is only available if we
    have been started by the session manager with SMID_OPT.  */
 
-Lisp_Object Vx_session_previous_id;
+Lisp_Object impl_Vx_session_previous_id;
 
 /* The option we tell the session manager to start Emacs with when
    restarting Emacs.  The client_id is appended.  */

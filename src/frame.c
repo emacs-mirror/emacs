@@ -54,22 +54,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* If we shall make pointer invisible when typing or not.  */
-Lisp_Object Vmake_pointer_invisible;
+Lisp_Object impl_Vmake_pointer_invisible;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* The name we're using in resource queries.  Most often "emacs".  */
 
-Lisp_Object Vx_resource_name;
+Lisp_Object impl_Vx_resource_name;
 
 /* The application class we're using in resource queries.
    Normally "Emacs".  */
 
-Lisp_Object Vx_resource_class;
+Lisp_Object impl_Vx_resource_class;
 
 /* Lower limit value of the frame opacity (alpha transparency).  */
 
-Lisp_Object Vframe_alpha_lower_limit;
+Lisp_Object impl_Vframe_alpha_lower_limit;
 
 #endif
 
@@ -131,12 +131,12 @@ Lisp_Object Qalpha;
 
 Lisp_Object Qface_set_after_frame_default;
 
-Lisp_Object Vterminal_frame;
-Lisp_Object Vdefault_frame_alist;
-Lisp_Object Vdefault_frame_scroll_bars;
-Lisp_Object Vmouse_position_function;
-Lisp_Object Vmouse_highlight;
-static Lisp_Object Vdelete_frame_functions, Qdelete_frame_functions;
+Lisp_Object impl_Vterminal_frame;
+Lisp_Object impl_Vdefault_frame_alist;
+Lisp_Object impl_Vdefault_frame_scroll_bars;
+Lisp_Object impl_Vmouse_position_function;
+Lisp_Object impl_Vmouse_highlight;
+static Lisp_Object impl_Vdelete_frame_functions, Qdelete_frame_functions;
 
 int focus_follows_mouse;
 

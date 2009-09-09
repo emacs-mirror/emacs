@@ -83,8 +83,8 @@ extern Lisp_Object Qmenu_bar;
 
 extern Lisp_Object QCtoggle, QCradio;
 
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
+extern Lisp_Object impl_Voverriding_local_map;
+extern Lisp_Object impl_Voverriding_local_map_menu_flag;
 
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 

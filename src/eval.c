@@ -57,7 +57,7 @@ int gcpro_level;
 #endif
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
-Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
+Lisp_Object Qinhibit_quit, impl_Vinhibit_quit, impl_Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
@@ -114,25 +114,25 @@ int debugger_may_continue;
 /* List of conditions (non-nil atom means all) which cause a backtrace
    if an error is handled by the command loop's error handler.  */
 
-Lisp_Object Vstack_trace_on_error;
+Lisp_Object impl_Vstack_trace_on_error;
 
 /* List of conditions (non-nil atom means all) which enter the debugger
    if an error is handled by the command loop's error handler.  */
 
-Lisp_Object Vdebug_on_error;
+Lisp_Object impl_Vdebug_on_error;
 
 /* List of conditions and regexps specifying error messages which
    do not enter the debugger even if Vdebug_on_error says they should.  */
 
-Lisp_Object Vdebug_ignored_errors;
+Lisp_Object impl_Vdebug_ignored_errors;
 
 /* Non-nil means call the debugger even if the error will be handled.  */
 
-Lisp_Object Vdebug_on_signal;
+Lisp_Object impl_Vdebug_on_signal;
 
 /* Hook for edebug to use.  */
 
-Lisp_Object Vsignal_hook_function;
+Lisp_Object impl_Vsignal_hook_function;
 
 /* Nonzero means enter debugger if a quit signal
    is handled by the command loop's error handler. */
@@ -148,7 +148,7 @@ int debug_on_quit;
 
 int when_entered_debugger;
 
-Lisp_Object Vdebugger;
+Lisp_Object impl_Vdebugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -163,7 +163,7 @@ int handling_signal;
 
 /* Function to process declarations in defmacro forms.  */
 
-Lisp_Object Vmacro_declaration_function;
+Lisp_Object impl_Vmacro_declaration_function;
 
 extern Lisp_Object Qrisky_local_variable;
 
@@ -3448,7 +3448,6 @@ Output stream used is value of `standard-output'.  */)
   register int i;
   Lisp_Object tail;
   Lisp_Object tem;
-  extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
 
   XSETFASTINT (Vprint_level, 3);

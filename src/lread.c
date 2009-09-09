@@ -89,11 +89,11 @@ Lisp_Object Qrehash_threshold;
 extern Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
-Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
+Lisp_Object Qvariable_documentation, impl_Vvalues, impl_Vstandard_input, impl_Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
-Lisp_Object Qeval_buffer_list, Veval_buffer_list;
+Lisp_Object Qeval_buffer_list, impl_Veval_buffer_list;
 Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
@@ -110,32 +110,32 @@ int load_in_progress;
 static Lisp_Object Qload_in_progress;
 
 /* Directory in which the sources were found.  */
-Lisp_Object Vsource_directory;
+Lisp_Object impl_Vsource_directory;
 
 /* Search path and suffixes for files to be loaded. */
-Lisp_Object Vload_path, Vload_suffixes, Vload_file_rep_suffixes;
+Lisp_Object impl_Vload_path, impl_Vload_suffixes, impl_Vload_file_rep_suffixes;
 
 /* File name of user's init file.  */
-Lisp_Object Vuser_init_file;
+Lisp_Object impl_Vuser_init_file;
 
 /* This is the user-visible association list that maps features to
    lists of defs in their load files. */
-Lisp_Object Vload_history;
+Lisp_Object impl_Vload_history;
 
 /* This is used to build the load history. */
-Lisp_Object Vcurrent_load_list;
+Lisp_Object impl_Vcurrent_load_list;
 
 /* List of files that were preloaded.  */
-Lisp_Object Vpreloaded_file_list;
+Lisp_Object impl_Vpreloaded_file_list;
 
 /* Name of file actually being read by `load'.  */
-Lisp_Object Vload_file_name;
+Lisp_Object impl_Vload_file_name;
 
 /* Function to use for reading, in `load' and friends.  */
-Lisp_Object Vload_read_function;
+Lisp_Object impl_Vload_read_function;
 
 /* Non-nil means read recursive structures using #n= and #n# syntax.  */
-Lisp_Object Vread_circle;
+Lisp_Object impl_Vread_circle;
 
 /* The association list of objects read with the #n=object form.
    Each member of the list has the form (n . object), and is used to
@@ -156,17 +156,17 @@ static int load_each_byte;
 
 /* Function to use for loading an Emacs Lisp source file (not
    compiled) instead of readevalloop.  */
-Lisp_Object Vload_source_file_function;
+Lisp_Object impl_Vload_source_file_function;
 
 /* List of all DEFVAR_BOOL variables.  Used by the byte optimizer.  */
-Lisp_Object Vbyte_boolean_vars;
+Lisp_Object impl_Vbyte_boolean_vars;
 
 /* Whether or not to add a `read-positions' property to symbols
    read. */
-Lisp_Object Vread_with_symbol_positions;
+Lisp_Object impl_Vread_with_symbol_positions;
 
 /* List of (SYMBOL . POSITION) accumulated so far. */
-Lisp_Object Vread_symbol_positions_list;
+Lisp_Object impl_Vread_symbol_positions_list;
 
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
@@ -211,7 +211,7 @@ static file_offset prev_saved_doc_string_position;
    Fread initializes this to zero, so we need not specbind it
    or worry about what happens to it when there is an error.  */
 static int new_backquote_flag;
-static Lisp_Object Vold_style_backquotes, Qold_style_backquotes;
+static Lisp_Object impl_Vold_style_backquotes, Qold_style_backquotes;
 
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
@@ -228,7 +228,7 @@ int force_load_messages;
 
 /* A regular expression used to detect files compiled with Emacs.  */
 
-static Lisp_Object Vbytecomp_version_regexp;
+static Lisp_Object impl_Vbytecomp_version_regexp;
 
 static int read_emacs_mule_char P_ ((int, int (*) (int, Lisp_Object),
 				     Lisp_Object));
@@ -3579,7 +3579,7 @@ read_list (flag, readcharfun)
     }
 }
 
-Lisp_Object Vobarray;
+Lisp_Object impl_Vobarray;
 Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */

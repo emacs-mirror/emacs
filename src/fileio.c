@@ -148,15 +148,15 @@ int auto_save_error_occurred;
 Lisp_Object Qauto_save_coding;
 
 /* Coding system for file names, or nil if none.  */
-Lisp_Object Vfile_name_coding_system;
+Lisp_Object impl_Vfile_name_coding_system;
 
 /* Coding system for file names used only when
    Vfile_name_coding_system is nil.  */
-Lisp_Object Vdefault_file_name_coding_system;
+Lisp_Object impl_Vdefault_file_name_coding_system;
 
 /* Alist of elements (REGEXP . HANDLER) for file names
    whose I/O is done with a special handler.  */
-Lisp_Object Vfile_name_handler_alist;
+Lisp_Object impl_Vfile_name_handler_alist;
 
 /* Property name of a file name handler,
    which gives a list of operations it handles..  */
@@ -166,40 +166,40 @@ Lisp_Object Qoperations;
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Function to be called to decide a coding system of a reading file.  */
-Lisp_Object Vset_auto_coding_function;
+Lisp_Object impl_Vset_auto_coding_function;
 
 /* Functions to be called to process text properties in inserted file.  */
-Lisp_Object Vafter_insert_file_functions;
+Lisp_Object impl_Vafter_insert_file_functions;
 
 /* Lisp function for setting buffer-file-coding-system and the
    multibyteness of the current buffer after inserting a file.  */
 Lisp_Object Qafter_insert_file_set_coding;
 
 /* Functions to be called to create text property annotations for file.  */
-Lisp_Object Vwrite_region_annotate_functions;
+Lisp_Object impl_Vwrite_region_annotate_functions;
 Lisp_Object Qwrite_region_annotate_functions;
-Lisp_Object Vwrite_region_post_annotation_function;
+Lisp_Object impl_Vwrite_region_post_annotation_function;
 
 /* During build_annotations, each time an annotation function is called,
    this holds the annotations made by the previous functions.  */
-Lisp_Object Vwrite_region_annotations_so_far;
+Lisp_Object impl_Vwrite_region_annotations_so_far;
 
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
 Lisp_Object Vwrite_region_annotation_buffers;
 
 /* File name in which we write a list of all our auto save files.  */
-Lisp_Object Vauto_save_list_file_name;
+Lisp_Object impl_Vauto_save_list_file_name;
 
 /* Whether or not files are auto-saved into themselves.  */
-Lisp_Object Vauto_save_visited_file_name;
+Lisp_Object impl_Vauto_save_visited_file_name;
 
 /* Whether or not to continue auto-saving after a large deletion.  */
-Lisp_Object Vauto_save_include_big_deletions;
+Lisp_Object impl_Vauto_save_include_big_deletions;
 
 /* On NT, specifies the directory separator character, used (eg.) when
    expanding file names.  This can be bound to / or \. */
-Lisp_Object Vdirectory_sep_char;
+Lisp_Object impl_Vdirectory_sep_char;
 
 #ifdef HAVE_FSYNC
 /* Nonzero means skip the call to fsync in Fwrite-region.  */
@@ -221,10 +221,10 @@ Lisp_Object Qcopy_directory;
 /* Lisp function for recursively deleting directories.  */
 Lisp_Object Qdelete_directory;
 
-extern Lisp_Object Vuser_login_name;
+extern Lisp_Object impl_Vuser_login_name;
 
 #ifdef WINDOWSNT
-extern Lisp_Object Vw32_get_true_file_attributes;
+extern Lisp_Object impl_Vw32_get_true_file_attributes;
 #endif
 
 extern int minibuf_level;
@@ -238,8 +238,8 @@ extern int minibuffer_auto_raise;
    Vinhibit_file_name_operation is the operation being handled.
    If we try to handle that operation, we ignore those handlers.  */
 
-static Lisp_Object Vinhibit_file_name_handlers;
-static Lisp_Object Vinhibit_file_name_operation;
+static Lisp_Object impl_Vinhibit_file_name_handlers;
+static Lisp_Object impl_Vinhibit_file_name_operation;
 
 Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
 Lisp_Object Qexcl;

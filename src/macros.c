@@ -31,7 +31,7 @@ Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
 
 /* Kbd macro currently being executed (a string or vector).  */
 
-Lisp_Object Vexecuting_kbd_macro;
+Lisp_Object impl_Vexecuting_kbd_macro;
 
 /* Index of next character to fetch from that macro.  */
 

@@ -1729,7 +1729,7 @@ start_of_data ()
 /* init_system_name sets up the string for the Lisp function
    system-name to return. */
 
-extern Lisp_Object Vsystem_name;
+extern Lisp_Object impl_Vsystem_name;
 
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>

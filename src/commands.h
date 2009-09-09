@@ -28,32 +28,32 @@ extern Lisp_Object global_map;
 extern Lisp_Object meta_map;
 extern Lisp_Object control_x_map;
 
-extern Lisp_Object Vminibuffer_local_map;
+extern Lisp_Object impl_Vminibuffer_local_map;
 
-extern Lisp_Object Vminibuffer_local_ns_map;
+extern Lisp_Object impl_Vminibuffer_local_ns_map;
 
 /* keymap used for minibuffers when doing completion */
-extern Lisp_Object Vminibuffer_local_completion_map;
+extern Lisp_Object impl_Vminibuffer_local_completion_map;
 
 /* keymap used for minibuffers when doing completion in filenames*/
-extern Lisp_Object Vminibuffer_local_filename_completion_map;
+extern Lisp_Object impl_Vminibuffer_local_filename_completion_map;
 
 /* keymap used for minibuffers when doing completion and require a match */
-extern Lisp_Object Vminibuffer_local_must_match_map;
+extern Lisp_Object impl_Vminibuffer_local_must_match_map;
 
 /* keymap used for minibuffers when doing completion in filenames
    and require a match */
-extern Lisp_Object Vminibuffer_local_filename_must_match_map;
+extern Lisp_Object impl_Vminibuffer_local_filename_must_match_map;
 
 /* Last input event read as a command.  */
-extern Lisp_Object last_command_event;
+extern Lisp_Object impl_last_command_event;
 
 /* Last input event read as a command, not counting menus
    reached by the mouse.  */
-extern Lisp_Object last_nonmenu_event;
+extern Lisp_Object impl_last_nonmenu_event;
 
 /* List of command events to be re-read, or Qnil.  */
-extern Lisp_Object Vunread_command_events;
+extern Lisp_Object impl_Vunread_command_events;
 
 /* Command char event to be re-read, or -1 if none.
    Setting this is obsolete, but some things should still check it.  */
@@ -62,7 +62,7 @@ extern EMACS_INT unread_command_char;
 /* The command being executed by the command loop.
    Commands may set this, and the value set will be copied into
    current_kboard->Vlast_command instead of the actual command.  */
-extern Lisp_Object Vthis_command;
+extern Lisp_Object impl_Vthis_command;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
@@ -85,7 +85,7 @@ extern Lisp_Object last_point_position_window;
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
-extern Lisp_Object Vexecuting_kbd_macro;
+extern Lisp_Object impl_Vexecuting_kbd_macro;
 
 /* Nonzero if input is coming from the keyboard */
 

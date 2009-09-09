@@ -124,7 +124,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 
 /* Search path for bitmap files.  */
 
-Lisp_Object Vx_bitmap_file_path;
+Lisp_Object impl_Vx_bitmap_file_path;
 
 
 static void x_disable_image P_ ((struct frame *, struct image *));
@@ -585,11 +585,11 @@ static struct image_type *image_types;
 
 /* A list of symbols, one for each supported image type.  */
 
-Lisp_Object Vimage_types;
+Lisp_Object impl_Vimage_types;
 
 /* An alist of image types and libraries that implement the type.  */
 
-Lisp_Object Vimage_library_alist;
+Lisp_Object impl_Vimage_library_alist;
 
 /* Cache for delayed-loading image types.  */
 
@@ -615,7 +615,7 @@ Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 /* Time in seconds after which images should be removed from the cache
    if not displayed.  */
 
-Lisp_Object Vimage_cache_eviction_delay;
+Lisp_Object impl_Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
@@ -1042,7 +1042,7 @@ static void free_image P_ ((struct frame *f, struct image *img));
 static int check_image_size P_ ((struct frame *f, int width, int height));
 
 #define MAX_IMAGE_SIZE 6.0
-Lisp_Object Vmax_image_size;
+Lisp_Object impl_Vmax_image_size;
 
 /* Allocate and return a new image structure for image specification
    SPEC.  SPEC has a hash value of HASH.  */

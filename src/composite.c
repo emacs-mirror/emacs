@@ -154,13 +154,13 @@ int n_compositions;
 Lisp_Object composition_hash_table;
 
 /* Function to call to adjust composition.  */
-Lisp_Object Vcompose_chars_after_function;
+Lisp_Object impl_Vcompose_chars_after_function;
 
 Lisp_Object Qauto_composed;
-Lisp_Object Vauto_composition_mode;
-Lisp_Object Vauto_composition_function;
+Lisp_Object impl_Vauto_composition_mode;
+Lisp_Object impl_Vauto_composition_function;
 Lisp_Object Qauto_composition_function;
-Lisp_Object Vcomposition_function_table;
+Lisp_Object impl_Vcomposition_function_table;
 
 /* Maxinum number of characters to lookback to check
    auto-composition.  */

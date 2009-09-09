@@ -366,7 +366,7 @@ extern Lisp_Object Qcircular_list;
    for a face background color.  See `set-face-stipple' for possible
    values for this variable.  */
 
-Lisp_Object Vface_default_stipple;
+Lisp_Object impl_Vface_default_stipple;
 
 /* Alist of alternative font families.  Each element is of the form
    (FAMILY FAMILY1 FAMILY2 ...).  If fonts of FAMILY can't be loaded,
@@ -386,20 +386,20 @@ Lisp_Object Vface_alternative_font_registry_alist;
    font may be scaled if its name matches a regular expression in the
    list.  */
 
-Lisp_Object Vscalable_fonts_allowed, Qscalable_fonts_allowed;
+Lisp_Object impl_Vscalable_fonts_allowed, Qscalable_fonts_allowed;
 
 /* List of regular expressions that matches names of fonts to ignore. */
 
-Lisp_Object Vface_ignored_fonts;
+Lisp_Object impl_Vface_ignored_fonts;
 
 /* Alist of font name patterns vs the rescaling factor.  */
 
-Lisp_Object Vface_font_rescale_alist;
+Lisp_Object impl_Vface_font_rescale_alist;
 
 /* Maximum number of fonts to consider in font_list.  If not an
    integer > 0, DEFAULT_FONT_LIST_LIMIT is used instead.  */
 
-Lisp_Object Vfont_list_limit;
+Lisp_Object impl_Vfont_list_limit;
 #define DEFAULT_FONT_LIST_LIMIT 100
 
 /* The symbols `foreground-color' and `background-color' which can be
@@ -426,7 +426,7 @@ Lisp_Object Qbitmap_spec_p;
    is a Lisp vector of face attributes.  These faces are used
    to initialize faces for new frames.  */
 
-Lisp_Object Vface_new_frame_defaults;
+Lisp_Object impl_Vface_new_frame_defaults;
 
 /* Alist of face remappings.  Each element is of the form:
    (FACE REPLACEMENT...) which causes display of the face FACE to use
@@ -443,7 +443,7 @@ Lisp_Object Vface_new_frame_defaults;
    Face-name remapping cycles are suppressed; recursive references use
    the underlying face instead of the remapped face.  */
 
-Lisp_Object Vface_remapping_alist;
+Lisp_Object impl_Vface_remapping_alist;
 
 /* The next ID to assign to Lisp faces.  */
 
@@ -464,7 +464,7 @@ Lisp_Object Qtty_color_alist;
 
 /* An alist of defined terminal colors and their RGB values.  */
 
-Lisp_Object Vtty_defined_color_alist;
+Lisp_Object impl_Vtty_defined_color_alist;
 
 /* Counter for calls to clear_face_cache.  If this counter reaches
    CLEAR_FONT_TABLE_COUNT, and a frame has more than

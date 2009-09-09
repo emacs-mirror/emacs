@@ -74,7 +74,7 @@ static DWORD   prev_console_mode;
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
-extern Lisp_Object Vtty_defined_color_alist;
+extern Lisp_Object impl_Vtty_defined_color_alist;
 
 /* Determine whether to make frame dimensions match the screen buffer,
    or the current window size.  The former is desirable when running

@@ -75,22 +75,22 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
    correct parsing by child process.  Because not all uses of spawnve
    are careful about constructing argv arrays, we make this behavior
    conditional (off by default). */
-Lisp_Object Vw32_quote_process_args;
+Lisp_Object impl_Vw32_quote_process_args;
 
 /* Control whether create_child causes the process' window to be
    hidden.  The default is nil. */
-Lisp_Object Vw32_start_process_show_window;
+Lisp_Object impl_Vw32_start_process_show_window;
 
 /* Control whether create_child causes the process to inherit Emacs'
    console window, or be given a new one of its own.  The default is
    nil, to allow multiple DOS programs to run on Win95.  Having separate
    consoles also allows Emacs to cleanly terminate process groups.  */
-Lisp_Object Vw32_start_process_share_console;
+Lisp_Object impl_Vw32_start_process_share_console;
 
 /* Control whether create_child cause the process to inherit Emacs'
    error mode setting.  The default is t, to minimize the possibility of
    subprocesses blocking when accessing unmounted drives.  */
-Lisp_Object Vw32_start_process_inherit_error_mode;
+Lisp_Object impl_Vw32_start_process_inherit_error_mode;
 
 /* Time to sleep before reading from a subprocess output pipe - this
    avoids the inefficiency of frequently reading small amounts of data.
@@ -100,18 +100,18 @@ int w32_pipe_read_delay;
 
 /* Control conversion of upper case file names to lower case.
    nil means no, t means yes. */
-Lisp_Object Vw32_downcase_file_names;
+Lisp_Object impl_Vw32_downcase_file_names;
 
 /* Control whether stat() attempts to generate fake but hopefully
    "accurate" inode values, by hashing the absolute truenames of files.
    This should detect aliasing between long and short names, but still
    allows the possibility of hash collisions.  */
-Lisp_Object Vw32_generate_fake_inodes;
+Lisp_Object impl_Vw32_generate_fake_inodes;
 
 /* Control whether stat() attempts to determine file type and link count
    exactly, at the expense of slower operation.  Since true hard links
    are supported on NTFS volumes, this is only relevant on NT.  */
-Lisp_Object Vw32_get_true_file_attributes;
+Lisp_Object impl_Vw32_get_true_file_attributes;
 extern Lisp_Object Qlocal;
 
 Lisp_Object Qhigh, Qlow;
@@ -1708,7 +1708,7 @@ extern HANDLE winsock_lib;
 extern BOOL term_winsock (void);
 extern BOOL init_winsock (int load_now);
 
-extern Lisp_Object Vsystem_name;
+extern Lisp_Object impl_Vsystem_name;
 
 DEFUN ("w32-has-winsock", Fw32_has_winsock, Sw32_has_winsock, 0, 1, 0,
        doc: /* Test for presence of the Windows socket library `winsock'.

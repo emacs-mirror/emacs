@@ -636,14 +636,14 @@ extern int strwidth P_ ((unsigned char *, int));
 extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
 extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
 
-extern Lisp_Object Vprintable_chars;
+extern Lisp_Object impl_Vprintable_chars;
 
 extern Lisp_Object Qcharacterp, Qauto_fill_chars;
-extern Lisp_Object Vtranslation_table_vector;
-extern Lisp_Object Vchar_width_table;
-extern Lisp_Object Vchar_direction_table;
+extern Lisp_Object impl_Vtranslation_table_vector;
+extern Lisp_Object impl_Vchar_width_table;
+extern Lisp_Object impl_Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
-extern Lisp_Object Vunicode_category_table;
+extern Lisp_Object impl_Vunicode_category_table;
 
 extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
 
@@ -652,10 +652,10 @@ extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
 
 /* A char-table for characters which may invoke auto-filling.  */
-extern Lisp_Object Vauto_fill_chars;
+extern Lisp_Object impl_Vauto_fill_chars;
 
-extern Lisp_Object Vchar_script_table;
-extern Lisp_Object Vscript_representative_chars;
+extern Lisp_Object impl_Vchar_script_table;
+extern Lisp_Object impl_Vscript_representative_chars;
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is

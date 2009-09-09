@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* List of all charsets.  This variable is used only from Emacs
    Lisp.  */
-Lisp_Object Vcharset_list;
+Lisp_Object impl_Vcharset_list;
 
 /* Hash table that contains attributes of each charset.  Keys are
    charset symbols, and values are vectors of charset attributes.  */
@@ -120,12 +120,12 @@ struct charset *emacs_mule_charset[256];
    CHARS, and FINAL-CHAR) to Emacs' charset.  */
 int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
-Lisp_Object Vcharset_map_path;
+Lisp_Object impl_Vcharset_map_path;
 
 /* If nonzero, don't load charset maps.  */
 int inhibit_load_charset_map;
 
-Lisp_Object Vcurrent_iso639_language;
+Lisp_Object impl_Vcurrent_iso639_language;
 
 /* Defined in chartab.c */
 extern void

@@ -122,26 +122,26 @@ static void reset_buffer_local_variables P_ ((struct buffer *b, int permanent_to
 Lisp_Object Vbuffer_alist;
 
 /* Functions to call before and after each text change. */
-Lisp_Object Vbefore_change_functions;
-Lisp_Object Vafter_change_functions;
+Lisp_Object impl_Vbefore_change_functions;
+Lisp_Object impl_Vafter_change_functions;
 
-Lisp_Object Vtransient_mark_mode;
+Lisp_Object impl_Vtransient_mark_mode;
 
 /* t means ignore all read-only text properties.
    A list means ignore such a property if its value is a member of the list.
    Any non-nil value means ignore buffer-read-only.  */
-Lisp_Object Vinhibit_read_only;
+Lisp_Object impl_Vinhibit_read_only;
 
 /* List of functions to call that can query about killing a buffer.
    If any of these functions returns nil, we don't kill it.  */
-Lisp_Object Vkill_buffer_query_functions;
+Lisp_Object impl_Vkill_buffer_query_functions;
 Lisp_Object Qkill_buffer_query_functions;
 
 /* Hook run before changing a major mode.  */
-Lisp_Object Vchange_major_mode_hook, Qchange_major_mode_hook;
+Lisp_Object impl_Vchange_major_mode_hook, Qchange_major_mode_hook;
 
 /* List of functions to call before changing an unmodified buffer.  */
-Lisp_Object Vfirst_change_hook;
+Lisp_Object impl_Vfirst_change_hook;
 
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;

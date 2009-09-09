@@ -45,12 +45,12 @@ extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 
-extern Lisp_Object Vuse_default_ascent;
-extern Lisp_Object Vignore_relative_composition;
-extern Lisp_Object Valternate_fontname_alist;
-extern Lisp_Object Vfontset_alias_alist;
-extern Lisp_Object Vvertical_centering_font_regexp;
-extern Lisp_Object Votf_script_alist;
+extern Lisp_Object impl_Vuse_default_ascent;
+extern Lisp_Object impl_Vignore_relative_composition;
+extern Lisp_Object impl_Valternate_fontname_alist;
+extern Lisp_Object impl_Vfontset_alias_alist;
+extern Lisp_Object impl_Vvertical_centering_font_regexp;
+extern Lisp_Object impl_Votf_script_alist;
 
 extern Lisp_Object fontset_name P_ ((int));
 extern Lisp_Object fontset_ascii P_ ((int));

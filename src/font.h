@@ -836,7 +836,7 @@ extern struct font_driver nsfont_driver;
 #define FONT_DEBUG
 #endif
 
-extern Lisp_Object Vfont_log;
+extern Lisp_Object impl_Vfont_log;
 extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern void font_deferred_log P_ ((char *, Lisp_Object, Lisp_Object));
 

@@ -2667,7 +2667,7 @@ enum tool_bar_item_image
 
 /* Margin around tool-bar buttons in pixels.  */
 
-extern Lisp_Object Vtool_bar_button_margin;
+extern Lisp_Object impl_Vtool_bar_button_margin;
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 
@@ -2753,7 +2753,7 @@ int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 extern Lisp_Object Qtool_bar;
-extern Lisp_Object Vshow_trailing_whitespace;
+extern Lisp_Object impl_Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
@@ -2764,7 +2764,7 @@ extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
-extern Lisp_Object Vmouse_autoselect_window;
+extern Lisp_Object impl_Vmouse_autoselect_window;
 extern int unibyte_display_via_language_environment;
 extern EMACS_INT underline_minimum_offset;
 
@@ -2939,7 +2939,7 @@ extern Lisp_Object Qforeground_color, Qbackground_color;
 extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 
-extern Lisp_Object Vface_remapping_alist;
+extern Lisp_Object impl_Vface_remapping_alist;
 
 /* Defined in xfns.c  */
 

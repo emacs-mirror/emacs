@@ -38,10 +38,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 Lisp_Object Qccl, Qcclp;
 
 /* This contains all code conversion map available to CCL.  */
-Lisp_Object Vcode_conversion_map_vector;
+Lisp_Object impl_Vcode_conversion_map_vector;
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
-Lisp_Object Vfont_ccl_encoder_alist;
+Lisp_Object impl_Vfont_ccl_encoder_alist;
 
 /* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
@@ -66,7 +66,7 @@ Lisp_Object Qccl_program_idx;
 Lisp_Object Vccl_program_table;
 
 /* Vector of registered hash tables for translation.  */
-Lisp_Object Vtranslation_hash_table_vector;
+Lisp_Object impl_Vtranslation_hash_table_vector;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \

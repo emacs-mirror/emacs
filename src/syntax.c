@@ -1178,7 +1178,7 @@ int parse_sexp_ignore_comments;
 
 /* Char-table of functions that find the next or previous word
    boundary.  */
-Lisp_Object Vfind_word_boundary_function_table;
+Lisp_Object impl_Vfind_word_boundary_function_table;
 
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.

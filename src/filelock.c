@@ -59,7 +59,7 @@ extern int errno;
 
 /* The directory for writing temporary files.  */
 
-Lisp_Object Vtemporary_file_directory;
+Lisp_Object impl_Vtemporary_file_directory;
 
 #ifdef CLASH_DETECTION
 
@@ -122,7 +122,7 @@ Lisp_Object Vtemporary_file_directory;
 static time_t boot_time;
 static int boot_time_initialized;
 
-extern Lisp_Object Vshell_file_name;
+extern Lisp_Object impl_Vshell_file_name;
 
 #ifdef BOOT_TIME
 static void get_boot_time_1 P_ ((char *, int));

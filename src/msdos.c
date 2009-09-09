@@ -963,7 +963,7 @@ IT_set_face (int face)
    accomodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
-Lisp_Object Vdos_unsupported_char_glyph;
+Lisp_Object impl_Vdos_unsupported_char_glyph;
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
 static void

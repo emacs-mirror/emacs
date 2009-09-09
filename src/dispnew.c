@@ -205,7 +205,7 @@ int redisplay_dont_pause;
 
 /* If a number (float), check for user input every N seconds.  */
 
-Lisp_Object Vredisplay_preemption_period;
+Lisp_Object impl_Vredisplay_preemption_period;
 
 /* Redisplay preemption timers.  */
 
@@ -239,11 +239,11 @@ EMACS_INT baud_rate;
 /* Either nil or a symbol naming the window system under which Emacs
    creates the first frame.  */
 
-Lisp_Object Vinitial_window_system;
+Lisp_Object impl_Vinitial_window_system;
 
 /* Version number of X windows: 10, 11 or nil.  */
 
-Lisp_Object Vwindow_system_version;
+Lisp_Object impl_Vwindow_system_version;
 
 /* Vector of glyph definitions.  Indexed by glyph number, the contents
    are a string which is how to output the glyph.
@@ -254,11 +254,11 @@ Lisp_Object Vwindow_system_version;
    This is an obsolete feature that is no longer used.  The variable
    is retained for compatibility.  */
 
-Lisp_Object Vglyph_table;
+Lisp_Object impl_Vglyph_table;
 
 /* Display table to use for vectors that don't specify their own.  */
 
-Lisp_Object Vstandard_display_table;
+Lisp_Object impl_Vstandard_display_table;
 
 /* Nonzero means reading single-character input with prompt so put
    cursor on mini-buffer after the prompt.  Positive means at end of
@@ -4208,7 +4208,6 @@ update_window (w, force_p)
   int preempt_count = baud_rate / 2400 + 1;
 #endif
   extern int input_pending;
-  extern Lisp_Object do_mouse_tracking;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */

@@ -119,30 +119,30 @@ EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
 enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
-Lisp_Object Vcommand_line_args;
+Lisp_Object impl_Vcommand_line_args;
 
 /* The name under which Emacs was invoked, with any leading directory
    names discarded.  */
-Lisp_Object Vinvocation_name;
+Lisp_Object impl_Vinvocation_name;
 
 /* The directory name from which Emacs was invoked.  */
-Lisp_Object Vinvocation_directory;
+Lisp_Object impl_Vinvocation_directory;
 
 /* The directory name in which to find subdirs such as lisp and etc.
    nil means get them only from PATH_LOADSEARCH.  */
-Lisp_Object Vinstallation_directory;
+Lisp_Object impl_Vinstallation_directory;
 
 /* The values of `current-time' before and after Emacs initialization.  */
-Lisp_Object Vbefore_init_time, Vafter_init_time;
+Lisp_Object impl_Vbefore_init_time, impl_Vafter_init_time;
 
 /* Hook run by `kill-emacs' before it does really anything.  */
-Lisp_Object Vkill_emacs_hook;
+Lisp_Object impl_Vkill_emacs_hook;
 
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
 /* Search path separator.  */
-Lisp_Object Vpath_separator;
+Lisp_Object impl_Vpath_separator;
 
 /* Set nonzero after Emacs has started up the first time.
   Prevents reinitialization of the Lisp world and keymaps
@@ -163,22 +163,22 @@ int malloc_using_checking;
 #endif
 
 /* Variable whose value is symbol giving operating system type.  */
-Lisp_Object Vsystem_type;
+Lisp_Object impl_Vsystem_type;
 
 /* Variable whose value is string giving configuration built for.  */
-Lisp_Object Vsystem_configuration;
+Lisp_Object impl_Vsystem_configuration;
 
 /* Variable whose value is string giving configuration options,
    for use when reporting bugs.  */
-Lisp_Object Vsystem_configuration_options;
+Lisp_Object impl_Vsystem_configuration_options;
 
 Lisp_Object Qfile_name_handler_alist;
 
 /* Current and previous system locales for messages and time.  */
-Lisp_Object Vsystem_messages_locale;
-Lisp_Object Vprevious_system_messages_locale;
-Lisp_Object Vsystem_time_locale;
-Lisp_Object Vprevious_system_time_locale;
+Lisp_Object impl_Vsystem_messages_locale;
+Lisp_Object impl_Vprevious_system_messages_locale;
+Lisp_Object impl_Vsystem_time_locale;
+Lisp_Object impl_Vprevious_system_time_locale;
 
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
@@ -219,12 +219,12 @@ static unsigned long heap_bss_diff;
 
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Vinitial_window_system;
+extern Lisp_Object impl_Vinitial_window_system;
 #endif /* HAVE_WINDOW_SYSTEM */
 
-extern Lisp_Object Vauto_save_list_file_name;
+extern Lisp_Object impl_Vauto_save_list_file_name;
 
-extern Lisp_Object Vinhibit_redisplay;
+extern Lisp_Object impl_Vinhibit_redisplay;
 
 /* Nonzero means running Emacs without interactive terminal.  */
 

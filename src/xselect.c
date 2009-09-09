@@ -120,8 +120,8 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
   QCUT_BUFFER4, QCUT_BUFFER5, QCUT_BUFFER6, QCUT_BUFFER7;
 #endif
 
-static Lisp_Object Vx_lost_selection_functions;
-static Lisp_Object Vx_sent_selection_functions;
+static Lisp_Object impl_Vx_lost_selection_functions;
+static Lisp_Object impl_Vx_sent_selection_functions;
 static Lisp_Object Qforeign_selection;
 
 /* If this is a smaller number than the max-request-size of the display,
@@ -157,7 +157,7 @@ static Lisp_Object Vselection_alist;
    call to convert the given Emacs selection value to a string representing
    the given selection type.  This is for Lisp-level extension of the emacs
    selection handling.  */
-static Lisp_Object Vselection_converter_alist;
+static Lisp_Object impl_Vselection_converter_alist;
 
 /* If the selection owner takes too long to reply to a selection request,
    we give up on it.  This is in milliseconds (0 = no timeout.)  */

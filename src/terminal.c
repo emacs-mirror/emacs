@@ -38,7 +38,7 @@ static int next_terminal_id;
 struct terminal *initial_terminal;
 
 /* Function to use to ring the bell.  */
-Lisp_Object Vring_bell_function;
+Lisp_Object impl_Vring_bell_function;
 
 static void delete_initial_terminal P_ ((struct terminal *));
 
@@ -291,7 +291,7 @@ delete_terminal (struct terminal *terminal)
 
 Lisp_Object Qrun_hook_with_args;
 static Lisp_Object Qdelete_terminal_functions;
-static Lisp_Object Vdelete_terminal_functions;
+static Lisp_Object impl_Vdelete_terminal_functions;
 
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.

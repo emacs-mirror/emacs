@@ -37,25 +37,25 @@ extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qonly;
 
-Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
+Lisp_Object impl_Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
-Lisp_Object Vcommand_history;
+Lisp_Object impl_Vcommand_history;
 
-extern Lisp_Object Vhistory_length;
-extern Lisp_Object Vthis_original_command, real_this_command;
+extern Lisp_Object impl_Vhistory_length;
+extern Lisp_Object impl_Vthis_original_command, real_this_command;
 extern int history_delete_duplicates;
 
-Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
+Lisp_Object impl_Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
 extern Lisp_Object Qface, Qminibuffer_prompt;
 
 /* Non-nil means treat the mark as active
    even if mark_active is 0.  */
-Lisp_Object Vmark_even_if_inactive;
+Lisp_Object impl_Vmark_even_if_inactive;
 
 Lisp_Object Qhandle_shift_selection;
 
-Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
+Lisp_Object impl_Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
 Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
 static Lisp_Object preserved_fns;

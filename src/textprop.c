@@ -68,10 +68,10 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
    traversing plists.  */
 #define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCDR (o1), CONSP (o2)))
 
-Lisp_Object Vinhibit_point_motion_hooks;
-Lisp_Object Vdefault_text_properties;
-Lisp_Object Vchar_property_alias_alist;
-Lisp_Object Vtext_property_default_nonsticky;
+Lisp_Object impl_Vinhibit_point_motion_hooks;
+Lisp_Object impl_Vdefault_text_properties;
+Lisp_Object impl_Vchar_property_alias_alist;
+Lisp_Object impl_Vtext_property_default_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */

@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Kbd macro currently being executed (a string or vector).  */
 
-extern Lisp_Object Vexecuting_kbd_macro;
+extern Lisp_Object impl_Vexecuting_kbd_macro;
 
 /* Index of next character to fetch from that macro.  */
 

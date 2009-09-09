@@ -131,10 +131,10 @@ static int visible_cursor;
 extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
 /* Functions to call after suspending a tty. */
-Lisp_Object Vsuspend_tty_functions;
+Lisp_Object impl_Vsuspend_tty_functions;
 
 /* Functions to call after resuming a tty. */
-Lisp_Object Vresume_tty_functions;
+Lisp_Object impl_Vresume_tty_functions;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;

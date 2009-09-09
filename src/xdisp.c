@@ -224,7 +224,7 @@ extern int pending_menu_activation;
 extern int interrupt_input;
 extern int command_loop_level;
 
-extern Lisp_Object do_mouse_tracking;
+extern Lisp_Object impl_do_mouse_tracking;
 
 extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
@@ -232,17 +232,17 @@ extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object Qface;
 extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
 
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
+extern Lisp_Object impl_Voverriding_local_map;
+extern Lisp_Object impl_Voverriding_local_map_menu_flag;
 extern Lisp_Object Qmenu_item;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qhelp_echo;
 extern Lisp_Object Qbefore_string, Qafter_string;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-Lisp_Object Qwindow_text_change_functions, Vwindow_text_change_functions;
-Lisp_Object Qredisplay_end_trigger_functions, Vredisplay_end_trigger_functions;
+Lisp_Object Qwindow_scroll_functions, impl_Vwindow_scroll_functions;
+Lisp_Object Qwindow_text_change_functions, impl_Vwindow_text_change_functions;
+Lisp_Object Qredisplay_end_trigger_functions, impl_Vredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
 Lisp_Object Qfontified;
@@ -263,15 +263,15 @@ Lisp_Object list_of_error;
 
 /* Functions called to fontify regions of text.  */
 
-Lisp_Object Vfontification_functions;
+Lisp_Object impl_Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
 /* Non-nil means automatically select any window when the mouse
    cursor moves into it.  */
-Lisp_Object Vmouse_autoselect_window;
+Lisp_Object impl_Vmouse_autoselect_window;
 
-Lisp_Object Vwrap_prefix, Qwrap_prefix;
-Lisp_Object Vline_prefix, Qline_prefix;
+Lisp_Object impl_Vwrap_prefix, Qwrap_prefix;
+Lisp_Object impl_Vline_prefix, Qline_prefix;
 
 /* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
@@ -286,11 +286,11 @@ int make_cursor_line_fully_visible_p;
    If value is `internal-border-width' or `border-width',
    the corresponding frame parameter is used.  */
 
-Lisp_Object Vtool_bar_border;
+Lisp_Object impl_Vtool_bar_border;
 
 /* Margin around tool bar buttons in pixels.  */
 
-Lisp_Object Vtool_bar_button_margin;
+Lisp_Object impl_Vtool_bar_button_margin;
 
 /* Thickness of shadow to draw around tool bar buttons.  */
 
@@ -301,7 +301,7 @@ EMACS_INT tool_bar_button_relief;
 
    If value is `grow-only', only make tool-bar bigger.  */
 
-Lisp_Object Vauto_resize_tool_bars;
+Lisp_Object impl_Vauto_resize_tool_bars;
 
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
@@ -311,7 +311,7 @@ int x_stretch_cursor_p;
 
 /* Non-nil means don't actually do any redisplay.  */
 
-Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
+Lisp_Object impl_Vinhibit_redisplay, Qinhibit_redisplay;
 
 /* Non-zero means Lisp evaluation during redisplay is inhibited.  */
 
@@ -324,7 +324,7 @@ extern Lisp_Object Qface, Qinvisible, Qwidth;
 
 /* Symbols used in text property values.  */
 
-Lisp_Object Vdisplay_pixels_per_inch;
+Lisp_Object impl_Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qslice;
@@ -338,14 +338,14 @@ extern Lisp_Object Qcursor;
 
 /* Non-nil means highlight trailing whitespace.  */
 
-Lisp_Object Vshow_trailing_whitespace;
+Lisp_Object impl_Vshow_trailing_whitespace;
 
 /* Non-nil means escape non-break space and hyphens.  */
 
-Lisp_Object Vnobreak_char_display;
+Lisp_Object impl_Vnobreak_char_display;
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Voverflow_newline_into_fringe;
+extern Lisp_Object impl_Voverflow_newline_into_fringe;
 
 /* Test if overflow newline into fringe.  Called with iterator IT
    at or past right window margin, and with IT->current_x set.  */
@@ -371,7 +371,7 @@ extern Lisp_Object Voverflow_newline_into_fringe;
    i.e. in blank areas after eol and eob.  This used to be
    the default in 21.3.  */
 
-Lisp_Object Vvoid_text_area_pointer;
+Lisp_Object impl_Vvoid_text_area_pointer;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
@@ -440,7 +440,7 @@ static struct buffer *this_line_buffer;
 /* Nonzero means truncate lines in all windows less wide than the
    frame.  */
 
-Lisp_Object Vtruncate_partial_width_windows;
+Lisp_Object impl_Vtruncate_partial_width_windows;
 
 /* A flag to control how to display unibyte 8-bit character.  */
 
@@ -452,22 +452,22 @@ int unibyte_display_via_language_environment;
 
 int multiple_frames;
 
-Lisp_Object Vglobal_mode_string;
+Lisp_Object impl_Vglobal_mode_string;
 
 
 /* List of variables (symbols) which hold markers for overlay arrows.
    The symbols on this list are examined during redisplay to determine
    where to display overlay arrows.  */
 
-Lisp_Object Voverlay_arrow_variable_list;
+Lisp_Object impl_Voverlay_arrow_variable_list;
 
 /* Marker for where to display an arrow on top of the buffer text.  */
 
-Lisp_Object Voverlay_arrow_position;
+Lisp_Object impl_Voverlay_arrow_position;
 
 /* String to display for the arrow.  Only used on terminal frames.  */
 
-Lisp_Object Voverlay_arrow_string;
+Lisp_Object impl_Voverlay_arrow_string;
 
 /* Values of those variables at last redisplay are stored as
    properties on `overlay-arrow-position' symbol.  However, if
@@ -483,19 +483,19 @@ Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
 
 /* Like mode-line-format, but for the title bar on a visible frame.  */
 
-Lisp_Object Vframe_title_format;
+Lisp_Object impl_Vframe_title_format;
 
 /* Like mode-line-format, but for the title bar on an iconified frame.  */
 
-Lisp_Object Vicon_title_format;
+Lisp_Object impl_Vicon_title_format;
 
 /* List of functions to call when a window's size changes.  These
    functions get one arg, a frame on which one or more windows' sizes
    have changed.  */
 
-static Lisp_Object Vwindow_size_change_functions;
+static Lisp_Object impl_Vwindow_size_change_functions;
 
-Lisp_Object Qmenu_bar_update_hook, Vmenu_bar_update_hook;
+Lisp_Object Qmenu_bar_update_hook, impl_Vmenu_bar_update_hook;
 
 /* Nonzero if an overlay arrow has been displayed in this window.  */
 
@@ -587,7 +587,7 @@ int line_number_displayed;
 
 /* Maximum buffer size for which to display line numbers.  */
 
-Lisp_Object Vline_number_display_limit;
+Lisp_Object impl_Vline_number_display_limit;
 
 /* Line width to consider when repositioning for line number display.  */
 
@@ -596,7 +596,7 @@ static EMACS_INT line_number_display_limit_width;
 /* Number of lines to keep in the message log buffer.  t means
    infinite.  nil means don't log at all.  */
 
-Lisp_Object Vmessage_log_max;
+Lisp_Object impl_Vmessage_log_max;
 
 /* The name of the *Messages* buffer, a string.  */
 
@@ -633,13 +633,13 @@ int inhibit_menubar_update;
 /* When evaluating expressions from menu bar items (enable conditions,
    for instance), this is the frame they are being processed for.  */
 
-Lisp_Object Vmenu_updating_frame;
+Lisp_Object impl_Vmenu_updating_frame;
 
 /* Maximum height for resizing mini-windows.  Either a float
    specifying a fraction of the available height, or an integer
    specifying a number of lines.  */
 
-Lisp_Object Vmax_mini_window_height;
+Lisp_Object impl_Vmax_mini_window_height;
 
 /* Non-zero means messages should be displayed with truncated
    lines instead of being continued.  */
@@ -653,7 +653,7 @@ Lisp_Object Qmessage_truncate_lines;
 static int message_cleared_p;
 
 /* How to blink the default frame cursor off.  */
-Lisp_Object Vblink_cursor_alist;
+Lisp_Object impl_Vblink_cursor_alist;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -718,14 +718,14 @@ Lisp_Object Qauto_hscroll_mode;
 EMACS_INT hscroll_margin;
 
 /* How much to scroll horizontally when point is inside the above margin.  */
-Lisp_Object Vhscroll_step;
+Lisp_Object impl_Vhscroll_step;
 
 /* The variable `resize-mini-windows'.  If nil, don't resize
    mini-windows.  If t, always resize them to fit the text they
    display.  If `grow-only', let mini-windows grow only until they
    become empty.  */
 
-Lisp_Object Vresize_mini_windows;
+Lisp_Object impl_Vresize_mini_windows;
 
 /* Buffer being redisplayed -- for redisplay_window_error.  */
 
@@ -873,7 +873,7 @@ int hourglass_shown_p;
 struct atimer *hourglass_atimer;
 
 /* Number of seconds to wait before displaying an hourglass cursor.  */
-Lisp_Object Vhourglass_delay;
+Lisp_Object impl_Vhourglass_delay;
 
 /* Default number of seconds to wait before displaying an hourglass
    cursor.  */

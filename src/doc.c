@@ -49,14 +49,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern char *index P_ ((const char *, int));
 #endif
 
-Lisp_Object Vdoc_file_name;
+Lisp_Object impl_Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
 
 /* A list of files used to build this Emacs binary.  */
-static Lisp_Object Vbuild_files;
+static Lisp_Object impl_Vbuild_files;
 
-extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object impl_Voverriding_local_map;
 
 extern Lisp_Object Qremap;
 

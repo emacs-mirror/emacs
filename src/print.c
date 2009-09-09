@@ -37,14 +37,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"		/* For struct terminal.  */
 #include "font.h"
 
-Lisp_Object Vstandard_output, Qstandard_output;
+Lisp_Object impl_Vstandard_output, Qstandard_output;
 
 Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
-Lisp_Object Vfloat_output_format, Qfloat_output_format;
+Lisp_Object impl_Vfloat_output_format, Qfloat_output_format;
 
 #include <math.h>
 
@@ -106,12 +106,12 @@ int print_buffer_pos_byte;
 /* Maximum length of list to print in full; noninteger means
    effectively infinity */
 
-Lisp_Object Vprint_length;
+Lisp_Object impl_Vprint_length;
 
 /* Maximum depth of list to print in full; noninteger means
    effectively infinity.  */
 
-Lisp_Object Vprint_level;
+Lisp_Object impl_Vprint_level;
 
 /* Nonzero means print newlines in strings as \n.  */
 
@@ -135,16 +135,16 @@ int print_quoted;
 
 /* Non-nil means print #: before uninterned symbols.  */
 
-Lisp_Object Vprint_gensym;
+Lisp_Object impl_Vprint_gensym;
 
 /* Non-nil means print recursive structures using #n= and #n# syntax.  */
 
-Lisp_Object Vprint_circle;
+Lisp_Object impl_Vprint_circle;
 
 /* Non-nil means keep continuous number for #n= and #n# syntax
    between several print functions.  */
 
-Lisp_Object Vprint_continuous_numbering;
+Lisp_Object impl_Vprint_continuous_numbering;
 
 /* Vprint_number_table is a vector like [OBJ1 STAT1 OBJ2 STAT2 ...],
    where OBJn are objects going to be printed, and STATn are their status,
@@ -153,7 +153,7 @@ Lisp_Object Vprint_continuous_numbering;
    print_number_index keeps the last position the next object should be added,
    twice of which is the actual vector position in Vprint_number_table.  */
 int print_number_index;
-Lisp_Object Vprint_number_table;
+Lisp_Object impl_Vprint_number_table;
 
 /* PRINT_NUMBER_OBJECT returns the I'th object in Vprint_number_table TABLE.
    PRINT_NUMBER_STATUS returns the status of the I'th object in TABLE.
@@ -1442,7 +1442,7 @@ print_preprocess_string (interval, arg)
 
 /* A flag to control printing of `charset' text property.
    The default value is Qdefault. */
-Lisp_Object Vprint_charset_text_property;
+Lisp_Object impl_Vprint_charset_text_property;
 extern Lisp_Object Qdefault;
 
 static void print_check_string_charset_prop ();

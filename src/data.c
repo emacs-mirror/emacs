@@ -93,7 +93,7 @@ Lisp_Object Qinteractive_form;
 
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
-Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
+Lisp_Object impl_Vmost_positive_fixnum, impl_Vmost_negative_fixnum;
 
 
 void

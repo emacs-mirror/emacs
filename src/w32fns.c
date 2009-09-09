@@ -83,57 +83,57 @@ extern int quit_char;
 extern char *lispy_function_keys[];
 
 /* The colormap for converting color names to RGB values */
-Lisp_Object Vw32_color_map;
+Lisp_Object impl_Vw32_color_map;
 
 /* Non nil if alt key presses are passed on to Windows.  */
-Lisp_Object Vw32_pass_alt_to_system;
+Lisp_Object impl_Vw32_pass_alt_to_system;
 
 /* Non nil if alt key is translated to meta_modifier, nil if it is translated
    to alt_modifier.  */
-Lisp_Object Vw32_alt_is_meta;
+Lisp_Object impl_Vw32_alt_is_meta;
 
 /* If non-zero, the windows virtual key code for an alternative quit key. */
 int w32_quit_key;
 
 /* Non nil if left window key events are passed on to Windows (this only
    affects whether "tapping" the key opens the Start menu).  */
-Lisp_Object Vw32_pass_lwindow_to_system;
+Lisp_Object impl_Vw32_pass_lwindow_to_system;
 
 /* Non nil if right window key events are passed on to Windows (this
    only affects whether "tapping" the key opens the Start menu).  */
-Lisp_Object Vw32_pass_rwindow_to_system;
+Lisp_Object impl_Vw32_pass_rwindow_to_system;
 
 /* Virtual key code used to generate "phantom" key presses in order
    to stop system from acting on Windows key events.  */
-Lisp_Object Vw32_phantom_key_code;
+Lisp_Object impl_Vw32_phantom_key_code;
 
 /* Modifier associated with the left "Windows" key, or nil to act as a
    normal key.  */
-Lisp_Object Vw32_lwindow_modifier;
+Lisp_Object impl_Vw32_lwindow_modifier;
 
 /* Modifier associated with the right "Windows" key, or nil to act as a
    normal key.  */
-Lisp_Object Vw32_rwindow_modifier;
+Lisp_Object impl_Vw32_rwindow_modifier;
 
 /* Modifier associated with the "Apps" key, or nil to act as a normal
    key.  */
-Lisp_Object Vw32_apps_modifier;
+Lisp_Object impl_Vw32_apps_modifier;
 
 /* Value is nil if Num Lock acts as a function key.  */
-Lisp_Object Vw32_enable_num_lock;
+Lisp_Object impl_Vw32_enable_num_lock;
 
 /* Value is nil if Caps Lock acts as a function key.  */
-Lisp_Object Vw32_enable_caps_lock;
+Lisp_Object impl_Vw32_enable_caps_lock;
 
 /* Modifier associated with Scroll Lock, or nil to act as a normal key.  */
-Lisp_Object Vw32_scroll_lock_modifier;
+Lisp_Object impl_Vw32_scroll_lock_modifier;
 
 /* Switch to control whether we inhibit requests for synthesized bold
    and italic versions of fonts.  */
 int w32_enable_synthesized_fonts;
 
 /* Enable palette management. */
-Lisp_Object Vw32_enable_palette;
+Lisp_Object impl_Vw32_enable_palette;
 
 /* Control how close left/right button down events must be to
    be converted to a middle button down event. */
@@ -150,7 +150,7 @@ static int w32_pass_extra_mouse_buttons_to_system;
 static int w32_pass_multimedia_buttons_to_system;
 
 /* Non nil if no window manager is in use.  */
-Lisp_Object Vx_no_window_manager;
+Lisp_Object impl_Vx_no_window_manager;
 
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
@@ -160,12 +160,12 @@ static HWND hourglass_hwnd = NULL;
 #if 0 /* TODO: Mouse cursor customization.  */
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
-Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
+Lisp_Object impl_Vx_pointer_shape, impl_Vx_nontext_pointer_shape, impl_Vx_mode_pointer_shape;
+Lisp_Object impl_Vx_hourglass_pointer_shape, impl_Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
-Lisp_Object Vx_sensitive_text_pointer_shape;
+Lisp_Object impl_Vx_sensitive_text_pointer_shape;
 #endif
 
 #ifndef IDC_HAND
@@ -173,7 +173,7 @@ Lisp_Object Vx_sensitive_text_pointer_shape;
 #endif
 
 /* Color of chars displayed in cursor box.  */
-Lisp_Object Vx_cursor_fore_pixel;
+Lisp_Object impl_Vx_cursor_fore_pixel;
 
 /* Nonzero if using Windows.  */
 
@@ -181,10 +181,10 @@ static int w32_in_use;
 
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 
-Lisp_Object Vx_pixel_size_width_font_regexp;
+Lisp_Object impl_Vx_pixel_size_width_font_regexp;
 
 /* Alist of bdf fonts and the files that define them.  */
-Lisp_Object Vw32_bdf_filename_alist;
+Lisp_Object impl_Vw32_bdf_filename_alist;
 
 /* A flag to control whether fonts are matched strictly or not.  */
 static int w32_strict_fontnames;
@@ -289,7 +289,7 @@ static unsigned menu_free_timer = 0;
 
 /* The below are defined in frame.c.  */
 
-extern Lisp_Object Vwindow_system_version;
+extern Lisp_Object impl_Vwindow_system_version;
 
 #ifdef GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
@@ -298,7 +298,7 @@ int image_cache_refcount, dpyinfo_refcount;
 
 /* From w32term.c. */
 extern int w32_num_mouse_buttons;
-extern Lisp_Object Vw32_recognize_altgr;
+extern Lisp_Object impl_Vw32_recognize_altgr;
 
 extern HWND w32_system_caret_hwnd;
 
@@ -5237,7 +5237,7 @@ value.  */)
    cursor.  Duplicated from xdisp.c, but cannot use the version there
    due to lack of atimers on w32.  */
 #define DEFAULT_HOURGLASS_DELAY 1
-extern Lisp_Object Vhourglass_delay;
+extern Lisp_Object impl_Vhourglass_delay;
 
 /* Return non-zero if houglass timer has been started or hourglass is shown.  */
 /* PENDING: if W32 can use atimers (atimer.[hc]) then the common impl in
@@ -5373,7 +5373,7 @@ Lisp_Object last_show_tip_args;
 
 /* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
 
-Lisp_Object Vx_max_tooltip_size;
+Lisp_Object impl_Vx_max_tooltip_size;
 
 
 static Lisp_Object

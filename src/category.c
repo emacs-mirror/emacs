@@ -51,7 +51,7 @@ static int category_table_version;
 Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
 
 /* Variables to determine word boundary.  */
-Lisp_Object Vword_combining_categories, Vword_separating_categories;
+Lisp_Object impl_Vword_combining_categories, impl_Vword_separating_categories;
 
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 Lisp_Object _temp_category_set;

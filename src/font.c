@@ -145,7 +145,7 @@ Lisp_Object Qja, Qko;
 
 Lisp_Object QCuser_spec;
 
-Lisp_Object Vfont_encoding_alist;
+Lisp_Object impl_Vfont_encoding_alist;
 
 /* Alist of font registry symbol and the corresponding charsets
    information.  The information is retrieved from
@@ -2226,7 +2226,7 @@ static Lisp_Object font_sort_entities P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object, int));
 
 /* Return a rescaling ratio of FONT_ENTITY.  */
-extern Lisp_Object Vface_font_rescale_alist;
+extern Lisp_Object impl_Vface_font_rescale_alist;
 
 static double
 font_rescale_ratio (font_entity)
@@ -5134,7 +5134,7 @@ build_style_table (entry, nelement)
   return table;
 }
 
-Lisp_Object Vfont_log;
+Lisp_Object impl_Vfont_log;
 
 /* The deferred font-log data of the form [ACTION ARG RESULT].
    If ACTION is not nil, that is added to the log when font_add_log is

@@ -122,7 +122,7 @@ extern double atof ();
 
 /* LessTif/Motif version info.  */
 
-static Lisp_Object Vmotif_version_string;
+static Lisp_Object impl_Vmotif_version_string;
 
 #endif /* USE_MOTIF */
 
@@ -132,7 +132,7 @@ static Lisp_Object Vmotif_version_string;
 
 /* GTK+ version info */
 
-static Lisp_Object Vgtk_version_string;
+static Lisp_Object impl_Vgtk_version_string;
 
 #endif /* USE_GTK */
 
@@ -165,21 +165,21 @@ int x_gtk_whole_detached_tool_bar;
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
-Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape;
+Lisp_Object impl_Vx_pointer_shape, impl_Vx_nontext_pointer_shape, impl_Vx_mode_pointer_shape;
+Lisp_Object impl_Vx_hourglass_pointer_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
-Lisp_Object Vx_sensitive_text_pointer_shape;
+Lisp_Object impl_Vx_sensitive_text_pointer_shape;
 
 /* If non-nil, the pointer shape to indicate that windows can be
    dragged horizontally.  */
 
-Lisp_Object Vx_window_horizontal_drag_shape;
+Lisp_Object impl_Vx_window_horizontal_drag_shape;
 
 /* Color of chars displayed in cursor box.  */
 
-Lisp_Object Vx_cursor_fore_pixel;
+Lisp_Object impl_Vx_cursor_fore_pixel;
 
 /* Nonzero if using X.  */
 
@@ -187,11 +187,11 @@ static int x_in_use;
 
 /* Non nil if no window manager is in use.  */
 
-Lisp_Object Vx_no_window_manager;
+Lisp_Object impl_Vx_no_window_manager;
 
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 
-Lisp_Object Vx_pixel_size_width_font_regexp;
+Lisp_Object impl_Vx_pixel_size_width_font_regexp;
 
 Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
@@ -201,7 +201,7 @@ Lisp_Object Qfont_param;
 
 /* In dispnew.c */
 
-extern Lisp_Object Vwindow_system_version;
+extern Lisp_Object impl_Vwindow_system_version;
 
 /* The below are defined in frame.c.  */
 
@@ -4648,7 +4648,7 @@ Lisp_Object last_show_tip_args;
 
 /* Maximum size for tooltips; a cons (COLUMNS . ROWS).  */
 
-Lisp_Object Vx_max_tooltip_size;
+Lisp_Object impl_Vx_max_tooltip_size;
 
 
 static Lisp_Object

@@ -55,7 +55,7 @@ Lisp_Object Fcombine_after_change_execute ();
 
 /* Non-nil means don't call the after-change-functions right away,
    just record an element in Vcombine_after_change_calls_list.  */
-Lisp_Object Vcombine_after_change_calls;
+Lisp_Object impl_Vcombine_after_change_calls;
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls

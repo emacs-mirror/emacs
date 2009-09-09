@@ -62,7 +62,7 @@ int use_file_dialog;
 
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
-extern Lisp_Object Vlocale_coding_system;
+extern Lisp_Object impl_Vlocale_coding_system;
 extern int load_in_progress;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
@@ -2824,8 +2824,8 @@ advisable.  */)
   return ret;
 }
 
-Lisp_Object Vfeatures, Qsubfeatures;
-extern Lisp_Object Vafter_load_alist;
+Lisp_Object impl_Vfeatures, Qsubfeatures;
+extern Lisp_Object impl_Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Returns t if FEATURE is present in this Emacs.

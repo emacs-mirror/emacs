@@ -213,7 +213,7 @@ extern Lisp_Object internal_last_event_frame;
 
 /* Menu items.  */
 
-extern Lisp_Object Vlucid_menu_bar_dirty_flag;
+extern Lisp_Object impl_Vlucid_menu_bar_dirty_flag;
 extern Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 /* This holds a Lisp vector that holds the properties of a single
@@ -438,10 +438,10 @@ extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
 /* Parent keymap of terminal-local function-key-map instances.  */
-extern Lisp_Object Vfunction_key_map;
+extern Lisp_Object impl_Vfunction_key_map;
 
 /* Keymap of key translations that can override keymaps.  */
-extern Lisp_Object Vkey_translation_map;
+extern Lisp_Object impl_Vkey_translation_map;
 
 extern int parse_menu_item (Lisp_Object, int);
 

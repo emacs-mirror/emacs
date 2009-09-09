@@ -101,7 +101,7 @@ static Lisp_Object Qw32_charset_hebrew, Qw32_charset_vietnamese;
 static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
 
 /* Associative list linking character set strings to Windows codepages. */
-static Lisp_Object Vw32_charset_info_alist;
+static Lisp_Object impl_Vw32_charset_info_alist;
 
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;

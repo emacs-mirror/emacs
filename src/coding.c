@@ -336,13 +336,13 @@ static Lisp_Object Qcoding_system_define_form;
 
 int coding_system_require_warning;
 
-Lisp_Object Vselect_safe_coding_system_function;
+Lisp_Object impl_Vselect_safe_coding_system_function;
 
 /* Mnemonic string for each format of end-of-line.  */
-Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
+Lisp_Object impl_eol_mnemonic_unix, impl_eol_mnemonic_dos, impl_eol_mnemonic_mac;
 /* Mnemonic string to indicate format of end-of-line is not yet
    decided.  */
-Lisp_Object eol_mnemonic_undecided;
+Lisp_Object impl_eol_mnemonic_undecided;
 
 /* Format of end-of-line decided by system.  This is Qunix on
    Unix and Mac, Qdos on DOS/Windows.
@@ -352,7 +352,7 @@ static Lisp_Object system_eol_type;
 
 #ifdef emacs
 
-Lisp_Object Vcoding_system_list, Vcoding_system_alist;
+Lisp_Object impl_Vcoding_system_list, impl_Vcoding_system_alist;
 
 Lisp_Object Qcoding_system_p, Qcoding_system_error;
 
@@ -364,16 +364,16 @@ Lisp_Object Qutf_8_emacs;
 /* Coding-systems are handed between Emacs Lisp programs and C internal
    routines by the following three variables.  */
 /* Coding-system for reading files and receiving data from process.  */
-Lisp_Object Vcoding_system_for_read;
+Lisp_Object impl_Vcoding_system_for_read;
 /* Coding-system for writing files and sending data to process.  */
-Lisp_Object Vcoding_system_for_write;
+Lisp_Object impl_Vcoding_system_for_write;
 /* Coding-system actually used in the latest I/O.  */
-Lisp_Object Vlast_coding_system_used;
+Lisp_Object impl_Vlast_coding_system_used;
 /* Set to non-nil when an error is detected while code conversion.  */
-Lisp_Object Vlast_code_conversion_error;
+Lisp_Object impl_Vlast_code_conversion_error;
 /* A vector of length 256 which contains information about special
    Latin codes (especially for dealing with Microsoft codes).  */
-Lisp_Object Vlatin_extra_code_table;
+Lisp_Object impl_Vlatin_extra_code_table;
 
 /* Flag to inhibit code conversion of end-of-line format.  */
 int inhibit_eol_conversion;
@@ -391,21 +391,21 @@ int inherit_process_coding_system;
    terminal coding system is nil.  */
 struct coding_system safe_terminal_coding;
 
-Lisp_Object Vfile_coding_system_alist;
-Lisp_Object Vprocess_coding_system_alist;
-Lisp_Object Vnetwork_coding_system_alist;
+Lisp_Object impl_Vfile_coding_system_alist;
+Lisp_Object impl_Vprocess_coding_system_alist;
+Lisp_Object impl_Vnetwork_coding_system_alist;
 
-Lisp_Object Vlocale_coding_system;
+Lisp_Object impl_Vlocale_coding_system;
 
 #endif /* emacs */
 
 /* Flag to tell if we look up translation table on character code
    conversion.  */
-Lisp_Object Venable_character_translation;
+Lisp_Object impl_Venable_character_translation;
 /* Standard translation table to look up on decoding (reading).  */
-Lisp_Object Vstandard_translation_table_for_decode;
+Lisp_Object impl_Vstandard_translation_table_for_decode;
 /* Standard translation table to look up on encoding (writing).  */
-Lisp_Object Vstandard_translation_table_for_encode;
+Lisp_Object impl_Vstandard_translation_table_for_encode;
 
 Lisp_Object Qtranslation_table;
 Lisp_Object Qtranslation_table_id;
@@ -413,13 +413,13 @@ Lisp_Object Qtranslation_table_for_decode;
 Lisp_Object Qtranslation_table_for_encode;
 
 /* Alist of charsets vs revision number.  */
-static Lisp_Object Vcharset_revision_table;
+static Lisp_Object impl_Vcharset_revision_table;
 
 /* Default coding systems used for process I/O.  */
-Lisp_Object Vdefault_process_coding_system;
+Lisp_Object impl_Vdefault_process_coding_system;
 
 /* Char table for translating Quail and self-inserting input.  */
-Lisp_Object Vtranslation_table_for_input;
+Lisp_Object impl_Vtranslation_table_for_input;
 
 /* Two special coding systems.  */
 Lisp_Object Vsjis_coding_system;
@@ -690,7 +690,7 @@ enum coding_category
 
 /* List of symbols `coding-category-xxx' ordered by priority.  This
    variable is exposed to Emacs Lisp.  */
-static Lisp_Object Vcoding_category_list;
+static Lisp_Object impl_Vcoding_category_list;
 
 /* Table of coding categories (Lisp symbols).  This variable is for
    internal use oly.  */

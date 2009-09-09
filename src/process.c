@@ -205,7 +205,7 @@ extern int h_errno;
 
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
-static Lisp_Object Vprocess_connection_type;
+static Lisp_Object impl_Vprocess_connection_type;
 
 /* These next two vars are non-static since sysdep.c uses them in the
    emulation of `select'.  */
@@ -281,7 +281,7 @@ static int process_output_skip;
    A value of t means that delay is reset after each send, any other
    non-nil value does not reset the delay.  A value of nil disables
    adaptive read buffering completely.  */
-static Lisp_Object Vprocess_adaptive_read_buffering;
+static Lisp_Object impl_Vprocess_adaptive_read_buffering;
 #else
 #define process_output_delay_count 0
 #endif

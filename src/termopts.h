@@ -37,7 +37,7 @@ extern int interrupts_deferred;
 extern int meta_key;
 
 /* Defined in xdisp.c */
-extern Lisp_Object Vtruncate_partial_width_windows;
+extern Lisp_Object impl_Vtruncate_partial_width_windows;
 
 /* Nonzero means no need to redraw the entire frame on resuming a suspended
    Emacs.  This is useful on terminals with multiple pages, where one page is

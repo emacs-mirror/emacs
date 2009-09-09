@@ -135,7 +135,7 @@ Lisp_Object raw_keybuf;
 int raw_keybuf_count;
 
 /* Non-nil if the present key sequence was obtained by shift translation.  */
-Lisp_Object Vthis_command_keys_shift_translated;
+Lisp_Object impl_Vthis_command_keys_shift_translated;
 
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
@@ -157,7 +157,7 @@ extern int message_enable_multibyte;
 /* If non-nil, the function that implements the display of help.
    It's called with one argument, the help string to display.  */
 
-Lisp_Object Vshow_help_function;
+Lisp_Object impl_Vshow_help_function;
 
 /* Nonzero means do menu prompting.  */
 
@@ -165,7 +165,7 @@ static int menu_prompting;
 
 /* Character to see next line of menu prompt.  */
 
-static Lisp_Object menu_prompt_more_char;
+static Lisp_Object impl_menu_prompt_more_char;
 
 /* For longjmp to where kbd input is being done.  */
 
@@ -202,35 +202,35 @@ static int inhibit_local_menu_bar_menus;
 int immediate_quit;
 
 /* The user's hook function for outputting an error message.  */
-Lisp_Object Vcommand_error_function;
+Lisp_Object impl_Vcommand_error_function;
 
 /* The user's ERASE setting.  */
-Lisp_Object Vtty_erase_char;
+Lisp_Object impl_Vtty_erase_char;
 
 /* Character to recognize as the help char.  */
-Lisp_Object Vhelp_char;
+Lisp_Object impl_Vhelp_char;
 
 /* List of other event types to recognize as meaning "help".  */
-Lisp_Object Vhelp_event_list;
+Lisp_Object impl_Vhelp_event_list;
 
 /* Form to execute when help char is typed.  */
-Lisp_Object Vhelp_form;
+Lisp_Object impl_Vhelp_form;
 
 /* Command to run when the help character follows a prefix key.  */
-Lisp_Object Vprefix_help_command;
+Lisp_Object impl_Vprefix_help_command;
 
 /* List of items that should move to the end of the menu bar.  */
-Lisp_Object Vmenu_bar_final_items;
+Lisp_Object impl_Vmenu_bar_final_items;
 
 /* Non-nil means show the equivalent key-binding for
    any M-x command that has one.
    The value can be a length of time to show the message for.
    If the value is non-nil and not a number, we wait 2 seconds.  */
-Lisp_Object Vsuggest_key_bindings;
+Lisp_Object impl_Vsuggest_key_bindings;
 
 /* How long to display an echo-area message when the minibuffer is active.
    If the value is not a number, such messages don't time out.  */
-Lisp_Object Vminibuffer_message_timeout;
+Lisp_Object impl_Vminibuffer_message_timeout;
 
 /* Character that causes a quit.  Normally C-g.
 
@@ -254,14 +254,14 @@ extern Lisp_Object current_global_map;
 extern int minibuf_level;
 
 /* If non-nil, this is a map that overrides all other local maps.  */
-Lisp_Object Voverriding_local_map;
+Lisp_Object impl_Voverriding_local_map;
 
 /* If non-nil, Voverriding_local_map applies to the menu bar.  */
-Lisp_Object Voverriding_local_map_menu_flag;
+Lisp_Object impl_Voverriding_local_map_menu_flag;
 
 /* Keymap that defines special misc events that should
    be processed immediately at a low level.  */
-Lisp_Object Vspecial_event_map;
+Lisp_Object impl_Vspecial_event_map;
 
 /* Current depth in recursive edits.  */
 int command_loop_level;
@@ -270,25 +270,25 @@ int command_loop_level;
 EMACS_INT num_input_keys;
 
 /* Last input event read as a command.  */
-Lisp_Object last_command_event;
+Lisp_Object impl_last_command_event;
 
 /* Last input character read as a command, not counting menus
    reached by the mouse.  */
-Lisp_Object last_nonmenu_event;
+Lisp_Object impl_last_nonmenu_event;
 
 /* Last input event read for any purpose.  */
-Lisp_Object last_input_event;
+Lisp_Object impl_last_input_event;
 
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
-Lisp_Object Vunread_command_events;
+Lisp_Object impl_Vunread_command_events;
 
 /* If not Qnil, a list of objects to be read as subsequent command input
    including input method processing.  */
-Lisp_Object Vunread_input_method_events;
+Lisp_Object impl_Vunread_input_method_events;
 
 /* If not Qnil, a list of objects to be read as subsequent command input
    but NOT including input method processing.  */
-Lisp_Object Vunread_post_input_method_events;
+Lisp_Object impl_Vunread_post_input_method_events;
 
 /* If not -1, an event to be read as subsequent command input.  */
 EMACS_INT unread_command_char;
@@ -308,13 +308,13 @@ EMACS_INT extra_keyboard_modifiers;
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
 
-Lisp_Object meta_prefix_char;
+Lisp_Object impl_meta_prefix_char;
 
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static int last_non_minibuf_size;
 
 /* Number of idle seconds before an auto-save and garbage collection.  */
-static Lisp_Object Vauto_save_timeout;
+static Lisp_Object impl_Vauto_save_timeout;
 
 /* Total number of times read_char has returned.  */
 int num_input_events;
@@ -334,14 +334,14 @@ int last_auto_save;
 /* The command being executed by the command loop.
    Commands may set this, and the value set will be copied into
    current_kboard->Vlast_command instead of the actual command.  */
-Lisp_Object Vthis_command;
+Lisp_Object impl_Vthis_command;
 
 /* This is like Vthis_command, except that commands never set it.  */
 Lisp_Object real_this_command;
 
 /* If the lookup of the command returns a binding, the original
    command is stored in this-original-command.  It is nil otherwise.  */
-Lisp_Object Vthis_original_command;
+Lisp_Object impl_Vthis_original_command;
 
 /* The value of point when the last command was started.  */
 int last_point_position;
@@ -362,7 +362,7 @@ Lisp_Object internal_last_event_frame;
 /* A user-visible version of the above, intended to allow users to
    figure out where the last event came from, if the event doesn't
    carry that information itself (i.e. if it was a character).  */
-Lisp_Object Vlast_event_frame;
+Lisp_Object impl_Vlast_event_frame;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
@@ -379,47 +379,47 @@ Lisp_Object Qtimer_event_handler;
 Lisp_Object read_key_sequence_cmd;
 
 /* Echo unfinished commands after this many seconds of pause.  */
-Lisp_Object Vecho_keystrokes;
+Lisp_Object impl_Vecho_keystrokes;
 
 /* Form to evaluate (if non-nil) when Emacs is started.  */
-Lisp_Object Vtop_level;
+Lisp_Object impl_Vtop_level;
 
 /* If non-nil, this implements the current input method.  */
-Lisp_Object Vinput_method_function;
+Lisp_Object impl_Vinput_method_function;
 Lisp_Object Qinput_method_function;
 
 /* When we call Vinput_method_function,
    this holds the echo area message that was just erased.  */
-Lisp_Object Vinput_method_previous_message;
+Lisp_Object impl_Vinput_method_previous_message;
 
 /* Non-nil means deactivate the mark at end of this command.  */
-Lisp_Object Vdeactivate_mark;
+Lisp_Object impl_Vdeactivate_mark;
 Lisp_Object Qdeactivate_mark;
 
 /* Menu bar specified in Lucid Emacs fashion.  */
 
-Lisp_Object Vlucid_menu_bar_dirty_flag;
+Lisp_Object impl_Vlucid_menu_bar_dirty_flag;
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 Lisp_Object Qecho_area_clear_hook;
 
 /* Hooks to run before and after each command.  */
-Lisp_Object Qpre_command_hook, Vpre_command_hook;
-Lisp_Object Qpost_command_hook, Vpost_command_hook;
-Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
+Lisp_Object Qpre_command_hook, impl_Vpre_command_hook;
+Lisp_Object Qpost_command_hook, impl_Vpost_command_hook;
+Lisp_Object Qcommand_hook_internal, impl_Vcommand_hook_internal;
 
 /* Parent keymap of terminal-local function-key-map instances.  */
-Lisp_Object Vfunction_key_map;
+Lisp_Object impl_Vfunction_key_map;
 
 /* Keymap of key translations that can override keymaps.  */
-Lisp_Object Vkey_translation_map;
+Lisp_Object impl_Vkey_translation_map;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
-Lisp_Object Vdeferred_action_list;
+Lisp_Object impl_Vdeferred_action_list;
 
 /* Function to call to handle deferred actions, when there are any.  */
-Lisp_Object Vdeferred_action_function;
+Lisp_Object impl_Vdeferred_action_function;
 Lisp_Object Qdeferred_action_function;
 
 Lisp_Object Qinput_method_exit_on_first_char;
@@ -460,7 +460,7 @@ static struct input_event * volatile kbd_store_ptr;
 /* If this flag is non-nil, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.
    Otherwise, mouse motion is ignored.  */
-Lisp_Object do_mouse_tracking;
+Lisp_Object impl_do_mouse_tracking;
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
@@ -530,7 +530,7 @@ Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check ();
 
-extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
+extern Lisp_Object impl_Vhistory_length, impl_Vtranslation_table_for_input;
 
 extern char *x_get_keysym_name ();
 
@@ -540,15 +540,15 @@ static int echo_length ();
 Lisp_Object Qpolling_period;
 
 /* List of absolute timers.  Appears in order of next scheduled event.  */
-Lisp_Object Vtimer_list;
+Lisp_Object impl_Vtimer_list;
 
 /* List of idle time timers.  Appears in order of next scheduled event.  */
-Lisp_Object Vtimer_idle_list;
+Lisp_Object impl_Vtimer_idle_list;
 
 /* Incremented whenever a timer is run.  */
 int timers_run;
 
-extern Lisp_Object Vprint_level, Vprint_length;
+extern Lisp_Object impl_Vprint_level, impl_Vprint_length;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
@@ -586,11 +586,11 @@ int interrupts_deferred;
    variable to non-nil, we suppress this point adjustment.  This
    variable is set to nil before reading a command.  */
 
-Lisp_Object Vdisable_point_adjustment;
+Lisp_Object impl_Vdisable_point_adjustment;
 
 /* If non-nil, always disable point adjustment.  */
 
-Lisp_Object Vglobal_disable_point_adjustment;
+Lisp_Object impl_Vglobal_disable_point_adjustment;
 
 /* The time when Emacs started being idle.  */
 
@@ -604,7 +604,7 @@ static EMACS_TIME timer_last_idleness_start_time;
 /* If non-nil, events produced by disabled menu items and tool-bar
    buttons are not ignored.  Help functions bind this to allow help on
    those items and buttons.  */
-Lisp_Object Venable_disabled_menus_and_buttons;
+Lisp_Object impl_Venable_disabled_menus_and_buttons;
 
 
 /* Global variable declarations.  */
@@ -3782,7 +3782,7 @@ event_to_kboard (event)
 }
 
 
-Lisp_Object Vthrow_on_input;
+Lisp_Object impl_Vthrow_on_input;
 
 /* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
@@ -5391,7 +5391,7 @@ static unsigned long button_down_time;
 /* The maximum time between clicks to make a double-click, or Qnil to
    disable double-click detection, or Qt for no time limit.  */
 
-Lisp_Object Vdouble_click_time;
+Lisp_Object impl_Vdouble_click_time;
 
 /* Maximum number of pixels the mouse may be moved between clicks
    to make a double-click.  */

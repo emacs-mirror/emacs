@@ -50,14 +50,14 @@ extern struct Lisp_Char_Table *window_display_table P_ ((struct window *));
 extern struct Lisp_Char_Table *buffer_display_table P_ ((void));
 
 /* Display table to use for vectors that don't specify their own.  */
-extern Lisp_Object Vstandard_display_table;
+extern Lisp_Object impl_Vstandard_display_table;
 
 /* This is the `purpose' slot of a display table.  */
 extern Lisp_Object Qdisplay_table;
 
 /* Vector of GLYPH definitions.  Indexed by GLYPH number,
    the contents are a string which is how to output the GLYPH.  */
-extern Lisp_Object Vglyph_table;
+extern Lisp_Object impl_Vglyph_table;
 
 /* Return the current length of the GLYPH table,
    or 0 if the table isn't currently valid.  */

@@ -2415,7 +2415,7 @@ extern int next_almost_prime P_ ((int));
 extern Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 extern void sweep_weak_hash_tables P_ ((void));
 extern Lisp_Object Qstring_lessp;
-extern Lisp_Object Vfeatures;
+extern Lisp_Object impl_Vfeatures;
 extern Lisp_Object QCtest, QCweakness, Qequal, Qeq;
 unsigned sxhash P_ ((Lisp_Object, int));
 Lisp_Object make_hash_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -2595,7 +2595,7 @@ extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
 extern Lisp_Object Qimage;
-extern Lisp_Object Vmessage_log_max;
+extern Lisp_Object impl_Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
 extern void check_message_stack P_ ((void));
@@ -2650,8 +2650,8 @@ extern void memory_full P_ ((void)) NO_RETURN;
 extern void buffer_memory_full P_ ((void)) NO_RETURN;
 extern int survives_gc_p P_ ((Lisp_Object));
 extern void mark_object P_ ((Lisp_Object));
-extern Lisp_Object Vpurify_flag;
-extern Lisp_Object Vmemory_full;
+extern Lisp_Object impl_Vpurify_flag;
+extern Lisp_Object impl_Vmemory_full;
 EXFUN (Fcons, 2);
 EXFUN (list1, 1);
 EXFUN (list2, 2);
@@ -2744,7 +2744,7 @@ EXFUN (Fprinc, 2);
 EXFUN (Fterpri, 1);
 EXFUN (Fprint, 2);
 EXFUN (Ferror_message_string, 1);
-extern Lisp_Object Vstandard_output, Qstandard_output;
+extern Lisp_Object impl_Vstandard_output, Qstandard_output;
 extern Lisp_Object Qexternal_debugging_output;
 extern void temp_output_buffer_setup P_ ((const char *));
 extern int print_level, print_escape_newlines;
@@ -2762,7 +2762,7 @@ extern int doprnt P_ ((char *, int, char *, char *, int, char **));
 
 /* Defined in lread.c */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
-extern Lisp_Object Vobarray, initial_obarray, Vstandard_input;
+extern Lisp_Object impl_Vobarray, initial_obarray, impl_Vstandard_input;
 EXFUN (Fread, 1);
 EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
@@ -2781,8 +2781,8 @@ extern Lisp_Object make_symbol P_ ((char *));
 extern Lisp_Object oblookup P_ ((Lisp_Object, const char *, int, int));
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
-extern Lisp_Object Vcurrent_load_list;
-extern Lisp_Object Vload_history, Vload_suffixes, Vload_file_rep_suffixes;
+extern Lisp_Object impl_Vcurrent_load_list;
+extern Lisp_Object impl_Vload_history, impl_Vload_suffixes, impl_Vload_file_rep_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 		      Lisp_Object *, Lisp_Object));
 extern int isfloat_string P_ ((char *, int));
@@ -2796,9 +2796,9 @@ extern void syms_of_lread P_ ((void));
 
 /* Defined in eval.c */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
-extern Lisp_Object Vinhibit_quit, Qinhibit_quit, Vquit_flag;
+extern Lisp_Object impl_Vinhibit_quit, Qinhibit_quit, impl_Vquit_flag;
 extern Lisp_Object Vautoload_queue;
-extern Lisp_Object Vdebug_on_error;
+extern Lisp_Object impl_Vdebug_on_error;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
 extern int interactive_p P_ ((int));
@@ -2924,7 +2924,7 @@ extern Lisp_Object make_buffer_string P_ ((int, int, int));
 extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
 extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
-extern Lisp_Object Vinhibit_field_text_motion;
+extern Lisp_Object impl_Vinhibit_field_text_motion;
 EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_string, 1);
 EXFUN (Fdelete_field, 1);
@@ -2946,7 +2946,7 @@ extern void fix_start_end_in_overlays P_ ((int, int));
 extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
 extern int overlay_touches_p P_ ((int));
-extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
+extern Lisp_Object Vbuffer_alist, impl_Vinhibit_read_only;
 EXFUN (Fbuffer_list, 1);
 EXFUN (Fget_buffer, 1);
 EXFUN (Fget_buffer_create, 1);
@@ -3074,8 +3074,8 @@ extern void syms_of_minibuf P_ ((void));
 
 /* Defined in callint.c */
 
-extern Lisp_Object Qminus, Qplus, Vcurrent_prefix_arg;
-extern Lisp_Object Vcommand_history;
+extern Lisp_Object Qminus, Qplus, impl_Vcurrent_prefix_arg;
+extern Lisp_Object impl_Vcommand_history;
 extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
 EXFUN (Fcall_interactively, 3);
 EXFUN (Fprefix_numeric_value, 1);
@@ -3106,8 +3106,8 @@ extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing P_ ((void));
 extern Lisp_Object Qdisabled, QCfilter;
-extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
-extern Lisp_Object Vthrow_on_input;
+extern Lisp_Object impl_Vtty_erase_char, impl_Vhelp_form, impl_Vtop_level;
+extern Lisp_Object impl_Vthrow_on_input;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
@@ -3152,8 +3152,8 @@ extern void syms_of_indent P_ ((void));
 
 /* defined in frame.c */
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Vx_resource_name;
-extern Lisp_Object Vx_resource_class;
+extern Lisp_Object impl_Vx_resource_name;
+extern Lisp_Object impl_Vx_resource_class;
 #endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -3195,9 +3195,9 @@ extern void syms_of_frame P_ ((void));
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
-extern Lisp_Object Vinvocation_name, Vinvocation_directory;
-extern Lisp_Object Vbefore_init_time, Vafter_init_time;
-extern Lisp_Object Vinstallation_directory;
+extern Lisp_Object impl_Vinvocation_name, impl_Vinvocation_directory;
+extern Lisp_Object impl_Vbefore_init_time, impl_Vafter_init_time;
+extern Lisp_Object impl_Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
@@ -3251,9 +3251,9 @@ extern void syms_of_process P_ ((void));
 extern void setup_process_coding_systems P_ ((Lisp_Object));
 
 /* defined in callproc.c */
-extern Lisp_Object Vexec_path, Vexec_suffixes,
-                   Vexec_directory, Vdata_directory;
-extern Lisp_Object Vdoc_directory;
+extern Lisp_Object impl_Vexec_path, impl_Vexec_suffixes,
+                   impl_Vexec_directory, impl_Vdata_directory;
+extern Lisp_Object impl_Vdoc_directory;
 EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
@@ -3262,7 +3262,7 @@ extern void set_initial_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
 /* defined in doc.c */
-extern Lisp_Object Vdoc_file_name;
+extern Lisp_Object impl_Vdoc_file_name;
 EXFUN (Fsubstitute_command_keys, 1);
 EXFUN (Fdocumentation, 2);
 EXFUN (Fdocumentation_property, 3);
@@ -3298,7 +3298,7 @@ extern void record_change P_ ((int, int));
 extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 					Lisp_Object));
 extern void syms_of_undo P_ ((void));
-extern Lisp_Object Vundo_outer_limit;
+extern Lisp_Object impl_Vundo_outer_limit;
 
 /* defined in textprop.c */
 extern Lisp_Object Qfont, Qmouse_face;
@@ -3472,7 +3472,7 @@ extern void init_system_name P_ ((void));
    to '/', and don't test for a device separator in IS_ANY_SEP.  */
 
 #ifdef WINDOWSNT
-extern Lisp_Object Vdirectory_sep_char;
+extern Lisp_Object impl_Vdirectory_sep_char;
 #endif
 
 #ifndef DIRECTORY_SEP

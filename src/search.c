@@ -91,12 +91,12 @@ Lisp_Object Qinvalid_regexp;
 /* Error condition used for failing searches */
 Lisp_Object Qsearch_failed;
 
-Lisp_Object Vsearch_spaces_regexp;
+Lisp_Object impl_Vsearch_spaces_regexp;
 
 /* If non-nil, the match data will not be changed during call to
    searching or matching functions.  This variable is for internal use
    only.  */
-Lisp_Object Vinhibit_changing_match_data;
+Lisp_Object impl_Vinhibit_changing_match_data;
 
 static void set_search_regs P_ ((EMACS_INT, EMACS_INT));
 static void save_search_regs P_ ((void));

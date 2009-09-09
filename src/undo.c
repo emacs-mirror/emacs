@@ -30,11 +30,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 EMACS_INT undo_limit;
 EMACS_INT undo_strong_limit;
 
-Lisp_Object Vundo_outer_limit;
+Lisp_Object impl_Vundo_outer_limit;
 
 /* Function to call when undo_outer_limit is exceeded.  */
 
-Lisp_Object Vundo_outer_limit_function;
+Lisp_Object impl_Vundo_outer_limit_function;
 
 /* Last buffer for which undo information was recorded.  */
 /* BEWARE: This is not traced by the GC, so never dereference it!  */

@@ -102,18 +102,18 @@ extern char **environ;
 #endif
 #endif
 
-Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
-Lisp_Object Vdata_directory, Vdoc_directory;
-Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
+Lisp_Object impl_Vexec_path, impl_Vexec_directory, impl_Vexec_suffixes;
+Lisp_Object impl_Vdata_directory, impl_Vdoc_directory;
+Lisp_Object impl_Vconfigure_info_directory, impl_Vshared_game_score_directory;
 
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
-extern Lisp_Object Vtemporary_file_directory;
+extern Lisp_Object impl_Vtemporary_file_directory;
 
-Lisp_Object Vshell_file_name;
+Lisp_Object impl_Vshell_file_name;
 
-Lisp_Object Vprocess_environment, Vinitial_environment;
+Lisp_Object impl_Vprocess_environment, impl_Vinitial_environment;
 
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;

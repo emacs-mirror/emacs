@@ -67,7 +67,7 @@ static HBITMAP *fringe_bmp = 0;
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
-Lisp_Object Vx_toolkit_scroll_bars;
+Lisp_Object impl_Vx_toolkit_scroll_bars;
 
 /* Temporary variables for w32_read_socket.  */
 
@@ -188,16 +188,16 @@ static Lisp_Object last_mouse_press_frame;
 
 int w32_num_mouse_buttons;
 
-Lisp_Object Vw32_swap_mouse_buttons;
+Lisp_Object impl_Vw32_swap_mouse_buttons;
 
 /* Control whether x_raise_frame also sets input focus.  */
-Lisp_Object Vw32_grab_focus_on_raise;
+Lisp_Object impl_Vw32_grab_focus_on_raise;
 
 /* Control whether Caps Lock affects non-ascii characters.  */
-Lisp_Object Vw32_capslock_is_shiftlock;
+Lisp_Object impl_Vw32_capslock_is_shiftlock;
 
 /* Control whether right-alt and left-ctrl should be recognized as AltGr.  */
-Lisp_Object Vw32_recognize_altgr;
+Lisp_Object impl_Vw32_recognize_altgr;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -226,7 +226,7 @@ static int volatile input_signal_count;
 static int input_signal_count;
 #endif
 
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
+extern Lisp_Object impl_Vcommand_line_args, impl_Vsystem_name;
 
 #ifndef USE_CRT_DLL
 extern int errno;
