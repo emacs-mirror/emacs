@@ -546,7 +546,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
   (interactive)
   (diff-beginning-of-hunk)
   (let* ((start (point))
-	 (nexthunk (when (re-search-forward diff-hunk-header-re nil t)
+         ;; Search the second match, since we're looking at the first.
+	 (nexthunk (when (re-search-forward diff-hunk-header-re nil t 2)
 		     (match-beginning 0)))
 	 (firsthunk (ignore-errors
 		      (goto-char start)
