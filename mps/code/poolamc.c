@@ -1474,7 +1474,9 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
 
   STATISTIC_STAT( {
     Count pages;
+    AVER(SizeIsAligned(SegSize(seg), ArenaAlign(pool->arena)));
     pages = SegSize(seg) / ArenaAlign(pool->arena);
+    AVER(pages != 0);
     amc->pageretstruct[trace->ti].pCond += pages;
     if(pages == 1) {
       amc->pageretstruct[trace->ti].pCS += pages;
@@ -2289,7 +2291,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Seg retained */
     STATISTIC_STAT( {
       Count pages;
+      AVER(SizeIsAligned(SegSize(seg), ArenaAlign(pool->arena)));
       pages = SegSize(seg) / ArenaAlign(pool->arena);
+      AVER(pages != 0);
       amc->pageretstruct[trace->ti].pRet += pages;
       if(pages == 1) {
         amc->pageretstruct[trace->ti].pRS += pages;
@@ -2420,6 +2424,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
 {
   AMC amc;
   TraceId ti;
+  Count pRetMin = 100;
   Count perc;
   
   AVERT(Pool, pool);
@@ -2457,25 +2462,28 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       NULL ));
   }
   
-  DIAG_SINGLEF(( "AMCTraceEnd_pageret",
-    " $U", ArenaEpoch(pool->arena),
-    " $U", trace->why,
-    " $S", trace->emergency ? "Emergency" : "-",
-    " $U", amc->pageretstruct[ti].pCond,
-    " $U", amc->pageretstruct[ti].pRet, ",",
-    " $U", amc->pageretstruct[ti].pCS,
-    " $U", amc->pageretstruct[ti].pRS, ",",
-    " $U", amc->pageretstruct[ti].sCM,
-    " $U", amc->pageretstruct[ti].pCM,
-    " $U", amc->pageretstruct[ti].pRM,
-    " $U", amc->pageretstruct[ti].pRM1,
-    " $U", amc->pageretstruct[ti].pRMrr,
-    " $U", amc->pageretstruct[ti].pRMr1, ",",
-    " $U", amc->pageretstruct[ti].sCL,
-    " $U", amc->pageretstruct[ti].pCL,
-    " $U", amc->pageretstruct[ti].pRL,
-    " $U", amc->pageretstruct[ti].pRLr,
-    NULL ));
+  if(amc->pageretstruct[ti].pRet >= pRetMin) {
+    DIAG_SINGLEF(( "AMCTraceEnd_pageret",
+      " $U", ArenaEpoch(pool->arena),
+      " $U", trace->why,
+      " $S", trace->emergency ? "Emergency" : "-",
+      " $U", amc->pageretstruct[ti].pCond,
+      " $U", amc->pageretstruct[ti].pRet, ",",
+      " $U", amc->pageretstruct[ti].pCS,
+      " $U", amc->pageretstruct[ti].pRS, ",",
+      " $U", amc->pageretstruct[ti].sCM,
+      " $U", amc->pageretstruct[ti].pCM,
+      " $U", amc->pageretstruct[ti].pRM,
+      " $U", amc->pageretstruct[ti].pRM1,
+      " $U", amc->pageretstruct[ti].pRMrr,
+      " $U", amc->pageretstruct[ti].pRMr1, ",",
+      " $U", amc->pageretstruct[ti].sCL,
+      " $U", amc->pageretstruct[ti].pCL,
+      " $U", amc->pageretstruct[ti].pRL,
+      " $U", amc->pageretstruct[ti].pRLr,
+      " (page = $Ub, pRetMin $U)", ArenaAlign(pool->arena), pRetMin,
+      NULL ));
+  }
 
   amcResetTraceIdStats(amc, ti);
 }
