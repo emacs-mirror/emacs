@@ -2758,30 +2758,6 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 	  sequence = XCAR (sequences);
 	  sequences = XCDR (sequences);
 
-	  /* If the current sequence is a command remapping with
-	     format [remap COMMAND], find the key sequences
-	     which run COMMAND, and use those sequences instead.  */
-	  remapped = Qnil;
-	  if (NILP (no_remap)
-	      && VECTORP (sequence) && XVECTOR (sequence)->size == 2
-	      && EQ (AREF (sequence, 0), Qremap)
-	      && (function = AREF (sequence, 1), SYMBOLP (function)))
-	    {
-	      Lisp_Object remapped1;
-	      
-	      remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
-	      if (CONSP (remapped1))
-		{
-		  /* Verify that this key binding actually maps to the
-		     remapped command (see below).  */
-		  if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
-		    continue;
-		  sequence = XCAR (remapped1);
-		  remapped = XCDR (remapped1);
-		  goto record_sequence;
-		}
-	    }
-
 	  /* Verify that this key binding is not shadowed by another
 	     binding for the same key, before we say it exists.
 
@@ -2794,39 +2770,49 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 	  if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
 	    continue;
 
-	record_sequence:
-	  /* Don't annoy user with strings from a menu such as
-	     Select Paste.  Change them all to "(any string)",
-	     so that there seems to be only one menu item
-	     to report. */
-	  if (! NILP (sequence))
+	  /* If the current sequence is a command remapping with
+	     format [remap COMMAND], find the key sequences
+	     which run COMMAND, and use those sequences instead.  */
+	  if (NILP (no_remap)
+	      && VECTORP (sequence) && XVECTOR (sequence)->size == 2
+	      && EQ (AREF (sequence, 0), Qremap)
+	      && (function = AREF (sequence, 1), SYMBOLP (function)))
+	    remapped = where_is_internal (function, keymaps, firstonly,
+					  noindirect, Qt);
+	  else
+	    remapped = Fcons (sequence, Qnil);
+
+	  for (; CONSP (remapped);
+	       sequence = XCAR (remapped), remapped = XCDR (remapped))
 	    {
-	      Lisp_Object tem;
-	      tem = Faref (sequence, make_number (XVECTOR (sequence)->size - 1));
-	      if (STRINGP (tem))
-		Faset (sequence, make_number (XVECTOR (sequence)->size - 1),
-		       build_string ("(any string)"));
-	    }
+	      /* Don't annoy user with strings from a menu such as the
+		 entries from the "Edit => Paste from Kill Menu".
+		 Change them all to "(any string)", so that there
+		 seems to be only one menu item to report.  */
+	      if (! NILP (sequence))
+		{
+		  Lisp_Object tem;
+		  tem = Faref (sequence, make_number (ASIZE (sequence) - 1));
+		  if (STRINGP (tem))
+		    Faset (sequence, make_number (ASIZE (sequence) - 1),
+			   build_string ("(any string)"));
+		}
+	      
+	      /* It is a true unshadowed match.  Record it, unless it's already
+		 been seen (as could happen when inheriting keymaps).  */
+	      if (NILP (Fmember (sequence, found)))
+		found = Fcons (sequence, found);
+	      
+	      /* If firstonly is Qnon_ascii, then we can return the first
+		 binding we find.  If firstonly is not Qnon_ascii but not
+		 nil, then we should return the first ascii-only binding
+		 we find.  */
+	      if (EQ (firstonly, Qnon_ascii))
+		RETURN_UNGCPRO (sequence);
+	      else if (!NILP (firstonly)
+		       && 2 == preferred_sequence_p (sequence))
+		RETURN_UNGCPRO (sequence);
 
-	  /* It is a true unshadowed match.  Record it, unless it's already
-	     been seen (as could happen when inheriting keymaps).  */
-	  if (NILP (Fmember (sequence, found)))
-	    found = Fcons (sequence, found);
-
-	  /* If firstonly is Qnon_ascii, then we can return the first
-	     binding we find.  If firstonly is not Qnon_ascii but not
-	     nil, then we should return the first ascii-only binding
-	     we find.  */
-	  if (EQ (firstonly, Qnon_ascii))
-	    RETURN_UNGCPRO (sequence);
-	  else if (!NILP (firstonly) && 2 == preferred_sequence_p (sequence))
-	    RETURN_UNGCPRO (sequence);
-
-	  if (CONSP (remapped))
-	    {
-	      sequence = XCAR (remapped);
-	      remapped = XCDR (remapped);
-	      goto record_sequence;
 	    }
 	}
     }
