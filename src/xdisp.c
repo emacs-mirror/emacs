@@ -24862,13 +24862,13 @@ Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
 
   DEFVAR_LISP ("truncate-partial-width-windows",
 	       &Vtruncate_partial_width_windows,
-    doc: /* Non-nil means truncate lines in windows with less than the frame width.
-For an integer value, truncate lines in each window with less than the
+    doc: /* Non-nil means truncate lines in windows narrower than the frame.
+For an integer value, truncate lines in each window narrower than the
 full frame width, provided the window width is less than that integer;
 otherwise, respect the value of `truncate-lines'.
 
-For any other non-nil value, truncate lines in all windows with
-less than the full frame width.
+For any other non-nil value, truncate lines in all windows that do
+not span the full frame width.
 
 A value of nil means to respect the value of `truncate-lines'.
 
