@@ -32,6 +32,10 @@ This might not work on all platforms.
 
 *** --enable-checking[=OPTIONS] builds emacs with extra runtime checks.
 
+---
+** `make install' now consistently ignores umask, creating a
+world-readable install.
+
 * Changes in Emacs 23.2
 
 ** New completion-style `initials' to complete M-x lch to list-command-history.
