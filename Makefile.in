@@ -587,7 +587,7 @@ install-arch-indep: mkdir info install-etc
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
 	for page in ${MAN_PAGES}; do \
@@ -623,11 +623,10 @@ install-strip:
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
+### We set the umask so that any created directories are world-readable.
+### FIXME it would be good to warn about non-standard permissions of
+### pre-existing directories, but that does not seem easy.
 mkdir: FRC
-	if [ -d $(DESTDIR)${datadir} ]; then true; else \
-	  $(srcdir)/mkinstalldirs $(DESTDIR)${datadir}; \
-	  chmod a+r $(DESTDIR)${datadir};\
-	fi
 	icondirs= ; \
 	for dir in $(iconsrcdir)/*/*/apps $(iconsrcdir)/*/*/mimetypes; do \
 	  if [ -d $${dir} ]; then \
@@ -635,7 +634,9 @@ mkdir: FRC
 	  fi ; \
 	done ; \
 	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
-	$(srcdir)/mkinstalldirs ${COPYDESTS} $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
+	umask 022 ; \
+	$(srcdir)/mkinstalldirs $(DESTDIR)${datadir} ${COPYDESTS} \
+	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \
 	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
@@ -643,8 +644,7 @@ mkdir: FRC
 	  $(DESTDIR)${desktopdir} $${icondirs}
 
 ### Delete all the installed files that the `install' target would
-### create (but not the noninstalled files such as `make all' would
-### create).
+### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall:

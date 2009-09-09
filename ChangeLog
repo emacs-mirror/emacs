@@ -1,3 +1,11 @@
+2009-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Don't recursively change perms of
+	site-lisp and infodir.  There may be non-Emacs files in here, and the
+	files supplied by Emacs are all handled explicitly already.  (Bug#3800)
+	(mkdir): Set umask to world-readable before creating directories.
+	mkinstalldirs already checks if dirs exist, don't duplicate this test.
+
 2009-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (info-real): Don't ignore errors from doc Makefiles.
