@@ -1689,7 +1689,7 @@ is non-nil return these properties."
 	 propname)))
 
 (defun imap-message-map (func propname &optional buffer)
-  "Map a function across each mailbox in `imap-message-data', returning a list."
+  "Map a function across each message in `imap-message-data', returning a list."
   (with-current-buffer (or buffer (current-buffer))
     (let (result)
       (mapatoms

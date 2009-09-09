@@ -1,3 +1,18 @@
+2009-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (autoload):
+	Expand define-obsolete-function-alias into defalias and make-obsolete
+	for old Emacsen that Gnus supports.
+	(with-no-warnings): Define it for old Emacsen.
+	(time-to-seconds): Don't use (featurep 'xemacs) to check if float-time
+	is available.
+	(time-to-number-of-days): Don't use (featurep 'xemacs) to check if
+	float-time is available; suppress compile warning for time-to-seconds.
+
+2009-09-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap.el (imap-message-map): Docstring fix.
+
 2009-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-file-at-point): Handle absolute (non-remote) files with
