@@ -298,14 +298,14 @@ maybe-blessmail: BLESSMAIL
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	$(top_srcdir)/mkinstalldirs $(DESTDIR)${archlibdir}
+	umask 022; $(top_srcdir)/mkinstalldirs $(DESTDIR)${archlibdir}
 	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
         fi
-	$(top_srcdir)/mkinstalldirs $(DESTDIR)${gamedir}
-	touch $(DESTDIR)${gamedir}/snake-scores
+	umask 022; $(top_srcdir)/mkinstalldirs $(DESTDIR)${gamedir}; \
+	touch $(DESTDIR)${gamedir}/snake-scores; \
 	touch $(DESTDIR)${gamedir}/tetris-scores
 /* If the following commands fail, that is not a big deal.
    update-game-score will detect at runtime that it is not setuid,
