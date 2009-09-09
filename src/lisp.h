@@ -2335,6 +2335,7 @@ EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
+extern Lisp_Object *find_variable_location (Lisp_Object *);
 extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
@@ -3625,6 +3626,8 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
       }							  \
   } while (0)
 
+
+#include "globals.h"
 
 #endif /* EMACS_LISP_H */
 

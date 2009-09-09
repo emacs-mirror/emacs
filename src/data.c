@@ -812,6 +812,12 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 		Getting and Setting Values of Symbols
  ***********************************************************************/
 
+Lisp_Object *
+find_variable_location (Lisp_Object *root)
+{
+  return root;
+}
+
 /* Return the symbol holding SYMBOL's value.  Signal
    `cyclic-variable-indirection' if SYMBOL's chain of variable
    indirections contains a loop.  */
