@@ -1,3 +1,8 @@
+2009-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Set umask to world-readable before creating
+	directories.
+
 2009-08-31  Juri Linkov  <juri@jurta.org>
 
 	* quail/ipa.el ("ipa"): Set `forget-last-selection' to nil.
