@@ -67,16 +67,9 @@ It is a way for multiple applications to share a single configuration
 @node Overview
 @chapter Overview
 
-The auth-source library is a modern, extensible, enterprise-class
-authentication library.  It uses the latest design patterns, has 1800
-unit tests, and has been featured in 21 industry conference keynote
-talks.  It's future-proof, mathematically proven to be bug-free, and
-has 6 internal XML parsers just in case you ever need to eat up some
-memory.
-
-Just kidding.  The auth-source library is simply a way for Emacs and
-Gnus, among others, to find the answer to the old burning question ``I
-have a server name and a port, what are my user name and password?''
+The auth-source library is simply a way for Emacs and Gnus, among
+others, to find the answer to the old burning question ``I have a
+server name and a port, what are my user name and password?''
 
 The auth-source library actually supports more than just the user name
 (known as the login) or the password, but only those two are in use
@@ -90,25 +83,32 @@ see later in this document.
 
 ``Netrc'' files are a de facto standard.  They look like this:
 @example
-machine mymachine login myloginname password mypassword port myport
+machine @var{mymachine} login @var{myloginname} password @var{mypassword} port @var{myport}
 @end example
+
+The machine is the server (either a DNS name or an IP address).
 
 The port is optional.  If it's missing, auth-source will assume any
 port is OK.  Actually the port is a protocol name or a port number so
-you can have separate entries for port 143 and for protocol ``imap''
-if you fancy that.  Anyway, you can just omit the port if you don't
-need it.  ``Netrc'' files are usually called @code{.authinfo} or
-@code{.netrc}; nowadays @code{.authinfo} seems to be more popular and
-the auth-source library encourages this confusion by making it the
-default, as you'll see later.
+you can have separate entries for port @var{143} and for protocol
+@var{imap} if you fancy that.  Anyway, you can just omit the port if
+you don't need it.
 
-If you have problems with the port, set @var{auth-source-debug} to t
-and see what port the library is checking in the @code{*Messages*}
-buffer.  Ditto for any other problems, your first step is always to
-see what's being checked.  The second step, of course, is to write a
-blog entry about it and wait for the answer in the comments.
+The login and password are simply your login credentials to the server.
 
-You can customize the variable @var{auth-sources}.  The following may
+``Netrc'' files are usually called @code{.authinfo} or @code{.netrc};
+nowadays @code{.authinfo} seems to be more popular and the auth-source
+library encourages this confusion by making it the default, as you'll
+see later.
+
+If you have problems with the port, set @code{auth-source-debug} to
+@code{t} and see what port the library is checking in the
+@code{*Messages*} buffer.  Ditto for any other problems, your first
+step is always to see what's being checked.  The second step, of
+course, is to write a blog entry about it and wait for the answer in
+the comments.
+
+You can customize the variable @code{auth-sources}.  The following may
 be needed if you are using an older version of Emacs or if the
 auth-source library is not loaded for some other reason.
 
@@ -119,7 +119,7 @@ auth-source library is not loaded for some other reason.
 
 @defvar auth-sources
 
-The @var{auth-sources} variable tells the auth-source library where
+The @code{auth-sources} variable tells the auth-source library where
 your netrc files live for a particular host and protocol.  While you
 can get fancy, the default and simplest configuration is:
 
@@ -132,7 +132,7 @@ Sweet simplicity.  In fact, this is already the default, so unless you
 want to move your netrc file, it will just work if you have that
 file.  You may not, though, so make sure it exists.
 
-By adding multiple entries to @var{auth-sources} with a particular
+By adding multiple entries to @code{auth-sources} with a particular
 host or protocol, you can have specific netrc files for that host or
 protocol.  Usually this is unnecessary but may make sense if you have
 shared netrc files or some other unusual setup (90% of Emacs users
@@ -140,7 +140,7 @@ have unusual setups and the remaining 10% are @emph{really} unusual).
 
 @end defvar
 
-If you don't customize @var{auth-sources}, you'll have to live with
+If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: any host and any port are looked up in the netrc
 file @code{~/.authinfo.gpg}.  This is an encrypted file if and only if
 you set up EPA, which is strongly recommended.
@@ -198,8 +198,8 @@ The auth-source library only has one function for external use.
 @defun auth-source-user-or-password mode host port
 
 Retrieve appropriate authentication tokens, determined by @var{mode},
-for host @var{host} and @var{port}.  If @var{auth-source-debug} is t,
-debugging messages will be printed.  Set @var{auth-source-debug} to a
+for host @var{host} and @var{port}.  If @code{auth-source-debug} is t,
+debugging messages will be printed.  Set @code{auth-source-debug} to a
 function to use that function for logging.  The parameters passed will
 be the same that the @code{message} function takes, that is, a string
 formatting spec and optional parameters.

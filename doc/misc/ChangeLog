@@ -12,6 +12,10 @@
 	(Feedback): Document the new bug report command.
 	(Structure editing): Added an index entry for the sorting of subtrees.
 
+2009-09-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Corrected markup.
+
 2009-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-mime.texi (time-date): Mention float-time.
