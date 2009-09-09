@@ -1,7 +1,7 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: FSF
@@ -1177,6 +1177,9 @@ which may actually result in an url rather than a filename."
 	 ((and abs (ffap-file-remote-p name)))
 	 ;; Ok, not remote, try the existence test even if it is absolute:
 	 ((and abs (ffap-file-exists-string name)))
+	 ;; Try stripping off line numbers.
+	 ((and abs (string-match ":[0-9]" name)
+	       (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
 	 ;; If it contains a colon, get rid of it (and return if exists)
 	 ((and (string-match path-separator name)
 	       (setq name (ffap-string-at-point 'nocolon))

@@ -1,3 +1,8 @@
+2009-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-file-at-point): Handle absolute (non-remote) files with
+	line numbers too.  (Bug#4374)
+
 2009-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-remove-props, smerge-refine):
