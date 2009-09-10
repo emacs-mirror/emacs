@@ -2496,8 +2496,8 @@ since they have special meaning in a regexp."
 
 (defun isearch-text-char-description (c)
   (cond
-   ((< c ?\s) (format "^%c" (+ c 64)))
-   ((= c ?\^?) "^?")
+   ((< c ?\s) (propertize (format "^%c" (+ c 64)) 'face 'escape-glyph))
+   ((= c ?\^?) (propertize "^?" 'face 'escape-glyph))
    (t (char-to-string c))))
 
 ;; General function to unread characters or events.
