@@ -532,7 +532,8 @@ This is so we can inline them when necessary.
 Each element looks like (FUNCTIONNAME . DEFINITION).  It is
 \(FUNCTIONNAME . nil) when a function is redefined as a macro.
 It is \(FUNCTIONNAME . t) when all we know is that it was defined,
-and we don't know the definition.")
+and we don't know the definition.  For an autoloaded function, DEFINITION
+has the form (autoload . FILENAME).")
 
 (defvar byte-compile-unresolved-functions nil
   "Alist of undefined functions to which calls have been compiled.
@@ -2301,13 +2302,25 @@ list that represents a doc string reference.
        (eval (nth 5 form))		;Macro
        (eval form))			;Define the autoload.
   ;; Avoid undefined function warnings for the autoload.
-  (if (and (consp (nth 1 form))
+  (when (and (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
 	   (symbolp (nth 1 (nth 1 form))))
-      (push (cons (nth 1 (nth 1 form))
-		  (cons 'autoload (cdr (cdr form))))
-	    byte-compile-function-environment))
+    (push (cons (nth 1 (nth 1 form))
+		(cons 'autoload (cdr (cdr form))))
+	  byte-compile-function-environment)
+    ;; If an autoload occurs _before_ the first call to a function,
+    ;; byte-compile-callargs-warn does not add an entry to
+    ;; byte-compile-unresolved-functions.  Here we mimic the logic
+    ;; of byte-compile-callargs-warn so as not to warn if the
+    ;; autoload comes _after_ the function call.
+    ;; Alternatively, similar logic could go in
+    ;; byte-compile-warn-about-unresolved-functions.
+    (or (memq (nth 1 (nth 1 form)) byte-compile-noruntime-functions)
+	(setq byte-compile-unresolved-functions
+	      (delq (assq (nth 1 (nth 1 form))
+			  byte-compile-unresolved-functions)
+		    byte-compile-unresolved-functions))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -2386,6 +2399,14 @@ list that represents a doc string reference.
   (mapc 'byte-compile-file-form (cdr form))
   ;; Return nil so the forms are not output twice.
   nil)
+
+(put 'with-no-warnings 'byte-hunk-handler
+     'byte-compile-file-form-with-no-warnings)
+(defun byte-compile-file-form-with-no-warnings (form)
+  ;; cf byte-compile-file-form-progn.
+  (let (byte-compile-warnings)
+    (mapc 'byte-compile-file-form (cdr form))
+    nil))
 
 ;; This handler is not necessary, but it makes the output from dont-compile
 ;; and similar macros cleaner.
