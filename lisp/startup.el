@@ -501,8 +501,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		     (delete (concat "PWD=" pwd)
 			     process-environment)))))
     (setq default-directory (abbreviate-file-name default-directory))
-    (let ((menubar-bindings-done nil)
-	  (old-face-font-rescale-alist face-font-rescale-alist))
+    (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
 	;; Do this again, in case .emacs defined more abbreviations.
@@ -571,10 +570,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(if (fboundp 'font-menu-add-default)
 	    (font-menu-add-default))
 	(and window-setup-hook
-	     (run-hooks 'window-setup-hook))
-	(or menubar-bindings-done
-	    (if (display-popup-menus-p)
-		(precompute-menubar-bindings)))))
+	     (run-hooks 'window-setup-hook))))
     ;; Subprocesses of Emacs do not have direct access to the terminal, so
     ;; unless told otherwise they should only assume a dumb terminal.
     ;; We are careful to do it late (after term-setup-hook), although the
@@ -595,20 +591,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         (delete display process-environment)))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
-(defun precompute-menubar-bindings ()
-  (let ((submap (lookup-key global-map [menu-bar])))
-    (while submap
-      (and (consp (car submap))
-	   (symbolp (car (car submap)))
-	   (stringp (car-safe (cdr (car submap))))
-	   (keymapp (cdr (cdr (car submap))))
-	   (progn
-	     (x-popup-menu nil (cdr (cdr (car submap))))
-	     (if purify-flag
-		 (garbage-collect))))
-      (setq submap (cdr submap))))
-    (setq define-key-rebound-commands t))
-
 ;; Command-line options supported by tty's:
 (defconst tty-long-option-alist
   '(("--name"		  . "-name")

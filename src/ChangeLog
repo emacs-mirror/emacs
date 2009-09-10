@@ -1,5 +1,10 @@
 2009-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (Qmenu_alias, Vdefine_key_rebound_commands): Remove.
+	(parse_menu_item): Streamline since bindings are recomputed all the
+	time anyway.  Don't bother checking Vdefine_key_rebound_commands any
+	more and don't support lmenu's menu-alias any more either.
+
 	* keymap.c (where_is_internal_data): Make noindirect a boolean.
 	(where_is_internal): Strip it down to only traverse the keymaps.
 	Move the cache handling from Fwhere_is_internal to here.

@@ -1076,6 +1076,7 @@ is converted into a string by expressing it in decimal."
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
+(make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")

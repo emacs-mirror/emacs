@@ -495,11 +495,9 @@ Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
 /* menu item parts */
-Lisp_Object Qmenu_alias;
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
 Lisp_Object QCbutton, QCtoggle, QCradio;
-extern Lisp_Object Vdefine_key_rebound_commands;
 extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
@@ -7883,13 +7881,10 @@ parse_menu_item (item, notreal, inmenubar)
      int notreal, inmenubar;
 {
   Lisp_Object def, tem, item_string, start;
-  Lisp_Object cachelist;
   Lisp_Object filter;
   Lisp_Object keyhint;
   int i;
-  int newcache = 0;
 
-  cachelist = Qnil;
   filter = Qnil;
   keyhint = Qnil;
 
@@ -7926,14 +7921,11 @@ parse_menu_item (item, notreal, inmenubar)
 	  item = XCDR (item);
 	}
 
-      /* Maybe key binding cache.  */
+      /* Maybe an obsolete key binding cache.  */
       if (CONSP (item) && CONSP (XCAR (item))
 	  && (NILP (XCAR (XCAR (item)))
 	      || VECTORP (XCAR (XCAR (item)))))
-	{
-	  cachelist = XCAR (item);
-	  item = XCDR (item);
-	}
+	item = XCDR (item);
 
       /* This is the real definition--the function to run.  */
       ASET (item_properties, ITEM_PROPERTY_DEF, item);
@@ -7959,12 +7951,9 @@ parse_menu_item (item, notreal, inmenubar)
 	  ASET (item_properties, ITEM_PROPERTY_DEF, XCAR (start));
 
 	  item = XCDR (start);
-	  /* Is there a cache list with key equivalences. */
+	  /* Is there an obsolete cache list with key equivalences.  */
 	  if (CONSP (item) && CONSP (XCAR (item)))
-	    {
-	      cachelist = XCAR (item);
-	      item = XCDR (item);
-	    }
+	    item = XCDR (item);
 
 	  /* Parse properties.  */
 	  while (CONSP (item) && CONSP (XCDR (item)))
@@ -7994,15 +7983,14 @@ parse_menu_item (item, notreal, inmenubar)
 	      else if (EQ (tem, QCkey_sequence))
 		{
 		  tem = XCAR (item);
-		  if (NILP (cachelist)
-		      && (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem)))
+		  if (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem))
 		    /* Be GC protected. Set keyhint to item instead of tem. */
 		    keyhint = item;
 		}
 	      else if (EQ (tem, QCkeys))
 		{
 		  tem = XCAR (item);
-		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
+		  if (CONSP (tem) || STRINGP (tem))
 		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
@@ -8083,40 +8071,16 @@ parse_menu_item (item, notreal, inmenubar)
     return 1;
 
   /* This is a command.  See if there is an equivalent key binding. */
-  if (NILP (cachelist))
+  tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+  /* The previous code preferred :key-sequence to :keys, so we
+     preserve this behavior.  */
+  if (STRINGP (tem) && !CONSP (keyhint))
+    tem = Fsubstitute_command_keys (tem);
+  else
     {
-      /* We have to create a cachelist.  */
-      /* With the introduction of where_is_cache, the computation
-         of equivalent key bindings is sufficiently fast that we
-         do not need to cache it here any more. */
-      /* CHECK_IMPURE (start);
-         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
-	 cachelist = XCAR (XCDR (start));  */
-      cachelist = Fcons (Qnil, Qnil);
-      newcache = 1;
-      tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-      if (!NILP (keyhint))
-	{
-	  XSETCAR (cachelist, XCAR (keyhint));
-	  newcache = 0;
-	}
-      else if (STRINGP (tem))
-	{
-	  XSETCDR (cachelist, Fsubstitute_command_keys (tem));
-	  XSETCAR (cachelist, Qt);
-	}
-    }
+      Lisp_Object prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+      Lisp_Object keys = Qnil;
 
-  tem = XCAR (cachelist);
-  if (!EQ (tem, Qt))
-    {
-      int chkcache = 0;
-      Lisp_Object prefix;
-
-      if (!NILP (tem))
-	tem = Fkey_binding (tem, Qnil, Qnil, Qnil);
-
-      prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
 	{
 	  def = XCAR (prefix);
@@ -8125,58 +8089,27 @@ parse_menu_item (item, notreal, inmenubar)
       else
 	def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
+      if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
 	{
-	  if (newcache		/* Always check first time.  */
-	      /* Should we check everything when precomputing key
-		 bindings?  */
-	      /* If something had no key binding before, don't recheck it
-		 because that is too slow--except if we have a list of
-		 rebound commands in Vdefine_key_rebound_commands, do
-		 recheck any command that appears in that list. */
-	      || (CONSP (Vdefine_key_rebound_commands)
-		  && !NILP (Fmemq (def, Vdefine_key_rebound_commands))))
-	    chkcache = 1;
-	}
-      /* We had a saved key. Is it still bound to the command?  */
-      else if (NILP (tem)
-	       || (!EQ (tem, def)
-		   /* If the command is an alias for another
-		      (such as lmenu.el set it up), check if the
-		      original command matches the cached command.  */
-		   && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
-	chkcache = 1;		/* Need to recompute key binding.  */
+	  keys = XCAR (keyhint);
+	  tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
 
-      if (chkcache)
-	{
-	  /* Recompute equivalent key binding.  If the command is an alias
-	     for another (such as lmenu.el set it up), see if the original
-	     command name has equivalent keys.  Otherwise look up the
-	     specified command itself.  We don't try both, because that
-	     makes lmenu menus slow. */
-	  if (SYMBOLP (def)
-	      && SYMBOLP (XSYMBOL (def)->function)
-	      && ! NILP (Fget (def, Qmenu_alias)))
-	    def = XSYMBOL (def)->function;
-	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
-
-	  XSETCAR (cachelist, tem);
-	  if (NILP (tem))
-	    {
-	      XSETCDR (cachelist, Qnil);
-	      chkcache = 0;
-	    }
+	  /* We have a suggested key.  Is it bound to the command?  */
+	  if (NILP (tem)
+	      || (!EQ (tem, def)
+		  /* If the command is an alias for another
+		     (such as lmenu.el set it up), check if the
+		     original command matches the cached command.  */
+		  && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
+	    keys = Qnil;
 	}
-      else if (!NILP (keyhint) && !NILP (XCAR (cachelist)))
+      
+      if (NILP (keys))
+	keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
+	  
+      if (!NILP (keys))
 	{
-	  tem = XCAR (cachelist);
-	  chkcache = 1;
-	}
-
-      newcache = chkcache;
-      if (chkcache)
-	{
-	  tem = Fkey_description (tem, Qnil);
+	  tem = Fkey_description (keys, Qnil);
 	  if (CONSP (prefix))
 	    {
 	      if (STRINGP (XCAR (prefix)))
@@ -8184,17 +8117,11 @@ parse_menu_item (item, notreal, inmenubar)
 	      if (STRINGP (XCDR (prefix)))
 		tem = concat2 (tem, XCDR (prefix));
 	    }
-	  XSETCDR (cachelist, tem);
+	  tem = concat2 (build_string ("  "), tem);
+	  /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
 	}
     }
-
-  tem = XCDR (cachelist);
-  if (newcache && !NILP (tem))
-    {
-      tem = concat2 (build_string ("  "), tem);
-      /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
-      XSETCDR (cachelist, tem);
-    }
+  
 
   /* If we only want to precompute equivalent key bindings, stop here. */
   if (notreal)
@@ -11870,8 +11797,6 @@ syms_of_keyboard ()
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
-  Qmenu_alias = intern ("menu-alias");
-  staticpro (&Qmenu_alias);
   QCenable = intern (":enable");
   staticpro (&QCenable);
   QCvisible = intern (":visible");

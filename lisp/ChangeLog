@@ -1,3 +1,12 @@
+2009-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (define-key-rebound-commands): Mark obsolete.
+	* startup.el (precompute-menubar-bindings): Remove.
+	(normal-top-level): Remove obsolete code that tried to precompute
+	menubar bindings.
+	* loadup.el (define-key-rebound-commands): Don't bother fiddling with
+	define-key-rebound-commands and precompute-menubar-bindings.
+
 2009-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* pcvs.el (cvs-mode-find-file): Use forward-line rather than goto-line.
