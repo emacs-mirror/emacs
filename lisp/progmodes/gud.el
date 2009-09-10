@@ -3411,7 +3411,8 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
   (case gud-minor-mode
-	((dbx gdbmi) (concat "print " expr))
+	(gdbmi (concat "-data-evaluate-expression " expr))
+	(dbx (concat "print " expr))
 	((xdb pdb) (concat "p " expr))
 	(sdb (concat expr "/"))))
 
