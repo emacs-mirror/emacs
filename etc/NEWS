@@ -212,8 +212,8 @@ variable, are now declared obsolete.
 ** read-key is a function halfway between read-event and read-key-sequence.
 It reads a single key, but obeys input and escape sequence decoding.
 
-** start-process-shell-command start-file-process-shell-command only
-take a single `command' argument any more.
+** start-process-shell-command and start-file-process-shell-command
+now only take a single `command' argument.
 
 ** The variable `process-file-side-effects' shall be bound to nil, if
 a `process-file' call does not change a remote file.  By this, file
