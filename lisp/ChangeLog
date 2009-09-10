@@ -1,3 +1,14 @@
+2009-09-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	Reported in thread for Bug#4375.
+	* progmodes/gud.el (gud-tooltip-print-command): Use MI command
+	"-data-evaluate-expression" instead of print.
+	* progmodes/gdb-mi.el (gdb-tooltip-print-1): Ditto.
+	(gdb-tooltip-print): Parse output from above MI command.
+
+	Remove the word "separate" from IO functions as inferior
+	output is now never displayed in the GUD buffer.
+
 2009-09-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* startup.el (command-line-normalize-file-name): On Windows and
