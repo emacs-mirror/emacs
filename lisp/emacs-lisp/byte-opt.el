@@ -1,7 +1,7 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;; Copyright (C) 1991, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1221,6 +1221,7 @@
 	 next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
 	 prefix-numeric-value previous-window prin1-to-string propertize
+	 degrees-to-radians
 	 radians-to-degrees rassq rassoc read-from-string regexp-quote
 	 region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
