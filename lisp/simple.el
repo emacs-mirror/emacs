@@ -2214,7 +2214,11 @@ specifies the value of ERROR-BUFFER."
 		  (setq mode-line-process '(":%s"))
 		  (require 'shell) (shell-mode)
 		  (set-process-sentinel proc 'shell-command-sentinel)
+		  ;; Use the comint filter for proper handling of carriage motion
+		  ;; (see `comint-inhibit-carriage-motion'),.
+		  (set-process-filter proc 'comint-output-filter)
 		  ))
+	    ;; Otherwise, command is executed synchronously.
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
