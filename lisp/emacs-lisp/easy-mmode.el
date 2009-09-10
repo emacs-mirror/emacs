@@ -1,7 +1,7 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -452,6 +452,9 @@ Valid keywords and arguments are:
 
 ;;;###autoload
 (defmacro easy-mmode-defmap (m bs doc &rest args)
+  "Define a constant M whose value is the result of `easy-mmode-define-keymap'.
+The M, BS, and ARGS arguments are as per that function.  DOC is
+the constant's documentation."
   `(defconst ,m
      (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
      ,doc))
