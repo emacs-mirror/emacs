@@ -854,17 +854,13 @@ detailed description of this mode.
 (defvar tooltip-use-echo-area)
 
 (defun gdb-tooltip-print (expr)
-  (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (goto-char (point-min))
-     (let ((string
-	    (if (search-forward "=" nil t)
-		(concat expr (buffer-substring (- (point) 2) (point-max)))
-	      (buffer-string))))
-       ;; remove newline for gud-tooltip-echo-area
-       (substring string 0 (- (length string) 1))))
-   (or gud-tooltip-echo-area tooltip-use-echo-area
-       (not (display-graphic-p)))))
+     (if (re-search-forward ".*value=\\(\".*\"\\)" nil t)
+	 (tooltip-show
+	  (concat expr " = " (read (match-string 1)))
+	  (or gud-tooltip-echo-area tooltip-use-echo-area
+	      (not (display-graphic-p)))))))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
@@ -875,7 +871,7 @@ detailed description of this mode.
     (if (search-forward "expands to: " nil t)
 	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-input
-	   (list  (concat "print " expr)
+	   (list  (concat "-data-evaluate-expression " expr)
 		  `(lambda () (gdb-tooltip-print ,expr))))))))
 
 (defun gdb-init-buffer ()
@@ -1307,7 +1303,7 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
        (apply ',expr args))))
 
 ;; Used to define all gdb-frame-*-buffer functions except
-;; `gdb-frame-separate-io-buffer'
+;; `gdb-frame-io-buffer'
 (defmacro def-gdb-frame-for-buffer (name buffer &optional doc)
   "Define a function NAME which shows gdb BUFFER in a separate frame.
 
@@ -1401,7 +1397,7 @@ DOC is an optional documentation string."
 	  (gdb-get-target-string)
 	  "*"))
 
-(defun gdb-display-separate-io-buffer ()
+(defun gdb-display-io-buffer ()
   "Display IO of debugged program in a separate window."
   (interactive)
   (gdb-display-buffer
@@ -1414,7 +1410,7 @@ DOC is an optional documentation string."
     (menu-bar-lines . nil)
     (minibuffer . nil)))
 
-(defun gdb-frame-separate-io-buffer ()
+(defun gdb-frame-io-buffer ()
   "Display IO of debugged program in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
@@ -1423,11 +1419,11 @@ DOC is an optional documentation string."
 
 (defvar gdb-inferior-io-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'gdb-separate-io-interrupt)
-    (define-key map "\C-c\C-z" 'gdb-separate-io-stop)
-    (define-key map "\C-c\C-\\" 'gdb-separate-io-quit)
-    (define-key map "\C-c\C-d" 'gdb-separate-io-eof)
-    (define-key map "\C-d" 'gdb-separate-io-eof)
+    (define-key map "\C-c\C-c" 'gdb-io-interrupt)
+    (define-key map "\C-c\C-z" 'gdb-io-stop)
+    (define-key map "\C-c\C-\\" 'gdb-io-quit)
+    (define-key map "\C-c\C-d" 'gdb-io-eof)
+    (define-key map "\C-d" 'gdb-io-eof)
     map))
 
 ;; We want to use comint because it has various nifty and familiar features.
@@ -1447,25 +1443,25 @@ The following commands are available:
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (comint-output-filter proc string)))
 
-(defun gdb-separate-io-interrupt ()
+(defun gdb-io-interrupt ()
   "Interrupt the program being debugged."
   (interactive)
   (interrupt-process
    (get-buffer-process gud-comint-buffer) comint-ptyp))
 
-(defun gdb-separate-io-quit ()
+(defun gdb-io-quit ()
   "Send quit signal to the program being debugged."
   (interactive)
   (quit-process
    (get-buffer-process gud-comint-buffer) comint-ptyp))
 
-(defun gdb-separate-io-stop ()
+(defun gdb-io-stop ()
   "Stop the program being debugged."
   (interactive)
   (stop-process
    (get-buffer-process gud-comint-buffer) comint-ptyp))
 
-(defun gdb-separate-io-eof ()
+(defun gdb-io-eof ()
   "Send end-of-file to the program being debugged."
   (interactive)
   (process-send-eof
@@ -3820,7 +3816,7 @@ SPLIT-HORIZONTAL and show BUF in the new window."
     '("Disassembly" . gdb-display-disassembly-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
   (define-key menu [inferior]
-    '("Separate IO" . gdb-display-separate-io-buffer))
+    '("IO" . gdb-display-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints]
@@ -3836,7 +3832,7 @@ SPLIT-HORIZONTAL and show BUF in the new window."
   (define-key menu [disassembly] '("Disassembly" . gdb-frame-disassembly-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
   (define-key menu [inferior]
-    '("Separate IO" . gdb-frame-separate-io-buffer))
+    '("IO" . gdb-frame-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints]
