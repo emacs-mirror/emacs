@@ -1,3 +1,37 @@
+2009-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* pcvs.el (cvs-mode-find-file): Use forward-line rather than goto-line.
+
+	* emacs-lisp/bytecomp.el (byte-compile-function-environment): Doc fix.
+	(byte-compile-file-form-autoload): Don't warn about unknown functions
+	where the autoload statement comes after the use.
+	(with-no-warnings): Give it a byte-hunk-handler like than of progn, so
+	that any handlers inside the body (eg require) are in turn respected.
+
+	* emacs-lisp/byte-opt.el (degrees-to-radians): Mark as free from side
+	effects.
+
+	* emacs-lisp/derived.el (define-derived-mode): Give the mode's map,
+	and syntax and abbrev tables basic docs, if they don't have any.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-defmap): Add doc-string.
+
+	* international/mule-cmds.el (top-level): Require cl when compiling.
+	(view-hello-file): Use default-value rather than
+	default-enable-multibyte-characters.
+
+	* progmodes/fortran.el: Move all safe and risky properties into the
+	defcustoms.
+
+	* mail/rmailedit.el, mail/rmailkwd.el, mail/rmailmm.el:
+	* mail/rmailmsc.el, mail/rmailsort.el, mail/rmailsum.el:
+	* mail/undigest.el:
+	Put autoloads in rmail.el rather than loaddefs.el.
+	* mail/rmail.el: Regenerate with extracted autoloads.
+
+	* mail/rmailsum.el (rmail-user-mail-address-regexp): Move to rmail.el.
+	* mail/rmail.el (rmail-user-mail-address-regexp): Move from rmailsum.el.
+
 2009-09-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	Reported in thread for Bug#4375.
