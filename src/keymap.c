@@ -2804,7 +2804,7 @@ remapped command in the returned list.  */)
   /* The keymaps in which to search.  */
   Lisp_Object keymaps;
   /* Potentially relevant bindings in "shortest to longest" order.  */
-  Lisp_Object sequences = Qnil,
+  Lisp_Object sequences = Qnil;
     /* Actually relevant bindings.  */
   Lisp_Object found = Qnil;
   /* 1 means ignore all menu bindings entirely.  */
