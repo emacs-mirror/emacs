@@ -5,6 +5,8 @@
 	"-data-evaluate-expression" instead of print.
 	* progmodes/gdb-mi.el (gdb-tooltip-print-1): Ditto.
 	(gdb-tooltip-print): Parse output from above MI command.
+	(gdb): Revert 2009-08-11 change.  User should detach inferior
+	manually.
 
 	Remove the word "separate" from IO functions as inferior
 	output is now never displayed in the GUD buffer.
