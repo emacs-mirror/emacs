@@ -41,6 +41,7 @@ This applies only to the current session."
 	 (with-temp-buffer
 	   (insert file-name)
 	   (goto-char (point-min))
+	   ;; split-string does not remove leading/trailing whitespace.
 	   (nreverse (mail-parse-comma-list)))))
     (when (or (not rmail-inbox-list)
 	      (y-or-n-p (concat "Replace "
@@ -52,6 +53,10 @@ This applies only to the current session."
 	       (file-name-nondirectory (buffer-file-name)))
       (setq rmail-inbox-list inbox-list)))
   (rmail-show-message-1 rmail-current-message))
+
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
 
 ;; arch-tag: 94614a62-2a0a-4e25-bac9-06f461ed4c60
 ;;; rmailmsc.el ends here

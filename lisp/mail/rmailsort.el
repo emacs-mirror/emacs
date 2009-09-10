@@ -250,5 +250,9 @@ Numeric keys are sorted numerically, all others as strings."
 
 (provide 'rmailsort)
 
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
+
 ;; arch-tag: 665da245-f6a7-4115-ad8c-ba19216988d5
 ;;; rmailsort.el ends here

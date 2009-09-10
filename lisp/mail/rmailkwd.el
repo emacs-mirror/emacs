@@ -159,6 +159,7 @@ With prefix argument N moves backward N messages with these labels."
 LABELS should be a comma-separated list of label names.
 If LABELS is empty, the last set of labels specified is used.
 With prefix argument N moves forward N messages with these labels."
+  ;; FIXME show the default in the prompt.
   (interactive "p\nsMove to next msg with labels: ")
   (if (string= labels "")
       (setq labels rmail-last-multi-labels))
@@ -187,6 +188,10 @@ With prefix argument N moves forward N messages with these labels."
 	(rmail-show-message-1 lastwin)))))
 
 (provide 'rmailkwd)
+
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
 
 ;; arch-tag: 1149979c-8e47-4333-9629-cf3dc887a6a7
 ;;; rmailkwd.el ends here

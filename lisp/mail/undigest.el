@@ -213,6 +213,7 @@ Leaves original message, deleted, before the undigestified messages."
 	    (set-buffer buff)
 	    (rmail-swap-buffers-maybe)
 	    (goto-char (point-max))
+	    ;; FIXME use rmail-count-new-messages.
 	    (rmail-set-message-counters)
 	    (set-buffer-modified-p t)
 	    (rmail-show-message current)
@@ -312,6 +313,7 @@ following the containing message."
 	  (set-buffer buff)
 	  (rmail-swap-buffers-maybe)
 	  (goto-char (point-max))
+	  ;; FIXME use rmail-count-new-messages.
 	  (rmail-set-message-counters)
 	  (set-buffer-modified-p t)
 	  (rmail-show-message current)
@@ -322,6 +324,10 @@ following the containing message."
 	(rmail-show-message current)))))
 
 (provide 'undigest)
+
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
 
 ;; arch-tag: 3a28b9fb-c1f5-43ef-9278-285f3e4b874d
 ;;; undigest.el ends here
