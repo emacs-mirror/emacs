@@ -120,6 +120,7 @@ Customize or call the function `grep-apply-setting'."
 The following place holders should be present in the string:
  <C> - place to put -i if case insensitive grep.
  <F> - file names and wildcards to search.
+ <X> - file names and wildcards to exclude.
  <R> - the regular expression searched for.
  <N> - place to insert null-device.
 
@@ -176,18 +177,19 @@ Customize or call the function `grep-apply-setting'."
   :group 'grep)
 
 (defcustom grep-files-aliases
-  '(("asm" .    "*.[sS]")
+  '(("all" .   "* .*")
+    ("el" .    "*.el")
+    ("ch" .    "*.[ch]")
     ("c" .     "*.c")
     ("cc" .    "*.cc *.cxx *.cpp *.C *.CC *.c++")
-    ("cchh" .    "*.cc *.[ch]xx *.[ch]pp *.[CHh] *.CC *.HH *.[ch]++")
+    ("cchh" .  "*.cc *.[ch]xx *.[ch]pp *.[CHh] *.CC *.HH *.[ch]++")
     ("hh" .    "*.hxx *.hpp *.[Hh] *.HH *.h++")
-    ("ch" .    "*.[ch]")
-    ("el" .    "*.el")
     ("h" .     "*.h")
-    ("l" .      "[Cc]hange[Ll]og*")
+    ("l" .     "[Cc]hange[Ll]og*")
     ("m" .     "[Mm]akefile*")
-    ("tex" .    "*.tex")
-    ("texi" .   "*.texi"))
+    ("tex" .   "*.tex")
+    ("texi" .  "*.texi")
+    ("asm" .   "*.[sS]"))
   "*Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
   :type 'alist
   :group 'grep)
@@ -197,7 +199,20 @@ Customize or call the function `grep-apply-setting'."
   "*List of names of sub-directories which `rgrep' shall not recurse into.
 If an element is a cons cell, the car is called on the search directory
 to determine whether cdr should not be recursed into."
-  :type '(repeat string)
+  :type '(choice (repeat :tag "Ignored directories" string)
+		 (const :tag "No ignored directories" nil))
+  :group 'grep)
+
+(defcustom grep-find-ignored-files
+  (cons ".#*" (delq nil (mapcar (lambda (s)
+				  (unless (string-match-p "/\\'" s)
+				    (concat "*" s)))
+				completion-ignored-extensions)))
+  "*List of file names which `rgrep' and `lgrep' shall exclude.
+If an element is a cons cell, the car is called on the search directory
+to determine whether cdr should not be excluded."
+  :type '(choice (repeat :tag "Ignored file" string)
+		 (const :tag "No ignored files" nil))
   :group 'grep)
 
 (defcustom grep-error-screen-columns nil
@@ -421,7 +436,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;; History of lgrep and rgrep regexp and files args.
 (defvar grep-regexp-history nil)
-(defvar grep-files-history '("ch" "el"))
+(defvar grep-files-history nil)
 
 ;;;###autoload
 (defun grep-process-setup ()
@@ -524,7 +539,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		(format "%s %s " grep-program grep-options)))
 	(unless grep-template
 	  (setq grep-template
-		(format "%s <C> %s <R> <F>" grep-program grep-options)))
+		(format "%s <X> <C> %s <R> <F>" grep-program grep-options)))
 	(unless grep-find-use-xargs
 	  (setq grep-find-use-xargs
 		(cond
@@ -753,20 +768,24 @@ substitution string.  Note dynamic scoping of variables.")
 	 (fn (and bn
 		  (stringp bn)
 		  (file-name-nondirectory bn)))
+	 (default-alias
+	   (and fn
+		(let ((aliases grep-files-aliases)
+		      alias)
+		  (while aliases
+		    (setq alias (car aliases)
+			  aliases (cdr aliases))
+		    (if (string-match (wildcard-to-regexp (cdr alias)) fn)
+			(setq aliases nil)
+		      (setq alias nil)))
+		  (cdr alias))))
+	 (default-extension
+	   (and fn
+		(let ((ext (file-name-extension fn)))
+		  (and ext (concat "*." ext)))))
 	 (default
-	   (or (and fn
-		    (let ((aliases grep-files-aliases)
-			  alias)
-		      (while aliases
-			(setq alias (car aliases)
-			      aliases (cdr aliases))
-			(if (string-match (wildcard-to-regexp (cdr alias)) fn)
-			    (setq aliases nil)
-			  (setq alias nil)))
-		      (cdr alias)))
-	       (and fn
-		    (let ((ext (file-name-extension fn)))
-		      (and ext (concat "*." ext))))
+	   (or default-alias
+	       default-extension
 	       (car grep-files-history)
 	       (car (car grep-files-aliases))))
 	 (files (read-string
@@ -774,7 +793,10 @@ substitution string.  Note dynamic scoping of variables.")
 			 "\" in files"
 			 (if default (concat " (default " default ")"))
 			 ": ")
-		 nil 'grep-files-history default)))
+		 nil 'grep-files-history
+		 (delete-dups
+		  (delq nil (append (list default default-alias default-extension)
+				    (mapcar 'car grep-files-aliases)))))))
     (and files
 	 (or (cdr (assoc files grep-files-aliases))
 	     files))))
@@ -822,7 +844,20 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	(setq command (grep-expand-template
 		       grep-template
 		       regexp
-		       files))
+		       files
+		       nil
+		       (and grep-find-ignored-files
+			    (concat " --exclude="
+				    (mapconcat
+				     #'(lambda (ignore)
+					 (cond ((stringp ignore)
+						(shell-quote-argument ignore))
+					       ((consp ignore)
+						(and (funcall (car ignore) dir)
+						     (shell-quote-argument
+						      (cdr ignore))))))
+				     grep-find-ignored-files
+				     " --exclude=")))))
 	(when command
 	  (if confirm
 	      (setq command
@@ -892,26 +927,44 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 					 (concat " -o " find-name-arg " "))
 			      " "
 			      (shell-quote-argument ")"))
-		       dir
+		      dir
+		      (concat
 		       (and grep-find-ignored-directories
 			    (concat (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -path "
 				    (mapconcat
-                                     #'(lambda (ignore)
-                                         (cond ((stringp ignore)
-                                                (shell-quote-argument
-                                                 (concat "*/" ignore)))
-                                               ((consp ignore)
-                                                (and (funcall (car ignore) dir)
-                                                     (shell-quote-argument
-                                                      (concat "*/"
-                                                              (cdr ignore)))))))
-                                     grep-find-ignored-directories
-                                     " -o -path ")
+				     #'(lambda (ignore)
+					 (cond ((stringp ignore)
+						(shell-quote-argument
+						 (concat "*/" ignore)))
+					       ((consp ignore)
+						(and (funcall (car ignore) dir)
+						     (shell-quote-argument
+						      (concat "*/"
+							      (cdr ignore)))))))
+				     grep-find-ignored-directories
+				     " -o -path ")
 				    " "
 				    (shell-quote-argument ")")
-				    " -prune -o ")))))
+				    " -prune -o "))
+		       (and grep-find-ignored-files
+			    (concat (shell-quote-argument "(")
+				    ;; we should use shell-quote-argument here
+				    " -name "
+				    (mapconcat
+				     #'(lambda (ignore)
+					 (cond ((stringp ignore)
+						(shell-quote-argument ignore))
+					       ((consp ignore)
+						(and (funcall (car ignore) dir)
+						     (shell-quote-argument
+						      (cdr ignore))))))
+				     grep-find-ignored-files
+				     " -o -name ")
+				    " "
+				    (shell-quote-argument ")")
+				    " -prune -o "))))))
 	(when command
 	  (if confirm
 	      (setq command
