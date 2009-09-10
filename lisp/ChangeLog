@@ -1,3 +1,26 @@
+2009-09-10  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-text-char-description): Propertize escape
+	character sequences with the `escape-glyph' face.  (Bug#4344)
+
+	* simple.el (shell-command): Set asynchronous process filter to
+	`comint-output-filter'.  (Bug#4343)
+
+	* progmodes/grep.el (grep-template): Add "<X>" to docstring.
+	(grep-files-aliases): Add "all".  Move "el" and "ch" to the top of
+	the list.  Move "asm" to the bottom.
+	(grep-find-ignored-directories): Add `choice' with nil value
+	to empty the list easily.
+	(grep-find-ignored-files): New option.
+	(grep-files-history): Set to nil by default instead of '("ch" "el").
+	(grep-compute-defaults): Add "<X>" to `grep-template'.
+	(grep-read-files): Bind new local variables `default-alias' and
+	`default-extension'.  Use a list of default values for the file prompt.
+	(lgrep): Add `--exclude=' command line options composed from
+	`grep-find-ignored-files'.
+	(rgrep): Add `-name' command line options composed from
+	`grep-find-ignored-files'.  (Bug#4301)
+
 2009-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-hunk-kill): Fix the search of the next hunk
@@ -384,7 +407,7 @@
 2009-08-30  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* progmodes/grep.el (grep-read-files): Strip trailing <N> from
-	buffer names not visiting a file (e.g. cloned buffers).
+	buffer names not visiting a file (e.g. cloned buffers).  (Bug#4210)
 
 2009-08-30  Nick Roberts  <nickrob@snap.net.nz>
 
