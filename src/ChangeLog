@@ -22,7 +22,7 @@
 	* xdisp.c (display_mode_element): Move list length limit from 50 to
 	5000 (see thread starting with <xbaik5174uqu.fsf@cam.ac.uk>).
 
-2009-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+2009-09-09  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsfont.m (ns_get_family): Don't force first letter to uppercase.
 
