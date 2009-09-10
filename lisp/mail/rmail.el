@@ -267,6 +267,24 @@ Currently known variants are 'emacs and 'mailutils."
 (rmail-movemail-variant-p)
 
 ;;;###autoload
+(defcustom rmail-user-mail-address-regexp nil
+  "Regexp matching user mail addresses.
+If non-nil, this variable is used to identify the correspondent
+when receiving new mail.  If it matches the address of the sender,
+the recipient is taken as correspondent of a mail.
+If nil \(default value\), your `user-login-name' and `user-mail-address'
+are used to exclude yourself as correspondent.
+
+Usually you don't have to set this variable, except if you collect mails
+sent by you under different user names.
+Then it should be a regexp matching your mail addresses.
+
+Setting this variable has an effect only before reading a mail."
+  :type '(choice (const :tag "None" nil) regexp)
+  :group 'rmail-retrieve
+  :version "21.1")
+
+;;;###autoload
 (defcustom rmail-dont-reply-to-names nil
   "A regexp specifying addresses to prune from a reply message.
 If this is nil, it is set the first time you compose a reply, to
@@ -4151,6 +4169,225 @@ encoded string (and the same mask) will decode the string."
     (set-buffer rmail-view-buffer)
     (widen)
     nil))
+
+
+;;; Start of automatically extracted autoloads.
+
+;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
+;;;;;;  "c70c6c35b8c5bbdb73787a48b83e5adc")
+;;; Generated autoloads from rmailedit.el
+
+(autoload 'rmail-edit-current-message "rmailedit" "\
+Edit the contents of this message.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
+;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
+;;;;;;  "rmailkwd.el" "2a8211ddb881a6eeb44634909fecb6ee")
+;;; Generated autoloads from rmailkwd.el
+
+(autoload 'rmail-add-label "rmailkwd" "\
+Add LABEL to labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-kill-label "rmailkwd" "\
+Remove LABEL from labels associated with current RMAIL message.
+Completes (see `rmail-read-label') over known labels when reading.
+LABEL may be a symbol or string.  Only one label is allowed.
+
+\(fn LABEL)" t nil)
+
+(autoload 'rmail-read-label "rmailkwd" "\
+Read a label with completion, prompting with PROMPT.
+Completions are chosen from `rmail-label-obarray'.  The default
+is `rmail-last-label', if that is non-nil.  Updates `rmail-last-label'
+according to the choice made, and returns a symbol.
+
+\(fn PROMPT)" nil nil)
+
+(autoload 'rmail-previous-labeled-message "rmailkwd" "\
+Show previous message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves backward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+(autoload 'rmail-next-labeled-message "rmailkwd" "\
+Show next message with one of the labels LABELS.
+LABELS should be a comma-separated list of label names.
+If LABELS is empty, the last set of labels specified is used.
+With prefix argument N moves forward N messages with these labels.
+
+\(fn N LABELS)" t nil)
+
+;;;***
+
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "98c43a3b0581c474563166c99ec1c42c")
+;;; Generated autoloads from rmailmm.el
+
+(autoload 'rmail-mime "rmailmm" "\
+Process the current Rmail message as a MIME message.
+This creates a temporary \"*RMAIL*\" buffer holding a decoded
+copy of the message.  Content-types are handled according to
+`rmail-mime-media-type-handlers-alist'.  By default, this
+displays text and multipart messages, and offers to download
+attachments as specfied by `rmail-mime-attachment-dirs-alist'.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
+;;;;;;  "de01c37c81339201034a01732b97f44e")
+;;; Generated autoloads from rmailmsc.el
+
+(autoload 'set-rmail-inbox-list "rmailmsc" "\
+Set the inbox list of the current RMAIL file to FILE-NAME.
+You can specify one file name, or several names separated by commas.
+If FILE-NAME is empty, remove any existing inbox list.
+
+This applies only to the current session.
+
+\(fn FILE-NAME)" t nil)
+
+;;;***
+
+;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
+;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "3f2b10b0272ea56cb604f29330d95fc4")
+;;; Generated autoloads from rmailsort.el
+
+(autoload 'rmail-sort-by-date "rmailsort" "\
+Sort messages of current Rmail buffer by \"Date\" header.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-subject "rmailsort" "\
+Sort messages of current Rmail buffer by \"Subject\" header.
+Ignores any \"Re: \" prefix.  If prefix argument REVERSE is
+non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-author "rmailsort" "\
+Sort messages of current Rmail buffer by author.
+This uses either the \"From\" or \"Sender\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-recipient "rmailsort" "\
+Sort messages of current Rmail buffer by recipient.
+This uses either the \"To\" or \"Apparently-To\" header, downcased.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-correspondent "rmailsort" "\
+Sort messages of current Rmail buffer by other correspondent.
+This uses either the \"From\", \"Sender\", \"To\", or
+\"Apparently-To\" header, downcased.  Uses the first header not
+excluded by `rmail-dont-reply-to-names'.  If prefix argument
+REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-lines "rmailsort" "\
+Sort messages of current Rmail buffer by the number of lines.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE)" t nil)
+
+(autoload 'rmail-sort-by-labels "rmailsort" "\
+Sort messages of current Rmail buffer by labels.
+LABELS is a comma-separated list of labels.  The order of these
+labels specifies the order of messages: messages with the first
+label come first, messages with the second label come second, and
+so on.  Messages that have none of these labels come last.
+If prefix argument REVERSE is non-nil, sorts in reverse order.
+
+\(fn REVERSE LABELS)" t nil)
+
+;;;***
+
+;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
+;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "60bec0ae88b7ed18dd6845ddb9ccd904")
+;;; Generated autoloads from rmailsum.el
+
+(autoload 'rmail-summary "rmailsum" "\
+Display a summary of all messages, one line per message.
+
+\(fn)" t nil)
+
+(autoload 'rmail-summary-by-labels "rmailsum" "\
+Display a summary of all messages with one or more LABELS.
+LABELS should be a string containing the desired labels, separated by commas.
+
+\(fn LABELS)" t nil)
+
+(autoload 'rmail-summary-by-recipients "rmailsum" "\
+Display a summary of all messages with the given RECIPIENTS.
+Normally checks the To, From and Cc fields of headers;
+but if PRIMARY-ONLY is non-nil (prefix arg given),
+ only look in the To and From fields.
+RECIPIENTS is a string of regexps separated by commas.
+
+\(fn RECIPIENTS &optional PRIMARY-ONLY)" t nil)
+
+(autoload 'rmail-summary-by-regexp "rmailsum" "\
+Display a summary of all messages according to regexp REGEXP.
+If the regular expression is found in the header of the message
+\(including in the date and other lines, as well as the subject line),
+Emacs will list the message in the summary.
+
+\(fn REGEXP)" t nil)
+
+(autoload 'rmail-summary-by-topic "rmailsum" "\
+Display a summary of all messages with the given SUBJECT.
+Normally checks just the Subject field of headers; but with prefix
+argument WHOLE-MESSAGE is non-nil, looks in the whole message.
+SUBJECT is a string of regexps separated by commas.
+
+\(fn SUBJECT &optional WHOLE-MESSAGE)" t nil)
+
+(autoload 'rmail-summary-by-senders "rmailsum" "\
+Display a summary of all messages whose \"From\" field matches SENDERS.
+SENDERS is a string of regexps separated by commas.
+
+\(fn SENDERS)" t nil)
+
+;;;***
+
+;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
+;;;;;;  "undigest" "undigest.el" "b691540ddff5c394e9ebc3517051445f")
+;;; Generated autoloads from undigest.el
+
+(autoload 'undigestify-rmail-message "undigest" "\
+Break up a digest message into its constituent messages.
+Leaves original message, deleted, before the undigestified messages.
+
+\(fn)" t nil)
+
+(autoload 'unforward-rmail-message "undigest" "\
+Extract a forwarded message from the containing message.
+This puts the forwarded message into a separate rmail message
+following the containing message.
+
+\(fn)" t nil)
+
+;;;***
+
+;;; End of automatically extracted autoloads.
+
 
 (provide 'rmail)
 
