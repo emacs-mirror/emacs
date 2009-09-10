@@ -2352,6 +2352,9 @@ A fancy display is used on graphic displays, normal otherwise."
     ;; However, /// at the beginning is supposed to mean just /, not //.
     (if (string-match "^///+" file)
 	(setq file (replace-match "/" t t file)))
+    (and (memq system-type '(ms-dos windows-nt))
+	 (string-match "^[A-Za-z]:\\(\\\\[\\\\/]\\)" file) ; C:\/ or C:\\
+	 (setq file (replace-match "/" t t file 1)))
     (while (string-match "//+" file 1)
       (setq file (replace-match "/" t t file)))
     file))

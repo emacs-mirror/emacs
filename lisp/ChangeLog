@@ -1,3 +1,8 @@
+2009-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (command-line-normalize-file-name): On Windows and
+	MS-DOS, also convert C:\/ and C:\\ (two backslashes) into C:/.
+
 2009-09-10  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-text-char-description): Propertize escape
