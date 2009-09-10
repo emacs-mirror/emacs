@@ -752,13 +752,6 @@ detailed description of this mode.
 
   (gdb-update)
 
-  (add-hook
-   'kill-buffer-hook
-   (function
-    (lambda ()
-      (gdb-input (list "-target-detach" 'ignore))))
-   nil t)
-
   (run-hooks 'gdb-mode-hook))
 
 (defun gdb-init-1 ()
