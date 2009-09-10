@@ -1387,20 +1387,23 @@ TYPE is the MIME type to use."
 		 (file-name-nondirectory file))))))
 
 (defun mml-insert-multipart (&optional type)
-  (interactive (list (completing-read "Multipart type (default mixed): "
-				      '(("mixed") ("alternative") ("digest") ("parallel")
-					("signed") ("encrypted"))
-				      nil nil "mixed")))
+  (interactive (if (message-in-body-p)
+		   (list (completing-read "Multipart type (default mixed): "
+					  '(("mixed") ("alternative")
+					    ("digest") ("parallel")
+					    ("signed") ("encrypted"))
+					  nil nil "mixed"))
+		 (error "Use this command in the message body")))
   (or type
       (setq type "mixed"))
   (mml-insert-empty-tag "multipart" 'type type)
   (forward-line -1))
 
 (defun mml-insert-part (&optional type)
-  (interactive
-   (list (mml-minibuffer-read-type "")))
-  (mml-insert-tag 'part 'type type 'disposition "inline")
-  (forward-line -1))
+  (interactive (if (message-in-body-p)
+		   (list (mml-minibuffer-read-type ""))
+		 (error "Use this command in the message body")))
+  (mml-insert-tag 'part 'type type 'disposition "inline"))
 
 (declare-function message-subscribed-p "message" ())
 (declare-function message-make-mail-followup-to "message"

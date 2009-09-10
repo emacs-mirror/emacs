@@ -1,3 +1,13 @@
+2009-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Remove binding of
+	default-enable-multibyte-characters that has gotten needless by
+	the 2007-07-13 change in rfc2047-encode-message-header.
+
+	* mml.el (mml-insert-multipart): Error on the message header.
+	(mml-insert-part): Error on the message header; position point at
+	the end of a MIME tag.
+
 2009-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (with-no-warnings): Define it for old Emacsen.

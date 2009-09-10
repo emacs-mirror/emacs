@@ -226,8 +226,6 @@ used to render text.  If it is nil, text will simply be folded.")
 	      (link (nth 2 e))
 	      (enclosure (nth 7 e))
 	      (comments (nth 8 e))
-	      ;; Enable encoding of Newsgroups header in XEmacs.
-	      (default-enable-multibyte-characters t)
 	      (rfc2047-header-encoding-alist
 	       (if (mm-coding-system-p 'utf-8)
 		   (cons '("Newsgroups" . utf-8)
