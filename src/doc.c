@@ -802,10 +802,7 @@ a new string, without any text properties, is returned.  */)
 	  name = Fintern (make_string (start, length_byte), Qnil);
 
 	do_remap:
-	  /* Ignore remappings unless there are no ordinary bindings. */
- 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qt);
- 	  if (NILP (tem))
-	    tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
+	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
 	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
 	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))

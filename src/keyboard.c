@@ -8158,11 +8158,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      && SYMBOLP (XSYMBOL (def)->function)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
-	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
-
-	  /* Don't display remap bindings.*/
-	  if (VECTORP (tem) && ASIZE (tem) > 0 && EQ (AREF (tem, 0), Qremap))
-	    tem = Qnil;
+	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
 
 	  XSETCAR (cachelist, tem);
 	  if (NILP (tem))
