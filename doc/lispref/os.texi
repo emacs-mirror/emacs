@@ -1954,7 +1954,8 @@ This function sends @var{string} to @var{terminal} without alteration.
 Control characters in @var{string} have terminal-dependent effects.
 This function operates only on text terminals.  @var{terminal} may be
 a terminal object, a frame, or @code{nil} for the selected frame's
-terminal.
+terminal.  In batch mode, @var{string} is sent to stdout when
+@var{terminal} is @code{nil}.
 
 One use of this function is to define function keys on terminals that
 have downloadable function key definitions.  For example, this is how (on
