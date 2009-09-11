@@ -1,5 +1,9 @@
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/crisp.el (crisp-mode-map): Move initialization
+	into declaration.
+	(crisp-mode): Use define-minor-mode.
+
 	* progmodes/xscheme.el (xscheme-evaluation-commands):
 	Put a :advertised-binding property rather than using
 	advertised-xscheme-send-previous-expression.
