@@ -4,6 +4,11 @@
 
 2009-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* dired-aux.el, dired-x.el: Put autoloads in dired.el rather than
+	loaddefs.el.
+	* dired.el: Regenerate with extracted autoloads.
+	* Makefile.in (autoloads): Make dired.el writable.
+
 	* ibuf-ext.el: Put autoloads in ibuffer.el rather than loaddefs.el.
 	* ibuffer.el: Regenerate with extracted autoloads.
 	* Makefile.in (autoloads): Make ibuffer.el writable.
