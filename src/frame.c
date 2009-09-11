@@ -4089,35 +4089,28 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 
 
 
-#ifdef HAVE_NS
+/* NS used to define x-parse-geometry in ns-win.el, but that confused
+   make-docfile: the documentation string in ns-win.el was used for
+   x-parse-geometry even in non-NS builds.
 
-/* We used to define x-parse-geometry directly in ns-win.el, but that
-   confused make-docfile: the documentation string in ns-win.el was
-   used for x-parse-geometry even in non-NS builds..  */
-
+   With two definitions of x-parse-geometry in this file, various
+   things still get confused (eg M-x apropos documentation), so that
+   it is best if the two definitions just share the same doc-string.
+*/
 DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
-       doc: /* Parse a Nextstep-style geometry string STRING.
+       doc: /* Parse a display geometry string STRING.
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
 The properties returned may include `top', `left', `height', and `width'.
-This works by calling `ns-parse-geometry'.  */)
-     (string)
-     Lisp_Object string;
-{
-  call1 (Qns_parse_geometry, string);
-}
-
-#else /* !HAVE_NS */
-
-DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
-       doc: /* Parse an X-style geometry string STRING.
-Returns an alist of the form ((top . TOP), (left . LEFT) ... ).
-The properties returned may include `top', `left', `height', and `width'.
-The value of `left' or `top' may be an integer,
+For X, the value of `left' or `top' may be an integer,
 or a list (+ N) meaning N pixels relative to top/left corner,
-or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
+or a list (- N) meaning -N pixels relative to bottom/right corner.
+On Nextstep, this just calls `ns-parse-geometry'.  */)
      (string)
      Lisp_Object string;
 {
+#ifdef HAVE_NS
+  call1 (Qns_parse_geometry, string);
+#else
   int geometry, x, y;
   unsigned int width, height;
   Lisp_Object result;
@@ -4159,8 +4152,8 @@ or a list (- N) meaning -N pixels relative to bottom/right corner.  */)
     result = Fcons (Fcons (Qheight, make_number (height)), result);
 
   return result;
-}
 #endif /* HAVE_NS */
+}
 
 
 /* Calculate the desired size and position of frame F.
