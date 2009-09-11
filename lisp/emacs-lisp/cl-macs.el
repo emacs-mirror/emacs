@@ -230,6 +230,8 @@ It is a list of elements of the form either:
 (defvar bind-block) (defvar bind-defs) (defvar bind-enquote)
 (defvar bind-inits) (defvar bind-lets) (defvar bind-forms)
 
+(declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
+
 (defun cl-transform-lambda (form bind-block)
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
 	 (bind-defs nil) (bind-enquote nil)

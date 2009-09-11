@@ -1,3 +1,7 @@
+2009-09-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (help-add-fundoc-usage): Declare.
+
 2009-09-11  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-cipher-algorithm-alist): Add CAMELLIA.
