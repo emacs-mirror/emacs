@@ -4,6 +4,10 @@
 
 2009-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* paths.el (prune-directory-list, gnus-nntp-service, rmail-file-name):
+	* version.el (emacs-copyright, emacs-major-version)
+	(emacs-minor-version): Reformat doc-strings for make-docfile.
+
 	* apropos.el (apropos-documentation-check-doc-file): Exclude unbound
 	functions and variables, since they must be stuff specific to some other
 	platform.
