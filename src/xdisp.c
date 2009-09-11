@@ -17750,14 +17750,10 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	  }
 	else if (STRINGP (car) || CONSP (car))
 	  {
-	    register int limit = 5000;
-	    /* Limit is to protect against circular lists.
-	       The limit used to be 50, but if you use enough minor modes,
-	       minor-mode-alist will easily grow past 50.  Circular lists
-	       are rather unlikely, so it's better for the limit to be
-	       "too large" rather than "too small".  */
+	    Lisp_Object halftail = elt;
+	    int len = 0;
+
 	    while (CONSP (elt)
-		   && --limit > 0
 		   && (precision <= 0 || n < precision))
 	      {
 		n += display_mode_element (it, depth,
@@ -17769,6 +17765,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 					   precision - n, XCAR (elt),
 					   props, risky);
 		elt = XCDR (elt);
+		len++;
+		if ((len & 1) == 0)
+		  halftail = XCDR (halftail);
+		/* Check for cycle.  */
+		if (EQ (halftail, elt))
+		  break;
 	      }
 	  }
       }
