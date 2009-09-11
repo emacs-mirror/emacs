@@ -6469,8 +6469,9 @@ DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
 Control characters in STRING will have terminal-dependent effects.
 
 Optional parameter TERMINAL specifies the tty terminal device to use.
-It may be a terminal object, a frame, or nil for the terminal used by the
-currently selected frame.  */)
+It may be a terminal object, a frame, or nil for the terminal used by
+the currently selected frame.  In batch mode, STRING is sent to stdout
+when TERMINAL is nil.  */)
   (string, terminal)
      Lisp_Object string;
      Lisp_Object terminal;
