@@ -1,3 +1,8 @@
+2009-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (bootstrap): Ensure enough environment space
+	will be available to run config.bat.
+
 2009-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (buildobj.h): Replace "echo" with "djecho".
