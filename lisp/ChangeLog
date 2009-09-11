@@ -3,7 +3,7 @@
 	* epg.el (epg-cipher-algorithm-alist): Add CAMELLIA.
 	(epg-digest-algorithm-alist): Add SHA224.
 	(epg-context-set-passphrase-callback)
-	(epg-context-set-progress-callback): Add more description about
+	(epg-context-set-progress-callback): Add description about
 	callback function.
 
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>

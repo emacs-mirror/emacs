@@ -332,6 +332,7 @@ This function is for internal use only."
 
 PASSPHRASE-CALLBACK is either a function, or a cons-cell whose
 car is a function and cdr is a callback data.
+
 The function gets three arguments: the context, the key-id in
 question, and the callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
