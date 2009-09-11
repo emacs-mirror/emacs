@@ -1,3 +1,8 @@
+2009-09-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-annotate.el (vc-annotate): Use the main file's coding-system to
+	decode annotated text, regardless of language environment.  (Bug#2741)
+
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (autoloads): Make rmail.el writable as well.
