@@ -1,5 +1,8 @@
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keymap.c (get_keymap): Return the actual keymap symbol rather than
+	t for autoloaded keymaps when autoloading is not allowed (bug#4393).
+
 	* keymap.c (QCadvertised_binding): New constant.
 	(syms_of_keymap): Initialize it.
 	(Fwhere_is_internal): Try and use bindings from :advertised-binding

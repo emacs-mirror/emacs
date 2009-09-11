@@ -292,7 +292,7 @@ get_keymap (object, error, autoload)
 		  goto autoload_retry;
 		}
 	      else
-	      	return Qt;
+	      	return object;
 	    }
 	}
     }
