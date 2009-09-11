@@ -1098,9 +1098,9 @@ Meaningful values for KEY include
 			in extended segments of CTEXT.  See the variable
 			`ctext-non-standard-encodings' for more detail.
 
-The following keys take effect only when multibyte characters are
+The following key takes effect only when multibyte characters are
 globally disabled, i.e. the default value of `enable-multibyte-characters'
-is nil.
+is nil (which is an obsolete and deprecated use):
 
   unibyte-display    value is a coding system to encode characters for
 			the terminal.  Characters in the range of 160 to
