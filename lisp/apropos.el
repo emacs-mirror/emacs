@@ -840,7 +840,14 @@ Returns list of symbols and documentation found."
 			 3)		; variable documentation
 		  symbol (read)
 		  doc (buffer-substring (1+ (point)) (1- sepb)))
-	    (when (apropos-true-hit-doc doc)
+	    (when (and (apropos-true-hit-doc doc)
+                       ;; The DOC file lists all built-in funcs and vars.
+                       ;; If any are not currently bound, they can
+                       ;; only be platform-specific stuff (eg NS) not
+                       ;; in use on the current platform.
+                       ;; So we exclude them.
+                       (cond ((= 3 type) (boundp symbol))
+                             ((= 2 type) (fboundp symbol))))
 	      (or (and (setq apropos-item (assq symbol apropos-accumulator))
 		       (setcar (cdr apropos-item)
 			       (apropos-score-doc doc)))
@@ -976,8 +983,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	    (insert
 	     "If moving the mouse over text changes the text's color, "
 	     "you can click\n"
-	     "mouse-2 (second button from right) on that text to "
-	     "get more information.\n"))
+	     "or press return on that text to get more information.\n"))
 	(insert "In this buffer, go to the name of the command, or function,"
 		" or variable,\n"
 		(substitute-command-keys
