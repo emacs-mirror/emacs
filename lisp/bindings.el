@@ -24,26 +24,6 @@
 
 ;;; Commentary:
 
-;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;;; Special formatting conventions are used in this file!
-;;;
-;;; A backslash-newline is used at the beginning of a documentation string
-;;; when that string should be stored in the file etc/DOCnnn, not in core.
-;;;
-;;; Such strings read into Lisp as numbers (during the pure-loading phase).
-;;;
-;;; But you must obey certain rules to make sure the string is understood
-;;; and goes into etc/DOCnnn properly.
-;;;
-;;; The doc string must appear in the standard place in a call to
-;;; defun, autoload, defvar or defconst.  No Lisp macros are recognized.
-;;; The open-paren starting the definition must appear in column 0.
-;;;
-;;; In defvar and defconst, there is an additional rule:
-;;; The double-quote that starts the string must be on the same
-;;; line as the defvar or defconst.
-;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 ;;; Code:
 
 (defun make-mode-line-mouse-map (mouse function) "\
