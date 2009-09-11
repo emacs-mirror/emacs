@@ -1,7 +1,7 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -252,6 +252,8 @@
 ;; must be among the ones parsed by make-docfile
 ;; to construct DOC.  Any that are not processed
 ;; for DOC will not have doc strings in the dumped Emacs.
+;; Note also that any uncompiled files that are loaded should
+;; have doc-strings that conform to the make-docfile convention.
 
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
