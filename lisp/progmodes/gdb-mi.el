@@ -1136,29 +1136,25 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
        (list "-var-update --all-values *" 'gdb-var-update-handler)))
   (gdb-add-pending 'gdb-var-update))
 
-(defconst gdb-var-update-regexp
-  "{.*?name=\"\\(.*?\\)\".*?,\\(?:value=\\(\".*?\"\\),\\)?.*?\
-in_scope=\"\\(.*?\\)\".*?}")
-
 (defun gdb-var-update-handler ()
+ (let ((changelist (gdb-get-field (gdb-json-partial-output) 'changelist)))
   (dolist (var gdb-var-list)
     (setcar (nthcdr 5 var) nil))
-  (goto-char (point-min))
-  (while (re-search-forward gdb-var-update-regexp nil t)
-    (let* ((varnum (match-string 1))
+  (dolist (change changelist)
+    (let* ((varnum (gdb-get-field change 'name))
 	   (var (assoc varnum gdb-var-list)))
       (when var
-	(let ((match (match-string 3)))
-	  (cond ((string-equal match "false")
+	(let ((scope (gdb-get-field change 'in_scope)))
+	  (cond ((string-equal scope "false")
 		 (if gdb-delete-out-of-scope
 		     (gdb-var-delete-1 varnum)
 		   (setcar (nthcdr 5 var) 'out-of-scope)))
-		((string-equal match "true")
+		((string-equal scope "true")
 		 (setcar (nthcdr 5 var) 'changed)
 		 (setcar (nthcdr 4 var)
-			 (read (match-string 2))))
-		((string-equal match "invalid")
-		 (gdb-var-delete-1 varnum)))))))
+			 (gdb-get-field change 'value)))
+		((string-equal scope "invalid")
+		 (gdb-var-delete-1 varnum))))))))
   (gdb-delete-pending 'gdb-var-update)
   (gdb-speedbar-update))
 
