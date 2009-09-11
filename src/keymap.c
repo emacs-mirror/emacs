@@ -2765,12 +2765,16 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
     }
 
   if (nomenus && !noindirect)
-    /* Remember for which keymaps this cache was built.
-       We do it here (late) because we want to keep where_is_cache_keymaps
-       set to t while the cache isn't fully filled.  */
-    where_is_cache_keymaps = keymaps;
-
-  return data.sequences;
+    { /* Remember for which keymaps this cache was built.
+	 We do it here (late) because we want to keep where_is_cache_keymaps
+	 set to t while the cache isn't fully filled.  */
+      where_is_cache_keymaps = keymaps;
+      /* During cache-filling, data.sequences is not filled by
+	 where_is_internal_1.  */
+      return Fgethash (definition, where_is_cache, Qnil);
+    }
+  else
+    return data.sequences;
 }
 
 static Lisp_Object Vwhere_is_preferred_modifier;
@@ -2973,7 +2977,7 @@ where_is_internal_1 (key, binding, args, data)
   Lisp_Object sequence;
 
   /* Search through indirections unless that's not wanted.  */
-  if (noindirect)
+  if (!noindirect)
     binding = get_keyelt (binding, 0);
 
   /* End this iteration if this element does not match

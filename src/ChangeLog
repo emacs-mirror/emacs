@@ -1,3 +1,9 @@
+2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (where_is_internal): Don't erroneously return nil right after
+	filling the cache.
+	(where_is_internal_1): Fix up typo.
+
 2009-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* frame.c (Fx_parse_geometry): Unify the X and NS versions so that they
