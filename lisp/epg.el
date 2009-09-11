@@ -328,7 +328,12 @@ This function is for internal use only."
 
 (defun epg-context-set-passphrase-callback (context
 					    passphrase-callback)
-  "Set the function used to query passphrase."
+  "Set the function used to query passphrase.
+
+PASSPHRASE-CALLBACK is either a function, or a cons-cell whose
+car is a function and cdr is a callback data.
+The function gets three arguments: the context, the key-id in
+question, and the callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 7 (if (consp passphrase-callback)
@@ -338,7 +343,14 @@ This function is for internal use only."
 (defun epg-context-set-progress-callback (context
 					  progress-callback)
   "Set the function which handles progress update.
-If optional argument HANDBACK is specified, it is passed to PROGRESS-CALLBACK."
+
+PROGRESS-CALLBACK is either a function, or a cons-cell whose
+car is a function and cdr is a callback data.
+
+The function gets five arguments: the context, the operation
+description, the character to display a progress unit, the
+current amount done, the total amount to be done, and the
+callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 8 (if (consp progress-callback)
