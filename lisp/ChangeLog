@@ -1,3 +1,7 @@
+2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (autoloads): Make rmail.el writable as well.
+
 2009-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* apropos.el (apropos-documentation-check-doc-file): Exclude unbound
