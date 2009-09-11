@@ -2547,8 +2547,22 @@ and then returning foo."
 	 (cons (if (memq '&whole args) (delq '&whole args)
 		 (cons '--cl-whole-arg-- args)) body))
 	(list 'or (list 'get (list 'quote func) '(quote byte-compile))
-	      (list 'put (list 'quote func) '(quote byte-compile)
-		    '(quote cl-byte-compile-compiler-macro)))))
+	      (list 'progn
+		    (list 'put (list 'quote func) '(quote byte-compile)
+			  '(quote cl-byte-compile-compiler-macro))
+		    ;; This is so that describe-function can locate
+		    ;; the macro definition.
+		    (list 'let
+			  (list (list
+				 'file
+				 (or buffer-file-name
+				     (and (boundp 'byte-compile-current-file)
+					  (stringp byte-compile-current-file)
+					  byte-compile-current-file))))
+			  (list 'if 'file
+				(list 'put (list 'quote func)
+				      '(quote compiler-macro-file)
+				      '(file-name-nondirectory file))))))))
 
 ;;;###autoload
 (defun compiler-macroexpand (form)
