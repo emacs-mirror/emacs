@@ -53,7 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern double atof ();
 #endif /* !atof */
 
-Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
+Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound, Qthread_local_mark;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
 Lisp_Object Qvoid_variable, Qvoid_function, Qcyclic_function_indirection;
@@ -818,10 +818,65 @@ find_variable_location (Lisp_Object *root)
   if (THREADLOCALP (*root))
     {
       struct Lisp_ThreadLocal *thr = XTHREADLOCAL (*root);
+      Lisp_Object cons = assq_no_quit (get_current_thread (),
+				       thr->thread_alist);
+      if (!EQ (cons, Qnil))
+      	return &XCDR_AS_LVALUE (cons);
       return &thr->global;
     }
 
   return root;
+}
+
+Lisp_Object
+ensure_thread_local (Lisp_Object *root)
+{
+  Lisp_Object cons;
+
+  if (THREADLOCALP (*root))
+    cons = assq_no_quit (get_current_thread (),
+			 XTHREADLOCAL (*root)->thread_alist);
+  else
+    {
+      Lisp_Object newval;
+      newval = allocate_misc ();
+      XMISCTYPE (newval) = Lisp_Misc_ThreadLocal;
+      XTHREADLOCAL (newval)->global = *root;
+      XTHREADLOCAL (newval)->thread_alist = Qnil;
+      *root = newval;
+      cons = Qnil;
+    }
+
+  if (NILP (cons))
+    {
+      struct Lisp_ThreadLocal *local = XTHREADLOCAL (*root);
+      cons = Fcons (get_current_thread (), Qthread_local_mark);
+      local->thread_alist = Fcons (cons, local->thread_alist);
+    }
+
+  return cons;
+}
+
+void
+remove_thread_local (Lisp_Object *root)
+{
+  if (THREADLOCALP (*root))
+    {
+      Lisp_Object iter, thr = get_current_thread (), prior = Qnil;
+      struct Lisp_ThreadLocal *local = XTHREADLOCAL (*root);
+      for (iter = local->thread_alist; !NILP (iter); iter = XCDR (iter))
+	{
+	  if (EQ (XCAR (XCAR (iter)), thr))
+	    {
+	      if (NILP (prior))
+		local->thread_alist = XCDR (iter);
+	      else
+		XSETCDR (prior, XCDR (iter));
+	      break;
+	    }
+	  prior = iter;
+	}
+    }
 }
 
 /* Return the symbol holding SYMBOL's value.  Signal
@@ -879,7 +934,7 @@ variable chain of symbols.  */)
 
 Lisp_Object
 do_symval_forwarding (valcontents)
-     register Lisp_Object valcontents;
+     Lisp_Object valcontents;
 {
   register Lisp_Object val;
   if (MISCP (valcontents))
@@ -913,6 +968,9 @@ do_symval_forwarding (valcontents)
            don't think anything will break.  --lorentey  */
 	return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
 				+ (char *)FRAME_KBOARD (SELECTED_FRAME ()));
+
+      case Lisp_Misc_ThreadLocal:
+	return *find_variable_location (&valcontents);
       }
   return valcontents;
 }
@@ -951,7 +1009,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	  break;
 
 	case Lisp_Misc_Objfwd:
-	  *XOBJFWD (valcontents)->objvar = newval;
+	  *find_variable_location (XOBJFWD (valcontents)->objvar) = newval;
 
 	  /* If this variable is a default for something stored
 	     in the buffer itself, such as default-fill-column,
@@ -1019,6 +1077,8 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       valcontents = SYMBOL_VALUE (symbol);
       if (BUFFER_LOCAL_VALUEP (valcontents))
 	XBUFFER_LOCAL_VALUE (valcontents)->realvalue = newval;
+      else if (THREADLOCALP (valcontents))
+	*find_variable_location (&XSYMBOL (symbol)->value) = newval;
       else
 	SET_SYMBOL_VALUE (symbol, newval);
     }
@@ -3166,6 +3226,9 @@ syms_of_data ()
   Qbool_vector = intern_c_string ("bool-vector");
   Qhash_table = intern_c_string ("hash-table");
 
+  Qthread_local_mark = Fmake_symbol (make_pure_string ("thread-local-mark",
+						       17, 17, 0));
+
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");
   DEFSYM (Qfont_object, "font-object");
@@ -3190,6 +3253,7 @@ syms_of_data ()
   staticpro (&Qchar_table);
   staticpro (&Qbool_vector);
   staticpro (&Qhash_table);
+  staticpro (&Qthread_local_mark);
 
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);

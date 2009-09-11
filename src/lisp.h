@@ -2343,6 +2343,9 @@ EXFUN (Fmake_variable_buffer_local, 1);
 
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
 extern Lisp_Object *find_variable_location (Lisp_Object *);
+extern Lisp_Object ensure_thread_local (Lisp_Object *);
+extern void remove_thread_local P_ ((Lisp_Object *));
+extern Lisp_Object Qthread_local_mark;
 extern Lisp_Object long_to_cons P_ ((unsigned long));
 extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;

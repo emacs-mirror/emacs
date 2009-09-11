@@ -3251,11 +3251,15 @@ specbind (symbol, value)
   valcontents = SYMBOL_VALUE (symbol);
   if (!MISCP (valcontents) && !SYMBOL_CONSTANT_P (symbol))
     {
+      Lisp_Object cons
+	= ensure_thread_local (&indirect_variable (XSYMBOL (symbol))->value);
       specpdl_ptr->symbol = symbol;
-      specpdl_ptr->old_value = valcontents;
+      /* We know VALCONTENTS is equivalent to the CDR, but we save the
+	 CDR in case it is the thread-local mark.  */
+      specpdl_ptr->old_value = XCDR (cons);
       specpdl_ptr->func = NULL;
       ++specpdl_ptr;
-      SET_SYMBOL_VALUE (symbol, value);
+      XSETCDR (cons, value);
     }
   else
     {
@@ -3383,7 +3387,12 @@ unbind_to (count, value)
 	  if (!MISCP (SYMBOL_VALUE (this_binding.symbol)))
 	    SET_SYMBOL_VALUE (this_binding.symbol, this_binding.old_value);
 	  else
-	    set_internal (this_binding.symbol, this_binding.old_value, 0, 1);
+	    {
+	      if (EQ (this_binding.old_value, Qthread_local_mark))
+		remove_thread_local (&indirect_variable (XSYMBOL (this_binding.symbol))->value);
+	      else
+		set_internal (this_binding.symbol, this_binding.old_value, 0, 1);
+	    }
 	}
     }
 
