@@ -1,3 +1,8 @@
+2009-09-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-var-update-regexp): Delete.
+	(gdb-var-update-handler): Use json parsing.
+
 2009-09-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-annotate.el (vc-annotate): Use the main file's coding-system to
