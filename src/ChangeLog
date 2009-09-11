@@ -1,3 +1,8 @@
+2009-09-11  Alan Mackenzie  <acm@muc.de>
+
+	* dispnew.c (Fsend_string_to_terminal): Amend doc string to cover
+	batch mode.
+
 2009-09-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xdisp.c (display_mode_element): Detect cycles.
