@@ -1,3 +1,8 @@
+2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* update-game-score.c (main): Sort scores before trimming them,
+	reported by Jason Feng <jfeng@ozbert.com> (bug#4397).
+
 2009-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(DESTDIR)${archlibdir}): Set umask to world-readable
