@@ -215,7 +215,7 @@ When the function exits, the thread dies.  */)
 
   for (p = specpdl; p != specpdl_ptr; ++p)
     {
-      if (p->func)
+      if (!p->func)
 	{
 	  Lisp_Object sym = p->symbol;
 	  if (!SYMBOLP (sym))
