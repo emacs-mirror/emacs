@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -450,6 +450,18 @@ suitable file is found, return nil."
 	    (fill-region-as-paragraph pt2 (point))
 	    (unless (looking-back "\n\n")
 	      (terpri)))))
+      ;; Note that list* etc do not get this property until
+      ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
+      (when (eq (get function 'byte-compile) 'cl-byte-compile-compiler-macro)
+	(princ "This function has a compiler macro")
+	(let ((lib (get function 'compiler-macro-file)))
+	  (when (stringp lib)
+	    (princ (format " in `%s'" lib))
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward "`\\([^`']+\\)'" nil t)
+		(help-xref-button 1 'help-function-cmacro function lib)))))
+	(princ ".\n\n"))
       (let* ((arglist (help-function-arglist def))
 	     (doc (documentation function))
 	     (usage (help-split-fundoc doc function)))
