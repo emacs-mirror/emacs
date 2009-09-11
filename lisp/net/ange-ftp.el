@@ -4165,7 +4165,10 @@ COMPRESSING should be t if the specified file should be compressed,
 and nil if it should be uncompressed (that is, if it is a compressed file).
 NEWNAME should be the name to give the new compressed or uncompressed file.")
 
+(declare-function dired-compress-file "dired-aux" (file))
+
 (defun ange-ftp-dired-compress-file (name)
+  "Handler used by `dired-compress-file'."
   (let ((parsed (ange-ftp-ftp-name name))
 	conversion-func)
     (if (and parsed
