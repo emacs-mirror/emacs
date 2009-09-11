@@ -279,7 +279,7 @@ bootstrap-clean: FRC
 	${top_bootclean}
 
 bootstrap: bootstrap-clean FRC
-	config msdos
+	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
 
 # arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9
