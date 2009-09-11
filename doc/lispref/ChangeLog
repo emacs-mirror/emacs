@@ -1,3 +1,8 @@
+2009-09-11  Alan Mackenzie  <acm@muc.de>
+
+	* os.texi (Terminal Output): document `send-string-to-terminal' in
+	batch mode.
+
 2009-09-01  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Face Functions): Mention define-obsolete-face-alias.
