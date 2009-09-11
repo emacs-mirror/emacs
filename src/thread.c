@@ -205,13 +205,13 @@ When the function exits, the thread dies.  */)
 
   new_thread = (struct thread_state *) allocate_pseudovector (VECSIZE (struct thread_state),
 							      2, PVEC_THREAD);
-  memset (new_thread, OFFSETOF (struct thread_state,
-				m_gcprolist),
-	  sizeof (struct thread_state) - OFFSETOF (struct thread_state,
-						   m_gcprolist));
+  memset ((char *) new_thread + OFFSETOF (struct thread_state, m_gcprolist),
+	  0, sizeof (struct thread_state) - OFFSETOF (struct thread_state,
+						      m_gcprolist));
 
   new_thread->func = function;
   new_thread->initial_specpdl = Qnil;
+  new_thread->m_current_buffer = current_thread->m_current_buffer;
 
   for (p = specpdl; p != specpdl_ptr; ++p)
     {
