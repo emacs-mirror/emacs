@@ -49,6 +49,8 @@
     (8 . "AES192")
     (9 . "AES256")
     (10 . "TWOFISH")
+    (11 . "CAMELLIA128")
+    (12 . "CAMELLIA256")
     (110 . "DUMMY")))
 
 ;; from gnupg/include/cipher.h
@@ -67,7 +69,8 @@
     (3 . "RMD160")
     (8 . "SHA256")
     (9 . "SHA384")
-    (10 . "SHA512")))
+    (10 . "SHA512")
+    (11 . "SHA224")))
 
 ;; from gnupg/include/cipher.h
 (defconst epg-compress-algorithm-alist

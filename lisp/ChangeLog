@@ -1,3 +1,8 @@
+2009-09-11  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-cipher-algorithm-alist): Add CAMELLIA.
+	(epg-digest-algorithm-alist): Add SHA224.
+
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* custom.el (custom-delayed-init-variables): New var.
