@@ -1610,7 +1610,7 @@ Go to the history element by the absolute history position HIST-POS."
 
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
-(defalias 'advertised-undo 'undo)
+(define-obsolete-function-alias 'advertised-undo 'undo "23.2")
 
 (defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
   "Table mapping redo records to the corresponding undo one.

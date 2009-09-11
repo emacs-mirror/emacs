@@ -857,14 +857,16 @@ button end points."
 ;; This alias exists only so that one can choose in doc-strings (e.g.
 ;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
 ;; http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00480.html
-(defalias 'advertised-widget-backward 'widget-backward)
+(define-obsolete-function-alias 'advertised-widget-backward
+  'widget-backward "23.2")
 
 ;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
     (define-key map "\e\t" 'widget-backward)
-    (define-key map [(shift tab)] 'advertised-widget-backward)
+    (define-key map [(shift tab)] 'widget-backward)
+    (put 'widget-backward :advertised-binding [(shift tab)])
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
     (define-key map [down-mouse-1] 'widget-button-click)

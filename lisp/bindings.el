@@ -757,7 +757,8 @@ language you are using."
 (define-key ctl-x-map "\e\e" 'repeat-complex-command)
 ;; New binding analogous to M-:.
 (define-key ctl-x-map "\M-:" 'repeat-complex-command)
-(define-key ctl-x-map "u" 'advertised-undo)
+(define-key ctl-x-map "u" 'undo)
+(put 'undo :advertised-binding [?\C-x ?u])
 ;; Many people are used to typing C-/ on X terminals and getting C-_.
 (define-key global-map [?\C-/] 'undo)
 (define-key global-map "\C-_" 'undo)

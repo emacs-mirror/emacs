@@ -204,6 +204,11 @@ functions and variables.
 
 * Lisp changes in Emacs 23.2
 
+** You can control which binding is preferentially shown in menus and
+docstrings by adding a `:advertised-binding' property to the corresponding
+command's symbol.  That property can hold a single binding or a list
+of bindings.
+
 ** New macro with-silent-modifications to tweak text properties without
 affecting the buffer's modification state.
 ** All the default-FOO variables that hold the default value of the FOO

@@ -264,8 +264,7 @@ LEFT and RIGHT are the elements to compare."
              (yank-pop [?\M-y])
 
              ;; * UNDO
-             (advertised-undo [?\C-x ?u])
-             (advertised-undo [?\C-x ?u])
+             (undo [?\C-x ?u])
 
              ;; * FILES
              (find-file [?\C-x ?\C-f])

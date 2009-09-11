@@ -1292,7 +1292,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
     (define-key map "f" 'dired-find-file)
-    (define-key map "\C-m" 'dired-advertised-find-file)
+    (define-key map "\C-m" 'dired-find-file)
+    (put 'dired-find-file :advertised-binding "\C-m")
     (define-key map "g" 'revert-buffer)
     (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
@@ -1685,7 +1686,7 @@ Type \\[dired-mark] to Mark a file or subdirectory for later commands.
 Type \\[dired-unmark] to Unmark a file or all files of a subdirectory.
 Type \\[dired-unmark-backward] to back up one line and unflag.
 Type \\[dired-do-flagged-delete] to eXecute the deletions requested.
-Type \\[dired-advertised-find-file] to Find the current line's file
+Type \\[dired-find-file] to Find the current line's file
   (or dired it in another buffer, if it is a directory).
 Type \\[dired-find-file-other-window] to find file or dired directory in Other window.
 Type \\[dired-maybe-insert-subdir] to Insert a subdirectory in this buffer.
@@ -1859,7 +1860,7 @@ Creates a buffer if necessary."
 	(error "File no longer exists; type `g' to update dired buffer")))))
 
 ;; Force C-m keybinding rather than `f' or `e' in the mode doc:
-(defalias 'dired-advertised-find-file 'dired-find-file)
+(define-obsolete-function-alias 'dired-advertised-find-file 'dired-find-file "23.2")
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)

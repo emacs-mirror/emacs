@@ -97,6 +97,7 @@ Lisp_Object Vemulation_mode_map_alists;
 Lisp_Object Vdefine_key_rebound_commands;
 
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
+Lisp_Object QCadvertised_binding;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
@@ -2818,6 +2819,7 @@ remapped command in the returned list.  */)
      because remapping is not done recursively by Fcommand_remapping: you
      can't remap and remapped command.  */
   int remapped = 0;
+  Lisp_Object tem;
 
   /* Refresh the C version of the modifier preference.  */
   where_is_preferred_modifier
@@ -2842,6 +2844,20 @@ remapped command in the returned list.  */)
       && SYMBOLP (definition)
       && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
     RETURN_UNGCPRO (Qnil);
+
+  if (SYMBOLP (definition)
+      && !NILP (firstonly)
+      && !NILP (tem = Fget (definition, QCadvertised_binding)))
+    {
+      /* We have a list of advertized bindings.  */
+      while (CONSP (tem))
+	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil), definition))
+	  return XCAR (tem);
+	else
+	  tem = XCDR (tem);
+      if (EQ (shadow_lookup (keymaps, tem, Qnil), definition))
+	return tem;
+    }
 
   sequences = Freverse (where_is_internal (definition, keymaps,
 					   !NILP (noindirect), nomenus));
@@ -4035,6 +4051,9 @@ preferred.  */);
 
   Qremap = intern ("remap");
   staticpro (&Qremap);
+
+  QCadvertised_binding = intern (":advertised-binding");
+  staticpro (&QCadvertised_binding);
 
   command_remapping_vector = Fmake_vector (make_number (2), Qremap);
   staticpro (&command_remapping_vector);

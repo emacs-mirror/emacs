@@ -1841,7 +1841,7 @@ To quit a partially entered command, type Control-g.\n")
                    'action (lambda (button) (help-with-tutorial))
                    'follow-link t)
     (insert (substitute-command-keys
-             "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]\n"))
+             "\t   \\[help-with-tutorial]\tUndo changes\t   \\[undo]\n"))
     (insert-button "Buy manuals"
                    'action (lambda (button) (view-order-manuals))
                    'follow-link t)

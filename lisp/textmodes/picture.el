@@ -719,7 +719,7 @@ You can manipulate rectangles with these commands:
   Insert rectangle from named register:           \\[picture-yank-rectangle-from-register]
   Draw a rectangular box around mark and point:   \\[picture-draw-rectangle]
   Copies a rectangle to a register:               \\[copy-rectangle-to-register]
-  Undo effects of rectangle overlay commands:     \\[advertised-undo]
+  Undo effects of rectangle overlay commands:     \\[undo]
 
 You can return to the previous mode with \\[picture-mode-exit], which
 also strips trailing whitespace from every line.  Stripping is suppressed

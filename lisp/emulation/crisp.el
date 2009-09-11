@@ -55,6 +55,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;; local variables
 
 (defgroup crisp nil
@@ -205,8 +207,8 @@ does not load the scroll-all package."
 (define-key crisp-mode-map [(meta m)]       'set-mark-command)
 (define-key crisp-mode-map [(meta n)]       'bury-buffer)
 (define-key crisp-mode-map [(meta p)]       'crisp-unbury-buffer)
-(define-key crisp-mode-map [(meta u)]       'advertised-undo)
-(define-key crisp-mode-map [(f14)]          'advertised-undo)
+(define-key crisp-mode-map [(meta u)]       'undo)
+(define-key crisp-mode-map [(f14)]          'undo)
 (define-key crisp-mode-map [(meta w)]       'save-buffer)
 (define-key crisp-mode-map [(meta x)]       'crisp-meta-x-wrapper)
 (define-key crisp-mode-map [(meta ?0)]      (lambda ()
@@ -357,6 +359,9 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 		       (not crisp-mode)
 		     (> (prefix-numeric-value arg) 0)))
   (when crisp-mode
+    ;; Make menu entries show M-u or f14 in preference to C-x u.
+    (put 'undo :advertised-binding
+         (list* [?\M-u] [f14] (get 'undo :advertised-binding)))
     ;; Force transient-mark-mode, so that the marking routines work as
     ;; expected.  If the user turns off transient mark mode, most
     ;; things will still work fine except the crisp-(copy|kill)

@@ -1,3 +1,24 @@
+2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/xscheme.el (xscheme-evaluation-commands):
+	Put a :advertised-binding property rather than using
+	advertised-xscheme-send-previous-expression.
+	(advertised-xscheme-send-previous-expression): Declare obsolete.
+	* emulation/crisp.el (crisp-mode-map): Use `undo' rather than
+	`advertised-undo'.
+	(crisp-mode): Add corresponding bindings to
+	undo's :advertised-binding instead.
+	* dired.el (dired-mode-map): Put a :advertised-binding property rather
+	than using dired-advertised-find-file.
+	(dired-advertised-find-file):
+	* simple.el (advertised-undo):
+	* wid-edit.el (advertised-widget-backward): Declare obsolete.
+	(widget-keymap): Put a :advertised-binding property rather
+	than using advertised-widget-backward.
+	* bindings.el (ctl-x-map): Put a :advertised-binding property rather
+	than using advertised-undo.
+	* tutorial.el (tutorial--default-keys): Adjust accordingly.
+
 2009-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (define-key-rebound-commands): Mark obsolete.

@@ -134,7 +134,7 @@ has finished evaluating will signal an error."
 
 (defcustom xscheme-startup-message
   "This is the Scheme process buffer.
-Type \\[advertised-xscheme-send-previous-expression] to evaluate the expression before point.
+Type \\[xscheme-send-previous-expression] to evaluate the expression before point.
 Type \\[xscheme-send-control-g-interrupt] to abort evaluation.
 Type \\[describe-mode] for more information.
 
@@ -158,7 +158,8 @@ When called, the current buffer will be the Scheme process-buffer."
 
 (defun xscheme-evaluation-commands (keymap)
   (define-key keymap "\e\C-x" 'xscheme-send-definition)
-  (define-key keymap "\C-x\C-e" 'advertised-xscheme-send-previous-expression)
+  (define-key keymap "\C-x\C-e" 'xscheme-send-previous-expression)
+  (put 'xscheme-send-previous-expression :advertised-binding "\C-x\C-e")
   (define-key keymap "\eo" 'xscheme-send-buffer)
   (define-key keymap "\ez" 'xscheme-send-definition)
   (define-key keymap "\e\C-m" 'xscheme-send-previous-expression)
@@ -317,7 +318,7 @@ With argument, asks for a command line."
   "Major mode for interacting with an inferior MIT Scheme process.
 Like  scheme-mode  except that:
 
-\\[advertised-xscheme-send-previous-expression] sends the expression before point to the Scheme process as input
+\\[xscheme-send-previous-expression] sends the expression before point to the Scheme process as input
 \\[xscheme-yank-pop] yanks an expression previously sent to Scheme
 \\[xscheme-yank-push] yanks an expression more recently sent to Scheme
 
@@ -475,8 +476,8 @@ with no args, if that value is non-nil.
 	    (scheme-interaction-mode-initialize)
 	    (scheme-interaction-mode t)))))
 
-(fset 'advertised-xscheme-send-previous-expression
-      'xscheme-send-previous-expression)
+(define-obsolete-function-alias 'advertised-xscheme-send-previous-expression
+  'xscheme-send-previous-expression "23.2")
 
 ;;;; Debugger Mode
 
