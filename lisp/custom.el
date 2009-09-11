@@ -130,6 +130,17 @@ For the standard setting, use `set-default'."
 	(t
 	 (set-default symbol (eval value)))))
 
+(defvar custom-delayed-init-variables nil
+  "List of variables whose initialization is pending.")
+
+(defun custom-initialize-delay (symbol value)
+  "Delay initialization of SYMBOL to the next Emacs start.
+This is used in files that are preloaded, so that the initialization is
+done in the run-time context rather than the build-time context.
+This also has the side-effect that the (delayed) initialization is performed
+with the :setter."
+  (push symbol custom-delayed-init-variables))
+
 (defun custom-declare-variable (symbol default doc &rest args)
   "Like `defcustom', but SYMBOL and DEFAULT are evaluated as normal arguments.
 DEFAULT should be an expression to evaluate to compute the default value,

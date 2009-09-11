@@ -40,7 +40,8 @@
 
 (defcustom abbrev-file-name
   (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
-  "Default name of file to read abbrevs from."
+  "Default name of file from which to read abbrevs."
+  :initialize 'custom-initialize-delay
   :type 'file)
 
 (defcustom only-global-abbrevs nil

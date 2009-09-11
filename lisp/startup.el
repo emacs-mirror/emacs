@@ -703,7 +703,6 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'temporary-file-directory)
   (custom-reevaluate-setting 'small-temporary-file-directory)
   (custom-reevaluate-setting 'auto-save-file-name-transforms)
-  (custom-reevaluate-setting 'abbrev-file-name)
   ;; Force recomputation, in case it was computed during the dump.
   (setq abbreviated-home-dir nil)
 
@@ -909,6 +908,14 @@ opening the first frame (e.g. open a connection to an X server).")
       ;; Otherwise, enable tool-bar-mode.
       (tool-bar-mode 1)))
 
+  ;; Re-evaluate predefined variables whose initial value depends on
+  ;; the runtime context.
+  (mapc 'custom-reevaluate-setting
+        ;; Initialize them in the same order they were loaded, in case there
+        ;; are dependencies between them.
+        (prog1 (nreverse custom-delayed-init-variables)
+          (setq custom-delayed-init-variables nil)))
+  
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)

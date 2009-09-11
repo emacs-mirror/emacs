@@ -1,6 +1,14 @@
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* proced.el (proced-mode-map): Prefer "m" for proced-mark.
+	* custom.el (custom-delayed-init-variables): New var.
+	(custom-initialize-delay): New function.
+	* startup.el (command-line): "Re"evaluate all vars in
+	custom-delayed-init-variables.  Don't reevaluate abbrev-file-name
+	explicitly any more.
+	* abbrev.el (abbrev-file-name): Use custom-initialize-delay
+	to avoid creating a ~/.emacs.d at build-time (bug#4347).
+
+	* proced.el (proced-mode-map): Prefer "m" for proced-mark (bug#4362).
 
 2009-09-11  Nick Roberts  <nickrob@snap.net.nz>
 
