@@ -796,7 +796,7 @@ hits in order, with the first tag being in the closest scope."
 ;;
 (defmethod semantic-analyze-show ((context semantic-scope-cache))
   "Insert CONTEXT into the current buffer in a nice way."
-  (require 'semantic-analyze)
+  (require 'semantic/analyze)
   (semantic-analyze-princ-sequence (oref context scopetypes) "-> ScopeTypes: " )
   (semantic-analyze-princ-sequence (oref context parents) "-> Parents: " )
   (semantic-analyze-princ-sequence (oref context scope) "-> Scope: " )
