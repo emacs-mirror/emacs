@@ -1652,14 +1652,23 @@ before the indent, the point is moved to the indent."
 
 
 (defun delphi-tab ()
-  "Indent the current line or insert a TAB, depending on the value of
-`delphi-tab-always-indents' and the current line position."
+  "Indent the region, when Transient Mark mode is enabled and the region is
+active. Otherwise, indent the current line or insert a TAB, depending on the
+value of `delphi-tab-always-indents' and the current line position."
   (interactive)
-  (if (or delphi-tab-always-indents ; We are always indenting
-          ;; Or we are before the first non-space character on the line.
-          (save-excursion (skip-chars-backward delphi-space-chars) (bolp)))
-      (delphi-indent-line)
-    (insert "\t")))
+  (cond ((use-region-p)
+         ;; If Transient Mark mode is enabled and the region is active, indent
+         ;; the entire region.
+         (indent-region (region-beginning) (region-end)))
+        ((or delphi-tab-always-indents
+             (save-excursion (skip-chars-backward delphi-space-chars) (bolp)))
+         ;; Otherwise, if we are configured always to indent (regardless of the
+         ;; point's position in the line) or we are before the first non-space
+         ;; character on the line, indent the line.
+         (delphi-indent-line))
+        (t
+         ;; Otherwise, insert a tab character.
+         (insert "\t"))))
 
 
 (defun delphi-is-directory (path)
@@ -1935,7 +1944,8 @@ This is ok since we do our own keyword/comment/string face coloring.")
 ;;;###autoload
 (defun delphi-mode (&optional skip-initial-parsing)
   "Major mode for editing Delphi code. \\<delphi-mode-map>
-\\[delphi-tab]\t- Indents the current line for Delphi code.
+\\[delphi-tab]\t- Indents the current line (or region, if Transient Mark mode
+\t  is enabled and the region is active) of Delphi code.
 \\[delphi-find-unit]\t- Search for a Delphi source file.
 \\[delphi-fill-comment]\t- Fill the current comment.
 \\[delphi-new-comment-line]\t- If in a // comment, do a new comment line.
