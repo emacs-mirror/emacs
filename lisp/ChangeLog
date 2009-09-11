@@ -1,3 +1,25 @@
+2009-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* apropos.el (apropos-documentation-check-doc-file): Exclude unbound
+	functions and variables, since they must be stuff specific to some other
+	platform.
+	(apropos-print): Make mouse-click message less specific about button.
+
+	* emacs-lisp/cl-macs.el (define-compiler-macro): Add a property
+	that records where a macro was defined.
+	* help-fns.el (describe-function-1): Mention if a function has a
+	compiler-macro.
+	* help-mode.el (help-function-cmacro): New button.
+
+	* locate.el (top-level): Always require dired.
+	(locate-mode-map): Initialize inside the defvar.
+
+	* net/ange-ftp.el (dired-compress-file): Declare.
+	(ange-ftp-dired-compress-file): Add doc string.
+
+	* term/ns-win.el (x-display-name, x-setup-function-keys):
+	Unify doc-strings with X versions.
+
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/crisp.el (crisp-mode-map): Move initialization

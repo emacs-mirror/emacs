@@ -101,7 +101,9 @@
 
 ;; Set (but not used?) in frame.el.
 (defvar x-display-name nil
-  "The name of the Nextstep display on which Emacs was started.")
+  "The name of the window display on which Emacs was started.
+On X, the display name of individual X frames is recorded in the
+`display' frame parameter.")
 
 ;; nsterm.m.
 (defvar ns-input-file)
@@ -309,7 +311,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defalias 'do-applescript 'ns-do-applescript)
 
 (defun x-setup-function-keys (frame)
-  "Set up function keys on the graphical frame FRAME."
+  "Set up `function-key-map' on the graphical frame FRAME."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
