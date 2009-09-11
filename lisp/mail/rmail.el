@@ -4186,7 +4186,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "2a8211ddb881a6eeb44634909fecb6ee")
+;;;;;;  "rmailkwd.el" "2e986921026eea971b49e91f53967f77")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
