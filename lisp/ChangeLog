@@ -1,3 +1,7 @@
+2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* proced.el (proced-mode-map): Prefer "m" for proced-mark.
+
 2009-09-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-var-update-regexp): Delete.

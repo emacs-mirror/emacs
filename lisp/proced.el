@@ -461,6 +461,7 @@ Important: the match ends just after the marker.")
     ;; marking
     (define-key km "d" 'proced-mark-alt) ; Dired compatibility ("delete")
     (define-key km "m" 'proced-mark)
+    (put 'proced-mark :advertised-binding "m")
     (define-key km "u" 'proced-unmark)
     (define-key km "\177" 'proced-unmark-backward)
     (define-key km "M" 'proced-mark-all)
