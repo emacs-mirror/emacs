@@ -4,6 +4,10 @@
 
 2009-09-11  Glenn Morris  <rgm@gnu.org>
 
+	* ibuf-ext.el: Put autoloads in ibuffer.el rather than loaddefs.el.
+	* ibuffer.el: Regenerate with extracted autoloads.
+	* Makefile.in (autoloads): Make ibuffer.el writable.
+
 	* paths.el (prune-directory-list, gnus-nntp-service, rmail-file-name):
 	* version.el (emacs-copyright, emacs-major-version)
 	(emacs-minor-version): Reformat doc-strings for make-docfile.
