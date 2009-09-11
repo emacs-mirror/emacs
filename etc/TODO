@@ -40,6 +40,8 @@ This needs a bit of care, since often people have become used to
 expecting such variables to always be defined, eg when they modify
 things in their .emacs.
 
+** See if other files can use generated-autoload-file (see eg ps-print).
+
 * Small but important fixes needed in existing features:
 
 ** Flymake's customization mechanism needs to be both simpler (fewer
