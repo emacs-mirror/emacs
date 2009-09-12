@@ -1,5 +1,8 @@
 2009-09-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* dos-fns.el (dos-reevaluate-defcustoms): Comment out the
+	reevaluation of trash-directory.
+
 	* mwheel.el: Fix last change.
 	(mouse-wheel-mode): New defvar.
 	(mouse-wheel-mode): Remove autoload cookie.
