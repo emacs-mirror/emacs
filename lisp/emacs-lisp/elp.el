@@ -210,7 +210,10 @@ This variable is set by the master function.")
     ;; (delq nil (mapcar (lambda (x) (and (symbolp x) (fboundp x) x))
     ;;                   (aref (symbol-function 'elp-wrapper) 2)))
     ;; to help me find this list.
-    error call-interactively apply current-time)
+    error call-interactively apply current-time
+    ;; Andreas Politz reports problems profiling these (Bug#4233):
+    + byte-code-function-p functionp byte-code subrp
+    indirect-function fboundp)
   "List of functions that cannot be profiled.
 Those functions are used internally by the profiling code and profiling
 them would thus lead to infinite recursion.")

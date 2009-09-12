@@ -1,3 +1,8 @@
+2009-09-12  Andreas Politz  <politza@fh-trier.de>  (tiny change)
+
+	* emacs-lisp/elp.el (elp-not-profilable): Add more
+	functions (Bug#4233).
+
 2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emulation/pc-select.el (scroll-down-mark, scroll-down-nomark)
