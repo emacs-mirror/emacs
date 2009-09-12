@@ -4635,7 +4635,7 @@ The following commands are available:
 
 \\<widget-keymap>\
 Move to next button, link or editable field.     \\[widget-forward]
-Move to previous button, link or editable field. \\[advertised-widget-backward]
+Move to previous button, link or editable field. \\[widget-backward]
 \\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\
