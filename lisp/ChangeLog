@@ -1,3 +1,8 @@
+2009-09-11  Daniel Colascione <dan.colascione@gmail.com>
+
+	* progmodes/js.el (js--proper-indentation): Handle the case where
+	char-before is null.  Reported by Deniz Dogan.
+
 2009-09-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-macs.el (help-add-fundoc-usage): Declare.
