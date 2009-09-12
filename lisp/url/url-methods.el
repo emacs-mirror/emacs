@@ -65,13 +65,16 @@
   "Signal an error for an unknown URL scheme."
   (error "Unkown URL scheme: %s" (url-type url)))
 
+(defvar url-scheme--registering-proxy nil)
+
 (defun url-scheme-register-proxy (scheme)
   "Automatically find a proxy for SCHEME and put it in `url-proxy-services'."
   (let* ((env-var (concat scheme "_proxy"))
 	 (env-proxy (or (getenv (upcase env-var))
 			(getenv (downcase env-var))))
 	 (cur-proxy (assoc scheme url-proxy-services))
-	 (urlobj nil))
+	 (urlobj nil)
+	 (url-scheme--registering-proxy t))
 
     ;; If env-proxy is an empty string, treat it as if it were nil
     (when (and (stringp env-proxy)
@@ -124,7 +127,8 @@ it has not already been loaded."
 	  (if (fboundp loader)
 	      (progn
 		;; Found the module to handle <scheme> URLs
-		(url-scheme-register-proxy scheme)
+		(unless url-scheme--registering-proxy
+		  (url-scheme-register-proxy scheme))
 		(setq desc (list 'name scheme
 				 'loader loader))
 		(dolist (cell url-scheme-methods)

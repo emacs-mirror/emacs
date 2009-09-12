@@ -1,3 +1,9 @@
+2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-methods.el (url-scheme--registering-proxy): New variable.
+	(url-scheme-register-proxy, url-scheme-get-property): Avoid
+	calling url-scheme-register-proxy in an infloop (Bug#4191).
+
 2009-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* url-file.el (url-file-build-filename):
