@@ -1,3 +1,25 @@
+2009-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* proced.el (proced-mark-alt): Remove alias.
+	(proced-mode-map): Remove proced-mark-alt.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entries to
+	Elint file and directory.  Remove initialization entry.
+
+	* emacs-lisp/elint.el (elint-file, elint-directory): New autoloaded
+	commands.
+	(elint-current-buffer): Set mode-line-process.
+	(elint-init-env): Handle define-derived-mode.
+	Fix declare-function with unspecified arglist.  Guard against odd
+	defalias statements (eg iso-insert's 8859-1-map).
+	(elint-add-required-env): Use a temp buffer.
+	(elint-form): Just print the function/macro name, not the whole form.
+	Return env unchanged if we fail to parse a macro.
+	(elint-forms): Guard against parse errors.
+	(elint-output): New function, to handle batch mode.
+	(elint-log-message): Add optional argument.  Use elint-output.
+	(elint-set-mode-line): New function.
+
 2009-09-12  Andreas Politz  <politza@fh-trier.de>  (tiny change)
 
 	* emacs-lisp/elp.el (elp-not-profilable): Add more
