@@ -305,9 +305,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; that this is only annoying.
   (setq split-window-keep-point t)
 
-  ;; Turn on support for mouse wheels
-  (mouse-wheel-mode 1)
-
   ;; W32 expects the menu bar cut and paste commands to use the clipboard.
   (menu-bar-enable-clipboard)
 

@@ -1573,9 +1573,6 @@ The value nil is the same as this list:
   ;; (if (featurep 'motif)
   ;;     (global-set-key [f10] 'ignore))
 
-  ;; Turn on support for mouse wheels.
-  (mouse-wheel-mode 1)
-
   ;; Enable CLIPBOARD copy/paste through menu bar commands.
   (menu-bar-enable-clipboard)
 

@@ -1253,7 +1253,6 @@ the operating system.")
 
   ;; FIXME: This will surely lead to "MODIFIED OUTSIDE CUSTOM" warnings.
   (menu-bar-mode (if (get-lisp-resource nil "Menus") 1 -1))
-  (mouse-wheel-mode 1)
 
   (setq ns-initialized t))
 

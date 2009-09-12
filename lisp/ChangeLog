@@ -1,5 +1,10 @@
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/x-win.el (x-initialize-window-system):
+	* term/w32-win.el (w32-initialize-window-system):
+	* term/ns-win.el (ns-initialize-window-system): Don't call
+	mouse-wheel-mode since it's enabled globally by default already.
+
 	* mwheel.el (mouse-wheel-mode): Make sure the new defvar doesn't
 	actually define the variable, but only silences the byte-compiler.
 	(mouse-wheel-change-button): Check whether mouse-wheel-mode is bound
