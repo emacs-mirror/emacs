@@ -382,7 +382,9 @@ If scan reaches end of buffer, stop there without error."
   "Ensure mark is active; scroll down ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
-When calling from a program, supply a number as argument or nil."
+When calling from a program, supply a number as argument or nil.
+Attempting to scroll past the edge of buffer does not raise an
+error, unless `pc-select-override-scroll-error' is nil."
   (interactive "P")
   (pc-select-ensure-mark)
   (cond (pc-select-override-scroll-error
@@ -515,7 +517,9 @@ If scan reaches end of buffer, stop there without error."
   "Deactivate mark; scroll down ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
-When calling from a program, supply a number as argument or nil."
+When calling from a program, supply a number as argument or nil.
+Attempting to scroll past the edge of buffer does not raise an
+error, unless `pc-select-override-scroll-error' is nil."
   (interactive "P")
   (pc-select-maybe-deactivate-mark)
   (cond (pc-select-override-scroll-error
@@ -630,7 +634,9 @@ If scan reaches end of buffer, stop there without error."
 "Ensure mark is active; scroll upward ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
-When calling from a program, supply a number as argument or nil."
+When calling from a program, supply a number as argument or nil.
+Attempting to scroll past the edge of buffer does not raise an
+error, unless `pc-select-override-scroll-error' is nil."
   (interactive "P")
   (pc-select-ensure-mark)
   (cond (pc-select-override-scroll-error
@@ -727,7 +733,9 @@ If scan reaches end of buffer, stop there without error."
   "Deactivate mark; scroll upward ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
-When calling from a program, supply a number as argument or nil."
+When calling from a program, supply a number as argument or nil.
+Attempting to scroll past the edge of buffer does not raise an
+error, unless `pc-select-override-scroll-error' is nil."
   (interactive "P")
   (pc-select-maybe-deactivate-mark)
   (cond (pc-select-override-scroll-error

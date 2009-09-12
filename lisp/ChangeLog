@@ -1,3 +1,8 @@
+2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/pc-select.el (scroll-down-mark, scroll-down-nomark)
+	(scroll-up-mark, scroll-up-nomark): Doc fix (Bug#4190).
+
 2009-09-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-var-list-children-regexp): Delete.
