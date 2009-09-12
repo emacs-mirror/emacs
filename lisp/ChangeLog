@@ -1,3 +1,10 @@
+2009-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/elint.el (elint-file): Make max-lisp-eval-depth at least
+	1000.
+	(elint-add-required-env): Don't beep on error.
+	(elint-forms): In case of error, return ENV unchanged.
+
 2009-09-12  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg-make-context): Add autoload cookie.

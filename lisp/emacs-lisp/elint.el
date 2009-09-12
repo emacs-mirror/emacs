@@ -178,7 +178,8 @@ This environment can be passed to `macroexpand'."
     ;; elint-current-buffer clears log.
     (with-temp-buffer
       (insert-file-contents file)
-      (let ((buffer-file-name file))
+      (let ((buffer-file-name file)
+	    (max-lisp-eval-depth (max 1000 max-lisp-eval-depth)))
 	(with-syntax-table emacs-lisp-mode-syntax-table
 	  (mapc 'elint-top-form (elint-update-env)))))
     (elint-set-mode-line)
@@ -359,7 +360,6 @@ Return nil if there are no more forms, t otherwise."
 	      ;;(message "Elint processed (require '%s)" name))
 	  (error "Unable to find require'd library %s" name)))
     (error
-     (ding)
      (message "Can't get variables from require'd library %s" name)))
   env)
 
@@ -461,7 +461,8 @@ The environment created by the form is returned."
       (dolist (f forms env)
 	(setq env (elint-form f env)))
     ;; Loop macro?
-    (elint-error "Elint failed to parse form: %s" forms)))
+    (elint-error "Elint failed to parse form: %s" forms)
+    env))
 
 (defun elint-unbound-variable (var env)
   "T if VAR is unbound in ENV."
