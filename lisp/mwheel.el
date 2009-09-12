@@ -41,6 +41,8 @@
 (require 'custom)
 (require 'timer)
 
+(defvar mouse-wheel-mode nil)
+
 ;; Setter function for mouse-button user-options.  Switch Mouse Wheel
 ;; mode off and on again so that the old button is unbound and
 ;; new button is bound to mwheel-scroll.
@@ -239,7 +241,6 @@ This should only be bound to mouse buttons 4 and 5."
 
 (defvar mwheel-installed-bindings nil)
 
-;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
 With prefix argument ARG, turn on if positive, otherwise off.
