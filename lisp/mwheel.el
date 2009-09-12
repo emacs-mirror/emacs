@@ -46,11 +46,9 @@
 ;; new button is bound to mwheel-scroll.
 
 (defun mouse-wheel-change-button (var button)
-  (let ((active mouse-wheel-mode))
-    ;; Deactivate before changing the setting.
-    (when active (mouse-wheel-mode -1))
-    (set-default var button)
-    (when active (mouse-wheel-mode 1))))
+  (set-default var button)
+  ;; Sync the bindings.
+  (when mouse-wheel-mode (mouse-wheel-mode 1)))
 
 (defvar mouse-wheel-down-button 4)
 (make-obsolete-variable 'mouse-wheel-down-button
@@ -239,32 +237,33 @@ This should only be bound to mouse buttons 4 and 5."
 	  (run-with-timer mouse-wheel-inhibit-click-time nil
 			  'mwheel-inhibit-click-timeout))))
 
+(defvar mwheel-installed-bindings nil)
+
 ;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
 With prefix argument ARG, turn on if positive, otherwise off.
 Return non-nil if the new state is enabled."
+  :init-value t
+  ;; We'd like to use custom-initialize-set here so the setup is done
+  ;; before dumping, but at the point where the defcustom is evaluated,
+  ;; the corresponding function isn't defined yet, so
+  ;; custom-initialize-set signals an error.
+  :initialize 'custom-initialize-delay
   :global t
   :group 'mouse
-  (let* ((dn mouse-wheel-down-event)
-         (up mouse-wheel-up-event)
-         (keys
-          (nconc (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,up)])
-			 mouse-wheel-scroll-amount)
-                 (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,dn)])
-			 mouse-wheel-scroll-amount))))
-    ;; This condition-case is here because Emacs 19 will throw an error
-    ;; if you try to define a key that it does not know about.  I for one
-    ;; prefer to just unconditionally do a mwheel-install in my .emacs, so
-    ;; that if the wheeled-mouse is there, it just works, and this way it
-    ;; doesn't yell at me if I'm on my laptop or another machine, etc.
-    (condition-case ()
-	(dolist (key keys)
-	  (cond (mouse-wheel-mode
-		 (global-set-key key 'mwheel-scroll))
-		((eq (lookup-key (current-global-map) key) 'mwheel-scroll)
-		 (global-unset-key key))))
-      (error nil))))
+  ;; Remove previous bindings, if any.
+  (while mwheel-installed-bindings
+    (let ((key (pop mwheel-installed-bindings)))
+      (when (eq (lookup-key (current-global-map) key) 'mwheel-scroll)
+        (global-unset-key key))))
+  ;; Setup bindings as needed.
+  (when mouse-wheel-mode
+    (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event))
+      (dolist (key (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,event)])
+                           mouse-wheel-scroll-amount))
+        (global-set-key key 'mwheel-scroll)
+        (push key mwheel-installed-bindings)))))
 
 ;;; Compatibility entry point
 ;;;###autoload

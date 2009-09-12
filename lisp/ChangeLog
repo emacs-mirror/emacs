@@ -1,5 +1,13 @@
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mwheel.el (mwheel-installed-bindings): New var.
+	(mouse-wheel-mode): Use it, so as to make sure we really remove all
+	the bindings we set last time.  Use custom-initialize-delay.
+	* loadup.el: Load mwheel after term/*-win.el.
+	* startup.el (command-line): Don't reevaluate mouse-wheel-down-event
+	and mouse-wheel-up-event now that their first evaluation is done
+	sufficiently late to be correct.
+
 	* startup.el (tutorial-directory): Make it a defcustom.
 	Use custom-initialize-delay rather than eval-at-startup to set it.
 	* image.el (image-load-path): Make it a defcustom.

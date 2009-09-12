@@ -180,7 +180,6 @@
       (load "image")
       (load "international/fontset")
       (load "dnd")
-      (load "mwheel")
       (load "tool-bar")))
 (if (featurep 'x)
     (progn
@@ -213,6 +212,10 @@
     (progn
       (load "emacs-lisp/easymenu")  ;; for platform-related menu adjustments
       (load "term/ns-win")))
+(if (fboundp 'x-create-frame)
+    ;; Do it after loading term/foo-win.el since the value of the
+    ;; mouse-wheel-*-event vars depends on those files being loaded or not.
+    (load "mwheel"))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))
