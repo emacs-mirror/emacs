@@ -1,3 +1,20 @@
+2009-09-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-make-context): Add autoload cookie.
+	(epg-list-keys, epg-cancel, epg-start-decrypt, epg-decrypt-file)
+	(epg-decrypt-string, epg-start-verify, epg-verify-file)
+	(epg-verify-string, epg-start-sign, epg-sign-file)
+	(epg-sign-string, epg-start-encrypt, epg-encrypt-file)
+	(epg-encrypt-string, epg-start-export-keys)
+	(epg-export-keys-to-file, epg-export-keys-to-string)
+	(epg-start-import-keys, epg-import-keys-from-file)
+	(epg-import-keys-from-string, epg-start-receive-keys)
+	(epg-receive-keys, epg-import-keys-from-server)
+	(epg-start-delete-keys, epg-delete-keys, epg-start-sign-keys)
+	(epg-sign-keys, epg-start-generate-key)
+	(epg-generate-key-from-file, epg-generate-key-from-string): Remove
+	autoload cookie.
+
 2009-09-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-fns.el (dos-reevaluate-defcustoms): Comment out the
