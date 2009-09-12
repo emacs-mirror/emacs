@@ -1,3 +1,7 @@
+2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fwhere_is_internal): Use nconc2.
+
 2009-09-11  Alan Mackenzie  <acm@muc.de>
 
 	* dispnew.c (Fsend_string_to_terminal): Amend doc string to cover

@@ -2901,10 +2901,7 @@ remapped command in the returned list.  */)
 	{
 	  Lisp_Object seqs = where_is_internal (function, keymaps,
 						!NILP (noindirect), nomenus);
-	  Lisp_Object args[2];
-	  args[0] = Freverse (seqs);
-	  args[1] = remapped_sequences;
-	  remapped_sequences = Fnconc (2, args);
+	  remapped_sequences = nconc2 (Freverse (seqs), remapped_sequences);
 	  continue;
 	}
 
