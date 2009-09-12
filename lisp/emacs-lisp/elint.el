@@ -40,6 +40,9 @@
 
 ;; * List of variables and functions defined in dumped lisp files.
 ;; * Adding type checking. (Stop that sniggering!)
+;; * Handle eval-when-compile (eg for requires, being sensitive to the
+;;   difference between funcs and macros).
+;; * Requires within function bodies.
 
 ;;; Code:
 
@@ -152,6 +155,50 @@ This environment can be passed to `macroexpand'."
 ;;;
 
 ;;;###autoload
+(defun elint-file (file)
+  "Lint the file FILE."
+  (interactive "fElint file: ")
+  (setq file (expand-file-name file))
+  (or elint-builtin-variables
+      (elint-initialize))
+  (let ((dir (file-name-directory file)))
+    (let ((default-directory dir))
+      (elint-display-log))
+    (elint-set-mode-line t)
+    (with-current-buffer elint-log-buffer
+      (unless (string-equal default-directory dir)
+	(elint-log-message (format "\nLeaving directory `%s'"
+				   default-directory) t)
+	(elint-log-message (format "Entering directory `%s'" dir) t)
+	(setq default-directory dir))))
+  (let ((str (format "Linting file %s" file)))
+    (message "%s..." str)
+    (or noninteractive
+	(elint-log-message (format "\n%s at %s" str (current-time-string)) t))
+    ;; elint-current-buffer clears log.
+    (with-temp-buffer
+      (insert-file-contents file)
+      (let ((buffer-file-name file))
+	(with-syntax-table emacs-lisp-mode-syntax-table
+	  (mapc 'elint-top-form (elint-update-env)))))
+    (elint-set-mode-line)
+    (message "%s...done" str)))
+
+;; cf byte-recompile-directory.
+;;;###autoload
+(defun elint-directory (directory)
+  "Lint all the .el files in DIRECTORY."
+  (interactive "DElint directory: ")
+  (let ((elint-running t))
+    (dolist (file (directory-files directory t))
+      ;; Bytecomp has emacs-lisp-file-regexp.
+      (when (and (string-match "\\.el\\'" file)
+		 (file-readable-p file)
+		 (not (auto-save-file-name-p file)))
+	(elint-file file))))
+  (elint-set-mode-line))
+
+;;;###autoload
 (defun elint-current-buffer ()
   "Lint the current buffer.
 If necessary, this first calls `elint-initalize'."
@@ -161,12 +208,14 @@ If necessary, this first calls `elint-initalize'."
   (elint-clear-log (format "Linting %s" (or (buffer-file-name)
 					    (buffer-name))))
   (elint-display-log)
+  (elint-set-mode-line t)
   (mapc 'elint-top-form (elint-update-env))
   ;; Tell the user we're finished.  This is terribly klugy: we set
-  ;; elint-top-form-logged so elint-log-message doesn't print the
-  ;; ** top form ** header...
-  (let ((elint-top-form-logged t))
-    (elint-log-message "\nLinting finished.\n")))
+    ;; elint-top-form-logged so elint-log-message doesn't print the
+    ;; ** top form ** header...
+  (elint-set-mode-line)
+  (elint-log-message "\nLinting finished.\n" t))
+
 
 ;;;###autoload
 (defun elint-defun ()
@@ -254,15 +303,19 @@ Return nil if there are no more forms, t otherwise."
        ;; Add function
        ((memq (car form) '(defun defsubst))
 	(setq env (elint-env-add-func env (cadr form) (nth 2 form))))
+       ((eq (car form) 'define-derived-mode)
+	(setq env (elint-env-add-func env (cadr form) ())
+	      env (elint-env-add-var env (cadr form))))
        ;; FIXME it would be nice to check the autoloads are correct.
        ((eq (car form) 'autoload)
 	(setq env (elint-env-add-func env (cadr (cadr form)) 'unknown)))
        ((eq (car form) 'declare-function)
 	(setq env (elint-env-add-func env (cadr form)
-				      (if (> (length form) 3)
-					  (nth 3 form)
-					'unknown))))
-       ((eq (car form) 'defalias)
+				      (if (or (< (length form) 4)
+					      (eq (nth 3 form) t))
+					'unknown
+					(nth 3 form)))))
+       ((and (eq (car form) 'defalias) (listp (nth 2 form)))
 	;; If the alias points to something already in the environment,
 	;; add the alias to the environment with the same arguments.
 	(let ((def (elint-env-find-func env (cadr (nth 2 form)))))
@@ -295,10 +348,16 @@ Return nil if there are no more forms, t otherwise."
 	(message nil)
 	(if lib
 	    (save-excursion
-	      (set-buffer (find-file-noselect lib))
-	      (elint-update-env)
-	      (setq env (elint-env-add-env env elint-buffer-env)))
-	  (error "Dummy error")))
+ 	      ;;; (set-buffer (find-file-noselect lib))
+ 	      ;;; (elint-update-env)
+ 	      ;;; (setq env (elint-env-add-env env elint-buffer-env)))
+	      (with-temp-buffer
+		(insert-file-contents lib)
+		(with-syntax-table emacs-lisp-mode-syntax-table
+		  (elint-update-env))
+		(setq env (elint-env-add-env env elint-buffer-env))))
+	      ;;(message "Elint processed (require '%s)" name))
+	  (error "Unable to find require'd library %s" name)))
     (error
      (ding)
      (message "Can't get variables from require'd library %s" name)))
@@ -356,7 +415,7 @@ The environment created by the form is returned."
 	  (cond
 	   ((eq args 'undefined)
 	    (setq argsok nil)
-	    (elint-error "Call to undefined function: %s" form))
+	    (elint-error "Call to undefined function: %s" func))
 
 	   ((eq args 'unknown) nil)
 
@@ -371,7 +430,8 @@ The environment created by the form is returned."
 		      (elint-form
 		       (macroexpand form (elint-env-macro-env env)) env)
 		    (error
-		     (elint-error "Elint failed to expand macro: %s" form)))
+		     (elint-error "Elint failed to expand macro: %s" func)
+		     env))
 		env)
 
 	    (let ((fcode (if (symbolp func)
@@ -397,8 +457,11 @@ The environment created by the form is returned."
 (defun elint-forms (forms env)
   "Lint the FORMS, accumulating an environment, starting with ENV."
   ;; grumblegrumbletailrecursiongrumblegrumble
-  (dolist (f forms env)
-    (setq env (elint-form f env))))
+  (if (listp forms)
+      (dolist (f forms env)
+	(setq env (elint-form f env)))
+    ;; Loop macro?
+    (elint-error "Elint failed to parse form: %s" forms)))
 
 (defun elint-unbound-variable (var env)
   "T if VAR is unbound in ENV."
@@ -639,27 +702,33 @@ STRING and ARGS are thrown on `format' to get the message."
 See `elint-error'."
   (elint-log "Warning" string args))
 
-(defun elint-log-message (errstr)
-  "Insert ERRSTR last in the lint log buffer."
+(defun elint-output (string)
+  "Print or insert STRING, depending on value of `noninteractive'."
+  (if noninteractive
+      (message "%s" string)
+    (insert string "\n")))
+
+(defun elint-log-message (errstr &optional top)
+  "Insert ERRSTR last in the lint log buffer.
+Optional argument TOP non-nil means pretend `elint-top-form-logged' is non-nil."
   (with-current-buffer (elint-get-log-buffer)
     (goto-char (point-max))
     (let ((inhibit-read-only t))
       (or (bolp) (newline))
       ;; Do we have to say where we are?
-      (unless elint-top-form-logged
-	(insert
-	 (let* ((form (elint-top-form-form elint-top-form))
-		(top (car form)))
-	   (cond
-	    ((memq top '(defun defsubst))
-	     (format "\nIn function %s:\n" (cadr form)))
-	    ((eq top 'defmacro)
-	     (format "\nIn macro %s:\n" (cadr form)))
-	    ((memq top '(defvar defconst))
-	     (format "\nIn variable %s:\n" (cadr form)))
-	    (t "\nIn top level expression:\n"))))
+      (unless (or elint-top-form-logged top)
+	(let* ((form (elint-top-form-form elint-top-form))
+	       (top (car form)))
+	  (elint-output (cond
+			 ((memq top '(defun defsubst))
+			  (format "\nIn function %s:" (cadr form)))
+			 ((eq top 'defmacro)
+			  (format "\nIn macro %s:" (cadr form)))
+			 ((memq top '(defvar defconst))
+			  (format "\nIn variable %s:" (cadr form)))
+			 (t "\nIn top level expression:"))))
 	(setq elint-top-form-logged t))
-      (insert errstr "\n"))))
+      (elint-output errstr))))
 
 (defun elint-clear-log (&optional header)
   "Clear the lint log buffer.
@@ -676,6 +745,17 @@ Insert HEADER followed by a blank line if non-nil."
   (let ((pop-up-windows t))
     (display-buffer (elint-get-log-buffer))
     (sit-for 0)))
+
+(defvar elint-running)
+
+(defun elint-set-mode-line (&optional on)
+  "Set the mode-line-process of the Elint log buffer."
+  (with-current-buffer (elint-get-log-buffer)
+    (and (eq major-mode 'compilation-mode)
+	 (setq mode-line-process
+	       (list (if (or on (bound-and-true-p elint-running))
+			 (propertize ":run" 'face 'compilation-warning)
+		       (propertize ":finished" 'face 'compilation-info)))))))
 
 (defun elint-get-log-buffer ()
   "Return a log buffer for elint."
