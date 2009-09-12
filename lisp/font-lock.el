@@ -2265,7 +2265,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "save-match-data" "save-current-buffer"
 		 "unwind-protect" "condition-case" "track-mouse"
 		 "eval-after-load" "eval-and-compile" "eval-when-compile"
-		 "eval-when" "eval-at-startup" "eval-next-after-load"
+		 "eval-when" "eval-next-after-load"
 		 "with-case-table" "with-category-table"
 		 "with-current-buffer" "with-electric-help"
 		 "with-local-quit" "with-no-warnings"

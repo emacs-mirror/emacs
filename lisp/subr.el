@@ -1591,22 +1591,6 @@ and the file name is displayed in the echo area."
 
 ;;;; Specifying things to do later.
 
-(defmacro eval-at-startup (&rest body)
-  "Make arrangements to evaluate BODY when Emacs starts up.
-If this is run after Emacs startup, evaluate BODY immediately.
-Always returns nil.
-
-This works by adding a function to `before-init-hook'.
-That function's doc string says which file created it."
-  `(progn
-     (if command-line-processed
-	 (progn . ,body)
-       (add-hook 'before-init-hook
-		 '(lambda () ,(concat "From " (or load-file-name "no file"))
-		    . ,body)
-		 t))
-     nil))
-
 (defun load-history-regexp (file)
   "Form a regexp to find FILE in `load-history'.
 FILE, a string, is described in the function `eval-after-load'."

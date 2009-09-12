@@ -388,13 +388,12 @@ from being initialized."
 Warning Warning!!!  Pure space overflow    !!!Warning Warning
 \(See the node Pure Storage in the Lisp manual for details.)\n")
 
-(defvar tutorial-directory nil
-  "Directory containing the Emacs TUTORIAL files.")
-
-;; Get correct value in a dumped, installed Emacs.
-(eval-at-startup
- (setq tutorial-directory (file-name-as-directory
-                           (expand-file-name "tutorials" data-directory))))
+(defcustom tutorial-directory
+  (file-name-as-directory (expand-file-name "tutorials" data-directory))
+  "Directory containing the Emacs TUTORIAL files."
+  :group 'installation
+  :type 'directory
+  :initialize 'custom-initialize-delay)
 
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.

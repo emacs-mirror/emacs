@@ -1,5 +1,12 @@
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* startup.el (tutorial-directory): Make it a defcustom.
+	Use custom-initialize-delay rather than eval-at-startup to set it.
+	* image.el (image-load-path): Make it a defcustom.
+	Use custom-initialize-delay rather than eval-at-startup to set it.
+	* subr.el (eval-at-startup): Remove.
+	* font-lock.el (lisp-font-lock-keywords-2): Remove eval-at-startup.
+
 	* subr.el (do-after-load-evaluation): Warn the user after loading an
 	obsolete package.
 
