@@ -5251,9 +5251,9 @@ non-nil.  */);
   DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
     doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
 This applies to commands from menus and tool bar buttons even when
-they are initiated from the keyboard.  The value of `use-dialog-box'
-takes precedence over this variable, so a file dialog is only used if
-both `use-dialog-box' and this variable are non-nil.  */);
+they are initiated from the keyboard.  If `use-dialog-box' is nil,
+that disables the use of a file dialog, regardless of the value of
+this variable.  */);
   use_file_dialog = 1;
 
   defsubr (&Sidentity);

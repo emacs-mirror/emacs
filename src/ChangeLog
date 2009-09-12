@@ -1,3 +1,7 @@
+2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (syms_of_fns): Doc fix (Bug#4227).
+
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fwhere_is_internal): Use nconc2.
