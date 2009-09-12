@@ -18,6 +18,8 @@
 	1000.
 	(elint-add-required-env): Don't beep on error.
 	(elint-forms): In case of error, return ENV unchanged.
+	(elint-init-env): Skip non-list forms.
+	(elint-log): Handle unknown file positions.
 
 2009-09-12  Daiki Ueno  <ueno@unixuser.org>
 

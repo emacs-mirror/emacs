@@ -298,6 +298,9 @@ Return nil if there are no more forms, t otherwise."
       (setq form (elint-top-form-form (car forms))
 	    forms (cdr forms))
       (cond
+       ;; Eg nnmaildir seems to use [] as a form of comment syntax.
+       ((not (listp form))
+	(elint-error "Skipping non-list form `%s'" form))
        ;; Add defined variable
        ((memq (car form) '(defvar defconst defcustom))
 	(setq env (elint-env-add-var env (cadr form))))
@@ -686,10 +689,12 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 			       (if f
 				   (file-name-nondirectory f)
 				 (buffer-name)))
-			     (save-excursion
-			       (goto-char elint-current-pos)
-			       (1+ (count-lines (point-min)
-						(line-beginning-position))))
+			     (if (boundp 'elint-current-pos)
+				 (save-excursion
+				   (goto-char elint-current-pos)
+				   (1+ (count-lines (point-min)
+						    (line-beginning-position))))
+			       0)	; unknown position
 			     type
 			     (apply 'format string args))))
 
