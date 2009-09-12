@@ -1054,25 +1054,20 @@ With arg, enter name of variable to be watched in the minibuffer."
 		varnum)
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
-(defconst gdb-var-list-children-regexp
-  "child={.*?name=\"\\(.+?\\)\".*?,exp=\"\\(.+?\\)\".*?,\
-numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
-\\(}\\|.*?,\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
-
 (defun gdb-var-list-children-handler (varnum)
-  (goto-char (point-min))
-  (let ((var-list nil))
-    (catch 'child-already-watched
+  (let ((var-list nil)
+	(children (gdb-get-field (gdb-json-partial-output "child") 'children)))
+   (catch 'child-already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal varnum (car var))
 	    (progn
 	      (push var var-list)
-	      (while (re-search-forward gdb-var-list-children-regexp nil t)
-		(let ((varchild (list (match-string 1)
-				      (match-string 2)
-				      (match-string 3)
-				      (match-string 7)
-				      (read (match-string 4))
+	      (dolist (child children)
+		(let ((varchild (list (gdb-get-field child 'name)
+				      (gdb-get-field child 'exp)
+				      (gdb-get-field child 'numchild)
+				      (gdb-get-field child 'type)
+				      (gdb-get-field child 'value)
 				      nil)))
 		  (if (assoc (car varchild) gdb-var-list)
 		      (throw 'child-already-watched nil))
