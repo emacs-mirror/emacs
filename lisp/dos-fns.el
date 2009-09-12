@@ -224,8 +224,11 @@ returned unaltered."
 ;; see if the list of defcustom's below is up to date, run the command
 ;; "M-x apropos-value RET ~/\. RET".
 (defun dos-reevaluate-defcustoms ()
-  ;; This was computed at dump time.
-  (custom-reevaluate-setting 'trash-directory))
+  ;; This is not needed in Emacs 23.2 and later, as trash-directory is
+  ;; initialized as nil.  But something like this might become
+  ;; necessary in the future, so I'm keeping it here as a reminder.
+  ;(custom-reevaluate-setting 'trash-directory)
+  )
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
