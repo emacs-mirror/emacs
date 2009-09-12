@@ -1688,13 +1688,25 @@ This function makes or adds to an entry on `after-load-alist'."
 
 (defun do-after-load-evaluation (abs-file)
   "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
-ABS-FILE, a string, should be the absolute true name of a file just loaded."
+ABS-FILE, a string, should be the absolute true name of a file just loaded.
+This function is called directly from the C code."
+  ;; Run the relevant eval-after-load forms.
   (mapc #'(lambda (a-l-element)
 	    (when (and (stringp (car a-l-element))
 		       (string-match-p (car a-l-element) abs-file))
 	      ;; discard the file name regexp
 	      (mapc #'eval (cdr a-l-element))))
-	after-load-alist))
+	after-load-alist)
+  ;; Complain when the user uses obsolete files.
+  (when (equal "obsolete"
+               (file-name-nondirectory
+                (directory-file-name (file-name-directory abs-file))))
+    (run-with-timer 0 nil
+                    (lambda (file)
+                      (message "Package %s is obsolete!"
+                               (substring file 0
+                                          (string-match "\\.elc?\\>" file))))
+                    (file-name-nondirectory abs-file))))
 
 (defun eval-next-after-load (file)
   "Read the following input sexp, and run it whenever FILE is loaded.

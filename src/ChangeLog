@@ -1,3 +1,8 @@
+2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Fload): Don't output a message after loading an obsolete
+	package any more (done in Lisp now).
+
 2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (syms_of_fns): Doc fix (Bug#4227).

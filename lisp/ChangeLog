@@ -1,3 +1,8 @@
+2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (do-after-load-evaluation): Warn the user after loading an
+	obsolete package.
+
 2009-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* proced.el (proced-mark-alt): Remove alias.

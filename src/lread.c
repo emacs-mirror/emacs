@@ -1307,11 +1307,6 @@ Return t if the file exists and loads successfully.  */)
 	message_with_string ("Loading %s...done", file, 1);
     }
 
-  if (!NILP (Fequal (build_string ("obsolete"),
-		     Ffile_name_nondirectory
-		     (Fdirectory_file_name (Ffile_name_directory (found))))))
-    message_with_string ("Package %s is obsolete", file, 1);
-
   return Qt;
 }
 
