@@ -41,7 +41,7 @@
 (require 'custom)
 (require 'timer)
 
-(defvar mouse-wheel-mode nil)
+(defvar mouse-wheel-mode)
 
 ;; Setter function for mouse-button user-options.  Switch Mouse Wheel
 ;; mode off and on again so that the old button is unbound and
@@ -50,7 +50,7 @@
 (defun mouse-wheel-change-button (var button)
   (set-default var button)
   ;; Sync the bindings.
-  (when mouse-wheel-mode (mouse-wheel-mode 1)))
+  (when (bound-and-true-p mouse-wheel-mode) (mouse-wheel-mode 1)))
 
 (defvar mouse-wheel-down-button 4)
 (make-obsolete-variable 'mouse-wheel-down-button
@@ -131,7 +131,8 @@ less than a full screen."
             (choice :tag "scroll amount"
                     (const :tag "Full screen" :value nil)
                     (integer :tag "Specific # of lines")
-                    (float :tag "Fraction of window"))))))
+                    (float :tag "Fraction of window")))))
+  :set 'mouse-wheel-change-button)
 
 (defcustom mouse-wheel-progressive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
@@ -241,6 +242,7 @@ This should only be bound to mouse buttons 4 and 5."
 
 (defvar mwheel-installed-bindings nil)
 
+;; preloaded ;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
 With prefix argument ARG, turn on if positive, otherwise off.
@@ -267,7 +269,7 @@ Return non-nil if the new state is enabled."
         (push key mwheel-installed-bindings)))))
 
 ;;; Compatibility entry point
-;;;###autoload
+;; preloaded ;;;###autoload
 (defun mwheel-install (&optional uninstall)
   "Enable mouse wheel support."
   (mouse-wheel-mode (if uninstall -1 1)))
