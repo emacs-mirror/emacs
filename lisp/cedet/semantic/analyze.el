@@ -72,6 +72,9 @@
 (require 'semantic/scope)
 (require 'semantic/analyze/fcn)
 
+(declare-function data-debug-new-buffer "data-debug")
+(declare-function data-debug-insert-object-slots "eieio-datadebug")
+
 ;;; Code:
 (defvar semantic-analyze-error-stack nil
   "Collection of any errors thrown during analysis.")
@@ -680,6 +683,7 @@ Returns an object based on symbol `semantic-analyze-context'."
 Display the results as a debug list.
 Optional argument CTXT is the context to show."
   (interactive)
+  (require 'data-debug)
   (let ((start (current-time))
 	(ctxt (or ctxt (semantic-analyze-current-context)))
 	(end (current-time)))

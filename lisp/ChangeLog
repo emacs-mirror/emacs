@@ -2,6 +2,12 @@
 
 	Synch to Eric Ludlam's upstream CEDET repository.
 
+	* cedet/semantic/analyze/fcn.el (semantic-analyze-dereference-metatype-1)
+	(semantic-analyze-type): Require semantic/scope.
+	(semantic-analyze-select-best-tag): Require semantic/db-typecache.
+	(semantic-analyze-dereference-metatype): Move up to avoid compiler
+	warning.
+
 	* cedet/semantic/wisent/java-tags.el:
 	* cedet/semantic/wisent/javat-wy.el: New files.
 
@@ -31,7 +37,7 @@
 	* cedet/semantic/elp.el: File removed.
 
 	* cedet/semantic/analyze.el (semantic-adebug-analyze): New
-	function, moved here from semantic/adebug.
+	function, moved here from semantic/adebug.  Require data-debug.
 
 	* cedet/semantic/adebug.el: Declare external semanticdb functions.
 	(semantic-adebug-analyze, semantic-adebug-edebug-expr): Deleted.

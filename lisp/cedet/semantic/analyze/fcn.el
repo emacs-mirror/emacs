@@ -29,6 +29,13 @@
 (require 'semantic)
 (require 'semantic/tag)
 
+(eval-when-compile (require 'semantic/find))
+
+(declare-function semanticdb-typecache-merge-streams "semantic/db-typecache")
+(declare-function semantic-scope-find name "semantic/scope")
+(declare-function semantic-scope-set-typecache "semantic/scope")
+(declare-function semantic-scope-tag-get-scope "semantic/scope")
+
 ;;; Small Mode Specific Options
 ;;
 ;; These queries allow a major mode to help the analyzer make decisions.
@@ -105,6 +112,7 @@ tags of TAGCLASS."
     ;;
     ;; 2)
     ;; It will also remove prototypes.
+    (require 'semantic/db-typecache)
     (setq sequence (semanticdb-typecache-merge-streams sequence nil))
 
     (if (< (length sequence) 2)
@@ -150,6 +158,27 @@ Almost all searches use the same arguments."
 
 ;;; Finding Datatypes
 ;;
+
+(define-overloadable-function semantic-analyze-dereference-metatype (type scope &optional type-declaration)
+  ;; todo - move into typecahe!!
+  "Return a concrete type tag based on input TYPE tag.
+A concrete type is an actual declaration of a memory description,
+such as a structure, or class.  A meta type is an alias,
+or a typedef in C or C++.  If TYPE is concrete, it
+is returned.  If it is a meta type, it will return the concrete
+type defined by TYPE.
+The default behavior always returns TYPE.
+Override functions need not return a real semantic tag.
+Just a name, or short tag will be ok.  It will be expanded here.
+SCOPE is the scope object with additional items in which to search for names."
+  (catch 'default-behavior
+    (let* ((ans-tuple (:override
+                       ;; Nothing fancy, just return type by default.
+                       (throw 'default-behavior (list type type-declaration))))
+           (ans-type (car ans-tuple))
+           (ans-type-declaration (cadr ans-tuple)))
+       (list (semantic-analyze-dereference-metatype-1 ans-type scope) ans-type-declaration))))
+
 ;; Finding a data type by name within a project.
 ;;
 (defun semantic-analyze-type-to-name (type)
@@ -184,6 +213,7 @@ Optional SCOPE represents a calculated scope in which the
 types might be found.  This can be nil.
 If NOMETADEREF, then do not dereference metatypes.  This is
 used by the analyzer debugger."
+  (require 'semantic/scope)
   (let ((name nil)
 	(typetag nil)
 	)
@@ -257,32 +287,13 @@ Optional argument TYPE-DECLARATION is how TYPE was found referenced."
 	))
     lasttype))
 
-(define-overloadable-function semantic-analyze-dereference-metatype (type scope &optional type-declaration)
-  ;; todo - move into typecahe!!
-  "Return a concrete type tag based on input TYPE tag.
-A concrete type is an actual declaration of a memory description,
-such as a structure, or class.  A meta type is an alias,
-or a typedef in C or C++.  If TYPE is concrete, it
-is returned.  If it is a meta type, it will return the concrete
-type defined by TYPE.
-The default behavior always returns TYPE.
-Override functions need not return a real semantic tag.
-Just a name, or short tag will be ok.  It will be expanded here.
-SCOPE is the scope object with additional items in which to search for names."
-  (catch 'default-behavior
-    (let* ((ans-tuple (:override
-                       ;; Nothing fancy, just return type by default.
-                       (throw 'default-behavior (list type type-declaration))))
-           (ans-type (car ans-tuple))
-           (ans-type-declaration (cadr ans-tuple)))
-       (list (semantic-analyze-dereference-metatype-1 ans-type scope) ans-type-declaration))))
-
 ;; @ TODO - the typecache can also return a stack of scope names.
 
 (defun semantic-analyze-dereference-metatype-1 (ans scope)
   "Do extra work after dereferencing a metatype.
 ANS is the answer from the the language specific query.
 SCOPE is the current scope."
+  (require 'semantic/scope)
   ;; If ANS is a string, or if ANS is a short tag, we
   ;; need to do some more work to look it up.
   (if (stringp ans)
