@@ -195,6 +195,7 @@ If the buffer is visiting a new file, the value is nil.")
 	  (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp"))))
   "The directory for writing temporary files."
   :group 'files
+  :initialize 'custom-initialize-delay
   :type 'directory)
 
 (defcustom small-temporary-file-directory
@@ -204,6 +205,7 @@ If non-nil, this directory is used instead of `temporary-file-directory'
 by programs that create small temporary files.  This is for systems that
 have fast storage with limited space, such as a RAM disk."
   :group 'files
+  :initialize 'custom-initialize-delay
   :type '(choice (const nil) directory))
 
 ;; The system null device. (Should reference NULL_DEVICE from C.)
@@ -385,6 +387,7 @@ ignored."
   :group 'auto-save
   :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")
 					   (boolean :tag "Uniquify")))
+  :initialize 'custom-initialize-delay
   :version "21.1")
 
 (defcustom save-abbrevs t

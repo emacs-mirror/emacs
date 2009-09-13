@@ -216,6 +216,11 @@ that portion dim, invisible, or otherwise less visually noticeable.
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
+  ;; We'd like to use custom-initialize-set here so the setup is done
+  ;; before dumping, but at the point where the defcustom is evaluated,
+  ;; the corresponding function isn't defined yet, so
+  ;; custom-initialize-set signals an error.
+  :initialize 'custom-initialize-delay
   :init-value t
   :group 'minibuffer
   :version "22.1"

@@ -299,8 +299,9 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 (define-globalized-minor-mode global-font-lock-mode
   font-lock-mode turn-on-font-lock-if-desired
-  :extra-args (dummy)
-  :initialize 'custom-initialize-safe-default
+  ;; What was this :extra-args thingy for?  --Stef
+  ;; :extra-args (dummy)
+  :initialize 'custom-initialize-delay
   :init-value (not (or noninteractive emacs-basic-display))
   :group 'font-lock
   :version "22.1")

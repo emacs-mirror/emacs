@@ -698,10 +698,6 @@ opening the first frame (e.g. open a connection to an X server).")
 	after-init-time nil
         command-line-default-directory default-directory)
 
-  ;; Choose a reasonable location for temporary files.
-  (custom-reevaluate-setting 'temporary-file-directory)
-  (custom-reevaluate-setting 'small-temporary-file-directory)
-  (custom-reevaluate-setting 'auto-save-file-name-transforms)
   ;; Force recomputation, in case it was computed during the dump.
   (setq abbreviated-home-dir nil)
 
@@ -914,18 +910,6 @@ opening the first frame (e.g. open a connection to an X server).")
         ;; are dependencies between them.
         (prog1 (nreverse custom-delayed-init-variables)
           (setq custom-delayed-init-variables nil)))
-  
-  ;; Can't do this init in defcustom because the relevant variables
-  ;; are not set.
-  (custom-reevaluate-setting 'blink-cursor-mode)
-  (custom-reevaluate-setting 'tooltip-mode)
-  (custom-reevaluate-setting 'global-font-lock-mode)
-  (custom-reevaluate-setting 'file-name-shadow-mode)
-  (custom-reevaluate-setting 'send-mail-function)
-  (custom-reevaluate-setting 'focus-follows-mouse)
-  (custom-reevaluate-setting 'global-auto-composition-mode)
-  (custom-reevaluate-setting 'transient-mark-mode)
-  (custom-reevaluate-setting 'auto-encryption-mode)
 
   (normal-erase-is-backspace-setup-frame)
 

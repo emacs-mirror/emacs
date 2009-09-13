@@ -52,7 +52,7 @@ the help text in the echo area, and does not make a pop-up window."
   ;; Even if we start on a text-only terminal, make this non-nil by
   ;; default because we can open a graphical frame later (multi-tty).
   :init-value t
-  :initialize 'custom-initialize-safe-default
+  :initialize 'custom-initialize-delay
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))

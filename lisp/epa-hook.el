@@ -86,6 +86,11 @@ May either be a string or a list of strings.")
 With prefix argument ARG, turn auto encryption on if positive, else off.
 Return the new status of auto encryption (non-nil means on)."
   :global t :init-value t :group 'epa-file :version "23.1"
+  ;; We'd like to use custom-initialize-set here so the setup is done
+  ;; before dumping, but at the point where the defcustom is evaluated,
+  ;; the corresponding function isn't defined yet, so
+  ;; custom-initialize-set signals an error.
+  :initialize 'custom-initialize-delay
   (setq file-name-handler-alist
 	(delq epa-file-handler file-name-handler-alist))
   (remove-hook 'find-file-hooks 'epa-file-find-file-hook)

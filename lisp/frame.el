@@ -1605,7 +1605,7 @@ cursor display.  On a text-only terminal, this is not implemented."
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
 		       (not (memq window-system '(x w32)))))
-  :initialize 'custom-initialize-safe-default
+  :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))

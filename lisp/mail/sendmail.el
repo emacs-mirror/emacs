@@ -168,6 +168,7 @@ This is used by the default mail-sending commands.  See also
 		(function-item feedmail-send-it :tag "Use Feedmail package")
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
+  :initialize 'custom-initialize-delay
   :group 'sendmail)
 
 ;;;###autoload

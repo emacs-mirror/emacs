@@ -1,3 +1,21 @@
+2009-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (send-mail-function):
+	* tooltip.el (tooltip-mode):
+	* simple.el (transient-mark-mode):
+	* rfn-eshadow.el (file-name-shadow-mode):
+	* frame.el (blink-cursor-mode):
+	* font-core.el (global-font-lock-mode):
+	* files.el (temporary-file-directory)
+	(small-temporary-file-directory, auto-save-file-name-transforms):
+	* epa-hook.el (auto-encryption-mode):
+	* composite.el (global-auto-composition-mode):
+	Use custom-initialize-delay.
+	* startup.el (command-line): Don't explicitly call
+	custom-reevaluate-setting for all the above vars.
+	* custom.el (custom-initialize-safe-set)
+	(custom-initialize-safe-default): Delete.
+
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/x-win.el (x-initialize-window-system):

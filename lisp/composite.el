@@ -773,8 +773,10 @@ Auto Composition mode in all buffers (this is the default)."
 ;;;###autoload
 (define-global-minor-mode global-auto-composition-mode
   auto-composition-mode turn-on-auto-composition-if-enabled
-  :extra-args (dummy)
-  :initialize 'custom-initialize-safe-default
+  ;; This :extra-args' appears to be the result of a naive copy&paste
+  ;; from global-font-lock-mode.
+  ;; :extra-args (dummy)
+  :initialize 'custom-initialize-delay
   :init-value (not noninteractive)
   :group 'auto-composition
   :version "23.1")

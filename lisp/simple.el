@@ -3898,6 +3898,7 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 commands which are sensitive to the Transient Mark mode."
   :global t
   :init-value (not noninteractive)
+  :initialize 'custom-initialize-delay
   :group 'editing-basics)
 
 ;; The variable transient-mark-mode is ugly: it can take on special
