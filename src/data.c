@@ -582,12 +582,8 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
      register Lisp_Object symbol;
 {
   Lisp_Object valcontents;
-  CHECK_SYMBOL (symbol);
 
-  valcontents = SYMBOL_VALUE (symbol);
-
-  if (BUFFER_LOCAL_VALUEP (valcontents))
-    valcontents = swap_in_symval_forwarding (symbol, valcontents);
+  valcontents = find_symbol_value (symbol);
 
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
 }
@@ -1078,7 +1074,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
       if (BUFFER_LOCAL_VALUEP (valcontents))
 	XBUFFER_LOCAL_VALUE (valcontents)->realvalue = newval;
       else if (THREADLOCALP (valcontents))
-	*find_variable_location (&XSYMBOL (symbol)->value) = newval;
+	*find_variable_location (&indirect_variable (XSYMBOL (symbol))->value) = newval;
       else
 	SET_SYMBOL_VALUE (symbol, newval);
     }
