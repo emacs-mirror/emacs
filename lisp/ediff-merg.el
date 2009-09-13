@@ -226,7 +226,7 @@ Buffer B."
 	  ;;(let ((reg-A (ediff-get-region-contents n 'A ediff-control-buffer))
 	  ;;	(reg-B (ediff-get-region-contents n 'B ediff-control-buffer))
 	  ;;	(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
-	  (let ()
+	  (progn
 
 	    ;; if region was edited since it was first set by default
 	    (if (or (ediff-merge-changed-from-default-p n)

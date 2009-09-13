@@ -1,7 +1,7 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
-;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7
@@ -457,14 +457,14 @@ in ws-last-errormessage for recovery with C-q w."
   (if (or ws-block-begin-marker ws-block-end-marker)
       (save-excursion
 	(if ws-block-begin-marker
-	    (let ()
+	    (progn
 	      (goto-char ws-block-begin-marker)
 	      (message "Block begin marker")
 	      (sit-for 2))
 	  (message "Block begin marker not set")
 	  (sit-for 2))
 	(if ws-block-end-marker
-	    (let ()
+	    (progn
 	      (goto-char ws-block-end-marker)
 	      (message "Block end marker")
 	      (sit-for 2))
@@ -509,7 +509,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Move block to current cursor position."
   (interactive)
   (if (and ws-block-begin-marker ws-block-end-marker)
-      (let ()
+      (progn
 	(kill-region ws-block-begin-marker ws-block-end-marker)
 	(yank)
 	(save-excursion
@@ -536,7 +536,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Delete block."
   (interactive)
   (if (and ws-block-begin-marker ws-block-end-marker)
-      (let ()
+      (progn
 	(kill-region ws-block-begin-marker ws-block-end-marker)
 	(setq ws-block-end-marker nil)
 	(setq ws-block-begin-marker nil))
@@ -548,7 +548,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 0."
   (interactive)
   (if ws-marker-0
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-0))
     (ws-error "Marker 0 not set")))
@@ -557,7 +557,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 1."
   (interactive)
   (if ws-marker-1
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-1))
     (ws-error "Marker 1 not set")))
@@ -566,7 +566,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 2."
   (interactive)
   (if ws-marker-2
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-2))
     (ws-error "Marker 2 not set")))
@@ -575,7 +575,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 3."
   (interactive)
   (if ws-marker-3
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-3))
     (ws-error "Marker 3 not set")))
@@ -584,7 +584,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 4."
   (interactive)
   (if ws-marker-4
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-4))
     (ws-error "Marker 4 not set")))
@@ -593,7 +593,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 5."
   (interactive)
   (if ws-marker-5
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-5))
     (ws-error "Marker 5 not set")))
@@ -602,7 +602,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 6."
   (interactive)
   (if ws-marker-6
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-6))
     (ws-error "Marker 6 not set")))
@@ -611,7 +611,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 7."
   (interactive)
   (if ws-marker-7
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-7))
     (ws-error "Marker 7 not set")))
@@ -620,7 +620,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 8."
   (interactive)
   (if ws-marker-8
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-8))
     (ws-error "Marker 8 not set")))
@@ -629,7 +629,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to marker 9."
   (interactive)
   (if ws-marker-9
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-marker-9))
     (ws-error "Marker 9 not set")))
@@ -638,7 +638,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to block begin marker."
   (interactive)
   (if ws-block-begin-marker
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-block-begin-marker))
     (ws-error "Block begin marker not set")))
@@ -665,7 +665,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: Go to block end marker."
   (interactive)
   (if ws-block-end-marker
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-block-end-marker))
     (ws-error "Block end marker not set")))
@@ -680,7 +680,7 @@ in ws-last-errormessage for recovery with C-q w."
   "In WordStar mode: "
   (interactive)
   (if ws-last-cursorposition
-      (let ()
+      (progn
 	(setq ws-last-cursorposition (point-marker))
 	(goto-char ws-last-cursorposition))
     (ws-error "No last cursor position available.")))
@@ -740,7 +740,7 @@ sWith: " )
   "In WordStar mode: Copy block to current cursor position."
   (interactive)
   (if (and ws-block-begin-marker ws-block-end-marker)
-      (let ()
+      (progn
 	(copy-region-as-kill ws-block-begin-marker ws-block-end-marker)
 	(yank)
 	(save-excursion

@@ -1,3 +1,14 @@
+2009-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* ediff-merg.el (ediff-do-merge):
+	* filesets.el (filesets-run-cmd):
+	* emulation/ws-mode.el (ws-show-markers, ws-move-block, ws-delete-block)
+	(ws-find-marker-0, ws-find-marker-1, ws-find-marker-2, ws-find-marker-3)
+	(ws-find-marker-4, ws-find-marker-5, ws-find-marker-6, ws-find-marker-7)
+	(ws-find-marker-8, ws-find-marker-9, ws-goto-block-begin)
+	(ws-goto-block-end, ws-goto-last-cursorposition, ws-copy-block):
+	Replace empty `let's with `progn'.
+
 2009-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el (send-mail-function):

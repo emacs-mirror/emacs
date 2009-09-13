@@ -1641,7 +1641,7 @@ Replace <file-name> or <<file-name>> with filename."
 		    (let ((buffer (filesets-find-file this)))
 		      (when buffer
 			(goto-char (point-min))
-			(let ()
+			(progn
 			  (cond
 			   ((stringp fn)
 			    (let* ((args
