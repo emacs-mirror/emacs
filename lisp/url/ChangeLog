@@ -1,3 +1,7 @@
+2009-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* url-file.el (url-file): Avoid assignment to free variable `filename'.
+
 2009-09-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-methods.el (url-scheme--registering-proxy): New variable.
