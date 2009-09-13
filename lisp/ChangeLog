@@ -1,5 +1,7 @@
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/cperl-mode.el (cperl-init-faces): Revert last change.
+
 	* eshell/em-hist.el:
 	* eshell/em-dirs.el (eshell-complete-user-reference): Declare
 	pcomplete functions and variables to avoid compiler warnings.

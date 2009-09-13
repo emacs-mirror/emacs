@@ -5693,7 +5693,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (setq
 	   t-font-lock-keywords
 	   (list
-	    (list "[ \t]+$" 0 cperl-invalid-face t)
+	    `("[ \t]+$" 0 ',cperl-invalid-face t)
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
