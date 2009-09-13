@@ -1953,6 +1953,9 @@ Global `ispell-quit' set to start location to continue spell session."
 		    ;; ignore mouse events occuring in the same frame.
 		    (while (and input-valid (not (characterp char)))
 		      (setq char (read-event))
+		      ;; Convert kp-0 to ?0, etc.
+		      (when (symbolp char)
+			(setq char (get char 'ascii-character)))
 		      (setq input-valid
 			    (or (characterp char)
 				(and (mouse-event-p char)
