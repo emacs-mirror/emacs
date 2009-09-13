@@ -1,3 +1,17 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/em-hist.el:
+	* eshell/em-dirs.el (eshell-complete-user-reference): Declare
+	pcomplete functions and variables to avoid compiler warnings.
+
+2009-09-13  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* eshell/em-script.el (eshell-login-script, eshell-rc-script):
+	* eshell/em-dirs.el (eshell-last-dir-ring-file-name):
+	* eshell/em-alias.el (eshell-aliases-file):
+	* eshell/em-hist.el (eshell-history-file-name): Use
+	expand-file-name instead of concat to make file names (Bug#4308).
+
 2009-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* ediff-merg.el (ediff-do-merge):
