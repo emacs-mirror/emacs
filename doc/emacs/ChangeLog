@@ -1,6 +1,10 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Invoking emacsclient): Minor clarifications (Bug#4419).
+
 2009-08-31  Nick Roberts  <nickrob@snap.net.nz>
 
-	* building.texi (Threads Buffer, Multithreaded Debugging): 
+	* building.texi (Threads Buffer, Multithreaded Debugging):
 	Re-organise these two sections,
 
 2009-08-29  Eli Zaretskii  <eliz@gnu.org>

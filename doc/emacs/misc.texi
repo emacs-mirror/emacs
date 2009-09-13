@@ -1499,19 +1499,21 @@ can then select that frame to begin editing.
 with an error message.  If the Emacs process has no existing
 frame---which can happen if it was started as a daemon (@pxref{Emacs
 Server})---then Emacs opens a frame on the terminal in which you
-called @command{emacsclient}, as though you had used the @samp{-t}
-option (@pxref{emacsclient Options}).
+called @command{emacsclient}.
 
-  On a graphical display, switching to the Emacs server is
-straightforward---just select its (system-level) window.  If you are
-using a text-only terminal, there are two ways to switch between
-@command{emacsclient}'s shell and the Emacs server: (i) run the Emacs
-server and @command{emacsclient} on different virtual terminals, and
-switch to the Emacs server's virtual terminal after calling
-@command{emacsclient}; or (ii) call @command{emacsclient} from within
-the Emacs server itself, using Shell mode (@pxref{Interactive Shell})
-or Term mode (@pxref{Term Mode}); @code{emacsclient} blocks only the
-subshell under Emacs, and you can still use Emacs to edit the file.
+  You can also force @command{emacsclient} to open a new frame on a
+graphical display, or on a text-only terminal, using the @samp{-c} and
+@samp{-t} options.  @xref{emacsclient Options}.
+
+  If you are running on a single text-only terminal, you can switch
+between @command{emacsclient}'s shell and the Emacs server using one
+of two methods: (i) run the Emacs server and @command{emacsclient} on
+different virtual terminals, and switch to the Emacs server's virtual
+terminal after calling @command{emacsclient}; or (ii) call
+@command{emacsclient} from within the Emacs server itself, using Shell
+mode (@pxref{Interactive Shell}) or Term mode (@pxref{Term Mode});
+@code{emacsclient} blocks only the subshell under Emacs, and you can
+still use Emacs to edit the file.
 
 @kindex C-x #
 @findex server-edit
@@ -1548,9 +1550,9 @@ with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
 @command{emacsclient} that you are finished.
 
 @vindex server-window
-  If you set the variable @code{server-window} to a window or a frame,
-@kbd{C-x #} always displays the next server buffer in that window or
-in that frame.
+  If you set the value of the variable @code{server-window} to a
+window or a frame, @kbd{C-x #} always displays the next server buffer
+in that window or in that frame.
 
 @node emacsclient Options
 @subsection @code{emacsclient} Options
