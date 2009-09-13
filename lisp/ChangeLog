@@ -1,3 +1,8 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-menu-bar-open): Only call accelerate-menu if it
+	is defined (Bug#4405).
+
 2009-09-13  Vincent Belaïche  <vincent.belaiche@gmail.com>
 
 	* recentf.el (recentf-cleanup): Use a hash table to find

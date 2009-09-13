@@ -1445,7 +1445,9 @@ The value nil is the same as this list:
 (defun x-menu-bar-open (&optional frame)
   "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
   (interactive "i")
-  (if menu-bar-mode (accelerate-menu frame)
+  (if (and menu-bar-mode
+	   (fboundp 'accelerate-menu))
+      (accelerate-menu frame)
     (tmm-menubar)))
 
 
