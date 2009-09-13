@@ -887,9 +887,9 @@ bool-vector, or a string.
 
   In Lisp, a function is a list that starts with @code{lambda}, a
 byte-code function compiled from such a list, or alternatively a
-primitive subr-object; names are ``extra.''  Although usually functions
-are defined with @code{defun} and given names at the same time, it is
-occasionally more concise to use an explicit lambda expression---an
+primitive subr-object; names are ``extra.''  Although functions are
+usually defined with @code{defun} and given names at the same time, it
+is occasionally more concise to use an explicit lambda expression---an
 anonymous function.  Such a list is valid wherever a function name is.
 
   Any method of creating such a list makes a valid function.  Even this:
@@ -916,17 +916,21 @@ makes it the value (@emph{not} the function definition!) of
 @end example
 
 @noindent
-(It does @emph{not} work to write @code{(silly 1)}, because this function
-is not the @emph{function definition} of @code{silly}.  We have not given
-@code{silly} any function definition, just a value as a variable.)
+It does @emph{not} work to write @code{(silly 1)}, because this
+function is not the @emph{function definition} of @code{silly}.  We
+have not given @code{silly} any function definition, just a value as a
+variable.
 
   Most of the time, anonymous functions are constants that appear in
-your program.  For example, you might want to pass one as an argument to
-the function @code{mapcar}, which applies any given function to each
-element of a list.
+your program.  For instance, you might want to pass one as an argument
+to the function @code{mapcar}, which applies any given function to
+each element of a list (@pxref{Mapping Functions}).
+@xref{describe-symbols example}, for a realistic example of this.
 
-  Here we define a function @code{change-property} which
-uses a function as its third argument:
+  In the following example, we define a @code{change-property}
+function that takes a function as its third argument, followed by a
+@code{double-property} function that makes use of
+@code{change-property} by passing it an anonymous function:
 
 @example
 @group
@@ -934,11 +938,23 @@ uses a function as its third argument:
   (let ((value (get symbol prop)))
     (put symbol prop (funcall function value))))
 @end group
+
+@group
+(defun double-property (symbol prop)
+  (change-property symbol prop (lambda (x) (* 2 x))))
+@end group
 @end example
 
 @noindent
-Here we define a function that uses @code{change-property},
-passing it a function to double a number:
+In the @code{double-property} function, we did not quote the
+@code{lambda} form.  This is permissible, because a @code{lambda} form
+is @dfn{self-quoting}: evaluating the form yields the form itself.
+
+Whether or not you quote a @code{lambda} form makes a difference if
+you compile the code (@pxref{Byte Compilation}).  If the @code{lambda}
+form is unquoted, as in the above example, the anonymous function is
+also compiled.  Suppose, however, that we quoted the @code{lambda}
+form:
 
 @example
 @group
@@ -948,69 +964,22 @@ passing it a function to double a number:
 @end example
 
 @noindent
-In such cases, we usually use the special form @code{function} instead
-of simple quotation to quote the anonymous function, like this:
-
-@example
-@group
-(defun double-property (symbol prop)
-  (change-property symbol prop
-                   (function (lambda (x) (* 2 x)))))
-@end group
-@end example
-
-Using @code{function} instead of @code{quote} makes a difference if you
-compile the function @code{double-property}.  For example, if you
-compile the second definition of @code{double-property}, the anonymous
-function is compiled as well.  By contrast, if you compile the first
-definition which uses ordinary @code{quote}, the argument passed to
-@code{change-property} is the precise list shown:
+If you compile this, the argument passed to @code{change-property} is
+the precise list shown:
 
 @example
 (lambda (x) (* x 2))
 @end example
 
 @noindent
-The Lisp compiler cannot assume this list is a function, even though it
-looks like one, since it does not know what @code{change-property} will
-do with the list.  Perhaps it will check whether the @sc{car} of the third
-element is the symbol @code{*}!  Using @code{function} tells the
-compiler it is safe to go ahead and compile the constant function.
+The Lisp compiler cannot assume this list is a function, even though
+it looks like one, since it does not know what @code{change-property}
+will do with the list.  Perhaps it will check whether the @sc{car} of
+the third element is the symbol @code{*}!
 
-  Nowadays it is possible to omit @code{function} entirely, like this:
-
-@example
-@group
-(defun double-property (symbol prop)
-  (change-property symbol prop (lambda (x) (* 2 x))))
-@end group
-@end example
-
-@noindent
-This is because @code{lambda} itself implies @code{function}.
-
-  We sometimes write @code{function} instead of @code{quote} when
-quoting the name of a function, but this usage is just a sort of
-comment:
-
-@example
-(function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
-@end example
-
-@cindex @samp{#'} syntax
-  The read syntax @code{#'} is a short-hand for using @code{function}.
-For example,
-
-@example
-#'(lambda (x) (* x x))
-@end example
-
-@noindent
-is equivalent to
-
-@example
-(function (lambda (x) (* x x)))
-@end example
+@findex function
+The @code{function} special form explicitly tells the byte-compiler
+that its argument is a function:
 
 @defspec function function-object
 @cindex function quoting
@@ -1021,8 +990,26 @@ to be used only as a function, and therefore can safely be compiled.
 Contrast this with @code{quote}, in @ref{Quoting}.
 @end defspec
 
-  @xref{describe-symbols example}, for a realistic example using
-@code{function} and an anonymous function.
+@cindex @samp{#'} syntax
+The read syntax @code{#'} is a short-hand for using @code{function}.
+Generally, it is not necessary to use either @code{#'} or
+@code{function}; just use an unquoted @code{lambda} form instead.
+(Actually, @code{lambda} is a macro defined using @code{function}.)
+The following forms are all equivalent:
+
+@example
+#'(lambda (x) (* x x))
+(function (lambda (x) (* x x)))
+(lambda (x) (* x x))
+@end example
+
+  We sometimes write @code{function} instead of @code{quote} when
+quoting the name of a function, but this usage is just a sort of
+comment:
+
+@example
+(function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
+@end example
 
 @node Function Cells
 @section Accessing Function Cell Contents

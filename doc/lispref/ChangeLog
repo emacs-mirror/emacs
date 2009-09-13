@@ -1,3 +1,9 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* functions.texi (Anonymous Functions): Rearrange discussion,
+	giving usage of unquoted lambda forms first.  Mention that
+	`function' and `#'' are no longer required (Bug#4290).
+
 2009-09-11  Alan Mackenzie  <acm@muc.de>
 
 	* os.texi (Terminal Output): document `send-string-to-terminal' in
