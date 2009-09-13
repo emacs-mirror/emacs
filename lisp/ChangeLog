@@ -2,6 +2,9 @@
 
 	Synch to Eric Ludlam's upstream CEDET repository.
 
+	* cedet/semantic/tag-write.el (semantic-tag-write-list-slot-value):
+	Autoload.
+
 	* cedet/semantic/analyze/fcn.el (semantic-analyze-dereference-metatype-1)
 	(semantic-analyze-type): Require semantic/scope.
 	(semantic-analyze-select-best-tag): Require semantic/db-typecache.

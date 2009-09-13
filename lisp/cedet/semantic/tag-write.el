@@ -158,6 +158,7 @@ Items that are long lists of tags may need their own line."
 	(princ str)))))
   )
 ;;; EIEIO USAGE
+;;;###autoload
 (defun semantic-tag-write-list-slot-value (value)
   "Write out the VALUE of a slot for EIEIO.
 The VALUE is a list of tags."
@@ -183,4 +184,11 @@ The VALUE is a list of tags."
 
 
 (provide 'semantic/tag-write)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/tag-write"
+;; End:
+
 ;;; semantic/tag-write.el ends here
