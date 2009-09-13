@@ -602,6 +602,7 @@ isn't in memory yet."
   "Load an unloaded file in FILENAME using the default semanticdb loader."
   (semanticdb-file-table-object filename))
 
+;; The creation of the overload occurs above.
 (defun semanticdb-find-table-for-include-default (includetag &optional table)
   "Default implementation of `semanticdb-find-table-for-include'.
 Uses `semanticdb-current-database-list' as the search path.

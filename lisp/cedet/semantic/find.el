@@ -53,7 +53,7 @@
 ;;
 ;; These routines provide fast access to tokens based on a buffer that
 ;; has parsed tokens in it.  Uses overlays to perform the hard work.
-
+;;
 ;;;###autoload
 (defun semantic-find-tag-by-overlay (&optional positionormarker buffer)
   "Find all tags covering POSITIONORMARKER by using overlays.
@@ -257,7 +257,7 @@ TABLE is a semantic tags table.  See `semantic-something-to-tag-table'."
      (nreverse result)))
 
 ;;; Top level Searches
-
+;;
 ;;;###autoload
 (defun semantic-find-first-tag-by-name (name &optional table)
   "Find the first tag with NAME in TABLE.

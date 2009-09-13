@@ -675,6 +675,26 @@ Returns an object based on symbol `semantic-analyze-context'."
     context-return))
 
 
+(defun semantic-adebug-analyze (&optional ctxt)
+  "Perform `semantic-analyze-current-context'.
+Display the results as a debug list.
+Optional argument CTXT is the context to show."
+  (interactive)
+  (let ((start (current-time))
+	(ctxt (or ctxt (semantic-analyze-current-context)))
+	(end (current-time)))
+    (if (not ctxt)
+	(message "No Analyzer Results")
+      (message "Analysis  took %.2f seconds."
+	       (semantic-elapsed-time start end))
+      (semantic-analyze-pulse ctxt)
+      (if ctxt
+	  (progn
+	    (data-debug-new-buffer "*Analyzer ADEBUG*")
+	    (data-debug-insert-object-slots ctxt "]"))
+	(message "No Context to analyze here.")))))
+
+
 ;;; DEBUG OUTPUT
 ;;
 ;; Friendly output of a context analysis.

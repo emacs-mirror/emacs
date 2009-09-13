@@ -36,8 +36,6 @@
 ;; is the only way I seem to be able to make this stuff load properly.
 
 ;; @TODO - fix :initform to be a form, not a quoted value
-;; @TODO - For API calls like `object-p', replace with something
-;;         that does not conflict with "object", meaning a lisp object.
 ;; @TODO - Prefix non-clos functions with `eieio-'.
 
 ;;; Code:
@@ -53,7 +51,7 @@
   (message eieio-version))
 
 (eval-and-compile
-;; Abount the above.  EIEIO must process it's own code when it compiles
+;; About the above.  EIEIO must process it's own code when it compiles
 ;; itself, thus, by eval-and-compiling outselves, we solve the problem.
 
 ;; Compatibility
@@ -109,7 +107,10 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 (defvar eieio-initializing-object  nil
   "Set to non-nil while initializing an object.")
 
-(defconst eieio-unbound (make-symbol "unbound")
+(defconst eieio-unbound
+  (if (and (boundp 'eieio-unbound) (symbolp eieio-unbound))
+      eieio-unbound
+    (make-symbol "unbound"))
   "Uninterned symbol representing an unbound slot in an object.")
 
 ;; This is a bootstrap for eieio-default-superclass so it has a value
@@ -2743,6 +2744,10 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 					    (or (class-p (car object)) (eieio-object-p (car object))))
 				      '(cedet-edebug-prin1-recurse object) )
      ))
+
+;; Done in cedet/data-debug.el:
+;; (eval-after-load "data-debug"
+;;   '(require 'eieio-datadebug))
 
 ;;; Interfacing with imenu in emacs lisp mode
 ;;    (Only if the expression is defined)

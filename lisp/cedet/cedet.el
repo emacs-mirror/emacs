@@ -24,26 +24,22 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;;; Code:
 ;;
 ;; This library automatically setups your [X]Emacs to use CEDET tools.
 ;;
-;;   (require 'cedet)
+;; Add the following into your ~/.emacs startup file:
 ;;
-;; If you want to turn on useful or all Semantic features by default,
-;; respectively add:
+;;   (load-file "<INSTALL-PATH>/cedet/common/cedet.el")
 ;;
-;;   (setq semantic-load-turn-useful-things-on t)
-;; or
-;;   (setq semantic-load-turn-everything-on t)
+;; Once loaded, you can enable additional feature.  For example,
+;; this will enable some basic and advance features:
 ;;
-;; before loading this file, like this:
-;;
-;;   (setq semantic-load-turn-useful-things-on t)
-;;   (require 'cedet)
-;;
-;; That's it!
-
-;;; Code:
+;;   (load-file "<INSTALL-PATH>/cedet/common/cedet.el")
+;;   (global-ede-mode t)
+;;   (semantic-load-enable-code-helpers)
+;;   (global-srecode-minor-mode 1)
 
 (eval-when-compile
   (require 'cl))

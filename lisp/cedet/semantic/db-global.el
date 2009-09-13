@@ -162,7 +162,6 @@ Return a list of tags."
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
   (if tags (call-next-method)
-    ;; YOUR IMPLEMENTATION HERE
     (let* ((semantic-symref-tool 'global)
 	   (result (semantic-symref-find-tags-by-regexp regex 'project))
 	   )

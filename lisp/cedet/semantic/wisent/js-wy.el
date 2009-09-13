@@ -20,7 +20,7 @@
 ;;; Commentary:
 ;;
 ;; This file was generated from the grammar file
-;; semantic/wisent/javascript-jv.wy in the CEDET repository.
+;; semantic/wisent/wisent-javascript-jv.wy in the CEDET repository.
 
 ;;; Code:
 (require 'semantic/lex)

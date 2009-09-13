@@ -31,6 +31,9 @@
 ;; printing.
 
 ;;; Code:
+(require 'edebug)
+(require 'debug)
+
 (defvar cedet-edebug-prin1-extensions nil
   "An alist of of code that can extend PRIN1 for edebug.
 Each entry has the value: (CONDITION . PRIN1COMMAND).")

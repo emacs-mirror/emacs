@@ -834,14 +834,18 @@ Parsing starts inside the parens, and ends at the end of TOKEN."
 
 	(nreverse toks)))))
 
+(defvar semantic-lex-spp-hack-depth 0
+  "Current depth of recursive calls to `semantic-lex-spp-lex-text-string'.")
+
 (defun semantic-lex-spp-lex-text-string (text)
   "Lex the text string TEXT using the current buffer's state.
 Use this to parse text extracted from a macro as if it came from
 the current buffer.  Since the lexer is designed to only work in
 a buffer, we need to create a new buffer, and populate it with rules
 and variable state from the current buffer."
-  ;; @TODO - will this fcn recurse?
-  (let* ((buf (get-buffer-create " *SPP parse hack*"))
+  (let* ((semantic-lex-spp-hack-depth (1+ semantic-lex-spp-hack-depth))
+	 (buf (get-buffer-create (format " *SPP parse hack %d*"
+					 semantic-lex-spp-hack-depth)))
 	 (mode major-mode)
 	 (fresh-toks nil)
 	 (toks nil)

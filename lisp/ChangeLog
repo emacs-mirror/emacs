@@ -1,3 +1,61 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	Synch to Eric Ludlam's upstream CEDET repository.
+
+	* cedet/semantic/wisent/java-tags.el:
+	* cedet/semantic/wisent/javat-wy.el: New files.
+
+	* cedet/semantic/wisent/java.el:
+	* cedet/semantic/wisent/java-wy.el: Files removed.
+
+	* cedet/semantic/java.el (semantic-java-prototype-function)
+	(semantic-java-prototype-variable, semantic-java-prototype-type):
+	Doc fix
+	(java-mode::semantic-format-tag-prototype): Renamed from
+	semantic-format-prototype-tag, which didn't match the overloadable
+	function.
+
+	* cedet/semantic/bovine/c.el (semantic-c-dereference-namespace-alias):
+	Deal correctly with nested namespaces.  Make sure type actually
+	exists in original namespace.
+
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-hack-depth): New.
+	(semantic-lex-spp-lex-text-string): Use above to enable recursion.
+
+	* cedet/semantic/format.el: Whitespace cleanup.
+	(semantic-test-all-format-tag-functions): Move to end.
+	(semantic-format-tag-prototype, semantic-format-tag-name)
+	(semantic-format-tag-name-default): Revert to original upstream
+	positions.
+
+	* cedet/semantic/elp.el: File removed.
+
+	* cedet/semantic/analyze.el (semantic-adebug-analyze): New
+	function, moved here from semantic/adebug.
+
+	* cedet/semantic/adebug.el: Declare external semanticdb functions.
+	(semantic-adebug-analyze, semantic-adebug-edebug-expr): Deleted.
+
+	* emacs-lisp/eieio.el (eieio-unbound): Default value is now robust
+	to recompile.
+
+	* emacs-lisp/eieio-datadebug.el: Add eieio objects to the list of
+	data debug things to recognize.
+
+	* emacs-lisp/eieio-comp.el: Synch to upstream.
+
+	* cedet/data-debug.el: Don't require eieio and semantic/tag.
+	If eieio is loaded, require eieio-datadebug.
+	(data-debug-insert-ring-button): Do not be specific about the ring
+	contents.
+	(data-debug-thing-alist): Remove eieio and semantic specific
+	entries.
+	(data-debug-add-specialized-thing): New function.
+
+	* cedet/cedet.el: Update commentary.
+
+	* cedet/cedet-edebug.el: Require edebug and debug.
+
 2009-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (make-autoload): Handle defclass form.

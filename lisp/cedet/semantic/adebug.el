@@ -32,9 +32,17 @@
 ;;
 ;; Allow interactive navigation of the analysis process, tags, etc.
 
+(require 'eieio)
 (require 'data-debug)
-(require 'eieio-datadebug)
-(require 'semantic/analyze)
+(require 'semantic)
+(require 'semantic/tag)
+(require 'semantic/format)
+
+(declare-function semanticdb-get-database "semantic/db")
+(declare-function semanticdb-directory-loaded-p "semantic/db")
+(declare-function semanticdb-file-table "semantic/db")
+(declare-function semanticdb-needs-refresh-p "semantic/db")
+(declare-function semanticdb-full-filename "semantic/db")
 
 ;;; Code:
 
@@ -303,38 +311,10 @@ Display the results as a debug list."
 
     (data-debug-insert-find-results fr "*")))
 
-(defun semantic-adebug-analyze (&optional ctxt)
-  "Perform `semantic-analyze-current-context'.
-Display the results as a debug list.
-Optional argument CTXT is the context to show."
-  (interactive)
-  (let ((start (current-time))
-	(ctxt (or ctxt (semantic-analyze-current-context)))
-	(end (current-time)))
-    (if (not ctxt)
-	(message "No Analyzer Results")
-      (message "Analysis  took %.2f seconds."
-	       (semantic-elapsed-time start end))
-      (semantic-analyze-pulse ctxt)
-      (if ctxt
-	  (progn
-	    (data-debug-new-buffer "*Analyzer ADEBUG*")
-	    (data-debug-insert-object-slots ctxt "]"))
-	(message "No Context to analyze here.")))))
-
-(defun semantic-adebug-edebug-expr (expr)
-  "Dump out the contets of some expression EXPR in edebug with adebug."
-  (interactive "sExpression: ")
-  (let ((v (eval (read expr))))
-    (if (not v)
-	(message "Expression %s is nil." expr)
-      (data-debug-new-buffer "*expression ADEBUG*")
-      (data-debug-insert-thing v "?" "")
-      )))
-
 (defun semanticdb-debug-file-tag-check (startfile)
   "Report debug info for checking STARTFILE for up-to-date tags."
   (interactive "FFile to Check (default = current-buffer): ")
+  (require 'semantic/db)
   (let* ((file (file-truename startfile))
 	 (default-directory (file-name-directory file))
 	 (db (or

@@ -42,9 +42,6 @@
 ;; III.  Tag Comparison.  Allows explicit or comparitive tests to see
 ;;      if two tags are the same.
 
-;;; History:
-;;
-
 ;;; Code:
 ;;
 

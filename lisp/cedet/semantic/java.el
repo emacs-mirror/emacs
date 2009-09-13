@@ -24,9 +24,6 @@
 ;;
 ;; Common function for Java parsers.
 
-;;; History:
-;;
-
 ;;; Code:
 (require 'semantic)
 (require 'semantic/ctxt)
@@ -169,7 +166,7 @@ corresponding compound declaration."
   "Return a function (method) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
-See also `semantic-format-prototype-tag'."
+See also `semantic-format-tag-prototype'."
   (let ((name (semantic-tag-name tag))
         (type (semantic-java-type tag))
         (tmpl (semantic-tag-get-attribute tag :template-specifier))
@@ -197,7 +194,7 @@ See also `semantic-format-prototype-tag'."
   "Return a variable (field) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
-See also `semantic-format-prototype-tag'."
+See also `semantic-format-tag-prototype'."
   (let ((name (semantic-tag-name tag))
         (type (semantic-java-type tag)))
     (concat (if color
@@ -212,7 +209,7 @@ See also `semantic-format-prototype-tag'."
   "Return a type (class/interface) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
-See also `semantic-format-prototype-tag'."
+See also `semantic-format-tag-prototype'."
   (let ((name (semantic-tag-name tag))
         (type (semantic-tag-type tag))
         (tmpl (semantic-tag-get-attribute tag :template-specifier)))
@@ -222,7 +219,7 @@ See also `semantic-format-prototype-tag'."
               name)
             (or tmpl ""))))
 
-(define-mode-local-override semantic-format-prototype-tag
+(define-mode-local-override semantic-format-tag-prototype
   java-mode (tag &optional parent color)
   "Return a prototype for TOKEN.
 Optional argument PARENT is a parent (containing) item.
@@ -235,7 +232,7 @@ Optional argument COLOR indicates that color should be mixed in."
              tag parent color)))
 
 (semantic-alias-obsolete 'semantic-java-prototype-nonterminal
-                         'semantic-format-prototype-tag-java-mode)
+                         'semantic-format-tag-prototype-java-mode)
 
 ;; Include Tag Name
 ;;
