@@ -1,4 +1,4 @@
-2009-09-13  Per Starbäck <per@starback.se>  (tiny change)
+2009-09-13  Per Starbäck  <per@starback.se>  (tiny change)
 
 	* textmodes/ispell.el (ispell-command-loop): Convert keys such as
 	kp-0 to ascii equivalents (Bug#4325).
