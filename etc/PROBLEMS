@@ -911,7 +911,9 @@ normal); tex-suscript-height-minimum (minimum height).
 Many Spanish keyboards seem to ignore that combination.  Emacs can't
 do anything about it.
 
-** Characters from the mule-unicode charsets aren't displayed under X.
+** International characters aren't displayed under X.
+
+*** Missing X fonts
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
 minimal character repertoires (whereas the encoding part of the font
@@ -926,6 +928,12 @@ include in the fontset spec:
 mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
+
+*** Athena/Lucid toolkit limitations
+
+The Athena/Lucid toolkit cannot display UTF-8 strings in the menu, so
+if you have UTF-8 buffer names, the buffer menu won't display the
+names properly.  The GTK+ toolkit works properly.
 
 ** The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
 

@@ -1,3 +1,8 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document Athena/Lucid internationalization
+	problem (Bug#4333).
+
 2009-09-02  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
 	* refcards/orgcard.tex: Document new effort setting commands.
