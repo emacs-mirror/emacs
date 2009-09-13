@@ -1,3 +1,7 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* INSTALL: Update URL for GNU FreeFont.
+
 2009-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Don't recursively change perms of

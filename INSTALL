@@ -211,9 +211,8 @@ BDF Unicode fonts etl-unicode.tar.gz are available from
 fonts can also be used by ps-print and ps-mule to print Unicode
 characters.
 
-Finally, the Web pages <URL:http://www.nongnu.org/freefont/index.html>
-and <URL:http://www.gnu.org/software/freefont/sources/resources.html>
-list a large number of free Unicode fonts.
+Finally, the Web page <URL:http://www.gnu.org/software/freefont/>
+lists a large number of free Unicode fonts.
 
 * GNU/Linux development packages
 
