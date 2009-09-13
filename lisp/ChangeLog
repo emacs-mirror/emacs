@@ -1,3 +1,8 @@
+2009-09-13  Vincent Belaïche  <vincent.belaiche@gmail.com>
+
+	* recentf.el (recentf-cleanup): Use a hash table to find
+	duplicates (Bug#4407).
+
 2009-09-13  Per Starbäck  <per@starback.se>  (tiny change)
 
 	* textmodes/ispell.el (ispell-command-loop): Convert keys such as

@@ -1307,13 +1307,20 @@ empty `file-name-history' with the recent list."
 That is, remove duplicates, non-kept, and excluded files."
   (interactive)
   (message "Cleaning up the recentf list...")
-  (let ((n 0) newlist)
+  (let ((n 0)
+	(ht (make-hash-table
+	     :size recentf-max-saved-items
+	     :test 'equal))
+	newlist key)
     (dolist (f recentf-list)
-      (setq f (recentf-expand-file-name f))
+      (setq f (recentf-expand-file-name f)
+	    key (if recentf-case-fold-search (downcase f) f))
       (if (and (recentf-include-p f)
                (recentf-keep-p f)
-               (not (recentf-string-member f newlist)))
-          (push f newlist)
+               (not (gethash key ht)))
+	  (progn
+	    (push f newlist)
+	    (puthash key t ht))
         (setq n (1+ n))
         (message "File %s removed from the recentf list" f)))
     (message "Cleaning up the recentf list...done (%d removed)" n)
