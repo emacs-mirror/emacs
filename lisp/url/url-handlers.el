@@ -215,7 +215,8 @@ the arguments that would have been passed to OPERATION."
 
 ;; The actual implementation
 ;;;###autoload
-(defun url-copy-file (url newname &optional ok-if-already-exists keep-time)
+(defun url-copy-file (url newname &optional ok-if-already-exists
+			  keep-time preserve-uid-gid)
   "Copy URL to NEWNAME.  Both args must be strings.
 Signals a `file-already-exists' error if file NEWNAME already exists,
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
@@ -223,6 +224,7 @@ A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.
 Fourth arg KEEP-TIME non-nil means give the new file the same
 last-modified time as the old one.  (This works on only some systems.)
+Fifth arg PRESERVE-UID-GID is ignored.
 A prefix arg makes KEEP-TIME non-nil."
   (if (and (file-exists-p newname)
 	   (not ok-if-already-exists))

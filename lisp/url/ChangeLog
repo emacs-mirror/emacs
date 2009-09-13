@@ -1,3 +1,8 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-handlers.el (url-copy-file): Add fifth arg for compatibility
+	with 2005-06-25 change to copy-file (Bug#4410).
+
 2009-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* url-file.el (url-file): Avoid assignment to free variable `filename'.
