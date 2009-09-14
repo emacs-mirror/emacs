@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.5 2009-08-08 21:51:27 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.6 2009-09-14 02:38:13 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -137,6 +137,7 @@
     )
 
   (cit-compile-and-wait)
+
   )
 
 (defun cit-remove-add-to-project-cpp ()
@@ -163,6 +164,29 @@
   (cit-compile-and-wait)
   )
 
+(defun cit-remove-and-do-shared-lib ()
+  "Remove bar.cpp from the current project.
+Create a new shared lib with bar.cpp in it."
+  (when (string= make-type "Automake")
+
+    (find-file (cit-file "src/bar.cpp"))
+    ;; Whack the file
+    (ede-remove-file t)
+
+    ;; Create a new shared lib target, and add bar.cpp to it.
+    (ede-new-target "testlib" "sharedobject" "n")
+    (ede-add-file "testlib")
+
+    ;; 1 g) build the sources.
+    ;; Direct compile to test that make fails properly.
+    (compile ede-make-command)
+    ;; @todo - verify make error status
+    (while compilation-in-progress
+      (accept-process-output)
+      (sit-for 1))
+
+    (cit-compile-and-wait)
+    ))
 
 (provide 'cit-cpp)
 ;;; cit-cpp.el ends here
