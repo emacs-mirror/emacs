@@ -1,3 +1,8 @@
+2009-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/elint.el (elint-add-required-env): Revert to not using
+	temp-buffers (2009-09-12).
+
 2009-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/ispell.el (ispell-command-loop): Improve last fix, using

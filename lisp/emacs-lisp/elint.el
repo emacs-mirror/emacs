@@ -352,14 +352,17 @@ Return nil if there are no more forms, t otherwise."
 	(message nil)
 	(if lib
 	    (save-excursion
- 	      ;;; (set-buffer (find-file-noselect lib))
- 	      ;;; (elint-update-env)
- 	      ;;; (setq env (elint-env-add-env env elint-buffer-env)))
-	      (with-temp-buffer
-		(insert-file-contents lib)
-		(with-syntax-table emacs-lisp-mode-syntax-table
-		  (elint-update-env))
-		(setq env (elint-env-add-env env elint-buffer-env))))
+	      ;; FIXME this doesn't use a temp buffer, because it
+	      ;; stores the result in buffer-local variables so that
+	      ;; it can be reused.
+ 	      (set-buffer (find-file-noselect lib))
+ 	      (elint-update-env)
+ 	      (setq env (elint-env-add-env env elint-buffer-env)))
+	      ;;; (with-temp-buffer
+	      ;;; 	(insert-file-contents lib)
+	      ;;; 	(with-syntax-table emacs-lisp-mode-syntax-table
+	      ;;; 	  (elint-update-env))
+	      ;;; 	(setq env (elint-env-add-env env elint-buffer-env))))
 	      ;;(message "Elint processed (require '%s)" name))
 	  (error "Unable to find require'd library %s" name)))
     (error
