@@ -1,3 +1,7 @@
+2009-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add #define PROFILING to config.h.
+
 2009-07-03  Jason Rumney  <jasonr@gnu.org>
 
 	* runemacs.c (set_user_model_id): Use standard types.
