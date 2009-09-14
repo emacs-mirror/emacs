@@ -6104,7 +6104,17 @@ PREFIX is the string that represents this modifier in an event type symbol."
    (kp-subtract ?-)
    (kp-decimal ?.)
    (kp-divide ?/)
-   (kp-equal ?=)))
+   (kp-equal ?=)
+   ;; Do the same for various keys that are represented as symbols under
+   ;; GUIs but naturally correspond to characters.
+   (backspace 127)
+   (delete 127)
+   (tab ?\t)
+   (linefeed ?\n)
+   (clear ?\C-l)
+   (return ?\C-m)
+   (escape ?\e)
+   ))
 
 ;;;;
 ;;;; forking a twin copy of a buffer.

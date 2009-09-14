@@ -34,13 +34,6 @@
 (defvar x-alternatives-map
   (let ((map (make-sparse-keymap)))
     ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (define-key map [backspace] [127])
-    (define-key map [delete] [127])
-    (define-key map [tab] [?\t])
-    (define-key map [linefeed] [?\n])
-    (define-key map [clear] [?\C-l])
-    (define-key map [return] [?\C-m])
-    (define-key map [escape] [?\e])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-\d])
     (define-key map [M-tab] [?\M-\t])
@@ -368,16 +361,6 @@ This function is provided for backward compatibility, since
 ;; rather than beep.
 (global-set-key [lwindow] 'ignore)
 (global-set-key [rwindow] 'ignore)
-
-;; These tell read-char how to convert
-;; these special chars to ASCII.
-(put 'tab 'ascii-character ?\t)
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
 
 (defun w32-add-charset-info (xlfd-charset windows-charset codepage)
   "Function to add character sets to display with Windows fonts.

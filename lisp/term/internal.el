@@ -28,13 +28,6 @@
 (defvar msdos-key-remapping-map
   (let ((map (make-sparse-keymap)))
     ;; keyboard setup -- that's simple!
-    (define-key map [backspace] "\177") ; Normal behavior for BS
-    (define-key map [delete] "\C-d") ; ... and Delete
-    (define-key map [tab] [?\t])
-    (define-key map [linefeed] [?\n])
-    (define-key map [clear] [11])
-    (define-key map [return] [13])
-    (define-key map [escape] [?\e])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-d])
     (define-key map [M-tab] [?\M-\t])
@@ -44,15 +37,6 @@
     (define-key map [M-escape] [?\M-\e])
     map)
   "Keymap for remapping special keys on MS-DOS keyboard.")
-
-;; These tell read-char how to convert these special chars to ASCII.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
 
 (defun msdos-setup-keyboard (frame)
   "Setup `local-function-key-map' for MS-DOS keyboard."

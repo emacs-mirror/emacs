@@ -187,33 +187,13 @@ The properties returned may include `top', `left', `height', and `width'."
 ;;;; Keyboard mapping.
 
 ;; These tell read-char how to convert these special chars to ASCII.
-;;TODO: all terms have these, and at least the return mapping is necessary
-;;      for tramp to recognize the enter key.
-;;      Perhaps they should be moved into common code somewhere
-;;      (when a window system is active).
-;;      Remove if no problems for some time after 2008-08-06.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
 (put 'S-tab 'ascii-character (logior 16 ?\t))
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-
 
 (defvar ns-alternatives-map
   (let ((map (make-sparse-keymap)))
     ;; Map certain keypad keys into ASCII characters
     ;; that people usually expect.
-    (define-key map [backspace] [?\d])
-    (define-key map [delete] [?\d])
-    (define-key map [tab] [?\t])
     (define-key map [S-tab] [25])
-    (define-key map [linefeed] [?\n])
-    (define-key map [clear] [?\C-l])
-    (define-key map [return] [?\C-m])
-    (define-key map [escape] [?\e])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-\d])
     (define-key map [M-tab] [?\M-\t])

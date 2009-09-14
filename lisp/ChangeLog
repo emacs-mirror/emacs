@@ -1,3 +1,12 @@
+2009-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el: Add mapping for backspace/delete/clear/tab/escape/return
+	to function-key-map, and give them ascii-character property.
+	* term/x-win.el (x-alternatives-map):
+	* term/ns-win.el (ns-alternatives-map):
+	* term/internal.el (msdos-key-remapping-map):
+	* w32-fns.el (x-alternatives-map): Remove redundant mappings.
+
 2009-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/elint.el (elint-add-required-env): Revert to not using
@@ -28,16 +37,16 @@
 	* progmodes/cperl-mode.el (cperl-init-faces): Revert last change.
 
 	* eshell/em-hist.el:
-	* eshell/em-dirs.el (eshell-complete-user-reference): Declare
-	pcomplete functions and variables to avoid compiler warnings.
+	* eshell/em-dirs.el (eshell-complete-user-reference):
+	Declare pcomplete functions and variables to avoid compiler warnings.
 
 2009-09-13  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* eshell/em-script.el (eshell-login-script, eshell-rc-script):
 	* eshell/em-dirs.el (eshell-last-dir-ring-file-name):
 	* eshell/em-alias.el (eshell-aliases-file):
-	* eshell/em-hist.el (eshell-history-file-name): Use
-	expand-file-name instead of concat to make file names (Bug#4308).
+	* eshell/em-hist.el (eshell-history-file-name):
+	Use expand-file-name instead of concat to make file names (Bug#4308).
 
 2009-09-13  Glenn Morris  <rgm@gnu.org>
 
@@ -1541,11 +1550,9 @@
 	(cperl-forward-re): Check cperl-brace-recursing.
 	(cperl-highlight-charclass): New function.
 	(cperl-find-pods-heres): Use it.
-	(cperl-fill-paragraph): Synch to save-excursion placement used
-	upstream.
+	(cperl-fill-paragraph): Synch to save-excursion placement used upstream.
 	(cperl-beautify-regexp-piece): Fix column calculation.
-	(cperl-make-regexp-x): Handle case where point is between "q" and
-	"rs".
+	(cperl-make-regexp-x): Handle case where point is between "q" and "rs".
 	(cperl-beautify-level): Don't process entire regexp.
 	(cperl-build-manpage, cperl-perldoc): Bind Man-switches before
 	calling man.
