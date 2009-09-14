@@ -1,3 +1,7 @@
+2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .dir-locals.el (change-log-mode): Restore bug-reference-mode.
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* INSTALL: Update URL for GNU FreeFont.
