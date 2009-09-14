@@ -1,3 +1,7 @@
+2009-09-14  Alan Mackenzie  <acm@muc.de>
+
+	* os.texi (Terminal Output): Put "@code{}" around "stdout".
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* functions.texi (Anonymous Functions): Rearrange discussion,
