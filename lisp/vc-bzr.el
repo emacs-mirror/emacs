@@ -453,6 +453,7 @@ REV non-nil gets an error."
 (defvar log-view-font-lock-keywords)
 (defvar log-view-current-tag-function)
 (defvar log-view-per-file-logs)
+(defvar vc-short-log)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
@@ -460,19 +461,27 @@ REV non-nil gets an error."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
-       "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
+       (if vc-short-log
+	   "^ +\\([0-9]+\\) \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
+	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
-       (append `((,log-view-message-re . 'log-view-message-face))
-               ;; log-view-font-lock-keywords
-               '(("^ *committer: \
+       (if vc-short-log
+	 (append `((,log-view-message-re
+		    (1 'log-view-message-face)
+		    (2 'change-log-name)
+		    (3 'change-log-date)
+		    (4 'change-log-list))))
+	 (append `((,log-view-message-re . 'log-view-message-face))
+		 ;; log-view-font-lock-keywords
+		 '(("^ *committer: \
 \\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"
-                  (1 'change-log-name)
-                  (2 'change-log-email))
-                 ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face))))))
+		    (1 'change-log-name)
+		    (2 'change-log-email))
+		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
-(defun vc-bzr-print-log (files &optional buffer) ; get buffer arg in Emacs 22
+(defun vc-bzr-print-log (files &optional buffer shortlog) ; get buffer arg in Emacs 22
   "Get bzr change log for FILES into specified BUFFER."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
@@ -484,6 +493,7 @@ REV non-nil gets an error."
   ;; way of getting the above regexps working.
   (with-current-buffer buffer
     (apply 'vc-bzr-command "log" buffer 'async files
+	   (if shortlog "--short")
 	   (if (stringp vc-bzr-log-switches)
 	       (list vc-bzr-log-switches)
 	     vc-bzr-log-switches))))

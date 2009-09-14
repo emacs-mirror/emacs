@@ -462,7 +462,7 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
-(defun vc-svn-print-log (files &optional buffer)
+(defun vc-svn-print-log (files &optional buffer shortlog)
   "Get change log(s) associated with FILES."
   (save-current-buffer
     (vc-setup-buffer buffer)

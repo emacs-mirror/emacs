@@ -471,7 +471,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; HISTORY FUNCTIONS
 
-(defun vc-git-print-log (files &optional buffer)
+(defun vc-git-print-log (files &optional buffer shortlog)
   "Get change log associated with FILES."
   (let ((coding-system-for-read git-commits-coding-system)
 	;; Support both the old print-log interface that passes a
@@ -485,13 +485,22 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (let ((inhibit-read-only t))
       (with-current-buffer
           buffer
+	(if shortlog
 	(vc-git-command buffer 'async files
-			"rev-list" "--pretty" "HEAD" "--")))))
+			    "log" ;; "--graph"
+			    "--date=short" "--pretty=format:%h  %ad  %s" "--abbrev-commit"
+			    "--")
+	  (vc-git-command buffer 'async files
+			  "rev-list" ;; "--graph"
+			  "--pretty" "HEAD" "--"))))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
+
+;; Dynamically bound.
+(defvar vc-short-log)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; we need the faces add-log
@@ -499,8 +508,15 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       "^commit *\\([0-9a-z]+\\)")
+       (if vc-short-log
+	 "^\\(?:[*/\\| ]+ \\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
+	 "^[ */\\|]+commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
+       (if vc-short-log
+	   (append
+	    `((,log-view-message-re
+	       (1 'change-log-acknowledgement)
+	       (2 'change-log-date))))
        (append
         `((,log-view-message-re  (1 'change-log-acknowledgement)))
         ;; Handle the case:
@@ -521,7 +537,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
            (1 'change-log-acknowledgement)
            (2 'change-log-acknowledgement))
           ("^Date:   \\(.+\\)" (1 'change-log-date))
-          ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+
 
 (defun vc-git-show-log-entry (revision)
   "Move to the log entry for REVISION.
@@ -678,6 +695,9 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-extra-status-menu () vc-git-extra-menu-map)
 
+(defun vc-git-root (file)
+  (vc-find-root file ".git"))
+
 (defun vc-git-toggle-signoff ()
   (interactive)
   (setq vc-git-add-signoff (not vc-git-add-signoff)))
@@ -762,9 +782,6 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 
 ;;; Internal commands
-
-(defun vc-git-root (file)
-  (vc-find-root file ".git"))
 
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.

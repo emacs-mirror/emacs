@@ -155,6 +155,9 @@ Autorevert Tail mode works now for remote files.
 
 ** VC and related modes
 
+*** FIXME: add info about the new VC functions: vc-root-diff and
+vc-root-print-log once they stabilize.
+
 *** When a file is not found, VC will not try to check it out of RCS anymore.
 
 *** vc-git changes

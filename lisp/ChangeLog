@@ -1,3 +1,27 @@
+2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (top): print-log method now takes an optional SHORTLOG
+	argument.  Add a new method: root.
+
+	(vc-root-diff, vc-print-root-log): New functions.
+	(vc-log-short-style): New variable.
+	(vc-print-log-internal): Add support for showing short logs.
+
+	* vc-hooks.el (vc-prefix-map, vc-menu-map): Add bindings for
+	vc-print-root-log and vc-print-root-diff.
+
+	* vc-bzr.el (vc-bzr-log-view-mode, vc-bzr-print-log):
+	* vc-git.el (vc-git-print-log, vc-git-log-view-mode):
+	* vc-hg.el (vc-hg-print-log, vc-hg-log-view-mode): Add support for
+	short logs.
+
+	* vc-cvs.el (vc-cvs-print-log):
+	* vc-mtn.el (vc-mtn-print-log):
+	* vc-rcs.el (vc-rcs-print-log):
+	* vc-sccs.el (vc-sccs-print-log):
+	* vc-svn.el (vc-svn-print-log): Add an optional argument shortlog
+	that is ignored for now.
+
 2009-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el: Add mapping for backspace/delete/clear/tab/escape/return

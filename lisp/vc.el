@@ -346,11 +346,12 @@
 ;;
 ;; HISTORY FUNCTIONS
 ;;
-;; * print-log (files &optional buffer)
+;; * print-log (files &optional buffer shortlog)
 ;;
 ;;   Insert the revision log for FILES into BUFFER, or the *vc* buffer
 ;;   if BUFFER is nil.  (Note: older versions of this function expected
 ;;   only a single file argument.)
+;;   If SHORTLOG is true insert a short version of the log.
 ;;
 ;; - log-view-mode ()
 ;;
@@ -460,6 +461,9 @@
 ;;   backed up locally.  If this is done, VC can perform `diff' and
 ;;   `revert' operations itself, without calling the backend system.  The
 ;;   default implementation always returns nil.
+;;
+;; - root (file)
+;;   Return the root of the VC controlled hierarchy for file.
 ;;
 ;; - repository-hostname (dirname)
 ;;
@@ -1597,6 +1601,33 @@ saving the buffer."
     (vc-diff-internal t (vc-deduce-fileset) nil nil (interactive-p))))
 
 ;;;###autoload
+(defun vc-root-diff (historic &optional not-urgent)
+  "Display diffs between file revisions.
+Normally this compares the currently selected fileset with their
+working revisions.  With a prefix argument HISTORIC, it reads two revision
+designators specifying which revisions to compare.
+
+The optional argument NOT-URGENT non-nil means it is ok to say no to
+saving the buffer."
+  (interactive (list current-prefix-arg t))
+  (if historic
+      ;; FIXME: this does not work right, `vc-version-diff' ends up
+      ;; calling `vc-deduce-fileset' to find the files to diff, and
+      ;; that's not what we want here, we want the diff for the VC root dir.
+      (call-interactively 'vc-version-diff)
+    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (let ((backend
+	   (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+		 (vc-mode (vc-backend buffer-file-name))))
+	  rootdir working-revision)
+      (unless backend
+	(error "Buffer is not version controlled"))
+      (setq rootdir (vc-call-backend backend 'root default-directory))
+      (setq working-revision (vc-working-revision rootdir))
+      (vc-diff-internal
+       t (list backend (list rootdir) working-revision) nil nil (interactive-p)))))
+
+;;;###autoload
 (defun vc-revision-other-window (rev)
   "Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
@@ -1822,23 +1853,43 @@ allowed and simply skipped)."
 
 ;; Miscellaneous other entry points
 
+;; FIXME: this should be a defcustom
+;; FIXME: maybe add another choice:
+;; `root-directory' (or somesuch), which would mean show a short log
+;; for the root directory.
+(defvar vc-log-short-style '(directory)
+  "Whether or not to show a short log.
+If it contains `directory' then if the fileset contains a directory show a short log.
+If it contains `file' then show short logs for files.
+Not all VC backends support short logs!")
+
 (defun vc-print-log-internal (backend files working-revision)
   ;; Don't switch to the output buffer before running the command,
   ;; so that any buffer-local settings in the vc-controlled
   ;; buffer can be accessed by the command.
-  (vc-call-backend backend 'print-log files "*vc-change-log*")
-  (pop-to-buffer "*vc-change-log*")
-  (vc-exec-after
-   `(let ((inhibit-read-only t))
-      (vc-call-backend ',backend 'log-view-mode)
-      (set (make-local-variable 'log-view-vc-backend) ',backend)
-      (set (make-local-variable 'log-view-vc-fileset) ',files)
+  (let ((dir-present nil)
+	(vc-short-log nil))
+    (dolist (file files)
+      (when (file-directory-p file)
+	(setq dir-present t)))
+    (setq vc-short-log
+	  (not (null (if dir-present
+			 (memq 'directory vc-log-short-style)
+		       (memq 'file vc-log-short-style)))))
+    (vc-call-backend backend 'print-log files "*vc-change-log*" vc-short-log)
+    (pop-to-buffer "*vc-change-log*")
+    (vc-exec-after
+     `(let ((inhibit-read-only t)
+	    (vc-short-log ,vc-short-log))
+	(vc-call-backend ',backend 'log-view-mode)
+	(set (make-local-variable 'log-view-vc-backend) ',backend)
+	(set (make-local-variable 'log-view-vc-fileset) ',files)
 
-      (shrink-window-if-larger-than-buffer)
-      ;; move point to the log entry for the working revision
-      (vc-call-backend ',backend 'show-log-entry ',working-revision)
-      (setq vc-sentinel-movepoint (point))
-      (set-buffer-modified-p nil))))
+	(shrink-window-if-larger-than-buffer)
+	;; move point to the log entry for the working revision
+	(vc-call-backend ',backend 'show-log-entry ',working-revision)
+	(setq vc-sentinel-movepoint (point))
+	(set-buffer-modified-p nil)))))
 
 ;;;###autoload
 (defun vc-print-log (&optional working-revision)
@@ -1850,6 +1901,20 @@ If WORKING-REVISION is non-nil, leave the point at that revision."
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision (vc-working-revision (car files)))))
     (vc-print-log-internal backend files working-revision)))
+
+;;;###autoload
+(defun vc-print-root-log ()
+  "List the change log of for the current VC controlled tree in a window."
+  (interactive)
+  (let ((backend
+	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
+	       (vc-mode (vc-backend buffer-file-name))))
+	rootdir working-revision)
+    (unless backend
+      (error "Buffer is not version controlled"))
+    (setq rootdir (vc-call-backend backend 'root default-directory))
+    (setq working-revision (vc-working-revision rootdir))
+    (vc-print-log-internal backend (list rootdir) working-revision)))
 
 ;;;###autoload
 (defun vc-revert ()

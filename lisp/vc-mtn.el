@@ -188,7 +188,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;; (defun vc-mtn-roolback (files)
 ;;   )
 
-(defun vc-mtn-print-log (files &optional buffer)
+(defun vc-mtn-print-log (files &optional buffer shortlog)
   (vc-mtn-command buffer 0 files "log"))
 
 (defvar log-view-message-re)

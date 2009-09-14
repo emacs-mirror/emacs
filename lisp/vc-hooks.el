@@ -938,6 +938,7 @@ current, and kill the buffer that visits the link."
     (define-key map "h" 'vc-insert-headers)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
+    (define-key map "L" 'vc-print-root-log)
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-tag)
     (define-key map "s" 'vc-create-tag)
@@ -945,6 +946,7 @@ current, and kill the buffer that visits the link."
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
+    (define-key map "D" 'vc-root-diff)
     (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
@@ -973,12 +975,18 @@ current, and kill the buffer that visits the link."
     (define-key map [vc-diff]
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
+    (define-key map [vc-root-diff]
+      '(menu-item "Compare Tree with Base Version" vc-root-diff
+		  :help "Compare current tree with the base version"))
     (define-key map [vc-update-change-log]
       '(menu-item "Update ChangeLog" vc-update-change-log
 		  :help "Find change log file and add entries from recent version control logs"))
     (define-key map [vc-print-log]
       '(menu-item "Show History" vc-print-log
 		  :help "List the change log of the current file set in a window"))
+    (define-key map [vc-print-root-log]
+      '(menu-item "Show Top of the Tree History " vc-print-root-log
+		  :help "List the change log for the current tree in a window"))
     (define-key map [separator2] '("----"))
     (define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
