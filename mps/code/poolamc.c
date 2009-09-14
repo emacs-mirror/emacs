@@ -16,7 +16,7 @@ SRCID(poolamc, "$Id$");
 
 Size bigseg = 1UL << 20;
 
-Count largeSeg = 8;
+Count PagesPerSegMediumLIMIT = 8;
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailboard */
 enum {AMCPTypeGen = 1, AMCPTypeNailboard};
@@ -1225,7 +1225,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   base = SegBase(seg);
   *baseReturn = base;
-  if(alignedSize < largeSeg * ArenaAlign(arena)) {
+  if(alignedSize < PagesPerSegMediumLIMIT * ArenaAlign(arena)) {
     /* Small or Medium segment: give the buffer the entire seg. */
     limit = AddrAdd(base, alignedSize);
     AVER(limit == SegLimit(seg));
@@ -1480,7 +1480,7 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
     amc->pageretstruct[trace->ti].pCond += pages;
     if(pages == 1) {
       amc->pageretstruct[trace->ti].pCS += pages;
-    } else if(pages < largeSeg) {
+    } else if(pages < PagesPerSegMediumLIMIT) {
       amc->pageretstruct[trace->ti].sCM += 1;
       amc->pageretstruct[trace->ti].pCM += pages;
     } else {
@@ -2204,7 +2204,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   segSize = SegSize(seg);
   sizeclass =
     segSize < ArenaAlign(arena) ? 1 :
-    segSize < largeSeg * ArenaAlign(arena) ? 2 :
+    segSize < PagesPerSegMediumLIMIT * ArenaAlign(arena) ? 2 :
     3;
   base = SegBase(seg);
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
@@ -2297,7 +2297,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       amc->pageretstruct[trace->ti].pRet += pages;
       if(pages == 1) {
         amc->pageretstruct[trace->ti].pRS += pages;
-      } else if(pages < largeSeg) {
+      } else if(pages < PagesPerSegMediumLIMIT) {
         amc->pageretstruct[trace->ti].pRM += pages;
         if(obj1pip) {
           amc->pageretstruct[trace->ti].pRM1 += pages;
@@ -2368,7 +2368,7 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   STATISTIC(amc->cPagesReclaim[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
   sizeclass =
     SegSize(seg) < ArenaAlign(pool->arena) ? 1 :
-    SegSize(seg) < largeSeg * ArenaAlign(pool->arena) ? 2 :
+    SegSize(seg) < PagesPerSegMediumLIMIT * ArenaAlign(pool->arena) ? 2 :
     3;
   if(sizeclass == 2)
     STATISTIC(amc->cbM1[trace->ti] += (Seg2amcSeg(seg))->padstats.cb1);
@@ -2454,7 +2454,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   if(amc->cbM1[ti] >= 1 * ArenaAlign(pool->arena)) {
     DIAG_SINGLEF(( "AMCTraceEnd_pad_med",
       "  Medium segs (2 .. $U pages) -- after multi-page initial object ('1'), we choose to _use_ rest of seg:\n",
-      largeSeg - 1,
+      PagesPerSegMediumLIMIT - 1,
       "    Space Gained (seg was not retained, so use of rest was okay) = extra $U% (of size of all '1' objs);\n",
       (100 * amc->cbMRestFreed[ti]) / amc->cbM1[ti],
       "    Extra Space Retained (use of rest caused multi-page seg to be retained) = $U% (of size of all '1' objs).\n",
