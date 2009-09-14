@@ -507,49 +507,49 @@ Switch to the most recently selected buffer other than the current one."
 ;; Global ones can go on the menubar (Options --> Show/Hide).
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
-	      :help "Overwrite mode: typed characters replace existing text"
+	      :help ,(purecopy "Overwrite mode: typed characters replace existing text")
 	      :button (:toggle . overwrite-mode)))
 (define-key mode-line-mode-menu [outline-minor-mode]
   `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
 	      ;; XXX: This needs a good, brief description.
-	      :help ""
+	      :help ,(purecopy "")
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :help "Show changes in the buffer in a distinctive color"
+	      :help ,(purecopy "Show changes in the buffer in a distinctive color")
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
-	      :help "Show/Hide code within #ifdef constructs"
+	      :help ,(purecopy "Show/Hide code within #ifdef constructs")
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
 (define-key mode-line-mode-menu [glasses-mode]
   `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :help "Insert virtual separators to make long identifiers easy to read"
+	      :help ,(purecopy "Insert virtual separators to make long identifiers easy to read")
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font Lock") font-lock-mode
-	      :help "Syntax coloring"
+	      :help ,(purecopy "Syntax coloring")
 	      :button (:toggle . font-lock-mode)))
 (define-key mode-line-mode-menu [flyspell-mode]
   `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
-	      :help "Spell checking on the fly"
+	      :help ,(purecopy "Spell checking on the fly")
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (define-key mode-line-mode-menu [auto-revert-tail-mode]
   `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
-	      :help "Revert the tail of the buffer when buffer grows"
+	      :help ,(purecopy "Revert the tail of the buffer when buffer grows")
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :help "Revert the buffer when the file on disk changes"
+	      :help ,(purecopy "Revert the buffer when the file on disk changes")
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
 (define-key mode-line-mode-menu [auto-fill-mode]
   `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
-	      :help "Automatically insert new lines"
+	      :help ,(purecopy "Automatically insert new lines")
 	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
-	      :help "Automatically expand abbreviations"
+	      :help ,(purecopy "Automatically expand abbreviations")
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-minor-mode-help (event)

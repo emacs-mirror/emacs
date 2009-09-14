@@ -1,8 +1,10 @@
 2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* bindings.el (mode-line-mode-menu): Add purecopy calls for :help.
+	* help.el (help-for-help-internal): Add purecopy calls for text.
+
 	* vc.el (top): print-log method now takes an optional SHORTLOG
 	argument.  Add a new method: root.
-
 	(vc-root-diff, vc-print-root-log): New functions.
 	(vc-log-short-style): New variable.
 	(vc-print-log-internal): Add support for showing short logs.
