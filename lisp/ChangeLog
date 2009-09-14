@@ -22,6 +22,9 @@
 	* vc-svn.el (vc-svn-print-log): Add an optional argument shortlog
 	that is ignored for now.
 
+	* vc-mtn.el (vc-mtn-annotate-command):
+	* vc-svn.el (vc-svn-annotate-command): Run asynchronously.
+
 2009-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el: Add mapping for backspace/delete/clear/tab/escape/return

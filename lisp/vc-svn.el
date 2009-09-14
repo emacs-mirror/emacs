@@ -688,7 +688,7 @@ information about FILENAME and return its status."
 ;; Support for `svn annotate'
 
 (defun vc-svn-annotate-command (file buf &optional rev)
-  (vc-svn-command buf 0 file "annotate" (if rev (concat "-r" rev))))
+  (vc-svn-command buf 'async file "annotate" (if rev (concat "-r" rev))))
 
 (defun vc-svn-annotate-time-of-rev (rev)
   ;; Arbitrarily assume 10 commmits per day.

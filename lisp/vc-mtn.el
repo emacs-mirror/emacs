@@ -221,7 +221,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
            (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
 
 (defun vc-mtn-annotate-command (file buf &optional rev)
-  (apply 'vc-mtn-command buf 0 file "annotate"
+  (apply 'vc-mtn-command buf 'async file "annotate"
          (if rev (list "-r" rev))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
