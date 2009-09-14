@@ -45,6 +45,7 @@
 ;;    f create a build file.
 ;;    g build the sources
 ;;    e remove files from a project.
+;;    f shared libraries from EDE.
 ;;
 ;; 2) Build sources using SRecode.
 ;;    a Fill in the constructed C files with classes and methods.
@@ -133,6 +134,9 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
 
   ;; 1 e) remove files from a project
   (cit-remove-add-to-project-cpp)
+
+  ;; 1 f) remove files from a project
+  (cit-remove-and-do-shared-lib)
 
   ;; 2 e) srecode map manipulation
   (cit-srecode-map-test)
