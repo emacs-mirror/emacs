@@ -181,6 +181,8 @@ run_thread (void *state)
     ;
   *iter = (*iter)->next_thread;
 
+  release_buffer (self);
+
   xfree (self->m_specpdl);
   xfree (self);
 

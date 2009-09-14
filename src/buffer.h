@@ -854,6 +854,7 @@ extern void record_buffer P_ ((Lisp_Object));
 extern void buffer_slot_type_mismatch P_ ((Lisp_Object, int)) NO_RETURN;
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
+extern void release_buffer P_ ((struct thread_state *));
 
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
    If NEXTP is non-NULL, return next overlay there.

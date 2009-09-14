@@ -1883,6 +1883,21 @@ acquire_buffer (char *end, void *nb)
     }
 }
 
+/* Mark the thread's current buffer as not having an owner.  This is
+   only ok to call when the thread is shutting down.  The global lock
+   must be held when calling this function.  */
+
+void
+release_buffer (thread)
+     struct thread_state *thread;
+{
+  if (!EQ (thread->m_current_buffer->owner, Qt))
+    {
+      thread->m_current_buffer->owner = Qnil;
+      pthread_cond_broadcast (&buffer_cond);
+    }
+}
+
 /* Set the current buffer to B, and do not set windows_or_buffers_changed.
    This is used by redisplay.  */
 
