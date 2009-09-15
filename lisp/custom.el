@@ -57,9 +57,9 @@ Otherwise, VALUE will be evaluated and used as the default binding for
 symbol."
   (unless (default-boundp symbol)
     ;; Use the saved value if it exists, otherwise the standard setting.
-    (set-default symbol (if (get symbol 'saved-value)
-			    (eval (car (get symbol 'saved-value)))
-			  (eval value)))))
+    (set-default symbol (eval (if (get symbol 'saved-value)
+                                  (car (get symbol 'saved-value))
+                                value)))))
 
 (defun custom-initialize-set (symbol value)
   "Initialize SYMBOL based on VALUE.
@@ -70,9 +70,9 @@ if any, or VALUE."
   (unless (default-boundp symbol)
     (funcall (or (get symbol 'custom-set) 'set-default)
 	     symbol
-	     (if (get symbol 'saved-value)
-		 (eval (car (get symbol 'saved-value)))
-	       (eval value)))))
+	     (eval (if (get symbol 'saved-value)
+                       (car (get symbol 'saved-value))
+                     value)))))
 
 (defun custom-initialize-reset (symbol value)
   "Initialize SYMBOL based on VALUE.
