@@ -1,3 +1,10 @@
+2009-09-15  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-read-buffer): When selecting a match from
+	the  virtual-buffers, use the name of the buffer specified by
+	find-file-noselect, as the match may be a symlink.  (This was a
+	problem if the target and the symlink had differet names.)
+
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* custom.el (custom-initialize-default, custom-initialize-set): CSE.
