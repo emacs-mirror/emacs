@@ -1,3 +1,10 @@
+2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (after-load-functions): New hook.
+	(do-after-load-evaluation): Run it.  Use string-match-p to detect
+	`obsolete' packages, rather than painfully extracting the relevant
+	directory name.
+
 2009-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* apropos.el (apropos-documentation-check-doc-file): Avoid assignment to

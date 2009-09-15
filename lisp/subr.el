@@ -1670,6 +1670,11 @@ This function makes or adds to an entry on `after-load-alist'."
 	  (featurep file))
 	(eval form))))
 
+(defvar after-load-functions nil
+  "Special hook run after loading a file.
+Each function there is called with a single argument, the absolute
+name of the file just loaded.")
+
 (defun do-after-load-evaluation (abs-file)
   "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
 ABS-FILE, a string, should be the absolute true name of a file just loaded.
@@ -1682,15 +1687,15 @@ This function is called directly from the C code."
 	      (mapc #'eval (cdr a-l-element))))
 	after-load-alist)
   ;; Complain when the user uses obsolete files.
-  (when (equal "obsolete"
-               (file-name-nondirectory
-                (directory-file-name (file-name-directory abs-file))))
+  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
     (run-with-timer 0 nil
                     (lambda (file)
                       (message "Package %s is obsolete!"
                                (substring file 0
                                           (string-match "\\.elc?\\>" file))))
-                    (file-name-nondirectory abs-file))))
+                    (file-name-nondirectory abs-file)))
+  ;; Finally, run any other hook.
+  (run-hook-with-args 'after-load-functions abs-file))
 
 (defun eval-next-after-load (file)
   "Read the following input sexp, and run it whenever FILE is loaded.

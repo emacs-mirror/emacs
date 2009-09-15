@@ -210,6 +210,8 @@ functions and variables.
 
 * Lisp changes in Emacs 23.2
 
+** New hook `after-load-functions' run after loading an Elisp file.
+
 ** You can control which binding is preferentially shown in menus and
 docstrings by adding a `:advertised-binding' property to the corresponding
 command's symbol.  That property can hold a single binding or a list
