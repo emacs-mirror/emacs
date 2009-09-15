@@ -55,8 +55,11 @@ mark_one_thread (struct thread_state *thread)
 
   mark_backtrace (thread->m_backtrace_list);
 
-  XSETBUFFER (tem, thread->m_current_buffer);
-  mark_object (tem);
+  if (thread->m_current_buffer)
+    {
+      XSETBUFFER (tem, thread->m_current_buffer);
+      mark_object (tem);
+    }
 }
 
 static void
