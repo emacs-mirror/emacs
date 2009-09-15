@@ -267,8 +267,9 @@ suitable file is found, return nil."
 		   "^;;; Generated autoloads from \\(.*\\)" nil t)
 	      (setq file-name
 		    (locate-file
-		     (match-string-no-properties 1)
-		     load-path nil 'readable))))))))
+		     (file-name-sans-extension
+		      (match-string-no-properties 1))
+		     load-path '(".el" ".elc") 'readable))))))))
 
     (cond
      ((and (not file-name) (subrp type))
