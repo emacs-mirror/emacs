@@ -657,9 +657,12 @@ the selection process begins.  Used by isearchb.el."
     ;; that file now and act as though that buffer had been selected.
     (if (and iswitchb-virtual-buffers
 	     (not (iswitchb-existing-buffer-p)))
-	(let ((virt (car iswitchb-virtual-buffers)))
-	  (find-file-noselect (cdr virt))
-	  (setq iswitchb-matches (list (car virt))
+	(let ((virt (car iswitchb-virtual-buffers))
+	      (new-buf))
+	  ;; Keep the name of the buffer returned by find-file-noselect, as 
+	  ;; the buffer 'virt' could be a symlink to a file of a different name.
+	  (setq new-buf (buffer-name (find-file-noselect (cdr virt))))
+	  (setq iswitchb-matches (list new-buf)
 		iswitchb-virtual-buffers nil)))
 
     ;; Handling the require-match must be done in a better way.
