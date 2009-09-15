@@ -1,5 +1,7 @@
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* desktop.el (desktop-path): Check user-emacs-directory.
+
 	* emacs-lisp/bytecomp.el (byte-compile-refresh-preloaded): New function.
 
 	* loadup.el: Use after-load-functions to GC after loading each file.

@@ -220,7 +220,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   :group 'desktop
   :version "22.2")
 
-(defcustom desktop-path '("." "~")
+(defcustom desktop-path (list "." user-emacs-directory "~")
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
