@@ -147,13 +147,13 @@ do_nothing (Lisp_Object whatever)
 static void *
 run_thread (void *state)
 {
-  char stack_bottom_variable;
+  char stack_pos;
   struct thread_state *self = state;
   struct thread_state **iter;
   struct gcpro gcpro1;
   Lisp_Object buffer;
 
-  self->stack_bottom = &stack_bottom_variable;
+  self->stack_top = self->stack_bottom = &stack_pos;
 
   self->m_specpdl_size = 50;
   self->m_specpdl = xmalloc (self->m_specpdl_size
