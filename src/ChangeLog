@@ -1,3 +1,10 @@
+2009-09-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_new_font): Call change_frame_size before calling
+	x_set_window_size, in case frame size won't change.
+
+	* frame.c (x_set_font): Remove dead code.
+
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (Fload): Also run do-after-load-evaluation while dumping.

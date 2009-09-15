@@ -3407,9 +3407,6 @@ x_set_font (f, arg, oldval)
     return;
 
   
-  lval = Fassq (Qfullscreen, f->param_alist);
-  if (CONSP (lval)) lval = CDR (lval);
-
   x_new_font (f, font_object, fontset);
   store_frame_param (f, Qfont, arg);
   /* Recalculate toolbar height.  */
