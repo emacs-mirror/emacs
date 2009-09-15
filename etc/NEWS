@@ -172,7 +172,10 @@ are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
 ** Calendar and diary
 
-*** The fancy diary display enables view-mode.
+*** Fancy diary display is now the default.
+If you prefer the simple display, customize `diary-display-function'.
+
+*** The diary's fancy display now enables view-mode.
 
 ---
 *** The command `calendar-current-date' accepts an optional argument
