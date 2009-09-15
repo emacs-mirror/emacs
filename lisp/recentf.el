@@ -26,10 +26,13 @@
 
 ;; This package maintains a menu for visiting files that were operated
 ;; on recently.  When enabled a new "Open Recent" sub menu is
-;; displayed in the "Files" menu.  The recent files list is
+;; displayed in the "File" menu.  The recent files list is
 ;; automatically saved across Emacs sessions.  You can customize the
 ;; number of recent files displayed, the location of the menu and
 ;; others options (see the source code for details).
+
+;; To enable this package, add the following to your .emacs:
+;; (recentf-mode 1)
 
 ;;; History:
 ;;
