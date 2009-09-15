@@ -1,3 +1,7 @@
+2009-09-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-log-view-mode): Undo inadvertent change.
+
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (compile-onefile): Use byte-compile-refresh-preloaded.

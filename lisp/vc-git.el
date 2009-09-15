@@ -532,7 +532,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (set (make-local-variable 'log-view-message-re)
        (if vc-short-log
 	 "^\\(?:[*/\\| ]+ \\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
-	 "^[ */\\|]+commit *\\([0-9a-z]+\\)"))
+	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        (if vc-short-log
 	   (append
