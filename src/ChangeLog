@@ -1,3 +1,7 @@
+2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Fload): Also run do-after-load-evaluation while dumping.
+
 2009-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (Fload): Don't output a message after loading an obsolete

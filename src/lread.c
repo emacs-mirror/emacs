@@ -1279,8 +1279,7 @@ Return t if the file exists and loads successfully.  */)
   unbind_to (count, Qnil);
 
   /* Run any eval-after-load forms for this file */
-  if (NILP (Vpurify_flag)
-      && (!NILP (Ffboundp (Qdo_after_load_evaluation))))
+  if (!NILP (Ffboundp (Qdo_after_load_evaluation)))
     call1 (Qdo_after_load_evaluation, hist_file_name) ;
 
   UNGCPRO;
