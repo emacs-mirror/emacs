@@ -1,3 +1,36 @@
+2009-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* apropos.el (apropos-documentation-check-doc-file): Avoid assignment to
+	free variable `doc'.
+
+	* dired.el (dired-mode-map): Add menu entry for async shell command.
+
+	* help-fns.el (find-lisp-object-file-name): When looking for autoloaded
+	variables, also consider the .elc files, since the .el files are
+	normally gzipped (subsequent code locates the .el.gz from the .elc).
+
+	* calc/calc-prog.el (arglist): Define for compiler.
+
+	* calendar/diary-lib.el (diary-display-function): Change the default to
+	fancy display.
+	(body): Define for compiler.
+
+	* emacs-lisp/bytecomp.el (byte-compile-keep-pending)
+	(byte-compile-file-form, byte-compile-lambda)
+	(byte-compile-top-level-body, byte-compile-form)
+	(byte-compile-variable-ref, byte-compile-setq)
+	(byte-compile-setq-default, byte-compile-body)
+	(byte-compile-body-do-effect, byte-compile-and, byte-compile-or)
+	(batch-byte-compile): Give some more local variables with common names
+	a "bytecomp-" prefix to avoid masking warnings about free variables.
+
+	* mail/rmailmm.el (rmail-mime-save): If file exists, don't try to be
+	clever and add a suffix to make a unique name, just let the user decide
+	whether or not to overwrite it.  If the input is a directory, write the
+	default filename to that directory.  (Bug#4388)
+	(rmail-mime-bulk-handler): Ensure the save button's 'directory property
+	is a filename-as-a-directory.
+
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/page.el (what-page): Don't move to beginning of line.
