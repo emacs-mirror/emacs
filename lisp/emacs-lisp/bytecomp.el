@@ -4103,7 +4103,8 @@ that suppresses all warnings during execution of BODY."
     (byte-compile-form (cons 'progn (cdr form)))))
 
 ;; Warn about misuses of make-variable-buffer-local.
-(byte-defop-compiler-1 make-variable-buffer-local byte-compile-make-variable-buffer-local)
+(byte-defop-compiler-1 make-variable-buffer-local
+                       byte-compile-make-variable-buffer-local)
 (defun byte-compile-make-variable-buffer-local (form)
   (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
            (byte-compile-warning-enabled-p 'make-local))
@@ -4392,6 +4393,26 @@ already up-to-date."
 		(get (car err) 'error-message)
 		(prin1-to-string (cdr err)))
        nil))))
+
+;;;###autoload
+(defun byte-compile-refresh-preloaded ()
+  "Reload any Lisp file that was changed since Emacs was dumped.
+Use with caution."
+  (let* ((argv0 (car command-line-args))
+         (emacs-file (executable-find argv0)))
+    (if (not (and emacs-file (file-executable-p emacs-file)))
+        (message "Can't find %s to refresh preloaded Lisp files" argv0)
+      (dolist (f (reverse load-history))
+        (setq f (car f))
+        (if (string-match "elc\\'" f) (setq f (substring f 0 -1)))
+        (when (and (file-readable-p f)
+                   (file-newer-than-file-p f emacs-file))
+          (message "Reloading stale %s" (file-name-nondirectory f))
+          (condition-case nil
+              (load f 'noerror nil 'nosuffix)
+            ;; Probably shouldn't happen, but in case of an error, it seems
+            ;; at least as useful to ignore it as it is to stop compilation.
+            (error nil)))))))
 
 ;;;###autoload
 (defun batch-byte-recompile-directory (&optional arg)
