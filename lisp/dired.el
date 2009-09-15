@@ -1641,9 +1641,12 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Symlink to..." dired-do-symlink
 		  :visible (fboundp 'make-symbolic-link)
 		  :help "Make symbolic links for current or marked files"))
+    (define-key map [menu-bar operate async-command]
+      '(menu-item "Asynchronous Shell Command..." dired-do-async-shell-command
+		  :help "Run a shell command asynchronously on current or marked files"))
     (define-key map [menu-bar operate command]
       '(menu-item "Shell Command..." dired-do-shell-command
-		  :help "Run a shell command on each of marked files"))
+		  :help "Run a shell command on current or marked files"))
     (define-key map [menu-bar operate delete]
       '(menu-item "Delete" dired-do-delete
 		  :help "Delete current file or all marked files"))
