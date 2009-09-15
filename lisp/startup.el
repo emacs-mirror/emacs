@@ -2040,8 +2040,11 @@ A fancy display is used on graphic displays, normal otherwise."
 	first-file-buffer)
     (when command-line-args-left
       ;; We have command args; process them.
-      (let ((dir command-line-default-directory)
-	    tem
+      ;; Note that any local variables in this function affect the
+      ;; ability of -f batch-byte-compile to detect free variables.
+      ;; So we give some of them with common names a cl1- prefix.
+      (let ((cl1-dir command-line-default-directory)
+	    cl1-tem
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
 	    ;; if foo is intended to be found in DIR.
 	    ;;
@@ -2064,18 +2067,18 @@ A fancy display is used on graphic displays, normal otherwise."
                      "--find-file" "--visit" "--file" "--no-desktop")
                    (mapcar (lambda (elt) (concat "-" (car elt)))
 			     command-switch-alist)))
-	    (line 0)
-	    (column 0))
+	    (cl1-line 0)
+	    (cl1-column 0))
 
 	;; Add the long X options to longopts.
-	(dolist (tem command-line-x-option-alist)
-	  (if (string-match "^--" (car tem))
-            (push (car tem) longopts)))
+	(dolist (cl1-tem command-line-x-option-alist)
+	  (if (string-match "^--" (car cl1-tem))
+            (push (car cl1-tem) longopts)))
 
 	;; Add the long NS options to longopts.
-	(dolist (tem command-line-ns-option-alist)
-	  (if (string-match "^--" (car tem))
-	      (push (list (car tem)) longopts)))
+	(dolist (cl1-tem command-line-ns-option-alist)
+	  (if (string-match "^--" (car cl1-tem))
+	      (push (list (car cl1-tem)) longopts)))
 
 	;; Loop, processing options.
 	(while command-line-args-left
@@ -2106,12 +2109,12 @@ A fancy display is used on graphic displays, normal otherwise."
 			  argi orig-argi)))))
 
 	    ;; Execute the option.
-	    (cond ((setq tem (assoc argi command-switch-alist))
+	    (cond ((setq cl1-tem (assoc argi command-switch-alist))
 		   (if argval
 		       (let ((command-line-args-left
 			      (cons argval command-line-args-left)))
-			 (funcall (cdr tem) argi))
-		     (funcall (cdr tem) argi)))
+			 (funcall (cdr cl1-tem) argi))
+		     (funcall (cdr cl1-tem) argi)))
 
 		  ((equal argi "-no-splash")
 		   (setq inhibit-startup-screen t))
@@ -2120,22 +2123,22 @@ A fancy display is used on graphic displays, normal otherwise."
 				  "-funcall"
 				  "-e"))  ; what the source used to say
 		   (setq inhibit-startup-screen t)
-		   (setq tem (intern (or argval (pop command-line-args-left))))
-		   (if (commandp tem)
-		       (command-execute tem)
-		     (funcall tem)))
+		   (setq cl1-tem (intern (or argval (pop command-line-args-left))))
+		   (if (commandp cl1-tem)
+		       (command-execute cl1-tem)
+		     (funcall cl1-tem)))
 
 		  ((member argi '("-eval" "-execute"))
 		   (setq inhibit-startup-screen t)
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
-		   (setq tem (expand-file-name
+		   (setq cl1-tem (expand-file-name
 			      (command-line-normalize-file-name
 			       (or argval (pop command-line-args-left)))))
-		   (cond (splice (setcdr splice (cons tem (cdr splice)))
+		   (cond (splice (setcdr splice (cons cl1-tem (cdr splice)))
 				 (setq splice (cdr splice)))
-			 (t (setq load-path (cons tem load-path)
+			 (t (setq load-path (cons cl1-tem load-path)
 				  splice load-path))))
 
 		  ((member argi '("-l" "-load"))
@@ -2159,10 +2162,10 @@ A fancy display is used on graphic displays, normal otherwise."
 
 		  ((equal argi "-insert")
 		   (setq inhibit-startup-screen t)
-		   (setq tem (or argval (pop command-line-args-left)))
-		   (or (stringp tem)
+		   (setq cl1-tem (or argval (pop command-line-args-left)))
+		   (or (stringp cl1-tem)
 		       (error "File name omitted from `-insert' option"))
-		   (insert-file-contents (command-line-normalize-file-name tem)))
+		   (insert-file-contents (command-line-normalize-file-name cl1-tem)))
 
 		  ((equal argi "-kill")
 		   (kill-emacs t))
@@ -2175,41 +2178,41 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
 
 		  ((string-match "^\\+[0-9]+\\'" argi)
-		   (setq line (string-to-number argi)))
+		   (setq cl1-line (string-to-number argi)))
 
 		  ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-		   (setq line (string-to-number (match-string 1 argi))
-			 column (string-to-number (match-string 2 argi))))
+		   (setq cl1-line (string-to-number (match-string 1 argi))
+			 cl1-column (string-to-number (match-string 2 argi))))
 
-		  ((setq tem (assoc argi command-line-x-option-alist))
+		  ((setq cl1-tem (assoc argi command-line-x-option-alist))
 		   ;; Ignore X-windows options and their args if not using X.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 tem) command-line-args-left)))
+			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
 
-		  ((setq tem (assoc argi command-line-ns-option-alist))
+		  ((setq cl1-tem (assoc argi command-line-ns-option-alist))
 		   ;; Ignore NS-windows options and their args if not using NS.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 tem) command-line-args-left)))
+			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)
 		   ;; An explicit option to specify visiting a file.
-		   (setq tem (or argval (pop command-line-args-left)))
-		   (unless (stringp tem)
+		   (setq cl1-tem (or argval (pop command-line-args-left)))
+		   (unless (stringp cl1-tem)
 		     (error "File name omitted from `%s' option" argi))
 		   (setq file-count (1+ file-count))
 		   (let ((file (expand-file-name
-				(command-line-normalize-file-name tem) dir)))
+				(command-line-normalize-file-name cl1-tem) cl1-dir)))
 		     (if (= file-count 1)
 			 (setq first-file-buffer (find-file file))
 		       (find-file-other-window file)))
-		   (unless (zerop line)
+		   (unless (zerop cl1-line)
 		     (goto-char (point-min))
-		     (forward-line (1- line)))
-		   (setq line 0)
-		   (unless (< column 1)
-		     (move-to-column (1- column)))
-		   (setq column 0))
+		     (forward-line (1- cl1-line)))
+		   (setq cl1-line 0)
+		   (unless (< cl1-column 1)
+		     (move-to-column (1- cl1-column)))
+		   (setq cl1-column 0))
 
 		  ((equal argi "--")
 		   (setq just-files t))
@@ -2232,19 +2235,19 @@ A fancy display is used on graphic displays, normal otherwise."
 			   (let ((file
 				  (expand-file-name
 				   (command-line-normalize-file-name orig-argi)
-				   dir)))
+				   cl1-dir)))
 			     (cond ((= file-count 1)
 				    (setq first-file-buffer (find-file file)))
 				   (inhibit-startup-screen
 				    (find-file-other-window file))
 				   (t (find-file file))))
-			   (unless (zerop line)
+			   (unless (zerop cl1-line)
 			     (goto-char (point-min))
-			     (forward-line (1- line)))
-			   (setq line 0)
-			   (unless (< column 1)
-			     (move-to-column (1- column)))
-			   (setq column 0))))))
+			     (forward-line (1- cl1-line)))
+			   (setq cl1-line 0)
+			   (unless (< cl1-column 1)
+			     (move-to-column (1- cl1-column)))
+			   (setq cl1-column 0))))))
 	    ;; In unusual circumstances, the execution of Lisp code due
 	    ;; to command-line options can cause the last visible frame
 	    ;; to be deleted.  In this case, kill emacs to avoid an

@@ -40,6 +40,10 @@
 	(batch-byte-compile): Give some more local variables with common names
 	a "bytecomp-" prefix to avoid masking warnings about free variables.
 
+	* startup.el (command-line-1): Give local variables with common names a
+	distinguishing prefix, so as not to hide free variable warnings during
+	bootstrap.
+
 	* mail/rmailmm.el (rmail-mime-save): If file exists, don't try to be
 	clever and add a suffix to make a unique name, just let the user decide
 	whether or not to overwrite it.  If the input is a directory, write the
