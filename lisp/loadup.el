@@ -60,6 +60,10 @@
 (load "emacs-lisp/backquote")
 (load "subr")
 
+;; Do it after subr, since both after-load-functions and add-hook are
+;; implemented in subr.el.
+(add-hook 'after-load-functions '(lambda (f) (garbage-collect)))
+
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
 
@@ -82,17 +86,12 @@
 (load "button")
 (load "startup")
 
-(message "Lists of integers (garbage collection statistics) are normal output")
-(message "while building Emacs; they do not indicate a problem.")
-(message "%s" (garbage-collect))
-
 (condition-case nil
     ;; Don't get confused if someone compiled this by mistake.
     (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
-(message "%s" (garbage-collect))
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
@@ -159,7 +158,6 @@
 (load "isearch")
 (load "rfn-eshadow")
 
-(message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
 (load "emacs-lisp/lisp")
@@ -169,7 +167,6 @@
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
-(message "%s" (garbage-collect))
 
 (load "replace")
 (load "buff-menu")
@@ -186,8 +183,6 @@
       (load "x-dnd")
       (load "term/common-win")
       (load "term/x-win")))
-
-(message "%s" (garbage-collect))
 
 (if (eq system-type 'windows-nt)
     (progn
@@ -219,13 +214,10 @@
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))
-(message "%s" (garbage-collect))
 
 (load "vc-hooks")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
-
-(message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
@@ -233,8 +225,7 @@
 ;But you must also cause them to be scanned when the DOC file
 ;is generated.
 ;For other systems, you must edit ../src/Makefile.in.
-(if (load "site-load" t)
-    (garbage-collect))
+(load "site-load" t)
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
@@ -327,11 +318,13 @@
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
 
+(remove-hook 'after-load-functions '(lambda (f) (garbage-collect)))
+
 (setq inhibit-load-charset-map nil)
 (clear-charset-maps)
 (garbage-collect)
 
-;;; At this point, we're ready to resume undo recording for scratch.
+;; At this point, we're ready to resume undo recording for scratch.
 (buffer-enable-undo "*scratch*")
 
 (if (null (garbage-collect))

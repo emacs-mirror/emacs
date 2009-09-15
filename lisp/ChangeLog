@@ -1,5 +1,8 @@
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* loadup.el: Use after-load-functions to GC after loading each file.
+	Remove the explicit GC calls that used to be sprinkled around.
+
 	* subr.el (after-load-functions): New hook.
 	(do-after-load-evaluation): Run it.  Use string-match-p to detect
 	`obsolete' packages, rather than painfully extracting the relevant
