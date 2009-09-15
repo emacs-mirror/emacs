@@ -2071,14 +2071,14 @@ A fancy display is used on graphic displays, normal otherwise."
 	    (cl1-column 0))
 
 	;; Add the long X options to longopts.
-	(dolist (cl1-tem command-line-x-option-alist)
-	  (if (string-match "^--" (car cl1-tem))
-            (push (car cl1-tem) longopts)))
+	(dolist (tem command-line-x-option-alist)
+	  (if (string-match "^--" (car tem))
+            (push (car tem) longopts)))
 
 	;; Add the long NS options to longopts.
-	(dolist (cl1-tem command-line-ns-option-alist)
-	  (if (string-match "^--" (car cl1-tem))
-	      (push (list (car cl1-tem)) longopts)))
+	(dolist (tem command-line-ns-option-alist)
+	  (if (string-match "^--" (car tem))
+	      (push (list (car tem)) longopts)))
 
 	;; Loop, processing options.
 	(while command-line-args-left
@@ -2202,7 +2202,8 @@ A fancy display is used on graphic displays, normal otherwise."
 		     (error "File name omitted from `%s' option" argi))
 		   (setq file-count (1+ file-count))
 		   (let ((file (expand-file-name
-				(command-line-normalize-file-name cl1-tem) cl1-dir)))
+				(command-line-normalize-file-name cl1-tem)
+				cl1-dir)))
 		     (if (= file-count 1)
 			 (setq first-file-buffer (find-file file))
 		       (find-file-other-window file)))
