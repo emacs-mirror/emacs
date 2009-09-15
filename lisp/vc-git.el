@@ -403,16 +403,38 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (vc-git--out-ok "symbolic-ref" "HEAD"))))
-	(stash (vc-git-stash-list)))
+	(stash (vc-git-stash-list))
+	branch remote remote-url)
+    (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
+	(progn
+	  (setq branch (match-string 2 str))
+	  (message "branch (%s)" branch)
+	  (setq remote
+		(with-output-to-string
+		  (with-current-buffer standard-output
+		    (vc-git--out-ok "config" (concat "branch." branch ".remote")))))
+	  (when (string-match "\\([^\n]+\\)" remote)
+	    (setq remote (match-string 1 remote)))
+	  (when remote
+	    (setq remote-url
+		  (with-output-to-string
+		    (with-current-buffer standard-output
+		      (vc-git--out-ok "config" (concat "remote." remote ".url"))))))
+	  (when (string-match "\\([^\n]+\\)" remote-url)
+	    (setq remote-url (match-string 1 remote-url))))
+      "not (detached HEAD)")
     ;; FIXME: maybe use a different face when nothing is stashed.
     (when (string= stash "") (setq stash "Nothing stashed"))
     (concat
      (propertize "Branch     : " 'face 'font-lock-type-face)
-     (propertize
-      (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
-	  (match-string 2 str)
-	"not (detached HEAD)")
-       'face 'font-lock-variable-name-face)
+     (propertize branch
+		 'face 'font-lock-variable-name-face)
+     (when remote
+       (concat
+	"\n"
+	(propertize "Remote     : " 'face 'font-lock-type-face)
+	(propertize remote-url
+		    'face 'font-lock-variable-name-face)))
      "\n"
      (propertize "Stash      : " 'face 'font-lock-type-face)
      (propertize
