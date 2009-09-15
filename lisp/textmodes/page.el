@@ -149,10 +149,9 @@ thus showing a page other than the one point was originally in."
   (save-restriction
     (widen)
     (save-excursion
-      (beginning-of-line)
       (let ((count 1)
 	    (opoint (point)))
-	(goto-char 1)
+	(goto-char (point-min))
 	(while (re-search-forward page-delimiter opoint t)
 	  (setq count (1+ count)))
 	(message "Page %d, line %d"
