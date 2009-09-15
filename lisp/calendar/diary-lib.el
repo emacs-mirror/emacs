@@ -151,10 +151,9 @@ Used for example by the appointment package - see `appt-activate'."
 (define-obsolete-variable-alias 'diary-display-hook 'diary-display-function
   "23.1")
 
-(defcustom diary-display-function 'diary-simple-display
+(defcustom diary-display-function 'diary-fancy-display
   "Function used to display the diary.
-The default is `diary-simple-display'; `diary-fancy-display' is
-an alternative.
+The two standard options are `diary-fancy-display' and `diary-simple-display'.
 
 For historical reasons, `nil' is the same as `diary-simple-display'
 \(so you must use `ignore' for no display).  Also for historical
@@ -167,14 +166,14 @@ form of ((MONTH DAY YEAR) STRING), where string is the diary
 entry for the given date.  This can be used, for example, to
 produce a different buffer for display (perhaps combined with
 holidays), or hard copy output."
-  :type '(choice (const diary-simple-display :tag "Basic display")
-                 (const diary-fancy-display :tag "Fancy display")
+  :type '(choice (const diary-fancy-display :tag "Fancy display")
+                 (const diary-simple-display :tag "Basic display")
                  (const ignore :tag "No display")
                  (const nil :tag "Obsolete way to choose basic display")
                  (hook :tag "Obsolete form with list of display functions"))
   :initialize 'custom-initialize-default
   :set 'diary-set-maybe-redraw
-  :version "23.1"
+  :version "23.2"                       ; simple->fancy
   :group 'diary)
 
 (define-obsolete-variable-alias 'list-diary-entries-hook
@@ -2381,6 +2380,7 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
 ;; `diary-outlook-formats'.
 
 (defvar subject)                        ; bound in diary-from-outlook-gnus
+(defvar body)
 
 (defun diary-from-outlook-internal (&optional test-only)
   "Snarf a diary entry from a message assumed to be from MS Outlook.
