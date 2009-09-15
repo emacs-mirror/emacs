@@ -1,3 +1,9 @@
+2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (compile-onefile): Use byte-compile-refresh-preloaded.
+	* emacs-lisp/bytecomp.el (byte-compile-refresh-preloaded):
+	Don't autoload.
+
 2009-09-15  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): When selecting a match from

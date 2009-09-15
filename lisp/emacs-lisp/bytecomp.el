@@ -4394,7 +4394,6 @@ already up-to-date."
 		(prin1-to-string (cdr err)))
        nil))))
 
-;;;###autoload
 (defun byte-compile-refresh-preloaded ()
   "Reload any Lisp file that was changed since Emacs was dumped.
 Use with caution."
