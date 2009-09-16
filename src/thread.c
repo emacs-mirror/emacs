@@ -151,6 +151,7 @@ static void *
 run_thread (void *state)
 {
   struct thread_state *self = state;
+  struct thread_state **iter;
   struct gcpro gcpro1;
   Lisp_Object buffer;
   char stack_pos;
@@ -179,16 +180,9 @@ run_thread (void *state)
   internal_condition_case (invoke_thread_function, Qt, do_nothing);
 
   /* Unlink this thread from the list of all threads.  */
-  if (all_threads == self)
-    all_threads = all_threads->next_thread;
-  else
-    {
-      struct thread_state *prev;
-      for (prev = all_threads; prev->next_thread != self;
-	   prev = prev->next_thread)
-	;
-      prev->next_thread = self->next_thread;
-    }
+  for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
+    ;
+  *iter = (*iter)->next_thread;
 
   release_buffer (self);
 
