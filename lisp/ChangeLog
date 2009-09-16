@@ -1,3 +1,8 @@
+2009-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/page.el (what-page): Make sure we don't inf-loop if
+	page-delimiter matches the empty string.
+
 2009-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-not-obsolete-vars): Rename from
