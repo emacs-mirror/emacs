@@ -420,6 +420,7 @@ even if it is dead.  The return value is never nil.  */)
   b->mark = Fmake_marker ();
   BUF_MARKERS (b) = NULL;
   b->name = name;
+  b->owner = Qnil;
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
@@ -601,6 +602,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b->mark = Fmake_marker ();
   b->name = name;
+  b->owner = Qnil;
 
   /* The multibyte status belongs to the base buffer.  */
   b->enable_multibyte_characters = b->base_buffer->enable_multibyte_characters;

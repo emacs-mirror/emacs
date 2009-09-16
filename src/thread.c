@@ -188,7 +188,7 @@ run_thread (void *state)
   xfree (self->m_specpdl);
 
   pthread_mutex_unlock (&global_lock);
-  
+
   return NULL;
 }
 
