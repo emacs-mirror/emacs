@@ -1,5 +1,8 @@
 2009-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* startup.el (command-line): Initialize the window-system after
+	processing the command-line.
+
 	* textmodes/page.el (what-page): Make sure we don't inf-loop if
 	page-delimiter matches the empty string.
 

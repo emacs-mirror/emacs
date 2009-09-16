@@ -727,44 +727,6 @@ opening the first frame (e.g. open a connection to an X server).")
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Make sure window system's init file was loaded in loadup.el if
-  ;; using a window system.
-  (condition-case error
-    (unless noninteractive
-      (if (and initial-window-system
-	       (not (featurep
-		     (intern
-		      (concat (symbol-name initial-window-system) "-win")))))
-	  (error "Unsupported window system `%s'" initial-window-system))
-      ;; Process window-system specific command line parameters.
-      (setq command-line-args
-	    (funcall
-	     (or (cdr (assq initial-window-system handle-args-function-alist))
-		 (error "Unsupported window system `%s'" initial-window-system))
-	     command-line-args))
-      ;; Initialize the window system. (Open connection, etc.)
-      (funcall
-       (or (cdr (assq initial-window-system window-system-initialization-alist))
-	   (error "Unsupported window system `%s'" initial-window-system))))
-    ;; If there was an error, print the error message and exit.
-    (error
-     (princ
-      (if (eq (car error) 'error)
-	  (apply 'concat (cdr error))
-	(if (memq 'file-error (get (car error) 'error-conditions))
-	    (format "%s: %s"
-                    (nth 1 error)
-                    (mapconcat (lambda (obj) (prin1-to-string obj t))
-                               (cdr (cdr error)) ", "))
-	  (format "%s: %s"
-                  (get (car error) 'error-message)
-                  (mapconcat (lambda (obj) (prin1-to-string obj t))
-                             (cdr error) ", "))))
-      'external-debugging-output)
-     (terpri 'external-debugging-output)
-     (setq initial-window-system nil)
-     (kill-emacs)))
-
   (set-locale-environment nil)
 
   ;; Convert preloaded file names in load-history to absolute.
@@ -868,6 +830,46 @@ opening the first frame (e.g. open a connection to an X server).")
     ;; Re-attach the program name to the front of the arg list.
     (and command-line-args
          (setcdr command-line-args args)))
+
+  ;; Make sure window system's init file was loaded in loadup.el if
+  ;; using a window system.
+  ;; Initialize the window-system only after processing the command-line
+  ;; args so that -Q can influence this initialization.
+  (condition-case error
+    (unless noninteractive
+      (if (and initial-window-system
+	       (not (featurep
+		     (intern
+		      (concat (symbol-name initial-window-system) "-win")))))
+	  (error "Unsupported window system `%s'" initial-window-system))
+      ;; Process window-system specific command line parameters.
+      (setq command-line-args
+	    (funcall
+	     (or (cdr (assq initial-window-system handle-args-function-alist))
+		 (error "Unsupported window system `%s'" initial-window-system))
+	     command-line-args))
+      ;; Initialize the window system. (Open connection, etc.)
+      (funcall
+       (or (cdr (assq initial-window-system window-system-initialization-alist))
+	   (error "Unsupported window system `%s'" initial-window-system))))
+    ;; If there was an error, print the error message and exit.
+    (error
+     (princ
+      (if (eq (car error) 'error)
+	  (apply 'concat (cdr error))
+	(if (memq 'file-error (get (car error) 'error-conditions))
+	    (format "%s: %s"
+                    (nth 1 error)
+                    (mapconcat (lambda (obj) (prin1-to-string obj t))
+                               (cdr (cdr error)) ", "))
+	  (format "%s: %s"
+                  (get (car error) 'error-message)
+                  (mapconcat (lambda (obj) (prin1-to-string obj t))
+                             (cdr error) ", "))))
+      'external-debugging-output)
+     (terpri 'external-debugging-output)
+     (setq initial-window-system nil)
+     (kill-emacs)))
 
   (run-hooks 'before-init-hook)
 
