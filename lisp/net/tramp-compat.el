@@ -88,6 +88,8 @@
   (unless (boundp 'byte-compile-not-obsolete-var)
     (defvar byte-compile-not-obsolete-var nil))
   (setq byte-compile-not-obsolete-var 'directory-sep-char)
+  (if (boundp 'byte-compile-not-obsolete-vars) ; Emacs 23.2
+      (setq byte-compile-not-obsolete-vars '(directory-sep-char)))
 
   ;; `with-temp-message' does not exists in XEmacs.
   (condition-case nil

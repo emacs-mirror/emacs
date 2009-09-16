@@ -1,3 +1,16 @@
+2009-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-not-obsolete-vars): Rename from
+	byte-compile-not-obsolete-var.  It's a list now.
+	(byte-compile-not-obsolete-funcs): New variable.
+	(byte-compile-warn-obsolete): Don't warn about functions if they are in
+	byte-compile-not-obsolete-funcs.
+	(byte-compile-variable-ref, byte-compile-defvar): Update for
+	byte-compile-not-obsolete-vars name-change and list nature.
+	(byte-compile-maybe-guarded): Suppress warnings about obsolete functions
+	and variables behind (f)boundp tests.
+	* net/tramp-compat.el (byte-compile-not-obsolete-vars): Set if bound.
+
 2009-09-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-log-view-mode): Undo inadvertent change.
