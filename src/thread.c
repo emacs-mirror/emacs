@@ -150,11 +150,10 @@ do_nothing (Lisp_Object whatever)
 static void *
 run_thread (void *state)
 {
-  char stack_pos;
   struct thread_state *self = state;
-  struct thread_state **iter;
   struct gcpro gcpro1;
   Lisp_Object buffer;
+  char stack_pos;
 
   self->stack_top = self->stack_bottom = &stack_pos;
 
@@ -180,14 +179,18 @@ run_thread (void *state)
   internal_condition_case (invoke_thread_function, Qt, do_nothing);
 
   /* Unlink this thread from the list of all threads.  */
-  for (iter = &all_threads; *iter != self; iter = &(*iter)->next_thread)
-    ;
-  *iter = (*iter)->next_thread;
+  if (all_threads == self)
+    all_threads = all_threads->next_thread;
+  else
+    {
+      struct thread_state *prev;
+      for (prev = all_threads; prev->next_thread != self;
+	   prev = prev->next_thread)
+	;
+      prev->next_thread = self->next_thread;
+    }
 
   release_buffer (self);
-
-  xfree (self->m_specpdl);
-  xfree (self);
 
   pthread_mutex_unlock (&global_lock);
 
@@ -200,6 +203,7 @@ When the function exits, the thread dies.  */)
      (function)
      Lisp_Object function;
 {
+  char stack_pos;
   pthread_t thr;
   struct thread_state *new_thread;
   struct specbinding *p;
@@ -217,6 +221,7 @@ When the function exits, the thread dies.  */)
   new_thread->func = function;
   new_thread->initial_specpdl = Qnil;
   new_thread->m_current_buffer = current_thread->m_current_buffer;
+  new_thread->stack_bottom = &stack_pos;
 
   for (p = specpdl; p != specpdl_ptr; ++p)
     {
@@ -235,8 +240,11 @@ When the function exits, the thread dies.  */)
   new_thread->next_thread = all_threads;
   all_threads = new_thread;
 
-  /* FIXME check result */
-  pthread_create (&thr, NULL, run_thread, new_thread);
+  if (pthread_create (&thr, NULL, run_thread, new_thread))
+    {
+      /* Restore the previous situation.  */
+      all_threads = all_threads->next_thread;
+    }
 
   return Qnil;
 }
