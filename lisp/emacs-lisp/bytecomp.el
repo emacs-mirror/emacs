@@ -443,8 +443,11 @@ else the global value will be modified."
     goto-line comint-run)
   "List of commands that are not meant to be called from Lisp.")
 
-(defvar byte-compile-not-obsolete-var nil
-  "If non-nil, this is a variable that shouldn't be reported as obsolete.")
+(defvar byte-compile-not-obsolete-vars nil
+  "If non-nil, a list of variables that shouldn't be reported as obsolete.")
+
+(defvar byte-compile-not-obsolete-funcs nil
+  "If non-nil, a list of functions that shouldn't be reported as obsolete.")
 
 (defcustom byte-compile-generate-call-tree nil
   "Non-nil means collect call-graph information when compiling.
@@ -1143,14 +1146,15 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (obsolete (or funcp (get symbol 'byte-obsolete-variable)))
 	   (instead (car obsolete))
 	   (asof (if funcp (nth 2 obsolete) (cdr obsolete))))
-      (byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
-			 (if funcp "function" "variable")
-			 (if asof (concat " (as of Emacs " asof ")") "")
-			 (cond ((stringp instead)
-				(concat "; " instead))
-			       (instead
-				(format "; use `%s' instead." instead))
-			       (t "."))))))
+      (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
+	(byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
+			   (if funcp "function" "variable")
+			   (if asof (concat " (as of Emacs " asof ")") "")
+			   (cond ((stringp instead)
+				  (concat "; " instead))
+				 (instead
+				  (format "; use `%s' instead." instead))
+				 (t ".")))))))
 
 (defun byte-compile-report-error (error-info)
   "Report Lisp error in compilation.  ERROR-INFO is the error data."
@@ -1625,6 +1629,7 @@ Files in subdirectories of DIRECTORY are processed also."
 ;; of the boundp test in byte-compile-variable-ref.
 ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00237.html
 ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00134.html
+;; Note that similar considerations apply to command-line-1 in startup.el.
 ;;;###autoload
 (defun byte-recompile-directory (bytecomp-directory &optional bytecomp-arg
                                                     bytecomp-force)
@@ -3033,7 +3038,7 @@ That command is designed for interactive use only" bytecomp-fn))
        (if (symbolp bytecomp-var) "constant" "nonvariable")
        (prin1-to-string bytecomp-var))
     (and (get bytecomp-var 'byte-obsolete-variable)
-	 (not (eq bytecomp-var byte-compile-not-obsolete-var))
+	 (not (memq bytecomp-var byte-compile-not-obsolete-vars))
 	 (byte-compile-warn-obsolete bytecomp-var))
     (if (byte-compile-warning-enabled-p 'free-vars)
 	(if (eq base-op 'byte-varbind)
@@ -3670,7 +3675,7 @@ CONDITION is a variable whose value is a test in an `if' or `cond'.
 BODY is the code to compile in the first arm of the if or the body of
 the cond clause.  If CONDITION's value is of the form (fboundp 'foo)
 or (boundp 'foo), the relevant warnings from BODY about foo's
-being undefined will be suppressed.
+being undefined (or obsolete) will be suppressed.
 
 If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
@@ -3686,7 +3691,14 @@ that suppresses all warnings during execution of BODY."
 	       (append bound-list byte-compile-bound-variables)
 	     byte-compile-bound-variables)))
      (unwind-protect
-	 (progn ,@body)
+	 ;; If things not being bound at all is ok, so must them being obsolete.
+	 ;; Note that we add to the existing lists since Tramp (ab)uses
+	 ;; this feature.
+	 (let ((byte-compile-not-obsolete-vars
+		(append byte-compile-not-obsolete-vars bound-list))
+	       (byte-compile-not-obsolete-funcs
+		(append byte-compile-not-obsolete-funcs fbound-list)))
+	   ,@body)
        ;; Maybe remove the function symbol from the unresolved list.
        (dolist (fbound fbound-list)
 	 (when fbound
@@ -3814,7 +3826,8 @@ that suppresses all warnings during execution of BODY."
   (let ((byte-compile-bound-variables byte-compile-bound-variables) ;new scope
 	(varlist (reverse (car (cdr form)))))
     (dolist (var varlist)
-      (byte-compile-variable-ref 'byte-varbind (if (consp var) (car var) var)))
+	(byte-compile-variable-ref 'byte-varbind
+				   (if (consp var) (car var) var)))
     (byte-compile-body-do-effect (cdr (cdr form)))
     (byte-compile-out 'byte-unbind (length (car (cdr form))))))
 
@@ -4030,7 +4043,7 @@ that suppresses all warnings during execution of BODY."
 			     fun var string))
 	`(put ',var 'variable-documentation ,string))
       (if (cddr form)		; `value' provided
-	  (let ((byte-compile-not-obsolete-var var))
+	  (let ((byte-compile-not-obsolete-vars (list var)))
 	    (if (eq fun 'defconst)
 		;; `defconst' sets `var' unconditionally.
 		(let ((tmp (make-symbol "defconst-tmp-var")))
