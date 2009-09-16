@@ -1876,7 +1876,8 @@ acquire_buffer (char *end, void *nb)
       pthread_cond_broadcast (&buffer_cond);
 
       /* If our desired buffer is locked, wait for it.  */
-      while (!EQ (new_buffer->owner, Qnil)
+      while (other_threads_p ()
+	     && !EQ (new_buffer->owner, Qnil)
 	     /* We set the owner to Qt to mean it is being killed.  */
 	     && !EQ (new_buffer->owner, Qt))
 	pthread_cond_wait (&buffer_cond, &global_lock);
