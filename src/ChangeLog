@@ -1,3 +1,14 @@
+2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (inhibit_x_resources): New variable.
+	(main) [HAVE_NS]: Don't process --quick command line option.
+	(syms_of_emacs) <inhibit-x-resources>: DEFVAR_BOOL it.
+
+	* lisp.h (inhibit_x_resources): Declare it extern.
+
+	* w32reg.c (x_get_string_resource):
+	* xrdb.c (x_get_string_resource): Obey inhibit_x_resources.
+
 2009-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (MSDOS_SUPPORT, SOME_MACHINE_LISP): Add

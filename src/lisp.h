@@ -3143,6 +3143,9 @@ void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
 
+/* Nonzero means don't load X resources or Windows Registry settings.  */
+extern int inhibit_x_resources;
+
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 extern int daemon_pipe[2];

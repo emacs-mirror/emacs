@@ -366,8 +366,6 @@ from being initialized."
 		 string)
   :group 'auto-save)
 
-(defvar emacs-quick-startup nil)
-
 (defvar emacs-basic-display nil)
 
 (defvar init-file-debug nil)
@@ -799,7 +797,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	 ((member argi '("-Q" "-quick"))
 	  (setq init-file-user nil
 		site-run-file nil
-		emacs-quick-startup t))
+		inhibit-x-resources t))
 	 ((member argi '("-D" "-basic-display"))
 	  (setq no-blinking-cursor t
 		emacs-basic-display t)
@@ -2274,7 +2272,7 @@ A fancy display is used on graphic displays, normal otherwise."
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
 	    noninteractive
-	    emacs-quick-startup)
+	    inhibit-x-resources)
 
 	;; Not displaying a startup screen.  If 3 or more files
 	;; visited, and not all visible, show user what they all are.

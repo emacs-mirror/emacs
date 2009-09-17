@@ -1,3 +1,9 @@
+2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (emacs-quick-startup): Remove variable and all uses.
+	(command-line): Set `inhibit-x-resources' instead.
+	(command-line-1): Use `inhibit-x-resources' instead.
+
 2009-09-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el: Fix last change to avoid using the `unless' macro,

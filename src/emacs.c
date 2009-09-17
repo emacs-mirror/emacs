@@ -239,6 +239,9 @@ int noninteractive;
 
 int noninteractive1;
 
+/* Nonzero means Emacs was run in --quick mode.  */
+int inhibit_x_resources;
+
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
 
@@ -1483,11 +1486,6 @@ main (int argc, char **argv)
           ns_no_defaults = 1;
           skip_args--;
         }
-      if (argmatch (argv, argc, "-Q", "--quick", 5, NULL, &skip_args))
-        {
-          ns_no_defaults = 1;
-          skip_args--;
-        }
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {
@@ -2679,6 +2677,10 @@ was found.  */);
 	       doc: /* Value of `current-time' after loading the init files.
 This is nil during initialization.  */);
   Vafter_init_time = Qnil;
+
+  DEFVAR_BOOL ("inhibit-x-resources", &inhibit_x_resources,
+	       doc: /* If non-nil, X resources and Windows Registry settings are not used.  */);
+  inhibit_x_resources = 0;
 
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;

@@ -38,6 +38,11 @@ world-readable install.
 
 * Changes in Emacs 23.2
 
+** Command-line option -Q (--quick) now also disables loading X resources.
+On Windows, Registry settings are ignored, though environment variables set
+on the Registry are still honored.  The new variable `inhibit-x-resources'
+shows whether X resources were loaded or not.
+
 ** New completion-style `initials' to complete M-x lch to list-command-history.
 
 ** Unibyte sessions are declared obsolete.

@@ -1,3 +1,8 @@
+2009-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention new behavior of -Q and new variable
+	`inhibit-x-resources'.
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* PROBLEMS: Document Athena/Lucid internationalization
