@@ -78,7 +78,8 @@
       (modify-syntax-entry ?\) ")(  " table)
       (modify-syntax-entry ?\[ "(]  " table)
       (modify-syntax-entry ?\] ")[  " table))
-    table))
+    table)
+  "Syntax table used in `emacs-lisp-mode'.")
 
 (defvar lisp-mode-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))

@@ -4,6 +4,8 @@
 
 	* simple.el (hard-newline): Give it a doc-string.
 
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Give it a doc.
+
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* menu-bar.el (menu-bar-file-menu, menu-bar-file-menu)
