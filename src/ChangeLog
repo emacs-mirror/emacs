@@ -1,3 +1,8 @@
+2009-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT, SOME_MACHINE_LISP): Add
+	lisp/term/internal.elc.
+
 2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (x_get_resource_string): Re-add for non-toolkit builds
