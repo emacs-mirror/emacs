@@ -1,3 +1,8 @@
+2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (minor-mode-menu-from-indicator): Pay attention
+	to :minor-mode-function (bug#4455).
+
 2009-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (command-line): Initialize the window-system after

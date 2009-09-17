@@ -158,7 +158,8 @@ items `Turn Off' and `Help'."
    (list (completing-read
 	  "Minor mode indicator: "
 	  (describe-minor-mode-completion-table-for-indicator))))
-  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+  (let* ((minor-mode (lookup-minor-mode-from-indicator indicator))
+         (mm-fun (or (get minor-mode :minor-mode-function) minor-mode)))
     (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
     (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
            (menu (and (keymapp map) (lookup-key map [menu-bar]))))
@@ -167,10 +168,10 @@ items `Turn Off' and `Help'."
                 (mouse-menu-non-singleton menu)
 	      `(keymap
                 ,indicator
-                (turn-off menu-item "Turn Off minor mode" ,minor-mode)
+                (turn-off menu-item "Turn Off minor mode" ,mm-fun)
                 (help menu-item "Help for minor mode"
                       (lambda () (interactive)
-                        (describe-function ',minor-mode))))))
+                        (describe-function ',mm-fun))))))
       (popup-menu menu))))
 
 (defun mouse-minor-mode-menu (event)
