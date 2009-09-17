@@ -1,3 +1,16 @@
+2009-09-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Require bindat and json.
+	(gdb-jsonify-buffer, gdb-json-read-buffer)
+	(gdb-json-partial-output): JSON parsers copied from trunk.
+	(gdb-init-2): Enable GDB to pretty print STL containers, if possible.
+	(gdb-var-create-regexp, gdb-var-list-children-regexp-1)
+	(gdb-var-update-regexp-1): Delete.
+	(gdb-var-create-handler, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Use json parsing as on trunk.  Parse
+	output of dynamic variable objects (STL containers).
+	(gdb-var-delete-1): Pass var1 as an explicit second argument.
+
 2009-09-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-list-children-regexp-1): Tweak for
