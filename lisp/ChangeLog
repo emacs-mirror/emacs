@@ -1,3 +1,9 @@
+2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-hook.el (menu-bar-ediff-menu, menu-bar-ediff-merge-menu)
+	(menu-bar-epatch-menu, menu-bar-ediff-misc-menu): Add purecopy
+	calls for the menu names and :help.
+
 2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (minor-mode-menu-from-indicator): Pay attention
