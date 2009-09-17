@@ -61,6 +61,7 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->fix));
   CHECKL(FUNCHECK(class->fixEmergency));
   CHECKL(FUNCHECK(class->reclaim));
+  CHECKL(FUNCHECK(class->traceEnd));
   CHECKL(FUNCHECK(class->rampBegin));
   CHECKL(FUNCHECK(class->rampEnd));
   CHECKL(FUNCHECK(class->framePush));
