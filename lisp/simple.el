@@ -425,7 +425,8 @@ Other major modes are defined by comparison with this one."
 
 ;; Making and deleting lines.
 
-(defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard)))
+(defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
+  "Propertized string representing a hard newline character.")
 
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.

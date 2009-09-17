@@ -1,3 +1,7 @@
+2009-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (hard-newline): Give it a doc-string.
+
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* menu-bar.el (menu-bar-file-menu, menu-bar-file-menu)
