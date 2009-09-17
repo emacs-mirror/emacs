@@ -123,6 +123,7 @@ DEFUN ("yield", Fyield, Syield, 0, 0, 0,
      (void)
 {
   thread_yield ();
+  return Qnil;
 }
 
 static Lisp_Object
