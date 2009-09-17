@@ -604,7 +604,7 @@ property of `ansi-color-faces-vector' and `ansi-color-names-vector'."
 ANSI-CODE is used as an index into the vector."
   (condition-case nil
       (aref ansi-color-map ansi-code)
-    ('args-out-of-range nil)))
+    (args-out-of-range nil)))
 
 (defun ansi-color-get-face (escape-seq)
   "Create a new face by applying all the parameters in ESCAPE-SEQ.
