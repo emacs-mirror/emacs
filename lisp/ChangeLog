@@ -1,3 +1,8 @@
+2009-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el: Fix last change to avoid using the `unless' macro,
+	which breaks bootstrapping.
+
 2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (push, pop, dolist, dotimes, declare): Don't overwrite CL's

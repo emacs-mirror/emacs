@@ -119,7 +119,8 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-(unless (featurep 'cl)
+(if (null (featurep 'cl))
+    (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
   ;; `declare', `push' and `pop'.
@@ -139,7 +140,8 @@ change the list."
   (declare (debug (sexp)))
   (list 'car
         (list 'prog1 listname
-              (list 'setq listname (list 'cdr listname))))))
+              (list 'setq listname (list 'cdr listname)))))
+))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
@@ -159,7 +161,8 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
-(unless (featurep 'cl)
+(if (null (featurep 'cl))
+    (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
   ;; `declare', `push' and `pop'.
@@ -214,7 +217,8 @@ the return value (nil if RESULT is omitted).
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
-  nil))
+  nil)
+))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
