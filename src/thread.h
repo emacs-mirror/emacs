@@ -69,6 +69,8 @@ struct thread_state
 #define current_buffer (current_thread->m_current_buffer)
 
   struct thread_state *next_thread;
+
+  pthread_t pthread_id;
 };
 
 extern __thread struct thread_state *current_thread;
@@ -86,3 +88,5 @@ extern Lisp_Object get_main_thread P_ ((void));
 extern pthread_mutex_t global_lock;
 
 extern int other_threads_p P_ ((void));
+
+extern int user_thread_p P_ ((void));

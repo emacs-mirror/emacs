@@ -162,6 +162,7 @@ run_thread (void *state)
   self->m_specpdl = xmalloc (self->m_specpdl_size
 			     * sizeof (struct specbinding));
   self->m_specpdl_ptr = self->m_specpdl;
+  self->pthread_id = pthread_self ();
 
   /* Thread-local assignment.  */
   current_thread = self;
@@ -262,6 +263,23 @@ get_main_thread (void)
   return result;
 }
 
+/* Is the current an user thread.  */
+int
+user_thread_p (void)
+{
+  struct thread_state *it = all_threads;
+  pthread_t self = pthread_self ();
+  do
+    {
+      if (it->pthread_id == self)
+	return 1;
+    }
+  while (it = it->next_thread);
+
+  return 0;
+}
+
+
 int
 other_threads_p (void)
 {
@@ -273,6 +291,7 @@ init_threads (void)
 {
   pthread_mutex_init (&global_lock, NULL);
   pthread_mutex_lock (&global_lock);
+  primary_thread.pthread_id = pthread_self ();
 }
 
 void

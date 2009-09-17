@@ -180,7 +180,7 @@ char *strsignal ();
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
-    if (!pthread_equal (pthread_self (), main_thread))			\
+    if (!user_thread_p ())						\
       {                                                                 \
         /* POSIX says any thread can receive the signal.  On GNU/Linux  \
            that is not true, but for other systems (FreeBSD at least)   \
