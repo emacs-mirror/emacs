@@ -64,72 +64,72 @@
 
 ;; The "File" menu items
 (define-key menu-bar-file-menu [exit-emacs]
-  '(menu-item "Quit" save-buffers-kill-terminal
-	      :help "Save unsaved buffers, then exit"))
+  `(menu-item ,(purecopy "Quit") save-buffers-kill-terminal
+	      :help ,(purecopy "Save unsaved buffers, then exit")))
 
 (define-key menu-bar-file-menu [separator-exit]
-  '("--"))
+  (purecopy "--"))
 
 ;; Don't use delete-frame as event name because that is a special
 ;; event.
 (define-key menu-bar-file-menu [delete-this-frame]
-  '(menu-item "Delete Frame" delete-frame
+  `(menu-item ,(purecopy "Delete Frame") delete-frame
 	      :visible (fboundp 'delete-frame)
 	      :enable (delete-frame-enabled-p)
-	      :help "Delete currently selected frame"))
+	      :help ,(purecopy "Delete currently selected frame")))
 (define-key menu-bar-file-menu [make-frame-on-display]
-  '(menu-item "New Frame on Display..." make-frame-on-display
+  `(menu-item ,(purecopy "New Frame on Display...") make-frame-on-display
 	      :visible (fboundp 'make-frame-on-display)
-	      :help "Open a new frame on another display"))
+	      :help ,(purecopy "Open a new frame on another display")))
 (define-key menu-bar-file-menu [make-frame]
-  '(menu-item "New Frame" make-frame-command
+  `(menu-item ,(purecopy "New Frame") make-frame-command
 	      :visible (fboundp 'make-frame-command)
-	      :help "Open a new frame"))
+	      :help ,(purecopy "Open a new frame")))
 
 (define-key menu-bar-file-menu [one-window]
-  '(menu-item "Remove Splits" delete-other-windows
+  `(menu-item ,(purecopy "Remove Splits") delete-other-windows
 	      :enable (not (one-window-p t nil))
-	      :help "Selected window grows to fill the whole frame"))
+	      :help ,(purecopy "Selected window grows to fill the whole frame")))
 
 (define-key menu-bar-file-menu [split-window]
-  '(menu-item "Split Window" split-window-vertically
+  `(menu-item ,(purecopy "Split Window") split-window-vertically
 	      :enable (and (menu-bar-menu-frame-live-and-visible-p)
 			   (menu-bar-non-minibuffer-window-p))
-	      :help "Split selected window in two windows"))
+	      :help ,(purecopy "Split selected window in two windows")))
 
 (define-key menu-bar-file-menu [separator-window]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-file-menu [ps-print-region]
-  '(menu-item "Postscript Print Region (B+W)" ps-print-region
+  `(menu-item ,(purecopy "Postscript Print Region (B+W)") ps-print-region
 	      :enable mark-active
-	      :help "Pretty-print marked region in black and white to PostScript printer"))
+	      :help ,(purecopy "Pretty-print marked region in black and white to PostScript printer")))
 (define-key menu-bar-file-menu [ps-print-buffer]
-  '(menu-item "Postscript Print Buffer (B+W)" ps-print-buffer
+  `(menu-item ,(purecopy "Postscript Print Buffer (B+W)") ps-print-buffer
 	      :enable (menu-bar-menu-frame-live-and-visible-p)
-	      :help "Pretty-print current buffer in black and white to PostScript printer"))
+	      :help ,(purecopy "Pretty-print current buffer in black and white to PostScript printer")))
 (define-key menu-bar-file-menu [ps-print-region-faces]
-  '(menu-item "Postscript Print Region" ps-print-region-with-faces
+  `(menu-item ,(purecopy "Postscript Print Region") ps-print-region-with-faces
 	      :enable mark-active
-	      :help "Pretty-print marked region to PostScript printer"))
+	      :help ,(purecopy "Pretty-print marked region to PostScript printer")))
 (define-key menu-bar-file-menu [ps-print-buffer-faces]
-  '(menu-item "Postscript Print Buffer" ps-print-buffer-with-faces
+  `(menu-item ,(purecopy "Postscript Print Buffer") ps-print-buffer-with-faces
 	      :enable (menu-bar-menu-frame-live-and-visible-p)
-	      :help "Pretty-print current buffer to PostScript printer"))
+	      :help ,(purecopy "Pretty-print current buffer to PostScript printer")))
 (define-key menu-bar-file-menu [print-region]
-  '(menu-item "Print Region" print-region
+  `(menu-item ,(purecopy "Print Region") print-region
 	      :enable mark-active
-	      :help "Print region between mark and current position"))
+	      :help ,(purecopy "Print region between mark and current position")))
 (define-key menu-bar-file-menu [print-buffer]
-  '(menu-item "Print Buffer" print-buffer
+  `(menu-item ,(purecopy "Print Buffer") print-buffer
 	      :enable (menu-bar-menu-frame-live-and-visible-p)
-	      :help "Print current buffer with page headings"))
+	      :help ,(purecopy "Print current buffer with page headings")))
 
 (define-key menu-bar-file-menu [separator-print]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-file-menu [recover-session]
-  '(menu-item "Recover Crashed Session" recover-session
+  `(menu-item ,(purecopy "Recover Crashed Session") recover-session
 	      :enable (and auto-save-list-file-prefix
 			   (file-directory-p
                             (file-name-directory auto-save-list-file-prefix))
@@ -141,30 +141,30 @@
 				     (file-name-nondirectory
 				      auto-save-list-file-prefix)))
 			    t))
-	      :help "Recover edits from a crashed session"))
+	      :help ,(purecopy "Recover edits from a crashed session")))
 (define-key menu-bar-file-menu [revert-buffer]
-  '(menu-item "Revert Buffer" revert-buffer
+  `(menu-item ,(purecopy "Revert Buffer") revert-buffer
 	      :enable (or revert-buffer-function
 			  revert-buffer-insert-file-contents-function
 			  (and buffer-file-number
 			       (or (buffer-modified-p)
 				   (not (verify-visited-file-modtime
 					 (current-buffer))))))
-	      :help "Re-read current buffer from its file"))
+	      :help ,(purecopy "Re-read current buffer from its file")))
 (define-key menu-bar-file-menu [write-file]
-  '(menu-item "Save As..." write-file
+  `(menu-item ,(purecopy "Save As...") write-file
 	      :enable (and (menu-bar-menu-frame-live-and-visible-p)
 			   (menu-bar-non-minibuffer-window-p))
-	      :help "Write current buffer to another file"))
+	      :help ,(purecopy "Write current buffer to another file")))
 (define-key menu-bar-file-menu [save-buffer]
-  '(menu-item "Save" save-buffer
+  `(menu-item ,(purecopy "Save") save-buffer
 	      :enable (and (buffer-modified-p)
 			   (buffer-file-name)
 			   (menu-bar-non-minibuffer-window-p))
-	      :help "Save current buffer to its file"))
+	      :help ,(purecopy "Save current buffer to its file")))
 
 (define-key menu-bar-file-menu [separator-save]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (defun menu-find-file-existing ()
   "Edit the existing file FILENAME."
@@ -178,25 +178,25 @@
 
 
 (define-key menu-bar-file-menu [kill-buffer]
-  '(menu-item "Close" kill-this-buffer
+  `(menu-item ,(purecopy "Close") kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
-	      :help "Discard (kill) current buffer"))
+	      :help ,(purecopy "Discard (kill) current buffer")))
 (define-key menu-bar-file-menu [insert-file]
-  '(menu-item "Insert File..." insert-file
+  `(menu-item ,(purecopy "Insert File...") insert-file
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Insert another file into current buffer"))
+	      :help ,(purecopy "Insert another file into current buffer")))
 (define-key menu-bar-file-menu [dired]
-  '(menu-item "Open Directory..." dired
+  `(menu-item ,(purecopy "Open Directory...") dired
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Read a directory, to operate on its files"))
+	      :help ,(purecopy "Read a directory, to operate on its files")))
 (define-key menu-bar-file-menu [open-file]
-  '(menu-item "Open File..." menu-find-file-existing
+  `(menu-item ,(purecopy "Open File...") menu-find-file-existing
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Read an existing file into an Emacs buffer"))
+	      :help ,(purecopy "Read an existing file into an Emacs buffer")))
 (define-key menu-bar-file-menu [new-file]
-  '(menu-item "Visit New File..." find-file
+  `(menu-item ,(purecopy "Visit New File...") find-file
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Specify a new file's name, to edit the file"))
+	      :help ,(purecopy "Specify a new file's name, to edit the file")))
 
 
 ;; The "Edit" menu items
@@ -274,120 +274,119 @@
   (make-sparse-keymap "Incremental Search"))
 
 (define-key menu-bar-i-search-menu [isearch-backward-regexp]
-  '(menu-item "Backward Regexp..." isearch-backward-regexp
-	      :help "Search backwards for a regular expression as you type it"))
+  `(menu-item ,(purecopy "Backward Regexp...") isearch-backward-regexp
+	      :help ,(purecopy "Search backwards for a regular expression as you type it")))
 (define-key menu-bar-i-search-menu [isearch-forward-regexp]
-  '(menu-item "Forward Regexp..." isearch-forward-regexp
-	      :help "Search forward for a regular expression as you type it"))
+  `(menu-item ,(purecopy "Forward Regexp...") isearch-forward-regexp
+	      :help ,(purecopy "Search forward for a regular expression as you type it")))
 (define-key menu-bar-i-search-menu [isearch-backward]
-  '(menu-item "Backward String..." isearch-backward
-	      :help "Search backwards for a string as you type it"))
+  `(menu-item ,(purecopy "Backward String...") isearch-backward
+	      :help ,(purecopy "Search backwards for a string as you type it")))
 (define-key menu-bar-i-search-menu [isearch-forward]
-  '(menu-item "Forward String..." isearch-forward
-	      :help "Search forward for a string as you type it"))
-
+  `(menu-item ,(purecopy "Forward String...") isearch-forward
+	      :help ,(purecopy "Search forward for a string as you type it")))
 
 (define-key menu-bar-search-menu [i-search]
-  (list 'menu-item "Incremental Search" menu-bar-i-search-menu))
+  `(menu-item ,(purecopy "Incremental Search") menu-bar-i-search-menu))
 (define-key menu-bar-search-menu [separator-tag-isearch]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-search-menu [tags-continue]
-  '(menu-item "Continue Tags Search" tags-loop-continue
-	      :help "Continue last tags search operation"))
+  `(menu-item ,(purecopy "Continue Tags Search") tags-loop-continue
+	      :help ,(purecopy "Continue last tags search operation")))
 (define-key menu-bar-search-menu [tags-srch]
-  '(menu-item "Search Tagged Files..." tags-search
-	      :help "Search for a regexp in all tagged files"))
+  `(menu-item ,(purecopy "Search Tagged Files...") tags-search
+	      :help ,(purecopy "Search for a regexp in all tagged files")))
 (define-key menu-bar-search-menu [separator-tag-search]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-search-menu [repeat-search-back]
-  '(menu-item "Repeat Backwards" nonincremental-repeat-search-backward
+  `(menu-item ,(purecopy "Repeat Backwards") nonincremental-repeat-search-backward
 	      :enable (or (and (eq menu-bar-last-search-type 'string)
 			       search-ring)
 			  (and (eq menu-bar-last-search-type 'regexp)
 			       regexp-search-ring))
-	      :help "Repeat last search backwards"))
+	      :help ,(purecopy "Repeat last search backwards")))
 (define-key menu-bar-search-menu [repeat-search-fwd]
-  '(menu-item "Repeat Forward" nonincremental-repeat-search-forward
+  `(menu-item ,(purecopy "Repeat Forward") nonincremental-repeat-search-forward
 	      :enable (or (and (eq menu-bar-last-search-type 'string)
 			       search-ring)
 			  (and (eq menu-bar-last-search-type 'regexp)
 			       regexp-search-ring))
-	      :help "Repeat last search forward"))
+	      :help ,(purecopy "Repeat last search forward")))
 (define-key menu-bar-search-menu [separator-repeat-search]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-search-menu [re-search-backward]
-  '(menu-item "Regexp Backwards..." nonincremental-re-search-backward
-	      :help "Search backwards for a regular expression"))
+  `(menu-item ,(purecopy "Regexp Backwards...") nonincremental-re-search-backward
+	      :help ,(purecopy "Search backwards for a regular expression")))
 (define-key menu-bar-search-menu [re-search-forward]
-  '(menu-item "Regexp Forward..." nonincremental-re-search-forward
-	      :help "Search forward for a regular expression"))
+  `(menu-item ,(purecopy "Regexp Forward...") nonincremental-re-search-forward
+	      :help ,(purecopy "Search forward for a regular expression")))
 
 (define-key menu-bar-search-menu [search-backward]
-  '(menu-item "String Backwards..." nonincremental-search-backward
-	      :help "Search backwards for a string"))
+  `(menu-item ,(purecopy "String Backwards...") nonincremental-search-backward
+	      :help ,(purecopy "Search backwards for a string")))
 (define-key menu-bar-search-menu [search-forward]
-  '(menu-item "String Forward..." nonincremental-search-forward
-	      :help "Search forward for a string"))
+  `(menu-item ,(purecopy "String Forward...") nonincremental-search-forward
+	      :help ,(purecopy "Search forward for a string")))
 
 ;; The Edit->Replace submenu
 
 (defvar menu-bar-replace-menu (make-sparse-keymap "Replace"))
 
 (define-key menu-bar-replace-menu [tags-repl-continue]
-  '(menu-item "Continue Replace" tags-loop-continue
-	      :help "Continue last tags replace operation"))
+  `(menu-item ,(purecopy "Continue Replace") tags-loop-continue
+	      :help ,(purecopy "Continue last tags replace operation")))
 (define-key menu-bar-replace-menu [tags-repl]
-  '(menu-item "Replace in Tagged Files..." tags-query-replace
-	      :help "Interactively replace a regexp in all tagged files"))
+  `(menu-item ,(purecopy "Replace in Tagged Files...") tags-query-replace
+	      :help ,(purecopy "Interactively replace a regexp in all tagged files")))
 (define-key menu-bar-replace-menu [separator-replace-tags]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-replace-menu [query-replace-regexp]
-  '(menu-item "Replace Regexp..." query-replace-regexp
+  `(menu-item ,(purecopy "Replace Regexp...") query-replace-regexp
 	      :enable (not buffer-read-only)
-	      :help "Replace regular expression interactively, ask about each occurrence"))
+	      :help ,(purecopy "Replace regular expression interactively, ask about each occurrence")))
 (define-key menu-bar-replace-menu [query-replace]
-  '(menu-item "Replace String..." query-replace
+  `(menu-item ,(purecopy "Replace String...") query-replace
 	      :enable (not buffer-read-only)
-	      :help "Replace string interactively, ask about each occurrence"))
+	      :help ,(purecopy "Replace string interactively, ask about each occurrence")))
 
 ;;; Assemble the top-level Edit menu items.
 (define-key menu-bar-edit-menu [props]
-  '(menu-item "Text Properties" facemenu-menu))
+  `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
 (define-key menu-bar-edit-menu [fill]
-  '(menu-item "Fill" fill-region
+  `(menu-item ,(purecopy "Fill") fill-region
 	      :enable (and mark-active (not buffer-read-only))
 	      :help
-	      "Fill text in region to fit between left and right margin"))
+	      ,(purecopy "Fill text in region to fit between left and right margin")))
 
 (define-key menu-bar-edit-menu [separator-bookmark]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-edit-menu [bookmark]
-  '(menu-item "Bookmarks" menu-bar-bookmark-map))
+  `(menu-item ,(purecopy "Bookmarks") menu-bar-bookmark-map))
 
 (defvar menu-bar-goto-menu (make-sparse-keymap "Go To"))
 
 (define-key menu-bar-goto-menu [set-tags-name]
-  '(menu-item "Set Tags File Name..." visit-tags-table
-	      :help "Tell Tags commands which tag table file to use"))
+  `(menu-item ,(purecopy "Set Tags File Name...") visit-tags-table
+	      :help ,(purecopy "Tell Tags commands which tag table file to use")))
 
 (define-key menu-bar-goto-menu [separator-tag-file]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-goto-menu [apropos-tags]
-  '(menu-item "Tags Apropos..." tags-apropos
-	      :help "Find function/variables whose names match regexp"))
+  `(menu-item ,(purecopy "Tags Apropos...") tags-apropos
+	      :help ,(purecopy "Find function/variables whose names match regexp")))
 (define-key menu-bar-goto-menu [next-tag-otherw]
-  '(menu-item "Next Tag in Other Window"
+  `(menu-item ,(purecopy "Next Tag in Other Window")
 	      menu-bar-next-tag-other-window
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
-	      :help "Find next function/variable matching last tag name in another window"))
+	      :help ,(purecopy "Find next function/variable matching last tag name in another window")))
 
 (defun menu-bar-next-tag-other-window ()
   "Find the next definition of the tag already specified."
@@ -400,62 +399,62 @@
   (find-tag nil t))
 
 (define-key menu-bar-goto-menu [next-tag]
-  '(menu-item "Find Next Tag"
+  `(menu-item ,(purecopy "Find Next Tag")
 	      menu-bar-next-tag
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
-	      :help "Find next function/variable matching last tag name"))
+	      :help ,(purecopy "Find next function/variable matching last tag name")))
 (define-key menu-bar-goto-menu [find-tag-otherw]
-  '(menu-item "Find Tag in Other Window..." find-tag-other-window
-	      :help "Find function/variable definition in another window"))
+  `(menu-item ,(purecopy "Find Tag in Other Window...") find-tag-other-window
+	      :help ,(purecopy "Find function/variable definition in another window")))
 (define-key menu-bar-goto-menu [find-tag]
-  '(menu-item "Find Tag..." find-tag
-	      :help "Find definition of function or variable"))
+  `(menu-item ,(purecopy "Find Tag...") find-tag
+	      :help ,(purecopy "Find definition of function or variable")))
 
 (define-key menu-bar-goto-menu [separator-tags]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-goto-menu [end-of-buf]
-  '(menu-item "Goto End of Buffer" end-of-buffer))
+  `(menu-item ,(purecopy "Goto End of Buffer") end-of-buffer))
 (define-key menu-bar-goto-menu [beg-of-buf]
-  '(menu-item "Goto Beginning of Buffer" beginning-of-buffer))
+  `(menu-item ,(purecopy "Goto Beginning of Buffer") beginning-of-buffer))
 (define-key menu-bar-goto-menu [go-to-pos]
-  '(menu-item "Goto Buffer Position..." goto-char
-	      :help "Read a number N and go to buffer position N"))
+  `(menu-item ,(purecopy "Goto Buffer Position...") goto-char
+	      :help ,(purecopy "Read a number N and go to buffer position N")))
 (define-key menu-bar-goto-menu [go-to-line]
-  '(menu-item "Goto Line..." goto-line
-	      :help "Read a line number and go to that line"))
+  `(menu-item ,(purecopy "Goto Line...") goto-line
+	      :help ,(purecopy "Read a line number and go to that line")))
 
 (define-key menu-bar-edit-menu [goto]
-  (list 'menu-item "Go To" menu-bar-goto-menu))
+  `(menu-item ,(purecopy "Go To") menu-bar-goto-menu))
 
 (define-key menu-bar-edit-menu [replace]
-  (list 'menu-item "Replace" menu-bar-replace-menu))
+  `(menu-item ,(purecopy "Replace") menu-bar-replace-menu))
 
 (define-key menu-bar-edit-menu [search]
-  (list 'menu-item "Search" menu-bar-search-menu))
+  `(menu-item ,(purecopy "Search") menu-bar-search-menu))
 
 (define-key menu-bar-edit-menu [separator-search]
-  '(menu-item "--"))
+  `(menu-item ,(purecopy "--")))
 
 (define-key menu-bar-edit-menu [mark-whole-buffer]
-  '(menu-item "Select All" mark-whole-buffer
-	      :help "Mark the whole buffer for a subsequent cut/copy"))
+  `(menu-item ,(purecopy "Select All") mark-whole-buffer
+	      :help ,(purecopy "Mark the whole buffer for a subsequent cut/copy")))
 (define-key menu-bar-edit-menu [clear]
-  '(menu-item "Clear" delete-region
+  `(menu-item ,(purecopy "Clear") delete-region
 	      :enable (and mark-active
 			   (not buffer-read-only)
 			   (not (mouse-region-match)))
 	      :help
-	      "Delete the text in region between mark and current position"))
+	      ,(purecopy "Delete the text in region between mark and current position")))
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [paste-from-menu]
-  '(menu-item "Paste from Kill Menu" yank-menu
+  `(menu-item ,(purecopy "Paste from Kill Menu") yank-menu
 	      :enable (and (cdr yank-menu) (not buffer-read-only))
-	      :help "Choose a string from the kill ring and paste it"))
+	      :help ,(purecopy "Choose a string from the kill ring and paste it")))
 (define-key menu-bar-edit-menu [paste]
-  '(menu-item "Paste" yank
+  `(menu-item ,(purecopy "Paste") yank
 	      :enable (and (or
 			    ;; Emacs compiled --without-x doesn't have
 			    ;; x-selection-exists-p.
@@ -463,25 +462,25 @@
 				 (x-selection-exists-p))
 			    kill-ring)
 			   (not buffer-read-only))
-	      :help "Paste (yank) text most recently cut/copied"))
+	      :help ,(purecopy "Paste (yank) text most recently cut/copied")))
 (define-key menu-bar-edit-menu [copy]
-  '(menu-item "Copy" menu-bar-kill-ring-save
+  `(menu-item ,(purecopy "Copy") menu-bar-kill-ring-save
 	      :enable mark-active
-	      :help "Copy text in region between mark and current position"
+	      :help ,(purecopy "Copy text in region between mark and current position")
 	      :keys "\\[kill-ring-save]"))
 (define-key menu-bar-edit-menu [cut]
-  '(menu-item "Cut" kill-region
+  `(menu-item ,(purecopy "Cut") kill-region
 	      :enable (and mark-active (not buffer-read-only))
 	      :help
-	      "Cut (kill) text in region between mark and current position"))
+	      ,(purecopy "Cut (kill) text in region between mark and current position")))
 (define-key menu-bar-edit-menu [undo]
-  '(menu-item "Undo" undo
+  `(menu-item ,(purecopy "Undo") undo
 	      :enable (and (not buffer-read-only)
 			   (not (eq t buffer-undo-list))
 			   (if (eq last-command 'undo)
 			       (listp pending-undo-list)
 			     (consp buffer-undo-list)))
-	      :help "Undo last operation"))
+	      :help ,(purecopy "Undo last operation")))
 
 
 (defun menu-bar-kill-ring-save (beg end)
@@ -550,44 +549,44 @@ Do the same for the keys of the same name."
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
 (define-key menu-bar-custom-menu [customize-apropos-groups]
-  '(menu-item "Groups Matching Regexp..." customize-apropos-groups
-	      :help "Browse groups whose names match regexp"))
+  `(menu-item ,(purecopy "Groups Matching Regexp...") customize-apropos-groups
+	      :help ,(purecopy "Browse groups whose names match regexp")))
 (define-key menu-bar-custom-menu [customize-apropos-faces]
-  '(menu-item "Faces Matching Regexp..." customize-apropos-faces
-	      :help "Browse faces whose names match regexp"))
+  `(menu-item ,(purecopy "Faces Matching Regexp...") customize-apropos-faces
+	      :help ,(purecopy "Browse faces whose names match regexp")))
 (define-key menu-bar-custom-menu [customize-apropos-options]
-  '(menu-item "Options Matching Regexp..." customize-apropos-options
-	      :help "Browse options whose names match regexp"))
+  `(menu-item ,(purecopy "Options Matching Regexp...") customize-apropos-options
+	      :help ,(purecopy "Browse options whose names match regexp")))
 (define-key menu-bar-custom-menu [customize-apropos]
-  '(menu-item "Settings Matching Regexp..." customize-apropos
-	      :help "Browse customizable settings whose names match regexp"))
+  `(menu-item ,(purecopy "Settings Matching Regexp...") customize-apropos
+	      :help ,(purecopy "Browse customizable settings whose names match regexp")))
 (define-key menu-bar-custom-menu [separator-1]
   '("--"))
 (define-key menu-bar-custom-menu [customize-group]
-  '(menu-item "Specific Group..." customize-group
-	      :help "Customize settings of specific group"))
+  `(menu-item ,(purecopy "Specific Group...") customize-group
+	      :help ,(purecopy "Customize settings of specific group")))
 (define-key menu-bar-custom-menu [customize-face]
-  '(menu-item "Specific Face..." customize-face
-	      :help "Customize attributes of specific face"))
+  `(menu-item ,(purecopy "Specific Face...") customize-face
+	      :help ,(purecopy "Customize attributes of specific face")))
 (define-key menu-bar-custom-menu [customize-option]
-  '(menu-item "Specific Option..." customize-option
-	      :help "Customize value of specific option"))
+  `(menu-item ,(purecopy "Specific Option...") customize-option
+	      :help ,(purecopy "Customize value of specific option")))
 (define-key menu-bar-custom-menu [separator-2]
   '("--"))
 (define-key menu-bar-custom-menu [customize-changed-options]
-  '(menu-item "New Options..." customize-changed-options
-	      :help "Options added or changed in recent Emacs versions"))
+  `(menu-item ,(purecopy "New Options...") customize-changed-options
+	      :help ,(purecopy "Options added or changed in recent Emacs versions")))
 (define-key menu-bar-custom-menu [customize-saved]
-  '(menu-item "Saved Options" customize-saved
-	      :help "Customize previously saved options"))
+  `(menu-item ,(purecopy "Saved Options") customize-saved
+	      :help ,(purecopy "Customize previously saved options")))
 (define-key menu-bar-custom-menu [separator-3]
   '("--"))
 (define-key menu-bar-custom-menu [customize-browse]
-  '(menu-item "Browse Customization Groups" customize-browse
-	      :help "Browse all customization groups"))
+  `(menu-item ,(purecopy "Browse Customization Groups") customize-browse
+	      :help ,(purecopy "Browse all customization groups")))
 (define-key menu-bar-custom-menu [customize]
-  '(menu-item "Top-level Customization Group" customize
-	      :help "The master group called `Emacs'"))
+  `(menu-item ,(purecopy "Top-level Customization Group") customize
+	      :help ,(purecopy "The master group called `Emacs'")))
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
@@ -597,9 +596,9 @@ FNAME is the minor mode's name (variable and function).
 DOC is the text to use for the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
-  `'(menu-item ,doc ,fname
+  `'(menu-item ,(purecopy doc) ,fname
      ,@props
-     :help ,help
+     :help ,(purecopy help)
      :button (:toggle . (and (default-boundp ',fname)
 			     (default-value ',fname)))))
 
@@ -624,8 +623,8 @@ by \"Save Options\" in Custom buffers.")
        ;; a candidate for "Save Options", and we do not want to save options
        ;; the user have already set explicitly in his init file.
        (if interactively (customize-mark-as-set ',variable)))
-     '(menu-item ,doc ,name
-		 :help ,help
+     '(menu-item ,(purecopy doc) ,name
+		 :help ,(purecopy help)
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
 
@@ -660,7 +659,7 @@ by \"Save Options\" in Custom buffers.")
 
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
-  (list 'menu-item "Customize Emacs" menu-bar-custom-menu))
+  `(menu-item ,(purecopy "Customize Emacs") menu-bar-custom-menu))
 
 (defun menu-bar-options-save ()
   "Save current values of Options menu items using Custom."
@@ -700,16 +699,16 @@ by \"Save Options\" in Custom buffers.")
       (custom-save-all))))
 
 (define-key menu-bar-options-menu [save]
-  '(menu-item "Save Options" menu-bar-options-save
-	      :help "Save options set from the menu above"))
+  `(menu-item ,(purecopy "Save Options") menu-bar-options-save
+	      :help ,(purecopy "Save options set from the menu above")))
 
 (define-key menu-bar-options-menu [custom-separator]
   '("--"))
 
 (define-key menu-bar-options-menu [menu-set-font]
-  '(menu-item "Set Default Font..." menu-set-font
+  `(menu-item ,(purecopy "Set Default Font...") menu-set-font
 	      :visible (display-multi-font-p)
-	      :help "Select a default font"))
+	      :help ,(purecopy "Select a default font")))
 
 ;; The "Show/Hide" submenu of menu "Options"
 
@@ -748,8 +747,8 @@ mail status in mode line"))
   '("--"))
 
 (define-key menu-bar-showhide-menu [showhide-speedbar]
-  '(menu-item "Speedbar" speedbar-frame-mode
-	      :help "Display a Speedbar quick-navigation frame"
+  `(menu-item ,(purecopy "Speedbar") speedbar-frame-mode
+	      :help ,(purecopy "Display a Speedbar quick-navigation frame")
 	      :button (:toggle
 		       . (and (boundp 'speedbar-frame)
 			      (frame-live-p (symbol-value 'speedbar-frame))
@@ -767,9 +766,9 @@ mail status in mode line"))
   (customize-variable 'indicate-buffer-boundaries))
 
 (define-key menu-bar-showhide-fringe-ind-menu [customize]
-  '(menu-item "Other (Customize)"
+  `(menu-item ,(purecopy "Other (Customize)")
 	      menu-bar-showhide-fringe-ind-customize
-	      :help "Additional choices available through Custom buffer"
+	      :help ,(purecopy "Additional choices available through Custom buffer")
 	      :visible (display-graphic-p)
 	      :button (:radio . (not (member indicate-buffer-boundaries
 					     '(nil left right
@@ -783,9 +782,9 @@ mail status in mode line"))
 			  '((t . right) (top . left))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [mixed]
-  '(menu-item "Opposite, Arrows Right" menu-bar-showhide-fringe-ind-mixed
+  `(menu-item ,(purecopy "Opposite, Arrows Right") menu-bar-showhide-fringe-ind-mixed
 	      :help
-	      "Show top/bottom indicators in opposite fringes, arrows in right"
+	      ,(purecopy "Show top/bottom indicators in opposite fringes, arrows in right")
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal indicate-buffer-boundaries
 				       '((t . right) (top . left))))))
@@ -797,8 +796,8 @@ mail status in mode line"))
 			  '((top . left) (bottom . right))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [box]
-  '(menu-item "Opposite, No Arrows" menu-bar-showhide-fringe-ind-box
-	      :help "Show top/bottom indicators in opposite fringes, no arrows"
+  `(menu-item ,(purecopy "Opposite, No Arrows") menu-bar-showhide-fringe-ind-box
+	      :help ,(purecopy "Show top/bottom indicators in opposite fringes, no arrows")
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal indicate-buffer-boundaries
 				       '((top . left) (bottom . right))))))
@@ -809,8 +808,8 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries 'right))
 
 (define-key menu-bar-showhide-fringe-ind-menu [right]
-  '(menu-item "In Right Fringe" menu-bar-showhide-fringe-ind-right
-	      :help "Show buffer boundaries and arrows in right fringe"
+  `(menu-item ,(purecopy "In Right Fringe") menu-bar-showhide-fringe-ind-right
+	      :help ,(purecopy "Show buffer boundaries and arrows in right fringe")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries 'right))))
 
@@ -820,8 +819,8 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries 'left))
 
 (define-key menu-bar-showhide-fringe-ind-menu [left]
-  '(menu-item "In Left Fringe" menu-bar-showhide-fringe-ind-left
-	      :help "Show buffer boundaries and arrows in left fringe"
+  `(menu-item ,(purecopy "In Left Fringe") menu-bar-showhide-fringe-ind-left
+	      :help ,(purecopy "Show buffer boundaries and arrows in left fringe")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries 'left))))
 
@@ -831,15 +830,15 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries nil))
 
 (define-key menu-bar-showhide-fringe-ind-menu [none]
-  '(menu-item "No Indicators" menu-bar-showhide-fringe-ind-none
-	      :help "Hide all buffer boundary indicators and arrows"
+  `(menu-item ,(purecopy "No Indicators") menu-bar-showhide-fringe-ind-none
+	      :help ,(purecopy "Hide all buffer boundary indicators and arrows")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries nil))))
 
 (define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
-  (list 'menu-item "Buffer Boundaries" menu-bar-showhide-fringe-ind-menu
-	:visible `(display-graphic-p)
-	:help "Indicate buffer boundaries in fringe"))
+  `(menu-item ,(purecopy "Buffer Boundaries") menu-bar-showhide-fringe-ind-menu
+	      :visible `(display-graphic-p)
+	:help ,(purecopy "Indicate buffer boundaries in fringe")))
 
 (define-key menu-bar-showhide-fringe-menu [indicate-empty-lines]
   (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
@@ -853,8 +852,8 @@ mail status in mode line"))
   (customize-variable 'fringe-mode))
 
 (define-key menu-bar-showhide-fringe-menu [customize]
-  '(menu-item "Customize Fringe" menu-bar-showhide-fringe-menu-customize
-	      :help "Detailed customization of fringe"
+  `(menu-item ,(purecopy "Customize Fringe") menu-bar-showhide-fringe-menu-customize
+	      :help ,(purecopy "Detailed customization of fringe")
 	      :visible (display-graphic-p)))
 
 (defun menu-bar-showhide-fringe-menu-customize-reset ()
@@ -863,8 +862,8 @@ mail status in mode line"))
   (customize-set-variable 'fringe-mode nil))
 
 (define-key menu-bar-showhide-fringe-menu [default]
-  '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
-	      :help "Default width fringe on both left and right side"
+  `(menu-item ,(purecopy "Default") menu-bar-showhide-fringe-menu-customize-reset
+	      :help ,(purecopy "Default width fringe on both left and right side")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq fringe-mode nil))))
 
@@ -875,8 +874,8 @@ mail status in mode line"))
   (customize-set-variable 'fringe-mode '(0 . nil)))
 
 (define-key menu-bar-showhide-fringe-menu [right]
-  '(menu-item "On the Right" menu-bar-showhide-fringe-menu-customize-right
-	      :help "Fringe only on the right side"
+  `(menu-item ,(purecopy "On the Right") menu-bar-showhide-fringe-menu-customize-right
+	      :help ,(purecopy "Fringe only on the right side")
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal fringe-mode '(0 . nil)))))
 
@@ -887,8 +886,8 @@ mail status in mode line"))
   (customize-set-variable 'fringe-mode '(nil . 0)))
 
 (define-key menu-bar-showhide-fringe-menu [left]
-  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
-	      :help "Fringe only on the left side"
+  `(menu-item ,(purecopy "On the Left") menu-bar-showhide-fringe-menu-customize-left
+	      :help ,(purecopy "Fringe only on the left side")
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal fringe-mode '(nil . 0)))))
 
@@ -899,21 +898,21 @@ mail status in mode line"))
   (customize-set-variable 'fringe-mode 0))
 
 (define-key menu-bar-showhide-fringe-menu [none]
-  '(menu-item "None" menu-bar-showhide-fringe-menu-customize-disable
-	      :help "Turn off fringe"
+  `(menu-item ,(purecopy "None") menu-bar-showhide-fringe-menu-customize-disable
+	      :help ,(purecopy "Turn off fringe")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq fringe-mode 0))))
 
 (define-key menu-bar-showhide-menu [showhide-fringe]
-  (list 'menu-item "Fringe" menu-bar-showhide-fringe-menu
+  `(menu-item ,(purecopy "Fringe") menu-bar-showhide-fringe-menu
 	:visible `(display-graphic-p)))
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
 (define-key menu-bar-showhide-scroll-bar-menu [right]
-  '(menu-item "On the Right"
+  `(menu-item ,(purecopy "On the Right")
 	      menu-bar-right-scroll-bar
-	      :help "Scroll-bar on the right side"
+	      :help ,(purecopy "Scroll-bar on the right side")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'right))))
@@ -923,9 +922,9 @@ mail status in mode line"))
   (customize-set-variable 'scroll-bar-mode 'right))
 
 (define-key menu-bar-showhide-scroll-bar-menu [left]
-  '(menu-item "On the Left"
+  `(menu-item ,(purecopy "On the Left")
 	      menu-bar-left-scroll-bar
-	      :help "Scroll-bar on the left side"
+	      :help ,(purecopy "Scroll-bar on the left side")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'left))))
@@ -936,9 +935,9 @@ mail status in mode line"))
   (customize-set-variable 'scroll-bar-mode 'left))
 
 (define-key menu-bar-showhide-scroll-bar-menu [none]
-  '(menu-item "None"
+  `(menu-item ,(purecopy "None")
 	      menu-bar-no-scroll-bar
-	      :help "Turn off scroll-bar"
+	      :help ,(purecopy "Turn off scroll-bar")
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) nil))))
@@ -949,28 +948,28 @@ mail status in mode line"))
   (customize-set-variable 'scroll-bar-mode nil))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
-  (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
+  `(menu-item ,(purecopy "Scroll-bar") menu-bar-showhide-scroll-bar-menu
 	:visible `(display-graphic-p)))
 
 (define-key menu-bar-showhide-menu [showhide-tooltip-mode]
-  (list 'menu-item "Tooltips" 'tooltip-mode
-	:help "Turn tooltips on/off"
+  `(menu-item ,(purecopy "Tooltips") 'tooltip-mode
+	:help ,(purecopy "Turn tooltips on/off")
 	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
 	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
-  '(menu-item "Menu-bar" toggle-menu-bar-mode-from-frame
-	      :help "Turn menu-bar on/off"
+  `(menu-item ,(purecopy "Menu-bar") toggle-menu-bar-mode-from-frame
+	      :help ,(purecopy "Turn menu-bar on/off")
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  (list 'menu-item "Tool-bar" 'toggle-tool-bar-mode-from-frame
-	:help "Turn tool-bar on/off"
+  `(menu-item ,(purecopy "Tool-bar") 'toggle-tool-bar-mode-from-frame
+	:help ,(purecopy "Turn tool-bar on/off")
 	:visible `(display-graphic-p)
 	:button `(:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
 
 (define-key menu-bar-options-menu [showhide]
-  (list 'menu-item "Show/Hide" menu-bar-showhide-menu))
+  `(menu-item ,(purecopy "Show/Hide") menu-bar-showhide-menu))
 
 (define-key menu-bar-options-menu [showhide-separator]
   '("--"))
@@ -979,15 +978,15 @@ mail status in mode line"))
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
-  (list 'menu-item "Mule (Multilingual Environment)" mule-menu-keymap
+  `(menu-item ,(purecopy "Mule (Multilingual Environment)") mule-menu-keymap
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
 ;;;	:visible '(default-value 'enable-multibyte-characters)
 	))
 ;(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 ;(define-key menu-bar-options-menu [preferences]
-;  (list 'menu-item "Preferences" menu-bar-preferences-menu
-;	:help "Toggle important global options"))
+;  `(menu-item ,(purecopy "Preferences") menu-bar-preferences-menu
+;	:help ,(purecopy "Toggle important global options")))
 
 (define-key menu-bar-options-menu [mule-separator]
   '("--"))
@@ -1062,9 +1061,9 @@ mail status in mode line"))
   (customize-mark-as-set 'text-mode-hook))
 
 (define-key menu-bar-options-menu [auto-fill-mode]
-  '(menu-item "Auto Fill in Text Modes"
+  `(menu-item ,(purecopy "Auto Fill in Text Modes")
               menu-bar-text-mode-auto-fill
-	      :help "Automatically fill text while typing (Auto Fill mode)"
+	      :help ,(purecopy "Automatically fill text while typing (Auto Fill mode)")
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
@@ -1073,38 +1072,38 @@ mail status in mode line"))
 (defvar menu-bar-line-wrapping-menu (make-sparse-keymap "Line Wrapping"))
 
 (define-key menu-bar-line-wrapping-menu [word-wrap]
-  '(menu-item "Word Wrap (Visual Line mode)"
+  `(menu-item ,(purecopy "Word Wrap (Visual Line mode)")
 	      (lambda ()
 		(interactive)
 		(unless visual-line-mode
 		  (visual-line-mode 1))
 		(message "Visual-Line mode enabled"))
-	      :help "Wrap long lines at word boundaries"
+	      :help ,(purecopy "Wrap long lines at word boundaries")
 	      :button (:radio . (and (null truncate-lines)
 				     (not (truncated-partial-width-window-p))
 				     word-wrap))
 	      :visible (menu-bar-menu-frame-live-and-visible-p)))
 
 (define-key menu-bar-line-wrapping-menu [truncate]
-  '(menu-item "Truncate Long Lines"
+  `(menu-item ,(purecopy "Truncate Long Lines")
 	      (lambda ()
 		(interactive)
 		(if visual-line-mode (visual-line-mode 0))
 		(setq word-wrap nil)
 		(toggle-truncate-lines 1))
-	      :help "Truncate long lines at window edge"
+	      :help ,(purecopy "Truncate long lines at window edge")
 	      :button (:radio . (or truncate-lines
 				    (truncated-partial-width-window-p)))
 	      :visible (menu-bar-menu-frame-live-and-visible-p)
 	      :enable (not (truncated-partial-width-window-p))))
 
 (define-key menu-bar-line-wrapping-menu [window-wrap]
-  '(menu-item "Wrap at Window Edge"
+  `(menu-item ,(purecopy "Wrap at Window Edge")
 	      (lambda () (interactive)
 		(if visual-line-mode (visual-line-mode 0))
 		(setq word-wrap nil)
 		(if truncate-lines (toggle-truncate-lines -1)))
-	      :help "Wrap long lines at window edge"
+	      :help ,(purecopy "Wrap long lines at window edge")
 	      :button (:radio . (and (null truncate-lines)
 				     (not (truncated-partial-width-window-p))
 				     (not word-wrap)))
@@ -1112,7 +1111,7 @@ mail status in mode line"))
 	      :enable (not (truncated-partial-width-window-p))))
 
 (define-key menu-bar-options-menu [line-wrapping]
-  (list 'menu-item "Line Wrapping in this Buffer" menu-bar-line-wrapping-menu))
+  `(menu-item ,(purecopy "Line Wrapping in this Buffer") menu-bar-line-wrapping-menu))
 
 
 (define-key menu-bar-options-menu [highlight-separator]
@@ -1153,145 +1152,145 @@ mail status in mode line"))
 (defvar menu-bar-games-menu (make-sparse-keymap "Games"))
 
 (define-key menu-bar-tools-menu [games]
-  (list 'menu-item "Games" menu-bar-games-menu))
+  `(menu-item ,(purecopy "Games") menu-bar-games-menu))
 
 (define-key menu-bar-tools-menu [separator-games]
   '("--"))
 
 (define-key menu-bar-games-menu [zone]
-  '(menu-item "Zone Out"  zone
-	      :help "Play tricks with Emacs display when Emacs is idle"))
+  `(menu-item ,(purecopy "Zone Out")  zone
+	      :help ,(purecopy "Play tricks with Emacs display when Emacs is idle")))
 (define-key menu-bar-games-menu [tetris]
-  '(menu-item "Tetris"  tetris
-              :help "Falling blocks game"))
+  `(menu-item ,(purecopy "Tetris")  tetris
+              :help ,(purecopy "Falling blocks game")))
 (define-key menu-bar-games-menu [solitaire]
-  '(menu-item "Solitaire"  solitaire
-              :help "Get rid of all the stones"))
+  `(menu-item ,(purecopy "Solitaire")  solitaire
+              :help ,(purecopy "Get rid of all the stones")))
 (define-key menu-bar-games-menu [snake]
-  '(menu-item "Snake"  snake
-	      :help "Move snake around avoiding collisions"))
+  `(menu-item ,(purecopy "Snake")  snake
+	      :help ,(purecopy "Move snake around avoiding collisions")))
 (define-key menu-bar-games-menu [pong]
-  '(menu-item "Pong" pong
-	      :help "Bounce the ball to your opponent"))
+  `(menu-item ,(purecopy "Pong") pong
+	      :help ,(purecopy "Bounce the ball to your opponent")))
 (define-key menu-bar-games-menu [mult]
-  '(menu-item "Multiplication Puzzle"  mpuz
-	      :help "Exercise brain with multiplication"))
+  `(menu-item ,(purecopy "Multiplication Puzzle")  mpuz
+	      :help ,(purecopy "Exercise brain with multiplication")))
 (define-key menu-bar-games-menu [life]
-  '(menu-item "Life"  life
-	      :help "Watch how John Conway's cellular automaton evolves"))
+  `(menu-item ,(purecopy "Life")  life
+	      :help ,(purecopy "Watch how John Conway's cellular automaton evolves")))
 (define-key menu-bar-games-menu [hanoi]
-  '(menu-item "Towers of Hanoi" hanoi
-	      :help "Watch Towers-of-Hanoi puzzle solved by Emacs"))
+  `(menu-item ,(purecopy "Towers of Hanoi") hanoi
+	      :help ,(purecopy "Watch Towers-of-Hanoi puzzle solved by Emacs")))
 (define-key menu-bar-games-menu [gomoku]
-  '(menu-item "Gomoku"  gomoku
-	      :help "Mark 5 contiguous squares (like tic-tac-toe)"))
+  `(menu-item ,(purecopy "Gomoku")  gomoku
+	      :help ,(purecopy "Mark 5 contiguous squares (like tic-tac-toe)")))
 (define-key menu-bar-games-menu [bubbles]
-  '(menu-item "Bubbles" bubbles
-	      :help "Remove all bubbles using the fewest moves"))
+  `(menu-item ,(purecopy "Bubbles") bubbles
+	      :help ,(purecopy "Remove all bubbles using the fewest moves")))
 (define-key menu-bar-games-menu [black-box]
-  '(menu-item "Blackbox"  blackbox
-	      :help "Find balls in a black box by shooting rays"))
+  `(menu-item ,(purecopy "Blackbox")  blackbox
+	      :help ,(purecopy "Find balls in a black box by shooting rays")))
 (define-key menu-bar-games-menu [adventure]
-  '(menu-item "Adventure"  dunnet
-	      :help "Dunnet, a text Adventure game for Emacs"))
+  `(menu-item ,(purecopy "Adventure")  dunnet
+	      :help ,(purecopy "Dunnet, a text Adventure game for Emacs")))
 (define-key menu-bar-games-menu [5x5]
-  '(menu-item "5x5" 5x5
-	      :help "Fill in all the squares on a 5x5 board"))
+  `(menu-item ,(purecopy "5x5") 5x5
+	      :help ,(purecopy "Fill in all the squares on a 5x5 board")))
 
 (defvar menu-bar-encryption-decryption-menu
   (make-sparse-keymap "Encryption/Decryption"))
 
 (define-key menu-bar-tools-menu [encryption-decryption]
-  (list 'menu-item "Encryption/Decryption" menu-bar-encryption-decryption-menu))
+  `(menu-item ,(purecopy "Encryption/Decryption") menu-bar-encryption-decryption-menu))
 
 (define-key menu-bar-tools-menu [separator-encryption-decryption]
   '("--"))
 
 (define-key menu-bar-encryption-decryption-menu [insert-keys]
-  '(menu-item "Insert Keys" epa-insert-keys
-	      :help "Insert public keys after the current point"))
+  `(menu-item ,(purecopy "Insert Keys") epa-insert-keys
+	      :help ,(purecopy "Insert public keys after the current point")))
 
 (define-key menu-bar-encryption-decryption-menu [export-keys]
-  '(menu-item "Export Keys" epa-export-keys
-	      :help "Export public keys to a file"))
+  `(menu-item ,(purecopy "Export Keys") epa-export-keys
+	      :help ,(purecopy "Export public keys to a file")))
 
 (define-key menu-bar-encryption-decryption-menu [import-keys-region]
-  '(menu-item "Import Keys from Region" epa-import-keys-region
-	      :help "Import public keys from the current region"))
+  `(menu-item ,(purecopy "Import Keys from Region") epa-import-keys-region
+	      :help ,(purecopy "Import public keys from the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [import-keys]
-  '(menu-item "Import Keys from File..." epa-import-keys
-	      :help "Import public keys from a file"))
+  `(menu-item ,(purecopy "Import Keys from File...") epa-import-keys
+	      :help ,(purecopy "Import public keys from a file")))
 
 (define-key menu-bar-encryption-decryption-menu [list-keys]
-  '(menu-item "List Keys" epa-list-keys
-	      :help "Browse your public keyring"))
+  `(menu-item ,(purecopy "List Keys") epa-list-keys
+	      :help ,(purecopy "Browse your public keyring")))
 
 (define-key menu-bar-encryption-decryption-menu [separator-keys]
   '("--"))
 
 (define-key menu-bar-encryption-decryption-menu [sign-region]
-  '(menu-item "Sign Region" epa-sign-region
-	      :help "Create digital signature of the current region"))
+  `(menu-item ,(purecopy "Sign Region") epa-sign-region
+	      :help ,(purecopy "Create digital signature of the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [verify-region]
-  '(menu-item "Verify Region" epa-verify-region
-	      :help "Verify digital signature of the current region"))
+  `(menu-item ,(purecopy "Verify Region") epa-verify-region
+	      :help ,(purecopy "Verify digital signature of the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [encrypt-region]
-  '(menu-item "Encrypt Region" epa-encrypt-region
-	      :help "Encrypt the current region"))
+  `(menu-item ,(purecopy "Encrypt Region") epa-encrypt-region
+	      :help ,(purecopy "Encrypt the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [decrypt-region]
-  '(menu-item "Decrypt Region" epa-decrypt-region
-	      :help "Decrypt the current region"))
+  `(menu-item ,(purecopy "Decrypt Region") epa-decrypt-region
+	      :help ,(purecopy "Decrypt the current region")))
 
 (define-key menu-bar-encryption-decryption-menu [separator-file]
   '("--"))
 
 (define-key menu-bar-encryption-decryption-menu [sign-file]
-  '(menu-item "Sign File..." epa-sign-file
-	      :help "Create digital signature of a file"))
+  `(menu-item ,(purecopy "Sign File...") epa-sign-file
+	      :help ,(purecopy "Create digital signature of a file")))
 
 (define-key menu-bar-encryption-decryption-menu [verify-file]
-  '(menu-item "Verify File..." epa-verify-file
-	      :help "Verify digital signature of a file"))
+  `(menu-item ,(purecopy "Verify File...") epa-verify-file
+	      :help ,(purecopy "Verify digital signature of a file")))
 
 (define-key menu-bar-encryption-decryption-menu [encrypt-file]
-  '(menu-item "Encrypt File..." epa-encrypt-file
-	      :help "Encrypt a file"))
+  `(menu-item ,(purecopy "Encrypt File...") epa-encrypt-file
+	      :help ,(purecopy "Encrypt a file")))
 
 (define-key menu-bar-encryption-decryption-menu [decrypt-file]
-  '(menu-item "Decrypt File..." epa-decrypt-file
-	      :help "Decrypt a file"))
+  `(menu-item ,(purecopy "Decrypt File...") epa-decrypt-file
+	      :help ,(purecopy "Decrypt a file")))
 
 (define-key menu-bar-tools-menu [simple-calculator]
-  '(menu-item "Simple Calculator" calculator
-	      :help "Invoke the Emacs built-in quick calculator"))
+  `(menu-item ,(purecopy "Simple Calculator") calculator
+	      :help ,(purecopy "Invoke the Emacs built-in quick calculator")))
 (define-key menu-bar-tools-menu [calc]
-  '(menu-item "Programmable Calculator" calc
-	      :help "Invoke the Emacs built-in full scientific calculator"))
+  `(menu-item ,(purecopy "Programmable Calculator") calc
+	      :help ,(purecopy "Invoke the Emacs built-in full scientific calculator")))
 (define-key menu-bar-tools-menu [calendar]
-  '(menu-item "Calendar" calendar
-	      :help "Invoke the Emacs built-in calendar"))
+  `(menu-item ,(purecopy "Calendar") calendar
+	      :help ,(purecopy "Invoke the Emacs built-in calendar")))
 
 (define-key menu-bar-tools-menu [separator-net]
   '("--"))
 
 (define-key menu-bar-tools-menu [directory-search]
-  '(menu-item "Directory Search" eudc-tools-menu))
+  `(menu-item ,(purecopy "Directory Search") eudc-tools-menu))
 (define-key menu-bar-tools-menu [compose-mail]
-  (list
+  `(list
    'menu-item `(format "Send Mail (with %s)" (send-mail-item-name))
    'compose-mail
    :visible `(and mail-user-agent (not (eq mail-user-agent 'ignore)))
-   :help "Send a mail message"))
+   :help ,(purecopy "Send a mail message")))
 (define-key menu-bar-tools-menu [rmail]
-  (list
+  `(list
    'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
    'menu-bar-read-mail
    :visible `(and read-mail-command (not (eq read-mail-command 'ignore)))
-   :help "Read your mail and reply to it"))
+   :help ,(purecopy "Read your mail and reply to it")))
 
 (defun menu-bar-read-mail ()
   "Read mail using `read-mail-command'."
@@ -1299,53 +1298,53 @@ mail status in mode line"))
   (call-interactively read-mail-command))
 
 (define-key menu-bar-tools-menu [gnus]
-  '(menu-item "Read Net News (Gnus)" gnus
-	      :help "Read network news groups"))
+  `(menu-item ,(purecopy "Read Net News (Gnus)") gnus
+	      :help ,(purecopy "Read network news groups")))
 
 (define-key menu-bar-tools-menu [separator-vc]
   '("--"))
 
 (define-key menu-bar-tools-menu [pcl-cvs]
-  '(menu-item "PCL-CVS" cvs-global-menu))
+  `(menu-item ,(purecopy "PCL-CVS") cvs-global-menu))
 (define-key menu-bar-tools-menu [vc] nil) ;Create the place for the VC menu.
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
 
 (define-key menu-bar-tools-menu [ediff-misc]
-  '(menu-item "Ediff Miscellanea" menu-bar-ediff-misc-menu))
+  `(menu-item ,(purecopy "Ediff Miscellanea") menu-bar-ediff-misc-menu))
 (define-key menu-bar-tools-menu [epatch]
-  '(menu-item "Apply Patch" menu-bar-epatch-menu))
+  `(menu-item ,(purecopy "Apply Patch") menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
-  '(menu-item "Merge" menu-bar-ediff-merge-menu))
+  `(menu-item ,(purecopy "Merge") menu-bar-ediff-merge-menu))
 (define-key menu-bar-tools-menu [compare]
-  '(menu-item "Compare (Ediff)" menu-bar-ediff-menu))
+  `(menu-item ,(purecopy "Compare (Ediff)") menu-bar-ediff-menu))
 
 (define-key menu-bar-tools-menu [separator-spell]
   '("--"))
 
 (define-key menu-bar-tools-menu [spell]
-  '(menu-item "Spell Checking" ispell-menu-map))
+  `(menu-item ,(purecopy "Spell Checking") ispell-menu-map))
 
 (define-key menu-bar-tools-menu [separator-prog]
   '("--"))
 
 (define-key menu-bar-tools-menu [gdb]
-  '(menu-item "Debugger (GDB)..." gdb
-	      :help "Debug a program from within Emacs with GDB"))
+  `(menu-item ,(purecopy "Debugger (GDB)...") gdb
+	      :help ,(purecopy "Debug a program from within Emacs with GDB")))
 (define-key menu-bar-tools-menu [shell-on-region]
-  '(menu-item "Shell Command on Region..." shell-command-on-region
+  `(menu-item ,(purecopy "Shell Command on Region...") shell-command-on-region
 	      :enable mark-active
-	      :help "Pass marked region to a shell command"))
+	      :help ,(purecopy "Pass marked region to a shell command")))
 (define-key menu-bar-tools-menu [shell]
-  '(menu-item "Shell Command..." shell-command
-	      :help "Invoke a shell command and catch its output"))
+  `(menu-item ,(purecopy "Shell Command...") shell-command
+	      :help ,(purecopy "Invoke a shell command and catch its output")))
 (define-key menu-bar-tools-menu [compile]
-  '(menu-item "Compile..." compile
-	      :help "Invoke compiler or Make, view compilation errors"))
+  `(menu-item ,(purecopy "Compile...") compile
+	      :help ,(purecopy "Invoke compiler or Make, view compilation errors")))
 (define-key menu-bar-tools-menu [grep]
-  '(menu-item "Search Files (Grep)..." grep
-	      :help "Search files for strings or regexps (with Grep)"))
+  `(menu-item ,(purecopy "Search Files (Grep)...") grep
+	      :help ,(purecopy "Search files for strings or regexps (with Grep)")))
 
 
 ;; The "Help" menu items
@@ -1353,50 +1352,50 @@ mail status in mode line"))
 (defvar menu-bar-describe-menu (make-sparse-keymap "Describe"))
 
 (define-key menu-bar-describe-menu [mule-diag]
-  '(menu-item "Show All of Mule Status" mule-diag
+  `(menu-item ,(purecopy "Show All of Mule Status") mule-diag
 	      :visible (default-value 'enable-multibyte-characters)
-	      :help "Display multilingual environment settings"))
+	      :help ,(purecopy "Display multilingual environment settings")))
 (define-key menu-bar-describe-menu [describe-coding-system-briefly]
-  '(menu-item "Describe Coding System (Briefly)"
+  `(menu-item ,(purecopy "Describe Coding System (Briefly)")
               describe-current-coding-system-briefly
               :visible (default-value 'enable-multibyte-characters)))
 (define-key menu-bar-describe-menu [describe-coding-system]
-  '(menu-item "Describe Coding System..." describe-coding-system
+  `(menu-item ,(purecopy "Describe Coding System...") describe-coding-system
 	      :visible (default-value 'enable-multibyte-characters)))
 (define-key menu-bar-describe-menu [describe-input-method]
-  '(menu-item "Describe Input Method..." describe-input-method
+  `(menu-item ,(purecopy "Describe Input Method...") describe-input-method
 	      :visible (default-value 'enable-multibyte-characters)
-	      :help "Keyboard layout for specific input method"))
+	      :help ,(purecopy "Keyboard layout for specific input method")))
 (define-key menu-bar-describe-menu [describe-language-environment]
-  (list 'menu-item "Describe Language Environment"
+  `(menu-item ,(purecopy "Describe Language Environment")
 	describe-language-environment-map))
 
 (define-key menu-bar-describe-menu [separator-desc-mule]
   '("--"))
 
 (define-key menu-bar-describe-menu [list-keybindings]
-  '(menu-item "List Key Bindings" describe-bindings
-	      :help "Display all current key bindings (keyboard shortcuts)"))
+  `(menu-item ,(purecopy "List Key Bindings") describe-bindings
+	      :help ,(purecopy "Display all current key bindings (keyboard shortcuts)")))
 (define-key menu-bar-describe-menu [describe-current-display-table]
-  '(menu-item "Describe Display Table" describe-current-display-table
-	      :help "Describe the current display table"))
+  `(menu-item ,(purecopy "Describe Display Table") describe-current-display-table
+	      :help ,(purecopy "Describe the current display table")))
 (define-key menu-bar-describe-menu [describe-face]
-  '(menu-item "Describe Face..." describe-face
-              :help "Display the properties of a face"))
+  `(menu-item ,(purecopy "Describe Face...") describe-face
+              :help ,(purecopy "Display the properties of a face")))
 (define-key menu-bar-describe-menu [describe-variable]
-  '(menu-item "Describe Variable..." describe-variable
-	      :help "Display documentation of variable/option"))
+  `(menu-item ,(purecopy "Describe Variable...") describe-variable
+	      :help ,(purecopy "Display documentation of variable/option")))
 (define-key menu-bar-describe-menu [describe-function]
-  '(menu-item "Describe Function..." describe-function
-	      :help "Display documentation of function/command"))
+  `(menu-item ,(purecopy "Describe Function...") describe-function
+	      :help ,(purecopy "Display documentation of function/command")))
 (define-key menu-bar-describe-menu [describe-key-1]
-  '(menu-item "Describe Key or Mouse Operation..." describe-key
+  `(menu-item ,(purecopy "Describe Key or Mouse Operation...") describe-key
 	      ;; Users typically don't identify keys and menu items...
-	      :help "Display documentation of command bound to a \
-key, a click, or a menu-item"))
+	      :help ,(purecopy "Display documentation of command bound to a \
+key, a click, or a menu-item")))
 (define-key menu-bar-describe-menu [describe-mode]
-  '(menu-item "Describe Buffer Modes" describe-mode
-	      :help "Describe this buffer's major and minor mode"))
+  `(menu-item ,(purecopy "Describe Buffer Modes") describe-mode
+	      :help ,(purecopy "Describe this buffer's major and minor mode")))
 
 (defvar menu-bar-search-documentation-menu
   (make-sparse-keymap "Search Documentation"))
@@ -1428,79 +1427,79 @@ key, a click, or a menu-item"))
   (Info-index topic))
 
 (define-key menu-bar-search-documentation-menu [search-documentation-strings]
-  '(menu-item "Search Documentation Strings..." apropos-documentation
+  `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
               :help
-	      "Find functions and variables whose doc strings match a regexp"))
+	      ,(purecopy "Find functions and variables whose doc strings match a regexp")))
 (define-key menu-bar-search-documentation-menu [find-any-object-by-name]
-  '(menu-item "Find Any Object by Name..."  apropos
-              :help "Find symbols of any kind whose names match a regexp"))
+  `(menu-item ,(purecopy "Find Any Object by Name...") apropos
+              :help ,(purecopy "Find symbols of any kind whose names match a regexp")))
 (define-key menu-bar-search-documentation-menu [find-option-by-value]
-  '(menu-item "Find Options by Value..." apropos-value
-              :help "Find variables whose values match a regexp"))
+  `(menu-item ,(purecopy "Find Options by Value...") apropos-value
+              :help ,(purecopy "Find variables whose values match a regexp")))
 (define-key menu-bar-search-documentation-menu [find-options-by-name]
-  '(menu-item "Find Options by Name..." apropos-variable
-	      :help "Find variables whose names match a regexp"))
+  `(menu-item ,(purecopy "Find Options by Name...") apropos-variable
+	      :help ,(purecopy "Find variables whose names match a regexp")))
 (define-key menu-bar-search-documentation-menu [find-commands-by-name]
-  '(menu-item "Find Commands by Name..." apropos-command
-	      :help "Find commands whose names match a regexp"))
+  `(menu-item ,(purecopy "Find Commands by Name...") apropos-command
+	      :help ,(purecopy "Find commands whose names match a regexp")))
 (define-key menu-bar-search-documentation-menu [sep1]
   '("--"))
 (define-key menu-bar-search-documentation-menu [lookup-command-in-manual]
-  '(menu-item "Look Up Command in User Manual..." Info-goto-emacs-command-node
-	      :help "Display manual section that describes a command"))
+  `(menu-item ,(purecopy "Look Up Command in User Manual...") Info-goto-emacs-command-node
+	      :help ,(purecopy "Display manual section that describes a command")))
 (define-key menu-bar-search-documentation-menu [lookup-key-in-manual]
-  '(menu-item "Look Up Key in User Manual..." Info-goto-emacs-key-command-node
-	      :help "Display manual section that describes a key"))
+  `(menu-item ,(purecopy "Look Up Key in User Manual...") Info-goto-emacs-key-command-node
+	      :help ,(purecopy "Display manual section that describes a key")))
 (define-key menu-bar-search-documentation-menu [lookup-subject-in-elisp-manual]
-  '(menu-item "Look Up Subject in ELisp Manual..." elisp-index-search
-	      :help "Find description of a subject in Emacs Lisp manual"))
+  `(menu-item ,(purecopy "Look Up Subject in ELisp Manual...") elisp-index-search
+	      :help ,(purecopy "Find description of a subject in Emacs Lisp manual")))
 (define-key menu-bar-search-documentation-menu [lookup-subject-in-emacs-manual]
-  '(menu-item "Look Up Subject in User Manual..." emacs-index-search
-	      :help "Find description of a subject in Emacs User manual"))
+  `(menu-item ,(purecopy "Look Up Subject in User Manual...") emacs-index-search
+	      :help ,(purecopy "Find description of a subject in Emacs User manual")))
 (define-key menu-bar-search-documentation-menu [emacs-terminology]
-  '(menu-item "Emacs Terminology" search-emacs-glossary
-	      :help "Display the Glossary section of the Emacs manual"))
+  `(menu-item ,(purecopy "Emacs Terminology") search-emacs-glossary
+	      :help ,(purecopy "Display the Glossary section of the Emacs manual")))
 
 (defvar menu-bar-manuals-menu (make-sparse-keymap "More Manuals"))
 
 (define-key menu-bar-manuals-menu [man]
-  '(menu-item "Read Man Page..." manual-entry
-	      :help "Man-page docs for external commands and libraries"))
+  `(menu-item ,(purecopy "Read Man Page...") manual-entry
+	      :help ,(purecopy "Man-page docs for external commands and libraries")))
 (define-key menu-bar-manuals-menu [sep2]
   '("--"))
 (define-key menu-bar-manuals-menu [order-emacs-manuals]
-  '(menu-item "Ordering Manuals" view-order-manuals
-	      :help "How to order manuals from the Free Software Foundation"))
+  `(menu-item ,(purecopy "Ordering Manuals") view-order-manuals
+	      :help ,(purecopy "How to order manuals from the Free Software Foundation")))
 (define-key menu-bar-manuals-menu [lookup-subject-in-all-manuals]
-  '(menu-item "Lookup Subject in all Manuals..." info-apropos
-	      :help "Find description of a subject in all installed manuals"))
+  `(menu-item ,(purecopy "Lookup Subject in all Manuals...") info-apropos
+	      :help ,(purecopy "Find description of a subject in all installed manuals")))
 (define-key menu-bar-manuals-menu [other-manuals]
-  '(menu-item "All Other Manuals (Info)" Info-directory
-	      :help "Read any of the installed manuals"))
+  `(menu-item ,(purecopy "All Other Manuals (Info)") Info-directory
+	      :help ,(purecopy "Read any of the installed manuals")))
 (define-key menu-bar-manuals-menu [emacs-lisp-reference]
-  '(menu-item "Emacs Lisp Reference" menu-bar-read-lispref
-	      :help "Read the Emacs Lisp Reference manual"))
+  `(menu-item ,(purecopy "Emacs Lisp Reference") menu-bar-read-lispref
+	      :help ,(purecopy "Read the Emacs Lisp Reference manual")))
 (define-key menu-bar-manuals-menu [emac-lisp-intro]
-  '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
-	      :help "Read the Introduction to Emacs Lisp Programming"))
+  `(menu-item ,(purecopy "Introduction to Emacs Lisp") menu-bar-read-lispintro
+	      :help ,(purecopy "Read the Introduction to Emacs Lisp Programming")))
 
 (define-key menu-bar-help-menu [about-gnu-project]
-  '(menu-item "About GNU" describe-gnu-project
-	      :help "About the GNU System, GNU Project, and GNU/Linux"))
+  `(menu-item ,(purecopy "About GNU") describe-gnu-project
+	      :help ,(purecopy "About the GNU System, GNU Project, and GNU/Linux")))
 (define-key menu-bar-help-menu [about-emacs]
-  '(menu-item "About Emacs" about-emacs
-	      :help "Display version number, copyright info, and basic help"))
+  `(menu-item ,(purecopy "About Emacs") about-emacs
+	      :help ,(purecopy "Display version number, copyright info, and basic help")))
 (define-key menu-bar-help-menu [sep4]
   '("--"))
 (define-key menu-bar-help-menu [describe-no-warranty]
-  '(menu-item "(Non)Warranty" describe-no-warranty
-	      :help "Explain that Emacs has NO WARRANTY"))
+  `(menu-item ,(purecopy "(Non)Warranty") describe-no-warranty
+	      :help ,(purecopy "Explain that Emacs has NO WARRANTY")))
 (define-key menu-bar-help-menu [describe-copying]
-  '(menu-item "Copying Conditions" describe-copying
-	      :help "Show the Emacs license (GPL)"))
+  `(menu-item ,(purecopy "Copying Conditions") describe-copying
+	      :help ,(purecopy "Show the Emacs license (GPL)")))
 (define-key menu-bar-help-menu [getting-new-versions]
-  '(menu-item "Getting New Versions" describe-distribution
-	      :help "How to get the latest version of Emacs"))
+  `(menu-item ,(purecopy "Getting New Versions") describe-distribution
+	      :help ,(purecopy "How to get the latest version of Emacs")))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
@@ -1511,37 +1510,37 @@ key, a click, or a menu-item"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [external-packages]
-  '(menu-item "External Packages" menu-bar-help-extra-packages
-	      :help "Lisp packages distributed separately for use in Emacs"))
+  `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
+	      :help ,(purecopy "Lisp packages distributed separately for use in Emacs")))
 (define-key menu-bar-help-menu [find-emacs-packages]
-  '(menu-item "Find Emacs Packages" finder-by-keyword
-	      :help "Find packages and features by keyword"))
+  `(menu-item ,(purecopy "Find Emacs Packages") finder-by-keyword
+	      :help ,(purecopy "Find packages and features by keyword")))
 (define-key menu-bar-help-menu [more-manuals]
-  (list 'menu-item "More Manuals" menu-bar-manuals-menu))
+  `(menu-item ,(purecopy "More Manuals") menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-manual]
-  '(menu-item "Read the Emacs Manual" info-emacs-manual
-	      :help "Full documentation of Emacs features"))
+  `(menu-item ,(purecopy "Read the Emacs Manual") info-emacs-manual
+	      :help ,(purecopy "Full documentation of Emacs features")))
 (define-key menu-bar-help-menu [describe]
-  (list 'menu-item "Describe" menu-bar-describe-menu))
+  `(menu-item ,(purecopy "Describe") menu-bar-describe-menu))
 (define-key menu-bar-help-menu [search-documentation]
-  (list 'menu-item "Search Documentation" menu-bar-search-documentation-menu))
+  `(menu-item ,(purecopy "Search Documentation") menu-bar-search-documentation-menu))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
 (define-key menu-bar-help-menu [emacs-psychotherapist]
-  '(menu-item "Emacs Psychotherapist" doctor
-	      :help "Our doctor will help you feel better"))
+  `(menu-item ,(purecopy "Emacs Psychotherapist") doctor
+	      :help ,(purecopy "Our doctor will help you feel better")))
 (define-key menu-bar-help-menu [send-emacs-bug-report]
-  '(menu-item "Send Bug Report..." report-emacs-bug
-	      :help "Send e-mail to Emacs maintainers"))
+  `(menu-item ,(purecopy "Send Bug Report...") report-emacs-bug
+	      :help ,(purecopy "Send e-mail to Emacs maintainers")))
 (define-key menu-bar-help-menu [emacs-known-problems]
-  '(menu-item "Emacs Known Problems" view-emacs-problems
-	      :help "Read about known problems with Emacs"))
+  `(menu-item ,(purecopy "Emacs Known Problems") view-emacs-problems
+	      :help ,(purecopy "Read about known problems with Emacs")))
 (define-key menu-bar-help-menu [emacs-news]
-  '(menu-item "Emacs News" view-emacs-news
-	      :help "New features of this version"))
+  `(menu-item ,(purecopy "Emacs News") view-emacs-news
+	      :help ,(purecopy "New features of this version")))
 (define-key menu-bar-help-menu [emacs-faq]
-  '(menu-item "Emacs FAQ" view-emacs-FAQ
-	      :help "Frequently asked (and answered) questions about Emacs"))
+  `(menu-item ,(purecopy "Emacs FAQ") view-emacs-FAQ
+	      :help ,(purecopy "Frequently asked (and answered) questions about Emacs")))
 
 (defun help-with-tutorial-spec-language ()
   "Use the Emacs tutorial, specifying which language you want."
@@ -1549,12 +1548,12 @@ key, a click, or a menu-item"))
   (help-with-tutorial t))
 
 (define-key menu-bar-help-menu [emacs-tutorial-language-specific]
-  '(menu-item "Emacs Tutorial (choose language)..."
+  `(menu-item ,(purecopy "Emacs Tutorial (choose language)...")
 	      help-with-tutorial-spec-language
-	      :help "Learn how to use Emacs (choose a language)"))
+	      :help ,(purecopy "Learn how to use Emacs (choose a language)")))
 (define-key menu-bar-help-menu [emacs-tutorial]
-  '(menu-item "Emacs Tutorial" help-with-tutorial
-	      :help "Learn how to use Emacs"))
+  `(menu-item ,(purecopy "Emacs Tutorial") help-with-tutorial
+	      :help ,(purecopy "Learn how to use Emacs")))
 
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
@@ -1869,35 +1868,35 @@ Buffers menu is regenerated."
 
 (let ((map minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf ?\?]
-    (list 'menu-item "List Completions" 'minibuffer-completion-help
-	  :help "Display all possible completions"))
+    `(menu-item ,(purecopy "List Completions") 'minibuffer-completion-help
+	  :help ,(purecopy "Display all possible completions")))
   (define-key map [menu-bar minibuf space]
-    (list 'menu-item "Complete Word" 'minibuffer-complete-word
-	  :help "Complete at most one word"))
+    `(menu-item ,(purecopy "Complete Word") 'minibuffer-complete-word
+	  :help ,(purecopy "Complete at most one word")))
   (define-key map [menu-bar minibuf tab]
-    (list 'menu-item "Complete" 'minibuffer-complete
-	  :help "Complete as far as possible")))
+    `(menu-item ,(purecopy "Complete") 'minibuffer-complete
+	  :help ,(purecopy "Complete as far as possible"))))
 
 (let ((map minibuffer-local-map))
   (define-key map [menu-bar minibuf quit]
-    (list 'menu-item "Quit" 'abort-recursive-edit
-	  :help "Abort input and exit minibuffer"))
+    `(menu-item ,(purecopy "Quit") 'abort-recursive-edit
+	  :help ,(purecopy "Abort input and exit minibuffer")))
   (define-key map [menu-bar minibuf return]
-    (list 'menu-item "Enter" 'exit-minibuffer
+    `(menu-item ,(purecopy "Enter") 'exit-minibuffer
           :key-sequence "\r"
-	  :help "Terminate input and exit minibuffer"))
+	  :help ,(purecopy "Terminate input and exit minibuffer")))
   (define-key map [menu-bar minibuf isearch-forward]
-    (list 'menu-item "Isearch History Forward" 'isearch-forward
-	  :help "Incrementally search minibuffer history forward"))
+    `(menu-item ,(purecopy "Isearch History Forward") 'isearch-forward
+	  :help ,(purecopy "Incrementally search minibuffer history forward")))
   (define-key map [menu-bar minibuf isearch-backward]
-    (list 'menu-item "Isearch History Backward" 'isearch-backward
-	  :help "Incrementally search minibuffer history backward"))
+    `(menu-item ,(purecopy "Isearch History Backward") 'isearch-backward
+	  :help ,(purecopy "Incrementally search minibuffer history backward")))
   (define-key map [menu-bar minibuf next]
-    (list 'menu-item "Next History Item" 'next-history-element
-	  :help "Put next minibuffer history element in the minibuffer"))
+    `(menu-item ,(purecopy "Next History Item") 'next-history-element
+	  :help ,(purecopy "Put next minibuffer history element in the minibuffer")))
   (define-key map [menu-bar minibuf previous]
-    (list 'menu-item "Previous History Item" 'previous-history-element
-	  :help "Put previous minibuffer history element in the minibuffer")))
+    `(menu-item ,(purecopy "Previous History Item") 'previous-history-element
+	  :help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
 ;;;###autoload
 ;; This comment is taken from tool-bar.el near

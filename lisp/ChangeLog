@@ -1,5 +1,17 @@
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* menu-bar.el (menu-bar-file-menu, menu-bar-file-menu)
+	(menu-bar-i-search-menu, menu-bar-edit-menu, menu-bar-custom-menu)
+	(menu-bar-options-menu, menu-bar-showhide-menu)
+	(menu-bar-showhide-fringe-ind-menu, menu-bar-showhide-fringe-menu)
+	(menu-bar-showhide-scroll-bar-menu, menu-bar-showhide-menu)
+	(menu-bar-options-menu, menu-bar-line-wrapping-menu)
+	(menu-bar-options-menu, menu-bar-tools-menu)
+	(menu-bar-describe-menu, menu-bar-search-documentation-menu)
+	(menu-bar-help-menu):
+	(menu-bar-make-mm-toggle, menu-bar-make-toggle): Purecopy the
+	string arguments.
+
 	* ediff-hook.el (menu-bar-ediff-menu, menu-bar-ediff-merge-menu)
 	(menu-bar-epatch-menu, menu-bar-ediff-misc-menu): Add purecopy
 	calls for the menu names and :help.
