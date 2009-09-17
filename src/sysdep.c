@@ -432,6 +432,10 @@ wait_for_termination (pid)
 	sigpause (SIGEMPTYMASK);
 #else /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #ifdef POSIX_SIGNALS    /* would this work for GNU/Linux as well? */
+      int status;
+      int w;
+      /* XXX: can I replace this code without problems? --giuseppe
+
       sigblock (sigmask (SIGCHLD));
       errno = 0;
       if (kill (pid, 0) == -1 && errno == ESRCH)
@@ -441,6 +445,10 @@ wait_for_termination (pid)
 	}
 
       sigsuspend (&empty_mask);
+*/
+      w = waitpid (pid, &status, WUNTRACED | WCONTINUED);
+      if (w == -1 || WIFEXITED (w))
+        break;
 #else /* not POSIX_SIGNALS */
 #ifdef HAVE_SYSV_SIGPAUSE
       sighold (SIGCHLD);
