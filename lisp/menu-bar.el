@@ -287,7 +287,7 @@
 	      :help ,(purecopy "Search forward for a string as you type it")))
 
 (define-key menu-bar-search-menu [i-search]
-  `(menu-item ,(purecopy "Incremental Search") menu-bar-i-search-menu))
+  `(menu-item ,(purecopy "Incremental Search") ,menu-bar-i-search-menu))
 (define-key menu-bar-search-menu [separator-tag-isearch]
   `(menu-item ,(purecopy "--")))
 
@@ -426,13 +426,13 @@
 	      :help ,(purecopy "Read a line number and go to that line")))
 
 (define-key menu-bar-edit-menu [goto]
-  `(menu-item ,(purecopy "Go To") menu-bar-goto-menu))
+  `(menu-item ,(purecopy "Go To") ,menu-bar-goto-menu))
 
 (define-key menu-bar-edit-menu [replace]
-  `(menu-item ,(purecopy "Replace") menu-bar-replace-menu))
+  `(menu-item ,(purecopy "Replace") ,menu-bar-replace-menu))
 
 (define-key menu-bar-edit-menu [search]
-  `(menu-item ,(purecopy "Search") menu-bar-search-menu))
+  `(menu-item ,(purecopy "Search") ,menu-bar-search-menu))
 
 (define-key menu-bar-edit-menu [separator-search]
   `(menu-item ,(purecopy "--")))
@@ -659,7 +659,7 @@ by \"Save Options\" in Custom buffers.")
 
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
-  `(menu-item ,(purecopy "Customize Emacs") menu-bar-custom-menu))
+  `(menu-item ,(purecopy "Customize Emacs") ,menu-bar-custom-menu))
 
 (defun menu-bar-options-save ()
   "Save current values of Options menu items using Custom."
@@ -836,9 +836,9 @@ mail status in mode line"))
 	      :button (:radio . (eq indicate-buffer-boundaries nil))))
 
 (define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
-  `(menu-item ,(purecopy "Buffer Boundaries") menu-bar-showhide-fringe-ind-menu
-	      :visible `(display-graphic-p)
-	:help ,(purecopy "Indicate buffer boundaries in fringe")))
+  `(menu-item ,(purecopy "Buffer Boundaries") ,menu-bar-showhide-fringe-ind-menu
+	      :visible (display-graphic-p)
+	      :help ,(purecopy "Indicate buffer boundaries in fringe")))
 
 (define-key menu-bar-showhide-fringe-menu [indicate-empty-lines]
   (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
@@ -904,8 +904,8 @@ mail status in mode line"))
 	      :button (:radio . (eq fringe-mode 0))))
 
 (define-key menu-bar-showhide-menu [showhide-fringe]
-  `(menu-item ,(purecopy "Fringe") menu-bar-showhide-fringe-menu
-	:visible `(display-graphic-p)))
+  `(menu-item ,(purecopy "Fringe") ,menu-bar-showhide-fringe-menu
+	      :visible (display-graphic-p)))
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
@@ -948,14 +948,14 @@ mail status in mode line"))
   (customize-set-variable 'scroll-bar-mode nil))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
-  `(menu-item ,(purecopy "Scroll-bar") menu-bar-showhide-scroll-bar-menu
-	:visible `(display-graphic-p)))
+  `(menu-item ,(purecopy "Scroll-bar") ,menu-bar-showhide-scroll-bar-menu
+	      :visible (display-graphic-p)))
 
 (define-key menu-bar-showhide-menu [showhide-tooltip-mode]
-  `(menu-item ,(purecopy "Tooltips") 'tooltip-mode
-	:help ,(purecopy "Turn tooltips on/off")
-	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
-	:button `(:toggle . tooltip-mode)))
+  `(menu-item ,(purecopy "Tooltips") tooltip-mode
+	      :help ,(purecopy "Turn tooltips on/off")
+	      :visible (and (display-graphic-p) (fboundp 'x-show-tip))
+	      :button (:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   `(menu-item ,(purecopy "Menu-bar") toggle-menu-bar-mode-from-frame
@@ -963,13 +963,13 @@ mail status in mode line"))
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  `(menu-item ,(purecopy "Tool-bar") 'toggle-tool-bar-mode-from-frame
-	:help ,(purecopy "Turn tool-bar on/off")
-	:visible `(display-graphic-p)
-	:button `(:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
+  `(menu-item ,(purecopy "Tool-bar") toggle-tool-bar-mode-from-frame
+	      :help ,(purecopy "Turn tool-bar on/off")
+	      :visible (display-graphic-p)
+	      :button (:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
 
 (define-key menu-bar-options-menu [showhide]
-  `(menu-item ,(purecopy "Show/Hide") menu-bar-showhide-menu))
+  `(menu-item ,(purecopy "Show/Hide") ,menu-bar-showhide-menu))
 
 (define-key menu-bar-options-menu [showhide-separator]
   '("--"))
@@ -978,15 +978,15 @@ mail status in mode line"))
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
-  `(menu-item ,(purecopy "Mule (Multilingual Environment)") mule-menu-keymap
+  `(menu-item ,(purecopy "Mule (Multilingual Environment)") ,mule-menu-keymap
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
 ;;;	:visible '(default-value 'enable-multibyte-characters)
 	))
 ;(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 ;(define-key menu-bar-options-menu [preferences]
-;  `(menu-item ,(purecopy "Preferences") menu-bar-preferences-menu
-;	:help ,(purecopy "Toggle important global options")))
+;  `(menu-item ,(purecopy "Preferences") ,menu-bar-preferences-menu
+;	      :help ,(purecopy "Toggle important global options")))
 
 (define-key menu-bar-options-menu [mule-separator]
   '("--"))
@@ -1111,7 +1111,7 @@ mail status in mode line"))
 	      :enable (not (truncated-partial-width-window-p))))
 
 (define-key menu-bar-options-menu [line-wrapping]
-  `(menu-item ,(purecopy "Line Wrapping in this Buffer") menu-bar-line-wrapping-menu))
+  `(menu-item ,(purecopy "Line Wrapping in this Buffer") ,menu-bar-line-wrapping-menu))
 
 
 (define-key menu-bar-options-menu [highlight-separator]
@@ -1152,7 +1152,7 @@ mail status in mode line"))
 (defvar menu-bar-games-menu (make-sparse-keymap "Games"))
 
 (define-key menu-bar-tools-menu [games]
-  `(menu-item ,(purecopy "Games") menu-bar-games-menu))
+  `(menu-item ,(purecopy "Games") ,menu-bar-games-menu))
 
 (define-key menu-bar-tools-menu [separator-games]
   '("--"))
@@ -1201,7 +1201,7 @@ mail status in mode line"))
   (make-sparse-keymap "Encryption/Decryption"))
 
 (define-key menu-bar-tools-menu [encryption-decryption]
-  `(menu-item ,(purecopy "Encryption/Decryption") menu-bar-encryption-decryption-menu))
+  `(menu-item ,(purecopy "Encryption/Decryption") ,menu-bar-encryption-decryption-menu))
 
 (define-key menu-bar-tools-menu [separator-encryption-decryption]
   '("--"))
@@ -1280,17 +1280,13 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [directory-search]
   `(menu-item ,(purecopy "Directory Search") eudc-tools-menu))
 (define-key menu-bar-tools-menu [compose-mail]
-  `(list
-   'menu-item `(format "Send Mail (with %s)" (send-mail-item-name))
-   'compose-mail
-   :visible `(and mail-user-agent (not (eq mail-user-agent 'ignore)))
-   :help ,(purecopy "Send a mail message")))
+  `(menu-item (format "Send Mail (with %s)" (send-mail-item-name)) compose-mail
+	      :visible (and mail-user-agent (not (eq mail-user-agent 'ignore)))
+	      :help ,(purecopy "Send a mail message")))
 (define-key menu-bar-tools-menu [rmail]
-  `(list
-   'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
-   'menu-bar-read-mail
-   :visible `(and read-mail-command (not (eq read-mail-command 'ignore)))
-   :help ,(purecopy "Read your mail and reply to it")))
+  `(menu-item (format "Read Mail (with %s)" (read-mail-item-name)) menu-bar-read-mail
+	      :visible (and read-mail-command (not (eq read-mail-command 'ignore)))
+	      :help ,(purecopy "Read your mail and reply to it")))
 
 (defun menu-bar-read-mail ()
   "Read mail using `read-mail-command'."
@@ -1368,7 +1364,7 @@ mail status in mode line"))
 	      :help ,(purecopy "Keyboard layout for specific input method")))
 (define-key menu-bar-describe-menu [describe-language-environment]
   `(menu-item ,(purecopy "Describe Language Environment")
-	describe-language-environment-map))
+	      ,describe-language-environment-map))
 
 (define-key menu-bar-describe-menu [separator-desc-mule]
   '("--"))
@@ -1516,14 +1512,14 @@ key, a click, or a menu-item")))
   `(menu-item ,(purecopy "Find Emacs Packages") finder-by-keyword
 	      :help ,(purecopy "Find packages and features by keyword")))
 (define-key menu-bar-help-menu [more-manuals]
-  `(menu-item ,(purecopy "More Manuals") menu-bar-manuals-menu))
+  `(menu-item ,(purecopy "More Manuals") ,menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-manual]
   `(menu-item ,(purecopy "Read the Emacs Manual") info-emacs-manual
 	      :help ,(purecopy "Full documentation of Emacs features")))
 (define-key menu-bar-help-menu [describe]
-  `(menu-item ,(purecopy "Describe") menu-bar-describe-menu))
+  `(menu-item ,(purecopy "Describe") ,menu-bar-describe-menu))
 (define-key menu-bar-help-menu [search-documentation]
-  `(menu-item ,(purecopy "Search Documentation") menu-bar-search-documentation-menu))
+  `(menu-item ,(purecopy "Search Documentation") ,menu-bar-search-documentation-menu))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
 (define-key menu-bar-help-menu [emacs-psychotherapist]
@@ -1868,35 +1864,35 @@ Buffers menu is regenerated."
 
 (let ((map minibuffer-local-completion-map))
   (define-key map [menu-bar minibuf ?\?]
-    `(menu-item ,(purecopy "List Completions") 'minibuffer-completion-help
-	  :help ,(purecopy "Display all possible completions")))
+    `(menu-item ,(purecopy "List Completions") minibuffer-completion-help
+		:help ,(purecopy "Display all possible completions")))
   (define-key map [menu-bar minibuf space]
-    `(menu-item ,(purecopy "Complete Word") 'minibuffer-complete-word
-	  :help ,(purecopy "Complete at most one word")))
+    `(menu-item ,(purecopy "Complete Word") minibuffer-complete-word
+		:help ,(purecopy "Complete at most one word")))
   (define-key map [menu-bar minibuf tab]
-    `(menu-item ,(purecopy "Complete") 'minibuffer-complete
-	  :help ,(purecopy "Complete as far as possible"))))
+    `(menu-item ,(purecopy "Complete") minibuffer-complete
+		:help ,(purecopy "Complete as far as possible"))))
 
 (let ((map minibuffer-local-map))
   (define-key map [menu-bar minibuf quit]
-    `(menu-item ,(purecopy "Quit") 'abort-recursive-edit
-	  :help ,(purecopy "Abort input and exit minibuffer")))
+    `(menu-item ,(purecopy "Quit") abort-recursive-edit
+		:help ,(purecopy "Abort input and exit minibuffer")))
   (define-key map [menu-bar minibuf return]
-    `(menu-item ,(purecopy "Enter") 'exit-minibuffer
-          :key-sequence "\r"
-	  :help ,(purecopy "Terminate input and exit minibuffer")))
+    `(menu-item ,(purecopy "Enter") exit-minibuffer
+		:key-sequence "\r"
+		:help ,(purecopy "Terminate input and exit minibuffer")))
   (define-key map [menu-bar minibuf isearch-forward]
-    `(menu-item ,(purecopy "Isearch History Forward") 'isearch-forward
-	  :help ,(purecopy "Incrementally search minibuffer history forward")))
+    `(menu-item ,(purecopy "Isearch History Forward") isearch-forward
+		:help ,(purecopy "Incrementally search minibuffer history forward")))
   (define-key map [menu-bar minibuf isearch-backward]
-    `(menu-item ,(purecopy "Isearch History Backward") 'isearch-backward
-	  :help ,(purecopy "Incrementally search minibuffer history backward")))
+    `(menu-item ,(purecopy "Isearch History Backward") isearch-backward
+		:help ,(purecopy "Incrementally search minibuffer history backward")))
   (define-key map [menu-bar minibuf next]
-    `(menu-item ,(purecopy "Next History Item") 'next-history-element
-	  :help ,(purecopy "Put next minibuffer history element in the minibuffer")))
+    `(menu-item ,(purecopy "Next History Item") next-history-element
+		:help ,(purecopy "Put next minibuffer history element in the minibuffer")))
   (define-key map [menu-bar minibuf previous]
-    `(menu-item ,(purecopy "Previous History Item") 'previous-history-element
-	  :help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
+    `(menu-item ,(purecopy "Previous History Item") previous-history-element
+		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
 ;;;###autoload
 ;; This comment is taken from tool-bar.el near
