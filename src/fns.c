@@ -2741,7 +2741,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
   Finhibit_yield (Qt);
   record_unwind_protect (Finhibit_yield, Qnil);
   ret = Fyes_or_no1 (prompt);
-
+  Finhibit_yield (Qnil);
   unbind_to (count, Qnil);
   return ret;
 }
