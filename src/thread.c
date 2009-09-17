@@ -16,6 +16,8 @@ static struct thread_state *all_threads = &primary_thread;
 
 __thread struct thread_state *current_thread = &primary_thread;
 
+static int inhibit_yield_counter = 0;
+
 pthread_mutex_t global_lock;
 
 static void
@@ -95,6 +97,9 @@ unmark_threads (void)
 static void
 thread_yield_callback (char *end, void *ignore)
 {
+  if (inhibit_yield_counter)
+    return;
+
   current_thread->stack_top = end;
   pthread_mutex_unlock (&global_lock);
   sched_yield ();
@@ -279,6 +284,19 @@ user_thread_p (void)
   return 0;
 }
 
+DEFUN ("inhibit-yield", Finhibit_yield, Sinhibit_yield, 1, 1, 0,
+       doc: /* Inhibit the yield function. */)
+     (val)
+     Lisp_Object val;
+{
+  if (!EQ (val, Qnil))
+    inhibit_yield_counter++;
+  else if (inhibit_yield_counter > 0)
+    inhibit_yield_counter--;
+
+  return Qnil;
+}
+
 
 int
 other_threads_p (void)
@@ -299,4 +317,5 @@ syms_of_threads (void)
 {
   defsubr (&Srun_in_thread);
   defsubr (&Syield);
+  defsubr (&Sinhibit_yield);
 }
