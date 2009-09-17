@@ -1,5 +1,8 @@
 2009-09-17  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-form): Always check the function
+	arguments, whether or not it has a handler.
+
 	* ansi-color.el (ansi-color-get-face-1): Fix typo in handler.
 
 	* simple.el (hard-newline): Give it a doc-string.

@@ -2980,6 +2980,12 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		(memq bytecomp-fn byte-compile-interactive-only-functions)
 		(byte-compile-warn "`%s' used from Lisp code\n\
 That command is designed for interactive use only" bytecomp-fn))
+	   (when (byte-compile-warning-enabled-p 'callargs)
+	     (if (memq bytecomp-fn
+		       '(custom-declare-group custom-declare-variable
+					      custom-declare-face))
+		   (byte-compile-nogroup-warn form))
+	     (byte-compile-callargs-warn form))
 	   (if (and bytecomp-handler
                     ;; Make sure that function exists.  This is important
                     ;; for CL compiler macros since the symbol may be
@@ -2993,12 +2999,6 @@ That command is designed for interactive use only" bytecomp-fn))
                               (get (get bytecomp-fn 'byte-opcode)
 				   'emacs19-opcode))))
                (funcall bytecomp-handler form)
-	     (when (byte-compile-warning-enabled-p 'callargs)
-	       (if (memq bytecomp-fn
-			 '(custom-declare-group custom-declare-variable
-						custom-declare-face))
-		   (byte-compile-nogroup-warn form))
-	       (byte-compile-callargs-warn form))
 	     (byte-compile-normal-call form))
 	   (if (byte-compile-warning-enabled-p 'cl-functions)
 	       (byte-compile-cl-warn form))))
