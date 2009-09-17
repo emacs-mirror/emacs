@@ -12529,7 +12529,7 @@ run_window_scroll_functions (window, startp)
   SET_MARKER_FROM_TEXT_POS (w->start, startp);
 
   if (current_buffer != XBUFFER (w->buffer))
-    abort ();
+    set_buffer_internal_1 (XBUFFER (w->buffer));
 
   if (!NILP (Vwindow_scroll_functions))
     {
