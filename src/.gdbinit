@@ -136,7 +136,7 @@ end
 
 # Print out current buffer point and boundaries
 define ppt
-  set $b = current_buffer
+  set $b = current_thread->m_current_buffer
   set $t = $b->text
   printf "BUF PT: %d", $b->pt
   if ($b->pt != $b->pt_byte)
@@ -1123,7 +1123,7 @@ Print $ assuming it is a list font (font-spec, font-entity, or font-object).
 end
 
 define xbacktrace
-  set $bt = backtrace_list
+  set $bt = current_thread->m_backtrace_list
   while $bt
     xgettype (*$bt->function)
     if $type == Lisp_Symbol
@@ -1144,7 +1144,7 @@ define xbacktrace
   end
 end
 document xbacktrace
-  Print a backtrace of Lisp function calls from backtrace_list.
+  Print a backtrace of Lisp function calls from current_thread->m_backtrace_list.
   Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
 end
@@ -1158,7 +1158,7 @@ document which
 end
 
 define xbytecode
-  set $bt = byte_stack_list
+  set $bt = current_thread->m_byte_stack_list
   while $bt
     xgettype ($bt->byte_string)
     printf "0x%x => ", $bt->byte_string
@@ -1172,7 +1172,7 @@ end
 
 # Show Lisp backtrace after normal backtrace.
 define hookpost-backtrace
-  set $bt = backtrace_list
+  set $bt = current_thread->m_backtrace_list
   if $bt
     echo \n
     echo Lisp Backtrace:\n
