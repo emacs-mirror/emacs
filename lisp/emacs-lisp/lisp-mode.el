@@ -87,7 +87,8 @@
     (modify-syntax-entry ?\] "_   " table)
     (modify-syntax-entry ?# "' 14b" table)
     (modify-syntax-entry ?| "\" 23bn" table)
-    table))
+    table)
+  "Syntax table used in `lisp-mode'.")
 
 (defvar lisp-imenu-generic-expression
   (list

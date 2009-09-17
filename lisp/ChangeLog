@@ -4,7 +4,8 @@
 
 	* simple.el (hard-newline): Give it a doc-string.
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Give it a doc.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	(lisp-mode-syntax-table): Give them doc-strings.
 
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
