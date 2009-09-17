@@ -1,5 +1,7 @@
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* config.guess, config.sub: Updated from master source.
+
 	* configure.in (OTHER_FILES): Define using autoconf not cpp.
 
 2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
