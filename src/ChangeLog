@@ -1,3 +1,8 @@
+2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (x_get_resource_string): Re-add for non-toolkit builds
+	(bug#4461).
+
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1290000.
