@@ -584,8 +584,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
 
+
+  Finhibit_yield (Qt);
+  record_unwind_protect (Finhibit_yield, Qnil);
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
+
   /* We are exiting the minibuffer one way or the other, so run the hook.
      It should be run before unwinding the minibuf settings.  Do it
      separately from read_minibuf_unwind because we need to make sure that

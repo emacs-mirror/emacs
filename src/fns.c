@@ -78,6 +78,8 @@ static int internal_equal P_ ((Lisp_Object , Lisp_Object, int, int));
 extern long get_random ();
 extern void seed_random P_ ((long));
 
+static Lisp_Object Fyes_or_no1 (Lisp_Object prompt);
+
 #ifndef HAVE_UNISTD_H
 extern long time ();
 #endif
@@ -2732,6 +2734,20 @@ Under a windowing system a dialog box will be used if `last-nonmenu-event'
 is nil, and `use-dialog-box' is non-nil.  */)
      (prompt)
      Lisp_Object prompt;
+{
+  Lisp_Object ret;
+  int count = SPECPDL_INDEX ();
+
+  Finhibit_yield (Qt);
+  record_unwind_protect (Finhibit_yield, Qnil);
+  ret = Fyes_or_no1 (prompt);
+
+  unbind_to (count, Qnil);
+  return ret;
+}
+
+Lisp_Object
+Fyes_or_no1 (Lisp_Object prompt)
 {
   register Lisp_Object ans;
   Lisp_Object args[2];
