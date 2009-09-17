@@ -1,3 +1,7 @@
+2009-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (OTHER_FILES): Edit to empty.
+
 2009-09-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (bootstrap): Ensure enough environment space
