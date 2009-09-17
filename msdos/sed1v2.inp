@@ -46,6 +46,7 @@ s/\.h\.in/.h-in/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^OTHER_FILES *=/s/@OTHER_FILES@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^version *=/s/@[^@\n]*@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
