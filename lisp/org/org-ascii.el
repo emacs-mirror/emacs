@@ -27,6 +27,7 @@
 ;;; Commentary:
 
 (require 'org-exp)
+(eval-when-compile (require 'cl))
 
 (defgroup org-export-ascii nil
   "Options specific for ASCII export of Org-mode files."

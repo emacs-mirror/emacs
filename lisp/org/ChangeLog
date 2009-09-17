@@ -1,3 +1,7 @@
+2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-ascii.el: Require CL for the `loop' macro.
+
 2009-09-05  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
 	* org-gnus.el (require): Wrap (require gnus-sum) into
