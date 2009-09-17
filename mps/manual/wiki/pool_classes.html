@@ -54,11 +54,6 @@ etc etc
 You need mps_class_lo.
 </pre></blockquote>
   
-<p> For now, the closest we have to this is a survey from 1998 that 
-  still contains confidential material:
-  <a href="/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/">guide.mps.pool-classes by RIT</a>
-  <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>.</p>
-
 
 <h2>Some notes about MPS pool classes</h2>
 
@@ -234,7 +229,22 @@ You need mps_class_lo.
     <p>[Internal note: has a dummy chain: 2^32KiB 50%]</p>
   </dd>
 
+  <dt>PoolClassN</dt>
+  <dd><p>(This pool is not for MPS clients to use; it is for MPS developers).</p>
+    <p>PoolClassN is the "null pool class" -- it is an example, an empty template.
+      It has trivial implementations of all the necessary pool class methods.
+      It is intended as good starting point when implementing a new pool class.</p>
+  </dd>
 </dl>
+
+
+<h2> An old pool class catalogue </h2>
+
+<p> (Additonal historical material, not publically available: a survey from 1998 that 
+  still contains confidential material:
+  <a href="/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/">guide.mps.pool-classes by RIT</a>
+  <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>).</p>
+
 
 <h2>AWL: FindDependentMethod and format scan method</h2>
 
@@ -362,12 +372,13 @@ NULL.
                     How to choose the right pool class.
   2006-08-07  RHSK  AMC.
   2006-11-27  RHSK  Chains.
+  2009-09-17  RHSK  PoolClassN.
 </pre>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2006,2009 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
