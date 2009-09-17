@@ -1,3 +1,12 @@
+2009-09-17  Juri Linkov  <juri@jurta.org>
+
+	* menu-bar.el (menu-bar-search-menu, menu-bar-edit-menu)
+	(menu-bar-options-menu, menu-bar-showhide-fringe-menu)
+	(menu-bar-showhide-menu, menu-bar-tools-menu)
+	(menu-bar-describe-menu, menu-bar-help-menu)
+	(minibuffer-local-completion-map, minibuffer-local-map):
+	Fix list quoting.
+
 2009-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-form): Always check the function
