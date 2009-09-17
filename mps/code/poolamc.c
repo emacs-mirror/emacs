@@ -420,22 +420,27 @@ static amcGen amcSegGen(Seg seg)
 typedef struct PageRetStruct {
   Count pCond;     /* pages Condemned */
   Count pRet;      /* pages Retained (in place) */
+  /* Small */
   Count pCS;       /* pages Condemned in Small segments */
   Count pRS;       /* pages Retained in Small segments */
+  /* Medium */
   Count sCM;       /* segments Condemned: Medium */
                    /* ...= upper bound of how many extra pages it */
                    /*    would have cost, had we chosen to LSP-pad */
                    /*    all these segments. */
   Count pCM;       /* pages Condemned in Medium segments */
+  Count sRM;       /* segments Retained: Medium */
   Count pRM;       /* pages Retained in Medium segments: */
   Count pRM1;      /*   ...because obj 1 was preserved in place */
                    /*   ...because a rest obj was pip, causing: */
   Count pRMrr;     /*     ...retained rest pages (page where rest obj is) */
   Count pRMr1;     /*     ...retained obj 1 pages (purely NMR pad) */
+  /* Large */
   Count sCL;       /* segments Condemned: Large */
                    /* ...= upper bound of how many extra pages it */
                    /*    has cost to LSP-pad all these segments. */
   Count pCL;       /* pages Condemned in Large segments */
+  Count sRL;       /* segments Retained: Large */
   Count pRL;       /* pages Retained in Large segments */
   Count pRLr;      /*   ...because a rest obj (actually LSP) was pip */
 
@@ -467,6 +472,10 @@ typedef struct PageRetStruct {
    * we do not implement .large.lsp-no-retain.  But we do record the 
    * occurrence of pages retained by a ref to an LSP pad: pPLr.  A high 
    * pRLr => perhaps .large.lsp-no-retain should be implemented?
+   *
+   * If the mutator is causing a lot of page retention, then sRM/pRM
+   * and sRL/pRL should give some picture of the number of retained 
+   * objects and their average size.
    */
 } PageRetStruct;
 
@@ -2118,6 +2127,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       if(pages == 1) {
         amc->pageretstruct[trace->ti].pRS += pages;
       } else if(pages < PagesPerSegMediumLIMIT) {
+        amc->pageretstruct[trace->ti].sRM += 1;
         amc->pageretstruct[trace->ti].pRM += pages;
         if(obj1pip) {
           amc->pageretstruct[trace->ti].pRM1 += pages;
@@ -2128,6 +2138,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
           amc->pageretstruct[trace->ti].pRMr1 += pages - 1;
         }
       } else {
+        amc->pageretstruct[trace->ti].sRL += 1;
         amc->pageretstruct[trace->ti].pRL += pages;
         if(!obj1pip) {
           /* Seg retained by a rest obj */
@@ -2219,12 +2230,14 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       " $U", amc->pageretstruct[ti].pRS, ",",
       " $U", amc->pageretstruct[ti].sCM,
       " $U", amc->pageretstruct[ti].pCM,
+      " $U", amc->pageretstruct[ti].sRM,
       " $U", amc->pageretstruct[ti].pRM,
       " $U", amc->pageretstruct[ti].pRM1,
       " $U", amc->pageretstruct[ti].pRMrr,
       " $U", amc->pageretstruct[ti].pRMr1, ",",
       " $U", amc->pageretstruct[ti].sCL,
       " $U", amc->pageretstruct[ti].pCL,
+      " $U", amc->pageretstruct[ti].sRL,
       " $U", amc->pageretstruct[ti].pRL,
       " $U", amc->pageretstruct[ti].pRLr,
       " (page = $Ub, pRetMin $U)", ArenaAlign(pool->arena), pRetMin,
