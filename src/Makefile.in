@@ -630,7 +630,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
+ ${lispsource}/term/internal.elc
 
 #else
 #define MSDOS_SUPPORT
@@ -874,7 +875,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/mouse.elc \
   ../lisp/term/common-win.elc \
   ../lisp/term/x-win.elc \
-  ../lisp/term/pc-win.elc \
+  ../lisp/term/pc-win.elc ../lisp/term/internal.elc \
   ../lisp/term/ns-win.elc
 
 /* Construct full set of libraries to be linked.
