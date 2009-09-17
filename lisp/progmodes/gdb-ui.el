@@ -111,6 +111,8 @@
 ;;; Code:
 
 (require 'gud)
+(require 'json)
+(require 'bindat)
 
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
@@ -722,7 +724,10 @@ otherwise do not."
 	(gdb-enqueue-input
 	 (list "server interpreter mi \"-file-list-exec-source-files\"\n"
 	       'gdb-set-gud-minor-mode-existing-buffers-1)))
-    (setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-2))
+    (setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-2)
+    ; Needs GDB 7.0 onwards.
+    (gdb-enqueue-input
+     (list "server interpreter mi -enable-pretty-printing\n" 'ignore)))
 
   ;; Find source file and compilation directory here.
   ;; Works for C, C++, Fortran and Ada but not Java (GDB 6.4)
@@ -843,39 +848,29 @@ With arg, enter name of variable to be watched in the minibuffer."
 		`(lambda () (gdb-var-create-handler ,expr)))))))
       (message "gud-watch is a no-op in this mode."))))
 
-(defconst gdb-var-create-regexp
-  "name=\"\\(.*?\\)\",.*numchild=\"\\(.*?\\)\",\\(?:.*value=\\(\".*\"\\),\\)?.*type=\"\\(.*?\\)\"")
-
 (defun gdb-var-create-handler (expr)
-  (goto-char (point-min))
-  (if (re-search-forward gdb-var-create-regexp nil t)
-      (let ((var (list
-		  (match-string 1)
-		  (if (and (string-equal gdb-current-language "c")
-			   gdb-use-colon-colon-notation gdb-selected-frame)
-		      (setq expr (concat gdb-selected-frame "::" expr))
-		    expr)
-		  (match-string 2)
-		  (match-string 4)
-		  (if (match-string 3) (read (match-string 3)))
-		  nil gdb-frame-address)))
-	(push var gdb-var-list)
-	(speedbar 1)
-	(unless (string-equal
-		 speedbar-initial-expansion-list-name "GUD")
-	  (speedbar-change-initial-expansion-list "GUD"))
-	(unless (nth 4 var)
-	  (gdb-enqueue-input
-	   (list
-	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    'gdba)
-		(concat "server interpreter mi \"0-var-evaluate-expression "
-			(car var) "\"\n")
-	      (concat "0-var-evaluate-expression " (car var) "\n"))
-	      `(lambda () (gdb-var-evaluate-expression-handler
-			   ,(car var) nil))))))
-    (if (search-forward "Undefined command" nil t)
-	(message-box "Watching expressions requires GDB 6.0 onwards")
+  (let* ((result (gdb-json-partial-output)))
+    (if (not (bindat-get-field result 'msg))
+        (let*
+            ((has_more (bindat-get-field result 'has_more))
+	     (var
+              (list
+               (bindat-get-field result 'name)
+               (if (and (string-equal gdb-current-language "c")
+                        gdb-use-colon-colon-notation gdb-selected-frame)
+                   (setq expr (concat gdb-selected-frame "::" expr))
+                 expr)
+	       ;; Fake child for dynamic varobjs.
+	       (if (string-equal (bindat-get-field result 'has_more) "1")
+		   "1" (bindat-get-field result 'numchild))
+               (bindat-get-field result 'type)
+               (bindat-get-field result 'value)
+               nil)))
+	  (push var gdb-var-list)
+	  (speedbar 1)
+	  (unless (string-equal
+		   speedbar-initial-expansion-list-name "GUD")
+	    (speedbar-change-initial-expansion-list "GUD")))
       (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
@@ -993,7 +988,7 @@ type_changed=\".*?\".*?}")
 	(setcar (nthcdr 4 var) (match-string 2))
 	(gdb-var-update-1))))
 
-(defun gdb-var-delete-1 (varnum)
+(defun gdb-var-delete-1 (var varnum)
   (gdb-enqueue-input
    (list
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
@@ -1014,7 +1009,7 @@ type_changed=\".*?\".*?}")
 	     (varnum (car var)))
 	(if (string-match "\\." (car var))
 	    (message-box "Can only delete a root expression")
-	  (gdb-var-delete-1 varnum)))))
+	  (gdb-var-delete-1 var varnum)))))
 
 (defun gdb-var-delete-children (varnum)
   "Delete children of variable object at point from the speedbar."
@@ -1803,6 +1798,74 @@ happens to be appropriate."
 (defun gdb-clear-inferior-io ()
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
     (erase-buffer)))
+
+(defun gdb-jsonify-buffer (&optional fix-key fix-list)
+  "Prepare GDB/MI output in current buffer for parsing with `json-read'.
+
+Field names are wrapped in double quotes and equal signs are
+replaced with semicolons.
+
+If FIX-KEY is non-nil, strip all \"FIX-KEY=\" occurences from
+partial output. This is used to get rid of useless keys in lists
+in MI messages, e.g.: [key=.., key=..]. -stack-list-frames and
+-break-info are examples of MI commands which issue such
+responses.
+
+If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
+\"FIX-LIST=[..]\" prior to parsing. This is used to fix broken
+-break-info output when it contains breakpoint script field
+incompatible with GDB/MI output syntax."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "\\^done," nil t)
+    (replace-match "")
+    (re-search-forward "(gdb) \n" nil t)
+    (replace-match "")
+    (goto-char (point-min))
+    (when fix-key
+      (save-excursion
+        (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
+          (replace-match "" nil nil nil 1))))
+    ;; Emacs bug #3794
+    (when fix-list
+      (save-excursion
+        ;; Find positions of braces which enclose broken list
+        (while (re-search-forward (concat fix-list "={\"") nil t)
+          (let ((p1 (goto-char (- (point) 2)))
+                (p2 (progn (forward-sexp)
+                           (1- (point)))))
+            ;; Replace braces with brackets
+            (save-excursion
+              (goto-char p1)
+              (delete-char 1)
+              (insert "[")
+              (goto-char p2)
+              (delete-char 1)
+              (insert "]"))))))
+    (goto-char (point-min))
+    (insert "{")
+    ;; TODO: This breaks badly with foo= inside constants
+    (while (re-search-forward "\\([[:alpha:]-_]+\\)=" nil t)
+      (replace-match "\"\\1\":" nil nil))
+    (goto-char (point-max))
+    (insert "}")))
+
+(defun gdb-json-read-buffer (&optional fix-key fix-list)
+  "Prepare and parse GDB/MI output in current buffer with `json-read'.
+
+FIX-KEY and FIX-LIST work as in `gdb-jsonify-buffer'."
+  (gdb-jsonify-buffer fix-key fix-list)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((json-array-type 'list))
+      (json-read))))
+
+(defun gdb-json-partial-output (&optional fix-key fix-list)
+  "Prepare and parse gdb-partial-output-buffer with `json-read'.
+
+FIX-KEY and FIX-KEY work as in `gdb-jsonify-buffer'."
+  (with-current-buffer (gdb-get-buffer-create 'gdb-partial-output-buffer)
+    (gdb-json-read-buffer fix-key fix-list)))
 
 
 ;; One trick is to have a command who's output is always available in a buffer
@@ -3753,25 +3816,20 @@ from=\"\\(.*?\\)\"\\)")
       (concat "-var-list-children --all-values \"" varnum "\"\n"))
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
-(defconst gdb-var-list-children-regexp-1
-  "child={.*?name=\"\\(.+?\\)\".*?,exp=\"\\(.+?\\)\".*?,\
-numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
-\\(}\\|.*?,\\(type=\"\\(.+?\\)\"\\)?.*?}\\)")
-
 (defun gdb-var-list-children-handler-1 (varnum)
-  (goto-char (point-min))
-  (let ((var-list nil))
-    (catch 'child-already-watched
+  (let ((var-list nil)
+	(children (bindat-get-field (gdb-json-partial-output "child") 'children)))
+   (catch 'child-already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal varnum (car var))
 	    (progn
 	      (push var var-list)
-	      (while (re-search-forward gdb-var-list-children-regexp-1 nil t)
-		(let ((varchild (list (match-string 1)
-				      (match-string 2)
-				      (match-string 3)
-				      (match-string 7)
-				      (read (match-string 4))
+	      (dolist (child children)
+		(let ((varchild (list (bindat-get-field child 'name)
+				      (bindat-get-field child 'exp)
+				      (bindat-get-field child 'numchild)
+				      (bindat-get-field child 'type)
+				      (bindat-get-field child 'value)
 				      nil)))
 		  (if (assoc (car varchild) gdb-var-list)
 		      (throw 'child-already-watched nil))
@@ -3792,32 +3850,59 @@ numchild=\"\\(.+?\\)\".*?,value=\\(\"\"\\|\".*?[^\\]\"\\)\
 	  'gdb-var-update-handler-1))
 	(push 'gdb-var-update gdb-pending-triggers))))
 
-(defconst gdb-var-update-regexp-1
-  "{.*?name=\"\\(.*?\\)\".*?,\\(?:value=\\(\".*?\"\\),\\)?.*?\
-in_scope=\"\\(.*?\\)\".*?}")
-
+;; TODO New children of dynamic variable objects get printed in reverse order.
 (defun gdb-var-update-handler-1 ()
-  (dolist (var gdb-var-list)
-    (setcar (nthcdr 5 var) nil))
-  (goto-char (point-min))
-  (while (re-search-forward gdb-var-update-regexp-1 nil t)
-    (let* ((varnum (match-string 1))
-	   (var (assoc varnum gdb-var-list)))
-      (when var
-	(let ((match (match-string 3)))
-	  (cond ((string-equal match "false")
-		 (if gdb-delete-out-of-scope
-		     (gdb-var-delete-1 varnum)
-		   (setcar (nthcdr 5 var) 'out-of-scope)))
-		((string-equal match "true")
-		 (setcar (nthcdr 5 var) 'changed)
-		 (setcar (nthcdr 4 var)
-			 (read (match-string 2))))
-		((string-equal match "invalid")
-		 (gdb-var-delete-1 varnum)))))))
-      (setq gdb-pending-triggers
-	    (delq 'gdb-var-update gdb-pending-triggers))
-      (gdb-speedbar-update))
+  (let ((changelist (bindat-get-field (gdb-json-partial-output) 'changelist)))
+    (dolist (var gdb-var-list)
+      (setcar (nthcdr 5 var) nil))
+    (let ((temp-var-list gdb-var-list))
+      (dolist (change changelist)
+	(let* ((varnum (bindat-get-field change 'name))
+	       (var (assoc varnum gdb-var-list)))
+	  (when var
+	    (let ((scope (bindat-get-field change 'in_scope)))
+	      (cond ((string-equal scope "false")
+		     (if gdb-delete-out-of-scope
+			 (gdb-var-delete-1 var varnum)
+		       (setcar (nthcdr 5 var) 'out-of-scope)))
+		    ((and (string-equal scope "true")
+			  (string-equal (nth 2 var) "0"))
+		     ;; Fake a child to create an expanable node.
+		     (if (string-equal (bindat-get-field change 'has_more) "1")
+			 (setcar (nthcdr 2 var) "1")
+		       (setcar (nthcdr 5 var) 'changed)
+		       (setcar (nthcdr 4 var)
+			       (bindat-get-field change 'value))))
+		    ((string-equal scope "invalid")
+		     (gdb-var-delete-1 var varnum)))))
+	  (let ((var-list nil) var1
+		(new (bindat-get-field change 'new_num_children))
+		(children (bindat-get-field change 'new_children)))
+	    (if new
+		;; Add new children to list.
+		(progn
+		  (setq var1 (pop temp-var-list))
+		  (while var1
+		    (if (string-equal varnum (car var1))
+			(progn
+			  (push var1 var-list)
+			  (dotimes (dummy (- (string-to-number new) (length children)))
+			    (progn
+			      (push (pop temp-var-list) var-list)))
+			  (dolist (child children)
+			    (let ((varchild (list (bindat-get-field child 'name)
+						  (bindat-get-field child 'exp)
+						  (bindat-get-field child 'numchild)
+						  (bindat-get-field child 'type)
+						  (bindat-get-field child 'value)
+						  'changed)))
+			      (push varchild var-list))))
+		      (push var1 var-list))
+		    (setq var1 (pop temp-var-list)))
+		  (setq gdb-var-list (nreverse var-list)))))))))
+  (setq gdb-pending-triggers
+	(delq 'gdb-var-update gdb-pending-triggers))
+  (gdb-speedbar-update))
 
 ;; Registers buffer.
 ;;
