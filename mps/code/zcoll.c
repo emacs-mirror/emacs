@@ -703,6 +703,9 @@ int main(int argc, char **argv)
   /* 1<<19 == 524288 == 1/2 Mebibyte */
   /* 16<<20 == 16777216 == 16 Mebibyte */
 
+  /* 1<<19 == 524288 == 1/2 Mebibyte */
+  testscriptA("Arena(size 524288), Make(keep-1-in 5, keep 50000, rootspace 30000, sizemethod 1), Collect.");
+
   /* LSP -- Large Segment Padding (job001811)
    *
    * BigdropSmall creates a big object & drops ref to it, 

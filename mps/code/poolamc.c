@@ -14,8 +14,6 @@
 
 SRCID(poolamc, "$Id$");
 
-Size bigseg = 1UL << 20;
-
 Count PagesPerSegMediumLIMIT = 8;
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailboard */
@@ -89,24 +87,6 @@ typedef struct amcNailboardStruct {
 #define amcNailboardSig ((Sig)0x519A3C4B) /* SIGnature AMC Nailboard */
 
 
-/* PadStatsStruct
- * AMC Padding:
- * 1. remainder available, but request is too big for it;
- *  size of remainder, (size of request is not seen by BufferEmpty)
- * 2. large-segment-padding, to prevent remainder being used for small objects;
- *  size of large-segment-request, size of remainder
- * 3. pad replacing fwded object on boarded AMC seg.
- *  Cumulative: number of padded-out fwds; size of padded-out fwds.
- */
-struct PadStatsStruct {
-  Size cb1;       /* size of initial object */
-  Size BE_pad;    /* Buffer Empty (usually because request does not fit): pad size */
-  Size LSP_pad;   /* LSP (Large Segment Padding): pad size */
-  Size LSP_req;   /* LSP: (large) request size */
-  Size FwdR_pad;  /* FwdR: Forwards Reclaimed by pad on boarded seg */
-  Count FwdR_padCount;  /* FwdR: count */
-};
-
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
  * .segtype: logically, AMC segs should have pointers to: 
@@ -138,7 +118,6 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   int *segTypeP;            /* .segtype */
   Bool new;                 /* .seg-ramp-new */
-  struct PadStatsStruct padstats;
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
 
@@ -161,10 +140,6 @@ static Bool amcSegCheck(amcSeg amcseg)
   CHECKL(BoolCheck(amcseg->new));
   return TRUE;
 }
-
-
-/* static => init'd to zero */
-static struct PadStatsStruct padstats_Zero;
 
 
 /* AMCSegInit -- initialise an AMC segment */
@@ -190,7 +165,6 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size,
 
   amcseg->segTypeP = segtype; /* .segtype */
   amcseg->new = TRUE;
-  amcseg->padstats = padstats_Zero;  /* structure copy */
   amcseg->sig = amcSegSig;
   AVERT(amcSeg, amcseg);
 
@@ -368,16 +342,6 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream)
       return res;
   }
 
-  res = WriteF(stream,
-    "  BE_pad:   $W\n", amcseg->padstats.BE_pad,
-    "  LSP_pad:  $W\n", amcseg->padstats.LSP_pad,
-    "  LSP_req:  $W\n", amcseg->padstats.LSP_req,
-    "  FwdR_pad: $W  ", amcseg->padstats.FwdR_pad,
-    "  FwdR_padCount: $U\n", amcseg->padstats.FwdR_padCount,
-    NULL);
-  if(res != ResOK)
-    return res;
-
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, "  Sketch: $S\n", (WriteFS)abzSketch, NULL);
   if(res != ResOK)
@@ -522,18 +486,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   amcGen afterRampGen;     /* the generation after rampGen */
   unsigned rampCount;      /* <design/poolamc/#ramp.count> */
   int rampMode;            /* <design/poolamc/#ramp.mode> */
-
-  /* watching the efficiency of an in-progress trace */
-  STATISTIC_DECL(Count cSegsWhiten[TraceLIMIT]);  /* segs whitened */
-  STATISTIC_DECL(Count cSegsReclaim[TraceLIMIT]);  /* segs reclaimed */
-  STATISTIC_DECL(Count cPagesWhiten[TraceLIMIT]);
-  STATISTIC_DECL(Count cPagesReclaim[TraceLIMIT]);
-  STATISTIC_DECL(Count cPagesRet[TraceLIMIT]);
-
-  /* Medium segs */
-  STATISTIC_DECL(Count cbM1[TraceLIMIT]);
-  STATISTIC_DECL(Count cbMRestFreed[TraceLIMIT]);
-  STATISTIC_DECL(Count cbMPagesBarOneRRet[TraceLIMIT]);
 
   /* page retention in an in-progress trace */
   STATISTIC_DECL(PageRetStruct pageretstruct[TraceLIMIT]);
@@ -969,25 +921,6 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
 }
 
 
-static void amcResetTraceIdStats(AMC amc, TraceId ti)
-{
-  /* AVERT(AMC, amc); -- except when called during AMCInit */
-  AVER(TraceIdCheck(ti));
-
-  STATISTIC(amc->cSegsWhiten[ti] = 0);
-  STATISTIC(amc->cSegsReclaim[ti] = 0);
-  STATISTIC(amc->cPagesWhiten[ti] = 0);
-  STATISTIC(amc->cPagesReclaim[ti] = 0);
-  STATISTIC(amc->cPagesRet[ti] = 0);
-
-  STATISTIC(amc->cbM1[ti] = 0);
-  STATISTIC(amc->cbMRestFreed[ti] = 0);
-  STATISTIC(amc->cbMPagesBarOneRRet[ti] = 0);
-
-  STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
-}
-
-
 /* amcInitComm -- initialize AMC/Z pool
  *
  * See <design/poolamc/#init>.
@@ -1029,7 +962,7 @@ static Res amcInitComm(Pool pool, RankSet rankSet, va_list arg)
   amc->rampMode = RampOUTSIDE;
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
-    amcResetTraceIdStats(amc, ti);
+    STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
   if(pool->format->headerSize == 0) {
@@ -1180,7 +1113,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
-  AVER(size >  0);
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVERT(Bool, withReservoirPermit);
 
   gen = amcBufGen(buffer);
@@ -1200,6 +1134,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
                  &gen->type); /* .segtype */
   if(res != ResOK)
     return res;
+  AVER(alignedSize == SegSize(seg));
 
   /* <design/seg/#field.rankSet.start> */
   if(BufferRankSet(buffer) == RankSetEMPTY)
@@ -1221,8 +1156,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   PoolGenUpdateZones(&gen->pgen, seg);
 
-  (Seg2amcSeg(seg))->padstats.cb1 = size;
-
   base = SegBase(seg);
   *baseReturn = base;
   if(alignedSize < PagesPerSegMediumLIMIT * ArenaAlign(arena)) {
@@ -1238,18 +1171,12 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     AVER(limit <= SegLimit(seg));
     
     padSize = alignedSize - size;
-    DIAG_SINGLEF(( "AMCBufferFill_big", NULL ));
     AVER(SizeIsAligned(padSize, PoolAlignment(pool)));
     AVER(AddrAdd(limit, padSize) == SegLimit(seg));
     if(padSize > 0) {
       ShieldExpose(arena, seg);
       (*pool->format->pad)(limit, padSize);
       ShieldCover(arena, seg);
-      /* padstats */
-      AVER((Seg2amcSeg(seg))->padstats.LSP_pad == 0);
-      (Seg2amcSeg(seg))->padstats.LSP_pad = padSize;
-      AVER((Seg2amcSeg(seg))->padstats.LSP_req == 0);
-      (Seg2amcSeg(seg))->padstats.LSP_req = size;
     }
   }
   *limitReturn = limit;
@@ -1277,10 +1204,15 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
   AVER(init <= limit);
-  /* AVER(SegLimit(seg) == limit); -- job001811 */
-  AVER(limit <= SegLimit(seg));
 
   arena = BufferArena(buffer);
+  if(SegSize(seg) < PagesPerSegMediumLIMIT * ArenaAlign(arena)) {
+    /* Small or Medium segment: buffer had the entire seg. */
+    AVER(limit == SegLimit(seg));
+  } else {
+    /* Large segment: buffer had only the size requested; job001811. */
+    AVER(limit <= SegLimit(seg));
+  }
 
   /* <design/poolamc/#flush.pad> */
   size = AddrOffset(init, limit);
@@ -1288,9 +1220,6 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldExpose(arena, seg);
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
-    /* padstats */
-    AVER((Seg2amcSeg(seg))->padstats.BE_pad == 0);
-    (Seg2amcSeg(seg))->padstats.BE_pad = size;
   }
 }
 
@@ -1362,39 +1291,7 @@ static void AMCRampEnd(Pool pool, Buffer buf)
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
  */
-static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg);
 static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
-{
-  Res res;
-  Size segSize;
-  Addr base;
-  char abzSketch[5];
-  char abzSketchAfter[5];
-  Bool condemned;
-  
-  segSize = SegSize(seg);
-  base = SegBase(seg);
-  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
-
-  AVER(!TraceSetIsMember(SegWhite(seg), trace)); /* from trace.c#start.black */
-  
-  res = AMCWhiten_inner(pool, trace, seg);
-
-  AMCSegSketch(seg, abzSketchAfter, NELEMS(abzSketchAfter));
-  condemned = TraceSetIsMember(SegWhite(seg), trace);
-
-  if(segSize >= bigseg)
-    DIAG_SINGLEF(( "AMCWhiten",
-      "  segSize: $W\n", segSize,
-      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(pool->arena, base),
-      "  sketch: $S\n", abzSketch,
-      "  sketchAfter: $S\n", abzSketchAfter,
-      "  condemned?: $S", condemned ? "Condemned" : "not condemned",
-      NULL ));
-  
-  return res;
-}
-static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
 {
   amcGen gen;
   AMC amc;
@@ -1468,9 +1365,6 @@ static Res AMCWhiten_inner(Pool pool, Trace trace, Seg seg)
 
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
-
-  STATISTIC(amc->cSegsWhiten[trace->ti] += 1);
-  STATISTIC(amc->cPagesWhiten[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
 
   STATISTIC_STAT( {
     Count pages;
@@ -1876,14 +1770,6 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         return res;
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-      if(SegSize(seg) >= bigseg) {
-        DIAG_SINGLEF(( "AMCFix_amcSegCreateNailboard",
-          "  segSize: $W\n", SegSize(seg),
-          "  segBase: $A, zone: $U\n", (WriteFA)SegBase(seg), AddrZone(pool->arena, SegBase(seg)),
-          "  ref: $A\n", (WriteFA)*refIO,
-          "  &ref: $A\n", (WriteFA)refIO,
-          NULL ));
-      }
     }
     amcFixInPlace(pool, seg, ss, refIO);
     return ResOK;
@@ -2034,11 +1920,6 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         return res;
       ++ss->nailCount;
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
-      DIAG_SINGLEF(( "AMCHeaderFix_amcSegCreateNailboard",
-        "  segBase: $A, zone: $U\n", (WriteFA)SegBase(seg), AddrZone(pool->arena, SegBase(seg)),
-        "  ref: $A\n", (WriteFA)*refIO,
-        "  &ref: $A\n", (WriteFA)refIO,
-        NULL ));
     }
     amcFixInPlace(pool, seg, ss, refIO);
     return ResOK;
@@ -2143,42 +2024,6 @@ returnRes:
 
 static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 {
-  /* Diagnostics for padding:
-   *
-   * Hopefully we're only interested in big segments: those that 
-   * are much bigger than MPS default segsize of 1 page (usually 4096 
-   * bytes).
-   *
-   * To avoid having to be stateful, we can simply emit diag for 
-   * trace start, and for each big seg we see in the trace.
-   *
-   * We want to:
-   *   - see the large amount of padding being created;
-   *   - know exactly how much padding was created
-   *     (to correlate -- or not -- with GR's printHeapSummary report);
-   *   - get an idea of size distribution;
-   *   - understand _why_ it had to be padded, not freed.
-   *
-   * But we may not see the padding being created: if not, we want to 
-   * know why not.  So clock the segments into the trace (Whiten) as 
-   * well as out of it (Reclaim).
-   *
-   * Why seg not freed?  Must have been non-mobile, and not freed 
-   * because of a nail on the start of an object.  (Which could be a 
-   * cli, pad, or fwd).
-   *  - Why is the seg nailed in the first place?  There was an ambig 
-   *    ref into it.
-   *  - Why was it not freed?  There was an ambig ref apparently to 
-   *    the start of an object on it.
-   */
-  
-  Size segSize;
-  Addr base;
-  char abzSketch[5];
-  Count Npip = 0, Npad = 0;
-  char cond[4];
-  Bool freed = FALSE;
-
   Addr p, limit;
   Arena arena;
   Format format;
@@ -2187,8 +2032,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   Size preservedInPlaceSize = (Size)0;
   AMC amc;
   Size headerSize;
-
-  Index sizeclass = 0;
   Addr p1;  /* first obj in seg */
   Bool obj1pip = FALSE;  /* first obj was preserved in place */
 
@@ -2200,14 +2043,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-
-  segSize = SegSize(seg);
-  sizeclass =
-    segSize < ArenaAlign(arena) ? 1 :
-    segSize < PagesPerSegMediumLIMIT * ArenaAlign(arena) ? 2 :
-    3;
-  base = SegBase(seg);
-  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   /* see <design/poolamc/#nailboard.limitations> for improvements */
   headerSize = format->headerSize;
@@ -2232,23 +2067,16 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         /* somewhat overstated. */
         : (*format->isMoved)(p) != NULL)
     {
-      Npad += 1;
+      /* Replace forwarding pointer / unreachable object with pad */
       (*format->pad)(AddrSub(p, headerSize), length);
       bytesReclaimed += length;
-      /* padstats */
-      (Seg2amcSeg(seg))->padstats.FwdR_pad += length;
-      (Seg2amcSeg(seg))->padstats.FwdR_padCount += 1;
     } else {
-      Npip += 1;
       ++preservedInPlaceCount;
       preservedInPlaceSize += length;
+      if(p == p1)
+        obj1pip = TRUE;
     }
     
-    if(p == p1) {
-      obj1pip = preservedInPlaceCount;
-      AVER(obj1pip == 0 || obj1pip == 1);
-    }
-
     AVER(p < q);
     p = q;
   }
@@ -2267,11 +2095,6 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceSize += preservedInPlaceSize;
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
-  /* (char) casts needed for VC6.0 compiler on platform.w3i3mv */
-  cond[0] = (char)((preservedInPlaceCount == 0) ? 'E' : 'e');
-  cond[1] = (char)((SegBuffer(seg) == NULL) ? 'b' : 'B');
-  cond[2] = (char)((SegNailed(seg) == TraceSetEMPTY) ? 'n' : 'N');
-  cond[3] = '\0';
   if(preservedInPlaceCount == 0
      && (SegBuffer(seg) == NULL)
      && (SegNailed(seg) == TraceSetEMPTY)) {
@@ -2283,10 +2106,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
 
     --gen->segs;
     gen->pgen.totalSize -= SegSize(seg);
-    if(sizeclass == 2)
-      STATISTIC(amc->cbMRestFreed[trace->ti] += SegSize(seg) - (Seg2amcSeg(seg))->padstats.cb1);
     SegFree(seg);
-    freed = TRUE;
   } else {
     /* Seg retained */
     STATISTIC_STAT( {
@@ -2316,25 +2136,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       }
     } );
 
-    STATISTIC(amc->cPagesRet[trace->ti] += segSize / ArenaAlign(pool->arena));
-    if(!obj1pip) {
-      /* seg retained by ref into Rest */
-      Count cbPagesBarOne = SegSize(seg) - ArenaAlign(pool->arena);
-      if(sizeclass == 2)
-        STATISTIC(amc->cbMPagesBarOneRRet[trace->ti] += cbPagesBarOne);
-    }
   }
-
-  if(segSize >= bigseg)
-    DIAG_SINGLEF(( "amcReclaimNailed",
-      "  segSize: $W\n", segSize,
-      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(arena, base),
-      "  sketch: $S\n", abzSketch,
-      "  Npip: $U, Npad: $U\n", Npip, Npad,
-      "  cbpip: $W, cbpad: $W\n", preservedInPlaceSize, bytesReclaimed,
-      "  cond: $S (empty? buffered? nailed?)\n", cond,
-      "  freed?: $S", freed ? "Freed" : "preserved",
-      NULL ));
 }
 
 
@@ -2344,14 +2146,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
  */
 static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 {
-  Size segSize;
-  Addr base;
-  char abzSketch[5];
-
   AMC amc;
   amcGen gen;
   Size size;
-  Index sizeclass = 0;
 
   AVERT_CRITICAL(Pool, pool);
   amc = Pool2AMC(pool);
@@ -2363,15 +2160,6 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   AVERT_CRITICAL(amcGen, gen);
 
   EVENT_PPP(AMCReclaim, gen, trace, seg);
-
-  STATISTIC(amc->cSegsReclaim[trace->ti] += 1);
-  STATISTIC(amc->cPagesReclaim[trace->ti] += SegSize(seg) / ArenaAlign(pool->arena));
-  sizeclass =
-    SegSize(seg) < ArenaAlign(pool->arena) ? 1 :
-    SegSize(seg) < PagesPerSegMediumLIMIT * ArenaAlign(pool->arena) ? 2 :
-    3;
-  if(sizeclass == 2)
-    STATISTIC(amc->cbM1[trace->ti] += (Seg2amcSeg(seg))->padstats.cb1);
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
@@ -2388,10 +2176,6 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
     amcReclaimNailed(pool, trace, seg);
     return;
   }
-  
-  segSize = SegSize(seg);
-  base = SegBase(seg);
-  AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
@@ -2402,18 +2186,8 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   gen->pgen.totalSize -= size;
 
   trace->reclaimSize += size;
-  if(sizeclass == 2)
-    STATISTIC(amc->cbMRestFreed[trace->ti] += size - (Seg2amcSeg(seg))->padstats.cb1);
 
   SegFree(seg);
-
-  if(segSize >= bigseg)
-    DIAG_SINGLEF(( "AMCReclaim_Mobile",
-      "  segSize: $W\n", segSize,
-      "  segBase: $A, zone: $U\n", (WriteFA)base, AddrZone(pool->arena, base),
-      "  sketch: $S\n", abzSketch,
-      "  Freed.",
-      NULL ));
 }
 
 
@@ -2425,7 +2199,6 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   AMC amc;
   TraceId ti;
   Count pRetMin = 100;
-  Count perc;
   
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -2433,35 +2206,8 @@ static void AMCTraceEnd(Pool pool, Trace trace)
   amc = Pool2AMC(pool);
   AVERT(AMC, amc);
   ti = trace->ti;
-  
-  DIAG_SINGLEF(( "AMCTraceEnd",
-      "  pool: $P\n", pool,
-      "  cSegsWhiten: $U\n",  amc->cSegsWhiten[ti],
-      "  cSegsReclaim: $U\n", amc->cSegsReclaim[ti],
-      "  cPagesWhiten: $U\n",  amc->cPagesWhiten[ti],
-      "  cPagesReclaim: $U\n", amc->cPagesReclaim[ti],
-      "  cPagesRet: $U\n", amc->cPagesRet[ti],
-      NULL ));
-  
-  if(amc->cPagesReclaim[ti] >= 10) {
-    perc = (100 * amc->cPagesRet[ti]) / amc->cPagesReclaim[ti];
-    DIAG_SINGLEF(( "AMCTraceEnd_perc",
-      "  of pages condemned, $U / $U retained by ambiguous refs = $U%\n", 
-      amc->cPagesRet[ti], amc->cPagesReclaim[ti], perc,
-      NULL ));
-    
-  }
-  if(amc->cbM1[ti] >= 1 * ArenaAlign(pool->arena)) {
-    DIAG_SINGLEF(( "AMCTraceEnd_pad_med",
-      "  Medium segs (2 .. $U pages) -- after multi-page initial object ('1'), we choose to _use_ rest of seg:\n",
-      PagesPerSegMediumLIMIT - 1,
-      "    Space Gained (seg was not retained, so use of rest was okay) = extra $U% (of size of all '1' objs);\n",
-      (100 * amc->cbMRestFreed[ti]) / amc->cbM1[ti],
-      "    Extra Space Retained (use of rest caused multi-page seg to be retained) = $U% (of size of all '1' objs).\n",
-      (100 * amc->cbMPagesBarOneRRet[ti]) / amc->cbM1[ti],
-      NULL ));
-  }
-  
+  AVER(TraceIdCheck(ti));
+
   if(amc->pageretstruct[ti].pRet >= pRetMin) {
     DIAG_SINGLEF(( "AMCTraceEnd_pageret",
       " $U", ArenaEpoch(pool->arena),
@@ -2485,7 +2231,7 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       NULL ));
   }
 
-  amcResetTraceIdStats(amc, ti);
+  STATISTIC(amc->pageretstruct[ti] = pageretstruct_Zero);
 }
 
 
@@ -2627,33 +2373,6 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
     }
   }
 
-  if(1) {
-    struct PadStatsStruct padstats = padstats_Zero;
-    struct PadStatsStruct padsegs = padstats_Zero;
-    RING_FOR(node, &AMC2Pool(amc)->segRing, nextNode) {
-      Seg seg = RING_ELT(Seg, poolRing, node);
-      amcSeg amcseg = Seg2amcSeg(seg);
-      padstats.BE_pad += amcseg->padstats.BE_pad;
-      padstats.LSP_pad += amcseg->padstats.LSP_pad;
-      padstats.LSP_req += amcseg->padstats.LSP_req;
-      padstats.FwdR_pad += amcseg->padstats.FwdR_pad;
-      padstats.FwdR_padCount += amcseg->padstats.FwdR_padCount;
-
-      padsegs.BE_pad += (amcseg->padstats.BE_pad == 0) ? 0 : 1;
-      padsegs.LSP_pad += (amcseg->padstats.LSP_pad == 0) ? 0 : 1;
-      padsegs.FwdR_pad += (amcseg->padstats.FwdR_pad == 0) ? 0 : 1;
-    }
-    res = WriteF(stream,
-      "  PoolSum-BE_pad:   $W   ($U segs)\n", padstats.BE_pad, padsegs.BE_pad,
-      "  PoolSum-LSP_pad:  $W   ($U segs)\n", padstats.LSP_pad, padsegs.LSP_pad,
-      "  PoolSum-LSP_req:  $W\n", padstats.LSP_req,
-      "  PoolSum-FwdR_pad: $W   ($U segs)  ", padstats.FwdR_pad, padsegs.FwdR_pad,
-      "  PoolSum-FwdR_padCount: $U\n", padstats.FwdR_padCount,
-      NULL);
-    if(res != ResOK)
-      return res;
-  }
-
   res = WriteF(stream, "} AMC $P\n", (WriteFP)amc, NULL);
   if(res != ResOK)
     return res;
@@ -2790,6 +2509,7 @@ static Bool AMCCheck(AMC amc)
   /* nothing to check for rampCount */
   CHECKL(amc->rampMode >= RampOUTSIDE);
   CHECKL(amc->rampMode <= RampCOLLECTING);
+  /* pageretstruct[ti] is statistics only, currently unchecked */
 
   return TRUE;
 }

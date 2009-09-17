@@ -69,9 +69,6 @@
 #define CONFIG_STATS
 /* no telemetry log events */
 
-/* @@@@ TEMPORARY: diagnostics in CI, please.  RHSK 2009-04-03 */
-#define DIAG_WITH_STREAM_AND_WRITEF
-
 #elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
 #define CONFIG_ASSERT
 /* ... let PRODUCT determine CHECKLEVEL_INITIAL */
@@ -306,8 +303,8 @@
 /* Diagnostics Buffer */
 
 #ifdef DIAG_WITH_STREAM_AND_WRITEF
-/* DIAG_BUFFER_SIZE: 10 screenfuls: 10x80x25 = 20000 */
-#define DIAG_BUFFER_SIZE      ((Size)220000)
+/* DIAG_BUFFER_SIZE: 100 screenfuls: 100x80x25 = 200000 */
+#define DIAG_BUFFER_SIZE      ((Size)200000)
 #else
 #define DIAG_BUFFER_SIZE      ((Size)1)
 #endif
