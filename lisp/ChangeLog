@@ -1,3 +1,10 @@
+2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (push, pop, dolist, dotimes, declare): Don't overwrite CL's
+	extended definitions, in case we reload subr.el after having
+	loaded CL.
+	(eval-next-after-load): Mark as obsolete.
+
 2009-09-17  Juri Linkov  <juri@jurta.org>
 
 	* menu-bar.el (menu-bar-search-menu, menu-bar-edit-menu)

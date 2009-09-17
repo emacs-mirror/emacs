@@ -119,13 +119,17 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+(unless (featurep 'cl)
+  ;; If we reload subr.el after having loaded CL, be careful not to
+  ;; overwrite CL's extended definition of `dolist', `dotimes',
+  ;; `declare', `push' and `pop'.
 (defmacro push (newelt listname)
   "Add NEWELT to the list stored in the symbol LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
   (declare (debug (form sexp)))
   (list 'setq listname
-	(list 'cons newelt listname)))
+        (list 'cons newelt listname)))
 
 (defmacro pop (listname)
   "Return the first element of LISTNAME's value, and remove it from the list.
@@ -134,8 +138,8 @@ If the value is nil, `pop' returns nil but does not actually
 change the list."
   (declare (debug (sexp)))
   (list 'car
-	(list 'prog1 listname
-	      (list 'setq listname (list 'cdr listname)))))
+        (list 'prog1 listname
+              (list 'setq listname (list 'cdr listname))))))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
@@ -155,6 +159,10 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
+(unless (featurep 'cl)
+  ;; If we reload subr.el after having loaded CL, be careful not to
+  ;; overwrite CL's extended definition of `dolist', `dotimes',
+  ;; `declare', `push' and `pop'.
 (defvar --dolist-tail-- nil
   "Temporary variable used in `dolist' expansion.")
 
@@ -206,7 +214,7 @@ the return value (nil if RESULT is omitted).
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
-  nil)
+  nil))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
@@ -726,8 +734,8 @@ in a cleaner way with command remapping, like this:
 
 ;;;; The global keymap tree.
 
-;;; global-map, esc-map, and ctl-x-map have their values set up in
-;;; keymap.c; we just give them docstrings here.
+;; global-map, esc-map, and ctl-x-map have their values set up in
+;; keymap.c; we just give them docstrings here.
 
 (defvar global-map nil
   "Default global keymap mapping Emacs keyboard input into commands.
@@ -1702,6 +1710,7 @@ This function is called directly from the C code."
 This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
+(make-obsolete 'eval-next-after-load `eval-after-load "23.2")
 
 ;;;; Process stuff.
 
