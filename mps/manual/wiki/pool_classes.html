@@ -116,7 +116,7 @@ You need mps_class_lo.
     weak.  A client might want a weak-key strong-value table, or a
     strong-key weak-value table (or in fact weak-key weak-value).  For
     example, Java's <a
-    href"http://java.sun.com/j2se/1.4.2/docs/api/java/util/WeakHashMap.html">java.util.WeakHashMap</a>
+    href="http://java.sun.com/j2se/1.4.2/docs/api/java/util/WeakHashMap.html">java.util.WeakHashMap</a>
     class.
     </p>
 
@@ -224,7 +224,7 @@ You need mps_class_lo.
     objects that contain weak references).  Example:</p>
 
     <pre>
-    if(MPS_RES_OK != mps_ap_create(&weakap, tablepool, MPS_RANK_WEAK) {
+    if(MPS_RES_OK != mps_ap_create(&amp;weakap, tablepool, MPS_RANK_WEAK) {
       /* Error. */
       ...
     }
