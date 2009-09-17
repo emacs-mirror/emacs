@@ -45,7 +45,8 @@ mark_one_thread (struct thread_state *thread)
   }
 #endif
 
-  mark_byte_stack (thread->m_byte_stack_list);
+  if (thread->m_byte_stack_list)
+    mark_byte_stack (thread->m_byte_stack_list);
 
   mark_catchlist (thread->m_catchlist);
 
@@ -91,7 +92,8 @@ unmark_threads (void)
   struct thread_state *iter;
 
   for (iter = all_threads; iter; iter = iter->next_thread)
-    unmark_byte_stack (iter->m_byte_stack_list);
+    if (iter->m_byte_stack_list)
+      unmark_byte_stack (iter->m_byte_stack_list);
 }
 
 static void
