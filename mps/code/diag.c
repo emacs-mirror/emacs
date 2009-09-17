@@ -28,27 +28,10 @@ typedef struct RuleStruct {
 /* RulesGlobal -- throw away some diags (see INSTRUCTIONS below) */
 
 struct RuleStruct RulesGlobal[] = {
-  { "+", "*", "*", "*" },
+  { "-", "*", "*", "*" },
+  { "-", "DiagFilter_Rules", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
-  { "+", "DiagFilter_Rules", "*", "*" },
-  { "+", "AMCWhiten", "*", "*" },
-  { "+", "AMCFix_amcSegCreateNailboard", "*", "*" },
-  { "+", "AMCHeaderFix_amcSegCreateNailboard", "*", "*" },
-  { "+", "AMCReclaim_Mobile", "*", "*" },
-  { "+", "amcReclaimNailed", "*", "*" },
-  { "+", "TraceStart", "*", "because code " },
-  { "+", "TraceStart", "*", "reserved" },
-  { "+", "TraceStart", "*", "committed" },
-  { "+", "TraceStart", "*", "alignment" },
-  { "+", "TraceStart", "*", "genZoneSet" },
-  { "-", "*", "*", "*" },
-  { "+", "TraceStart", "*", "  PoolSum-" },
-  { "+", "TraceStart", "*", "MutatorSize " }, /* fillMutatorSize, emptyMutatorSize, fillInternalSize, emptyInternalSize */
-  { "+", "TraceStart", "*", "   segs" }, /* amcGen 0..N segs 3, totalSize 49152, newSize 0 */
-  { "-", "*", "*", "*" },
   { "+", "AMCTraceEnd_pageret", "*", "*" },
-  { "-", "AMCTraceEnd_perc", "*", "*" },
-  { "-", "AMCTraceEnd_pad_med", "*", "*" },
   /* ----v---- always on please (RHSK) ----v---- */
   { "+", "traceSetSignalEmergency", "*", "*" },
   { NULL, "", "", "" }
@@ -56,6 +39,7 @@ struct RuleStruct RulesGlobal[] = {
 
 struct RuleStruct RulesGlobalExample[] = {
   { "+", "*", "*", "*" },
+  { "+", "DiagFilter_Rules", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
   { "+", "ChainCondemnAuto", "gens [0..0]", "*" },
   { "+", "TraceStart", "*", "*" },

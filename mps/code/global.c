@@ -982,12 +982,8 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
-    if(pool->class->name[0] ==    'A'
-       && pool->class->name[1] == 'M'
-       && pool->class->name[2] == 'C') {
-      res = PoolDescribe(pool, stream);
-      if (res != ResOK) return res;
-    }
+    res = PoolDescribe(pool, stream);
+    if (res != ResOK) return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
