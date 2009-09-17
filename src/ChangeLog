@@ -1,3 +1,10 @@
+2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1290000.
+
+	* Makefile.in (OTHER_FILES): Define using autoconf, not cpp.
+	(OBJECTS_MACHINE): Remove, unused.
+
 2009-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (x_get_resource_string): Remove unused.

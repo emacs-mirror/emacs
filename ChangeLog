@@ -1,3 +1,7 @@
+2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (OTHER_FILES): Define using autoconf not cpp.
+
 2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* .dir-locals.el (change-log-mode): Restore bug-reference-mode.

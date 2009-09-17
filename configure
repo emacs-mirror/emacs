@@ -764,6 +764,7 @@ GNUSTEP_SYSTEM_HEADERS
 GNUSTEP_SYSTEM_LIBRARIES
 GNU_OBJC_CFLAGS
 LIB_SRC_EXTRA_INSTALLABLES
+OTHER_FILES
 LTLIBOBJS'
 ac_subst_files=''
 ac_user_opts='
@@ -15615,6 +15616,7 @@ _ACEOF
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
+  OTHER_FILES=ns-app
 fi
 
 

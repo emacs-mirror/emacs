@@ -1064,7 +1064,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
-#define OTHER_FILES ns-app
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 /* FIXME: are all these flags really needed?  Document here why.  */
