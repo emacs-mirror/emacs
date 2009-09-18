@@ -10329,10 +10329,13 @@ will read just one key sequence.  */)
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
+  Finhibit_yield (Qt);
+  record_unwind_protect (Finhibit_yield, Qnil);
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 prompt, ! NILP (dont_downcase_last),
 			 ! NILP (can_return_switch_frame), 0);
+  Finhibit_yield (Qnil);
 
 #if 0  /* The following is fine for code reading a key sequence and
 	  then proceeding with a lenghty computation, but it's not good
