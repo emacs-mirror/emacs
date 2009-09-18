@@ -87,28 +87,28 @@
 
 <h3> Small, Medium, and Large Segments </h3>
 
-<p>AMC categorises segments as "<b>small</b>" (1 page), "<b>medium</b>" (several pages), or "<b>large</b>" (> PagesPerSegMediumLIMIT pages):</p>
+<p>AMC categorises segments as "<b>small</b>" (1 page), "<b>medium</b>" (several pages), or "<b>large</b>" (>= AMCLargeSegPAGES pages):</p>
 
 <blockquote><pre><code>      pages = SegSize(seg) / ArenaAlign(arena);
       if(pages == 1) {
         /* small */
-      } else if(pages &lt; PagesPerSegMediumLIMIT) {
+      } else if(pages &lt; AMCLargeSegPAGES) {
         /* medium */
       } else {
         /* large */
       }</code></pre></blockquote>
 
-<p>PagesPerSegMediumLIMIT is currently 8 -- see "The LSP payoff calculation" below.</p>
+<p>AMCLargeSegPAGES is currently 8 -- see "The LSP payoff calculation" below.</p>
 
 <p>AMC might treat "Large" segments specially, in two ways:</p>
 <ul>
-  <li>.large.single-reserve: A large segment is used only for a single (large) buffer reserve request; the remainder of the segment (if any) is immediately padded with an LSP pad.</li>
+  <li>.large.single-reserve: A large segment is only used for a single (large) buffer reserve request; the remainder of the segment (if any) is immediately padded with an LSP pad.</li>
   <li>.large.lsp-no-retain: Nails to such an LSP pad do not cause AMCReclaimNailed to retain the segment.</li>
 </ul>
 
-<p>.large.single-reserve is implemented by job001811.</p>
+<p>.large.single-reserve is implemented.  See job001811.</p>
 
-<p>Note: .large.lsp-no-retain is <strong>NOT</strong> currently implemented.</p>
+<p>.large.lsp-no-retain is <strong>NOT</strong> currently implemented.</p>
 
 <p>The point of .large.lsp-no-retain would be to avoid retention of the (large) segment when there is a spurious ambiguous reference to the LSP pad at the end of the segment.  Such an ambiguous reference might happen naturally and repeatably if the preceding large object is an array, the array is accessed by an ambiguous element pointer (eg. on the stack), and the element pointer ends up pointing just off the end of the large object (as is normal for sequential element access in C) and remains with that value for a while.  (Such an ambiguous reference could also occur by chance, eg. by coincidence with an int or float, or when the stack grows to include old unerased values). </p>
 
@@ -123,9 +123,9 @@
 
 <p>For large segments, we decide that the risk of using the remainder is just too great, and the benefit too small, so we throw it away as an LSP pad.  This is equivalent to purchasing insurance: we choose to pay a known small cost every time, to avoid risking an occasional disaster.</p>
 
-<p>To decide what size of segment counts as "large", we must decide how much uninsured risk we can tolerate, versus how much insurance cost we can tolerate.  The likelihood of ambiguous references retaining objects is entirely dependent on client behaviour.  However, as a sufficient 'one size fits all' policy, I have judged that segments smaller than 8 pages long do not need to be treated as large: the insurance cost to 'play safe' would be considerable (wasting up to 1 page of remainder per 7 pages of allocation), and the fragmentation overhead risk is not that great (at most 8 times worse than the unavoidable minimum).  As long as the assumption that most segments are not ambiguously referenced remains correct, I expect this policy will be satisfactory.</p>
+<p>To decide what size of segment counts as "large", we must decide how much uninsured risk we can tolerate, versus how much insurance cost we can tolerate.  The likelihood of ambiguous references retaining objects is entirely dependent on client behaviour.  However, as a sufficient 'one size fits all' policy, I have judged that segments smaller than 8 pages long do not need to be treated as large: the insurance cost to 'play safe' would be considerable (wasting up to 1 page of remainder per 7 pages of allocation), and the fragmentation overhead risk is not that great (at most 8 times worse than the unavoidable minimum).  So AMCLargeSegPAGES is defined as 8 in config.h.  As long as the assumption that most segments are not ambiguously referenced remains correct, I expect this policy will be satisfactory.</p>
 
-<p>To verify that this threshold is acceptable for a given client, poolamc.c calculates metrics; see "Feedback about retained pages" below.</p>
+<p>To verify that this threshold is acceptable for a given client, poolamc.c calculates metrics; see "Feedback about retained pages" below.  If this one-size-fits-all approach is not satisfactory, AMCLargeSegPAGES could be made a client-tunable parameter.</p>
 
 
 <h2> Retained pages </h2>
@@ -146,7 +146,7 @@
 
 <h3>Feedback about retained pages</h3>
 
-<p>(New with job001811).  AMC now accumulates counts of pages condemned and retained during a trace, in categories according to size and reason for retention, and emits diagnostic at trace-end via the pool->class->traceEnd metchod.  See comments on the PageRetStruct in poolamc.c.  These page-based metrics are not as precise as actually counting the size of objects, but they require much less intrusive code to implement, and should be sufficient to assess whether AMC's page retention policies and behaviour are acceptable.</p>
+<p>(New with job001811).  AMC now accumulates counts of pages condemned and retained during a trace, in categories according to size and reason for retention, and emits diagnostic at trace-end via the pool->class->traceEnd method.  See comments on the PageRetStruct in poolamc.c.  These page-based metrics are not as precise as actually counting the size of objects, but they require much less intrusive code to implement, and should be sufficient to assess whether AMC's page retention policies and behaviour are acceptable.</p>
 
 <hr />
 
