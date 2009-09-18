@@ -3851,7 +3851,6 @@ from=\"\\(.*?\\)\"\\)")
 	  'gdb-var-update-handler-1))
 	(push 'gdb-var-update gdb-pending-triggers))))
 
-;; TODO New children of dynamic variable objects get printed in reverse order.
 (defun gdb-var-update-handler-1 ()
   (let ((changelist (bindat-get-field (gdb-json-partial-output) 'changelist)))
     (dolist (var gdb-var-list)
