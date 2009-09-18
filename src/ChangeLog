@@ -2,7 +2,7 @@
 
 	* emacs.c (inhibit_x_resources): Update doc string for NS.
 	(main) [HAVE_NS]: Don't process --no-init-file option.  Remove
-	legacy code for -NXHost.
+	legacy code for -NXHost.  Fix error printf in daemon case.
 
 	* nsterm.h (ns_no_defaults): Remove.
 
