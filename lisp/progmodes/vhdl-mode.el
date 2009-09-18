@@ -4648,7 +4648,7 @@ releases.  You are kindly invited to participate in beta testing.  Subscribe
 to above mailing lists by sending an email to <reto@gnu.org>.
 
 VHDL Mode is officially distributed at
-http://opensource.ethz.ch/emacs/vhdl-mode.html
+URL `http://opensource.ethz.ch/emacs/vhdl-mode.html'
 where the latest version can be found.
 
 
@@ -15152,7 +15152,8 @@ is already shown in a buffer."
     (let ((buffer (get-file-buffer (car token))))
       (speedbar-find-file-in-frame (car token))
       (when (or vhdl-speedbar-jump-to-unit buffer)
-	(goto-line (cdr token))
+	(goto-char (point-min))
+	(forward-line (1- (cdr token)))
 	(recenter))
       (vhdl-speedbar-update-current-unit t t)
       (speedbar-set-timer dframe-update-speed)
@@ -15170,7 +15171,8 @@ is already shown in a buffer."
 	      (let ((token (get-text-property
 			    (match-beginning 3) 'speedbar-token)))
 		(vhdl-visit-file (car token) t
-				 (progn (goto-line (cdr token))
+				 (progn (goto-char (point-min))
+					(forward-line (1- (cdr token)))
 					(end-of-line)
 					(if is-entity
 					    (vhdl-port-copy)
@@ -15919,7 +15921,8 @@ current project/directory."
     ;; insert component declarations
     (while ent-alist
       (vhdl-visit-file (nth 2 (car ent-alist)) nil
-		       (progn (goto-line (nth 3 (car ent-alist)))
+		       (progn (goto-char (point-min))
+			      (forward-line (1- (nth 3 (car ent-alist))))
 			      (end-of-line)
 			      (vhdl-port-copy)))
       (goto-char component-pos)
@@ -16979,7 +16982,7 @@ to visually support naming conventions.")
     (princ (documentation-property variable 'variable-documentation))
     (with-current-buffer standard-output
       (help-mode))
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 (defun vhdl-doc-mode ()
   "Display VHDL Mode documentation in *Help* buffer."
@@ -16993,7 +16996,7 @@ to visually support naming conventions.")
     (princ (documentation 'vhdl-mode))
     (with-current-buffer standard-output
       (help-mode))
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -111,14 +111,30 @@ and type 2 is the list (HIGH LOW MICRO)."
 	      (timezone-make-date-arpa-standard date)))
     (error (error "Invalid date: %s" date))))
 
-;;;###autoload
-(defun time-to-seconds (time)
-  "Convert time value TIME to a floating point number.
-You can use `float-time' instead."
-  (with-decoded-time-value ((high low micro time))
-    (+ (* 1.0 high 65536)
-       low
-       (/ micro 1000000.0))))
+;; Bit of a mess.  Emacs has float-time since at least 21.1.
+;; This file is synced to Gnus, and XEmacs packages may have been written
+;; using time-to-seconds from the Gnus library.
+;;;###autoload(if (and (fboundp 'float-time)
+;;;###autoload         (subrp (symbol-function 'float-time)))
+;;;###autoload    (progn
+;;;###autoload      (defalias 'time-to-seconds 'float-time)
+;;;###autoload      (make-obsolete 'time-to-seconds 'float-time "21.1"))
+;;;###autoload  (autoload 'time-to-seconds "time-date"))
+
+(eval-and-compile
+  (unless (and (fboundp 'float-time)
+	       (subrp (symbol-function 'float-time)))
+    (defun time-to-seconds (time)
+      "Convert time value TIME to a floating point number."
+      (with-decoded-time-value ((high low micro time))
+	(+ (* 1.0 high 65536)
+	   low
+	   (/ micro 1000000.0))))))
+
+(eval-when-compile
+  (unless (fboundp 'with-no-warnings)
+    (defmacro with-no-warnings (&rest body)
+      `(progn ,@body))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
@@ -242,10 +258,17 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
        (- (/ (1- year) 100))		;	- century years
        (/ (1- year) 400))))		;	+ Gregorian leap years
 
-(defun time-to-number-of-days (time)
-  "Return the number of days represented by TIME.
+(eval-and-compile
+  (if (and (fboundp 'float-time)
+	   (subrp (symbol-function 'float-time)))
+      (defun time-to-number-of-days (time)
+	"Return the number of days represented by TIME.
 The number of days will be returned as a floating point number."
-  (/ (time-to-seconds time) (* 60 60 24)))
+	(/ (float-time time) (* 60 60 24)))
+    (defun time-to-number-of-days (time)
+      "Return the number of days represented by TIME.
+The number of days will be returned as a floating point number."
+      (/ (with-no-warnings (time-to-seconds time)) (* 60 60 24)))))
 
 ;;;###autoload
 (defun safe-date-to-time (date)

@@ -1,7 +1,7 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-;;    Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -941,7 +941,7 @@ IDL has currently stepped.")
    Info documentation for this package is available.  Use \\[idlwave-info]
    to display (complain to your sysadmin if that does not work).
    For Postscript and HTML versions of the documentation, check IDLWAVE's
-   homepage at `http://idlwave.org'.
+   homepage at URL `http://idlwave.org'.
    IDLWAVE has customize support - see the group `idlwave'.
 
 8. Keybindings
@@ -2317,7 +2317,8 @@ used.  Does nothing if the resulting frame is nil."
    (frame
     (set-buffer (idlwave-find-file-noselect (car frame) 'shell))
     (widen)
-    (goto-line (nth 1 frame)))))
+    (goto-char (point-min))
+    (forward-line (1- (nth 1 frame))))))
 
 (defun idlwave-shell-pc-frame ()
   "Returns the frame for IDL execution."
@@ -2388,8 +2389,8 @@ matter what the settings of that variable."
           (set-buffer buffer)
           (save-restriction
             (widen)
-            (goto-line (nth 1 frame))
-	    (forward-line 0)
+            (goto-char (point-min))
+            (forward-line (1- (nth 1 frame)))
             (setq pos (point))
 	    (setq idlwave-shell-is-stopped t)
 
@@ -2789,7 +2790,8 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     (or (not bp-line) (funcall closer-func cur-line bp-line)))
 	    (setq bp-line cur-line))))
     (unless bp-line (error "No further breakpoints"))
-    (goto-line bp-line)))
+    (goto-char (point-min))
+    (forward-line (1- bp-line))))
 
 ;; Examine Commands ------------------------------------------------------
 

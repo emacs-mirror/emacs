@@ -22,21 +22,26 @@ For each step, check for possible errors.
     For a pretest, start at version .90.  After .99, use .990 (so that
     it sorts).
 
-5.  rm configure; autoconf
+    If needed, increment the value of the variable
+    `customize-changed-options-previous-release' in cus-edit.el to
+    refer to a newer release of Emacs.  (This is probably needed only
+    when preparing a major Emacs release, or branching for it.)
+
+5.   rm configure; autoconf
 
     Patch configure: See
     http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00851.html
 
-    make bootstrap
+     make bootstrap
 
 6.  Commit configure, README, doc/emacs/emacs.texi,
-    doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el,    
-    nt/emacs.rc.  Copy lisp/loaddefs.el to
+    doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el, nt/emacs.rc,
+    and lisp/cus-edit.el (if modified).  Copy lisp/loaddefs.el to
     lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.  For a release,
     also commit the ChangeLog files in all directories.
 
 7.   make-dist --snapshot.  Check the contents of the new tar with
-     admin/diff-tar-files against an older tar file.  Some old pretest
+    admin/diff-tar-files against an older tar file.  Some old pretest
     tarballs are kept under fencepost.gnu.org:~pot/emacs-pretest/, while
     old emacs tarballs are at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
 
@@ -75,6 +80,10 @@ For each step, check for possible errors.
 
     After doing this, increase the version number on the trunk as per
     step 4.
+
+    Also, open a Savannah support request asking for commits to the
+    new branch to be sent to the emacs-diffs mailing list (by default,
+    the list normally only gets commits to the trunk).
 
 11. Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your

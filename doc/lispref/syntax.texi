@@ -418,12 +418,17 @@ not a syntax table.
 
 @deffn Command modify-syntax-entry char syntax-descriptor  &optional table
 This function sets the syntax entry for @var{char} according to
-@var{syntax-descriptor}.  The syntax is changed only for @var{table},
-which defaults to the current buffer's syntax table, and not in any
-other syntax table.  The argument @var{syntax-descriptor} specifies the
-desired syntax; this is a string beginning with a class designator
-character, and optionally containing a matching character and flags as
-well.  @xref{Syntax Descriptors}.
+@var{syntax-descriptor}.  @var{char} can be a character, or a cons
+cell of the form @code{(@var{min} . @var{max})}; in the latter case,
+the function sets the syntax entries for all characters in the range
+between @var{min} and @var{max}, inclusive.
+
+The syntax is changed only for @var{table}, which defaults to the
+current buffer's syntax table, and not in any other syntax table.  The
+argument @var{syntax-descriptor} specifies the desired syntax; this is
+a string beginning with a class designator character, and optionally
+containing a matching character and flags as well.  @xref{Syntax
+Descriptors}.
 
 This function always returns @code{nil}.  The old syntax information in
 the table for this character is discarded.
@@ -723,9 +728,12 @@ buffer is modified without obeying the hook, such as when using
 @code{inhibit-modification-hooks}.  For this reason, it is sometimes
 necessary to flush the cache manually.
 
-@defun syntax-ppss-flush-cache beg
-This function flushes the cache used by @code{syntax-ppss}, starting at
-position @var{beg}.
+@defun syntax-ppss-flush-cache beg &rest ignored-args
+This function flushes the cache used by @code{syntax-ppss}, starting
+at position @var{beg}.  The remaining arguments, @var{ignored-args},
+are ignored; this function accepts them so that it can be directly
+used on hooks such as @code{before-change-functions} (@pxref{Change
+Hooks}).
 @end defun
 
   Major modes can make @code{syntax-ppss} run faster by specifying
@@ -1163,12 +1171,15 @@ of the set.
 @end example
 @end defun
 
-@defun modify-category-entry character category &optional table reset
-This function modifies the category set of @var{character} in category
+@defun modify-category-entry char category &optional table reset
+This function modifies the category set of @var{char} in category
 table @var{table} (which defaults to the current buffer's category
-table).
+table).  @var{char} can be a character, or a cons cell of the form
+@code{(@var{min} . @var{max})}; in the latter case, the function
+modifies the category sets of all characters in the range between
+@var{min} and @var{max}, inclusive.
 
-Normally, it modifies the category set by adding @var{category} to it.
+Normally, it modifies a category set by adding @var{category} to it.
 But if @var{reset} is non-@code{nil}, then it deletes @var{category}
 instead.
 @end defun

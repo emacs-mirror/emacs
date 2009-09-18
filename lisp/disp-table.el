@@ -216,14 +216,11 @@ X frame."
 (defun standard-display-european (arg)
   "Semi-obsolete way to toggle display of ISO 8859 European characters.
 
-This function is semi-obsolete; if you want to do your editing with
-unibyte characters, it is better to `set-language-environment' coupled
-with either the `--unibyte' option or the EMACS_UNIBYTE environment
-variable, or else customize `enable-multibyte-characters'.
+This function is semi-obsolete; you probably don't need it, or else you
+probably should use `set-language-environment' or `set-locale-environment'.
 
-With prefix argument, this command enables European character display
-if ARG is positive, disables it otherwise.  Otherwise, it toggles
-European character display.
+This function enables European character display if ARG is positive,
+disables it if negative.  Otherwise, it toggles European character display.
 
 When this mode is enabled, characters in the range of 160 to 255
 display not as octal escapes, but as accented characters.  Codes 146
@@ -231,10 +228,9 @@ and 160 display as apostrophe and space, even though they are not the
 ASCII codes for apostrophe and space.
 
 Enabling European character display with this command noninteractively
-from Lisp code also selects Latin-1 as the language environment, and
-selects unibyte mode for all Emacs buffers \(both existing buffers and
-those created subsequently).  This provides increased compatibility
-for users who call this function in `.emacs'."
+from Lisp code also selects Latin-1 as the language environment.
+This provides increased compatibility for users who call this function
+in `.emacs'."
 
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)

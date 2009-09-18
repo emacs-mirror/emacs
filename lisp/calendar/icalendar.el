@@ -896,7 +896,7 @@ Finto iCalendar file: ")
     (icalendar-export-region (point-min) (point-max) ical-filename)))
 
 (defalias 'icalendar-convert-diary-to-ical 'icalendar-export-file)
-(make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file)
+(make-obsolete 'icalendar-convert-diary-to-ical 'icalendar-export-file "22.1")
 
 (defvar icalendar--uid-count 0
   "Auxiliary counter for creating unique ids.")
@@ -1781,7 +1781,7 @@ buffer `*icalendar-errors*'."
       nil)))
 
 (defalias 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer)
-(make-obsolete 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer)
+(make-obsolete 'icalendar-extract-ical-from-buffer 'icalendar-import-buffer "22.1")
 
 (defun icalendar--format-ical-event (event)
   "Create a string representation of an iCalendar EVENT."

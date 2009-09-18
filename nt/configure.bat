@@ -546,6 +546,7 @@ echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp

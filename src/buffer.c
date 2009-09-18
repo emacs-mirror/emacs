@@ -1921,12 +1921,14 @@ set_buffer_internal_1 (b)
 
   for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
     {
-      valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-      if ((BUFFER_LOCAL_VALUEP (valcontents))
+      if (CONSP (XCAR (tail))
+	  && SYMBOLP (XCAR (XCAR (tail)))
+	  && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
+	      (BUFFER_LOCAL_VALUEP (valcontents)))
 	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	/* Just reference the variable
-	     to cause it to become set for this buffer.  */
+	/* Just reference the variable to cause it to become set for
+	   this buffer.  */
 	Fsymbol_value (XCAR (XCAR (tail)));
     }
 
@@ -1935,12 +1937,14 @@ set_buffer_internal_1 (b)
   if (old_buf)
     for (tail = old_buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
       {
-	valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-	if ((BUFFER_LOCAL_VALUEP (valcontents))
+	if (CONSP (tail)
+	    && SYMBOLP (XCAR (XCAR (tail)))
+	    && (valcontents = SYMBOL_VALUE (XCAR (XCAR (tail))),
+		(BUFFER_LOCAL_VALUEP (valcontents)))
 	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
-	  /* Just reference the variable
-               to cause it to become set for this buffer.  */
+	  /* Just reference the variable to cause it to become set for
+	     this buffer.  */
 	  Fsymbol_value (XCAR (XCAR (tail)));
       }
 }
@@ -2653,18 +2657,19 @@ static void
 swap_out_buffer_local_variables (b)
      struct buffer *b;
 {
-  Lisp_Object oalist, alist, sym, tem, buffer;
+  Lisp_Object oalist, alist, sym, buffer;
 
   XSETBUFFER (buffer, b);
   oalist = b->local_var_alist;
 
   for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
-      sym = XCAR (XCAR (alist));
-
-      /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer;
-      if (EQ (tem, buffer))
+      if (CONSP (XCAR (alist))
+	  && (sym = XCAR (XCAR (alist)), SYMBOLP (sym))
+	  /* Need not do anything if some other buffer's binding is
+	     now encached.  */
+	  && EQ (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer,
+		 buffer))
 	{
 	  /* Symbol is set up for this buffer's old local value:
 	     swap it out!  */
@@ -5699,19 +5704,20 @@ A string is printed verbatim in the mode line except for %-constructs:
 Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode,
-		     doc: /* *Major mode for new buffers.  Defaults to `fundamental-mode'.
-A value of nil means use current buffer's major mode,
-provided it is not marked as "special".
-
-When a mode is used by default, `find-file' switches to it
-before it reads the contents into the buffer and before
-it finishes setting up the buffer.  Thus, the mode and
-its hooks should not expect certain variables such as
-`buffer-read-only' and `buffer-file-coding-system' to be set up.  */);
+		     doc: /* *Value of `major-mode' for new buffers.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode,
 		     make_number (Lisp_Symbol),
-		     doc: /* Symbol for current buffer's major mode.  */);
+		     doc: /* Symbol for current buffer's major mode.
+The default value (normally `fundamental-mode') affects new buffers.
+A value of nil means to use the current buffer's major mode, provided
+it is not marked as "special".
+
+When a mode is used by default, `find-file' switches to it before it
+reads the contents into the buffer and before it finishes setting up
+the buffer.  Thus, the mode and its hooks should not expect certain
+variables such as `buffer-read-only' and `buffer-file-coding-system'
+to be set up.  */);
 
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      Qnil,
@@ -5854,7 +5860,12 @@ Backing up is done before the first time the file is saved.  */);
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
 		     make_number (Lisp_Int),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
-0 initially.  */);
+0 initially.
+-1 means auto-saving turned off until next real save.
+
+If you set this to -2, that means don't turn off auto-saving in this buffer
+if its text size shrinks.   If you use `buffer-swap-text' on a buffer,
+you probably should set this to -2 in that buffer.  */);
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,
@@ -6246,7 +6257,8 @@ cursor's appearance is instead controlled by the variable
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
-The space is measured in pixels, and put below lines on window systems.
+The space is measured in pixels, and put below lines on graphic displays,
+see `display-graphic-p'.
 If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  A value of nil means add no extra space.  */);
 

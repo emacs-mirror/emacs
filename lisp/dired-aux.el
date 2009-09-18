@@ -1,4 +1,4 @@
-;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
+;;; dired-aux.el --- less commonly used parts of dired
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
 ;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
@@ -2427,15 +2427,21 @@ with the command \\[tags-loop-continue]."
 If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
 true then the type of the file linked to by FILE is printed instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
-  (with-temp-buffer
-    (if deref-symlinks
-	(call-process "file" nil t t "-L" "--" file)
-      (call-process "file" nil t t "--" file))
-    (when (bolp)
-      (backward-delete-char 1))
-    (message "%s" (buffer-string))))
+  (let (process-file-side-effects)
+    (with-temp-buffer
+      (if deref-symlinks
+	  (process-file "file" nil t t "-L" "--" file)
+	(process-file "file" nil t t "--" file))
+      (when (bolp)
+	(backward-delete-char 1))
+      (message "%s" (buffer-string)))))
 
 (provide 'dired-aux)
+
+;; Local Variables:
+;; byte-compile-dynamic: t
+;; generated-autoload-file: "dired.el"
+;; End:
 
 ;; arch-tag: 4b508de9-a153-423d-8d3f-a1bbd86f4f60
 ;;; dired-aux.el ends here

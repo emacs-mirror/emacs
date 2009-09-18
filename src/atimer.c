@@ -452,7 +452,7 @@ turn_on_atimers (on)
 void
 init_atimer ()
 {
-  free_atimers = atimers = NULL;
+  free_atimers = stopped_atimers = atimers = NULL;
   pending_atimers = 0;
   /* pending_signals is initialized in init_keyboard.*/
   signal (SIGALRM, alarm_signal_handler);

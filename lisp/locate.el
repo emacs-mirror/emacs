@@ -1,7 +1,7 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -107,8 +107,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'dired))
+(require 'dired)
 
 ;; Variables
 
@@ -363,31 +362,22 @@ except that FILTER is not optional."
   (goto-char (point-min))
   (keep-lines filter))
 
-(defvar locate-mode-map nil
+(defvar locate-mode-map
+  (let ((map (copy-keymap dired-mode-map)))
+    ;; Undefine Useless Dired Menu bars
+    (define-key map [menu-bar Dired]   'undefined)
+    (define-key map [menu-bar subdir]  'undefined)
+    (define-key map [menu-bar mark executables] 'undefined)
+    (define-key map [menu-bar mark directory]   'undefined)
+    (define-key map [menu-bar mark directories] 'undefined)
+    (define-key map [menu-bar mark symlinks]    'undefined)
+    (define-key map [M-mouse-2] 'locate-mouse-view-file)
+    (define-key map "\C-c\C-t"  'locate-tags)
+    (define-key map "l"       'locate-do-redisplay)
+    (define-key map "U"       'dired-unmark-all-files)
+    (define-key map "V"       'locate-find-directory)
+    map)
   "Local keymap for Locate mode buffers.")
-(if locate-mode-map
-    nil
-
-   (require 'dired)
-
-   (setq locate-mode-map (copy-keymap dired-mode-map))
-
-   ;; Undefine Useless Dired Menu bars
-   (define-key locate-mode-map [menu-bar Dired]   'undefined)
-   (define-key locate-mode-map [menu-bar subdir]  'undefined)
-
-   (define-key locate-mode-map [menu-bar mark executables] 'undefined)
-   (define-key locate-mode-map [menu-bar mark directory]   'undefined)
-   (define-key locate-mode-map [menu-bar mark directories] 'undefined)
-   (define-key locate-mode-map [menu-bar mark symlinks]    'undefined)
-
-   (define-key locate-mode-map [M-mouse-2] 'locate-mouse-view-file)
-   (define-key locate-mode-map "\C-c\C-t"  'locate-tags)
-
-   (define-key locate-mode-map "l"       'locate-do-redisplay)
-   (define-key locate-mode-map "U"       'dired-unmark-all-files)
-   (define-key locate-mode-map "V"       'locate-find-directory)
-)
 
 ;; This variable is used to indent the lines and then to search for
 ;; the file name

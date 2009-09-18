@@ -59,6 +59,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to the options passed to configure. */
 #undef EMACS_CONFIG_OPTIONS
 
+/* Enable expensive run-time checking of data types? */
+#undef ENABLE_CHECKING
+
+/* Define this to check for errors in cons list. */
+#undef GC_CHECK_CONS_LIST
+
+/* Define this temporarily to hunt a bug. If defined, the size of strings is
+   redundantly recorded in sdata structures so that it can be compared to the
+   sizes recorded in Lisp strings. */
+#undef GC_CHECK_STRING_BYTES
+
+/* Define this to check the string free list. */
+#undef GC_CHECK_STRING_FREE_LIST
+
+/* Define this to check for short string overrun. */
+#undef GC_CHECK_STRING_OVERRUN
+
 /* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
    */
 #undef GETLOADAVG_PRIVILEGED
@@ -120,6 +137,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using D-Bus. */
 #undef HAVE_DBUS
+
+/* Define to 1 if you have the `dbus_watch_get_unix_fd' function. */
+#undef HAVE_DBUS_WATCH_GET_UNIX_FD
 
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
@@ -897,6 +917,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
 
+/* Define this to check for malloc buffer overrun. */
+#undef XMALLOC_OVERRUN_CHECK
+
 /* Define to the type of the 6th arg of XRegisterIMInstantiateCallback, either
    XPointer or XPointer*. */
 #undef XRegisterIMInstantiateCallback_arg6
@@ -990,11 +1013,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_MOUSE
 #endif
 
-/* Sadly for now, GNUstep dump does not work.  */
-#ifdef NS_IMPL_GNUSTEP
-#define CANNOT_DUMP
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -1046,7 +1064,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    side does this in s/darwin.h and we cannot
    parallel this exactly since GNUstep is multi-OS. */
 #ifdef HAVE_NS
-#define OTHER_FILES ns-app
 # ifdef NS_IMPL_GNUSTEP
 /* See also .m.o rule in Makefile.in */
 /* FIXME: are all these flags really needed?  Document here why.  */
@@ -1177,9 +1194,6 @@ typedef unsigned size_t;
 #if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
 #define HAVE_X11R6_XIM
 #endif
-
-/* Should we enable expensive run-time checking of data types?  */
-#undef ENABLE_CHECKING
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))

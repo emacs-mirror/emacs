@@ -326,8 +326,9 @@ If BODY uses EVENT, it should be a variable,
     (or (vc-dir-fileinfo->directory data)
 	;; Otherwise compute it from the file name.
 	(file-name-directory
-	 (expand-file-name
-	  (vc-dir-fileinfo->name data))))))
+	 (directory-file-name
+	  (expand-file-name
+	   (vc-dir-fileinfo->name data)))))))
 
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's ewoc from the list of ENTRIES.
@@ -343,8 +344,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	  ;; names too many times
 	  (sort entries
 		(lambda (entry1 entry2)
-		  (let ((dir1 (file-name-directory (expand-file-name (car entry1))))
-			(dir2 (file-name-directory (expand-file-name (car entry2)))))
+		  (let ((dir1 (file-name-directory
+			        (directory-file-name (expand-file-name (car entry1)))))
+			(dir2 (file-name-directory
+			       (directory-file-name (expand-file-name (car entry2))))))
 		    (cond
 		     ((string< dir1 dir2) t)
 		     ((not (string= dir1 dir2)) nil)
@@ -362,7 +365,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 
       (while (and entry node)
 	(let* ((entryfile (car entry))
-	       (entrydir (file-name-directory (expand-file-name entryfile)))
+	       (entrydir (file-name-directory (directory-file-name
+					       (expand-file-name entryfile))))
 	       (nodedir (vc-dir-node-directory node)))
 	  (cond
 	   ;; First try to find the directory.
@@ -406,7 +410,8 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
       (unless (or node noinsert)
 	(let ((lastdir (vc-dir-node-directory (ewoc-nth vc-ewoc -1))))
 	  (dolist (entry entries)
-	    (let ((entrydir (file-name-directory (expand-file-name (car entry)))))
+	    (let ((entrydir (file-name-directory
+			     (directory-file-name (expand-file-name (car entry))))))
 	      ;; Insert a directory node if needed.
 	      (unless (string-equal lastdir entrydir)
 		(setq lastdir entrydir)
@@ -866,9 +871,10 @@ If it is a file, return the corresponding cons for the file itself."
 	    (when (vc-string-prefix-p ddir file)
 	      (if (file-directory-p file)
 		  (vc-dir-resync-directory-files file)
-		(vc-dir-update
-		 (list (vc-dir-recompute-file-state file ddir))
-		 status-buf)))))))
+		(let ((state (vc-dir-recompute-file-state file ddir)))
+		  (vc-dir-update
+		   (list state)
+		   status-buf (eq (cadr state) 'up-to-date)))))))))
     ;; We didn't find any vc-dir buffers, remove the hook, it is
     ;; not needed.
     (unless found-vc-dir-buf
@@ -1110,9 +1116,22 @@ outside of VC) and one wants to do some operation on it."
 
 ;;;###autoload
 (defun vc-dir (dir &optional backend)
-  "Show the VC status for DIR.
+  "Show the VC status for \"interesting\" files in and below DIR.
+This allows you to mark files and perform VC operations on them.
+The list omits files which are up to date, with no changes in your copy
+or the repository, if there is nothing in particular to say about them.
+
+Preparing the list of file status takes time; when the buffer
+first appears, it has only the first few lines of summary information.
+The file lines appear later.
+
 Optional second argument BACKEND specifies the VC backend to use.
-Interactively, a prefix argument means to ask for the backend."
+Interactively, a prefix argument means to ask for the backend.
+
+These are the commands available for use in the file status buffer:
+
+\\<vc-dir-mode-map>"
+
   (interactive
    (list
     ;; When you hit C-x v d in a visited VC file,

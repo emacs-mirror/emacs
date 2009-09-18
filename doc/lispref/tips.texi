@@ -41,7 +41,7 @@ code intended for widespread use:
 
 @itemize @bullet
 @item
-Simply loading the package should not change Emacs's editing behavior.
+Simply loading a package should not change Emacs's editing behavior.
 Include a command or commands to enable and disable the feature,
 or to invoke it.
 
@@ -51,13 +51,14 @@ an incompatible change, go ahead and make the incompatible change;
 don't postpone it.
 
 @item
-Since all global variables share the same name space, and all
-functions share another name space, you should choose a short word to
-distinguish your program from other Lisp programs@footnote{The
-benefits of a Common Lisp-style package system are considered not to
-outweigh the costs.}.  Then take care to begin the names of all global
-variables, constants, and functions in your program with the chosen
-prefix.  This helps avoid name conflicts.
+You should choose a short word to distinguish your program from other
+Lisp programs.  The names of all global variables, constants, and
+functions in your program should begin with that chosen prefix.
+Separate the prefix from the rest of the name with a hyphen, @samp{-}.
+This practice helps avoid name conflicts, since all global variables
+in Emacs Lisp share the same name space, and all functions share
+another name space@footnote{The benefits of a Common Lisp-style
+package system are considered not to outweigh the costs.}
 
 Occasionally, for a command name intended for users to use, it is more
 convenient if some words come before the package's name prefix.  And
@@ -81,36 +82,32 @@ it to Emacs.  If and when we do, we can change the name easily enough.
 If one prefix is insufficient, your package can use two or three
 alternative common prefixes, so long as they make sense.
 
-Separate the prefix from the rest of the symbol name with a hyphen,
-@samp{-}.  This will be consistent with Emacs itself and with most Emacs
-Lisp programs.
-
 @item
 Put a call to @code{provide} at the end of each separate Lisp file.
+@xref{Named Features}.
 
 @item
 If a file requires certain other Lisp programs to be loaded
 beforehand, then the comments at the beginning of the file should say
 so.  Also, use @code{require} to make sure they are loaded.
+x@xref{Named Features}.
 
 @item
-If one file @var{foo} uses a macro defined in another file @var{bar},
-@var{foo} should contain this expression before the first use of the
-macro:
+If a file @var{foo} uses a macro defined in another file @var{bar},
+but does not use any functions or variables defined in @var{bar}, then
+@var{foo} should contain the following expression:
 
 @example
 (eval-when-compile (require '@var{bar}))
 @end example
 
 @noindent
-(And the library @var{bar} should contain @code{(provide '@var{bar})},
-to make the @code{require} work.)  This will cause @var{bar} to be
-loaded when you byte-compile @var{foo}.  Otherwise, you risk compiling
-@var{foo} without the necessary macro loaded, and that would produce
-compiled code that won't work right.  @xref{Compiling Macros}.
-
-Using @code{eval-when-compile} avoids loading @var{bar} when
-the compiled version of @var{foo} is @emph{used}.
+This tells Emacs to load @var{bar} just before byte-compiling
+@var{foo}, so that the macro definition is available during
+compilation.  Using @code{eval-when-compile} avoids loading @var{bar}
+when the compiled version of @var{foo} is @emph{used}.  It should be
+called before the first use of the macro in the file.  @xref{Compiling
+Macros}.
 
 @item
 Please don't require the @code{cl} package of Common Lisp extensions at
@@ -132,10 +129,11 @@ When defining a minor mode, please follow the minor mode
 conventions.  @xref{Minor Mode Conventions}.
 
 @item
-If the purpose of a function is to tell you whether a certain condition
-is true or false, give the function a name that ends in @samp{p}.  If
-the name is one word, add just @samp{p}; if the name is multiple words,
-add @samp{-p}.  Examples are @code{framep} and @code{frame-live-p}.
+If the purpose of a function is to tell you whether a certain
+condition is true or false, give the function a name that ends in
+@samp{p} (which stands for ``predicate'').  If the name is one word,
+add just @samp{p}; if the name is multiple words, add @samp{-p}.
+Examples are @code{framep} and @code{frame-live-p}.
 
 @item
 If the purpose of a variable is to store a single function, give it a
@@ -172,33 +170,26 @@ compatibility issues.
 @end example
 
 @item
-Redefining (or advising) an Emacs primitive is a bad idea.  It may do
+Redefining or advising an Emacs primitive is a bad idea.  It may do
 the right thing for a particular program, but there is no telling what
-other programs might break as a result.  In any case, it is a problem
-for debugging, because the advised function doesn't do what its source
-code says it does.  If the programmer investigating the problem is
-unaware that there is advice on the function, the experience can be
-very frustrating.
-
-We hope to remove all the places in Emacs that advise primitives.
-In the mean time, please don't add any more.
+other programs might break as a result.
 
 @item
-It is likewise a bad idea for one Lisp package to advise a function
-in another Lisp package.
+It is likewise a bad idea for one Lisp package to advise a function in
+another Lisp package (@pxref{Advising Functions}).
 
 @item
-Likewise, avoid using @code{eval-after-load} (@pxref{Hooks for
-Loading}) in libraries and packages.  This feature is meant for
-personal customizations; using it in a Lisp program is unclean,
-because it modifies the behavior of another Lisp file in a way that's
-not visible in that file.  This is an obstacle for debugging, much
-like advising a function in the other package.
+Avoid using @code{eval-after-load} in libraries and packages
+(@pxref{Hooks for Loading}).  This feature is meant for personal
+customizations; using it in a Lisp program is unclean, because it
+modifies the behavior of another Lisp file in a way that's not visible
+in that file.  This is an obstacle for debugging, much like advising a
+function in the other package.
 
 @item
-If a file does replace any of the functions or library programs of
-standard Emacs, prominent comments at the beginning of the file should
-say which functions are replaced, and how the behavior of the
+If a file does replace any of the standard functions or library
+programs of Emacs, prominent comments at the beginning of the file
+should say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
 
 @item
@@ -228,38 +219,23 @@ coherent if all libraries use the same conventions.
 @item
 If your program contains non-ASCII characters in string or character
 constants, you should make sure Emacs always decodes these characters
-the same way, regardless of the user's settings.  There are two ways
-to do that:
-
-@itemize -
-@item
-Use coding system @code{emacs-mule}, and specify that for
-@code{coding} in the @samp{-*-} line or the local variables list.
+the same way, regardless of the user's settings.  The easiest way to
+do this is to use the coding system @code{utf-8-emacs} (@pxref{Coding
+System Basics}), and specify that coding in the @samp{-*-} line or the
+local variables list.  @xref{File variables, , Local Variables in
+Files, emacs, The GNU Emacs Manual}.
 
 @example
-;; XXX.el  -*- coding: emacs-mule; -*-
+;; XXX.el  -*- coding: utf-8-emacs; -*-
 @end example
-
-@item
-Use one of the coding systems based on ISO 2022 (such as
-iso-8859-@var{n} and iso-2022-7bit), and specify it with @samp{!} at
-the end for @code{coding}.  (The @samp{!} turns off any possible
-character translation.)
-
-@example
-;; XXX.el -*- coding: iso-latin-2!; -*-
-@end example
-@end itemize
 
 @item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
 default indentation parameters.
 
 @item
-Don't make a habit of putting close-parentheses on lines by themselves;
-Lisp programmers find this disconcerting.  Once in a while, when there
-is a sequence of many consecutive close-parentheses, it may make sense
-to split the sequence in one or two significant places.
+Don't make a habit of putting close-parentheses on lines by
+themselves; Lisp programmers find this disconcerting.
 
 @item
 Please put a copyright notice and copying permission notice on the
@@ -268,10 +244,10 @@ file if you distribute copies.  Use a notice like this one:
 @smallexample
 ;; Copyright (C) @var{year} @var{name}
 
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This program is free software: you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation, either version 3 of
+;; the License, or (at your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -284,7 +260,7 @@ file if you distribute copies.  Use a notice like this one:
 
 If you have signed papers to assign the copyright to the Foundation,
 then use @samp{Free Software Foundation, Inc.} as @var{name}.
-Otherwise, use your name.  See also @xref{Library Headers}.
+Otherwise, use your name.  @xref{Library Headers}.
 @end itemize
 
 @node Key Binding Conventions
@@ -295,18 +271,18 @@ Otherwise, use your name.  See also @xref{Library Headers}.
 @item
 @cindex mouse-2
 @cindex references, following
-Special major modes used for read-only text should usually redefine
-@kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
-Modes such as Dired, Info, Compilation, and Occur redefine it in this
-way.
-
-In addition, they should mark the text as a kind of ``link'' so that
-@kbd{mouse-1} will follow it also.  @xref{Clickable Text}.
+Many special major modes, like Dired, Info, Compilation, and Occur,
+are designed to handle read-only text that contains @dfn{hyper-links}.
+Such a major mode should redefine @kbd{mouse-2} and @key{RET} to
+follow the links.  It should also set up a @code{follow-link}
+condition, so that the link obeys @code{mouse-1-click-follows-link}.
+@xref{Clickable Text}.  @xref{Buttons}, for an easy method of
+implementing such clickable links.
 
 @item
 @cindex reserved keys
 @cindex keys, reserved
-Please do not define @kbd{C-c @var{letter}} as a key in Lisp programs.
+Don't define @kbd{C-c @var{letter}} as a key in Lisp programs.
 Sequences consisting of @kbd{C-c} and a letter (either upper or lower
 case) are reserved for users; they are the @strong{only} sequences
 reserved for users, so do not block them.
@@ -318,12 +294,6 @@ waste, and inconvenience users.  Please comply with it.
 @item
 Function keys @key{F5} through @key{F9} without modifier keys are
 also reserved for users to define.
-
-@item
-Applications should not bind mouse events based on button 1 with the
-shift key held down.  These events include @kbd{S-mouse-1},
-@kbd{M-S-mouse-1}, @kbd{C-S-mouse-1}, and so on.  They are reserved for
-users.
 
 @item
 Sequences consisting of @kbd{C-c} followed by a control character or a
@@ -340,13 +310,14 @@ not absolutely prohibited, but if you do that, the major mode binding
 may be shadowed from time to time by minor modes.
 
 @item
-Do not bind @kbd{C-h} following any prefix character (including
-@kbd{C-c}).  If you don't bind @kbd{C-h}, it is automatically available
-as a help character for listing the subcommands of the prefix character.
+Don't bind @kbd{C-h} following any prefix character (including
+@kbd{C-c}).  If you don't bind @kbd{C-h}, it is automatically
+available as a help character for listing the subcommands of the
+prefix character.
 
 @item
-Do not bind a key sequence ending in @key{ESC} except following
-another @key{ESC}.  (That is, it is OK to bind a sequence ending in
+Don't bind a key sequence ending in @key{ESC} except following another
+@key{ESC}.  (That is, it is OK to bind a sequence ending in
 @kbd{@key{ESC} @key{ESC}}.)
 
 The reason for this rule is that a non-prefix binding for @key{ESC} in
@@ -420,8 +391,8 @@ When you encounter an error condition, call the function @code{error}
 (or @code{signal}).  The function @code{error} does not return.
 @xref{Signaling Errors}.
 
-Do not use @code{message}, @code{throw}, @code{sleep-for},
-or @code{beep} to report errors.
+Don't use @code{message}, @code{throw}, @code{sleep-for}, or
+@code{beep} to report errors.
 
 @item
 An error message should start with a capital letter but should not end
@@ -479,10 +450,11 @@ command.
 
 @item
 Many commands that take a long time to execute display a message that
-says something like @samp{Operating...} when they start, and change it to
-@samp{Operating...done} when they finish.  Please keep the style of
+says something like @samp{Operating...} when they start, and change it
+to @samp{Operating...done} when they finish.  Please keep the style of
 these messages uniform: @emph{no} space around the ellipsis, and
-@emph{no} period after @samp{done}.
+@emph{no} period after @samp{done}.  @xref{Progress}, for an easy way
+to generate such messages.
 
 @item
 Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}

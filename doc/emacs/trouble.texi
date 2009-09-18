@@ -30,7 +30,9 @@ invoked it (@code{abort-recursive-edit}).
 Either quit or abort, whichever makes sense (@code{keyboard-escape-quit}).
 @item M-x top-level
 Abort all recursive editing levels that are currently executing.
-@item C-x u
+@item C-/
+@itemx C-x u
+@itemx C-_
 Cancel a previously made change in the buffer contents (@code{undo}).
 @end table
 
@@ -126,10 +128,10 @@ effect only when Emacs is ready for a command.  @kbd{C-]} is an
 ordinary key and has its meaning only because of its binding in the
 keymap.  @xref{Recursive Edit}.
 
-  @kbd{C-x u} (@code{undo}) is not strictly speaking a way of canceling
+  @kbd{C-/} (@code{undo}) is not strictly speaking a way of canceling
 a command, but you can think of it as canceling a command that already
-finished executing.  @xref{Undo}, for more information
-about the undo facility.
+finished executing.  @xref{Undo}, for more information about the undo
+facility.
 
 @node Lossage, Bugs, Quitting, Top
 @section Dealing with Emacs Trouble
@@ -139,7 +141,7 @@ normally, and how to recognize them and correct them.  For a list of
 additional problems you might encounter, see @ref{Bugs and problems, ,
 Bugs and problems, efaq, GNU Emacs FAQ}, and the file @file{etc/PROBLEMS}
 in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
-@kbd{C-h C-e} to read the @file{PROBLEMS} file.
+@kbd{C-h C-p} to read the @file{PROBLEMS} file.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
@@ -159,26 +161,21 @@ in the Emacs distribution.  Type @kbd{C-h C-f} to read the FAQ; type
 @cindex @key{BACKSPACE} vs @key{DEL}
 @cindex usual erasure key
 
-  Every keyboard has a large key, a little ways above the @key{RET} or
-@key{ENTER} key, which you normally use outside Emacs to erase the
-last character that you typed.  We call this key @dfn{the usual
-erasure key}.  In Emacs, it is supposed to be equivalent to @key{DEL},
-and when Emacs is properly configured for your terminal, it translates
-that key into the character @key{DEL}.
+  Every keyboard has a large key, usually labelled @key{Backspace},
+which is ordinarily used to erase the last character that you typed.
+We call this key @dfn{the usual erasure key}.  In Emacs, it is
+supposed to be equivalent to @key{DEL}.
 
   When Emacs starts up on a graphical display, it determines
-automatically which key should be @key{DEL}.  In some unusual cases
+automatically which key should be @key{DEL}.  In some unusual cases,
 Emacs gets the wrong information from the system.  If the usual
 erasure key deletes forwards instead of backwards, that is probably
-what happened---Emacs ought to be treating the @key{DELETE} key as
+what happened---Emacs ought to be treating the @key{Backspace} key as
 @key{DEL}, but it isn't.
 
-  On a graphical display, if the usual erasure key is labeled
-@key{BACKSPACE} and there is a @key{DELETE} key elsewhere, but the
-@key{DELETE} key deletes backward instead of forward, that too
+  Some keyboards also have a @key{Delete} key, which is ordinarily
+used to forwards.  If this key deletes backward in Emacs, that too
 suggests Emacs got the wrong information---but in the opposite sense.
-It ought to be treating the @key{BACKSPACE} key as @key{DEL}, and
-treating @key{DELETE} differently, but it isn't.
 
   On a text-only terminal, if you find the usual erasure key prompts
 for a Help command, like @kbd{Control-h}, instead of deleting a
@@ -197,9 +194,9 @@ work, if it sends character code 127.
 @findex normal-erase-is-backspace-mode
   To fix the problem automatically for every Emacs session, you can
 put one of the following lines into your @file{.emacs} file
-(@pxref{Init File}).  For the first case above, where @key{DELETE}
+(@pxref{Init File}).  For the first case above, where @key{Backspace}
 deletes forwards instead of backwards, use this line to make
-@key{DELETE} act as @key{DEL} (resulting in behavior compatible
+@key{Backspace} act as @key{DEL} (resulting in behavior compatible
 with Emacs 20 and previous versions):
 
 @lisp
@@ -207,8 +204,7 @@ with Emacs 20 and previous versions):
 @end lisp
 
 @noindent
-For the other two cases, where @key{BACKSPACE} ought to act as
-@key{DEL}, use this line:
+For the other two cases, use this line:
 
 @lisp
 (normal-erase-is-backspace-mode 1)
@@ -220,15 +216,6 @@ customize the variable @code{normal-erase-is-backspace}: the value
 @code{t} specifies the mode where @key{BS} or @key{BACKSPACE} is
 @key{DEL}, and @code{nil} specifies the other mode.  @xref{Easy
 Customization}.
-
-  On a graphical display, it can also happen that the usual erasure key
-is labeled @key{BACKSPACE}, there is a @key{DELETE} key elsewhere, and
-both keys delete forward.  This probably means that someone has
-redefined your @key{BACKSPACE} key as a @key{DELETE} key.  With X,
-this is typically done with a command to the @code{xmodmap} program
-when you start the server or log in.  The most likely motive for this
-customization was to support old versions of Emacs, so we recommend
-you simply remove it now.
 
 @node Stuck Recursive
 @subsection Recursive Editing Levels

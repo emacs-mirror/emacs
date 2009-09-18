@@ -193,6 +193,14 @@ static int inhibit_frame_unsplittable;
 extern EMACS_INT scroll_margin;
 
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+
+/* If non-nil, then the `recenter' command with a nil argument
+   the entire frame to be redrawn; the special value `tty' causes the
+   frame to be redrawn only if it is a tty frame.  */
+
+static Lisp_Object Vrecenter_redisplay;
+extern Lisp_Object Qtty;
+
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
        doc: /* Return t if OBJECT is a window.  */)
@@ -5602,14 +5610,17 @@ displayed_window_lines (w)
 
 
 DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
-       doc: /* Center point in selected window and redisplay frame.
+       doc: /* Center point in selected window and maybe redisplay frame.
 With prefix argument ARG, recenter putting point on screen line ARG
 relative to the selected window.  If ARG is negative, it counts up from the
 bottom of the window.  (ARG should be less than the height of the window.)
 
-If ARG is omitted or nil, erase the entire frame and then redraw with point
-in the center of the selected window.  If `auto-resize-tool-bars' is set to
-`grow-only', this resets the tool-bar's height to the minimum height needed.
+If ARG is omitted or nil, then recenter with point on the middle line of
+the selected window; if the variable `recenter-redisplay' is non-nil,
+also erase the entire frame and redraw it (when `auto-resize-tool-bars'
+is set to `grow-only', this resets the tool-bar's height to the minimum
+height needed); if `recenter-redisplay' has the special value `tty',
+then only tty frame are redrawn.
 
 Just C-u as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame.  */)
@@ -5629,16 +5640,22 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   if (NILP (arg))
     {
-      int i;
+      if (!NILP (Vrecenter_redisplay)
+	  && (!EQ (Vrecenter_redisplay, Qtty)
+	      || !NILP (Ftty_type (selected_frame))))
+	{
+	  int i;
 
-      /* Invalidate pixel data calculated for all compositions.  */
-      for (i = 0; i < n_compositions; i++)
-	composition_table[i]->font = NULL;
+	  /* Invalidate pixel data calculated for all compositions.  */
+	  for (i = 0; i < n_compositions; i++)
+	    composition_table[i]->font = NULL;
 
-      WINDOW_XFRAME (w)->minimize_tool_bar_window_p = 1;
+	  WINDOW_XFRAME (w)->minimize_tool_bar_window_p = 1;
 
-      Fredraw_frame (WINDOW_FRAME (w));
-      SET_FRAME_GARBAGED (WINDOW_XFRAME (w));
+	  Fredraw_frame (WINDOW_FRAME (w));
+	  SET_FRAME_GARBAGED (WINDOW_XFRAME (w));
+	}
+
       center_p = 1;
     }
   else if (CONSP (arg)) /* Just C-u. */
@@ -7245,6 +7262,13 @@ The buffer-local part is run once per window, with the relevant window
 selected; while the global part is run only once for the modified frame,
 with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
+
+  DEFVAR_LISP ("recenter-redisplay", &Vrecenter_redisplay,
+	       doc: /* If non-nil, then the `recenter' command with a nil argument
+the entire frame to be redrawn; the special value `tty' causes the
+frame to be redrawn only if it is a tty frame.  */);
+  Vrecenter_redisplay = Qtty;
+
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);

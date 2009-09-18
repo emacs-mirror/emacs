@@ -31,6 +31,8 @@ VPATH=@srcdir@
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 infodir=../../info
+# Directory with the (customized) texinfo.tex file.
+texinfodir = $(srcdir)/../misc
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
@@ -41,13 +43,14 @@ DVI_TARGETS  = emacs.dvi
 
 
 TEXI2DVI = texi2dvi
+TEXI2PDF = texi2pdf
 
 # The following rule does not work with all versions of `make'.
 .SUFFIXES: .texi .dvi
 .texi.dvi:
 	$(TEXI2DVI) $<
 
-ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 
 EMACS_XTRA=\
@@ -128,9 +131,15 @@ $(infodir)/emacs: ${EMACSSOURCES}
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
 
+emacs.pdf: ${EMACSSOURCES}
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
+
 
 emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+
+emacs-xtra.pdf: emacs-xtra.texi $(EMACS_XTRA)
+	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
 
 
 mostlyclean:

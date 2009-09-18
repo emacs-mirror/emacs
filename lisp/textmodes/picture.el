@@ -1,7 +1,7 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -559,7 +559,8 @@ Leaves the region surrounding the rectangle."
          (left   (min c1 c2))
          (top    (min r1 r2))
          (bottom (max r1 r2)))
-    (goto-line top)
+    (goto-char (point-min))
+    (forward-line (1- top))
     (move-to-column left t)
     (picture-update-desired-column t)
 
@@ -580,7 +581,8 @@ Leaves the region surrounding the rectangle."
     (picture-insert picture-rectangle-v (- (picture-current-line) top))
 
     (picture-set-motion pvs phs)
-    (goto-line sl)
+    (goto-char (point-min))
+    (forward-line (1- sl))
     (move-to-column sc t)))
 
 
@@ -717,7 +719,7 @@ You can manipulate rectangles with these commands:
   Insert rectangle from named register:           \\[picture-yank-rectangle-from-register]
   Draw a rectangular box around mark and point:   \\[picture-draw-rectangle]
   Copies a rectangle to a register:               \\[copy-rectangle-to-register]
-  Undo effects of rectangle overlay commands:     \\[advertised-undo]
+  Undo effects of rectangle overlay commands:     \\[undo]
 
 You can return to the previous mode with \\[picture-mode-exit], which
 also strips trailing whitespace from every line.  Stripping is suppressed

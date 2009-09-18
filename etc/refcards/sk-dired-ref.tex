@@ -1,9 +1,11 @@
 % Reference Card for Dired
-% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-%   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
-% Slovak hyphenation rules applied
-\shyph
+% Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+%   2009  Free Software Foundation, Inc.
+
+% Author: Evgeny Roubinchtein <eroubinc@u.washington.edu>
+% Czech translation: Pavel Janík <Pavel@Janik.cz>, March 2001
+% Slovak translation: Miroslav Vasko <vasko@debian.cz>, March 2001
 
 % This file is part of GNU Emacs.
 
@@ -20,63 +22,51 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-% This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.
-%**start of header
 
-\newcount\columnsperpage
-
-\columnsperpage=2
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(0)
-
-% Nothing else needs to be changed.
-% This file is intended to be processed by plain TeX (TeX82).
-% The reference card looks OK with 2 columns per page, portrait mode.
-% I haven't tried it with 3 columns per page.
-
-% This is a bit of a dirty hack on the GNU Emacs reference card
-% to produce a Dired reference card instead.
-
-% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together
-% because I wanted a Dired reference card,
-% but couldn't find anything on the 'net.
-% Based mostly off Dired's describe-mode.
-
-% Translated to Czech by Pavel Janík <Pavel@Janik.cz> in March 2001
-% Translated to Slovak by Miroslav Vasko <vasko@debian.cz> in March 2001
+% See dired-ref.tex.
 
 % Process the file with `csplain' from the `CSTeX' distribution (included
 % e.g. in the TeX Live CD).
 
-\def\versionnumber{0.1}
-\def\versionemacs{22}
+%**start of header
+
+% Slovak hyphenation rules applied
+\shyph
+
+% This file can be printed with 1, 2, or 3 columns per page.
+% Specify how many you want here.
+\newcount\columnsperpage
+\columnsperpage=2
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(0)
+
+\def\versionemacs{23}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
-\def\version{May 2006\ v\versionnumber}
+
+% Nothing else needs to be changed.
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions on back.  v\versionnumber}}
+  Permissions on back.}}
 
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{designed by Stephen Gildea, \version}
-\centerline{for GNU Emacs version \versionemacs{} on Unix systems}
-\centerline{Updated for Dired in May 2000 by Evgeny Roubinchtein}
+\centerline{For GNU Emacs version \versionemacs}
+\centerline{Originally written May 2000 by Evgeny Roubinchtein,}
+\centerline{using refcard layout designed by Stephen Gildea.}
+\centerline{Translated by Miroslav Va¹ko.}
 
 Permission is granted to make and distribute copies of
 this card provided the copyright notice and this permission notice
 are preserved on all copies.
 
-For copies of the GNU Emacs manual, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
+For copies of the GNU Emacs manual, see:
 
+{\tt http://www.gnu.org/software/emacs/\#Manuals}
 \endgroup}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
@@ -264,7 +254,7 @@ MA 02110-1301, USA.
 
 \title{Referenèná karta pre Dired}
 
-\centerline{(urèené pre Dired v GNU Emacse \versionemacs.x)}
+\centerline{(urèené pre Dired v GNU Emacse \versionemacs)}
 \centerline{Príkazy oznaèené \dx{} vy¾adujú dired-x}
 
 % trim this down to fit everything on one page
@@ -322,8 +312,8 @@ MA 02110-1301, USA.
 \key{otvor aktuálny súbor}{f}
 \key{otvor aktuálny súbor iba pre èítanie}{v}
 \key{otvor aktuálny súbor v inom okne}{o}
-\key{otvor aktuálny súbor v inom rámci}{w}
-\key{zobraz aktuálny súbor}{C-u o}
+%%\key{otvor aktuálny súbor v inom rámci}{w}
+%%\key{zobraz aktuálny súbor}{C-u o}
 \key{vytvor nový podadresár}{+}
 \key{porovnaj súbor pod kurzorom s oznaèeným}{=}
 
@@ -364,8 +354,8 @@ MA 02110-1301, USA.
 \key{vytlaè súbor(y)}{P}
 \key{zmeò názov súboru(ov) na malé písmená}{\% l}
 \key{zmeò názov súboru(ov) na veµké písmená}{\% u}
-\key{zma¾ oznaèené súbory}{X}
-\key{vykonaj uuencode alebo uudecode súboru(ov)}{U}
+\key{zma¾ oznaèené súbory}{D}
+%%\key{vykonaj uuencode alebo uudecode súboru(ov)}{U}
 \key{skomprimuj alebo dekomprimuj súbor(y)}{Z}
 \key{spusti info na súbore}{I \dx}
 \key{vytvor symbolický(é) odkaz(y)}{S}
@@ -381,10 +371,10 @@ MA 02110-1301, USA.
 
 \leftline{\bf Odznaèujúce príkazy ma¾ú znaèku pre zmazanie}
 \key{oznaè súbor pre zmazanie}{d}
-\key{odstráò znaèku pre zmazanie}{delete}
+%%\key{odstráò znaèku pre zmazanie}{delete}
 \key{oznaè v¹etky zálohy (súbory konèiace na \~{})}{\~{}}
 \key{oznaè v¹etky zálohy (auto-save)}{\#}
-\key{oznaè rôzne doèasné súbory}{\&}
+\key{oznaè rôzne doèasné súbory}{\% \&}
 \key{oznaè èíslované zálohy (konèiace na .\~{}1\~{} a~pod.)}{.}
 \key{vyma¾ súbory oznaèené na zmazanie}{x}
 \key{oznaè súbory vyhovujúce regulárnemu výrazu}{\% d}

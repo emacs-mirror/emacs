@@ -7103,7 +7103,7 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function might do hidden buffer changes.
   (c-at-statement-start-p))
-(make-obsolete 'c-looking-at-bos 'c-at-statement-start-p)
+(make-obsolete 'c-looking-at-bos 'c-at-statement-start-p "22.1")
 
 (defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
   ;; Return non-nil if we're looking at the beginning of a block

@@ -1,7 +1,7 @@
 ;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: iso-latin-1; -*-
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Created: October 21 1996
@@ -88,43 +88,43 @@
 ;; User definable variables
 
 (defcustom handwrite-numlines 60
-  "*The number of lines on a page of the PostScript output from `handwrite'."
+  "The number of lines on a page of the PostScript output from `handwrite'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-fontsize 11
-  "*The size of the font for the PostScript output from `handwrite'."
+  "The size of the font for the PostScript output from `handwrite'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-linespace 12
-  "*The spacing for the PostScript output from `handwrite'."
+  "The spacing for the PostScript output from `handwrite'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-xstart 30
-  "*X-axis translation in the PostScript output from `handwrite'."
+  "X-axis translation in the PostScript output from `handwrite'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-ystart 810
-  "*Y-axis translation in the PostScript output from `handwrite'."
+  "Y-axis translation in the PostScript output from `handwrite'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-pagenumbering nil
-  "*If non-nil, number each page of the PostScript output from `handwrite'."
+  "If non-nil, number each page of the PostScript output from `handwrite'."
   :type 'boolean
   :group 'handwrite)
 (defcustom handwrite-10pt-numlines 65
-  "*The number of lines on a page for the function `handwrite-10pt'."
+  "The number of lines on a page for the function `handwrite-10pt'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-11pt-numlines 60
-  "*The number of lines on a page for the function `handwrite-11pt'."
+  "The number of lines on a page for the function `handwrite-11pt'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-12pt-numlines 55
-  "*The number of lines on a page for the function `handwrite-12pt'."
+  "The number of lines on a page for the function `handwrite-12pt'."
   :type 'integer
   :group 'handwrite)
 (defcustom handwrite-13pt-numlines 50
-  "*The number of lines on a page for the function `handwrite-13pt'."
+  "The number of lines on a page for the function `handwrite-13pt'."
   :type 'integer
   :group 'handwrite)
 

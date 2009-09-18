@@ -1,7 +1,7 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs sccs cvs log version-control
@@ -123,8 +123,7 @@
   :prefix "log-view-")
 
 (easy-mmode-defmap log-view-mode-map
-  '(("q" . quit-window)
-    ("z" . kill-this-buffer)
+  '(("z" . kill-this-buffer)
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
@@ -140,10 +139,7 @@
     ("\M-n" . log-view-file-next)
     ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
-  :group 'log-view
-  ;; Here I really need either buffer-local keymap-inheritance
-  ;; or a minor-mode-map with lower precedence than the local map.
-  :inherit (if (boundp 'cvs-mode-map) cvs-mode-map))
+  :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu"
@@ -182,8 +178,7 @@
     (t (:weight bold)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
-;; backward-compatibility alias
-(put 'log-view-file-face 'face-alias 'log-view-file)
+(define-obsolete-face-alias 'log-view-file-face 'log-view-file "22.1")
 (defvar log-view-file-face 'log-view-file)
 
 (defface log-view-message
@@ -193,7 +188,7 @@
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 ;; backward-compatibility alias
-(put 'log-view-message-face 'face-alias 'log-view-message)
+(define-obsolete-face-alias 'log-view-message-face 'log-view-message "22.1")
 (defvar log-view-message-face 'log-view-message)
 
 (defvar log-view-file-re
@@ -246,7 +241,7 @@ The match group number 1 should match the revision number itself.")
 ;;;;
 
 ;;;###autoload
-(define-derived-mode log-view-mode fundamental-mode "Log-View"
+(define-derived-mode log-view-mode special-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)

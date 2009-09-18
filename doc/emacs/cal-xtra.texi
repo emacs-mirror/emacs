@@ -34,8 +34,8 @@ diary suit your personal tastes.
   The calendar display unfortunately cannot be changed from three
 months, but you can customize the whitespace used by setting the
 variables: @code{calendar-left-margin},
-@code{calendar-intermonth-spacing}, @code{calendar-column-width},
-@code{calendar-day-header-width}, and @code{calendar-day-digit-width}.
+@code{calendar-day-header-width}, @code{calendar-day-digit-width},
+@code{calendar-column-width}, and @code{calendar-intermonth-spacing}.
 To display text @emph{between} the months, for example week numbers,
 customize the variables @code{calendar-intermonth-header} and
 @code{calendar-intermonth-text} as described in their documentation.
@@ -92,16 +92,16 @@ the current date is @emph{not} visible in the window.
 @vindex holiday-oriental-holidays
 @vindex holiday-solar-holidays
   Emacs knows about holidays defined by entries on one of several lists.
-The lists of holidays that Emacs uses are for general holidays
-(@code{holiday-general-holidays}), local holidays
-(@code{holiday-local-holidays}), Baha'i holidays
-(@code{holiday-bahai-holidays}), Christian holidays
-(@code{holiday-christian-holidays}), Hebrew (Jewish) holidays
-(@code{holiday-hebrew-holidays}), Islamic (Muslim) holidays
-(@code{holiday-islamic-holidays}), Oriental holidays
-(@code{holiday-oriental-holidays}), sun- and moon-related holidays
-(@code{holiday-solar-holidays}), and other holidays
-(@code{holiday-other-holidays}).
+The lists of holidays that Emacs uses are for
+general holidays (@code{holiday-general-holidays}),
+local holidays (@code{holiday-local-holidays}),
+sun- and moon-related holidays (@code{holiday-solar-holidays}),
+Baha'i holidays (@code{holiday-bahai-holidays}),
+Christian holidays (@code{holiday-christian-holidays}),
+Hebrew (Jewish) holidays (@code{holiday-hebrew-holidays}),
+Islamic (Muslim) holidays (@code{holiday-islamic-holidays}),
+Oriental holidays (@code{holiday-oriental-holidays}),
+and other holidays (@code{holiday-other-holidays}).
 
 You can customize these lists of holidays to your own needs, deleting or
 adding holidays as described below.  Set any of them to @code{nil} to
@@ -465,8 +465,9 @@ must precede a Baha'i date, @code{diary-hebrew-entry-symbol} (default
 @samp{H}) a Hebrew date, and @code{diary-islamic-entry-symbol} (default
 @samp{I}) an Islamic date.  Moreover, non-Gregorian month names may not
 be abbreviated (because the first three letters are often not unique).
-For example, a diary entry for the Hebrew date Heshvan 25 could look
-like this:
+(Note also that you must use ``Adar I'' if you want Adar of a common
+Hebrew year.)  For example, a diary entry for the Hebrew date Heshvan 25
+could look like this:
 
 @smallexample
 HHeshvan 25 Happy Hebrew birthday!

@@ -719,8 +719,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
   '((t :inherit font-lock-string-face))
   "Face used to highlight TeX math expressions."
   :group 'tex)
-;; backward-compatibility alias
-(put 'tex-math-face 'face-alias 'tex-math)
+(define-obsolete-face-alias 'tex-math-face 'tex-math "22.1")
 (defvar tex-math-face 'tex-math)
 
 (defface tex-verbatim
@@ -728,8 +727,7 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
   '((t :family "courier"))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
-;; backward-compatibility alias
-(put 'tex-verbatim-face 'face-alias 'tex-verbatim)
+(define-obsolete-face-alias 'tex-verbatim-face 'tex-verbatim "22.1")
 (defvar tex-verbatim-face 'tex-verbatim)
 
 (defun tex-font-lock-verb (end)
@@ -1924,7 +1922,11 @@ FILE is typically the output DVI or PDF file."
                          " (.*)\\.")
                  nil t)
 		(> (save-excursion
-		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
+                     ;; Usually page numbers are output as [N], but
+                     ;; I've already seen things like
+                     ;; [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+                     (or (re-search-backward "\\[[0-9]+\\({[^}]*}\\)?\\]"
+                                             nil t)
 			 (point-min)))
 		   (save-excursion
 		     (or (re-search-backward "Rerun" nil t)
@@ -2206,7 +2208,7 @@ for the error messages."
 		    (with-syntax-table tex-error-parse-syntax-table
 		      (backward-up-list 1)
 		      (skip-syntax-forward "(_")
-		      (while (not 
+		      (while (not
 			      (and (setq try-filename (thing-at-point
 						       'filename))
 				   (not (string= "" try-filename))
@@ -2225,7 +2227,10 @@ for the error messages."
 		    (find-file-noselect filename))
 		(save-excursion
 		  (if new-file
-		      (progn (goto-line linenum) (setq last-position nil))
+		      (progn
+			(goto-char (point-min))
+			(forward-line (1- linenum))
+			(setq last-position nil))
 		    (goto-char last-position)
 		    (forward-line (- linenum last-linenum)))
 		  ;; first try a forward search for the error text,

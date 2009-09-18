@@ -1,7 +1,7 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -860,9 +860,7 @@ Should begin with \\. and end with \\' and MUST NOT be optional."
   :set 'set-woman-file-regexp
   :group 'woman-interface)
 
-(defcustom woman-use-own-frame		; window-system
-  (or (and (fboundp 'display-graphic-p) (display-graphic-p)) ; Emacs 21
-      (memq window-system '(x w32 ns)))	; Emacs 20
+(defcustom woman-use-own-frame nil
   "If non-nil then use a dedicated frame for displaying WoMan windows.
 Only useful when run on a graphic display such as X or MS-Windows."
   :type 'boolean
@@ -944,46 +942,29 @@ or different fonts."
   :type 'boolean
   :group 'woman-faces)
 
-;; This is overkill!  Troff uses just italic; Nroff uses just underline.
-;; You should probably select either italic or underline as you prefer, but
-;; not both, although italic and underline work together perfectly well!
 (defface woman-italic
-  `((((min-colors 88) (background light))
-     (:slant italic :underline t :foreground "red1"))
-    (((background light)) (:slant italic :underline t :foreground "red"))
-    (((background dark)) (:slant italic :underline t)))
+  '((t :inherit italic))
   "Face for italic font in man pages."
   :group 'woman-faces)
-;; backward-compatibility alias
-(put 'woman-italic-face 'face-alias 'woman-italic)
+(define-obsolete-face-alias 'woman-italic-face 'woman-italic "22.1")
 
 (defface woman-bold
-  '((((min-colors 88) (background light)) (:weight bold :foreground "blue1"))
-    (((background light)) (:weight bold :foreground "blue"))
-    (((background dark)) (:weight bold :foreground "green2")))
+  '((t :inherit bold))
   "Face for bold font in man pages."
   :group 'woman-faces)
-;; backward-compatibility alias
-(put 'woman-bold-face 'face-alias 'woman-bold)
+(define-obsolete-face-alias 'woman-bold-face 'woman-bold "22.1")
 
-;; Brown is a good compromise: it is distinguishable from the default
-;; but not enough so to make font errors look terrible.  (Files that use
-;; non-standard fonts seem to do so badly or in idiosyncratic ways!)
 (defface woman-unknown
-  '((((background light)) (:foreground "brown"))
-    (((min-colors 88) (background dark)) (:foreground "cyan1"))
-    (((background dark)) (:foreground "cyan")))
+  '((t :inherit font-lock-warning-face))
   "Face for all unknown fonts in man pages."
   :group 'woman-faces)
-;; backward-compatibility alias
-(put 'woman-unknown-face 'face-alias 'woman-unknown)
+(define-obsolete-face-alias 'woman-unknown-face 'woman-unknown "22.1")
 
 (defface woman-addition
-  '((t (:foreground "orange")))
+  '((t :inherit font-lock-builtin-face))
   "Face for all WoMan additions to man pages."
   :group 'woman-faces)
-;; backward-compatibility alias
-(put 'woman-addition-face 'face-alias 'woman-addition)
+(define-obsolete-face-alias 'woman-addition-face 'woman-addition "22.1")
 
 (defun woman-default-faces ()
   "Set foreground colors of italic and bold faces to their default values."
@@ -1212,11 +1193,9 @@ should be a topic string and non-nil RE-CACHE forces re-caching."
 	    (woman-find-file file-name)
 	  (message
 	   "WoMan Error: No matching manual files found in search path")
-	  (ding))
-	)
+	  (ding)))
     (message "WoMan Error: No topic specified in non-interactive call")
-    (ding))
-  )
+    (ding)))
 
 ;; Allow WoMan to be called via the standard Help menu:
 (define-key-after menu-bar-manuals-menu [woman]
@@ -1287,11 +1266,10 @@ automatically used as the topic, if the value of the user option
 be found.  Optional argument RE-CACHE, if non-nil, forces the
 cache to be re-read."
   ;; Handle the caching of the directory and topic lists:
-  (if (and (not re-cache)
-	   (or
-	    (and woman-expanded-directory-path woman-topic-all-completions)
-	    (woman-read-directory-cache)))
-      ()
+  (unless (and (not re-cache)
+	       (or
+		(and woman-expanded-directory-path woman-topic-all-completions)
+		(woman-read-directory-cache)))
     (message "Building list of manual directory expansions...")
     (setq woman-expanded-directory-path
 	  (woman-expand-directory-path woman-manpath woman-path))
@@ -1328,8 +1306,7 @@ cache to be re-read."
 		 'woman-topic-history
 		 default))))
     ;; Note that completing-read always returns a string.
-    (if (= (length topic) 0)
-	nil				; no topic, so no file!
+    (unless (= (length topic) 0)
       (cond
        ((setq files (woman-file-name-all-completions topic)))
        ;; Complete topic more carefully, i.e. use the completion
@@ -1366,8 +1343,7 @@ cache to be re-read."
 	       (not (member (car cdr_list) (cdr cdr_list)))
 	       (funcall predicate (car cdr_list)))
 	      (setq list cdr_list)
-	    (setcdr list (cdr cdr_list)))
-	  )
+	    (setcdr list (cdr cdr_list))))
 	newlist)))
 
 (defun woman-file-readable-p (dir)
@@ -1560,10 +1536,8 @@ Also make each path-info component into a list.
 	      path (cdr path))
 	(if (woman-not-member dir path)	; use each directory only once!
 	    (setq files (nconc files
-			       (directory-files dir t topic-regexp))))
-	))
-    (mapcar 'list files)
-    ))
+			       (directory-files dir t topic-regexp))))))
+    (mapcar 'list files)))
 
 
 ;;; dired support
@@ -1668,8 +1642,7 @@ decompress the file if appropriate.  See the documentation for the
 	  (or exists
 	      (setq woman-buffer-alist
 		    (cons (cons file-name bufname) woman-buffer-alist)
-		    woman-buffer-number 0))
-	  )))
+		    woman-buffer-number 0)))))
   (Man-build-section-alist)
   (Man-build-references-alist)
   (goto-char (point-min)))
@@ -1785,8 +1758,7 @@ Do not call directly!"
     (goto-char (point-min))
     (forward-line)
     (while (re-search-forward "^\\(   \\)?\\([A-Z].*\\)" nil t)
-      (woman-set-face (match-beginning 2) (match-end 2) 'woman-bold))))
-  )
+      (woman-set-face (match-beginning 2) (match-end 2) 'woman-bold)))))
 
 (defun woman-insert-file-contents (filename compressed)
   "Insert file FILENAME into the current buffer.
@@ -1811,9 +1783,7 @@ Leave point at end of new text.  Return length of inserted text."
 	     (file-error
 	      ;; Run find-file-not-found-hooks until one returns non-nil.
 	      ;; (run-hook-with-args-until-success 'find-file-not-found-hooks)
-	      (insert "\n***** File " filename " not found! *****\n\n")
-	      )))
-      )))
+	      (insert "\n***** File " filename " not found! *****\n\n")))))))
 
 
 ;;; Major mode (Man) interface:
@@ -1991,8 +1961,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (interactive)
   (setq woman-fill-frame (not woman-fill-frame))
   (message "Woman fill column set to %s."
-	   (if woman-fill-frame "frame width" woman-fill-column)
-	   ))
+	   (if woman-fill-frame "frame width" woman-fill-column)))
 
 (defun woman-mini-help ()
   "Display WoMan commands and user options in an `apropos' buffer."
@@ -2001,7 +1970,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (require 'apropos)
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
-	   (print-help-return-message 'identity))))
+	   (help-print-return-message 'identity))))
     (setq apropos-accumulator
 	  (apropos-internal "woman"
 			    (lambda (symbol)
@@ -2119,8 +2088,7 @@ alist in `woman-buffer-alist' and return nil."
 	(setcdr prev-ptr (cdr (cdr prev-ptr)))
 	(if (>= woman-buffer-number (length woman-buffer-alist))
 	    (setq woman-buffer-number 0))
-	nil)
-      )))
+	nil))))
 
 
 ;;; Syntax and display tables:
@@ -2406,52 +2374,7 @@ Currently set only from '\" t in the first line of the source file.")
 		 (woman-delete-match 0)
 		 (WoMan-warn
 		  "Terminal vertical motion escape \\%s ignored!" esc)))
-	  (setq first (not first))
-	  )))
-
-;      ;; \h'+/-N' local horizontal motion.
-;      ;; N may include width escape \w'...'
-;      ;; Implement arbitrary forward motion and non-overlapping backward
-;      ;; motion.
-;      (goto-char from)
-;      (while (re-search-forward
-;  	    ;; Delimiter can be a special char escape sequence \(.. or
-;  	    ;; a single normal char (usually '):
-;  	    "\\\\h\\(\\\\(..\\|.\\)\\(|\\)?"
-;  	    nil t)
-;        (let ((from (match-beginning 0))
-;  	    (delim (regexp-quote (match-string 1)))
-;  	    (absolute (match-string 2)) ; absolute position?
-;  	    (N (woman-parse-numeric-arg)) ; distance
-;  	    to
-;  	    msg)			; for warning
-;  	(if (not (looking-at delim))
-;  	    ;; Warn but leave escape in buffer unprocessed:
-;  	    (WoMan-warn
-;  	     "Local horizontal motion (%s) delimiter error!"
-;  	     (buffer-substring from (1+ (point)))) ; point at end of arg
-;  	  (setq to (match-end 0)
-;  		;; For possible warning -- save before deleting:
-;  		msg (buffer-substring from to))
-;  	  (delete-region from to)
-;  	  (if absolute			; make relative
-;  	      (setq N (- N (current-column))))
-;  	  (if (>= N 0)
-;  	      ;; Move forward by inserting hard spaces:
-;  	      (insert-char woman-unpadded-space-char N)
-;  	    ;; Move backwards by deleting space,
-;  	    ;; first backwards then forwards:
-;  	    (while (and
-;  		    (<= (setq N (1+ N)) 0)
-;  		    (cond ((memq (preceding-char) '(?\  ?\t))
-;  			   (delete-backward-char 1) t)
-;  			  ((memq (following-char) '(?\  ?\t))
-;  			   (delete-char 1) t)
-;  			  (t nil))))
-;  	    (if (<= N 0)
-;  		(WoMan-warn
-;  		 "Negative horizontal motion (%s) would overwrite!" msg))))
-;  	))
+	  (setq first (not first)))))
 
     ;; Process formatting macros
     (goto-char from)
@@ -2472,8 +2395,7 @@ Currently set only from '\" t in the first line of the source file.")
 	    (delete-char -1) (insert ?\\))
 	  (goto-char from)
 	  (while (search-forward woman-unpadded-space-string nil t)
-	    (delete-char -1) (insert ?\ ))
-	  ))
+	    (delete-char -1) (insert ?\ ))))
 
     ;; Must return the new end of file if used in format-alist.
     (point-max)))
@@ -2521,8 +2443,7 @@ Preserves location of `point'."
 			  (t nil))))
 	    (if (<= N 0)
 		(WoMan-warn
-		 "Negative horizontal motion (%s) would overwrite!" msg))))
-	))
+		 "Negative horizontal motion (%s) would overwrite!" msg))))))
     (goto-char from)))
 
 
@@ -2582,8 +2503,7 @@ Start at FROM and re-scan new text as appropriate."
 	(delete-region from (point))
       (WoMan-warn
        "ig request ignored -- terminator `.%s' not found!" yy)
-      (woman-delete-line 1))
-    ))
+      (woman-delete-line 1))))
 
 (defsubst woman0-process-escapes (from to)
   "Process escapes within an if/ie condition between FROM and TO."
@@ -2641,12 +2561,10 @@ REQUEST is the invoking directive without the leading dot."
 			 (woman0-process-escapes from woman0-if-to)
 			 (woman-parse-numeric-arg))))
       (setq c (> n 0))
-      (goto-char from))
-     )
+      (goto-char from)))
     (if (eq c 0)
 	(woman-if-ignore woman0-if-to request) ; ERROR!
-      (woman-if-body request woman0-if-to (eq c negated)))
-    ))
+      (woman-if-body request woman0-if-to (eq c negated)))))
 
 (defun woman-if-body (request to delete) ; should be reversed as `accept'?
   "Process if-body, including \\{ ... \\}.
@@ -2676,10 +2594,9 @@ If DELETE is non-nil then delete from point."
 	     (delete-region (if delete from (match-beginning 0)) (point))
 	     (if (looking-at "^$") (delete-char 1))
 	     ))
-	  (delete (woman-delete-line 1)) ; single-line
-	  )
+	  (delete (woman-delete-line 1))) ; single-line
     ;; Process matching .el anything:
-   (cond ((string= request "ie")
+    (cond ((string= request "ie")
 	   ;; Discard unless previous .ie c `evaluated to false'.
 	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
 		  (woman-delete-match 0)
@@ -2689,10 +2606,8 @@ If DELETE is non-nil then delete from point."
 	  ((string= request "el")
 	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
 		  (woman-delete-match 0)
-		  (woman-if-body "el" nil t))))
-	  )
-    (goto-char from)
-    ))
+		  (woman-if-body "el" nil t)))))
+    (goto-char from)))
 
 (defun woman0-el ()
   "Isolated .el request -- should not happen!"
@@ -2746,8 +2661,7 @@ If DELETE is non-nil then delete from point."
            (to (copy-marker (+ from length) t)))
       (woman-pre-process-region from to)
       (set-marker to nil)
-      (goto-char from)
-      )))
+      (goto-char from))))
 
 
 ;;; Process macro definitions:
@@ -2767,8 +2681,7 @@ If DELETE is non-nil then delete from point."
 	(setq beg (point)
 	      end (progn (woman-forward-arg 'unquote) (point))
 	      new (buffer-substring beg end)
-	      woman0-rename-alist (cons (cons new old) woman0-rename-alist)))
-      ))
+	      woman0-rename-alist (cons (cons new old) woman0-rename-alist)))))
   (woman-delete-whole-line))
 
 (defun woman0-rename ()
@@ -2836,8 +2749,7 @@ Optional argument APPEND, if non-nil, means append macro."
       (setq woman0-macro-alist (cons macro woman0-macro-alist))
       (forward-line)
       (delete-region from (point))
-      (backward-char)			; return to end of .de/am line
-      ))
+      (backward-char)))			; return to end of .de/am line
   (beginning-of-line)			; delete .de/am line
   (woman-delete-line 1))
 
@@ -2872,8 +2784,7 @@ Optional argument APPEND, if non-nil, means append macro."
       ;; Replace formal arg with actual arg:
       (setq start nil)
       (while (setq start (string-match formal-arg macro start))
-	(setq macro (replace-match actual-arg t t macro)))
-      )
+	(setq macro (replace-match actual-arg t t macro))))
     ;; Delete any remaining formal arguments:
     (setq start nil)
     (while
@@ -2957,11 +2868,7 @@ interpolated by `\*x' and `\*(xx' escapes."
 			     (delete-region beg (point))
 			     (setq woman-string-alist
 				   (cons (cons stringname "")
-					 woman-string-alist))))
-		      ))
-	       ))
-	   ))
-    ))
+					 woman-string-alist))))))))))))
 
 
 ;;; Process special character escapes \(xx:
@@ -3047,8 +2954,7 @@ Set NEWTEXT in face FACE if specified."
 	(WoMan-warn (concat "Special character "
 			    (if (match-beginning 1) "\\(%s" "\\[%s]")
 			    " not interpolated!") name)
-	(if woman-ignore (woman-delete-match 0))))
-    ))
+	(if woman-ignore (woman-delete-match 0))))))
 
 (defun woman-display-extended-fonts ()
   "Display table of glyphs of graphic characters and their octal codes.
@@ -3066,9 +2972,8 @@ Useful for constructing the alist variable `woman-special-characters'."
 	  (insert "   ")
 	  (setq i (1+ i))
 	  (when (= i 128) (setq i 160) (insert "\n"))
-	  (if (zerop (% i 8)) (insert "\n")))
-	))
-    (print-help-return-message)))
+	  (if (zerop (% i 8)) (insert "\n")))))
+    (help-print-return-message)))
 
 
 ;;; Formatting macros that do not cause a break:
@@ -3089,8 +2994,7 @@ Leave point at TO (which should be a marker)."
 	(setq in-quote (not in-quote))
 	))
     (if in-quote
-	(WoMan-warn "Unpaired \" in .%s arguments." request))
-    ))
+	(WoMan-warn "Unpaired \" in .%s arguments." request))))
 
 (defsubst woman-unquote-args ()
   "Delete any double-quote characters up to the end of the line."
@@ -3124,9 +3028,7 @@ Leave point at TO (which should be a marker)."
 	  (funcall fn)
 	  ;; Hide leading control character in quoted argument (only):
 	  (if (and unquote (memq (following-char) '(?. ?')))
-	      (insert "\\&"))
-	  )
-	)))))
+	      (insert "\\&"))))))))
 
 ;;; Font-changing macros:
 
@@ -3198,8 +3100,7 @@ B-OR-I is the appropriate complete control line."
       (insert (car fonts))
       (setq fonts (cdr fonts))
       (woman-forward-arg unquote 'concat)) ; unquote is bound above
-    (insert "\\fR")
-    ))
+    (insert "\\fR")))
 
 (defun woman-forward-arg (&optional unquote concat)
   "Move forward over one ?roff argument, optionally unquoting and/or joining.
@@ -3215,14 +3116,12 @@ If optional arg CONCAT is non-nil then join arguments."
 	  (re-search-forward "\"\\|$"))
 	(if (eq (preceding-char) ?\")
 	    (if unquote (delete-backward-char 1))
-	  (WoMan-warn "Unpaired \" in .%s arguments." request)
-	  ))
+	  (WoMan-warn "Unpaired \" in .%s arguments." request)))
     ;; (re-search-forward "[^\\\n] \\|$")	; inconsistent
     (skip-syntax-forward "^ "))
   (cond ((null concat) (skip-chars-forward " \t")) ; don't skip eol!
 	((eq concat 'noskip))  ; do not skip following whitespace
-	(t (woman-delete-following-space)))
-  )
+	(t (woman-delete-following-space))))
 
 
 ;; The following requests are not explicit font-change requests and
@@ -3247,8 +3146,7 @@ If optional arg CONCAT is non-nil then join arguments."
     (woman-delete-whole-line)
     (insert ".ft I\n")
     (forward-line N)
-    (insert ".ft R\n")
-    ))
+    (insert ".ft R\n")))
 
 ;;; Other non-breaking requests:
 
@@ -3279,8 +3177,7 @@ If optional arg CONCAT is non-nil then join arguments."
     (save-excursion
       (while (and (re-search-forward c nil t)
 		  (match-beginning 1))
-	(delete-char -1)))
-    ))
+	(delete-char -1)))))
 
 (put 'woman1-hw 'notfont t)
 (defun woman1-hw ()
@@ -3372,8 +3269,7 @@ If optional arg CONCAT is non-nil then join arguments."
                      fescape t)
 	       (woman-match-name))
 	      (t (setq notfont t)))
-	(if notfont
-	    ()
+	(unless notfont
 	  ;; Get font name:
 	  (or font
 	      (let ((fontstring (match-string 0)))
@@ -3411,8 +3307,7 @@ If optional arg CONCAT is non-nil then join arguments."
 	  (setq current-font font)
 	  )))
     ;; Set font after last request up to eob:
-    (woman-set-face previous-pos (point) current-font)
-    ))
+    (woman-set-face previous-pos (point) current-font)))
 
 (defun woman-set-face (from to face)
   "Set the face of the text from FROM to TO to face FACE.
@@ -3431,8 +3326,7 @@ Ignore the default face and underline only word characters."
 		(put-text-property from (point) 'face face-no-ul)
 		(setq from (point))
 		)))
-	(put-text-property from to 'face face))
-      ))
+	(put-text-property from to 'face face))))
 
 
 ;;; Output translation:
@@ -3482,8 +3376,7 @@ Format paragraphs upto TO.  Supports special chars.
 	    (concat "[" matches))
 	  translations (cons matches alist))
     ;; Format any following text:
-    (woman2-format-paragraphs to)
-    ))
+    (woman2-format-paragraphs to)))
 
 (defsubst woman-translate (to)
   "Translate up to marker TO.  Do this last of all transformations."
@@ -3498,8 +3391,7 @@ Format paragraphs upto TO.  Supports special chars.
 		 (buffer-substring-no-properties
 		  (match-beginning 0) (match-end 0))
 		 alist)))
-	  (woman-delete-match 0))
-	)))
+	  (woman-delete-match 0)))))
 
 
 ;;; Registers:
@@ -3689,8 +3581,7 @@ expression in parentheses.  Leaves point after the value."
 		      (if (re-search-forward delim nil t)
 			  ;; Return width of string:
 			  (- (match-beginning 0) from)
-			(WoMan-warn "Width escape delimiter error!"))))
-		   )))
+			(WoMan-warn "Width escape delimiter error!")))))))
       (if (null n)
 	  ;; ERROR -- should handle this better!
 	  (progn
@@ -3714,8 +3605,7 @@ expression in parentheses.  Leaves point after the value."
 	     ;; in which case do nothing and return nil.
 	     )
 	    (goto-char (match-end 0)))
-	(if (numberp n) (round n) n))
-      )))
+	(if (numberp n) (round n) n)))))
 
 
 ;;; VERTICAL FORMATTING -- Formatting macros that cause a break:
@@ -3824,11 +3714,7 @@ Round to whole lines, default 1 line.  Format paragraphs upto TO.
 
 (defsubst woman-interparagraph-space ()
   "Set variable `woman-leave-blank-lines' from `woman-interparagraph-distance'."
-;  (if (> woman-interparagraph-distance 0)
-;      (forward-line 1)			; leave 1 blank line
-;    (woman-delete-line 1))		; do not leave blank line
-  (setq woman-leave-blank-lines woman-interparagraph-distance)
-  )
+  (setq woman-leave-blank-lines woman-interparagraph-distance))
 
 (defun woman2-TH (to)
   ".TH n c x v m -- Begin a man page.  Format paragraphs upto TO.
@@ -3842,9 +3728,7 @@ v alters page foot left; m alters page head center.
   (let ((start (point)) here)
     (while (not (eolp))
       (cond ((looking-at "\"\"[ \t]")
-	     (delete-char 2)
-	     ;; (delete-horizontal-space)
-	     ))
+	     (delete-char 2)))
       (delete-horizontal-space)
       (setq here (point))
       (insert " -- ")
@@ -3975,9 +3859,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 		    "Character(s) overwritten by negative vertical spacing in line %d"
 		    (count-lines 1 (point))))
 		 (delete-char 1) (insert (substring overlap i (1+ i)))))
-	  (setq i (1+ i))
-	  ))
-      )))
+	  (setq i (1+ i)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3992,8 +3874,9 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
-    ;; and zero width characters \|, \^:
-    (while (re-search-forward "\\\\[&|^]" to t)
+    ;; and zero width characters.  If on a line by itself, consume the
+    ;; newline as well, as this may interfere with (Bug#3651).
+    (while (re-search-forward "\\\\[&|^]\n?" to t)
       (woman-delete-match 0))
     (goto-char from)
     ;; Interrupt text processing -- CONTINUE current text with the
@@ -4020,7 +3903,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
 		      (delete-char 1)
 		      (insert ?`))))
 	      ((eq c ?\( ))		; uninterpreted special character
-					; \(.. -- do nothing
+    					; \(.. -- do nothing
 	      ((eq c ?t)		; non-interpreted tab \t
 	       (delete-char 1)
 	       (delete-char -1)
@@ -4065,8 +3948,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
          (c (if (< (point) to) (following-char) ?_)))
     (delete-region from to)
     (delete-char 1)
-    (insert (make-string N c))
-    ))
+    (insert (make-string N c))))
 
 ;;; 4. Text Filling, Adjusting, and Centering
 
@@ -4089,7 +3971,7 @@ Format paragraphs upto TO."
 (defun woman2-nf (to)
   ".nf -- Nofill.  Subsequent lines are neither filled nor adjusted.
 Input text lines are copied directly to output lines without regard
-for the current line length.  Format paragraphs upto TO."
+for the current line length.  Format paragraphs up to TO."
   (setq woman-nofill t)
   (woman-delete-line 1)			; ignore any arguments
   (woman2-format-paragraphs to))
@@ -4140,15 +4022,12 @@ non-nil and non-zero."
    (progn (skip-syntax-forward " ")
 	  (beginning-of-line)
 	  (point)))
-  (if woman-nospace
-      ()
+  (unless woman-nospace
     (if (or (null leave) (eq leave 0))
 	;; output any `pending' vertical space ...
 	(setq leave woman-leave-blank-lines))
-    (if (and leave (> leave 0)) (insert-before-markers ?\n))
-    )
-  (setq woman-leave-blank-lines nil)
-  )
+    (if (and leave (> leave 0)) (insert-before-markers ?\n)))
+  (setq woman-leave-blank-lines nil))
 
 ;; `fill-region-as-paragraph' in `fill.el' appears to be the principal
 ;; text filling function, so that is what I use here.
@@ -4167,28 +4046,20 @@ If `woman-nofill' is non-nil then indent without filling or adjusting."
   (skip-syntax-forward " ")
   ;; Successive control lines are sufficiently common to be worth a
   ;; special case (maybe):
-  (if (>= (point) to)			; >= as a precaution!
-      ()
-    ;; (woman-leave-blank-lines)
+  (unless (>= (point) to)
     (woman-reset-nospace)
-    ;; (woman2-process-escapes to)		; 7 October 1999
     (woman2-process-escapes to 'numeric)
     (if woman-nofill
 	;; Indent without filling or adjusting ...
 	(progn
 	  (woman-leave-blank-lines)
-	  (cond (woman-temp-indent
-		 (indent-to woman-temp-indent)
-		 (forward-line)))
+	  (when woman-temp-indent
+	    (indent-to woman-temp-indent)
+	    (forward-line))
 	  (indent-rigidly (point) to left-margin)
-	  (woman-horizontal-escapes to)) ; 7 October 1999
+	  (woman-horizontal-escapes to))
       ;; Fill and justify ...
       ;; Blank lines and initial spaces cause a break.
-;      (cond ((and (= (point) to) (not (looking-at ".nf"))) ; Yuk!!!
-;	     ;; No text after a request that caused a break, so delete
-;	     ;; any spurious blank line left:
-;	     (forward-line -1)
-;	     (if (looking-at "^\\s *$") (kill-line) (forward-line))))
       (while (< (point) to)
 	(woman-leave-blank-lines)
 	(let ((from (point)))
@@ -4197,13 +4068,6 @@ If `woman-nofill' is non-nil then indent without filling or adjusting."
 	  (woman-horizontal-escapes to) ; 7 October 1999
 	  ;; Find the beginning of the next paragraph:
 	  (forward-line)
-;	  (if (re-search-forward "\\(^\\s *$\\)\\|\\(^\\s +\\)" to 1)
-;	      ;; A blank line should leave a space like .sp 1 (p. 14).
-;	      (if (eolp)
-;		  (progn
-;		    (skip-syntax-forward " ")
-;		    (setq woman-leave-blank-lines 1))
-;		(setq woman-leave-blank-lines nil)))
 	  (and (re-search-forward "\\(^\\s *$\\)\\|\\(^\\s +\\)" to 1)
 	       ;; A blank line should leave a space like .sp 1 (p. 14).
 	       (eolp)
@@ -4217,35 +4081,21 @@ If `woman-nofill' is non-nil then indent without filling or adjusting."
 	  ;; If a single short line then just leave it.
 	  ;; This is necessary to preserve some table layouts.
 	  ;; PROBABLY NOT NECESSARY WITH SQUEEZE MODIFICATION !!!!!
-	  (if (or (> (count-lines from (point)) 1)
+	  (when (or (> (count-lines from (point)) 1)
+		    (save-excursion
+		      (backward-char)
+		      (> (current-column) fill-column)))
+	    ;; NOSQUEEZE has no effect if JUSTIFY is full, so redefine
+	    ;; canonically-space-region, see above.
+	    (if (and woman-temp-indent (< woman-temp-indent left-margin))
+		(let ((left-margin woman-temp-indent))
+		  (fill-region-as-paragraph from (point) woman-justify)
 		  (save-excursion
-		    (backward-char)
-		    (> (current-column) fill-column)))
-	      ;; ?roff does not squeeze multiple spaces
-	      ;; (fill-region-as-paragraph from (point) woman-justify t)
-	      ;; NOSQUEEZE has no effect if JUSTIFY is full, so
-	      ;; redefine canonically-space-region, see above.
-	      (progn
-		;; Needs a re-write of the paragraph formatter to
-		;; avoid this nonsense to handle temporary indents!
-		(if (and woman-temp-indent (< woman-temp-indent left-margin))
-		    (let ((left-margin woman-temp-indent))
-		      (fill-region-as-paragraph from (point) woman-justify)
-		      (save-excursion
-			(goto-char from)
-			(forward-line)
-			(setq from (point)))))
-		(fill-region-as-paragraph from (point) woman-justify))
-	    )
-	  ;; A blank line should leave a space like .sp 1 (p. 14).
-	  ;; Delete all but 1 trailing blank lines:
-	  ;;(woman-leave-blank-lines 1)
-	  ))
-      )
-    (setq woman-temp-indent nil)
-    ;; Non-white-space text has been processed, so ...
-    ;;(setq woman-leave-blank-lines nil)
-    ))
+		    (goto-char from)
+		    (forward-line)
+		    (setq from (point)))))
+	    (fill-region-as-paragraph from (point) woman-justify)))))
+    (setq woman-temp-indent nil)))
 
 
 ;;; Tagged, indented and hanging paragraphs:
@@ -4317,8 +4167,7 @@ Format paragraphs upto TO.  Set prevailing indent to I."
            (if (string= (match-string 1) "ta") ; for GetInt.3
                (woman2-ta to)
              (woman-set-interparagraph-distance)))
-         (set-marker to (woman-find-next-control-line-carefully))
-         ))
+         (set-marker to (woman-find-next-control-line-carefully))))
 
   (let ((tag (point)))
     (woman-reset-nospace)
@@ -4352,9 +4201,7 @@ Format paragraphs upto TO.  Set prevailing indent to I."
 		  ;; Cannot simply delete (current-column) whitespace
 		  ;; characters because some may be tabs!
 		  (insert-char ?\s i)))
-	   (goto-char to)		; necessary ???
-	   ))
-    ))
+	   (goto-char to)))))
 
 (defun woman2-HP (to)
   ".HP i -- Set prevailing indent to i.  Format paragraphs upto TO.
@@ -4362,8 +4209,7 @@ Begin paragraph with hanging indent."
   (let ((i (woman2-get-prevailing-indent)))
     (woman-interparagraph-space)
     (setq woman-temp-indent woman-left-margin)
-    (woman2-format-paragraphs to (+ woman-left-margin i))
-    ))
+    (woman2-format-paragraphs to (+ woman-left-margin i))))
 
 (defun woman2-get-prevailing-indent (&optional leave-eol)
   "Set prevailing indent to integer argument at point, and return it.
@@ -4548,9 +4394,7 @@ Needs doing properly!"
 	  (insert-before-markers woman-unpadded-space-char)
 	  (subst-char-in-region
 	   (match-beginning 0) (match-end 0)
-	   pad woman-unpadded-space-char t)
-	  ))
-      ))
+	   pad woman-unpadded-space-char t)))))
   (woman2-format-paragraphs to))
 
 
@@ -4617,8 +4461,7 @@ Format paragraphs upto TO."
 		  (concat "file " WoMan-current-file)
 		(concat "buffer " WoMan-current-buffer))
 	      " at " (current-time-string) "\n")
-      (setq WoMan-Log-header-point-max (point-max))
-      )))
+      (setq WoMan-Log-header-point-max (point-max)))))
 
 (defun WoMan-log (format &rest args)
   "Log a message out of FORMAT control string and optional ARGS."
@@ -4664,8 +4507,7 @@ logging the message."
 	     (cond (WoMan-Log-header-point-max
 		    (goto-char WoMan-Log-header-point-max)
 		    (forward-line -1)
-		    (recenter 0)))
-	     )))))
+		    (recenter 0))))))))
   nil)					; for woman-file-readable-p etc.
 
 (provide 'woman)

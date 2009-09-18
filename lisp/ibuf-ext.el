@@ -1,7 +1,7 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -544,7 +544,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
       (dolist (filtergroup filter-group-alist)
 	(let ((filterset (cdr filtergroup)))
 	  (multiple-value-bind (hip-crowd lamers)
-	      (values-list 
+	      (values-list
 	       (ibuffer-split-list (lambda (bufmark)
 				     (ibuffer-included-in-filters-p (car bufmark)
 								    filterset))
@@ -1161,10 +1161,10 @@ Ordering is lexicographic."
   (string-lessp
    ;; FIXME: For now just compare the file name and the process name
    ;; (if it exists).  Is there a better way to do this?
-   (or (buffer-file-name (car a)) 
+   (or (buffer-file-name (car a))
        (let ((pr-a (get-buffer-process (car a))))
 	 (and (processp pr-a) (process-name pr-a))))
-   (or (buffer-file-name (car b)) 
+   (or (buffer-file-name (car b))
        (let ((pr-b (get-buffer-process (car b))))
 	 (and (processp pr-b) (process-name pr-b))))))
 
@@ -1597,6 +1597,10 @@ defaults to one."
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
 
 (provide 'ibuf-ext)
+
+;; Local Variables:
+;; generated-autoload-file: "ibuffer.el"
+;; End:
 
 ;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

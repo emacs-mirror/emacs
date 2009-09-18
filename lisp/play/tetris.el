@@ -1,7 +1,7 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -40,22 +40,22 @@
   :group 'games)
 
 (defcustom tetris-use-glyphs t
-  "*Non-nil means use glyphs when available."
+  "Non-nil means use glyphs when available."
   :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-use-color t
-  "*Non-nil means use color when available."
+  "Non-nil means use color when available."
   :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-draw-border-with-glyphs t
-  "*Non-nil means draw a border even when using glyphs."
+  "Non-nil means draw a border even when using glyphs."
   :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-default-tick-period 0.3
-  "*The default time taken for a shape to drop one row."
+  "The default time taken for a shape to drop one row."
   :group 'tetris
   :type 'number)
 

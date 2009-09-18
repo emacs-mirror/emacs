@@ -75,12 +75,12 @@ enum text_cursor_kinds
 
 enum fullscreen_type
 {
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4
+  FULLSCREEN_NONE,
+  FULLSCREEN_WIDTH     = 0x001,
+  FULLSCREEN_HEIGHT    = 0x002,
+  FULLSCREEN_BOTH      = 0x003,
+  FULLSCREEN_MAXIMIZED = 0x013,
+  FULLSCREEN_WAIT      = 0x100
 };
 
 
@@ -439,6 +439,9 @@ struct frame
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
   unsigned char mouse_moved :1;
+
+  /* Nonzero means that the pointer is invisible. */
+  unsigned char pointer_invisible :1;
 
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
@@ -830,6 +833,8 @@ extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
 							Lisp_Object));
 #endif /* HAVE_WINDOW_SYSTEM */
 extern int other_visible_frames P_ ((struct frame *));
+extern void frame_make_pointer_invisible P_ ((void));
+extern void frame_make_pointer_visible P_ ((void));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
@@ -1038,6 +1043,8 @@ extern Lisp_Object Qscreen_gamma;
 extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
+extern Lisp_Object Qfullwidth, Qfullheight, Qfullboth, Qmaximized;
+extern Lisp_Object Qsticky;
 extern Lisp_Object Qfont_backend;
 extern Lisp_Object Qalpha;
 
@@ -1108,7 +1115,7 @@ extern Lisp_Object Vframe_alpha_lower_limit;
 extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
 
 extern void validate_x_resource_name P_ ((void));
-
+                                           
 extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object attribute,
 					   Lisp_Object class,

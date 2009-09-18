@@ -517,37 +517,42 @@ Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
 If MONTH, DAY (Chinese) is visible, returns the corresponding
 Gregorian date as the list (((month day year) STRING)).
 Returns nil if it is not visible in the current calendar window."
-  ;; This is calendar-nongregorian-visible-p adapted for the form of
-  ;; chinese dates: (cycle year month day) as opposed to (month day year).
-  (let* ((m1 displayed-month)
-         (y1 displayed-year)
-         (m2 displayed-month)
-         (y2 displayed-year)
-         ;; Absolute date of first/last dates in calendar window.
-         (start-date (progn
-                       (calendar-increment-month m1 y1 -1)
-                       (calendar-absolute-from-gregorian (list m1 1 y1))))
-         (end-date (progn
-                     (calendar-increment-month m2 y2 1)
-                     (calendar-absolute-from-gregorian
-                      (list m2 (calendar-last-day-of-month m2 y2) y2))))
-         ;; Local date of first/last date in calendar window.
-         (local-start (calendar-chinese-from-absolute start-date))
-         ;; A basic optimization.  We only care about the year part,
-         ;; and the Chinese year can only change if Jan or Feb are
-         ;; visible.  FIXME can we do more?
-         (local-end (if (memq displayed-month '(12 1 2 3))
-                        (calendar-chinese-from-absolute end-date)
-                      local-start))
-         ;; When Chinese New Year is visible on the far right of the
-         ;; calendar, what is the earliest Chinese month in the
-         ;; previous year that might still visible?  This test doesn't
-         ;; have to be precise.
-         (local (if (< month 10) local-end local-start))
-         (cycle (car local))
-         (year (cadr local))
-         (date (calendar-gregorian-from-absolute
-                (calendar-chinese-to-absolute (list cycle year month day)))))
+  (let ((date
+         (calendar-gregorian-from-absolute
+          ;; A basic optimization.  Chinese year can only change if
+          ;; Jan or Feb are visible.  FIXME can we do more?
+          (if (memq displayed-month '(12 1 2 3))
+              ;; This is calendar-nongregorian-visible-p adapted for
+              ;; the form of chinese dates: (cycle year month day) as
+              ;; opposed to (month day year).
+              (let* ((m1 displayed-month)
+                     (y1 displayed-year)
+                     (m2 displayed-month)
+                     (y2 displayed-year)
+                     ;; Absolute date of first/last dates in calendar window.
+                     (start-date (progn
+                                   (calendar-increment-month m1 y1 -1)
+                                   (calendar-absolute-from-gregorian
+                                    (list m1 1 y1))))
+                     (end-date (progn
+                                 (calendar-increment-month m2 y2 1)
+                                 (calendar-absolute-from-gregorian
+                                  (list m2 (calendar-last-day-of-month m2 y2)
+                                        y2))))
+                     ;; Local date of first/last date in calendar window.
+                     (local-start (calendar-chinese-from-absolute start-date))
+                     (local-end (calendar-chinese-from-absolute end-date))
+                     ;; When Chinese New Year is visible on the far
+                     ;; right of the calendar, what is the earliest
+                     ;; Chinese month in the previous year that might
+                     ;; still visible?  This test doesn't have to be precise.
+                     (local (if (< month 10) local-end local-start))
+                     (cycle (car local))
+                     (year (cadr local)))
+                (calendar-chinese-to-absolute (list cycle year month day)))
+            ;; Simple form for when new years are not visible.
+            (+ (cadr (assoc month (calendar-chinese-year displayed-year)))
+               (1- day))))))
     (if (calendar-date-is-visible-p date)
         (list (list date string)))))
 

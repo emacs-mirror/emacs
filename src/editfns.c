@@ -3147,12 +3147,7 @@ It returns the number of characters changed.  */)
 
 	      if (VECTORP (val))
 		{
-		  int i;
-
-		  string = Fmake_string (make_number (ASIZE (val)),
-					 AREF (val, 0));
-		  for (i = 1; i < ASIZE (val); i++)
-		    Faset (string, make_number (i), AREF (val, i));
+		  string = Fconcat (1, &val);
 		}
 	      else
 		{
@@ -4314,7 +4309,7 @@ transpose_markers (start1, end1, start2, end2,
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
        doc: /* Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
-The regions may not be overlapping, because the size of the buffer is
+The regions should not be overlapping, because the size of the buffer is
 never changed in a transposition.
 
 Optional fifth arg LEAVE-MARKERS, if non-nil, means don't update

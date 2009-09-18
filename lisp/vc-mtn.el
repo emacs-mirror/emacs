@@ -106,6 +106,21 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	     ((match-end 2) 'added)
 	     (t 'up-to-date)))))
 
+(defun vc-mtn-after-dir-status (update-function)
+  (let (result)
+    (goto-char (point-min))
+    (re-search-forward "Current branch: \\(.*\\)\nChanges against parent \\(.*\\)" nil t)
+    (while (re-search-forward
+	    "^  \\(?:\\(patched  \\)\\|\\(added    \\)\\)\\(.*\\)$" nil t)
+      (cond  ((match-end 1) (push (list (match-string 3) 'edited) result))
+	     ((match-end 2) (push (list (match-string 3) 'added) result))))
+    (funcall update-function result)))
+
+(defun vc-mtn-dir-status (dir update-function)
+  (vc-mtn-command (current-buffer) 'async dir "status")
+  (vc-exec-after
+   `(vc-mtn-after-dir-status (quote ,update-function))))
+
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just
   ;; return nil.
@@ -173,7 +188,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;; (defun vc-mtn-roolback (files)
 ;;   )
 
-(defun vc-mtn-print-log (files &optional buffer)
+(defun vc-mtn-print-log (files &optional buffer shortlog)
   (vc-mtn-command buffer 0 files "log"))
 
 (defvar log-view-message-re)
@@ -206,7 +221,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
            (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
 
 (defun vc-mtn-annotate-command (file buf &optional rev)
-  (apply 'vc-mtn-command buf 0 file "annotate"
+  (apply 'vc-mtn-command buf 'async file "annotate"
          (if rev (list "-r" rev))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))

@@ -134,7 +134,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (let ((prog sha1-program)
-          (args nil))
+          (args nil)
+	  process-file-side-effects)
       (when (consp prog)
 	(setq args (cdr prog))
         (setq prog (car prog)))
@@ -143,7 +144,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
 
 (defun vc-bzr-state-heuristic (file)
   "Like `vc-bzr-state' but hopefully without running Bzr."
-  ;; `bzr status' is excrutiatingly slow with large histories and
+  ;; `bzr status' was excrutiatingly slow with large histories and
   ;; pending merges, so try to avoid using it until they fix their
   ;; performance problems.
   ;; This function tries first to parse Bzr internal file
@@ -158,50 +159,55 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
       ;; This looks at internal files.  May break if they change
       ;; their format.
       (lexical-let ((dirstate (expand-file-name vc-bzr-admin-dirstate root)))
-        (if (not (file-readable-p dirstate))
-            (vc-bzr-state file)         ; Expensive.
-          (with-temp-buffer
-            (insert-file-contents dirstate)
-            (goto-char (point-min))
-            (if (not (looking-at "#bazaar dirstate flat format 3"))
-                (vc-bzr-state file)     ; Some other unknown format?
-              (let* ((relfile (file-relative-name file root))
-                     (reldir (file-name-directory relfile)))
-                (if (re-search-forward
-                     (concat "^\0"
-                             (if reldir (regexp-quote
-                                         (directory-file-name reldir)))
-                             "\0"
-                             (regexp-quote (file-name-nondirectory relfile))
-                             "\0"
-                             "[^\0]*\0"       ;id?
-                             "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
-                             "[^\0]*\0"       ;sha1 (empty if conflicted)?
-                             "\\([^\0]*\\)\0" ;size?
-                             "[^\0]*\0"       ;"y/n", executable?
-                             "[^\0]*\0"       ;?
-                             "\\([^\0]*\\)\0" ;"a/f/d" a=added?
-                             "\\([^\0]*\\)\0" ;sha1 again?
-                             "[^\0]*\0"       ;size again?
-                             "[^\0]*\0"       ;"y/n", executable again?
-                             "[^\0]*\0"       ;last revid?
-                             ;; There are more fields when merges are pending.
-                             )
-                     nil t)
-                    ;; Apparently the second sha1 is the one we want: when
-                    ;; there's a conflict, the first sha1 is absent (and the
-                    ;; first size seems to correspond to the file with
-                    ;; conflict markers).
-                    (cond
-                     ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                     ((eq (char-after (match-beginning 3)) ?a) 'added)
-                     ((and (eq (string-to-number (match-string 2))
-                               (nth 7 (file-attributes file)))
-                           (equal (match-string 4)
-                                  (vc-bzr-sha1 file)))
-                      'up-to-date)
-                     (t 'edited))
-                  'unregistered)))))))))
+        (condition-case nil
+            (with-temp-buffer
+              (insert-file-contents dirstate)
+              (goto-char (point-min))
+              (if (not (looking-at "#bazaar dirstate flat format 3"))
+                  (vc-bzr-state file)   ; Some other unknown format?
+                (let* ((relfile (file-relative-name file root))
+                       (reldir (file-name-directory relfile)))
+                  (if (re-search-forward
+                       (concat "^\0"
+                               (if reldir (regexp-quote
+                                           (directory-file-name reldir)))
+                               "\0"
+                               (regexp-quote (file-name-nondirectory relfile))
+                               "\0"
+                               "[^\0]*\0"     ;id?
+                               "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
+                               "[^\0]*\0" ;sha1 (empty if conflicted)?
+                               "\\([^\0]*\\)\0" ;size?
+                               "[^\0]*\0"       ;"y/n", executable?
+                               "[^\0]*\0"       ;?
+                               "\\([^\0]*\\)\0" ;"a/f/d" a=added?
+                               "\\([^\0]*\\)\0" ;sha1 again?
+                               "[^\0]*\0"       ;size again?
+                               "[^\0]*\0" ;"y/n", executable again?
+                               "[^\0]*\0" ;last revid?
+                               ;; There are more fields when merges are pending.
+                               )
+                       nil t)
+                      ;; Apparently the second sha1 is the one we want: when
+                      ;; there's a conflict, the first sha1 is absent (and the
+                      ;; first size seems to correspond to the file with
+                      ;; conflict markers).
+                      (cond
+                       ((eq (char-after (match-beginning 1)) ?a) 'removed)
+                       ((eq (char-after (match-beginning 3)) ?a) 'added)
+                       ((and (eq (string-to-number (match-string 2))
+                                 (nth 7 (file-attributes file)))
+                             (equal (match-string 4)
+                                    (vc-bzr-sha1 file)))
+                        'up-to-date)
+                       (t 'edited))
+                    'unregistered))))
+          ;; Either the dirstate file can't be read, or the sha1
+          ;; executable is missing, or ...
+          ;; In either case, recent versions of Bzr aren't that slow
+          ;; any more.
+          (error (vc-bzr-state file)))))))
+
 
 (defun vc-bzr-registered (file)
   "Return non-nil if FILE is registered with bzr."
@@ -447,26 +453,35 @@ REV non-nil gets an error."
 (defvar log-view-font-lock-keywords)
 (defvar log-view-current-tag-function)
 (defvar log-view-per-file-logs)
+(defvar vc-short-log)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
+  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-message-re)
-       "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
+       (if vc-short-log
+	   "^ +\\([0-9]+\\) \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
+	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
-       (append `((,log-view-message-re . 'log-view-message-face))
-               ;; log-view-font-lock-keywords
-               '(("^ *committer: \
+       (if vc-short-log
+	 (append `((,log-view-message-re
+		    (1 'log-view-message-face)
+		    (2 'change-log-name)
+		    (3 'change-log-date)
+		    (4 'change-log-list))))
+	 (append `((,log-view-message-re . 'log-view-message-face))
+		 ;; log-view-font-lock-keywords
+		 '(("^ *committer: \
 \\([^<(]+?\\)[  ]*[(<]\\([[:alnum:]_.+-]+@[[:alnum:]_.-]+\\)[>)]"
-                  (1 'change-log-name)
-                  (2 'change-log-email))
-                 ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face))))))
+		    (1 'change-log-name)
+		    (2 'change-log-email))
+		   ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face)))))))
 
-(defun vc-bzr-print-log (files &optional buffer) ; get buffer arg in Emacs 22
+(defun vc-bzr-print-log (files &optional buffer shortlog) ; get buffer arg in Emacs 22
   "Get bzr change log for FILES into specified BUFFER."
   ;; `vc-do-command' creates the buffer, but we need it before running
   ;; the command.
@@ -476,16 +491,12 @@ REV non-nil gets an error."
   ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
   ;; the log display may not what the user wants - but I see no other
   ;; way of getting the above regexps working.
-  (dolist (file files)
-    (vc-exec-after
-     `(let ((inhibit-read-only t))
-        (with-current-buffer buffer
-          ;; Insert the file name so that log-view.el can find it.
-          (insert "Working file: " ',file "\n")) ;; Like RCS/CVS.
-        (apply 'vc-bzr-command "log" ',buffer 'async ',file
-               ',(if (stringp vc-bzr-log-switches)
-                     (list vc-bzr-log-switches)
-                   vc-bzr-log-switches))))))
+  (with-current-buffer buffer
+    (apply 'vc-bzr-command "log" buffer 'async files
+	   (if shortlog "--short")
+	   (if (stringp vc-bzr-log-switches)
+	       (list vc-bzr-log-switches)
+	     vc-bzr-log-switches))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
@@ -592,14 +603,6 @@ stream.  Standard error output is discarded."
     (cons
      (apply #'process-file command nil (list (current-buffer) nil) nil args)
      (buffer-substring (point-min) (point-max)))))
-
-(defun vc-bzr-prettify-state-info (file)
-  "Bzr-specific version of `vc-prettify-state-info'."
-  (if (eq 'edited (vc-state file))
-        (concat "(" (symbol-name (or (vc-file-getprop file 'vc-bzr-state)
-                                     'edited)) ")")
-    ;; else fall back to default vc.el representation
-    (vc-default-prettify-state-info 'Bzr file)))
 
 (defstruct (vc-bzr-extra-fileinfo
             (:copier nil)
@@ -751,7 +754,8 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(tag\\):" string)
         (let ((prefix (substring string 0 (match-end 0)))
               (tag (substring string (match-end 0)))
-              (table nil))
+              (table nil)
+	      process-file-side-effects)
           (with-temp-buffer
             ;; "bzr-1.2 tags" is much faster with --show-ids.
             (process-file vc-bzr-program nil '(t) nil "tags" "--show-ids")

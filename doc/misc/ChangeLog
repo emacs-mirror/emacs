@@ -1,3 +1,480 @@
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-x.texi (Technical Details): Delete
+	dired-up-directory (Bug#4292).
+
+2009-09-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for
+	emacsclient.
+
+2009-09-02  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Effort estimates): Document new effort setting commands.
+	(Agenda commands): Document the new keys fro agenda time motion.
+	Document entry text mode.  Improve documentation of the keys to include
+	inactive time stamps into the agenda view.
+	(Feedback): Document the new bug report command.
+	(Structure editing): Added an index entry for the sorting of subtrees.
+
+2009-09-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Corrected markup.
+
+2009-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-mime.texi (time-date): Mention float-time.
+
+2009-08-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Simplifying Formulas): Improve the wording.
+
+2009-08-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi: Rewritten for coverage and clarity.
+
+2009-08-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Expiring Mail): Mention
+	gnus-mark-copied-or-moved-articles-as-expirable.
+	(Various Various): Mention gnus-safe-html-newsgroups.
+
+	* gnus-news.texi: Mention
+	gnus-mark-copied-or-moved-articles-as-expirable.
+
+	* emacs-mime.texi (Display Customization): Add xref to
+	gnus-safe-html-newsgroups.
+
+2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Version Control): Remove.
+	(Obtaining Tramp): Update cvs checkout command. Remove nightly tarballs
+	reference.
+	(External methods): Correct `scpc' concept index entries.  New method
+	`rsyncc'.
+	(External packages): New subsections "Filename completion" and "File
+	attributes cache".
+
+2009-08-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Rewrite Rules): Improve the example.
+	(Simplifying Formulas): Explain use of the I and H flags for
+	simplification.
+
+2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Bus names): Add optional parameter TIMEOUT to dbus-ping.
+	Describe autostart behaviour of dbus-ping.
+	(Synchronous Methods, Asynchronous Methods): Use English numeric format
+	for timeout values.
+	(Top): Remove footnote saying D-Bus is not enabled by
+	default.  (Bug#4256)
+
+2009-08-23  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Quick start): Don't refer to nonexistent epa-mode.
+	Reported by Jari Aalto (Bug#4211).
+	(Mail-mode integration): Mention epa-mail-mode and
+	epa-global-mail-mode.
+	(Encrypting/decrypting *.gpg files): Don't refer to nonexistent
+	epa-setup.
+
+2009-08-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Asynchronous Methods): Allow nil handler.
+
+2009-08-15  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff.texi (ediff-current-file): added information about this new function.
+
+	* viper.text: Added information about C-s in viper's search command.
+
+2009-08-09  Colin Williams  <lackita@gmail.com>  (tiny change)
+
+	* calc.texi (Date Forms): Fix typos.
+
+2009-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi (Agenda commands): Restore clobbered change.
+
+2009-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* calc.texi (Graphics, Devices): Update with the peculiarities of
+	operation on MS-Windows.
+
+2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Publishing action): Improve documentation of file
+	names when publishing to the source directory.
+	(Clean view): Document `org-indent-mode'.
+	(Clocking work time): Add documentation for the
+	new :timetamp option when creating a clock report.
+	(Paragraphs): Fix many typos.
+	(Plain lists): Remove duplicate explanation about the
+	`C-c *' command.
+	(Literal examples): Update to reflect the new behavior
+	of the -n -r -k switches when exporting source code examples.
+	(Structure editing): Add information about `C-c *',
+	converting a plain list into a list of Org items.
+	(Remember): Small rephrasing of the paragraph
+	describing remember.el.  Also mentioned that remember.el is part
+	of Emacs 23, not Emacs 22.
+	(Clocking work time): Add documentation about
+	displaying the current clocking time against the effort estimate.
+	Also add a footnote about using `org-clock-in-prepare-hook' to add
+	an effort estimate on the fly, just before clocking it.
+	(Footnotes): Document automatic renumbering and
+	sorting.
+	(Agenda commands): Document new bulk commands.
+	(Plain lists): Document new behavior of
+	`org-cycle-include-plain-lists'.
+	 Hyphenation only in TeX.
+	(Clocking work time): Document the key to update effort
+	estimates.
+	(Clocking work time): Document the clock time display.
+	(Structure editing, TODO basics): Document new
+	variables.
+	(Column attributes): Document new colciew operators.
+	(Publishing options): Document :xml-declaration.
+	(Tracking TODO state changes): Document the
+	LOG_INTO_DRAWER property.
+	(Literal examples): Document the new implementation for
+	editing source code.
+	(Publishing action): Mention the new publishing
+	function, to publish an Org source file.
+	(Publishing links): Mention how to link to an Org source file.
+	(Macro replacement): Document new macros.
+	(Handling links): Document type-specific completion
+	when inserting links.
+	(Structure editing, Plain lists): Improve documentation
+	on sorting.
+	(Internal links): Document custom ids for links.
+	(Handling links): Document custom ids for links.
+	(CSS support): Document new class.
+	(Refiling notes): Document the possibility to create new nodes
+	during refiling.
+	(Agenda commands): Document the "?" operator to find
+	tasks without effort setting.
+	(Exporting agenda information): Section moved.
+	(RSS Feeds): New section.
+	(Built-in table editor): Document M-e and M-a navigate
+	inside table field.
+	(Stuck projects): Docment that projects identified as
+	un-stuck will still be searchd for stuck sub-projects.
+	(Paragraphs): Document centering.
+	(Creating timestamps, Agenda commands): Document new
+	behavior when changing time stamps.
+	(Structure editing): Document the new command
+	`org-clone-subtree-with-time-shift'.
+	(Publishing): Refresh this chapter.
+	(Export options, Export options, In-buffer settings):
+	Document the new keywords.
+	(Matching tags and properties): Collect all
+	documentation about tags/property matches here.
+	(Setting tags): Document `org-tag-persistent-alist'.
+	(Weekly/daily agenda): New section.
+	(Orgstruct mode): Describe `orgstruct++-mode'.
+	(Drawers): Mention the LOGBOOK drawer.
+	(Export options, Sectioning structure): Document the
+	#+LEATEX_HEADER in-buffer setting.
+	(Bugs): Section removed.
+	(Hooks): New section.
+	(Add-on packages): Moved here from old location.
+	(Context-sensitive commands): New section.
+	(Setting tags): Document newline option.
+	(Global TODO list, Matching tags and properties):
+	Mention more variables.
+	(Checkboxes): Update to changed command behavior.
+
+2009-08-02  Eric Yu  <sucode@gmail.com>  (tiny change)
+
+	* speedbar.texi (Basic Key Bindings): Fix typo.
+
+2009-07-30  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Vector/Matrix Functions): Add index entries for both
+	"v" and "V" key bindings.  Mention that `calc-matrix-brackets' only
+	affects matrices with more than one row.
+	(Help Commands): Add index entries for "prefix ?" key bindings.
+
+2009-07-29  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Stack Manipulation Commands): Add documentation for
+	`calc-transpose-lines'
+
+2009-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Describe special return value
+	`:ignore'.
+
+2009-07-24  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Config Basics, File Styles): Document that at mode
+	initialization, any individual variable setting now takes precedence
+	over one done via c-file-style/c-file-offsets.
+
+2009-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Undoing Mistakes): Mention that the undo list will be
+	truncated when Calc is quit.
+	(Customizing Calc): Document `calc-undo-length'.
+
+2009-07-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* calc.texi (About This Manual): Don't mention chapter numbers in text.
+
+2009-07-11  Kevin Ryde  <user42@zip.com.au>
+
+	* pcl-cvs.texi (About PCL-CVS):
+	* widget.texi (Basic Types):
+	Fix cross-references.
+
+2009-07-01  Andreas Schwab  <aschwab@redhat.com>
+
+	* dbus.texi (Type Conversion): Don't use literal control character.
+
+2009-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (GVFS based methods): New section.
+	(Remote processes): Processes for GVFS based methods run locally.
+
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods, External methods, Gateway methods): Avoid
+	the words "kludge" and hack".
+	(External methods): Add `synce' method.
+
+	* trampver.texi: Update release number.
+
+2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.16.
+
+	* tramp.texi (History): Add GVFS support.
+	(External methods): Precise `rsync' description.  Add `dav', `davs' and
+	`obex' methods.  Add 'tramp-gvfs-methods' option.
+	(Multi-hops): Cells of `tramp-default-proxies-alist' can also be Lisp
+	forms.
+	(Remote Programs): Introduce `tramp-own-remote-path'.
+	(Remote processes): New subsection "Running remote programs that create
+	local X11 windows".
+	(Frequently Asked Questions): Improve code for disabling vc.
+
+	* trampver.texi: Update release number.  Set default value of
+	`emacsgvfs'.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Obtaining the FAQ): Add reference to Savannah.
+	(Latest version of Emacs): Mention source code repository.
+
+2009-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Top): Language tweak.
+	(Extended commands): Most people have arrow keys.
+	(Emacs manual): Say how to follow info links.
+	(File-name conventions): Change title a bit.  Explain about source
+	versus installed.  Condense etc description.
+	(Guidelines for newsgroup postings): Mention Savannah list page.
+	(Newsgroup archives): Simplify.
+	(Contacting the FSF): Add contact URL.
+	(Emacs Lisp documentation): Printed version not always available.
+	(Installing Texinfo documentation): Explain how by hand installation is
+	not normally needed.  Use add-to-list.  Remove duplicate reference.
+	(Informational files for Emacs): Move info on Help menu here from
+	"File-name conventions".
+	(Help installing Emacs): Tweak uref.
+	(Obtaining the FAQ): Mention repository.
+	(Origin of the term Emacs): Explain "ITS".
+	(Changing load-path): Use add-to-list.
+	(Automatic indentation): Clarify this is for Text mode.
+	Don't mention Indented Text mode.
+	(Finding Emacs on the Internet): The FSF does not seem to offer a
+	deluxe distribution on CD anymore.
+
+2009-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Top): Mention which Emacs version this FAQ is about.
+	Recommend the latest release.  Mention how to get older FAQs.
+	Recommend the Emacs manual.
+	(Guidelines for newsgroup postings): Discourage cross-posts.
+	(Underlining paragraphs): Remove.
+	(Editing MS-DOS files): Remove pre-Emacs 20 information.
+	(Bugs and problems): Update key-binding.
+	(Problems with very large files): Mention 64-bit.
+	(Shell process exits abnormally): Remove.
+	(Problems with Shell Mode): Rename and update.
+	(Spontaneous entry into isearch-mode)
+	(Problems talking to certain hosts): Remove.  This is old information,
+	in etc/PROBLEMS if needed.
+	(Emacs takes a long time to visit files, Updating Emacs): Remove.
+	(Dired claims that no file is on this line): Update.
+	(Installing Emacs, Problems building Emacs): Simplify.
+	(Emacs for MS-DOS): Refer to msdos/INSTALL rather than duplicating
+	information.
+	(Emacs for MS-Windows): Rename from "Emacs for Windows".  Simplify.
+	(Emacs for Mac OS X): Rename from "Emacs for Apple computers".
+	(JDEE): "JDEE", not "JDE".
+	(Handling C-s and C-q with flow control, Binding C-s and C-q):
+	Remove.  This is old information, in etc/PROBLEMS if needed.
+	(stty and Backspace key, Kanji and Chinese characters): Remove.
+	(Right-to-left alphabets): Update section.
+	(Changing the included text prefix): Gnus uses message-yank-prefix.
+	Add cross-reference to Supercite manual.
+	(Saving a copy of outgoing mail): Simplify output file description.
+	(Expanding aliases when sending mail): Refer to Emacs manual.
+	Remove old info about RFC822.
+	Correct description of how to rebuild aliases.
+	(Rmail writes to /var/spool/mail): Update location from /usr/spool/mail.
+	(MIME with Emacs mail packages)
+	(Viewing articles with embedded underlining)
+	(Saving a multi-part Gnus posting, Gnus hangs for a long time):
+	Remove old sections.
+	(Killing based on nonstandard headers): Remove.  Scoring is preferable,
+	and is well-documented in the Gnus manual.
+	(Reading news with Emacs): Merge "Learning more about Gnus" into here.
+	(Making Gnus faster): Rename from "Starting Gnus faster".
+	Merge "Catch-up is slow in Gnus" into here.
+
+2009-06-14  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Status of Emacs): Re-order with most recent releases first.
+	(New in Emacs 23): New section.
+	(Handling C-s and C-q with flow control): Add xref.
+
+2009-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Setting up a customization file): Grammar fix.
+	Customize is no longer "new".
+	(Displaying the current line or column): Line-number mode is on by
+	default.  Don't mention `column' package.  Mention linum.el.
+	(Turning on abbrevs by default): Explain how to do it for buffers,
+	modes, and everywhere.
+	(Associating modes with files): Use add-to-list.  Don't mention Emacs
+	19.
+	(Highlighting a region): On by default since 23.1.
+	(Replacing highlighted text): Update doc quote.
+	(Working with unprintable characters): Don't mention search-quote-char.
+	(Using an already running Emacs process): Gnuclient is probably not an
+	enhancement these days.
+	(Indenting switch statements): Remove mention of pre-Emacs 20.
+	(Horizontal scrolling): Abbreviate Emacs 20 description.
+	(Replacing text across multiple files): Fix name of dired command.
+	(Disabling backups): Use require not load.
+	(Learning more about Gnus): Add cross-refs to Gnus manual and FAQ.
+
+2009-06-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.2.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.2.
+
+2009-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi: Remove the term "on-line" (meaning "Info") throughout, since
+	in this day and age the common meaning is "on the web".
+	(copying): Use @copyright in all cases.
+	(Basic keys): Remove reference to deleted manual node "Text Characters".
+	(File-name conventions): Use GNU as an example rather than SERVICE.
+	default.el lives in site-lisp.  Update Info directory location.
+	(Real meaning of copyleft): GPL actions have been brought, but all
+	settled out of court.
+	(Guidelines for newsgroup postings): Shorten section title.
+	Simplify comp.emacs description.
+	(Newsgroup archives): Change Google URL.  Describe Gmane.
+	(Unsubscribing from Emacs lists): Remove discussion of "distribution
+	points".  Mention List-Unsubscribe header.
+	(Contacting the FSF): Update email and URLs.
+	(Basic editing): Mention F1 for help.
+	(Installing Texinfo documentation): Refer to Texinfo website rather
+	than ftp server.
+	(Printing a Texinfo file): Mention texi2pdf.
+	(Informational files for Emacs): Don't describe FTP or SERVICE, they
+	are just stubs nowadays.
+	(Latest version of Emacs): Explain version numbers.
+	(Spell-checkers, Checking TeX and *roff documents): Remove sections.
+	(Turning on syntax highlighting): No need to mention hilit19 any more.
+	(Finding Emacs on the Internet): Refer to URLs rather than DISTRIB, FTP.
+	(Modes for various languages): Remove section.
+	(Major packages and programs): Remove most version and maintainer
+	information - it's hard to keep up-to-date, and adds nothing.
+	Similarly with direct links to mailing lists.
+	(Spell-checkers): Rename node from Ispell.  Mention Aspell and Hunspell.
+	(Mailcrypt): Remove section - mailcrypt has not been updated in mnay
+	years, and Emacs comes with tools for this now.
+	(Patch): Remove section - this is a standard tool.
+	(Using function keys under X): Remove section.
+
+2009-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Viewing Info files outside of Emacs): Xinfo is no more.
+	(Help installing Emacs): Remove reference to deleted X11 node.
+	(Associating modes with files): Interpreter-mode-alist is no longer
+	subservient to auto-mode-alist.
+	(Installing Emacs): Change future Emacs version.
+	(Linking with -lX11 fails): Remove old section.
+	(Packages that do not come with Emacs): Update ELL location.
+	Emacs Lisp archive is dead.
+	(Emacs for Windows): Remove reference to old CE port.
+	(Emacs for OS/2, Emacs for Atari ST, Emacs for the Amiga)
+	(Emacs for VMS and DECwindows): Remove old ports.
+	(Emacs for GNUstep): Rename from "Emacs for NeXTSTEP" and update.
+	(Removing flashing messages): Remove section about non-existent Gnus
+	option.
+
+	* faq.texi (Top): Add @top command.
+	Remove the optional arguments from all @node commands: makeinfo can
+	generate these automatically, and it is easier to edit and rearrange
+	nodes without them.
+
+2009-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Common acronyms): Remove no-longer-existing OSF.
+	(The LPF): Make the updated URL the sole reference point.
+	(Learning how to do something): Update refcard price and format.
+	(Getting a printed manual): Sources in doc/emacs/, not man/.
+	Also available in PDF format.  Since the page count varies, be less
+	precise.
+	(Informational files for Emacs): Remove references to deleted files
+	LPF and SUN-SUPPORT, and to UUCP.
+	(Obtaining the FAQ): Refer to the service web-page rather than SERVICE.
+	Remove many obsolete ways to get the FAQ, which now seems only to be
+	distributed with Emacs.
+	(Mail and news): Remove sections about Rmail Babyl that no longer apply.
+
+2009-06-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* org.texi (Org Plot): Fix tags (Bug#3507).
+	(Workflow states, Agenda commands): Fix tags (Bug#3508).
+
+	* ada-mode.texi (Installation, Compile commands)
+	(Project File Overview, No project files, Set compiler options)
+	(Use GNAT project file, Use multiple GNAT project files)
+	(Identifier completion): Use @samp for menu items, and @kbd for key
+	sequences (Bug#3504).
+
+2009-06-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus.texi (Security): Fix wording; add a link to epa.info.
+
+2009-06-04  Ryan Yeske  <rcyeske@gmail.com>
+
+	* message.texi (Header Commands): Fix descriptions to match
+	keybindings.
+
+2009-04-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus.texi (Security): Mention that EasyPG is the current default.
+
+2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ediff.texi (Session Commands): Fix typo.
+
 2009-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi (FAQ 8-4): Fix wrong group name of
@@ -53,54 +530,18 @@
 
 2009-02-16  Karl Berry  <karl@gnu.org>
 
-	* ada-mode.texi,
-	* auth.texi,
-	* autotype.texi,
-	* calc.texi,
-	* cc-mode.texi,
-	* cl.texi,
-	* dbus.texi,
-	* dired-x.texi,
-	* ebrowse.texi,
-	* ediff.texi,
-	* emacs-mime.texi,
-	* epa.texi,
-	* erc.texi,
-	* eshell.texi,
-	* eudc.texi,
-	* faq.texi,
-	* flymake.texi,
-	* forms.texi,
-	* gnus-coding.texi,
-	* gnus.texi,
-	* idlwave.texi,
-	* info.texi,
-	* mairix-el.texi,
-	* message.texi,
-	* mh-e.texi,
-	* newsticker.texi,
-	* nxml-mode.texi,
-	* org.texi,
-	* pcl-cvs.texi,
-	* pgg.texi,
-	* rcirc.texi,
-	* reftex.texi,
-	* remember.texi,
-	* sasl.texi,
-	* sc.texi,
-	* ses.texi,
-	* sieve.texi,
-	* smtpmail.texi,
-	* speedbar.texi,
-	* tramp.texi,
-	* url.texi,
-	* vip.texi,
-	* viper.texi,
-	* widget.texi,
-	* woman.texi: Consistently use @insertcopying in the Top node,
+	* ada-mode.texi, auth.texi, autotype.texi, calc.texi, cc-mode.texi:
+	* cl.texi, dbus.texi, dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, eshell.texi, eudc.texi:
+	* faq.texi, flymake.texi, forms.texi, gnus-coding.texi, gnus.texi:
+	* idlwave.texi, info.texi, mairix-el.texi, message.texi, mh-e.texi:
+	* newsticker.texi, nxml-mode.texi, org.texi, pcl-cvs.texi:
+	* pgg.texi, rcirc.texi, reftex.texi, remember.texi, sasl.texi:
+	* sc.texi, ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi, woman.texi:
+	Consistently use @insertcopying in the Top node,
 	@contents at the front (after @end titlepage),
-	and @direntry after @copying.
-	(Bug#1988)
+	and @direntry after @copying.  (Bug#1988)
 
 2009-02-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -270,7 +711,7 @@
 
 2009-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
-	* trampver.texi.in (top): Declare ipv6prefix and ipv6postfix.
+	* trampver.texi (top): Declare ipv6prefix and ipv6postfix.
 
 	* tramp.texi (Filename Syntax, Filename completion): Handle IPv6
 	addresses.

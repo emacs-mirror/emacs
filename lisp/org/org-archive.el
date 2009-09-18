@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,6 +31,8 @@
 ;;; Code:
 
 (require 'org)
+
+(declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 
 (defcustom org-archive-sibling-heading "Archive"
   "Name of the local archive sibling that is used to archive entries locally.
@@ -270,7 +272,7 @@ this heading."
 	    ;; No specific heading, just go to end of file.
 	    (goto-char (point-max)) (insert "\n"))
 	  ;; Paste
-	  (org-paste-subtree (org-get-valid-level level 1))
+	  (org-paste-subtree (org-get-valid-level level (and heading 1)))
 
 	  ;; Mark the entry as done
 	  (when (and org-archive-mark-done
@@ -303,12 +305,16 @@ this heading."
       ;; Here we are back in the original buffer.  Everything seems to have
       ;; worked.  So now cut the tree and finish up.
       (let (this-command) (org-cut-subtree))
+      (when (featurep 'org-inlinetask)
+	(org-inlinetask-remove-END-maybe))
       (setq org-markers-to-move nil)
       (message "Subtree archived %s"
 	       (if (eq this-buffer buffer)
 		   (concat "under heading: " heading)
 		 (concat "in file: " (abbreviate-file-name afile))))))
-  (org-reveal))
+  (org-reveal)
+  (if (looking-at "^[ \t]*$")
+      (outline-next-visible-heading 1)))
 
 (defun org-archive-to-archive-sibling ()
   "Archive the current heading by moving it under the archive sibling.
@@ -360,7 +366,9 @@ sibling does not exist, it will be created at the end of the subtree."
       (hide-subtree)
       (org-cycle-show-empty-lines 'folded)
       (goto-char pos)))
-  (org-reveal))
+  (org-reveal)
+  (if (looking-at "^[ \t]*$")
+      (outline-next-visible-heading 1)))
 
 (defun org-archive-all-done (&optional tag)
   "Archive sublevels of the current tree without open TODO items.

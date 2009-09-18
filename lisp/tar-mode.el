@@ -1,7 +1,8 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
 ;; Copyright (C) 1990, 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -267,7 +268,7 @@ write-date, checksum, link-type, and link-name."
           (setq name (concat (substring string tar-prefix-offset
                                         (1- (match-end 0)))
                              "/" name)))
-        (if default-enable-multibyte-characters
+        (if (default-value 'enable-multibyte-characters)
             (setq name
                   (decode-coding-string name coding)
                   linkname
@@ -276,7 +277,10 @@ write-date, checksum, link-type, and link-name."
             (setq link-p 5))            ; directory
 
         (if (and (equal name "././@LongLink")
-                 (equal magic-str "ustar ")) ;OLDGNU_MAGIC.
+                 ;; Supposedly @LongLink is only used for GNUTAR
+                 ;; format (i.e. "ustar ") but some POSIX Tar files
+                 ;; (with "ustar\0") have been seen using it as well.
+                 (member magic-str '("ustar " "ustar\0")))
             ;; This is a GNU Tar long-file-name header.
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
@@ -816,7 +820,7 @@ appear on disk when you save the tar-file's buffer."
             (if (or (not coding)
                     (eq (coding-system-type coding) 'undecided))
                 (setq coding (detect-coding-region start end t)))
-            (if (and default-enable-multibyte-characters
+            (if (and (default-value 'enable-multibyte-characters)
                      (coding-system-get coding :for-unibyte))
                 (with-current-buffer buffer
                   (set-buffer-multibyte nil)))

@@ -1,7 +1,7 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: FSF
@@ -106,16 +106,12 @@
 
 ;;; Code:
 
-(provide 'ffap)
-
-;; Please do not delete this variable, it is checked in bug reports.
-(defconst ffap-version "1.9-fsf <97/06/25 13:21:41 mic>"
-  "The version of ffap: \"Major.Minor-Build <Timestamp>\"")
-
+(define-obsolete-variable-alias 'ffap-version 'emacs-version "23.2")
 
 (defgroup ffap nil
   "Find file or URL at point."
-  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
+  ;; Dead 2009/07/05.
+;;  :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
   :group 'matching
   :group 'convenience)
 
@@ -1181,6 +1177,9 @@ which may actually result in an url rather than a filename."
 	 ((and abs (ffap-file-remote-p name)))
 	 ;; Ok, not remote, try the existence test even if it is absolute:
 	 ((and abs (ffap-file-exists-string name)))
+	 ;; Try stripping off line numbers.
+	 ((and abs (string-match ":[0-9]" name)
+	       (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
 	 ;; If it contains a colon, get rid of it (and return if exists)
 	 ((and (string-match path-separator name)
 	       (setq name (ffap-string-at-point 'nocolon))
@@ -1917,6 +1916,7 @@ Of course if you do not like these bindings, just roll your own!")
   (eval (cons 'progn ffap-bindings)))
 
 
+(provide 'ffap)
 
 ;; arch-tag: 9dd3e88a-5dec-4607-bd57-60ae9ede8ebc
 ;;; ffap.el ends here

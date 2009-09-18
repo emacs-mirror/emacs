@@ -87,6 +87,7 @@ int charset_emacs;
 int charset_jisx0201_roman;
 int charset_jisx0208_1978;
 int charset_jisx0208;
+int charset_ksc5601;
 
 /* Value of charset attribute `charset-iso-plane'.  */
 Lisp_Object Qgl, Qgr;
@@ -318,7 +319,6 @@ load_charset_map (charset, entries, n_entries, control_flag)
 	    {
 	      memset (temp_charset_work->table.decoder, -1,
 		      sizeof (int) * 0x10000);
-	      temp_charset_work->for_encoder = 0;
 	    }
 	  else
 	    {
@@ -645,7 +645,7 @@ load_charset (charset, control_flag)
   if (inhibit_load_charset_map
       && temp_charset_work
       && charset == temp_charset_work->current
-      && (control_flag == 2 == temp_charset_work->for_encoder))
+      && ((control_flag == 2) == temp_charset_work->for_encoder))
     return;
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
@@ -830,7 +830,7 @@ RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
 characters contained in CHARSET.
 
 The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
-range of code points of target characters.  */)
+range of code points (in CHARSET) of target characters.  */)
      (function, charset, arg, from_code, to_code)
        Lisp_Object function, charset, arg, from_code, to_code;
 {
@@ -1082,6 +1082,8 @@ usage: (define-charset-internal ...)  */)
       i = (i >> 12) << 12;
       for (; i <= charset.max_char; i += 0x1000)
 	CHARSET_FAST_MAP_SET (i, charset.fast_map);
+      if (charset.code_offset == 0 && charset.max_char >= 0x80)
+	charset.ascii_compatible_p = 1;
     }
   else if (! NILP (args[charset_arg_map]))
     {
@@ -1222,6 +1224,8 @@ usage: (define-charset-internal ...)  */)
 	charset_jisx0208_1978 = id;
       else if (ISO_CHARSET_TABLE (2, 0, 'B') == id)
 	charset_jisx0208 = id;
+      else if (ISO_CHARSET_TABLE (2, 0, 'C') == id)
+	charset_ksc5601 = id;
     }
 
   if (charset.emacs_mule_id >= 0)
@@ -1794,7 +1798,7 @@ encode_char (charset, c)
 
   if (CHARSET_UNIFIED_P (charset))
     {
-      Lisp_Object deunifier, deunified;
+      Lisp_Object deunifier;
       int code_index = -1;
 
       deunifier = CHARSET_DEUNIFIER (charset);
@@ -2192,10 +2196,6 @@ Clear temporary charset mapping tables.
 It should be called only from temacs invoked for dumping.  */)
      ()
 {
-  int i;
-  struct charset *charset;
-  Lisp_Object attrs;
-
   if (temp_charset_work)
     {
       free (temp_charset_work);
@@ -2256,6 +2256,7 @@ usage: (set-charset-priority &rest charsets)  */)
   Vcharset_ordered_list = Fnconc (2, arglist);
   charset_ordered_list_tick++;
 
+  charset_unibyte = -1;
   for (old_list = Vcharset_ordered_list, list_2022 = list_emacs_mule = Qnil;
        CONSP (old_list); old_list = XCDR (old_list))
     {
@@ -2263,9 +2264,20 @@ usage: (set-charset-priority &rest charsets)  */)
 	list_2022 = Fcons (XCAR (old_list), list_2022);
       if (! NILP (Fmemq (XCAR (old_list), Vemacs_mule_charset_list)))
 	list_emacs_mule = Fcons (XCAR (old_list), list_emacs_mule);
+      if (charset_unibyte < 0)
+	{
+	  struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (old_list)));
+
+	  if (CHARSET_DIMENSION (charset) == 1
+	      && CHARSET_ASCII_COMPATIBLE_P (charset)
+	      && CHARSET_MAX_CHAR (charset) >= 0x80)
+	    charset_unibyte = CHARSET_ID (charset);
+	}
     }
   Viso_2022_charset_list = Fnreverse (list_2022);
   Vemacs_mule_charset_list = Fnreverse (list_emacs_mule);
+  if (charset_unibyte < 0)
+    charset_unibyte = charset_iso_8859_1;
 
   return Qnil;
 }
@@ -2289,7 +2301,7 @@ init_charset ()
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
-  if (access (SDATA (tempdir), 0) < 0)
+  if (access ((char *) SDATA (tempdir), 0) < 0)
     {
       dir_warning ("Error: charsets directory (%s) does not exist.\n\
 Emacs will not function correctly without the character map files.\n\
@@ -2318,6 +2330,7 @@ init_charset_once ()
   charset_jisx0201_roman = -1;
   charset_jisx0208_1978 = -1;
   charset_jisx0208 = -1;
+  charset_ksc5601 = -1;
 
   for (i = 0; i < 128; i++)
     unibyte_to_multibyte_table[i] = i;
@@ -2424,6 +2437,7 @@ the value may be a list of mnemonics.  */);
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
 			       128, 255, -1, 0, -1, 0, 1,
 			       MAX_5_BYTE_CHAR + 1);
+  charset_unibyte = charset_iso_8859_1;
 }
 
 #endif /* emacs */

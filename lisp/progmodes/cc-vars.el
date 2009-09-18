@@ -451,7 +451,7 @@ comment-only lines."
   :group 'c)
 
 (make-obsolete-variable 'c-comment-continuation-stars
-			'c-block-comment-prefix)
+			'c-block-comment-prefix "21.1")
 
 ;; Although c-comment-continuation-stars is obsolete, we look at it in
 ;; some places in CC Mode anyway, so make the compiler ignore it
@@ -936,6 +936,45 @@ this variable to nil."
   :type 'integer
   :group 'c)
 
+(defcustom c-objc-method-arg-min-delta-to-bracket 2
+  "*Minimum number of chars to the opening bracket.
+
+Consider this ObjC snippet:
+
+	[foo blahBlah: fred
+	|<-x->|barBaz: barney
+
+If `x' is less than this number then `c-lineup-ObjC-method-call-colons'
+will defer the indentation decision to the next function.  By default
+this is `c-lineup-ObjC-method-call', which would align it like:
+
+	[foo blahBlahBlah: fred
+	     thisIsTooDamnLong: barney
+
+This behaviour can be overridden by customizing the indentation of
+`objc-method-call-cont' in the \"objc\" style."
+  :type 'integer
+  :group 'c)
+
+(defcustom c-objc-method-arg-unfinished-offset 4
+  "*Offset relative to bracket if first selector is on a new line.
+
+    [aaaaaaaaa
+    |<-x->|bbbbbbb:  cccccc
+             ddddd: eeee];"
+  :type 'integer
+  :group 'c)
+
+(defcustom c-objc-method-parameter-offset 4
+  "*Offset for selector parameter on a new line (relative to first selector.
+
+    [aaaaaaa bbbbbbbbbb:
+	     |<-x->|cccccccc
+                    ddd: eeee
+                   ffff: ggg];"
+  :type 'integer
+  :group 'c)
+
 (defcustom c-default-style '((java-mode . "java") (awk-mode . "awk")
 			     (other . "gnu"))
   "*Style which gets installed by default when a file is visited.
@@ -1121,7 +1160,8 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Boi.
        (objc-method-args-cont . c-lineup-ObjC-method-args)
        ;; Anchor pos: At the method start (always at boi).
-       (objc-method-call-cont . c-lineup-ObjC-method-call)
+       (objc-method-call-cont . (c-lineup-ObjC-method-call-colons
+			        c-lineup-ObjC-method-call +))
        ;; Anchor pos: At the open bracket.
        (extern-lang-open      . 0)
        (namespace-open        . 0)

@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.21b}
+\def\orgversionnumber{6.30c}
 \def\versionyear{2009}          % latest update
 \def\year{2009}                 % latest copyright year
 
@@ -12,7 +12,7 @@
 
 \columnsperpage=3
 
-% Set letterpapaer to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
 % only when columnsperpage is 2 or 3.
 
 \letterpaper=0
@@ -276,14 +276,13 @@ are preserved on all copies.
 
 \section{Getting Started}
 %
-\vskip -1mm
+\vskip -2mm
 \beginexample%
 (add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
 (define-key global-map "\\C-cl" 'org-store-link)$^1$
 (define-key global-map "\\C-ca" 'org-agenda)$^1$
 \endexample
 %
-\metax{For the many customization options try}{M-x org-customize}
 \metax{To read the on-line documentation try}{M-x org-info}
 
 \section{Visibility Cycling}
@@ -314,6 +313,8 @@ are preserved on all copies.
 \metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
 
 \metax{move subtree/list item up/down}{M-S-UP/DOWN}
+\metax{sort subtree/region/plain-list}{C-c \^{}}
+\metax{clone a subtree}{C-c C-x c}
 \metax{refile subtree}{C-c C-w}
 \metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
@@ -363,6 +364,7 @@ Outside of tables, the same keys may have other functionality.
 \key{re-align the table, move to next field}{TAB}
 \key{move to previous field}{S-TAB}
 \key{re-align the table, move to next row}{RET}
+\key{move to beginning/end of field}{M-a/e}
 
 {\bf Row and column editing}
 
@@ -418,8 +420,7 @@ formula, \kbd{:=} a field formula.
 \key{iterate table to stability}{C-u C-u C-c *}
 \key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
 \key{show line, column, formula reference}{C-c ?}
-\key{toggle coordinate grid}{C-c \}}
-\key{toggle formula debugger}{C-c \{}
+\key{toggle grid / debugger}{C-c \}/\{}
 
 \newcolumn
 {\it Formula Editor}
@@ -452,6 +453,7 @@ formula, \kbd{:=} a field formula.
 \key{find next link}{C-c C-x C-n}
 \key{find previous link}{C-c C-x C-p}
 \key{edit code snippet of file at point}{C-c '}
+
 {\bf Internal Links}
 
 \key{\kbd{<<My Target>>}}{\rm target}
@@ -507,7 +509,7 @@ In-buffer completion completes TODO keywords at headline start, TeX
 macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
 after  ``{\tt :}'', and dictionary words elsewhere.
 
-\key{Complete word at point}{M-TAB}
+\key{complete word at point}{M-TAB}
 
 
 \newcolumn
@@ -520,6 +522,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{rotate the state of the current item}{C-c C-t}
 \metax{select next/previous state}{S-LEFT/RIGHT}
 \metax{select next/previous set}{C-S-LEFT/RIGHT}
+\key{toggle ORDERED property}{C-c C-x o}
 \key{view TODO items in a sparse tree}{C-c C-v}
 \key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
 
@@ -534,7 +537,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{insert new checkbox item in plain list}{M-S-RET}
 \key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
 \key{toggle checkbox at point}{C-c C-c}
-\metax{checkbox statistics cookies: insert {\tt [/]} or {\tt [\%]}}{}
+%\metax{checkbox statistics cookies: insert {\tt [/]} or {\tt [\%]}}{}
 \key{update checkbox statistics (\kbd{C-u} : whole file)}{C-c \#}
 
 \section{Tags}
@@ -546,18 +549,17 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \section{Properties and Column View}
 
-\key{set property}{C-c C-x p}
+\key{set property/effort}{C-c C-x p/e}
 \key{special commands in property lines}{C-c C-c}
 \key{next/previous allowed value}{S-left/right}
 \key{turn on column view}{C-c C-x C-c}
 \key{capture columns view in dynamic block}{C-c C-x i}
 
 \key{quit column view}{q}
-\key{next/previous allowed value}{S-left/right}
-\key{next/previous allowed value}{n / p}
+\key{show full value}{v}
 \key{edit value}{e}
+\metax{next/previous allowed value}{n/p or S-left/right}
 \key{edit allowed values list}{a}
-\key{show value}{v}
 \key{make column wider/narrower}{> / <}
 \key{move column left/right}{M-left/right}
 \key{add new column}{M-S-right}
@@ -568,7 +570,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{prompt for date and insert timestamp}{C-c .}
 \key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
-\key{Like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
+\key{like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
 \key{insert DEADLINE timestamp}{C-c C-d}
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c / d}
@@ -578,21 +580,20 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
-\key{Select date while prompted}{mouse-1/RET}
+\key{select date while prompted}{mouse-1/RET}
 %\key{... select date in calendar}{mouse-1/RET}
 %\key{... scroll calendar back/forward one month}{< / >}
 %\key{... forward/backward one day}{S-LEFT/RIGHT}
 %\key{... forward/backward one week}{S-UP/DOWN}
 %\key{... forward/backward one month}{M-S-LEFT/RIGT}
-\key{Toggle custom format display for dates/times}{C-c C-x C-t}
+\key{toggle custom format display for dates/times}{C-c C-x C-t}
 
 \newcolumn
 
 {\bf Clocking time}
 
 \key{start clock on current item}{C-c C-x C-i}
-\key{stop clock on current item}{C-c C-x C-o}
-\key{cancel current clock}{C-c C-x C-x}
+\key{stop/cancel clock on current item}{C-c C-x C-o/x}
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
@@ -625,22 +626,23 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{goto original location in other window}{TAB/mouse-2}
 %\key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
-\key{show subtree in indirect buffer, ded.\ frame}{b}
-\key{toggle follow-mode}{f}
+\key{show subtree in indirect buffer, ded.\ frame}{C-c C-x b}
+\key{toggle follow-mode}{F}
 
 {\bf Change display}
 
 \key{delete other windows}{o}
-\key{switch to day/week/month/year view}{d w m y}
-\key{toggle inclusion of diary entries}{D}
-\key{toggle time grid for daily schedule}{G}
-\key{toggle display of logbook entries}{l}
-\key{toggle inclusion of archived trees/files}{v / C-u v}
+\key{view mode dipatcher}{v}
+\key{switch to day/week/month/year view}{d w vm vy}
+\key{toggle diary entries / time grid}{D / G}
+\key{toggle entry text / clock report}{E / R}
+\key{toggle display of logbook entries}{l / v l/L}
+\key{toggle inclusion of archived trees/files}{v a/A}
 \key{refresh agenda buffer with any changes}{r / g}
 \key{filter with repect to a tag}{/}
 \key{save all org-mode buffers}{s}
-\key{display next/previous day,week,...}{RIGHT/LEFT}
-\key{goto today}{.}
+\key{display next/previous day,week,...}{f / b}
+\key{goto today / some date (prompt)}{. / j}
 
 {\bf Remote editing}
 
@@ -648,24 +650,24 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{change state of current TODO item}{t}
 \key{kill item and source}{C-k}
 \key{archive the subtree (file/tag/sibling)}{\$ / a / A}
-\key{show tags of current headline}{T}
-\key{set tags for current headline/region}{:}
-\key{set priority of current item}{p}
+\key{refile the subtree}{C-c C-w}
+\key{set/show tags of current headline}{: / T}
+\key{set effort property (prefix=nth)}{e}
+\key{set / compute priority of current item}{, / P}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
-\key{display weighted priority of current item}{P}
 \key{run an attachment command}{C-c C-a}
 \key{schedule/set deadline for this item}{C-c C-s/d}
 \key{change timestamp to one day earlier/later}{S-LEFT/RIGHT$^3$}
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
-
 \newcolumn
 \key{start/stop/cancel the clock on current item}{I / O / X}
 \key{jump to running clock entry}{J}
+\key{mark / unmark / execute bulk action}{m / u / B}
 
 {\bf Misc}
 
-\key{Open link in current line}{C-c C-o}
+\key{follow one or offer all links in current entry}{C-c C-o}
 
 {\bf Calendar commands}
 
@@ -681,18 +683,12 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{quit agenda, remove agenda buffer}{q}
 \key{exit agenda, remove all agenda buffers}{x}
 
-\section{Calendar and Diary Integration}
-
-Include Emacs diary entries into Org-mode agenda with:
-\beginexample%
-(setq org-agenda-include-diary t)
-\endexample
-
 \section{LaTeX and cdlatex-mode}
 
 \key{preview LaTeX fragment}{C-c C-x C-l}
-\key{Expand abbreviation (cdlatex-mode)}{TAB}
-\key{Insert/modify math symbol (cdlatex-mode)}{` / '}
+\key{expand abbreviation (cdlatex-mode)}{TAB}
+\key{insert/modify math symbol (cdlatex-mode)}{` / '}
+\key{insert citation using RefTeX}{C-c C-x [}
 
 \section{Exporting and Publishing}
 
@@ -703,7 +699,7 @@ some other place.
 \key{export/publish dispatcher}{C-c C-e}
 
 \key{export visible part only}{C-c C-e v}
-\key{insert template of export options}{C-c C-x t}
+\key{insert template of export options}{C-c C-e t}
 \key{toggle fixed width for entry or region}{C-c :}
 
 %{\bf HTML formatting}
@@ -764,7 +760,8 @@ your own key as shown under INSTALLATION.
 $^2$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
 press \kbd{C-c C-c} with the cursor still in the line to update.
 
-$^3$ Keybinding affected by {\tt org-CUA-compatibility}.
+$^3$ Keybinding affected by {\tt org-support-shift-select} and {\tt
+  org-replace-disputed-keys}.
 
 \copyrightnotice
 

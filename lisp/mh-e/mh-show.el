@@ -825,7 +825,7 @@ operation."
 
 ;;; MH-Show Mode
 
-;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
 ;; Shush compiler.

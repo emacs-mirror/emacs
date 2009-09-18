@@ -500,13 +500,13 @@ showing a list of possible coding systems.
 user agent sends mail.  It should be set to a function.  In most cases,
 the default is @code{sendmail-send-it}, which delivers mail using the
 Sendmail installation on the local host.  On Mac OS X and MS-Windows,
-however, the default is normally @code{mailclient-send-it} (see
-@file{mailclient.el}).  To send mail through an SMTP
-server, set @code{send-mail-function} to @code{smtpmail-send-it} and set
-up the Emacs SMTP library (@pxref{Top,,Emacs SMTP Library, smtpmail,
-Sending mail via SMTP}).  Another option is @code{feedmail-send-it} (see
-the commentary section of the @file{feedmail.el} package).
-@c FIXME Some details of Mailclient would probably be good.
+however, the default is normally @code{mailclient-send-it}, which
+passes the mail buffer on to the system's designated mail client (see
+@file{mailclient.el}).  To send mail through an SMTP server, set
+@code{send-mail-function} to @code{smtpmail-send-it} and set up the
+Emacs SMTP library (@pxref{Top,,Emacs SMTP Library, smtpmail, Sending
+mail via SMTP}).  Another option is @code{feedmail-send-it} (see the
+commentary section of the @file{feedmail.el} package).
 
 @node Header Editing
 @subsection Mail Header Editing

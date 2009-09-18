@@ -89,7 +89,6 @@ to make sure Emacs interprets keyboard input correctly; see
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
-* Multibyte Conversion::    How single-byte characters convert to multibyte.
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
@@ -115,14 +114,17 @@ to make sure Emacs interprets keyboard input correctly; see
 
   The users of international character sets and scripts have
 established many more-or-less standard coding systems for storing
-files.  Emacs internally uses a single multibyte character encoding,
-so that it can intermix characters from all these scripts in a single
-buffer or string.  This encoding represents each non-@acronym{ASCII}
-character as a sequence of bytes in the range 0200 through 0377.
-Emacs translates between the multibyte character encoding and various
-other coding systems when reading and writing files, when exchanging
-data with subprocesses, and (in some cases) in the @kbd{C-q} command
-(@pxref{Multibyte Conversion}).
+files.  These coding systems are typically @dfn{multibyte}, meaning
+that sequences of two or more bytes are used to represent individual
+non-@acronym{ASCII} characters.
+
+@cindex Unicode
+  Internally, Emacs uses its own multibyte character encoding, which
+is a superset of the @dfn{Unicode} standard.  This internal encoding
+allows characters from almost every known script to be intermixed in a
+single buffer or string.  Emacs translates between the multibyte
+character encoding and various other coding systems when reading and
+writing files, and when exchanging data with subprocesses.
 
 @kindex C-h h
 @findex view-hello-file
@@ -134,10 +136,14 @@ This illustrates various scripts.  If some characters can't be
 displayed on your terminal, they appear as @samp{?} or as hollow boxes
 (@pxref{Undisplayable Characters}).
 
-  Keyboards, even in the countries where these character sets are used,
-generally don't have keys for all the characters in them.  So Emacs
-supports various @dfn{input methods}, typically one for each script or
-language, to make it convenient to type them.
+  Keyboards, even in the countries where these character sets are
+used, generally don't have keys for all the characters in them.  You
+can insert characters that your keyboard does not support, using
+@kbd{C-q} (@code{quoted-insert}) or @kbd{C-x 8 @key{RET}}
+(@code{ucs-insert}).  @xref{Inserting Text}.  Emacs also supports
+various @dfn{input methods}, typically one for each script or
+language, which make it easier to type characters in the script.
+@xref{Input Methods}.
 
 @kindex C-x RET
   The prefix key @kbd{C-x @key{RET}} is used for commands that pertain
@@ -165,12 +171,12 @@ system encodes the character safely and with a single byte
 (@pxref{Coding Systems}).  If the character's encoding is longer than
 one byte, Emacs shows @samp{file ...}.
 
-  However, if the character displayed is in the range 0200 through
-0377 octal, it may actually stand for an invalid UTF-8 byte read from
-a file.  In Emacs, that byte is represented as a sequence of 8-bit
-characters, but all of them together display as the original invalid
-byte, in octal code.  In this case, @kbd{C-x =} shows @samp{part of
-display ...} instead of @samp{file}.
+  As a special case, if the character lies in the range 128 (0200
+octal) through 159 (0237 octal), it stands for a ``raw'' byte that
+does not correspond to any specific displayable character.  Such a
+``character'' lies within the @code{eight-bit-control} character set,
+and is displayed as an escaped octal character code.  In this case,
+@kbd{C-x =} shows @samp{part of display ...} instead of @samp{file}.
 
 @cindex character set of character at point
 @cindex font of character at point
@@ -235,74 +241,48 @@ There are text properties here:
 @node Enabling Multibyte
 @section Enabling Multibyte Characters
 
-  By default, Emacs starts in multibyte mode, because that allows you to
-use all the supported languages and scripts without limitations.
+  By default, Emacs starts in multibyte mode: it stores the contents
+of buffers and strings using an internal encoding that represents
+non-@acronym{ASCII} characters using multi-byte sequences.  Multibyte
+mode allows you to use all the supported languages and scripts without
+limitations.
 
 @cindex turn multibyte support on or off
-  You can enable or disable multibyte character support, either for
-Emacs as a whole, or for a single buffer.  When multibyte characters
-are disabled in a buffer, we call that @dfn{unibyte mode}.  Then each
-byte in that buffer represents a character, even codes 0200 through
-0377.
-
-  The old features for supporting the European character sets, ISO
-Latin-1 and ISO Latin-2, work in unibyte mode as they did in Emacs 19
-and also work for the other ISO 8859 character sets.  However, there
-is no need to turn off multibyte character support to use ISO Latin;
-the Emacs multibyte character set includes all the characters in these
-character sets, and Emacs can translate automatically to and from the
-ISO codes.
+  Under very special circumstances, you may want to disable multibyte
+character support, for a specific buffer.
+When multibyte characters are disabled in a buffer, we call
+that @dfn{unibyte mode}.  In unibyte mode, each character in the
+buffer has a character code ranging from 0 through 255 (0377 octal); 0
+through 127 (0177 octal) represent @acronym{ASCII} characters, and 128
+(0200 octal) through 255 (0377 octal) represent non-@acronym{ASCII}
+characters.
 
   To edit a particular file in unibyte representation, visit it using
-@code{find-file-literally}.  @xref{Visiting}.  To convert a buffer in
-multibyte representation into a single-byte representation of the same
-characters, the easiest way is to save the contents in a file, kill the
-buffer, and find the file again with @code{find-file-literally}.  You
-can also use @kbd{C-x @key{RET} c}
-(@code{universal-coding-system-argument}) and specify @samp{raw-text} as
-the coding system with which to find or save a file.  @xref{Text
-Coding}.  Finding a file as @samp{raw-text} doesn't disable format
-conversion, uncompression and auto mode selection as
-@code{find-file-literally} does.
-
-@vindex enable-multibyte-characters
-@vindex default-enable-multibyte-characters
-  To turn off multibyte character support by default, start Emacs with
-the @samp{--unibyte} option (@pxref{Initial Options}), or set the
-environment variable @env{EMACS_UNIBYTE}.  You can also customize
-@code{enable-multibyte-characters} or, equivalently, directly set the
-variable @code{default-enable-multibyte-characters} to @code{nil} in
-your init file to have basically the same effect as @samp{--unibyte}.
-
-@findex toggle-enable-multibyte-characters
-  To convert a unibyte session to a multibyte session, set
-@code{default-enable-multibyte-characters} to @code{t}.  Buffers which
-were created in the unibyte session before you turn on multibyte support
-will stay unibyte.  You can turn on multibyte support in a specific
-buffer by invoking the command @code{toggle-enable-multibyte-characters}
-in that buffer.
+@code{find-file-literally}.  @xref{Visiting}.  You can convert a
+multibyte buffer to unibyte by saving it to a file, killing the
+buffer, and visiting the file again with @code{find-file-literally}.
+Alternatively, you can use @kbd{C-x @key{RET} c}
+(@code{universal-coding-system-argument}) and specify @samp{raw-text}
+as the coding system with which to visit or save a file.  @xref{Text
+Coding}.  Unlike @code{find-file-literally}, finding a file as
+@samp{raw-text} doesn't disable format conversion, uncompression, or
+auto mode selection.
 
 @cindex Lisp files, and multibyte operation
 @cindex multibyte operation, and Lisp files
 @cindex unibyte operation, and Lisp files
 @cindex init file, and non-@acronym{ASCII} characters
-@cindex environment variables, and non-@acronym{ASCII} characters
-  With @samp{--unibyte}, multibyte strings are not created during
-initialization from the values of environment variables,
-@file{/etc/passwd} entries etc.@: that contain non-@acronym{ASCII} 8-bit
-characters.
-
-  Emacs normally loads Lisp files as multibyte, regardless of whether
-you used @samp{--unibyte}.  This includes the Emacs initialization file,
-@file{.emacs}, and the initialization files of Emacs packages such as
-Gnus.  However, you can specify unibyte loading for a particular Lisp
-file, by putting @w{@samp{-*-unibyte: t;-*-}} in a comment on the first
-line (@pxref{File Variables}).  Then that file is always loaded as
-unibyte text, even if you did not start Emacs with @samp{--unibyte}.
-The motivation for these conventions is that it is more reliable to
-always load any particular Lisp file in the same way.  However, you can
-load a Lisp file as unibyte, on any one occasion, by typing @kbd{C-x
-@key{RET} c raw-text @key{RET}} immediately before loading it.
+  Emacs normally loads Lisp files as multibyte.
+This includes the Emacs initialization
+file, @file{.emacs}, and the initialization files of Emacs packages
+such as Gnus.  However, you can specify unibyte loading for a
+particular Lisp file, by putting @w{@samp{-*-unibyte: t;-*-}} in a
+comment on the first line (@pxref{File Variables}).  Then that file is
+always loaded as unibyte text.  The motivation for these conventions
+is that it is more reliable to always load any particular Lisp file in
+the same way.  However, you can load a Lisp file as unibyte, on any
+one occasion, by typing @kbd{C-x @key{RET} c raw-text @key{RET}}
+immediately before loading it.
 
   The mode line indicates whether multibyte character support is
 enabled in the current buffer.  If it is, there are two or more
@@ -312,6 +292,10 @@ convention (colon, backslash, etc.).  When multibyte characters
 are not enabled, nothing precedes the colon except a single dash.
 @xref{Mode Line}, for more details about this.
 
+@findex toggle-enable-multibyte-characters
+You can turn on multibyte support in a specific buffer by invoking the
+command @code{toggle-enable-multibyte-characters} in that buffer.
+
 @node Language Environments
 @section Language Environments
 @cindex language environments
@@ -319,43 +303,41 @@ are not enabled, nothing precedes the colon except a single dash.
   All supported character sets are supported in Emacs buffers whenever
 multibyte characters are enabled; there is no need to select a
 particular language in order to display its characters in an Emacs
-buffer.  However, it is important to select a @dfn{language environment}
-in order to set various defaults.  The language environment really
-represents a choice of preferred script (more or less) rather than a
-choice of language.
+buffer.  However, it is important to select a @dfn{language
+environment} in order to set various defaults.  Roughly speaking, the
+language environment represents a choice of preferred script rather
+than a choice of language.
 
   The language environment controls which coding systems to recognize
 when reading text (@pxref{Recognize Coding}).  This applies to files,
-incoming mail, netnews, and any other text you read into Emacs.  It may
-also specify the default coding system to use when you create a file.
-Each language environment also specifies a default input method.
+incoming mail, and any other text you read into Emacs.  It may also
+specify the default coding system to use when you create a file.  Each
+language environment also specifies a default input method.
 
 @findex set-language-environment
 @vindex current-language-environment
-  To select a language environment, you can customize the variable
+  To select a language environment, customize the variable
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
-current when you use this command, because the effects apply globally to
-the Emacs session.  The supported language environments include:
+current when you use this command, because the effects apply globally
+to the Emacs session.  The supported language environments include:
 
 @cindex Euro sign
 @cindex UTF-8
 @quotation
-ASCII, Belarusian, Brazilian Portuguese, Bulgarian, Chinese-BIG5,
-Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Croatian, Cyrillic-ALT,
-Cyrillic-ISO, Cyrillic-KOI8, Czech, Devanagari, Dutch, English,
-Esperanto, Ethiopic, French, Georgian, German, Greek, Hebrew, IPA,
-Italian, Japanese, Kannada, Korean, Lao, Latin-1, Latin-2, Latin-3,
-Latin-4, Latin-5, Latin-6, Latin-7, Latin-8 (Celtic), Latin-9 (updated
-Latin-1 with the Euro sign), Latvian, Lithuanian, Malayalam, Polish,
-Romanian, Russian, Slovak, Slovenian, Spanish, Swedish, Tajik, Tamil,
-Thai, Tibetan, Turkish, UTF-8 (for a setup which prefers Unicode
-characters and files encoded in UTF-8), Ukrainian, Vietnamese, Welsh,
-and Windows-1255 (for a setup which prefers Cyrillic characters and
-files encoded in Windows-1255).
-@tex
-\hbadness=10000\par  % just avoid underfull hbox warning
-@end tex
+ASCII, Belarusian, Bengali, Brazilian Portuguese, Bulgarian,
+Chinese-BIG5, Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Chinese-GBK,
+Chinese-GB18030, Croatian, Cyrillic-ALT, Cyrillic-ISO, Cyrillic-KOI8,
+Czech, Devanagari, Dutch, English, Esperanto, Ethiopic, French,
+Georgian, German, Greek, Gujarati, Hebrew, IPA, Italian, Japanese,
+Kannada, Khmer, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
+Latin-5, Latin-6, Latin-7, Latin-8 (Celtic), Latin-9 (updated Latin-1
+with the Euro sign), Latvian, Lithuanian, Malayalam, Oriya, Polish,
+Punjabi, Romanian, Russian, Sinhala, Slovak, Slovenian, Spanish,
+Swedish, TaiViet, Tajik, Tamil, Telugu, Thai, Tibetan, Turkish, UTF-8
+(for a setup which prefers Unicode characters and files encoded in
+UTF-8), Ukrainian, Vietnamese, Welsh, and Windows-1255 (for a setup
+which prefers Cyrillic characters and files encoded in Windows-1255).
 @end quotation
 
 @cindex fonts for various scripts
@@ -422,6 +404,7 @@ character sets, coding systems, and input methods that go with it.  It
 also shows some sample text to illustrate scripts used in this
 language environment.  If you give an empty input for @var{lang-env},
 this command describes the chosen language environment.
+@anchor{Describe Language Environment}
 
 @vindex set-language-environment-hook
   You can customize any language environment with the normal hook
@@ -635,7 +618,7 @@ automatically.  For example:
 @end lisp
 
 @noindent
-This activates the input emthod ``german-prefix'' automatically in the
+This activates the input method ``german-prefix'' automatically in the
 Text mode.
 
 @findex quail-set-keyboard-layout
@@ -657,34 +640,6 @@ character.
 list-input-methods}.  The list gives information about each input
 method, including the string that stands for it in the mode line.
 
-@node Multibyte Conversion
-@section Unibyte and Multibyte Non-@acronym{ASCII} characters
-
-  When multibyte characters are enabled, character codes 0240 (octal)
-through 0377 (octal) are not really legitimate in the buffer.  The valid
-non-@acronym{ASCII} printing characters have codes that start from 0400.
-
-  If you type a self-inserting character in the range 0240 through
-0377, or if you use @kbd{C-q} to insert one, Emacs assumes you
-intended to use one of the ISO Latin-@var{n} character sets, and
-converts it to the Emacs code representing that Latin-@var{n}
-character.  You select @emph{which} ISO Latin character set to use
-through your choice of language environment
-@iftex
-(see above).
-@end iftex
-@ifnottex
-(@pxref{Language Environments}).
-@end ifnottex
-If you do not specify a choice, the default is Latin-1.
-
-  If you insert a character in the range 0200 through 0237, which
-forms the @code{eight-bit-control} character set, it is inserted
-literally.  You should normally avoid doing this since buffers
-containing such characters have to be written out in either the
-@code{emacs-mule} or @code{raw-text} coding system, which is usually
-not what you want.
-
 @node Coding Systems
 @section Coding Systems
 @cindex coding systems
@@ -698,11 +653,11 @@ possible in reading or writing files, in sending or receiving from the
 terminal, and in exchanging data with subprocesses.
 
   Emacs assigns a name to each coding system.  Most coding systems are
-used for one language, and the name of the coding system starts with the
-language name.  Some coding systems are used for several languages;
-their names usually start with @samp{iso}.  There are also special
-coding systems @code{no-conversion}, @code{raw-text} and
-@code{emacs-mule} which do not convert printing characters at all.
+used for one language, and the name of the coding system starts with
+the language name.  Some coding systems are used for several
+languages; their names usually start with @samp{iso}.  There are also
+special coding systems, such as @code{no-conversion}, @code{raw-text},
+and @code{emacs-internal}.
 
 @cindex international files from DOS/Windows systems
   A special class of coding systems, collectively known as
@@ -814,37 +769,21 @@ the @kbd{M-x find-file-literally} command.  This uses
 @code{no-conversion}, and also suppresses other Emacs features that
 might convert the file contents before you see them.  @xref{Visiting}.
 
-  The coding system @code{emacs-mule} means that the file contains
-non-@acronym{ASCII} characters stored with the internal Emacs encoding.  It
-handles end-of-line conversion based on the data encountered, and has
-the usual three variants to specify the kind of end-of-line conversion.
-
-@findex unify-8859-on-decoding-mode
-@anchor{Character Translation} 
-  The @dfn{character translation} feature can modify the effect of
-various coding systems, by changing the internal Emacs codes that
-decoding produces.  For instance, the command
-@code{unify-8859-on-decoding-mode} enables a mode that ``unifies'' the
-Latin alphabets when decoding text.  This works by converting all
-non-@acronym{ASCII} Latin-@var{n} characters to either Latin-1 or
-Unicode characters.  This way it is easier to use various
-Latin-@var{n} alphabets together.  (In a future Emacs version we hope
-to move towards full Unicode support and complete unification of
-character sets.)
-
-@vindex enable-character-translation
-  If you set the variable @code{enable-character-translation} to
-@code{nil}, that disables all character translation (including
-@code{unify-8859-on-decoding-mode}).
+  The coding system @code{emacs-internal} (or @code{utf-8-emacs},
+which is equivalent) means that the file contains non-@acronym{ASCII}
+characters stored with the internal Emacs encoding.  This coding
+system handles end-of-line conversion based on the data encountered,
+and has the usual three variants to specify the kind of end-of-line
+conversion.
 
 @node Recognize Coding
 @section Recognizing Coding Systems
 
-  Emacs tries to recognize which coding system to use for a given text
-as an integral part of reading that text.  (This applies to files
-being read, output from subprocesses, text from X selections, etc.)
-Emacs can select the right coding system automatically most of the
-time---once you have specified your preferences.
+  Whenever Emacs reads a given piece of text, it tries to recognize
+which coding system to use.  This applies to files being read, output
+from subprocesses, text from X selections, etc.  Emacs can select the
+right coding system automatically most of the time---once you have
+specified your preferences.
 
   Some coding systems can be recognized or distinguished by which byte
 sequences appear in the data.  However, there are coding systems that
@@ -948,19 +887,17 @@ pattern, are decoded correctly.  One of the builtin
 @code{auto-coding-functions} detects the encoding for XML files.
 
 @vindex rmail-decode-mime-charset
+@vindex rmail-file-coding-system
   When you get new mail in Rmail, each message is translated
 automatically from the coding system it is written in, as if it were a
 separate file.  This uses the priority list of coding systems that you
 have specified.  If a MIME message specifies a character set, Rmail
 obeys that specification, unless @code{rmail-decode-mime-charset} is
-@code{nil}.
-
-@vindex rmail-file-coding-system
-  For reading and saving Rmail files themselves, Emacs uses the coding
-system specified by the variable @code{rmail-file-coding-system}.  The
-default value is @code{nil}, which means that Rmail files are not
-translated (they are read and written in the Emacs internal character
-code).
+@code{nil}.  For reading and saving Rmail files themselves, Emacs uses
+the coding system specified by the variable
+@code{rmail-file-coding-system}.  The default value is @code{nil},
+which means that Rmail files are not translated (they are read and
+written in the Emacs internal character code).
 
 @node Specify Coding
 @section Specifying a File's Coding System
@@ -984,13 +921,6 @@ use of the Latin-1 coding system, as well as C mode.  When you specify
 the coding explicitly in the file, that overrides
 @code{file-coding-system-alist}.
 
-  If you add the character @samp{!} at the end of the coding system
-name in @code{coding}, it disables any character translation
-(@pxref{Character Translation}) while decoding the file.  This is
-useful when you need to make sure that the character codes in the
-Emacs buffer will not vary due to changes in user settings; for
-instance, for the sake of strings in Emacs Lisp source files.
-
 @node Output Coding
 @section Choosing Coding Systems for Output
 
@@ -1004,22 +934,21 @@ different coding system for further file output from the buffer using
 
   You can insert any character Emacs supports into any Emacs buffer,
 but most coding systems can only handle a subset of these characters.
-Therefore, you can insert characters that cannot be encoded with the
-coding system that will be used to save the buffer.  For example, you
-could start with an @acronym{ASCII} file and insert a few Latin-1
-characters into it, or you could edit a text file in Polish encoded in
-@code{iso-8859-2} and add some Russian words to it.  When you save
+Therefore, it's possible that the characters you insert cannot be
+encoded with the coding system that will be used to save the buffer.
+For example, you could visit a text file in Polish, encoded in
+@code{iso-8859-2}, and add some Russian words to it.  When you save
 that buffer, Emacs cannot use the current value of
 @code{buffer-file-coding-system}, because the characters you added
 cannot be encoded by that coding system.
 
   When that happens, Emacs tries the most-preferred coding system (set
 by @kbd{M-x prefer-coding-system} or @kbd{M-x
-set-language-environment}), and if that coding system can safely
-encode all of the characters in the buffer, Emacs uses it, and stores
-its value in @code{buffer-file-coding-system}.  Otherwise, Emacs
-displays a list of coding systems suitable for encoding the buffer's
-contents, and asks you to choose one of those coding systems.
+set-language-environment}).  If that coding system can safely encode
+all of the characters in the buffer, Emacs uses it, and stores its
+value in @code{buffer-file-coding-system}.  Otherwise, Emacs displays
+a list of coding systems suitable for encoding the buffer's contents,
+and asks you to choose one of those coding systems.
 
   If you insert the unsuitable characters in a mail message, Emacs
 behaves a bit differently.  It additionally checks whether the
@@ -1111,12 +1040,11 @@ immediately following command does not use the coding system, then
   An easy way to visit a file with no conversion is with the @kbd{M-x
 find-file-literally} command.  @xref{Visiting}.
 
-@vindex default-buffer-file-coding-system
-  The variable @code{default-buffer-file-coding-system} specifies the
-choice of coding system to use when you create a new file.  It applies
-when you find a new file, and when you create a buffer and then save it
-in a file.  Selecting a language environment typically sets this
-variable to a good choice of default coding system for that language
+  The default value of the variable @code{buffer-file-coding-system}
+specifies the choice of coding system to use when you create a new file.
+It applies when you find a new file, and when you create a buffer and
+then save it in a file.  Selecting a language environment typically sets
+this variable to a good choice of default coding system for that language
 environment.
 
 @kindex C-x RET r
@@ -1248,9 +1176,9 @@ interactively.
 
   If @code{file-name-coding-system} is @code{nil}, Emacs uses a
 default coding system determined by the selected language environment.
-In the default language environment, any non-@acronym{ASCII}
-characters in file names are not encoded specially; they appear in the
-file system using the internal Emacs representation.
+In the default language environment, non-@acronym{ASCII} characters in
+file names are not encoded specially; they appear in the file system
+using the internal Emacs representation.
 
   @strong{Warning:} if you change @code{file-name-coding-system} (or the
 language environment) in the middle of an Emacs session, problems can
@@ -1317,7 +1245,7 @@ You can do this by putting
 @end lisp
 
 @noindent
-in your @file{~/.emacs} file.
+in your init file.
 
   There is a similarity between using a coding system translation for
 keyboard input, and using an input method: both define sequences of
@@ -1674,30 +1602,48 @@ Use @kbd{C-x 8 C-h} to list all the available @kbd{C-x 8} translations.
 @section Charsets
 @cindex charsets
 
-  Emacs groups all supported characters into disjoint @dfn{charsets}.
-Each character code belongs to one and only one charset.  For
-historical reasons, Emacs typically divides an 8-bit character code
-for an extended version of @acronym{ASCII} into two charsets:
-@acronym{ASCII}, which covers the codes 0 through 127, plus another
-charset which covers the ``right-hand part'' (the codes 128 and up).
-For instance, the characters of Latin-1 include the Emacs charset
-@code{ascii} plus the Emacs charset @code{latin-iso8859-1}.
+  Emacs defines most of popular character sets (e.g. ascii,
+iso-8859-1, cp1250, big5, unicode) as @dfn{charsets} and a few of its
+own charsets (e.g. emacs, unicode-bmp, eight-bit).  All supported
+characters belong to one or more charsets.  Usually you don't have to
+take care of ``charset'', but knowing about it may help understanding
+the behavior of Emacs in some cases.
 
-  Emacs characters belonging to different charsets may look the same,
-but they are still different characters.  For example, the letter
-@samp{o} with acute accent in charset @code{latin-iso8859-1}, used for
-Latin-1, is different from the letter @samp{o} with acute accent in
-charset @code{latin-iso8859-2}, used for Latin-2.
+  One example is a font selection.  In each language environment,
+charsets have different priorities.  Emacs, at first, tries to use a
+font that matches with charsets of higher priority.  For instance, in
+Japanese language environment, the charset @code{japanese-jisx0208}
+has the highest priority (@pxref{Describe Language Environment}).  So,
+Emacs tries to use a font whose @code{registry} property is
+``JISX0208.1983-0'' for characters belonging to that charset.
+
+  Another example is a use of @code{charset} text property.  When
+Emacs reads a file encoded in a coding systems that uses escape
+sequences to switch charsets (e.g. iso-2022-int-1), the buffer text
+keep the information of the original charset by @code{charset} text
+property.  By using this information, Emacs can write the file with
+the same byte sequence as the original.
 
 @findex list-charset-chars
 @cindex characters in a certain charset
 @findex describe-character-set
   There are two commands for obtaining information about Emacs
-charsets.  The command @kbd{M-x list-charset-chars} prompts for a name
-of a character set, and displays all the characters in that character
-set.  The command @kbd{M-x describe-character-set} prompts for a
-charset name and displays information about that charset, including
-its internal representation within Emacs.
+charsets.  The command @kbd{M-x list-charset-chars} prompts for a
+charset name, and displays all the characters in that character set.
+The command @kbd{M-x describe-character-set} prompts for a charset
+name and displays information about that charset, including its
+internal representation within Emacs.
+
+@findex list-character-sets
+  To display a list of all the supported charsets, type @kbd{M-x
+list-character-sets}.  The list gives the names of charsets and
+additional information to identity each charset (see ISO/IEC's this
+page <http://www.itscj.ipsj.or.jp/ISO-IR/> for the detail).  In the
+list, charsets are categorized into two; the normal charsets are
+listed first, and the supplementary charsets are listed last.  A
+charset in the latter category is used for defining another charset
+(as a parent or a subset), or was used only in Emacs of the older
+versions.
 
   To find out which charset a character in the buffer belongs to,
 put point before it and type @kbd{C-u C-x =}.

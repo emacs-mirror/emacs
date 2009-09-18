@@ -254,15 +254,15 @@ main (argc, argv)
       lose_syserr ("Failed to read scores file");
     }
   push_score (&scores, &scorecount, newscore, user_id, newdata);
+  sort_scores (scores, scorecount, reverse);
   /* Limit the number of scores.  If we're using reverse sorting, then
      we should increment the beginning of the array, to skip over the
      *smallest* scores.  Otherwise, we just decrement the number of
      scores, since the smallest will be at the end. */
   if (scorecount > MAX_SCORES)
     scorecount -= (scorecount - MAX_SCORES);
-    if (reverse)
-      scores += (scorecount - MAX_SCORES);
-  sort_scores (scores, scorecount, reverse);
+  if (reverse)
+    scores += (scorecount - MAX_SCORES);
   if (write_scores (scorefile, scores, scorecount) < 0)
     {
       unlock_file (scorefile, lockstate);

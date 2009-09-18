@@ -69,10 +69,10 @@ comparison or merge operations are being performed."
   "Return the version level of the latest version of FILE in repository."
   (if (fboundp 'vc-latest-version)
       (vc-latest-version file)
-    (or (vc-file-getprop file 'vc-latest-version)
+    (or (vc-file-getprop file 'vc-latest-revision)
 	(cond ((vc-backend file)
 	       (vc-call state file)
-	       (vc-file-getprop file 'vc-latest-version))
+	       (vc-file-getprop file 'vc-latest-revision))
 	      (t (error "File %s is not under version control" file))))
     ))
 
@@ -137,10 +137,8 @@ comparison or merge operations are being performed."
   ;; Optional NAME is name to use instead of `*RCS-output*'.
   ;; This is a modified version from rcs.el v1.1.  I use it here to make
   ;; Ediff immune to changes in rcs.el
-  (let* ((default-major-mode 'fundamental-mode) ; no frills!
-	 (buf (get-buffer-create name)))
-    (save-excursion
-      (set-buffer buf)
+  (let ((buf (get-buffer-create name)))
+    (with-current-buffer buf
       (setq buffer-read-only nil
 	    default-directory (file-name-directory (expand-file-name file)))
       (erase-buffer))

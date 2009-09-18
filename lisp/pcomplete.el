@@ -590,8 +590,9 @@ this is `comint-dynamic-complete-functions'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-comint-arguments)
   (make-local-variable completef-sym)
-  (let ((elem (memq 'comint-dynamic-complete-filename
-		    (symbol-value completef-sym))))
+  (let* ((funs (symbol-value completef-sym))
+	 (elem (or (memq 'comint-dynamic-complete-filename funs)
+		   (memq 'shell-dynamic-complete-filename funs))))
     (if elem
 	(setcar elem 'pcomplete)
       (add-to-list completef-sym 'pcomplete))))

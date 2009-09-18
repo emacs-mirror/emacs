@@ -416,7 +416,7 @@ Defaults to the whole buffer.  END can be out of bounds."
 ;;; Stealth fontification.
 
 (defsubst jit-lock-stealth-chunk-start (around)
-  "Return the start of the next chunk to fontify around position AROUND..
+  "Return the start of the next chunk to fontify around position AROUND.
 Value is nil if there is nothing more to fontify."
   (if (zerop (buffer-size))
       nil

@@ -308,7 +308,7 @@ xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap)
 }
 
 static Lisp_Object
-file_for_image(image)
+file_for_image (image)
      Lisp_Object image;
 {
   Lisp_Object specified_file = Qnil;
@@ -625,7 +625,6 @@ xg_set_geometry (f)
                      f->left_pos, f->top_pos);
 }
 
-
 /* Function to handle resize of our frame.  As we have a Gtk+ tool bar
    and a Gtk+ menu bar, we get resize events for the edit part of the
    frame only.  We let Gtk+ deal with the Gtk+ parts.
@@ -637,14 +636,24 @@ xg_frame_resized (f, pixelwidth, pixelheight)
      FRAME_PTR f;
      int pixelwidth, pixelheight;
 {
-  int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
-  int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+  int rows, columns;
 
-  if (FRAME_GTK_WIDGET (f)
-      && (columns != FRAME_COLS (f)
-	  || rows != FRAME_LINES (f)
-          || pixelwidth != FRAME_PIXEL_WIDTH (f)
-	  || pixelheight != FRAME_PIXEL_HEIGHT (f)))
+  if (pixelwidth == -1 && pixelheight == -1)
+    {
+      if (FRAME_GTK_WIDGET (f) && GTK_WIDGET_MAPPED (FRAME_GTK_WIDGET (f)))
+          gdk_window_get_geometry(FRAME_GTK_WIDGET (f)->window, 0, 0,
+                                  &pixelwidth, &pixelheight, 0);
+      else return;
+    }
+  
+
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
+  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+
+  if (columns != FRAME_COLS (f)
+      || rows != FRAME_LINES (f)
+      || pixelwidth != FRAME_PIXEL_WIDTH (f)
+      || pixelheight != FRAME_PIXEL_HEIGHT (f))
     {
       FRAME_PIXEL_WIDTH (f) = pixelwidth;
       FRAME_PIXEL_HEIGHT (f) = pixelheight;
@@ -654,8 +663,6 @@ xg_frame_resized (f, pixelwidth, pixelheight)
       cancel_mouse_face (f);
     }
 }
-
-/* Process all pending events on the display for frame F.  */
 
 static void
 flush_and_sync (f)
@@ -671,34 +678,7 @@ flush_and_sync (f)
     }
 }
 
-/* Turn wm hints for resize off on frame F */
-
-static void
-x_wm_size_hint_off (f)
-     FRAME_PTR f;
-{
-  GdkGeometry size_hints;
-  gint hint_flags = 0;
-  memset (&size_hints, 0, sizeof (size_hints));
-  hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
-  size_hints.width_inc = 1;
-  size_hints.height_inc = 1;
-  hint_flags |= GDK_HINT_BASE_SIZE;
-  size_hints.base_width = 1;
-  size_hints.base_height = 1;
-  size_hints.min_width  = 1;
-  size_hints.min_height = 1;
-  gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                                 NULL,
-                                 &size_hints,
-                                 hint_flags);
-  /* Make sure these get set again in next call to x_wm_set_size_hint. */
-  f->output_data.x->hint_flags &= ~hint_flags;
-  flush_and_sync (f);
-}
-
 /* Resize the outer window of frame F after chainging the height.
-   This happend when the menu bar or the tool bar is added or removed.
    COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
@@ -729,14 +709,40 @@ xg_frame_set_char_size (f, cols, rows)
   pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
 
   /* Must resize our top level widget.  Font size may have changed,
-     but not rows/cols.
-     Turn wm hints (min/max size and size increments) of temporarly.
-     It interferes too much, when for example adding or removing the
-     menu/tool bar.  */
-  x_wm_size_hint_off (f);
+     but not rows/cols.  */
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      pixelwidth, pixelheight);
-  flush_and_sync (f);
+  x_wm_set_size_hint (f, 0, 0);
+
+  /* We can not call change_frame_size for a mapped frame,
+     we can not set pixel width/height either.  The window manager may
+     override our resize request, XMonad does this all the time.
+     The best we can do is try to sync, so lisp code sees the updated
+     size as fast as possible.
+     For unmapped windows, we can set rows/cols.  When
+     the frame is mapped again we will (hopefully) get the correct size.  */
+  if (f->async_visible)
+      flush_and_sync (f);
+  else
+    {
+      FRAME_PIXEL_WIDTH (f) = pixelwidth;
+      FRAME_PIXEL_HEIGHT (f) = pixelheight;
+      change_frame_size (f, rows, cols, 0, 1, 0);
+      SET_FRAME_GARBAGED (f);
+      cancel_mouse_face (f);
+     }
+}
+
+/* Handle height changes (i.e. add/remove menu/toolbar).
+   The policy is to keep the number of editable lines.  */
+
+static void
+xg_height_changed (f)
+     FRAME_PTR f;
+{
+  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                     FRAME_PIXEL_WIDTH (f), FRAME_TOTAL_PIXEL_HEIGHT (f));
+  f->output_data.x->hint_flags = 0;
   x_wm_set_size_hint (f, 0, 0);
 }
 
@@ -836,9 +842,6 @@ xg_create_frame_widgets (f)
 
   gtk_fixed_set_has_window (GTK_FIXED (wfixed), TRUE);
 
-  gtk_widget_set_size_request (wfixed, FRAME_PIXEL_WIDTH (f),
-                               FRAME_PIXEL_HEIGHT (f));
-
   gtk_container_add (GTK_CONTAINER (wtop), wvbox);
   gtk_box_pack_end (GTK_BOX (wvbox), wfixed, TRUE, TRUE, 0);
 
@@ -852,9 +855,6 @@ xg_create_frame_widgets (f)
      a lot, so we turn off double buffering.  */
   gtk_widget_set_double_buffered (wfixed, FALSE);
 
-  /* GTK documents says use gtk_window_set_resizable.  But then a user
-     can't shrink the window from its starting size.  */
-  gtk_window_set_policy (GTK_WINDOW (wtop), TRUE, TRUE, TRUE);
   gtk_window_set_wmclass (GTK_WINDOW (wtop),
                           SSDATA (Vx_resource_name),
                           SSDATA (Vx_resource_class));
@@ -868,6 +868,8 @@ xg_create_frame_widgets (f)
      and specify it.
      GTK will itself handle calculating the real position this way.  */
   xg_set_geometry (f);
+  int grav = gtk_window_get_gravity (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
+  f->win_gravity = grav;
 
   gtk_widget_add_events (wfixed,
                          GDK_POINTER_MOTION_MASK
@@ -2964,14 +2966,8 @@ xg_update_frame_menubar (f)
 
   gtk_widget_show_all (x->menubar_widget);
   gtk_widget_size_request (x->menubar_widget, &req);
-
   FRAME_MENUBAR_HEIGHT (f) = req.height;
-
-  /* The height has changed, resize outer widget and set columns
-     rows to what we had before adding the menu bar.  */
-  xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
-
-  SET_FRAME_GARBAGED (f);
+  xg_height_changed (f);
   UNBLOCK_INPUT;
 
   return 1;
@@ -2995,12 +2991,7 @@ free_frame_menubar (f)
           the container.  */
       x->menubar_widget = 0;
       FRAME_MENUBAR_HEIGHT (f) = 0;
-
-      /* The height has changed, resize outer widget and set columns
-         rows to what we had before removing the menu bar.  */
-      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
-
-      SET_FRAME_GARBAGED (f);
+      xg_height_changed (f);
       UNBLOCK_INPUT;
     }
 }
@@ -3485,9 +3476,29 @@ xg_tool_bar_proxy_callback (w, client_data)
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
   xg_tool_bar_callback (wbutton, client_data);
-  FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (wbutton),
-                                               XG_FRAME_DATA);
 }
+
+
+static gboolean
+xg_tool_bar_help_callback P_ ((GtkWidget *w,
+                               GdkEventCrossing *event,
+                               gpointer client_data));
+
+/* This callback is called when a help is to be shown for an item in
+   the detached tool bar when the detached tool bar it is not expanded.  */
+
+static gboolean
+xg_tool_bar_proxy_help_callback (w, event, client_data)
+     GtkWidget *w;
+     GdkEventCrossing *event;
+     gpointer client_data;
+{
+  GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
+                                                      XG_TOOL_BAR_PROXY_BUTTON));
+  
+  xg_tool_bar_help_callback (wbutton, event, client_data);
+}
+
 
 /* This callback is called when a tool item should create a proxy item,
    such as for the overflow menu.  Also called when the tool bar is detached.
@@ -3501,7 +3512,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 {
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (toolitem));
   GtkButton *wbutton = GTK_BUTTON (gtk_bin_get_child (GTK_BIN (weventbox)));
-  GtkWidget *wmenuitem = gtk_image_menu_item_new ();
+  GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label ("");
   GtkWidget *wmenuimage;
 
   if (gtk_button_get_use_stock (wbutton))
@@ -3568,12 +3579,27 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 
   g_signal_connect (G_OBJECT (wmenuitem),
                     "activate",
-                    GTK_SIGNAL_FUNC (xg_tool_bar_proxy_callback),
+                    G_CALLBACK (xg_tool_bar_proxy_callback),
                     user_data);
 
+  
   g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
                      (gpointer) wbutton);
   gtk_tool_item_set_proxy_menu_item (toolitem, "Emacs toolbar item", wmenuitem);
+  gtk_widget_set_sensitive (wmenuitem, GTK_WIDGET_SENSITIVE (wbutton));
+
+  /* Use enter/leave notify to show help.  We use the events
+     rather than the GtkButton specific signals "enter" and
+     "leave", so we can have only one callback.  The event
+     will tell us what kind of event it is.  */
+  g_signal_connect (G_OBJECT (wmenuitem),
+                    "enter-notify-event",
+                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
+                    user_data);
+  g_signal_connect (G_OBJECT (wmenuitem),
+                    "leave-notify-event",
+                    G_CALLBACK (xg_tool_bar_proxy_help_callback),
+                    user_data);
 
   return TRUE;
 }
@@ -3604,11 +3630,8 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
       /* When detaching a tool bar, not everything dissapear.  There are
          a few pixels left that are used to drop the tool bar back into
          place.  */
-      FRAME_TOOLBAR_HEIGHT (f) = 2;
-
-      /* The height has changed, resize outer widget and set columns
-         rows to what we had before detaching the tool bar.  */
-      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
+      FRAME_TOOLBAR_HEIGHT (f) = 4;
+      xg_height_changed (f);
     }
 }
 
@@ -3636,10 +3659,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
 
       gtk_widget_size_request (w, &req);
       FRAME_TOOLBAR_HEIGHT (f) = req.height;
-
-      /* The height has changed, resize outer widget and set columns
-         rows to what we had before attaching the tool bar.  */
-      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_height_changed (f);
     }
 }
 
@@ -3807,6 +3827,8 @@ find_rtl_image (f, image, rtl)
 
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
+extern Lisp_Object Qx_gtk_map_stock;
+
 void
 update_frame_tool_bar (f)
      FRAME_PTR f;
@@ -3858,7 +3880,6 @@ update_frame_tool_bar (f)
 
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
-
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
@@ -3873,7 +3894,6 @@ update_frame_tool_bar (f)
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
-      Lisp_Object func = intern ("x-gtk-map-stock");
       Lisp_Object specified_file;
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
@@ -3894,10 +3914,10 @@ update_frame_tool_bar (f)
         }
 
       specified_file = file_for_image (image);
-      if (!NILP (specified_file) && EQ (Qt, Ffboundp (func)))
-        stock = call1 (func, specified_file);
+      if (!NILP (specified_file) && !NILP (Ffboundp (Qx_gtk_map_stock)))
+        stock = call1 (Qx_gtk_map_stock, specified_file);
 
-      if (! NILP (stock) && STRINGP (stock))
+      if (STRINGP (stock))
         {
           stock_name = SSDATA (stock);
           if (stock_name[0] == 'n' && stock_name[1] == ':')
@@ -4018,11 +4038,11 @@ update_frame_tool_bar (f)
 
           /* The EMACS_INT cast avoids a warning. */
           g_signal_connect (G_OBJECT (ti), "create-menu-proxy",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_menu_proxy),
+                            G_CALLBACK (xg_tool_bar_menu_proxy),
                             (gpointer) (EMACS_INT) i);
 
           g_signal_connect (G_OBJECT (wbutton), "clicked",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_callback),
+                            G_CALLBACK (xg_tool_bar_callback),
                             (gpointer) (EMACS_INT) i);
 
           gtk_widget_show_all (GTK_WIDGET (ti));
@@ -4044,11 +4064,11 @@ update_frame_tool_bar (f)
              no distinction based on modifiers in the activate callback,
              so we have to do it ourselves.  */
           g_signal_connect (wbutton, "button-release-event",
-                            GTK_SIGNAL_FUNC (xg_tool_bar_button_cb),
+                            G_CALLBACK (xg_tool_bar_button_cb),
                             NULL);
 
           g_object_set_data (G_OBJECT (wbutton), XG_FRAME_DATA, (gpointer)f);
-
+          
           /* Use enter/leave notify to show help.  We use the events
              rather than the GtkButton specific signals "enter" and
              "leave", so we can have only one callback.  The event
@@ -4126,20 +4146,17 @@ update_frame_tool_bar (f)
     } while (ti != NULL);
 
   new_req.height = 0;
-  gtk_widget_size_request (GTK_WIDGET (wtoolbar), &new_req);
-
   if (pack_tool_bar && f->n_tool_bar_items != 0)
-    xg_pack_tool_bar (f);
+      xg_pack_tool_bar (f);
+  
 
-  if (new_req.height != 0
-      && f->n_tool_bar_items != 0
-      && old_req.height != new_req.height
+  gtk_widget_size_request (GTK_WIDGET (x->toolbar_widget), &new_req);
+  if (old_req.height != new_req.height
       && ! FRAME_X_OUTPUT (f)->toolbar_detached)
     {
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
-      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_height_changed (f);
     }
-
   UNBLOCK_INPUT;
 }
 
@@ -4167,10 +4184,8 @@ free_frame_tool_bar (f)
       x->toolbar_widget = 0;
       x->handlebox_widget = 0;
       FRAME_TOOLBAR_HEIGHT (f) = 0;
+      xg_height_changed (f);
 
-      /* The height has changed, resize outer widget and set columns
-         rows to what we had before removing the tool bar.  */
-      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
       UNBLOCK_INPUT;
     }
 }
@@ -4217,12 +4232,13 @@ xg_initialize ()
 
   /* Make dialogs close on C-g.  Since file dialog inherits from
      dialog, this works for them also.  */
-  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_DIALOG));
+  binding_set = gtk_binding_set_by_class (g_type_class_ref (GTK_TYPE_DIALOG));
   gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
                                 "close", 0);
 
   /* Make menus close on C-g.  */
-  binding_set = gtk_binding_set_by_class (gtk_type_class (GTK_TYPE_MENU_SHELL));
+  binding_set = gtk_binding_set_by_class (g_type_class_ref
+                                          (GTK_TYPE_MENU_SHELL));
   gtk_binding_entry_add_signal (binding_set, GDK_g, GDK_CONTROL_MASK,
                                 "cancel", 0);
 }

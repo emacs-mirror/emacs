@@ -1,7 +1,7 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
@@ -638,7 +638,7 @@ archive.
   ;; mode on and off.  You can corrupt things that way.
   (if (zerop (buffer-size))
       ;; At present we cannot create archives from scratch
-      (funcall default-major-mode)
+      (funcall (or (default-value 'major-mode) 'fundamental-mode))
     (if (and (not force) archive-files) nil
       (let* ((type (archive-find-type))
 	     (typename (capitalize (symbol-name type))))
@@ -698,7 +698,7 @@ archive.
 	    (or file-name-coding-system
 		default-file-name-coding-system
 		locale-coding-system))
-      (if default-enable-multibyte-characters
+      (if (default-value 'enable-multibyte-characters)
 	  (set-buffer-multibyte 'to))
       (archive-summarize nil)
       (setq buffer-read-only t))))
@@ -716,7 +716,7 @@ archive.
   ;; The funny [] here make it unlikely that the .elc file will be treated
   ;; as an archive by other software.
   (let (case-fold-search)
-    (cond ((looking-at "[P]K\003\004") 'zip)
+    (cond ((looking-at "\\(PK00\\)?[P]K\003\004") 'zip)
 	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO

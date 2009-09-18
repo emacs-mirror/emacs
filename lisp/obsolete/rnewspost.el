@@ -1,7 +1,7 @@
 ;;; rnewspost.el --- USENET news poster/mailer for GNU Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1995, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -296,9 +296,9 @@ original message into it."
   (let (from cc subject date to reply-to message-id
 	     (buffer (current-buffer)))
     (save-restriction
-      (narrow-to-region (point-min) (progn (goto-line (point-min))
+      (narrow-to-region (point-min) (progn (goto-char (point-min))
 					   (search-forward "\n\n")
-					   (- (point) 1)))
+					   (1- (point))))
       (setq from (mail-fetch-field "from")
 	    subject (mail-fetch-field "subject")
 	    reply-to (mail-fetch-field "reply-to")

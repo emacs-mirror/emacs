@@ -427,6 +427,7 @@ struct terminal
   void (*delete_glyphs_hook) P_ ((struct frame *, int));
 
   void (*ring_bell_hook) P_ ((struct frame *f));
+  void (*toggle_invisible_pointer_hook) P_ ((struct frame *f, int invisible));
 
   void (*reset_terminal_modes_hook) P_ ((struct terminal *));
   void (*set_terminal_modes_hook) P_ ((struct terminal *));

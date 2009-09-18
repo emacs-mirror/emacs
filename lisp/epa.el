@@ -635,7 +635,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 
 (defun epa-display-verify-result (verify-result)
   (epa-display-info (epg-verify-result-to-string verify-result)))
-(make-obsolete 'epa-display-verify-result 'epa-display-info)
+(make-obsolete 'epa-display-verify-result 'epa-display-info "23.1")
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)
@@ -725,7 +725,8 @@ d - Create a detached signature
 ? - Show this help
 "))))
 	    (t
-	     (setq type 'normal))))))
+	     (setq type 'normal))))
+    type))
 
 ;;;###autoload
 (defun epa-sign-file (file signers mode)
@@ -829,7 +830,8 @@ For example:
       (setq plain (epa--decode-coding-string
 		   plain
 		   (or coding-system-for-read
-		       (get-text-property start 'epa-coding-system-used))))
+		       (get-text-property start 'epa-coding-system-used)
+		       'undecided)))
       (if (y-or-n-p "Replace the original text? ")
 	  (let ((inhibit-read-only t)
 		buffer-read-only)
@@ -918,7 +920,8 @@ For example:
     (setq plain (epa--decode-coding-string
 		 plain
 		 (or coding-system-for-read
-		     (get-text-property start 'epa-coding-system-used))))
+		     (get-text-property start 'epa-coding-system-used)
+		     'undecided)))
     (if (y-or-n-p "Replace the original text? ")
 	(let ((inhibit-read-only t)
 	      buffer-read-only)

@@ -258,7 +258,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
     || defined __alpha__ || defined __mips__ || defined __s390__ \
     || defined __arm__ || defined __powerpc__ || defined __amd64__ \
-    || defined __ia64__
+    || defined __ia64__ || defined __sh__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #ifdef __mc68000__

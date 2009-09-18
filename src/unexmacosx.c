@@ -582,6 +582,14 @@ print_load_command_name (int lc)
       printf ("LC_UUID          ");
       break;
 #endif
+#ifdef LC_DYLD_INFO
+    case LC_DYLD_INFO:
+      printf ("LC_DYLD_INFO     ");
+      break;
+    case LC_DYLD_INFO_ONLY:
+      printf ("LC_DYLD_INFO_ONLY");
+      break;
+#endif
     default:
       printf ("unknown          ");
     }
@@ -819,6 +827,7 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__const", 16) == 0
 	       || strncmp (sectp->sectname, "__cfstring", 16) == 0
 	       || strncmp (sectp->sectname, "__gcc_except_tab", 16) == 0
+	       || strncmp (sectp->sectname, "__program_vars", 16) == 0
 	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
@@ -1086,6 +1095,36 @@ copy_twolevelhints (struct load_command *lc, long delta)
   curr_header_offset += lc->cmdsize;
 }
 
+#ifdef LC_DYLD_INFO
+/* Copy a LC_DYLD_INFO(_ONLY) load command from the input file to the output
+   file, adjusting the file offset fields.  */
+static void
+copy_dyld_info (struct load_command *lc, long delta)
+{
+  struct dyld_info_command *dip = (struct dyld_info_command *) lc;
+
+  if (dip->rebase_off > 0)
+    dip->rebase_off += delta;
+  if (dip->bind_off > 0)
+    dip->bind_off += delta;
+  if (dip->weak_bind_off > 0)
+    dip->weak_bind_off += delta;
+  if (dip->lazy_bind_off > 0)
+    dip->lazy_bind_off += delta;
+  if (dip->export_off > 0)
+    dip->export_off += delta;
+
+  printf ("Writing ");
+  print_load_command_name (lc->cmd);
+  printf (" command\n");
+
+  if (!unexec_write (curr_header_offset, lc, lc->cmdsize))
+    unexec_error ("cannot write dyld info command to header");
+
+  curr_header_offset += lc->cmdsize;
+}
+#endif
+
 /* Copy other kinds of load commands from the input file to the output
    file, ones that do not require adjustments of file offsets.  */
 static void
@@ -1152,6 +1191,12 @@ dump_it ()
       case LC_TWOLEVEL_HINTS:
 	copy_twolevelhints (lca[i], linkedit_delta);
 	break;
+#ifdef LC_DYLD_INFO
+      case LC_DYLD_INFO:
+      case LC_DYLD_INFO_ONLY:
+	copy_dyld_info (lca[i], linkedit_delta);
+	break;
+#endif
       default:
 	copy_other (lca[i]);
 	break;

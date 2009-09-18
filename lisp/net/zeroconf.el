@@ -482,7 +482,7 @@ DOMAIN is nil, the local domain is used."
 	     (dbus-ping :system zeroconf-service-avahi)
 	     (dbus-call-method
 	      :system zeroconf-service-avahi zeroconf-path-avahi
-	      zeroconf-interface-avahi-server "IsNSSSupportAvailable"))
+	      zeroconf-interface-avahi-server "GetVersionString"))
 
     ;; Reset all stored values.
     (setq zeroconf-path-avahi-service-type-browser nil

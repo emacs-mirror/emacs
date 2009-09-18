@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stddef.h> /* for offsetof */
 #include <stdlib.h>
 #include <stdio.h>
+#include <float.h>	/* for DBL_EPSILON */
 #include <io.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -191,6 +192,8 @@ static BOOL g_b_init_global_memory_status_ex;
 static BOOL g_b_init_get_length_sid;
 static BOOL g_b_init_equal_sid;
 static BOOL g_b_init_copy_sid;
+static BOOL g_b_init_get_native_system_info;
+static BOOL g_b_init_get_system_times;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -293,6 +296,12 @@ typedef BOOL (WINAPI * EqualSid_Proc) (
     PSID pSid2);
 typedef DWORD (WINAPI * GetLengthSid_Proc) (
     PSID pSid);
+typedef void (WINAPI * GetNativeSystemInfo_Proc) (
+    LPSYSTEM_INFO lpSystemInfo);
+typedef BOOL (WINAPI * GetSystemTimes_Proc) (
+    LPFILETIME lpIdleTime,
+    LPFILETIME lpKernelTime,
+    LPFILETIME lpUserTime);
 
 
 
@@ -723,6 +732,47 @@ BOOL WINAPI copy_sid (
   supported in Windows NT / 2k / XP
 */
 
+void WINAPI get_native_system_info (
+    LPSYSTEM_INFO lpSystemInfo)
+{
+  static GetNativeSystemInfo_Proc s_pfn_Get_Native_System_Info = NULL;
+  if (is_windows_9x () != TRUE)
+    {
+      if (g_b_init_get_native_system_info == 0)
+	{
+	  g_b_init_get_native_system_info = 1;
+	  s_pfn_Get_Native_System_Info =
+	    (GetNativeSystemInfo_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+						      "GetNativeSystemInfo");
+	}
+      if (s_pfn_Get_Native_System_Info != NULL)
+	s_pfn_Get_Native_System_Info (lpSystemInfo);
+    }
+  else
+    lpSystemInfo->dwNumberOfProcessors = -1;
+}
+
+BOOL WINAPI get_system_times(
+    LPFILETIME lpIdleTime,
+    LPFILETIME lpKernelTime,
+    LPFILETIME lpUserTime)
+{
+  static GetSystemTimes_Proc s_pfn_Get_System_times = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_system_times == 0)
+    {
+      g_b_init_get_system_times = 1;
+      s_pfn_Get_System_times =
+	(GetSystemTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
+					     "GetSystemTimes");
+    }
+  if (s_pfn_Get_System_times == NULL)
+    return FALSE;
+  return (s_pfn_Get_System_times (lpIdleTime, lpKernelTime, lpUserTime));
+}
 
 /* Equivalent of strerror for W32 error codes.  */
 char *
@@ -795,17 +845,160 @@ gethostname (char *buffer, int size)
 #endif /* HAVE_SOCKETS */
 
 /* Emulate getloadavg.  */
+
+struct load_sample {
+  time_t sample_time;
+  ULONGLONG idle;
+  ULONGLONG kernel;
+  ULONGLONG user;
+};
+
+/* Number of processors on this machine.  */
+static unsigned num_of_processors;
+
+/* We maintain 1-sec samples for the last 16 minutes in a circular buffer.  */
+static struct load_sample samples[16*60];
+static int first_idx = -1, last_idx = -1;
+static int max_idx = sizeof (samples) / sizeof (samples[0]);
+
+static int
+buf_next (int from)
+{
+  int next_idx = from + 1;
+
+  if (next_idx >= max_idx)
+    next_idx = 0;
+
+  return next_idx;
+}
+
+static int
+buf_prev (int from)
+{
+  int prev_idx = from - 1;
+
+  if (prev_idx < 0)
+    prev_idx = max_idx - 1;
+
+  return prev_idx;
+}
+
+static void
+sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
+{
+  SYSTEM_INFO sysinfo;
+  FILETIME ft_idle, ft_user, ft_kernel;
+
+  /* Initialize the number of processors on this machine.  */
+  if (num_of_processors <= 0)
+    {
+      get_native_system_info (&sysinfo);
+      num_of_processors = sysinfo.dwNumberOfProcessors;
+      if (num_of_processors <= 0)
+	{
+	  GetSystemInfo (&sysinfo);
+	  num_of_processors = sysinfo.dwNumberOfProcessors;
+	}
+      if (num_of_processors <= 0)
+	num_of_processors = 1;
+    }
+
+  /* TODO: Take into account threads that are ready to run, by
+     sampling the "\System\Processor Queue Length" performance
+     counter.  The code below accounts only for threads that are
+     actually running.  */
+
+  if (get_system_times (&ft_idle, &ft_kernel, &ft_user))
+    {
+      ULARGE_INTEGER uidle, ukernel, uuser;
+
+      memcpy (&uidle, &ft_idle, sizeof (ft_idle));
+      memcpy (&ukernel, &ft_kernel, sizeof (ft_kernel));
+      memcpy (&uuser, &ft_user, sizeof (ft_user));
+      *idle = uidle.QuadPart;
+      *kernel = ukernel.QuadPart;
+      *user = uuser.QuadPart;
+    }
+  else
+    {
+      *idle = 0;
+      *kernel = 0;
+      *user = 0;
+    }
+}
+
+/* Produce the load average for a given time interval, using the
+   samples in the samples[] array.  WHICH can be 0, 1, or 2, meaning
+   1-minute, 5-minute, or 15-minute average, respectively. */
+static double
+getavg (int which)
+{
+  double retval = -1.0;
+  double tdiff;
+  int idx;
+  double span = (which == 0 ? 1.0 : (which == 1 ? 5.0 : 15.0)) * 60;
+  time_t now = samples[last_idx].sample_time;
+
+  if (first_idx != last_idx)
+    {
+      for (idx = buf_prev (last_idx); ; idx = buf_prev (idx))
+	{
+	  tdiff = difftime (now, samples[idx].sample_time);
+	  if (tdiff >= span - 2*DBL_EPSILON*now)
+	    {
+	      long double sys =
+		samples[last_idx].kernel + samples[last_idx].user
+		- (samples[idx].kernel + samples[idx].user);
+	      long double idl = samples[last_idx].idle - samples[idx].idle;
+
+	      retval = (1.0 - idl / sys) * num_of_processors;
+	      break;
+	    }
+	  if (idx == first_idx)
+	    break;
+	}
+    }
+
+  return retval;
+}
+
 int
 getloadavg (double loadavg[], int nelem)
 {
-  int i;
+  int elem;
+  ULONGLONG idle, kernel, user;
+  time_t now = time (NULL);
 
-  /* A faithful emulation is going to have to be saved for a rainy day.  */
-  for (i = 0; i < nelem; i++)
+  /* Store another sample.  We ignore samples that are less than 1 sec
+     apart.  */
+  if (difftime (now, samples[last_idx].sample_time) >= 1.0 - 2*DBL_EPSILON*now)
     {
-      loadavg[i] = 0.0;
+      sample_system_load (&idle, &kernel, &user);
+      last_idx = buf_next (last_idx);
+      samples[last_idx].sample_time = now;
+      samples[last_idx].idle = idle;
+      samples[last_idx].kernel = kernel;
+      samples[last_idx].user = user;
+      /* If the buffer has more that 15 min worth of samples, discard
+	 the old ones.  */
+      if (first_idx == -1)
+	first_idx = last_idx;
+      while (first_idx != last_idx
+	     && (difftime (now, samples[first_idx].sample_time)
+	         >= 15.0*60 + 2*DBL_EPSILON*now))
+	first_idx = buf_next (first_idx);
     }
-  return i;
+
+  for (elem = 0; elem < nelem; elem++)
+    {
+      double avg = getavg (elem);
+
+      if (avg < 0)
+	break;
+      loadavg[elem] = avg;
+    }
+
+  return elem;
 }
 
 /* Emulate getpwuid, getpwnam and others.  */
@@ -2362,12 +2555,23 @@ logon_network_drive (const char *path)
   char share[MAX_PATH];
   int i, n_slashes;
   char drive[4];
+  UINT drvtype;
 
-  sprintf (drive, "%c:\\", path[0]);
+  if (IS_DIRECTORY_SEP (path[0]) && IS_DIRECTORY_SEP (path[1]))
+    drvtype = DRIVE_REMOTE;
+  else if (path[0] == '\0' || path[1] != ':')
+    drvtype = GetDriveType (NULL);
+  else
+    {
+      drive[0] = path[0];
+      drive[1] = ':';
+      drive[2] = '\\';
+      drive[3] = '\0';
+      drvtype = GetDriveType (drive);
+    }
 
   /* Only logon to networked drives.  */
-  if ((!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
-      && GetDriveType (drive) != DRIVE_REMOTE)
+  if (drvtype != DRIVE_REMOTE)
     return;
 
   n_slashes = 2;
@@ -3041,6 +3245,28 @@ get_file_owner_and_group (
     }
 }
 
+/* Return non-zero if NAME is a potentially slow filesystem.  */
+int
+is_slow_fs (const char *name)
+{
+  char drive_root[4];
+  UINT devtype;
+
+  if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
+    devtype = DRIVE_REMOTE;	   /* assume UNC name is remote */
+  else if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
+    devtype = GetDriveType (NULL); /* use root of current drive */
+  else
+    {
+      /* GetDriveType needs the root directory of the drive.  */
+      strncpy (drive_root, name, 2);
+      drive_root[2] = '\\';
+      drive_root[3] = '\0';
+      devtype = GetDriveType (drive_root);
+    }
+  return !(devtype == DRIVE_FIXED || devtype == DRIVE_RAMDISK);
+}
+
 /* MSVC stat function can't cope with UNC names and has other bugs, so
    replace it with our own.  This also allows us to calculate consistent
    inode values without hacks in the main Emacs code. */
@@ -3154,19 +3380,8 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
-  /* GetDriveType needs the root directory of NAME's drive.  */
-  if (!(strlen (name) >= 2 && IS_DEVICE_SEP (name[1])))
-    devtype = GetDriveType (NULL); /* use root of current diectory */
-  else
-    {
-      strncpy (drive_root, name, 3);
-      drive_root[3] = '\0';
-      devtype = GetDriveType (drive_root);
-    }
-
   if (!(NILP (Vw32_get_true_file_attributes)
-	|| (EQ (Vw32_get_true_file_attributes, Qlocal)
-	    && devtype != DRIVE_FIXED && devtype != DRIVE_RAMDISK))
+	|| (EQ (Vw32_get_true_file_attributes, Qlocal) && is_slow_fs (name)))
       /* No access rights required to get info.  */
       && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
@@ -3995,8 +4210,7 @@ system_process_attributes (pid)
 		}
 	    }
 	}
-      if (buf)
-	xfree (buf);
+      xfree (buf);
     }
   if (!result)
     {
@@ -5694,6 +5908,9 @@ globals_of_w32 ()
   g_b_init_equal_sid = 0;
   g_b_init_copy_sid = 0;
   g_b_init_get_length_sid = 0;
+  g_b_init_get_native_system_info = 0;
+  g_b_init_get_system_times = 0;
+  num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a

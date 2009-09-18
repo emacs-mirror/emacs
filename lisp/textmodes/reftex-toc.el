@@ -1,6 +1,7 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
-;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -149,7 +150,7 @@ When called with a raw C-u prefix, rescan the document first."
                          (frame-parameter (selected-frame) 'unsplittable)))
          offset toc-window)
 
-    (if (setq toc-window (get-buffer-window 
+    (if (setq toc-window (get-buffer-window
                           "*toc*"
                           (if reuse 'visible)))
         (select-window toc-window)
@@ -165,12 +166,11 @@ When called with a raw C-u prefix, rescan the document first."
             (split-window-horizontally
              (floor (* (window-width)
                        reftex-toc-split-windows-fraction)))
-          (split-window-vertically 
+          (split-window-vertically
            (floor (* (window-height)
                      reftex-toc-split-windows-fraction)))))
 
-      (let ((default-major-mode 'reftex-toc-mode))
-        (switch-to-buffer "*toc*")))
+      (switch-to-buffer "*toc*"))
 
     (or (eq major-mode 'reftex-toc-mode) (reftex-toc-mode))
     (set (make-local-variable 'reftex-docstruct-symbol) docstruct-symbol)
@@ -210,11 +210,11 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
              reftex-toc-include-context
              nil ; counter
              nil ; commented
-             here-I-am 
+             here-I-am
              ""     ; xr-prefix
              t      ; a toc buffer
              ))
-       
+
       (run-hooks 'reftex-display-copied-context-hook)
       (message "Building *toc* buffer...done.")
       (setq buffer-read-only t))
@@ -226,12 +226,12 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
                                    t
                                    reftex-toc-include-index-entries
                                    reftex-toc-include-file-boundaries)
-                (reftex-last-assoc-before-elt 
+                (reftex-last-assoc-before-elt
                  'toc here-I-am
                  (symbol-value reftex-docstruct-symbol))))
       (put 'reftex-toc :reftex-line 3)
-      (goto-line 3)
-      (beginning-of-line)))
+      (goto-char (point-min))
+      (forward-line 2)))
 
     ;; Find the correct starting point
     (reftex-find-start-point (point) offset (get 'reftex-toc :reftex-line))
@@ -251,7 +251,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
          (not (get-text-property (point) 'intangible))
          (memq reftex-highlight-selection '(cursor both))
          (reftex-highlight 2
-                           (or (previous-single-property-change 
+                           (or (previous-single-property-change
                                 (min (point-max) (1+ (point))) :data)
                                (point-min))
                            (or (next-single-property-change (point) :data)
@@ -298,10 +298,10 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
                (window-height))))))
 
 (defun reftex-toc-dframe-p (&optional frame error)
-  ;; Check if FRAME is the dedicated TOC frame.  
+  ;; Check if FRAME is the dedicated TOC frame.
   ;; If yes, and ERROR is non-nil, throw an error.
   (setq frame (or frame (selected-frame)))
-  (let ((res (equal 
+  (let ((res (equal
               (if (fboundp 'frame-property)
                   (frame-property frame 'name)
                 (frame-parameter  frame 'name))
@@ -327,7 +327,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (setq reftex-callback-fwd t)
   (or (eobp) (forward-char 1))
-  (goto-char (or (next-single-property-change (point) :data) 
+  (goto-char (or (next-single-property-change (point) :data)
                  (point))))
 (defun reftex-toc-previous (&optional arg)
   "Move to previous selectable item."
@@ -364,7 +364,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 With prefix ARG, prompt for a label type and include only labels of
 that specific type."
   (interactive "P")
-  (setq reftex-toc-include-labels 
+  (setq reftex-toc-include-labels
         (if arg (reftex-query-label-type)
           (not reftex-toc-include-labels)))
   (reftex-toc-revert))
@@ -468,7 +468,7 @@ With prefix arg 1, restrict index to the section at point."
 (defun reftex-toc-rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing file of section at point."
   (interactive)
-  (if (and reftex-enable-partial-scans 
+  (if (and reftex-enable-partial-scans
            (null current-prefix-arg))
       (let* ((data (get-text-property (point) :data))
              (what (car data))
@@ -502,7 +502,7 @@ With prefix arg 1, restrict index to the section at point."
 (defun reftex-toc-revert (&rest ignore)
   "Regenerate the *toc* from the internal lists."
   (interactive)
-  (let ((unsplittable 
+  (let ((unsplittable
          (if (fboundp 'frame-property)
              (frame-property (selected-frame) 'unsplittable)
            (frame-parameter (selected-frame) 'unsplittable)))
@@ -596,7 +596,7 @@ point."
             (goto-char start-pos)
             (setq sections (reftex-toc-extract-section-number (car entries)))
             (if (> (setq nsec (length entries)) 1)
-                (setq sections 
+                (setq sections
                       (concat sections "-"
                               (reftex-toc-extract-section-number
                                (nth (1- nsec) entries)))))
@@ -621,17 +621,20 @@ point."
             (save-window-excursion
               (reftex-toc-Rescan))
             (reftex-toc-restore-region start-line mark-line)
-            (message "%d section%s %smoted" 
+            (message "%d section%s %smoted"
                      nsec (if (= 1 nsec) "" "s") pro-or-de)
             nil))
     (if msg (progn (ding) (message "%s" msg)))))
 
 
 (defun reftex-toc-restore-region (point-line &optional mark-line)
-  (if mark-line
-      (progn (goto-line mark-line)
-             (setq mpos (point))))
-  (if point-line (goto-line point-line))
+  (when mark-line
+    (goto-char (point-min))
+    (forward-line (1- mark-line))
+    (setq mpos (point)))
+  (when point-line
+    (goto-char (point-min))
+    (forward-line (1- point-line)))
   (if mark-line
       (progn
         (set-mark mpos)
@@ -781,7 +784,7 @@ label prefix determines the wording of a reference."
         (error "This is not a label entry."))
     (setq newlabel (read-string (format "Rename label \"%s\" to:" label)))
     (if (assoc newlabel (symbol-value reftex-docstruct-symbol))
-        (if (not (y-or-n-p 
+        (if (not (y-or-n-p
                   (format "Label '%s' exists. Use anyway? " label)))
             (error "Abort")))
     (save-excursion
@@ -791,7 +794,7 @@ label prefix determines the wording of a reference."
             (reftex-query-replace-document
              (concat "{" (regexp-quote label) "}")
              (format "{%s}" newlabel))
-          (error t))))        
+          (error t))))
     (reftex-toc-rescan)))
 
 
@@ -810,9 +813,9 @@ label prefix determines the wording of a reference."
          show-window show-buffer match)
 
     (unless toc (error "Don't know which toc line to visit"))
-    
+
     (cond
-  
+
      ((eq (car toc) 'toc)
       ;; a toc entry
       (setq match (reftex-toc-find-section toc no-revisit)))
@@ -828,7 +831,7 @@ label prefix determines the wording of a reference."
                   (file (nth 1 toc)))
               (if (or (not no-revisit) (reftex-get-buffer-visiting file))
                   (progn
-                    (switch-to-buffer-other-window 
+                    (switch-to-buffer-other-window
                      (reftex-get-file-buffer-force file nil))
                     (goto-char (if (eq where 'bof) (point-min) (point-max))))
                 (message "%s" reftex-no-follow-message) nil))))
@@ -881,8 +884,8 @@ label prefix determines the wording of a reference."
                 (looking-at (reftex-make-desperate-section-regexp literal))
                 (looking-at (concat "\\\\"
                                     (regexp-quote
-                                     (car 
-                                      (rassq level 
+                                     (car
+                                      (rassq level
                                              reftex-section-levels-all)))
                                     "[[{]?"))))
            ((or (not no-revisit)
@@ -1056,7 +1059,7 @@ always show the current section in connection with the option
       (define-key reftex-toc-map (vector (list key)) 'digit-argument))
 (define-key reftex-toc-map "-" 'negative-argument)
 
-(easy-menu-define 
+(easy-menu-define
  reftex-toc-menu reftex-toc-map
  "Menu for Table of Contents buffer"
  '("TOC"
@@ -1089,7 +1092,7 @@ always show the current section in connection with the option
     ["Context" reftex-toc-toggle-context :style toggle
      :selected reftex-toc-include-context]
     "--"
-    ["Follow Mode" reftex-toc-toggle-follow :style toggle 
+    ["Follow Mode" reftex-toc-toggle-follow :style toggle
      :selected reftex-toc-follow-mode]
     ["Auto Recenter" reftex-toggle-auto-toc-recenter :style toggle
      :selected reftex-toc-auto-recenter-timer]

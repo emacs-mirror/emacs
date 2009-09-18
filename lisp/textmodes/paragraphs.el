@@ -141,7 +141,7 @@ regexp describing the end of a sentence, when the value of the variable
 (put 'sentence-end-without-period 'safe-local-variable 'booleanp)
 
 (defcustom sentence-end-without-space
-  "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
+  "。．？！"
   "String of characters that end sentence without following spaces.
 
 This value is used by the function `sentence-end' to construct the
@@ -163,7 +163,7 @@ to obtain the value of this variable."
   :type '(choice regexp (const :tag "Use default value" nil)))
 (put 'sentence-end 'safe-local-variable 'string-or-null-p)
 
-(defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
+(defcustom sentence-end-base "[.?!][]\"'”)}]*"
   "Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
   :type 'string
@@ -514,7 +514,7 @@ ones already marked."
   (transpose-subr 'forward-sentence arg))
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; End:
 
 ;; arch-tag: e727eb1a-527a-4464-b9d7-9d3ec0d1a575

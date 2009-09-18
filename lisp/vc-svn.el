@@ -126,7 +126,8 @@ want to force an empty list of arguments, use t."
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
-      (let ((status
+      (let* (process-file-side-effects
+	     (status
              (condition-case nil
                  ;; Ignore all errors.
                  (vc-svn-command t t file "status" "-v")
@@ -142,11 +143,12 @@ want to force an empty list of arguments, use t."
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
-  (setq localp (or localp (vc-stay-local-p file)))
-  (with-temp-buffer
-    (cd (file-name-directory file))
-    (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
-    (vc-svn-parse-status file)))
+  (let (process-file-side-effects)
+    (setq localp (or localp (vc-stay-local-p file 'SVN)))
+    (with-temp-buffer
+      (cd (file-name-directory file))
+      (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
+      (vc-svn-parse-status file))))
 
 (defun vc-svn-state-heuristic (file)
   "SVN-specific state heuristic."
@@ -157,14 +159,14 @@ want to force an empty list of arguments, use t."
 (defun vc-svn-after-dir-status (callback &optional remote)
   (let ((state-map '((?A . added)
                      (?C . conflict)
-                     (?D . removed)
                      (?I . ignored)
                      (?M . edited)
+                     (?D . removed)
                      (?R . removed)
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
-	(re (if remote "^\\(.\\)..... \\([ *]\\) +\\(?:[-0-9]+\\)? +\\(.*\\)$"
+	(re (if remote "^\\(.\\)..... \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
 	      ;; Subexp 2 is a dummy in this case, so the numbers match.
 	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
        result)
@@ -176,7 +178,7 @@ want to force an empty list of arguments, use t."
 	     ;; FIXME are there other possible combinations?
 	     (cond ((eq state 'edited) (setq state 'needs-merge))
 		   ((not state) (setq state 'needs-update))))
-       (when state
+	(when (and state (not (string= "." filename)))
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
@@ -189,7 +191,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; calling synchronously (vc-svn-registered DIR) => calling svn status -v DIR
   ;; which is VERY SLOW for big trees and it makes emacs
   ;; completely unresponsive during that time.
-  (let* ((local (and nil (vc-stay-local-p dir)))
+  (let* ((local (and nil (vc-stay-local-p dir 'SVN)))
 	 (remote (or t (not local) (eq local 'only-file))))
     (vc-svn-command (current-buffer) 'async nil "status"
 		    (if remote "-u"))
@@ -203,7 +205,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 
 (defun vc-svn-dir-extra-headers (dir)
   "Generate extra status headers for a Subversion working copy."
-  (vc-svn-command "*vc*" 0 nil "info")
+  (let (process-file-side-effects)
+    (vc-svn-command "*vc*" 0 nil "info"))
   (let ((repo
 	 (save-excursion
 	   (and (progn
@@ -305,18 +308,19 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-find-revision (file rev buffer)
   "SVN-specific retrieval of a specified version into a buffer."
-  (apply 'vc-svn-command
-	 buffer 0 file
-	 "cat"
-	 (and rev (not (string= rev ""))
-	      (concat "-r" rev))
-	 (vc-switches 'SVN 'checkout)))
+  (let (process-file-side-effects)
+    (apply 'vc-svn-command
+	   buffer 0 file
+	   "cat"
+	   (and rev (not (string= rev ""))
+		(concat "-r" rev))
+	   (vc-switches 'SVN 'checkout))))
 
 (defun vc-svn-checkout (file &optional editable rev)
   (message "Checking out %s..." file)
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
     (vc-svn-update file editable rev (vc-switches 'SVN 'checkout)))
-  (vc-mode-line file)
+  (vc-mode-line file 'SVN)
   (message "Checking out %s...done" file))
 
 (defun vc-svn-update (file editable rev switches)
@@ -458,7 +462,7 @@ or svn+ssh://."
   (require 'add-log)
   (set (make-local-variable 'log-view-per-file-logs) nil))
 
-(defun vc-svn-print-log (files &optional buffer)
+(defun vc-svn-print-log (files &optional buffer shortlog)
   "Get change log(s) associated with FILES."
   (save-current-buffer
     (vc-setup-buffer buffer)
@@ -470,7 +474,7 @@ or svn+ssh://."
 		  (vc-svn-command
 		   buffer
 		   'async
-		   ;; (if (and (= (length files) 1) (vc-stay-local-p file)) 'async 0)
+		   ;; (if (and (= (length files) 1) (vc-stay-local-p file 'SVN)) 'async 0)
 		   (list file)
 		   "log"
 		   ;; By default Subversion only shows the log up to the
@@ -502,7 +506,7 @@ or svn+ssh://."
 	      (list "--diff-cmd=diff" "-x"
 		    (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p files)
+                       (vc-stay-local-p files 'SVN)
 		       (or oldvers newvers)))) ; Svn diffs those locally.
       (apply 'vc-svn-command buffer
 	     (if async 'async 0)
@@ -543,8 +547,9 @@ NAME is assumed to be a URL."
 ;;;
 
 ;; Subversion makes backups for us, so don't bother.
-;; (defalias 'vc-svn-make-version-backups-p 'vc-stay-local-p
-;;   "Return non-nil if version backups should be made for FILE.")
+;; (defun vc-svn-make-version-backups-p (file)
+;;   "Return non-nil if version backups should be made for FILE."
+;;  (vc-stay-local-p file 'SVN))
 
 (defun vc-svn-check-headers ()
   "Check if the current file has any headers in it."
@@ -662,7 +667,7 @@ information about FILENAME and return its status."
 	     'edited))
 	  ((eq status ?I)
 	   (vc-file-setprop file 'vc-state 'ignored))
-	  ((eq status ?R)
+	  ((memq status '(?D ?R))
 	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
     (when filename (vc-file-getprop filename 'vc-state))))
@@ -683,7 +688,7 @@ information about FILENAME and return its status."
 ;; Support for `svn annotate'
 
 (defun vc-svn-annotate-command (file buf &optional rev)
-  (vc-svn-command buf 0 file "annotate" (if rev (concat "-r" rev))))
+  (vc-svn-command buf 'async file "annotate" (if rev (concat "-r" rev))))
 
 (defun vc-svn-annotate-time-of-rev (rev)
   ;; Arbitrarily assume 10 commmits per day.

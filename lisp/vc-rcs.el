@@ -220,7 +220,7 @@ When VERSION is given, perform check for that version."
   (unless version (setq version (vc-working-revision file)))
   (with-temp-buffer
     (string= version
-	     (if (vc-trunk-p version)
+	     (if (vc-rcs-trunk-p version)
 		 (progn
 		   ;; Compare VERSION to the head version number.
 		   (vc-insert-file (vc-name file) "^[0-9]")
@@ -247,14 +247,6 @@ When VERSION is given, perform check for that version."
     ;; The workfile is unchanged if rcsdiff found no differences.
     (zerop status)))
 
-(defun vc-rcs-find-file-not-found-hook ()
-  (if (yes-or-no-p
-       (format "File %s was lost; check out from version control? "
-	       (file-name-nondirectory buffer-file-name)))
-      (save-excursion
-	(require 'vc)
-	(let ((default-directory (file-name-directory buffer-file-name)))
-          (not (vc-error-occurred (vc-checkout buffer-file-name)))))))
 
 ;;;
 ;;; State-changing functions
@@ -386,7 +378,7 @@ whether to remove it."
 	       (not (string= (vc-branch-part old-version)
 			     (vc-branch-part new-version))))
 	  (vc-rcs-set-default-branch file
-				     (if (vc-trunk-p new-version) nil
+				     (if (vc-rcs-trunk-p new-version) nil
 				       (vc-branch-part new-version)))
 	  ;; If this is an old RCS release, we might have
 	  ;; to remove a remaining lock.
@@ -446,7 +438,7 @@ attempt the checkout for all registered files beneath it."
 					 ;; use current workfile version
 					 workrev
 				       ;; REV is t ...
-				       (if (not (vc-trunk-p workrev))
+				       (if (not (vc-rcs-trunk-p workrev))
 					   ;; ... go to head of current branch
 					   (vc-branch-part workrev)
 					 ;; ... go to head of trunk
@@ -464,7 +456,7 @@ attempt the checkout for all registered files beneath it."
 		 (vc-rcs-set-default-branch
 		  file
 		  (if (vc-rcs-latest-on-branch-p file new-version)
-		      (if (vc-trunk-p new-version) nil
+		      (if (vc-rcs-trunk-p new-version) nil
 			(vc-branch-part new-version))
 		    new-version)))))
 	(message "Checking out %s...done" file))))))
@@ -476,7 +468,7 @@ expanded to all registered subfiles in them."
       (error "RCS backend doesn't support directory-level rollback."))
   (dolist (file (vc-expand-dirs files))
 	  (let* ((discard (vc-working-revision file))
-		 (previous (if (vc-trunk-p discard) "" (vc-branch-part discard)))
+		 (previous (if (vc-rcs-trunk-p discard) "" (vc-branch-part discard)))
 		 (config (current-window-configuration))
 		 (done nil))
 	    (if (null (yes-or-no-p (format "Remove version %s from %s history? "
@@ -546,10 +538,23 @@ directory the operation is applied to all registered files beneath it."
 ;;; History functions
 ;;;
 
-(defun vc-rcs-print-log (files &optional buffer)
+(defun vc-rcs-print-log-cleanup ()
+  (let ((inhibit-read-only t))
+    (goto-char (point-max))
+    (forward-line -1)
+    (while (looking-at "=*\n")
+      (delete-char (- (match-end 0) (match-beginning 0)))
+      (forward-line -1))
+    (goto-char (point-min))
+    (when (looking-at "[\b\t\n\v\f\r ]+")
+      (delete-char (- (match-end 0) (match-beginning 0))))))
+
+(defun vc-rcs-print-log (files &optional buffer shortlog)
   "Get change log associated with FILE.  If FILE is a
 directory the operation is applied to all registered files beneath it."
-  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files))))
+  (vc-do-command (or buffer "*vc*") 0 "rlog" (mapcar 'vc-name (vc-expand-dirs files)))
+  (with-current-buffer (or buffer "*vc*")
+    (vc-rcs-print-log-cleanup)))
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
@@ -681,7 +686,8 @@ Optional arg REVISION is a revision to annotate from."
         ;; property of this approach is ability to push instructions
         ;; onto `path' directly, w/o need to maintain rev boundaries.
         (dolist (insn (cdr (assq :insn meta)))
-          (goto-line (pop insn))
+          (goto-char (point-min))
+          (forward-line (1- (pop insn)))
           (setq p (point))
           (case (pop insn)
             (k (setq s (buffer-substring-no-properties
@@ -713,7 +719,8 @@ Optional arg REVISION is a revision to annotate from."
                  (setq meta (cdr (assoc pre revisions))
                        prda nil)
                  (dolist (insn (cdr (assq :insn meta)))
-                   (goto-line (pop insn))
+                   (goto-char (point-min))
+                   (forward-line (1- (pop insn)))
                    (case (pop insn)
                      (k (delete-region
                          (point) (progn (forward-line (car insn))
@@ -807,6 +814,95 @@ systime, or nil if there is none.  Also, reposition point."
 ;;; Miscellaneous
 ;;;
 
+(defun vc-rcs-trunk-p (rev)
+  "Return t if REV is a revision on the trunk."
+  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
+
+(defun vc-rcs-minor-part (rev)
+  "Return the minor revision number of a revision number REV."
+  (string-match "[0-9]+\\'" rev)
+  (substring rev (match-beginning 0) (match-end 0)))
+
+(defun vc-rcs-previous-revision (file rev)
+  "Return the revision number immediately preceding REV for FILE,
+or nil if there is no previous revision.  This default
+implementation works for MAJOR.MINOR-style revision numbers as
+used by RCS and CVS."
+  (let ((branch (vc-branch-part rev))
+        (minor-num (string-to-number (vc-rcs-minor-part rev))))
+    (when branch
+      (if (> minor-num 1)
+          ;; revision does probably not start a branch or release
+          (concat branch "." (number-to-string (1- minor-num)))
+        (if (vc-rcs-trunk-p rev)
+            ;; we are at the beginning of the trunk --
+            ;; don't know anything to return here
+            nil
+          ;; we are at the beginning of a branch --
+          ;; return revision of starting point
+          (vc-branch-part branch))))))
+
+(defun vc-rcs-next-revision (file rev)
+  "Return the revision number immediately following REV for FILE,
+or nil if there is no next revision.  This default implementation
+works for MAJOR.MINOR-style revision numbers as used by RCS
+and CVS."
+  (when (not (string= rev (vc-working-revision file)))
+    (let ((branch (vc-branch-part rev))
+	  (minor-num (string-to-number (vc-rcs-minor-part rev))))
+      (concat branch "." (number-to-string (1+ minor-num))))))
+
+(defun vc-rcs-update-changelog (files)
+  "Default implementation of update-changelog.
+Uses `rcs2log' which only works for RCS and CVS."
+  ;; FIXME: We (c|sh)ould add support for cvs2cl
+  (let ((odefault default-directory)
+	(changelog (find-change-log))
+	;; Presumably not portable to non-Unixy systems, along with rcs2log:
+	(tempfile (make-temp-file
+		   (expand-file-name "vc"
+				     (or small-temporary-file-directory
+					 temporary-file-directory))))
+        (login-name (or user-login-name
+                        (format "uid%d" (number-to-string (user-uid)))))
+	(full-name (or add-log-full-name
+		       (user-full-name)
+		       (user-login-name)
+		       (format "uid%d" (number-to-string (user-uid)))))
+	(mailing-address (or add-log-mailing-address
+			     user-mail-address)))
+    (find-file-other-window changelog)
+    (barf-if-buffer-read-only)
+    (vc-buffer-sync)
+    (undo-boundary)
+    (goto-char (point-min))
+    (push-mark)
+    (message "Computing change log entries...")
+    (message "Computing change log entries... %s"
+	     (unwind-protect
+		 (progn
+		   (setq default-directory odefault)
+		   (if (eq 0 (apply 'call-process
+                                    (expand-file-name "rcs2log"
+                                                      exec-directory)
+                                    nil (list t tempfile) nil
+                                    "-c" changelog
+                                    "-u" (concat login-name
+                                                 "\t" full-name
+                                                 "\t" mailing-address)
+                                    (mapcar
+                                     (lambda (f)
+                                       (file-relative-name
+					(expand-file-name f odefault)))
+                                     files)))
+                       "done"
+		     (pop-to-buffer (get-buffer-create "*vc*"))
+		     (erase-buffer)
+		     (insert-file-contents tempfile)
+		     "failed"))
+	       (setq default-directory (file-name-directory changelog))
+	       (delete-file tempfile)))))
+
 (defun vc-rcs-check-headers ()
   "Check if the current file has any headers in it."
   (save-excursion
@@ -827,6 +923,13 @@ systime, or nil if there is none.  Also, reposition point."
 (defun vc-rcs-rename-file (old new)
   ;; Just move the master file (using vc-rcs-master-templates).
   (vc-rename-master (vc-name old) new vc-rcs-master-templates))
+
+(defun vc-rcs-find-file-hook ()
+  ;; If the file is locked by some other user, make
+  ;; the buffer read-only.  Like this, even root
+  ;; cannot modify a file that someone else has locked.
+  (and (stringp (vc-state buffer-file-name 'RCS))
+       (setq buffer-read-only t)))
 
 
 ;;;

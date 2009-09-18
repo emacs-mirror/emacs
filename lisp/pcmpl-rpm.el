@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; These functions provide completion rules for RedHat's `rpm' tool.
+;; These functions provide completion rules for the `rpm' command.
 
 ;;; Code:
 
@@ -53,11 +53,8 @@
 
 ;;;###autoload
 (defun pcomplete/rpm ()
-  "Completion for RedHat's `rpm' command.
-These rules were taken from the output of `rpm --help' on a RedHat 6.1
-system.  They follow my interpretation of what followed, but since I'm
-not a major rpm user/builder, please send me any corrections you find.
-You can use \\[report-emacs-bug] to do so."
+  "Completion for the `rpm' command."
+  ;; Originally taken from the output of `rpm --help' on a Red Hat 6.1 system.
   (let (mode)
     (while (<= pcomplete-index pcomplete-last)
       (unless mode
@@ -136,7 +133,7 @@ You can use \\[report-emacs-bug] to do so."
 	  (if (pcomplete-match "^-" 0)
 	      (pcomplete-opt "af.p(pcmpl-rpm-files)ilsdcvR")
 	    (if (pcomplete-test "-[^-]*p" 'first 1)
-		(pcomplete-here (pcmpl-rpm-files))	
+		(pcomplete-here (pcmpl-rpm-files))
 	      (pcomplete-here (pcmpl-rpm-packages))))))
        ((pcomplete-test "--pipe")
 	(pcomplete-here* (funcall pcomplete-command-completion-function)))

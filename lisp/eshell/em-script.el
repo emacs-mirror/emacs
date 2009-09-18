@@ -40,14 +40,14 @@ commands, as a script file."
   :type 'hook
   :group 'eshell-script)
 
-(defcustom eshell-login-script (concat eshell-directory-name "login")
+(defcustom eshell-login-script (expand-file-name "login" eshell-directory-name)
   "*If non-nil, a file to invoke when starting up Eshell interactively.
 This file should be a file containing Eshell commands, where comment
 lines begin with '#'."
   :type 'file
   :group 'eshell-script)
 
-(defcustom eshell-rc-script (concat eshell-directory-name "profile")
+(defcustom eshell-rc-script (expand-file-name "profile" eshell-directory-name)
   "*If non-nil, a file to invoke whenever Eshell is started.
 This includes when running `eshell-command'."
   :type 'file

@@ -102,7 +102,7 @@
 	     (input-method . "tibetan-wylie")
 	     (features tibet-util)
 	     (documentation . t)
-	     (sample-text "Tibetan ($(7"7"]"2!;"G#!"Q"2!;(B) $(7!4!5!5!>"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>"I"]"_!;"9"Q!;"/"S!;"5"Q"2#9"[!;"H"A"U"c!>(B")))
+	     (sample-text . "Tibetan ($(7"7"]"2!;"G#!"Q"2!;(B) $(7!4!5!5!>"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>"I"]"_!;"9"Q!;"/"S!;"5"Q"2#9"[!;"H"A"U"c!>(B")))
 
 ;; `$(7"A(B' is included in the pattern for subjoined consonants because we
 ;; treat it specially in tibetan-add-components.

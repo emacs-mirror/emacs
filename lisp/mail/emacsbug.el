@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -166,8 +166,8 @@ usually do not have translators to read other languages for them.\n\n")
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
-    (insert (format "  default-enable-multibyte-characters: %s\n"
-		    default-enable-multibyte-characters))
+    (insert (format "  default enable-multibyte-characters: %s\n"
+		    (default-value 'enable-multibyte-characters)))
     (insert "\n")
     (insert (format "Major mode: %s\n"
 		    (format-mode-line
@@ -206,6 +206,18 @@ usually do not have translators to read other languages for them.\n\n")
 	      (setq beg-pos (point)))
 	    (insert "\n\nRecent messages:\n")
 	    (insert-buffer-substring message-buf beg-pos end-pos))))
+    ;; After Recent messages, to avoid the messages produced by
+    ;; list-load-path-shadows.
+    (unless (looking-back "\n")
+      (insert "\n"))
+    (insert "\n")
+    (insert "Load-path shadows:\n")
+    (message "Checking for load-path shadows...")
+    (let ((shadows (list-load-path-shadows t)))
+      (message "Checking for load-path shadows...done")
+      (insert (if (zerop (length shadows))
+                  "None found.\n"
+                shadows)))
     ;; This is so the user has to type something
     ;; in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))

@@ -97,6 +97,7 @@ Lisp_Object Vemulation_mode_map_alists;
 Lisp_Object Vdefine_key_rebound_commands;
 
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
+Lisp_Object QCadvertised_binding;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
@@ -291,7 +292,7 @@ get_keymap (object, error, autoload)
 		  goto autoload_retry;
 		}
 	      else
-	      	return Qt;
+	      	return object;
 	    }
 	}
     }
@@ -2640,7 +2641,6 @@ preferred_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
-static Lisp_Object where_is_internal ();
 static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
 				     Lisp_Object args, void *data));
 
@@ -2672,23 +2672,49 @@ shadow_lookup (shadow, key, flag)
 static Lisp_Object Vmouse_events;
 
 struct where_is_internal_data {
-  Lisp_Object definition, noindirect, this, last;
-  int last_is_meta;
+  Lisp_Object definition, this, last;
+  int last_is_meta, noindirect;
   Lisp_Object sequences;
 };
 
-/* This function can GC if Flookup_key autoloads any keymaps.  */
+/* This function can't GC, AFAIK.  */
+/* Return the list of bindings found.  This list is ordered "longest
+   to shortest".  It may include bindings that are actually shadowed
+   by others, as well as duplicate bindings and remapping bindings.
+   The list returned is potentially shared with where_is_cache, so
+   be careful not to modify it via side-effects.  */
 
 static Lisp_Object
-where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
-     Lisp_Object definition, keymaps;
-     Lisp_Object firstonly, noindirect, no_remap;
+where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
+		   int noindirect, int nomenus)
 {
   Lisp_Object maps = Qnil;
-  Lisp_Object found, sequences;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-  /* 1 means ignore all menu bindings entirely.  */
-  int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
+  Lisp_Object found;
+  struct where_is_internal_data data;
+
+  /* Only important use of caching is for the menubar
+     (i.e. where-is-internal called with (def nil t nil nil)).  */
+  if (nomenus && !noindirect)
+    {
+      /* Check heuristic-consistency of the cache.  */
+      if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
+	where_is_cache = Qnil;
+
+      if (NILP (where_is_cache))
+	{
+	  /* We need to create the cache.  */
+	  Lisp_Object args[2];
+	  where_is_cache = Fmake_hash_table (0, args);
+	  where_is_cache_keymaps = Qt;
+	}
+      else
+	/* We can reuse the cache.  */
+	return Fgethash (definition, where_is_cache, Qnil);
+    }
+  else
+    /* Kill the cache so that where_is_internal_1 doesn't think
+       we're filling it up.  */
+    where_is_cache = Qnil;
 
   found = keymaps;
   while (CONSP (found))
@@ -2699,22 +2725,11 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       found = XCDR (found);
     }
 
-  GCPRO5 (definition, keymaps, maps, found, sequences);
-  found = Qnil;
-  sequences = Qnil;
-
-  /* If this command is remapped, then it has no key bindings
-     of its own.  */
-  if (NILP (no_remap)
-      && SYMBOLP (definition)
-      && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
-    RETURN_UNGCPRO (Qnil);
-
+  data.sequences = Qnil;
   for (; CONSP (maps); maps = XCDR (maps))
     {
       /* Key sequence to reach map, and the map that it reaches */
       register Lisp_Object this, map, tem;
-      struct where_is_internal_data data;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -2744,118 +2759,27 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       data.this = this;
       data.last = last;
       data.last_is_meta = last_is_meta;
-      data.sequences = Qnil;
 
       if (CONSP (map))
 	map_keymap (map, where_is_internal_1, Qnil, &data, 0);
-
-      sequences = data.sequences;
-
-      while (CONSP (sequences))
-	{
-	  Lisp_Object sequence, remapped, function;
-	  
-	  sequence = XCAR (sequences);
-	  sequences = XCDR (sequences);
-
-	  /* If the current sequence is a command remapping with
-	     format [remap COMMAND], find the key sequences
-	     which run COMMAND, and use those sequences instead.  */
-	  remapped = Qnil;
-	  if (NILP (no_remap)
-	      && VECTORP (sequence) && XVECTOR (sequence)->size == 2
-	      && EQ (AREF (sequence, 0), Qremap)
-	      && (function = AREF (sequence, 1), SYMBOLP (function)))
-	    {
-	      Lisp_Object remapped1;
-	      
-	      remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
-	      if (CONSP (remapped1))
-		{
-		  /* Verify that this key binding actually maps to the
-		     remapped command (see below).  */
-		  if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
-		    continue;
-		  sequence = XCAR (remapped1);
-		  remapped = XCDR (remapped1);
-		  goto record_sequence;
-		}
-	    }
-
-	  /* Verify that this key binding is not shadowed by another
-	     binding for the same key, before we say it exists.
-
-	     Mechanism: look for local definition of this key and if
-	     it is defined and does not match what we found then
-	     ignore this key.
-
-	     Either nil or number as value from Flookup_key
-	     means undefined.  */
-	  if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
-	    continue;
-
-	record_sequence:
-	  /* Don't annoy user with strings from a menu such as
-	     Select Paste.  Change them all to "(any string)",
-	     so that there seems to be only one menu item
-	     to report. */
-	  if (! NILP (sequence))
-	    {
-	      Lisp_Object tem;
-	      tem = Faref (sequence, make_number (XVECTOR (sequence)->size - 1));
-	      if (STRINGP (tem))
-		Faset (sequence, make_number (XVECTOR (sequence)->size - 1),
-		       build_string ("(any string)"));
-	    }
-
-	  /* It is a true unshadowed match.  Record it, unless it's already
-	     been seen (as could happen when inheriting keymaps).  */
-	  if (NILP (Fmember (sequence, found)))
-	    found = Fcons (sequence, found);
-
-	  /* If firstonly is Qnon_ascii, then we can return the first
-	     binding we find.  If firstonly is not Qnon_ascii but not
-	     nil, then we should return the first ascii-only binding
-	     we find.  */
-	  if (EQ (firstonly, Qnon_ascii))
-	    RETURN_UNGCPRO (sequence);
-	  else if (!NILP (firstonly) && 2 == preferred_sequence_p (sequence))
-	    RETURN_UNGCPRO (sequence);
-
-	  if (CONSP (remapped))
-	    {
-	      sequence = XCAR (remapped);
-	      remapped = XCDR (remapped);
-	      goto record_sequence;
-	    }
-	}
     }
 
-  UNGCPRO;
-
-  found = Fnreverse (found);
-
-  /* firstonly may have been t, but we may have gone all the way through
-     the keymaps without finding an all-ASCII key sequence.  So just
-     return the best we could find.  */
-  if (NILP (firstonly))
-    return found;
-  else if (where_is_preferred_modifier == 0)
-    return Fcar (found);
+  if (nomenus && !noindirect)
+    { /* Remember for which keymaps this cache was built.
+	 We do it here (late) because we want to keep where_is_cache_keymaps
+	 set to t while the cache isn't fully filled.  */
+      where_is_cache_keymaps = keymaps;
+      /* During cache-filling, data.sequences is not filled by
+	 where_is_internal_1.  */
+      return Fgethash (definition, where_is_cache, Qnil);
+    }
   else
-    { /* Maybe we did not find a preferred_modifier binding, but we did find
-	 some ASCII binding.  */
-      Lisp_Object bindings = found;
-      while (CONSP (bindings))
-	if (preferred_sequence_p (XCAR (bindings)))
-	  return XCAR (bindings);
-	else
-	  bindings = XCDR (bindings);
-      return Fcar (found);
-    }
+    return data.sequences;
 }
 
 static Lisp_Object Vwhere_is_preferred_modifier;
+
+/* This function can GC if Flookup_key autoloads any keymaps.  */
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
@@ -2882,10 +2806,24 @@ remapped command in the returned list.  */)
      Lisp_Object definition, keymap;
      Lisp_Object firstonly, noindirect, no_remap;
 {
-  Lisp_Object sequences, keymaps;
+  /* The keymaps in which to search.  */
+  Lisp_Object keymaps;
+  /* Potentially relevant bindings in "shortest to longest" order.  */
+  Lisp_Object sequences = Qnil;
+    /* Actually relevant bindings.  */
+  Lisp_Object found = Qnil;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
-  Lisp_Object result;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  /* List of sequences found via remapping.  Keep them in a separate
+     variable, so as to push them later, since we prefer
+     non-remapped binding.  */
+  Lisp_Object remapped_sequences = Qnil;
+  /* Whether or not we're handling remapped sequences.  This is needed
+     because remapping is not done recursively by Fcommand_remapping: you
+     can't remap and remapped command.  */
+  int remapped = 0;
+  Lisp_Object tem;
 
   /* Refresh the C version of the modifier preference.  */
   where_is_preferred_modifier
@@ -2899,74 +2837,125 @@ remapped command in the returned list.  */)
   else
     keymaps = Fcurrent_active_maps (Qnil, Qnil);
 
-  /* Only use caching for the menubar (i.e. called with (def nil t nil).
-     We don't really need to check `keymap'.  */
-  if (nomenus && NILP (noindirect) && NILP (keymap))
+  GCPRO5 (definition, keymaps, found, sequences, remapped_sequences);
+
+  /* If this command is remapped, then it has no key bindings of its own.
+     FIXME: Actually, this is not quite right: if A is remapped to
+     `definition', then bindings to A will actually bind the key to
+     `definition' despite the remapping from `definition' to something else.
+     Another corner case is if `definition' is remapped to itself.  */
+  if (NILP (no_remap)
+      && SYMBOLP (definition)
+      && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
+    RETURN_UNGCPRO (Qnil);
+
+  if (SYMBOLP (definition)
+      && !NILP (firstonly)
+      && !NILP (tem = Fget (definition, QCadvertised_binding)))
     {
-      Lisp_Object *defns;
-      int i, n;
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+      /* We have a list of advertized bindings.  */
+      while (CONSP (tem))
+	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil), definition))
+	  return XCAR (tem);
+	else
+	  tem = XCDR (tem);
+      if (EQ (shadow_lookup (keymaps, tem, Qnil), definition))
+	return tem;
+    }
 
-      /* Check heuristic-consistency of the cache.  */
-      if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
-	where_is_cache = Qnil;
+  sequences = Freverse (where_is_internal (definition, keymaps,
+					   !NILP (noindirect), nomenus));
 
-      if (NILP (where_is_cache))
+  while (CONSP (sequences))
+    {
+      Lisp_Object sequence, function;
+	  
+      sequence = XCAR (sequences);
+      sequences = XCDR (sequences);
+
+      if (NILP (sequences) && !remapped)
 	{
-	  /* We need to create the cache.  */
-	  Lisp_Object args[2];
-	  where_is_cache = Fmake_hash_table (0, args);
-	  where_is_cache_keymaps = Qt;
-
-	  /* Fill in the cache.  */
-	  GCPRO5 (definition, keymaps, firstonly, noindirect, no_remap);
-	  where_is_internal (definition, keymaps, firstonly, noindirect, no_remap);
-	  UNGCPRO;
-
-	  where_is_cache_keymaps = keymaps;
+	  sequences = remapped_sequences;
+	  remapped = 1;
 	}
 
-      /* We want to process definitions from the last to the first.
-	 Instead of consing, copy definitions to a vector and step
-	 over that vector.  */
-      sequences = Fgethash (definition, where_is_cache, Qnil);
-      n = XINT (Flength (sequences));
-      defns = (Lisp_Object *) alloca (n * sizeof *defns);
-      for (i = 0; CONSP (sequences); sequences = XCDR (sequences))
-	defns[i++] = XCAR (sequences);
+      /* Verify that this key binding is not shadowed by another
+	 binding for the same key, before we say it exists.
 
-      /* Verify that the key bindings are not shadowed.  Note that
-	 the following can GC.  */
-      GCPRO2 (definition, keymaps);
-      result = Qnil;
-      {
-	int best_pref = -1;
-	int j = -1;
-	for (i = n - 1; i >= 0; --i)
-	  {
-	    int pref = preferred_sequence_p (defns[i]);
-	    if (pref > best_pref
-		&& EQ (shadow_lookup (keymaps, defns[i], Qnil), definition))
-	      {
-		j = i;
-		best_pref = pref;
-		if (best_pref == 2)
-		  break;
-	      }
-	  }
-	result = j >= 0 ? defns[j] : Qnil;
-      }
-      UNGCPRO;
+	 Mechanism: look for local definition of this key and if
+	 it is defined and does not match what we found then
+	 ignore this key.
+
+	 Either nil or number as value from Flookup_key
+	 means undefined.  */
+      if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
+	continue;
+
+      /* If the current sequence is a command remapping with
+	 format [remap COMMAND], find the key sequences
+	 which run COMMAND, and use those sequences instead.  */
+      if (NILP (no_remap) && !remapped
+	  && VECTORP (sequence) && ASIZE (sequence) == 2
+	  && EQ (AREF (sequence, 0), Qremap)
+	  && (function = AREF (sequence, 1), SYMBOLP (function)))
+	{
+	  Lisp_Object seqs = where_is_internal (function, keymaps,
+						!NILP (noindirect), nomenus);
+	  remapped_sequences = nconc2 (Freverse (seqs), remapped_sequences);
+	  continue;
+	}
+
+      /* Don't annoy user with strings from a menu such as the
+	 entries from the "Edit => Paste from Kill Menu".
+	 Change them all to "(any string)", so that there
+	 seems to be only one menu item to report.  */
+      if (! NILP (sequence))
+	{
+	  Lisp_Object tem;
+	  tem = Faref (sequence, make_number (ASIZE (sequence) - 1));
+	  if (STRINGP (tem))
+	    Faset (sequence, make_number (ASIZE (sequence) - 1),
+		   build_string ("(any string)"));
+	}
+      
+      /* It is a true unshadowed match.  Record it, unless it's already
+	 been seen (as could happen when inheriting keymaps).  */
+      if (NILP (Fmember (sequence, found)))
+	found = Fcons (sequence, found);
+      
+      /* If firstonly is Qnon_ascii, then we can return the first
+	 binding we find.  If firstonly is not Qnon_ascii but not
+	 nil, then we should return the first ascii-only binding
+	 we find.  */
+      if (EQ (firstonly, Qnon_ascii))
+	RETURN_UNGCPRO (sequence);
+      else if (!NILP (firstonly)
+	       && 2 == preferred_sequence_p (sequence))
+	RETURN_UNGCPRO (sequence);
     }
+
+  UNGCPRO;
+
+  found = Fnreverse (found);
+
+  /* firstonly may have been t, but we may have gone all the way through
+     the keymaps without finding an all-ASCII key sequence.  So just
+     return the best we could find.  */
+  if (NILP (firstonly))
+    return found;
+  else if (where_is_preferred_modifier == 0)
+    return Fcar (found);
   else
-    {
-      /* Kill the cache so that where_is_internal_1 doesn't think
-	 we're filling it up.  */
-      where_is_cache = Qnil;
-      result = where_is_internal (definition, keymaps, firstonly, noindirect, no_remap);
+    { /* Maybe we did not find a preferred_modifier binding, but we did find
+	 some ASCII binding.  */
+      Lisp_Object bindings = found;
+      while (CONSP (bindings))
+	if (preferred_sequence_p (XCAR (bindings)))
+	  return XCAR (bindings);
+	else
+	  bindings = XCDR (bindings);
+      return Fcar (found);
     }
-
-  return result;
 }
 
 /* This function can GC because get_keyelt can.  */
@@ -2978,14 +2967,14 @@ where_is_internal_1 (key, binding, args, data)
 {
   struct where_is_internal_data *d = data; /* Cast! */
   Lisp_Object definition = d->definition;
-  Lisp_Object noindirect = d->noindirect;
+  int noindirect = d->noindirect;
   Lisp_Object this = d->this;
   Lisp_Object last = d->last;
   int last_is_meta = d->last_is_meta;
   Lisp_Object sequence;
 
   /* Search through indirections unless that's not wanted.  */
-  if (NILP (noindirect))
+  if (!noindirect)
     binding = get_keyelt (binding, 0);
 
   /* End this iteration if this element does not match
@@ -4063,6 +4052,9 @@ preferred.  */);
 
   Qremap = intern ("remap");
   staticpro (&Qremap);
+
+  QCadvertised_binding = intern (":advertised-binding");
+  staticpro (&QCadvertised_binding);
 
   command_remapping_vector = Fmake_vector (make_number (2), Qremap);
   staticpro (&command_remapping_vector);

@@ -42,6 +42,7 @@ Lisp_Object Vcommand_history;
 
 extern Lisp_Object Vhistory_length;
 extern Lisp_Object Vthis_original_command, real_this_command;
+extern int history_delete_duplicates;
 
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
@@ -366,12 +367,15 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values;
+	  Lisp_Object this_cmd;
 	  /* Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  values = quotify_args (Fcopy_sequence (specs));
 	  fix_command (input, values);
-	  Vcommand_history
-	    = Fcons (Fcons (function, values), Vcommand_history);
+	  this_cmd = Fcons (function, values);
+	  if (history_delete_duplicates)
+	    Vcommand_history = Fdelete (this_cmd, Vcommand_history);
+	  Vcommand_history = Fcons (this_cmd, Vcommand_history);
 
 	  /* Don't keep command history around forever.  */
 	  if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)

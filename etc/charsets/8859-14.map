@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/ISO-8859-14
+# Generated from ISO-8859-14 in localedate/charmaps of glibc
 0x00-0xA0 0x0000
 0xA1-0xA2 0x1E02
 0xA3 0x00A3

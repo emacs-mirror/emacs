@@ -1478,7 +1478,7 @@ Please send all bug fixes and enhancements to
 
 
 (defconst ps-windows-system
-  (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
+  (memq system-type '(ms-dos windows-nt)))
 (defconst ps-lp-system
   (memq system-type '(usg-unix-v hpux irix)))
 
@@ -6410,17 +6410,15 @@ If FACE is not a valid face name, use default face."
 		(ps-face-background-name face))))
 
 
-;; to avoid compilation gripes
-(defalias 'ps-jitify 'jit-lock-fontify-now)
-(defalias 'ps-lazify 'lazy-lock-fontify-region)
-
+(declare-function jit-lock-fontify-now "jit-lock" (&optional start end))
+(declare-function lazy-lock-fontify-region "lazy-lock" (beg end))
 
 ;; to avoid compilation gripes
 (defun ps-print-ensure-fontified (start end)
   (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
-	 (ps-jitify start end))
+	 (jit-lock-fontify-now start end))
 	((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
-	 (ps-lazify start end))))
+	 (lazy-lock-fontify-region start end))))
 
 
 (defun ps-generate-postscript-with-faces (from to)

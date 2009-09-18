@@ -84,8 +84,14 @@ displaying footnotes."
   :type 'integer
   :group 'footnote)
 
-(defvar footnote-prefix [(control ?c) ?!]
-  "*When not using `message-mode', the prefix to bind in `mode-specific-map'")
+(defcustom footnote-prefix [(control ?c) ?!]
+  "Prefix key to use for Footnote command in Footnote minor mode.
+The value of this variable is checked as part of loading Footnote mode.
+After that, changing the prefix key requires manipulating keymaps."
+  ;; FIXME: the type should be a key-sequence, but it seems Custom
+  ;; doesn't support that yet.
+  ;; :type  'string
+  )
 
 ;;; Interface variables that probably shouldn't be changed
 
@@ -142,10 +148,6 @@ has no effect on buffers already displaying footnotes."
 
 (defvar footnote-mouse-highlight 'highlight
   "Text property name to enable mouse over highlight.")
-
-(defvar footnote-mode nil
-  "Variable indicating whether footnote minor mode is active.")
-(make-variable-buffer-local 'footnote-mode)
 
 ;;; Default styles
 ;;; NUMERIC
@@ -564,7 +566,8 @@ a footnote."
 		   (Footnote-narrow-to-footnotes)
 		   (and (>= old-point (point-min))
 			(<= old-point (point-max))))))
-	     (>= (point) (cdar footnote-text-marker-alist)))
+	     footnote-text-marker-alist
+             (>= (point) (cdar footnote-text-marker-alist)))
     (let ((i 1)
 	  alist-txt rc)
       (while (and (setq alist-txt (nth i footnote-text-marker-alist))
@@ -743,47 +746,32 @@ being set it is automatically widened."
 	(widen))
       (goto-char (cadr (assq note footnote-pointer-marker-alist))))))
 
-(defvar footnote-mode-map nil
-  "Keymap used for footnote minor mode.")
+(defvar footnote-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'Footnote-add-footnote)
+    (define-key map "b" 'Footnote-back-to-message)
+    (define-key map "c" 'Footnote-cycle-style)
+    (define-key map "d" 'Footnote-delete-footnote)
+    (define-key map "g" 'Footnote-goto-footnote)
+    (define-key map "r" 'Footnote-renumber-footnotes)
+    (define-key map "s" 'Footnote-set-style)
+    map))
 
-;; Set up our keys
-(unless footnote-mode-map
-  (setq footnote-mode-map (make-sparse-keymap))
-  (define-key footnote-mode-map "a" 'Footnote-add-footnote)
-  (define-key footnote-mode-map "b" 'Footnote-back-to-message)
-  (define-key footnote-mode-map "c" 'Footnote-cycle-style)
-  (define-key footnote-mode-map "d" 'Footnote-delete-footnote)
-  (define-key footnote-mode-map "g" 'Footnote-goto-footnote)
-  (define-key footnote-mode-map "r" 'Footnote-renumber-footnotes)
-  (define-key footnote-mode-map "s" 'Footnote-set-style))
-
-(defvar footnote-minor-mode-map nil
+(defvar footnote-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map footnote-prefix footnote-mode-map)
+    map)
   "Keymap used for binding footnote minor mode.")
 
-(unless footnote-minor-mode-map
-  (define-key global-map footnote-prefix footnote-mode-map))
-
 ;;;###autoload
-(defun footnote-mode (&optional arg)
+(define-minor-mode footnote-mode
   "Toggle footnote minor mode.
-\\<message-mode-map>
 This minor mode provides footnote support for `message-mode'.  To get
 started, play around with the following keys:
-key		binding
----		-------
-\\[Footnote-add-footnote]		Footnote-add-footnote
-\\[Footnote-back-to-message]		Footnote-back-to-message
-\\[Footnote-delete-footnote]		Footnote-delete-footnote
-\\[Footnote-goto-footnote]		Footnote-goto-footnote
-\\[Footnote-renumber-footnotes]		Footnote-renumber-footnotes
-\\[Footnote-cycle-style]		Footnote-cycle-style
-\\[Footnote-set-style]		Footnote-set-style
-"
-  (interactive "*P")
+\\{footnote-minor-mode-map}"
+  :lighter    footnote-mode-line-string
+  :keymap     footnote-minor-mode-map
   ;; (filladapt-mode t)
-  (setq footnote-mode
-	(if (null arg) (not footnote-mode)
-	  (> (prefix-numeric-value arg) 0)))
   (when footnote-mode
     ;; (Footnote-setup-keybindings)
     (make-local-variable 'footnote-style)
@@ -793,9 +781,6 @@ key		binding
     (make-local-variable 'footnote-section-tag-regexp)
     (make-local-variable 'footnote-start-tag)
     (make-local-variable 'footnote-end-tag)
-    (if (fboundp 'force-mode-line-update)
-	(force-mode-line-update)
-      (set-buffer-modified-p (buffer-modified-p)))
 
     (when (boundp 'filladapt-token-table)
       ;; add tokens to filladapt to match footnotes
@@ -808,14 +793,7 @@ key		binding
 	(unless (assoc bullet-regexp filladapt-token-table)
 	  (setq filladapt-token-table
 		(append filladapt-token-table
-			(list (list bullet-regexp 'bullet)))))))
-
-    (run-hooks 'footnote-mode-hook)))
-
-(unless (assq 'footnote-mode minor-mode-alist)
-  (setq minor-mode-alist
-	(cons '(footnote-mode footnote-mode-line-string)
-	      minor-mode-alist)))
+			(list (list bullet-regexp 'bullet)))))))))
 
 (provide 'footnote)
 

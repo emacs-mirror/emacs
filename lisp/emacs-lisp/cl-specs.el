@@ -292,7 +292,7 @@
    [&or symbolp
 	(gate
 	 symbolp &rest
-		 (&or [":conc-name" &or stringp "nil"]
+		 (&or [":conc-name" symbolp]
 		      [":constructor" symbolp &optional cl-lambda-list]
 		      [":copier" symbolp]
 		      [":predicate" symbolp]

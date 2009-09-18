@@ -240,6 +240,9 @@ extern Lisp_Object QCavgwidth, QCfont_entity, QCfc_unknown_spec;
 extern Lisp_Object Qascii_0;
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
+/* Special ADSTYLE properties to avoid fonts used for Latin characters.  */
+extern Lisp_Object Qja, Qko;
+
 /* Structure for a font-spec.  */
 
 struct font_spec
@@ -823,8 +826,21 @@ extern struct font_driver nsfont_driver;
 #define FONT_DEBUG
 #endif
 
+extern Lisp_Object Vfont_log;
 extern void font_add_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern void font_deferred_log P_ ((char *, Lisp_Object, Lisp_Object));
+
+#define FONT_ADD_LOG(ACTION, ARG, RESULT)	\
+  do {						\
+    if (! EQ (Vfont_log, Qt))			\
+      font_add_log ((ACTION), (ARG), (RESULT));	\
+  } while (0)
+
+#define FONT_DEFERRED_LOG(ACTION, ARG, RESULT)		\
+  do {							\
+    if (! EQ (Vfont_log, Qt))				\
+      font_deferred_log ((ACTION), (ARG), (RESULT));	\
+  } while (0)
 
 #ifdef FONT_DEBUG
 #define font_assert(X)	do {if (!(X)) abort ();} while (0)

@@ -110,6 +110,15 @@ static unsigned convert_ns_to_X_keysym[] =
   NSF13FunctionKey,             0xCA,
   NSF14FunctionKey,             0xCB,
   NSF15FunctionKey,             0xCC,
+  NSF16FunctionKey,             0xCD,
+  NSF17FunctionKey,             0xCE,
+  NSF18FunctionKey,             0xCF,
+  NSF19FunctionKey,             0xD0,
+  NSF20FunctionKey,             0xD1,
+  NSF21FunctionKey,             0xD2,
+  NSF22FunctionKey,             0xD3,
+  NSF23FunctionKey,             0xD4,
+  NSF24FunctionKey,             0xD5,
 
   NSBackspaceCharacter,         0x08,  /* 8: Not on some KBs. */
   NSDeleteCharacter,            0xFF,  /* 127: Big 'delete' key upper right. */
@@ -173,7 +182,6 @@ float ns_antialias_threshold;
 Lisp_Object ns_use_qd_smoothing;
 
 /* Used to pick up AppleHighlightColor on OS X */
-Lisp_Object ns_use_system_highlight_color;
 NSString *ns_selection_color;
 
 /* Confirm on exit. */
@@ -406,7 +414,9 @@ ns_init_paths ()
       resourcePath = [resourceDir stringByAppendingPathComponent: @"info"];
       if ([fileManager fileExistsAtPath: resourcePath isDirectory: &isDir])
         if (isDir)
-          setenv ("INFOPATH", [resourcePath UTF8String], 1);
+          setenv ("INFOPATH", [[resourcePath stringByAppendingString: @":"]
+                                             UTF8String], 1);
+      /* Note, extra colon needed to cause merge w/later user additions. */
     }
 }
 
@@ -887,7 +897,11 @@ ns_raise_frame (struct frame *f)
   NSView *view = FRAME_NS_VIEW (f);
   check_ns ();
   BLOCK_INPUT;
-  [[view window] makeKeyAndOrderFront: NSApp];
+  FRAME_SAMPLE_VISIBILITY (f);
+  if (FRAME_VISIBLE_P (f))
+    {
+      [[view window] makeKeyAndOrderFront: NSApp];
+    }
   UNBLOCK_INPUT;
 }
 
@@ -974,7 +988,10 @@ x_make_frame_visible (struct frame *f)
      called this (frame.c:Fraise_frame ()) also called raise_lower;
      if this ends up the case again, comment this out again. */
   if (!FRAME_VISIBLE_P (f))
-    ns_raise_frame (f);
+    {
+      f->async_visible = 1;
+      ns_raise_frame (f);
+    }
 }
 
 
@@ -1142,10 +1159,10 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
 
   /* If we have a toolbar, take its height into account. */
-  /* XXX: GNUstep has not yet implemented the first method below, added
-          in Panther, however the second is incorrect under Cocoa. */
   if (tb)
     FRAME_NS_TOOLBAR_HEIGHT (f) =
+      /* XXX: GNUstep has not yet implemented the first method below, added
+	 in Panther, however the second is incorrect under Cocoa. */
 #ifdef NS_IMPL_COCOA
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
       /* NOTE: previously this would generate wrong result if toolbar not
@@ -1232,6 +1249,8 @@ NSColor *
 ns_lookup_indexed_color (unsigned long idx, struct frame *f)
 {
   struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
+  if (idx < 1 || idx >= color_table->avail)
+    return nil;
   return color_table->colors[idx];
 }
 
@@ -1249,6 +1268,7 @@ ns_index_color (NSColor *color, struct frame *f)
       color_table->avail = 1; /* skip idx=0 as marker */
       color_table->colors
 	= (NSColor **)xmalloc (color_table->size * sizeof (NSColor *));
+      color_table->colors[0] = nil;
       color_table->empty_indices = [[NSMutableSet alloc] init];
     }
 
@@ -1325,18 +1345,15 @@ static int
 ns_get_color (const char *name, NSColor **col)
 /* --------------------------------------------------------------------------
      Parse a color name
-/* --------------------------------------------------------------------------
-/* On *Step, we recognize several color formats, in addition to a catalog
-   of colors found in the file Emacs.clr. Color formats include:
-   - #rrggbb or RGBrrggbb where rr, gg, bb specify red, green and blue in hex
-   - ARGBaarrggbb is similar, with aa being the alpha channel (FF = opaque)
-   - HSVhhssvv and AHSVaahhssvv (or HSB/AHSB) are similar for hue, saturation,
-     value;
-   - CMYKccmmyykk is similar for cyan, magenta, yellow, black. */
+   -------------------------------------------------------------------------- */
+/* On *Step, we attempt to mimic the X11 platform here, down to installing an
+   X11 rgb.txt-compatible color list in Emacs.clr (see ns_term_init()).
+   See: http://thread.gmane.org/gmane.emacs.devel/113050/focus=113272). */
 {
-  NSColor * new = nil;
-  const char *hex = NULL;
-  enum { rgb, argb, hsv, ahsv, cmyk, gray } color_space;
+  NSColor *new = nil;
+  static char hex[20];
+  int scaling;
+  float r = -1.0, g, b;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
 /*fprintf (stderr, "ns_get_color: '%s'\n", name); */
@@ -1348,121 +1365,51 @@ ns_get_color (const char *name, NSColor **col)
       name = [ns_selection_color UTF8String];
     }
 
-  if (name[0] == '0' || name[0] == '1' || name[0] == '.')
+  /* First, check for some sort of numeric specification. */
+  hex[0] = '\0';
+
+  if (name[0] == '0' || name[0] == '1' || name[0] == '.')  /* RGB decimal */
     {
-      /* RGB decimal */
       NSScanner *scanner = [NSScanner scannerWithString: nsname];
-      float r, g, b;
       [scanner scanFloat: &r];
       [scanner scanFloat: &g];
       [scanner scanFloat: &b];
+    }
+  else if (!strncmp(name, "rgb:", 4))  /* A newer X11 format -- rgb:r/g/b */
+    {
+      strcpy(hex, name + 4);
+      scaling = (strlen(hex) - 2) / 3;
+    }
+  else if (name[0] == '#')        /* An old X11 format; convert to newer */
+    {
+      int len = (strlen(name) - 1);
+      int start = (len % 3 == 0) ? 1 : len / 4 + 1;
+      int i;
+      scaling = strlen(name+start) / 3;
+      for (i=0; i<3; i++) {
+        strncpy(hex + i * (scaling + 1), name + start + i * scaling, scaling);
+        hex[(i+1) * (scaling + 1) - 1] = '/';
+      }
+      hex[3 * (scaling + 1) - 1] = '\0';
+    }
+
+  if (hex[0])
+    {
+      int rr, gg, bb;
+      float fscale = scaling == 4 ? 65535.0 : (scaling == 2 ? 255.0 : 15.0);
+      if (sscanf (hex, "%x/%x/%x", &rr, &gg, &bb))
+        {
+          r = rr / fscale;
+          g = gg / fscale;
+          b = bb / fscale;
+        }
+    }
+
+  if (r >= 0.0)
+    {
       *col = [NSColor colorWithCalibratedRed: r green: g blue: b alpha: 1.0];
       UNBLOCK_INPUT;
       return 0;
-    }
-
-  /*  FIXME: emacs seems to downcase everything before passing it here,
-        which we can work around, except for GRAY, since gray##, where ## is
-        decimal between 0 and 99, is also an X11 colorname. */
-  if (name[0] == '#')             /* X11 format */
-    {
-      hex = name + 1;
-      color_space = rgb;
-    }
-  else if (!memcmp (name, "RGB", 3) || !memcmp (name, "rgb", 3))
-    {
-      hex = name + 3;
-      color_space = rgb;
-    }
-  else if (!memcmp (name, "ARGB", 4) || !memcmp (name, "argb", 4))
-    {
-      hex = name + 4;
-      color_space = argb;
-    }
-  else if (!memcmp (name, "HSV", 3) || !memcmp (name, "hsv", 3) || 
-           !memcmp (name, "HSB", 3) || !memcmp (name, "hsb", 3))
-    {
-      hex = name + 3;
-      color_space = hsv;
-    }
-  else if (!memcmp (name, "AHSV", 4) || !memcmp (name, "ahsv", 4) ||
-           !memcmp (name, "AHSB", 4) || !memcmp (name, "ahsb", 4))
-    {
-      hex = name + 4;
-      color_space = ahsv;
-    }
-  else if (!memcmp (name, "CMYK", 4) || !memcmp (name, "cmyk", 4))
-    {
-      hex = name + 4;
-      color_space = cmyk;
-    }
-  else if (!memcmp (name, "GRAY", 4) /*|| !memcmp (name, "gray", 4)*/)
-    {
-      hex = name + 4;
-      color_space = gray;
-    }
-
-  /* Direct colors (hex values) */
-  if (hex)
-    {
-      unsigned long long color = 0;
-      if (sscanf (hex, "%x", &color))
-        {
-          float f1, f2, f3, f4;
-          /* Assume it's either 1 byte or 2 per channel... */
-          if (strlen(hex) > 8) {
-            f1 = ((color >> 48) & 0xffff) / 65535.0;
-            f2 = ((color >> 32) & 0xffff) / 65535.0;
-            f3 = ((color >> 16) & 0xffff) / 65535.0;
-            f4 = ((color      ) & 0xffff) / 65535.0;
-          } else {
-            f1 = ((color >> 24) & 0xff) / 255.0;
-            f2 = ((color >> 16) & 0xff) / 255.0;
-            f3 = ((color >>  8) & 0xff) / 255.0;
-            f4 = ((color      ) & 0xff) / 255.0;
-          }
-
-          switch (color_space)
-            {
-            case rgb:
-              *col = [NSColor colorWithCalibratedRed: f2
-                                               green: f3
-                                                blue: f4
-                                               alpha: 1.0];
-              break;
-            case argb:
-              *col = [NSColor colorWithCalibratedRed: f2
-                                               green: f3
-                                                blue: f4
-                                               alpha: f1];
-              break;
-            case hsv:
-              *col = [NSColor colorWithCalibratedHue: f2
-                                          saturation: f3
-                                          brightness: f4
-                                               alpha: 1.0];
-              break;
-            case ahsv:
-              *col = [NSColor colorWithCalibratedHue: f2
-                                          saturation: f3
-                                          brightness: f4
-                                               alpha: f1];
-              break;
-            case gray:
-              *col = [NSColor colorWithCalibratedWhite: f3 alpha: f4];
-              break;
-            case cmyk:
-              *col = [NSColor colorWithDeviceCyan: f1
-                                          magenta: f2
-                                           yellow: f3
-                                            black: f4
-                                            alpha: 1.0];
-              break;
-            }
-          *col = [*col colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-          UNBLOCK_INPUT;
-          return 0;
-        }
     }
 
   /* Otherwise, color is expected to be from a list */
@@ -1491,10 +1438,8 @@ ns_get_color (const char *name, NSColor **col)
       }
   }
 
-  if ( new )
+  if (new)
     *col = [new colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-/*     else
-       NSLog (@"Failed to find color '%@'", nsname); */
   UNBLOCK_INPUT;
   return new ? 0 : 1;
 }
@@ -1556,14 +1501,13 @@ ns_color_to_lisp (NSColor *col)
     {
       [[col colorUsingColorSpaceName: NSCalibratedWhiteColorSpace]
             getWhite: &gray alpha: &alpha];
-      snprintf (buf, sizeof (buf), "GRAY%02.2lx%02.2lx",
-               lrint (gray * 0xff), lrint (alpha * 0xff));
+      snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
+		lrint (gray * 0xff), lrint (gray * 0xff), lrint (gray * 0xff));
       UNBLOCK_INPUT;
       return build_string (buf);
     }
 
-  snprintf (buf, sizeof (buf), "ARGB%02.2lx%02.2lx%02.2lx%02.2lx",
-            lrint (alpha*0xff),
+  snprintf (buf, sizeof (buf), "#%02.2lx%02.2lx%02.2lx",
             lrint (red*0xff), lrint (green*0xff), lrint (blue*0xff));
 
   UNBLOCK_INPUT;
@@ -1743,9 +1687,11 @@ note_mouse_movement (struct frame *frame, float x, float y)
       y < last_mouse_glyph.origin.y ||
       y >= (last_mouse_glyph.origin.y + last_mouse_glyph.size.height))
     {
+      ns_update_begin(frame);
       frame->mouse_moved = 1;
       note_mouse_highlight (frame, x, y);
       remember_mouse_glyph (frame, x, y, &last_mouse_glyph);
+      ns_update_end(frame);
       return 1;
     }
 
@@ -1847,11 +1793,13 @@ ns_frame_up_to_date (struct frame *f)
       /*&& dpyinfo->mouse_face_mouse_frame*/)
         {
           BLOCK_INPUT;
+         ns_update_begin(f);
           if (dpyinfo->mouse_face_mouse_frame)
             note_mouse_highlight (dpyinfo->mouse_face_mouse_frame,
                                   dpyinfo->mouse_face_mouse_x,
                                   dpyinfo->mouse_face_mouse_y);
           dpyinfo->mouse_face_deferred_gc = 0;
+         ns_update_end(f);
           UNBLOCK_INPUT;
         }
     }
@@ -2339,7 +2287,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   int fx, fy, h;
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
-  int overspill, cursorToDraw;
+  int overspill;
 
   NSTRACE (dumpcursor);
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
@@ -2395,8 +2343,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   NSDisableScreenUpdates ();
 #endif
 
-  cursorToDraw = active_p ? cursor_type : HOLLOW_BOX_CURSOR;
-  switch (cursorToDraw)
+  switch (cursor_type)
     {
     case NO_CURSOR:
       break;
@@ -2412,7 +2359,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case HBAR_CURSOR:
       s = r;
       s.origin.y += lrint (0.75 * s.size.height);
-      s.size.width = min (FRAME_COLUMN_WIDTH (f), s.size.width);
       s.size.height = lrint (s.size.height * 0.25);
       NSRectFill (s);
       break;
@@ -2425,7 +2371,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   ns_unfocus (f);
 
   /* draw the character under the cursor */
-  if (cursorToDraw != NO_CURSOR)
+  if (cursor_type != NO_CURSOR)
     draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 
 #ifdef NS_IMPL_COCOA
@@ -2699,9 +2645,9 @@ ns_dumpglyphs_box_or_relief (struct glyph_string *s)
     r = ns_fix_rect_ibw (r, FRAME_INTERNAL_BORDER_WIDTH (s->f),
                         FRAME_PIXEL_WIDTH (s->f));
 
-  if (s->face->box == FACE_SIMPLE_BOX)
+  /* TODO: Sometimes box_color is 0 and this seems wrong; should investigate. */
+  if (s->face->box == FACE_SIMPLE_BOX && s->face->box_color)
     {
-      xassert (s->face->box_color != nil);
       ns_draw_box (r, abs (thickness),
                    ns_lookup_indexed_color (face->box_color, s->f),
                   left_p, right_p);
@@ -2796,6 +2742,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   int th;
   char raised_p;
   NSRect br;
+  struct face *face;
 
   NSTRACE (ns_dumpglyphs_image);
 
@@ -2815,8 +2762,17 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   /* Draw BG: if we need larger area than image itself cleared, do that,
      otherwise, since we composite the image under NS (instead of mucking
      with its background color), we must clear just the image area. */
-  [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-            (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
+  if (s->hl == DRAW_MOUSE_FACE)
+    {
+      face = FACE_FROM_ID
+       (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+      if (!face)
+       face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+    }
+  else
+    face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+
+  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -2887,6 +2843,7 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 {
   NSRect r[2];
   int n, i;
+  struct face *face;
 
   if (!s->background_filled_p)
     {
@@ -2928,8 +2885,19 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
         }
 
       ns_focus (s->f, r, n);
-      [ns_lookup_indexed_color (NS_FACE_BACKGROUND
-           (FACE_FROM_ID (s->f, s->first_glyph->face_id)), s->f) set];
+
+      if (s->hl == DRAW_MOUSE_FACE)
+       {
+         face = FACE_FROM_ID
+           (s->f, FRAME_NS_DISPLAY_INFO (s->f)->mouse_face_face_id);
+         if (!face)
+           face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+       }
+      else
+       face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+
+      [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+
       NSRectFill (r[0]);
       NSRectFill (r[1]);
       ns_unfocus (s->f);
@@ -3010,7 +2978,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       if (s->for_overlaps || (s->cmp_from > 0
 			      && ! s->first_glyph->u.cmp.automatic))
         s->background_filled_p = 1;
-      else      /* 1 */
+      else
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
 
@@ -3119,7 +3087,6 @@ ns_read_socket (struct terminal *terminal, int expected,
 {
   struct input_event ev;
   int nevents;
-  static NSDate *lastCheck = nil;
 
 /* NSTRACE (ns_read_socket); */
 
@@ -3554,7 +3521,6 @@ ns_set_default_prefs ()
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
   ns_use_qd_smoothing = Qnil;
-  ns_use_system_highlight_color = Qt;
   ns_confirm_quit = Qnil;
 }
 
@@ -4428,7 +4394,10 @@ extern void update_window_cursor (struct window *w, int on);
   if (!emacs_event)
     return;
 
- if (![[self window] isKeyWindow])
+ if (![[self window] isKeyWindow]
+     && [[theEvent window] isKindOfClass: [EmacsWindow class]]
+     /* we must avoid an infinite loop here. */
+     && (EmacsView *)[[theEvent window] delegate] != self)
    {
      /* XXX: There is an occasional condition in which, when Emacs display
          updates a different frame from the current one, and temporarily
@@ -4436,8 +4405,7 @@ extern void update_window_cursor (struct window *w, int on);
          (dispnew.c:3878), OS will send the event to the correct NSWindow, but
          for some reason that window has its first responder set to the NSView
          most recently updated (I guess), which is not the correct one. */
-     if ([[theEvent window] isKindOfClass: [EmacsWindow class]])
-         [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
+     [(EmacsView *)[[theEvent window] delegate] keyDown: theEvent];
      return;
    }
 
@@ -4584,12 +4552,14 @@ extern void update_window_cursor (struct window *w, int on);
 /* Needed to pick up Ctrl-tab and possibly other events that OS X has
    decided not to send key-down for.
    See http://osdir.com/ml/editors.vim.mac/2007-10/msg00141.html
+   This only applies on Tiger and earlier.
    If it matches one of these, send it on to keyDown. */
 -(void)keyUp: (NSEvent *)theEvent
 {
   int flags = [theEvent modifierFlags];
   int code = [theEvent keyCode];
-  if (code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
+  if (floor (NSAppKitVersionNumber) <= 824 /*NSAppKitVersionNumber10_4*/ &&
+      code == 0x30 && (flags & NSControlKeyMask) && !(flags & NSCommandKeyMask))
     {
       if (NS_KEYLOG)
         fprintf (stderr, "keyUp: passed test");
@@ -5051,8 +5021,14 @@ extern void update_window_cursor (struct window *w, int on);
     }
 #endif /* NS_IMPL_COCOA */
 
+  // Calling x_set_window_size tends to get us into inf-loops
+  // (x_set_window_size causes a resize which causes
+  // a "windowDidResize" which calls x_set_window_size).
+  // At least with GNUStep, don't know about MacOSX.  --Stef
+#ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
-    x_set_window_size (emacsframe, 0, cols, rows);
+     x_set_window_size (emacsframe, 0, cols, rows);
+#endif
 
   ns_send_appdefined (-1);
 }
@@ -5427,8 +5403,15 @@ extern void update_window_cursor (struct window *w, int on);
 
   ns_clear_frame_area (emacsframe, x, y, width, height);
   expose_frame (emacsframe, x, y, width, height);
-  emacsframe->async_visible = 1;
-  emacsframe->async_iconified = 0;
+
+  /*
+    drawRect: may be called (at least in OS X 10.5) for invisible
+    views as well for some reason.  Thus, do not infer visibility 
+    here.
+
+    emacsframe->async_visible = 1;
+    emacsframe->async_iconified = 0;
+  */
 }
 
 
@@ -6255,10 +6238,6 @@ allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
                "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
-
-  DEFVAR_LISP ("ns-use-system-highlight-color",
-               &ns_use_system_highlight_color,
-               "Whether to use the system default (on OS X only) for the highlight color.  Nil means to use standard emacs (prior to version 21) 'grey'.");
 
   DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
                "Whether to confirm application quit using dialog.");

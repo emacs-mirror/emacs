@@ -137,22 +137,19 @@ ENCODING can be: nil (do nothing); one of `quoted-printable', `base64';
    (t
     (error "Unknown encoding %s" encoding))))
 
-(defun mm-encode-buffer (type)
-  "Encode the buffer which contains data of MIME type TYPE.
+(defun mm-encode-buffer (type &optional encoding)
+  "Encode the buffer which contains data of MIME type TYPE by ENCODING.
 TYPE is a string or a list of the components.
+The optional ENCODING overrides the encoding determined according to
+TYPE and `mm-content-transfer-encoding-defaults'.
 The encoding used is returned."
-  (let* ((mime-type (if (stringp type) type (car type)))
-	 (encoding
-	  (or (and (listp type)
-		   (cadr (assq 'encoding type)))
-	      (mm-content-transfer-encoding mime-type)))
-	 (bits (mm-body-7-or-8)))
-    ;; We force buffers that are 7bit to be unencoded, no matter
-    ;; what the preferred encoding is.
-    ;; Only if the buffers don't contain lone lines.
-    (when (and (eq bits '7bit) (not (mm-long-lines-p 76)))
-      (setq encoding bits))
-    (mm-encode-content-transfer-encoding encoding mime-type)
+  (let ((mime-type (if (stringp type) type (car type))))
+    (mm-encode-content-transfer-encoding
+     (or encoding
+	 (setq encoding (or (and (listp type)
+				 (cadr (assq 'encoding type)))
+			    (mm-content-transfer-encoding mime-type))))
+     mime-type)
     encoding))
 
 (defun mm-insert-headers (type encoding &optional file)

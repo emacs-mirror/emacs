@@ -70,10 +70,10 @@ command runs the hook @code{fortran-mode-hook}.
 
   In addition to the normal commands for moving by and operating on
 ``defuns'' (Fortran subprograms---functions and subroutines, using the
-commands @code{fortran-end-of-subprogram} and
-@code{fortran-beginning-of-subprogram}; as well as modules for F90
-mode), Fortran mode provides special commands to move by statements and
-other program units.
+commands @code{fortran-beginning-of-subprogram} and
+@code{fortran-end-of-subprogram}; as well as modules for F90 mode),
+Fortran mode provides special commands to move by statements and other
+program units.
 
 @table @kbd
 @kindex C-c C-n @r{(Fortran mode)}
@@ -129,8 +129,8 @@ Move to the start of the current code block
 is like @code{fortran-end-of-block}, but moves backwards.
 @end table
 
-The commands @code{fortran-end-of-subprogram} and
-@code{fortran-beginning-of-subprogram} move to the end or start of the
+The commands @code{fortran-beginning-of-subprogram} and
+@code{fortran-end-of-subprogram} move to the start or end of the
 current subprogram, respectively.  The commands @code{fortran-mark-do}
 and @code{fortran-mark-if} mark the end of the current @code{do} or
 @code{if} block, and move point to the start.

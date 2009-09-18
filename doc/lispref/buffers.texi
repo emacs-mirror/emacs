@@ -936,8 +936,8 @@ a string, it is returned as given, even if it is dead.
 @end example
 
 The major mode for a newly created buffer is set to Fundamental mode.
-(The variable @code{default-major-mode} is handled at a higher level;
-see @ref{Auto Major Mode}.)  If the name begins with a space, the
+(The default value of the variable @code{major-mode} is handled at a higher
+level; see @ref{Auto Major Mode}.)  If the name begins with a space, the
 buffer initially disables undo information recording (@pxref{Undo}).
 @end defun
 
@@ -966,8 +966,8 @@ An error is signaled if @var{name} is not a string.
 @end group
 @end example
 
-The major mode for the new buffer is set to Fundamental mode.  The
-variable @code{default-major-mode} is handled at a higher level.
+The major mode for the new buffer is set to Fundamental mode.  The default
+value of the variable @code{major-mode} is handled at a higher level.
 @xref{Auto Major Mode}.
 
 See the related function @code{generate-new-buffer-name} in @ref{Buffer
@@ -1065,7 +1065,7 @@ The buffer to be killed is current when the hook functions run.
 is not cleared by changing major modes.
 @end defvar
 
-@defvar buffer-offer-save
+@defopt buffer-offer-save
 This variable, if non-@code{nil} in a particular buffer, tells
 @code{save-buffers-kill-emacs} and @code{save-some-buffers} (if the
 second optional argument to that function is @code{t}) to offer to
@@ -1073,7 +1073,7 @@ save that buffer, just as they offer to save file-visiting buffers.
 @xref{Definition of save-some-buffers}.  The variable
 @code{buffer-offer-save} automatically becomes buffer-local when set
 for any reason.  @xref{Buffer-Local Variables}.
-@end defvar
+@end defopt
 
 @defvar buffer-save-without-query
 This variable, if non-@code{nil} in a particular buffer, tells
@@ -1135,7 +1135,7 @@ non-@code{nil}, the initial state is copied from the actual base
 buffer, not from @var{base-buffer}.
 @end deffn
 
-@defun clone-indirect-buffer newname display-flag &optional norecord
+@deffn clone-indirect-buffer newname display-flag &optional norecord
 This function creates and returns a new indirect buffer that shares
 the current buffer's base buffer and copies the rest of the current
 buffer's attributes.  (If the current buffer is not indirect, it is
@@ -1145,7 +1145,7 @@ If @var{display-flag} is non-@code{nil}, that means to display the new
 buffer by calling @code{pop-to-buffer}.  If @var{norecord} is
 non-@code{nil}, that means not to put the new buffer to the front of
 the buffer list.
-@end defun
+@end deffn
 
 @defun buffer-base-buffer &optional buffer
 This function returns the base buffer of @var{buffer}, which defaults
@@ -1191,6 +1191,13 @@ overlays, the text properties, the undo list, the value of the
 @code{enable-multibyte-characters} flag (@pxref{Text Representations,
 enable-multibyte-characters}), etc.
 @end defun
+
+  If you use @code{buffer-swap-text} on a file-visiting buffer, you
+should set up a hook to save the buffer's original text rather than
+what it was swapped with.  @code{write-region-annotate-functions}
+works for this purpose.  You should probably set
+@code{buffer-saved-size} to @minus{}2 in the buffer, so that changes
+in the text it is swapped with will not interfere with auto-saving.
 
 @node Buffer Gap
 @section The Buffer Gap

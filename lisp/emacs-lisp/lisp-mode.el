@@ -78,7 +78,8 @@
       (modify-syntax-entry ?\) ")(  " table)
       (modify-syntax-entry ?\[ "(]  " table)
       (modify-syntax-entry ?\] ")[  " table))
-    table))
+    table)
+  "Syntax table used in `emacs-lisp-mode'.")
 
 (defvar lisp-mode-syntax-table
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
@@ -86,7 +87,8 @@
     (modify-syntax-entry ?\] "_   " table)
     (modify-syntax-entry ?# "' 14b" table)
     (modify-syntax-entry ?| "\" 23bn" table)
-    table))
+    table)
+  "Syntax table used in `lisp-mode'.")
 
 (defvar lisp-imenu-generic-expression
   (list
@@ -132,6 +134,7 @@
 (put 'defvar   'doc-string-elt 3)
 (put 'defcustom 'doc-string-elt 3)
 (put 'deftheme 'doc-string-elt 2)
+(put 'deftype 'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 (put 'defmacro* 'doc-string-elt 3)
@@ -196,9 +199,9 @@
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive)
   "Common initialization routine for lisp modes.
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
-(uselessly) passed from pp.el, chistory.el, gnus-kill.el and score-mode.el
-KEYWORDS-CASE-INSENSITIVE means that for font-lock keywords will not 
-be case sensitive."
+\(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
+score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
+font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq local-abbrev-table lisp-mode-abbrev-table)
@@ -272,6 +275,7 @@ be case sensitive."
 (defvar emacs-lisp-mode-map
   (let ((map (make-sparse-keymap "Emacs-Lisp"))
 	(menu-map (make-sparse-keymap "Emacs-Lisp"))
+	(lint-map (make-sparse-keymap))
 	(prof-map (make-sparse-keymap))
 	(tracing-map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
@@ -327,6 +331,19 @@ be case sensitive."
     (define-key prof-map [prof-func]
       '(menu-item "Instrument Function..." elp-instrument-function
 		  :help "Instrument a function for profiling"))
+    (define-key menu-map [lint] (cons "Linting" lint-map))
+    (define-key lint-map [lint-di]
+      '(menu-item "Lint Directory..." elint-directory
+		  :help "Lint a directory"))
+    (define-key lint-map [lint-f]
+      '(menu-item "Lint File..." elint-file
+		  :help "Lint a file"))
+    (define-key lint-map [lint-b]
+      '(menu-item "Lint Buffer" elint-current-buffer
+		  :help "Lint the current buffer"))
+    (define-key lint-map [lint-d]
+      '(menu-item "Lint Defun" elint-defun
+		  :help "Lint the function at point"))
     (define-key menu-map [edebug-defun]
       '(menu-item "Instrument Function for Debugging" edebug-defun
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
@@ -884,10 +901,17 @@ which see."
   "If non-nil, indent second line of expressions that many more columns."
   :group 'lisp
   :type '(choice (const nil) integer))
-(put 'lisp-body-indent 'safe-local-variable
+(put 'lisp-indent-offset 'safe-local-variable
      (lambda (x) (or (null x) (integerp x))))
 
-(defvar lisp-indent-function 'lisp-indent-function)
+(defcustom lisp-indent-function 'lisp-indent-function
+  "A function to be called by `calculate-lisp-indent'.
+It indents the arguments of a Lisp function call.  This function
+should accept two arguments: the indent-point, and the
+`parse-partial-sexp' state at that position.  One option for this
+function is `common-lisp-indent-function'."
+  :type 'function
+  :group 'lisp)
 
 (defun lisp-indent-line (&optional whole-exp)
   "Indent current line as Lisp code.
@@ -1328,16 +1352,6 @@ ENDPOS is encountered."
 	(or outer-loop-done
 	    (setq outer-loop-done (= (point) last-point))
 	    (setq last-point (point)))))))
-
-(defun lisp-indent-region (start end)
-  "Indent every line whose first char is between START and END inclusive."
-  (save-excursion
-    (let ((endmark (copy-marker end)))
-      (goto-char start)
-      (and (bolp) (not (eolp))
-	   (lisp-indent-line))
-      (indent-sexp endmark)
-      (set-marker endmark nil))))
 
 (defun indent-pp-sexp (&optional arg)
   "Indent each line of the list starting just after point, or prettyprint it.

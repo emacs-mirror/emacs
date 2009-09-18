@@ -168,6 +168,7 @@ This is used by the default mail-sending commands.  See also
 		(function-item feedmail-send-it :tag "Use Feedmail package")
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
+  :initialize 'custom-initialize-delay
   :group 'sendmail)
 
 ;;;###autoload
@@ -552,7 +553,7 @@ actually occur.")
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
   ;; (kill-local-variable 'enable-multibyte-characters)
-  (set-buffer-multibyte default-enable-multibyte-characters)
+  (set-buffer-multibyte (default-value 'enable-multibyte-characters))
   (if current-input-method
       (inactivate-input-method))
   (setq mail-send-actions actions)
@@ -931,7 +932,7 @@ This function uses `mail-envelope-from'."
 ;;;###autoload
 (defvar sendmail-coding-system nil
   "*Coding system for encoding the outgoing mail.
-This has higher priority than `default-buffer-file-coding-system'
+This has higher priority than the default `buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
 See also the function `select-message-coding-system'.")
@@ -1506,7 +1507,19 @@ and don't delete any header fields."
 	  (delete-windows-on original t)
 	  (with-no-warnings
 	    ;; We really want this to set mark.
-	    (insert-buffer original))
+	    (insert-buffer original)
+	    ;; If they yank the original text, the encoding of the
+	    ;; original message is a better default than
+	    ;; the default buffer-file-coding-system.
+	    (and (coding-system-equal
+		  (default-value 'buffer-file-coding-system)
+		  buffer-file-coding-system)
+		 (setq buffer-file-coding-system
+		       (coding-system-change-text-conversion
+			buffer-file-coding-system
+			(coding-system-base
+			 (with-current-buffer original
+			   buffer-file-coding-system))))))
 	  (set-text-properties (point) (mark t) nil))
 	(if (consp arg)
 	    nil
@@ -1843,7 +1856,7 @@ The seventh argument ACTIONS is a list of actions to take
 	      ;; TRT, or the user will get prompted for the right
 	      ;; encoding when they send the message.
 	      (setq buffer-file-coding-system
-		    default-buffer-file-coding-system))))))))
+		    (default-value 'buffer-file-coding-system)))))))))
 
 (declare-function dired-move-to-filename "dired" (&optional raise-error eol))
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))

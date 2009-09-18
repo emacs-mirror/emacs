@@ -28,29 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define P_(proto) ()
 #endif
 
-#if 0
-/* Define this temporarily to hunt a bug.  If defined, the size of
-   strings is redundantly recorded in sdata structures so that it can
-   be compared to the sizes recorded in Lisp strings.  */
-
-#define GC_CHECK_STRING_BYTES 1
-
-/* Define this to check for short string overrun.  */
-
-#define GC_CHECK_STRING_OVERRUN 1
-
-/* Define this to check the string free list.  */
-
-#define GC_CHECK_STRING_FREE_LIST 1
-
-/* Define this to check for malloc buffer overrun.  */
-
-#define XMALLOC_OVERRUN_CHECK 1
-
-/* Define this to check for errors in cons list.  */
-/* #define GC_CHECK_CONS_LIST 1 */
-
-#endif /* 0 */
+/* Use the configure flag --enable-checking[=LIST] to enable various
+   types of run time checks for Lisp objects.  */
 
 #ifdef GC_CHECK_CONS_LIST
 #define CHECK_CONS_LIST() check_cons_list()
@@ -796,13 +775,37 @@ struct Lisp_Vector
 #define CHAR_TABLE_EXTRA_SLOTS(CT)	\
   (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
 
+#ifdef __GNUC__
+
+#define CHAR_TABLE_REF_ASCII(CT, IDX)					\
+  ({struct Lisp_Char_Table *_tbl = NULL;				\
+    Lisp_Object _val;							\
+    do {								\
+      _tbl = _tbl ? XCHAR_TABLE (_tbl->parent) : XCHAR_TABLE (CT);	\
+      _val = (! SUB_CHAR_TABLE_P (_tbl->ascii) ? _tbl->ascii		\
+	      : XSUB_CHAR_TABLE (_tbl->ascii)->contents[IDX]);		\
+      if (NILP (_val))							\
+	_val = _tbl->defalt;						\
+    } while (NILP (_val) && ! NILP (_tbl->parent));			\
+    _val; })
+      
+#else  /* not __GNUC__ */
+
+#define CHAR_TABLE_REF_ASCII(CT, IDX)					  \
+  (! NILP (XCHAR_TABLE (CT)->ascii)					  \
+   ? (! SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)			  \
+      ? XCHAR_TABLE (CT)->ascii						  \
+      : ! NILP (XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]) \
+      ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]	  \
+      : char_table_ref ((CT), (IDX)))					  \
+   :  char_table_ref ((CT), (IDX)))
+
+#endif	/* not __GNUC__ */
+
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
-#define CHAR_TABLE_REF(CT, IDX)						 \
-  ((ASCII_CHAR_P (IDX)							 \
-    && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)			 \
-    && !NILP (XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX])) \
-   ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]		 \
+#define CHAR_TABLE_REF(CT, IDX)					\
+  (ASCII_CHAR_P (IDX) ? CHAR_TABLE_REF_ASCII ((CT), (IDX))	\
    : char_table_ref ((CT), (IDX)))
 
 /* Almost equivalent to Faref (CT, IDX).  However, if the result is
@@ -1384,9 +1387,12 @@ struct Lisp_Float
   };
 
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_ + 0)
 #else
-#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data + 0)
+/* This should be used only in alloc.c, which always disables
+   HIDE_LISP_IMPLEMENTATION.  */
+#define XFLOAT_INIT(f,n) (XFLOAT (f)->u.data = (n))
 #endif
 
 /* A character, declared with the following typedef, is a member
@@ -2709,7 +2715,6 @@ extern void syms_of_print P_ ((void));
 
 /* Defined in doprnt.c */
 extern int doprnt P_ ((char *, int, char *, char *, int, char **));
-extern int doprnt_lisp P_ ((char *, int, char *, char *, int, char **));
 
 /* Defined in lread.c */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
@@ -2997,11 +3002,12 @@ extern int fast_c_string_match_ignore_case P_ ((Lisp_Object, const char *));
 extern int fast_string_match_ignore_case P_ ((Lisp_Object, Lisp_Object));
 extern EMACS_INT fast_looking_at P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
 				      EMACS_INT, EMACS_INT, Lisp_Object));
-extern int scan_buffer P_ ((int, int, int, int, int *, int));
-extern int scan_newline P_ ((int, int, int, int, int, int));
-extern int find_next_newline P_ ((int, int));
-extern int find_next_newline_no_quit P_ ((int, int));
-extern int find_before_next_newline P_ ((int, int, int));
+extern int scan_buffer P_ ((int, EMACS_INT, EMACS_INT, int, int *, int));
+extern int scan_newline P_ ((EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
+			     int, int));
+extern int find_next_newline P_ ((EMACS_INT, int));
+extern int find_next_newline_no_quit P_ ((EMACS_INT, int));
+extern int find_before_next_newline P_ ((EMACS_INT, EMACS_INT, int));
 extern void syms_of_search P_ ((void));
 extern void clear_regexp_cache P_ ((void));
 
@@ -3089,7 +3095,6 @@ extern void init_keyboard P_ ((void));
 extern void syms_of_keyboard P_ ((void));
 extern void keys_of_keyboard P_ ((void));
 extern char *push_key_description P_ ((unsigned int, char *, int));
-extern void add_user_signal P_ ((int sig, const char *name));
 
 
 /* defined in indent.c */
@@ -3165,6 +3170,9 @@ void synchronize_system_time_locale P_ ((void));
 void shut_down_emacs P_ ((int, int, Lisp_Object));
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
+
+/* Nonzero means don't load X resources or Windows Registry settings.  */
+extern int inhibit_x_resources;
 
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
@@ -3360,6 +3368,7 @@ EXFUN (Fx_focus_frame, 1);
 
 /* Defined in xfaces.c */
 EXFUN (Fclear_face_cache, 1);
+EXFUN (Fx_load_color_file, 1);
 extern void syms_of_xfaces P_ ((void));
 
 #ifndef HAVE_GETLOADAVG
@@ -3394,6 +3403,7 @@ extern int have_menus_p P_ ((void));
 
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c */
+int xd_pending_messages P_ ((void));
 void xd_read_queued_messages P_ ((void));
 void syms_of_dbusbind P_ ((void));
 #endif

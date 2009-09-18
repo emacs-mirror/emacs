@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "16. Februar 2009, 21:25:09 (ulf)"
+;; Time-stamp:  "15. April 2009, 19:51:17 (ulf)"
 
 ;; ======================================================================
 
@@ -143,7 +143,7 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
   "Name of the newsticker groups settings file."
   :type 'string
   :group 'newsticker-treeview)
-(make-obsolete 'newsticker-groups-filename 'newsticker-dir)
+(make-obsolete 'newsticker-groups-filename 'newsticker-dir "23.1")
 
 ;; ======================================================================
 ;;; internal variables
@@ -1638,9 +1638,10 @@ Return t if a new feed was activated, nil otherwise."
    (list (let ((completion-ignore-case t))
            (completing-read
             "Jump to feed: "
-            (mapcar 'car (append newsticker-url-list
-                                 newsticker-url-list-defaults))
-                            nil t))))
+            (append '("new" "obsolete" "immortal" "all")
+                    (mapcar 'car (append newsticker-url-list
+                                         newsticker-url-list-defaults)))
+            nil t))))
   (newsticker--treeview-unfold-node feed-name))
 
 ;; ======================================================================

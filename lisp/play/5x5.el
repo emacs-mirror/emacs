@@ -1,7 +1,7 @@
 ;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -59,32 +59,32 @@
   :prefix "5x5-")
 
 (defcustom 5x5-grid-size 5
-  "*Size of the playing area."
+  "Size of the playing area."
   :type  'integer
   :group '5x5)
 
 (defcustom 5x5-x-scale 4
-  "*X scaling factor for drawing the grid."
+  "X scaling factor for drawing the grid."
   :type  'integer
   :group '5x5)
 
 (defcustom 5x5-y-scale 3
-  "*Y scaling factor for drawing the grid."
+  "Y scaling factor for drawing the grid."
   :type  'integer
   :group '5x5)
 
 (defcustom 5x5-animate-delay .01
-  "*Delay in seconds when animating a solution crack."
+  "Delay in seconds when animating a solution crack."
   :type  'number
   :group '5x5)
 
 (defcustom 5x5-hassle-me t
-  "*Should 5x5 ask you when you want to do a destructive operation?"
+  "Should 5x5 ask you when you want to do a destructive operation?"
   :type  'boolean
   :group '5x5)
 
 (defcustom 5x5-mode-hook nil
-  "*Hook run on starting 5x5."
+  "Hook run on starting 5x5."
   :type  'hook
   :group '5x5)
 
@@ -300,7 +300,8 @@ Quit current game         \\[5x5-quit-game]"
 
 (defun 5x5-position-cursor ()
   "Position the cursor on the grid."
-  (goto-line (+ (* 5x5-y-pos 5x5-y-scale) 2))
+  (goto-char (point-min))
+  (forward-line (1+ (* 5x5-y-pos 5x5-y-scale)))
   (goto-char (+ (point) (* 5x5-x-pos 5x5-x-scale) (+ 5x5-x-pos 1) 1)))
 
 (defun 5x5-made-move ()

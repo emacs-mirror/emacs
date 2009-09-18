@@ -1,6 +1,7 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009
@@ -306,12 +307,9 @@ Return t if file exists."
 	   (signal 'file-error (list "Cannot open load file" file)))
     ;; Read file with code conversion, and then eval.
     (let* ((buffer
-	    ;; To avoid any autoloading, set default-major-mode to
-	    ;; fundamental-mode.
-	    (let ((default-major-mode 'fundamental-mode))
-	      ;; We can't use `generate-new-buffer' because files.el
-	      ;; is not yet loaded.
-	      (get-buffer-create (generate-new-buffer-name " *load*"))))
+            ;; We can't use `generate-new-buffer' because files.el
+            ;; is not yet loaded.
+            (get-buffer-create (generate-new-buffer-name " *load*")))
 	   (load-in-progress t)
 	   (source (save-match-data (string-match "\\.el\\'" fullname))))
       (unless nomessage
@@ -350,7 +348,7 @@ Return t if file exists."
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.
-;;			 (not default-enable-multibyte-characters)
+;;			 (not (default-value 'enable-multibyte-characters))
 			 nil t
 			 ))
 	(let (kill-buffer-hook kill-buffer-query-functions)
@@ -1233,17 +1231,18 @@ to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system &optional display)
+(defun set-terminal-coding-system (coding-system &optional terminal)
   "Set coding system of terminal output to CODING-SYSTEM.
-All text output to DISPLAY will be encoded
+All text output to TERMINAL will be encoded
 with the specified coding system.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display.
-The setting has no effect on graphical displays."
+TERMINAL may be a terminal object, a frame, or nil for the
+selected frame's terminal.  The setting has no effect on
+graphical terminals."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
@@ -1257,7 +1256,7 @@ The setting has no effect on graphical displays."
       (setq coding-system default-terminal-coding-system))
   (if coding-system
       (setq default-terminal-coding-system coding-system))
-  (set-terminal-coding-system-internal coding-system display)
+  (set-terminal-coding-system-internal coding-system terminal)
   (redraw-frame (selected-frame)))
 
 (defvar default-keyboard-coding-system nil
@@ -1265,37 +1264,62 @@ The setting has no effect on graphical displays."
 This is normally set according to the selected language environment.
 See also the command `set-keyboard-coding-system'.")
 
-(defun set-keyboard-coding-system (coding-system &optional display)
-  "Set coding system for keyboard input on DISPLAY to CODING-SYSTEM.
-In addition, this command calls `encoded-kbd-setup-display' to set up the
-translation of keyboard input events to the specified coding system.
+(defun set-keyboard-coding-system (coding-system &optional terminal)
+  "Set coding system for keyboard input on TERMINAL to CODING-SYSTEM.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-DISPLAY may be a display id, a frame, or nil for the selected frame's display.
-The setting has no effect on graphical displays."
+If CODING-SYSTEM is nil or the coding-type of CODING-SYSTEM is
+`raw-text', the decoding of keyboard input is disabled.
+
+TERMINAL may be a terminal object, a frame, or nil for the
+selected frame's terminal.  The setting has no effect on
+graphical terminals."
   (interactive
-   (list (let ((default (if (and (not (keyboard-coding-system))
-				 default-keyboard-coding-system)
-			    default-keyboard-coding-system)))
+   (list (let* ((coding (keyboard-coding-system nil))
+		(default (if (eq (coding-system-type coding) 'raw-text)
+			     default-keyboard-coding-system)))
 	   (read-coding-system
 	    (format "Coding system for keyboard input (default %s): "
 		    default)
 	    default))))
-  (if (and (not coding-system)
-	   (not (keyboard-coding-system)))
-      (setq coding-system default-keyboard-coding-system))
-  (if coding-system
-      (setq default-keyboard-coding-system coding-system))
-  (if (and coding-system
-	   (not (coding-system-get coding-system :ascii-compatible-p))
-	   (not (coding-system-get coding-system :suitable-for-keyboard)))
-      (error "%s is not suitable for keyboard" coding-system))
-  (set-keyboard-coding-system-internal coding-system display)
-  (setq keyboard-coding-system coding-system)
-  (encoded-kbd-setup-display display))
+  (let ((coding-type (coding-system-type coding-system))
+	(saved-meta-mode
+	 (terminal-parameter terminal 'keyboard-coding-saved-meta-mode)))
+    (if (not (eq coding-type 'raw-text))
+	(let (accept-8-bit)
+	  (if (not (or (coding-system-get coding-system :suitable-for-keyboard)
+		       (coding-system-get coding-system :ascii-compatible-p)))
+	      (error "Unsuitable coding system for keyboard: %s" coding-system))
+	  (cond ((memq coding-type '(charset utf-8 shift-jis big5 ccl))
+		 (setq accept-8-bit t))
+		((eq coding-type 'iso-2022)
+		 (let ((flags (coding-system-get coding-system :flags)))
+		   (or (memq '7-bit flags)
+		       (setq accept-8-bit t))))
+		(t
+		 (error "Unsupported coding system for keyboard: %s"
+			coding-system)))
+	  (when accept-8-bit
+	    (or saved-meta-mode
+		(set-terminal-parameter terminal
+					'keyboard-coding-saved-meta-mode
+					(cons (nth 2 (current-input-mode))
+					      nil)))
+	    (set-input-meta-mode 8))
+	  ;; Avoid end-of-line conversion.
+	  (setq coding-system
+		(coding-system-change-eol-conversion coding-system 'unix)))
+
+      (when saved-meta-mode
+	(set-input-meta-mode (car saved-meta-mode))
+	(set-terminal-parameter terminal
+				'keyboard-coding-saved-meta-mode
+				nil))))
+  (set-keyboard-coding-system-internal coding-system terminal)
+  (setq keyboard-coding-system coding-system))
 
 (defcustom keyboard-coding-system nil
   "Specify coding system for keyboard input.
@@ -1620,7 +1644,7 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
+  '(("\\`BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
     ("\\`\xFE\xFF" . utf-16be-with-signature)
     ("\\`\xFF\xFE" . utf-16le-with-signature)
     ("\\`\xEF\xBB\xBF" . utf-8-with-signature)

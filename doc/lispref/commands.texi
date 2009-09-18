@@ -169,7 +169,7 @@ or more arguments.
 It may be a string; its contents are a sequence of elements separated
 by newlines, one for each parameter@footnote{Some elements actually
 supply two parameters.}.  Each element consists of a code character
-(@pxref{ Interactive Codes}) optionally followed by a prompt (which
+(@pxref{Interactive Codes}) optionally followed by a prompt (which
 some code characters use and some ignore).  Here is an example:
 
 @smallexample
@@ -694,8 +694,7 @@ message when called from a keyboard macro.
 
   The above method with the additional argument is usually best,
 because it allows callers to say ``treat this call as interactive.''
-But you can also do the job in a simpler way by testing
-@code{called-interactively-p}.
+But you can also do the job by testing @code{called-interactively-p}.
 
 @defun called-interactively-p
 This function returns @code{t} when the calling function was called

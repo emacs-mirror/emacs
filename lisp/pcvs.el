@@ -2054,7 +2054,10 @@ With a prefix, opens the buffer in an OTHER window."
 			  (t (if view 'view-buffer 'switch-to-buffer)))
 		    buf)
 	   (when (and cvs-find-file-and-jump (cvs-applicable-p fi 'diff-base))
-	     (goto-line (cvs-find-modif fi)))
+	     (save-restriction
+	       (widen)
+	       (goto-char (point-min))
+	       (forward-line (1- (cvs-find-modif fi)))))
 	   buf))))))
 
 

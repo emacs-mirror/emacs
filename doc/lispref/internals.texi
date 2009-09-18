@@ -815,11 +815,10 @@ knows about it.
 
   GNU Emacs Lisp manipulates many different types of data.  The actual
 data are stored in a heap and the only access that programs have to it
-is through pointers.  Pointers are thirty-two bits wide in most
-implementations.  Depending on the operating system and type of machine
-for which you compile Emacs, twenty-nine bits are used to address the
-object, and the remaining three bits are used for the tag that
-identifies the object's type.
+is through pointers.  Each pointer is 32 bits wide on 32-bit machines,
+and 64 bits wide on 64-bit machines; three of these bits are used for
+the tag that identifies the object's type, and the remainder are used
+to address the object.
 
   Because Lisp objects are represented as tagged pointers, it is always
 possible to determine the Lisp data type of any object.  The C data type
@@ -842,67 +841,53 @@ explicitly using a suitable predicate (@pxref{Type Predicates}).
 @cindex internals, of buffer
 @cindex buffer internals
 
-  Buffers contain fields not directly accessible by the Lisp programmer.
-We describe them here, naming them by the names used in the C code.
-Many are accessible indirectly in Lisp programs via Lisp primitives.
-
-Two structures are used to represent buffers in C.  The
+  Two structures are used to represent buffers in C.  The
 @code{buffer_text} structure contains fields describing the text of a
 buffer; the @code{buffer} structure holds other fields.  In the case
 of indirect buffers, two or more @code{buffer} structures reference
 the same @code{buffer_text} structure.
 
-Here is a list of the @code{struct buffer_text} fields:
+Here are some of the fields in @code{struct buffer_text}:
 
 @table @code
 @item beg
-This field contains the actual address of the buffer contents.
+The address of the buffer contents.
 
 @item gpt
-This holds the character position of the gap in the buffer.
-@xref{Buffer Gap}.
+@itemx gpt_byte
+The character and byte positions of the buffer gap.  @xref{Buffer
+Gap}.
 
 @item z
-This field contains the character position of the end of the buffer
-text.
-
-@item gpt_byte
-Contains the byte position of the gap.
-
-@item z_byte
-Holds the byte position of the end of the buffer text.
+@itemx z_byte
+The character and byte positions of the end of the buffer text.
 
 @item gap_size
-Contains the size of buffer's gap.  @xref{Buffer Gap}.
+The size of buffer's gap.  @xref{Buffer Gap}.
 
 @item modiff
-This field counts buffer-modification events for this buffer.  It is
-incremented for each such event, and never otherwise changed.
-
-@item save_modiff
-Contains the previous value of @code{modiff}, as of the last time a
-buffer was visited or saved in a file.
-
-@item overlay_modiff
-Counts modifications to overlays analogous to @code{modiff}.
+@itemx save_modiff
+@itemx chars_modiff
+@itemx overlay_modiff
+These fields count the number of buffer-modification events performed
+in this buffer.  @code{modiff} is incremented after each
+buffer-modification event, and is never otherwise changed;
+@code{save_modiff} contains the value of @code{modiff} the last time
+the buffer was visited or saved; @code{chars_modiff} counts only
+modifications to the characters in the buffer, ignoring all other
+kinds of changes; and @code{overlay_modiff} counts only modifications
+to the overlays.
 
 @item beg_unchanged
-Holds the number of characters at the start of the text that are known
-to be unchanged since the last redisplay that finished.
-
-@item end_unchanged
-Holds the number of characters at the end of the text that are known to
-be unchanged since the last redisplay that finished.
+@itemx end_unchanged
+The number of characters at the start and end of the text that are
+known to be unchanged since the last complete redisplay.
 
 @item unchanged_modified
-Contains the value of @code{modiff} at the time of the last redisplay
-that finished.  If this value matches @code{modiff},
-@code{beg_unchanged} and @code{end_unchanged} contain no useful
-information.
-
-@item overlay_unchanged_modified
-Contains the value of @code{overlay_modiff} at the time of the last
-redisplay that finished.  If this value matches @code{overlay_modiff},
+@itemx overlay_unchanged_modified
+The values of @code{modiff} and @code{overlay_modiff}, respectively,
+after the last compelete redisplay.  If their current values match
+@code{modiff} or @code{overlay_modiff}, that means
 @code{beg_unchanged} and @code{end_unchanged} contain no useful
 information.
 
@@ -912,286 +897,208 @@ marker, and successive elements in its marker @code{chain} are the other
 markers referring to this buffer text.
 
 @item intervals
-Contains the interval tree which records the text properties of this
-buffer.
+The interval tree which records the text properties of this buffer.
 @end table
 
-The fields of @code{struct buffer} are:
+Some of the fields of @code{struct buffer} are:
 
 @table @code
 @item next
-Points to the next buffer, in the chain of all buffers including killed
-buffers.  This chain is used only for garbage collection, in order to
-collect killed buffers properly.  Note that vectors, and most kinds of
-objects allocated as vectors, are all on one chain, but buffers are on a
-separate chain of their own.
+Points to the next buffer, in the chain of all buffers (including
+killed buffers).  This chain is used only for garbage collection, in
+order to collect killed buffers properly.  Note that vectors, and most
+kinds of objects allocated as vectors, are all on one chain, but
+buffers are on a separate chain of their own.
 
 @item own_text
-This is a @code{struct buffer_text} structure.  In an ordinary buffer,
-it holds the buffer contents.  In indirect buffers, this field is not
-used.
+A @code{struct buffer_text} structure that ordinarily holds the buffer
+contents.  In indirect buffers, this field is not used.
 
 @item text
-This points to the @code{buffer_text} structure that is used for this
-buffer.  In an ordinary buffer, this is the @code{own_text} field above.
-In an indirect buffer, this is the @code{own_text} field of the base
-buffer.
+A pointer to the @code{buffer_text} structure for this buffer.  In an
+ordinary buffer, this is the @code{own_text} field above.  In an
+indirect buffer, this is the @code{own_text} field of the base buffer.
 
 @item pt
-Contains the character position of point in a buffer.
-
-@item pt_byte
-Contains the byte position of point in a buffer.
+@itemx pt_byte
+The character and byte positions of point in a buffer.
 
 @item begv
-This field contains the character position of the beginning of the
-accessible range of text in the buffer.
-
-@item begv_byte
-This field contains the byte position of the beginning of the
-accessible range of text in the buffer.
+@itemx begv_byte
+The character and byte positions of the beginning of the accessible
+range of text in the buffer.
 
 @item zv
-This field contains the character position of the end of the
-accessible range of text in the buffer.
-
-@item zv_byte
-This field contains the byte position of the end of the
-accessible range of text in the buffer.
+@itemx zv_byte
+The character and byte positions of the end of the accessible range of
+text in the buffer.
 
 @item base_buffer
 In an indirect buffer, this points to the base buffer.  In an ordinary
 buffer, it is null.
 
-@item local_var_flags
-This field contains flags indicating that certain variables are local in
-this buffer.  Such variables are declared in the C code using
-@code{DEFVAR_PER_BUFFER}, and their buffer-local bindings are stored in
-fields in the buffer structure itself.  (Some of these fields are
+@item local_flags
+This field contains flags indicating that certain variables are local
+in this buffer.  Such variables are declared in the C code using
+@code{DEFVAR_PER_BUFFER}, and their buffer-local bindings are stored
+in fields in the buffer structure itself.  (Some of these fields are
 described in this table.)
 
 @item modtime
-This field contains the modification time of the visited file.  It is
-set when the file is written or read.  Before writing the buffer into a
-file, this field is compared to the modification time of the file to see
-if the file has changed on disk.  @xref{Buffer Modification}.
+The modification time of the visited file.  It is set when the file is
+written or read.  Before writing the buffer into a file, this field is
+compared to the modification time of the file to see if the file has
+changed on disk.  @xref{Buffer Modification}.
 
 @item auto_save_modified
-This field contains the time when the buffer was last auto-saved.
-
-@item auto_save_failure_time
-The time at which we detected a failure to auto-save, or -1 if we didn't
-have a failure.
+The time when the buffer was last auto-saved.
 
 @item last_window_start
-This field contains the @code{window-start} position in the buffer as of
-the last time the buffer was displayed in a window.
+The @code{window-start} position in the buffer as of the last time the
+buffer was displayed in a window.
 
 @item clip_changed
-This flag is set when narrowing changes in a buffer.
+This flag indicates that narrowing has changed in the buffer.
+@xref{Narrowing}.
 
 @item prevent_redisplay_optimizations_p
-this flag indicates that redisplay optimizations should not be used
-to display this buffer.
+This flag indicates that redisplay optimizations should not be used to
+display this buffer.
 
-@item undo_list
-This field points to the buffer's undo list.  @xref{Undo}.
+@item overlay_center
+This field holds the current overlay center position.  @xref{Managing
+Overlays}.
+
+@item overlays_before
+@itemx overlays_after
+These fields hold, respectively, a list of overlays that end at or
+before the current overlay center, and a list of overlays that end
+after the current overlay center.  @xref{Managing Overlays}.
+@code{overlays_before} is sorted in order of decreasing end position,
+and @code{overlays_after} is sorted in order of increasing beginning
+position.
 
 @item name
-The buffer name is a string that names the buffer.  It is guaranteed to
-be unique.  @xref{Buffer Names}.
-
-@item filename
-The name of the file visited in this buffer, or @code{nil}.
-
-@item directory
-The directory for expanding relative file names.
+A Lisp string that names the buffer.  It is guaranteed to be unique.
+@xref{Buffer Names}.
 
 @item save_length
-Length of the file this buffer is visiting, when last read or saved.
-This and other fields concerned with saving are not kept in the
-@code{buffer_text} structure because indirect buffers are never saved.
+The length of the file this buffer is visiting, when last read or
+saved.  This and other fields concerned with saving are not kept in
+the @code{buffer_text} structure because indirect buffers are never
+saved.
 
-@item auto_save_file_name
-File name used for auto-saving this buffer.  This is not in the
-@code{buffer_text} because it's not used in indirect buffers at all.
+@item directory
+The directory for expanding relative file names.  This is the value of
+the buffer-local variable @code{default-directory} (@pxref{File Name Expansion}).
 
-@item read_only
-Non-@code{nil} means this buffer is read-only.
+@item filename
+The name of the file visited in this buffer, or @code{nil}.  This is
+the value of the buffer-local variable @code{buffer-file-name}
+(@pxref{Buffer File Name}).
+
+@item undo_list
+@itemx backed_up
+@itemx auto_save_file_name
+@itemx read_only
+@itemx file_format
+@itemx file_truename
+@itemx invisibility_spec
+@itemx display_count
+@itemx display_time
+These fields store the values of Lisp variables that are automatically
+buffer-local (@pxref{Buffer-Local Variables}), whose corresponding
+variable names have the additional prefix @code{buffer-} and have
+underscores replaced with dashes.  For instance, @code{undo_list}
+stores the value of @code{buffer-undo-list}.  @xref{Standard
+Buffer-Local Variables}.
 
 @item mark
-This field contains the mark for the buffer.  The mark is a marker,
-hence it is also included on the list @code{markers}.  @xref{The Mark}.
+The mark for the buffer.  The mark is a marker, hence it is also
+included on the list @code{markers}.  @xref{The Mark}.
 
 @item local_var_alist
-This field contains the association list describing the buffer-local
-variable bindings of this buffer, not including the built-in
-buffer-local bindings that have special slots in the buffer object.
-(Those slots are omitted from this table.)  @xref{Buffer-Local
-Variables}.
+The association list describing the buffer-local variable bindings of
+this buffer, not including the built-in buffer-local bindings that
+have special slots in the buffer object.  (Those slots are omitted
+from this table.)  @xref{Buffer-Local Variables}.
 
 @item major_mode
 Symbol naming the major mode of this buffer, e.g., @code{lisp-mode}.
 
 @item mode_name
-Pretty name of major mode, e.g., @code{"Lisp"}.
-
-@item mode_line_format
-Mode line element that controls the format of the mode line.  If this
-is @code{nil}, no mode line will be displayed.
-
-@item header_line_format
-This field is analogous to @code{mode_line_format} for the mode
-line displayed at the top of windows.
+Pretty name of the major mode, e.g., @code{"Lisp"}.
 
 @item keymap
-This field holds the buffer's local keymap.  @xref{Keymaps}.
-
-@item abbrev_table
-This buffer's local abbrevs.
-
-@item syntax_table
-This field contains the syntax table for the buffer.  @xref{Syntax Tables}.
-
-@item category_table
-This field contains the category table for the buffer.
-
-@item case_fold_search
-The value of @code{case-fold-search} in this buffer.
-
-@item tab_width
-The value of @code{tab-width} in this buffer.
-
-@item fill_column
-The value of @code{fill-column} in this buffer.
-
-@item left_margin
-The value of @code{left-margin} in this buffer.
-
-@item auto_fill_function
-The value of @code{auto-fill-function} in this buffer.
+@itemx abbrev_table
+@itemx syntax_table
+@itemx category_table
+@itemx display_table
+These fields store the buffer's local keymap (@pxref{Keymaps}), abbrev
+table (@pxref{Abbrev Tables}), syntax table (@pxref{Syntax Tables}),
+category table (@pxref{Categories}), and display table (@pxref{Display
+Tables}).
 
 @item downcase_table
-This field contains the conversion table for converting text to lower case.
+@itemx upcase_table
+@itemx case_canon_table
+These fields store the conversion tables for converting text to lower
+case, upper case, and for canonicalizing text for case-fold search.
 @xref{Case Tables}.
-
-@item upcase_table
-This field contains the conversion table for converting text to upper case.
-@xref{Case Tables}.
-
-@item case_canon_table
-This field contains the conversion table for canonicalizing text for
-case-folding search.  @xref{Case Tables}.
-
-@item case_eqv_table
-This field contains the equivalence table for case-folding search.
-@xref{Case Tables}.
-
-@item truncate_lines
-The value of @code{truncate-lines} in this buffer.
-
-@item ctl_arrow
-The value of @code{ctl-arrow} in this buffer.
-
-@item selective_display
-The value of @code{selective-display} in this buffer.
-
-@item selective_display_ellipsis
-The value of @code{selective-display-ellipsis} in this buffer.
 
 @item minor_modes
 An alist of the minor modes of this buffer.
 
-@item overwrite_mode
-The value of @code{overwrite_mode} in this buffer.
-
-@item abbrev_mode
-The value of @code{abbrev-mode} in this buffer.
-
-@item display_table
-This field contains the buffer's display table, or @code{nil} if it doesn't
-have one.  @xref{Display Tables}.
-
-@item save_modified
-This field contains the time when the buffer was last saved, as an integer.
-@xref{Buffer Modification}.
-
-@item mark_active
-This field is non-@code{nil} if the buffer's mark is active.
-
-@item overlays_before
-This field holds a list of the overlays in this buffer that end at or
-before the current overlay center position.  They are sorted in order of
-decreasing end position.
-
-@item overlays_after
-This field holds a list of the overlays in this buffer that end after
-the current overlay center position.  They are sorted in order of
-increasing beginning position.
-
-@item overlay_center
-This field holds the current overlay center position.  @xref{Overlays}.
-
-@item enable_multibyte_characters
-This field holds the buffer's local value of
-@code{enable-multibyte-characters}---either @code{t} or @code{nil}.
-
-@item buffer_file_coding_system
-The value of @code{buffer-file-coding-system} in this buffer.
-
-@item file_format
-The value of @code{buffer-file-format} in this buffer.
-
-@item auto_save_file_format
-The value of @code{buffer-auto-save-file-format} in this buffer.
-
 @item pt_marker
-In an indirect buffer, or a buffer that is the base of an indirect
-buffer, this holds a marker that records point for this buffer when the
-buffer is not current.
-
-@item begv_marker
-In an indirect buffer, or a buffer that is the base of an indirect
-buffer, this holds a marker that records @code{begv} for this buffer
+@itemx begv_marker
+@itemx zv_marker
+These fields are only used in an indirect buffer, or in a buffer that
+is the base of an indirect buffer.  Each holds a marker that records
+@code{pt}, @code{begv}, and @code{zv} respectively, for this buffer
 when the buffer is not current.
 
-@item zv_marker
-In an indirect buffer, or a buffer that is the base of an indirect
-buffer, this holds a marker that records @code{zv} for this buffer when
-the buffer is not current.
-
-@item file_truename
-The truename of the visited file, or @code{nil}.
-
-@item invisibility_spec
-The value of @code{buffer-invisibility-spec} in this buffer.
+@item mode_line_format
+@itemx header_line_format
+@itemx case_fold_search
+@itemx tab_width
+@itemx fill_column
+@itemx left_margin
+@itemx auto_fill_function
+@itemx truncate_lines
+@itemx word_wrap
+@itemx ctl_arrow
+@itemx selective_display
+@itemx selective_display_ellipses
+@itemx overwrite_mode
+@itemx abbrev_mode
+@itemx display_table
+@itemx mark_active
+@itemx enable_multibyte_characters
+@itemx buffer_file_coding_system
+@itemx auto_save_file_format
+@itemx cache_long_line_scans
+@itemx point_before_scroll
+@itemx left_fringe_width
+@itemx right_fringe_width
+@itemx fringes_outside_margins
+@itemx scroll_bar_width
+@itemx indicate_empty_lines
+@itemx indicate_buffer_boundaries
+@itemx fringe_indicator_alist
+@itemx fringe_cursor_alist
+@itemx scroll_up_aggressively
+@itemx scroll_down_aggressively
+@itemx cursor_type
+@itemx cursor_in_non_selected_windows
+These fields store the values of Lisp variables that are automatically
+buffer-local (@pxref{Buffer-Local Variables}), whose corresponding
+variable names have underscores replaced with dashes.  For instance,
+@code{mode_line_format} stores the value of @code{mode-line-format}.
+@xref{Standard Buffer-Local Variables}.
 
 @item last_selected_window
 This is the last window that was selected with this buffer in it, or @code{nil}
 if that window no longer displays this buffer.
-
-@item display_count
-This field is incremented each time the buffer is displayed in a window.
-
-@item left_margin_width
-The value of @code{left-margin-width} in this buffer.
-
-@item right_margin_width
-The value of @code{right-margin-width} in this buffer.
-
-@item indicate_empty_lines
-Non-@code{nil} means indicate empty lines (lines with no text) with a
-small bitmap in the fringe, when using a window system that can do it.
-
-@item display_time
-This holds a time stamp that is updated each time this buffer is
-displayed in a window.
-
-@item scroll_up_aggressively
-The value of @code{scroll-up-aggressively} in this buffer.
-
-@item scroll_down_aggressively
-The value of @code{scroll-down-aggressively} in this buffer.
 @end table
 
 @node Window Internals
@@ -1218,47 +1125,40 @@ except to shape their child windows.  Emacs Lisp programs usually have
 no access to the parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
-The following four fields also describe the window tree structure.
-
 @item hchild
-In a window subdivided horizontally by child windows, the leftmost child.
-Otherwise, @code{nil}.
-
-@item vchild
-In a window subdivided vertically by child windows, the topmost child.
-Otherwise, @code{nil}.
+@itemx vchild
+These fields contain the window's leftmost child and its topmost child
+respectively.  @code{hchild} is used if the window is subdivided
+horizontally by child windows, and @code{vchild} if it is subdivided
+vertically.
 
 @item next
-The next sibling of this window.  It is @code{nil} in a window that is
-the rightmost or bottommost of a group of siblings.
+@itemx prev
+The next sibling and previous sibling of this window.  @code{next} is
+@code{nil} if the window is the rightmost or bottommost in its group;
+@code{prev} is @code{nil} if it is the leftmost or topmost in its
+group.
 
-@item prev
-The previous sibling of this window.  It is @code{nil} in a window that
-is the leftmost or topmost of a group of siblings.
+@item left_col
+The left-hand edge of the window, measured in columns, relative to the
+leftmost column in the frame (column 0).
 
-@item left
-This is the left-hand edge of the window, measured in columns.  (The
-leftmost column on the screen is @w{column 0}.)
+@item top_line
+The top edge of the window, measured in lines, relative to the topmost
+line in the frame (line 0).
 
-@item top
-This is the top edge of the window, measured in lines.  (The top line on
-the screen is @w{line 0}.)
-
-@item height
-The height of the window, measured in lines.
-
-@item width
-The width of the window, measured in columns.  This width includes the
-scroll bar and fringes, and/or the separator line on the right of the
-window (if any).
+@item total_cols
+@itemx total_lines
+The width and height of the window, measured in columns and lines
+respectively.  The width includes the scroll bar and fringes, and/or
+the separator line on the right of the window (if any).
 
 @item buffer
-The buffer that the window is displaying.  This may change often during
-the life of the window.
+The buffer that the window is displaying.
 
 @item start
-The position in the buffer that is the first character to be displayed
-in the window.
+A marker pointing to the position in the buffer that is the first
+character displayed in the window.
 
 @item pointm
 @cindex window point internals
@@ -1280,13 +1180,6 @@ gets invisible.
 @item start_at_line_beg
 Non-@code{nil} means current value of @code{start} was the beginning of a line
 when it was chosen.
-
-@item too_small_ok
-Non-@code{nil} means don't delete this window for becoming ``too small.''
-
-@item height_fixed_p
-This field is temporarily set to 1 to fix the height of the selected
-window when the echo area is resized.
 
 @item use_time
 This is the last time that the window was selected.  The function
@@ -1315,18 +1208,10 @@ window was last updated.
 This window's vertical scroll bar.
 
 @item left_margin_width
-The width of the left margin in this window, or @code{nil} not to
-specify it (in which case the buffer's value of @code{left-margin-width}
-is used.
-
-@item right_margin_width
-Likewise for the right margin.
-
-@ignore
-@item last_mark_x
-@item last_mark_y
-???Not used.
-@end ignore
+@itemx right_margin_width
+The widths of the left and right margins in this window.  A value of
+@code{nil} means to use the buffer's value of @code{left-margin-width}
+or @code{right-margin-width}.
 
 @item window_end_pos
 This is computed as @code{z} minus the buffer position of the last glyph
@@ -1345,16 +1230,6 @@ This field is set to a non-@code{nil} value if @code{window_end_pos} is truly
 valid.  This is @code{nil} if nontrivial redisplay is preempted since in that
 case the display that @code{window_end_pos} was computed for did not get
 onto the screen.
-
-@item redisplay_end_trigger
-If redisplay in this window goes beyond this buffer position, it runs
-the @code{redisplay-end-trigger-hook}.
-
-@ignore
-@item orig_height
-@item orig_top
-??? Are temporary storage areas.
-@end ignore
 
 @item cursor
 A structure describing where the cursor is in this window.
@@ -1451,7 +1326,6 @@ The associated buffer of the process.
 An integer, the operating system's process @acronym{ID}.
 
 @item childp
-
 A flag, non-@code{nil} if this is really a child process.
 It is @code{nil} for a network or serial connection.
 
@@ -1461,8 +1335,8 @@ process inserted into the buffer.  This is often but not always the end
 of the buffer.
 
 @item kill_without_query
-If this is non-@code{nil}, killing Emacs while this process is still
-running does not ask for confirmation about killing the process.
+If this is non-zero, killing Emacs while this process is still running
+does not ask for confirmation about killing the process.
 
 @item raw_status_low
 @itemx raw_status_high

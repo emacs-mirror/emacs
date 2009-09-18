@@ -1,7 +1,6 @@
-# Modified from ibm866 according to the chart at
+# Modified from IBM866.map according to the chart at
 # http://www.cyrillic.com/ref/cyrillic/koi-8alt.html,
 # with guesses for the Unicodes of the glyphs.
-# Generated from glibc-2.3.2/localedata/charmaps/IBM866
 0x00-0x7F 0x0000
 0x80-0xAF 0x0410
 0xB0-0xB2 0x2591

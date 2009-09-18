@@ -32,11 +32,12 @@
 ;;; Code:
 
 ;; Docstrings in this file should, where reasonable, follow the
-;; conventions described in bindings.el, so that they get put in the
+;; conventions described in make-docfile, so that they get put in the
 ;; DOC file rather than in memory.
 
 (defun prune-directory-list (dirs &optional keep reject)
-  "Return a copy of DIRS with all non-existent directories removed.
+  "\
+Return a copy of DIRS with all non-existent directories removed.
 The optional argument KEEP is a list of directories to retain even if
 they don't exist, and REJECT is a list of directories to remove from
 DIRS, even if they exist; REJECT takes precedence over KEEP.
@@ -121,8 +122,8 @@ the environment variable INFOPATH is set.")
 The name of the host running an NNTP server.
 The null string means use the local host as the server site.")
 
-(defvar gnus-nntp-service "nntp"
-  "NNTP service name, usually \"nntp\" or 119.
+(defvar gnus-nntp-service "nntp" "\
+NNTP service name, usually \"nntp\" or 119.
 Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
 should be set to `(system-name)'.")
 
@@ -130,8 +131,8 @@ should be set to `(system-name)'.")
 *The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defcustom rmail-file-name "~/RMAIL"
-  "Name of user's primary mail file."
+(defcustom rmail-file-name "~/RMAIL" "\
+Name of user's primary mail file."
   :type 'string
   :group 'rmail
   :version "21.1")
@@ -180,10 +181,6 @@ Its name should end with a slash.")
 If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
-
-(defvar abbrev-file-name
-  (convert-standard-filename "~/.abbrev_defs")
-  "*Default name of file to read abbrevs from.")
 
 ;; arch-tag: bae27ffb-9944-4c87-b569-30d4635a99e1
 ;;; paths.el ends here

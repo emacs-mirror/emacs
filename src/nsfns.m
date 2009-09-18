@@ -203,46 +203,32 @@ ns_get_window (Lisp_Object maybeFrame)
 
 
 static NSScreen *
-ns_get_screen (Lisp_Object anythingUnderTheSun)
+ns_get_screen (Lisp_Object screen)
 {
-  id window =nil;
-  NSScreen *screen = 0;
-
-  struct terminal *terminal;
-  struct ns_display_info *dpyinfo;
-  struct frame *f = NULL;
-  Lisp_Object frame;
-
-  if (INTEGERP (anythingUnderTheSun)) {
-    /* we got a terminal */
-    terminal = get_terminal (anythingUnderTheSun, 1);
-    dpyinfo = terminal->display_info.ns;
-    f = dpyinfo->x_focus_frame;
-    if (!f)
-      f = dpyinfo->x_highlight_frame;
-
-  } else if (FRAMEP (anythingUnderTheSun) &&
-             FRAME_NS_P (XFRAME (anythingUnderTheSun))) {
-    /* we got a frame */
-    f = XFRAME (anythingUnderTheSun);
-
-  } else if (STRINGP (anythingUnderTheSun)) { /* FIXME/cl for multi-display */
-  }
-
-  if (!f)
-    f = SELECTED_FRAME ();
-  if (f)
+  struct terminal *terminal = get_terminal (screen, 1);
+  if (terminal->type != output_ns)
+    // Not sure if this special case for nil is needed.  It does seem to be
+    // important in xfns.c for the make-frame call in frame-initialize,
+    // so let's keep it here for now.
+    return (NILP (screen) ? [NSScreen mainScreen] : NULL);
+  else
     {
-      XSETFRAME (frame, f);
-      window = ns_get_window (frame);
+      struct ns_display_info *dpyinfo = terminal->display_info.ns;
+      struct frame *f = dpyinfo->x_focus_frame;
+      if (!f)
+	f = dpyinfo->x_highlight_frame;
+      if (!f)
+	return NULL;
+      else
+	{
+	  id window = nil;
+	  Lisp_Object frame;
+	  eassert (FRAME_NS_P (f));
+	  XSETFRAME (frame, f);
+	  window = ns_get_window (frame);
+	  return window ? [window screen] : NULL;
+	}
     }
-
-  if (window)
-    screen = [window screen];
-  if (!screen)
-    screen = [NSScreen mainScreen];
-
-  return screen;
 }
 
 
@@ -1045,7 +1031,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0, /* x_set_wait_for_wm, will ignore */
   0,  /* x_set_fullscreen will ignore */
   x_set_font_backend, /* generic OK */
-  x_set_alpha
+  x_set_alpha,
+  0, /* x_set_sticky */  
 };
 
 
@@ -1331,13 +1318,20 @@ be shared by the new frame.  */)
 
   if (! f->output_data.ns->explicit_parent)
     {
-        tem = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_BOOLEAN);
-        if (EQ (tem, Qunbound))
-            tem = Qnil;
-
-        x_set_visibility (f, tem, Qnil);
-        if (EQ (tem, Qt))
-            [[FRAME_NS_VIEW (f) window] makeKeyWindow];
+      tem = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      if (EQ (tem, Qunbound))
+	tem = Qt;
+      x_set_visibility (f, tem, Qnil);
+      if (EQ (tem, Qicon))
+	x_iconify_frame (f);
+      else if (! NILP (tem))
+	{
+	  x_make_frame_visible (f);
+	  f->async_visible = 1;
+	  [[FRAME_NS_VIEW (f) window] makeKeyWindow];
+	}
+      else
+	  f->async_visible = 0;
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
@@ -1389,7 +1383,7 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
   struct frame *f;
 
   check_ns ();
-  fm = [NSFontManager new];
+  fm = [NSFontManager sharedFontManager];
   if (NILP (frame))
     f = SELECTED_FRAME ();
   else
@@ -1548,32 +1542,6 @@ If VALUE is nil, the default is removed.  */)
     }
 
   return Qnil;
-}
-
-
-DEFUN ("ns-set-alpha", Fns_set_alpha, Sns_set_alpha, 2, 2, 0,
-       doc: /* Return a color equivalent to COLOR with alpha setting ALPHA.
-The argument ALPHA should be a number between 0 and 1, where 0 is full
-transparency and 1 is opaque.  */)
-     (color, alpha)
-     Lisp_Object color;
-     Lisp_Object alpha;
-{
-  NSColor *col;
-  float a;
-
-  CHECK_STRING (color);
-  CHECK_NUMBER_OR_FLOAT (alpha);
-
-  if (ns_lisp_to_color (color, &col))
-    error ("Unknown color");
-
-  a = XFLOATINT (alpha);
-  if (a < 0.0 || a > 1.0)
-    error ("Alpha value should be between 0 and 1 inclusive");
-
-  col = [col colorWithAlphaComponent: a];
-  return ns_color_to_lisp (col);
 }
 
 
@@ -2264,16 +2232,12 @@ The optional argument FRAME is currently ignored.  */)
 
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
-       doc: /* Return a description of the color named COLOR.
-The value is a list of integer RGBA values--(RED GREEN BLUE ALPHA).
-These values appear to range from 0 to 65280; white is (65280 65280 65280 0).
-The optional argument FRAME is currently ignored.  */)
+       doc: /* Internal function called by `color-values', which see.  */)
      (color, frame)
      Lisp_Object color, frame;
 {
   NSColor * col;
   float red, green, blue, alpha;
-  Lisp_Object rgba[4];
 
   check_ns ();
   CHECK_STRING (color);
@@ -2283,12 +2247,9 @@ The optional argument FRAME is currently ignored.  */)
 
   [[col colorUsingColorSpaceName: NSCalibratedRGBColorSpace]
         getRed: &red green: &green blue: &blue alpha: &alpha];
-  rgba[0] = make_number (lrint (red*65280));
-  rgba[1] = make_number (lrint (green*65280));
-  rgba[2] = make_number (lrint (blue*65280));
-  rgba[3] = make_number (lrint (alpha*65280));
-
-  return Flist (4, rgba);
+  return list3 (make_number (lrint (red*65280)),
+		make_number (lrint (green*65280)),
+		make_number (lrint (blue*65280)));
 }
 
 
@@ -2397,7 +2358,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   check_ns ();
   return make_number
-    (NSBitsPerSampleFromDepth ([ns_get_screen (display) depth]));
+    (NSBitsPerPixelFromDepth ([ns_get_screen (display) depth]));
 }
 
 
@@ -2706,7 +2667,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sx_display_backing_store);
   defsubr (&Sx_display_save_under);
   defsubr (&Sx_create_frame);
-  defsubr (&Sns_set_alpha);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);

@@ -359,6 +359,15 @@ and the cdr part is used for encoding."
 
 (defvar rcirc-startup-channels nil)
 
+(defvar rcirc-server-name-history nil
+  "History variable for \\[rcirc] call.")
+
+(defvar rcirc-server-port-history nil
+  "History variable for \\[rcirc] call.")
+
+(defvar rcirc-nick-name-history nil
+  "History variable for \\[rcirc] call.")
+
 ;;;###autoload
 (defun rcirc (arg)
   "Connect to all servers in `rcirc-server-alist'.
@@ -371,20 +380,23 @@ If ARG is non-nil, instead prompt for connection parameters."
       (let* ((server (completing-read "IRC Server: "
 				      rcirc-server-alist
 				      nil nil
-				      (caar rcirc-server-alist)))
+				      (caar rcirc-server-alist)
+				      'rcirc-server-name-history))
 	     (server-plist (cdr (assoc-string server rcirc-server-alist)))
 	     (port (read-string "IRC Port: "
 				(number-to-string
-				 (or (plist-get server-plist 'port)
-				     rcirc-default-port))))
+				 (or (plist-get server-plist :port)
+				     rcirc-default-port))
+				'rcirc-server-port-history))
 	     (nick (read-string "IRC Nick: "
-				(or (plist-get server-plist 'nick)
-				    rcirc-default-nick)))
+				(or (plist-get server-plist :nick)
+				    rcirc-default-nick)
+				'rcirc-nick-name-history))
 	     (channels (split-string
 			(read-string "IRC Channels: "
 				     (mapconcat 'identity
 						(plist-get server-plist
-							   'channels)
+							   :channels)
 						" "))
 			"[, ]+" t)))
 	(rcirc-connect server port nick rcirc-default-user-name
@@ -526,8 +538,10 @@ last ping."
 		  (rcirc-send-string process
 				     (format "PRIVMSG %s :\C-aKEEPALIVE %f\C-a"
 					     rcirc-nick
-					     (time-to-seconds
-					      (current-time)))))))
+                                             (if (featurep 'xemacs)
+                                                 (time-to-seconds
+                                                  (current-time))
+                                               (float-time)))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (cancel-timer rcirc-keepalive-timer)
@@ -535,7 +549,10 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process target sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (time-to-seconds (current-time))
+    (setq header-line-format (format "%f" (- (if (featurep 'xemacs)
+                                                 (time-to-seconds
+                                                  (current-time))
+                                               (float-time))
 					     (string-to-number message))))))
 
 (defvar rcirc-debug-buffer " *rcirc debug*")

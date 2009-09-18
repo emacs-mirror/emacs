@@ -83,32 +83,28 @@ The Lisp code is executed when the node is selected.")
     (t :height 1.2 :inherit info-title-2))
   "Face for info titles at level 1."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-1-face 'face-alias 'info-title-1)
+(define-obsolete-face-alias 'Info-title-1-face 'info-title-1 "22.1")
 
 (defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
     (t :height 1.2 :inherit info-title-3))
   "Face for info titles at level 2."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-2-face 'face-alias 'info-title-2)
+(define-obsolete-face-alias 'Info-title-2-face 'info-title-2 "22.1")
 
 (defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
     (t :height 1.2 :inherit info-title-4))
   "Face for info titles at level 3."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-3-face 'face-alias 'info-title-3)
+(define-obsolete-face-alias 'Info-title-3-face 'info-title-3 "22.1")
 
 (defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
   "Face for info titles at level 4."
   :group 'info)
-;; backward-compatibility alias
-(put 'Info-title-4-face 'face-alias 'info-title-4)
+(define-obsolete-face-alias 'Info-title-4-face 'info-title-4 "22.1")
 
 (defface info-menu-header
   '((((type tty pc))
@@ -125,7 +121,7 @@ The Lisp code is executed when the node is selected.")
     (t :underline t))
   "Face for every third `*' in an Info menu."
   :group 'info)
-(put 'info-menu-5 'face-alias 'info-menu-star)
+(define-obsolete-face-alias 'info-menu-5 'info-menu-star "22.1")
 
 (defface info-xref
   '((t :inherit link))
@@ -328,6 +324,54 @@ If number, the point is moved to the corresponding line.")
 
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
+
+(defvar Info-virtual-files nil
+  "List of definitions of virtual Info files.
+Each element of the list has the format (FILENAME (OPERATION . HANDLER) ...)
+where FILENAME is a regexp that matches a class of virtual Info file names.
+It should be carefully chosen to not cause file name clashes with
+existing file names.  OPERATION is one of the following operation
+symbols `find-file', `find-node', `toc-nodes' that define what HANDLER
+function to call instead of calling the default corresponding function
+to override it.")
+
+(defvar Info-virtual-nodes nil
+  "List of definitions of virtual Info nodes.
+Each element of the list has the format (NODENAME (OPERATION . HANDLER) ...)
+where NODENAME is a regexp that matches a class of virtual Info node names.
+It should be carefully chosen to not cause node name clashes with
+existing node names.  OPERATION is one of the following operation
+symbols `find-node' that define what HANDLER
+function to call instead of calling the default corresponding function
+to override it.")
+
+(defvar Info-current-node-virtual nil
+  "Non-nil if the current Info node is virtual.")
+
+(defun Info-virtual-file-p (filename)
+  "Check if Info file FILENAME is virtual."
+  (Info-virtual-fun 'find-file filename nil))
+
+(defun Info-virtual-fun (op filename nodename)
+  "Find a function that handles operations on virtual manuals.
+OP is an operation symbol (`find-file', `find-node' or `toc-nodes'),
+FILENAME is a virtual Info file name, NODENAME is a virtual Info
+node name.  Return a function found either in `Info-virtual-files'
+or `Info-virtual-nodes'."
+  (or (and (stringp filename) ; some legacy code can still use a symbol
+	   (cdr-safe (assoc op (assoc-default filename
+					      Info-virtual-files
+					      'string-match))))
+      (and (stringp nodename) ; some legacy code can still use a symbol
+	   (cdr-safe (assoc op (assoc-default nodename
+					      Info-virtual-nodes
+					      'string-match))))))
+
+(defun Info-virtual-call (virtual-fun &rest args)
+  "Call a function that handles operations on virtual manuals."
+  (when (functionp virtual-fun)
+    (or (apply virtual-fun args) t)))
+
 
 (defvar Info-suffix-list
   ;; The MS-DOS list should work both when long file names are
@@ -481,7 +525,7 @@ in `Info-file-supports-index-cookies-list'."
   (or (assoc file Info-file-supports-index-cookies-list)
       ;; Skip virtual Info files
       (and (or (not (stringp file))
-	       (member file '("dir" apropos history toc)))
+	       (Info-virtual-file-p file))
            (setq Info-file-supports-index-cookies-list
 		 (cons (cons file nil) Info-file-supports-index-cookies-list)))
       (save-excursion
@@ -660,59 +704,58 @@ Optional second argument NOERROR, if t, means if file is not found
 just return nil (no error)."
   ;; Convert filename to lower case if not found as specified.
   ;; Expand it.
-  (if (stringp filename)
-      (let (temp temp-downcase found)
-        (setq filename (substitute-in-file-name filename))
-	(cond
-	 ((string= (downcase filename) "dir")
-	  (setq found t))
-	 (t
-	  (let ((dirs (if (string-match "^\\./" filename)
-                          ;; If specified name starts with `./'
-                          ;; then just try current directory.
-                          '("./")
-                        (if (file-name-absolute-p filename)
-                            ;; No point in searching for an
-                            ;; absolute file name
-                            '(nil)
-                          (if Info-additional-directory-list
-                              (append Info-directory-list
-                                      Info-additional-directory-list)
-                            Info-directory-list)))))
-            ;; Search the directory list for file FILENAME.
-            (while (and dirs (not found))
-              (setq temp (expand-file-name filename (car dirs)))
-              (setq temp-downcase
-                    (expand-file-name (downcase filename) (car dirs)))
-              ;; Try several variants of specified name.
-              (let ((suffix-list Info-suffix-list)
-		    (lfn (if (fboundp 'msdos-long-file-names)
-			     (msdos-long-file-names)
-			   t)))
-                (while (and suffix-list (not found))
-                  (cond ((info-file-exists-p
-                          (info-insert-file-contents-1
-                           temp (car (car suffix-list)) lfn))
-                         (setq found temp))
-                        ((info-file-exists-p
-                          (info-insert-file-contents-1
-                           temp-downcase (car (car suffix-list)) lfn))
-                         (setq found temp-downcase))
-			((and (fboundp 'msdos-long-file-names)
-			      lfn
-			      (info-file-exists-p
-			       (info-insert-file-contents-1
-				temp (car (car suffix-list)) nil)))
-			 (setq found temp)))
-                  (setq suffix-list (cdr suffix-list))))
-              (setq dirs (cdr dirs))))))
-        (if found
-            (setq filename found)
-          (if noerror
-              (setq filename nil)
-            (error "Info file %s does not exist" filename)))
-        filename)
-    (and (member filename '(apropos history toc)) filename)))
+  (cond
+   ((Info-virtual-call
+     (Info-virtual-fun 'find-file filename nil)
+     filename noerror))
+   ((stringp filename)
+    (let (temp temp-downcase found)
+      (setq filename (substitute-in-file-name filename))
+      (let ((dirs (if (string-match "^\\./" filename)
+		      ;; If specified name starts with `./'
+		      ;; then just try current directory.
+		      '("./")
+		    (if (file-name-absolute-p filename)
+			;; No point in searching for an
+			;; absolute file name
+			'(nil)
+		      (if Info-additional-directory-list
+			  (append Info-directory-list
+				  Info-additional-directory-list)
+			Info-directory-list)))))
+	;; Search the directory list for file FILENAME.
+	(while (and dirs (not found))
+	  (setq temp (expand-file-name filename (car dirs)))
+	  (setq temp-downcase
+		(expand-file-name (downcase filename) (car dirs)))
+	  ;; Try several variants of specified name.
+	  (let ((suffix-list Info-suffix-list)
+		(lfn (if (fboundp 'msdos-long-file-names)
+			 (msdos-long-file-names)
+		       t)))
+	    (while (and suffix-list (not found))
+	      (cond ((info-file-exists-p
+		      (info-insert-file-contents-1
+		       temp (car (car suffix-list)) lfn))
+		     (setq found temp))
+		    ((info-file-exists-p
+		      (info-insert-file-contents-1
+		       temp-downcase (car (car suffix-list)) lfn))
+		     (setq found temp-downcase))
+		    ((and (fboundp 'msdos-long-file-names)
+			  lfn
+			  (info-file-exists-p
+			   (info-insert-file-contents-1
+			    temp (car (car suffix-list)) nil)))
+		     (setq found temp)))
+	      (setq suffix-list (cdr suffix-list))))
+	  (setq dirs (cdr dirs))))
+      (if found
+	  (setq filename found)
+	(if noerror
+	    (setq filename nil)
+	  (error "Info file %s does not exist" filename)))
+      filename))))
 
 (defun Info-find-node (filename nodename &optional no-going-back)
   "Go to an Info node specified as separate FILENAME and NODENAME.
@@ -862,68 +905,76 @@ a case-insensitive match is tried."
   (setq Info-current-node nil)
   (unwind-protect
       (let ((case-fold-search t)
+	    (virtual-fun (Info-virtual-fun 'find-node
+					   (or filename Info-current-file)
+					   nodename))
 	    anchorpos)
-        ;; Switch files if necessary
-        (or (null filename)
-            (equal Info-current-file filename)
-            (let ((inhibit-read-only t))
-              (setq Info-current-file nil
-                    Info-current-subfile nil
-                    Info-current-file-completions nil
-                    buffer-file-name nil)
-              (erase-buffer)
-	      (cond
-	       ((eq filename t)
-		(Info-insert-dir))
-	       ((eq filename 'apropos)
-		(insert-buffer-substring " *info-apropos*"))
-	       ((eq filename 'history)
-		(insert-buffer-substring " *info-history*"))
-	       ((eq filename 'toc)
-		(insert-buffer-substring " *info-toc*"))
-	       (t
-                (info-insert-file-contents filename nil)
-                (setq default-directory (file-name-directory filename))))
-              (set-buffer-modified-p nil)
-	      (set (make-local-variable 'Info-file-supports-index-cookies)
-		   (Info-file-supports-index-cookies filename))
+	(cond
+	 ((functionp virtual-fun)
+	  (let ((filename (or filename Info-current-file)))
+	    (setq buffer-file-name nil)
+	    (setq buffer-read-only nil)
+	    (erase-buffer)
+	    (setq Info-current-file filename)
+	    (Info-virtual-call virtual-fun filename nodename no-going-back)
+	    (set-marker Info-tag-table-marker nil)
+	    (setq buffer-read-only t)
+	    (set-buffer-modified-p nil)
+	    (set (make-local-variable 'Info-current-node-virtual) t)))
+	 ((not (and
+		;; Reread a file when moving from a virtual node.
+		(not Info-current-node-virtual)
+		(or (null filename)
+		    (equal Info-current-file filename))))
+	  ;; Switch files if necessary
+	  (let ((inhibit-read-only t))
+	    (if (and Info-current-node-virtual (null filename))
+		(setq filename Info-current-file))
+	    (setq Info-current-file nil
+		  Info-current-subfile nil
+		  Info-current-file-completions nil
+		  buffer-file-name nil)
+	    (erase-buffer)
+	    (info-insert-file-contents filename nil)
+	    (setq default-directory (file-name-directory filename))
+	    (set-buffer-modified-p nil)
+	    (set (make-local-variable 'Info-file-supports-index-cookies)
+		 (Info-file-supports-index-cookies filename))
 
-              ;; See whether file has a tag table.  Record the location if yes.
-              (goto-char (point-max))
-              (forward-line -8)
-              ;; Use string-equal, not equal, to ignore text props.
-              (if (not (or (string-equal nodename "*")
-                           (not
-                            (search-forward "\^_\nEnd tag table\n" nil t))))
-                  (let (pos)
-                    ;; We have a tag table.  Find its beginning.
-                    ;; Is this an indirect file?
-                    (search-backward "\nTag table:\n")
-                    (setq pos (point))
-                    (if (save-excursion
-                          (forward-line 2)
-                          (looking-at "(Indirect)\n"))
-                        ;; It is indirect.  Copy it to another buffer
-                        ;; and record that the tag table is in that buffer.
-                        (let ((buf (current-buffer))
-                              (tagbuf
-                               (or Info-tag-table-buffer
-                                   (generate-new-buffer " *info tag table*"))))
-                          (setq Info-tag-table-buffer tagbuf)
-                          (with-current-buffer tagbuf
-                            (buffer-disable-undo (current-buffer))
-                            (setq case-fold-search t)
-                            (erase-buffer)
-                            (insert-buffer-substring buf))
-                          (set-marker Info-tag-table-marker
-                                      (match-end 0) tagbuf))
-                      (set-marker Info-tag-table-marker pos)))
-                (set-marker Info-tag-table-marker nil))
-              (setq Info-current-file
-		    (cond
-		     ((eq filename t) "dir")
-		     (t filename)))
-	      ))
+	    ;; See whether file has a tag table.  Record the location if yes.
+	    (goto-char (point-max))
+	    (forward-line -8)
+	    ;; Use string-equal, not equal, to ignore text props.
+	    (if (not (or (string-equal nodename "*")
+			 (not
+			  (search-forward "\^_\nEnd tag table\n" nil t))))
+		(let (pos)
+		  ;; We have a tag table.  Find its beginning.
+		  ;; Is this an indirect file?
+		  (search-backward "\nTag table:\n")
+		  (setq pos (point))
+		  (if (save-excursion
+			(forward-line 2)
+			(looking-at "(Indirect)\n"))
+		      ;; It is indirect.  Copy it to another buffer
+		      ;; and record that the tag table is in that buffer.
+		      (let ((buf (current-buffer))
+			    (tagbuf
+			     (or Info-tag-table-buffer
+				 (generate-new-buffer " *info tag table*"))))
+			(setq Info-tag-table-buffer tagbuf)
+			(with-current-buffer tagbuf
+			  (buffer-disable-undo (current-buffer))
+			  (setq case-fold-search t)
+			  (erase-buffer)
+			  (insert-buffer-substring buf))
+			(set-marker Info-tag-table-marker
+				    (match-end 0) tagbuf))
+		    (set-marker Info-tag-table-marker pos)))
+	      (set-marker Info-tag-table-marker nil))
+	    (setq Info-current-file filename)
+	    )))
+
         ;; Use string-equal, not equal, to ignore text props.
         (if (string-equal nodename "*")
             (progn (setq Info-current-node nodename)
@@ -1638,8 +1689,7 @@ If DIRECTION is `backward', search in the reverse direction."
 			(format "Regexp search%s: "
 				(if case-fold-search "" " case-sensitively")))
 		      nil 'Info-search-history)))
-  (when transient-mark-mode
-    (deactivate-mark))
+  (deactivate-mark)
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
@@ -1998,6 +2048,26 @@ If SAME-FILE is non-nil, do not move to a different Info file."
     (Info-find-node filename nodename)
     (setq Info-history-forward history-forward)
     (goto-char opoint)))
+
+(add-to-list 'Info-virtual-files
+	     '("\\`dir\\'"
+	       (toc-nodes . Info-directory-toc-nodes)
+	       (find-file . Info-directory-find-file)
+	       (find-node . Info-directory-find-node)
+	       ))
+
+(defun Info-directory-toc-nodes (filename)
+  "Directory-specific implementation of Info-directory-toc-nodes."
+  `(,filename
+    ("Top" nil nil nil)))
+
+(defun Info-directory-find-file (filename &optional noerror)
+  "Directory-specific implementation of Info-find-file."
+  filename)
+
+(defun Info-directory-find-node (filename nodename &optional no-going-back)
+  "Directory-specific implementation of Info-find-node-2."
+  (Info-insert-dir))
 
 ;;;###autoload
 (defun Info-directory ()
@@ -2005,72 +2075,88 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
   (Info-find-node "dir" "top"))
 
+(add-to-list 'Info-virtual-files
+	     '("\\`\\*History\\*\\'"
+	       (toc-nodes . Info-history-toc-nodes)
+	       (find-file . Info-history-find-file)
+	       (find-node . Info-history-find-node)
+	       ))
+
+(defun Info-history-toc-nodes (filename)
+  "History-specific implementation of Info-history-toc-nodes."
+  `(,filename
+    ("Top" nil nil nil)))
+
+(defun Info-history-find-file (filename &optional noerror)
+  "History-specific implementation of Info-find-file."
+  filename)
+
+(defun Info-history-find-node (filename nodename &optional no-going-back)
+  "History-specific implementation of Info-find-node-2."
+  (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
+		  (or filename Info-current-file) nodename))
+  (insert "Recently Visited Nodes\n")
+  (insert "**********************\n\n")
+  (insert "* Menu:\n\n")
+  (let ((hl (delete '("*History*" "Top") Info-history-list)))
+    (while hl
+      (let ((file (nth 0 (car hl)))
+	    (node (nth 1 (car hl))))
+	(if (stringp file)
+	    (insert "* " node ": ("
+		    (propertize (or (file-name-directory file) "") 'invisible t)
+		    (file-name-nondirectory file)
+		    ")" node ".\n")))
+      (setq hl (cdr hl)))))
+
 (defun Info-history ()
   "Go to a node with a menu of visited nodes."
   (interactive)
-  (let ((curr-file Info-current-file)
-        (curr-node Info-current-node)
-        p)
-    (with-current-buffer (get-buffer-create " *info-history*")
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (goto-char (point-min))
-        (insert "\n\^_\nFile: history,  Node: Top,  Up: (dir)\n\n")
-        (insert "Recently Visited Nodes\n**********************\n\n")
-        (insert "* Menu:\n\n")
-        (let ((hl (delete '("history" "Top") Info-history-list)))
-          (while hl
-            (let ((file (nth 0 (car hl)))
-                  (node (nth 1 (car hl))))
-              (if (and (equal file curr-file)
-                       (equal node curr-node))
-                  (setq p (point)))
-              (if (stringp file)
-		  (insert "* " node ": ("
-			  (propertize (or (file-name-directory file) "") 'invisible t)
-			  (file-name-nondirectory file)
-			  ")" node ".\n")))
-            (setq hl (cdr hl))))))
-    (Info-find-node 'history "Top")
-    (goto-char (or p (point-min)))))
+  (Info-find-node "*History*" "Top")
+  (Info-next-reference)
+  (Info-next-reference))
+
+(add-to-list 'Info-virtual-nodes
+	     '("\\`\\*TOC\\*\\'"
+	       (find-node . Info-toc-find-node)
+	       ))
+
+(defun Info-toc-find-node (filename nodename &optional no-going-back)
+  "Toc-specific implementation of Info-find-node-2."
+  (let* ((curr-file (substring-no-properties (or filename Info-current-file)))
+	 (curr-node (substring-no-properties (or nodename Info-current-node)))
+	 (node-list (Info-toc-nodes curr-file)))
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    curr-file curr-node))
+    (insert "Table of Contents\n")
+    (insert "*****************\n\n")
+    (insert "*Note Top::\n")
+    (Info-toc-insert
+     (nth 3 (assoc "Top" node-list))	; get Top nodes
+     node-list 0 curr-file)
+    (unless (bobp)
+      (let ((Info-hide-note-references 'hide)
+	    (Info-fontify-visited-nodes nil))
+	(setq Info-current-file filename Info-current-node "*TOC*")
+	(goto-char (point-min))
+	(narrow-to-region (or (re-search-forward "\n[\^_\f]\n" nil t)
+			      (point-min))
+			  (point-max))
+	(Info-fontify-node)
+	(widen)))))
 
 (defun Info-toc ()
   "Go to a node with table of contents of the current Info file.
 Table of contents is created from the tree structure of menus."
   (interactive)
-  (if (stringp Info-current-file)
-      (let ((curr-file (substring-no-properties Info-current-file))
-	    (curr-node (substring-no-properties Info-current-node))
-	    p)
-	(with-current-buffer (get-buffer-create " *info-toc*")
-	  (let ((inhibit-read-only t)
-		(node-list (Info-toc-nodes curr-file)))
-	    (erase-buffer)
-	    (goto-char (point-min))
-	    (insert "\n\^_\nFile: toc,  Node: Top,  Up: (dir)\n\n")
-	    (insert "Table of Contents\n*****************\n\n")
-	    (insert "*Note Top: (" curr-file ")Top.\n")
-	    (Info-insert-toc
-	     (nth 3 (assoc "Top" node-list)) ; get Top nodes
-	     node-list 0 curr-file))
-	  (if (not (bobp))
-	      (let ((Info-hide-note-references 'hide)
-		    (Info-fontify-visited-nodes nil))
-		(Info-mode)
-		(setq Info-current-file 'toc Info-current-node "Top")
-		(goto-char (point-min))
-		(narrow-to-region (or (re-search-forward "\n[\^_\f]\n" nil t)
-				      (point-min))
-				  (point-max))
-		(Info-fontify-node)
-		(widen)))
-	  (goto-char (point-min))
-	  (if (setq p (search-forward (concat "*Note " curr-node ":") nil t))
-	      (setq p (- p (length curr-node) 2))))
-	(Info-find-node 'toc "Top")
-	(goto-char (or p (point-min))))))
+  (Info-find-node Info-current-file "*TOC*")
+  (let ((prev-node (nth 1 (car Info-history))) p)
+    (goto-char (point-min))
+    (if (setq p (search-forward (concat "*Note " prev-node ":") nil t))
+	(setq p (- p (length prev-node) 2)))
+    (goto-char (or p (point-min)))))
 
-(defun Info-insert-toc (nodes node-list level curr-file)
+(defun Info-toc-insert (nodes node-list level curr-file)
   "Insert table of contents with references to nodes."
   (let ((section "Top"))
     (while nodes
@@ -2078,11 +2164,11 @@ Table of contents is created from the tree structure of menus."
         (unless (member (nth 2 node) (list nil section))
           (insert (setq section (nth 2 node)) "\n"))
         (insert (make-string level ?\t))
-        (insert "*Note " (car nodes) ": (" curr-file ")" (car nodes) ".\n")
-        (Info-insert-toc (nth 3 node) node-list (1+ level) curr-file)
+        (insert "*Note " (car nodes) ":: \n")
+        (Info-toc-insert (nth 3 node) node-list (1+ level) curr-file)
         (setq nodes (cdr nodes))))))
 
-(defun Info-build-toc (file)
+(defun Info-toc-build (file)
   "Build table of contents from menus of Info FILE and its subfiles."
   (with-temp-buffer
     (let* ((file (and (stringp file) (Info-find-file file)))
@@ -2162,23 +2248,28 @@ where PARENT is the parent node extracted from the Up pointer,
 SECTION is the section name in the Top node where this node is placed,
 CHILDREN is a list of child nodes extracted from the node menu.")
 
-(defun Info-toc-nodes (file)
-  "Return a node list of Info FILE with parent-children information.
+(defun Info-toc-nodes (filename)
+  "Return a node list of Info FILENAME with parent-children information.
 This information is cached in the variable `Info-toc-nodes' with the help
-of the function `Info-build-toc'."
-  (or file (setq file Info-current-file))
-  (or (assoc file Info-toc-nodes)
-      ;; Skip virtual Info files
-      (and (or (not (stringp file))
-	       (member file '("dir" apropos history toc)))
-           (push (cons file nil) Info-toc-nodes))
-      ;; Scan the entire manual and cache the result in Info-toc-nodes
-      (let ((nodes (Info-build-toc file)))
-	(push (cons file nodes) Info-toc-nodes)
-	nodes)
-      ;; If there is an error, still add nil to the cache
-      (push (cons file nil) Info-toc-nodes))
-  (cdr (assoc file Info-toc-nodes)))
+of the function `Info-toc-build'."
+  (cond
+   ((Info-virtual-call
+     (Info-virtual-fun 'toc-nodes (or filename Info-current-file) nil)
+     filename))
+   (t
+    (or filename (setq filename Info-current-file))
+    (or (assoc filename Info-toc-nodes)
+	;; Skip virtual Info files
+	(and (or (not (stringp filename))
+		 (Info-virtual-file-p filename))
+	     (push (cons filename nil) Info-toc-nodes))
+	;; Scan the entire manual and cache the result in Info-toc-nodes
+	(let ((nodes (Info-toc-build filename)))
+	  (push (cons filename nodes) Info-toc-nodes)
+	  nodes)
+	;; If there is an error, still add nil to the cache
+	(push (cons filename nil) Info-toc-nodes))
+    (cdr (assoc filename Info-toc-nodes)))))
 
 
 (defun Info-follow-reference (footnotename &optional fork)
@@ -2792,7 +2883,7 @@ following nodes whose names also contain the word \"Index\"."
   (or (assoc file Info-index-nodes)
       ;; Skip virtual Info files
       (and (or (not (stringp file))
-	       (member file '("dir" apropos history toc)))
+	       (Info-virtual-file-p file))
            (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
       (if (Info-file-supports-index-cookies file)
 	  ;; Find nodes with index cookie
@@ -2860,21 +2951,22 @@ following nodes whose names also contain the word \"Index\"."
 If NODE is nil, check the current Info node.
 If FILE is nil, check the current Info file."
   (or file (setq file Info-current-file))
-  (if (or (and node (not (equal node Info-current-node)))
-          (assoc file Info-index-nodes))
+  (if (and (or (and node (not (equal node Info-current-node)))
+	       (assoc file Info-index-nodes))
+	   (not Info-current-node-virtual))
       (member (or node Info-current-node) (Info-index-nodes file))
     ;; Don't search all index nodes if request is only for the current node
     ;; and file is not in the cache of index nodes
-    (if (Info-file-supports-index-cookies file)
-	(save-excursion
-	  (goto-char (+ (or (save-excursion
-			      (search-backward "\n\^_" nil t))
-			    (point-min)) 2))
-	  (search-forward "\0\b[index\0\b]"
-			  (or (save-excursion
-				(search-forward "\n\^_" nil t))
-			      (point-max)) t))
-      (save-match-data
+    (save-match-data
+      (if (Info-file-supports-index-cookies file)
+	  (save-excursion
+	    (goto-char (+ (or (save-excursion
+				(search-backward "\n\^_" nil t))
+			      (point-min)) 2))
+	    (search-forward "\0\b[index\0\b]"
+			    (or (save-excursion
+				  (search-forward "\n\^_" nil t))
+				(point-max)) t))
 	(string-match "\\<Index\\>" (or node Info-current-node ""))))))
 
 (defun Info-goto-index ()
@@ -3000,11 +3092,163 @@ Give an empty topic name to go to the Index node itself."
                  (Info-find-index-name (match-string 1 name))))
 	(progn (beginning-of-line) t)  ;; non-nil for recursive call
       (goto-char (point-min)))))
+
+(add-to-list 'Info-virtual-nodes
+	     '("\\`\\*Index.*\\*\\'"
+	       (find-node . Info-virtual-index-find-node)
+	       ))
 
-;;;###autoload
-(defun info-apropos (string)
-  "Grovel indices of all known Info files on your system for STRING.
-Build a menu of the possible matches."
+(defvar Info-virtual-index-nodes nil
+  "Alist of cached matched index search nodes.
+Each element is ((FILENAME . TOPIC) MATCHES) where
+FILENAME is the file name of the manual,
+TOPIC is the search string given as an argument to `Info-virtual-index',
+MATCHES is a list of index matches found by `Info-index'.")
+
+(defun Info-virtual-index-find-node (filename nodename &optional no-going-back)
+  "Index-specific implementation of Info-find-node-2."
+  ;; Generate Index-like menu of matches
+  (if (string-match "^\\*Index for `\\(.+\\)'\\*$" nodename)
+      ;; Generate Index-like menu of matches
+      (let* ((topic (match-string 1 nodename))
+	     (matches (cdr (assoc (cons (or filename Info-current-file) topic)
+				  Info-virtual-index-nodes))))
+	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: *Index*\n\n"
+			(or filename Info-current-file) nodename))
+	(insert "Info Virtual Index\n")
+	(insert "******************\n\n")
+	(insert "Index entries that match `" topic "':\n\n")
+	(insert "\0\b[index\0\b]\n")
+	(if (null matches)
+	    (insert "No matches found.\n")
+	  (insert "* Menu:\n\n")
+	  (dolist (entry matches)
+	    (insert (format "* %-38s %s.%s\n"
+			    (format "%s [%s]:" (nth 0 entry) (nth 2 entry))
+			    (nth 1 entry)
+			    (if (nth 3 entry)
+				(format " (line %s)" (nth 3 entry))
+			      ""))))))
+    ;; Else, Generate a list of previous search results
+    (let ((nodes (reverse Info-virtual-index-nodes)))
+      (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		      (or filename Info-current-file) nodename))
+      (insert "Info Virtual Index\n")
+      (insert "******************\n\n")
+      (insert "This is a list of search results produced by\n"
+	      "`Info-virtual-index' for the current manual.\n\n")
+      (insert "* Menu:\n\n")
+      (dolist (nodeinfo nodes)
+	(when (equal (car (nth 0 nodeinfo)) (or filename Info-current-file))
+	  (insert
+	   (format "* %-20s %s.\n"
+		   (format "*Index for `%s'*::" (cdr (nth 0 nodeinfo)))
+		   (cdr (nth 0 nodeinfo)))))))))
+
+(defun Info-virtual-index (topic)
+  "Show a node with all lines in the index containing a string TOPIC.
+Like `Info-index' but displays a node with index search results.
+Give an empty topic name to go to the node with links to previous
+search results."
+  ;; `interactive' is a copy from `Info-index'
+  (interactive
+   (list
+    (let ((completion-ignore-case t)
+	  (Info-complete-menu-buffer (clone-buffer))
+	  (Info-complete-nodes (Info-index-nodes))
+	  (Info-history-list nil))
+      (if (equal Info-current-file "dir")
+	  (error "The Info directory node has no index; use m to select a manual"))
+      (unwind-protect
+	  (with-current-buffer Info-complete-menu-buffer
+	    (Info-goto-index)
+	    (completing-read "Index topic: " 'Info-complete-menu-item))
+	(kill-buffer Info-complete-menu-buffer)))))
+  (if (equal topic "")
+      (Info-find-node Info-current-file "*Index*")
+    (unless (assoc (cons Info-current-file topic) Info-virtual-index-nodes)
+      (let ((orignode Info-current-node)
+	    (ohist-list Info-history-list)
+	    nodename)
+	;; Reuse `Info-index' to set `Info-index-alternatives'.
+	(Info-index topic)
+	(push (cons (cons Info-current-file topic) Info-index-alternatives)
+	      Info-virtual-index-nodes)
+	;; Clean up unneccessary side-effects of `Info-index'.
+	(setq Info-history-list ohist-list)
+	(Info-goto-node orignode)
+	(message "")))
+    (Info-find-node Info-current-file (format "*Index for `%s'*" topic))))
+
+(add-to-list 'Info-virtual-files
+	     '("\\`\\*Apropos\\*\\'"
+	       (toc-nodes . Info-apropos-toc-nodes)
+	       (find-file . Info-apropos-find-file)
+	       (find-node . Info-apropos-find-node)
+	       ))
+
+(defvar Info-apropos-file "*Apropos*"
+  "Info file name of the virtual manual for matches of `info-apropos'.")
+
+(defvar Info-apropos-nodes nil
+  "Alist of cached apropos matched nodes.
+Each element is (NODENAME STRING MATCHES) where
+NODENAME is the name of the node that holds the search result,
+STRING is the search string given as an argument to `info-apropos',
+MATCHES is a list of index matches found by `Info-apropos-matches'.")
+
+(defun Info-apropos-toc-nodes (filename)
+  "Apropos-specific implementation of Info-apropos-toc-nodes."
+  (let ((nodes (mapcar 'car (reverse Info-apropos-nodes))))
+    `(,filename
+      ("Top" nil nil ,nodes)
+      ,@(mapcar (lambda (node) `(,node "Top" nil nil)) nodes))))
+
+(defun Info-apropos-find-file (filename &optional noerror)
+  "Apropos-specific implementation of Info-find-file."
+  filename)
+
+(defun Info-apropos-find-node (filename nodename &optional no-going-back)
+  "Apropos-specific implementation of Info-find-node-2."
+  (if (equal nodename "Top")
+      ;; Generate Top menu
+      (let ((nodes (reverse Info-apropos-nodes)))
+	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
+			Info-apropos-file nodename))
+	(insert "Apropos Index\n")
+	(insert "*************\n\n")
+	(insert "This is a list of search results produced by `info-apropos'.\n\n")
+	(insert "* Menu:\n\n")
+	(dolist (nodeinfo nodes)
+	  (insert (format "* %-20s %s.\n"
+			  (format "%s::" (nth 0 nodeinfo))
+			  (nth 1 nodeinfo)))))
+    ;; Else, Generate Index-like menu of matches
+    (let* ((nodeinfo (assoc nodename Info-apropos-nodes))
+	   (matches (nth 2 nodeinfo)))
+      (when matches
+	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+			Info-apropos-file nodename))
+	(insert "Apropos Index\n")
+	(insert "*************\n\n")
+	(insert "Index entries that match `" (nth 1 nodeinfo) "':\n\n")
+	(insert "\0\b[index\0\b]\n")
+	(if (eq matches t)
+	    (insert "No matches found.\n")
+	  (insert "* Menu:\n\n")
+	  (dolist (entry matches)
+	    (insert (format "* %-38s (%s)%s.%s\n"
+			    (format "%s [%s]:" (nth 1 entry) (nth 0 entry))
+			    (nth 0 entry)
+			    (nth 2 entry)
+			    (if (nth 3 entry)
+				(format " (line %s)" (nth 3 entry))
+			      "")))))))))
+
+(defun Info-apropos-matches (string)
+  "Collect STRING matches from all known Info files on your system.
+Return a list of matches where each element is in the format
+\((FILENAME INDEXTEXT NODENAME LINENUMBER))."
   (interactive "sIndex apropos: ")
   (unless (string= string "")
     (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
@@ -3056,24 +3300,107 @@ Build a menu of the possible matches."
       (setq Info-history ohist
 	    Info-history-list ohist-list)
       (message "Searching indices...done")
-      (if (null matches)
-	  (message "No matches found")
-	(with-current-buffer (get-buffer-create " *info-apropos*")
-	  (erase-buffer)
-	  (insert "\n\^_\nFile: apropos, Node: Index, Up: (dir)\n")
-	  (insert "* Menu: \nNodes whose indices contain `" string "':\n\n")
-	  (dolist (entry (nreverse matches))
-	    (insert
-	     (format "* %-38s (%s)%s.%s\n"
-		     (concat (nth 1 entry) " [" (nth 0 entry) "]:")
-		     (nth 0 entry)
-		     (nth 2 entry)
-		     (if (nth 3 entry)
-			 (concat " (line " (nth 3 entry) ")")
-		       "")))))
-	(Info-find-node 'apropos "Index")
-	(setq Info-complete-cache nil)))))
+      (or (nreverse matches) t))))
 
+;;;###autoload
+(defun info-apropos (string)
+  "Grovel indices of all known Info files on your system for STRING.
+Build a menu of the possible matches."
+  (interactive "sIndex apropos: ")
+  (if (equal string "")
+      (Info-find-node Info-apropos-file "Top")
+    (let* ((nodes Info-apropos-nodes) nodename)
+      (while (and nodes (not (equal string (nth 1 (car nodes)))))
+	(setq nodes (cdr nodes)))
+      (if nodes
+	  (Info-find-node Info-apropos-file (car (car nodes)))
+	(setq nodename (format "Index for `%s'" string))
+	(push (list nodename string (Info-apropos-matches string))
+	      Info-apropos-nodes)
+	(Info-find-node Info-apropos-file nodename)))))
+
+(add-to-list 'Info-virtual-files
+	     '("\\`\\*Finder.*\\*\\'"
+	       (find-file . Info-finder-find-file)
+	       (find-node . Info-finder-find-node)
+	       ))
+
+(defvar Info-finder-file "*Finder*"
+  "Info file name of the virtual Info keyword finder manual.")
+
+(defun Info-finder-find-file (filename &optional noerror)
+  "Finder-specific implementation of Info-find-file."
+  filename)
+
+(defvar finder-known-keywords)
+(defvar finder-package-info)
+(declare-function find-library-name "find-func" (library))
+(declare-function lm-commentary "lisp-mnt" (&optional file))
+
+(defun Info-finder-find-node (filename nodename &optional no-going-back)
+  "Finder-specific implementation of Info-find-node-2."
+  (cond
+   ((equal nodename "Top")
+    ;; Display Top menu with descriptions of the keywords
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Keywords\n")
+    (insert "***************\n\n")
+    (insert "* Menu:\n\n")
+    (mapc
+     (lambda (assoc)
+       (let ((keyword (car assoc)))
+	 (insert (format "* %-14s %s.\n"
+			 (concat (symbol-name keyword) "::")
+			 (cdr assoc)))))
+     finder-known-keywords))
+   ((string-match-p "\\.el\\'" nodename)
+    ;; Display commentary section
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Commentary\n")
+    (insert "*****************\n\n")
+    (insert
+     "Commentary section of the package `" nodename "':\n\n")
+    (let ((str (lm-commentary (find-library-name nodename))))
+      (if (null str)
+	  (insert "Can't find any Commentary section\n\n")
+	(insert
+	 (with-temp-buffer
+	   (insert str)
+	   (goto-char (point-min))
+	   (delete-blank-lines)
+	   (goto-char (point-max))
+	   (delete-blank-lines)
+	   (goto-char (point-min))
+	   (while (re-search-forward "^;+ ?" nil t)
+	     (replace-match "" nil nil))
+	   (buffer-string))))))
+   (t
+    ;; Display packages that match the keyword
+    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Packages\n")
+    (insert "***************\n\n")
+    (insert
+     "The following packages match the keyword `" nodename "':\n\n")
+    (insert "* Menu:\n\n")
+    (let ((id (intern nodename)))
+      (mapc
+       (lambda (x)
+	 (when (memq id (cadr (cdr x)))
+	   (insert (format "* %-16s %s.\n"
+			   (concat (car x) "::")
+			   (cadr x)))))
+       finder-package-info)))))
+
+;;;###autoload
+(defun info-finder ()
+  "Display descriptions of the keywords in the Finder virtual manual."
+  (interactive)
+  (require 'finder)
+  (Info-find-node Info-finder-file "Top"))
+
 (defun Info-undefined ()
   "Make command be undefined in Info."
   (interactive)
@@ -3248,6 +3575,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "g" 'Info-goto-node)
     (define-key map "h" 'Info-help)
     (define-key map "i" 'Info-index)
+    (define-key map "I" 'Info-virtual-index)
     (define-key map "l" 'Info-history-back)
     (define-key map "L" 'Info-history)
     (define-key map "m" 'Info-menu)
@@ -3492,8 +3820,6 @@ Advanced commands:
 \\[Info-search]	Search through this Info file for specified regexp,
 	  and select the node in which the next occurrence is found.
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
-\\[Info-search-next]	Search for another occurrence of regexp
-	  from a previous \\<Info-mode-map>\\[Info-search] command.
 \\[isearch-forward], \\[isearch-forward-regexp]	Use Isearch to search through multiple Info nodes.
 \\[Info-index]	Search for a topic in this manual's Index and go to index entry.
 \\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
@@ -3832,7 +4158,7 @@ the variable `Info-file-list-for-emacs'."
 		 (format "(%s)Top"
 			 (if (stringp Info-current-file)
 			     (file-name-nondirectory Info-current-file)
-			   ;; Can be `toc', `apropos', or even `history'.
+			   ;; Some legacy code can still use a symbol.
 			   Info-current-file)))))
 	  (insert (if (bolp) "" " > ")
 		  (cond
@@ -4416,7 +4742,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (defun Info-desktop-buffer-misc-data (desktop-dirname)
   "Auxiliary information to be saved in desktop file."
-  (unless (member Info-current-file '(apropos history toc nil))
+  (unless (Info-virtual-file-p Info-current-file)
     (list Info-current-file Info-current-node)))
 
 (defun Info-restore-desktop-buffer (desktop-buffer-file-name

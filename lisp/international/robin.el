@@ -5,7 +5,7 @@
 ;;   Registration Number: H15PRO110
 
 ;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
-;; Keywords: mule, multilingual, input method
+;; Keywords: mule, multilingual, input method, i18n
 
 ;; This file is part of GNU Emacs.
 

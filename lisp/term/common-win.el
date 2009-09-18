@@ -131,10 +131,9 @@
 				  initial-frame-alist)))
 
 (defvar x-display-name nil
-  "The name of the X display on which Emacs was started.
-
-For the X display name of individual frames, see the `display'
-frame parameter.")
+  "The name of the window display on which Emacs was started.
+On X, the display name of individual X frames is recorded in the
+`display' frame parameter.")
 
 (defun x-handle-display (switch)
   "Handle -display DISPLAY option."
@@ -288,8 +287,10 @@ This function returns ARGS minus the arguments that have been processed."
     "cyan" "medium spring green" "spring green" "green" "lawn green" "chartreuse"
     "yellow" "gold" "orange" "dark orange" "orange red" "red" "white" "white smoke"
     "gainsboro" "light grey" "gray" "dark grey" "dim gray" "black" )
-  "The list of X colors from the `rgb.txt' file.
-XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
+  "List of basic colors available on color displays.
+For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
+For Nextstep, this is a list of non-PANTONE colors returned by
+the operating system.")
 
 ;; arch-tag: 2a128601-99cc-401e-9dff-0ee6a36102ef
 ;;; common-win.el ends here

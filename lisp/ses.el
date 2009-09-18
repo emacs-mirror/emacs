@@ -3011,7 +3011,7 @@ current column and continues until the next nonblank column."
     (dolist (buf (buffer-list))
       (set-buffer buf)
       (when (eq major-mode 'ses-mode)
-	(funcall (or default-major-mode 'fundamental-mode)))))
+	(funcall (or (default-value 'major-mode) 'fundamental-mode)))))
   ;; continue standard unloading
   nil)
 

@@ -1,4 +1,4 @@
-;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: iso-2022-7bit -*-
+;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
@@ -1944,7 +1944,7 @@ To work around that, do:
   (make-local-variable 'outline-heading-end-regexp)
   (make-local-variable 'outline-level)
   (make-local-variable 'sentence-end-base)
-  (setq sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*\\(<[^>]*>\\)*"
+  (setq sentence-end-base "[.?!][]\"'”)}]*\\(<[^>]*>\\)*"
 	sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
 	sgml-tag-help html-tag-help

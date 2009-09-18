@@ -1,4 +1,5 @@
-# Generated from http://www.unicode.org/Public/MAPPINGS/.../cp932.txt
+# Generated from admin/charsets/mapfiles/CP932.TXT.gz which is a copy of
+# http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT
 0x8140 0x3000 # 0 2121
 0x8141 0x3001 # 0 2122
 0x8142 0x3002 # 0 2123

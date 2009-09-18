@@ -27,6 +27,11 @@
 (eval-when-compile
   (require 'cl))
 
+(eval-when-compile
+  (unless (fboundp 'with-no-warnings)
+    (defmacro with-no-warnings (&rest body)
+      `(progn ,@body))))
+
 (defgroup ecomplete nil
   "Electric completion of email addresses and the like."
   :group 'mail)
@@ -56,7 +61,11 @@
 (defun ecomplete-add-item (type key text)
   (let ((elems (assq type ecomplete-database))
 	(now (string-to-number
-	      (format "%.0f" (time-to-seconds (current-time)))))
+	      (format "%.0f" (if (and (fboundp 'float-time)
+				      (subrp (symbol-function 'float-time)))
+				 (float-time)
+			       (with-no-warnings
+				 (time-to-seconds (current-time)))))))
 	entry)
     (unless elems
       (push (setq elems (list type)) ecomplete-database))

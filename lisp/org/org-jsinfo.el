@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -41,6 +41,7 @@
 ;;; Code:
 
 (require 'org-exp)
+(require 'org-html)
 
 (add-to-list 'org-export-inbuffer-options-extra '("INFOJS_OPT" :infojs-opt))
 (add-hook 'org-export-options-filters 'org-infojs-handle-options)
@@ -110,7 +111,7 @@ means to use the maximum value consistent with other options."
 <!--/*--><![CDATA[/*><!--*/
 %MANAGER_OPTIONS
 org_html_manager.setup();  // activate after the parameters are set
-/*]]>*/-->
+/*]]>*///-->
 </script>"
   "The template for the export style additions when org-info.js is used.
 Option settings will replace the %MANAGER-OPTIONS cookie."

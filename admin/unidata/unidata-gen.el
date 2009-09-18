@@ -828,11 +828,13 @@ Property value is a character."
 	  (L (+ #x1100 (/ char 588)))
 	  ;; V = VBase + (SIndex % NCount) * TCount
 	  (V (+ #x1161 (/ (% char 588) 28)))
+	  ;; LV = SBase + (SIndex / TCount) * TCount
+	  (LV (+ #xAC00 (* (/ char 28) 28)))
 	  ;; T = TBase + SIndex % TCount
 	  (T (+ #x11A7 (% char 28))))
       (if (= T #x11A7)
 	  (list L V)
-	(list L V T))))
+	(list LV T))))
 
    ))
 
@@ -1212,7 +1214,10 @@ Property value is a character."
 		(byte-compile describer)
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
-	    (insert ";; Automatically generated from UnicodeData.txt.\n"
+	    (insert ";; Copyright (C) 1991-2009 Unicode, Inc.
+;; This file was generated from the Unicode data file at
+;; http://www.unicode.org/Public/UNIDATA/UnicodeData.txt.
+;; See lisp/international/README for the copyright and permission notice.\n"
 		    (format "(define-char-code-property '%S %S %S)\n"
 			    prop table docstring)
 		    ";; Local Variables:\n"

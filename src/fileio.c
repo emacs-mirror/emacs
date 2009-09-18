@@ -193,6 +193,9 @@ Lisp_Object Vauto_save_list_file_name;
 /* Whether or not files are auto-saved into themselves.  */
 Lisp_Object Vauto_save_visited_file_name;
 
+/* Whether or not to continue auto-saving after a large deletion.  */
+Lisp_Object Vauto_save_include_big_deletions;
+
 /* On NT, specifies the directory separator character, used (eg.) when
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
@@ -220,8 +223,6 @@ extern Lisp_Object Vw32_get_true_file_attributes;
 extern int minibuf_level;
 
 extern int minibuffer_auto_raise;
-
-extern int history_delete_duplicates;
 
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
@@ -424,9 +425,11 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
     return call2 (handler, Qfile_name_directory, filename);
 
   filename = FILE_SYSTEM_CASE (filename);
-  beg = SDATA (filename);
 #ifdef DOS_NT
-  beg = strcpy (alloca (strlen (beg) + 1), beg);
+  beg = (unsigned char *) alloca (SBYTES (filename) + 1);
+  bcopy (SDATA (filename), beg, SBYTES (filename) + 1);
+#else
+  beg = SDATA (filename);
 #endif
   p = beg + SBYTES (filename);
 
@@ -941,10 +944,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	}
     }
 
-  nm = SDATA (name);
-
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
-  nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm = (unsigned char *) alloca (SBYTES (name) + 1);
+  bcopy (SDATA (name), nm, SBYTES (name) + 1);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1643,11 +1645,12 @@ those `/' is discarded.  */)
   if (!NILP (handler))
     return call2 (handler, Qsubstitute_in_file_name, filename);
 
-  nm = SDATA (filename);
   /* Always work on a copy of the string, in case GC happens during
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
-  nm = strcpy (alloca (strlen (nm) + 1), nm);
+  nm = (unsigned char *) alloca (SBYTES (filename) + 1);
+  bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
+
 #ifdef DOS_NT
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
@@ -5321,8 +5324,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		&& EMACS_SECS (before_time) - b->auto_save_failure_time < 1200)
 	      continue;
 
-	    if ((XFASTINT (b->save_length) * 10
-		 > (BUF_Z (b) - BUF_BEG (b)) * 13)
+	    set_buffer_internal (b);
+	    if (NILP (Vauto_save_include_big_deletions)
+		&& (XFASTINT (b->save_length) * 10
+		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
 		   spare the user annoying messages.  */
 		&& XFASTINT (b->save_length) > 5000
@@ -5341,7 +5346,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		Fsleep_for (make_number (1), Qnil);
 		continue;
 	      }
-	    set_buffer_internal (b);
 	    if (!auto_saved && NILP (no_message))
 	      message1 ("Auto-saving...");
 	    internal_condition_case (auto_save_1, Qt, auto_save_error);
@@ -5703,6 +5707,13 @@ a non-nil value.  */);
 	       doc: /* Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names.  */);
   Vauto_save_visited_file_name = Qnil;
+
+  DEFVAR_LISP ("auto-save-include-big-deletions", &Vauto_save_include_big_deletions,
+	       doc: /* If non-nil, auto-save even if a large part of the text is deleted.
+If nil, deleting a substantial portion of the text disables auto-save
+in the buffer; this is the default behavior, because the auto-save
+file is usually more useful if it contains the deleted text.  */);
+  Vauto_save_include_big_deletions = Qnil;
 
 #ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,

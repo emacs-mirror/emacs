@@ -76,7 +76,7 @@ in this order is used."
             (x-face (setq raw (mh-uncompface x-face)
                           type 'pbm))
             (url (setq type 'url))
-            (t (multiple-value-setq (type raw) 
+            (t (multiple-value-setq (type raw)
                  (values-list (mh-picon-get-image)))))
       (when type
         (goto-char (point-min))

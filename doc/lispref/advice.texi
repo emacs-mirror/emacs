@@ -603,11 +603,11 @@ for that function.
 
   A more robust method is to use macros that are translated into the
 proper access forms at activation time, i.e., when constructing the
-advised definition.  Access macros access actual arguments by position
-regardless of how these actual arguments get distributed onto the
-argument variables of a function.  This is robust because in Emacs Lisp
-the meaning of an argument is strictly determined by its position in the
-argument list.
+advised definition.  Access macros access actual arguments by their
+(zero-based) position, regardless of how these actual arguments get
+distributed onto the argument variables of a function.  This is robust
+because in Emacs Lisp the meaning of an argument is strictly
+determined by its position in the argument list.
 
 @defmac ad-get-arg position
 This returns the actual argument that was supplied at @var{position}.

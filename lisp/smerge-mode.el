@@ -89,8 +89,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "cyan")))
   "Face for your code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-mine-face 'face-alias 'smerge-mine)
+(define-obsolete-face-alias 'smerge-mine-face 'smerge-mine "22.1")
 (defvar smerge-mine-face 'smerge-mine)
 
 (defface smerge-other
@@ -100,8 +99,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "lightgreen")))
   "Face for the other code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-other-face 'face-alias 'smerge-other)
+(define-obsolete-face-alias 'smerge-other-face 'smerge-other "22.1")
 (defvar smerge-other-face 'smerge-other)
 
 (defface smerge-base
@@ -113,8 +111,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:foreground "orange")))
   "Face for the base code."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-base-face 'face-alias 'smerge-base)
+(define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
 (defvar smerge-base-face 'smerge-base)
 
 (defface smerge-markers
@@ -124,8 +121,7 @@ Used in `smerge-diff-base-mine' and related functions."
      (:background "grey30")))
   "Face for the conflict markers."
   :group 'smerge)
-;; backward-compatibility alias
-(put 'smerge-markers-face 'face-alias 'smerge-markers)
+(define-obsolete-face-alias 'smerge-markers-face 'smerge-markers "22.1")
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-change
@@ -371,9 +367,8 @@ according to `smerge-match-conflict'.")
   ;; during font-locking so inhibit-modification-hooks is non-nil, so we
   ;; can't just modify the buffer and expect font-lock to be triggered as in:
   ;; (put-text-property beg end 'smerge-force-highlighting nil)
-  (let ((modified (buffer-modified-p)))
-    (remove-text-properties beg end '(fontified nil))
-    (restore-buffer-modified-p modified)))
+  (with-silent-modifications
+    (remove-text-properties beg end '(fontified nil))))
 
 (defun smerge-popup-context-menu (event)
   "Pop up the Smerge mode context menu under mouse."
@@ -1019,9 +1014,10 @@ repeating the command will highlight other 2 parts."
         (n2 (if (eq part 3) 2 3)))
     (smerge-ensure-match n1)
     (smerge-ensure-match n2)
-    (put-text-property (match-beginning 0) (1+ (match-beginning 0))
-                       'smerge-refine-part
-                       (cons (buffer-chars-modified-tick) part))
+    (with-silent-modifications
+      (put-text-property (match-beginning 0) (1+ (match-beginning 0))
+                         'smerge-refine-part
+                         (cons (buffer-chars-modified-tick) part)))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
                          (match-beginning n2)  (match-end n2)
                          '((smerge . refine)

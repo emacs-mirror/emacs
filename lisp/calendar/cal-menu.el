@@ -200,22 +200,28 @@ is non-nil."
    (read-file-name "Enter diary file name: " default-directory nil t)
    event))
 
+;; In 22, the equivalent code gave an error when not called on a date,
+;; but easymenu does not seem to allow this (?).
+;; The ignore-errors is because `documentation' can end up calling
+;; this in a non-calendar buffer where displayed-month is unbound.  (Bug#3862)
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
-  (easy-menu-filter-return
-   menu (calendar-date-string (calendar-cursor-to-date t last-input-event)
-                              t nil)))
+  (let ((date (ignore-errors (calendar-cursor-to-date nil last-input-event))))
+    (if date
+        (easy-menu-filter-return menu (calendar-date-string date t nil))
+      (message "Not on a date!")
+      nil)))
 
 (easy-menu-define cal-menu-context-mouse-menu nil
-  "Pop up menu for Mouse-2 for selected date in the calendar window."
-  '("cal-menu-mouse2" :filter cal-menu-set-date-title
+  "Pop up mouse menu for selected date in the calendar window."
+  '("cal-menu-context-mouse-menu" :filter cal-menu-set-date-title
     "--"
     ["Holidays" calendar-cursor-holidays]
     ["Mark date" calendar-set-mark]
     ["Sunrise/sunset" calendar-sunrise-sunset]
     ["Other calendars" calendar-print-other-dates]
-    ;; FIXME there is a bug (#447) with last-nonmenu-event and submenus.
-    ;; These currently don't work if called without calendar window selected.
+    ;; There was a bug (#447; fixed) with last-nonmenu-event and submenus.
+    ;; These did not work if called without calendar window selected.
     ("Prepare LaTeX buffer"
      ["Daily (1 page)" cal-tex-cursor-day]
      ["Weekly (1 page)" cal-tex-cursor-week]

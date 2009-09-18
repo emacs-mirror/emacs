@@ -115,8 +115,8 @@ none at all.
 @item :load @var{file}
 @kindex load@r{, customization keyword}
 Load file @var{file} (a string) before displaying this customization
-item.  Loading is done with @code{load-library}, and only if the file is
-not already loaded.
+item (@pxref{Loading}).  Loading is done with @code{load}, and only if
+the file is not already loaded.
 
 @item :require @var{feature}
 @kindex require@r{, customization keyword}
@@ -397,12 +397,12 @@ variables and functions will be defined, so there will not be an error.
 
 @item :risky @var{value}
 @kindex risky@r{, @code{defcustom} keyword}
-Set this variable's @code{risky-local-variable} property to
+Set the variable's @code{risky-local-variable} property to
 @var{value} (@pxref{File Local Variables}).
 
 @item :safe @var{function}
 @kindex safe@r{, @code{defcustom} keyword}
-Set this variable's @code{safe-local-variable} property to
+Set the variable's @code{safe-local-variable} property to
 @var{function} (@pxref{File Local Variables}).
 
 @item :set-after @var{variables}
@@ -513,11 +513,12 @@ equivalent to @code{(string)}.
 Introduction, widget, The Emacs Widget Library}, for details.
 
 @menu
-* Simple Types::
-* Composite Types::
-* Splicing into Lists::
-* Type Keywords::
-* Defining New Types::
+* Simple Types::            Simple customization types: sexp, integer, number,
+                              string, file, directory, alist.
+* Composite Types::         Build new types from other types or data.
+* Splicing into Lists::     Splice elements into list with @code{:inline}.
+* Type Keywords::           Keyword-argument pairs in a customization type.
+* Defining New Types::      Give your type a name.
 @end menu
 
 @node Simple Types

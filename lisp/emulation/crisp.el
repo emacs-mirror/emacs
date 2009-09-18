@@ -55,6 +55,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;; local variables
 
 (defgroup crisp nil
@@ -62,8 +64,112 @@
   :prefix "crisp-"
   :group 'emulations)
 
-(defvar crisp-mode-map (let ((map (make-sparse-keymap)))
-			 map)
+(defvar crisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(f1)]           'other-window)
+
+    (define-key map [(f2) (down)]    'enlarge-window)
+    (define-key map [(f2) (left)]    'shrink-window-horizontally)
+    (define-key map [(f2) (right)]   'enlarge-window-horizontally)
+    (define-key map [(f2) (up)]      'shrink-window)
+    (define-key map [(f3) (down)]    'split-window-vertically)
+    (define-key map [(f3) (right)]   'split-window-horizontally)
+
+    (define-key map [(f4)]           'delete-window)
+    (define-key map [(control f4)]   'delete-other-windows)
+
+    (define-key map [(f5)]           'search-forward-regexp)
+    (define-key map [(f19)]          'search-forward-regexp)
+    (define-key map [(meta f5)]      'search-backward-regexp)
+
+    (define-key map [(f6)]           'query-replace)
+
+    (define-key map [(f7)]           'start-kbd-macro)
+    (define-key map [(meta f7)]      'end-kbd-macro)
+
+    (define-key map [(f8)]           'call-last-kbd-macro)
+    (define-key map [(meta f8)]      'save-kbd-macro)
+
+    (define-key map [(f9)]           'find-file)
+    (define-key map [(meta f9)]      'load-library)
+
+    (define-key map [(f10)]          'execute-extended-command)
+    (define-key map [(meta f10)]     'compile)
+
+    (define-key map [(SunF37)]       'kill-buffer)
+    (define-key map [(kp-add)]       'crisp-copy-line)
+    (define-key map [(kp-subtract)]  'crisp-kill-line)
+    ;; just to cover all the bases (GNU Emacs, for instance)
+    (define-key map [(f24)]          'crisp-kill-line)
+    (define-key map [(insert)]       'crisp-yank-clipboard)
+    (define-key map [(f16)]          'crisp-set-clipboard) ; copy on Sun5 kbd
+    (define-key map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd
+    (define-key map [(f18)]          'crisp-yank-clipboard) ; paste on Sun5 kbd
+
+    (define-key map [(control f)]    'fill-paragraph-or-region)
+    (define-key map [(meta d)]       (lambda ()
+                                       (interactive)
+                                       (beginning-of-line) (kill-line)))
+    (define-key map [(meta e)]       'find-file)
+    (define-key map [(meta g)]       'goto-line)
+    (define-key map [(meta h)]       'help)
+    (define-key map [(meta i)]       'overwrite-mode)
+    (define-key map [(meta j)]       'bookmark-jump)
+    (define-key map [(meta l)]       'crisp-mark-line)
+    (define-key map [(meta m)]       'set-mark-command)
+    (define-key map [(meta n)]       'bury-buffer)
+    (define-key map [(meta p)]       'crisp-unbury-buffer)
+    (define-key map [(meta u)]       'undo)
+    (define-key map [(f14)]          'undo)
+    (define-key map [(meta w)]       'save-buffer)
+    (define-key map [(meta x)]       'crisp-meta-x-wrapper)
+    (define-key map [(meta ?0)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "0")))
+    (define-key map [(meta ?1)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "1")))
+    (define-key map [(meta ?2)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "2")))
+    (define-key map [(meta ?3)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "3")))
+    (define-key map [(meta ?4)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "4")))
+    (define-key map [(meta ?5)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "5")))
+    (define-key map [(meta ?6)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "6")))
+    (define-key map [(meta ?7)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "7")))
+    (define-key map [(meta ?8)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "8")))
+    (define-key map [(meta ?9)]      (lambda ()
+                                       (interactive)
+                                       (bookmark-set "9")))
+
+    (define-key map [(shift delete)]    'kill-word)
+    (define-key map [(shift backspace)] 'backward-kill-word)
+    (define-key map [(control left)]    'backward-word)
+    (define-key map [(control right)]   'forward-word)
+
+    (define-key map [(home)]            'crisp-home)
+    (define-key map [(control home)]    (lambda ()
+                                          (interactive)
+                                          (move-to-window-line 0)))
+    (define-key map [(meta home)]       'beginning-of-line)
+    (define-key map [(end)]             'crisp-end)
+    (define-key map [(control end)]     (lambda ()
+                                          (interactive)
+                                          (move-to-window-line -1)))
+    (define-key map [(meta end)]        'end-of-line)
+    map)
   "Local keymap for CRiSP emulation mode.
 All the bindings are done here instead of globally to try and be
 nice to the world.")
@@ -149,112 +255,6 @@ does not load the scroll-all package."
   (if (featurep 'xemacs)
       zmacs-region-active-p
     mark-active))
-
-;; and now the keymap defines
-
-(define-key crisp-mode-map [(f1)]           'other-window)
-
-(define-key crisp-mode-map [(f2) (down)]    'enlarge-window)
-(define-key crisp-mode-map [(f2) (left)]    'shrink-window-horizontally)
-(define-key crisp-mode-map [(f2) (right)]   'enlarge-window-horizontally)
-(define-key crisp-mode-map [(f2) (up)]      'shrink-window)
-(define-key crisp-mode-map [(f3) (down)]    'split-window-vertically)
-(define-key crisp-mode-map [(f3) (right)]   'split-window-horizontally)
-
-(define-key crisp-mode-map [(f4)]           'delete-window)
-(define-key crisp-mode-map [(control f4)]   'delete-other-windows)
-
-(define-key crisp-mode-map [(f5)]           'search-forward-regexp)
-(define-key crisp-mode-map [(f19)]          'search-forward-regexp)
-(define-key crisp-mode-map [(meta f5)]      'search-backward-regexp)
-
-(define-key crisp-mode-map [(f6)]           'query-replace)
-
-(define-key crisp-mode-map [(f7)]           'start-kbd-macro)
-(define-key crisp-mode-map [(meta f7)]      'end-kbd-macro)
-
-(define-key crisp-mode-map [(f8)]           'call-last-kbd-macro)
-(define-key crisp-mode-map [(meta f8)]      'save-kbd-macro)
-
-(define-key crisp-mode-map [(f9)]           'find-file)
-(define-key crisp-mode-map [(meta f9)]      'load-library)
-
-(define-key crisp-mode-map [(f10)]          'execute-extended-command)
-(define-key crisp-mode-map [(meta f10)]     'compile)
-
-(define-key crisp-mode-map [(SunF37)]       'kill-buffer)
-(define-key crisp-mode-map [(kp-add)]       'crisp-copy-line)
-(define-key crisp-mode-map [(kp-subtract)]  'crisp-kill-line)
-;; just to cover all the bases (GNU Emacs, for instance)
-(define-key crisp-mode-map [(f24)]          'crisp-kill-line)
-(define-key crisp-mode-map [(insert)]       'crisp-yank-clipboard)
-(define-key crisp-mode-map [(f16)]          'crisp-set-clipboard) ; copy on Sun5 kbd
-(define-key crisp-mode-map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd
-(define-key crisp-mode-map [(f18)]          'crisp-yank-clipboard) ; paste on Sun5 kbd
-
-(define-key crisp-mode-map [(control f)]    'fill-paragraph-or-region)
-(define-key crisp-mode-map [(meta d)]       (lambda ()
-					      (interactive)
-					      (beginning-of-line) (kill-line)))
-(define-key crisp-mode-map [(meta e)]       'find-file)
-(define-key crisp-mode-map [(meta g)]       'goto-line)
-(define-key crisp-mode-map [(meta h)]       'help)
-(define-key crisp-mode-map [(meta i)]       'overwrite-mode)
-(define-key crisp-mode-map [(meta j)]       'bookmark-jump)
-(define-key crisp-mode-map [(meta l)]       'crisp-mark-line)
-(define-key crisp-mode-map [(meta m)]       'set-mark-command)
-(define-key crisp-mode-map [(meta n)]       'bury-buffer)
-(define-key crisp-mode-map [(meta p)]       'crisp-unbury-buffer)
-(define-key crisp-mode-map [(meta u)]       'advertised-undo)
-(define-key crisp-mode-map [(f14)]          'advertised-undo)
-(define-key crisp-mode-map [(meta w)]       'save-buffer)
-(define-key crisp-mode-map [(meta x)]       'crisp-meta-x-wrapper)
-(define-key crisp-mode-map [(meta ?0)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "0")))
-(define-key crisp-mode-map [(meta ?1)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "1")))
-(define-key crisp-mode-map [(meta ?2)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "2")))
-(define-key crisp-mode-map [(meta ?3)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "3")))
-(define-key crisp-mode-map [(meta ?4)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "4")))
-(define-key crisp-mode-map [(meta ?5)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "5")))
-(define-key crisp-mode-map [(meta ?6)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "6")))
-(define-key crisp-mode-map [(meta ?7)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "7")))
-(define-key crisp-mode-map [(meta ?8)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "8")))
-(define-key crisp-mode-map [(meta ?9)]      (lambda ()
-					      (interactive)
-					      (bookmark-set "9")))
-
-(define-key crisp-mode-map [(shift delete)]    'kill-word)
-(define-key crisp-mode-map [(shift backspace)] 'backward-kill-word)
-(define-key crisp-mode-map [(control left)]    'backward-word)
-(define-key crisp-mode-map [(control right)]   'forward-word)
-
-(define-key crisp-mode-map [(home)]            'crisp-home)
-(define-key crisp-mode-map [(control home)]    (lambda ()
-						 (interactive)
-						 (move-to-window-line 0)))
-(define-key crisp-mode-map [(meta home)]       'beginning-of-line)
-(define-key crisp-mode-map [(end)]             'crisp-end)
-(define-key crisp-mode-map [(control end)]     (lambda ()
-						 (interactive)
-						 (move-to-window-line -1)))
-(define-key crisp-mode-map [(meta end)]        'end-of-line)
 
 (defun crisp-version (&optional arg)
   "Version number of the CRiSP emulator package.
@@ -349,14 +349,15 @@ normal CRiSP binding) and when it is nil M-x will run
     (call-interactively 'execute-extended-command)))
 
 ;;;###autoload
-(defun crisp-mode (&optional arg)
+(define-minor-mode crisp-mode
   "Toggle CRiSP/Brief emulation minor mode.
 With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
-  (interactive "P")
-  (setq crisp-mode (if (null arg)
-		       (not crisp-mode)
-		     (> (prefix-numeric-value arg) 0)))
+  :keymap crisp-mode-map
+  :lighter crisp-mode-modeline-string
   (when crisp-mode
+    ;; Make menu entries show M-u or f14 in preference to C-x u.
+    (put 'undo :advertised-binding
+         (list* [?\M-u] [f14] (get 'undo :advertised-binding)))
     ;; Force transient-mark-mode, so that the marking routines work as
     ;; expected.  If the user turns off transient mark mode, most
     ;; things will still work fine except the crisp-(copy|kill)
@@ -367,22 +368,11 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
     (if crisp-load-scroll-all
 	(require 'scroll-all))
     (if (featurep 'scroll-all)
-	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))
-    (run-hooks 'crisp-mode-hook)))
+	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))))
 
 ;; People might use Apropos on `brief'.
 ;;;###autoload
 (defalias 'brief-mode 'crisp-mode)
-
-(if (fboundp 'add-minor-mode)
-    (add-minor-mode 'crisp-mode 'crisp-mode-modeline-string
-		    crisp-mode-map nil 'crisp-mode)
-  (or (assq 'crisp-mode minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(crisp-mode crisp-mode-modeline-string) minor-mode-alist)))
-  (or (assq 'crisp-mode minor-mode-map-alist)
-      (setq minor-mode-map-alist (cons (cons 'crisp-mode crisp-mode-map)
-				       minor-mode-map-alist))))
 
 ;; Interaction with other packages.
 (put 'crisp-home 'CUA 'move)

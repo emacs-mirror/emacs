@@ -82,14 +82,19 @@ use this three-step process:
   :group 'frames)
 
 (defcustom minibuffer-frame-alist '((width . 80) (height . 2))
-  "Alist of parameters for initial minibuffer frame.
+  "Alist of parameters for the initial minibuffer frame.
+This is the minibuffer frame created if `initial-frame-alist'
+calls for a frame without a minibuffer.  The parameters specified
+here supersede those given in `default-frame-alist', for the
+initial minibuffer frame.
+
 You can set this in your init file; for example,
 
  (setq minibuffer-frame-alist
        '((top . 1) (left . 1) (width . 80) (height . 2)))
 
-Parameters specified here supersede the values given in
-`default-frame-alist', for a minibuffer frame."
+It is not necessary to include (minibuffer . only); that is
+appended when the minibuffer frame is created."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -120,7 +125,7 @@ affected by this variable."
 This function is called with no arguments and should return a new
 frame.  The default value calls `make-frame' with the argument
 `pop-up-frame-alist'."
-  :type '(choice (const nil) (function :tag "function"))
+  :type 'function
   :group 'frames)
 
 (defcustom special-display-frame-alist
@@ -858,7 +863,7 @@ the user during startup."
 
 (defun select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible.
-If `mouse-autoselect-window' is non-nil, also move mouse cursor
+If `mouse-autoselect-window' is non-nil, also move mouse pointer
 to FRAME's selected window.  Otherwise, if `focus-follows-mouse'
 is non-nil, move mouse cursor to FRAME."
   (select-frame frame)
@@ -1480,6 +1485,10 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     (setq frame (selected-frame)))
   (let* ((mini-frame (window-frame (minibuffer-window frame)))
 	 (frames (delq mini-frame (delq frame (frame-list)))))
+    ;; Only consider frames on the same terminal.
+    (dolist (frame (prog1 frames (setq frames nil)))
+      (if (eq (frame-terminal) (frame-terminal frame))
+          (push frame frames)))
     ;; Delete mon-minibuffer-only frames first, because `delete-frame'
     ;; signals an error when trying to delete a mini-frame that's
     ;; still in use by another frame.
@@ -1596,7 +1605,7 @@ cursor display.  On a text-only terminal, this is not implemented."
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
 		       (not (memq window-system '(x w32)))))
-  :initialize 'custom-initialize-safe-default
+  :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))

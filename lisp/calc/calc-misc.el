@@ -57,7 +57,7 @@
 (declare-function math-pow-of-zero "calc-arith" (a b))
 (declare-function math-pow-zero "calc-arith" (a b))
 (declare-function math-pow-fancy "calc-arith" (a b))
-
+(declare-function calc-locate-cursor-element "calc-yank" (pt))
 
 ;;;###autoload
 (defun calc-dispatch-help (arg)
@@ -452,6 +452,119 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	   (t
 	    (calc-roll-up-stack (calc-stack-size) (- nn)))))))
 
+;;;###autoload
+(defun calc-transpose-lines (&optional arg)
+  "Transpose previous line and current line.
+With argument ARG, move previous line past ARG lines.
+With argument 0, switch line point is in with line mark is in."
+  (interactive "p")
+  (setq arg (or arg 1))
+  (let (bot-line mid-line end-line
+                 old-top-list new-top-list
+                 bot-cell mid-cell
+                 prev-mid-cell post-mid-cell post-bot-cell)
+    (calc-wrapper
+     (when (eq major-mode 'calc-mode)
+       (cond
+        ;; exchange point and mark
+        ((= 0 arg)
+         (setq bot-line  (calc-locate-cursor-element (point))
+               mid-line  (mark))
+         (if mid-line
+             (setq mid-line  (calc-locate-cursor-element mid-line)
+                   end-line  (1+ mid-line))
+           (error "No mark set"))
+         (if (< bot-line mid-line)
+             (let ((temp mid-line))
+               (setq mid-line bot-line
+                     bot-line temp))))
+        ;; move bot-line to mid-line that is above bot-line on stack (that is
+        ;; to say mid-line displayed below bot-line in *Calculator* buffer)
+        ((> arg 0)
+         (setq bot-line (1+ (calc-locate-cursor-element (point)))
+               mid-line (- bot-line arg)
+               end-line mid-line))
+        ;; move bot-line to mid-line that is above bot-line on stack (that is
+        ;; to say mid-line displayed below bot-line in *Calculator* buffer)
+        ((< arg 0)
+         (setq mid-line (1+ (calc-locate-cursor-element (point)))
+               bot-line (- mid-line arg)
+               end-line bot-line)))
+       (calc-check-stack bot-line)
+       (if (= 0 mid-line)
+           (error "Can't transpose beyond top"))
+       (setq old-top-list (nreverse (calc-top-list bot-line)))
+       ;; example: (arg = 2)
+       ;; old-top-list =
+       ;; 1 <-- top of stack (bottom of *Calculator* buffer)
+       ;; 2
+       ;; 3 <-- mid-line = 3
+       ;; 4 <-- point
+       ;; 5 <-- bot-line = 5
+       (dotimes (i mid-line)
+         (setq mid-cell old-top-list
+               old-top-list (cdr old-top-list))
+         (setcdr mid-cell new-top-list)
+         (setq new-top-list  mid-cell))
+       ;; example follow-up:
+       ;; old-top-list =
+       ;; 4
+       ;; 5
+       ;; new-top-list =
+       ;; 3 <-- mid-cell
+       ;; 2
+       ;; 1
+       (setq  prev-mid-cell old-top-list)
+       (dotimes (i (- bot-line mid-line))
+         (setq bot-cell old-top-list
+               old-top-list (cdr old-top-list))
+         (setcdr bot-cell new-top-list)
+         (setq new-top-list  bot-cell))
+       (setq post-mid-cell (cdr mid-cell)
+             post-bot-cell  (cdr bot-cell))
+       ;; example follow-up:
+       ;; new-top-list =
+       ;; 5 <-- bot-cell
+       ;; 4 <-- prev-mid-cell & post-bot-cell
+       ;; 3 <-- mid-cell
+       ;; 2 <-- post-mid-cell
+       ;; 1
+       (cond
+        ((= 0 arg); swap bot and mid
+         (setcdr mid-cell            post-bot-cell)
+         (setcdr bot-cell            post-mid-cell)
+         (setcdr prev-mid-cell       bot-cell)
+         ;; example follow-up:
+         ;; 3 <-- mid-cell
+         ;; 4 <-- post-bot-cell & prev-mid-cell
+         ;; 5 <-- bot-cell
+         ;; 2 <-- post-mid-cell
+         ;; 1
+         (setq new-top-list mid-cell))
+        ((< 0 arg) ; move bot just after mid
+         (setcdr mid-cell       bot-cell)
+         (setcdr bot-cell       post-mid-cell)
+         ;; example follow-up:
+         ;; new-top-list =
+         ;; 4 <-- post-bot-cell
+         ;; 3 <-- mid-cell
+         ;; 5 <-- bot-cell
+         ;; 2 <-- post-mid-cell
+         ;; 1
+         (setq new-top-list post-bot-cell))
+        ((> 0 arg) ; move mid just before bot
+         (setcdr mid-cell       bot-cell)
+         (setcdr prev-mid-cell  post-mid-cell)
+         ;; example follow-up:
+         ;; new-top-list =
+         ;; 3 <-- mid-cell
+         ;; 5 <-- bot-cell
+         ;; 4 <-- prev-mid-cell
+         ;; 2 <-- post-mid-cell
+         ;; 1
+         (setq new-top-list mid-cell)))
+       (calc-pop-push-list bot-line new-top-list)))
+    (calc-cursor-stack-index (1- end-line))))
 
 
 

@@ -2643,7 +2643,7 @@ make_float (float_value)
 
   MALLOC_UNBLOCK_INPUT;
 
-  XFLOAT_DATA (val) = float_value;
+  XFLOAT_INIT (val, float_value);
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
@@ -4911,7 +4911,7 @@ make_pure_float (num)
 
   p = (struct Lisp_Float *) pure_alloc (sizeof *p, Lisp_Float);
   XSETFLOAT (new, p);
-  XFLOAT_DATA (new) = num;
+  XFLOAT_INIT (new, num);
   return new;
 }
 
@@ -5432,6 +5432,34 @@ mark_vectorlike (ptr)
   return 1;
 }
 
+/* Like mark_vectorlike but optimized for char-tables (and
+   sub-char-tables) assuming that the contents are mostly integers or
+   symbols.  */
+
+static void
+mark_char_table (ptr)
+     struct Lisp_Vector *ptr;
+{
+  register EMACS_INT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
+  register int i;
+
+  VECTOR_MARK (ptr);
+  for (i = 0; i < size; i++)
+    {
+      Lisp_Object val = ptr->contents[i];
+
+      if (INTEGERP (val) || SYMBOLP (val) && XSYMBOL (val)->gcmarkbit)
+	continue;
+      if (SUB_CHAR_TABLE_P (val))
+	{
+	  if (! VECTOR_MARKED_P (XVECTOR (val)))
+	    mark_char_table (XVECTOR (val));
+	}
+      else
+	mark_object (val);
+    }
+}
+
 void
 mark_object (arg)
      Lisp_Object arg;
@@ -5593,6 +5621,11 @@ mark_object (arg)
 	      else
 		VECTOR_MARK (XVECTOR (h->key_and_value));
 	    }
+	}
+      else if (CHAR_TABLE_P (obj))
+	{
+	  if (! VECTOR_MARKED_P (XVECTOR (obj)))
+	    mark_char_table (XVECTOR (obj));
 	}
       else
 	mark_vectorlike (XVECTOR (obj));

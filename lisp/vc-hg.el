@@ -68,7 +68,7 @@
 ;; - merge-news (file)                         NEEDED
 ;; - steal-lock (file &optional revision)      NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files &optional buffer)        OK
+;; * print-log (files &optional buffer shortlog)OK
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (revision)                 NOT NEEDED, DEFAULT IS GOOD
 ;; - comment-history (file)                    NOT NEEDED
@@ -92,7 +92,6 @@
 ;; - delete-file (file)                        TEST IT
 ;; - rename-file (old new)                     OK
 ;; - find-file-hook ()                         PROBABLY NOT NEEDED
-;; - find-file-not-found-hook ()               PROBABLY NOT NEEDED
 
 ;; 2) Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
@@ -211,7 +210,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 ;;; History functions
 
-(defun vc-hg-print-log (files &optional buffer)
+(defcustom vc-hg-log-switches nil
+  "String or list of strings specifying switches for hg log under VC."
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Argument String")
+                 (repeat :tag "Argument List" :value ("") string))
+  :group 'vc-hg)
+
+(defun vc-hg-print-log (files &optional buffer shortlog)
   "Get change log associated with FILES."
   ;; `log-view-mode' needs to have the file names in order to function
   ;; correctly. "hg log" does not print it, so we insert it here by
@@ -225,20 +231,31 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (vc-hg-command buffer 0 files "log"))))
+      (apply 'vc-hg-command buffer 0 files "log"
+	     (if shortlog '("--style" "compact"))
+	     vc-hg-log-switches))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
+(defvar vc-short-log)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
+       (if vc-short-log
+	   "^\\([0-9]+\\)\\(?:\\[.*\\]\\)? +\\([0-9a-z]\\{12\\}\\) +\\(\\(?:[0-9]+\\)-\\(?:[0-9]+\\)-\\(?:[0-9]+\\) \\(?:[0-9]+\\):\\(?:[0-9]+\\) \\(?:[-+0-9]+\\)\\) +\\(.*\\)$"
+	 "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
+       (if vc-short-log
+	   (append `((,log-view-message-re
+		      (1 'log-view-message-face)
+		      (2 'log-view-message-face)
+		      (3 'change-log-date)
+		      (4 'change-log-name))))
        (append
 	log-view-font-lock-keywords
 	'(
@@ -254,7 +271,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
 	   (1 'change-log-email))
 	  ("^date: \\(.+\\)" (1 'change-log-date))
-	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."

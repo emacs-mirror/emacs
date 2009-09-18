@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -1136,7 +1136,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "21.1"
+(defvar customize-changed-options-previous-release "22.1"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -1813,8 +1813,7 @@ item in another window.\n\n"))
 			   (:weight bold :slant italic :underline t)))
   "Face used when the customize item is invalid."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-invalid-face 'face-alias 'custom-invalid)
+(define-obsolete-face-alias 'custom-invalid-face 'custom-invalid "22.1")
 
 (defface custom-rogue '((((class color))
 			 (:foreground "pink" :background "black"))
@@ -1822,8 +1821,7 @@ item in another window.\n\n"))
 			 (:underline t)))
   "Face used when the customize item is not defined for customization."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-rogue-face 'face-alias 'custom-rogue)
+(define-obsolete-face-alias 'custom-rogue-face 'custom-rogue "22.1")
 
 (defface custom-modified '((((min-colors 88) (class color))
 			    (:foreground "white" :background "blue1"))
@@ -1833,8 +1831,7 @@ item in another window.\n\n"))
 			    (:slant italic :bold)))
   "Face used when the customize item has been modified."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-modified-face 'face-alias 'custom-modified)
+(define-obsolete-face-alias 'custom-modified-face 'custom-modified "22.1")
 
 (defface custom-set '((((min-colors 88) (class color))
 		       (:foreground "blue1" :background "white"))
@@ -1844,8 +1841,7 @@ item in another window.\n\n"))
 		       (:slant italic)))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-set-face 'face-alias 'custom-set)
+(define-obsolete-face-alias 'custom-set-face 'custom-set "22.1")
 
 (defface custom-changed '((((min-colors 88) (class color))
 			   (:foreground "white" :background "blue1"))
@@ -1855,8 +1851,7 @@ item in another window.\n\n"))
 			   (:slant italic)))
   "Face used when the customize item has been changed."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-changed-face 'face-alias 'custom-changed)
+(define-obsolete-face-alias 'custom-changed-face 'custom-changed "22.1")
 
 (defface custom-themed '((((min-colors 88) (class color))
 			   (:foreground "white" :background "blue1"))
@@ -1870,8 +1865,7 @@ item in another window.\n\n"))
 (defface custom-saved '((t (:underline t)))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
-;; backward-compatibility alias
-(put 'custom-saved-face 'face-alias 'custom-saved)
+(define-obsolete-face-alias 'custom-saved-face 'custom-saved "22.1")
 
 (defconst custom-magic-alist
   '((nil "#" underline "\
@@ -2068,8 +2062,7 @@ and `face'."
   "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-button-face 'face-alias 'custom-button)
+(define-obsolete-face-alias 'custom-button-face 'custom-button "22.1")
 
 (defface custom-button-mouse
   '((((type x w32 ns) (class color))
@@ -2105,8 +2098,8 @@ and `face'."
   "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-button-pressed-face 'face-alias 'custom-button-pressed)
+(define-obsolete-face-alias 'custom-button-pressed-face
+  'custom-button-pressed "22.1")
 
 (defface custom-button-pressed-unraised
   '((default :inherit custom-button-unraised)
@@ -2124,8 +2117,8 @@ and `face'."
 (defface custom-documentation '((t nil))
   "Face used for documentation strings in customization buffers."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-documentation-face 'face-alias 'custom-documentation)
+(define-obsolete-face-alias 'custom-documentation-face
+  'custom-documentation "22.1")
 
 (defface custom-state '((((class color)
 			  (background dark))
@@ -2136,8 +2129,7 @@ and `face'."
 			(t nil))
   "Face used for State descriptions in the customize buffer."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-state-face 'face-alias 'custom-state)
+(define-obsolete-face-alias 'custom-state-face 'custom-state "22.1")
 
 (defface custom-link
   '((t :inherit link))
@@ -2192,9 +2184,10 @@ and `face'."
     (when (and (>= pos from) (<= pos to))
       (condition-case nil
 	  (progn
-	    (if (> column 0)
-		(goto-line line)
-	      (goto-line (1+ line)))
+	    (goto-char (point-min))
+	    (forward-line (if (> column 0)
+			      (1- line)
+			    line))
 	    (move-to-column column))
 	(error nil)))))
 
@@ -2369,8 +2362,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Face used for comments on variables or faces."
   :version "21.1"
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-comment-face 'face-alias 'custom-comment)
+(define-obsolete-face-alias 'custom-comment-face 'custom-comment "22.1")
 
 ;; like font-lock-comment-face
 (defface custom-comment-tag
@@ -2383,8 +2375,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (t (:weight bold)))
   "Face used for the comment tag on variables or faces."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-comment-tag-face 'face-alias 'custom-comment-tag)
+(define-obsolete-face-alias 'custom-comment-tag-face 'custom-comment-tag "22.1")
 
 (define-widget 'custom-comment 'string
   "User comment."
@@ -2437,14 +2428,14 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-variable-tag-face 'face-alias 'custom-variable-tag)
+(define-obsolete-face-alias 'custom-variable-tag-face
+  'custom-variable-tag "22.1")
 
 (defface custom-variable-button '((t (:underline t :weight bold)))
   "Face used for pushable variable tags."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-variable-button-face 'face-alias 'custom-variable-button)
+(define-obsolete-face-alias 'custom-variable-button-face
+  'custom-variable-button "22.1")
 
 (defcustom custom-variable-default-form 'edit
   "Default form of displaying variable values."
@@ -3216,8 +3207,7 @@ Only match frames that support the specified face attributes.")
   `((t :inherit custom-variable-tag))
   "Face used for face tags."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-face-tag-face 'face-alias 'custom-face-tag)
+(define-obsolete-face-alias 'custom-face-tag-face 'custom-face-tag "22.1")
 
 (defcustom custom-face-default-form 'selected
   "Default form of displaying face definition."
@@ -3801,8 +3791,7 @@ and so forth.  The remaining group tags are shown with `custom-group-tag'."
     (t (:weight bold)))
   "Face used for group tags."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-group-tag-face-1 'face-alias 'custom-group-tag-1)
+(define-obsolete-face-alias 'custom-group-tag-face-1 'custom-group-tag-1 "22.1")
 
 (defface custom-group-tag
   `((((class color)
@@ -3817,8 +3806,7 @@ and so forth.  The remaining group tags are shown with `custom-group-tag'."
     (t (:weight bold)))
   "Face used for low level group tags."
   :group 'custom-faces)
-;; backward-compatibility alias
-(put 'custom-group-tag-face 'face-alias 'custom-group-tag)
+(define-obsolete-face-alias 'custom-group-tag-face 'custom-group-tag "22.1")
 
 (define-widget 'custom-group 'custom
   "Customize group."
@@ -4647,7 +4635,7 @@ The following commands are available:
 
 \\<widget-keymap>\
 Move to next button, link or editable field.     \\[widget-forward]
-Move to previous button, link or editable field. \\[advertised-widget-backward]
+Move to previous button, link or editable field. \\[widget-backward]
 \\<custom-field-keymap>\
 Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\

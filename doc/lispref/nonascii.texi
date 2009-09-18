@@ -95,26 +95,17 @@ strings except for manipulating encoded text or binary non-text data.
 The representation for a string is determined and recorded in the string
 when the string is constructed.
 
-@defvar enable-multibyte-characters
+@defopt enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
-@end defvar
-
-@defvar default-enable-multibyte-characters
-This variable's value is entirely equivalent to @code{(default-value
-'enable-multibyte-characters)}, and setting this variable changes that
-default value.  Setting the local binding of
-@code{enable-multibyte-characters} in a specific buffer is not allowed,
-but changing the default value is supported, and it is a reasonable
-thing to do, because it has no effect on existing buffers.
 
 The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
-@end defvar
+@end defopt
 
 @defun position-bytes position
 Buffer positions are measured in character units.  This function
@@ -283,7 +274,7 @@ character codes.  The valid character codes for unibyte representation
 range from 0 to 255---the values that can fit in one byte.  The valid
 character codes for multibyte representation range from 0 to 4194303
 (#x3FFFFF).  In this code space, values 0 through 127 are for
-@acronym{ASCII} charcters, and values 129 through 4194175 (#x3FFF7F)
+@acronym{ASCII} characters, and values 128 through 4194175 (#x3FFF7F)
 are for non-@acronym{ASCII} characters.  Values 0 through 1114111
 (#10FFFF) correspond to Unicode characters of the same codepoint;
 values 1114112 (#110000) through 4194175 (#x3FFF7F) represent
@@ -328,7 +319,7 @@ codepoint can have.
 @end example
 @end defun
 
-@defun get-byte pos &optional string
+@defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
 the byte at that position.  If the buffer is multibyte, byte values of
@@ -349,7 +340,7 @@ specifies how the character behaves and how it should be handled
 during text processing and display.  Thus, character properties are an
 important part of specifying the character's semantics.
 
-  Emacs generally follows the Unicode Standard in its implementation
+  On the whole, Emacs follows the Unicode Standard in its implementation
 of character properties.  In particular, Emacs supports the
 @uref{http://www.unicode.org/reports/tr23/, Unicode Character Property
 Model}, and the Emacs character property database is derived from the
@@ -535,7 +526,7 @@ is printable, and if it results in @code{nil}, it is not.
 @cindex coded character set
 An Emacs @dfn{character set}, or @dfn{charset}, is a set of characters
 in which each character is assigned a numeric code point.  (The
-Unicode standard calls this a @dfn{coded character set}.)  Each Emacs
+Unicode Standard calls this a @dfn{coded character set}.)  Each Emacs
 charset has a name which is a symbol.  A single character can belong
 to any number of different character sets, but it will generally have
 a different code point in each charset.  Examples of character sets
@@ -573,10 +564,15 @@ returns a single character set of the highest priority.
 This function makes @var{charsets} the highest priority character sets.
 @end defun
 
-@defun char-charset character
+@defun char-charset character &optional restriction
 This function returns the name of the character set of highest
 priority that @var{character} belongs to.  @acronym{ASCII} characters
 are an exception: for them, this function always returns @code{ascii}.
+
+If @var{restriction} is non-@code{nil}, it should be a list of
+charsets to search.  Alternatively, it can be a coding system, in
+which case the returned charset must be supported by that coding
+system (@pxref{Coding Systems}).
 @end defun
 
 @defun charset-plist charset
@@ -640,10 +636,11 @@ indicate a range of characters contained in charset.  The second
 argument is the optional argument @var{arg}.
 
 By default, the range of codepoints passed to @var{function} includes
-all the characters in @var{charset}, but optional arguments @var{from}
-and @var{to} limit that to the range of characters between these two
-codepoints.  If either of them is @code{nil}, it defaults to the first
-or last codepoint of @var{charset}, respectively.
+all the characters in @var{charset}, but optional arguments
+@var{from-code} and @var{to-code} limit that to the range of
+characters between these two codepoints of @var{charset}.  If either
+of them is @code{nil}, it defaults to the first or last codepoint of
+@var{charset}, respectively.
 @end defun
 
 @node Scanning Charsets
@@ -1001,6 +998,7 @@ new file name for that buffer.
 
   Here are the Lisp facilities for working with coding systems:
 
+@cindex list all coding systems
 @defun coding-system-list &optional base-only
 This function returns a list of all coding system names (symbols).  If
 @var{base-only} is non-@code{nil}, the value includes only the
@@ -1013,6 +1011,8 @@ This function returns @code{t} if @var{object} is a coding system
 name or @code{nil}.
 @end defun
 
+@cindex validity of coding system
+@cindex coding system, validity check
 @defun check-coding-system coding-system
 This function checks the validity of @var{coding-system}.  If that is
 valid, it returns @var{coding-system}.  If @var{coding-system} is
@@ -1021,6 +1021,7 @@ signals an error whose @code{error-symbol} is @code{coding-system-error}
 (@pxref{Signaling Errors, signal}).
 @end defun
 
+@cindex eol type of coding system
 @defun coding-system-eol-type coding-system
 This function returns the type of end-of-line (a.k.a.@: @dfn{eol})
 conversion used by @var{coding-system}.  If @var{coding-system}
@@ -1042,11 +1043,12 @@ decoding, the end-of-line format of the text is auto-detected, and the
 eol conversion is set to match it (e.g., DOS-style CRLF format will
 imply @code{dos} eol conversion).  For encoding, the eol conversion is
 taken from the appropriate default coding system (e.g.,
-@code{default-buffer-file-coding-system} for
+default value of @code{buffer-file-coding-system} for
 @code{buffer-file-coding-system}), or from the default eol conversion
 appropriate for the underlying platform.
 @end defun
 
+@cindex eol conversion of coding system
 @defun coding-system-change-eol-conversion coding-system eol-type
 This function returns a coding system which is like @var{coding-system}
 except for its eol conversion, which is specified by @code{eol-type}.
@@ -1058,6 +1060,7 @@ the end-of-line conversion from the data.
 @code{dos} and @code{mac}, respectively.
 @end defun
 
+@cindex text conversion of coding system
 @defun coding-system-change-text-conversion eol-coding text-coding
 This function returns a coding system which uses the end-of-line
 conversion of @var{eol-coding}, and the text conversion of
@@ -1065,6 +1068,8 @@ conversion of @var{eol-coding}, and the text conversion of
 @code{undecided}, or one of its variants according to @var{eol-coding}.
 @end defun
 
+@cindex safely encode region
+@cindex coding systems for encoding region
 @defun find-coding-systems-region from to
 This function returns a list of coding systems that could be used to
 encode a text between @var{from} and @var{to}.  All coding systems in
@@ -1075,6 +1080,8 @@ If the text contains no multibyte characters, the function returns the
 list @code{(undecided)}.
 @end defun
 
+@cindex safely encode a string
+@cindex coding systems for encoding a string
 @defun find-coding-systems-string string
 This function returns a list of coding systems that could be used to
 encode the text of @var{string}.  All coding systems in the list can
@@ -1083,6 +1090,8 @@ contains no multibyte characters, this returns the list
 @code{(undecided)}.
 @end defun
 
+@cindex charset, coding systems to encode
+@cindex safely encode characters in a charset
 @defun find-coding-systems-for-charsets charsets
 This function returns a list of coding systems that could be used to
 encode all the character sets in the list @var{charsets}.
@@ -1130,6 +1139,7 @@ This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
+@cindex null bytes, and decoding text
 @defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows to
@@ -1146,6 +1156,7 @@ encoding, and all escape sequences become visible in a buffer.
 because many files in the Emacs distribution use ISO-2022 encoding.}
 @end defvar
 
+@cindex charsets supported by a coding system
 @defun coding-system-charset-list coding-system
 This function returns the list of character sets (@pxref{Character
 Sets}) supported by @var{coding-system}.  Some coding systems that
@@ -1192,8 +1203,8 @@ coding system to try; if that can handle the text,
 also be a list of coding systems; then the function tries each of them
 one by one.  After trying all of them, it next tries the current
 buffer's value of @code{buffer-file-coding-system} (if it is not
-@code{undecided}), then the value of
-@code{default-buffer-file-coding-system} and finally the user's most
+@code{undecided}), then the default value of
+@code{buffer-file-coding-system} and finally the user's most
 preferred coding system, which the user can set using the command
 @code{prefer-coding-system} (@pxref{Recognize Coding,, Recognizing
 Coding Systems, emacs, The GNU Emacs Manual}).
@@ -1255,6 +1266,8 @@ the user tries to enter null input, it asks the user to try again.
 
 @node Default Coding Systems
 @subsection Default Coding Systems
+@cindex default coding system
+@cindex coding system, automatically determined
 
   This section describes variables that specify the default coding
 system for certain files or when running certain subprograms, and the
@@ -1267,7 +1280,8 @@ don't change these variables; instead, override them using
 @code{coding-system-for-read} and @code{coding-system-for-write}
 (@pxref{Specifying Coding Systems}).
 
-@defvar auto-coding-regexp-alist
+@cindex file contents, and default coding system
+@defopt auto-coding-regexp-alist
 This variable is an alist of text patterns and corresponding coding
 systems. Each element has the form @code{(@var{regexp}
 . @var{coding-system})}; a file whose first few kilobytes match
@@ -1277,9 +1291,10 @@ read into a buffer.  The settings in this alist take priority over
 @code{file-coding-system-alist} (see below).  The default value is set
 so that Emacs automatically recognizes mail files in Babyl format and
 reads them with no code conversions.
-@end defvar
+@end defopt
 
-@defvar file-coding-system-alist
+@cindex file name, and default coding system
+@defopt file-coding-system-alist
 This variable is an alist that specifies the coding systems to use for
 reading and writing particular files.  Each element has the form
 @code{(@var{pattern} . @var{coding})}, where @var{pattern} is a regular
@@ -1302,8 +1317,16 @@ meaning as described above.
 
 If @var{coding} (or what returned by the above function) is
 @code{undecided}, the normal code-detection is performed.
-@end defvar
+@end defopt
 
+@defopt auto-coding-alist
+This variable is an alist that specifies the coding systems to use for
+reading and writing particular files.  Its form is like that of
+@code{file-coding-system-alist}, but, unlike the latter, this variable
+takes priority over any @code{coding:} tags in the file.
+@end defopt
+
+@cindex program name, and default coding system
 @defvar process-coding-system-alist
 This variable is an alist specifying which coding systems to use for a
 subprocess, depending on which program is running in the subprocess.  It
@@ -1327,6 +1350,8 @@ coding system which determines both the character code conversion and
 the end of line conversion---that is, one like @code{latin-1-unix},
 rather than @code{undecided} or @code{latin-1}.
 
+@cindex port number, and default coding system
+@cindex network service name, and default coding system
 @defvar network-coding-system-alist
 This variable is an alist that specifies the coding system to use for
 network streams.  It works much like @code{file-coding-system-alist},
@@ -1346,7 +1371,8 @@ The value should be a cons cell of the form @code{(@var{input-coding}
 the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
-@defvar auto-coding-functions
+@cindex default coding system, functions to determine
+@defopt auto-coding-functions
 This variable holds a list of functions that try to determine a
 coding system for a file based on its undecoded contents.
 
@@ -1360,7 +1386,40 @@ Otherwise, it should return @code{nil}.
 
 If a file has a @samp{coding:} tag, that takes precedence, so these
 functions won't be called.
-@end defvar
+@end defopt
+
+@defun find-auto-coding filename size
+This function tries to determine a suitable coding system for
+@var{filename}.  It examines the buffer visiting the named file, using
+the variables documented above in sequence, until it finds a match for
+one of the rules specified by these variables.  It then returns a cons
+cell of the form @code{(@var{coding} . @var{source})}, where
+@var{coding} is the coding system to use and @var{source} is a symbol,
+one of @code{auto-coding-alist}, @code{auto-coding-regexp-alist},
+@code{:coding}, or @code{auto-coding-functions}, indicating which one
+supplied the matching rule.  The value @code{:coding} means the coding
+system was specified by the @code{coding:} tag in the file
+(@pxref{Specify Coding,, coding tag, emacs, The GNU Emacs Manual}).
+The order of looking for a matching rule is @code{auto-coding-alist}
+first, then @code{auto-coding-regexp-alist}, then the @code{coding:}
+tag, and lastly @code{auto-coding-functions}.  If no matching rule was
+found, the function returns @code{nil}.
+
+The second argument @var{size} is the size of text, in characters,
+following point.  The function examines text only within @var{size}
+characters after point.  Normally, the buffer should be positioned at
+the beginning when this function is called, because one of the places
+for the @code{coding:} tag is the first one or two lines of the file;
+in that case, @var{size} should be the size of the buffer.
+@end defun
+
+@defun set-auto-coding filename size
+This function returns a suitable coding system for file
+@var{filename}.  It uses @code{find-auto-coding} to find the coding
+system.  If no coding system could be determined, the function returns
+@code{nil}.  The meaning of the argument @var{size} is like in
+@code{find-auto-coding}.
+@end defun
 
 @defun find-operation-coding-system operation &rest arguments
 This function returns the coding system to use (by default) for
@@ -1454,12 +1513,12 @@ When a single operation does both input and output, as do
 affect it.
 @end defvar
 
-@defvar inhibit-eol-conversion
+@defopt inhibit-eol-conversion
 When this variable is non-@code{nil}, no end-of-line conversion is done,
 no matter which coding system is specified.  This applies to all the
 Emacs I/O and subprocess primitives, and to the explicit encoding and
 decoding functions (@pxref{Explicit Encoding}).
-@end defvar
+@end defopt
 
 @cindex priority order of coding systems
 @cindex coding systems, priority
@@ -1559,7 +1618,7 @@ case the function may return @var{string} itself if the encoding
 operation is trivial.  The result of encoding is a unibyte string.
 @end defun
 
-@deffn Command decode-coding-region start end coding-system destination
+@deffn Command decode-coding-region start end coding-system &optional destination
 This command decodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  To make explicit decoding
 useful, the text before decoding ought to be a sequence of byte
@@ -1644,15 +1703,20 @@ if it is @code{nil}, that means the currently selected frame's
 terminal.  @xref{Multiple Terminals}.
 @end deffn
 
-@defun terminal-coding-system
+@defun terminal-coding-system &optional terminal
 This function returns the coding system that is in use for encoding
-terminal output---or @code{nil} for no encoding.
+terminal output from @var{terminal}---or @code{nil} if the output is
+not encoded.  If @var{terminal} is a frame, it means that frame's
+terminal; if it is @code{nil}, that means the currently selected
+frame's terminal.
 @end defun
 
-@deffn Command set-terminal-coding-system coding-system
+@deffn Command set-terminal-coding-system coding-system &optional terminal
 This command specifies @var{coding-system} as the coding system to use
-for encoding terminal output.  If @var{coding-system} is @code{nil},
-that means do not encode terminal output.
+for encoding terminal output from @var{terminal}.  If
+@var{coding-system} is @code{nil}, terminal output is not encoded.  If
+@var{terminal} is a frame, it means that frame's terminal; if it is
+@code{nil}, that means the currently selected frame's terminal.
 @end deffn
 
 @node MS-DOS File Types
@@ -1685,6 +1749,13 @@ Otherwise, @code{undecided-dos} is used.
 
 Normally this variable is set by visiting a file; it is set to
 @code{nil} if the file was visited without any actual conversion.
+
+Its default value is used to decide how to handle files for which
+@code{file-name-buffer-file-type-alist} says nothing about the type:
+If the default value is non-@code{nil}, then these files are treated as
+binary: the coding system @code{no-conversion} is used.  Otherwise,
+nothing special is done for them---the coding system is deduced solely
+from the file contents, in the usual Emacs fashion.
 @end defvar
 
 @defopt file-name-buffer-file-type-alist
@@ -1701,17 +1772,7 @@ which coding system to use when reading a file.  For a text file,
 is used.
 
 If no element in this alist matches a given file name, then
-@code{default-buffer-file-type} says how to treat the file.
-@end defopt
-
-@defopt default-buffer-file-type
-This variable says how to handle files for which
-@code{file-name-buffer-file-type-alist} says nothing about the type.
-
-If this variable is non-@code{nil}, then these files are treated as
-binary: the coding system @code{no-conversion} is used.  Otherwise,
-nothing special is done for them---the coding system is deduced solely
-from the file contents, in the usual Emacs fashion.
+the default value of @code{buffer-file-type} says how to treat the file.
 @end defopt
 
 @node Input Methods

@@ -73,8 +73,8 @@
 (autoload 'gnus-registry-store-extra-entry "gnus-registry")
 (autoload 'gnus-registry-fetch-extra "gnus-registry")
 
-;; autoload query-dns
-(autoload 'query-dns "dns")
+;; autoload dns-query
+(autoload 'dns-query "dns")
 
 ;;}}}
 
@@ -173,7 +173,7 @@ The regular expression is matched against the address."
   :group 'spam)
 
 (defcustom spam-use-dig t
-  "Whether `query-dig' should be used instead of `query-dns'."
+  "Whether `query-dig' should be used instead of `dns-query'."
   :type 'boolean
   :group 'spam)
 
@@ -371,6 +371,7 @@ Only meaningful if you enable `spam-use-blackholes'."
   :group 'spam)
 ;; backward-compatibility alias
 (put 'spam-face 'face-alias 'spam)
+(put 'spam-face 'obsolete-face "22.1")
 
 (defcustom spam-face 'spam
   "Face for spam-marked articles."
@@ -413,16 +414,16 @@ Only meaningful if you enable `spam-use-regex-body'."
   "Spam ifile configuration."
   :group 'spam)
 
-(make-obsolete-variable 'spam-ifile-path 'spam-ifile-program)
-;; "22.1" ;; Gnus 5.10.9
+(make-obsolete-variable 'spam-ifile-path 'spam-ifile-program
+                        "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-ifile-program (executable-find "ifile")
   "Name of the ifile program."
   :type '(choice (file :tag "Location of ifile")
 		 (const :tag "ifile is not installed"))
   :group 'spam-ifile)
 
-(make-obsolete-variable 'spam-ifile-database-path 'spam-ifile-database)
-;; "22.1" ;; Gnus 5.10.9
+(make-obsolete-variable 'spam-ifile-database-path 'spam-ifile-database
+                        "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-ifile-database nil
   "File name of the ifile database."
   :type '(choice (file :tag "Location of the ifile database")
@@ -452,8 +453,8 @@ your main source of newsgroup names."
   "Spam bogofilter configuration."
   :group 'spam)
 
-(make-obsolete-variable 'spam-bogofilter-path 'spam-bogofilter-program)
-;; "22.1" ;; Gnus 5.10.9
+(make-obsolete-variable 'spam-bogofilter-path 'spam-bogofilter-program
+                        "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-bogofilter-program (executable-find "bogofilter")
   "Name of the Bogofilter program."
   :type '(choice (file :tag "Location of bogofilter")
@@ -504,8 +505,8 @@ When nil, use the default location."
   "Spam bsfilter configuration."
   :group 'spam)
 
-(make-obsolete-variable 'spam-bsfilter-path 'spam-bsfilter-program)
-;; "22.1" ;; Gnus 5.10.9
+(make-obsolete-variable 'spam-bsfilter-path 'spam-bsfilter-program
+                        "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-bsfilter-program (executable-find "bsfilter")
   "Name of the Bsfilter program."
   :type '(choice (file :tag "Location of bsfilter")
@@ -571,7 +572,7 @@ When nil, use the default spamoracle database."
   :group 'spam)
 
 (make-obsolete-variable 'spam-spamassassin-path
-  'spam-spamassassin-program) ;; "22.1" ;; Gnus 5.10.9
+  'spam-spamassassin-program "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-assassin-program (executable-find "spamassassin")
   "Name of the spamassassin program.
 Hint: set this to \"spamc\" if you have spamd running.  See the spamc and
@@ -602,8 +603,8 @@ identification"
   :type 'string
   :group 'spam-spamassassin)
 
-(make-obsolete-variable 'spam-sa-learn-path 'spam-sa-learn-program)
-;; "22.1" ;; Gnus 5.10.9
+(make-obsolete-variable 'spam-sa-learn-path 'spam-sa-learn-program
+                        "Gnus 5.10.9 (Emacs 22.1)")
 (defcustom spam-sa-learn-program (executable-find "sa-learn")
   "Name of the sa-learn program."
   :type '(choice (file :tag "Location of spamassassin")
@@ -2038,9 +2039,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			(push (list ip server query-result)
 			      matches)))
 		  ;; else, if not using dig.el
-		  (when (query-dns query-string)
+		  (when (dns-query query-string)
 		    (gnus-message 6 "positive blackhole check")
-		    (push (list ip server (query-dns query-string 'TXT))
+		    (push (list ip server (dns-query query-string 'TXT))
 			  matches)))))))))
     (when matches
       spam-split-group)))

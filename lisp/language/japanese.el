@@ -101,7 +101,6 @@
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
-(define-coding-system-alias 'cp932 'japanese-shift-jis)
 
 (define-coding-system 'japanese-cp932
   "CP932 (Microsoft shift-jis)"
@@ -184,7 +183,7 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 (define-coding-system-alias 'euc-jisx0213 'euc-jis-2004)
 
 (define-coding-system 'japanese-shift-jis-2004
-  "Shift_JIS 8-bit encodinf for Japanese (MIME:SHIFT_JIS-2004)"
+  "Shift_JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS-2004)"
   :coding-type 'shift-jis
   :mnemonic ?S
   :charset-list '(ascii katakana-jisx0201 

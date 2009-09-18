@@ -1787,7 +1787,7 @@ will."
  	;; Fixme: Is this actually useful?
 	(help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
-	(print-help-return-message))))
+	(help-print-return-message))))
   (comint-redirect-send-command-to-process (format "emacs.ehelp(%S, %s)"
 						   symbol python-imports)
    "*Help*" (python-proc) nil nil))
@@ -2203,7 +2203,8 @@ Interactively, prompt for name."
     (unless file (error "Don't know where `%s' is defined" name))
     (pop-to-buffer (find-file-noselect file))
     (when (integerp line)
-      (goto-line line))))
+      (goto-char (point-min))
+      (forward-line (1- line)))))
 
 ;;;; Skeletons
 
@@ -2614,7 +2615,8 @@ find it."
                   target_buffer (cadr target)
                   target_fname (buffer-file-name target_buffer))
             (switch-to-buffer-other-window target_buffer)
-            (goto-line target_lineno)
+            (goto-char (point-min))
+            (forward-line (1- target_lineno))
             (message "pdbtrack: line %s, file %s" target_lineno target_fname)
             (python-pdbtrack-overlay-arrow t)
             (pop-to-buffer origbuf t)

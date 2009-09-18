@@ -484,8 +484,8 @@ with value @code{special}, put on as follows:
 
 @noindent
 This tells Emacs that new buffers created while the current buffer is
-in Funny mode should not inherit Funny mode, in case
-@code{default-major-mode} is @code{nil}.  Modes such as Dired, Rmail,
+in Funny mode should not inherit Funny mode, in case the default value
+of @code{major-mode} is @code{nil}.  Modes such as Dired, Rmail,
 and Buffer List use this feature.
 
 The @code{define-derived-mode} macro automatically marks the derived
@@ -559,7 +559,8 @@ If @code{normal-mode} processes the local variables list and this list
 specifies a major mode, that mode overrides any mode chosen by
 @code{set-auto-mode}.  If neither @code{set-auto-mode} nor
 @code{hack-local-variables} specify a major mode, the buffer stays in
-the major mode determined by @code{default-major-mode} (see below).
+the major mode determined by the default value of @code{major-mode}
+(see below).
 
 @cindex file mode specification error
 @code{normal-mode} uses @code{condition-case} around the call to the
@@ -588,11 +589,13 @@ mode.  For instance, @code{set-visited-file-name} sets this to
 have set.
 @end defun
 
-@defopt default-major-mode
-This variable holds the default major mode for new buffers.  The
-standard value is @code{fundamental-mode}.
+@defopt major-mode
+The buffer-local value of this variable holds the major mode
+currently active.  The default value of this variable holds the
+default major mode for new buffers.  The standard default value is
+@code{fundamental-mode}.
 
-If the value of @code{default-major-mode} is @code{nil}, Emacs uses
+If the default value of @code{major-mode} is @code{nil}, Emacs uses
 the (previously) current buffer's major mode as the default major mode
 of a new buffer.  However, if that major mode symbol has a @code{mode-class}
 property with value @code{special}, then it is not used for new buffers;
@@ -602,8 +605,8 @@ been specially prepared.
 @end defopt
 
 @defun set-buffer-major-mode buffer
-This function sets the major mode of @var{buffer} to the value of
-@code{default-major-mode}; if that variable is @code{nil}, it uses the
+This function sets the major mode of @var{buffer} to the default value of
+@code{major-mode}; if that is @code{nil}, it uses the
 current buffer's major mode (if that is suitable).  As an exception,
 if @var{buffer}'s name is @samp{*scratch*}, it sets the mode to
 @code{initial-major-mode}.
@@ -1714,14 +1717,14 @@ the top of the window is to use a list like this: @code{(-3 "%p")}.
   The variable in overall control of the mode line is
 @code{mode-line-format}.
 
-@defvar mode-line-format
+@defopt mode-line-format
 The value of this variable is a mode-line construct that controls the
 contents of the mode-line.  It is always buffer-local in all buffers.
 
 If you set this variable to @code{nil} in a buffer, that buffer does
 not have a mode line.  (A window that is just one line tall never
 displays a mode line.)
-@end defvar
+@end defopt
 
   The default value of @code{mode-line-format} is designed to use the
 values of other variables such as @code{mode-line-position} and
@@ -1821,11 +1824,11 @@ Its default value displays the buffer name, padded with spaces to at
 least 12 columns.
 @end defvar
 
-@defvar mode-line-position
+@defopt mode-line-position
 This variable indicates the position in the buffer.  Its default value
 displays the buffer percentage and, optionally, the buffer size, the
 line number and the column number.
-@end defvar
+@end defopt
 
 @defvar vc-mode
 The variable @code{vc-mode}, buffer-local in each buffer, records
@@ -1834,11 +1837,11 @@ and, if so, which kind.  Its value is a string that appears in the mode
 line, or @code{nil} for no version control.
 @end defvar
 
-@defvar mode-line-modes
+@defopt mode-line-modes
 This variable displays the buffer's major and minor modes.  Its
 default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
-@end defvar
+@end defopt
 
   The following three variables are used in @code{mode-line-modes}:
 
@@ -1897,16 +1900,8 @@ The @samp{%M} construct substitutes the value of
 included in the mode line from @code{mode-line-format}.
 @end defvar
 
-  The variable @code{default-mode-line-format} is where
-@code{mode-line-format} usually gets its value:
-
-@defvar default-mode-line-format
-This variable holds the default @code{mode-line-format} for buffers
-that do not override it.  This is the same as @code{(default-value
-'mode-line-format)}.
-
 Here is a simplified version of the default value of
-@code{default-mode-line-format}.  The real default value also
+@code{mode-line-format}.  The real default value also
 specifies addition of text properties.
 
 @example
@@ -1928,7 +1923,6 @@ specifies addition of text properties.
  "-%-")
 @end group
 @end example
-@end defvar
 
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
@@ -2103,13 +2097,6 @@ controlled by different variables.
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
-@end defvar
-
-@defvar default-header-line-format
-This variable holds the default @code{header-line-format} for buffers
-that do not override it.  This is the same as @code{(default-value
-'header-line-format)}.
-
 It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
@@ -2864,18 +2851,21 @@ wherever they appear.
 @node Precalculated Fontification
 @subsection Precalculated Fontification
 
-  In addition to using @code{font-lock-defaults} for search-based
-fontification, you may use the special character property
-@code{font-lock-face} (@pxref{Special Properties}).  This property
-acts just like the explicit @code{face} property, but its activation
-is toggled when the user calls @kbd{M-x font-lock-mode}.  Using
-@code{font-lock-face} is especially convenient for special modes
-which construct their text programmatically, such as
-@code{list-buffers} and @code{occur}.
+  Some major modes such as @code{list-buffers} and @code{occur}
+construct the buffer text programmatically.  The easiest way for them
+to support Font Lock mode is to specify the faces of text when they
+insert the text in the buffer.
 
-If your mode does not use any of the other machinery of Font Lock
-(i.e. it only uses the @code{font-lock-face} property), it should not
-set the variable @code{font-lock-defaults}.
+  The way to do this is to specify the faces in the text with the
+special text property @code{font-lock-face} (@pxref{Special
+Properties}).  When Font Lock mode is enabled, this property controls
+the display, just like the @code{face} property.  When Font Lock mode
+is disabled, @code{font-lock-face} has no effect on the display.
+
+  It is ok for a mode to use @code{font-lock-face} for some text and
+also use the normal Font Lock machinery.  But if the mode does not use
+the normal Font Lock machinery, it should not set the variable
+@code{font-lock-defaults}.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock
@@ -3145,7 +3135,7 @@ subsequent lines.
 @end itemize
 
 @menu
-* Font Lock Multiline::         Marking multiline chunks with a text property
+* Font Lock Multiline::         Marking multiline chunks with a text property.
 * Region to Fontify::           Controlling which region gets refontified
                                   after a buffer change.
 @end menu

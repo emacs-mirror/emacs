@@ -403,7 +403,7 @@ $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
-MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 ### Install the executables that were compiled specifically for this machine.
 ### It would be nice to do something for a parallel make
@@ -487,7 +487,9 @@ install-arch-indep: mkdir info install-etc
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
 		rm -f  $${subdir}/.cvsignore ; \
+		rm -f  $${subdir}/.gitignore ; \
 		rm -f  $${subdir}/.arch-inventory ; \
+		rm -f  $${subdir}/.DS_Store ; \
 		rm -f  $${subdir}/\#* ; \
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
@@ -524,7 +526,7 @@ install-arch-indep: mkdir info install-etc
 	   then \
 	     docfile="DOC-$${fullversion}"; \
 	   else \
-	     docfile="DOC-${version}*"; \
+	     docfile="DOC"; \
 	   fi; \
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   (cd ./etc; tar -chf - $${docfile}) \
@@ -585,7 +587,7 @@ install-arch-indep: mkdir info install-etc
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
 	else true; fi
-	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
+	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} ${COPYDESTS}
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
 	for page in ${MAN_PAGES}; do \
@@ -621,11 +623,10 @@ install-strip:
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
+### We set the umask so that any created directories are world-readable.
+### FIXME it would be good to warn about non-standard permissions of
+### pre-existing directories, but that does not seem easy.
 mkdir: FRC
-	if [ -d $(DESTDIR)${datadir} ]; then true; else \
-	  $(srcdir)/mkinstalldirs $(DESTDIR)${datadir}; \
-	  chmod a+r $(DESTDIR)${datadir};\
-	fi
 	icondirs= ; \
 	for dir in $(iconsrcdir)/*/*/apps $(iconsrcdir)/*/*/mimetypes; do \
 	  if [ -d $${dir} ]; then \
@@ -633,7 +634,9 @@ mkdir: FRC
 	  fi ; \
 	done ; \
 	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
-	$(srcdir)/mkinstalldirs ${COPYDESTS} $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
+	umask 022 ; \
+	$(srcdir)/mkinstalldirs $(DESTDIR)${datadir} ${COPYDESTS} \
+	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \
 	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
@@ -641,8 +644,7 @@ mkdir: FRC
 	  $(DESTDIR)${desktopdir} $${icondirs}
 
 ### Delete all the installed files that the `install' target would
-### create (but not the noninstalled files such as `make all' would
-### create).
+### create (but not the noninstalled files such as `make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall:
@@ -805,21 +807,26 @@ dist:
 .PHONY: info dvi dist check html
 
 info-real: 
-	-(cd doc/emacs; $(MAKE) $(MFLAGS) info)
-	-(cd doc/misc; $(MAKE) $(MFLAGS) info)
-	-(cd doc/lispref; $(MAKE) $(MFLAGS) info)
-	-(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
+	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
+	(cd doc/misc; $(MAKE) $(MFLAGS) info)
+	(cd doc/lispref; $(MAKE) $(MFLAGS) info)
+	(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
 
 force-info:
-# Note that man/Makefile knows how to
-# put the info files in $(srcdir),
+# Note that man/Makefile knows how to put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
+# This used to have a clause that exited with an error if MAKEINFO = no.
+# But it is inappropriate to do so without checking if makeinfo is
+# actually needed - it is not if the info files are up-to-date.  (Bug#3982)
+# Only the doc/*/Makefiles can decide that, so we let those rules run
+# and give a standard error if makeinfo is needed but missing.
+# While it would be nice to give a more detailed error message, that
+# would require changing every rule in doc/ that builds an info file,
+# and it's not worth it.  This case is only relevant if you download a
+# release, then change the .texi files.
 info: force-info
 	@if test "$(MAKEINFO)" = "off"; then \
 	  echo "Configured --without-makeinfo, not building manuals" ; \
-	elif test "$(MAKEINFO)" = "no"; then \
-	  echo "makeinfo is missing - cannot build manuals" ; \
-	  exit 1 ; \
 	else \
 	  $(MAKE) $(MFLAGS) info-real ; \
 	fi

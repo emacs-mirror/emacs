@@ -424,8 +424,7 @@ With prefix 3, restrict index to region."
 
     (if (get-buffer-window buffer-name)
         (select-window (get-buffer-window buffer-name))
-      (let ((default-major-mode 'reftex-index-mode))
-        (switch-to-buffer buffer-name)))
+      (switch-to-buffer buffer-name))
 
     (or (eq major-mode 'reftex-index-mode) (reftex-index-mode))
 
@@ -1088,7 +1087,8 @@ When index is restricted, select the previous section as restriction criterion."
   "Go to the CHAR section in the index."
   (let ((pos (point))
         (case-fold-search nil))
-    (goto-line 3)
+    (goto-char (point-min))
+    (forward-line 2)
     (if (re-search-forward (concat "^" (char-to-string char)) nil t)
         (progn
           (beginning-of-line)

@@ -2923,7 +2923,7 @@ void recompute_basic_faces P_ ((struct frame *));
 int face_at_buffer_position P_ ((struct window *w, EMACS_INT pos,
 				 EMACS_INT region_beg, EMACS_INT region_end,
 				 EMACS_INT *endptr, EMACS_INT limit,
-				 int mouse));
+				 int mouse, int base_face_id));
 int face_for_overlay_string P_ ((struct window *w, EMACS_INT pos,
 				 EMACS_INT region_beg, EMACS_INT region_end,
 				 EMACS_INT *endptr, EMACS_INT limit,

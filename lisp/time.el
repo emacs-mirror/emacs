@@ -105,6 +105,7 @@ A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
   :group 'display-time)
 
 (defvar display-time-string nil)
+;;;###autoload(put 'display-time-string 'risky-local-variable t)
 
 (defcustom display-time-hook nil
   "List of functions to be called when the time is updated on the mode line."
@@ -559,7 +560,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   (interactive)
   (let ((str
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
-                         (time-to-seconds
+                         (float-time
                           (time-subtract (current-time) before-init-time)))))
     (if (interactive-p)
         (message "%s" str)
@@ -571,7 +572,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   (interactive)
   (let ((str
 	 (format "%.1f seconds"
-		 (time-to-seconds
+		 (float-time
 		  (time-subtract after-init-time before-init-time)))))
     (if (interactive-p)
         (message "%s" str)

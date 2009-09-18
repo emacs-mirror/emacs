@@ -71,8 +71,8 @@ are holidays."
   "Face used for buttons in the fancy diary display."
   :version "22.1"
   :group 'calendar-faces)
-;; Backward-compatibility alias. FIXME make obsolete.
-(put 'diary-button-face 'face-alias 'diary-button)
+
+(define-obsolete-face-alias 'diary-button-face 'diary-button "22.1")
 
 ;; Face markup of calendar and diary displays: Any entry line that
 ;; ends with [foo:value] where foo is a face attribute (except :box
@@ -151,10 +151,9 @@ Used for example by the appointment package - see `appt-activate'."
 (define-obsolete-variable-alias 'diary-display-hook 'diary-display-function
   "23.1")
 
-(defcustom diary-display-function 'diary-simple-display
+(defcustom diary-display-function 'diary-fancy-display
   "Function used to display the diary.
-The default is `diary-simple-display'; `diary-fancy-display' is
-an alternative.
+The two standard options are `diary-fancy-display' and `diary-simple-display'.
 
 For historical reasons, `nil' is the same as `diary-simple-display'
 \(so you must use `ignore' for no display).  Also for historical
@@ -167,14 +166,14 @@ form of ((MONTH DAY YEAR) STRING), where string is the diary
 entry for the given date.  This can be used, for example, to
 produce a different buffer for display (perhaps combined with
 holidays), or hard copy output."
-  :type '(choice (const diary-simple-display :tag "Basic display")
-                 (const diary-fancy-display :tag "Fancy display")
+  :type '(choice (const diary-fancy-display :tag "Fancy display")
+                 (const diary-simple-display :tag "Basic display")
                  (const ignore :tag "No display")
                  (const nil :tag "Obsolete way to choose basic display")
                  (hook :tag "Obsolete form with list of display functions"))
   :initialize 'custom-initialize-default
   :set 'diary-set-maybe-redraw
-  :version "23.1"
+  :version "23.2"                       ; simple->fancy
   :group 'diary)
 
 (define-obsolete-variable-alias 'list-diary-entries-hook
@@ -355,9 +354,7 @@ template following the rules above."
 (defun diary-set-header (symbol value)
   "Set SYMBOL's value to VALUE, and redraw the diary header if necessary."
   (let ((oldvalue (symbol-value symbol))
-        (dbuff (and diary-file
-                    (find-buffer-visiting
-                     (substitute-in-file-name diary-file)))))
+        (dbuff (and diary-file (find-buffer-visiting diary-file))))
     (custom-set-default symbol value)
     (and dbuff
          (not (equal value oldvalue))
@@ -410,8 +407,7 @@ Only used if `diary-header-line-flag' is non-nil."
 (defun diary-live-p ()
   "Return non-nil if the diary is being displayed."
   (or (get-buffer diary-fancy-buffer)
-      (and diary-file
-           (find-buffer-visiting (substitute-in-file-name diary-file)))))
+      (and diary-file (find-buffer-visiting diary-file))))
 
 ;;;###cal-autoload
 (defun diary-set-maybe-redraw (symbol value)
@@ -463,12 +459,11 @@ of days of diary entries displayed."
 (defun diary-check-diary-file ()
   "Check that the file specified by `diary-file' exists and is readable.
 If so, return the expanded file name, otherwise signal an error."
-  (let ((d-file (substitute-in-file-name diary-file)))
-    (if (and d-file (file-exists-p d-file))
-        (if (file-readable-p d-file)
-            d-file
-          (error "Diary file `%s' is not readable" diary-file))
-      (error "Diary file `%s' does not exist" diary-file))))
+  (if (and diary-file (file-exists-p diary-file))
+      (if (file-readable-p diary-file)
+          diary-file
+        (error "Diary file `%s' is not readable" diary-file))
+    (error "Diary file `%s' does not exist" diary-file)))
 
 ;;;###autoload
 (defun diary (&optional arg)
@@ -659,7 +654,7 @@ any entries were found."
           ;; regexp moves us past the end of date, onto the next line.
           ;; Trailing whitespace after date not allowed (see diary-file).
           (if (and (bolp) (not (looking-at "[ \t]")))
-              ;;  Diary entry that consists only of date.
+              ;; Diary entry that consists only of date.
               (backward-char 1)
             ;; Found a nonempty diary entry--make it
             ;; visible and add it to the list.
@@ -746,18 +741,17 @@ LIST-ONLY is non-nil, in which case it just returns the list."
   (when (> number 0)
     (let* ((original-date date)    ; save for possible use in the hooks
            (date-string (calendar-date-string date))
-           (d-file (substitute-in-file-name diary-file))
-           (diary-buffer (find-buffer-visiting d-file))
+           (diary-buffer (find-buffer-visiting diary-file))
            diary-entries-list file-glob-attrs)
       (message "Preparing diary...")
       (save-excursion
         (if (not diary-buffer)
-            (set-buffer (find-file-noselect d-file t))
+            (set-buffer (find-file-noselect diary-file t))
           (set-buffer diary-buffer)
           (or (verify-visited-file-modtime diary-buffer)
               (revert-buffer t t)))
         ;; Setup things like the header-line-format and invisibility-spec.
-        (if (eq major-mode default-major-mode)
+        (if (eq major-mode (default-value 'major-mode))
             (diary-mode)
           ;; This kludge is to make customizations to
           ;; diary-header-line-flag after diary has been displayed
@@ -827,12 +821,10 @@ the variable `diary-include-string'."
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
           nil t)
-    (let ((diary-file (substitute-in-file-name
-                       (match-string-no-properties 1)))
-          (diary-list-include-blanks nil)
+    (let ((diary-file (match-string-no-properties 1))
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-display-function 'ignore)
-          (diary-hook nil))
+          diary-hook diary-list-include-blanks)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
@@ -895,7 +887,7 @@ in the mode line.  This is an option for `diary-display-function'."
   ;; to display the diary.
   (let* ((pop-up-frames (or pop-up-frames
                             (window-dedicated-p (selected-window))))
-         (dbuff (find-buffer-visiting (substitute-in-file-name diary-file)))
+         (dbuff (find-buffer-visiting diary-file))
          (empty (diary-display-no-entries)))
     ;; This may be too wide, but when simple diary is used there is
     ;; nowhere else for the holidays to go.  Also, it is documented in
@@ -915,9 +907,9 @@ in the mode line.  This is an option for `diary-display-function'."
 (define-obsolete-function-alias 'simple-diary-display
   'diary-simple-display "23.1")
 
-(define-button-type 'diary-entry
-  'action #'diary-goto-entry
-  'face 'diary-button)
+(define-button-type 'diary-entry 'action #'diary-goto-entry
+  'face 'diary-button 'help-echo "Find this diary entry"
+  'follow-link t)
 
 (defun diary-goto-entry (button)
   "Jump to the diary entry for the BUTTON at point."
@@ -934,7 +926,7 @@ in the mode line.  This is an option for `diary-display-function'."
                (file-exists-p file)
                (find-file-other-window file)
                (progn
-                 (when (eq major-mode default-major-mode) (diary-mode))
+                 (when (eq major-mode (default-value 'major-mode)) (diary-mode))
                  (goto-char (point-min))
                  (if (re-search-forward (format "%s.*\\(%s\\)"
                                                 (regexp-quote (nth 2 locator))
@@ -951,8 +943,7 @@ holiday), unless `diary-list-include-blanks' is non-nil.
 
 This is an option for `diary-display-function'."
   ;; Turn off selective-display in the diary file's buffer.
-  (with-current-buffer
-      (find-buffer-visiting (substitute-in-file-name diary-file))
+  (with-current-buffer (find-buffer-visiting diary-file)
     (diary-unhide-everything))
   (unless (car (diary-display-no-entries)) ; no entries
     ;; Prepare the fancy diary buffer.
@@ -1008,7 +999,7 @@ This is an option for `diary-display-function'."
                 this-loc marks temp-face)
             (unless (zerop (length this-entry))
               (if (setq this-loc (nth 3 entry))
-                  (insert-button (concat this-entry "\n")
+                  (insert-button this-entry
                                  ;; (MARKER FILENAME SPECIFIER LITERAL)
                                  'locator (list (car this-loc)
                                                 (cadr this-loc)
@@ -1016,7 +1007,8 @@ This is an option for `diary-display-function'."
                                                 (or (nth 2 this-loc)
                                                     (nth 1 entry)))
                                  :type 'diary-entry)
-                (insert this-entry ?\n))
+                (insert this-entry))
+              (insert ?\n)
               ;; Doesn't make sense to check font-lock-mode - see
               ;; comments above diary-entry-marker in calendar.el.
               (and ; font-lock-mode
@@ -1027,7 +1019,8 @@ This is an option for `diary-display-function'."
                      (overlay-put
                       (make-overlay (match-beginning 0) (match-end 0))
                       'face temp-face)))))))
-      (diary-fancy-display-mode)
+      (or (eq major-mode 'diary-fancy-display-mode)
+          (diary-fancy-display-mode))
       (calendar-set-mode-line date-string)
       (message "Preparing diary...done"))))
 
@@ -1052,8 +1045,7 @@ the actual printing."
     (if diary-buffer
         (with-current-buffer diary-buffer
           (run-hooks 'diary-print-entries-hook))
-      (or (setq diary-buffer
-                (find-buffer-visiting (substitute-in-file-name diary-file)))
+      (or (setq diary-buffer (find-buffer-visiting diary-file))
           (error "You don't have a diary buffer!"))
       ;; Name affects printing?
       (setq temp-buffer (get-buffer-create " *Printable Diary Entries*"))
@@ -1094,7 +1086,7 @@ is created."
                            (window-dedicated-p (selected-window)))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
-      (when (eq major-mode default-major-mode) (diary-mode))
+      (when (eq major-mode (default-value 'major-mode)) (diary-mode))
       (diary-unhide-everything)
       (display-buffer (current-buffer)))))
 
@@ -1246,7 +1238,9 @@ function that converts absolute dates to dates of the appropriate type.  "
                                (buffer-substring-no-properties
                                 (point) (line-end-position))
                                file-glob-attrs)))
-            (if dd-name
+            ;; Only mark all days of a given name if the pattern
+            ;; contains no more specific elements.
+            (if (and dd-name (not (or d-pos m-pos y-pos)))
                 (calendar-mark-days-named
                  (cdr (assoc-string dd-name
                                     (calendar-make-alist
@@ -1287,7 +1281,7 @@ diary entries."
         file-glob-attrs)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
       (save-excursion
-        (when (eq major-mode default-major-mode) (diary-mode))
+        (when (eq major-mode (default-value 'major-mode)) (diary-mode))
         (setq calendar-mark-diary-entries-flag t)
         (message "Marking diary entries...")
         (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
@@ -1391,8 +1385,7 @@ the variable `diary-include-string'."
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
           nil t)
-    (let* ((diary-file (substitute-in-file-name
-                        (match-string-no-properties 1)))
+    (let* ((diary-file (match-string-no-properties 1))
            (diary-mark-entries-hook 'diary-mark-included-diary-files)
            (dbuff (find-buffer-visiting diary-file)))
       (if (file-exists-p diary-file)
@@ -1980,8 +1973,8 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
   (let ((pop-up-frames (or pop-up-frames
                            (window-dedicated-p (selected-window)))))
-    (find-file-other-window (substitute-in-file-name (or file diary-file))))
-  (when (eq major-mode default-major-mode) (diary-mode))
+    (find-file-other-window (or file diary-file)))
+  (when (eq major-mode (default-value 'major-mode)) (diary-mode))
   (widen)
   (diary-unhide-everything)
   (goto-char (point-max))
@@ -2356,6 +2349,11 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
+(defvar diary-fancy-overriding-map (let ((map (make-sparse-keymap)))
+                                     (define-key map "q" 'quit-window)
+                                     map)
+  "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
+
 (define-derived-mode diary-fancy-display-mode fundamental-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
@@ -2364,7 +2362,10 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
          t nil nil nil
          (font-lock-fontify-region-function
           . diary-fancy-font-lock-fontify-region-function)))
-  (local-set-key "q" 'quit-window))
+  (local-set-key "q" 'quit-window)
+  (set (make-local-variable 'minor-mode-overriding-map-alist)
+       (list (cons t diary-fancy-overriding-map)))
+  (view-mode 1))
 
 (define-obsolete-function-alias 'fancy-diary-display-mode
   'diary-fancy-display-mode "23.1")
@@ -2379,6 +2380,7 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
 ;; `diary-outlook-formats'.
 
 (defvar subject)                        ; bound in diary-from-outlook-gnus
+(defvar body)
 
 (defun diary-from-outlook-internal (&optional test-only)
   "Snarf a diary entry from a message assumed to be from MS Outlook.

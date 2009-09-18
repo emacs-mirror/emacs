@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "7988f2bc52c60f3e7cac9970430d1df3")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "d2000926c438cbd72f37587241cab7ed")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
 ;;;;;;  return block etypecase typecase ecase case load-time-value
 ;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym) "cl-macs" "cl-macs.el" "5eed0057bf35ca41a5e133d1ec6204d0")
+;;;;;;  gensym) "cl-macs" "cl-macs.el" "cee0f106d963d8d1665bc67bea707297")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -504,8 +504,10 @@ lexical closures as in Common Lisp.
 
 (autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
+The main visible difference is that lambdas inside BODY, and in
+successive bindings within BINDINGS, will create lexical closures
+as in Common Lisp.  This is similar to the behavior of `let*' in
+Common Lisp.
 
 \(fn VARLIST BODY)" nil (quote macro))
 

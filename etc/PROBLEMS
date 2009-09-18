@@ -212,10 +212,11 @@ All modern systems support terminfo, so even if ncurses is not the
 problem, you should look for a way to configure Emacs so that it uses
 terminfo when built.
 
-** Emacs crashes when using the Exceed 6.0 X server.
+** Emacs crashes when using some version of the Exceed X server.
 
-If you are using Exceed 6.1, upgrade to a later version.  This was
-reported to prevent the crashes.
+Upgrading to a newer version of Exceed has been reported to prevent
+these crashes.  You should consider switching to a free X server, such
+as Xming or Cygwin/X.
 
 ** Emacs crashes with SIGSEGV in XtInitializeWidgetClass.
 
@@ -910,7 +911,9 @@ normal); tex-suscript-height-minimum (minimum height).
 Many Spanish keyboards seem to ignore that combination.  Emacs can't
 do anything about it.
 
-** Characters from the mule-unicode charsets aren't displayed under X.
+** International characters aren't displayed under X.
+
+*** Missing X fonts
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
 minimal character repertoires (whereas the encoding part of the font
@@ -925,6 +928,12 @@ include in the fontset spec:
 mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
+
+*** Athena/Lucid toolkit limitations
+
+The Athena/Lucid toolkit cannot display UTF-8 strings in the menu, so
+if you have UTF-8 buffer names, the buffer menu won't display the
+names properly.  The GTK+ toolkit works properly.
 
 ** The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
 
@@ -946,79 +955,6 @@ correctly as UTF-8, assuming you don't break the composed sequences.
 If you read such characters from UTF-16 or UTF-7 data, they are
 substituted with the Unicode `replacement character', and you lose
 information.
-
-** Mule-UCS loads very slowly.
-
-Changes to Emacs internals interact badly with Mule-UCS's `un-define'
-library, which is the usual interface to Mule-UCS.  Apply the
-following patch to Mule-UCS 0.84 and rebuild it.  That will help,
-though loading will still be slower than in Emacs 20.  (Some
-distributions, such as Debian, may already have applied such a patch.)
-
---- lisp/un-define.el	6 Mar 2001 22:41:38 -0000	1.30
-+++ lisp/un-define.el	19 Apr 2002 18:34:26 -0000
-@@ -610,13 +624,21 @@ by calling post-read-conversion and pre-
-
-  (mapcar
-   (lambda (x)
--    (mapcar
--     (lambda (y)
--       (mucs-define-coding-system
--	(nth 0 y) (nth 1 y) (nth 2 y)
--	(nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
--       (coding-system-put (car y) 'alias-coding-systems (list (car x))))
--     (cdr x)))
-+    (if (fboundp 'register-char-codings)
-+	;; Mule 5, where we don't need the eol-type specified and
-+	;; register-char-codings may be very slow for these coding
-+	;; system definitions.
-+	(let ((y (cadr x)))
-+         (mucs-define-coding-system
-+          (car x) (nth 1 y) (nth 2 y)
-+          (nth 3 y) (nth 4 y) (nth 5 y)))
-+      (mapcar
-+       (lambda (y)
-+        (mucs-define-coding-system
-+         (nth 0 y) (nth 1 y) (nth 2 y)
-+         (nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
-+        (coding-system-put (car y) 'alias-coding-systems (list (car x)))))
-+      (cdr x)))
-   `((utf-8
-      (utf-8-unix
-       ?u "UTF-8 coding system"
-
-Note that Emacs has native support for Unicode, roughly equivalent to
-Mule-UCS's, so you may not need it.
-
-** Mule-UCS compilation problem.
-
-Emacs of old versions and XEmacs byte-compile the form `(progn progn
-...)' the same way as `(progn ...)', but Emacs of version 21.3 and the
-later process that form just as interpreter does, that is, as `progn'
-variable reference.  Apply the following patch to Mule-UCS 0.84 to
-make it compiled by the latest Emacs.
-
---- mucs-ccl.el	2 Sep 2005 00:42:23 -0000	1.1.1.1
-+++ mucs-ccl.el	2 Sep 2005 01:31:51 -0000	1.3
-@@ -639,10 +639,14 @@
-       (mucs-notify-embedment 'mucs-ccl-required name)
-       (setq ccl-pgm-list (cdr ccl-pgm-list)))
- ;   (message "MCCLREGFIN:%S" result)
--    `(progn
--       (setq mucs-ccl-facility-alist
--            (quote ,mucs-ccl-facility-alist))
--       ,@result)))
-+    ;; The only way the function is used in this package is included
-+    ;; in `mucs-package-definition-end-hook' value, where it must
-+    ;; return (possibly empty) *list* of forms.  Do this.  Do not rely
-+    ;; on byte compiler to remove extra `progn's in `(progn ...)'
-+    ;; form.
-+    `((setq mucs-ccl-facility-alist
-+           (quote ,mucs-ccl-facility-alist))
-+      ,@result)))
-
- ;;; Add hook for embedding translation informations to a package.
- (add-hook 'mucs-package-definition-end-hook
 
 ** Accented ISO-8859-1 characters are displayed as | or _.
 
@@ -1503,7 +1439,8 @@ There are three possible reasons why flow control could be taking place:
 
 First of all, many terminals have a set-up mode which controls whether
 they generate XON/XOFF flow control characters.  This must be set to
-"no XON/XOFF" in order for Emacs to work.  Sometimes there is an
+"no XON/XOFF" in order for Emacs to work.  (For example, on a VT220
+you may select "No XOFF" in the setup menu.)  Sometimes there is an
 escape sequence that the computer can send to turn flow control off
 and on.  If so, perhaps the termcap `ti' string should turn flow
 control off, and the `te' string should turn it on.
@@ -1630,12 +1567,14 @@ in termcap.c, tparam.c, term.c, scroll.c, cm.c or dispnew.c.
 Some versions of rlogin (and possibly telnet) do not pass flow
 control characters to the remote system to which they connect.
 On such systems, emacs on the remote system cannot disable flow
-control on the local system.
+control on the local system.  Sometimes `rlogin -8' will avoid this
+problem.
 
 One way to cure this is to disable flow control on the local host
 (the one running rlogin, not the one running rlogind) using the
 stty command, before starting the rlogin process.  On many systems,
-"stty start u stop u" will do this.
+"stty start u stop u" will do this.  On some systems, use
+"stty -ixon" instead. 
 
 Some versions of tcsh will prevent even this from working.  One way
 around this is to start another shell before starting rlogin, and

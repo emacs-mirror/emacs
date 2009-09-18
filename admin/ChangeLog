@@ -1,10 +1,74 @@
+2009-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/.gitignore: New file.
+
+2009-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* notes/bugtracker: How to reassign a bug to a list of packages.
+
+	* notes/newfile: Details of how to check for problems with DOS 8+3
+	file-name restrictions.
+
+2009-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* notes/newfile: New file.
+
+2009-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-tarball.txt: Add a note about bumping the value of
+	customize-changed-options-previous-release.
+
+2009-06-24  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/mapconv: For the UNICODE format files, do reverse sort
+	and don't compact the map.  This is to prefer the first one in the
+	duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
+
+2009-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/Makefile (JISX213A.map): Make it depend on
+	mapfiles/JISX213A.map.gz.
+	(BIG5-1.map, BIG5-2.map): Prepend "# " to the first comment line.
+
+	* charsets/mapfiles/JISX213A.map.gz: New file.
+
+	* charsets/mapfiles/README: Describe JISX213A.map.gz.
+
+2009-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/mapfiles/*: New files.
+
+	* charsets/mule-charsets.el: Mostly re-written to generate all
+	MULE-*.map files.
+
+	* charsets/mapconv: Mostly re-written to handle "gzip"ed input
+	files.
+
+	* charsets/eucjp-ms.awk: Mostly re-written to handle glibc's
+	EUC-JP-MS.
+
+	* charsets/cp51932.awk (END): Print arch-tag at the tail.
+
+	* charsets/Makefile: Maps depend on files under mapfiles or
+	${GLIBC_CHARMAPS}.
+
+2009-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-get-decomposition): Fix previous
+	change.
+
+2009-04-17  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-get-decomposition): Adjust
+	Hangle decomposition rule to Unicode.
+
 2009-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-describe-decomposition): Return
 	a string with a composition property to disable combining
 	characters being composed.
 
-2009-03-11  Miles Bader  <Miles Bader <miles@gnu.org>>
+2009-03-11  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs: Be more clever about locating info directory.
 

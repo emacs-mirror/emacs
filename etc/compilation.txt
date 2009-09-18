@@ -300,11 +300,15 @@ PCC-02151: line 21 column 40 file /usr/src/sb/ODBI_BHP.hpp:
 
 symbol: perl
 
+The second sample, from the Perl-Glib module, is a Glib message put
+through Perl warn() to get "at FILENAME line N".
+
 syntax error at automake line 922, near "':'"
 Died at test.pl line 27.
 store::odrecall('File_A', 'x2') called at store.pm line 90
 	(in cleanup) something bad at foo.pl line 3 during global destruction.
 
+GLib-GObject-WARNING **: /build/buildd/glib2.0-2.14.5/gobject/gsignal.c:1741: instance `0x8206790' has no handler with id `1234' at t-compilation-perl-gtk.pl line 3.
 
 * PHP
 
@@ -396,7 +400,7 @@ symbol: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line
 
 * Podchecker error messages, per Pod::Checker
 
-symbol: compilation-perl--Pod::Checker
+symbol: perl--Pod::Checker
 
 *** ERROR: Spurious text after =cut at line 193 in file foo.pm
 *** ERROR: =over on line 37 without closing =back at line EOF in file bar.pm
@@ -405,21 +409,21 @@ symbol: compilation-perl--Pod::Checker
 
 * Perl Test module error messages
 
-symbol: compilation-perl--Test
+symbol: perl--Test
 
 # Failed test 1 in foo.t at line 6
 
 
 * Perl Test::Harness output
 
-symbol: compilation-perl--Test::Harness
+symbol: perl--Test::Harness
 
 NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
 
 
 * Perl HTML::Lint::Error::as_string()
 
-symbol: compilation-weblint
+symbol: weblint
 
 index.html (13:1) Unknown element <fdjsk>
 

@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/BIG5-HKSCS
+# Generated from BIG5-HKSCS in localedate/charmaps of glibc
 0x8840-0x8855 0xF303
 0x8856 0x0100
 0x8857 0x00C1

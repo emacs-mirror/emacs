@@ -1689,7 +1689,7 @@ is non-nil return these properties."
 	 propname)))
 
 (defun imap-message-map (func propname &optional buffer)
-  "Map a function across each mailbox in `imap-message-data', returning a list."
+  "Map a function across each message in `imap-message-data', returning a list."
   (with-current-buffer (or buffer (current-buffer))
     (let (result)
       (mapatoms
@@ -2004,10 +2004,11 @@ on failure."
 	       (imap-send-command-1 cmdstr)
 	       (setq cmdstr nil)
 	       (unwind-protect
-		   (if (not (eq (imap-wait-for-tag tag) 'INCOMPLETE))
-		       (setq command nil) ;; abort command if no cont-req
-		     (setq command (cons (funcall cmd imap-continuation)
-					 command)))
+		   (setq command
+			 (if (not (eq (imap-wait-for-tag tag) 'INCOMPLETE))
+			     nil ;; abort command if no cont-req
+			   (cons (funcall cmd imap-continuation)
+				 command)))
 		 (setq imap-continuation nil)))
 	      (t
 	       (error "Unknown command type"))))
@@ -2021,7 +2022,7 @@ on failure."
       (while (and (null imap-continuation)
 		  (memq (process-status imap-process) '(open run))
 		  (< imap-reached-tag tag))
-	(let ((len (/ (point-max) 1024))
+	(let ((len (/ (buffer-size) 1024))
 	      message-log-max)
 	  (unless (< len 10)
 	    (setq imap-have-messaged t)

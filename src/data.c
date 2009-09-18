@@ -1891,7 +1891,7 @@ DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 
 If SYMBOL is not a terminal-local variable, then return its normal
 value, like `symbol-value'.
 
-TERMINAL may be a terminal id, a frame, or nil (meaning the
+TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal device).  */)
   (symbol, terminal)
      Lisp_Object symbol;
@@ -1910,7 +1910,7 @@ DEFUN ("set-terminal-local-value", Fset_terminal_local_value, Sset_terminal_loca
 If VARIABLE is not a terminal-local variable, then set its normal
 binding, like `set'.
 
-TERMINAL may be a terminal id, a frame, or nil (meaning the
+TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal device).  */)
   (symbol, terminal, value)
      Lisp_Object symbol;

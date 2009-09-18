@@ -418,7 +418,9 @@ or @kbd{I} instead.}
 A regular expression that matches safe URL names, i.e. URLs that are
 unlikely to leak personal information when rendering @acronym{HTML}
 email (the default value is @samp{\\`cid:}).  If @code{nil} consider
-all URLs safe.
+all URLs safe.  In Gnus, this will be overridden according to the value
+of the variable @code{gnus-safe-html-newsgroups}, @xref{Various
+Various, ,Various Various, gnus, Gnus Manual}.
 
 @item mm-inline-text-html-with-w3m-keymap
 @vindex mm-inline-text-html-with-w3m-keymap
@@ -1579,7 +1581,8 @@ These are the functions available:
 Take a date and return a time.
 
 @item time-to-seconds
-Take a time and return seconds.
+Take a time and return seconds.  Note that Emacs has a built-in
+function, @code{float-time}, that does this.
 
 @item seconds-to-time
 Take seconds and return a time.

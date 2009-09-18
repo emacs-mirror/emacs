@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -71,8 +71,9 @@
 			      :message-id message-id)
 	(setq message-id (org-remove-angle-brackets message-id))
 	(setq folder (abbreviate-file-name folder))
-	(if (string-match (concat "^" (regexp-quote vm-folder-directory))
-			  folder)
+	(if (and vm-folder-directory
+		 (string-match (concat "^" (regexp-quote vm-folder-directory))
+			       folder))
 	    (setq folder (replace-match "" t t folder)))
 	(setq desc (org-email-link-description))
 	(setq link (org-make-link "vm:" folder "#" message-id))

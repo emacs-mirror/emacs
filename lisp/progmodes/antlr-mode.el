@@ -835,6 +835,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-default-face 'face-alias 'antlr-default)
+(put 'antlr-font-lock-default-face 'obsolete-face "22.1")
 
 (defvar antlr-keyword-face 'antlr-keyword)
 (defface antlr-keyword
@@ -846,6 +847,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-keyword-face 'face-alias 'antlr-keyword)
+(put 'antlr-font-lock-keyword-face 'obsolete-face "22.1")
 
 (defvar antlr-syntax-face 'antlr-keyword)
 (defface antlr-syntax
@@ -857,6 +859,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-syntax-face 'face-alias 'antlr-syntax)
+(put 'antlr-font-lock-syntax-face 'obsolete-face "22.1")
 
 (defvar antlr-ruledef-face 'antlr-ruledef)
 (defface antlr-ruledef
@@ -868,6 +871,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-ruledef-face 'face-alias 'antlr-ruledef)
+(put 'antlr-font-lock-ruledef-face 'obsolete-face "22.1")
 
 (defvar antlr-tokendef-face 'antlr-tokendef)
 (defface antlr-tokendef
@@ -879,6 +883,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-tokendef-face 'face-alias 'antlr-tokendef)
+(put 'antlr-font-lock-tokendef-face 'obsolete-face "22.1")
 
 (defvar antlr-ruleref-face 'antlr-ruleref)
 (defface antlr-ruleref
@@ -888,6 +893,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-ruleref-face 'face-alias 'antlr-ruleref)
+(put 'antlr-font-lock-ruleref-face 'obsolete-face "22.1")
 
 (defvar antlr-tokenref-face 'antlr-tokenref)
 (defface antlr-tokenref
@@ -897,6 +903,7 @@ Do not change."
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-tokenref-face 'face-alias 'antlr-tokenref)
+(put 'antlr-font-lock-tokenref-face 'obsolete-face "22.1")
 
 (defvar antlr-literal-face 'antlr-literal)
 (defface antlr-literal
@@ -910,6 +917,7 @@ It is used to highlight strings matched by the first regexp group of
   :group 'antlr)
 ;; backward-compatibility alias
 (put 'antlr-font-lock-literal-face 'face-alias 'antlr-literal)
+(put 'antlr-font-lock-literal-face 'obsolete-face "22.1")
 
 (defcustom antlr-font-lock-literal-regexp "\"\\(\\sw\\(\\sw\\|-\\)*\\)\""
   "Regexp matching literals with special syntax highlighting, or nil.

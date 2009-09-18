@@ -121,7 +121,7 @@
 \newcommand{\Copyright}{%
   \begin{center}
     Copyright \copyright\ 1995, 2000, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008  Free Software Foundation, Inc.\\*
+       2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.\\*
   \end{center}
 
   Permission is granted to make and distribute copies of this reference
@@ -149,7 +149,7 @@
 
     \quad [distance] How many objects to move the point over.
 
-    \quad [scope] How many objects to operate on (including the current one).
+    \quad [scope] How many objects to operate on (including current one).
 
     \quad [p/p] The ``Process/Prefix Convention'': If a prefix is given then it
     determines how many objects to operate on. Else if there are some objects
@@ -171,12 +171,12 @@
       M-x gnus-no-server & start Gnus without connecting to server
       (i.e. to read mail). \\
     \end{keys}
-    Additionally, there are the two commands \texttt{gnus-plugged} and
+    Additionally, there are two commands \texttt{gnus-plugged} and
     \texttt{gnus-unplugged}, which are only used if you want to download
     news and/or read previously downloaded news offline (see C-c C-i g Gnus
     Unplugged RET). Note: \texttt{gnus-no-server} ignores the stuff in
     \texttt{gnus-agent-directory}, and thus does not allow you to use Gnus
-    Unplugged.
+    Unplugged.\\
                                 %
     \begin{keys}{C-c C-i}
       C-c C-i & Go to the Gnus online {\bf info}.\\
@@ -241,7 +241,7 @@
       K   & (k, M k; C-k, M K) {\bf Killed}.\\
       M   & Article marked as read by duplicate suppression.\\
       Q   & Article is part of a sparse thread (see ``Threading''
-      in the manual).\\
+      in manual).\\
       R   & {\bf Read} (viewed in actuality).\\
       X   & Killed by a kill file.\\
       Y   & Killed due to low score.\\
@@ -249,7 +249,7 @@
       \multicolumn{2}{|p{\markdblcolwidth}|}
       {{\bf Marks not affecting visibility}}\\
       \hline
-      \#  & (\#, M \#, M P p) Processable (will be affected by the next operation).
+      \#  & (\#, M \#, M P p) Processable (affected by next operation).
       [2]\\
       A   & {\bf Answered} (followed-up or replied). [2]\\
       F   & Forwarded. [2]\\
@@ -284,7 +284,7 @@
     a       & Post an {\bf article} to a group
               [Prefix: use group under point to find posting-style].\\
     b       & Find {\bf bogus} groups and delete them.\\
-    c       & Mark all unticked articles in this group as read ({\bf catch-up}).
+    c       & Mark all unticked articles in group as read ({\bf catch-up}).
     [p/p]\\ 
     g       & Check the server for new articles ({\bf get}). [level]\\
     M-g     & Check the server for new articles in this group ({\bf get}). [p/p]\\
@@ -299,7 +299,7 @@
     M-p     & Go to the {\bf previous} group on the same or lower level. [distance]\\ 
     q       & {\bf Quit} Gnus.\\
     r       & Re-read the init file ({\bf reset}).\\
-    s       & {\bf Save} the `.newsrc.eld' file (and `.newsrc' if
+    s       & {\bf Save} `.newsrc.eld' file (and `.newsrc' if
     `gnus-save-newsrc-file').\\ 
     z       & Suspend (kill all buffers of) Gnus.\\
     B       & {\bf Browse} a foreign server.\\
@@ -313,7 +313,7 @@
     M-c     & Clear data from group (marks and list of read articles). \\
     C-c C-s & {\bf Sort} the groups by name, number of unread articles, or level
     (depending on `gnus-group-sort-function').\\
-    C-c C-x & Run all expirable articles in this group through the {\bf expiry} 
+    C-c C-x & Run all expirable articles in group through the {\bf expiry} 
     process.\\
     C-c M-C-x & Run all articles in all groups through the {\bf expiry} process.\\
     C-c M-g & Activate all {\bf groups}.\\
@@ -404,7 +404,7 @@
     \begin{keys}{M m}
       M m     & (\#) Set the process {\bf mark} on this group. [scope]\\
       M r     & Mark all groups matching regular expression.\\
-      M u     & (M-\#) Remove the process mark from this group ({\bf unmark}).
+      M u     & (M-\#) Remove process mark from this group ({\bf unmark}).
       [scope]\\ 
       M U     & Remove the process mark from all groups (\textbf{umark all}).\\
       M w     & Mark all groups in the current region. [prefix: unmark]\\
@@ -490,9 +490,9 @@
         [Prefix: move backwards]\\
         M-\&    & Execute a command on all articles having the process mark.\\
                                 %
-        M-n     & (G M-n) Go to the {\bf next} summary line of an unread article.
+        M-n     & (G M-n) Go to {\bf next} summary line of unread article.
         [distance]\\ 
-        M-p     & (G M-p) Go to the {\bf previous} summary line of an unread article. 
+        M-p     & (G M-p) Go to {\bf previous} summary line of an unread article. 
         [distance]\\ 
         M-s     & {\bf Search} through all subsequent articles for a regexp.\\
         M-r     & Search through all previous articles for a regexp.\\
@@ -620,7 +620,7 @@
 
   \newcommand{\SelectArticles}{% formerly \Gsubmap
     {\esamepage
-      These commands select the target article. They do not understand the prefix.\\*
+      These commands select the target article. They do not use the prefix.\\*
       \begin{keys}{G C-n}
         h       & Enter article-buffer.\\
         G b     & (,) Go to the {\bf best} article (the one with highest score).\\
@@ -667,7 +667,7 @@
         W a     & Strip certain {\bf headers} from body.\\
         W b     & Make Message-IDs and URLs in the article mouse-clickable
         {\bf buttons}.\\  
-        W c     & Translate CRLF-pairs to LF and then the remaining CR's to LF's.\\
+        W c     & Translate CRLF-pairs to LF and then remaining CR's to LF's.\\
         W d     & Treat {\bf dumbquotes}.\\
         W e     & Treat {\bf emphasized} text.\\
         W h     & Treat {\bf HTML}.\\
@@ -706,7 +706,7 @@
         W E m   & Replace blank lines with empty lines and remove {\bf multiple}
         blank lines.\\
         W E t   & Remove {\bf trailing} blank lines.\\
-        W E a   & Strip blank lines at the beginning and the end
+        W E a   & Strip blank lines at start and end
         (W E l, W E m and W E t).\\
         W E A   & Strip {\bf all} blank lines.\\
         W E s   & Strip leading blank lines from the article body.\\
@@ -795,7 +795,7 @@
       \begin{keys}{M M-C-r}
         d       & (M d, M r) Mark this article as read and move to the next one.
         [scope]\\ 
-        D       & Mark this article as read and move to the previous one. [scope]\\
+        D       & Mark this article as read and move to previous one. [scope]\\
         !       & (u, M !, M t) Tick this article (mark it as interesting) and move
         to the next one. [scope]\\
         U       & Tick this article and move to the previous one. [scope]\\ 
@@ -812,7 +812,7 @@
                                 %
         M e     & (E, M x) Mark this article as {\bf expirable}. [scope]\\
                                 %
-        M k     & (k) {\bf Kill} all articles with the same subject then select the
+        M k     & (k) {\bf Kill} all articles with same subject, select
         next unread one.\\ 
         M K     & (C-k) {\bf Kill} all articles with the same subject as this one.\\
                                 %
@@ -862,11 +862,11 @@
       M P a   & Mark {\bf all} articles (in series order).\\
       M P U   & \textbf{unmark} all articles.\\
       M P i   & {\bf Invert} the list of process-marked articles.\\
-      M P k   & Push the current process-mark set onto stack and unmark
+      M P k   & Push process-mark set onto stack and unmark
       all articles.\\
       M P y   & Pop process-mark set from stack and restore it.\\
       M P w   & Push process-mark set on the stack.\\
-      M P v   & Mark all articles with score over the default score. [Prefix: score]\\
+      M P v   & Mark all articles with score over default score. [Prefix: score]\\
     \end{keys}
     }
   }
@@ -885,7 +885,7 @@
       /t   & Ask for a number and exclude articles younger than that many days.
       [Prefix: exclude older articles]\\
       /n   & Limit to current article. [p/p]\\
-      /w   & Pop the previous limit off the stack and restore it.
+      /w   & Pop previous limit off stack and restore it.
       [Prefix: pop all limits]\\
       /v   & Limit to score. [score]\\
       /E   & (M S) Include all expunged articles in the limit.\\
@@ -936,8 +936,8 @@
       S f     & (f) Post a {\bf followup} to this article.\\
       S F     & (F) Post a {\bf followup} and include the original. [p/p]\\
       S o p   & Forward this article as a {\bf post} to a newsgroup.\\
-      S M-c   & Send a complaint about excessive crossposting to the author of this
-      article. [p/p]\\
+      S M-c   & Complain about excessive crossposting to
+      article's author. [p/p]\\
                                 %
       S m     & (m) Send a {\bf mail} to some other person.\\
       S r     & (r) Mail a {\bf reply} to the author of this article.\\
@@ -972,7 +972,7 @@
     \end{keys}
     If you want to cancel or supersede an article you just posted (before it
     has appeared on the server), go to the *post-news* buffer, change
-    `Message-ID' to `Cancel' or `Supersedes' and send it again with C-c C-c.
+    `Message-ID' to `Cancel' or `Supersedes' and send again with C-c C-c.
     }}
 
 \newcommand{\Threading}{% formerly \Tsubmap
@@ -982,7 +982,7 @@
       T M-\#  & Remove process-marks from this thread.\\
                                 %
       T t     & Re-{\bf thread} the current article's thread.\\
-      T \^{}  & Make the current article child of the marked (or previous) article.\\
+      T \^{}  & Make the current article child of the marked (or previous) one.\\
                                 % movement
       T n     & (M-C-f, M-down) Go to the {\bf next} thread. [distance]\\
       T p     & (M-C-b, M-up) Go to the {\bf previous} thread. [distance]\\
@@ -1019,7 +1019,7 @@
       V t     & Display all score rules applied to this article ({\bf track}).\\
       W w     & List {\bf words} used in scoring.\\
       V x     & {\bf Expunge} all low-scored articles. [score]\\
-      V C     & {\bf Customize} the current score file through a user-friendly
+      V C     & {\bf Customize} current score file with a user-friendly
       interface.\\
       V F     & {\bf Flush} the cache of score files.\\
       V R     & {\bf Re-score} the summary buffer.\\
@@ -1028,7 +1028,7 @@
     \end{keys}
     The four letters stand for:\\*
     \quad \B{A}ction: I)ncrease, L)ower;\\*
-    \quad \B{p}art: a)uthor (from), s)ubject, x)refs (cross-posting), d)ate, l)ines,
+    \quad \B{p}art: a)uthor (from), s)ubject, x)refs (cross-post), d)ate, l)ines,
     message-i)d, t)references (parent), f)ollowup, b)ody, h)ead (all headers);\\*
     \quad \B{m}atch type:\\*
     \qquad string: s)ubstring, e)xact, r)egexp, f)uzzy,\\*
@@ -1303,6 +1303,7 @@
     \ListGroups
     \subsection*{Create/Edit Foreign Groups}
     \CreateEditGroups
+    \ifthenelse{\isundefined{\booklettrue}}{}{\pagebreak}
     \subsection*{Unsubscribe, Kill and Yank Groups}
     \SubscribeKillYankGroups
     \subsection*{Mark Groups}
@@ -1323,6 +1324,7 @@
     \subsection*{Select Articles}
     \SelectArticles
 %
+    \ifthenelse{\isundefined{\booklettrue}}{}{\pagebreak}
     \subsection*{Threading}
     \Threading
 %
@@ -1373,8 +1375,8 @@
         \subsubsection*{Mark Indication-Characters}
         \MarkCharacters
 %
-\ifthenelse{\isundefined{\booklettrue}}{\newpage}{}%
-
+%\ifthenelse{\isundefined{\booklettrue}}{\newpage}{}%
+    \newpage
     \subsection*{Summary-Unplugged}
     \SummaryUnplugged
     \subsection*{Mail-Group Commands}
@@ -1396,12 +1398,14 @@
     \Picons
     \subsubsection*{Time and Date}
     \TimeAndDate
+    \ifthenelse{\isundefined{\booklettrue}}{}{\pagebreak}
     \subsection*{Hide/Highlight Parts of the Article}
     \HideHighlightArticle
     \subsection*{MIME operations from the Article-Buffer (reading)}
     \MIMEArticleMode
 %
 %
+\ifthenelse{\isundefined{\booklettrue}}{\pagebreak}{}%
 \section*{Server Mode}
 \ServerMode
     \subsection*{Unplugged-Server}

@@ -208,7 +208,7 @@ changed.misc: ${MISC-SOURCES}
 	  echo "changed" > $@
 
 leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
-	rm -rf leim-list.el
+	rm -f leim-list.el
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
@@ -220,14 +220,14 @@ leim-list.el: ${SUBDIRS} ${TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext
 	fi
 	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
-MV_DIRS = for i in $$dir; do rm -fr $$(basename "$$i") ; mv "$$i" . ; done
+MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
-          ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
+          umask 022; ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
 	else true; fi
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
-	  rm -rf ${INSTALLDIR}/leim-list.el; \
+	  rm -f ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
@@ -242,6 +242,7 @@ install: all
 	  fi; \
 	  rm -rf ${INSTALLDIR}/CVS        ${INSTALLDIR}/*/CVS; \
 	  rm -f  ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore; \
+	  rm -f  ${INSTALLDIR}/.gitignore ${INSTALLDIR}/*/.gitignore; \
 	  rm -f  ${INSTALLDIR}/.arch-inventory ${INSTALLDIR}/*/.arch-inventory; \
 	  rm -f  ${INSTALLDIR}/\#*        ${INSTALLDIR}/*/\#* ; \
 	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \

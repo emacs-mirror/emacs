@@ -1,7 +1,7 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (C) 1994, 1995, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 
@@ -106,9 +106,9 @@ DOC-STR should be a single line providing more information about the
         the user if they ask for more information.
 
 REGEXP  is a regular expression to match against the beginning of the file;
-        it should match only files in that format.  Use nil to avoid
-        matching at all for formats for which it isn't appropriate to
-        require explicit encoding/decoding.
+        it should match only files in that format.  REGEXP may be nil, in
+        which case the format will never be applied automatically to a file.
+        Use this for formats that you only ever want to apply manually.
 
 FROM-FN is called to decode files in that format; it takes two args, BEGIN
         and END, and can make any modifications it likes, returning the new
@@ -136,6 +136,8 @@ MODE-FN, if specified, is called when visiting a file with that format.
 
 PRESERVE, if non-nil, means that `format-write-file' should not remove
           this format from `buffer-file-format'.")
+;; Autoload if this file no longer dumped.
+(put 'format-alist 'risky-local-variable t)
 
 ;;; Basic Functions (called from Lisp)
 

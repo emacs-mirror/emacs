@@ -1,7 +1,8 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -22,26 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-;;; Special formatting conventions are used in this file!
-;;;
-;;; A backslash-newline is used at the beginning of a documentation string
-;;; when that string should be stored in the file etc/DOCnnn, not in core.
-;;;
-;;; Such strings read into Lisp as numbers (during the pure-loading phase).
-;;;
-;;; But you must obey certain rules to make sure the string is understood
-;;; and goes into etc/DOCnnn properly.
-;;;
-;;; The doc string must appear in the standard place in a call to
-;;; defun, autoload, defvar or defconst.  No Lisp macros are recognized.
-;;; The open-paren starting the definition must appear in column 0.
-;;;
-;;; In defvar and defconst, there is an additional rule:
-;;; The double-quote that starts the string must be on the same
-;;; line as the defvar or defconst.
-;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ;;; Code:
 
@@ -172,6 +153,8 @@ corresponding to the mode line clicked."
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
 		 help-echo "emacsclient frame"))
   "Mode-line control for identifying emacsclient frames.")
+;; Autoload all risky properties if this file no longer dumped.
+(put 'mode-line-client 'risky-local-variable t)
 
 (defvar mode-line-mule-info
   `(""
@@ -213,6 +196,7 @@ mnemonics of the following coding systems:
   ;;  coding system for encoding text to send to buffer process (if any)."
 )
 
+(put 'mode-line-mule-info 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-mule-info)
 
 ;; MSDOS frames have window-system, but want the Fn identification.
@@ -234,6 +218,7 @@ Value is used for `mode-line-frame-identification', which see."
 Mode-line control for displaying info on process status.
 Normally nil in most modes, since there is no process to display.")
 
+(put 'mode-line-process 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-process)
 
 (defvar mode-line-modified
@@ -257,13 +242,14 @@ Normally nil in most modes, since there is no process to display.")
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
-					     "M"
-					   "Not m")))))
+					     "m"
+					   "not m")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))
   "Mode-line control for displaying whether current buffer is modified.")
 
+(put 'mode-line-modified 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-modified)
 
 (defvar mode-line-remote
@@ -280,6 +266,7 @@ Normally nil in most modes, since there is no process to display.")
 					     "Current directory is local: ")
 					   default-directory)))))))
   "Mode-line flag to show if default-directory for current buffer is remote.")
+(put 'mode-line-remote 'risky-local-variable t)
 
 (make-variable-buffer-local 'mode-line-remote)
 
@@ -288,9 +275,11 @@ Normally nil in most modes, since there is no process to display.")
   "Mode-line control for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
 buffer size, the line number and the column number.")
+(put 'mode-line-position 'risky-local-variable t)
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
+(put 'mode-line-modes 'risky-local-variable t)
 
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
@@ -356,7 +345,7 @@ mouse-3: Remove current window from display")
 	 (propertize "  " 'help-echo help-echo)
 	 'mode-line-modes
 	 `(which-func-mode ("" which-func-format ,dashes))
-	 `(global-mode-string (,dashes global-mode-string))
+	 `(global-mode-string ("" global-mode-string ,dashes))
 	 (propertize "-%-" 'help-echo help-echo)))
        (standard-mode-line-modes
 	(list
@@ -469,6 +458,7 @@ Its default value is (\"%12b\") with some text properties added.
 Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
 
+(put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defun unbury-buffer () "\
@@ -517,49 +507,49 @@ Switch to the most recently selected buffer other than the current one."
 ;; Global ones can go on the menubar (Options --> Show/Hide).
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
-	      :help "Overwrite mode: typed characters replace existing text"
+	      :help ,(purecopy "Overwrite mode: typed characters replace existing text")
 	      :button (:toggle . overwrite-mode)))
 (define-key mode-line-mode-menu [outline-minor-mode]
   `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
 	      ;; XXX: This needs a good, brief description.
-	      :help ""
+	      :help ,(purecopy "")
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
-	      :help "Show changes in the buffer in a distinctive color"
+	      :help ,(purecopy "Show changes in the buffer in a distinctive color")
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
-	      :help "Show/Hide code within #ifdef constructs"
+	      :help ,(purecopy "Show/Hide code within #ifdef constructs")
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
 (define-key mode-line-mode-menu [glasses-mode]
   `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :help "Insert virtual separators to make long identifiers easy to read"
+	      :help ,(purecopy "Insert virtual separators to make long identifiers easy to read")
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font Lock") font-lock-mode
-	      :help "Syntax coloring"
+	      :help ,(purecopy "Syntax coloring")
 	      :button (:toggle . font-lock-mode)))
 (define-key mode-line-mode-menu [flyspell-mode]
   `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
-	      :help "Spell checking on the fly"
+	      :help ,(purecopy "Spell checking on the fly")
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (define-key mode-line-mode-menu [auto-revert-tail-mode]
   `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
-	      :help "Revert the tail of the buffer when buffer grows"
+	      :help ,(purecopy "Revert the tail of the buffer when buffer grows")
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
-	      :help "Revert the buffer when the file on disk changes"
+	      :help ,(purecopy "Revert the buffer when the file on disk changes")
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
 (define-key mode-line-mode-menu [auto-fill-mode]
   `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
-	      :help "Automatically insert new lines"
+	      :help ,(purecopy "Automatically insert new lines")
 	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
-	      :help "Automatically expand abbreviations"
+	      :help ,(purecopy "Automatically expand abbreviations")
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-minor-mode-help (event)
@@ -575,6 +565,7 @@ STRING is included in the mode line if VARIABLE's value is non-nil.
 
 Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")
+(put 'minor-mode-alist 'risky-local-variable t)
 ;; Don't use purecopy here--some people want to change these strings.
 (setq minor-mode-alist
       '((abbrev-mode " Abbrev")
@@ -746,7 +737,8 @@ language you are using."
 (define-key ctl-x-map "\e\e" 'repeat-complex-command)
 ;; New binding analogous to M-:.
 (define-key ctl-x-map "\M-:" 'repeat-complex-command)
-(define-key ctl-x-map "u" 'advertised-undo)
+(define-key ctl-x-map "u" 'undo)
+(put 'undo :advertised-binding [?\C-x ?u])
 ;; Many people are used to typing C-/ on X terminals and getting C-_.
 (define-key global-map [?\C-/] 'undo)
 (define-key global-map "\C-_" 'undo)
@@ -756,6 +748,7 @@ language you are using."
 
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
+(define-key esc-map "&" 'async-shell-command)
 
 (define-key ctl-x-map [right] 'next-buffer)
 (define-key ctl-x-map [C-right] 'next-buffer)

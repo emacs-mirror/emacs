@@ -96,7 +96,7 @@
 
 (defun electric-help-mode ()
   "`with-electric-help' temporarily places its buffer in this mode.
-\(On exit from `with-electric-help', the buffer is put in `default-major-mode'.)"
+\(On exit from `with-electric-help', the buffer is put in default `major-mode'.)"
   (setq buffer-read-only t)
   (setq mode-name "Help")
   (setq major-mode 'help)
@@ -131,7 +131,7 @@ If THUNK returns non-nil, we don't do those things.
 
 When the user exits (with `electric-help-exit', or otherwise), the help
 buffer's window disappears (i.e., we use `save-window-excursion'), and
-BUFFER is put into `default-major-mode' (or `fundamental-mode')."
+BUFFER is put into default `major-mode' (or `fundamental-mode')."
   (setq buffer (get-buffer-create (or buffer "*Help*")))
   (let ((one (one-window-p t))
 	(config (current-window-configuration))
@@ -143,8 +143,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode')."
 	     (goto-char (window-start (selected-window))))
            (let ((pop-up-windows t))
              (pop-to-buffer buffer))
-           (save-excursion
-             (set-buffer buffer)
+           (with-current-buffer buffer
              (when (and minheight (< (window-height) minheight))
 	       (enlarge-window (- minheight (window-height))))
              (electric-help-mode)
@@ -177,7 +176,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode')."
       ;; afterwards.  It's also not clear that `help-mode' is always
       ;; the right thing, maybe we should add an optional parameter.
       (condition-case ()
-          (funcall (or default-major-mode 'fundamental-mode))
+          (funcall (or (default-value 'major-mode) 'fundamental-mode))
         (error nil))
 
       (set-window-configuration config)
@@ -292,7 +291,7 @@ will select it.)"
   (let ((name (or name "*Help*")))
     (if (save-window-excursion
 	  ;; kludge-o-rama
-	  (let* ((p (symbol-function 'print-help-return-message))
+	  (let* ((p (symbol-function 'help-print-return-message))
 		 (b (get-buffer name))
 		 (m (buffer-modified-p b)))
 	    (and b (not (get-buffer-window b))
@@ -325,14 +324,14 @@ will select it.)"
 		       (save-excursion
 			 (set-buffer b)
 			 (set-buffer-modified-p t)))
-		  (fset 'print-help-return-message 'ignore)
+		  (fset 'help-print-return-message 'ignore)
 		  (call-interactively fun)
 		  (and (get-buffer name)
 		       (get-buffer-window (get-buffer name))
 		       (or (not b)
 			   (not (eq b (get-buffer name)))
 			   (not (buffer-modified-p b)))))
-	      (fset 'print-help-return-message p)
+	      (fset 'help-print-return-message p)
 	      (and b (buffer-name b)
 		   (save-excursion
 		     (set-buffer b)

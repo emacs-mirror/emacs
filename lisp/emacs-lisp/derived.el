@@ -1,8 +1,8 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993, 1994, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
@@ -193,7 +193,7 @@ See Info node `(elisp)Derived Modes' for more details."
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (unless (get  ',hook 'variable-documentation)
+       (unless (get ',hook 'variable-documentation)
 	 (put ',hook 'variable-documentation
 	      ,(format "Hook run when entering %s mode.
 No problems result if this variable is not bound.
@@ -202,16 +202,25 @@ No problems result if this variable is not bound.
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (defvar ,map (make-sparse-keymap))
+       (unless (get ',map 'variable-documentation)
+	 (put ',map 'variable-documentation
+	      ,(format "Keymap for `%s'." child)))
        ,(if declare-syntax
 	    `(progn
 	       (unless (boundp ',syntax)
 		 (put ',syntax 'definition-name ',child))
-	       (defvar ,syntax (make-syntax-table))))
+	       (defvar ,syntax (make-syntax-table))
+	       (unless (get ',syntax 'variable-documentation)
+		 (put ',syntax 'variable-documentation
+		      ,(format "Syntax table for `%s'." child)))))
        ,(if declare-abbrev
 	    `(progn
 	       (put ',abbrev 'definition-name ',child)
 	       (defvar ,abbrev
-		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))))
+		 (progn (define-abbrev-table ',abbrev nil) ,abbrev)
+		 (unless (get ',abbrev 'variable-documentation)
+		   (put ',abbrev 'variable-documentation
+			,(format "Abbrev table for `%s'." child))))))
        (put ',child 'derived-mode-parent ',parent)
        ,(if group `(put ',child 'custom-mode-group ,group))
 

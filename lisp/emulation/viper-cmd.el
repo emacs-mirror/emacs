@@ -3685,15 +3685,24 @@ controlled by the sign of prefix numeric value."
 
 ;; searching
 
+(defun viper-insert-isearch-string ()
+  "Insert `isearch' last search string."
+  (interactive)
+  (when isearch-string (insert isearch-string)))
+
 (defun viper-if-string (prompt)
   (if (memq viper-intermediate-command
 	    '(viper-command-argument viper-digit-argument viper-repeat))
       (setq viper-this-command-keys (this-command-keys)))
-  (let ((s (viper-read-string-with-history
+  (let* ((keymap (let ((keymap (copy-keymap minibuffer-local-map)))
+                   (define-key keymap [(control ?s)] 'viper-insert-isearch-string)
+                   keymap))
+         (s (viper-read-string-with-history
 	    prompt
 	    nil ; no initial
 	    'viper-search-history
-	    (car viper-search-history))))
+             (car viper-search-history)
+             keymap)))
     (if (not (string= s ""))
 	(setq viper-s-string s))))
 

@@ -38,8 +38,7 @@
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
 	     (mode-line-format mode-line sexp) ;Hard to do right.
-	     (default-major-mode internal function)
-	     (enable-multibyte-characters mule boolean)
+	     (major-mode internal function)
 	     (case-fold-search matching boolean)
 	     (fill-column fill integer)
 	     (left-margin fill integer)
@@ -179,6 +178,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1))
 			      "22.1")
+	     (make-pointer-invisible mouse boolean "23.2")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
@@ -307,6 +307,12 @@ since it could result in memory overflow and make Emacs crash."
  		       (const :tag "Off (nil)" :value nil)
  		       (const :tag "Full screen (t)" :value t)
  		       (other :tag "Always" 1)) "22.1")
+	     (recenter-redisplay windows
+				 (choice
+				  (const :tag "Never (nil)" :value nil)
+				  (const :tag "Only on ttys" :value tty)
+				  (other :tag "Always" t))
+				 "23.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)

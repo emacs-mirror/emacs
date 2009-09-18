@@ -685,7 +685,7 @@ While entering the regexp, completion on knows citation keys is possible.
         ;; it has to go.  If there is only a single arg and empty, it can go
         ;; as well.
         (when reftex-cite-cleanup-optional-args
-          (cond 
+          (cond
            ((string-match "\\([a-zA-Z0-9]\\)\\[\\]{" string)
             (setq string (replace-match "\\1{" nil nil string)))
            ((string-match "\\[\\]\\(\\[[a-zA-Z0-9., ]+\\]\\)" string)
@@ -724,7 +724,7 @@ While entering the regexp, completion on knows citation keys is possible.
             (decf arg)
             (reftex-do-citation arg))
         (forward-char 1)))
-    
+
     ;; Return the citation key
     (car (car selected-entries))))
 
@@ -738,7 +738,7 @@ While entering the regexp, completion on knows citation keys is possible.
      (no-insert
       ;; Format does not really matter because nothing will be inserted.
       (setq format "%l"))
-     
+
      ((and (stringp macro)
            (string-match "\\`\\\\cite\\|cite\\'" macro))
       ;; We are already inside a cite macro
@@ -759,7 +759,7 @@ While entering the regexp, completion on knows citation keys is possible.
       (when (listp format)
         (setq key
               (or format-key
-                  (reftex-select-with-char 
+                  (reftex-select-with-char
                    "" (concat "SELECT A CITATION FORMAT\n\n"
                               (mapconcat
                                (lambda (x)
@@ -788,8 +788,8 @@ While entering the regexp, completion on knows citation keys is possible.
 
   (let ((bibtype (reftex-bib-or-thebib))
         found-list rtn key data selected-entries)
-    (while 
-        (not 
+    (while
+        (not
          (catch 'done
            ;; Scan bibtex files
            (setq found-list
@@ -804,31 +804,30 @@ While entering the regexp, completion on knows citation keys is possible.
                 (reftex-extract-bib-entries-from-thebibliography
                  (reftex-uniquify
                   (mapcar 'cdr
-                          (reftex-all-assq 
+                          (reftex-all-assq
                            'thebib (symbol-value reftex-docstruct-symbol))))))
                (reftex-default-bibliography
                 (message "Using default bibliography")
                 (reftex-extract-bib-entries (reftex-default-bibliography)))
                (t (error "No valid bibliography in this document, and no default available"))))
-           
+
            (unless found-list
              (error "Sorry, no matches found"))
-    
+
           ;; Remember where we came from
           (setq reftex-call-back-to-this-buffer (current-buffer))
           (set-marker reftex-select-return-marker (point))
-    
+
           ;; Offer selection
           (save-window-excursion
             (delete-other-windows)
-            (let ((default-major-mode 'reftex-select-bib-mode))
-              (reftex-kill-buffer "*RefTeX Select*")
-              (switch-to-buffer-other-window "*RefTeX Select*")
-              (unless (eq major-mode 'reftex-select-bib-mode)
-                (reftex-select-bib-mode))
-              (let ((buffer-read-only nil))
-                (erase-buffer)
-                (reftex-insert-bib-matches found-list)))
+            (reftex-kill-buffer "*RefTeX Select*")
+            (switch-to-buffer-other-window "*RefTeX Select*")
+            (unless (eq major-mode 'reftex-select-bib-mode)
+              (reftex-select-bib-mode))
+            (let ((buffer-read-only nil))
+              (erase-buffer)
+              (reftex-insert-bib-matches found-list))
             (setq buffer-read-only t)
             (if (= 0 (buffer-size))
                 (error "No matches found"))
@@ -858,15 +857,15 @@ While entering the regexp, completion on knows citation keys is possible.
                 (goto-char 1))
                ((eq key ?A)
                 ;; Take all (marked)
-                (setq selected-entries 
+                (setq selected-entries
                       (if reftex-select-marked
                           (mapcar 'car (nreverse reftex-select-marked))
                         found-list))
                 (throw 'done t))
                ((eq key ?a)
                 ;; Take all (marked), and push the symbol 'concat
-                (setq selected-entries 
-                      (cons 'concat 
+                (setq selected-entries
+                      (cons 'concat
                             (if reftex-select-marked
                                 (mapcar 'car (nreverse reftex-select-marked))
                               found-list)))
@@ -885,9 +884,9 @@ While entering the regexp, completion on knows citation keys is possible.
                ((or (eq key ?\C-m)
                     (eq key 'return))
                 ;; Take selected
-                (setq selected-entries 
+                (setq selected-entries
                       (if reftex-select-marked
-                          (cons 'concat 
+                          (cons 'concat
                                 (mapcar 'car (nreverse reftex-select-marked)))
                         (if data (list data) nil)))
                 (throw 'done t))
@@ -927,7 +926,7 @@ While entering the regexp, completion on knows citation keys is possible.
   (let ((file (read-file-name "File to create: ")))
     (find-file-other-window file)
     (if (> (buffer-size) 0)
-        (unless (yes-or-no-p 
+        (unless (yes-or-no-p
                  (format "Overwrite non-empty file %s? " file))
           (error "Abort")))
     (erase-buffer)
@@ -1047,7 +1046,7 @@ While entering the regexp, completion on knows citation keys is possible.
 (defun reftex-make-cite-echo-string (entry docstruct-symbol)
   ;; Format a bibtex entry for the echo area and cache the result.
   (let* ((key (reftex-get-bib-field "&key" entry))
-         (string 
+         (string
           (let* ((reftex-cite-punctuation '(" " " & " " etal.")))
             (reftex-format-citation entry reftex-cite-view-format)))
          (cache (assq 'bibview-cache (symbol-value docstruct-symbol)))
@@ -1089,7 +1088,7 @@ While entering the regexp, completion on knows citation keys is possible.
           (setq bibfile-list
                 (reftex-uniquify
                  (mapcar 'cdr
-                         (reftex-all-assq 
+                         (reftex-all-assq
                           'thebib (symbol-value reftex-docstruct-symbol))))
                 item t))
          (reftex-default-bibliography
@@ -1100,10 +1099,10 @@ While entering the regexp, completion on knows citation keys is possible.
         (setq bibfile-list (reftex-visited-files bibfile-list)))
 
       (condition-case nil
-          (reftex-pop-to-bibtex-entry 
+          (reftex-pop-to-bibtex-entry
            key bibfile-list (not reftex-keep-temporary-buffers) t item)
         (error (ding))))
-      
+
     (select-window win)))
 
 ;;; Global BibTeX file
@@ -1132,7 +1131,7 @@ While entering the regexp, completion on knows citation keys is possible.
   "Create a new BibTeX database file with all entries referenced in document.
 The command prompts for a filename and writes the collected entries to
 that file.  Only entries referenced in the current document with
-any \\cite-like macros are used. 
+any \\cite-like macros are used.
 The sequence in the new file is the same as it was in the old database."
   (interactive "FNew BibTeX file: ")
   (let ((keys (reftex-all-used-citation-keys))
@@ -1146,7 +1145,7 @@ The sequence in the new file is the same as it was in the old database."
            (save-restriction
              (widen)
              (goto-char (point-min))
-             (while (re-search-forward 
+             (while (re-search-forward
                      "^[ \t]*@[a-zA-Z]+[ \t]*{\\([^ \t\r\n]+\\),"
                      nil t)
                (setq key (match-string 1)
@@ -1163,7 +1162,7 @@ The sequence in the new file is the same as it was in the old database."
                        keys (delete key keys)))))))))
     (find-file-other-window bibfile)
     (if (> (buffer-size) 0)
-        (unless (yes-or-no-p 
+        (unless (yes-or-no-p
                  (format "Overwrite non-empty file %s? " bibfile))
           (error "Abort")))
     (erase-buffer)

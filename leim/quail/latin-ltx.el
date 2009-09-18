@@ -543,7 +543,7 @@ system, including many technical ones.  Examples:
  ("\\centerdot" ?·)
  ("\\checkmark" ?✓)
  ("\\chi" ?χ)
- ("\\circ" ?○)
+ ("\\circ" ?∘)
  ("\\circeq" ?≗)
  ("\\circlearrowleft" ?↺)
  ("\\circlearrowright" ?↻)

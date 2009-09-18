@@ -104,8 +104,8 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for documentation text."
   :group 'widget-documentation
   :group 'widget-faces)
-;; backward compatibility alias
-(put 'widget-documentation-face 'face-alias 'widget-documentation)
+(define-obsolete-face-alias 'widget-documentation-face
+  'widget-documentation "22.1")
 
 (defvar widget-button-face 'widget-button
   "Face used for buttons in widgets.
@@ -114,8 +114,7 @@ This exists as a variable so it can be set locally in certain buffers.")
 (defface widget-button '((t (:weight bold)))
   "Face used for widget buttons."
   :group 'widget-faces)
-;; backward compatibility alias
-(put 'widget-button-face 'face-alias 'widget-button)
+(define-obsolete-face-alias 'widget-button-face 'widget-button "22.1")
 
 (defcustom widget-mouse-face 'highlight
   "Face used for widget buttons when the mouse is above them."
@@ -138,8 +137,7 @@ This exists as a variable so it can be set locally in certain buffers.")
 			 :slant italic))
   "Face used for editable fields."
   :group 'widget-faces)
-;; backward-compatibility alias
-(put 'widget-field-face 'face-alias 'widget-field)
+(define-obsolete-face-alias 'widget-field-face 'widget-field "22.1")
 
 (defface widget-single-line-field '((((type tty))
 				     :background "green3"
@@ -154,8 +152,8 @@ This exists as a variable so it can be set locally in certain buffers.")
 				     :slant italic))
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
-;; backward-compatibility alias
-(put 'widget-single-line-field-face 'face-alias 'widget-single-line-field)
+(define-obsolete-face-alias 'widget-single-line-field-face
+  'widget-single-line-field "22.1")
 
 ;;; This causes display-table to be loaded, and not usefully.
 ;;;(defvar widget-single-line-display-table
@@ -342,16 +340,12 @@ new value.")
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (when (and (> to (1+ from))
-	       (= (char-before to) ?\n))
+    (when (= (char-before to) ?\n)
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
       ;; C-n/C-p act more naturally when entering/leaving the field.  We
-      ;; do this by making a small secondary overlay to contain just that
+     ;; do this by making a small secondary overlay to contain just that
       ;; one character.
-      ;; We DON'T do this if the field just consists of a newline, eg
-      ;; when specifying a character, since it breaks things (below
-      ;; does 1- to, which results in to = from).  Bug#2689.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
 	(overlay-put overlay 'field 'boundary)
         ;; We need the real field for tabbing.
@@ -459,8 +453,8 @@ new value.")
   '((t :inherit shadow))
   "Face used for inactive widgets."
   :group 'widget-faces)
-;; backward-compatibility alias
-(put 'widget-inactive-face 'face-alias 'widget-inactive)
+(define-obsolete-face-alias 'widget-inactive-face
+  'widget-inactive "22.1")
 
 (defun widget-specify-inactive (widget from to)
   "Make WIDGET inactive for user modifications."
@@ -863,14 +857,16 @@ button end points."
 ;; This alias exists only so that one can choose in doc-strings (e.g.
 ;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
 ;; http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00480.html
-(defalias 'advertised-widget-backward 'widget-backward)
+(define-obsolete-function-alias 'advertised-widget-backward
+  'widget-backward "23.2")
 
 ;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
     (define-key map "\e\t" 'widget-backward)
-    (define-key map [(shift tab)] 'advertised-widget-backward)
+    (define-key map [(shift tab)] 'widget-backward)
+    (put 'widget-backward :advertised-binding [(shift tab)])
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
     (define-key map [down-mouse-1] 'widget-button-click)
@@ -924,8 +920,8 @@ Recommended as a parent keymap for modes using widgets.")
      (:weight bold :underline t)))
   "Face used for pressed buttons."
   :group 'widget-faces)
-;; backward-compatibility alias
-(put 'widget-button-pressed-face 'face-alias 'widget-button-pressed)
+(define-obsolete-face-alias 'widget-button-pressed-face
+  'widget-button-pressed "22.1")
 
 (defvar widget-button-click-moves-point nil
   "If non-nil, `widget-button-click' moves point to a button after invoking it.
@@ -1949,9 +1945,7 @@ the earlier input."
 	  (set-buffer buffer)
 	  (while (and size
 		      (not (zerop size))
-		      ;; Bug#2689.  Don't allow this loop to reduce a
-		      ;; character field to zero size if it contains a space.
-		      (> to (1+ from))
+		      (> to from)
 		      (eq (char-after (1- to)) ?\s))
 	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
@@ -3456,8 +3450,7 @@ To use this type, you must define :match or :match-alternatives."
   :value 0
   :size 1
   :format "%{%t%}: %v\n"
-  ;; `.' does not match newline, but newline is a valid character.
-  :valid-regexp "\\`\\(.\\|\n\\)\\'"
+  :valid-regexp "\\`.\\'"
   :error "This field should contain a single character"
   :value-to-internal (lambda (widget value)
 		       (if (stringp value)

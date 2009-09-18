@@ -183,7 +183,7 @@
   :version "20.3")
 
 (defcustom checkdoc-minor-mode-string " CDoc"
-  "*String to display in mode line when Checkdoc mode is enabled; nil for none."
+  "String to display in mode line when Checkdoc mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil))
   :group 'checkdoc
   :version "23.1")
@@ -218,11 +218,12 @@ have doc strings."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
 
-(defcustom checkdoc-force-history-flag t
+(defcustom checkdoc-force-history-flag nil
   "Non-nil means that files should have a History section or ChangeLog file.
 This helps document the evolution of, and recent changes to, the package."
   :group 'checkdoc
   :type 'boolean)
+;;;###autoload(put 'checkdoc-force-history-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-permit-comma-termination-flag nil
   "Non-nil means the first line of a docstring may end with a comma.
@@ -270,6 +271,7 @@ the same order as they appear in the argument list.  No mention is
 made in the style guide relating to order."
   :group 'checkdoc
   :type 'boolean)
+;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable 'booleanp)
 
 (defvar checkdoc-style-hooks nil
   "Hooks called after the standard style check is completed.
@@ -307,11 +309,19 @@ Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
 (defcustom checkdoc-symbol-words nil
-  "A list of symbols which also happen to make good words.
-These symbol-words are ignored when unquoted symbols are searched for.
+  "A list of symbol names (strings) which also happen to make good words.
+These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
   :group 'checkdoc
   :type '(repeat (symbol :tag "Word")))
+;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable 'checkdoc-list-of-strings-p)
+
+;;;###autoload
+(defun checkdoc-list-of-strings-p (obj)
+  ;; this is a function so it might be shared by checkdoc-proper-noun-list
+  ;; and/or checkdoc-ispell-lisp-words in the future
+  (and (listp obj)
+       (not (memq nil (mapcar 'stringp obj)))))
 
 (defvar checkdoc-proper-noun-list
   '("ispell" "xemacs" "emacs" "lisp")
@@ -501,7 +511,7 @@ the users will view as each check is completed."
 CHECK is a list of four strings stating the current status of each
 test; the nth string describes the status of the nth test."
   (let (temp-buffer-setup-hook)
-    (with-output-to-temp-buffer " *Checkdoc Status*"
+    (with-output-to-temp-buffer "*Checkdoc Status*"
       (princ-list
        "Buffer comments and tags:  " (nth 0 check) "\n"
        "Documentation style:       " (nth 1 check) "\n"
@@ -509,7 +519,7 @@ test; the nth string describes the status of the nth test."
        "Unwanted Spaces:           " (nth 3 check)
        )))
   (shrink-window-if-larger-than-buffer
-   (get-buffer-window " *Checkdoc Status*"))
+   (get-buffer-window "*Checkdoc Status*"))
   (message nil)
   (sit-for 0))
 

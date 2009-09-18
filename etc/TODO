@@ -17,8 +17,6 @@ suitable for anyone from beginners to experts.
 
 ** Convert modes that use view-mode to be derived from special-mode instead.
 
-** make emacsclient accept -nw as a synonym to -t.
-
 ** Replace some uses of the preprocessor code in Makefile.in with the equivalent autoconf.
 
 ** Major modes should have a menu entry.  Examples of modes that do
@@ -42,6 +40,8 @@ This needs a bit of care, since often people have become used to
 expecting such variables to always be defined, eg when they modify
 things in their .emacs.
 
+** See if other files can use generated-autoload-file (see eg ps-print).
+
 * Small but important fixes needed in existing features:
 
 ** Flymake's customization mechanism needs to be both simpler (fewer
@@ -52,15 +52,6 @@ command it will use.
 I suggest totally rewriting that part of Flymake, using the simplest
 mechanism that sufficies for the specific needs.  That will be easy
 for users to customize.
-
-** Make "emacs --daemon" start emacs without showing any frame. 
-Use emacsclient later to open frames.
-
-** Make it possible to reliably turn on minor modes using "mode:" in the local 
-variables section.
-
-** "Options -> Save Options" should save the font set via "Set Font/Fontset"
-I.e. mouse-set-font should use customize-face.
 
 ** Compute the list of active keymaps *after* reading the first event.
 
@@ -198,12 +189,6 @@ scroll bars are extensible.
   http://latex2rtf.sourceforge.net/.]  This task seems to be addressed
   by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
-
-** Implement something better than the current Refill mode.  This
-  probably needs some primitive support.
-
-** Add a command to make a "Local Variables" section in the current buffer
-  and/or add a variable to the list.
 
 ** Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
@@ -369,10 +354,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Give desktop.el a feature to switch between different named
   desktops.
-
-** Replace finder.el with something that generates an Info file
-  which gives the same information through a menu structure.  [Dave
-  Love started on this.]
 
 ** Add a cpio mode, more or less like tar mode.
 

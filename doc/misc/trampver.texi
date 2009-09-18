@@ -9,7 +9,7 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.1.15
+@set trampver 2.1.17-pre
 
 @c Other flags from configuration
 @set instprefix /usr/local
@@ -22,6 +22,11 @@
 @c Whether or not describe gateway methods.
 @ifclear noemacsgw
 @set emacsgw
+@end ifclear
+
+@c Whether or not describe GVFS integration.
+@ifclear noemacsgvfs
+@set emacsgvfs
 @end ifclear
 
 @c Some flags which make the text independent on the (X)Emacs flavor.

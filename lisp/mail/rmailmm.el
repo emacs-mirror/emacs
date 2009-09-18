@@ -80,28 +80,25 @@ If more than 3, offer a way to save all attachments at once.")
   "Save the attachment using info in the BUTTON."
   (let* ((filename (button-get button 'filename))
 	 (directory (button-get button 'directory))
-	 (data (button-get button 'data)))
-    (while (file-exists-p (expand-file-name filename directory))
-      (let* ((f (file-name-sans-extension filename))
-	     (i 1))
-	(when (string-match "-\\([0-9]+\\)$" f)
-	  (setq i (1+ (string-to-number (match-string 1 f)))
-		f (substring f 0 (match-beginning 0))))
-	(setq filename (concat f "-" (number-to-string i) "."
-			       (file-name-extension filename)))))
+	 (data (button-get button 'data))
+	 (ofilename filename))
     (setq filename (expand-file-name
 		    (read-file-name (format "Save as (default: %s): " filename)
 				    directory
 				    (expand-file-name filename directory))
 		    directory))
-    (when (file-regular-p filename)
-      (error (message "File `%s' already exists" filename)))
-    (with-temp-file filename
+    ;; If arg is just a directory, use the default file name, but in
+    ;; that directory (copied from write-file).
+    (if (file-directory-p filename)
+	(setq filename (expand-file-name
+			(file-name-nondirectory ofilename)
+			(file-name-as-directory filename))))
+    (with-temp-buffer
       (set-buffer-file-coding-system 'no-conversion)
-      (insert data))))
+      (insert data)
+      (write-region nil nil filename nil nil nil t))))
 
-(define-button-type 'rmail-mime-save
-  'action 'rmail-mime-save)
+(define-button-type 'rmail-mime-save 'action 'rmail-mime-save)
 
 ;;; Handlers
 
@@ -154,7 +151,7 @@ MIME-Version: 1.0
     (insert-button filename
 		   :type 'rmail-mime-save
 		   'filename filename
-		   'directory directory
+		   'directory (file-name-as-directory directory)
 		   'data data)))
 
 (defun test-rmail-mime-bulk-handler ()
@@ -405,6 +402,10 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	 message type disposition encoding))
 
 (provide 'rmailmm)
+
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
 
 ;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
 ;;; rmailmm.el ends here

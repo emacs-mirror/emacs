@@ -1,7 +1,7 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -92,7 +92,7 @@
   :version "20.3")
 
 (defcustom gametree-half-ply-regexp (regexp-quote ":")
-  "*Matches ends of numbers of moves by the \"second\" player.
+  "Matches ends of numbers of moves by the \"second\" player.
 For instance, it is an almost universal convention in chess to postfix
 numbers of moves by Black (if considered in isolation) by the ellipsis
 \"...\".  This is NOT a good choice for this program, though, because it
@@ -103,20 +103,20 @@ LaTeX macros he uses for typesetting annotated games."
   :group 'gametree)
 
 (defcustom gametree-full-ply-regexp (regexp-quote ".")
-  "*Matches ends of numbers of moves by the \"first\" player.
+  "Matches ends of numbers of moves by the \"first\" player.
 For instance, it is an almost universal convention in chess to postfix
 numbers of moves by White (if considered in isolation) by the dot \".\"."
   :type 'regexp
   :group 'gametree)
 
 (defcustom gametree-half-ply-format "%d:"
-  "*Output format for move numbers of moves by the \"second\" player.
+  "Output format for move numbers of moves by the \"second\" player.
 Has to contain \"%d\" to output the actual number."
   :type 'string
   :group 'gametree)
 
 (defcustom gametree-full-ply-format "%d."
-  "*Output format for move numbers of moves by the \"first\" player.
+  "Output format for move numbers of moves by the \"first\" player.
 Has to contain \"%d\" to output the actual number."
   :type 'string
   :group 'gametree)
@@ -138,17 +138,17 @@ the file is visited (subject to the usual restriction via
 `enable-local-variables'), and the layout will be set accordingly.")
 
 (defcustom gametree-score-opener "{score="
-  "*The string which opens a score tag, and precedes the actual score."
+  "The string which opens a score tag, and precedes the actual score."
   :type 'string
   :group 'gametree)
 
 (defcustom gametree-score-manual-flag "!"
-  "*String marking the line as manually (as opposed to automatically) scored."
+  "String marking the line as manually (as opposed to automatically) scored."
   :type 'string
   :group 'gametree)
 
 (defcustom gametree-score-closer "}"
-  "*The string which closes a score tag, and follows the actual score."
+  "The string which closes a score tag, and follows the actual score."
   :type 'string
   :group 'gametree)
 
@@ -160,7 +160,7 @@ the file is visited (subject to the usual restriction via
           "[ 	]*\\)?\\([-+]?[0-9]+\\)"
           (regexp-quote gametree-score-closer)
           "[ 	]*\\)[\n\^M]")
-  "*Regular expression matching lines that guide the program in scoring.
+  "Regular expression matching lines that guide the program in scoring.
 Its third parenthetical group should match the actual score.  Its
 first parenthetical group should match the entire score tag.  Its
 second parenthetical group should be an optional flag that marks the
@@ -172,7 +172,7 @@ score instead."
   :group 'gametree)
 
 (defcustom gametree-default-score 0
-  "*Score to assume for branches lacking score tags."
+  "Score to assume for branches lacking score tags."
   :type 'integer
   :group 'gametree)
 

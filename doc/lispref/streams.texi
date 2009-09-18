@@ -341,6 +341,12 @@ This variable holds the default input stream---the stream that
 The default is @code{t}, meaning use the minibuffer.
 @end defvar
 
+@defvar read-circle
+If non-@code{nil}, this variable enables the reading of circular and
+shared structures.  @xref{Circular Objects}.  Its default value is
+@code{t}.
+@end defvar
+
 @node Output Streams
 @section Output Streams
 @cindex stream (for printing)
@@ -794,8 +800,8 @@ Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
 and shared structure:
 
 @defvar print-circle
-If non-@code{nil}, this variable enables detection of circular
-and shared structure in printing.
+If non-@code{nil}, this variable enables detection of circular and
+shared structure in printing.  @xref{Circular Objects}.
 @end defvar
 
 @defvar print-gensym

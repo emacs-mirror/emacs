@@ -115,7 +115,7 @@ in `selection-converter-alist', which see."
 		  (selection &optional time))
 
 (defun x-set-selection (type data)
-  "Make an X Windows selection of type TYPE and value DATA.
+  "Make an X selection of type TYPE and value DATA.
 The argument TYPE (nil means `PRIMARY') says which selection, and
 DATA specifies the contents.  TYPE must be a symbol.  \(It can also
 be a string, which stands for the symbol with that name, but this
@@ -134,13 +134,14 @@ The return value is DATA.
 
 Interactively, this command sets the primary selection.  Without
 prefix argument, it reads the selection in the minibuffer.  With
-prefix argument, it uses the text of the region as the selection value ."
+prefix argument, it uses the text of the region as the selection value.
+
+Note that on MS-Windows, primary and secondary selections set by Emacs
+are not available to other programs."
   (interactive (if (not current-prefix-arg)
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
 		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
-  ;; This is for temporary compatibility with pre-release Emacs 19.
-  (if (stringp type)
-      (setq type (intern type)))
+  (if (stringp type) (setq type (intern type)))
   (or (x-valid-simple-selection-p data)
       (and (vectorp data)
 	   (let ((valid t)
@@ -158,24 +159,20 @@ prefix argument, it uses the text of the region as the selection value ."
   data)
 
 (defun x-valid-simple-selection-p (data)
-  (or (stringp data)
-      (symbolp data)
-      (integerp data)
-      (and (consp data)
-	   (integerp (car data))
-	   (or (integerp (cdr data))
-	       (and (consp (cdr data))
-		    (integerp (car (cdr data))))))
-      (overlayp data)
+  (or (bufferp data)
       (and (consp data)
 	   (markerp (car data))
 	   (markerp (cdr data))
 	   (marker-buffer (car data))
-	   (marker-buffer (cdr data))
-	   (eq (marker-buffer (car data))
-	       (marker-buffer (cdr data)))
 	   (buffer-name (marker-buffer (car data)))
-	   (buffer-name (marker-buffer (cdr data))))))
+	   (eq (marker-buffer (car data))
+	       (marker-buffer (cdr data))))
+      (stringp data)
+      (and (overlayp data)
+	   (overlay-buffer data)
+	   (buffer-name (overlay-buffer data)))
+      (symbolp data)
+      (integerp data)))
 
 ;;; Cut Buffer support
 
@@ -211,31 +208,42 @@ Cut buffers are considered obsolete; you should use selections instead."
 ;; Every selection type that Emacs handles is implemented this way, except
 ;; for TIMESTAMP, which is a special case.
 
+(defun xselect--selection-bounds (value)
+  "Return bounds of X selection value VALUE.
+The return value is a list (BEG END BUF) if VALUE is a cons of
+two markers or an overlay.  Otherwise, it is nil."
+  (cond ((bufferp value)
+	 (with-current-buffer value
+	   (when (mark t)
+	     (list (mark t) (point) value))))
+	((and (consp value)
+	      (markerp (car value))
+	      (markerp (cdr value)))
+	 (when (and (marker-buffer (car value))
+		    (buffer-name (marker-buffer (car value)))
+		    (eq (marker-buffer (car value))
+			(marker-buffer (cdr value))))
+	   (list (marker-position (car value))
+		 (marker-position (cdr value))
+		 (marker-buffer (car value)))))
+	((overlayp value)
+	 (when (overlay-buffer value)
+	   (list (overlay-start value)
+		 (overlay-end value)
+		 (overlay-buffer value))))))
+
+(defun xselect--int-to-cons (n)
+  (cons (ash n -16) (logand n 65535)))
+
 (defun xselect-convert-to-string (selection type value)
   (let (str coding)
     ;; Get the actual string from VALUE.
     (cond ((stringp value)
 	   (setq str value))
-
-	  ((overlayp value)
-	   (save-excursion
-	     (or (buffer-name (overlay-buffer value))
-		 (error "selection is in a killed buffer"))
-	     (set-buffer (overlay-buffer value))
-	     (setq str (buffer-substring (overlay-start value)
-					 (overlay-end value)))))
-	  ((and (consp value)
-		(markerp (car value))
-		(markerp (cdr value)))
-	   (or (eq (marker-buffer (car value)) (marker-buffer (cdr value)))
-	       (signal 'error
-		       (list "markers must be in the same buffer"
-			     (car value) (cdr value))))
-	   (save-excursion
-	     (set-buffer (or (marker-buffer (car value))
-			     (error "selection is in a killed buffer")))
-	     (setq str (buffer-substring (car value) (cdr value))))))
-
+	  ((setq value (xselect--selection-bounds value))
+	   (with-current-buffer (nth 2 value)
+	     (setq str (buffer-substring (nth 0 value)
+					 (nth 1 value))))))
     (when str
       ;; If TYPE is nil, this is a local request, thus return STR as
       ;; is.  Otherwise, encode STR.
@@ -288,31 +296,18 @@ Cut buffers are considered obsolete; you should use selections instead."
 	    (setq str (string-make-unibyte str)))
 
 	   (t
-	    (error "Unknow selection type: %S" type))
-	   )))
+	    (error "Unknown selection type: %S" type)))))
 
       (setq next-selection-coding-system nil)
       (cons type str))))
 
-
 (defun xselect-convert-to-length (selection type value)
-  (let ((value
-	 (cond ((stringp value)
-		(length value))
-	       ((overlayp value)
-		(abs (- (overlay-end value) (overlay-start value))))
-	       ((and (consp value)
-		     (markerp (car value))
-		     (markerp (cdr value)))
-		(or (eq (marker-buffer (car value))
-			(marker-buffer (cdr value)))
-		    (signal 'error
-			    (list "markers must be in the same buffer"
-				  (car value) (cdr value))))
-		(abs (- (car value) (cdr value)))))))
-    (if value ; force it to be in 32-bit format.
-	(cons (ash value -16) (logand value 65535))
-      nil)))
+  (let ((len (cond ((stringp value)
+		    (length value))
+		   ((setq value (xselect--selection-bounds value))
+		    (abs (- (nth 0 value) (nth 1 value)))))))
+    (if len
+	(xselect--int-to-cons len))))
 
 (defun xselect-convert-to-targets (selection type value)
   ;; return a vector of atoms, but remove duplicates first.
@@ -335,77 +330,31 @@ Cut buffers are considered obsolete; you should use selections instead."
   'NULL)
 
 (defun xselect-convert-to-filename (selection type value)
-  (cond ((overlayp value)
-	 (buffer-file-name (or (overlay-buffer value)
-			       (error "selection is in a killed buffer"))))
-	((and (consp value)
-	      (markerp (car value))
-	      (markerp (cdr value)))
-	 (buffer-file-name (or (marker-buffer (car value))
-			       (error "selection is in a killed buffer"))))
-	(t nil)))
+  (when (setq value (xselect--selection-bounds value))
+    (buffer-file-name (nth 2 value))))
 
 (defun xselect-convert-to-charpos (selection type value)
-  (let (a b tmp)
-    (cond ((cond ((overlayp value)
-		  (setq a (overlay-start value)
-			b (overlay-end value)))
-		 ((and (consp value)
-		       (markerp (car value))
-		       (markerp (cdr value)))
-		  (setq a (car value)
-			b (cdr value))))
-	   (setq a (1- a) b (1- b)) ; zero-based
-	   (if (< b a) (setq tmp a a b b tmp))
-	   (cons 'SPAN
-		 (vector (cons (ash a -16) (logand a 65535))
-			 (cons (ash b -16) (logand b 65535))))))))
+  (when (setq value (xselect--selection-bounds value))
+    (let ((beg (1- (nth 0 value))) ; zero-based
+	  (end (1- (nth 1 value))))
+      (cons 'SPAN (vector (xselect--int-to-cons (min beg end))
+			  (xselect--int-to-cons (max beg end)))))))
 
 (defun xselect-convert-to-lineno (selection type value)
-  (let (a b buf tmp)
-    (cond ((cond ((and (consp value)
-		       (markerp (car value))
-		       (markerp (cdr value)))
-		  (setq a (marker-position (car value))
-			b (marker-position (cdr value))
-			buf (marker-buffer (car value))))
-		 ((overlayp value)
-		  (setq buf (overlay-buffer value)
-			a (overlay-start value)
-			b (overlay-end value)))
-		 )
-	   (save-excursion
-	     (set-buffer buf)
-	     (setq a (count-lines 1 a)
-		   b (count-lines 1 b)))
-	   (if (< b a) (setq tmp a a b b tmp))
-	   (cons 'SPAN
-		 (vector (cons (ash a -16) (logand a 65535))
-			 (cons (ash b -16) (logand b 65535))))))))
+  (when (setq value (xselect--selection-bounds value))
+    (with-current-buffer (nth 2 value)
+      (let ((beg (line-number-at-pos (nth 0 value)))
+	    (end (line-number-at-pos (nth 1 value))))
+	(cons 'SPAN (vector (xselect--int-to-cons (min beg end))
+			    (xselect--int-to-cons (max beg end))))))))
 
 (defun xselect-convert-to-colno (selection type value)
-  (let (a b buf tmp)
-    (cond ((cond ((and (consp value)
-		       (markerp (car value))
-		       (markerp (cdr value)))
-		  (setq a (car value)
-			b (cdr value)
-			buf (marker-buffer a)))
-		 ((overlayp value)
-		  (setq buf (overlay-buffer value)
-			a (overlay-start value)
-			b (overlay-end value)))
-		 )
-	   (save-excursion
-	     (set-buffer buf)
-	     (goto-char a)
-	     (setq a (current-column))
-	     (goto-char b)
-	     (setq b (current-column)))
-	   (if (< b a) (setq tmp a a b b tmp))
-	   (cons 'SPAN
-		 (vector (cons (ash a -16) (logand a 65535))
-			 (cons (ash b -16) (logand b 65535))))))))
+  (when (setq value (xselect--selection-bounds value))
+    (with-current-buffer (nth 2 value)
+      (let ((beg (progn (goto-char (nth 0 value)) (current-column)))
+	    (end (progn (goto-char (nth 1 value)) (current-column))))
+	(cons 'SPAN (vector (xselect--int-to-cons (min beg end))
+			    (xselect--int-to-cons (max beg end))))))))
 
 (defun xselect-convert-to-os (selection type size)
   (symbol-name system-type))
@@ -430,7 +379,7 @@ This function returns the string \"emacs\"."
 
 (defun xselect-convert-to-integer (selection type value)
   (and (integerp value)
-       (cons (ash value -16) (logand value 65535))))
+       (xselect--int-to-cons value)))
 
 (defun xselect-convert-to-atom (selection type value)
   (and (symbolp value) value))
@@ -457,8 +406,7 @@ This function returns the string \"emacs\"."
 	(NAME . xselect-convert-to-name)
 	(ATOM . xselect-convert-to-atom)
 	(INTEGER . xselect-convert-to-integer)
-	(_EMACS_INTERNAL . xselect-convert-to-identity)
-	))
+	(_EMACS_INTERNAL . xselect-convert-to-identity)))
 
 (provide 'select)
 

@@ -242,9 +242,8 @@ If non-nil, also update the cache when copy or move articles."
   :group 'nnmail
   :type 'boolean)
 
-(make-obsolete-variable 'nnmail-spool-file
-			"This option is obsolete in Gnus 5.9.  \
-Use `mail-sources' instead.")
+(make-obsolete-variable 'nnmail-spool-file 'mail-sources
+			"Gnus 5.9 (Emacs 22.1)")
 ;; revision 5.29 / p0-85 / Gnus 5.9
 ;; Variable removed in No Gnus v0.7
 
@@ -1318,7 +1317,7 @@ Eudora has a broken References line, but an OK In-Reply-To."
       (replace-match "\\1" t))))
 
 (defalias 'nnmail-fix-eudora-headers 'nnmail-ignore-broken-references)
-(make-obsolete 'nnmail-fix-eudora-headers 'nnmail-ignore-broken-references)
+(make-obsolete 'nnmail-fix-eudora-headers 'nnmail-ignore-broken-references "Emacs 23.1")
 
 (custom-add-option 'nnmail-prepare-incoming-header-hook
 		   'nnmail-ignore-broken-references)

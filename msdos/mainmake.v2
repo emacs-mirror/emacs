@@ -104,9 +104,11 @@ src: FRC
 	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
-	          '/x_error_quitter/s/^.*/set environment NAME root/' >gdb.sed
+	       >gdb.sed
 	sed -f gdb.sed _gdbinit >gdb.tmp
 	djecho -a gdb.tmp -s 'set environment USER root' \
+	                     'set environment NAME root' \
+	                     'set environment USERNAME root' \
 	                     'set environment EMACSPATH $(top_srcdir)/bin' \
 	                     'set environment SHELL $(subst \,/,$(COMSPEC))' \
 	                     'set environment PATH $(subst \,/,$(PATH))'
@@ -277,7 +279,7 @@ bootstrap-clean: FRC
 	${top_bootclean}
 
 bootstrap: bootstrap-clean FRC
-	config msdos
+	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
 
 # arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

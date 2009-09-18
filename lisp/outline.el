@@ -380,6 +380,7 @@ See the command `outline-mode' for more information on this mode."
   "*Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line and that the match
 data reflects the `outline-regexp'.")
+;;;###autoload(put 'outline-level 'risky-local-variable t)
 
 (defvar outline-heading-alist ()
   "Alist associating a heading for every possible level.
@@ -905,6 +906,8 @@ Show the heading too, if it is currently invisible."
                   (goto-char (point-max))
                   ;; Keep empty last line, if available.
                   (if (bolp) (1- (point)) (point)))))
+      (if (< end beg)
+	  (setq beg (prog1 end (setq end beg))))
       ;; First hide everything.
       (outline-flag-region beg end t)
       ;; Then unhide the top level headers.

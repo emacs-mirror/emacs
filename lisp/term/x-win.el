@@ -255,7 +255,7 @@ exists."
 (defvar x-colors)
 
 (defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors', which see."
+  "Internal function called by `defined-colors'."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
@@ -272,13 +272,6 @@ exists."
 (defvar x-alternatives-map
   (let ((map (make-sparse-keymap)))
     ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (define-key map [backspace] [127])
-    (define-key map [delete] [127])
-    (define-key map [tab] [?\t])
-    (define-key map [linefeed] [?\n])
-    (define-key map [clear] [?\C-l])
-    (define-key map [return] [?\C-m])
-    (define-key map [escape] [?\e])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-\d])
     (define-key map [M-tab] [?\M-\t])
@@ -292,7 +285,7 @@ exists."
   "Keymap of possible alternative meanings for some keys.")
 
 (defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on FRAME for the X window system."
+  "Set up `function-key-map' on the graphical frame FRAME."
   ;; Don't do this twice on the same display, or it would break
   ;; normal-erase-is-backspace-mode.
   (unless (terminal-parameter frame 'x-setup-function-keys)
@@ -302,17 +295,6 @@ exists."
         (set-keymap-parent map (keymap-parent local-function-key-map))
         (set-keymap-parent local-function-key-map map)))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
-
-;; These tell read-char how to convert
-;; these special chars to ASCII.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-
 
 ;;;; Keysyms
 
@@ -1239,7 +1221,11 @@ It is said that overlarge strings are slow to put into the cut buffer.")
 
 (defcustom x-select-enable-clipboard nil
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection."
+This is in addition to, but in preference to, the primary selection.
+
+On MS-Windows, this is non-nil by default, since Windows does not
+support other types of selections.  \(The primary selection that is
+set by Emacs is not accessible to other programs on Windows.\)"
   :type 'boolean
   :group 'killing)
 
@@ -1249,11 +1235,19 @@ This is in addition to, but in preference to, the primary selection."
   :group 'killing)
 
 (defun x-select-text (text &optional push)
-  "Make TEXT, a string, the primary X selection.
-Also, set the value of X cut buffer 0, for backward compatibility
-with older X applications.
-gildea@stop.mail-abuse.org says it's not desirable to put kills
-in the clipboard."
+  "Select TEXT, a string, according to the window system.
+
+On X, put TEXT in the primary X selection.  For backward
+compatibility with older X applications, set the value of X cut
+buffer 0 as well, and if the optional argument PUSH is non-nil,
+rotate the cut buffers.  If `x-select-enable-clipboard' is
+non-nil, copy the text to the X clipboard as well.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.  The argument PUSH is ignored.
+
+On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
     ;; Don't send the cut buffer too much text.
@@ -1433,7 +1427,9 @@ The value nil is the same as this list:
 (defun x-menu-bar-open (&optional frame)
   "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
   (interactive "i")
-  (if menu-bar-mode (accelerate-menu frame)
+  (if (and menu-bar-mode
+	   (fboundp 'accelerate-menu))
+      (accelerate-menu frame)
     (tmm-menubar)))
 
 
@@ -1560,9 +1556,6 @@ The value nil is the same as this list:
   ;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
   ;; (if (featurep 'motif)
   ;;     (global-set-key [f10] 'ignore))
-
-  ;; Turn on support for mouse wheels.
-  (mouse-wheel-mode 1)
 
   ;; Enable CLIPBOARD copy/paste through menu bar commands.
   (menu-bar-enable-clipboard)

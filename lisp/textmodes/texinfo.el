@@ -1,7 +1,8 @@
-;;; texinfo.el --- major mode for editing Texinfo files -*- coding: iso-2022-7bit -*-
+;;; texinfo.el --- major mode for editing Texinfo files -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993, 1996, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
@@ -338,8 +339,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   '((t (:inherit font-lock-function-name-face)))
   "Face used for section headings in `texinfo-mode'."
   :group 'texinfo)
-;; backward-compatibility alias
-(put 'texinfo-heading-face 'face-alias 'texinfo-heading)
+(define-obsolete-face-alias 'texinfo-heading-face 'texinfo-heading "22.1")
 (defvar texinfo-heading-face 'texinfo-heading)
 
 (defvar texinfo-font-lock-keywords
@@ -584,7 +584,7 @@ value of `texinfo-mode-hook'."
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
   (make-local-variable 'sentence-end-base)
   (setq sentence-end-base
-	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'$B!I$,1r}(B)}]*")
+	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'”)}]*")
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)

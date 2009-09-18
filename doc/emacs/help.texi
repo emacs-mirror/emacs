@@ -78,7 +78,7 @@ This displays the available Emacs packages based on keywords.
 * Language Help::       Help relating to international language support.
 * Misc Help::		Other help commands.
 * Help Files::          Commands to display pre-written help files.
-* Help Echo::           Help on active text and tooltips (`balloon help')
+* Help Echo::           Help on active text and tooltips (`balloon help').
 @end menu
 
 @iftex

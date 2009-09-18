@@ -2,7 +2,7 @@
 @setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
 
-@set VERSION 0.1
+@set VERSION 0.2
 
 @copying
 This file describes the Emacs auth-source library.
@@ -67,25 +67,59 @@ It is a way for multiple applications to share a single configuration
 @node Overview
 @chapter Overview
 
-To be done.
+The auth-source library is simply a way for Emacs and Gnus, among
+others, to find the answer to the old burning question ``I have a
+server name and a port, what are my user name and password?''
+
+The auth-source library actually supports more than just the user name
+(known as the login) or the password, but only those two are in use
+today in Emacs or Gnus.  Similarly, the auth-source library can in
+theory support multiple storage formats, but currently it only
+understands the classic ``netrc'' format, examples of which you can
+see later in this document.
 
 @node Help for users
 @chapter Help for users
 
-If you have problems with the port, turn up @code{gnus-verbose} and
-see what port the library is checking.  Ditto for any other
-problems, your first step is to see what's being checked.
+``Netrc'' files are a de facto standard.  They look like this:
+@example
+machine @var{mymachine} login @var{myloginname} password @var{mypassword} port @var{myport}
+@end example
 
-Setup:
+The machine is the server (either a DNS name or an IP address).
+
+The port is optional.  If it's missing, auth-source will assume any
+port is OK.  Actually the port is a protocol name or a port number so
+you can have separate entries for port @var{143} and for protocol
+@var{imap} if you fancy that.  Anyway, you can just omit the port if
+you don't need it.
+
+The login and password are simply your login credentials to the server.
+
+``Netrc'' files are usually called @code{.authinfo} or @code{.netrc};
+nowadays @code{.authinfo} seems to be more popular and the auth-source
+library encourages this confusion by making it the default, as you'll
+see later.
+
+If you have problems with the port, set @code{auth-source-debug} to
+@code{t} and see what port the library is checking in the
+@code{*Messages*} buffer.  Ditto for any other problems, your first
+step is always to see what's being checked.  The second step, of
+course, is to write a blog entry about it and wait for the answer in
+the comments.
+
+You can customize the variable @code{auth-sources}.  The following may
+be needed if you are using an older version of Emacs or if the
+auth-source library is not loaded for some other reason.
 
 @lisp
-(require 'auth-source)
+(require 'auth-source)             ;; probably not necessary
 (customize-variable 'auth-sources) ;; optional, do it once
 @end lisp
 
 @defvar auth-sources
 
-The @var{auth-sources} variable tells the auth-source library where
+The @code{auth-sources} variable tells the auth-source library where
 your netrc files live for a particular host and protocol.  While you
 can get fancy, the default and simplest configuration is:
 
@@ -93,23 +127,20 @@ can get fancy, the default and simplest configuration is:
 (setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
 @end lisp
 
-By adding multiple entries to that list with a particular host or
-protocol, you can have specific netrc files for that host or protocol.
+This says ``for any host and any protocol, use just that one file.''
+Sweet simplicity.  In fact, this is already the default, so unless you
+want to move your netrc file, it will just work if you have that
+file.  You may not, though, so make sure it exists.
+
+By adding multiple entries to @code{auth-sources} with a particular
+host or protocol, you can have specific netrc files for that host or
+protocol.  Usually this is unnecessary but may make sense if you have
+shared netrc files or some other unusual setup (90% of Emacs users
+have unusual setups and the remaining 10% are @emph{really} unusual).
 
 @end defvar
 
-
-``Netrc'' files are a de facto standard.  They look like this:
-@example
-machine mymachine login myloginname password mypassword port myport
-@end example
-
-The port is optional.  If it's missing, auth-source will assume any
-port is OK.  Actually the port is a protocol name or a port number so
-you can have separate entries for port 143 and for protocol ``imap''
-if you fancy that.
-
-If you don't customize @var{auth-sources}, you'll have to live with
+If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: any host and any port are looked up in the netrc
 file @code{~/.authinfo.gpg}.  This is an encrypted file if and only if
 you set up EPA, which is strongly recommended.
@@ -117,8 +148,25 @@ you set up EPA, which is strongly recommended.
 @lisp
 (require 'epa-file)
 (epa-file-enable)
-(setq epa-file-cache-passphrase-for-symmetric-encryption t) ; VERY important
+;;; VERY important if you want symmetric encryption
+;;; irrelevant if you don't
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 @end lisp
+
+The simplest working netrc line example is one without a port.
+
+@example
+machine YOURMACHINE login YOU password YOURPASSWORD
+@end example
+
+This will match any authentication port.  Simple, right?  But what if
+there's a SMTP server on port 433 of that machine that needs a
+different password from the IMAP server?
+
+@example
+machine YOURMACHINE login YOU password SMTPPASSWORD port 433
+machine YOURMACHINE login YOU password GENERALPASSWORD
+@end example
 
 For url-auth authentication (HTTP/HTTPS), you need to put this in your
 netrc file:
@@ -127,9 +175,9 @@ netrc file:
 machine yourmachine.com:80 port http login testuser password testpass
 @end example
 
-This will match any realm and authentication method (basic or
-digest).  If you want finer controls, explore the url-auth source
-code and variables.
+This will match any realm and authentication method (basic or digest)
+over HTTP.  HTTPS is set up similarly.  If you want finer controls,
+explore the url-auth source code and variables.
 
 For Tramp authentication, use:
 
@@ -139,7 +187,8 @@ machine yourmachine.com port scp login testuser password testpass
 
 Note that the port denotes the Tramp connection method.  When you
 don't use a port entry, you match any Tramp method, as explained
-earlier.
+earlier.  Since Tramp has about 88 connection methods, this may be
+necessary if you have an unusual (see earlier comment on those) setup.
 
 @node Help for developers
 @chapter Help for developers
@@ -149,14 +198,17 @@ The auth-source library only has one function for external use.
 @defun auth-source-user-or-password mode host port
 
 Retrieve appropriate authentication tokens, determined by @var{mode},
-for host @var{host} and @var{port}.  If @code{gnus-verbose} is 9 or
-higher, debugging messages will be printed.
+for host @var{host} and @var{port}.  If @code{auth-source-debug} is t,
+debugging messages will be printed.  Set @code{auth-source-debug} to a
+function to use that function for logging.  The parameters passed will
+be the same that the @code{message} function takes, that is, a string
+formatting spec and optional parameters.
 
 If @var{mode} is a list of strings, the function will return a list of
-strings or @code{nil} objects.  If it's a string, the function will
-return a string or a @code{nil} object.  Currently only the modes
-``login'' and ``password'' are recognized but more may be added in the
-future.
+strings or @code{nil} objects (thus you can avoid parsing the netrc
+file more than once).  If it's a string, the function will return a
+string or a @code{nil} object.  Currently only the modes ``login'' and
+``password'' are recognized but more may be added in the future.
 
 @var{host} is a string containing the host name.
 

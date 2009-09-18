@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/objects
 @node Lisp Data Types, Numbers, Introduction, Top
@@ -243,11 +244,11 @@ description of a character for the sake of messages.  @xref{Describing
 Characters}.
 
 @menu
-* Basic Char Syntax::
-* General Escape Syntax::
-* Ctl-Char Syntax::
-* Meta-Char Syntax::
-* Other Char Bits::
+* Basic Char Syntax::      Syntax for regular characters.
+* General Escape Syntax::  How to specify characters by their codes.
+* Ctl-Char Syntax::        Syntax for control characters.
+* Meta-Char Syntax::       Syntax for meta-characters.
+* Other Char Bits::        Syntax for hyper-, super-, and alt-characters.
 @end menu
 
 @node Basic Char Syntax
@@ -356,7 +357,7 @@ code point @samp{U+@var{nnnn}} (by convention, Unicode code points are
 given in hexadecimal).  There is a slightly different syntax for
 specifying characters with code points higher than
 @code{U+@var{ffff}}: @code{\U00@var{nnnnnn}} represents the character
-whose code point is @samp{U+@var{nnnnnn}}.  The Unicode standard only
+whose code point is @samp{U+@var{nnnnnn}}.  The Unicode Standard only
 defines code points up to @samp{U+@var{10ffff}}, so if you specify a
 code point higher than that, Emacs signals an error.
 
@@ -471,8 +472,8 @@ possible a wide range of basic character codes.
 bit attached to an @acronym{ASCII} character indicates a meta
 character; thus, the meta characters that can fit in a string have
 codes in the range from 128 to 255, and are the meta versions of the
-ordinary @acronym{ASCII} characters.  (In Emacs versions 18 and older,
-this convention was used for characters outside of strings as well.)
+ordinary @acronym{ASCII} characters.  @xref{Strings of Events}, for
+details about @key{META}-handling in strings.
 
   The read syntax for meta characters uses @samp{\M-}.  For example,
 @samp{?\M-A} stands for @kbd{M-A}.  You can use @samp{\M-} together with
@@ -975,10 +976,10 @@ of a string returns the same string.
   @xref{Strings and Characters}, for functions that operate on strings.
 
 @menu
-* Syntax for Strings::
-* Non-ASCII in Strings::
-* Nonprinting Characters::
-* Text Props and Strings::
+* Syntax for Strings::      How to specify Lisp strings.
+* Non-ASCII in Strings::    International characters in strings.
+* Nonprinting Characters::  Literal unprintable characters in strings.
+* Text Props and Strings::  Strings with text properties.
 @end menu
 
 @node Syntax for Strings

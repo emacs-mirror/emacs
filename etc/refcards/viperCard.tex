@@ -1,21 +1,11 @@
-% ViperCard -- The Reference Card for Viper under GNU Emacs 21 and XEmacs 20
-%**start of header
-\newcount\columnsperpage
+% ViperCard -- The Reference Card for Viper under GNU Emacs and XEmacs
 
-% This file can be printed with 1 or 2 columns per page (see below).
-% Specify how many you want here.
-
-\columnsperpage=2
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(1)
-
-% Nothing else needs to be changed.
 % Copyright (C) 1995, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
 %   2007, 2008, 2009  Free Software Foundation, Inc.
+
+% Author: Michael Kifer <kifer@cs.sunysb.edu> (Viper)
+%	Aamod Sane <sane@cs.uiuc.edu> (VIP 4.3)
+%	Masahiko Sato <ms@sail.stanford.edu> (VIP 3.5)
 
 % This file is part of GNU Emacs.
 
@@ -32,6 +22,7 @@
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+
 % This file is intended to be processed by plain TeX (TeX82).
 %
 % The final reference card has six columns, three on each side.
@@ -46,39 +37,38 @@
 %    produces two pages which must be printed sideways to make a
 %    ready-to-use 8.5 x 11 inch reference card.
 %    For this you need a dvi device driver that can print sideways.
-% Which mode to use is controlled by setting \columnsperpage above.
-%
-% Author of Viper:
-%  Michael Kifer
-%  email: kifer@cs.sunysb.edu
-%
-% Author of VIP 4.3:
-%  Aamod Sane
-%  email: sane@cs.uiuc.edu
-%
-% Author of VIP 3.5:
-%  Masahiko Sato
-%  email: ms@sail.stanford.edu
-%
-% The original TeX code for formatting the reference card was written by:
-%  Stephen Gildea
-%  UUCP: mit-erl!gildea
-%  email: gildea@stop.mail-abuse.org
+% Which mode to use is controlled by setting \columnsperpage.
 
 
-\def\versionnumber{3.0}
+%**start of header
+
+
+% This file can be printed with 1 or 2 columns per page.
+% Specify how many you want here.
+\newcount\columnsperpage
+\columnsperpage=2
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(1)
+
+\def\versionemacs{21}           % version of Emacs this is for
 \def\year{2009}                 % latest copyright year
-\def\version{August 2006 v\versionnumber}
+\def\versionxemacs{20}          % version of XEmacs this is for
+\def\versionviper{3.0}          % version of Viper this is for
+
+% Nothing else needs to be changed.
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions on back.  v\versionnumber}}
+  Permissions on back.}}
 
 \def\copyrightnotice{
 %\vskip 1ex plus 2 fill\begingroup\small
 \vskip 1ex \begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{by Michael Kifer, Viper \version}
+\centerline{by Michael Kifer, Viper \versionviper}
 \centerline{by Aamod Sane, VIP version 4.3}
 \centerline{by Masahiko Sato, VIP version 3.5}
 
@@ -86,9 +76,9 @@ Permission is granted to make and distribute copies of
 this card provided the copyright notice and this permission notice
 are preserved on all copies.
 
-For copies of the GNU Emacs manual, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+For copies of the GNU Emacs manual, see:
 
+{\tt http://www.gnu.org/software/emacs/\#Manuals}
 \endgroup}
 
 % make \bye not \outer so that the \def\bye in the \else clause below
@@ -268,7 +258,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 \title{ViperCard: Viper Reference Pal}
 
-\centerline{(Version 3.0 (Polyglot) for Emacs 21 and XEmacs 20)}
+\centerline{(Version \versionviper\ for Emacs \versionemacs\ and XEmacs \versionxemacs)}
 
 %\copyrightnotice
 

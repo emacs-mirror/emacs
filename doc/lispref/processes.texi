@@ -195,33 +195,32 @@ a shell command:
 @end defun
 
 @cindex quoting and unquoting shell command line
-  The following two functions help creating shell commands from
-individual argument strings and taking shell command lines apart into
-individual arguments.
+  The following two functions are useful for creating shell commands
+from individual argument strings, and taking shell command lines apart
+into individual arguments.
 
 @defun split-string-and-unquote string &optional separators
 This function splits @var{string} into substrings at matches for the
 regular expression @var{separators}, like @code{split-string} does
-(@pxref{Creating Strings}), but it additionally removes quoting from
-the substrings.  It then makes a list of the substrings and returns
-it.
+(@pxref{Creating Strings}); in addition, it removes quoting from the
+substrings.  It then makes a list of the substrings and returns it.
 
 If @var{separators} is omitted or @code{nil}, it defaults to
 @code{"\\s-+"}, which is a regular expression that matches one or more
 characters with whitespace syntax (@pxref{Syntax Class Table}).
 
-The quoting this function supports is of 2 styles: by enclosing a
-whole string in double quotes @code{"@dots{}"}, or by quoting
-individual characters with a backslash escape @samp{\}.  The latter is
-also used in Lisp strings, so this function can handle those as well.
+This function performs two types of quoting: enclosing a whole string
+in double quotes @code{"@dots{}"}, and quoting individual characters
+with a backslash escape @samp{\}.  The latter is also used in Lisp
+strings, so this function can handle those as well.
 @end defun
 
 @defun combine-and-quote-strings list-of-strings &optional separator
 This function concatenates @var{list-of-strings} into a single string,
-quoting each string in the list that needs quoting as it goes.  It
-also sticks the @var{separator} string in between each pair of strings
-in the result, and returns that result.  If @var{separator} is omitted
-or @code{nil}, it defaults to a blank @code{" "}.
+quoting each string as necessary.  It also sticks the @var{separator}
+string between each pair of strings; if @var{separator} is omitted or
+@code{nil}, it defaults to @code{" "}.  The return value is the
+resulting string.
 
 The strings in @var{list-of-strings} that need quoting are those that
 include @var{separator} as their substring.  Quoting a string encloses
@@ -405,6 +404,19 @@ names as relative to @code{default-directory}.  The function
 file names.
 @end defun
 
+@defvar process-file-side-effects
+This variable indicates, whether a call of @code{process-file} changes
+remote files.
+
+Per default, this variable is always set to @code{t}, meaning that a
+call of @code{process-file} could potentially change any file on a
+remote host.  When set to @code{nil}, a file handler could optimize
+its behaviour with respect to remote file attributes caching.
+
+This variable should never be changed by @code{setq}.  Instead of, it
+shall be set only by let-binding.
+@end defvar
+
 @defun call-process-region start end program &optional delete destination display &rest args
 This function sends the text from @var{start} to @var{end} as
 standard input to a process running @var{program}.  It deletes the text
@@ -582,11 +594,10 @@ example @code{ange-ftp-hook-function}).  In such cases, the function
 does nothing and returns @code{nil}.
 @end defun
 
-@defun start-process-shell-command name buffer-or-name command &rest command-args
+@defun start-process-shell-command name buffer-or-name command
 This function is like @code{start-process} except that it uses a shell
 to execute the specified command.  The argument @var{command} is a shell
-command name, and @var{command-args} are the arguments for the shell
-command.  The variable @code{shell-file-name} specifies which shell to
+command name.  The variable @code{shell-file-name} specifies which shell to
 use.
 
 The point of running a program through the shell, rather than directly
@@ -598,7 +609,7 @@ characters do @emph{not} have their special shell meanings.  @xref{Shell
 Arguments}.
 @end defun
 
-@defun start-file-process-shell-command name buffer-or-name command &rest command-args
+@defun start-file-process-shell-command name buffer-or-name command
 This function is like @code{start-process-shell-command}, but uses
 @code{start-file-process} internally.  By this, @var{command} can be
 executed also on remote hosts, depending on @code{default-directory}.
@@ -979,8 +990,8 @@ The function returns @var{process}.
 @end smallexample
 @end defun
 
-@defun process-running-child-p process
-This function will tell you whether a subprocess has given control of
+@defun process-running-child-p &optional process
+This function will tell you whether a @var{process} has given control of
 its terminal to its own child process.  The value is @code{t} if this is
 true, or if Emacs cannot tell; it is @code{nil} if Emacs can be certain
 that this is not so.
@@ -1074,7 +1085,6 @@ it the signal @code{SIGCONT}.  This presumes that @var{process} was
 stopped previously.
 @end defun
 
-@c Emacs 19 feature
 @defun signal-process process signal
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer.
@@ -2147,12 +2157,6 @@ Initialize the process query flag to @var{query-flag}.
 @item :filter @var{filter}
 Initialize the process filter to @var{filter}.
 
-@item :filter-multibyte @var{bool}
-If @var{bool} is non-@code{nil}, strings given to the process filter
-are multibyte, otherwise they are unibyte.  If you don't specify this
-keyword at all, the default is that the strings are multibyte if
-@code{default-enable-multibyte-characters} is non-@code{nil}.
-
 @item :sentinel @var{sentinel}
 Initialize the process sentinel to @var{sentinel}.
 
@@ -2240,10 +2244,13 @@ process on the host), where it is not possible to make a new server on
 that port.
 @end table
 
-@defun set-network-process-option process option value
+@defun set-network-process-option process option value &optional no-error
 This function sets or modifies a network option for network process
 @var{process}.  See @code{make-network-process} for details of options
-@var{option} and their corresponding values @var{value}.
+@var{option} and their corresponding values @var{value}.  If
+@var{no-error} is non-@code{nil}, this function returns @code{nil}
+instead of signaling an error if @var{option} is not a supported
+option.  If the function successfully completes, it returns @code{t}.
 
 The current setting of an option is available via the
 @code{process-contact} function.
@@ -2476,7 +2483,8 @@ Examples:
 (make-serial-process :port "\\\\.\\COM13" :speed 1200
                      :bytesize 7 :parity 'odd)
 
-(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
+(make-serial-process :port "/dev/tty.BlueConsole-SPP-1"
+                     :speed nil)
 @end example
 @end defun
 
@@ -2544,7 +2552,8 @@ Examples:
 @example
 (serial-process-configure :process "/dev/ttyS0" :speed 1200)
 
-(serial-process-configure :buffer "COM1" :stopbits 1 :parity 'odd :flowcontrol 'hw)
+(serial-process-configure :buffer "COM1" :stopbits 1
+                          :parity 'odd :flowcontrol 'hw)
 
 (serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 @end example

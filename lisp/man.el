@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -811,7 +811,7 @@ all sections related to a subject, put something appropriate into the
 	    ;; We must decode the output by a coding system that the
 	    ;; system's locale suggests in multibyte mode.
 	    (coding-system-for-read
-	     (if default-enable-multibyte-characters
+	     (if (default-value 'enable-multibyte-characters)
 		 locale-coding-system 'raw-text-unix))
 	    ;; Avoid possible error by using a directory that always exists.
 	    (default-directory

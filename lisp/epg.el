@@ -49,6 +49,8 @@
     (8 . "AES192")
     (9 . "AES256")
     (10 . "TWOFISH")
+    (11 . "CAMELLIA128")
+    (12 . "CAMELLIA256")
     (110 . "DUMMY")))
 
 ;; from gnupg/include/cipher.h
@@ -67,7 +69,8 @@
     (3 . "RMD160")
     (8 . "SHA256")
     (9 . "SHA384")
-    (10 . "SHA512")))
+    (10 . "SHA512")
+    (11 . "SHA224")))
 
 ;; from gnupg/include/cipher.h
 (defconst epg-compress-algorithm-alist
@@ -178,6 +181,7 @@
     (signal 'wrong-type-argument (list 'epg-data-p data)))
   (aref (cdr data) 1))
 
+;;;###autoload
 (defun epg-make-context (&optional protocol armor textmode include-certs
 				   cipher-algorithm digest-algorithm
 				   compress-algorithm)
@@ -325,7 +329,13 @@ This function is for internal use only."
 
 (defun epg-context-set-passphrase-callback (context
 					    passphrase-callback)
-  "Set the function used to query passphrase."
+  "Set the function used to query passphrase.
+
+PASSPHRASE-CALLBACK is either a function, or a cons-cell whose
+car is a function and cdr is a callback data.
+
+The function gets three arguments: the context, the key-id in
+question, and the callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 7 (if (consp passphrase-callback)
@@ -335,7 +345,14 @@ This function is for internal use only."
 (defun epg-context-set-progress-callback (context
 					  progress-callback)
   "Set the function which handles progress update.
-If optional argument HANDBACK is specified, it is passed to PROGRESS-CALLBACK."
+
+PROGRESS-CALLBACK is either a function, or a cons-cell whose
+car is a function and cdr is a callback data.
+
+The function gets five arguments: the context, the operation
+description, the character to display a progress unit, the
+current amount done, the total amount to be done, and the
+callback data (if any)."
   (unless (eq (car-safe context) 'epg-context)
     (signal 'wrong-type-argument (list 'epg-context-p context)))
   (aset (cdr context) 8 (if (consp progress-callback)
@@ -1175,7 +1192,9 @@ This function is for internal use only."
 (defun epg-wait-for-completion (context)
   "Wait until the `epg-gpg-program' process completes."
   (while (eq (process-status (epg-context-process context)) 'run)
-    (accept-process-output (epg-context-process context) 1)))
+    (accept-process-output (epg-context-process context) 1))
+  ;; This line is needed to run the process-filter right now.
+  (sleep-for 0.1))
 
 (defun epg-reset (context)
   "Reset the CONTEXT."
@@ -1679,7 +1698,7 @@ This function is for internal use only."
 	   (format "Passphrase for %s: " key-id)))))))
 
 (make-obsolete 'epg-passphrase-callback-function
-	       'epa-passphrase-callback-function)
+	       'epa-passphrase-callback-function "23.1")
 
 (defun epg--list-keys-1 (context name mode)
   (let ((args (append (if epg-gpg-home-directory
@@ -1737,7 +1756,6 @@ This function is for internal use only."
    (if (aref line 6)
        (epg--time-from-seconds (aref line 6)))))
 
-;;;###autoload
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
 If MODE is nil or 'public, only public keyring should be searched.
@@ -1904,7 +1922,6 @@ You can then use `write-region' to write new data into the file."
 		      (epg-sig-notation-value notation)))))
 	  notations)))
 
-;;;###autoload
 (defun epg-cancel (context)
   (if (buffer-live-p (process-buffer (epg-context-process context)))
       (save-excursion
@@ -1916,7 +1933,6 @@ You can then use `write-region' to write new data into the file."
   (if (eq (process-status (epg-context-process context)) 'run)
       (delete-process (epg-context-process context))))
 
-;;;###autoload
 (defun epg-start-decrypt (context cipher)
   "Initiate a decrypt operation on CIPHER.
 CIPHER must be a file data object.
@@ -1948,7 +1964,6 @@ If you are unsure, use synchronous version of this function
 	    (signal 'epg-error (list "No data")))
 	(signal 'epg-error (list "Can't decrypt" error)))))
 
-;;;###autoload
 (defun epg-decrypt-file (context cipher plain)
   "Decrypt a file CIPHER and store the result to a file PLAIN.
 If PLAIN is nil, it returns the result as a string."
@@ -1967,7 +1982,6 @@ If PLAIN is nil, it returns the result as a string."
       (epg-delete-output-file context))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-decrypt-string (context cipher)
   "Decrypt a string CIPHER and return the plain text."
   (let ((input-file (epg--make-temp-file "epg-input"))
@@ -1986,7 +2000,6 @@ If PLAIN is nil, it returns the result as a string."
 	  (delete-file input-file))
       (epg-reset context))))
 
-;;;###autoload
 (defun epg-start-verify (context signature &optional signed-text)
   "Initiate a verify operation on SIGNATURE.
 SIGNATURE and SIGNED-TEXT are a data object if they are specified.
@@ -2027,7 +2040,6 @@ If you are unsure, use synchronous version of this function
       (if (eq (process-status (epg-context-process context)) 'run)
 	  (process-send-eof (epg-context-process context))))))
 
-;;;###autoload
 (defun epg-verify-file (context signature &optional signed-text plain)
   "Verify a file SIGNATURE.
 SIGNED-TEXT and PLAIN are also a file if they are specified.
@@ -2055,7 +2067,6 @@ stored into the file after successful verification."
       (epg-delete-output-file context))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-verify-string (context signature &optional signed-text)
   "Verify a string SIGNATURE.
 SIGNED-TEXT is a string if it is specified.
@@ -2086,7 +2097,6 @@ successful verification."
 	  (delete-file input-file))
       (epg-reset context))))
 
-;;;###autoload
 (defun epg-start-sign (context plain &optional mode)
   "Initiate a sign operation on PLAIN.
 PLAIN is a data object.
@@ -2132,7 +2142,6 @@ If you are unsure, use synchronous version of this function
     (if (eq (process-status (epg-context-process context)) 'run)
 	(process-send-eof (epg-context-process context)))))
 
-;;;###autoload
 (defun epg-sign-file (context plain signature &optional mode)
   "Sign a file PLAIN and store the result to a file SIGNATURE.
 If SIGNATURE is nil, it returns the result as a string.
@@ -2158,7 +2167,6 @@ Otherwise, it makes a cleartext signature."
       (epg-delete-output-file context))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-sign-string (context plain &optional mode)
   "Sign a string PLAIN and return the output as string.
 If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
@@ -2196,7 +2204,6 @@ Otherwise, it makes a cleartext signature."
 	  (delete-file input-file))
       (epg-reset context))))
 
-;;;###autoload
 (defun epg-start-encrypt (context plain recipients
 				  &optional sign always-trust)
   "Initiate an encrypt operation on PLAIN.
@@ -2247,7 +2254,6 @@ If you are unsure, use synchronous version of this function
     (if (eq (process-status (epg-context-process context)) 'run)
 	(process-send-eof (epg-context-process context)))))
 
-;;;###autoload
 (defun epg-encrypt-file (context plain recipients
 				 cipher &optional sign always-trust)
   "Encrypt a file PLAIN and store the result to a file CIPHER.
@@ -2277,7 +2283,6 @@ If RECIPIENTS is nil, it performs symmetric encryption."
       (epg-delete-output-file context))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-encrypt-string (context plain recipients
 				   &optional sign always-trust)
   "Encrypt a string PLAIN.
@@ -2319,7 +2324,6 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 	  (delete-file input-file))
       (epg-reset context))))
 
-;;;###autoload
 (defun epg-start-export-keys (context keys)
   "Initiate an export keys operation.
 
@@ -2337,7 +2341,6 @@ If you are unsure, use synchronous version of this function
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
 
-;;;###autoload
 (defun epg-export-keys-to-file (context keys file)
   "Extract public KEYS."
   (unwind-protect
@@ -2357,12 +2360,10 @@ If you are unsure, use synchronous version of this function
       (epg-delete-output-file context))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-export-keys-to-string (context keys)
   "Extract public KEYS and return them as a string."
   (epg-export-keys-to-file context keys nil))
 
-;;;###autoload
 (defun epg-start-import-keys (context keys)
   "Initiate an import keys operation.
 KEYS is a data object.
@@ -2394,17 +2395,14 @@ If you are unsure, use synchronous version of this function
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-import-keys-from-file (context keys)
   "Add keys from a file KEYS."
   (epg--import-keys-1 context (epg-make-data-from-file keys)))
 
-;;;###autoload
 (defun epg-import-keys-from-string (context keys)
   "Add keys from a string KEYS."
   (epg--import-keys-1 context (epg-make-data-from-string keys)))
 
-;;;###autoload
 (defun epg-start-receive-keys (context key-id-list)
   "Initiate a receive key operation.
 KEY-ID-LIST is a list of key IDs.
@@ -2418,7 +2416,6 @@ If you are unsure, use synchronous version of this function
   (epg-context-set-result context nil)
   (epg--start context (cons "--recv-keys" key-id-list)))
 
-;;;###autoload
 (defun epg-receive-keys (context keys)
   "Add keys from server.
 KEYS is a list of key IDs"
@@ -2431,10 +2428,8 @@ KEYS is a list of key IDs"
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
 
-;;;###autoload
 (defalias 'epg-import-keys-from-server 'epg-receive-keys)
 
-;;;###autoload
 (defun epg-start-delete-keys (context keys &optional allow-secret)
   "Initiate a delete keys operation.
 
@@ -2454,7 +2449,6 @@ If you are unsure, use synchronous version of this function
 				(car (epg-key-sub-key-list key))))
 			     keys))))
 
-;;;###autoload
 (defun epg-delete-keys (context keys &optional allow-secret)
   "Delete KEYS from the key ring."
   (unwind-protect
@@ -2470,7 +2464,6 @@ If you are unsure, use synchronous version of this function
 		(error "Delete keys failed")))))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-start-sign-keys (context keys &optional local)
   "Initiate a sign keys operation.
 
@@ -2489,9 +2482,8 @@ If you are unsure, use synchronous version of this function
 			      (epg-sub-key-id
 			       (car (epg-key-sub-key-list key))))
 			    keys))))
-(make-obsolete 'epg-start-sign-keys "do not use.")
+(make-obsolete 'epg-start-sign-keys "do not use." "23.1")
 
-;;;###autoload
 (defun epg-sign-keys (context keys &optional local)
   "Sign KEYS from the key ring."
   (unwind-protect
@@ -2502,9 +2494,8 @@ If you are unsure, use synchronous version of this function
 	    (error "Sign keys failed: %S"
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
-(make-obsolete 'epg-sign-keys "do not use.")
+(make-obsolete 'epg-sign-keys "do not use." "23.1")
 
-;;;###autoload
 (defun epg-start-generate-key (context parameters)
   "Initiate a key generation.
 PARAMETERS specifies parameters for the key.
@@ -2526,7 +2517,6 @@ If you are unsure, use synchronous version of this function
     (if (eq (process-status (epg-context-process context)) 'run)
 	(process-send-eof (epg-context-process context)))))
 
-;;;###autoload
 (defun epg-generate-key-from-file (context parameters)
   "Generate a new key pair.
 PARAMETERS is a file which tells how to create the key."
@@ -2539,7 +2529,6 @@ PARAMETERS is a file which tells how to create the key."
 		   (epg-context-result-for context 'error))))
     (epg-reset context)))
 
-;;;###autoload
 (defun epg-generate-key-from-string (context parameters)
   "Generate a new key pair.
 PARAMETERS is a string which tells how to create the key."

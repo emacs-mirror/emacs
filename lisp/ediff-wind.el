@@ -1123,7 +1123,7 @@ It assumes that it is called from within the control buffer."
 		(cons 'width (cdr (assoc 'width frame-A-params))))
 	  ediff-wide-display-frame frame-A)
     (modify-frame-parameters
-     frame-A `((left . ,cw) (width . ,wd) (user-position t)))))
+     frame-A `((left . ,cw) (width . ,wd) (user-position . t)))))
 
 
 ;; Revise the mode line to display which difference we have selected

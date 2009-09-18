@@ -5,6 +5,32 @@ Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 See the end of the file for license conditions.
 
 
+* Changes in MH-E 8.2
+
+Version 8.2 of MH-E will appear in GNU Emacs 23.1. This is a small
+release that includes internal changes from the Emacs team. A new
+hook, `mh-pack-folder-hook', has been added.
+
+There is a known bug where you can't attach attachments in Emacs 21.
+This will be fixed in 8.2.1.
+
+** New Variables in MH-E 8.2
+
+*** mh-pack-folder-hook
+
+The `mh-pack-folder-hook' is run by `F p' (`mh-pack-folder') after
+renumbering the messages. Hook functions can access the current folder
+name with `mh-current-folder'.
+
+** Bug Fixes in MH-E 8.2
+
+*** New version of mh-mm-save-part
+
+Several functions have been updated with code from Gnus 5.11 (closes
+SF #2235022).
+
+
+
 * Changes in MH-E 8.1
 
 Version 8.1 fixes some issues with forwarding messages, respects the

@@ -2367,9 +2367,9 @@ the truename of a file can be slow.  */);
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
 	       doc: /* Non-nil means determine accurate file attributes in `file-attributes'.
 This option controls whether to issue additional system calls to determine
-accurate link counts, file type, and ownership information.  It is only
+accurate link counts, file type, and ownership information.  It is more
 useful for files on NTFS volumes, where hard links and file security are
-supported.
+supported, than on volumes of the FAT family.
 
 Without these system calls, link count will always be reported as 1 and file
 ownership will be attributed to the current user.

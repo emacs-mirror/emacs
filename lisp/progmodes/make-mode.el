@@ -104,7 +104,7 @@
     (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'makefile)
-(put 'makefile-space-face 'face-alias 'makefile-space)
+(define-obsolete-face-alias 'makefile-space-face 'makefile-space "22.1")
 
 (defface makefile-targets
   ;; This needs to go along both with foreground and background colors (i.e. shell)
@@ -1486,9 +1486,10 @@ definition and conveniently use this command."
   (let ((this-line (count-lines (point-min) (point))))
     (setq this-line (max 1 this-line))
     (makefile-browser-toggle-state-for-line this-line)
-    (goto-line this-line)
+    (goto-char (point-min))
+    (forward-line (1- this-line))
     (let ((inhibit-read-only t))
-      (beginning-of-line)
+      (beginning-of-line)		; redundant?
       (if (makefile-browser-on-macro-line-p)
 	  (let ((macro-name (makefile-browser-this-line-macro-name)))
 	    (delete-region (point) (progn (end-of-line) (point)))
@@ -1528,7 +1529,7 @@ large dependencies from the browser to the client buffer.
 Insertion takes place at point."
   (interactive)
   (save-excursion
-    (goto-line 1)
+    (goto-char (point-min))
     (let ((current-line 1))
       (while (not (eobp))
 	(if (makefile-browser-get-state-for-line current-line)

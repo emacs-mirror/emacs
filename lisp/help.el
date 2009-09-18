@@ -42,7 +42,7 @@
 ;; invoking `with-output-to-temp-buffer'.  If and only if `help-window'
 ;; is eq to t, `help-mode-finish' (called by `temp-buffer-setup-hook')
 ;; sets `help-window' to the window selected by `display-buffer'.
-;; Exiting `with-help-window' and calling `print-help-return-message'
+;; Exiting `with-help-window' and calling `help-print-return-message'
 ;; reset `help-window' to nil.
 (defvar help-window nil
   "Window chosen for displaying help.")
@@ -137,7 +137,8 @@ This is a list
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
-(defun print-help-return-message (&optional function)
+(define-obsolete-function-alias 'print-help-return-message 'help-print-return-message "23.2")
+(defun help-print-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
 This function assumes that `standard-output' is the help buffer.
 It computes a message, and applies the optional argument FUNCTION to it.
@@ -201,7 +202,8 @@ specifies what to do when the user exits the help buffer."
 (defalias 'help-for-help 'help-for-help-internal)
 ;; It can't find this, but nobody will look.
 (make-help-screen help-for-help-internal
-  "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?"
+  (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
+  (purecopy
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -246,7 +248,7 @@ C-n         News of recent Emacs changes.
 C-o         Emacs ordering and distribution information.
 C-p         Info about known Emacs problems.
 C-t         Emacs TODO list.
-C-w         Information on absence of warranty for GNU Emacs."
+C-w         Information on absence of warranty for GNU Emacs.")
   help-map)
 
 
@@ -1073,7 +1075,7 @@ of WINDOW."
 	  (help-window-display-message
 	   (if reuse
 	       ;; Offer `display-buffer' for consistency with
-	       ;; `print-help-return-message'.  This is hardly TRT when
+	       ;; `help-print-return-message'.  This is hardly TRT when
 	       ;; the other window and the selected window display the
 	       ;; same buffer but has been handled this way ever since.
 	       "Type \\[display-buffer] RET to restore the other window"
@@ -1202,7 +1204,7 @@ window itself is specified by the variable `help-window'."
 ;; (4) A marker (`help-window-point-marker') to move point in the help
 ;; window to an arbitrary buffer position.
 
-;; Note: It's usually always wrong to use `print-help-return-message' in
+;; Note: It's usually always wrong to use `help-print-return-message' in
 ;; the body of `with-help-window'.
 (defmacro with-help-window (buffer-name &rest body)
   "Display buffer BUFFER-NAME in a help window evaluating BODY.

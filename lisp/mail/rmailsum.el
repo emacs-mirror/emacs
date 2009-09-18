@@ -488,25 +488,6 @@ LINES is the number of lines in the message (if we should display that)
 	     (concat prefix basic-start linecount-string " "
 		     labels basic-end))))
 
-;; FIXME move to rmail.el?
-;;;###autoload
-(defcustom rmail-user-mail-address-regexp nil
-  "Regexp matching user mail addresses.
-If non-nil, this variable is used to identify the correspondent
-when receiving new mail.  If it matches the address of the sender,
-the recipient is taken as correspondent of a mail.
-If nil \(default value\), your `user-login-name' and `user-mail-address'
-are used to exclude yourself as correspondent.
-
-Usually you don't have to set this variable, except if you collect mails
-sent by you under different user names.
-Then it should be a regexp matching your mail addresses.
-
-Setting this variable has an effect only before reading a mail."
-  :type '(choice (const :tag "None" nil) regexp)
-  :group 'rmail-retrieve
-  :version "21.1")
-
 (defun rmail-header-summary ()
   "Return a message summary based on the message headers.
 The value is a list of two strings, the first and second parts of the summary.
@@ -518,16 +499,19 @@ the message being processed."
    (concat (save-excursion
 	     (if (not (re-search-forward "^Date:" nil t))
 		 "      "
-	       (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
-		       (line-end-position) t)
+	       ;; Match month names case-insensitively
+	       (cond ((let ((case-fold-search t))
+			(re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
+					   (line-end-position) t))
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 2)
 						 (match-end 2)))
 			      (buffer-substring
 			       (match-beginning 4) (match-end 4))))
-		     ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
-		       (line-end-position) t)
+		     ((let ((case-fold-search t))
+			(re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
+					   (line-end-position) t))
 		      (format "%2d-%3s"
 			      (string-to-number (buffer-substring
 						 (match-beginning 4)
@@ -1858,6 +1842,10 @@ the summary is only showing a subset of messages."
       (select-window selwin))))
 
 (provide 'rmailsum)
+
+;; Local Variables:
+;; generated-autoload-file: "rmail.el"
+;; End:
 
 ;; arch-tag: 80b0a27a-a50d-4f37-9466-83d32d1e0ca8
 ;;; rmailsum.el ends here

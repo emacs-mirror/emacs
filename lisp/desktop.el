@@ -220,7 +220,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   :group 'desktop
   :version "22.2")
 
-(defcustom desktop-path '("." "~")
+(defcustom desktop-path (list "." user-emacs-directory "~")
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
@@ -276,7 +276,8 @@ for example."
     tags-table-list
     search-ring
     regexp-search-ring
-    register-alist)
+    register-alist
+    file-name-history)
   "List of global variables saved by `desktop-save'.
 An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . MAX-SIZE), which means to truncate VAR's value to at most
@@ -332,19 +333,19 @@ modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
 
-;; We skip .log files because they are normally temporary.
-;;         (ftp) files because they require passwords and whatnot.
-(defcustom desktop-buffers-not-to-save
-  "\\(^nn\\.a[0-9]+\\|\\.log\\|(ftp)\\)$"
+(defcustom desktop-buffers-not-to-save nil
   "Regexp identifying buffers that are to be excluded from saving."
-  :type 'regexp
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :version "23.2"                       ; set to nil
   :group 'desktop)
 
 ;; Skip tramp and ange-ftp files
 (defcustom desktop-files-not-to-save
-  "^/[^/:]*:"
+  "\\(^/[^/:]*:\\|(ftp)$\\)"
   "Regexp identifying files whose buffers are to be excluded from saving."
-  :type 'regexp
+  :type '(choice (const :tag "None" nil)
+		 regexp)
   :group 'desktop)
 
 ;; We skip TAGS files to save time (tags-file-name is saved instead).
@@ -811,9 +812,12 @@ FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode.
 \n\(fn FILENAME BUFNAME MODE)"
   (let ((case-fold-search nil))
-    (and (not (string-match desktop-buffers-not-to-save bufname))
+    (and (not (and (stringp desktop-buffers-not-to-save)
+		   (not filename)
+		   (string-match desktop-buffers-not-to-save bufname)))
          (not (memq mode desktop-modes-not-to-save))
          (or (and filename
+		  (stringp desktop-files-not-to-save)
                   (not (string-match desktop-files-not-to-save filename)))
              (and (eq mode 'dired-mode)
                   (with-current-buffer bufname

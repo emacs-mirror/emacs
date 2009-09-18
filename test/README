@@ -1,2 +1,4 @@
 This directory contains files intended to test various aspects of
 Emacs's functionality.  Please help add tests!
+
+(Also, see etc/compilation.txt for compilation mode font lock tests.)

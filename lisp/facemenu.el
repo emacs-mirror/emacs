@@ -460,11 +460,17 @@ These special properties include `invisible', `intangible' and `read-only'."
 (defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
   (let* ((completion-ignore-case t)
-	 (require-match (not (eq window-system 'ns)))
-	 (col (completing-read (or prompt "Color: ")
-			       (or facemenu-color-alist
-				   (defined-colors))
-			       nil require-match)))
+	 (color-list (or facemenu-color-alist (defined-colors)))
+	 (completer
+	  (lambda (string pred all-completions)
+	    (if all-completions
+		(or (all-completions string color-list pred)
+		    (if (color-defined-p string)
+			(list string)))
+	      (or (try-completion string color-list pred)
+		  (if (color-defined-p string)
+		      string)))))
+	 (col (completing-read (or prompt "Color: ") completer nil t)))
     (if (equal "" col)
 	nil
       col)))
@@ -537,8 +543,8 @@ a list of colors that the current display can handle."
 	 (l list))
     (while (cdr l)
       (if (and (facemenu-color-equal (car (car l)) (car (car (cdr l))))
-	       (not (if (boundp 'w32-default-color-map)
-			(not (assoc (car (car l)) w32-default-color-map)))))
+	       (not (if (fboundp 'w32-default-color-map)
+			(not (assoc (car (car l)) (w32-default-color-map))))))
 	  (progn
 	    (setcdr (car l) (cons (car (car (cdr l))) (cdr (car l))))
 	    (setcdr l (cdr (cdr l))))

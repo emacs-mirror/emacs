@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,7 +31,13 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
 (require 'org-macs)
+
+(declare-function find-library-name "find-func"  (library))
+(declare-function w32-focus-frame   "w32-win" (frame))
 
 (defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p
@@ -43,17 +49,25 @@
 (defun org-compatible-face (inherits specs)
   "Make a compatible face specification.
 If INHERITS is an existing face and if the Emacs version supports it,
-just inherit the face.  If not, use SPECS to define the face.
+just inherit the face.  If INHERITS is set and the Emacs version does
+not support it, copy the face specification from the inheritance face.
+If INHERITS is not given and SPECS is, use SPECS to define the face.
 XEmacs and Emacs 21 do not know about the `min-colors' attribute.
 For them we convert a (min-colors 8) entry to a `tty' entry and move it
 to the top of the list.  The `min-colors' attribute will be removed from
 any other entries, and any resulting duplicates will be removed entirely."
+  (when (and inherits (facep inherits) (not specs))
+    (setq specs (or specs
+		    (get inherits 'saved-face)
+		    (get inherits 'face-defface-spec))))
   (cond
    ((and inherits (facep inherits)
-	 (not (featurep 'xemacs)) (> emacs-major-version 22))
-    ;; In Emacs 23, we use inheritance where possible.
-    ;; We only do this in Emacs 23, because only there the outline
-    ;; faces have been changed to the original org-mode-level-faces.
+	 (not (featurep 'xemacs))
+	 (>= emacs-major-version 22)
+	 ;; do not inherit outline faces before Emacs 23
+	 (or (>= emacs-major-version 23)
+	     (not (string-match "\\`outline-[0-9]+"
+				(symbol-name inherits)))))
     (list (list t :inherit inherits)))
    ((or (featurep 'xemacs) (< emacs-major-version 22))
     ;; These do not understand the `min-colors' attribute.
@@ -185,6 +199,11 @@ Works on both Emacs and XEmacs."
 	  (use-region-p)
 	(and transient-mark-mode mark-active))))) ; Emacs 22 and before
 
+(defun org-cursor-to-region-beginning ()
+  (when (and (org-region-active-p)
+	     (> (point) (region-beginning)))
+    (exchange-point-and-mark)))
+
 ;; Invisibility compatibility
 
 (defun org-add-to-invisibility-spec (arg)
@@ -290,6 +309,16 @@ that can be added."
       (org-no-properties (substring string (or from 0) to))
     (substring-no-properties string from to)))
 
+(defun org-find-library-name (library)
+  (if (fboundp 'find-library-name)
+      (file-name-directory (find-library-name library))
+    ; XEmacs does not have `find-library-name'
+    (flet ((find-library-name-helper (filename ignored-codesys)
+				     filename)
+	   (find-library-name (library)
+	    (find-library library nil 'find-library-name-helper)))
+      (file-name-directory (find-library-name library)))))
+
 (defun org-count-lines (s)
   "How many lines in string S?"
   (let ((start 0) (n 1))
@@ -298,6 +327,40 @@ that can be added."
     (if (and (> (length s) 0) (= (aref s (1- (length s))) ?\n))
 	(setq n (1- n)))
     n))
+
+(defun org-kill-new (string &rest args)
+  (remove-text-properties 0 (length string) '(line-prefix t wrap-prefix t)
+			  string)
+  (apply 'kill-new string args))
+
+(defun org-select-frame-set-input-focus (frame)
+  "Select FRAME, raise it, and set input focus, if possible."
+  (cond ((featurep 'xemacs)
+	 (if (fboundp 'select-frame-set-input-focus)
+	     (select-frame-set-input-focus frame)
+	   (raise-frame frame)
+	   (select-frame frame)
+	   (focus-frame frame)))
+	;; `select-frame-set-input-focus' defined in Emacs 21 will not
+	;; set the input focus.
+	((>= emacs-major-version 22)
+	 (select-frame-set-input-focus frame))
+	(t
+	 (raise-frame frame)
+	 (select-frame frame)
+	 (cond ((memq window-system '(x ns mac))
+		(x-focus-frame frame))
+	       ((eq window-system 'w32)
+		(w32-focus-frame frame)))
+	 (when focus-follows-mouse
+	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
+
+(defun org-float-time (&optional time)
+  "Convert time value TIME to a floating point number.
+TIME defaults to the current time."
+  (if (featurep 'xemacs)
+      (time-to-seconds (or time (current-time)))
+    (float-time time)))
 
 (provide 'org-compat)
 

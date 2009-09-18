@@ -27,33 +27,7 @@
 ;; of providing 5000 options, we'll stick to simple, easy to
 ;; understand options.
 
-;; Easy setup:
-;; (require 'auth-source)
-;; (customize-variable 'auth-sources) ;; optional
-
-;; now, whatever sources you've defined for password have to be available
-
-;; if you want encrypted sources, which is strongly recommended, do
-;; (require 'epa-file)
-;; (epa-file-enable)
-;; (setq epa-file-cache-passphrase-for-symmetric-encryption t) ; VERY important
-
-;; before you put some data in ~/.authinfo.gpg (the default place)
-
-;;; For url-auth authentication (HTTP/HTTPS), you need to use:
-
-;;; machine yourmachine.com:80 port http login testuser password testpass
-
-;;; This will match any realm and authentication method (basic or
-;;; digest).  If you want finer controls, explore the url-auth source
-;;; code and variables.
-
-;;; For tramp authentication, use:
-
-;;; machine yourmachine.com port scp login testuser password testpass
-
-;;; Note that the port denotes the Tramp connection method.  When you
-;;; don't use a port entry, you match any Tramp method.
+;; See the auth.info Info documentation for details.
 
 ;;; Code:
 
@@ -100,6 +74,31 @@
   :version "23.1" ;; No Gnus
   :type `boolean)
 
+(defcustom auth-source-debug nil
+  "Whether auth-source should log debug messages.
+Also see `auth-source-hide-passwords'.
+
+If the value is nil, debug messages are not logged.
+If the value is t, debug messages are logged with `message'.
+ In that case, your authentication data will be in the
+ clear (except for passwords, which are always stripped out).
+If the value is a function, debug messages are logged by calling
+ that function using the same arguments as `message'."
+  :group 'auth-source
+  :version "23.1" ;; No Gnus
+  :type	`(choice 
+	  :tag "auth-source debugging mode"
+	  (const :tag "Log using `message' to the *Messages* buffer" t)
+	  (function :tag "Function that takes arguments like `message'")
+	  (const :tag "Don't log anything" nil)))
+
+(defcustom auth-source-hide-passwords t
+  "Whether auth-source should hide passwords in log messages.
+Only relevant if `auth-source-debug' is not nil."
+  :group 'auth-source
+  :version "23.1" ;; No Gnus
+  :type `boolean)
+
 (defcustom auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t))
   "List of authentication sources.
 
@@ -137,6 +136,19 @@ Each entry is the authentication type with optional properties."
 ;; (auth-source-user-or-password-imap "password" "imap.myhost.com")
 ;; (auth-source-protocol-defaults 'imap)
 
+;; (let ((auth-source-debug 'debug)) (auth-source-debug "hello"))
+;; (let ((auth-source-debug t)) (auth-source-debug "hello"))
+;; (let ((auth-source-debug nil)) (auth-source-debug "hello"))
+(defun auth-source-do-debug (&rest msg)
+  ;; set logger to either the function in auth-source-debug or 'message
+  ;; note that it will be 'message if auth-source-debug is nil, so
+  ;; we also check the value
+  (when auth-source-debug
+    (let ((logger (if (functionp auth-source-debug)
+		      auth-source-debug 
+		    'message)))
+      (apply logger msg))))
+
 (defun auth-source-pick (host protocol &optional fallback)
   "Parse `auth-sources' for HOST, and PROTOCOL matches.
 
@@ -171,21 +183,21 @@ Returns fallback choices (where PROTOCOL or HOST are nil) with FALLBACK t."
 (defun auth-source-user-or-password (mode host protocol)
   "Find MODE (string or list of strings) matching HOST and PROTOCOL.
 MODE can be \"login\" or \"password\" for example."
-  (gnus-message 9
-		"auth-source-user-or-password: get %s for %s (%s)"
-		mode host protocol)
+  (auth-source-do-debug
+   "auth-source-user-or-password: get %s for %s (%s)"
+   mode host protocol)
   (let* ((listy (listp mode))
 	 (mode (if listy mode (list mode)))
 	 (cname (format "%s %s:%s" mode host protocol))
 	 (found (gethash cname auth-source-cache)))
     (if found
 	(progn
-	  (gnus-message 9
-			"auth-source-user-or-password: cached %s=%s for %s (%s)"
-			mode
-			;; don't show the password
-			(if (member "password" mode) "SECRET" found)
-			host protocol)
+	  (auth-source-do-debug
+	   "auth-source-user-or-password: cached %s=%s for %s (%s)"
+	   mode
+	   ;; don't show the password
+	   (if (and (member "password" mode) auth-source-hide-passwords) "SECRET" found)
+	   host protocol)
 	  found)
       (dolist (choice (auth-source-pick host protocol))
 	(setq found (netrc-machine-user-or-password
@@ -195,12 +207,12 @@ MODE can be \"login\" or \"password\" for example."
 		     (list (format "%s" protocol))
 		     (auth-source-protocol-defaults protocol)))
 	(when found
-	  (gnus-message 9
-			"auth-source-user-or-password: found %s=%s for %s (%s)"
-			mode
-			;; don't show the password
-			(if (member "password" mode) "SECRET" found)
-			host protocol)
+	  (auth-source-do-debug
+	   "auth-source-user-or-password: found %s=%s for %s (%s)"
+	   mode
+	   ;; don't show the password
+	   (if (and (member "password" mode) auth-source-hide-passwords) "SECRET" found)
+	   host protocol)
 	  (setq found (if listy found (car-safe found)))
 	  (when auth-source-do-cache
 	    (puthash cname found auth-source-cache)))

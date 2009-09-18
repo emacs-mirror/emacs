@@ -4,7 +4,7 @@
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -422,7 +422,17 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
    (loop for priority from ?A to org-lowest-priority
 	 collect (char-to-string priority)))
 
+(defun org-mouse-todo-menu (state)
+  "Create the menu with TODO keywords."
+  (append
+   (let ((kwds org-todo-keywords-1))
+     (org-mouse-keyword-menu
+      kwds
+      `(lambda (kwd) (org-todo kwd))
+      (lambda (kwd) (equal state kwd))))))
+
 (defun org-mouse-tag-menu ()		;todo
+  "Create the tags menu"
   (append
    (let ((tags (org-get-tags)))
      (org-mouse-keyword-menu
@@ -439,7 +449,6 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Align Tags Here" (org-set-tags nil t) t]
      ["Align Tags in Buffer" (org-set-tags t t) t]
      ["Set Tags ..." (org-set-tags) t])))
-
 
 
 (defun org-mouse-set-tags (tags)
@@ -621,9 +630,6 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	(set-match-data ',match)
 	(apply ',function rest)))))
 
-(defun org-mouse-todo-keywords ()
-  (if (boundp 'org-todo-keywords-1) org-todo-keywords-1 org-todo-keywords))
-
 (defun org-mouse-match-todo-keyword ()
   (save-excursion
     (org-back-to-heading)
@@ -691,10 +697,10 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 			 (org-mouse-remove-match-and-spaces))))]
        )))
    ((and (org-mouse-looking-at "\\b\\w+" "a-zA-Z0-9_")
-	 (member (match-string 0) (org-mouse-todo-keywords)))
+	 (member (match-string 0) org-todo-keywords-1))
     (popup-menu
      `(nil
-       ,@(org-mouse-keyword-replace-menu (org-mouse-todo-keywords))
+       ,@(org-mouse-todo-menu (match-string 0))
        "--"
        ["Check TODOs" org-show-todo-tree t]
        ["List all TODO keywords" org-todo-list t]
@@ -718,7 +724,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        ["Open" org-open-at-point t]
        ["Open in Emacs" (org-open-at-point t) t]
        "--"
-       ["Copy link" (kill-new (match-string 0))]
+       ["Copy link" (org-kill-new (match-string 0))]
        ["Cut link"
 	(progn
 	  (kill-region (match-beginning 0) (match-end 0))
@@ -832,9 +838,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	  "--"
 	  ,@(org-mouse-tag-menu))
 	 ("TODO Status"
-	  ,@(progn (org-mouse-match-todo-keyword)
-		   (org-mouse-keyword-replace-menu (org-mouse-todo-keywords)
-						   1)))
+	  ,@(org-mouse-todo-menu (org-get-todo-state)))
 	 ["Show Tags"
 	  (with-current-buffer org-mouse-main-buffer (org-agenda-show-tags))
 	  :visible (not org-mouse-direct)]
@@ -1132,8 +1136,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
        (if (featurep 'xemacs) [button3] [mouse-3])
        'org-mouse-show-context-menu)
      (define-key org-agenda-keymap [down-mouse-3] 'org-mouse-move-tree-start)
-     (define-key org-agenda-keymap [C-mouse-4] 'org-agenda-earlier)
-     (define-key org-agenda-keymap [C-mouse-5] 'org-agenda-later)
+     (define-key org-agenda-keymap (if (featurep 'xemacs) [(control mouse-4)] [C-mouse-4]) 'org-agenda-earlier)
+     (define-key org-agenda-keymap (if (featurep 'xemacs) [(control mouse-5)] [C-mouse-5]) 'org-agenda-later)
      (define-key org-agenda-keymap [drag-mouse-3]
        '(lambda (event) (interactive "e")
 	  (case (org-mouse-get-gesture event)

@@ -1969,14 +1969,11 @@ turn_on_face (f, face_id)
 	}
     }
 
-  if (face->tty_bold_p)
-    {
-      if (MAY_USE_WITH_COLORS_P (tty, NC_BOLD))
-	OUTPUT1_IF (tty, tty->TS_enter_bold_mode);
-    }
-  else if (face->tty_dim_p)
-    if (MAY_USE_WITH_COLORS_P (tty, NC_DIM))
-      OUTPUT1_IF (tty, tty->TS_enter_dim_mode);
+  if (face->tty_bold_p && MAY_USE_WITH_COLORS_P (tty, NC_BOLD))
+    OUTPUT1_IF (tty, tty->TS_enter_bold_mode);
+
+  if (face->tty_dim_p && MAY_USE_WITH_COLORS_P (tty, NC_DIM))
+    OUTPUT1_IF (tty, tty->TS_enter_dim_mode);
 
   /* Alternate charset and blinking not yet used.  */
   if (face->tty_alt_charset_p
@@ -2097,9 +2094,9 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
        doc: /* Return non-nil if the tty device TERMINAL can display colors.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL does not refer to a text-only terminal.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2115,9 +2112,9 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        Stty_display_color_cells, 0, 1, 0,
        doc: /* Return the number of colors supported by the tty device TERMINAL.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns 0 if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns 0 if
+TERMINAL does not refer to a text-only terminal.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2303,8 +2300,8 @@ DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2322,9 +2319,9 @@ frame's terminal).  */)
 DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
        doc: /* Return non-nil if TERMINAL is the controlling tty of the Emacs process.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame, or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL is not on a tty device.  */)
      (terminal)
      Lisp_Object terminal;
 {
@@ -2343,9 +2340,9 @@ This is used to override the terminfo data, for certain terminals that
 do not really do underlining, but say that they do.  This function has
 no effect if used on a non-tty terminal.
 
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  This function always returns nil if TERMINAL
-is not on a tty device.  */)
+TERMINAL can be a terminal object, a frame or nil (meaning the
+selected frame's terminal).  This function always returns nil if
+TERMINAL does not refer to a text-only terminal.  */)
   (terminal)
      Lisp_Object terminal;
 {
@@ -2366,8 +2363,8 @@ access to the tty device.  Frames that use the device are not deleted,
 but input is not read from them and if they change, their display is
 not updated.
 
-TTY may be a terminal id, a frame, or nil for the terminal device of
-the currently selected frame.
+TTY may be a terminal object, a frame, or nil for the terminal device
+of the currently selected frame.
 
 This function runs `suspend-tty-functions' after suspending the
 device.  The functions are run with one arg, the id of the suspended
@@ -2442,8 +2439,8 @@ device.
 `resume-tty' does nothing if it is called on a device that is not
 suspended.
 
-TTY may be a terminal id, a frame, or nil for the terminal device of
-the currently selected frame. */)
+TTY may be a terminal object, a frame, or nil (meaning the selected
+frame's terminal). */)
      (tty)
      Lisp_Object tty;
 {
@@ -2851,7 +2848,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1, 1, -1);
 
 		/* Display it as active.  */
 		term_show_mouse_face (DRAW_MOUSE_FACE);
@@ -2886,7 +2883,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1, 1, -1);
 
 		/* Display it as active.  */
 		term_show_mouse_face (DRAW_MOUSE_FACE);
@@ -3181,6 +3178,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 #endif /* HAVE_GPM */
 
 
+#ifndef MSDOS
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -3218,6 +3216,20 @@ tty_free_frame_resources (struct frame *f)
   xfree (f->output_data.tty);
 }
 
+#else  /* MSDOS */
+
+/* Delete frame F's face cache. */
+
+static void
+tty_free_frame_resources (struct frame *f)
+{
+  if (! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f))
+    abort ();
+
+  if (FRAME_FACE_CACHE (f))
+    free_frame_faces (f);
+}
+#endif	/* MSDOS */
 
 /* Reset the hooks in TERMINAL.  */
 
@@ -3452,9 +3464,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   tty->type = xstrdup (terminal_type);
 
-#ifdef subprocesses
   add_keyboard_wait_descriptor (fileno (tty->input));
-#endif
 
 #endif	/* !DOS_NT */
 
@@ -3721,10 +3731,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
                  "Screen size %dx%d is too small"
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
-
-#if 0  /* This is not used anywhere. */
-  tty->terminal->min_padding_speed = tgetnum ("pb");
-#endif
 
   TabWidth (tty) = tgetnum ("tw");
 
@@ -4010,10 +4016,8 @@ delete_tty (struct terminal *terminal)
 
   xfree (tty->old_tty);
   xfree (tty->Wcm);
-  if (tty->termcap_strings_buffer)
-    xfree (tty->termcap_strings_buffer);
-  if (tty->termcap_term_buffer)
-    xfree (tty->termcap_term_buffer);
+  xfree (tty->termcap_strings_buffer);
+  xfree (tty->termcap_term_buffer);
 
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
@@ -4049,14 +4053,14 @@ This variable can be used by terminal emulator packages.  */);
 
   DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
-The functions are run with one argument, the terminal id to be suspended.
+The functions are run with one argument, the terminal object to be suspended.
 See `suspend-tty'.  */);
   Vsuspend_tty_functions = Qnil;
 
 
   DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
     doc: /* Functions to be run after resuming a tty.
-The functions are run with one argument, the terminal id that was revived.
+The functions are run with one argument, the terminal object that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
 

@@ -261,8 +261,8 @@ you see @samp{%%} at the beginning of the mode line, it means that the file
 associated with the buffer is write protected.  The mode line will also
 show the buffer name and current major and minor modes (see below).
 A special buffer called @dfn{Minibuffer} is displayed as the last line
-in a Minibuffer window.  The Minibuffer window is used for command input
-output.  Viper uses Minibuffer window for @kbd{/} and @kbd{:}
+in a minibuffer window.  The minibuffer window is used for command input
+output.  Viper uses minibuffer window for @kbd{/} and @kbd{:}
 commands.@refill
 
 @cindex mode
@@ -653,7 +653,7 @@ last history element is the default that can be invoked simply by typing
 easy to override valuable data in another file.  Reconstructing the full
 command, @kbd{:w!@: foo}, from the history is still not that hard, since Viper
 has a separate history for file names.  By typing @kbd{: M-p}, you will get
-@kbd{:w!} in the Minibuffer.  Then, repeated @kbd{M-p} will get you through
+@kbd{:w!} in the minibuffer.  Then, repeated @kbd{M-p} will get you through
 the file history, inserting one file name after another.
 
 In contrast to @kbd{:w!@: foo}, if the command were @kbd{:r foo}, the entire
@@ -663,7 +663,7 @@ argument.
 @refill
 @end table
 @noindent
-As Vi, Viper's destructive commands can be re-executed by typing `@kbd{.}'.
+As in Vi, Viper's destructive commands can be re-executed by typing `@kbd{.}'.
 However, in addition, Viper keeps track of the history of such commands.  This
 history can be perused by typing @kbd{C-c M-p} and @kbd{C-c M-n}.
 Having found the appropriate command, it can be then executed by typing
@@ -767,7 +767,7 @@ region.
 
 @cindex Minibuffer
 
-The Minibuffer is where commands are entered in.  Editing can be done
+The minibuffer is where commands are entered in.  Editing can be done
 by commands from Insert state, namely:
 
 @table @kbd
@@ -788,23 +788,28 @@ explanation.
 These keys are bound to functions that peruse minibuffer history.  The
 precise history to be perused depends on the context.  It may be the history
 of search strings, Ex commands, file names, etc.
+@item C-s
+If the minibuffer is entered via the Viper search commands @kbd{/} or
+@kbd{?}, then this key inserts the last search string used by the
+Emacs incremental search command
+(which is bound to @kbd{C-s} everywhere except in this case).
 @end table
 
-Most of the Emacs keys are functional in the Minibuffer.  While in the
-Minibuffer, Viper tries to make editing resemble Vi's behavior when the
+Most of the Emacs keys are functional in the minibuffer.  While in the
+minibuffer, Viper tries to make editing resemble Vi's behavior when the
 latter is waiting for the user to type an Ex command.  In particular, you
-can use the regular Vi commands to edit the Minibuffer.  You can switch
+can use the regular Vi commands to edit the minibuffer.  You can switch
 between the Vi state and Insert state at will, and even use the replace mode.
-Initially, the Minibuffer comes up in Insert state.
+Initially, the minibuffer comes up in Insert state.
 
-Some users prefer plain Emacs bindings in the Minibuffer.  To this end, set
+Some users prefer plain Emacs bindings in the minibuffer.  To this end, set
 @code{viper-vi-style-in-minibuffer} to @code{nil} in @file{.viper}.
 @xref{Customization}, to learn how to do this.
 
-When the Minibuffer changes Viper states, you will notice that the appearance
-of the text there changes as well.  This is useful because the Minibuffer
+When the minibuffer changes Viper states, you will notice that the appearance
+of the text there changes as well.  This is useful because the minibuffer
 has no mode line to tell which Vi state it is in.
-The appearance of the text in the Minibuffer can be changed.
+The appearance of the text in the minibuffer can be changed.
 @xref{Viper Specials}, for more details.
 
 @node Multiple Files in Viper,Unimplemented Features,The Minibuffer,Overview
@@ -859,7 +864,7 @@ The current directory name for a file is automatically prepended to the
 file name in any
 @kbd{:e}, @kbd{:r}, @kbd{:w}, etc., command (in Emacs, each buffer has a
 current directory).
-This directory is inserted in the Minibuffer once you type space after
+This directory is inserted in the minibuffer once you type space after
 @kbd{:e, r}, etc.  Viper also supports completion of file names and Ex
 commands (@key{TAB}), and it keeps track of
 command and file history (@kbd{M-p}, @kbd{M-n}).
@@ -1044,7 +1049,7 @@ destructive commands in Vi state.  These are
 useful for fixing those small typos that screw up searches and @kbd{:s},
 and for eliminating routine associated with repeated typing of file names
 or pieces of text that need to be inserted frequently.
-At the @kbd{:} or @kbd{/} prompts in the Minibuffer, you can do the following:
+At the @kbd{:} or @kbd{/} prompts in the minibuffer, you can do the following:
 
 @table @kbd
 @item M-p and M-n
@@ -1170,7 +1175,7 @@ Search,emacs,The GNU Emacs Manual} @refill
 @cindex query replace
 
 Viper also provides a query replace function that prompts through the
-Minibuffer.  It is invoked by the @kbd{Q} key in Vi state.
+minibuffer.  It is invoked by the @kbd{Q} key in Vi state.
 
 @cindex mouse search
 
@@ -1332,7 +1337,7 @@ that @kbd{:se nomagic} turns Regexps off completely, unlike Vi).
 @kindex @kbd{V}
 @kindex @kbd{C-v}
 These keys are used to visit files.  @kbd{v} will switch to a buffer
-visiting file whose name can be entered in the Minibuffer.  @kbd{V} is
+visiting file whose name can be entered in the minibuffer.  @kbd{V} is
 similar, but will use a window different from the current window.
 @kbd{C-v} is like @kbd{V}, except that a new frame (X window) will be used
 instead of a new Emacs window.
@@ -1432,8 +1437,15 @@ this function.
 @item M-p and M-n
 @kindex @kbd{M-p}
 @kindex @kbd{M-n}
-In the Minibuffer, these commands navigate through the minibuffer
+In the minibuffer, these commands navigate through the minibuffer
 histories, such as the history of search strings, Ex commands, etc.
+
+@item C-s
+@kindex @kbd{C-s}
+If the minibuffer is entered via a Viper search commands @kbd{/} or @kbd{?},
+then typing this key inserts the last search string used by the
+Emacs incremental search command (that is bound to @kbd{C-s} everywhere
+except in this case).
 
 @item C-c M-p and C-c M-n
 @kindex @kbd{C-c M-p}
@@ -1716,8 +1728,8 @@ If not @code{nil}, @kbd{C-h} is bound to @code{help-command};
 otherwise, @kbd{C-h} is bound as usual in Vi.
 @item viper-vi-style-in-minibuffer t
 If not @code{nil}, Viper provides a high degree of compatibility with Vi
-insert mode when you type text in the Minibuffer; if @code{nil}, typing in
-the Minibuffer feels like plain Emacs.
+insert mode when you type text in the minibuffer; if @code{nil}, typing in
+the minibuffer feels like plain Emacs.
 @item viper-no-multiple-ESC t
 If you set this to @code{nil}, you can use @key{ESC} as Meta in Vi state.
 Normally, this is not necessary, since graphical displays have separate
@@ -2455,7 +2467,7 @@ direction, you can either bind an unused key to
 @kbd{f31}.
 
 One should not bind the above functions to @kbd{M-p} or @kbd{M-n}, since
-this will interfere with the Minibuffer histories and, possibly, other
+this will interfere with the minibuffer histories and, possibly, other
 major modes.
 
 @item viper-command-ring-size  14
@@ -2485,7 +2497,7 @@ direction, you can either bind an unused key to
 @code{viper-next-destructive-command} or hit any digit (1 to 9) then @kbd{f31}.
 
 One should not bind the above functions to @kbd{M-p} or @kbd{M-n}, since
-this will interfere with the Minibuffer histories and, possibly, other
+this will interfere with the minibuffer histories and, possibly, other
 major modes.
 
 @item viper-minibuffer-vi-face  'viper-minibuffer-vi-face
@@ -2501,7 +2513,7 @@ subgroup of the @emph{Editing} group.  All Viper faces are grouped together
 in Viper's @emph{Highlighting} customization subgroup.
 
 Note that only the text you type in is affected by the above faces.
-Prompts and Minibuffer messages are not affected.
+Prompts and minibuffer messages are not affected.
 
 Purists who do not like adornments in the minibuffer can always zap them by
 putting
@@ -2960,7 +2972,7 @@ Since Viper macros are much more powerful than Vi's it is impossible to
 detect such loops.  In practice, this is not really a limitation but,
 rather, a feature.
 
-We should also note that Vi macros are disabled in the Minibuffer, which
+We should also note that Vi macros are disabled in the minibuffer, which
 helps keep some potential troubles away.
 
 The rate at which the user must type keys in order for them to be
@@ -3534,7 +3546,7 @@ these commands help peruse the history of Vi's destructive commands.
 Successive typing of @kbd{C-c M-p} causes Viper to search the history in
 the direction
 of older commands, while hitting @kbd{C-c M-n} does so in reverse
-order.  Each command in the history is displayed in the Minibuffer.  The
+order.  Each command in the history is displayed in the minibuffer.  The
 displayed command can
 then be executed by typing `@kbd{.}'.
 
@@ -3564,7 +3576,7 @@ functions doing the perusing can be bound to unused keyboard keys in the
 
 Minibuffer can be edited similarly to Insert state, and you can switch
 between Insert/Replace/Vi states at will.
-Some users prefer plain Emacs feel in the Minibuffer.  To this end, set
+Some users prefer plain Emacs feel in the minibuffer.  To this end, set
 @var{viper-vi-style-in-minibuffer} to @code{nil}.
 
 @cindex Insert state
@@ -3753,6 +3765,11 @@ To the <count>th occurrence of <string>.
 Viper does not parse search patterns and does not expand special symbols
 found there (e.g., @samp{~} is not expanded to the result of the previous
 substitution).
+
+After typing @kbd{/} or @kbd{?} all the usual Emacs minibuffer commands, such as
+@kbd{M-p} and @kbd{M-n} are available. In addition, typing @kbd{C-s} will
+insert the last search string used by the Emacs incremental search command
+(which is bound to @kbd{C-s} everywhere except in this case).
 
 @item <count>  ?<string>
 To the <count>th previous occurrence of <string>.
@@ -4057,7 +4074,7 @@ Like @kbd{:b}, but the meaning of @var{ex-cycle-other-window} is reversed.
 Read the file <name> into the buffer after the line <address>.
 @item v, V, C-v
 Edit a file in current or another window, or in another frame.  File name
-is typed in Minibuffer.  File completion and history are supported.
+is typed in minibuffer.  File completion and history are supported.
 @end table
 @kindex @kbd{v}
 @kindex @kbd{V}

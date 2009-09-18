@@ -10,7 +10,6 @@ License: GNU General Public License version 3 or later (see COPYING)
   stepi.pbm, until.pbm
   stepi.xpm, until.xpm
 
-
 Some icons are derived from Red Hat's Insight Debugger:
 
 <http://sourceware.org/insight/>
@@ -44,3 +43,10 @@ License: GNU General Public License version 3 or later (see COPYING)
   stop.pbm and stop.xpm were converted from stop.gif
   up.pbm and up.xpm were converted from up.gif
   watch.pbm and watch.xpm were converted from watch.gif
+
+The following icons were created by Dmitry Dzhus <dima@sphinx.net.ru>.
+Copyright (C) 2009
+  Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
+  
+  all.xpm, thread.xpm

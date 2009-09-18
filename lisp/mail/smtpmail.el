@@ -46,8 +46,8 @@
 ;; Where the 25 equals the value of `smtpmail-smtp-service', it can be an
 ;; integer or a string, just as long as they match (eq).
 
-;; To queue mail, set smtpmail-queue-mail to t and use
-;; smtpmail-send-queued-mail to send.
+;; To queue mail, set `smtpmail-queue-mail' to t and use
+;; `smtpmail-send-queued-mail' to send.
 
 ;; Modified by Stephen Cranefield <scranefield@infoscience.otago.ac.nz>,
 ;; 22/6/99, to support SMTP Authentication by the AUTH=LOGIN mechanism.
@@ -122,8 +122,7 @@ Don't bother to set this unless you have get an error like:
 when sending mail, and the *trace of SMTP session to <somewhere>*
 buffer includes an exchange like:
 	RCPT TO: <someone>
-	501 <someone>: recipient address must contain a domain
-"
+	501 <someone>: recipient address must contain a domain."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
@@ -169,9 +168,9 @@ need to enter a `realm' too, add it to the user string, so that it
 looks like `user@realm'."
   :type '(choice file
 		 (repeat (list (string  :tag "Server")
-		       (integer :tag "Port")
-		       (string  :tag "Username")
-		       (choice (const :tag "Query when needed" nil)
+                               (integer :tag "Port")
+                               (string  :tag "Username")
+                               (choice (const :tag "Query when needed" nil)
 				       (string  :tag "Password")))))
   :version "22.1"
   :group 'smtpmail)
@@ -246,8 +245,8 @@ The list is in preference order.")
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
-	  ;; Use the same buffer-file-coding-system as in the mail
-	  ;; buffer, otherwise any write-region invocations (e.g., in
+	  ;; Use the same `buffer-file-coding-system' as in the mail
+	  ;; buffer, otherwise any `write-region' invocations (e.g., in
 	  ;; mail-do-fcc below) will annoy with asking for a suitable
 	  ;; encoding.
 	  (set-buffer-file-coding-system smtpmail-code-conv-from nil t)
@@ -259,7 +258,7 @@ The list is in preference order.")
 	  ;; Change header-delimiter to be what sendmail expects.
 	  (mail-sendmail-undelimit-header)
 	  (setq delimline (point-marker))
-;;	  (sendmail-synch-aliases)
+          ;; (sendmail-synch-aliases)
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
@@ -270,7 +269,7 @@ The list is in preference order.")
 	  (let ((case-fold-search t))
 	    ;; We used to process Resent-... headers here,
 	    ;; but it was not done properly, and the job
-	    ;; is done correctly in smtpmail-deduce-address-list.
+	    ;; is done correctly in `smtpmail-deduce-address-list'.
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
@@ -357,7 +356,7 @@ The list is in preference order.")
 	    ;; Find and handle any FCC fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
-		;; Force mail-do-fcc to use the encoding of the mail
+		;; Force `mail-do-fcc' to use the encoding of the mail
 		;; buffer to encode outgoing messages on FCC files.
 		(let ((coding-system-for-write smtpmail-code-conv-from))
 		  (mail-do-fcc delimline)))
@@ -365,15 +364,13 @@ The list is in preference order.")
 		(with-current-buffer errbuf
 		  (erase-buffer))))
 	  ;;
-	  ;;
-	  ;;
 	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
 	  (setq smtpmail-recipient-address-list
-		    (smtpmail-deduce-address-list tembuf (point-min) delimline))
+                (smtpmail-deduce-address-list tembuf (point-min) delimline))
 	  (kill-buffer smtpmail-address-buffer)
 
 	  (smtpmail-do-bcc delimline)
-	  ; Send or queue
+          ;; Send or queue
 	  (if (not smtpmail-queue-mail)
 	      (if (not (null smtpmail-recipient-address-list))
 		  (if (not (smtpmail-via-smtp
@@ -424,8 +421,8 @@ The list is in preference order.")
   "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
   (interactive)
   (with-temp-buffer
-    ;;; Get index, get first mail, send it, update index, get second
-    ;;; mail, send it, etc...
+    ;; Get index, get first mail, send it, update index, get second
+    ;; mail, send it, etc...
     (let ((file-msg "")
           (qfile (expand-file-name smtpmail-queue-index-file
                                    smtpmail-queue-dir)))
@@ -453,7 +450,7 @@ The list is in preference order.")
 	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) qfile))))
 
-;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
+;; (defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
 
 (defun smtpmail-fqdn ()
   (if smtpmail-local-domain
@@ -530,7 +527,7 @@ The list is in preference order.")
 		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
-;; password-read autoloads password-cache.
+;; `password-read' autoloads password-cache.
 (declare-function password-cache-add "password-cache" (key password))
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
@@ -552,8 +549,8 @@ The list is in preference order.")
 			 (list host port
 			       (netrc-get hostentry "login")
 			       (netrc-get hostentry "password"))))
-		   ;; else, try smtpmail-find-credentials since
-		   ;; smtpmail-auth-credentials is not a string
+		   ;; else, try `smtpmail-find-credentials' since
+		   ;; `smtpmail-auth-credentials' is not a string
 		   (smtpmail-find-credentials
 		    smtpmail-auth-credentials host port))))
 	 (prompt (when cred (format "SMTP password for %s:%s: "
@@ -584,7 +581,7 @@ The list is in preference order.")
 
 		 ;; In my case, the response string is 80 characters
 		 ;; long.  Without the no-line-break option for
-		 ;; base64-encode-sting, only the first 76 characters
+		 ;; `base64-encode-string', only the first 76 characters
 		 ;; are taken as a response to the server, and the
 		 ;; authentication fails.
 		 (encoded (base64-encode-string response t)))
@@ -639,7 +636,7 @@ The list is in preference order.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
-        ;; smtpmail-mail-address should be set to the appropriate
+        ;; `smtpmail-mail-address' should be set to the appropriate
         ;; buffer-local value by the caller, but in case not:
         (envelope-from (or smtpmail-mail-address
                            (and mail-specify-envelope-from
@@ -676,61 +673,60 @@ The list is in preference order.")
 	    (if (or (null (car (setq greeting (smtpmail-read-response process))))
 		    (not (integerp (car greeting)))
 		    (>= (car greeting) 400))
-		(throw 'done nil)
-	      )
+		(throw 'done nil))
 
 	    (let ((do-ehlo t)
 		  (do-starttls t))
 	      (while do-ehlo
-	    ;; EHLO
-	    (smtpmail-send-command process (format "EHLO %s" (smtpmail-fqdn)))
+                ;; EHLO
+                (smtpmail-send-command process (format "EHLO %s" (smtpmail-fqdn)))
 
-	    (if (or (null (car (setq response-code
-				     (smtpmail-read-response process))))
-		    (not (integerp (car response-code)))
-		    (>= (car response-code) 400))
-		(progn
-		  ;; HELO
-		  (smtpmail-send-command
-		   process (format "HELO %s" (smtpmail-fqdn)))
+                (if (or (null (car (setq response-code
+                                         (smtpmail-read-response process))))
+                        (not (integerp (car response-code)))
+                        (>= (car response-code) 400))
+                    (progn
+                      ;; HELO
+                      (smtpmail-send-command
+                       process (format "HELO %s" (smtpmail-fqdn)))
 
-		  (if (or (null (car (setq response-code
-					   (smtpmail-read-response process))))
-			  (not (integerp (car response-code)))
-			  (>= (car response-code) 400))
-		      (throw 'done nil)))
-	      (dolist (line (cdr (cdr response-code)))
-		(let ((name
-		       (with-case-table ascii-case-table
-			 (mapcar (lambda (s) (intern (downcase s)))
-				 (split-string (substring line 4) "[ ]")))))
-		  (and (eq (length name) 1)
-		       (setq name (car name)))
-		  (and name
-		       (cond ((memq (if (consp name) (car name) name)
-				    '(verb xvrb 8bitmime onex xone
-					   expn size dsn etrn
-					   enhancedstatuscodes
-					   help xusr
-					   auth=login auth starttls))
-			      (setq supported-extensions
-				    (cons name supported-extensions)))
-			     (smtpmail-warn-about-unknown-extensions
-			      (message "Unknown extension %s" name)))))))
+                      (if (or (null (car (setq response-code
+                                               (smtpmail-read-response process))))
+                              (not (integerp (car response-code)))
+                              (>= (car response-code) 400))
+                          (throw 'done nil)))
+                  (dolist (line (cdr (cdr response-code)))
+                    (let ((name
+                           (with-case-table ascii-case-table
+                             (mapcar (lambda (s) (intern (downcase s)))
+                                     (split-string (substring line 4) "[ ]")))))
+                      (and (eq (length name) 1)
+                           (setq name (car name)))
+                      (and name
+                           (cond ((memq (if (consp name) (car name) name)
+                                        '(verb xvrb 8bitmime onex xone
+                                               expn size dsn etrn
+                                               enhancedstatuscodes
+                                               help xusr
+                                               auth=login auth starttls))
+                                  (setq supported-extensions
+                                        (cons name supported-extensions)))
+                                 (smtpmail-warn-about-unknown-extensions
+                                  (message "Unknown extension %s" name)))))))
 
-	    (if (and do-starttls
-		     (smtpmail-find-credentials smtpmail-starttls-credentials host port)
-		     (member 'starttls supported-extensions)
-		     (numberp (process-id process)))
-		(progn
-		  (smtpmail-send-command process (format "STARTTLS"))
-		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
-			  (not (integerp (car response-code)))
-			  (>= (car response-code) 400))
-		      (throw 'done nil))
-		  (starttls-negotiate process)
-		  (setq do-starttls nil))
-	      (setq do-ehlo nil))))
+                (if (and do-starttls
+                         (smtpmail-find-credentials smtpmail-starttls-credentials host port)
+                         (member 'starttls supported-extensions)
+                         (numberp (process-id process)))
+                    (progn
+                      (smtpmail-send-command process (format "STARTTLS"))
+                      (if (or (null (car (setq response-code (smtpmail-read-response process))))
+                              (not (integerp (car response-code)))
+                              (>= (car response-code) 400))
+                          (throw 'done nil))
+                      (starttls-negotiate process)
+                      (setq do-starttls nil))
+                  (setq do-ehlo nil))))
 
 	    (smtpmail-try-auth-methods process supported-extensions host port)
 
@@ -790,7 +786,7 @@ The list is in preference order.")
 			   " BODY=8BITMIME"
 			 "")
 		     "")))
-;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
+              ;; (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
                                                      envelope-from
 						     size-part
@@ -799,8 +795,7 @@ The list is in preference order.")
 	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		      (not (integerp (car response-code)))
 		      (>= (car response-code) 400))
-		  (throw 'done nil)
-		))
+		  (throw 'done nil)))
 
 	    ;; RCPT TO:<recipient>
 	    (let ((n 0))
@@ -812,9 +807,7 @@ The list is in preference order.")
 		(if (or (null (car response-code))
 			(not (integerp (car response-code)))
 			(>= (car response-code) 400))
-		    (throw 'done nil)
-		  )
-		))
+		    (throw 'done nil))))
 
 	    ;; DATA
 	    (smtpmail-send-command process "DATA")
@@ -822,36 +815,33 @@ The list is in preference order.")
 	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		    (not (integerp (car response-code)))
 		    (>= (car response-code) 400))
-		(throw 'done nil)
-	      )
+		(throw 'done nil))
 
 	    ;; Mail contents
 	    (smtpmail-send-data process smtpmail-text-buffer)
 
-	    ;;DATA end "."
+	    ;; DATA end "."
 	    (smtpmail-send-command process ".")
 
 	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
 		    (not (integerp (car response-code)))
 		    (>= (car response-code) 400))
-		(throw 'done nil)
-	      )
+		(throw 'done nil))
 
-	    ;;QUIT
-;	    (smtpmail-send-command process "QUIT")
-;	    (and (null (car (smtpmail-read-response process)))
-;		 (throw 'done nil))
-	    t ))
+	    ;; QUIT
+            ;; (smtpmail-send-command process "QUIT")
+            ;; (and (null (car (smtpmail-read-response process)))
+            ;;      (throw 'done nil))
+	    t))
       (if process
 	  (with-current-buffer (process-buffer process)
 	    (smtpmail-send-command process "QUIT")
 	    (smtpmail-read-response process)
 
-;	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
-;		    (not (integerp (car response-code)))
-;		    (>= (car response-code) 400))
-;		(throw 'done nil)
-;	      )
+            ;; (if (or (null (car (setq response-code (smtpmail-read-response process))))
+            ;;         (not (integerp (car response-code)))
+            ;;         (>= (car response-code) 400))
+            ;;	   (throw 'done nil))
 	    (delete-process process)
 	    (unless smtpmail-debug-info
 	      (kill-buffer process-buffer)))))))
@@ -939,8 +929,7 @@ The list is in preference order.")
   (if (eq (string-to-char data) ?.)
       (process-send-string process "."))
   (process-send-string process data)
-  (process-send-string process "\r\n")
-  )
+  (process-send-string process "\r\n"))
 
 (defun smtpmail-send-data (process buffer)
   (let ((data-continue t) sending-data)
@@ -958,12 +947,11 @@ The list is in preference order.")
   (unwind-protect
       (with-current-buffer smtpmail-address-buffer
 	(erase-buffer)
-	(let
-	    ((case-fold-search t)
-	     (simple-address-list "")
-	     this-line
-	     this-line-end
-	     addr-regexp)
+	(let ((case-fold-search t)
+              (simple-address-list "")
+              this-line
+              this-line-end
+              addr-regexp)
 	  (insert-buffer-substring smtpmail-text-buffer header-start header-end)
 	  (goto-char (point-min))
 	  ;; RESENT-* fields should stop processing of regular fields.
@@ -984,13 +972,12 @@ The list is in preference order.")
 	    (setq this-line-end (point-marker))
 	    (setq simple-address-list
 		  (concat simple-address-list " "
-			  (mail-strip-quoted-names (buffer-substring this-line this-line-end))))
-	    )
+			  (mail-strip-quoted-names (buffer-substring this-line this-line-end)))))
 	  (erase-buffer)
 	  (insert " " simple-address-list "\n")
-	  (subst-char-in-region (point-min) (point-max) 10 ?  t);; newline --> blank
-	  (subst-char-in-region (point-min) (point-max) ?, ?  t);; comma   --> blank
-	  (subst-char-in-region (point-min) (point-max)  9 ?  t);; tab     --> blank
+	  (subst-char-in-region (point-min) (point-max) 10 ?  t) ; newline --> blank
+	  (subst-char-in-region (point-min) (point-max) ?, ?  t) ; comma   --> blank
+	  (subst-char-in-region (point-min) (point-max)  9 ?  t) ; tab     --> blank
 
 	  (goto-char (point-min))
 	  ;; tidyness in case hook is not robust when it looks at this
@@ -1001,15 +988,8 @@ The list is in preference order.")
 	    (while (re-search-forward " \\([^ ]+\\) " (point-max) t)
 	      (backward-char 1)
 	      (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
-						 recipient-address-list))
-	      )
-	    (setq smtpmail-recipient-address-list recipient-address-list))
-
-	  )
-	)
-    )
-  )
-
+						 recipient-address-list)))
+	    (setq smtpmail-recipient-address-list recipient-address-list))))))
 
 (defun smtpmail-do-bcc (header-end)
   "Delete [Resent-]BCC: and their continuation lines from the header area.
@@ -1025,7 +1005,6 @@ many continuation lines."
 	;; get rid of any continuation lines
 	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
 	  (replace-match ""))))))
-
 
 (provide 'smtpmail)
 

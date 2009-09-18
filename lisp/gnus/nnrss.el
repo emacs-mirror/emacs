@@ -226,8 +226,6 @@ used to render text.  If it is nil, text will simply be folded.")
 	      (link (nth 2 e))
 	      (enclosure (nth 7 e))
 	      (comments (nth 8 e))
-	      ;; Enable encoding of Newsgroups header in XEmacs.
-	      (default-enable-multibyte-characters t)
 	      (rfc2047-header-encoding-alist
 	       (if (mm-coding-system-p 'utf-8)
 		   (cons '("Newsgroups" . utf-8)
@@ -272,7 +270,7 @@ used to render text.  If it is nil, text will simply be folded.")
 		      (replace-match "\n")
 		    (replace-match "\n\n")))
 		(unless (eobp)
-		  (let ((fill-column default-fill-column)
+		  (let ((fill-column (default-value 'fill-column))
 			(window (get-buffer-window nntp-server-buffer)))
 		    (when window
 		      (setq fill-column
@@ -310,7 +308,11 @@ used to render text.  If it is nil, text will simply be folded.")
 		    "<#/part>\n"
 		    "<#/multipart>\n"))
 	  (condition-case nil
-	      (mml-to-mime)
+	      ;; Allow `mml-to-mime' to generate MIME article without
+	      ;; making inquiry to a user for unknown encoding.
+	      (let ((mml-confirmation-set
+		     (cons 'unknown-encoding mml-confirmation-set)))
+		(mml-to-mime))
 	    (error
 	     (erase-buffer)
 	     (insert header

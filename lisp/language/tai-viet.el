@@ -37,8 +37,7 @@
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "tai-sonla")
-	      (sample-text
-	       "TaiViet (ꪁꪫꪱꪣ ꪽꪕ)\t\tꪅꪰꪙ꫃ ꪨꪮ꫃ ꪁꪫꪱ / ꪅꪾ ꪨ� ꪁꪫꪱ")
+	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪽꪕ)\t\tꪅꪰꪙ꫃ ꪨꪮ꫃ ꪁꪫꪱ / ꪅꪾ ꪨ� ꪁꪫꪱ")
 	      (documentation . "\
 TaiViet refers to the Tai language used by Tai people in
 Vietnam, and also refers to the script used for this language.

@@ -43,7 +43,6 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
-(define-coding-system-alias 'cp949 'korean-iso-8bit)
 
 (define-coding-system 'iso-2022-kr
   "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
@@ -58,22 +57,32 @@
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
+(define-coding-system 'korean-cp949
+  "CP949 (Microsoft Unified Hangul Code)"
+  :coding-type 'charset
+  :mnemonic ?K
+  :charset-list '(ascii cp949))
+
+(define-coding-system-alias 'cp949 'korean-cp949)
+
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment-internal)
 	    (exit-function . exit-korean-environment)
 	    (iso639-language . ko)
 	    (tutorial . "TUTORIAL.ko")
-	    (charset korean-ksc5601)
-	    (coding-system iso-2022-kr korean-iso-8bit)
+	    (charset korean-ksc5601 cp949)
+	    (coding-system iso-2022-kr korean-iso-8bit korean-cp949)
 	    (input-method . "korean-hangul")
 	    (features korea-util)
-	    (coding-priority korean-iso-8bit iso-2022-kr)
+	    (coding-priority korean-iso-8bit korean-cp949 iso-2022-kr)
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
 	    (documentation . "\
-The following key bindings are available while using Korean input methods:
-  Shift-SPC:	toggle-korean-input-mthod
-  Control-F9:	quail-hangul-switch-symbol-ksc
-  F9:		quail-hangul-switch-hanja")
+The following key bindings are available for controlling Korean input methods:
+  Shift-SPC, Hangul:	toggle-korean-input-method
+  Control-F9:		quail-hangul-switch-symbol-ksc
+  F9:			quail-hangul-switch-hanja
+and the following key bindings are available within Korean input methods:
+  F9, Hangul_Hanja:	hangul-to-hanja-conversion")
 	    ))
 
 (provide 'korean)

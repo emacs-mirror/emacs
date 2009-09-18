@@ -43,6 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <malloc.h>
 
+static void set_user_model_id ();
+
 int WINAPI
 WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 {
@@ -55,6 +57,8 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
   char *new_cmdline;
   char *p;
   char modname[MAX_PATH];
+
+  set_user_model_id ();
 
   if (!GetModuleFileName (NULL, modname, MAX_PATH))
     goto error;
@@ -168,6 +172,33 @@ WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
 error:
   MessageBox (NULL, "Could not start Emacs.", "Error", MB_ICONSTOP);
   return 1;
+}
+
+void set_user_model_id ()
+{
+  HMODULE shell;
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = LoadLibrary ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+
+      FreeLibrary (shell);
+    }
 }
 
 /* arch-tag: 7e02df73-4df7-4aa0-baea-99c6d047a384

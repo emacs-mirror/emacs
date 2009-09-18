@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'quail)
-(require 'cl)
+(eval-when-compile (require 'cl))       ; for setf
 (require 'hanja-util)
 
 ;; Hangul double Jamo table.
@@ -91,6 +91,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "\d" 'hangul-delete-backward-char)
     (define-key map [f9] 'hangul-to-hanja-conversion)
+    (define-key map [Hangul_Hanja] 'hangul-to-hanja-conversion)
     map)
   "Keymap for Hangul method.  It is used by all Hangul input methods.")
 
@@ -354,17 +355,24 @@ Other parts are the same as a `hangul3-input-method-cho'."
     (delete-backward-char 1)))
 
 (defun hangul-to-hanja-conversion ()
-  "Convert the previous hangul character to the corresponding hanja character."
+  "Convert the previous hangul character to the corresponding hanja character.
+When a Korean input method is off, convert the following hangul character."
   (interactive)
   (let ((echo-keystrokes 0)
         delete-func
         hanja-character)
-    (setq hanja-character (hangul-to-hanja-char (preceding-char)))
+    (if (and (overlayp quail-overlay) (overlay-start quail-overlay))
+        (progn
+	  (setq hanja-character (hangul-to-hanja-char (preceding-char)))
+	  (setq delete-func (lambda () (delete-backward-char 1))))
+      (setq hanja-character (hangul-to-hanja-char (following-char)))
+      (setq delete-func (lambda () (delete-char 1))))
     (when hanja-character
-      (delete-backward-char 1)
+      (funcall delete-func)
       (insert hanja-character)
       (setq hangul-queue (make-vector 6 0))
-      (move-overlay quail-overlay (point) (point)))))
+      (if (and (overlayp quail-overlay) (overlay-start quail-overlay))
+	  (move-overlay quail-overlay (point) (point))))))
 
 ;; Support function for `hangul2-input-method'.  Actually, this
 ;; function handles the Hangul 2-Bulsik.  KEY is an entered key code

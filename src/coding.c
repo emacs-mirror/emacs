@@ -992,6 +992,8 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_INSUFFICIENT_MEM:
       Vlast_code_conversion_error = Qinsufficient_memory;
       break;
+    case CODING_RESULT_SUCCESS:
+      break;
     default:
       Vlast_code_conversion_error = intern ("Unknown error");
     }
@@ -1203,7 +1205,6 @@ alloc_destination (coding, nbytes, dst)
     }
   else
     coding_alloc_by_realloc (coding, nbytes);
-  record_conversion_result (coding, CODING_RESULT_SUCCESS);
   coding_set_destination (coding);
   dst = coding->destination + offset;
   return dst;
@@ -1664,10 +1665,12 @@ detect_coding_utf_16 (coding, detect_info)
       e[c1] = 1;
       o[c2] = 1;
 
-      detect_info->rejected
-	|= (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_LE);
+      detect_info->rejected |= (CATEGORY_MASK_UTF_16_AUTO
+				|CATEGORY_MASK_UTF_16_BE
+				| CATEGORY_MASK_UTF_16_LE);
 
-      while (1)
+      while ((detect_info->rejected & CATEGORY_MASK_UTF_16)
+	     != CATEGORY_MASK_UTF_16)
 	{
 	  TWO_MORE_BYTES (c1, c2);
 	  if (c2 < 0)
@@ -1677,17 +1680,16 @@ detect_coding_utf_16 (coding, detect_info)
 	      e[c1] = 1;
 	      e_num++;
 	      if (e_num >= 128)
-		break;
+		detect_info->rejected |= CATEGORY_MASK_UTF_16_BE_NOSIG;
 	    }
 	  if (! o[c2])
 	    {
-	      o[c1] = 1;
+	      o[c2] = 1;
 	      o_num++;
 	      if (o_num >= 128)
-		break;
+		detect_info->rejected |= CATEGORY_MASK_UTF_16_LE_NOSIG;
 	    }
 	}
-      detect_info->rejected |= CATEGORY_MASK_UTF_16;
       return 0;
     }
 
@@ -1703,7 +1705,8 @@ decode_coding_utf_16 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
-  int *charbuf_end = coding->charbuf + coding->charbuf_size;
+  /* We may produces at most 3 chars in one loop.  */
+  int *charbuf_end = coding->charbuf + coding->charbuf_size - 2;
   int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
@@ -1749,7 +1752,7 @@ decode_coding_utf_16 (coding)
       src_base = src;
       consumed_chars_base = consumed_chars;
 
-      if (charbuf + 2 >= charbuf_end)
+      if (charbuf >= charbuf_end)
 	{
 	  if (byte_after_cr1 >= 0)
 	    src_base -= 2;
@@ -1855,7 +1858,7 @@ encode_coding_utf_16 (coding)
     {
       ASSURE_DESTINATION (safe_room);
       c = *charbuf++;
-      if (c >= MAX_UNICODE_CHAR)
+      if (c > MAX_UNICODE_CHAR)
 	c = coding->default_char;
 
       if (c < 0x10000)
@@ -2442,8 +2445,10 @@ decode_coding_emacs_mule (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce two annocations (charset and composition) in one
+     loop and one more charset annocation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list;
@@ -3558,8 +3563,10 @@ decode_coding_iso_2022 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce two annocations (charset and composition) in one
+     loop and one more charset annocation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
@@ -3593,7 +3600,7 @@ decode_coding_iso_2022 (coding)
 
   while (1)
     {
-      int c1, c2;
+      int c1, c2, c3;
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -3977,26 +3984,28 @@ decode_coding_iso_2022 (coding)
 	}
 
       /* Now we know CHARSET and 1st position code C1 of a character.
-         Produce a decoded character while getting 2nd position code
-         C2 if necessary.  */
-      c1 &= 0x7F;
+         Produce a decoded character while getting 2nd and 3rd
+         position codes C2, C3 if necessary.  */
       if (CHARSET_DIMENSION (charset) > 1)
 	{
 	  ONE_MORE_BYTE (c2);
-	  if (c2 < 0x20 || (c2 >= 0x80 && c2 < 0xA0))
+	  if (c2 < 0x20 || (c2 >= 0x80 && c2 < 0xA0)
+	      || ((c1 & 0x80) != (c2 & 0x80)))
 	    /* C2 is not in a valid range.  */
 	    goto invalid_code;
-	  c1 = (c1 << 8) | (c2 & 0x7F);
-	  if (CHARSET_DIMENSION (charset) > 2)
+	  if (CHARSET_DIMENSION (charset) == 2)
+	    c1 = (c1 << 8) | c2;
+	  else
 	    {
-	      ONE_MORE_BYTE (c2);
-	      if (c2 < 0x20 || (c2 >= 0x80 && c2 < 0xA0))
-		/* C2 is not in a valid range.  */
+	      ONE_MORE_BYTE (c3);
+	      if (c3 < 0x20 || (c3 >= 0x80 && c3 < 0xA0)
+		  || ((c1 & 0x80) != (c3 & 0x80)))
+		/* C3 is not in a valid range.  */
 		goto invalid_code;
-	      c1 = (c1 << 8) | (c2 & 0x7F);
+	      c1 = (c1 << 16) | (c2 << 8) | c2;
 	    }
 	}
-
+      c1 &= 0x7F7F7F;
       CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c1, c);
       if (c < 0)
 	{
@@ -4662,6 +4671,12 @@ detect_coding_sjis (coding, detect_info)
   int consumed_chars = 0;
   int found = 0;
   int c;
+  Lisp_Object attrs, charset_list;
+  int max_first_byte_of_2_byte_code;
+
+  CODING_GET_INFO (coding, attrs, charset_list);
+  max_first_byte_of_2_byte_code
+    = (XINT (Flength (charset_list)) > 3 ? 0xFC : 0xEF);
 
   detect_info->checked |= CATEGORY_MASK_SJIS;
   /* A coding system of this category is always ASCII compatible.  */
@@ -4673,7 +4688,8 @@ detect_coding_sjis (coding, detect_info)
       ONE_MORE_BYTE (c);
       if (c < 0x80)
 	continue;
-      if ((c >= 0x81 && c <= 0x9F) || (c >= 0xE0 && c <= 0xEF))
+      if ((c >= 0x81 && c <= 0x9F)
+	  || (c >= 0xE0 && c <= max_first_byte_of_2_byte_code))
 	{
 	  ONE_MORE_BYTE (c);
 	  if (c < 0x40 || c == 0x7F || c > 0xFC)
@@ -4758,8 +4774,10 @@ decode_coding_sjis (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
@@ -4875,8 +4893,10 @@ decode_coding_big5 (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
@@ -5042,7 +5062,8 @@ encode_coding_sjis (coding)
 	      int c1, c2;
 
 	      c1 = code >> 8;
-	      if (c1 == 0x21 || (c1 >= 0x23 && c1 < 0x25)
+	      if (c1 == 0x21 || (c1 >= 0x23 && c1 <= 0x25)
+		  || c1 == 0x28
 		  || (c1 >= 0x2C && c1 <= 0x2F) || c1 >= 0x6E)
 		{
 		  JIS_TO_SJIS2 (code);
@@ -5549,8 +5570,10 @@ decode_coding_charset (coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
+  /* We may produce one charset annocation in one loop and one more at
+     the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list, valids;
@@ -5778,6 +5801,7 @@ setup_coding_system (coding_system, coding)
   coding->max_charset_id = SCHARS (val) - 1;
   coding->safe_charsets = SDATA (val);
   coding->default_char = XINT (CODING_ATTR_DEFAULT_CHAR (attrs));
+  coding->carryover_bytes = 0;
 
   coding_type = CODING_ATTR_TYPE (attrs);
   if (EQ (coding_type, Qundecided))
@@ -6611,6 +6635,12 @@ get_translation_table (attrs, encodep, max_lookup)
   Lisp_Object standard, translation_table;
   Lisp_Object val;
 
+  if (NILP (Venable_character_translation))
+    {
+      if (max_lookup)
+	*max_lookup = 0;
+      return Qnil;
+    }
   if (encodep)
     translation_table = CODING_ATTR_ENCODE_TBL (attrs),
       standard = Vstandard_translation_table_for_encode;
@@ -8619,7 +8649,7 @@ DEFUN ("find-coding-systems-region-internal",
   EMACS_INT start_byte, end_byte;
   const unsigned char *p, *pbeg, *pend;
   int c;
-  Lisp_Object tail, elt;
+  Lisp_Object tail, elt, work_table;
 
   if (STRINGP (start))
     {
@@ -8677,6 +8707,7 @@ DEFUN ("find-coding-systems-region-internal",
   while (p < pend && ASCII_BYTE_P (*p)) p++;
   while (p < pend && ASCII_BYTE_P (*(pend - 1))) pend--;
 
+  work_table = Fmake_char_table (Qnil, Qnil);
   while (p < pend)
     {
       if (ASCII_BYTE_P (*p))
@@ -8684,6 +8715,9 @@ DEFUN ("find-coding-systems-region-internal",
       else
 	{
 	  c = STRING_CHAR_ADVANCE (p);
+	  if (!NILP (char_table_ref (work_table, c)))
+	    /* This character was already checked.  Ignore it.  */
+	    continue;
 
 	  charset_map_loaded = 0;
 	  for (tail = coding_attrs_list; CONSP (tail);)
@@ -8715,6 +8749,7 @@ DEFUN ("find-coding-systems-region-internal",
 	      p = pbeg + p_offset;
 	      pend = pbeg + pend_offset;
 	    }
+	  char_table_set (work_table, c, Qt);
 	}
     }
 
@@ -9338,7 +9373,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
 DEFUN ("terminal-coding-system", Fterminal_coding_system,
        Sterminal_coding_system, 0, 1, 0,
        doc: /* Return coding system specified for terminal output on the given terminal.
-TERMINAL may be a terminal id, a frame, or nil for the selected
+TERMINAL may be a terminal object, a frame, or nil for the selected
 frame's terminal device.  */)
      (terminal)
      Lisp_Object terminal;
@@ -9360,8 +9395,11 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
 {
   struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
-  setup_coding_system (Fcheck_coding_system (coding_system),
-		       TERMINAL_KEYBOARD_CODING (t));
+  if (NILP (coding_system))
+    coding_system = Qno_conversion;
+  else
+    Fcheck_coding_system (coding_system);
+  setup_coding_system (coding_system, TERMINAL_KEYBOARD_CODING (t));
   /* Characer composition should be disabled.  */
   TERMINAL_KEYBOARD_CODING (t)->common_flags
     &= ~CODING_ANNOTATE_COMPOSITION_MASK;

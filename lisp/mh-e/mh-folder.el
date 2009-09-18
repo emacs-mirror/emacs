@@ -529,7 +529,7 @@ font-lock is done highlighting.")
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)             ; XEmacs
 
-;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
 
 ;; Autoload cookie needed by desktop.el

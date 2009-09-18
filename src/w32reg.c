@@ -76,7 +76,7 @@ w32_get_rdb_resource (rdb, resource)
   return NULL;
 }
 
-LPBYTE
+static LPBYTE
 w32_get_string_resource (name, class, dwexptype)
      char *name, *class;
      DWORD dwexptype;
@@ -159,6 +159,10 @@ x_get_string_resource (rdb, name, class)
       if (resource = w32_get_rdb_resource (rdb, class))
         return resource;
     }
+
+  if (inhibit_x_resources)
+    /* --quick was passed, so this is a no-op.  */
+    return NULL;
 
   return (w32_get_string_resource (name, class, REG_SZ));
 }

@@ -182,63 +182,63 @@
 (defcustom f90-do-indent 3
   "Extra indentation applied to DO blocks."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent)
-(put 'f90-do-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-if-indent 3
   "Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent)
-(put 'f90-if-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-type-indent 3
   "Extra indentation applied to TYPE, ENUM, INTERFACE and BLOCK DATA blocks."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent)
-(put 'f90-type-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-program-indent 2
   "Extra indentation applied to PROGRAM, MODULE, SUBROUTINE, FUNCTION blocks."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent)
-(put 'f90-program-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-associate-indent 2
   "Extra indentation applied to ASSOCIATE blocks."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent
   :version "23.1")
-(put 'f90-associate-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-continuation-indent 5
   "Extra indentation applied to continuation lines."
   :type  'integer
+  :safe  'integerp
   :group 'f90-indent)
-(put 'f90-continuation-indent 'safe-local-variable 'integerp)
 
 (defcustom f90-comment-region "!!$"
   "String inserted by \\[f90-comment-region] at start of each line in region."
   :type  'string
+  :safe  'stringp
   :group 'f90-indent)
-(put 'f90-comment-region 'safe-local-variable 'stringp)
 
 (defcustom f90-indented-comment-re "!"
   "Regexp matching comments to indent as code."
   :type  'regexp
+  :safe  'stringp
   :group 'f90-indent)
-(put 'f90-indented-comment-re 'safe-local-variable 'stringp)
 
 (defcustom f90-directive-comment-re "!hpf\\$"
   "Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
   :type  'regexp
+  :safe  'stringp
   :group 'f90-indent)
-(put 'f90-directive-comment-re 'safe-local-variable 'stringp)
 
 (defcustom f90-beginning-ampersand t
   "Non-nil gives automatic insertion of \& at start of continuation line."
   :type  'boolean
+  :safe  'booleanp
   :group 'f90)
-(put 'f90-beginning-ampersand 'safe-local-variable 'booleanp)
 
 (defcustom f90-smart-end 'blink
   "Qualification of END statements according to the matching block start.
@@ -248,48 +248,47 @@ values are 'blink, 'no-blink, and nil.  If nil, nothing is done.
 The other two settings have the same effect, but 'blink
 additionally blinks the cursor to the start of the block."
   :type  '(choice (const blink) (const no-blink) (const nil))
+  :safe  (lambda (value) (memq value '(blink no-blink nil)))
   :group 'f90)
-(put 'f90-smart-end 'safe-local-variable
-     (lambda (value) (memq value '(blink no-blink nil))))
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
   "Regexp matching delimiter characters at which lines may be broken.
-There are certain tokens comprised entirely of characters
-matching this regexp that should not be split, and these are
-specified by the constant `f90-no-break-re'."
-  :type  'regexp
+There are some common two-character tokens where one or more of
+the members matches this regexp.  Although Fortran allows breaks
+within lexical tokens (provided the next line has a beginning ampersand),
+the constant `f90-no-break-re' ensures that such tokens are not split."
+  :type 'regexp
+  :safe 'stringp
   :group 'f90)
-(put 'f90-break-delimiters 'safe-local-variable 'stringp)
 
 (defcustom f90-break-before-delimiters t
   "Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
-  :type  'boolean
+  :type 'boolean
+  :safe 'booleanp
   :group 'f90)
-(put 'f90-break-before-delimiters 'safe-local-variable 'booleanp)
 
 (defcustom f90-auto-keyword-case nil
   "Automatic case conversion of keywords.
 The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :type  '(choice (const downcase-word) (const upcase-word)
                   (const capitalize-word) (const nil))
+  :safe (lambda (value) (memq value '(downcase-word
+                                      capitalize-word upcase-word nil)))
   :group 'f90)
-(put 'f90-auto-keyword-case 'safe-local-variable
-     (lambda (value) (memq value '(downcase-word
-                                   capitalize-word upcase-word nil))))
 
 (defcustom f90-leave-line-no nil
   "If non-nil, line numbers are not left justified."
   :type  'boolean
+  :safe  'booleanp
   :group 'f90)
-(put 'f90-leave-line-no 'safe-local-variable 'booleanp)
 
 (defcustom f90-mode-hook nil
   "Hook run when entering F90 mode."
   :type    'hook
+  ;; Not the only safe options, but some common ones.
+  :safe    (lambda (value) (member value '((f90-add-imenu-menu) nil)))
   :options '(f90-add-imenu-menu)
   :group   'f90)
-(put 'f90-mode-hook 'safe-local-variable
-     (lambda (value) (member value '((f90-add-imenu-menu) nil))))
 
 ;; User options end here.
 
@@ -823,12 +822,13 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   "Regexp matching a CLASS/TYPE IS statement.")
 
 (defconst f90-no-break-re
-  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=") 'paren)
-  "Regexp specifying where not to break lines when filling.
-This regexp matches certain tokens comprised entirely of
-characters matching the regexp `f90-break-delimiters' that should
-not be split by filling.  Each element is assumed to be two
-characters long.")
+  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=" "(/" "/)") 'paren)
+  "Regexp specifying two-character tokens not to split when breaking lines.
+Each token has one or more of the characters from `f90-break-delimiters'.
+Note that if only one of the characters is from that variable,
+then the presence of the token here allows a line-break before or
+after the other character, where a break would not normally be
+allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
 
 (defvar f90-cache-position nil
   "Temporary position used to speed up region operations.")
@@ -1356,9 +1356,8 @@ Does not check type and subprogram indentation."
   (let ((epnt (line-end-position)) icol cont)
     (save-excursion
       (while (and (f90-previous-statement)
-                  (or (progn
-                        (setq cont (f90-present-statement-cont))
-                        (or (eq cont 'end) (eq cont 'middle)))
+                  (or (memq (setq cont (f90-present-statement-cont))
+                            '(middle end))
                       (looking-at "[ \t]*[0-9]"))))
       (setq icol (current-indentation))
       (beginning-of-line)
@@ -1777,7 +1776,7 @@ If run in the middle of a line, the line is not broken."
                        (zerop (forward-line 1)))
                 (< (point) end-region-mark)))
     (setq cont (f90-present-statement-cont))
-    (while (and (or (eq cont 'middle) (eq cont 'end))
+    (while (and (memq cont '(middle end))
                 (f90-previous-statement))
       (setq cont (f90-present-statement-cont)))
     ;; Process present line for beginning of block.
@@ -1905,6 +1904,8 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
         (t (insert "&")
            (or no-update (f90-update-line))
            (newline 1)
+           ;; FIXME also need leading ampersand if split lexical token (eg ==).
+           ;; Or respect f90-no-break-re.
            (if f90-beginning-ampersand (insert "&"))))
   (indent-according-to-mode))
 
@@ -2102,7 +2103,7 @@ Any other key combination is executed normally."
       (setq event (read-event)
             char event))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (or (eq char ??) (eq char help-char)))
+    (if (and abbrev-mode (memq char (list ?? help-char)))
         (f90-abbrev-help)
       (setq unread-command-events (list event)))))
 

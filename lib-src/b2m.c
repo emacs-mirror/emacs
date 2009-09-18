@@ -94,7 +94,7 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  logical labels_saved, printing, header;
+  logical labels_saved, printing, header, first, last_was_blank_line;
   time_t ltoday;
   struct tm *tm;
   char *labels, *p, *today;
@@ -139,7 +139,8 @@ main (argc, argv)
       exit (EXIT_SUCCESS);
     }
 
-  labels_saved = printing = header = FALSE;
+  labels_saved = printing = header = last_was_blank_line = FALSE;
+  first = TRUE;
   ltoday = time (0);
   /* Convert to a string, checking for out-of-range time stamps.
      Don't use 'ctime', as that might dump core if the hardware clock
@@ -170,6 +171,10 @@ main (argc, argv)
 	    continue;
 	  else if (data.buffer[1] == '\f')
 	    {
+	      if (first)
+		first = FALSE;
+	      else if (! last_was_blank_line)
+		puts("");
 	      /* Save labels. */
 	      readline (&data, stdin);
 	      p = strtok (data.buffer, " ,\r\n\t");
@@ -195,7 +200,13 @@ main (argc, argv)
 	}
 
       if (printing)
-	puts (data.buffer);
+	{
+	  puts (data.buffer);
+	  if (data.buffer[0] == '\0')
+	    last_was_blank_line = TRUE;
+	  else
+	    last_was_blank_line = FALSE;
+	}
     }
 
   return EXIT_SUCCESS;

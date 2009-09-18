@@ -344,7 +344,6 @@ Changes to files in this list are not listed.")
     ("Sam Kendall" :changed "etags.c" "etags.el")
     ;; ack.texi: "We're not using his backquote.el any more."
     ("Richard King" :wrote "userlock.el" "filelock.c")
-    ("Larry Kolodney" :wrote "cvtmail.c")
     ("Sebastian Kremer" :changed "add-log.el")
     ("Mark Lambert" :changed "process.c" "process.h")
     ("Aaron Larson" :changed "bibtex.el")

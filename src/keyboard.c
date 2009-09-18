@@ -495,11 +495,9 @@ Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
 /* menu item parts */
-Lisp_Object Qmenu_alias;
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
 Lisp_Object QCbutton, QCtoggle, QCradio;
-extern Lisp_Object Vdefine_key_rebound_commands;
 extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
@@ -1519,12 +1517,13 @@ cancel_hourglass_unwind (arg)
 }
 #endif
 
+extern int nonundocount;	/* Declared in cmds.c.  */
+
 Lisp_Object
 command_loop_1 ()
 {
   Lisp_Object cmd;
   int lose;
-  int nonundocount;
   Lisp_Object keybuf[30];
   int i;
   int prev_modiff = 0;
@@ -1540,7 +1539,6 @@ command_loop_1 ()
   waiting_for_input = 0;
   cancel_echoing ();
 
-  nonundocount = 0;
   this_command_key_count = 0;
   this_command_key_count_reset = 0;
   this_single_command_key_start = 0;
@@ -1867,6 +1865,8 @@ command_loop_1 ()
 		  if (value == 2)
 		    nonundocount = 0;
 
+                  frame_make_pointer_invisible ();
+
 		  if (! NILP (Vpost_command_hook))
 		    /* Put this before calling adjust_point_for_property
 		       so it will only get called once in any case.  */
@@ -1896,7 +1896,7 @@ command_loop_1 ()
 #endif
 
             nonundocount = 0;
-            if (NILP (current_kboard->Vprefix_arg))
+            if (NILP (current_kboard->Vprefix_arg)) /* FIXME: Why?  --Stef  */
               Fundo_boundary ();
             Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 
@@ -2048,20 +2048,20 @@ adjust_point_for_property (last_pt, modified)
 
 	  /* Find boundaries `beg' and `end' of the invisible area, if any.  */
 	  while (end < ZV
-		 /* Stop if we find a spot between two runs of
-		    `invisible' where inserted text would be visible.
-		    This is important when we have two invisible
-		    boundaries that enclose an area: if the area is
-		    empty, we need this test in order to make it
-		    possible to place point in the middle rather than
-		    skip both boundaries.
-		    Note that this will stop anywhere in a non-sticky
-		    text-property, but I don't think there's much we
-		    can do about that.  */
+#if 0
+		 /* FIXME: We should stop if we find a spot between
+		    two runs of `invisible' where inserted text would
+		    be visible.  This is important when we have two
+		    invisible boundaries that enclose an area: if the
+		    area is empty, we need this test in order to make
+		    it possible to place point in the middle rather
+		    than skip both boundaries.  However, this code
+		    also stops anywhere in a non-sticky text-property,
+		    which breaks (e.g.) Org mode.  */
 		 && (val = get_pos_property (make_number (end),
 					     Qinvisible, Qnil),
 		     TEXT_PROP_MEANS_INVISIBLE (val))
-		 /* FIXME: write and then use get_pos_property_and_overlay.  */
+#endif
 		 && !NILP (val = get_char_property_and_overlay
 		           (make_number (end), Qinvisible, Qnil, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
@@ -2075,9 +2075,11 @@ adjust_point_for_property (last_pt, modified)
 	      end = NATNUMP (tmp) ? XFASTINT (tmp) : ZV;
 	    }
 	  while (beg > BEGV
+#if 0
 		 && (val = get_pos_property (make_number (beg),
 					     Qinvisible, Qnil),
 		     TEXT_PROP_MEANS_INVISIBLE (val))
+#endif
 		 && !NILP (val = get_char_property_and_overlay
 		           (make_number (beg - 1), Qinvisible, Qnil, &overlay))
 		 && (inv = TEXT_PROP_MEANS_INVISIBLE (val)))
@@ -3656,6 +3658,12 @@ static int
 readable_events (flags)
      int flags;
 {
+#ifdef HAVE_DBUS
+  /* Check whether a D-Bus message has arrived.  */
+  if (xd_pending_messages () > 0)
+    return 1;
+#endif /* HAVE_DBUS */
+
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check (1);
 
@@ -4160,7 +4168,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
           else
             obj = Fcons (intern ("ns-unput-working-text"), Qnil);
 	  kbd_fetch_ptr = event + 1;
-	  *used_mouse_menu = 1;
+          if (used_mouse_menu)
+            *used_mouse_menu = 1;
         }
 #endif
 
@@ -4317,7 +4326,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 #endif
 #ifdef HAVE_NS
 	      /* certain system events are non-key events */
-	      if (event->kind == NS_NONKEY_EVENT)
+	      if (used_mouse_menu
+                  && event->kind == NS_NONKEY_EVENT)
 		*used_mouse_menu = 1;
 #endif
 
@@ -4489,7 +4499,7 @@ struct input_event last_timer_event;
 
 /* List of elisp functions to call, delayed because they were generated in
    a context where Elisp could not be safely run (e.g. redisplay, signal,
-   ...).  Each lement has the form (FUN . ARGS).  */
+   ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
 
 extern Lisp_Object Qapply;
@@ -6976,7 +6986,7 @@ gobble_input (expected)
      int expected;
 {
 #ifdef HAVE_DBUS
-  /* Check whether a D-Bus message has arrived.  */
+  /* Read D-Bus messages.  */
   xd_read_queued_messages ();
 #endif /* HAVE_DBUS */
 
@@ -7130,7 +7140,50 @@ read_avail_input (expected)
   if (err && !nread)
     nread = -1;
 
+  frame_make_pointer_visible ();
+
   return nread;
+}
+
+static void
+decode_keyboard_code (struct tty_display_info *tty,
+		      struct coding_system *coding,
+		      unsigned char *buf, int nbytes)
+{
+  unsigned char *src = buf;
+  const unsigned char *p;
+  int i;
+
+  if (nbytes == 0)
+    return;
+  if (tty->meta_key != 2)
+    for (i = 0; i < nbytes; i++)
+      buf[i] &= ~0x80;
+  if (coding->carryover_bytes > 0)
+    {
+      src = alloca (coding->carryover_bytes + nbytes);
+      memcpy (src, coding->carryover, coding->carryover_bytes);
+      memcpy (src + coding->carryover_bytes, buf, nbytes);
+      nbytes += coding->carryover_bytes;
+    }
+  coding->destination = alloca (nbytes * 4);
+  coding->dst_bytes = nbytes * 4;
+  decode_coding_c_string (coding, src, nbytes, Qnil);
+  if (coding->produced_char == 0)
+    return;
+  for (i = 0, p = coding->destination; i < coding->produced_char; i++)
+    {
+      struct input_event buf;
+
+      EVENT_INIT (buf);
+      buf.code = STRING_CHAR_ADVANCE (p);
+      buf.kind = (ASCII_CHAR_P (buf.code)
+		  ? ASCII_KEYSTROKE_EVENT : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      /* See the comment in tty_read_avail_input.  */
+      buf.frame_or_window = tty->top_frame;
+      buf.arg = Qnil;
+      kbd_buffer_store_event (&buf);
+    }
 }
 
 /* This is the tty way of reading available input.
@@ -7283,6 +7336,36 @@ tty_read_avail_input (struct terminal *terminal,
 
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
+
+  if (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+      & CODING_REQUIRE_DECODING_MASK)
+    {
+      struct coding_system *coding = TERMINAL_KEYBOARD_CODING (terminal);
+      int from;
+
+      /* Decode the key sequence except for those with meta
+	 modifiers.  */
+      for (i = from = 0; ; i++)
+	if (i == nread || (tty->meta_key == 1 && (cbuf[i] & 0x80)))
+	  {
+	    struct input_event buf;
+
+	    decode_keyboard_code (tty, coding, cbuf + from, i - from);
+	    if (i == nread)
+	      break;
+
+	    EVENT_INIT (buf);
+	    buf.kind = ASCII_KEYSTROKE_EVENT;
+	    buf.modifiers = meta_modifier;
+	    buf.code = cbuf[i] & ~0x80;
+	    /* See the comment below.  */
+	    buf.frame_or_window = tty->top_frame;
+	    buf.arg = Qnil;
+	    kbd_buffer_store_event (&buf);
+	    from = i + 1;
+	  }
+      return nread;
+    }
 
   for (i = 0; i < nread; i++)
     {
@@ -7798,13 +7881,10 @@ parse_menu_item (item, notreal, inmenubar)
      int notreal, inmenubar;
 {
   Lisp_Object def, tem, item_string, start;
-  Lisp_Object cachelist;
   Lisp_Object filter;
   Lisp_Object keyhint;
   int i;
-  int newcache = 0;
 
-  cachelist = Qnil;
   filter = Qnil;
   keyhint = Qnil;
 
@@ -7841,14 +7921,11 @@ parse_menu_item (item, notreal, inmenubar)
 	  item = XCDR (item);
 	}
 
-      /* Maybe key binding cache.  */
+      /* Maybe an obsolete key binding cache.  */
       if (CONSP (item) && CONSP (XCAR (item))
 	  && (NILP (XCAR (XCAR (item)))
 	      || VECTORP (XCAR (XCAR (item)))))
-	{
-	  cachelist = XCAR (item);
-	  item = XCDR (item);
-	}
+	item = XCDR (item);
 
       /* This is the real definition--the function to run.  */
       ASET (item_properties, ITEM_PROPERTY_DEF, item);
@@ -7874,12 +7951,9 @@ parse_menu_item (item, notreal, inmenubar)
 	  ASET (item_properties, ITEM_PROPERTY_DEF, XCAR (start));
 
 	  item = XCDR (start);
-	  /* Is there a cache list with key equivalences. */
+	  /* Is there an obsolete cache list with key equivalences.  */
 	  if (CONSP (item) && CONSP (XCAR (item)))
-	    {
-	      cachelist = XCAR (item);
-	      item = XCDR (item);
-	    }
+	    item = XCDR (item);
 
 	  /* Parse properties.  */
 	  while (CONSP (item) && CONSP (XCDR (item)))
@@ -7909,15 +7983,14 @@ parse_menu_item (item, notreal, inmenubar)
 	      else if (EQ (tem, QCkey_sequence))
 		{
 		  tem = XCAR (item);
-		  if (NILP (cachelist)
-		      && (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem)))
+		  if (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem))
 		    /* Be GC protected. Set keyhint to item instead of tem. */
 		    keyhint = item;
 		}
 	      else if (EQ (tem, QCkeys))
 		{
 		  tem = XCAR (item);
-		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
+		  if (CONSP (tem) || STRINGP (tem))
 		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
@@ -7998,40 +8071,16 @@ parse_menu_item (item, notreal, inmenubar)
     return 1;
 
   /* This is a command.  See if there is an equivalent key binding. */
-  if (NILP (cachelist))
+  tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+  /* The previous code preferred :key-sequence to :keys, so we
+     preserve this behavior.  */
+  if (STRINGP (tem) && !CONSP (keyhint))
+    tem = Fsubstitute_command_keys (tem);
+  else
     {
-      /* We have to create a cachelist.  */
-      /* With the introduction of where_is_cache, the computation
-         of equivalent key bindings is sufficiently fast that we
-         do not need to cache it here any more. */
-      /* CHECK_IMPURE (start);
-         XSETCDR (start, Fcons (Fcons (Qnil, Qnil), XCDR (start)));
-	 cachelist = XCAR (XCDR (start));  */
-      cachelist = Fcons (Qnil, Qnil);
-      newcache = 1;
-      tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
-      if (!NILP (keyhint))
-	{
-	  XSETCAR (cachelist, XCAR (keyhint));
-	  newcache = 0;
-	}
-      else if (STRINGP (tem))
-	{
-	  XSETCDR (cachelist, Fsubstitute_command_keys (tem));
-	  XSETCAR (cachelist, Qt);
-	}
-    }
+      Lisp_Object prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
+      Lisp_Object keys = Qnil;
 
-  tem = XCAR (cachelist);
-  if (!EQ (tem, Qt))
-    {
-      int chkcache = 0;
-      Lisp_Object prefix;
-
-      if (!NILP (tem))
-	tem = Fkey_binding (tem, Qnil, Qnil, Qnil);
-
-      prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
 	{
 	  def = XCAR (prefix);
@@ -8040,62 +8089,27 @@ parse_menu_item (item, notreal, inmenubar)
       else
 	def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
+      if (CONSP (keyhint) && !NILP (XCAR (keyhint)))
 	{
-	  if (newcache		/* Always check first time.  */
-	      /* Should we check everything when precomputing key
-		 bindings?  */
-	      /* If something had no key binding before, don't recheck it
-		 because that is too slow--except if we have a list of
-		 rebound commands in Vdefine_key_rebound_commands, do
-		 recheck any command that appears in that list. */
-	      || (CONSP (Vdefine_key_rebound_commands)
-		  && !NILP (Fmemq (def, Vdefine_key_rebound_commands))))
-	    chkcache = 1;
+	  keys = XCAR (keyhint);
+	  tem = Fkey_binding (keys, Qnil, Qnil, Qnil);
+
+	  /* We have a suggested key.  Is it bound to the command?  */
+	  if (NILP (tem)
+	      || (!EQ (tem, def)
+		  /* If the command is an alias for another
+		     (such as lmenu.el set it up), check if the
+		     original command matches the cached command.  */
+		  && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
+	    keys = Qnil;
 	}
-      /* We had a saved key. Is it still bound to the command?  */
-      else if (NILP (tem)
-	       || (!EQ (tem, def)
-		   /* If the command is an alias for another
-		      (such as lmenu.el set it up), check if the
-		      original command matches the cached command.  */
-		   && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function))))
-	chkcache = 1;		/* Need to recompute key binding.  */
-
-      if (chkcache)
+      
+      if (NILP (keys))
+	keys = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qnil);
+	  
+      if (!NILP (keys))
 	{
-	  /* Recompute equivalent key binding.  If the command is an alias
-	     for another (such as lmenu.el set it up), see if the original
-	     command name has equivalent keys.  Otherwise look up the
-	     specified command itself.  We don't try both, because that
-	     makes lmenu menus slow. */
-	  if (SYMBOLP (def)
-	      && SYMBOLP (XSYMBOL (def)->function)
-	      && ! NILP (Fget (def, Qmenu_alias)))
-	    def = XSYMBOL (def)->function;
-	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil, Qt);
-
-	  /* Don't display remap bindings.*/
-	  if (VECTORP (tem) && ASIZE (tem) > 0 && EQ (AREF (tem, 0), Qremap))
-	    tem = Qnil;
-
-	  XSETCAR (cachelist, tem);
-	  if (NILP (tem))
-	    {
-	      XSETCDR (cachelist, Qnil);
-	      chkcache = 0;
-	    }
-	}
-      else if (!NILP (keyhint) && !NILP (XCAR (cachelist)))
-	{
-	  tem = XCAR (cachelist);
-	  chkcache = 1;
-	}
-
-      newcache = chkcache;
-      if (chkcache)
-	{
-	  tem = Fkey_description (tem, Qnil);
+	  tem = Fkey_description (keys, Qnil);
 	  if (CONSP (prefix))
 	    {
 	      if (STRINGP (XCAR (prefix)))
@@ -8103,17 +8117,11 @@ parse_menu_item (item, notreal, inmenubar)
 	      if (STRINGP (XCDR (prefix)))
 		tem = concat2 (tem, XCDR (prefix));
 	    }
-	  XSETCDR (cachelist, tem);
+	  tem = concat2 (build_string ("  "), tem);
+	  /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
 	}
     }
-
-  tem = XCDR (cachelist);
-  if (newcache && !NILP (tem))
-    {
-      tem = concat2 (build_string ("  "), tem);
-      /* tem = concat3 (build_string ("  ("), tem, build_string (")")); */
-      XSETCDR (cachelist, tem);
-    }
+  
 
   /* If we only want to precompute equivalent key bindings, stop here. */
   if (notreal)
@@ -11324,8 +11332,8 @@ specially interpreting the top bit.
 This setting only has an effect on tty terminal devices.
 
 Optional parameter TERMINAL specifies the tty terminal device to use.
-It may be a terminal id, a frame, or nil for the terminal used by the
-currently selected frame.
+It may be a terminal object, a frame, or nil for the terminal used by
+the currently selected frame.
 
 See also `current-input-mode'.  */)
        (meta, terminal)
@@ -11679,6 +11687,7 @@ init_keyboard ()
     (*keyboard_init_hook) ();
 
 #ifdef POLL_FOR_INPUT
+  poll_timer = NULL;
   poll_suppress_count = 1;
   start_polling ();
 #endif
@@ -11708,6 +11717,7 @@ void
 syms_of_keyboard ()
 {
   pending_funcalls = Qnil;
+  staticpro (&pending_funcalls);
 
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
@@ -11787,8 +11797,6 @@ syms_of_keyboard ()
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
-  Qmenu_alias = intern ("menu-alias");
-  staticpro (&Qmenu_alias);
   QCenable = intern (":enable");
   staticpro (&QCenable);
   QCvisible = intern (":visible");
@@ -11886,9 +11894,9 @@ syms_of_keyboard ()
       }
   }
 
-  button_down_location = Fmake_vector (make_number (1), Qnil);
+  button_down_location = Fmake_vector (make_number (5), Qnil);
   staticpro (&button_down_location);
-  mouse_syms = Fmake_vector (make_number (1), Qnil);
+  mouse_syms = Fmake_vector (make_number (5), Qnil);
   staticpro (&mouse_syms);
   wheel_syms = Fmake_vector (make_number (4), Qnil);
   staticpro (&wheel_syms);
@@ -12243,7 +12251,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
   staticpro (&Qecho_area_clear_hook);
-  SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
+  Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
 	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);
@@ -12331,7 +12339,7 @@ This is used mainly for mapping ASCII function key sequences into
 real Emacs function key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
-`input-key-map' with its binding.  Contrary to `function-key-map',
+`input-decode-map' with its binding.  Contrary to `function-key-map',
 this map applies its rebinding regardless of the presence of an ordinary
 binding.  So it is more like `key-translation-map' except that it applies
 before `function-key-map' rather than after.

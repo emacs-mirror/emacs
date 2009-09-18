@@ -5,7 +5,6 @@
 ;; This file is part of GNU Emacs.
 
 ;; Author: Dale R. Worley <worley@world.std.com>
-;; Version: 5fsf
 ;; Keywords: unix, tools
 
 ;; This software was created by Dale R. Worley and is
@@ -24,25 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-;;;###autoload
-(defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
-;;;###autoload (fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
-
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-merge-directories]
-;;;###autoload   '("Merge Directories..." . emerge-merge-directories))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
-;;;###autoload   '("Revisions with Ancestor..." . emerge-revisions-with-ancestor))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-revisions]
-;;;###autoload   '("Revisions..." . emerge-revisions))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-files-with-ancestor]
-;;;###autoload   '("Files with Ancestor..." . emerge-files-with-ancestor))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-files]
-;;;###autoload   '("Files..." . emerge-files))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers-with-ancestor]
-;;;###autoload   '("Buffers with Ancestor..." . emerge-buffers-with-ancestor))
-;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers]
-;;;###autoload   '("Buffers..." . emerge-buffers))
 
 ;; There aren't really global variables, just dynamic bindings
 (defvar A-begin)
@@ -108,16 +88,17 @@ Commands:
 Commands must be prefixed by \\<emerge-fast-keymap>\\[emerge-basic-keymap] in `edit' mode,
 but can be invoked directly in `fast' mode.")
 
-(defvar emerge-version "5fsf"
-  "The version of Emerge.")
+(define-obsolete-variable-alias 'emerge-version 'emacs-version "23.2")
 
 (defun emerge-version ()
   "Return string describing the version of Emerge.
 When called interactively, displays the version."
   (interactive)
   (if (interactive-p)
-      (message "Emerge version %s" (emerge-version))
-    emerge-version))
+      (message "Emerge version %s" emacs-version)
+    emacs-version))
+
+(make-obsolete 'emerge-version 'emacs-version "23.2")
 
 ;;; Emerge configuration variables
 
@@ -409,8 +390,8 @@ Must be set before Emerge is loaded."
 
   (define-key emerge-basic-keymap [menu-bar] (make-sparse-keymap))
 
-  (define-key emerge-fast-keymap [menu-bar options]
-    (cons "Options" emerge-options-menu))
+  (define-key emerge-fast-keymap [menu-bar emerge-options]
+    (cons "Merge-Options" emerge-options-menu))
   (define-key emerge-fast-keymap [menu-bar merge]
     (cons "Merge" emerge-merge-menu))
   (define-key emerge-fast-keymap [menu-bar move]
@@ -443,7 +424,7 @@ Must be set before Emerge is loaded."
   (define-key emerge-options-menu [emerge-one-line-window]
     '("One Line Window" . emerge-one-line-window))
   (define-key emerge-options-menu [emerge-set-merge-mode]
-    '("Set Merge Mode" . emerge-set-merge-mode))
+    '("Set Merge Mode..." . emerge-set-merge-mode))
   (define-key emerge-options-menu [emerge-set-combine-template]
     '("Set Combine Template..." . emerge-set-combine-template))
   (define-key emerge-options-menu [emerge-default-B]
@@ -451,13 +432,15 @@ Must be set before Emerge is loaded."
   (define-key emerge-options-menu [emerge-default-A]
     '("Default A" . emerge-default-A))
   (define-key emerge-options-menu [emerge-skip-prefers]
-    '("Skip Prefers" . emerge-skip-prefers))
+    '(menu-item "Skip Prefers" emerge-skip-prefers
+		:button (:toggle . emerge-skip-prefers)))
   (define-key emerge-options-menu [emerge-auto-advance]
-    '("Auto Advance" . emerge-auto-advance))
+    '(menu-item "Auto Advance" emerge-auto-advance
+		:button (:toggle . emerge-auto-advance)))
   (define-key emerge-options-menu [emerge-edit-mode]
-    '("Edit Mode" . emerge-edit-mode))
+    '(menu-item "Edit Mode" emerge-edit-mode :enable (not emerge-edit-mode)))
   (define-key emerge-options-menu [emerge-fast-mode]
-    '("Fast Mode" . emerge-fast-mode))
+    '(menu-item "Fast Mode" emerge-fast-mode :enable (not emerge-fast-mode)))
 
   (define-key emerge-merge-menu [emerge-abort] '("Abort" . emerge-abort))
   (define-key emerge-merge-menu [emerge-quit] '("Quit" . emerge-quit))
@@ -1420,8 +1403,8 @@ Otherwise, the A or B file present is copied to the output file."
   (define-key emerge-edit-keymap [menu-bar] (make-sparse-keymap))
 
   ;; Create the additional menu bar items.
-  (define-key emerge-edit-keymap [menu-bar options]
-    (cons "Options" emerge-options-menu))
+  (define-key emerge-edit-keymap [menu-bar emerge-options]
+    (cons "Merge-Options" emerge-options-menu))
   (define-key emerge-edit-keymap [menu-bar merge]
     (cons "Merge" emerge-merge-menu))
   (define-key emerge-edit-keymap [menu-bar move]
@@ -2395,6 +2378,12 @@ ancestor version does not share.)"
     (emerge-select-difference emerge-current-difference)
     (emerge-recenter)))
 
+;; FIXME the manual advertised this as working in the A or B buffers,
+;; but it does not, because all the buffer locals are nil there.
+;; It would work to call it from the merge buffer and specify that one
+;; wants to use the value of point in the A or B buffer.
+;; But with the prefix argument already in use, there is no easy way
+;; to have it ask for a buffer.
 (defun emerge-find-difference (arg)
   "Find the difference containing the current position of the point.
 If there is no containing difference and the prefix argument is positive,
@@ -3034,7 +3023,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 ;;    (save-excursion
 ;;      (set-buffer standard-output)
 ;;      (help-mode))
-;;    (print-help-return-message)))
+;;    (help-print-return-message)))
 
 ;; This goes with the redefinition of describe-mode.
 ;;;; Adjust things so that keyboard macro definitions are documented correctly.

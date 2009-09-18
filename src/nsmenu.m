@@ -1439,7 +1439,14 @@ update_frame_tool_bar (FRAME_PTR f)
 {
   NSString *str = [NSString stringWithUTF8String: text];
   NSRect r = [textField frame];
-  r.size.width = [[[textField font] screenFont] widthOfString: str] + 8;
+  NSSize textSize = [str sizeWithAttributes: 
+     [NSDictionary dictionaryWithObject: [[textField font] screenFont]
+				 forKey: NSFontAttributeName]];
+  NSSize padSize = [[[textField font] screenFont] 
+		     boundingRectForFont].size;
+ 
+  r.size.width = textSize.width + padSize.width/2;
+  r.size.height = textSize.height + padSize.height/2;
   [textField setFrame: r];
   [textField setStringValue: str];
 }
@@ -1717,11 +1724,11 @@ void process_dialog (id window, Lisp_Object list)
       item = XCAR (list);
       if (XTYPE (item) == Lisp_String)
         {
-          [window addString: XSTRING (item)->data row: row++];
+          [window addString: SDATA (item) row: row++];
         }
       else if (XTYPE (item) == Lisp_Cons)
         {
-          [window addButton: XSTRING (XCAR (item))->data
+          [window addButton: SDATA (XCAR (item))
                       value: XCDR (item) row: row++];
         }
       else if (NILP (item))
@@ -1811,7 +1818,7 @@ void process_dialog (id window, Lisp_Object list)
 
   if (XTYPE (head) == Lisp_String)
       [title setStringValue:
-                 [NSString stringWithUTF8String: XSTRING (head)->data]];
+                 [NSString stringWithUTF8String: SDATA (head)]];
   else if (isQ == YES)
       [title setStringValue: @"Question"];
   else
@@ -1880,6 +1887,7 @@ void process_dialog (id window, Lisp_Object list)
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
   int ret;
+  extern EMACS_TIME timer_check (int do_it_now); /* TODO: add to a header */
 
   /* initiate a session that will be ended by pop_down_menu */
   popupSession = [NSApp beginModalSessionForWindow: self];

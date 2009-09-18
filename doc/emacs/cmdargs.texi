@@ -332,26 +332,6 @@ own@footnote{This option has no effect on MS-Windows.}.
 Enable the Emacs Lisp debugger for errors in the init file.
 @xref{Error Debugging,, Entering the Debugger on an Error, elisp, The
 GNU Emacs Lisp Reference Manual}.
-
-@item --unibyte
-@opindex --unibyte
-@itemx --no-multibyte
-@opindex --no-multibyte
-@cindex unibyte operation, command-line argument
-Do almost everything with single-byte buffers and strings.
-All buffers and strings are unibyte unless you (or a Lisp program)
-explicitly ask for a multibyte buffer or string.  (Note that Emacs
-always loads Lisp files in multibyte mode, even if @samp{--unibyte} is
-specified; see @ref{Enabling Multibyte}.)  Setting the environment
-variable @env{EMACS_UNIBYTE} has the same effect
-(@pxref{General Variables}).
-
-@item --multibyte
-@opindex --multibyte
-@itemx --no-unibyte
-@opindex --no-unibyte
-Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
-uses multibyte characters by default, as usual.
 @end table
 
 @node Command Example
@@ -479,12 +459,6 @@ variables to be set, but it uses their values if they are set.
 @item CDPATH
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
-@item EMACS_UNIBYTE
-@cindex unibyte operation, environment variable
-Defining this environment variable with a nonempty value directs Emacs
-to do almost everything with single-byte buffers and strings.  It is
-equivalent to using the @samp{--unibyte} command-line option on each
-invocation.  @xref{Initial Options}.
 @item EMACSDATA
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the Lisp variable @code{data-directory}.
@@ -1184,7 +1158,16 @@ the initial frame.
 @itemx --fullscreen
 @opindex --fullscreen
 @cindex fullscreen, command-line argument
-Specify that width and height shall be the size of the screen.
+Specify that width and height shall be the size of the screen. Normally
+no window manager decorations are shown.
+
+@item -mm
+@opindex -mm
+@itemx --maximized
+@opindex --maximized
+@cindex maximized, command-line argument
+Specify that the Emacs frame shall be maximized.  This normally
+means that the frame has window manager decorations.
 
 @item -fh
 @opindex -fh
@@ -1258,8 +1241,8 @@ size with no tool bar, use an X resource to specify ``no tool bar''
 (@pxref{Table of Resources}); then Emacs will already know there's no
 tool bar when it processes the specified geometry.
 
-  When using one of @samp{--fullscreen}, @samp{--fullwidth} or
-@samp{--fullheight} there may be some space around the frame
+  When using one of @samp{--fullscreen}, @samp{--maximized}, @samp{--fullwidth}
+or @samp{--fullheight} there may be some space around the frame
 anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.
 

@@ -209,8 +209,6 @@ from @file{dired.el}
 @code{dired-find-buffer-nocreate}
 @item
 @code{dired-initial-position}
-@item
-@code{dired-up-directory}
 @end itemize
 
 @noindent

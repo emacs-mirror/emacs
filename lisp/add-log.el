@@ -1,7 +1,8 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -180,64 +181,59 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   "Face used to highlight dates in date lines."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-date-face 'face-alias 'change-log-date)
+(define-obsolete-face-alias 'change-log-date-face 'change-log-date "22.1")
 
 (defface change-log-name
   '((t (:inherit font-lock-constant-face)))
   "Face for highlighting author names."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-name-face 'face-alias 'change-log-name)
+(define-obsolete-face-alias 'change-log-name-face 'change-log-name "22.1")
 
 (defface change-log-email
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting author email addresses."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-email-face 'face-alias 'change-log-email)
+(define-obsolete-face-alias 'change-log-email-face 'change-log-email "22.1")
 
 (defface change-log-file
   '((t (:inherit font-lock-function-name-face)))
   "Face for highlighting file names."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-file-face 'face-alias 'change-log-file)
+(define-obsolete-face-alias 'change-log-file-face 'change-log-file "22.1")
 
 (defface change-log-list
   '((t (:inherit font-lock-keyword-face)))
   "Face for highlighting parenthesized lists of functions or variables."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-list-face 'face-alias 'change-log-list)
+(define-obsolete-face-alias 'change-log-list-face 'change-log-list "22.1")
 
 (defface change-log-conditionals
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-conditionals-face 'face-alias 'change-log-conditionals)
+(define-obsolete-face-alias 'change-log-conditionals-face
+  'change-log-conditionals "22.1")
 
 (defface change-log-function
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting items of the form `<....>'."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-function-face 'face-alias 'change-log-function)
+(define-obsolete-face-alias 'change-log-function-face
+  'change-log-function "22.1")
 
 (defface change-log-acknowledgement
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1"
   :group 'change-log)
-;; backward-compatibility alias
-(put 'change-log-acknowledgement-face 'face-alias 'change-log-acknowledgement)
+(define-obsolete-face-alias 'change-log-acknowledgement-face
+  'change-log-acknowledgement "22.1")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -554,11 +550,26 @@ Compatibility function for \\[next-error] invocations."
 	(select-window change-log-find-window)))))
 
 (defvar change-log-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
     (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
     (define-key map [?\C-c ?\C-f] 'change-log-find-file)
     (define-key map [?\C-c ?\C-c] 'change-log-goto-source)
+    (define-key map [menu-bar changelog] (cons "ChangeLog" menu-map))
+    (define-key menu-map [gs]
+      '(menu-item "Go To Source" change-log-goto-source
+		  :help "Go to source location of ChangeLog tag near point"))
+    (define-key menu-map [ff]
+      '(menu-item "Find File" change-log-find-file
+		  :help "Visit the file for the change under point"))
+    (define-key menu-map [sep] '("--"))
+    (define-key menu-map [nx]
+      '(menu-item "Next Log-Edit Comment" add-log-edit-next-comment
+		  :help "Cycle forward through Log-Edit mode comment history"))
+    (define-key menu-map [pr]
+      '(menu-item "Previous Log-Edit Comment" add-log-edit-prev-comment
+		  :help "Cycle backward through Log-Edit mode comment history"))
     map)
   "Keymap for Change Log major mode.")
 
@@ -1095,7 +1106,9 @@ Prefix arg means justify as well."
 
 (defcustom add-log-current-defun-header-regexp
   "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"
-  "Heuristic regexp used by `add-log-current-defun' for unknown major modes."
+  "Heuristic regexp used by `add-log-current-defun' for unknown major modes.
+The regexp's first submatch is placed in the ChangeLog entry, in
+parentheses."
   :type 'regexp
   :group 'change-log)
 

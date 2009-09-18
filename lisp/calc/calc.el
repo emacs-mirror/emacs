@@ -1,7 +1,7 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -227,9 +227,10 @@
   :tag    "Calc"
   :group  'applications)
 
-;;;###autoload
+;; Do not autoload, so it is evaluated at run-time rather than at dump time.
+;; ;;;###autoload
 (defcustom calc-settings-file
-  (convert-standard-filename "~/.calc.el")
+  (locate-user-emacs-file "calc.el" ".calc.el")
   "File in which to record permanent settings."
   :group 'calc
   :type '(file))
@@ -393,7 +394,7 @@ This is not required to be present for user-written mode annotations."
                                   (string :tag "Closing annotation delimiter"))))
 
 (defcustom calc-gnuplot-name
-  "gnuplot"
+  (if (eq system-type 'windows-nt) "pgnuplot" "gnuplot")
   "Name of GNUPLOT program, for calc-graph features."
   :group 'calc
   :type '(string))
@@ -416,6 +417,12 @@ This is not required to be present for user-written mode annotations."
 in normal mode."
   :group 'calc
   :type 'boolean)
+
+(defcustom calc-undo-length 
+  100
+  "The number of undo steps that will be preserved when Calc is quit."
+  :group 'calc
+  :type 'integer)
 
 (defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
@@ -1016,6 +1023,7 @@ Used by `calc-user-invocation'.")
     (define-key map "\"" 'calc-auto-algebraic-entry)
     (define-key map "\t" 'calc-roll-down)
     (define-key map "\M-\t" 'calc-roll-up)
+    (define-key map "\C-x\C-t" 'calc-transpose-lines)
     (define-key map "\C-m" 'calc-enter)
     (define-key map "\M-\C-m" 'calc-last-args-stub)
     (define-key map "\C-j" 'calc-over)
@@ -1035,25 +1043,13 @@ Used by `calc-user-invocation'.")
     map)
   "The key map for Calc.")
 
-
-
 (defvar calc-digit-map
   (let ((map (make-keymap)))
-    (if (featurep 'xemacs)
-        (map-keymap (function
-                     (lambda (keys bind)
-                       (define-key map keys
-                         (if (eq bind 'undefined)
-                             'undefined 'calcDigit-nondigit))))
-                    calc-mode-map)
-      (let ((cmap (nth 1 calc-mode-map))
-            (dmap (nth 1 map))
-            (i 0))
-        (while (< i 128)
-          (aset dmap i
-                (if (eq (aref cmap i) 'undefined)
-                    'undefined 'calcDigit-nondigit))
-          (setq i (1+ i)))))
+    (map-keymap (lambda (key bind)
+                  (define-key map (vector key)
+                    (if (eq bind 'undefined)
+                        'undefined 'calcDigit-nondigit)))
+                calc-mode-map)
     (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-key))
           "_0123456789.e+-:n#@oh'\"mspM")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-letter))
@@ -1070,15 +1066,13 @@ Used by `calc-user-invocation'.")
 	      (define-key calc-digit-map x 'calcDigit-backspace)
 	      (define-key calc-mode-map x 'calc-pop)
 	      (define-key calc-mode-map
-		  (if (vectorp x)
-		      (if (featurep 'xemacs)
-			  (if (= (length x) 1)
-			      (vector (if (consp (aref x 0))
-					  (cons 'meta (aref x 0))
-					(list 'meta (aref x 0))))
-			    "\e\C-d")
-			(vconcat "\e" x))
-		    (concat "\e" x))
+                (if (and (vectorp x) (featurep 'xemacs))
+                    (if (= (length x) 1)
+                        (vector (if (consp (aref x 0))
+                                    (cons 'meta (aref x 0))
+                                  (list 'meta (aref x 0))))
+                      "\e\C-d")
+                  (vconcat "\e" x))
 		'calc-pop-above))
 	  (error nil)))
       (if calc-scan-for-dels
@@ -1335,6 +1329,7 @@ Notations:  3.14e6     3.14 * 10^6
   (calc-refresh t)
   (calc-set-mode-line)
   (calc-check-defines)
+  (if calc-buffer-list (setq calc-stack (copy-sequence calc-stack)))
   (add-to-list 'calc-buffer-list (current-buffer) t))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
@@ -1484,7 +1479,14 @@ commands given here will actually operate on the *Calculator* stack."
       (unless (eq major-mode 'calc-mode)
         (calc-create-buffer))
       (run-hooks 'calc-end-hook)
-      (setq calc-undo-list nil calc-redo-list nil)
+      (if (integerp calc-undo-length)
+          (cond
+           ((= calc-undo-length 0)
+            (setq calc-undo-list nil calc-redo-list nil))
+           ((> calc-undo-length 0)
+            (let ((tail (nthcdr (1- calc-undo-length) calc-undo-list)))
+              (if tail (setcdr tail nil)))
+            (setq calc-redo-list nil))))
       (mapc (function (lambda (v) (set-default v (symbol-value v))))
 	    calc-local-var-list)
       (let ((buf (current-buffer))
@@ -1600,11 +1602,13 @@ See calc-keypad for details."
       (and (memq 'position-point calc-command-flags)
 	   (if (eq major-mode 'calc-mode)
 	       (progn
-		 (goto-line calc-final-point-line)
+		 (goto-char (point-min))
+		 (forward-line (1- calc-final-point-line))
 		 (move-to-column calc-final-point-column))
 	     (save-current-buffer
 	       (calc-select-buffer)
-	       (goto-line calc-final-point-line)
+	       (goto-char (point-min))
+	       (forward-line (1- calc-final-point-line))
 	       (move-to-column calc-final-point-column))))
       (unless (memq 'keep-flags calc-command-flags)
 	(save-excursion
@@ -1657,7 +1661,9 @@ See calc-keypad for details."
 	   (figs (nth 1 calc-float-format))
 	   (new-mode-string
 	    (format "Calc%s%s: %d %s %-14s"
-		    (if calc-embedded-info "Embed" "")
+		    (if (and calc-embedded-info
+                             (eq (aref calc-embedded-info 1) (current-buffer)))
+                        "Embed" "")
 		    (if (and (> (length (buffer-name)) 12)
 			     (equal (substring (buffer-name) 0 12)
 				    "*Calculator*"))
@@ -2002,7 +2008,8 @@ See calc-keypad for details."
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (save-excursion
 	(set-buffer calc-trail-buffer)
-	(goto-line 2)
+	(goto-char (point-min))
+	(forward-line 1)
 	(setq calc-trail-pointer (point-marker))))
   calc-trail-buffer)
 
@@ -2415,101 +2422,101 @@ largest Emacs integer.")
 
 
 ;;;; Arithmetic routines.
-;;;
-;;; An object as manipulated by one of these routines may take any of the
-;;; following forms:
-;;;
-;;; integer                 An integer.  For normalized numbers, this format
-;;;			    is used only for
-;;;                         negative math-small-integer-size + 1 to
-;;;                         math-small-integer-size - 1
-;;;
-;;; (bigpos N0 N1 N2 ...)   A big positive integer,
-;;;                           N0 + N1*math-bignum-digit-size
-;;;                              + N2*(math-bignum-digit-size)^2 ...
-;;; (bigneg N0 N1 N2 ...)   A big negative integer,
-;;;                           - N0 - N1*math-bignum-digit-size ...
-;;;			    Each digit N is in the range
-;;;                             0 ... math-bignum-digit-size -1.
-;;;			    Normalized, always at least three N present,
-;;;			    and the most significant N is nonzero.
-;;;
-;;; (frac NUM DEN)          A fraction.  NUM and DEN are small or big integers.
-;;;                         Normalized, DEN > 1.
-;;;
-;;; (float NUM EXP)         A floating-point number, NUM * 10^EXP;
-;;;                         NUM is a small or big integer, EXP is a small int.
-;;;			    Normalized, NUM is not a multiple of 10, and
-;;;			    abs(NUM) < 10^calc-internal-prec.
-;;;			    Normalized zero is stored as (float 0 0).
-;;;
-;;; (cplx REAL IMAG)        A complex number; REAL and IMAG are any of above.
-;;;			    Normalized, IMAG is nonzero.
-;;;
-;;; (polar R THETA)         Polar complex number.  Normalized, R > 0 and THETA
-;;;                         is neither zero nor 180 degrees (pi radians).
-;;;
-;;; (vec A B C ...)         Vector of objects A, B, C, ...  A matrix is a
-;;;                         vector of vectors.
-;;;
-;;; (hms H M S)             Angle in hours-minutes-seconds form.  All three
-;;;                         components have the same sign; H and M must be
-;;;                         numerically integers; M and S are expected to
-;;;                         lie in the range [0,60).
-;;;
-;;; (date N)                A date or date/time object.  N is an integer to
-;;;			    store a date only, or a fraction or float to
-;;;			    store a date and time.
-;;;
-;;; (sdev X SIGMA)          Error form, X +/- SIGMA.  When normalized,
-;;;                         SIGMA > 0.  X is any complex number and SIGMA
-;;;			    is real numbers; or these may be symbolic
-;;;                         expressions where SIGMA is assumed real.
-;;;
-;;; (intv MASK LO HI)       Interval form.  MASK is 0=(), 1=(], 2=[), or 3=[].
-;;;                         LO and HI are any real numbers, or symbolic
-;;;			    expressions which are assumed real, and LO < HI.
-;;;			    For [LO..HI], if LO = HI normalization produces LO,
-;;;			    and if LO > HI normalization produces [LO..LO).
-;;;			    For other intervals, if LO > HI normalization
-;;;			    sets HI equal to LO.
-;;;
-;;; (mod N M)	    	    Number modulo M.  When normalized, 0 <= N < M.
-;;;			    N and M are real numbers.
-;;;
-;;; (var V S)		    Symbolic variable.  V is a Lisp symbol which
-;;;			    represents the variable's visible name.  S is
-;;;			    the symbol which actually stores the variable's
-;;;			    value:  (var pi var-pi).
-;;;
-;;; In general, combining rational numbers in a calculation always produces
-;;; a rational result, but if either argument is a float, result is a float.
+;;
+;; An object as manipulated by one of these routines may take any of the
+;; following forms:
+;;
+;; integer                 An integer.  For normalized numbers, this format
+;;			    is used only for
+;;                         negative math-small-integer-size + 1 to
+;;                         math-small-integer-size - 1
+;;
+;; (bigpos N0 N1 N2 ...)   A big positive integer,
+;;                           N0 + N1*math-bignum-digit-size
+;;                              + N2*(math-bignum-digit-size)^2 ...
+;; (bigneg N0 N1 N2 ...)   A big negative integer,
+;;                           - N0 - N1*math-bignum-digit-size ...
+;;			    Each digit N is in the range
+;;                             0 ... math-bignum-digit-size -1.
+;;			    Normalized, always at least three N present,
+;;			    and the most significant N is nonzero.
+;;
+;; (frac NUM DEN)          A fraction.  NUM and DEN are small or big integers.
+;;                         Normalized, DEN > 1.
+;;
+;; (float NUM EXP)         A floating-point number, NUM * 10^EXP;
+;;                         NUM is a small or big integer, EXP is a small int.
+;;			    Normalized, NUM is not a multiple of 10, and
+;;			    abs(NUM) < 10^calc-internal-prec.
+;;			    Normalized zero is stored as (float 0 0).
+;;
+;; (cplx REAL IMAG)        A complex number; REAL and IMAG are any of above.
+;;			    Normalized, IMAG is nonzero.
+;;
+;; (polar R THETA)         Polar complex number.  Normalized, R > 0 and THETA
+;;                         is neither zero nor 180 degrees (pi radians).
+;;
+;; (vec A B C ...)         Vector of objects A, B, C, ...  A matrix is a
+;;                         vector of vectors.
+;;
+;; (hms H M S)             Angle in hours-minutes-seconds form.  All three
+;;                         components have the same sign; H and M must be
+;;                         numerically integers; M and S are expected to
+;;                         lie in the range [0,60).
+;;
+;; (date N)                A date or date/time object.  N is an integer to
+;;			    store a date only, or a fraction or float to
+;;			    store a date and time.
+;;
+;; (sdev X SIGMA)          Error form, X +/- SIGMA.  When normalized,
+;;                         SIGMA > 0.  X is any complex number and SIGMA
+;;			    is real numbers; or these may be symbolic
+;;                         expressions where SIGMA is assumed real.
+;;
+;; (intv MASK LO HI)       Interval form.  MASK is 0=(), 1=(], 2=[), or 3=[].
+;;                         LO and HI are any real numbers, or symbolic
+;;			    expressions which are assumed real, and LO < HI.
+;;			    For [LO..HI], if LO = HI normalization produces LO,
+;;			    and if LO > HI normalization produces [LO..LO).
+;;			    For other intervals, if LO > HI normalization
+;;			    sets HI equal to LO.
+;;
+;; (mod N M)	    	    Number modulo M.  When normalized, 0 <= N < M.
+;;			    N and M are real numbers.
+;;
+;; (var V S)		    Symbolic variable.  V is a Lisp symbol which
+;;			    represents the variable's visible name.  S is
+;;			    the symbol which actually stores the variable's
+;;			    value:  (var pi var-pi).
+;;
+;; In general, combining rational numbers in a calculation always produces
+;; a rational result, but if either argument is a float, result is a float.
 
-;;; In the following comments, [x y z] means result is x, args must be y, z,
-;;; respectively, where the code letters are:
-;;;
-;;;    O  Normalized object (vector or number)
-;;;    V  Normalized vector
-;;;    N  Normalized number of any type
-;;;    N  Normalized complex number
-;;;    R  Normalized real number (float or rational)
-;;;    F  Normalized floating-point number
-;;;    T  Normalized rational number
-;;;    I  Normalized integer
-;;;    B  Normalized big integer
-;;;    S  Normalized small integer
-;;;    D  Digit (small integer, 0..999)
-;;;    L  Normalized bignum digit list (without "bigpos" or "bigneg" symbol)
-;;;       or normalized vector element list (without "vec")
-;;;    P  Predicate (truth value)
-;;;    X  Any Lisp object
-;;;    Z  "nil"
-;;;
-;;; Lower-case letters signify possibly un-normalized values.
-;;; "L.D" means a cons of an L and a D.
-;;; [N N; n n] means result will be normalized if argument is.
-;;; Also, [Public] marks routines intended to be called from outside.
-;;; [This notation has been neglected in many recent routines.]
+;; In the following comments, [x y z] means result is x, args must be y, z,
+;; respectively, where the code letters are:
+;;
+;;    O  Normalized object (vector or number)
+;;    V  Normalized vector
+;;    N  Normalized number of any type
+;;    N  Normalized complex number
+;;    R  Normalized real number (float or rational)
+;;    F  Normalized floating-point number
+;;    T  Normalized rational number
+;;    I  Normalized integer
+;;    B  Normalized big integer
+;;    S  Normalized small integer
+;;    D  Digit (small integer, 0..999)
+;;    L  Normalized bignum digit list (without "bigpos" or "bigneg" symbol)
+;;       or normalized vector element list (without "vec")
+;;    P  Predicate (truth value)
+;;    X  Any Lisp object
+;;    Z  "nil"
+;;
+;; Lower-case letters signify possibly un-normalized values.
+;; "L.D" means a cons of an L and a D.
+;; [N N; n n] means result will be normalized if argument is.
+;; Also, [Public] marks routines intended to be called from outside.
+;; [This notation has been neglected in many recent routines.]
 
 (defvar math-eval-rules-cache)
 (defvar math-eval-rules-cache-other)
@@ -2641,7 +2648,7 @@ largest Emacs integer.")
 
 
 
-;;; True if A is a floating-point real or complex number.  [P x] [Public]
+;; True if A is a floating-point real or complex number.  [P x] [Public]
 (defun math-floatp (a)
   (cond ((eq (car-safe a) 'float) t)
 	((memq (car-safe a) '(cplx polar mod sdev intv))
@@ -2653,7 +2660,7 @@ largest Emacs integer.")
 
 
 
-;;; Verify that A is a complete object and return A.  [x x] [Public]
+;; Verify that A is a complete object and return A.  [x x] [Public]
 (defun math-check-complete (a)
   (cond ((integerp a) a)
 	((eq (car-safe a) 'incomplete)
@@ -2663,7 +2670,7 @@ largest Emacs integer.")
 
 
 
-;;; Coerce integer A to be a bignum.  [B S]
+;; Coerce integer A to be a bignum.  [B S]
 (defun math-bignum (a)
   (if (>= a 0)
       (cons 'bigpos (math-bignum-big a))
@@ -2676,7 +2683,7 @@ largest Emacs integer.")
           (math-bignum-big (/ a math-bignum-digit-size)))))
 
 
-;;; Build a normalized floating-point number.  [F I S]
+;; Build a normalized floating-point number.  [F I S]
 (defun math-make-float (mant exp)
   (if (eq mant 0)
       '(float 0 0)

@@ -106,11 +106,9 @@ leaves point at the beginning of the match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat
-@c  @cindex word search   Redundant
 This function searches forward from point for a ``word'' match for
 @var{string}.  If it finds a match, it sets point to the end of the
 match found, and returns the new value of point.
-@c Emacs 19 feature
 
 Word matching regards @var{string} as a sequence of words, disregarding
 punctuation that separates them.  It searches the buffer for the same
@@ -155,11 +153,24 @@ If @var{repeat} is non-@code{nil}, then the search is repeated that many
 times.  Point is positioned at the end of the last match.
 @end deffn
 
+@deffn Command word-search-forward-lax string &optional limit noerror repeat
+This command is identical to @code{word-search-forward}, except that
+the end of @code{string} need not match a word boundary unless it ends
+in whitespace.  For instance, searching for @samp{ball boy} matches
+@samp{ball boyee}, but does not match @samp{aball boy}.
+@end deffn
+
 @deffn Command word-search-backward string &optional limit noerror repeat
 This function searches backward from point for a word match to
 @var{string}.  This function is just like @code{word-search-forward}
 except that it searches backward and normally leaves point at the
 beginning of the match.
+@end deffn
+
+@deffn Command word-search-backward-lax string &optional limit noerror repeat
+This command is identical to @code{word-search-backward}, except that
+the end of @code{string} need not match a word boundary unless it ends
+in whitespace.
 @end deffn
 
 @node Searching and Case
@@ -176,15 +187,21 @@ regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
 @code{case-fold-search} to @code{nil}.  Then all letters must match
 exactly, including case.  This is a buffer-local variable; altering the
 variable affects only the current buffer.  (@xref{Intro to
-Buffer-Local}.)  Alternatively, you may change the value of
-@code{default-case-fold-search}, which is the default value of
-@code{case-fold-search} for buffers that do not override it.
+Buffer-Local}.)  Alternatively, you may change the default value of
+@code{case-fold-search}.
 
   Note that the user-level incremental search feature handles case
-distinctions differently.  When given a lower case letter, it looks for
-a match of either case, but when given an upper case letter, it looks
-for an upper case letter only.  But this has nothing to do with the
-searching functions used in Lisp code.
+distinctions differently.  When the search string contains only lower
+case letters, the search ignores case, but when the search string
+contains one or more upper case letters, the search becomes
+case-sensitive.  But this has nothing to do with the searching
+functions used in Lisp code.
+
+@defopt case-fold-search
+This buffer-local variable determines whether searches should ignore
+case.  If the variable is @code{nil} they do not ignore case; otherwise
+they do ignore case.
+@end defopt
 
 @defopt case-replace
 This variable determines whether the higher level replacement
@@ -197,24 +214,12 @@ This variable is used by passing it as an argument to the function
 @code{replace-match}.  @xref{Replacing Match}.
 @end defopt
 
-@defopt case-fold-search
-This buffer-local variable determines whether searches should ignore
-case.  If the variable is @code{nil} they do not ignore case; otherwise
-they do ignore case.
-@end defopt
-
-@defvar default-case-fold-search
-The value of this variable is the default value for
-@code{case-fold-search} in buffers that do not override it.  This is the
-same as @code{(default-value 'case-fold-search)}.
-@end defvar
-
 @node Regular Expressions
 @section Regular Expressions
 @cindex regular expression
 @cindex regexp
 
-  A @dfn{regular expression} (@dfn{regexp}, for short) is a pattern that
+  A @dfn{regular expression}, or @dfn{regexp} for short, is a pattern that
 denotes a (possibly infinite) set of strings.  Searching for matches for
 a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
@@ -642,14 +647,20 @@ occasionally there is a conflict, and that led to the introduction of
 shy groups.
 
 @item \(?: @dots{} \)
+@cindex shy groups
+@cindex non-capturing group
+@cindex unnumbered group
+@cindex @samp{(?:} in regexp
 is the @dfn{shy group} construct.  A shy group serves the first two
 purposes of an ordinary group (controlling the nesting of other
 operators), but it does not get a number, so you cannot refer back to
-its value with @samp{\@var{digit}}.
+its value with @samp{\@var{digit}}.  Shy groups are particularly
+useful for mechanically-constructed regular expressions, because they
+can be added automatically without altering the numbering of ordinary,
+non-shy groups.
 
-Shy groups are particularly useful for mechanically-constructed regular
-expressions because they can be added automatically without altering the
-numbering of any ordinary, non-shy groups.
+Shy groups are also called @dfn{non-capturing} or @dfn{unnumbered
+groups}.
 
 @item \(?@var{num}: @dots{} \)
 is the @dfn{explicitly numbered group} construct.  Normal groups get
@@ -690,7 +701,7 @@ If a particular grouping construct in the regular expression was never
 matched---for instance, if it appears inside of an alternative that
 wasn't used, or inside of a repetition that repeated zero times---then
 the corresponding @samp{\@var{digit}} construct never matches
-anything.  To use an artificial example,, @samp{\(foo\(b*\)\|lose\)\2}
+anything.  To use an artificial example, @samp{\(foo\(b*\)\|lose\)\2}
 cannot match @samp{lose}: the second alternative inside the larger
 group matches it, but then @samp{\2} is undefined and can't match
 anything.  But it can match @samp{foobb}, because the first
@@ -927,8 +938,8 @@ regular expression which is equivalent to the actual value
 
 @defun regexp-opt-depth regexp
 This function returns the total number of grouping constructs
-(parenthesized expressions) in @var{regexp}.  (This does not include
-shy groups.)
+(parenthesized expressions) in @var{regexp}.  This does not include
+shy groups (@pxref{Regexp Backslash}).
 @end defun
 
 @node Regexp Search
@@ -1164,17 +1175,17 @@ non-greedy repetition operators (@pxref{Regexp Special, non-greedy}).
 This is because POSIX backtracking conflicts with the semantics of
 non-greedy repetition.
 
-@defun posix-search-forward regexp &optional limit noerror repeat
+@deffn Command posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
-@end defun
+@end deffn
 
-@defun posix-search-backward regexp &optional limit noerror repeat
+@deffn Command posix-search-backward regexp &optional limit noerror repeat
 This is like @code{re-search-backward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
 matching.
-@end defun
+@end deffn
 
 @defun posix-looking-at regexp
 This is like @code{looking-at} except that it performs the full
@@ -1768,12 +1779,12 @@ arguments: the first 3 arguments of @code{re-search-forward}
   This section describes some variables that hold regular expressions
 used for certain purposes in editing:
 
-@defvar page-delimiter
+@defopt page-delimiter
 This is the regular expression describing line-beginnings that separate
 pages.  The default value is @code{"^\014"} (i.e., @code{"^^L"} or
 @code{"^\C-l"}); this matches a line that starts with a formfeed
 character.
-@end defvar
+@end defopt
 
   The following two regular expressions should @emph{not} assume the
 match always starts at the beginning of a line; they should not use
@@ -1784,22 +1795,22 @@ they accept matches that start after the left margin.  In that case, a
 @samp{^} would be incorrect.  However, a @samp{^} is harmless in modes
 where a left margin is never used.
 
-@defvar paragraph-separate
+@defopt paragraph-separate
 This is the regular expression for recognizing the beginning of a line
 that separates paragraphs.  (If you change this, you may have to
 change @code{paragraph-start} also.)  The default value is
 @w{@code{"[@ \t\f]*$"}}, which matches a line that consists entirely of
 spaces, tabs, and form feeds (after its left margin).
-@end defvar
+@end defopt
 
-@defvar paragraph-start
+@defopt paragraph-start
 This is the regular expression for recognizing the beginning of a line
 that starts @emph{or} separates paragraphs.  The default value is
 @w{@code{"\f\\|[ \t]*$"}}, which matches a line containing only
 whitespace or starting with a form feed (after its left margin).
-@end defvar
+@end defopt
 
-@defvar sentence-end
+@defopt sentence-end
 If non-@code{nil}, the value should be a regular expression describing
 the end of a sentence, including the whitespace following the
 sentence.  (All paragraph boundaries also end sentences, regardless.)
@@ -1808,7 +1819,7 @@ If the value is @code{nil}, the default, then the function
 @code{sentence-end} has to construct the regexp.  That is why you
 should always call the function @code{sentence-end} to obtain the
 regexp to be used to recognize the end of a sentence.
-@end defvar
+@end defopt
 
 @defun sentence-end
 This function returns the value of the variable @code{sentence-end},

@@ -1,7 +1,7 @@
 ;;; url-privacy.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -42,10 +42,7 @@
 	  nil)
 	 ;; First, we handle the inseparable OS/Windowing system
 	 ;; combinations
-	 ((eq system-type 'Apple-Macintosh) "Macintosh")
-	 ((eq system-type 'next-mach) "NeXT")
 	 ((eq system-type 'windows-nt) "Windows-NT; 32bit")
-	 ((eq system-type 'ms-windows) "Windows; 16bit")
 	 ((eq system-type 'ms-dos) "MS-DOS; 32bit")
 	 ((memq (url-device-type) '(win32 w32)) "Windows; 32bit")
 	 ((eq (url-device-type) 'pm) "OS/2; 32bit")

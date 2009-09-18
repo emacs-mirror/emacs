@@ -1,7 +1,7 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -78,6 +78,7 @@
   :group 'sieve)
 ;; backward-compatibility alias
 (put 'sieve-control-commands-face 'face-alias 'sieve-control-commands)
+(put 'sieve-control-commands-face 'obsolete-face "22.1")
 
 (defvar sieve-action-commands-face 'sieve-action-commands
   "Face name used for Sieve Action Commands.")
@@ -91,6 +92,7 @@
   :group 'sieve)
 ;; backward-compatibility alias
 (put 'sieve-action-commands-face 'face-alias 'sieve-action-commands)
+(put 'sieve-action-commands-face 'obsolete-face "22.1")
 
 (defvar sieve-test-commands-face 'sieve-test-commands
   "Face name used for Sieve Test Commands.")
@@ -108,6 +110,7 @@
   :group 'sieve)
 ;; backward-compatibility alias
 (put 'sieve-test-commands-face 'face-alias 'sieve-test-commands)
+(put 'sieve-test-commands-face 'obsolete-face "22.1")
 
 (defvar sieve-tagged-arguments-face 'sieve-tagged-arguments
   "Face name used for Sieve Tagged Arguments.")
@@ -123,6 +126,7 @@
   :group 'sieve)
 ;; backward-compatibility alias
 (put 'sieve-tagged-arguments-face 'face-alias 'sieve-tagged-arguments)
+(put 'sieve-tagged-arguments-face 'obsolete-face "22.1")
 
 
 (defconst sieve-font-lock-keywords

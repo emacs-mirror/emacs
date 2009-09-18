@@ -187,8 +187,9 @@ will issue these additional system calls only for files on local fixed
 drives.  Any other non-@code{nil} value means do this even for
 removable and remote volumes, where this could potentially slow down
 Dired and other related features.  The value of @code{nil} means never
-issue those system calls.  Non-@code{nil} values are only useful on
-NTFS volumes, which support hard links and file security.
+issue those system calls.  Non-@code{nil} values are more useful on
+NTFS volumes, which support hard links and file security, than on FAT,
+FAT32, and XFAT volumes.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -783,13 +784,13 @@ fontconfig library used in modern Free desktops:
   The old XLFD based format is also supported for backwards compatibility.
 
   Emacs 23 supports a number of backends.  Currently, the @code{gdi}
-and @code{uniscribe} font backends are supported on Windows. The
+and @code{uniscribe} font backends are supported on Windows.  The
 @code{gdi} font backend is available on all versions of Windows, and
-supports all fonts that are natively supported by Windows. The
+supports all fonts that are natively supported by Windows.  The
 @code{uniscribe} font backend is available on Windows 2000 and later,
-and supports Truetype and Opentype fonts. Some languages requiring
+and supports Truetype and Opentype fonts.  Some languages requiring
 complex layout can only be properly supported by the uniscribe
-backend. By default, both backends are enabled if supported, with
+backend.  By default, both backends are enabled if supported, with
 @code{uniscribe} taking priority over @code{gdi}.
 
 @cindex font properties (MS Windows)
@@ -839,7 +840,7 @@ selection of fonts to those that support a particular character set by
 using a specific registry from @code{w32-charset-info-alist} here.
 
 @item spacing
-Specifies how the font is spaced. The @code{p} spacing specifies
+Specifies how the font is spaced.  The @code{p} spacing specifies
 a proportional font, and @code{m} or @code{c} specify a monospaced font.
 
 @item foundry

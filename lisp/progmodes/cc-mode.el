@@ -606,7 +606,8 @@ that requires a literal mode spec at compile time."
   (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
- 	'c-extend-after-change-region))	; Currently (2008-04), only used by AWK.
+ 	'c-extend-after-change-region))	; Currently (2009-05) used by all
+			; lanaguages with #define (C, C++,; ObjC), and by AWK.
 
 (defun c-setup-doc-comment-style ()
   "Initialize the variables that depend on the value of `c-doc-comment-style'."
@@ -669,7 +670,7 @@ This function is called from the hook `before-hack-local-variables-hook'."
 	  (offsets (cdr (assq 'c-file-offsets file-local-variables-alist))))
       (when stile
 	(or (stringp stile) (error "c-file-style is not a string"))
-	(c-set-style stile))
+	(c-set-style stile t))
       (when offsets
 	(mapc
 	 (lambda (langentry)
@@ -740,7 +741,7 @@ Note that the style variables are always made local to the buffer."
     (when c-file-style
       (or (stringp c-file-style)
 	  (error "c-file-style is not a string"))
-      (c-set-style c-file-style))
+      (c-set-style c-file-style t))
 
     (and c-file-offsets
 	 (mapc
@@ -846,11 +847,15 @@ Note that the style variables are always made local to the buffer."
 	      t)
 	     (t nil)))))))
 
-(defun c-neutralize-syntax-in-CPP (begg endd old-len)
-  ;; "Neutralize" every preprocessor line wholly or partially in the changed
-  ;; region.  "Restore" lines which were CPP lines before the change and are
-  ;; no longer so; these can be located from the Buffer local variables
-  ;; c-old-[EB]OM.
+(defun c-extend-and-neutralize-syntax-in-CPP (begg endd old-len)
+  ;; (i) Extend the font lock region to cover all changed preprocessor
+  ;; regions; it does this by setting the variables `c-new-BEG' and
+  ;; `c-new-END' to the new boundaries.
+  ;; 
+  ;; (ii) "Neutralize" every preprocessor line wholly or partially in the
+  ;; extended changed region.  "Restore" lines which were CPP lines before the
+  ;; change and are no longer so; these can be located from the Buffer local
+  ;; variables `c-old-BOM' and `c-old-EOM'.
   ;; 
   ;; That is, set syntax-table properties on characters that would otherwise
   ;; interact syntactically with those outside the CPP line(s).
@@ -867,11 +872,12 @@ Note that the style variables are always made local to the buffer."
   ;; Note: SPEED _MATTERS_ IN THIS FUNCTION!!!
   ;; 
   ;; This function might make hidden buffer changes.
-  (c-save-buffer-state (limits mbeg+1 beg end)
-    ;; First determine the region, (beg end), which may need "neutralizing".
-    ;; This may not start inside a string, comment, or macro.
+  (c-save-buffer-state (limits mbeg+1)
+    ;; First determine the region, (c-new-BEG c-new-END), which will get font
+    ;; locked.  It might need "neutralizing".  This region may not start
+    ;; inside a string, comment, or macro.
     (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
-    (setq beg
+    (setq c-new-BEG
 	  (if (setq limits (c-literal-limits))
 	      (cdr limits)	    ; go forward out of any string or comment.
 	    (point)))
@@ -881,16 +887,17 @@ Note that the style variables are always made local to the buffer."
 	(goto-char (car limits)))  ; go backward out of any string or comment.
     (if (c-beginning-of-macro)
 	(c-end-of-macro))
-    (setq end (max (+ (- c-old-EOM old-len) (- endd begg))
+    (setq c-new-END (max (+ (- c-old-EOM old-len) (- endd begg))
 		   (point)))
 
-    ;; Clear all old punctuation properties
-    (c-clear-char-property-with-value beg end 'syntax-table '(1))
+    ;; Clear any existing punctuation properties.
+    (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
 
-    (goto-char beg)
-    (let ((pps-position beg)  pps-state)
-      (while (and (< (point) end)
-		  (search-forward-regexp c-anchored-cpp-prefix end t))
+    ;; Add needed properties to each CPP construct in the region.
+    (goto-char c-new-BEG)
+    (let ((pps-position c-new-BEG)  pps-state)
+      (while (and (< (point) c-new-END)
+		  (search-forward-regexp c-anchored-cpp-prefix c-new-END t))
 	;; If we've found a "#" inside a string/comment, ignore it.
 	(setq pps-state
 	      (parse-partial-sexp pps-position (point) nil nil pps-state)
@@ -978,6 +985,8 @@ Note that the style variables are always made local to the buffer."
 			    (buffer-substring-no-properties type-pos term-pos)
 			    (buffer-substring-no-properties beg end)))))))
 
+	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
+	;; larger than (beg end).
 	(setq c-new-BEG beg
 	      c-new-END end)
 	(if c-get-state-before-change-function
@@ -1048,7 +1057,6 @@ This does not load the font-lock package.  Use after
 	  nil nil
 	  ,c-identifier-syntax-modifications
 	  c-beginning-of-syntax
-	  (font-lock-lines-before . 1)
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
 
@@ -1063,8 +1071,9 @@ This does not load the font-lock package.  Use after
   ;; font-lock-extend-after-change-region-function, is forced to use advice
   ;; instead.
   ;;
-  ;; Of the seven CC Mode languages, currently (2008-04) only AWK Mode makes
-  ;; non-null use of this function.
+  ;; Of the seven CC Mode languages, currently (2009-05) only C, C++, Objc
+  ;; (the languages with #define) and AWK Mode make non-null use of this
+  ;; function.
   (cons c-new-BEG c-new-END))
 
 

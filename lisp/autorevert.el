@@ -66,6 +66,7 @@
 ;; change by growing at the end.  It only appends the new output,
 ;; instead of reverting the entire buffer.  It does so even if the
 ;; buffer contains unsaved changes.  (Because they will not be lost.)
+;; Auto Revert Tail Mode works also for remote files.
 
 ;; Usage:
 ;;
@@ -207,10 +208,13 @@ would only waste precious space."
 When non-nil, both file buffers and buffers with a custom
 `revert-buffer-function' and a `buffer-stale-function' are
 reverted by Global Auto-Revert mode.  These include the Buffer
-List buffer, and Dired buffers showing complete local
-directories.  Dired buffers do not auto-revert as a result of
-changes in subdirectories or in the contents, size, modes, etc.,
-of files.  You may still sometimes want to revert them manually.
+List buffer displayed by `buffer-menu', and Dired buffers showing
+complete local directories.  The Buffer List buffer reverts every
+`auto-revert-interval' seconds; Dired buffers when the file list of
+the main directory changes.  Dired buffers do not auto-revert as
+a result of changes in subdirectories, or in the contents, size,
+modes, etc., of files.  You may still sometimes want to revert
+them manually.
 
 Use this option with care since it could lead to excessive auto-reverts.
 For more information, see Info node `(emacs)Autorevert'."
@@ -374,11 +378,23 @@ This function is designed to be added to hooks, for example:
 
 ;;;###autoload
 (define-minor-mode global-auto-revert-mode
-  "Revert any buffer when file on disk changes.
+  "Toggle Global Auto Revert mode.
+With optional prefix argument ARG, enable Global Auto Revert Mode
+if ARG > 0, else disable it.
 
-With arg, turn Auto Revert mode on globally if and only if arg is positive.
-This is a minor mode that affects all buffers.
-Use `auto-revert-mode' to revert a particular buffer."
+This is a global minor mode that reverts any buffer associated
+with a file when the file changes on disk.  Use `auto-revert-mode'
+to revert a particular buffer.
+
+If `global-auto-revert-non-file-buffers' is non-nil, this mode
+may also revert some non-file buffers, as described in the
+documentation of that variable.  It ignores buffers with modes
+matching `global-auto-revert-ignore-modes', and buffers with a
+non-nil vale of `global-auto-revert-ignore-buffer'.
+
+This function calls the hook `global-auto-revert-mode-hook'.
+It displays the text that `global-auto-revert-mode-text'
+specifies in the mode line."
   :global t :group 'auto-revert :lighter global-auto-revert-mode-text
   (auto-revert-set-timer)
   (when global-auto-revert-mode
@@ -417,13 +433,18 @@ This is an internal function used by Auto-Revert Mode."
     (let* ((buffer (current-buffer)) size
 	   (revert
 	    (or (and buffer-file-name
-		     (not (file-remote-p buffer-file-name))
 		     (file-readable-p buffer-file-name)
 		     (if auto-revert-tail-mode
-			 (/= auto-revert-tail-pos
-			    (setq size
-				  (nth 7 (file-attributes buffer-file-name))))
-		       (not (verify-visited-file-modtime buffer))))
+			 ;; Tramp caches the file attributes.  Setting
+			 ;; `tramp-cache-inhibit' forces Tramp to
+			 ;; reread the values.
+			 (let ((tramp-cache-inhibit-cache t))
+			   (/= auto-revert-tail-pos
+			       (setq size
+				     (nth 7 (file-attributes
+					     buffer-file-name)))))
+		       (and (not (file-remote-p buffer-file-name))
+			    (not (verify-visited-file-modtime buffer)))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
@@ -462,7 +483,7 @@ This is an internal function used by Auto-Revert Mode."
       (when (or revert auto-revert-check-vc-info)
 	(vc-find-file-hook)))))
 
-(defun auto-revert-tail-handler (size)  
+(defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))
 	(inhibit-read-only t)		; Ignore.
 	(file buffer-file-name)

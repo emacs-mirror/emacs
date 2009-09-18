@@ -1,7 +1,7 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -900,8 +900,8 @@ mail with multiple parts is preferred to sending a Unicode one.")
 
 (eval-and-compile
   (defvar mm-emacs-mule (and (not (featurep 'xemacs))
-			     (boundp 'default-enable-multibyte-characters)
-			     default-enable-multibyte-characters
+			     (boundp 'enable-multibyte-characters)
+			     (default-value 'enable-multibyte-characters)
 			     (fboundp 'set-buffer-multibyte))
     "True in Emacs with Mule.")
 
@@ -1013,8 +1013,8 @@ This is a compatibility function for Emacsen without `delete-dups'."
   "Return non-nil if the session is multibyte.
 This affects whether coding conversion should be attempted generally."
   (if (featurep 'mule)
-      (if (boundp 'default-enable-multibyte-characters)
-	  default-enable-multibyte-characters
+      (if (boundp 'enable-multibyte-characters)
+	  (default-value 'enable-multibyte-characters)
 	t)))
 
 (defun mm-iso-8859-x-to-15-region (&optional b e)
@@ -1227,7 +1227,7 @@ Use multibyte mode for this."
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
   "Evaluate FORMS with current buffer temporarily made unibyte.
-Also bind `default-enable-multibyte-characters' to nil.
+Also bind the default-value of `enable-multibyte-characters' to nil.
 Equivalent to `progn' in XEmacs
 
 NOTE: Use this macro with caution in multibyte buffers (it is not
@@ -1242,12 +1242,12 @@ Emacs 23 (unicode)."
 	 (let ((,multibyte enable-multibyte-characters)
 	       (,buffer (current-buffer)))
 	   (unwind-protect
-	       (let (default-enable-multibyte-characters)
+	       (letf (((default-value 'enable-multibyte-characters) nil))
 		 (set-buffer-multibyte nil)
 		 ,@forms)
 	     (set-buffer ,buffer)
 	     (set-buffer-multibyte ,multibyte)))
-       (let (default-enable-multibyte-characters)
+       (letf (((default-value 'enable-multibyte-characters) nil))
 	 ,@forms))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
@@ -1308,24 +1308,24 @@ to advanced Emacs features, such as file-name-handlers, format decoding,
 `find-file-hooks', etc.
 If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
   This function ensures that none of these modifications will take place."
-  (let* ((format-alist nil)
-	 (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
-	 (default-major-mode 'fundamental-mode)
-	 (enable-local-variables nil)
-	 (after-insert-file-functions nil)
-	 (enable-local-eval nil)
-	 (inhibit-file-name-operation (if inhibit
-					  'insert-file-contents
-					inhibit-file-name-operation))
-	 (inhibit-file-name-handlers
-	  (if inhibit
-	      (append mm-inhibit-file-name-handlers
-		      inhibit-file-name-handlers)
-	    inhibit-file-name-handlers))
-	 (ffh (if (boundp 'find-file-hook)
-		  'find-file-hook
-		'find-file-hooks))
-	 (val (symbol-value ffh)))
+  (letf* ((format-alist nil)
+          (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
+          ((default-value 'major-mode) 'fundamental-mode)
+          (enable-local-variables nil)
+          (after-insert-file-functions nil)
+          (enable-local-eval nil)
+          (inhibit-file-name-operation (if inhibit
+                                           'insert-file-contents
+                                         inhibit-file-name-operation))
+          (inhibit-file-name-handlers
+           (if inhibit
+               (append mm-inhibit-file-name-handlers
+                       inhibit-file-name-handlers)
+             inhibit-file-name-handlers))
+          (ffh (if (boundp 'find-file-hook)
+                   'find-file-hook
+                 'find-file-hooks))
+          (val (symbol-value ffh)))
     (set ffh nil)
     (unwind-protect
 	(insert-file-contents filename visit beg end replace)
@@ -1590,8 +1590,8 @@ gzip, bzip2, etc. are allowed."
 			    filename))
 		    (mm-decompress-buffer filename nil t))))
       (when decomp
-	(set-buffer (let (default-enable-multibyte-characters)
-		      (generate-new-buffer " *temp*")))
+	(set-buffer (letf (((default-value 'enable-multibyte-characters) nil))
+			  (generate-new-buffer " *temp*")))
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))

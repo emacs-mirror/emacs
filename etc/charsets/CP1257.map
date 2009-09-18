@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/CP1257
+# Generated from CP1257 in localedate/charmaps of glibc
 0x00-0x7F 0x0000
 0x80 0x20AC
 0x82 0x201A

@@ -238,10 +238,16 @@ rigidly along with this one (not yet)."
 (defvar inferior-prolog-mode-syntax-table prolog-mode-syntax-table)
 (defvar inferior-prolog-mode-abbrev-table prolog-mode-abbrev-table)
 
+(defvar inferior-prolog-error-regexp-alist
+  ;; GNU Prolog used to not follow the GNU standard format.
+  '(("^\\(.*?\\):\\([0-9]+\\) error: .*(char:\\([0-9]+\\)" 1 2 3)
+    gnu))
+
 (declare-function comint-mode "comint")
 (declare-function comint-send-string "comint" (process string))
 (declare-function comint-send-region "comint" (process start end))
 (declare-function comint-send-eof "comint" ())
+(defvar compilation-error-regexp-alist)
 
 (define-derived-mode inferior-prolog-mode comint-mode "Inferior Prolog"
   "Major mode for interacting with an inferior Prolog process.
@@ -268,6 +274,9 @@ Return not at end copies rest of line to end and sends it.
 \\[comint-interrupt-subjob] interrupts the shell or its current subjob if any.
 \\[comint-stop-subjob] stops. \\[comint-quit-subjob] sends quit signal."
   (setq comint-prompt-regexp "^| [ ?][- ] *")
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       inferior-prolog-error-regexp-alist)
+  (compilation-shell-minor-mode)
   (prolog-mode-variables))
 
 (defvar inferior-prolog-buffer nil)
@@ -357,6 +366,10 @@ With prefix argument \\[universal-prefix], prompt for the program to use."
              (save-excursion
                (goto-char (- pmark 3))
                (looking-at " \\? ")))
+        ;; This is GNU prolog waiting to know whether you want more answers
+        ;; or not (or abort, etc...).  The answer is a single char, not
+        ;; a line, so pass this char directly rather than wait for RET to
+        ;; send a whole line.
         (comint-send-string proc (string last-command-event))
       (call-interactively 'self-insert-command))))
 
@@ -382,6 +395,9 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (prolog-consult-region compile beg end)
   (pop-to-buffer inferior-prolog-buffer))
 
+;; inferior-prolog-mode uses the autoloaded compilation-shell-minor-mode.
+(declare-function compilation-forget-errors "compile" ())
+
 (defun inferior-prolog-load-file ()
   "Pass the current buffer's file to the inferior prolog process."
   (interactive)
@@ -389,6 +405,7 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (let ((file buffer-file-name)
         (proc (inferior-prolog-process)))
     (with-current-buffer (process-buffer proc)
+      (compilation-forget-errors)
       (comint-send-string proc (concat "['" (file-relative-name file) "'].\n"))
       (pop-to-buffer (current-buffer)))))
 

@@ -1,4 +1,4 @@
-;;; dired-x.el --- extra Dired functionality -*-byte-compile-dynamic: t;-*-
+;;; dired-x.el --- extra Dired functionality
 
 ;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009 Free Software Foundation, Inc.
@@ -1790,6 +1790,11 @@ variables `dired-x-variable-list' in the message."
 
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
+
+;; Local Variables:
+;; byte-compile-dynamic: t
+;; generated-autoload-file: "dired.el"
+;; End:
 
 ;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

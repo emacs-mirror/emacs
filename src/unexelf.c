@@ -985,9 +985,29 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	     placed after the .bss section.  Overlap can occur if the
 	     section just before .bss has less-strict alignment; this
 	     was observed between .symtab and .bss on Solaris 2.5.1
-	     (sparc) with GCC snapshot 960602.  */
+	     (sparc) with GCC snapshot 960602.
 
-	  if (NEW_SECTION_H (nn).sh_offset >= old_bss_offset)
+> dump -h temacs
+
+temacs:
+
+	   **** SECTION HEADER TABLE ****
+[No]	Type	Flags	Addr         Offset       Size        	Name
+	Link	Info	Adralgn      Entsize
+
+[22]	1	3	0x335150     0x315150     0x4          	.data.rel.local
+	0	0	0x4          0            
+
+[23]	8	3	0x335158     0x315158     0x42720      	.bss
+	0	0	0x8          0            
+
+[24]	2	0	0            0x315154     0x1c9d0      	.symtab
+	25	1709	0x4          0x10         
+	  */
+
+	  if (NEW_SECTION_H (nn).sh_offset >= old_bss_offset
+	      || (NEW_SECTION_H (nn).sh_offset + NEW_SECTION_H (nn).sh_size
+		  > new_data2_offset))
 	    NEW_SECTION_H (nn).sh_offset += new_data2_incr;
 
 	  /* Any section that was originally placed after the section
@@ -1206,11 +1226,41 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       symendp = (ElfW(Sym) *) ((byte *)symp + NEW_SECTION_H (n).sh_size);
 
       for (; symp < symendp; symp ++)
-	if (strcmp ((char *) (symnames + symp->st_name), "_end") == 0
-	    || strcmp ((char *) (symnames + symp->st_name), "end") == 0
-	    || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0
-	    || strcmp ((char *) (symnames + symp->st_name), "edata") == 0)
-	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
+	{
+	  if (strcmp ((char *) (symnames + symp->st_name), "_end") == 0
+	      || strcmp ((char *) (symnames + symp->st_name), "end") == 0
+	      || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0
+	      || strcmp ((char *) (symnames + symp->st_name), "edata") == 0)
+	    memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
+
+	  /* Strictly speaking, #ifdef below is not necessary.  But we
+	     keep it to indicate that this kind of change may also be
+	     necessary for other unexecs to support GNUstep.  */
+#ifdef NS_IMPL_GNUSTEP
+	  /* ObjC runtime modifies the values of some data structures
+	     such as classes and selectors in the .data section after
+	     loading.  As the dump process copies the .data section
+	     from the current process, that causes problems when the
+	     modified classes are reinitialized in the dumped
+	     executable.  We copy such data from the old file, not
+	     from the current process.  */
+	  if (strncmp ((char *) (symnames + symp->st_name),
+		       "_OBJC_", sizeof ("_OBJC_") - 1) == 0)
+	    {
+	      caddr_t old, new;
+
+	      new = ((symp->st_value - NEW_SECTION_H (symp->st_shndx).sh_addr)
+		     + NEW_SECTION_H (symp->st_shndx).sh_offset + new_base);
+	      /* "Unpatch" index.  */
+	      nn = symp->st_shndx;
+	      if (nn > old_bss_index)
+		nn--;
+	      old = ((symp->st_value - NEW_SECTION_H (symp->st_shndx).sh_addr)
+		     + OLD_SECTION_H (nn).sh_offset + old_base);
+	      memcpy (new, old, symp->st_size);
+	    }
+#endif
+	}
     }
 
   /* This loop seeks out relocation sections for the data section, so

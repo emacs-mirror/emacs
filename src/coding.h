@@ -630,7 +630,7 @@ struct coding_system
     if (j1 & 1)						\
       {							\
 	s1 = (j1 <= 0x25 ? 0xF0 + (j1 - 0x21) / 2	\
-	      : j1 <= 0x27 ? 0xF3 + (j1 - 0x2D) / 2	\
+	      : j1 <= 0x2F ? 0xF3 + (j1 - 0x2D) / 2	\
 	      : 0xF5 + (j1 - 0x6F) / 2);		\
 	s2 = j2 + ((j2 >= 0x60) ? 0x20 : 0x1F);		\
       }							\
@@ -734,13 +734,14 @@ extern void encode_coding_object P_ ((struct coding_system *,
 
 
 #define decode_coding_string(coding, string, nocopy)			\
-  decode_coding_object (coding, string, 0, 0, XSTRING (string)->size,	\
-			STRING_BYTES (XSTRING (string)), Qt)
+  decode_coding_object (coding, string, 0, 0, SCHARS (string),		\
+			SBYTES (string), Qt)
 
 #define encode_coding_string(coding, string, nocopy)			\
-  (encode_coding_object (coding, string, 0, 0, XSTRING (string)->size,	\
-			 STRING_BYTES (XSTRING (string)), Qt),		\
-   (coding)->dst_object)
+  (STRING_MULTIBYTE(string) ?						\
+    (encode_coding_object (coding, string, 0, 0, SCHARS (string),	\
+			   SBYTES (string), Qt),			\
+     (coding)->dst_object) : (string))
 
 
 #define decode_coding_c_string(coding, src, bytes, dst_object)		\

@@ -5,7 +5,9 @@
 # colors, spurious warnings about names being referenced but not
 # existing, etc., dvips | ps2pdf doesn't preserve the page size.
 # Instead of creating a special dvips config file, put up with the warnings.
-tex = pdftex -interaction=nonstopmode
+texinfodir=../misc
+
+tex = TEXINPUTS=".:$(texinfodir):${TEXINPUTS}" pdftex -interaction=nonstopmode
 
 all: vol1.pdf vol2.pdf
 
@@ -61,8 +63,6 @@ elisp1med-aux-vol-added: elisp1med-init
 #
 elisp2med-aux-vol-added: elisp2med-init
 	sed 's/-pg}{\(.*\)}$$/-pg}{\1, vol.@tie2}/' elisp2med-aux >$@
-	
-
 
 #  intermediate index (fns) file.
 # 
@@ -99,7 +99,7 @@ elisp2med-fn-vol-added: elisp2med-init
 # 
 # So, we start all over again, from these fns/aux/toc files.
 # 
-elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready texinfo.tex
+elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready $(texinfodir)/texinfo.tex
 	@echo -e "\f Intermediate TeX run for volume 1..."
 	cp elisp1init-toc-ready elisp1-toc-ready.toc
 	cp elisp1-fns-ready vol1.fns
@@ -109,7 +109,7 @@ elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready texinfo.t
 	mv vol1.aux elisp1med-aux
 	mv vol1.toc elisp1med-toc
 #
-elisp2med-init: elisp2-fns-ready elisp2-aux-ready elisp2init-toc-ready texinfo.tex
+elisp2med-init: elisp2-fns-ready elisp2-aux-ready elisp2init-toc-ready $(texinfodir)/texinfo.tex
 	@echo "Final TeX run for volume 2..."
 	cp elisp2init-toc-ready elisp2-toc-ready.toc
 	cp elisp2-fns-ready vol2.fns
@@ -156,7 +156,6 @@ elisp1-aux-vol-added: elisp1-init
 #
 elisp2-aux-vol-added: elisp2-init
 	sed 's/-pg}{\(.*\)}$$/-pg}{\1, vol.@tie2}/' elisp2-aux >$@
-	
 
 #  initial index (fns) file.
 # 

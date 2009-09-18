@@ -30,7 +30,7 @@
 
 ;; Note that this variable is used by non-lisp modes too.
 (defcustom defun-prompt-regexp nil
-  "*If non-nil, a regexp to ignore before a defun.
+  "If non-nil, a regexp to ignore before a defun.
 This is only necessary if the opening paren or brace is not in column 0.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
@@ -597,43 +597,16 @@ character."
   		(error "Unmatched bracket or quote"))))
 
 (defun field-complete (table &optional predicate)
-  (let* ((pattern (field-string-no-properties))
-         (completion (try-completion pattern table predicate)))
-    (cond ((eq completion t))
-          ((null completion)
-           (message "Can't find completion for \"%s\"" pattern)
-           (ding))
-          ((not (string= pattern completion))
-           (delete-region (field-beginning) (field-end))
-           (insert completion)
-           ;; Don't leave around a completions buffer that's out of date.
-           (let ((win (get-buffer-window "*Completions*" 0)))
-             (if win (with-selected-window win (bury-buffer)))))
-          (t
-           (let ((minibuf-is-in-use
-                  (eq (minibuffer-window) (selected-window))))
-             (unless minibuf-is-in-use
-               (message "Making completion list..."))
-             (let ((list (all-completions pattern table predicate)))
-               (setq list (sort list 'string<))
-               (or (eq predicate 'fboundp)
-                   (let (new)
-                     (while list
-                       (setq new (cons (if (fboundp (intern (car list)))
-                                           (list (car list) " <f>")
-                                         (car list))
-                                       new))
-                       (setq list (cdr list)))
-                     (setq list (nreverse new))))
-               (if (> (length list) 1)
-                   (with-output-to-temp-buffer "*Completions*"
-                     (display-completion-list list pattern))
-                 ;; Don't leave around a completions buffer that's
-                 ;; out of date.
-                 (let ((win (get-buffer-window "*Completions*" 0)))
-                   (if win (with-selected-window win (bury-buffer))))))
-             (unless minibuf-is-in-use
-               (message "Making completion list...%s" "done")))))))
+  (let ((minibuffer-completion-table table)
+        (minibuffer-completion-predicate predicate)
+        ;; This made sense for lisp-complete-symbol, but for
+        ;; field-complete, this is out of place.  --Stef
+        ;; (completion-annotate-function
+        ;;  (unless (eq predicate 'fboundp)
+        ;;    (lambda (str)
+        ;;      (if (fboundp (intern-soft str)) " <f>"))))
+        )
+    (call-interactively 'minibuffer-complete)))
 
 (defun lisp-complete-symbol (&optional predicate)
   "Perform completion on Lisp symbol preceding point.
@@ -649,85 +622,42 @@ symbols with function definitions are considered.  Otherwise, all
 symbols with function definitions, values or properties are
 considered."
   (interactive)
-  (let ((window (get-buffer-window "*Completions*" 0)))
-    (if (and (eq last-command this-command)
-	     window (window-live-p window) (window-buffer window)
-	     (buffer-name (window-buffer window)))
-	;; If this command was repeated, and
-	;; there's a fresh completion window with a live buffer,
-	;; and this command is repeated, scroll that window.
-	(with-current-buffer (window-buffer window)
-	  (if (pos-visible-in-window-p (point-max) window)
-	      (set-window-start window (point-min))
-	    (save-selected-window
-	      (select-window window)
-	      (scroll-up))))
-
-      ;; Do completion.
-      (let* ((end (point))
-	     (beg (with-syntax-table emacs-lisp-mode-syntax-table
-		    (save-excursion
-		      (backward-sexp 1)
-		      (while (= (char-syntax (following-char)) ?\')
-			(forward-char 1))
-		      (point))))
-	     (pattern (buffer-substring-no-properties beg end))
-	     (predicate
-	      (or predicate
-		  (save-excursion
-		    (goto-char beg)
-		    (if (not (eq (char-before) ?\())
-			(lambda (sym)	;why not just nil ?   -sm
-			  (or (boundp sym) (fboundp sym)
-			      (symbol-plist sym)))
-		      ;; Looks like a funcall position.  Let's double check.
-		      (if (condition-case nil
-			      (progn (up-list -2) (forward-char 1)
-				     (eq (char-after) ?\())
-			    (error nil))
-			  ;; If the first element of the parent list is an open
-			  ;; parenthesis we are probably not in a funcall position.
-			  ;; Maybe a `let' varlist or something.
-			  nil
-			;; Else, we assume that a function name is expected.
-			'fboundp)))))
-	     (completion (try-completion pattern obarray predicate)))
-	(cond ((eq completion t))
-	      ((null completion)
-	       (if (window-minibuffer-p (selected-window))
-		   (minibuffer-message (format " [No completions of \"%s\"]" pattern))
-		 (message "Can't find completion for \"%s\"" pattern))
-	       (ding))
-	      ((not (string= pattern completion))
-	       (delete-region beg end)
-	       (insert completion)
-	       ;; Don't leave around a completions buffer that's out of date.
-	       (let ((win (get-buffer-window "*Completions*" 0)))
-		 (if win (with-selected-window win (bury-buffer)))))
-	      (t
-	       (let ((minibuf-is-in-use
-		      (eq (minibuffer-window) (selected-window))))
-		 (unless minibuf-is-in-use
-		   (message "Making completion list..."))
-		 (let ((list (all-completions pattern obarray predicate)))
-		   (setq list (sort list 'string<))
-		   (unless (eq predicate 'fboundp)
-		     (let (new)
-		       (dolist (compl list)
-			 (push (if (fboundp (intern compl))
-				   (list compl " <f>")
-				 compl)
-			       new))
-		       (setq list (nreverse new))))
-		   (if (> (length list) 1)
-		       (with-output-to-temp-buffer "*Completions*"
-			 (display-completion-list list pattern))
-		     ;; Don't leave around a completions buffer that's
-		     ;; out of date.
-		     (let ((win (get-buffer-window "*Completions*" 0)))
-		       (if win (with-selected-window win (bury-buffer))))))
-		 (unless minibuf-is-in-use
-		   (message "Making completion list...%s" "done")))))))))
+  (let* ((end (point))
+         (beg (with-syntax-table emacs-lisp-mode-syntax-table
+                (save-excursion
+                  (backward-sexp 1)
+                  (while (= (char-syntax (following-char)) ?\')
+                    (forward-char 1))
+                  (point))))
+         (predicate
+          (or predicate
+              (save-excursion
+                (goto-char beg)
+                (if (not (eq (char-before) ?\())
+                    (lambda (sym)	;why not just nil ?   -sm
+                      (or (boundp sym) (fboundp sym)
+                          (symbol-plist sym)))
+                  ;; Looks like a funcall position.  Let's double check.
+                  (if (condition-case nil
+                          (progn (up-list -2) (forward-char 1)
+                                 (eq (char-after) ?\())
+                        (error nil))
+                      ;; If the first element of the parent list is an open
+                      ;; parenthesis we are probably not in a funcall position.
+                      ;; Maybe a `let' varlist or something.
+                      nil
+                    ;; Else, we assume that a function name is expected.
+                    'fboundp)))))
+         (ol (make-overlay beg end nil nil t)))
+    (overlay-put ol 'field 'completion)
+    (let ((completion-annotate-function
+           (unless (eq predicate 'fboundp)
+             (lambda (str) (if (fboundp (intern-soft str)) " <f>"))))
+          (minibuffer-completion-table obarray)
+          (minibuffer-completion-predicate predicate))
+      (unwind-protect
+          (call-interactively 'minibuffer-complete)
+        (delete-overlay ol)))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here

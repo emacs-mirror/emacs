@@ -1,3 +1,20 @@
+2009-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add #define PROFILING to config.h.
+
+2009-07-03  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (set_user_model_id): Use standard types.
+
+2009-06-30  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (set_user_model_id): New function.
+	(WinMain): Use it.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
 2009-03-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/stat.h (struct stat): Change the types of st_uid and

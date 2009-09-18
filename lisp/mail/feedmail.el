@@ -286,7 +286,7 @@
 
 (defconst feedmail-patch-level "8")
 
-(eval-when-compile (require 'smtpmail))
+(eval-when-compile (require 'smtpmail) (require 'cl))
 (autoload 'mail-do-fcc "sendmail")
 
 (defgroup feedmail nil
@@ -481,11 +481,10 @@ header is fiddled after the From: header is fiddled."
 (defcustom feedmail-force-binary-write t
   "*If non-nil, force writing file as binary (this applies to queues and Fcc:).
 On systems where there is a difference between binary and text files,
-feedmail will temporarily manipulate the values of `buffer-file-type'
-and/or `default-buffer-file-type' to make the writing as binary.  If
-nil, writing will be in text mode.  On systems where there is no
-distinction or where it is controlled by other variables or other
-means, this option has no effect."
+feedmail will temporarily manipulate the value of `buffer-file-type'
+to make the writing as binary.  If nil, writing will be in text mode.
+On systems where there is no distinction or where it is controlled by other
+variables or other means, this option has no effect."
   :group 'feedmail-misc
   :type 'boolean
   )
@@ -1522,6 +1521,9 @@ bail out with an appropriate answer to the global confirmation prompt."
   (interactive "p")
   (let ((feedmail-queue-runner-confirm-global t)) (feedmail-run-the-queue arg)))
 
+;; letf fools the byte-compiler.
+(defvar file-name-buffer-file-type-alist)
+
 ;;;###autoload
 (defun feedmail-run-the-queue (&optional arg)
   "Visit each message in the feedmail queue directory and send it out.
@@ -1601,9 +1603,9 @@ backup file names and the like)."
 			   (not
 			    (let ((mail-header-separator feedmail-queue-alternative-mail-header-separator))
 			      (feedmail-find-eoh t)))))
-		  (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))
-		    (erase-buffer) (insert-file-contents maybe-file))
-		)
+		  (letf ((file-name-buffer-file-type-alist nil)
+                         ((default-value 'buffer-file-type) nil))
+		    (erase-buffer) (insert-file-contents maybe-file)))
 	      ;; if M-H-S not found and (a-M-H-S is non-nil and is found)
 	      ;; temporarily set M-H-S to the value of a-M-H-S
 	      (if (and (not (feedmail-find-eoh t))
@@ -1913,7 +1915,8 @@ mapped to mostly alphanumerics for safety."
 	(setq filename buffer-file-name)
       (setq filename (feedmail-create-queue-filename queue-directory)))
     ;; make binary file on DOS/Win95/WinNT, etc
-    (let ((buffer-file-type feedmail-force-binary-write)) (write-file filename))
+    (let ((buffer-file-type feedmail-force-binary-write))
+      (write-file filename))
     ;; convenient for moving from draft to q, for example
     (if (and previous-buffer-file-name (or (not is-fqm) (not is-in-this-dir))
 	     (y-or-n-p (format "FQM: Was previously %s; delete that? " previous-buffer-file-name)))
@@ -2086,7 +2089,8 @@ mapped to mostly alphanumerics for safety."
 			  )))
 		  (goto-char (point-min))
 		  ;; re-insert and handle any Fcc fields (and, optionally, any Bcc).
-		  (if fcc (let ((default-buffer-file-type feedmail-force-binary-write))
+		  (if fcc (letf (((default-value 'buffer-file-type)
+                                  feedmail-force-binary-write))
 			    (insert fcc)
 			    (if (not feedmail-nuke-bcc-in-fcc)
 				(progn (if bcc-holder (insert bcc-holder))

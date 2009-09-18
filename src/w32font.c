@@ -68,7 +68,7 @@ extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* languages */
-static Lisp_Object Qja, Qko, Qzh;
+static Lisp_Object Qzh;
 
 /* scripts */
 static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
@@ -114,7 +114,6 @@ static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE *));
 static int w32font_full_name P_ ((LOGFONT *, Lisp_Object, int, char *, int));
 static void compute_metrics P_ ((HDC, struct w32font_info *, unsigned int,
 				 struct w32_metric_cache *));
-static void clear_cached_metrics P_ ((struct w32font_info *));
 
 static Lisp_Object w32_registry P_ ((LONG, DWORD));
 
@@ -202,7 +201,7 @@ w32font_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
   Lisp_Object fonts = w32font_list_internal (frame, font_spec, 0);
-  font_add_log ("w32font-list", font_spec, fonts);
+  FONT_ADD_LOG ("w32font-list", font_spec, fonts);
   return fonts;
 }
 
@@ -215,7 +214,7 @@ w32font_match (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
   Lisp_Object entity = w32font_match_internal (frame, font_spec, 0);
-  font_add_log ("w32font-match", font_spec, entity);
+  FONT_ADD_LOG ("w32font-match", font_spec, entity);
   return entity;
 }
 
@@ -290,8 +289,7 @@ w32font_close (f, font)
     {
       for (i = 0; i < w32_font->n_cache_blocks; i++)
         {
-          if (w32_font->cached_metrics[i])
-            xfree (w32_font->cached_metrics[i]);
+          xfree (w32_font->cached_metrics[i]);
         }
       xfree (w32_font->cached_metrics);
       w32_font->cached_metrics = NULL;
@@ -2390,19 +2388,6 @@ compute_metrics (dc, w32_font, code, metrics)
     metrics->status = W32METRIC_FAIL;
 }
 
-static void
-clear_cached_metrics (w32_font)
-     struct w32font_info *w32_font;
-{
-  int i;
-  for (i = 0; i < w32_font->n_cache_blocks; i++)
-    {
-      if (w32_font->cached_metrics[i])
-        bzero (w32_font->cached_metrics[i],
-               CACHE_BLOCKSIZE * sizeof (struct font_metrics));
-    }
-}
-
 DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
        doc: /* Read a font name using a W32 font selection dialog.
 Return fontconfig style font string corresponding to the selection.
@@ -2521,8 +2506,6 @@ syms_of_w32font ()
   DEFSYM (Qnatural, "natural");
 
   /* Languages  */
-  DEFSYM (Qja, "ja");
-  DEFSYM (Qko, "ko");
   DEFSYM (Qzh, "zh");
 
   /* Scripts  */

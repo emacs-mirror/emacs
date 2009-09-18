@@ -108,8 +108,8 @@ RANGE is read in interactive use."
   "Blacklist MSG with SpamAssassin.
 
 SpamAssassin is one of the more popular spam filtering programs.
-Get it from your local distribution or from
-http://spamassassin.org/.
+Get it from your local distribution or from the SpamAssassin web
+site at URL `http://spamassassin.org/'.
 
 To use SpamAssassin, add the following recipes to
 \".procmailrc\":
@@ -332,7 +332,8 @@ information can be used so that you can replace multiple
   "Blacklist MSG with bogofilter.
 
 Bogofilter is a Bayesian spam filtering program. Get it from your
-local distribution or from http://bogofilter.sourceforge.net/.
+local distribution or from the bogofilter web site at URL
+`http://bogofilter.sourceforge.net/'.
 
 Bogofilter is taught by running:
 
@@ -411,8 +412,9 @@ See `mh-bogofilter-blacklist' for more information."
 (defun mh-spamprobe-blacklist (msg)
   "Blacklist MSG with SpamProbe.
 
-SpamProbe is a Bayesian spam filtering program. Get it from your local
-distribution or from http://spamprobe.sourceforge.net.
+SpamProbe is a Bayesian spam filtering program. Get it from your
+local distribution or from the SpamProbe web site at URL
+`http://spamprobe.sourceforge.net'.
 
 To use SpamProbe, add the following recipes to \".procmailrc\":
 

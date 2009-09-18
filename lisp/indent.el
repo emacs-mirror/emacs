@@ -82,7 +82,7 @@ If initial point was within line's indentation, position after
 the indentation.  Else stay at same point in text.
 
 If a prefix argument is given, also rigidly indent the entire
-balanced expression which starts at the beginning the current
+balanced expression which starts at the beginning of the current
 line to reflect the current line's change in indentation.
 
 If `transient-mark-mode' is turned on and the region is active,

@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <imm.h>
 
 #include "charset.h"
 #include "character.h"
@@ -138,7 +139,7 @@ typedef struct tagGLYPHSET
 #endif
 
 /* Dynamic linking to SetLayeredWindowAttribute (only since 2000).  */
-BOOL (PASCAL *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
+BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -180,7 +181,6 @@ int last_scroll_bar_drag_pos;
 /* Mouse movement. */
 
 /* Where the mouse was last time we reported a mouse event.  */
-
 static RECT last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
 static Lisp_Object last_mouse_press_frame;
@@ -215,12 +215,10 @@ static int last_mouse_scroll_bar_pos;
    along with the position query.  So, we just keep track of the time
    of the last movement we received, and return that in hopes that
    it's somewhat accurate.  */
-
 static Time last_mouse_movement_time;
 
 /* Incremented by w32_read_socket whenever it really tries to read
    events.  */
-
 #ifdef __STDC__
 static int volatile input_signal_count;
 #else
@@ -234,8 +232,10 @@ extern int errno;
 #endif
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
-
 extern EMACS_INT extra_keyboard_modifiers;
+
+/* Keyboard code page - may be changed by language-change events.  */
+static int keyboard_codepage;
 
 static void x_update_window_end P_ ((struct window *, int, int));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
@@ -2402,12 +2402,12 @@ x_draw_glyph_string (s)
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             y, s->background_width, 1);
+                             y, s->width, 1);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             y, s->background_width, 1);
+                             y, s->width, 1);
             }
         }
       /* Draw overline.  */
@@ -2418,12 +2418,12 @@ x_draw_glyph_string (s)
           if (s->face->overline_color_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             s->y + dy, s->background_width, h);
+                             s->y + dy, s->width, h);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
-                             s->y + dy, s->background_width, h);
+                             s->y + dy, s->width, h);
             }
         }
 
@@ -2908,6 +2908,15 @@ x_get_keysym_name (keysym)
   return value;
 }
 
+static int codepage_for_locale(LCID locale)
+{
+  char cp[20];
+
+  if (GetLocaleInfo (locale, LOCALE_IDEFAULTANSICODEPAGE, cp, 20) > 0)
+    return atoi (cp);
+  else
+    return CP_ACP;
+}
 
 
 /* Mouse clicks and mouse movement.  Rah.  */
@@ -4160,6 +4169,11 @@ w32_read_socket (sd, expected, hold_quit)
 	  /* Generate a language change event.  */
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
 
+	  /* lParam contains the input lang ID.  Use it to update our
+	     record of the keyboard codepage.  */
+	  keyboard_codepage = codepage_for_locale ((LCID)(msg.msg.lParam
+							  & 0xffff));
+
 	  if (f)
 	    {
 	      inev.kind = LANGUAGE_CHANGE_EVENT;
@@ -4230,7 +4244,8 @@ w32_read_socket (sd, expected, hold_quit)
                     {
                       dbcs[0] = dbcs_lead;
                       dbcs_lead = 0;
-                      if (!MultiByteToWideChar (CP_ACP, 0, dbcs, 2, &code, 1))
+                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+						dbcs, 2, &code, 1))
                         {
                           /* Garbage */
                           DebPrint (("Invalid DBCS sequence: %d %d\n",
@@ -4239,7 +4254,8 @@ w32_read_socket (sd, expected, hold_quit)
                           break;
                         }
                     }
-                  else if (IsDBCSLeadByteEx (CP_ACP, (BYTE) msg.msg.wParam))
+                  else if (IsDBCSLeadByteEx (keyboard_codepage,
+					     (BYTE) msg.msg.wParam))
                     {
                       dbcs_lead = (char) msg.msg.wParam;
                       inev.kind = NO_EVENT;
@@ -4247,8 +4263,8 @@ w32_read_socket (sd, expected, hold_quit)
                     }
                   else
                     {
-                      if (!MultiByteToWideChar (CP_ACP, 0, &dbcs[1], 1,
-                                                &code, 1))
+                      if (!MultiByteToWideChar (keyboard_codepage, 0,
+						&dbcs[1], 1, &code, 1))
                         {
                           /* What to do with garbage? */
                           DebPrint (("Invalid character: %d\n", dbcs[1]));
@@ -4970,8 +4986,6 @@ x_draw_bar_cursor (w, row, width, kind)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
-  int x;
-  HDC hdc;
 
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -4993,6 +5007,8 @@ x_draw_bar_cursor (w, row, width, kind)
     {
       COLORREF cursor_color = f->output_data.w32->cursor_pixel;
       struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
+      int x;
+      HDC hdc;
 
       /* If the glyph's background equals the color we normally draw
 	 the bar cursor in, the bar cursor in its normal color is
@@ -5004,29 +5020,36 @@ x_draw_bar_cursor (w, row, width, kind)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
 
-      if (width < 0)
-        width = FRAME_CURSOR_WIDTH (f);
-      width = min (cursor_glyph->pixel_width, width);
-
-      w->phys_cursor_width = width;
-
-
       hdc = get_frame_dc (f);
       w32_clip_to_row (w, row, TEXT_AREA, hdc);
 
       if (kind == BAR_CURSOR)
 	{
+	  if (width < 0)
+	    width = FRAME_CURSOR_WIDTH (f);
+	  width = min (cursor_glyph->pixel_width, width);
+
+	  w->phys_cursor_width = width;
+
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			 width, row->height);
 	}
       else
 	{
+	  int dummy_x, dummy_y, dummy_h;
+
+	  if (width < 0)
+	    width = row->height;
+
+	  width = min (row->height, width);
+
+	  get_phys_cursor_geometry (w, row, cursor_glyph, &dummy_x,
+				    &dummy_y, &dummy_h);
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
 						  row->height - width),
-			 min (FRAME_COLUMN_WIDTH (f), cursor_glyph->pixel_width),
-			 width);
+			 w->phys_cursor_width, width);
 	}
 
       w32_set_clip_rectangle (hdc, NULL);
@@ -5105,6 +5128,8 @@ w32_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
 	  w32_system_caret_y
 	    = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
 	       + glyph_row->ascent - w->phys_cursor_ascent);
+
+	  PostMessage (hwnd, WM_IME_STARTCOMPOSITION, 0, 0);
 
 	  /* If the size of the active cursor changed, destroy the old
 	     system caret.  */
@@ -6318,12 +6343,34 @@ DWORD WINAPI w32_msg_worker (void * arg);
 static void
 w32_initialize ()
 {
+  HANDLE shell;
+  HRESULT (WINAPI * set_user_model) (wchar_t * id);
+
   baud_rate = 19200;
 
   w32_system_caret_hwnd = NULL;
   w32_system_caret_height = 0;
   w32_system_caret_x = 0;
   w32_system_caret_y = 0;
+
+  /* On Windows 7 and later, we need to set the user model ID
+     to associate emacsclient launched files with Emacs frames
+     in the UI.  */
+  shell = GetModuleHandle ("shell32.dll");
+  if (shell)
+    {
+      set_user_model
+	= (void *) GetProcAddress (shell,
+				   "SetCurrentProcessExplicitAppUserModelID");
+
+      /* If the function is defined, then we are running on Windows 7
+	 or newer, and the UI uses this to group related windows
+	 together.  Since emacs, runemacs, emacsclient are related, we
+	 want them grouped even though the executables are different,
+	 so we need to set a consistent ID between them.  */
+      if (set_user_model)
+	set_user_model (L"GNU.Emacs");
+    }
 
   /* Initialize w32_use_visible_system_caret based on whether a screen
      reader is in use.  */
@@ -6338,8 +6385,13 @@ w32_initialize ()
      8 bit character input, standard quit char.  */
   Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
 
-  /* Create the window thread - it will terminate itself or when the app terminates */
+  {
+    DWORD input_locale_id = (DWORD) GetKeyboardLayout (0);
+    keyboard_codepage = codepage_for_locale ((LCID) (input_locale_id & 0xffff));
+  }
 
+  /* Create the window thread - it will terminate itself when the app
+     terminates */
   init_crit ();
 
   dwMainThreadId = GetCurrentThreadId ();
@@ -6347,7 +6399,6 @@ w32_initialize ()
 		   GetCurrentProcess (), &hMainThread, 0, TRUE, DUPLICATE_SAME_ACCESS);
 
   /* Wait for thread to start */
-
   {
     MSG msg;
 
@@ -6374,15 +6425,13 @@ w32_initialize ()
 
   /* Dynamically link to optional system components.  */
   {
-    HANDLE user_lib = LoadLibrary ("user32.dll");
+    HMODULE user_lib = GetModuleHandle ("user32.dll");
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
     LOAD_PROC (user_lib, SetLayeredWindowAttributes);
 
 #undef LOAD_PROC
-
-    FreeLibrary (user_lib);
 
     /* Ensure scrollbar handle is at least 5 pixels.  */
     vertical_scroll_bar_min_handle = 5;

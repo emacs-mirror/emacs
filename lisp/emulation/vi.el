@@ -639,7 +639,7 @@ insert state."
    (if (null (vi-raw-numeric-prefix arg))
        (with-no-warnings
 	 (end-of-buffer))
-     (goto-line (vi-prefix-numeric-value arg))))
+     (with-no-warnings (goto-line (vi-prefix-numeric-value arg)))))
 
 (defun vi-beginning-of-buffer ()
   "Move point to the beginning of current buffer."

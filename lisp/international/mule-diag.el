@@ -60,8 +60,9 @@
 
 The D column contains the dimension of this character set.  The CH
 column contains the number of characters in a block of this character
-set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
-for designating this character set in ISO-2022-based coding systems.
+set.  The FINAL-BYTE column contains an ISO-2022 <final-byte> to use
+in the designation escape sequence for this character set in
+ISO-2022-based coding systems.
 
 With prefix ARG, the output format gets more cryptic,
 but still shows the full information."
@@ -85,7 +86,7 @@ but still shows the full information."
 	(indent-to 48)
 	(insert "| +--CHARS\n")
 	(let ((columns '(("CHARSET-NAME" . name) "\t\t\t\t\t"
-			 ("D CH  FINAL-CHAR" . iso-spec)))
+			 ("D CH  FINAL-BYTE" . iso-spec)))
 	      pos)
 	  (while columns
 	    (if (stringp (car columns))
@@ -151,7 +152,14 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
     ;; Insert information of character sets.
     (dolist (elt (append charset-info-list (list t) supplementary-list))
       (if (eq elt t)
-	  (insert "-------------- Supplementary Character Sets --------------")
+	  (progn
+	    (insert "\n-------------- ")
+	    (insert-text-button "Supplementary Character Sets"
+				'type 'help-info
+				'help-args '("(emacs)Charsets"))
+	    (insert " --------------
+Character sets for defining another charset or obsolete now
+"))
 	(insert-text-button (symbol-name (car elt)) ; NAME
 			    :type 'list-charset-chars
 			    'help-args (list (car elt)))
@@ -324,8 +332,6 @@ meanings of these arguments."
 	(when (> char 0)
 	  (insert "Final char of ISO2022 designation sequence: ")
 	  (insert (format "`%c'\n" char))))
-      (insert (format "Width (how many columns on screen): %d\n"
-		      (aref char-width-table (make-char charset))))
       (let (aliases)
 	(dolist (c charset-list)
 	  (if (and (not (eq c charset))
@@ -448,6 +454,7 @@ meanings of these arguments."
 	       (princ " (text with random binary characters)"))
 	      ((eq type 'emacs-mule)
 	       (princ " (Emacs 21 internal encoding)"))
+	      ((eq type 'big5))
 	      (t (princ ": invalid coding-system.")))
 	(princ "\nEOL type: ")
 	(let ((eol-type (coding-system-eol-type coding-system)))
@@ -509,8 +516,8 @@ in place of `..':
   eol-type of `process-coding-system' for read (of the current buffer, if any)
   `process-coding-system' for write (of the current buffer, if any)
   eol-type of `process-coding-system' for write (of the current buffer, if any)
-  `default-buffer-file-coding-system'
-  eol-type of `default-buffer-file-coding-system'
+  default `buffer-file-coding-system'
+  eol-type of default `buffer-file-coding-system'
   `default-process-coding-system' for read
   eol-type of `default-process-coding-system' for read
   `default-process-coding-system' for write
@@ -530,8 +537,9 @@ in place of `..':
      (coding-system-eol-type-mnemonic (car process-coding-systems))
      (coding-system-mnemonic (cdr process-coding-systems))
      (coding-system-eol-type-mnemonic (cdr process-coding-systems))
-     (coding-system-mnemonic default-buffer-file-coding-system)
-     (coding-system-eol-type-mnemonic default-buffer-file-coding-system)
+     (coding-system-mnemonic (default-value 'buffer-file-coding-system))
+     (coding-system-eol-type-mnemonic
+      (default-value 'buffer-file-coding-system))
      (coding-system-mnemonic (car default-process-coding-system))
      (coding-system-eol-type-mnemonic (car default-process-coding-system))
      (coding-system-mnemonic (cdr default-process-coding-system))
@@ -585,7 +593,7 @@ docstring, and print only the first line of the docstring."
 	  (print-coding-system-briefly buffer-file-coding-system)
 	(princ "Not set locally, use the default.\n"))
       (princ "Default coding system (for new files):\n  ")
-      (print-coding-system-briefly default-buffer-file-coding-system)
+      (print-coding-system-briefly (default-value 'buffer-file-coding-system))
       (princ "Coding system for keyboard input:\n  ")
       (print-coding-system-briefly (keyboard-coding-system))
       (princ "Coding system for terminal output:\n  ")
@@ -810,8 +818,9 @@ but still contains full information about each coding system."
 
 (declare-function font-info "font.c" (name &optional frame))
 
-(defun describe-font-internal (font-info &optional verbose)
-  "Print information about a font in FONT-INFO."
+(defun describe-font-internal (font-info &optional ignored)
+  "Print information about a font in FONT-INFO.
+The IGNORED argument is ignored."
   (print-list "name (opened by):" (aref font-info 0))
   (print-list "       full name:" (aref font-info 1))
   (print-list "            size:" (format "%2d" (aref font-info 2)))
@@ -839,7 +848,7 @@ The font must be already used by Emacs."
 	    (message "No information about \"%s\"" (font-xlfd-name fontname))
 	  (message "No matching font found"))
       (with-output-to-temp-buffer "*Help*"
-	(describe-font-internal font-info 'verbose)))))
+	(describe-font-internal font-info)))))
 
 (defun print-fontset-element (val)
   ;; VAL has this format:
@@ -1079,7 +1088,8 @@ system which uses fontsets)."
       (insert "Version of this emacs:\n  " (emacs-version) "\n\n")
       (insert "Configuration options:\n  " system-configuration-options "\n\n")
       (insert "Multibyte characters awareness:\n"
-	      (format "  default: %S\n" default-enable-multibyte-characters)
+	      (format "  default: %S\n" (default-value
+					  'enable-multibyte-characters))
 	      (format "  current-buffer: %S\n\n" enable-multibyte-characters))
       (insert "Current language environment: " current-language-environment
 	      "\n\n")
@@ -1122,7 +1132,7 @@ system which uses fontsets)."
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(dolist (fontset (fontset-list))
 	  (print-fontset fontset t)))
-      (print-help-return-message))))
+      (help-print-return-message))))
 
 ;;;###autoload
 (defun font-show-log (&optional limit)

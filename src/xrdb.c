@@ -693,6 +693,10 @@ x_get_string_resource (rdb, name, class)
 {
   XrmValue value;
 
+  if (inhibit_x_resources)
+    /* --quick was passed, so this is a no-op.  */
+    return NULL;
+
   if (x_get_resource (rdb, name, class, x_rm_string, &value))
     return (char *) value.addr;
 

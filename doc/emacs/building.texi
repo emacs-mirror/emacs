@@ -854,10 +854,12 @@ multiple programs within one Emacs session.
 * Source Buffers::              Use the mouse in the fringe/margin to
                                 control your program.
 * Breakpoints Buffer::          A breakpoint control panel.
+* Threads Buffer::              Displays your threads.
 * Stack Buffer::                Select a frame from the call stack.
 * Other GDB-UI Buffers::        Input/output, locals, registers,
                                 assembler, threads and memory buffers.
 * Watch Expressions::           Monitor variable values in the speedbar.
+* Multithreaded Debugging::     Debugging programs with several threads.
 @end menu
 
 @node GDB-UI Layout
@@ -882,7 +884,7 @@ displays the following frame layout:
 |--------------------------------+--------------------------------+
 |   Primary Source buffer        |   I/O buffer for debugged pgm  |
 |--------------------------------+--------------------------------+
-|   Stack buffer                 |   Breakpoints/thread buffer    |
+|   Stack buffer                 |   Breakpoints/Thread buffer    |
 +--------------------------------+--------------------------------+
 @end group
 @end smallexample
@@ -903,7 +905,7 @@ gdb-many-windows}.
 
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
-want with the @samp{GUD->GDB-windows} and @samp{GUD->GDB-Frames}
+want with the @samp{GUD->GDB-Windows} and @samp{GUD->GDB-Frames}
 sub-menus.  If the menu-bar is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
 gdb-frame-@var{buffertype}-buffer} respectively, where
@@ -1010,10 +1012,92 @@ Visit the source line for the current breakpoint
 Visit the source line for the breakpoint you click on.
 @end table
 
+@vindex gdb-show-threads-by-default
 When @code{gdb-many-windows} is non-@code{nil}, the breakpoints buffer
 shares its window with the threads buffer.  To switch from one to the
-other click with @kbd{mouse-1} on the relevant button in the header
-line.
+other click with @kbd{Mouse-1} on the relevant button in the header
+line, or press @kbd{TAB} inside that buffer.  If
+@code{gdb-show-threads-by-default} is non-@code{nil}, the threads
+buffer, rather than the breakpoints buffer, is shown at start up.
+
+@node Threads Buffer
+@subsubsection Threads Buffer
+
+@findex gdb-select-thread
+The threads buffer displays a summary of all threads currently in your
+program (@pxref{Threads, Threads, Debugging programs with multiple
+threads, gdb, The GNU debugger}).  Move point to any thread in the list
+and press @key{RET} to select it (@code{gdb-select-thread}) and
+display the associated source in the primary source buffer.
+Alternatively, click @kbd{Mouse-2} on a thread to select it.  Contents
+of all GDB buffers are updated whenever you select a thread.
+
+  You can customize variables under @code{gdb-buffers} group to select
+fields included in threads buffer.
+
+@table @code
+@item gdb-thread-buffer-verbose-names
+@vindex gdb-thread-buffer-verbose-names
+Show long thread names like @samp{Thread 0x4e2ab70 (LWP 1983)} in
+threads buffer.
+
+@item gdb-thread-buffer-arguments
+@vindex gdb-thread-buffer-arguments
+Show arguments of thread top frames in threads buffer.
+
+@item gdb-thread-buffer-locations
+@vindex gdb-thread-buffer-locations
+Show file information or library names in threads buffer.
+
+@item gdb-thread-buffer-addresses
+@vindex gdb-thread-buffer-addresses
+Show addresses for thread frames in threads buffer.
+@end table
+
+  It’s possible to observe information for several threads
+simultaneously (in addition to buffers which show information for
+currently selected thread) using the following keys from the threads
+buffer.
+
+@table @kbd
+@item d
+@kindex d @r{(GDB threads buffer)}
+@findex gdb-display-disassembly-for-thread
+Display disassembly buffer for the thread at current line.
+(@code{gdb-display-disassembly-for-thread})
+
+@item f
+@kindex f @r{(GDB threads buffer)}
+@findex gdb-display-stack-for-thread
+Display stack buffer for the thread at current line.
+(@code{gdb-display-stack-for-thread}).
+
+@item l
+@kindex l @r{(GDB threads buffer)}
+@findex gdb-display-locals-for-thread
+Display locals buffer for the thread at current line.
+(@code{gdb-display-locals-for-thread}).
+
+@item r
+@kindex r @r{(GDB threads buffer)}
+@findex gdb-display-registers-for-thread
+Display registers buffer for the thread at current line.
+(@code{gdb-display-registers-for-thread}).
+@end table
+
+Pressing their upper-case counterparts, @kbd{D}, @kbd{F} ,@kbd{L} and
+@kbd{R} displays the corresponding buffer in a new frame.
+
+  When you create a buffer showing information about some specific
+thread, it becomes bound to that thread and keeps showing actual
+information while you debug your program.  Every GDB buffer contains a
+number of thread it shows information for in its mode name.  Thread
+number is also included in the buffer name of bound buffers to prevent
+buffer names clashing.
+
+Further commands are available in the threads buffer which depend on the
+mode of GDB that is used for controlling execution of your program.
+(@pxref{Multithreaded Debugging, Stopping and Starting Multi-threaded Programs}).
 
 @node Stack Buffer
 @subsubsection Stack Buffer
@@ -1069,26 +1153,11 @@ With GDB 6.4 or later, recently changed register values display with
 press @key{SPC} to toggle the display of floating point registers
 (@code{toggle-gdb-all-registers}).
 
-@item Assembler Buffer
-The assembler buffer displays the current frame as machine code.  An
+@item Disassembly Buffer
+The disassembly buffer displays the current frame as machine code.  An
 arrow points to the current instruction, and you can set and remove
 breakpoints as in a source buffer.  Breakpoint icons also appear in
 the fringe or margin.
-
-@item Threads Buffer
-@findex gdb-threads-select
-The threads buffer displays a summary of all threads currently in your
-program (@pxref{Threads, Threads, Debugging programs with multiple
-threads, gdb, The GNU debugger}).  Move point to any thread in the
-list and press @key{RET} to select it (@code{gdb-threads-select}) and
-display the associated source in the primary source buffer.
-Alternatively, click @kbd{Mouse-2} on a thread to select it.  If the
-locals buffer is visible, its contents update to display the variables
-that are local in the new thread.
-
-When there is more than one main thread and the threads buffer is
-present, Emacs displays the selected thread number in the mode line of
-many of the GDB-UI Buffers.
 
 @item Memory Buffer
 The memory buffer lets you examine sections of program memory
@@ -1102,8 +1171,9 @@ size for these data items.
 
 When @code{gdb-many-windows} is non-@code{nil}, the threads buffer
 shares its window with the breakpoints buffer, and the locals buffer
-with the registers buffer.  To switch from one to the other click with
-@kbd{mouse-1} on the relevant button in the header line.
+with the registers buffer. To switch from one to the other click with
+@kbd{Mouse-1} on the relevant button in the header line or press
+@kbd{TAB} inside the buffer.
 
 @node Watch Expressions
 @subsubsection Watch Expressions
@@ -1170,6 +1240,97 @@ To automatically raise the speedbar every time the display of watch
 expressions updates, set @code{gdb-speedbar-auto-raise} to
 non-@code{nil}.  This can be useful if you are debugging with a full
 screen Emacs frame.
+
+@node Multithreaded Debugging
+@subsubsection Stopping and Starting Multi-threaded Programs
+@cindex Multithreaded debugging in GDB
+
+@subsubheading All-stop Debugging
+
+In all-stop mode, whenever your program stops, @emph{all} threads of
+execution stop.  Likewise, whenever you restart the program, all
+threads start executing.  @xref{All-Stop Mode, , All-Stop Mode, gdb,
+The GNU debugger}.  You can enable this behaviour in Emacs by setting
+@code{gdb-non-stop-setting} to @code{nil} before starting a debugging
+session.
+
+@subsubheading Non-stop Debugging
+@cindex Non-stop debugging in GDB
+
+For some multi-threaded targets, GDB supports a further mode of
+operation in which you can examine stopped program threads in the
+debugger while other threads continue to execute freely.
+@xref{Non-Stop Mode, , Non-Stop Mode, gdb, The GNU debugger}.
+This is referred to as @dfn{non-stop} mode.
+
+Versions of GDB prior to 7.0 do not support non-stop mode and it does
+not work on all targets.  In such cases, Emacs uses all-stop mode
+regardless of the value of @code{gdb-non-stop-setting}.
+
+@vindex gdb-non-stop-setting
+If the variable @code{gdb-non-stop-setting} is non-@code{nil} (the
+default value), Emacs tries to start GDB in non-stop mode.  Note that
+GDB debugging session needs to be restarted for change of this setting
+to take effect.
+
+@vindex gdb-switch-when-another-stopped
+When a thread stops in non-stop mode, Emacs automatically switches to
+that thread.  It may be undesirable to allow switching of current
+thread when some other stopped thread is already selected.  Set
+@code{gdb-switch-when-another-stopped} to @code{nil} to prevent this.
+
+@vindex gdb-switch-reasons
+Emacs can decide whether or not to switch to the stopped thread
+depending on the reason which caused the stop.  Customize
+@code{gdb-switch-reasons} to select stop reasons which make Emacs
+switch thread.
+
+@vindex gdb-stopped-hooks
+The variable @code{gdb-stopped-hooks} allows you to execute your
+functions whenever some thread stops.
+
+  In non-stop mode, you can switch between different modes for GUD
+execution control commands.
+
+@vindex gdb-gud-control-all-threads
+@table @dfn
+@item Non-stop/A
+
+When @code{gdb-gud-control-all-threads} is @code{t} (the default
+value), interruption and continuation commands apply to all threads,
+so you can halt or continue all your threads with one command using
+@code{gud-stop-subjob} and @code{gud-cont}, respectively.  The
+@samp{Go} button is shown on the toolbar when at least one thread is
+stopped, whereas @samp{Stop} button is shown when at least one thread
+is running.
+
+@item Non-stop/T
+
+When @code{gdb-gud-control-all-threads} is @code{nil}, only the
+current thread is stopped/continued.  @samp{Go} and @samp{Stop}
+buttons on the GUD toolbar are shown depending on the state of current
+thread.
+@end table
+
+You can change the current value of @code{gdb-gud-control-all-threads}
+from the tool bar or from @samp{GUD->GDB-MI} menu.
+
+  Stepping commands always apply to the current thread.
+
+@subsubheading Fine Thread Control
+
+  In non-stop mode, you can interrupt/continue your threads without
+selecting them.  Hitting @kbd{i} in threads buffer interrupts thread
+under point, @kbd{c} continues it, @kbd{s} steps through.  More such
+commands may be added in the future.
+
+Combined with creating bound buffers for any thread, this allows you
+to change and track state of many threads in the same time.
+
+  Note that when you interrupt a thread, it stops with @samp{signal
+received} reason.  If that reason is included in your
+@code{gdb-switch-reasons} (it is by default), Emacs will switch to
+that thread.
 
 @node Executing Lisp
 @section Executing Lisp Expressions
@@ -1250,29 +1411,33 @@ recompile it.  Nonetheless, it loads @file{@var{lib}.elc}.  This is
 because people often leave unfinished edits the source file, and don't
 recompile it until they think it is ready to use.
 
-  Because the argument to @code{load-library} is usually not in itself
-a valid file name, file name completion is not available.  Indeed, when
-using this command, you usually do not know exactly what file name
-will be used.
-
 @vindex load-path
-  The sequence of directories searched by @kbd{M-x load-library} is
-specified by the variable @code{load-path}, a list of strings that are
-directory names.  The default value of the list contains the directories where
+  The variable @code{load-path} specifies the sequence of directories
+searched by @kbd{M-x load-library}.  Its value should be a list of
+strings that are directory names; in addition, @code{nil} in this list
+stands for the current default directory.  (Generally, it is not a
+good idea to put @code{nil} in the list; if you find yourself wishing
+that @code{nil} were in the list, most likely what you really want is
+to do @kbd{M-x load-file} this once.)
+
+  The default value of @code{load-path} is a list of directories where
 the Lisp code for Emacs itself is stored.  If you have libraries of
-your own, put them in a single directory and add that directory
-to @code{load-path}.  @code{nil} in this list stands for the current default
-directory, but it is probably not a good idea to put @code{nil} in the
-list.  If you find yourself wishing that @code{nil} were in the list,
-most likely what you really want to do is use @kbd{M-x load-file}
-this once.
+your own, put them in a single directory and add that directory to
+@code{load-path}, by adding a line like this to your init file
+(@pxref{Init File}):
+
+@example
+(add-to-list 'load-path "/path/to/lisp/libraries")
+@end example
 
 @cindex autoload
-  Often you do not have to give any command to load a library, because
-the commands defined in the library are set up to @dfn{autoload} that
-library.  Trying to run any of those commands calls @code{load} to load
-the library; this replaces the autoload definitions with the real ones
-from the library.
+  Some commands are @dfn{autoloaded}: when you run them, Emacs will
+automatically load the associated library first.  For instance, the
+@code{compile} and @code{compilation-mode} commands
+(@pxref{Compilation}) are autoloaded; if you call either command,
+Emacs automatically loads the @code{compile} library.  In contrast,
+the command @code{recompile} is not autoloaded, so it is unavailable
+until you load the @code{compile} library.
 
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
@@ -1403,6 +1568,13 @@ after each expression.  This command reads the Lisp expression before
 point, evaluates it, and inserts the value in printed representation
 before point.  The result is a complete typescript of the expressions
 you have evaluated and their values.
+
+@vindex initial-scratch-message
+  At startup, the @samp{*scratch*} buffer contains a short message, in
+the form of a Lisp comment, that explains what it is for.  This
+message is controlled by the variable @code{initial-scratch-message},
+which should be either a string or @code{nil}.  If you set it to the
+empty string, or @code{nil}, the initial message is suppressed.
 
 @findex lisp-interaction-mode
   All other commands in Lisp Interaction mode are the same as in Emacs

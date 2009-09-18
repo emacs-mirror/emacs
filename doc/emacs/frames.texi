@@ -257,8 +257,8 @@ the primary selection.  @xref{Killing}.
 is not normally saved to the primary selection.  However, if you
 change the variable @code{select-active-regions} to @code{t}, the
 region is saved to the primary selection each time you activate the
-mark (the primary selection is @emph{not} updated if you subsequently
-change the region by moving point).  If you change the variable
+mark.  The primary selection is updated if you subsequently change the
+region by moving point.  If you change the variable
 @code{yank-pop-change-selection} to @code{t}, rotating the kill ring
 with @kbd{M-y} (@code{yank-pop}) also saves the new yank to the
 primary selection (@pxref{Yanking}).
@@ -1132,7 +1132,8 @@ press the mouse button.  Xterm Mouse mode is a global minor mode
 (@pxref{Minor Modes}).  Repeating the command turns the mode off
 again.
 
-In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode} to
+@findex gpm-mouse-mode
+In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
 enable terminal mouse support.  You must have the gpm package
 installed and running on your system in order for this to work.
 

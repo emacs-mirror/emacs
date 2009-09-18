@@ -326,12 +326,12 @@ A nil value means don't show the file in the list."
 (defvar speedbar-update-speed dframe-update-speed)
 (make-obsolete-variable 'speedbar-update-speed
 			'dframe-update-speed
-			"speedbar 1.0pre3")
+			"speedbar 1.0pre3 (Emacs 23.1)")
 
 (defvar speedbar-navigating-speed dframe-update-speed)
 (make-obsolete-variable 'speedbar-navigating-speed
 			'dframe-update-speed
-			"speedbar 1.0pre3")
+			"speedbar 1.0pre3 (Emacs 23.1)")
 ;;; END REMOVE THESE
 
 (defcustom speedbar-frame-parameters '((minibuffer . nil)
@@ -645,7 +645,7 @@ Use the function `speedbar-add-ignored-directory-regexp', or customize the
 variable `speedbar-ignored-directory-expressions' to modify this variable.")
 
 (define-obsolete-variable-alias 'speedbar-ignored-path-expressions
-  'speedbar-ignored-directory-expressions)
+  'speedbar-ignored-directory-expressions "22.1")
 
 (defcustom speedbar-ignored-directory-expressions
   '("[/\\]logs?[/\\]\\'")
@@ -690,7 +690,7 @@ function `speedbar-extension-list-to-regex'.")
 ;; change in the future.
 (defcustom speedbar-supported-extension-expressions
   (append '(".[ch]\\(\\+\\+\\|pp\\|c\\|h\\|xx\\)?" ".tex\\(i\\(nfo\\)?\\)?"
-	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".f\\(90\\|77\\|or\\)?")
+	    ".el" ".emacs" ".l" ".lsp" ".p" ".java" ".js" ".f\\(90\\|77\\|or\\)?")
 	  (if speedbar-use-imenu-flag
 	      '(".ada" ".p[lm]" ".tcl" ".m" ".scm" ".pm" ".py" ".g"
 		;; html is not supported by default, but an imenu tags package
@@ -4134,22 +4134,22 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 ;;; Obsolete variables and functions
 
 (define-obsolete-variable-alias
-  'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp)
+  'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp "22.1")
 
 (define-obsolete-function-alias 'speedbar-add-ignored-path-regexp
-  'speedbar-add-ignored-directory-regexp)
+  'speedbar-add-ignored-directory-regexp "22.1")
 
 (define-obsolete-function-alias 'speedbar-line-path
-  'speedbar-line-directory)
+  'speedbar-line-directory "22.1")
 
 (define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory)
+  'speedbar-buffers-line-directory "22.1")
 
 (define-obsolete-function-alias 'speedbar-path-line
-  'speedbar-directory-line)
+  'speedbar-directory-line "22.1")
 
 (define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory)
+  'speedbar-buffers-line-directory "22.1")
 
 (provide 'speedbar)
 

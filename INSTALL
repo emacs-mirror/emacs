@@ -211,9 +211,8 @@ BDF Unicode fonts etl-unicode.tar.gz are available from
 fonts can also be used by ps-print and ps-mule to print Unicode
 characters.
 
-Finally, the Web pages <URL:http://www.nongnu.org/freefont/index.html>
-and <URL:http://www.nongnu.org/freefont/resources.html> list a large
-number of free Unicode fonts.
+Finally, the Web page <URL:http://www.gnu.org/software/freefont/>
+lists a large number of free Unicode fonts.
 
 * GNU/Linux development packages
 
@@ -757,9 +756,8 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `cvtmail', `fakemail', `hexl',
-    `movemail', `profile', `rcs2log', and `vcdiff' are used by Emacs;
-    they do need to be copied.
+- The programs `fakemail', `hexl', `movemail', `profile', `rcs2log',
+    and `vcdiff' are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'
     are intended to be run by users; they are handled below.
 - The programs `make-docfile' and `test-distrib' were

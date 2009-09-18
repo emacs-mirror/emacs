@@ -1,3 +1,24 @@
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-05  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.xcodeproj/project.pbxproj: Drop deployment target
+	and zerolink, remove shell script dependencies (let makefiles
+	handle), adjust paths.
+
+2009-05-17  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* Cocoa/Emacs.xcodeproj/project.pbxproj: Update and redo targets
+	to utilize Makefiles for assembly portions of the build.
+	* INSTALL: Describe the Xcode project.
+
+2009-05-06  Travis Jeffery  <t.jeffery@utoronto.ca>  (tiny change)
+
+	* Cocoa/Emacs.base/Contents/Info.plist: Add editor role for
+	.markdown, .mkdn.
+
 2009-03-14  David Reitter  <david.reitter@gmail.com>
 
 	* Cocoa/Emacs.base/Contents/Resources/preferences.nib/classes.nib:

@@ -668,6 +668,17 @@ string with the suggested prefix."
   :group 'gnus-summary
   :type 'boolean)
 
+(defcustom gnus-mark-copied-or-moved-articles-as-expirable nil
+  "If non-nil, mark articles copied or moved to auto-expire group as expirable.
+If nil, the expirable marks will be unchanged except that the marks
+will be removed when copying or moving articles to a group that has
+not turned auto-expire on.  If non-nil, articles that have been read
+will be marked as expirable when being copied or moved to a group in
+which auto-expire is turned on."
+  :version "23.2"
+  :type 'boolean
+  :group 'gnus-summary-marks)
+
 (defcustom gnus-view-pseudos nil
   "*If `automatic', pseudo-articles will be viewed automatically.
 If `not-confirm', pseudos will be viewed automatically, and the user
@@ -4991,7 +5002,7 @@ Unscored articles will be counted as having a score of zero."
 	    (lambda (header)
 	      (setq previous-time
 		    (condition-case ()
-			(time-to-seconds (mail-header-parse-date
+			(gnus-float-time (mail-header-parse-date
 					  (mail-header-date header)))
 		      (error previous-time))))
 	    (sort
@@ -8273,7 +8284,7 @@ articles that are younger than AGE days."
 
 (defalias 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
 (make-obsolete
- 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread)
+ 'gnus-summary-delete-marked-as-read 'gnus-summary-limit-to-unread "Emacs 20.4")
 
 (defun gnus-summary-limit-to-unread (&optional all)
   "Limit the summary buffer to articles that are not marked as read.
@@ -8368,7 +8379,7 @@ If UNREPLIED (the prefix), limit to unreplied articles."
 
 (defalias 'gnus-summary-delete-marked-with 'gnus-summary-limit-exclude-marks)
 (make-obsolete 'gnus-summary-delete-marked-with
-	       'gnus-summary-limit-exclude-marks)
+	       'gnus-summary-limit-exclude-marks "Emacs 20.4")
 
 (defun gnus-summary-limit-exclude-marks (marks &optional reverse)
   "Exclude articles that are marked with MARKS (e.g. \"DK\").
@@ -9753,11 +9764,12 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 				       (list (cdr art-group)))))
 
 	    ;; See whether the article is to be put in the cache.
-	    (let ((marks (if (gnus-group-auto-expirable-p to-group)
-			     gnus-article-mark-lists
-			   (delete '(expirable . expire)
-				   (copy-sequence gnus-article-mark-lists))))
-		  (to-article (cdr art-group)))
+	    (let* ((expirable (gnus-group-auto-expirable-p to-group))
+		   (marks (if expirable
+			      gnus-article-mark-lists
+			    (delete '(expirable . expire)
+				    (copy-sequence gnus-article-mark-lists))))
+		   (to-article (cdr art-group)))
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
@@ -9795,6 +9807,17 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		      (gnus-add-marked-articles
 		       to-group (cdar marks) (list to-article) info)))
 		  (setq marks (cdr marks)))
+
+		(when (and expirable
+			   gnus-mark-copied-or-moved-articles-as-expirable
+			   (not (memq 'expire to-marks)))
+		  ;; Mark this article as expirable.
+		  (push 'expire to-marks)
+		  (when (equal to-group gnus-newsgroup-name)
+		    (push to-article gnus-newsgroup-expirable))
+		  ;; Copy the expirable mark to other group.
+		  (gnus-add-marked-articles
+		   to-group 'expire (list to-article) info))
 
 		(gnus-request-set-mark
 		 to-group (list (list (list to-article) 'add to-marks))))
@@ -10798,7 +10821,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 (defalias 'gnus-summary-mark-as-unread-forward
   'gnus-summary-tick-article-forward)
 (make-obsolete 'gnus-summary-mark-as-unread-forward
-	       'gnus-summary-tick-article-forward)
+	       'gnus-summary-tick-article-forward "Emacs 20.4")
 (defun gnus-summary-tick-article-forward (n)
   "Tick N articles forwards.
 If N is negative, tick backwards instead.
@@ -10809,7 +10832,7 @@ The difference between N and the number of articles ticked is returned."
 (defalias 'gnus-summary-mark-as-unread-backward
   'gnus-summary-tick-article-backward)
 (make-obsolete 'gnus-summary-mark-as-unread-backward
-	       'gnus-summary-tick-article-backward)
+	       'gnus-summary-tick-article-backward "Emacs 20.4")
 (defun gnus-summary-tick-article-backward (n)
   "Tick N articles backwards.
 The difference between N and the number of articles ticked is returned."
@@ -10817,7 +10840,7 @@ The difference between N and the number of articles ticked is returned."
   (gnus-summary-mark-forward (- n) gnus-ticked-mark))
 
 (defalias 'gnus-summary-mark-as-unread 'gnus-summary-tick-article)
-(make-obsolete 'gnus-summary-mark-as-unread 'gnus-summary-tick-article)
+(make-obsolete 'gnus-summary-mark-as-unread 'gnus-summary-tick-article "Emacs 20.4")
 (defun gnus-summary-tick-article (&optional article clear-mark)
   "Mark current article as unread.
 Optional 1st argument ARTICLE specifies article number to be marked as unread.

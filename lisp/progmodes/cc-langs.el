@@ -461,7 +461,7 @@ The function is called even when font locking is disabled.
 When the mode is initialized, this function is called with
 parameters \(point-min), \(point-max) and <buffer size>."
   t nil
-  (c c++ objc) 'c-neutralize-syntax-in-CPP
+  (c c++ objc) 'c-extend-and-neutralize-syntax-in-CPP
   awk 'c-awk-extend-and-syntax-tablify-region)
 (c-lang-defvar c-before-font-lock-function
 	       (c-lang-const c-before-font-lock-function))
@@ -2149,7 +2149,7 @@ This construct is \"<keyword> <expression> :\"."
   t       nil
   (c c++) '("NULL" ;; Not a keyword, but practically works as one.
 	    "false" "true")		; Defined in C99.
-  objc    '("nil" "Nil")
+  objc    '("nil" "Nil" "YES" "NO" "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.

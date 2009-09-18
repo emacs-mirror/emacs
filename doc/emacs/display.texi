@@ -54,14 +54,14 @@ commands:
 @table @kbd
 @item C-l
 Scroll the selected window to center point vertically within it and
-redisplay the screen (@code{recenter-top-bottom}).
+maybe redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
-@itemx @key{NEXT}
-@itemx @key{PAGEDOWN}
+@itemx @key{next}
+@itemx @key{PageDown}
 Scroll forward by nearly a full window (@code{scroll-up}).
 @item M-v
-@itemx @key{PRIOR}
-@itemx @key{PAGEUP}
+@itemx @key{prior}
+@itemx @key{PageUp}
 Scroll backward (@code{scroll-down}).
 @item C-M-l
 Scroll heuristically to bring useful information onto the screen
@@ -73,9 +73,12 @@ Scroll heuristically to bring useful information onto the screen
   The most basic scrolling command is @kbd{C-l}
 (@code{recenter-top-bottom}).  This @dfn{recenters} the selected
 window, scrolling it so that the current screen line is exactly in the
-center of the window, or as close to the center as possible.  It also
-clears the screen and redisplays all windows; this is useful in case
-the screen becomes garbled for any reason (@pxref{Screen Garbled}).
+center of the window, or as close to the center as possible.  If the
+variable @var{recenter-redisplay} is non-nil, it also clears the
+screen and redisplays all windows; this is useful in case the screen
+becomes garbled for any reason (@pxref{Screen Garbled}).  If
+@var{recenter-redisplay} has the special value @code{tty} (the
+default), then redisplay only happens on tty frames.
 
   Typing @kbd{C-l} twice in a row (@kbd{C-l C-l}) scrolls the window
 so that point is on the topmost screen line.  Typing a third @kbd{C-l}
@@ -95,12 +98,17 @@ puts point on the bottom line, and @kbd{C-u - 5 C-l} puts it five
 lines from the bottom.  When given an argument, @kbd{C-l} does not
 clear the screen or cycle through different screen positions.
 
+@vindex recenter-redisplay
+  When the variable @code{recenter-redisplay} is non-nil, the
+@code{recenter} and @code{recenter-top-bottom} commands redisplay the
+selected frame when they are invoked without a prefix argument.
+
 @kindex C-v
 @kindex M-v
-@kindex NEXT
-@kindex PRIOR
-@kindex PAGEDOWN
-@kindex PAGEUP
+@kindex next
+@kindex prior
+@kindex PageDown
+@kindex PageUp
 @findex scroll-up
 @findex scroll-down
   To read the buffer a windowful at a time, use @kbd{C-v}
@@ -115,7 +123,7 @@ top, it ends up at the new top of the window.
 @vindex next-screen-context-lines
   The variable @code{next-screen-context-lines} controls the number of
 lines of overlap left by @kbd{C-v} or @kbd{M-v}; by default, it is 2.
-The function keys @key{NEXT} and @key{PRIOR}, or @key{PageDown} and
+The function keys @key{next} and @key{prior}, or @key{PageDown} and
 @key{PageUp}, are equivalent to @kbd{C-v} and @kbd{M-v} respectively.
 
   You can supply @kbd{C-v} or @kbd{M-v} with a numeric prefix argument
@@ -205,9 +213,9 @@ screen.  To disable automatic horizontal scrolling, set the variable
 
 @vindex hscroll-margin
   The variable @code{hscroll-margin} controls how close point can get
-to the window's edges before the window is automatically scrolled.  It
+to the window's edges before automatic scrolling occurs.  It
 is measured in columns.  If the value is 5, then moving point within 5
-columns of the edge causes horizontal scrolling away from that edge.
+columns of an edge causes horizontal scrolling away from that edge.
 
 @vindex hscroll-step
   The variable @code{hscroll-step} determines how many columns to
@@ -500,6 +508,12 @@ special case, an argument of 0 removes any scaling currently active.
 default face, just like @kbd{C-x C-+} and @kbd{C-x C--} respectively.
 You may find it convenient to bind to these commands, rather than
 @code{text-scale-adjust}.
+
+@cindex set buffer face height
+@findex text-scale-set
+The command @code{text-scale-set} sets the height of the default face
+in the current buffer to an absolute level specified by its prefix
+argument.
 
 @findex text-scale-mode
   The above commands automatically enable or disable the minor mode
@@ -807,11 +821,6 @@ bitmap in left fringe, the bottom angle bitmap in right fringe, and
 both arrow bitmaps in right fringe.  To show just the angle bitmaps in
 the left fringe, but no arrow bitmaps, use @code{((top .  left)
 (bottom . left))}.
-
-@vindex default-indicate-buffer-boundaries
-  The value of the variable @code{default-indicate-buffer-boundaries}
-is the default value for @code{indicate-buffer-boundaries} in buffers
-that do not override it.
 
 @node Useless Whitespace
 @section Useless Whitespace

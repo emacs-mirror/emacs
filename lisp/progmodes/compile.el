@@ -234,11 +234,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      (2 (compilation-face '(3))))
 
     (gnu
-     ;; I have no idea what this first line is supposed to match, but it
-     ;; makes things ambiguous with output such as "foo:344:50:blabla" since
-     ;; the "foo" part can match this first line (in which case the file
-     ;; name as "344").  To avoid this, the second line disallows filenames
-     ;; exclusively composed of digits.  --Stef
+     ;; The first line matches the program name for
+
+     ;;     PROGRAM:SOURCE-FILE-NAME:LINENO: MESSAGE
+
+     ;; format, which is used for non-interactive programs other than
+     ;; compilers (e.g. the "jade:" entry in compilation.txt).
+
+     ;; This first line makes things ambiguous with output such as
+     ;; "foo:344:50:blabla" since the "foo" part can match this first
+     ;; line (in which case the file name as "344").  To avoid this,
+     ;; the second line disallows filenames exclusively composed of
+     ;; digits.
+
      ;; Similarly, we get lots of false positives with messages including
      ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
      ;; the last line tries to rule out message where the info after the
@@ -277,9 +285,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
 	 append)))
 
-    (maven
-     ;; Maven is a popular build tool for Java.  Maven is Free Software.
-     "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
+    ;; This regexp is pathologically slow on long lines (Bug#3441).
+    ;; (maven
+    ;;  ;; Maven is a popular build tool for Java.  Maven is Free Software.
+    ;;  "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
 
     ;; Should be lint-1, lint-2 (SysV lint)
     (mips-1
@@ -974,7 +983,17 @@ FMTS is a list of format specs for transforming the file name.
 	      (line (nth 2 item))
 	      (col (nth 3 item))
 	      (type (nth 4 item))
+              (pat (car item))
 	      end-line end-col fmt)
+          ;; omake reports some error indented, so skip the indentation.
+          ;; another solution is to modify (some?) regexps in
+          ;; `compilation-error-regexp-alist'.
+          ;; note that omake usage is not limited to ocaml and C (for stubs).
+          (unless (string-match (concat "^" (regexp-quote "^ *")) pat)
+            (setq pat (concat "^ *"
+                              (if (= ?^ (aref pat 0))
+                                  (substring pat 1)
+                                  pat))))
 	  (if (consp file)	(setq fmt (cdr file)	  file (car file)))
 	  (if (consp line)	(setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
@@ -983,7 +1002,7 @@ FMTS is a list of format specs for transforming the file name.
 	      ;; The old compile.el had here an undocumented hook that
 	      ;; allowed `line' to be a function that computed the actual
 	      ;; error location.  Let's do our best.
-	      `(,(car item)
+	      `(,pat
 		(0 (save-match-data
 		     (compilation-compat-error-properties
 		      (funcall ',line (cons (match-string ,file)
@@ -995,7 +1014,7 @@ FMTS is a list of format specs for transforming the file name.
 	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
 	      (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
-	    `(,(nth 0 item)
+	    `(,pat
 
 	      ,@(when (integerp file)
 		  `((,file ,(if (consp type)
@@ -1739,9 +1758,15 @@ and runs `compilation-filter-hook'."
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
             ;; `save-excursion' doesn't use the right insertion-type for us.
-            (pos (copy-marker (point) t)))
+            (pos (copy-marker (point) t))
+	    (min (point-min-marker))
+	    (max (point-max-marker)))
         (unwind-protect
             (progn
+	      ;; If we are inserting at the end of the accessible part
+	      ;; of the buffer, keep the inserted text visible.
+	      (set-marker-insertion-type max t)
+	      (widen)
               (goto-char (process-mark proc))
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
@@ -1751,7 +1776,10 @@ and runs `compilation-filter-hook'."
                 (comint-carriage-motion (process-mark proc) (point)))
               (set-marker (process-mark proc) (point))
               (run-hooks 'compilation-filter-hook))
-          (goto-char pos))))))
+	  (goto-char pos)
+          (narrow-to-region min max)
+	  (set-marker min nil)
+	  (set-marker max nil))))))
 
 ;;; test if a buffer is a compilation buffer, assuming we're in the buffer
 (defsubst compilation-buffer-internal-p ()
@@ -2050,10 +2078,12 @@ and overlay is highlighted between MK and END-MK."
       (if (window-dedicated-p (selected-window))
           (pop-to-buffer (marker-buffer mk))
         (switch-to-buffer (marker-buffer mk))))
-    ;; If narrowing gets in the way of going to the right place, widen.
     (unless (eq (goto-char mk) (point))
+      ;; If narrowing gets in the way of going to the right place, widen.
       (widen)
-      (goto-char mk))
+      (if next-error-move-function
+	  (funcall next-error-move-function msg mk)
+	(goto-char mk)))
     (if end-mk
         (push-mark end-mk t)
       (if mark-active (setq mark-active)))

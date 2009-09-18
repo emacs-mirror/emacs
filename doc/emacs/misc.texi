@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -72,8 +73,8 @@ set or customize the variable @code{doc-view-resolution}.
 @menu
 * Navigation::	Navigation inside DocView buffers.
 * Searching::	Searching inside documents.
-* Slicing::	Specifing which part of pages should be displayed.
-* Conversion::	Influencing and triggering converison.
+* Slicing::	Specifying which part of pages should be displayed.
+* Conversion::	Influencing and triggering conversion.
 @end menu
 
 @node Navigation
@@ -188,7 +189,6 @@ size.  The current page is converted first.
 Gnus is an Emacs package primarily designed for reading and posting
 Usenet news.  It can also be used to read and respond to messages from a
 number of other sources---mail, remote directories, digests, and so on.
-
 Here we introduce Gnus and describe several basic features.
 @ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
@@ -564,8 +564,9 @@ the shell to use.  This variable is initialized based on your
 @env{SHELL} environment variable when Emacs is started.  If the file
 name is relative, Emacs searches the directories in the list
 @code{exec-path}; this list is initialized based on the environment
-variable @env{PATH} when Emacs is started.  Your @file{.emacs} file
-can override either or both of these default initializations.
+variable @env{PATH} when Emacs is started.  Your init file can
+override either or both of these default initializations (@pxref{Init
+File}).
 
   Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete,
 unless you end the command with @samp{&} to make it asynchronous.  To
@@ -594,13 +595,13 @@ before point in that buffer.
 @subsection Interactive Inferior Shell
 
 @findex shell
-  To run a subshell interactively, putting its typescript in an Emacs
-buffer, use @kbd{M-x shell}.  This creates (or reuses) a buffer named
-@samp{*shell*} and runs a subshell with input coming from and output going
-to that buffer.  That is to say, any ``terminal output'' from the subshell
-goes into the buffer, advancing point, and any ``terminal input'' for
-the subshell comes from text in the buffer.  To give input to the subshell,
-go to the end of the buffer and type the input, terminated by @key{RET}.
+  To run a subshell interactively, use @kbd{M-x shell}.  This creates
+(or reuses) a buffer named @samp{*shell*} and runs a subshell with
+input coming from and output going to that buffer.  That is to say,
+any ``terminal output'' from the subshell goes into the buffer,
+advancing point, and any ``terminal input'' for the subshell comes
+from text in the buffer.  To give input to the subshell, go to the end
+of the buffer and type the input, terminated by @key{RET}.
 
   Emacs does not wait for the subshell to do anything.  You can switch
 windows or buffers and edit them while the shell is waiting, or while it is
@@ -627,13 +628,14 @@ Subshells in different buffers run independently and in parallel.
 @cindex @env{ESHELL} environment variable
 @cindex @env{SHELL} environment variable
   The file name used to load the subshell is the value of the variable
-@code{explicit-shell-file-name}, if that is non-@code{nil}.  Otherwise,
-the environment variable @env{ESHELL} is used, or the environment
-variable @env{SHELL} if there is no @env{ESHELL}.  If the file name
-specified is relative, the directories in the list @code{exec-path} are
-searched; this list is initialized based on the environment variable
-@env{PATH} when Emacs is started.  Your @file{.emacs} file can override
-either or both of these default initializations.
+@code{explicit-shell-file-name}, if that is non-@code{nil}.
+Otherwise, the environment variable @env{ESHELL} is used, or the
+environment variable @env{SHELL} if there is no @env{ESHELL}.  If the
+file name specified is relative, the directories in the list
+@code{exec-path} are searched; this list is initialized based on the
+environment variable @env{PATH} when Emacs is started.  Your init file
+can override either or both of these default initializations.
+(@pxref{Init File}).
 
   Emacs sends the new shell the contents of the file
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
@@ -1043,12 +1045,12 @@ Move point to the following prompt (@code{comint-next-prompt}).
 @kindex C-c RET @r{(Shell mode)}
 @findex comint-copy-old-input
 @item C-c @key{RET}
-Copy the input command which point is in, inserting the copy at the end
-of the buffer (@code{comint-copy-old-input}).  This is useful if you
-move point back to a previous command.  After you copy the command, you
-can submit the copy as input with @key{RET}.  If you wish, you can
-edit the copy before resubmitting it.  If you use this command on an
-output line, it copies that line to the end of the buffer.
+Copy the input command at point, inserting the copy at the end of the
+buffer (@code{comint-copy-old-input}).  This is useful if you move
+point back to a previous command.  After you copy the command, you can
+submit the copy as input with @key{RET}.  If you wish, you can edit
+the copy before resubmitting it.  If you use this command on an output
+line, it copies that line to the end of the buffer.
 
 @item Mouse-2
 If @code{comint-use-prompt-regexp} is @code{nil} (the default), copy
@@ -1212,10 +1214,10 @@ you can enable ANSI Color mode.  Here is how to do this:
 @subsection Emacs Terminal Emulator
 @findex term
 
-  To run a subshell in a terminal emulator, putting its typescript in
-an Emacs buffer, use @kbd{M-x term}.  This creates (or reuses) a
-buffer named @samp{*terminal*}, and runs a subshell with input coming
-from your keyboard, and output going to that buffer.
+  To run a subshell in a terminal emulator, use @kbd{M-x term}.  This
+creates (or reuses) a buffer named @samp{*terminal*}, and runs a
+subshell with input coming from your keyboard, and output going to
+that buffer.
 
   The terminal emulator uses Term mode, which has two input modes.  In
 line mode, Term basically acts like Shell mode; see @ref{Shell Mode}.
@@ -1238,7 +1240,7 @@ appearance of the window matches what it would be on a real terminal.
 You can actually run Emacs inside an Emacs Term window.
 
   You can use Term mode to communicate with a device connected to a
-serial port of your computer, see @ref{Serial Terminal}.
+serial port of your computer.  @xref{Serial Terminal}.
 
   The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
@@ -1497,19 +1499,21 @@ can then select that frame to begin editing.
 with an error message.  If the Emacs process has no existing
 frame---which can happen if it was started as a daemon (@pxref{Emacs
 Server})---then Emacs opens a frame on the terminal in which you
-called @command{emacsclient}, as though you had used the @samp{-t}
-option (@pxref{emacsclient Options}).
+called @command{emacsclient}.
 
-  On a graphical display, switching to the Emacs server is
-straightforward---just select its (system-level) window.  If you are
-using a text-only terminal, there are two ways to switch between
-@command{emacsclient}'s shell and the Emacs server: (i) run the Emacs
-server and @command{emacsclient} on different virtual terminals, and
-switch to the Emacs server's virtual terminal after calling
-@command{emacsclient}; or (ii) call @command{emacsclient} from within
-the Emacs server itself, using Shell mode (@pxref{Interactive Shell})
-or Term mode (@pxref{Term Mode}); @code{emacsclient} blocks only the
-subshell under Emacs, and you can still use Emacs to edit the file.
+  You can also force @command{emacsclient} to open a new frame on a
+graphical display, or on a text-only terminal, using the @samp{-c} and
+@samp{-t} options.  @xref{emacsclient Options}.
+
+  If you are running on a single text-only terminal, you can switch
+between @command{emacsclient}'s shell and the Emacs server using one
+of two methods: (i) run the Emacs server and @command{emacsclient} on
+different virtual terminals, and switch to the Emacs server's virtual
+terminal after calling @command{emacsclient}; or (ii) call
+@command{emacsclient} from within the Emacs server itself, using Shell
+mode (@pxref{Interactive Shell}) or Term mode (@pxref{Term Mode});
+@code{emacsclient} blocks only the subshell under Emacs, and you can
+still use Emacs to edit the file.
 
 @kindex C-x #
 @findex server-edit
@@ -1546,9 +1550,9 @@ with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
 @command{emacsclient} that you are finished.
 
 @vindex server-window
-  If you set the variable @code{server-window} to a window or a frame,
-@kbd{C-x #} always displays the next server buffer in that window or
-in that frame.
+  If you set the value of the variable @code{server-window} to a
+window or a frame, @kbd{C-x #} always displays the next server buffer
+in that window or in that frame.
 
 @node emacsclient Options
 @subsection @code{emacsclient} Options
@@ -1574,20 +1578,23 @@ listed below:
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
 Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.  If
-@var{command} is the empty string, then start Emacs in daemon mode and
-try connecting again.  For example, the following setting for the
-@env{EDITOR} environment variable will always give you an editor, even
-if no Emacs server is running:
+This is useful when running @code{emacsclient} in a script.  For
+example, the following setting for the @env{EDITOR} environment
+variable will always give you an editor, even if no Emacs server is
+running:
 
 @example
 EDITOR="emacsclient --alternate-editor emacs +%d %s"
 @end example
 
 @noindent
+As a special exception, if @var{command} is the empty string, then
+@code{emacsclient} starts Emacs in daemon mode and then tries
+connecting again.
+
 @cindex @env{ALTERNATE_EDITOR} environment variable
-The environment variable @env{ALTERNATE_EDITOR} has the same effect,
-with the value of the @samp{--alternate-editor} option taking
+The environment variable @env{ALTERNATE_EDITOR} has the same effect as
+the @samp{-a} option.  If both are present, the latter takes
 precedence.
 
 @item -c
@@ -2321,7 +2328,7 @@ desktop-save}.  You can also enable automatic saving of the desktop
 when you exit Emacs, and automatic restoration of the last saved
 desktop when Emacs starts: use the Customization buffer (@pxref{Easy
 Customization}) to set @code{desktop-save-mode} to @code{t} for future
-sessions, or add this line in your @file{~/.emacs} file:
+sessions, or add this line in your init file (@pxref{Init File}):
 
 @example
 (desktop-save-mode 1)
@@ -2329,20 +2336,20 @@ sessions, or add this line in your @file{~/.emacs} file:
 
 @findex desktop-change-dir
 @findex desktop-revert
-  If you turn on @code{desktop-save-mode} in your @file{~/.emacs},
-then when Emacs starts, it looks for a saved desktop in the current
-directory.  Thus, you can have separate saved desktops in different
-directories, and the starting directory determines which one Emacs
-reloads.  You can save the current desktop and reload one saved in
-another directory by typing @kbd{M-x desktop-change-dir}.  Typing
-@kbd{M-x desktop-revert} reverts to the desktop previously reloaded.
+  If you turn on @code{desktop-save-mode} in your init file, then when
+Emacs starts, it looks for a saved desktop in the current directory.
+Thus, you can have separate saved desktops in different directories,
+and the starting directory determines which one Emacs reloads.  You
+can save the current desktop and reload one saved in another directory
+by typing @kbd{M-x desktop-change-dir}.  Typing @kbd{M-x
+desktop-revert} reverts to the desktop previously reloaded.
 
   Specify the option @samp{--no-desktop} on the command line when you
 don't want it to reload any saved desktop.  This turns off
 @code{desktop-save-mode} for the current session.  Starting Emacs with
 the @samp{--no-init-file} option also disables desktop reloading,
-since it bypasses the @file{.emacs} init file, where
-@code{desktop-save-mode} is usually turned on.
+since it bypasses the init file, where @code{desktop-save-mode} is
+usually turned on.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored at one go.
@@ -2708,16 +2715,14 @@ typing @kbd{C-g}.  The dissociation output remains in the
 @samp{*Dissociation*} buffer for you to copy elsewhere if you wish.
 
 @cindex presidentagon
-  Dissociated Press operates by jumping at random from one point in the
-buffer to another.  In order to produce plausible output rather than
-gibberish, it insists on a certain amount of overlap between the end of
-one run of consecutive words or characters and the start of the next.
-That is, if it has just output `president' and then decides to jump
-to a different point in the buffer, it might spot the `ent' in `pentagon'
-and continue from there, producing `presidentagon'.@footnote{This
-dissociword actually appeared during the Vietnam War, when it was very
-appropriate.  Bush has made it appropriate again.}  Long sample texts
-produce the best results.
+  Dissociated Press operates by jumping at random from one point in
+the buffer to another.  In order to produce plausible output rather
+than gibberish, it insists on a certain amount of overlap between the
+end of one run of consecutive words or characters and the start of the
+next.  That is, if it has just output `president' and then decides to
+jump to a different point in the buffer, it might spot the `ent' in
+`pentagon' and continue from there, producing `presidentagon'.  Long
+sample texts produce the best results.
 
 @cindex againformation
   A positive argument to @kbd{M-x dissociated-press} tells it to operate

@@ -1369,7 +1369,11 @@ init_fringe_bitmap (which, fb, once_p)
 				   | (swap_nibble[(b>>4) & 0xf] << 8)
 				   | (swap_nibble[(b>>8) & 0xf] << 4)
 				   | (swap_nibble[(b>>12) & 0xf]));
-	      *bits++ = (b >> (16 - fb->width));
+	      b >>= (16 - fb->width);
+#ifdef WORDS_BIG_ENDIAN
+	      b = ((b >> 8) | (b << 8));
+#endif
+	      *bits++ = b;
 	    }
 	}
 #endif /* HAVE_X_WINDOWS */

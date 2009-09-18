@@ -50,7 +50,7 @@ you to operate on the listed files.  @xref{Directories}.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
 * Wdired::                    Operating on files by editing the Dired buffer.
-* Image-Dired::               Viewing image thumbnails in Dired
+* Image-Dired::               Viewing image thumbnails in Dired.
 * Misc: Misc Dired Features.  Various other features.
 @end menu
 

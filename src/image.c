@@ -2543,7 +2543,7 @@ static int xbm_load_image P_ ((struct frame *f, struct image *img,
 static int xbm_image_p P_ ((Lisp_Object object));
 static int xbm_read_bitmap_data P_ ((struct frame *f,
 				     unsigned char *, unsigned char *,
-				     int *, int *, unsigned char **));
+				     int *, int *, unsigned char **, int));
 static int xbm_file_p P_ ((Lisp_Object));
 
 
@@ -2934,14 +2934,17 @@ Create_Pixmap_From_Bitmap_Data (f, img, data, fg, bg, non_default_colors)
    buffer's end.  Set *WIDTH and *HEIGHT to the width and height of
    the image.  Return in *DATA the bitmap data allocated with xmalloc.
    Value is non-zero if successful.  DATA null means just test if
-   CONTENTS looks like an in-memory XBM file.  */
+   CONTENTS looks like an in-memory XBM file.  If INHIBIT_IMAGE_ERROR
+   is non-zero, inhibit the call to image_error when the image size is
+   invalid (the bitmap remains unread).  */
 
 static int
-xbm_read_bitmap_data (f, contents, end, width, height, data)
+xbm_read_bitmap_data (f, contents, end, width, height, data, inhibit_image_error)
      struct frame *f;
      unsigned char *contents, *end;
      int *width, *height;
      unsigned char **data;
+     int inhibit_image_error;
 {
   unsigned char *s = contents;
   char buffer[BUFSIZ];
@@ -2993,7 +2996,8 @@ xbm_read_bitmap_data (f, contents, end, width, height, data)
 
   if (!check_image_size (f, *width, *height))
     {
-      image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
+      if (!inhibit_image_error)
+	image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto failure;
     }
   else if (data == NULL)
@@ -3098,7 +3102,8 @@ xbm_load_image (f, img, contents, end)
   unsigned char *data;
   int success_p = 0;
 
-  rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height, &data);
+  rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height,
+			     &data, 0);
   if (rc)
     {
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
@@ -3153,9 +3158,8 @@ xbm_file_p (data)
   int w, h;
   return (STRINGP (data)
 	  && xbm_read_bitmap_data (NULL, SDATA (data),
-				   (SDATA (data)
-				    + SBYTES (data)),
-				   &w, &h, NULL));
+				   (SDATA (data) + SBYTES (data)),
+				   &w, &h, NULL, 1));
 }
 
 
@@ -5093,7 +5097,7 @@ x_disable_image (f, img)
       Display *dpy = FRAME_X_DISPLAY (f);
       GC gc;
 
-#ifndef HAVE_NS  //TODO: NS support, however this not needed for toolbars
+#ifndef HAVE_NS  /* TODO: NS support, however this not needed for toolbars */
 
 #define MaskForeground(f)  WHITE_PIX_DEFAULT (f)
 

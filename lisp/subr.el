@@ -91,8 +91,11 @@ that complains if FORM ever does return differing values."
 
 (defmacro def-edebug-spec (symbol spec)
   "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
-Both SYMBOL and SPEC are unevaluated.  The SPEC can be 0, t, a symbol
-\(naming a function), or a list."
+Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
+0 (instrument no arguments); t (instrument all arguments);
+a symbol (naming a function with an Edebug specification); or a list.
+The elements of the list describe the argument types; see
+\(info \"(elisp)Specification List\") for details."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro lambda (&rest cdr)
@@ -116,13 +119,18 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+(if (null (featurep 'cl))
+    (progn
+  ;; If we reload subr.el after having loaded CL, be careful not to
+  ;; overwrite CL's extended definition of `dolist', `dotimes',
+  ;; `declare', `push' and `pop'.
 (defmacro push (newelt listname)
   "Add NEWELT to the list stored in the symbol LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
   (declare (debug (form sexp)))
   (list 'setq listname
-	(list 'cons newelt listname)))
+        (list 'cons newelt listname)))
 
 (defmacro pop (listname)
   "Return the first element of LISTNAME's value, and remove it from the list.
@@ -131,8 +139,9 @@ If the value is nil, `pop' returns nil but does not actually
 change the list."
   (declare (debug (sexp)))
   (list 'car
-	(list 'prog1 listname
-	      (list 'setq listname (list 'cdr listname)))))
+        (list 'prog1 listname
+              (list 'setq listname (list 'cdr listname)))))
+))
 
 (defmacro when (cond &rest body)
   "If COND yields non-nil, do BODY, else return nil.
@@ -152,6 +161,11 @@ value of last one, or nil if there are none.
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
+(if (null (featurep 'cl))
+    (progn
+  ;; If we reload subr.el after having loaded CL, be careful not to
+  ;; overwrite CL's extended definition of `dolist', `dotimes',
+  ;; `declare', `push' and `pop'.
 (defvar --dolist-tail-- nil
   "Temporary variable used in `dolist' expansion.")
 
@@ -204,6 +218,7 @@ the return value (nil if RESULT is omitted).
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
+))
 
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
@@ -222,7 +237,9 @@ This function accepts any number of arguments, but ignores them."
   "Signal an error, making error message by passing all args to `format'.
 In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
+for the sake of consistency.
+
+\(fn STRING &rest ARGS)"
   (while t
     (signal 'error (list (apply 'format args)))))
 
@@ -371,11 +388,13 @@ argument VECP, this copies vectors as well as conses."
 
 (defun assoc-default (key alist &optional test default)
   "Find object KEY in a pseudo-alist ALIST.
-ALIST is a list of conses or objects.  Each element (or the element's car,
-if it is a cons) is compared with KEY by evaluating (TEST (car elt) KEY).
-If that is non-nil, the element matches;
-then `assoc-default' returns the element's cdr, if it is a cons,
-or DEFAULT if the element is not a cons.
+ALIST is a list of conses or objects.  Each element
+ (or the element's car, if it is a cons) is compared with KEY by
+ calling TEST, with two arguments: (i) the element or its car,
+ and (ii) KEY.
+If that is non-nil, the element matches; then `assoc-default'
+ returns the element's cdr, if it is a cons, or DEFAULT if the
+ element is not a cons.
 
 If no element matches, the value is nil.
 If TEST is omitted or nil, `equal' is used."
@@ -725,8 +744,8 @@ in a cleaner way with command remapping, like this:
 
 ;;;; The global keymap tree.
 
-;;; global-map, esc-map, and ctl-x-map have their values set up in
-;;; keymap.c; we just give them docstrings here.
+;; global-map, esc-map, and ctl-x-map have their values set up in
+;; keymap.c; we just give them docstrings here.
 
 (defvar global-map nil
   "Default global keymap mapping Emacs keyboard input into commands.
@@ -754,10 +773,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 ;;;; Event manipulation functions.
 
-;; The call to `read' is to ensure that the value is computed at load time
-;; and not compiled into the .elc file.  The value is negative on most
-;; machines, but not on all!
-(defconst listify-key-sequence-1 (logior 128 (read "?\\M-\\^@")))
+(defconst listify-key-sequence-1 (logior 128 ?\M-\C-@))
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
@@ -936,13 +952,19 @@ and `event-end' functions."
       (cons (scroll-bar-scale pair (window-width window)) 0))
      (t
       (let* ((frame (if (framep window) window (window-frame window)))
-	     (x (/ (car pair) (frame-char-width frame)))
-	     (y (/ (cdr pair) (+ (frame-char-height frame)
-				 (or (frame-parameter frame 'line-spacing)
-                                     ;; FIXME: Why the `default'?
-				     (default-value 'line-spacing)
-				     0)))))
-	(cons x y))))))
+	     ;; FIXME: This should take line-spacing properties on
+	     ;; newlines into account.
+	     (spacing (when (display-graphic-p frame)
+			(or (with-current-buffer (window-buffer window)
+			      line-spacing)
+			    (frame-parameter frame 'line-spacing)))))
+	(cond ((floatp spacing)
+	       (setq spacing (truncate (* spacing
+					  (frame-char-height frame)))))
+	      ((null spacing)
+	       (setq spacing 0)))
+	(cons (/ (car pair) (frame-char-width frame))
+	      (/ (cdr pair) (+ (frame-char-height frame) spacing))))))))
 
 (defun posn-actual-col-row (position)
   "Return the actual column and row in POSITION, measured in characters.
@@ -996,6 +1018,45 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
+;; Special "default-FOO" variables which contain the default value of
+;; the "FOO" variable are nasty.  Their implementation is brittle, and
+;; slows down several unrelated variable operations; furthermore, they
+;; can lead to really odd behavior if you decide to make them
+;; buffer-local.
+
+;; Not used at all in Emacs, last time I checked:
+(make-obsolete-variable 'default-mode-line-format 'mode-line-format "23.2")
+(make-obsolete-variable 'default-header-line-format 'header-line-format "23.2")
+(make-obsolete-variable 'default-line-spacing 'line-spacing "23.2")
+(make-obsolete-variable 'default-abbrev-mode 'abbrev-mode "23.2")
+(make-obsolete-variable 'default-ctl-arrow 'ctl-arrow "23.2")
+(make-obsolete-variable 'default-direction-reversed 'direction-reversed "23.2")
+(make-obsolete-variable 'default-truncate-lines 'truncate-lines "23.2")
+(make-obsolete-variable 'default-left-margin 'left-margin "23.2")
+(make-obsolete-variable 'default-tab-width 'tab-width "23.2")
+(make-obsolete-variable 'default-case-fold-search 'case-fold-search "23.2")
+(make-obsolete-variable 'default-left-margin-width 'left-margin-width "23.2")
+(make-obsolete-variable 'default-right-margin-width 'right-margin-width "23.2")
+(make-obsolete-variable 'default-left-fringe-width 'left-fringe-width "23.2")
+(make-obsolete-variable 'default-right-fringe-width 'right-fringe-width "23.2")
+(make-obsolete-variable 'default-fringes-outside-margins 'fringes-outside-margins "23.2")
+(make-obsolete-variable 'default-scroll-bar-width 'scroll-bar-width "23.2")
+(make-obsolete-variable 'default-vertical-scroll-bar 'vertical-scroll-bar "23.2")
+(make-obsolete-variable 'default-indicate-empty-lines 'indicate-empty-lines "23.2")
+(make-obsolete-variable 'default-indicate-buffer-boundaries 'indicate-buffer-boundaries "23.2")
+(make-obsolete-variable 'default-fringe-indicator-alist 'fringe-indicator-alist "23.2")
+(make-obsolete-variable 'default-fringe-cursor-alist 'fringe-cursor-alist "23.2")
+(make-obsolete-variable 'default-scroll-up-aggressively 'scroll-up-aggressively "23.2")
+(make-obsolete-variable 'default-scroll-down-aggressively 'scroll-down-aggressively "23.2")
+(make-obsolete-variable 'default-fill-column 'fill-column "23.2")
+(make-obsolete-variable 'default-cursor-type 'cursor-type "23.2")
+(make-obsolete-variable 'default-buffer-file-type 'buffer-file-type "23.2")
+(make-obsolete-variable 'default-cursor-in-non-selected-windows 'cursor-in-non-selected-windows "23.2")
+(make-obsolete-variable 'default-buffer-file-coding-system 'buffer-file-coding-system "23.2")
+(make-obsolete-variable 'default-major-mode 'major-mode "23.2")
+(make-obsolete-variable 'default-enable-multibyte-characters
+      "use enable-multibyte-characters or set-buffer-multibyte instead" "23.2")
+
 (define-obsolete-function-alias 'window-dot 'window-point "22.1")
 (define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
 (define-obsolete-function-alias 'read-input 'read-string "22.1")
@@ -1033,6 +1094,7 @@ is converted into a string by expressing it in decimal."
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
+(make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
@@ -1547,22 +1609,6 @@ and the file name is displayed in the echo area."
 
 ;;;; Specifying things to do later.
 
-(defmacro eval-at-startup (&rest body)
-  "Make arrangements to evaluate BODY when Emacs starts up.
-If this is run after Emacs startup, evaluate BODY immediately.
-Always returns nil.
-
-This works by adding a function to `before-init-hook'.
-That function's doc string says which file created it."
-  `(progn
-     (if command-line-processed
-	 (progn . ,body)
-       (add-hook 'before-init-hook
-		 '(lambda () ,(concat "From " (or load-file-name "no file"))
-		    . ,body)
-		 t))
-     nil))
-
 (defun load-history-regexp (file)
   "Form a regexp to find FILE in `load-history'.
 FILE, a string, is described in the function `eval-after-load'."
@@ -1613,7 +1659,11 @@ extension for a compressed format \(e.g. \".gz\") on FILE will not affect
 this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
-is evaluated whenever that feature is `provide'd.
+is evaluated whenever that feature is `provide'd.  Note that although
+provide statements are usually at the end of files, this is not always
+the case (e.g., sometimes they are at the start to avoid a recursive
+load error).  If your FORM should not be evaluated until the code in
+FILE has been, do not use the symbol form for FILE in such cases.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
@@ -1638,25 +1688,39 @@ This function makes or adds to an entry on `after-load-alist'."
 	  (featurep file))
 	(eval form))))
 
+(defvar after-load-functions nil
+  "Special hook run after loading a file.
+Each function there is called with a single argument, the absolute
+name of the file just loaded.")
+
 (defun do-after-load-evaluation (abs-file)
   "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
-ABS-FILE, a string, should be the absolute true name of a file just loaded."
-  (let ((after-load-elts after-load-alist)
-	a-l-element file-elements file-element form)
-    (while after-load-elts
-      (setq a-l-element (car after-load-elts)
-	    after-load-elts (cdr after-load-elts))
-      (when (and (stringp (car a-l-element))
-		 (string-match (car a-l-element) abs-file))
-	(while (setq a-l-element (cdr a-l-element)) ; discard the file name
-	  (setq form (car a-l-element))
-	  (eval form))))))
+ABS-FILE, a string, should be the absolute true name of a file just loaded.
+This function is called directly from the C code."
+  ;; Run the relevant eval-after-load forms.
+  (mapc #'(lambda (a-l-element)
+	    (when (and (stringp (car a-l-element))
+		       (string-match-p (car a-l-element) abs-file))
+	      ;; discard the file name regexp
+	      (mapc #'eval (cdr a-l-element))))
+	after-load-alist)
+  ;; Complain when the user uses obsolete files.
+  (when (string-match-p "/obsolete/[^/]*\\'" abs-file)
+    (run-with-timer 0 nil
+                    (lambda (file)
+                      (message "Package %s is obsolete!"
+                               (substring file 0
+                                          (string-match "\\.elc?\\>" file))))
+                    (file-name-nondirectory abs-file)))
+  ;; Finally, run any other hook.
+  (run-hook-with-args 'after-load-functions abs-file))
 
 (defun eval-next-after-load (file)
   "Read the following input sexp, and run it whenever FILE is loaded.
 This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
+(make-obsolete 'eval-next-after-load `eval-after-load "23.2")
 
 ;;;; Process stuff.
 
@@ -1685,16 +1749,17 @@ Signal an error if the program returns with a non-zero exit status."
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 
-Args are NAME BUFFER HOST SERVICE.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer.
-HOST is name of the host to connect to, or its IP address.
-SERVICE is name of the service desired, or an integer specifying
- a port number to connect to."
+NAME is the name for the process.  It is modified if necessary to make
+ it unique.
+BUFFER is the buffer (or buffer name) to associate with the
+ process.  Process output goes at end of that buffer.  BUFFER may
+ be nil, meaning that this process is not associated with any buffer.
+HOST is the name or IP address of the host to connect to.
+SERVICE is the name of the service desired, or an integer specifying
+ a port number to connect to.
+
+This is a wrapper around `make-network-process', and only offers a
+subset of its functionality."
     (make-network-process :name name :buffer buffer
 				     :host host :service service)))
 
@@ -1711,6 +1776,16 @@ Value is t if a query was formerly required."
   (let ((old (process-query-on-exit-flag process)))
     (set-process-query-on-exit-flag process nil)
     old))
+
+(defun process-kill-buffer-query-function ()
+  "Ask before killing a buffer that has a running process."
+  (let ((process (get-buffer-process (current-buffer))))
+    (or (not process)
+        (not (memq (process-status process) '(run stop open listen)))
+        (not (process-query-on-exit-flag process))
+        (yes-or-no-p "Buffer has a running process; kill it? "))))
+
+(add-hook 'kill-buffer-query-functions 'process-kill-buffer-query-function)
 
 ;; process plist management
 
@@ -1738,6 +1813,48 @@ Legitimate radix values are 8, 10 and 16.")
 Legitimate radix values are 8, 10 and 16."
  :type '(choice (const 8) (const 10) (const 16))
  :group 'editing-basics)
+
+(defconst read-key-empty-map (make-sparse-keymap))
+
+(defvar read-key-delay 0.1)
+
+(defun read-key (&optional prompt)
+  "Read a key from the keyboard.
+Contrary to `read-event' this will not return a raw event but instead will
+obey the input decoding and translations usually done by `read-key-sequence'.
+So escape sequences and keyboard encoding are taken into account.
+When there's an ambiguity because the key looks like the prefix of
+some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
+  (let ((overriding-terminal-local-map read-key-empty-map)
+	(overriding-local-map nil)
+	(old-global-map (current-global-map))
+        (timer (run-with-idle-timer
+                ;; Wait long enough that Emacs has the time to receive and
+                ;; process all the raw events associated with the single-key.
+                ;; But don't wait too long, or the user may find the delay
+                ;; annoying (or keep hitting more keys which may then get
+                ;; lost or misinterpreted).
+                ;; This is only relevant for keys which Emacs perceives as
+                ;; "prefixes", such as C-x (because of the C-x 8 map in
+                ;; key-translate-table and the C-x @ map in function-key-map)
+                ;; or ESC (because of terminal escape sequences in
+                ;; input-decode-map).
+                read-key-delay t
+                (lambda ()
+                  (let ((keys (this-command-keys-vector)))
+                    (unless (zerop (length keys))
+                      ;; `keys' is non-empty, so the user has hit at least
+                      ;; one key; there's no point waiting any longer, even
+                      ;; though read-key-sequence thinks we should wait
+                      ;; for more input to decide how to interpret the
+                      ;; current input.
+                      (throw 'read-key keys)))))))
+    (unwind-protect
+        (progn
+	  (use-global-map read-key-empty-map)
+	  (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
+      (cancel-timer timer)
+      (use-global-map old-global-map))))
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
@@ -1844,10 +1961,7 @@ by doing (clear-string STRING)."
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))
-		      ;; We used to use read-char-exclusive, but that
-		      ;; gives funny behavior when the user presses,
-		      ;; e.g., the arrow keys.
-		      (setq c (read-event nil t))
+		      (setq c (read-key))
 		      (not (memq c stop-keys)))
 	  (clear-this-command-keys)
 	  (cond ((memq c rubout-keys) ; rubout
@@ -1855,6 +1969,7 @@ by doing (clear-string STRING)."
 		   (let ((new-pass (substring pass 0 -1)))
 		     (and (arrayp pass) (clear-string pass))
 		     (setq pass new-pass))))
+                ((eq c ?\C-g) (keyboard-quit))
 		((not (numberp c)))
 		((= c ?\C-u) ; kill line
 		 (and (arrayp pass) (clear-string pass))
@@ -2075,7 +2190,7 @@ This finishes the change group by reverting all of its changes."
 With optional non-nil ALL, force redisplay of all mode lines and
 header lines.  This function also forces recomputation of the
 menu bar menus and the frame title."
-  (if all (save-excursion (set-buffer (other-buffer))))
+  (if all (with-current-buffer (other-buffer)))
   (set-buffer-modified-p (buffer-modified-p)))
 
 (defun momentary-string-display (string pos &optional exit-char message)
@@ -2220,7 +2335,8 @@ directory if it does not exist."
 	   purify-flag
 	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
 	   (make-directory user-emacs-directory))
-       (expand-file-name new-name user-emacs-directory)))))
+       (abbreviate-file-name
+        (expand-file-name new-name user-emacs-directory))))))
 
 
 ;;;; Misc. useful functions.
@@ -2471,13 +2587,13 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-COMMAND is the name of a shell command.
-Remaining arguments are the arguments for the command; they are all
-spliced together with blanks separating between each two of them, before
-passing the command to the shell.
-Wildcards and redirection are handled as usual in the shell.
+COMMAND is the shell command to run.
 
-\(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
+An old calling convention accepted any number of arguments after COMMAND,
+which were just concatenated to COMMAND.  This is still supported but strongly
+discouraged.
+
+\(fn NAME BUFFER COMMAND)"
    ;; We used to use `exec' to replace the shell with the command,
    ;; but that failed to handle (...) and semicolon, etc.
   (start-process name buffer shell-file-name shell-command-switch
@@ -2485,7 +2601,9 @@ Wildcards and redirection are handled as usual in the shell.
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
-Similar to `start-process-shell-command', but calls `start-file-process'."
+Similar to `start-process-shell-command', but calls `start-file-process'.
+
+\(fn NAME BUFFER COMMAND)"
   (start-file-process
    name buffer
    (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
@@ -2651,6 +2769,29 @@ See also `with-temp-file' and `with-output-to-string'."
 	     (progn ,@body)
            (and (buffer-name ,temp-buffer)
                 (kill-buffer ,temp-buffer)))))))
+
+(defmacro with-silent-modifications (&rest body)
+  "Execute BODY, pretending it does not modifies the buffer.
+If BODY performs real modifications to the buffer's text, other
+than cosmetic ones, undo data may become corrupted.
+Typically used around modifications of text-properties which do not really
+affect the buffer's content."
+  (declare (debug t) (indent 0))
+  (let ((modified (make-symbol "modified")))
+    `(let* ((,modified (buffer-modified-p))
+            (buffer-undo-list t)
+            (inhibit-read-only t)
+            (inhibit-modification-hooks t)
+            deactivate-mark
+            ;; Avoid setting and removing file locks and checking
+            ;; buffer's uptodate-ness w.r.t the underlying file.
+            buffer-file-name
+            buffer-file-truename)
+       (unwind-protect
+           (progn
+             ,@body)
+         (unless ,modified
+           (restore-buffer-modified-p nil))))))
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
@@ -3626,6 +3767,15 @@ etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
 is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
   (version-list-= (version-to-list v1) (version-to-list v2)))
+
+
+;;; Misc.
+
+;; The following statement ought to be in print.c, but `provide' can't
+;; be used there.
+(when (hash-table-p (car (read-from-string
+			  (prin1-to-string (make-hash-table)))))
+  (provide 'hashtable-print-readable))
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

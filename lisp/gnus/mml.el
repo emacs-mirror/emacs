@@ -585,7 +585,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			(unless raw
 			  (setq charset	(mm-encode-body charset))))
 		    (insert contents)))))
-	      (setq encoding (mm-encode-buffer type)
+	      (if (setq encoding (cdr (assq 'encoding cont)))
+		  (setq encoding (intern (downcase encoding))))
+	      (setq encoding (mm-encode-buffer type encoding)
 		    coded (mm-string-as-multibyte (buffer-string))))
 	    (mml-insert-mime-headers cont type charset encoding nil)
 	    (insert "\n" coded))))
@@ -1292,15 +1294,24 @@ body) or \"attachment\" (separate from the body)."
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil file)))
      (list file type description disposition)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
     (mml-insert-empty-tag 'part
 			  'type type
 			  ;; icicles redefines read-file-name and returns a
 			  ;; string w/ text properties :-/
 			  'filename (mm-substring-no-properties file)
 			  'disposition (or disposition "attachment")
-			  'description description)))
+			  'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message "The file \"%s\" has been attached at the end of the message"
+		 (file-name-nondirectory file))))))
 
 (defun mml-dnd-attach-file (uri action)
   "Attach a drag and drop file.
@@ -1336,11 +1347,21 @@ BUFFER is the name of the buffer to attach.  See
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil)))
      (list buffer type description disposition)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
     (mml-insert-empty-tag 'part 'type type 'buffer buffer
 			  'disposition disposition
-			  'description description)))
+			  'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message
+	 "The buffer \"%s\" has been attached at the end of the message"
+	 buffer)))))
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
@@ -1351,26 +1372,38 @@ TYPE is the MIME type to use."
 	  (type (mml-minibuffer-read-type file))
 	  (description (mml-minibuffer-read-description)))
      (list file type description)))
-  (save-excursion
-    (unless (message-in-body-p) (goto-char (point-max)))
+  ;; Don't move point if this command is invoked inside the message header.
+  (let ((head (unless (message-in-body-p)
+		(prog1
+		    (point)
+		  (goto-char (point-max))))))
     (mml-insert-empty-tag 'external 'type type 'name file
-			  'disposition "attachment" 'description description)))
+			  'disposition "attachment" 'description description)
+    (when head
+      (unless (prog1
+		  (pos-visible-in-window-p)
+		(goto-char head))
+	(message "The file \"%s\" has been attached at the end of the message"
+		 (file-name-nondirectory file))))))
 
 (defun mml-insert-multipart (&optional type)
-  (interactive (list (completing-read "Multipart type (default mixed): "
-				      '(("mixed") ("alternative") ("digest") ("parallel")
-					("signed") ("encrypted"))
-				      nil nil "mixed")))
+  (interactive (if (message-in-body-p)
+		   (list (completing-read "Multipart type (default mixed): "
+					  '(("mixed") ("alternative")
+					    ("digest") ("parallel")
+					    ("signed") ("encrypted"))
+					  nil nil "mixed"))
+		 (error "Use this command in the message body")))
   (or type
       (setq type "mixed"))
   (mml-insert-empty-tag "multipart" 'type type)
   (forward-line -1))
 
 (defun mml-insert-part (&optional type)
-  (interactive
-   (list (mml-minibuffer-read-type "")))
-  (mml-insert-tag 'part 'type type 'disposition "inline")
-  (forward-line -1))
+  (interactive (if (message-in-body-p)
+		   (list (mml-minibuffer-read-type ""))
+		 (error "Use this command in the message body")))
+  (mml-insert-tag 'part 'type type 'disposition "inline"))
 
 (declare-function message-subscribed-p "message" ())
 (declare-function message-make-mail-followup-to "message"

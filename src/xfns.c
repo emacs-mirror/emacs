@@ -208,6 +208,9 @@ extern Lisp_Object Vwindow_system_version;
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
+#if defined (USE_GTK) && defined (HAVE_FREETYPE)
+char *x_last_font_name;
+#endif
 
 
 /* Error if we are not connected to X.  */
@@ -247,7 +250,7 @@ check_x_frame (frame)
 }
 
 /* Let the user specify an X display with a Lisp object.
-   OBJECT may be nil, a frame or a terminal id.
+   OBJECT may be nil, a frame or a terminal object.
    nil stands for the selected frame--or, if that is not an X frame,
    the first X display on the list.  */
 
@@ -268,7 +271,7 @@ check_x_display_info (object)
       else
 	error ("X windows are not in use or not initialized");
     }
-  else if (INTEGERP (object))
+  else if (TERMINALP (object))
     {
       struct terminal *t = get_terminal (object, 1);
 
@@ -374,10 +377,7 @@ x_any_window_to_frame (dpyinfo, wdesc)
 #ifdef USE_GTK
               GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
               if (gwdesc != 0
-                  && (gwdesc == x->widget
-                      || gwdesc == x->edit_widget
-                      || gwdesc == x->vbox_widget
-                      || gwdesc == x->menubar_widget))
+                  && gtk_widget_get_toplevel (gwdesc) == x->widget)
                 found = f;
 #else
 	      if (wdesc == XtWindow (x->widget)
@@ -396,54 +396,6 @@ x_any_window_to_frame (dpyinfo, wdesc)
     }
 
   return found;
-}
-
-/* Likewise, but exclude the menu bar widget.  */
-
-struct frame *
-x_non_menubar_window_to_frame (dpyinfo, wdesc)
-     struct x_display_info *dpyinfo;
-     int wdesc;
-{
-  Lisp_Object tail, frame;
-  struct frame *f;
-  struct x_output *x;
-
-  if (wdesc == None) return 0;
-
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-      f = XFRAME (frame);
-      if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
-	continue;
-      x = f->output_data.x;
-      /* This frame matches if the window is any of its widgets.  */
-      if (x->hourglass_window == wdesc)
-	return f;
-      else if (x->widget)
-	{
-#ifdef USE_GTK
-          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
-          if (gwdesc != 0
-              && (gwdesc == x->widget
-                  || gwdesc == x->edit_widget
-                  || gwdesc == x->vbox_widget))
-            return f;
-#else
-	  if (wdesc == XtWindow (x->widget)
-	      || wdesc == XtWindow (x->column_widget)
-	      || wdesc == XtWindow (x->edit_widget))
-	    return f;
-#endif
-	}
-      else if (FRAME_X_WINDOW (f) == wdesc)
-	/* A tooltip frame.  */
-	return f;
-    }
-  return 0;
 }
 
 /* Likewise, but consider only the menu bar widget.  */
@@ -473,15 +425,14 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
       if (x->menubar_widget)
         {
           GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
-          int found = 0;
 
-          BLOCK_INPUT;
+	  /* This gives false positives, but the rectangle check in xterm.c
+	     where this is called takes care of that.  */
           if (gwdesc != 0
               && (gwdesc == x->menubar_widget
-                  || gtk_widget_get_parent (gwdesc) == x->menubar_widget))
-            found = 1;
-          UNBLOCK_INPUT;
-          if (found) return f;
+                  || gtk_widget_is_ancestor (x->menubar_widget, gwdesc)
+		  || gtk_widget_is_ancestor (gwdesc, x->menubar_widget)))
+            return f;
         }
 #else
       if (x->menubar_widget
@@ -941,6 +892,35 @@ x_set_background_color (f, arg, oldval)
     }
 }
 
+static Cursor
+make_invisible_cursor (f)
+     struct frame *f;
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+  static char const no_data[] = { 0 };
+  Pixmap pix;
+  XColor col;
+  Cursor c;
+
+  x_catch_errors (dpy);
+  pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
+                               no_data, 1, 1);
+  if (! x_had_errors_p (dpy) && pix != None)
+    {
+      col.pixel = 0;
+      col.red = col.green = col.blue = 0;
+      col.flags = DoRed | DoGreen | DoBlue;
+      c = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (x_had_errors_p (dpy) || c == None)
+        c = 0;
+      XFreePixmap (dpy, pix);
+    }
+
+  x_uncatch_errors ();
+
+  return c;
+}
+
 void
 x_set_mouse_color (f, arg, oldval)
      struct frame *f;
@@ -1046,8 +1026,12 @@ x_set_mouse_color (f, arg, oldval)
   }
 
   if (FRAME_X_WINDOW (f) != 0)
-    XDefineCursor (dpy, FRAME_X_WINDOW (f), cursor);
+    XDefineCursor (dpy, FRAME_X_WINDOW (f),
+                   f->output_data.x->current_cursor = cursor);
 
+  if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
+    FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
+  
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
     XFreeCursor (dpy, x->text_cursor);
@@ -2671,7 +2655,8 @@ x_window (f, window_prompting, minibuffer_only)
   }
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 f->output_data.x->text_cursor);
+		 f->output_data.x->current_cursor
+                 = f->output_data.x->text_cursor);
 
   UNBLOCK_INPUT;
 
@@ -2816,7 +2801,8 @@ x_window (f)
   }
 
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		 f->output_data.x->text_cursor);
+		 f->output_data.x->current_cursor
+                 = f->output_data.x->text_cursor);
 
   UNBLOCK_INPUT;
 
@@ -3639,7 +3625,7 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        doc: /* Return t if the X display supports shades of gray.
 Note that color displays do support shades of gray.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3668,7 +3654,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
        doc: /* Return the width in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3682,7 +3668,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
        doc: /* Return the height in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3696,7 +3682,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
        doc: /* Return the number of bitplanes of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3710,7 +3696,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
        doc: /* Return the number of color cells of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3735,7 +3721,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        0, 1, 0,
        doc: /* Return the maximum request size of the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3750,7 +3736,7 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 \(Labelling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3769,7 +3755,7 @@ version numbers of the X Protocol in use, and the distributor-specific release
 number.  See also the function `x-server-vendor'.
 
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3785,7 +3771,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        doc: /* Return the number of screens on the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3798,7 +3784,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
        doc: /* Return the height in millimeters of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3811,7 +3797,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
        doc: /* Return the width in millimeters of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3826,7 +3812,7 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
        doc: /* Return an indication of whether X display TERMINAL does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3863,7 +3849,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should a terminal id, a frame or a display name (a string).
+TERMINAL should a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -3903,7 +3889,7 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
        doc: /* Return t if the X display TERMINAL supports the save-under feature.
 The optional argument TERMINAL specifies which display to ask about.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
      (terminal)
      Lisp_Object terminal;
@@ -4174,7 +4160,7 @@ An insecure way to solve the problem may be to use `xhost'.\n",
 DEFUN ("x-close-connection", Fx_close_connection,
        Sx_close_connection, 1, 1, 0,
        doc: /* Close the connection to TERMINAL's X server.
-For TERMINAL, specify a terminal id, a frame or a display name (a
+For TERMINAL, specify a terminal object, a frame or a display name (a
 string).  If TERMINAL is nil, that stands for the selected frame's
 terminal.  */)
      (terminal)
@@ -4210,7 +4196,7 @@ Turning on synchronization prohibits the Xlib routines from buffering
 requests and seriously degrades performance, but makes debugging much
 easier.
 The optional second argument TERMINAL specifies which display to act on.
-TERMINAL should be a terminal id, a frame or a display name (a string).
+TERMINAL should be a terminal object, a frame or a display name (a string).
 If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
      (on, terminal)
     Lisp_Object terminal, on;
@@ -5594,6 +5580,9 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   FRAME_PTR f = check_x_frame (frame);
   char *name;
   Lisp_Object default_font, font = Qnil;
+  Lisp_Object font_param;
+  char *default_name = NULL;
+  struct gcpro gcpro1;
   int count = SPECPDL_INDEX ();
 
   check_x ();
@@ -5607,21 +5596,28 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  XSETFONT (default_font, FRAME_FONT (f));
-  if (FONTP (default_font))
+  GCPRO1(font_param);
+  font_param = Fframe_parameter (frame, Qfont_param);
+
+  if (x_last_font_name != NULL)
+    default_name = x_last_font_name;
+  else if (STRINGP (font_param))
+    default_name = SDATA (font_param);
+  else if (FONTP (default_font))
     {
-      char *default_name = alloca (256);
+      XSETFONT (default_font, FRAME_FONT (f));
+      default_name = alloca (256);
       if (font_unparse_gtkname (default_font, f, default_name, 256) < 0)
 	default_name = NULL;
-      name = xg_get_font_name (f, default_name);
     }
-  else
-    name = xg_get_font_name (f, NULL);
+
+  name = xg_get_font_name (f, default_name);
 
   if (name)
     {
       font = build_string (name);
-      xfree (name);
+      g_free (x_last_font_name);
+      x_last_font_name = name;
     }
 
   UNBLOCK_INPUT;
@@ -5779,7 +5775,8 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_wait_for_wm,
   x_set_fullscreen,
   x_set_font_backend,
-  x_set_alpha
+  x_set_alpha,
+  x_set_sticky,
 };
 
 void
@@ -5992,6 +5989,7 @@ the tool bar buttons.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
+  x_last_font_name = NULL;
 #endif
 }
 

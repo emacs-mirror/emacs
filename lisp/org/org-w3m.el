@@ -5,7 +5,7 @@
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -93,7 +93,7 @@ so that it can be yanked into an Org-mode buffer with links working correctly."
           (setq return-content
                 (concat return-content
                         (buffer-substring (point) transform-end))))
-      (kill-new return-content)
+      (org-kill-new return-content)
       (message "Transforming links...done, use C-y to insert text into Org-mode file")
       (message "Copy with link transformation complete."))))
 

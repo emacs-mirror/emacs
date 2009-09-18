@@ -14,23 +14,16 @@ greater simplicity that results from the absence of many Emacs
 @itemize @bullet
 
 @item
-The Fontconfig font library is no longer supported.  To specify a
-font, you must use an XLFD (X Logical Font Descriptor).  The other
-ways of specifying fonts---so-called ``Fontconfig'' and ``GTK'' font
-names---are clearly redundant, and have been removed.
-
-@item
 We have switched to a character representation specially designed for
-Emacs.  Rather than forcing all the widely used scripts artificially
-into alignment, as Unicode does, Emacs treats them all equally, giving
-each one a place in the space of character codes.  Thus, scripts do
-not need to fight over characters used in each one of them, as each
-has its own variant, and they all are different as far as Emacs is
-concerned.  For example, there's a Latin-1 c-cedilla character, and
-there's a Latin-2 c-cedilla; searching a buffer for the Latin-1
-variant will only find that variant, but not the others.  This design
-allows us to eliminate the confusing practice in Emacs 23 whereby one
-character can simultaneously belong to any number of charsets.
+Emacs.  Rather than forcing all the widely used scripts into artificial
+alignment, as Unicode does, Emacs treats them all equally, giving
+each one a place in the space of character codes.  We have eliminated
+the confusing practice, in Emacs 23, whereby one character can belong
+to multiple character sets.  Now each script has its own variant, and
+they all are different as far as Emacs is concerned.  For example,
+there's a Latin-1 c-cedilla character, and there's a Latin-2
+c-cedilla; searching a buffer for the Latin-1 variant only finds that
+variant, but not the others.
 
 @item
 Emacs now uses its own special internal encoding for non-@acronym{ASCII}
@@ -46,33 +39,16 @@ to store the result of their conversions.  The result always replaces
 the original, so there's no need to look for it elsewhere.
 
 @item
-Rmail now uses a special file format, Babyl format, designed specially
-for storing and editing mail.  When you visit a file in Rmail, or get new
-mail, Rmail converts it automatically to Babyl format.
-
-@item
 Emacs no longer performs font anti-aliasing.  If your fonts look ugly,
 try choosing a larger font and increasing the screen resolution.
 Admittedly, this becomes difficult as you go further back in time,
 since available screen resolutions will decrease.
 
 @item
-Emacs has added support for some soon-to-be-non-obsolete platforms.
-These include GNU/Linux systems based on libc version 5, BSD systems
-based on the COFF executable format, Solaris versions less than 2.6,
-and many more.
-
-@item
-Emacs can no longer display frames on X windows and text terminals
-(ttys) simultaneously.  If you start Emacs as an X application, the
-Emacs job can only create X frames; if you start Emacs on a tty, the
-Emacs job can only use that tty.  No more confusion about which type
-of frame @command{emacsclient} will use in any given Emacs session!
-
-@item
-Emacs can no longer be started as a daemon.  We decided that having an
-Emacs sitting silently in the background with no visual manifestation
-anywhere in sight is too confusing.
+The Fontconfig font library is no longer supported.  To specify a
+font, you must use an XLFD (X Logical Font Descriptor).  The other
+ways of specifying fonts---so-called ``Fontconfig'' and ``GTK'' font
+names---are redundant, so they have been removed.
 
 @item
 Transient Mark mode is now disabled by default.  Furthermore, some
@@ -80,6 +56,13 @@ commands that operate specifically on the region when it is active and
 Transient Mark mode is enabled (such as @code{fill-paragraph}
 @code{ispell-word}, and @code{indent-for-tab-command}), no longer do
 so.
+
+@item
+Holding @key{shift} while typing a motion command no longer creates a
+temporarily active region, since that's inconsistent with how Emacs
+normally handles keybindings.  The variable @code{shift-select-mode}
+has been deleted.  You can, however, still create temporarily active
+regions by dragging the mouse.
 
 @item
 The line motion commands, @kbd{C-n} and @kbd{C-p}, now move by logical
@@ -94,18 +77,18 @@ of word wrapping, though this has some drawbacks---for instance,
 syntax highlighting often doesn't work well on wrapped lines.
 
 @item
-The variable @code{shift-select-mode} has been deleted; holding
-@key{shift} while typing a motion command no longer creates a
-temporarily active region.  You can still create temporarily active
-regions by dragging the mouse.
-
-@item
 @kbd{C-l} now runs @code{recenter} instead of
 @code{recenter-top-bottom}.  This always sets the current line at the
 center of the window, instead of cycling through the center, top, and
-bottom of the window on successive invocations of @kbd{C-l}.  This
-lets you type @kbd{C-l C-l C-l C-l} to be @emph{absolutely sure} that
-you have recentered the line.
+bottom of the window on successive invocations.  This lets you type
+@kbd{C-l C-l C-l C-l} to be @emph{absolutely sure} that you have
+recentered the line.
+
+@item
+The way Emacs generates possible minibuffer completions is now much
+simpler to understand.  It matches alternatives to the text before
+point, ignoring the text after point; it also does not attempt to
+perform partial completion if the first completion attempt fails.
 
 @item
 Typing @kbd{M-n} at the start of the minibuffer history list no longer
@@ -124,8 +107,29 @@ VC no longer supports fileset-based operations on distributed version
 control systems (DVCSs) such as Arch, Bazaar, Subversion, Mercurial,
 and Git.  For instance, multi-file commits will be performed by
 committing one file at a time.  As you go further back in time, we
-will remove DVCS support entirely, so start migrating your projects to
-CVS.
+will remove DVCS support entirely, so you should migrate your projects
+to CVS.
+
+@item
+Rmail now uses a special file format, Babyl format, specifically designed
+for storing and editing mail.  When you visit a file in Rmail, or get new
+mail, Rmail converts it automatically to Babyl format.
+
+@item
+Emacs can no longer display frames on X windows and text terminals
+(ttys) simultaneously.  If you start Emacs as an X application, it
+can only create X frames; if you start Emacs on a tty, it can only use
+that tty.  No more confusion about which type of frame
+@command{emacsclient} will use in any given Emacs session!
+
+@item
+Emacs can no longer be started as a daemon.  You can be sure that if
+you don't see Emacs, then it's not running.
+
+@item
+Emacs has added support for many soon-to-be-non-obsolete platforms,
+including VMS, DECstation, SCO Unix, and systems lacking alloca.
+Support for Sun windows has been added.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many

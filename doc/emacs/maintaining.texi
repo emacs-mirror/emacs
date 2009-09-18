@@ -54,7 +54,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Branches::            Multiple lines of development.
 @ifnottex
 * Remote Repositories:: Efficient access to remote CVS servers.
-* Revision Tags::       Symbolic names for revisions
+* Revision Tags::       Symbolic names for revisions.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.
 @end ifnottex
@@ -77,7 +77,7 @@ this section if you are already familiar with the version control system
 you want to use.
 
 @menu
-* Why Version Control?::    Understanding the problems it addresses
+* Why Version Control?::    Understanding the problems it addresses.
 * Version Control Systems:: Supported version control back-end systems.
 * VCS Concepts::            Words and concepts related to version control.
 * Types of Log File::       The VCS log in contrast to the ChangeLog.
@@ -1028,9 +1028,15 @@ need to merge them with the work file before you can check it in.
 @vindex vc-cvs-stay-local
   In the above, if the repository were on a remote machine, VC only
 contacts it when the variable @code{vc-stay-local} (or
-@code{vc-cvs-stay-local}) is @code{nil} (@pxref{CVS Options}).  This is
-because access to the repository may be slow, or you may be working
-offline and not have access to the repository at all.  As a
+@code{vc-cvs-stay-local}) is @code{nil}
+@iftex
+(@pxref{CVS Options,,,emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{CVS Options}).
+@end ifnottex
+This is because access to the repository may be slow, or you may be
+working offline and not have access to the repository at all.  As a
 consequence, VC would not be able to tell you that @samp{file3.c} is
 in the ``merge'' state; you would learn that only when you try to
 check-in your modified copy of the file, or use a command such as
@@ -1480,29 +1486,34 @@ Of course, you should substitute the proper years and copyright holder.
 @section Tags Tables
 @cindex tags and tag tables
 
-  A @dfn{tags table} is a description of how a multi-file program is
-broken up into files.  It lists the names of the component files and the
-names and positions of the functions (or other named subunits) in each
-file.  Grouping the related files makes it possible to search or replace
-through all the files with one command.  Recording the function names
-and positions makes possible the @kbd{M-.} command which finds the
-definition of a function by looking up which of the files it is in.
+  A @dfn{tag} is a reference to a subunit in a program or in a
+document.  In program source code, tags reference syntactic elements
+of the program: functions, subroutines, data types, macros, etc.  In a
+document, tags reference chapters, sections, appendices, etc.  Each
+tag specifies the name of the file where the corresponding subunit is
+defined, and the position of the subunit's definition in that file.
 
-  Tags tables are stored in files called @dfn{tags table files}.  The
-conventional name for a tags table file is @file{TAGS}.
+  A @dfn{tags table} records the tags extracted by scanning the source
+code of a certain program or a certain document.  Tags extracted from
+generated files reference the original files, rather than the
+generated files that were scanned during tag extraction.  Examples of
+generated files include C files generated from Cweb source files, from
+a Yacc parser, or from Lex scanner definitions; @file{.i} preprocessed
+C files; and Fortran files produced by preprocessing @file{.fpp}
+source files.
 
-  Each entry in the tags table records the name of one tag, the name of the
-file that the tag is defined in (implicitly), and the position in that
-file of the tag's definition.  When a file parsed by @code{etags} is
-generated from a different source file, like a C file generated from a
-Cweb source file, the tags of the parsed file reference the source
-file.
+  To produce a tags table, you use the @samp{etags} command,
+submitting it a document or the source code of a program.
+@samp{etags} writes the tags to a @dfn{tags table file}, or @dfn{tags
+file} in short.  The conventional name for a tags file is @file{TAGS}.
 
-  Just what names from the described files are recorded in the tags table
-depends on the programming language of the described file.  They
-normally include all file names, functions and subroutines, and may
-also include global variables, data types, and anything else
-convenient.  Each name recorded is called a @dfn{tag}.
+  Emacs uses the information recorded in tags tables in commands that
+search or replace through multiple source files: these commands use
+the names of the source files recorded in the tags table to know which
+files to search.  Other commands, such as @kbd{M-.}, which finds the
+definition of a function, use the recorded information about the
+function names and positions to find the source file and the position
+within that file where the function is defined.
 
 @cindex C++ class browser, tags
 @cindex tags, C++

@@ -79,13 +79,11 @@ considered to be running if the newsticker timer list is not empty."
     nil
     3600)
     ("Freshmeat.net"
-    "http://freshmeat.net/backend/fm.rdf")
+    "http://freshmeat.net/index.atom")
     ("Kuro5hin.org"
     "http://www.kuro5hin.org/backend.rdf")
     ("LWN (Linux Weekly News)"
     "http://lwn.net/headlines/rss")
-    ("NewsForge"
-    "http://newsforge.com/index.rss")
     ("NY Times: Technology"
     "http://partners.userland.com/nytRss/technology.xml")
     ("NY Times"
@@ -423,7 +421,7 @@ headline after it has been retrieved for the first time."
   "Name of the newsticker cache file."
   :type 'string
   :group 'newsticker-miscellaneous)
-(make-obsolete 'newsticker-cache-filename 'newsticker-dir)
+(make-obsolete 'newsticker-cache-filename 'newsticker-dir "23.1")
 
 (defcustom newsticker-dir
   (locate-user-emacs-file "newsticker/" ".newsticker/")
@@ -444,10 +442,15 @@ buffers *newsticker-wget-<feed>* will not be closed."
 ;; ======================================================================
 ;;; Compatibility section, XEmacs, Emacs
 ;; ======================================================================
+
+;; FIXME It is bad practice to define compat functions with such generic names.
+
+;; This is not needed in Emacs >= 22.1.
 (unless (fboundp 'time-add)
   (require 'time-date);;FIXME
   (defun time-add (t1 t2)
-    (seconds-to-time (+ (time-to-seconds t1) (time-to-seconds t2)))))
+    (with-no-warnings ; don't warn about obsolete time-to-seconds in 23.2
+      (seconds-to-time (+ (time-to-seconds t1) (time-to-seconds t2))))))
 
 (unless (fboundp 'match-string-no-properties)
   (defalias 'match-string-no-properties 'match-string))
@@ -1130,7 +1133,7 @@ system time at which the data have been retrieved.  TOPNODE
 contains the feed data as returned by the xml parser.
 
 For the Atom 1.0 specification see
-http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html"
+URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
   (newsticker--debug-msg "Parsing Atom 1.0 feed %s" name)
   (let (new-feed new-item)
     (setq new-feed (newsticker--parse-generic-feed
@@ -1184,8 +1187,8 @@ http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html"
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 0.91 specification see http://backend.userland.com/rss091 or
-http://my.netscape.com/publish/formats/rss-spec-0.91.html."
+For the RSS 0.91 specification see URL `http://backend.userland.com/rss091'
+or URL `http://my.netscape.com/publish/formats/rss-spec-0.91.html'."
   (newsticker--debug-msg "Parsing RSS 0.91 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          (pub-date (newsticker--decode-rfc822-date
@@ -1238,7 +1241,7 @@ http://my.netscape.com/publish/formats/rss-spec-0.91.html."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 0.92 specification see http://backend.userland.com/rss092."
+For the RSS 0.92 specification see URL `http://backend.userland.com/rss092'."
   (newsticker--debug-msg "Parsing RSS 0.92 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          (pub-date (newsticker--decode-rfc822-date
@@ -1291,7 +1294,7 @@ For the RSS 0.92 specification see http://backend.userland.com/rss092."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 1.0 specification see http://web.resource.org/rss/1.0/spec."
+For the RSS 1.0 specification see URL `http://web.resource.org/rss/1.0/spec'."
   (newsticker--debug-msg "Parsing RSS 1.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)
@@ -1342,7 +1345,7 @@ For the RSS 1.0 specification see http://web.resource.org/rss/1.0/spec."
 Return value as well as arguments NAME, TIME, and TOPNODE are the
 same as in `newsticker--parse-atom-1.0'.
 
-For the RSS 2.0 specification see http://blogs.law.harvard.edu/tech/rss."
+For the RSS 2.0 specification see URL `http://blogs.law.harvard.edu/tech/rss'."
   (newsticker--debug-msg "Parsing RSS 2.0 feed %s" name)
   (let* ((channelnode (car (xml-get-children topnode 'channel)))
          is-new-feed has-new-items)

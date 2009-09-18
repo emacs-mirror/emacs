@@ -1,7 +1,7 @@
 ;;; url-file.el --- File retrieval code
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -105,8 +105,7 @@ to them."
 	 (file (url-unhex-string (url-filename url)))
 	 (filename (if (or user (not (url-file-host-is-local-p host)))
 		       (concat "/" (or user "anonymous") "@" site ":" file)
-		     (if (and (memq system-type
-				    '(emx ms-dos windows-nt ms-windows))
+		     (if (and (memq system-type '(ms-dos windows-nt))
 			      (string-match "^/[a-zA-Z]:/" file))
 			 (substring file 1)
 		       file)))
@@ -157,13 +156,9 @@ to them."
 	 (uncompressed-filename nil)
 	 (content-type nil)
 	 (content-encoding nil)
-	 (coding-system-for-read 'binary))
-
-    (setq filename (url-file-build-filename url))
-
-    (if (not filename)
-	(error "File does not exist: %s" (url-recreate-url url)))
-
+	 (coding-system-for-read 'binary)
+	 (filename (url-file-build-filename url)))
+    (or filename (error "File does not exist: %s" (url-recreate-url url)))
     ;; Need to figure out the content-type from the real extension,
     ;; not the compressed one.
     (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)

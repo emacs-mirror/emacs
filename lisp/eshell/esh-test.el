@@ -45,8 +45,7 @@
     (((class color) (background dark)) (:foreground "Green" :bold t)))
   "*The face used to highlight OK result strings."
   :group 'eshell-test)
-;; backward-compatibility alias
-(put 'eshell-test-ok-face 'face-alias 'eshell-test-ok)
+(define-obsolete-face-alias 'eshell-test-ok-face 'eshell-test-ok "22.1")
 
 (defface eshell-test-failed
   '((((class color) (background light)) (:foreground "OrangeRed" :bold t))
@@ -54,8 +53,7 @@
     (t (:bold t)))
   "*The face used to highlight FAILED result strings."
   :group 'eshell-test)
-;; backward-compatibility alias
-(put 'eshell-test-failed-face 'face-alias 'eshell-test-failed)
+(define-obsolete-face-alias 'eshell-test-failed-face 'eshell-test-failed "22.1")
 
 (defcustom eshell-show-usage-metrics nil
   "*If non-nil, display different usage metrics for each Eshell command."

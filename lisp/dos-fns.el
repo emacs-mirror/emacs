@@ -1,7 +1,7 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 1995, 1996, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Maintainer: Morten Welinder <terra@diku.dk>
 ;; Keywords: internal
@@ -211,7 +211,7 @@ returned unaltered."
 ;; Override settings chosen at startup.
 (defun set-default-process-coding-system ()
   (setq default-process-coding-system
-	(if default-enable-multibyte-characters
+	(if (default-value 'enable-multibyte-characters)
 	    '(undecided-dos . undecided-dos)
 	  '(raw-text-dos . raw-text-dos))))
 
@@ -224,17 +224,11 @@ returned unaltered."
 ;; see if the list of defcustom's below is up to date, run the command
 ;; "M-x apropos-value RET ~/\. RET".
 (defun dos-reevaluate-defcustoms ()
-  ;; This was computed in paths.el, but that was at dump time.
-  (setq abbrev-file-name
-	(if (msdos-long-file-names)
-	    "~/.abbrev_defs"
-	  "~/_abbrev.defs"))
-  ;; This was computed in loaddefs.el, but that was at dump time.
-  (setq calc-settings-file
-	(if (msdos-long-file-names)
-	    "~/.calc.el"
-	  "~/_calc.el"))
-  (custom-reevaluate-setting 'trash-directory))
+  ;; This is not needed in Emacs 23.2 and later, as trash-directory is
+  ;; initialized as nil.  But something like this might become
+  ;; necessary in the future, so I'm keeping it here as a reminder.
+  ;(custom-reevaluate-setting 'trash-directory)
+  )
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 

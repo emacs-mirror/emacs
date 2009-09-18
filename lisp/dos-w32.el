@@ -72,15 +72,12 @@ against the file name, and TYPE is nil for text, t for binary.")
 	(setq alist (cdr alist)))
       found)))
 
-;; Silence compiler. Defined in src/buffer.c on DOS_NT.
-(defvar default-buffer-file-type)
-
 ;; Don't check for untranslated file systems here.
 (defun find-buffer-file-type (filename)
   (let ((match (find-buffer-file-type-match filename))
 	(code))
     (if (not match)
-	default-buffer-file-type
+	(default-value 'buffer-file-type)
       (setq code (cdr match))
       (cond ((memq code '(nil t)) code)
 	    ((and (symbolp code) (fboundp code))
@@ -105,7 +102,7 @@ and whether the file exists:
     If the match is nil (for dos-text):			`undecided-dos'
   Otherwise:
     If the file exists:					`undecided'
-    If the file does not exist:	       default-buffer-file-coding-system
+    If the file does not exist   default value of `buffer-file-coding-system'
 
 Note that the CAR of arguments to `insert-file-contents' operation could
 be a cons cell of the form \(FILENAME . BUFFER\), where BUFFER is a buffer
@@ -172,8 +169,8 @@ set to the appropriate coding system, and the value of
 		 (text '(undecided-dos . undecided-dos))
 		 (undecided-unix '(undecided-unix . undecided-unix))
 		 (undecided '(undecided . undecided))
-		 (t (cons default-buffer-file-coding-system
-			  default-buffer-file-coding-system))))
+		 (t (cons (default-value 'buffer-file-coding-system)
+			  (default-value 'buffer-file-coding-system)))))
 	  ((eq op 'write-region)
 	   (if buffer-file-coding-system
 	       (cons buffer-file-coding-system

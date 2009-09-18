@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -28,6 +28,9 @@
 ;; This file contains the relative timer code for Org-mode
 
 (require 'org)
+
+(declare-function org-show-notification "org-clock" (parameters))
+(declare-function org-agenda-error "org-agenda" ())
 
 (defvar org-timer-start-time nil
   "t=0 for the running timer.")
@@ -75,9 +78,7 @@ the region 0:00:00."
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
 	(setq org-timer-start-time
 	      (seconds-to-time
-	       (-
-		(time-to-seconds (current-time))
-		(org-timer-hms-to-secs s)))))
+	       (- (org-float-time) (org-timer-hms-to-secs s)))))
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
 	       (format-time-string "%T" org-timer-start-time)
@@ -94,9 +95,9 @@ the region 0:00:00."
     (setq org-timer-start-time
 	  (seconds-to-time
 	   (-
-	    (time-to-seconds (current-time))
-	    (- (time-to-seconds org-timer-pause-time)
-	       (time-to-seconds org-timer-start-time))))
+	    (org-float-time)
+	    (- (org-float-time org-timer-pause-time)
+	       (org-float-time org-timer-start-time))))
 	  org-timer-pause-time nil)
     (org-timer-set-mode-line 'on)
     (message "Timer continues at %s" (org-timer-value-string)))
@@ -130,8 +131,8 @@ that was not started at the correct moment."
   (format org-timer-format (org-timer-secs-to-hms (floor (org-timer-seconds)))))
 
 (defun org-timer-seconds ()
-  (- (time-to-seconds (or org-timer-pause-time (current-time)))
-     (time-to-seconds org-timer-start-time)))
+  (- (org-float-time (or org-timer-pause-time (current-time)))
+     (org-float-time org-timer-start-time)))
 
 ;;;###autoload
 (defun org-timer-change-times-in-region (beg end delta)
@@ -252,6 +253,74 @@ VALUE can be `on', `off', or `pause'."
     (setq org-timer-mode-line-string
 	  (concat " <" (substring (org-timer-value-string) 0 -1) ">"))
     (force-mode-line-update)))
+
+(defvar org-timer-timer1 nil)
+(defvar org-timer-timer2 nil)
+(defvar org-timer-timer3 nil)
+(defvar org-timer-last-timer nil)
+
+(defun org-timer-cancel-timers ()
+  "Reset all timers."
+  (interactive)
+  (mapc (lambda(timer)
+	  (when (eval timer)
+	    (cancel-timer timer)
+	    (setq timer nil)))
+	'(org-timer-timer1
+	  org-timer-timer2
+	  org-timer-timer3))
+  (message "All timers reset"))
+
+(defun org-timer-show-remaining-time ()
+  "Display the remaining time before the timer ends."
+  (interactive)
+  (require 'time)
+  (if (and (not org-timer-timer1)
+	   (not org-timer-timer2)
+	   (not org-timer-timer3))
+      (message "No timer set")
+    (let* ((rtime (decode-time
+		   (time-subtract (timer--time org-timer-last-timer)
+				  (current-time))))
+	   (rsecs (nth 0 rtime))
+	   (rmins (nth 1 rtime)))
+      (message "%d minutes %d secondes left before next time out"
+	       rmins rsecs))))
+
+;;;###autoload
+(defun org-timer-set-timer (minutes)
+  "Set a timer."
+  (interactive "sTime out in (min)? ")
+  (if (not (string-match "[0-9]+" minutes))
+      (org-timer-show-remaining-time)
+    (let* ((mins (string-to-number (match-string 0 minutes)))
+	   (secs (* mins 60))
+	   (hl (cond
+		((string-match "Org Agenda" (buffer-name))
+		 (let* ((marker (or (get-text-property (point) 'org-marker)
+				    (org-agenda-error)))
+			(hdmarker (or (get-text-property (point) 'org-hd-marker)
+				      marker))
+			(pos (marker-position marker)))
+		   (with-current-buffer (marker-buffer marker)
+		     (widen)
+		     (goto-char pos)
+		     (org-show-entry)
+		     (org-get-heading))))
+		((eq major-mode 'org-mode)
+		 (org-get-heading))
+		(t (error "Not in an Org buffer"))))
+	   timer-set)
+      (mapcar (lambda(timer)
+		(if (not (or (eval timer) timer-set))
+		    (setq timer-set t
+			  timer
+			  (run-with-timer
+			   secs nil 'org-notify (format "%s: time out" hl) t)
+			  org-timer-last-timer timer)))
+	      '(org-timer-timer1
+		org-timer-timer2
+		org-timer-timer3)))))
 
 (provide 'org-timer)
 

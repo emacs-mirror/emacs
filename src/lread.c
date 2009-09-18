@@ -80,6 +80,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern int errno;
 #endif
 
+/* hash table read constants */
+Lisp_Object Qhash_table, Qdata;
+Lisp_Object Qtest, Qsize;
+Lisp_Object Qweakness;
+Lisp_Object Qrehash_size;
+Lisp_Object Qrehash_threshold;
+extern Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
+
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
@@ -101,6 +109,7 @@ extern Lisp_Object Qinternal_interpreter_environment;
 
 /* non-zero if inside `load' */
 int load_in_progress;
+static Lisp_Object Qload_in_progress;
 
 /* Directory in which the sources were found.  */
 Lisp_Object Vsource_directory;
@@ -126,6 +135,9 @@ Lisp_Object Vload_file_name;
 
 /* Function to use for reading, in `load' and friends.  */
 Lisp_Object Vload_read_function;
+
+/* Non-nil means read recursive structures using #n= and #n# syntax.  */
+Lisp_Object Vread_circle;
 
 /* The association list of objects read with the #n=object form.
    Each member of the list has the form (n . object), and is used to
@@ -214,6 +226,10 @@ static Lisp_Object Vloads_in_progress;
 /* Non-zero means load dangerous compiled Lisp files.  */
 
 int load_dangerous_libraries;
+
+/* Non-zero means force printing messages when loading Lisp files.  */
+
+int force_load_messages;
 
 /* A regular expression used to detect files compiled with Emacs.  */
 
@@ -1083,7 +1099,8 @@ This function searches the directories in `load-path'.
 If optional second arg NOERROR is non-nil,
 report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
-optional third arg NOMESSAGE is non-nil.
+optional third arg NOMESSAGE is non-nil (but `force-load-messages'
+overrides that).
 If optional fourth arg NOSUFFIX is non-nil, don't try adding
 suffixes `.elc' or `.el' to the specified name FILE.
 If optional fifth arg MUST-SUFFIX is non-nil, insist on
@@ -1283,7 +1300,7 @@ Return t if the file exists and loads successfully.  */)
 		  error ("File `%s' was not compiled in Emacs",
 			 SDATA (found));
 		}
-	      else if (!NILP (nomessage))
+	      else if (!NILP (nomessage) && !force_load_messages)
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
 
@@ -1305,7 +1322,7 @@ Return t if the file exists and loads successfully.  */)
 	      newer = 1;
 
 	      /* If we won't print another message, mention this anyway.  */
-	      if (!NILP (nomessage))
+	      if (!NILP (nomessage) && !force_load_messages)
 		{
 		  Lisp_Object msg_file;
 		  msg_file = Fsubstring (found, make_number (0), make_number (-1));
@@ -1327,7 +1344,7 @@ Return t if the file exists and loads successfully.  */)
 	    emacs_close (fd);
 	  val = call4 (Vload_source_file_function, found, hist_file_name,
 		       NILP (noerror) ? Qnil : Qt,
-		       NILP (nomessage) ? Qnil : Qt);
+		       (NILP (nomessage) || force_load_messages) ? Qnil : Qt);
 	  return unbind_to (count, val);
 	}
     }
@@ -1350,7 +1367,7 @@ Return t if the file exists and loads successfully.  */)
   if (! NILP (Vpurify_flag))
     Vpreloaded_file_list = Fcons (file, Vpreloaded_file_list);
 
-  if (NILP (nomessage))
+  if (NILP (nomessage) || force_load_messages)
     {
       if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...",
@@ -1370,7 +1387,8 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qinhibit_file_name_operation, Qnil);
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
-  load_in_progress++;
+
+  specbind (Qload_in_progress, Qt);
 
   instream = stream;
   if (lisp_file_lexically_bound_p (Qget_file_char))
@@ -1390,8 +1408,7 @@ Return t if the file exists and loads successfully.  */)
   unbind_to (count, Qnil);
 
   /* Run any eval-after-load forms for this file */
-  if (NILP (Vpurify_flag)
-      && (!NILP (Ffboundp (Qdo_after_load_evaluation))))
+  if (!NILP (Ffboundp (Qdo_after_load_evaluation)))
     call1 (Qdo_after_load_evaluation, hist_file_name) ;
 
   UNGCPRO;
@@ -1404,7 +1421,7 @@ Return t if the file exists and loads successfully.  */)
   prev_saved_doc_string = 0;
   prev_saved_doc_string_size = 0;
 
-  if (!noninteractive && NILP (nomessage))
+  if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
       if (!safe_p)
 	message_with_string ("Loading %s (compiled; note unsafe, not compiled in Emacs)...done",
@@ -1417,11 +1434,6 @@ Return t if the file exists and loads successfully.  */)
       else /* The typical case; compiled file newer than source file.  */
 	message_with_string ("Loading %s...done", file, 1);
     }
-
-  if (!NILP (Fequal (build_string ("obsolete"),
-		     Ffile_name_nondirectory
-		     (Fdirectory_file_name (Ffile_name_directory (found))))))
-    message_with_string ("Package %s is obsolete", file, 1);
 
   return Qt;
 }
@@ -1437,7 +1449,6 @@ load_unwind (arg)  /* used as unwind-protect function in load */
       fclose (stream);
       UNBLOCK_INPUT;
     }
-  if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
 
@@ -2167,7 +2178,7 @@ read_escape (readcharfun, stringp)
      int stringp;
 {
   register int c = READCHAR;
-  /* \u allows up to four hex digits, \U up to eight. Default to the
+  /* \u allows up to four hex digits, \U up to eight.  Default to the
      behavior for \u, and change this value in the case that \U is seen. */
   int unicode_hex_count = 4;
 
@@ -2341,7 +2352,7 @@ read_escape (readcharfun, stringp)
       unicode_hex_count = 8;
     case 'u':
 
-      /* A Unicode escape. We only permit them in strings and characters,
+      /* A Unicode escape.  We only permit them in strings and characters,
 	 not arbitrarily in the source code, as in some other languages.  */
       {
 	unsigned int i = 0;
@@ -2383,7 +2394,8 @@ read_integer (readcharfun, radix)
      int radix;
 {
   int ndigits = 0, invalid_p, c, sign = 0;
-  EMACS_INT number = 0;
+  /* We use a floating point number because  */
+  double number = 0;
 
   if (radix < 2 || radix > 36)
     invalid_p = 1;
@@ -2433,7 +2445,7 @@ read_integer (readcharfun, radix)
       invalid_syntax (buf, 0);
     }
 
-  return make_number (sign * number);
+  return make_fixnum_or_float (sign * number);
 }
 
 
@@ -2479,6 +2491,77 @@ read1 (readcharfun, pch, first_in_list)
 
     case '#':
       c = READCHAR;
+      if (c == 's')
+	{
+	  c = READCHAR;
+	  if (c == '(')
+	    {
+	      /* Accept extended format for hashtables (extensible to
+		 other types), e.g.
+		 #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
+	      Lisp_Object tmp = read_list (0, readcharfun);
+	      Lisp_Object head = CAR_SAFE (tmp);
+	      Lisp_Object data = Qnil;
+	      Lisp_Object val = Qnil;
+	      /* The size is 2 * number of allowed keywords to
+		 make-hash-table. */
+	      Lisp_Object params[10];
+	      Lisp_Object ht;
+	      Lisp_Object key = Qnil;
+	      int param_count = 0;
+
+	      if (!EQ (head, Qhash_table))
+		error ("Invalid extended read marker at head of #s list "
+		       "(only hash-table allowed)");
+
+	      tmp = CDR_SAFE (tmp);
+
+	      /* This is repetitive but fast and simple. */
+	      params[param_count] = QCsize;
+	      params[param_count+1] = Fplist_get (tmp, Qsize);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCtest;
+	      params[param_count+1] = Fplist_get (tmp, Qtest);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCweakness;
+	      params[param_count+1] = Fplist_get (tmp, Qweakness);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCrehash_size;
+	      params[param_count+1] = Fplist_get (tmp, Qrehash_size);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      params[param_count] = QCrehash_threshold;
+	      params[param_count+1] = Fplist_get (tmp, Qrehash_threshold);
+	      if (!NILP (params[param_count+1]))
+		param_count+=2;
+
+	      /* This is the hashtable data. */
+	      data = Fplist_get (tmp, Qdata);
+
+	      /* Now use params to make a new hashtable and fill it. */
+	      ht = Fmake_hash_table (param_count, params);
+
+	      while (CONSP (data))
+	      	{
+	      	  key = XCAR (data);
+	      	  data = XCDR (data);
+	      	  if (!CONSP (data))
+	      	    error ("Odd number of elements in hashtable data");
+	      	  val = XCAR (data);
+	      	  data = XCDR (data);
+	      	  Fputhash (key, val, ht);
+	      	}
+
+	      return ht;
+	    }
+	}
       if (c == '^')
 	{
 	  c = READCHAR;
@@ -2693,13 +2776,13 @@ read1 (readcharfun, pch, first_in_list)
 	      c = READCHAR;
 	    }
 	  /* #n=object returns object, but associates it with n for #n#.  */
-	  if (c == '=')
+	  if (c == '=' && !NILP (Vread_circle))
 	    {
 	      /* Make a placeholder for #n# to use temporarily */
 	      Lisp_Object placeholder;
 	      Lisp_Object cell;
 
-	      placeholder = Fcons(Qnil, Qnil);
+	      placeholder = Fcons (Qnil, Qnil);
 	      cell = Fcons (make_number (n), placeholder);
 	      read_objects = Fcons (cell, read_objects);
 
@@ -2715,7 +2798,7 @@ read1 (readcharfun, pch, first_in_list)
 	      return tem;
 	    }
 	  /* #n# returns a previously read object.  */
-	  if (c == '#')
+	  if (c == '#' && !NILP (Vread_circle))
 	    {
 	      tem = Fassq (make_number (n), read_objects);
 	      if (CONSP (tem))
@@ -3049,7 +3132,6 @@ read1 (readcharfun, pch, first_in_list)
 	if (!quoted && !uninterned_symbol)
 	  {
 	    register char *p1;
-	    register Lisp_Object val;
 	    p1 = read_buffer;
 	    if (*p1 == '+' || *p1 == '-') p1++;
 	    /* Is it an integer? */
@@ -3063,15 +3145,21 @@ read1 (readcharfun, pch, first_in_list)
 		  {
 		    if (p1[-1] == '.')
 		      p1[-1] = '\0';
-		    /* Fixme: if we have strtol, use that, and check
-		       for overflow.  */
-		    if (sizeof (int) == sizeof (EMACS_INT))
-		      XSETINT (val, atoi (read_buffer));
-		    else if (sizeof (long) == sizeof (EMACS_INT))
-		      XSETINT (val, atol (read_buffer));
-		    else
-		      abort ();
-		    return val;
+		    {
+		      /* EMACS_INT n = atol (read_buffer); */
+		      char *endptr = NULL;
+		      EMACS_INT n = (errno = 0,
+				     strtol (read_buffer, &endptr, 10));
+		      if (errno == ERANGE && endptr)
+			{
+			  Lisp_Object args
+			    = Fcons (make_string (read_buffer,
+						  endptr - read_buffer),
+				     Qnil);
+			  xsignal (Qoverflow_error, args);
+			}
+		      return make_fixnum_or_float (n);
+		    }
 		  }
 	      }
 	    if (isfloat_string (read_buffer))
@@ -3281,7 +3369,7 @@ substitute_in_interval (interval, arg)
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
 
-  SUBSTITUTE(interval->plist, interval->plist = true_value);
+  SUBSTITUTE (interval->plist, interval->plist = true_value);
 }
 
 
@@ -4248,7 +4336,7 @@ init_lread ()
     }
 #endif
 
-#if (!(defined(WINDOWSNT) || (defined(HAVE_NS))))
+#if (!(defined (WINDOWSNT) || (defined (HAVE_NS))))
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
@@ -4376,6 +4464,10 @@ read multiple times.  The list is in the same order as the symbols
 were read in. */);
   Vread_symbol_positions_list = Qnil;
 
+  DEFVAR_LISP ("read-circle", &Vread_circle,
+	       doc: /* Non-nil means read recursive structures using #N= and #N# syntax.  */);
+  Vread_circle = Qt;
+
   DEFVAR_LISP ("load-path", &Vload_path,
 	       doc: /* *List of directories to search for files to load.
 Each element is a string (directory name) or nil (try default directory).
@@ -4406,6 +4498,8 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
+  Qload_in_progress = intern ("load-in-progress");
+  staticpro (&Qload_in_progress);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.
@@ -4506,6 +4600,11 @@ incompatible byte codes can make Emacs crash when it tries to execute
 them.  */);
   load_dangerous_libraries = 0;
 
+  DEFVAR_BOOL ("force-load-messages", &force_load_messages,
+	       doc: /* Non-nil means force printing messages when loading Lisp files.
+This overrides the value of the NOMESSAGE argument to `load'.  */);
+  force_load_messages = 0;
+
   DEFVAR_LISP ("bytecomp-version-regexp", &Vbytecomp_version_regexp,
 	       doc: /* Regular expression matching safe to load compiled Lisp files.
 When Emacs loads a compiled Lisp file, it reads the first 512 bytes
@@ -4600,6 +4699,21 @@ This variable automatically becomes buffer-local when set.  */);
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
+
+  Qhash_table = intern ("hash-table");
+  staticpro (&Qhash_table);
+  Qdata = intern ("data");
+  staticpro (&Qdata);
+  Qtest = intern ("test");
+  staticpro (&Qtest);
+  Qsize = intern ("size");
+  staticpro (&Qsize);
+  Qweakness = intern ("weakness");
+  staticpro (&Qweakness);
+  Qrehash_size = intern ("rehash-size");
+  staticpro (&Qrehash_size);
+  Qrehash_threshold = intern ("rehash-threshold");
+  staticpro (&Qrehash_threshold);
 }
 
 /* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d

@@ -1,7 +1,7 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -118,7 +118,7 @@ The usual mnemonic keys move the cursor around the board; in addition,
 (defvar solitaire-end-y nil)
 
 (defcustom solitaire-auto-eval t
-  "*Non-nil means check for possible moves after each major change.
+  "Non-nil means check for possible moves after each major change.
 This takes a while, so switch this on if you like to be informed when
 the game is over, or off, if you are working on a slow machine."
   :type 'boolean

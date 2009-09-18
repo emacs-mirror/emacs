@@ -1,7 +1,8 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
 ;; Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -1967,16 +1968,10 @@ on the gateway machine to do the FTP instead."
     (accept-process-output proc)	;wait for ftp startup message
     proc))
 
-(put 'internal-ange-ftp-mode 'mode-class 'special)
-
-(defun internal-ange-ftp-mode ()
+(define-derived-mode internal-ange-ftp-mode comint-mode "Internal Ange-ftp"
   "Major mode for interacting with the FTP process.
 
 \\{comint-mode-map}"
-  (interactive)
-  (delay-mode-hooks (comint-mode))
-  (setq major-mode 'internal-ange-ftp-mode)
-  (setq mode-name "Internal Ange-ftp")
   (make-local-variable 'ange-ftp-process-string)
   (setq ange-ftp-process-string "")
   (make-local-variable 'ange-ftp-process-busy)
@@ -2000,8 +1995,7 @@ on the gateway machine to do the FTP instead."
   ;; ange-ftp has its own ways of handling passwords.
   (setq comint-password-prompt-regexp "\\`a\\`")
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start comint-prompt-regexp)
-  (run-mode-hooks 'internal-ange-ftp-mode-hook))
+  (setq paragraph-start comint-prompt-regexp))
 
 (defcustom ange-ftp-raw-login nil
   "Use raw FTP commands for login, if account password is not nil.
@@ -3220,7 +3214,7 @@ system TYPE.")
 	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
 			   (and (not (memq system-type
-					   '(ms-dos windows-nt macos vax-vms)))
+					   '(ms-dos windows-nt)))
 				(memq (ange-ftp-host-type host user)
 				      '(unix dumb-unix)))))
 	       (cmd (if append 'append 'put))
@@ -4171,7 +4165,10 @@ COMPRESSING should be t if the specified file should be compressed,
 and nil if it should be uncompressed (that is, if it is a compressed file).
 NEWNAME should be the name to give the new compressed or uncompressed file.")
 
+(declare-function dired-compress-file "dired-aux" (file))
+
 (defun ange-ftp-dired-compress-file (name)
+  "Handler used by `dired-compress-file'."
   (let ((parsed (ange-ftp-ftp-name name))
 	conversion-func)
     (if (and parsed

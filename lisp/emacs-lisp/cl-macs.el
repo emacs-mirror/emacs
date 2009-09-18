@@ -222,9 +222,15 @@ its argument list allows full Common Lisp conventions."
 (defconst lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
 
-(defvar cl-macro-environment nil)
+(defvar cl-macro-environment nil
+  "Keep the list of currently active macros.
+It is a list of elements of the form either:
+- (SYMBOL . FUNCTION) where FUNCTION is the macro expansion function.
+- (SYMBOL-NAME . EXPANSION) where SYMBOL-NAME is the name of a symbol macro.")
 (defvar bind-block) (defvar bind-defs) (defvar bind-enquote)
 (defvar bind-inits) (defvar bind-lets) (defvar bind-forms)
+
+(declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
 
 (defun cl-transform-lambda (form bind-block)
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
@@ -485,7 +491,7 @@ The result of the body appears to the compiler as a quoted constant."
 				    (symbol-function 'byte-compile-file-form)))
 			(list 'byte-compile-file-form (list 'quote set))
 			'(byte-compile-file-form form)))
-	  (print set (symbol-value 'outbuffer)))
+	  (print set (symbol-value 'bytecomp-outbuffer)))
 	(list 'symbol-value (list 'quote temp)))
     (list 'quote (eval form))))
 
@@ -1448,8 +1454,10 @@ lexical closures as in Common Lisp.
 ;;;###autoload
 (defmacro lexical-let* (bindings &rest body)
   "Like `let*', but lexically scoped.
-The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp.
+The main visible difference is that lambdas inside BODY, and in
+successive bindings within BINDINGS, will create lexical closures
+as in Common Lisp.  This is similar to the behavior of `let*' in
+Common Lisp.
 \n(fn VARLIST BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
@@ -2541,8 +2549,22 @@ and then returning foo."
 	 (cons (if (memq '&whole args) (delq '&whole args)
 		 (cons '--cl-whole-arg-- args)) body))
 	(list 'or (list 'get (list 'quote func) '(quote byte-compile))
-	      (list 'put (list 'quote func) '(quote byte-compile)
-		    '(quote cl-byte-compile-compiler-macro)))))
+	      (list 'progn
+		    (list 'put (list 'quote func) '(quote byte-compile)
+			  '(quote cl-byte-compile-compiler-macro))
+		    ;; This is so that describe-function can locate
+		    ;; the macro definition.
+		    (list 'let
+			  (list (list
+				 'file
+				 (or buffer-file-name
+				     (and (boundp 'byte-compile-current-file)
+					  (stringp byte-compile-current-file)
+					  byte-compile-current-file))))
+			  (list 'if 'file
+				(list 'put (list 'quote func)
+				      '(quote compiler-macro-file)
+				      '(file-name-nondirectory file))))))))
 
 ;;;###autoload
 (defun compiler-macroexpand (form)

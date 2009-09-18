@@ -194,7 +194,7 @@ in shell buffers.  You set this variable by calling one of:
   (setq ansi-color-for-comint-mode 'filter))
 
 ;;;###autoload
-(defun ansi-color-process-output (string)
+(defun ansi-color-process-output (ignored)
   "Maybe translate SGR control sequences of comint output into text-properties.
 
 Depending on variable `ansi-color-for-comint-mode' the comint output is
@@ -604,7 +604,7 @@ property of `ansi-color-faces-vector' and `ansi-color-names-vector'."
 ANSI-CODE is used as an index into the vector."
   (condition-case nil
       (aref ansi-color-map ansi-code)
-    ('args-out-of-range nil)))
+    (args-out-of-range nil)))
 
 (defun ansi-color-get-face (escape-seq)
   "Create a new face by applying all the parameters in ESCAPE-SEQ.

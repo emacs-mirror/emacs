@@ -1,3 +1,218 @@
+2009-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention new behavior of -Q and new variable
+	`inhibit-x-resources'.
+
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document Athena/Lucid internationalization
+	problem (Bug#4333).
+
+2009-09-02  Carsten Dominik  <dominik@u016822.science.uva.nl>
+
+	* refcards/orgcard.tex: Document new effort setting commands.
+	Document the new keys for agenda time motion.
+	Document the `E' key in the agenda.
+
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Declare unibyte sessions obsolete.
+
+2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention Tramp connection method "rsyncc" and variable
+	`process-file-side-effects'.
+
+2009-08-13  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Mention the new coding systme `utf-8-hfs' and many
+	functions for Unicode normalization.
+
+2009-08-09  CHENG Gao  <chenggao@gmail.com>
+
+	* MORE.STUFF: Update Etags and Ispell URLs.
+
+2009-08-08  Dmitry Dzhus <dima@sphinx.net.ru>
+
+	* images/gud/all.xpm, images/gud/thread.xpm: New icons for
+	gdb-mi.el
+
+2009-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti (msgr, u6, u7): New capabilities.
+
+2009-08-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Autorevert Tail mode works now for remote files.
+
+2009-07-26  Kevin Ryde  <user42@zip.com.au>
+
+	* compilation.txt: Add Perl-Glib sample message.
+
+2009-07-23  Ken Raeburn  <raeburn@raeburn.org>
+
+	* NEWS: `load-in-progress' corruption fixed.
+
+2009-07-21  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/cs-dired-ref.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/sk-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/de-refcard.tex:
+	* refcards/fr-refcard.tex, refcards/pl-refcard.tex:
+	* refcards/pt-br-refcard.tex, refcards/refcard.tex:
+	* refcards/ru-refcard.tex, refcards/sk-refcard.tex:
+	* refcards/cs-survival.tex, refcards/fr-survival.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	Remove version numbers that don't mean much.  Instead, just use Emacs
+	version and date.  Use FSF URL rather than postal address.
+
+	* refcards/vipcard.tex (versionnumber, version): Remove.
+	(versionemacs, versionvip): New.
+	(copyrightnotice): Use FSF URL rather than postal address.
+
+	* refcards/viperCard.tex (versionnumber): Rename to versionviper.
+	(versionemacs, versionxemacs): New.
+	(version): Remove.
+	(copyrightnotice): Use FSF URL rather than postal address.
+
+2009-07-16  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/cs-dired-ref.tex, refcards/fr-dired-ref.tex:
+	* refcards/sk-dired-ref.tex:
+	Remove non-existent (?) bindings: w, C-u o, U, delete.
+	Fix bindings: delete marked files = D, not X; flag garbage = % &, not &.
+
+	* refcards/gnus-refcard.tex: Condense a few sentences in order to
+	make them fit on one line, and add some page breaks, to improve the
+	layout in the pdfs.
+
+2009-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/dired-ref.tex: Change from A4 to letter paper.
+	Remove non-existent (?) bindings: w, C-u o, U, delete.
+	Fix bindings: delete marked files = D, not X; flag garbage = % &, not &.
+	New: async shell command = &.
+
+	* refcards/gnus-refcard.tex (Copyright): Add 2009.
+	(Notes): Add missing line-break.
+	(Threading): Reword to fit on one line.
+
+	* refcards/calccard.tex (emacsversionnumber): Just use major version.
+
+	* refcards/Makefile (gnus-booklet.pdf): Use jobname rather than
+	clobbering gnus-refcard.pdf.
+	(clean): Remove .aux files.
+	(gnus-logo.pdf): Remove rule, since this file is distributed.
+
+2009-07-10  Kenichi Handa  <handa@m17n.org>
+
+	* tutorials/TUTORIAL.ja: Reflect the latest change of TUTORIAL.
+
+2009-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* compilation.txt: Fix names of some elements.
+
+2009-07-08  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL: Standardize the way M-x commands are written:
+	dashes inside command names, not spaces; spaces before <Return>.
+	(Summary): Describe the new behavior of C-l.
+	(Basic Cursor Control): Don't say that files "ought" to end in newlines.
+	Try to distinguish scroll bar from fringes.
+	You can also scroll with a wheel mouse.
+	(If Emacs Stops Responding): Rename from "When Emacs is hung".
+	(Inserting And Deleting): Continuation marks appear in the fringe.
+	Clarify that deletion can be undone.  Mention cut and paste, and
+	the Glossary.
+	(Files, Mode Line): Update mode-line format.
+	(Extending The Command Set): Downplay C-z, since using Emacs on a
+	text-only terminal is less common these days.
+	(Searching): Incremental searching is no longer atypical.
+	Downplay flow control issues, remove reference to deleted FAQ node.
+	(Multiple Windows): Mention frames.
+	(Multiple Frames): New section.
+	(Getting More Help): Downplay C-h having a different binding.
+	Don't say help is "on-line", since the meaning has changed.
+	(More Features): Replace "on-line".  Use C-h rather than F10 h.
+	Say a little more about completion.
+	(Conclusion): Don't mention C-z again here.
+
+2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention maximized.
+
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add "synce" connection method of Tramp.
+
+2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add new connection methods of Tramp.
+
+2009-06-24  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/stdenc.map: Re-generated.
+
+	* charsets/symbol.map: Re-generated.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-15  Alan Mackenzie  <acm@muc.de>
+
+	* NEWS: Document changes to end-of-defun-function, clarifying
+	entry for beginning-of-defun-function.
+
+2009-06-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.
+
+2009-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Use "/" instead of "," to seperate independent words.
+
+	* charsets/*.map: All re-generated.
+
+2009-06-08  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Downcase "suomi".
+
+2009-05-25  Werner Lemberg  <wl@gnu.org>
+
+	* tutorial/TUTORIAL.de: Updated; synchronize with TUTORIAL.
+	Use reformed Orthography.
+	Minor improvements.
+
+2009-05-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* refcards/survival.tex: Add M-g M-g binding.
+
+	* refcards/survival.tex:
+	* refcards/sk-survival.tex:
+	* refcards/sk-refcard.tex:
+	* refcards/sk-dired-ref.tex:
+	* refcards/ru-refcard.tex:
+	* refcards/pt-br-refcard.tex:
+	* refcards/pl-refcard.tex:
+	* refcards/fr-survival.tex:
+	* refcards/fr-dired-ref.tex:
+	* refcards/dired-ref.tex:
+	* refcards/cs-survival.tex:
+	* refcards/cs-refcard.tex:
+	* refcards/cs-dired-ref.tex: Bump refcard version numbers to 23.
+
+2009-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* refcards/refcard.tex: Update Emacs version to 23.
+
+2009-05-15  Sven Joachim  <svenjoac@gmx.de>
+
+        * refcards/de-refcard.tex: Merge changes from refcard.tex.
+        Change `Paragraph' to `Absatz'.
+
 2009-04-09  Glenn Morris  <rgm@gnu.org>
 
 	* MORE.STUFF: Update some urls.  Remove dead links: eshell, expand,

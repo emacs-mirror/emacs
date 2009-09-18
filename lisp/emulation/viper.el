@@ -14,7 +14,7 @@
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
 
-(defconst viper-version "3.14 of November 22, 2008"
+(defconst viper-version "3.14.1 of August 15, 2009"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -678,8 +678,9 @@ It also can't undo some Viper settings."
    global-mode-string
    (delq 'viper-mode-string global-mode-string))
 
-  (setq default-major-mode
-	(viper-standard-value 'default-major-mode viper-saved-non-viper-variables))
+  (setq-default major-mode
+                (viper-standard-value 'default-major-mode
+                                      viper-saved-non-viper-variables))
 
   (if (featurep 'emacs)
       (setq-default
@@ -834,8 +835,8 @@ It also can't undo some Viper settings."
   ;; in Fundamental Mode and Vi state.
   ;; When viper-mode is executed in such a case, it will set the major mode
   ;; back to fundamental-mode.
-  (if (eq default-major-mode 'fundamental-mode)
-      (setq default-major-mode 'viper-mode))
+  (if (eq (default-value 'major-mode) 'fundamental-mode)
+      (setq-default major-mode 'viper-mode))
 
   (add-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
   (add-hook 'find-file-hooks 'set-viper-state-in-major-mode)
@@ -1214,7 +1215,7 @@ These two lines must come in the order given.
 (if (null viper-saved-non-viper-variables)
     (setq viper-saved-non-viper-variables
 	  (list
-	   (cons 'default-major-mode (list default-major-mode))
+	   (cons 'default-major-mode (list (default-value 'major-mode)))
 	   (cons 'next-line-add-newlines (list next-line-add-newlines))
 	   (cons 'require-final-newline (list require-final-newline))
 	   (cons 'scroll-step (list scroll-step))

@@ -342,13 +342,14 @@ for subdir in lisp site-lisp \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj \
-	      nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib \
 	      nextstep/Cocoa/Emacs.xcodeproj \
 	      nextstep/GNUstep \
 	      nextstep/GNUstep/Emacs.base \
-	      nextstep/GNUstep/Emacs.base/Resources \
-	      nextstep/GNUstep/Emacs.base/Resources/preferences.gorm
+	      nextstep/GNUstep/Emacs.base/Resources
 do
+  ## site-lisp for in-place installs (?).
+  [ "$subdir" = "site-lisp" ] || [ -d "$subdir" ] || \
+      echo "WARNING: $subdir not found, making anyway"
   echo "  ${tempdir}/${subdir}"
   mkdir ${tempdir}/${subdir}
 done
@@ -550,10 +551,6 @@ echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/English.lpr
 (cd nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj
  ln InfoPlist.strings ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/English.lproj)
 
-echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib'"
-(cd nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib
- ln *.nib ../../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib)
-
 echo "Making links to \`nextstep/Cocoa/Emacs.xcodeproj'"
 (cd nextstep/Cocoa/Emacs.xcodeproj
  ln project.pbxproj ../../../${tempdir}/nextstep/Cocoa/Emacs.xcodeproj)
@@ -561,10 +558,6 @@ echo "Making links to \`nextstep/Cocoa/Emacs.xcodeproj'"
 echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 (cd nextstep/GNUstep/Emacs.base/Resources
  ln Emacs.desktop Info-gnustep.plist README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
-
-echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources/preferences.gorm'"
-(cd nextstep/GNUstep/Emacs.base/Resources/preferences.gorm
- ln data.classes data.info objects.gorm ../../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources/preferences.gorm )
 
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu

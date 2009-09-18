@@ -1398,7 +1398,8 @@ hierarchy is similar to that used by `rst-adjust-decoration'."
       (let (m line)
         (while (and cur (< (setq line (caar cur)) region-end-line))
           (setq m (make-marker))
-          (goto-line line)
+          (goto-char (point-min))
+          (forward-line (1- line))
           (push (list (set-marker m (point)) (cdar cur)) marker-list)
           (setq cur (cdr cur)) ))
 
@@ -1463,7 +1464,8 @@ in order to adapt it to our preferred style."
 				(lambda (deco)
 				  (cons (rst-position (cdr deco) hier)
 					(let ((m (make-marker)))
-					  (goto-line (car deco))
+					  (goto-char (point-min))
+					  (forward-line (1- (car deco)))
 					  (set-marker m (point))
 					  m)))
 				alldecos))
@@ -1497,7 +1499,8 @@ section levels."
       ;; adjust for the changes in the document.
       (dolist (deco (nreverse alldecos))
 	;; Go to the appropriate position.
-	(goto-line (car deco))
+	(goto-char (point-min))
+	(forward-line (1- (car deco)))
 	(insert "@\n")
 ;; FIXME: todo, we
 	)
@@ -1628,7 +1631,8 @@ child.  This has advantages later in processing the graph."
     (save-excursion
       (setq lines
             (mapcar (lambda (deco)
-                      (goto-line (car deco))
+                      (goto-char (point-min))
+                      (forward-line (1- (car deco)))
                       (list (gethash (cons (cadr deco) (caddr deco)) levels)
                             (rst-get-stripped-line)
                             (let ((m (make-marker)))
@@ -2019,7 +2023,8 @@ brings the cursor in that section."
     (set (make-local-variable 'rst-toc-return-buffer) curbuf)
 
     ;; Move the cursor near the right section in the TOC.
-    (goto-line line)
+    (goto-char (point-min))
+    (forward-line (1- line))
     ))
 
 
@@ -2134,7 +2139,9 @@ backwards in the file (default is to use 1)."
     ;; If the index is positive, goto the line, otherwise go to the buffer
     ;; boundaries.
     (if (and cur (>= idx 0))
-        (goto-line (car cur))
+        (progn
+          (goto-char (point-min))
+          (forward-line (1- (car cur))))
       (if (> offset 0) (goto-char (point-max)) (goto-char (point-min))))
     ))
 

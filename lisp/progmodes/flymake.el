@@ -805,7 +805,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.
 Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
-  (goto-line line-no)
+  (goto-char (point-min))
+  (forward-line (1- line-no))
   (let* ((line-beg (flymake-line-beginning-position))
 	 (line-end (flymake-line-end-position))
 	 (beg      line-beg)
@@ -1269,7 +1270,8 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (if (not (file-exists-p file))
       (flymake-log 1 "File %s does not exist" file)
     (find-file file)
-    (goto-line line)))
+    (goto-char (point-min))
+    (forward-line (1- line))))
 
 ;; flymake minor mode declarations
 (defvar flymake-mode-line nil)
@@ -1443,7 +1445,8 @@ With arg, turn Flymake mode on if and only if arg is positive."
 
 (defun flymake-goto-line (line-no)
   "Go to line LINE-NO, then skip whitespace."
-  (goto-line line-no)
+  (goto-char (point-min))
+  (forward-line (1- line-no))
   (flymake-skip-whitespace))
 
 (defun flymake-goto-next-error ()

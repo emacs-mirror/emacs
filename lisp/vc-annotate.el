@@ -375,7 +375,8 @@ mode-specific menu.  `vc-annotate-color-map' and
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (let ((backend (vc-backend file)))
+      (let ((backend (vc-backend file))
+	    (coding-system-for-read buffer-file-coding-system))
         (vc-call-backend backend 'annotate-command file
                          (get-buffer temp-buffer-name) rev)
         ;; we must setup the mode first, and then set our local

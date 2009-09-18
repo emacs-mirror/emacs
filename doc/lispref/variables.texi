@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -260,7 +261,7 @@ Variables}); a few variables have terminal-local bindings
 like ordinary local bindings, but they are localized depending on
 ``where'' you are in Emacs, rather than localized in time.
 
-@defvar max-specpdl-size
+@defopt max-specpdl-size
 @anchor{Definition of max-specpdl-size}
 @cindex variable limit error
 @cindex evaluation error
@@ -279,7 +280,7 @@ that Lisp avoids infinite recursion on an ill-defined function.
 The default value is 1000.  Entry to the Lisp debugger increases the
 value, if there is little room left, to make sure the debugger itself
 has room to execute.
-@end defvar
+@end defopt
 
 @node Void Variables
 @section When a Variable is ``Void''
@@ -1539,6 +1540,11 @@ your Emacs.  Emacs protects against this by automatically setting only
 those file-local variables whose specified values are known to be
 safe.  Other file-local variables are set only if the user agrees.
 
+  For additional safety, @code{read-circle} is temporarily bound to
+@code{nil} when Emacs reads file-local variables (@pxref{Input
+Functions}).  This prevents the Lisp reader from recognizing circular
+and shared Lisp structures (@pxref{Circular Objects}).
+
 @defopt enable-local-variables
 This variable controls whether to process file-local variables.
 The possible values are:
@@ -1756,9 +1762,10 @@ This alist holds the class symbols and the associated variable
 settings.  It is updated by @code{dir-locals-set-class-variables}.
 @end defvar
 
-@defvar dir-locals-directory-alist
-This alist holds directory names and their assigned class names.  It
-is updated by @code{dir-locals-set-directory-class}.
+@defvar dir-locals-directory-cache
+This alist holds directory names, their assigned class names, and
+modification times of the associated directory local variables file.
+It is updated by @code{dir-locals-set-directory-class}.
 @end defvar
 
 @node Frame-Local Variables

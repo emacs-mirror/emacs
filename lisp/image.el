@@ -43,7 +43,7 @@
 static \\(unsigned \\)?char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
-    ("\\`\xff\xd8" . (image-jpeg-p . jpeg))
+    ("\\`\xff\xd8" . jpeg)    ; used to be (image-jpeg-p . jpeg)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
 	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
@@ -98,18 +98,17 @@ AUTODETECT can be
  - maybe  auto-detect only if the image type is available
 	    (see `image-type-available-p').")
 
-(defvar image-load-path nil
+(defcustom image-load-path
+  (list (file-name-as-directory (expand-file-name "images" data-directory))
+        'data-directory 'load-path)
   "List of locations in which to search for image files.
 If an element is a string, it defines a directory to search.
 If an element is a variable symbol whose value is a string, that
 value defines a directory to search.
 If an element is a variable symbol whose value is a list, the
-value is used as a list of directories to search.")
-
-(eval-at-startup
- (setq image-load-path
-       (list (file-name-as-directory (expand-file-name "images" data-directory))
-	     'data-directory 'load-path)))
+value is used as a list of directories to search."
+  :type '(repeat (choice directory variable))
+  :initialize 'custom-initialize-delay)
 
 
 (defun image-load-path-for-library (library image &optional path no-error)

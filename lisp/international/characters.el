@@ -132,16 +132,16 @@ Combining diacritic or mark (Unicode General Category M)")
 ;; Chinese characters (Unicode)
 (modify-category-entry '(#x2E80 . #x312F) ?|)
 (modify-category-entry '(#x3190 . #x33FF) ?|)
-(modify-category-entry '(#x3400 . #x9FAF) ?C)
+(modify-category-entry '(#x3400 . #x4DBF) ?C)
+(modify-category-entry '(#x4E00 . #x9FAF) ?C)
 (modify-category-entry '(#x3400 . #x9FAF) ?c)
 (modify-category-entry '(#x3400 . #x9FAF) ?|)
 (modify-category-entry '(#xF900 . #xFAFF) ?C)
 (modify-category-entry '(#xF900 . #xFAFF) ?c)
 (modify-category-entry '(#xF900 . #xFAFF) ?|)
-(modify-category-entry '(#x20000 . #x2AFFF) ?|)
-(modify-category-entry '(#x2F800 . #x2FFFF) ?|)
-(modify-category-entry '(#x20000 . #x2AFFF) ?C)
-(modify-category-entry '(#x2F800 . #x2FFFF) ?C)
+(modify-category-entry '(#x20000 . #x2FFFF) ?|)
+(modify-category-entry '(#x20000 . #x2FFFF) ?C)
+(modify-category-entry '(#x20000 . #x2FFFF) ?c)
 
 
 ;; Chinese character set (GB2312)
@@ -163,9 +163,9 @@ Combining diacritic or mark (Unicode General Category M)")
 ;; Chinese character set (BIG5)
 
 (map-charset-chars #'modify-category-entry 'big5 ?c)
-(map-charset-chars #'modify-category-entry 'big5 ?C #xA259 #xA25F)
+(map-charset-chars #'modify-category-entry 'big5 ?C #xA259 #xA261)
 (map-charset-chars #'modify-category-entry 'big5 ?C #xA440 #xC67E)
-(map-charset-chars #'modify-category-entry 'big5 ?C #xC940 #xF9DF)
+(map-charset-chars #'modify-category-entry 'big5 ?C #xC940 #xF9DC)
 
 ;; Chinese character set (CNS11643)
 
@@ -184,7 +184,8 @@ Combining diacritic or mark (Unicode General Category M)")
 (map-charset-chars #'modify-category-entry 'latin-jisx0201 ?r)
 
 (dolist (l '(katakana-jisx0201 japanese-jisx0208 japanese-jisx0212
-			       japanese-jisx0213-1 japanese-jisx0213-2))
+			       japanese-jisx0213-1 japanese-jisx0213-2
+			       cp932-2-byte))
   (map-charset-chars #'modify-category-entry l ?j))
 
 ;; Unicode equivalents of JISX0201-kana
@@ -194,17 +195,19 @@ Combining diacritic or mark (Unicode General Category M)")
   (modify-category-entry range ?\|))
 
 ;; Katakana block
-(let ((range '(#x30a0 . #x30ff)))
-  ;; ?K is double width, ?k isn't specified
-  (modify-category-entry range ?K)
-  (modify-category-entry range ?\|))
+(modify-category-entry '(#x3099 . #x309C) ?K)
+(modify-category-entry '(#x30A0 . #x30FF) ?K)
+(modify-category-entry '(#x31F0 . #x31FF) ?K)
+(modify-category-entry '(#x30A0 . #x30FA) ?\|)
+(modify-category-entry #x30FF ?\|)
 
 ;; Hiragana block
-(let ((range '(#x3040 . #x309d)))
-  ;; ?H is actually defined to be double width
-  ;;(modify-category-entry range ?H)
-  (modify-category-entry range ?\|)
-  )
+(modify-category-entry '(#x3040 . #x309F) ?H)
+(modify-category-entry '(#x3040 . #x3096) ?\|)
+(modify-category-entry #x309F ?\|)
+(modify-category-entry #x30A0 ?H)
+(modify-category-entry #x30FC ?H)
+
 
 ;; JISX0208
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2121 #x227E)
@@ -225,7 +228,7 @@ Combining diacritic or mark (Unicode General Category M)")
     (modify-category-entry (car chars) ?K)
     (modify-category-entry (car chars) ?H)
     (setq chars (cdr chars))))
-(let ((chars '(?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
+(let ((chars '(?仝 ?々 ?〆 ?〇)))
   (while chars
     (modify-category-entry (car chars) ?C)
     (setq chars (cdr chars))))
@@ -526,7 +529,8 @@ Combining diacritic or mark (Unicode General Category M)")
 		       (#x014a . #x0177)
 		       (#x0179 . #x017E)
 		       (#x0182 . #x0185)
-		       (#x0187 . #x018C)
+		       (#x0187 . #x0188)
+		       (#x018B . #x018C)
 		       (#x0191 . #x0192)
 		       (#x0198 . #x0199)
 		       (#x01A0 . #x01A5)
@@ -548,6 +552,9 @@ Combining diacritic or mark (Unicode General Category M)")
 	(while (< from to)
 	  (set-case-syntax-pair from (1+ from) tbl)
 	  (setq from (+ from 2))))))
+
+  (set-case-syntax-pair #x189 #x256 tbl)
+  (set-case-syntax-pair #x18A #x257 tbl)
 
   ;; In some languages, such as Turkish, U+0049 LATIN CAPITAL LETTER I
   ;; and U+0131 LATIN SMALL LETTER DOTLESS I make a case pair, and so
@@ -615,8 +622,9 @@ Combining diacritic or mark (Unicode General Category M)")
   (while (<= c #x1fff)
     (and (<= (logand c #x000f) 7)
 	 (<= c #x1fa7)
-	 (not (memq c '(#x1f50 #x1f52 #x1f54 #x1f56)))
-	 (/= (logand c #x00f0) 7)
+	 (not (memq c '(#x1f16 #x1f17 #x1f56 #x1f57
+			       #x1f50 #x1f52 #x1f54 #x1f56)))
+	 (/= (logand c #x00f0) #x70)
 	 (set-case-syntax-pair (+ c 8) c tbl))
     (setq c (1+ c)))
   (set-case-syntax-pair ?Ᾰ ?ᾰ tbl)
@@ -1028,27 +1036,55 @@ Combining diacritic or mark (Unicode General Category M)")
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
-(defvar cjk-char-width-table
-  (let ((table (make-char-table nil)))
-    (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1
-			    japanese-jisx0208 cp932-2-byte korean-ksc5601))
-      (map-charset-chars #'(lambda (range arg)
-			     (set-char-table-range table range 2))
-			 charset))
-    (optimize-char-table table)
-    (set-char-table-parent table char-width-table)
-    table)
-  "Character width table used in CJK language environment.")
+;; Internal use only.
+;; Alist of locale symbol vs charsets.  In a language environment
+;; corresponding to the locale, width of characters in the charsets is
+;; set to 2.  Each element has the form:
+;;   (LOCALE TABLE (CHARSET (FROM-CODE . TO-CODE) ...) ...)
+;; LOCALE: locale symbol
+;; TABLE: char-table used for char-width-table, initially nil.
+;; CAHRSET: character set
+;; FROM-CODE, TO-CODE: range of code-points in CHARSET
 
-(defun use-cjk-char-width-table ()
-  "Internal use only.
-Setup char-width-table appropriate for CJK language environment."
-  (setq char-width-table cjk-char-width-table))
+(defvar cjk-char-width-table-list
+  '((ja_JP nil (japanese-jisx0208 (#x2121 . #x287E))
+	       (cp932-2-byte (#x8140 . #x879F)))
+    (zh_CN nil (chinese-gb2312 (#x2121 . #x297E)))
+    (zh_HK nil (big5-hkscs (#xA140 . #xA3FE) (#xC6A0 . #xC8FE)))
+    (zh_TW nil (big5 (#xA140 . #xA3FE))
+	       (chinese-cns11643-1 (#x2121 . #x427E)))
+    (ko_KR nil (korean-ksc5601 (#x2121 . #x2C7E)))))
+
+;; Internal use only.
+;; Setup char-width-table appropriate for a language environment
+;; corresponding to LOCALE-NAME (symbol).
+
+(defun use-cjk-char-width-table (locale-name)
+  (while (char-table-parent char-width-table)
+    (setq char-width-table (char-table-parent char-width-table)))
+  (let ((slot (assq locale-name cjk-char-width-table-list))
+	table)
+    (or slot (error "Unknown locale for CJK language environment: %s"
+		    locale-name))
+    (unless (nth 1 slot)
+      (let ((table (make-char-table nil)))
+	(dolist (charset-info (nthcdr 2 slot))
+	  (let ((charset (car charset-info)))
+	    (dolist (code-range (cdr charset-info))
+	      (map-charset-chars #'(lambda (range arg)
+				     (set-char-table-range table range 2))
+				 charset nil
+				 (car code-range) (cdr code-range)))))
+	(optimize-char-table table)
+	(set-char-table-parent table char-width-table)
+	(setcar (cdr slot) table)))
+    (setq char-width-table (nth 1 slot))))
 
 (defun use-default-char-width-table ()
   "Internal use only.
 Setup char-width-table appropriate for non-CJK language environment."
-  (setq char-width-table (char-table-parent cjk-char-width-table)))
+  (while (char-table-parent char-width-table)
+    (setq char-width-table (char-table-parent char-width-table))))
 
 (optimize-char-table (standard-case-table))
 (optimize-char-table (standard-syntax-table))
@@ -1173,8 +1209,8 @@ Setup char-width-table appropriate for non-CJK language environment."
   (let ((table (make-char-table 'unicode-category-table nil)))
     (dotimes (i #x110000)
       (if (or (< i #xD800)
-	      (and (> i #xF900) (< i #x30000))
-	      (and (> i #xE0000) (< i #xE0200)))
+	      (and (>= i #xF900) (< i #x30000))
+	      (and (>= i #xE0000) (< i #xE0200)))
 	  (aset table i (get-char-code-property i 'general-category))))
     (set-char-table-range table '(#xE000 . #xF8FF) 'Co)
     (set-char-table-range table '(#xF0000 . #xFFFFD) 'Co)

@@ -157,7 +157,6 @@ For the end user:
 
 For the developer:
 
-* Version Control::             The inner workings of remote version control.
 * Files directories and localnames::  How file names, directories and localnames are mangled and managed.
 * Traces and Profiles::         How to Customize Traces.
 * Issues::                      Debatable Issues and What Was Decided.
@@ -181,6 +180,9 @@ Configuring @value{tramp} for use
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
+@ifset emacsgvfs
+* GVFS based methods::          GVFS based external methods.
+@end ifset
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -204,19 +206,6 @@ Using @value{tramp}
 * Filename completion::         Filename completion.
 * Remote processes::            Integration with other @value{emacsname} packages.
 * Cleanup remote connections::  Cleanup remote connections.
-
-The inner workings of remote version control
-
-* Version Controlled Files::    Determining if a file is under version control.
-* Remote Commands::             Executing the version control commands on the remote machine.
-* Changed workfiles::           Detecting if the working file has changed.
-* Checking out files::          Bringing the workfile out of the repository.
-* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere.
-
-Things related to Version Control that don't fit elsewhere
-
-* Remote File Ownership::       How VC determines who owns a workfile.
-* Back-end Versions::           How VC determines what release your RCS is.
 
 How file names, directories and localnames are mangled and managed
 
@@ -413,7 +402,7 @@ Or follow the example session below:
 @example
 ] @strong{cd ~/@value{emacsdir}}
 ] @strong{export CVS_RSH="ssh"}
-] @strong{cvs -z3 -d:ext:anoncvs@@savannah.gnu.org:/cvsroot/tramp co tramp}
+] @strong{cvs -z3 -d:pserver:anonymous@@cvs.savannah.gnu.org:/sources/tramp co tramp}
 @end example
 
 @noindent
@@ -437,11 +426,6 @@ script:
 ] @strong{autoconf}
 @end example
 
-People who have no direct CVS access (maybe because sitting behind a
-blocking firewall), can try the
-@uref{http://savannah.gnu.org/cvs-backup/tramp-sources.tar.gz, Nightly
-CVS Tree Tarball} instead of.
-
 
 @node History
 @chapter History of @value{tramp}
@@ -463,6 +447,9 @@ replaced by proxy hosts.  Running commands on remote hosts was
 introduced in December 2005.
 @ifset emacsgw
 Support of gateways exists since April 2007.
+@end ifset
+@ifset emacsgvfs
+GVFS integration started in February 2009.
 @end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
@@ -507,6 +494,9 @@ Method}.
 * Connection types::            Types of connections made to remote machines.
 * Inline methods::              Inline methods.
 * External methods::            External methods.
+@ifset emacsgvfs
+* GVFS based methods::          GVFS based external methods.
+@end ifset
 @ifset emacsgw
 * Gateway methods::             Gateway methods.
 @end ifset
@@ -700,7 +690,7 @@ to not print any shell prompt, which confuses @value{tramp} mightily.
 For reasons unknown, some Windows ports for @command{ssh} require the
 doubled @samp{-t} option.
 
-This supports the @samp{-p} kludge.
+This supports the @samp{-p} argument.
 
 
 @item @option{krlogin}
@@ -720,7 +710,7 @@ This method is mostly interesting for Windows users using the PuTTY
 implementation of SSH.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
-This supports the @samp{-P} kludge.
+This supports the @samp{-P} argument.
 
 Additionally, the methods @option{plink1} and @option{plink2} are
 provided, which call @samp{plink -1 -ssh} or @samp{plink -2 -ssh} in
@@ -819,9 +809,9 @@ Two other variants, @option{scp1_old} and @option{scp2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
 know what these are, you do not need these options.
 
-All the @command{ssh} based methods support the kludgy @samp{-p}
-feature where you can specify a port number to connect to in the host
-name.  For example, the host name @file{host#42} tells @value{tramp} to
+All the @command{ssh} based methods support the @samp{-p} feature
+where you can specify a port number to connect to in the host name.
+For example, the host name @file{host#42} tells @value{tramp} to
 specify @samp{-p 42} in the argument list for @command{ssh}, and to
 specify @samp{-P 42} in the argument list for @command{scp}.
 
@@ -839,7 +829,7 @@ This command does not work like @value{ftppackagename}, where
 @command{ftp} is called interactively, and all commands are send from
 within this session.  Instead of, @command{ssh} is used for login.
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{rsync}  ---  @command{ssh} and @command{rsync}
@@ -854,13 +844,13 @@ identical to the @option{scp} method.
 
 While @command{rsync} performs much better than @command{scp} when
 transferring files that exist on both hosts, this advantage is lost if
-the file exists only on one side of the connection.
+the file exists only on one side of the connection.  A file can exists
+on both the remote and local host, when you copy a file from/to a
+remote host.  When you just open a file from the remote host (or write
+a file there), this is not the case, because on the local side
+temporary files are used.
 
-The @command{rsync} based method may be considerably faster than the
-@command{rcp} based methods when writing to the remote system.  Reading
-files to the local machine is no faster than with a direct copy.
-
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{scpx} --- @command{ssh} and @command{scp}
@@ -883,14 +873,14 @@ invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
 
 
 @item @option{scpc} --- @command{ssh} and @command{scp}
-@cindex method scpx
-@cindex scpx method
-@cindex scp (with scpx method)
-@cindex ssh (with scpx method)
+@cindex method scpc
+@cindex scpc method
+@cindex scp (with scpc method)
+@cindex ssh (with scpc method)
 
 Newer versions of @option{ssh} (for example OpenSSH 4) offer an option
 @option{ControlMaster}.  This allows @option{scp} to reuse an existing
@@ -903,7 +893,21 @@ implementation does support this option.  Try from the command line
 ssh localhost -o ControlMaster=yes
 @end example
 
-This method supports the @samp{-p} hack.
+This method supports the @samp{-p} argument.
+
+
+@item @option{rsyncc}  ---  @command{ssh} and @command{rsync}
+@cindex method rsyncc
+@cindex rsyncc method
+@cindex rsync (with rsyncc method)
+@cindex ssh (with rsyncc method)
+
+Like the @option{scpc} method, @option{rsyncc} improves the underlying
+@command{ssh} connection by the option @option{ControlMaster}.  This
+allows @command{rsync} to reuse an existing @command{ssh} channel,
+which increases performance.
+
+This method supports the @samp{-p} argument.
 
 
 @item @option{pscp} --- @command{plink} and @command{pscp}
@@ -918,7 +922,7 @@ This method is similar to @option{scp}, but it uses the
 @command{pscp} for transferring the files.  These programs are part
 of PuTTY, an SSH implementation for Windows.
 
-This method supports the @samp{-P} hack.
+This method supports the @samp{-P} argument.
 
 
 @item @option{psftp} --- @command{plink} and @command{psftp}
@@ -933,7 +937,7 @@ uses the @command{plink} command to connect to the remote host, and it
 uses @command{psftp} for transferring the files.  These programs are
 part of PuTTY, an SSH implementation for Windows.
 
-This method supports the @samp{-P} hack.
+This method supports the @samp{-P} argument.
 
 
 @item @option{fcp} --- @command{fsh} and @command{fcp}
@@ -1017,15 +1021,66 @@ name is specified at all, the anonymous user (without password
 prompting) is assumed.  This is different from all other @value{tramp}
 methods, where in such a case the local user name is taken.
 
-The @option{smb} method supports the @samp{-p} hack.
+The @option{smb} method supports the @samp{-p} argument.
 
 @strong{Please note:} If @value{emacsname} runs locally under MS
 Windows, this method isn't available.  Instead of, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
-
 @end table
+
+
+@ifset emacsgvfs
+@node GVFS based methods
+@section GVFS based external methods
+@cindex methods, gvfs
+@cindex gvfs based methods
+@cindex dbus
+
+The connection methods described in this section are based on GVFS
+@uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
+filesystem is mounted locally through FUSE.  @value{tramp} uses
+internally this local mounted directory.
+
+The communication with GVFS is implemented via D-Bus messages.
+Therefore, your @value{emacsname} must have D-Bus integration,
+@pxref{Top, , D-Bus, dbus}.
+
+@table @asis
+@item @option{dav}
+@cindex method dav
+@cindex dav method
+
+This method provides access to WebDAV files and directories.  There
+exists also the external method @option{davs}, which uses SSL
+encryption for the access.
+
+Both methods support the port number specification as discussed above.
+
+@item @option{obex}
+@cindex method obex
+@cindex obex method
+
+OBEX is an FTP-like access protocol for simple devices, like cell
+phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
+
+@item @option{synce}
+@cindex method synce
+@cindex synce method
+
+The @option{synce} method allows communication with Windows Mobile
+devices.  Beside GVFS for mounting remote files and directories via
+FUSE, it needs also the SYNCE-GVFS plugin.
+@end table
+
+@defopt tramp-gvfs-methods
+This customer option, a list, defines the external methods, which
+shall be used with GVFS.  Per default, these are @option{dav},
+@option{davs}, @option{obex} and @option{synce}.  Other possible
+values are @option{ftp}, @option{sftp} and @option{smb}.
+@end defopt
+@end ifset
 
 
 @ifset emacsgw
@@ -1040,10 +1095,9 @@ Therefore, they can be used for proxy host declarations
 (@pxref{Multi-hops}) only.
 
 A gateway method must come always along with a method who supports
-port setting (referred to as @samp{-p} kludge).  This is because
-@value{tramp} targets the accompanied method to
-@file{localhost#random_port}, from where the firewall or proxy server
-is accessed to.
+port setting.  This is because @value{tramp} targets the accompanied
+method to @file{localhost#random_port}, from where the firewall or
+proxy server is accessed to.
 
 Gateway methods support user name and password declarations.  These
 are used to authenticate towards the corresponding firewall or proxy
@@ -1346,6 +1400,19 @@ important to know that the given method is applied on the host which
 has been reached so far.  @code{sudo -u root}, applied on your local
 host, wouldn't be useful here.
 
+@var{host}, @var{user} and @var{proxy} can also be Lisp forms.  These
+forms are evaluated, and must return a string, or @code{nil}.  The
+previous example could be generalized then: For all hosts except my
+local one connect via @code{ssh} first, and apply @code{sudo -u root}
+afterwards:
+
+@lisp
+(add-to-list 'tramp-default-proxies-alist
+             '(nil "\\`root\\'" "@trampfn{ssh, , %h,}"))
+(add-to-list 'tramp-default-proxies-alist
+             '((regexp-quote (system-name)) nil nil))
+@end lisp
+
 This is the recommended configuration to work as @samp{root} on remote
 Ubuntu hosts.
 
@@ -1640,6 +1707,9 @@ available, they are used to improve the performance and accuracy of
 remote file access.
 
 @vindex tramp-remote-path
+@vindex tramp-default-remote-path
+@vindex tramp-own-remote-path
+@defopt tramp-remote-path
 When @value{tramp} connects to the remote machine, it searches for the
 programs that it can use.  The variable @code{tramp-remote-path}
 controls the directories searched on the remote machine.
@@ -1670,6 +1740,17 @@ as:
 @i{;; We have @command{perl} in "/usr/local/perl/bin"}
 (add-to-list 'tramp-remote-path "/usr/local/perl/bin")
 @end lisp
+
+Another possibility is to reuse the path settings of your remote
+account, when you log in.  Usually, these settings are overwritten,
+because they might not be useful for @value{tramp}.  The place holder
+@code{tramp-own-remote-path} preserves these settings.  You can
+activate it via
+
+@lisp
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+@end lisp
+@end defopt
 
 @value{tramp} caches several information, like the Perl binary
 location.  The changed remote search path wouldn't affect these
@@ -2216,7 +2297,8 @@ Filename completion works with @value{tramp} for completion of method
 names, of user names and of machine names as well as for completion of
 file names on remote machines.
 @ifset emacs
-In order to enable this, Partial Completion mode must be set on.
+In order to enable this, partial completion must be activated in your
+@file{.emacs}.
 @ifinfo
 @xref{Completion Options, , , @value{emacsdir}}.
 @end ifinfo
@@ -2330,6 +2412,14 @@ allows to exploit @value{emacsname} packages without modification for
 remote file names.  It does not work for the @option{ftp} and
 @option{smb} methods.
 
+@ifset emacsgvfs
+If the remote host is mounted via GVFS (see @ref{GVFS based methods}),
+the remote filesystem is mounted locally.  Therefore, there are no
+remote processes; all processes run still locally on your machine with
+an adapted @code{default-directory}.  This section does not apply for
+such connection methods.
+@end ifset
+
 Remote processes are started when a corresponding command is executed
 from a buffer belonging to a remote file or directory.  Up to now, the
 packages @file{compile.el} (commands like @code{compile} and
@@ -2377,6 +2467,28 @@ following code in your @file{.emacs}:
 If you use other @value{emacsname} packages which do not run
 out-of-the-box on a remote host, please let us know.  We will try to
 integrate them as well.  @xref{Bug Reports}.
+
+
+@subsection Running remote programs that create local X11 windows
+
+If you want to run a remote program, which shall connect the X11
+server you are using with your local host, you can set the
+@var{$DISPLAY} environment variable on the remote host:
+
+@lisp
+(add-to-list 'tramp-remote-process-environment
+             (format "DISPLAY=%s" (getenv "DISPLAY")))
+@end lisp
+
+@noindent
+@code{(getenv "DISPLAY")} shall return a string containing a host
+name, which can be interpreted on the remote host; otherwise you might
+use a fixed host name.  Strings like @code{:0} cannot be used properly
+on the remote host.
+
+Another trick might be that you put @code{ForwardX11 yes} or
+@code{ForwardX11Trusted yes} to your @file{~/.ssh/config} file for
+that host.
 
 
 @subsection Running shell-command on a remote host
@@ -2598,7 +2710,10 @@ under version control, a lot of check operations can be avoided by
 disabling VC.  This can be achieved by
 
 @lisp
-(setq vc-handled-backends nil)
+(setq vc-ignore-dir-regexp
+      (format "\\(%s\\)\\|\\(%s\\)"
+              vc-ignore-dir-regexp
+              tramp-file-name-regexp))
 @end lisp
 
 Disable excessive traces.  The default trace level of @value{tramp},
@@ -3096,6 +3211,55 @@ I would like to thank all @value{tramp} users, who have contributed to
 the different recipes!
 
 
+@ifset emacs
+@item
+How can I use @value{tramp} to connect to a remote @value{emacsname}
+session?
+
+You can configure Emacs Client doing this.
+@ifinfo
+@xref{Emacs Server, , , @value{emacsdir}}.
+@end ifinfo
+
+On the remote host, you start the Emacs Server:
+
+@lisp
+(require 'server)
+(setq server-host (system-name)
+      server-use-tcp t)
+(server-start)
+@end lisp
+
+Make sure, that the result of @code{(system-name)} can be resolved on
+your local host; otherwise you might use a hard coded IP address.
+
+The resulting file @file{~/.emacs.d/server/server} must be copied to
+your local host, at the same location.  You can call then the Emacs
+Client from the command line:
+
+@example
+emacsclient @trampfn{ssh, user, host, /file/to/edit}
+@end example
+
+@code{user} and @code{host} shall be related to your local host.
+
+If you want to use Emacs Client also as editor for other programs, you
+could write a script @file{emacsclient.sh}:
+
+@example
+#!/bin/sh
+emacsclient @trampfn{ssh, `whoami`, `hostname --fqdn`, $1}
+@end example
+
+Then you must set the environment variable @code{EDITOR} pointing to
+that script:
+
+@example
+export EDITOR=/path/to/emacsclient.sh
+@end example
+@end ifset
+
+
 @item
 How can I disable @value{tramp}?
 
@@ -3138,153 +3302,6 @@ This resets also the @value{ftppackagename} plugins.
 
 
 @c For the developer
-@node Version Control
-@chapter The inner workings of remote version control
-@cindex Version Control
-
-Unlike @value{ftppackagename}, @value{tramp} has full shell access to the
-remote machine.  This makes it possible to provide version control for
-files accessed under @value{tramp}.
-
-The actual version control binaries must be installed on the remote
-machine, accessible in the directories specified in
-@code{tramp-remote-path}.
-
-This transparent integration with the version control systems is one of
-the most valuable features provided by @value{tramp}, but it is far from perfect.
-Work is ongoing to improve the transparency of the system.
-
-@menu
-* Version Controlled Files::    Determining if a file is under version control.
-* Remote Commands::             Executing the version control commands on the remote machine.
-* Changed workfiles::           Detecting if the working file has changed.
-* Checking out files::          Bringing the workfile out of the repository.
-* Miscellaneous Version Control::  Things related to Version Control that don't fit elsewhere.
-@end menu
-
-
-@node Version Controlled Files
-@section Determining if a file is under version control
-
-The VC package uses the existence of on-disk revision control master
-files to determine if a given file is under revision control.  These file
-tests happen on the remote machine through the standard @value{tramp} mechanisms.
-
-
-@node Remote Commands
-@section Executing the version control commands on the remote machine
-
-There are no hooks provided by VC to allow intercepting of the version
-control command execution.  The calls occur through the
-@code{call-process} mechanism, a function that is somewhat more
-efficient than the @code{shell-command} function but that does not
-provide hooks for remote execution of commands.
-
-To work around this, the functions @code{vc-do-command} and
-@code{vc-simple-command} have been advised to intercept requests for
-operations on files accessed via @value{tramp}.
-
-In the case of a remote file, the @code{shell-command} interface is
-used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine.
-
-
-@node Changed workfiles
-@section Detecting if the working file has changed
-
-As there is currently no way to get access to the mtime of a file on a
-remote machine in a portable way, the @code{vc-workfile-unchanged-p}
-function is advised to call an @value{tramp} specific function for remote files.
-
-The @code{tramp-vc-workfile-unchanged-p} function uses the functioning VC
-diff functionality to determine if any changes have occurred between the
-workfile and the version control master.
-
-This requires that a shell command be executed remotely, a process that
-is notably heavier-weight than the mtime comparison used for local
-files.  Unfortunately, unless a portable solution to the issue is found,
-this will remain the cost of remote version control.
-
-
-@node Checking out files
-@section Bringing the workfile out of the repository
-
-VC will, by default, check for remote files and refuse to act on them
-when checking out files from the repository.  To work around this
-problem, the function @code{vc-checkout} knows about @value{tramp} files and
-allows version control to occur.
-
-
-@node Miscellaneous Version Control
-@section Things related to Version Control that don't fit elsewhere
-
-Minor implementation details, &c.
-
-@menu
-* Remote File Ownership::       How VC determines who owns a workfile.
-* Back-end Versions::           How VC determines what release your RCS is.
-@end menu
-
-
-@node Remote File Ownership
-@subsection How VC determines who owns a workfile
-
-@value{emacsname} provides the @code{user-login-name} function to
-return the login name of the current user as well as mapping from
-arbitrary user id values back to login names.  The VC code uses this
-functionality to map from the uid of the owner of a workfile to the
-login name in some circumstances.
-
-This will not, for obvious reasons, work if the remote system has a
-different set of logins.  As such, it is necessary to delegate to the
-remote machine the job of determining the login name associated with a
-uid.
-
-Unfortunately, with the profusion of distributed management systems such
-as @code{NIS}, @code{NIS+} and @code{NetInfo}, there is no simple,
-reliable and portable method for performing this mapping.
-
-Thankfully, the only place in the VC code that depends on the mapping of
-a uid to a login name is the @code{vc-file-owner} function.  This returns
-the login of the owner of the file as a string.
-
-This function has been advised to use the output of @command{ls} on the
-remote machine to determine the login name, delegating the problem of
-mapping the uid to the login to the remote system which should know more
-about it than I do.
-
-
-@node Back-end Versions
-@subsection How VC determines what release your RCS is
-
-VC needs to know what release your revision control binaries you are
-running as not all features VC supports are available with older
-versions of @command{rcs(1)}, @command{cvs(1)} or @command{sccs(1)}.
-
-The default implementation of VC determines this value the first time it
-is needed and then stores the value globally to avoid the overhead of
-executing a process and parsing its output each time the information is
-needed.
-
-Unfortunately, life is not quite so easy when remote version control
-comes into the picture.  Each remote machine may have a different version
-of the version control tools and, while this is painful, we need to
-ensure that unavailable features are not used remotely.
-
-To resolve this issue, @value{tramp} currently takes the sledgehammer
-approach of making the release values of the revision control tools
-local to each @value{tramp} buffer, forcing VC to determine these values
-again each time a new file is visited.
-
-This has, quite obviously, some performance implications.  Thankfully,
-most of the common operations performed by VC do not actually require
-that the remote version be known.  This makes the problem far less
-apparent.
-
-Eventually these values will be captured by @value{tramp} on a system by
-system basis and the results cached to improve performance.
-
-
 @node Files directories and localnames
 @chapter How file names, directories and localnames are mangled and managed.
 
@@ -3315,6 +3332,7 @@ effect while preserving the @value{tramp} file name information.
 @ifset emacs
 @node External packages
 @section Integration with external Lisp packages.
+@subsection Filename completion.
 
 While reading filenames in the minibuffer, @value{tramp} must decide
 whether it completes possible incomplete filenames, or not.  Imagine
@@ -3330,10 +3348,29 @@ remote host @option{ssh}.
 External packages, which use other characters for completing filenames
 in the minibuffer, must signal this to @value{tramp}.  For this case,
 the variable @code{tramp-completion-mode} can be bound temporarily to
-a non-nil value.
+a non-@code{nil} value.
 
 @lisp
 (let ((tramp-completion-mode t))
+  ...)
+@end lisp
+
+
+@subsection File attributes cache.
+
+When @value{tramp} runs remote processes, files on the remote host
+could change their attributes.  Consequently, @value{tramp} must flush
+its complete cache keeping attributes for all files of the remote host
+it has seen so far.
+
+This is a performance degradation, because the lost file attributes
+must be recomputed, when needed again.  In cases the caller of
+@code{process-file} knows that there are file attribute changes, it
+shall let-bind the variable @code{process-file-side-effects} to
+@code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
+
+@lisp
+(let (process-file-side-effects)
   ...)
 @end lisp
 @end ifset

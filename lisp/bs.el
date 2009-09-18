@@ -1,7 +1,7 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -575,10 +575,11 @@ a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
   "Redisplay whole Buffer Selection Menu.
 If KEEP-LINE-P is non-nil the point will stay on current line.
 SORT-DESCRIPTION is an element of `bs-sort-functions'."
-  (let ((line (1+ (count-lines 1 (point)))))
+  (let ((line (count-lines 1 (point))))
     (bs-show-in-buffer (bs-buffer-list nil sort-description))
     (when keep-line-p
-      (goto-line line))
+      (goto-char (point-min))
+      (forward-line line))
     (beginning-of-line)))
 
 (defun bs--goto-current-buffer ()

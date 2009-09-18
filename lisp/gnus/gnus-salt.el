@@ -1,7 +1,7 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -273,9 +273,9 @@ This must be bound to a button-down mouse event."
 	      (let* ((this-line (1+ (count-lines (point-min) end-point)))
 		     (min-line (min this-line start-line))
 		     (max-line (max this-line start-line)))
-		;; Why not use `forward-line'?  --Stef
 		(while (< min-line max-line)
-		  (goto-line min-line)
+		  (goto-char (point-min))
+		  (forward-line (1- min-line))
 		  (gnus-pick-article)
 		  (setq min-line (1+ min-line)))
 		(setq start-line this-line))

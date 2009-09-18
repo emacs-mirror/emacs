@@ -214,10 +214,10 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 (defface calendar-today
   '((t (:underline t)))
   "Face for indicating today's date in the calendar.
-See `calendar-today-marker'."
+See the variable `calendar-today-marker'."
   :group 'calendar-faces)
-;; Backward-compatibility alias.  FIXME make obsolete.
-(put 'calendar-today-face 'face-alias 'calendar-today)
+
+(define-obsolete-face-alias 'calendar-today-face 'calendar-today "22.1")
 
 (defface diary
   '((((min-colors 88) (class color) (background light))
@@ -234,8 +234,8 @@ See `calendar-today-marker'."
 Used to mark diary entries in the calendar (see `diary-entry-marker'),
 and to highlight the date header in the fancy diary."
   :group 'calendar-faces)
-;; Backward-compatibility alias.  FIXME make obsolete.
-(put 'diary-face 'face-alias 'diary)
+
+(define-obsolete-face-alias 'diary-face 'diary "22.1")
 
 (defface holiday
   '((((class color) (background light))
@@ -247,8 +247,8 @@ and to highlight the date header in the fancy diary."
   "Face for indicating in the calendar dates that have holidays.
 See `calendar-holiday-marker'."
   :group 'calendar-faces)
-;; Backward-compatibility alias.  FIXME make obsolete.
-(put 'holiday-face 'face-alias 'holiday)
+
+(define-obsolete-face-alias 'holiday-face 'holiday "22.1")
 
 ;; These briefly checked font-lock-mode, but that is broken, since it
 ;; is a buffer-local variable, and which buffer happens to be current
@@ -1784,10 +1784,15 @@ the STRINGS are just concatenated and the result truncated."
          (t (set-buffer buffer)
             (bury-buffer))))))
 
-(defun calendar-current-date ()
-  "Return the current date in a list (month day year)."
-  (let ((now (decode-time)))
-    (list (nth 4 now) (nth 3 now) (nth 5 now))))
+(defun calendar-current-date (&optional offset)
+  "Return the current date in a list (month day year).
+Optional integer OFFSET is a number of days from the current date."
+  (let* ((now (decode-time))
+         (now (list (nth 4 now) (nth 3 now) (nth 5 now))))
+    (if (zerop (or offset 0))
+        now
+      (calendar-gregorian-from-absolute
+       (+ offset (calendar-absolute-from-gregorian now))))))
 
 (defun calendar-column-to-segment ()
   "Convert current column to calendar month \"segment\".
@@ -2332,6 +2337,7 @@ The date is marked with `calendar-today-marker'.  You might want to add
 this function to `calendar-today-visible-hook'."
   (calendar-mark-visible-date (calendar-cursor-to-date) calendar-today-marker))
 
+;; FIXME why the car? Almost every usage calls list on the args.
 (defun calendar-date-compare (date1 date2)
   "Return t if DATE1 is before DATE2, nil otherwise.
 The actual dates are in the car of DATE1 and DATE2."

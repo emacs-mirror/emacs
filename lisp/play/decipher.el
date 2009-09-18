@@ -1,7 +1,7 @@
 ;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers
 ;;
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <chris_madsen@geocities.com>
 ;; Keywords: games
@@ -98,7 +98,7 @@
   :group 'games)
 
 (defcustom decipher-force-uppercase t
-  "*Non-nil means to convert ciphertext to uppercase.
+  "Non-nil means to convert ciphertext to uppercase.
 nil means the case of the ciphertext is preserved.
 This variable must be set before typing `\\[decipher]'."
   :type 'boolean
@@ -106,7 +106,7 @@ This variable must be set before typing `\\[decipher]'."
 
 
 (defcustom decipher-ignore-spaces nil
-  "*Non-nil means to ignore spaces and punctuation when counting digrams.
+  "Non-nil means to ignore spaces and punctuation when counting digrams.
 You should set this to nil if the cipher message is divided into words,
 or t if it is not.
 This variable is buffer-local."
@@ -274,7 +274,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ   -*-decipher-*-\n)\n\n")
             (insert ">\n")))))          ;Mark plaintext line
     (delete-blank-lines)                ;Remove any blank lines
     (delete-blank-lines))               ; at end of buffer
-  (goto-line 4)
+  (goto-char (point-min))
+  (forward-line 3)
   (decipher-mode))
 
 ;;;###autoload

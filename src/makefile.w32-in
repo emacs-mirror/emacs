@@ -31,6 +31,7 @@ EMACSLOADPATH=$(CURDIR)/../lisp
 #
 LOCAL_FLAGS     = -Demacs=1 -DHAVE_CONFIG_H -I../nt/inc -DHAVE_NTGUI=1 $(EMACS_EXTRA_C_FLAGS)
 
+SRC             = .
 EMACS           = $(BLD)/emacs.exe
 TEMACS          = $(BLD)/temacs.exe
 TEMACS_TMP      = $(BLD)/temacs.bin
@@ -178,10 +179,29 @@ $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
-	echo $(OBJ0) > $(BLD)/buildobj.lst
-	echo $(OBJ1) >> $(BLD)/buildobj.lst
-	echo $(WIN32OBJ) >> $(BLD)/buildobj.lst
-	echo $(FONTOBJ) >> $(BLD)/buildobj.lst
+
+# These omit firstfile.${O}, but there's no documentation in there
+# anyways.
+buildobj.h: $(SRC)/makefile.w32-in
+	$(MAKE) $(MFLAGS) make-buildobj-$(SHELLTYPE)
+
+# Cannot have blanks between the backslash and the redirection
+# characters, because CMD's `echo' will put them in buildobj.h.
+make-buildobj-CMD:
+	echo #define BUILDOBJ ^"\> buildobj.h
+	echo $(OBJ0)            \>> buildobj.h
+	echo $(OBJ1)            \>> buildobj.h
+	echo $(WIN32OBJ)        \>> buildobj.h
+	echo $(FONTOBJ)         \>> buildobj.h
+	echo ^">> buildobj.h
+
+make-buildobj-SH:
+	echo '#define BUILDOBJ $(DQUOTE)\'  > buildobj.h
+	echo $(OBJ0)                   '\' >> buildobj.h
+	echo $(OBJ1)                   '\' >> buildobj.h
+	echo $(WIN32OBJ)               '\' >> buildobj.h
+	echo $(FONTOBJ)                '\' >> buildobj.h
+	echo '$(DQUOTE)'                   >> buildobj.h
 
 bootstrap: bootstrap-emacs
 
@@ -260,6 +280,7 @@ clean:
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD
+	- $(DEL) buildobj.h
 
 distclean:	cleanall
 	- $(DEL) config.h epaths.h Makefile
@@ -276,7 +297,6 @@ cleanall:	clean
 ### DEPENDENCIES ###
 
 EMACS_ROOT = ..
-SRC	   = .
 CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
 	     $(EMACS_ROOT)/src/config.h \
@@ -580,6 +600,7 @@ $(BLD)/dispnew.$(O) : \
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
 	$(CONFIG_H) \
+	buildobj.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \

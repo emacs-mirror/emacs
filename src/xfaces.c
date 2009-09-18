@@ -785,8 +785,7 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  if (gc)
-      xfree (gc);
+  xfree (gc);
 }
 #endif  /* HAVE_NS */
 
@@ -1904,7 +1903,22 @@ the WIDTH times as wide as FACE on FRAME.  */)
       }
     args[0] = Flist_fonts (font_spec, frame, maximum, font_spec);
     for (tail = args[0]; CONSP (tail); tail = XCDR (tail))
-      XSETCAR (tail, Ffont_xlfd_name (XCAR (tail), Qnil));
+      {
+	Lisp_Object font_entity;
+
+	font_entity = XCAR (tail);
+	if ((NILP (AREF (font_entity, FONT_SIZE_INDEX))
+	     || XINT (AREF (font_entity, FONT_SIZE_INDEX)) == 0)
+	    && ! NILP (AREF (font_spec, FONT_SIZE_INDEX)))
+	  {
+	    /* This is a scalable font.  For backward compatibility,
+	       we set the specified size. */
+	    font_entity = Fcopy_font_spec (font_entity);
+	    ASET (font_entity, FONT_SIZE_INDEX,
+		  AREF (font_spec, FONT_SIZE_INDEX));
+	  }
+	XSETCAR (tail, Ffont_xlfd_name (font_entity, Qnil));
+      }
     if (NILP (frame))
       /* We don't have to check fontsets.  */
       return args[0];
@@ -2449,6 +2463,16 @@ merge_face_vectors (f, from, to, named_merge_points)
 	to[i] = Fmerge_font_spec (from[i], to[i]);
       else
 	to[i] = Fcopy_font_spec (from[i]);
+      if (! NILP (AREF (to[i], FONT_FOUNDRY_INDEX)))
+	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FOUNDRY_INDEX));
+      if (! NILP (AREF (to[i], FONT_FAMILY_INDEX)))
+	to[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FAMILY_INDEX));
+      if (! NILP (AREF (to[i], FONT_WEIGHT_INDEX)))
+	to[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (to[i]);
+      if (! NILP (AREF (to[i], FONT_SLANT_INDEX)))
+	to[LFACE_SLANT_INDEX] = FONT_SLANT_FOR_FACE (to[i]);
+      if (! NILP (AREF (to[i], FONT_WIDTH_INDEX)))
+	to[LFACE_SWIDTH_INDEX] = FONT_WIDTH_FOR_FACE (to[i]);
       ASET (to[i], FONT_SIZE_INDEX, Qnil);
     }
 
@@ -2460,7 +2484,8 @@ merge_face_vectors (f, from, to, named_merge_points)
 	    to[i] = merge_face_heights (from[i], to[i], to[i]);
 	    font_clear_prop (to, FONT_SIZE_INDEX);
 	  }
-	else if (i != LFACE_FONT_INDEX)
+	else if (i != LFACE_FONT_INDEX
+		 && ! EQ (to[i], from[i]))
 	  {
 	    to[i] = from[i];
 	    if (i >= LFACE_FAMILY_INDEX && i <=LFACE_SLANT_INDEX)
@@ -4933,6 +4958,7 @@ face_with_height (f, face_id, height)
   face = FACE_FROM_ID (f, face_id);
   bcopy (face->lface, attrs, sizeof attrs);
   attrs[LFACE_HEIGHT_INDEX] = make_number (height);
+  font_clear_prop (attrs, FONT_SIZE_INDEX);
   face_id = lookup_face (f, attrs);
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -5149,8 +5175,9 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   /* Test for terminal `capabilities' (non-color character attributes).  */
 
   /* font weight (bold/dim) */
-  weight = FONT_WEIGHT_NAME_NUMERIC (attrs[LFACE_WEIGHT_INDEX]);
-  if (weight >= 0)
+  val = attrs[LFACE_WEIGHT_INDEX];
+  if (!UNSPECIFIEDP (val)
+      && (weight = FONT_WEIGHT_NAME_NUMERIC (val), weight >= 0))
     {
       int def_weight = FONT_WEIGHT_NAME_NUMERIC (def_attrs[LFACE_WEIGHT_INDEX]);
 
@@ -6225,17 +6252,21 @@ compute_char_face (f, ch, prop)
 
    If MOUSE is non-zero, use the character's mouse-face, not its face.
 
+   BASE_FACE_ID, if non-negative, specifies a base face id to use
+   instead of DEFAULT_FACE_ID.
+
    The face returned is suitable for displaying ASCII characters.  */
 
 int
 face_at_buffer_position (w, pos, region_beg, region_end,
-			 endptr, limit, mouse)
+			 endptr, limit, mouse, base_face_id)
      struct window *w;
      EMACS_INT pos;
      EMACS_INT region_beg, region_end;
      EMACS_INT *endptr;
      EMACS_INT limit;
      int mouse;
+     int base_face_id;
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
@@ -6278,12 +6309,9 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   *endptr = endpos;
 
-
-  /* Perhaps remap BASE_FACE_ID to a user-specified alternative.  */
-  if (NILP (Vface_remapping_alist))
-    default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-  else
-    default_face = FACE_FROM_ID (f, lookup_basic_face (f, DEFAULT_FACE_ID));
+  default_face = FACE_FROM_ID (f, base_face_id >= 0 ? base_face_id
+			       : NILP (Vface_remapping_alist) ? DEFAULT_FACE_ID
+			       : lookup_basic_face (f, DEFAULT_FACE_ID));
 
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
@@ -6602,7 +6630,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 	  {
 	    char *name = buf + num;
 	    num = strlen (name) - 1;
-	    if (name[num] == '\n')
+	    if (num >= 0 && name[num] == '\n')
 	      name[num] = 0;
 	    cmap = Fcons (Fcons (build_string (name),
 #ifdef WINDOWSNT

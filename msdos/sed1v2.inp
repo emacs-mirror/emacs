@@ -46,6 +46,7 @@ s/\.h\.in/.h-in/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^OTHER_FILES *=/s/@OTHER_FILES@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^version *=/s/@[^@\n]*@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
@@ -81,5 +82,6 @@ s/echo.*buildobj.lst/dj&/
 	djecho bootlisp > bootlisp
 /^	-\{0,1\}rm -f/s/\\#/#/
 /^	@\{0,1\}cd ..\/lisp; /s|$|\; cd ../src|
+/^	echo.* buildobj.h/s|echo |djecho |
 
 # arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

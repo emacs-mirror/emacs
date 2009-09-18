@@ -783,6 +783,7 @@ Handling the Kill Ring
 
 The @code{current-kill} Function
 
+* Code for current-kill::
 * Understanding current-kill::
 
 @code{current-kill} in Outline
@@ -9465,9 +9466,9 @@ the Customization commands.  (@xref{defcustom, , Specifying Variables
 using @code{defcustom}}.)
 
 When you specified a variable using the @code{defvar} special form,
-you could distinguish a readily settable variable from others by
-typing an asterisk, @samp{*}, in the first column of its documentation
-string.  For example:
+you could distinguish a variable that a user might want to change from
+others by typing an asterisk, @samp{*}, in the first column of its
+documentation string.  For example:
 
 @smallexample
 @group
@@ -17392,21 +17393,21 @@ Here is the line again; how does it work?
 
 @cindex Text Mode turned on
 @smallexample
-(setq default-major-mode 'text-mode)
+(setq major-mode 'text-mode)
 @end smallexample
 
 @noindent
 This line is a short, but complete Emacs Lisp expression.
 
 We are already familiar with @code{setq}.  It sets the following variable,
-@code{default-major-mode}, to the subsequent value, which is
-@code{text-mode}.  The single quote mark before @code{text-mode} tells
-Emacs to deal directly with the @code{text-mode} variable, not with
-whatever it might stand for.  @xref{set & setq, , Setting the Value of
-a Variable}, for a reminder of how @code{setq} works.  The main point
-is that there is no difference between the procedure you use to set
-a value in your @file{.emacs} file and the procedure you use anywhere
-else in Emacs.
+@code{major-mode}, to the subsequent value, which is @code{text-mode}.
+The single quote mark before @code{text-mode} tells Emacs to deal directly
+with the @code{text-mode} symbol, not with whatever it might stand for.
+@xref{set & setq, , Setting the Value of a Variable},
+for a reminder of how @code{setq} works.
+The main point is that there is no difference between the procedure you
+use to set a value in your @file{.emacs} file and the procedure you use
+anywhere else in Emacs.
 
 @need 800
 Here is the next line:
@@ -17920,18 +17921,18 @@ Your Init File, emacs, The GNU Emacs Manual}.
 @cindex Conditional 'twixt two versions of Emacs
 @cindex Version of Emacs, choosing
 @cindex Emacs version, choosing
-If you run two versions of GNU Emacs, such as versions 21 and 22, and
+If you run two versions of GNU Emacs, such as versions 22 and 23, and
 use one @file{.emacs} file, you can select which code to evaluate with
 the following conditional:
 
 @smallexample
 @group
 (cond
- (= 21 emacs-major-version)
-  ;; evaluate version 21 code
-  ( @dots{} ))
- (= 22 emacs-major-version)
+ ((= 22 emacs-major-version)
   ;; evaluate version 22 code
+  ( @dots{} ))
+ ((= 23 emacs-major-version)
+  ;; evaluate version 23 code
   ( @dots{} )))
 @end group
 @end smallexample
@@ -17953,52 +17954,36 @@ emacs -Q - D
 
 @smallexample
 @group
-(when (or (= 21 emacs-major-version)
-          (= 22 emacs-major-version))
-      (blink-cursor-mode 0)
-      ;; Insert newline when you press `C-n' (next-line)
-      ;; at the end of the buffer
-      (setq next-line-add-newlines t)
-@end group
-@group
-      ;; Turn on image viewing
-      (auto-image-file-mode t)
-@end group
-@group
-      ;; Turn on menu bar (this bar has text)
-      ;; (Use numeric argument to turn on)
-      (menu-bar-mode 1)
-@end group
-@group
-      ;; Turn off tool bar (this bar has icons)
-      ;; (Use numeric argument to turn on)
-      (tool-bar-mode nil)
-@end group
-@group
-      ;; Turn off tooltip mode for tool bar
-      ;; (This mode causes icon explanations to pop up)
-      ;; (Use numeric argument to turn on)
-      (tooltip-mode nil)
-      ;; If tooltips turned on, make tips appear promptly
-      (setq tooltip-delay 0.1)  ; default is 0.7 second
-       )
-@end group
-@end smallexample
-
-@need 1250
-Alternatively, since @code{blink-cursor-mode} has existed since Emacs
-version 21 and is likely to continue, you could write
-
-@smallexample
-@group
 (when (>= emacs-major-version 21)
   (blink-cursor-mode 0)
+  ;; Insert newline when you press `C-n' (next-line)
+  ;; at the end of the buffer
+  (setq next-line-add-newlines t)
+@end group
+@group
+  ;; Turn on image viewing
+  (auto-image-file-mode t)
+@end group
+@group
+  ;; Turn on menu bar (this bar has text)
+  ;; (Use numeric argument to turn on)
+  (menu-bar-mode 1)
+@end group
+@group
+  ;; Turn off tool bar (this bar has icons)
+  ;; (Use numeric argument to turn on)
+  (tool-bar-mode nil)
+@end group
+@group
+  ;; Turn off tooltip mode for tool bar
+  ;; (This mode causes icon explanations to pop up)
+  ;; (Use numeric argument to turn on)
+  (tooltip-mode nil)
+  ;; If tooltips turned on, make tips appear promptly
+  (setq tooltip-delay 0.1)  ; default is 0.7 second
+   )
 @end group
 @end smallexample
-
-@noindent
-and add other expressions, too.
-
 
 @node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
 @section X11 Colors
@@ -18790,7 +18775,7 @@ after the function's closing parenthesis and typing @kbd{C-x C-e}
 (@code{eval-last-sexp}) or else by positioning your cursor within the
 definition and typing @kbd{C-M-x} (@code{eval-defun}).  (By default,
 the @code{eval-defun} command works only in Emacs Lisp mode or in Lisp
-Interactive mode.)
+Interaction mode.)
 
 @need 1500
 However, to prepare this function definition for Edebug, you must

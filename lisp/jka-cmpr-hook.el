@@ -219,6 +219,10 @@ options through Custom does this automatically."
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t t "\037\213"]
+    ["\\.xz\\(~\\|\\.~[0-9]+~\\)?\\'"
+     "XZ compressing"     "xz"           ("-c" "-q")
+     "XZ uncompressing"   "xz"           ("-c" "-q" "-d")
+     t t "\3757zXZ\0"]
     ;; dzip is gzip with random access.  Its compression program can't
     ;; read/write stdin/out, so .dz files can only be viewed without
     ;; saving, having their contents decompressed with gzip.

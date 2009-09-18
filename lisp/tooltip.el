@@ -52,7 +52,7 @@ the help text in the echo area, and does not make a pop-up window."
   ;; Even if we start on a text-only terminal, make this non-nil by
   ;; default because we can open a graphical frame later (multi-tty).
   :init-value t
-  :initialize 'custom-initialize-safe-default
+  :initialize 'custom-initialize-delay
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))
@@ -327,7 +327,8 @@ This is used by `tooltip-show-help' and
   "The previous content of the echo area.")
 
 (defun tooltip-show-help-non-mode (help)
-  "Function installed as `show-help-function' when tooltip is off."
+  "Function installed as `show-help-function' when Tooltip mode is off.
+It is also called if Tooltip mode is on, for text-only displays."
   (when (and (not (window-minibuffer-p)) ;Don't overwrite minibuffer contents.
              (not cursor-in-echo-area))  ;Don't overwrite a prompt.
     (cond
@@ -353,21 +354,24 @@ This is used by `tooltip-show-help' and
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (let ((previous-help tooltip-help-message))
-    (setq tooltip-help-message msg)
-    (cond ((null msg)
-	   ;; Cancel display.  This also cancels a delayed tip, if
-	   ;; there is one.
-	   (tooltip-hide))
-	  ((equal previous-help msg)
-	   ;; Same help as before (but possibly the mouse has moved).
-	   ;; Keep what we have.
-	   )
-	  (t
-	   ;; A different help.  Remove a previous tooltip, and
-	   ;; display a new one, with some delay.
-	   (tooltip-hide)
-	   (tooltip-start-delayed-tip)))))
+  (if (display-graphic-p)
+      (let ((previous-help tooltip-help-message))
+	(setq tooltip-help-message msg)
+	(cond ((null msg)
+	       ;; Cancel display.  This also cancels a delayed tip, if
+	       ;; there is one.
+	       (tooltip-hide))
+	      ((equal previous-help msg)
+	       ;; Same help as before (but possibly the mouse has moved).
+	       ;; Keep what we have.
+	       )
+	      (t
+	       ;; A different help.  Remove a previous tooltip, and
+	       ;; display a new one, with some delay.
+	       (tooltip-hide)
+	       (tooltip-start-delayed-tip))))
+    ;; On text-only displays, try `tooltip-show-help-non-mode'.
+    (tooltip-show-help-non-mode msg)))
 
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.

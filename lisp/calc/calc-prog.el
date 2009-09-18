@@ -199,7 +199,7 @@
      (while
 	 (progn
 	   (setq cmd-base-default (concat "User-" keyname))
-           (setq cmd (completing-read 
+           (setq cmd (completing-read
                       (concat "Define M-x command name (default calc-"
                               cmd-base-default
                               "): ")
@@ -224,7 +224,7 @@
 		    "That name conflicts with a built-in Emacs function.  Replace this function? "))))))
      (while
 	 (progn
-           (setq cmd-base-default     
+           (setq cmd-base-default
                  (if cmd-base
                      (if (string-match
                           "\\`User-.+" cmd-base)
@@ -233,16 +233,16 @@
                           (substring cmd-base 5))
                        cmd-base)
                    (concat "User" keyname)))
-	   (setq func 
+	   (setq func
                  (concat "calcFunc-"
-                         (completing-read 
+                         (completing-read
                           (concat "Define algebraic function name (default "
                                   cmd-base-default "): ")
                           (mapcar (lambda (x) (substring x 9))
                                   (all-completions "calcFunc-"
                                                    obarray))
-                          (lambda (x) 
-                            (fboundp 
+                          (lambda (x)
+                            (fboundp
                              (intern (concat "calcFunc-" x))))
                           nil)))
            (setq func
@@ -270,7 +270,7 @@
 	 (setq calc-user-formula-alist arglist)
        (while
 	   (progn
-	     (setq calc-user-formula-alist 
+	     (setq calc-user-formula-alist
                    (read-from-minibuffer "Function argument list: "
                                          (if arglist
                                              (prin1-to-string arglist)
@@ -284,7 +284,7 @@
 			func
 			(y-or-n-p
 			 "Leave it symbolic for non-constant arguments? ")))
-     (setq calc-user-formula-alist 
+     (setq calc-user-formula-alist
            (mapcar (function (lambda (x)
                                (or (cdr (assq x '((nil . arg-nil)
                                                   (t . arg-t))))
@@ -328,6 +328,7 @@
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
    (message "")))
 
+(defvar arglist)		    ; dynamically bound in all callers
 (defun calc-default-formula-arglist (form)
   (if (consp form)
       (if (eq (car form) 'var)
@@ -382,14 +383,14 @@
    (if (eq calc-language 'unform)
        (error "Can't define formats for unformatted mode"))
    (let* ((comp (calc-top 1))
-	  (func (intern 
+	  (func (intern
                  (concat "calcFunc-"
                          (completing-read "Define format for which function: "
                                           (mapcar (lambda (x) (substring x 9))
                                                   (all-completions "calcFunc-"
                                                                    obarray))
-                                          (lambda (x) 
-                                            (fboundp 
+                                          (lambda (x)
+                                            (fboundp
                                              (intern (concat "calcFunc-" x))))))))
 	  (comps (get func 'math-compose-forms))
 	  entry entry2
@@ -402,7 +403,7 @@
        (setq arglist (sort arglist 'string-lessp))
        (while
 	   (progn
-	     (setq calc-user-formula-alist 
+	     (setq calc-user-formula-alist
                    (read-from-minibuffer "Composition argument list: "
                                          (if arglist
                                              (prin1-to-string arglist)
@@ -417,9 +418,9 @@
 		(cons (setq entry (list calc-language)) comps)))
        (or (setq entry2 (assq (length calc-user-formula-alist) (cdr entry)))
 	   (setcdr entry
-		   (cons (setq entry2 
+		   (cons (setq entry2
                                (list (length calc-user-formula-alist))) (cdr entry))))
-       (setcdr entry2 
+       (setcdr entry2
                (list 'lambda calc-user-formula-alist (calc-fix-user-formula comp))))
      (calc-pop-stack 1)
      (calc-do-refresh))))
@@ -503,8 +504,8 @@
   (switch-to-buffer calc-original-buffer))
 
 ;; The variable calc-lang is local to calc-write-parse-table, but is
-;; used by calc-write-parse-table-part which is called by 
-;; calc-write-parse-table.  The variable is also local to 
+;; used by calc-write-parse-table-part which is called by
+;; calc-write-parse-table.  The variable is also local to
 ;; calc-read-parse-table, but is used by calc-fix-token-name which
 ;; is called (indirectly) by calc-read-parse-table.
 (defvar calc-lang)
@@ -691,10 +692,10 @@
            (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
                   (str (edmacro-format-keys mac t))
                   (kys (nth 3 (nth 3 cmd))))
-             (calc-edit-mode 
+             (calc-edit-mode
               (list 'calc-edit-macro-finish-edit cmdname kys)
-              t (format (concat 
-                         "Editing keyboard macro (%s, bound to %s).\n" 
+              t (format (concat
+                         "Editing keyboard macro (%s, bound to %s).\n"
                          "Original keys: %s \n")
                         cmdname kys (elt (nth 1 (nth 3 cmd)) 0)))
              (insert str "\n")
@@ -710,7 +711,7 @@
 	       (if (and defn (calc-valid-formula-func func))
 		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
-		      (calc-edit-mode 
+		      (calc-edit-mode
                        (list 'calc-finish-formula-edit (list 'quote func))
                        nil
                        (format (concat
@@ -792,7 +793,7 @@
     (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
-    (setq line (replace-regexp-in-string "SPC" " SPC " 
+    (setq line (replace-regexp-in-string "SPC" " SPC "
                   (replace-regexp-in-string " " "" line)))
     (insert line "\t\t\t")
     (if (> (current-column) 24)
@@ -817,7 +818,7 @@
       (setq line (concat line curline))
       (kill-line 1)
       (setq curline (calc-edit-macro-command)))
-    (when match 
+    (when match
       (kill-line 1)
       (setq line (concat line (substring curline 0 match))))
     (setq line (replace-regexp-in-string " " "" line))
@@ -844,7 +845,7 @@
         (setq line (concat line curline))
         (kill-line 1)
         (setq curline (calc-edit-macro-command)))
-      (when match 
+      (when match
         (kill-line 1)
         (setq line (concat line (substring curline 0 match))))
       (setq line (replace-regexp-in-string " " "" line))
@@ -1019,8 +1020,8 @@ Redefine the corresponding command."
                                         (mapcar (lambda (x) (substring x 9))
                                                 (all-completions "calcFunc-"
                                                                  obarray))
-                                        (lambda (x) 
-                                          (fboundp 
+                                        (lambda (x)
+                                          (fboundp
                                            (intern (concat "calcFunc-" x))))
                                         t)))))
                    (and (eq key ?\M-x)

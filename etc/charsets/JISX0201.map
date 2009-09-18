@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/JIS_X0201
+# Generated from JIS_X0201 in localedate/charmaps of glibc
 0x00-0x5B 0x0000
 0x5C 0x00A5
 0x5D-0x7D 0x005D

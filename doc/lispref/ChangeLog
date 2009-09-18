@@ -1,4 +1,530 @@
+2009-09-14  Alan Mackenzie  <acm@muc.de>
+
+	* os.texi (Terminal Output): Put "@code{}" around "stdout".
+
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* functions.texi (Anonymous Functions): Rearrange discussion,
+	giving usage of unquoted lambda forms first.  Mention that
+	`function' and `#'' are no longer required (Bug#4290).
+
+2009-09-11  Alan Mackenzie  <acm@muc.de>
+
+	* os.texi (Terminal Output): document `send-string-to-terminal' in
+	batch mode.
+
+2009-09-01  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Face Functions): Mention define-obsolete-face-alias.
+
+2009-08-26  Ulrich Mueller  <ulm@gentoo.org>
+
+	* nonascii.texi (Character Codes): Fix typos.
+
+2009-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Synchronous Processes): New defvar
+	process-file-side-effects.
+
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Fontsets): Fix typo.
+
+	* files.texi (Format Conversion Round-Trip): Mention nil regexp.
+
+2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* processes.texi (Asynchronous Processes): Adjust arglist of
+	start-process-shell-command and start-file-process-shell-command.
+
+2009-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* advice.texi (Argument Access in Advice): Note that argument
+	positions are zero-based (Bug#3932).
+
+	* commands.texi (Distinguish Interactive): Minor copyedit.
+
+	* display.texi (Face Attributes): Add xref to Displaying Faces for
+	explanation of "underlying face".
+
+	* customize.texi (Common Keywords): Add xref to Loading.
+
+	* loading.texi (How Programs Do Loading): Add xref to Lisp
+	Libraries node in the Emacs manual.
+
+2009-08-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Meta-Char Syntax): Add xref to Strings of Events.
+
+2009-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Shell Arguments): Copyedits.
+
+2009-07-18  Glenn Morris  <rgm@gnu.org>
+
+	* loading.texi (Repeated Loading): Fix typo.
+
+2009-07-16  Richard Stallman  <rms@gnu.org>
+
+	* buffers.texi (Swapping Text): Recommend setting
+	write-region-annotate-functions and buffer-saved-size.
+
+	* backups.texi (Auto-Saving): Document buffer-saved-size = -2.
+
+2009-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* edebug.texi: Minor re-phrasings throughout.
+	(Edebug Execution Modes): Sit-for affects continue mode too.
+	(Jumping): Use `forward-sexp' rather than its keybinding.
+	(Edebug Misc): Fix Q binding.
+	(Edebug Eval): Remove cl version.
+	(Printing in Edebug): Clarify print-length etc.
+	(Instrumenting Macro Calls): Defopt edebug-eval-macro-args.
+	(Specification List): Remove edebug-unwrap findex entry.
+	(Specification Examples): defmacro is actually not the same as defun.
+	Escape "`" in example.
+
+2009-07-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* markers.texi (The Mark): Document optional arg to
+	deactivate-mark.
+
+2009-07-11  Kevin Ryde  <user42@zip.com.au>
+
+	* hooks.texi (Standard Hooks): Fix cross-references.
+
+	* loading.texi (Named Features): Refer to eval-after-load.
+
+2009-07-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (TEXI2PDF): New.
+	(elisp.pdf): New target.
+
+	* searching.texi (Regexp Backslash): Fix typo.
+
+	* elisp.texi (Top): Display copyright notice at start of non-TeX.
+
+2009-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: Update @detailmenu.
+
+	* customize.texi (Customization Types):
+	* display.texi (Abstract Display):
+	* objects.texi (Character Type, String Type):
+	Merge in some menu descriptions from elisp.texi.
+
+	* hash.texi (Hash Tables):
+	* modes.texi (Multiline Font Lock):
+	End menu description with period.
+
+2009-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* back.texi: Don't hard-code texinfo location.
+
+	* two-volume.make (texinfodir): New, with location of texinfo.tex.
+	(tex): Add texinfodir to TEXINPUTS.
+	(elisp1med-init, elisp2med-init): Use texinfodir.
+
+	* Makefile.in (texinfodir): Rename from usermanualdir, and update.
+	(clean): Add two-volume.make intermediate files.
+
+	* elisp.texi, vol1.texi, vol2.texi:
+	Use a DATE variable with the publication date, and update it.
+	Fix antinews menu description.
+
+	* vol1.texi, vol2.texi: Update VERSION to match elisp.texi.
+	Update the detailed node listing to match elisp.texi.
+
+	* README: Update edition to match elisp.texi.
+
+	* objects.texi (General Escape Syntax):
+	* nonascii.texi (Character Sets):
+	Use consistent case for "Unicode Standard".
+
+	* anti.texi (Antinews):
+	* customize.texi (Variable Definitions):
+	* functions.texi (Declaring Functions):
+	* nonascii.texi (Character Properties):
+	* processes.texi (Serial Ports):
+	* text.texi (Special Properties):
+	* tips.texi (Coding Conventions):
+	Minor rearrangements to improve TeX line-filling.
+
+	* commands.texi (Using Interactive): Fix cross-reference.
+
+2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Management Parameters): Mention sticky.
+
+2009-07-01  Andreas Schwab  <aschwab@redhat.com>
+
+	* help.texi (Help Functions): Fix description of help-buffer and
+	help-setup-xref to use @defun instead of @deffn.
+
+2009-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Size Parameters): Mention maximized for fullscreen.
+
+2009-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Window Systems): Add ns to the list.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Dedicated Windows): Fix typo.
+	(Resizing Windows): Replace @defun by @deffn.
+
+2009-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables):
+	Update for 2009-04-11 name-change of dir-locals-directory-alist.
+
+2009-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Character Sets): State clearly that FROM and TO
+	are codepoints of CHARSET.
+
+2009-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Reading File Names): Fix introductory text.
+	Suggested by stan@derbycityprints.com.
+	(High-Level Completion): Fix typo.
+
+2009-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Text Terminal Colors): Multi-tty is already
+	implemented, but tty-local colors are not.
+
+2009-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hooks.texi (Standard Hooks): Remove mention of obsolete
+	redisplay-end-trigger-functions.
+
+	* internals.texi (Window Internals): Remove mention of obsolete
+	redisplay-end-trigger-functions.
+
+2009-05-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* abbrevs.texi (Abbrev Mode): abbrev-mode is an option.
+
+	* backups.texi (Making Backups): backup-directory-alist and
+	make-backup-file-name-function are options.
+	(Auto-Saving): auto-save-list-file-prefix is an option.
+
+	* buffers.texi (Killing Buffers): buffer-offer-save is an
+	option.
+
+	* display.texi (Refresh Screen): no-redraw-on-reenter is an
+	option.
+	(Echo Area Customization): echo-keystrokes is an option.
+	(Selective Display): selective-display-ellipses is an option.
+	(Temporary Displays): temp-buffer-show-function is an option.
+	(Face Attributes): underline-minimum-offset and x-bitmap-file-path
+	are options.
+	(Font Selection): face-font-family-alternatives,
+	face-font-selection-order, face-font-registry-alternatives, and
+	scalable-fonts-allowed are options.
+	(Fringe Indicators): indicate-buffer-boundaries is an option.
+	(Fringe Cursors): overflow-newline-into-fringe is an option.
+	(Scroll Bars): scroll-bar-mode is an option.
+
+	* eval.texi (Eval): max-lisp-eval-depth is an option.
+
+	* files.texi (Visiting Functions): find-file-hook is an option.
+	(Directory Names): directory-abbrev-alist is an option.
+	(Unique File Names): temporary-file-directory and
+	small-temporary-file-directory are options.
+
+	* frames.texi (Initial Parameters): initial-frame-alist,
+	minibuffer-frame-alist and default-frame-alist are options.
+	(Cursor Parameters): blink-cursor-alist and
+	cursor-in-non-selected-windows ar options.
+	(Window System Selections): selection-coding-system is an
+	option.
+	(Display Feature Testing): display-mm-dimensions-alist is an
+	option.
+
+	* help.texi (Help Functions): help-char and help-event-list are
+	options.
+
+	* keymaps.texi (Functions for Key Lookup): meta-prefix-char is
+	an option.
+
+	* minibuf.texi (Minibuffer History): history-length and
+	history-delete-duplicates are options.
+	(High-Level Completion): read-buffer-function and
+	read-buffer-completion-ignore-case are options.
+	(Reading File Names): read-file-name-completion-ignore-case is
+	an option.
+
+	* modes.texi (Mode Line Top): mode-line-format is an option.
+	(Mode Line Variables): mode-line-position and mode-line-modes
+	are options.
+
+	* nonascii.texi (Text Representations):
+	enable-multibyte-characters is an option.
+	(Default Coding Systems): auto-coding-regexp-alist,
+	file-coding-system-alist, auto-coding-alist and
+	auto-coding-functions are options.
+	(Specifying Coding Systems): inhibit-eol-conversion is an
+	option.
+
+	* os.texi (Init File): site-run-file is an option.
+	(System Environment): mail-host-address is an option.
+	(User Identification): user-mail-address is an option.
+	(Terminal Output): baud-rate is an option.
+
+	* positions.texi (Word Motion): words-include-escapes is an
+	option.
+
+	* searching.texi (Standard Regexps): page-delimiter,
+	paragraph-separate, paragraph-separate and sentence-end are
+	options.
+
+	* text.texi (Margins): left-margin and fill-nobreak-predicate
+	are options.
+
+	* variables.texi (Local Variables): max-specpdl-size is an
+	option.
+
+	* windows.texi (Choosing Window):
+	split-window-preferred-function, special-display-function and
+	display-buffer-function are options.
+
+2009-05-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	Fix errors spotted by Martin Rudalics.
+
+	* syntax.texi (Position Parse): Document rationale for ignored
+	arguments to syntax-ppss-flush-cache.
+
+	* processes.texi (Input to Processes): Mark PROCESS arg to
+	process-running-child-p as optional.
+	(Network Options): Document NO-ERROR arg to
+	set-network-process-option.
+
+	* buffers.texi (Indirect Buffers): Mark clone-indirect-buffer as a
+	command.
+
+	* searching.texi (POSIX Regexps): Mark posix-search-forward and
+	posix-search-backward as commands.
+
+	* os.texi (Killing Emacs): Mark kill-emacs as a command.
+	(Suspending Emacs): Mark suspend-emacs as a command.
+	(Processor Run Time): Mark emacs-uptime and emacs-init-time as
+	commands.
+	(Terminal Output): Remove obsolete function baud-rate.  Document
+	TERMINAL arg for send-string-to-terminal.
+
+	* nonascii.texi (Terminal I/O Encoding): Document TERMINAL arg for
+	terminal-coding-system and set-terminal-coding-system.
+	(Explicit Encoding): Mark DESTINATION arg of decode-coding-region
+	as optional.
+	(Character Sets): Document RESTRICTION arg of char-charset.
+	(Character Codes): Mark POS argument to get-byte as optional.
+
+	* minibuf.texi (Minibuffer Misc): Document ARGS arg for
+	minibuffer-message.
+
+	* files.texi (Create/Delete Dirs): Mark make-directory and
+	delete-directory as commands.
+
+	* abbrevs.texi (Abbrev Tables): Fix arglist for make-abbrev-table.
+
+	* text.texi (Base 64): Mark base64-decode-string and
+	base64-encode-string as commands.
+	(Columns): Mark move-to-column as a command.
+	(Mode-Specific Indent): Document RIGID arg to
+	indent-for-tab-command.
+	(Region Indent): Mark TO-COLUMN arg to indent-region as optional.
+	Mark indent-code-rigidly as a command.
+	(Substitution): Mark translate-region as a command.
+
+	* frames.texi (Size and Position): Remove obsolete functions
+	screen-height and screen-width.
+
+2009-05-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Cyclic Window Ordering, Cyclic Window Ordering)
+	(Displaying Buffers, Resizing Windows): Correct mistakes;
+	next-window, previous-window, and pop-to-buffer are not commands,
+	and fit-window-to-buffer" is a command.  (Pointed out by Martin
+	Rudalics.)
+
+2009-05-17  Richard M Stallman  <rms@gnu.org>
+
+	* modes.texi (Precalculated Fontification): Clarify text.
+
+2009-05-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Selecting Windows): Clarify descriptions of
+	with-selected-window and get-lru-window.
+	(Cyclic Window Ordering): Refer to particular frame when talking
+	about how splitting affects the ordering.
+	(Displaying Buffers): Fix descriptions of switch-to-buffer and
+	switch-to-buffer-other-window.  Explain how setting of
+	display-buffer-reuse-frames affects pop-to-buffer.
+	(Choosing Window): Clarify some details in descriptions of
+	display-buffer-reuse-frames, pop-up-frames, and
+	pop-up-frame-function.
+	(Dedicated Windows): Clarify some details.
+	(Textual Scrolling): Replace term vscroll by term vertical
+	scroll position.
+	(Vertical Scrolling): Fix typo.
+	(Window Hooks): Relate text on jit-lock-register to window
+	scrolling and size changes.
+
+2009-05-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Initial Parameters): Clarify what the initial
+	minibuffer frame is.
+	(Buffer Parameters): Note that the minibuffer parameter can not be
+	altered.
+
+	* anti.texi (Antinews): Copyedits.  Rearrange some entries.
+	Document display-buffer changes.
+
+2009-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* anti.texi (Antinews): Rewrite for Emacs 22.
+
+	* abbrevs.texi (Abbrevs): Add xref to Creating Symbols when
+	obarrays are first mentioned.  Define "system abbrev" more
+	prominently, and add it to the index.
+	(Abbrev Mode, Abbrev Tables, Defining Abbrevs, Abbrev Properties):
+	Copyedits.
+	(Abbrev Expansion): Document abbrev-insert.
+
+2009-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Font and Color Parameters): Rename from Color
+	Parameters.  Document font-backend parameter.
+
+	* vol2.texi (Top): Update node listing.
+	* vol1.texi (Top): Update node listing.
+	* elisp.texi (Top): Update node listing.
+
+2009-05-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Don't explicitly refer to
+	split-window-sensibly's window argument in descriptions of
+	split-height-threshold and split-width-threshold.
+
+2009-05-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Fix rewrite of window
+	splitting section.
+
+2009-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Document
+	find-auto-coding, set-auto-coding, and auto-coding-alist.  Add
+	indexing.
+	(Lisp and Coding Systems): Add index entries.
+
+2009-05-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Choosing Window): Describe split-window-sensibly
+	and rewrite section on window splitting accordingly.
+	(Textual Scrolling): Replace `...' by @code{...}.
+
+2009-05-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hooks.texi (Standard Hooks): Add abbrev-expand-functions.
+	Remove obsoleted pre-abbrev-expand-hook.
+
+	* locals.texi (Standard Buffer-Local Variables): Consolidate table
+	entries.
+
+	* internals.texi (Object Internals): Don't assume 32-bit machines
+	are the norm.
+	(Buffer Internals): Consolidate table entries for readability.
+	(Window Internals): Synch field names to window.h.
+	(Process Internals): Synch field names to process.h.
+
+2009-04-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* variables.texi (File Local Variables): Note that read-circle is
+	bound to nil when reading file-local variables.
+
+	* streams.texi (Input Functions): Document read-circle.
+	(Output Variables): Add xref to Circular Objects.
+
+2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tips.texi (Coding Conventions): Copyedits.  Add xref to Named
+	Features and Coding System Basics.  Node that "p" stands for
+	"predicate".  Recommend utf-8-emacs instead of emacs-mule.
+	(Key Binding Conventions): Emacs does use S-down-mouse-1, for
+	mouse-appearance-menu.
+	(Programming Tips): Add xref to Progress.
+
+2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Command-Line Arguments): Document
+	command-line-args-left.
+	(Suspending Emacs): Adapt text to multi-tty case.  Document use of
+	terminal objects for tty arguments.
+	(Startup Summary): Add xref to Session Management.
+	(Session Management): Mention emacs-session-restore.  Copyedits.
+
+2009-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Startup Summary): Copyedits.  The init file is not
+	necessarily named .emacs now.  Document initial-buffer-choice and
+	initial-scratch-message.  Note where Emacs exits in batch mode.
+	Document inhibit-splash-screen as an alias.
+	(Init File): Be neutral about which init file name to use.
+
+2009-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (System Interface): Fix Texinfo usage.
+
+2009-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Backslash): Also refer to shy groups as
+	non-capturing or unnumbered groups.
+	(Regexp Functions): Add cross-reference to Regexp Backslash.
+
+	* display.texi (Truncation): Overlays can use line-prefix and
+	wrap-prefix too.
+	(Overlay Properties): Document wrap-prefix and line-prefix.
+	(Face Attributes): Document underline-minimum-offset.
+	(Face Remapping): Copyedits.
+	(Low-Level Font): Copyedits.
+	(Image Cache): Note that the image cache is shared between frames.
+	(Line Height): Emphasize that line-spacing only takes effect on
+	graphical terminals.
+
+2009-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Refresh Screen): Note that a passage about screen
+	refreshing is text terminal only.
+	(Forcing Redisplay): Delete misleading comment---sit-for calls
+	redisplay, not the other way around.
+	(Truncation): Note new values of truncate-partial-width-windows.
+	Copyedits.
+	(Invisible Text): Document invisible-p.
+
+2009-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Overlays): Overlays don't scale well.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00243.html.
+
 2009-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.texi (Syntax Table Functions): Document cons cell
+	argument for modify-syntax-entry.
+	(Categories): Document cons cell argument for
+	modify-category-entry.
+
+	* searching.texi (String Search): Document word-search-forward-lax
+	and word-search-backward-lax.
+	(Searching and Case): Describe isearch behavior more precisely.
 
 	* keymaps.texi (Tool Bar): Mention that some platforms do not
 	support multi-line toolbars.  Suggested by Stephen Eglen.

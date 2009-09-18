@@ -1,3 +1,90 @@
+2009-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Set umask to world-readable before creating
+	directories.
+
+2009-08-31  Juri Linkov  <juri@jurta.org>
+
+	* quail/ipa.el ("ipa"): Set `forget-last-selection' to nil.
+	("ipa-x-sampa"): Set `forget-last-selection' to nil.
+	Set `deterministic' to nil.
+	("ipa"): Bind "g" to U+0261, and "tsh" to a list of "U+02A7",
+	"U+0074 U+0283", "U+0074 U+2040 U+0283".
+	("ipa-kirshenbaum", ipa-x-sampa"): Bind "g" to U+0261, and "tS"
+	to a list of "U+02A7", "U+0074 U+0283", "U+0074 U+2040 U+0283".
+	Fix comments.
+
+2009-08-31  Juri Linkov  <juri@jurta.org>
+
+	* quail/ipa.el ("ipa-kirshenbaum"): Rename from "kirshenbaum-ipa".
+	("ipa-x-sampa"): Rename from "x-sampa-ipa".
+	(ipa-x-sampa-implosive-submap): Rename from
+	x-sampa-implosive-submap.
+	(ipa-x-sampa-prepend-to-keymap-entry): Rename from
+	x-sampa-prepend-to-keymap-entry.
+	(ipa-x-sampa-underscore-implosive): Rename from
+	x-sampa-underscore-implosive.
+	(ipa-x-sampa-implosive-submap): Move before first use.
+
+2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* quail/ipa.el ("kirshenbaum-ipa", "x-sampa-ipa"):
+	Two new input methods, both following widely-used Usenet
+	conventions for mapping ASCII to the IPA. Kirshenbaum is common in
+	sci.lang and alt.usage.english, X-SAMPA in various (mostly
+	European) non-English language fora. X-SAMPA is slightly more
+	complex to support in Quail that Kirshenbaum, whence the two extra
+	function and one extra submap to support it.
+	(x-sampa-prepend-to-keymap-entry): New function.
+	(x-sampa-underscore-implosive): New function.
+	(x-sampa-implosive-submap): New Quail submap.
+
+2009-08-30  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* quail/ipa.el: Recode the file as UTF-8, for better
+	interoperability with other applications.
+
+2009-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el (\circ): Use the `ring operator' rather than
+	`white circle'.
+
+	* Makefile.in (leim-list.el, install): Don't use -r to remove files.
+
+2009-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* quail/hangul.el (top-level): Don't require cl at run-time.
+
+2009-08-21  Thamer Mahmoud  <thamer.mahmoud@gmail.com>  (tiny change)
+
+	* quail/arabic.el: Add missing keys that exist on the Arabic X
+	keyboard.  Don't insert Lam-alef ligatures from the Arabic
+	Presentation Forms ranges; instead, separate Lam-Alef ligatures
+	into a list of two letters (Lam and a suitable Alef).
+
+2009-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* quail/hangul.el (hangul-to-hanja-conversion): When it is called
+	while korean input method is off, convert the following character.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-18  Kenichi Handa  <handa@m17n.org>
+
+	* quail/hangul.el (hangul-im-keymap): Add binding of key
+	Hangul_Hanja.
+
+2009-05-04   Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
+
+	* Makefile.in (install): Avoid using $$(..) construct, for Solaris
+	compatibility.
+
+2009-04-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install): Remove .gitignore files.
+
 2009-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* leim-ext.el: Change the encoding to utf-8.

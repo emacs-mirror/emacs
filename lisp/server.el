@@ -1,7 +1,8 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
 ;; Copyright (C) 1986, 1987, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -868,7 +869,7 @@ The following commands are accepted by the client:
           ;; supported any more.
           (assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
-		(coding-system (and default-enable-multibyte-characters
+		(coding-system (and (default-value 'enable-multibyte-characters)
 				    (or file-name-coding-system
 					default-file-name-coding-system)))
 		nowait ; t if emacsclient does not want to wait for us.
@@ -1098,7 +1099,8 @@ The following commands are accepted by the client:
   "Move point to the position indicated in LINE-COL.
 LINE-COL should be a pair (LINE . COL)."
   (when line-col
-    (goto-line (car line-col))
+    (goto-char (point-min))
+    (forward-line (1- (car line-col)))
     (let ((column-number (cdr line-col)))
       (when (> column-number 0)
         (move-to-column (1- column-number))))))
@@ -1202,10 +1204,15 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 			 (not server-existing-buffer)))
 	      (setq killed t)
 	      (bury-buffer buffer)
+	      ;; Prevent kill-buffer from prompting (Bug#3696).
+	      (with-current-buffer buffer
+		(set-buffer-modified-p nil))
 	      (kill-buffer buffer))
 	    (unless killed
 	      (if (server-temp-file-p buffer)
 		  (progn
+		    (with-current-buffer buffer
+		      (set-buffer-modified-p nil))
 		    (kill-buffer buffer)
 		    (setq killed t))
 		(bury-buffer buffer)))))))

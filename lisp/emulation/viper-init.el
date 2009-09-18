@@ -35,7 +35,6 @@
 (defvar default-input-method)
 (defvar describe-current-input-method-function)
 (defvar bar-cursor)
-(defvar default-cursor-type)
 (defvar cursor-type)
 ;; end pacifier
 
@@ -971,7 +970,7 @@ Should be set in `~/.viper' file."
   (condition-case nil
       (if (featurep 'xemacs)
 	  (set (make-local-variable 'bar-cursor) nil)
-	(setq cursor-type default-cursor-type))
+	(setq cursor-type (default-value 'cursor-type)))
     (error nil)))
 
 (defun viper-set-insert-cursor-type ()

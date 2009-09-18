@@ -203,14 +203,14 @@ the @code{find-file} commands ignore their @var{wildcards} argument
 and never treat wildcard characters specially.
 @end defopt
 
-@defvar find-file-hook
+@defopt find-file-hook
 The value of this variable is a list of functions to be called after a
 file is visited.  The file's local-variables specification (if any) will
 have been processed before the hooks are run.  The buffer visiting the
 file is current when the hook functions are run.
 
 This variable is a normal hook.  @xref{Hooks}.
-@end defvar
+@end defopt
 
 @defvar find-file-not-found-functions
 The value of this variable is a list of functions to be called when
@@ -1914,7 +1914,7 @@ annoying to see the directory's ``real'' name.  If you define the link
 name as an abbreviation for the ``real'' name, Emacs shows users the
 abbreviation instead.
 
-@defvar directory-abbrev-alist
+@defopt directory-abbrev-alist
 The variable @code{directory-abbrev-alist} contains an alist of
 abbreviations to use for file directories.  Each element has the form
 @code{(@var{from} . @var{to})}, and says to replace @var{from} with
@@ -1936,7 +1936,7 @@ and so on.
  ("^/home/gp" . "/gp")
  ("^/home/gd" . "/gd"))
 @end example
-@end defvar
+@end defopt
 
   To convert a directory name to its abbreviation, use this
 function:
@@ -2186,7 +2186,7 @@ should be an absolute file name.  On MS-DOS, this function can
 truncate the @var{string} prefix to fit into the 8+3 file-name limits.
 @end defun
 
-@defvar temporary-file-directory
+@defopt temporary-file-directory
 @cindex @code{TMPDIR} environment variable
 @cindex @code{TMP} environment variable
 @cindex @code{TEMP} environment variable
@@ -2206,9 +2206,9 @@ file, you should still use this variable to decide which directory to
 put the file in.  However, if you expect the file to be small, you
 should use @code{small-temporary-file-directory} first if that is
 non-@code{nil}.
-@end defvar
+@end defopt
 
-@defvar small-temporary-file-directory
+@defopt small-temporary-file-directory
 This variable specifies the directory name for
 creating certain temporary files, which are likely to be small.
 
@@ -2221,7 +2221,7 @@ should compute the directory like this:
                     (or small-temporary-file-directory
                         temporary-file-directory)))
 @end example
-@end defvar
+@end defopt
 
 @node File Name Completion
 @subsection File Name Completion
@@ -2492,24 +2492,24 @@ with @code{delete-file}.  These special functions exist to create and
 delete directories.
 
 @findex mkdir
-@defun make-directory dirname &optional parents
-This function creates a directory named @var{dirname}.
-If @var{parents} is non-@code{nil}, as is always the case in an
+@deffn Command make-directory dirname &optional parents
+This command creates a directory named @var{dirname}.  If
+@var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
 
-@code{mkdir} is an alias for this fuction.
-@end defun
+@code{mkdir} is an alias for this.
+@end deffn
 
-@defun delete-directory dirname
-This function deletes the directory named @var{dirname}.  The function
+@deffn Command delete-directory dirname
+This command deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
 must use @code{delete-directory} for them.  If the directory contains
 any files, @code{delete-directory} signals an error.
 
-This function only follows symbolic links at the level of parent
-directories.
-@end defun
+@code{delete-directory} only follows symbolic links at the level of
+parent directories.
+@end deffn
 
 @node Magic File Names
 @section Making Certain File Names ``Magic''
@@ -2836,7 +2836,7 @@ namely @code{insert-file-contents} for reading a file into a buffer,
 and @code{write-region} for writing a buffer into a file.
 
 @menu
-* Overview: Format Conversion Overview.     @code{insert-file-contents} and @code{write-region}
+* Overview: Format Conversion Overview.     @code{insert-file-contents} and @code{write-region}.
 * Round-Trip: Format Conversion Round-Trip. Using @code{format-alist}.
 * Piecemeal: Format Conversion Piecemeal.   Specifying non-paired conversion.
 @end menu
@@ -2901,7 +2901,7 @@ A documentation string for the format.
 
 @item regexp
 A regular expression which is used to recognize files represented in
-this format.
+this format.  If @code{nil}, the format is never applied automatically.
 
 @item from-fn
 A shell command or function to decode data in this format (to convert

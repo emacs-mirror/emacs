@@ -1,7 +1,7 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -1028,7 +1028,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   by customizing the group `strokes' via \\[customize-group]."))
     (set-buffer standard-output)
     (help-mode)
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 (defalias 'strokes-report-bug 'report-emacs-bug)
 
@@ -1187,14 +1187,16 @@ the stroke as a character in some language."
 		       (let ((char (or (car rainbow-chars) ?\.)))
 			 (loop for i from 0 to 2 do
 			       (loop for j from 0 to 2 do
-				     (goto-line (+ 16 i y))
+				     (goto-char (point-min))
+				     (forward-line (+ 15 i y))
 				     (forward-char (+ 1 j x))
 				     (delete-char 1)
 				     (insert char)))
 			 (setq rainbow-chars (cdr rainbow-chars)
 			       lift-flag nil))
 		     ;; Otherwise, just plot the point...
-		     (goto-line (+ 17 y))
+		     (goto-char (point-min))
+		     (forward-line (+ 16 y))
 		     (forward-char (+ 2 x))
 		     (subst-char-in-region (point) (1+ (point)) ?\s ?\*)))
 		  ((strokes-lift-p point)

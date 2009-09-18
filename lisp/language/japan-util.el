@@ -35,7 +35,7 @@
   (if (memq system-type '(windows-nt ms-dos cygwin))
       (prefer-coding-system 'japanese-shift-jis)
     (prefer-coding-system 'japanese-iso-8bit))
-  (use-cjk-char-width-table))
+  (use-cjk-char-width-table 'ja_JP))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
@@ -106,7 +106,9 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣) 
     (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
     (?′ ?') (?″ ?\") (?￥ ?\\) (?＄ ?$) (?％ ?%) (?＃ ?#) (?＆ ?&) (?＊ ?*)
-    (?＠ ?@))
+    (?＠ ?@)
+    ;; cp932-2-byte
+    (#x2015 ?-) (#xFF5E ?~) (#xFF0D ?-))
   "Japanese JISX0208 symbol character table.
   Each element is of the form (SYMBOL ASCII HANKAKU), where SYMBOL
 belongs to `japanese-jisx0208', ASCII belongs to `ascii', and HANKAKU

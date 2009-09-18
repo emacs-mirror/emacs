@@ -101,7 +101,9 @@
 
 ;; Set (but not used?) in frame.el.
 (defvar x-display-name nil
-  "The name of the Nextstep display on which Emacs was started.")
+  "The name of the window display on which Emacs was started.
+On X, the display name of individual X frames is recorded in the
+`display' frame parameter.")
 
 ;; nsterm.m.
 (defvar ns-input-file)
@@ -185,33 +187,13 @@ The properties returned may include `top', `left', `height', and `width'."
 ;;;; Keyboard mapping.
 
 ;; These tell read-char how to convert these special chars to ASCII.
-;;TODO: all terms have these, and at least the return mapping is necessary
-;;      for tramp to recognize the enter key.
-;;      Perhaps they should be moved into common code somewhere
-;;      (when a window system is active).
-;;      Remove if no problems for some time after 2008-08-06.
-(put 'backspace 'ascii-character 127)
-(put 'delete 'ascii-character 127)
-(put 'tab 'ascii-character ?\t)
 (put 'S-tab 'ascii-character (logior 16 ?\t))
-(put 'linefeed 'ascii-character ?\n)
-(put 'clear 'ascii-character 12)
-(put 'return 'ascii-character 13)
-(put 'escape 'ascii-character ?\e)
-
 
 (defvar ns-alternatives-map
   (let ((map (make-sparse-keymap)))
     ;; Map certain keypad keys into ASCII characters
     ;; that people usually expect.
-    (define-key map [backspace] [?\d])
-    (define-key map [delete] [?\d])
-    (define-key map [tab] [?\t])
     (define-key map [S-tab] [25])
-    (define-key map [linefeed] [?\n])
-    (define-key map [clear] [?\C-l])
-    (define-key map [return] [?\C-m])
-    (define-key map [escape] [?\e])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-\d])
     (define-key map [M-tab] [?\M-\t])
@@ -220,7 +202,7 @@ The properties returned may include `top', `left', `height', and `width'."
     (define-key map [M-return] [?\M-\C-m])
     (define-key map [M-escape] [?\M-\e])
     map)
-  "Keymap of alternative meanings for some keys under NS.")
+  "Keymap of alternative meanings for some keys under Nextstep.")
 
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'customize)
@@ -297,35 +279,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-show-prefs] 'customize)
 
 
-;; Functions to set environment variables by running a subshell.
-;;; Idea based on Nextstep 4.2 distribution, this version of code
-;;; based on mac-read-environment-vars-from-shell () by David Reitter.
-;;; Mostly used only under ns-extended-platform-support-mode.
-
-(defun ns-make-command-string (cmdlist)
-  (mapconcat 'identity cmdlist " ; "))
-
-;;;###autoload
-(defun ns-grabenv (&optional shell-path startup)
-  "Set the Emacs environment using the output of a shell command.
-This runs a shell subprocess, and interpret its output as a
-series of environment variables to insert into the emacs
-environment.
-SHELL-PATH gives the path to the shell; if nil, this defaults to
-the current setting of `shell-file-name'.
-STARTUP is a list of commands for the shell to execute; if nil,
-this defaults to \"printenv\"."
-  (interactive)
-  (with-temp-buffer
-    (let ((shell-file-name (if shell-path shell-path shell-file-name))
-	  (cmd (ns-make-command-string (if startup startup '("printenv")))))
-      (shell-command cmd t)
-      (while (search-forward-regexp "^\\([A-Za-z_0-9]+\\)=\\(.*\\)$" nil t)
-	(setenv (match-string 1)
-		(if (equal (match-string 1) "PATH")
-		    (concat (getenv "PATH") ":" (match-string 2))
-		  (match-string 2)))))))
-
 ;; Set up a number of aliases and other layers to pretend we're using
 ;; the Choi/Mitsuharu Carbon port.
 
@@ -337,51 +290,8 @@ this defaults to \"printenv\"."
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
 
-
-(defvar menu-bar-ns-file-menu)		; below
-
-;; Toggle some additional Nextstep-like features that may interfere
-;; with users' expectations coming from emacs on other platforms.
-(define-minor-mode ns-extended-platform-support-mode
-  "Toggle Nextstep extended platform support features.
-   When this mode is active (no modeline indicator):
-   - File menu is altered slightly in keeping with conventions.
-   - Screen position is preserved in scrolling.
-   - Transient mark mode is activated"
-  :init-value nil
-  :global t
-  :group 'ns
-  (if ns-extended-platform-support-mode
-      (progn
-	(defun ns-show-manual () "Show Emacs.app section in the Emacs manual"
-          (interactive)
-          (info "(emacs) Mac OS / GNUstep"))
-	(setq where-is-preferred-modifier 'super)
-        (setq scroll-preserve-screen-position t)
-        (transient-mark-mode 1)
-
-        ;; Change file menu to simplify and add a couple of
-        ;; Nextstep-specific items
-        (easy-menu-remove-item global-map '("menu-bar") 'file)
-        (easy-menu-add-item global-map '(menu-bar)
-                            (cons "File" menu-bar-ns-file-menu) 'edit)
-	(define-key menu-bar-help-menu [ns-manual]
-	  '(menu-item "Read the Emacs.app Manual Chapter" ns-show-manual)))
-    (progn
-      ;; Undo everything above.
-      (fmakunbound 'ns-show-manual)
-      (setq where-is-preferred-modifier 'nil)
-      (setq scroll-preserve-screen-position nil)
-      (transient-mark-mode 0)
-      (easy-menu-remove-item global-map '("menu-bar") 'file)
-      (easy-menu-add-item global-map '(menu-bar)
-                          (cons "File" menu-bar-file-menu) 'edit)
-      (easy-menu-remove-item global-map '("menu-bar" "help-menu") 'ns-manual)
-)))
-
-
 (defun x-setup-function-keys (frame)
-  "Set up function Keys for Nextstep for frame FRAME."
+  "Set up `function-key-map' on the graphical frame FRAME."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
@@ -539,60 +449,6 @@ this defaults to \"printenv\"."
     (define-key menu-bar-help-menu [info-panel]
       '("About Emacs..." . ns-do-emacs-info-panel)))
 
-
-;;;; File menu, replaces standard under ns-extended-platform-support
-(defvar menu-bar-ns-file-menu (make-sparse-keymap "File"))
-(define-key menu-bar-ns-file-menu [one-window]
-  '("Remove Splits" . delete-other-windows))
-(define-key menu-bar-ns-file-menu [split-window]
-  '("Split Window" . split-window-vertically))
-
-(define-key menu-bar-ns-file-menu [separator-print] '("--"))
-
-(defvar ns-ps-print-menu-map (make-sparse-keymap "Postscript Print"))
-(define-key ns-ps-print-menu-map [ps-print-region]
-  '("Region (B+W)" . ps-print-region))
-(define-key ns-ps-print-menu-map [ps-print-buffer]
-  '("Buffer (B+W)" . ps-print-buffer))
-(define-key ns-ps-print-menu-map [ps-print-region-faces]
-  '("Region" . ps-print-region-with-faces))
-(define-key ns-ps-print-menu-map [ps-print-buffer-faces]
-  '("Buffer" . ps-print-buffer-with-faces))
-(define-key menu-bar-ns-file-menu [postscript-print]
-  (cons "Postscript Print" ns-ps-print-menu-map))
-
-(define-key menu-bar-ns-file-menu [print-region]
-  '("Print Region" . print-region))
-(define-key menu-bar-ns-file-menu [print-buffer]
-  '("Print Buffer" . ns-print-buffer))
-
-(define-key menu-bar-ns-file-menu [separator-save] '("--"))
-
-(define-key menu-bar-ns-file-menu [recover-session]
-  '("Recover Crashed Session" . recover-session))
-(define-key menu-bar-ns-file-menu [revert-buffer]
-  '("Revert Buffer" . revert-buffer))
-(define-key menu-bar-ns-file-menu [write-file]
-  '("Save Buffer As..." . ns-write-file-using-panel))
-(define-key menu-bar-ns-file-menu [save-buffer] '("Save Buffer" . save-buffer))
-
-(define-key menu-bar-ns-file-menu [kill-buffer]
-  '("Kill Current Buffer" . kill-this-buffer))
-(define-key menu-bar-ns-file-menu [delete-this-frame]
-  '("Close Frame" . delete-frame))
-
-(define-key menu-bar-ns-file-menu [separator-open] '("--"))
-
-(define-key menu-bar-ns-file-menu [insert-file]
-  '("Insert File..." . insert-file))
-(define-key menu-bar-ns-file-menu [dired]
-  '("Open Directory..." . ns-open-file-using-panel))
-(define-key menu-bar-ns-file-menu [open-file]
-  '("Open File..." . ns-open-file-using-panel))
-(define-key menu-bar-ns-file-menu [make-frame]
-  '("New Frame" . make-frame))
-
-
 ;;;; Edit menu: Modify slightly
 
 ;; Substitute a Copy function that works better under X (for GNUstep).
@@ -623,40 +479,6 @@ this defaults to \"printenv\"."
 ;; Separate undo from cut/paste section, add spell for platform consistency.
 (define-key-after menu-bar-edit-menu [separator-undo] '("--") 'undo)
 (define-key-after menu-bar-edit-menu [spell] '("Spell" . ispell-menu-map) 'fill)
-
-;; ns-arrange functions contributed
-;; by Eberhard Mandler <mandler@dbag.ulm.DaimlerBenz.COM>
-(defun ns-arrange-all-frames ()
-  "Arranges all frames according to topline"
-  (interactive)
-  (ns-arrange-frames t))
-
-(defun ns-arrange-visible-frames ()
-  "Arranges all visible frames according to topline"
-  (interactive)
-  (ns-arrange-frames nil))
-
-(defun ns-arrange-frames (vis)
-  (let ((frame (next-frame))
-	(end-frame (selected-frame))
-	(inc-x 20)                      ;relative position of frames
-	(inc-y 22)
-	(x-pos 100)                     ;start position
-	(y-pos 40)
-	(done nil))
-    (while (not done)                   ;cycle through all frames
-      (if (not (or vis (eq (frame-visible-p frame) t)))
-          (setq x-pos x-pos); do nothing; true case
-	(set-frame-position frame x-pos y-pos)
-	(setq x-pos (+ x-pos inc-x))
-	(setq y-pos (+ y-pos inc-y))
-	(raise-frame frame))
-      (select-frame frame)
-      (setq frame (next-frame))
-      (setq done (equal frame end-frame)))
-    (set-frame-position end-frame x-pos y-pos)
-    (raise-frame frame)
-    (select-frame frame)))
 
 
 ;;;; Services
@@ -772,7 +594,7 @@ is currently being used."
   (ns-delete-working-text))
 
 (defun ns-insert-working-text ()
-  "Insert contents of `ns-working-text' as UTF8 string and mark with
+  "Insert contents of `ns-working-text' as UTF-8 string and mark with
 `ns-working-overlay'.  Any previously existing working text is cleared first.
 The overlay is assigned the face `ns-working-text-face'."
   ;; FIXME: if buffer is read-only, don't try to insert anything
@@ -786,7 +608,7 @@ The overlay is assigned the face `ns-working-text-face'."
 		 'face 'ns-working-text-face)))
 
 (defun ns-echo-working-text ()
-  "Echo contents of ns-working-text in message display area.
+  "Echo contents of `ns-working-text' in message display area.
 See `ns-insert-working-text'."
   (ns-delete-working-text)
   (let* ((msg (current-message))
@@ -826,7 +648,7 @@ See `ns-insert-working-text'."
     (progn
 
       (defun ns-utf8-nfd-post-read-conversion (length)
-	"Calls ns-convert-utf8-nfd-to-nfc to compose char sequences."
+	"Calls `ns-convert-utf8-nfd-to-nfc' to compose char sequences."
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region (point) (+ (point) length))
@@ -844,10 +666,6 @@ See `ns-insert-working-text'."
 	:post-read-conversion 'ns-utf8-nfd-post-read-conversion)
       (set-file-name-coding-system 'utf-8-nfd)))
 
-;; PENDING: disable composition-based display for Indic scripts as it
-;;        is not working well under Nextstep for some reason
-(set-char-table-range composition-function-table
-                      '(#x0900 . #x0DFF) nil)
 
 
 ;;;; Inter-app communications support.
@@ -855,14 +673,14 @@ See `ns-insert-working-text'."
 (defvar ns-input-text)			; nsterm.m
 
 (defun ns-insert-text ()
-  "Insert contents of ns-input-text at point."
+  "Insert contents of `ns-input-text' at point."
   (interactive)
   (insert ns-input-text)
   (setq ns-input-text nil))
 
 (defun ns-insert-file ()
-  "Insert contents of file ns-input-file like insert-file but with less
-prompting.  If file is a directory perform a find-file on it."
+  "Insert contents of file `ns-input-file' like insert-file but with less
+prompting.  If file is a directory perform a `find-file' on it."
   (interactive)
   (let ((f))
     (setq f (car ns-input-file))
@@ -887,23 +705,27 @@ Lines are highlighted according to `ns-input-line'."
     (if ns-select-overlay
         (setq ns-select-overlay (delete-overlay ns-select-overlay)))
     (deactivate-mark)
-    (goto-line (if (consp ns-input-line)
-                   (min (car ns-input-line) (cdr ns-input-line))
-                 ns-input-line)))
+    (goto-char (point-min))
+    (forward-line (1- (if (consp ns-input-line)
+                          (min (car ns-input-line) (cdr ns-input-line))
+                        ns-input-line))))
    (ns-input-line
     (if (not ns-select-overlay)
-        (overlay-put (setq ns-select-overlay (make-overlay (point-min) (point-min)))
+        (overlay-put (setq ns-select-overlay (make-overlay (point-min)
+                                                           (point-min)))
                      'face 'highlight))
     (let ((beg (save-excursion
-                 (goto-line (if (consp ns-input-line)
-                                (min (car ns-input-line) (cdr ns-input-line))
-                              ns-input-line))
-                 (point)))
+                 (goto-char (point-min))
+                 (line-beginning-position
+                  (if (consp ns-input-line)
+                      (min (car ns-input-line) (cdr ns-input-line))
+                    ns-input-line))))
           (end (save-excursion
-                 (goto-line (+ 1 (if (consp ns-input-line)
-                                     (max (car ns-input-line) (cdr ns-input-line))
-                                   ns-input-line)))
-                 (point))))
+                 (goto-char (point-min))
+                 (line-beginning-position
+                  (1+ (if (consp ns-input-line)
+                          (max (car ns-input-line) (cdr ns-input-line))
+                        ns-input-line))))))
       (move-overlay ns-select-overlay beg end)
       (deactivate-mark)
       (goto-char beg)))
@@ -968,7 +790,7 @@ unless the current buffer is a scratch buffer."
 (declare-function ns-hide-emacs "nsfns.m" (on))
 
 (defun ns-find-file ()
-  "Do a find-file with the ns-input-file as argument."
+  "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
   (let ((f) (file) (bufwin1) (bufwin2))
     (setq f (file-truename (car ns-input-file)))
@@ -1024,6 +846,7 @@ unless the current buffer is a scratch buffer."
   "Switch to next visible frame."
   (interactive)
   (other-frame 1))
+
 (defun ns-prev-frame ()
   "Switch to previous visible frame."
   (interactive)
@@ -1094,18 +917,18 @@ unless the current buffer is a scratch buffer."
 
 ;; Set to use font panel instead
 (declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'generate-fontset-menu 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in NS.")
+(defalias 'x-select-font 'ns-popup-font-panel "Pop up the font panel.
+This function has been overloaded in Nextstep.")
 (defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in NS.")
+This function has been overloaded in Nextstep.")
 
 ;; nsterm.m
 (defvar ns-input-font)
 (defvar ns-input-fontsize)
 
 (defun ns-respond-to-change-font ()
-  "Respond to changeFont: event, expecting ns-input-font and\n\
-ns-input-fontsize of new font."
+  "Respond to changeFont: event, expecting `ns-input-font' and\n\
+`ns-input-fontsize' of new font."
   (interactive)
   (modify-frame-parameters (selected-frame)
                            (list (cons 'font ns-input-font)
@@ -1115,7 +938,7 @@ ns-input-fontsize of new font."
 
 ;; Default fontset for Mac OS X.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
-;; a font is chosen by 
+;; a font is chosen by
 (defvar ns-standard-fontset-spec
   ;; Only some code supports this so far, so use uglier XLFD version
   ;; "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard,latin:Courier,han:Kai"
@@ -1127,8 +950,8 @@ ns-input-fontsize of new font."
              ",")
   "String of fontset spec of the standard fontset.
 This defines a fontset consisting of the Courier and other fonts that
-come with OS X\".
-See the documentation of `create-fontset-from-fontset-spec for the format.")
+come with OS X.
+See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles.
 (if (fboundp 'new-fontset)
@@ -1138,19 +961,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
       ;; Create the standard fontset.
       (condition-case err
 	  (create-fontset-from-fontset-spec ns-standard-fontset-spec t)
-	(error (display-warning 
+	(error (display-warning
 		'initialization
 		(format "Creation of the standard fontset failed: %s" err)
 		:error)))))
-
-;;(push (cons 'font "-ns-*-*-*-*-*-10-*-*-*-*-*-fontset-standard")
-;;      default-frame-alist)
-
-;; Add some additional scripts to var we use for fontset generation.
-(setq script-representative-chars
-      (cons '(kana #xff8a)
-	    (cons '(symbol #x2295 #x2287 #x25a1)
-                  script-representative-chars)))
 
 
 ;;;; Pasteboard support.
@@ -1175,7 +989,19 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (defvar ns-last-selected-text nil)
 
 (defun x-select-text (text &optional push)
-  "Put TEXT, a string, on the pasteboard."
+  "Select TEXT, a string, according to the window system.
+
+On X, put TEXT in the primary X selection.  For backward
+compatibility with older X applications, set the value of X cut
+buffer 0 as well, and if the optional argument PUSH is non-nil,
+rotate the cut buffers.  If `x-select-enable-clipboard' is
+non-nil, copy the text to the X clipboard as well.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.  The argument PUSH is ignored.
+
+On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
   (ns-set-pasteboard text)
@@ -1285,12 +1111,13 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 (declare-function ns-list-colors "nsfns.m" (&optional frame))
 
 (defvar x-colors (ns-list-colors)
-  "The list of colors defined in non-PANTONE color files.")
+  "List of basic colors available on color displays.
+For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
+For Nextstep, this is a list of non-PANTONE colors returned by
+the operating system.")
 
 (defun xw-defined-colors (&optional frame)
-  "Return a list of colors supported for a particular frame.
-The argument FRAME specifies which frame to try.
-The value may be different for frames on different Nextstep displays."
+  "Internal function called by `defined-colors'."
   (or frame (setq frame (selected-frame)))
   (let ((all-colors x-colors)
 	(this-color nil)
@@ -1301,18 +1128,6 @@ The value may be different for frames on different Nextstep displays."
       ;; (and (face-color-supported-p frame this-color t)
       (setq defined-colors (cons this-color defined-colors))) ;;)
     defined-colors))
-
-(declare-function ns-set-alpha "nsfns.m" (color alpha))
-
-;; Convenience and work-around for fact that set color fns now require named.
-(defun ns-set-background-alpha (alpha)
-  "Sets alpha (opacity) of background.
-Set from 0.0 (fully transparent) to 1.0 (fully opaque; default).
-Note, tranparency works better on Tiger (10.4) and higher."
-  (interactive "nSet background alpha to: ")
-  (let ((bgcolor (cdr (assq 'background-color (frame-parameters)))))
-    (set-frame-parameter (selected-frame)
-			 'background-color (ns-set-alpha bgcolor alpha))))
 
 ;; Functions for color panel + drag
 (defun ns-face-at-pos (pos)
@@ -1353,7 +1168,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
 (defvar ns-input-color)			; nsterm.m
 
 (defun ns-set-foreground-at-mouse ()
-  "Set the foreground color at the mouse location to ns-input-color."
+  "Set the foreground color at the mouse location to `ns-input-color'."
   (interactive)
   (let* ((pos (mouse-position))
          (frame (car pos))
@@ -1369,7 +1184,7 @@ Note, tranparency works better on Tiger (10.4) and higher."
       (set-face-foreground face ns-input-color frame)))))
 
 (defun ns-set-background-at-mouse ()
-  "Set the background color at the mouse location to ns-input-color."
+  "Set the background color at the mouse location to `ns-input-color'."
   (interactive)
   (let* ((pos (mouse-position))
          (frame (car pos))
@@ -1418,7 +1233,6 @@ Note, tranparency works better on Tiger (10.4) and higher."
 
   ;; FIXME: This will surely lead to "MODIFIED OUTSIDE CUSTOM" warnings.
   (menu-bar-mode (if (get-lisp-resource nil "Menus") 1 -1))
-  (mouse-wheel-mode 1)
 
   (setq ns-initialized t))
 

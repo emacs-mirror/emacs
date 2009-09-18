@@ -1629,15 +1629,9 @@ As a practical matter, if you are writing text for other people to
 read, you should set @code{fill-column} to no more than 70.  Otherwise
 the line will be too long for people to read comfortably, and this can
 make the text seem clumsy.
+
+The default value for @code{fill-column} is 70.
 @end defopt
-
-@defvar default-fill-column
-The value of this variable is the default value for @code{fill-column} in
-buffers that do not override it.  This is the same as
-@code{(default-value 'fill-column)}.
-
-The default value for @code{default-fill-column} is 70.
-@end defvar
 
 @deffn Command set-left-margin from to margin
 This sets the @code{left-margin} property on the text from @var{from} to
@@ -1690,20 +1684,20 @@ may involve either inserting or deleting whitespace.)  This function
 is value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
-@defvar left-margin
+@defopt left-margin
 This variable specifies the base left margin column.  In Fundamental
 mode, @kbd{C-j} indents to this column.  This variable automatically
 becomes buffer-local when set in any fashion.
-@end defvar
+@end defopt
 
-@defvar fill-nobreak-predicate
+@defopt fill-nobreak-predicate
 This variable gives major modes a way to specify not to break a line
 at certain places.  Its value should be a list of functions.  Whenever
 filling considers breaking the line at a certain place in the buffer,
 it calls each of these functions with no arguments and with point
 located at that place.  If any of the functions returns
 non-@code{nil}, then the line won't be broken there.
-@end defvar
+@end defopt
 
 @node Adaptive Fill
 @section Adaptive Fill Mode
@@ -2129,14 +2123,17 @@ For an example of using @code{current-column}, see the description of
 @code{count-lines} in @ref{Text Lines}.
 @end defun
 
-@defun move-to-column column &optional force
+@deffn Command move-to-column column &optional force
 This function moves point to @var{column} in the current line.  The
 calculation of @var{column} takes into account the widths of the
 displayed representations of the characters between the start of the
 line and point.
 
-If column @var{column} is beyond the end of the line, point moves to the
-end of the line.  If @var{column} is negative, point moves to the
+When called interactively, @var{column} is the value of prefix numeric
+argument.  If @var{column} is not an integer, an error is signaled.
+
+If column @var{column} is beyond the end of the line, point moves to
+the end of the line.  If @var{column} is negative, point moves to the
 beginning of the line.
 
 If it is impossible to move to column @var{column} because that is in
@@ -2151,10 +2148,8 @@ The argument @var{force} also has an effect if the line isn't long
 enough to reach column @var{column}; if it is @code{t}, that means to
 add whitespace at the end of the line to reach that column.
 
-If @var{column} is not an integer, an error is signaled.
-
 The return value is the column number actually moved to.
-@end defun
+@end deffn
 
 @node Indentation
 @section Indentation
@@ -2235,15 +2230,17 @@ This command calls the function in @code{indent-line-function} to
 indent the current line in a way appropriate for the current major mode.
 @end deffn
 
-@deffn Command indent-for-tab-command
-This command calls the function in @code{indent-line-function} to indent
-the current line; however, if that function is
-@code{indent-to-left-margin}, @code{insert-tab} is called instead.  (That
-is a trivial command that inserts a tab character.)
+@deffn Command indent-for-tab-command &optional rigid
+This command calls the function in @code{indent-line-function} to
+indent the current line; however, if that function is
+@code{indent-to-left-margin}, @code{insert-tab} is called instead.
+(That is a trivial command that inserts a tab character.)  If
+@var{rigid} is non-@code{nil}, this function also rigidly indents the
+entire balanced expression that starts at the beginning of the current
+line, to reflect change in indentation of the current line.
 @end deffn
 
 @deffn Command newline-and-indent
-@comment !!SourceFile simple.el
 This function inserts a newline, then indents the new line (the one
 following the newline just inserted) according to the major mode.
 
@@ -2274,7 +2271,7 @@ by @code{left-margin}.
   This section describes commands that indent all the lines in the
 region.  They return unpredictable values.
 
-@deffn Command indent-region start end to-column
+@deffn Command indent-region start end &optional to-column
 This command indents each nonblank line starting between @var{start}
 (inclusive) and @var{end} (exclusive).  If @var{to-column} is
 @code{nil}, @code{indent-region} indents each nonblank line by calling
@@ -2312,7 +2309,6 @@ a different meaning and does not use this variable.
 @end defvar
 
 @deffn Command indent-rigidly start end count
-@comment !!SourceFile indent.el
 This command indents all lines starting between @var{start}
 (inclusive) and @var{end} (exclusive) sideways by @var{count} columns.
 This ``preserves the shape'' of the affected region, moving it as a
@@ -2328,13 +2324,13 @@ In Mail mode, @kbd{C-c C-y} (@code{mail-yank-original}) uses
 replied to.
 @end deffn
 
-@defun indent-code-rigidly start end columns &optional nochange-regexp
+@deffn Command indent-code-rigidly start end columns &optional nochange-regexp
 This is like @code{indent-rigidly}, except that it doesn't alter lines
 that start within strings or comments.
 
 In addition, it doesn't alter a line if @var{nochange-regexp} matches at
 the beginning of the line (if @var{nochange-regexp} is non-@code{nil}).
-@end defun
+@end deffn
 
 @node Relative Indent
 @subsection Indentation Relative to Previous Lines
@@ -3016,7 +3012,7 @@ time you want to specify a particular attribute for certain text.
 
 @item
 A cons cell with the form @code{(foreground-color . @var{color-name})}
-or @code{(background-color . @var{color-name})}.  These are older,
+or @code{(background-color . @var{color-name})}.  These are old,
 deprecated equivalents for @code{(:foreground @var{color-name})} and
 @code{(:background @var{color-name})}.  Please convert code that uses
 them.
@@ -3867,7 +3863,7 @@ ThXs Xs the contents of the buffer before.
 @end example
 @end defun
 
-@defun translate-region start end table
+@deffn Command translate-region start end table
 This function applies a translation table to the characters in the
 buffer between positions @var{start} and @var{end}.
 
@@ -3881,7 +3877,7 @@ The return value of @code{translate-region} is the number of
 characters that were actually changed by the translation.  This does
 not count characters that were mapped into themselves in the
 translation table.
-@end defun
+@end deffn
 
 @node Registers
 @section Registers
@@ -3956,27 +3952,6 @@ expect only certain data types.  The return value is @var{value}.
 This command displays what is contained in register @var{reg}.
 @end deffn
 
-@ignore
-@deffn Command point-to-register reg
-This command stores both the current location of point and the current
-buffer in register @var{reg} as a marker.
-@end deffn
-
-@deffn Command jump-to-register reg
-@deffnx Command register-to-point reg
-@comment !!SourceFile register.el
-This command restores the status recorded in register @var{reg}.
-
-If @var{reg} contains a marker, it moves point to the position stored in
-the marker.  Since both the buffer and the location within the buffer
-are stored by the @code{point-to-register} function, this command can
-switch you to another buffer.
-
-If @var{reg} contains a window configuration or a frame configuration.
-@code{jump-to-register} restores that configuration.
-@end deffn
-@end ignore
-
 @deffn Command insert-register reg &optional beforep
 This command inserts contents of register @var{reg} into the current
 buffer.
@@ -3995,43 +3970,6 @@ If the register contains something other than saved text (a string) or
 a rectangle (a list), currently useless things happen.  This may be
 changed in the future.
 @end deffn
-
-@ignore
-@deffn Command copy-to-register reg start end &optional delete-flag
-This command copies the region from @var{start} to @var{end} into
-register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it deletes
-the region from the buffer after copying it into the register.
-@end deffn
-
-@deffn Command prepend-to-register reg start end &optional delete-flag
-This command prepends the region from @var{start} to @var{end} into
-register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it deletes
-the region from the buffer after copying it to the register.
-@end deffn
-
-@deffn Command append-to-register reg start end &optional delete-flag
-This command appends the region from @var{start} to @var{end} to the
-text already in register @var{reg}.  If @var{delete-flag} is
-non-@code{nil}, it deletes the region from the buffer after copying it
-to the register.
-@end deffn
-
-@deffn Command copy-rectangle-to-register reg start end &optional delete-flag
-This command copies a rectangular region from @var{start} to @var{end}
-into register @var{reg}.  If @var{delete-flag} is non-@code{nil}, it
-deletes the region from the buffer after copying it to the register.
-@end deffn
-
-@deffn Command window-configuration-to-register reg
-This function stores the window configuration of the selected frame in
-register @var{reg}.
-@end deffn
-
-@deffn Command frame-configuration-to-register reg
-This function stores the current frame configuration in register
-@var{reg}.
-@end deffn
-@end ignore
 
 @node Transposition
 @section Transposition of Text
@@ -4067,7 +4005,7 @@ manner.
 }2045.  This section describes the functions for
 converting to and from this code.
 
-@defun base64-encode-region beg end &optional no-line-break
+@deffn Command base64-encode-region beg end &optional no-line-break
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
 signaled if a character in the region is multibyte, i.e.@: in a
@@ -4079,9 +4017,9 @@ Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
 @var{no-line-break} is non-@code{nil}, these newlines are not added, so
 the output is just one long line.
-@end defun
+@end deffn
 
-@defun base64-encode-string string &optional no-line-break
+@deffn Command base64-encode-string string &optional no-line-break
 This function converts the string @var{string} into base 64 code.  It
 returns a string containing the encoded text.  As for
 @code{base64-encode-region}, an error is signaled if a character in the
@@ -4091,7 +4029,7 @@ Normally, this function inserts newline characters into the encoded
 text, to avoid overlong lines.  However, if the optional argument
 @var{no-line-break} is non-@code{nil}, these newlines are not added, so
 the result string is just one long line.
-@end defun
+@end deffn
 
 @defun base64-decode-region beg end
 This function converts the region from @var{beg} to @var{end} from base

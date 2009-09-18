@@ -1,3 +1,130 @@
+2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.guess, config.sub: Updated from master source.
+
+	* configure.in (OTHER_FILES): Define using autoconf not cpp.
+
+2009-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .dir-locals.el (change-log-mode): Restore bug-reference-mode.
+
+2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* INSTALL: Update URL for GNU FreeFont.
+
+2009-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Don't recursively change perms of
+	site-lisp and infodir.  There may be non-Emacs files in here, and the
+	files supplied by Emacs are all handled explicitly already.  (Bug#3800)
+	(mkdir): Set umask to world-readable before creating directories.
+	mkinstalldirs already checks if dirs exist, don't duplicate this test.
+
+2009-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (info-real): Don't ignore errors from doc Makefiles.
+	(info): Don't give an error in the absence of makeinfo - let the doc
+	Makefiles do that, if the info files need rebuilding.  (Bug#3982)
+
+2009-08-23  Ken Raeburn  <raeburn@raeburn.org>
+
+	* Makefile.in (install-arch-indep): If the versioned DOC-####
+	generated during loadup+dump isn't found, install the plain DOC
+	file that always gets generated, in case CANNOT_DUMP is set.
+
+	* configure.in: Warn if package version specified here doesn't
+	match the version in version.el.
+	* configure: Regenerate.
+
+2009-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: AC_CHECK_FUNCS dbus_watch_get_unix_fd.
+
+	* configure: Regenerate.
+
+2009-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Remove reference to cvtmail.
+
+2009-08-15  CHENG Gao  <chenggao@gmail.com>
+
+	* Makefile.in (install-arch-indep): Remove .DS_Store files (MacOSX).
+
+2009-08-02  Kevin Ryde <user42@zip.com.au>
+
+	* INSTALL: Fix free fonts URL.
+
+2009-07-22  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_PREREQ): Require autoconf 2.62.
+
+2009-07-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (--enable-checking, --enable-profiling): Use
+	AS_HELP_STRING.
+
+2009-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (--enable-profiling): New option.
+	(mips-*-netbsd*, mipsel-*-netbsd*, mipseb-*-netbsd*): Use machine=mips.
+
+2009-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Restore netbsd on mips, mipsel, mipseb.
+
+2009-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (--enable-checking): New option.
+
+2009-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Warn if subdir does not exist in source.
+	(nextstep/Cocoa/Emacs.base/Contents/Resources/preferences.nib)
+	(nextstep/GNUstep/Emacs.base/Resources/preferences.gorm):
+	No longer make links.
+
+2009-06-24  Yavor Doganov  <yavor@gnu.org>
+
+	* make-dist (tempdir): Don't create directories preferences.gorm
+	and preferences.nib, they are no longer required.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Delete mac-fix-env target, which has been
+	removed (Bug#3531).
+
+2009-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* configure.in: Don't define CANNOT_DUMP for GNUStep any more.
+
+2009-05-05  Per Starbäck  <per@starback.se>  (tiny change)
+
+	* BUGS: Use new binding of view-emacs-problems.
+
+2009-05-04   Simon Leinen  <simon.leinen@switch.ch>  (tiny change)
+
+	* Makefile.in (install-arch-dep): Avoid using $$(..) construct,
+	for Solaris compatibility.
+
+2009-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate.
+
+	* configure.in: Disable use of FreeType without libXft.
+
+2009-04-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GTK_FILE_SELECTION, HAVE_GTK_FILE_CHOOSER):
+	Check if it is declared in gtk.h.
+
+2009-04-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (install-arch-indep): Remove .gitignore files.
+
 2009-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* INSTALL: Make the section "Complex Text Layout support

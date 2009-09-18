@@ -37,7 +37,6 @@
 
 (eval-when-compile (require 'cl))	;and ah ain't kiddin' 'bout it
 
-(defvar parse-time-syntax (make-vector 256 nil))
 (defvar parse-time-digits (make-vector 256 nil))
 
 ;; Byte-compiler warnings
@@ -48,24 +47,18 @@
   (loop for i from ?0 to ?9
     do (aset parse-time-digits i (- i ?0))))
 
-(unless (aref parse-time-syntax ?0)
-  (loop for i from ?0 to ?9
-    do (aset parse-time-syntax i ?0))
-  (loop for i from ?A to ?Z
-    do (aset parse-time-syntax i ?A))
-  (loop for i from ?a to ?z
-    do (aset parse-time-syntax i ?a))
-  (aset parse-time-syntax ?+ 1)
-  (aset parse-time-syntax ?- -1)
-  (aset parse-time-syntax ?: ?d)
-  )
-
 (defsubst digit-char-p (char)
   (aref parse-time-digits char))
 
 (defsubst parse-time-string-chars (char)
-  (and (< char (length parse-time-syntax))
-       (aref parse-time-syntax char)))
+  (save-match-data
+    (let (case-fold-search str)
+      (cond ((eq char ?+) 1)
+	    ((eq char ?-) -1)
+	    ((eq char ?:) ?d)
+	    ((string-match "[[:upper:]]" (setq str (string char))) ?A)
+	    ((string-match "[[:lower:]]" str) ?a)
+	    ((string-match "[[:digit:]]" str) ?0)))))
 
 (put 'parse-error 'error-conditions '(parse-error error))
 (put 'parse-error 'error-message "Parsing error")
@@ -182,6 +175,7 @@
     ((5) (50 110) ,#'(lambda () (+ 1900 parse-time-elt)))
     ((5) (0 49) ,#'(lambda () (+ 2000 parse-time-elt))))
   "(slots predicate extractor...)")
+;;;###autoload(put 'parse-time-rules 'risky-local-variable t)
 
 ;;;###autoload
 (defun parse-time-string (string)

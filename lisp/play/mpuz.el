@@ -39,7 +39,7 @@
 (random t)				; randomize
 
 (defcustom mpuz-silent 'error
-  "*Set this to nil if you want dings on inputs.
+  "Set this to nil if you want dings on inputs.
 t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
@@ -47,36 +47,36 @@ t means never ding, and `error' means only ding on wrong input."
   :group 'mpuz)
 
 (defcustom mpuz-solve-when-trivial t
-  "*Solve any row that can be trivially calculated from what you've found."
+  "Solve any row that can be trivially calculated from what you've found."
   :type 'boolean
   :group 'mpuz)
 
 (defcustom mpuz-allow-double-multiplicator nil
-  "*Allow 2nd factors like 33 or 77."
+  "Allow 2nd factors like 33 or 77."
   :type 'boolean
   :group 'mpuz)
 
 (defface mpuz-unsolved
   '((((class color)) (:foreground "red1" :bold t))
     (t (:bold t)))
-  "*Face to use for letters to be solved."
+  "Face to use for letters to be solved."
   :group 'mpuz)
 
 (defface mpuz-solved
   '((((class color)) (:foreground "green1" :bold t))
     (t (:bold t)))
-  "*Face to use for solved digits."
+  "Face to use for solved digits."
   :group 'mpuz)
 
 (defface mpuz-trivial
   '((((class color)) (:foreground "blue" :bold t))
     (t (:bold t)))
-  "*Face to use for trivial digits solved for you."
+  "Face to use for trivial digits solved for you."
   :group 'mpuz)
 
 (defface mpuz-text
   '((t (:inherit variable-pitch)))
-  "*Face to use for text on right."
+  "Face to use for text on right."
   :group 'mpuz)
 
 
@@ -320,12 +320,14 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defun mpuz-paint-errors ()
   "Paint error count on the puzzle screen."
   (mpuz-switch-to-window)
-  (goto-line 3)
+  (goto-char (point-min))
+  (forward-line 2)
   (mpuz-paint-number (prin1-to-string mpuz-nb-errors)))
 
 (defun mpuz-paint-statistics ()
   "Paint statistics about previous games on the puzzle screen."
-  (goto-line 7)
+  (goto-char (point-min))
+  (forward-line 6)
   (mpuz-paint-number (prin1-to-string mpuz-nb-completed-games))
   (mpuz-paint-number
    (format "%.2f"
@@ -352,7 +354,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		       ('mpuz-unsolved))))
 	buffer-read-only)
     (mapc (lambda (square)
-	    (goto-line (car square))	; line before column!
+	    (goto-char (point-min))
+	    (forward-line (1- (car square)))	; line before column!
 	    (move-to-column (cdr square))
 	    (insert char)
 	    (set-text-properties (1- (point)) (point) face)

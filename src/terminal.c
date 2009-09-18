@@ -190,10 +190,10 @@ ins_del_lines (struct frame *f, int vpos, int n)
 
 
 
-/* Return the terminal object specified by TERMINAL.  TERMINAL may be a
-   terminal id, a frame, or nil for the terminal device of the current
-   frame.  If THROW is zero, return NULL for failure, otherwise throw
-   an error.  */
+/* Return the terminal object specified by TERMINAL.  TERMINAL may be
+   a terminal object, a frame, or nil for the terminal device of the
+   current frame.  If THROW is zero, return NULL for failure,
+   otherwise throw an error.  */
 
 struct terminal *
 get_terminal (Lisp_Object terminal, int throw)
@@ -205,11 +205,8 @@ get_terminal (Lisp_Object terminal, int throw)
 
   if (TERMINALP (terminal))
     result = XTERMINAL (terminal);
-
   else if (FRAMEP (terminal))
-    {
-      result = FRAME_TERMINAL (XFRAME (terminal));
-    }
+    result = FRAME_TERMINAL (XFRAME (terminal));
 
   if (result && !result->name)
     result = NULL;

@@ -336,7 +336,7 @@
 (require 'gnus-sum)
 (require 'message)
 (require 'gnus-util)
-(eval-and-compile
+(eval-when-compile
   (require 'cl))
 
 (nnoo-declare nnir)
@@ -505,7 +505,7 @@ that it is for swish++, not Wais."
 ;; `nnir-swish-e-additional-switches'
 
 (make-obsolete-variable 'nnir-swish-e-index-file
-			'nnir-swish-e-index-files)
+			'nnir-swish-e-index-files "Emacs 23.1")
 (defcustom nnir-swish-e-index-file
   (expand-file-name "~/Mail/index.swish-e")
   "*Index file for swish-e.
@@ -916,17 +916,18 @@ pairs (also vectors, actually)."
         (unless (string-match prefix dirnam)
           (nnheader-report 'nnir "Dir name %s doesn't contain prefix %s"
                            dirnam prefix))
-        (setq group (substitute ?. ?/ (replace-match "" t t dirnam)))
+        (setq group (gnus-replace-in-string
+                     (replace-match "" t t dirnam) "/" "."))
         (push (vector (nnir-group-full-name group server)
                       (string-to-number artno)
                       (string-to-number score))
               artlist))
       (message "Massaging waissearch output...done")
       (apply 'vector
-             (sort* artlist
-                    (function (lambda (x y)
-                                (> (nnir-artitem-rsv x)
-                                   (nnir-artitem-rsv y)))))))))
+             (sort artlist
+                   (function (lambda (x y)
+                               (> (nnir-artitem-rsv x)
+                                  (nnir-artitem-rsv y)))))))))
 
 ;; IMAP interface.
 ;; todo:
@@ -1235,10 +1236,10 @@ Windows NT 4.0."
 
       ;; Sort by score
       (apply 'vector
-             (sort* artlist
-                    (function (lambda (x y)
-                                (> (nnir-artitem-rsv x)
-                                   (nnir-artitem-rsv y)))))))))
+             (sort artlist
+                   (function (lambda (x y)
+                               (> (nnir-artitem-rsv x)
+                                  (nnir-artitem-rsv y)))))))))
 
 ;; Swish-E interface.
 (defun nnir-run-swish-e (query server &optional group)
@@ -1316,9 +1317,9 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 	    ;; eliminate all ".", "/", "\" from beginning. Always matches.
             (string-match "^[./\\]*\\(.*\\)$" dirnam)
             ;; "/" -> "."
-            (setq group (substitute ?. ?/ (match-string 1 dirnam)))
+            (setq group (gnus-replace-in-string (match-string 1 dirnam) "/" "."))
             ;; Windows "\\" -> "."
-            (setq group (substitute ?. ?\\ group))
+            (setq group (gnus-replace-in-string group "\\\\" "."))
 
             (push (vector (nnir-group-full-name group server)
                           (string-to-number artno)
@@ -1329,10 +1330,10 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 
       ;; Sort by score
       (apply 'vector
-             (sort* artlist
-                    (function (lambda (x y)
-                                (> (nnir-artitem-rsv x)
-                                   (nnir-artitem-rsv y)))))))))
+             (sort artlist
+                   (function (lambda (x y)
+                               (> (nnir-artitem-rsv x)
+                                  (nnir-artitem-rsv y)))))))))
 
 ;; HyREX interface
 (defun nnir-run-hyrex (query server &optional group)
@@ -1397,19 +1398,20 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 	      score (match-string 3))
 	(when (string-match prefix dirnam)
 	  (setq dirnam (replace-match "" t t dirnam)))
-	(push (vector (nnir-group-full-name (substitute ?. ?/ dirnam) server)
+	(push (vector (nnir-group-full-name
+                       (gnus-replace-in-string dirnam "/" ".") server)
 		      (string-to-number artno)
 		      (string-to-number score))
 	      artlist))
       (message "Massaging hyrex-search output...done.")
       (apply 'vector
-	     (sort* artlist
-		    (function (lambda (x y)
-				(if (string-lessp (nnir-artitem-group x)
-						  (nnir-artitem-group y))
-				    t
-				  (< (nnir-artitem-number x)
-				     (nnir-artitem-number y)))))))
+	     (sort artlist
+                   (function (lambda (x y)
+                               (if (string-lessp (nnir-artitem-group x)
+                                                 (nnir-artitem-group y))
+                                   t
+                                 (< (nnir-artitem-number x)
+                                    (nnir-artitem-number y)))))))
       )))
 
 ;; Namazu interface
@@ -1476,10 +1478,10 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 
       ;; sort artlist by score
       (apply 'vector
-             (sort* artlist
-                    (function (lambda (x y)
-                                (> (nnir-artitem-rsv x)
-                                   (nnir-artitem-rsv y)))))))))
+             (sort artlist
+                   (function (lambda (x y)
+                               (> (nnir-artitem-rsv x)
+                                  (nnir-artitem-rsv y)))))))))
 
 (defun nnir-run-find-grep (query server &optional group)
   "Run find and grep to obtain matching articles."
@@ -1505,11 +1507,14 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 		 "."
 	       ;; Try accessing the group literally as well as
 	       ;; interpreting dots as directory separators so the
-	       ;; engine works with plain nnml as well as the Gnus
-	       ;; Cache.
-	       (find-if 'file-directory-p
-		(let ((group (gnus-group-real-name group)))
-		  (list group (gnus-replace-in-string group "\\." "/" t)))))))
+	       ;; engine works with plain nnml as well as the Gnus Cache.
+               (let ((group (gnus-group-real-name group)))
+                 ;; Replace cl-func find-if.
+                 (if (file-directory-p group)
+                     group
+                   (if (file-directory-p
+                        (setq group (gnus-replace-in-string group "\\." "/" t)))
+                       group))))))
 	(unless group
 	  (error "Cannot locate directory for group"))
 	(save-excursion
@@ -1532,7 +1537,14 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	       (art (string-to-number (car (last path)))))
 	  (while (string= "." (car path))
 	    (setq path (cdr path)))
-	  (let ((group (mapconcat 'identity (subseq path 0 -1) ".")))
+	  (let ((group (mapconcat 'identity
+                                  ;; Replace cl-func: (subseq path 0 -1)
+                                  (let ((end (1- (length path)))
+                                        res)
+                                    (while (>= (setq end (1- end)) 0)
+                                      (push (pop path) res))
+                                    (nreverse res))
+                                  ".")))
 	    (push (vector (nnir-group-full-name group server) art 0)
 		  artlist))
 	  (forward-line 1)))

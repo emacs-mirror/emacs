@@ -746,7 +746,7 @@ completion is over."
                   "-norecurse" folder "-sequence" (symbol-name mh-unseen-seq))
     (goto-char (point-min))
     (multiple-value-bind (folder unseen total)
-        (values-list 
+        (values-list
          (mh-parse-flist-output-line
           (buffer-substring (point) (mh-line-end-position))))
       (list total unseen folder))))

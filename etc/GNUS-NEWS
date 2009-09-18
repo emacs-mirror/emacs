@@ -249,6 +249,14 @@ will connect to the news host by way of the intermediate host
 
 ** The `all.SCORE' file can be edited from the group buffer using `W e'.
 
+** You can set `gnus-mark-copied-or-moved-articles-as-expirable' to a
+non-`nil' value so that articles that have been read may be marked as
+expirable automatically when copying or moving them to a group that has
+auto-expire turned on.  The default is `nil' and copying and moving of
+articles behave as before; i.e., the expirable marks will be unchanged
+except that the marks will be removed when copying or moving articles to
+a group that has not turned auto-expire on.  *Note Expiring Mail::.
+
 
 
 * For older news, see Gnus info node "New Features".

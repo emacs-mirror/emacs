@@ -64,9 +64,11 @@ key; other keys act as editing commands and do not insert themselves.
 For instance, @kbd{DEL} runs the command @code{delete-backward-char}
 by default (some modes bind it to a different command); it does not
 insert a literal @samp{DEL} character (@acronym{ASCII} character code
-127).  To insert a non-graphic character, first @dfn{quote} it by
-typing @kbd{C-q} (@code{quoted-insert}).  There are two ways to use
-@kbd{C-q}:
+127).
+
+  To insert a non-graphic character, or a character that your keyboard
+does not support, first @dfn{quote} it by typing @kbd{C-q}
+(@code{quoted-insert}).  There are two ways to use @kbd{C-q}:
 
 @itemize @bullet
 @item
@@ -87,32 +89,24 @@ Overwrite mode, to give you a convenient way to insert a digit instead
 of overwriting with it.
 @end itemize
 
-@cindex 8-bit character codes
-@noindent
-If you specify a code in the octal range 0200 through 0377, @kbd{C-q}
-assumes that you intend to use some ISO 8859-@var{n} character set,
-and converts the specified code to the corresponding Emacs character
-code.  Your choice of language environment determines which of the ISO
-8859 character sets to use (@pxref{Language Environments}).  This
-feature is disabled if multibyte characters are disabled
-(@pxref{Enabling Multibyte}).
-
 @vindex read-quoted-char-radix
+@noindent
 To use decimal or hexadecimal instead of octal, set the variable
-@code{read-quoted-char-radix} to 10 or 16.  If the radix is greater than
-10, some letters starting with @kbd{a} serve as part of a character
-code, just like digits.
+@code{read-quoted-char-radix} to 10 or 16.  If the radix is greater
+than 10, some letters starting with @kbd{a} serve as part of a
+character code, just like digits.
 
-A numeric argument tells @kbd{C-q} how many copies of the quoted
+  A numeric argument tells @kbd{C-q} how many copies of the quoted
 character to insert (@pxref{Arguments}).
 
-@findex newline
-@findex self-insert
-  Customization information: @key{DEL} in most modes runs the command
-@code{delete-backward-char}; @key{RET} runs the command
-@code{newline}, and self-inserting printing characters run the command
-@code{self-insert}, which inserts whatever character you typed.  Some
-major modes rebind @key{DEL} to other commands.
+@findex ucs-insert
+@cindex Unicode
+  Instead of @kbd{C-q}, you can use @kbd{C-x 8 @key{RET}}
+(@code{ucs-insert}) to insert a character based on its Unicode name or
+code-point.  This commands prompts for a character to insert, using
+the minibuffer; you can specify the character using either (i) the
+character's name in the Unicode standard, or (ii) the character's
+code-point in the Unicode standard.
 
 @node Moving Point
 @section Changing the Location of Point
@@ -214,7 +208,7 @@ thing as @key{C-v}.  Scrolling commands are described further in
 Scroll one screen backward, and move point if necessary to put it on
 the screen (@code{scroll-down}).  If your keyboard has a @key{PageUp}
 key (sometimes labelled @key{prior}), it does the same thing as
-@key{M-v}.
+@kbd{M-v}.
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.

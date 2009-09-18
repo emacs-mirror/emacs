@@ -1,7 +1,7 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -4956,11 +4956,10 @@ Or choose the menu option Printing/Show Settings/lpr."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mh-e (adapted from mh-e-init.el -- Tom Vogels <tov@ece.cmu.edu>)
 
-
-(defalias 'pr-mh-get-msg-num 'mh-get-msg-num)
-(defalias 'pr-mh-show 'mh-show)
-(defalias 'pr-mh-start-of-uncleaned-message 'mh-start-of-uncleaned-message)
-(defvar mh-show-buffer nil)
+(declare-function mh-get-msg-num "mh-utils" (error-if-no-message))
+(declare-function mh-show "mh-show" (&optional message redisplay-flag))
+(declare-function mh-start-of-uncleaned-message "mh-show" ())
+(defvar mh-show-buffer)
 
 
 (defun pr-article-date ()
@@ -4976,11 +4975,11 @@ Return only the dayname, if present, weekday, month, and year."
 
 (defun pr-mh-current-message ()
   "Go to mh-inbox current message."
-  (let ((msg (or (pr-mh-get-msg-num nil) 0)))
-    (pr-mh-show)
+  (let ((msg (or (mh-get-msg-num nil) 0)))
+    (mh-show)
     (set-buffer mh-show-buffer)
     (goto-char (point-min))
-    (pr-mh-start-of-uncleaned-message)
+    (mh-start-of-uncleaned-message)
     (message "Printing message %d" msg)))
 
 
@@ -5507,7 +5506,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-show-setup (settings buffer-name)
   (with-output-to-temp-buffer buffer-name
     (princ settings)
-    (print-help-return-message)))
+    (help-print-return-message)))
 
 
 (defun pr-complete-alist (prompt alist default)

@@ -322,7 +322,7 @@ after special characters such as brace, comma, semi-colon, and colon."
   (c-keep-region-active))
 
 (defalias 'c-toggle-auto-state 'c-toggle-auto-newline)
-(make-obsolete 'c-toggle-auto-state 'c-toggle-auto-newline)
+(make-obsolete 'c-toggle-auto-state 'c-toggle-auto-newline "22.1")
 
 (defun c-toggle-hungry-state (&optional arg)
   "Toggle hungry-delete-key feature.
@@ -1330,14 +1330,14 @@ keyword on the line, the keyword is not inserted inside a literal, and
   (interactive "p")
   (require 'cc-subword)
   (c-forward-subword arg))
-(make-obsolete 'c-forward-into-nomenclature 'c-forward-subword)
+(make-obsolete 'c-forward-into-nomenclature 'c-forward-subword "22.1")
 
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")
   (require 'cc-subword)
   (c-backward-subword arg))
-(make-obsolete 'c-backward-into-nomenclature 'c-backward-subword)
+(make-obsolete 'c-backward-into-nomenclature 'c-backward-subword "22.1")
 
 (defun c-scope-operator ()
   "Insert a double colon scope operator at point.
@@ -4202,8 +4202,7 @@ Warning: Regexp from `c-comment-prefix-regexp' doesn't match the comment prefix 
 	  (forward-char (- hang-ender-stuck))
 	  (if (or fill-paragraph (not auto-fill-spaces))
 	      (insert-char ?\  hang-ender-stuck t)
-	    (insert auto-fill-spaces)
-	    (setq here (- here (- hang-ender-stuck (length auto-fill-spaces)))))
+	    (insert auto-fill-spaces))
 	  (delete-char hang-ender-stuck)
 	  (goto-char here))
 	(set-marker tmp-post nil))
@@ -4432,7 +4431,7 @@ If a fill prefix is specified, it overrides all the above."
 	     (indent-to col))))))
 
 (defalias 'c-comment-line-break-function 'c-indent-new-comment-line)
-(make-obsolete 'c-comment-line-break-function 'c-indent-new-comment-line)
+(make-obsolete 'c-comment-line-break-function 'c-indent-new-comment-line "21.1")
 
 ;; advice for indent-new-comment-line for older Emacsen
 (unless (boundp 'comment-line-break-function)

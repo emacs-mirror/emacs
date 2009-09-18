@@ -63,6 +63,10 @@ M_FILE = ${srcdir}/@machfile@
 S_FILE = ${srcdir}/@opsysfile@
 config_h = config.h $(M_FILE) $(S_FILE)
 
+bootstrap_exe = ../src/bootstrap-emacs${EXEEXT}
+
+OTHER_FILES = @OTHER_FILES@
+
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -626,7 +630,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
- ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc
+ ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
+ ${lispsource}/term/internal.elc
 
 #else
 #define MSDOS_SUPPORT
@@ -868,8 +873,9 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/international/ccl.elc \
   ../lisp/international/fontset.elc \
   ../lisp/mouse.elc \
+  ../lisp/term/common-win.elc \
   ../lisp/term/x-win.elc \
-  ../lisp/term/pc-win.elc \
+  ../lisp/term/pc-win.elc ../lisp/term/internal.elc \
   ../lisp/term/ns-win.elc
 
 /* Construct full set of libraries to be linked.
@@ -883,35 +889,26 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
    $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
-/* Enable recompilation of certain other files depending on system type.  */
-
-#ifndef OTHER_FILES
-#define OTHER_FILES
-#endif
-
-#ifndef OBJECTS_MACHINE
-#define OBJECTS_MACHINE
-#endif
-
 #ifdef HAVE_SHM
 RUN_TEMACS = `/bin/pwd`/temacs -nl
 #else
 RUN_TEMACS = `/bin/pwd`/temacs
 #endif
 
-all: emacs${EXEEXT} OTHER_FILES
+all: emacs${EXEEXT} $(OTHER_FILES)
 
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp} ${SOME_MACHINE_LISP}
 #ifdef CANNOT_DUMP
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
+	-EMACSLOADPATH=${lispsource} ./emacs -q -batch -f list-load-path-shadows
 #else
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
 	@: This new Emacs is as functional and more efficient then
 	@: bootstrap-emacs, so let us replace it.
 	-ln -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
-#endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
+#endif /* ! defined (CANNOT_DUMP) */
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
@@ -934,17 +931,19 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${lisp} ${SOME_MACHINE_LISP}
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
-temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
-	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
+buildobj.h: Makefile
+	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
+
+temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
 #ifdef NS_IMPL_GNUSTEP
 	$(CC) -rdynamic YMF_PASS_LDFLAGS ( ${TEMACS_LDFLAGS} \
 	-L@GNUSTEP_SYSTEM_LIBRARIES@ -lgnustep-gui -lgnustep-base \
 	-lobjc $(CONFIG_SYSTEM_LIBS) -lpthread ) -o temacs \
-	${obj} ${otherobj} OBJECTS_MACHINE ${LIBES}
+	${obj} ${otherobj} ${LIBES}
 #else
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
-    OBJECTS_MACHINE ${LIBES}
+    ${LIBES}
 #endif
 
 /* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
@@ -1060,7 +1059,8 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    disptab.h indent.h $(INTERVALS_H) \
    xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
    syssignal.h $(config_h)
-doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
+doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h \
+   buildobj.h
 doprnt.o: doprnt.c character.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
@@ -1249,7 +1249,7 @@ textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVALS_H) \
 	$(config_h)
 
 /* System-specific programs to be made.
-   OTHER_FILES and OBJECTS_MACHINE
+   OTHER_FILES
    select which of these should be compiled.  */
 
 #ifdef HAVE_NS
@@ -1280,7 +1280,7 @@ mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
-	rm -f buildobj.lst
+	rm -f buildobj.h
 clean: mostlyclean
 	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 #ifdef HAVE_NS
@@ -1312,8 +1312,8 @@ extraclean: distclean
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
 
-ctagsfiles1 = [xyzXYZ]*.[hc]
-ctagsfiles2 = [a-wA-W]*.[hc]
+ctagsfiles1 = [xyzXYZ]*.[hcm]
+ctagsfiles2 = [a-wA-W]*.[hcm]
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	../lib-src/etags --include=TAGS-LISP --include=${lwlibdir}/TAGS \
@@ -1360,13 +1360,13 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
    With GNU Make, we would just say "%.el : %.elc $(BOOTSTRAPEMACS)"  */
 .el.elc:
 	@cd ../lisp; $(MAKE) $(MFLAGS) compile-onefile \
-	                     THEFILE=$< EMACS=../src/bootstrap-emacs${EXEEXT}
+	                     THEFILE=$< EMACS=${bootstrap_exe}
 
 /* Since the .el.elc rule cannot specify an extra dependency, we do it here.  */
 ${lisp} ${SOME_MACHINE_LISP}: $(BOOTSTRAPEMACS)
 
 ${lispsource}loaddefs.el: $(BOOTSTRAPEMACS)
-	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=../src/bootstrap-emacs${EXEEXT}
+	cd ../lisp; $(MAKE) $(MFLAGS) autoloads EMACS=${bootstrap_exe}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
@@ -1380,4 +1380,4 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 	@: Compile some files earlier to speed up further compilation.
-	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=../src/bootstrap-emacs${EXEEXT}
+	cd ../lisp; $(MAKE) $(MFLAGS) compile-first EMACS=${bootstrap_exe}

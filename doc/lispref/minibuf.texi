@@ -508,19 +508,19 @@ This lets Lisp programs explicitly manage input history by using
 set to a non-@code{nil} value.
 @end defvar
 
-@defvar history-length
+@defopt history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
 value is @code{t}, that means there no maximum (don't delete old
 elements).  The value of @code{history-length} property of the history
 list variable's symbol, if set, overrides this variable for that
 particular history list.
-@end defvar
+@end defopt
 
-@defvar history-delete-duplicates
+@defopt history-delete-duplicates
 If the value of this variable is @code{t}, that means when adding a
 new history element, all previous identical elements are deleted.
-@end defvar
+@end defopt
 
   Here are some of the standard minibuffer history list variables:
 
@@ -630,7 +630,7 @@ for reading certain kinds of names with completion.
 * Minibuffer Completion::  Invoking the minibuffer with completion.
 * Completion Commands::    Minibuffer commands that do completion.
 * High-Level Completion::  Convenient special cases of completion
-                             (reading buffer name, file name, etc.)
+                             (reading buffer name, file name, etc.).
 * Reading File Names::     Using completion to read file names and
                              shell commands.
 * Completion Styles::      Specifying rules for performing completion.
@@ -1188,17 +1188,17 @@ Buffer name (default foo): @point{}
 @end example
 @end defun
 
-@defvar read-buffer-function
+@defopt read-buffer-function
 This variable specifies how to read buffer names.  For example, if you
 set this variable to @code{iswitchb-read-buffer}, all Emacs commands
 that call @code{read-buffer} to read a buffer name will actually use the
 @code{iswitchb} package to read it.
-@end defvar
+@end defopt
 
-@defvar read-buffer-completion-ignore-case
+@defopt read-buffer-completion-ignore-case
 If this variable is non-@code{nil}, @code{read-buffer} ignores case
 when performing completion.
-@end defvar
+@end defopt
 
 @defun read-command prompt &optional default
 This function reads the name of a command and returns it as a Lisp
@@ -1317,7 +1317,7 @@ invalid color name was specified, this function signals an error,
 except that empty color names are allowed when @code{allow-empty} is
 non-@code{nil} and the user enters null input.
 
-Interactively, or when @var{display} is non-@code{nill}, the return
+Interactively, or when @var{display} is non-@code{nil}, the return
 value is also displayed in the echo area.
 @end deffn
 
@@ -1330,9 +1330,11 @@ and @code{read-input-method-name}, in @ref{Input Methods}.
 @cindex read file names
 @cindex prompt for file name
 
-  Here is a couple of other high-level completion functions, designed
-for reading file names and shell commands.  They provide special
-features including automatic insertion of the default directory.
+  The high-level completion functions @code{read-file-name},
+@code{read-directory-name}, and @code{read-shell-command} are designed
+to read file names, directory names, and shell commands respectively.
+They provide special features, including automatic insertion of the
+default directory.
 
 @defun read-file-name prompt &optional directory default require-match initial predicate
 This function reads a file name in the minibuffer, prompting with
@@ -1442,10 +1444,10 @@ called, it calls this function with the supplied arguments instead of
 doing its usual work.
 @end defvar
 
-@defvar read-file-name-completion-ignore-case
+@defopt read-file-name-completion-ignore-case
 If this variable is non-@code{nil}, @code{read-file-name} ignores case
 when performing completion.
-@end defvar
+@end defopt
 
 @defun read-directory-name prompt &optional directory default require-match initial
 This function is like @code{read-file-name} but allows only directory
@@ -2125,10 +2127,12 @@ windows.  If a float, it specifies a fraction of the height of the
 frame.  If an integer, it specifies a number of lines.
 @end defopt
 
-@defun minibuffer-message string
+@defun minibuffer-message string &rest args
 This function displays @var{string} temporarily at the end of the
 minibuffer text, for two seconds, or until the next input event
-arrives, whichever comes first.
+arrives, whichever comes first.  If @var{args} is non-@code{nil}, the
+actual message is obtained by passing @var{string} and @var{args}
+through @code{format}.  @xref{Formatting Strings}.
 @end defun
 
 @ignore

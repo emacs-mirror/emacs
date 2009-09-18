@@ -188,8 +188,26 @@ a symbol as a valid THING."
 
 ;;  Lists
 
-(put 'list 'end-op (lambda () (up-list 1)))
-(put 'list 'beginning-op 'backward-sexp)
+(put 'list 'bounds-of-thing-at-point 'thing-at-point-bounds-of-list-at-point)
+
+(defun thing-at-point-bounds-of-list-at-point ()
+  (save-excursion
+    (let ((opoint (point))
+	  (beg (condition-case nil
+		   (progn (up-list -1)
+			  (point))
+		 (error nil))))
+      (condition-case nil
+	  (if beg
+	      (progn (forward-sexp)
+		     (cons beg (point)))
+	    ;; Are we are at the beginning of a top-level sexp?
+	    (forward-sexp)
+	    (let ((end (point)))
+	      (backward-sexp)
+	      (if (>= opoint (point))
+		  (cons opoint end))))
+	(error nil)))))
 
 ;;  Filenames and URLs  www.com/foo%32bar
 

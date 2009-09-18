@@ -73,8 +73,8 @@ can also be t, if that is the value of the `kbd-help' property."
 (defun help-at-pt-kbd-string ()
   "Return the keyboard help string at point.
 If the `kbd-help' text or overlay property at point produces a
-string, return it.  Otherwise, use the `help-echo' property.  If
-this produces no string either, return nil."
+string, return it.  Otherwise, use the `help-echo' property.
+If this produces no string either, return nil."
   (let ((kbd (help-at-pt-string t))
 	(echo (help-at-pt-string)))
     (if (and kbd (not (eq kbd t))) kbd echo)))
@@ -344,7 +344,7 @@ rarely happens in practice."
 Print the help found there using `display-local-help'.  Adjacent
 areas with different non-nil help-echo properties are considered
 different regions.  With numeric argument ARG, behaves like
-`scan-buf-next-region' with argument -ARG.."
+`scan-buf-next-region' with argument -ARG."
   (interactive "p")
   (scan-buf-move-to-region 'help-echo (- arg) 'scan-buf-move-hook))
 

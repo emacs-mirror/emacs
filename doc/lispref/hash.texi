@@ -50,7 +50,7 @@ of object and are used only for recording interned symbols
 @menu
 * Creating Hash::       Functions to create hash tables.
 * Hash Access::         Reading and writing the hash table contents.
-* Defining Hash::       Defining new comparison methods
+* Defining Hash::       Defining new comparison methods.
 * Other Hash::          Miscellaneous.
 @end menu
 

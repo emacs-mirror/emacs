@@ -147,7 +147,8 @@ precisely the file name to load.
 
 @deffn Command load-library library
 This command loads the library named @var{library}.  It is equivalent to
-@code{load}, except in how it reads its argument interactively.
+@code{load}, except for the way it reads its argument interactively.
+@xref{Lisp Libraries,,,emacs, The GNU Emacs Manual}.
 @end deffn
 
 @defvar load-in-progress
@@ -375,10 +376,7 @@ decoding.
   The reason Emacs is designed this way is so that Lisp programs give
 predictable results, regardless of how Emacs was started.  In addition,
 this enables programs that depend on using multibyte text to work even
-in a unibyte Emacs.  Of course, such programs should be designed to
-notice whether the user prefers unibyte or multibyte text, by checking
-@code{default-enable-multibyte-characters}, and convert representations
-appropriately.
+in a unibyte Emacs.
 
   In most Emacs Lisp programs, the fact that non-@acronym{ASCII} strings are
 multibyte strings should not be noticeable, since inserting them in
@@ -625,7 +623,7 @@ But this would add multiple elements if the library is reloaded.  To
 avoid the problem, use @code{add-to-list} (@pxref{List Variables}):
 
 @example
-(add-to-list '(leif-mode " Leif") minor-mode-alist)
+(add-to-list 'minor-mode-alist '(leif-mode " Leif"))
 @end example
 
   Occasionally you will want to test explicitly whether a library has
@@ -733,10 +731,11 @@ loaded, into the current Emacs session.  This means that the facilities
 associated with @var{feature} are or will be available for other Lisp
 programs.
 
-The direct effect of calling @code{provide} is to add @var{feature} to
-the front of the list @code{features} if it is not already in the list.
-The argument @var{feature} must be a symbol.  @code{provide} returns
-@var{feature}.
+The direct effect of calling @code{provide} is if not already in
+@var{features} then to add @var{feature} to the front of that list and
+call any @code{eval-after-load} code waiting for it (@pxref{Hooks for
+Loading}).  The argument @var{feature} must be a symbol.
+@code{provide} returns @var{feature}.
 
 If provided, @var{subfeatures} should be a list of symbols indicating
 a set of specific subfeatures provided by this version of

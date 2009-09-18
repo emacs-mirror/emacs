@@ -1,4 +1,4 @@
-# Generated from glibc-2.3.2/localedata/charmaps/GB18030
+# Generated from GB18030 in localedate/charmaps of glibc
 0x81308130-0x81308435	0x0080
 0x81308436-0x81308437	0x00A5
 0x81308438-0x81308534	0x00A9

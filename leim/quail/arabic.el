@@ -40,41 +40,41 @@ Based on Arabic table in X Keyboard Configuration DB.
 
 (quail-define-rules
  ("`" ?ذ)
+ ("~" ?ّ)
 
  ("Q" ?َ)
  ("W" ?ً)
  ("E" ?ُ)
  ("R" ?ٌ)
- ("T" ?ﻹ)
+ ("T" ["لإ"])
  ("Y" ?إ)
  ("U" ?`)
  ("I" ?÷)
  ("O" ?×)
  ("P" ?؛)
+ ("{" ?<)
+ ("}" ?>)
 
  ("A" ?ِ)
  ("S" ?ٍ)
  ("D" ?])
  ("F" ?[)
- ("G" ?ﻷ)
+ ("G" ["لأ"])
  ("H" ?أ)
  ("J" ?ـ)
  ("K" ?،)
  ("L" ?/)
- (";" ?:)
 
  ("Z" ?~)
  ("X" ?ْ)
  ("C" ?})
  ("V" ?{)
- ("B" ?ﻵ)
+ ("B" ["لآ"])
  ("N" ?آ)
  ("M" ?')
  ("<" ?,)
  (">" ?.)
  ("?" ?؟)
-
- ("`" ?ذ)
 
  ("q" ?ض)
  ("w" ?ص)
@@ -86,6 +86,8 @@ Based on Arabic table in X Keyboard Configuration DB.
  ("i" ?ه)
  ("o" ?خ)
  ("p" ?ح)
+ ("[" ?ج)
+ ("]" ?د)
 
  ("a" ?ش)
  ("s" ?س)
@@ -97,19 +99,18 @@ Based on Arabic table in X Keyboard Configuration DB.
  ("k" ?ن)
  ("l" ?م)
  (";" ?ك)
+ ("'" ?ط)
 
  ("z" ?ئ)
  ("x" ?ء)
  ("c" ?ؤ)
  ("v" ?ر)
- ("b" ?ﻻ)
+ ("b" ["لا"])
  ("n" ?ى)
  ("m" ?ة)
  ("," ?و)
  ("." ?ز)
- ("/" ?ظ)
-
- ("'" ?ط))
+ ("/" ?ظ))
 
 ;; arch-tag: 7e81e2af-5ea5-417f-bfe7-dfa6fd955cb5
 ;;; arabic.el ends here

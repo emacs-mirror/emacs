@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -128,7 +128,6 @@
 (require 'which-func nil t)
 (require 'compile nil t)
 
-(defvar compile-auto-highlight)
 (defvar ispell-check-comments)
 (defvar skeleton-further-elements)
 
@@ -230,6 +229,8 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
 		 (const ada-no-auto-case))
   :group 'ada)
 
+;; FIXME If this is not something required by the ada language, this
+;; should be removed.
 (defcustom ada-clean-buffer-before-saving t
   "*Non-nil means remove trailing spaces and untabify the buffer before saving."
   :type 'boolean :group 'ada)
@@ -794,8 +795,9 @@ the 4 file locations can be clicked on and jumped to."
 	(compilation-find-file (point-marker) (match-string 1) "./")
 	(set-buffer file)
 
-	(if (stringp line)
-	    (goto-line (string-to-number line)))
+	(when (stringp line)
+	  (goto-char (point-min))
+	  (forward-line (1- (string-to-number line))))
 
 	(setq source (point-marker)))
 
@@ -1160,7 +1162,6 @@ the file name."
   ;;  We just substitute our own functions to go to the error.
   (add-hook 'compilation-mode-hook
 	    (lambda()
-	      (set (make-local-variable 'compile-auto-highlight) 40)
 	      ;; FIXME: This has global impact!  -stef
 	      (define-key compilation-minor-mode-map [mouse-2]
 		'ada-compile-mouse-goto-error)

@@ -1,6 +1,7 @@
 ;;; gnus-delay.el --- Delayed posting of articles
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -101,10 +102,10 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (aset deadline 1 minute)
 	   (aset deadline 2 hour)
 	   ;; Convert to seconds.
-	   (setq deadline (time-to-seconds (apply 'encode-time
+	   (setq deadline (gnus-float-time (apply 'encode-time
 						  (append deadline nil))))
 	   ;; If this time has passed already, add a day.
-	   (when (< deadline (time-to-seconds (current-time)))
+	   (when (< deadline (gnus-float-time))
 	     (setq deadline (+ 3600 deadline))) ;3600 secs/day
 	   ;; Convert seconds to date header.
 	   (setq deadline (message-make-date
@@ -127,8 +128,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 		 (t
 		  (setq delay (* num 60))))
 	   (setq deadline (message-make-date
-			   (seconds-to-time (+ (time-to-seconds (current-time))
-					       delay)))))
+			   (seconds-to-time (+ (gnus-float-time) delay)))))
 	  (t (error "Malformed delay `%s'" delay)))
     (message-add-header (format "%s: %s" gnus-delay-header deadline)))
   (set-buffer-modified-p t)

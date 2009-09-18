@@ -5,7 +5,7 @@
 
 ;; Author: Sam Shteingold <shteingd@math.ucla.edu>
 ;; Maintainer: FSF
-;; Keywords: maintenance
+;; Keywords: maint
 
 ;; This file is part of GNU Emacs.
 
@@ -35,16 +35,17 @@
   :group 'maint)
 
 (defcustom gulp-discard "^;+ *Maintainer: *FSF *$"
-  "*The regexp matching the packages not requiring the request for updates."
+  "The regexp matching the packages not requiring the request for updates."
   :type 'regexp
   :group 'gulp)
 
-(defcustom gulp-tmp-buffer "*gulp*" "The name of the temporary buffer."
+(defcustom gulp-tmp-buffer "*gulp*"
+  "The name of the temporary buffer."
   :type 'string
   :group 'gulp)
 
 (defcustom gulp-max-len 2000
-  "*Distance into a Lisp source file to scan for keywords."
+  "Distance into a Lisp source file to scan for keywords."
   :type 'integer
   :group 'gulp)
 
@@ -54,7 +55,7 @@
 I'm going to start pretesting a new version of GNU Emacs soon, so I'd
 like to ask if you have any updates for the Emacs packages you work on.
 You're listed as the maintainer of the following package(s):\n\n")
-  "*The starting text of a gulp message."
+  "The starting text of a gulp message."
   :type 'string
   :group 'gulp)
 
@@ -72,7 +73,7 @@ please use lisp/ChangeLog as a guide for the style and for what kinds
 of information to include.
 
 Thanks.")
-  "*The closing text in a gulp message."
+  "The closing text in a gulp message."
   :type 'string
   :group 'gulp)
 

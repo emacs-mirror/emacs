@@ -196,12 +196,14 @@
 ;; Improved message reference matching in `ispell-message'.
 ;; Fixed bug in returning to nroff mode from tex mode.
 
-;;; Compatibility code for xemacs and (not too) older emacsen:
+;;; Compatibility code for XEmacs and (not too) older emacsen:
 
-(eval-and-compile ;; Protect against declare-function undefined in xemacs
+(eval-and-compile ;; Protect against declare-function undefined in XEmacs
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (declare-function ispell-check-minver "ispell" (v1 v2))
+(declare-function ispell-looking-back "ispell"
+		  (regexp &optional limit &rest ignored))
 
 (if (fboundp 'version<=)
     (defalias 'ispell-check-minver 'version<=)
@@ -237,6 +239,21 @@ compatibility function in case `version<=' is not available."
 			    return nil))))
 	    (setq pending nil))))
       return)))
+
+;; XEmacs does not have looking-back
+(if (fboundp 'looking-back)
+    (defalias 'ispell-looking-back 'looking-back)
+  (defun ispell-looking-back (regexp &optional limit &rest ignored)
+    "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except matches before point, and is slower.
+LIMIT if non-nil speeds up the search by specifying a minimum
+starting position, to avoid checking matches that would start
+before LIMIT.
+
+This is a stripped down compatibility function for use when
+full featured `looking-back' function is missing."
+    (save-excursion
+      (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t))))
 
 ;;; Code:
 
@@ -488,7 +505,7 @@ default dictionary and LANG the two letter language code."
 The value must be a string dictionary name,
 or nil, which means use the global setting in `ispell-dictionary'.
 Dictionary names are defined in `ispell-local-dictionary-alist'
-and `ispell-dictionary-alist',
+and `ispell-dictionary-alist'.
 
 Setting `ispell-local-dictionary' to a value has the same effect as
 calling \\[ispell-change-dictionary] with that value.  This variable
@@ -500,6 +517,12 @@ is automatically set when defined in the file with either
 ;;;###autoload(put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
 
 (make-variable-buffer-local 'ispell-local-dictionary)
+
+(defcustom ispell-dictionary nil
+  "Default dictionary to use if `ispell-local-dictionary' is nil."
+  :type '(choice string
+		 (const :tag "default" nil))
+  :group 'ispell)
 
 (defcustom ispell-extra-args nil
   "*If non-nil, a list of extra switches to pass to the Ispell program.
@@ -762,9 +785,7 @@ Otherwise returns the library directory name, if that is defined."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (interactive "p")
-  (let (;; avoid bugs when syntax of `.' changes in various default modes
-	(default-major-mode 'fundamental-mode)
-	(default-directory (or (and (boundp 'temporary-file-directory)
+  (let ((default-directory (or (and (boundp 'temporary-file-directory)
 				    temporary-file-directory)
 			       default-directory))
 	result status ispell-program-version)
@@ -791,7 +812,7 @@ Otherwise returns the library directory name, if that is defined."
 	    (message "%s" result))
 	;; return library directory.
 	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
-	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
+	    (setq result (match-string 1))))
       (goto-char (point-min))
       (if (not (memq status '(0 nil)))
 	  (error "%s exited with %s %s" ispell-program-name
@@ -812,11 +833,12 @@ Otherwise returns the library directory name, if that is defined."
 	(goto-char (point-min))
 	(or (setq ispell-really-aspell
 		  (and (search-forward-regexp
-			"(but really Aspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+			"(but really Aspell \\([0-9]+\\.[0-9\\.-]+\\)?)" nil t)
 		       (match-string 1)))
 	    (setq ispell-really-hunspell
 		  (and (search-forward-regexp
-			"(but really Hunspell \\([0-9]+\\.[0-9\\.]+\\)?)" nil t)
+			"(but really Hunspell \\([0-9]+\\.[0-9\\.-]+\\)?)"
+                        nil t)
 		       (match-string 1)))))
 
       (let ((aspell-minver    "0.50")
@@ -864,10 +886,9 @@ Otherwise returns the library directory name, if that is defined."
 
 
 
-;;; The preparation of the menu bar menu must be autoloaded
-;;; because otherwise this file gets autoloaded every time Emacs starts
-;;; so that it can set up the menus and determine keyboard equivalents.
-
+;; The preparation of the menu bar menu must be autoloaded
+;; because otherwise this file gets autoloaded every time Emacs starts
+;; so that it can set up the menus and determine keyboard equivalents.
 
 ;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu.")
@@ -1251,9 +1272,6 @@ used as key in `ispell-local-dictionary-alist' and `ispell-dictionary-alist'.")
   "The name of the current personal dictionary, or nil for the default.
 This is passed to the ispell process using the `-p' switch.")
 
-(defvar ispell-dictionary nil
-  "Default dictionary to use if `ispell-local-dictionary' is nil.")
-
 (defun ispell-decode-string (str)
   "Decodes multibyte character strings.
 Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
@@ -1504,13 +1522,11 @@ pass it the output of the last ispell invocation."
 	    ispell-output)
 	(if (not (bufferp buf))
 	    (setq ispell-filter nil)
-	  (save-excursion
-	    (set-buffer buf)
+	  (with-current-buffer buf
 	    (setq ispell-output (buffer-substring-no-properties
 				 (point-min) (point-max))))
 	  (ispell-filter t ispell-output)
-	  (save-excursion
-	    (set-buffer buf)
+	  (with-current-buffer buf
 	    (erase-buffer)))))))
 
 (defun ispell-send-replacement (misspelled replacement)
@@ -1533,14 +1549,12 @@ This allows it to improve the suggestion list based on actual misspellings."
 	  ;; The following commands are not passed to Ispell until
 	  ;; we have a *real* reason to invoke it.
 	  (cmds-to-defer '(?* ?@ ?~ ?+ ?- ?! ?%))
-	  (default-major-mode 'fundamental-mode)
 	  (session-buf ispell-session-buffer)
 	  (output-buf ispell-output-buffer)
 	  (ispell-args ispell-cmd-args)
 	  (defdir ispell-process-directory)
 	  prev-pos)
-      (save-excursion
-	(set-buffer session-buf)
+      (with-current-buffer session-buf
 	(setq prev-pos (point))
 	(setq default-directory defdir)
 	(insert string)
@@ -1855,8 +1869,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	char num result textwin dedicated-win)
 
     ;; setup the *Choices* buffer with valid data.
-    (save-excursion
-      (set-buffer (get-buffer-create ispell-choices-buffer))
+    (with-current-buffer (get-buffer-create ispell-choices-buffer)
       (setq mode-line-format
 	    (concat "--  %b  --  word: " word
 		    "  --  dict: " (or ispell-current-dictionary "default")
@@ -1939,7 +1952,7 @@ Global `ispell-quit' set to start location to continue spell session."
 		    ;; event), stop ispell.  As a special exception,
 		    ;; ignore mouse events occuring in the same frame.
 		    (while (and input-valid (not (characterp char)))
-		      (setq char (read-event))
+		      (setq char (read-key))
 		      (setq input-valid
 			    (or (characterp char)
 				(and (mouse-event-p char)
@@ -2022,9 +2035,8 @@ Global `ispell-quit' set to start location to continue spell session."
 				     word)))
 		      (if new-word
 			  (progn
-			    (save-excursion
-			      (set-buffer (get-buffer-create
-					   ispell-choices-buffer))
+			    (with-current-buffer (get-buffer-create
+                                                  ispell-choices-buffer)
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0

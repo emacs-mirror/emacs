@@ -104,6 +104,7 @@ extern void filemodestring P_ ((struct stat *, char *));
 extern int completion_ignore_case;
 extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
+extern Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qdirectory_files;
@@ -115,6 +116,14 @@ Lisp_Object Qfile_attributes_lessp;
 
 static int scmp P_ ((unsigned char *, unsigned char *, int));
 
+#ifdef WINDOWSNT
+Lisp_Object
+directory_files_internal_w32_unwind (Lisp_Object arg)
+{
+  Vw32_get_true_file_attributes = arg;
+  return Qnil;
+}
+#endif
 
 Lisp_Object
 directory_files_internal_unwind (dh)
@@ -146,6 +155,9 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
+#ifdef WINDOWSNT
+  Lisp_Object w32_save = Qnil;
+#endif
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
@@ -193,6 +205,29 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
      do a proper unwind-protect.  */
   record_unwind_protect (directory_files_internal_unwind,
 			 make_save_value (d, 0));
+
+#ifdef WINDOWSNT
+  if (attrs)
+    {
+      extern Lisp_Object Qlocal;
+      extern int is_slow_fs (const char *);
+
+      /* Do this only once to avoid doing it (in w32.c:stat) for each
+	 file in the directory, when we call Ffile_attributes below.  */
+      record_unwind_protect (directory_files_internal_w32_unwind,
+			     Vw32_get_true_file_attributes);
+      w32_save = Vw32_get_true_file_attributes;
+      if (EQ (Vw32_get_true_file_attributes, Qlocal))
+	{
+	  /* w32.c:stat will notice these bindings and avoid calling
+	     GetDriveType for each file.  */
+	  if (is_slow_fs (SDATA (dirfilename)))
+	    Vw32_get_true_file_attributes = Qnil;
+	  else
+	    Vw32_get_true_file_attributes = Qt;
+	}
+    }
+#endif
 
   directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
@@ -310,6 +345,10 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   BLOCK_INPUT;
   closedir (d);
   UNBLOCK_INPUT;
+#ifdef WINDOWSNT
+  if (attrs)
+    Vw32_get_true_file_attributes = w32_save;
+#endif
 
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
@@ -934,6 +973,7 @@ Elements of the attribute list are:
  3. File gid, likewise.
  4. Last access time, as a list of two integers.
   First integer has high-order 16 bits of time, second has low 16 bits.
+  (See a note below about FAT-based filesystems.)
  5. Last modification time, likewise.
  6. Last status change time, likewise.
  7. Size in bytes.
@@ -949,7 +989,10 @@ Elements of the attribute list are:
   a cons cell, similar to the inode number.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
-which see.  */)
+which see.
+
+On some FAT-based filesystems, only the date of last access is recorded,
+so last access time will always be midnight of that day.  */)
      (filename, id_format)
      Lisp_Object filename, id_format;
 {
@@ -1008,11 +1051,11 @@ which see.  */)
       UNBLOCK_INPUT;
     }
   if (uname)
-    values[2] = build_string (uname);
+    values[2] = DECODE_SYSTEM (build_string (uname));
   else
     values[2] = make_uid (&s);
   if (gname)
-    values[3] = build_string (gname);
+    values[3] = DECODE_SYSTEM (build_string (gname));
   else
     values[3] = make_gid (&s);
 

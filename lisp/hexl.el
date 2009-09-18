@@ -42,6 +42,7 @@
 ;;; Code:
 
 (require 'eldoc)
+(eval-when-compile (require 'cl))
 
 ;;
 ;; vars here
@@ -365,8 +366,8 @@ and edit the file in `hexl-mode'."
    (list
     (let ((completion-ignored-extensions nil))
       (read-file-name "Filename: " nil nil 'ret-must-match))))
-  ;; Ignore the user's setting of default-major-mode.
-  (let ((default-major-mode 'fundamental-mode))
+  ;; Ignore the user's setting of default major-mode.
+  (letf (((default-value 'major-mode) 'fundamental-mode))
     (find-file-literally filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
@@ -795,7 +796,7 @@ and their encoded form is inserted byte by byte."
 	(coding (if (or (null buffer-file-coding-system)
 			;; coding-system-type equals t means undecided.
 			(eq (coding-system-type buffer-file-coding-system) t))
-		    default-buffer-file-coding-system
+		    (default-value 'buffer-file-coding-system)
 		  buffer-file-coding-system)))
     (cond ((and (> ch 0) (< ch 256))
 	   (hexl-insert-char ch num))

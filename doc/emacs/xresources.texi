@@ -10,7 +10,7 @@ resources, as is usual for programs that use X.  On MS-Windows, you
 can customize some of the same aspects using the system registry.
 @xref{MS-Windows Registry}.
 
-o  When Emacs is built using an ``X toolkit'', such as Lucid or
+  When Emacs is built using an ``X toolkit'', such as Lucid or
 LessTif, you need to use X resources to customize the appearance of
 the widgets, including the menu-bar, scroll-bar, and dialog boxes.
 This is because the libraries that implement these don't provide for
@@ -45,63 +45,49 @@ manual.
 
   Programs running under the X Window System organize their user
 options under a hierarchy of classes and resources.  You can specify
-default values for these options in your X resources file, usually
-named @file{~/.Xdefaults} or @file{~/.Xresources}.
-If changes in @file{~/.Xdefaults} do not
-take effect, it is because your X server stores its own list of
-resources; to update them, use the shell command @command{xrdb}---for
-instance, @samp{xrdb ~/.Xdefaults}.
-
-  Each line in the file specifies a value for one option or for a
-collection of related options, for one program or for several programs
-(optionally even for all programs).
+default values for these options in your @dfn{X resource file},
+usually named @file{~/.Xdefaults} or @file{~/.Xresources}.  Changes in
+this file do not take effect immediately, because the X server stores
+its own list of resources; to update it, use the command
+@command{xrdb}---for instance, @samp{xrdb ~/.Xdefaults}.
 
 @cindex Registry (MS-Windows)
-  MS-Windows systems do not support @file{~/.Xdefaults} files, so
-instead Emacs compiled for Windows looks for X resources in the
-Windows Registry, first under the key
-@samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs} and then under the key
+  (MS-Windows systems do not support X resource files; on Windows,
+Emacs looks for X resources in the Windows Registry, first under the
+key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs} and then under the key
 @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.  The menu and scroll
 bars are native widgets on MS-Windows, so they are only customizable
 via the system-wide settings in the Display Control Panel.  You can
-also set resources using the @samp{-xrm} command line option (see
-below.)
+also set resources using the @samp{-xrm} command line option, as
+explained below.)
 
-@iftex
-  Applications such as Emacs look for resources with specific names
-and their particular meanings.  Case distinctions are significant in
-these names.  Each resource specification in @file{~/.Xdefaults}
-states the name of the program and the name of the resource.  For
-Emacs, the program name is @samp{Emacs}.  It looks like this:
-
-@example
-Emacs.borderWidth: 2
-@end example
-@end iftex
-@ifnottex
-  Programs define named resources with particular meanings.  They also
-define how to group resources into named classes.  For instance, in
-Emacs, the @samp{internalBorder} resource controls the width of the
-internal border, and the @samp{borderWidth} resource controls the width
-of the external border.  Both of these resources are part of the
-@samp{BorderWidth} class.  Case distinctions are significant in these
-names.
-
-  Every resource definition is associated with a specific program
-name---the name of the executable file that you ran.  For Emacs, that
-is normally @samp{emacs}.  To specify a definition for all instances
-of Emacs, regardless of their names, use @samp{Emacs}.
-
-  In @file{~/.Xdefaults}, you can specify a value for a single resource
-on one line, like this:
+  Each line in the X resource file specifies a value for one option or
+for a collection of related options.  Each resource specification
+consists of a @dfn{program name} and a @dfn{resource name}.  Case
+distinctions are significant in each of these names.  Here is an
+example:
 
 @example
 emacs.borderWidth: 2
 @end example
 
-@noindent
-Or you can use a class name to specify the same value for all resources
-in that class.  Here's an example:
+@ifnottex
+  The program name is the name of the executable file to which the
+resource applies.  For Emacs, this is normally @samp{emacs}.  To
+specify a definition that applies to all instances of Emacs,
+regardless of the name of the Emacs executable, use @samp{Emacs}.
+
+  The resource name is the name of a program setting.  For instance,
+Emacs recognizes a @samp{borderWidth} resource that controls the width
+of the external border for graphical frames.
+
+  Resources are grouped into named classes.  For instance, the
+@samp{BorderWidth} class contains both the @samp{borderWidth} resource
+(which we just described), as well as the @samp{internalBorder}
+resource, which controls the width of the internal border for
+graphical frames.  Instead of using a resource name, you can use a
+class name to specify the same value for all resources in that class.
+Here's an example:
 
 @example
 emacs.BorderWidth: 2
@@ -109,9 +95,10 @@ emacs.BorderWidth: 2
 
   If you specify a value for a class, it becomes the default for all
 resources in that class.  You can specify values for individual
-resources as well; these override the class value, for those particular
-resources.  Thus, this example specifies 2 as the default width for all
-borders, but overrides this value with 4 for the external border:
+resources as well; these override the class value, for those
+particular resources.  The following example specifies 2 as the
+default width for all borders, but overrides this value with 4 for the
+external border:
 
 @example
 emacs.BorderWidth: 2
@@ -123,66 +110,49 @@ emacs.borderWidth: 4
 Also, command-line options always override the X resources file.
 
 @ifnottex
-Here is a list of X command-line options and their corresponding
-resource names.
+  The following X command-line options affect how X resources are
+processed:
 
 @table @samp
 @item -name @var{name}
 @opindex --name
 @itemx --name=@var{name}
 @cindex resource name, command-line argument
-Use @var{name} as the resource name (and the title) for the initial
-Emacs frame.  This option does not affect subsequent frames, but Lisp
-programs can specify frame names when they create frames.
+This option sets the program name of the initial Emacs frame to
+@var{name}.  It also sets the title of the initial frame to
+@var{name}.  This option does not affect subsequent frames.
 
 If you don't specify this option, the default is to use the Emacs
-executable's name as the resource name.
+executable's name as the program name.
+
+For consistency, @samp{-name} also specifies the name to use for other
+resource values that do not belong to any particular frame.
+
+The resources that name Emacs invocations also belong to a class,
+named @samp{Emacs}.  If you write @samp{Emacs} instead of
+@samp{emacs}, the resource applies to all frames in all Emacs jobs,
+regardless of frame titles and regardless of the name of the
+executable file.
 
 @item -xrm @var{resource-values}
 @opindex --xrm
 @itemx --xrm=@var{resource-values}
 @cindex resource values, command-line argument
-Specify X resource values for this Emacs job (see below).
+This option specifies X resource values for the present Emacs job.
+
+@var{resource-values} should have the same format that you would use
+inside a file of X resources.  To include multiple resource
+specifications in @var{resource-values}, put a newline between them,
+just as you would in a file.  You can also use @samp{#include
+"@var{filename}"} to include a file full of resource specifications.
+Resource values specified with @samp{-xrm} take precedence over all
+other resource specifications.
 @end table
-
-  For consistency, @samp{-name} also specifies the name to use for
-other resource values that do not belong to any particular frame.
-
-  The resources that name Emacs invocations also belong to a class; its
-name is @samp{Emacs}.  If you write @samp{Emacs} instead of
-@samp{emacs}, the resource applies to all frames in all Emacs jobs,
-regardless of frame titles and regardless of the name of the executable
-file.  Here is an example:
-
-@example
-Emacs.BorderWidth: 2
-Emacs.borderWidth: 4
-@end example
-
-  You can specify a string of additional resource values for Emacs to
-use with the command line option @samp{-xrm @var{resources}}.  The text
-@var{resources} should have the same format that you would use inside a file
-of X resources.  To include multiple resource specifications in
-@var{resources}, put a newline between them, just as you would in a file.
-You can also use @samp{#include "@var{filename}"} to include a file full
-of resource specifications.  Resource values specified with @samp{-xrm}
-take precedence over all other resource specifications.
+@end ifnottex
 
   One way to experiment with the effect of different resource settings
-is to use the @code{editres} program.  Select @samp{Get Tree} from the
-@end ifnottex
-@iftex
-  You can experiment with the effect of different resource settings
-with the @code{editres} program.  Select @samp{Get Tree} from the
-@end iftex
-@samp{Commands} menu, then click on an Emacs frame.  This will display
-a tree showing the structure of X toolkit widgets used in an Emacs
-frame.  Select one of them, such as @samp{menubar}, then select
-@samp{Show Resource Box} from the @samp{Commands} menu.  This displays
-a list of all the meaningful X resources for that widget, and allows
-you to edit them.  Changes take effect when you click on the
-@samp{Apply} button.  (See the @code{editres} man page for more
-details.)
+is to use the @code{editres} program.  See the @code{editres} man page
+for more details.
 
 @node Table of Resources
 @appendixsec Table of X Resources for Emacs
@@ -219,7 +189,17 @@ Specifies whether to make the cursor blink. The default is @samp{on}.  Use
 @end ifnottex
 
 @item @code{font} (class @code{Font})
-Font name (or fontset name, @pxref{Fontsets}) for @code{default} font.
+Font name for the @code{default} font.  @xref{Font X}.  You can also
+specify a fontset name (@pxref{Fontsets}).
+
+@item @code{fontBackend} (class @code{FontBackend})
+The backend(s) to use for drawing fonts; if multiple backends are
+specified, they must be comma-delimited and given in order of
+precedence.  On X, for instance, the value @samp{x,xft} tells Emacs to
+draw fonts using the X core font driver, falling back on the Xft font
+driver if that fails.  Normally, you can leave this resource unset, in
+which case Emacs tries using all font backends available on your
+graphical device.
 
 @item @code{foreground} (class @code{Foreground})
 Color name for text.
@@ -237,8 +217,8 @@ all frames.
 @ifnottex
 @item @code{fullscreen} (class @code{Fullscreen})
 The desired fullscreen size.  The value can be one of @code{fullboth},
-@code{fullwidth} or @code{fullheight}, which correspond to
-the command-line options @samp{-fs}, @samp{-fw}, and @samp{-fh}
+@code{maximized}, @code{fullwidth} or @code{fullheight}, which correspond to
+the command-line options @samp{-fs}, @samp{-mm}, @samp{-fw}, and @samp{-fh}
 (@pxref{Window Size X}).
 
 Note that this applies to the initial frame only.

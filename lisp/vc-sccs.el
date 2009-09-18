@@ -331,7 +331,7 @@ revert all subfiles."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (files &optional buffer)
+(defun vc-sccs-print-log (files &optional buffer shortlog)
   "Get change log associated with FILES."
   (setq files (vc-expand-dirs files))
   (vc-sccs-do-command buffer 0 "prs" (mapcar 'vc-name files)))
@@ -370,6 +370,12 @@ revert all subfiles."
 ;;; Miscellaneous
 ;;;
 
+(defun vc-sccs-previous-revision (file rev)
+  (vc-call-backend 'RCS 'previous-revision file rev))
+
+(defun vc-sccs-next-revision (file rev)
+  (vc-call-backend 'RCS 'next-revision file rev))
+
 (defun vc-sccs-check-headers ()
   "Check if the current file has any headers in it."
   (save-excursion
@@ -390,6 +396,13 @@ revert all subfiles."
       (replace-match (concat ":" new) nil nil))
     (basic-save-buffer)
     (kill-buffer (current-buffer))))
+
+(defun vc-sccs-find-file-hook ()
+  ;; If the file is locked by some other user, make
+  ;; the buffer read-only.  Like this, even root
+  ;; cannot modify a file that someone else has locked.
+  (and (stringp (vc-state buffer-file-name 'SCCS))
+       (setq buffer-read-only t)))
 
 
 ;;;

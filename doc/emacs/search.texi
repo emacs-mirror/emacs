@@ -300,15 +300,16 @@ search string.  It uses the same text that @kbd{C-y} would yank.
 @node Isearch Scroll
 @subsection Scrolling During Incremental Search
 
+@vindex isearch-allow-scroll
   You can enable the use of vertical scrolling during incremental
 search (without exiting the search) by setting the customizable
 variable @code{isearch-allow-scroll} to a non-@code{nil} value.  This
 applies to using the vertical scroll-bar and to certain keyboard
-commands such as @kbd{@key{PRIOR}} (@code{scroll-down}),
-@kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter}).
-You must run these commands via their key sequences to stay in the
-search---typing @kbd{M-x} will terminate the search.  You can give
-prefix arguments to these commands in the usual way.
+commands such as @key{prior} (@code{scroll-down}), @key{next}
+(@code{scroll-up}) and @kbd{C-l} (@code{recenter}).  You must run
+these commands via their key sequences to stay in the search---typing
+@kbd{M-x} will terminate the search.  You can give prefix arguments to
+these commands in the usual way.
 
   This feature won't let you scroll the current match out of visibility,
 however.
@@ -948,15 +949,13 @@ effect of adding or removing an upper-case letter in the current
 search.
 
 @vindex case-fold-search
-@vindex default-case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
 all letters must match exactly, including case.  This is a per-buffer
-variable; altering the variable affects only the current buffer, but
-there is a default value in @code{default-case-fold-search} that you
-can also set.  @xref{Locals}.  This variable applies to nonincremental
-searches also, including those performed by the replace commands
-(@pxref{Replace}) and the minibuffer history matching commands
-(@pxref{Minibuffer History}).
+variable; altering the variable normally affects only the current buffer,
+unless you change its default value.  @xref{Locals}.
+This variable applies to nonincremental searches also, including those
+performed by the replace commands (@pxref{Replace}) and the minibuffer
+history matching commands (@pxref{Minibuffer History}).
 
   Several related variables control case-sensitivity of searching and
 matching for specific commands or activities.  For instance,

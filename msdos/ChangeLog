@@ -1,3 +1,26 @@
+2009-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (OTHER_FILES): Edit to empty.
+
+2009-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (bootstrap): Ensure enough environment space
+	will be available to run config.bat.
+
+2009-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (buildobj.h): Replace "echo" with "djecho".
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-04-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (src) <gdb.ini>: Don't replace the line with
+	x_error_quitter; instead, append "set environment NAME" to the end.
+	Set NAME and USERNAME in the environment to the same value.
+
 2009-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (boot): Don't require b-emacs.exe if not building

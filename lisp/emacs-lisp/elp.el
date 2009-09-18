@@ -133,19 +133,19 @@
   :group 'lisp)
 
 (defcustom elp-function-list nil
-  "*List of functions to profile.
+  "List of functions to profile.
 Used by the command `elp-instrument-list'."
   :type '(repeat function)
   :group 'elp)
 
 (defcustom elp-reset-after-results t
-  "*Non-nil means reset all profiling info after results are displayed.
+  "Non-nil means reset all profiling info after results are displayed.
 Results are displayed with the `elp-results' command."
   :type 'boolean
   :group 'elp)
 
 (defcustom elp-sort-by-function 'elp-sort-by-total-time
-  "*Non-nil specifies ELP results sorting function.
+  "Non-nil specifies ELP results sorting function.
 These functions are currently available:
 
   elp-sort-by-call-count   -- sort by the highest call count
@@ -162,7 +162,7 @@ the symbol's name string."
   :group 'elp)
 
 (defcustom elp-report-limit 1
-  "*Prevent some functions from being displayed in the results buffer.
+  "Prevent some functions from being displayed in the results buffer.
 If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
 functions will be displayed."
@@ -171,12 +171,12 @@ functions will be displayed."
   :group 'elp)
 
 (defcustom elp-use-standard-output nil
-  "*If non-nil, output to `standard-output' instead of a buffer."
+  "If non-nil, output to `standard-output' instead of a buffer."
   :type 'boolean
   :group 'elp)
 
 (defcustom elp-recycle-buffers-p t
-  "*If nil, don't recycle the `elp-results-buffer'.
+  "If nil, don't recycle the `elp-results-buffer'.
 In other words, a new unique buffer is create every time you run
 \\[elp-results]."
   :type 'boolean
@@ -210,7 +210,10 @@ This variable is set by the master function.")
     ;; (delq nil (mapcar (lambda (x) (and (symbolp x) (fboundp x) x))
     ;;                   (aref (symbol-function 'elp-wrapper) 2)))
     ;; to help me find this list.
-    error call-interactively apply current-time)
+    error call-interactively apply current-time
+    ;; Andreas Politz reports problems profiling these (Bug#4233):
+    + byte-code-function-p functionp byte-code subrp
+    indirect-function fboundp)
   "List of functions that cannot be profiled.
 Those functions are used internally by the profiling code and profiling
 them would thus lead to infinite recursion.")
@@ -554,6 +557,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 		      'elp-symname (intern symname)
 		      'keymap elp-results-symname-map
 		      'mouse-face 'highlight
+		      'face 'link
 		      'help-echo "mouse-2 or RET jumps to definition")))
 
 ;;;###autoload

@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.21b
+;; Version: 6.30c
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -130,8 +130,8 @@ Furthermore, the following %-escapes will be replaced with content:
               You may define a prompt like %^{Please specify birthday
   %n          user name (taken from `user-full-name')
   %a          annotation, normally the link created with org-store-link
-  %i          initial content, the region active.  If %i is indented,
-              the entire inserted text will be indented as well.
+  %i          initial content, copied from the active region.  If %i is 
+              indented, the entire inserted text will be indented as well.
   %c          current kill ring head
   %x          content of the X clipboard
   %^C         Interactive selection of which kill or clip to use
@@ -186,15 +186,21 @@ calendar           |  %:type %:date"
 		 (const :tag "Use `org-default-notes-file'" nil))
 		(choice :tag "Destin. headline"
 		 (string :tag "Specify")
+		 (function :tag "Function")
 		 (const :tag "Use `org-remember-default-headline'" nil)
-		 (const :tag "Level 1 at beginning of file" top)
-		 (const :tag "Level 1 at end of file" bottom))
+		 (const :tag "At beginning of file" top)
+		 (const :tag "At end of file" bottom))
 		(choice :tag "Context"
 		 (const :tag "Use in all contexts" nil)
 		 (const :tag "Use in all contexts" t)
 		 (repeat :tag "Use only if in major mode"
 			 (symbol :tag "Major mode"))
 		 (function :tag "Perform a check against function")))))
+
+(defcustom org-remember-delete-empty-lines-at-end t
+  "Non-nil means clean up final empty lines in remember buffer."
+  :group 'org-remember
+  :type 'boolean)
 
 (defcustom org-remember-before-finalize-hook nil
   "Hook that is run right before a remember process is finalized.
@@ -228,6 +234,39 @@ user each time a remember buffer with a running clock is filed away.  "
 	  (const :tag "Always" t)
 	  (const :tag "Query user" query)))
 
+(defcustom org-remember-backup-directory nil
+  "Directory where to store all remember buffers, for backup purposes.
+After a remember buffer has been stored successfully, the backup file
+will be removed.  However, if you forget to finish the remember process,
+the file will remain there.
+See also `org-remember-auto-remove-backup-files'."
+  :group 'org-remember
+  :type '(choice
+	  (const :tag "No backups" nil)
+	  (directory :tag "Directory")))
+
+(defcustom org-remember-auto-remove-backup-files t
+  "Non-nil means, remove remember backup files after successfully storage.
+When remember is finished successfully, with storing the note at the
+desired target, remove the backup files related to this remember process
+and show a message about remaining backup files, from previous, unfinished
+remember sessions.
+Backup files will only be made at all, when `org-remember-backup-directory'
+is set."
+  :group 'org-remember
+  :type 'boolean)
+
+(defcustom org-remember-warn-about-backups t
+  "Non-nil means warn about backup files in `org-remember-backup-directory'.
+
+Set this to nil if you find that you don't need the warning.
+
+If you cancel remember calls frequently and know when they
+contain useful information (because you know that you made an
+error or emacs crashed, for example) nil is more useful.  In the
+opposite case, the default, t, is more useful."
+  :group 'org-remember
+  :type 'boolean)
 
 (defvar annotation) ; from remember.el, dynamically scoped in `remember-mode'
 (defvar initial)    ; from remember.el, dynamically scoped in `remember-mode'
@@ -297,6 +336,7 @@ RET at beg-of-buf -> Append to file as level 2 headline
 				    (append (list (nth 1 x) (car x)) (cddr x))
 				  (append (list (car x) "") (cdr x))))
 			      (delq nil pre-selected-templates2)))
+	   msg
 	   (char (or use-char
 		     (cond
 		      ((= (length templates) 1)
@@ -307,22 +347,32 @@ RET at beg-of-buf -> Append to file as level 2 headline
 			   (string-to-char org-force-remember-template-char)
 			 org-force-remember-template-char))
 		      (t
-		       (message "Select template: %s"
-				(mapconcat
-				 (lambda (x)
-				   (cond
-				    ((not (string-match "\\S-" (nth 1 x)))
-				     (format "[%c]" (car x)))
-				    ((equal (downcase (car x))
-					    (downcase (aref (nth 1 x) 0)))
-				     (format "[%c]%s" (car x)
-					     (substring (nth 1 x) 1)))
-				    (t (format "[%c]%s" (car x) (nth 1 x)))))
-				 templates " "))
-		       (let ((inhibit-quit t) (char0 (read-char-exclusive)))
+		       (setq msg (format
+				  "Select template: %s"
+				  (mapconcat
+				   (lambda (x)
+				     (cond
+				      ((not (string-match "\\S-" (nth 1 x)))
+				       (format "[%c]" (car x)))
+				      ((equal (downcase (car x))
+					      (downcase (aref (nth 1 x) 0)))
+				       (format "[%c]%s" (car x)
+					       (substring (nth 1 x) 1)))
+				      (t (format "[%c]%s" (car x) (nth 1 x)))))
+				   templates " ")))
+		       (let ((inhibit-quit t) char0)
+			 (while (not char0)
+			   (message msg)
+			   (setq char0 (read-char-exclusive))
+			   (when (and (not (assoc char0 templates))
+				      (not (equal char0 ?\C-g)))
+			     (message "No such template \"%c\"" char0)
+			     (ding) (sit-for 1)
+			     (setq char0 nil)))
 			 (when (equal char0 ?\C-g)
 			   (jump-to-register remember-register)
-			   (kill-buffer remember-buffer))
+			   (kill-buffer remember-buffer)
+			   (error "Abort"))
 			 char0))))))
       (cddr (assoc char templates)))))
 
@@ -365,11 +415,16 @@ to be run from that hook to function properly."
 	     (v-T (format-time-string (cdr org-time-stamp-formats) ct))
 	     (v-u (concat "[" (substring v-t 1 -1) "]"))
 	     (v-U (concat "[" (substring v-T 1 -1) "]"))
-	     ;; `initial' and `annotation' are bound in `remember'
-	     (v-i (if (boundp 'initial) initial))
-	     (v-a (if (and (boundp 'annotation) annotation)
-		      (if (equal annotation "[[]]") "" annotation)
-		    ""))
+	     ;; `initial' and `annotation' are bound in `remember'.
+	     ;; But if the property list has them, we prefer those values
+	     (v-i (or (plist-get org-store-link-plist :initial)
+		      (and (boundp 'initial) initial)
+		      ""))
+	     (v-a (or (plist-get org-store-link-plist :annotation)
+		      (and (boundp 'annotation) annotation)
+		      ""))
+	     ;; Is the link empty?  Then we do not want it...
+	     (v-a (if (equal v-a "[[]]") "" v-a))
 	     (clipboards (remove nil (list v-i
 					   (org-get-x-clipboard 'PRIMARY)
 					   (org-get-x-clipboard 'CLIPBOARD)
@@ -394,13 +449,16 @@ to be run from that hook to function properly."
 
 	(when (functionp file)
 	  (setq file (funcall file)))
+	(when (functionp headline)
+	  (setq headline (funcall headline)))
 	(when (and file (not (file-name-absolute-p file)))
 	  (setq file (expand-file-name file org-directory)))
 
-
 	(setq org-store-link-plist
-	      (append (list :annotation v-a :initial v-i)
-		      org-store-link-plist))
+	      (plist-put org-store-link-plist :annotation v-a)
+	      org-store-link-plist
+	      (plist-put org-store-link-plist :initial v-i))
+
 	(unless tpl (setq tpl "") (message "No template") (ding) (sit-for 1))
 	(erase-buffer)
 	(insert (substitute-command-keys
@@ -422,49 +480,53 @@ to be run from that hook to function properly."
 
 	;; Simple %-escapes
 	(while (re-search-forward "%\\([tTuUaiAcxkKI]\\)" nil t)
-	  (when (and initial (equal (match-string 0) "%i"))
-	    (save-match-data
-	      (let* ((lead (buffer-substring
-			    (point-at-bol) (match-beginning 0))))
-		(setq v-i (mapconcat 'identity
-				     (org-split-string initial "\n")
-				     (concat "\n" lead))))))
-	  (replace-match
-	   (or (eval (intern (concat "v-" (match-string 1)))) "")
-	   t t))
+	  (unless (org-remember-escaped-%)
+	    (when (and initial (equal (match-string 0) "%i"))
+	      (save-match-data
+		(let* ((lead (buffer-substring
+			      (point-at-bol) (match-beginning 0))))
+		  (setq v-i (mapconcat 'identity
+				       (org-split-string initial "\n")
+				       (concat "\n" lead))))))
+	    (replace-match
+	     (or (eval (intern (concat "v-" (match-string 1)))) "")
+	     t t)))
 
 	;; %[] Insert contents of a file.
 	(goto-char (point-min))
 	(while (re-search-forward "%\\[\\(.+\\)\\]" nil t)
-	  (let ((start (match-beginning 0))
-		(end (match-end 0))
-		(filename (expand-file-name (match-string 1))))
-	    (goto-char start)
-	    (delete-region start end)
-	    (condition-case error
-		(insert-file-contents filename)
-	      (error (insert (format "%%![Couldn't insert %s: %s]"
-				     filename error))))))
+	  (unless (org-remember-escaped-%)
+	    (let ((start (match-beginning 0))
+		  (end (match-end 0))
+		  (filename (expand-file-name (match-string 1))))
+	      (goto-char start)
+	      (delete-region start end)
+	      (condition-case error
+		  (insert-file-contents filename)
+		(error (insert (format "%%![Couldn't insert %s: %s]"
+				       filename error)))))))
 	;; %() embedded elisp
 	(goto-char (point-min))
 	(while (re-search-forward "%\\((.+)\\)" nil t)
-	  (goto-char (match-beginning 0))
-	  (let ((template-start (point)))
-	    (forward-char 1)
-	    (let ((result
-		   (condition-case error
-		       (eval (read (current-buffer)))
-		     (error (format "%%![Error: %s]" error)))))
-	      (delete-region template-start (point))
-	      (insert result))))
+	  (unless (org-remember-escaped-%)
+	    (goto-char (match-beginning 0))
+	    (let ((template-start (point)))
+	      (forward-char 1)
+	      (let ((result
+		     (condition-case error
+			 (eval (read (current-buffer)))
+		       (error (format "%%![Error: %s]" error)))))
+		(delete-region template-start (point))
+		(insert result)))))
 
 	;; From the property list
 	(when plist-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "%\\(:[-a-zA-Z]+\\)" nil t)
+	  (unless (org-remember-escaped-%)
 	    (and (setq x (or (plist-get org-store-link-plist
 					(intern (match-string 1))) ""))
-		 (replace-match x t t))))
+		 (replace-match x t t)))))
 
 	;; Turn on org-mode in the remember buffer, set local variables
 	(let ((org-inhibit-startup t)) (org-mode) (org-remember-mode 1))
@@ -475,87 +537,89 @@ to be run from that hook to function properly."
 	;; Interactive template entries
 	(goto-char (point-min))
 	(while (re-search-forward "%^\\({\\([^}]*\\)}\\)?\\([gGtTuUCLp]\\)?" nil t)
-	  (setq char (if (match-end 3) (match-string 3))
-		prompt (if (match-end 2) (match-string 2)))
-	  (goto-char (match-beginning 0))
-	  (replace-match "")
-	  (setq completions nil default nil)
-	  (when prompt
-	    (setq completions (org-split-string prompt "|")
-		  prompt (pop completions)
-		  default (car completions)
-		  histvar (intern (concat
-				   "org-remember-template-prompt-history::"
-				   (or prompt "")))
-		  completions (mapcar 'list completions)))
-	  (cond
-	   ((member char '("G" "g"))
-	    (let* ((org-last-tags-completion-table
-		    (org-global-tags-completion-table
-		     (if (equal char "G") (org-agenda-files) (and file (list file)))))
-		   (org-add-colon-after-tag-completion t)
-		   (ins (org-ido-completing-read
-			 (if prompt (concat prompt ": ") "Tags: ")
-			 'org-tags-completion-function nil nil nil
-			 'org-tags-history)))
-	      (setq ins (mapconcat 'identity
-				  (org-split-string ins (org-re "[^[:alnum:]_@]+"))
-				  ":"))
-	      (when (string-match "\\S-" ins)
-		(or (equal (char-before) ?:) (insert ":"))
-		(insert ins)
-		(or (equal (char-after) ?:) (insert ":")))))
-	   ((equal char "C")
-	    (cond ((= (length clipboards) 1) (insert (car clipboards)))
-		  ((> (length clipboards) 1)
-		   (insert (read-string "Clipboard/kill value: "
-					(car clipboards) '(clipboards . 1)
-					(car clipboards))))))
-	   ((equal char "L")
-	    (cond ((= (length clipboards) 1)
-		   (org-insert-link 0 (car clipboards)))
-		  ((> (length clipboards) 1)
-		   (org-insert-link 0 (read-string "Clipboard/kill value: "
-						   (car clipboards)
-						   '(clipboards . 1)
-						   (car clipboards))))))
-	   ((equal char "p")
-	    (let*
-		((prop (org-substring-no-properties prompt))
-		 (pall (concat prop "_ALL"))
-		 (allowed
-		  (with-current-buffer
-		      (get-buffer (file-name-nondirectory file))
-		    (or (cdr (assoc pall org-file-properties))
-			(cdr (assoc pall org-global-properties))
-			(cdr (assoc pall org-global-properties-fixed)))))
-		 (existing (with-current-buffer
-			       (get-buffer (file-name-nondirectory file))
-			     (mapcar 'list (org-property-values prop))))
-		 (propprompt (concat "Value for " prop ": "))
-		 (val (if allowed
-			  (org-completing-read
-			   propprompt
-			   (mapcar 'list (org-split-string allowed "[ \t]+"))
-			   nil 'req-match)
-			(org-completing-read-no-ido propprompt existing nil nil
-					     "" nil ""))))
-	      (org-set-property prop val)))
-	   (char
-	    ;; These are the date/time related ones
-	    (setq org-time-was-given (equal (upcase char) char))
-	    (setq time (org-read-date (equal (upcase char) "U") t nil
-				      prompt))
-	    (org-insert-time-stamp time org-time-was-given
-				   (member char '("u" "U"))
-				   nil nil (list org-end-time-was-given)))
-	   (t
-	    (let (org-completion-use-ido)
-	      (insert (org-completing-read
-		       (concat (if prompt prompt "Enter string")
-			       (if default (concat " [" default "]"))
-			       ": ")
-		       completions nil nil nil histvar default))))))
+	  (unless (org-remember-escaped-%)
+	    (setq char (if (match-end 3) (match-string 3))
+		  prompt (if (match-end 2) (match-string 2)))
+	    (goto-char (match-beginning 0))
+	    (replace-match "")
+	    (setq completions nil default nil)
+	    (when prompt
+	      (setq completions (org-split-string prompt "|")
+		    prompt (pop completions)
+		    default (car completions)
+		    histvar (intern (concat
+				     "org-remember-template-prompt-history::"
+				     (or prompt "")))
+		    completions (mapcar 'list completions)))
+	    (cond
+	     ((member char '("G" "g"))
+	      (let* ((org-last-tags-completion-table
+		      (org-global-tags-completion-table
+		       (if (equal char "G") (org-agenda-files) (and file (list file)))))
+		     (org-add-colon-after-tag-completion t)
+		     (ins (org-icompleting-read
+			   (if prompt (concat prompt ": ") "Tags: ")
+			   'org-tags-completion-function nil nil nil
+			   'org-tags-history)))
+		(setq ins (mapconcat 'identity
+				     (org-split-string ins (org-re "[^[:alnum:]_@]+"))
+				     ":"))
+		(when (string-match "\\S-" ins)
+		  (or (equal (char-before) ?:) (insert ":"))
+		  (insert ins)
+		  (or (equal (char-after) ?:) (insert ":")))))
+	     ((equal char "C")
+	      (cond ((= (length clipboards) 1) (insert (car clipboards)))
+		    ((> (length clipboards) 1)
+		     (insert (read-string "Clipboard/kill value: "
+					  (car clipboards) '(clipboards . 1)
+					  (car clipboards))))))
+	     ((equal char "L")
+	      (cond ((= (length clipboards) 1)
+		     (org-insert-link 0 (car clipboards)))
+		    ((> (length clipboards) 1)
+		     (org-insert-link 0 (read-string "Clipboard/kill value: "
+						     (car clipboards)
+						     '(clipboards . 1)
+						     (car clipboards))))))
+	     ((equal char "p")
+	      (let*
+		  ((prop (org-substring-no-properties prompt))
+		   (pall (concat prop "_ALL"))
+		   (allowed
+		    (with-current-buffer
+			(get-buffer (file-name-nondirectory file))
+		      (or (cdr (assoc pall org-file-properties))
+			  (cdr (assoc pall org-global-properties))
+			  (cdr (assoc pall org-global-properties-fixed)))))
+		   (existing (with-current-buffer
+				 (get-buffer (file-name-nondirectory file))
+			       (mapcar 'list (org-property-values prop))))
+		   (propprompt (concat "Value for " prop ": "))
+		   (val (if allowed
+			    (org-completing-read
+			     propprompt
+			     (mapcar 'list (org-split-string allowed "[ \t]+"))
+			     nil 'req-match)
+			  (org-completing-read-no-i propprompt existing nil nil
+						    "" nil ""))))
+		(org-set-property prop val)))
+	     (char
+	      ;; These are the date/time related ones
+	      (setq org-time-was-given (equal (upcase char) char))
+	      (setq time (org-read-date (equal (upcase char) "U") t nil
+					prompt))
+	      (org-insert-time-stamp time org-time-was-given
+				     (member char '("u" "U"))
+				     nil nil (list org-end-time-was-given)))
+	     (t
+	      (let (org-completion-use-ido)
+		(insert (org-completing-read-no-i
+			 (concat (if prompt prompt "Enter string")
+				 (if default (concat " [" default "]"))
+				 ": ")
+			 completions nil nil nil histvar default)))))))
+
 	(goto-char (point-min))
 	(if (re-search-forward "%\\?" nil t)
 	    (replace-match "")
@@ -566,11 +630,30 @@ to be run from that hook to function properly."
 	  (re-search-forward "%&" nil t))
     (replace-match "")
     (org-set-local 'org-jump-to-target-location t))
+  (when org-remember-backup-directory
+    (unless (file-directory-p org-remember-backup-directory)
+      (make-directory org-remember-backup-directory))
+    (org-set-local 'auto-save-file-name-transforms nil)
+    (setq buffer-file-name
+	  (expand-file-name
+	   (format-time-string "remember-%Y-%m-%d-%H-%M-%S")
+	   org-remember-backup-directory))
+    (save-buffer)
+    (org-set-local 'auto-save-visited-file-name t)
+    (auto-save-mode 1))
   (when (save-excursion
 	  (goto-char (point-min))
 	  (re-search-forward "%!" nil t))
     (replace-match "")
     (add-hook 'post-command-hook 'org-remember-finish-immediately 'append)))
+
+(defun org-remember-escaped-% ()
+  (if (equal (char-before (match-beginning 0)) ?\\)
+      (progn
+	(delete-region (1- (match-beginning 0)) (match-beginning 0))
+	t)
+    nil))
+
 
 (defun org-remember-finish-immediately ()
   "File remember note immediately.
@@ -612,8 +695,7 @@ from that hook."
 			(y-or-n-p "The clock is running in this buffer.  Clock out now? "))))
       (let (org-log-note-clock-out) (org-clock-out))))
   (when buffer-file-name
-    (save-buffer)
-    (setq buffer-file-name nil))
+    (do-auto-save))
   (remember-finalize))
 
 (defun org-remember-kill ()
@@ -695,6 +777,8 @@ The user is queried for the template."
 	(goto-char (match-beginning 0))
       (error "Target headline not found: %s" heading))))
 
+;; FIXME (bzg): let's clean up of final empty lines happen only once
+;; (see the org-remember-delete-empty-lines-at-end option below)
 ;;;###autoload
 (defun org-remember-handler ()
   "Store stuff from remember.el into an org file.
@@ -738,14 +822,33 @@ See also the variable `org-reverse-note-order'."
   (goto-char (point-min))
   (while (looking-at "^[ \t]*\n\\|^##.*\n")
     (replace-match ""))
-  (goto-char (point-max))
-  (beginning-of-line 1)
-  (while (looking-at "[ \t]*$\\|##.*")
-    (delete-region (1- (point)) (point-max))
-    (beginning-of-line 1))
+  (when org-remember-delete-empty-lines-at-end
+    (goto-char (point-max))
+    (beginning-of-line 1)
+    (while (and (looking-at "[ \t]*$\\|##.*") (> (point) 1))
+      (delete-region (1- (point)) (point-max))
+      (beginning-of-line 1)))
   (catch 'quit
-    (if org-note-abort (throw 'quit nil))
+    (if org-note-abort (throw 'quit t))
     (let* ((visitp (org-bound-and-true-p org-jump-to-target-location))
+	   (backup-file
+	    (and buffer-file-name
+		 (equal (file-name-directory buffer-file-name)
+			(file-name-as-directory
+			 (expand-file-name org-remember-backup-directory)))
+		 (string-match "^remember-[0-9]\\{4\\}"
+			       (file-name-nondirectory buffer-file-name))
+		 buffer-file-name))
+
+	   (dummy
+	    (unless (string-match "\\S-" (buffer-string))
+	      (message "Nothing to remember")
+	      (and backup-file
+		   (ignore-errors
+		     (delete-file backup-file)
+		     (delete-file (concat backup-file "~"))))
+	      (set-buffer-modified-p nil)
+	      (throw 'quit t)))
 	   (previousp (and (member current-prefix-arg '((16) 0))
 			   org-remember-previous-location))
 	   (clockp (equal current-prefix-arg 2))
@@ -763,7 +866,7 @@ See also the variable `org-reverse-note-order'."
 	   (org-startup-folded nil)
 	   (org-startup-align-all-tables nil)
 	   (org-goto-start-pos 1)
-	   spos exitcmd level reversed txt)
+	   spos exitcmd level reversed txt text-before-node-creation)
       (when (equal current-prefix-arg '(4))
 	(setq visitp t))
       (when previousp
@@ -779,27 +882,32 @@ See also the variable `org-reverse-note-order'."
       (setq current-prefix-arg nil)
       ;; Modify text so that it becomes a nice subtree which can be inserted
       ;; into an org tree.
-      (goto-char (point-min))
-      (if (re-search-forward "[ \t\n]+\\'" nil t)
-	  ;; remove empty lines at end
-	  (replace-match ""))
+      (when org-remember-delete-empty-lines-at-end
+      	(goto-char (point-min))
+      	(if (re-search-forward "[ \t\n]+\\'" nil t)
+      	    ;; remove empty lines at end
+      	    (replace-match "")))
       (goto-char (point-min))
       (unless (looking-at org-outline-regexp)
 	;; add a headline
+	(setq text-before-node-creation (buffer-string))
 	(insert (concat "* " (current-time-string)
 			" (" (remember-buffer-desc) ")\n"))
 	(backward-char 1)
 	(when org-adapt-indentation
 	  (while (re-search-forward "^" nil t)
 	    (insert "  "))))
-      (goto-char (point-min))
-      (if (re-search-forward "\n[ \t]*\n[ \t\n]*\\'" nil t)
-	  (replace-match "\n\n")
-	(if (re-search-forward "[ \t\n]*\\'")
-	    (replace-match "\n")))
+      ;; Delete final empty lines
+      (when org-remember-delete-empty-lines-at-end
+	(goto-char (point-min))
+	(if (re-search-forward "\n[ \t]*\n[ \t\n]*\\'" nil t)
+	    (replace-match "\n\n")
+	  (if (re-search-forward "[ \t\n]*\\'")
+	      (replace-match "\n"))))
       (goto-char (point-min))
       (setq txt (buffer-string))
       (org-save-markers-in-region (point-min) (point-max))
+      (set-buffer-modified-p nil)
       (when (and (eq org-remember-interactive-interface 'refile)
 		 (not fastp))
 	(org-refile nil (or visiting (find-file-noselect file)))
@@ -811,20 +919,26 @@ See also the variable `org-reverse-note-order'."
 	(throw 'quit t))
       ;; Find the file
       (with-current-buffer (or visiting (find-file-noselect file))
-	(unless (org-mode-p)
-	  (error "Target files for remember notes must be in Org-mode"))
+	(unless (or (org-mode-p) (member heading '(top bottom)))
+	  (error "Target files for notes must be in Org-mode if not filing to top/bottom"))
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (and (goto-char (point-min))
-		 (not (re-search-forward "^\\* " nil t))
-		 (insert "\n* " (or (and (stringp heading) heading)
-				    "Notes") "\n"))
 	    (setq reversed (org-notes-order-reversed-p))
 
 	    ;; Find the default location
 	    (when heading
 	      (cond
+	       ((not (org-mode-p))
+		(if (eq heading 'top)
+		    (goto-char (point-min))
+		  (goto-char (point-max))
+		  (or (bolp) (newline)))
+		(insert text-before-node-creation)
+		(when remember-save-after-remembering
+		  (save-buffer)
+		  (if (not visiting) (kill-buffer (current-buffer))))
+		(throw 'quit t))
 	       ((eq heading 'top)
 		(goto-char (point-min))
 		(or (looking-at org-outline-regexp)
@@ -951,7 +1065,22 @@ See also the variable `org-reverse-note-order'."
 	      (if (and (not visiting)
 		       (not (equal (marker-buffer org-clock-marker)
 				   (current-buffer))))
-		  (kill-buffer (current-buffer)))))))))
+		  (kill-buffer (current-buffer))))
+	    (when org-remember-auto-remove-backup-files
+	      (when backup-file
+		(ignore-errors
+		  (delete-file backup-file)
+		  (delete-file (concat backup-file "~"))))
+	      (when org-remember-backup-directory
+		(let ((n (length
+			  (directory-files
+			   org-remember-backup-directory nil
+			   "^remember-.*[0-9]$"))))
+		  (when (and org-remember-warn-about-backups
+                             (> n 0))
+		    (message
+		     "%d backup files (unfinished remember calls) in %s"
+		     n org-remember-backup-directory))))))))))
 
   t)    ;; return t to indicate that we took care of this note.
 
@@ -995,3 +1124,4 @@ See also the variable `org-reverse-note-order'."
 ;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
 
 ;;; org-remember.el ends here
+

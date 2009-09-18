@@ -161,7 +161,7 @@
 
 ;;;###autoload
 (defcustom trace-buffer "*trace-output*"
-  "*Trace output will by default go to that buffer."
+  "Trace output will by default go to that buffer."
   :type 'string
   :group 'trace)
 

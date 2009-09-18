@@ -44,17 +44,28 @@
 ;; calendar-astro-to-absolute and v versa are cal-autoloads.
 ;;;(require 'cal-julian)
 
+(defcustom lunar-phase-names
+  '("New Moon" "First Quarter Moon" "Full Moon" "Last Quarter Moon")
+  "List of names for the lunar phases."
+  :type '(list
+          (string :tag "New Moon")
+          (string :tag "First Quarter Moon")
+          (string :tag "Full Moon")
+          (string :tag "Last Quarter Moon"))
+  :group 'calendar
+  :version "23.2")
+
 (defun lunar-phase (index)
   "Local date and time of lunar phase INDEX.
 Integer below INDEX/4 gives the lunation number, counting from Jan 1, 1900;
 remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
-3 last quarter."
+3 last quarter.  Returns a list (DATE TIME PHASE)."
   (let* ((phase (mod index 4))
          (index (/ index 4.0))
          (time (/ index 1236.85))
          (date (+ (calendar-absolute-from-gregorian '(1 0.5 1900))
                   0.75933
-                  (* 29.53058868 index)
+                  (* 29.53058868 index) ; FIXME 29.530588853?
                   (* 0.0001178 time time)
                   (* -0.000000155 time time time)
                   (* 0.00033
@@ -136,28 +147,37 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (adj (dst-adjust-time date time)))
     (list (car adj) (apply 'solar-time-string (cdr adj)) phase)))
 
+(defconst lunar-cycles-per-year 12.3685 ; 365.25/29.530588853
+  "Mean number of lunar cycles per 365.25 day year.")
+
+;; FIXME new-moon index; use in lunar-phase-list implies always below.
+(defun lunar-index (date)
+  "Return the lunar index for Gregorian date DATE.
+This is 4 times the approximate number of new moons since 1 Jan 1900.
+The factor of 4 allows (mod INDEX 4) to represent the four quarters."
+  (* 4 (truncate
+        (* lunar-cycles-per-year
+           ;; Years since 1900, as a real.
+           (+ (calendar-extract-year date)
+              (/ (calendar-day-number date) 366.0)
+              -1900)))))
+
 (defun lunar-phase-list (month year)
   "List of lunar phases for three months starting with Gregorian MONTH, YEAR."
-  (let* ((end-month month)
-         (end-year year)
-         (start-month month)
-         (start-year year)
-         (end-date (progn
+  (let* ((index (lunar-index (list month 1 year)))
+         (new-moon (lunar-phase index))
+         (end-date (let ((end-month month)
+                         (end-year year))
                      (calendar-increment-month end-month end-year 3)
                      (list (list end-month 1 end-year))))
+         ;; Alternative for start-date:
+;;;         (calendar-gregorian-from-absolute
+;;;          (1- (calendar-absolute-from-gregorian (list month 1 year))))
          (start-date (progn
-                       (calendar-increment-month start-month start-year -1)
-                       (list (list start-month
-                                   (calendar-last-day-of-month
-                                    start-month start-year)
-                                   start-year))))
-         (index (* 4 (truncate
-                      (* 12.3685
-                         (+ year
-                            ( / (calendar-day-number (list month 1 year))
-                                366.0)
-                            -1900)))))
-         (new-moon (lunar-phase index))
+                       (calendar-increment-month month year -1)
+                       (list (list month
+                                   (calendar-last-day-of-month month year)
+                                   year))))
          list)
     (while (calendar-date-compare new-moon end-date)
       (if (calendar-date-compare start-date new-moon)
@@ -169,10 +189,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 (defun lunar-phase-name (phase)
   "Name of lunar PHASE.
 0 = new moon, 1 = first quarter, 2 = full moon, 3 = last quarter."
-  (cond ((= 0 phase) "New Moon")
-        ((= 1 phase) "First Quarter Moon")
-        ((= 2 phase) "Full Moon")
-        ((= 3 phase) "Last Quarter Moon")))
+  (nth phase lunar-phase-names))
 
 (defvar displayed-month)                ; from calendar-generate
 (defvar displayed-year)
@@ -204,14 +221,9 @@ use instead of point."
         (insert
          (mapconcat
           (lambda (x)
-            (let ((date (car x))
-                  (time (cadr x))
-                  (phase (nth 2 x)))
-              (concat (calendar-date-string date)
-                      ": "
-                      (lunar-phase-name phase)
-                      " "
-                      time)))
+            (format "%s: %s %s" (calendar-date-string (car x))
+                    (lunar-phase-name (nth 2 x))
+                    (cadr x)))
           (lunar-phase-list m1 y1) "\n")))
       (message "Computing phases of the moon...done"))))
 
@@ -244,13 +256,7 @@ This function is suitable for execution in a .emacs file."
   "Moon phases diary entry.
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
-  (let* ((index (* 4
-                   (truncate
-                    (* 12.3685
-                       (+ (calendar-extract-year date)
-                          ( / (calendar-day-number date)
-                              366.0)
-                          -1900)))))
+  (let* ((index (lunar-index date))
          (phase (lunar-phase index)))
     (while (calendar-date-compare phase (list date))
       (setq index (1+ index)
@@ -385,7 +391,7 @@ as governed by the values of `calendar-daylight-savings-starts',
                 (floor (calendar-astro-to-absolute d))))
          (year (+ (calendar-extract-year date)
                   (/ (calendar-day-number date) 365.25)))
-         (k (floor (* (- year 2000.0) 12.3685)))
+         (k (floor (* (- year 2000.0) lunar-cycles-per-year)))
          (date (lunar-new-moon-time k))
          (a-date (progn
                    (while (< date d)

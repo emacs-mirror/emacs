@@ -1,7 +1,7 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
@@ -237,7 +237,7 @@ This variable is only used if the variable
 ;; Nslookup goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst nslookup-font-lock-keywords
+(defvar nslookup-font-lock-keywords
   (list
    (list "^[A-Za-z0-9 _]+:" 0 'font-lock-type-face)
    (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
@@ -258,6 +258,36 @@ This variable is only used if the variable
        "\\(\\." host-expression "\\)*"))
     0 'font-lock-variable-name-face))
   "Expressions to font-lock for nslookup.")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; General network utilities mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar net-utils-font-lock-keywords
+  (list
+   ;; Dotted quads
+   (list
+    (mapconcat 'identity (make-list 4 "[0-9]+") "\\.")
+    0 'font-lock-variable-name-face)
+   ;; Simple rfc4291 addresses
+   (list (concat
+	  "\\( \\([[:xdigit:]]+\\(:\\|::\\)\\)+[[:xdigit:]]+\\)"
+	  "\\|"
+	  "\\(::[[:xdigit:]]+\\)")
+    0 'font-lock-variable-name-face)
+   ;; Host names
+   (list
+    (let ((host-expression "[-A-Za-z0-9]+"))
+      (concat
+       (mapconcat 'identity (make-list 2 host-expression) "\\.")
+       "\\(\\." host-expression "\\)*"))
+    0 'font-lock-variable-name-face))
+  "Expressions to font-lock for general network utilities.")
+
+(define-derived-mode net-utils-mode special-mode "NetworkUtil"
+  "Major mode for interacting with an external network utility."
+  (set (make-local-variable 'font-lock-defaults)
+       '((net-utils-font-lock-keywords))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -288,7 +318,6 @@ This variable is only used if the variable
        (skip-chars-backward ":;.,!?" pt)
        (point)))))
 
-
 (defun net-utils-remove-ctrl-m-filter (process output-string)
   "Remove trailing control Ms."
   (let ((old-buffer (current-buffer))
@@ -296,17 +325,18 @@ This variable is only used if the variable
     (unwind-protect
 	(let ((moving))
 	  (set-buffer (process-buffer process))
-	  (setq moving (= (point) (process-mark process)))
+	  (let ((inhibit-read-only t))
+	    (setq moving (= (point) (process-mark process)))
 
-	  (while (string-match "\r" filtered-string)
-	       (setq filtered-string
-		     (replace-match "" nil nil filtered-string)))
+	    (while (string-match "\r" filtered-string)
+	      (setq filtered-string
+		    (replace-match "" nil nil filtered-string)))
 
-	  (save-excursion
-	    ;; Insert the text, moving the process-marker.
-	    (goto-char (process-mark process))
-	    (insert filtered-string)
-	    (set-marker (process-mark process) (point)))
+	    (save-excursion
+	      ;; Insert the text, moving the process-marker.
+	      (goto-char (process-mark process))
+	      (insert filtered-string)
+	      (set-marker (process-mark process) (point))))
 	  (if moving (goto-char (process-mark process))))
       (set-buffer old-buffer))))
 
@@ -321,6 +351,72 @@ This variable is only used if the variable
      'net-utils-remove-ctrl-m-filter)
     (display-buffer buf)
     buf))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; General network utilities (diagnostic)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun net-utils-run-simple (buffer-name program-name args)
+  "Run a network utility for diagnostic output only."
+  (interactive)
+  (when (get-buffer buffer-name)
+    (kill-buffer buffer-name))
+  (get-buffer-create buffer-name)
+  (with-current-buffer buffer-name
+    (net-utils-mode)
+    (set-process-filter
+     (apply 'start-process (format "%s" program-name)
+	    buffer-name program-name args)
+     'net-utils-remove-ctrl-m-filter)
+    (goto-char (point-min)))
+  (display-buffer buffer-name))
+
+;;;###autoload
+(defun ifconfig () 
+  "Run ifconfig and display diagnostic output." 
+  (interactive) 
+  (net-utils-run-simple 
+   (format "*%s*" ifconfig-program) 
+   ifconfig-program 
+   ifconfig-program-options))
+
+(defalias 'ipconfig 'ifconfig)
+
+;;;###autoload
+(defun iwconfig () 
+  "Run iwconfig and display diagnostic output." 
+  (interactive) 
+  (net-utils-run-simple 
+   (format "*%s*" iwconfig-program) 
+   iwconfig-program 
+   iwconfig-program-options))
+
+;;;###autoload
+(defun netstat ()
+  "Run netstat and display diagnostic output." 
+  (interactive)
+  (net-utils-run-simple
+   (format "*%s*" netstat-program)
+   netstat-program
+   netstat-program-options))
+
+;;;###autoload
+(defun arp ()
+  "Run arp and display diagnostic output." 
+  (interactive)
+  (net-utils-run-simple
+   (format "*%s*" arp-program)
+   arp-program
+   arp-program-options))
+
+;;;###autoload
+(defun route ()
+  "Run route and display diagnostic output."
+  (interactive)
+  (net-utils-run-simple
+   (format "*%s*" route-program)
+   route-program
+   route-program-options))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wrappers for external network programs
@@ -357,60 +453,6 @@ If your system's ping continues until interrupted, you can try setting
      ping-program
      options)))
 
-;;;###autoload
-(defun ifconfig ()
-  "Run ifconfig program."
-  (interactive)
-  (net-utils-run-program
-   "Ifconfig"
-   (concat "** Ifconfig ** " ifconfig-program " ** ")
-   ifconfig-program
-   ifconfig-program-options))
-
-;; Windows uses this name.
-;;;###autoload
-(defalias 'ipconfig 'ifconfig)
-
-;;;###autoload
-(defun iwconfig ()
-  "Run iwconfig program."
-  (interactive)
-  (net-utils-run-program
-   "Iwconfig"
-   (concat "** Iwconfig ** " iwconfig-program " ** ")
-   iwconfig-program
-   iwconfig-program-options))
-
-;;;###autoload
-(defun netstat ()
-  "Run netstat program."
-  (interactive)
-  (net-utils-run-program
-   "Netstat"
-   (concat "** Netstat ** " netstat-program " ** ")
-   netstat-program
-   netstat-program-options))
-
-;;;###autoload
-(defun arp ()
-  "Run arp program."
-  (interactive)
-  (net-utils-run-program
-   "Arp"
-   (concat "** Arp ** " arp-program " ** ")
-   arp-program
-   arp-program-options))
-
-;;;###autoload
-(defun route ()
-  "Run route program."
-  (interactive)
-  (net-utils-run-program
-   "Route"
-   (concat "** Route ** " route-program " ** ")
-   route-program
-   route-program-options))
-
 ;; FIXME -- Needs to be a process filter
 ;; (defun netstat-with-filter (filter)
 ;;   "Run netstat program."
@@ -442,7 +484,7 @@ If your system's ping continues until interrupted, you can try setting
 (defun nslookup ()
   "Run nslookup program."
   (interactive)
-  (comint-run nslookup-program)
+  (switch-to-buffer (make-comint "nslookup" nslookup-program))
   (nslookup-mode))
 
 (defvar comint-prompt-regexp)

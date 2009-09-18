@@ -315,15 +315,42 @@ N was explicitly specified.  */)
   return value;
 }
 
+int nonundocount;
+
 /* Note that there's code in command_loop_1 which typically avoids
    calling this.  */
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
        doc: /* Insert the character you type.
-Whichever character you type to run this command is inserted.  */)
+Whichever character you type to run this command is inserted.
+Before insertion, `expand-abbrev' is executed if the inserted character does
+not have word syntax and the previous character in the buffer does.
+After insertion, the value of `auto-fill-function' is called if the
+`auto-fill-chars' table has a non-nil value for the inserted character.  */)
      (n)
      Lisp_Object n;
 {
   CHECK_NUMBER (n);
+  int remove_boundary = 1;
+
+  if (!EQ (Vthis_command, current_kboard->Vlast_command))
+    nonundocount = 0;
+
+  if (NILP (Vexecuting_kbd_macro)
+      && !EQ (minibuf_window, selected_window))
+    {
+      if (nonundocount <= 0 || nonundocount >= 20)
+	{
+	  remove_boundary = 0;
+	  nonundocount = 0;
+	}
+      nonundocount++;
+    }
+
+  if (remove_boundary
+      && CONSP (current_buffer->undo_list)
+      && NILP (XCAR (current_buffer->undo_list)))
+    /* Remove the undo_boundary that was just pushed.  */
+    current_buffer->undo_list = XCDR (current_buffer->undo_list);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -333,29 +360,26 @@ Whichever character you type to run this command is inserted.  */)
 				    XINT (last_command_event));
     if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
       {
-	int modified_char = character;
-	/* Add the offset to the character, for Finsert_char.
-	   We pass internal_self_insert the unmodified character
-	   because it itself does this offsetting.  */
-	if (! NILP (current_buffer->enable_multibyte_characters))
-	  modified_char = unibyte_char_to_multibyte (modified_char);
-
 	XSETFASTINT (n, XFASTINT (n) - 2);
 	/* The first one might want to expand an abbrev.  */
 	internal_self_insert (character, 1);
 	/* The bulk of the copies of this char can be inserted simply.
 	   We don't have to handle a user-specified face specially
 	   because it will get inherited from the first char inserted.  */
-	Finsert_char (make_number (modified_char), n, Qt);
+	Finsert_char (make_number (character), n, Qt);
 	/* The last one might want to auto-fill.  */
 	internal_self_insert (character, 0);
       }
     else
       while (XINT (n) > 0)
 	{
+	  int val;
 	  /* Ok since old and new vals both nonneg */
 	  XSETFASTINT (n, XFASTINT (n) - 1);
-	  internal_self_insert (character, XFASTINT (n) != 0);
+	  val = internal_self_insert (character, XFASTINT (n) != 0);
+	  if (val == 2)
+	    nonundocount = 0;
+	  frame_make_pointer_invisible ();
 	}
   }
 
@@ -492,7 +516,7 @@ internal_self_insert (c, noautofill)
       /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
-      if (! NILP (sym) && ! NILP (XSYMBOL (sym)->function)
+      if (SYMBOLP (sym) && ! NILP (sym) && ! NILP (XSYMBOL (sym)->function)
 	  && SYMBOLP (XSYMBOL (sym)->function))
 	{
 	  Lisp_Object prop;
@@ -611,6 +635,7 @@ keys_of_cmds ()
 {
   int n;
 
+  nonundocount = 0;
   initial_define_key (global_map, Ctl ('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");

@@ -1,7 +1,8 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -159,10 +160,6 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defface help-argument-name '((((supports :slant italic)) :inherit italic))
-  "Face to highlight argument names in *Help* buffers."
-  :group 'help)
-
 (defun help-default-arg-highlight (arg)
   "Default function to highlight arguments in *Help* buffers.
 It returns ARG in face `help-argument-name'; ARG is also
@@ -272,8 +269,9 @@ suitable file is found, return nil."
 		   "^;;; Generated autoloads from \\(.*\\)" nil t)
 	      (setq file-name
 		    (locate-file
-		     (match-string-no-properties 1)
-		     load-path nil 'readable))))))))
+		     (file-name-sans-extension
+		      (match-string-no-properties 1))
+		     load-path '(".el" ".elc") 'readable))))))))
 
     (cond
      ((and (not file-name) (subrp type))
@@ -416,7 +414,7 @@ suitable file is found, return nil."
 	(with-current-buffer standard-output
 	  (save-excursion
 	    (re-search-backward "`\\([^`']+\\)'" nil t)
-	    (help-xref-button 1 'help-function-def real-function file-name))))
+	    (help-xref-button 1 'help-function-def function file-name))))
       (princ ".")
       (with-current-buffer (help-buffer)
 	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
@@ -463,6 +461,18 @@ suitable file is found, return nil."
 	    (fill-region-as-paragraph pt2 (point))
 	    (unless (looking-back "\n\n")
 	      (terpri))))))
+    ;; Note that list* etc do not get this property until
+    ;; cl-hack-byte-compiler runs, after bytecomp is loaded.
+    (when (eq (get function 'byte-compile) 'cl-byte-compile-compiler-macro)
+      (princ "This function has a compiler macro")
+      (let ((lib (get function 'compiler-macro-file)))
+	(when (stringp lib)
+	  (princ (format " in `%s'" lib))
+	  (with-current-buffer standard-output
+	    (save-excursion
+	      (re-search-backward "`\\([^`']+\\)'" nil t)
+	      (help-xref-button 1 'help-function-cmacro function lib)))))
+      (princ ".\n\n"))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   (usage (help-split-fundoc doc function)))
@@ -736,6 +746,37 @@ it is displayed along with the global value."
 			     (use (format ";\n  use `%s' instead." (car obsolete)))
 			     (t ".")))
                 (terpri))
+
+	      (when (member (cons variable val) file-local-variables-alist)
+		(setq extra-line t)
+		(if (member (cons variable val) dir-local-variables-alist)
+		    (let ((file (and (buffer-file-name)
+				     (not (file-remote-p (buffer-file-name)))
+				     (dir-locals-find-file (buffer-file-name)))))
+		      (princ "  This variable is a directory local variable")
+		      (when file
+			(princ (concat "\n  from the file \""
+				       (if (consp file)
+					   (car file)
+					 file)
+				       "\"")))
+		      (princ ".\n"))
+		  (princ "  This variable is a file local variable.\n")))
+
+	      (when (memq variable ignored-local-variables)
+		(setq extra-line t)
+		(princ "  This variable is ignored when used as a file local \
+variable.\n"))
+
+	      ;; Can be both risky and safe, eg auto-fill-function.
+	      (when (risky-local-variable-p variable)
+		(setq extra-line t)
+		(princ "  This variable is potentially risky when used as a \
+file local variable.\n")
+		(when (assq variable safe-local-variable-values)
+		  (princ "  However, you have added it to \
+`safe-local-variable-values'.\n")))
+
 	      (when safe-var
                 (setq extra-line t)
 		(princ "  This variable is safe as a file local variable ")

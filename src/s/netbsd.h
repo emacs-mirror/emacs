@@ -33,8 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef LDAV_SYMBOL
 #define HAVE_GETLOADAVG 1
 
-#define SIGNALS_VIA_CHARACTERS
-
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 /* netbsd uses OXTABS instead of the expected TAB3.  */

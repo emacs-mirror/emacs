@@ -591,6 +591,8 @@ and `same-window-regexps'.  Those variables take precedence over
 this one.
 
 See also `special-display-regexps'."
+  ;; Autoload if this file no longer dumped.
+  :risky t
   :type '(repeat
 	  (choice :tag "Buffer"
 		  :value ""
@@ -794,66 +796,78 @@ that frame."
   :type 'boolean
   :group 'windows)
 
-(defcustom split-height-threshold 80
-  "Minimum height of window to be split vertically.
-If the value is a number, `display-buffer' can split a window
-only if it has at least as many lines.  If the value is nil,
-`display-buffer' cannot split a window vertically.
+(defcustom split-window-preferred-function 'split-window-sensibly
+  "Function called by `display-buffer' routines to split a window.
+This function is called with a window as single argument and is
+supposed to split that window and return the new window.  If the
+window can (or shall) not be split, it is supposed to return nil.
+The default is to call the function `split-window-sensibly' which
+tries to split the window in a way which seems most suitable.
+You can customize the options `split-height-threshold' and/or
+`split-width-threshold' in order to have `split-window-sensibly'
+prefer either vertical or horizontal splitting.
 
-If the window is the only window on its frame, `display-buffer'
-can split it regardless of this value."
-  :type '(choice (const nil) (number :tag "lines"))
+If you set this to any other function, bear in mind that the
+`display-buffer' routines may call this function two times.  The
+argument of the first call is the largest window on its frame.
+If that call fails to return a live window, the function is
+called again with the least recently used window as argument.  If
+that call fails too, `display-buffer' will use an existing window
+to display its buffer.
+
+The window selected at the time `display-buffer' was invoked is
+still selected when this function is called.  Hence you can
+compare the window argument with the value of `selected-window'
+if you intend to split the selected window instead or if you do
+not want to split the selected window."
+  :type 'function
+  :version "23.1"
+  :group 'windows)
+
+(defcustom split-height-threshold 80
+  "Minimum height for splitting windows sensibly.
+If this is an integer, `split-window-sensibly' may split a window
+vertically only if it has at least this many lines.  If this is
+nil, `split-window-sensibly' is not allowed to split a window
+vertically.  If, however, a window is the only window on its
+frame, `split-window-sensibly' may split it vertically
+disregarding the value of this variable."
+  :type '(choice (const nil) (integer :tag "lines"))
   :version "23.1"
   :group 'windows)
 
 (defcustom split-width-threshold 160
-  "Minimum width of window to be split horizontally.
-If the value is a number, `display-buffer' can split a window
-only if it has at least as many columns.  If the value is nil,
-`display-buffer' cannot split a window horizontally."
-  :type '(choice (const nil) (number :tag "columns"))
+  "Minimum width for splitting windows sensibly.
+If this is an integer, `split-window-sensibly' may split a window
+horizontally only if it has at least this many columns.  If this
+is nil, `split-window-sensibly' is not allowed to split a window
+horizontally."
+  :type '(choice (const nil) (integer :tag "columns"))
   :version "23.1"
   :group 'windows)
 
-(defcustom split-window-preferred-function nil
-  "Function used by `display-buffer' to split windows.
-If non-nil, a function called with a window as single argument
-supposed to split that window and return the new window.  If the
-function returns nil the window is not split.
+(defun window-splittable-p (window &optional horizontal)
+  "Return non-nil if `split-window-sensibly' may split WINDOW.
+Optional argument HORIZONTAL nil or omitted means check whether
+`split-window-sensibly' may split WINDOW vertically.  HORIZONTAL
+non-nil means check whether WINDOW may be split horizontally.
 
-If nil, `display-buffer' will split the window respecting the
-values of `split-height-threshold' and `split-width-threshold'."
-  :type '(choice (const nil) (function :tag "Function"))
-  :version "23.1"
-  :group 'windows)
-
-(defun window--splittable-p (window &optional horizontal)
-  "Return non-nil if WINDOW can be split evenly.
-Optional argument HORIZONTAL non-nil means check whether WINDOW
-can be split horizontally.
-
-WINDOW can be split vertically when the following conditions
+WINDOW may be split vertically when the following conditions
 hold:
-
 - `window-size-fixed' is either nil or equals `width' for the
   buffer of WINDOW.
-
-- `split-height-threshold' is a number and WINDOW is at least as
+- `split-height-threshold' is an integer and WINDOW is at least as
   high as `split-height-threshold'.
-
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-height' lines tall and can accommodate at least one
   line plus - if WINDOW has one - a mode line.
 
-WINDOW can be split horizontally when the following conditions
+WINDOW may be split horizontally when the following conditions
 hold:
-
 - `window-size-fixed' is either nil or equals `height' for the
   buffer of WINDOW.
-
-- `split-width-threshold' is a number and WINDOW is at least as
+- `split-width-threshold' is an integer and WINDOW is at least as
   wide as `split-width-threshold'.
-
 - When WINDOW is split evenly, the emanating windows are at least
   `window-min-width' or two (whichever is larger) columns wide."
   (when (window-live-p window)
@@ -882,30 +896,68 @@ hold:
 		      (* 2 (max window-min-height
 				(if mode-line-format 2 1))))))))))
 
+(defun split-window-sensibly (window)
+  "Split WINDOW in a way suitable for `display-buffer'.
+If `split-height-threshold' specifies an integer, WINDOW is at
+least `split-height-threshold' lines tall and can be split
+vertically, split WINDOW into two windows one above the other and
+return the lower window.  Otherwise, if `split-width-threshold'
+specifies an integer, WINDOW is at least `split-width-threshold'
+columns wide and can be split horizontally, split WINDOW into two
+windows side by side and return the window on the right.  If this
+can't be done either and WINDOW is the only window on its frame,
+try to split WINDOW vertically disregarding any value specified
+by `split-height-threshold'.  If that succeeds, return the lower
+window.  Return nil otherwise.
+
+By default `display-buffer' routines call this function to split
+the largest or least recently used window.  To change the default
+customize the option `split-window-preferred-function'.
+
+You can enforce this function to not split WINDOW horizontally,
+by setting \(or binding) the variable `split-width-threshold' to
+nil.  If, in addition, you set `split-height-threshold' to zero,
+chances increase that this function does split WINDOW vertically.
+
+In order to not split WINDOW vertically, set \(or bind) the
+variable `split-height-threshold' to nil.  Additionally, you can
+set `split-width-threshold' to zero to make a horizontal split
+more likely to occur.
+
+Have a look at the function `window-splittable-p' if you want to
+know how `split-window-sensibly' determines whether WINDOW can be
+split."
+  (or (and (window-splittable-p window)
+	   ;; Split window vertically.
+	   (with-selected-window window
+	     (split-window-vertically)))
+      (and (window-splittable-p window t)
+	   ;; Split window horizontally.
+	   (with-selected-window window
+	     (split-window-horizontally)))
+      (and (eq window (frame-root-window (window-frame window)))
+	   (not (window-minibuffer-p window))
+	   ;; If WINDOW is the only window on its frame and is not the
+	   ;; minibuffer window, try to split it vertically disregarding
+	   ;; the value of `split-height-threshold'.
+	   (let ((split-height-threshold 0))
+	     (when (window-splittable-p window)
+	       (with-selected-window window
+		 (split-window-vertically)))))))
+
 (defun window--try-to-split-window (window)
-  "Split WINDOW if it is splittable.
-See `window--splittable-p' for how to determine whether a window
-is splittable.  If WINDOW can be split, return the value returned
-by `split-window' (or `split-window-preferred-function')."
-  (when (and (window-live-p window)
-	     (not (frame-parameter (window-frame window) 'unsplittable)))
-    (if (functionp split-window-preferred-function)
-	;; `split-window-preferred-function' is specified, so use it.
-	(funcall split-window-preferred-function window)
-      (or (and (window--splittable-p window)
-	       ;; Split window vertically.
-	       (split-window window))
-	  (and (window--splittable-p window t)
-	       ;; Split window horizontally.
-	       (split-window window nil t))
-	  (and (eq window (frame-root-window (window-frame window)))
-	       (not (window-minibuffer-p window))
-	       ;; If WINDOW is the only window on its frame and not the
-	       ;; minibuffer window, attempt to split it vertically
-	       ;; disregarding the value of `split-height-threshold'.
-	       (let ((split-height-threshold 0))
-		 (and (window--splittable-p window)
-		      (split-window window))))))))
+  "Try to split WINDOW.
+Return value returned by `split-window-preferred-function' if it
+represents a live window, nil otherwise."
+      (and (window-live-p window)
+	   (not (frame-parameter (window-frame window) 'unsplittable))
+	   (let ((new-window
+		  ;; Since `split-window-preferred-function' might
+		  ;; throw an error use `condition-case'.
+		  (condition-case nil
+		      (funcall split-window-preferred-function window)
+		    (error nil))))
+	     (and (window-live-p new-window) new-window))))
 
 (defun window--frame-usable-p (frame)
   "Return FRAME if it can be used to display a buffer."

@@ -398,7 +398,7 @@ parameter values to frames that will be created henceforth.
 You can specify the parameters for the initial startup frame
 by setting @code{initial-frame-alist} in your init file (@pxref{Init File}).
 
-@defvar initial-frame-alist
+@defopt initial-frame-alist
 This variable's value is an alist of parameter values used when creating
 the initial window frame.  You can set this variable to specify the
 appearance of the initial frame without altering subsequent frames.
@@ -426,26 +426,27 @@ this.  Specify parameters in @code{default-frame-alist} to override the
 X resources for subsequent frames; then, to prevent these from affecting
 the initial frame, specify the same parameters in
 @code{initial-frame-alist} with values that match the X resources.
-@end defvar
+@end defopt
 
 If these parameters specify a separate minibuffer-only frame with
 @code{(minibuffer . nil)}, and you have not created one, Emacs creates
 one for you.
 
-@defvar minibuffer-frame-alist
-This variable's value is an alist of parameter values used when creating
-an initial minibuffer-only frame---if such a frame is needed, according
-to the parameters for the main initial frame.
-@end defvar
+@defopt minibuffer-frame-alist
+This variable's value is an alist of parameter values used when
+creating an initial minibuffer-only frame.  This is the
+minibuffer-only frame that Emacs creates if @code{initial-frame-alist}
+specifies a frame with no minibuffer.
+@end defopt
 
-@defvar default-frame-alist
+@defopt default-frame-alist
 This is an alist specifying default values of frame parameters for all
 Emacs frames---the first frame, and subsequent frames.  When using the X
 Window System, you can get the same results by means of X resources
 in many cases.
 
 Setting this variable does not affect existing frames.
-@end defvar
+@end defopt
 
 Functions that display a buffer in a separate frame can override the
 default parameters by supplying their own parameters.  @xref{Definition
@@ -477,7 +478,7 @@ terminal frames.
 * Buffer Parameters::           Which buffers have been or should be shown.
 * Management Parameters::       Communicating with the window manager.
 * Cursor Parameters::           Controlling the cursor appearance.
-* Color Parameters::            Colors of various parts of the frame.
+* Font and Color Parameters::   Fonts and colors for the frame text.
 @end menu
 
 @node Basic Parameters
@@ -608,11 +609,15 @@ the @code{user-position} parameter (see above) does for the position
 parameters @code{top} and @code{left}.
 
 @item fullscreen
-Specify that width, height or both shall be set to the size of the screen.
-The value @code{fullwidth} specifies that width shall be the size of the
-screen.  The value @code{fullheight} specifies that height shall be the
-size of the screen.  The value @code{fullboth} specifies that both the
+Specify that width, height or both shall be maximized.
+The value @code{fullwidth} specifies that width shall be as wide as possible.
+The value @code{fullheight} specifies that height shall be as tall as
+possible.  The value @code{fullboth} specifies that both the
 width and the height shall be set to the size of the screen.
+The value @code{maximized} specifies that the frame shall be maximized.
+The difference between @code{maximized} and @code{fullboth} is that
+the first does have window manager decorations but the second does not
+and thus really covers the whole screen.
 @end table
 
 @node Layout Parameters
@@ -686,8 +691,11 @@ with which buffers have been, or should, be displayed in the frame.
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
 yes, @code{nil} means no, @code{only} means this frame is just a
-minibuffer.  If the value is a minibuffer window (in some other frame),
-the new frame uses that minibuffer.
+minibuffer.  If the value is a minibuffer window (in some other
+frame), the frame uses that minibuffer.
+
+This frame parameter takes effect when the frame is created, and can
+not be changed afterwards.
 
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
@@ -747,6 +755,10 @@ geometry changes.  Some window managers, including versions of Fvwm2
 and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
 prevent hanging with those window managers.
 
+@item sticky
+If non-@code{nil}, the frame is visible on all virtual desktops on systems
+with virtual desktops.
+
 @ignore
 @item parent-id
 @c ??? Not yet working.
@@ -789,7 +801,7 @@ The buffer-local variable @code{cursor-type} overrides the value of
 the @code{cursor-type} frame parameter, but if it is @code{t}, that
 means to use the cursor specified for the frame.
 
-@defvar blink-cursor-alist
+@defopt blink-cursor-alist
 This variable specifies how to blink the cursor.  Each element has the
 form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
 type equals @var{on-state} (comparing using @code{equal}), the
@@ -801,23 +813,31 @@ There are various defaults for how to blink each type of cursor, if
 the type is not mentioned as an @var{on-state} here.  Changes in this
 variable do not take effect immediately, only when you specify the
 @code{cursor-type} frame parameter.
-@end defvar
+@end defopt
 
-@defvar cursor-in-non-selected-windows
+@defopt cursor-in-non-selected-windows
 This variable controls how the cursor looks in a window that is not
 selected.  It supports the same values as the @code{cursor-type} frame
 parameter; also, @code{nil} means don't display a cursor in
 nonselected windows, and @code{t} (the default) means use a standard
 modificatoin of the usual cursor type (solid box becomes hollow box,
 and bar becomes a narrower bar).
-@end defvar
+@end defopt
 
-@node Color Parameters
-@subsubsection Color Parameters
+@node Font and Color Parameters
+@subsubsection Font and Color Parameters
 
-  These frame parameters control the use of colors.
+  These frame parameters control the use of fonts and colors.
 
 @table @code
+@item font-backend
+A list of symbols, specifying the @dfn{font backends} to use for
+drawing fonts in the frame, in order of priority.  On X, there are
+currently two available font backends: @code{x} (the X core font
+driver) and @code{xft} (the Xft font driver).  On other systems, there
+is only one available font backend, so it does not make sense to
+modify this frame parameter.
+
 @item background-mode
 This parameter is either @code{dark} or @code{light}, according
 to whether the background color is a light one or a dark one.
@@ -954,13 +974,6 @@ but it seems inadvisable to change that now.
 These functions return the height and width of @var{frame}, measured in
 lines and columns.  If you don't supply @var{frame}, they use the
 selected frame.
-@end defun
-
-@defun screen-height
-@defunx screen-width
-These functions are old aliases for @code{frame-height} and
-@code{frame-width}.  When you are using a non-window terminal, the size
-of the frame is normally the same as the size of the terminal screen.
 @end defun
 
 @defun frame-pixel-height &optional frame
@@ -1178,11 +1191,11 @@ calls the function @code{delete-frame}.  @xref{Misc Events}.
 @cindex frames, scanning all
 
 @defun frame-list
-The function @code{frame-list} returns a list of all the frames that
-have not been deleted.  It is analogous to @code{buffer-list} for
-buffers, and includes frames on all terminals.  The list that you get is
-newly created, so modifying the list doesn't have any effect on the
-internals of Emacs.
+The function @code{frame-list} returns a list of all the live frames,
+i.e.@: those that have not been deleted.  It is analogous to
+@code{buffer-list} for buffers, and includes frames on all terminals.
+The list that you get is newly created, so modifying the list doesn't
+have any effect on the internals of Emacs.
 @end defun
 
 @defun visible-frame-list
@@ -1844,7 +1857,7 @@ is over mouse-sensitive text.
   These variables affect newly created frames.  They do not normally
 affect existing frames; however, if you set the mouse color of a
 frame, that also installs the current value of those two variables.
-@xref{Color Parameters}.
+@xref{Font and Color Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
 defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
@@ -1921,12 +1934,12 @@ the first cut buffer moves into the second cut buffer, and the second to
 the third, and so on through all eight cut buffers.
 @end defun
 
-@defvar selection-coding-system
+@defopt selection-coding-system
 This variable specifies the coding system to use when reading and
 writing selections or the clipboard.  @xref{Coding
 Systems}.  The default is @code{compound-text-with-extensions}, which
 converts to the text representation that X11 normally uses.
-@end defvar
+@end defopt
 
 @cindex clipboard support (for MS-Windows)
 When Emacs runs on MS-Windows, it does not implement X selections in
@@ -2099,11 +2112,11 @@ are used by Emacs.
 in @ref{Color Names}.
 
   These functions accept a display (either a frame or the name of a
-terminal) as an optional argument.  We hope in the future to make Emacs
-support more than one text-only terminal at one time; then this argument
-will specify which terminal to operate on (the default being the
-selected frame's terminal; @pxref{Input Focus}).  At present, though,
-the @var{frame} argument has no effect.
+terminal) as an optional argument.  We hope in the future to make
+Emacs support different colors on different text-only terminals; then
+this argument will specify which terminal to operate on (the default
+being the selected frame's terminal; @pxref{Input Focus}).  At
+present, though, the @var{frame} argument has no effect.
 
 @defun tty-color-define name number &optional rgb frame
 This function associates the color name @var{name} with
@@ -2322,11 +2335,11 @@ This function returns the width of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 @end defun
 
-@defvar display-mm-dimensions-alist
+@defopt display-mm-dimensions-alist
 This variable allows the user to specify the dimensions of graphical
 displays returned by @code{display-mm-height} and
 @code{display-mm-width} in case the system provides incorrect values.
-@end defvar
+@end defopt
 
 @defun display-backing-store &optional display
 This function returns the backing store capability of the display.

@@ -256,7 +256,7 @@ xftfont_open (f, entity, pixel_size)
       else if (EQ (key, QChintstyle))
 	{
 	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	    FcPatternAddInteger (pat, FC_HINT_STYLE, XINT (val));
 	}
       else if (EQ (key, QCrgba))
 	{
@@ -274,17 +274,28 @@ xftfont_open (f, entity, pixel_size)
 
 
   BLOCK_INPUT;
+  /* Make sure that the Xrender extension is added before the Xft one.
+     Otherwise, the close-display hook set by Xft is called after the
+     one for Xrender, and the former tries to re-add the latter.  This
+     results in inconsistency of internal states and leads to X
+     protocol error when one reconnects to the same X server.
+     (Bug#1696)  */
+  {
+    int event_base, error_base;
+    XRenderQueryExtension (display, &event_base, &error_base);
+  }
   match = XftFontMatch (display, FRAME_X_SCREEN_NUMBER (f), pat, &result);
   FcPatternDestroy (pat);
   xftfont = XftFontOpenPattern (display, match);
-  ft_face = XftLockFace (xftfont);
-  UNBLOCK_INPUT;
-
-  if (! xftfont)
+  if (!xftfont)
     {
+      UNBLOCK_INPUT;
       XftPatternDestroy (match);
       return Qnil;
     }
+  ft_face = XftLockFace (xftfont);
+  UNBLOCK_INPUT;
+
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
   font_object = font_make_object (VECSIZE (struct xftfont_info), entity, size);
@@ -467,16 +478,27 @@ xftfont_done_face (f, face)
     }
 }
 
+extern Lisp_Object Qja, Qko;
+
 static int
 xftfont_has_char (font, c)
      Lisp_Object font;
      int c;
 {
   struct xftfont_info *xftfont_info;
+  struct charset *cs = NULL;
+
+  if (EQ (AREF (font, FONT_ADSTYLE_INDEX), Qja)
+      && charset_jisx0208 >= 0)
+    cs = CHARSET_FROM_ID (charset_jisx0208);
+  else if (EQ (AREF (font, FONT_ADSTYLE_INDEX), Qko)
+      && charset_ksc5601 >= 0)
+    cs = CHARSET_FROM_ID (charset_ksc5601);
+  if (cs)
+    return (ENCODE_CHAR (cs, c) != CHARSET_INVALID_CODE (cs));
 
   if (FONT_ENTITY_P (font))
     return ftfont_driver.has_char (font, c);
-
   xftfont_info = (struct xftfont_info *) XFONT_OBJECT (font);
   return (XftCharExists (xftfont_info->display, xftfont_info->xftfont,
 			 (FcChar32) c) == FcTrue);

@@ -97,14 +97,18 @@
 ;; Information for setting and exiting Korean environment.
 (defvar korean-key-bindings
   `((global [?\S- ] toggle-korean-input-method nil)
+    (global [Hangul] toggle-korean-input-method nil)
     (global [C-f9] quail-hangul-switch-symbol-ksc nil)
-    (global [f9]  quail-hangul-switch-hanja nil)
+    (global [f9] hangul-to-hanja-conversion nil)
+    (global [Hangul_Hanja] hangul-to-hanja-conversion nil)
     (,isearch-mode-map [?\S- ] isearch-toggle-korean-input-method nil)
+    (,isearch-mode-map [Hangul] isearch-toggle-korean-input-method nil)
     (,isearch-mode-map [C-f9] isearch-hangul-switch-symbol-ksc nil)
     (,isearch-mode-map [f9] isearch-hangul-switch-hanja nil)))
 
 ;;;###autoload
 (defun setup-korean-environment-internal ()
+  (use-cjk-char-width-table 'ko_KR)
   (let ((key-bindings korean-key-bindings))
     (while key-bindings
       (let* ((this (car key-bindings))
@@ -122,6 +126,7 @@
 
 (defun exit-korean-environment ()
   "Exit Korean language environment."
+  (use-default-char-width-table)
   (let ((key-bindings korean-key-bindings))
     (while key-bindings
       (let* ((this (car key-bindings))

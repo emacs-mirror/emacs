@@ -153,18 +153,26 @@ call_process_kill (fdpid)
 }
 
 Lisp_Object
-call_process_cleanup (fdpid)
-     Lisp_Object fdpid;
+call_process_cleanup (arg)
+     Lisp_Object arg;
 {
+  Lisp_Object fdpid = Fcdr (arg);
+#if defined (MSDOS)
+  Lisp_Object file;
+#else
+  int pid;
+#endif
+
+  Fset_buffer (Fcar (arg));
+
 #if defined (MSDOS)
   /* for MSDOS fdpid is really (fd . tempfile)  */
-  register Lisp_Object file;
   file = Fcdr (fdpid);
   emacs_close (XFASTINT (Fcar (fdpid)));
   if (strcmp (SDATA (file), NULL_DEVICE) != 0)
     unlink (SDATA (file));
 #else /* not MSDOS */
-  register int pid = XFASTINT (Fcdr (fdpid));
+  pid = XFASTINT (Fcdr (fdpid));
 
   if (call_process_exited)
     {
@@ -231,7 +239,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int count = SPECPDL_INDEX ();
 
   register const unsigned char **new_argv;
-  struct buffer *old = current_buffer;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
   Lisp_Object error_file;
@@ -399,9 +406,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     }
   /* Search for program; barf if not found.  */
   {
-    struct gcpro gcpro1;
+    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-    GCPRO1 (current_dir);
+    GCPRO4 (infile, buffer, current_dir, error_file);
     openp (Vexec_path, args[0], Vexec_suffixes, &path, make_number (X_OK));
     UNGCPRO;
   }
@@ -422,9 +429,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   if (nargs > 4)
     {
       register int i;
-      struct gcpro gcpro1, gcpro2, gcpro3;
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
-      GCPRO3 (infile, buffer, current_dir);
+      GCPRO5 (infile, buffer, current_dir, path, error_file);
       argument_coding.dst_multibyte = 0;
       for (i = 4; i < nargs; i++)
 	{
@@ -630,10 +637,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #if defined(MSDOS)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
-			 Fcons (make_number (fd[0]), build_string (tempfile)));
+			 Fcons (Fcurrent_buffer (),
+				Fcons (make_number (fd[0]),
+				       build_string (tempfile))));
 #else
   record_unwind_protect (call_process_cleanup,
-			 Fcons (make_number (fd[0]), make_number (pid)));
+			 Fcons (Fcurrent_buffer (),
+				Fcons (make_number (fd[0]), make_number (pid))));
 #endif /* not MSDOS */
 
 
@@ -783,13 +793,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
 	  break;
 
-#if (CALLPROC_BUFFER_SIZE_MIN != CALLPROC_BUFFER_SIZE_MAX)
 	/* Make the buffer bigger as we continue to read more data,
 	   but not past CALLPROC_BUFFER_SIZE_MAX.  */
 	if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
 	  if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
 	    bufsize = CALLPROC_BUFFER_SIZE_MAX;
-#endif
 
 	if (display_p)
 	  {
@@ -812,15 +820,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
        coding-system used to decode the process output.  */
     if (inherit_process_coding_system)
       call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
- 	       make_number (total_read));
+	     make_number (total_read));
   }
 
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
 
   immediate_quit = 0;
-
-  set_buffer_internal (old);
 
   /* Don't kill any children that the subprocess may have left behind
      when exiting.  */
@@ -1119,16 +1125,14 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        at least check.  */
     if (chdir (temp) < 0)
       _exit (errno);
-#endif
-
-#ifdef DOS_NT
+#else /* DOS_NT */
     /* Get past the drive letter, so that d:/ is left alone.  */
     if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
       {
 	temp += 2;
 	i -= 2;
       }
-#endif
+#endif /* DOS_NT */
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
     while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))

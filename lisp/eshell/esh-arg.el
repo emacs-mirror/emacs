@@ -53,7 +53,7 @@ yield the values intended."
 	(goto-char (match-end 0))
 	(let ((str (match-string 0)))
 	  (if (> (length str) 0)
-	      (add-text-properties 0 1 '(number t) str))
+	      (add-text-properties 0 (length str) '(number t) str))
 	  str))))
 
    ;; parse any non-special characters, based on the current context
