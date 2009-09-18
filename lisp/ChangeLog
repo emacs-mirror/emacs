@@ -5,6 +5,7 @@
 	* emacs-lisp/derived.el (define-derived-mode): Fix paren typo in
 	definition of abbrev table.
 
+	* speedbar.el (speedbar-track-mouse):
 	* net/eudc-bob.el (eudc-bob-pipe-object-to-external-program):
 	* net/eudc.el (eudc-expand-inline):
 	* net/newst-backend.el (newsticker--cache-read-feed):
