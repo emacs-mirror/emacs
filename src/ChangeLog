@@ -20,6 +20,7 @@
 	* nsfns.m (x_get_string_resource): Ape just-previous changes to other
 	platform versions.  Drop support for emacs-20-style face specs.
 	(x-close-connection): Drop PSFlush() under OS X.
+	(x-focus-frame): Activate the app first.
 
 2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
 

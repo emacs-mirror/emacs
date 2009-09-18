@@ -1365,6 +1365,7 @@ FRAME nil means use the selected frame.  */)
     {
       EmacsView *view = FRAME_NS_VIEW (f);
       BLOCK_INPUT;
+      [NSApp activateIgnoringOtherApps: YES];
       [[view window] makeKeyAndOrderFront: view];
       UNBLOCK_INPUT;
     }
