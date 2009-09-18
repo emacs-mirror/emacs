@@ -182,8 +182,6 @@ run_thread (void *state)
   /* Thread-local assignment.  */
   current_thread = self;
 
-  pthread_mutex_lock (&global_lock);
-
   /* We need special handling to set the initial buffer.  Our parent
      thread is very likely to be using this same buffer so we will
      typically wait for the parent thread to release it first.  */
@@ -191,6 +189,8 @@ run_thread (void *state)
   GCPRO1 (buffer);
   self->m_current_buffer = 0;
   set_buffer_internal (XBUFFER (buffer));
+
+  pthread_mutex_lock (&global_lock);
 
   /* It might be nice to do something with errors here.  */
   internal_condition_case (invoke_thread_function, Qt, do_nothing);
