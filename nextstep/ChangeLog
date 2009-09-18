@@ -1,3 +1,7 @@
+2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* README: Note OS X support is now 10.4 or later.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
