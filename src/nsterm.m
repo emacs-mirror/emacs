@@ -1089,6 +1089,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
   if (xoff < 100)
     f->left_pos = 100;  /* don't overlap menu */
 #endif
+
   if (view != nil && (screen = [[view window] screen]))
     [[view window] setFrameTopLeftPoint:
         NSMakePoint (SCREENMAXBOUND (f->left_pos),
@@ -5191,7 +5192,6 @@ extern void update_window_cursor (struct window *w, int on);
   NSWindow *win = [self window];
   NSRect r = [win frame];
   NSScreen *screen = [win screen];
-  NSRect sr = [screen frame];
 
   NSTRACE (windowDidMove);
 
@@ -5199,21 +5199,24 @@ extern void update_window_cursor (struct window *w, int on);
     return;
   if (screen != nil)
     {
-      emacsframe->left_pos = r.origin.x; /* - sr.origin.x; */
-      emacsframe->top_pos = sr.size.height -
-        (r.origin.y + r.size.height); /* + sr.origin.y; */
+      emacsframe->left_pos = r.origin.x;
+      emacsframe->top_pos =
+        [screen frame].size.height - (r.origin.y + r.size.height);
     }
 }
 
-#ifdef NS_IMPL_COCOA
-/* if we don't do this manually, the window will resize but not move */
+
+/* Called AFTER method below, but before our windowWillResize call there leads
+   to windowDidResize -> x_set_window_size.  Update emacs' notion of frame
+   location so set_window_size moves the frame. */
 - (BOOL)windowShouldZoom: (NSWindow *)sender toFrame: (NSRect)newFrame
 {
   NSTRACE (windowShouldZoom);
-  [[self window] setFrame: newFrame display: NO];
+  emacsframe->left_pos = (int)newFrame.origin.x;
+  emacsframe->top_pos = [[sender screen] frame].size.height
+                            - (newFrame.origin.y+newFrame.size.height);
   return YES;
 }
-#endif
 
 
 /* Override to do something slightly nonstandard, but nice.  First click on
@@ -5223,16 +5226,27 @@ extern void update_window_cursor (struct window *w, int on);
                         defaultFrame:(NSRect)defaultFrame
 {
   NSRect result = [sender frame];
+  static NSRect ns_userRect = { 0, 0, 0, 0 };
+
   NSTRACE (windowWillUseStandardFrame);
 
-  if (result.size.height == defaultFrame.size.height) {
-    result = defaultFrame;
-  } else {
-    result.size.height = defaultFrame.size.height;
-    result.origin.y = defaultFrame.origin.y;
-  }
+  if (abs (defaultFrame.size.height - result.size.height)
+      > FRAME_LINE_HEIGHT (emacsframe))
+    {
+      /* first click */
+      ns_userRect = result;
+      result.size.height = defaultFrame.size.height;
+      result.origin.y = defaultFrame.origin.y;
+    }
+  else
+    {
+      if (abs (defaultFrame.size.width - result.size.width)
+          > FRAME_COLUMN_WIDTH (emacsframe))
+        result = defaultFrame;  /* second click */
+      else
+        result = ns_userRect.size.height ? ns_userRect : result;  /* restore */
+    }
 
-  /* A windowWillResize does not get generated on Tiger or Leopard. */
   [self windowWillResize: sender toSize: result.size];
   return result;
 }
