@@ -3465,7 +3465,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "1b436ca08eedfcb4166a13c09df6bb23")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "6ec9fac2638e7b16a006e164ba4454cc")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3626,7 +3626,10 @@ Not documented
 \(fn FILE)" nil nil)
 
 (autoload 'dired-query "dired-aux" "\
-Not documented
+Query user and return nil or t.
+Store answer in symbol VAR (which must initially be bound to nil).
+Format PROMPT with ARGS.
+Binding variable `help-form' will help the user who types the help key.
 
 \(fn QS-VAR QS-PROMPT &rest QS-ARGS)" nil nil)
 
