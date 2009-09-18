@@ -9,6 +9,10 @@
 	* nsterm.m (ns_no_defaults): Remove.
 	(ns_term_init): Switch ns_no_defaults -> inhibit_x_resources.
 	(ns_use_qd_smoothing): Remove legacy variable.
+	(EmacsView-windowShouldZoom:): Set frame left_pos, top_pos and
+	don't update the NSWindow itself.
+	(EmacsView-windowWillUseStandardFrame:defaultFrame:): Improve
+	state detection and store user rect ourselves. (Bug #3581)
 
 	* nsfont.m (nsfont_draw) [NS_IMPL_COCOA]: Don't use
 	ns_use_qd_smoothing.
