@@ -1211,12 +1211,11 @@ LIMIT defaults to point."
   "Value of `end-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
   (while (and (not (bobp)) (< arg 0))
-    (let (orig-pos (point))
-      (incf arg)
-      (js-beginning-of-defun)
-      (js-beginning-of-defun)
-      (unless (bobp)
-        (js-end-of-defun))))
+    (incf arg)
+    (js-beginning-of-defun)
+    (js-beginning-of-defun)
+    (unless (bobp)
+      (js-end-of-defun)))
 
   (while (> arg 0)
     (decf arg)

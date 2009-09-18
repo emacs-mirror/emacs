@@ -1,5 +1,7 @@
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/js.el (js-end-of-defun): Remove malformed and unneeded let.
+
 	* emacs-lisp/derived.el (define-derived-mode): Fix paren typo in
 	definition of abbrev table.
 
