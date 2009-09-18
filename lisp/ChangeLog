@@ -1,3 +1,8 @@
+2009-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-aux.el (dired-query-alist): Remove spurious backslash.
+	(dired-query): Use read-key.
+
 2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* cus-start.el (ns-use-qd-smoothing): Remove.
