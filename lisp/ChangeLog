@@ -7,7 +7,8 @@
 
 	* net/eudc-bob.el (eudc-bob-pipe-object-to-external-program):
 	* net/eudc.el (eudc-expand-inline):
-	* net/newst-backend.el (newsticker--cache-read-feed): Fix typos in
+	* net/newst-backend.el (newsticker--cache-read-feed):
+	* nxml/nxml-outln.el (nxml-end-of-heading): Fix typos in
 	condition-case handlers.
 
 2009-09-18  Nick Roberts  <nickrob@snap.net.nz>
