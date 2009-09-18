@@ -1,5 +1,8 @@
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/derived.el (define-derived-mode): Fix paren typo in
+	definition of abbrev table.
+
 	* net/eudc-bob.el (eudc-bob-pipe-object-to-external-program):
 	* net/eudc.el (eudc-expand-inline):
 	* net/newst-backend.el (newsticker--cache-read-feed): Fix typos in
