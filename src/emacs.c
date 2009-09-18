@@ -202,10 +202,6 @@ extern int inherited_pgroup;
 int display_arg;
 #endif
 
-#ifdef HAVE_NS
-extern char ns_no_defaults;
-#endif
-
 /* An address near the bottom of the stack.
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
@@ -1479,13 +1475,6 @@ main (int argc, char **argv)
   ns_alloc_autorelease_pool();
   if (!noninteractive)
     {
-      char *tmp;
-      display_arg = 4;
-      if (argmatch (argv, argc, "-q", "--no-init-file", 6, NULL, &skip_args))
-        {
-          ns_no_defaults = 1;
-          skip_args--;
-        }
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {
@@ -1500,16 +1489,7 @@ main (int argc, char **argv)
               chdir (getenv ("HOME"));
             }
         }
-#endif
-      /* This used for remote operation.. not fully implemented yet. */
-      if (argmatch (argv, argc, "-_NSMachLaunch", 0, 3, &tmp, &skip_args))
-          display_arg = 4;
-      else if (argmatch (argv, argc, "-MachLaunch", 0, 3, &tmp, &skip_args))
-          display_arg = 4;
-      else if (argmatch (argv, argc, "-macosx", 0, 2, NULL, &skip_args))
-          display_arg = 4;
-      else if (argmatch (argv, argc, "-NSHost", 0, 3, &tmp, &skip_args))
-          display_arg = 4;
+#endif  /* COCOA */
     }
 #endif /* HAVE_NS */
 
@@ -2679,7 +2659,7 @@ This is nil during initialization.  */);
   Vafter_init_time = Qnil;
 
   DEFVAR_BOOL ("inhibit-x-resources", &inhibit_x_resources,
-	       doc: /* If non-nil, X resources and Windows Registry settings are not used.  */);
+	       doc: /* If non-nil, X resources, Windows Registry settings, and NS defaults are not used.  */);
   inhibit_x_resources = 0;
 
   /* Make sure IS_DAEMON starts up as false.  */
