@@ -14,8 +14,6 @@
 
 SRCID(poolamc, "$Id$");
 
-Count PagesPerSegMediumLIMIT = 8;
-
 /* PType enumeration -- distinguishes AMCGen and AMCNailboard */
 enum {AMCPTypeGen = 1, AMCPTypeNailboard};
 
@@ -1167,7 +1165,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   base = SegBase(seg);
   *baseReturn = base;
-  if(alignedSize < PagesPerSegMediumLIMIT * ArenaAlign(arena)) {
+  if(alignedSize < AMCLargeSegPAGES * ArenaAlign(arena)) {
     /* Small or Medium segment: give the buffer the entire seg. */
     limit = AddrAdd(base, alignedSize);
     AVER(limit == SegLimit(seg));
@@ -1215,7 +1213,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   AVER(init <= limit);
 
   arena = BufferArena(buffer);
-  if(SegSize(seg) < PagesPerSegMediumLIMIT * ArenaAlign(arena)) {
+  if(SegSize(seg) < AMCLargeSegPAGES * ArenaAlign(arena)) {
     /* Small or Medium segment: buffer had the entire seg. */
     AVER(limit == SegLimit(seg));
   } else {
@@ -1383,7 +1381,7 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
     amc->pageretstruct[trace->ti].pCond += pages;
     if(pages == 1) {
       amc->pageretstruct[trace->ti].pCS += pages;
-    } else if(pages < PagesPerSegMediumLIMIT) {
+    } else if(pages < AMCLargeSegPAGES) {
       amc->pageretstruct[trace->ti].sCM += 1;
       amc->pageretstruct[trace->ti].pCM += pages;
     } else {
@@ -2126,7 +2124,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
       amc->pageretstruct[trace->ti].pRet += pages;
       if(pages == 1) {
         amc->pageretstruct[trace->ti].pRS += pages;
-      } else if(pages < PagesPerSegMediumLIMIT) {
+      } else if(pages < AMCLargeSegPAGES) {
         amc->pageretstruct[trace->ti].sRM += 1;
         amc->pageretstruct[trace->ti].pRM += pages;
         if(obj1pip) {

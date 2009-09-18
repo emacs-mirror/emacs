@@ -390,16 +390,18 @@
 /* Dongle configuration */
 
 #if defined(DONGLE)
-
 #define DONGLE_TEST_FREQUENCY ((unsigned int)4000)
-
 #elif defined(DONGLE_NONE)
-
 /* nothing to do */
-
 #else
 #error "No dongle configured."
 #endif
+
+
+/* Pool Class AMC configuration */
+
+/* AMC treats segments of this many pages (or more) as "Large" */
+#define AMCLargeSegPAGES ((Count)8)
 
 
 #endif /* config_h */
