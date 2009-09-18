@@ -700,7 +700,6 @@ extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
 extern Lisp_Object Qnone;
-extern char ns_no_defaults;
 
 extern int
 ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
