@@ -610,11 +610,12 @@ name_is_separator (name)
   
   while (*tpos == ' ' || *tpos == '(')
     tpos++;
-  if (*tpos != 's') {
-    keyEquivModMask = 0; /* signal */
-    return [NSString stringWithUTF8String: tpos];
-  }
-  return [NSString stringWithFormat: @"%c", tpos[2]];
+  if ((*tpos == 's') && (*(tpos+1) == '-'))
+    {
+      return [NSString stringWithFormat: @"%c", tpos[2]];
+    }
+  keyEquivModMask = 0; /* signal */
+  return [NSString stringWithUTF8String: tpos];
 }
 
 
