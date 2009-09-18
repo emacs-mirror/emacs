@@ -128,7 +128,7 @@ Set to \"main\" at start if `gdb-show-main' is t.")
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
   "List of variables in watch window.
-Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
+Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS HAS_MORE FP)
 where STATUS is nil (`unchanged'), `changed' or `out-of-scope', FP the frame
 address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
@@ -851,21 +851,18 @@ With arg, enter name of variable to be watched in the minibuffer."
 (defun gdb-var-create-handler (expr)
   (let* ((result (gdb-json-partial-output)))
     (if (not (bindat-get-field result 'msg))
-        (let*
-            ((has_more (bindat-get-field result 'has_more))
-	     (var
-              (list
-               (bindat-get-field result 'name)
-               (if (and (string-equal gdb-current-language "c")
-                        gdb-use-colon-colon-notation gdb-selected-frame)
-                   (setq expr (concat gdb-selected-frame "::" expr))
-                 expr)
-	       ;; Fake child for dynamic varobjs.
-	       (if (string-equal (bindat-get-field result 'has_more) "1")
-		   "1" (bindat-get-field result 'numchild))
-               (bindat-get-field result 'type)
-               (bindat-get-field result 'value)
-               nil)))
+        (let ((var
+	       (list (bindat-get-field result 'name)
+		     (if (and (string-equal gdb-current-language "c")
+			      gdb-use-colon-colon-notation gdb-selected-frame)
+			 (setq expr (concat gdb-selected-frame "::" expr))
+		       expr)
+		     (bindat-get-field result 'numchild)
+		     (bindat-get-field result 'type)
+		     (bindat-get-field result 'value)
+		     nil
+		     (bindat-get-field result 'has_more)
+		      gdb-frame-address)))
 	  (push var gdb-var-list)
 	  (speedbar 1)
 	  (unless (string-equal
@@ -3817,12 +3814,15 @@ from=\"\\(.*?\\)\"\\)")
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
 (defun gdb-var-list-children-handler-1 (varnum)
-  (let ((var-list nil)
-	(children (bindat-get-field (gdb-json-partial-output "child") 'children)))
+  (let* ((var-list nil)
+	 (output (bindat-get-field (gdb-json-partial-output "child")))
+	 (children (bindat-get-field output 'children)))
    (catch 'child-already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal varnum (car var))
 	    (progn
+	      ;; With dynamic varobjs numchild may have increased.
+	      (setcar (nthcdr 2 var) (bindat-get-field output 'numchild))
 	      (push var var-list)
 	      (dolist (child children)
 		(let ((varchild (list (bindat-get-field child 'name)
@@ -3830,7 +3830,8 @@ from=\"\\(.*?\\)\"\\)")
 				      (bindat-get-field child 'numchild)
 				      (bindat-get-field child 'type)
 				      (bindat-get-field child 'value)
-				      nil)))
+				      nil
+				      (bindat-get-field child 'has_more))))
 		  (if (assoc (car varchild) gdb-var-list)
 		      (throw 'child-already-watched nil))
 		  (push varchild var-list))))
@@ -3858,45 +3859,56 @@ from=\"\\(.*?\\)\"\\)")
     (let ((temp-var-list gdb-var-list))
       (dolist (change changelist)
 	(let* ((varnum (bindat-get-field change 'name))
-	       (var (assoc varnum gdb-var-list)))
+	       (var (assoc varnum gdb-var-list))
+	       (new-num (bindat-get-field change 'new_num_children)))
 	  (when var
 	    (let ((scope (bindat-get-field change 'in_scope)))
 	      (cond ((string-equal scope "false")
 		     (if gdb-delete-out-of-scope
 			 (gdb-var-delete-1 var varnum)
 		       (setcar (nthcdr 5 var) 'out-of-scope)))
-		    ((and (string-equal scope "true")
-			  (string-equal (nth 2 var) "0"))
-		     ;; Fake a child to create an expanable node.
-		     (if (string-equal (bindat-get-field change 'has_more) "1")
-			 (setcar (nthcdr 2 var) "1")
-		       (setcar (nthcdr 5 var) 'changed)
+		    ((string-equal scope "true")
+		     (setcar (nthcdr 6 var)
+			     (bindat-get-field change 'has_more))
+		     (when (and (string-equal (nth 6 var) "0")
+				(not new-num)
+				(string-equal (nth 2 var) "0"))
 		       (setcar (nthcdr 4 var)
-			       (bindat-get-field change 'value))))
+			       (bindat-get-field change 'value))
+		       (setcar (nthcdr 5 var) 'changed)))
 		    ((string-equal scope "invalid")
 		     (gdb-var-delete-1 var varnum)))))
 	  (let ((var-list nil) var1
-		(new (bindat-get-field change 'new_num_children))
 		(children (bindat-get-field change 'new_children)))
-	    (if new
-		;; Add new children to list.
+	    (if new-num
 		(progn
 		  (setq var1 (pop temp-var-list))
 		  (while var1
 		    (if (string-equal varnum (car var1))
-			(progn
+			(let ((new (string-to-number new-num))
+			      (previous (string-to-number (nth 2 var1))))
+			  (setcar (nthcdr 2 var1) new-num)
 			  (push var1 var-list)
-			  (dotimes (dummy (- (string-to-number new) (length children)))
-			    (progn
-			      (push (pop temp-var-list) var-list)))
-			  (dolist (child children)
-			    (let ((varchild (list (bindat-get-field child 'name)
-						  (bindat-get-field child 'exp)
-						  (bindat-get-field child 'numchild)
-						  (bindat-get-field child 'type)
-						  (bindat-get-field child 'value)
-						  'changed)))
-			      (push varchild var-list))))
+			  (cond ((> new previous)
+				 ;; Add new children to list.
+				 (dotimes (dummy previous)
+				   (push (pop temp-var-list) var-list))
+				 (dolist (child children)
+				   (let ((varchild
+					  (list (bindat-get-field child 'name)
+						(bindat-get-field child 'exp)
+						(bindat-get-field child 'numchild)
+						(bindat-get-field child 'type)
+						(bindat-get-field child 'value)
+						'changed
+						(bindat-get-field child 'has_more))))
+				     (push varchild var-list))))
+				;; Remove deleted children from list.
+				((< new previous)
+				 (dotimes (dummy new)
+				     (push (pop temp-var-list) var-list))
+				 (dotimes (dummy (- previous new))
+				     (pop temp-var-list)))))
 		      (push var1 var-list))
 		    (setq var1 (pop temp-var-list)))
 		  (setq gdb-var-list (nreverse var-list)))))))))
