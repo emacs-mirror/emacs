@@ -1,6 +1,7 @@
 
 #include <config.h>
 #include "lisp.h"
+#include "blockinput.h"
 #include <pthread.h>
 
 void mark_byte_stack P_ ((struct byte_stack *));
@@ -99,7 +100,7 @@ unmark_threads (void)
 int
 thread_inhibit_yield_p  ()
 {
-  return inhibit_yield_counter > 0;
+  return inhibit_yield_counter || interrupt_input_blocked;
 }
 
 static void
