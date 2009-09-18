@@ -1880,6 +1880,7 @@ acquire_buffer (char *end, void *nb)
 
       /* If our desired buffer is locked, wait for it.  */
       while (other_threads_p ()
+             && !current_thread->nolock
 	     && !EQ (new_buffer->owner, Qnil)
 	     /* We set the owner to Qt to mean it is being killed.  */
 	     && !EQ (new_buffer->owner, Qt))
@@ -1930,7 +1931,10 @@ set_buffer_internal_1 (b)
   flush_stack_call_func (acquire_buffer, b);
   /* FIXME: if buffer is killed */
   b->prev_owner = b->owner;
-  b->owner = get_current_thread ();
+  if (current_thread->nolock)
+    b->owner = Qnil;
+  else
+    b->owner = get_current_thread ();
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
 

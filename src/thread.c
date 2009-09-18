@@ -208,11 +208,13 @@ run_thread (void *state)
   return NULL;
 }
 
-DEFUN ("run-in-thread", Frun_in_thread, Srun_in_thread, 1, 1, 0,
+DEFUN ("run-in-thread", Frun_in_thread, Srun_in_thread, 1, 2, 0,
        doc: /* Start a new thread and run FUNCTION in it.
-When the function exits, the thread dies.  */)
-     (function)
+When the function exits, the thread dies.  When NOLOCK is no-nil the thread
+does not try to get a lock on the current buffer.  */)
+     (function, nolock)
      Lisp_Object function;
+     Lisp_Object nolock;
 {
   char stack_pos;
   pthread_t thr;
@@ -230,6 +232,7 @@ When the function exits, the thread dies.  */)
 						      m_gcprolist));
 
   new_thread->func = function;
+  new_thread->nolock = !EQ (nolock, Qnil);
   new_thread->initial_specpdl = Qnil;
   new_thread->m_current_buffer = current_thread->m_current_buffer;
   new_thread->stack_bottom = &stack_pos;
@@ -295,7 +298,7 @@ user_thread_p (void)
 }
 
 DEFUN ("inhibit-yield", Finhibit_yield, Sinhibit_yield, 1, 1, 0,
-       doc: /* Inhibit the yield function. */)
+       doc: /* Inhibit the yield function.  */)
      (val)
      Lisp_Object val;
 {
@@ -320,6 +323,7 @@ init_threads (void)
   pthread_mutex_init (&global_lock, NULL);
   pthread_mutex_lock (&global_lock);
   primary_thread.pthread_id = pthread_self ();
+  primary_thread.nolock = 0;
 }
 
 void

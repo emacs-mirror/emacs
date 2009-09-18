@@ -71,6 +71,9 @@ struct thread_state
   struct thread_state *next_thread;
 
   pthread_t pthread_id;
+
+  /* If nonzero the thread access a buffer without lock it.  */
+  int nolock;
 };
 
 extern __thread struct thread_state *current_thread;
