@@ -1,3 +1,19 @@
+2009-09-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-frame-address): New variable.
+	(gdb-var-list): Add an element for has_more field.
+	(gdb-non-stop-handler): Enable pretty printing for STL containers.
+	(gdb-var-create-handler, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Parse output of dynamic variable
+	objects (STL containers).
+	(gdb-var-delete-1): Pass var1 as an explicit second argument.
+	(gdb-get-field): Delete alias.  Use bindat-get-field directly.
+
+	* progmodes/gud.el (gud-speedbar-item-info): Adjust for change to
+	gdb-var-list.
+	(gud-speedbar-buttons): Make node expandable if expression "has more"
+	children.
+
 2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* startup.el (emacs-quick-startup): Remove variable and all uses.
