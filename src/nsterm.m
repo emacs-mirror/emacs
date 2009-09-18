@@ -144,15 +144,6 @@ static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
 
-
-/* Some preferences equivalent to those set by X resources under X are
-   managed through the OpenStep defaults system. We depart from X
-   behavior and refuse to read defaults when started under these
-   options. */
-
-/* Set in emacs.c. */
-char ns_no_defaults;
-
 /* Specifies which emacs modifier should be generated when NS receives
    the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
 Lisp_Object ns_alternate_modifier;
@@ -176,10 +167,6 @@ Lisp_Object ns_antialias_text;
    the maximum font size to NOT antialias.  On GNUstep there is currently
    no way to control this behavior. */
 float ns_antialias_threshold;
-
-/* Controls use of an undocumented CG function to do Quickdraw-style font
-   smoothing (less heavy) instead of regular Quartz smoothing. */
-Lisp_Object ns_use_qd_smoothing;
 
 /* Used to pick up AppleHighlightColor on OS X */
 NSString *ns_selection_color;
@@ -3520,7 +3507,6 @@ ns_set_default_prefs ()
   ns_function_modifier = Qnone;
   ns_antialias_text = Qt;
   ns_antialias_threshold = 10.0; /* not exposed to lisp side */
-  ns_use_qd_smoothing = Qnil;
   ns_confirm_quit = Qnil;
 }
 
@@ -3789,7 +3775,7 @@ ns_term_init (Lisp_Object display_name)
 
   /* Read various user defaults. */
   ns_set_default_prefs ();
-  if (!ns_no_defaults)
+  if (!inhibit_x_resources)
     {
       ns_default ("GSFontAntiAlias", &ns_antialias_text,
                  Qt, Qnil, NO, NO);
@@ -5021,10 +5007,9 @@ extern void update_window_cursor (struct window *w, int on);
     }
 #endif /* NS_IMPL_COCOA */
 
-  // Calling x_set_window_size tends to get us into inf-loops
-  // (x_set_window_size causes a resize which causes
-  // a "windowDidResize" which calls x_set_window_size).
-  // At least with GNUStep, don't know about MacOSX.  --Stef
+  /* Avoid loop under GNUstep due to call at beginning of this function.
+     (x_set_window_size causes a resize which causes
+     a "windowDidResize" which calls x_set_window_size).  */
 #ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
      x_set_window_size (emacsframe, 0, cols, rows);
@@ -5247,7 +5232,7 @@ extern void update_window_cursor (struct window *w, int on);
     result.origin.y = defaultFrame.origin.y;
   }
 
-  /* A windowWillResize does not get generated at least on Tiger. */
+  /* A windowWillResize does not get generated on Tiger or Leopard. */
   [self windowWillResize: sender toSize: result.size];
   return result;
 }
@@ -6235,9 +6220,6 @@ allowing it to be used at a lower level for accented character entry.");
 
   DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
                "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
-
-  DEFVAR_LISP ("ns-use-qd-smoothing", &ns_use_qd_smoothing,
-               "Whether to render text using QuickDraw (less heavy) antialiasing. Only has an effect on OS X Panther and above.  Default is nil (use Quartz smoothing).");
 
   DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
                "Whether to confirm application quit using dialog.");
