@@ -1,3 +1,10 @@
+2009-09-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list): Add an element for has_more field.
+	(gdb-var-create-handler, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Update correctly when elements are removed
+	from STL collections.
+
 2009-09-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Require bindat and json.
