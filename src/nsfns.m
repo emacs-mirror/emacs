@@ -2139,15 +2139,12 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
   const char *res;
   check_ns ();
 
-  /* Support emacs-20-style face resources for backwards compatibility */
-  if (!strncmp (toCheck, "Face", 4))
-    toCheck = name + (!strncmp (name, "emacs.", 6) ? 6 : 0);
+  if (inhibit_x_resources)
+    /* --quick was passed, so this is a no-op.  */
+    return NULL;
 
-/*fprintf (stderr, "Checking '%s'\n", toCheck); */
-
-  res = ns_no_defaults ? NULL :
-    [[[NSUserDefaults standardUserDefaults] objectForKey:
-                     [NSString stringWithUTF8String: toCheck]] UTF8String];
+  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
+            [NSString stringWithUTF8String: toCheck]] UTF8String];
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));
