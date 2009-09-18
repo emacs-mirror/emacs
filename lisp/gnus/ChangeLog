@@ -1,3 +1,11 @@
+2009-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-diary.el (gnus-diary-check-message):
+	* message.el (message-insert-formatted-citation-line):
+	* nnbabyl.el (top-level):
+	* nndiary.el (nndiary-schedule):
+	Fix typos in condition-case handlers.
+
 2009-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el (nnrss-request-article): Remove binding of

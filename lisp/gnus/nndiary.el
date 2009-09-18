@@ -1,7 +1,7 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009  Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -368,7 +368,7 @@ all.  This may very well take some time.")
 	   (setq head (nth 0 elt))
 	   (nndiary-parse-schedule (nth 0 elt) (nth 1 elt) (nth 2 elt)))
 	 nndiary-headers)
-      (t
+      (error
        (nnheader-report 'nndiary "X-Diary-%s header parse error: %s."
 			head (cdr arg))
        nil))

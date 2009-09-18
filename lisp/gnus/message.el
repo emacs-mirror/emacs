@@ -3822,9 +3822,8 @@ See `message-citation-line-format'."
 			       (>= i ?a)))
 		  (push i lst)
 		  (push (condition-case nil
-			    (progn (format-time-string (format "%%%c" i)
-						       replydate))
-			  (format ">%c<" i))
+			    (format-time-string (format "%%%c" i) replydate)
+			  (error (format ">%c<" i)))
 			lst))
 		(setq i (1+ i)))
 	      (reverse lst)))
