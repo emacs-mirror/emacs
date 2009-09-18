@@ -1,6 +1,6 @@
 2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* syntax.c (Fchar_syntax): Minor doc fix (Bug#119).
+	* syntax.c (Fchar_syntax): Minor doc fix (Bug#4400).
 
 2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
