@@ -438,8 +438,8 @@ The value t means that there is no stack, and we are in display-file mode.")
 (defun gud-speedbar-item-info ()
   "Display the data type of the watch expression element."
   (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
-    (if (nth 6 var)
-	(speedbar-message "%s: %s" (nth 6 var) (nth 3 var))
+    (if (nth 7 var)
+	(speedbar-message "%s: %s" (nth 7 var) (nth 3 var))
       (speedbar-message "%s" (nth 3 var)))))
 
 (defun gud-install-speedbar-variables ()
@@ -517,7 +517,8 @@ required by the caller."
 	    (let* (char (depth 0) (start 0) (var (car var-list))
 			(varnum (car var)) (expr (nth 1 var))
 			(type (if (nth 3 var) (nth 3 var) " "))
-			(value (nth 4 var)) (status (nth 5 var)))
+			(value (nth 4 var)) (status (nth 5 var))
+			(has-more (nth 6 var)))
 	      (put-text-property
 	       0 (length expr) 'face font-lock-variable-name-face expr)
 	      (put-text-property
@@ -526,9 +527,10 @@ required by the caller."
 		(setq depth (1+ depth)
 		      start (1+ (match-beginning 0))))
 	      (if (eq depth 0) (setq parent nil))
-	      (if (or (equal (nth 2 var) "0")
-		      (and (equal (nth 2 var) "1")
-			   (string-match "char \\*$" type)))
+	      (if (and (or (not has-more) (string-equal has-more "0"))
+		       (or (equal (nth 2 var) "0")
+			   (and (equal (nth 2 var) "1")
+			   (string-match "char \\*$" type)) ))
 		  (speedbar-make-tag-line
 		   'bracket ?? nil nil
 		   (concat expr "\t" value)
@@ -2625,7 +2627,9 @@ It is saved for when this flag is not set.")
 	 (setq gud-overlay-arrow-position nil)
 	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 		   'gdbmi)
-	     (gdb-reset)
+	     (progn
+	       (delete-process "gdb-inferior")
+	       (gdb-reset))
 	   (gud-reset))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
