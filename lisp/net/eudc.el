@@ -1,7 +1,7 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -931,7 +931,7 @@ see `eudc-inline-expansion-servers'"
 	  (or (and (equal eudc-server eudc-former-server)
 		   (equal eudc-protocol eudc-former-protocol))
 	      (eudc-set-server eudc-former-server eudc-former-protocol t)))
-      (t
+      (error
        (or (and (equal eudc-server eudc-former-server)
 		(equal eudc-protocol eudc-former-protocol))
 	   (eudc-set-server eudc-former-server eudc-former-protocol t))

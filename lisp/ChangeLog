@@ -1,3 +1,10 @@
+2009-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* net/eudc-bob.el (eudc-bob-pipe-object-to-external-program):
+	* net/eudc.el (eudc-expand-inline):
+	* net/newst-backend.el (newsticker--cache-read-feed): Fix typos in
+	condition-case handlers.
+
 2009-09-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-frame-address): New variable.
