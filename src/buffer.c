@@ -1880,7 +1880,6 @@ acquire_buffer (char *end, void *nb)
 
       /* If our desired buffer is locked, wait for it.  */
       while (other_threads_p ()
-	     && !thread_inhibit_yield_p ()
 	     && !EQ (new_buffer->owner, Qnil)
 	     /* We set the owner to Qt to mean it is being killed.  */
 	     && !EQ (new_buffer->owner, Qt))
