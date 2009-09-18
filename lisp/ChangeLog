@@ -1,3 +1,7 @@
+2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* cus-start.el (ns-use-qd-smoothing): Remove.
+
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* allout.el (top-level): Remove unnecessary progn.
