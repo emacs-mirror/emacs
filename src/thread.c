@@ -100,7 +100,7 @@ unmark_threads (void)
 int
 thread_inhibit_yield_p  ()
 {
-  return inhibit_yield_counter || interrupt_input_blocked;
+  return inhibit_yield_counter || interrupt_input_blocked || abort_on_gc;
 }
 
 static void
