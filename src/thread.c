@@ -96,10 +96,16 @@ unmark_threads (void)
       unmark_byte_stack (iter->m_byte_stack_list);
 }
 
+int
+thread_inhibit_yield_p  ()
+{
+  return inhibit_yield_counter > 0;
+}
+
 static void
 thread_yield_callback (char *end, void *ignore)
 {
-  if (inhibit_yield_counter)
+  if (thread_inhibit_yield_p ())
     return;
 
   current_thread->stack_top = end;

@@ -421,6 +421,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_MARKERS (b) = NULL;
   b->name = name;
   b->owner = Qnil;
+  b->prev_owner = Qnil;
 
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
@@ -1872,13 +1873,14 @@ acquire_buffer (char *end, void *nb)
 
   /* FIXME this check should be in the caller, for better
      single-threaded performance.  */
-  if (other_threads_p ())
+  if (other_threads_p () && !thread_inhibit_yield_p ())
     {
       /* Let other threads try to acquire a buffer.  */
       pthread_cond_broadcast (&buffer_cond);
 
       /* If our desired buffer is locked, wait for it.  */
       while (other_threads_p ()
+	     && !thread_inhibit_yield_p ()
 	     && !EQ (new_buffer->owner, Qnil)
 	     /* We set the owner to Qt to mean it is being killed.  */
 	     && !EQ (new_buffer->owner, Qt))
@@ -1922,9 +1924,13 @@ set_buffer_internal_1 (b)
 
   old_buf = current_buffer;
   if (current_buffer)
-    current_buffer->owner = Qnil;
+    {
+      current_buffer->owner = current_buffer->prev_owner;
+      current_buffer->prev_owner = Qnil;
+    }
   flush_stack_call_func (acquire_buffer, b);
   /* FIXME: if buffer is killed */
+  b->prev_owner = b->owner;
   b->owner = get_current_thread ();
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
@@ -5259,6 +5265,7 @@ init_buffer_once ()
   buffer_defaults.extra_line_spacing = Qnil;
   buffer_defaults.cursor_in_non_selected_windows = Qt;
   buffer_defaults.owner = Qnil;
+  buffer_defaults.prev_owner = Qnil;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */

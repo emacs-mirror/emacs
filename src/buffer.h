@@ -803,6 +803,9 @@ struct buffer
 
   /* If non-nil, the thread holding a lock on this buffer.  */
   Lisp_Object owner;
+
+  /* If non-nil, the previous thread holding a lock on this buffer.  */
+  Lisp_Object prev_owner;
 };
 
 

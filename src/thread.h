@@ -92,3 +92,5 @@ extern int other_threads_p P_ ((void));
 extern int user_thread_p P_ ((void));
 
 EXFUN (Finhibit_yield, 1);
+
+extern int thread_inhibit_yield_p  P_ ((void));
