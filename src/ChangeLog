@@ -1,3 +1,21 @@
+2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (inhibit_x_resources): Update doc string for NS.
+	(main) [HAVE_NS]: Don't process --no-init-file option.  Remove
+	legacy code for -NXHost.
+
+	* nsterm.h (ns_no_defaults): Remove.
+
+	* nsterm.m (ns_no_defaults): Remove.
+	(ns_term_init): Switch ns_no_defaults -> inhibit_x_resources.
+	(ns_use_qd_smoothing): Remove legacy variable.
+
+	* nsfont.m (nsfont_draw) [NS_IMPL_COCOA]: Don't use
+	ns_use_qd_smoothing.
+
+	* nsfns.m (x_get_string_resource): Ape just-previous changes to other
+	platform versions.  Drop support for emacs-20-style face specs.
+
 2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (inhibit_x_resources): New variable.
