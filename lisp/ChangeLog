@@ -1,3 +1,8 @@
+2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Change default for XML files to nXML
+	mode (Bug#4169).
+
 2009-09-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-ensure-safe-dir): Pass 'integer
