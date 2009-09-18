@@ -48,7 +48,7 @@ extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
-extern int ns_antialias_text, ns_use_qd_smoothing;
+extern int ns_antialias_text;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
@@ -1199,8 +1199,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
-    if (EQ (ns_use_qd_smoothing, Qt))
-      CGContextSetFontRenderingMode (gcontext, 2); /* 0 is Cocoa, 2 is QD */
 
     CGContextSetTextMatrix (gcontext, fliptf);
 
