@@ -1,3 +1,7 @@
+2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (Fchar_syntax): Minor doc fix (Bug#119).
+
 2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* emacs.c (inhibit_x_resources): Update doc string for NS.
