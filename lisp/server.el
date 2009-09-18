@@ -449,10 +449,10 @@ Creates the directory if necessary and makes sure:
 - it's owned by us
 - it's not readable/writable by anybody else."
   (setq dir (directory-file-name dir))
-  (let ((attrs (file-attributes dir)))
+  (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
       (letf (((default-file-modes) ?\700)) (make-directory dir t))
-      (setq attrs (file-attributes dir)))
+      (setq attrs (file-attributes dir 'integer)))
     ;; Check that it's safe for use.
     (unless (and (eq t (car attrs)) (eql (nth 2 attrs) (user-uid))
                  (or (eq system-type 'windows-nt)
