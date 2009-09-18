@@ -36,16 +36,18 @@ This might not work on all platforms.
 ** `make install' now consistently ignores umask, creating a
 world-readable install.
 
-* Changes in Emacs 23.2
+* Startup Changes in Emacs 23.2
 
 ** Command-line option -Q (--quick) now also disables loading X resources.
-On Windows, Registry settings are ignored, though environment variables set
-on the Registry are still honored.  The new variable `inhibit-x-resources'
-shows whether X resources were loaded or not.
+On Windows, this option causes Emacs to ignore Registry settings,
+though environment variables set on the Registry are still honored.
 
-** New completion-style `initials' to complete M-x lch to list-command-history.
+*** The new variable `inhibit-x-resources' shows whether X resources
+were loaded.
 
-** Unibyte sessions are declared obsolete.
+* Changes in Emacs 23.2
+
+** Unibyte sessions are now considered obsolete.
 I.e. the use of the environment variable EMACS_UNIBYTE, or command line
 arguments --unibyte, --multibyte, --no-multibyte, and --no-unibyte
 is deprecated.  Similarly for custom-izing enable-multibyte-characters, or
@@ -68,20 +70,10 @@ frame parameter fullscreen makes the Emacs frame maximized.
 ** The pointer now becomes invisible when typing.
 Customize make-pointer-invisible to turn it off.
 
----
-** On MS-Windows, `display-time' now displays the system load average
-as well as the time, as it does on GNU and Unix.
-
 ** Killing a buffer with a running process now asks a confirmation.
 You can remove this query in two ways: either removing
 `process-kill-buffer-query-function' from `kill-buffer-query-functions' or
 setting the appropriate process flag with `set-process-query-on-exit-flag'.
-
-+++
-** If `select-active-regions' is t, any active region automatically
-becomes the primary selection (for interaction with other window
-applications).  If you enable this, you might want to bind
-`mouse-yank-primary' to Mouse-2.
 
 ** The variable `load-in-progress' won't get corrupted by binding it
 with `let'.  In certain situations, loading an Emacs Lisp file from
@@ -89,13 +81,6 @@ source while in the midst of loading another file (e.g., with
 `require' or `autoload') could cause the value of `load-in-progress'
 to be corrupted once the outer load completed.  Most code doesn't care
 about this, but some (like c-mode) may check it.
-
-** When `save-interprogram-paste-before-kill' is non-nil, emacs will not
-clobber the the interprogram paste when something is killed in it by
-saving the former in the `kill-ring' before the latter.
-
-** When `kill-do-not-save-duplicates' is non-nil, identical subsequent
-kills are not duplicated in the `kill-ring'.
 
 ** File-local variable changes
 
@@ -122,8 +107,25 @@ default-file-name-coding-system on Mac OS X.
 
 * Editing Changes in Emacs 23.2
 
+** Selection changes
++++
+*** If `select-active-regions' is t, any active region automatically
+becomes the primary selection (for interaction with other window
+applications).  If you enable this, you might want to bind
+`mouse-yank-primary' to Mouse-2.
+
+*** When `save-interprogram-paste-before-kill' is non-nil, emacs will
+not clobber the the interprogram paste when something is killed in it
+by saving the former in the `kill-ring' before the latter.
+
+** When `kill-do-not-save-duplicates' is non-nil, identical subsequent
+kills are not duplicated in the `kill-ring'.
+
 +++
 ** The default value for `blink-matching-paren-distance' has been increased.
+
+** The new completion-style `initials' is available.
+For instance, this can complete M-x lch to list-command-history.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.2
@@ -133,6 +135,26 @@ default-file-name-coding-system on Mac OS X.
 ** Calc graphing commands (`g f' etc.) now work on MS-Windows,
 if you have the native Windows port of Gnuplot version 3.8 or later
 installed.
+
+** Calendar and diary
+
+*** Fancy diary display is now the default.
+If you prefer the simple display, customize `diary-display-function'.
+
+*** The diary's fancy display now enables view-mode.
+
+---
+*** The command `calendar-current-date' accepts an optional argument
+giving an offset from today.
+
+** Desktop
+---
+*** The default value for `desktop-buffers-not-to-save' is nil.
+This means Desktop will try restoring all buffers, when you restart
+your Emacs session.  Also, `desktop-buffers-not-to-save' is only
+effective for buffers that have no associated file.  If you want to
+exempt buffers that do correspond to files, customize the value of
+`desktop-files-not-to-save' instead.
 
 ** FIXME mail-user-agent change
 This probably affects a lot of documentation.
@@ -154,9 +176,7 @@ The new connection method "rsyncc" has been introduced.  On systems
 which support GVFS-Fuse, Tramp offers also the new connection methods
 "dav", "davs", "obex" and "synce".
 
-+++
-** Autorevert Tail mode
-Autorevert Tail mode works now for remote files.
+** nXML mode is now the default for editing XML files.
 
 ** VC and related modes
 
@@ -175,33 +195,15 @@ Signed-off-by line when committing.
 *** log-edit-strip-single-file-name controls whether or not single filenames
 are stripped when copying text from the ChangeLog to the *VC-Log* buffer.
 
-** Calendar and diary
-
-*** Fancy diary display is now the default.
-If you prefer the simple display, customize `diary-display-function'.
-
-*** The diary's fancy display now enables view-mode.
-
----
-*** The command `calendar-current-date' accepts an optional argument
-giving an offset from today.
-
-** Desktop
-
----
-*** The default value for `desktop-buffers-not-to-save' is nil.
-This means Desktop will try restoring all buffers, when you restart
-your Emacs session.  Also, `desktop-buffers-not-to-save' is only
-effective for buffers that have no associated file.  If you want to
-exempt buffers that do correspond to files, customize the value of
-`desktop-files-not-to-save' instead.
-
 ** Miscellaneous
 
 *** The new command `async-shell-command' bound globally to `M-&' executes
 the command asynchronously without the need to manually add ampersand to
 the end of the command.  Its output appears in the buffer `*Async Shell
 Command*'.
+
++++
+*** Autorevert Tail mode now works now for remote files.
 
 ---
 *** Elint now uses compilation-mode, and recognizes more built-in
@@ -261,6 +263,12 @@ for completions displayed in *Completions*.
 ** Changing the file-names generated by byte-compilation by redefining
 the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
 Instead, customize byte-compile-dest-file-function.
+
+* Changes in Emacs 23.2 on non-free operating systems
+
+---
+** On MS-Windows, `display-time' now displays the system load average
+as well as the time, as it does on GNU and Unix.
 
 
 * Installation Changes in Emacs 23.1
