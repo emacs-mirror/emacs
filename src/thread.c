@@ -51,11 +51,12 @@ thread_schedule ()
     }                                                           \
 
   /* Try to wake up the thread that is holding the desired buffer.  */
-  if (current_thread->desired_buffer
-      && !EQ (current_thread->desired_buffer->owner, Qnil)
-      && !EQ (current_buffer->owner, current_thread->desired_buffer->owner))
-    CHECK_THREAD (current_thread->desired_buffer->owner,
-                  current_thread->desired_buffer);
+  if (current_thread->desired_buffer)
+    {
+      struct buffer *db = current_thread->desired_buffer;
+      if (!EQ (db->owner, Qnil) && !EQ (db, current_buffer))
+        CHECK_THREAD (XVECTOR (db->owner), db);
+    }
 
   /* A simple round-robin.  We can't just check for it != current_thread
      because current_thread could be already unlinked from all_threads.   */
@@ -159,6 +160,12 @@ thread_acquire_buffer (char *end, void *nb)
       current_buffer->owner = current_buffer->prev_owner;
       current_buffer->prev_owner = Qnil;
     }
+
+  if (!thread_inhibit_yield_p ())
+    thread_schedule ();
+
+  if (next_thread != current_thread->pthread_id)
+    pthread_cond_broadcast (&buffer_cond);
 
   while (current_thread->pthread_id != next_thread)
     pthread_cond_wait (&buffer_cond, &global_lock);
