@@ -1,5 +1,8 @@
 2009-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc-graph.el (calc-graph-lookup): Avoid assignment to free
+	variable `var'.
+
 	* calc/calc-alg.el (var):
 	* calc/calcalg2.el (var): Define for compiler.
 

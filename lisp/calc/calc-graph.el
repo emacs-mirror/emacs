@@ -227,7 +227,8 @@
       (or found
 	  (let ((varname (concat "PlotData"
                                  (int-to-string
-                                  (1+ (length calc-graph-var-cache))))))
+                                  (1+ (length calc-graph-var-cache)))))
+		var)
             (setq var (list 'var (intern varname)
 			    (intern (concat "var-" varname)))
 		  found (cons thing var)
@@ -279,9 +280,9 @@
 (defvar var-DUMMY2)
 (defvar var-PlotRejects)
 
-;; The following variables are local to calc-graph-plot, but are 
+;; The following variables are local to calc-graph-plot, but are
 ;; used in the functions calc-graph-compute-2d, calc-graph-refine-2d,
-;; calc-graph-recompute-2d, calc-graph-compute-3d and 
+;; calc-graph-recompute-2d, calc-graph-compute-3d and
 ;; calc-graph-format-data, which are called by calc-graph-plot.
 (defvar calc-graph-yvalue)
 (defvar calc-graph-yvec)
@@ -725,7 +726,7 @@
 		    calc-graph-yp (nconc calc-graph-yp (cons 0 (copy-sequence (cdr calc-graph-y3value))))
 		    calc-graph-zp (nconc calc-graph-zp (cons '(skip)
 				       (copy-sequence (cdr (car calc-graph-yvalue)))))))
-	    (setq calc-graph-numsteps (1- (* calc-graph-numsteps 
+	    (setq calc-graph-numsteps (1- (* calc-graph-numsteps
                                              (1+ calc-graph-numsteps3)))))
 	(if (= (setq calc-graph-numsteps (1- (length calc-graph-yvalue))) 0)
 	    (error "Can't plot an empty vector"))
@@ -1098,9 +1099,9 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 			      (buffer-substring (match-beginning 1)
 						(match-end 1)))))))
       (unless yerr
-        (setq lenbl (or (equal mode "lines") 
+        (setq lenbl (or (equal mode "lines")
                         (equal mode "linespoints"))
-              penbl (or (equal mode "points") 
+              penbl (or (equal mode "points")
                         (equal mode "linespoints")))
         (if lines
             (or (eq lines t)
@@ -1117,7 +1118,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (setq errform
             (condition-case nil
                 (math-contains-sdev-p
-                 (eval (intern 
+                 (eval (intern
                         (concat "var-"
                                 (save-excursion
                                   (re-search-backward ":\\(.*\\)\\}")
@@ -1134,7 +1135,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
                       (if penbl "linespoints" "lines")
                     (if penbl "points" "dots"))))
         (if (and pstyle (> pstyle 0))
-            (insert " " 
+            (insert " "
                     (if (and lstyle (> lstyle 0)) (int-to-string lstyle) "1")
                     " " (int-to-string pstyle))
           (if (and lstyle (> lstyle 0))
