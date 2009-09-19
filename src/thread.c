@@ -11,6 +11,8 @@ void mark_catchlist P_ ((struct catchtag *));
 void mark_stack P_ ((char *, char *));
 void flush_stack_call_func P_ ((void (*) (char *, void *), void *));
 
+/* Get the next thread as in circular buffer.  */
+#define NEXT_THREAD(x)(x->next_thread ? x->next_thread : all_threads)
 
 /* condition var .. w/ global lock */
 
@@ -25,6 +27,51 @@ __thread struct thread_state *current_thread = &primary_thread;
 static int inhibit_yield_counter = 0;
 
 pthread_mutex_t global_lock;
+
+/* Used internally by the scheduler, it is the next that will be executed.  */
+static pthread_t next_thread;
+
+/* Choose the next thread to be executed.  */
+static void
+thread_schedule ()
+{
+  struct thread_state *it, *begin = NEXT_THREAD (current_thread);
+
+#define CHECK_THREAD(T,B)                                       \
+  if (!other_threads_p ()                                       \
+      || ((struct thread_state *)T)->nolock                     \
+      || EQ (((struct thread_state *)T)->desired_buffer,        \
+             ((struct thread_state *)T)->m_current_buffer)      \
+      || EQ (B->owner, Qnil)                                    \
+      /* We set the owner to Qt to mean it is being killed.  */ \
+      || EQ (B->owner, Qt))                                     \
+    {                                                           \
+      next_thread = ((struct thread_state *)T)->pthread_id;     \
+      return;                                                   \
+    }                                                           \
+
+  /* Try to wake up the thread that is holding the desired buffer.  */
+  if (current_thread->desired_buffer
+      && !EQ (current_thread->desired_buffer->owner, Qnil)
+      && !EQ (current_buffer->owner, current_thread->desired_buffer->owner))
+    CHECK_THREAD (current_thread->desired_buffer->owner,
+                  current_thread->desired_buffer);
+
+  /* A simple round-robin.  We can't just check for it != current_thread
+     because current_thread could be already unlinked from all_threads.   */
+  it = begin;
+  while (1)
+    {
+      struct buffer *new_buffer = it->desired_buffer;
+      if (!new_buffer)
+        continue;
+      CHECK_THREAD (it, new_buffer);
+
+      it = NEXT_THREAD (it);
+      if (it == current_thread)
+        break;
+    }
+}
 
 static void
 mark_one_thread (struct thread_state *thread)
@@ -106,28 +153,15 @@ void
 thread_acquire_buffer (char *end, void *nb)
 {
   struct buffer *new_buffer = nb;
-
+  current_thread->desired_buffer = new_buffer;
   if (current_buffer)
     {
       current_buffer->owner = current_buffer->prev_owner;
       current_buffer->prev_owner = Qnil;
     }
 
-  /* FIXME this check should be in the caller, for better
-     single-threaded performance.  */
-  if (other_threads_p () && !thread_inhibit_yield_p ())
-    {
-      /* Let other threads try to acquire a buffer.  */
-      pthread_cond_broadcast (&buffer_cond);
-
-      /* If our desired buffer is locked, wait for it.  */
-      while (other_threads_p ()
-             && !current_thread->nolock
-	     && !EQ (new_buffer->owner, Qnil)
-	     /* We set the owner to Qt to mean it is being killed.  */
-	     && !EQ (new_buffer->owner, Qt))
-	pthread_cond_wait (&buffer_cond, &global_lock);
-    }
+  while (current_thread->pthread_id != next_thread)
+    pthread_cond_wait (&buffer_cond, &global_lock);
 
   /* FIXME: if buffer is killed */
   new_buffer->prev_owner = new_buffer->owner;
@@ -150,9 +184,17 @@ thread_yield_callback (char *end, void *ignore)
     return;
 
   current_thread->stack_top = end;
+  thread_schedule ();
+
+  if (next_thread != current_thread->pthread_id)
+    pthread_cond_broadcast (&buffer_cond);
+
   pthread_mutex_unlock (&global_lock);
-  sched_yield ();
+
   pthread_mutex_lock (&global_lock);
+
+  while (next_thread != current_thread->pthread_id)
+    pthread_cond_wait (&buffer_cond, &global_lock);
 }
 
 void
@@ -227,10 +269,12 @@ run_thread (void *state)
      typically wait for the parent thread to release it first.  */
   XSETBUFFER (buffer, self->m_current_buffer);
   GCPRO1 (buffer);
+  self->desired_buffer = (struct buffer *) buffer;
   self->m_current_buffer = 0;
-  set_buffer_internal (XBUFFER (buffer));
 
   pthread_mutex_lock (&global_lock);
+
+  set_buffer_internal (XBUFFER (buffer));
 
   /* It might be nice to do something with errors here.  */
   internal_condition_case (invoke_thread_function, Qt, do_nothing);
@@ -241,10 +285,10 @@ run_thread (void *state)
   *iter = (*iter)->next_thread;
 
   if (!EQ (self->m_current_buffer->owner, Qt))
-    {
-      self->m_current_buffer->owner = Qnil;
-      pthread_cond_broadcast (&buffer_cond);
-    }
+    self->m_current_buffer->owner = self->m_current_buffer->prev_owner;
+
+  thread_schedule ();
+  pthread_cond_broadcast (&buffer_cond);
 
   xfree (self->m_specpdl);
 
@@ -366,11 +410,12 @@ void
 init_threads (void)
 {
   pthread_mutex_init (&global_lock, NULL);
+  pthread_cond_init (&buffer_cond, NULL);
   pthread_mutex_lock (&global_lock);
+
   primary_thread.pthread_id = pthread_self ();
   primary_thread.nolock = 0;
-
-  pthread_cond_init (&buffer_cond, NULL);
+  next_thread = primary_thread.pthread_id;
 }
 
 void

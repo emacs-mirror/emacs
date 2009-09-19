@@ -74,6 +74,10 @@ struct thread_state
 
   /* If nonzero the thread access a buffer without lock it.  */
   int nolock;
+
+  /* Used internally by the scheduler, the buffer that the thread wants a lock
+     for.  */
+  struct buffer *desired_buffer;
 };
 
 extern __thread struct thread_state *current_thread;
