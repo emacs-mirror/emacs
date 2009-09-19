@@ -113,7 +113,12 @@ If set, the server accepts remote connections; otherwise it is local."
 (put 'server-host 'risky-local-variable t)
 
 (defcustom server-auth-dir (locate-user-emacs-file "server/")
-  "Directory for server authentication files."
+  "Directory for server authentication files.
+
+NOTE: On FAT32 filesystems, directories are not secure;
+files can be read and modified by any user or process.
+It is strongly suggested to set `server-auth-dir' to a
+directory residing in a NTFS partition instead."
   :group 'server
   :type 'directory
   :version "22.1")
@@ -453,11 +458,31 @@ Creates the directory if necessary and makes sure:
     (unless attrs
       (letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
+
     ;; Check that it's safe for use.
-    (unless (and (eq t (car attrs)) (eql (nth 2 attrs) (user-uid))
-                 (or (eq system-type 'windows-nt)
-                     (zerop (logand ?\077 (file-modes dir)))))
-      (error "The directory %s is unsafe" dir))))
+    (let* ((uid (nth 2 attrs))
+	   (w32 (eq system-type 'windows-nt))
+	   (safe (catch :safe
+		   (unless (eq t (car attrs))   ; is a dir?
+		     (throw :safe nil))
+		   (when (and w32 (zerop uid))  ; on FAT32?
+		     (display-warning
+		      'server
+		      (format "Using `%s' to store Emacs-server authentication files.
+Directories on FAT32 filesystems are NOT secure against tampering.
+See variable `server-auth-dir' for details."
+			      (file-name-as-directory dir))
+		      :warning)
+		     (throw :safe t))
+		   (unless (eql uid (user-uid)) ; is the dir ours?
+		     (throw :safe nil))
+		   (when w32                    ; on NTFS?
+		     (throw :safe t))
+		   (unless (zerop (logand ?\077 (file-modes dir)))
+		     (throw :safe nil))
+		   t)))
+      (unless safe
+	(error "The directory `%s' is unsafe" dir)))))
 
 ;;;###autoload
 (defun server-start (&optional leave-dead)

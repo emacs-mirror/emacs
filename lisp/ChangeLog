@@ -1,3 +1,11 @@
+2009-09-19  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	This fixes bug#4197 (merged to bug#865, though not identical).
+	* server.el (server-auth-dir): Add docstring note about FAT32.
+	(server-ensure-safe-dir): Accept FAT32 directories as "safe",
+	but warn against using them.
+
 2009-09-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-var-update-handler-1): Include case of
