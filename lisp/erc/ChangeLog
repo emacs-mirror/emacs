@@ -1,3 +1,7 @@
+2009-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* erc-lang.el (line): Define for compiler.
+
 2009-07-22  Kevin Ryde  <user42@zip.com.au>
 
 	* erc/erc.el (erc-cmd-MODE): Hyperlink urls in docstring with URL `...'.
