@@ -264,6 +264,15 @@ for completions displayed in *Completions*.
 the function `byte-compile-dest-file' before loading bytecomp.el is obsolete.
 Instead, customize byte-compile-dest-file-function.
 
+** Several obsolete functions removed.
+The functions have been obsolete since Emacs 19, and are unlikely to
+be in use:
+
+  time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy
+  time-stamp-dd-mon-yy, time-stamp-yy/mm/dd, time-stamp-yyyy/mm/dd,
+  time-stamp-yyyy-mm-dd, time-stamp-yymmdd, time-stamp-hh:mm:ss,
+  time-stamp-hhmm, baud-rate
+
 * Changes in Emacs 23.2 on non-free operating systems
 
 ---
