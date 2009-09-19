@@ -1,3 +1,8 @@
+2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/sh-script.el (sh-learn-buffer-indent): Pop to the
+	indent buffer only if called interactively (Bug#4452).
+
 2009-09-19  Juanma Barranquero  <lekktu@gmail.com>
 	    Eli Zaretskii  <eliz@gnu.org>
 
