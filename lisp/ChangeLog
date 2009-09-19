@@ -1,5 +1,7 @@
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* subr.el (baud-rate): Remove long-obsolete function (Bug#4372).
+
 	* time-stamp.el (time-stamp-month-dd-yyyy)
 	(time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy)
 	(time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)

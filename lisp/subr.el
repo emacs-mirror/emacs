@@ -1072,12 +1072,6 @@ is converted into a string by expressing it in decimal."
 (defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
 (make-obsolete 'makehash 'make-hash-table "22.1")
 
-;; Some programs still use this as a function.
-(defun baud-rate ()
-  "Return the value of the `baud-rate' variable."
-  baud-rate)
-(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
-
 ;; These are used by VM and some old programs
 (defalias 'focus-frame 'ignore "")
 (make-obsolete 'focus-frame "it does nothing." "22.1")
