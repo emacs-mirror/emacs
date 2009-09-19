@@ -13,6 +13,7 @@
 	(Init Rebinding): Move mode-local rebinding example here from Local
 	Keymaps.
 	(Modifier Keys): Clarify.
+	(Rebinding): Add cindex for "binding keys".
 
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 

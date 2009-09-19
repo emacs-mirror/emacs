@@ -1532,6 +1532,7 @@ They do not bind @key{SPC}.
 @subsection Changing Key Bindings Interactively
 @cindex key rebinding, this session
 @cindex redefining keys, this session
+@cindex binding keys
 
   The way to redefine an Emacs key is to change its entry in a keymap.
 You can change the global keymap, in which case the change is
