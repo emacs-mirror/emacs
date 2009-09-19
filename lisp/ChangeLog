@@ -1,5 +1,12 @@
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* time-stamp.el (time-stamp-month-dd-yyyy)
+	(time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy)
+	(time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
+	(time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd)
+	(time-stamp-yymmdd, time-stamp-hh:mm:ss, time-stamp-hhmm): Remove
+	functions that have been obsolete since 1995 (Bug#4436).
+
 	* progmodes/sh-script.el (sh-learn-buffer-indent): Pop to the
 	indent buffer only if called interactively (Bug#4452).
 
