@@ -347,7 +347,7 @@ does not try to get a lock on the current buffer.  */)
     {
       /* Restore the previous situation.  */
       all_threads = all_threads->next_thread;
-      error ("Cannot create new thread");
+      error ("Could not start a new thread");
     }
 
   return Qnil;
