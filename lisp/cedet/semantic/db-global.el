@@ -231,13 +231,15 @@ If optional arg STANDARDFILE is non nil, use a standard file w/ global enabled."
   (require 'data-debug)
   (save-excursion
     (when standardfile
-      (set-buffer (find-file-noselect semanticdb-test-gnu-global-startfile)))
+      (save-match-data
+	(set-buffer (find-file-noselect semanticdb-test-gnu-global-startfile))))
 
     (condition-case err
 	(semanticdb-enable-gnu-global-in-buffer)
       (error (if standardfile
 		 (error err)
-	       (set-buffer (find-file-noselect semanticdb-test-gnu-global-startfile))
+	       (save-match-data
+		 (set-buffer (find-file-noselect semanticdb-test-gnu-global-startfile)))
 	       (semanticdb-enable-gnu-global-in-buffer))))
 
     (let* ((db (semanticdb-project-database-global "global"))

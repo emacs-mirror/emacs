@@ -198,7 +198,8 @@ Return nil if there is no buffer for this tag."
       ;; TAG has an originating file, read that file into a buffer, and
       ;; return it.
      (if (semantic--tag-get-property tag :filename)
-	 (find-file-noselect (semantic--tag-get-property tag :filename))
+	 (save-match-data
+	   (find-file-noselect (semantic--tag-get-property tag :filename)))
        ;; TAG is not in Emacs right now, no buffer is available.
        ))))
 

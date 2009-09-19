@@ -273,7 +273,9 @@ If the buffer is in memory, return that buffer."
 If the buffer is in memory, return that buffer.
 If the buffer is not in memory, load it with `find-file-noselect'."
   (or (semanticdb-in-buffer-p obj)
-      (find-file-noselect (semanticdb-full-filename obj) t)))
+      ;; Save match data to protect against odd stuff in mode hooks.
+      (save-match-data
+	(find-file-noselect (semanticdb-full-filename obj) t))))
 
 (defmethod semanticdb-set-buffer ((obj semanticdb-table))
   "Set the current buffer to be a buffer owned by OBJ.

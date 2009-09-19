@@ -447,9 +447,10 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
 	 ;; ... or eval variables
 	 (enable-local-eval nil)
 	 )
-    (if (featurep 'xemacs)
-	(find-file-noselect file nowarn rawfile)
-      (find-file-noselect file nowarn rawfile wildcards))
+    (save-match-data
+      (if (featurep 'xemacs)
+	  (find-file-noselect file nowarn rawfile)
+	(find-file-noselect file nowarn rawfile wildcards)))
     ))
 
 

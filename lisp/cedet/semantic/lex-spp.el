@@ -862,20 +862,21 @@ and variable state from the current buffer."
       (erase-buffer)
       ;; Below is a painful hack to make sure everything is setup correctly.
       (when (not (eq major-mode mode))
-	(funcall mode)
-	;; Hack in mode-local
-	(activate-mode-local-bindings)
-	;; CHEATER!  The following 3 lines are from
-	;; `semantic-new-buffer-fcn', but we don't want to turn
-	;; on all the other annoying modes for this little task.
-	(setq semantic-new-buffer-fcn-was-run t)
-	(semantic-lex-init)
-	(semantic-clear-toplevel-cache)
-	(remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		     t)
-	)
+	(save-match-data
+	  (funcall mode)
+	  ;; Hack in mode-local
+	  (activate-mode-local-bindings)
+	  ;; CHEATER!  The following 3 lines are from
+	  ;; `semantic-new-buffer-fcn', but we don't want to turn
+	  ;; on all the other annoying modes for this little task.
+	  (setq semantic-new-buffer-fcn-was-run t)
+	  (semantic-lex-init)
+	  (semantic-clear-toplevel-cache)
+	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+		       t)
+	  ))
 
-      ;; Second Cheat: copy key variables reguarding macro state from the
+      ;; Second Cheat: copy key variables regarding macro state from the
       ;; the originating buffer we are parsing.  We need to do this every time
       ;; since the state changes.
       (dolist (V important-vars)

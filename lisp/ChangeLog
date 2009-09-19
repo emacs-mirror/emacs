@@ -1,3 +1,32 @@
+2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	Synch to Eric Ludlam's upstream CEDET repository.
+
+	* cedet/semantic/db.el (semanticdb-get-buffer): Wrap find-file in
+	save-match-data.
+
+	* cedet/semantic/db-global.el (semanticdb-test-gnu-global): Wrap
+	find-file in save-match-data.
+
+	* cedet/semantic/util.el (semantic-file-tag-table)
+	(semantic-recursive-find-nonterminal-by-name): Wrap find-file in
+	save-match-data.
+
+	* cedet/semantic/tag.el (semantic-tag-buffer): Wrap find-file in
+	save-match-data.
+
+	* cedet/semantic/tag-file.el (semantic-go-to-tag): Wrap the "goto"
+	part with save-match-data.
+
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
+	Save match data around calling the major mode to enable.
+
+	* cedet/semantic/format.el (semantic-format-tag-short-doc-default):
+	Wrap find-file in save-match-data.
+
+	* cedet/semantic/fw.el (semantic-find-file-noselect): Wrap
+	find-file in save-match-data
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	Synch to Eric Ludlam's upstream CEDET repository.

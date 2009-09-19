@@ -45,29 +45,30 @@ TAG may be a stripped element, in which case PARENT specifies a
 parent tag that has position information.
 PARENT can also be a `semanticdb-table' object."
   (:override
-   (cond ((semantic-tag-in-buffer-p tag)
-	  ;; We have a linked tag, go to that buffer.
-	  (set-buffer (semantic-tag-buffer tag)))
-	 ((semantic-tag-file-name tag)
-	  ;; If it didn't have a buffer, but does have a file
-	  ;; name, then we need to get to that file so the tag
-	  ;; location is made accurate.
-	  (set-buffer (find-file-noselect (semantic-tag-file-name tag))))
-	 ((and parent (semantic-tag-p parent) (semantic-tag-in-buffer-p parent))
-	  ;; The tag had nothing useful, but we have a parent with
-	  ;; a buffer, then go there.
-	  (set-buffer (semantic-tag-buffer parent)))
-	 ((and parent (semantic-tag-p parent) (semantic-tag-file-name parent))
-	  ;; Tag had nothing, and the parent only has a file-name, then
-	  ;; find that file, and switch to that buffer.
-	  (set-buffer (find-file-noselect (semantic-tag-file-name parent))))
-	 ((and parent (featurep 'semantic/db)
-	       (semanticdb-table-child-p parent))
-	  (set-buffer (semanticdb-get-buffer parent)))
-	 (t
-	  ;; Well, just assume things are in the current buffer.
-	  nil
-	  ))
+   (save-match-data
+     (cond ((semantic-tag-in-buffer-p tag)
+	    ;; We have a linked tag, go to that buffer.
+	    (set-buffer (semantic-tag-buffer tag)))
+	   ((semantic-tag-file-name tag)
+	    ;; If it didn't have a buffer, but does have a file
+	    ;; name, then we need to get to that file so the tag
+	    ;; location is made accurate.
+	    (set-buffer (find-file-noselect (semantic-tag-file-name tag))))
+	   ((and parent (semantic-tag-p parent) (semantic-tag-in-buffer-p parent))
+	    ;; The tag had nothing useful, but we have a parent with
+	    ;; a buffer, then go there.
+	    (set-buffer (semantic-tag-buffer parent)))
+	   ((and parent (semantic-tag-p parent) (semantic-tag-file-name parent))
+	    ;; Tag had nothing, and the parent only has a file-name, then
+	    ;; find that file, and switch to that buffer.
+	    (set-buffer (find-file-noselect (semantic-tag-file-name parent))))
+	   ((and parent (featurep 'semantic/db)
+		 (semanticdb-table-child-p parent))
+	    (set-buffer (semanticdb-get-buffer parent)))
+	   (t
+	    ;; Well, just assume things are in the current buffer.
+	    nil
+	    )))
    ;; We should be in the correct buffer now, try and figure out
    ;; where the tag is.
    (cond ((semantic-tag-with-position-p tag)
