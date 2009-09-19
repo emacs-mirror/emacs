@@ -107,10 +107,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-/* condition var .. w/ global lock */
-
-static pthread_cond_t buffer_cond;
-
 EXFUN (Fset_buffer, 1);
 void set_buffer_internal P_ ((struct buffer *b));
 void set_buffer_internal_1 P_ ((struct buffer *b));
@@ -1866,43 +1862,6 @@ set_buffer_internal (b)
     set_buffer_internal_1 (b);
 }
 
-static void
-acquire_buffer (char *end, void *nb)
-{
-  struct buffer *new_buffer = nb;
-
-  /* FIXME this check should be in the caller, for better
-     single-threaded performance.  */
-  if (other_threads_p () && !thread_inhibit_yield_p ())
-    {
-      /* Let other threads try to acquire a buffer.  */
-      pthread_cond_broadcast (&buffer_cond);
-
-      /* If our desired buffer is locked, wait for it.  */
-      while (other_threads_p ()
-             && !current_thread->nolock
-	     && !EQ (new_buffer->owner, Qnil)
-	     /* We set the owner to Qt to mean it is being killed.  */
-	     && !EQ (new_buffer->owner, Qt))
-	pthread_cond_wait (&buffer_cond, &global_lock);
-    }
-}
-
-/* Mark the thread's current buffer as not having an owner.  This is
-   only ok to call when the thread is shutting down.  The global lock
-   must be held when calling this function.  */
-
-void
-release_buffer (thread)
-     struct thread_state *thread;
-{
-  if (!EQ (thread->m_current_buffer->owner, Qt))
-    {
-      thread->m_current_buffer->owner = Qnil;
-      pthread_cond_broadcast (&buffer_cond);
-    }
-}
-
 /* Set the current buffer to B, and do not set windows_or_buffers_changed.
    This is used by redisplay.  */
 
@@ -1923,18 +1882,7 @@ set_buffer_internal_1 (b)
     return;
 
   old_buf = current_buffer;
-  if (current_buffer)
-    {
-      current_buffer->owner = current_buffer->prev_owner;
-      current_buffer->prev_owner = Qnil;
-    }
-  flush_stack_call_func (acquire_buffer, b);
-  /* FIXME: if buffer is killed */
-  b->prev_owner = b->owner;
-  if (current_thread->nolock)
-    b->owner = Qnil;
-  else
-    b->owner = get_current_thread ();
+  flush_stack_call_func (thread_acquire_buffer, b);
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
 
@@ -5412,8 +5360,6 @@ init_buffer ()
   char *pwd;
   Lisp_Object temp;
   int len;
-
-  pthread_cond_init (&buffer_cond, NULL);
 
 #ifdef USE_MMAP_FOR_BUFFERS
  {

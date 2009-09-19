@@ -1,6 +1,7 @@
 
 #include <config.h>
 #include "lisp.h"
+#include "buffer.h"
 #include "blockinput.h"
 #include <pthread.h>
 
@@ -10,6 +11,10 @@ void mark_catchlist P_ ((struct catchtag *));
 void mark_stack P_ ((char *, char *));
 void flush_stack_call_func P_ ((void (*) (char *, void *), void *));
 
+
+/* condition var .. w/ global lock */
+
+static pthread_cond_t buffer_cond;
 
 static struct thread_state primary_thread;
 
@@ -95,6 +100,41 @@ unmark_threads (void)
   for (iter = all_threads; iter; iter = iter->next_thread)
     if (iter->m_byte_stack_list)
       unmark_byte_stack (iter->m_byte_stack_list);
+}
+
+void
+thread_acquire_buffer (char *end, void *nb)
+{
+  struct buffer *new_buffer = nb;
+
+  if (current_buffer)
+    {
+      current_buffer->owner = current_buffer->prev_owner;
+      current_buffer->prev_owner = Qnil;
+    }
+
+  /* FIXME this check should be in the caller, for better
+     single-threaded performance.  */
+  if (other_threads_p () && !thread_inhibit_yield_p ())
+    {
+      /* Let other threads try to acquire a buffer.  */
+      pthread_cond_broadcast (&buffer_cond);
+
+      /* If our desired buffer is locked, wait for it.  */
+      while (other_threads_p ()
+             && !current_thread->nolock
+	     && !EQ (new_buffer->owner, Qnil)
+	     /* We set the owner to Qt to mean it is being killed.  */
+	     && !EQ (new_buffer->owner, Qt))
+	pthread_cond_wait (&buffer_cond, &global_lock);
+    }
+
+  /* FIXME: if buffer is killed */
+  new_buffer->prev_owner = new_buffer->owner;
+  if (current_thread->nolock)
+    new_buffer->owner = Qnil;
+  else
+    new_buffer->owner = get_current_thread ();
 }
 
 int
@@ -200,7 +240,12 @@ run_thread (void *state)
     ;
   *iter = (*iter)->next_thread;
 
-  release_buffer (self);
+  if (!EQ (self->m_current_buffer->owner, Qt))
+    {
+      self->m_current_buffer->owner = Qnil;
+      pthread_cond_broadcast (&buffer_cond);
+    }
+
   xfree (self->m_specpdl);
 
   pthread_mutex_unlock (&global_lock);
@@ -324,6 +369,8 @@ init_threads (void)
   pthread_mutex_lock (&global_lock);
   primary_thread.pthread_id = pthread_self ();
   primary_thread.nolock = 0;
+
+  pthread_cond_init (&buffer_cond, NULL);
 }
 
 void

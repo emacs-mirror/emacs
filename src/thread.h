@@ -97,3 +97,5 @@ extern int user_thread_p P_ ((void));
 EXFUN (Finhibit_yield, 1);
 
 extern int thread_inhibit_yield_p  P_ ((void));
+
+extern void thread_acquire_buffer (char *, void *);
