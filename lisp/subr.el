@@ -2889,6 +2889,10 @@ The value returned is the value of the last form in BODY."
 		  ,@body)
 	 (with-current-buffer ,old-buffer
 	   (set-case-table ,old-case-table))))))
+
+(defmacro with-new-thread (&rest body)
+  "Execute the forms in BODY in a new thread."
+  `(run-in-thread (lambda () ,@body)))
 
 ;;; Matching and match data.
 
