@@ -53,11 +53,11 @@
   (calc-slow-wrapper
    (let ((top (calc-top-n 1)))
      (if (calc-is-inverse)
-         (setq top 
+         (setq top
                (let ((calc-simplify-mode nil))
                  (math-normalize (math-trig-rewrite top)))))
      (if (calc-is-hyperbolic)
-         (setq top 
+         (setq top
                (let ((calc-simplify-mode nil))
                  (math-normalize (math-hyperbolic-trig-rewrite top)))))
      (calc-with-default-simplification
@@ -353,7 +353,7 @@
    (t
     (mapcar 'math-hyperbolic-trig-rewrite fn))))
 
-;; math-top-only is local to math-simplify, but is used by 
+;; math-top-only is local to math-simplify, but is used by
 ;; math-simplify-step, which is called by math-simplify.
 (defvar math-top-only)
 
@@ -456,7 +456,7 @@
 	aaa temp)
     (while (memq (car-safe (setq aaa (nth 1 aa))) '(+ -))
       (if (setq temp (math-combine-sum (nth 2 aaa) (nth 2 math-simplify-expr)
-				       (eq (car aaa) '-) 
+				       (eq (car aaa) '-)
                                        (eq (car math-simplify-expr) '-) t))
 	  (progn
 	    (setcar (cdr (cdr math-simplify-expr)) temp)
@@ -499,7 +499,7 @@
 	  (setcar (cdr math-simplify-expr) (math-mul (nth 1 math-simplify-expr) temp))))
     (while (and (eq (car-safe (setq aaa (nth 2 aa))) '*)
 		safe)
-      (if (setq temp (math-combine-prod (nth 1 math-simplify-expr) 
+      (if (setq temp (math-combine-prod (nth 1 math-simplify-expr)
                                         (nth 1 aaa) nil nil t))
 	  (progn
 	    (setcar (cdr math-simplify-expr) temp)
@@ -513,7 +513,7 @@
 	  (setcar (cdr (cdr aa)) 1)))
     (if (and (eq (car-safe (nth 1 math-simplify-expr)) 'frac)
 	     (memq (nth 1 (nth 1 math-simplify-expr)) '(1 -1)))
-	(math-div (math-mul (nth 2 math-simplify-expr) 
+	(math-div (math-mul (nth 2 math-simplify-expr)
                             (nth 1 (nth 1 math-simplify-expr)))
 		  (nth 2 (nth 1 math-simplify-expr)))
       math-simplify-expr)))
@@ -524,18 +524,18 @@
 (defun math-simplify-divide ()
   (let ((np (cdr math-simplify-expr))
 	(nover nil)
-	(nn (and (or (eq (car math-simplify-expr) '/) 
+	(nn (and (or (eq (car math-simplify-expr) '/)
                      (not (Math-realp (nth 2 math-simplify-expr))))
 		 (math-common-constant-factor (nth 2 math-simplify-expr))))
 	n op)
     (if nn
 	(progn
-	  (setq n (and (or (eq (car math-simplify-expr) '/) 
+	  (setq n (and (or (eq (car math-simplify-expr) '/)
                            (not (Math-realp (nth 1 math-simplify-expr))))
 		       (math-common-constant-factor (nth 1 math-simplify-expr))))
 	  (if (and (eq (car-safe nn) 'frac) (eq (nth 1 nn) 1) (not n))
 	      (progn
-		(setcar (cdr math-simplify-expr) 
+		(setcar (cdr math-simplify-expr)
                         (math-mul (nth 2 nn) (nth 1 math-simplify-expr)))
 		(setcar (cdr (cdr math-simplify-expr))
 			(math-cancel-common-factor (nth 2 math-simplify-expr) nn))
@@ -549,7 +549,7 @@
 		  (setcar (cdr (cdr math-simplify-expr))
 			  (math-cancel-common-factor (nth 2 math-simplify-expr) n))
 		  (if (and (math-negp n)
-			   (setq op (assq (car math-simplify-expr) 
+			   (setq op (assq (car math-simplify-expr)
                                           calc-tweak-eqn-table)))
 		      (setcar math-simplify-expr (nth 1 op))))))))
     (if (and (eq (car-safe (car np)) '/)
@@ -576,15 +576,15 @@
 (defvar math-simplify-divisor-nover)
 (defvar math-simplify-divisor-dover)
 
-(defun math-simplify-divisor (np dp math-simplify-divisor-nover 
+(defun math-simplify-divisor (np dp math-simplify-divisor-nover
                                  math-simplify-divisor-dover)
   (cond ((eq (car-safe (car dp)) '/)
-	 (math-simplify-divisor np (cdr (car dp)) 
-                                math-simplify-divisor-nover 
+	 (math-simplify-divisor np (cdr (car dp))
+                                math-simplify-divisor-nover
                                 math-simplify-divisor-dover)
 	 (and (math-known-scalarp (nth 1 (car dp)) t)
 	      (math-simplify-divisor np (cdr (cdr (car dp)))
-				     math-simplify-divisor-nover 
+				     math-simplify-divisor-nover
                                      (not math-simplify-divisor-dover))))
 	((or (or (eq (car math-simplify-expr) '/)
 		 (let ((signs (math-possible-signs (car np))))
@@ -594,7 +594,7 @@
 		       math-living-dangerously)))
 	     (math-numberp (car np)))
 	 (let (d
-               (safe t) 
+               (safe t)
                (scalar (math-known-scalarp (car np))))
 	   (while (and (eq (car-safe (setq d (car dp))) '*)
 		       safe)
@@ -605,10 +605,10 @@
 	       (math-simplify-one-divisor np dp))))))
 
 (defun math-simplify-one-divisor (np dp)
-  (let ((temp (math-combine-prod (car np) (car dp) math-simplify-divisor-nover 
+  (let ((temp (math-combine-prod (car np) (car dp) math-simplify-divisor-nover
                                  math-simplify-divisor-dover t))
         op)
-    (if temp 
+    (if temp
         (progn
           (and (not (memq (car math-simplify-expr) '(/ calcFunc-eq calcFunc-neq)))
                (math-known-negp (car dp))
@@ -616,7 +616,7 @@
                (setcar math-simplify-expr (nth 1 op)))
           (setcar np (if math-simplify-divisor-nover (math-div 1 temp) temp))
           (setcar dp 1))
-      (and math-simplify-divisor-dover (not math-simplify-divisor-nover) 
+      (and math-simplify-divisor-dover (not math-simplify-divisor-nover)
            (eq (car math-simplify-expr) '/)
            (eq (car-safe (car dp)) 'calcFunc-sqrt)
            (Math-integerp (nth 1 (car dp)))
@@ -717,7 +717,7 @@
       (math-simplify-add-term (cdr (cdr n)) (cdr (cdr math-simplify-expr))
 			      (eq (car n) '-) nil)
       (setq np (cdr n)))
-    (math-simplify-add-term np (cdr (cdr math-simplify-expr)) nil 
+    (math-simplify-add-term np (cdr (cdr math-simplify-expr)) nil
                             (eq np (cdr math-simplify-expr)))
     (math-simplify-divide)
     (let ((signs (math-possible-signs (cons '- (cdr math-simplify-expr)))))
@@ -784,12 +784,12 @@
 	     (and n
 		  (math-known-sin (car n) (nth 1 n) '(frac 2 3) 0))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
-	   (list 'calcFunc-sqrt (math-sub 1 (math-sqr 
+	   (list 'calcFunc-sqrt (math-sub 1 (math-sqr
                                              (nth 1 (nth 1 math-simplify-expr))))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
 	   (math-div (nth 1 (nth 1 math-simplify-expr))
 		     (list 'calcFunc-sqrt
-			   (math-add 1 (math-sqr 
+			   (math-add 1 (math-sqr
                                         (nth 1 (nth 1 math-simplify-expr)))))))
       (let ((m (math-should-expand-trig (nth 1 math-simplify-expr))))
 	(and m (integerp (car m))
@@ -814,12 +814,12 @@
 	     (and n
 		  (math-known-sin (car n) (nth 1 n) '(frac 2 3) 300))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
-	   (list 'calcFunc-sqrt 
+	   (list 'calcFunc-sqrt
                  (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr))))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
 	   (math-div 1
 		     (list 'calcFunc-sqrt
-			   (math-add 1 
+			   (math-add 1
                                      (math-sqr (nth 1 (nth 1 math-simplify-expr)))))))
       (let ((m (math-should-expand-trig (nth 1 math-simplify-expr))))
 	(and m (integerp (car m))
@@ -842,17 +842,17 @@
 	     (and n
                   (math-div 1 (math-known-sin (car n) (nth 1 n) '(frac 2 3) 300)))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
-           (math-div 
+           (math-div
             1
-            (list 'calcFunc-sqrt 
+            (list 'calcFunc-sqrt
                   (math-sub 1 (math-sqr (nth 1 (nth 1 math-simplify-expr)))))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
-           (math-div 
+           (math-div
             1
             (nth 1 (nth 1 math-simplify-expr))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
            (list 'calcFunc-sqrt
-                 (math-add 1 
+                 (math-add 1
                            (math-sqr (nth 1 (nth 1 math-simplify-expr))))))))
 
 (math-defsimplify calcFunc-csc
@@ -869,13 +869,13 @@
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsin)
 	   (math-div 1 (nth 1 (nth 1 math-simplify-expr))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccos)
-           (math-div 
+           (math-div
             1
-            (list 'calcFunc-sqrt (math-sub 1 (math-sqr 
+            (list 'calcFunc-sqrt (math-sub 1 (math-sqr
                                               (nth 1 (nth 1 math-simplify-expr)))))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctan)
 	   (math-div (list 'calcFunc-sqrt
-			   (math-add 1 (math-sqr 
+			   (math-add 1 (math-sqr
                                         (nth 1 (nth 1 math-simplify-expr)))))
                      (nth 1 (nth 1 math-simplify-expr))))))
 
@@ -1021,7 +1021,7 @@
 	   (math-neg (list 'calcFunc-sinh (math-neg (nth 1 math-simplify-expr)))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
 	   math-living-dangerously
-	   (list 'calcFunc-sqrt 
+	   (list 'calcFunc-sqrt
                  (math-sub (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1)))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
 	   math-living-dangerously
@@ -1045,7 +1045,7 @@
 	   (list 'calcFunc-cosh (math-neg (nth 1 math-simplify-expr))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsinh)
 	   math-living-dangerously
-	   (list 'calcFunc-sqrt 
+	   (list 'calcFunc-sqrt
                  (math-add (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1)))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
 	   math-living-dangerously
@@ -1090,9 +1090,9 @@
 	   (list 'calcFunc-sech (math-neg (nth 1 math-simplify-expr))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arcsinh)
 	   math-living-dangerously
-           (math-div 
+           (math-div
             1
-            (list 'calcFunc-sqrt 
+            (list 'calcFunc-sqrt
                   (math-add (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
 	   math-living-dangerously
@@ -1110,9 +1110,9 @@
            (math-div 1 (nth 1 (nth 1 math-simplify-expr))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arccosh)
 	   math-living-dangerously
-           (math-div 
+           (math-div
             1
-            (list 'calcFunc-sqrt 
+            (list 'calcFunc-sqrt
                   (math-sub (math-sqr (nth 1 (nth 1 math-simplify-expr))) 1))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-arctanh)
 	   math-living-dangerously
@@ -1205,7 +1205,7 @@
 
 (defun math-simplify-sqrt ()
   (or (and (eq (car-safe (nth 1 math-simplify-expr)) 'frac)
-	   (math-div (list 'calcFunc-sqrt 
+	   (math-div (list 'calcFunc-sqrt
                            (math-mul (nth 1 (nth 1 math-simplify-expr))
                                      (nth 2 (nth 1 math-simplify-expr))))
 		     (nth 2 (nth 1 math-simplify-expr))))
@@ -1216,7 +1216,7 @@
 	     (math-mul (math-normalize (list 'calcFunc-sqrt fac))
 		       (math-normalize
 			(list 'calcFunc-sqrt
-			      (math-cancel-common-factor 
+			      (math-cancel-common-factor
                                (nth 1 math-simplify-expr) fac))))))
       (and math-living-dangerously
 	   (or (and (eq (car-safe (nth 1 math-simplify-expr)) '-)
@@ -1230,7 +1230,7 @@
 			(and (eq (car-safe (nth 1 (nth 2 (nth 1 math-simplify-expr))))
 				 'calcFunc-cos)
 			     (list 'calcFunc-sin
-				   (nth 1 (nth 1 (nth 2 
+				   (nth 1 (nth 1 (nth 2
                                                       (nth 1 math-simplify-expr))))))))
 	       (and (eq (car-safe (nth 1 math-simplify-expr)) '-)
 		    (math-equal-int (nth 2 (nth 1 math-simplify-expr)) 1)
@@ -1370,7 +1370,7 @@
 	   (or (and (eq (car-safe (nth 1 math-simplify-expr)) '^)
 		    (list '^
 			  (nth 1 (nth 1 math-simplify-expr))
-			  (math-mul (nth 2 math-simplify-expr) 
+			  (math-mul (nth 2 math-simplify-expr)
                                     (nth 2 (nth 1 math-simplify-expr)))))
 	       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-sqrt)
 		    (list '^
@@ -1378,9 +1378,9 @@
 			  (math-div (nth 2 math-simplify-expr) 2)))
 	       (and (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
 		    (list (car (nth 1 math-simplify-expr))
-			  (list '^ (nth 1 (nth 1 math-simplify-expr)) 
+			  (list '^ (nth 1 (nth 1 math-simplify-expr))
                                 (nth 2 math-simplify-expr))
-			  (list '^ (nth 2 (nth 1 math-simplify-expr)) 
+			  (list '^ (nth 2 (nth 1 math-simplify-expr))
                                 (nth 2 math-simplify-expr))))))
       (and (math-equal-int (nth 1 math-simplify-expr) 10)
 	   (eq (car-safe (nth 2 math-simplify-expr)) 'calcFunc-log10)
@@ -1389,7 +1389,7 @@
 	   (math-simplify-exp (nth 2 math-simplify-expr)))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-exp)
 	   (not math-integrating)
-	   (list 'calcFunc-exp (math-mul (nth 1 (nth 1 math-simplify-expr)) 
+	   (list 'calcFunc-exp (math-mul (nth 1 (nth 1 math-simplify-expr))
                                          (nth 2 math-simplify-expr))))
       (and (equal (nth 1 math-simplify-expr) '(var i var-i))
 	   (math-imaginary-i)
@@ -1403,14 +1403,14 @@
 	   (integerp (nth 2 math-simplify-expr))
 	   (>= (nth 2 math-simplify-expr) 2)
 	   (or (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-cos)
-		    (math-mul (math-pow (nth 1 math-simplify-expr) 
+		    (math-mul (math-pow (nth 1 math-simplify-expr)
                                         (- (nth 2 math-simplify-expr) 2))
 			      (math-sub 1
 					(math-sqr
 					 (list 'calcFunc-sin
 					       (nth 1 (nth 1 math-simplify-expr)))))))
 	       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-cosh)
-		    (math-mul (math-pow (nth 1 math-simplify-expr) 
+		    (math-mul (math-pow (nth 1 math-simplify-expr)
                                         (- (nth 2 math-simplify-expr) 2))
 			      (math-add 1
 					(math-sqr
@@ -1443,14 +1443,14 @@
   (or (and (math-looks-negp (nth 1 math-simplify-expr))
 	   (math-neg (list 'calcFunc-erf (math-neg (nth 1 math-simplify-expr)))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-conj)
-	   (list 'calcFunc-conj 
+	   (list 'calcFunc-conj
                  (list 'calcFunc-erf (nth 1 (nth 1 math-simplify-expr)))))))
 
 (math-defsimplify calcFunc-erfc
   (or (and (math-looks-negp (nth 1 math-simplify-expr))
 	   (math-sub 2 (list 'calcFunc-erfc (math-neg (nth 1 math-simplify-expr)))))
       (and (eq (car-safe (nth 1 math-simplify-expr)) 'calcFunc-conj)
-	   (list 'calcFunc-conj 
+	   (list 'calcFunc-conj
                  (list 'calcFunc-erfc (nth 1 (nth 1 math-simplify-expr)))))))
 
 
@@ -1652,13 +1652,14 @@
       (car p))))
 
 ;;; If expr is of the form "a + bx + cx^2 + ...", return the list (a b c ...),
-;;; else return nil if not in polynomial form.  If "loose" (math-is-poly-loose), 
+;;; else return nil if not in polynomial form.  If "loose" (math-is-poly-loose),
 ;;; coefficients may contain x, e.g., sin(x) + cos(x) x^2 is a loose polynomial in x.
 
-;; The variables math-is-poly-degree and math-is-poly-loose are local to 
-;; math-is-polynomial, but are used by math-is-poly-rec
+;; These variables are local to math-is-polynomial, but are used by
+;; math-is-poly-rec.
 (defvar math-is-poly-degree)
 (defvar math-is-poly-loose)
+(defvar var)
 
 (defun math-is-polynomial (expr var &optional math-is-poly-degree math-is-poly-loose)
   (let* ((math-poly-base-variable (if math-is-poly-loose
@@ -1744,7 +1745,7 @@
 		     (let ((p2 (math-is-poly-rec (nth 2 expr) negpow)))
 		       (and p2
 			    (or (null math-is-poly-degree)
-				(<= (- (+ (length p1) (length p2)) 2) 
+				(<= (- (+ (length p1) (length p2)) 2)
                                     math-is-poly-degree))
 			    (math-poly-mul p1 p2))))))
 	     ((eq (car expr) '/)

@@ -1,5 +1,6 @@
 2009-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* calc/calc-alg.el (var):
 	* calc/calcalg2.el (var): Define for compiler.
 
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
