@@ -1,3 +1,7 @@
+2009-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region): Add missing mapconcat separator.
+
 2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (auto-mode-alist): Change default for XML files to nXML
