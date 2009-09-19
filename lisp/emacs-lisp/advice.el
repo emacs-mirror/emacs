@@ -2781,7 +2781,8 @@ to be accessed, it returns a list with the index and name."
 	   (list (- index (length reqopt-args)) rest-arg)))))
 
 (defun ad-get-argument (arglist index)
-  "Return form to access ARGLIST's actual argument at position INDEX."
+  "Return form to access ARGLIST's actual argument at position INDEX.
+INDEX counts from zero."
   (let ((argument-access (ad-access-argument arglist index)))
     (cond ((consp argument-access)
 	   (ad-element-access
@@ -2789,7 +2790,8 @@ to be accessed, it returns a list with the index and name."
 	  (argument-access))))
 
 (defun ad-set-argument (arglist index value-form)
-  "Return form to set ARGLIST's actual arg at INDEX to VALUE-FORM."
+  "Return form to set ARGLIST's actual arg at INDEX to VALUE-FORM.
+INDEX counts from zero."
   (let ((argument-access (ad-access-argument arglist index)))
     (cond ((consp argument-access)
 	   ;; should this check whether there actually is something to set?

@@ -1,5 +1,8 @@
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/advice.el (ad-get-argument, ad-set-argument): Doc
+	fix (Bug#3932).
+
 	* subr.el (baud-rate): Remove long-obsolete function (Bug#4372).
 
 	* time-stamp.el (time-stamp-month-dd-yyyy)
