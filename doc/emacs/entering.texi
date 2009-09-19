@@ -97,9 +97,8 @@ the desired file or directory, or @code{t}, which means to display the
 @item C-x C-c
 Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
-On a text terminal, suspend Emacs (@code{suspend-emacs}); on a
-graphical display, iconify (or ``minimize'') the selected frame
-(@code{iconify-or-deiconify-frame}).
+On a text terminal, suspend Emacs; on a graphical display,
+``minimize'' the selected frame (@code{suspend-emacs}).
 @end table
 
 @kindex C-x C-c
@@ -140,7 +139,7 @@ kill-emacs}.
 @cindex iconifying
 @cindex suspending
   You can ``exit'' Emacs in two other ways.  On a graphical display,
-you can @dfn{iconify} (or @dfn{minimize}) an Emacs frame; depending on
+you can @dfn{minimize} (or @dfn{iconify}) an Emacs frame; depending on
 the window system, this either replaces the Emacs frame with a tiny
 ``icon'' or conceals the frame entirely (@pxref{Frames}).  On a
 text-only terminal, you can @dfn{suspend} Emacs; this means stopping
@@ -148,14 +147,12 @@ the Emacs program temporarily, returning control to its parent process
 (usually a shell).
 
 @kindex C-z
-@findex iconify-or-deiconify-frame
-@findex suspend-emacs
-  On a graphical display, @kbd{C-z} runs the command
-@code{iconify-or-deiconify-frame}, which iconifies the selected Emacs
-frame.  On a text terminal, @kbd{C-z} runs the command
-@code{suspend-emacs}, which suspends Emacs.
+@findex suspend-frame
+  @kbd{C-z} runs the command @code{suspend-frame}.  On a graphical
+display, this ``minimizes'' (or ``iconifies'') the selected Emacs
+frame.  On a text terminal, this suspends the Emacs process.
 
-  After iconifying or suspending Emacs, you can return to it and
+  After minimizing or suspending Emacs, you can return to it and
 continue editing wherever you left off.  The way to do this depends on
 the window system or shell.  In most common shells, you can resume
 Emacs after suspending it with the shell command @command{%emacs}.

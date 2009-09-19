@@ -1,3 +1,19 @@
+2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Frame Commands): C-z is now bound to suspend-frame.
+
+	* entering.texi (Exiting): C-z is now bound to suspend-frame.
+
+	* custom.texi (Init Examples): Replace Rumseld with Cheny (Bug#3519).
+	(Key Bindings): Reference Init Rebinding in introductory text.  Shift
+	some of the introduction to Keymaps node.
+	(Keymaps): Simplify.
+	(Local Keymaps): Simplify.  Move binding example to Init Rebinding.
+	(Minibuffer Maps): Remove mention of Mocklisp.
+	(Init Rebinding): Move mode-local rebinding example here from Local
+	Keymaps.
+	(Modifier Keys): Clarify.
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Invoking emacsclient): Minor clarifications (Bug#4419).

@@ -1344,13 +1344,10 @@ unsafe file-local variables (@pxref{Safe File Variables}).
 @section Customizing Key Bindings
 @cindex key bindings
 
-  This section describes @dfn{key bindings}, which map keys to commands,
-and @dfn{keymaps}, which record key bindings.  It also explains how
-to customize key bindings.
-
-  Recall that a command is a Lisp function whose definition provides for
-interactive use.  Like every Lisp function, a command has a function
-name, which usually consists of lower-case letters and hyphens.
+  This section describes @dfn{key bindings}, which map keys to
+commands, and @dfn{keymaps}, which record key bindings.  It also
+explains how to customize key bindings, which is done by editing your
+init file (@pxref{Init Rebinding}).
 
 @menu
 * Keymaps::             Generalities.  The global keymap.
@@ -1372,58 +1369,51 @@ name, which usually consists of lower-case letters and hyphens.
 @subsection Keymaps
 @cindex keymap
 
-  The bindings between key sequences and command functions are recorded
-in data structures called @dfn{keymaps}.  Emacs has many of these, each
-used on particular occasions.
+  As described in @ref{Commands}, each Emacs command is a Lisp
+function whose definition provides for interactive use.  Like every
+Lisp function, a command has a function name, which usually consists
+of lower-case letters and hyphens.
 
   A @dfn{key sequence} (@dfn{key}, for short) is a sequence of
 @dfn{input events} that have a meaning as a unit.  Input events
 include characters, function keys and mouse buttons---all the inputs
-that you can send to the computer with your terminal.  A key sequence
-gets its meaning from its @dfn{binding}, which says what command it
-runs.  The role of keymaps is to record these bindings.
+that you can send to the computer.  A key sequence gets its meaning
+from its @dfn{binding}, which says what command it runs.
+
+  The bindings between key sequences and command functions are
+recorded in data structures called @dfn{keymaps}.  Emacs has many of
+these, each used on particular occasions.
 
 @cindex global keymap
   The @dfn{global} keymap is the most important keymap because it is
-always in effect.  The global keymap defines keys for Fundamental mode;
-most of these definitions are common to most or all major modes.  Each
-major or minor mode can have its own keymap which overrides the global
-definitions of some keys.
+always in effect.  The global keymap defines keys for Fundamental mode
+(@pxref{Major Modes}); most of these definitions are common to most or
+all major modes.  Each major or minor mode can have its own keymap
+which overrides the global definitions of some keys.
 
   For example, a self-inserting character such as @kbd{g} is
 self-inserting because the global keymap binds it to the command
-@code{self-insert-command}.  The standard Emacs editing characters such
-as @kbd{C-a} also get their standard meanings from the global keymap.
-Commands to rebind keys, such as @kbd{M-x global-set-key}, actually work
-by storing the new binding in the proper place in the global map.
-@xref{Rebinding}.
+@code{self-insert-command}.  The standard Emacs editing characters
+such as @kbd{C-a} also get their standard meanings from the global
+keymap.  Commands to rebind keys, such as @kbd{M-x global-set-key},
+work by storing the new binding in the proper place in the global map
+(@pxref{Rebinding}).
 
 @cindex function key
   Most modern keyboards have function keys as well as character keys.
 Function keys send input events just as character keys do, and keymaps
-can have bindings for them.  On text terminals, typing a function key
-actually sends the computer a sequence of characters; the precise
-details of the sequence depends on which function key and on the model
-of terminal you are using.  (Often the sequence starts with
-@kbd{@key{ESC} [}.)  If Emacs understands your terminal type properly,
-it recognizes the character sequences forming function keys wherever
-they occur in a key sequence.  Thus, for most purposes, you can
-pretend the function keys reach Emacs directly and ignore their
-encoding as character sequences.
+can have bindings for them.  Key sequences can mix function keys and
+characters.  For example, if your keyboard has a @key{Home} function
+key, Emacs can recognize key sequences like @kbd{C-x @key{Home}}.  You
+can even mix mouse events with keyboard events, such as
+@kbd{S-down-mouse-1}.
 
-  Key sequences can mix function keys and characters.  For example, if
-your keyboard has a @key{Home} function key, Emacs also recognizes key
-sequences like @kbd{C-x @key{Home}}.  You can even mix mouse events
-with keyboard events, but we recommend against it, because such key
-sequences are inconvenient to use.
-
-  As a user, you can redefine any key, but it is usually best to stick
-to key sequences that consist of @kbd{C-c} followed by a letter (upper
-or lower case).  These keys are ``reserved for users,'' so they won't
-conflict with any properly designed Emacs extension.  The function
-keys @key{F5} through @key{F9} are also reserved for users.  If you
-redefine some other key, your definition may be overridden by certain
-extensions or major modes which redefine the same key.
+  On text terminals, typing a function key actually sends the computer
+a sequence of characters; the precise details of the sequence depends
+on the function key and on the terminal type.  (Often the sequence
+starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
+type properly, it automatically handles such sequences as single input
+events.
 
 @node Prefix Keymaps
 @subsection Prefix Keymaps
@@ -1479,27 +1469,25 @@ characters are actually defined by this map.
 @subsection Local Keymaps
 
 @cindex local keymap
-  So far we have explained the ins and outs of the global map.  Major
-modes customize Emacs by providing their own key bindings in @dfn{local
-keymaps}.  For example, C mode overrides @key{TAB} to make it indent the
-current line for C code.  Portions of text in the buffer can specify
-their own keymaps to substitute for the keymap of the buffer's major
-mode.
-
 @cindex minor mode keymap
-  Minor modes can also have local keymaps.  Whenever a minor mode is
-in effect, the definitions in its keymap override both the major
-mode's local keymap and the global keymap.
+  So far, we have explained the ins and outs of the global map.  Major
+modes customize Emacs by providing their own key bindings in
+@dfn{local keymaps}.  For example, C mode overrides @key{TAB} to make
+it indent the current line for C code.  Minor modes can also have
+local keymaps; whenever a minor mode is in effect, the definitions in
+its keymap override both the major mode's local keymap and the global
+keymap.  In addition, portions of text in the buffer can specify their
+own keymaps, which override all other keymaps.
 
-  A local keymap can locally redefine a key as a prefix key by defining
-it as a prefix keymap.  If the key is also defined globally as a prefix,
-then its local and global definitions (both keymaps) effectively
-combine: both of them are used to look up the event that follows the
-prefix key.  Thus, if the mode's local keymap defines @kbd{C-c} as
-another keymap, and that keymap defines @kbd{C-z} as a command, this
-provides a local meaning for @kbd{C-c C-z}.  This does not affect other
-sequences that start with @kbd{C-c}; if those sequences don't have their
-own local bindings, their global bindings remain in effect.
+  A local keymap can redefine a key as a prefix key by defining it as
+a prefix keymap.  If the key is also defined globally as a prefix, its
+local and global definitions (both keymaps) effectively combine: both
+definitions are used to look up the event that follows the prefix key.
+For example, if a local keymap defines @kbd{C-c} as a prefix keymap,
+and that keymap defines @kbd{C-z} as a command, this provides a local
+meaning for @kbd{C-c C-z}.  This does not affect other sequences that
+start with @kbd{C-c}; if those sequences don't have their own local
+bindings, their global bindings remain in effect.
 
   Another way to think of this is that Emacs handles a multi-event key
 sequence by looking in several keymaps, one by one, for a binding of the
@@ -1508,27 +1496,6 @@ modes that are enabled, then it checks the major mode's keymap, and then
 it checks the global keymap.  This is not precisely how key lookup
 works, but it's good enough for understanding the results in ordinary
 circumstances.
-
-@cindex rebinding major mode keys
-  Most major modes construct their keymaps when the mode is used for
-the first time in a session.  If you wish to change one of these
-keymaps, you must use the major mode's @dfn{mode hook}
-(@pxref{Hooks}).
-
-@findex define-key
-  For example, the command @code{texinfo-mode} to select Texinfo mode
-runs the hook @code{texinfo-mode-hook}.  Here's how you can use the hook
-to add local bindings (not very useful, we admit) for @kbd{C-c n} and
-@kbd{C-c p} in Texinfo mode:
-
-@example
-(add-hook 'texinfo-mode-hook
-          '(lambda ()
-             (define-key texinfo-mode-map "\C-cp"
-                         'backward-paragraph)
-             (define-key texinfo-mode-map "\C-cn"
-                         'forward-paragraph)))
-@end example
 
 @node Minibuffer Maps
 @subsection Minibuffer Keymaps
@@ -1548,7 +1515,7 @@ completion and exit commands.
 @code{minibuffer-local-map} is used for ordinary input (no completion).
 @item
 @code{minibuffer-local-ns-map} is similar, except that @key{SPC} exits
-just like @key{RET}.  This is used mainly for Mocklisp compatibility.
+just like @key{RET}.
 @item
 @code{minibuffer-local-completion-map} is for permissive completion.
 @item
@@ -1567,10 +1534,14 @@ They do not bind @key{SPC}.
 @cindex redefining keys, this session
 
   The way to redefine an Emacs key is to change its entry in a keymap.
-You can change the global keymap, in which case the change is effective in
-all major modes (except those that have their own overriding local
-definitions for the same key).  Or you can change the current buffer's
-local map, which affects all buffers using the same major mode.
+You can change the global keymap, in which case the change is
+effective in all major modes (except those that have their own
+overriding local bindings for the same key).  Or you can change a
+local keymap, which affects all buffers using the same major mode.
+
+  In this section, we describe how to rebind keys for the present
+Emacs session.  @xref{Init Rebinding}, for a description of how to
+make key rebindings affect future Emacs sessions.
 
 @findex global-set-key
 @findex local-set-key
@@ -1588,21 +1559,18 @@ Make @var{key} undefined in the global map.
 Make @var{key} undefined locally (in the major mode now in effect).
 @end table
 
-  For example, suppose you like to execute commands in a subshell within
-an Emacs buffer, instead of suspending Emacs and executing commands in
-your login shell.  Normally, @kbd{C-z} is bound to the function
-@code{suspend-emacs} (when not using the X Window System), but you can
-change @kbd{C-z} to invoke an interactive subshell within Emacs, by
-binding it to @code{shell} as follows:
+  For example, the following binds @kbd{C-z} to the @code{shell}
+command (@pxref{Interactive Shell}), replacing the normal global
+definition of @kbd{C-z}:
 
 @example
 M-x global-set-key @key{RET} C-z shell @key{RET}
 @end example
 
 @noindent
-@code{global-set-key} reads the command name after the key.   After you
-press the key, a message like this appears so that you can confirm that
-you are binding the key you want:
+The @code{global-set-key} command reads the command name after the
+key.  After you press the key, a message like this appears so that you
+can confirm that you are binding the key you want:
 
 @example
 Set key C-z to command:
@@ -1648,12 +1616,13 @@ command is less work to invoke when you really want to.
 
 @node Init Rebinding
 @subsection Rebinding Keys in Your Init File
+@cindex rebinding major mode keys
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
 
   If you have a set of key bindings that you like to use all the time,
-you can specify them in your initialization file by writing Lisp code
-(@pxref{Init File}).
+you can specify them in your initialization file by writing Lisp code.
+@xref{Init File}, for a description of the initialization file.
 
 @findex kbd
   There are several ways to write a key binding using Lisp.  The
@@ -1661,7 +1630,7 @@ simplest is to use the @code{kbd} macro, which converts a textual
 representation of a key sequence---similar to how we have written key
 sequences in this manual---into a form that can be passed as an
 argument to @code{global-set-key}.  For example, here's how to bind
-@kbd{C-z} to @code{shell} (@pxref{Interactive Shell}):
+@kbd{C-z} to the @code{shell} command (@pxref{Interactive Shell}):
 
 @example
 (global-set-key (kbd "C-z") 'shell)
@@ -1707,13 +1676,14 @@ and @samp{\d} respectively.  Here is an example which binds @kbd{C-x
 
   When the key sequence includes function keys or mouse button events,
 or non-@acronym{ASCII} characters such as @code{C-=} or @code{H-a},
-you must use a vector to specify the key sequence.  Each element in
-the vector stands for an input event; the elements are separated by
-spaces and surrounded by a pair of square brackets.  If an element is
-a symbol, simply write the symbol's name---no other delimiters or
-punctuation are needed.  If a vector element is a character, write it
-as a Lisp character constant: @samp{?} followed by the character as it
-would appear in a string.  Here are some examples:
+you can use a vector to specify the key sequence.  Each element in the
+vector stands for an input event; the elements are separated by spaces
+and surrounded by a pair of square brackets.  If a vector element is a
+character, write it as a Lisp character constant: @samp{?} followed by
+the character as it would appear in a string.  Function keys are
+represented by symbols (@pxref{Function Keys}); simply write the
+symbol's name, with no other delimiters or punctuation.  Here are some
+examples:
 
 @example
 (global-set-key [?\C-=] 'make-symbolic-link)
@@ -1733,6 +1703,23 @@ You can use a vector for the simple cases too:
   Language and coding systems may cause problems with key bindings for
 non-@acronym{ASCII} characters.  @xref{Init Non-ASCII}.
 
+  As described in @ref{Local Keymaps}, major modes and minor modes can
+define local keymaps.  These keymaps are constructed when the mode is
+used for the first time in a session.  If you wish to change one of
+these keymaps, you must use the @dfn{mode hook} (@pxref{Hooks}).
+
+@findex define-key
+  For example, Texinfo mode runs the hook @code{texinfo-mode-hook}.
+Here's how you can use the hook to add local bindings for @kbd{C-c n}
+and @kbd{C-c p} in Texinfo mode:
+
+@example
+(add-hook 'texinfo-mode-hook
+          '(lambda ()
+             (define-key texinfo-mode-map "\C-cp" 'backward-paragraph)
+             (define-key texinfo-mode-map "\C-cn" 'forward-paragraph)))
+@end example
+
 @node Modifier Keys
 @subsection Modifier Keys
 @cindex modifier keys
@@ -1744,14 +1731,14 @@ same thing as @kbd{M-a}.  This concerns only alphabetical characters,
 and does not apply to ``shifted'' versions of other keys; for
 instance, @kbd{C-@@} is not the same as @kbd{C-2}.
 
-  When you customize Emacs, you can make modified alphabetical
-characters case-sensitive.  For instance, you could make @kbd{M-a} and
-@kbd{M-A} run different commands.
+  A @key{Control}-modified alphabetical character is always considered
+case-insensitive: Emacs always treats @kbd{C-A} as @kbd{C-a},
+@kbd{C-B} as @kbd{C-b}, and so forth.  The reason for this is
+historical.
 
-  As a special exception, a @key{Control}-modified alphabetical
-character is always case-insensitive, for historical reasons: Emacs
-always treats @kbd{C-A} as @kbd{C-a}, @kbd{C-B} as @kbd{C-b}, and so
-forth.
+  For all other modifiers, you can make the modified alphabetical
+characters case-sensitive when you customize Emacs.  For instance, you
+could make @kbd{M-a} and @kbd{M-A} run different commands.
 
   Although only the @key{Control} and @key{Meta} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are
@@ -2271,7 +2258,7 @@ is not what you probably want to do in an init file.
 Specify your own email address, if Emacs can't figure it out correctly.
 
 @example
-(setq user-mail-address "rumsfeld@@torture.gov")
+(setq user-mail-address "cheney@@torture.gov")
 @end example
 
 Various Emacs packages that need your own email address use the value of
