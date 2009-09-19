@@ -130,7 +130,7 @@ DEFUN ("yield", Fyield, Syield, 0, 0, 0,
      (void)
 {
   thread_yield ();
-  return Qnil;
+  return other_threads_p () ? Qt : Qnil;
 }
 
 static Lisp_Object
