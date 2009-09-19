@@ -1,3 +1,8 @@
+2009-09-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-update-handler-1): Include case of
+	older GDB where there is no has_more field.
+
 2009-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* pgg-pgp.el (pgg-pgp-encrypt-region): Add missing mapconcat separator.
