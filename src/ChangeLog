@@ -1,3 +1,8 @@
+2009-09-20  Tom Tromey  <tromey@redhat.com>
+
+	* eval.c (find_handler_clause): Make stack-trace-on-error work in
+	batch mode (bug#4228).
+
 2009-09-18  Rob Christie  <robchristie@gmail.com> (tiny change)
 
 	* nsmenu.m (EmacsMenu-parseKeyEquiv:): Parse key equivalent more

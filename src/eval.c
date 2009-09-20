@@ -1945,14 +1945,13 @@ find_handler_clause (handlers, conditions, sig, data)
 	{
 	  max_lisp_eval_depth += 15;
 	  max_specpdl_size++;
-#ifdef PROTOTYPES
-	  internal_with_output_to_temp_buffer ("*Backtrace*",
-					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
-					       Qnil);
-#else
-	  internal_with_output_to_temp_buffer ("*Backtrace*",
-					       Fbacktrace, Qnil);
-#endif
+	  if (noninteractive)
+	    Fbacktrace ();
+	  else
+	    internal_with_output_to_temp_buffer
+	      ("*Backtrace*",
+	       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
+	       Qnil);
 	  max_specpdl_size--;
 	  max_lisp_eval_depth -= 15;
 	}
