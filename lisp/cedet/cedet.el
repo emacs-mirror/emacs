@@ -49,7 +49,7 @@
 
 (require 'eieio)
 (require 'semantic)
-;; (require 'srecode)
+(require 'srecode)
 (require 'ede)
 (require 'speedbar)
 
