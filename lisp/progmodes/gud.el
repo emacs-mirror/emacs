@@ -2627,9 +2627,7 @@ It is saved for when this flag is not set.")
 	 (setq gud-overlay-arrow-position nil)
 	 (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 		   'gdbmi)
-	     (progn
-	       (delete-process "gdb-inferior")
-	       (gdb-reset))
+	     (gdb-reset)
 	   (gud-reset))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
