@@ -2203,6 +2203,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
+     ("\\.srt\\'" . srecode-template-mode) ; in the CEDET library
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with

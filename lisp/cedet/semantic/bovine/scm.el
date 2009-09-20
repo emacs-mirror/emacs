@@ -115,4 +115,10 @@ syntax as specified by the syntax table."
 
 (provide 'semantic/bovine/scm)
 
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/bovine/scm"
+;; End:
+
 ;;; semantic/bovine/scm.el ends here

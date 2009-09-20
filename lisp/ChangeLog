@@ -9,6 +9,7 @@
 	* progmodes/autoconf.el: Provide autoconf as well.
 
 	* files.el (auto-mode-alist): Use emacs-lisp-mode for Project.ede.
+	(auto-mode-alist): Use srecode-template-mode for .srt files.
 
 	* cedet/semantic/bovine/gcc.el (semantic-gcc-test-output-parser)
 	(semantic-gcc-test-output-parser-this-machine):
