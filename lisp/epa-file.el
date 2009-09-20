@@ -25,7 +25,11 @@
 (require 'epa-hook)
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
-  "If non-nil, cache passphrase for symmetric encryption."
+  "If non-nil, cache passphrase for symmetric encryption.
+
+For security reasons, this option is turned off by default and
+not recommended to use.  Use public-key encryption with gpg-agent
+instead, which does the same job in a safer way."
   :type 'boolean
   :group 'epa-file)
 

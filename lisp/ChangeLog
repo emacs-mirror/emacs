@@ -1,3 +1,8 @@
+2009-09-20  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-cache-passphrase-for-symmetric-encryption):
+	Document that this option is not recommended to use.
+
 2009-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* calc/calc-graph.el (calc-graph-lookup): Avoid assignment to free
