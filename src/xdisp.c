@@ -1635,7 +1635,7 @@ compute_string_pos (newpos, pos, string)
 }
 
 /* EXPORT:
-   Return an estimation of the pixel height of mode or top lines on
+   Return an estimation of the pixel height of mode or header lines on
    frame F.  FACE_ID specifies what line's height to estimate.  */
 
 int
@@ -13854,8 +13854,8 @@ redisplay_window (window, just_this_one_p)
 	    = DESIRED_MODE_LINE_HEIGHT (w);
 	}
 
-      /* If top line height has changed, arrange for a thorough
-	 immediate redisplay using the correct mode line height.  */
+      /* If header line height has changed, arrange for a thorough
+	 immediate redisplay using the correct header line height.  */
       if (WINDOW_WANTS_HEADER_LINE_P (w)
 	  && CURRENT_HEADER_LINE_HEIGHT (w) != DESIRED_HEADER_LINE_HEIGHT (w))
 	{
@@ -17189,8 +17189,8 @@ redisplay_mode_lines (window, force)
 }
 
 
-/* Display the mode and/or top line of window W.  Value is the number
-   of mode lines displayed.  */
+/* Display the mode and/or header line of window W.  Value is the
+   sum number of mode lines and header lines displayed.  */
 
 static int
 display_mode_lines (w)
@@ -17231,10 +17231,11 @@ display_mode_lines (w)
 }
 
 
-/* Display mode or top line of window W.  FACE_ID specifies which line
-   to display; it is either MODE_LINE_FACE_ID or HEADER_LINE_FACE_ID.
-   FORMAT is the mode line format to display.  Value is the pixel
-   height of the mode line displayed.  */
+/* Display mode or header line of window W.  FACE_ID specifies which
+   line to display; it is either MODE_LINE_FACE_ID or
+   HEADER_LINE_FACE_ID.  FORMAT is the mode/header line format to
+   display.  Value is the pixel height of the mode/header line
+   displayed.  */
 
 static int
 display_mode_line (w, face_id, format)
