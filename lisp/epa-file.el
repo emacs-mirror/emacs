@@ -28,8 +28,9 @@
   "If non-nil, cache passphrase for symmetric encryption.
 
 For security reasons, this option is turned off by default and
-not recommended to use.  Use public-key encryption with gpg-agent
-instead, which does the same job in a safer way."
+not recommended to use.  Instead, consider using public-key
+encryption with gpg-agent which does the same job in a safer
+way."
   :type 'boolean
   :group 'epa-file)
 
