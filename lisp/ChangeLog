@@ -1,6 +1,13 @@
 2009-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* register.el (ctl-x-r-map): Define the keys here instead of using autoload. 
+	* vc-git.el (vc-git-dir-extra-headers): Add keymap and mouse-face
+	properties to the stash strings.
+	(vc-git-stash-list): Return a list of strings.
+	(vc-git-stash-get-at-point, vc-git-stash-delete-at-point)
+	(vc-git-stash-show-at-point): New functions.
+	(vc-git-stash-map): New keymap.
+
+	* register.el (ctl-x-r-map): Define the keys here instead of using autoload.
 
 2009-09-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
