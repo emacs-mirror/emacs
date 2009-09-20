@@ -30,19 +30,19 @@
 
 ;;; Global key bindings
 
-;;;###autoload (define-key ctl-x-r-map "\C-@" 'point-to-register)
-;;;###autoload (define-key ctl-x-r-map [?\C-\ ] 'point-to-register)
-;;;###autoload (define-key ctl-x-r-map " " 'point-to-register)
-;;;###autoload (define-key ctl-x-r-map "j" 'jump-to-register)
-;;;###autoload (define-key ctl-x-r-map "s" 'copy-to-register)
-;;;###autoload (define-key ctl-x-r-map "x" 'copy-to-register)
-;;;###autoload (define-key ctl-x-r-map "i" 'insert-register)
-;;;###autoload (define-key ctl-x-r-map "g" 'insert-register)
-;;;###autoload (define-key ctl-x-r-map "r" 'copy-rectangle-to-register)
-;;;###autoload (define-key ctl-x-r-map "n" 'number-to-register)
-;;;###autoload (define-key ctl-x-r-map "+" 'increment-register)
-;;;###autoload (define-key ctl-x-r-map "w" 'window-configuration-to-register)
-;;;###autoload (define-key ctl-x-r-map "f" 'frame-configuration-to-register)
+(define-key ctl-x-r-map "\C-@" 'point-to-register)
+(define-key ctl-x-r-map [?\C-\ ] 'point-to-register)
+(define-key ctl-x-r-map " " 'point-to-register)
+(define-key ctl-x-r-map "j" 'jump-to-register)
+(define-key ctl-x-r-map "s" 'copy-to-register)
+(define-key ctl-x-r-map "x" 'copy-to-register)
+(define-key ctl-x-r-map "i" 'insert-register)
+(define-key ctl-x-r-map "g" 'insert-register)
+(define-key ctl-x-r-map "r" 'copy-rectangle-to-register)
+(define-key ctl-x-r-map "n" 'number-to-register)
+(define-key ctl-x-r-map "+" 'increment-register)
+(define-key ctl-x-r-map "w" 'window-configuration-to-register)
+(define-key ctl-x-r-map "f" 'frame-configuration-to-register)
 
 ;;; Code:
 
