@@ -1,3 +1,28 @@
+2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Use emacs-lisp-mode for Project.ede.
+
+	* cedet/semantic/bovine/gcc.el (semantic-gcc-test-output-parser)
+	(semantic-gcc-test-output-parser-this-machine):
+	* cedet/semantic/symref/filter.el (semantic-symref-test-count-hits-in-tag):
+	* cedet/semantic/db-global.el (semanticdb-test-gnu-global):
+	* cedet/semantic/tag-write.el (semantic-tag-write-test)
+	(semantic-tag-write-list-test):
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-write-test)
+	(semantic-lex-spp-write-utest):
+	* cedet/semantic/lex.el (semantic-lex-test-region)
+	(semantic-lex-test-full-depth):
+	* cedet/semantic/idle.el (semantic-idle-pnf-test):
+	* cedet/semantic/fw.el (semantic-test-data-cache)
+	(semantic-test-throw-on-input):
+	* cedet/semantic/format.el (semantic-test-all-format-tag-functions):
+	* cedet/semantic/complete.el (semantic-complete-test):
+	* cedet/semantic/db-ebrowse.el (semanticdb-ebrowse-run-tests)
+	(semanticdb-ebrowse-dump): Test functions moved to
+	semantic-tests.el in the test/ directory.
+
+	* cedet/semantic/db-ref.el (semanticdb-ref-test): Doc fix.
+
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	Synch to Eric Ludlam's upstream CEDET repository.

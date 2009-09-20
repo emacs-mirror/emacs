@@ -29,14 +29,12 @@
 ;; implementations.  Each parser outputs a parse tree in a similar format
 ;; designed to handle typical functional and object oriented languages.
 
-(eval-and-compile
-  ;; Other package depend on this value at compile time via inversion.
-  (defvar semantic-version "2.0pre7"
-    "Current version of Semantic."))
-
 (require 'assoc)
 (require 'semantic/tag)
 (require 'semantic/lex)
+
+(defvar semantic-version "2.0pre7"
+  "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")
 

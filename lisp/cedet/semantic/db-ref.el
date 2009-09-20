@@ -150,7 +150,7 @@ DBT, the second argument is DBT."
 
 (defun semanticdb-ref-test (refresh)
   "Dump out the list of references for the current buffer.
-If REFRESH is non-nil, cause the current table to have it's references
+If REFRESH is non-nil, cause the current table to have its references
 refreshed before dumping the result."
   (interactive "p")
   (require 'eieio-datadebug)

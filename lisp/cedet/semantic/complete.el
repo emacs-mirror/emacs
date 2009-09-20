@@ -1992,17 +1992,6 @@ completion works."
     ))
 
 
-;;; ------------------------------------------------------------
-;;; Testing/Samples
-;;
-(defun semantic-complete-test ()
-  "Test completion mechanisms."
-  (interactive)
-  (message "%S"
-   (semantic-format-tag-prototype
-    (semantic-complete-read-tag-project "Symbol: ")
-    )))
-
 ;;;###autoload
 (defun semantic-complete-jump-local ()
   "Jump to a semantic symbol."
