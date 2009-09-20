@@ -27,19 +27,9 @@
 
 ;;; Code:
 ;;
-;; This library automatically setups your [X]Emacs to use CEDET tools.
-;;
-;; Add the following into your ~/.emacs startup file:
-;;
-;;   (load-file "<INSTALL-PATH>/cedet/common/cedet.el")
-;;
-;; Once loaded, you can enable additional feature.  For example,
-;; this will enable some basic and advance features:
-;;
-;;   (load-file "<INSTALL-PATH>/cedet/common/cedet.el")
-;;   (global-ede-mode t)
-;;   (semantic-load-enable-code-helpers)
-;;   (global-srecode-minor-mode 1)
+;; This file depends on the major components of CEDET, so that you can
+;; load them all by doing (require 'cedet).  This is mostly for
+;; compatibility with the upstream, stand-alone CEDET distribution.
 
 (eval-when-compile
   (require 'cl))
