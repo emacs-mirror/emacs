@@ -14886,7 +14886,8 @@ try_window_id (w)
   if (!NILP (w->region_showing))
     GIVE_UP (10);
 
-  /* Can use this if overlay arrow position and or string have changed.  */
+  /* Can't use this if overlay arrow position and or string have
+     changed.  */
   if (overlay_arrows_changed_p ())
     GIVE_UP (12);
 
