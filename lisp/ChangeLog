@@ -1,5 +1,9 @@
 2009-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-dispatcher.el (vc-do-command): Return the process object in
+	the asynchronous case.  Use when instead of if.  Do not run
+	vc-exec-after to display a message if not enabled.
+
 	* vc-git.el (vc-git-dir-extra-headers): Add keymap and mouse-face
 	properties to the stash strings.
 	(vc-git-stash-list): Return a list of strings.
