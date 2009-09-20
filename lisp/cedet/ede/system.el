@@ -126,6 +126,8 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 ;;; Version Control
 ;;
 ;; Do a few nice things with Version control systems.
+
+;;;###autoload
 (defun ede-vc-project-directory ()
   "Run `vc-dir' on the current project."
   (interactive)
@@ -133,5 +135,11 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
     (vc-dir top nil)))
 
 (provide 'ede/system)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: ede/loaddefs
+;; generated-autoload-load-name: "ede/system"
+;; End:
 
 ;;; ede/system.el ends here

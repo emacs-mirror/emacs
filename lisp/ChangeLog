@@ -1,5 +1,8 @@
 2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede/system.el: Add local vars for autoloading.
+	(ede-vc-project-directory): Autoload.
+
 	* cedet/ede/pmake.el (ede-proj-makefile-create): Require
 	ede/srecode.
 

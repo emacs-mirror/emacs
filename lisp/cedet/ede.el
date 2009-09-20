@@ -1981,12 +1981,6 @@ Display the results as a debug list."
 ;; 	    (def-edebug-spec ede-with-projectfile
 ;; 	      (form def-body))))
 
-;; (autoload 'ede-update-version "ede-util"
-;;   "Update the version of the current project." t)
-
-;; (autoload 'ede-vc-project-directory "ede-system" t
-;;   "Run `vc-directory' on the the current project.")
-
 ;; (autoload 'ede-web-browse-home "ede-system" t
 ;;   "Web browse this project's home page.")
 
