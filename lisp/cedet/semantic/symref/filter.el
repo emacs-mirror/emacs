@@ -34,11 +34,13 @@
 ;;; Code:
 
 (require 'semantic)
+(require 'semantic/analyze)
 (declare-function srecode-active-template-region "srecode/fields")
 (declare-function srecode-delete "srecode/fields")
 (declare-function srecode-field "srecode/fields")
 (declare-function srecode-template-inserted-region "srecode/fields")
 (declare-function srecode-overlaid-activate "srecode/fields")
+(declare-function semantic-idle-summary-useful-context-p "semantic/idle")
 
 ;;; FILTERS
 ;;
@@ -65,6 +67,7 @@ HOOKFCN takes three arguments that match
   ( START END PREFIX )
 
 Search occurs in the current buffer between START and END."
+  (require 'semantic/idle)
   (save-excursion
     (goto-char start)
     (let* ((str (semantic-tag-name target))

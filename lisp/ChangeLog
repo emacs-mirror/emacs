@@ -1,12 +1,18 @@
 2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede.el, cedet/ede/*.el: New files.
+
+	* cedet/cedet.el: Require ede.
+
 	* progmodes/autoconf.el: Provide autoconf as well.
 
 	* files.el (auto-mode-alist): Use emacs-lisp-mode for Project.ede.
 
 	* cedet/semantic/bovine/gcc.el (semantic-gcc-test-output-parser)
 	(semantic-gcc-test-output-parser-this-machine):
-	* cedet/semantic/symref/filter.el (semantic-symref-test-count-hits-in-tag):
+	* cedet/semantic/symref/filter.el (semantic-symref-test-count-hits-in-tag)
+	(semantic-symref-hits-in-region): Require semantic/idle.
+
 	* cedet/semantic/db-global.el (semanticdb-test-gnu-global):
 	* cedet/semantic/tag-write.el (semantic-tag-write-test)
 	(semantic-tag-write-list-test):

@@ -50,7 +50,7 @@
 (require 'eieio)
 (require 'semantic)
 ;; (require 'srecode)
-;; (require 'ede)
+(require 'ede)
 (require 'speedbar)
 
 (defconst cedet-packages
