@@ -1301,7 +1301,12 @@ for a file, defaulting to the file defined by variable
     (let ((print-length nil)
           (print-level nil))
       (bookmark-insert-file-format-version-stamp)
-      (pp bookmark-alist (current-buffer))
+      (insert "(")
+      ;; Rather than a single call to `pp' we make one per bookmark.
+      ;; Apparently `pp' has a poor algorithmic complexity, so this
+      ;; scales a lot better.  bug#4485.
+      (dolist (i  bookmark-alist) (pp i (current-buffer)))
+      (insert ")")
       (let ((version-control
              (cond
               ((null bookmark-version-control) nil)

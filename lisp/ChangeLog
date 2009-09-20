@@ -1,3 +1,8 @@
+2009-09-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el (bookmark-write-file): Avoid calling `pp' with large
+	list, to workaround performance problem (bug#4485).
+
 2009-09-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-sentinel): Revert indavertant change.
@@ -17,8 +22,8 @@
 
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/advice.el (ad-get-argument, ad-set-argument): Doc
-	fix (Bug#3932).
+	* emacs-lisp/advice.el (ad-get-argument, ad-set-argument):
+	Doc fix (Bug#3932).
 
 	* subr.el (baud-rate): Remove long-obsolete function (Bug#4372).
 
@@ -26,8 +31,8 @@
 	(time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy)
 	(time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
 	(time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd)
-	(time-stamp-yymmdd, time-stamp-hh:mm:ss, time-stamp-hhmm): Remove
-	functions that have been obsolete since 1995 (Bug#4436).
+	(time-stamp-yymmdd, time-stamp-hh:mm:ss, time-stamp-hhmm):
+	Remove functions that have been obsolete since 1995 (Bug#4436).
 
 	* progmodes/sh-script.el (sh-learn-buffer-indent): Pop to the
 	indent buffer only if called interactively (Bug#4452).
