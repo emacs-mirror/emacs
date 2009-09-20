@@ -334,6 +334,7 @@ INDENT is the current indentation level."
     km)
   "Keymap spliced into the speedbar keymap.")
 
+;;;###autoload
 (defun ede-speedbar-file-setup ()
   "Setup some keybindings in the Speedbar File display."
   (setq speedbar-easymenu-definition-special
@@ -349,5 +350,11 @@ INDENT is the current indentation level."
     (speedbar-change-initial-expansion-list "files")))
 
 (provide 'ede/speedbar)
+
+;; Local variables:
+;; generated-autoload-file: "loaddefs.el"
+;; generated-autoload-feature: ede/loaddefs
+;; generated-autoload-load-name: "ede/speedbar"
+;; End:
 
 ;;; ede/speedbar.el ends here
