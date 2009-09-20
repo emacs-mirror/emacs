@@ -48,10 +48,14 @@
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)
 
+(declare-function ede-srecode-setup "ede/srecode")
+(declare-function ede-srecode-insert "ede/srecode")
+
 ;;; Code:
 (defmethod ede-proj-makefile-create ((this ede-proj-project) mfilename)
   "Create a Makefile for all Makefile targets in THIS.
 MFILENAME is the makefile to generate."
+  (require 'ede/srecode)
   (let ((mt nil)
 	(isdist (string= mfilename (ede-proj-dist-makefile this)))
 	(depth 0)
