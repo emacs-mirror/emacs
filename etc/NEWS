@@ -190,6 +190,10 @@ vc-root-print-log once they stabilize.
 **** The new variable vc-git-add-signoff can be used to add a
 Signed-off-by line when committing.
 
+**** Support for operating with stashes has been added to vc-dir: the stash list is
+displayed in the *vc-dir* header, stashes can be created, removed and
+their content displayed.
+
 **** vc-dir displays the stash status
 
 *** log-edit-strip-single-file-name controls whether or not single filenames
