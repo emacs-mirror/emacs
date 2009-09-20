@@ -1,5 +1,7 @@
 2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/autoconf.el: Provide autoconf as well.
+
 	* files.el (auto-mode-alist): Use emacs-lisp-mode for Project.ede.
 
 	* cedet/semantic/bovine/gcc.el (semantic-gcc-test-output-parser)
