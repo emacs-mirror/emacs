@@ -2344,7 +2344,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
 	  (widen)
 	  (goto-char (point-min))
 	  (looking-at "<\\?xml \\|<!-- \\|<!DOCTYPE ")))
-      (xml-mode)
+      (nxml-mode)
     (conf-mode)))
 
 (defvar interpreter-mode-alist
@@ -2442,7 +2442,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
      . html-mode)
     ("<!DOCTYPE[ \t\r\n]+[Hh][Tt][Mm][Ll]" . html-mode)
     ;; These two must come after html, because they are more general:
-    ("<\\?xml " . xml-mode)
+    ("<\\?xml " . nxml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
 	(concat "[ \t\r\n]*<" comment-re "*!DOCTYPE "))
