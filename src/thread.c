@@ -74,6 +74,26 @@ thread_schedule ()
     }
 }
 
+/* Schedule a new thread and block the caller until it is not scheduled
+   again.  */
+static inline void
+reschedule_and_wait (char *end)
+{
+  current_thread->stack_top = end;
+  if (!thread_inhibit_yield_p ())
+    thread_schedule ();
+
+  if (next_thread != current_thread->pthread_id)
+    pthread_cond_broadcast (&buffer_cond);
+
+  pthread_mutex_unlock (&global_lock);
+
+  pthread_mutex_lock (&global_lock);
+
+  while (current_thread->pthread_id != next_thread)
+    pthread_cond_wait (&buffer_cond, &global_lock);
+}
+
 static void
 mark_one_thread (struct thread_state *thread)
 {
@@ -161,14 +181,7 @@ thread_acquire_buffer (char *end, void *nb)
       current_buffer->prev_owner = Qnil;
     }
 
-  if (!thread_inhibit_yield_p ())
-    thread_schedule ();
-
-  if (next_thread != current_thread->pthread_id)
-    pthread_cond_broadcast (&buffer_cond);
-
-  while (current_thread->pthread_id != next_thread)
-    pthread_cond_wait (&buffer_cond, &global_lock);
+  reschedule_and_wait (end);
 
   /* FIXME: if buffer is killed */
   new_buffer->prev_owner = new_buffer->owner;
@@ -187,21 +200,7 @@ thread_inhibit_yield_p  ()
 static void
 thread_yield_callback (char *end, void *ignore)
 {
-  if (thread_inhibit_yield_p ())
-    return;
-
-  current_thread->stack_top = end;
-  thread_schedule ();
-
-  if (next_thread != current_thread->pthread_id)
-    pthread_cond_broadcast (&buffer_cond);
-
-  pthread_mutex_unlock (&global_lock);
-
-  pthread_mutex_lock (&global_lock);
-
-  while (next_thread != current_thread->pthread_id)
-    pthread_cond_wait (&buffer_cond, &global_lock);
+  reschedule_and_wait (end);
 }
 
 void
