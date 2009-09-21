@@ -131,7 +131,7 @@ This makes sure mode local init type stuff can occur."
   (add-to-list 'mode-local-changed-mode-buffers (current-buffer))
   (add-hook 'post-command-hook 'mode-local-post-major-mode-change t nil))
 
-(add-hook 'find-file-hooks 'mode-local-post-major-mode-change)
+(add-hook 'find-file-hook 'mode-local-post-major-mode-change)
 (add-hook 'change-major-mode-hook 'mode-local-on-major-mode-change)
 
 ;;; Mode lineage
