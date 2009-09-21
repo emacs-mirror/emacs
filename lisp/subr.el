@@ -1815,36 +1815,37 @@ obey the input decoding and translations usually done by `read-key-sequence'.
 So escape sequences and keyboard encoding are taken into account.
 When there's an ambiguity because the key looks like the prefix of
 some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
-  (let ((overriding-terminal-local-map read-key-empty-map)
-	(overriding-local-map nil)
-	(old-global-map (current-global-map))
-        (timer (run-with-idle-timer
-                ;; Wait long enough that Emacs has the time to receive and
-                ;; process all the raw events associated with the single-key.
-                ;; But don't wait too long, or the user may find the delay
-                ;; annoying (or keep hitting more keys which may then get
-                ;; lost or misinterpreted).
-                ;; This is only relevant for keys which Emacs perceives as
-                ;; "prefixes", such as C-x (because of the C-x 8 map in
-                ;; key-translate-table and the C-x @ map in function-key-map)
-                ;; or ESC (because of terminal escape sequences in
-                ;; input-decode-map).
-                read-key-delay t
-                (lambda ()
-                  (let ((keys (this-command-keys-vector)))
-                    (unless (zerop (length keys))
-                      ;; `keys' is non-empty, so the user has hit at least
-                      ;; one key; there's no point waiting any longer, even
-                      ;; though read-key-sequence thinks we should wait
-                      ;; for more input to decide how to interpret the
-                      ;; current input.
-                      (throw 'read-key keys)))))))
-    (unwind-protect
-        (progn
-	  (use-global-map read-key-empty-map)
-	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
-      (cancel-timer timer)
-      (use-global-map old-global-map))))
+  (with-no-threads
+   (let ((overriding-terminal-local-map read-key-empty-map)
+         (overriding-local-map nil)
+         (old-global-map (current-global-map))
+         (timer (run-with-idle-timer
+                 ;; Wait long enough that Emacs has the time to receive and
+                 ;; process all the raw events associated with the single-key.
+                 ;; But don't wait too long, or the user may find the delay
+                 ;; annoying (or keep hitting more keys which may then get
+                 ;; lost or misinterpreted).
+                 ;; This is only relevant for keys which Emacs perceives as
+                 ;; "prefixes", such as C-x (because of the C-x 8 map in
+                 ;; key-translate-table and the C-x @ map in function-key-map)
+                 ;; or ESC (because of terminal escape sequences in
+                 ;; input-decode-map).
+                 read-key-delay t
+                 (lambda ()
+                   (let ((keys (this-command-keys-vector)))
+                     (unless (zerop (length keys))
+                       ;; `keys' is non-empty, so the user has hit at least
+                       ;; one key; there's no point waiting any longer, even
+                       ;; though read-key-sequence thinks we should wait
+                       ;; for more input to decide how to interpret the
+                       ;; current input.
+                       (throw 'read-key keys)))))))
+     (unwind-protect
+         (progn
+           (use-global-map read-key-empty-map)
+           (aref	(catch 'read-key (read-key-sequence prompt nil t)) 0))
+       (cancel-timer timer)
+       (use-global-map old-global-map)))))
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', but do not allow quitting.
@@ -1857,57 +1858,56 @@ any other terminator is used itself as input.
 The optional argument PROMPT specifies a string to use to prompt the user.
 The variable `read-quoted-char-radix' controls which radix to use
 for numeric input."
-  (let ((message-log-max nil) done (first t) (code 0) char translated)
-    (while (not done)
-      (let ((inhibit-quit first)
-	    ;; Don't let C-h get the help message--only help function keys.
-	    (help-char nil)
-	    (help-form
-	     "Type the special character you want to use,
+  (with-no-threads
+   (let ((message-log-max nil) done (first t) (code 0) char translated)
+     (while (not done)
+       (let ((inhibit-quit first)
+             ;; Don't let C-h get the help message--only help function keys.
+             (help-char nil)
+             (help-form
+              "Type the special character you want to use,
 or the octal character code.
 RET terminates the character code and is discarded;
 any other non-digit terminates the character code and is then used as input."))
-	(setq char (read-event (and prompt (format "%s-" prompt)) t))
-	(if inhibit-quit (setq quit-flag nil)))
-      ;; Translate TAB key into control-I ASCII character, and so on.
-      ;; Note: `read-char' does it using the `ascii-character' property.
-      ;; We could try and use read-key-sequence instead, but then C-q ESC
-      ;; or C-q C-x might not return immediately since ESC or C-x might be
-      ;; bound to some prefix in function-key-map or key-translation-map.
-      (setq translated
-	    (if (integerp char)
-		(char-resolve-modifiers char)
-	      char))
-      (let ((translation (lookup-key local-function-key-map (vector char))))
-	(if (arrayp translation)
-	    (setq translated (aref translation 0))))
-      (cond ((null translated))
-	    ((not (integerp translated))
-	     (setq unread-command-events (list char)
-		   done t))
-	    ((/= (logand translated ?\M-\^@) 0)
-	     ;; Turn a meta-character into a character with the 0200 bit set.
-	     (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
-		   done t))
-	    ((and (<= ?0 translated)
-                  (< translated (+ ?0 (min 10 read-quoted-char-radix))))
-	     (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
-	     (and prompt (setq prompt (message "%s %c" prompt translated))))
-	    ((and (<= ?a (downcase translated))
-		  (< (downcase translated)
-                     (+ ?a -10 (min 36 read-quoted-char-radix))))
-	     (setq code (+ (* code read-quoted-char-radix)
-			   (+ 10 (- (downcase translated) ?a))))
-	     (and prompt (setq prompt (message "%s %c" prompt translated))))
-	    ((and (not first) (eq translated ?\C-m))
-	     (setq done t))
-	    ((not first)
-	     (setq unread-command-events (list char)
-		   done t))
-	    (t (setq code translated
-		     done t)))
-      (setq first nil))
-    code))
+         (setq char (read-event (and prompt (format "%s-" prompt)) t))
+         (if inhibit-quit (setq quit-flag nil)))
+       ;; Translate TAB key into control-I ASCII character, and so on.
+       ;; Note: `read-char' does it using the `ascii-character' property.
+       ;; We could try and use read-key-sequence instead, but then C-q ESC
+       ;; or C-q C-x might not return immediately since ESC or C-x might be
+       ;; bound to some prefix in function-key-map or key-translation-map.
+       (setq translated
+             (if (integerp char)
+                 (char-resolve-modifiers char)
+               char))
+       (let ((translation (lookup-key local-function-key-map (vector char))))
+         (if (arrayp translation)
+             (setq translated (aref translation 0))))
+       (cond ((null translated))
+             ((not (integerp translated))
+              (setq unread-command-events (list char)
+                    done t))
+             ((/= (logand translated ?\M-\^@) 0)
+              ;; Turn a meta-character into a character with the 0200 bit set.
+              (setq code (logior (logand translated (lognot ?\M-\^@)) 128)
+                    done t))
+             ((and (<= ?0 translated) (< translated (+ ?0 (min 10 read-quoted-char-radix))))
+              (setq code (+ (* code read-quoted-char-radix) (- translated ?0)))
+              (and prompt (setq prompt (message "%s %c" prompt translated))))
+             ((and (<= ?a (downcase translated))
+                   (< (downcase translated) (+ ?a -10 (min 36 read-quoted-char-radix))))
+              (setq code (+ (* code read-quoted-char-radix)
+                            (+ 10 (- (downcase translated) ?a))))
+              (and prompt (setq prompt (message "%s %c" prompt translated))))
+             ((and (not first) (eq translated ?\C-m))
+              (setq done t))
+             ((not first)
+              (setq unread-command-events (list char)
+                    done t))
+             (t (setq code translated
+                      done t)))
+       (setq first nil))
+     code)))
 
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT, and return it.
@@ -1923,99 +1923,101 @@ then it returns nil if the user types C-g, but quit-flag remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
-  (with-local-quit
-    (if confirm
-	(let (success)
-	  (while (not success)
-	    (let ((first (read-passwd prompt nil default))
-		  (second (read-passwd "Confirm password: " nil default)))
-	      (if (equal first second)
-		  (progn
-		    (and (arrayp second) (clear-string second))
-		    (setq success first))
-		(and (arrayp first) (clear-string first))
-		(and (arrayp second) (clear-string second))
-		(message "Password not repeated accurately; please start over")
-		(sit-for 1))))
-	  success)
-      (let ((pass nil)
-	    ;; Copy it so that add-text-properties won't modify
-	    ;; the object that was passed in by the caller.
-	    (prompt (copy-sequence prompt))
-	    (c 0)
-	    (echo-keystrokes 0)
-	    (cursor-in-echo-area t)
-	    (message-log-max nil)
-	    (stop-keys (list 'return ?\r ?\n ?\e))
-	    (rubout-keys (list 'backspace ?\b ?\177)))
-	(add-text-properties 0 (length prompt)
-			     minibuffer-prompt-properties prompt)
-	(while (progn (message "%s%s"
-			       prompt
-			       (make-string (length pass) ?.))
-		      (setq c (read-key))
-		      (not (memq c stop-keys)))
-	  (clear-this-command-keys)
-	  (cond ((memq c rubout-keys) ; rubout
-		 (when (> (length pass) 0)
-		   (let ((new-pass (substring pass 0 -1)))
-		     (and (arrayp pass) (clear-string pass))
-		     (setq pass new-pass))))
-                ((eq c ?\C-g) (keyboard-quit))
-		((not (numberp c)))
-		((= c ?\C-u) ; kill line
-		 (and (arrayp pass) (clear-string pass))
-		 (setq pass ""))
-		((= c ?\C-y) ; yank
-		 (let* ((str (condition-case nil
-				 (current-kill 0)
-			       (error nil)))
-			new-pass)
-		   (when str
-		     (setq new-pass
-			   (concat pass
-				   (substring-no-properties str)))
-		     (and (arrayp pass) (clear-string pass))
-		     (setq c ?\0)
-		     (setq pass new-pass))))
-		((characterp c) ; insert char
-		 (let* ((new-char (char-to-string c))
-			(new-pass (concat pass new-char)))
-		   (and (arrayp pass) (clear-string pass))
-		   (clear-string new-char)
-		   (setq c ?\0)
-		   (setq pass new-pass)))))
-	(message nil)
-	(or pass default "")))))
+  (with-no-threads
+   (with-local-quit
+     (if confirm
+         (let (success)
+           (while (not success)
+             (let ((first (read-passwd prompt nil default))
+                   (second (read-passwd "Confirm password: " nil default)))
+               (if (equal first second)
+                   (progn
+                     (and (arrayp second) (clear-string second))
+                     (setq success first))
+                 (and (arrayp first) (clear-string first))
+                 (and (arrayp second) (clear-string second))
+                 (message "Password not repeated accurately; please start over")
+                 (sit-for 1))))
+           success)
+       (let ((pass nil)
+             ;; Copy it so that add-text-properties won't modify
+             ;; the object that was passed in by the caller.
+             (prompt (copy-sequence prompt))
+             (c 0)
+             (echo-keystrokes 0)
+             (cursor-in-echo-area t)
+             (message-log-max nil)
+             (stop-keys (list 'return ?\r ?\n ?\e))
+             (rubout-keys (list 'backspace ?\b ?\177)))
+         (add-text-properties 0 (length prompt)
+                              minibuffer-prompt-properties prompt)
+         (while (progn (message "%s%s"
+                                prompt
+                                (make-string (length pass) ?.))
+                       (setq c (read-key))
+                       (not (memq c stop-keys)))
+           (clear-this-command-keys)
+           (cond ((memq c rubout-keys) ; rubout
+                  (when (> (length pass) 0)
+                    (let ((new-pass (substring pass 0 -1)))
+                      (and (arrayp pass) (clear-string pass))
+                      (setq pass new-pass))))
+                 ((eq c ?\C-g) (keyboard-quit))
+                 ((not (numberp c)))
+                 ((= c ?\C-u) ; kill line
+                  (and (arrayp pass) (clear-string pass))
+                  (setq pass ""))
+                 ((= c ?\C-y) ; yank
+                  (let* ((str (condition-case nil
+                                  (current-kill 0)
+                                (error nil)))
+                         new-pass)
+                    (when str
+                      (setq new-pass
+                            (concat pass
+                                    (substring-no-properties str)))
+                      (and (arrayp pass) (clear-string pass))
+                      (setq c ?\0)
+                      (setq pass new-pass))))
+                 ((characterp c) ; insert char
+                  (let* ((new-char (char-to-string c))
+                         (new-pass (concat pass new-char)))
+                    (and (arrayp pass) (clear-string pass))
+                    (clear-string new-char)
+                    (setq c ?\0)
+                    (setq pass new-pass)))))
+         (message nil)
+         (or pass default ""))))))
 
 ;; This should be used by `call-interactively' for `n' specs.
 (defun read-number (prompt &optional default)
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
 The value of DEFAULT is inserted into PROMPT."
-  (let ((n nil))
-    (when default
-      (setq prompt
-	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
-		(replace-match (format " (default %s)" default) t t prompt 1)
-	      (replace-regexp-in-string "[ \t]*\\'"
-					(format " (default %s) " default)
-					prompt t t))))
-    (while
-	(progn
-	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (and default
-						(number-to-string default)))))
-	    (condition-case nil
-		(setq n (cond
-			 ((zerop (length str)) default)
-			 ((stringp str) (read str))))
-	      (error nil)))
-	  (unless (numberp n)
-	    (message "Please enter a number.")
-	    (sit-for 1)
-	    t)))
-    n))
+  (with-no-threads
+   (let ((n nil))
+     (when default
+       (setq prompt
+             (if (string-match "\\(\\):[ \t]*\\'" prompt)
+                 (replace-match (format " (default %s)" default) t t prompt 1)
+               (replace-regexp-in-string "[ \t]*\\'"
+                                         (format " (default %s) " default)
+                                         prompt t t))))
+     (while
+         (progn
+           (let ((str (read-from-minibuffer prompt nil nil nil nil
+                                            (and default
+                                                 (number-to-string default)))))
+             (condition-case nil
+                 (setq n (cond
+                          ((zerop (length str)) default)
+                          ((stringp str) (read str))))
+               (error nil)))
+           (unless (numberp n)
+             (message "Please enter a number.")
+             (sit-for 1)
+             t)))
+     n)))
 
 (defun sit-for (seconds &optional nodisp obsolete)
   "Perform redisplay, then wait for SECONDS seconds or until input is available.
@@ -2648,6 +2650,13 @@ Similar to `call-process-shell-command', but calls `process-file'."
    (mapconcat 'identity (cons command args) " ")))
 
 ;;;; Lisp macros to do various things temporarily.
+
+(defmacro with-no-threads (&rest body)
+  "Disable temporarily other threads to be executed."
+  `(unwind-protect
+       (progn (inhibit-yield t)
+              ,@body)
+     (inhibit-yield nil)))
 
 (defmacro with-current-buffer (buffer-or-name &rest body)
   "Execute the forms in BODY with BUFFER-OR-NAME temporarily current.
