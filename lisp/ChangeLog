@@ -1,4 +1,39 @@
+2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el: Remove ediff-misc from Tools menu.
+
+	* cedet/semantic.el (semantic-init-hook)
+	(semantic-init-mode-hook, semantic-init-db-hook): Rename
+	from *-hooks, to follow hook naming conventions.
+	(semantic-submode-list, semantic-default-submodes): New vars.
+	(semantic-mode): New mode.
+	(semantic-parser-working-message): Add ellipses to parse message.
+
+	* cedet/semantic/bovine/c.el:
+	* cedet/semantic/bovine/make.el:
+	* cedet/semantic/bovine/scm.el:
+	* cedet/semantic/wisent/java-tags.el:
+	* cedet/semantic/wisent/javascript.el: Don't set hooks directly.
+	This is now done in semantic-mode.
+
+	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode):
+	Autoload.
+
+	* cedet/srecode/compile.el:
+	* cedet/srecode/insert.el:
+	* cedet/srecode/mode.el: Fix require statements.
+
 2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode):
+	Autoload.
+
+	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix featurep.
+
+	* cedet/srecode/mode.el (global-srecode-minor-mode): Fix require.
+
+	* cedet/srecode/insert.el (srecode--insert-into-buffer): Fix
+	require.
 
 	* cedet/cedet.el: Require srecode.
 
@@ -7,9 +42,11 @@
 
 	* cedet/ede/pmake.el (ede-proj-makefile-create): Require
 	ede/srecode.
+	(ede-proj-makefile-create): Fix require.
 
 	* cedet/srecode/compile.el (srecode-compile-split-code)
 	(srecode-compile-parse-inserter): Fix compiler warning.
+	(srecode-compile-templates): Fix require.
 
 2009-09-20  Chong Yidong  <cyd@stupidchicken.com>
 

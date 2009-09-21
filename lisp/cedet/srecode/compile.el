@@ -197,7 +197,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 (defun srecode-compile-templates ()
   "Compile a semantic recode template file into a mode-local variable."
   (interactive)
-  (require 'srecode-insert)
+  (require 'srecode/insert)
   (message "Compiling template %s..."
 	   (file-name-nondirectory (buffer-file-name)))
   (let ((tags (semantic-fetch-tags))

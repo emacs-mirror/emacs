@@ -110,9 +110,6 @@ syntax as specified by the syntax table."
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
   )
 
-;;;###autoload
-(add-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
-
 (provide 'semantic/bovine/scm)
 
 ;; Local variables:

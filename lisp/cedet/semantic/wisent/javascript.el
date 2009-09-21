@@ -92,11 +92,6 @@ This function overrides `get-local-variables'."
    semantic-command-separation-character ";"
    ))
 
-;;;###autoload
-(add-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
-;;;###autoload
-(add-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
-
 (provide 'semantic/wisent/javascript-jv)
 
 ;; Local variables:

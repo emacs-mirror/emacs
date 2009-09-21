@@ -159,7 +159,7 @@ Buffer based features related to change hooks is handled one level up."
   ;; while the field insert tool is loaded via autoloads during
   ;; the insert.
   (when (eq srecode-insert-ask-variable-method 'field)
-    (require 'srecode-fields))
+    (require 'srecode/fields))
 
   (let ((srecode-field-archive nil) ; Prevent field leaks during insert
 	(start (point)) ; Beginning of the region.

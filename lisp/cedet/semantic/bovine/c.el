@@ -1629,11 +1629,6 @@ DO NOT return the list of tags encompassing point."
   (semantic-c-reset-preprocessor-symbol-map)
   )
 
-;;;###autoload
-(add-hook 'c-mode-hook 'semantic-default-c-setup)
-;;;###autoload
-(add-hook 'c++-mode-hook 'semantic-default-c-setup)
-
 ;;; SETUP QUERY
 ;;
 (defun semantic-c-describe-environment ()

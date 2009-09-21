@@ -42,7 +42,7 @@
   "Non-nil in buffers with Semantic Recoder macro keybindings."
   :group 'srecode
   :type 'boolean
-  :require 'srecode-mode
+  :require 'srecode/mode
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (global-srecode-minor-mode (if val 1 -1))))

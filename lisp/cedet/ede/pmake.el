@@ -204,7 +204,7 @@ MFILENAME is the makefile to generate."
        ((eq (oref this makefile-type) 'Makefile.in)
 	(error "Makefile.in is not supported"))
        ((eq (oref this makefile-type) 'Makefile.am)
-	(require 'ede-pconf)
+	(require 'ede/pconf)
 	;; Distribution variables
 	(let ((targ (if isdist (oref this targets) mt)))
 	  (ede-compiler-begin-unique

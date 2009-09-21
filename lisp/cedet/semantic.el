@@ -255,18 +255,25 @@ setup to use Semantic."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-init-hooks nil
-  "*Hooks run when a buffer is initialized with a parsing table.")
+(defvar semantic-init-hook nil
+  "Hook run when a buffer is initialized with a parsing table.")
 
-(defvar semantic-init-mode-hooks nil
-  "*Hooks run when a buffer of a particular mode is initialized.")
-(make-variable-buffer-local 'semantic-init-mode-hooks)
+(defvar semantic-init-mode-hook nil
+  "Hook run when a buffer of a particular mode is initialized.")
+(make-variable-buffer-local 'semantic-init-mode-hook)
 
-(defvar semantic-init-db-hooks nil
-  "Hooks run when a buffer is initialized with a parsing table for DBs.
+(defvar semantic-init-db-hook nil
+  "Hook run when a buffer is initialized with a parsing table for DBs.
 This hook is for database functions which intend to swap in a tag table.
 This guarantees that the DB will go before other modes that require
 a parse of the buffer.")
+
+(define-obsolete-variable-alias 'semantic-init-hooks
+  'semantic-init-hook "23.2")
+(define-obsolete-variable-alias 'semantic-init-mode-hooks
+  'semantic-init-mode-hook "23.2")
+(define-obsolete-variable-alias 'semantic-init-db-hooks
+  'semantic-init-db-hook "23.2")
 
 (defvar semantic-new-buffer-fcn-was-run nil
   "Non nil after `semantic-new-buffer-fcn' has been executed.")
@@ -306,17 +313,11 @@ to use Semantic, and `semantic-init-hook' is run."
     ;; Force this buffer to have its cache refreshed.
     (semantic-clear-toplevel-cache)
     ;; Call DB hooks before regular init hooks
-    (run-hooks 'semantic-init-db-hooks)
+    (run-hooks 'semantic-init-db-hook)
     ;; Set up semantic modes
-    (run-hooks 'semantic-init-hooks)
+    (run-hooks 'semantic-init-hook)
     ;; Set up major-mode specific semantic modes
-    (run-hooks 'semantic-init-mode-hooks)
-    ))
-
-(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
-
-;; Test the above hook.
-;;(add-hook 'semantic-init-hooks (lambda () (message "init for semantic")))
+    (run-hooks 'semantic-init-mode-hook)))
 
 (defun semantic-fetch-tags-fast ()
   "For use in a hook.  When only a partial reparse is needed, reparse."
@@ -325,9 +326,6 @@ to use Semantic, and `semantic-init-hook' is run."
 	  (semantic-fetch-tags))
     (error nil))
   semantic--buffer-cache)
-
-(if (boundp 'eval-defun-hooks)
-    (add-hook 'eval-defun-hooks 'semantic-fetch-tags-fast))
 
 ;;; Parsing Commands
 ;;
@@ -528,7 +526,7 @@ Bufferse larger than this will display the working progress bar.")
 If optional argument ARG is non-nil it is appended to the message
 string."
   (if semantic-parser-name
-      (format "%s/%s" semantic-parser-name (or arg ""))
+      (format "%s/%s..." semantic-parser-name (or arg ""))
     (format "%s" (or arg ""))))
 
 ;;; Application Parser Entry Points
@@ -817,10 +815,104 @@ a START and END part."
 (make-obsolete 'semantic-bovinate-from-nonterminal-full
                'semantic-parse-region)
 
+;;; User interface
+
+;; The `semantic-mode' command, in conjuction with the
+;; `semantic-default-submodes' variable, are used to collectively
+;; toggle Semantic's various auxilliary minor modes.
+
+(defvar semantic-load-system-cache-loaded nil
+  "Non nil when the Semantic system caches have been loaded.
+Prevent this load system from loading files in twice.")
+
+(defconst semantic-submode-list
+  '(global-semantic-highlight-func-mode
+    global-semantic-decoration-mode
+    global-semantic-stickyfunc-mode
+    global-semantic-idle-completions-mode
+    global-semantic-idle-scheduler-mode
+    global-semanticdb-minor-mode
+    global-semantic-idle-summary-mode
+    global-semantic-mru-bookmark-mode)
+  "List of auxilliary minor modes in the Semantic package.")
+
+;;;###autoload
+(defcustom semantic-default-submodes
+  '(global-semantic-idle-scheduler-mode global-semanticdb-minor-mode)
+  "List of auxilliary Semantic minor modes enabled by `semantic-mode'.
+The possible elements of this list include the following:
+
+ `semantic-highlight-func-mode'   - Highlight the current tag.
+ `semantic-decoration-mode' - Decorate tags based on various attributes.
+ `semantic-stickyfunc-mode' - Track current function in the header-line.
+ `semantic-idle-completions-mode' - Provide smart symbol completion
+                                    automatically when idle.
+ `semantic-idle-scheduler-mode'   - Keep a buffer's parse tree up to date.
+ `semanticdb-minor-mode'    - Store tags when a buffer is not in memory.
+ `semantic-idle-summary-mode'     - Show a summary for the code at point.
+ `semantic-mru-bookmark-mode'     - Provide `switch-to-buffer'-like
+                                    keybinding for tag names."
+  :group 'semantic
+  :type `(set ,@(mapcar (lambda (c) (list 'const c))
+			semantic-submode-list)))
+
+;;;###autoload
+(define-minor-mode semantic-mode
+  "Toggle Semantic mode.
+With ARG, turn Semantic mode on if ARG is positive, off otherwise.
+
+In Semantic mode, Emacs parses the buffers you visit for their
+semantic content.  This information is used by a variety of
+auxilliary minor modes, listed in `semantic-default-submodes';
+all the minor modes in this list are also enabled when you enable
+Semantic mode."
+  :group 'semantic
+  (if semantic-mode
+      ;; Turn on Semantic mode
+      (progn
+	(dolist (mode semantic-submode-list)
+	  (if (memq mode semantic-default-submodes)
+	      (funcall mode 1)))
+	(unless semantic-load-system-cache-loaded
+	  (setq semantic-load-system-cache-loaded t)
+	  (when (and (boundp 'semanticdb-default-system-save-directory)
+		     (stringp semanticdb-default-system-save-directory)
+		     (file-exists-p semanticdb-default-system-save-directory))
+	    (semanticdb-load-ebrowse-caches)))
+	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+	;; Add mode-local hooks
+	(add-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
+	(add-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
+	(add-hook 'java-mode-hook 'wisent-java-default-setup)
+	(add-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
+	(add-hook 'makefile-mode-hook 'semantic-default-make-setup)
+	(add-hook 'c-mode-hook 'semantic-default-c-setup)
+	(add-hook 'c++-mode-hook 'semantic-default-c-setup)
+	(add-hook 'html-mode-hook 'semantic-default-html-setup))
+    ;; Disable all Semantic features.
+    (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+    (remove-hook 'javascript-mode-hook 'wisent-javascript-setup-parser)
+    (remove-hook 'ecmascript-mode-hook 'wisent-javascript-setup-parser)
+    (remove-hook 'java-mode-hook 'wisent-java-default-setup)
+    (remove-hook 'scheme-mode-hook 'semantic-default-scheme-setup)
+    (remove-hook 'makefile-mode-hook 'semantic-default-make-setup)
+    (remove-hook 'c-mode-hook 'semantic-default-c-setup)
+    (remove-hook 'c++-mode-hook 'semantic-default-c-setup)
+    (remove-hook 'html-mode-hook 'semantic-default-html-setup)
+
+    ;; FIXME: handle semanticdb-load-ebrowse-caches
+
+    (dolist (mode semantic-submode-list)
+      (if (and (boundp mode) (eval mode))
+	  (funcall mode -1)))))
+
+
 (provide 'semantic)
 
 ;; Semantic-util is a part of the semantic API.  Include it last
 ;; because it depends on semantic.
 (require 'semantic/util)
+
+;; (require 'semantic/load)
 
 ;;; semantic.el ends here

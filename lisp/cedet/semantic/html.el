@@ -254,9 +254,6 @@ tag with greater section value than LEVEL is found."
    t)
   )
 
-;;;###autoload
-(add-hook 'html-mode-hook 'semantic-default-html-setup)
-
 (define-child-mode html-helper-mode html-mode
   "`html-helper-mode' needs the same semantic support as `html-mode'.")
 

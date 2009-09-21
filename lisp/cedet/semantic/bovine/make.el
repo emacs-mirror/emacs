@@ -230,9 +230,6 @@ Uses default implementation, and also gets a list of filenames."
   (setq semantic-lex-analyzer #'semantic-make-lexer)
   )
 
-;;;###autoload
-(add-hook 'makefile-mode-hook 'semantic-default-make-setup)
-
 (provide 'semantic/bovine/make)
 
 ;; Local variables:

@@ -234,6 +234,7 @@ When this mode is activated, decorations specified by
   :set (lambda (sym val)
          (global-semantic-decoration-mode (if val 1 -1))))
 
+;;;###autoload
 (defun global-semantic-decoration-mode (&optional arg)
   "Toggle global use of option `semantic-decoration-mode'.
 Decoration mode turns on all active decorations as specified
@@ -558,5 +559,10 @@ Use a primary decoration."
 
 (provide 'semantic/decorate/mode)
 
-;;; semantic/decorate/mode.el ends here
+;; Local variables:
+;; generated-autoload-file: "../loaddefs.el"
+;; generated-autoload-feature: semantic/loaddefs
+;; generated-autoload-load-name: "semantic/decorate/mode"
+;; End:
 
+;;; semantic/decorate/mode.el ends here

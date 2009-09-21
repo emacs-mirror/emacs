@@ -111,9 +111,6 @@ Use the alternate LALR(1) parser."
   ;; Setup javadoc stuff
   (semantic-java-doc-setup))
 
-;;;###autoload
-(add-hook 'java-mode-hook 'wisent-java-default-setup)
-
 (provide 'semantic/wisent/java-tags)
 
 ;; Local variables:
