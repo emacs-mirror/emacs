@@ -1,3 +1,7 @@
+2009-09-21  Kevin Ryde  <user42@zip.com.au>
+
+	* net/dig.el: Add "Keywords: comm", as per net-utils.el.  (Bug#4501)
+
 2009-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/dig.el (dig-mode): Use define-derived-mode.

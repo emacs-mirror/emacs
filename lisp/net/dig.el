@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
-;; Keywords: DNS BIND dig
+;; Keywords: DNS BIND dig comm
 
 ;; This file is part of GNU Emacs.
 
