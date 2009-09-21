@@ -1,5 +1,14 @@
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/semantic.el (semantic-parser-working-message): Use a less
+	technical parsing message.
+	(semantic-mode): Require semantic/db-ebrowse if we need to.
+
+	* cedet/semantic/util-modes.el (semantic-highlight-func-mode): Doc
+	fix.
+
+2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cedet/semantic/db.el (semanticdb--inhibit-make-directory): New
 	var.
 	(semanticdb-save-all-db): Use it.

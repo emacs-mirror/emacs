@@ -1165,10 +1165,10 @@ current tag declaration."
   "Minor mode to highlight the first line of the current tag.
 Enables/disables making the header line of functions sticky.
 A function (or other tag class specified by
-`semantic-stickfunc-sticky-classes') is highlighted, meaning the
+`semantic-stickyfunc-sticky-classes') is highlighted, meaning the
 first line which describes the rest of the construct.
 
-See `semantic-stickfunc-mode' for putting a function in the
+See `semantic-stickyfunc-mode' for putting a function in the
 header line.  This mode recycles the stickyfunc configuration
 classes list.
 

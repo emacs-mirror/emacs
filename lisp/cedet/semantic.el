@@ -37,6 +37,7 @@
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")
+(declare-function semanticdb-load-ebrowse-caches "semantic/db-ebrowse")
 
 (defun semantic-require-version (major minor &optional beta)
   "Non-nil if this version of semantic does not satisfy a specific version.
@@ -525,9 +526,10 @@ Bufferse larger than this will display the working progress bar.")
   "Return the message string displayed while parsing.
 If optional argument ARG is non-nil it is appended to the message
 string."
-  (if semantic-parser-name
-      (format "%s/%s..." semantic-parser-name (or arg ""))
-    (format "%s" (or arg ""))))
+  (concat "Parsing"
+	  (if arg (format " %s" arg))
+	  (if semantic-parser-name (format " (%s)" semantic-parser-name))
+	  "..."))
 
 ;;; Application Parser Entry Points
 ;;
@@ -878,6 +880,7 @@ Semantic mode."
 	  (when (and (boundp 'semanticdb-default-system-save-directory)
 		     (stringp semanticdb-default-system-save-directory)
 		     (file-exists-p semanticdb-default-system-save-directory))
+	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
 	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
 	;; Add mode-local hooks
