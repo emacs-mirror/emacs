@@ -1,5 +1,18 @@
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/semantic.el: Add autoloads for semantic/idle functions.
+
+	* cedet/semantic/util.el (semantic--completion-cache): New var.
+	(semantic-symbol-start, semantic-find-tag-for-completion)
+	(semantic-complete-symbol): New functions, adapted from Senator.
+
+	* bindings.el (complete-symbol): Try semantic-complete-symbol if
+	no tag table is active.
+
+	* cedet/semantic/idle.el (define-semantic-idle-service): Doc fix.
+
+2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
+
 	* menu-bar.el: Remove ediff-misc from Tools menu.
 
 	* cedet/semantic.el (semantic-init-hook)

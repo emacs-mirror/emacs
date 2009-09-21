@@ -437,6 +437,82 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 	(message "Remaining overlays: %S" o)))
   over)
 
+;;; Interactive commands (from Senator).
+
+;; The Senator library from upstream CEDET is not included in the
+;; built-in version of Emacs.  The plan is to fold it into the
+;; different parts of CEDET and Emacs, so that it works
+;; "transparently".  Here are some interactive commands based on
+;; Senator.
+
+(defvar semantic--completion-cache nil
+  "Internal variable used by `senator-complete-symbol'.")
+
+(defsubst semantic-symbol-start (pos)
+  "Return the start of the symbol at buffer position POS."
+  (car (nth 2 (semantic-ctxt-current-symbol-and-bounds pos))))
+
+(defun semantic-find-tag-for-completion (prefix)
+  "Find all tags with name starting with PREFIX.
+This uses `semanticdb' when available."
+  (let (result ctxt)
+    (condition-case nil
+	(and (featurep 'semantic/analyze)
+	     (setq ctxt (semantic-analyze-current-context))
+	     (setq result (semantic-analyze-possible-completions ctxt)))
+      (error nil))
+    (or result
+	;; If the analyzer fails, then go into boring completion.
+	(if (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
+	    (semanticdb-fast-strip-find-results
+	     (semanticdb-deep-find-tags-for-completion prefix))
+	  (semantic-deep-find-tags-for-completion prefix (current-buffer))))))
+
+(defun semantic-complete-symbol (&optional predicate)
+  "Complete the symbol under point, using Semantic facilities.
+When called from a program, optional arg PREDICATE is a predicate
+determining which symbols are considered."
+  (interactive)
+  (let* ((start (car (nth 2 (semantic-ctxt-current-symbol-and-bounds
+			     (point)))))
+	 (pattern (regexp-quote (buffer-substring start (point))))
+	 collection completion)
+    (when start
+      (if (and semantic--completion-cache
+	       (eq (nth 0 semantic--completion-cache) (current-buffer))
+	       (=  (nth 1 semantic--completion-cache) start)
+	       (save-excursion
+		 (goto-char start)
+		 (looking-at (nth 3 semantic--completion-cache))))
+	  ;; Use cached value.
+	  (setq collection (nthcdr 4 semantic--completion-cache))
+	;; Perform new query.
+	(setq collection (semantic-find-tag-for-completion pattern))
+	(setq semantic--completion-cache
+	      (append (list (current-buffer) start 0 pattern)
+		      collection))))
+    (if (null collection)
+	(let ((str (if pattern (format " for \"%s\"" pattern) "")))
+	  (if (window-minibuffer-p (selected-window))
+	      (minibuffer-message (format " [No completions%s]" str))
+	    (message "Can't find completion%s" str)))
+      (setq completion (try-completion pattern collection predicate))
+      (if (string= pattern completion)
+	  (let ((list (all-completions pattern collection predicate)))
+	    (setq list (sort list 'string<))
+	    (if (> (length list) 1)
+		(with-output-to-temp-buffer "*Completions*"
+		  (display-completion-list list pattern))
+	      ;; Bury any out-of-date completions buffer.
+	      (let ((win (get-buffer-window "*Completions*" 0)))
+		(if win (with-selected-window win (bury-buffer))))))
+	;; Exact match
+	(delete-region start (point))
+	(insert completion)
+	;; Bury any out-of-date completions buffer.
+	(let ((win (get-buffer-window "*Completions*" 0)))
+	  (if win (with-selected-window win (bury-buffer))))))))
+
 (provide 'semantic/util)
 
 ;;; Minor modes

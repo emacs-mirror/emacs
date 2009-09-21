@@ -612,7 +612,7 @@ This routines creates the following functions and variables:"
 
     `(eval-and-compile
        (defun ,global (&optional arg)
-	 ,(concat "Toggle global use of option `" (symbol-name mode) "'.
+	 ,(concat "Toggle global use of `" (symbol-name mode) "'.
 If ARG is positive, enable, if it is negative, disable.
 If ARG is nil, then toggle.")
 	 (interactive "P")

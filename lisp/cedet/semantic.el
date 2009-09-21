@@ -906,6 +906,37 @@ Semantic mode."
       (if (and (boundp mode) (eval mode))
 	  (funcall mode -1)))))
 
+;;; Autoload some functions that are not in semantic/loaddefs
+
+(autoload 'global-semantic-idle-completions-mode "semantic/idle"
+  "Toggle global use of `semantic-idle-completions-mode'.
+If ARG is positive, enable, if it is negative, disable.
+If ARG is nil, then toggle." t nil)
+
+(autoload 'semantic-idle-completions-mode "semantic/idle"
+  "Display a list of possible completions in a tooltip.
+
+This is a minor mode which performs actions during idle time.
+With prefix argument ARG, turn on if positive, otherwise off.  The
+minor mode can be turned on only if semantic feature is available and
+the current buffer was set up for parsing.  Return non-nil if the
+minor mode is enabled." t nil)
+
+(autoload 'global-semantic-idle-summary-mode "semantic/idle"
+  "Toggle global use of `semantic-idle-summary-mode'.
+If ARG is positive, enable, if it is negative, disable.
+If ARG is nil, then toggle." t nil)
+
+(autoload 'semantic-idle-summary-mode "semantic/idle"
+  "Display a tag summary of the lexical token under the cursor.
+Call `semantic-idle-summary-current-symbol-info' for getting the
+current tag to display information.
+
+This is a minor mode which performs actions during idle time.
+With prefix argument ARG, turn on if positive, otherwise off.  The
+minor mode can be turned on only if semantic feature is available and
+the current buffer was set up for parsing.  Return non-nil if the
+minor mode is enabled." t nil)
 
 (provide 'semantic)
 

@@ -678,13 +678,20 @@ With a prefix argument, this command does completion within
 the collection of symbols listed in the index of the manual for the
 language you are using."
   (interactive "P")
-  (if arg
-      (info-complete-symbol)
-    (if (fboundp 'complete-tag)
-	(complete-tag)
-      ;; Don't autoload etags if we have no tags table.
-      (error "%s" (substitute-command-keys
-	      "No tags table loaded; use \\[visit-tags-table] to load one")))))
+  (cond (arg
+	 (info-complete-symbol))
+	;; Don't autoload etags if we have no tags table.
+	((or tags-table-list
+	     tags-file-name)
+	 (complete-tag))
+	((and (fboundp 'semantic-active-p)
+	      (semantic-active-p)
+	      (fboundp 'semantic-complete-symbol))
+	 (semantic-complete-symbol))
+	(t
+	 (error "%s" (substitute-command-keys
+		      "No tags table loaded; \
+use \\[visit-tags-table] to load one")))))
 
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
