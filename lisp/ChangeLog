@@ -1,5 +1,16 @@
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/semantic/db.el (semanticdb--inhibit-make-directory): New
+	var.
+	(semanticdb-save-all-db): Use it.
+
+	* cedet/semantic/db-file.el (semanticdb-default-save-directory):
+	Save in user-emacs-directory instead of the home directory.
+	(semanticdb-file-directory-exists-p): Avoid prompting the user
+	multiple times.
+
+2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
+
 	* help-fns.el (describe-function-1): Call
 	overload-docstring-extension for mode-local functions.
 

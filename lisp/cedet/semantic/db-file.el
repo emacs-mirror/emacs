@@ -38,12 +38,13 @@
 ;;; Settings
 ;;
 (defcustom semanticdb-default-file-name "semantic.cache"
-  "*File name of the semantic tag cache."
+  "File name of the semantic tag cache."
   :group 'semanticdb
   :type 'string)
 
-(defcustom semanticdb-default-save-directory (expand-file-name "~/.semanticdb")
-  "*Directory name where semantic cache files are stored.
+(defcustom semanticdb-default-save-directory
+  (expand-file-name "semanticdb" user-emacs-directory)
+  "Directory name where semantic cache files are stored.
 If this value is nil, files are saved in the current directory.  If the value
 is a valid directory, then it overrides `semanticdb-default-file-name' and
 stores caches in a coded file name in this directory."
@@ -54,7 +55,7 @@ stores caches in a coded file name in this directory."
                  (directory)))
 
 (defcustom semanticdb-persistent-path '(always)
-  "*List of valid paths that semanticdb will cache tags to.
+  "List of valid paths that semanticdb will cache tags to.
 When `global-semanticdb-minor-mode' is active, tag lists will
 be saved to disk when Emacs exits.  Not all directories will have
 tags that should be saved.
@@ -68,7 +69,7 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :type nil)
 
 (defcustom semanticdb-save-database-hooks nil
-  "*Hooks run after a database is saved.
+  "Hooks run after a database is saved.
 Each function is called with one argument, the object representing
 the database recently written."
   :group 'semanticdb
@@ -202,13 +203,16 @@ If SUPRESS-QUESTIONS, then do not ask to create the directory."
 	   ;; @TODO - If it was never set up... what should we do ?
 	   nil)
 	  ((file-exists-p dest) t)
-	  (supress-questions nil)
-	  ((y-or-n-p (format "Create directory %s for SemanticDB? "
-			     dest))
+	  ((or supress-questions
+	       (and (boundp 'semanticdb--inhibit-make-directory)
+		    semanticdb--inhibit-make-directory))
+	   nil)
+	  ((y-or-n-p (format "Create directory %s for SemanticDB? " dest))
 	   (make-directory dest t)
 	   t)
-	  (t nil))
-    ))
+	  (t (if (boundp 'semanticdb--inhibit-make-directory)
+		 (setq semanticdb--inhibit-make-directory t))
+	     nil))))
 
 (defmethod semanticdb-save-db ((DB semanticdb-project-database-file)
 			       &optional
