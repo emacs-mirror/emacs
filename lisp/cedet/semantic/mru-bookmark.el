@@ -411,29 +411,6 @@ Jumps to the tag and highlights it briefly."
   (semantic-mrub-visit tagmark)
   )
 
-;;; ADVICE
-;;
-;; Advise some commands to help set tag marks.
-;; (defadvice push-mark (around semantic-mru-bookmark activate)
-;;   "Push a mark at LOCATION with NOMSG and ACTIVATE passed to `push-mark'.
-;; If `semantic-mru-bookmark-mode' is active, also push a tag onto
-;; the mru bookmark stack."
-;;   (semantic-mrub-push semantic-mru-bookmark-ring
-;; 		      (point)
-;; 		      'mark)
-;;   ad-do-it)
-
-;(defadvice set-mark-command (around semantic-mru-bookmark activate)
-;  "Set this buffer's mark to POS.
-;If `semantic-mru-bookmark-mode' is active, also push a tag onto
-;the mru bookmark stack."
-;  (when (and semantic-mru-bookmark-mode (interactive-p))
-;    (semantic-mrub-push semantic-mru-bookmark-ring
-;			(point)
-;			'mark))
-;  ad-do-it)
-
-
 ;;; Debugging
 ;;
 (defun semantic-adebug-mrub ()

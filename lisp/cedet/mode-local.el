@@ -50,42 +50,6 @@
 ;;; Code:
 (eval-when-compile (require 'cl))
 
-;;; Compatibility
-;;
-(defun mode-local-define-derived-mode-needed-p ()
-  "Return non-nil if mode local has to fix `define-derived-mode'.
-That is, if `define-derived-mode' does not set `derived-mode-parent'."
-  (let ((body (cdr (macroexpand '(define-derived-mode c p ""))))
-        (bad t))
-    (while (and body bad)
-      (if (equal (car body) '(put 'c 'derived-mode-parent 'p))
-          (setq bad nil)
-        (setq body (cdr body))))
-    bad))
-
-(when (mode-local-define-derived-mode-needed-p)
-  ;; Workaround a bug in some (XEmacs) versions of
-  ;; `define-derived-mode' that don't set the `derived-mode-parent'
-  ;; property, and break mode-local.
-  (defadvice define-derived-mode
-    (after mode-local-define-derived-mode activate)
-    "Fix missing `derived-mode-parent' property on child."
-    (unless (eq 'fundamental-mode (ad-get-arg 1))
-      (let ((form (cdr ad-return-value)))
-        (setq ad-return-value nil)
-        (while form
-          (and (eq 'defun (car-safe (car form)))
-               (eq (ad-get-arg 0) (car (cdr-safe (car form))))
-               (push `(or (get ',(ad-get-arg 0) 'derived-mode-parent)
-                          (put ',(ad-get-arg 0) 'derived-mode-parent
-                               ',(ad-get-arg 1)))
-                     ad-return-value))
-          (push (car form) ad-return-value)
-          (setq form (cdr form)))
-        (setq ad-return-value `(progn ,@(nreverse ad-return-value)))
-        )))
-  )
-
 ;;; Misc utilities
 ;;
 (defun mode-local-map-file-buffers (function &optional predicate buffers)
@@ -629,7 +593,7 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
 (defun overload-docstring-extension (overload)
   "Return the doc string that augments the description of OVERLOAD."
   (let ((doc "\n\This function can be overloaded\
- (see `define-mode-local-override' for details).")
+ with `define-mode-local-override'.")
         (sym (overload-obsoleted-by overload)))
     (when sym
       (setq doc (format "%s\nIt makes the overload `%s' obsolete."
@@ -658,15 +622,6 @@ SYMBOL is a function that can be overridden."
 	  ;; LIST ALL LOADED OVERRIDES FOR SYMBOL HERE
 	  )
       (toggle-read-only 1))))
-
-;; Help for Overload functions.  Need to advise help.
-(defadvice describe-function (around mode-local-help activate)
-  "Display the full documentation of FUNCTION (a symbol).
-Returns the documentation as a string, also."
-  (prog1
-      ad-do-it
-    (if (function-overload-p (ad-get-arg 0))
-	(mode-local-augment-function-help (ad-get-arg 0)))))
 
 ;; Help for mode-local bindings.
 (defun mode-local-print-binding (symbol)

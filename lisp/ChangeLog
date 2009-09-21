@@ -1,5 +1,12 @@
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* help-fns.el (describe-function-1): Call
+	overload-docstring-extension for mode-local functions.
+
+	* cedet/mode-local.el:
+	* cedet/semantic/mru-bookmark.el:
+	* cedet/pulse.el: Remove advice.
+
 	* cedet/semantic.el: Add autoloads for semantic/idle functions.
 
 	* cedet/semantic/util.el (semantic--completion-cache): New var.

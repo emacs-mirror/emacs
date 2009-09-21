@@ -323,6 +323,8 @@ suitable file is found, return nil."
 	(and src-file (file-readable-p src-file) src-file))))))
 
 (declare-function ad-get-advice-info "advice" (function))
+(declare-function function-overload-p "mode-local")
+(declare-function overload-docstring-extension function "mode-local")
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -480,6 +482,8 @@ suitable file is found, return nil."
 		(insert (car high) "\n")
 		(fill-region fill-begin (point)))
 	      (setq doc (cdr high))))
+
+	  ;; Note if function is obsolete.
 	  (let* ((obsolete (and
 			    ;; function might be a lambda construct.
 			    (symbolp function)
@@ -492,9 +496,16 @@ suitable file is found, return nil."
 	      (insert (cond ((stringp use) (concat ";\n" use))
 			    (use (format ";\nuse `%s' instead." use))
 			    (t "."))
-		      "\n"))
-	    (insert "\n"
-		    (or doc "Not documented."))))))))
+		      "\n")))
+
+	  ;; Note if function is overloadable (see the `mode-local'
+	  ;; package in CEDET).
+	  (when (and (featurep 'mode-local)
+		     (symbolp function)
+		     (function-overload-p function))
+	    (insert (overload-docstring-extension function) "\n"))
+
+	  (insert "\n" (or doc "Not documented.")))))))
 
 
 ;; Variables
