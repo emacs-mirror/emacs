@@ -1,3 +1,7 @@
+2009-09-22  Glenn Morris  <rgm@gnu.org>
+
+	* internals.texi (Building Emacs): Mention preloaded-file-list.
+
 2009-09-14  Alan Mackenzie  <acm@muc.de>
 
 	* os.texi (Terminal Output): Put "@code{}" around "stdout".

@@ -52,12 +52,15 @@ preloaded.  @file{emacs} starts more quickly because it does not need to
 load the files.  This is the Emacs executable that is normally
 installed.
 
+@vindex preloaded-file-list
+@cindex dumped Lisp files
   To create @file{emacs}, use the command @samp{temacs -batch -l loadup
 dump}.  The purpose of @samp{-batch} here is to prevent @file{temacs}
 from trying to initialize any of its data on the terminal; this ensures
 that the tables of terminal information are empty in the dumped Emacs.
 The argument @samp{dump} tells @file{loadup.el} to dump a new executable
-named @file{emacs}.
+named @file{emacs}.  The variable @code{preloaded-file-list} stores a
+list of the Lisp files that were dumped with the @file{emacs} executable.
 
   Some operating systems don't support dumping.  On those systems, you
 must start Emacs with the @samp{temacs -l loadup} command each time you
