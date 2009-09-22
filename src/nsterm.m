@@ -198,16 +198,6 @@ int ns_tmp_flags; /* FIXME */
 struct nsfont_info *ns_tmp_font; /* FIXME */
 /*static int debug_lock = 0; */
 
-#ifdef NS_IMPL_COCOA
-/* This undocumented Quartz function controls how fonts are anti-aliased.
-   (Found from code in Mac wxWindows impl, discovered by running `nm' on
-   the "QD" framework.)
-   Mode 0 is normal anti-aliasing, mode 1 is no anti-aliasing, and mode 2 is
-   4-bit pixel-aligned anti-aliasing (the old QuickDraw standard). */
-extern void CGContextSetFontRenderingMode (CGContextRef cg, int v);
-#endif
-
-
 /* event loop */
 static BOOL send_appdefined = YES;
 static NSEvent *last_appdefined_event = 0;
@@ -358,7 +348,7 @@ ns_init_paths ()
         }
       if ([resourcePaths length] > 0)
         setenv ("EMACSLOADPATH", [resourcePaths UTF8String], 1);
-/*NSLog (@"loadPath: '%s'\n", resourcePaths); */
+/*NSLog (@"loadPath: '%@'\n", resourcePaths); */
     }
 
   if (!getenv ("EMACSPATH"))
@@ -858,6 +848,7 @@ ns_reset_terminal_modes (struct terminal *terminal)
 {
   NSTRACE (ns_reset_terminal_modes);
 }
+
 
 static void
 ns_set_terminal_modes (struct terminal *terminal)
@@ -3133,7 +3124,7 @@ ns_read_socket (struct terminal *terminal, int expected,
          If we're being called outside of that, it's also OK to return quickly
          after one iteration through the event loop, since other terms do
          this and emacs expects it. */
-      if (!(inNsSelect && expected))  // (!inNsSelect || !expected)
+      if (!(inNsSelect && expected))
         {
           /* Post an application defined event on the event queue.  When this is
              received the [NXApp run] will return, thus having processed all
