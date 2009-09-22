@@ -1,5 +1,9 @@
 2009-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el: Convert to utf-8 encoding.
+	(fill-french-nobreak-p): Remove redundant » and « inherited from our
+	pre-unicode days.
+
 	* add-log.el (change-log-fill-forward-paragraph): New function.
 	(change-log-mode): Use it so fill-region DTRT.
 	Set fill-indent-according-to-mode here rather than in
