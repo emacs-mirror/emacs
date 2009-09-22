@@ -1,3 +1,11 @@
+2009-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el (change-log-fill-forward-paragraph): New function.
+	(change-log-mode): Use it so fill-region DTRT.
+	Set fill-indent-according-to-mode here rather than in
+	change-log-fill-paragraph.
+	(change-log-fill-paragraph): Remove.
+
 2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* info.el (Info-try-follow-nearest-node): Use the URL extracted by
