@@ -568,7 +568,10 @@ name_is_separator (name)
    to set_frame_menubar */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
-  NSEvent *event = [[FRAME_NS_VIEW (frame) window] currentEvent];
+  NSEvent *event;
+  if (!FRAME_LIVE_P (frame))
+    return;
+  event = [[FRAME_NS_VIEW (frame) window] currentEvent];
   /* HACK: Cocoa/Carbon will request update on every keystroke
      via IsMenuKeyEvent -> CheckMenusForKeyEvent.  These are not needed
      since key equivalents are handled through emacs.
