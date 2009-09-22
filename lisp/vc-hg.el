@@ -570,14 +570,14 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-outgoing ()
   (interactive)
   (let ((bname "*Hg outgoing*"))
-    (vc-hg-command bname 0 nil "outgoing" "-n")
+    (ignore-errors (vc-hg-command bname 0 nil "outgoing" "-n"))
     (pop-to-buffer bname)
     (vc-hg-outgoing-mode)))
 
 (defun vc-hg-incoming ()
   (interactive)
   (let ((bname "*Hg incoming*"))
-    (vc-hg-command bname 0 nil "incoming" "-n")
+    (ignore-errors (vc-hg-command bname 0 nil "incoming" "-n"))
     (pop-to-buffer bname)
     (vc-hg-incoming-mode)))
 
