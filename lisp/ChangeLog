@@ -1,3 +1,7 @@
+2009-09-22  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-print-log): Fix shortlog arg passing.
+
 2009-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el: Convert to utf-8 encoding.
