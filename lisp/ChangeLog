@@ -1,5 +1,8 @@
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-menu.el (cal-menu-scroll-menu): Add a sub-section with
+	commands that move point (as opposed to scrolling).
+
 	* emulation/tpu-edt.el (tpu-copy-keyfile): Fix condition-case handler.
 
 	* emacs-lisp/elint.el (elint): New custom group.
