@@ -1,3 +1,8 @@
+2009-09-22  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* linum.el (linum-delete-overlays, linum-update-window):
+	Do not modify the right margin.  (Bug#3971)
+
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (conf-mode-maybe, magic-fallback-mode-alist): Use

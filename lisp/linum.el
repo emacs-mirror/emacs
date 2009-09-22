@@ -113,7 +113,7 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
   (mapc #'delete-overlay linum-overlays)
   (setq linum-overlays nil)
   (dolist (w (get-buffer-window-list (current-buffer) nil t))
-    (set-window-margins w 0)))
+    (set-window-margins w 0 (cdr (window-margins w)))))
 
 (defun linum-update-current ()
   "Update line numbers for the current buffer."
@@ -168,7 +168,7 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
             (overlay-put ov 'linum-str str))))
       (forward-line)
       (setq line (1+ line)))
-    (set-window-margins win width)))
+    (set-window-margins win width (cdr (window-margins win)))))
 
 (defun linum-after-change (beg end len)
   ;; update overlays on deletions, and after newlines are inserted
