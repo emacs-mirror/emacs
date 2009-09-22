@@ -1,5 +1,8 @@
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (calendar-mode-map): Make mouse-1 and 3 clicks on
+	the scroll-bar scroll the calendar window rather than the buffer.
+
 	* calendar/cal-menu.el (cal-menu-scroll-menu): Add a sub-section with
 	commands that move point (as opposed to scrolling).
 
