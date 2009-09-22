@@ -1,3 +1,58 @@
+2009-09-22  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/tpu-edt.el (tpu-copy-keyfile): Fix condition-case handler.
+
+	* emacs-lisp/elint.el (elint): New custom group.
+	(elint-log-buffer): Make it a defcustom.
+	(elint-scan-preloaded, elint-ignored-warnings)
+	(elint-directory-skip-re): New options.
+	(elint-builtin-variables): Doc fix.
+	(elint-preloaded-env): New variable.
+	(elint-unknown-builtin-args): Add an entry for encode-time.
+	(elint-extra-errors): Make it a variable rather than a constant.
+	(elint-preloaded-skip-re): New constant.
+	(elint-directory): Skip files matching elint-directory-skip-re.
+	(elint-features): New variable, local to linted buffers.
+	(elint-update-env): Initialize elint-features.  Possibly add
+	elint-preloaded-env to the buffer's environment.
+	(elint-get-top-forms): Bind elint-current-pos, for log messages.
+	Skip quoted forms.
+	(elint-init-form): New function, extracted from elint-init-env.
+	Make non-list forms a warning rather than an error.
+	Add the mode-map for define-derived-mode.  Handle define-minor-mode,
+	easy-menu-define, put that adds an error-condition, and provide.
+	When requiring cl, also require cl-macs.  Really require cl, to handle
+	some cl macros.  Store required libraries in the list elint-features,
+	so as not to re-load them.  Treat cc-require like require.
+	(elint-init-env): Call elint-init-form to do the work.
+	Handle eval-and-compile and such like.
+	(elint-add-required-env): Do not clear messages.
+	(elint-special-forms): Add handlers for function, defalias, if, when,
+	unless, and, or.
+	(elint-form): Add optional argument to ignore elint-special-forms,
+	useful to prevent recursive calls from handlers.  Doc fix.
+	Respect elint-ignored-warnings.
+	(elint-form): Respect elint-ignored-warnings.
+	(elint-bound-variable, elint-bound-function): New variables.
+	(elint-unbound-variable): Respect elint-bound-variable.
+	(elint-get-args): Respect elint-bound-function.
+	(elint-check-cond-form): Add some simple handling for (f)boundp and
+	featurep tests.
+	(elint-check-defalias-form): New handler.
+	(elint-check-let-form): Make an empty let a warning rather than an
+	error.
+	(elint-check-setq-form): Make an empty setq a warning rather than an
+	error.  Respect elint-ignored-warnings.
+	(elint-check-defvar-form): Accept null doc-strings.
+	(elint-check-conditional-form): New handler.  Does some simple-minded
+	checking of featurep and (f)boundp tests.
+	(elint-put-function-args): New function.
+	(elint-initialize): Use elint-scan-doc-file rather than
+	elint-find-builtin-variables.  Use elint-put-function-args.
+	Possibly scan preloaded-file-list.
+	(elint-scan-doc-file): Rename from elint-find-builtin-variables and
+	extend to handle functions as well.
+
 2009-09-22  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* linum.el (linum-delete-overlays, linum-update-window):
