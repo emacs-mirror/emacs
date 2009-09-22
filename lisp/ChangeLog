@@ -1,3 +1,8 @@
+2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.el (Info-try-follow-nearest-node): Use the URL extracted by
+	`Info-get-token', instead of `browse-url-url-at-point'.  (Bug#4508)
+
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-mode-map): Make mouse-1 and 3 clicks on
