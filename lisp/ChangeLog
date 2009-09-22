@@ -3,6 +3,7 @@
 	* vc-hg.el (vc-hg-print-log): Fix shortlog arg passing.
 	(vc-hg-outgoing, vc-hg-incoming): Bump okstatus in `vc-hg-command'
 	to 1 because hg returns status 1 when nothing is found.
+	Bind `vc-short-log' for the sake of `vc-hg-log-view-mode'.
 
 2009-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
