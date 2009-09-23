@@ -1187,7 +1187,10 @@ This function is for internal use only."
 		epg-pending-status-list)
       (accept-process-output (epg-context-process context) 1))
     (if epg-pending-status-list
-	(epg-context-set-result-for context 'error 'exit))))
+	(epg-context-set-result-for
+	 context 'error
+	 (cons (list 'exit)
+	       (epg-context-result-for context 'error))))))
 
 (defun epg-wait-for-completion (context)
   "Wait until the `epg-gpg-program' process completes."

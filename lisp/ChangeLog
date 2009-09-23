@@ -1,3 +1,7 @@
+2009-09-23  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-wait-for-status): Preserve existing 'error results.
+
 2009-09-22  Sam Steingold  <sds@gnu.org>
 
 	* vc-hg.el (vc-hg-print-log): Fix shortlog arg passing.
