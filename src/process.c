@@ -5047,6 +5047,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  if (detect_input_pending ())
 	    break;
 #endif
+	  thread_yield ();
 	}
 
       /* Exit now if the cell we're waiting for became non-nil.  */
