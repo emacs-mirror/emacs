@@ -315,7 +315,7 @@ the alias.  Else windows-NUMBER is used."
 	 (candidates (if (fboundp 'cp-supported-codepages)
 			 (cp-supported-codepages)
 		       ;; Removed in Emacs 23 (unicode), so signal an error:
-		       (error "`codepage-setup' not present in this Emacs version."))))
+		       (error "`codepage-setup' not present in this Emacs version"))))
      (list (completing-read "Setup DOS Codepage: (default 437) " candidates
 			    nil t nil nil "437"))))
   (when alias
@@ -326,7 +326,7 @@ the alias.  Else windows-NUMBER is used."
     (unless (mm-coding-system-p cp)
       (if (fboundp 'codepage-setup)	; silence compiler
 	  (codepage-setup number)
-	(error "`codepage-setup' not present in this Emacs version.")))
+	(error "`codepage-setup' not present in this Emacs version")))
     (when (and alias
 	       ;; Don't add alias if setup of cp failed.
 	       (mm-coding-system-p cp))

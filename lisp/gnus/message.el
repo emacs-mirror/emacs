@@ -4247,7 +4247,7 @@ This function could be useful in `message-setup-hook'."
 		 (not (y-or-n-p
 		       (format
 			"Address `%s' might be bogus.  Continue? " bog)))
-		 (error "Bogus address."))))))))
+		 (error "Bogus address"))))))))
 
 (custom-add-option 'message-setup-hook 'message-check-recipients)
 

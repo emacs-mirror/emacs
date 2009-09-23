@@ -1,3 +1,11 @@
+2009-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-encrypt-body):
+	* message.el (message-check-recipients):
+	* mm-util.el (mm-codepage-setup):
+	* nnir.el (gnus-summary-nnir-goto-thread, nnir-run-waissearch)
+	(nnir-run-swish++, nnir-run-swish-e): Fix typos in error messages.
+
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-diary.el (gnus-diary-check-message):
@@ -10778,7 +10786,6 @@
 
 	* message.el (message-mode): Set comment-start-skip.
 
-
 2004-08-22  Sam Steingold  <sds@gnu.org>
 
 	* pop3.el (pop3-leave-mail-on-server): New user variable.
@@ -13106,7 +13113,6 @@
 	(gnus-make-ascending-articles-unread): Use accessor
 	macros (gnus-group-entry, gnus-group-unread, gnus-info-marks etc.)
 	to get group information for improved readability.
-
 
 2004-01-09  Jesper Harder  <harder@ifa.au.dk>
 
