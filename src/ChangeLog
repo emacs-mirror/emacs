@@ -6,6 +6,14 @@
 	* nsmenu.m (EmacsMenu-menuNeedsUpdate): Ignore if frame has been
 	deleted (bug #4492).
 
+	* nsfont.m (Vns_reg_to_script): New lisp variable.
+	(syms_of_nsfont): Declare it.
+	(ns_registry_to_script): New function.
+	(ns_get_req_script): Call it.
+	(ns_findfonts): Don't give up on non-unicode registry.
+
+	* font.c (DEFAULT_ENCODING) [HAVE_NS]: Remove special case.
+
 2009-09-20  Tom Tromey  <tromey@redhat.com>
 
 	* eval.c (find_handler_clause): Make stack-trace-on-error work in
