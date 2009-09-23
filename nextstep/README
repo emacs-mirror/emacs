@@ -29,7 +29,7 @@ MacOS X 10.4 or later
 
 - or -
 
-GNUstep "Startup 0.13" or later
+GNUstep "Startup 0.23" or later
 Tested on GNU/Linux, should work on other systems, perhaps with minor
 build tweaking.
 

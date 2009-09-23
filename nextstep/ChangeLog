@@ -1,3 +1,7 @@
+2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* README: Note GNUstep support is now Startup 0.23 or later.
+
 2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* README: Note OS X support is now 10.4 or later.
