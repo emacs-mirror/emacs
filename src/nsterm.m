@@ -5946,7 +5946,7 @@ extern void update_window_cursor (struct window *w, int on);
 
       /* set a timer to repeat, as we can't let superclass do this modally */
       scroll_repeat_entry
-	= [[NSTimer scheduledTimerWithTimeInterval: 0.5
+	= [[NSTimer scheduledTimerWithTimeInterval: SCROLL_BAR_FIRST_DELAY
                                             target: self
                                           selector: @selector (repeatScroll:)
                                           userInfo: 0

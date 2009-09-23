@@ -1,6 +1,7 @@
 2009-09-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (CGContextSetFontRenderingMode): Drop declaration.
+	(EmacsScroller-mouseDown:): Use SCROLL_BAR_FIRST_DELAY.
 
 	* nsmenu.m (EmacsMenu-menuNeedsUpdate): Ignore if frame has been
 	deleted (bug #4492).
