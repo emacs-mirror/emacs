@@ -1592,7 +1592,7 @@ This undoes changes both in the agenda buffer and in the remote buffer
 that have been changed along."
   (interactive)
   (or org-agenda-allow-remote-undo
-      (error "Check the variable `org-agenda-allow-remote-undo' to activate remote undo."))
+      (error "Check the variable `org-agenda-allow-remote-undo' to activate remote undo"))
   (if (not (eq this-command last-command))
       (setq org-agenda-undo-has-started-in nil
 	    org-agenda-pending-undo-list org-agenda-undo-list))
@@ -2387,7 +2387,7 @@ This will ignore drawers etc, just get the text."
 (defun org-check-for-org-mode ()
   "Make sure current buffer is in org-mode.  Error if not."
   (or (org-mode-p)
-      (error "Cannot execute org-mode agenda command on buffer in %s."
+      (error "Cannot execute org-mode agenda command on buffer in %s"
 	     major-mode)))
 
 (defun org-fit-agenda-window ()
@@ -2487,7 +2487,7 @@ bind it in the options section.")
       (org-agenda-mark-clocking-task)
       (when org-agenda-entry-text-mode
 	(org-agenda-entry-text-hide)
-	(org-agenda-entry-text-show))	
+	(org-agenda-entry-text-show))
       (run-hooks 'org-finalize-agenda-hook)
       (setq org-agenda-type (get-text-property (point) 'org-agenda-type))
       (when (get 'org-agenda-filter :preset-filter)

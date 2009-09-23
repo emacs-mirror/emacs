@@ -1,3 +1,15 @@
+2009-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.el (org-tree-to-indirect-buffer, org-convert-to-oddeven-levels)
+	(org-shiftselect-error, org-ctrl-c-ctrl-c):
+	* org-agenda.el (org-agenda-undo, org-check-for-org-mode):
+	* org-attach.el (org-attach-check-absolute-path):
+	* org-docbook.el (org-export-as-docbook):
+	* org-html.el (org-export-as-html):
+	* org-id.el (org-id-update-id-locations):
+	* org-table.el (org-table-fedit-lisp-indent, orgtbl-send-table):
+	Fix typos in error messages.
+
 2009-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-ascii.el: Require CL for the `loop' macro.
@@ -768,7 +780,7 @@
 	* org.el (org-time-since): Add a function to get the time since an
 	org timestamp.
 	(org-entry-properties): Add two new special properties: SINCE and
-	SINCE_IA. These give the time since any active or inactive
+	SINCE_IA.  These give the time since any active or inactive
 	timestamp in an entry.
 	(org-special-properties): Add SINCE, SINCE_IA.
 	(org-tags-sort-function): Add custom declaration for tags
@@ -3994,7 +4006,7 @@
 	preview.
 	(org-time-stamp-inactive): Call `org-time-stamp'.
 	(org-time-stamp): New argument `inactive'.  Also edit inacive
-	stamps. Convert time stamp type.
+	stamps.  Convert time stamp type.
 	(org-open-file): Interpret the `default' value for the `command'
 	in `org-file-apps'.
 
@@ -4087,13 +4099,13 @@
 
 	* org-remember.el (org-get-x-clipboard): Use the compat
 	function to get clipboard values when x-selection-value is
-	unavailable. Use substring-no-properties instead of
+	unavailable.  Use substring-no-properties instead of
 	set-text-properties to remove text properties from the clipboard
 	value.
 
 	* lisp/org-clock.el (org-update-mode-line): Support limiting the
 	modeline clock string, and display the full todo value in the
-	tooltip. Set a local keymap so mouse-3 on the clock string goes to
+	tooltip.  Set a local keymap so mouse-3 on the clock string goes to
 	the currently clocked task.
 	(org-clock-string-limit): Add a custom value for the maximum
 	length of the clock string in the modeline.

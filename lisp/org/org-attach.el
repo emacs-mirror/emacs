@@ -217,7 +217,7 @@ Throw an error if we cannot root the directory."
   (or (and dir (file-name-absolute-p dir))
       (file-name-absolute-p org-attach-directory)
       (buffer-file-name (buffer-base-buffer))
-      (error "Need absolute `org-attach-directory' to attach in buffers without filename.")))
+      (error "Need absolute `org-attach-directory' to attach in buffers without filename")))
 
 (defun org-attach-set-directory ()
   "Set the ATTACH_DIR property of the current entry.

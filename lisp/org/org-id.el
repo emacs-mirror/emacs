@@ -390,7 +390,7 @@ When FILES is given, scan these files instead.
 When CHECK is given, prepare detailed information about duplicate IDs."
   (interactive)
   (if (not org-id-track-globally)
-      (error "Please turn on `org-id-track-globally' if you want to track IDs.")
+      (error "Please turn on `org-id-track-globally' if you want to track IDs")
     (let ((files
 	   (or files
 	       (append
