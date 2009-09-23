@@ -1,3 +1,14 @@
+2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EV_TIMESTAMP, x_set_window_size)
+	(EmacsApp-application:openFiles:): Remove GNUstep conditionals.
+	(EmacsScroller-setPosition:portion:whole:): Remove -display call
+	under GNUstep.
+	(EmacsView-initFrameFromEmacs:): Set autoresizing mask.
+
+	* nsfont.m (ns_glyph_metrics): Remove GNUstep conditional for
+	glyph advancement.
+
 2009-09-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (CGContextSetFontRenderingMode): Drop declaration.
