@@ -3537,10 +3537,12 @@ use \\[mail-yank-original] to yank the original message into it."
 		   (aref rmail-msgref-vector msgnum))
 		 rmail-answered-attr-index))
      nil
-     (list (cons "References" (if references
-				  (concat (mapconcat 'identity references " ")
-					  " " message-id)
-				message-id))))))
+     (if (or references message-id)
+	 (list (cons "References" (if references
+				      (concat
+				       (mapconcat 'identity references " ")
+				       " " message-id)
+				    message-id)))))))
 
 (defun rmail-mark-message (buffer msgnum-list attribute)
   "Give BUFFER's message number in MSGNUM-LIST the attribute ATTRIBUTE.

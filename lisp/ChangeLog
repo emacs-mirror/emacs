@@ -1,3 +1,8 @@
+2009-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Don't try to add a References header when
+	replying to mail without References or Message-Id.  (Bug#4525)
+
 2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el (ns-reg-to-script): New variable.
