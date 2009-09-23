@@ -248,12 +248,7 @@ static BOOL inNsSelect = 0;
      [e buttonNumber] - 1)
 
 /* Convert the time field to a timestamp in milliseconds. */
-#ifdef NS_IMPL_GNUSTEP
-/* Apple says timestamp is in seconds, but GNUstep seems to be returning msec */
-#define EV_TIMESTAMP(e) ([e timestamp])
-#else
 #define EV_TIMESTAMP(e) ([e timestamp] * 1000)
-#endif /* not gnustep */
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
@@ -1139,19 +1134,12 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 
   /* If we have a toolbar, take its height into account. */
   if (tb)
+    /* NOTE: previously this would generate wrong result if toolbar not
+             yet displayed and fixing toolbar_height=32 helped, but
+             now (200903) seems no longer needed */
     FRAME_NS_TOOLBAR_HEIGHT (f) =
-      /* XXX: GNUstep has not yet implemented the first method below, added
-	 in Panther, however the second is incorrect under Cocoa. */
-#ifdef NS_IMPL_COCOA
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
-      /* NOTE: previously this would generate wrong result if toolbar not
-               yet displayed and fixing toolbar_height=32 helped, but
-               now (200903) seems no longer needed */
-#else
-      NSHeight ([NSWindow frameRectForContentRect: NSMakeRect (0, 0, 0, 0)
-					styleMask: [window styleMask]])
-#endif
-            - FRAME_NS_TITLEBAR_HEIGHT (f);
+        - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
     FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
 
@@ -4155,11 +4143,7 @@ ns_term_shutdown (int sig)
   while ((file = [files nextObject]) != nil)
     [ns_pending_files addObject: file];
 
-/* TODO: when GNUstep implements this (and we require that version of
-         GNUstep), remove. */
-#ifndef NS_IMPL_GNUSTEP
   [self replyToOpenOrPrint: NSApplicationDelegateReplySuccess];
-#endif /* !NS_IMPL_GNUSTEP */
 
 }
 
@@ -5100,6 +5084,7 @@ extern void update_window_cursor (struct window *w, int on);
   r = NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
                  FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
   [self initWithFrame: r];
+  [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
 
   FRAME_NS_VIEW (f) = self;
   emacsframe = f;
@@ -5711,8 +5696,13 @@ extern void update_window_cursor (struct window *w, int on);
   [self setEnabled: YES];
 
   /* Ensure auto resizing of scrollbars occurs within the emacs frame's view
-     locked against the right, top and bottom edges. */
+     locked against the top and bottom edges, and right edge on OS X, where
+     scrollers are on right. */
+#ifdef NS_IMPL_GNUSTEP
+  [self setAutoresizingMask: NSViewMaxXMargin | NSViewHeightSizable];
+#else
   [self setAutoresizingMask: NSViewMinXMargin | NSViewHeightSizable];
+#endif
 
   win = nwin;
   condemned = NO;
@@ -5833,9 +5823,6 @@ extern void update_window_cursor (struct window *w, int on);
       por = (float)portion/whole;
       [self setFloatValue: pos knobProportion: por];
     }
-#ifdef NS_IMPL_GNUSTEP
-  [self display];
-#endif
   return self;
 }
 
