@@ -37,7 +37,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "character.h"
 #include "font.h"
 
-/* This header is not included from GNUstep's (0.16.0) AppKit.h.  */
+/* TODO: Drop once we can assume gnustep-gui 0.17.1. */
 #ifdef NS_IMPL_GNUSTEP
 #import <AppKit/NSFontDescriptor.h>
 #endif
@@ -1397,16 +1397,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
       float w, lb, rb;
       NSRect r = [sfont boundingRectForGlyph: g];
 
-#ifdef NS_IMPL_GNUSTEP
-      {
-        /* lord help us */
-        NSString *s = [NSString stringWithFormat: @"%c", g];
-        w = [sfont widthOfString: s];
-      }
-#else
-      w = [sfont advancementForGlyph: g].width;
-#endif
-      w = max (w, 2.0);
+      w = max ([sfont advancementForGlyph: g].width, 2.0);
       metrics->width = lrint (w);
 
       lb = r.origin.x;
