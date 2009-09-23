@@ -966,6 +966,44 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 		(format "Creation of the standard fontset failed: %s" err)
 		:error)))))
 
+;; This maps font registries (not exposed by NS APIs for font selection) to
+;; unicode scripts (which can be mapped to unicode character ranges which are).
+;; See ../international/fontset.el
+(setq ns-reg-to-script
+      '(("iso8859-1" . latin)
+	("iso8859-2" . latin)
+	("iso8859-3" . latin)
+	("iso8859-4" . latin)
+	("iso8859-5" . cyrillic)
+	("microsoft-cp1251" . cyrillic)
+	("koi8-r" . cyrillic)
+	("iso8859-6" . arabic)
+	("iso8859-7" . greek)
+	("iso8859-8" . hebrew)
+	("iso8859-9" . latin)
+	("iso8859-10" . latin)
+	("iso8859-11" . thai)
+	("tis620" . thai)
+	("iso8859-13" . latin)
+	("iso8859-14" . latin)
+	("iso8859-15" . latin)
+	("iso8859-16" . latin)
+	("viscii1.1-1" . latin)
+	("jisx0201" . kana)
+	("jisx0208" . han)
+	("jisx0212" . han)
+	("jisx0213" . han)
+	("gb2312.1980" . han)
+	("gb18030" . han)
+	("gbk-0" . han)
+	("big5" . han)
+	("cns11643" . han)
+	("sisheng_cwnn" . bopomofo)
+	("ksc5601.1987" . hangul)
+	("ethiopic-unicode" . ethiopic)
+	("is13194-devanagari" . indian-is13194)
+	("iso10646.indian-1" . devanagari)))
+
 
 ;;;; Pasteboard support.
 
@@ -1036,12 +1074,6 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
 (defun ns-paste-secondary ()
   (interactive)
   (insert (ns-get-cut-buffer-internal 'SECONDARY)))
-
-;; PENDING: not sure what to do here.. for now interprog- are set in
-;; init-fn-keys, and unsure whether these x- settings have an effect.
-;;(setq interprogram-cut-function 'x-select-text
-;;      interprogram-paste-function 'x-cut-buffer-or-selection-value)
-;; These only needed if above not working.
 
 (set-face-background 'region "ns_selection_color")
 
