@@ -1,3 +1,11 @@
+2009-09-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-version): New variable.
+	(gdb-non-stop-handler): Set gdb-version.
+	(gdb-gud-context-command, gdb-current-context-command, gdb-stopped):
+	Condition "--thread" option on gdb-version.
+	(gdb-invalidate-threads): Remove unused argument.
+
 2009-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el (sgml-mode-flyspell-verify): Pass limit args
