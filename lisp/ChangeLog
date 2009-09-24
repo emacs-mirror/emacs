@@ -1,3 +1,8 @@
+2009-09-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el: Don't require speedbar.
+	(gdb-jsonify-buffer): Handle case where "=" is part of value string.
+
 2009-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-fancy-display): Always run the hook.
@@ -2341,7 +2346,7 @@
 	(gdb-invalidate-disassembly): Do not refresh upon receiving
 	'update signal.  Instead, update all disassembly buffers only after
 	threads list.
-	(gdb): Send -target-detach when buffer is killed (#3794).
+	(gdb): Send -target-detach when buffer is killed (Bug#3794).
 	(gdb-starting): Moved -data-list-register-names...
 	(gdb-stopped): ...here so it's sent when first thread stops.
 	(gdb-registers-handler-custom): Do nothing if register names are
