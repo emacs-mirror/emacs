@@ -1,3 +1,7 @@
+2009-09-24  Andreas Schwab  <schwab@redhat.com>
+
+	* coding.c (decode_coding_iso_2022): Fix operator precedence.
+
 2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dired.c (Fdirectory_files): Fix typo in docstring.
