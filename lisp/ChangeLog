@@ -1,3 +1,10 @@
+2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.el: Require CL.
+	(term-ansi-reset): New function.
+	(term-mode, term-emulate-terminal, term-handle-colors-array): Use it.
+	(term-handle-colors-array): Simplify.
+
 2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-overlay-interior-modification-handler)
