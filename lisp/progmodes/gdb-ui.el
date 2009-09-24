@@ -732,6 +732,7 @@ otherwise do not."
   ;; Find source file and compilation directory here.
   ;; Works for C, C++, Fortran and Ada but not Java (GDB 6.4)
   (gdb-enqueue-input (list "server list\n" 'ignore))
+  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info)))
 
 (defun gdb-get-version ()
@@ -1824,7 +1825,6 @@ incompatible with GDB/MI output syntax."
       (save-excursion
         (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
           (replace-match "" nil nil nil 1))))
-    ;; Emacs bug #3794
     (when fix-list
       (save-excursion
         ;; Find positions of braces which enclose broken list
@@ -1842,9 +1842,9 @@ incompatible with GDB/MI output syntax."
               (insert "]"))))))
     (goto-char (point-min))
     (insert "{")
-    ;; TODO: This breaks badly with foo= inside constants
-    (while (re-search-forward "\\([[:alpha:]-_]+\\)=" nil t)
-      (replace-match "\"\\1\":" nil nil))
+    (while (re-search-forward
+	    "\\([[:alnum:]-_]+\\)=\\(\\[\\|\"\"\\|\".*?[^\\]\"\\)" nil t)
+      (replace-match "\"\\1\":\\2" nil nil))
     (goto-char (point-max))
     (insert "}")))
 
