@@ -1,6 +1,8 @@
 2009-09-24  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-jsonify-buffer): Catch gdb internal output.
+	* progmodes/gdb-ui.el (gdb-jsonify-buffer): Catch log stream output.
+	(gdb-init-2): Fortran requires list MAIN__ to find source buffer.
+	(gdb-jsonify-buffer): Handle case where "=" is part of value string.
 
 2009-09-19  Nick Roberts  <nickrob@snap.net.nz>
 
