@@ -1603,7 +1603,8 @@ See also the function `condition-case'.  */)
 
   immediate_quit = handling_signal = 0;
   abort_on_gc = 0;
-  if (gc_in_progress || waiting_for_input)
+  /* How handle waiting_for_input?  -- giuseppe*/
+  if (gc_in_progress /*|| waiting_for_input*/)
     abort ();
 
   if (NILP (error_symbol))

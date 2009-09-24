@@ -4,6 +4,8 @@
 #include "buffer.h"
 #include "blockinput.h"
 #include <pthread.h>
+#include "systime.h"
+#include "sysselect.h"
 
 void mark_byte_stack P_ ((struct byte_stack *));
 void mark_backtrace P_ ((struct backtrace *));
@@ -38,13 +40,14 @@ thread_schedule ()
   struct thread_state *it, *begin = NEXT_THREAD (current_thread);
 
 #define CHECK_THREAD(T,B)                                       \
-  if (!other_threads_p ()                                       \
-      || ((struct thread_state *)T)->nolock                     \
-      || EQ (((struct thread_state *)T)->desired_buffer,        \
-             ((struct thread_state *)T)->m_current_buffer)      \
-      || EQ (B->owner, Qnil)                                    \
+  if ((!other_threads_p ()					\
+       || ((struct thread_state *)T)->nolock			\
+       || EQ (((struct thread_state *)T)->desired_buffer,	\
+	      ((struct thread_state *)T)->m_current_buffer)	\
+       || EQ (B->owner, Qnil)					\
       /* We set the owner to Qt to mean it is being killed.  */ \
-      || EQ (B->owner, Qt))                                     \
+       || EQ (B->owner, Qt))					\
+      && !((struct thread_state *)T)->blocked)			\
     {                                                           \
       next_thread = ((struct thread_state *)T)->pthread_id;     \
       return;                                                   \
@@ -76,7 +79,7 @@ thread_schedule ()
 /* Schedule a new thread and block the caller until it is not scheduled
    again.  */
 static inline void
-reschedule_and_wait (char *end)
+reschedule (char *end, int wait)
 {
   current_thread->stack_top = end;
   if (!thread_inhibit_yield_p ())
@@ -84,6 +87,9 @@ reschedule_and_wait (char *end)
 
   if (next_thread != current_thread->pthread_id)
     pthread_cond_broadcast (&buffer_cond);
+
+  if (!wait)
+    return;
 
   pthread_mutex_unlock (&global_lock);
 
@@ -180,7 +186,7 @@ thread_acquire_buffer (char *end, void *nb)
       current_buffer->prev_owner = Qnil;
     }
 
-  reschedule_and_wait (end);
+  reschedule (end, 1);
 
   /* FIXME: if buffer is killed */
   new_buffer->prev_owner = new_buffer->owner;
@@ -216,7 +222,7 @@ thread_yield_callback (char *end, void *ignore)
       && !thread_bind_bufferlocal_p (current_thread))
     thread_acquire_buffer (end, current_buffer);
   else
-  reschedule_and_wait (end);
+    reschedule (end, 1);
 }
 
 void
@@ -343,6 +349,7 @@ does not try to get a lock on the current buffer.  */)
 						      m_gcprolist));
 
   new_thread->func = function;
+  new_thread->blocked = 0;
   new_thread->nolock = !EQ (nolock, Qnil);
   new_thread->initial_specpdl = Qnil;
   new_thread->m_current_buffer = current_thread->m_current_buffer;
@@ -422,11 +429,42 @@ DEFUN ("inhibit-yield", Finhibit_yield, Sinhibit_yield, 1, 1, 0,
   return Qnil;
 }
 
+int
+thread_select (n, rfd, wfd, xfd, tmo)
+  int n;
+  SELECT_TYPE *rfd, *wfd, *xfd;
+  EMACS_TIME *tmo;
+{
+  char end;
+  int ret;
+  current_thread->blocked = 1;
+
+  reschedule (&end, 0);
+
+  pthread_mutex_unlock (&global_lock);
+
+  ret = select (n, rfd, wfd, xfd, tmo);
+  current_thread->blocked = 0;
+
+  pthread_mutex_lock (&global_lock);
+  pthread_cond_broadcast (&buffer_cond);
+
+  while (current_thread->pthread_id != next_thread)
+    pthread_cond_wait (&buffer_cond, &global_lock);
+
+  return ret;
+}
 
 int
 other_threads_p (void)
 {
-  return all_threads->next_thread != NULL;
+  int avail = 0;
+  struct thread_state *it = all_threads;
+  for (; it && avail < 2; it = it->next_thread)
+    if (!it->blocked)
+      avail++;
+
+  return avail > 1;
 }
 
 void
@@ -438,6 +476,7 @@ init_threads (void)
 
   primary_thread.pthread_id = pthread_self ();
   primary_thread.nolock = 0;
+  primary_thread.blocked = 0;
   next_thread = primary_thread.pthread_id;
 }
 

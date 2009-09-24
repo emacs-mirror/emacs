@@ -4563,13 +4563,16 @@ wait_reading_process_output_1 ()
    impossible to step through wait_reading_process_output.  */
 
 #ifndef select
+int thread_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
+		   EMACS_TIME *);
+
 static INLINE int
 select_wrapper (n, rfd, wfd, xfd, tmo)
   int n;
   SELECT_TYPE *rfd, *wfd, *xfd;
   EMACS_TIME *tmo;
 {
-  return select (n, rfd, wfd, xfd, tmo);
+  return thread_select (n, rfd, wfd, xfd, tmo);
 }
 #define select select_wrapper
 #endif

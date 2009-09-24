@@ -78,6 +78,9 @@ struct thread_state
   /* Used internally by the scheduler, the buffer that the thread wants a lock
      for.  */
   struct buffer *desired_buffer;
+
+  /* If nonzero the thread is blocked on a wait so it is not schedulable.  */
+  int blocked;
 };
 
 extern __thread struct thread_state *current_thread;
