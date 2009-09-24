@@ -4,6 +4,12 @@
 	there is no newline after the final mime boundary.  (Bug#4539)
 	Move markers on insertion so that any buttons inserted don't end up in
 	the next part of a multipart message.
+	(rmail-mime-media-type-handlers-alist): Doc fix.  Add image handler.
+	(rmail-mime-bulk-handler): Optionally handle images.
+	(rmail-mime-image): New button action.
+	(rmail-mime-image-handler): New function.
+	(rmail-mime-mode): New mode.
+	(rmail-mime): Doc fix.  Use rmail-mime-mode (for font-lock).
 
 2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
