@@ -1,3 +1,12 @@
+2009-09-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-scan-conditionals): A new function like
+	c-forward-conditionals, but it doesn't move point and doesn't set
+	the mark.
+	(c-up-conditional, c-up-conditional-with-else, c-down-conditional)
+	(c-down-conditional-with-else, c-backward-conditional)
+	(c-forward-conditional): Refactor to use c-scan-conditionals.
+
 2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (help-downcase-arguments): New option, defaulting to nil.
