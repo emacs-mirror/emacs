@@ -64,9 +64,8 @@ thread_schedule ()
   while (1)
     {
       struct buffer *new_buffer = it->desired_buffer;
-      if (!new_buffer)
-        continue;
-      CHECK_THREAD (it, new_buffer);
+      if (new_buffer)
+	CHECK_THREAD (it, new_buffer);
 
       it = NEXT_THREAD (it);
       if (it == current_thread)
@@ -197,9 +196,26 @@ thread_inhibit_yield_p  ()
   return inhibit_yield_counter || interrupt_input_blocked || abort_on_gc;
 }
 
+static int
+thread_bind_bufferlocal_p (struct thread_state *thread)
+{
+  register struct specbinding *bind;
+
+  for (bind = thread->m_specpdl; bind != thread->m_specpdl_ptr; bind++)
+    {
+      if (BUFFER_OBJFWDP (bind->symbol) || BUFFER_LOCAL_VALUEP (bind->symbol))
+	return 1;
+    }
+  return 0;
+}
+
 static void
 thread_yield_callback (char *end, void *ignore)
 {
+  if (!thread_inhibit_yield_p ()
+      && !thread_bind_bufferlocal_p (current_thread))
+    thread_acquire_buffer (end, current_buffer);
+  else
   reschedule_and_wait (end);
 }
 
