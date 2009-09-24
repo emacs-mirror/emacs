@@ -1,5 +1,8 @@
 2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-force-complete): Cycle the list, rather
+	than just dropping elements from it (bug#4504).
+
 	* term.el (term-set-scroll-region): Don't move cursor any more.
 	(term-handle-ansi-escape): Call term-goto here instead.
 	Suggested by Ivan Kanis <apple@kanis.eu>.
