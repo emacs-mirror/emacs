@@ -213,10 +213,10 @@ format."
       ;; If this is the last boundary according to RFC 2046, hide the
       ;; epilogue, else hide the boundary only.  Use a marker for
       ;; `next' because `rmail-mime-show' may change the buffer.
-      (cond ((looking-at "--[ \t]*\n")
+      (cond ((looking-at "--[ \t]*$")
 	     (setq next (point-max-marker)))
 	    ((looking-at "[ \t]*\n")
-	     (setq next (copy-marker (match-end 0))))
+	     (setq next (copy-marker (match-end 0) t)))
 	    (t
 	     (rmail-mm-get-boundary-error-message
 	      "Malformed boundary" content-type content-disposition
