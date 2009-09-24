@@ -387,7 +387,7 @@ version.")
 	 ((= authtype socks-authentication-null)
 	  (and socks-debug (message "No authentication necessary")))
 	 ((= authtype socks-authentication-failure)
-	  (error "No acceptable authentication methods found."))
+	  (error "No acceptable authentication methods found"))
 	 (t
 	  (let* ((auth-type (gethash 'authtype info))
 		 (auth-handler (assoc auth-type socks-authentication-methods))

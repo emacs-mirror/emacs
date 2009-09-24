@@ -3465,7 +3465,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "6ec9fac2638e7b16a006e164ba4454cc")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "19cd0d559197e5587fe27e1a81fb2644")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3591,9 +3591,9 @@ This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.
 Type \\[dired-do-redisplay] to redisplay the marked files.
 
-When COMMAND runs, its working directory is the top-level directory of
-the Dired buffer, so output files usually are created there instead of
-in a subdir.
+When COMMAND runs, its working directory is the top-level directory
+of the Dired buffer, so output files usually are created there
+instead of in a subdir.
 
 In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
@@ -3918,7 +3918,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "c426566bb1493ccba92a56f402ba565f")
+;;;;;;  "1a0298749959c80c24c73b8bec5f1f74")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

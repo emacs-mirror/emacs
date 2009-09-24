@@ -334,7 +334,7 @@ The attributes of SERVICE can be retrieved via the functions
     (let ((l-hook (gethash type zeroconf-service-removed-hooks-hash nil)))
       (add-hook 'l-hook function)
       (puthash type l-hook zeroconf-service-removed-hooks-hash)))
-   (t (error "EVENT must be either `:new' or `:removed'."))))
+   (t (error "EVENT must be either `:new' or `:removed'"))))
 
 (defun zeroconf-get-host ()
   "Returns the local host name as string."

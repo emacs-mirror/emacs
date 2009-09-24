@@ -156,7 +156,7 @@ way."
 (defun epa-file-write-region (start end file &optional append visit lockname
 				    mustbenew)
   (if append
-      (error "Can't append to the file."))
+      (error "Can't append to the file"))
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)

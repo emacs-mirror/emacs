@@ -355,7 +355,7 @@ Thus, this does not include the shell's current directory.")
 	 'complete-expand)))
 
 (defcustom shell-mode-hook '()
-  "Hook for customising Shell mode."
+  "Hook for customizing Shell mode."
   :type 'hook
   :group 'shell)
 

@@ -1918,7 +1918,7 @@ current thread and update GDB buffers."
     ;; thread
     (when (not gdb-register-names)
       (gdb-input
-       (list (concat "-data-list-register-names" 
+       (list (concat "-data-list-register-names"
 		     (if (string-equal gdb-version "7.0+")
 			 (concat" --thread " thread-id)))
              'gdb-register-names-handler)))
@@ -2767,7 +2767,7 @@ line."
          (let ((gdb-thread-number (bindat-get-field thread 'id))
                (gdb-gud-control-all-threads nil))
            (call-interactively #',gud-command))
-       (error "Available in non-stop mode only, customize gdb-non-stop-setting."))
+       (error "Available in non-stop mode only, customize `gdb-non-stop-setting'"))
      ,doc))
 
 (def-gdb-thread-buffer-gud-command
@@ -3474,7 +3474,7 @@ member."
               (setq gdb-frame-number new-level)
               (gdb-input (list (concat "-stack-select-frame " new-level) 'ignore))
               (gdb-update))
-          (error "Could not select frame for non-current thread."))
+          (error "Could not select frame for non-current thread"))
       (error "Not recognized as frame line"))))
 
 

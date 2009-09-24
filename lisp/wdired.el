@@ -486,7 +486,7 @@ non-nil means return old filename."
                                     file-new "' failed:\n%s\n")
                             err)))))))))
     errors))
-      
+
 
 (defun wdired-exit ()
   "Exit wdired and return to dired mode.
@@ -553,7 +553,7 @@ Optional arguments are ignored."
   (if (and
        (buffer-modified-p)
        (not (y-or-n-p "Buffer changed. Discard changes and kill buffer? ")))
-      (error "Error.")))
+      (error "Error")))
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.

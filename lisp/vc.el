@@ -941,7 +941,7 @@ current buffer."
 	(list (vc-responsible-backend
 	       (file-name-directory (buffer-file-name)))
 	      (list buffer-file-name))))
-     (t (error "No fileset is available here.")))))
+     (t (error "No fileset is available here")))))
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
@@ -1025,9 +1025,9 @@ merge in the changes into your working copy."
     ;; Do the right thing
     (cond
      ((eq state 'missing)
-      (error "Fileset files are missing, so cannot be operated on."))
+      (error "Fileset files are missing, so cannot be operated on"))
      ((eq state 'ignored)
-      (error "Fileset files are ignored by the version-control system."))
+      (error "Fileset files are ignored by the version-control system"))
      ((or (null state) (eq state 'unregistered))
       (vc-register nil vc-fileset))
      ;; Files are up-to-date, or need a merge and user specified a revision
@@ -1251,7 +1251,7 @@ first backend that could register the file is used."
   "Register the current file with a specified back end."
   (interactive "SBackend: ")
   (when (not (member backend vc-handled-backends))
-    (error "Unknown back end."))
+    (error "Unknown back end"))
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
@@ -1574,7 +1574,7 @@ returns t if the buffer had changes, nil otherwise."
        (list files rev1 rev2))))
   ;; All that was just so we could do argument completion!
   (when (and (not rev1) rev2)
-    (error "Not a valid revision range."))
+    (error "Not a valid revision range"))
   ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
   ;; placement rules for (interactive) don't actually leave us a choice.
   (vc-diff-internal t (vc-deduce-fileset) rev1 rev2 (interactive-p)))
@@ -1933,7 +1933,7 @@ to the working revision (except for keyword expansion)."
     (dolist (file files)
       (let ((buf (get-file-buffer file)))
 	(when (and buf (buffer-modified-p buf))
-	  (error "Please kill or save all modified buffers before reverting.")))
+	  (error "Please kill or save all modified buffers before reverting")))
       (when (vc-up-to-date-p file)
 	(unless (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
 	  (error "Revert canceled"))))
@@ -1968,7 +1968,7 @@ depending on the underlying version-control system."
       (error "Rollback requires a singleton fileset or repository versioning"))
     ;; FIXME: latest-on-branch-p should take the fileset.
     (when (not (vc-call-backend backend 'latest-on-branch-p (car files)))
-      (error "Rollback is only possible at the tip revision."))
+      (error "Rollback is only possible at the tip revision"))
     ;; If any of the files is visited by the current buffer, make
     ;; sure buffer is saved.  If the user says `no', abort since
     ;; we cannot show the changes and ask for confirmation to
@@ -1977,9 +1977,9 @@ depending on the underlying version-control system."
       (vc-buffer-sync nil))
     (dolist (file files)
       (when (buffer-modified-p (get-file-buffer file))
-	(error "Please kill or save all modified buffers before rollback."))
+	(error "Please kill or save all modified buffers before rollback"))
       (when (not (vc-up-to-date-p file))
-	(error "Please revert all modified workfiles before rollback.")))
+	(error "Please revert all modified workfiles before rollback")))
     ;; Accumulate changes associated with the fileset
     (vc-setup-buffer "*vc-diff*")
     (not-modified)

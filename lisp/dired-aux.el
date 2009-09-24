@@ -196,7 +196,7 @@ condition.  Two file items are considered to match if they are equal
 
 (defun dired-files-attributes (dir)
   "Return a list of all file names and attributes from DIR.
-List has a form of (file-name full-file-name (attribute-list))"
+List has a form of (file-name full-file-name (attribute-list))."
   (mapcar
    (lambda (file-name)
      (let ((full-file-name (expand-file-name file-name dir)))
@@ -488,7 +488,7 @@ to the end of the list of defaults just after the default value."
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using read-shell-command).
+  "Read a dired shell command prompting with PROMPT (using `read-shell-command').
 ARG is the prefix arg and may be used to indicate in the prompt which
 FILES are affected."
   (minibuffer-with-setup-hook
@@ -551,9 +551,9 @@ This feature does not try to redisplay Dired buffers afterward, as
 there's no telling what files COMMAND may have changed.
 Type \\[dired-do-redisplay] to redisplay the marked files.
 
-When COMMAND runs, its working directory is the top-level directory of
-the Dired buffer, so output files usually are created there instead of
-in a subdir.
+When COMMAND runs, its working directory is the top-level directory
+of the Dired buffer, so output files usually are created there
+instead of in a subdir.
 
 In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
@@ -1606,7 +1606,7 @@ Optional arg HOW-TO determiness how to treat the target.
 ;; symlinks.
 
 (defvar dired-copy-how-to-fn nil
-  "nil or a function used by `dired-do-copy' to determine target.
+  "Either nil or a function used by `dired-do-copy' to determine target.
 See HOW-TO argument for `dired-do-create-files'.")
 
 ;;;###autoload

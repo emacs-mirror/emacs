@@ -68,10 +68,10 @@ If nil, use system defaults."
 			  query-type query-class query-option
 			  dig-option server)
   "Call dig with given arguments and return buffer containing output.
-DOMAIN is a string with a DNS domain. QUERY-TYPE is an optional string
-with a DNS type. QUERY-CLASS is an optional string with a DNS class.
-QUERY-OPTION is an optional string with dig \"query options\".
-DIG-OPTIONS is an optional string with parameters for the dig program.
+DOMAIN is a string with a DNS domain.  QUERY-TYPE is an optional
+string with a DNS type.  QUERY-CLASS is an optional string with a DNS
+class.  QUERY-OPTION is an optional string with dig \"query options\".
+DIG-OPTION is an optional string with parameters for the dig program.
 SERVER is an optional string with a domain name server to query.
 
 Dig is an external program found in the BIND name server distribution,
@@ -171,9 +171,9 @@ Optional arguments are passed to `dig-invoke'."
 (defun query-dig (domain &optional
 			 query-type query-class query-option dig-option server)
   "Query addresses of a DOMAIN using dig.
-It works by calling `dig-invoke' and `dig-extract-rr'.  Optional
-arguments are passed to `dig-invoke' and `dig-extract-rr'.  Returns
-nil for domain/class/type queries that results in no data."
+It works by calling `dig-invoke' and `dig-extract-rr'.
+Optional arguments are passed to `dig-invoke' and `dig-extract-rr'.
+Returns nil for domain/class/type queries that result in no data."
 (let ((buffer (dig-invoke domain query-type query-class
 			  query-option dig-option server)))
   (when buffer

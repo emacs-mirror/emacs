@@ -675,7 +675,7 @@ promotion/demotion later."
                         (beginning-of-line 1)
                         (if (looking-at reftex-section-regexp)
                             (setq name (reftex-match-string 2))
-                          (error "Something is wrong! Contact maintainer!")))
+                          (error "Something is wrong!  Contact maintainer!")))
                     ;; Section has changed, request scan and loading
                     ;; We use a variable to delay until after the safe-exc.
                     ;; because otherwise we loose the region.
@@ -781,7 +781,7 @@ label prefix determines the wording of a reference."
   (let* ((toc (get-text-property (point) :data))
          (label (car toc)) newlabel)
     (if (not (stringp label))
-        (error "This is not a label entry."))
+        (error "This is not a label entry"))
     (setq newlabel (read-string (format "Rename label \"%s\" to:" label)))
     (if (assoc newlabel (symbol-value reftex-docstruct-symbol))
         (if (not (y-or-n-p

@@ -200,7 +200,7 @@ COMMENT can be used to provide an initial description of FILE.
 Passes either `vc-mcvs-register-switches' or `vc-register-switches'
 to the Meta-CVS command."
   ;; FIXME: multiple-file case should be made to work.
-  (if (> (length files) 1) (error "Registering filesets is not yet supported."))
+  (if (> (length files) 1) (error "Registering filesets is not yet supported"))
   (let* ((file (car files))
 	 (filename (file-name-nondirectory file))
 	 (extpos (string-match "\\." filename))

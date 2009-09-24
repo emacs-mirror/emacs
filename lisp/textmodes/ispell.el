@@ -938,7 +938,7 @@ Internal use.")
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
   (unless (and ispell-really-aspell ispell-encoding8-command)
-    (error "This function only works with aspell >= 0.60."))
+    (error "This function only works with aspell >= 0.60"))
   (let* ((dictionaries
 	  (split-string
 	   (with-temp-buffer

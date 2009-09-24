@@ -2204,10 +2204,10 @@ internal functions use this feature cohesively bunch changes."
                    (concat "Modify concealed text?  (\"no\" just aborts,"
                            " \\[keyboard-quit] also reconceals) "))))
                 (progn (goto-char start)
-                       (error "Concealed-text change refused.")))
+                       (error "Concealed-text change refused")))
           (quit (allout-flag-region ol-start ol-end nil)
                 (allout-flag-region ol-start ol-end t)
-                (error "Concealed-text change abandoned, text reconcealed."))))
+                (error "Concealed-text change abandoned, text reconcealed"))))
       (goto-char start))))
 ;;;_  > allout-before-change-handler (beg end)
 (defun allout-before-change-handler (beg end)
@@ -6333,7 +6333,7 @@ of the availability of a cached copy."
                                 nil)
                             t))
                      (progn (pgg-remove-passphrase-from-cache cache-id t)
-                            (error "Wrong passphrase."))))
+                            (error "Wrong passphrase"))))
                 ;; No verifier string -- force confirmation by repetition of
                 ;; (new) passphrase:
                 ((or fetch-pass (not cached))
@@ -6355,7 +6355,7 @@ of the availability of a cached copy."
                          ;; recurse to this routine:
                          (pgg-read-passphrase prompt-sans-hint cache-id t))
                 (pgg-remove-passphrase-from-cache cache-id t)
-                (error "Confirmation failed."))))))))
+                (error "Confirmation failed"))))))))
 ;;;_  > allout-encrypted-topic-p ()
 (defun allout-encrypted-topic-p ()
   "True if the current topic is encryptable and encrypted."

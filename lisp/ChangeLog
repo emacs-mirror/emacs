@@ -1,3 +1,121 @@
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-overlay-interior-modification-handler)
+	(allout-obtain-passphrase):
+	* epa-file.el (epa-file-write-region):
+	* ps-print.el (ps-begin-job):
+	* vc-hooks.el (vc-toggle-read-only):
+	* vc-rcs.el (vc-rcs-rollback):
+	* vc-sccs.el (vc-sccs-rollback):
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-register-with)
+	(vc-version-diff, vc-revert, vc-rollback):
+	* wdired.el (wdired-check-kill-buffer):
+	* emacs-lisp/authors.el (authors):
+	* net/socks.el (socks-open-connection):
+	* net/zeroconf.el (zeroconf-service-add-hook):
+	* obsolete/vc-mcvs.el (vc-mcvs-register):
+	* progmodes/gdb-mi.el (def-gdb-thread-buffer-gud-command)
+	(gdb-select-frame):
+	* progmodes/grep.el (lgrep, rgrep):
+	* progmodes/idlw-help.el (idlwave-help-check-locations)
+	(idlwave-help-html-link, idlwave-help-assistant-open-link):
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	* textmodes/reftex-toc.el (reftex-toc-promote-prepare)
+	(reftex-toc-rename-label): Fix typos in error messages.
+
+	* dired-aux.el (dired-do-shell-command): Reflow docstring.
+	(dired-copy-how-to-fn): Doc fix.
+	(dired-files-attributes, dired-read-shell-command):
+	Fix typos in docstrings.
+
+	* dired-x.el (dired-enable-local-variables, dired-filename-at-point)
+	(dired-x-find-file-other-window): Reflow docstrings.
+	(dired-omit-marker-char, dired-read-shell-command)
+	(dired-x-submit-report): Fix typos in docstrings.
+
+	* shell.el (shell-mode-hook):
+	* view.el (View-scroll-line-forward):
+	* progmodes/inf-lisp.el (inferior-lisp-mode-hook):
+	Fix typos in docstrings.
+
+	* net/dig.el (dig-invoke): Fix typo in docstring.
+	(query-dig): Reflow docstring.
+
+	* progmodes/idlwave.el (idlwave-create-user-catalog-file)
+	(idlwave-quoted, idlwave-rinfo-max-source-lines): Doc fixes.
+	(idlwave-abbrev-move, idlwave-auto-routine-info-updates)
+	(idlwave-begin-block-reg, idlwave-begin-unit-reg)
+	(idlwave-beginning-of-subprogram, idlwave-block-jump-out)
+	(idlwave-block-match-regexp, idlwave-calculate-paren-indent)
+	(idlwave-check-abbrev, idlwave-class-file-or-buffer)
+	(idlwave-class-found-in, idlwave-complete, idlwave-complete-in-buffer)
+	(idlwave-completion-map, idlwave-current-indent)
+	(idlwave-custom-ampersand-surround, idlwave-customize)
+	(idlwave-default-font-lock-items, idlwave-default-insert-timestamp)
+	(idlwave-define-abbrev, idlwave-determine-class-special)
+	(idlwave-do-action, idlwave-doc-header, idlwave-doc-modification)
+	(idlwave-end-block-reg, idlwave-end-of-statement)
+	(idlwave-end-of-statement0, idlwave-end-of-subprogram)
+	(idlwave-end-unit-reg, idlwave-entry-find-keyword)
+	(idlwave-explicit-class-listed, idlwave-file-header)
+	(idlwave-fill-paragraph, idlwave-find-class-definition)
+	(idlwave-fix-keywords, idlwave-hang-indent-regexp, idlwave-hard-tab)
+	(idlwave-idlwave_routine_info-compiled, idlwave-in-comment)
+	(idlwave-in-quote, idlwave-indent-action-table)
+	(idlwave-indent-expand-table, idlwave-indent-line)
+	(idlwave-indent-subprogram, idlwave-indent-to-open-paren)
+	(idlwave-is-comment-line, idlwave-is-comment-or-empty-line)
+	(idlwave-is-continuation-line, idlwave-is-pointer-dereference)
+	(idlwave-kill-autoloaded-buffers, idlwave-lib-p, idlwave-look-at)
+	(idlwave-make-tags, idlwave-mode, idlwave-mode-abbrev-table)
+	(idlwave-mouse-active-rinfo, idlwave-newline, idlwave-no-change-comment)
+	(idlwave-outlawed-buffers, idlwave-popup-select)
+	(idlwave-previous-statement, idlwave-rescan-catalog-directories)
+	(idlwave-routine-entry-compare, idlwave-routine-info.pro)
+	(idlwave-scan-all-buffers-for-routine-info, idlwave-scan-class-info)
+	(idlwave-shell-automatic-start, idlwave-shell-explicit-file-name)
+	(idlwave-show-begin, idlwave-split-line, idlwave-split-link-target)
+	(idlwave-statement-type, idlwave-struct-skip)
+	(idlwave-substitute-link-target, idlwave-toggle-comment-region)
+	(idlwave-update-current-buffer-info, idlwave-use-library-catalogs)
+	(idlwave-what-module-find-class): Fix typos in docstrings.
+	(idlwave-all-method-classes, idlwave-calc-hanging-indent)
+	(idlwave-calculate-cont-indent, idlwave-expand-equal)
+	(idlwave-find-module, idlwave-find-structure-definition)
+	(idlwave-init-rinfo-when-idle-after, idlwave-insert-source-location)
+	(idlwave-list-load-path-shadows, idlwave-next-statement)
+	(idlwave-routine-entry-compare-twins, idlwave-routine-info)
+	(idlwave-routines, idlwave-sintern-rinfo-list, idlwave-statement-match)
+	(idlwave-template): Reflow docstrings.
+
+	* progmodes/idlw-shell.el (idlwave-shell-syntax-error): Doc fix.
+	(idlwave-shell-batch-command, idlwave-shell-bp-alist)
+	(idlwave-shell-bp-get, idlwave-shell-bp-overlays)
+	(idlwave-shell-bp-query, idlwave-shell-break-here, idlwave-shell-buffer)
+	(idlwave-shell-display-line, idlwave-shell-display-wframe)
+	(idlwave-shell-electric-debug-mode, idlwave-shell-examine-select)
+	(idlwave-shell-file-name-chars, idlwave-shell-filter-bp)
+	(idlwave-shell-goto-frame, idlwave-shell-halt-messages-re)
+	(idlwave-shell-highlighting-and-faces, idlwave-shell-idl-wframe)
+	(idlwave-shell-mode-hook, idlwave-shell-mode-line-info)
+	(idlwave-shell-mode-map, idlwave-shell-module-source-filter)
+	(idlwave-shell-mouse-help, idlwave-shell-mouse-print)
+	(idlwave-shell-pc-frame, idlwave-shell-pending-commands)
+	(idlwave-shell-print, idlwave-shell-quit, idlwave-shell-redisplay)
+	(idlwave-shell-scan-for-state, idlwave-shell-send-command)
+	(idlwave-shell-sentinel-hook, idlwave-shell-separate-examine-output)
+	(idlwave-shell-shell-command, idlwave-shell-sources-alist)
+	(idlwave-shell-sources-bp, idlwave-shell-sources-filter)
+	(idlwave-shell-step, idlwave-shell-use-breakpoint-glyph)
+	(idlwave-toolbar-add-everywhere, idlwave-toolbar-toggle):
+	Fix typos in docstrings.
+	(idlwave-shell-bp, idlwave-shell-clear-current-bp)
+	(idlwave-shell-hide-output, idlwave-shell-mode)
+	(idlwave-shell-run-region, idlwave-shell-set-bp-in-module):
+	Reflow docstrings.
+
+	* textmodes/bibtex.el (bibtex-sort-entry-class): Fix group name.
+
 2009-09-24  Ivan Kanis  <apple@kanis.eu>
 
 	* term.el (term-bold-attribute): New var.
@@ -351,9 +469,9 @@
 2009-09-15  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): When selecting a match from
-	the  virtual-buffers, use the name of the buffer specified by
+	the virtual-buffers, use the name of the buffer specified by
 	find-file-noselect, as the match may be a symlink.  (This was a
-	problem if the target and the symlink had differet names.)
+	problem if the target and the symlink had different names.)
 
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

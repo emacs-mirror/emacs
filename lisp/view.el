@@ -677,7 +677,7 @@ OLD-WINDOW."
 		;; Not the only frame, so can safely be removed.
 		(if view-remove-frame-by-deleting
 		    (delete-frame frame)
-		  (setq notlost t)	   ; Keep the window. See below.
+		  (setq notlost t)	   ; Keep the window.  See below.
 		  (iconify-frame frame))))))))
 	;; If a frame is removed by iconifying it, the window is not
 	;; really lost.  In this case we keep the entry in
@@ -836,7 +836,7 @@ invocations return to earlier marks."
   ;; Scroll forward LINES lines.  If BACKWARD is non-nil, scroll backwards.
   ;; If LINES is negative scroll in the other direction.
   ;; If LINES is 0 or nil, scroll DEFAULT lines (if DEFAULT is nil, scroll
-  ;; by one page). If MAXDEFAULT is non-nil, scroll no more than a window.
+  ;; by one page).  If MAXDEFAULT is non-nil, scroll no more than a window.
   (if (or (null lines) (zerop (setq lines (prefix-numeric-value lines))))
       (setq lines default))
   (when (and lines (< lines 0))
@@ -931,7 +931,7 @@ See also `View-scroll-page-forward-set-page-size'."
 
 (defun View-scroll-line-forward (&optional lines)
   "Scroll forward one line (or prefix LINES lines) in View mode.
-See also `View-scroll-page-forward,' but note that scrolling is limited
+See also `View-scroll-page-forward', but note that scrolling is limited
 to minimum of LINES and one window-full."
   (interactive "P")
   (view-scroll-lines lines nil 1 t))
@@ -1032,8 +1032,8 @@ for highlighting the match that is found."
 
 (defun view-search (times regexp)
   ;; This function does the job for all the View-search- commands.
-  ;; Search for the TIMESt match for REGEXP. If TIMES is negative
-  ;; search backwards. If REGEXP is nil use `view-last-regexp'.
+  ;; Search for the TIMESt match for REGEXP.  If TIMES is negative
+  ;; search backwards.  If REGEXP is nil use `view-last-regexp'.
   ;; Characters "!" and "@" have a special meaning at the beginning of
   ;; REGEXP and are removed from REGEXP before the search "!" means
   ;; search for lines with no match for REGEXP.  "@" means search in
