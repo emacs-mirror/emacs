@@ -1,5 +1,9 @@
 2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term.el (term-set-scroll-region): Don't move cursor any more.
+	(term-handle-ansi-escape): Call term-goto here instead.
+	Suggested by Ivan Kanis <apple@kanis.eu>.
+
 	* term.el: Require CL.
 	(term-ansi-reset): New function.
 	(term-mode, term-emulate-terminal, term-handle-colors-array): Use it.

@@ -3369,7 +3369,8 @@ Set it to nil to disable bold.")
    ((eq char ?r)
     (term-set-scroll-region
      (1- term-terminal-previous-parameter)
-     (1- term-terminal-parameter)))
+     (1- term-terminal-parameter))
+    (term-goto 0 0))
    (t)))
 
 (defun term-set-scroll-region (top bottom)
@@ -3389,8 +3390,7 @@ The top-most line is line 0."
 	(or (term-using-alternate-sub-buffer)
 	    (not (and (= term-scroll-start 0)
 		      (= term-scroll-end term-height)))))
-  (term-move-columns (- (term-current-column)))
-  (term-goto 0 0))
+  (term-move-columns (- (term-current-column))))
 
 ;; (defun term-switch-to-alternate-sub-buffer (set)
 ;;   ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
