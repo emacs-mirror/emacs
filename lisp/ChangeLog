@@ -1,3 +1,7 @@
+2009-09-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-jsonify-buffer): Catch gdb internal output.
+
 2009-09-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-update-handler-1): Include case of
