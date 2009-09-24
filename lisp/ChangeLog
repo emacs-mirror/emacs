@@ -1,5 +1,7 @@
 2009-09-24  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-reg-to-script): Define for compiler.
+
 	* mail/rmailmm.el (rmail-mime-multipart-handler): Accept the case where
 	there is no newline after the final mime boundary.  (Bug#4539)
 	Move markers on insertion so that any buttons inserted don't end up in

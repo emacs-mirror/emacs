@@ -966,6 +966,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 		(format "Creation of the standard fontset failed: %s" err)
 		:error)))))
 
+(defvar ns-reg-to-script)               ; nsfont.m
+
 ;; This maps font registries (not exposed by NS APIs for font selection) to
 ;; unicode scripts (which can be mapped to unicode character ranges which are).
 ;; See ../international/fontset.el
