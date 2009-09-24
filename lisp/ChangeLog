@@ -1,5 +1,7 @@
 2009-09-24  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-fancy-display): Always run the hook.
+
 	* term/ns-win.el (ns-reg-to-script): Define for compiler.
 
 	* mail/rmailmm.el (rmail-mime-multipart-handler): Accept the case where
