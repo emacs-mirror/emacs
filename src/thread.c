@@ -194,6 +194,8 @@ thread_acquire_buffer (char *end, void *nb)
     new_buffer->owner = Qnil;
   else
     new_buffer->owner = get_current_thread ();
+
+  current_buffer = new_buffer;
 }
 
 int
