@@ -1,3 +1,13 @@
+2009-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml/nxml-mode.el: Alias xml-mode to nxml-mode.
+
+	* textmodes/sgml-mode.el: Remove xml-mode alias.
+
+	* files.el (auto-mode-alist, conf-mode-maybe)
+	(magic-fallback-mode-alist): Revert 2009-09-18 and 2009-09-21
+	changes.
+
 2009-09-24  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-scan-conditionals): A new function like
