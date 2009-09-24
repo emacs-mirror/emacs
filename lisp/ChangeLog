@@ -1,3 +1,8 @@
+2009-09-24  Ivan Kanis  <apple@kanis.eu>
+
+	* term.el (term-bold-attribute): New var.
+	(term-handle-colors-array): Use it.
+
 2009-09-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el (gdb-version): New variable.

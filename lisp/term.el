@@ -3135,6 +3135,10 @@ See `term-prompt-regexp'."
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
 
+(defvar term-bold-attribute '(:weight bold))
+  "Attribute to use for the bold terminal attribute.
+Set it to nil to disable bold.")
+
 (defun term-handle-colors-array (parameter)
   (cond
 
@@ -3231,7 +3235,7 @@ See `term-prompt-regexp'."
 			  (elt ansi-term-color-vector term-ansi-current-bg-color))))
 	    (when term-ansi-current-bold
 	      (setq term-current-face
-		    (append '(:weight bold) term-current-face)))
+		    (append term-bold-attribute term-current-face)))
 	    (when term-ansi-current-underline
 	      (setq term-current-face
 		    (append '(:underline t) term-current-face))))
@@ -3259,7 +3263,7 @@ See `term-prompt-regexp'."
 			(elt ansi-term-color-vector term-ansi-current-bg-color))))
 	  (when term-ansi-current-bold
 	    (setq term-current-face
-		  (append '(:weight bold) term-current-face)))
+		  (append term-bold-attribute term-current-face)))
 	  (when term-ansi-current-underline
 	    (setq term-current-face
 		  (append '(:underline t) term-current-face))))))
