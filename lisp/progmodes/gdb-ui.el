@@ -1814,7 +1814,8 @@ If FIX-LIST is non-nil, \"FIX-LIST={..}\" is replaced with
 incompatible with GDB/MI output syntax."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward "\\^done," nil t)
+    ;; Sometimes missing symbol information precedes "^done" record.
+    (re-search-forward "[[:ascii:]]*?\\^done," nil t)
     (replace-match "")
     (re-search-forward "(gdb) \n" nil t)
     (replace-match "")
