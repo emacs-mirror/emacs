@@ -102,9 +102,7 @@
 (require 'gud)
 (require 'json)
 (require 'bindat)
-(require 'speedbar)
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl))
 
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
@@ -2066,7 +2064,6 @@ incompatible with GDB/MI output syntax."
       (save-excursion
         (while (re-search-forward (concat "[\\[,]\\(" fix-key "=\\)") nil t)
           (replace-match "" nil nil nil 1))))
-    ;; Emacs bug #3794
     (when fix-list
       (save-excursion
         ;; Find positions of braces which enclose broken list
@@ -2084,9 +2081,9 @@ incompatible with GDB/MI output syntax."
               (insert "]"))))))
     (goto-char (point-min))
     (insert "{")
-    ;; TODO: This breaks badly with foo= inside constants
-    (while (re-search-forward "\\([[:alpha:]-_]+\\)=" nil t)
-      (replace-match "\"\\1\":" nil nil))
+    (while (re-search-forward
+	    "\\([[:alnum:]-_]+\\)=\\({\\|\\[\\|\"\"\\|\".*?[^\\]\"\\)" nil t)
+      (replace-match "\"\\1\":\\2" nil nil))
     (goto-char (point-max))
     (insert "}")))
 
