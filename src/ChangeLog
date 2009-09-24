@@ -1,3 +1,9 @@
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (xrdb_get_resource): Return nil for empty string resources;
+	some parts of Emacs code (like font selection) don't grok them.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
+
 2009-09-24  Andreas Schwab  <schwab@redhat.com>
 
 	* coding.c (decode_coding_iso_2022): Fix operator precedence.

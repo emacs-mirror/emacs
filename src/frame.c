@@ -3854,7 +3854,7 @@ xrdb_get_resource (rdb, attribute, class, component, subclass)
 
   value = x_get_string_resource (rdb, name_key, class_key);
 
-  if (value != (char *) 0)
+  if (value != (char *) 0 && *value)
     return build_string (value);
   else
     return Qnil;
