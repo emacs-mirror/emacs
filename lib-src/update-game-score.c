@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* This program is allows a game to securely and atomically update a
+/* This program allows a game to securely and atomically update a
    score file.  It should be installed setuid, owned by an appropriate
    user like `games'.
 
