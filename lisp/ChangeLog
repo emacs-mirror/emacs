@@ -1,3 +1,8 @@
+2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.el (term-set-scroll-region, term-handle-ansi-escape):
+	Undo last change, which didn't fix the problem and introduced others.
+
 2009-09-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-mi.el: Don't require speedbar.
