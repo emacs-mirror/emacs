@@ -1,3 +1,11 @@
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (help-downcase-arguments): New option, defaulting to nil.
+	(help-default-arg-highlight): Remove.
+	(help-highlight-arg): New function.
+	(help-do-arg-highlight): Use it.
+	Suggested by Drew Adams <drew.adams@oracle.com>.  (Bug#4510, bug#4520)
+
 2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.el (term-set-scroll-region, term-handle-ansi-escape):

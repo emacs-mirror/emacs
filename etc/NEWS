@@ -47,6 +47,9 @@ were loaded.
 
 * Changes in Emacs 23.2
 
+** Function arguments in *Help* buffers are now in uppercase by default.
+You can customize the new variable `help-downcase-arguments' to change it.
+
 ** Unibyte sessions are now considered obsolete.
 I.e. the use of the environment variable EMACS_UNIBYTE, or command line
 arguments --unibyte, --multibyte, --no-multibyte, and --no-unibyte

@@ -158,15 +158,18 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defun help-default-arg-highlight (arg)
-  "Default function to highlight arguments in *Help* buffers.
-It returns ARG in face `help-argument-name'; ARG is also
-downcased if it displays differently than the default
-face (according to `face-differs-from-default-p')."
-  (propertize (if (face-differs-from-default-p 'help-argument-name)
-                  (downcase arg)
-                arg)
-              'face 'help-argument-name))
+(defcustom help-downcase-arguments nil
+  "If non-nil, argument names in *Help* buffers are downcased."
+  :type 'boolean
+  :group 'help
+  :version "23.2")
+
+(defun help-highlight-arg (arg)
+  "Highlight ARG as an argument name for a *Help* buffer.
+Return ARG in face `help-argument-name'; ARG is also downcased
+if the variable `help-downcase-arguments' is non-nil."
+  (propertize (if help-downcase-arguments (downcase arg) arg)
+	      'face 'help-argument-name))
 
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
@@ -184,7 +187,7 @@ face (according to `face-differs-from-default-p')."
                          "\\(?:-[a-z0-9-]+\\)?"  ; for ARG-xxx, ARG-n
                          "\\(?:-[{([<`\"].*?\\)?"; for ARG-{x}, (x), <x>, [x], `x'
                          "\\>")                  ; end of word
-                 (help-default-arg-highlight arg)
+                 (help-highlight-arg arg)
                  doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)

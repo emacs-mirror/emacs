@@ -1,3 +1,8 @@
+2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention new variable `help-downcase-arguments'
+	and new default for arguments in *Help* buffers.
+
 2009-09-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Mention new behavior of -Q and new variable
