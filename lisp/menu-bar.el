@@ -1688,8 +1688,7 @@ Buffers menu is regenerated."
   :group 'menu)
 
 (defvar list-buffers-directory nil
-  "String to display in buffer listings for buffers not visiting a file.
-Dired, shell and other modes use this variable.")
+  "String to display in buffer listings for buffers not visiting a file.")
 (make-variable-buffer-local 'list-buffers-directory)
 
 (defun menu-bar-select-buffer ()

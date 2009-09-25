@@ -1,3 +1,7 @@
+2009-09-25  Drew Adams  <drew.adams@oracle.com>
+
+	* menu-bar.el (list-buffers-directory): Doc fix.
+
 2009-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-edit.el (log-edit-changelog-entries): Avoid inf-loops.
