@@ -1327,13 +1327,12 @@ ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
 (defun bs--get-file-name (start-buffer all-buffers)
   "Return string for column 'File' in Buffer Selection Menu.
 This is the variable `buffer-file-name' of current buffer.
-If current mode is `dired-mode' or `shell-mode' it returns the
-default directory.
+If not visiting a file, `list-buffers-directory' is returned instead.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
-  (propertize (if (member major-mode '(shell-mode dired-mode))
-                  default-directory
-                (or buffer-file-name ""))
+  (propertize (or buffer-file-name
+		  (bound-and-true-p list-buffers-directory)
+		  "")
               'mouse-face 'highlight
               'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"))
 

@@ -1,5 +1,8 @@
 2009-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs--get-file-name): Use `list-buffers-directory'
+	when available, instead of hardcoding mode names.  Doc fix.
+
 	* menu-bar.el (list-buffers-directory): Add docstring.
 	Make automatically buffer-local.
 
