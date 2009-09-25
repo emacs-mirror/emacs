@@ -39,15 +39,18 @@
 
 ;;; User options.
 
-;; FIXME should these be in an rmail group?
+(defgroup rmail-mime nil
+  "Rmail MIME handling options."
+  :prefix "rmail-mime-"
+  :group 'rmail)
+
 (defcustom rmail-mime-media-type-handlers-alist
   '(("multipart/.*" rmail-mime-multipart-handler)
     ("text/.*" rmail-mime-text-handler)
     ("text/\\(x-\\)?patch" rmail-mime-bulk-handler)
     ;; FIXME this handler not defined anywhere?
 ;;;   ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
-    ("\\(audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler)
-    ("image/.*" rmail-mime-image-handler))
+    ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
   "Functions to handle various content types.
 This is an alist with elements of the form (REGEXP FUNCTION ...).
 The first item is a regular expression matching a content-type.
@@ -56,8 +59,8 @@ decreasing preference.  These are called until one returns non-nil.
 Note that this only applies to items with an inline Content-Disposition,
 all others are handled by `rmail-mime-bulk-handler'."
   :type '(alist :key-type regexp :value-type (repeat function))
-  :version "23.2"			; added image-handler
-  :group 'mime)
+  :version "23.1"
+  :group 'rmail-mime)
 
 (defcustom rmail-mime-attachment-dirs-alist
   `(("text/.*" "~/Documents")
@@ -70,15 +73,21 @@ The remaining elements are directories, in order of decreasing preference.
 The first directory that exists is used."
   :type '(alist :key-type regexp :value-type (repeat directory))
   :version "23.1"
-  :group 'mime)
+  :group 'rmail-mime)
+
+(defcustom rmail-mime-show-images 'button
+  "What to do with image attachments that Emacs is capable of displaying.
+If nil, do nothing special.  If `button', add an extra button
+that when pushed displays the image in the buffer.  Anything else
+means to automatically display the image in the buffer."
+  :type '(choice (const :tag "Add button to view image" button)
+		 (const :tag "No special treatment" nil)
+		 (other :tag "Always show" show))
+  :version "23.2"
+  :group 'rmail-mime)
 
 ;;; End of user options.
 
-
-(defvar rmail-mime-total-number-of-bulk-attachments 0
-  "The total number of bulk attachments in the message.
-If more than 3, offer a way to save all attachments at once.")
-(put 'rmail-mime-total-number-of-bulk-attachments 'permanent-local t)
 
 ;;; Buttons
 
@@ -134,15 +143,29 @@ MIME-Version: 1.0
     (rmail-mime-show t)
     (set-buffer-multibyte t)))
 
+
+(defun rmail-mime-insert-image (type data)
+  "Insert an image of type TYPE, where DATA is the image data."
+  (end-of-line)
+  (insert ?\n)
+  (insert-image (create-image data type t)))
+
+(defun rmail-mime-image (button)
+  "Display the image associated with BUTTON."
+  (let ((inhibit-read-only t))
+    (rmail-mime-insert-image (button-get button 'image-type)
+			     (button-get button 'image-data))))
+
+(define-button-type 'rmail-mime-image 'action 'rmail-mime-image)
+
+
 (defun rmail-mime-bulk-handler (content-type
 				content-disposition
-				content-transfer-encoding &optional image)
+				content-transfer-encoding)
   "Handle the current buffer as an attachment to download.
-Optional argument IMAGE non-nil means if Emacs can display the
-attachment as an image, add an option to do so."
-  (setq rmail-mime-total-number-of-bulk-attachments
-	(1+ rmail-mime-total-number-of-bulk-attachments))
-  ;; Find the default directory for this media type
+For images that Emacs is capable of displaying, the behavior
+depends upon the value of `rmail-mime-show-images'."
+  ;; Find the default directory for this media type.
   (let* ((directory (catch 'directory
 		      (dolist (entry rmail-mime-attachment-dirs-alist)
 			(when (string-match (car entry) (car content-type))
@@ -153,7 +176,8 @@ attachment as an image, add an option to do so."
 		       (cdr (assq 'filename (cdr content-disposition)))
 		       "noname"))
 	 (label (format "\nAttached %s file: " (car content-type)))
-	 (data (buffer-string)))
+	 (data (buffer-string))
+	 type)
     (delete-region (point-min) (point-max))
     (insert label)
     (insert-button filename
@@ -162,30 +186,23 @@ attachment as an image, add an option to do so."
 		   'filename filename
 		   'directory (file-name-as-directory directory)
 		   'data data)
-    (when (and image
-	       (string-match "image/\\(.*\\)" (setq image (car content-type)))
-	       (setq image (concat "." (match-string 1 image))
-		     image (image-type-from-file-name image))
-	       (memq image image-types)
-	       (image-type-available-p image))
+    (when (and rmail-mime-show-images
+	       (string-match "image/\\(.*\\)" (setq type (car content-type)))
+	       (setq type (concat "." (match-string 1 type))
+		     type (image-type-from-file-name type))
+	       (memq type image-types)
+	       (image-type-available-p type))
+      (setq data (string-as-unibyte data))
       (insert " ")
       ;; FIXME ought to check or at least display the image size.
-      (insert-button "Display"
-		     :type 'rmail-mime-image
-		     'help-echo "mouse-2, RET: Show image"
-		     'image-type image
-		     'image-data (string-as-unibyte data)))))
-
-(defun rmail-mime-image (button)
-  "Display the image associated with BUTTON."
-  (let ((type (button-get button 'image-type))
-	(data (button-get button 'image-data))
-	(inhibit-read-only t))
-    (end-of-line)
-    (insert ?\n)
-    (insert-image (create-image data type t))))
-
-(define-button-type 'rmail-mime-image 'action 'rmail-mime-image)
+      (cond ((eq rmail-mime-show-images 'button)
+	     (insert-button "Display"
+			    :type 'rmail-mime-image
+			    'help-echo "mouse-2, RET: Show image"
+			    'image-type type
+			    'image-data data))
+	    (t
+	     (rmail-mime-insert-image type data))))))
 
 (defun test-rmail-mime-bulk-handler ()
   "Test of a mail used as an example in RFC 2183."
@@ -207,15 +224,6 @@ lgAAAABJRU5ErkJggg==
     (erase-buffer)
     (insert mail)
     (rmail-mime-show)))
-
-;; FIXME should rmail-mime-bulk-handler instead just always do this?
-(defun rmail-mime-image-handler (content-type content-disposition
-					      content-transfer-encoding)
-  "Handle the current buffer as an image.
-Like `rmail-mime-bulk-handler', but if possible adds a second
-button to display the image in the buffer."
-  (rmail-mime-bulk-handler content-type content-disposition
-			   content-transfer-encoding t))
 
 (defun rmail-mime-multipart-handler (content-type
 				     content-disposition
@@ -244,8 +252,6 @@ format."
     (when (and (search-forward boundary nil t)
 	       (looking-at "[ \t]*\n"))
       (delete-region (point-min) (match-end 0)))
-    ;; Reset the counter
-    (setq rmail-mime-total-number-of-bulk-attachments 0)
     ;; Loop over all body parts, where beg points at the beginning of
     ;; the part and end points at the end of the part.  next points at
     ;; the beginning of the next part.

@@ -1,3 +1,16 @@
+2009-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): New custom group.
+	Move all defcustoms in this file into this group.
+	(rmail-mime-media-type-handlers-alist): Revert previous change.
+	(rmail-mime-show-images): New option.
+	(rmail-mime-total-number-of-bulk-attachments): Remove variable and all
+	references to it, since it wasn't actually used for anything.
+	(rmail-mime-insert-image): New function.
+	(rmail-mime-image): Use rmail-mime-insert-image.
+	(rmail-mime-bulk-handler): Remove optional `image' argument, instead
+	obey the value of `rmail-mime-show-images' option.
+
 2009-09-25  David Engster  <deng@randomsample.de>
 
 	* progmodes/hideshow.el (hs-show-block): Run `hs-show-hook'.  (Bug#4548)
