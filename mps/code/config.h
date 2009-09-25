@@ -401,7 +401,10 @@
 /* Pool Class AMC configuration */
 
 /* AMC treats segments of this many pages (or more) as "Large" */
-#define AMCLargeSegPAGES ((Count)8)
+/* #define AMCLargeSegPAGES ((Count)8) */
+/* For testing: 1<<18 * 4K pages => segs < 1GiB are still 'not large' */
+#define AMCLargeSegPAGES ((Count)1<<18)
+
 
 
 #endif /* config_h */
