@@ -928,8 +928,7 @@ the *vc-dir* buffer.
     (set (make-local-variable 'vc-ewoc) (ewoc-create #'vc-dir-printer))
     (set (make-local-variable 'revert-buffer-function)
 	 'vc-dir-revert-buffer-function)
-    (set (make-local-variable 'list-buffers-directory)
-         (expand-file-name default-directory))
+    (setq list-buffers-directory (expand-file-name default-directory))
     (add-hook 'after-save-hook 'vc-dir-resynch-file)
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.

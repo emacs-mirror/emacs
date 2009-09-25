@@ -656,7 +656,7 @@ Directories are separated by occurrences of `path-separator'
     (unless (file-executable-p dir)
       (error "Cannot cd to %s:  Permission denied" dir))
     (setq default-directory dir)
-    (set (make-local-variable 'list-buffers-directory) dir)))
+    (setq list-buffers-directory dir)))
 
 (defun cd (dir)
   "Make DIR become the current buffer's default directory.

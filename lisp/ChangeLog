@@ -1,3 +1,16 @@
+2009-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu-bar.el (list-buffers-directory): Add docstring.
+	Make automatically buffer-local.
+
+	* dired.el (dired-mode):
+	* files.el (cd-absolute):
+	* pcvs.el (cvs-temp-buffer):
+	* pcvs-util.el (cvs-get-buffer-create):
+	* shell.el (shell-mode):
+	* vc-dir.el (vc-dir-mode):
+	Don't make `list-buffers-directory' buffer local.
+
 2009-09-25  Devon Sean McCullough  <emacs-hacker@Jovi.Net>
 
 	* comint.el (comint-exec, comint-run, make-comint): Doc
