@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 11.2.2
+;; Version: 12
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -870,8 +870,8 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
 ;; Hacked from `visible-whitespace-mappings' in visws.el
 (defcustom whitespace-display-mappings
   '(
-    (space-mark   ?\     [?\xB7]       [?.])		; space - centered dot
-    (space-mark   ?\xA0  [?\xA4]       [?_])		; hard space - currency
+    (space-mark   ?\     [?\u00B7]     [?.])		; space - centered dot
+    (space-mark   ?\xA0  [?\u00A4]     [?_])		; hard space - currency
     (space-mark   ?\x8A0 [?\x8A4]      [?_])		; hard space - currency
     (space-mark   ?\x920 [?\x924]      [?_])		; hard space - currency
     (space-mark   ?\xE20 [?\xE24]      [?_])		; hard space - currency
@@ -879,7 +879,7 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
     ;; NEWLINE is displayed using the face `whitespace-newline'
     (newline-mark ?\n    [?$ ?\n])			; eol - dollar sign
     ;; (newline-mark ?\n    [?\u21B5 ?\n] [?$ ?\n])	; eol - downwards arrow
-    ;; (newline-mark ?\n    [?\xB6 ?\n]   [?$ ?\n])	; eol - pilcrow
+    ;; (newline-mark ?\n    [?\u00B6 ?\n] [?$ ?\n])	; eol - pilcrow
     ;; (newline-mark ?\n    [?\x8AF ?\n]  [?$ ?\n])	; eol - overscore
     ;; (newline-mark ?\n    [?\x8AC ?\n]  [?$ ?\n])	; eol - negation
     ;; (newline-mark ?\n    [?\x8B0 ?\n]  [?$ ?\n])	; eol - grade
@@ -889,7 +889,7 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
     ;; character ?\xBB at that column followed by a TAB which goes to
     ;; the next TAB column.
     ;; If this is a problem for you, please, comment the line below.
-    (tab-mark     ?\t    [?\xBB ?\t]   [?\\ ?\t])	; tab - left quote mark
+    (tab-mark     ?\t    [?\u00BB ?\t] [?\\ ?\t])	; tab - left quote mark
     )
   "Specify an alist of mappings for displaying characters.
 
@@ -1219,6 +1219,14 @@ SYMBOL	is a valid symbol associated with CHAR.
 
 (defvar whitespace-tab-width tab-width
   "Used to save locally `tab-width' value.")
+
+(defvar whitespace-point (point)
+  "Used to save locally current point value.
+Used by `whitespace-trailing-regexp' function (which see).")
+
+(defvar whitespace-font-lock-refontify nil
+  "Used to save locally the font-lock refontify state.
+Used by `whitespace-post-command-hook' function (which see).")
 
 
 ;;;###autoload
@@ -2139,6 +2147,12 @@ resultant list will be returned."
       (setq whitespace-font-lock t
 	    whitespace-font-lock-keywords
 	    (copy-sequence font-lock-keywords)))
+    ;; save current point and refontify when necessary
+    (set (make-local-variable 'whitespace-point)
+	 (point))
+    (set (make-local-variable 'whitespace-font-lock-refontify)
+	 nil)
+    (add-hook 'post-command-hook #'whitespace-post-command-hook nil t)
     ;; turn off font lock
     (set (make-local-variable 'whitespace-font-lock-mode)
 	 font-lock-mode)
@@ -2149,7 +2163,7 @@ resultant list will be returned."
        nil
        (list
 	;; Show SPACEs
-	(list whitespace-space-regexp  1 whitespace-space  t)
+	(list #'whitespace-space-regexp  1 whitespace-space  t)
 	;; Show HARD SPACEs
 	(list whitespace-hspace-regexp 1 whitespace-hspace t))
        t))
@@ -2158,14 +2172,14 @@ resultant list will be returned."
        nil
        (list
 	;; Show TABs
-	(list whitespace-tab-regexp 1 whitespace-tab t))
+	(list #'whitespace-tab-regexp 1 whitespace-tab t))
        t))
     (when (memq 'trailing whitespace-active-style)
       (font-lock-add-keywords
        nil
        (list
 	;; Show trailing blanks
-	(list whitespace-trailing-regexp 1 whitespace-trailing t))
+	(list #'whitespace-trailing-regexp 1 whitespace-trailing t))
        t))
     (when (or (memq 'lines      whitespace-active-style)
 	      (memq 'lines-tail whitespace-active-style))
@@ -2177,7 +2191,7 @@ resultant list will be returned."
 	 (format
 	  "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(.+\\)$"
 	  whitespace-tab-width (1- whitespace-tab-width)
-	  (/ whitespace-line-column tab-width)
+	  (/ whitespace-line-column whitespace-tab-width)
 	  (let ((rem (% whitespace-line-column whitespace-tab-width)))
 	    (if (zerop rem)
 		""
@@ -2243,14 +2257,14 @@ resultant list will be returned."
        nil
        (list
 	;; Show empty lines at beginning of buffer
-	(list whitespace-empty-at-bob-regexp
+	(list #'whitespace-empty-at-bob-regexp
 	      1 whitespace-empty t))
        t)
       (font-lock-add-keywords
        nil
        (list
 	;; Show empty lines at end of buffer
-	(list whitespace-empty-at-eob-regexp
+	(list #'whitespace-empty-at-eob-regexp
 	      1 whitespace-empty t))
        t))
     (cond
@@ -2287,11 +2301,59 @@ resultant list will be returned."
   ;; turn off font lock
   (when (whitespace-style-face-p)
     (font-lock-mode 0)
+    (remove-hook 'post-command-hook #'whitespace-post-command-hook)
     (when whitespace-font-lock
       (setq whitespace-font-lock nil
 	    font-lock-keywords   whitespace-font-lock-keywords))
     ;; restore original font lock state
     (font-lock-mode whitespace-font-lock-mode)))
+
+
+(defun whitespace-trailing-regexp (limit)
+  "Match trailing spaces which does not contain the point at end of line."
+  (let ((status t))
+    (while (if (re-search-forward whitespace-trailing-regexp limit t)
+	       (save-match-data
+		 (= whitespace-point (match-end 1))) ;; loop if point at eol
+	     (setq status nil)))		     ;; end of buffer
+    status))
+
+
+(defun whitespace-empty-at-bob-regexp (limit)
+  "Match spaces at beginning of buffer which does not contain the point at \
+beginning of buffer."
+  (and (/= whitespace-point 1)
+       (re-search-forward whitespace-empty-at-bob-regexp limit t)))
+
+
+(defun whitespace-empty-at-eob-regexp (limit)
+  "Match spaces at end of buffer which does not contain the point at end of \
+buffer."
+  (and (/= whitespace-point (1+ (buffer-size)))
+       (re-search-forward whitespace-empty-at-eob-regexp limit t)))
+
+
+(defun whitespace-space-regexp (limit)
+  "Match spaces."
+  (setq whitespace-font-lock-refontify t)
+  (re-search-forward whitespace-space-regexp limit t))
+
+
+(defun whitespace-tab-regexp (limit)
+  "Match tabs."
+  (setq whitespace-font-lock-refontify t)
+  (re-search-forward whitespace-tab-regexp limit t))
+
+
+(defun whitespace-post-command-hook ()
+  "Save current point into `whitespace-point' variable.
+Also refontify when necessary."
+  (setq whitespace-point (point))
+  (let ((refontify (or (eolp)			 ; end of line
+		       (= whitespace-point 1)))) ; beginning of buffer
+    (when (or whitespace-font-lock-refontify refontify)
+      (setq whitespace-font-lock-refontify refontify)
+      (jit-lock-refontify))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

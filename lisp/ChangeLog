@@ -2,6 +2,20 @@
 
 	* progmodes/hideshow.el (hs-show-block): Run `hs-show-hook'.  (Bug#4548)
 
+2009-09-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Does not highlight trailing spaces While point is
+	at end of line.  Does not highligt spaces at beginning of buffer
+	while point is at beginning of buffer.  Does not highlight spaces
+	at end of buffer while point is at end of buffer.  (Bug#4177)
+	New version 12.0.
+	(whitespace-display-mappings): Adjust initialization.
+	(whitespace-point, whitespace-font-lock-refontify): New vars.
+	(whitespace-color-on, whitespace-color-off): Adjust code.
+	(whitespace-trailing-regexp, whitespace-empty-at-bob-regexp)
+	(whitespace-empty-at-eob-regexp, whitespace-space-regexp)
+	(whitespace-tab-regexp, whitespace-post-command-hook): New funs.
+
 2009-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nxml/nxml-mode.el: Alias xml-mode to nxml-mode.
