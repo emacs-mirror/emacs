@@ -1269,6 +1269,14 @@ Therefore, @code{(remove-overlays)} removes all the overlays in the
 current buffer.
 @end defun
 
+@defun copy-overlay overlay
+This function returns a copy of @var{overlay}.  The copy has the same
+endpoints and properties as @var{overlay}.  However, the marker
+insertion type for the start of the overlay and for the end of the
+overlay are set to their default values (@pxref{Marker Insertion
+Types}).
+@end defun
+
   Here are some examples:
 
 @example

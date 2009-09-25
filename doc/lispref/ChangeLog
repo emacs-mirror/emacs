@@ -1,3 +1,8 @@
+2009-09-25  David Engster  <deng@randomsample.de>
+
+	* display.texi (Managing Overlays): Document
+	copy-overlay (Bug#4549).
+
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 
 	* internals.texi (Building Emacs): Mention preloaded-file-list.
