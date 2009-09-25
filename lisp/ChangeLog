@@ -1,3 +1,8 @@
+2009-09-25  Juri Linkov  <juri@jurta.org>
+
+	* files.el (safe-local-eval-forms): Allow time-stamp in
+	before-save-hook (Bug#4554).
+
 2009-09-25  Drew Adams  <drew.adams@oracle.com>
 
 	* menu-bar.el (list-buffers-directory): Doc fix.
