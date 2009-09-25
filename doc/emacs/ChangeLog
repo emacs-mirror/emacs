@@ -1,3 +1,8 @@
+2009-09-25  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* dired.texi (Dired Navigation): Use @code instead of @var for
+	dired-isearch-filenames, so that it's not capitalized.
+
 2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Frame Commands): C-z is now bound to suspend-frame.
