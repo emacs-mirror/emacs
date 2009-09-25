@@ -668,7 +668,7 @@ name_is_separator (name)
 
 
 /* convenience */
--(void) clear
+-(void)clear
 {
   int n;
   
@@ -676,7 +676,9 @@ name_is_separator (name)
     {
       NSMenuItem *item = [self itemAtIndex: n];
       NSString *title = [item title];
-      if (([title length] == 0 || [@"Apple" isEqualToString: title])
+      if (([title length] == 0  /* OSX 10.5 */
+	   || [@"Emacs" isEqualToString: title]  /* from 10.6 on */
+	   || [@"Apple" isEqualToString: title]) /* older */
           && ![item isSeparatorItem])
         continue;
       [self removeItemAtIndex: n];

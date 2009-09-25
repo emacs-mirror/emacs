@@ -1,3 +1,8 @@
+2009-09-25  David Reitter  <david.reitter@gmail.com>
+
+	* nsmenu.m (EmacsMenu-clear): Recognize application menu
+	on Mac OS X 10.6+ (bug#4513).
+
 2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.c (xrdb_get_resource): Return nil for empty string resources;
