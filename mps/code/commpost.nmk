@@ -272,9 +272,11 @@ $(PFM)\$(VARIETY)\mps.lib: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
 # about the repetition of the object list.
 $(PFM)\$(VARIETY)\mpsdy.dll: $(PFM)\$(VARIETY)\mpslibcb.obj \
 	$(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
-	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def 
+	$(MVFFOBJ) $(AMSOBJ) $(AWLOBJ) w3gen.def \
+	mpslibcb.def
 	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /def:w3gen.def /dll /OUT:$@ \
+	$(LINKER) $(LINKFLAGS) /def:w3gen.def \
+	  /def:mpslibcb.def /dll /OUT:$@ \
 	  $(PFM)\$(VARIETY)\mpslibcb.obj \
 	  $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
 	  $(MVFFOBJ) $(AMSOBJ) $(AWLOBJ)
