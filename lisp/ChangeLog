@@ -1,3 +1,8 @@
+2009-09-25  Devon Sean McCullough  <emacs-hacker@Jovi.Net>
+
+	* comint.el (comint-exec, comint-run, make-comint): Doc
+	fixes (Bug#4542).
+
 2009-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime): New custom group.

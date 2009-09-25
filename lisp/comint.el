@@ -686,7 +686,8 @@ PROGRAM should be either a string denoting an executable program to create
 via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
 a TCP connection to be opened via `open-network-stream'.  If there is already
 a running process in that buffer, it is not restarted.  Optional fourth arg
-STARTFILE is the name of a file to send the contents of to the process.
+STARTFILE is the name of a file, whose contents are sent to the
+process as its initial input.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
   (or (fboundp 'start-file-process)
@@ -709,7 +710,8 @@ PROGRAM should be either a string denoting an executable program to create
 via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
 a TCP connection to be opened via `open-network-stream'.  If there is already
 a running process in that buffer, it is not restarted.  Optional third arg
-STARTFILE is the name of a file to send the contents of the process to.
+STARTFILE is the name of a file, whose contents are sent to the
+process as its initial input.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
   (apply #'make-comint-in-buffer name nil program startfile switches))
@@ -728,7 +730,7 @@ See `make-comint' and `comint-exec'."
 
 (defun comint-exec (buffer name command startfile switches)
   "Start up a process named NAME in buffer BUFFER for Comint modes.
-Runs the given COMMAND with SWITCHES with output to STARTFILE.
+Runs the given COMMAND with SWITCHES, and initial input from STARTFILE.
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same Comint
 buffer.  The hook `comint-exec-hook' is run after each exec."
