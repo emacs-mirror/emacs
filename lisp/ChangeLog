@@ -30,7 +30,8 @@
 	(rmail-mime-insert-image): New function.
 	(rmail-mime-image): Use rmail-mime-insert-image.
 	(rmail-mime-bulk-handler): Remove optional `image' argument, instead
-	obey the value of `rmail-mime-show-images' option.
+	obey the value of `rmail-mime-show-images' option.  Print the size of
+	attachments.
 
 2009-09-25  David Engster  <deng@randomsample.de>
 

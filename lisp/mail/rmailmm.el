@@ -177,7 +177,14 @@ depends upon the value of `rmail-mime-show-images'."
 		       "noname"))
 	 (label (format "\nAttached %s file: " (car content-type)))
 	 (data (buffer-string))
+	 (udata (string-as-unibyte data))
+	 (size (length udata))
+	 (units '(B kB MB GB))
 	 type)
+    (while (and (> size 1024.0)	; cribbed from gnus-agent-expire-done-message
+		(cdr units))
+      (setq size (/ size 1024.0)
+	    units (cdr units)))
     (delete-region (point-min) (point-max))
     (insert label)
     (insert-button filename
@@ -186,23 +193,22 @@ depends upon the value of `rmail-mime-show-images'."
 		   'filename filename
 		   'directory (file-name-as-directory directory)
 		   'data data)
+    (insert (format " (%.0f%s)" size (car units)))
     (when (and rmail-mime-show-images
 	       (string-match "image/\\(.*\\)" (setq type (car content-type)))
 	       (setq type (concat "." (match-string 1 type))
 		     type (image-type-from-file-name type))
 	       (memq type image-types)
 	       (image-type-available-p type))
-      (setq data (string-as-unibyte data))
       (insert " ")
-      ;; FIXME ought to check or at least display the image size.
       (cond ((eq rmail-mime-show-images 'button)
 	     (insert-button "Display"
 			    :type 'rmail-mime-image
 			    'help-echo "mouse-2, RET: Show image"
 			    'image-type type
-			    'image-data data))
+			    'image-data udata))
 	    (t
-	     (rmail-mime-insert-image type data))))))
+	     (rmail-mime-insert-image type udata))))))
 
 (defun test-rmail-mime-bulk-handler ()
   "Test of a mail used as an example in RFC 2183."
