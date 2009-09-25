@@ -425,7 +425,7 @@ static void* MakeThing(mps_arena_t arena, mps_ap_t ap, size_t size)
   return (void *)v;
 }
 
-static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small)
+static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small_ref)
 {
   static unsigned long keepCount = 0;
   unsigned long i;
@@ -433,9 +433,9 @@ static void BigdropSmall(mps_arena_t arena, mps_ap_t ap, size_t big, char small)
   mps_arena_park(arena);
   for(i = 0; i < 100; i++) {
     (void) MakeThing(arena, ap, big);
-    if(small == 'A') {
+    if(small_ref == 'A') {
       myrootAmbig[keepCount++ % myrootAmbigCOUNT] = MakeThing(arena, ap, 1);
-    } else if(small == 'E') {
+    } else if(small_ref == 'E') {
       myrootExact[keepCount++ % myrootExactCOUNT] = MakeThing(arena, ap, 1);
     } else {
       cdie(0, "BigdropSmall: small must be 'A' or 'E'.\n");
@@ -485,13 +485,13 @@ static void testscriptC(mps_arena_t arena, mps_ap_t ap, const char *script)
       }
       case 'B': {
         size_t big = 0;
-        char small = ' ';
+        char small_ref = ' ';
         si = sscanf(script, "BigdropSmall(big %lu, small %c)%n",
-                       &big, &small, &sb);
+                       &big, &small_ref, &sb);
         checksi(si, 2, script, scriptAll);
         script += sb;
-        printf("  BigdropSmall(big %lu, small %c)\n", big, small);
-        BigdropSmall(arena, ap, big, small);
+        printf("  BigdropSmall(big %lu, small %c)\n", big, small_ref);
+        BigdropSmall(arena, ap, big, small_ref);
         break;
       }
       case 'M': {
