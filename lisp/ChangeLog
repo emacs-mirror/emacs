@@ -1,3 +1,7 @@
+2009-09-25  David Engster  <deng@randomsample.de>
+
+	* progmodes/hideshow.el (hs-show-block): Run `hs-show-hook'.  (Bug#4548)
+
 2009-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nxml/nxml-mode.el: Alias xml-mode to nxml-mode.
