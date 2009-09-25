@@ -1,3 +1,11 @@
+2009-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-changelog-entries): Avoid inf-loops.
+	Try and avoid copying twice the same paragraph.
+	(log-edit-changelog-paragraph, log-edit-changelog-subparagraph):
+	Remove save-excursion.
+	(log-edit-changelog-entry): Do it here instead.
+
 2009-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--get-file-name): Use `list-buffers-directory'
@@ -16,8 +24,8 @@
 
 2009-09-25  Devon Sean McCullough  <emacs-hacker@Jovi.Net>
 
-	* comint.el (comint-exec, comint-run, make-comint): Doc
-	fixes (Bug#4542).
+	* comint.el (comint-exec, comint-run, make-comint):
+	Doc fixes (Bug#4542).
 
 2009-09-25  Glenn Morris  <rgm@gnu.org>
 
@@ -58,8 +66,7 @@
 	* textmodes/sgml-mode.el: Remove xml-mode alias.
 
 	* files.el (auto-mode-alist, conf-mode-maybe)
-	(magic-fallback-mode-alist): Revert 2009-09-18 and 2009-09-21
-	changes.
+	(magic-fallback-mode-alist): Revert 2009-09-18 and 2009-09-21 changes.
 
 2009-09-24  Alan Mackenzie  <acm@muc.de>
 

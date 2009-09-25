@@ -560,23 +560,21 @@ A \"page\" in a ChangeLog file is the area between two dates."
 (defun log-edit-changelog-paragraph ()
   "Return the bounds of the ChangeLog paragraph containing point.
 If we are between paragraphs, return the previous paragraph."
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at "^[ \t]*$")
-        (skip-chars-backward " \t\n" (point-min)))
-    (list (progn
-            (if (re-search-backward "^[ \t]*\n" nil 'or-to-limit)
-                (goto-char (match-end 0)))
-            (point))
-          (if (re-search-forward "^[ \t\n]*$" nil t)
-              (match-beginning 0)
-            (point-max)))))
+  (beginning-of-line)
+  (if (looking-at "^[ \t]*$")
+      (skip-chars-backward " \t\n" (point-min)))
+  (list (progn
+          (if (re-search-backward "^[ \t]*\n" nil 'or-to-limit)
+              (goto-char (match-end 0)))
+          (point))
+        (if (re-search-forward "^[ \t\n]*$" nil t)
+            (match-beginning 0)
+          (point-max))))
 
 (defun log-edit-changelog-subparagraph ()
   "Return the bounds of the ChangeLog subparagraph containing point.
 A subparagraph is a block of non-blank lines beginning with an asterisk.
 If we are between sub-paragraphs, return the previous subparagraph."
-  (save-excursion
     (end-of-line)
     (if (search-backward "*" nil t)
         (list (progn (beginning-of-line) (point))
@@ -585,16 +583,17 @@ If we are between sub-paragraphs, return the previous subparagraph."
                 (if (re-search-forward "^[ \t]*[\n*]" nil t)
                     (match-beginning 0)
                   (point-max))))
-      (list (point) (point)))))
+    (list (point) (point))))
 
 (defun log-edit-changelog-entry ()
   "Return the bounds of the ChangeLog entry containing point.
 The variable `log-edit-changelog-full-paragraphs' decides whether an
 \"entry\" is a paragraph or a subparagraph; see its documentation string
 for more details."
-  (if log-edit-changelog-full-paragraphs
-      (log-edit-changelog-paragraph)
-    (log-edit-changelog-subparagraph)))
+  (save-excursion
+    (if log-edit-changelog-full-paragraphs
+        (log-edit-changelog-paragraph)
+      (log-edit-changelog-subparagraph))))
 
 (defvar user-full-name)
 (defvar user-mail-address)
@@ -663,11 +662,17 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                                   pattern
                                   "\\($\\|[^[:alnum:]]\\)"))
 
-	    (let (texts)
-	      (while (re-search-forward pattern nil t)
+	    (let (texts
+                  (pos (point)))
+	      (while (and (not (eobp)) (re-search-forward pattern nil t))
 		(let ((entry (log-edit-changelog-entry)))
-		  (push entry texts)
-		  (goto-char (elt entry 1))))
+                  (if (< (elt entry 1) (max (1+ pos) (point)))
+                      ;; This is not relevant, actually.
+                      nil
+                    (push entry texts))
+                  ;; Make sure we make progress.
+                  (setq pos (max (1+ pos) (elt entry 1)))
+		  (goto-char pos)))
 
 	      (cons (current-buffer) texts))))))))
 
