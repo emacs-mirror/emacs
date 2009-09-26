@@ -80,19 +80,19 @@
 (defvar srecode-menu-bar
   (list
    "SRecoder"
-   (senator-menu-item
+   (semantic-menu-item
     ["Insert Template"
      srecode-insert
      :active t
      :help "Insert a template by name."
      ])
-   (senator-menu-item
+   (semantic-menu-item
     ["Insert Template Again"
      srecode-insert-again
      :active t
      :help "Run the same template as last time again."
      ])
-   (senator-menu-item
+   (semantic-menu-item
     ["Edit Template"
      srecode-edit
      :active t
@@ -102,7 +102,7 @@
    '( "Insert ..." :filter srecode-minor-mode-templates-menu )
    `( "Generate ..." :filter srecode-minor-mode-generate-menu )
    "---"
-    (senator-menu-item
+    (semantic-menu-item
      ["Customize..."
       (customize-group "srecode")
       :active t
@@ -110,19 +110,19 @@
       ])
    (list
     "Debugging Tools..."
-    (senator-menu-item
+    (semantic-menu-item
      ["Dump Template MAP"
       srecode-get-maps
       :active t
       :help "Calculate (if needed) and display the current template file map."
       ])
-    (senator-menu-item
+    (semantic-menu-item
      ["Dump Tables"
       srecode-dump-templates
       :active t
       :help "Dump the current template table."
       ])
-    (senator-menu-item
+    (semantic-menu-item
      ["Dump Dictionary"
       srecode-dictionary-dump
       :active t

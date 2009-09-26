@@ -1,5 +1,11 @@
 2009-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/srecode/mode.el (srecode-menu-bar): Use
+	semantic-menu-item.
+
+	* cedet/srecode/expandproto.el (senator-tag-ring): Declare
+	senator-tag-ring.
+
 	* cedet/semantic/lex.el (semantic-lex-reset-hooks): Doc fix.
 
 	* cedet/semantic/idle.el
