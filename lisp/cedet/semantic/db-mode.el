@@ -48,15 +48,14 @@
          (custom-set-default sym val)))
 
 (defcustom semanticdb-mode-hook nil
-  "Normal hook run whenever `global-semanticdb-minor-mode' is run.
+  "Hook run whenever `global-semanticdb-minor-mode' is run.
 Use `semanticdb-minor-mode-p' to determine if the mode has been turned
 on or off."
   :group 'semanticdb
   :type 'hook)
 
-(define-obsolete-variable-alias
-  'semanticdb-mode-hooks
-  'semanticdb-mode-hook "23.2")
+(semantic-varalias-obsolete 'semanticdb-mode-hooks
+			    'semanticdb-mode-hook)
 
 ;;; Start/Stop database use
 ;;

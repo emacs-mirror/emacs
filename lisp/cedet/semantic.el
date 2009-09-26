@@ -269,12 +269,12 @@ This hook is for database functions which intend to swap in a tag table.
 This guarantees that the DB will go before other modes that require
 a parse of the buffer.")
 
-(define-obsolete-variable-alias 'semantic-init-hooks
-  'semantic-init-hook "23.2")
-(define-obsolete-variable-alias 'semantic-init-mode-hooks
-  'semantic-init-mode-hook "23.2")
-(define-obsolete-variable-alias 'semantic-init-db-hooks
-  'semantic-init-db-hook "23.2")
+(semantic-varalias-obsolete 'semantic-init-hooks
+			    'semantic-init-hook)
+(semantic-varalias-obsolete 'semantic-init-mode-hooks
+			    'semantic-init-mode-hook)
+(semantic-varalias-obsolete 'semantic-init-db-hooks
+			    'semantic-init-db-hook)
 
 (defvar semantic-new-buffer-fcn-was-run nil
   "Non nil after `semantic-new-buffer-fcn' has been executed.")

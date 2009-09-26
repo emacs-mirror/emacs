@@ -501,24 +501,19 @@ datasets."
 ;;   :type 'boolean)
 
 (defvar semantic-before-idle-scheduler-reparse-hook nil
-  "Normal hook run before option `semantic-idle-scheduler' begins parsing.
+  "Hook run before option `semantic-idle-scheduler' begins parsing.
 If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
-
-(define-obsolete-variable-alias
-  'semantic-before-idle-scheduler-reparse-hooks
-  'semantic-before-idle-scheduler-reparse-hook
-  "23.2")
 
 (defvar semantic-after-idle-scheduler-reparse-hook nil
-  "Normal hook run after option `semantic-idle-scheduler' has parsed.
+  "Hook run after option `semantic-idle-scheduler' has parsed.
 If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
 
-(define-obsolete-variable-alias
-  'semantic-after-idle-scheduler-reparse-hooks
-  'semantic-after-idle-scheduler-reparse-hook
-  "23.2")
+(semantic-varalias-obsolete 'semantic-before-idle-scheduler-reparse-hooks
+			    'semantic-before-idle-scheduler-reparse-hook)
+(semantic-varalias-obsolete 'semantic-after-idle-scheduler-reparse-hooks
+			    'semantic-after-idle-scheduler-reparse-hook)
 
 (defun semantic-idle-scheduler-refresh-tags ()
   "Refreshes the current buffer's tags.

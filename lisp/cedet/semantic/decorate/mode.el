@@ -195,11 +195,10 @@ Also make sure old decorations in the area are completely flushed."
 ;; that the next idle step will do the decoration change, but at the
 ;; time of the state change, minimal work would be done.
 (defvar semantic-decorate-pending-decoration-hook nil
-  "Functions to call with pending decoration changes.")
+  "Normal hook run to perform pending decoration changes.")
 
-(define-obsolete-variable-alias
-  'semantic-decorate-pending-decoration-hooks
-  'semantic-decorate-pending-decoration-hook "23.2")
+(semantic-varalias-obsolete 'semantic-decorate-pending-decoration-hooks
+			    'semantic-decorate-pending-decoration-hook)
 
 (defun semantic-decorate-add-pending-decoration (fcn &optional buffer)
   "Add a pending decoration change represented by FCN.
