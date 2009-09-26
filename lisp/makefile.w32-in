@@ -89,11 +89,6 @@ WINS_ALMOST=\
 	cedet \
 	cedet/ede \
 	cedet/semantic \
-	cedet/semantic/analyze \
-	cedet/semantic/bovine \
-	cedet/semantic/decorate \
-	cedet/semantic/symref \
-	cedet/semantic/wisent \
 	cedet/srecode \
 	eieio \
 	emacs-lisp \
