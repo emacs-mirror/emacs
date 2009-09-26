@@ -631,7 +631,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #ifdef MSDOS
 #define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
  ${lispsource}dos-fns.elc ${lispsource}dos-w32.elc ${lispsource}dos-vars.elc \
- ${lispsource}/term/internal.elc
+ ${lispsource}term/internal.elc ${lispsource}term/pc-win.elc
 
 #else
 #define MSDOS_SUPPORT
@@ -641,7 +641,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #ifdef HAVE_X_WINDOWS
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
- ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc
+ ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc \
+ ${lispsource}term/common-win.elc ${lispsource}term/x-win.elc
 #else
 #define WINDOW_SUPPORT ${lispsource}fringe.elc ${lispsource}image.elc \
  ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
@@ -654,7 +655,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #ifdef WINDOWSNT
 #define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
   ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc \
-  ${lispsource}w32-fns.elc
+  ${lispsource}w32-fns.elc ${lispsource}term/common-win.elc \
+  ${lispsource}term/w32-win.elc
 #else
 #define WINNT_SUPPORT
 #endif
@@ -663,6 +665,13 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
 #else
 #define TOOLTIP_SUPPORT
+#endif
+
+#ifdef HAVE_NS
+#define NS_SUPPORT ${lispsource}emacs-lisp/easymenu.elc \
+  ${lispsource}term/ns-win.elc
+#else
+#define NS_SUPPORT
 #endif
 
 /* List of Lisp files loaded into the dumped Emacs.  It is arranged
@@ -765,6 +774,7 @@ lisp= \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
 	WINDOW_SUPPORT \
+	NS_SUPPORT \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el
@@ -876,7 +886,8 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/term/common-win.elc \
   ../lisp/term/x-win.elc \
   ../lisp/term/pc-win.elc ../lisp/term/internal.elc \
-  ../lisp/term/ns-win.elc
+  ../lisp/term/ns-win.elc ../lisp/term/w32-win.elc \
+  ../lisp/emacs-lisp/easymenu.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get

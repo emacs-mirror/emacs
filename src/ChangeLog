@@ -1,3 +1,15 @@
+2009-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT) [MSDOS]: Remove unneeded '/' in
+	internal.elc.  Add term/pc-win.elc.
+	(WINDOW_SUPPORT) [HAVE_X_WINDOWS]: Add term/common-win.elc and
+	term/x-win.elc.
+	(WINNT_SUPPORT) [WINDOWSNT]: Add term/common-win.elc and
+	term/w32-win.elc.
+	(NS_SUPPORT): New.
+	(lisp): Add NS_SUPPORT.
+	(SOME_MACHINE_LISP): Add term/w32-win.elc and emacs-lisp/easymenu.elc.
+
 2009-09-25  David Reitter  <david.reitter@gmail.com>
 
 	* nsmenu.m (EmacsMenu-clear): Recognize application menu
