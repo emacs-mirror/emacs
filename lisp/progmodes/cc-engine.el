@@ -1067,8 +1067,9 @@ comment at the start of cc-engine.el for more info."
 		 (not (eq ret 'beginning))
 		 (looking-at c-case-kwds-regexp))
 	(if (< after-case:-pos start)
-	    (setq pos after-case:-pos)
-	  (setq ret 'label)))
+	    (setq pos after-case:-pos))
+	(if (eq ret 'same)
+	    (setq ret 'label)))
 
       ;; Skip over the unary operators that can start the statement.
       (while (progn
