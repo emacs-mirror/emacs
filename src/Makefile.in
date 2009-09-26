@@ -674,17 +674,17 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(widgetobj) $(LIBOBJS)
 #define NS_SUPPORT
 #endif
 
-/* List of Lisp files loaded into the dumped Emacs.  It is arranged
-   like this because it is easier to generate it semi-mechanically from
-   loadup.el this way.
+/* This is the platform-specific list of Lisp files loaded into the
+   dumped Emacs.  It is arranged like this because it is easier to generate
+   it semi-mechanically from loadup.el this way.
 
    Note that this list should not include lisp files which might not
    be present, like site-load.el and site-init.el; this makefile
    expects them all to be either present or buildable.
 
-   Files which are loaded unconditionally should be in shortlisp as well.
-   Files included conditionally here should be included (unconditionally)
-   in SOME_MACHINE_LISP.  */
+   Files which are loaded unconditionally (i.e., on all platforms) should
+   also be in shortlisp.  Files which are loaded conditionally (i.e., only
+   on some platforms) should instead be in SOME_MACHINE_LISP.  */
 
 /* Place loaddefs.el first, so it gets generated first, since it is on
    the critical path (relevant in parallel compilations).  */
@@ -779,10 +779,11 @@ lisp= \
 	${lispsource}window.elc \
 	${lispsource}version.el
 
-/* These are relative file names for the Lisp files
-   that are loaded unconditionally.  This is used in make-docfile.
-   It need not contain the files that are loaded conditionally
-   because SOME_MACHINE_LISP has those.  */
+/* List of relative names for those files from $lisp that are loaded
+   unconditionally (i.e. on all platforms).  Files from $lisp that
+   are only loaded on some platforms should instead be placed in
+   SOME_MACHINE_LISP.  The only reason this variable exists is to prevent
+   the make-docfile command-line getting too long for some systems.  */
 shortlisp= \
 	../lisp/loaddefs.el \
 	../lisp/abbrev.elc \
@@ -866,11 +867,8 @@ shortlisp= \
 	../lisp/window.elc \
 	../lisp/version.el
 
-/* Lisp files that may or may not be used.
-   We must unconditionally put them in the DOC file.
-   We use ../lisp/ to start the file names
-   to reduce the size of the argument list for make-docfile
-   for the sake of systems which can''t handle large ones.  */
+/* Like $shortlisp, but includes only those files from $lisp that are loaded
+   conditionally (i.e., only on some platforms).  */
 SOME_MACHINE_LISP = ../lisp/mouse.elc \
   ../lisp/select.elc ../lisp/scroll-bar.elc \
   ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
