@@ -61,9 +61,9 @@ in a GNU Global supported hierarchy."
   (when (stringp mode)
     (setq mode (intern mode)))
 
-  (let ((ih (mode-local-value mode 'semantic-init-mode-hooks)))
+  (let ((ih (mode-local-value mode 'semantic-init-mode-hook)))
     (eval `(setq-mode-local
-	    ,mode semantic-init-mode-hooks
+	    ,mode semantic-init-mode-hook
 	    (cons 'semanticdb-enable-gnu-global-hook ih))))
 
   )

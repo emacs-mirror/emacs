@@ -194,8 +194,12 @@ Also make sure old decorations in the area are completely flushed."
 ;; such identified change ought to be setup as PENDING.  This means
 ;; that the next idle step will do the decoration change, but at the
 ;; time of the state change, minimal work would be done.
-(defvar semantic-decorate-pending-decoration-hooks nil
+(defvar semantic-decorate-pending-decoration-hook nil
   "Functions to call with pending decoration changes.")
+
+(define-obsolete-variable-alias
+  'semantic-decorate-pending-decoration-hooks
+  'semantic-decorate-pending-decoration-hook "23.2")
 
 (defun semantic-decorate-add-pending-decoration (fcn &optional buffer)
   "Add a pending decoration change represented by FCN.
@@ -204,17 +208,17 @@ The setting of FCN will be removed after it is run."
   (save-excursion
     (when buffer (set-buffer buffer))
     (semantic-make-local-hook 'semantic-decorate-flush-pending-decorations)
-    (add-hook 'semantic-decorate-pending-decoration-hooks fcn nil t)))
+    (add-hook 'semantic-decorate-pending-decoration-hook fcn nil t)))
 
 ;;;;###autoload
 (defun semantic-decorate-flush-pending-decorations (&optional buffer)
   "Flush any pending decorations for BUFFER.
-Flush functions from `semantic-decorate-pending-decoration-hooks'."
+Flush functions from `semantic-decorate-pending-decoration-hook'."
   (save-excursion
     (when buffer (set-buffer buffer))
-    (run-hooks 'semantic-decorate-pending-decoration-hooks)
+    (run-hooks 'semantic-decorate-pending-decoration-hook)
     ;; Always reset the hooks
-    (setq semantic-decorate-pending-decoration-hooks nil)))
+    (setq semantic-decorate-pending-decoration-hook nil)))
 
 
 ;;; DECORATION MODE

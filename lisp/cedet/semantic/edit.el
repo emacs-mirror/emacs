@@ -62,7 +62,7 @@
 
 ;;; Code:
 (defvar semantic-after-partial-cache-change-hook nil
-  "Hooks run after the buffer cache has been updated.
+  "Normal hook run after the buffer cache has been updated.
 
 This hook will run when the cache has been partially reparsed.
 Partial reparses are incurred when a user edits a buffer, and only the
@@ -74,7 +74,7 @@ updated in the current buffer.
 For language specific hooks, make sure you define this as a local hook.")
 
 (defvar semantic-change-hooks nil
-  "Hooks run when semantic detects a change in a buffer.
+  "Abnormal hook run when semantic detects a change in a buffer.
 Each hook function must take three arguments, identical to the
 common hook `after-change-functions'.")
 
@@ -92,27 +92,27 @@ hook.
 Not used yet; part of the next generation reparse mechanism.")
 
 (defvar semantic-edits-new-change-hooks nil
-  "Hooks run when a new change is found.
+  "Abnormal hook run when a new change is found.
 Functions must take one argument representing an overlay on that change.")
 
 (defvar semantic-edits-delete-change-hooks nil
-  "Hooks run before a change overlay is deleted.
+  "Abnormal hook run before a change overlay is deleted.
 Deleted changes occur when multiple changes are merged.
 Functions must take one argument representing an overlay being deleted.")
 
-(defvar semantic-edits-move-change-hooks nil
-  "Hooks run after a change overlay is moved.
+(defvar semantic-edits-move-change-hook nil
+  "Abnormal hook run after a change overlay is moved.
 Changes move when a new change overlaps an old change.  The old change
 will be moved.
 Functions must take one argument representing an overlay being moved.")
 
 (defvar semantic-edits-reparse-change-hooks nil
-  "Hooks run after a change results in a reparse.
+  "Abnormal hook run after a change results in a reparse.
 Functions are called before the overlay is deleted, and after the
 incremental reparse.")
 
 (defvar semantic-edits-incremental-reparse-failed-hooks nil
-  "Hooks run after the incremental parser fails.
+  "Abnormal hook run after the incremental parser fails.
 When this happens, the buffer is marked as needing a full reprase.")
 
 (defcustom semantic-edits-verbose-flag nil

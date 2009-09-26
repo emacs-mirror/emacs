@@ -355,7 +355,7 @@ Return non-nil if the map changed."
 	  (insert-file-contents file nil nil nil t)
 	  ;; Force it to be ready to parse.
 	  (srecode-template-mode)
-	  (let ((semantic-init-hooks nil))
+	  (let ((semantic-init-hook nil))
 	    (semantic-new-buffer-fcn))
 	  )
 

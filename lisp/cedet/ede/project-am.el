@@ -475,7 +475,7 @@ Kill the makefile if it was not loaded before the load."
 	(if kb (setq fb kb)
 	  ;; We need to find-file this thing, but don't use
 	  ;; any semantic features.
-	  (let ((semantic-init-hooks nil))
+	  (let ((semantic-init-hook nil))
 	    (setq fb (find-file-noselect fn)))
 	  )
 	(set-buffer fb)

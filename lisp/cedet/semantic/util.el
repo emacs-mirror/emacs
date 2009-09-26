@@ -335,8 +335,8 @@ If TAG is not specified, use the tag at point."
 
 	(princ "\nGeneral configuration items:\n")
 	(let ((vars '(semantic-inhibit-functions
-		      semantic-init-hooks
-		      semantic-init-db-hooks
+		      semantic-init-hook
+		      semantic-init-db-hook
 		      semantic-unmatched-syntax-hook
 		      semantic--before-fetch-tags-hook
 		      semantic-after-toplevel-bovinate-hook
@@ -445,6 +445,8 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 ;; "transparently".  Here are some interactive commands based on
 ;; Senator.
 
+;; Symbol completion
+
 (defvar semantic--completion-cache nil
   "Internal variable used by `senator-complete-symbol'.")
 
@@ -456,6 +458,7 @@ NOTFIRST indicates that this was not the first call in the recursive use."
   "Find all tags with name starting with PREFIX.
 This uses `semanticdb' when available."
   (let (result ctxt)
+    ;; Try the Semantic analyzer
     (condition-case nil
 	(and (featurep 'semantic/analyze)
 	     (setq ctxt (semantic-analyze-current-context))

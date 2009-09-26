@@ -500,15 +500,25 @@ datasets."
 ;;   :group 'semantic
 ;;   :type 'boolean)
 
-(defvar semantic-before-idle-scheduler-reparse-hooks nil
-  "Hooks run before option `semantic-idle-scheduler' begins parsing.
-If any hook throws an error, this variable is reset to nil.
+(defvar semantic-before-idle-scheduler-reparse-hook nil
+  "Normal hook run before option `semantic-idle-scheduler' begins parsing.
+If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
 
-(defvar semantic-after-idle-scheduler-reparse-hooks nil
-  "Hooks run after option `semantic-idle-scheduler' has parsed.
-If any hook throws an error, this variable is reset to nil.
+(define-obsolete-variable-alias
+  'semantic-before-idle-scheduler-reparse-hooks
+  'semantic-before-idle-scheduler-reparse-hook
+  "23.2")
+
+(defvar semantic-after-idle-scheduler-reparse-hook nil
+  "Normal hook run after option `semantic-idle-scheduler' has parsed.
+If any hook function throws an error, this variable is reset to nil.
 This hook is not protected from lexical errors.")
+
+(define-obsolete-variable-alias
+  'semantic-after-idle-scheduler-reparse-hooks
+  'semantic-after-idle-scheduler-reparse-hook
+  "23.2")
 
 (defun semantic-idle-scheduler-refresh-tags ()
   "Refreshes the current buffer's tags.
@@ -553,8 +563,8 @@ Does nothing if the current buffer doesn't need reparsing."
 	  ;; Let people hook into this, but don't let them hose
 	  ;; us over!
 	  (condition-case nil
-	      (run-hooks 'semantic-before-idle-scheduler-reparse-hooks)
-	    (error (setq semantic-before-idle-scheduler-reparse-hooks nil)))
+	      (run-hooks 'semantic-before-idle-scheduler-reparse-hook)
+	    (error (setq semantic-before-idle-scheduler-reparse-hook nil)))
 
 	  (unwind-protect
 	      ;; Perform the parsing.
@@ -576,8 +586,8 @@ Does nothing if the current buffer doesn't need reparsing."
 	    ;; Let people hook into this, but don't let them hose
 	    ;; us over!
 	    (condition-case nil
-		(run-hooks 'semantic-after-idle-scheduler-reparse-hooks)
-	      (error (setq semantic-after-idle-scheduler-reparse-hooks nil))))
+		(run-hooks 'semantic-after-idle-scheduler-reparse-hook)
+	      (error (setq semantic-after-idle-scheduler-reparse-hook nil))))
 	  ;; Return if we are lexically safe (from prog1)
 	  lexically-safe)))
 

@@ -1,3 +1,71 @@
+2009-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/lex.el (semantic-lex-reset-hooks): Doc fix.
+
+	* cedet/semantic/idle.el
+	(semantic-before-idle-scheduler-reparse-hook)
+	(semantic-after-idle-scheduler-reparse-hook): Rename from *-hooks.
+	Make old name an obsolete alias.
+
+	* cedet/semantic/edit.el (semantic-after-partial-cache-change-hook)
+	(semantic-change-hooks, semantic-edits-new-change-hooks)
+	(semantic-edits-delete-change-hooks)
+	(semantic-edits-move-change-hook)
+	(semantic-edits-reparse-change-hooks)
+	(semantic-edits-incremental-reparse-failed-hooks): Doc fixes.
+
+	* cedet/semantic/debug.el (semantic-debug-mode): Rename hook
+	symbols.
+
+	* cedet/semantic/db-mode.el (semanticdb-mode-hook): Rename from
+	semanticdb-mode-hooks.
+	(global-semanticdb-minor-mode): Use the new name.
+	(semanticdb-hooks): Use semantic-init-db-hook instead of obsolete
+	alias semantic-init-db-hooks.
+
+	* cedet/semantic/db-global.el (semanticdb-enable-gnu-global-databases):
+	Use semantic-init-hook instead of obsolete alias
+	semantic-init-hooks.
+
+	* cedet/semantic/db-file.el (semanticdb-save-database-hook):
+	Rename from semanticdb-save-database-hooks.  Make old name an
+	obsolete alias.
+
+	* cedet/semantic/decorate/mode.el
+	(semantic-decorate-pending-decoration-hook): Rename from
+	semantic-decorate-pending-decoration-hooks.  Make old name an
+	obsolete alias.
+
+	* cedet/srecode/map.el (srecode-map-validate-file-for-mode): Use
+	semantic-init-hook instead of obsolete alias semantic-init-hooks.
+
+	* cedet/semantic/fw.el (semantic-find-file-noselect): Use
+	semantic-init-hook instead of obsolete alias semantic-init-hooks.
+
+	* cedet/ede/project-am.el (project-am-with-makefile-current): Use
+	semantic-init-hook instead of obsolete alias semantic-init-hooks.
+
+	* cedet/semantic/util.el (semantic-describe-buffer): Use
+	semantic-init-hook and semantic-init-db-hook instead of obsolete
+	aliases.
+
+	* cedet/semantic/util-modes.el (semantic-mode-line-update)
+	(semantic-toggle-minor-mode-globally): Use semantic-init-hook
+	instead of obsolete alias semantic-init-hooks.
+
+2009-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	Synch to Eric Ludlam's upstream CEDET repository.
+
+	* cedet/semantic/bovine/c.el (semantic-c-parse-token-hack-depth):
+	New var.
+	(semantic-c-parse-lexical-token): Save match data when setting up
+	the secondary parse buffer.  Allow recursion.  Protect against
+	initializing the major mode from throwing errors, ie user hooks.
+
+	* cedet/semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
+	Protect installing a major mode from throwing errors.
+
 2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/semantic.el (semantic-parser-working-message): Use a less

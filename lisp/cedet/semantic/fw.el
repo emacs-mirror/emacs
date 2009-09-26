@@ -391,7 +391,7 @@ FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'"
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
 	 ;; of time for a buffer we intend to kill.
-	 (semantic-init-hooks nil)
+	 (semantic-init-hook nil)
 	 ;; This disables the part of EDE that asks questions
 	 (ede-auto-add-method 'never)
 	 ;; Ask font-lock to not colorize these buffers, nor to

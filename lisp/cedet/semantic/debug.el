@@ -319,7 +319,7 @@ Argument ONOFF is non-nil when we are entering debug mode.
 	  ;; Make the buffer read only
 	  (toggle-read-only 1)
 	  ;; Hooks
-	  (run-hooks 'semantic-debug-mode-hooks)
+	  (run-hooks 'semantic-debug-mode-hook)
 	  )
       ;; Restore old mode information
       (save-excursion
@@ -334,7 +334,7 @@ Argument ONOFF is non-nil when we are entering debug mode.
 	(use-local-map
 	 (oref semantic-debug-current-interface source-local-map))
 	)
-      (run-hooks 'semantic-debug-exit-hooks)
+      (run-hooks 'semantic-debug-exit-hook)
       )))
 
 (defun semantic-debug ()

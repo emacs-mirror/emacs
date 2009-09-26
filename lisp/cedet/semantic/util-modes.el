@@ -97,7 +97,7 @@ Only minor modes that are locally enabled are shown in the mode line."
                 ml (cdr ml))
           (when (and (symbol-value mm)
                      ;; Only show local minor mode status
-                     (not (memq mm semantic-init-hooks)))
+                     (not (memq mm semantic-init-hook)))
             (and ms
                  (symbolp ms)
                  (setq ms (symbol-value ms)))
@@ -178,26 +178,26 @@ function used to toggle the mode."
   (or (and (fboundp mode) (assq mode minor-mode-alist))
       (error "Semantic minor mode %s not found" mode))
   (if (not arg)
-      (if (memq mode semantic-init-hooks)
+      (if (memq mode semantic-init-hook)
 	  (setq arg -1)
 	(setq arg 1)))
   ;; Add or remove the MODE toggle function from
-  ;; `semantic-init-hooks'.  Then turn MODE on or off in every
+  ;; `semantic-init-hook'.  Then turn MODE on or off in every
   ;; Semantic enabled buffer.
   (cond
    ;; Turn off if ARG < 0
    ((< arg 0)
-    (remove-hook 'semantic-init-hooks mode)
+    (remove-hook 'semantic-init-hook mode)
     (semantic-map-buffers #'(lambda () (funcall mode -1)))
     nil)
    ;; Turn on if ARG > 0
    ((> arg 0)
-    (add-hook 'semantic-init-hooks mode)
+    (add-hook 'semantic-init-hook mode)
     (semantic-map-buffers #'(lambda () (funcall mode 1)))
     t)
    ;; Otherwise just check MODE state
    (t
-    (memq mode semantic-init-hooks))
+    (memq mode semantic-init-hook))
    ))
 
 ;;;;

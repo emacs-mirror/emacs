@@ -769,9 +769,10 @@ start position of the block, and STREAM is the list of tokens in that
 block.")
 
 (defvar semantic-lex-reset-hooks nil
-  "List of hooks major-modes use to reset lexical analyzers.
-Hooks are called with START and END values for the current lexical pass.
-Should be set with `add-hook'specifying a LOCAL option.")
+  "Abnormal hook used by major-modes to reset lexical analyzers.
+Hook functions are called with START and END values for the
+current lexical pass.  Should be set with `add-hook', specifying
+a LOCAL option.")
 
 ;; Stack of nested blocks.
 (defvar semantic-lex-block-stack nil)

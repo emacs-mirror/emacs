@@ -863,7 +863,12 @@ and variable state from the current buffer."
       ;; Below is a painful hack to make sure everything is setup correctly.
       (when (not (eq major-mode mode))
 	(save-match-data
-	  (funcall mode)
+
+	  ;; Protect against user-hooks that throw errors.
+	  (condition-case nil
+	      (funcall mode)
+	    (error nil))
+
 	  ;; Hack in mode-local
 	  (activate-mode-local-bindings)
 	  ;; CHEATER!  The following 3 lines are from

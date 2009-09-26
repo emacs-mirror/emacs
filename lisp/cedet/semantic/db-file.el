@@ -68,12 +68,16 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :group 'semanticdb
   :type nil)
 
-(defcustom semanticdb-save-database-hooks nil
-  "Hooks run after a database is saved.
+(defcustom semanticdb-save-database-hook nil
+  "Normal hook run after a database is saved.
 Each function is called with one argument, the object representing
 the database recently written."
   :group 'semanticdb
   :type 'hook)
+
+(define-obsolete-variable-alias
+  'semanticdb-save-database-hooks
+  'semanticdb-save-database-hook "23.2")
 
 (defvar semanticdb-dir-sep-char (if (boundp 'directory-sep-char)
 				    (symbol-value 'directory-sep-char)
@@ -210,9 +214,10 @@ If SUPRESS-QUESTIONS, then do not ask to create the directory."
 	  ((y-or-n-p (format "Create directory %s for SemanticDB? " dest))
 	   (make-directory dest t)
 	   t)
-	  (t (if (boundp 'semanticdb--inhibit-make-directory)
-		 (setq semanticdb--inhibit-make-directory t))
-	     nil))))
+	  (t
+	   (if (boundp 'semanticdb--inhibit-make-directory)
+	       (setq semanticdb--inhibit-make-directory t))
+	   nil))))
 
 (defmethod semanticdb-save-db ((DB semanticdb-project-database-file)
 			       &optional

@@ -283,7 +283,7 @@ values of the conditions in the #if blocks."
 (defun semantic-c-skip-conditional-section ()
   "Skip one section of a conditional.
 Moves forward to a matching #elif, #else, or #endif.
-Movers completely over balanced #if blocks."
+Moves completely over balanced #if blocks."
   (require 'cc-cmds)
   (let ((done nil))
     ;; (if (looking-at "^\\s-*#if")
@@ -684,6 +684,9 @@ as for the parent."
 				   depth returnonerror)
     ))
 
+(defvar semantic-c-parse-token-hack-depth 0
+  "Current depth of recursive calls to `semantic-c-parse-lexical-token'")
+
 (defun semantic-c-parse-lexical-token (lexicaltoken nonterminal depth
 						    returnonerror)
   "Do a region parse on the contents of LEXICALTOKEN.
@@ -692,7 +695,9 @@ The text of the token is inserted into a different buffer, and
 parsed there.
 Argument NONTERMINAL, DEPTH, and RETURNONERROR are passed into
 the regular parser."
-  (let* ((buf (get-buffer-create " *C parse hack*"))
+  (let* ((semantic-c-parse-token-hack-depth (1+ semantic-c-parse-token-hack-depth))
+	 (buf (get-buffer-create (format " *C parse hack %d*"
+					 semantic-c-parse-token-hack-depth)))
 	 (mode major-mode)
 	 (spp-syms semantic-lex-spp-dynamic-macro-symbol-obarray)
 	 (stream nil)
@@ -705,18 +710,24 @@ the regular parser."
       (set-buffer buf)
       (erase-buffer)
       (when (not (eq major-mode mode))
-	(funcall mode)
-	;; Hack in mode-local
-	(activate-mode-local-bindings)
-	;; CHEATER!  The following 3 lines are from
-	;; `semantic-new-buffer-fcn', but we don't want to turn
-	;; on all the other annoying modes for this little task.
-	(setq semantic-new-buffer-fcn-was-run t)
-	(semantic-lex-init)
-	(semantic-clear-toplevel-cache)
-	(remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		     t)
-	)
+	(save-match-data
+
+	  ;; Protect against user hooks throwing errors.
+	  (condition-case nil
+	      (funcall mode)
+	    (error nil))
+
+	  ;; Hack in mode-local
+	  (activate-mode-local-bindings)
+	  ;; CHEATER!  The following 3 lines are from
+	  ;; `semantic-new-buffer-fcn', but we don't want to turn
+	  ;; on all the other annoying modes for this little task.
+	  (setq semantic-new-buffer-fcn-was-run t)
+	  (semantic-lex-init)
+	  (semantic-clear-toplevel-cache)
+	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+		       t)
+	  ))
       ;; Get the macro symbol table right.
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray spp-syms)
       ;; (message "%S" macros)
