@@ -1,3 +1,8 @@
+2009-09-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (WINS_ALMOST): Add cedet (with its
+	subdirectories) and eieio.
+
 2009-09-26  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-beginning-of-statement-1):  Correct
