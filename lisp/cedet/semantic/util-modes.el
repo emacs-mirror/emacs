@@ -612,11 +612,11 @@ minor mode is enabled."
 	(add-hook 'semantic-after-auto-parse-hooks
 		  'semantic-show-parser-state-marker nil t)
 
-	(semantic-make-local-hook 'semantic-before-idle-scheduler-reparse-hooks)
-	(add-hook 'semantic-before-idle-scheduler-reparse-hooks
+	(semantic-make-local-hook 'semantic-before-idle-scheduler-reparse-hook)
+	(add-hook 'semantic-before-idle-scheduler-reparse-hook
 		  'semantic-show-parser-state-auto-marker nil t)
-	(semantic-make-local-hook 'semantic-after-idle-scheduler-reparse-hooks)
-	(add-hook 'semantic-after-idle-scheduler-reparse-hooks
+	(semantic-make-local-hook 'semantic-after-idle-scheduler-reparse-hook)
+	(add-hook 'semantic-after-idle-scheduler-reparse-hook
 		  'semantic-show-parser-state-marker nil t)
         )
     ;; Remove parts of mode line
@@ -637,9 +637,9 @@ minor mode is enabled."
     (remove-hook 'semantic-after-auto-parse-hooks
 		 'semantic-show-parser-state-marker t)
 
-    (remove-hook 'semantic-before-idle-scheduler-reparse-hooks
+    (remove-hook 'semantic-before-idle-scheduler-reparse-hook
 		 'semantic-show-parser-state-auto-marker t)
-    (remove-hook 'semantic-after-idle-scheduler-reparse-hooks
+    (remove-hook 'semantic-after-idle-scheduler-reparse-hook
 		 'semantic-show-parser-state-marker t)
     )
   semantic-show-parser-state-mode)

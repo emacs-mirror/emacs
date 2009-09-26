@@ -27,10 +27,6 @@
 	Use semantic-init-hook instead of obsolete alias
 	semantic-init-hooks.
 
-	* cedet/semantic/db-file.el (semanticdb-save-database-hook):
-	Rename from semanticdb-save-database-hooks.  Make old name an
-	obsolete alias.
-
 	* cedet/semantic/decorate/mode.el
 	(semantic-decorate-pending-decoration-hook): Rename from
 	semantic-decorate-pending-decoration-hooks.  Make old name an
@@ -52,6 +48,7 @@
 	* cedet/semantic/util-modes.el (semantic-mode-line-update)
 	(semantic-toggle-minor-mode-globally): Use semantic-init-hook
 	instead of obsolete alias semantic-init-hooks.
+	(semantic-show-parser-state-mode-setup): Use new hook names.
 
 2009-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
