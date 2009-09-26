@@ -1,3 +1,10 @@
+2009-09-26  Johan Bockgård  <bojohan@gnu.org>
+
+	* erc-button.el (erc-button-add-button): Only call
+	`widget-convert-button' in XEmacs. For Emacs (at least), it
+	doesn't seem to have any purpose except creating lots of overlays,
+	slowing everything down.
+
 2009-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* erc-lang.el (line): Define for compiler.
