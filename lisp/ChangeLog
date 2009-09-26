@@ -1,3 +1,11 @@
+2009-09-26  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):  Correct
+	buggy bracketing.
+
+	* progmodes/cc-langs.el (c-nonlabel-token-key): Allow quoted
+	character constants (as case labels).
+
 2009-09-25  Juri Linkov  <juri@jurta.org>
 
 	* files.el (safe-local-eval-forms): Allow time-stamp in
