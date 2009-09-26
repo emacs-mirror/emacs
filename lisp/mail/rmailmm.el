@@ -31,6 +31,7 @@
 ;; Todo:
 
 ;; Handle multipart/alternative.
+;; Offer the option to call external/internal viewers (doc-view, xpdf, etc).
 
 ;;; Code:
 
@@ -48,8 +49,6 @@
   '(("multipart/.*" rmail-mime-multipart-handler)
     ("text/.*" rmail-mime-text-handler)
     ("text/\\(x-\\)?patch" rmail-mime-bulk-handler)
-    ;; FIXME this handler not defined anywhere?
-;;;   ("application/pgp-signature" rmail-mime-application/pgp-signature-handler)
     ("\\(image\\|audio\\|video\\|application\\)/.*" rmail-mime-bulk-handler))
   "Functions to handle various content types.
 This is an alist with elements of the form (REGEXP FUNCTION ...).
@@ -78,10 +77,13 @@ The first directory that exists is used."
 (defcustom rmail-mime-show-images 'button
   "What to do with image attachments that Emacs is capable of displaying.
 If nil, do nothing special.  If `button', add an extra button
-that when pushed displays the image in the buffer.  Anything else
-means to automatically display the image in the buffer."
+that when pushed displays the image in the buffer.  If a number,
+automatically show images if they are smaller than that size (in
+bytes), otherwise add a display button.  Anything else means to
+automatically display the image in the buffer."
   :type '(choice (const :tag "Add button to view image" button)
 		 (const :tag "No special treatment" nil)
+		 (number :tag "Show if smaller than certain size")
 		 (other :tag "Always show" show))
   :version "23.2"
   :group 'rmail-mime)
@@ -179,6 +181,7 @@ depends upon the value of `rmail-mime-show-images'."
 	 (data (buffer-string))
 	 (udata (string-as-unibyte data))
 	 (size (length udata))
+	 (osize size)
 	 (units '(B kB MB GB))
 	 type)
     (while (and (> size 1024.0)	; cribbed from gnus-agent-expire-done-message
@@ -201,7 +204,9 @@ depends upon the value of `rmail-mime-show-images'."
 	       (memq type image-types)
 	       (image-type-available-p type))
       (insert " ")
-      (cond ((eq rmail-mime-show-images 'button)
+      (cond ((or (eq rmail-mime-show-images 'button)
+		 (and (numberp rmail-mime-show-images)
+		      (>= osize rmail-mime-show-images)))
 	     (insert-button "Display"
 			    :type 'rmail-mime-image
 			    'help-echo "mouse-2, RET: Show image"
@@ -277,13 +282,11 @@ format."
 	      content-transfer-encoding)))
       (delete-region end next)
       ;; Handle the part.
-      (save-match-data
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region beg end)
-	    (rmail-mime-show))))
-      (setq beg next)
-      (goto-char beg))))
+      (save-restriction
+	(narrow-to-region beg end)
+	(rmail-mime-show))
+      (goto-char (setq beg next)))))
+
 
 (defun test-rmail-mime-multipart-handler ()
   "Test of a mail used as an example in RFC 2046."

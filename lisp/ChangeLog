@@ -1,3 +1,10 @@
+2009-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-show-images, rmail-mime-bulk-handler):
+	Add option to only show images below a certain size.
+	(rmail-mime-multipart-handler): Remove unnecessary save-match-data and
+	save-excursion calls.
+
 2009-09-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (WINS_ALMOST): Add cedet (with its
