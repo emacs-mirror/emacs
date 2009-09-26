@@ -25,15 +25,35 @@
 
 ;; This is loaded into a bare Emacs to make a dumpable one.
 
+;; If you add/remove Lisp files to be loaded here, consider the
+;; following issues:
+
+;; i) Any file loaded on all platforms should appear in $lisp
+;; and $shortlisp in src/Makefile.in.  Use the .el or .elc version as
+;; appropriate.
+
+;; ii) Any file that is only loaded on some platforms should appear
+;; in the version of $lisp in the generated Makefile on that platform.
+;; At the present time, this is achieved by use of #ifdefs.
+;; It should also appear in $SOME_MACHINE_LISP on all platforms.
+
+;; The above steps ensure both that the Lisp files are compiled (if
+;; necessary) before the emacs executable is dumped, and that they are
+;; passed to make-docfile.  (Any that are not processed for DOC will
+;; not have doc strings in the dumped Emacs.)  Because of this:
+
+;; iii) If the file is loaded uncompiled, it should (where possible)
+;; obey the doc-string conventions expected by make-docfile.
+
 ;;; Code:
 
-;; add subdirectories to the load-path for files that might
-;; get autoloaded when bootstrapping
+;; Add subdirectories to the load-path for files that might get
+;; autoloaded when bootstrapping.
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
 	(equal (nth 3 command-line-args) "unidata-gen.el")
 	(equal (nth 4 command-line-args) "unidata-gen-files")
-	;; in case CANNOT_DUMP
+	;; In case CANNOT_DUMP.
 	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
@@ -242,12 +262,6 @@
 	(format "%s.%d"
 		emacs-version (if versions (1+ (apply 'max versions)) 1)))))
 
-;; Note: all compiled Lisp files loaded above this point
-;; must be among the ones parsed by make-docfile
-;; to construct DOC.  Any that are not processed
-;; for DOC will not have doc strings in the dumped Emacs.
-;; Note also that any uncompiled files that are loaded should
-;; have doc-strings that conform to the make-docfile convention.
 
 (message "Finding pointers to doc strings...")
 (if (or (equal (nth 3 command-line-args) "dump")
