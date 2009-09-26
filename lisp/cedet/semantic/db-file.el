@@ -68,15 +68,12 @@ passes a list of predicates in `semanticdb-project-predicate-functions'."
   :group 'semanticdb
   :type nil)
 
-(defcustom semanticdb-save-database-hook nil
-  "Hook run after a database is saved.
+(defcustom semanticdb-save-database-hooks nil
+  "Abnormal hook run after a database is saved.
 Each function is called with one argument, the object representing
 the database recently written."
   :group 'semanticdb
   :type 'hook)
-
-(semantic-varalias-obsolete 'semanticdb-save-database-hooks
-			    'semanticdb-save-database-hook)
 
 (defvar semanticdb-dir-sep-char (if (boundp 'directory-sep-char)
 				    (symbol-value 'directory-sep-char)
