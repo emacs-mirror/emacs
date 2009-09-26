@@ -86,6 +86,16 @@ emacs = "$(EMACS)" $(EMACSOPT)
 WINS_ALMOST=\
 	calc \
 	calendar \
+	cedet \
+	cedet/ede \
+	cedet/semantic \
+	cedet/semantic/analyze \
+	cedet/semantic/bovine \
+	cedet/semantic/decorate \
+	cedet/semantic/symref \
+	cedet/semantic/wisent \
+	cedet/srecode \
+	eieio \
 	emacs-lisp \
 	emulation \
 	erc \
