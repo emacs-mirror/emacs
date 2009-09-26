@@ -13,6 +13,9 @@
 	(semantic-edits-move-change-hook)
 	(semantic-edits-reparse-change-hooks)
 	(semantic-edits-incremental-reparse-failed-hooks): Doc fixes.
+	(semantic-edits-incremental-reparse-failed-hook): Rename from
+	semantic-edits-incremental-reparse-failed-hooks.
+	(semantic-edits-incremental-fail): Use new var name.
 
 	* cedet/semantic/debug.el (semantic-debug-mode): Rename hook
 	symbols.

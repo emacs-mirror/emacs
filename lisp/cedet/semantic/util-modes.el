@@ -594,8 +594,8 @@ minor mode is enabled."
         (semantic-make-local-hook 'semantic-edits-new-change-hooks)
         (add-hook 'semantic-edits-new-change-hooks
                   'semantic-show-parser-state-marker nil t)
-	(semantic-make-local-hook 'semantic-edits-incremental-reparse-failed-hooks)
-	(add-hook 'semantic-edits-incremental-reparse-failed-hooks
+	(semantic-make-local-hook 'semantic-edits-incremental-reparse-failed-hook)
+	(add-hook 'semantic-edits-incremental-reparse-failed-hook
 		  'semantic-show-parser-state-marker nil t)
 	(semantic-make-local-hook 'semantic-after-partial-cache-change-hook)
 	(add-hook 'semantic-after-partial-cache-change-hook
@@ -625,7 +625,7 @@ minor mode is enabled."
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-hooks
 		 'semantic-show-parser-state-marker t)
-    (remove-hook 'semantic-edits-incremental-reparse-failed-hooks
+    (remove-hook 'semantic-edits-incremental-reparse-failed-hook
 		 'semantic-show-parser-state-marker t)
     (remove-hook 'semantic-after-partial-cache-change-hook
 		 'semantic-show-parser-state-marker t)

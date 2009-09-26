@@ -111,9 +111,12 @@ Functions must take one argument representing an overlay being moved.")
 Functions are called before the overlay is deleted, and after the
 incremental reparse.")
 
-(defvar semantic-edits-incremental-reparse-failed-hooks nil
-  "Abnormal hook run after the incremental parser fails.
+(defvar semantic-edits-incremental-reparse-failed-hook nil
+  "Hook run after the incremental parser fails.
 When this happens, the buffer is marked as needing a full reprase.")
+
+(semantic-varalias-obsolete 'semantic-edits-incremental-reparse-failed-hooks
+			    'semantic-edits-incremental-reparse-failed-hook)
 
 (defcustom semantic-edits-verbose-flag nil
   "Non-nil means the incremental perser is verbose.
@@ -467,7 +470,7 @@ a 'semantic-parse-changes-failed exception with value t."
   (when semantic-edits-verbose-flag
     (message "Force full reparse (%s)"
 	     (buffer-name (current-buffer))))
-  (run-hooks 'semantic-edits-incremental-reparse-failed-hooks))
+  (run-hooks 'semantic-edits-incremental-reparse-failed-hook))
 
 (defun semantic-edits-incremental-parser ()
   "Incrementally reparse the current buffer.
