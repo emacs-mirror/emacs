@@ -175,6 +175,7 @@ NSString *ns_selection_color;
 Lisp_Object ns_confirm_quit;
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
+NSString *ns_app_name = @"Emacs";  /* default changed later */
 
 /* Display variables */
 struct ns_display_info *x_display_list; /* Chain of existing displays */
@@ -3820,6 +3821,8 @@ ns_term_init (Lisp_Object display_name)
 
   delete_keyboard_wait_descriptor (0);
 
+  ns_app_name = [[NSProcessInfo processInfo] processName];
+
 /* Set up OS X app menu */
 #ifdef NS_IMPL_COCOA
   {
@@ -3848,7 +3851,6 @@ ns_term_init (Lisp_Object display_name)
                           keyEquivalent: @""
                                 atIndex: 4];
     [appMenu setSubmenu: svcsMenu forItem: item];
-/*    [svcsMenu setSupercell: item]; */
     [appMenu insertItem: [NSMenuItem separatorItem] atIndex: 5];
     [appMenu insertItemWithTitle: @"Hide Emacs"
                           action: @selector (hide:)
@@ -3865,7 +3867,7 @@ ns_term_init (Lisp_Object display_name)
                    keyEquivalent: @"q"
                          atIndex: 9];
 
-    item = [mainMenu insertItemWithTitle: @"Emacs"
+    item = [mainMenu insertItemWithTitle: ns_app_name                       
                                   action: @selector (menuDown:)
                            keyEquivalent: @""
                                  atIndex: 0];
@@ -4099,7 +4101,7 @@ ns_term_shutdown (int sig)
   if (NILP (ns_confirm_quit)) //   || ns_shutdown_properly  --> TO DO
     return NSTerminateNow;
 
-    ret = NSRunAlertPanel([[NSProcessInfo processInfo] processName],
+    ret = NSRunAlertPanel(ns_app_name,
                           [NSString stringWithUTF8String:"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?"],
                           @"Save Buffers and Exit", @"Cancel", nil);
 
