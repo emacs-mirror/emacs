@@ -318,6 +318,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif	/* NS_IMPL_COCOA */
 
 extern NSArray *ns_send_types, *ns_return_types;
+extern NSString *ns_app_name;
 extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 
 /* Apple removed the declaration, but kept the implementation */
