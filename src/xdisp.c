@@ -4575,10 +4575,9 @@ display_prop_string_p (prop, string)
 }
 
 
-/* Determine from which buffer position in W's buffer STRING comes
-   from.  AROUND_CHARPOS is an approximate position where it could
-   be from.  Value is the buffer position or 0 if it couldn't be
-   determined.
+/* Determine which buffer position in W's buffer STRING comes from.
+   AROUND_CHARPOS is an approximate position where it could come from.
+   Value is the buffer position or 0 if it couldn't be determined.
 
    W's buffer must be current.
 
