@@ -1,3 +1,7 @@
+2009-09-27  Johan Bockgård  <bojohan@gnu.org>
+
+	* erc-button.el (erc-button-keymap): Bind `follow-link'.
+
 2009-09-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* erc-button.el (erc-button-add-button): Only call
