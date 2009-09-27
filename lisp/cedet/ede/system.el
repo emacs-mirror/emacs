@@ -31,7 +31,8 @@
 ;;; Code:
 
 ;;; Web/FTP site node.
-;;
+
+;;;###autoload
 (defun ede-web-browse-home ()
   "Browse the home page of the current project."
   (interactive)
@@ -44,7 +45,7 @@
     (browse-url home)
     ))
 
-
+;;;###autoload
 (defun ede-edit-web-page ()
   "Edit the web site for this project."
   (interactive)
@@ -62,7 +63,7 @@
 	  (error "No project file found")))
     (find-file endfile)))
 
-
+;;;###autoload
 (defun ede-upload-distribution ()
   "Upload the current distribution to the correct location.
 Use /user@ftp.site.com: file names for FTP sites.
@@ -95,6 +96,7 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
   (message "Done uploading files...")
   )
 
+;;;###autoload
 (defun ede-upload-html-documentation ()
   "Upload the current distributions documentation as HTML.
 Use /user@ftp.site.com: file names for FTP sites.

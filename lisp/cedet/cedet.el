@@ -65,12 +65,12 @@
     (define-key map [global-semantic-idle-scheduler-mode]   'undefined)
     (define-key map [semantic-menu-separator] '("--"))
     (define-key map [semantic-mode]
-      '(menu-item "Enable parsers (Semantic)" semantic-mode
+      '(menu-item "Enable Parsers (Semantic)" semantic-mode
 		  :help "Enable language parsers (Semantic)"
 		  :visible (not (bound-and-true-p semantic-mode))))
     (define-key map [cedet-menu-separator] 'undefined)
     (define-key map [ede-mode]
-      '(menu-item "Enable Projects (EDE)" global-ede-mode
+      '(menu-item "Enable Project Support (EDE)" global-ede-mode
 		  :help "Enable the Emacs Development Environment (EDE)"
 		  :visible (not (bound-and-true-p global-ede-mode))))
     (define-key map [ede-menu-separator] '("--"))

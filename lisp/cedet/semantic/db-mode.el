@@ -37,26 +37,6 @@
 
 (declare-function semantic-lex-spp-set-dynamic-table "semantic/lex-spp")
 
-(defcustom semanticdb-global-mode nil
-  "*If non-nil enable the use of `semanticdb-minor-mode'."
-  :group 'semantic
-  :type 'boolean
-  :require 'semantic/db
-  :initialize 'custom-initialize-default
-  :set (lambda (sym val)
-         (global-semanticdb-minor-mode (if val 1 -1))
-         (custom-set-default sym val)))
-
-(defcustom semanticdb-mode-hook nil
-  "Hook run whenever `global-semanticdb-minor-mode' is run.
-Use `semanticdb-minor-mode-p' to determine if the mode has been turned
-on or off."
-  :group 'semanticdb
-  :type 'hook)
-
-(semantic-varalias-obsolete 'semanticdb-mode-hooks
-			    'semanticdb-mode-hook)
-
 ;;; Start/Stop database use
 ;;
 (defvar semanticdb-hooks
@@ -80,32 +60,27 @@ on or off."
 	  (symbol-value (car (cdr (car semanticdb-hooks))))))
 
 ;;;###autoload
-(defun global-semanticdb-minor-mode (&optional arg)
-  "Toggle the use of `semanticdb-minor-mode'.
-If ARG is positive, enable, if it is negative, disable.
-If ARG is nil, then toggle."
-  (interactive "P")
-  (if (not arg)
-      (if (semanticdb-minor-mode-p)
-	  (setq arg -1)
-	(setq arg 1)))
-  (let ((fn 'add-hook)
-	(h semanticdb-hooks)
-	(changed nil))
-    (if (< arg 0)
-	(setq changed semanticdb-global-mode
-	      semanticdb-global-mode nil
-              fn 'remove-hook)
-      (setq changed (not semanticdb-global-mode)
-	    semanticdb-global-mode t))
-    ;(message "ARG = %d" arg)
-    (when changed
-      (while h
-	(funcall fn (car (cdr (car h))) (car (car h)))
-	(setq h (cdr h)))
-      ;; Call a hook
-      (run-hooks 'semanticdb-mode-hook))
-    ))
+(define-minor-mode global-semanticdb-minor-mode
+  "Toggle Semantic DB mode.
+With ARG, turn Semantic DB mode on if ARG is positive, off otherwise.
+
+In Semantic DB mode, Semantic parsers store results in a
+database, which can be saved for future Emacs sessions."
+  :global t
+  :group 'semantic
+  (if global-semanticdb-minor-mode
+      ;; Enable
+      (dolist (elt semanticdb-hooks)
+	(add-hook (cadr elt) (car elt)))
+    ;; Disable
+    (dolist (elt semanticdb-hooks)
+      (add-hook (cadr elt) (car elt)))))
+
+(defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
+(defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
+(semantic-varalias-obsolete 'semanticdb-mode-hooks
+			    'global-semanticdb-minor-mode-hook)
+
 
 (defun semanticdb-toggle-global-mode ()
   "Toggle use of the Semantic Database feature.

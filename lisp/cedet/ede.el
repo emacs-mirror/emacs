@@ -1981,18 +1981,6 @@ Display the results as a debug list."
 ;; 	    (def-edebug-spec ede-with-projectfile
 ;; 	      (form def-body))))
 
-;; (autoload 'ede-web-browse-home "ede-system" t
-;;   "Web browse this project's home page.")
-
-;; (autoload 'ede-edit-web-page "ede-system" t
-;;   "Edit the web site for this project.")
-
-;; (autoload 'ede-upload-distribution "ede-system" t
-;;   "Upload the dist for this project to the upload site.")
-
-;; (autoload 'ede-upload-html-documentation "ede-system" t
-;;   "Upload auto-generated HTML to the web site.")
-
 (provide 'ede)
 
 ;; Include this last because it depends on ede.

@@ -29,6 +29,8 @@
 (require 'ede/pmake)
 (require 'ede/pconf)
 
+(autoload 'semantic-ede-proj-target-grammar "semantic/ede-grammar")
+
 ;;; Code:
 (defclass ede-proj-target-elisp (ede-proj-target-makefile)
   ((menu :initform nil)

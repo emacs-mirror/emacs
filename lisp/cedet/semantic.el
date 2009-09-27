@@ -934,42 +934,47 @@ Throw away all the old tags, and recreate the tag database."
   ;; Top level menu items:
   (define-key cedet-menu-map [semantic-force-refresh]
     '(menu-item "Reparse Buffer" semantic-force-refresh
-		:help "Force a full reparse of the current buffer."))
+		:help "Force a full reparse of the current buffer."
+		:visible semantic-mode))
   (define-key cedet-menu-map [semantic-edit-menu]
-    (cons "Edit Tags" edit-menu))
+    `(menu-item "Edit Tags" ,edit-menu
+		:visible semantic-mode))
   (define-key cedet-menu-map [navigate-menu]
-    (cons "Navigate Tags" navigate-menu))
+    `(menu-item "Navigate Tags" ,navigate-menu
+		:visible semantic-mode))
   (define-key cedet-menu-map [semantic-options-separator]
     '("--"))
   (define-key cedet-menu-map [global-semantic-highlight-func-mode]
-    (menu-bar-make-mm-toggle
-     global-semantic-highlight-func-mode
-     "Highlight Current Function"
-     "Highlight the tag at point"))
+    '(menu-item "Highlight Current Function" global-semantic-highlight-func-mode
+		:help "Highlight the tag at point"
+		:visible semantic-mode
+		:button (:toggle . global-semantic-highlight-func-mode)))
   (define-key cedet-menu-map [global-semantic-decoration-mode]
-    (menu-bar-make-mm-toggle
-     global-semantic-decoration-mode
-     "Decorate Tags"
-     "Decorate tags based on various attributes"))
+    '(menu-item "Decorate Tags" global-semantic-decoration-mode
+		:help "Decorate tags based on tag attributes"
+		:visible semantic-mode
+		:button (:toggle . (bound-and-true-p
+				    global-semantic-decoration-mode))))
   (define-key cedet-menu-map [global-semantic-idle-completions-mode]
-    (menu-bar-make-mm-toggle
-     global-semantic-idle-completions-mode
-     "Show Tag Completions"
-     "Show tag completions when idle"))
+    '(menu-item "Show Tag Completions" global-semantic-idle-completions-mode
+		:help "Show tag completions when idle"
+		:visible semantic-mode
+		:button (:toggle . global-semantic-idle-completions-mode)))
   (define-key cedet-menu-map [global-semantic-idle-summary-mode]
-    (menu-bar-make-mm-toggle
-     global-semantic-idle-summary-mode
-     "Show Tag Summaries"
-     "Show tag summaries when idle"))
+    '(menu-item "Show Tag Summaries" global-semantic-idle-summary-mode
+		:help "Show tag summaries when idle"
+		:visible semantic-mode
+		:button (:toggle . global-semantic-idle-summary-mode)))
   (define-key cedet-menu-map [global-semanticdb-minor-mode]
     '(menu-item "Semantic Database" global-semanticdb-minor-mode
 		:help "Store tag information in a database"
-		:button (:toggle . (semanticdb-minor-mode-p))))
+		:visible semantic-mode
+		:button (:toggle . global-semanticdb-minor-mode)))
   (define-key cedet-menu-map [global-semantic-idle-scheduler-mode]
-    (menu-bar-make-mm-toggle
-     global-semantic-idle-scheduler-mode
-     "Reparse When Idle"
-     "Keep a buffer's parse tree up to date when idle"))
+    '(menu-item "Reparse When Idle" global-semantic-idle-scheduler-mode
+		:help "Keep a buffer's parse tree up to date when idle"
+		:visible semantic-mode
+		:button (:toggle . global-semantic-idle-scheduler-mode)))
   (define-key cedet-menu-map [ede-menu-separator] 'undefined)
   (define-key cedet-menu-map [cedet-menu-separator] 'undefined)
   (define-key cedet-menu-map [semantic-menu-separator] '("--")))
@@ -1064,7 +1069,6 @@ Semantic mode.
     (remove-hook 'html-mode-hook 'semantic-default-html-setup)
 
     ;; FIXME: handle semanticdb-load-ebrowse-caches
-
     (dolist (mode semantic-submode-list)
       (if (and (boundp mode) (eval mode))
 	  (funcall mode -1)))))

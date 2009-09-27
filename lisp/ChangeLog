@@ -1,5 +1,28 @@
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede/system.el (ede-upload-html-documentation)
+	(ede-upload-distribution, ede-edit-web-page)
+	(ede-web-browse-home): Autoload.
+
+	* cedet/ede/proj-elisp.el: Add autoload for
+	semantic-ede-proj-target-grammar.
+
+	* cedet/semantic.el (navigate-menu): Show menu items only if
+	semantic-mode is enabled.
+
+	* cedet/ede.el: Remove comments.
+
+	* cedet/cedet.el (cedet-menu-map): Minor doc fix.
+
+	* cedet/semantic/grammar.el:
+	* cedet/semantic/grammar-wy.el:
+	* cedet/semantic/ede-grammar.el: New files.
+
+	* cedet/semantic/db-mode.el (global-semanticdb-minor-mode): Define
+	using define-minor-mode, so that the usual mode variable exists.
+
+2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cedet/ede.el (global-ede-mode-map): Move menu to
 	global-ede-mode-map.
 	(ede-minor-mode, global-ede-mode): Use define-minor-mode.
