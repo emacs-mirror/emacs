@@ -35,7 +35,6 @@
 ;; fast-jump.  For a virtual method, offer some of the possible
 ;; implementations in various sub-classes.
 
-;; (require 'senator)
 (require 'semantic/analyze)
 (require 'semantic/format)
 (require 'pulse)
@@ -137,8 +136,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	      ;;
 	      ;; This is a way of making this fcn more useful since the
 	      ;; smart completion engine sometimes failes.
-	      (senator-complete-symbol)
-	      ))
+	      (semantic-complete-symbol)))
       ;; Use try completion to seek a common substring.
       (let ((tc (try-completion (or pre "")  syms)))
 	(if (and (stringp tc) (not (string= tc (or pre ""))))
@@ -166,45 +164,6 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   "*Function used to convert a tag to a string during completion."
   :group 'semantic
   :type semantic-format-tag-custom-list)
-
-;;;###autoload
-(defun semantic-ia-complete-symbol-menu (point)
-  "Complete the current symbol via a menu based at POINT.
-Completion options are calculated with `semantic-analyze-possible-completions'."
-  (interactive "d")
-  (require 'imenu)
-  (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-ia-get-completions a point))
-	 )
-    ;; Complete this symbol.
-    (if (not syms)
-	(progn
-	  (message "No smart completions found.  Trying Senator.")
-	  (when (semantic-analyze-context-p a)
-	    ;; This is a quick way of getting a nice completion list
-	    ;; in the menu if the regular context mechanism fails.
-	    (senator-completion-menu-popup)))
-
-      (let* ((menu
-	      (mapcar
-	       (lambda (tag)
-		 (cons
-		  (funcall semantic-ia-completion-menu-format-tag-function tag)
-		  (vector tag)))
-	       syms))
-	     (ans
-	      (imenu--mouse-menu
-	       ;; XEmacs needs that the menu has at least 2 items.  So,
-	       ;; include a nil item that will be ignored by imenu.
-	       (cons nil menu)
-	       (senator-completion-menu-point-as-event)
-	       "Completions")))
-	(when ans
-	  (if (not (semantic-tag-p ans))
-	      (setq ans (aref (cdr ans) 0)))
-	  (delete-region (car (oref a bounds)) (cdr (oref a bounds)))
-	  (semantic-ia-insert-tag ans))
-	))))
 
 ;;; Completions Tip
 ;;
