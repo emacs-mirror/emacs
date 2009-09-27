@@ -1,3 +1,27 @@
+2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el: Remove menu-bar-ediff-misc-menu from the Tools
+	menu.
+
+	* ediff-hook.el: Move menu-bar-ediff-misc-menu into
+	menu-bar-ediff-menu.
+
+	* emacs-lisp/lisp-mode.el: Add doc-string-elt property to
+	define-overloadable-function.
+
+	* progmodes/autoconf.el: Provide autoconf as well, so that this
+	file can be `require'd.
+
+	* emacs-lisp/cl-macs.el (deftype): Add to cl-loaddefs.
+
+	* emacs-lisp/autoload.el (generated-autoload-feature)
+	(generated-autoload-load-name): New vars.
+	(autoload-rubric, autoload-generate-file-autoloads): Use them.
+	(make-autoload): Recognize define-overloadable-function and
+	defclass forms (for EIEIO).
+
+	* Makefile.in (update-subdirs): Exclude cedet directory.
+
 2009-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el: Don't set the region face background. (Bug#4381)

@@ -123,7 +123,7 @@
 	   :style toggle
 	   :selected (if (featurep 'ediff-tbar)
 			 (ediff-use-toolbar-p))]))
-      
+
       ;; put these menus before Object-Oriented-Browser in Tools menu
       (if (and (featurep 'menubar) (not (featurep 'infodock))
 	       (not (featurep 'ediff-hook)))
@@ -141,8 +141,11 @@
 	(symbol-value 'menu-bar-ediff-merge-menu))
   (defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
   (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
-  
+
   ;; define ediff compare menu
+  (define-key menu-bar-ediff-menu [ediff-misc]
+    (list 'menu-item "Ediff Miscellanea" menu-bar-ediff-misc-menu))
+  (define-key menu-bar-ediff-menu [separator-ediff-misc] '("--"))
   (define-key menu-bar-ediff-menu [window]
     `(menu-item ,(purecopy "This Window and Next Window") compare-windows
 		:help ,(purecopy "Compare the current window and the next window")))

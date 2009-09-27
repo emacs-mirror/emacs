@@ -2438,6 +2438,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 
 ;;; Types and assertions.
 
+;;;###autoload
 (defmacro deftype (name arglist &rest body)
   "Define NAME as a new data type.
 The type name can then be used in `typecase', `check-type', etc."

@@ -91,6 +91,15 @@ setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	   esac; \
         done
 
+# Find all subdirectories in which we might want to create subdirs.el
+
+setwins_for_subdirs=subdirs=`(cd $$wd; find . -type d -print)`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */cedet* ) ;; \
+		*) wins="$$wins $$wd/$$file" ;; \
+	   esac; \
+        done
+
 # `compile-main' tends to be slower than `recompile' but can be parallelized
 # with "make -j" and results in more deterministic compilation warnings.
 # cus-load and finder-inf are not explicitly requested by anything, so
@@ -144,7 +153,7 @@ autoloads: $(LOADDEFS) doit
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
-	wd=$(lisp); $(setwins); \
+	wd=$(lisp); $(setwins_for_subdirs); \
 	for file in $$wins; do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;

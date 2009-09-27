@@ -1307,8 +1307,6 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
 
-(define-key menu-bar-tools-menu [ediff-misc]
-  `(menu-item ,(purecopy "Ediff Miscellanea") menu-bar-ediff-misc-menu))
 (define-key menu-bar-tools-menu [epatch]
   `(menu-item ,(purecopy "Apply Patch") menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
