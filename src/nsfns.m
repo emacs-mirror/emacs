@@ -501,8 +501,7 @@ ns_set_name_iconic (struct frame *f, Lisp_Object name, int explicit)
     name = f->icon_name;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
 
@@ -542,8 +541,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
     return;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
 
   f->name = name;
 
@@ -635,8 +633,7 @@ ns_set_name_as_filename (struct frame *f)
     name = f->icon_name;
 
   if (NILP (name))
-    name = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
+    name = build_string([ns_app_name UTF8String]);
   else
     CHECK_STRING (name);
 
@@ -1130,8 +1127,7 @@ be shared by the new frame.  */)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name) || (XTYPE (name) != Lisp_String))
     {
-      f->name
-	 = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
+      f->name = build_string ([ns_app_name UTF8String]);
       f->explicit_name =0;
     }
   else
@@ -1499,9 +1495,7 @@ If OWNER is nil, Emacs is assumed.  */)
 
   check_ns ();
   if (NILP (owner))
-    owner = build_string
-        ([[[NSProcessInfo processInfo] processName] UTF8String]);
-  /* CHECK_STRING (owner);  this should be just "Emacs" */
+    owner = build_string([ns_app_name UTF8String]);
   CHECK_STRING (name);
 /*fprintf (stderr, "ns-get-resource checking resource '%s'\n", SDATA (name)); */
 
@@ -1524,9 +1518,7 @@ If VALUE is nil, the default is removed.  */)
 {
   check_ns ();
   if (NILP (owner))
-    owner
-       = build_string ([[[NSProcessInfo processInfo] processName] UTF8String]);
-  CHECK_STRING (owner);
+    owner = build_string ([ns_app_name UTF8String]);
   CHECK_STRING (name);
   if (NILP (value))
     {
