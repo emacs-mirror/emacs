@@ -6812,9 +6812,9 @@ move_it_in_display_line_to (struct it *it,
       /* The number of glyphs we get back in IT->nglyphs will normally
 	 be 1 except when IT->c is (i) a TAB, or (ii) a multi-glyph
 	 character on a terminal frame, or (iii) a line end.  For the
-	 second case, IT->nglyphs - 1 padding glyphs will be present
-	 (on X frames, there is only one glyph produced for a
-	 composite character.
+	 second case, IT->nglyphs - 1 padding glyphs will be present.
+	 (On X frames, there is only one glyph produced for a
+	 composite character.)
 
 	 The behavior implemented below means, for continuation lines,
 	 that as many spaces of a TAB as fit on the current line are
