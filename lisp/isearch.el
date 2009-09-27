@@ -347,7 +347,7 @@ A value of nil means highlight all matches."
 (eval-when-compile (require 'help-macro))
 
 (make-help-screen isearch-help-for-help-internal
-  "Type a help option: [bkm] or ?"
+  (purecopy "Type a help option: [bkm] or ?")
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Type \\<help-map>\\[help-quit] to exit the Help command.)
 

@@ -1,3 +1,10 @@
+2009-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (help-for-help-internal): Don't purecopy the text (bug#4560).
+	* isearch.el (isearch-help-for-help-internal): Purecopy the second arg.
+	* help-macro.el (make-help-screen): Avoid using an ambiguous function
+	definition where the docstring could be taken for the return value.
+
 2009-09-26  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-show-images, rmail-mime-bulk-handler):
