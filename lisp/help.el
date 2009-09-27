@@ -203,7 +203,9 @@ specifies what to do when the user exits the help buffer."
 ;; It can't find this, but nobody will look.
 (make-help-screen help-for-help-internal
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
-  (purecopy
+  ;; Don't purecopy this one, because it's not evaluated (it's
+  ;; directly used as a docstring in a function definition, so it'll
+  ;; be moved to the DOC file anyway: no need for purecopying it).
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -248,7 +250,7 @@ C-n         News of recent Emacs changes.
 C-o         Emacs ordering and distribution information.
 C-p         Info about known Emacs problems.
 C-t         Emacs TODO list.
-C-w         Information on absence of warranty for GNU Emacs.")
+C-w         Information on absence of warranty for GNU Emacs."
   help-map)
 
 

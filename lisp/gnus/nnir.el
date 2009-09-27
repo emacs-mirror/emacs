@@ -690,7 +690,7 @@ The returned format is as `gnus-server-to-method' needs it.  See
 and show thread that contains this article."
   (interactive)
   (unless (eq 'nnir (car (gnus-find-method-for-group gnus-newsgroup-name)))
-    (error "Can't execute this command unless in nnir group."))
+    (error "Can't execute this command unless in nnir group"))
   (let* ((cur (gnus-summary-article-number))
          (group (nnir-artlist-artitem-group nnir-artlist cur))
          (backend-number (nnir-artlist-artitem-number nnir-artlist cur))
@@ -889,7 +889,7 @@ ready to be added to the list of search results."
   "Run given query agains waissearch.  Returns vector of (group name, file name)
 pairs (also vectors, actually)."
   (when group
-    (error "The freeWAIS-sf backend cannot search specific groups."))
+    (error "The freeWAIS-sf backend cannot search specific groups"))
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
 	  (prefix (nnir-read-server-parm 'nnir-wais-remove-prefix server))
@@ -1162,7 +1162,7 @@ Tested with swish++ 4.7 on GNU/Linux and with swish++ 5.0b2 on
 Windows NT 4.0."
 
   (when group
-    (error "The swish++ backend cannot search specific groups."))
+    (error "The swish++ backend cannot search specific groups"))
 
   (save-excursion
     (let ( (qstring (cdr (assq 'query query)))
@@ -1179,7 +1179,7 @@ Windows NT 4.0."
            score artno dirnam filenam)
 
       (when (equal "" qstring)
-        (error "swish++: You didn't enter anything."))
+        (error "swish++: You didn't enter anything"))
 
       (set-buffer (get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
@@ -1251,7 +1251,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
 
   ;; swish-e crashes with empty parameter to "-w" on commandline...
   (when group
-    (error "The swish-e backend cannot search specific groups."))
+    (error "The swish-e backend cannot search specific groups"))
 
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
@@ -1261,7 +1261,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
           artlist score artno dirnam group )
 
       (when (equal "" qstring)
-        (error "swish-e: You didn't enter anything."))
+        (error "swish-e: You didn't enter anything"))
 
       (set-buffer (get-buffer-create nnir-tmp-buffer))
       (erase-buffer)

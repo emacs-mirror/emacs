@@ -217,10 +217,10 @@ No problems result if this variable is not bound.
 	    `(progn
 	       (put ',abbrev 'definition-name ',child)
 	       (defvar ,abbrev
-		 (progn (define-abbrev-table ',abbrev nil) ,abbrev)
-		 (unless (get ',abbrev 'variable-documentation)
-		   (put ',abbrev 'variable-documentation
-			,(format "Abbrev table for `%s'." child))))))
+		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+	       (unless (get ',abbrev 'variable-documentation)
+		 (put ',abbrev 'variable-documentation
+		      ,(format "Abbrev table for `%s'." child)))))
        (put ',child 'derived-mode-parent ',parent)
        ,(if group `(put ',child 'custom-mode-group ,group))
 

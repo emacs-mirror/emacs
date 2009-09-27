@@ -252,7 +252,7 @@ display a button."
 				   (car (cdr viewer))
 				   (cdr (cdr viewer)))
 	    (call-process-region (point-min) (point-max) program)))
-      (t
+      (error
        (kill-buffer buffer)))))
 
 (defun eudc-bob-menu ()

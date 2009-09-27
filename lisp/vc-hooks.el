@@ -664,7 +664,7 @@ will properly intercept all attempts to toggle the read-only flag
 on version-controlled buffer."
   (interactive "P")
   (if (vc-backend buffer-file-name)
-      (error "Toggling the readability of a version controlled file is likely to wreak havoc.")
+      (error "Toggling the readability of a version controlled file is likely to wreak havoc")
     (toggle-read-only)))
 
 (defun vc-default-make-version-backups-p (backend file)

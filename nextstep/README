@@ -25,11 +25,11 @@ See AUTHORS file and "Release History" below for more information.
 
 Requirements
 ------------
-MacOS X 10.3 or later
+MacOS X 10.4 or later
 
 - or -
 
-GNUstep "Startup 0.13" or later
+GNUstep "Startup 0.23" or later
 Tested on GNU/Linux, should work on other systems, perhaps with minor
 build tweaking.
 

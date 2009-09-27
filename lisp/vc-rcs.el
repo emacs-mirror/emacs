@@ -465,7 +465,7 @@ attempt the checkout for all registered files beneath it."
   "Roll back, undoing the most recent checkins of FILES.  Directories are
 expanded to all registered subfiles in them."
   (if (not files)
-      (error "RCS backend doesn't support directory-level rollback."))
+      (error "RCS backend doesn't support directory-level rollback"))
   (dolist (file (vc-expand-dirs files))
 	  (let* ((discard (vc-working-revision file))
 		 (previous (if (vc-rcs-trunk-p discard) "" (vc-branch-part discard)))

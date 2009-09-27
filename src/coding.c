@@ -3860,7 +3860,7 @@ decode_coding_iso_2022 (coding)
 	      continue;
 
 	    case '[':		/* specification of direction */
-	      if (! CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_DIRECTION)
+	      if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_DIRECTION))
 		goto invalid_code;
 	      /* For the moment, nested direction is not supported.
 		 So, `coding->mode & CODING_MODE_DIRECTION' zero means

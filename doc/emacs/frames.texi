@@ -591,9 +591,9 @@ appearance of all the frames Emacs creates, including the initial one.
 @table @kbd
 @item C-z
 @kindex C-z @r{(X windows)}
-@findex iconify-or-deiconify-frame
-Iconify (``minimize'') the selected Emacs frame
-(@code{iconify-or-deiconify-frame}).  @xref{Exiting}.
+@findex suspend-frame
+Minimize (or ``iconify) the selected Emacs frame
+(@code{suspend-frame}).  @xref{Exiting}.
 
 @item C-x 5 0
 @kindex C-x 5 0

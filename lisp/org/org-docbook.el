@@ -387,7 +387,7 @@ publishing directory."
 	(org-set-local 'buffer-file-name
 		       (with-current-buffer (buffer-base-buffer)
 			 buffer-file-name))
-      (error "Need a file name to be able to export.")))
+      (error "Need a file name to be able to export")))
 
   (message "Exporting...")
   (setq-default org-todo-line-regexp org-todo-line-regexp)

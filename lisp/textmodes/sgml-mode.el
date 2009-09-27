@@ -495,11 +495,6 @@ Do \\[describe-key] on the following bindings to discover what they do.
 		    "\\)\\(" sgml-name-re "\\)\\1")
 	   2))))
 
-;; Some programs (such as Glade 2) generate XML which has
-;; -*- mode: xml -*-.
-;;;###autoload
-(defalias 'xml-mode 'sgml-mode)
-
 (defun sgml-comment-indent ()
   (if (looking-at "--") comment-column 0))
 

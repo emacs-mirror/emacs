@@ -408,7 +408,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
 	(progn
 	  (setq branch (match-string 2 str))
-	  (message "branch (%s)" branch)
 	  (setq remote
 		(with-output-to-string
 		  (with-current-buffer standard-output
@@ -424,7 +423,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	    (setq remote-url (match-string 1 remote-url))))
       "not (detached HEAD)")
     ;; FIXME: maybe use a different face when nothing is stashed.
-    (when (string= stash "") (setq stash "Nothing stashed"))
     (concat
      (propertize "Branch     : " 'face 'font-lock-type-face)
      (propertize branch
@@ -436,10 +434,20 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	(propertize remote-url
 		    'face 'font-lock-variable-name-face)))
      "\n"
-     (propertize "Stash      : " 'face 'font-lock-type-face)
-     (propertize
-      stash
-       'face 'font-lock-variable-name-face))))
+     (if stash
+       (concat
+	(propertize "Stash      :\n" 'face 'font-lock-type-face)
+	(mapconcat
+	 (lambda (x)
+	   (propertize x
+		       'face 'font-lock-variable-name-face
+		       'mouse-face 'highlight
+		       'keymap vc-git-stash-map))
+	 stash "\n"))
+       (concat
+	(propertize "Stash      : " 'face 'font-lock-type-face)
+	(propertize "Nothing stashed"
+		    'face 'font-lock-variable-name-face))))))
 
 ;;; STATE-CHANGING FUNCTIONS
 
@@ -797,10 +805,38 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   (pop-to-buffer (current-buffer)))
 
 (defun vc-git-stash-list ()
-  (replace-regexp-in-string
-   "\n" "\n             "
-   (replace-regexp-in-string
-    "^stash@" "" (vc-git--run-command-string nil "stash" "list"))))
+  (delete
+   ""
+   (split-string
+    (replace-regexp-in-string
+     "^stash@" "             " (vc-git--run-command-string nil "stash" "list"))
+    "\n")))
+
+(defun vc-git-stash-get-at-point (point)
+  (save-excursion
+    (goto-char point)
+    (beginning-of-line)
+    (if (looking-at "^ +\\({[0-9]+}\\):")
+	(match-string 1)
+      (error "Cannot find stash at point"))))
+
+(defun vc-git-stash-delete-at-point ()
+  (interactive)
+  (let ((stash (vc-git-stash-get-at-point (point))))
+    (when (y-or-n-p (format "Remove stash %s ?" stash))
+      (vc-git--run-command-string nil "stash" "drop" (format "stash@%s" stash))
+      (vc-dir-refresh))))
+
+(defun vc-git-stash-show-at-point ()
+  (interactive)
+  (vc-git-stash-show (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+
+(defvar vc-git-stash-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-k" 'vc-git-stash-delete-at-point)
+    (define-key map "=" 'vc-git-stash-show-at-point)
+    (define-key map "\C-m" 'vc-git-stash-show-at-point)
+    map))
 
 
 ;;; Internal commands

@@ -214,7 +214,7 @@ buffer with \\[set-variable].")
 
 ;;;###autoload
 (defvar inferior-lisp-mode-hook '()
-  "*Hook for customising Inferior Lisp mode.")
+  "*Hook for customizing Inferior Lisp mode.")
 
 (put 'inferior-lisp-mode 'mode-class 'special)
 

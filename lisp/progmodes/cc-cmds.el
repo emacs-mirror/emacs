@@ -2808,7 +2808,9 @@ move forward to the end of the containing preprocessor conditional.
 function stops at them when going backward, but not when going
 forward."
   (interactive "p")
-  (c-forward-conditional (- count) -1)
+  (let ((new-point (c-scan-conditionals (- count) -1)))
+    (push-mark)
+    (goto-char new-point))
   (c-keep-region-active))
 
 (defun c-up-conditional-with-else (count)
@@ -2816,7 +2818,9 @@ forward."
 Just like `c-up-conditional', except it also stops at \"#else\"
 directives."
   (interactive "p")
-  (c-forward-conditional (- count) -1 t)
+  (let ((new-point (c-scan-conditionals (- count) -1 t)))
+    (push-mark)
+    (goto-char new-point))
   (c-keep-region-active))
 
 (defun c-down-conditional (count)
@@ -2828,7 +2832,9 @@ move backward into the previous preprocessor conditional.
 function stops at them when going forward, but not when going
 backward."
   (interactive "p")
-  (c-forward-conditional count 1)
+  (let ((new-point (c-scan-conditionals count 1)))
+    (push-mark)
+    (goto-char new-point))
   (c-keep-region-active))
 
 (defun c-down-conditional-with-else (count)
@@ -2836,15 +2842,24 @@ backward."
 Just like `c-down-conditional', except it also stops at \"#else\"
 directives."
   (interactive "p")
-  (c-forward-conditional count 1 t)
+  (let ((new-point (c-scan-conditionals count 1 t)))
+    (push-mark)
+    (goto-char new-point))
   (c-keep-region-active))
 
 (defun c-backward-conditional (count &optional target-depth with-else)
   "Move back across a preprocessor conditional, leaving mark behind.
 A prefix argument acts as a repeat count.  With a negative argument,
-move forward across a preprocessor conditional."
+move forward across a preprocessor conditional.
+
+The optional arguments TARGET-DEPTH and WITH-ELSE are historical,
+and have the same meanings as in `c-scan-conditionals'.  If you
+are calling c-forward-conditional from a program, you might want
+to call `c-scan-conditionals' directly instead."
   (interactive "p")
-  (c-forward-conditional (- count) target-depth with-else)
+  (let ((new-point (c-scan-conditionals (- count) target-depth with-else)))
+    (push-mark)
+    (goto-char new-point))
   (c-keep-region-active))
 
 (defun c-forward-conditional (count &optional target-depth with-else)
@@ -2852,21 +2867,42 @@ move forward across a preprocessor conditional."
 A prefix argument acts as a repeat count.  With a negative argument,
 move backward across a preprocessor conditional.
 
+If there aren't enough conditionals after \(or before) point, an
+error is signalled.
+
+\"#elif\" is treated like \"#else\" followed by \"#if\", except that
+the nesting level isn't changed when tracking subconditionals.
+
+The optional arguments TARGET-DEPTH and WITH-ELSE are historical,
+and have the same meanings as in `c-scan-conditionals'.  If you
+are calling c-forward-conditional from a program, you might want
+to call `c-scan-conditionals' directly instead."
+  (interactive "p")
+  (let ((new-point (c-scan-conditionals count target-depth with-else)))
+    (push-mark)
+    (goto-char new-point)))
+
+(defun c-scan-conditionals (count &optional target-depth with-else)
+  "Scan forward across COUNT preprocessor conditionals.
+With a negative argument, scan backward across preprocessor
+conditionals.  Return the end position.  Point is not moved.
+
+If there aren't enough preprocessor conditionals, throw an error.
+
 \"#elif\" is treated like \"#else\" followed by \"#if\", except that
 the nesting level isn't changed when tracking subconditionals.
 
 The optional argument TARGET-DEPTH specifies the wanted nesting depth
-after each scan.  I.e. if TARGET-DEPTH is -1, the function will move
-out of the enclosing conditional.  A non-integer non-nil TARGET-DEPTH
+after each scan.  E.g. if TARGET-DEPTH is -1, the end position will be
+outside the enclosing conditional.  A non-integer non-nil TARGET-DEPTH
 counts as -1.
 
 If the optional argument WITH-ELSE is non-nil, \"#else\" directives
 are treated as conditional clause limits.  Normally they are ignored."
-  (interactive "p")
   (let* ((forward (> count 0))
 	 (increment (if forward -1 1))
 	 (search-function (if forward 're-search-forward 're-search-backward))
-	 (new))
+	 new)
     (unless (integerp target-depth)
       (setq target-depth (if target-depth -1 0)))
     (save-excursion
@@ -2935,9 +2971,8 @@ are treated as conditional clause limits.  Normally they are ignored."
 	      (error "No containing preprocessor conditional"))
 	  (goto-char (setq new found)))
 	(setq count (+ count increment))))
-    (push-mark)
-    (goto-char new))
-  (c-keep-region-active))
+    (c-keep-region-active)
+    new))
 
 
 ;; commands to indent lines, regions, defuns, and expressions

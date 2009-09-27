@@ -1,3 +1,99 @@
+2009-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT) [MSDOS]: Remove unneeded '/' in
+	internal.elc.  Add term/pc-win.elc.
+	(WINDOW_SUPPORT) [HAVE_X_WINDOWS]: Add term/common-win.elc and
+	term/x-win.elc.
+	(WINNT_SUPPORT) [WINDOWSNT]: Add term/common-win.elc and
+	term/w32-win.elc.
+	(NS_SUPPORT): New.
+	(lisp): Add NS_SUPPORT.
+	(SOME_MACHINE_LISP): Add term/w32-win.elc and emacs-lisp/easymenu.elc.
+
+2009-09-25  David Reitter  <david.reitter@gmail.com>
+
+	* nsmenu.m (EmacsMenu-clear): Recognize application menu
+	on Mac OS X 10.6+ (bug#4513).
+
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (xrdb_get_resource): Return nil for empty string resources;
+	some parts of Emacs code (like font selection) don't grok them.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
+
+2009-09-24  Andreas Schwab  <schwab@redhat.com>
+
+	* coding.c (decode_coding_iso_2022): Fix operator precedence.
+
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.c (Fdirectory_files): Fix typo in docstring.
+
+2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EV_TIMESTAMP, x_set_window_size)
+	(EmacsApp-application:openFiles:): Remove GNUstep conditionals.
+	(EmacsScroller-setPosition:portion:whole:): Remove -display call
+	under GNUstep.
+	(EmacsView-initFrameFromEmacs:): Set autoresizing mask.
+
+	* nsfont.m (ns_glyph_metrics): Remove GNUstep conditional for
+	glyph advancement.
+
+2009-09-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (CGContextSetFontRenderingMode): Drop declaration.
+	(EmacsScroller-mouseDown:): Use SCROLL_BAR_FIRST_DELAY.
+
+	* nsmenu.m (EmacsMenu-menuNeedsUpdate): Ignore if frame has been
+	deleted (bug #4492).
+
+	* nsfont.m (Vns_reg_to_script): New lisp variable.
+	(syms_of_nsfont): Declare it.
+	(ns_registry_to_script): New function.
+	(ns_get_req_script): Call it.
+	(ns_findfonts): Don't give up on non-unicode registry.
+
+	* font.c (DEFAULT_ENCODING) [HAVE_NS]: Remove special case.
+
+2009-09-20  Tom Tromey  <tromey@redhat.com>
+
+	* eval.c (find_handler_clause): Make stack-trace-on-error work in
+	batch mode (bug#4228).
+
+2009-09-18  Rob Christie  <robchristie@gmail.com>  (tiny change)
+
+	* nsmenu.m (EmacsMenu-parseKeyEquiv:): Parse key equivalent more
+	carefully.  (Bug #4339)
+
+2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (Fchar_syntax): Minor doc fix (Bug#4400).
+
+2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* emacs.c (inhibit_x_resources): Update doc string for NS.
+	(main) [HAVE_NS]: Don't process --no-init-file option.  Remove
+	legacy code for -NXHost.  Fix error printf in daemon case.
+
+	* nsterm.h (ns_no_defaults): Remove.
+
+	* nsterm.m (ns_no_defaults): Remove.
+	(ns_term_init): Switch ns_no_defaults -> inhibit_x_resources.
+	(ns_use_qd_smoothing): Remove legacy variable.
+	(EmacsView-windowShouldZoom:): Set frame left_pos, top_pos and
+	don't update the NSWindow itself.
+	(EmacsView-windowWillUseStandardFrame:defaultFrame:): Improve
+	state detection and store user rect ourselves.  (Bug #3581)
+
+	* nsfont.m (nsfont_draw) [NS_IMPL_COCOA]: Don't use
+	ns_use_qd_smoothing.
+
+	* nsfns.m (x_get_string_resource): Ape just-previous changes to other
+	platform versions.  Drop support for emacs-20-style face specs.
+	(x-close-connection): Drop PSFlush() under OS X.
+	(x-focus-frame): Activate the app first.  (Bug #4180)
+
 2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (inhibit_x_resources): New variable.

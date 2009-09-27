@@ -216,7 +216,7 @@ If value of `bibtex-maintain-sorted-entries' is `entry-class'
 entries are ordered according to the classes they belong to.  Each
 class contains a list of entry types.  An entry `catch-all' applies
 to all entries not explicitly mentioned."
-  :group 'BibTeX
+  :group 'bibtex
   :type '(repeat (choice :tag "Class"
                          (const :tag "catch-all" (catch-all))
                          (repeat :tag "Entry type" string))))

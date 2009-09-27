@@ -135,7 +135,7 @@ If NOREUSE is non-nil, always return a new buffer."
 	    (when (equal name list-buffers-directory)
 	      (return buf)))))
       (with-current-buffer (create-file-buffer name)
-	(set (make-local-variable 'list-buffers-directory) name)
+	(setq list-buffers-directory name)
 	(current-buffer))))
 
 ;;;;

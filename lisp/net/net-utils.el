@@ -372,28 +372,28 @@ This variable is only used if the variable
   (display-buffer buffer-name))
 
 ;;;###autoload
-(defun ifconfig () 
-  "Run ifconfig and display diagnostic output." 
-  (interactive) 
-  (net-utils-run-simple 
-   (format "*%s*" ifconfig-program) 
-   ifconfig-program 
+(defun ifconfig ()
+  "Run ifconfig and display diagnostic output."
+  (interactive)
+  (net-utils-run-simple
+   (format "*%s*" ifconfig-program)
+   ifconfig-program
    ifconfig-program-options))
 
 (defalias 'ipconfig 'ifconfig)
 
 ;;;###autoload
-(defun iwconfig () 
-  "Run iwconfig and display diagnostic output." 
-  (interactive) 
-  (net-utils-run-simple 
-   (format "*%s*" iwconfig-program) 
-   iwconfig-program 
+(defun iwconfig ()
+  "Run iwconfig and display diagnostic output."
+  (interactive)
+  (net-utils-run-simple
+   (format "*%s*" iwconfig-program)
+   iwconfig-program
    iwconfig-program-options))
 
 ;;;###autoload
 (defun netstat ()
-  "Run netstat and display diagnostic output." 
+  "Run netstat and display diagnostic output."
   (interactive)
   (net-utils-run-simple
    (format "*%s*" netstat-program)
@@ -402,7 +402,7 @@ This variable is only used if the variable
 
 ;;;###autoload
 (defun arp ()
-  "Run arp and display diagnostic output." 
+  "Run arp and display diagnostic output."
   (interactive)
   (net-utils-run-simple
    (format "*%s*" arp-program)

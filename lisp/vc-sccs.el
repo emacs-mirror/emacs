@@ -288,7 +288,7 @@ locked.  REV is the revision to check out."
 are expanded to all version-controlled subfiles."
   (setq files (vc-expand-dirs files))
   (if (not files)
-      (error "SCCS backend doesn't support directory-level rollback."))
+      (error "SCCS backend doesn't support directory-level rollback"))
   (dolist (file files)
 	  (let ((discard (vc-working-revision file)))
 	    (if (null (yes-or-no-p (format "Remove version %s from %s history? "

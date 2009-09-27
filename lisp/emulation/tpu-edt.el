@@ -1,7 +1,7 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -2374,7 +2374,7 @@ If FILE is nil, try to load a default file.  The default file names are
     (and (tpu-y-or-n-p "Copy key definitions to the new file now? ")
 	 (condition-case conditions
              (copy-file oldname newname)
-	   (tpu-error (message "Sorry, couldn't copy - %s." (cdr conditions)))))
+	   (error (message "Sorry, couldn't copy - %s." (cdr conditions)))))
     (kill-buffer "*TPU-Notice*")))
 
 (defvar tpu-edt-old-global-values nil)

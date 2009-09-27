@@ -359,7 +359,7 @@ Here are all keybindings.
       (message "Cannot locate IDL Assistant, enabling default browser.")
       (setq idlwave-help-use-assistant nil)
       (unless idlwave-help-browse-url-available
-	(error "browse-url is not available; install it or IDL Assistant to use HTML help.")))))
+	(error "browse-url is not available; install it or IDL Assistant to use HTML help")))))
 
 
 (defvar idlwave-current-obj_new-class)
@@ -828,7 +828,7 @@ see if a link is set for it.  Try extra help functions if necessary."
     ;; Just a regular file name (+ anchor name)
     (unless (and (stringp help-loc)
 		 (file-directory-p help-loc))
-      (error "Invalid help location."))
+      (error "Invalid help location"))
     (setq full-link (browse-url-file-url (expand-file-name link help-loc)))
 
     ;; Select the browser
@@ -1320,7 +1320,7 @@ IDL assistant.")
     (if (string-match "\.html" link)
 	(setq topic (substring link 0 (match-beginning 0))
 	      anchor (substring link (match-end 0)))
-      (error "Malformed help link."))
+      (error "Malformed help link"))
 
     (setq file (expand-file-name (concat topic ".html") help-loc))
     (if (file-exists-p file)

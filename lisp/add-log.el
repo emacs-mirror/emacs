@@ -1029,8 +1029,10 @@ Runs `change-log-mode-hook'.
 	indent-tabs-mode t
 	tab-width 8
 	show-trailing-whitespace t)
-  (set (make-local-variable 'fill-paragraph-function)
-       'change-log-fill-paragraph)
+  (set (make-local-variable 'fill-forward-paragraph-function)
+       'change-log-fill-forward-paragraph)
+  ;; Make sure we call `change-log-indent' when filling.
+  (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
 	    '(lambda ()
@@ -1086,23 +1088,12 @@ file were isearch was started."
        (cadr (member (file-name-nondirectory (buffer-file-name buffer))
 		     files))))))
 
-;; It might be nice to have a general feature to replace this.  The idea I
-;; have is a variable giving a regexp matching text which should not be
-;; moved from bol by filling.  change-log-mode would set this to "^\\s *\\s(".
-;; But I don't feel up to implementing that today.
-(defun change-log-fill-paragraph (&optional justify)
-  "Fill the paragraph, but preserve open parentheses at beginning of lines.
-Prefix arg means justify as well."
-  (interactive "P")
-  (let ((end (progn (forward-paragraph) (point)))
-	(beg (progn (backward-paragraph) (point)))
-	;; Add lines starting with whitespace followed by a left paren or an
+(defun change-log-fill-forward-paragraph (n)
+  "Cut paragraphs so filling preserves open parentheses at beginning of lines."
+  (let (;; Add lines starting with whitespace followed by a left paren or an
 	;; asterisk.
-	(paragraph-start (concat paragraph-start "\\|\\s *\\(?:\\s(\\|\\*\\)"))
-	;; Make sure we call `change-log-indent'.
-	(fill-indent-according-to-mode t))
-    (fill-region beg end justify)
-    t))
+	(paragraph-start (concat paragraph-start "\\|\\s *\\(?:\\s(\\|\\*\\)")))
+    (forward-paragraph n)))
 
 (defcustom add-log-current-defun-header-regexp
   "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"

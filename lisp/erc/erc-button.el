@@ -367,16 +367,17 @@ REGEXP is the regular expression which matched for this button."
           (list 'keymap erc-button-keymap)
           (list 'rear-nonsticky t)
           (and data (list 'erc-data data))))
-  (widget-convert-button 'link from to :action 'erc-button-press-button
-                         :suppress-face t
-                         ;; Make XEmacs use our faces.
-                         :button-face (if nick-p
-                                          erc-button-nickname-face
-                                        erc-button-face)
-                         ;; Make XEmacs behave with mouse-clicks, for
-                         ;; some reason, widget stuff overrides the
-                         ;; 'keymap text-property.
-                         :mouse-down-action 'erc-button-click-button))
+  (when (featurep 'xemacs)
+    (widget-convert-button 'link from to :action 'erc-button-press-button
+                           :suppress-face t
+                           ;; Make XEmacs use our faces.
+                           :button-face (if nick-p
+                                            erc-button-nickname-face
+                                          erc-button-face)
+                           ;; Make XEmacs behave with mouse-clicks, for
+                           ;; some reason, widget stuff overrides the
+                           ;; 'keymap text-property.
+                           :mouse-down-action 'erc-button-click-button)))
 
 (defun erc-button-add-face (from to face)
   "Add FACE to the region between FROM and TO."

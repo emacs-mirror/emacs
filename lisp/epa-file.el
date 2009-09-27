@@ -25,7 +25,12 @@
 (require 'epa-hook)
 
 (defcustom epa-file-cache-passphrase-for-symmetric-encryption nil
-  "If non-nil, cache passphrase for symmetric encryption."
+  "If non-nil, cache passphrase for symmetric encryption.
+
+For security reasons, this option is turned off by default and
+not recommended to use.  Instead, consider using public-key
+encryption with gpg-agent which does the same job in a safer
+way."
   :type 'boolean
   :group 'epa-file)
 
@@ -151,7 +156,7 @@
 (defun epa-file-write-region (start end file &optional append visit lockname
 				    mustbenew)
   (if append
-      (error "Can't append to the file."))
+      (error "Can't append to the file"))
   (setq file (expand-file-name file))
   (let* ((coding-system (or coding-system-for-write
 			    (if (fboundp 'select-safe-coding-system)

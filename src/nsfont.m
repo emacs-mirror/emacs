@@ -37,7 +37,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "character.h"
 #include "font.h"
 
-/* This header is not included from GNUstep's (0.16.0) AppKit.h.  */
+/* TODO: Drop once we can assume gnustep-gui 0.17.1. */
 #ifdef NS_IMPL_GNUSTEP
 #import <AppKit/NSFontDescriptor.h>
 #endif
@@ -46,9 +46,10 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
+static Lisp_Object Vns_reg_to_script;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
-extern int ns_antialias_text, ns_use_qd_smoothing;
+extern int ns_antialias_text;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
@@ -301,17 +302,35 @@ static NSString
 }
 
 
-/* Searches the :script, :lang, and :otf extra-bundle properties of the spec
-   for something that can be mapped to a unicode script.  Empty string returned
-   if no script spec found.
-   TODO: Eventually registry / encoding should be checked and mapped, but for
-   now the font backend will try script/lang/otf if registry fails, so it is
-   not needed. */
+/* Convert a font registry, such as  */
+static NSString
+*ns_registry_to_script (char *reg)
+{
+    Lisp_Object script, r, rts = Vns_reg_to_script;
+    while CONSP (rts)
+      {
+        r = XCAR (XCAR (rts));
+        if (!strncmp(SDATA(r), reg, strlen(SDATA(r))))
+          {
+            script = XCDR (XCAR (rts));
+            return [NSString stringWithUTF8String: SDATA (SYMBOL_NAME (script))];
+          }
+        rts = XCDR (rts);
+      }
+    return  @"";
+}
+
+
+/* Searches the :script, :lang, and :otf extra-bundle properties of the spec,
+   plus registry regular property, for something that can be mapped to a
+   unicode script.  Empty string returned if no script spec found. */
 static NSString
 *ns_get_req_script (Lisp_Object font_spec)
 {
+    Lisp_Object reg = AREF (font_spec, FONT_REGISTRY_INDEX);
     Lisp_Object extra = AREF (font_spec, FONT_EXTRA_INDEX);
 
+    /* The extra-bundle properties have priority. */
     for ( ; CONSP (extra); extra = XCDR (extra))
       {
 	Lisp_Object tmp = XCAR (extra);
@@ -327,6 +346,20 @@ static NSString
 		return ns_otf_to_script (val);
 	  }
       }
+
+    /* If we get here, check the charset portion of the registry. */
+    if (! NILP (reg))
+      {
+        /* XXX: iso10646 is passed in for non-ascii latin-1 characters
+           (which causes box rendering if we don't treat it like iso8858-1)
+           but also for ascii (which causes unnecessary font substitution). */
+#if 0
+        if (EQ (reg, Qiso10646_1))
+          reg = Qiso8859_1;
+#endif
+        return ns_registry_to_script (SDATA (SYMBOL_NAME (reg)));
+      }
+
     return @"";
 }
 
@@ -465,11 +498,6 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 		 (isMatch ? "match" : "list"));
 	debug_print (font_spec);
       }
-
-    /* If has non-unicode registry, give up. */
-    tem = AREF (font_spec, FONT_REGISTRY_INDEX);
-    if (! NILP (tem) && !EQ (tem, Qiso10646_1) && !EQ (tem, Qunicode_bmp))
-	return isMatch ? ns_fallback_entity () : Qnil;
 
     cFamilies = ns_get_covering_families (ns_get_req_script (font_spec), 0.90);
 
@@ -1199,8 +1227,6 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
       CGContextSetShouldAntialias (gcontext, 0);
     else
       CGContextSetShouldAntialias (gcontext, 1);
-    if (EQ (ns_use_qd_smoothing, Qt))
-      CGContextSetFontRenderingMode (gcontext, 2); /* 0 is Cocoa, 2 is QD */
 
     CGContextSetTextMatrix (gcontext, fliptf);
 
@@ -1371,16 +1397,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
       float w, lb, rb;
       NSRect r = [sfont boundingRectForGlyph: g];
 
-#ifdef NS_IMPL_GNUSTEP
-      {
-        /* lord help us */
-        NSString *s = [NSString stringWithFormat: @"%c", g];
-        w = [sfont widthOfString: s];
-      }
-#else
-      w = [sfont advancementForGlyph: g].width;
-#endif
-      w = max (w, 2.0);
+      w = max ([sfont advancementForGlyph: g].width, 2.0);
       metrics->width = lrint (w);
 
       lb = r.origin.x;
@@ -1492,6 +1509,8 @@ syms_of_nsfont ()
   DEFSYM (Qapple, "apple");
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
+  DEFVAR_LISP ("ns-reg-to-script", &Vns_reg_to_script,
+               doc: /* Internal use: maps font registry to unicode script. */);
 }
 
 // arch-tag: d6c3c6f0-62de-4978-8b1e-b7966fe02cae

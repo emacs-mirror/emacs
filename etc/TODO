@@ -198,7 +198,7 @@ scroll bars are extensible.
   posn-at-point and posn-at-x-y should now make it doable in elisp.
 
 ** Implement intelligent search/replace, going beyond query-replace
-  (see http://graphics.csail.mit.edu/~rcm/chi04.pdf).
+  (see http://groups.csail.mit.edu/uid/projects/clustering/chi04.pdf).
 
 ** Implement other text formatting properties.
 *** Footnotes that can appear either in place or at the end of the page.

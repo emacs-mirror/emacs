@@ -145,12 +145,23 @@
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
+    ["Scroll Commands" nil :help "Commands that scroll the visible window"]
     ["Forward 1 Month" calendar-scroll-left]
     ["Forward 3 Months" calendar-scroll-left-three-months]
     ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
     ["Backward 1 Month" calendar-scroll-right]
     ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"])
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]
+    "--"
+    ["Motion Commands" nil :help "Commands that move point"]
+    ["Forward 1 Day" calendar-forward-day]
+    ["Forward 1 Week" calendar-forward-week]
+    ["Forward 1 Month" calendar-forward-month]
+    ["Forward 1 Year" calendar-forward-year]
+    ["Backward 1 Day" calendar-backward-day]
+    ["Backward 1 Week" calendar-backward-week]
+    ["Backward 1 Month" calendar-backward-month]
+    ["Backward 1 Year" calendar-backward-year])
   "Key map for \"Scroll\" menu in the calendar.")
 
 (declare-function x-popup-menu "xmenu.c" (position menu))

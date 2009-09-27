@@ -399,7 +399,8 @@
 (defconst term-protocol-version "0.96")
 
 (eval-when-compile
-  (require 'ange-ftp))
+  (require 'ange-ftp)
+  (require 'cl))
 (require 'ring)
 (require 'ehelp)
 
@@ -739,12 +740,18 @@ Buffer local variable.")
 
 ;;; faces -mm
 
-(defcustom term-default-fg-color (face-foreground term-current-face)
+(defcustom term-default-fg-color
+  ;; FIXME: This depends on the current frame, so depending on when
+  ;; it's loaded, the result may be different.
+  (face-foreground term-current-face)
   "Default color for foreground in `term'."
   :group 'term
   :type 'string)
 
-(defcustom term-default-bg-color (face-background term-current-face)
+(defcustom term-default-bg-color
+  ;; FIXME: This depends on the current frame, so depending on when
+  ;; it's loaded, the result may be different.
+  (face-background term-current-face)
   "Default color for background in `term'."
   :group 'term
   :type 'string)
@@ -959,6 +966,20 @@ is buffer-local.")
       (setq i (1+ i)))
     dt))
 
+(defun term-ansi-reset ()
+  (setq term-current-face (nconc
+                           (if term-default-bg-color
+                               (list :background term-default-bg-color))
+                           (if term-default-fg-color
+                               (list :foreground term-default-fg-color))))
+  (setq term-ansi-current-underline nil)
+  (setq term-ansi-current-bold nil)
+  (setq term-ansi-current-reverse nil)
+  (setq term-ansi-current-color 0)
+  (setq term-ansi-current-invisible nil)
+  (setq term-ansi-face-already-done t)
+  (setq term-ansi-current-bg-color 0))
+
 (defun term-mode ()
   "Major mode for interacting with an inferior interpreter.
 The interpreter name is same as buffer name, sans the asterisks.
@@ -1111,8 +1132,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-pending-delete-marker)
   (setq term-pending-delete-marker (make-marker))
   (make-local-variable 'term-current-face)
-  (setq term-current-face (list :background term-default-bg-color
-				:foreground term-default-fg-color))
+  (term-ansi-reset)
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
@@ -3117,23 +3137,21 @@ See `term-prompt-regexp'."
 (defun term-reset-terminal ()
   "Reset the terminal, delete all the content and set the face to the default one."
   (erase-buffer)
+  (term-ansi-reset)
   (setq term-current-row 0)
   (setq term-current-column 1)
   (setq term-scroll-start 0)
   (setq term-scroll-end term-height)
   (setq term-insert-mode nil)
-  (setq term-current-face (list :background term-default-bg-color
-				:foreground term-default-fg-color))
-  (setq term-ansi-current-underline nil)
-  (setq term-ansi-current-bold nil)
-  (setq term-ansi-current-reverse nil)
-  (setq term-ansi-current-color 0)
-  (setq term-ansi-current-invisible nil)
-  (setq term-ansi-face-already-done nil)
-  (setq term-ansi-current-bg-color 0))
+  ;; FIXME: No idea why this is here, it looks wrong.  --Stef
+  (setq term-ansi-face-already-done nil))
 
 ;; New function to deal with ansi colorized output, as you can see you can
 ;; have any bold/underline/fg/bg/reverse combination. -mm
+
+(defvar term-bold-attribute '(:weight bold)
+  "Attribute to use for the bold terminal attribute.
+Set it to nil to disable bold.")
 
 (defun term-handle-colors-array (parameter)
   (cond
@@ -3185,15 +3203,7 @@ See `term-prompt-regexp'."
 
    ;; 0 (Reset) or unknown (reset anyway)
    (t
-    (setq term-current-face (list :background term-default-bg-color
-				  :foreground term-default-fg-color))
-    (setq term-ansi-current-underline nil)
-    (setq term-ansi-current-bold nil)
-    (setq term-ansi-current-reverse nil)
-    (setq term-ansi-current-color 0)
-    (setq term-ansi-current-invisible nil)
-    (setq term-ansi-face-already-done t)
-    (setq term-ansi-current-bg-color 0)))
+    (term-ansi-reset)))
 
   ;; (message "Debug: U-%d R-%d B-%d I-%d D-%d F-%d B-%d"
   ;;          term-ansi-current-underline
@@ -3206,65 +3216,47 @@ See `term-prompt-regexp'."
 
 
   (unless term-ansi-face-already-done
-      (if term-ansi-current-reverse
-	  (if term-ansi-current-invisible
-	      (setq term-current-face
-		    (if (= term-ansi-current-color 0)
-			(list :background
-			      term-default-fg-color
-			      :foreground
-			      term-default-fg-color)
-		      (list :background
-			    (elt ansi-term-color-vector term-ansi-current-color)
-			    :foreground
-			    (elt ansi-term-color-vector term-ansi-current-color)))
-		    ;; No need to bother with anything else if it's invisible
-		    )
-	    (setq term-current-face
-		  (list :background
-			(if (= term-ansi-current-color 0)
-			    term-default-fg-color
-			  (elt ansi-term-color-vector term-ansi-current-color))
-			:foreground
-			(if (= term-ansi-current-bg-color 0)
-			    term-default-bg-color
-			  (elt ansi-term-color-vector term-ansi-current-bg-color))))
-	    (when term-ansi-current-bold
-	      (setq term-current-face
-		    (append '(:weight bold) term-current-face)))
-	    (when term-ansi-current-underline
-	      (setq term-current-face
-		    (append '(:underline t) term-current-face))))
-	(if term-ansi-current-invisible
-	    (setq term-current-face
-		  (if (= term-ansi-current-bg-color 0)
-		      (list :background
-			    term-default-bg-color
-			    :foreground
-			    term-default-bg-color)
-		    (list :foreground
-			  (elt ansi-term-color-vector term-ansi-current-bg-color)
-			  :background
-			  (elt ansi-term-color-vector term-ansi-current-bg-color)))
-		  ;; No need to bother with anything else if it's invisible
-		  )
-	  (setq term-current-face
-		(list :foreground
-		      (if (= term-ansi-current-color 0)
-			  term-default-fg-color
-			(elt ansi-term-color-vector term-ansi-current-color))
-		      :background
-		      (if (= term-ansi-current-bg-color 0)
-			  term-default-bg-color
-			(elt ansi-term-color-vector term-ansi-current-bg-color))))
-	  (when term-ansi-current-bold
-	    (setq term-current-face
-		  (append '(:weight bold) term-current-face)))
-	  (when term-ansi-current-underline
-	    (setq term-current-face
-		  (append '(:underline t) term-current-face))))))
+    (if term-ansi-current-invisible
+        (let ((color
+               (if term-ansi-current-reverse
+                   (if (= term-ansi-current-color 0)
+                       term-default-fg-color
+                     (elt ansi-term-color-vector term-ansi-current-color))
+                 (if (= term-ansi-current-bg-color 0)
+                     term-default-bg-color
+                   (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+          (setq term-current-face
+                (list :background color
+                      :foreground color))
+          ) ;; No need to bother with anything else if it's invisible.
+
+      (setq term-current-face
+            (if term-ansi-current-reverse
+                (if (= term-ansi-current-color 0)
+                    (list :background term-default-fg-color
+                          :foreground term-default-bg-color)
+                  (list :background
+                        (elt ansi-term-color-vector term-ansi-current-color)
+                        :foreground
+                        (elt ansi-term-color-vector term-ansi-current-bg-color)))
+
+              (if (= term-ansi-current-color 0)
+                  (list :foreground term-default-fg-color
+                        :background term-default-bg-color)
+                (list :foreground
+                      (elt ansi-term-color-vector term-ansi-current-color)
+                      :background
+                      (elt ansi-term-color-vector term-ansi-current-bg-color)))))
+
+      (when term-ansi-current-bold
+        (setq term-current-face
+              (append term-bold-attribute term-current-face)))
+      (when term-ansi-current-underline
+        (setq term-current-face
+              (list* :underline t term-current-face)))))
 
   ;;	(message "Debug %S" term-current-face)
+  ;; FIXME: shouldn't we set term-ansi-face-already-done to t here?  --Stef
   (setq term-ansi-face-already-done nil))
 
 

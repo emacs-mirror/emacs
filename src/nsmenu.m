@@ -568,7 +568,10 @@ name_is_separator (name)
    to set_frame_menubar */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
-  NSEvent *event = [[FRAME_NS_VIEW (frame) window] currentEvent];
+  NSEvent *event;
+  if (!FRAME_LIVE_P (frame))
+    return;
+  event = [[FRAME_NS_VIEW (frame) window] currentEvent];
   /* HACK: Cocoa/Carbon will request update on every keystroke
      via IsMenuKeyEvent -> CheckMenusForKeyEvent.  These are not needed
      since key equivalents are handled through emacs.
@@ -610,11 +613,12 @@ name_is_separator (name)
   
   while (*tpos == ' ' || *tpos == '(')
     tpos++;
-  if (*tpos != 's') {
-    keyEquivModMask = 0; /* signal */
-    return [NSString stringWithUTF8String: tpos];
-  }
-  return [NSString stringWithFormat: @"%c", tpos[2]];
+  if ((*tpos == 's') && (*(tpos+1) == '-'))
+    {
+      return [NSString stringWithFormat: @"%c", tpos[2]];
+    }
+  keyEquivModMask = 0; /* signal */
+  return [NSString stringWithUTF8String: tpos];
 }
 
 
@@ -664,7 +668,7 @@ name_is_separator (name)
 
 
 /* convenience */
--(void) clear
+-(void)clear
 {
   int n;
   
@@ -672,7 +676,9 @@ name_is_separator (name)
     {
       NSMenuItem *item = [self itemAtIndex: n];
       NSString *title = [item title];
-      if (([title length] == 0 || [@"Apple" isEqualToString: title])
+      if (([title length] == 0  /* OSX 10.5 */
+	   || [@"Emacs" isEqualToString: title]  /* from 10.6 on */
+	   || [@"Apple" isEqualToString: title]) /* older */
           && ![item isSeparatorItem])
         continue;
       [self removeItemAtIndex: n];

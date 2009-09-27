@@ -56,11 +56,7 @@ Lisp_Object Qopentype;
 /* Important character set strings.  */
 Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
-#ifdef HAVE_NS
-#define DEFAULT_ENCODING Qiso10646_1
-#else
 #define DEFAULT_ENCODING Qiso8859_1
-#endif
 
 /* Unicode category `Cf'.  */
 static Lisp_Object QCf;
@@ -3395,6 +3391,7 @@ font_find_for_lface (f, attrs, spec, c)
     {
       Lisp_Object alters
 	= Fassoc_string (val, Vface_alternative_font_family_alist,
+                         /* Font family names are case-sensitive under NS. */
 #ifndef HAVE_NS
 			 Qt
 #else

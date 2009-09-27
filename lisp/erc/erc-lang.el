@@ -197,6 +197,8 @@ Normungsinstitut (ON), Postfach 130, A-1021 Vienna, Austria.")
 				      iso-638-languages)))
   (message "%s" (cdr (assoc code iso-638-languages))))
 
+(defvar line)            ; dynamically bound in erc-process-input-line
+
 (defun erc-cmd-LANG (language)
   "Display the language name for the language code given by LANGUAGE."
   (let ((lang (cdr (assoc language iso-638-languages))))

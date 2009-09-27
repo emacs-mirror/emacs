@@ -5661,7 +5661,7 @@ frame is not changed."
       (switch-to-buffer ibuf))
      ((eq org-indirect-buffer-display 'other-window)
       (pop-to-buffer ibuf))
-     (t (error "Invalid value.")))
+     (t (error "Invalid value")))
     (if (featurep 'xemacs)
         (save-excursion (org-mode) (turn-on-font-lock)))
     (narrow-to-region beg end)
@@ -6073,7 +6073,7 @@ is signaled in this case."
   ;; First check if there are no even levels
   (when (re-search-forward "^\\(\\*\\*\\)+ " nil t)
     (org-show-context t)
-    (error "Not all levels are odd in this file.  Conversion not possible."))
+    (error "Not all levels are odd in this file.  Conversion not possible"))
   (when (yes-or-no-p "Are you sure you want to globally change levels to odd-even? ")
     (let ((org-odd-levels-only nil) n)
       (save-excursion
@@ -7889,7 +7889,7 @@ application the system uses for this file type."
   (cond
    ((and (org-on-heading-p)
 	 (not (org-in-regexp
-	       (concat org-plain-link-re "\\|" 
+	       (concat org-plain-link-re "\\|"
 		       org-bracket-link-regexp "\\|"
 		       org-angle-link-re "\\|"
 		       "[ \t]:[^ \t\n]+:[ \t]*$"))))
@@ -7958,12 +7958,12 @@ application the system uses for this file type."
 	    ;; Check if we need to translate the link
 	    (let ((tmp (funcall org-link-translation-function type path)))
 	      (setq type (car tmp) path (cdr tmp))))
-	
+
 	(cond
-	 
+
 	 ((assoc type org-link-protocols)
 	  (funcall (nth 1 (assoc type org-link-protocols)) path))
-	 
+
 	 ((equal type "mailto")
 	  (let ((cmd (car org-link-mailto-program))
 		(args (cdr org-link-mailto-program)) args1
@@ -7981,14 +7981,14 @@ application the system uses for this file type."
 		      (setq a (replace-match subject t t a)))
 		  (push a args1))))
 	    (apply cmd (nreverse args1))))
-	 
+
 	 ((member type '("http" "https" "ftp" "news"))
 	  (browse-url (concat type ":" (org-link-escape
 					path org-link-escape-chars-browser))))
-	 
+
 	 ((member type '("message"))
 	  (browse-url (concat type ":" path)))
-	 
+
 	 ((string= type "tags")
 	  (org-tags-view in-emacs path))
 	 ((string= type "thisfile")
@@ -8004,10 +8004,10 @@ application the system uses for this file type."
 		       ,pos)))
 	    (condition-case nil (eval cmd)
 	      (error (progn (widen) (eval cmd))))))
-	 
+
 	 ((string= type "tree-match")
 	  (org-occur (concat "\\[" (regexp-quote path) "\\]")))
-	 
+
 	 ((string= type "file")
 	  (if (string-match "::\\([0-9]+\\)\\'" path)
 	      (setq line (string-to-number (match-string 1 path))
@@ -8018,11 +8018,11 @@ application the system uses for this file type."
 	  (if (string-match "[*?{]" (file-name-nondirectory path))
 	      (dired path)
 	    (org-open-file path in-emacs line search)))
-	 
+
 	 ((string= type "news")
 	  (require 'org-gnus)
 	  (org-gnus-follow-link path))
-	 
+
 	 ((string= type "shell")
 	  (let ((cmd path))
 	    (if (or (not org-confirm-shell-link-function)
@@ -8034,7 +8034,7 @@ application the system uses for this file type."
 		  (message "Executing %s" cmd)
 		  (shell-command cmd))
 	      (error "Abort"))))
-	 
+
 	 ((string= type "elisp")
 	  (let ((cmd path))
 	    (if (or (not org-confirm-elisp-link-function)
@@ -8047,7 +8047,7 @@ application the system uses for this file type."
 			     (eval (read cmd))
 			   (call-interactively (read cmd))))
 	      (error "Abort"))))
-	 
+
 	 (t
 	  (browse-url-at-point))))))
    (move-marker org-open-link-marker nil)
@@ -8837,7 +8837,7 @@ See also `org-refile-use-outline-path' and `org-completion-use-ido'"
     (setq answ (funcall cfunc prompt tbl nil (not new-nodes)
 			nil 'org-refile-history))
     (setq pa (or (assoc answ tbl) (assoc (concat answ "/") tbl)))
-    (if pa 
+    (if pa
 	(progn
 	  (when (or (not org-refile-history)
 		    (not (eq old-hist org-refile-history))
@@ -8889,7 +8889,7 @@ See also `org-refile-use-outline-path' and `org-completion-use-ido'"
   "Read an outline path like a file name."
   (let ((thetable collection)
 	(org-completion-use-ido nil)	   ; does not work with ido.
-	(org-completion-use-iswitchb nil)) ; or iswitchb 
+	(org-completion-use-iswitchb nil)) ; or iswitchb
     (apply
      'org-icompleting-read prompt
      (lambda (string predicate &optional flag)
@@ -9687,7 +9687,7 @@ This should be called with the cursor in a line with a statistics cookie."
 	      (error "No data for statistics cookie"))))
 	(goto-char pos)
 	(move-marker pos nil)))))
-  
+
 (defvar org-entry-property-inherited-from) ;; defined below
 (defun org-update-parent-todo-statistics ()
   "Update any statistics cookie in the parent of the current headline.
@@ -14589,8 +14589,8 @@ See `org-ctrl-c-ctrl-c-hook' for more information.")
 (defun org-shiftselect-error ()
   "Throw an error because Shift-Cursor command was applied in wrong context."
   (if (and (boundp 'shift-select-mode) shift-select-mode)
-      (error "To use shift-selection with Org-mode, customize `org-support-shift-select'.")
-    (error "This command works only in special context like headlines or timestamps.")))
+      (error "To use shift-selection with Org-mode, customize `org-support-shift-select'")
+    (error "This command works only in special context like headlines or timestamps")))
 
 (defun org-call-for-shift-select (cmd)
   (let ((this-command-keys-shift-translated t))
@@ -15029,7 +15029,7 @@ This command does many different things, depending on context:
 	(let ((org-inhibit-startup t)) (org-mode-restart))
 	(message "Local setup has been refreshed"))))
      ((org-clock-update-time-maybe))
-     (t (error "C-c C-c can do nothing useful at this location.")))))
+     (t (error "C-c C-c can do nothing useful at this location")))))
 
 (defun org-mode-restart ()
   "Restart Org-mode, to scan again for special lines.

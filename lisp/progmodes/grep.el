@@ -826,7 +826,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
        (list (read-from-minibuffer "Run: " grep-command
 				   nil nil 'grep-history)))
       ((not grep-template)
-       (error "grep.el: No `grep-template' available."))
+       (error "grep.el: No `grep-template' available"))
       (t (let* ((regexp (grep-read-regexp))
 		(files (grep-read-files regexp))
 		(dir (read-directory-name "In directory: "
@@ -903,7 +903,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
        (list (read-from-minibuffer "Run: " grep-find-command
 				   nil nil 'grep-find-history)))
       ((not grep-find-template)
-       (error "grep.el: No `grep-find-template' available."))
+       (error "grep.el: No `grep-find-template' available"))
       (t (let* ((regexp (grep-read-regexp))
 		(files (grep-read-files regexp))
 		(dir (read-directory-name "Base directory: "

@@ -3822,9 +3822,8 @@ See `message-citation-line-format'."
 			       (>= i ?a)))
 		  (push i lst)
 		  (push (condition-case nil
-			    (progn (format-time-string (format "%%%c" i)
-						       replydate))
-			  (format ">%c<" i))
+			    (format-time-string (format "%%%c" i) replydate)
+			  (error (format ">%c<" i)))
 			lst))
 		(setq i (1+ i)))
 	      (reverse lst)))
@@ -4248,7 +4247,7 @@ This function could be useful in `message-setup-hook'."
 		 (not (y-or-n-p
 		       (format
 			"Address `%s' might be bogus.  Continue? " bog)))
-		 (error "Bogus address."))))))))
+		 (error "Bogus address"))))))))
 
 (custom-add-option 'message-setup-hook 'message-check-recipients)
 

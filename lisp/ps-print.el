@@ -5881,7 +5881,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-page-dimensions)
   ;; final check
   (unless (listp ps-lpr-switches)
-    (error "`ps-lpr-switches' value should be a list."))
+    (error "`ps-lpr-switches' value should be a list"))
   (and ps-color-p
        (equal ps-default-background ps-default-foreground)
        (error

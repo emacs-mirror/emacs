@@ -8322,7 +8322,7 @@ For example:
   (when (and gnus-article-encrypt-protocol
 	     gnus-novice-user)
     (unless (gnus-y-or-n-p "Really encrypt article(s)? ")
-      (error "Encrypt aborted.")))
+      (error "Encrypt aborted")))
   (let ((func (cdr (assoc protocol gnus-article-encrypt-protocol-alist))))
     (unless func
       (error "Can't find the encrypt protocol %s" protocol))

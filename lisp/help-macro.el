@@ -90,7 +90,7 @@ When FNAME finally does get a command, it executes that command
 and then returns."
   (let ((doc-fn (intern (concat (symbol-name fname) "-doc"))))
     `(progn
-       (defun ,doc-fn () ,help-text)
+       (defun ,doc-fn () ,help-text nil)
        (defun ,fname ()
 	 "Help command."
 	 (interactive)

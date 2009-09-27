@@ -1,4 +1,4 @@
-;;; info.el --- info package for Emacs
+;; info.el --- info package for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
 ;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -3518,9 +3518,10 @@ If FORK is a string, it is the name to use for the new buffer."
 If FORK is non-nil, it is passed to `Info-goto-node'."
   (let (node)
     (cond
-     ((Info-get-token (point) "[hf]t?tps?://" "[hf]t?tps?://\\([^ \t\n\"`({<>})']+\\)")
-      (setq node t)
-      (browse-url (browse-url-url-at-point)))
+     ((setq node (Info-get-token (point) "[hf]t?tps?://"
+				 "\\([hf]t?tps?://[^ \t\n\"`({<>})']+\\)"))
+      (browse-url node)
+      (setq node t))
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
 				 "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?"))
       (Info-follow-reference node fork))

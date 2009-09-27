@@ -1365,6 +1365,7 @@ FRAME nil means use the selected frame.  */)
     {
       EmacsView *view = FRAME_NS_VIEW (f);
       BLOCK_INPUT;
+      [NSApp activateIgnoringOtherApps: YES];
       [[view window] makeKeyAndOrderFront: view];
       UNBLOCK_INPUT;
     }
@@ -1771,9 +1772,6 @@ The argument DISPLAY is currently ignored.  */)
      Lisp_Object display;
 {
   check_ns ();
-#ifdef NS_IMPL_COCOA
-  PSFlush ();
-#endif
   /*ns_delete_terminal (dpyinfo->terminal); */
   [NSApp terminate: NSApp];
   return Qnil;
@@ -2139,15 +2137,12 @@ x_get_string_resource (XrmDatabase rdb, char *name, char *class)
   const char *res;
   check_ns ();
 
-  /* Support emacs-20-style face resources for backwards compatibility */
-  if (!strncmp (toCheck, "Face", 4))
-    toCheck = name + (!strncmp (name, "emacs.", 6) ? 6 : 0);
+  if (inhibit_x_resources)
+    /* --quick was passed, so this is a no-op.  */
+    return NULL;
 
-/*fprintf (stderr, "Checking '%s'\n", toCheck); */
-
-  res = ns_no_defaults ? NULL :
-    [[[NSUserDefaults standardUserDefaults] objectForKey:
-                     [NSString stringWithUTF8String: toCheck]] UTF8String];
+  res = [[[NSUserDefaults standardUserDefaults] objectForKey:
+            [NSString stringWithUTF8String: toCheck]] UTF8String];
   return !res ? NULL :
       (!strncasecmp (res, "YES", 3) ? "true" :
           (!strncasecmp (res, "NO", 2) ? "false" : res));

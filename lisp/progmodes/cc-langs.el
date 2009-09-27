@@ -2885,7 +2885,7 @@ tested at the beginning of every sexp in a suspected label,
 i.e. before \":\".  Only used if `c-recognize-colon-labels' is set."
   t (concat
      ;; Don't allow string literals.
-     "[\"']\\|"
+     "\"\\|"
      ;; All keywords except `c-label-kwds' and `c-protection-kwds'.
      (c-make-keywords-re t
        (set-difference (c-lang-const c-keywords)

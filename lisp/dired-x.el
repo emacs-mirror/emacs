@@ -208,8 +208,8 @@ The value can be t, nil or something else.
 A value of t means local-variables lists are obeyed;
 nil means they are ignored; anything else means query.
 
-This temporarily overrides the value of `enable-local-variables' when listing
-a directory.  See also `dired-local-variables-file'."
+This temporarily overrides the value of `enable-local-variables' when
+listing a directory.  See also `dired-local-variables-file'."
   :type 'boolean
   :group 'dired-x)
 
@@ -553,7 +553,7 @@ need to match the entire file name.")
 
 ;; \017=^O for Omit - other packages can chose other control characters.
 (defvar dired-omit-marker-char ?\017
-  "Temporary marker used by dired-omit.
+  "Temporary marker used by Dired-Omit.
 Should never be used as marker by the user or other packages.")
 
 (defun dired-omit-startup ()
@@ -1209,7 +1209,7 @@ See `dired-guess-shell-alist-user'."
 ;; REDEFINE.
 ;; Redefine dired-aux.el's version:
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using read-shell-command).
+  "Read a dired shell command prompting with PROMPT (using `read-shell-command').
 ARG is the prefix arg and may be used to indicate in the prompt which
 FILES are affected.
 This is an extra function so that you can redefine it."
@@ -1325,7 +1325,7 @@ for more info."
 ;; * `dired-simultaneous-find-file' runs through FILE-LIST decrementing the
 ;;;   list each time.
 ;;;
-;; * If NOSELECT is non-nil then just run `find-file-noselect'  on each
+;; * If NOSELECT is non-nil then just run `find-file-noselect' on each
 ;;;   element of FILE-LIST.
 ;;;
 ;; * If NOSELECT is nil then calculate the `size' of the window for each file
@@ -1682,8 +1682,8 @@ or to test if that file exists.  Use minibuffer after snatching filename."
 May create a new window, or reuse an existing one.
 See the function `display-buffer'.
 
-Identical to `find-file-other-window' except when called interactively, with a
-prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
+Identical to `find-file-other-window' except when called interactively, with
+a prefix arg \(e.g., \\[universal-argument]\), in which case it guesses filename near point.
 Useful for editing file mentioned in buffer you are viewing,
 or to test if that file exists.  Use minibuffer after snatching filename."
   (interactive (list (read-filename-at-point "Find file: ")))
@@ -1694,8 +1694,8 @@ or to test if that file exists.  Use minibuffer after snatching filename."
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
 (defun dired-filename-at-point ()
   "Get the filename closest to point, but do not change position.
-Has a preference for looking backward when not directly on a symbol.  Not
-perfect - point must be in middle of or end of filename."
+Has a preference for looking backward when not directly on a symbol.
+Not perfect - point must be in middle of or end of filename."
 
   (let ((filename-chars "-.[:alnum:]_/:$+@")
         start end filename prefix)
@@ -1775,7 +1775,7 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 (defun dired-x-submit-report ()
   "Submit via `reporter.el' a bug report on program.
-Send report on `dired-x-file' version `dired-x-version,' to
+Send report on `dired-x-file' version `dired-x-version', to
 `dired-x-maintainer' at address `dired-x-help-address' listing
 variables `dired-x-variable-list' in the message."
   (interactive)

@@ -851,8 +851,8 @@ static Lisp_Object Vsyntax_code_object;
 
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
        doc: /* Return the syntax code of CHARACTER, described by a character.
-For example, if CHARACTER is a word constituent,
-the character `w' is returned.
+For example, if CHARACTER is a word constituent, the
+character `w' (119) is returned.
 The characters that correspond to various syntax codes
 are listed in the documentation of `modify-syntax-entry'.  */)
      (character)

@@ -3537,10 +3537,12 @@ use \\[mail-yank-original] to yank the original message into it."
 		   (aref rmail-msgref-vector msgnum))
 		 rmail-answered-attr-index))
      nil
-     (list (cons "References" (if references
-				  (concat (mapconcat 'identity references " ")
-					  " " message-id)
-				message-id))))))
+     (if (or references message-id)
+	 (list (cons "References" (if references
+				      (concat
+				       (mapconcat 'identity references " ")
+				       " " message-id)
+				    message-id)))))))
 
 (defun rmail-mark-message (buffer msgnum-list attribute)
   "Give BUFFER's message number in MSGNUM-LIST the attribute ATTRIBUTE.
@@ -4229,13 +4231,13 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "ae80368d7bee6d397e916de369676b29")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "ab34439779d8036dbd5cdc80fb4cea64")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
 Process the current Rmail message as a MIME message.
 This creates a temporary \"*RMAIL*\" buffer holding a decoded
-copy of the message.  Content-types are handled according to
+copy of the message.  Inline content-types are handled according to
 `rmail-mime-media-type-handlers-alist'.  By default, this
 displays text and multipart messages, and offers to download
 attachments as specfied by `rmail-mime-attachment-dirs-alist'.

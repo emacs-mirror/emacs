@@ -371,7 +371,7 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
     ["Toggle Hiding" hs-toggle-hiding
      :help "Toggle the hiding state of the current block"]
     "----"
-    ["Hide comments when hiding all" 
+    ["Hide comments when hiding all"
      (setq hs-hide-comments-when-hiding-all
     	   (not hs-hide-comments-when-hiding-all))
      :help "If t also hide comment blocks when doing `hs-hide-all'"
@@ -869,8 +869,8 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
                    q (progn (hs-forward-sexp (match-data t) 1) (point)))))
       (when (and p q)
         (hs-discard-overlays p q)
-        (goto-char (if end q (1+ p)))))
-    (run-hooks 'hs-show-hook))))
+        (goto-char (if end q (1+ p))))))
+   (run-hooks 'hs-show-hook)))
 
 (defun hs-hide-level (arg)
   "Hide all blocks ARG levels below this block.
@@ -919,7 +919,7 @@ This can be useful if you have huge RCS logs in those comments."
 
 ;;;###autoload
 (define-minor-mode hs-minor-mode
-  "Minor mode to selectively hide/show code and comment blocks. 
+  "Minor mode to selectively hide/show code and comment blocks.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
@@ -935,7 +935,7 @@ Lastly, the normal hook `hs-minor-mode-hook' is run using `run-hooks'.
 
 Key bindings:
 \\{hs-minor-mode-map}"
-  :group 'hideshow 
+  :group 'hideshow
   :lighter " hs"
   :keymap hs-minor-mode-map
   (setq hs-headline nil)

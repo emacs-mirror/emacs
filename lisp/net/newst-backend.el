@@ -2177,8 +2177,8 @@ FEED is a symbol!"
                                                   (read (current-buffer))))
           (error
            (message "Error while reading newsticker cache file %s!"
-                    file-name))
-          (setq newsticker--cache nil))))))
+                    file-name)
+           (setq newsticker--cache nil)))))))
 
 ;; ======================================================================
 ;;; Statistics

@@ -32,7 +32,7 @@
 (require 'nnheader)
 (condition-case nil
     (require 'rmail)
-  (t (nnheader-message
+  (error (nnheader-message
       5 "Ignore rmail errors from this file, you don't have rmail")))
 (require 'nnmail)
 (require 'nnoo)

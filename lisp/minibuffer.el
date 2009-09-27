@@ -546,7 +546,9 @@ Repeated uses step through the possible completions."
       ;; completion-all-sorted-completions to nil, but we prefer not to,
       ;; so that repeated calls minibuffer-force-complete still cycle
       ;; through the previous possible completions.
-      (setq completion-all-sorted-completions (cdr all)))))
+      (let ((last (last all)))
+        (setcdr last (cons (car all) (cdr last)))
+        (setq completion-all-sorted-completions (cdr all))))))
 
 (defvar minibuffer-confirm-exit-commands
   '(minibuffer-complete minibuffer-complete-word PC-complete PC-complete-word)

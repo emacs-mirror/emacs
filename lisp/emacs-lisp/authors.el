@@ -866,7 +866,7 @@ buffer *Authors Errors* containing references to unknown files."
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
       (unless (y-or-n-p
 	       (format "Not the root directory of Emacs: %s, continue? " root))
-	(error "Not the root directory.")))
+	(error "Not the root directory")))
     (dolist (log logs)
       (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)

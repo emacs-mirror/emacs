@@ -2652,6 +2652,9 @@ With a prefix argument, inserts the character directly."
 (put 'entity-ref 'nxml-friendly-name "entity reference")
 (put 'char-ref 'nxml-friendly-name "character reference")
 
+;;;###autoload
+(defalias 'xml-mode 'nxml-mode)
+
 (provide 'nxml-mode)
 
 ;; arch-tag: 8603bc5f-1ef9-4021-b223-322fb2ca708e

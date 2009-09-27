@@ -1019,8 +1019,11 @@ This is an option for `diary-display-function'."
                      (overlay-put
                       (make-overlay (match-beginning 0) (match-end 0))
                       'face temp-face)))))))
-      (or (eq major-mode 'diary-fancy-display-mode)
-          (diary-fancy-display-mode))
+      ;; FIXME can't remember what this check was for.
+      ;; To prevent something looping, or a minor optimization?
+      (if (eq major-mode 'diary-fancy-display-mode)
+          (run-hooks 'diary-fancy-display-mode-hook)
+        (diary-fancy-display-mode))
       (calendar-set-mode-line date-string)
       (message "Preparing diary...done"))))
 

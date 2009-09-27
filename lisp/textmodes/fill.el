@@ -1,4 +1,4 @@
-;;; fill.el --- fill commands for Emacs		-*- coding: iso-2022-7bit -*-
+;;; fill.el --- fill commands for Emacs		-*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
 ;;   2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
@@ -92,7 +92,7 @@ reinserts the fill prefix in each resulting line."
   ;; Added `!' for doxygen comments starting with `//!' or `/*!'.
   ;; Added `%' for TeX comments.
   ;; RMS: deleted the code to match `1.' and `(1)'.
-  "[ \t]*\\([-!|#%;>*,A7$,1s"s#sC$,2"F(B]+[ \t]*\\)*"
+  "[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\)*"
   "Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
@@ -317,12 +317,12 @@ after an opening paren or just before a closing paren or a punctuation
 mark such as `?' or `:'.  It is common in French writing to put a space
 at such places, which would normally allow breaking the line at those
 places."
-  (or (looking-at "[ \t]*[])},A;,b;(B?!;:-]")
+  (or (looking-at "[ \t]*[])}»?!;:-]")
       (save-excursion
 	(skip-chars-backward " \t")
 	(unless (bolp)
 	  (backward-char 1)
-	  (or (looking-at "[([{,A+,b+(B]")
+	  (or (looking-at "[([{«]")
 	      ;; Don't cut right after a single-letter word.
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))

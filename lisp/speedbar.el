@@ -1291,7 +1291,7 @@ and the existence of packages."
 	      (if (eq major-mode 'speedbar-mode)
 		  ;; XEmacs may let us get in here in other mode buffers.
 		  (speedbar-item-info)))
-	  (t (speedbar-message nil)))))))
+	  (error (speedbar-message nil)))))))
 
 (defun speedbar-show-info-under-mouse ()
   "Call the info function for the line under the mouse."

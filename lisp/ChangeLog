@@ -1,3 +1,542 @@
+2009-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (help-for-help-internal): Don't purecopy the text (bug#4560).
+	* isearch.el (isearch-help-for-help-internal): Purecopy the second arg.
+	* help-macro.el (make-help-screen): Avoid using an ambiguous function
+	definition where the docstring could be taken for the return value.
+
+2009-09-26  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-show-images, rmail-mime-bulk-handler):
+	Add option to only show images below a certain size.
+	(rmail-mime-multipart-handler): Remove unnecessary save-match-data and
+	save-excursion calls.
+
+2009-09-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (WINS_ALMOST): Add cedet (with its
+	subdirectories) and eieio.
+
+2009-09-26  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):  Correct
+	buggy bracketing.
+
+	* progmodes/cc-langs.el (c-nonlabel-token-key): Allow quoted
+	character constants (as case labels).
+
+2009-09-25  Juri Linkov  <juri@jurta.org>
+
+	* files.el (safe-local-eval-forms): Allow time-stamp in
+	before-save-hook (Bug#4554).
+
+2009-09-25  Drew Adams  <drew.adams@oracle.com>
+
+	* menu-bar.el (list-buffers-directory): Doc fix.
+
+2009-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-changelog-entries): Avoid inf-loops.
+	Try and avoid copying twice the same paragraph.
+	(log-edit-changelog-paragraph, log-edit-changelog-subparagraph):
+	Remove save-excursion.
+	(log-edit-changelog-entry): Do it here instead.
+
+2009-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--get-file-name): Use `list-buffers-directory'
+	when available, instead of hardcoding mode names.  Doc fix.
+
+	* menu-bar.el (list-buffers-directory): Add docstring.
+	Make automatically buffer-local.
+
+	* dired.el (dired-mode):
+	* files.el (cd-absolute):
+	* pcvs.el (cvs-temp-buffer):
+	* pcvs-util.el (cvs-get-buffer-create):
+	* shell.el (shell-mode):
+	* vc-dir.el (vc-dir-mode):
+	Don't make `list-buffers-directory' buffer local.
+
+2009-09-25  Devon Sean McCullough  <emacs-hacker@Jovi.Net>
+
+	* comint.el (comint-exec, comint-run, make-comint):
+	Doc fixes (Bug#4542).
+
+2009-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime): New custom group.
+	Move all defcustoms in this file into this group.
+	(rmail-mime-media-type-handlers-alist): Revert previous change.
+	(rmail-mime-show-images): New option.
+	(rmail-mime-total-number-of-bulk-attachments): Remove variable and all
+	references to it, since it wasn't actually used for anything.
+	(rmail-mime-insert-image): New function.
+	(rmail-mime-image): Use rmail-mime-insert-image.
+	(rmail-mime-bulk-handler): Remove optional `image' argument, instead
+	obey the value of `rmail-mime-show-images' option.  Print the size of
+	attachments.
+
+2009-09-25  David Engster  <deng@randomsample.de>
+
+	* progmodes/hideshow.el (hs-show-block): Run `hs-show-hook'.  (Bug#4548)
+
+2009-09-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Does not highlight trailing spaces While point is
+	at end of line.  Does not highligt spaces at beginning of buffer
+	while point is at beginning of buffer.  Does not highlight spaces
+	at end of buffer while point is at end of buffer.  (Bug#4177)
+	New version 12.0.
+	(whitespace-display-mappings): Adjust initialization.
+	(whitespace-point, whitespace-font-lock-refontify): New vars.
+	(whitespace-color-on, whitespace-color-off): Adjust code.
+	(whitespace-trailing-regexp, whitespace-empty-at-bob-regexp)
+	(whitespace-empty-at-eob-regexp, whitespace-space-regexp)
+	(whitespace-tab-regexp, whitespace-post-command-hook): New funs.
+
+2009-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml/nxml-mode.el: Alias xml-mode to nxml-mode.
+
+	* textmodes/sgml-mode.el: Remove xml-mode alias.
+
+	* files.el (auto-mode-alist, conf-mode-maybe)
+	(magic-fallback-mode-alist): Revert 2009-09-18 and 2009-09-21 changes.
+
+2009-09-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-scan-conditionals): A new function like
+	c-forward-conditionals, but it doesn't move point and doesn't set
+	the mark.
+	(c-up-conditional, c-up-conditional-with-else, c-down-conditional)
+	(c-down-conditional-with-else, c-backward-conditional)
+	(c-forward-conditional): Refactor to use c-scan-conditionals.
+
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (help-downcase-arguments): New option, defaulting to nil.
+	(help-default-arg-highlight): Remove.
+	(help-highlight-arg): New function.
+	(help-do-arg-highlight): Use it.
+	Suggested by Drew Adams <drew.adams@oracle.com>.  (Bug#4510, bug#4520)
+
+2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.el (term-set-scroll-region, term-handle-ansi-escape):
+	Undo last change, which didn't fix the problem and introduced others.
+
+2009-09-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el: Don't require speedbar.
+	(gdb-jsonify-buffer): Handle case where "=" is part of value string.
+
+2009-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-fancy-display): Always run the hook.
+
+	* term/ns-win.el (ns-reg-to-script): Define for compiler.
+
+	* mail/rmailmm.el (rmail-mime-multipart-handler): Accept the case where
+	there is no newline after the final mime boundary.  (Bug#4539)
+	Move markers on insertion so that any buttons inserted don't end up in
+	the next part of a multipart message.
+	(rmail-mime-media-type-handlers-alist): Doc fix.  Add image handler.
+	(rmail-mime-bulk-handler): Optionally handle images.
+	(rmail-mime-image): New button action.
+	(rmail-mime-image-handler): New function.
+	(rmail-mime-mode): New mode.
+	(rmail-mime): Doc fix.  Use rmail-mime-mode (for font-lock).
+
+2009-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (minibuffer-force-complete): Cycle the list, rather
+	than just dropping elements from it (bug#4504).
+
+	* term.el (term-set-scroll-region): Don't move cursor any more.
+	(term-handle-ansi-escape): Call term-goto here instead.
+	Suggested by Ivan Kanis <apple@kanis.eu>.
+
+	* term.el: Require CL.
+	(term-ansi-reset): New function.
+	(term-mode, term-emulate-terminal, term-handle-colors-array): Use it.
+	(term-handle-colors-array): Simplify.
+
+2009-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-overlay-interior-modification-handler)
+	(allout-obtain-passphrase):
+	* epa-file.el (epa-file-write-region):
+	* ps-print.el (ps-begin-job):
+	* vc-hooks.el (vc-toggle-read-only):
+	* vc-rcs.el (vc-rcs-rollback):
+	* vc-sccs.el (vc-sccs-rollback):
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-register-with)
+	(vc-version-diff, vc-revert, vc-rollback):
+	* wdired.el (wdired-check-kill-buffer):
+	* emacs-lisp/authors.el (authors):
+	* net/socks.el (socks-open-connection):
+	* net/zeroconf.el (zeroconf-service-add-hook):
+	* obsolete/vc-mcvs.el (vc-mcvs-register):
+	* progmodes/gdb-mi.el (def-gdb-thread-buffer-gud-command)
+	(gdb-select-frame):
+	* progmodes/grep.el (lgrep, rgrep):
+	* progmodes/idlw-help.el (idlwave-help-check-locations)
+	(idlwave-help-html-link, idlwave-help-assistant-open-link):
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	* textmodes/reftex-toc.el (reftex-toc-promote-prepare)
+	(reftex-toc-rename-label): Fix typos in error messages.
+
+	* dired-aux.el (dired-do-shell-command): Reflow docstring.
+	(dired-copy-how-to-fn): Doc fix.
+	(dired-files-attributes, dired-read-shell-command):
+	Fix typos in docstrings.
+
+	* dired-x.el (dired-enable-local-variables, dired-filename-at-point)
+	(dired-x-find-file-other-window): Reflow docstrings.
+	(dired-omit-marker-char, dired-read-shell-command)
+	(dired-x-submit-report): Fix typos in docstrings.
+
+	* shell.el (shell-mode-hook):
+	* view.el (View-scroll-line-forward):
+	* progmodes/inf-lisp.el (inferior-lisp-mode-hook):
+	Fix typos in docstrings.
+
+	* net/dig.el (dig-invoke): Fix typo in docstring.
+	(query-dig): Reflow docstring.
+
+	* progmodes/idlwave.el (idlwave-create-user-catalog-file)
+	(idlwave-quoted, idlwave-rinfo-max-source-lines): Doc fixes.
+	(idlwave-abbrev-move, idlwave-auto-routine-info-updates)
+	(idlwave-begin-block-reg, idlwave-begin-unit-reg)
+	(idlwave-beginning-of-subprogram, idlwave-block-jump-out)
+	(idlwave-block-match-regexp, idlwave-calculate-paren-indent)
+	(idlwave-check-abbrev, idlwave-class-file-or-buffer)
+	(idlwave-class-found-in, idlwave-complete, idlwave-complete-in-buffer)
+	(idlwave-completion-map, idlwave-current-indent)
+	(idlwave-custom-ampersand-surround, idlwave-customize)
+	(idlwave-default-font-lock-items, idlwave-default-insert-timestamp)
+	(idlwave-define-abbrev, idlwave-determine-class-special)
+	(idlwave-do-action, idlwave-doc-header, idlwave-doc-modification)
+	(idlwave-end-block-reg, idlwave-end-of-statement)
+	(idlwave-end-of-statement0, idlwave-end-of-subprogram)
+	(idlwave-end-unit-reg, idlwave-entry-find-keyword)
+	(idlwave-explicit-class-listed, idlwave-file-header)
+	(idlwave-fill-paragraph, idlwave-find-class-definition)
+	(idlwave-fix-keywords, idlwave-hang-indent-regexp, idlwave-hard-tab)
+	(idlwave-idlwave_routine_info-compiled, idlwave-in-comment)
+	(idlwave-in-quote, idlwave-indent-action-table)
+	(idlwave-indent-expand-table, idlwave-indent-line)
+	(idlwave-indent-subprogram, idlwave-indent-to-open-paren)
+	(idlwave-is-comment-line, idlwave-is-comment-or-empty-line)
+	(idlwave-is-continuation-line, idlwave-is-pointer-dereference)
+	(idlwave-kill-autoloaded-buffers, idlwave-lib-p, idlwave-look-at)
+	(idlwave-make-tags, idlwave-mode, idlwave-mode-abbrev-table)
+	(idlwave-mouse-active-rinfo, idlwave-newline, idlwave-no-change-comment)
+	(idlwave-outlawed-buffers, idlwave-popup-select)
+	(idlwave-previous-statement, idlwave-rescan-catalog-directories)
+	(idlwave-routine-entry-compare, idlwave-routine-info.pro)
+	(idlwave-scan-all-buffers-for-routine-info, idlwave-scan-class-info)
+	(idlwave-shell-automatic-start, idlwave-shell-explicit-file-name)
+	(idlwave-show-begin, idlwave-split-line, idlwave-split-link-target)
+	(idlwave-statement-type, idlwave-struct-skip)
+	(idlwave-substitute-link-target, idlwave-toggle-comment-region)
+	(idlwave-update-current-buffer-info, idlwave-use-library-catalogs)
+	(idlwave-what-module-find-class): Fix typos in docstrings.
+	(idlwave-all-method-classes, idlwave-calc-hanging-indent)
+	(idlwave-calculate-cont-indent, idlwave-expand-equal)
+	(idlwave-find-module, idlwave-find-structure-definition)
+	(idlwave-init-rinfo-when-idle-after, idlwave-insert-source-location)
+	(idlwave-list-load-path-shadows, idlwave-next-statement)
+	(idlwave-routine-entry-compare-twins, idlwave-routine-info)
+	(idlwave-routines, idlwave-sintern-rinfo-list, idlwave-statement-match)
+	(idlwave-template): Reflow docstrings.
+
+	* progmodes/idlw-shell.el (idlwave-shell-syntax-error): Doc fix.
+	(idlwave-shell-batch-command, idlwave-shell-bp-alist)
+	(idlwave-shell-bp-get, idlwave-shell-bp-overlays)
+	(idlwave-shell-bp-query, idlwave-shell-break-here, idlwave-shell-buffer)
+	(idlwave-shell-display-line, idlwave-shell-display-wframe)
+	(idlwave-shell-electric-debug-mode, idlwave-shell-examine-select)
+	(idlwave-shell-file-name-chars, idlwave-shell-filter-bp)
+	(idlwave-shell-goto-frame, idlwave-shell-halt-messages-re)
+	(idlwave-shell-highlighting-and-faces, idlwave-shell-idl-wframe)
+	(idlwave-shell-mode-hook, idlwave-shell-mode-line-info)
+	(idlwave-shell-mode-map, idlwave-shell-module-source-filter)
+	(idlwave-shell-mouse-help, idlwave-shell-mouse-print)
+	(idlwave-shell-pc-frame, idlwave-shell-pending-commands)
+	(idlwave-shell-print, idlwave-shell-quit, idlwave-shell-redisplay)
+	(idlwave-shell-scan-for-state, idlwave-shell-send-command)
+	(idlwave-shell-sentinel-hook, idlwave-shell-separate-examine-output)
+	(idlwave-shell-shell-command, idlwave-shell-sources-alist)
+	(idlwave-shell-sources-bp, idlwave-shell-sources-filter)
+	(idlwave-shell-step, idlwave-shell-use-breakpoint-glyph)
+	(idlwave-toolbar-add-everywhere, idlwave-toolbar-toggle):
+	Fix typos in docstrings.
+	(idlwave-shell-bp, idlwave-shell-clear-current-bp)
+	(idlwave-shell-hide-output, idlwave-shell-mode)
+	(idlwave-shell-run-region, idlwave-shell-set-bp-in-module):
+	Reflow docstrings.
+
+	* textmodes/bibtex.el (bibtex-sort-entry-class): Fix group name.
+
+2009-09-24  Ivan Kanis  <apple@kanis.eu>
+
+	* term.el (term-bold-attribute): New var.
+	(term-handle-colors-array): Use it.
+
+2009-09-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-version): New variable.
+	(gdb-non-stop-handler): Set gdb-version.
+	(gdb-gud-context-command, gdb-current-context-command, gdb-stopped):
+	Condition "--thread" option on gdb-version.
+	(gdb-invalidate-threads): Remove unused argument.
+
+2009-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (sgml-mode-flyspell-verify): Pass limit args
+	to looking-back to avoid ridiculous slow down in large files (bug#4511).
+
+2009-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Don't try to add a References header when
+	replying to mail without References or Message-Id.  (Bug#4525)
+
+2009-09-23  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el (ns-reg-to-script): New variable.
+
+2009-09-23  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg-wait-for-status): Preserve existing 'error results.
+
+2009-09-22  Sam Steingold  <sds@gnu.org>
+
+	* vc-hg.el (vc-hg-print-log): Fix shortlog arg passing.
+	(vc-hg-outgoing, vc-hg-incoming): Bump okstatus in `vc-hg-command'
+	to 1 because hg returns status 1 when nothing is found.
+	Bind `vc-short-log' for the sake of `vc-hg-log-view-mode'.
+
+2009-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el: Convert to utf-8 encoding.
+	(fill-french-nobreak-p): Remove redundant » and « inherited from our
+	pre-unicode days.
+
+	* add-log.el (change-log-fill-forward-paragraph): New function.
+	(change-log-mode): Use it so fill-region DTRT.
+	Set fill-indent-according-to-mode here rather than in
+	change-log-fill-paragraph.
+	(change-log-fill-paragraph): Remove.
+
+2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.el (Info-try-follow-nearest-node): Use the URL extracted by
+	`Info-get-token', instead of `browse-url-url-at-point'.  (Bug#4508)
+
+2009-09-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-mode-map): Make mouse-1 and 3 clicks on
+	the scroll-bar scroll the calendar window rather than the buffer.
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu): Add a sub-section with
+	commands that move point (as opposed to scrolling).
+
+	* emulation/tpu-edt.el (tpu-copy-keyfile): Fix condition-case handler.
+
+	* emacs-lisp/elint.el (elint): New custom group.
+	(elint-log-buffer): Make it a defcustom.
+	(elint-scan-preloaded, elint-ignored-warnings)
+	(elint-directory-skip-re): New options.
+	(elint-builtin-variables): Doc fix.
+	(elint-preloaded-env): New variable.
+	(elint-unknown-builtin-args): Add an entry for encode-time.
+	(elint-extra-errors): Make it a variable rather than a constant.
+	(elint-preloaded-skip-re): New constant.
+	(elint-directory): Skip files matching elint-directory-skip-re.
+	(elint-features): New variable, local to linted buffers.
+	(elint-update-env): Initialize elint-features.  Possibly add
+	elint-preloaded-env to the buffer's environment.
+	(elint-get-top-forms): Bind elint-current-pos, for log messages.
+	Skip quoted forms.
+	(elint-init-form): New function, extracted from elint-init-env.
+	Make non-list forms a warning rather than an error.
+	Add the mode-map for define-derived-mode.  Handle define-minor-mode,
+	easy-menu-define, put that adds an error-condition, and provide.
+	When requiring cl, also require cl-macs.  Really require cl, to handle
+	some cl macros.  Store required libraries in the list elint-features,
+	so as not to re-load them.  Treat cc-require like require.
+	(elint-init-env): Call elint-init-form to do the work.
+	Handle eval-and-compile and such like.
+	(elint-add-required-env): Do not clear messages.
+	(elint-special-forms): Add handlers for function, defalias, if, when,
+	unless, and, or.
+	(elint-form): Add optional argument to ignore elint-special-forms,
+	useful to prevent recursive calls from handlers.  Doc fix.
+	Respect elint-ignored-warnings.
+	(elint-form): Respect elint-ignored-warnings.
+	(elint-bound-variable, elint-bound-function): New variables.
+	(elint-unbound-variable): Respect elint-bound-variable.
+	(elint-get-args): Respect elint-bound-function.
+	(elint-check-cond-form): Add some simple handling for (f)boundp and
+	featurep tests.
+	(elint-check-defalias-form): New handler.
+	(elint-check-let-form): Make an empty let a warning rather than an
+	error.
+	(elint-check-setq-form): Make an empty setq a warning rather than an
+	error.  Respect elint-ignored-warnings.
+	(elint-check-defvar-form): Accept null doc-strings.
+	(elint-check-conditional-form): New handler.  Does some simple-minded
+	checking of featurep and (f)boundp tests.
+	(elint-put-function-args): New function.
+	(elint-initialize): Use elint-scan-doc-file rather than
+	elint-find-builtin-variables.  Use elint-put-function-args.
+	Possibly scan preloaded-file-list.
+	(elint-scan-doc-file): Rename from elint-find-builtin-variables and
+	extend to handle functions as well.
+
+2009-09-22  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* linum.el (linum-delete-overlays, linum-update-window):
+	Do not modify the right margin.  (Bug#3971)
+
+2009-09-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (conf-mode-maybe, magic-fallback-mode-alist): Use
+	nxml-mode instead of xml-mode.
+
+2009-09-21  Kevin Ryde  <user42@zip.com.au>
+
+	* net/dig.el: Add "Keywords: comm", as per net-utils.el.  (Bug#4501)
+
+2009-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/dig.el (dig-mode): Use define-derived-mode.
+
+2009-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dispatcher.el (vc-do-command): Return the process object in
+	the asynchronous case.  Use when instead of if.  Do not run
+	vc-exec-after to display a message if not enabled.
+
+	* vc-git.el (vc-git-dir-extra-headers): Add keymap and mouse-face
+	properties to the stash strings.
+	(vc-git-stash-list): Return a list of strings.
+	(vc-git-stash-get-at-point, vc-git-stash-delete-at-point)
+	(vc-git-stash-show-at-point): New functions.
+	(vc-git-stash-map): New keymap.
+
+	* register.el (ctl-x-r-map): Define the keys here instead of
+	using autoload.
+
+2009-09-20  Thierry Volpiatto  <thierry.volpiatto@gmail.com>  (tiny change)
+
+	* bookmark.el (bookmark-write-file): Avoid calling `pp' with large
+	list, to workaround performance problem (bug#4485).
+
+2009-09-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-sentinel): Revert indavertant change.
+
+2009-09-20  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-cache-passphrase-for-symmetric-encryption):
+	Document that this option is not recommended to use.
+
+2009-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc-graph.el (calc-graph-lookup): Avoid assignment to free
+	variable `var'.
+
+	* calc/calc-alg.el (var):
+	* calc/calcalg2.el (var): Define for compiler.
+
+2009-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/advice.el (ad-get-argument, ad-set-argument):
+	Doc fix (Bug#3932).
+
+	* subr.el (baud-rate): Remove long-obsolete function (Bug#4372).
+
+	* time-stamp.el (time-stamp-month-dd-yyyy)
+	(time-stamp-dd/mm/yyyy, time-stamp-mon-dd-yyyy)
+	(time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
+	(time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd)
+	(time-stamp-yymmdd, time-stamp-hh:mm:ss, time-stamp-hhmm):
+	Remove functions that have been obsolete since 1995 (Bug#4436).
+
+	* progmodes/sh-script.el (sh-learn-buffer-indent): Pop to the
+	indent buffer only if called interactively (Bug#4452).
+
+2009-09-19  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	This fixes bug#4197 (merged to bug#865, though not identical).
+	* server.el (server-auth-dir): Add docstring note about FAT32.
+	(server-ensure-safe-dir): Accept FAT32 directories as "safe",
+	but warn against using them.
+
+2009-09-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-var-update-handler-1): Include case of
+	older GDB where there is no has_more field.
+
+2009-09-19  Glenn Morris  <rgm@gnu.org>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region): Add missing mapconcat separator.
+
+2009-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Change default for XML files to nXML
+	mode (Bug#4169).
+
+2009-09-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-ensure-safe-dir): Pass 'integer
+	to `file-attributes', as suggested.
+
+2009-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired-aux.el (dired-query-alist): Remove spurious backslash.
+	(dired-query): Use read-key.
+
+2009-09-18  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* cus-start.el (ns-use-qd-smoothing): Remove.
+
+2009-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* allout.el (top-level): Remove unnecessary progn.
+
+	* progmodes/js.el (js-end-of-defun): Remove malformed and unneeded let.
+
+	* emacs-lisp/derived.el (define-derived-mode): Fix paren typo in
+	definition of abbrev table.
+
+	* speedbar.el (speedbar-track-mouse):
+	* net/eudc-bob.el (eudc-bob-pipe-object-to-external-program):
+	* net/eudc.el (eudc-expand-inline):
+	* net/newst-backend.el (newsticker--cache-read-feed):
+	* nxml/nxml-outln.el (nxml-end-of-heading): Fix typos in
+	condition-case handlers.
+
+2009-09-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-mi.el (gdb-frame-address): New variable.
+	(gdb-var-list): Add an element for has_more field.
+	(gdb-non-stop-handler): Enable pretty printing for STL containers.
+	(gdb-var-create-handler, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Parse output of dynamic variable
+	objects (STL containers).
+	(gdb-var-delete-1): Pass var1 as an explicit second argument.
+	(gdb-get-field): Delete alias.  Use bindat-get-field directly.
+
+	* progmodes/gud.el (gud-speedbar-item-info): Adjust for change to
+	gdb-var-list.
+	(gud-speedbar-buttons): Make node expandable if expression "has more"
+	children.
+
 2009-09-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* startup.el (emacs-quick-startup): Remove variable and all uses.
@@ -94,9 +633,9 @@
 2009-09-15  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer): When selecting a match from
-	the  virtual-buffers, use the name of the buffer specified by
+	the virtual-buffers, use the name of the buffer specified by
 	find-file-noselect, as the match may be a symlink.  (This was a
-	problem if the target and the symlink had differet names.)
+	problem if the target and the symlink had different names.)
 
 2009-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1935,7 +2474,7 @@
 	(gdb-invalidate-disassembly): Do not refresh upon receiving
 	'update signal.  Instead, update all disassembly buffers only after
 	threads list.
-	(gdb): Send -target-detach when buffer is killed (#3794).
+	(gdb): Send -target-detach when buffer is killed (Bug#3794).
 	(gdb-starting): Moved -data-list-register-names...
 	(gdb-stopped): ...here so it's sent when first thread stops.
 	(gdb-registers-handler-custom): Do nothing if register names are
