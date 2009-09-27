@@ -1,3 +1,7 @@
+2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Mention new library imap-hash.el
+
 2009-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Mention new variable `help-downcase-arguments'

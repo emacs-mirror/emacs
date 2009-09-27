@@ -237,6 +237,8 @@ Command*'.
 
 ** js.el is a new major mode for JavaScript files.
 
+** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
+
 
 * Lisp changes in Emacs 23.2
 

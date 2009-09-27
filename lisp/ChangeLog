@@ -1,3 +1,9 @@
+2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap-hash.el: New library, see NEWS.
+
+	* Makefile.in (ELCFILES): Add imap-hash.el.
+
 2009-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (help-for-help-internal): Don't purecopy the text (bug#4560).
