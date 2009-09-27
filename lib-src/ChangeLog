@@ -1,3 +1,9 @@
+2009-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Add term/internal.elc,
+	term/pc-win.elc, emacs-lisp/easymenu.elc, and term/ns-win.elc, to
+	be consistent with src/Makefile.in.
+
 2009-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* update-game-score.c (main): Sort scores before trimming them,
