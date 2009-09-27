@@ -5953,6 +5953,7 @@ make_lispy_event (event)
 	     as a multiple of 1/8 characters.  */
 	  struct frame *f;
 	  int fuzz;
+	  int symbol_num;
 	  int is_double;
 
 	  if (WINDOWP (event->frame_or_window))
@@ -5967,7 +5968,27 @@ make_lispy_event (event)
 	  else
 	    fuzz = double_click_fuzz / 8;
 
-	  is_double = (last_mouse_button < 0
+	  if (event->modifiers & up_modifier)
+	    {
+	      /* Emit a wheel-up event.  */
+	      event->modifiers &= ~up_modifier;
+	      symbol_num = 0;
+	    }
+	  else if (event->modifiers & down_modifier)
+	    {
+	      /* Emit a wheel-down event.  */
+	      event->modifiers &= ~down_modifier;
+	      symbol_num = 1;
+	    }
+	  else
+	    /* Every wheel event should either have the down_modifier or
+	       the up_modifier set.  */
+	    abort ();
+
+          if (event->kind == HORIZ_WHEEL_EVENT)
+            symbol_num += 2;
+
+	  is_double = (last_mouse_button == - (1 + symbol_num)
 		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
@@ -5990,33 +6011,9 @@ make_lispy_event (event)
 
 	  button_down_time = event->timestamp;
 	  /* Use a negative value to distinguish wheel from mouse button.  */
-	  last_mouse_button = -1;
+	  last_mouse_button = - (1 + symbol_num);
 	  last_mouse_x = XINT (event->x);
 	  last_mouse_y = XINT (event->y);
-	}
-
-	{
-	  int symbol_num;
-
-	  if (event->modifiers & up_modifier)
-	    {
-	      /* Emit a wheel-up event.  */
-	      event->modifiers &= ~up_modifier;
-	      symbol_num = 0;
-	    }
-	  else if (event->modifiers & down_modifier)
-	    {
-	      /* Emit a wheel-down event.  */
-	      event->modifiers &= ~down_modifier;
-	      symbol_num = 1;
-	    }
-	  else
-	    /* Every wheel event should either have the down_modifier or
-	       the up_modifier set.  */
-	    abort ();
-
-          if (event->kind == HORIZ_WHEEL_EVENT)
-            symbol_num += 2;
 
 	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
@@ -11898,7 +11895,9 @@ syms_of_keyboard ()
   staticpro (&button_down_location);
   mouse_syms = Fmake_vector (make_number (5), Qnil);
   staticpro (&mouse_syms);
-  wheel_syms = Fmake_vector (make_number (4), Qnil);
+  wheel_syms = Fmake_vector (make_number (sizeof (lispy_wheel_names)
+					  / sizeof (lispy_wheel_names[0])),
+			     Qnil);
   staticpro (&wheel_syms);
 
   {
