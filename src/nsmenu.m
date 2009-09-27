@@ -156,7 +156,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
   if (menu == nil)
     {
-      menu = [[EmacsMenu alloc] initWithTitle: @"Emacs"];
+      menu = [[EmacsMenu alloc] initWithTitle: ns_app_name];
       needsSet = YES;
     }
   else
@@ -170,16 +170,6 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
   ftime (&tb);
   t = -(1000*tb.time+tb.millitm);
 #endif
-
-  /* widget_value is a straightforward object translation of emacs's
-     Byzantine lisp menu structures */
-  wv = xmalloc_widget_value ();
-  wv->name = "Emacs";
-  wv->value = 0;
-  wv->enabled = 1;
-  wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
-  first_wv = wv;
 
 #ifdef NS_IMPL_GNUSTEP
   deep_p = 1; /* until GNUstep NSMenu implements the Panther delegation model */
@@ -398,6 +388,14 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       static struct frame *last_f = NULL;
       int n;
       Lisp_Object string;
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
 
       /* Make widget-value tree w/ just the top level menu bar strings */
       items = FRAME_MENU_BAR_ITEMS (f);
@@ -677,7 +675,7 @@ name_is_separator (name)
       NSMenuItem *item = [self itemAtIndex: n];
       NSString *title = [item title];
       if (([title length] == 0  /* OSX 10.5 */
-	   || [@"Emacs" isEqualToString: title]  /* from 10.6 on */
+	   || [ns_app_name isEqualToString: title]  /* from 10.6 on */
 	   || [@"Apple" isEqualToString: title]) /* older */
           && ![item isSeparatorItem])
         continue;
@@ -1663,7 +1661,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   area.size.height= TEXTHEIGHT;
   command = [[[NSTextField alloc] initWithFrame: area] autorelease];
   [[self contentView] addSubview: command];
-  [command setStringValue: @"Emacs"];
+  [command setStringValue: ns_app_name];
   [command setDrawsBackground: NO];
   [command setBezeled: NO];
   [command setSelectable: NO];
