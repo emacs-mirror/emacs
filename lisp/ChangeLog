@@ -1,3 +1,10 @@
+2009-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el: Don't set the region face background. (Bug#4381)
+
+	* faces.el: Default light-background background for region face to
+	ns_selection_color under NS.
+
 2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/imap-hash.el: New library, see NEWS.
