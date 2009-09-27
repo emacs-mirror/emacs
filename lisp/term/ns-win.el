@@ -399,14 +399,6 @@ The properties returned may include `top', `left', `height', and `width'."
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 
-
-;; Must come after keybindings.
-
-;; (fmakunbound 'clipboard-yank)
-;; (fmakunbound 'clipboard-kill-ring-save)
-;; (fmakunbound 'clipboard-kill-region)
-;; (fmakunbound 'menu-bar-enable-clipboard)
-
 ;; Add a couple of menus and rearrange some others; easiest just to redo toplvl
 ;; Note keymap defns must be given last-to-first
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
@@ -1076,8 +1068,6 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
 (defun ns-paste-secondary ()
   (interactive)
   (insert (ns-get-cut-buffer-internal 'SECONDARY)))
-
-(set-face-background 'region "ns_selection_color")
 
 
 
