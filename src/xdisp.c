@@ -6914,7 +6914,7 @@ move_it_in_display_line_to (struct it *it,
 			    }
 
 			  set_iterator_to_next (it, 1);
-			  /* One graphical terminals, newlines may
+			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
 			     On text-only terminals, newlines may
