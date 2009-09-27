@@ -73,7 +73,8 @@ updated in the current buffer.
 
 For language specific hooks, make sure you define this as a local hook.")
 
-(defvar semantic-change-hooks nil
+(defvar semantic-change-hooks
+  '(semantic-edits-change-function-handle-changes)
   "Abnormal hook run when semantic detects a change in a buffer.
 Each hook function must take three arguments, identical to the
 common hook `after-change-functions'.")
@@ -956,11 +957,7 @@ lost if not transferred into NEWTAG."
     ;; to point at the updated state of the world.
     (semantic-overlay-put o 'semantic oldtag)
     ))
-
-;;; Setup incremental parser
-;;
-(add-hook 'semantic-change-hooks
-          #'semantic-edits-change-function-handle-changes)
+
 (add-hook 'semantic-before-toplevel-cache-flush-hook
           #'semantic-edits-flush-changes)
 

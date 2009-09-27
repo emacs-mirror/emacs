@@ -447,13 +447,6 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 
 ;; Symbol completion
 
-(defvar semantic--completion-cache nil
-  "Internal variable used by `senator-complete-symbol'.")
-
-(defsubst semantic-symbol-start (pos)
-  "Return the start of the symbol at buffer position POS."
-  (car (nth 2 (semantic-ctxt-current-symbol-and-bounds pos))))
-
 (defun semantic-find-tag-for-completion (prefix)
   "Find all tags with name starting with PREFIX.
 This uses `semanticdb' when available."

@@ -204,6 +204,10 @@ during a flush when the cache is given a new value of nil.")
 (defvar semantic-parser-name "LL"
   "Optional name of the parser used to parse input stream.")
 (make-variable-buffer-local 'semantic-parser-name)
+
+(defvar semantic--completion-cache nil
+  "Internal variable used by `semantic-complete-symbol'.")
+(make-variable-buffer-local 'semantic--completion-cache)
 
 ;;; Parse tree state management API
 ;;
@@ -487,7 +491,8 @@ is requested."
 
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
-  )
+
+  (setq semantic--completion-cache nil))
 
 (defvar semantic-bovinate-nonterminal-check-obarray)
 
@@ -503,6 +508,7 @@ is requested."
   (add-hook 'after-change-functions 'semantic-change-function nil t)
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
+  (setq semantic--completion-cache nil)
   ;; Refresh the display of unmatched syntax tokens if enabled
   (run-hook-with-args 'semantic-unmatched-syntax-hook
                       semantic-unmatched-syntax-cache)
@@ -580,7 +586,7 @@ was marked unparseable, then do nothing, and return the cache."
         (semantic-clear-unmatched-syntax-cache)
         (run-hook-with-args ;; Let hooks know the updated tags
          'semantic-after-partial-cache-change-hook res))
-      )
+      (setq semantic--completion-cache nil))
 
 ;;;; Parse the whole system.
      ((semantic-parse-tree-needs-rebuild-p)
@@ -819,6 +825,147 @@ a START and END part."
 
 ;;; User interface
 
+(defun semantic-force-refresh ()
+  "Force a full refresh of the current buffer's tags.
+Throw away all the old tags, and recreate the tag database."
+  (interactive)
+  (semantic-clear-toplevel-cache)
+  (semantic-fetch-tags))
+
+(defvar semantic-mode-map
+  (let ((map (make-sparse-keymap))
+	(menu (make-sparse-keymap "Semantic"))
+	(navigate-menu (make-sparse-keymap "Navigate Tags"))
+	(edit-menu (make-sparse-keymap "Edit Tags")))
+
+    (define-key edit-menu [semantic-analyze-possible-completions]
+      '(menu-item "List Completions" semantic-analyze-possible-completions
+		  :help "Display a list of completions for the tag at point"))
+    (define-key edit-menu [semantic-complete-analyze-inline]
+      '(menu-item "Complete Tag Inline" semantic-complete-analyze-inline
+		  :help "Display inline completion for the tag at point"))
+    (define-key edit-menu [semantic-completion-separator]
+      '("--"))
+    (define-key edit-menu [senator-transpose-tags-down]
+      '(menu-item "Transpose Tags Down" senator-transpose-tags-down
+		  :active (semantic-current-tag)
+		  :help "Transpose the current tag and the next tag"))
+    (define-key edit-menu [senator-transpose-tags-up]
+      '(menu-item "Transpose Tags Up" senator-transpose-tags-up
+		  :active (semantic-current-tag)
+		  :help "Transpose the current tag and the previous tag"))
+    (define-key edit-menu [semantic-edit-separator]
+      '("--"))
+    (define-key edit-menu [senator-yank-tag]
+      '(menu-item "Yank Tag" senator-yank-tag
+		  :active (not (ring-empty-p senator-tag-ring))
+		  :help "Yank the head of the tag ring into the buffer"))
+    (define-key edit-menu [senator-copy-tag-to-register]
+      '(menu-item "Copy Tag To Register" senator-copy-tag-to-register
+		  :active (semantic-current-tag)
+		  :help "Yank the head of the tag ring into the buffer"))
+    (define-key edit-menu [senator-copy-tag]
+      '(menu-item "Copy Tag" senator-copy-tag
+		  :active (semantic-current-tag)
+		  :help "Copy the current tag to the tag ring"))
+    (define-key edit-menu [senator-kill-tag]
+      '(menu-item "Kill Tag" senator-kill-tag
+		  :active (semantic-current-tag)
+		  :help "Kill the current tag, and copy it to the tag ring"))
+
+    (define-key navigate-menu [senator-narrow-to-defun]
+      '(menu-item "Narrow to Tag" senator-narrow-to-defun
+		  :active (semantic-current-tag)
+		  :help "Narrow the buffer to the bounds of the current tag"))
+    (define-key navigate-menu [semantic-narrow-to-defun-separator]
+      '("--"))
+    (define-key navigate-menu [semantic-symref-symbol]
+      '(menu-item "Find Tag References..." semantic-symref-symbol
+		  :help "Read a tag and list the references to it"))
+    (define-key navigate-menu [semantic-complete-jump]
+      '(menu-item "Find Tag Globally..." semantic-complete-jump
+		  :help "Read a tag name and find it in the current project"))
+    (define-key navigate-menu [semantic-complete-jump-local]
+      '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
+		  :help "Read a tag name and find it in this buffer"))
+    (define-key navigate-menu [semantic-navigation-separator]
+      '("--"))
+    (define-key navigate-menu [senator-go-to-up-reference]
+      '(menu-item "Parent Tag" senator-go-to-up-reference
+		  :help "Navigate up one reference by tag."))
+    (define-key navigate-menu [senator-next-tag]
+      '(menu-item "Next Tag" senator-next-tag
+		  :help "Go to the next tag"))
+    (define-key navigate-menu [senator-previous-tag]
+      '(menu-item "Previous Tag" senator-previous-tag
+		  :help "Go to the previous tag"))
+
+    (define-key menu [semantic-force-refresh]
+      '(menu-item "Reparse Buffer" semantic-force-refresh
+		  :help "Force a full reparse of the current buffer."))
+    (define-key menu [semantic-refresh-separator]
+      '("--"))
+    (define-key menu [edit-menu]
+      (cons "Edit Tags" edit-menu))
+    (define-key menu [navigate-menu]
+      (cons "Navigate Tags" navigate-menu))
+    (define-key menu [semantic-options-separator]
+      '("--"))
+    (define-key menu [global-semantic-highlight-func-mode]
+      (menu-bar-make-mm-toggle
+       global-semantic-highlight-func-mode
+       "Highlight Current Function"
+       "Highlight the tag at point"))
+    (define-key menu [global-semantic-decoration-mode]
+      (menu-bar-make-mm-toggle
+       global-semantic-decoration-mode
+       "Decorate Tags"
+       "Decorate tags based on various attributes"))
+    (define-key menu [global-semantic-idle-completions-mode]
+      (menu-bar-make-mm-toggle
+       global-semantic-idle-completions-mode
+       "Show Tag Completions"
+       "Show tag completions when idle"))
+    (define-key menu [global-semantic-idle-summary-mode]
+      (menu-bar-make-mm-toggle
+       global-semantic-idle-summary-mode
+       "Show Tag Summaries"
+       "Show tag summaries when idle"))
+    (define-key menu [global-semanticdb-minor-mode]
+      '(menu-item "Semantic Database" global-semanticdb-minor-mode
+		  :help "Store tag information in a database"
+		  :button (:toggle . (semanticdb-minor-mode-p))))
+    (define-key menu [global-semantic-idle-scheduler-mode]
+      (menu-bar-make-mm-toggle
+       global-semantic-idle-scheduler-mode
+       "Reparse When Idle"
+       "Keep a buffer's parse tree up to date when idle"))
+    (define-key map [menu-bar semantic]
+      (cons "Development" menu))
+
+    ;; Key bindings:
+
+    ;; (define-key km "f"    'senator-search-set-tag-class-filter)
+    ;; (define-key km "i"    'senator-isearch-toggle-semantic-mode)
+    (define-key map "\C-c,j" 'semantic-complete-jump-local)
+    (define-key map "\C-c,J" 'semantic-complete-jump)
+    (define-key map "\C-c,g" 'semantic-symref-symbol)
+    (define-key map "\C-c,G" 'semantic-symref)
+    (define-key map "\C-c,p" 'senator-previous-tag)
+    (define-key map "\C-c,n" 'senator-next-tag)
+    (define-key map "\C-c,u" 'senator-go-to-up-reference)
+    (define-key map "\C-c, " 'semantic-complete-analyze-inline)
+    (define-key map "\C-c,\C-w" 'senator-kill-tag)
+    (define-key map "\C-c,\M-w" 'senator-copy-tag)
+    (define-key map "\C-c,\C-y" 'senator-yank-tag)
+    (define-key map "\C-c,r" 'senator-copy-tag-to-register)
+    (define-key map [?\C-c ?, up] 'senator-transpose-tags-up)
+    (define-key map [?\C-c ?, down] 'senator-transpose-tags-down)
+    (define-key map "\C-c,l" 'semantic-analyze-possible-completions)
+    ;; (define-key km "-"    'senator-fold-tag)
+    ;; (define-key km "+"    'senator-unfold-tag)
+    map))
+
 ;; The `semantic-mode' command, in conjuction with the
 ;; `semantic-default-submodes' variable, are used to collectively
 ;; toggle Semantic's various auxilliary minor modes.
@@ -867,11 +1014,16 @@ In Semantic mode, Emacs parses the buffers you visit for their
 semantic content.  This information is used by a variety of
 auxilliary minor modes, listed in `semantic-default-submodes';
 all the minor modes in this list are also enabled when you enable
-Semantic mode."
+Semantic mode.
+
+\\{semantic-mode-map}"
+  :global t
   :group 'semantic
   (if semantic-mode
       ;; Turn on Semantic mode
       (progn
+	;; Enable all the global auxilliary minor modes in
+	;; `semantic-submode-list'.
 	(dolist (mode semantic-submode-list)
 	  (if (memq mode semantic-default-submodes)
 	      (funcall mode 1)))

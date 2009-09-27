@@ -69,13 +69,13 @@
   "Timer used to schedule tasks in idle time that may take a while.")
 
 (defcustom semantic-idle-scheduler-verbose-flag nil
-  "*Non-nil means that the idle scheduler should provide debug messages.
+  "Non-nil means that the idle scheduler should provide debug messages.
 Use this setting to debug idle activities."
   :group 'semantic
   :type 'boolean)
 
-(defcustom semantic-idle-scheduler-idle-time 2
-  "*Time in seconds of idle before scheduling events.
+(defcustom semantic-idle-scheduler-idle-time 1
+  "Time in seconds of idle before scheduling events.
 This time should be short enough to ensure that idle-scheduler will be
 run as soon as Emacs is idle."
   :group 'semantic
@@ -88,7 +88,7 @@ run as soon as Emacs is idle."
            (semantic-idle-scheduler-setup-timers))))
 
 (defcustom semantic-idle-scheduler-work-idle-time 60
-  "*Time in seconds of idle before scheduling big work.
+  "Time in seconds of idle before scheduling big work.
 This time should be long enough that once any big work is started, it is
 unlikely the user would be ready to type again right away."
   :group 'semantic

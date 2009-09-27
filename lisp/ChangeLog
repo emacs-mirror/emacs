@@ -1,3 +1,27 @@
+2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cedet/semantic/idle.el (semantic-idle-scheduler-work-timer):
+	Change timeout to 1.  Doc fix.
+
+	* cedet/semantic/edit.el (semantic-change-hooks): Add
+	semantic-edits-change-function-handle-changes directly.
+
+	* cedet/semantic/util.el (semantic--completion-cache): Move to
+	semantic.el.
+	(semantic-symbol-start): Remove unneeded function.
+
+	* cedet/semantic.el (semantic--completion-cache): Move here from
+	semantic/util.el
+	(semantic-clear-toplevel-cache, semantic--set-buffer-cache)
+	(semantic-fetch-tags): Reset semantic--completion-cache.
+	(semantic-force-refresh): New function
+	(semantic-mode-map): New variable.
+
+	* cedet/semantic/senator.el: New file.
+
+	* cedet/ede.el: Fix autoload.
+	(ede-customize-forms-menu): Handle null projects.
+
 2009-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cedet/srecode/mode.el (srecode-menu-bar): Use

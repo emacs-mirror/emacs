@@ -706,9 +706,10 @@ Argument MENU-DEF is the definition of the current menu."
    (easy-menu-create-menu
     "Customize Project"
     (let* ((obj (ede-current-project))
-	   (targ (when (slot-boundp obj 'targets)
-		   (oref obj targets))))
+	   targ)
       (when obj
+	(setq targ (when (slot-boundp obj 'targets)
+		     (oref obj targets)))
 	;; Make custom menus for everything here.
 	(append (list
 		 (cons (concat "Project " (ede-name obj))
@@ -759,7 +760,7 @@ If optional argument CURRENT is non-nil, return sub-menu code."
 ;;; Mode Declarations
 ;;
 (eval-and-compile
-  (autoload 'ede-dired-minor-mode "ede-dired" "EDE commands for dired" t))
+  (autoload 'ede-dired-minor-mode "ede/dired" "EDE commands for dired" t))
 
 (defun ede-apply-target-options ()
   "Apply options to the current buffer for the active project/target."
