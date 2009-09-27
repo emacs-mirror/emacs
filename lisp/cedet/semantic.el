@@ -30,6 +30,7 @@
 ;; designed to handle typical functional and object oriented languages.
 
 (require 'assoc)
+(require 'cedet)
 (require 'semantic/tag)
 (require 'semantic/lex)
 
@@ -830,121 +831,12 @@ a START and END part."
 Throw away all the old tags, and recreate the tag database."
   (interactive)
   (semantic-clear-toplevel-cache)
-  (semantic-fetch-tags))
+  (semantic-fetch-tags)
+  (message "Buffer reparsed."))
 
 (defvar semantic-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu (make-sparse-keymap "Semantic"))
-	(navigate-menu (make-sparse-keymap "Navigate Tags"))
-	(edit-menu (make-sparse-keymap "Edit Tags")))
-
-    (define-key edit-menu [semantic-analyze-possible-completions]
-      '(menu-item "List Completions" semantic-analyze-possible-completions
-		  :help "Display a list of completions for the tag at point"))
-    (define-key edit-menu [semantic-complete-analyze-inline]
-      '(menu-item "Complete Tag Inline" semantic-complete-analyze-inline
-		  :help "Display inline completion for the tag at point"))
-    (define-key edit-menu [semantic-completion-separator]
-      '("--"))
-    (define-key edit-menu [senator-transpose-tags-down]
-      '(menu-item "Transpose Tags Down" senator-transpose-tags-down
-		  :active (semantic-current-tag)
-		  :help "Transpose the current tag and the next tag"))
-    (define-key edit-menu [senator-transpose-tags-up]
-      '(menu-item "Transpose Tags Up" senator-transpose-tags-up
-		  :active (semantic-current-tag)
-		  :help "Transpose the current tag and the previous tag"))
-    (define-key edit-menu [semantic-edit-separator]
-      '("--"))
-    (define-key edit-menu [senator-yank-tag]
-      '(menu-item "Yank Tag" senator-yank-tag
-		  :active (not (ring-empty-p senator-tag-ring))
-		  :help "Yank the head of the tag ring into the buffer"))
-    (define-key edit-menu [senator-copy-tag-to-register]
-      '(menu-item "Copy Tag To Register" senator-copy-tag-to-register
-		  :active (semantic-current-tag)
-		  :help "Yank the head of the tag ring into the buffer"))
-    (define-key edit-menu [senator-copy-tag]
-      '(menu-item "Copy Tag" senator-copy-tag
-		  :active (semantic-current-tag)
-		  :help "Copy the current tag to the tag ring"))
-    (define-key edit-menu [senator-kill-tag]
-      '(menu-item "Kill Tag" senator-kill-tag
-		  :active (semantic-current-tag)
-		  :help "Kill the current tag, and copy it to the tag ring"))
-
-    (define-key navigate-menu [senator-narrow-to-defun]
-      '(menu-item "Narrow to Tag" senator-narrow-to-defun
-		  :active (semantic-current-tag)
-		  :help "Narrow the buffer to the bounds of the current tag"))
-    (define-key navigate-menu [semantic-narrow-to-defun-separator]
-      '("--"))
-    (define-key navigate-menu [semantic-symref-symbol]
-      '(menu-item "Find Tag References..." semantic-symref-symbol
-		  :help "Read a tag and list the references to it"))
-    (define-key navigate-menu [semantic-complete-jump]
-      '(menu-item "Find Tag Globally..." semantic-complete-jump
-		  :help "Read a tag name and find it in the current project"))
-    (define-key navigate-menu [semantic-complete-jump-local]
-      '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
-		  :help "Read a tag name and find it in this buffer"))
-    (define-key navigate-menu [semantic-navigation-separator]
-      '("--"))
-    (define-key navigate-menu [senator-go-to-up-reference]
-      '(menu-item "Parent Tag" senator-go-to-up-reference
-		  :help "Navigate up one reference by tag."))
-    (define-key navigate-menu [senator-next-tag]
-      '(menu-item "Next Tag" senator-next-tag
-		  :help "Go to the next tag"))
-    (define-key navigate-menu [senator-previous-tag]
-      '(menu-item "Previous Tag" senator-previous-tag
-		  :help "Go to the previous tag"))
-
-    (define-key menu [semantic-force-refresh]
-      '(menu-item "Reparse Buffer" semantic-force-refresh
-		  :help "Force a full reparse of the current buffer."))
-    (define-key menu [semantic-refresh-separator]
-      '("--"))
-    (define-key menu [edit-menu]
-      (cons "Edit Tags" edit-menu))
-    (define-key menu [navigate-menu]
-      (cons "Navigate Tags" navigate-menu))
-    (define-key menu [semantic-options-separator]
-      '("--"))
-    (define-key menu [global-semantic-highlight-func-mode]
-      (menu-bar-make-mm-toggle
-       global-semantic-highlight-func-mode
-       "Highlight Current Function"
-       "Highlight the tag at point"))
-    (define-key menu [global-semantic-decoration-mode]
-      (menu-bar-make-mm-toggle
-       global-semantic-decoration-mode
-       "Decorate Tags"
-       "Decorate tags based on various attributes"))
-    (define-key menu [global-semantic-idle-completions-mode]
-      (menu-bar-make-mm-toggle
-       global-semantic-idle-completions-mode
-       "Show Tag Completions"
-       "Show tag completions when idle"))
-    (define-key menu [global-semantic-idle-summary-mode]
-      (menu-bar-make-mm-toggle
-       global-semantic-idle-summary-mode
-       "Show Tag Summaries"
-       "Show tag summaries when idle"))
-    (define-key menu [global-semanticdb-minor-mode]
-      '(menu-item "Semantic Database" global-semanticdb-minor-mode
-		  :help "Store tag information in a database"
-		  :button (:toggle . (semanticdb-minor-mode-p))))
-    (define-key menu [global-semantic-idle-scheduler-mode]
-      (menu-bar-make-mm-toggle
-       global-semantic-idle-scheduler-mode
-       "Reparse When Idle"
-       "Keep a buffer's parse tree up to date when idle"))
-    (define-key map [menu-bar semantic]
-      (cons "Development" menu))
-
+  (let ((map (make-sparse-keymap)))
     ;; Key bindings:
-
     ;; (define-key km "f"    'senator-search-set-tag-class-filter)
     ;; (define-key km "i"    'senator-isearch-toggle-semantic-mode)
     (define-key map "\C-c,j" 'semantic-complete-jump-local)
@@ -962,13 +854,129 @@ Throw away all the old tags, and recreate the tag database."
     (define-key map [?\C-c ?, up] 'senator-transpose-tags-up)
     (define-key map [?\C-c ?, down] 'senator-transpose-tags-down)
     (define-key map "\C-c,l" 'semantic-analyze-possible-completions)
+    ;; This hack avoids showing the CEDET menu twice if ede-minor-mode
+    ;; and Semantic are both enabled.  Is there a better way?
+    (define-key map [menu-bar cedet-menu]
+      (list 'menu-item "Development" cedet-menu-map
+	    :enable (quote (not (bound-and-true-p global-ede-mode)))))
     ;; (define-key km "-"    'senator-fold-tag)
     ;; (define-key km "+"    'senator-unfold-tag)
     map))
 
+;; Activate the Semantic items in cedet-menu-map
+(let ((navigate-menu (make-sparse-keymap "Navigate Tags"))
+      (edit-menu (make-sparse-keymap "Edit Tags")))
+
+  ;; Edit Tags submenu:
+  (define-key edit-menu [semantic-analyze-possible-completions]
+    '(menu-item "List Completions" semantic-analyze-possible-completions
+		:help "Display a list of completions for the tag at point"))
+  (define-key edit-menu [semantic-complete-analyze-inline]
+    '(menu-item "Complete Tag Inline" semantic-complete-analyze-inline
+		:help "Display inline completion for the tag at point"))
+  (define-key edit-menu [semantic-completion-separator]
+    '("--"))
+  (define-key edit-menu [senator-transpose-tags-down]
+    '(menu-item "Transpose Tags Down" senator-transpose-tags-down
+		:active (semantic-current-tag)
+		:help "Transpose the current tag and the next tag"))
+  (define-key edit-menu [senator-transpose-tags-up]
+    '(menu-item "Transpose Tags Up" senator-transpose-tags-up
+		:active (semantic-current-tag)
+		:help "Transpose the current tag and the previous tag"))
+  (define-key edit-menu [semantic-edit-separator]
+    '("--"))
+  (define-key edit-menu [senator-yank-tag]
+    '(menu-item "Yank Tag" senator-yank-tag
+		:active (not (ring-empty-p senator-tag-ring))
+		:help "Yank the head of the tag ring into the buffer"))
+  (define-key edit-menu [senator-copy-tag-to-register]
+    '(menu-item "Copy Tag To Register" senator-copy-tag-to-register
+		:active (semantic-current-tag)
+		:help "Yank the head of the tag ring into the buffer"))
+  (define-key edit-menu [senator-copy-tag]
+    '(menu-item "Copy Tag" senator-copy-tag
+		:active (semantic-current-tag)
+		:help "Copy the current tag to the tag ring"))
+  (define-key edit-menu [senator-kill-tag]
+    '(menu-item "Kill Tag" senator-kill-tag
+		:active (semantic-current-tag)
+		:help "Kill the current tag, and copy it to the tag ring"))
+
+  ;; Navigate Tags submenu:
+  (define-key navigate-menu [senator-narrow-to-defun]
+    '(menu-item "Narrow to Tag" senator-narrow-to-defun
+		:active (semantic-current-tag)
+		:help "Narrow the buffer to the bounds of the current tag"))
+  (define-key navigate-menu [semantic-narrow-to-defun-separator]
+    '("--"))
+  (define-key navigate-menu [semantic-symref-symbol]
+    '(menu-item "Find Tag References..." semantic-symref-symbol
+		:help "Read a tag and list the references to it"))
+  (define-key navigate-menu [semantic-complete-jump]
+    '(menu-item "Find Tag Globally..." semantic-complete-jump
+		:help "Read a tag name and find it in the current project"))
+  (define-key navigate-menu [semantic-complete-jump-local]
+    '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
+		:help "Read a tag name and find it in this buffer"))
+  (define-key navigate-menu [semantic-navigation-separator]
+    '("--"))
+  (define-key navigate-menu [senator-go-to-up-reference]
+    '(menu-item "Parent Tag" senator-go-to-up-reference
+		:help "Navigate up one reference by tag."))
+  (define-key navigate-menu [senator-next-tag]
+    '(menu-item "Next Tag" senator-next-tag
+		:help "Go to the next tag"))
+  (define-key navigate-menu [senator-previous-tag]
+    '(menu-item "Previous Tag" senator-previous-tag
+		:help "Go to the previous tag"))
+
+  ;; Top level menu items:
+  (define-key cedet-menu-map [semantic-force-refresh]
+    '(menu-item "Reparse Buffer" semantic-force-refresh
+		:help "Force a full reparse of the current buffer."))
+  (define-key cedet-menu-map [semantic-edit-menu]
+    (cons "Edit Tags" edit-menu))
+  (define-key cedet-menu-map [navigate-menu]
+    (cons "Navigate Tags" navigate-menu))
+  (define-key cedet-menu-map [semantic-options-separator]
+    '("--"))
+  (define-key cedet-menu-map [global-semantic-highlight-func-mode]
+    (menu-bar-make-mm-toggle
+     global-semantic-highlight-func-mode
+     "Highlight Current Function"
+     "Highlight the tag at point"))
+  (define-key cedet-menu-map [global-semantic-decoration-mode]
+    (menu-bar-make-mm-toggle
+     global-semantic-decoration-mode
+     "Decorate Tags"
+     "Decorate tags based on various attributes"))
+  (define-key cedet-menu-map [global-semantic-idle-completions-mode]
+    (menu-bar-make-mm-toggle
+     global-semantic-idle-completions-mode
+     "Show Tag Completions"
+     "Show tag completions when idle"))
+  (define-key cedet-menu-map [global-semantic-idle-summary-mode]
+    (menu-bar-make-mm-toggle
+     global-semantic-idle-summary-mode
+     "Show Tag Summaries"
+     "Show tag summaries when idle"))
+  (define-key cedet-menu-map [global-semanticdb-minor-mode]
+    '(menu-item "Semantic Database" global-semanticdb-minor-mode
+		:help "Store tag information in a database"
+		:button (:toggle . (semanticdb-minor-mode-p))))
+  (define-key cedet-menu-map [global-semantic-idle-scheduler-mode]
+    (menu-bar-make-mm-toggle
+     global-semantic-idle-scheduler-mode
+     "Reparse When Idle"
+     "Keep a buffer's parse tree up to date when idle"))
+  (define-key cedet-menu-map [ede-menu-separator] 'undefined)
+  (define-key cedet-menu-map [cedet-menu-separator] 'undefined)
+  (define-key cedet-menu-map [semantic-menu-separator] '("--")))
+
 ;; The `semantic-mode' command, in conjuction with the
-;; `semantic-default-submodes' variable, are used to collectively
-;; toggle Semantic's various auxilliary minor modes.
+;; `semantic-default-submodes' variable, toggles Semantic's various
+;; auxilliary minor modes.
 
 (defvar semantic-load-system-cache-loaded nil
   "Non nil when the Semantic system caches have been loaded.

@@ -34,14 +34,10 @@
 (eval-when-compile
   (require 'cl))
 
+(declare-function inversion-find-version "inversion")
+
 (defconst cedet-version "1.0pre7"
   "Current version of CEDET.")
-
-(require 'eieio)
-(require 'semantic)
-(require 'srecode)
-(require 'ede)
-(require 'speedbar)
 
 (defconst cedet-packages
   `(
@@ -54,7 +50,40 @@
     (speedbar      "1.0.3"))
   "Table of CEDET packages to install.")
 
-(declare-function inversion-find-version "inversion")
+(defvar cedet-menu-map ;(make-sparse-keymap "CEDET menu")
+  (let ((map (make-sparse-keymap "CEDET menu")))
+    (define-key map [semantic-force-refresh]     'undefined)
+    (define-key map [semantic-edit-menu]         'undefined)
+    (define-key map [navigate-menu]              'undefined)
+    (define-key map [semantic-options-separator] 'undefined)
+    (define-key map [global-semantic-highlight-func-mode]   'undefined)
+    (define-key map [global-semantic-highlight-func-mode]   'undefined)
+    (define-key map [global-semantic-decoration-mode]       'undefined)
+    (define-key map [global-semantic-idle-completions-mode] 'undefined)
+    (define-key map [global-semantic-idle-summary-mode]     'undefined)
+    (define-key map [global-semanticdb-minor-mode]          'undefined)
+    (define-key map [global-semantic-idle-scheduler-mode]   'undefined)
+    (define-key map [semantic-menu-separator] '("--"))
+    (define-key map [semantic-mode]
+      '(menu-item "Enable parsers (Semantic)" semantic-mode
+		  :help "Enable language parsers (Semantic)"
+		  :visible (not (bound-and-true-p semantic-mode))))
+    (define-key map [cedet-menu-separator] 'undefined)
+    (define-key map [ede-mode]
+      '(menu-item "Enable Projects (EDE)" global-ede-mode
+		  :help "Enable the Emacs Development Environment (EDE)"
+		  :visible (not (bound-and-true-p global-ede-mode))))
+    (define-key map [ede-menu-separator] '("--"))
+    (define-key map [ede-find-file]        'undefined)
+    (define-key map [ede-speedbar]         'undefined)
+    (define-key map [ede] 'undefined)
+    (define-key map [ede-new]              'undefined)
+    (define-key map [ede-target-options]   'undefined)
+    (define-key map [ede-project-options]  'undefined)
+    (define-key map [ede-build-forms-menu] 'undefined)
+    map)
+  "Menu keymap for the CEDET package.
+This is used by `semantic-mode' and `global-ede-mode'.")
 
 (defun cedet-version ()
   "Display all active versions of CEDET and Dependant packages.

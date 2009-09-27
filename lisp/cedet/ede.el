@@ -39,6 +39,7 @@
 ;;
 ;;  (global-ede-mode t)
 
+(require 'cedet)
 (require 'eieio)
 (require 'eieio-speedbar)
 (require 'ede/source)
@@ -549,14 +550,7 @@ Argument LIST-O-O is the list of objects to choose from."
 
 ;;; Menu and Keymap
 
-(defvar ede-minor-mode nil
-  "Non-nil in EDE controlled buffers.")
-(make-variable-buffer-local 'ede-minor-mode)
-
-;; We don't want to waste space.  There is a menu after all.
-(add-to-list 'minor-mode-alist '(ede-minor-mode ""))
-
-(defvar ede-minor-keymap
+(defvar ede-minor-mode-map
   (let ((map (make-sparse-keymap))
 	(pmap (make-sparse-keymap)))
     (define-key pmap "e" 'ede-edit-file-target)
@@ -576,32 +570,37 @@ Argument LIST-O-O is the list of objects to choose from."
     map)
   "Keymap used in project minor mode.")
 
-(if ede-minor-keymap
-    (progn
-      (easy-menu-define
-       ede-minor-menu ede-minor-keymap "Project Minor Mode Menu"
-       '("Project"
-	 ( "Build" :filter ede-build-forms-menu )
-	 ( "Project Options" :filter ede-project-forms-menu )
-	 ( "Target Options" :filter ede-target-forms-menu )
-	 [ "Create Project" ede-new (not ede-object) ]
-	 [ "Load a project" ede t ]
-;;	 [ "Select Active Target" 'undefined nil ]
-;;	 [ "Remove Project" 'undefined nil ]
-	 "---"
-	 [ "Find File in Project..." ede-find-file t ]
-	 ( "Customize" :filter ede-customize-forms-menu )
-	 [ "View Project Tree" ede-speedbar t ]
-	 ))
-      ))
+(defvar global-ede-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [menu-bar cedet-menu]
+      (cons "Development" cedet-menu-map))
+    map)
+  "Keymap used in `global-ede-mode'")
 
-;; Allow re-insertion of a new keymap
-(let ((a (assoc 'ede-minor-mode minor-mode-map-alist)))
-  (if a
-      (setcdr a ede-minor-keymap)
-    (add-to-list 'minor-mode-map-alist
-		 (cons 'ede-minor-mode ede-minor-keymap))
-    ))
+;; Activate the EDE items in cedet-menu-map
+
+(define-key cedet-menu-map [ede-find-file]
+  '(menu-item "Find File in Project..." ede-find-file :enable ede-object))
+(define-key cedet-menu-map [ede-speedbar]
+  '(menu-item "View Project Tree" ede-speedbar :enable ede-object))
+(define-key cedet-menu-map [ede]
+  '(menu-item "Load Project" ede))
+(define-key cedet-menu-map [ede-new]
+  '(menu-item "Create Project" ede-new
+	      :enable (not ede-object)))
+(define-key cedet-menu-map [ede-target-options]
+  '(menu-item "Target Options" ede-target-options
+	      :filter ede-target-forms-menu))
+(define-key cedet-menu-map [ede-project-options]
+  '(menu-item "Project Options" ede-project-options
+	      :filter ede-project-forms-menu))
+(define-key cedet-menu-map [ede-build-forms-menu]
+  '(menu-item "Build Project" ede-build-forms-menu
+	      :filter ede-build-forms-menu
+	      :enable ede-object))
+(define-key cedet-menu-map [semantic-menu-separator] 'undefined)
+(define-key cedet-menu-map [cedet-menu-separator] 'undefined)
+(define-key cedet-menu-map [ede-menu-separator] '("--"))
 
 (defun ede-menu-obj-of-class-p (class)
   "Return non-nil if some member of `ede-object' is a child of CLASS."
@@ -781,40 +780,36 @@ To be used in hook functions."
 	  (eq major-mode 'vc-dired-mode))
       (ede-minor-mode 1)))
 
-(defun ede-minor-mode (&optional arg)
-  "Project minor mode.
+(define-minor-mode ede-minor-mode
+  "Toggle EDE (Emacs Development Environment) minor mode.
+With non-nil argument ARG, enable EDE minor mode if ARG is
+positive; otherwise, disable it.
+
 If this file is contained, or could be contained in an EDE
-controlled project, then this mode should be active.
-
-With argument ARG positive, turn on the mode.  Negative, turn off the
-mode.  nil means to toggle the mode."
-  (interactive "P")
-  (if (or (eq major-mode 'dired-mode)
-	  (eq major-mode 'vc-dired-mode))
-      (ede-dired-minor-mode arg)
-    (progn
-      (setq ede-minor-mode
-	    (not (or (and (null arg) ede-minor-mode)
-		     (<= (prefix-numeric-value arg) 0))))
-      (if (and ede-minor-mode (not ede-constructing)
-	       (ede-directory-project-p default-directory t))
-	  (let* ((ROOT nil)
-		 (proj (ede-directory-get-open-project default-directory
-						       'ROOT)))
-	    (when (not proj)
-	      ;; @todo - this could be wasteful.
-	      (setq proj (ede-load-project-file default-directory 'ROOT)))
-
-	    (setq ede-object-project proj)
-	    (setq ede-object-root-project
-		  (or ROOT (ede-project-root proj)))
-	    (setq ede-object (ede-buffer-object))
-	    (if (and (not ede-object) ede-object-project)
-		(ede-auto-add-to-target))
-	    (ede-apply-target-options))
-	;; If we fail to have a project here, turn it back off.
-	(if (not (interactive-p))
-	    (setq ede-minor-mode nil))))))
+controlled project, then this mode is activated automatically
+provided `global-ede-mode' is enabled."
+  :group 'ede
+  (cond ((or (eq major-mode 'dired-mode)
+	     (eq major-mode 'vc-dired-mode))
+	 (ede-dired-minor-mode (if ede-minor-mode 1 -1)))
+	(ede-minor-mode
+	 (if (and (not ede-constructing)
+		  (ede-directory-project-p default-directory t))
+	     (let* ((ROOT nil)
+		    (proj (ede-directory-get-open-project default-directory
+							  'ROOT)))
+	       (when (not proj)
+		 ;; @todo - this could be wasteful.
+		 (setq proj (ede-load-project-file default-directory 'ROOT)))
+	       (setq ede-object-project proj)
+	       (setq ede-object-root-project
+		     (or ROOT (ede-project-root proj)))
+	       (setq ede-object (ede-buffer-object))
+	       (if (and (not ede-object) ede-object-project)
+		   (ede-auto-add-to-target))
+	       (ede-apply-target-options))
+	   ;; If we fail to have a project here, turn it back off.
+	   (ede-minor-mode -1)))))
 
 (defun ede-reset-all-buffers (onoff)
   "Reset all the buffers due to change in EDE.
@@ -827,31 +822,35 @@ ONOFF indicates enabling or disabling the mode."
       (setq b (cdr b)))))
 
 ;;;###autoload
-(defun global-ede-mode (arg)
-  "Turn on variable `ede-minor-mode' mode when ARG is positive.
-If ARG is negative, disable.  Toggle otherwise."
-  (interactive "P")
-  (if (not arg)
-      (if (member 'ede-turn-on-hook find-file-hook)
-	  (global-ede-mode -1)
-	(global-ede-mode 1))
-    (if (or (eq arg t) (> arg 0))
-	(progn
-	  (add-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
-	  (add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
-	  (add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
-	  (add-hook 'find-file-hook 'ede-turn-on-hook)
-	  (add-hook 'dired-mode-hook 'ede-turn-on-hook)
-	  (add-hook 'kill-emacs-hook 'ede-save-cache)
-	  (ede-load-cache))
-      (remove-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
-      (remove-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
-      (remove-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
-      (remove-hook 'find-file-hook 'ede-turn-on-hook)
-      (remove-hook 'dired-mode-hook 'ede-turn-on-hook)
-      (remove-hook 'kill-emacs-hook 'ede-save-cache)
-      (ede-save-cache))
-    (ede-reset-all-buffers arg)))
+(define-minor-mode global-ede-mode
+  "Toggle global EDE (Emacs Development Environment) mode.
+With non-nil argument ARG, enable global EDE mode if ARG is
+positive; otherwise, disable it.
+
+This global minor mode enables `ede-minor-mode' in all buffers in
+an EDE controlled project."
+  :global t
+  :group 'ede
+  (if global-ede-mode
+      ;; Turn on global-ede-mode
+      (progn
+	(add-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
+	(add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
+	(add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
+	(add-hook 'find-file-hook 'ede-turn-on-hook)
+	(add-hook 'dired-mode-hook 'ede-turn-on-hook)
+	(add-hook 'kill-emacs-hook 'ede-save-cache)
+	(ede-load-cache)
+	(ede-reset-all-buffers 1))
+    ;; Turn off global-ede-mode
+    (remove-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
+    (remove-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
+    (remove-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
+    (remove-hook 'find-file-hook 'ede-turn-on-hook)
+    (remove-hook 'dired-mode-hook 'ede-turn-on-hook)
+    (remove-hook 'kill-emacs-hook 'ede-save-cache)
+    (ede-save-cache)
+    (ede-reset-all-buffers -1)))
 
 (defvar ede-ignored-file-alist
   '( "\\.cvsignore$"

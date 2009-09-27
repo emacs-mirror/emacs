@@ -1,5 +1,16 @@
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cedet/ede.el (global-ede-mode-map): Move menu to
+	global-ede-mode-map.
+	(ede-minor-mode, global-ede-mode): Use define-minor-mode.
+
+	* cedet/semantic.el (semantic-mode-map): Use cedet-menu-map.
+
+	* cedet/cedet.el (cedet-menu-map): New var.  Don't require
+	Semantic etc.
+
+2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cedet/semantic/symref/list.el: Require semantic/complete.
 	(semantic-symref-symbol): Use
 	semantic-complete-read-tag-buffer-deep.
