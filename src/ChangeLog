@@ -1,3 +1,18 @@
+2009-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.h (ns_app_name): New extern variable.
+
+	* nsterm.m (ns_app_name): New variable.
+	(ns_term_init): Set and use it.
+	(ns_term_shutdown): Use it.
+
+	* nsmenu.m (ns_update_menubar): Use ns_app_name.  Sync with xmenu.c.
+	(EmacsMenu-clear:, ns_popup_dialog): Use ns_app_name.
+
+	* nsfns.m (ns_set_name_iconic, ns_set_name)
+	(ns_set_name_as_filename, x-create-frame, ns-get-resource)
+	(ns-set-resource): Use ns_app_name instead of NSProcessInfo call.
+
 2009-09-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (make_lispy_event): Remember last wheel direction.
