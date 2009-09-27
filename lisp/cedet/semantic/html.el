@@ -40,10 +40,7 @@
 
 ;;; Code:
 (eval-when-compile
-  (require 'semantic/ctxt)
-;;  (require 'semantic/imenu)
-;;  (require 'senator)
-)
+  (require 'semantic/ctxt))
 
 (defvar semantic-html-super-regex
   "<\\(h[1-9]\\|title\\|script\\|body\\|a +href\\)\\>"
