@@ -36,10 +36,7 @@
   (require 'semantic/db-find)
   (require 'semantic/ctxt)
   (require 'semantic/find)
-;;  (require 'semantic/imenu)
-  (require 'semantic/doc)
-;;  (require 'senator)
-)
+  (require 'semantic/doc))
 
 (defvar ede-minor-mode)
 (declare-function lookup-words "ispell")
