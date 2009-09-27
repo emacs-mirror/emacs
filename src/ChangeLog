@@ -1,3 +1,8 @@
+2009-09-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event): Remember last wheel direction.
+	(syms_of_keyboard) <wheel_syms>: Compute array size at compile time.
+
 2009-09-26  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MSDOS_SUPPORT) [MSDOS]: Remove unneeded '/' in
