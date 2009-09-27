@@ -13,6 +13,9 @@
 	(ns_set_name_as_filename, x-create-frame, ns-get-resource)
 	(ns-set-resource): Use ns_app_name instead of NSProcessInfo call.
 
+	* menu.c (find_and_return_menu_selection) [HAVE_NS]: Remove
+	double-casting in client_data comparison.
+
 2009-09-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (make_lispy_event): Remember last wheel direction.
