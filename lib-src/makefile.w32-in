@@ -191,8 +191,12 @@ WINDOW_SUPPORT = \
 OTHER_PLATFORM_SUPPORT = \
 	$(lispsource)dos-fns.elc \
 	$(lispsource)dos-vars.elc \
+	${lispsource}term/internal.elc \
+	${lispsource}term/pc-win.elc \
 	$(lispsource)x-dnd.elc \
-	$(lispsource)term/x-win.elc
+	$(lispsource)term/x-win.elc \
+	${lispsource}emacs-lisp/easymenu.elc \
+	${lispsource}term/ns-win.elc
 
 
 lisp1= \
