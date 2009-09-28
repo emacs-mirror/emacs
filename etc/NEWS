@@ -175,9 +175,9 @@ through a menu structure.
 
 +++
 ** New connection methods in Tramp.
-The new connection method "rsyncc" has been introduced.  On systems
-which support GVFS-Fuse, Tramp offers also the new connection methods
-"dav", "davs", "obex" and "synce".
+The new connection methods "rsyncc", "imap" and "imaps" have been
+introduced.  On systems which support GVFS-Fuse, Tramp offers also the
+new connection methods "dav", "davs", "obex" and "synce".
 
 ** nXML mode is now the default for editing XML files.
 
