@@ -483,7 +483,9 @@ log entries."
 If the mark is not active or the mark is on the revision at point,
 get the diff between the revision at point and its previous revision.
 Otherwise, get the diff between the revisions where the region starts
-and ends."
+and ends.
+Contrary to `log-view-diff-changeset', it will only show the part of the
+changeset that affected the currently considered file(s)."
   (interactive
    (list (if mark-active (region-beginning) (point))
          (if mark-active (region-end) (point))))
@@ -508,7 +510,9 @@ and ends."
 If the mark is not active or the mark is on the revision at point,
 get the diff between the revision at point and its previous revision.
 Otherwise, get the diff between the revisions where the region starts
-and ends."
+and ends.
+Contrary to `log-view-diff', it will show the whole changeset including
+the changes that affected other files than the currently considered file(s)."
   (interactive
    (list (if mark-active (region-beginning) (point))
          (if mark-active (region-end) (point))))
