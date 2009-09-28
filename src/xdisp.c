@@ -5684,6 +5684,10 @@ get_next_display_element (it)
 	{
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
+	  int nbsp_or_shy = 0; /* 1:NO-BREAK SPACE, 2:SOFT HYPHEN, 0:ELSE */
+#define IS_NBSP (nbsp_or_shy == 1)
+#define IS_SHY (nbsp_or_shy == 2)
+	  int decoded = it->c;
 
 	  if (it->dp
 	      && (dv = DISP_CHAR_VECTOR (it->dp, it->c),
@@ -5712,6 +5716,18 @@ get_next_display_element (it)
 	      goto get_next;
 	    }
 
+	  if (unibyte_display_via_language_environment
+	      && it->c >= 0x80)
+	    decoded = DECODE_CHAR (unibyte, it->c);
+
+	  if (it->c >= 0x80 && ! NILP (Vnobreak_char_display))
+	    {
+	      if (it->multibyte_p)
+		nbsp_or_shy = it->c == 0xA0 ? 1 : it->c == 0xAD ? 2 : 0;
+	      else if (unibyte_display_via_language_environment)
+		nbsp_or_shy = decoded == 0xA0 ? 1 : decoded == 0xAD ? 2 : 0;
+	    }
+
 	  /* Translate control characters into `\003' or `^C' form.
 	     Control characters coming from a display table entry are
 	     currently not translated because we use IT->dpvec to hold
@@ -5724,21 +5740,19 @@ get_next_display_element (it)
 	     If it->multibyte_p is zero, eight-bit characters that
 	     don't have corresponding multibyte char code are also
 	     translated to octal form.  */
-	  else if ((it->c < ' '
-		    ? (it->area != TEXT_AREA
-		       /* In mode line, treat \n, \t like other crl chars.  */
-		       || (it->c != '\t'
-			   && it->glyph_row
-			   && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
-		       || (it->c != '\n' && it->c != '\t'))
-		    : (it->multibyte_p
-		       ? (!CHAR_PRINTABLE_P (it->c)
-			  || (!NILP (Vnobreak_char_display)
-			      && (it->c == 0xA0 /* NO-BREAK SPACE */
-				  || it->c == 0xAD /* SOFT HYPHEN */)))
-		       : (it->c >= 127
-			  && (! unibyte_display_via_language_environment
-			      || (DECODE_CHAR (unibyte, it->c) <= 0xA0))))))
+	  if ((it->c < ' '
+	       ? (it->area != TEXT_AREA
+		  /* In mode line, treat \n, \t like other crl chars.  */
+		  || (it->c != '\t'
+		      && it->glyph_row
+		      && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
+		  || (it->c != '\n' && it->c != '\t'))
+	       : (nbsp_or_shy
+		  || (it->multibyte_p
+		      ? ! CHAR_PRINTABLE_P (it->c)
+		      : (! unibyte_display_via_language_environment
+			 ? it->c >= 0x80
+			 : (decoded >= 0x80 && decoded < 0xA0))))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -5794,7 +5808,7 @@ get_next_display_element (it)
 		 highlighting.  */
 
 	      if (EQ (Vnobreak_char_display, Qt)
-		  && it->c == 0xA0)
+		  && IS_NBSP)
 		{
 		  /* Merge the no-break-space face into the current face.  */
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
@@ -5844,7 +5858,7 @@ get_next_display_element (it)
 		 highlighting.  */
 
 	      if (EQ (Vnobreak_char_display, Qt)
-		  && it->c == 0xAD)
+		  && IS_SHY)
 		{
 		  it->c = '-';
 		  XSETINT (it->ctl_chars[0], '-');
@@ -5855,10 +5869,10 @@ get_next_display_element (it)
 	      /* Handle non-break space and soft hyphen
 		 with the escape glyph.  */
 
-	      if (it->c == 0xA0 || it->c == 0xAD)
+	      if (nbsp_or_shy)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  it->c = (it->c == 0xA0 ? ' ' : '-');
+		  it->c = (IS_NBSP ? ' ' : '-');
 		  XSETINT (it->ctl_chars[1], it->c);
 		  ctl_len = 2;
 		  goto display_control;
