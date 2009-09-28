@@ -4862,15 +4862,9 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	 ,gnus-summary-buffer no-highlight))
      t)
     (gnus-article-edit-done)
-    (gnus-summary-expand-window)
-    (gnus-summary-show-article)
+    (gnus-configure-windows 'article)
     (when (and current-id (integerp gnus-auto-select-part))
-      (gnus-article-jump-to-part
-       (if (text-property-any (point-min) (point-max)
-			      'gnus-part (+ current-id gnus-auto-select-part))
-	   (+ current-id gnus-auto-select-part)
-	 (with-current-buffer gnus-article-buffer
-	   (length gnus-article-mime-handle-alist)))))))
+      (gnus-article-jump-to-part (+ current-id gnus-auto-select-part)))))
 
 (defun gnus-mime-replace-part (file)
   "Replace MIME part under point with an external body."

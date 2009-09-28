@@ -6,6 +6,14 @@
 	* nnir.el (gnus-summary-nnir-goto-thread, nnir-run-waissearch)
 	(nnir-run-swish++, nnir-run-swish-e): Fix typos in error messages.
 
+2009-09-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* mm-encode.el (mm-sign-option, mm-encrypt-option): New user option.
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Let users select
+	keys from the menu if mm-{sign,encrypt}-option is 'guided.
+	* mml-smime.el (mml-smime-epg-sign, mml-smime-epg-encrypt): Ditto.
+	* mml1991.el (mml1991-epg-sign, mml1991-epg-encrypt): Ditto.
+
 2009-09-18  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-diary.el (gnus-diary-check-message):
@@ -13,6 +21,18 @@
 	* nnbabyl.el (top-level):
 	* nndiary.el (nndiary-schedule):
 	Fix typos in condition-case handlers.
+
+2009-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-edit-part): Work for the buffer
+	configuration that provides the sole article window in a frame;
+	position point correctly after deleting a part.
+
+2009-09-14  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* spam.el (spam-unregister-on-reregister): Add boolean variable.
+	(spam-resolve-registrations-routine): Use it to unregister articles
+	that change status.
 
 2009-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
