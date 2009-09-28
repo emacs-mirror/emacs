@@ -1,3 +1,12 @@
+2009-09-28  Eric Ludlam  <zappo@gnu.org>
+
+	CEDET (development tools) package merged.
+
+	* cedet/*.el:
+	* cedet/ede/*.el:
+	* cedet/semantic/*.el:
+	* cedet/srecode/*.el: New files.
+
 2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (ELCFILES): Add net/tramp-imap.elc.
