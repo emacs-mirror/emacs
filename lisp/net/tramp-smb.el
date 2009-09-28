@@ -323,10 +323,8 @@ PRESERVE-UID-GID is completely ignored."
   "Like `directory-files-and-attributes' for Tramp files."
   (mapcar
    (lambda (x)
-     ;; We cannot call `file-attributes' for backward compatibility reasons.
-     ;; Its optional parameter ID-FORMAT is introduced with Emacs 22.
-     (cons x (tramp-smb-handle-file-attributes
-	(if full x (expand-file-name x directory)) id-format)))
+     (cons x (tramp-compat-handle-file-attributes
+	      (if full x (expand-file-name x directory)) id-format)))
    (directory-files directory full match nosort)))
 
 (defun tramp-smb-handle-file-attributes (filename &optional id-format)
