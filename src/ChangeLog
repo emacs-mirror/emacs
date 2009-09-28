@@ -1,6 +1,10 @@
+2009-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_next_display_element): Use an enum in last change.
+
 2009-09-28  Kenichi Handa  <handa@m17n.org>
 
-	* xdisp.c: Pay attention to
+	* xdisp.c (get_next_display_element): Pay attention to
 	unibyte_display_via_language_environment in handling
 	Vnobreak_char_display.
 
@@ -19,8 +23,8 @@
 	(ns_set_name_as_filename, x-create-frame, ns-get-resource)
 	(ns-set-resource): Use ns_app_name instead of NSProcessInfo call.
 
-	* menu.c (find_and_return_menu_selection) [HAVE_NS]: Remove
-	double-casting in client_data comparison.
+	* menu.c (find_and_return_menu_selection) [HAVE_NS]:
+	Remove double-casting in client_data comparison.
 
 2009-09-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

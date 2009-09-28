@@ -5684,9 +5684,8 @@ get_next_display_element (it)
 	{
 	  Lisp_Object dv;
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
-	  int nbsp_or_shy = 0; /* 1:NO-BREAK SPACE, 2:SOFT HYPHEN, 0:ELSE */
-#define IS_NBSP (nbsp_or_shy == 1)
-#define IS_SHY (nbsp_or_shy == 2)
+	  enum { char_is_other = 0, char_is_nbsp, char_is_soft_hyphen }
+	       nbsp_or_shy = char_is_other;
 	  int decoded = it->c;
 
 	  if (it->dp
@@ -5723,9 +5722,13 @@ get_next_display_element (it)
 	  if (it->c >= 0x80 && ! NILP (Vnobreak_char_display))
 	    {
 	      if (it->multibyte_p)
-		nbsp_or_shy = it->c == 0xA0 ? 1 : it->c == 0xAD ? 2 : 0;
+		nbsp_or_shy = (it->c == 0xA0   ? char_is_nbsp
+			       : it->c == 0xAD ? char_is_soft_hyphen
+			       :                 char_is_other);
 	      else if (unibyte_display_via_language_environment)
-		nbsp_or_shy = decoded == 0xA0 ? 1 : decoded == 0xAD ? 2 : 0;
+		nbsp_or_shy = (decoded == 0xA0   ? char_is_nbsp
+			       : decoded == 0xAD ? char_is_soft_hyphen
+			       :                   char_is_other);
 	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
@@ -5808,7 +5811,7 @@ get_next_display_element (it)
 		 highlighting.  */
 
 	      if (EQ (Vnobreak_char_display, Qt)
-		  && IS_NBSP)
+		  && nbsp_or_shy == char_is_nbsp)
 		{
 		  /* Merge the no-break-space face into the current face.  */
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
@@ -5858,7 +5861,7 @@ get_next_display_element (it)
 		 highlighting.  */
 
 	      if (EQ (Vnobreak_char_display, Qt)
-		  && IS_SHY)
+		  && nbsp_or_shy == char_is_soft_hyphen)
 		{
 		  it->c = '-';
 		  XSETINT (it->ctl_chars[0], '-');
@@ -5872,7 +5875,7 @@ get_next_display_element (it)
 	      if (nbsp_or_shy)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  it->c = (IS_NBSP ? ' ' : '-');
+		  it->c = (nbsp_or_shy == char_is_nbsp ? ' ' : '-');
 		  XSETINT (it->ctl_chars[1], it->c);
 		  ctl_len = 2;
 		  goto display_control;
