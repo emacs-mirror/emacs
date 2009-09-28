@@ -1108,6 +1108,17 @@
 	* loadup.el (define-key-rebound-commands): Don't bother fiddling with
 	define-key-rebound-commands and precompute-menubar-bindings.
 
+2009-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/imap.el (imap-interactive-login): Better messages.
+	(imap-open): Fix bug with renamed buffer on reconnect.
+	(imap-authenticate): Add buffer-local imap-last-authenticator variable
+	for easier debugging and cleaner code.  On successful (guessed based on
+	server capabilities) secondary authentication, set imap-state
+	correctly.
+	(imap-last-authenticator): Define imap-last-authenticator as a variable
+	to avoid warnings.
+
 2009-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* pcvs.el (cvs-mode-find-file): Use forward-line rather than goto-line.

@@ -380,6 +380,7 @@ basis.")
 (defvar imap-port nil)
 (defvar imap-username nil)
 (defvar imap-password nil)
+(defvar imap-last-authenticator nil)
 (defvar imap-calculate-literal-size-first nil)
 (defvar imap-state 'closed
   "IMAP state.
@@ -872,25 +873,26 @@ Returns t if login was successful, nil otherwise."
       (while (or (not user) (not passwd))
 	(setq user (or imap-username
 		       (read-from-minibuffer
-			(concat "IMAP username for " imap-server
+			(concat "imap: username for " imap-server
 				" (using stream `" (symbol-name imap-stream)
 				"'): ")
 			(or user imap-default-user))))
 	(setq passwd (or imap-password
 			 (read-passwd
-			  (concat "IMAP password for " user "@"
+			  (concat "imap: password for " user "@"
 				  imap-server " (using authenticator `"
 				  (symbol-name imap-auth) "'): "))))
 	(when (and user passwd)
 	  (if (funcall loginfunc user passwd)
 	      (progn
+		(message "imap: Login successful...")
 		(setq ret t
 		      imap-username user)
 		(when (and (not imap-password)
 			   (or imap-store-password
-			       (y-or-n-p "Store password for this session? ")))
+			       (y-or-n-p "imap: Store password for this IMAP session? ")))
 		  (setq imap-password passwd)))
-	    (message "Login failed...")
+	    (message "imap: Login failed...")
 	    (setq passwd nil)
 	    (setq imap-password nil)
 	    (sit-for 1))))
@@ -1160,7 +1162,10 @@ necessary.  If nil, the buffer name is generated."
 				      buffer
 				    (buffer-name buffer))))
 			(kill-buffer buffer)
-			(rename-buffer name))
+			(rename-buffer name)
+			;; set the passed buffer to the current one,
+			;; so that (imap-opened buffer) later will work
+			(setq buffer (current-buffer)))
 		      (message "imap: Reconnecting with stream `%s'...done"
 			       stream)
 		      (setq imap-stream stream)
@@ -1173,6 +1178,7 @@ necessary.  If nil, the buffer name is generated."
 		(setq streams nil))))))
       (when (imap-opened buffer)
 	(setq imap-mailbox-data (make-vector imap-mailbox-prime 0)))
+      ;; (debug "opened+state+auth+buffer" (imap-opened buffer) imap-state imap-auth buffer)
       (when imap-stream
 	buffer))))
 
@@ -1217,25 +1223,32 @@ password is remembered in the buffer."
 	    (eq imap-state 'examine))
       (make-local-variable 'imap-username)
       (make-local-variable 'imap-password)
-      (if user (setq imap-username user))
-      (if passwd (setq imap-password passwd))
+      (make-local-variable 'imap-last-authenticator)
+      (when user (setq imap-username user))
+      (when passwd (setq imap-password passwd))
       (if imap-auth
-	  (and (funcall (nth 2 (assq imap-auth
-				     imap-authenticator-alist)) (current-buffer))
+	  (and (setq imap-last-authenticator 
+		     (assq imap-auth imap-authenticator-alist))
+	       (funcall (nth 2 imap-last-authenticator) (current-buffer))
 	       (setq imap-state 'auth))
 	;; Choose authenticator.
 	(let ((auths imap-authenticators)
 	      auth)
 	  (while (setq auth (pop auths))
 	    ;; OK to use authenticator?
-	    (when (funcall (nth 1 (assq auth imap-authenticator-alist)) (current-buffer))
+	    (setq imap-last-authenticator
+		  (assq auth imap-authenticator-alist))
+	    (when (funcall (nth 1 imap-last-authenticator) (current-buffer))
 	      (message "imap: Authenticating to `%s' using `%s'..."
 		       imap-server auth)
 	      (setq imap-auth auth)
-	      (if (funcall (nth 2 (assq auth imap-authenticator-alist)) (current-buffer))
+	      (if (funcall (nth 2 imap-last-authenticator) (current-buffer))
 		  (progn
 		    (message "imap: Authenticating to `%s' using `%s'...done"
 			     imap-server auth)
+		    ;; set imap-state correctly on successful auth attempt
+		    (setq imap-state 'auth)
+		    ;; stop iterating through the authenticator list
 		    (setq auths nil))
 		(message "imap: Authenticating to `%s' using `%s'...failed"
 			 imap-server auth)))))
