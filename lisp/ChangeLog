@@ -4,6 +4,7 @@
 	* emacs-lisp/eieio-base.el:
 	* emacs-lisp/eieio-comp.el:
 	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-datadebug.el:
 	* emacs-lisp/eieio-opt.el:
 	* emacs-lisp/eieio-speedbar.el:
 	* emacs-lisp/eieio.el: New files.
