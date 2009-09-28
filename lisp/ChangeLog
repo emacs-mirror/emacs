@@ -8,6 +8,14 @@
 	* emacs-lisp/eieio-speedbar.el:
 	* emacs-lisp/eieio.el: New files.
 
+	* cedet/cedet-cscope.el:
+	* cedet/cedet-files.el:
+	* cedet/cedet-global.el:
+	* cedet/cedet-idutils.el:
+	* cedet/data-debug.el:
+	* cedet/inversion.el:
+	* cedet/pulse.el: New files.
+
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el: Remove menu-bar-ediff-misc-menu from the Tools
