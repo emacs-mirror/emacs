@@ -14,6 +14,7 @@
 	* cedet/cedet-idutils.el:
 	* cedet/data-debug.el:
 	* cedet/inversion.el:
+	* cedet/mode-local.el:
 	* cedet/pulse.el: New files.
 
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
