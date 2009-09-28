@@ -1,3 +1,9 @@
+2009-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c: Pay attention to
+	unibyte_display_via_language_environment in handling
+	Vnobreak_char_display.
+
 2009-09-27  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.h (ns_app_name): New extern variable.
