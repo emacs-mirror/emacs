@@ -1,3 +1,13 @@
+2009-09-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (lisptagsfiles3): Define.
+	(TAGS TAGS-LISP): Use it.
+	(update-elclist): Add third directory level to look for elc files.
+	(compile-always): Likewise.
+	(backup-compiled-files): Likewise.
+	(bootstrap-clean): Likewise.
+	(ELCFILES): Update.
+
 2009-09-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in (ELCFILES): Add CEDET files.
