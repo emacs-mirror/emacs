@@ -12030,8 +12030,8 @@ or newer is recommended.
 
 @end enumerate
 
-The variables that control security functionality on reading messages
-include:
+The variables that control security functionality on reading/composing
+messages include:
 
 @table @code
 @item mm-verify-option
@@ -12045,6 +12045,17 @@ protocols.  Otherwise, ask user.
 Option of decrypting encrypted parts.  @code{never}, no decryption;
 @code{always}, always decrypt; @code{known}, only decrypt known
 protocols.  Otherwise, ask user.
+
+@item mm-sign-option
+@vindex mm-sign-option
+Option of creating signed parts.  @code{nil}, use default signing
+keys; @code{guided}, ask user to select signing keys from the menu.
+
+@item mm-encrypt-option
+@vindex mm-encrypt-option
+Option of creating encrypted parts.  @code{nil}, use the first
+public-key matching the @samp{From:} header as the recipient;
+@code{guided}, ask user to select recipient keys from the menu.
 
 @item mml1991-use
 @vindex mml1991-use

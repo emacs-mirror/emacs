@@ -1,3 +1,7 @@
+2009-09-22  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus.texi (Security): Document mm-sign-option and mm-encrypt-option.
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-x.texi (Technical Details): Delete
