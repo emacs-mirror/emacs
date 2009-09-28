@@ -19,14 +19,19 @@
 @c Formatting of the tramp program name consistent.
 @set tramp @sc{tramp}
 
+@c Whether or not describe GVFS integration.
+@ifclear noemacsgvfs
+@set emacsgvfs
+@end ifclear
+
 @c Whether or not describe gateway methods.
 @ifclear noemacsgw
 @set emacsgw
 @end ifclear
 
-@c Whether or not describe GVFS integration.
-@ifclear noemacsgvfs
-@set emacsgvfs
+@c Whether or not describe IMAP support.
+@ifclear noemacsimap
+@set emacsimap
 @end ifclear
 
 @c Some flags which make the text independent on the (X)Emacs flavor.
