@@ -5722,7 +5722,7 @@ mark_buffer (buf)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &BUF_NAME (buffer);
+  for (ptr = &buffer->name_;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (*ptr);

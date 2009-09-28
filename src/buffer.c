@@ -5528,76 +5528,76 @@ syms_of_buffer ()
      buffer_defaults will all be marked via Vbuffer_defaults.  */
 
   DEFVAR_LISP_NOPRO ("default-mode-line-format",
-		     &BUF_MODE_LINE_FORMAT (&buffer_defaults),
+		     &buffer_defaults.mode_line_format_,
 		     doc: /* Default value of `mode-line-format' for buffers that don't override it.
 This is the same as (default-value 'mode-line-format).  */);
 
   DEFVAR_LISP_NOPRO ("default-header-line-format",
-		     &BUF_HEADER_LINE_FORMAT (&buffer_defaults),
+		     &buffer_defaults.header_line_format_,
 		     doc: /* Default value of `header-line-format' for buffers that don't override it.
 This is the same as (default-value 'header-line-format).  */);
 
-  DEFVAR_LISP_NOPRO ("default-cursor-type", &BUF_CURSOR_TYPE (&buffer_defaults),
+  DEFVAR_LISP_NOPRO ("default-cursor-type", &buffer_defaults.cursor_type_,
 		     doc: /* Default value of `cursor-type' for buffers that don't override it.
 This is the same as (default-value 'cursor-type).  */);
 
   DEFVAR_LISP_NOPRO ("default-line-spacing",
-		     &BUF_EXTRA_LINE_SPACING (&buffer_defaults),
+		     &buffer_defaults.extra_line_spacing_,
 		     doc: /* Default value of `line-spacing' for buffers that don't override it.
 This is the same as (default-value 'line-spacing).  */);
 
   DEFVAR_LISP_NOPRO ("default-cursor-in-non-selected-windows",
-		     &BUF_CURSOR_IN_NON_SELECTED_WINDOWS (&buffer_defaults),
+		     &buffer_defaults.cursor_in_non_selected_windows_,
 		     doc: /* Default value of `cursor-in-non-selected-windows'.
 This is the same as (default-value 'cursor-in-non-selected-windows).  */);
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
-		     &BUF_ABBREV_MODE (&buffer_defaults),
+		     &buffer_defaults.abbrev_mode_,
 		     doc: /* Default value of `abbrev-mode' for buffers that do not override it.
 This is the same as (default-value 'abbrev-mode).  */);
 
   DEFVAR_LISP_NOPRO ("default-ctl-arrow",
-		     &BUF_CTL_ARROW (&buffer_defaults),
+		     &buffer_defaults.ctl_arrow_,
 		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
   DEFVAR_LISP_NOPRO ("default-direction-reversed",
-                     &BUF_DIRECTION_REVERSED (&buffer_defaults),
+                     &buffer_defaults.direction_reversed_,
                      doc: /* Default value of `direction-reversed' for buffers that do not override it.
 This is the same as (default-value 'direction-reversed).  */);
 
   DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
-                     &BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults),
+                     &buffer_defaults.enable_multibyte_characters_,
                      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
 
   DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
-                     &BUF_BUFFER_FILE_CODING_SYSTEM (&buffer_defaults),
+                     &buffer_defaults.buffer_file_coding_system_,
                      doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
 This is the same as (default-value 'buffer-file-coding-system).  */);
 
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
-		     &BUF_TRUNCATE_LINES (&buffer_defaults),
+		     &buffer_defaults.truncate_lines_,
 		     doc: /* Default value of `truncate-lines' for buffers that do not override it.
 This is the same as (default-value 'truncate-lines).  */);
 
   DEFVAR_LISP_NOPRO ("default-fill-column",
-		     &BUF_FILL_COLUMN (&buffer_defaults),
+		     &buffer_defaults.fill_column_,
 		     doc: /* Default value of `fill-column' for buffers that do not override it.
 This is the same as (default-value 'fill-column).  */);
 
   DEFVAR_LISP_NOPRO ("default-left-margin",
-		     &BUF_LEFT_MARGIN (&buffer_defaults),
+		     &buffer_defaults.left_margin_,
 		     doc: /* Default value of `left-margin' for buffers that do not override it.
 This is the same as (default-value 'left-margin).  */);
 
   DEFVAR_LISP_NOPRO ("default-tab-width",
-		     &BUF_TAB_WIDTH (&buffer_defaults),
+		     &buffer_defaults.tab_width_,
 		     doc: /* Default value of `tab-width' for buffers that do not override it.
 This is the same as (default-value 'tab-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-case-fold-search",
-		     &BUF_CASE_FOLD_SEARCH (&buffer_defaults),
+		     &buffer_defaults.case_fold_search_,
 		     doc: /* Default value of `case-fold-search' for buffers that don't override it.
 This is the same as (default-value 'case-fold-search).  */);
 
@@ -5610,80 +5610,80 @@ The file type is nil for text, t for binary.  */);
 #endif
 
   DEFVAR_LISP_NOPRO ("default-left-margin-width",
-		     &BUF_LEFT_MARGIN_COLS (&buffer_defaults),
+		     &buffer_defaults.left_margin_cols_,
 		     doc: /* Default value of `left-margin-width' for buffers that don't override it.
 This is the same as (default-value 'left-margin-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-right-margin-width",
-		     &BUF_RIGHT_MARGIN_COLS (&buffer_defaults),
+		     &buffer_defaults.right_margin_cols_,
 		     doc: /* Default value of `right-margin-width' for buffers that don't override it.
 This is the same as (default-value 'right-margin-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-left-fringe-width",
-		     &BUF_LEFT_FRINGE_WIDTH (&buffer_defaults),
+		     &buffer_defaults.left_fringe_width_,
 		     doc: /* Default value of `left-fringe-width' for buffers that don't override it.
 This is the same as (default-value 'left-fringe-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-right-fringe-width",
-		     &BUF_RIGHT_FRINGE_WIDTH (&buffer_defaults),
+		     &buffer_defaults.right_fringe_width_,
 		     doc: /* Default value of `right-fringe-width' for buffers that don't override it.
 This is the same as (default-value 'right-fringe-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-fringes-outside-margins",
-		     &BUF_FRINGES_OUTSIDE_MARGINS (&buffer_defaults),
+		     &buffer_defaults.fringes_outside_margins_,
 		     doc: /* Default value of `fringes-outside-margins' for buffers that don't override it.
 This is the same as (default-value 'fringes-outside-margins).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-bar-width",
-		     &BUF_SCROLL_BAR_WIDTH (&buffer_defaults),
+		     &buffer_defaults.scroll_bar_width_,
 		     doc: /* Default value of `scroll-bar-width' for buffers that don't override it.
 This is the same as (default-value 'scroll-bar-width).  */);
 
   DEFVAR_LISP_NOPRO ("default-vertical-scroll-bar",
-		     &BUF_VERTICAL_SCROLL_BAR_TYPE (&buffer_defaults),
+		     &buffer_defaults.vertical_scroll_bar_type_,
 		     doc: /* Default value of `vertical-scroll-bar' for buffers that don't override it.
 This is the same as (default-value 'vertical-scroll-bar).  */);
 
   DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
-		     &BUF_INDICATE_EMPTY_LINES (&buffer_defaults),
+		     &buffer_defaults.indicate_empty_lines_,
 		     doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
 This is the same as (default-value 'indicate-empty-lines).  */);
 
   DEFVAR_LISP_NOPRO ("default-indicate-buffer-boundaries",
-		     &BUF_INDICATE_BUFFER_BOUNDARIES (&buffer_defaults),
+		     &buffer_defaults.indicate_buffer_boundaries_,
 		     doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
 This is the same as (default-value 'indicate-buffer-boundaries).  */);
 
   DEFVAR_LISP_NOPRO ("default-fringe-indicator-alist",
-		     &BUF_FRINGE_INDICATOR_ALIST (&buffer_defaults),
+		     &buffer_defaults.fringe_indicator_alist_,
 		     doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
 This is the same as (default-value 'fringe-indicator-alist').  */);
 
   DEFVAR_LISP_NOPRO ("default-fringe-cursor-alist",
-		     &BUF_FRINGE_CURSOR_ALIST (&buffer_defaults),
+		     &buffer_defaults.fringe_cursor_alist_,
 		     doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
 This is the same as (default-value 'fringe-cursor-alist').  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
-		     &BUF_SCROLL_UP_AGGRESSIVELY (&buffer_defaults),
+		     &buffer_defaults.scroll_up_aggressively_,
 		     doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
 This is the same as (default-value 'scroll-up-aggressively).  */);
 
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
-		     &BUF_SCROLL_DOWN_AGGRESSIVELY (&buffer_defaults),
+		     &buffer_defaults.scroll_down_aggressively_,
 		     doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
 This is the same as (default-value 'scroll-down-aggressively).  */);
 
   DEFVAR_PER_BUFFER ("header-line-format",
-		     &BUF_HEADER_LINE_FORMAT (current_buffer),
+		     &current_buffer->header_line_format_,
 		     Qnil,
 		     doc: /* Analogous to `mode-line-format', but controls the header line.
 The header line appears, optionally, at the top of a window;
 the mode line appears at the bottom.  */);
 
-  DEFVAR_PER_BUFFER ("mode-line-format", &BUF_MODE_LINE_FORMAT (current_buffer),
+  DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format_,
 		     Qnil,
 		     doc: /* Template for displaying mode line for current buffer.
 Each buffer has its own value of this variable.
@@ -5737,10 +5737,10 @@ A string is printed verbatim in the mode line except for %-constructs:
   %% -- print %.   %- -- print infinitely many dashes.
 Decimal digits after the % specify field width to which to pad.  */);
 
-  DEFVAR_LISP_NOPRO ("default-major-mode", &BUF_MAJOR_MODE (&buffer_defaults),
+  DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode_,
 		     doc: /* *Value of `major-mode' for new buffers.  */);
 
-  DEFVAR_PER_BUFFER ("major-mode", &BUF_MAJOR_MODE (current_buffer),
+  DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode_,
 		     make_number (Lisp_Symbol),
 		     doc: /* Symbol for current buffer's major mode.
 The default value (normally `fundamental-mode') affects new buffers.
@@ -5753,45 +5753,45 @@ the buffer.  Thus, the mode and its hooks should not expect certain
 variables such as `buffer-read-only' and `buffer-file-coding-system'
 to be set up.  */);
 
-  DEFVAR_PER_BUFFER ("mode-name", &BUF_MODE_NAME (current_buffer),
+  DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name_,
                      Qnil,
 		     doc: /* Pretty name of current buffer's major mode.
 Usually a string, but can use any of the constructs for `mode-line-format',
 which see.
 Format with `format-mode-line' to produce a string value.  */);
 
-  DEFVAR_PER_BUFFER ("local-abbrev-table", &BUF_ABBREV_TABLE (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table_, Qnil,
 		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
-  DEFVAR_PER_BUFFER ("abbrev-mode", &BUF_ABBREV_MODE (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode_, Qnil,
 		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);
 
-  DEFVAR_PER_BUFFER ("case-fold-search", &BUF_CASE_FOLD_SEARCH (current_buffer),
+  DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search_,
 		     Qnil,
 		     doc: /* *Non-nil if searches and matches should ignore case.  */);
 
-  DEFVAR_PER_BUFFER ("fill-column", &BUF_FILL_COLUMN (current_buffer),
+  DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column_,
 		     make_number (Lisp_Int),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
 Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
-  DEFVAR_PER_BUFFER ("left-margin", &BUF_LEFT_MARGIN (current_buffer),
+  DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin_,
 		     make_number (Lisp_Int),
 		     doc: /* *Column for the default `indent-line-function' to indent to.
 Linefeed indents to this column in Fundamental mode.  */);
 
-  DEFVAR_PER_BUFFER ("tab-width", &BUF_TAB_WIDTH (current_buffer),
+  DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width_,
 		     make_number (Lisp_Int),
 		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
 
-  DEFVAR_PER_BUFFER ("ctl-arrow", &BUF_CTL_ARROW (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow_, Qnil,
 		     doc: /* *Non-nil means display control chars with uparrow.
 A value of nil means use backslash and octal digits.
 This variable does not apply to characters whose display is specified
 in the current display table (if there is one).  */);
 
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
-		     &BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer),
+		     &current_buffer->enable_multibyte_characters_,
 		     Qnil,
 		     doc: /* Non-nil means the buffer contents are regarded as multi-byte characters.
 Otherwise they are regarded as unibyte.  This affects the display,
@@ -5805,7 +5805,7 @@ See also variable `default-enable-multibyte-characters' and Info node
   XSYMBOL (intern_c_string ("enable-multibyte-characters"))->constant = 1;
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
-		     &BUF_BUFFER_FILE_CODING_SYSTEM (current_buffer), Qnil,
+		     &current_buffer->buffer_file_coding_system_, Qnil,
 		     doc: /* Coding system to be used for encoding the buffer contents on saving.
 This variable applies to saving the buffer, and also to `write-region'
 and other functions that use `write-region'.
@@ -5822,11 +5822,11 @@ The variable `coding-system-for-write', if non-nil, overrides this variable.
 
 This variable is never applied to a way of decoding a file while reading it.  */);
 
-  DEFVAR_PER_BUFFER ("direction-reversed", &BUF_DIRECTION_REVERSED (current_buffer),
+  DEFVAR_PER_BUFFER ("direction-reversed", &current_buffer->direction_reversed_,
 		     Qnil,
 		     doc: /* *Non-nil means lines in the buffer are displayed right to left.  */);
 
-  DEFVAR_PER_BUFFER ("truncate-lines", &BUF_TRUNCATE_LINES (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines_, Qnil,
 		     doc: /* *Non-nil means do not display continuation lines.
 Instead, give each line of text just one screen line.
 
@@ -5834,7 +5834,7 @@ Note that this is overridden by the variable
 `truncate-partial-width-windows' if that variable is non-nil
 and this buffer is not full-frame width.  */);
 
-  DEFVAR_PER_BUFFER ("word-wrap", &BUF_WORD_WRAP (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("word-wrap", &current_buffer->word_wrap_, Qnil,
 		     doc: /* *Non-nil means to use word-wrapping for continuation lines.
 When word-wrapping is on, continuation lines are wrapped at the space
 or tab character nearest to the right window edge.
@@ -5855,12 +5855,12 @@ On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.  */);
 #endif
 
-  DEFVAR_PER_BUFFER ("default-directory", &BUF_DIRECTORY (current_buffer),
+  DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory_,
 		     make_number (Lisp_String),
 		     doc: /* Name of default directory of current buffer.  Should end with slash.
 To interactively change the default directory, use command `cd'.  */);
 
-  DEFVAR_PER_BUFFER ("auto-fill-function", &BUF_AUTO_FILL_FUNCTION (current_buffer),
+  DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function_,
 		     Qnil,
 		     doc: /* Function called (if non-nil) to perform auto-fill.
 It is called after self-inserting any character specified in
@@ -5868,30 +5868,30 @@ the `auto-fill-chars' table.
 NOTE: This variable is not a hook;
 its value may not be a list of functions.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-file-name", &BUF_FILENAME (current_buffer),
+  DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename_,
 		     make_number (Lisp_String),
 		     doc: /* Name of file visited in current buffer, or nil if not visiting a file.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-file-truename", &BUF_FILE_TRUENAME (current_buffer),
+  DEFVAR_PER_BUFFER ("buffer-file-truename", &current_buffer->file_truename_,
 		     make_number (Lisp_String),
 		     doc: /* Abbreviated truename of file visited in current buffer, or nil if none.
 The truename of a file is calculated by `file-truename'
 and then abbreviated with `abbreviate-file-name'.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
-		     &BUF_AUTO_SAVE_FILE_NAME (current_buffer),
+		     &current_buffer->auto_save_file_name_,
 		     make_number (Lisp_String),
 		     doc: /* Name of file for auto-saving current buffer.
 If it is nil, that means don't auto-save this buffer.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-read-only", &BUF_READ_ONLY (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only_, Qnil,
 		     doc: /* Non-nil if this buffer is read-only.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-backed-up", &BUF_BACKED_UP (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("buffer-backed-up", &current_buffer->backed_up_, Qnil,
 		     doc: /* Non-nil if this buffer's file has been backed up.
 Backing up is done before the first time the file is saved.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-saved-size", &BUF_SAVE_LENGTH (current_buffer),
+  DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length_,
 		     make_number (Lisp_Int),
 		     doc: /* Length of current buffer when last read in, saved or auto-saved.
 0 initially.
@@ -5901,7 +5901,7 @@ If you set this to -2, that means don't turn off auto-saving in this buffer
 if its text size shrinks.   If you use `buffer-swap-text' on a buffer,
 you probably should set this to -2 in that buffer.  */);
 
-  DEFVAR_PER_BUFFER ("selective-display", &BUF_SELECTIVE_DISPLAY (current_buffer),
+  DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display_,
 		     Qnil,
 		     doc: /* Non-nil enables selective display.
 An integer N as value means display only lines
@@ -5912,12 +5912,12 @@ in a file, save the ^M as a newline.  */);
 
 #ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
-		     &BUF_SELECTIVE_DISPLAY_ELLIPSES (current_buffer),
+		     &current_buffer->selective_display_ellipses_,
 		     Qnil,
 		     doc: /* Non-nil means display ... on previous line when a line is invisible.  */);
 #endif
 
-  DEFVAR_PER_BUFFER ("overwrite-mode", &BUF_OVERWRITE_MODE (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode_, Qnil,
 		     doc: /* Non-nil if self-insertion should replace existing text.
 The value should be one of `overwrite-mode-textual',
 `overwrite-mode-binary', or nil.
@@ -5926,7 +5926,7 @@ inserts at the end of a line, and inserts when point is before a tab,
 until the tab is filled in.
 If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-display-table", &BUF_DISPLAY_TABLE (current_buffer),
+  DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table_,
 		     Qnil,
 		     doc: /* Display table that controls display of the contents of current buffer.
 
@@ -5963,39 +5963,39 @@ In addition, a char-table has six extra slots to control the display of:
 
 See also the functions `display-table-slot' and `set-display-table-slot'.  */);
 
-  DEFVAR_PER_BUFFER ("left-margin-width", &BUF_LEFT_MARGIN_COLS (current_buffer),
+  DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_cols_,
 		     Qnil,
 		     doc: /* *Width of left marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
-  DEFVAR_PER_BUFFER ("right-margin-width", &BUF_RIGHT_MARGIN_COLS (current_buffer),
+  DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_cols_,
 		     Qnil,
 		     doc: /* *Width of right marginal area for display of a buffer.
 A value of nil means no marginal area.  */);
 
-  DEFVAR_PER_BUFFER ("left-fringe-width", &BUF_LEFT_FRINGE_WIDTH (current_buffer),
+  DEFVAR_PER_BUFFER ("left-fringe-width", &current_buffer->left_fringe_width_,
 		     Qnil,
 		     doc: /* *Width of this buffer's left fringe (in pixels).
 A value of 0 means no left fringe is shown in this buffer's window.
 A value of nil means to use the left fringe width from the window's frame.  */);
 
-  DEFVAR_PER_BUFFER ("right-fringe-width", &BUF_RIGHT_FRINGE_WIDTH (current_buffer),
+  DEFVAR_PER_BUFFER ("right-fringe-width", &current_buffer->right_fringe_width_,
 		     Qnil,
 		     doc: /* *Width of this buffer's right fringe (in pixels).
 A value of 0 means no right fringe is shown in this buffer's window.
 A value of nil means to use the right fringe width from the window's frame.  */);
 
-  DEFVAR_PER_BUFFER ("fringes-outside-margins", &BUF_FRINGES_OUTSIDE_MARGINS (current_buffer),
+  DEFVAR_PER_BUFFER ("fringes-outside-margins", &current_buffer->fringes_outside_margins_,
 		     Qnil,
 		     doc: /* *Non-nil means to display fringes outside display margins.
 A value of nil means to display fringes between margins and buffer text.  */);
 
-  DEFVAR_PER_BUFFER ("scroll-bar-width", &BUF_SCROLL_BAR_WIDTH (current_buffer),
+  DEFVAR_PER_BUFFER ("scroll-bar-width", &current_buffer->scroll_bar_width_,
 		     Qnil,
 		     doc: /* *Width of this buffer's scroll bars in pixels.
 A value of nil means to use the scroll bar width from the window's frame.  */);
 
-  DEFVAR_PER_BUFFER ("vertical-scroll-bar", &BUF_VERTICAL_SCROLL_BAR_TYPE (current_buffer),
+  DEFVAR_PER_BUFFER ("vertical-scroll-bar", &current_buffer->vertical_scroll_bar_type_,
 		     Qnil,
 		     doc: /* *Position of this buffer's vertical scroll bar.
 The value takes effect whenever you tell a window to display this buffer;
@@ -6006,13 +6006,13 @@ of the window; a value of nil means don't show any vertical scroll bars.
 A value of t (the default) means do whatever the window's frame specifies.  */);
 
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
-		     &BUF_INDICATE_EMPTY_LINES (current_buffer), Qnil,
+		     &current_buffer->indicate_empty_lines_, Qnil,
 		     doc: /* *Visually indicate empty lines after the buffer end.
 If non-nil, a bitmap is displayed in the left fringe of a window on
 window-systems.  */);
 
   DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
-		     &BUF_INDICATE_BUFFER_BOUNDARIES (current_buffer), Qnil,
+		     &current_buffer->indicate_buffer_boundaries_, Qnil,
 		     doc: /* *Visually indicate buffer boundaries and scrolling.
 If non-nil, the first and last line of the buffer are marked in the fringe
 of a window on window-systems with angle bitmaps, or if the window can be
@@ -6037,7 +6037,7 @@ bitmaps in right fringe.  To show just the angle bitmaps in the left
 fringe, but no arrow bitmaps, use ((top .  left) (bottom . left)).  */);
 
   DEFVAR_PER_BUFFER ("fringe-indicator-alist",
-		     &BUF_FRINGE_INDICATOR_ALIST (current_buffer), Qnil,
+		     &current_buffer->fringe_indicator_alist_, Qnil,
 		     doc: /* *Mapping from logical to physical fringe indicator bitmaps.
 The value is an alist where each element (INDICATOR . BITMAPS)
 specifies the fringe bitmaps used to display a specific logical
@@ -6056,7 +6056,7 @@ are used only for the `bottom' and `one-line' indicators when the last
 symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",
-		     &BUF_FRINGE_CURSOR_ALIST (current_buffer), Qnil,
+		     &current_buffer->fringe_cursor_alist_, Qnil,
 		     doc: /* *Mapping from logical to physical fringe cursor bitmaps.
 The value is an alist where each element (CURSOR . BITMAP)
 specifies the fringe bitmaps used to display a specific logical
@@ -6071,7 +6071,7 @@ BITMAP is the corresponding fringe bitmap shown for the logical
 cursor type.  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
-		     &BUF_SCROLL_UP_AGGRESSIVELY (current_buffer), Qnil,
+		     &current_buffer->scroll_up_aggressively_, Qnil,
 		     doc: /* How far to scroll windows upward.
 If you move point off the bottom, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6084,7 +6084,7 @@ window scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
-		     &BUF_SCROLL_DOWN_AGGRESSIVELY (current_buffer), Qnil,
+		     &current_buffer->scroll_down_aggressively_, Qnil,
 		     doc: /* How far to scroll windows downward.
 If you move point off the top, the window scrolls automatically.
 This variable controls how far it scrolls.  The value nil, the default,
@@ -6145,7 +6145,7 @@ from happening repeatedly and making Emacs nonfunctional.  */);
 The functions are run using the `run-hooks' function.  */);
   Vfirst_change_hook = Qnil;
 
-  DEFVAR_PER_BUFFER ("buffer-undo-list", &BUF_UNDO_LIST (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list_, Qnil,
 		     doc: /* List of undo entries in current buffer.
 Recent changes come first; older changes follow newer.
 
@@ -6186,10 +6186,10 @@ the changes between two undo boundaries as a single step to be undone.
 
 If the value of the variable is t, undo information is not recorded.  */);
 
-  DEFVAR_PER_BUFFER ("mark-active", &BUF_MARK_ACTIVE (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active_, Qnil,
 		     doc: /* Non-nil means the mark and region are currently active in this buffer.  */);
 
-  DEFVAR_PER_BUFFER ("cache-long-line-scans", &BUF_CACHE_LONG_LINE_SCANS (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("cache-long-line-scans", &current_buffer->cache_long_line_scans_, Qnil,
 		     doc: /* Non-nil means that Emacs should use caches to handle long lines more quickly.
 
 Normally, the line-motion functions work by scanning the buffer for
@@ -6217,23 +6217,23 @@ maintained internally by the Emacs primitives.  Enabling or disabling
 the cache should not affect the behavior of any of the motion
 functions; it should only affect their performance.  */);
 
-  DEFVAR_PER_BUFFER ("point-before-scroll", &BUF_POINT_BEFORE_SCROLL (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll_, Qnil,
 		     doc: /* Value of point before the last series of scroll operations, or nil.  */);
 
-  DEFVAR_PER_BUFFER ("buffer-file-format", &BUF_FILE_FORMAT (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("buffer-file-format", &current_buffer->file_format_, Qnil,
 		     doc: /* List of formats to use when saving this buffer.
 Formats are defined by `format-alist'.  This variable is
 set when a file is visited.  */);
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-format",
-		     &BUF_AUTO_SAVE_FILE_FORMAT (current_buffer), Qnil,
+		     &current_buffer->auto_save_file_format_, Qnil,
 		     doc: /* *Format in which to write auto-save files.
 Should be a list of symbols naming formats that are defined in `format-alist'.
 If it is t, which is the default, auto-save files are written in the
 same format as a regular save would use.  */);
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
-		     &BUF_INVISIBILITY_SPEC (current_buffer), Qnil,
+		     &current_buffer->invisibility_spec_, Qnil,
 		     doc: /* Invisibility spec of this buffer.
 The default is t, which means that text is invisible
 if it has a non-nil `invisible' property.
@@ -6244,12 +6244,12 @@ then characters with property value PROP are invisible,
 and they have an ellipsis as well if ELLIPSIS is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-count",
-		     &BUF_DISPLAY_COUNT (current_buffer), Qnil,
+		     &current_buffer->display_count_, Qnil,
 		     doc: /* A number incremented each time this buffer is displayed in a window.
 The function `set-window-buffer' increments it.  */);
 
   DEFVAR_PER_BUFFER ("buffer-display-time",
-		     &BUF_DISPLAY_TIME (current_buffer), Qnil,
+		     &current_buffer->display_time_, Qnil,
 		     doc: /* Time stamp updated each time this buffer is displayed in a window.
 The function `set-window-buffer' updates this variable
 to the value obtained by calling `current-time'.
@@ -6270,7 +6270,7 @@ and disregard a `read-only' text property if the property value
 is a member of the list.  */);
   Vinhibit_read_only = Qnil;
 
-  DEFVAR_PER_BUFFER ("cursor-type", &BUF_CURSOR_TYPE (current_buffer), Qnil,
+  DEFVAR_PER_BUFFER ("cursor-type", &current_buffer->cursor_type_, Qnil,
 		     doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
@@ -6289,7 +6289,7 @@ cursor's appearance is instead controlled by the variable
 `cursor-in-non-selected-windows'.  */);
 
   DEFVAR_PER_BUFFER ("line-spacing",
-		     &BUF_EXTRA_LINE_SPACING (current_buffer), Qnil,
+		     &current_buffer->extra_line_spacing_, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on graphic displays,
 see `display-graphic-p'.
@@ -6297,7 +6297,7 @@ If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  A value of nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
-		     &BUF_CURSOR_IN_NON_SELECTED_WINDOWS (current_buffer), Qnil,
+		     &current_buffer->cursor_in_non_selected_windows_, Qnil,
 		     doc: /* *Cursor type to display in non-selected windows.
 The value t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 

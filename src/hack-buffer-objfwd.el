@@ -11,7 +11,8 @@
 ;; been wrapped in a macro call.  (This is a one-liner in libcpp.)
 ;; After running this script, a few changes need to be made by hand.
 ;; These occur mostly in macros in headers, but also in
-;; reset_buffer and reset_buffer_local_variables.
+;; reset_buffer and reset_buffer_local_variables.  Finally,
+;; DEFVAR_PER_BUFFER and the GC should not use these accessors.
 
 (defvar gcc-prefix "/home/tromey/gnu/Trunk/install/")
 
