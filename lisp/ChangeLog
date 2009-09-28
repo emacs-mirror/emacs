@@ -18,6 +18,12 @@
 	* cedet/mode-local.el:
 	* cedet/pulse.el: New files.
 
+2009-09-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-trailing-regexp)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
+	Fix doc string.
+
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el: Remove menu-bar-ediff-misc-menu from the Tools

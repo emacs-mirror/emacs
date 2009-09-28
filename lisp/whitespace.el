@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 12
+;; Version: 12.0
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -2310,7 +2310,7 @@ resultant list will be returned."
 
 
 (defun whitespace-trailing-regexp (limit)
-  "Match trailing spaces which does not contain the point at end of line."
+  "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
 	       (save-match-data
@@ -2320,14 +2320,14 @@ resultant list will be returned."
 
 
 (defun whitespace-empty-at-bob-regexp (limit)
-  "Match spaces at beginning of buffer which does not contain the point at \
+  "Match spaces at beginning of buffer which do not contain the point at \
 beginning of buffer."
   (and (/= whitespace-point 1)
        (re-search-forward whitespace-empty-at-bob-regexp limit t)))
 
 
 (defun whitespace-empty-at-eob-regexp (limit)
-  "Match spaces at end of buffer which does not contain the point at end of \
+  "Match spaces at end of buffer which do not contain the point at end of \
 buffer."
   (and (/= whitespace-point (1+ (buffer-size)))
        (re-search-forward whitespace-empty-at-eob-regexp limit t)))
