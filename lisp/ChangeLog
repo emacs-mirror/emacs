@@ -1,3 +1,16 @@
+2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (ELCFILES): Add net/tramp-imap.elc.
+
+	* net/tramp.el (top): Require tramp-imap.
+
+	* net/tramp-smb.el (tramp-smb-handle-directory-files-and-attributes):
+	Use `tramp-compat-handle-file-attributes'.
+
+2009-09-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/tramp-imap.el: New package.
+
 2009-09-28  Eric Ludlam  <zappo@gnu.org>
 
 	* emacs-lisp/chart.el:
