@@ -2238,7 +2238,9 @@ static void AMCTraceEnd(Pool pool, Trace trace)
       " $U", amc->pageretstruct[ti].sRL,
       " $U", amc->pageretstruct[ti].pRL,
       " $U", amc->pageretstruct[ti].pRLr,
-      " (page = $Ub, pRetMin $U)", ArenaAlign(pool->arena), pRetMin,
+      " (page = $Ub,", ArenaAlign(pool->arena), 
+      " Large >= $Up,", AMCLargeSegPAGES, 
+      " pRetMin $U)", pRetMin,
       NULL ));
   }
 
