@@ -1,4 +1,3 @@
-<<<<<<< ChangeLog
 2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (History): Add IMAP support.
@@ -9,12 +8,10 @@
 
 	* trampver.texi: Set default value of `emacsimap'.
 
-=======
 2009-09-22  Daiki Ueno  <ueno@unixuser.org>
 
 	* gnus.texi (Security): Document mm-sign-option and mm-encrypt-option.
 
->>>>>>> 1.320
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-x.texi (Technical Details): Delete
