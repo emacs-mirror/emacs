@@ -440,16 +440,18 @@ was changed to @file{rcp.el}, and now it's @value{tramp}.  Along the way,
 many more methods for getting a remote shell and for transferring the
 file contents were added.  Support for VC was added.
 
-The most recent addition of major features were the multi-hop methods
-added in April 2000 and the unification of @value{tramp} and Ange-FTP
-filenames in July 2002.  In July 2004, multi-hop methods have been
-replaced by proxy hosts.  Running commands on remote hosts was
-introduced in December 2005.
+After that, there were added the multi-hop methods in April 2000 and
+the unification of @value{tramp} and Ange-FTP filenames in July 2002.
+In July 2004, multi-hop methods have been replaced by proxy hosts.
+Running commands on remote hosts was introduced in December 2005.
 @ifset emacsgw
 Support of gateways exists since April 2007.
 @end ifset
 @ifset emacsgvfs
 GVFS integration started in February 2009.
+@end ifset
+@ifset emacsimap
+Storing files into IMAP mailboxes has been added in September 2009.
 @end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
@@ -1028,6 +1030,29 @@ Windows, this method isn't available.  Instead of, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
+
+
+@ifset emacsimap
+@item @option{imap}
+@cindex method imap
+@cindex method imaps
+@cindex imap method
+@cindex imaps method
+
+Accessing an IMAP mailbox is intended to save files there as encrypted
+message.  It could be used in case there are no other remote file
+storages available.
+
+@value{tramp} supports both @option{imap} and @option{imaps} methods.
+The latter one accesses the IMAP server over ssl.
+
+Both methods support the port number specification.
+
+Note, that special handling is needed for declaring a passphrase for
+encryption / decryption of the messages (@pxref{Using an
+authentication file}).
+
+@end ifset
 @end table
 
 
@@ -1050,7 +1075,9 @@ Therefore, your @value{emacsname} must have D-Bus integration,
 @table @asis
 @item @option{dav}
 @cindex method dav
+@cindex method davs
 @cindex dav method
+@cindex davs method
 
 This method provides access to WebDAV files and directories.  There
 exists also the external method @option{davs}, which uses SSL
@@ -1058,12 +1085,14 @@ encryption for the access.
 
 Both methods support the port number specification as discussed above.
 
+
 @item @option{obex}
 @cindex method obex
 @cindex obex method
 
 OBEX is an FTP-like access protocol for simple devices, like cell
 phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
+
 
 @item @option{synce}
 @cindex method synce
@@ -1591,7 +1620,7 @@ However, if you cannot apply such native password handling,
 @value{tramp} offers altenatives.
 
 
-@anchor{auth-sources}
+@anchor{Using an authentication file}
 @subsection Using an authentication file
 
 @vindex auth-sources
@@ -1612,8 +1641,19 @@ The port can be any @value{tramp} method (@pxref{Inline methods},
 @pxref{External methods}), to match only this method.  When you omit
 the port, you match all @value{tramp} methods.
 
+@ifset emacsimap
+A special case are @option{imap}-like methods.  Authentication with
+the IMAP server is performed via @file{imap.el}, there is no special
+need from @value{tramp} point of view.  An additional passphrase, used
+for symmetric encryption and decryption of the stored messages, should
+be given with the special port indication @option{tramp-imap}:
 
-@anchor{password-cache}
+@example
+machine melancholia port tramp-imap login daniel password ultrageheim
+@end example
+@end ifset
+
+@anchor{Caching passwords}
 @subsection Caching passwords
 
 If there is no authentication file, @value{tramp} caches the passwords
