@@ -2734,15 +2734,6 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 	    )
 	  )
 
-(eval-after-load "cedet-edebug"
-  '(progn
-     (cedet-edebug-add-print-override '(class-p object) '(class-name object) )
-     (cedet-edebug-add-print-override '(eieio-object-p object) '(object-print object) )
-     (cedet-edebug-add-print-override '(and (listp object)
-					    (or (class-p (car object)) (eieio-object-p (car object))))
-				      '(cedet-edebug-prin1-recurse object) )
-     ))
-
 ;;; Interfacing with imenu in emacs lisp mode
 ;;    (Only if the expression is defined)
 ;;
