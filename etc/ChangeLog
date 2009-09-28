@@ -1,3 +1,7 @@
+2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention Tramp connection methods "imap" and "imaps".
+
 2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* NEWS: Mention new library imap-hash.el
