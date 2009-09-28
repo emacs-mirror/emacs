@@ -879,6 +879,7 @@ ELCFILES = \
 	$(lisp)/net/tramp-ftp.elc \
 	$(lisp)/net/tramp-gvfs.elc \
 	$(lisp)/net/tramp-gw.elc \
+	$(lisp)/net/tramp-imap.elc \
 	$(lisp)/net/tramp-smb.elc \
 	$(lisp)/net/tramp-uu.elc \
 	$(lisp)/net/tramp.elc \
