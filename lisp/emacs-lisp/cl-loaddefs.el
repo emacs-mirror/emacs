@@ -274,15 +274,15 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (compiler-macroexpand define-compiler-macro assert
-;;;;;;  check-type typep cl-struct-setf-expander defstruct define-modify-macro
-;;;;;;  callf2 callf letf* letf rotatef shiftf remf cl-do-pop psetf
-;;;;;;  setf get-setf-method defsetf define-setf-method declare the
-;;;;;;  locally multiple-value-setq multiple-value-bind lexical-let*
-;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
-;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
-;;;;;;  return block etypecase typecase ecase case load-time-value
-;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym) "cl-macs" "cl-macs.el" "cee0f106d963d8d1665bc67bea707297")
+;;;;;;  check-type typep deftype cl-struct-setf-expander defstruct
+;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
+;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
+;;;;;;  declare the locally multiple-value-setq multiple-value-bind
+;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
+;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
+;;;;;;  do* do loop return-from return block etypecase typecase ecase
+;;;;;;  case load-time-value eval-when destructuring-bind function*
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "f6bd68f91847390d47f57b6aac6be023")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -682,6 +682,12 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 Not documented
 
 \(fn X NAME ACCESSOR PRED-FORM POS)" nil nil)
+
+(autoload 'deftype "cl-macs" "\
+Define NAME as a new data type.
+The type name can then be used in `typecase', `check-type', etc.
+
+\(fn NAME ARGLIST &rest BODY)" nil (quote macro))
 
 (autoload 'typep "cl-macs" "\
 Check that OBJECT is of type TYPE.
