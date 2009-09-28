@@ -16179,9 +16179,10 @@ extend_face_to_end_of_line (it)
   it->glyph_row->fill_line_p = 1;
 
   /* If current character of IT is not ASCII, make sure we have the
-         ASCII face.  This will be automatically undone the next time
-         get_next_display_element returns a multibyte character.  Note
-         that the character will always be single byte in unibyte text.  */
+     ASCII face.  This will be automatically undone the next time
+     get_next_display_element returns a multibyte character.  Note
+     that the character will always be single byte in unibyte
+     text.  */
   if (!ASCII_CHAR_P (it->c))
     {
       it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
