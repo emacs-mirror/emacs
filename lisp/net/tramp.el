@@ -151,7 +151,12 @@
 	   'tramp-gvfs)
 
 	 ;; Load gateways.  It needs `make-network-process' from Emacs 22.
-	 (when (functionp 'make-network-process) 'tramp-gw)))
+	 (when (functionp 'make-network-process) 'tramp-gw)
+
+	 ;; tramp-imap needs both epa (from Emacs 23.1) and imap-hash
+	 ;; (from Emacs 23.2).
+	 (when (and (locate-library "epa") (locate-library "imap-hash"))
+	   'tramp-imap)))
 
      (when feature
        ;; We have used just some basic tests, whether a package shall
@@ -3788,7 +3793,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 		(if (memq (char-after end) '(?\n ?\ ))
 		    ;; End is followed by \n or by " -> ".
 		    (put-text-property start end 'dired-filename t)))))
-	  ;; Reove training lines.
+	  ;; Remove trailing lines.
 	  (goto-char (tramp-compat-line-beginning-position))
 	  (while (looking-at "//")
 	    (forward-line 1)
