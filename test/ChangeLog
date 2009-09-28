@@ -1,3 +1,7 @@
+2009-06-26  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/*: New unit tests, from CEDET repository.
+
 2009-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* redisplay-testsuite.el: New file.
