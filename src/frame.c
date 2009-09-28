@@ -1871,7 +1871,7 @@ make_frame_visible_1 (window)
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
-	XBUFFER (w->buffer)->display_time = Fcurrent_time ();
+	BUF_DISPLAY_TIME (XBUFFER (w->buffer)) = Fcurrent_time ();
 
       if (!NILP (w->vchild))
 	make_frame_visible_1 (w->vchild);

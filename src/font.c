@@ -3880,7 +3880,7 @@ font_at (c, pos, face, w, string)
   Lisp_Object font_object;
 
   multibyte = (NILP (string)
-	       ? ! NILP (current_buffer->enable_multibyte_characters)
+	       ? ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	       : STRING_MULTIBYTE (string));
   if (c < 0)
     {

@@ -3482,7 +3482,7 @@ direct_output_for_insert (g)
   /* Non-null means that redisplay of W is based on window matrices.  */
   int window_redisplay_p = FRAME_WINDOW_P (f);
   /* Non-null means we are in overwrite mode.  */
-  int overwrite_p = !NILP (current_buffer->overwrite_mode);
+  int overwrite_p = !NILP (BUF_OVERWRITE_MODE (current_buffer));
   int added_width;
   struct text_pos pos;
   int delta, delta_bytes;
@@ -3515,7 +3515,7 @@ direct_output_for_insert (g)
       || g == '\t'
       || g == '\n'
       || g == '\r'
-      || (g == ' ' && !NILP (current_buffer->word_wrap))
+      || (g == ' ' && !NILP (BUF_WORD_WRAP (current_buffer)))
       /* Give up if unable to display the cursor in the window.  */
       || w->cursor.vpos < 0
       /* Give up if we are showing a message or just cleared the message
@@ -3548,7 +3548,7 @@ direct_output_for_insert (g)
      position.  */
   clear_glyph_row (&scratch_glyph_row);
   SET_TEXT_POS (pos, PT, PT_BYTE);
-  DEC_TEXT_POS (pos, !NILP (current_buffer->enable_multibyte_characters));
+  DEC_TEXT_POS (pos, !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)));
   init_iterator (&it, w, CHARPOS (pos), BYTEPOS (pos), &scratch_glyph_row,
 		 DEFAULT_FACE_ID);
 
@@ -3777,11 +3777,11 @@ direct_output_forward_char (n)
     return 0;
 
   /* Give up if the buffer's direction is reversed.  */
-  if (!NILP (XBUFFER (w->buffer)->direction_reversed))
+  if (!NILP (BUF_DIRECTION_REVERSED (XBUFFER (w->buffer))))
     return 0;
 
   /* Can't use direct output if highlighting a region.  */
-  if (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
+  if (!NILP (Vtransient_mark_mode) && !NILP (BUF_MARK_ACTIVE (current_buffer)))
     return 0;
 
   /* Can't use direct output if highlighting trailing whitespace.  */
@@ -6746,7 +6746,7 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BUF_NAME (XBUFFER (buf)), 0) == ' ')
 	continue;
       if (vecp == end)
 	goto changed;
@@ -6754,7 +6754,7 @@ pass nil for VARIABLE.  */)
 	goto changed;
       if (vecp == end)
 	goto changed;
-      if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+      if (!EQ (*vecp++, BUF_READ_ONLY (XBUFFER (buf))))
 	goto changed;
       if (vecp == end)
 	goto changed;
@@ -6801,10 +6801,10 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BUF_NAME (XBUFFER (buf)), 0) == ' ')
 	continue;
       *vecp++ = buf;
-      *vecp++ = XBUFFER (buf)->read_only;
+      *vecp++ = BUF_READ_ONLY (XBUFFER (buf));
       *vecp++ = Fbuffer_modified_p (buf);
     }
   /* Fill up the vector with lambdas (always at least one).  */

@@ -2026,7 +2026,7 @@ set_point_both (EMACS_INT charpos, EMACS_INT bytepos)
   int have_overlays;
   EMACS_INT original_position;
 
-  current_buffer->point_before_scroll = Qnil;
+  BUF_POINT_BEFORE_SCROLL (current_buffer) = Qnil;
 
   if (charpos == PT)
     return;
@@ -2396,7 +2396,7 @@ get_local_map (position, buffer, type)
   if (EQ (type, Qkeymap))
     return Qnil;
   else
-    return buffer->keymap;
+    return BUF_KEYMAP (buffer);
 }
 
 /* Produce an interval tree reflecting the intervals in

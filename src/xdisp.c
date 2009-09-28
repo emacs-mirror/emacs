@@ -1344,12 +1344,12 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
   if (WINDOW_WANTS_MODELINE_P (w))
     current_mode_line_height
       = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
-			   current_buffer->mode_line_format);
+			   BUF_MODE_LINE_FORMAT (current_buffer));
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
     current_header_line_height
       = display_mode_line (w, HEADER_LINE_FACE_ID,
-			       current_buffer->header_line_format);
+			       BUF_HEADER_LINE_FORMAT (current_buffer));
 
   start_display (&it, w, top);
   move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
@@ -2610,10 +2610,10 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
     {
-      if (NATNUMP (current_buffer->extra_line_spacing))
-	it->extra_line_spacing = XFASTINT (current_buffer->extra_line_spacing);
-      else if (FLOATP (current_buffer->extra_line_spacing))
-	it->extra_line_spacing = (XFLOAT_DATA (current_buffer->extra_line_spacing)
+      if (NATNUMP (BUF_EXTRA_LINE_SPACING (current_buffer)))
+	it->extra_line_spacing = XFASTINT (BUF_EXTRA_LINE_SPACING (current_buffer));
+      else if (FLOATP (BUF_EXTRA_LINE_SPACING (current_buffer)))
+	it->extra_line_spacing = (XFLOAT_DATA (BUF_EXTRA_LINE_SPACING (current_buffer))
 				  * FRAME_LINE_HEIGHT (it->f));
       else if (it->f->extra_line_spacing > 0)
 	it->extra_line_spacing = it->f->extra_line_spacing;
@@ -2636,29 +2636,29 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->override_ascent = -1;
 
   /* Are control characters displayed as `^C'?  */
-  it->ctl_arrow_p = !NILP (current_buffer->ctl_arrow);
+  it->ctl_arrow_p = !NILP (BUF_CTL_ARROW (current_buffer));
 
   /* -1 means everything between a CR and the following line end
      is invisible.  >0 means lines indented more than this value are
      invisible.  */
-  it->selective = (INTEGERP (current_buffer->selective_display)
-		   ? XFASTINT (current_buffer->selective_display)
-		   : (!NILP (current_buffer->selective_display)
+  it->selective = (INTEGERP (BUF_SELECTIVE_DISPLAY (current_buffer))
+		   ? XFASTINT (BUF_SELECTIVE_DISPLAY (current_buffer))
+		   : (!NILP (BUF_SELECTIVE_DISPLAY (current_buffer))
 		      ? -1 : 0));
   it->selective_display_ellipsis_p
-    = !NILP (current_buffer->selective_display_ellipses);
+    = !NILP (BUF_SELECTIVE_DISPLAY_ELLIPSES (current_buffer));
 
   /* Display table to use.  */
   it->dp = window_display_table (w);
 
   /* Are multibyte characters enabled in current_buffer?  */
-  it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+  it->multibyte_p = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
 
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
     = (!NILP (Vtransient_mark_mode)
-       && !NILP (current_buffer->mark_active)
-       && XMARKER (current_buffer->mark)->buffer != 0);
+       && !NILP (BUF_MARK_ACTIVE (current_buffer))
+       && XMARKER (BUF_MARK (current_buffer))->buffer != 0);
 
   /* Set IT->region_beg_charpos and IT->region_end_charpos to the
      start and end of a visible region in window IT->w.  Set both to
@@ -2675,7 +2675,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	      && WINDOWP (minibuf_selected_window)
 	      && w == XWINDOW (minibuf_selected_window))))
     {
-      int charpos = marker_position (current_buffer->mark);
+      int charpos = marker_position (BUF_MARK (current_buffer));
       it->region_beg_charpos = min (PT, charpos);
       it->region_end_charpos = max (PT, charpos);
     }
@@ -2692,7 +2692,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     it->redisplay_end_trigger_charpos = XINT (w->redisplay_end_trigger);
 
   /* Correct bogus values of tab_width.  */
-  it->tab_width = XINT (current_buffer->tab_width);
+  it->tab_width = XINT (BUF_TAB_WIDTH (current_buffer));
   if (it->tab_width <= 0 || it->tab_width > 1000)
     it->tab_width = 8;
 
@@ -2706,8 +2706,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 		  && (WINDOW_TOTAL_COLS (it->w)
 		      < XINT (Vtruncate_partial_width_windows))))))
     it->line_wrap = TRUNCATE;
-  else if (NILP (current_buffer->truncate_lines))
-    it->line_wrap = NILP (current_buffer->word_wrap)
+  else if (NILP (BUF_TRUNCATE_LINES (current_buffer)))
+    it->line_wrap = NILP (BUF_WORD_WRAP (current_buffer))
       ? WINDOW_WRAP : WORD_WRAP;
   else
     it->line_wrap = TRUNCATE;
@@ -5506,7 +5506,7 @@ reseat_1 (it, pos, set_stop_p)
   it->method = GET_FROM_BUFFER;
   it->object = it->w->buffer;
   it->area = TEXT_AREA;
-  it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+  it->multibyte_p = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
   it->sp = 0;
   it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
@@ -7727,7 +7727,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
-      current_buffer->undo_list = Qt;
+      BUF_UNDO_LIST (current_buffer) = Qt;
 
       oldpoint = message_dolog_marker1;
       set_marker_restricted (oldpoint, make_number (PT), Qnil);
@@ -7751,7 +7751,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
       /* Insert the string--maybe converting multibyte to single byte
 	 or vice versa, so that all the text fits the buffer.  */
       if (multibyte
-	  && NILP (current_buffer->enable_multibyte_characters))
+	  && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	{
 	  int i, c, char_bytes;
 	  unsigned char work[1];
@@ -7768,7 +7768,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	    }
 	}
       else if (! multibyte
-	       && ! NILP (current_buffer->enable_multibyte_characters))
+	       && ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	{
 	  int i, c, char_bytes;
 	  unsigned char *msg = (unsigned char *) m;
@@ -8285,7 +8285,7 @@ update_echo_area ()
       Lisp_Object string;
       string = Fcurrent_message ();
       message3 (string, SBYTES (string),
-		!NILP (current_buffer->enable_multibyte_characters));
+		!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)));
     }
 }
 
@@ -8300,7 +8300,7 @@ ensure_echo_area_buffers ()
 
   for (i = 0; i < 2; ++i)
     if (!BUFFERP (echo_buffer[i])
-	|| NILP (XBUFFER (echo_buffer[i])->name))
+	|| NILP (BUF_NAME (XBUFFER (echo_buffer[i]))))
       {
 	char name[30];
 	Lisp_Object old_buffer;
@@ -8309,7 +8309,7 @@ ensure_echo_area_buffers ()
 	old_buffer = echo_buffer[i];
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
-	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
+	BUF_TRUNCATE_LINES (XBUFFER (echo_buffer[i])) = Qnil;
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
 	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
@@ -8406,8 +8406,8 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
       set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
     }
 
-  current_buffer->undo_list = Qt;
-  current_buffer->read_only = Qnil;
+  BUF_UNDO_LIST (current_buffer) = Qt;
+  BUF_READ_ONLY (current_buffer) = Qnil;
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
 
@@ -8523,7 +8523,7 @@ setup_echo_area_for_printing (multibyte_p)
 
       /* Switch to that buffer and clear it.  */
       set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-      current_buffer->truncate_lines = Qnil;
+      BUF_TRUNCATE_LINES (current_buffer) = Qnil;
 
       if (Z > BEG)
 	{
@@ -8537,7 +8537,7 @@ setup_echo_area_for_printing (multibyte_p)
 
       /* Set up the buffer for the multibyteness we need.  */
       if (multibyte_p
-	  != !NILP (current_buffer->enable_multibyte_characters))
+	  != !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil);
 
       /* Raise the frame containing the echo area.  */
@@ -8566,7 +8566,7 @@ setup_echo_area_for_printing (multibyte_p)
 	{
 	  /* Someone switched buffers between print requests.  */
 	  set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-	  current_buffer->truncate_lines = Qnil;
+	  BUF_TRUNCATE_LINES (current_buffer) = Qnil;
 	}
     }
 }
@@ -9030,10 +9030,10 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
-      != !NILP (current_buffer->enable_multibyte_characters))
+      != !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
-  current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
+  BUF_TRUNCATE_LINES (current_buffer) = message_truncate_lines ? Qt : Qnil;
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
@@ -9056,7 +9056,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
       if (nbytes == 0)
 	nbytes = strlen (s);
 
-      if (multibyte_p && NILP (current_buffer->enable_multibyte_characters))
+      if (multibyte_p && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	{
 	  /* Convert from multi-byte to single-byte.  */
 	  int i, c, n;
@@ -9073,7 +9073,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	    }
 	}
       else if (!multibyte_p
-	       && !NILP (current_buffer->enable_multibyte_characters))
+	       && !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	{
 	  /* Convert from single-byte to multi-byte.  */
 	  int i, c, n;
@@ -9696,7 +9696,7 @@ update_menu_bar (f, save_match_data, hooks_run)
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
 	      != !NILP (w->last_had_star))
 	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (XBUFFER (w->buffer)->mark_active))
+	       && !NILP (BUF_MARK_ACTIVE (XBUFFER (w->buffer))))
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
@@ -9899,7 +9899,7 @@ update_tool_bar (f, save_match_data)
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
 	      != !NILP (w->last_had_star))
 	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (XBUFFER (w->buffer)->mark_active))
+	       && !NILP (BUF_MARK_ACTIVE (XBUFFER (w->buffer))))
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
@@ -11012,8 +11012,8 @@ text_outside_line_unchanged_p (w, start, end)
       /* If selective display, can't optimize if changes start at the
 	 beginning of the line.  */
       if (unchanged_p
-	  && INTEGERP (current_buffer->selective_display)
-	  && XINT (current_buffer->selective_display) > 0
+	  && INTEGERP (BUF_SELECTIVE_DISPLAY (current_buffer))
+	  && XINT (BUF_SELECTIVE_DISPLAY (current_buffer)) > 0
 	  && (BEG_UNCHANGED < start || GPT <= start))
 	unchanged_p = 0;
 
@@ -11583,11 +11583,11 @@ redisplay_internal (preserve_echo_area)
      the whole window.  The assignment to this_line_start_pos prevents
      the optimization directly below this if-statement.  */
   if (((!NILP (Vtransient_mark_mode)
-	&& !NILP (XBUFFER (w->buffer)->mark_active))
+	&& !NILP (BUF_MARK_ACTIVE (XBUFFER (w->buffer))))
        != !NILP (w->region_showing))
       || (!NILP (w->region_showing)
 	  && !EQ (w->region_showing,
-		  Fmarker_position (XBUFFER (w->buffer)->mark))))
+		  Fmarker_position (BUF_MARK (XBUFFER (w->buffer))))))
     CHARPOS (this_line_start_pos) = 0;
 
   /* Optimize the case that only the line containing the cursor in the
@@ -11747,8 +11747,8 @@ redisplay_internal (preserve_echo_area)
       /* If highlighting the region, or if the cursor is in the echo area,
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
-		  && !NILP (current_buffer->mark_active))
-	       && (EQ (selected_window, current_buffer->last_selected_window)
+		  && !NILP (BUF_MARK_ACTIVE (current_buffer)))
+	       && (EQ (selected_window, BUF_LAST_SELECTED_WINDOW (current_buffer))
 		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
 	       && NILP (Vshow_trailing_whitespace)
@@ -12667,8 +12667,8 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
     scroll_max = (max (scroll_step,
 		       max (scroll_conservatively, temp_scroll_step))
 		  * FRAME_LINE_HEIGHT (f));
-  else if (NUMBERP (current_buffer->scroll_down_aggressively)
-	   || NUMBERP (current_buffer->scroll_up_aggressively))
+  else if (NUMBERP (BUF_SCROLL_DOWN_AGGRESSIVELY (current_buffer))
+	   || NUMBERP (BUF_SCROLL_UP_AGGRESSIVELY (current_buffer)))
     /* We're trying to scroll because of aggressive scrolling but no
        scroll_step is set.  Choose an arbitrary one.  */
     scroll_max = 10 * FRAME_LINE_HEIGHT (f);
@@ -12725,7 +12725,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	amount_to_scroll = scroll_max;
       else
 	{
-	  aggressive = current_buffer->scroll_up_aggressively;
+	  aggressive = BUF_SCROLL_UP_AGGRESSIVELY (current_buffer);
 	  height = WINDOW_BOX_TEXT_HEIGHT (w);
 	  if (NUMBERP (aggressive))
 	    {
@@ -12789,7 +12789,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	    amount_to_scroll = scroll_max;
 	  else
 	    {
-	      aggressive = current_buffer->scroll_down_aggressively;
+	      aggressive = BUF_SCROLL_DOWN_AGGRESSIVELY (current_buffer);
 	      height = WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (NUMBERP (aggressive))
 		{
@@ -12970,7 +12970,7 @@ try_cursor_movement (window, startp, scroll_step)
          region exists, cursor movement has to do more than just
          set the cursor.  */
       && !(!NILP (Vtransient_mark_mode)
-	   && !NILP (current_buffer->mark_active))
+	   && !NILP (BUF_MARK_ACTIVE (current_buffer)))
       && NILP (w->region_showing)
       && NILP (Vshow_trailing_whitespace)
       /* Right after splitting windows, last_point may be nil.  */
@@ -13410,7 +13410,7 @@ redisplay_window (window, just_this_one_p)
       struct Lisp_Char_Table *disptab = buffer_display_table ();
 
       if (! disptab_matches_widthtab (disptab,
-                                      XVECTOR (current_buffer->width_table)))
+                                      XVECTOR (BUF_WIDTH_TABLE (current_buffer))))
         {
           invalidate_region_cache (current_buffer,
                                    current_buffer->width_run_cache,
@@ -13532,7 +13532,7 @@ redisplay_window (window, just_this_one_p)
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
 	  if (!NILP (Vtransient_mark_mode)
-	      && !NILP (current_buffer->mark_active))
+	      && !NILP (BUF_MARK_ACTIVE (current_buffer)))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
@@ -13695,8 +13695,8 @@ redisplay_window (window, just_this_one_p)
   if ((scroll_conservatively
        || scroll_step
        || temp_scroll_step
-       || NUMBERP (current_buffer->scroll_up_aggressively)
-       || NUMBERP (current_buffer->scroll_down_aggressively))
+       || NUMBERP (BUF_SCROLL_UP_AGGRESSIVELY (current_buffer))
+       || NUMBERP (BUF_SCROLL_DOWN_AGGRESSIVELY (current_buffer)))
       && !current_buffer->clip_changed
       && CHARPOS (startp) >= BEGV
       && CHARPOS (startp) <= ZV)
@@ -14134,7 +14134,7 @@ try_window_reusing_current_matrix (w)
 
   /* Can't do this if region may have changed.  */
   if ((!NILP (Vtransient_mark_mode)
-       && !NILP (current_buffer->mark_active))
+       && !NILP (BUF_MARK_ACTIVE (current_buffer)))
       || !NILP (w->region_showing)
       || !NILP (Vshow_trailing_whitespace))
     return 0;
@@ -14903,7 +14903,7 @@ try_window_id (w)
   /* Can't use this if highlighting a region because a cursor movement
      will do more than just set the cursor.  */
   if (!NILP (Vtransient_mark_mode)
-      && !NILP (current_buffer->mark_active))
+      && !NILP (BUF_MARK_ACTIVE (current_buffer)))
     GIVE_UP (9);
 
   /* Likewise if highlighting trailing whitespace.  */
@@ -14923,7 +14923,7 @@ try_window_id (w)
      wrapped line can change the wrap position, altering the line
      above it.  It might be worthwhile to handle this more
      intelligently, but for now just redisplay from scratch.  */
-  if (!NILP (XBUFFER (w->buffer)->word_wrap))
+  if (!NILP (BUF_WORD_WRAP (XBUFFER (w->buffer))))
     GIVE_UP (21);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
@@ -15899,7 +15899,7 @@ get_overlay_arrow_glyph_row (w, overlay_arrow_string)
   it.glyph_row->used[TEXT_AREA] = 0;
   SET_TEXT_POS (it.position, 0, 0);
 
-  multibyte_p = !NILP (buffer->enable_multibyte_characters);
+  multibyte_p = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (buffer));
   p = arrow_string;
   while (p < arrow_end)
     {
@@ -16581,7 +16581,7 @@ display_line (it)
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
 
-	      if (!NILP (XBUFFER (it->w->buffer)->indicate_empty_lines)
+	      if (!NILP (BUF_INDICATE_EMPTY_LINES (XBUFFER (it->w->buffer)))
 		  && (!MINI_WINDOW_P (it->w)
 		      || (minibuf_level && EQ (it->window, minibuf_window))))
 		row->indicate_empty_line_p = 1;
@@ -17244,14 +17244,14 @@ display_mode_lines (w)
 
       /* Select mode line face based on the real selected window.  */
       display_mode_line (w, CURRENT_MODE_LINE_FACE_ID_3 (sel_w, sel_w, w),
-			 current_buffer->mode_line_format);
+			 BUF_MODE_LINE_FORMAT (current_buffer));
       ++n;
     }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
     {
       display_mode_line (w, HEADER_LINE_FACE_ID,
-			 current_buffer->header_line_format);
+			 BUF_HEADER_LINE_FORMAT (current_buffer));
       ++n;
     }
 
@@ -18206,7 +18206,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
      int eol_flag;
 {
   Lisp_Object val;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
   const unsigned char *eol_str;
   int eol_str_len;
   /* The EOL conversion we are using.  */
@@ -18305,7 +18305,7 @@ decode_mode_spec (w, c, field_width, precision, string)
   switch (c)
     {
     case '*':
-      if (!NILP (b->read_only))
+      if (!NILP (BUF_READ_ONLY (b)))
 	return "%";
       if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
@@ -18315,7 +18315,7 @@ decode_mode_spec (w, c, field_width, precision, string)
       /* This differs from %* only for a modified read-only buffer.  */
       if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
-      if (!NILP (b->read_only))
+      if (!NILP (BUF_READ_ONLY (b)))
 	return "%";
       return "-";
 
@@ -18377,7 +18377,7 @@ decode_mode_spec (w, c, field_width, precision, string)
       }
 
     case 'b':
-      obj = b->name;
+      obj = BUF_NAME (b);
       break;
 
     case 'c':
@@ -18417,7 +18417,7 @@ decode_mode_spec (w, c, field_width, precision, string)
       return "Emacs";
 
     case 'f':
-      obj = b->filename;
+      obj = BUF_FILENAME (b);
       break;
 
     case 'i':
@@ -18552,7 +18552,7 @@ decode_mode_spec (w, c, field_width, precision, string)
       break;
 
     case 'm':
-      obj = b->mode_name;
+      obj = BUF_MODE_NAME (b);
       break;
 
     case 'n':
@@ -18635,11 +18635,8 @@ decode_mode_spec (w, c, field_width, precision, string)
 
     case '@':
       {
-	int count = inhibit_garbage_collection ();
-	Lisp_Object val = call1 (intern ("file-remote-p"),
-				 current_buffer->directory);
-	unbind_to (count, Qnil);
-
+	Lisp_Object val;
+	val = call1 (intern ("file-remote-p"), BUF_DIRECTORY (current_buffer));
 	if (NILP (val))
 	  return "-";
 	else
@@ -18672,7 +18669,7 @@ decode_mode_spec (w, c, field_width, precision, string)
 					 (FRAME_TERMINAL_CODING (f)->id),
 					 p, 0);
 	  }
-	p = decode_mode_spec_coding (b->buffer_file_coding_system,
+	p = decode_mode_spec_coding (BUF_BUFFER_FILE_CODING_SYSTEM (b),
 				     p, eol_flag);
 
 #if 0 /* This proves to be annoying; I think we can do without.  -- rms.  */
@@ -18722,8 +18719,8 @@ display_count_lines (start, start_byte, limit_byte, count, byte_pos_ptr)
 
   /* If we are not in selective display mode,
      check only for newlines.  */
-  int selective_display = (!NILP (current_buffer->selective_display)
-			   && !INTEGERP (current_buffer->selective_display));
+  int selective_display = (!NILP (BUF_SELECTIVE_DISPLAY (current_buffer))
+			   && !INTEGERP (BUF_SELECTIVE_DISPLAY (current_buffer)));
 
   if (count > 0)
     {
@@ -22182,13 +22179,13 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  if (EQ (b->cursor_type, Qt) || NILP (b->cursor_type))
+	  if (EQ (BUF_CURSOR_TYPE (b), Qt) || NILP (BUF_CURSOR_TYPE (b)))
 	    {
 	      *width = FRAME_CURSOR_WIDTH (f);
 	      return FRAME_DESIRED_CURSOR (f);
 	    }
 	  else
-	    return get_specified_cursor_type (b->cursor_type, width);
+	    return get_specified_cursor_type (BUF_CURSOR_TYPE (b), width);
 	}
 
       *active_cursor = 0;
@@ -22211,23 +22208,23 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     }
 
   /* Never display a cursor in a window in which cursor-type is nil.  */
-  if (NILP (b->cursor_type))
+  if (NILP (BUF_CURSOR_TYPE (b)))
     return NO_CURSOR;
 
   /* Get the normal cursor type for this window.  */
-  if (EQ (b->cursor_type, Qt))
+  if (EQ (BUF_CURSOR_TYPE (b), Qt))
     {
       cursor_type = FRAME_DESIRED_CURSOR (f);
       *width = FRAME_CURSOR_WIDTH (f);
     }
   else
-    cursor_type = get_specified_cursor_type (b->cursor_type, width);
+    cursor_type = get_specified_cursor_type (BUF_CURSOR_TYPE (b), width);
 
   /* Use cursor-in-non-selected-windows instead
      for non-selected window or frame.  */
   if (non_selected)
     {
-      alt_cursor = b->cursor_in_non_selected_windows;
+      alt_cursor = BUF_CURSOR_IN_NON_SELECTED_WINDOWS (b);
       if (!EQ (Qt, alt_cursor))
 	return get_specified_cursor_type (alt_cursor, width);
       /* t means modify the normal cursor type.  */
@@ -22276,7 +22273,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Cursor is blinked off, so determine how to "toggle" it.  */
 
   /* First look for an entry matching the buffer's cursor-type in blink-cursor-alist.  */
-  if ((alt_cursor = Fassoc (b->cursor_type, Vblink_cursor_alist), !NILP (alt_cursor)))
+  if ((alt_cursor = Fassoc (BUF_CURSOR_TYPE (b), Vblink_cursor_alist), !NILP (alt_cursor)))
     return get_specified_cursor_type (XCDR (alt_cursor), width);
 
   /* Then see if frame has specified a specific blink off cursor type.  */

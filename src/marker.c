@@ -506,7 +506,7 @@ Returns MARKER.  */)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BUF_NAME (b), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -582,7 +582,7 @@ set_marker_restricted (marker, pos, buffer)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BUF_NAME (b), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -649,7 +649,7 @@ set_marker_both (marker, buffer, charpos, bytepos)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BUF_NAME (b), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -699,7 +699,7 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BUF_NAME (b), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -755,7 +755,7 @@ unchain_marker (marker)
   if (b == 0)
     return;
 
-  if (EQ (b->name, Qnil))
+  if (EQ (BUF_NAME (b), Qnil))
     abort ();
 
   marker->buffer = 0;

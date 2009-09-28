@@ -438,7 +438,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do    							\
     {								\
       CHARIDX++;						\
-      if (!NILP (current_buffer->enable_multibyte_characters))	\
+      if (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))	\
 	{							\
 	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
 	  int len;						\
@@ -505,7 +505,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)++;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))	\
 	(bytepos)++;						\
       else							\
 	INC_POS ((bytepos));					\
@@ -519,7 +519,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)--;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))	\
 	(bytepos)--;						\
       else							\
 	DEC_POS ((bytepos));					\
@@ -582,11 +582,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ASCII_CHAR_WIDTH(c)						\
   (c < 0x20								\
    ? (c == '\t'								\
-      ? XFASTINT (current_buffer->tab_width)				\
-      : (c == '\n' ? 0 : (NILP (current_buffer->ctl_arrow) ? 4 : 2)))	\
+      ? XFASTINT (BUF_TAB_WIDTH (current_buffer))				\
+      : (c == '\n' ? 0 : (NILP (BUF_CTL_ARROW (current_buffer)) ? 4 : 2)))	\
    : (c < 0x7f								\
       ? 1								\
-      : ((NILP (current_buffer->ctl_arrow) ? 4 : 2))))
+      : ((NILP (BUF_CTL_ARROW (current_buffer)) ? 4 : 2))))
 
 /* Return the width of character C.  The width is measured by how many
    columns C will occupy on the screen when displayed in the current

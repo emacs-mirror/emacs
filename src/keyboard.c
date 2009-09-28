@@ -1786,7 +1786,7 @@ command_loop_1 ()
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
 			  == PT - 1)
 		      && !windows_or_buffers_changed
-		      && EQ (current_buffer->selective_display, Qnil)
+		      && EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qnil)
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
 		      && NILP (Vexecuting_kbd_macro))
@@ -1823,7 +1823,7 @@ command_loop_1 ()
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
 			  == PT + 1)
 		      && !windows_or_buffers_changed
-		      && EQ (current_buffer->selective_display, Qnil)
+		      && EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qnil)
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
 		      && NILP (Vexecuting_kbd_macro))
@@ -1858,7 +1858,7 @@ command_loop_1 ()
 			      != PT)
 			  || MODIFF <= SAVE_MODIFF
 			  || windows_or_buffers_changed
-			  || !EQ (current_buffer->selective_display, Qnil)
+			  || !EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qnil)
 			  || detect_input_pending ()
 			  || !NILP (XWINDOW (selected_window)->column_number_displayed)
 			  || !NILP (Vexecuting_kbd_macro));
@@ -1955,7 +1955,7 @@ command_loop_1 ()
 	  this_single_command_key_start = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+      if (!NILP (BUF_MARK_ACTIVE (current_buffer)) && !NILP (Vrun_hooks))
 	{
 	  /* In Emacs 22, setting transient-mark-mode to `only' was a
 	     way of turning it on for just one command.  This usage is
@@ -8911,7 +8911,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
       /* Prompt with that and read response.  */
       message2_nolog (menu, strlen (menu),
-		      ! NILP (current_buffer->enable_multibyte_characters));
+		      ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)));
 
       /* Make believe its not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
@@ -10177,7 +10177,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* Treat uppercase keys as shifted.  */
 	      || (INTEGERP (key)
 		  && (KEY_TO_CHAR (key)
-		      < XCHAR_TABLE (current_buffer->downcase_table)->size)
+		      < XCHAR_TABLE (BUF_DOWNCASE_TABLE (current_buffer))->size)
 		  && UPPERCASEP (KEY_TO_CHAR (key))))
 	    {
 	      Lisp_Object new_key

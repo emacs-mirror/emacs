@@ -316,7 +316,7 @@ while (0)
 /* Return character at position POS.  */
 
 #define FETCH_CHAR(pos)				      	\
-  (!NILP (current_buffer->enable_multibyte_characters)	\
+  (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))	\
    ? FETCH_MULTIBYTE_CHAR ((pos))		      	\
    : FETCH_BYTE ((pos)))
 
@@ -341,7 +341,7 @@ extern unsigned char *_fetch_multibyte_char_p;
    multibyte.  */
 
 #define FETCH_CHAR_AS_MULTIBYTE(pos)			\
-  (!NILP (current_buffer->enable_multibyte_characters)	\
+  (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))	\
    ? FETCH_MULTIBYTE_CHAR ((pos))			\
    : UNIBYTE_TO_CHAR (FETCH_BYTE ((pos))))
 
@@ -573,133 +573,133 @@ struct buffer
      because local variables have to be right in the  struct buffer.
      So we copy it around in set_buffer_internal.
      This comes before `name' because it is marked in a special way.  */
-  Lisp_Object undo_list;
+  Lisp_Object undo_list_;
 
   /* The name of this buffer.  */
-  Lisp_Object name;
+  Lisp_Object name_;
 
   /* The name of the file visited in this buffer, or nil.  */
-  Lisp_Object filename;
+  Lisp_Object filename_;
   /* Dir for expanding relative file names.  */
-  Lisp_Object directory;
+  Lisp_Object directory_;
   /* True if this buffer has been backed up (if you write to the
      visited file and it hasn't been backed up, then a backup will
      be made).  */
   /* This isn't really used by the C code, so could be deleted.  */
-  Lisp_Object backed_up;
+  Lisp_Object backed_up_;
   /* Length of file when last read or saved.
      -1 means auto saving turned off because buffer shrank a lot.
      -2 means don't turn off auto saving if buffer shrinks.
        (That value is used with buffer-swap-text.)
      This is not in the  struct buffer_text
      because it's not used in indirect buffers at all.  */
-  Lisp_Object save_length;
+  Lisp_Object save_length_;
   /* File name used for auto-saving this buffer.
      This is not in the  struct buffer_text
      because it's not used in indirect buffers at all.  */
-  Lisp_Object auto_save_file_name;
+  Lisp_Object auto_save_file_name_;
 
   /* Non-nil if buffer read-only.  */
-  Lisp_Object read_only;
+  Lisp_Object read_only_;
   /* "The mark".  This is a marker which may
      point into this buffer or may point nowhere.  */
-  Lisp_Object mark;
+  Lisp_Object mark_;
 
   /* Alist of elements (SYMBOL . VALUE-IN-THIS-BUFFER) for all
      per-buffer variables of this buffer.  For locally unbound
      symbols, just the symbol appears as the element.  */
-  Lisp_Object local_var_alist;
+  Lisp_Object local_var_alist_;
 
   /* Symbol naming major mode (eg, lisp-mode).  */
-  Lisp_Object major_mode;
+  Lisp_Object major_mode_;
   /* Pretty name of major mode (eg, "Lisp"). */
-  Lisp_Object mode_name;
+  Lisp_Object mode_name_;
   /* Mode line element that controls format of mode line.  */
-  Lisp_Object mode_line_format;
+  Lisp_Object mode_line_format_;
 
   /* Analogous to mode_line_format for the line displayed at the top
      of windows.  Nil means don't display that line.  */
-  Lisp_Object header_line_format;
+  Lisp_Object header_line_format_;
 
   /* Keys that are bound local to this buffer.  */
-  Lisp_Object keymap;
+  Lisp_Object keymap_;
   /* This buffer's local abbrev table.  */
-  Lisp_Object abbrev_table;
+  Lisp_Object abbrev_table_;
   /* This buffer's syntax table.  */
-  Lisp_Object syntax_table;
+  Lisp_Object syntax_table_;
   /* This buffer's category table.  */
-  Lisp_Object category_table;
+  Lisp_Object category_table_;
 
   /* Values of several buffer-local variables.  */
   /* tab-width is buffer-local so that redisplay can find it
      in buffers that are not current.  */
-  Lisp_Object case_fold_search;
-  Lisp_Object tab_width;
-  Lisp_Object fill_column;
-  Lisp_Object left_margin;
+  Lisp_Object case_fold_search_;
+  Lisp_Object tab_width_;
+  Lisp_Object fill_column_;
+  Lisp_Object left_margin_;
   /* Function to call when insert space past fill column.  */
-  Lisp_Object auto_fill_function;
+  Lisp_Object auto_fill_function_;
   /* nil: text, t: binary.
      This value is meaningful only on certain operating systems.  */
   /* Actually, we don't need this flag any more because end-of-line
      is handled correctly according to the buffer-file-coding-system
      of the buffer.  Just keeping it for backward compatibility.  */
-  Lisp_Object buffer_file_type;
+  Lisp_Object buffer_file_type_;
 
   /* Case table for case-conversion in this buffer.
      This char-table maps each char into its lower-case version.  */
-  Lisp_Object downcase_table;
+  Lisp_Object downcase_table_;
   /* Char-table mapping each char to its upper-case version.  */
-  Lisp_Object upcase_table;
+  Lisp_Object upcase_table_;
   /* Char-table for conversion for case-folding search.  */
-  Lisp_Object case_canon_table;
+  Lisp_Object case_canon_table_;
   /* Char-table of equivalences for case-folding search.  */
-  Lisp_Object case_eqv_table;
+  Lisp_Object case_eqv_table_;
 
   /* Non-nil means do not display continuation lines.  */
-  Lisp_Object truncate_lines;
+  Lisp_Object truncate_lines_;
   /* Non-nil means to use word wrapping when displaying continuation lines.  */
-  Lisp_Object word_wrap;
+  Lisp_Object word_wrap_;
   /* Non-nil means display ctl chars with uparrow.  */
-  Lisp_Object ctl_arrow;
+  Lisp_Object ctl_arrow_;
   /* Non-nil means display text from right to left.  */
-  Lisp_Object direction_reversed;
+  Lisp_Object direction_reversed_;
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
-  Lisp_Object selective_display;
+  Lisp_Object selective_display_;
 #ifndef old
   /* Non-nil means show ... at end of line followed by invisible lines.  */
-  Lisp_Object selective_display_ellipses;
+  Lisp_Object selective_display_ellipses_;
 #endif
   /* Alist of (FUNCTION . STRING) for each minor mode enabled in buffer.  */
-  Lisp_Object minor_modes;
+  Lisp_Object minor_modes_;
   /* t if "self-insertion" should overwrite; `binary' if it should also
      overwrite newlines and tabs - for editing executables and the like.  */
-  Lisp_Object overwrite_mode;
+  Lisp_Object overwrite_mode_;
   /* non-nil means abbrev mode is on.  Expand abbrevs automatically.  */
-  Lisp_Object abbrev_mode;
+  Lisp_Object abbrev_mode_;
   /* Display table to use for text in this buffer.  */
-  Lisp_Object display_table;
+  Lisp_Object display_table_;
   /* t means the mark and region are currently active.  */
-  Lisp_Object mark_active;
+  Lisp_Object mark_active_;
 
   /* Non-nil means the buffer contents are regarded as multi-byte
      form of characters, not a binary code.  */
-  Lisp_Object enable_multibyte_characters;
+  Lisp_Object enable_multibyte_characters_;
 
   /* Coding system to be used for encoding the buffer contents on
      saving.  */
-  Lisp_Object buffer_file_coding_system;
+  Lisp_Object buffer_file_coding_system_;
 
   /* List of symbols naming the file format used for visited file.  */
-  Lisp_Object file_format;
+  Lisp_Object file_format_;
 
   /* List of symbols naming the file format used for auto-save file.  */
-  Lisp_Object auto_save_file_format;
+  Lisp_Object auto_save_file_format_;
 
   /* True if the newline position cache and width run cache are
      enabled.  See search.c and indent.c.  */
-  Lisp_Object cache_long_line_scans;
+  Lisp_Object cache_long_line_scans_;
 
   /* If the width run cache is enabled, this table contains the
      character widths width_run_cache (see above) assumes.  When we
@@ -707,99 +707,99 @@ struct buffer
      current display table to see whether the display table has
      affected the widths of any characters.  If it has, we
      invalidate the width run cache, and re-initialize width_table.  */
-  Lisp_Object width_table;
+  Lisp_Object width_table_;
 
   /* In an indirect buffer, or a buffer that is the base of an
      indirect buffer, this holds a marker that records
      PT for this buffer when the buffer is not current.  */
-  Lisp_Object pt_marker;
+  Lisp_Object pt_marker_;
 
   /* In an indirect buffer, or a buffer that is the base of an
      indirect buffer, this holds a marker that records
      BEGV for this buffer when the buffer is not current.  */
-  Lisp_Object begv_marker;
+  Lisp_Object begv_marker_;
 
   /* In an indirect buffer, or a buffer that is the base of an
      indirect buffer, this holds a marker that records
      ZV for this buffer when the buffer is not current.  */
-  Lisp_Object zv_marker;
+  Lisp_Object zv_marker_;
 
   /* This holds the point value before the last scroll operation.
      Explicitly setting point sets this to nil.  */
-  Lisp_Object point_before_scroll;
+  Lisp_Object point_before_scroll_;
 
   /* Truename of the visited file, or nil.  */
-  Lisp_Object file_truename;
+  Lisp_Object file_truename_;
 
   /* Invisibility spec of this buffer.
      t => any non-nil `invisible' property means invisible.
      A list => `invisible' property means invisible
      if it is memq in that list.  */
-  Lisp_Object invisibility_spec;
+  Lisp_Object invisibility_spec_;
 
   /* This is the last window that was selected with this buffer in it,
      or nil if that window no longer displays this buffer.  */
-  Lisp_Object last_selected_window;
+  Lisp_Object last_selected_window_;
 
   /* Incremented each time the buffer is displayed in a window.  */
-  Lisp_Object display_count;
+  Lisp_Object display_count_;
 
   /* Widths of left and right marginal areas for windows displaying
      this buffer.  */
-  Lisp_Object left_margin_cols, right_margin_cols;
+  Lisp_Object left_margin_cols_, right_margin_cols_;
 
   /* Widths of left and right fringe areas for windows displaying
      this buffer.  */
-  Lisp_Object left_fringe_width, right_fringe_width;
+  Lisp_Object left_fringe_width_, right_fringe_width_;
 
   /* Non-nil means fringes are drawn outside display margins;
      othersize draw them between margin areas and text.  */
-  Lisp_Object fringes_outside_margins;
+  Lisp_Object fringes_outside_margins_;
 
   /* Width and type of scroll bar areas for windows displaying
      this buffer.  */
-  Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
+  Lisp_Object scroll_bar_width_, vertical_scroll_bar_type_;
 
   /* Non-nil means indicate lines not displaying text (in a style
      like vi).  */
-  Lisp_Object indicate_empty_lines;
+  Lisp_Object indicate_empty_lines_;
 
   /* Non-nil means indicate buffer boundaries and scrolling.  */
-  Lisp_Object indicate_buffer_boundaries;
+  Lisp_Object indicate_buffer_boundaries_;
 
   /* Logical to physical fringe bitmap mappings.  */
-  Lisp_Object fringe_indicator_alist;
+  Lisp_Object fringe_indicator_alist_;
 
   /* Logical to physical cursor bitmap mappings.  */
-  Lisp_Object fringe_cursor_alist;
+  Lisp_Object fringe_cursor_alist_;
 
   /* Time stamp updated each time this buffer is displayed in a window.  */
-  Lisp_Object display_time;
+  Lisp_Object display_time_;
 
   /* If scrolling the display because point is below the bottom of a
      window showing this buffer, try to choose a window start so
      that point ends up this number of lines from the top of the
      window.  Nil means that scrolling method isn't used.  */
-  Lisp_Object scroll_up_aggressively;
+  Lisp_Object scroll_up_aggressively_;
 
   /* If scrolling the display because point is above the top of a
      window showing this buffer, try to choose a window start so
      that point ends up this number of lines from the bottom of the
      window.  Nil means that scrolling method isn't used.  */
-  Lisp_Object scroll_down_aggressively;
+  Lisp_Object scroll_down_aggressively_;
 
   /* Desired cursor type in this buffer.  See the doc string of
      per-buffer variable `cursor-type'.  */
-  Lisp_Object cursor_type;
+  Lisp_Object cursor_type_;
 
   /* An integer > 0 means put that number of pixels below text lines
      in the display of this buffer.  */
-  Lisp_Object extra_line_spacing;
+  Lisp_Object extra_line_spacing_;
 
   /* *Cursor type to display in non-selected windows.
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
-  Lisp_Object cursor_in_non_selected_windows;
+  Lisp_Object cursor_in_non_selected_windows_;
 
   /* If non-nil, the thread holding a lock on this buffer.  */
   Lisp_Object owner;
@@ -807,6 +807,78 @@ struct buffer
   /* If non-nil, the previous thread holding a lock on this buffer.  */
   Lisp_Object prev_owner;
 };
+
+#define BUF_CURSOR_IN_NON_SELECTED_WINDOWS(BUF) *find_variable_location (&((BUF)->cursor_in_non_selected_windows_))
+#define BUF_EXTRA_LINE_SPACING(BUF) *find_variable_location (&((BUF)->extra_line_spacing_))
+#define BUF_CURSOR_TYPE(BUF) *find_variable_location (&((BUF)->cursor_type_))
+#define BUF_SCROLL_DOWN_AGGRESSIVELY(BUF) *find_variable_location (&((BUF)->scroll_down_aggressively_))
+#define BUF_SCROLL_UP_AGGRESSIVELY(BUF) *find_variable_location (&((BUF)->scroll_up_aggressively_))
+#define BUF_DISPLAY_TIME(BUF) *find_variable_location (&((BUF)->display_time_))
+#define BUF_FRINGE_CURSOR_ALIST(BUF) *find_variable_location (&((BUF)->fringe_cursor_alist_))
+#define BUF_FRINGE_INDICATOR_ALIST(BUF) *find_variable_location (&((BUF)->fringe_indicator_alist_))
+#define BUF_INDICATE_BUFFER_BOUNDARIES(BUF) *find_variable_location (&((BUF)->indicate_buffer_boundaries_))
+#define BUF_INDICATE_EMPTY_LINES(BUF) *find_variable_location (&((BUF)->indicate_empty_lines_))
+#define BUF_VERTICAL_SCROLL_BAR_TYPE(BUF) *find_variable_location (&((BUF)->vertical_scroll_bar_type_))
+#define BUF_SCROLL_BAR_WIDTH(BUF) *find_variable_location (&((BUF)->scroll_bar_width_))
+#define BUF_FRINGES_OUTSIDE_MARGINS(BUF) *find_variable_location (&((BUF)->fringes_outside_margins_))
+#define BUF_RIGHT_FRINGE_WIDTH(BUF) *find_variable_location (&((BUF)->right_fringe_width_))
+#define BUF_LEFT_FRINGE_WIDTH(BUF) *find_variable_location (&((BUF)->left_fringe_width_))
+#define BUF_RIGHT_MARGIN_COLS(BUF) *find_variable_location (&((BUF)->right_margin_cols_))
+#define BUF_LEFT_MARGIN_COLS(BUF) *find_variable_location (&((BUF)->left_margin_cols_))
+#define BUF_DISPLAY_COUNT(BUF) *find_variable_location (&((BUF)->display_count_))
+#define BUF_LAST_SELECTED_WINDOW(BUF) *find_variable_location (&((BUF)->last_selected_window_))
+#define BUF_INVISIBILITY_SPEC(BUF) *find_variable_location (&((BUF)->invisibility_spec_))
+#define BUF_FILE_TRUENAME(BUF) *find_variable_location (&((BUF)->file_truename_))
+#define BUF_POINT_BEFORE_SCROLL(BUF) *find_variable_location (&((BUF)->point_before_scroll_))
+#define BUF_ZV_MARKER(BUF) *find_variable_location (&((BUF)->zv_marker_))
+#define BUF_BEGV_MARKER(BUF) *find_variable_location (&((BUF)->begv_marker_))
+#define BUF_PT_MARKER(BUF) *find_variable_location (&((BUF)->pt_marker_))
+#define BUF_WIDTH_TABLE(BUF) *find_variable_location (&((BUF)->width_table_))
+#define BUF_CACHE_LONG_LINE_SCANS(BUF) *find_variable_location (&((BUF)->cache_long_line_scans_))
+#define BUF_AUTO_SAVE_FILE_FORMAT(BUF) *find_variable_location (&((BUF)->auto_save_file_format_))
+#define BUF_FILE_FORMAT(BUF) *find_variable_location (&((BUF)->file_format_))
+#define BUF_BUFFER_FILE_CODING_SYSTEM(BUF) *find_variable_location (&((BUF)->buffer_file_coding_system_))
+#define BUF_ENABLE_MULTIBYTE_CHARACTERS(BUF) *find_variable_location (&((BUF)->enable_multibyte_characters_))
+#define BUF_MARK_ACTIVE(BUF) *find_variable_location (&((BUF)->mark_active_))
+#define BUF_DISPLAY_TABLE(BUF) *find_variable_location (&((BUF)->display_table_))
+#define BUF_ABBREV_MODE(BUF) *find_variable_location (&((BUF)->abbrev_mode_))
+#define BUF_OVERWRITE_MODE(BUF) *find_variable_location (&((BUF)->overwrite_mode_))
+#define BUF_MINOR_MODES(BUF) *find_variable_location (&((BUF)->minor_modes_))
+#define BUF_SELECTIVE_DISPLAY_ELLIPSES(BUF) *find_variable_location (&((BUF)->selective_display_ellipses_))
+#define BUF_SELECTIVE_DISPLAY(BUF) *find_variable_location (&((BUF)->selective_display_))
+#define BUF_DIRECTION_REVERSED(BUF) *find_variable_location (&((BUF)->direction_reversed_))
+#define BUF_CTL_ARROW(BUF) *find_variable_location (&((BUF)->ctl_arrow_))
+#define BUF_WORD_WRAP(BUF) *find_variable_location (&((BUF)->word_wrap_))
+#define BUF_TRUNCATE_LINES(BUF) *find_variable_location (&((BUF)->truncate_lines_))
+#define BUF_CASE_EQV_TABLE(BUF) *find_variable_location (&((BUF)->case_eqv_table_))
+#define BUF_CASE_CANON_TABLE(BUF) *find_variable_location (&((BUF)->case_canon_table_))
+#define BUF_UPCASE_TABLE(BUF) *find_variable_location (&((BUF)->upcase_table_))
+#define BUF_DOWNCASE_TABLE(BUF) *find_variable_location (&((BUF)->downcase_table_))
+#define BUF_BUFFER_FILE_TYPE(BUF) *find_variable_location (&((BUF)->buffer_file_type_))
+#define BUF_AUTO_FILL_FUNCTION(BUF) *find_variable_location (&((BUF)->auto_fill_function_))
+#define BUF_LEFT_MARGIN(BUF) *find_variable_location (&((BUF)->left_margin_))
+#define BUF_FILL_COLUMN(BUF) *find_variable_location (&((BUF)->fill_column_))
+#define BUF_TAB_WIDTH(BUF) *find_variable_location (&((BUF)->tab_width_))
+#define BUF_CASE_FOLD_SEARCH(BUF) *find_variable_location (&((BUF)->case_fold_search_))
+#define BUF_CATEGORY_TABLE(BUF) *find_variable_location (&((BUF)->category_table_))
+#define BUF_SYNTAX_TABLE(BUF) *find_variable_location (&((BUF)->syntax_table_))
+#define BUF_ABBREV_TABLE(BUF) *find_variable_location (&((BUF)->abbrev_table_))
+#define BUF_KEYMAP(BUF) *find_variable_location (&((BUF)->keymap_))
+#define BUF_HEADER_LINE_FORMAT(BUF) *find_variable_location (&((BUF)->header_line_format_))
+#define BUF_MODE_LINE_FORMAT(BUF) *find_variable_location (&((BUF)->mode_line_format_))
+#define BUF_MODE_NAME(BUF) *find_variable_location (&((BUF)->mode_name_))
+#define BUF_MAJOR_MODE(BUF) *find_variable_location (&((BUF)->major_mode_))
+#define BUF_LOCAL_VAR_ALIST(BUF) *find_variable_location (&((BUF)->local_var_alist_))
+#define BUF_MARK(BUF) *find_variable_location (&((BUF)->mark_))
+#define BUF_READ_ONLY(BUF) *find_variable_location (&((BUF)->read_only_))
+#define BUF_AUTO_SAVE_FILE_NAME(BUF) *find_variable_location (&((BUF)->auto_save_file_name_))
+#define BUF_SAVE_LENGTH(BUF) *find_variable_location (&((BUF)->save_length_))
+#define BUF_BACKED_UP(BUF) *find_variable_location (&((BUF)->backed_up_))
+#define BUF_DIRECTORY(BUF) *find_variable_location (&((BUF)->directory_))
+#define BUF_FILENAME(BUF) *find_variable_location (&((BUF)->filename_))
+#define BUF_NAME(BUF) *find_variable_location (&((BUF)->name_))
+#define BUF_UNDO_LIST(BUF) *find_variable_location (&((BUF)->undo_list_))
+
 
 
 
@@ -937,7 +1009,7 @@ extern int last_per_buffer_idx;
    from the start of a buffer structure.  */
 
 #define PER_BUFFER_VAR_OFFSET(VAR) \
-    ((char *) &buffer_local_flags.VAR - (char *) &buffer_local_flags)
+    ((char *) &buffer_local_flags.VAR ## _ - (char *) &buffer_local_flags)
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer
    variable has an index > 0 associated with it, except when it always

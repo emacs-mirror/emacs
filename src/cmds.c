@@ -299,7 +299,7 @@ N was explicitly specified.  */)
   /* In overwrite mode, back over columns while clearing them out,
      unless at end of line.  */
   if (XINT (n) > 0
-      && ! NILP (current_buffer->overwrite_mode)
+      && ! NILP (BUF_OVERWRITE_MODE (current_buffer))
       && ! deleted_special
       && ! (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n'))
     {
@@ -349,10 +349,10 @@ After insertion, the value of `auto-fill-function' is called if the
     }
 
   if (remove_boundary
-      && CONSP (current_buffer->undo_list)
-      && NILP (XCAR (current_buffer->undo_list)))
+      && CONSP (BUF_UNDO_LIST (current_buffer))
+      && NILP (XCAR (BUF_UNDO_LIST (current_buffer))))
     /* Remove the undo_boundary that was just pushed.  */
-    current_buffer->undo_list = XCDR (current_buffer->undo_list);
+    BUF_UNDO_LIST (current_buffer) = XCDR (BUF_UNDO_LIST (current_buffer));
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -360,7 +360,7 @@ After insertion, the value of `auto-fill-function' is called if the
   {
     int character = translate_char (Vtranslation_table_for_input,
 				    XINT (last_command_event));
-    if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
+    if (XINT (n) >= 2 && NILP (BUF_OVERWRITE_MODE (current_buffer)))
       {
 	XSETFASTINT (n, XFASTINT (n) - 2);
 	/* The first one might want to expand an abbrev.  */
@@ -413,12 +413,12 @@ internal_self_insert (c, noautofill)
   int chars_to_delete = 0;
   int spaces_to_insert = 0;
 
-  overwrite = current_buffer->overwrite_mode;
+  overwrite = BUF_OVERWRITE_MODE (current_buffer);
   if (!NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
     hairy = 1;
 
   /* At first, get multi-byte form of C in STR.  */
-  if (!NILP (current_buffer->enable_multibyte_characters))
+  if (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     {
       len = CHAR_STRING (c, str);
       if (len == 1)
@@ -461,11 +461,11 @@ internal_self_insert (c, noautofill)
 	  || (c != '\n'
 	      && c2 != '\n'
 	      && ! (c2 == '\t'
-		    && XINT (current_buffer->tab_width) > 0
-		    && XFASTINT (current_buffer->tab_width) < 20
+		    && XINT (BUF_TAB_WIDTH (current_buffer)) > 0
+		    && XFASTINT (BUF_TAB_WIDTH (current_buffer)) < 20
 		    && (target_clm = ((int) current_column () /* iftc */
 				      + XINT (Fchar_width (make_number (c)))),
-			target_clm % XFASTINT (current_buffer->tab_width)))))
+			target_clm % XFASTINT (BUF_TAB_WIDTH (current_buffer))))))
 	{
 	  int pos = PT;
 	  int pos_byte = PT_BYTE;
@@ -497,13 +497,15 @@ internal_self_insert (c, noautofill)
       hairy = 2;
     }
 
+  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
+    MAKE_CHAR_MULTIBYTE (c);
   synt = SYNTAX (c);
 
-  if (!NILP (current_buffer->abbrev_mode)
+  if (!NILP (BUF_ABBREV_MODE (current_buffer))
       && synt != Sword
-      && NILP (current_buffer->read_only)
+      && NILP (BUF_READ_ONLY (current_buffer))
       && PT > BEGV
-      && (!NILP (current_buffer->enable_multibyte_characters)
+      && (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	  ? SYNTAX (XFASTINT (Fprevious_char ())) == Sword
 	  : (SYNTAX (UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	     == Sword)))
@@ -549,7 +551,7 @@ internal_self_insert (c, noautofill)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
        : (c == ' ' || c == '\n'))
       && !noautofill
-      && !NILP (current_buffer->auto_fill_function))
+      && !NILP (BUF_AUTO_FILL_FUNCTION (current_buffer)))
     {
       Lisp_Object tem;
 
@@ -558,7 +560,7 @@ internal_self_insert (c, noautofill)
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      tem = call0 (current_buffer->auto_fill_function);
+      tem = call0 (BUF_AUTO_FILL_FUNCTION (current_buffer));
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);

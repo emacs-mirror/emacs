@@ -91,7 +91,7 @@ extern Lisp_Object _temp_category_set;
 
 /* The standard category table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_category_table buffer_defaults.category_table
+#define Vstandard_category_table BUF_CATEGORY_TABLE (&buffer_defaults)
 
 /* Return the category set of character C in the current category table.  */
 #define CATEGORY_SET(c) char_category_set (c)

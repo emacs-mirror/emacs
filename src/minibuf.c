@@ -503,7 +503,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	CHECK_STRING (initial);
     }
   val = Qnil;
-  ambient_dir = current_buffer->directory;
+  ambient_dir = BUF_DIRECTORY (current_buffer);
   input_method = Qnil;
   enable_multibyte = Qnil;
 
@@ -617,7 +617,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       /* `current-input-method' is buffer local.  So, remember it in
 	 INPUT_METHOD before changing the current buffer.  */
       input_method = Fsymbol_value (Qcurrent_input_method);
-      enable_multibyte = current_buffer->enable_multibyte_characters;
+      enable_multibyte = BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer);
     }
 
   /* Switch to the minibuffer.  */
@@ -627,7 +627,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
-    current_buffer->enable_multibyte_characters = enable_multibyte;
+    BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer) = enable_multibyte;
 
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
@@ -638,7 +638,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      you think of something better to do?  Find another buffer with a
      better directory, and use that one instead.  */
   if (STRINGP (ambient_dir))
-    current_buffer->directory = ambient_dir;
+    BUF_DIRECTORY (current_buffer) = ambient_dir;
   else
     {
       Lisp_Object buf_list;
@@ -650,9 +650,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	  Lisp_Object other_buf;
 
 	  other_buf = XCDR (XCAR (buf_list));
-	  if (STRINGP (XBUFFER (other_buf)->directory))
+	  if (STRINGP (BUF_DIRECTORY (XBUFFER (other_buf))))
 	    {
-	      current_buffer->directory = XBUFFER (other_buf)->directory;
+	      BUF_DIRECTORY (current_buffer) = BUF_DIRECTORY (XBUFFER (other_buf));
 	      break;
 	    }
 	}
@@ -695,7 +695,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     specbind (Qinhibit_modification_hooks, Qt);
     Ferase_buffer ();
 
-    if (!NILP (current_buffer->enable_multibyte_characters)
+    if (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	&& ! STRING_MULTIBYTE (minibuf_prompt))
       minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
 
@@ -725,7 +725,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     }
 
   clear_message (1, 1);
-  current_buffer->keymap = map;
+  BUF_KEYMAP (current_buffer) = map;
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
@@ -739,7 +739,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
 
   /* Don't allow the user to undo past this point.  */
-  current_buffer->undo_list = Qnil;
+  BUF_UNDO_LIST (current_buffer) = Qnil;
 
   recursive_edit_1 ();
 
@@ -858,7 +858,7 @@ get_minibuffer (depth)
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
   buf = Fcar (tail);
-  if (NILP (buf) || NILP (XBUFFER (buf)->name))
+  if (NILP (buf) || NILP (BUF_NAME (XBUFFER (buf))))
     {
       sprintf (name, " *Minibuf-%d*", depth);
       buf = Fget_buffer_create (build_string (name));
@@ -1203,7 +1203,7 @@ function, instead of the usual behavior.  */)
   int count = SPECPDL_INDEX ();
 
   if (BUFFERP (def))
-    def = XBUFFER (def)->name;
+    def = BUF_NAME (XBUFFER (def));
 
   specbind (Qcompletion_ignore_case,
 	    read_buffer_completion_ignore_case ? Qt : Qnil);

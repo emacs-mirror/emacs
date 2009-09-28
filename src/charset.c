@@ -1619,7 +1619,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   EMACS_INT from, from_byte, to, stop, stop_byte;
   int i;
   Lisp_Object val;
-  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
 
   validate_region (&beg, &end);
   from = XFASTINT (beg);

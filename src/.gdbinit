@@ -1203,14 +1203,14 @@ Works only when an inferior emacs is executing.
 end
 
 
-define hook-run
-  xreload
-end
+# define hook-run
+#   xreload
+# end
 
 # Call xreload if a new Emacs executable is loaded.
-define hookpost-run
-  xreload
-end
+# define hookpost-run
+#   xreload
+# end
 
 set print pretty on
 set print sevenbit-strings

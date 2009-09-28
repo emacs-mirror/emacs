@@ -3285,7 +3285,7 @@ into shorter lines.  */)
   SAFE_ALLOCA (encoded, char *, allength);
   encoded_length = base64_encode_1 (BYTE_POS_ADDR (ibeg), encoded, length,
 				    NILP (no_line_break),
-				    !NILP (current_buffer->enable_multibyte_characters));
+				    !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)));
   if (encoded_length > allength)
     abort ();
 
@@ -3472,7 +3472,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   int old_pos = PT;
   int decoded_length;
   int inserted_chars;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
   USE_SAFE_ALLOCA;
 
   validate_region (&beg, &end);
@@ -5062,12 +5062,12 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	    {
 	      int force_raw_text = 0;
 
-	      coding_system = XBUFFER (object)->buffer_file_coding_system;
+	      coding_system = BUF_BUFFER_FILE_CODING_SYSTEM (XBUFFER (object));
 	      if (NILP (coding_system)
 		  || NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil)))
 		{
 		  coding_system = Qnil;
-		  if (NILP (current_buffer->enable_multibyte_characters))
+		  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 		    force_raw_text = 1;
 		}
 
@@ -5084,11 +5084,11 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 		}
 
 	      if (NILP (coding_system)
-		  && !NILP (XBUFFER (object)->buffer_file_coding_system))
+		  && !NILP (BUF_BUFFER_FILE_CODING_SYSTEM (XBUFFER (object))))
 		{
 		  /* If we still have not decided a coding system, use the
 		     default value of buffer-file-coding-system.  */
-		  coding_system = XBUFFER (object)->buffer_file_coding_system;
+		  coding_system = BUF_BUFFER_FILE_CODING_SYSTEM (XBUFFER (object));
 		}
 
 	      if (!force_raw_text

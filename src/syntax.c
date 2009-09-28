@@ -234,7 +234,7 @@ update_syntax_table (charpos, count, init, object)
       else
 	{
 	  gl_state.use_global = 0;
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.current_syntax_table = BUF_SYNTAX_TABLE (current_buffer);
 	}
     }
 
@@ -321,7 +321,7 @@ INLINE EMACS_INT
 inc_bytepos (bytepos)
      EMACS_INT bytepos;
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     return bytepos + 1;
 
   INC_POS (bytepos);
@@ -335,7 +335,7 @@ INLINE EMACS_INT
 dec_bytepos (bytepos)
      EMACS_INT bytepos;
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     return bytepos - 1;
 
   DEC_POS (bytepos);
@@ -752,7 +752,7 @@ DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
      ()
 {
-  return current_buffer->syntax_table;
+  return BUF_SYNTAX_TABLE (current_buffer);
 }
 
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
@@ -799,7 +799,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  current_buffer->syntax_table = table;
+  BUF_SYNTAX_TABLE (current_buffer) = table;
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -1009,7 +1009,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
     CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
-    syntax_table = current_buffer->syntax_table;
+    syntax_table = BUF_SYNTAX_TABLE (current_buffer);
   else
     check_syntax_table (syntax_table);
 
@@ -1432,7 +1432,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = SBYTES (string) > SCHARS (string);
 
@@ -1920,7 +1920,7 @@ skip_syntaxes (forwardp, string, lim)
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
     return make_number (0);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
   bzero (fastmap, sizeof fastmap);
@@ -2677,7 +2677,7 @@ scan_lists (from, count, depth, sexpflag)
 	      while (from > stop)
 		{
 		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
+		  if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 		    DEC_POS (temp_pos);
 		  else
 		    temp_pos--;

@@ -74,7 +74,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
      ()
 {
-  return current_buffer->downcase_table;
+  return BUF_DOWNCASE_TABLE (current_buffer);
 }
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
@@ -167,10 +167,10 @@ set_case_table (table, standard)
     }
   else
     {
-      current_buffer->downcase_table = table;
-      current_buffer->upcase_table = up;
-      current_buffer->case_canon_table = canon;
-      current_buffer->case_eqv_table = eqv;
+      BUF_DOWNCASE_TABLE (current_buffer) = table;
+      BUF_UPCASE_TABLE (current_buffer) = up;
+      BUF_CASE_CANON_TABLE (current_buffer) = canon;
+      BUF_CASE_EQV_TABLE (current_buffer) = eqv;
     }
 
   return table;

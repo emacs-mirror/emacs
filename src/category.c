@@ -200,7 +200,7 @@ check_category_table (table)
      Lisp_Object table;
 {
   if (NILP (table))
-    return current_buffer->category_table;
+    return BUF_CATEGORY_TABLE (current_buffer);
   CHECK_TYPE (!NILP (Fcategory_table_p (table)), Qcategory_table_p, table);
   return table;
 }
@@ -210,7 +210,7 @@ DEFUN ("category-table", Fcategory_table, Scategory_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
      ()
 {
-  return current_buffer->category_table;
+  return BUF_CATEGORY_TABLE (current_buffer);
 }
 
 DEFUN ("standard-category-table", Fstandard_category_table,
@@ -295,7 +295,7 @@ Return TABLE.  */)
 {
   int idx;
   table = check_category_table (table);
-  current_buffer->category_table = table;
+  BUF_CATEGORY_TABLE (current_buffer) = table;
   /* Indicate that this buffer now has a specified category table.  */
   idx = PER_BUFFER_VAR_IDX (category_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -307,7 +307,7 @@ Lisp_Object
 char_category_set (c)
      int c;
 {
-  return CHAR_TABLE_REF (current_buffer->category_table, c);
+  return CHAR_TABLE_REF (BUF_CATEGORY_TABLE (current_buffer), c);
 }
 
 DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,

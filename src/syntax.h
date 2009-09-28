@@ -23,7 +23,7 @@ extern void update_syntax_table P_ ((int, int, int, Lisp_Object));
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_syntax_table buffer_defaults.syntax_table
+#define Vstandard_syntax_table BUF_SYNTAX_TABLE (&buffer_defaults)
 
 /* A syntax table is a chartable whose elements are cons cells
    (CODE+FLAGS . MATCHING-CHAR).  MATCHING-CHAR can be nil if the char
@@ -78,7 +78,7 @@ enum syntaxcode
 #  define CURRENT_SYNTAX_TABLE gl_state.current_syntax_table
 #else
 #  define SYNTAX_ENTRY SYNTAX_ENTRY_INT
-#  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
+#  define CURRENT_SYNTAX_TABLE BUF_SYNTAX_TABLE (current_buffer)
 #endif
 
 #define SYNTAX_ENTRY_INT(c) CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, (c))

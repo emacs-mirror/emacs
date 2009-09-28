@@ -1391,7 +1391,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    CHECK_CHARACTER (TOP);
 	    AFTER_POTENTIAL_GC ();
 	    c = XFASTINT (TOP);
-	    if (NILP (current_buffer->enable_multibyte_characters))
+	    if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	      MAKE_CHAR_MULTIBYTE (c);
 	    XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (c)]);
 	  }

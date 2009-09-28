@@ -76,7 +76,7 @@ buffer_display_table ()
 {
   Lisp_Object thisbuf;
 
-  thisbuf = current_buffer->display_table;
+  thisbuf = BUF_DISPLAY_TABLE (current_buffer);
   if (DISP_TABLE_P (thisbuf))
     return XCHAR_TABLE (thisbuf);
   if (DISP_TABLE_P (Vstandard_display_table))
@@ -152,9 +152,9 @@ recompute_width_table (buf, disptab)
   int i;
   struct Lisp_Vector *widthtab;
 
-  if (!VECTORP (buf->width_table))
-    buf->width_table = Fmake_vector (make_number (256), make_number (0));
-  widthtab = XVECTOR (buf->width_table);
+  if (!VECTORP (BUF_WIDTH_TABLE (buf)))
+    BUF_WIDTH_TABLE (buf) = Fmake_vector (make_number (256), make_number (0));
+  widthtab = XVECTOR (BUF_WIDTH_TABLE (buf));
   if (widthtab->size != 256)
     abort ();
 
@@ -168,17 +168,17 @@ recompute_width_table (buf, disptab)
 static void
 width_run_cache_on_off ()
 {
-  if (NILP (current_buffer->cache_long_line_scans)
+  if (NILP (BUF_CACHE_LONG_LINE_SCANS (current_buffer))
       /* And, for the moment, this feature doesn't work on multibyte
          characters.  */
-      || !NILP (current_buffer->enable_multibyte_characters))
+      || !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     {
       /* It should be off.  */
       if (current_buffer->width_run_cache)
         {
           free_region_cache (current_buffer->width_run_cache);
           current_buffer->width_run_cache = 0;
-          current_buffer->width_table = Qnil;
+          BUF_WIDTH_TABLE (current_buffer) = Qnil;
         }
     }
   else
@@ -345,8 +345,8 @@ current_column ()
   register int tab_seen;
   int post_tab;
   register int c;
-  register int tab_width = XINT (current_buffer->tab_width);
-  int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  register int tab_width = XINT (BUF_TAB_WIDTH (current_buffer));
+  int ctl_arrow = !NILP (BUF_CTL_ARROW (current_buffer));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
   if (PT == last_known_column_point
@@ -433,7 +433,7 @@ current_column ()
 	    col++;
 	  else if (c == '\n'
 		   || (c == '\r'
-		       && EQ (current_buffer->selective_display, Qt)))
+		       && EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qt)))
 	    {
 	      ptr++;
 	      goto start_of_line_found;
@@ -529,10 +529,10 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 static void
 scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
-  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
-  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  register EMACS_INT tab_width = XINT (BUF_TAB_WIDTH (current_buffer));
+  register int ctl_arrow = !NILP (BUF_CTL_ARROW (current_buffer));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
   struct composition_it cmp_it;
   Lisp_Object window;
   struct window *w;
@@ -654,7 +654,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 
 	      if (c == '\n')
 		goto endloop;
-	      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+	      if (c == '\r' && EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qt))
 		goto endloop;
 	      if (c == '\t')
 		{
@@ -672,7 +672,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 
 	  if (c == '\n')
 	    goto endloop;
-	  if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+	  if (c == '\r' && EQ (BUF_SELECTIVE_DISPLAY (current_buffer), Qt))
 	    goto endloop;
 	  if (c == '\t')
 	    {
@@ -827,7 +827,7 @@ The return value is COLUMN.  */)
 {
   int mincol;
   register int fromcol;
-  register int tab_width = XINT (current_buffer->tab_width);
+  register int tab_width = XINT (BUF_TAB_WIDTH (current_buffer));
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -891,7 +891,7 @@ position_indentation (pos_byte)
      register int pos_byte;
 {
   register EMACS_INT column = 0;
-  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
+  register EMACS_INT tab_width = XINT (BUF_TAB_WIDTH (current_buffer));
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
@@ -943,7 +943,7 @@ position_indentation (pos_byte)
       switch (*p++)
 	{
 	case 0240:
-	  if (! NILP (current_buffer->enable_multibyte_characters))
+	  if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	    return column;
 	case ' ':
 	  column++;
@@ -953,7 +953,7 @@ position_indentation (pos_byte)
 	  break;
 	default:
 	  if (ASCII_BYTE_P (p[-1])
-	      || NILP (current_buffer->enable_multibyte_characters))
+	      || NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	    return column;
 	  {
 	    int c;
@@ -1150,13 +1150,13 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   register EMACS_INT pos;
   EMACS_INT pos_byte;
   register int c = 0;
-  register EMACS_INT tab_width = XFASTINT (current_buffer->tab_width);
-  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  register EMACS_INT tab_width = XFASTINT (BUF_TAB_WIDTH (current_buffer));
+  register int ctl_arrow = !NILP (BUF_CTL_ARROW (current_buffer));
   register struct Lisp_Char_Table *dp = window_display_table (win);
   int selective
-    = (INTEGERP (current_buffer->selective_display)
-       ? XINT (current_buffer->selective_display)
-       : !NILP (current_buffer->selective_display) ? -1 : 0);
+    = (INTEGERP (BUF_SELECTIVE_DISPLAY (current_buffer))
+       ? XINT (BUF_SELECTIVE_DISPLAY (current_buffer))
+       : !NILP (BUF_SELECTIVE_DISPLAY (current_buffer)) ? -1 : 0);
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -1178,7 +1178,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   EMACS_INT next_width_run = from;
   Lisp_Object window;
 
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
   /* If previous char scanned was a wide character,
      this is the column where it ended.  Otherwise, this is 0.  */
   EMACS_INT wide_column_end_hpos = 0;
@@ -1197,8 +1197,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
   width_run_cache_on_off ();
   if (dp == buffer_display_table ())
-    width_table = (VECTORP (current_buffer->width_table)
-                   ? XVECTOR (current_buffer->width_table)->contents
+    width_table = (VECTORP (BUF_WIDTH_TABLE (current_buffer))
+                   ? XVECTOR (BUF_WIDTH_TABLE (current_buffer))->contents
                    : 0);
   else
     /* If the window has its own display table, we can't use the width
@@ -1364,7 +1364,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    }
 
 	  if (hscroll || truncate
-	      || !NILP (current_buffer->truncate_lines))
+	      || !NILP (BUF_TRUNCATE_LINES (current_buffer)))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
                  TO (we need to go back below).  */
@@ -1869,9 +1869,9 @@ vmotion (from, vtarget, w)
   EMACS_INT from_byte;
   EMACS_INT lmargin = hscroll > 0 ? 1 - hscroll : 0;
   int selective
-    = (INTEGERP (current_buffer->selective_display)
-       ? XINT (current_buffer->selective_display)
-       : !NILP (current_buffer->selective_display) ? -1 : 0);
+    = (INTEGERP (BUF_SELECTIVE_DISPLAY (current_buffer))
+       ? XINT (BUF_SELECTIVE_DISPLAY (current_buffer))
+       : !NILP (BUF_SELECTIVE_DISPLAY (current_buffer)) ? -1 : 0);
   Lisp_Object window;
   EMACS_INT start_hpos = 0;
   int did_motion;

@@ -675,7 +675,7 @@ setup_process_coding_systems (process)
     ;
   else if (BUFFERP (p->buffer))
     {
-      if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (XBUFFER (p->buffer))))
 	coding_system = raw_text_coding_system (coding_system);
     }
   setup_coding_system (coding_system, proc_decode_coding_system[inch]);
@@ -756,7 +756,7 @@ get_process (name)
     {
       proc = Fget_buffer_process (obj);
       if (NILP (proc))
-	error ("Buffer %s has no process", SDATA (XBUFFER (obj)->name));
+	error ("Buffer %s has no process", SDATA (BUF_NAME (XBUFFER (obj))));
     }
   else
     {
@@ -1361,12 +1361,12 @@ list_processes_1 (query_only)
 	w_proc = i;
       if (!NILP (p->buffer))
 	{
-	  if (NILP (XBUFFER (p->buffer)->name))
+	  if (NILP (BUF_NAME (XBUFFER (p->buffer))))
 	    {
 	      if (w_buffer < 8)
 		w_buffer = 8;  /* (Killed) */
 	    }
-	  else if ((i = SCHARS (XBUFFER (p->buffer)->name), (i > w_buffer)))
+	  else if ((i = SCHARS (BUF_NAME (XBUFFER (p->buffer))), (i > w_buffer)))
 	    w_buffer = i;
 	}
       if (STRINGP (p->tty_name)
@@ -1390,9 +1390,9 @@ list_processes_1 (query_only)
   XSETFASTINT (minspace, 1);
 
   set_buffer_internal (XBUFFER (Vstandard_output));
-  current_buffer->undo_list = Qt;
+  BUF_UNDO_LIST (current_buffer) = Qt;
 
-  current_buffer->truncate_lines = Qt;
+  BUF_TRUNCATE_LINES (current_buffer) = Qt;
 
   write_string ("Proc", -1);
   Findent_to (i_status, minspace); write_string ("Status", -1);
@@ -1475,10 +1475,10 @@ list_processes_1 (query_only)
       Findent_to (i_buffer, minspace);
       if (NILP (p->buffer))
 	insert_string ("(none)");
-      else if (NILP (XBUFFER (p->buffer)->name))
+      else if (NILP (BUF_NAME (XBUFFER (p->buffer))))
 	insert_string ("(Killed)");
       else
-	Finsert (1, &XBUFFER (p->buffer)->name);
+	Finsert (1, &BUF_NAME (XBUFFER (p->buffer)));
 
       if (!NILP (i_tty))
 	{
@@ -1629,7 +1629,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   {
     struct gcpro gcpro1, gcpro2;
 
-    current_dir = current_buffer->directory;
+    current_dir = BUF_DIRECTORY (current_buffer);
 
     GCPRO2 (buffer, current_dir);
 
@@ -1641,7 +1641,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (current_buffer->directory, Qnil));
+			 Fcons (BUF_DIRECTORY (current_buffer), Qnil));
 
     UNGCPRO;
   }
@@ -3029,8 +3029,8 @@ usage:  (make-serial-process &rest ARGS)  */)
     }
   else if (!NILP (Vcoding_system_for_read))
     val = Vcoding_system_for_read;
-  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+  else if ((!NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (XBUFFER (buffer))))
+	   || (NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults))))
     val = Qnil;
   p->decode_coding_system = val;
 
@@ -3043,8 +3043,8 @@ usage:  (make-serial-process &rest ARGS)  */)
     }
   else if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
-  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+  else if ((!NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (XBUFFER (buffer))))
+	   || (NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults))))
     val = Qnil;
   p->encode_coding_system = val;
 
@@ -3839,8 +3839,8 @@ usage: (make-network-process &rest ARGS)  */)
       }
     else if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
-    else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+    else if ((!NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (XBUFFER (buffer))))
+	     || (NILP (buffer) && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults))))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
 	 assume that they receive bare code including a sequene of
@@ -3875,7 +3875,7 @@ usage: (make-network-process &rest ARGS)  */)
       }
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
-    else if (NILP (current_buffer->enable_multibyte_characters))
+    else if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
       val = Qnil;
     else
       {
@@ -5403,7 +5403,7 @@ read_process_output (proc, channel)
 	 is test them for EQness, and none of them should be a string.  */
       odeactivate = Vdeactivate_mark;
       XSETBUFFER (obuffer, current_buffer);
-      okeymap = current_buffer->keymap;
+      okeymap = BUF_KEYMAP (current_buffer);
 
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
@@ -5497,7 +5497,7 @@ read_process_output (proc, channel)
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
-  if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
+  if (!NILP (p->buffer) && !NILP (BUF_NAME (XBUFFER (p->buffer))))
     {
       Lisp_Object old_read_only;
       int old_begv, old_zv;
@@ -5515,13 +5515,13 @@ read_process_output (proc, channel)
       Fset_buffer (p->buffer);
       opoint = PT;
       opoint_byte = PT_BYTE;
-      old_read_only = current_buffer->read_only;
+      old_read_only = BUF_READ_ONLY (current_buffer);
       old_begv = BEGV;
       old_zv = ZV;
       old_begv_byte = BEGV_BYTE;
       old_zv_byte = ZV_BYTE;
 
-      current_buffer->read_only = Qnil;
+      BUF_READ_ONLY (current_buffer) = Qnil;
 
       /* Insert new output into buffer
 	 at the current end-of-output marker,
@@ -5566,7 +5566,7 @@ read_process_output (proc, channel)
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))
 	  != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
@@ -5612,7 +5612,7 @@ read_process_output (proc, channel)
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
 
-      current_buffer->read_only = old_read_only;
+      BUF_READ_ONLY (current_buffer) = old_read_only;
       SET_PT_BOTH (opoint, opoint_byte);
       unbind_to (count, Qnil);
     }
@@ -5679,7 +5679,7 @@ send_process (proc, buf, len, object)
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
-	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
+	  && !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (XBUFFER (object))))
       || EQ (object, Qt))
     {
       if (!EQ (Vlast_coding_system_used, p->encode_coding_system))
@@ -6842,7 +6842,7 @@ exec_sentinel (proc, reason)
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
   XSETBUFFER (obuffer, current_buffer);
-  okeymap = current_buffer->keymap;
+  okeymap = BUF_KEYMAP (current_buffer);
 
   sentinel = p->sentinel;
   if (NILP (sentinel))
@@ -6986,11 +6986,11 @@ status_notify (deleting_process)
 	      int opoint, opoint_byte;
 	      int before, before_byte;
 
-	      ro = XBUFFER (buffer)->read_only;
+	      ro = BUF_READ_ONLY (XBUFFER (buffer));
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */
-	      if (NILP (XBUFFER (buffer)->name))
+	      if (NILP (BUF_NAME (XBUFFER (buffer))))
 		continue;
 	      Fset_buffer (buffer);
 
@@ -7007,13 +7007,13 @@ status_notify (deleting_process)
 	      before = PT;
 	      before_byte = PT_BYTE;
 
-	      tem = current_buffer->read_only;
-	      current_buffer->read_only = Qnil;
+	      tem = BUF_READ_ONLY (current_buffer);
+	      BUF_READ_ONLY (current_buffer) = Qnil;
 	      insert_string ("\nProcess ");
 	      Finsert (1, &p->name);
 	      insert_string (" ");
 	      Finsert (1, &msg);
-	      current_buffer->read_only = tem;
+	      BUF_READ_ONLY (current_buffer) = tem;
 	      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
 	      if (opoint >= before)

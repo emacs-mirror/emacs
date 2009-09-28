@@ -298,7 +298,7 @@ readchar (readcharfun, multibyte)
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (inbuffer->enable_multibyte_characters))
+      if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (inbuffer)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
@@ -327,7 +327,7 @@ readchar (readcharfun, multibyte)
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (inbuffer->enable_multibyte_characters))
+      if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (inbuffer)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
@@ -461,7 +461,7 @@ unreadchar (readcharfun, c)
       int bytepos = BUF_PT_BYTE (b);
 
       BUF_PT (b)--;
-      if (! NILP (b->enable_multibyte_characters))
+      if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (b)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -474,7 +474,7 @@ unreadchar (readcharfun, c)
       int bytepos = XMARKER (readcharfun)->bytepos;
 
       XMARKER (readcharfun)->charpos--;
-      if (! NILP (b->enable_multibyte_characters))
+      if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (b)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -1438,7 +1438,7 @@ openp (path, str, suffixes, storeptr, predicate)
 	/* Of course, this could conceivably lose if luser sets
 	   default-directory to be something non-absolute... */
 	{
-	  filename = Fexpand_file_name (filename, current_buffer->directory);
+	  filename = Fexpand_file_name (filename, BUF_DIRECTORY (current_buffer));
 	  if (!complete_filename_p (filename))
 	    /* Give up on this path element! */
 	    continue;
@@ -1703,7 +1703,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
     {
       int count1 = SPECPDL_INDEX ();
 
-      if (b != 0 && NILP (b->name))
+      if (b != 0 && NILP (BUF_NAME (b)))
 	error ("Reading from killed buffer");
 
       if (!NILP (start))
@@ -1844,7 +1844,7 @@ This function preserves the position of point.  */)
     tem = printflag;
 
   if (NILP (filename))
-    filename = XBUFFER (buf)->filename;
+    filename = BUF_FILENAME (XBUFFER (buf));
 
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
@@ -1885,7 +1885,7 @@ This function does not move point.  */)
   specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
+  readevalloop (cbuf, 0, BUF_FILENAME (XBUFFER (cbuf)), Feval,
 		!NILP (printflag), Qnil, read_function,
 		start, end);
 

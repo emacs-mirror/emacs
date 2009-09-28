@@ -1408,8 +1408,8 @@ window_display_table (w)
     {
       struct buffer *b = XBUFFER (w->buffer);
 
-      if (DISP_TABLE_P (b->display_table))
-	dp = XCHAR_TABLE (b->display_table);
+      if (DISP_TABLE_P (BUF_DISPLAY_TABLE (b)))
+	dp = XCHAR_TABLE (BUF_DISPLAY_TABLE (b));
       else if (DISP_TABLE_P (Vstandard_display_table))
 	dp = XCHAR_TABLE (Vstandard_display_table);
     }
@@ -1463,9 +1463,9 @@ unshow_buffer (w)
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer)
       /* This line helps to fix Horsley's testbug.el bug.  */
-      && !(WINDOWP (b->last_selected_window)
-	   && w != XWINDOW (b->last_selected_window)
-	   && EQ (buf, XWINDOW (b->last_selected_window)->buffer)))
+      && !(WINDOWP (BUF_LAST_SELECTED_WINDOW (b))
+	   && w != XWINDOW (BUF_LAST_SELECTED_WINDOW (b))
+	   && EQ (buf, XWINDOW (BUF_LAST_SELECTED_WINDOW (b))->buffer)))
     temp_set_point_both (b,
 			 clip_to_bounds (BUF_BEGV (b),
 					 XMARKER (w->pointm)->charpos,
@@ -1474,9 +1474,9 @@ unshow_buffer (w)
 					 marker_byte_position (w->pointm),
 					 BUF_ZV_BYTE (b)));
 
-  if (WINDOWP (b->last_selected_window)
-      && w == XWINDOW (b->last_selected_window))
-    b->last_selected_window = Qnil;
+  if (WINDOWP (BUF_LAST_SELECTED_WINDOW (b))
+      && w == XWINDOW (BUF_LAST_SELECTED_WINDOW (b)))
+    BUF_LAST_SELECTED_WINDOW (b) = Qnil;
 }
 
 /* Put replacement into the window structure in place of old. */
@@ -2391,7 +2391,7 @@ window_loop (type, obj, mini, frames)
 	    /* Check for a window that has a killed buffer.  */
 	  case CHECK_ALL_WINDOWS:
 	    if (! NILP (w->buffer)
-		&& NILP (XBUFFER (w->buffer)->name))
+		&& NILP (BUF_NAME (XBUFFER (w->buffer))))
 	      abort ();
 	    break;
 
@@ -2798,7 +2798,7 @@ window_min_size_2 (w, width_p, safe_p)
     {
       int safe_size = (MIN_SAFE_WINDOW_HEIGHT
 		       + ((BUFFERP (w->buffer)
-			   && !NILP (XBUFFER (w->buffer)->mode_line_format))
+			   && !NILP (BUF_MODE_LINE_FORMAT (XBUFFER (w->buffer))))
 			  ? 1 : 0));
 
       return safe_p ? safe_size : max (window_min_height, safe_size);
@@ -3450,15 +3450,15 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   w->buffer = buffer;
 
   if (EQ (window, selected_window))
-    b->last_selected_window = window;
+    BUF_LAST_SELECTED_WINDOW (b) = window;
 
   /* Let redisplay errors through.  */
   b->display_error_modiff = 0;
 
   /* Update time stamps of buffer display.  */
-  if (INTEGERP (b->display_count))
-    XSETINT (b->display_count, XINT (b->display_count) + 1);
-  b->display_time = Fcurrent_time ();
+  if (INTEGERP (BUF_DISPLAY_COUNT (b)))
+    XSETINT (BUF_DISPLAY_COUNT (b), XINT (BUF_DISPLAY_COUNT (b)) + 1);
+  BUF_DISPLAY_TIME (b) = Fcurrent_time ();
 
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
@@ -3511,18 +3511,18 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
       w->left_margin_cols = w->right_margin_cols = Qnil;
 
       Fset_window_fringes (window,
-			   b->left_fringe_width, b->right_fringe_width,
-			   b->fringes_outside_margins);
+			   BUF_LEFT_FRINGE_WIDTH (b), BUF_RIGHT_FRINGE_WIDTH (b),
+			   BUF_FRINGES_OUTSIDE_MARGINS (b));
 
       Fset_window_scroll_bars (window,
-			       b->scroll_bar_width,
-			       b->vertical_scroll_bar_type, Qnil);
+			       BUF_SCROLL_BAR_WIDTH (b),
+			       BUF_VERTICAL_SCROLL_BAR_TYPE (b), Qnil);
 
       w->left_margin_cols = save_left;
       w->right_margin_cols = save_right;
 
       Fset_window_margins (window,
-			   b->left_margin_cols, b->right_margin_cols);
+			   BUF_LEFT_MARGIN_COLS (b), BUF_RIGHT_MARGIN_COLS (b));
     }
 
   if (run_hooks_p)
@@ -3560,7 +3560,7 @@ This function runs `window-scroll-functions' before running
   XSETWINDOW (window, w);
   buffer = Fget_buffer (buffer_or_name);
   CHECK_BUFFER (buffer);
-  if (NILP (XBUFFER (buffer)->name))
+  if (NILP (BUF_NAME (XBUFFER (buffer))))
     error ("Attempt to display deleted buffer");
 
   tem = w->buffer;
@@ -3571,7 +3571,7 @@ This function runs `window-scroll-functions' before running
     {
       if (!EQ (tem, buffer))
 	if (EQ (w->dedicated, Qt))
-	  error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+	  error ("Window is dedicated to `%s'", SDATA (BUF_NAME (XBUFFER (tem))));
 	else
 	  w->dedicated = Qnil;
 
@@ -3650,7 +3650,7 @@ selected window before each command.  */)
     record_buffer (w->buffer);
   Fset_buffer (w->buffer);
 
-  XBUFFER (w->buffer)->last_selected_window = window;
+  BUF_LAST_SELECTED_WINDOW (XBUFFER (w->buffer)) = window;
 
   /* Go to the point recorded in the window.
      This is important when the buffer is in more
@@ -3723,7 +3723,7 @@ displaying that buffer.  */)
 
   if (STRINGP (object))
     object = Fget_buffer (object);
-  if (BUFFERP (object) && !NILP (XBUFFER (object)->name))
+  if (BUFFERP (object) && !NILP (BUF_NAME (XBUFFER (object))))
     {
       /* Walk all windows looking for buffer, and force update
 	 of each of those windows.  */
@@ -3747,7 +3747,7 @@ temp_output_buffer_show (buf)
   register Lisp_Object window;
   register struct window *w;
 
-  XBUFFER (buf)->directory = current_buffer->directory;
+  BUF_DIRECTORY (XBUFFER (buf)) = BUF_DIRECTORY (current_buffer);
 
   Fset_buffer (buf);
   BUF_SAVE_MODIFF (XBUFFER (buf)) = MODIFF;
@@ -6002,7 +6002,7 @@ the return value is nil.  Otherwise the value is t.  */)
   saved_windows = XVECTOR (data->saved_windows);
 
   new_current_buffer = data->m_current_buffer;
-  if (NILP (XBUFFER (new_current_buffer)->name))
+  if (NILP (BUF_NAME (XBUFFER (new_current_buffer))))
     new_current_buffer = Qnil;
   else
     {
@@ -6187,14 +6187,14 @@ the return value is nil.  Otherwise the value is t.  */)
 	    w->buffer = p->buffer;
 	  else
 	    {
-	      if (!NILP (XBUFFER (p->buffer)->name))
+	      if (!NILP (BUF_NAME (XBUFFER (p->buffer))))
 		/* If saved buffer is alive, install it.  */
 		{
 		  w->buffer = p->buffer;
 		  w->start_at_line_beg = p->start_at_line_beg;
 		  set_marker_restricted (w->start, p->start, w->buffer);
 		  set_marker_restricted (w->pointm, p->pointm, w->buffer);
-		  Fset_marker (XBUFFER (w->buffer)->mark,
+		  Fset_marker (BUF_MARK (XBUFFER (w->buffer)),
 			       p->mark, w->buffer);
 
 		  /* As documented in Fcurrent_window_configuration, don't
@@ -6204,7 +6204,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		      && XBUFFER (p->buffer) == current_buffer)
 		    Fgoto_char (w->pointm);
 		}
-	      else if (NILP (w->buffer) || NILP (XBUFFER (w->buffer)->name))
+	      else if (NILP (w->buffer) || NILP (BUF_NAME (XBUFFER (w->buffer))))
 		/* Else unless window has a live buffer, get one.  */
 		{
 		  w->buffer = Fcdr (Fcar (Vbuffer_alist));
@@ -6245,7 +6245,7 @@ the return value is nil.  Otherwise the value is t.  */)
 			       XWINDOW (data->current_window)->buffer);
 
       Fselect_window (data->current_window, Qnil);
-      XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
+      BUF_LAST_SELECTED_WINDOW (XBUFFER (XWINDOW (selected_window)->buffer))
 	= selected_window;
 
       if (NILP (data->focus_frame)
@@ -6462,7 +6462,7 @@ save_window_save (window, vector, i)
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg;
 
-	  tem = XBUFFER (w->buffer)->mark;
+	  tem = BUF_MARK (XBUFFER (w->buffer));
 	  p->mark = Fcopy_marker (tem, Qnil);
 	}
       else

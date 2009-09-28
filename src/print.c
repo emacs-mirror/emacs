@@ -189,7 +189,7 @@ int print_output_debug_flag = 1;
    int old_point_byte = -1, start_point_byte = -1;			\
    int specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
-   int multibyte = !NILP (current_buffer->enable_multibyte_characters);	\
+   int multibyte = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)); \
    Lisp_Object original
 
 #define PRINTPREPARE							\
@@ -222,10 +222,10 @@ int print_output_debug_flag = 1;
    if (NILP (printcharfun))						\
      {									\
        Lisp_Object string;						\
-       if (NILP (current_buffer->enable_multibyte_characters)		\
+       if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))	\
 	   && ! print_escape_multibyte)					\
          specbind (Qprint_escape_multibyte, Qt);			\
-       if (! NILP (current_buffer->enable_multibyte_characters)		\
+       if (! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))	\
 	   && ! print_escape_nonascii)					\
          specbind (Qprint_escape_nonascii, Qt);				\
        if (print_buffer != 0)						\
@@ -251,7 +251,7 @@ int print_output_debug_flag = 1;
    if (NILP (printcharfun))						\
      {									\
        if (print_buffer_pos != print_buffer_pos_byte			\
-	   && NILP (current_buffer->enable_multibyte_characters))	\
+	   && NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))	\
 	 {								\
 	   unsigned char *temp						\
 	     = (unsigned char *) alloca (print_buffer_pos + 1);		\
@@ -331,7 +331,7 @@ printchar (ch, fun)
       else
 	{
 	  int multibyte_p
-	    = !NILP (current_buffer->enable_multibyte_characters);
+	    = !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
 
 	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
@@ -386,7 +386,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	 job.  */
       int i;
       int multibyte_p
-	= !NILP (current_buffer->enable_multibyte_characters);
+	= !NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer));
 
       setup_echo_area_for_printing (multibyte_p);
       message_dolog (ptr, size_byte, 0, multibyte_p);
@@ -455,8 +455,8 @@ print_string (string, printcharfun)
 	chars = SCHARS (string);
       else if (! print_escape_nonascii
 	       && (EQ (printcharfun, Qt)
-		   ? ! NILP (buffer_defaults.enable_multibyte_characters)
-		   : ! NILP (current_buffer->enable_multibyte_characters)))
+		   ? ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults))
+		   : ! NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer))))
 	{
 	  /* If unibyte string STRING contains 8-bit codes, we must
 	     convert STRING to a multibyte string containing the same
@@ -595,14 +595,14 @@ temp_output_buffer_setup (bufname)
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);
-  current_buffer->directory = old->directory;
-  current_buffer->read_only = Qnil;
-  current_buffer->filename = Qnil;
-  current_buffer->undo_list = Qt;
+  BUF_DIRECTORY (current_buffer) = BUF_DIRECTORY (old);
+  BUF_READ_ONLY (current_buffer) = Qnil;
+  BUF_FILENAME (current_buffer) = Qnil;
+  BUF_UNDO_LIST (current_buffer) = Qt;
   eassert (current_buffer->overlays_before == NULL);
   eassert (current_buffer->overlays_after == NULL);
-  current_buffer->enable_multibyte_characters
-    = buffer_defaults.enable_multibyte_characters;
+  BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)
+    = BUF_ENABLE_MULTIBYTE_CHARACTERS (&buffer_defaults);
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -2019,7 +2019,7 @@ print_object (obj, printcharfun, escapeflag)
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
 	      strout (" on ", -1, -1, printcharfun, 0);
-	      print_string (XBUFFER (XWINDOW (obj)->buffer)->name, printcharfun);
+	      print_string (BUF_NAME (XBUFFER (XWINDOW (obj)->buffer)), printcharfun);
 	    }
 	  PRINTCHAR ('>');
 	}
@@ -2119,16 +2119,16 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else if (BUFFERP (obj))
 	{
-	  if (NILP (XBUFFER (obj)->name))
+	  if (NILP (BUF_NAME (XBUFFER (obj))))
 	    strout ("#<killed buffer>", -1, -1, printcharfun, 0);
 	  else if (escapeflag)
 	    {
 	      strout ("#<buffer ", -1, -1, printcharfun, 0);
-	      print_string (XBUFFER (obj)->name, printcharfun);
+	      print_string (BUF_NAME (XBUFFER (obj)), printcharfun);
 	      PRINTCHAR ('>');
 	    }
 	  else
-	    print_string (XBUFFER (obj)->name, printcharfun);
+	    print_string (BUF_NAME (XBUFFER (obj)), printcharfun);
 	}
       else if (WINDOW_CONFIGURATIONP (obj))
 	{
@@ -2240,7 +2240,7 @@ print_object (obj, printcharfun, escapeflag)
 	      sprintf (buf, "at %d", marker_position (obj));
 	      strout (buf, -1, -1, printcharfun, 0);
 	      strout (" in ", -1, -1, printcharfun, 0);
-	      print_string (XMARKER (obj)->buffer->name, printcharfun);
+	      print_string (BUF_NAME (XMARKER (obj)->buffer), printcharfun);
 	    }
 	  PRINTCHAR ('>');
 	  break;
@@ -2255,7 +2255,7 @@ print_object (obj, printcharfun, escapeflag)
 		       marker_position (OVERLAY_START (obj)),
 		       marker_position (OVERLAY_END   (obj)));
 	      strout (buf, -1, -1, printcharfun, 0);
-	      print_string (XMARKER (OVERLAY_START (obj))->buffer->name,
+	      print_string (BUF_NAME (XMARKER (OVERLAY_START (obj))->buffer),
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');

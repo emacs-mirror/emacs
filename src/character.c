@@ -580,7 +580,7 @@ chars_in_text (ptr, nbytes)
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
   if (current_buffer == 0
-      || NILP (current_buffer->enable_multibyte_characters))
+      || NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
     return nbytes;
 
   return multibyte_chars_in_text (ptr, nbytes);
@@ -1048,7 +1048,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
 	  pos = XFASTINT (position);
 	  p = CHAR_POS_ADDR (pos);
 	}
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	return make_number (*p);
     }
   else

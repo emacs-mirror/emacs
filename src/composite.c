@@ -819,7 +819,7 @@ fill_gstring_header (header, start, end, font_object, string)
 
   if (NILP (string))
     {
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BUF_ENABLE_MULTIBYTE_CHARACTERS (current_buffer)))
 	error ("Attempt to shape unibyte text");
       validate_region (&start, &end);
       from = XFASTINT (start);

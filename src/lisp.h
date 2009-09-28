@@ -1975,11 +1975,11 @@ extern Lisp_Object case_temp2;
 
 /* Current buffer's map from characters to lower-case characters.  */
 
-#define DOWNCASE_TABLE current_buffer->downcase_table
+#define DOWNCASE_TABLE BUF_DOWNCASE_TABLE (current_buffer)
 
 /* Current buffer's map from characters to upper-case characters.  */
 
-#define UPCASE_TABLE current_buffer->upcase_table
+#define UPCASE_TABLE BUF_UPCASE_TABLE (current_buffer)
 
 /* Downcase a character, or make no change if that cannot be done.  */
 

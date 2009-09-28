@@ -1138,7 +1138,7 @@ swap_in_symval_forwarding (symbol, valcontents)
       Fsetcdr (tem1,
 	       do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
       /* Choose the new binding.  */
-      tem1 = assq_no_quit (symbol, current_buffer->local_var_alist);
+      tem1 = assq_no_quit (symbol, BUF_LOCAL_VAR_ALIST (current_buffer));
       XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
       XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
       if (NILP (tem1))
@@ -1254,7 +1254,7 @@ set_internal (symbol, newval, buf, bindflag)
     buf = current_buffer;
 
   /* If restoring in a dead buffer, do nothing.  */
-  if (NILP (buf->name))
+  if (NILP (BUF_NAME (buf)))
     return newval;
 
   CHECK_SYMBOL (symbol);
@@ -1305,7 +1305,7 @@ set_internal (symbol, newval, buf, bindflag)
 		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
 
 	  /* Find the new binding.  */
-	  tem1 = Fassq (symbol, buf->local_var_alist);
+	  tem1 = Fassq (symbol, BUF_LOCAL_VAR_ALIST (buf));
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 1;
 	  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
 
@@ -1341,8 +1341,8 @@ set_internal (symbol, newval, buf, bindflag)
 	      else
 		{
 		  tem1 = Fcons (symbol, XCDR (current_alist_element));
-		  buf->local_var_alist
-		    = Fcons (tem1, buf->local_var_alist);
+		  BUF_LOCAL_VAR_ALIST (buf)
+		    = Fcons (tem1, BUF_LOCAL_VAR_ALIST (buf));
 		}
 	    }
 
@@ -1658,7 +1658,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
     }
   /* Make sure this buffer has its own value of symbol.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirections.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BUF_LOCAL_VAR_ALIST (current_buffer));
   if (NILP (tem))
     {
       /* Swap out any local binding for some other buffer, and make
@@ -1666,9 +1666,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	 default value.  */
       find_symbol_value (variable);
 
-      current_buffer->local_var_alist
+      BUF_LOCAL_VAR_ALIST (current_buffer)
         = Fcons (Fcons (variable, XCDR (XBUFFER_LOCAL_VALUE (sym->value)->cdr)),
-		 current_buffer->local_var_alist);
+		 BUF_LOCAL_VAR_ALIST (current_buffer));
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
@@ -1729,10 +1729,10 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
   /* Get rid of this buffer's alist element, if any.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BUF_LOCAL_VAR_ALIST (current_buffer));
   if (!NILP (tem))
-    current_buffer->local_var_alist
-      = Fdelq (tem, current_buffer->local_var_alist);
+    BUF_LOCAL_VAR_ALIST (current_buffer)
+      = Fdelq (tem, BUF_LOCAL_VAR_ALIST (current_buffer));
 
   /* If the symbol is set up with the current buffer's binding
      loaded, recompute its value.  We have to do it now, or else
@@ -1844,7 +1844,7 @@ BUFFER defaults to the current buffer.  */)
     {
       Lisp_Object tail, elt;
 
-      for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
+      for (tail = BUF_LOCAL_VAR_ALIST (buf); CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
 	  if (EQ (variable, XCAR (elt)))
@@ -1898,7 +1898,7 @@ BUFFER defaults to the current buffer.  */)
       Lisp_Object tail, elt;
       if (XBUFFER_LOCAL_VALUE (valcontents)->local_if_set)
 	return Qt;
-      for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
+      for (tail = BUF_LOCAL_VAR_ALIST (buf); CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
 	  if (EQ (variable, XCAR (elt)))

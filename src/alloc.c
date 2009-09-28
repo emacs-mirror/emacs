@@ -4029,7 +4029,7 @@ live_buffer_p (m, p)
      must not have been killed.  */
   return (m->type == MEM_TYPE_BUFFER
 	  && p == m->start
-	  && !NILP (((struct buffer *) p)->name));
+	  && !NILP (BUF_NAME (((struct buffer *) p))));
 }
 
 #endif /* GC_MARK_STACK || defined GC_MALLOC_CHECK */
@@ -5011,11 +5011,11 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! NILP (nextb->name) && ! EQ (nextb->undo_list, Qt))
+	if (! NILP (BUF_NAME (nextb)) && ! EQ (BUF_UNDO_LIST (nextb), Qt))
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name)
+	if (nextb->base_buffer == 0 && !NILP (BUF_NAME (nextb))
 	    && ! nextb->text->inhibit_shrinking)
 	  {
 	    /* If a buffer's gap size is more than 10% of the buffer
@@ -5120,10 +5120,10 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
+	if (! EQ (BUF_UNDO_LIST (nextb), Qt))
 	  {
 	    Lisp_Object tail, prev;
-	    tail = nextb->undo_list;
+	    tail = BUF_UNDO_LIST (nextb);
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
@@ -5132,7 +5132,7 @@ returns nil, because real GC can't be done.  */)
 		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
-		      nextb->undo_list = tail = XCDR (tail);
+		      BUF_UNDO_LIST (nextb) = tail = XCDR (tail);
 		    else
 		      {
 			tail = XCDR (tail);
@@ -5148,7 +5148,7 @@ returns nil, because real GC can't be done.  */)
 	  }
 	/* Now that we have stripped the elements that need not be in the
 	   undo_list any more, we can finally mark the list.  */
-	mark_object (nextb->undo_list);
+	mark_object (BUF_UNDO_LIST (nextb));
 
 	nextb = nextb->next;
       }
@@ -5722,7 +5722,7 @@ mark_buffer (buf)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &buffer->name;
+  for (ptr = &BUF_NAME (buffer);
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (*ptr);

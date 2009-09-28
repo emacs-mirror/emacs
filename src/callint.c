@@ -173,12 +173,12 @@ check_mark (for_region)
      int for_region;
 {
   Lisp_Object tem;
-  tem = Fmarker_buffer (current_buffer->mark);
+  tem = Fmarker_buffer (BUF_MARK (current_buffer));
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error (for_region ? "The mark is not set now, so there is no region"
 	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
-      && NILP (current_buffer->mark_active))
+      && NILP (BUF_MARK_ACTIVE (current_buffer)))
     xsignal0 (Qmark_inactive);
 }
 
@@ -412,7 +412,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else if (*string == '*')
 	{
 	  string++;
-	  if (!NILP (current_buffer->read_only))
+	  if (!NILP (BUF_READ_ONLY (current_buffer)))
 	    {
 	      if (!NILP (record_flag))
 		{
@@ -570,7 +570,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (callint_message, Qnil,
-				     current_buffer->directory, Qlambda, Qnil,
+				     BUF_DIRECTORY (current_buffer), Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
@@ -688,7 +688,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark (0);
 	  /* visargs[i] = Qnil; */
-	  args[i] = current_buffer->mark;
+	  args[i] = BUF_MARK (current_buffer);
 	  varies[i] = 2;
 	  break;
 
@@ -744,11 +744,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (current_buffer->mark);
+	  foo = marker_position (BUF_MARK (current_buffer));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : current_buffer->mark;
+	  args[i] = PT < foo ? point_marker : BUF_MARK (current_buffer);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : current_buffer->mark;
+	  args[++i] = PT > foo ? point_marker : BUF_MARK (current_buffer);
 	  varies[i] = 4;
 	  break;
 

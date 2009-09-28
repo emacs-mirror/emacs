@@ -1353,7 +1353,7 @@ struct glyph_string
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
-      && !NILP (XBUFFER ((W)->buffer)->mode_line_format)		\
+      && !NILP (BUF_MODE_LINE_FORMAT (XBUFFER ((W)->buffer)))		\
       && WINDOW_TOTAL_LINES (W) > 1)
 
 /* Value is non-zero if window W wants a header line.  */
@@ -1363,8 +1363,8 @@ struct glyph_string
       && !(W)->pseudo_window_p						\
       && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME ((W))))		\
       && BUFFERP ((W)->buffer)						\
-      && !NILP (XBUFFER ((W)->buffer)->header_line_format)		\
-      && WINDOW_TOTAL_LINES (W) > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
+      && !NILP (BUF_HEADER_LINE_FORMAT (XBUFFER ((W)->buffer)))		\
+      && WINDOW_TOTAL_LINES (W) > 1 + !NILP (BUF_MODE_LINE_FORMAT (XBUFFER ((W)->buffer))))
 
 
 /* Return proper value to be used as baseline offset of font that has
