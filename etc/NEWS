@@ -235,6 +235,8 @@ Command*'.
 
 * New Modes and Packages in Emacs 23.2
 
+** FIXME CEDET
+
 ** js.el is a new major mode for JavaScript files.
 
 ** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
