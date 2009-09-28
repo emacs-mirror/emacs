@@ -295,6 +295,146 @@ ELCFILES = \
 	$(lisp)/calendar/timeclock.elc \
 	$(lisp)/calendar/todo-mode.elc \
 	$(lisp)/case-table.elc \
+	$(lisp)/cedet/cedet.el \
+	$(lisp)/cedet/cedet-cscope.el \
+	$(lisp)/cedet/cedet-files.el \
+	$(lisp)/cedet/cedet-global.el \
+	$(lisp)/cedet/cedet-idutils.el \
+	$(lisp)/cedet/inversion.el \
+	$(lisp)/cedet/mode-local.el \
+	$(lisp)/cedet/pulse.el \
+	$(lisp)/cedet/data-debug.el \
+	$(lisp)/cedet/ede.el \
+	$(lisp)/cedet/semantic.el \
+	$(lisp)/cedet/srecode.el \
+	$(lisp)/cedet/ede/autoconf-edit.el \
+	$(lisp)/cedet/ede/cpp-root.el \
+	$(lisp)/cedet/ede/dired.el \
+	$(lisp)/cedet/ede/emacs.el \
+	$(lisp)/cedet/ede/files.el \
+	$(lisp)/cedet/ede/linux.el \
+	$(lisp)/cedet/ede/locate.el \
+	$(lisp)/cedet/ede/make.el \
+	$(lisp)/cedet/ede/makefile-edit.el \
+	$(lisp)/cedet/ede/pconf.el \
+	$(lisp)/cedet/ede/pmake.el \
+	$(lisp)/cedet/ede/proj-archive.el \
+	$(lisp)/cedet/ede/proj-aux.el \
+	$(lisp)/cedet/ede/proj-comp.el \
+	$(lisp)/cedet/ede/proj-elisp.el \
+	$(lisp)/cedet/ede/proj-info.el \
+	$(lisp)/cedet/ede/proj-misc.el \
+	$(lisp)/cedet/ede/proj-obj.el \
+	$(lisp)/cedet/ede/proj-prog.el \
+	$(lisp)/cedet/ede/proj-scheme.el \
+	$(lisp)/cedet/ede/proj-shared.el \
+	$(lisp)/cedet/ede/proj.el \
+	$(lisp)/cedet/ede/project-am.el \
+	$(lisp)/cedet/ede/simple.el \
+	$(lisp)/cedet/ede/source.el \
+	$(lisp)/cedet/ede/speedbar.el \
+	$(lisp)/cedet/ede/srecode.el \
+	$(lisp)/cedet/ede/system.el \
+	$(lisp)/cedet/ede/util.el \
+	$(lisp)/cedet/semantic/analyze.el \
+	$(lisp)/cedet/semantic/bovine.el \
+	$(lisp)/cedet/semantic/chart.el \
+	$(lisp)/cedet/semantic/complete.el \
+	$(lisp)/cedet/semantic/ctxt.el \
+	$(lisp)/cedet/semantic/db-debug.el \
+	$(lisp)/cedet/semantic/db-ebrowse.el \
+	$(lisp)/cedet/semantic/db-el.el \
+	$(lisp)/cedet/semantic/db-file.el \
+	$(lisp)/cedet/semantic/db-find.el \
+	$(lisp)/cedet/semantic/db-global.el \
+	$(lisp)/cedet/semantic/db-javascript.el \
+	$(lisp)/cedet/semantic/db-mode.el \
+	$(lisp)/cedet/semantic/db-ref.el \
+	$(lisp)/cedet/semantic/db-typecache.el \
+	$(lisp)/cedet/semantic/db.el \
+	$(lisp)/cedet/semantic/debug.el \
+	$(lisp)/cedet/semantic/decorate.el \
+	$(lisp)/cedet/semantic/dep.el \
+	$(lisp)/cedet/semantic/doc.el \
+	$(lisp)/cedet/semantic/ede-grammar.el \
+	$(lisp)/cedet/semantic/edit.el \
+	$(lisp)/cedet/semantic/find.el \
+	$(lisp)/cedet/semantic/format.el \
+	$(lisp)/cedet/semantic/fw.el \
+	$(lisp)/cedet/semantic/grammar-wy.el \
+	$(lisp)/cedet/semantic/grammar.el \
+	$(lisp)/cedet/semantic/html.el \
+	$(lisp)/cedet/semantic/ia-sb.el \
+	$(lisp)/cedet/semantic/ia.el \
+	$(lisp)/cedet/semantic/idle.el \
+	$(lisp)/cedet/semantic/java.el \
+	$(lisp)/cedet/semantic/lex-spp.el \
+	$(lisp)/cedet/semantic/lex.el \
+	$(lisp)/cedet/semantic/mru-bookmark.el \
+	$(lisp)/cedet/semantic/sb.el \
+	$(lisp)/cedet/semantic/scope.el \
+	$(lisp)/cedet/semantic/senator.el \
+	$(lisp)/cedet/semantic/sort.el \
+	$(lisp)/cedet/semantic/symref.el \
+	$(lisp)/cedet/semantic/tag-file.el \
+	$(lisp)/cedet/semantic/tag-ls.el \
+	$(lisp)/cedet/semantic/tag-write.el \
+	$(lisp)/cedet/semantic/tag.el \
+	$(lisp)/cedet/semantic/texi.el \
+	$(lisp)/cedet/semantic/util-modes.el \
+	$(lisp)/cedet/semantic/util.el \
+	$(lisp)/cedet/semantic/wisent.el \
+	$(lisp)/cedet/semantic/analyze/complete.el \
+	$(lisp)/cedet/semantic/analyze/debug.el \
+	$(lisp)/cedet/semantic/analyze/fcn.el \
+	$(lisp)/cedet/semantic/analyze/refs.el \
+	$(lisp)/cedet/semantic/bovine/c-by.el \
+	$(lisp)/cedet/semantic/bovine/c.el \
+	$(lisp)/cedet/semantic/bovine/debug.el \
+	$(lisp)/cedet/semantic/bovine/el.el \
+	$(lisp)/cedet/semantic/bovine/gcc.el \
+	$(lisp)/cedet/semantic/bovine/make-by.el \
+	$(lisp)/cedet/semantic/bovine/make.el \
+	$(lisp)/cedet/semantic/bovine/scm-by.el \
+	$(lisp)/cedet/semantic/bovine/scm.el \
+	$(lisp)/cedet/semantic/decorate/include.el \
+	$(lisp)/cedet/semantic/decorate/mode.el \
+	$(lisp)/cedet/semantic/symref/cscope.el \
+	$(lisp)/cedet/semantic/symref/filter.el \
+	$(lisp)/cedet/semantic/symref/global.el \
+	$(lisp)/cedet/semantic/symref/grep.el \
+	$(lisp)/cedet/semantic/symref/idutils.el \
+	$(lisp)/cedet/semantic/symref/list.el \
+	$(lisp)/cedet/semantic/wisent/comp.el \
+	$(lisp)/cedet/semantic/wisent/java-tags.el \
+	$(lisp)/cedet/semantic/wisent/javascript.el \
+	$(lisp)/cedet/semantic/wisent/javat-wy.el \
+	$(lisp)/cedet/semantic/wisent/js-wy.el \
+	$(lisp)/cedet/semantic/wisent/wisent.el \
+	$(lisp)/cedet/srecode/args.el \
+	$(lisp)/cedet/srecode/compile.el \
+	$(lisp)/cedet/srecode/cpp.el \
+	$(lisp)/cedet/srecode/ctxt.el \
+	$(lisp)/cedet/srecode/dictionary.el \
+	$(lisp)/cedet/srecode/document.el \
+	$(lisp)/cedet/srecode/el.el \
+	$(lisp)/cedet/srecode/expandproto.el \
+	$(lisp)/cedet/srecode/extract.el \
+	$(lisp)/cedet/srecode/fields.el \
+	$(lisp)/cedet/srecode/filters.el \
+	$(lisp)/cedet/srecode/find.el \
+	$(lisp)/cedet/srecode/getset.el \
+	$(lisp)/cedet/srecode/insert.el \
+	$(lisp)/cedet/srecode/java.el \
+	$(lisp)/cedet/srecode/map.el \
+	$(lisp)/cedet/srecode/mode.el \
+	$(lisp)/cedet/srecode/semantic.el \
+	$(lisp)/cedet/srecode/srt-mode.el \
+	$(lisp)/cedet/srecode/srt-wy.el \
+	$(lisp)/cedet/srecode/srt.el \
+	$(lisp)/cedet/srecode/table.el \
+	$(lisp)/cedet/srecode/template.el \
+	$(lisp)/cedet/srecode/texi.el \
 	$(lisp)/cdl.elc \
 	$(lisp)/chistory.elc \
 	$(lisp)/cmuscheme.elc \
@@ -357,6 +497,7 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/byte-run.elc \
 	$(lisp)/emacs-lisp/bytecomp.elc \
+	$(lisp)/emacs-lisp/chart.elc \
 	$(lisp)/emacs-lisp/check-declare.elc \
 	$(lisp)/emacs-lisp/checkdoc.elc \
 	$(lisp)/emacs-lisp/cl-compat.elc \
@@ -374,6 +515,13 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/easy-mmode.elc \
 	$(lisp)/emacs-lisp/easymenu.elc \
 	$(lisp)/emacs-lisp/edebug.elc \
+	$(lisp)/emacs-lisp/eieio.elc \
+	$(lisp)/emacs-lisp/eieio-base.elc \
+	$(lisp)/emacs-lisp/eieio-comp.elc \
+	$(lisp)/emacs-lisp/eieio-custom.elc \
+	$(lisp)/emacs-lisp/eieio-datadebug.elc \
+	$(lisp)/emacs-lisp/eieio-opt.elc \
+	$(lisp)/emacs-lisp/eieio-speedbar.elc \
 	$(lisp)/emacs-lisp/eldoc.elc \
 	$(lisp)/emacs-lisp/elint.elc \
 	$(lisp)/emacs-lisp/elp.elc \

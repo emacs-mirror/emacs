@@ -1,3 +1,7 @@
+2009-09-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (ELCFILES): Add CEDET files.
+
 2009-09-28  Eric Ludlam  <zappo@gnu.org>
 
 	CEDET (development tools) package merged.
