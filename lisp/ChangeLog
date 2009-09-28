@@ -1,3 +1,13 @@
+2009-09-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/chart.el:
+	* emacs-lisp/eieio-base.el:
+	* emacs-lisp/eieio-comp.el:
+	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-opt.el:
+	* emacs-lisp/eieio-speedbar.el:
+	* emacs-lisp/eieio.el: New files.
+
 2009-09-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el: Remove menu-bar-ediff-misc-menu from the Tools
