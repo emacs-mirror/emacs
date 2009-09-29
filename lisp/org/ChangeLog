@@ -1,3 +1,8 @@
+2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-agenda.el (org-agenda-restore-windows-after-quit):
+	Fix typo in docstring.
+
 2009-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-tree-to-indirect-buffer, org-convert-to-oddeven-levels)

@@ -707,7 +707,7 @@ Before the window configuration is changed for displaying the agenda,
 the current status is recorded.  When the agenda is exited with
 `q' or `x' and this option is set, the old state is restored.  If
 `org-agenda-window-setup' is `other-frame', the value of this
-option will be ignored.."
+option will be ignored."
   :group 'org-agenda-windows
   :type 'boolean)
 
