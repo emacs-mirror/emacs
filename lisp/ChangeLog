@@ -1,3 +1,9 @@
+2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (WINS_CEDET, WINS_BASIC, WINS_SUBDIR): New macros.
+	(WINS_ALMOST): Set from WINS_BASIC and WINS_CEDET.
+	(update-subdirs-CMD): Use WINS_SUBDIR, not WINS_ALMOST.
+
 2009-09-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (lisptagsfiles3): Define.
