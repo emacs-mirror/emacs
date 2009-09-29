@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;;; Copyright (C) 2005, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007, 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -37,7 +37,8 @@
 (require 'srecode)
 (require 'srecode/table)
 
-(declare-function srecode-template-inserter-newline-child-p "srecode/insert")
+(declare-function srecode-template-inserter-newline-child-p "srecode/insert"
+		  t t)
 (declare-function srecode-create-section-dictionary "srecode/dictionary")
 (declare-function srecode-dictionary-compound-variable "srecode/dictionary")
 

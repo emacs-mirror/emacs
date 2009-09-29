@@ -312,7 +312,8 @@ HISTORY is a symbol representing a variable to story the history in."
 ;; semantic-displayor-focus-abstract-child-p is part of the
 ;; semantic-displayor-focus-abstract class, defined later in this
 ;; file.
-(declare-function semantic-displayor-focus-abstract-child-p "semantic/complete")
+(declare-function semantic-displayor-focus-abstract-child-p "semantic/complete"
+		  t t)
 
 (defun semantic-complete-current-match ()
   "Calculate a match from the current completion environment.
