@@ -345,7 +345,7 @@ does not try to get a lock on the current buffer.  */)
     abort ();
 
   new_thread = (struct thread_state *) allocate_pseudovector (VECSIZE (struct thread_state),
-							      2, PVEC_THREAD);
+							      4, PVEC_THREAD);
   memset ((char *) new_thread + OFFSETOF (struct thread_state, m_gcprolist),
 	  0, sizeof (struct thread_state) - OFFSETOF (struct thread_state,
 						      m_gcprolist));
@@ -354,6 +354,8 @@ does not try to get a lock on the current buffer.  */)
   new_thread->blocked = 0;
   new_thread->nolock = !EQ (nolock, Qnil);
   new_thread->initial_specpdl = Qnil;
+  new_thread->m_last_thing_searched = Qnil; /* copy from parent? */
+  new_thread->m_saved_last_thing_searched = Qnil;
   new_thread->m_current_buffer = current_thread->m_current_buffer;
   new_thread->stack_bottom = &stack_pos;
 

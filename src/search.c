@@ -60,30 +60,6 @@ struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 struct regexp_cache *searchbuf_head;
 
 
-/* Every call to re_match, etc., must pass &search_regs as the regs
-   argument unless you can show it is unnecessary (i.e., if re_match
-   is certainly going to be called again before region-around-match
-   can be called).
-
-   Since the registers are now dynamically allocated, we need to make
-   sure not to refer to the Nth register before checking that it has
-   been allocated by checking search_regs.num_regs.
-
-   The regex code keeps track of whether it has allocated the search
-   buffer using bits in the re_pattern_buffer.  This means that whenever
-   you compile a new pattern, it completely forgets whether it has
-   allocated any registers, and will allocate new registers the next
-   time you call a searching or matching function.  Therefore, we need
-   to call re_set_registers after compiling a new pattern or after
-   setting the match registers, so that the regex functions will be
-   able to free or re-allocate it properly.  */
-static struct re_registers search_regs;
-
-/* The buffer in which the last search was performed, or
-   Qt if the last search was done in a string;
-   Qnil if no searching has been done yet.  */
-static Lisp_Object last_thing_searched;
-
 /* error condition signaled when regexp compile_pattern fails */
 
 Lisp_Object Qinvalid_regexp;
@@ -3162,12 +3138,6 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   return Qnil;
 }
 
-/* If non-zero the match data have been saved in saved_search_regs
-   during the execution of a sentinel or filter. */
-static int search_regs_saved;
-static struct re_registers saved_search_regs;
-static Lisp_Object saved_last_thing_searched;
-
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
 static void
@@ -3294,13 +3264,7 @@ syms_of_search ()
   Fput (Qinvalid_regexp, Qerror_conditions,
 	pure_cons (Qinvalid_regexp, pure_cons (Qerror, Qnil)));
   Fput (Qinvalid_regexp, Qerror_message,
-	make_pure_c_string ("Invalid regexp"));
-
-  last_thing_searched = Qnil;
-  staticpro (&last_thing_searched);
-
-  saved_last_thing_searched = Qnil;
-  staticpro (&saved_last_thing_searched);
+	build_string ("Invalid regexp"));
 
   DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
       doc: /* Regexp to substitute for bunches of spaces in regexp search.
