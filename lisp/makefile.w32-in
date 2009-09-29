@@ -83,14 +83,15 @@ COMPILE_FIRST = \
 emacs = "$(EMACS)" $(EMACSOPT)
 
 # Have to define the list of subdirs manually when not using sh.
-WINS_ALMOST=\
+WINS_CEDET=\
+	cedet/ede \
+	cedet/semantic \
+	cedet/srecode
+
+WINS_BASIC=\
 	calc \
 	calendar \
 	cedet \
-	cedet/ede \
-	cedet/semantic \
-	cedet/srecode \
-	eieio \
 	emacs-lisp \
 	emulation \
 	erc \
@@ -107,6 +108,12 @@ WINS_ALMOST=\
 	progmodes \
 	textmodes \
 	url
+
+WINS_ALMOST=$(WINS_BASIC) \
+	$(WINS_CEDET)
+
+WINS_SUBDIR=$(WINS_BASIC) \
+	obsolete
 
 WINS= $(WINS_ALMOST) \
 	term \
@@ -203,7 +210,7 @@ update-subdirs-CMD: doit
 	echo ;; In load-path, after this directory should come>> $(lisp)/subdirs.el
 	echo ;; certain of its subdirectories.  Here we specify them.>> $(lisp)/subdirs.el
 	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> $(lisp)/subdirs.el
-	@for %%d in ($(WINS)) do if not (%%d)==(term) echo "%%d">> $(lisp)/subdirs.el
+	@for %%d in ($(WINS_SUBDIR)) do echo "%%d">> $(lisp)/subdirs.el
 	echo ))>> $(lisp)/subdirs.el
 
 update-subdirs-SH: doit
