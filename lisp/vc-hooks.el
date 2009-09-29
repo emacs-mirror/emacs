@@ -517,12 +517,16 @@ status of this file."
   ;; FIXME: New (sub)states needed (?):
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (when (> (length file) 0)
+      (when (> (length file) 0)         ;Why??  --Stef
 	(setq backend (or backend (vc-backend file)))
 	(when backend
-	  (vc-file-setprop
-	   file 'vc-state
-	   (vc-call-backend backend 'state-heuristic file))))))
+          (vc-state-refresh file backend)))))
+
+(defun vc-state-refresh (file backend)
+  "Quickly recompute the `state' of FILE."
+  (vc-file-setprop
+   file 'vc-state
+   (vc-call-backend backend 'state-heuristic file)))
 
 (defsubst vc-up-to-date-p (file)
   "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
@@ -728,6 +732,8 @@ Before doing that, check if there are any old backups and get rid of them."
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 
+(defvar vc-dir-buffers nil "List of vc-dir buffers.")
+
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
   ;; If the file in the current buffer is under version control,
@@ -743,14 +749,13 @@ Before doing that, check if there are any old backups and get rid of them."
 		  ;; to avoid confusion.
 		  (vc-file-setprop file 'vc-checkout-time nil))
 	     t)
-         (vc-up-to-date-p file)
          (eq (vc-checkout-model backend (list file)) 'implicit)
-         (vc-file-setprop file 'vc-state 'edited)
-	 (vc-mode-line file backend)
-	 ;; Try to avoid unnecessary work, a *vc-dir* buffer is
-	 ;; present if and only if this is true.
-	 (when (memq 'vc-dir-resynch-file after-save-hook)
-	   (vc-dir-resynch-file file)))))
+         (vc-state-refresh file backend)
+	 (vc-mode-line file backend))
+    ;; Try to avoid unnecessary work, a *vc-dir* buffer is
+    ;; present if this is true.
+    (when vc-dir-buffers
+      (vc-dir-resynch-file file))))
 
 (defvar vc-menu-entry
   '(menu-item "Version Control" vc-menu-map

@@ -1,3 +1,17 @@
+2009-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-dir-buffers): New var.
+	(vc-state-refresh): New function.
+	(vc-state): Use it.
+	(vc-after-save): Always ask the backend to recompute the new state.
+	Always call vc-dir if necessary, using vc-dir-buffers.
+	* vc-dir.el (vc-dir-prepare-status-buffer, vc-dir-resynch-file):
+	Use vc-dir-buffers.
+	(vc-dir-mode): Use vc-dir-buffers rather than after-save-hook.
+	(vc-dir-prepare-status-buffer, vc-dir-update)
+	(vc-dir-resync-directory-files, vc-dir-resynch-file, vc-dir-mode):
+	Don't call expand-file-name on default-directory.
+
 2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* speedbar.el (speedbar-item-delete):
