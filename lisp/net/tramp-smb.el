@@ -323,7 +323,7 @@ PRESERVE-UID-GID is completely ignored."
   "Like `directory-files-and-attributes' for Tramp files."
   (mapcar
    (lambda (x)
-     (cons x (tramp-compat-handle-file-attributes
+     (cons x (tramp-compat-file-attributes
 	      (if full x (expand-file-name x directory)) id-format)))
    (directory-files directory full match nosort)))
 
