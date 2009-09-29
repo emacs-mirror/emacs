@@ -1,6 +1,6 @@
 ;;; ede-srecode.el --- EDE utilities on top of SRecoder
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -32,7 +32,7 @@
 (declare-function srecode-table "srecode/find")
 (declare-function srecode-template-get-table "srecode/find")
 (declare-function srecode-insert-fcn "srecode/insert")
-(declare-function srecode-resolve-arguments "srecode/map")
+(declare-function srecode-resolve-arguments "srecode/insert")
 (declare-function srecode-map-update-map "srecode/map")
 
 ;;; Code:
