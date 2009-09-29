@@ -304,8 +304,8 @@ whitespace.  Case does not matter.")
 
 (defvar hs-allow-nesting nil
   "*If non-nil, hiding remembers internal blocks.
-This means that when the outer block is shown again, any
-previously hidden internal blocks remain hidden.")
+This means that when the outer block is shown again,
+any previously hidden internal blocks remain hidden.")
 
 (defvar hs-hide-hook nil
   "*Hook called (with `run-hooks') at the end of commands to hide text.
@@ -315,7 +315,7 @@ a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 (defvar hs-show-hook nil
   "*Hook called (with `run-hooks') at the end of commands to show text.
 These commands include the toggling commands (when the result is to show
-a block), `hs-show-all' and `hs-show-block'..")
+a block), `hs-show-all' and `hs-show-block'.")
 
 (defvar hs-set-up-overlay nil
   "*Function called with one arg, OV, a newly initialized overlay.

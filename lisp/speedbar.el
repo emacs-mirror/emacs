@@ -1648,7 +1648,7 @@ Files can be renamed to new names or moved to new directories."
 	  (if (file-directory-p f)
 	      (delete-directory f)
 	    (delete-file f))
-	  (speedbar-message "Okie dokie..")
+	  (speedbar-message "Okie dokie.")
 	  (let ((p (point)))
 	    (speedbar-refresh)
 	    (goto-char p))

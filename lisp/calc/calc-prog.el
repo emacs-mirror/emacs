@@ -1209,7 +1209,7 @@ Redefine the corresponding command."
      (calc-pop-stack 1)
      (if (math-is-true cond)
 	 (if defining-kbd-macro
-	     (message "If true.."))
+	     (message "If true..."))
        (if defining-kbd-macro
 	   (message "Condition is false; skipping to Z: or Z] ..."))
        (calc-kbd-skip-to-else-if t)))))

@@ -253,7 +253,7 @@ a library is being loaded.")
 
 (define-key-after hi-lock-menu [highlight-lines-matching-regexp]
   '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
-              :help "Highlight lines containing match of PATTERN (a regexp).."))
+              :help "Highlight lines containing match of PATTERN (a regexp)."))
 
 (define-key-after hi-lock-menu [unhighlight-regexp]
   '(menu-item "Remove Highlighting..." unhighlight-regexp

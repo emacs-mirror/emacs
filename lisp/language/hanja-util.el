@@ -39,7 +39,7 @@ character.  This variable is initialized by `hanja-init-load'.")
 (defun hanja-init-load ()
   "Initialize `hanja-table' (which see)."
   (when (not hanja-table)
-    (message "Hanja table loading..")
+    (message "Hanja table loading...")
     (setq hanja-table (make-char-table nil))
     (mapc
      (lambda (x) (aset hanja-table (car x) (cdr x)))

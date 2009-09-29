@@ -1,3 +1,15 @@
+2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-item-delete):
+	* calc/calc-prog.el (calc-kbd-if):
+	* language/hanja-util.el (hanja-init-load): Fix typos in messages.
+
+	* epa.el (epa-key-list-mode-map):
+	* hi-lock.el (hi-lock-menu): Fix typos in menus.
+
+	* progmodes/hideshow.el (hs-allow-nesting): Reflow docstring.
+	(hs-show-hook): Fix typo in docstring.
+
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (lisptagsfiles4): New.

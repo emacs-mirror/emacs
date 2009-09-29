@@ -234,7 +234,7 @@ You should bind this variable with `let', but do not set it globally.")
       '(menu-item "Decrypt File..." epa-decrypt-file
 		  :help "Decrypt FILE"))
     (define-key menu-map [epa-encrypt-file]
-      '(menu-item "Encrypt File.." epa-encrypt-file
+      '(menu-item "Encrypt File..." epa-encrypt-file
 		  :help "Encrypt FILE for RECIPIENTS"))
     (define-key menu-map [separator-epa-key-list] '(menu-item "--"))
     (define-key menu-map [epa-key-list-delete-keys]
