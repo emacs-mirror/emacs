@@ -12,6 +12,14 @@
 
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/check-declare.el (check-declare-locate): Remove pointless
+	file-name-nondirectory call preventing location of cedet files.
+	(check-declare-verify): Use literal search rather than re-search.
+
+	* net/tramp-smb.el (tramp-smb-handle-directory-files-and-attributes):
+	Use tramp-compat-file-attributes rather than nonexistent
+	tramp-compat-handle-file-attributes.
+
 	* Makefile.in (lisptagsfiles4): New.
 	(AUTOGENEL): Add cedet loaddefs files.
 	(TAGS, TAGS-LISP): Use $lisptagsfiles4.

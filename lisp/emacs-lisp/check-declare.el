@@ -54,7 +54,7 @@ the result."
     (setq file
           (if (member (file-name-extension file) '("c" "m"))
               (expand-file-name file (expand-file-name "src" source-directory))
-            (if (setq tfile (locate-library (file-name-nondirectory file)))
+            (if (setq tfile (locate-library file))
                 (progn
                   (setq tfile
                         (replace-regexp-in-string "\\.elc\\'" ".el" tfile))
@@ -158,7 +158,7 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                   ;; sig = 'err means we could not find an arglist.
                   sig (cond (cflag
                              (or
-                              (when (re-search-forward "," nil t 3)
+                              (when (search-forward "," nil t 3)
                                 (skip-chars-forward " \t\n")
                                 ;; Assuming minargs and maxargs on same line.
                                 (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
