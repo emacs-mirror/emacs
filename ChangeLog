@@ -1,3 +1,7 @@
+2009-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (check): Update for two new levels of subdirectory in lisp/.
+
 2009-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.guess, config.sub: Updated from master source.

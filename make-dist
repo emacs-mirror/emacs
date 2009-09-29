@@ -197,8 +197,12 @@ if [ $check = yes ];
 then
   ### Check for .elc files with no corresponding .el file.
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
   ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.elc \
 	leim/[a-z]*/[a-z]*.elc > /tmp/elc
   bogosities="`comm -13 /tmp/el /tmp/elc`"
   if [ "${bogosities}" != "" ]; then
@@ -209,8 +213,12 @@ then
 
   ### Check for .el files with no corresponding .elc file.
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el > /tmp/el
   ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
+	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
+	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.elc | sed 's/\.elc$/.el/' > /tmp/elc
   losers="`comm -23 /tmp/el /tmp/elc`"
   bogosities=
