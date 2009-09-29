@@ -1,3 +1,7 @@
+2009-09-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (safe-local-eval-forms): Fix typo.
+
 2009-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-dir-buffers): New var.
