@@ -12,6 +12,9 @@
 
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/symref/idutils.el:
+	* cedet/semantic/symref/list.el: Relicense under GPLv3+.
+
 	* cedet/ede/srecode.el (srecode-resolve-arguments): Fix declaration.
 
 	* cedet/semantic/complete.el (semantic-displayor-focus-abstract-child-p):
