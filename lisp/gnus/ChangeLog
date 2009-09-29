@@ -1,3 +1,7 @@
+2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* spam-stat.el (spam-stat-load): Fix typo in message.
+
 2009-09-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-article-encrypt-body):
