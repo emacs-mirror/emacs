@@ -1,7 +1,7 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2008
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
