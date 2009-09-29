@@ -42,6 +42,7 @@ BYTE_COMPILE_EXTRA_FLAGS =
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 lisptagsfiles3 = $(lisp)/*/*/*.el
+lisptagsfiles4 = $(lisp)/*/*/*/*.el
 ETAGS = ../lib-src/etags
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
@@ -60,7 +61,10 @@ AUTOGENEL = loaddefs.el \
 	finder-inf.el \
 	subdirs.el \
 	calc/calc-loaddefs.el \
-	eshell/esh-groups.el
+	eshell/esh-groups.el \
+	cedet/semantic/loaddefs.el \
+	cedet/ede/loaddefs.el \
+	cedet/srecode/loaddefs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.
@@ -169,8 +173,8 @@ cvs-update: recompile autoloads finder-data custom-deps
 update-authors:
 	$(emacs) -l authors -f batch-update-authors $(srcdir)/etc/AUTHORS $(srcdir)
 
-TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
+TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | sed -e "s,$(lisp)/[^ ]*loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o $@ $$els
 
 .PHONY: update-elclist
@@ -185,7 +189,7 @@ TAGS TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3)
 update-elclist:
 	echo "/^ELCFILES/,/^$$/c\\" > temp.sed
 	echo "ELCFILES =" | sed -e 's/$$/ \\\\\\/' >> temp.sed
-	LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc | sed -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
+	LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc $(lisp)/*/*/*/*.elc | sed -e "s|^$(lisp)|	\$$(lisp)|" -e 's/$$/ \\\\\\/' -e '$$ s/ \\\\//' >> temp.sed
 	echo "" >> temp.sed
 	-sed -f temp.sed $(lisp)/Makefile.in > temp-elcfiles || rm temp-elcfiles
 	rm temp.sed
@@ -194,9 +198,9 @@ update-elclist:
 	  chmod +w $(lisp)/Makefile.in; \
 	  mv -f temp-elcfiles $(lisp)/Makefile.in; \
 	fi
-	-(COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc | sed 's/elc$$/el/';  \
-	  COLLATE=C ls $(lisp)/*.el  $(lisp)/*/*.el $(lisp)/*/*/*.el;  	   \
-	  COLLATE=C ls $(lisp)/*.el  $(lisp)/*/*.el $(lisp)/*/*/*.el) |	   \
+	-(LC_COLLATE=C ls $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc $(lisp)/*/*/*/*.elc | sed 's/elc$$/el/';  \
+	  LC_COLLATE=C ls $(lisp)/*.el $(lisp)/*/*.el $(lisp)/*/*/*.el $(lisp)/*/*/*/*.el; \
+	  LC_COLLATE=C ls $(lisp)/*.el $(lisp)/*/*.el $(lisp)/*/*/*.el $(lisp)/*/*/*/*.el) |	   \
 	     sort | uniq -u | while read extra; do 			   \
 	         echo "Found left over byte-compiled file: $${extra}c !!" ;\
 	     done
@@ -338,7 +342,20 @@ ELCFILES = \
 	$(lisp)/cedet/pulse.elc \
 	$(lisp)/cedet/semantic.elc \
 	$(lisp)/cedet/semantic/analyze.elc \
+	$(lisp)/cedet/semantic/analyze/complete.elc \
+	$(lisp)/cedet/semantic/analyze/debug.elc \
+	$(lisp)/cedet/semantic/analyze/fcn.elc \
+	$(lisp)/cedet/semantic/analyze/refs.elc \
 	$(lisp)/cedet/semantic/bovine.elc \
+	$(lisp)/cedet/semantic/bovine/c-by.elc \
+	$(lisp)/cedet/semantic/bovine/c.elc \
+	$(lisp)/cedet/semantic/bovine/debug.elc \
+	$(lisp)/cedet/semantic/bovine/el.elc \
+	$(lisp)/cedet/semantic/bovine/gcc.elc \
+	$(lisp)/cedet/semantic/bovine/make-by.elc \
+	$(lisp)/cedet/semantic/bovine/make.elc \
+	$(lisp)/cedet/semantic/bovine/scm-by.elc \
+	$(lisp)/cedet/semantic/bovine/scm.elc \
 	$(lisp)/cedet/semantic/chart.elc \
 	$(lisp)/cedet/semantic/complete.elc \
 	$(lisp)/cedet/semantic/ctxt.elc \
@@ -355,6 +372,8 @@ ELCFILES = \
 	$(lisp)/cedet/semantic/db.elc \
 	$(lisp)/cedet/semantic/debug.elc \
 	$(lisp)/cedet/semantic/decorate.elc \
+	$(lisp)/cedet/semantic/decorate/include.elc \
+	$(lisp)/cedet/semantic/decorate/mode.elc \
 	$(lisp)/cedet/semantic/dep.elc \
 	$(lisp)/cedet/semantic/doc.elc \
 	$(lisp)/cedet/semantic/ede-grammar.elc \
@@ -377,6 +396,12 @@ ELCFILES = \
 	$(lisp)/cedet/semantic/senator.elc \
 	$(lisp)/cedet/semantic/sort.elc \
 	$(lisp)/cedet/semantic/symref.elc \
+	$(lisp)/cedet/semantic/symref/cscope.elc \
+	$(lisp)/cedet/semantic/symref/filter.elc \
+	$(lisp)/cedet/semantic/symref/global.elc \
+	$(lisp)/cedet/semantic/symref/grep.elc \
+	$(lisp)/cedet/semantic/symref/idutils.elc \
+	$(lisp)/cedet/semantic/symref/list.elc \
 	$(lisp)/cedet/semantic/tag-file.elc \
 	$(lisp)/cedet/semantic/tag-ls.elc \
 	$(lisp)/cedet/semantic/tag-write.elc \
@@ -385,6 +410,12 @@ ELCFILES = \
 	$(lisp)/cedet/semantic/util-modes.elc \
 	$(lisp)/cedet/semantic/util.elc \
 	$(lisp)/cedet/semantic/wisent.elc \
+	$(lisp)/cedet/semantic/wisent/comp.elc \
+	$(lisp)/cedet/semantic/wisent/java-tags.elc \
+	$(lisp)/cedet/semantic/wisent/javascript.elc \
+	$(lisp)/cedet/semantic/wisent/javat-wy.elc \
+	$(lisp)/cedet/semantic/wisent/js-wy.elc \
+	$(lisp)/cedet/semantic/wisent/wisent.elc \
 	$(lisp)/cedet/srecode.elc \
 	$(lisp)/cedet/srecode/args.elc \
 	$(lisp)/cedet/srecode/compile.elc \
@@ -1465,7 +1496,7 @@ compile: $(LOADDEFS) autoloads compile-first
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always: doit
-	cd $(lisp); rm -f *.elc */*.elc */*/*.elc
+	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
 	$(MAKE) $(MFLAGS) compile EMACS=$(EMACS)
 
 ## In case any files are missing from ELCFILES.
@@ -1495,7 +1526,7 @@ compile-calc:
 
 backup-compiled-files:
 	-mv $(lisp)/elc.tar.gz $(lisp)/elc.tar.gz~
-	-tar czf $(lisp)/elc.tar.gz $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc
+	-tar czf $(lisp)/elc.tar.gz $(lisp)/*.elc $(lisp)/*/*.elc $(lisp)/*/*/*.elc $(lisp)/*/*/*/*.elc
 
 # Compile Lisp files, but save old compiled files first.
 
@@ -1593,7 +1624,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC)
 # file, we don't want to store it in the source repository).
 
 bootstrap-clean:
-	cd $(lisp); rm -f *.elc */*.elc */*/*.elc $(AUTOGENEL)
+	cd $(lisp); rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
 
 distclean:
 	-rm -f ./Makefile

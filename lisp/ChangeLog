@@ -1,3 +1,13 @@
+2009-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (lisptagsfiles4): New.
+	(AUTOGENEL): Add cedet loaddefs files.
+	(TAGS, TAGS-LISP): Use $lisptagsfiles4.
+	(update-elclist, compile-always, backup-compiled-files)
+	(bootstrap-clean): Add yet another directory level.
+	(update-elclist): Use LC_COLLATE rather than COLLATE.
+	(ELCFILES): Update, via `make update-elclist'.
+
 2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (WINS_CEDET, WINS_BASIC, WINS_SUBDIR): New macros.
@@ -7,7 +17,7 @@
 2009-09-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (lisptagsfiles3): Define.
-	(TAGS TAGS-LISP): Use it.
+	(TAGS, TAGS-LISP): Use it.
 	(update-elclist): Add third directory level to look for elc files.
 	(compile-always): Likewise.
 	(backup-compiled-files): Likewise.
