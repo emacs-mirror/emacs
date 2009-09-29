@@ -1,7 +1,7 @@
 ;;; ede-proj-prog.el --- EDE Generic Project program support
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2005, 2008
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2005, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make

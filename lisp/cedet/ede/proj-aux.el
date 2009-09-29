@@ -1,6 +1,6 @@
 ;;; ede/proj-aux.el --- EDE Generic Project auxilliary file support
 
-;;;  Copyright (C) 1998, 1999, 2000, 2007 Free Software Foundation, Inc.
+;;  Copyright (C) 1998, 1999, 2000, 2007, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
