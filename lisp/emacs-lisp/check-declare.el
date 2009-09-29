@@ -34,6 +34,8 @@
 
 ;; 1. Warn about functions marked as obsolete, eg
 ;; password-read-and-add in smime.el.
+;; 2. defmethod, defclass argument checking.
+;; 3. defclass also defines -p and -child-p.
 
 ;;; Code:
 
@@ -143,9 +145,10 @@ is a string giving details of the error."
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
                              "^[ \t]*(\\(fset[ \t]+'\\|\
-def\\(?:un\\|subst\\|foo\\|\
-ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
-\\|\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\)\\)\
+def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
+ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
+\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\
+ine-overloadable-function\\)\\)\
 \[ \t]*%s\\([ \t;]+\\|$\\)")
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
@@ -185,7 +188,8 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                               type)
                              'obsolete)
                             ;; Can't easily check arguments in these cases.
-                            ((string-match "\\`\\(defalias\\|fset\\)\\>" type)
+                            ((string-match "\\`\\(def\\(alias\\|\
+method\\|class\\)\\|fset\\)\\>" type)
                              t)
                             ((looking-at "\\((\\|nil\\)")
                              (byte-compile-arglist-signature

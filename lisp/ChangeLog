@@ -12,9 +12,17 @@
 
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/ede/srecode.el (srecode-resolve-arguments): Fix declaration.
+
+	* cedet/semantic/complete.el (semantic-displayor-focus-abstract-child-p):
+	* cedet/semantic/tag-file.el (semanticdb-table-child-p):
+	* cedet/srecode/compile.el (srecode-template-inserter-newline-child-p):
+	Mark declarations not understood by check-declare.
+
 	* emacs-lisp/check-declare.el (check-declare-locate): Remove pointless
 	file-name-nondirectory call preventing location of cedet files.
 	(check-declare-verify): Use literal search rather than re-search.
+	Add basic defmethod and defclass, and define-overloadable-function.
 
 	* net/tramp-smb.el (tramp-smb-handle-directory-files-and-attributes):
 	Use tramp-compat-file-attributes rather than nonexistent
