@@ -1,5 +1,6 @@
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/ede/proj-aux.el (ede-aux-source):
 	* cedet/ede/proj-misc.el (ede-proj-target-makefile-miscelaneous)
 	(ede-misc-source):
 	* cedet/semantic/mru-bookmark.el (semantic-mrub-completing-read)
