@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 ;;
-;; Handles a supperclass of target types which create object code in
+;; Handles a superclass of target types which create object code in
 ;; and EDE Project file.
 
 (require 'ede/proj)
