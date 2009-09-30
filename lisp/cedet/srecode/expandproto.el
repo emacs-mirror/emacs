@@ -122,7 +122,7 @@
 
     proto))
 
-(provide 'srecode-expandproto)
+(provide 'srecode/expandproto)
 
 ;; Local variables:
 ;; generated-autoload-file: "loaddefs.el"

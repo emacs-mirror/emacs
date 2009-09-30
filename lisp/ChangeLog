@@ -1,3 +1,7 @@
+2009-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/srecode/expandproto.el: Fix provide statement.
+
 2009-09-30  Eric Ludlam  <zappo@gnu.org>
 
 	* emacs-lisp/eieio.el (boolean-p): Deleted.
