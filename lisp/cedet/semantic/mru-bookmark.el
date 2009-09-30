@@ -40,7 +40,7 @@
 ;;
 ;; C-x B  <select a tag name> RET
 ;;
-;; In the above, the history is pre-filled with the tags you recenetly
+;; In the above, the history is pre-filled with the tags you recently
 ;; edited in the order you edited them.
 
 ;;; Code:
@@ -126,7 +126,7 @@ REASON is a symbol.  See slot `reason' on `semantic-bookmark'."
 	  (setq frequency (1+ frequency))
 	  )
 	(oset sbm reason reason))
-    ;; This can fail on XEmacs at miscelaneous times.
+    ;; This can fail on XEmacs at miscellaneous times.
     (error nil))
   )
 
@@ -355,7 +355,7 @@ minor mode is enabled."
 
 (defun semantic-mrub-completing-read (prompt)
   "Do a `completing-read' on elements from the mru bookmark ring.
-Argument PROMPT is the promot to use when reading."
+Argument PROMPT is the prompt to use when reading."
   (if (ring-empty-p (oref semantic-mru-bookmark-ring ring))
       (error "Semantic Bookmark ring is currently empty"))
   (let* ((ring (oref semantic-mru-bookmark-ring ring))
@@ -399,7 +399,7 @@ Argument PROMPT is the promot to use when reading."
 
 (defun semantic-mrub-switch-tags (tagmark)
   "Switch tags to TAGMARK.
-Selects a new tag via promt through the mru tag ring.
+Selects a new tag via prompt through the mru tag ring.
 Jumps to the tag and highlights it briefly."
   (interactive (list (semantic-mrub-completing-read "Switch to tag")))
   (if (not (semantic-bookmark-p tagmark))

@@ -1,5 +1,8 @@
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/mru-bookmark.el (semantic-mrub-completing-read)
+	(semantic-mrub-switch-tags): Fix doc typos.
+
 	* cedet/semantic/db-global.el (data-debug-new-buffer)
 	(data-debug-insert-thing): Remove unneeded declarations (one broken).
 	(semanticdb-enable-gnu-global-databases): Fix prompt typo.
