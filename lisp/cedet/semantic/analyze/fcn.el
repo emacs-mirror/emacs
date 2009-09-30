@@ -29,7 +29,7 @@
 (eval-when-compile (require 'semantic/find))
 
 (declare-function semanticdb-typecache-merge-streams "semantic/db-typecache")
-(declare-function semantic-scope-find name "semantic/scope")
+(declare-function semantic-scope-find "semantic/scope")
 (declare-function semantic-scope-set-typecache "semantic/scope")
 (declare-function semantic-scope-tag-get-scope "semantic/scope")
 
