@@ -171,15 +171,18 @@ It should also include other symbols GCC was compiled with.")
              (gcc-include-c++-ver (expand-file-name ver gcc-include-c++))
              (gcc-include-c++-ver-host (expand-file-name host gcc-include-c++-ver)))
         (setq c-include-path
-              (remove-if-not 'file-accessible-directory-p
-                             (list "/usr/include" gcc-include)))
+              ;; Replace cl-function remove-if-not.
+              (delq nil (mapcar (lambda (d)
+                                  (if (file-accessible-directory-p d) d))
+                                (list "/usr/include" gcc-include))))
         (setq c++-include-path
-              (remove-if-not 'file-accessible-directory-p
-                             (list "/usr/include"
-                                   gcc-include
-                                   gcc-include-c++
-                                   gcc-include-c++-ver
-                                   gcc-include-c++-ver-host)))))
+              (delq nil (mapcar (lambda (d)
+                                  (if (file-accessible-directory-p d) d))
+                                (list "/usr/include"
+                                      gcc-include
+                                      gcc-include-c++
+                                      gcc-include-c++-ver
+                                      gcc-include-c++-ver-host))))))
 
     ;;; Fix-me: I think this part might have been a misunderstanding, but I am not sure.
     ;; If this option is specified, try it both with and without prefix, and with and without host
