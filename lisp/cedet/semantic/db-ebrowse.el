@@ -2,7 +2,8 @@
 
 ;;; Copyright (C) 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
-;; Authors: Eric M. Ludlam <zappo@gnu.org>, Joakim Verona
+;; Authors: Eric M. Ludlam <zappo@gnu.org>
+;;	Joakim Verona
 ;; Keywords: tags
 
 ;; This file is part of GNU Emacs.
