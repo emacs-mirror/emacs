@@ -125,7 +125,7 @@
 		  (&optional refresh))
 (declare-function org-publish-get-project-from-filename "org-publish"
 		  (filename &optional up))
-(declare-function server-edit "server" ())
+(declare-function server-edit "server" (&optional arg))
 
 
 (defgroup org-protocol nil

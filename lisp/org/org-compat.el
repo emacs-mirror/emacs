@@ -36,8 +36,8 @@
 
 (require 'org-macs)
 
-(declare-function find-library-name "find-func"  (library))
-(declare-function w32-focus-frame   "w32-win" (frame))
+(declare-function find-library-name "find-func" (library))
+(declare-function w32-focus-frame "term/w32-win" (frame))
 
 (defconst org-xemacs-p (featurep 'xemacs)) ; not used by org.el itself
 (defconst org-format-transports-properties-p

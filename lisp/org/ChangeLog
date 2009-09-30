@@ -1,3 +1,15 @@
+2009-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* org-compat.el (w32-focus-frame):
+	* org-exp-blocks.el (R):
+	* org-exp.el (htmlize-buffer):
+	* org-protocol.el (server-edit):
+	* org-table.el (org-format-org-table-html):
+	* org.el (org-indent-mode): Fix declarations.
+
+	* org-colview.el (org-columns-uncompile-format): Avoid assignment to
+	free variable `fun'.
+
 2009-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-agenda.el (org-agenda-restore-windows-after-quit):
