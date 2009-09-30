@@ -1375,47 +1375,48 @@ Geoff Kuenning, David K@aa{}gedal, Daniel LaLiberte, Karl Landstrom,
 Mario Lang, Aaron Larson, James R.@: Larus, Vinicius Jose Latorre,
 Werner Lemberg, Frederic Lepied, Peter Liljenberg, Lars Lindberg, Chris
 Lindblad, Anders Lindgren, Thomas Link, Juri Linkov, Francis Litterio,
-Emilio C. Lopes, Károly Lőrentey, Dave Love, Sascha L@"{u}decke,
+Emilio C. Lopes, K@'{a}roly L@H{o}rentey, Dave Love, Sascha L@"{u}decke,
 Eric Ludlam, Alan Mackenzie, Christopher J.@: Madsen, Neil M.@: Mager,
 Ken Manheimer, Bill Mann, Brian Marick, Simon Marshall, Bengt
 Martensson, Charlie Martin, Thomas May, Roland McGrath, Will Mengarini,
 David Megginson, Ben A. Mesander, Wayne Mesard, Brad Miller, Lawrence
 Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan Monnier, Morioka
-Tomohiko, Keith Moore, Glenn Morris, Diane Murray, Sen Nagata, Erik
-Naggum, Thomas Neumann, Thien-Thi Nguyen, Mike Newton, Jurgen Nickelsen,
-Dan Nicolaescu, Hrvoje Niksic, Jeff Norden, Andrew Norman, Alexandre
-Oliva, Bob Olson, Michael Olson, Takaaki Ota, Pieter E.@: J.@: Pareit,
-Ross Patterson, David Pearson, Jeff Peck, Damon Anton Permezel, Tom
-Perrine, William M.@: Perry, Per Persson, Jens Petersen, Daniel
-Pfeiffer, Richard L.@: Pieri, Fred Pierresteguy, Christian Plaunt, David
-Ponce, Francesco A.@: Potorti, Michael D. Prange, Mukesh Prasad, Ken
-Raeburn, Marko Rahamaa, Ashwin Ram, Eric S. Raymond, Paul Reilly, Edward
-M. Reingold, Alex Rezinsky, Rob Riepel, David Reitter, Adrian Robert,
-Nick Roberts, Roland B.@: Roberts, John Robinson, Danny Roozendaal,
-Sebastian Rose, William Rosenblatt, Guillermo J.@: Rozas, Martin
-Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang Rupprecht, Kevin Ryde,
-James B. Salem, Masahiko Sato, Jorgen Schaefer, Holger Schauer, William
-Schelter, Ralph Schleicher, Gregor Schmid, Michael Schmidt, Ronald
-S. Schnell, Philippe Schnoebelen, Jan Schormann, Alex Schroeder, Stephen
-Schoef, Raymond Scholz, Andreas Schwab, Randal Schwartz, Oliver Seidel,
-Manuel Serrano, Hovav Shacham, Stanislav Shalunov, Marc Shapiro, Richard
-Sharman, Olin Shivers, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris
-Smith, David Smith, Paul D.@: Smith, Andre Spiegel, Michael Staats,
-William Sommerfeld, Michael Staats, Reiner Steib, Sam Steingold, Ake
-Stenhoff, Peter Stephenson, Ken Stevens, Jonathan Stigelman, Martin
-Stjernholm, Kim F.@: Storm, Steve Strassman, Olaf Sylvester, Naoto
-Takahashi, Steven Tamm, Jean-Philippe Theberge, Jens T.@: Berger
-Thielemann, Spencer Thomas, Jim Thompson, Luc Teirlinck, Tom Tromey,
-Enami Tsugutomo, Eli Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh
-Vaidheeswarran, Neil W.@: Van Dyke, Didier Verna, Ulrik Vieth, Geoffrey
-Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin
-Walters, Barry Warsaw, Morten Welinder, Joseph Brian Wells, Rodney
-Whitby, John Wiegley, Ed Wilkinson, Mike Williams, Bill Wohler, Steven
-A. Wood, Dale R.@: Worley, Francis J.@: Wright, Felix S. T. Wu, Tom
-Wurgler, Katsumi Yamaoka, Yamamoto Mitsuharu, Masatake Yamato, Jonathan
-Yavner, Ryan Yeske, Ilya Zakharevich, Milan Zamazal, Victor Zandy, Eli
-Zaretskii, Jamie Zawinski, Shenghuo Zhu, Ian T.@: Zimmermann, Reto
-Zimmermann, Neal Ziring, Teodor Zlatanov, and Detlev Zundel.
+Tomohiko, Keith Moore, Jan Moringen, Glenn Morris, Diane Murray, Sen
+Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen, Mike Newton,
+Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff Norden, Andrew
+Norman, Alexandre Oliva, Bob Olson, Michael Olson, Takaaki Ota, Pieter
+E.@: J.@: Pareit, Ross Patterson, David Pearson, Jeff Peck, Damon Anton
+Permezel, Tom Perrine, William M.@: Perry, Per Persson, Jens Petersen,
+Daniel Pfeiffer, Richard L.@: Pieri, Fred Pierresteguy, Christian
+Plaunt, David Ponce, Francesco A.@: Potorti, Michael D. Prange, Mukesh
+Prasad, Ken Raeburn, Marko Rahamaa, Ashwin Ram, Eric S. Raymond, Paul
+Reilly, Edward M. Reingold, Alex Rezinsky, Rob Riepel, David Reitter,
+Adrian Robert, Nick Roberts, Roland B.@: Roberts, John Robinson, Danny
+Roozendaal, Sebastian Rose, William Rosenblatt, Guillermo J.@: Rozas,
+Martin Rudalics, Ivar Rummelhoff, Jason Rumney, Wolfgang Rupprecht,
+Kevin Ryde, James B. Salem, Masahiko Sato, Jorgen Schaefer, Holger
+Schauer, William Schelter, Ralph Schleicher, Gregor Schmid, Michael
+Schmidt, Ronald S. Schnell, Philippe Schnoebelen, Jan Schormann, Alex
+Schroeder, Stephen Schoef, Raymond Scholz, Andreas Schwab, Randal
+Schwartz, Oliver Seidel, Manuel Serrano, Hovav Shacham, Stanislav
+Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Espen Skoglund,
+Rick Sladkey, Lynn Slater, Chris Smith, David Smith, Paul D.@: Smith,
+Andre Spiegel, Michael Staats, William Sommerfeld, Michael Staats,
+Reiner Steib, Sam Steingold, Ake Stenhoff, Peter Stephenson, Ken
+Stevens, Jonathan Stigelman, Martin Stjernholm, Kim F.@: Storm, Steve
+Strassman, Olaf Sylvester, Naoto Takahashi, Steven Tamm, Jean-Philippe
+Theberge, Jens T.@: Berger Thielemann, Spencer Thomas, Jim Thompson, Luc
+Teirlinck, Tom Tromey, Enami Tsugutomo, Eli Tziperman, Daiki Ueno,
+Masanobu Umeda, Rajesh Vaidheeswarran, Neil W.@: Van Dyke, Didier Verna,
+Joakim Verona, Ulrik Vieth, Geoffrey Voelker, Johan Vromans, Inge
+Wallin, John Paul Wallington, Colin Walters, Barry Warsaw, Morten
+Welinder, Joseph Brian Wells, Rodney Whitby, John Wiegley, Ed Wilkinson,
+Mike Williams, Bill Wohler, Steven A. Wood, Dale R.@: Worley, Francis
+J.@: Wright, Felix S. T. Wu, Tom Wurgler, Katsumi Yamaoka, Yamamoto
+Mitsuharu, Masatake Yamato, Jonathan Yavner, Ryan Yeske, Ilya
+Zakharevich, Milan Zamazal, Victor Zandy, Eli Zaretskii, Jamie Zawinski,
+Shenghuo Zhu, Ian T.@: Zimmermann, Reto Zimmermann, Neal Ziring, Teodor
+Zlatanov, and Detlev Zundel.
 @end iftex
 
 @node Intro, Glossary, Distrib, Top

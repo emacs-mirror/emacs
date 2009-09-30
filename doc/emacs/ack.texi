@@ -657,7 +657,7 @@ directory-local variables; and the @code{info-finder} feature that
 creates a virtual Info manual of package keywords.
 
 @item
-K@'{a}roly L@"{o}rentey wrote the ``multi-terminal'' code, which
+K@'{a}roly L@H{o}rentey wrote the ``multi-terminal'' code, which
 allows Emacs to run on graphical and text-only terminals
 simultaneously.
 
@@ -689,10 +689,14 @@ With Riccardo Murri he wrote @file{vc-bzr.el}, support for the Bazaar
 version control system.
 
 @item
-Eric Ludlam wrote the Speedbar package.  He also wrote
-@file{checkdoc.el}, for checking doc strings in Emacs Lisp programs;
-@file{dframe.el}, providing dedicatd frame support modes; and
-@file{ezimage.el}, a generalized way to place images over text.
+Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking
+doc strings in Emacs Lisp programs; @file{dframe.el}, providing
+dedicated frame support modes; @file{ezimage.el}, a generalized way to
+place images over text; @file{chart.el} for drawing bar charts etc; and
+the EIEIO (Enhanced Implementation of Emacs Interpreted Objects)
+package.  He was also the main author of the CEDET (Collection of Emacs
+Development Environment Tools) package.  Portions were also written by
+Jan Moringen, David Ponce, and Joakim Verona.
 
 @item
 Alan Mackenzie wrote the integrated AWK support in CC Mode, and
