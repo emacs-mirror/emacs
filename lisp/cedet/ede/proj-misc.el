@@ -31,6 +31,8 @@
 (require 'ede/proj-comp)
 
 ;;; Code:
+
+;; FIXME this isn't how you spell "miscellaneous". :(
 (defclass ede-proj-target-makefile-miscelaneous (ede-proj-target-makefile)
   ((sourcetype :initform (ede-misc-source))
    (availablecompilers :initform (ede-misc-compile))
@@ -42,7 +44,7 @@
 		"Miscellaneous sources which have a specialized makefile.
 The sub-makefile is used to build this target.")
    )
-   "Miscelaneous target type.
+   "Miscellaneous target type.
 A user-written makefile is used to build this target.
 All listed sources are included in the distribution.")
 
@@ -50,7 +52,7 @@ All listed sources are included in the distribution.")
   (ede-sourcecode "ede-misc-source"
 		  :name "Miscelaneous"
 		  :sourcepattern ".*")
-  "Miscelaneous fiels definition.")
+  "Miscellaneous field definition.")
 
 (defvar ede-misc-compile
   (ede-compiler "ede-misc-compile"
@@ -80,7 +82,7 @@ All listed sources are included in the distribution.")
 (defmethod ede-proj-makefile-insert-rules ((this ede-proj-target-makefile-miscelaneous))
   "Create the make rule needed to create an archive for THIS."
   ;; DO NOT call the next method.  We will never have any compilers,
-  ;; or any dependencies, or stuff like this.  This rull will lets us
+  ;; or any dependencies, or stuff like this.  This rule will let us
   ;; deal with it in a nice way.
   (insert (ede-name this) ": ")
   (with-slots (submakefile) this

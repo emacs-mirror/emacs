@@ -1,5 +1,7 @@
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/ede/proj-misc.el (ede-proj-target-makefile-miscelaneous)
+	(ede-misc-source):
 	* cedet/semantic/mru-bookmark.el (semantic-mrub-completing-read)
 	(semantic-mrub-switch-tags): Fix doc typos.
 
