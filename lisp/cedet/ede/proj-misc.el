@@ -1,4 +1,4 @@
-;;; ede-proj-nusc.el --- EDE Generic Project Emacs Lisp support
+;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2008, 2009
 ;;   Free Software Foundation, Inc.
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 ;;
-;; Handle miscelaneous compilable projects in and EDE Project file.
+;; Handle miscellaneous compilable projects in and EDE Project file.
 ;; This misc target lets the user link in custom makefiles to an EDE
 ;; project.
 
