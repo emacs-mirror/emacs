@@ -1015,7 +1015,7 @@ Don't set this, this is meant for dynamic scoping.")
 
 (defun org-columns-uncompile-format (cfmt)
   "Turn the compiled columns format back into a string representation."
-  (let ((rtn "") e s prop title op op-match width fmt printf)
+  (let ((rtn "") e s prop title op op-match width fmt printf fun)
     (while (setq e (pop cfmt))
       (setq prop (car e)
 	    title (nth 1 e)
