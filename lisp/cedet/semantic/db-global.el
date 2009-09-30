@@ -1,7 +1,7 @@
 ;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -40,9 +40,6 @@
 
 ;;; Code:
 
-(declare-function data-debug-new-buffer "data-debug")
-(declare-function data-debug-insert-thing result "data-debug")
-
 ;;;###autoload
 (defun semanticdb-enable-gnu-global-databases (mode)
   "Enable the use of the GNU Global SemanticDB back end for all files of MODE.
@@ -50,7 +47,7 @@ This will add an instance of a GNU Global database to each buffer
 in a GNU Global supported hierarchy."
   (interactive
    (list (completing-read
-          "Emable in Mode: " obarray
+          "Enable in Mode: " obarray
           #'(lambda (s) (get s 'mode-local-symbol-table))
           t (symbol-name major-mode))))
 
