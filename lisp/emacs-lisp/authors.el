@@ -243,6 +243,7 @@ listed.")
     "texi/Makefile.in"
     "Imakefile" "icons/sink.ico" "aixcc.lex"
     "nxml/char-name/unicode"
+    "js2-mode.el"      ; only installed very briefly, replaced by js.el
     ;; Autogen:
     "cus-load.el" "finder-inf.el" "ldefs-boot.el"
     ;; Never had any meaningful changes logged, now deleted:

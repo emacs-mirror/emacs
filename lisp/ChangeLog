@@ -1,3 +1,10 @@
+2009-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* cedet/semantic/bovine/gcc.el (semantic-gcc-setup): Replace runtime use
+	of CL function `remove-if-not'.
+
+	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
+
 2009-09-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (safe-local-eval-forms): Fix typo.
