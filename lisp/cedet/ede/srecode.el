@@ -1,4 +1,4 @@
-;;; ede-srecode.el --- EDE utilities on top of SRecoder
+;;; ede/srecode.el --- EDE utilities on top of SRecoder
 
 ;; Copyright (C) 2008, 2009  Free Software Foundation, Inc.
 
@@ -101,6 +101,6 @@ Note: Just like `srecode-insert', but templates found in 'ede app."
 
     ))
 
-(provide 'ede-srecode)
+(provide 'ede/srecode)
 
-;;; ede-srecode.el ends here
+;;; ede/srecode.el ends here

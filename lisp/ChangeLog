@@ -1,3 +1,11 @@
+2009-09-30  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio.el (boolean-p): Deleted.
+
+2009-09-30  Sascha Wilde  <wilde@sha-bang.de>
+
+	* cedet/ede/srecode.el: Fix provide statement.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* cedet/ede/proj.el (ede-proj-target-makefile-miscelaneous):

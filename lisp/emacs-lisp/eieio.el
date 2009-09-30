@@ -1393,12 +1393,6 @@ Argument FN is the function calling this verifier."
       (slot-unbound instance (object-class instance) slotname fn)
     value))
 
-;;; Missing types that are useful to me.
-;;
-(defun boolean-p (bool)
-  "Return non-nil if BOOL is nil or t."
-  (or (null bool) (eq bool t)))
-
 ;;; Get/Set slots in an object.
 ;;
 (defmacro oref (obj slot)
