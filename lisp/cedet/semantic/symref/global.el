@@ -2,8 +2,6 @@
 
 ;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <eludlam@mathworks.com>
-
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
 ;; This file is part of GNU Emacs.
