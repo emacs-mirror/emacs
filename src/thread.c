@@ -53,7 +53,7 @@ thread_schedule ()
       return;                                                   \
     }                                                           \
 
-  /* Try to wake up the thread that is holding the desired buffer.  */
+  /* Try to wake up the thread holding the desired buffer.  */
   if (current_thread->desired_buffer)
     {
       struct buffer *db = current_thread->desired_buffer;
@@ -204,26 +204,10 @@ thread_inhibit_yield_p  ()
   return inhibit_yield_counter || interrupt_input_blocked || abort_on_gc;
 }
 
-static int
-thread_bind_bufferlocal_p (struct thread_state *thread)
-{
-  register struct specbinding *bind;
-
-  for (bind = thread->m_specpdl; bind != thread->m_specpdl_ptr; bind++)
-    {
-      if (BUFFER_OBJFWDP (bind->symbol) || BUFFER_LOCAL_VALUEP (bind->symbol))
-	return 1;
-    }
-  return 0;
-}
-
 static void
 thread_yield_callback (char *end, void *ignore)
 {
-  if (!thread_inhibit_yield_p ()
-      && !thread_bind_bufferlocal_p (current_thread))
-    thread_acquire_buffer (end, current_buffer);
-  else
+  if (!thread_inhibit_yield_p ())
     reschedule (end, 1);
 }
 
