@@ -1,7 +1,7 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -45,7 +45,7 @@
 (autoload 'ede-proj-target-scheme "ede/proj-scheme"
   "Target class for a group of lisp files." nil nil)
 (autoload 'ede-proj-target-makefile-miscelaneous "ede/proj-misc"
-  "Target class for a group of miscelaneous w/ a special makefile." nil nil)
+  "Target class for a group of miscellaneous w/ a special makefile." nil nil)
 (autoload 'ede-proj-target-makefile-program "ede/proj-prog"
   "Target class for building a program." nil nil)
 (autoload 'ede-proj-target-makefile-archive "ede/proj-archive"
