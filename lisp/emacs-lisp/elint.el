@@ -420,11 +420,16 @@ Return nil if there are no more forms, t otherwise."
    ((eq (car form) 'autoload)
     (setq env (elint-env-add-func env (cadr (cadr form)) 'unknown)))
    ((eq (car form) 'declare-function)
-    (setq env (elint-env-add-func env (cadr form)
-				  (if (or (< (length form) 4)
-					  (eq (nth 3 form) t))
-				      'unknown
-				    (nth 3 form)))))
+    (setq env (elint-env-add-func
+	       env (cadr form)
+	       (if (or (< (length form) 4)
+		       (eq (nth 3 form) t)
+		       (unless (stringp (nth 2 form))
+			 (elint-error "Malformed declaration for `%s'"
+				      (cadr form))
+			 t))
+		   'unknown
+		 (nth 3 form)))))
    ((and (eq (car form) 'defalias) (listp (nth 2 form)))
     ;; If the alias points to something already in the environment,
     ;; add the alias to the environment with the same arguments.

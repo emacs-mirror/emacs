@@ -1,9 +1,14 @@
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
+	* cedet/semantic/analyze/fcn.el (semantic-scope-find): Fix declaration.
+
 	* cedet/semantic/bovine/gcc.el (semantic-gcc-setup): Replace runtime use
 	of CL function `remove-if-not'.
 
 	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
+
+	* emacs-lisp/elint.el (elint-init-form): Report declarations where the
+	filename is not a string.
 
 2009-09-29  Chong Yidong  <cyd@stupidchicken.com>
 
