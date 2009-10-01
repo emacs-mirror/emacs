@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; Utilities that may not require project specific help, and oporate
+;; Utilities that may not require project specific help, and operate
 ;; on generic EDE structures.  Provide user level commands for activities
 ;; not directly related to source code organization or makefile generation.
 
