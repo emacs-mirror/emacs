@@ -87,6 +87,7 @@
      "NT_STATUS_ACCOUNT_LOCKED_OUT"
      "NT_STATUS_BAD_NETWORK_NAME"
      "NT_STATUS_CANNOT_DELETE"
+     "NT_STATUS_CONNECTION_REFUSED"
      "NT_STATUS_DIRECTORY_NOT_EMPTY"
      "NT_STATUS_DUPLICATE_NAME"
      "NT_STATUS_FILE_IS_A_DIRECTORY"
@@ -248,10 +249,19 @@ PRESERVE-UID-GID is completely ignored."
 	       v 0 "Copying file %s to file %s...done" filename newname)
 	    (tramp-error v 'file-error "Cannot copy `%s'" filename)))))))
 
-(defun tramp-smb-handle-delete-directory (directory)
+(defun tramp-smb-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (setq directory (directory-file-name (expand-file-name directory)))
   (when (file-exists-p directory)
+    (if recursive
+	(mapc
+	 (lambda (file)
+	   (if (file-directory-p file)
+	       (delete-directory file recursive)
+	     (delete-file file)))
+	 ;; We do not want to delete "." and "..".
+	 (directory-files
+	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
     (with-parsed-tramp-file-name directory nil
       ;; We must also flush the cache of the directory, because
       ;; file-attributes reads the values from there.
