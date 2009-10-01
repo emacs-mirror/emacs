@@ -1091,6 +1091,7 @@ ELCFILES = \
 	$(lisp)/org/org-clock.elc \
 	$(lisp)/org/org-colview.elc \
 	$(lisp)/org/org-compat.elc \
+	$(lisp)/org/org-crypt.elc \
 	$(lisp)/org/org-docbook.elc \
 	$(lisp)/org/org-exp-blocks.elc \
 	$(lisp)/org/org-exp.elc \
@@ -1113,6 +1114,7 @@ ELCFILES = \
 	$(lisp)/org/org-macs.elc \
 	$(lisp)/org/org-mew.elc \
 	$(lisp)/org/org-mhe.elc \
+	$(lisp)/org/org-mobile.elc \
 	$(lisp)/org/org-mouse.elc \
 	$(lisp)/org/org-plot.elc \
 	$(lisp)/org/org-protocol.elc \

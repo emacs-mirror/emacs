@@ -1,3 +1,7 @@
+2009-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (ELCFILES): Regenerate.
+
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (interactive-p): Mark obsolete.
