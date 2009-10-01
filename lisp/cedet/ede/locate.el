@@ -34,7 +34,7 @@
 ;; projects are completely controlled by EDE, such sh the Project.ede
 ;; based projects.
 ;;
-;; For other projects, haveing a "quick hack" to support these location
+;; For other projects, having a "quick hack" to support these location
 ;; routines is handy.
 ;;
 ;; The baseclass `ede-locate-base' provides the abstract interface to
