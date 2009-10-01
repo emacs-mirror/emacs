@@ -39,8 +39,10 @@ world-readable install.
 * Startup Changes in Emacs 23.2
 
 ** Command-line option -Q (--quick) now also disables loading X resources.
-On Windows, this option causes Emacs to ignore Registry settings,
-though environment variables set on the Registry are still honored.
+Note however that this does not affect Lucid or Motif widgets, if you
+are using those toolkits.  On Windows, this option causes Emacs to
+ignore Registry settings, though environment variables set on the
+Registry are still honored.
 
 *** The new variable `inhibit-x-resources' shows whether X resources
 were loaded.
