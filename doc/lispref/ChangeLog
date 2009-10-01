@@ -1,7 +1,11 @@
+2009-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Declaring Functions): Mention that we also search for
+	".m" files in the src/ directory.
+
 2009-09-25  David Engster  <deng@randomsample.de>
 
-	* display.texi (Managing Overlays): Document
-	copy-overlay (Bug#4549).
+	* display.texi (Managing Overlays): Document copy-overlay (Bug#4549).
 
 2009-09-22  Glenn Morris  <rgm@gnu.org>
 

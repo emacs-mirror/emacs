@@ -1312,11 +1312,11 @@ definition using @code{locate-library}; if that finds no file, they
 expand the definition file name relative to the directory of the file
 that contains the @code{declare-function} call.
 
-  You can also say that a function is defined by C code by specifying
-a file name ending in @samp{.c}.  @code{check-declare-file} looks for
-these files in the C source code directory.  This is useful only when
-you call a function that is defined only on certain systems.  Most
-of the primitive functions of Emacs are always defined so they will
+  You can also say that a function is defined by C code by specifying a
+file name ending in @samp{.c} or @samp{.m}.  @code{check-declare-file}
+looks for these files in the C source code directory.  This is useful
+only when you call a function that is defined only on certain systems.
+Most of the primitive functions of Emacs are always defined so they will
 never give you a warning.
 
   Sometimes a file will optionally use functions from an external package.
