@@ -1,6 +1,5 @@
 2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
-	* international/charprop.el:
 	* international/uni-bidi.el:
 	* international/uni-category.el:
 	* international/uni-combining.el:
