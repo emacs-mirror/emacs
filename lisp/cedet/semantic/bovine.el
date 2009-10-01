@@ -22,13 +22,13 @@
 
 ;;; Commentary:
 ;;
-;; Semantix 1.x uses an LL parser named the "bovinator".  This parser
+;; Semantic 1.x uses an LL parser named the "bovinator".  This parser
 ;; had several conveniences in it which made for parsing tags out of
 ;; languages with list characters easy.  This parser lives on as one
 ;; of many available parsers for semantic the tool.
 ;;
 ;; This parser should be used when the language is simple, such as
-;; makefiles or other data-declaritive langauges.
+;; makefiles or other data-declarative languages.
 
 ;;; Code:
 (require 'semantic)
