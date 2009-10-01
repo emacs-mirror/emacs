@@ -3583,6 +3583,7 @@ The method used must be an out-of-band method."
   "Like `make-directory' for Tramp files."
   (setq dir (expand-file-name dir))
   (with-parsed-tramp-file-name dir nil
+    (tramp-flush-directory-property v (file-name-directory localname))
     (save-excursion
       (tramp-barf-unless-okay
        v
@@ -3591,14 +3592,17 @@ The method used must be an out-of-band method."
 	       (tramp-shell-quote-argument localname))
        "Couldn't make directory %s" dir))))
 
-(defun tramp-handle-delete-directory (directory)
+(defun tramp-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (setq directory (expand-file-name directory))
   (with-parsed-tramp-file-name directory nil
     (tramp-flush-directory-property v localname)
     (unless (zerop (tramp-send-command-and-check
 		    v
-		    (format "rmdir %s" (tramp-shell-quote-argument localname))))
+		    (format
+		     "%s %s"
+		     (if recursive "rm -rf" "rmdir")
+		     (tramp-shell-quote-argument localname))))
       (tramp-error v 'file-error "Couldn't delete %s" directory))))
 
 (defun tramp-handle-delete-file (filename)
@@ -3620,7 +3624,6 @@ The method used must be an out-of-band method."
   "Recursively delete the directory given.
 This is like `dired-recursive-delete-directory' for Tramp files."
   (with-parsed-tramp-file-name filename nil
-    (tramp-flush-directory-property v localname)
     ;; Run a shell command 'rm -r <localname>'
     ;; Code shamelessly stolen from the dired implementation and, um, hacked :)
     (unless (file-exists-p filename)
@@ -3635,6 +3638,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
     ;; This might take a while, allow it plenty of time.
     (tramp-wait-for-output (tramp-get-connection-process v) 120)
     ;; Make sure that it worked...
+    (tramp-flush-directory-property v localname)
     (and (file-exists-p filename)
 	 (tramp-error
 	  v 'file-error "Failed to recursively delete %s" filename))))
