@@ -2526,23 +2526,19 @@ nil, do not delete.
 `always', delete recursively without asking.
 `top', ask for each directory at top level.
 Anything else, ask for each sub-directory."
-  (let (files)
-     ;; This test is equivalent to
-     ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
-     ;; but more efficient
-    (if (not (eq t (car (file-attributes file))))
-	(delete-file file)
-      (when (and recursive
-	       (setq files
-		     (directory-files file t dired-re-no-dot)) ; Not empty.
-	       (or (eq recursive 'always)
-		   (yes-or-no-p (format "Recursive delete of %s? "
-					(dired-make-relative file)))))
+  ;; This test is equivalent to
+  ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
+  ;; but more efficient
+  (if (not (eq t (car (file-attributes file))))
+      (delete-file file)
+    (if (and recursive
+	     (directory-files file t dired-re-no-dot) ; Not empty.
+	     (or (eq recursive 'always)
+		 (yes-or-no-p (format "Recursive delete of %s? "
+				      (dired-make-relative file)))))
 	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask again.
-	(while files		; Recursively delete (possibly asking).
-	    (dired-delete-file (car files) recursive)
-	    (setq files (cdr files))))
-      (delete-directory file))))
+      (setq recursive nil))
+    (delete-directory file recursive)))
 
 (defun dired-do-flagged-delete (&optional nomessage)
   "In Dired, delete the files flagged for deletion.
