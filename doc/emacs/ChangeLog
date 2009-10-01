@@ -1,3 +1,8 @@
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Directories): delete-directory prompts for recursive
+	deletion.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments):
