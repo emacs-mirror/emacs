@@ -100,13 +100,15 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   ;; Handle symbols aliased to other symbols.
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; If definition is a macro, find the function inside it.
-  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
-  (cond
-   ((byte-code-function-p def) (aref def 0))
-   ((eq (car-safe def) 'lambda) (nth 1 def))
-   ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
-    "[Arg list not available until function definition is loaded.]")
-   (t t)))
+  (let ((advertised (gethash def advertised-signature-table t)))
+    (if (listp advertised) advertised
+      (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+      (cond
+       ((byte-code-function-p def) (aref def 0))
+       ((eq (car-safe def) 'lambda) (nth 1 def))
+       ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
+        "[Arg list not available until function definition is loaded.]")
+       (t t)))))
 
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)

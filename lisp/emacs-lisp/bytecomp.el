@@ -1230,11 +1230,11 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;;; sanity-checking arglists
 
-;; If a function has an entry saying (FUNCTION . t).
-;; that means we know it is defined but we don't know how.
-;; If a function has an entry saying (FUNCTION . nil),
-;; that means treat it as not defined.
 (defun byte-compile-fdefinition (name macro-p)
+  ;; If a function has an entry saying (FUNCTION . t).
+  ;; that means we know it is defined but we don't know how.
+  ;; If a function has an entry saying (FUNCTION . nil),
+  ;; that means treat it as not defined.
   (let* ((list (if macro-p
 		   byte-compile-macro-environment
 		 byte-compile-function-environment))
@@ -1248,16 +1248,18 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 			  (and (not macro-p)
 			       (byte-code-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
-	  (if (and (not macro-p) (byte-code-function-p fn))
-	      fn
-	    (and (consp fn)
-		 (if (eq 'macro (car fn))
-		     (cdr fn)
-		   (if macro-p
-		       nil
-		     (if (eq 'autoload (car fn))
-			 nil
-		       fn)))))))))
+          (let ((advertised (gethash fn advertised-signature-table t)))
+            (cond
+             ((listp advertised)
+              (if macro-p
+                  `(macro lambda ,advertised)
+                `(lambda ,advertised)))
+             ((and (not macro-p) (byte-code-function-p fn)) fn)
+             ((not (consp fn)) nil)
+             ((eq 'macro (car fn)) (cdr fn))
+             (macro-p nil)
+             ((eq 'autoload (car fn)) nil)
+             (t fn)))))))
 
 (defun byte-compile-arglist-signature (arglist)
   (let ((args 0)

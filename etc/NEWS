@@ -246,6 +246,8 @@ Command*'.
 
 * Lisp changes in Emacs 23.2
 
+** New function set-advertised-calling-convention makes it possible
+to obsolete arguments as well as make some arguments mandatory.
 ** eval-next-after-load is obsolete.
 ** New hook `after-load-functions' run after loading an Elisp file.
 

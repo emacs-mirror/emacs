@@ -1,3 +1,15 @@
+2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (advertised-signature-table): New var.
+	(set-advertised-calling-convention): New function.
+	(make-obsolete, define-obsolete-function-alias)
+	(make-obsolete-variable, define-obsolete-variable-alias):
+	Make the optional-ness of `when' obsolete.
+	(define-obsolete-face-alias): Make `when' non-optional.
+	* help-fns.el (help-function-arglist):
+	* emacs-lisp/bytecomp.el (byte-compile-fdefinition):
+	Use advertised-signature-table.
+
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (delete-directory): New defun.  The original function
@@ -11,16 +23,15 @@
 
 	* net/tramp.el (tramp-handle-make-directory): Flush upper
 	directory's file properties.
-	(tramp-handle-delete-directory): Handle optional parameter
-	RECURSIVE.
+	(tramp-handle-delete-directory): Handle optional parameter RECURSIVE.
 	(tramp-handle-dired-recursive-delete-directory): Flush directory
 	properties after the remove command only.
 
-	* net/tramp-fish.el (tramp-fish-handle-delete-directory): Handle
-	optional parameter RECURSIVE.
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory):
+	Handle optional parameter RECURSIVE.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-directory): Handle
-	optional parameter RECURSIVE.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-directory):
+	Handle optional parameter RECURSIVE.
 
 	* net/tramp-smb.el (tramp-smb-errors): Add error message for
 	connection timeout.
