@@ -63,7 +63,7 @@
 	      :custom (repeat (string :tag "File"))
 	      :label "Auxiliary Source Files"
 	      :group (default source)
-	      :documentation "Auxilliary source files included in this target.
+	      :documentation "Auxiliary source files included in this target.
 Each of these is considered equivalent to a source file, but it is not
 distributed, and each should have a corresponding rule to build it.")
    (dirty :initform nil
@@ -367,7 +367,7 @@ Argument TARGET is the project we are completing customization on."
 	 )
 
     (when (not fcn)
-      (error "Unknown target type %s for EDE Project." type))
+      (error "Unknown target type %s for EDE Project" type))
 
     (setq ot (funcall fcn name :name name
 		      :path (ede-convert-path this default-directory)

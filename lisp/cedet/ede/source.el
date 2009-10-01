@@ -139,7 +139,7 @@ Used to guess header files, but uses the auxsource regular expression."
   (object-assoc name :name ede-sourcecode-list))
 
 (defun ede-source-match (file)
-  "Find the list of soucecode objects which matches FILE."
+  "Find the list of sourcecode objects which matches FILE."
   (let ((lst ede-sourcecode-list)
 	(match nil))
     (while lst

@@ -39,6 +39,17 @@
 	* cedet/semantic.el (semantic-minimum-working-buffer-size)
 	(semantic-fetch-tags, semantic-submode-list)
 	(semantic-default-submodes):
+	* cedet/ede/source.el (ede-source-match):
+	* cedet/ede/project-am.el (project-am-type-alist, project-add-file)
+	(project-am-package-info):
+	* cedet/ede/proj.el (ede-proj-target, project-new-target):
+	* cedet/ede/proj-elisp.el (ede-proj-tweak-autoconf):
+	* cedet/ede/proj-comp.el (ede-current-build-list):
+	* cedet/ede/makefile-edit.el (makefile-move-to-macro):
+	* cedet/ede/files.el (ede-toplevel-project-or-nil):
+	* cedet/ede/cpp-root.el (initialize-instance):
+	* cedet/ede/autoconf-edit.el (autoconf-find-last-macro)
+	(autoconf-parameter-strip, autoconf-insert-new-macro):
 	* cedet/srecode/table.el (srecode-mode-table-new):
 	* cedet/srecode/srt.el (srecode-read-variable-name):
 	* cedet/srecode/srt-mode.el (srecode-macro-help, srecode-in-macro-p):

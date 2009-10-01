@@ -290,7 +290,7 @@ This depends on an up to date `ede-project-class-files' variable."
 ;;
 (defun ede-toplevel-project-or-nil (dir)
   "Starting with DIR, find the toplevel project directory, or return nil.
-nil is returned if the current directory is not a part ofa project."
+nil is returned if the current directory is not a part of a project."
   (let* ((ans (ede-directory-get-toplevel-open-project dir)))
     (if ans
 	(oref ans :directory)

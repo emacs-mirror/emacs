@@ -1,6 +1,6 @@
 ;;; ede/autoconf-edit.el --- Keymap for autoconf
 
-;;; Copyright (C) 1998, 1999, 2000, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2009  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -152,7 +152,7 @@ From the autoconf manual:
     (looking-at (concat "\\(A[CM]_" macro "\\|" macro "\\)"))))
 
 (defun autoconf-find-last-macro (macro)
-  "Move to the last occurance of MACRO in FILE, and return that point.
+  "Move to the last occurrence of MACRO in FILE, and return that point.
 The last macro is usually the one in which we would like to insert more
 items such as CHECK_HEADERS."
   (let ((op (point)))
@@ -165,7 +165,7 @@ items such as CHECK_HEADERS."
       nil)))
 
 (defun autoconf-parameter-strip (param)
-  "Strip the parameter PARAM  of whitespace and misc characters."
+  "Strip the parameter PARAM  of whitespace and miscellaneous characters."
   (when (string-match "^\\s-*\\[?\\s-*" param)
     (setq param (substring param (match-end 0))))
   (when (string-match "\\s-*\\]?\\s-*$" param)
@@ -227,7 +227,7 @@ Optional argument PARAM is the parameter to pass to the macro as one string."
 	 (autoconf-insert-macro-at-point macro param))
 	((member macro autoconf-multiple-multiple-macros)
 	 (if (not param)
-	     (error "You must have a paramter for %s" macro))
+	     (error "You must have a parameter for %s" macro))
 	 (if (not (autoconf-find-last-macro macro))
 	     (progn
 	       ;; Doesn't exist yet....

@@ -30,7 +30,7 @@
 ;;
 ;; The cpp-root project type will allow you to create a single object
 ;; with no save-file in your .emacs file that will be recognized, and
-;; provide a way to easilly allow EDE to provide Semantic with the
+;; provide a way to easily allow EDE to provide Semantic with the
 ;; ability to find header files, and other various source files
 ;; quickly.
 ;;
@@ -42,7 +42,7 @@
 ;;
 ;;; EXAMPLE
 ;;
-;; Add this to your .emacs file, modifying apropriate bits as needed.
+;; Add this to your .emacs file, modifying appropriate bits as needed.
 ;;
 ;; (ede-cpp-root-project "SOMENAME" :file "/dir/to/some/file")
 ;;
@@ -109,7 +109,7 @@
 ;; `ede-project-class-files' list, and also provide two functions to
 ;; teach EDE how to load your project pattern
 ;;
-;; It would oook like this:
+;; It would look like this:
 ;;
 ;; (defun MY-FILE-FOR-DIR (&optional dir)
 ;;   "Return a full file name to the project file stored in DIR."
@@ -349,7 +349,7 @@ Each directory needs a a project file to control it.")
     (when (or (not (file-exists-p f))
 	      (file-directory-p f))
       (delete-instance this)
-      (error ":file for ede-cpp-root must be a file."))
+      (error ":file for ede-cpp-root must be a file"))
     (oset this :file f)
     (oset this :directory (file-name-directory f))
     (ede-project-directory-remove-hash (file-name-directory f))

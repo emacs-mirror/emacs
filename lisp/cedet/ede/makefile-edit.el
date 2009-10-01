@@ -1,6 +1,6 @@
 ;;; makefile-edit.el --- Makefile editing/scanning commands.
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -75,7 +75,7 @@
 ;;
 (defun makefile-move-to-macro (macro &optional next)
   "Move to the definition of MACRO.  Return t if found.
-If NEXT is non-nil, move to the next occurance of MACRO."
+If NEXT is non-nil, move to the next occurrence of MACRO."
   (let ((oldpt (point)))
     (when (not next) (goto-char (point-min)))
     (if (re-search-forward (concat "^\\s-*" macro "\\s-*[+:?]?=") nil t)

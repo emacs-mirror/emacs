@@ -1,7 +1,7 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;;; Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.0.3
@@ -105,7 +105,7 @@
     )
   "Alist of type names and the type of object to create for them.
 Each entry is of th form:
-  (EMACSNAME CLASS AUToMAKEVAR INDIRECT)
+  (EMACSNAME CLASS AUTOMAKEVAR INDIRECT)
 where EMACSNAME is a name for Emacs to use.
 CLASS is the EDE target class to represent the target.
 AUTOMAKEVAR is the Automake variable to identify.  This cannot be a
@@ -188,7 +188,7 @@ question lists other variables that need to be looked up.")
 (defmethod project-add-file ((ot project-am-target))
   "Add the current buffer into a project.
 OT is the object target.  DIR is the directory to start in."
-  (let* ((target (if ede-object (error "Already assocated w/ a target")
+  (let* ((target (if ede-object (error "Already associated w/ a target")
 		   (let ((amf (project-am-load default-directory)))
 		     (if (not amf) (error "No project file"))
 		     (completing-read "Target: "
@@ -984,7 +984,7 @@ Kill the Configure buffer if it was not already in a buffer."
 
 (defun project-am-package-info (dir)
   "Get the package information for directory topmost project dir over DIR.
-Calcultes the info with `project-am-extract-package-info'."
+Calculates the info with `project-am-extract-package-info'."
   (let ((top (ede-toplevel)))
     (when top (setq dir (oref top :directory)))
     (project-am-extract-package-info dir)))

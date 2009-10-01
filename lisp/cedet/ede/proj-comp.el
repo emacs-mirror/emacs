@@ -1,7 +1,7 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;;; Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2009
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2009
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -31,7 +31,7 @@
 ;; source code.  Users can also define new compiler types whenever they
 ;; some customized behavior.
 ;;
-;; The `ede-makefile-rule' class lets users add customized rules into thier
+;; The `ede-makefile-rule' class lets users add customized rules into their
 ;; objects, and also lets different compilers add chaining rules to their
 ;; behaviors.
 ;;
@@ -169,7 +169,7 @@ Adds this rule to a .PHONY list."))
 
 (defvar ede-current-build-list nil
   "List of EDE compilers that have already inserted parts of themselves.
-This is used when creating a Makefile to prevend duplicate variables and
+This is used when creating a Makefile to prevent duplicate variables and
 rules from being created.")
 
 (defmethod initialize-instance :AFTER ((this ede-compiler) &rest fields)
