@@ -1,3 +1,7 @@
+2009-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* url-http.el (url-dav-file-attributes): Fix declaration.
+
 2009-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-handlers.el (url-copy-file): Add fifth arg for compatibility

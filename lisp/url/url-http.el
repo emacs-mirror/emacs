@@ -1,7 +1,7 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007,
-;;   2008, 2009  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008,
+;;   2009  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -1272,7 +1272,7 @@ CBARGS as the arguments."
            nil nil nil)          ;whether gid would change ; inode ; device.
         (kill-buffer buffer)))))
 
-(declare-function url-dav-file-attributes (url &optional id-format))
+(declare-function url-dav-file-attributes "url-dav" (url &optional id-format))
 
 ;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
