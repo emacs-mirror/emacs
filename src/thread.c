@@ -142,6 +142,11 @@ mark_one_thread (struct thread_state *thread)
       XSETBUFFER (tem, thread->m_current_buffer);
       mark_object (tem);
     }
+
+  mark_object (thread->m_last_thing_searched);
+
+  if (thread->m_saved_last_thing_searched)
+    mark_object (thread->m_saved_last_thing_searched);
 }
 
 static void
@@ -465,6 +470,7 @@ init_threads (void)
   primary_thread.pthread_id = pthread_self ();
   primary_thread.nolock = 0;
   primary_thread.blocked = 0;
+  primary_thread.m_last_thing_searched = Qnil;
   next_thread = primary_thread.pthread_id;
 }
 
