@@ -1,3 +1,7 @@
+2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffers.texi (Swapping Text): Minor clarification.
+
 2009-10-01  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Declaring Functions): Mention that we also search for
