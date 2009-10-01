@@ -4631,6 +4631,38 @@ this happens by default."
 	  (while create-list
 	    (make-directory-internal (car create-list))
 	    (setq create-list (cdr create-list))))))))
+
+(defun delete-directory (directory &optional recursive)
+  "Delete the directory named DIRECTORY.  Does not follow symlinks.
+If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
+  (interactive
+   (let ((dir (expand-file-name
+	       (read-file-name
+		"Delete directory: "
+		default-directory default-directory nil nil))))
+     (list dir
+	   (if (directory-files
+		dir nil "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")
+	       (y-or-n-p
+		(format "Directory `%s' is not empty, really delete? " dir))
+	     nil))))
+  ;; If default-directory is a remote directory,
+  ;; make sure we find its delete-directory handler.
+  (setq directory (directory-file-name (expand-file-name directory)))
+  (let ((handler (find-file-name-handler directory 'delete-directory)))
+    (if handler
+	(funcall handler 'delete-directory directory recursive)
+      (if (and recursive (not (file-symlink-p directory)))
+	  (mapc
+	   (lambda (file)
+	     (if (file-directory-p file)
+		 (delete-directory file recursive)
+	       (delete-file file)))
+	   ;; We do not want to delete "." and "..".
+	   (directory-files
+	    directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
+      (delete-directory-internal directory))))
+
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
