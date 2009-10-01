@@ -1,7 +1,7 @@
 2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.texi (Directories): delete-directory has an optional
-	parameter RECURSIVE.
+	* files.texi (Create/Delete Dirs): delete-directory has an
+	optional parameter RECURSIVE.
 
 2009-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
