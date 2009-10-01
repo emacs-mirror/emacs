@@ -2501,11 +2501,12 @@ if they don't already exist.
 @code{mkdir} is an alias for this.
 @end deffn
 
-@deffn Command delete-directory dirname
+@deffn Command delete-directory dirname &optional recursive
 This command deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
-must use @code{delete-directory} for them.  If the directory contains
-any files, @code{delete-directory} signals an error.
+must use @code{delete-directory} for them.  If @var{recursive} is
+@code{nil}, and the directory contains any files,
+@code{delete-directory} signals an error.
 
 @code{delete-directory} only follows symbolic links at the level of
 parent directories.
