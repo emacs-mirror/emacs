@@ -1,3 +1,7 @@
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: delete-directory has an optional parameter RECURSIVE.
+
 2009-10-01  Carsten Dominik  <dominik@u016822.science.uva.nl>
 
 	* refcards/orgcard.tex: New version number.
